@@ -1194,6 +1194,136 @@ describe('PriceAdvanced', () => {
         }),
       );
     });
+
+    it('passes webViewInstanceKey and onChartLayoutSettled when technical indicators FF is ON', () => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartIntervalActual) return '15m';
+        if (selector === selectTokenOverviewChartType) return ChartType.Candles;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return true;
+        }
+        return ChartType.Candles;
+      });
+
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const advancedChart = getByTestId('mock-advanced-chart');
+
+      expect(advancedChart.props.webViewInstanceKey).toEqual(
+        expect.stringMatching(/\|USD$/),
+      );
+      expect(advancedChart.props.onChartLayoutSettled).toBeInstanceOf(Function);
+    });
+
+    it('does not pass webViewInstanceKey or onChartLayoutSettled when technical indicators FF is OFF', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+      const advancedChart = getByTestId('mock-advanced-chart');
+
+      expect(advancedChart.props.webViewInstanceKey).toBeUndefined();
+      expect(advancedChart.props.onChartLayoutSettled).toBeUndefined();
+    });
+
+    it('ends interval visibility trace via onChartLayoutSettled after first reveal when FF is ON', () => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartIntervalActual) return '15m';
+        if (selector === selectTokenOverviewChartType) return ChartType.Candles;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return true;
+        }
+        return ChartType.Candles;
+      });
+
+      const { getByTestId, rerender } = render(
+        <PriceAdvanced {...baseProps} />,
+      );
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
+      mockEndTrace.mockClear();
+      mockTrace.mockClear();
+
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartIntervalActual) return '1h';
+        if (selector === selectTokenOverviewChartType) return ChartType.Candles;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return true;
+        }
+        return ChartType.Candles;
+      });
+
+      rerender(<PriceAdvanced {...baseProps} />);
+
+      expect(mockTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.stringContaining('Time Range Visible'),
+        }),
+      );
+
+      mockEndTrace.mockClear();
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
+      expect(mockEndTrace).not.toHaveBeenCalled();
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onChartLayoutSettled?.();
+      });
+
+      expect(mockEndTrace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: expect.stringContaining('Time Range Visible'),
+        }),
+      );
+    });
+
+    it('passes isLoading=false to AdvancedChart after first reveal while refetching when FF is ON', () => {
+      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
+      (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
+        if (selector === selectTokenIndicatorsActual) return [];
+        if (selector === selectTokenOverviewChartIntervalActual) return '15m';
+        if (selector === selectTokenOverviewChartType) return ChartType.Candles;
+        if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
+          return true;
+        }
+        return ChartType.Candles;
+      });
+
+      mockUseOHLCVChart.mockReturnValue({
+        ohlcvData: [
+          ...ohlcvPaddingThree,
+          { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+        ],
+        isLoading: true,
+        error: undefined,
+        hasMore: false,
+        nextCursor: null,
+        hasEmptyData: false,
+      });
+
+      const { getByTestId, rerender } = render(
+        <PriceAdvanced {...baseProps} />,
+      );
+
+      expect(getByTestId('mock-advanced-chart').props.isLoading).toBe(true);
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
+      expect(getByTestId('mock-advanced-chart').props.isLoading).toBe(false);
+
+      rerender(<PriceAdvanced {...baseProps} />);
+
+      expect(getByTestId('mock-advanced-chart').props.isLoading).toBe(false);
+    });
   });
 
   describe('ambient color logic', () => {
