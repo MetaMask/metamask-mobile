@@ -10,7 +10,6 @@ import {
   type QuickBuySheetSource,
 } from '../../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
 import { useSocialLeaderboardAnalytics } from '../../../../Views/SocialLeaderboard/analytics';
-import { useExploreQuickBuyBridgeFeatureId } from '../../hooks/useExploreQuickBuyBridgeFeatureId/useExploreQuickBuyBridgeFeatureId';
 
 export interface TrendingQuickBuyProps {
   token: TrendingAsset | null;
@@ -26,8 +25,6 @@ const TrendingQuickBuy: React.FC<TrendingQuickBuyProps> = ({
 }) => {
   const { track } = useSocialLeaderboardAnalytics();
   const prevTokenRef = useRef<TrendingAsset | null>(null);
-
-  useExploreQuickBuyBridgeFeatureId(!!token);
 
   const target = useMemo((): QuickBuyTarget | null => {
     if (!token) return null;

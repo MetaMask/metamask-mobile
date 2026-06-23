@@ -36,6 +36,7 @@ import {
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
 } from '../../../../Views/TrendingView/search/abTestConfig';
 import type { QuickBuySheetSource } from '../../../../Views/SocialLeaderboard/analytics';
+import { useQuickBuySearchKeyboard } from '../../hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 
 export type TrendingTokensFullViewEntryPoint =
   | 'crypto_movers'
@@ -265,6 +266,11 @@ const TrendingTokensFullView = () => {
     setQuickTradeToken(null);
   }, []);
 
+  useQuickBuySearchKeyboard(
+    quickBuyVariant.showQuickTradeButton ? quickTradeToken : null,
+    closeQuickBuy,
+  );
+
   const timeFilterButton = (
     <FilterButton
       testID="24h-button"
@@ -297,10 +303,6 @@ const TrendingTokensFullView = () => {
       }
       onQuickTrade={
         quickBuyVariant.showQuickTradeButton ? setQuickTradeToken : undefined
-      }
-      quickTradeToken={quickTradeToken}
-      onCloseQuickBuy={
-        quickBuyVariant.showQuickTradeButton ? closeQuickBuy : undefined
       }
       quickBuyNode={
         <TrendingQuickBuy

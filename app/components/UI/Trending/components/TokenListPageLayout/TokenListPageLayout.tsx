@@ -16,9 +16,6 @@ import { TrendingTokensData } from '../../Views/TrendingTokensFullView/TrendingT
 import type { TrendingAsset } from '@metamask/assets-controllers';
 import type { ProcessedNetwork } from '../../../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import type { TokenListFilters } from '../../hooks/useTokenListFilters/useTokenListFilters';
-import { useQuickBuySearchKeyboard } from '../../hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
-
-const noop = (): void => undefined;
 
 export interface TokenListPageLayoutProps {
   /** Page title displayed in the header */
@@ -47,10 +44,6 @@ export interface TokenListPageLayoutProps {
   isLoadingMore?: boolean;
   /** When provided, shows a Quick Trade flash button on each token row. */
   onQuickTrade?: (token: TrendingAsset) => void;
-  /** Active Quick Buy token; required with onCloseQuickBuy for keyboard coordination. */
-  quickTradeToken?: TrendingAsset | null;
-  /** Closes the Quick Buy sheet; required with quickTradeToken for keyboard coordination. */
-  onCloseQuickBuy?: () => void;
   /** Overlay node (e.g. TrendingQuickBuy sheet) rendered outside the scroll area. */
   quickBuyNode?: React.ReactNode;
 }
@@ -77,18 +70,11 @@ const TokenListPageLayout: React.FC<TokenListPageLayoutProps> = ({
   onLoadMore,
   isLoadingMore,
   onQuickTrade,
-  quickTradeToken = null,
-  onCloseQuickBuy,
   quickBuyNode,
 }) => {
   const tw = useTailwind();
   const theme = useAppThemeFromContext();
   const insets = useSafeAreaInsets();
-
-  useQuickBuySearchKeyboard(
-    onCloseQuickBuy ? quickTradeToken : null,
-    onCloseQuickBuy ?? noop,
-  );
 
   return (
     <SafeAreaView

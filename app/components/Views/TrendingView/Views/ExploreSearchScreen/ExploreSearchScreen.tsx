@@ -14,7 +14,7 @@ import {
   EXPLORE_QUICK_BUY_VARIANTS,
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
 } from '../../search/abTestConfig';
-import { useQuickBuySearchKeyboard } from '../../search/useQuickBuySearchKeyboard';
+import { useQuickBuySearchKeyboard } from '../../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';

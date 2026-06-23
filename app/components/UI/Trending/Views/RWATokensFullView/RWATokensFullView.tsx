@@ -16,6 +16,7 @@ import {
   EXPLORE_QUICK_BUY_VARIANTS,
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
 } from '../../../../Views/TrendingView/search/abTestConfig';
+import { useQuickBuySearchKeyboard } from '../../hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 
 const RWATokensFullView = () => {
   const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
@@ -61,6 +62,11 @@ const RWATokensFullView = () => {
     setQuickTradeToken(null);
   }, []);
 
+  useQuickBuySearchKeyboard(
+    quickBuyVariant.showQuickTradeButton ? quickTradeToken : null,
+    closeQuickBuy,
+  );
+
   return (
     <TokenListPageLayout
       title={strings('trending.stocks')}
@@ -75,10 +81,6 @@ const RWATokensFullView = () => {
       isLoadingMore={isLoadingMore}
       onQuickTrade={
         quickBuyVariant.showQuickTradeButton ? setQuickTradeToken : undefined
-      }
-      quickTradeToken={quickTradeToken}
-      onCloseQuickBuy={
-        quickBuyVariant.showQuickTradeButton ? closeQuickBuy : undefined
       }
       quickBuyNode={
         <TrendingQuickBuy
