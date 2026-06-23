@@ -1,7 +1,7 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import path from 'path';
 import { GanacheHardfork, RampsRegion } from './types';
-import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager';
+export const DEFAULT_ANVIL_PORT = 8545;
 
 // The RPC URL for the local node
 // This should be used in fixtures where a url is needed.

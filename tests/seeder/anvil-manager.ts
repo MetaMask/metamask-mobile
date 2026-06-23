@@ -12,12 +12,14 @@ import {
 import { createLogger } from '../framework/logger.ts';
 import PortManager, { ResourceType } from '../framework/PortManager.ts';
 import { Block } from 'viem';
+import { DEFAULT_ANVIL_PORT } from '../framework/Constants.ts';
+
+// Re-export so existing consumers aren't broken by the relocation.
+export { DEFAULT_ANVIL_PORT };
 
 const logger = createLogger({
   name: 'AnvilManager',
 });
-
-export const DEFAULT_ANVIL_PORT = 8545;
 
 /**
  * Represents the available Ethereum hardforks for the Anvil server

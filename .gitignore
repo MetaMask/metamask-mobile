@@ -233,3 +233,8 @@ release-signoffs.json
 
 # Build environment validation
 build-env.json
+
+# mm CLI daemon
+.mm-server
+.mm-daemon.log
+test-artifacts/
