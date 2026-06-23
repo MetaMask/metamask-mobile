@@ -57,6 +57,10 @@ const RWATokensFullView = () => {
     }
   }, [refetchStocks, filters]);
 
+  const closeQuickBuy = useCallback(() => {
+    setQuickTradeToken(null);
+  }, []);
+
   return (
     <TokenListPageLayout
       title={strings('trending.stocks')}
@@ -72,10 +76,14 @@ const RWATokensFullView = () => {
       onQuickTrade={
         quickBuyVariant.showQuickTradeButton ? setQuickTradeToken : undefined
       }
+      quickTradeToken={quickTradeToken}
+      onCloseQuickBuy={
+        quickBuyVariant.showQuickTradeButton ? closeQuickBuy : undefined
+      }
       quickBuyNode={
         <TrendingQuickBuy
           token={quickTradeToken}
-          onClose={() => setQuickTradeToken(null)}
+          onClose={closeQuickBuy}
           source="explore_stocks"
         />
       }

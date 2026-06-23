@@ -27,6 +27,18 @@ describe('getQuickBuyFeatureId', () => {
     );
   });
 
+  it('maps explore surfaces to QUICK_BUY_EXPLORE', () => {
+    expect(getQuickBuyFeatureId('explore_search')).toBe(
+      FeatureId.QUICK_BUY_EXPLORE,
+    );
+    expect(getQuickBuyFeatureId('explore_now')).toBe(
+      FeatureId.QUICK_BUY_EXPLORE,
+    );
+    expect(getQuickBuyFeatureId('explore_trending')).toBe(
+      FeatureId.QUICK_BUY_EXPLORE,
+    );
+  });
+
   it('defaults to UNKNOWN when source is missing', () => {
     expect(getQuickBuyFeatureId()).toBe(FeatureId.UNKNOWN);
   });

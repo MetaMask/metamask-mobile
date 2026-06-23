@@ -35,9 +35,18 @@ import {
   EXPLORE_QUICK_BUY_VARIANTS,
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
 } from '../../../../Views/TrendingView/search/abTestConfig';
+import type { QuickBuySheetSource } from '../../../../Views/SocialLeaderboard/analytics';
+
+export type TrendingTokensFullViewEntryPoint =
+  | 'crypto_movers'
+  | 'trending_tokens';
 
 export interface TrendingTokensFullViewParams {
   initialTimeOption?: TimeOption;
+  /** Quick Buy analytics source. Defaults to `explore_trending`. */
+  quickBuySource?: QuickBuySheetSource;
+  /** Entry surface for title and analytics context. */
+  entryPoint?: TrendingTokensFullViewEntryPoint;
 }
 
 export interface TrendingTokensDataProps {
@@ -133,6 +142,11 @@ const TrendingTokensFullView = () => {
       RouteProp<{ TrendingTokensFullView: TrendingTokensFullViewParams }>
     >();
   const initialTimeOption = params?.initialTimeOption;
+  const quickBuySource = params?.quickBuySource ?? 'explore_trending';
+  const pageTitle =
+    params?.entryPoint === 'crypto_movers'
+      ? strings('trending.crypto_movers')
+      : strings('trending.trending_tokens');
   const filters = useTokenListFilters({ timeOption: initialTimeOption });
 
   const [sortBy, setSortBy] = useState<SortTrendingBy | undefined>(
@@ -247,6 +261,10 @@ const TrendingTokensFullView = () => {
     }
   }, [refetchTokensSection, setRefreshing]);
 
+  const closeQuickBuy = useCallback(() => {
+    setQuickTradeToken(null);
+  }, []);
+
   const timeFilterButton = (
     <FilterButton
       testID="24h-button"
@@ -258,7 +276,7 @@ const TrendingTokensFullView = () => {
 
   return (
     <TokenListPageLayout
-      title={strings('trending.trending_tokens')}
+      title={pageTitle}
       testID="trending-tokens-header"
       filters={filters}
       tokens={trendingTokens}
@@ -280,11 +298,15 @@ const TrendingTokensFullView = () => {
       onQuickTrade={
         quickBuyVariant.showQuickTradeButton ? setQuickTradeToken : undefined
       }
+      quickTradeToken={quickTradeToken}
+      onCloseQuickBuy={
+        quickBuyVariant.showQuickTradeButton ? closeQuickBuy : undefined
+      }
       quickBuyNode={
         <TrendingQuickBuy
           token={quickTradeToken}
-          onClose={() => setQuickTradeToken(null)}
-          source="explore_trending"
+          onClose={closeQuickBuy}
+          source={quickBuySource}
         />
       }
     />
