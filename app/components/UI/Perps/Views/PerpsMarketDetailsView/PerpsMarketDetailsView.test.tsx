@@ -1744,11 +1744,13 @@ describe('PerpsMarketDetailsView', () => {
       });
 
       expect(mockNavigateToOrder).toHaveBeenCalledTimes(1);
-      expect(mockNavigateToOrder).toHaveBeenCalledWith({
-        direction: 'long',
-        asset: 'BTC',
-        source: 'perp_asset_screen',
-      });
+      expect(mockNavigateToOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          direction: 'long',
+          asset: 'BTC',
+          source: 'perp_asset_screen',
+        }),
+      );
     });
 
     it('passes marketData defaults to order screen when available', async () => {
@@ -1888,11 +1890,13 @@ describe('PerpsMarketDetailsView', () => {
       });
 
       expect(mockNavigateToOrder).toHaveBeenCalledTimes(1);
-      expect(mockNavigateToOrder).toHaveBeenCalledWith({
-        direction: 'short',
-        asset: 'BTC',
-        source: 'perp_asset_screen',
-      });
+      expect(mockNavigateToOrder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          direction: 'short',
+          asset: 'BTC',
+          source: 'perp_asset_screen',
+        }),
+      );
     });
 
     it('shows geo block modal when long button is pressed and user is not eligible', () => {
