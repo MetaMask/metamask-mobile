@@ -154,6 +154,17 @@ const createStyles = (colors) =>
 const ADD = 'add';
 const EDIT = 'edit';
 
+const getNetworkConfiguration = (networkConfigurations, chainId) => {
+  if (!chainId) return undefined;
+
+  return (
+    networkConfigurations[chainId] ||
+    (/^\d+$/.test(chainId)
+      ? networkConfigurations[`0x${Number(chainId).toString(16)}`]
+      : undefined)
+  );
+};
+
 /**
  * View that contains app information
  */
@@ -463,10 +474,19 @@ class ContactForm extends PureComponent {
     const themeAppearance = this.context.themeAppearance || 'light';
     const styles = createStyles(colors);
 
+    const contactNetworkConfiguration = getNetworkConfiguration(
+      this.props.networkConfigurations,
+      contactChainId,
+    );
+    const currentNetworkConfiguration = getNetworkConfiguration(
+      this.props.networkConfigurations,
+      this.props.chainId,
+    );
     const networkName =
-      this.props.networkConfigurations[contactChainId]?.name ||
-      this.props.networkConfigurations[this.props.chainId]?.name ||
-      '';
+      contactNetworkConfiguration?.name ||
+      (contactChainId
+        ? strings('address_book.custom')
+        : currentNetworkConfiguration?.name || '');
     const isAddMode = editable && mode === ADD;
     const isEditMode = editable && mode === EDIT;
     const headerTitle = strings(
