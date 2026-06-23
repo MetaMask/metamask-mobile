@@ -240,10 +240,35 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }, LAYOUT_SETTLE_FALLBACK_MS);
     }, [isChartReady, clearLayoutSettleTimeout, ohlcvSeriesKey]);
 
-    // WebView remounts when `webViewInstanceKey` changes; parent state would otherwise still look "ready".
-    // `CHART_READY` clears indicator/position/chart-type refs once the new instance loads.
+    const useIntervalHotReload = webViewInstanceKey !== undefined;
+
+    // Default: WebView remounts when `ohlcvSeriesKey` changes (time range / legacy path).
     useEffect(() => {
-      if (!resolvedWebViewKey) {
+      if (useIntervalHotReload) {
+        return;
+      }
+      if (ohlcvSeriesKey === undefined) {
+        return;
+      }
+      skeletonHiddenReportedRef.current = false;
+      setChartReadyCount(0);
+      setWebViewLoaded(false);
+      setLayoutSettling(false);
+      clearLayoutSettleTimeout();
+      ohlcvSeriesStaleSnapshotRef.current =
+        prevOhlcvSeriesKeyRef.current !== undefined
+          ? prevOhlcvDataRef.current
+          : null;
+      activeIndicatorsRef.current.clear();
+      setAppliedIndicatorCount(0);
+      setLegendRendered(false);
+      prevPositionLinesRef.current = undefined;
+      prevChartTypeRef.current = undefined;
+    }, [useIntervalHotReload, ohlcvSeriesKey, clearLayoutSettleTimeout]);
+
+    // Technical-indicators path: remount only when `webViewInstanceKey` changes.
+    useEffect(() => {
+      if (!useIntervalHotReload || !resolvedWebViewKey) {
         return;
       }
       skeletonHiddenReportedRef.current = false;
@@ -264,11 +289,11 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         webViewInstanceKey: resolvedWebViewKey,
         sinceMountMs: Date.now() - mountAtRef.current,
       });
-    }, [resolvedWebViewKey, clearLayoutSettleTimeout]);
+    }, [useIntervalHotReload, resolvedWebViewKey, clearLayoutSettleTimeout]);
 
-    // Interval/time-range change within the same WebView — keep chart visible, skip stale sends.
+    // Interval change within the same WebView — keep chart visible, skip stale sends.
     useEffect(() => {
-      if (ohlcvSeriesKey === undefined) {
+      if (!useIntervalHotReload || ohlcvSeriesKey === undefined) {
         return;
       }
       if (prevOhlcvSeriesKeyRef.current === ohlcvSeriesKey) {
@@ -282,7 +307,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         ohlcvSeriesKey,
         sinceMountMs: Date.now() - mountAtRef.current,
       });
-    }, [ohlcvSeriesKey]);
+    }, [useIntervalHotReload, ohlcvSeriesKey]);
 
     useEffect(
       () => () => {
@@ -779,14 +804,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       !legendRendered;
 
     const isFirstReveal = !skeletonHiddenReportedRef.current;
+    const skeletonPending =
+      isLoading ||
+      !isChartReady ||
+      layoutSettling ||
+      waitingForIndicators ||
+      waitingForLegend;
 
-    const showSkeleton =
-      isFirstReveal &&
-      (isLoading ||
-        !isChartReady ||
-        layoutSettling ||
-        waitingForIndicators ||
-        waitingForLegend);
+    const showSkeleton = useIntervalHotReload
+      ? isFirstReveal && skeletonPending
+      : skeletonPending;
 
     useEffect(() => {
       if (prevShowSkeletonRef.current === showSkeleton) {

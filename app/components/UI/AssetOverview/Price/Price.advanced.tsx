@@ -414,10 +414,13 @@ const PriceAdvanced = ({
     [assetId, effectiveTimePeriod, effectiveInterval, currentCurrency],
   );
 
-  /** Remount WebView only on asset/currency change — not on interval/time-range change. */
+  /** Stable WebView key for interval hot-reload (technical-indicators path only). */
   const webViewInstanceKey = useMemo(
-    () => `${assetId}|${currentCurrency}`,
-    [assetId, currentCurrency],
+    () =>
+      isTechnicalIndicatorsEnabled
+        ? `${assetId}|${currentCurrency}`
+        : undefined,
+    [isTechnicalIndicatorsEnabled, assetId, currentCurrency],
   );
 
   const assetIdRef = useRef(assetId);
@@ -476,10 +479,14 @@ const PriceAdvanced = ({
     activeVisibilityTraceRef.current = null;
   }, []);
 
+  const chartSessionResetKey = isTechnicalIndicatorsEnabled
+    ? webViewInstanceKey
+    : ohlcvSeriesKey;
+
   useEffect(() => {
     setChartInitFailed(null);
     setHasChartBeenRevealed(false);
-  }, [webViewInstanceKey]);
+  }, [chartSessionResetKey]);
 
   const {
     ohlcvData,
@@ -611,12 +618,13 @@ const PriceAdvanced = ({
     !hasEmptyData &&
     !chartError;
 
-  /** First visit only — interval refresh keeps bars/chart visible (stale-while-revalidate). */
-  const isInitialChartPending =
-    !hasChartBeenRevealed && (chartLoading || chartInitFailed === null);
+  /** OHLCV or WebView init still in flight — mirrors TimeRangeSelector `isChartLoading`. */
+  const isAdvancedChartUiPending = chartLoading || chartInitFailed === null;
 
-  /** @deprecated alias kept for logging — use isInitialChartPending for UI gating. */
-  const isAdvancedChartUiPending = isInitialChartPending;
+  /** Technical-indicators path: first visit only; interval refresh keeps chart/bars visible. */
+  const isInitialChartPending = isTechnicalIndicatorsEnabled
+    ? !hasChartBeenRevealed && isAdvancedChartUiPending
+    : isAdvancedChartUiPending;
 
   /**
    * Only show technical indicators UI when we're certain the advanced chart is being used.
@@ -1102,7 +1110,9 @@ const PriceAdvanced = ({
             <AdvancedChart
               ohlcvData={ohlcvData}
               ohlcvSeriesKey={ohlcvSeriesKey}
-              webViewInstanceKey={webViewInstanceKey}
+              webViewInstanceKey={
+                isTechnicalIndicatorsEnabled ? webViewInstanceKey : undefined
+              }
               realtimeBar={realtimeBar}
               height={chartHeight}
               showVolume={
@@ -1116,7 +1126,11 @@ const PriceAdvanced = ({
               indicators={showChartIndicators ? indicatorsArray : []}
               selectedMAs={showChartIndicators ? selectedMAs : []}
               lineChrome={advancedChartLineChromePresets.tokenOverview}
-              isLoading={!hasChartBeenRevealed && chartLoading}
+              isLoading={
+                isTechnicalIndicatorsEnabled
+                  ? !hasChartBeenRevealed && chartLoading
+                  : chartLoading
+              }
               ohlcvPagination={ohlcvPagination}
               visibleFromMs={visibleFromMs}
               visibleToMs={visibleToMs}

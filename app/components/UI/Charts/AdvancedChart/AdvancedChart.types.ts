@@ -428,8 +428,9 @@ export interface AdvancedChartProps {
    */
   ohlcvSeriesKey?: string;
   /**
-   * Stable React `key` for the WebView document. Remount only when this changes (e.g. asset or
-   * currency). Interval/time-range changes should update `ohlcvSeriesKey` alone for hot reload.
+   * Stable React `key` for the WebView document (technical-indicators path only). Remount only
+   * when this changes (e.g. asset or currency). Omit for legacy behavior: remount on
+   * `ohlcvSeriesKey` change. Interval/time-range hot reload requires this prop.
    */
   webViewInstanceKey?: string;
   /** Chart height in pixels */
