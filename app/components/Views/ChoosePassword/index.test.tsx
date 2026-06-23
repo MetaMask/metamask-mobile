@@ -48,6 +48,10 @@ jest.mock('../../../util/mnemonic', () => ({
   ),
 }));
 
+jest.mock('../../../util/region/isUsaDeviceRegion', () => ({
+  isUsaDeviceRegion: jest.fn(() => false),
+}));
+
 jest.mock('@metamask/key-tree', () => ({
   mnemonicPhraseToBytes: jest.fn((_phrase) => new Uint8Array([1, 2, 3])),
 }));
@@ -67,6 +71,7 @@ import {
 import type { Span } from '@sentry/core';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { captureException } from '@sentry/react-native';
+import { isUsaDeviceRegion } from '../../../util/region/isUsaDeviceRegion';
 
 const mockFeatureFlagState = {
   isInterestQuestionnaireEnabled: false,
@@ -88,6 +93,10 @@ const mockCaptureException = captureException as jest.MockedFunction<
 OAuthLoginService.updateMarketingOptInStatus = jest
   .fn()
   .mockResolvedValue({ is_opt_in: true });
+
+const mockIsUsaDeviceRegion = isUsaDeviceRegion as jest.MockedFunction<
+  typeof isUsaDeviceRegion
+>;
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -328,6 +337,7 @@ describe('ChoosePassword', () => {
     jest.clearAllMocks();
     mockTrackOnboarding.mockClear();
     mockFeatureFlagState.isInterestQuestionnaireEnabled = false;
+    mockIsUsaDeviceRegion.mockReturnValue(false);
     mockRoute.params = {
       [ONBOARDING]: true,
       [PROTECT]: true,
@@ -696,9 +706,12 @@ describe('ChoosePassword', () => {
           index: 0,
           routes: [
             {
-              name: 'OnboardingSuccess',
+              name: 'OnboardingSuccessFlow',
               params: {
-                successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+                screen: 'OnboardingSuccess',
+                params: {
+                  successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+                },
               },
             },
           ],
@@ -1036,6 +1049,92 @@ describe('ChoosePassword', () => {
   describe('Marketing API', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      mockIsUsaDeviceRegion.mockReturnValue(false);
+    });
+
+    it('defaults marketing opt-in to checked for USA OAuth users without toggling the checkbox', async () => {
+      mockIsUsaDeviceRegion.mockReturnValue(true);
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
+        currentAuthType: 'passcode',
+        availableBiometryType: 'faceID',
+      });
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValue(undefined);
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+        provider: 'google',
+      };
+      const spyUpdateMarketingOptInStatus = jest
+        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
+        .mockResolvedValue(undefined);
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+      await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
+
+      await waitFor(() => {
+        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+      });
+
+      mockNewWalletAndKeychain.mockRestore();
+    });
+
+    it('defaults marketing opt-in to unchecked for non-USA OAuth users without toggling the checkbox', async () => {
+      mockIsUsaDeviceRegion.mockReturnValue(false);
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
+        currentAuthType: 'passcode',
+        availableBiometryType: 'faceID',
+      });
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValue(undefined);
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+        provider: 'google',
+      };
+      const spyUpdateMarketingOptInStatus = jest
+        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
+        .mockResolvedValue(undefined);
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+      await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
+
+      await waitFor(() => {
+        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
+      });
+
+      mockNewWalletAndKeychain.mockRestore();
+    });
+
+    it('keeps the acknowledgement checkbox unchecked by default for USA non-OAuth users', async () => {
+      mockIsUsaDeviceRegion.mockReturnValue(true);
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+      };
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+      await fillForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      expect(submitButton).toBeDisabled();
     });
 
     it('sends marketing opt-in=true when OAuth user checks the checkbox before submitting', async () => {

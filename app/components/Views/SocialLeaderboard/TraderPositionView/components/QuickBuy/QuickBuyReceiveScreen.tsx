@@ -1,13 +1,10 @@
-import {
-  formatChainIdToHex,
-  isNonEvmChainId,
-} from '@metamask/bridge-controller';
 import type { CaipChainId } from '@metamask/utils';
 import React, { useCallback, useMemo } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import QuickBuyTokenSelectList from './QuickBuyTokenSelectList';
 import { useQuickBuyContext } from './useQuickBuyContext';
+import { toFilterChainId } from './utils/toFilterChainId';
 
 /**
  * Sell mode "Receive" screen: lets the user pick which token (stablecoin or
@@ -28,19 +25,12 @@ const QuickBuyReceiveScreen: React.FC = () => {
   // receive candidate exists on it — avoids an immediately-empty list.
   const defaultChainId = useMemo(() => {
     // `target.chain` is already a CAIP id — `positionToQuickBuyTarget` does the
-    // chain-name → CAIP conversion when the target is built.
-    const caip = target.chain as CaipChainId;
-    // Receive candidates carry hex chain ids on EVM and CAIP ids on non-EVM
-    // (e.g. Solana), so the filter id must match the candidate format.
-    let chainFilterId: string;
-    if (isNonEvmChainId(caip)) {
-      chainFilterId = caip;
-    } else {
-      try {
-        chainFilterId = formatChainIdToHex(caip);
-      } catch {
-        return null;
-      }
+    // chain-name → CAIP conversion when the target is built. Receive candidates
+    // carry hex chain ids on EVM and CAIP ids on non-EVM (e.g. Solana), so the
+    // filter id must match the candidate format.
+    const chainFilterId = toFilterChainId(target.chain as CaipChainId);
+    if (chainFilterId === null) {
+      return null;
     }
     return sellDestTokenOptions.some((t) => t.chainId === chainFilterId)
       ? chainFilterId

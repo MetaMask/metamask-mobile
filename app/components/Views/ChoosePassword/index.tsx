@@ -92,8 +92,8 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { hasTestOverrides } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { selectAttributionRecord } from '../../../selectors/attribution';
-import { getWalletSetupCompletedAttributionAnalyticsProps } from '../../../util/analytics/walletSetupCompletedAttribution';
+import { clearAttribution } from '../../../core/redux/slices/attribution';
+import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
@@ -102,6 +102,7 @@ import generateDeviceAnalyticsMetaData, {
 } from '../../../util/metrics';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectOnboardingInterestQuestionnaireEnabled } from '../../../selectors/featureFlagController/onboarding';
+import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
 
 interface KeyringState {
   type: string;
@@ -132,10 +133,11 @@ const ChoosePassword = () => {
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
   const dispatch = useDispatch();
-  const attributionRecord = useSelector(selectAttributionRecord);
   const metrics = useAnalytics();
 
-  const [isSelected, setIsSelected] = useState(false);
+  const [isSelected, setIsSelected] = useState(() =>
+    getDefaultMarketingOptInChecked(route.params?.oauthLoginSuccess === true),
+  );
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -326,9 +328,12 @@ const ChoosePassword = () => {
       index: 0,
       routes: [
         {
-          name: Routes.ONBOARDING.SUCCESS,
+          name: Routes.ONBOARDING.SUCCESS_FLOW,
           params: {
-            successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+            screen: Routes.ONBOARDING.SUCCESS,
+            params: {
+              successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+            },
           },
         },
       ],
@@ -528,15 +533,23 @@ const ChoosePassword = () => {
         biometrics_enabled: Boolean(biometryType),
         account_type: accountType,
       });
+
+      let walletSetupAttributionProps = {};
+      if (isSocialLogin) {
+        walletSetupAttributionProps =
+          getWalletSetupAttributionPropsFromStore(isSelected);
+      }
+
       track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
         wallet_setup_type: 'new',
         new_wallet: true,
         account_type: accountType,
-        ...getWalletSetupCompletedAttributionAnalyticsProps(
-          attributionRecord,
-          isSelected,
-        ),
+        ...walletSetupAttributionProps,
       });
+
+      if (isSocialLogin) {
+        dispatch(clearAttribution());
+      }
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
       const metricsEnabled = metrics.isEnabled();
@@ -552,8 +565,8 @@ const ChoosePassword = () => {
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
-    attributionRecord,
     isSelected,
+    dispatch,
   ]);
 
   const onPasswordChange = useCallback(

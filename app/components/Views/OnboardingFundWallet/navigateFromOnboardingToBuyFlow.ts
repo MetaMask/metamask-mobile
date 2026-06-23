@@ -2,20 +2,15 @@ import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 
 /**
- * Opens the unified Ramp buy flow on the onboarding root stack so
- * OnboardingFundWallet stays in the back stack.
+ * Opens the unified Ramp buy flow from the onboarding stack.
  *
- * The "More ways to fund" methods (PayPal, Google Pay, Revolut, etc.) are not
- * returned by the Deposit SDK — they live in the Aggregator. There is no clean
- * way to pre-select an Aggregator payment method via navigation (`RampIntent`
- * only carries asset/amount/currency), so we drop the user into the buy flow
- * where the full, region-eligible set of providers/methods is presented.
+ * Routes.RAMP.TOKEN_SELECTION is registered directly on OnboardingRootNav
+ * (the parent of OnboardingNav where this screen lives), so a single
+ * getParent() call is enough to reach it.
  *
- * Note: the onboarding root navigator (see `OnboardingRootNav` in
- * `components/Nav/App`) only registers `RAMP.TOKEN_SELECTION` and `DEPOSIT.ID`
- * — `RAMP.BUY` lives in the main app navigator and is NOT reachable here, so
- * navigating to it would silently no-op. `TOKEN_SELECTION` is the registered
- * token-first entry into the unified buy flow.
+ * Navigator hierarchy:
+ * OnboardingRootNav  <- getParent() lands here; TOKEN_SELECTION registered here
+ * └── OnboardingNav  <- OnboardingFundWallet lives here
  */
 export function navigateFromOnboardingToBuyFlow(
   navigation: Pick<NavigationProp<ParamListBase>, 'getParent'>,

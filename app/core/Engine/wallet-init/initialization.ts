@@ -2,7 +2,7 @@ import { Wallet } from '@metamask/wallet';
 import { Json } from '@metamask/utils';
 import { ApprovalType } from '@metamask/controller-utils';
 import { DIALOG_APPROVAL_TYPES } from '@metamask/snaps-rpc-methods';
-import { getKeyringBuilders } from './keyrings';
+import { getKeyringBuilders, getKeyringV2Builders } from './keyrings';
 import { RootMessenger } from '../types';
 import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../Encryptor';
 import { mobileStorageAdapter } from '../utils/storage-service-utils';
@@ -38,6 +38,7 @@ export function initializeWallet({
       keyringController: {
         encryptor,
         keyringBuilders: getKeyringBuilders(messenger),
+        keyringV2Builders: getKeyringV2Builders(),
       },
       storageService: {
         storage: mobileStorageAdapter,

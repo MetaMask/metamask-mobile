@@ -33,28 +33,12 @@ class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 4;
 
   get container(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            WalletViewSelectorsIDs.WALLET_CONTAINER,
-            {
-              exact: true,
-            },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            WalletViewSelectorsIDs.EYE_SLASH_ICON,
-          ),
-      },
-    });
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
   }
 
-  /** Matcher for the wallet homepage ScrollView (same pattern as other scroll containers). */
-  get walletScrollViewIdentifier(): Promise<Detox.NativeMatcher> {
-    return Matchers.getIdentifier(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
+  /** Cross-framework scroll container for the wallet homepage ScrollView. */
+  get walletScrollContainer(): string {
+    return WalletViewSelectorsIDs.WALLET_SCROLL_VIEW;
   }
 
   /** Wallet ScrollView as element (for gestures like swipe). */
@@ -79,11 +63,13 @@ class WalletView {
     } = {},
   ): Promise<void> {
     const { scrollAmount = 200, overshootSwipe } = options;
-    await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
+
+    await Gestures.scrollToElement(target, this.walletScrollContainer, {
       direction,
       scrollAmount,
       elemDescription: `Scroll to ${description}`,
     });
+
     if (overshootSwipe) {
       await Gestures.swipe(this.walletScrollView, overshootSwipe.direction, {
         percentage: overshootSwipe.percentage ?? 0.15,
@@ -91,6 +77,7 @@ class WalletView {
         elemDescription: `Overshoot swipe for ${description}`,
       });
     }
+
     await Gestures.waitAndTap(target, {
       elemDescription: description,
     });
@@ -805,8 +792,8 @@ class WalletView {
 
   /** Perpetuals section title button on the homepage. */
   get perpsSectionHeader(): EncapsulatedElementType {
-    return Matchers.getElementByLabel(
-      WalletViewSelectorsText.PERPETUALS_SECTION,
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('perps'),
     );
   }
 
@@ -910,10 +897,18 @@ class WalletView {
   }
 
   async scrollAndTapPerpsSection(): Promise<void> {
-    await this.scrollAndTapSection(
-      this.perpsSectionHeader,
-      'Perpetuals section',
-    );
+    try {
+      await this.scrollAndTapSection(
+        this.perpsSectionHeader,
+        'Perpetuals section',
+      );
+    } catch {
+      await this.scrollAndTapSection(
+        this.perpsSectionHeader,
+        'Perpetuals section',
+        'up',
+      );
+    }
   }
 
   /**
@@ -955,14 +950,14 @@ class WalletView {
   async scrollAndTapPredictionsPosition(positionName: string): Promise<void> {
     const target = Matchers.getElementByText(positionName);
     try {
-      await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
+      await Gestures.scrollToElement(target, this.walletScrollContainer, {
         direction: 'down',
         scrollAmount: 220,
         timeout: 12000,
         elemDescription: `Scroll to prediction position: ${positionName}`,
       });
     } catch {
-      await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
+      await Gestures.scrollToElement(target, this.walletScrollContainer, {
         direction: 'up',
         scrollAmount: 220,
         timeout: 12000,
@@ -989,7 +984,7 @@ class WalletView {
   async tapClaimButton(): Promise<void> {
     await Gestures.scrollToElement(
       this.claimButton,
-      this.walletScrollViewIdentifier,
+      this.walletScrollContainer,
       {
         direction: 'down',
         scrollAmount: 200,
