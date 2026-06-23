@@ -195,6 +195,16 @@ const ChoosePassword = () => {
     setIsSelected((prev) => !prev);
   }, []);
 
+  const resolveMarketingOptInChecked = useCallback((): boolean => {
+    if (marketingOptInTouchedRef.current) {
+      return isSelected;
+    }
+
+    // Non-blocking: use geolocation already in state. Geo refresh runs in the
+    // background (Engine start + mount effect) and must not delay submit.
+    return getDefaultMarketingOptInChecked(true, geoLocation);
+  }, [geoLocation, isSelected]);
+
   const track = useCallback(
     (event: IMetaMetricsEvent | ITrackingEvent, properties?: JsonMap) => {
       const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
@@ -353,7 +363,7 @@ const ChoosePassword = () => {
   );
 
   const handlePostWalletCreation = useCallback(
-    async (authType: AuthData) => {
+    async (authType: AuthData, marketingOptInChecked: boolean) => {
       dispatch(passwordSetAction());
       dispatch(setLockTimeAction(AppConstants.DEFAULT_LOCK_TIMEOUT));
 
@@ -361,12 +371,12 @@ const ChoosePassword = () => {
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-        dispatch(setDataCollectionForMarketing(isSelected));
-        OAuthLoginService.updateMarketingOptInStatus(isSelected).catch(
-          (err) => {
-            Logger.error(err);
-          },
-        );
+        dispatch(setDataCollectionForMarketing(marketingOptInChecked));
+        OAuthLoginService.updateMarketingOptInStatus(
+          marketingOptInChecked,
+        ).catch((err) => {
+          Logger.error(err);
+        });
 
         const oauthProvider = route.params?.provider;
         const socialAccountType =
@@ -381,8 +391,9 @@ const ChoosePassword = () => {
                 MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
               )
               .addProperties({
-                [UserProfileProperty.HAS_MARKETING_CONSENT]:
-                  Boolean(isSelected),
+                [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
+                  marketingOptInChecked,
+                ),
                 is_metrics_opted_in: true,
                 location: 'onboarding_choosePassword',
                 updated_after_onboarding: false,
@@ -428,7 +439,6 @@ const ChoosePassword = () => {
     },
     [
       dispatch,
-      isSelected,
       metrics,
       navigation,
       route.params?.provider,
@@ -542,7 +552,12 @@ const ChoosePassword = () => {
       await handleWalletCreation(authType, previous_screen);
 
       foxRiveLoaderRef.current?.stop();
-      await handlePostWalletCreation(authType);
+
+      const marketingOptInChecked = isSocialLogin
+        ? resolveMarketingOptInChecked()
+        : isSelected;
+
+      await handlePostWalletCreation(authType, marketingOptInChecked);
 
       track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(biometryType),
@@ -551,8 +566,9 @@ const ChoosePassword = () => {
 
       let walletSetupAttributionProps = {};
       if (isSocialLogin) {
-        walletSetupAttributionProps =
-          getWalletSetupAttributionPropsFromStore(isSelected);
+        walletSetupAttributionProps = getWalletSetupAttributionPropsFromStore(
+          marketingOptInChecked,
+        );
       }
 
       track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
@@ -580,6 +596,7 @@ const ChoosePassword = () => {
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
+    resolveMarketingOptInChecked,
     isSelected,
     dispatch,
   ]);

@@ -25,6 +25,7 @@ import { InteractionManager, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 import { passwordRequirementsMet } from '../../../util/password';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 
 jest.mock('../../../util/password', () => ({
   ...jest.requireActual('../../../util/password'),
@@ -1029,6 +1030,43 @@ describe('ChoosePassword', () => {
 
       await waitFor(() => {
         expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+      });
+
+      mockNewWalletAndKeychain.mockRestore();
+    });
+
+    it('does not block submit waiting for geolocation refresh', async () => {
+      store = mockStore(createInitialState(UNKNOWN_LOCATION));
+      ReduxService.store = store as unknown as ReduxStore;
+      mockRefreshGeolocation.mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve('US'), 500)),
+      );
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
+        currentAuthType: 'passcode',
+        availableBiometryType: 'faceID',
+      });
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValue(undefined);
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+        provider: 'google',
+      };
+      const spyUpdateMarketingOptInStatus = jest
+        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
+        .mockResolvedValue(undefined);
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
+
+      await waitFor(() => {
+        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
       });
 
       mockNewWalletAndKeychain.mockRestore();
