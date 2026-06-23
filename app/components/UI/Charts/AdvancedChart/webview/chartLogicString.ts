@@ -298,9 +298,6 @@ function handleMessage(event) {
       case 'SET_LINE_CHROME':
         handleSetLineChrome(message.payload);
         break;
-      case 'SET_SCALE_CHROME':
-        handleSetScaleChrome(message.payload);
-        break;
       case 'SET_POSITION_LINES':
         handleSetPositionLines(message.payload);
         break;
@@ -332,100 +329,6 @@ const LINE_CHROME_DEFAULTS = {
   useCustomDashedLastPriceLine: true,
   useCustomPriceLabels: true,
 };
-
-/** Mirrors \`DEFAULT_SCALE_CHROME\` in AdvancedChart.types.ts (WebView cannot import RN modules). */
-const SCALE_CHROME_DEFAULTS = {
-  fontSize: 12,
-};
-
-function getScaleChrome() {
-  let sc = (window.CONFIG && window.CONFIG.scaleChrome) || {};
-  return {
-    fontSize:
-      sc.fontSize != null ? Number(sc.fontSize) : SCALE_CHROME_DEFAULTS.fontSize,
-    scaleAxisTextColor:
-      sc.scaleAxisTextColor != null ? String(sc.scaleAxisTextColor) : null,
-    lastValuePillBackgroundColor:
-      sc.lastValuePillBackgroundColor != null
-        ? String(sc.lastValuePillBackgroundColor)
-        : null,
-    crosshairLabelBackgroundColor:
-      sc.crosshairLabelBackgroundColor != null
-        ? String(sc.crosshairLabelBackgroundColor)
-        : null,
-  };
-}
-
-function resolveScaleChromeFromPayload(payload) {
-  if (!window.CONFIG) {
-    window.CONFIG = {};
-  }
-  window.CONFIG.scaleChrome = {
-    fontSize:
-      payload.fontSize != null
-        ? Number(payload.fontSize)
-        : SCALE_CHROME_DEFAULTS.fontSize,
-    scaleAxisTextColor:
-      payload.scaleAxisTextColor != null
-        ? String(payload.scaleAxisTextColor)
-        : null,
-    lastValuePillBackgroundColor:
-      payload.lastValuePillBackgroundColor != null
-        ? String(payload.lastValuePillBackgroundColor)
-        : null,
-    crosshairLabelBackgroundColor:
-      payload.crosshairLabelBackgroundColor != null
-        ? String(payload.crosshairLabelBackgroundColor)
-        : null,
-  };
-  return getScaleChrome();
-}
-
-function getEffectiveLastValuePillBackgroundColor(theme) {
-  let sc = getScaleChrome();
-  if (sc.lastValuePillBackgroundColor) {
-    return sc.lastValuePillBackgroundColor;
-  }
-  return getThemeLastPriceLineColor(theme);
-}
-
-function buildScaleChromeOverrides() {
-  let sc = getScaleChrome();
-  let theme = (window.CONFIG && window.CONFIG.theme) || {};
-  let crosshairBg =
-    sc.crosshairLabelBackgroundColor ||
-    theme.sectionBackgroundColor ||
-    theme.backgroundColor ||
-    '#131416';
-  return {
-    'scalesProperties.fontSize': sc.fontSize,
-    'scalesProperties.textColor': sc.scaleAxisTextColor || theme.textColor,
-    'scalesProperties.crosshairLabelBgColorDark': crosshairBg,
-    'scalesProperties.crosshairLabelBgColorLight': crosshairBg,
-  };
-}
-
-function applyScaleChromeOverrides() {
-  if (!window.chartWidget) {
-    return;
-  }
-  try {
-    window.chartWidget.applyOverrides(buildScaleChromeOverrides());
-  } catch (e) {}
-}
-
-function handleSetScaleChrome(payload) {
-  if (!payload) {
-    return;
-  }
-  resolveScaleChromeFromPayload(payload);
-  if (!window.chartWidget || !window.isChartReady) {
-    return;
-  }
-  applyScaleChromeOverrides();
-  applySeriesColors();
-  refreshBuiltInLastValueLabelVisibility();
-}
 
 function lineChromePickBool(lc, key, fallback) {
   return lc[key] !== undefined ? !!lc[key] : fallback;
@@ -1000,8 +903,7 @@ function getThemeLastPriceLineColor(theme) {
   return t.currentPriceColor || lineColor;
 }
 
-function getSeriesColorOverrides(color, lastPriceLineColor) {
-  var pillColor = lastPriceLineColor != null ? lastPriceLineColor : color;
+function getSeriesColorOverrides(color) {
   return {
     'mainSeriesProperties.lineStyle.color': color,
     'mainSeriesProperties.lineStyle.colorType': 'solid',
@@ -1019,33 +921,7 @@ function getSeriesColorOverrides(color, lastPriceLineColor) {
     'mainSeriesProperties.baselineStyle.topFillColor2': 'rgba(0,0,0,0)',
     'mainSeriesProperties.baselineStyle.bottomFillColor1': 'rgba(0,0,0,0)',
     'mainSeriesProperties.baselineStyle.bottomFillColor2': 'rgba(0,0,0,0)',
-    'mainSeriesProperties.priceLineColor': pillColor,
   };
-}
-
-function getSeriesAndLastValueColorOverrides(theme) {
-  const t = theme || (window.CONFIG && window.CONFIG.theme) || {};
-  return getSeriesColorOverrides(
-    getThemeLineColor(t),
-    getEffectiveLastValuePillBackgroundColor(t),
-  );
-}
-
-/**
- * Forces TV to repaint the built-in last-value scale pill after color overrides change.
- */
-function refreshBuiltInLastValueLabelVisibility() {
-  if (!window.chartWidget || !window.isChartReady) {
-    return;
-  }
-  try {
-    window.chartWidget.applyOverrides({
-      'scalesProperties.showSeriesLastValue': false,
-    });
-    window.chartWidget.applyOverrides({
-      'scalesProperties.showSeriesLastValue': true,
-    });
-  } catch (e) {}
 }
 
 // ============================================
@@ -1195,29 +1071,24 @@ function applyChartScaleLayout(type) {
   let axisLineColor = theme.backgroundColor || '#131416';
 
   try {
-    window.chartWidget.applyOverrides(
-      Object.assign(
-        {
-          'scalesProperties.showRightScale': true,
-          'scalesProperties.showLeftScale': false,
-          'scalesProperties.showSeriesLastValue': !useCustomLabels,
-          'scalesProperties.showStudyLastValue': false,
-          'scalesProperties.showSymbolLabels': false,
-          'scalesProperties.showPriceScaleCrosshairLabel': !useCustomLabels,
-          'scalesProperties.showTimeScaleCrosshairLabel': !useCustomLabels,
-          'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
-          'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
-          'scalesProperties.textColor': theme.textColor,
-          'mainSeriesProperties.showPriceLine': !useCustomDashed,
-          'timeScale.borderColor': axisLineColor,
-          'scalesProperties.lineColor': axisLineColor,
-          'paneProperties.separatorColor': theme.borderColor,
-          'paneProperties.topMargin': 12,
-          'paneProperties.bottomMargin': 8,
-        },
-        buildScaleChromeOverrides(),
-      ),
-    );
+    window.chartWidget.applyOverrides({
+      'scalesProperties.showRightScale': true,
+      'scalesProperties.showLeftScale': false,
+      'scalesProperties.showSeriesLastValue': !useCustomLabels,
+      'scalesProperties.showStudyLastValue': false,
+      'scalesProperties.showSymbolLabels': false,
+      'scalesProperties.showPriceScaleCrosshairLabel': !useCustomLabels,
+      'scalesProperties.showTimeScaleCrosshairLabel': !useCustomLabels,
+      'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
+      'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
+      'scalesProperties.textColor': theme.textColor,
+      'mainSeriesProperties.showPriceLine': !useCustomDashed,
+      'timeScale.borderColor': axisLineColor,
+      'scalesProperties.lineColor': axisLineColor,
+      'paneProperties.separatorColor': theme.borderColor,
+      'paneProperties.topMargin': 12,
+      'paneProperties.bottomMargin': 8,
+    });
   } catch (e) {}
 
   removeLineChartMarkupStyle();
@@ -4702,6 +4573,7 @@ function initChart() {
           'scalesProperties.textColor': theme.textColor,
           'scalesProperties.lineColor': theme.backgroundColor || '#131416', // done to hide the axis line
           'timeScale.borderColor': theme.backgroundColor || '#131416', // done to hide the axis line
+          'scalesProperties.fontSize': 12,
           'scalesProperties.showStudyLastValue': false,
           'scalesProperties.showSeriesLastValue': !initCustomLabels,
           'scalesProperties.showSymbolLabels': false,
@@ -4728,8 +4600,7 @@ function initChart() {
           'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
           'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
         },
-        getSeriesAndLastValueColorOverrides(theme),
-        buildScaleChromeOverrides(),
+        getSeriesColorOverrides(getThemeLineColor(theme)),
       ),
 
       loading_screen: {
