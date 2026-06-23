@@ -167,20 +167,28 @@ const MoneyTransferSheet = () => {
       onPress: handleBetweenAccounts,
       testID: MoneyTransferSheetTestIds.BETWEEN_ACCOUNTS_OPTION,
     },
-    {
-      label: strings('money.transfer_sheet.perps_account'),
-      icon: IconName.Candlestick,
-      onPress: handlePerpsAccount,
-      testID: MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION,
-      disabled: !isPerpsEnabled || !isPerpsEligible,
-    },
-    {
-      label: strings('money.transfer_sheet.predictions_account'),
-      icon: IconName.Speedometer,
-      onPress: handlePredictionsAccount,
-      testID: MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION,
-      disabled: !isPredictEnabled || !isPredictEligible,
-    },
+    ...(isPerpsEligible
+      ? [
+          {
+            label: strings('money.transfer_sheet.perps_account'),
+            icon: IconName.Candlestick,
+            onPress: handlePerpsAccount,
+            testID: MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION,
+            disabled: !isPerpsEnabled,
+          },
+        ]
+      : []),
+    ...(isPredictEligible
+      ? [
+          {
+            label: strings('money.transfer_sheet.predictions_account'),
+            icon: IconName.Speedometer,
+            onPress: handlePredictionsAccount,
+            testID: MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION,
+            disabled: !isPredictEnabled,
+          },
+        ]
+      : []),
     {
       label: strings('money.transfer_sheet.send_external'),
       icon: IconName.Arrow2Up,
