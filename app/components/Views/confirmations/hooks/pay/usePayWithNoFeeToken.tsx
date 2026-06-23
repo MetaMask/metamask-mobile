@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { ReactNode, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
 import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
@@ -23,6 +23,12 @@ export interface NoFeeTokenResult {
   symbol: string;
 }
 
+export type NoFeeTokenTagRenderer = (
+  address: string,
+  chainId: string,
+  options?: { testID?: string },
+) => ReactNode;
+
 /**
  * Flags subsidised ("no fee") tokens from the `confirmations_relay_fixed_spread`
  * flag, directionally: deposits match the relay source, withdrawals match an
@@ -39,6 +45,7 @@ export function usePayWithNoFeeToken({
   noFeeToken: NoFeeTokenResult | undefined;
   isNoFeeToken: (address: string, chainId: string) => boolean;
   renderNoFeeTag: TokenTagRenderer;
+  renderNoFeeTagForToken: NoFeeTokenTagRenderer;
 } {
   const relayFixedSpread = useSelector(selectRelayFixedSpread);
   const { availableTokens } = useTransactionPayAvailableTokens();
@@ -131,5 +138,13 @@ export function usePayWithNoFeeToken({
     [matchesSubsidizedSource],
   );
 
-  return { noFeeToken, isNoFeeToken, renderNoFeeTag };
+  const renderNoFeeTagForToken: NoFeeTokenTagRenderer = useCallback(
+    (address, chainId, options) =>
+      matchesSubsidizedSource(address, chainId) ? (
+        <NoFeeTag testID={options?.testID} />
+      ) : null,
+    [matchesSubsidizedSource],
+  );
+
+  return { noFeeToken, isNoFeeToken, renderNoFeeTag, renderNoFeeTagForToken };
 }

@@ -58,6 +58,7 @@ jest.mock('../../../hooks/pay/usePayWithNoFeeToken', () => ({
     noFeeToken: undefined,
     isNoFeeToken: () => false,
     renderNoFeeTag: mockRenderNoFeeTag,
+    renderNoFeeTagForToken: () => null,
   }),
 }));
 jest.mock('../../../hooks/pay/useTransactionPayToken');
