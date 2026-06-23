@@ -53,7 +53,7 @@ export const newWalletWithMetricsOptInExpectations: AnalyticsExpectations = {
     },
     {
       name: onboardingEvents.ONBOARDING_COMPLETED,
-      matchProperties: {
+      containProperties: {
         wallet_setup_type: 'new',
         new_wallet: true,
         account_type: 'metamask',

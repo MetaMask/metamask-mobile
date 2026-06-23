@@ -24,6 +24,7 @@ import {
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -35,6 +36,11 @@ jest.mock('../../../selectors/onboarding', () => ({
 jest.mock('../../../selectors/settings', () => ({
   ...jest.requireActual('../../../selectors/settings'),
   selectBasicFunctionalityEnabled: jest.fn(),
+}));
+
+jest.mock('../../../selectors/attribution', () => ({
+  ...jest.requireActual('../../../selectors/attribution'),
+  selectWalletSetupCompletedAttributionAnalyticsProps: jest.fn(),
 }));
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
@@ -128,6 +134,9 @@ describe('OnboardingSuccessComponent', () => {
       .mocked(selectOnboardingAccountType)
       .mockReturnValue(AccountType.Imported);
     jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
+    jest
+      .mocked(selectWalletSetupCompletedAttributionAnalyticsProps)
+      .mockReturnValue({});
   });
 
   it('renders correctly when successFlow is BACKED_UP_SRP', () => {

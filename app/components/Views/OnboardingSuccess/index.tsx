@@ -25,6 +25,7 @@ import { getOnboardingCompletedAnalyticsPropsFromSuccessFlow } from '../../../ut
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 
 import Engine from '../../../core/Engine/Engine';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
@@ -72,6 +73,9 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const isBasicFunctionalityEnabled = useSelector(
     selectBasicFunctionalityEnabled,
   );
+  const walletSetupAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
 
   const tw = useTailwind();
 
@@ -97,7 +101,10 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
         AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.ONBOARDING_COMPLETED,
         )
-          .addProperties(onboardingCompletedProperties)
+          .addProperties({
+            ...onboardingCompletedProperties,
+            ...walletSetupAttributionProps,
+          })
           .build(),
         (event) => dispatch(saveEvent([event])),
       );
@@ -122,7 +129,14 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     queueMicrotask(() => {
       onDone();
     });
-  }, [accountType, dispatch, isBasicFunctionalityEnabled, onDone, successFlow]);
+  }, [
+    accountType,
+    dispatch,
+    isBasicFunctionalityEnabled,
+    onDone,
+    successFlow,
+    walletSetupAttributionProps,
+  ]);
 
   const getTitleString = () => {
     if (successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP) {
