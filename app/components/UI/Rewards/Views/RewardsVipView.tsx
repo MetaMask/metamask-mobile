@@ -406,7 +406,7 @@ const RewardsVipViewContent: React.FC = () => {
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
-                  twClassName="text-right"
+                  twClassName="text-left px-4"
                   testID={REWARDS_VIP_VIEW_TEST_IDS.LAST_UPDATED}
                 >
                   {strings('rewards.vip.last_updated', {
