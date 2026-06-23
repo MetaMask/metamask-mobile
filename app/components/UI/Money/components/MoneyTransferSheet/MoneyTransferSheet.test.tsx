@@ -7,6 +7,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAccountWithdrawal } from '../../hooks/useMoneyAccount';
 import { useMoneyPerpsDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPerpsDeposit';
 import { useMoneyPredictDeposit } from '../../../../Views/confirmations/hooks/pay/useMoneyPredictDeposit';
+import { selectPerpsEligibility } from '../../../Perps/selectors/perpsController';
+import { usePredictEligibility } from '../../../Predict/hooks/usePredictEligibility';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import {
   BOTTOM_SHEET_NAMES,
@@ -50,6 +52,14 @@ jest.mock(
     useMoneyPredictDeposit: jest.fn(),
   }),
 );
+
+jest.mock('../../../Perps/selectors/perpsController', () => ({
+  selectPerpsEligibility: jest.fn(() => true),
+}));
+
+jest.mock('../../../Predict/hooks/usePredictEligibility', () => ({
+  usePredictEligibility: jest.fn(() => ({ isEligible: true })),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -104,6 +114,8 @@ describe('MoneyTransferSheet', () => {
       isEnabled: false,
       initiatePredictDeposit: mockInitiatePredictDeposit,
     });
+    (selectPerpsEligibility as unknown as jest.Mock).mockReturnValue(true);
+    (usePredictEligibility as jest.Mock).mockReturnValue({ isEligible: true });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: mockTrackBottomSheetViewed,
       trackSurfaceClicked: mockTrackSurfaceClicked,
@@ -205,6 +217,37 @@ describe('MoneyTransferSheet', () => {
     expect(mockInitiatePerpsDeposit).toHaveBeenCalledTimes(1);
   });
 
+  it('disables the "Perps account" option when flag is enabled but user is geo-blocked', () => {
+    (useMoneyPerpsDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePerpsDeposit: mockInitiatePerpsDeposit,
+    });
+    (selectPerpsEligibility as unknown as jest.Mock).mockReturnValue(false);
+
+    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    expect(
+      getByTestId(MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION),
+    ).toBeDisabled();
+  });
+
+  it('does nothing when "Perps account" is pressed and user is geo-blocked', () => {
+    (useMoneyPerpsDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePerpsDeposit: mockInitiatePerpsDeposit,
+    });
+    (selectPerpsEligibility as unknown as jest.Mock).mockReturnValue(false);
+
+    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    fireEvent.press(
+      getByTestId(MoneyTransferSheetTestIds.PERPS_ACCOUNT_OPTION),
+    );
+
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockInitiatePerpsDeposit).not.toHaveBeenCalled();
+  });
+
   it('disables the "Predictions account" option when flag is disabled', () => {
     const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
 
@@ -251,6 +294,37 @@ describe('MoneyTransferSheet', () => {
 
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
     expect(mockInitiatePredictDeposit).toHaveBeenCalledTimes(1);
+  });
+
+  it('disables the "Predictions account" option when flag is enabled but user is geo-blocked', () => {
+    (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePredictDeposit: mockInitiatePredictDeposit,
+    });
+    (usePredictEligibility as jest.Mock).mockReturnValue({ isEligible: false });
+
+    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    expect(
+      getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    ).toBeDisabled();
+  });
+
+  it('does nothing when "Predictions account" is pressed and user is geo-blocked', () => {
+    (useMoneyPredictDeposit as jest.Mock).mockReturnValue({
+      isEnabled: true,
+      initiatePredictDeposit: mockInitiatePredictDeposit,
+    });
+    (usePredictEligibility as jest.Mock).mockReturnValue({ isEligible: false });
+
+    const { getByTestId } = renderWithProvider(<MoneyTransferSheet />);
+
+    fireEvent.press(
+      getByTestId(MoneyTransferSheetTestIds.PREDICTIONS_ACCOUNT_OPTION),
+    );
+
+    expect(mockOnCloseBottomSheet).not.toHaveBeenCalled();
+    expect(mockInitiatePredictDeposit).not.toHaveBeenCalled();
   });
 
   describe('analytics', () => {
