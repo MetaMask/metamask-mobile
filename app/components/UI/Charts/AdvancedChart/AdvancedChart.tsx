@@ -88,6 +88,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       disabledFeatures = DEFAULT_DISABLED_FEATURES,
       onChartReady,
       onSkeletonHidden,
+      onChartLayoutSettled,
       onError,
       onInitFailed,
       onCrosshairMove,
@@ -410,6 +411,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           case 'CHART_LAYOUT_SETTLED':
             clearLayoutSettleTimeout();
             setLayoutSettling(false);
+            onChartLayoutSettled?.();
             break;
 
           case 'INDICATOR_ADDED':
@@ -471,6 +473,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         isChartReady,
         clearLayoutSettleTimeout,
         onChartReady,
+        onChartLayoutSettled,
         onError,
         onInitFailed,
         onCrosshairMove,

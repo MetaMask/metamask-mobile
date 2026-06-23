@@ -484,6 +484,12 @@ export interface AdvancedChartProps {
    * and parent `isLoading` false). Resets when `webViewInstanceKey` or chart HTML reloads.
    */
   onSkeletonHidden?: () => void;
+  /**
+   * Fires when the WebView posts `CHART_LAYOUT_SETTLED` after OHLCV scale/layout apply.
+   * Used by Token Details (technical-indicators path) to complete interval visibility traces
+   * after first reveal — `onSkeletonHidden` only runs once per WebView session.
+   */
+  onChartLayoutSettled?: () => void;
   /** Callback when an error occurs */
   onError?: (error: string) => void;
   /**

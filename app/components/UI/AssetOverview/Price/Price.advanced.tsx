@@ -429,11 +429,9 @@ const PriceAdvanced = ({
     traceName: TraceName;
   } | null>(null);
 
-  const handleAdvancedChartSkeletonHidden = useCallback(() => {
-    setHasChartBeenRevealed(true);
-    setChartInitFailed(false);
+  const completeVisibilityTrace = useCallback(() => {
     const open = activeVisibilityTraceRef.current;
-    if (!open) {
+    if (!open || open.seriesKey !== visibilityTraceStartedRef.current) {
       return;
     }
     endTrace({
@@ -442,6 +440,31 @@ const PriceAdvanced = ({
     });
     activeVisibilityTraceRef.current = null;
   }, []);
+
+  const handleAdvancedChartSkeletonHidden = useCallback(() => {
+    const isInitialReveal = !hasChartBeenRevealed;
+    setHasChartBeenRevealed(true);
+    setChartInitFailed(false);
+    // Technical-indicators path: skeleton hides once; interval refreshes complete via layout settled.
+    if (!isTechnicalIndicatorsEnabled || isInitialReveal) {
+      completeVisibilityTrace();
+    }
+  }, [
+    hasChartBeenRevealed,
+    isTechnicalIndicatorsEnabled,
+    completeVisibilityTrace,
+  ]);
+
+  const handleAdvancedChartLayoutSettled = useCallback(() => {
+    if (!isTechnicalIndicatorsEnabled || !hasChartBeenRevealed) {
+      return;
+    }
+    completeVisibilityTrace();
+  }, [
+    isTechnicalIndicatorsEnabled,
+    hasChartBeenRevealed,
+    completeVisibilityTrace,
+  ]);
 
   const handleAdvancedChartError = useCallback((error: string) => {
     const open = activeVisibilityTraceRef.current;
@@ -1090,6 +1113,11 @@ const PriceAdvanced = ({
               onChartInteracted={handleChartInteracted}
               onChartTradingViewClicked={handleChartTradingViewClicked}
               onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+              onChartLayoutSettled={
+                isTechnicalIndicatorsEnabled
+                  ? handleAdvancedChartLayoutSettled
+                  : undefined
+              }
               onError={handleAdvancedChartError}
               onInitFailed={handleAdvancedChartInitFailed}
               lineColorOverride={initialAmbientColor}
