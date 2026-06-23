@@ -39,8 +39,6 @@ app/core/Engine/index.ts                                    @MetaMask/mobile-pla
 app/core/Engine/README.md                                   @MetaMask/mobile-platform
 app/core/Engine/types.ts                                    @MetaMask/mobile-platform
 app/core/Engine/controllers/remote-feature-flag-controller/ @MetaMask/mobile-platform
-app/core/Engine/wallet-init/instance-options/connectivity-controller* @MetaMask/mobile-platform
-app/core/Engine/wallet-init/instance-options/remote-feature-flag-controller* @MetaMask/mobile-platform
 app/core/DeeplinkManager                                    @MetaMask/mobile-platform
 # SDK / WalletConnect / BackgroundBridge
 app/actions/sdk/                                            @MetaMask/mobile-platform
@@ -97,7 +95,6 @@ app/components/Views/confirmations                              @MetaMask/confir
 app/components/Views/confirmations/external/staking             @MetaMask/confirmations @MetaMask/earn
 app/core/Analytics/events/confirmations                         @MetaMask/confirmations
 app/core/Engine/controllers/approval-controller                 @MetaMask/confirmations
-app/core/Engine/wallet-init/instance-options/approval-controller* @MetaMask/confirmations
 app/core/Engine/controllers/gas-fee-controller                  @MetaMask/confirmations
 app/core/Engine/controllers/signature-controller                @MetaMask/confirmations
 app/core/Engine/controllers/transaction-controller              @MetaMask/confirmations
@@ -129,8 +126,6 @@ app/core/Engine/controllers/multichain-account-service      @MetaMask/accounts-e
 app/core/Engine/controllers/snap-keyring                    @MetaMask/accounts-engineers
 app/core/Engine/controllers/keyring-controller              @MetaMask/accounts-engineers
 app/core/Engine/controllers/storage-service                 @MetaMask/accounts-engineers
-app/core/Engine/wallet-init/instance-options/keyring-controller* @MetaMask/accounts-engineers
-app/core/Engine/wallet-init/instance-options/storage-service* @MetaMask/accounts-engineers
 app/core/Engine/messengers/accounts-controller-messenger    @MetaMask/accounts-engineers
 app/core/SnapKeyring                                        @MetaMask/accounts-engineers
 **/Identity/**                                              @MetaMask/accounts-engineers
@@ -407,6 +402,15 @@ tests/websocket/                                                @MetaMask/qa
 # Co-owned by Swaps and Money Movement teams
 app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/money-movement
 app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask/money-movement
+
+# Engine wallet-init
+app/core/Engine/wallet-init/initialization* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/keyrings* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/approval-controller* @MetaMask/confirmations
+app/core/Engine/wallet-init/instance-options/connectivity-controller* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/keyring-controller* @MetaMask/accounts-engineers
+app/core/Engine/wallet-init/instance-options/remote-feature-flag-controller* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/storage-service* @MetaMask/mobile-platform @MetaMask/core-platform
 
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.
