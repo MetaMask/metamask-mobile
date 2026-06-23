@@ -41,11 +41,13 @@
 		3466654F43654D36B5D478CA /* config.json in Resources */ = {isa = PBXBuildFile; fileRef = 2679C48F8CD642C68116DD24 /* config.json */; };
 		3F123FD0EA9146FEBC864879 /* MMSans-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4A64F1985EEA45C0B027E517 /* MMSans-Medium.otf */; };
 		49D8E62C506F4A63889EEC7F /* branch.json in Resources */ = {isa = PBXBuildFile; fileRef = FE3C9A2458A1416290DEDAD4 /* branch.json */; };
+		507B21CF13F10A289840E682 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 8D394ECFDCD9967160F46B8C /* Foundation.framework */; };
 		650F2B9D24DC5FF200C3B9C4 /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		654378B0243E2ADC00571B9C /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
 		8C3986ED969040AEBC7A3856 /* MMPoly-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F10E7EBF946A4F6D8E229143 /* MMPoly-Regular.otf */; };
 		8DE564ACA9934796B5E7B1EB /* MMSans-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F3C919D8F42C47389FF643E7 /* MMSans-Regular.otf */; };
 		9D9E53F67A884FDEBE9A4D3C /* Geist-RegularItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 978781C44CFB4434873EDB69 /* Geist-RegularItalic.otf */; };
+		9E44BBB5AD14107BE818A10B /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 3E41F824FF8CFAD5538933DF /* Assets.xcassets */; };
 		A1987088D4835E5FCCABC418 /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 683865D794CE6007E46CAD3A /* ExpoModulesProvider.swift */; };
 		A1F5C74197AA4BB4B2F9C001 /* Geist-SemiBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = A1F5C74197AA4BB4B2F9C011 /* Geist-SemiBold.otf */; };
 		A1F5C74197AA4BB4B2F9C002 /* Geist-SemiBoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = A1F5C74197AA4BB4B2F9C012 /* Geist-SemiBoldItalic.otf */; };
@@ -53,12 +55,14 @@
 		AA11BB22CC33DD44EE55FF66 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */; };
 		AA11BB22CC33DD44EE55FF68 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */; };
 		B0EF7FA927BD16EA00D48B4E /* ThemeColors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */; };
+		B4A0AA59DFE958BEF61AFC32 /* PriceWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 01EC32D9405FD75B77E1BB8B /* PriceWidget.swift */; };
 		BAB8A7C7328F48B6AC38DCE9 /* Geist-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = B848D40B87744D32949BDC25 /* Geist-Regular.otf */; };
 		C7B6D2EC4EBB469F9E0658BE /* MMSans-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D3350113F0764105B1E60002 /* MMSans-Bold.otf */; };
 		C8424AE52CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		C8424AE62CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
 		CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
+		E00DE2A5F62D5B516CC62F9F /* MetaMaskWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 9DD2182A7AC6D94C0B343290 /* MetaMaskWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		E4B580722E32F462008165E1 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = E4B580712E32F462008165E1 /* Expo.plist */; };
 		E4B580742E32F462008165E1 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = E4B580712E32F462008165E1 /* Expo.plist */; };
 		E4B580762E33A001008165E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580752E33A001008165E1 /* AppDelegate.swift */; };
@@ -73,6 +77,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		0F944D217B3C5EDB9D1B5D61 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 0F7ABD696522D0C2B81F0886;
+			remoteInfo = MetaMaskWidget;
+		};
 		153F84C82319B8DB00C19B63 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 153F84C42319B8DA00C19B63 /* BranchSDK.xcodeproj */;
@@ -115,6 +126,17 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		2828D0D85DA685C6AB0EB9AD /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				E00DE2A5F62D5B516CC62F9F /* MetaMaskWidget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		2EF2828A2B0FF86900D7B4B1 /* Embed Frameworks */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -132,6 +154,7 @@
 		008F07F21AC5B25A0029DE68 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* MetaMaskTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MetaMaskTests.m; sourceTree = "<group>"; };
+		01EC32D9405FD75B77E1BB8B /* PriceWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = PriceWidget.swift; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* MetaMask.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MetaMask.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = MetaMask/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MetaMask/Info.plist; sourceTree = "<group>"; };
@@ -152,6 +175,8 @@
 		2EF283292B17EBD600D7B4B1 /* RnTar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RnTar.swift; sourceTree = "<group>"; };
 		2EF283312B17EC1A00D7B4B1 /* RNTar.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = RNTar.m; sourceTree = "<group>"; };
 		2EF283362B17EC7900D7B4B1 /* Light-Swift-Untar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = "Light-Swift-Untar.swift"; sourceTree = "<group>"; };
+		3E41F824FF8CFAD5538933DF /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		3FCBACE886891CBF060EAD02 /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		42C239E9FAA64BD9A34B8D8A /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		42C6DDE3B80F47AFA9C9D4F5 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
 		4444176409EB42CB93AB03C5 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
@@ -168,10 +193,12 @@
 		6E7939D848B5467AA6602966 /* Geist-MediumItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-MediumItalic.otf"; path = "../app/fonts/Geist-MediumItalic.otf"; sourceTree = "<group>"; };
 		7D2A2666F9BADDF2418B01A1 /* Pods-MetaMask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.release.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.release.xcconfig"; sourceTree = "<group>"; };
 		7FF1597C0ACA4902B86140B2 /* Zocial.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Zocial.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Zocial.ttf"; sourceTree = "<group>"; };
+		8D394ECFDCD9967160F46B8C /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		8E369AC13A2049B6B21E5120 /* libRCTSearchApi.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRCTSearchApi.a; sourceTree = "<group>"; };
 		8EB256CB3A1A7A1D942A95F6 /* ExpoModulesProvider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ExpoModulesProvider.swift; path = "Pods/Target Support Files/Pods-MetaMask-Flask/ExpoModulesProvider.swift"; sourceTree = "<group>"; };
 		91B348F39D8AD3220320E89D /* Pods-MetaMask-Flask.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-Flask.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask-Flask/Pods-MetaMask-Flask.debug.xcconfig"; sourceTree = "<group>"; };
 		978781C44CFB4434873EDB69 /* Geist-RegularItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-RegularItalic.otf"; path = "../app/fonts/Geist-RegularItalic.otf"; sourceTree = "<group>"; };
+		9DD2182A7AC6D94C0B343290 /* MetaMaskWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MetaMaskWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		9F02EB68A6ACEF113F4693A8 /* libPods-MetaMask-Flask.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask-Flask.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1F5C74197AA4BB4B2F9C011 /* Geist-SemiBold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-SemiBold.otf"; path = "../app/fonts/Geist-SemiBold.otf"; sourceTree = "<group>"; };
 		A1F5C74197AA4BB4B2F9C012 /* Geist-SemiBoldItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-SemiBoldItalic.otf"; path = "../app/fonts/Geist-SemiBoldItalic.otf"; sourceTree = "<group>"; };
@@ -230,6 +257,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		695D179FD8FD27549A3A0599 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				507B21CF13F10A289840E682 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -256,6 +291,17 @@
 				8EB256CB3A1A7A1D942A95F6 /* ExpoModulesProvider.swift */,
 			);
 			name = "MetaMask-Flask";
+			sourceTree = "<group>";
+		};
+		09B2397787904D489F33FECF /* MetaMaskWidget */ = {
+			isa = PBXGroup;
+			children = (
+				01EC32D9405FD75B77E1BB8B /* PriceWidget.swift */,
+				3E41F824FF8CFAD5538933DF /* Assets.xcassets */,
+				3FCBACE886891CBF060EAD02 /* Info.plist */,
+			);
+			name = MetaMaskWidget;
+			path = MetaMaskWidget;
 			sourceTree = "<group>";
 		};
 		13B07FAE1A68108700A75B9A /* MetaMask */ = {
@@ -323,6 +369,7 @@
 				2D16E6891FA4F8E400B85C8A /* libReact.a */,
 				D2632307C64595BE1B8ABEAF /* libPods-MetaMask.a */,
 				9F02EB68A6ACEF113F4693A8 /* libPods-MetaMask-Flask.a */,
+				608F72602F2D6D9B1C6F477E /* iOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -369,6 +416,14 @@
 			name = Resources;
 			sourceTree = "<group>";
 		};
+		608F72602F2D6D9B1C6F477E /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				8D394ECFDCD9967160F46B8C /* Foundation.framework */,
+			);
+			name = iOS;
+			sourceTree = "<group>";
+		};
 		650F2B9824DC5FEB00C3B9C4 /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -406,6 +461,7 @@
 				AA342D524556DBBE26F5997C /* Pods */,
 				654378AE243E2ADB00571B9C /* MetaMask-Bridging-Header.h */,
 				B1017F312FF6E8B14E7F30EB /* ExpoModulesProviders */,
+				09B2397787904D489F33FECF /* MetaMaskWidget */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -417,6 +473,7 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* MetaMask.app */,
 				2EF282922B0FF86900D7B4B1 /* MetaMask-Flask.app */,
+				9DD2182A7AC6D94C0B343290 /* MetaMaskWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -462,6 +519,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		0F7ABD696522D0C2B81F0886 /* MetaMaskWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 53BB7715619F62F4648F0F6A /* Build configuration list for PBXNativeTarget "MetaMaskWidget" */;
+			buildPhases = (
+				AF93658E7FA2D631F5B70272 /* Sources */,
+				695D179FD8FD27549A3A0599 /* Frameworks */,
+				FD84B0014AC3F4D113E0157A /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MetaMaskWidget;
+			productName = MetaMaskWidget;
+			productReference = 9DD2182A7AC6D94C0B343290 /* MetaMaskWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
+		};
 		13B07F861A680F5B00A75B9A /* MetaMask */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 13B07F931A680F5B00A75B9A /* Build configuration list for PBXNativeTarget "MetaMask" */;
@@ -473,6 +547,7 @@
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				15ACCA0022655C3A0063978B /* Embed Frameworks */,
+				2828D0D85DA685C6AB0EB9AD /* Embed App Extensions */,
 				00DD1BFF1BD5951E006B06BC /* Bundle JS Code & Upload Sentry Files */,
 				1315792FDF9ED5C1277541D0 /* [CP] Embed Pods Frameworks */,
 				FFED9AB1AACD0DA25EAA971D /* [CP] Copy Pods Resources */,
@@ -483,6 +558,7 @@
 			);
 			dependencies = (
 				153F84CD2319B8FD00C19B63 /* PBXTargetDependency */,
+				95C82B33D1DFE5650B760DDF /* PBXTargetDependency */,
 			);
 			name = MetaMask;
 			productName = "Hello World";
@@ -564,6 +640,7 @@
 			targets = (
 				13B07F861A680F5B00A75B9A /* MetaMask */,
 				2EF282522B0FF86900D7B4B1 /* MetaMask-Flask */,
+				0F7ABD696522D0C2B81F0886 /* MetaMaskWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -630,6 +707,14 @@
 				AA11BB22CC33DD44EE55FF68 /* SplashScreen.storyboard in Resources */,
 				2EF2827D2B0FF86900D7B4B1 /* branch.json in Resources */,
 				C8424AE52CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		FD84B0014AC3F4D113E0157A /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9E44BBB5AD14107BE818A10B /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -963,6 +1048,14 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AF93658E7FA2D631F5B70272 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				B4A0AA59DFE958BEF61AFC32 /* PriceWidget.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -976,9 +1069,45 @@
 			name = Branch;
 			targetProxy = 2EF282562B0FF86900D7B4B1 /* PBXContainerItemProxy */;
 		};
+		95C82B33D1DFE5650B760DDF /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 0F7ABD696522D0C2B81F0886 /* MetaMaskWidget */;
+			targetProxy = 0F944D217B3C5EDB9D1B5D61 /* PBXContainerItemProxy */;
+		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		0EDF0E8B7522DCEBDE87564C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 4823;
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				ENABLE_DEBUG_DYLIB = NO;
+				ENABLE_PREVIEWS = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MetaMaskWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 8.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.MetaMaskWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 		13B07F941A680F5B00A75B9A /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 4C81CC9BCD86AC7F96BA8CAD /* Pods-MetaMask.debug.xcconfig */;
@@ -1246,6 +1375,37 @@
 			};
 			name = Release;
 		};
+		7DD44CDFF713D7B7EED0686D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 4823;
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				ENABLE_DEBUG_DYLIB = NO;
+				ENABLE_PREVIEWS = NO;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MetaMaskWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 8.1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.MetaMaskWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		83CBBA201A601CBA00E9B192 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 15FDD82721B7642B006B7C35 /* debug.xcconfig */;
@@ -1364,6 +1524,15 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
+		};
+		53BB7715619F62F4648F0F6A /* Build configuration list for PBXNativeTarget "MetaMaskWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7DD44CDFF713D7B7EED0686D /* Release */,
+				0EDF0E8B7522DCEBDE87564C /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		83CBB9FA1A601CBA00E9B192 /* Build configuration list for PBXProject "MetaMask" */ = {
 			isa = XCConfigurationList;
