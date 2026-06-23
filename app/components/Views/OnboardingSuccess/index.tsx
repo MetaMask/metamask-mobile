@@ -26,6 +26,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { clearAttribution } from '../../../core/redux/slices/attribution';
 
 import Engine from '../../../core/Engine/Engine';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
@@ -115,6 +116,8 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
         }),
       );
     }
+
+    dispatch(clearAttribution());
 
     Promise.resolve(
       discoverAccounts(
