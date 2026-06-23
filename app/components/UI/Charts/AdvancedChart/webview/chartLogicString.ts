@@ -856,14 +856,6 @@ function getSeriesColorOverrides(lineColor, lastPriceLineColor) {
   };
 }
 
-function getSeriesAndLastValueColorOverrides(theme) {
-  const t = theme || (window.CONFIG && window.CONFIG.theme) || {};
-  return getSeriesColorOverrides(
-    getThemeLineColor(t),
-    getThemeLastPriceLineColor(t),
-  );
-}
-
 /**
  * Forces TV to repaint the built-in last-value scale pill after color overrides change.
  */
@@ -895,34 +887,15 @@ function applySeriesColors() {
   }
   const theme = (window.CONFIG && window.CONFIG.theme) || {};
   const lineColor = getThemeLineColor(theme);
-  const lastPriceLineColor = getThemeLastPriceLineColor(theme);
   try {
     window.chartWidget.applyOverrides(
-      getSeriesAndLastValueColorOverrides(theme),
+      getSeriesColorOverrides(lineColor, getThemeLastPriceLineColor(theme)),
     );
-    const series = window.chartWidget.activeChart().getSeries();
-    const ct = window.currentChartType;
-    if (ct === 2) {
-      series.setChartStyleProperties(2, {
+    if (window.currentChartType === 2) {
+      window.chartWidget.activeChart().getSeries().setChartStyleProperties(2, {
         color: lineColor,
         colorType: 'solid',
         linewidth: 2,
-      });
-    } else if (ct === 10) {
-      series.setChartStyleProperties(10, {
-        topLineColor: lineColor,
-        bottomLineColor: lineColor,
-        topLineWidth: 2,
-        bottomLineWidth: 2,
-      });
-    } else if (ct === 1) {
-      series.setChartStyleProperties(1, {
-        upColor: theme.successColor,
-        downColor: theme.errorColor,
-        borderUpColor: theme.successColor,
-        borderDownColor: theme.errorColor,
-        wickUpColor: theme.successColor,
-        wickDownColor: theme.errorColor,
       });
     }
   } catch (e) {}
@@ -1785,8 +1758,6 @@ function handleSetChartType(payload) {
     ac.setChartType(type);
 
     applySeriesColors();
-    refreshBuiltInLastValueLabelVisibility();
-
     applyChartScaleLayout(type);
 
     // Update price indicators after chart type change
@@ -4094,7 +4065,10 @@ function initChart() {
           'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
           'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
         },
-        getSeriesAndLastValueColorOverrides(theme),
+        getSeriesColorOverrides(
+          getThemeLineColor(theme),
+          getThemeLastPriceLineColor(theme),
+        ),
         getBuiltInCrosshairLabelOverrides(theme),
       ),
 
