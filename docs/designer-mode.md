@@ -190,16 +190,17 @@ edit the named `StyleSheet` entries).
 
 ## Configuration
 
-| Variable           | Where                                       | Default   | Purpose                                                                                             |
-| ------------------ | ------------------------------------------- | --------- | --------------------------------------------------------------------------------------------------- |
-| `DESIGNER_MODE`    | Metro / bundle (inline prefix or `.js.env`) | _(off)_   | `true` enables the in-app inspector (cache-clear required when toggled)                             |
-| `DESIGNER_PORT`    | relay server                                | `3334`    | Relay server port                                                                                   |
-| `DESIGNER_HOST`    | relay server                                | `0.0.0.0` | Relay bind host (LAN-reachable for device)                                                          |
-| `DESIGNER_WAIT_MS` | relay server                                | `580000`  | How long `/api/wait` blocks before re-arming (~10 min; kept just under agents' max command timeout) |
+| Variable           | Where                                       | Default  | Purpose                                                                                             |
+| ------------------ | ------------------------------------------- | -------- | --------------------------------------------------------------------------------------------------- |
+| `DESIGNER_MODE`    | Metro / bundle (inline prefix or `.js.env`) | _(off)_  | `true` enables the in-app inspector (cache-clear required when toggled)                             |
+| `DESIGNER_PORT`    | relay server                                | `3334`   | Relay server port                                                                                   |
+| `DESIGNER_WAIT_MS` | relay server                                | `580000` | How long `/api/wait` blocks before re-arming (~10 min; kept just under agents' max command timeout) |
 
-The app auto-detects the relay URL from Metro's bundle host, so it works on the
-iOS simulator (`localhost`), Android emulator (`10.0.2.2`), and physical devices
-on the same Wi-Fi (the dev machine's LAN IP) without configuration.
+The relay binds **loopback only** (`127.0.0.1`). The app reaches it with a
+per-platform default — `localhost` on the iOS simulator and `10.0.2.2` (the
+emulator's host-loopback alias) on the Android emulator — so no configuration is
+needed. Physical devices are not supported in this version (the relay is never
+exposed on the LAN).
 
 ---
 
