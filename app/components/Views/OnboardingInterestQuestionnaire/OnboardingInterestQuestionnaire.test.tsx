@@ -22,9 +22,11 @@ jest.mock('./OtherBottomSheet', () => ({
   default: function MockOtherBottomSheet({
     onClose,
     onDone,
+    onRemove,
   }: {
     onClose: () => void;
     onDone: (value: string) => void;
+    onRemove: () => void;
   }) {
     return (
       <MockView testID="mock-other-bottom-sheet">
@@ -36,6 +38,9 @@ jest.mock('./OtherBottomSheet', () => ({
         </MockPressable>
         <MockPressable testID="mock-other-close" onPress={onClose}>
           <MockText>Close</MockText>
+        </MockPressable>
+        <MockPressable testID="mock-other-remove" onPress={onRemove}>
+          <MockText>Remove</MockText>
         </MockPressable>
       </MockView>
     );
@@ -330,6 +335,30 @@ describe('OnboardingInterestQuestionnaire', () => {
       expect(
         screen.getByTestId(OnboardingInterestQuestionnaireTestIds.OTHER_TEXT),
       ).toHaveTextContent('Custom usage');
+    });
+
+    it('removes other text and deselects option when Remove is pressed', () => {
+      renderComponent();
+
+      const otherOption = screen.getByTestId(
+        `${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}other`,
+      );
+
+      fireEvent.press(otherOption);
+      fireEvent.press(screen.getByTestId('mock-other-done'));
+
+      expect(otherOption.props.accessibilityState.checked).toBe(true);
+      expect(
+        screen.getByTestId(OnboardingInterestQuestionnaireTestIds.OTHER_TEXT),
+      ).toHaveTextContent('Custom usage');
+
+      fireEvent.press(otherOption);
+      fireEvent.press(screen.getByTestId('mock-other-remove'));
+
+      expect(otherOption.props.accessibilityState.checked).toBe(false);
+      expect(
+        screen.queryByTestId(OnboardingInterestQuestionnaireTestIds.OTHER_TEXT),
+      ).not.toBeOnTheScreen();
     });
   });
 

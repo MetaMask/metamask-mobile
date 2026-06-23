@@ -200,6 +200,16 @@ const OnboardingInterestQuestionnaire = () => {
     setIsOtherBottomSheetVisible(false);
   }, []);
 
+  const handleOtherRemove = useCallback(() => {
+    setOtherText('');
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.delete('other');
+      return next;
+    });
+    setIsOtherBottomSheetVisible(false);
+  }, []);
+
   const onNext = useCallback(() => {
     const selectedInterests = Array.from(selectedIds);
 
@@ -390,6 +400,7 @@ const OnboardingInterestQuestionnaire = () => {
           initialValue={otherText}
           onClose={handleOtherBottomSheetClose}
           onDone={handleOtherDone}
+          onRemove={handleOtherRemove}
         />
       ) : null}
     </SafeAreaView>

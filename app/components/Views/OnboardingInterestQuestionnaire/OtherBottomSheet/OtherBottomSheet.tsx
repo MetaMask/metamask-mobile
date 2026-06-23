@@ -22,12 +22,14 @@ interface OtherBottomSheetProps {
   initialValue?: string;
   onClose: () => void;
   onDone: (value: string) => void;
+  onRemove: () => void;
 }
 
 const OtherBottomSheet = ({
   initialValue = '',
   onClose,
   onDone,
+  onRemove,
 }: OtherBottomSheetProps) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -40,6 +42,7 @@ const OtherBottomSheet = ({
 
   const trimmedDraftValue = draftValue.trim();
   const canSubmit = trimmedDraftValue.length > 0;
+  const hasExistingValue = initialValue.trim().length > 0;
 
   const handleDone = useCallback(() => {
     if (!canSubmit) {
@@ -50,6 +53,10 @@ const OtherBottomSheet = ({
       onDone(trimmedDraftValue);
     });
   }, [canSubmit, onDone, trimmedDraftValue]);
+
+  const handleRemove = useCallback(() => {
+    bottomSheetRef.current?.onCloseBottomSheet(onRemove);
+  }, [onRemove]);
 
   return (
     <BottomSheet
@@ -103,6 +110,18 @@ const OtherBottomSheet = ({
           >
             {strings('onboarding_interest_questionnaire.other_done')}
           </Button>
+          {hasExistingValue && (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleRemove}
+              testID={OtherBottomSheetTestIds.REMOVE_BUTTON}
+              twClassName="mt-3"
+            >
+              {strings('onboarding_interest_questionnaire.other_remove')}
+            </Button>
+          )}
         </Box>
       </KeyboardAwareScrollView>
     </BottomSheet>
