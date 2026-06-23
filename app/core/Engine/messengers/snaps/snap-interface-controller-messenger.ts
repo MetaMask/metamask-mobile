@@ -1,10 +1,5 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
+import { Messenger } from '@metamask/messenger';
 import { SnapInterfaceControllerMessenger } from '@metamask/snaps-controllers';
-import { MaybeUpdateState } from '@metamask/phishing-controller';
 import { RootMessenger } from '../../types';
 
 /**
@@ -18,18 +13,12 @@ import { RootMessenger } from '../../types';
 export function getSnapInterfaceControllerMessenger(
   rootMessenger: RootMessenger,
 ): SnapInterfaceControllerMessenger {
-  const messenger = new Messenger<
-    'SnapInterfaceController',
-    MessengerActions<SnapInterfaceControllerMessenger> | MaybeUpdateState,
-    MessengerEvents<SnapInterfaceControllerMessenger>,
-    RootMessenger
-  >({
+  const messenger: SnapInterfaceControllerMessenger = new Messenger({
     namespace: 'SnapInterfaceController',
     parent: rootMessenger,
   });
   rootMessenger.delegate({
     actions: [
-      'PhishingController:maybeUpdateState',
       'PhishingController:testOrigin',
       'ApprovalController:hasRequest',
       'ApprovalController:acceptRequest',
