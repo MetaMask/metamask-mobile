@@ -226,7 +226,16 @@ jest.mock('@metamask/design-system-react-native', () => {
     );
   };
 
-  return { ListItem };
+  const Icon = ({ testID }: { testID?: string }) =>
+    ReactActual.createElement(View, { testID });
+
+  return {
+    Icon,
+    IconColor: { IconAlternative: 'icon-alternative' },
+    IconName: { Clock: 'Clock' },
+    IconSize: { Sm: '16' },
+    ListItem,
+  };
 });
 
 jest.mock('../StyledButton', () => {
@@ -259,20 +268,6 @@ jest.mock('../Money/components/PendingSpinner/PendingSpinner', () => {
   const { View } = jest.requireActual('react-native');
   return ({ testID }: { testID?: string }) =>
     ReactActual.createElement(View, { testID });
-});
-
-jest.mock('../../../component-library/components/Icons/Icon', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const Icon = ({ testID }: { testID?: string }) =>
-    ReactActual.createElement(View, { testID });
-  return {
-    __esModule: true,
-    default: Icon,
-    IconColor: { Alternative: 'alternative', Default: 'default' },
-    IconName: { Pending: 'Pending' },
-    IconSize: { Sm: '16' },
-  };
 });
 
 jest.mock('../../Views/confirmations/utils/transaction', () => ({
@@ -544,6 +539,28 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
       '100 USDC',
     );
+  });
+
+  it('renders unlimited spending cap amount without compacting the raw allowance', () => {
+    const item = makeItem({
+      type: 'approveSpendingCap',
+      status: 'success',
+      token: {
+        amount: '115792089237316195423570985.639935',
+        isUnlimitedApproval: true,
+        symbol: 'USDT',
+        direction: 'out',
+      },
+    });
+
+    const { getByTestId, queryByText } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      `${strings('confirm.unlimited')} USDT`,
+    );
+    expect(queryByText('115792089237316195423570985.639935 USDT')).toBeNull();
   });
 
   it('renders cross-token bridge as swapped with token pair subtitle', () => {
