@@ -1,7 +1,8 @@
-import { toChecksumHexAddress } from '@metamask/controller-utils';
 import {
+  getChecksumAddress,
   getErrorMessage,
   hasProperty,
+  Hex,
   isHexString,
   isObject,
 } from '@metamask/utils';
@@ -238,7 +239,7 @@ function buildErc20AssetId(caip2: string, tokenAddress: string): string | null {
     return null;
   }
 
-  return `${caip2}/erc20:${toChecksumHexAddress(tokenAddress)}`;
+  return `${caip2}/erc20:${getChecksumAddress(tokenAddress as Hex)}`;
 }
 
 function buildEvmAssetInfo(token: Record<string, unknown>): AssetInfo {
