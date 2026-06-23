@@ -77,11 +77,20 @@ project.ext.react = [
 // System.env.SENTRY_DIST
 // System.env.SENTRY_RELEASE
 
-// Configure sentry properties
+// Configure sentry properties.
+// @sentry/react-native 7.x throws if `sentryProperties` points to a file that
+// does not exist (6.x silently skipped it). Local/dev builds frequently run
+// without it — see checkAuthToken in scripts/build.sh, which only generates the
+// file when MM_SENTRY_AUTH_TOKEN is set and otherwise just warns and continues.
+// So only set `sentryProperties` when the file actually exists. Production builds
+// still upload because checkAuthToken guarantees the release file is present.
+def sentryPropertiesPath = System.getenv('SENTRY_PROPERTIES') ?: '../../sentry.properties'
 project.ext.sentryCli = [
     logLevel: "debug",
-    sentryProperties: System.getenv('SENTRY_PROPERTIES') ?: '../../sentry.properties'
 ]
+if (file(sentryPropertiesPath).exists()) {
+    project.ext.sentryCli.sentryProperties = sentryPropertiesPath
+}
 
 // Sentry gradle from React Native (@sentry/react-native) that handles uploads Sentry source maps.
 apply from: "../../node_modules/@sentry/react-native/sentry.gradle"
