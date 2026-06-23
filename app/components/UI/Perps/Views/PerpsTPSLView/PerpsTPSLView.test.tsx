@@ -153,6 +153,8 @@ describe('PerpsTPSLView', () => {
       slPercentInputFocused: false,
       tpUsingPercentage: false,
       slUsingPercentage: false,
+      takeProfitSign: '+',
+      stopLossSign: '-',
     },
     handlers: {
       handleTakeProfitPriceChange: jest.fn(),
@@ -173,6 +175,8 @@ describe('PerpsTPSLView', () => {
       handleStopLossPercentageButton: jest.fn(),
       handleTakeProfitOff: jest.fn(),
       handleStopLossOff: jest.fn(),
+      handleTakeProfitSignToggle: jest.fn(),
+      handleStopLossSignToggle: jest.fn(),
     },
     validation: {
       isValid: true,
@@ -705,6 +709,62 @@ describe('PerpsTPSLView', () => {
       renderView();
 
       expect(screen.getByTestId('back-button')).toBeOnTheScreen();
+    });
+  });
+
+  // ==================== RoE Sign Badge ====================
+
+  describe('RoE Sign Badge', () => {
+    it('renders the default + take profit and - stop loss signs', () => {
+      renderView();
+
+      expect(
+        screen.getByTestId('perps-tpsl-tp-roe-sign-badge'),
+      ).toHaveTextContent('+');
+      expect(
+        screen.getByTestId('perps-tpsl-sl-roe-sign-badge'),
+      ).toHaveTextContent('-');
+    });
+
+    it('toggles the take profit sign when the badge is pressed', () => {
+      const mockToggle = jest.fn();
+      renderView({
+        buttons: {
+          ...defaultMockReturn.buttons,
+          handleTakeProfitSignToggle: mockToggle,
+        },
+      });
+
+      fireEvent.press(screen.getByTestId('perps-tpsl-tp-roe-sign-badge'));
+
+      expect(mockToggle).toHaveBeenCalled();
+    });
+
+    it('toggles the stop loss sign when the badge is pressed', () => {
+      const mockToggle = jest.fn();
+      renderView({
+        buttons: {
+          ...defaultMockReturn.buttons,
+          handleStopLossSignToggle: mockToggle,
+        },
+      });
+
+      fireEvent.press(screen.getByTestId('perps-tpsl-sl-roe-sign-badge'));
+
+      expect(mockToggle).toHaveBeenCalled();
+    });
+
+    it('reflects the take profit sign provided by the form hook', () => {
+      renderView({
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitSign: '-',
+        },
+      });
+
+      expect(
+        screen.getByTestId('perps-tpsl-tp-roe-sign-badge'),
+      ).toHaveTextContent('-');
     });
   });
 });
