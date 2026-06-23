@@ -193,6 +193,27 @@ describe('NitroWebSocketSetup', () => {
 
       expect(ws.readyState).toBe(3);
     });
+
+    it('warns in __DEV__ when readyState is unrecognised', () => {
+      const warnSpy = jest
+        .spyOn(console, 'warn')
+        .mockImplementation((_msg: string) => {
+          // suppress output
+        });
+      const globalRecord = global as unknown as Record<string, unknown>;
+      const originalDev = globalRecord.__DEV__;
+      globalRecord.__DEV__ = true;
+      mockWsInstance.readyState = 'UNKNOWN';
+
+      const state = ws.readyState;
+
+      expect(state).toBe(3);
+      expect(warnSpy).toHaveBeenCalledWith(
+        expect.stringContaining('Unknown readyState'),
+      );
+      globalRecord.__DEV__ = originalDev;
+      warnSpy.mockRestore();
+    });
   });
 
   describe('NitroWebSocketAdapter — pass-through getters', () => {
@@ -450,6 +471,19 @@ describe('NitroWebSocketSetup', () => {
 
       expect(listener).toHaveBeenCalledTimes(1);
     });
+
+    it('removes a signal-bound listener when the signal aborts before any event fires', () => {
+      // Covers the rapid-teardown scenario: abort happens immediately after
+      // registration, before the socket has dispatched a single event.
+      const controller = new AbortController();
+      const listener = jest.fn();
+      ws.addEventListener('message', listener, { signal: controller.signal });
+
+      controller.abort();
+      mockWsInstance.onmessage?.({ isBinary: false, data: 'hello' });
+
+      expect(listener).not.toHaveBeenCalled();
+    });
   });
 
   describe('NitroWebSocketAdapter — removeEventListener', () => {
@@ -572,6 +606,24 @@ describe('NitroWebSocketSetup', () => {
         'abort',
         expect.any(Function),
       );
+    });
+
+    it('clears all listener maps when the socket closes', () => {
+      const ws2 = new global.WebSocket('wss://example.com');
+      const openListener = jest.fn();
+      const messageListener = jest.fn();
+      ws2.addEventListener('open', openListener);
+      ws2.addEventListener('message', messageListener);
+
+      mockWsInstance.onclose?.({ code: 1000, reason: 'done', wasClean: true });
+
+      // Maps cleared — externally dispatched events (as @nktkas/rews does) must
+      // not reach listeners that were registered before close.
+      ws2.dispatchEvent({ type: 'open' } as unknown as Event);
+      ws2.dispatchEvent({ type: 'message', data: 'late' } as unknown as Event);
+
+      expect(openListener).not.toHaveBeenCalled();
+      expect(messageListener).not.toHaveBeenCalled();
     });
 
     it('does not throw when the signal aborts after the socket has already closed', () => {

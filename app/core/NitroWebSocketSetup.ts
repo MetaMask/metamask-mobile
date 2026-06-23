@@ -120,6 +120,9 @@ class NitroWebSocketAdapter {
     this._ws.onmessage = (e: NitroMessageEvent) => {
       this.dispatchEvent({
         type: 'message',
+        // binaryData holds the ArrayBuffer for binary frames; e.data is the
+        // string-encoded fallback the native layer may set when binaryData is
+        // absent (defensive — not currently observed in practice).
         data: e.isBinary ? (e.binaryData ?? e.data) : e.data,
       });
     };
@@ -131,11 +134,11 @@ class NitroWebSocketAdapter {
         reason: e.reason,
         wasClean: e.wasClean,
       });
-      // Release all abort-cleanup refs so signals don't hold the adapter alive.
-      this._abortCleanups.forEach((cleanup, listener) => {
-        cleanup();
-        this._abortCleanups.delete(listener);
-      });
+      // Remove abort handlers from their signals, then clear all maps so
+      // GC can collect listeners and any closures they captured.
+      this._abortCleanups.forEach((cleanup) => cleanup());
+      this._abortCleanups.clear();
+      for (const map of Object.values(this._listeners)) map.clear();
     };
 
     this._ws.onerror = (error: string) => {
@@ -144,7 +147,16 @@ class NitroWebSocketAdapter {
   }
 
   get readyState(): number {
-    return READY_STATE_MAP[this._ws.readyState] ?? READY_STATE_MAP.CLOSED;
+    const state = READY_STATE_MAP[this._ws.readyState];
+    if (state === undefined) {
+      if (__DEV__) {
+        console.warn(
+          `[NitroWS] Unknown readyState "${this._ws.readyState}" — reporting CLOSED`,
+        );
+      }
+      return READY_STATE_MAP.CLOSED;
+    }
+    return state;
   }
 
   get url(): string {
