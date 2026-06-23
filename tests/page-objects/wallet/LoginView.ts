@@ -107,15 +107,24 @@ class LoginView {
         });
       },
       appium: async () => {
-        await UnifiedGestures.waitAndTap(this.loginButton, {
-          description: 'Login Button',
-          checkForDisplayed: true,
-          checkForEnabled: true,
-          waitForInteractive: true,
-          timeout: 20_000,
-          enabledStableReads: 4,
-          postEnabledSettleMs: 1500,
-        });
+        await Utilities.executeWithRetry(
+          async () =>
+            await UnifiedGestures.waitAndTap(this.loginButton, {
+              description: 'Login Button',
+              checkForDisplayed: true,
+              checkForEnabled: true,
+              waitForInteractive: true,
+              timeout: 12_000,
+              enabledStableReads: 3,
+              postEnabledSettleMs: 500,
+            }),
+          {
+            timeout: 45_000,
+            interval: 1_500,
+            description: 'Tap login button',
+            elemDescription: 'Login Button',
+          },
+        );
       },
     });
   }
@@ -129,7 +138,7 @@ class LoginView {
             timeout: 15000,
             description: 'Login title should be visible',
           },
-        );
+        });
       },
     });
   }

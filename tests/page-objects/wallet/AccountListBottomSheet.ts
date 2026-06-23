@@ -240,14 +240,38 @@ class AccountListBottomSheet {
       options?.srpIndex ?? 0,
     );
 
-    await Assertions.expectElementToHaveText(button, 'Add account', {
-      description: 'Add Account button should be ready (not syncing)',
-      timeout: 30000,
-    });
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToHaveText(button, 'Add account', {
+          description: 'Add Account button should be ready (not syncing)',
+          timeout: 30000,
+        });
 
-    await Gestures.waitAndTap(button, {
-      elemDescription: 'Add Account button in V2 multichain accounts',
-      delay: options?.shouldWait ? 5000 : 0,
+        await Gestures.waitAndTap(button, {
+          elemDescription: 'Add Account button in V2 multichain accounts',
+          delay: options?.shouldWait ? 5000 : 0,
+        });
+      },
+      appium: async () => {
+        // Account sync/discovery can keep the row visible but not yet tappable.
+        // Wait for the sync phase to settle before tapping "Add account".
+        await this.waitForAccountSyncToComplete();
+        await Assertions.expectElementToHaveText(button, 'Add account', {
+          description: 'Add Account button should be ready (not syncing)',
+          timeout: 30000,
+        });
+
+        await UnifiedGestures.waitAndTap(button, {
+          description: 'Add Account button in V2 multichain accounts',
+          delay: options?.shouldWait ? 5000 : 0,
+          timeout: 20000,
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          waitForInteractive: true,
+          enabledStableReads: 3,
+          postEnabledSettleMs: 500,
+        });
+      },
     });
   }
 
