@@ -502,7 +502,7 @@ describe('PredictGameDetailsContent', () => {
       expect(queryByTestId('predict-game-details-footer')).toBeNull();
     });
 
-    it('hides the prediction footer when only resolved extended markets exist', () => {
+    it('keeps the prediction footer when only resolved extended markets exist', () => {
       (useGameDetailsTabs as jest.Mock).mockReturnValue({
         enabled: true,
         showTabBar: false,
@@ -529,7 +529,7 @@ describe('PredictGameDetailsContent', () => {
       });
       const market = createMockMarket();
 
-      const { queryByTestId } = render(
+      const { getByTestId } = render(
         <PredictGameDetailsContent
           market={market}
           onBack={mockOnBack}
@@ -539,7 +539,7 @@ describe('PredictGameDetailsContent', () => {
         />,
       );
 
-      expect(queryByTestId('predict-game-details-footer')).toBeNull();
+      expect(getByTestId('predict-game-details-footer')).toBeOnTheScreen();
     });
 
     it('keeps the footer for claimable winnings when extended sports markets are enabled', () => {
