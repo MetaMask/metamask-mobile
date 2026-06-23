@@ -10,15 +10,33 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import { ONBOARDING_SUCCESS_FLOW , AccountType } from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
 import { strings } from '../../../../locales/i18n';
-import { useSelector } from 'react-redux';
 import Logger from '../../../util/Logger';
 import {
   SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
   setWalletHomeOnboardingStepsEligible,
 } from '../../../actions/onboarding';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+
+jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
+
+jest.mock('../../../selectors/onboarding', () => ({
+  ...jest.requireActual('../../../selectors/onboarding'),
+  selectOnboardingAccountType: jest.fn(),
+}));
+
+jest.mock('../../../selectors/settings', () => ({
+  ...jest.requireActual('../../../selectors/settings'),
+  selectBasicFunctionalityEnabled: jest.fn(),
+}));
+
+const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
+  typeof trackOnboarding
+>;
 
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
@@ -97,13 +115,16 @@ const mockDispatch = jest.fn();
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
   useDispatch: () => mockDispatch,
 }));
 
 describe('OnboardingSuccessComponent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(selectOnboardingAccountType)
+      .mockReturnValue(AccountType.Imported);
+    jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
   });
 
   it('renders correctly when successFlow is BACKED_UP_SRP', () => {
@@ -152,6 +173,20 @@ describe('OnboardingSuccessComponent', () => {
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     fireEvent.press(button);
 
+    expect(mockTrackOnboarding).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Onboarding Completed',
+        properties: expect.objectContaining({
+          wallet_setup_type: 'import',
+          new_wallet: false,
+          account_type: 'imported',
+          is_basic_functionality_enabled: true,
+          implementation_type: 'native',
+          onboarding_type: 'seed_phrase',
+        }),
+      }),
+      expect.any(Function),
+    );
     expect(mockDiscoverAccounts).toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(
       setWalletHomeOnboardingStepsEligible(true, {
@@ -196,6 +231,7 @@ describe('OnboardingSuccessComponent', () => {
     );
     fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
 
+    expect(mockTrackOnboarding).not.toHaveBeenCalled();
     expect(
       mockDispatch.mock.calls.some(
         (call) => call[0]?.type === SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
@@ -298,8 +334,6 @@ describe('OnboardingSuccessComponent', () => {
 
 describe('OnboardingSuccess', () => {
   beforeEach(() => {
-    // Reset mocks before each test
-    (useSelector as jest.Mock).mockReset();
     mockDiscoverAccounts.mockReset();
     mockRouteParams = {};
   });
