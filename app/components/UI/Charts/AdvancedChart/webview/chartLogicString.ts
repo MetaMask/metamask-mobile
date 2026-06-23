@@ -621,7 +621,6 @@ function isOwnStringKey(key) {
   );
 }
 
-
 /** Reads CONFIG.subPaneHeightRatio; null means TradingView default pane sizing. */
 function getSubPaneHeightRatio() {
   const ratio = window.CONFIG && window.CONFIG.subPaneHeightRatio;
@@ -803,11 +802,15 @@ function handleRemoveIndicator(payload) {
 
   try {
     let chart = window.chartWidget.activeChart();
+    const isSubPane = indicatorName === 'RSI' || indicatorName === 'MACD';
     chart.removeEntity(studyId);
     window.activeStudies.delete(indicatorName);
     window.legendStudyOrder.delete(indicatorName);
     refreshStudyLegendFromExport();
     sendToReactNative('INDICATOR_REMOVED', { name: indicatorName });
+    if (isSubPane && hasActiveSubPaneIndicators()) {
+      scheduleApplySubPaneHeightRatio(chart);
+    }
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
   }
