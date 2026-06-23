@@ -29,7 +29,6 @@ import {
   DEFAULT_DISABLED_FEATURES,
   parseWebViewMessage,
   resolveLineChromeOptions,
-  resolveScaleChromeOptions,
   type AdvancedChartProps,
   type AdvancedChartRef,
   type IndicatorType,
@@ -101,7 +100,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onChartTradingViewClicked,
       isLoading = false,
       lineChrome,
-      scaleChrome,
       visibleFromMs,
       visibleToMs,
       lineColorOverride,
@@ -170,7 +168,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         enableDrawingTools,
         disabledFeatures,
         lineChrome,
-        scaleChrome,
         lineColorOverride,
         successColorOverride,
         errorColorOverride,
@@ -187,7 +184,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       enableDrawingTools,
       disabledFeatures,
       lineChrome,
-      scaleChrome,
       currentPriceLineColorOverride,
       legendOverlay,
     ]);
@@ -721,15 +717,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         payload: resolveLineChromeOptions(lineChrome),
       });
     }, [lineChrome, chartReadyCount, postMessage]);
-
-    // Scale / price-pill styling: hot-swap after CHART_READY (edit preset to preview).
-    useEffect(() => {
-      if (chartReadyCount === 0) return;
-      postMessage({
-        type: 'SET_SCALE_CHROME',
-        payload: resolveScaleChromeOptions(scaleChrome),
-      });
-    }, [scaleChrome, chartReadyCount, postMessage]);
 
     // Hot-swap chart colors via postMessage whenever overrides change.
     // Gates on webViewLoaded (not chartReady) so messages sent during chart

@@ -3,9 +3,7 @@ import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import {
   type LineChromeOptions,
   type LegendOverlayConfig,
-  type ScaleChromeOptions,
   resolveLineChromeOptions,
-  resolveScaleChromeOptions,
 } from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
 import { getIndicatorColorsForWebview } from './indicatorColors';
@@ -57,7 +55,6 @@ interface ChartFeatures {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
   lineChrome?: LineChromeOptions;
-  scaleChrome?: ScaleChromeOptions;
   lineColorOverride?: string;
   successColorOverride?: string;
   errorColorOverride?: string;
@@ -71,7 +68,6 @@ const createConfigScript = (
   features: ChartFeatures,
 ): string => {
   const lc = resolveLineChromeOptions(features.lineChrome);
-  const sc = resolveScaleChromeOptions(features.scaleChrome);
   const successColor =
     features.successColorOverride ?? getChartSuccessColor(theme);
   const lineColor = features.lineColorOverride ?? successColor;
@@ -100,7 +96,6 @@ window.CONFIG = {
     useCustomDashedLastPriceLine: ${lc.useCustomDashedLastPriceLine ? 'true' : 'false'},
     useCustomPriceLabels: ${lc.useCustomPriceLabels ? 'true' : 'false'}
   },
-  scaleChrome: ${JSON.stringify(sc)},
   legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
   indicatorColors: ${JSON.stringify(getIndicatorColorsForWebview(theme.themeAppearance))}
 };

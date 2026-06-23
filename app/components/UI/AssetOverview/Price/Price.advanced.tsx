@@ -28,7 +28,6 @@ import { normalizeTokenAddress } from '../../Bridge/utils/tokenUtils';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
 import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
-import { advancedChartScaleChromePresets } from '../../Charts/AdvancedChart/advancedChartScaleChrome.presets';
 import {
   ChartType,
   type ChartInteractedPayload,
@@ -1117,7 +1116,6 @@ const PriceAdvanced = ({
               indicators={showChartIndicators ? indicatorsArray : []}
               selectedMAs={showChartIndicators ? selectedMAs : []}
               lineChrome={advancedChartLineChromePresets.tokenOverview}
-              scaleChrome={advancedChartScaleChromePresets.tokenOverview}
               isLoading={!hasChartBeenRevealed && chartLoading}
               ohlcvPagination={ohlcvPagination}
               visibleFromMs={visibleFromMs}

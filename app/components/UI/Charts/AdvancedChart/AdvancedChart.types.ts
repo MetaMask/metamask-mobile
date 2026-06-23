@@ -169,61 +169,12 @@ export function resolveLineChromeOptions(
   };
 }
 
-/**
- * Built-in price/time scale styling. Hot-swapped via `SET_SCALE_CHROME` after `CHART_READY`.
- *
- * TV splits styling by label type:
- * - Axis tick labels → `scaleAxisTextColor`, `fontSize`
- * - Last-value pill fill → `lastValuePillBackgroundColor` (or ambient via `priceLineColor`)
- * - Last-value pill text → not configurable (TV auto-contrast on fill)
- * - Crosshair pills → `crosshairLabelBackgroundColor` + axis text color for label text
- */
-export interface ScaleChromeOptions {
-  /** Scale tick label font size in px (ticks; may also affect pill size). */
-  fontSize?: number;
-  /**
-   * Price/time **axis tick** text color (hex). Does **not** affect the filled last-value pill
-   * (TV renders that text with auto-contrast on `priceLineColor`).
-   */
-  scaleAxisTextColor?: string;
-  /**
-   * Last-value pill **background fill** (hex). When set, overrides ambient `priceLineColor` for
-   * testing. Omit to keep ambient green/red from `SET_THEME_COLORS`.
-   */
-  lastValuePillBackgroundColor?: string;
-  /** Crosshair price/time pill background (hex). Falls back to section background when unset. */
-  crosshairLabelBackgroundColor?: string;
-}
-
-export const DEFAULT_SCALE_CHROME = {
-  fontSize: 12,
-} as const;
-
-export interface ResolvedScaleChromeOptions {
-  fontSize: number;
-  scaleAxisTextColor?: string;
-  lastValuePillBackgroundColor?: string;
-  crosshairLabelBackgroundColor?: string;
-}
-
-export function resolveScaleChromeOptions(
-  partial?: ScaleChromeOptions | null,
-): ResolvedScaleChromeOptions {
-  return {
-    fontSize: partial?.fontSize ?? DEFAULT_SCALE_CHROME.fontSize,
-    scaleAxisTextColor: partial?.scaleAxisTextColor,
-    lastValuePillBackgroundColor: partial?.lastValuePillBackgroundColor,
-    crosshairLabelBackgroundColor: partial?.crosshairLabelBackgroundColor,
-  };
-}
-
 export type RNToWebViewMessageType =
   | 'SET_OHLCV_DATA'
   | 'ADD_INDICATOR'
   | 'REMOVE_INDICATOR'
   | 'SET_CHART_TYPE'
   | 'SET_LINE_CHROME'
-  | 'SET_SCALE_CHROME'
   | 'SET_POSITION_LINES'
   | 'REALTIME_UPDATE'
   | 'TOGGLE_VOLUME'
@@ -296,8 +247,6 @@ export interface ToggleVolumePayload {
 
 export type SetLineChromePayload = ResolvedLineChromeOptions;
 
-export type SetScaleChromePayload = ResolvedScaleChromeOptions;
-
 export interface SetMAVisibilityPayload {
   visible: string[];
 }
@@ -314,7 +263,6 @@ export type RNToWebViewMessage =
   | { type: 'REMOVE_INDICATOR'; payload: RemoveIndicatorPayload }
   | { type: 'SET_CHART_TYPE'; payload: SetChartTypePayload }
   | { type: 'SET_LINE_CHROME'; payload: SetLineChromePayload }
-  | { type: 'SET_SCALE_CHROME'; payload: SetScaleChromePayload }
   | { type: 'SET_POSITION_LINES'; payload: SetPositionLinesPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
   | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload }
@@ -527,12 +475,6 @@ export interface AdvancedChartProps {
    * `CHART_READY`, RN sends `SET_LINE_CHROME` with `resolveLineChromeOptions(lineChrome)`.
    */
   lineChrome?: LineChromeOptions;
-
-  /**
-   * Price/time scale styling for built-in TV labels. See {@link ScaleChromeOptions} for which
-   * fields affect axis ticks vs last-value pill fill vs crosshair pills.
-   */
-  scaleChrome?: ScaleChromeOptions;
 
   /** Callback when chart is ready */
   onChartReady?: () => void;
