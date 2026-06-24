@@ -6,6 +6,7 @@ import type { PerpsAnalyticsEvent } from '@metamask/perps-controller';
 import {
   createMobileInfrastructure,
   createMobileClientConfig,
+  getTerminalApiUrl,
 } from './mobileInfrastructure';
 import Engine from '../../../../core/Engine';
 
@@ -366,5 +367,106 @@ describe('createMobileClientConfig', () => {
         process.env[key] = saved[key];
       }
     }
+  });
+});
+
+describe('getTerminalApiUrl', () => {
+  let savedEnv: string | undefined;
+  let savedBuildType: string | undefined;
+
+  beforeEach(() => {
+    savedEnv = process.env.METAMASK_ENVIRONMENT;
+    savedBuildType = process.env.METAMASK_BUILD_TYPE;
+  });
+
+  afterEach(() => {
+    if (savedEnv !== undefined) {
+      process.env.METAMASK_ENVIRONMENT = savedEnv;
+    } else {
+      delete process.env.METAMASK_ENVIRONMENT;
+    }
+    if (savedBuildType !== undefined) {
+      process.env.METAMASK_BUILD_TYPE = savedBuildType;
+    } else {
+      delete process.env.METAMASK_BUILD_TYPE;
+    }
+  });
+
+  it('returns dev URL for dev environment', () => {
+    process.env.METAMASK_ENVIRONMENT = 'dev';
+    delete process.env.METAMASK_BUILD_TYPE;
+    expect(getTerminalApiUrl()).toBe('https://terminal.dev-api.cx.metamask.io');
+  });
+
+  it('returns dev URL for test environment', () => {
+    process.env.METAMASK_ENVIRONMENT = 'test';
+    delete process.env.METAMASK_BUILD_TYPE;
+    expect(getTerminalApiUrl()).toBe('https://terminal.dev-api.cx.metamask.io');
+  });
+
+  it('returns dev URL for e2e environment', () => {
+    process.env.METAMASK_ENVIRONMENT = 'e2e';
+    delete process.env.METAMASK_BUILD_TYPE;
+    expect(getTerminalApiUrl()).toBe('https://terminal.dev-api.cx.metamask.io');
+  });
+
+  it('returns uat URL for beta build type', () => {
+    process.env.METAMASK_ENVIRONMENT = 'production';
+    process.env.METAMASK_BUILD_TYPE = 'beta';
+    expect(getTerminalApiUrl()).toBe('https://terminal.uat-api.cx.metamask.io');
+  });
+
+  it('returns prd URL for production environment', () => {
+    process.env.METAMASK_ENVIRONMENT = 'production';
+    process.env.METAMASK_BUILD_TYPE = 'main';
+    expect(getTerminalApiUrl()).toBe('https://terminal.api.cx.metamask.io');
+  });
+
+  it('returns prd URL for rc environment', () => {
+    process.env.METAMASK_ENVIRONMENT = 'rc';
+    process.env.METAMASK_BUILD_TYPE = 'main';
+    expect(getTerminalApiUrl()).toBe('https://terminal.api.cx.metamask.io');
+  });
+
+  it('returns uat URL for exp environment', () => {
+    process.env.METAMASK_ENVIRONMENT = 'exp';
+    process.env.METAMASK_BUILD_TYPE = 'main';
+    expect(getTerminalApiUrl()).toBe('https://terminal.uat-api.cx.metamask.io');
+  });
+
+  it('returns uat URL for flask build type', () => {
+    process.env.METAMASK_ENVIRONMENT = 'exp';
+    process.env.METAMASK_BUILD_TYPE = 'flask';
+    expect(getTerminalApiUrl()).toBe('https://terminal.uat-api.cx.metamask.io');
+  });
+});
+
+describe('createMobileInfrastructure - terminalApiUrl', () => {
+  let savedEnv: string | undefined;
+  let savedBuildType: string | undefined;
+
+  beforeEach(() => {
+    savedEnv = process.env.METAMASK_ENVIRONMENT;
+    savedBuildType = process.env.METAMASK_BUILD_TYPE;
+  });
+
+  afterEach(() => {
+    if (savedEnv !== undefined) {
+      process.env.METAMASK_ENVIRONMENT = savedEnv;
+    } else {
+      delete process.env.METAMASK_ENVIRONMENT;
+    }
+    if (savedBuildType !== undefined) {
+      process.env.METAMASK_BUILD_TYPE = savedBuildType;
+    } else {
+      delete process.env.METAMASK_BUILD_TYPE;
+    }
+  });
+
+  it('includes terminalApiUrl in the returned infrastructure', () => {
+    process.env.METAMASK_ENVIRONMENT = 'production';
+    process.env.METAMASK_BUILD_TYPE = 'main';
+    const infra = createMobileInfrastructure();
+    expect(infra.terminalApiUrl).toBe('https://terminal.api.cx.metamask.io');
   });
 });

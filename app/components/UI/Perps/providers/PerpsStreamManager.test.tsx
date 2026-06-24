@@ -306,6 +306,7 @@ describe('PerpsStreamManager', () => {
             bestAsk: '50100',
             spread: '200',
             markPrice: '50050',
+            isTradable: true,
           },
         ];
         params.callback(cachedData);
@@ -336,6 +337,7 @@ describe('PerpsStreamManager', () => {
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
+          isTradable: true,
         },
       });
     });
@@ -371,6 +373,7 @@ describe('PerpsStreamManager', () => {
           price: '50000',
           percentChange24h: '5',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -387,6 +390,7 @@ describe('PerpsStreamManager', () => {
           price: '50100',
           percentChange24h: '5.1',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -414,6 +418,7 @@ describe('PerpsStreamManager', () => {
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
+          isTradable: true,
         },
       });
     });
@@ -449,6 +454,7 @@ describe('PerpsStreamManager', () => {
           price: '50000',
           percentChange24h: '5',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -465,6 +471,7 @@ describe('PerpsStreamManager', () => {
           price: '50100',
           percentChange24h: '5.1',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
       controllerCallback?.([
@@ -473,6 +480,7 @@ describe('PerpsStreamManager', () => {
           price: '50200',
           percentChange24h: '5.2',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
       controllerCallback?.([
@@ -481,6 +489,7 @@ describe('PerpsStreamManager', () => {
           price: '50300',
           percentChange24h: '5.3',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -509,6 +518,7 @@ describe('PerpsStreamManager', () => {
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
+          isTradable: true,
         },
       });
     });
@@ -571,6 +581,7 @@ describe('PerpsStreamManager', () => {
           price: '3000',
           timestamp: Date.now(),
           percentChange24h: '2',
+          isTradable: true,
         },
       ]);
     });
@@ -586,6 +597,7 @@ describe('PerpsStreamManager', () => {
           price: '3010',
           timestamp: Date.now(),
           percentChange24h: '2.1',
+          isTradable: true,
         },
       ]);
     });
@@ -601,6 +613,7 @@ describe('PerpsStreamManager', () => {
           price: '3020',
           timestamp: Date.now(),
           percentChange24h: '2.2',
+          isTradable: true,
         },
       ]);
     });
@@ -641,6 +654,7 @@ describe('PerpsStreamManager', () => {
           price: '50000',
           timestamp: Date.now(),
           percentChange24h: '5',
+          isTradable: true,
         },
       ]);
     });
@@ -657,6 +671,7 @@ describe('PerpsStreamManager', () => {
           price: '50100',
           timestamp: Date.now(),
           percentChange24h: '5.1',
+          isTradable: true,
         },
       ]);
     });
@@ -739,6 +754,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     // Send first update from WebSocket
@@ -787,6 +803,7 @@ describe('PerpsStreamManager', () => {
             price: '50000',
             timestamp: Date.now(),
             percentChange24h: '5',
+            isTradable: true,
           },
         ]);
       });
@@ -1395,6 +1412,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     // Send first update - should be immediate
@@ -1411,6 +1429,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50100',
       timestamp: Date.now() + 10,
+      isTradable: true,
     };
 
     const thirdUpdate: PriceUpdate = {
@@ -1418,6 +1437,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50200',
       timestamp: Date.now() + 20,
+      isTradable: true,
     };
 
     // Send rapid subsequent updates
@@ -1499,6 +1519,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     // Send update
@@ -1603,6 +1624,7 @@ describe('PerpsStreamManager', () => {
       symbol,
       price,
       timestamp: Date.now(),
+      isTradable: true,
     });
 
     it('dispatches a single-symbol tick only to subscribers registered for that symbol', () => {
@@ -1807,6 +1829,71 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  describe('PriceStreamChannel isTradable propagation', () => {
+    let priceCallback: (data: PriceUpdate[]) => void;
+
+    beforeEach(() => {
+      priceCallback = jest.fn();
+      mockSubscribeToPrices.mockImplementation((params) => {
+        priceCallback = params.callback;
+        return jest.fn();
+      });
+    });
+
+    it('propagates isTradable from live price updates', () => {
+      const cb = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: cb,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        priceCallback([
+          {
+            symbol: 'BTC-PERP',
+            price: '50000',
+            timestamp: Date.now(),
+            isTradable: false,
+          },
+        ]);
+      });
+
+      expect(cb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({
+          symbol: 'BTC-PERP',
+          isTradable: false,
+        }),
+      });
+    });
+
+    it('defaults isTradable to true when live update omits the field', () => {
+      const cb = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: cb,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        priceCallback([
+          {
+            symbol: 'BTC-PERP',
+            price: '50000',
+            timestamp: Date.now(),
+          } as PriceUpdate,
+        ]);
+      });
+
+      expect(cb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({
+          symbol: 'BTC-PERP',
+          isTradable: true,
+        }),
+      });
+    });
+  });
+
   it('cleans up all subscriptions on provider unmount', async () => {
     const mockUnsubscribe = jest.fn();
     mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
@@ -1877,6 +1964,23 @@ describe('PerpsStreamManager', () => {
       // Should notify subscriber with data
       await waitFor(() => {
         expect(callback).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      unsubscribe();
+    });
+
+    it('passes useTerminalApi: true to getMarketDataWithPrices', async () => {
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledWith({
+          useTerminalApi: true,
+        });
       });
 
       unsubscribe();

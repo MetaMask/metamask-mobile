@@ -75,6 +75,7 @@ export const defaultMockPriceUpdate: PriceUpdate = {
   price: '2000.00',
   timestamp: Date.now(),
   volume24h: 1000000,
+  isTradable: true,
 };
 
 /**
