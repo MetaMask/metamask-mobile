@@ -580,6 +580,6 @@ const Routes = {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
   },
-};
+} as const;
 
 export default Routes;

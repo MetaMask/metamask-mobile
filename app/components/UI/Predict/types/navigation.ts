@@ -2,7 +2,14 @@
  * Predict navigation parameters
  */
 
-import { ParamListBase } from '@react-navigation/native';
+/**
+ * Nested navigation into the Predict stack root.
+ * Kept local to avoid a circular import with NavigationService/types.
+ */
+interface PredictNestedNavigationParams {
+  screen?: string;
+  params?: object;
+}
 import {
   PredictActivityItem,
   PredictCategory,
@@ -169,15 +176,22 @@ export type PredictSellPreviewProps =
   | ({ mode: 'sheet' } & PredictSellPreviewContentProps)
   | { mode?: never };
 
-export interface PredictNavigationParamList extends ParamListBase {
-  Predict: undefined;
-  PredictMarketList: PredictMarketListRouteParams;
-  PredictFeed: PredictFeedRouteParams;
-  PredictMarketDetails: PredictMarketDetailsParams;
+export interface PredictNavigationParamList {
+  Predict: PredictNestedNavigationParams | undefined;
+  PredictMarketList: PredictMarketListRouteParams | undefined;
+  PredictFeed: PredictFeedRouteParams | undefined;
+  PredictMarketDetails: PredictMarketDetailsParams | undefined;
   PredictPositions: PredictPositionsParams | undefined;
   PredictWorldCup: PredictWorldCupParams | undefined;
   PredictSellPreview: PredictSellPreviewParams;
   PredictBuyPreview: PredictBuyPreviewParams;
   PredictActivityDetail: PredictActivityDetailParams;
-  PredictAddFundsSheet: PredictAddFundsModalParams;
+  PredictAddFundsSheet: PredictAddFundsModalParams | undefined;
+  PredictUnavailable: undefined;
+  PredictGTMModal: undefined;
+  PredictModals: PredictNestedNavigationParams | undefined;
+  RedesignedConfirmations: undefined;
+  NoHeaderConfirmations: undefined;
+  ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithBottomSheet: undefined;
 }
