@@ -1,4 +1,5 @@
 jest.mock('../framework/logger', () => ({
+  ...jest.requireActual('../framework/logger'),
   createLogger: jest.fn(() => ({
     debug: jest.fn(),
     error: jest.fn(),

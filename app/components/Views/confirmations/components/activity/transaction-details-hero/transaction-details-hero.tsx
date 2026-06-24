@@ -77,6 +77,7 @@ const TOKEN_ICON_TYPES = [
 
 const TWO_ASSET_HERO_TYPES = [
   TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsWithdraw,
@@ -194,7 +195,12 @@ export function TransactionDetailsHero() {
     receivedData;
 
   if (showTwoAssetHero) {
-    return <TwoAssetHero sentData={sentData} receivedData={receivedData} />;
+    const { sent, received } = resolveTwoAssetData(
+      transactionMeta,
+      sentData,
+      receivedData,
+    );
+    return <TwoAssetHero sentData={sent} receivedData={received} />;
   }
 
   const showTokenIcon =
@@ -283,6 +289,51 @@ const RECEIVED_OVERRIDE: Partial<
     chainId: CHAIN_IDS.POLYGON as Hex,
   },
 };
+
+/**
+ * For perpsWithdraw / predictWithdraw, metamaskPay contains the *destination*
+ * token (mUSD on Monad), but the source is always the service's native token.
+ * Override the sent data so the hero correctly shows the actual source asset.
+ */
+const SENT_OVERRIDE: Partial<
+  Record<TransactionType, Omit<TokenDisplayData, 'amount'>>
+> = {
+  [TransactionType.perpsWithdraw]: {
+    symbol: ARBITRUM_USDC.symbol,
+    address: ARBITRUM_USDC.address,
+    chainId: CHAIN_IDS.ARBITRUM as Hex,
+  },
+  [TransactionType.predictWithdraw]: {
+    symbol: POLYGON_PUSD.symbol,
+    address: POLYGON_PUSD.address,
+    chainId: CHAIN_IDS.POLYGON as Hex,
+  },
+};
+
+function resolveTwoAssetData(
+  transactionMeta: TransactionMeta,
+  sentData: TokenDisplayData,
+  receivedData: TokenDisplayData,
+): { sent: TokenDisplayData; received: TokenDisplayData } {
+  const isOutbound = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
+
+  if (isOutbound) {
+    return { sent: receivedData, received: sentData };
+  }
+
+  for (const [type, override] of Object.entries(SENT_OVERRIDE)) {
+    if (hasTransactionType(transactionMeta, [type as TransactionType])) {
+      return {
+        sent: { amount: sentData.amount, ...override },
+        received: receivedData,
+      };
+    }
+  }
+
+  return { sent: sentData, received: receivedData };
+}
 
 function toDisplay(
   tokenMeta: NonNullable<ReturnType<typeof useTokenMeta>>,

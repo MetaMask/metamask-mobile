@@ -22,6 +22,7 @@ const createMockState = ({
 } = {}) => ({
   settings: {
     avatarAccountType: AvatarAccountType.Maskicon,
+    basicFunctionalityEnabled: true,
   },
   engine: {
     backgroundState: {

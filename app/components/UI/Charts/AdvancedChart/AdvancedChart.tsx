@@ -66,6 +66,9 @@ const openInAppBrowser = (url: string) => {
 /** Hide layout skeleton if WebView never sends `CHART_LAYOUT_SETTLED` (e.g. older HTML). */
 const LAYOUT_SETTLE_FALLBACK_MS = 2500;
 
+/** Defer indicator/MA sync until layout settles; fallback if WebView never posts settle. */
+const INDICATORS_SYNC_FALLBACK_MS = 500;
+
 /** Debounce TradingView external opens (redirect chains can fire multiple navigation requests). */
 const TRADINGVIEW_OPEN_DEBOUNCE_MS = 800;
 
@@ -74,6 +77,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     {
       ohlcvData,
       ohlcvSeriesKey,
+      webViewInstanceKey,
       height = DEFAULT_CHART_HEIGHT,
       realtimeBar,
       ohlcvPagination,
@@ -87,6 +91,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       disabledFeatures = DEFAULT_DISABLED_FEATURES,
       onChartReady,
       onSkeletonHidden,
+      onChartLayoutSettled,
       onError,
       onInitFailed,
       onCrosshairMove,
@@ -94,6 +99,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onChartTradingViewClicked,
       isLoading = false,
       lineChrome,
+      subPaneHeightRatio,
       visibleFromMs,
       visibleToMs,
       lineColorOverride,
@@ -121,6 +127,11 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const layoutSettleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
       null,
     );
+    /** Gate ADD_INDICATOR / SET_MA_VISIBILITY until post-OHLCV layout settle (see chartLogic). */
+    const [indicatorsSyncReady, setIndicatorsSyncReady] = useState(false);
+    const indicatorsSyncFallbackRef = useRef<ReturnType<
+      typeof setTimeout
+    > | null>(null);
 
     const activeIndicatorsRef = useRef<Set<IndicatorType>>(new Set());
     const [appliedIndicatorCount, setAppliedIndicatorCount] = useState(0);
@@ -135,6 +146,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const ohlcvSeriesStaleSnapshotRef = useRef<OHLCVBar[] | null>(null);
     const tradingViewOpenInterceptRef = useRef(0);
     const skeletonHiddenReportedRef = useRef(false);
+    const resolvedWebViewKey = webViewInstanceKey ?? ohlcvSeriesKey ?? '';
 
     // Track the color overrides baked into the current HTML template so the
     // SET_THEME_COLORS effect can skip sending when colors haven't diverged.
@@ -215,6 +227,27 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }
     }, []);
 
+    const clearIndicatorsSyncFallback = useCallback(() => {
+      const t = indicatorsSyncFallbackRef.current;
+      if (t !== null) {
+        clearTimeout(t);
+        indicatorsSyncFallbackRef.current = null;
+      }
+    }, []);
+
+    const markIndicatorsSyncReady = useCallback(() => {
+      clearIndicatorsSyncFallback();
+      setIndicatorsSyncReady(true);
+    }, [clearIndicatorsSyncFallback]);
+
+    const scheduleIndicatorsSyncFallback = useCallback(() => {
+      clearIndicatorsSyncFallback();
+      indicatorsSyncFallbackRef.current = setTimeout(() => {
+        indicatorsSyncFallbackRef.current = null;
+        markIndicatorsSyncReady();
+      }, INDICATORS_SYNC_FALLBACK_MS);
+    }, [clearIndicatorsSyncFallback, markIndicatorsSyncReady]);
+
     const beginFullOhlcvLayoutSettle = useCallback(() => {
       if (!isChartReady) {
         return;
@@ -227,33 +260,71 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }, LAYOUT_SETTLE_FALLBACK_MS);
     }, [isChartReady, clearLayoutSettleTimeout]);
 
-    // WebView remounts when `key` changes; parent state would otherwise still look "ready".
-    // `CHART_READY` clears indicator/position/chart-type refs once the new instance loads.
-    useEffect(() => {
-      if (ohlcvSeriesKey === undefined) {
-        return;
-      }
+    const resetWebViewSessionState = useCallback(() => {
       skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
       setWebViewLoaded(false);
       setLayoutSettling(false);
+      setIndicatorsSyncReady(false);
       clearLayoutSettleTimeout();
-      ohlcvSeriesStaleSnapshotRef.current =
-        prevOhlcvSeriesKeyRef.current !== undefined
-          ? prevOhlcvDataRef.current
-          : null;
+      clearIndicatorsSyncFallback();
       activeIndicatorsRef.current.clear();
       setAppliedIndicatorCount(0);
       setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
-    }, [ohlcvSeriesKey, clearLayoutSettleTimeout]);
+    }, [clearLayoutSettleTimeout, clearIndicatorsSyncFallback]);
+
+    const resetForInstanceRemount = useCallback(() => {
+      resetWebViewSessionState();
+      webViewLoadedRef.current = false;
+      prevOhlcvDataRef.current = [];
+      prevOhlcvSeriesKeyRef.current = undefined;
+      ohlcvSeriesStaleSnapshotRef.current = null;
+    }, [resetWebViewSessionState]);
+
+    const useIntervalHotReload = webViewInstanceKey !== undefined;
+
+    // Default: WebView remounts when `ohlcvSeriesKey` changes (time range / legacy path).
+    useEffect(() => {
+      if (useIntervalHotReload || ohlcvSeriesKey === undefined) {
+        return;
+      }
+      resetWebViewSessionState();
+      ohlcvSeriesStaleSnapshotRef.current =
+        prevOhlcvSeriesKeyRef.current !== undefined
+          ? prevOhlcvDataRef.current
+          : null;
+    }, [useIntervalHotReload, ohlcvSeriesKey, resetWebViewSessionState]);
+
+    // Technical-indicators path: remount only when `webViewInstanceKey` changes.
+    useEffect(() => {
+      if (!useIntervalHotReload || !resolvedWebViewKey) {
+        return;
+      }
+      resetForInstanceRemount();
+    }, [useIntervalHotReload, resolvedWebViewKey, resetForInstanceRemount]);
+
+    // Interval change within the same WebView — keep chart visible, skip stale sends.
+    useEffect(() => {
+      if (!useIntervalHotReload || ohlcvSeriesKey === undefined) {
+        return;
+      }
+      if (prevOhlcvSeriesKeyRef.current === ohlcvSeriesKey) {
+        return;
+      }
+      ohlcvSeriesStaleSnapshotRef.current =
+        prevOhlcvSeriesKeyRef.current !== undefined
+          ? prevOhlcvDataRef.current
+          : null;
+    }, [useIntervalHotReload, ohlcvSeriesKey]);
 
     useEffect(
       () => () => {
         clearLayoutSettleTimeout();
+        clearIndicatorsSyncFallback();
       },
-      [clearLayoutSettleTimeout],
+      [clearLayoutSettleTimeout, clearIndicatorsSyncFallback],
     );
 
     const paginationRef = useRef<OHLCVPaginationConfig | undefined>(
@@ -365,6 +436,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             prevChartTypeRef.current = undefined;
             clearLayoutSettleTimeout();
             setLayoutSettling(false);
+            setIndicatorsSyncReady(false);
+            scheduleIndicatorsSyncFallback();
             setChartReadyCount((c) => c + 1);
             setWebViewError(null);
             onChartReady?.();
@@ -373,6 +446,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           case 'CHART_LAYOUT_SETTLED':
             clearLayoutSettleTimeout();
             setLayoutSettling(false);
+            markIndicatorsSyncReady();
+            onChartLayoutSettled?.();
             break;
 
           case 'INDICATOR_ADDED':
@@ -433,7 +508,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       [
         isChartReady,
         clearLayoutSettleTimeout,
+        scheduleIndicatorsSyncFallback,
+        markIndicatorsSyncReady,
         onChartReady,
+        onChartLayoutSettled,
         onError,
         onInitFailed,
         onCrosshairMove,
@@ -586,7 +664,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     // Sync indicators prop (depends on chartReadyCount to re-fire on chart recreation)
     useEffect(() => {
-      if (chartReadyCount === 0) return;
+      if (chartReadyCount === 0 || !indicatorsSyncReady) return;
 
       const currentIndicators = new Set(indicators);
       const active = activeIndicatorsRef.current;
@@ -602,16 +680,22 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           removeIndicator(indicator);
         }
       });
-    }, [indicators, chartReadyCount, addIndicator, removeIndicator]);
+    }, [
+      indicators,
+      chartReadyCount,
+      indicatorsSyncReady,
+      addIndicator,
+      removeIndicator,
+    ]);
 
     useEffect(() => {
-      if (chartReadyCount === 0) return;
+      if (chartReadyCount === 0 || !indicatorsSyncReady) return;
 
       postMessage({
         type: 'SET_MA_VISIBILITY',
         payload: { visible: selectedMAs },
       });
-    }, [selectedMAs, chartReadyCount, postMessage]);
+    }, [selectedMAs, chartReadyCount, indicatorsSyncReady, postMessage]);
 
     // Sync positionLines prop
     useEffect(() => {
@@ -650,6 +734,14 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         payload: resolveLineChromeOptions(lineChrome),
       });
     }, [lineChrome, chartReadyCount, postMessage]);
+
+    useEffect(() => {
+      if (chartReadyCount === 0) return;
+      postMessage({
+        type: 'SET_SUB_PANE_LAYOUT',
+        payload: { heightRatio: subPaneHeightRatio ?? null },
+      });
+    }, [subPaneHeightRatio, chartReadyCount, postMessage]);
 
     // Hot-swap chart colors via postMessage whenever overrides change.
     // Gates on webViewLoaded (not chartReady) so messages sent during chart
@@ -711,12 +803,17 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       expectedIndicators.size > 0 &&
       !legendRendered;
 
-    const showSkeleton =
+    const isFirstReveal = !skeletonHiddenReportedRef.current;
+    const skeletonPending =
       isLoading ||
       !isChartReady ||
       layoutSettling ||
       waitingForIndicators ||
       waitingForLegend;
+
+    const showSkeleton = useIntervalHotReload
+      ? isFirstReveal && skeletonPending
+      : skeletonPending;
 
     useEffect(() => {
       if (webViewError) return;
@@ -774,7 +871,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       <View style={styles.container}>
         <View style={styles.chartSurface}>
           <WebView
-            key={`advanced-chart-${ohlcvSeriesKey ?? ''}`}
+            key={`advanced-chart-${resolvedWebViewKey}`}
             ref={webViewRef}
             source={{ html: htmlContent, baseUrl: CHARTING_LIBRARY_BASE_URL }}
             style={styles.webview}
