@@ -2544,8 +2544,22 @@ function placeTradeMarkers() {
     }
     if (!activeChart) return;
 
-    for (var j = 0; j < desired.length; j++) {
-      (function (marker) {
+    // Draw oldest → newest, each marker as a black ring then its colored circle,
+    // and draw the markers SEQUENTIALLY (one fully placed before the next starts).
+    // Because every new shape is created with zOrder 'top', this guarantees the
+    // stack order ring1, fill1, ring2, fill2, … — so each circle's black ring
+    // lands ON TOP of the previous circle's fill. That keeps a black outline
+    // visible BETWEEN adjacent/overlapping circles, not just between a circle and
+    // the price line. (Creating them in parallel left every ring under every
+    // fill, so touching circles merged into one colored blob.)
+    var ordered = desired.slice().sort(function (a, b) {
+      return a.time - b.time;
+    });
+
+    var chain = Promise.resolve();
+    ordered.forEach(function (marker) {
+      chain = chain.then(function () {
+        if (gen !== window.__tradeMarkerGen) return undefined;
         var timeSec = Math.floor(marker.time / 1000);
         // Snap Y onto the rendered line at the trade time using the WebView's own
         // (paginating) candles — works for older markers RN couldn't snap.
@@ -2557,50 +2571,45 @@ function placeTradeMarkers() {
         var color =
           marker.intent === 'exit' ? theme.errorColor : theme.successColor;
 
-        // Each marker is two stacked icons: a black ring underneath and the
-        // colored circle on top, leaving a ~2px black rim. Drawn sequentially
-        // (ring first) so the colored circle renders above it. Both ids are
-        // tracked so clear/pulse can act on the pair.
-        createTradeMarkerIcon(
+        return createTradeMarkerIcon(
           activeChart,
           timeSec,
           price,
           TRADE_MARKER_RING_COLOR,
           TRADE_MARKER_RING_SIZE,
-        )
-          .then(function (ringId) {
-            // Discard if a newer placement superseded this one.
+        ).then(function (ringId) {
+          // Discard if a newer placement superseded this one.
+          if (gen !== window.__tradeMarkerGen) {
+            removeMarkerEntity(activeChart, ringId);
+            return undefined;
+          }
+          return createTradeMarkerIcon(
+            activeChart,
+            timeSec,
+            price,
+            color,
+            TRADE_MARKER_SIZE,
+          ).then(function (fillId) {
             if (gen !== window.__tradeMarkerGen) {
               removeMarkerEntity(activeChart, ringId);
-              return null;
+              removeMarkerEntity(activeChart, fillId);
+              return;
             }
-            return createTradeMarkerIcon(
-              activeChart,
-              timeSec,
-              price,
-              color,
-              TRADE_MARKER_SIZE,
-            ).then(function (fillId) {
-              if (gen !== window.__tradeMarkerGen) {
-                removeMarkerEntity(activeChart, ringId);
-                removeMarkerEntity(activeChart, fillId);
-                return;
-              }
-              if (ringId) {
-                window.tradeMarkerShapeIds.push(ringId);
-              }
-              if (fillId) {
-                window.tradeMarkerShapeIds.push(fillId);
-              }
-              window.tradeMarkerShapeIdsById.set(String(marker.id), {
-                fill: fillId || null,
-                ring: ringId || null,
-              });
+            if (ringId) {
+              window.tradeMarkerShapeIds.push(ringId);
+            }
+            if (fillId) {
+              window.tradeMarkerShapeIds.push(fillId);
+            }
+            window.tradeMarkerShapeIdsById.set(String(marker.id), {
+              fill: fillId || null,
+              ring: ringId || null,
             });
-          })
-          .catch(function () {});
-      })(desired[j]);
-    }
+          });
+        });
+      });
+    });
+    chain.catch(function () {});
   }
 
   // Defer to dataReady so the series has the bars for correct X anchoring.
@@ -2857,7 +2866,10 @@ function handleFocusTime(payload) {
   // on screen — only pulse instead of re-centering.
   if (curFrom !== null && curTo !== null) {
     var visibleInset = (curTo - curFrom) * FOCUS_TIME_VISIBLE_INSET;
-    if (centerSec >= curFrom + visibleInset && centerSec <= curTo - visibleInset) {
+    if (
+      centerSec >= curFrom + visibleInset &&
+      centerSec <= curTo - visibleInset
+    ) {
       return;
     }
   }
@@ -5396,7 +5408,10 @@ function initChart() {
           let tap = window.__lastChartTapPoint;
           window.__lastChartTapPoint = null;
           if (tap && Date.now() - tap.at < 700) {
-            let pressedId = findTradeMarkerIdNearPoint(tap.timeSec, tap.offsetY);
+            let pressedId = findTradeMarkerIdNearPoint(
+              tap.timeSec,
+              tap.offsetY,
+            );
             if (pressedId != null) {
               sendToReactNative('TRADE_MARKER_PRESSED', { id: pressedId });
             }
