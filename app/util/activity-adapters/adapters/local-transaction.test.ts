@@ -348,6 +348,47 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('adds receipt-derived network fees to local approval activities', () => {
+    const transaction = {
+      chainId: base,
+      id: 'approve-fee-id',
+      hash: '0xapprovefee',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      transferInformation: {
+        contractAddress: baseUsdc,
+        decimals: 6,
+        symbol: 'USDC',
+      },
+      type: TransactionType.tokenMethodApprove,
+      txParams: {
+        from,
+        to: baseUsdc,
+        data: buildApproveData(to, 100000000n),
+      },
+      txReceipt: {
+        gasUsed: '0x5208',
+        effectiveGasPrice: '0x3b9aca00',
+      },
+    } as Partial<TransactionMeta>;
+
+    const item = mapLocalTransaction(makeGroup(transaction));
+
+    expect(item.type).toBe('approveSpendingCap');
+    if (item.type !== 'approveSpendingCap') {
+      throw new Error(`Expected approveSpendingCap item, got ${item.type}`);
+    }
+
+    expect(item.data.fees).toStrictEqual([
+      expect.objectContaining({
+        type: 'base',
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+      }),
+    ]);
+  });
+
   it('marks unlimited approval amounts from transaction calldata', () => {
     const transaction = {
       chainId: base,

@@ -1,7 +1,10 @@
 import { renderHook } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { useActivityAmountsFiat } from './useActivityAmountsFiat';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
+import type {
+  ActivityFee,
+  ActivityListItem,
+} from '../../../../util/activity-adapters';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -23,6 +26,20 @@ jest.mock('../../../../selectors/multichain', () => ({
 }));
 
 const tokenAddress = '0x0000000000000000000000000000000000000001';
+const fees: ActivityFee[] = [
+  {
+    type: 'base',
+    amount: '1000000000000000000',
+    decimals: 18,
+    symbol: 'ETH',
+  },
+  {
+    type: 'bridge',
+    amount: '500000000000000000',
+    decimals: 18,
+    symbol: 'ETH',
+  },
+];
 
 const activityWithTokenAndFees: ActivityListItem = {
   type: 'send',
@@ -31,6 +48,8 @@ const activityWithTokenAndFees: ActivityListItem = {
   timestamp: 1,
   hash: '0xhash',
   data: {
+    from: '0xfrom',
+    to: '0xto',
     token: {
       amount: '1000000',
       assetId: `eip155:1/erc20:${tokenAddress}`,
@@ -38,22 +57,9 @@ const activityWithTokenAndFees: ActivityListItem = {
       direction: 'out',
       symbol: 'USDC',
     },
-    fees: [
-      {
-        type: 'base',
-        amount: '1000000000000000000',
-        decimals: 18,
-        symbol: 'ETH',
-      },
-      {
-        type: 'bridge',
-        amount: '500000000000000000',
-        decimals: 18,
-        symbol: 'ETH',
-      },
-    ],
+    fees,
   },
-} as ActivityListItem;
+};
 
 function mockUseSelectorState(state: Record<string, unknown>) {
   jest.mocked(useSelector).mockImplementation((selector) => selector(state));
@@ -84,12 +90,12 @@ describe('useActivityAmountsFiat', () => {
       {
         label: 'Network fee',
         value: '$2',
-        fee: activityWithTokenAndFees.data.fees?.[0],
+        fee: fees[0],
       },
       {
         label: 'Bridge fee',
         value: '$1',
-        fee: activityWithTokenAndFees.data.fees?.[1],
+        fee: fees[1],
       },
     ]);
     expect(result.current.totalFiat).toBe('$9');
@@ -132,6 +138,8 @@ describe('useActivityAmountsFiat', () => {
       useActivityAmountsFiat({
         ...activityWithTokenAndFees,
         data: {
+          from: '0xfrom',
+          to: '0xto',
           token: {
             amount: '0',
             assetId: `eip155:1/erc20:${tokenAddress}`,
@@ -148,7 +156,7 @@ describe('useActivityAmountsFiat', () => {
             },
           ],
         },
-      } as ActivityListItem),
+      }),
     );
 
     expect(result.current).toStrictEqual({

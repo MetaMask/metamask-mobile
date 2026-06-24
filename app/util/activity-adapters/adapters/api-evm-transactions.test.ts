@@ -145,6 +145,44 @@ describe('mapApiEvmTransactions', () => {
     });
   });
 
+  it('adds API gas fees to approval activities', () => {
+    const transaction = {
+      hash: '0xapprovefee',
+      timestamp: '2026-05-27T13:20:27.000Z',
+      chainId: 8453,
+      accountId: `eip155:8453:${subjectAddress}`,
+      methodId: approveFunctionSignature,
+      input: buildApproveData(baseRecipientAddress, 100000000n),
+      value: '0',
+      gasUsed: 21000,
+      effectiveGasPrice: 1000000000,
+      to: baseUsdc,
+      from: subjectAddress,
+      isError: false,
+      valueTransfers: [],
+      logs: [],
+      transactionProtocol: 'ERC_20',
+      transactionCategory: 'APPROVE',
+      transactionType: 'ERC_20_APPROVE',
+    } as unknown as V1TransactionByHashResponse;
+
+    const item = mapApiEvmTransactions({ subjectAddress, transaction });
+
+    expect(item.type).toBe('approveSpendingCap');
+    if (item.type !== 'approveSpendingCap') {
+      throw new Error(`Expected approveSpendingCap item, got ${item.type}`);
+    }
+
+    expect(item.data.fees).toStrictEqual([
+      expect.objectContaining({
+        type: 'base',
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+      }),
+    ]);
+  });
+
   it('marks unlimited approval amounts from full calldata', () => {
     const transaction = {
       hash: '0x91f89897197afcc09ad98ec4282366fd7938d8a9609e4fc2a0aa2d070664bc27',

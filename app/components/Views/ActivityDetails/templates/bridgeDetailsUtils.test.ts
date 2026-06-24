@@ -1,5 +1,6 @@
 import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
+import type { TransactionGroup } from '../../../../util/activity-adapters/adapters/transaction-group';
 import { getBridgeHistoryItem } from './bridgeDetailsUtils';
 
 describe('bridgeDetailsUtils', () => {
@@ -12,7 +13,7 @@ describe('bridgeDetailsUtils', () => {
         },
       },
     } as BridgeHistoryItem;
-    const item = {
+    const item: Extract<ActivityListItem, { type: 'bridge' }> = {
       type: 'bridge',
       chainId: 'eip155:1',
       status: 'success',
@@ -24,18 +25,18 @@ describe('bridgeDetailsUtils', () => {
           initialTransaction: {
             id: 'bridge-tx-meta-id',
           },
-        },
+          primaryTransaction: {
+            id: 'bridge-tx-meta-id',
+          },
+        } as TransactionGroup,
       },
       data: {},
-    } as ActivityListItem;
+    };
 
     expect(
-      getBridgeHistoryItem(
-        item as Extract<ActivityListItem, { type: 'bridge' }>,
-        {
-          'bridge-tx-meta-id': bridgeHistoryItem,
-        },
-      ),
+      getBridgeHistoryItem(item, {
+        'bridge-tx-meta-id': bridgeHistoryItem,
+      }),
     ).toBe(bridgeHistoryItem);
   });
 });
