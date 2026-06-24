@@ -427,6 +427,12 @@ export interface AdvancedChartProps {
    * Example: `${assetId}|${timePeriod}|${interval}|${currency}`.
    */
   ohlcvSeriesKey?: string;
+  /**
+   * Stable React `key` for the WebView document (technical-indicators path only). Remount only
+   * when this changes (e.g. asset or currency). Omit for legacy behavior: remount on
+   * `ohlcvSeriesKey` change. Interval/time-range hot reload requires this prop.
+   */
+  webViewInstanceKey?: string;
   /** Chart height in pixels */
   height?: number;
 
@@ -475,11 +481,22 @@ export interface AdvancedChartProps {
   onChartReady?: () => void;
   /**
    * Fires once when the native skeleton overlay is removed (chart ready, layout settled,
-   * and parent `isLoading` false). Resets when `ohlcvSeriesKey` or chart HTML reloads.
+   * and parent `isLoading` false). Resets when `webViewInstanceKey` or chart HTML reloads.
    */
   onSkeletonHidden?: () => void;
+  /**
+   * Fires when the WebView posts `CHART_LAYOUT_SETTLED` after OHLCV scale/layout apply.
+   * Used by Token Details (technical-indicators path) to complete interval visibility traces
+   * after first reveal — `onSkeletonHidden` only runs once per WebView session.
+   */
+  onChartLayoutSettled?: () => void;
   /** Callback when an error occurs */
   onError?: (error: string) => void;
+  /**
+   * Pre-`CHART_READY` failure (CDN, library boot, widget init). When set, AdvancedChart
+   * skips its error UI and delegates to the parent (e.g. legacy chart fallback).
+   */
+  onInitFailed?: (error: string) => void;
   /** Crosshair OHLC data callback (for overlay legend) */
   onCrosshairMove?: (data: CrosshairData | null) => void;
   /**

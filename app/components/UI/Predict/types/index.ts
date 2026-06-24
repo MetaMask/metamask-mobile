@@ -507,8 +507,38 @@ export type PredictBalance = {
   validUntil: number;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ClaimParams {}
+export interface PredictTradeAnalyticsProperties {
+  marketId?: string;
+  marketTitle?: string;
+  marketCategory?: string;
+  marketTags?: string[];
+  actionType?: string;
+  entryPoint?: string;
+  predictFeedTab?: string;
+  predictScreen?: string;
+  predictComponent?: string;
+  transactionType?: string;
+  sharePrice?: number;
+  liquidity?: number;
+  volume?: number;
+  openPositionsCount?: number;
+  claimablePositionsCount?: number;
+  hasClaimableWinnings?: boolean;
+  portfolioModuleEnabled?: boolean;
+  marketType?: string;
+  outcome?: string;
+  marketSlug?: string;
+  gameId?: string;
+  gameStartTime?: string;
+  gameLeague?: string;
+  gameStatus?: string;
+  gamePeriod?: string | null;
+  gameClock?: string | null;
+}
+
+export interface ClaimParams {
+  analyticsProperties?: PredictTradeAnalyticsProperties;
+}
 
 export interface GetMarketPriceResponse {
   price: number;
@@ -696,34 +726,7 @@ export interface PlaceOrderParams {
   address?: string;
   transactionId?: string;
   activeAbTests?: TransactionActiveAbTestEntry[];
-  analyticsProperties?: {
-    marketId?: string;
-    marketTitle?: string;
-    marketCategory?: string;
-    marketTags?: string[];
-    actionType?: string;
-    entryPoint?: string;
-    predictFeedTab?: string;
-    predictScreen?: string;
-    predictComponent?: string;
-    transactionType?: string;
-    sharePrice?: number;
-    liquidity?: number;
-    volume?: number;
-    openPositionsCount?: number;
-    claimablePositionsCount?: number;
-    hasClaimableWinnings?: boolean;
-    portfolioModuleEnabled?: boolean;
-    marketType?: string;
-    outcome?: string;
-    marketSlug?: string;
-    gameId?: string;
-    gameStartTime?: string;
-    gameLeague?: string;
-    gameStatus?: string;
-    gamePeriod?: string | null;
-    gameClock?: string | null;
-  };
+  analyticsProperties?: PredictTradeAnalyticsProperties;
 }
 
 export interface PreviewOrderParams {

@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   useNavigation,
@@ -12,13 +12,13 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+
 import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { Box } from '../../../Box/Box';
 import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import { useStyles } from '../../../../hooks/useStyles';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
@@ -51,6 +51,19 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import MoneyIcon from '../../../../../images/money.png';
+
+const iconStyles = StyleSheet.create({
+  moneyIconWrapper: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    overflow: 'hidden' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  moneyIcon: { width: 32, height: 32 },
+});
 
 /**
  * Full-screen details for an Accounts-API activity (a card spend or musdback).
@@ -89,7 +102,6 @@ function MoneyApiActivityDetailsContent({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const currencyRates = useSelector(selectCurrencyRates);
   const blockExplorerLinkEnabled = useSelector(
@@ -237,12 +249,13 @@ function MoneyApiActivityDetailsContent({
                 alignItems={AlignItems.center}
                 gap={6}
               >
-                <AvatarAccount
-                  accountAddress={
-                    primaryMoneyAccount?.address ?? activity.paidTo
-                  }
-                  size={AvatarSize.Sm}
-                />
+                <View style={iconStyles.moneyIconWrapper}>
+                  <Image
+                    source={MoneyIcon}
+                    style={iconStyles.moneyIcon}
+                    testID="money-account-icon"
+                  />
+                </View>
                 <Text>
                   {strings('transaction_details.label.money_account')}
                 </Text>

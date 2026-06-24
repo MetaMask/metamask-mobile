@@ -34,8 +34,11 @@ export function getNetworkControllerMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['ConnectivityController:getState'],
-    events: [],
+    actions: [
+      'ConnectivityController:getState',
+      'RemoteFeatureFlagController:getState',
+    ],
+    events: ['RemoteFeatureFlagController:stateChange'],
     messenger,
   });
   return messenger;
@@ -78,14 +81,10 @@ export function getNetworkControllerInitMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: [
-      'RemoteFeatureFlagController:getState',
-      'AnalyticsController:trackEvent',
-    ],
+    actions: ['AnalyticsController:trackEvent'],
     events: [
       'NetworkController:rpcEndpointDegraded',
       'NetworkController:rpcEndpointUnavailable',
-      'RemoteFeatureFlagController:stateChange',
     ],
     messenger,
   });

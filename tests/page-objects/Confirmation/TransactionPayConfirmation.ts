@@ -429,14 +429,32 @@ class TransactionPayConfirmation {
         }
       },
       appium: async () => {
+        const waitForKeypad = async (): Promise<void> => {
+          await Assertions.expectElementToBeVisible(this.getKeypadButton('0'), {
+            timeout: 60_000,
+            description: 'Transaction pay amount keypad',
+          });
+        };
+
+        try {
+          await waitForKeypad();
+        } catch {
+          await Assertions.expectElementToBeVisible(this.keyboardContainer, {
+            timeout: 60_000,
+            description: 'Custom amount input before opening keypad',
+          });
+          await UnifiedGestures.waitAndTap(this.keyboardContainer, {
+            description: 'Custom amount input field',
+            timeout: 15_000,
+          });
+          await waitForKeypad();
+        }
+
         for (const char of amount) {
-          await PlaywrightGestures.waitAndTap(
-            await asPlaywrightElement(this.getKeypadButton(char)),
-            {
-              checkForDisplayed: true,
-              checkForEnabled: true,
-            },
-          );
+          await UnifiedGestures.waitAndTap(this.getKeypadButton(char), {
+            description: `Keyboard Key ${char}`,
+            timeout: 15_000,
+          });
         }
       },
     });

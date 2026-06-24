@@ -6,7 +6,7 @@ import {
 import {
   MOCK_CREDIT_DEBIT_CARD,
   MOCK_USDC_TOKEN,
-} from '../../components/UI/Ramp/Deposit/testUtils/constants';
+} from '../../components/UI/Ramp/testUtils/constants';
 import { merge } from 'lodash';
 import fiatOrderReducer, {
   addActivationKey,
