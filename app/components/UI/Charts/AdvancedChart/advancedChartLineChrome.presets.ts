@@ -10,7 +10,7 @@ export const advancedChartLineChromePresets = {
    * price line; custom line-end marker only. Ambient last-price color via chart color props.
    */
   tokenOverview: {
-    useCustomLineEndMarker: true,
+    useCustomLineEndMarker: false,
     useCustomDashedLastPriceLine: false,
     useCustomPriceLabels: false,
     hideTimeScale: false,
