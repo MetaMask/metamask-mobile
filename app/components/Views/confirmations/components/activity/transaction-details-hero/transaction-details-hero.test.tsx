@@ -4,7 +4,8 @@ import { useTransactionDetails } from '../../../hooks/activity/useTransactionDet
 import {
   TransactionMeta,
   TransactionType,
- CHAIN_IDS } from '@metamask/transaction-controller';
+  CHAIN_IDS,
+} from '@metamask/transaction-controller';
 import { TransactionDetailsHero } from './transaction-details-hero';
 import { merge } from 'lodash';
 import { otherControllersMock } from '../../../__mocks__/controllers/other-controllers-mock';
@@ -466,9 +467,53 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { getByText } = render();
+      const { getByText, queryByText } = render();
 
       expect(getByText(/\+100\.00 mUSD/)).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
+    });
+
+    it('renders single-row mUSD deposit hero with Money Account icon', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountDeposit,
+          metamaskPay: {
+            tokenAddress: MUSD_TOKEN_ADDRESS,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '50.12',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText, getByTestId, queryByText } = render();
+
+      expect(getByTestId('money-account-icon')).toBeDefined();
+      expect(getByText(/\+50\.12 mUSD/)).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
+    });
+
+    it('renders two-asset hero for crypto moneyAccountDeposit conversion', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountDeposit,
+          metamaskPay: {
+            tokenAddress: TOKEN_ADDRESS_MOCK,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '123.46',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('You sent')).toBeDefined();
+      expect(getByText(/-123\.46 TST/)).toBeDefined();
+      expect(getByText('You received')).toBeDefined();
+      expect(getByText(/\+123\.46 mUSD/)).toBeDefined();
     });
 
     it('renders null for unsupported type in money context', () => {

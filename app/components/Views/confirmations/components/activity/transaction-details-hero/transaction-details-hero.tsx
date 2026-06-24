@@ -190,6 +190,7 @@ export function TransactionDetailsHero() {
   const showTwoAssetHero =
     isMoneyContext &&
     hasTransactionType(transactionMeta, TWO_ASSET_HERO_TYPES) &&
+    !isSingleRowMoneyDeposit(transactionMeta) &&
     sentData &&
     receivedData;
 
@@ -206,12 +207,12 @@ export function TransactionDetailsHero() {
     hasTransactionType(transactionMeta, TOKEN_ICON_TYPES) && tokenMeta;
 
   if (showTokenIcon) {
-    const isFiatDeposit =
+    const showDepositPrefix =
       isMoneyContext &&
       hasTransactionType(transactionMeta, [
         TransactionType.moneyAccountDeposit,
       ]) &&
-      Boolean(transactionMeta.metamaskPay?.fiat?.orderId);
+      isSingleRowMoneyDeposit(transactionMeta);
 
     const isMusdWithdraw =
       isMoneyContext &&
@@ -245,9 +246,9 @@ export function TransactionDetailsHero() {
         {icon}
         <Text
           variant={TextVariant.DisplayMD}
-          color={isFiatDeposit ? TextColor.Success : undefined}
+          color={showDepositPrefix ? TextColor.Success : undefined}
         >
-          {isFiatDeposit ? '+' : isMusdWithdraw ? '-' : ''}
+          {showDepositPrefix ? '+' : isMusdWithdraw ? '-' : ''}
           {tokenMeta.amount} {tokenMeta.symbol}
         </Text>
       </Box>
@@ -314,6 +315,17 @@ const SENT_OVERRIDE: Partial<
     chainId: CHAIN_IDS.POLYGON as Hex,
   },
 };
+
+function isSingleRowMoneyDeposit(transactionMeta: TransactionMeta): boolean {
+  if (
+    !hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
+  ) {
+    return false;
+  }
+
+  const { fiat, tokenAddress } = transactionMeta.metamaskPay ?? {};
+  return Boolean(fiat?.orderId) || isMusdToken(tokenAddress);
+}
 
 function resolveTwoAssetData(
   transactionMeta: TransactionMeta,
