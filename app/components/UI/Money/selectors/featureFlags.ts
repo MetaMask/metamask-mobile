@@ -59,7 +59,7 @@ export const selectMoneyCardActivityCashbackMultisendContracts = createSelector(
       remoteFeatureFlags?.moneyCardActivityCashbackMultisendContracts;
     if (
       Array.isArray(remote) &&
-      remote.every((item) => typeof item === 'string')
+      remote.every((item): item is string => typeof item === 'string')
     ) {
       return remote;
     }
