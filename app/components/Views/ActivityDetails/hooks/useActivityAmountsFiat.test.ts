@@ -164,4 +164,100 @@ describe('useActivityAmountsFiat', () => {
       totalFiat: undefined,
     });
   });
+
+  it('uses an exchange rate of 1 for native (slip44) assets', () => {
+    mockUseSelectorState({
+      currentCurrency: 'usd',
+      conversionRate: 2,
+      contractExchangeRates: {},
+      multichainAssetRates: {},
+    });
+
+    const { result } = renderHook(() =>
+      useActivityAmountsFiat({
+        ...activityWithTokenAndFees,
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          token: {
+            amount: '1000000000000000000',
+            assetId: 'eip155:1/slip44:60',
+            decimals: 18,
+            direction: 'out',
+            symbol: 'ETH',
+          },
+          fees: [],
+        },
+      }),
+    );
+
+    // 1 ETH * conversionRate 2 (native exchange rate = 1) -> $2
+    expect(result.current.totalFiat).toBe('$2');
+  });
+
+  it('looks up market rates by lowercased address when the checksum misses', () => {
+    const lettersAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+    mockUseSelectorState({
+      currentCurrency: 'usd',
+      conversionRate: 2,
+      // Stored lowercase; the checksummed lookup must fall back to this key.
+      contractExchangeRates: { [lettersAddress]: { price: 3 } },
+      multichainAssetRates: {},
+    });
+
+    const { result } = renderHook(() =>
+      useActivityAmountsFiat({
+        ...activityWithTokenAndFees,
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          token: {
+            amount: '1000000',
+            assetId: `eip155:1/erc20:${lettersAddress}`,
+            decimals: 6,
+            direction: 'out',
+            symbol: 'USDC',
+          },
+          fees: [],
+        },
+      }),
+    );
+
+    // 1 USDC * conversionRate 2 * marketRate 3 -> $6
+    expect(result.current.totalFiat).toBe('$6');
+  });
+
+  it('uses multichain asset rates when present (no conversion rate)', () => {
+    const solChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+    mockUseSelectorState({
+      currentCurrency: 'usd',
+      conversionRate: undefined,
+      contractExchangeRates: {},
+      multichainAssetRates: {
+        [`${solChainId}/slip44:501`]: { rate: '4' },
+      },
+    });
+
+    const { result } = renderHook(() =>
+      useActivityAmountsFiat({
+        ...activityWithTokenAndFees,
+        chainId: solChainId,
+        data: {
+          from: '0xfrom',
+          to: '0xto',
+          token: {
+            amount: '2000000000',
+            assetId: `${solChainId}/slip44:501`,
+            decimals: 9,
+            direction: 'out',
+            symbol: 'SOL',
+          },
+          fees: [],
+        },
+      }),
+    );
+
+    // 2 SOL * multichain rate 4 -> $8
+    expect(result.current.totalFiat).toBe('$8');
+  });
 });

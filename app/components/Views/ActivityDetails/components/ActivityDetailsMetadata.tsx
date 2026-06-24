@@ -5,6 +5,7 @@ import {
   type ActivityListItem,
 } from '../../../../util/activity-adapters';
 import { formatTimestampToDateTime } from '../../../../util/date';
+import { renderShortAddress } from '../../../../util/address';
 import {
   ActivityDetailRow,
   ActivityDetailSection,
@@ -87,6 +88,12 @@ export function ActivityDetailsMetadata({ item }: { item: ActivityListItem }) {
           />
         }
         testID={ActivityDetailsSelectorsIDs.NETWORK_ROW}
+      />
+
+      <ActivityDetailRow
+        label={strings('activity_details.transaction_id')}
+        value={item.hash ? renderShortAddress(item.hash) : undefined}
+        testID={ActivityDetailsSelectorsIDs.TRANSACTION_ID_ROW}
       />
     </ActivityDetailSection>
   );

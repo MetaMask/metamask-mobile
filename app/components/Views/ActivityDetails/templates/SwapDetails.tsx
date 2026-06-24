@@ -35,7 +35,7 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
   const handleDoItAgain = useActivityDetailsDoItAgain({
     sourceToken: item.data.sourceToken,
     destinationToken: item.data.destinationToken,
-    fallbackChainId: item.chainId,
+    fallbackCaipChainId: item.chainId,
   });
   const canDoItAgain = canRenderActivityDetailsDoItAgain(
     item.data.sourceToken,

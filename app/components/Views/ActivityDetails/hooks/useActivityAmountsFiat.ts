@@ -13,6 +13,7 @@ import {
   renderFiat,
 } from '../../../../util/number/bigint';
 import { safeToChecksumAddress } from '../../../../util/address';
+import { getMaybeHexChainId } from '../../../../util/bridge';
 import {
   getHumanReadableTokenAmount,
   toMarketRateLookupToken,
@@ -39,18 +40,6 @@ export interface ActivityAmountsFiat {
 }
 
 const FIAT_DECIMALS = 2;
-
-function getHexChainId(caipChainId: string): Hex | undefined {
-  if (caipChainId.startsWith('0x')) {
-    return caipChainId as Hex;
-  }
-  const decimal = caipChainId.split(':')[1];
-  if (!decimal) {
-    return undefined;
-  }
-  const parsed = Number.parseInt(decimal, 10);
-  return Number.isNaN(parsed) ? undefined : (`0x${parsed.toString(16)}` as Hex);
-}
 
 function isNativeAsset(token: TokenAmount): boolean {
   return Boolean(
@@ -186,7 +175,7 @@ export function useActivityAmountsFiat(
   item: ActivityListItem,
   totalToken?: TokenAmount,
 ): ActivityAmountsFiat {
-  const hexChainId = getHexChainId(item.chainId);
+  const hexChainId = getMaybeHexChainId(item.chainId);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const conversionRate = useSelector((state: RootState) =>
     hexChainId

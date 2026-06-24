@@ -4,9 +4,12 @@ import type {
   TokenAmount,
 } from '../../../../util/activity-adapters';
 import { findBridgeHistoryItem } from '../../../../util/bridge/findBridgeHistoryItem';
+import { getAssetIdCaipChainId } from '../activityAssetId';
 
-export function getBridgeDestinationChainId(token: TokenAmount | undefined) {
-  return token?.assetId?.split('/')[0];
+export function getBridgeDestinationCaipChainId(
+  token: TokenAmount | undefined,
+) {
+  return getAssetIdCaipChainId(token?.assetId);
 }
 
 export function getBridgeDestinationTxHash(

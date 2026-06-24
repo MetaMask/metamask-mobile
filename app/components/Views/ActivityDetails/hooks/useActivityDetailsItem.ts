@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import type { CaipChainId } from '@metamask/utils';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
@@ -19,6 +20,9 @@ import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformation
  * local item is a generic `contractInteraction` (in which case the richer API
  * categorization wins anyway).
  *
+ * When a `chainId` is provided, candidates are restricted to that chain first,
+ * so a hash that collides across chains resolves to the correct transaction.
+ *
  * NOTE: resolution is keyed on `hash`, so a pending local transaction that does
  * not yet have a hash cannot be addressed here — this matches the extension and
  * is acceptable for the foundation pass.
@@ -36,8 +40,22 @@ function buildItemsByHash(
   return byHash;
 }
 
+function filterByChain(
+  items: ActivityListItem[],
+  chainId: CaipChainId | undefined,
+): ActivityListItem[] {
+  if (!chainId) {
+    return items;
+  }
+  // Exact CAIP-2 match: every adapter emits a canonical chain id and the
+  // navigation call site forwards the item's own `chainId`, so the strings
+  // align. Avoids lowercasing case-sensitive references (e.g. Solana base58).
+  return items.filter((item) => item.chainId === chainId);
+}
+
 export function useActivityDetailsItem(
   txIdentifier: string | undefined,
+  chainId?: CaipChainId,
 ): ActivityListItem | undefined {
   const localActivityItems = useLocalActivityItems();
   const { data: evmTransactions } = useTransactionsQuery();
@@ -56,16 +74,16 @@ export function useActivityDetailsItem(
   );
 
   const localByHash = useMemo(
-    () => buildItemsByHash(localActivityItems),
-    [localActivityItems],
+    () => buildItemsByHash(filterByChain(localActivityItems, chainId)),
+    [localActivityItems, chainId],
   );
   const apiByHash = useMemo(
-    () => buildItemsByHash(confirmedEvmItems),
-    [confirmedEvmItems],
+    () => buildItemsByHash(filterByChain(confirmedEvmItems, chainId)),
+    [confirmedEvmItems, chainId],
   );
   const nonEvmByHash = useMemo(
-    () => buildItemsByHash(nonEvmItems),
-    [nonEvmItems],
+    () => buildItemsByHash(filterByChain(nonEvmItems, chainId)),
+    [nonEvmItems, chainId],
   );
 
   return useMemo(() => {

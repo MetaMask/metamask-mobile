@@ -41,7 +41,7 @@ function BridgeNetworkValue({
     <Box twClassName="flex-row items-center gap-2 shrink">
       <ActivityDetailsNetworkValue chainId={sourceChainId} name={sourceName} />
       <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-        {'->'}
+        {'→'}
       </Text>
       <ActivityDetailsNetworkValue
         chainId={destinationChainId}

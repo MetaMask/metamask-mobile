@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import type { CaipChainId } from '@metamask/utils';
 import Routes from '../../../../constants/navigation/Routes';
 import { BridgeViewMode } from '../../../UI/Bridge/types';
 import {
@@ -14,20 +15,20 @@ const ACTIVITY_DETAILS_SOURCE_PAGE = 'ActivityDetails';
 export function useActivityDetailsDoItAgain({
   sourceToken,
   destinationToken,
-  fallbackChainId,
+  fallbackCaipChainId,
 }: {
   sourceToken?: TokenAmount;
   destinationToken?: TokenAmount;
-  fallbackChainId: string;
+  fallbackCaipChainId: CaipChainId;
 }) {
   const navigation = useNavigation();
   const sourceBridgeToken = useMemo(
-    () => toBridgeToken(sourceToken, fallbackChainId),
-    [fallbackChainId, sourceToken],
+    () => toBridgeToken(sourceToken, fallbackCaipChainId),
+    [fallbackCaipChainId, sourceToken],
   );
   const destinationBridgeToken = useMemo(
-    () => toBridgeToken(destinationToken, fallbackChainId),
-    [destinationToken, fallbackChainId],
+    () => toBridgeToken(destinationToken, fallbackCaipChainId),
+    [destinationToken, fallbackCaipChainId],
   );
   const sourceAmount = useMemo(
     () => (sourceToken ? getHumanReadableTokenAmount(sourceToken) : undefined),
@@ -68,7 +69,7 @@ export function useActivityDetailsDoItAgain({
 
 export function canRenderActivityDetailsDoItAgain(
   sourceToken: TokenAmount | undefined,
-  fallbackChainId: string,
+  fallbackCaipChainId: CaipChainId,
 ) {
-  return Boolean(toBridgeToken(sourceToken, fallbackChainId));
+  return Boolean(toBridgeToken(sourceToken, fallbackCaipChainId));
 }

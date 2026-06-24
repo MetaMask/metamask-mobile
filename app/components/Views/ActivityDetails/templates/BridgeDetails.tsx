@@ -17,7 +17,7 @@ import {
   useActivityDetailsDoItAgain,
 } from '../hooks/useActivityDetailsDoItAgain';
 import {
-  getBridgeDestinationChainId,
+  getBridgeDestinationCaipChainId,
   getBridgeDestinationTxHash,
   getBridgeHistoryItem,
 } from './bridgeDetailsUtils';
@@ -29,14 +29,14 @@ export function BridgeDetails({
 }) {
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
   const bridgeHistoryItem = getBridgeHistoryItem(item, bridgeHistory);
-  const destinationChainId = getBridgeDestinationChainId(
+  const destinationChainId = getBridgeDestinationCaipChainId(
     item.data.destinationToken,
   );
   const destinationHash = getBridgeDestinationTxHash(bridgeHistoryItem);
   const handleDoItAgain = useActivityDetailsDoItAgain({
     sourceToken: item.data.sourceToken,
     destinationToken: item.data.destinationToken,
-    fallbackChainId: item.chainId,
+    fallbackCaipChainId: item.chainId,
   });
   const canDoItAgain = canRenderActivityDetailsDoItAgain(
     item.data.sourceToken,

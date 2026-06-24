@@ -7,41 +7,9 @@ import {
   BadgeWrapperPosition,
   Box,
 } from '@metamask/design-system-react-native';
-import imageIcons from '../../../../images/image-icons';
 import { getNetworkImageSource } from '../../../../util/networks';
 import type { TokenAmount } from '../../../../util/activity-adapters';
-
-type TokenImageSrc = number | { uri: string };
-
-function getTokenIconUrl(assetId: string | undefined): string | undefined {
-  if (!assetId) {
-    return undefined;
-  }
-
-  const formattedAssetId = assetId.startsWith('eip155:')
-    ? assetId.toLowerCase()
-    : assetId;
-
-  return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${formattedAssetId
-    .split(':')
-    .join('/')}.png`;
-}
-
-function getTokenImageSource(
-  token: TokenAmount | undefined,
-): TokenImageSrc | undefined {
-  const symbol = token?.symbol;
-
-  if (symbol && Object.keys(imageIcons).includes(symbol)) {
-    const localIcon = imageIcons[symbol as keyof typeof imageIcons];
-    if (typeof localIcon !== 'function' && typeof localIcon !== 'string') {
-      return localIcon as TokenImageSrc;
-    }
-  }
-
-  const iconUrl = getTokenIconUrl(token?.assetId);
-  return iconUrl ? { uri: iconUrl } : undefined;
-}
+import { getTokenImageSource } from '../../../UI/ActivityListItemRow/tokenIcon';
 
 /**
  * Renders one or two overlapping token avatars for the details amount header,

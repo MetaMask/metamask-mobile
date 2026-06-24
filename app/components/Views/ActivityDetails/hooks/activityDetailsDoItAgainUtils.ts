@@ -1,24 +1,37 @@
+import type { CaipChainId } from '@metamask/utils';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../constants/bridge';
 import type { BridgeToken } from '../../../UI/Bridge/types';
 import type { TokenAmount } from '../../../../util/activity-adapters';
+import {
+  getAssetIdCaipChainId,
+  getAssetIdNamespaceAndReference,
+} from '../activityAssetId';
 
-export function getActivityTokenChainId(
+export function getActivityTokenCaipChainId(
   token: TokenAmount | undefined,
-  fallbackChainId: string,
-) {
-  return token?.assetId?.split('/')[0] ?? fallbackChainId;
+  fallbackCaipChainId: CaipChainId,
+): CaipChainId {
+  return getAssetIdCaipChainId(token?.assetId) ?? fallbackCaipChainId;
 }
 
 export function getActivityTokenAddress(token: TokenAmount | undefined) {
-  const assetNamespace = token?.assetId?.split('/')[1];
-  const [, address] = assetNamespace?.split(':') ?? [];
+  const { namespace, reference } = getAssetIdNamespaceAndReference(
+    token?.assetId,
+  );
 
-  return address ?? undefined;
+  // Native assets (`slip44:`/`native:`) have no contract address — the reference
+  // is the coin type, not an address. Return undefined so callers fall back to
+  // the native swaps sentinel rather than treating the coin type as an address.
+  if (namespace === 'slip44' || namespace === 'native') {
+    return undefined;
+  }
+
+  return reference ?? undefined;
 }
 
 export function toBridgeToken(
   token: TokenAmount | undefined,
-  fallbackChainId: string,
+  fallbackCaipChainId: CaipChainId,
 ): BridgeToken | undefined {
   const symbol = token?.symbol;
   const decimals = token?.decimals;
@@ -32,9 +45,6 @@ export function toBridgeToken(
     address: address ?? NATIVE_SWAPS_TOKEN_ADDRESS,
     symbol,
     decimals,
-    chainId: getActivityTokenChainId(
-      token,
-      fallbackChainId,
-    ) as BridgeToken['chainId'],
+    chainId: getActivityTokenCaipChainId(token, fallbackCaipChainId),
   };
 }

@@ -1,3 +1,4 @@
+import type { CaipChainId } from '@metamask/utils';
 import type { ActivityListItem } from '../../../util/activity-adapters';
 
 /**
@@ -8,8 +9,8 @@ import type { ActivityListItem } from '../../../util/activity-adapters';
  * refreshes — mirroring the extension's `ui/pages/details` flow.
  */
 export interface ActivityDetailsParams {
-  /** CAIP chain id of the transaction (e.g. `eip155:1`, `solana:...`). */
-  chainId: string;
+  /** CAIP-2 chain id of the transaction (e.g. `eip155:1`, `solana:…`). */
+  chainId: CaipChainId;
   /** Transaction identifier — the transaction hash (lowercased on lookup). */
   txIdentifier?: string;
 }

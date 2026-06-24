@@ -98,4 +98,23 @@ describe('useActivityDetailsItem', () => {
     const { result } = renderHook(() => useActivityDetailsItem('0xAPI'));
     expect(result.current).toBe(api);
   });
+
+  it('resolves the item matching the requested chainId when hashes collide across chains', () => {
+    const mainnet = makeItem({
+      type: 'send',
+      hash: '0xdup',
+      chainId: 'eip155:1',
+    });
+    const base = makeItem({
+      type: 'send',
+      hash: '0xdup',
+      chainId: 'eip155:8453',
+    });
+    setSources({ confirmed: [mainnet, base] });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xdup', 'eip155:8453'),
+    );
+    expect(result.current).toBe(base);
+  });
 });
