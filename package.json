@@ -467,7 +467,7 @@
     "query-string": "^6.12.1",
     "randomfill": "^1.0.4",
     "react": "19.2.0",
-    "react-native": "0.83.6",
+    "react-native": "patch:react-native@npm%3A0.83.6#~/.yarn/patches/react-native-npm-0.83.6-106e10c49d.patch",
     "react-native-aes-crypto": "3.0.3",
     "react-native-aes-crypto-forked": "patch:react-native-aes-crypto-forked@https%3A//github.com/MetaMask/react-native-aes-crypto-forked.git%23397d5db5250e8e7408294807965b5b9fd4ca6a25#~/.yarn/patches/react-native-aes-crypto-forked-https-9ebec3d485.patch",
     "react-native-animatable": "^1.3.3",
