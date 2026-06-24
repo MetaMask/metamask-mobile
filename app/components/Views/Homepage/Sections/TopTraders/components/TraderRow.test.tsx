@@ -274,7 +274,7 @@ describe('TraderRow', () => {
       expect(buttonWithMinWidth).not.toBeNull();
     });
 
-    it('sets min-width 80px on the Following button so the longer label fits without clipping', () => {
+    it('uses the same min-width on the Following button so the longer label can grow naturally', () => {
       const followingTrader: TopTrader = { ...baseTrader, isFollowing: true };
       renderWithProvider(
         <TraderRow
@@ -286,7 +286,7 @@ describe('TraderRow', () => {
       const followingLabel = screen.getByText('Following');
       const buttonWithMinWidth = findAncestor(
         followingLabel,
-        (node) => resolveMinWidth(node) === 80,
+        (node) => resolveMinWidth(node) === 60,
       );
 
       expect(buttonWithMinWidth).not.toBeNull();
