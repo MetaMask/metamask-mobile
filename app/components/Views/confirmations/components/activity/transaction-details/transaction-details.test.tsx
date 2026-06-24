@@ -245,7 +245,7 @@ describe('TransactionDetails', () => {
       ).toBeTruthy();
     });
 
-    it('renders money_account_withdraw title for nested moneyAccountWithdraw', () => {
+    it('renders money_account_withdraw title for nested moneyAccountWithdraw outside money context', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -258,6 +258,30 @@ describe('TransactionDetails', () => {
 
       expect(
         getByText(strings('transaction_details.title.money_account_withdraw')),
+      ).toBeTruthy();
+    });
+
+    it('renders Sent mUSD title for moneyAccountWithdraw in money context', () => {
+      useIsMoneyAccountContextMock.mockReturnValue(true);
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            targetFiat: '200.00',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(
+        getByText(
+          strings('transaction_details.title.money_account_sent', {
+            symbol: 'mUSD',
+          }),
+        ),
       ).toBeTruthy();
     });
 
@@ -445,6 +469,34 @@ describe('TransactionDetails', () => {
       expect(
         getByText(strings('transaction_details.title.deposited_musd')),
       ).toBeTruthy();
+    });
+
+    describe('moneyAccountWithdraw', () => {
+      it.each([
+        [
+          TransactionStatus.confirmed,
+          'transaction_details.title.money_account_sent',
+        ],
+        [TransactionStatus.submitted, 'transaction_details.title.sending_musd'],
+        [TransactionStatus.failed, 'transaction_details.title.send_failed'],
+      ])('returns %s title for status', (status, titleKey) => {
+        useTransactionDetailsMock.mockReturnValue({
+          transactionMeta: {
+            ...TRANSACTION_META_MOCK,
+            type: TransactionType.moneyAccountWithdraw,
+            status,
+            metamaskPay: { targetFiat: '200.00' },
+          } as unknown as TransactionMeta,
+        });
+
+        const { getByText } = render();
+
+        if (titleKey === 'transaction_details.title.money_account_sent') {
+          expect(getByText(strings(titleKey, { symbol: 'mUSD' }))).toBeTruthy();
+        } else {
+          expect(getByText(strings(titleKey))).toBeTruthy();
+        }
+      });
     });
   });
 

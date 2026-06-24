@@ -77,7 +77,6 @@ const TOKEN_ICON_TYPES = [
 
 const TWO_ASSET_HERO_TYPES = [
   TransactionType.moneyAccountDeposit,
-  TransactionType.moneyAccountWithdraw,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsWithdraw,
@@ -214,6 +213,12 @@ export function TransactionDetailsHero() {
       ]) &&
       Boolean(transactionMeta.metamaskPay?.fiat?.orderId);
 
+    const isMusdWithdraw =
+      isMoneyContext &&
+      hasTransactionType(transactionMeta, [
+        TransactionType.moneyAccountWithdraw,
+      ]);
+
     const icon = isMusdToken(tokenMeta.contractAddress) ? (
       <Image
         source={MoneyIcon}
@@ -242,7 +247,7 @@ export function TransactionDetailsHero() {
           variant={TextVariant.DisplayMD}
           color={isFiatDeposit ? TextColor.Success : undefined}
         >
-          {isFiatDeposit ? '+' : ''}
+          {isFiatDeposit ? '+' : isMusdWithdraw ? '-' : ''}
           {tokenMeta.amount} {tokenMeta.symbol}
         </Text>
       </Box>

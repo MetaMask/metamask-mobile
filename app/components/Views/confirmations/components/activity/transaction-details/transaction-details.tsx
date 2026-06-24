@@ -26,6 +26,8 @@ import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
 import { TransactionDetailsToRow } from '../transaction-details-to-row';
 import { TransactionDetailsFiatOrderIdRow } from '../transaction-details-fiat-order-id-row';
+import { resolveMusdTransferMeta } from '../../../../../UI/Money/constants/activityStyles';
+import { MUSD_TOKEN } from '../../../../../UI/Earn/constants/musd';
 
 export const SUMMARY_SECTION_TYPES = [
   TransactionType.musdClaim,
@@ -121,6 +123,22 @@ function getTitle(
   if (
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
   ) {
+    if (isMoneyContext) {
+      if (transactionMeta.status === TransactionStatus.confirmed) {
+        return strings('transaction_details.title.money_account_sent', {
+          symbol:
+            resolveMusdTransferMeta(transactionMeta)?.symbol ??
+            MUSD_TOKEN.symbol,
+        });
+      }
+      if (
+        transactionMeta.status === TransactionStatus.failed ||
+        transactionMeta.status === TransactionStatus.dropped
+      ) {
+        return strings('transaction_details.title.send_failed');
+      }
+      return strings('transaction_details.title.sending_musd');
+    }
     return strings('transaction_details.title.money_account_withdraw');
   }
 
