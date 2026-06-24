@@ -366,7 +366,7 @@ describe('TransactionDetailsHero', () => {
       ).toBeDefined();
     });
 
-    it('renders single-row hero with Money Account icon for cross-chain moneyAccountWithdraw', () => {
+    it('renders two-asset hero for cross-chain moneyAccountWithdraw', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -379,12 +379,12 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { getByText, getByTestId, queryByText } = render();
+      const { getByText } = render();
 
+      expect(getByText('You sent')).toBeDefined();
       expect(getByText(/-200\.00 mUSD/)).toBeDefined();
-      expect(getByTestId('money-account-icon')).toBeDefined();
-      expect(queryByText('You sent')).toBeNull();
-      expect(queryByText('You received')).toBeNull();
+      expect(getByText('You received')).toBeDefined();
+      expect(getByText(/\+123\.46 TST/)).toBeDefined();
     });
 
     it('renders single-row hero with Money Account icon for mUSD-to-mUSD moneyAccountWithdraw', () => {
@@ -404,6 +404,28 @@ describe('TransactionDetailsHero', () => {
       const { getByText, getByTestId, queryByText } = render();
 
       expect(getByText(/-200\.00 mUSD/)).toBeDefined();
+      expect(getByTestId('money-account-icon')).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
+    });
+
+    it('renders single-row hero for cross-chain mUSD moneyAccountWithdraw', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountWithdraw,
+          chainId: CHAIN_IDS.LINEA_MAINNET,
+          metamaskPay: {
+            tokenAddress: MUSD_TOKEN_ADDRESS,
+            chainId: CHAIN_IDS.LINEA_MAINNET,
+            targetFiat: '0.10',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText, getByTestId, queryByText } = render();
+
+      expect(getByText(/-0\.10 mUSD/)).toBeDefined();
       expect(getByTestId('money-account-icon')).toBeDefined();
       expect(queryByText('You sent')).toBeNull();
       expect(queryByText('You received')).toBeNull();

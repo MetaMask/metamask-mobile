@@ -41,6 +41,7 @@ import { RootState } from '../../../../../../reducers';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { TokenIcon } from '../../token-icon';
 import { resolveMusdTransferMeta } from '../../../../../UI/Money/constants/activityStyles';
+import { isSingleRowMusdMoneyWithdraw } from '../../../../../UI/Money/utils/moneyTransactionGuards';
 import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
 import {
   isMusdToken,
@@ -77,6 +78,7 @@ const TOKEN_ICON_TYPES = [
 
 const TWO_ASSET_HERO_TYPES = [
   TransactionType.moneyAccountDeposit,
+  TransactionType.moneyAccountWithdraw,
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsWithdraw,
@@ -191,6 +193,7 @@ export function TransactionDetailsHero() {
     isMoneyContext &&
     hasTransactionType(transactionMeta, TWO_ASSET_HERO_TYPES) &&
     !isSingleRowMoneyDeposit(transactionMeta) &&
+    !isSingleRowMusdMoneyWithdraw(transactionMeta) &&
     sentData &&
     receivedData;
 
@@ -204,7 +207,12 @@ export function TransactionDetailsHero() {
   }
 
   const showTokenIcon =
-    hasTransactionType(transactionMeta, TOKEN_ICON_TYPES) && tokenMeta;
+    hasTransactionType(transactionMeta, TOKEN_ICON_TYPES) &&
+    tokenMeta &&
+    (!hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountWithdraw,
+    ]) ||
+      isSingleRowMusdMoneyWithdraw(transactionMeta));
 
   if (showTokenIcon) {
     const showDepositPrefix =
@@ -214,11 +222,8 @@ export function TransactionDetailsHero() {
       ]) &&
       isSingleRowMoneyDeposit(transactionMeta);
 
-    const isMusdWithdraw =
-      isMoneyContext &&
-      hasTransactionType(transactionMeta, [
-        TransactionType.moneyAccountWithdraw,
-      ]);
+    const isMusdWithdrawSingleRow =
+      isMoneyContext && isSingleRowMusdMoneyWithdraw(transactionMeta);
 
     const icon = isMusdToken(tokenMeta.contractAddress) ? (
       <Image
@@ -248,7 +253,7 @@ export function TransactionDetailsHero() {
           variant={TextVariant.DisplayMD}
           color={showDepositPrefix ? TextColor.Success : undefined}
         >
-          {showDepositPrefix ? '+' : isMusdWithdraw ? '-' : ''}
+          {showDepositPrefix ? '+' : isMusdWithdrawSingleRow ? '-' : ''}
           {tokenMeta.amount} {tokenMeta.symbol}
         </Text>
       </Box>

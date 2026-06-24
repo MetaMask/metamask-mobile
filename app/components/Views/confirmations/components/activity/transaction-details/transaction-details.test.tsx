@@ -6,6 +6,7 @@ import {
   TransactionMeta,
   TransactionStatus,
   TransactionType,
+  CHAIN_IDS,
 } from '@metamask/transaction-controller';
 import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import {
@@ -262,7 +263,7 @@ describe('TransactionDetails', () => {
       ).toBeTruthy();
     });
 
-    it('renders Sent mUSD title for moneyAccountWithdraw in money context', () => {
+    it('renders Sent mUSD title for mUSD-to-mUSD moneyAccountWithdraw in money context', () => {
       useIsMoneyAccountContextMock.mockReturnValue(true);
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
@@ -270,6 +271,8 @@ describe('TransactionDetails', () => {
           type: TransactionType.moneyAccountWithdraw,
           status: TransactionStatus.confirmed,
           metamaskPay: {
+            tokenAddress: MUSD_TOKEN_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
             targetFiat: '200.00',
           },
         } as unknown as TransactionMeta,
@@ -284,6 +287,52 @@ describe('TransactionDetails', () => {
           }),
         ),
       ).toBeTruthy();
+    });
+
+    it('renders Sent mUSD title for cross-chain mUSD moneyAccountWithdraw in money context', () => {
+      useIsMoneyAccountContextMock.mockReturnValue(true);
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            tokenAddress: MUSD_TOKEN_ADDRESS,
+            chainId: CHAIN_IDS.LINEA_MAINNET,
+            targetFiat: '0.10',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(
+        getByText(
+          strings('transaction_details.title.money_account_sent', {
+            symbol: 'mUSD',
+          }),
+        ),
+      ).toBeTruthy();
+    });
+
+    it('renders Sent title for cross-token moneyAccountWithdraw in money context', () => {
+      useIsMoneyAccountContextMock.mockReturnValue(true);
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            tokenAddress: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '200.00',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText(strings('transaction_details.title.sent'))).toBeTruthy();
     });
 
     it('renders default title for other transaction types', () => {
@@ -500,13 +549,17 @@ describe('TransactionDetails', () => {
         ],
         [TransactionStatus.submitted, 'transaction_details.title.sending_musd'],
         [TransactionStatus.failed, 'transaction_details.title.send_failed'],
-      ])('returns %s title for status', (status, titleKey) => {
+      ])('returns %s title for mUSD-to-mUSD status', (status, titleKey) => {
         useTransactionDetailsMock.mockReturnValue({
           transactionMeta: {
             ...TRANSACTION_META_MOCK,
             type: TransactionType.moneyAccountWithdraw,
             status,
-            metamaskPay: { targetFiat: '200.00' },
+            metamaskPay: {
+              tokenAddress: MUSD_TOKEN_ADDRESS,
+              chainId: CHAIN_IDS.MONAD,
+              targetFiat: '200.00',
+            },
           } as unknown as TransactionMeta,
         });
 
@@ -517,6 +570,27 @@ describe('TransactionDetails', () => {
         } else {
           expect(getByText(strings(titleKey))).toBeTruthy();
         }
+      });
+
+      it('returns Sent for confirmed cross-token withdraw', () => {
+        useTransactionDetailsMock.mockReturnValue({
+          transactionMeta: {
+            ...TRANSACTION_META_MOCK,
+            type: TransactionType.moneyAccountWithdraw,
+            status: TransactionStatus.confirmed,
+            metamaskPay: {
+              tokenAddress: '0xdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef',
+              chainId: CHAIN_ID_MOCK,
+              targetFiat: '200.00',
+            },
+          } as unknown as TransactionMeta,
+        });
+
+        const { getByText } = render();
+
+        expect(
+          getByText(strings('transaction_details.title.sent')),
+        ).toBeTruthy();
       });
     });
 

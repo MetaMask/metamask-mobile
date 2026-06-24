@@ -27,8 +27,11 @@ import { TransactionDetailsAccountRow } from '../transaction-details-account-row
 import { TransactionDetailsToRow } from '../transaction-details-to-row';
 import { TransactionDetailsFiatOrderIdRow } from '../transaction-details-fiat-order-id-row';
 import { resolveMusdTransferMeta } from '../../../../../UI/Money/constants/activityStyles';
+import {
+  isPerpsPredictMoneyDeposit,
+  isSingleRowMusdMoneyWithdraw,
+} from '../../../../../UI/Money/utils/moneyTransactionGuards';
 import { isMusdToken, MUSD_TOKEN } from '../../../../../UI/Earn/constants/musd';
-import { isPerpsPredictMoneyDeposit } from '../../../../../UI/Money/utils/moneyTransactionGuards';
 
 export const SUMMARY_SECTION_TYPES = [
   TransactionType.musdClaim,
@@ -141,9 +144,7 @@ function getTitle(
   }
 
   if (isMoneyContext && isMoneySendTransaction(transactionMeta)) {
-    const symbol = hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountWithdraw,
-    ])
+    const symbol = isSingleRowMusdMoneyWithdraw(transactionMeta)
       ? (resolveMusdTransferMeta(transactionMeta)?.symbol ?? MUSD_TOKEN.symbol)
       : undefined;
 
