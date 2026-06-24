@@ -5,6 +5,7 @@ import { toChecksumHexAddress } from '@metamask/controller-utils';
 import type { V1AccountTransactionsResponse } from '@metamask/core-backend';
 import { apiClient } from '../../../../core/apiClient';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMoneyCardActivityCashbackMultisendContracts } from '../selectors/featureFlags';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import { MINUTE } from '../../../../constants/time';
 import type { AccountsApiActivity } from '../types/moneyActivity';
@@ -29,6 +30,9 @@ const EMPTY: AccountsApiActivity[] = [];
  */
 export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const cashbackMultisendContracts = useSelector(
+    selectMoneyCardActivityCashbackMultisendContracts,
+  );
   const rawAddress = primaryMoneyAccount?.address;
   const moneyAddress = rawAddress ? toChecksumHexAddress(rawAddress) : '';
 
@@ -40,8 +44,12 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   // Parse at the boundary: the cache holds raw rows, the view gets activity.
   const select = useMemo(
     () => (response: V1AccountTransactionsResponse) =>
-      parseAccountsApiActivity(response, moneyAddress),
-    [moneyAddress],
+      parseAccountsApiActivity(
+        response,
+        moneyAddress,
+        cashbackMultisendContracts,
+      ),
+    [moneyAddress, cashbackMultisendContracts],
   );
 
   // `apiClient` is built against query-core v5; this repo's react-query is v4, so

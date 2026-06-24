@@ -239,6 +239,38 @@ describe('parseAccountsApiActivity', () => {
     ).toEqual([]);
   });
 
+  it('uses the provided cashback multisend contract list instead of defaults', () => {
+    const customContract = '0x00000000000000000000000000000000000000aa';
+
+    expect(
+      parseAccountsApiActivity(
+        { data: [unclassifiedCashbackRow] },
+        MONEY_ADDRESS,
+        [customContract],
+      ),
+    ).toEqual([]);
+
+    expect(
+      parseAccountsApiActivity(
+        {
+          data: [
+            {
+              ...unclassifiedCashbackRow,
+              to: customContract,
+            },
+          ],
+        },
+        MONEY_ADDRESS,
+        [customContract],
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        kind: 'cashback',
+        hash: unclassifiedCashbackRow.hash,
+      }),
+    ]);
+  });
+
   it('ignores rows of other transaction types', () => {
     expect(
       parseAccountsApiActivity({ data: [inboundTopUpRow] }, MONEY_ADDRESS),

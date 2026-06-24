@@ -3,6 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useSelector } from 'react-redux';
 import { apiClient } from '../../../../core/apiClient';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
+import { selectMoneyCardActivityCashbackMultisendContracts } from '../selectors/featureFlags';
 import { parseAccountsApiActivity } from '../utils/accountsApi';
 import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
@@ -40,6 +41,9 @@ const mockGetQueryOptions = jest.mocked(
 const mockParse = jest.mocked(parseAccountsApiActivity);
 
 const ADDR_A = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
+const CASHBACK_MULTISEND_CONTRACTS = [
+  '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb',
+];
 const QUERY_OPTIONS_MOCK = {
   queryKey: ['accounts', 'transactions', 'v1Account'],
   queryFn: jest.fn(),
@@ -65,6 +69,9 @@ function setupSelectors(
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectPrimaryMoneyAccount) {
       return account;
+    }
+    if (selector === selectMoneyCardActivityCashbackMultisendContracts) {
+      return CASHBACK_MULTISEND_CONTRACTS;
     }
     return undefined;
   });
@@ -165,7 +172,11 @@ describe('useMoneyAccountApiActivity', () => {
     };
     const parsed = select({ data: ['raw'] });
 
-    expect(mockParse).toHaveBeenCalledWith({ data: ['raw'] }, ADDR_A);
+    expect(mockParse).toHaveBeenCalledWith(
+      { data: ['raw'] },
+      ADDR_A,
+      CASHBACK_MULTISEND_CONTRACTS,
+    );
     expect(parsed).toEqual([CARD]);
   });
 });
