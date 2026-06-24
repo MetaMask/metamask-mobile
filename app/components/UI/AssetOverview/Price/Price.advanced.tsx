@@ -1121,6 +1121,7 @@ const PriceAdvanced = ({
               onError={handleAdvancedChartError}
               onInitFailed={handleAdvancedChartInitFailed}
               lineColorOverride={initialAmbientColor}
+              currentPriceLineColorOverride={initialAmbientColor}
               successColorOverride={
                 initialAmbientColor ? ambientSuccessGreen : undefined
               }

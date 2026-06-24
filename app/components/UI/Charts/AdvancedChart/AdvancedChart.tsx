@@ -103,6 +103,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       errorColorOverride,
       legendOverlay,
       currentPriceLineColorOverride,
+      labelStyleOverrides,
     },
     ref,
   ) => {
@@ -166,6 +167,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         successColorOverride,
         errorColorOverride,
         currentPriceLineColorOverride,
+        labelStyleOverrides,
         legendOverlay,
       });
       // lineColorOverride/successColorOverride/errorColorOverride intentionally excluded —
@@ -179,6 +181,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       disabledFeatures,
       lineChrome,
       currentPriceLineColorOverride,
+      labelStyleOverrides,
       legendOverlay,
     ]);
 
@@ -457,14 +460,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             }
             break;
 
-          case 'DEBUG':
-            if (__DEV__) {
-              // WebView console is not the Metro / Xcode log; chartLogic mirrors here via DEBUG.
-              // eslint-disable-next-line no-console -- intentional dev bridge from WebView
-              console.log('[AdvancedChart]', message.payload);
-            }
-            break;
-
           default:
             break;
         }
@@ -535,7 +530,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     // ---- Declarative prop syncing ----
 
     useEffect(() => {
-      if (ohlcvData.length === 0 || !webViewLoaded) return;
+      if (ohlcvData.length === 0 || !webViewLoaded) {
+        return;
+      }
 
       if (ohlcvSeriesStaleSnapshotRef.current !== null) {
         if (ohlcvData !== ohlcvSeriesStaleSnapshotRef.current) {
@@ -713,18 +710,22 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       const effectiveLineColor = lineColorOverride ?? effectiveSuccessColor;
       const effectiveErrorColor =
         errorColorOverride ?? theme.colors.error.default;
+      const effectiveCurrentPriceColor =
+        currentPriceLineColorOverride ?? effectiveLineColor;
       postMessage({
         type: 'SET_THEME_COLORS',
         payload: {
           lineColor: effectiveLineColor,
           successColor: effectiveSuccessColor,
           errorColor: effectiveErrorColor,
+          currentPriceColor: effectiveCurrentPriceColor,
         },
       });
     }, [
       lineColorOverride,
       successColorOverride,
       errorColorOverride,
+      currentPriceLineColorOverride,
       webViewLoaded,
       postMessage,
       theme.colors.success.default,
@@ -766,7 +767,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     useEffect(() => {
       if (webViewError) return;
       if (!onSkeletonHidden) return;
-      if (isLoading || !isChartReady || layoutSettling) return;
+      if (isLoading || !isChartReady || layoutSettling) {
+        return;
+      }
 
       if (!skeletonHiddenReportedRef.current) {
         // If we expect indicators, wait for all of them to be painted

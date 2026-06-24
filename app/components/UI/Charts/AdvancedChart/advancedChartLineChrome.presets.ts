@@ -6,13 +6,13 @@ import type { LineChromeOptions } from './AdvancedChart.types';
  */
 export const advancedChartLineChromePresets = {
   /**
-   * Token overview (AssetOverview): TradingView built-ins for scale, price line, and crosshair
-   * labels; no custom line-end icon.
+   * Token overview (AssetOverview): TV built-ins for scale/crosshair/last-value labels and native
+   * price line; custom line-end marker only. Ambient last-price color via chart color props.
    */
   tokenOverview: {
     useCustomLineEndMarker: true,
-    useCustomDashedLastPriceLine: true,
-    useCustomPriceLabels: true,
+    useCustomDashedLastPriceLine: false,
+    useCustomPriceLabels: false,
     hideTimeScale: false,
   },
 } as const satisfies Record<string, LineChromeOptions>;

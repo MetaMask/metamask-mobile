@@ -9,8 +9,8 @@
  * - theme: { backgroundColor, borderColor, textColor, textAlternativeColor, successColor, errorColor, primaryColor }
  * - lineChrome: { hideTimeScale, useCustomLineEndMarker, useCustomDashedLastPriceLine,
  *   useCustomPriceLabels }
- *   Single source of truth; `SET_LINE_CHROME` replaces it. Missing keys in old HTML fall back in
- *   `getLineChrome` via `LINE_CHROME_DEFAULTS`.
+ *   Fully resolved on RN via `resolveLineChromeOptions` (inline CONFIG + `SET_LINE_CHROME`).
+ *   WebView reads `CONFIG.lineChrome` only; omitted keys coerce to false (built-in-first).
  * - indicatorColors: { MA, MACD, RSI, BOL } — sourced from indicatorColors.ts
  */
 
@@ -295,71 +295,29 @@ function handleMessage(event) {
 window.addEventListener('message', handleMessage);
 document.addEventListener('message', handleMessage);
 
-/** Mirrors `DEFAULT_LINE_CHROME` in AdvancedChart.types.ts (WebView cannot import RN modules). */
-const LINE_CHROME_DEFAULTS = {
-  hideTimeScale: false,
-  useCustomLineEndMarker: true,
-  useCustomDashedLastPriceLine: true,
-  useCustomPriceLabels: true,
-};
-
-function lineChromePickBool(lc, key, fallback) {
-  return lc[key] !== undefined ? !!lc[key] : fallback;
-}
-
 /**
- * Effective line chrome: `CONFIG.lineChrome` written by the HTML template and `SET_LINE_CHROME`.
+ * Effective line chrome from `CONFIG.lineChrome` (resolved on RN before inject / SET_LINE_CHROME).
  */
 function getLineChrome() {
-  let lc = (window.CONFIG && window.CONFIG.lineChrome) || {};
+  const lc = (window.CONFIG && window.CONFIG.lineChrome) || {};
   return {
-    hideTimeScale: lineChromePickBool(
-      lc,
-      'hideTimeScale',
-      LINE_CHROME_DEFAULTS.hideTimeScale,
-    ),
-    useCustomLineEndMarker: lineChromePickBool(
-      lc,
-      'useCustomLineEndMarker',
-      LINE_CHROME_DEFAULTS.useCustomLineEndMarker,
-    ),
-    useCustomDashedLastPriceLine: lineChromePickBool(
-      lc,
-      'useCustomDashedLastPriceLine',
-      LINE_CHROME_DEFAULTS.useCustomDashedLastPriceLine,
-    ),
-    useCustomPriceLabels: lineChromePickBool(
-      lc,
-      'useCustomPriceLabels',
-      LINE_CHROME_DEFAULTS.useCustomPriceLabels,
-    ),
+    hideTimeScale: !!lc.hideTimeScale,
+    useCustomLineEndMarker: !!lc.useCustomLineEndMarker,
+    useCustomDashedLastPriceLine: !!lc.useCustomDashedLastPriceLine,
+    useCustomPriceLabels: !!lc.useCustomPriceLabels,
   };
 }
 
-/**
- * Normalizes RN `SET_LINE_CHROME` payload onto a full boolean quad; any missing key uses default.
- */
+/** Stores RN `SET_LINE_CHROME` payload onto CONFIG (RN sends fully resolved booleans). */
 function resolveLineChromeFromPayload(payload) {
   if (!payload || typeof payload !== 'object') {
     return null;
   }
   return {
-    hideTimeScale:
-      payload.hideTimeScale !== undefined
-        ? !!payload.hideTimeScale
-        : LINE_CHROME_DEFAULTS.hideTimeScale,
-    useCustomLineEndMarker:
-      payload.useCustomLineEndMarker !== undefined
-        ? !!payload.useCustomLineEndMarker
-        : LINE_CHROME_DEFAULTS.useCustomLineEndMarker,
-    useCustomDashedLastPriceLine:
-      payload.useCustomDashedLastPriceLine !== undefined
-        ? !!payload.useCustomDashedLastPriceLine
-        : LINE_CHROME_DEFAULTS.useCustomDashedLastPriceLine,
-    useCustomPriceLabels:
-      payload.useCustomPriceLabels !== undefined
-        ? !!payload.useCustomPriceLabels
-        : LINE_CHROME_DEFAULTS.useCustomPriceLabels,
+    hideTimeScale: !!payload.hideTimeScale,
+    useCustomLineEndMarker: !!payload.useCustomLineEndMarker,
+    useCustomDashedLastPriceLine: !!payload.useCustomDashedLastPriceLine,
+    useCustomPriceLabels: !!payload.useCustomPriceLabels,
   };
 }
 
@@ -442,7 +400,9 @@ function detectResolution(data) {
 }
 
 function handleSetOHLCVData(payload) {
-  if (!payload || !payload.data || payload.data.length === 0) return;
+  if (!payload || !payload.data || payload.data.length === 0) {
+    return;
+  }
 
   suppressChartUserInteraction(700);
 
@@ -861,24 +821,60 @@ function getThemeLastPriceLineColor(theme) {
   return t.currentPriceColor || lineColor;
 }
 
-function getSeriesColorOverrides(color) {
+function getBuiltInCrosshairLabelOverrides(theme) {
+  const bg =
+    theme.crosshairBackgroundColor ||
+    theme.sectionBackgroundColor ||
+    theme.backgroundColor ||
+    '#131416';
   return {
-    'mainSeriesProperties.lineStyle.color': color,
+    'scalesProperties.crosshairLabelBgColorDark': bg,
+    'scalesProperties.crosshairLabelBgColorLight': bg,
+  };
+}
+
+/**
+ * Price/time scale tick labels. Matches main: CONFIG.theme.textColor (DS text.muted by default).
+ * TradingView applies one `scalesProperties.textColor` to price scale, time scale, and built-in
+ * crosshair label text.
+ */
+function getAxisScaleTextColor(theme) {
+  return theme.textColor;
+}
+
+/** TV built-in crosshair bg and last-value pill when custom DOM labels are off. */
+function getBuiltInScaleLabelOverrides(theme, useCustomLabels) {
+  const overrides = {
+    'scalesProperties.textColor': getAxisScaleTextColor(theme),
+  };
+  if (!useCustomLabels) {
+    Object.assign(overrides, getBuiltInCrosshairLabelOverrides(theme));
+    overrides['mainSeriesProperties.priceLineColor'] =
+      getThemeLastPriceLineColor(theme);
+  }
+  return overrides;
+}
+
+function getSeriesColorOverrides(lineColor, lastPriceLineColor) {
+  const pillColor = lastPriceLineColor ?? lineColor;
+  return {
+    'mainSeriesProperties.lineStyle.color': lineColor,
     'mainSeriesProperties.lineStyle.colorType': 'solid',
     'mainSeriesProperties.lineStyle.linewidth': 2,
-    'mainSeriesProperties.lineWithMarkersStyle.color': color,
+    'mainSeriesProperties.lineWithMarkersStyle.color': lineColor,
     'mainSeriesProperties.lineWithMarkersStyle.colorType': 'solid',
     'mainSeriesProperties.lineWithMarkersStyle.linewidth': 2,
-    'mainSeriesProperties.areaStyle.linecolor': color,
+    'mainSeriesProperties.areaStyle.linecolor': lineColor,
     'mainSeriesProperties.areaStyle.linewidth': 2,
-    'mainSeriesProperties.baselineStyle.topLineColor': color,
+    'mainSeriesProperties.baselineStyle.topLineColor': lineColor,
     'mainSeriesProperties.baselineStyle.topLineWidth': 2,
-    'mainSeriesProperties.baselineStyle.bottomLineColor': color,
+    'mainSeriesProperties.baselineStyle.bottomLineColor': lineColor,
     'mainSeriesProperties.baselineStyle.bottomLineWidth': 2,
     'mainSeriesProperties.baselineStyle.topFillColor1': 'rgba(0,0,0,0)',
     'mainSeriesProperties.baselineStyle.topFillColor2': 'rgba(0,0,0,0)',
     'mainSeriesProperties.baselineStyle.bottomFillColor1': 'rgba(0,0,0,0)',
     'mainSeriesProperties.baselineStyle.bottomFillColor2': 'rgba(0,0,0,0)',
+    'mainSeriesProperties.priceLineColor': pillColor,
   };
 }
 
@@ -889,30 +885,49 @@ function getSeriesColorOverrides(color) {
 /**
  * Series stroke colors only (no scale chrome). Scale layout is applyChartScaleLayout.
  */
-function applySeriesColors() {
-  if (!window.chartWidget) return;
-  const color = getThemeLineColor();
+function applySeriesStyleProperties(lineColor) {
+  if (!window.chartWidget || !window.isChartReady) {
+    return;
+  }
   try {
-    window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
     let series = window.chartWidget.activeChart().getSeries();
     series.setChartStyleProperties(2, {
-      color: color,
+      color: lineColor,
       colorType: 'solid',
       linewidth: 2,
     });
     series.setChartStyleProperties(10, {
-      topLineColor: color,
-      bottomLineColor: color,
+      topLineColor: lineColor,
+      bottomLineColor: lineColor,
       topLineWidth: 2,
       bottomLineWidth: 2,
     });
   } catch (e) {}
 }
 
+function applySeriesColors() {
+  if (!window.chartWidget || !window.isChartReady) {
+    return;
+  }
+  const theme = window.CONFIG?.theme || {};
+  const lineColor = getThemeLineColor(theme);
+  try {
+    window.chartWidget.applyOverrides(
+      getSeriesColorOverrides(lineColor, getThemeLastPriceLineColor(theme)),
+    );
+  } catch (e) {}
+  applySeriesStyleProperties(lineColor);
+}
+
 /**
  * Hot-swap theme colors (line, success/up, error/down) without rebuilding the
- * WebView.  Updates CONFIG, TradingView overrides, volume study, and custom
- * DOM pills in a single synchronous pass.
+ * WebView. Uses TradingView's documented runtime APIs in one pass:
+ * - widget.applyOverrides() for candles, series line, last-value pill, crosshair labels
+ * - series.setChartStyleProperties() for line/area styles
+ * - study.applyOverrides() for volume colors
+ * - shape.setProperties() for custom drawing chrome (end dot, dashed price line)
+ *
+ * @see https://www.tradingview.com/charting-library-docs/latest/customization/overrides/
  */
 function handleSetThemeColors(payload) {
   if (!payload) return;
@@ -920,27 +935,36 @@ function handleSetThemeColors(payload) {
   if (payload.lineColor != null) theme.lineColor = payload.lineColor;
   if (payload.successColor != null) theme.successColor = payload.successColor;
   if (payload.errorColor != null) theme.errorColor = payload.errorColor;
+  if (payload.currentPriceColor != null) {
+    theme.currentPriceColor = payload.currentPriceColor;
+  }
 
   if (!window.chartWidget || !window.isChartReady) return;
 
+  const lineColor = getThemeLineColor(theme);
+  const lastPriceLineColor = getThemeLastPriceLineColor(theme);
+  const useCustomLabels = getLineChrome().useCustomPriceLabels;
+
   try {
-    window.chartWidget.applyOverrides({
-      'mainSeriesProperties.candleStyle.upColor': theme.successColor,
-      'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
-      'mainSeriesProperties.candleStyle.borderUpColor': theme.successColor,
-      'mainSeriesProperties.candleStyle.borderDownColor': theme.errorColor,
-      'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
-      'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
-    });
+    window.chartWidget.applyOverrides(
+      Object.assign(
+        {
+          'mainSeriesProperties.candleStyle.upColor': theme.successColor,
+          'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
+          'mainSeriesProperties.candleStyle.borderUpColor': theme.successColor,
+          'mainSeriesProperties.candleStyle.borderDownColor': theme.errorColor,
+          'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
+          'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
+        },
+        getSeriesColorOverrides(lineColor, lastPriceLineColor),
+        getBuiltInScaleLabelOverrides(theme, useCustomLabels),
+      ),
+    );
   } catch (e) {}
 
-  applySeriesColors();
+  applySeriesStyleProperties(lineColor);
 
   let chart = window.chartWidget.activeChart();
-  let lineColor = getThemeLineColor(theme);
-  let lastPriceLineColor = getThemeLastPriceLineColor(theme);
-
-  // Update volume study colors if present
   if (window.volumeStudyId) {
     try {
       chart.getStudyById(window.volumeStudyId).applyOverrides({
@@ -1029,24 +1053,26 @@ function applyChartScaleLayout(type) {
   let axisLineColor = theme.backgroundColor || '#131416';
 
   try {
-    window.chartWidget.applyOverrides({
-      'scalesProperties.showRightScale': true,
-      'scalesProperties.showLeftScale': false,
-      'scalesProperties.showSeriesLastValue': !useCustomLabels,
-      'scalesProperties.showStudyLastValue': false,
-      'scalesProperties.showSymbolLabels': false,
-      'scalesProperties.showPriceScaleCrosshairLabel': !useCustomLabels,
-      'scalesProperties.showTimeScaleCrosshairLabel': !useCustomLabels,
-      'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
-      'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
-      'scalesProperties.textColor': theme.textColor,
-      'mainSeriesProperties.showPriceLine': !useCustomDashed,
-      'timeScale.borderColor': axisLineColor,
-      'scalesProperties.lineColor': axisLineColor,
-      'paneProperties.separatorColor': theme.borderColor,
-      'paneProperties.topMargin': 12,
-      'paneProperties.bottomMargin': 8,
-    });
+    window.chartWidget.applyOverrides(
+      Object.assign(
+        {
+          'scalesProperties.showRightScale': true,
+          'scalesProperties.showLeftScale': false,
+          'scalesProperties.showSeriesLastValue': !useCustomLabels,
+          'scalesProperties.showStudyLastValue': false,
+          'scalesProperties.showSymbolLabels': false,
+          'scalesProperties.showPriceScaleCrosshairLabel': !useCustomLabels,
+          'scalesProperties.showTimeScaleCrosshairLabel': !useCustomLabels,
+          'mainSeriesProperties.showPriceLine': !useCustomDashed,
+          'timeScale.borderColor': axisLineColor,
+          'scalesProperties.lineColor': axisLineColor,
+          'paneProperties.separatorColor': theme.borderColor,
+          'paneProperties.topMargin': 12,
+          'paneProperties.bottomMargin': 8,
+        },
+        getBuiltInScaleLabelOverrides(theme, useCustomLabels),
+      ),
+    );
   } catch (e) {}
 
   removeLineChartMarkupStyle();
@@ -3511,7 +3537,12 @@ function updateLegendOverlayLayout() {
 }
 
 function getLegendAltColor(theme) {
-  return theme.textAlternativeColor || theme.textColor || '#858898';
+  return (
+    theme.legendTextColor ||
+    theme.textAlternativeColor ||
+    theme.textColor ||
+    '#858898'
+  );
 }
 
 function getLegendPillStyle(textColor) {
@@ -4528,7 +4559,6 @@ function initChart() {
           'paneProperties.backgroundType': 'solid',
           'paneProperties.vertGridProperties.color': 'transparent',
           'paneProperties.horzGridProperties.color': 'transparent',
-          'scalesProperties.textColor': theme.textColor,
           'scalesProperties.lineColor': theme.backgroundColor || '#131416', // done to hide the axis line
           'timeScale.borderColor': theme.backgroundColor || '#131416', // done to hide the axis line
           'scalesProperties.fontSize': 12,
@@ -4539,8 +4569,6 @@ function initChart() {
           'scalesProperties.showLeftScale': false,
           'scalesProperties.showPriceScaleCrosshairLabel': !initCustomLabels,
           'scalesProperties.showTimeScaleCrosshairLabel': !initCustomLabels,
-          'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
-          'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
           'paneProperties.legendProperties.showSeriesTitle': false,
           'paneProperties.legendProperties.showSeriesOHLC': false,
           'paneProperties.legendProperties.showBarChange': false,
@@ -4558,7 +4586,11 @@ function initChart() {
           'mainSeriesProperties.candleStyle.wickUpColor': theme.successColor,
           'mainSeriesProperties.candleStyle.wickDownColor': theme.errorColor,
         },
-        getSeriesColorOverrides(getThemeLineColor(theme)),
+        getBuiltInScaleLabelOverrides(theme, initCustomLabels),
+        getSeriesColorOverrides(
+          getThemeLineColor(theme),
+          getThemeLastPriceLineColor(theme),
+        ),
       ),
 
       loading_screen: {

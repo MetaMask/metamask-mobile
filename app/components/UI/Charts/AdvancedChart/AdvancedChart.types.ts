@@ -119,9 +119,10 @@ export type ChartType = (typeof ChartType)[keyof typeof ChartType];
 /**
  * Line / chart chrome for the TradingView WebView.
  *
- * When a `useCustom*` flag is **false**, TradingView built-ins apply where relevant
- * (`showSeriesLastValue`, `showPriceLine`, scale crosshair labels). When **true**, MetaMask uses
- * custom drawings/DOM instead and disables the TV equivalent to avoid duplicates.
+ * Omitted props resolve via {@link DEFAULT_LINE_CHROME} (built-in-first). When a `useCustom*`
+ * flag is **false**, TradingView built-ins apply where relevant (`showSeriesLastValue`,
+ * `showPriceLine`, scale crosshair labels). When **true**, MetaMask uses custom drawings/DOM
+ * instead and disables the TV equivalent to avoid duplicates.
  */
 export interface LineChromeOptions {
   /** When true, hide the time-axis row (line chart only). */
@@ -140,9 +141,9 @@ export interface LineChromeOptions {
 /** Default `lineChrome` when props omit fields; merged by `resolveLineChromeOptions`. */
 export const DEFAULT_LINE_CHROME = {
   hideTimeScale: false,
-  useCustomLineEndMarker: true,
-  useCustomDashedLastPriceLine: true,
-  useCustomPriceLabels: true,
+  useCustomLineEndMarker: false,
+  useCustomDashedLastPriceLine: false,
+  useCustomPriceLabels: false,
 } as const;
 
 export type ResolvedLineChromeOptions = {
@@ -255,6 +256,25 @@ export interface SetThemeColorsPayload {
   lineColor: string;
   successColor: string;
   errorColor: string;
+  /** Last-value scale pill and native price line (ambient on token details). */
+  currentPriceColor?: string;
+}
+
+/**
+ * Optional overrides for TV built-in scale / crosshair / last-value label colors.
+ * Omitted fields use design tokens baked into the WebView CONFIG at template time.
+ */
+export interface ChartLabelStyleOverrides {
+  /** Crosshair price/time pill background (default: `background.section`). */
+  crosshairBackgroundColor?: string;
+  /** Crosshair pill text for custom DOM labels only. TV built-ins share `axisTextColor`. */
+  crosshairTextColor?: string;
+  /** Last-value scale pill + native price line (default: `currentPriceLineColorOverride` → line color). */
+  lastValuePillColor?: string;
+  /** Price/time scale tick labels (`scalesProperties.textColor`; default: `text.muted`). */
+  axisTextColor?: string;
+  /** Custom study legend value text (default: `text.alternative`). */
+  legendTextColor?: string;
 }
 
 export type RNToWebViewMessage =
@@ -539,6 +559,12 @@ export interface AdvancedChartProps {
   errorColorOverride?: string;
   /** Override the current-price horizontal line color. Does not affect candle or volume colors. */
   currentPriceLineColorOverride?: string;
+
+  /**
+   * Optional TV built-in label colors. Omitted fields use theme tokens from the active
+   * appearance (`background.section`, `text.default`, `text.muted`).
+   */
+  labelStyleOverrides?: ChartLabelStyleOverrides;
 
   /**
    * Opt-in custom DOM legend overlay. When provided with `enabled: true`,
