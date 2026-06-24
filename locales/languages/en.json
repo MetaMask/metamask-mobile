@@ -7943,6 +7943,8 @@
       "rejected": "Rejected",
       "reconnect": "Reconnect",
       "done": "Done",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "Scan next QR code",
       "scanner_step_text": "Step {{current}} of {{total}}: Scan the QR code shown on your wallet",
       "scanner_last_step_text": "Last step: Scan the QR code shown on your wallet"
