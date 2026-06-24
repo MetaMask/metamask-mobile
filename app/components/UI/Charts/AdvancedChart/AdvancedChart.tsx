@@ -81,6 +81,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       indicators = [],
       selectedMAs = [],
       positionLines,
+      tradeMarkers,
       chartType,
       showVolume = false,
       volumeOverlay = false,
@@ -92,6 +93,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onError,
       onInitFailed,
       onCrosshairMove,
+      onTradeMarkerPress,
       onChartInteracted,
       onChartTradingViewClicked,
       isLoading = false,
@@ -130,6 +132,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const [webViewLoaded, setWebViewLoaded] = useState(false);
     const webViewLoadedRef = useRef(false);
     const prevPositionLinesRef = useRef(positionLines);
+    const prevTradeMarkersRef = useRef(tradeMarkers);
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
     const prevOhlcvSeriesKeyRef = useRef<string | undefined>(undefined);
@@ -195,6 +198,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setAppliedIndicatorCount(0);
       setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
+      prevTradeMarkersRef.current = undefined;
       prevChartTypeRef.current = undefined;
       prevOhlcvDataRef.current = [];
       prevOhlcvSeriesKeyRef.current = undefined;
@@ -234,6 +238,12 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       skeletonHiddenReportedRef.current = false;
       setChartReadyCount(0);
       setWebViewLoaded(false);
+      // Mark "not loaded" synchronously: the WebView is remounting (new `key`), so
+      // the OHLCV sync effect running later in THIS same commit must not post to the
+      // fresh, not-yet-loaded WebView (the message would be dropped and the data
+      // never re-sent). `setWebViewLoaded(false)` only applies next render, so the
+      // ref is the synchronously-correct gate. Re-set true in `handleLoadEnd`.
+      webViewLoadedRef.current = false;
       setLayoutSettling(false);
       clearLayoutSettleTimeout();
       activeIndicatorsRef.current.clear();
@@ -259,10 +269,19 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         return;
       }
       resetWebViewSessionState();
+      // Mark "not loaded" synchronously: the WebView is remounting (new `key`), so
+      // the OHLCV sync effect running later in THIS same commit must not post to the
+      // fresh, not-yet-loaded WebView (the message would be dropped and the data
+      // never re-sent). `setWebViewLoaded(false)` only applies next render, so the
+      // ref is the synchronously-correct gate. Re-set true in `handleLoadEnd`.
+      webViewLoadedRef.current = false;
       ohlcvSeriesStaleSnapshotRef.current =
         prevOhlcvSeriesKeyRef.current !== undefined
           ? prevOhlcvDataRef.current
           : null;
+      // Trade markers belong to the WebView session; clear so the fresh instance
+      // re-posts them from scratch once it loads.
+      prevTradeMarkersRef.current = undefined;
     }, [useIntervalHotReload, ohlcvSeriesKey, resetWebViewSessionState]);
 
     // Technical-indicators path: remount only when `webViewInstanceKey` changes.
@@ -400,6 +419,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             setAppliedIndicatorCount(0);
             setLegendRendered(false);
             prevPositionLinesRef.current = undefined;
+            prevTradeMarkersRef.current = undefined;
             prevChartTypeRef.current = undefined;
             clearLayoutSettleTimeout();
             setLayoutSettling(false);
@@ -430,6 +450,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
           case 'CROSSHAIR_MOVE':
             onCrosshairMove?.(message.payload.data);
+            break;
+
+          case 'TRADE_MARKER_PRESSED':
+            onTradeMarkerPress?.(message.payload.id);
             break;
 
           case 'CHART_INTERACTED':
@@ -477,6 +501,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         onError,
         onInitFailed,
         onCrosshairMove,
+        onTradeMarkerPress,
         onChartInteracted,
         handleTradingViewOpen,
       ],
@@ -508,6 +533,21 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         addIndicator,
         removeIndicator,
         setChartType: setChartTypeInternal,
+        focusTime: (timeMs, options) => {
+          if (!Number.isFinite(timeMs)) return;
+          postMessage({
+            type: 'FOCUS_TIME',
+            payload: {
+              timeMs,
+              ...(options?.spanMs != null ? { spanMs: options.spanMs } : {}),
+              ...(options?.animate != null ? { animate: options.animate } : {}),
+            },
+          });
+        },
+        pulseTradeMarker: (id) => {
+          if (!id) return;
+          postMessage({ type: 'PULSE_TRADE_MARKER', payload: { id } });
+        },
         reset: () => {
           clearLayoutSettleTimeout();
           setLayoutSettling(false);
@@ -517,6 +557,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           setWebViewError(null);
           activeIndicatorsRef.current.clear();
           prevPositionLinesRef.current = undefined;
+          prevTradeMarkersRef.current = undefined;
           prevChartTypeRef.current = undefined;
           prevOhlcvDataRef.current = [];
           prevOhlcvSeriesKeyRef.current = undefined;
@@ -529,13 +570,18 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         removeIndicator,
         setChartTypeInternal,
         clearLayoutSettleTimeout,
+        postMessage,
       ],
     );
 
     // ---- Declarative prop syncing ----
 
     useEffect(() => {
-      if (ohlcvData.length === 0 || !webViewLoaded) return;
+      // `webViewLoaded` (state) is in deps so this re-runs once the new WebView
+      // loads; `webViewLoadedRef` is the synchronously-correct value that prevents
+      // posting to a WebView that is mid-remount (see the series-key reset effect).
+      if (ohlcvData.length === 0 || !webViewLoaded || !webViewLoadedRef.current)
+        return;
 
       if (ohlcvSeriesStaleSnapshotRef.current !== null) {
         if (ohlcvData !== ohlcvSeriesStaleSnapshotRef.current) {
@@ -664,6 +710,19 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         payload: { position: positionLines ?? null },
       });
     }, [positionLines, chartReadyCount, postMessage]);
+
+    // Sync tradeMarkers prop (open/close circles). Compares by reference, so
+    // parents should memoize the array; a new reference re-renders all markers.
+    useEffect(() => {
+      if (chartReadyCount === 0) return;
+      if (tradeMarkers === prevTradeMarkersRef.current) return;
+      prevTradeMarkersRef.current = tradeMarkers;
+
+      postMessage({
+        type: 'SET_TRADE_MARKERS',
+        payload: { markers: tradeMarkers ?? null },
+      });
+    }, [tradeMarkers, chartReadyCount, postMessage]);
 
     // Sync chartType prop
     useEffect(() => {
