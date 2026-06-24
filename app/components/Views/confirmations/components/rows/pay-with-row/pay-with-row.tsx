@@ -9,6 +9,7 @@ import { TokenIcon, TokenIconVariant } from '../../token-icon';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionPayRequiredTokens } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsAlert';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
 import { Image, TouchableOpacity } from 'react-native';
@@ -156,6 +157,7 @@ function PayWithRowInteractive() {
   const requiredTokens = useTransactionPayRequiredTokens();
   const accountNoFundsAlert = useAccountNoFundsAlert();
   const hasAccountNoFunds = accountNoFundsAlert.length > 0;
+  const { hasTokens: hasAvailableTokens } = useTransactionPayAvailableTokens();
   const selectedFiatPaymentMethod =
     useTransactionPaySelectedFiatPaymentMethod();
   const formatFiat = useFiatFormatter({ currency: 'usd' });
@@ -223,7 +225,10 @@ function PayWithRowInteractive() {
   }
 
   if (!displayToken) {
-    if (!hasAccountNoFunds) {
+    // Show skeleton only while tokens exist to auto-select from.
+    // Without available tokens the skeleton never resolves (e.g. perps
+    // deposit with zero balance and no fiat payment method selected).
+    if (!hasAccountNoFunds && hasAvailableTokens) {
       return <PayWithRowSkeleton />;
     }
 
@@ -341,7 +346,6 @@ function PayWithRowEmpty({
 
 function PayWithRowMoneyAccount() {
   const navigation = useNavigation();
-  const { payToken } = useTransactionPayToken();
   const { isWithdraw } = useTransactionPayWithdraw();
   const { styles } = useStyles(styleSheet, {});
   const { setConfirmationMetric } = useConfirmationMetricEvents();
@@ -355,10 +359,6 @@ function PayWithRowMoneyAccount() {
       preferredPaymentToken,
     });
   }, [navigation, preferredPaymentToken, setConfirmationMetric]);
-
-  if (!payToken) {
-    return <PayWithRowSkeleton />;
-  }
 
   return (
     <PayWithRowLayout

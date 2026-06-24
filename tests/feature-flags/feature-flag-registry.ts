@@ -5517,6 +5517,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
+
+  tmcuTransactionsRedesignEnabled: {
+    name: 'tmcuTransactionsRedesignEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
 };
 
 // ============================================================================
