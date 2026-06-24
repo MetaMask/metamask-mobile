@@ -1292,7 +1292,8 @@ function applyChartScaleLayout(type) {
           'paneProperties.horzGridProperties.color': gridLineColor,
           'mainSeriesProperties.showPriceLine':
             !useCustomDashed && !window.hasExplicitCurrentPriceLine,
-          'mainSeriesProperties.priceLineColor': getThemeLastPriceLineColor(theme),
+          'mainSeriesProperties.priceLineColor':
+            getThemeLastPriceLineColor(theme),
           'timeScale.borderColor': axisLineColor,
           'scalesProperties.lineColor': axisLineColor,
           'paneProperties.separatorColor': separatorColor,
