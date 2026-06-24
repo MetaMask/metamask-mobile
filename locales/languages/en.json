@@ -616,6 +616,8 @@
     "invalid_qr_code_title": "Invalid QR Code",
     "invalid_qr_code_message": "This QR code doesn't represent a valid Secret Recovery Phrase",
     "enter_your_secret_recovery_phrase": "Enter your Secret Recovery Phrase",
+    "or": "or",
+    "import_wallet_from_extension": "import from the MetaMask extension",
     "metamask_password": "MetaMask password",
     "metamask_password_description": "Unlocks MetaMask on this device only.",
     "seed_phrase_required": "Secret Recovery Phrase is required",
@@ -3040,7 +3042,7 @@
       "buy_sell": "Buy/Sell",
       "perps": "Perps",
       "predictions": "Predictions",
-      "metamask_card": "MetaMask Card",
+      "metamask_card": "Card",
       "money": "Money"
     },
     "empty_state": {
@@ -3970,6 +3972,34 @@
     "feature_flag_override": {
       "title": "Feature flag override",
       "description": "Override the feature flags for the app locally."
+    },
+    "add_device": {
+      "title": "Add device",
+      "enter_your_password": "Enter your password",
+      "enter_your_password_desc": "For account security, enter your password to view the QR code.",
+      "continue": "Continue",
+      "add_wallets": "Add wallets",
+      "add_wallets_desc": "Pick the wallets you’d like to use on this device. You can add or remove them later.",
+      "select_all": "Select all",
+      "scan_qr_code": "Scan QR code",
+      "scan_qr_code_desc": "Scan this with the MetaMask app on the device you want to add.",
+      "enter_verification_code": "Enter verification code",
+      "enter_verification_code_desc": "For security, enter the code shown in the MetaMask app on your device.",
+      "add_device_to_wallet": "Add this device to wallet",
+      "points": {
+        "one": "Open MetaMask on your other device",
+        "two": "Go to",
+        "two_bold_one": "Settings",
+        "two_bold_two": "Add device",
+        "two_icon": ">",
+        "three": "Scan the QR code with this device",
+        "four": "Enter the security code on your extension"
+      },
+      "scan_qr_code_button": "Scan QR code",
+      "enter_code_on_extension": "Enter code on extension",
+      "enter_code_on_extension_desc": "For security, enter the verification code below on your MetaMask extension.",
+      "done": "Done",
+      "device_added": "Device added"
     }
   },
   "aes_crypto_test_form": {
@@ -4117,6 +4147,7 @@
   },
   "price_alerts": {
     "create_title": "Create {{ticker}} price alert",
+    "edit_title": "Edit {{ticker}} price alert",
     "price_reaches": "Price reaches",
     "price_change": "Price change",
     "enter_target_price": "Enter target price",
@@ -4127,6 +4158,7 @@
     "quick_percentage": "{{percentage}}%",
     "price_change_under_development": "This experience is currently under development",
     "set_price_alert": "Set price alert",
+    "update_price_alert": "Update price alert",
     "save_success": "Price alert for {{ticker}} saved successfully.",
     "delete_success": "Price alert deleted.",
     "duplicate_threshold": "An alert at this price already exists.",
@@ -4736,21 +4768,27 @@
     "activity_smart_account_upgrade": "Smart account upgrade",
     "activity_prediction_cashed_out": "Prediction cashed out",
     "activity_prediction_placed": "Prediction placed",
+    "activity_perps_balance": "Perps balance",
+    "activity_predictions_balance": "Predictions balance",
+    "activity_prediction_account_funded": "Account funded",
+    "activity_prediction_withdrawal": "Prediction withdrawal",
+    "activity_perps_account_funded": "Account funded",
+    "activity_perps_withdrawal": "Perps withdrawal",
     "activity_perps_open_long": "Opened long",
     "activity_perps_close_long": "Closed long",
-    "activity_perps_close_long_liquidated": "Closed long - liquidated",
-    "activity_perps_close_long_stop_loss": "Closed long - stop loss",
+    "activity_perps_close_long_liquidated": "Closed long—liquidated",
+    "activity_perps_close_long_stop_loss": "Closed long—stop loss",
     "activity_perps_open_short": "Opened short",
     "activity_perps_close_short": "Closed short",
-    "activity_perps_close_short_liquidated": "Closed short - liquidated",
-    "activity_perps_close_short_stop_loss": "Closed short - stop loss",
+    "activity_perps_close_short_liquidated": "Closed short—liquidated",
+    "activity_perps_close_short_stop_loss": "Closed short—stop loss",
     "activity_perps_paid_funding_fees": "Paid funding fees",
     "activity_perps_received_funding_fees": "Received funding fees",
-    "activity_perps_close_short_take_profit": "Closed short - take profit",
-    "activity_perps_close_long_take_profit": "Closed long - take profit",
+    "activity_perps_close_short_take_profit": "Closed short—take profit",
+    "activity_perps_close_long_take_profit": "Closed long—take profit",
     "activity_market_short": "Market short",
-    "activity_stop_market_close_short": "Stop market - close short",
-    "activity_market_close_short": "Market - close short",
+    "activity_stop_market_close_short": "Stop market—close short",
+    "activity_market_close_short": "Market—close short",
     "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
@@ -4914,7 +4952,8 @@
     "between_account": "Transfer between my accounts",
     "others": "Others",
     "memo": "Memo",
-    "network": "Network"
+    "network": "Network",
+    "custom": "Custom"
   },
   "duplicate_address": {
     "title": "This is a duplicate address",
@@ -5613,6 +5652,7 @@
   },
   "transaction_update_toast": {
     "title": "Transaction update failed",
+    "amount_update_title": "Error",
     "already_confirmed": "This transaction has already been confirmed and cannot be modified."
   },
   "payment_request": {
@@ -7135,6 +7175,7 @@
       "title": "Add funds",
       "convert_crypto": "Convert crypto",
       "deposit_funds": "Debit card or Apple Pay",
+      "deposit_funds_android": "Debit card",
       "bank_account": "Bank account",
       "move_musd": "{{amount}} mUSD",
       "add_musd": "Add mUSD",
@@ -8171,6 +8212,8 @@
     "add_wallet_hardware_description": "Using Bluetooth or a QR Code",
     "add_hardware_wallet": "Add a hardware wallet",
     "syncing": "Syncing",
+    "link_metamask_extension" : "Import accounts from MetaMask extension",
+    "link_metamask_extension_description": "Import accounts from MetaMask extension to your wallet",
     "account_details": {
       "header_title": "Account details",
       "account_name": "Account name",
@@ -9704,6 +9747,7 @@
     "low_to_high": "Low to high",
     "apply": "Apply",
     "search_placeholder": "Search tokens, markets and URLs",
+    "quick_trade": "Quick Buy & Sell",
     "cancel": "Cancel",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
