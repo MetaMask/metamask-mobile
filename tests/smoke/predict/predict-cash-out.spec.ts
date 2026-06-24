@@ -70,10 +70,7 @@ describe(SmokePredictions('Predictions'), () => {
       async ({ mockServer }) => {
         await loginToApp();
         await device.disableSynchronization();
-        await WalletView.scrollAndTapPredictionsPosition(
-          positionDetails.name,
-          SPURS_PELICANS_POSITION_ID,
-        );
+        await WalletView.scrollAndTapPredictionsPosition(positionDetails.name);
         await Assertions.expectElementToBeVisible(PredictDetailsPage.container);
         await POLYMARKET_POST_CASH_OUT_MOCKS(mockServer);
 

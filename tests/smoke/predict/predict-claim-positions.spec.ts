@@ -33,10 +33,6 @@ import Utilities from '../../framework/Utilities';
 import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage';
 import { predictClaimPositionsAnalyticsExpectations } from '../../helpers/analytics/expectations/predict-claim-positions.analytics';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
-import {
-  BLUE_JAYS_MARINERS_POSITION_ID,
-  SPURS_PELICANS_POSITION_ID,
-} from '../../api-mocking/mock-responses/polymarket/polymarket-constants';
 
 /*
 Test Scenario: Claim winning positions
@@ -180,10 +176,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
         // Claim button is animated - disabling sync on iOS to prevent test hang
         await device.disableSynchronization();
 
-        await WalletView.scrollAndTapPredictionsPosition(
-          positions.Open,
-          SPURS_PELICANS_POSITION_ID,
-        );
+        await WalletView.scrollAndTapPredictionsPosition(positions.Open);
 
         await Assertions.expectElementToNotBeVisible(
           PredictDetailsPage.claimButton,
@@ -199,10 +192,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
         // positions query will refetch when market details re-enables it.
         await POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(mockServer);
 
-        await WalletView.scrollAndTapPredictionsPosition(
-          positions.Won,
-          BLUE_JAYS_MARINERS_POSITION_ID,
-        );
+        await WalletView.scrollAndTapPredictionsPosition(positions.Won);
 
         await Assertions.expectElementToBeVisible(
           PredictDetailsPage.container,
