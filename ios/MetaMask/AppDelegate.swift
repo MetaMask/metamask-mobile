@@ -3,7 +3,6 @@ import Expo
 import React
 import ReactAppDependencyProvider
 import FirebaseCore
-import FirebaseMessaging
 import UserNotifications
 import RNBranch
 import BrazeKit
@@ -165,7 +164,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
   ) {
     let userInfo = notification.request.content.userInfo
     // Tell Firebase about the message — this triggers messaging().onMessage() in JS.
-    Messaging.messaging().appDidReceiveMessage(userInfo)
+    FIRMessaging.messaging().appDidReceiveMessage(userInfo)
     // Show the notification visually in the foreground.
     completionHandler([.sound, .badge, .banner, .list])
   }
