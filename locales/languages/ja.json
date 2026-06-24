@@ -102,9 +102,6 @@
       "message": "{{amount}}未満を追加するか、別のトークンを使用してください。",
       "title": "資金不足"
     },
-    "insufficient_pay_token_balance_fees_no_target": {
-      "message": "追加する額を減らすか、別のトークンを使用してください。"
-    },
     "insufficient_pay_token_native": {
       "message": "手数料の支払いに十分な{{ticker}}がありません。続行するには、別のネットワークのトークンを使用するか、{{ticker}}をさらに追加してください。",
       "title": "資金不足"

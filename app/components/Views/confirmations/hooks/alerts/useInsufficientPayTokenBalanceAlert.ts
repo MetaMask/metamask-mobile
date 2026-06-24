@@ -217,7 +217,7 @@ export function useInsufficientPayTokenBalanceAlert({
           key: AlertKeys.InsufficientPayTokenBalance,
           title: strings('alert_system.insufficient_pay_token_balance.message'),
           message: strings(
-            'alert_system.insufficient_pay_token_balance_fees_no_target.message',
+            'alert_system.insufficient_pay_method_balance.message',
           ),
         },
       ];
@@ -230,7 +230,7 @@ export function useInsufficientPayTokenBalanceAlert({
           key: AlertKeys.InsufficientPayTokenFees,
           title: strings('alert_system.insufficient_pay_token_balance.message'),
           message: strings(
-            'alert_system.insufficient_pay_token_balance_fees_no_target.message',
+            'alert_system.insufficient_pay_method_balance.message',
           ),
         },
       ];
