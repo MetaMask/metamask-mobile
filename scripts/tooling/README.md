@@ -116,31 +116,9 @@ sqlite3 ~/.tool-usage-collection/events.db \
 
 ## Using dev-tooling-explorer
 
-[dev-tooling-explorer](https://github.com/MetaMask/experimental-dev-tooling-explorer) is a local web UI for browsing the SQLite database written by the collection hooks. It lets you filter events by repo, tool, agent vendor, or date; view per-session history; explore usage charts; and prune or reset the database.
+[dev-tooling-explorer](https://github.com/MetaMask/experimental-dev-tooling-explorer) is a local web UI for browsing the SQLite database written by the collection hooks. See its repo for installation and usage instructions.
 
-### Installation
+## Daily Anonymizer (MCWP-644)
 
-```bash
-git clone https://github.com/MetaMask/experimental-dev-tooling-explorer
-cd experimental-dev-tooling-explorer
-yarn install
-```
-
-### Usage
-
-```bash
-yarn start                    # opens local web UI
-yarn start -- --port 4242    # fixed port
-```
-
-### Demo workflow (no collection setup needed)
-
-```bash
-yarn demo:generate
-yarn start:demo
-```
-
-### DB path resolution
-
-The explorer reads the database from `TOOL_USAGE_COLLECTION_DB_PATH` if set, otherwise defaults to `~/.tool-usage-collection/events.db`.
+The daily anonymizer runs automatically once per 24h: the first non-CI `yarn` script run after the window opens spawns it detached (non-blocking) via the usage-tracking Yarn plugin. It is published as [`@metamask/tooling-insight`](https://github.com/MetaMask/experimental-tooling-insight) and consumed here as a `devDependency`. See that repo for full documentation, configuration, and ops escape hatches.
 

@@ -13,10 +13,74 @@
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
+const childProcess = require('child_process');
 
 const PLUGIN_NAME = 'plugin-usage-tracking';
+const TWENTY_FOUR_HOURS_MS = 24 * 60 * 60 * 1000;
 
-function makeTrackingPlugin() {
+// Opportunistic once-a-day trigger: the first non-CI yarn script run after the
+// 24h window spawns the anonymizer detached (non-blocking). The gate is the
+// `last_run_at` field in anonymizer-state.json — the anonymizer re-checks and
+// claims it, so concurrent spawns are harmless.
+function maybeTriggerAnonymizer(repoRoot) {
+  try {
+    if (process.env.CI || process.env.TOOL_USAGE_COLLECTION_OPT_IN === 'false') {
+      return;
+    }
+
+    const statePath = path.join(
+      os.homedir(),
+      '.tool-usage-collection',
+      'anonymizer-state.json',
+    );
+    let lastRunAt = null;
+    if (fs.existsSync(statePath)) {
+      const parsed = JSON.parse(fs.readFileSync(statePath, 'utf8'));
+      lastRunAt = parsed.last_run_at ?? null;
+    }
+
+    const nowMs = Date.now();
+    if (lastRunAt) {
+      const lastMs = Date.parse(lastRunAt);
+      if (!Number.isNaN(lastMs) && nowMs - lastMs < TWENTY_FOUR_HOURS_MS) {
+        return;
+      }
+    }
+
+    const binPath = path.join(
+      repoRoot,
+      'node_modules',
+      '@metamask',
+      'tooling-insight',
+      'dist',
+      'daily-anonymizer.mjs',
+    );
+    if (!fs.existsSync(binPath)) {
+      return;
+    }
+    childProcess.spawn(process.execPath, [binPath], {
+      detached: true,
+      stdio: 'ignore',
+    }).unref();
+  } catch (error) {
+    // Best-effort trigger — never throw into the yarn hot path.
+    try {
+      const logPath = path.join(os.homedir(), '.tool-usage-collection', 'anonymizer.log');
+      const entry = JSON.stringify({
+        ts: new Date().toISOString(),
+        cli: PLUGIN_NAME,
+        level: 'error',
+        message: 'maybeTriggerAnonymizer failed',
+        extra: { error: error instanceof Error ? error.message : String(error) },
+      });
+      fs.appendFileSync(logPath, `${entry}\n`);
+    } catch {
+      // Logging failed — nothing more we can do.
+    }
+  }
+}
+
+function makeTrackingPlugin(repoRoot) {
   const LOG_FILE =
     process.env.TOOL_USAGE_COLLECTION_LOG_PATH ||
     path.join(os.homedir(), '.tool-usage-collection', 'metamask-mobile-events.log');
@@ -71,6 +135,7 @@ function makeTrackingPlugin() {
               success: exitCode === 129 ? undefined : exitCode === 0,
               duration_ms: Date.now() - start,
             });
+            maybeTriggerAnonymizer(repoRoot);
           }
 
           return exitCode;
@@ -87,6 +152,6 @@ module.exports = {
     if (process.env.CI || process.env.TOOL_USAGE_COLLECTION_OPT_IN === 'false') {
       return {};
     }
-    return makeTrackingPlugin();
+    return makeTrackingPlugin(process.cwd());
   },
 };
