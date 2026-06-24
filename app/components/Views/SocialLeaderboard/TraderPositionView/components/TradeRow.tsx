@@ -1,5 +1,5 @@
-import React from 'react';
-import { Pressable } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Pressable, StyleSheet } from 'react-native';
 import {
   Box,
   Text,
@@ -9,6 +9,7 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Trade } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
 import { formatUsd, formatTradeDate } from '../../utils/formatters';
@@ -18,6 +19,8 @@ import { getPerpTradeDirection, isPerpTrade } from '../../utils/perp';
 import TraderAvatar from '../../../Homepage/Sections/TopTraders/components/TraderAvatar';
 
 const AVATAR_SIZE = 32;
+/** How long the highlight lingers before fading out, ms. */
+const EMPHASIS_FADE_MS = 1600;
 
 export interface TradeRowProps {
   trade: Trade;
@@ -25,6 +28,11 @@ export interface TradeRowProps {
   traderAddress?: string;
   /** When provided, the row is tappable (e.g. to focus the chart on this trade). */
   onPress?: (trade: Trade) => void;
+  /**
+   * When true, the row briefly flashes a highlight — used by the reverse
+   * interaction (tapping a circle on the chart emphasizes its trade row).
+   */
+  isEmphasized?: boolean;
 }
 
 const TradeRow: React.FC<TradeRowProps> = ({
@@ -32,7 +40,23 @@ const TradeRow: React.FC<TradeRowProps> = ({
   traderImageUrl,
   traderAddress,
   onPress,
+  isEmphasized = false,
 }) => {
+  const tw = useTailwind();
+  // Highlight overlay fades from fully-tinted to transparent when emphasized.
+  const highlight = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    if (!isEmphasized) return;
+    highlight.setValue(1);
+    const animation = Animated.timing(highlight, {
+      toValue: 0,
+      duration: EMPHASIS_FADE_MS,
+      useNativeDriver: true,
+    });
+    animation.start();
+    return () => animation.stop();
+  }, [isEmphasized, highlight]);
+
   const isEntry = trade.intent === 'enter';
   const isPerp = isPerpTrade(trade);
   const perpDirection = getPerpTradeDirection(trade);
@@ -56,6 +80,14 @@ const TradeRow: React.FC<TradeRowProps> = ({
         pressed && onPress ? { opacity: 0.6 } : undefined
       }
     >
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          StyleSheet.absoluteFill,
+          tw.style('bg-primary-muted'),
+          { opacity: highlight },
+        ]}
+      />
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}

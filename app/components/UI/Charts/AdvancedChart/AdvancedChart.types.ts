@@ -52,7 +52,6 @@ export const DEFAULT_DISABLED_FEATURES: string[] = [
   'legend_context_menu',
   'symbol_search_hot_key',
   'symbol_info',
-  'legend_widget',
   'display_market_status',
   'scales_context_menu',
   'property_pages',
@@ -62,6 +61,7 @@ export const DEFAULT_DISABLED_FEATURES: string[] = [
   'popup_hints',
   'pane_context_menu',
   'create_volume_indicator_by_default',
+  'show_hide_button_in_legend',
   'go_to_date',
   'show_zoom_and_move_buttons_on_touch',
   'shift_visible_range_on_new_bar',
@@ -196,6 +196,7 @@ export type RNToWebViewMessageType =
   | 'SET_TRADE_MARKERS'
   | 'REALTIME_UPDATE'
   | 'TOGGLE_VOLUME'
+  | 'SET_MA_VISIBILITY'
   | 'SET_THEME_COLORS'
   | 'FOCUS_TIME'
   | 'PULSE_TRADE_MARKER';
@@ -205,7 +206,9 @@ export type WebViewToRNMessageType =
   | 'CHART_LAYOUT_SETTLED'
   | 'INDICATOR_ADDED'
   | 'INDICATOR_REMOVED'
+  | 'LEGEND_RENDERED'
   | 'CROSSHAIR_MOVE'
+  | 'TRADE_MARKER_PRESSED'
   | 'ERROR'
   | 'DEBUG';
 
@@ -270,6 +273,10 @@ export interface ToggleVolumePayload {
 
 export type SetLineChromePayload = ResolvedLineChromeOptions;
 
+export interface SetMAVisibilityPayload {
+  visible: string[];
+}
+
 export interface SetThemeColorsPayload {
   lineColor: string;
   successColor: string;
@@ -303,6 +310,7 @@ export type RNToWebViewMessage =
   | { type: 'SET_TRADE_MARKERS'; payload: SetTradeMarkersPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
   | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload }
+  | { type: 'SET_MA_VISIBILITY'; payload: SetMAVisibilityPayload }
   | { type: 'SET_THEME_COLORS'; payload: SetThemeColorsPayload }
   | { type: 'FOCUS_TIME'; payload: FocusTimePayload }
   | { type: 'PULSE_TRADE_MARKER'; payload: PulseTradeMarkerPayload };
@@ -326,6 +334,11 @@ export interface ChartInteractedPayload {
   interaction_type: ChartInteractionType;
 }
 
+export interface TradeMarkerPressedPayload {
+  /** `id` of the tapped trade marker (matches {@link TradeMarker.id}). */
+  id: string;
+}
+
 export interface ErrorPayload {
   message: string;
   code?: string;
@@ -336,7 +349,9 @@ export type WebViewToRNMessage =
   | { type: 'CHART_LAYOUT_SETTLED' }
   | { type: 'INDICATOR_ADDED'; payload: IndicatorAddedPayload }
   | { type: 'INDICATOR_REMOVED'; payload: IndicatorRemovedPayload }
+  | { type: 'LEGEND_RENDERED' }
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
+  | { type: 'TRADE_MARKER_PRESSED'; payload: TradeMarkerPressedPayload }
   | { type: 'CHART_INTERACTED'; payload: ChartInteractedPayload }
   | { type: 'CHART_TRADINGVIEW_CLICKED'; payload?: { url?: string } }
   | { type: 'ERROR'; payload: ErrorPayload }
@@ -391,6 +406,9 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
       }
       return null;
 
+    case 'LEGEND_RENDERED':
+      return { type };
+
     case 'CROSSHAIR_MOVE':
       return {
         type,
@@ -401,6 +419,12 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
               : null,
         },
       };
+
+    case 'TRADE_MARKER_PRESSED':
+      if (typeof obj.id === 'string' && obj.id.length > 0) {
+        return { type, payload: { id: obj.id } };
+      }
+      return null;
 
     case 'CHART_INTERACTED':
       if (
@@ -461,6 +485,12 @@ export interface AdvancedChartProps {
    * Example: `${assetId}|${timePeriod}|${interval}|${currency}`.
    */
   ohlcvSeriesKey?: string;
+  /**
+   * Stable React `key` for the WebView document (technical-indicators path only). Remount only
+   * when this changes (e.g. asset or currency). Omit for legacy behavior: remount on
+   * `ohlcvSeriesKey` change. Interval/time-range hot reload requires this prop.
+   */
+  webViewInstanceKey?: string;
   /** Chart height in pixels */
   height?: number;
 
@@ -475,6 +505,8 @@ export interface AdvancedChartProps {
 
   /** Active indicators to display (Token Details). Synced declaratively via useEffect. */
   indicators?: IndicatorType[];
+  /** Selected MA names (e.g. ['MA5', 'MA10']). Sent as a single SET_MA_VISIBILITY batch message. */
+  selectedMAs?: string[];
   /** Position lines to overlay (Perps). Set to undefined to clear. */
   positionLines?: PositionLines;
   /**
@@ -513,13 +545,30 @@ export interface AdvancedChartProps {
   onChartReady?: () => void;
   /**
    * Fires once when the native skeleton overlay is removed (chart ready, layout settled,
-   * and parent `isLoading` false). Resets when `ohlcvSeriesKey` or chart HTML reloads.
+   * and parent `isLoading` false). Resets when `webViewInstanceKey` or chart HTML reloads.
    */
   onSkeletonHidden?: () => void;
+  /**
+   * Fires when the WebView posts `CHART_LAYOUT_SETTLED` after OHLCV scale/layout apply.
+   * Used by Token Details (technical-indicators path) to complete interval visibility traces
+   * after first reveal — `onSkeletonHidden` only runs once per WebView session.
+   */
+  onChartLayoutSettled?: () => void;
   /** Callback when an error occurs */
   onError?: (error: string) => void;
+  /**
+   * Pre-`CHART_READY` failure (CDN, library boot, widget init). When set, AdvancedChart
+   * skips its error UI and delegates to the parent (e.g. legacy chart fallback).
+   */
+  onInitFailed?: (error: string) => void;
   /** Crosshair OHLC data callback (for overlay legend) */
   onCrosshairMove?: (data: CrosshairData | null) => void;
+  /**
+   * Fired when the user taps a trade marker (open/close circle) on the chart.
+   * Receives the marker's `id` (matches {@link TradeMarker.id}). Powers the
+   * reverse interaction: tapping a circle scrolls the trades list to that trade.
+   */
+  onTradeMarkerPress?: (id: string) => void;
   /**
    * User-driven chart interaction from the WebView: zoom (bar spacing), pan (visible range), or
    * crosshair tooltip (first OHLC payload per crosshair session). Suppressed during data reloads.
@@ -560,6 +609,35 @@ export interface AdvancedChartProps {
   errorColorOverride?: string;
   /** Override the current-price horizontal line color. Does not affect candle or volume colors. */
   currentPriceLineColorOverride?: string;
+
+  /**
+   * Opt-in custom DOM legend overlay. When provided with `enabled: true`,
+   * the native TradingView legend is hidden and a custom overlay renders
+   * indicator labels/values with the specified colors and abbreviations.
+   * When omitted or `enabled: false`, the native TV legend is used as-is.
+   */
+  legendOverlay?: LegendOverlayConfig;
+}
+
+export interface LegendPlotConfig {
+  tvTitle: string;
+  label: string;
+  color: string | null;
+}
+
+export interface LegendIndicatorConfig {
+  plots: LegendPlotConfig[];
+  isMA?: boolean;
+  useIndex?: boolean;
+  /** Render all plots in a single pill (e.g. BB(20,2) U:… M:… L:…). */
+  combineInOnePill?: boolean;
+  /** Leading title when combineInOnePill is true (e.g. BB(20,2)). */
+  title?: string;
+}
+
+export interface LegendOverlayConfig {
+  enabled: boolean;
+  config: Record<string, LegendIndicatorConfig>;
 }
 
 /**

@@ -40,7 +40,8 @@ export type MoneyActivityKind =
   | 'received'
   | 'converted'
   | 'sent'
-  | 'card';
+  | 'card'
+  | 'cashback';
 
 const TITLE_KEY_TO_KIND: Record<MoneyActivityTitleKey, MoneyActivityKind> = {
   deposited: 'deposited',
@@ -122,6 +123,7 @@ const KIND_LABEL_KEY: Record<MoneyActivityKind, string> = {
   converted: 'money.transaction.converted',
   sent: 'money.transaction.sent',
   card: 'money.transaction.card_transaction',
+  cashback: 'money.transaction.cashback',
 };
 
 // Present-tense labels for in-flight rows (e.g. "Depositing"). If there's
@@ -165,6 +167,7 @@ export function moneyActivityKindToIcon(kind: MoneyActivityKind): IconName {
     case 'sent':
       return IconName.Arrow2UpRight;
     case 'card':
+    case 'cashback':
       return IconName.Card;
     default:
       return IconName.Arrow2Down;

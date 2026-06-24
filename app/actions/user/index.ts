@@ -28,6 +28,8 @@ import {
   type ClearMusdConversionAssetDetailCtasSeenAction,
   type SetMoneyOnboardingSeenAction,
   type SetTokenOverviewChartTypeAction,
+  type SetTokenOverviewChartIntervalAction,
+  type SetTokenIndicatorsAction,
   type SetOnboardingStepperStepAction,
   UserActionType,
 } from './types';
@@ -249,6 +251,30 @@ export function setTokenOverviewChartType(
   return {
     type: UserActionType.SET_TOKEN_OVERVIEW_CHART_TYPE,
     payload: { chartType },
+  };
+}
+
+/**
+ * Action to set token overview candle interval preference (technical indicators path).
+ */
+export function setTokenOverviewChartInterval(
+  interval: string,
+): SetTokenOverviewChartIntervalAction {
+  return {
+    type: UserActionType.SET_TOKEN_OVERVIEW_CHART_INTERVAL,
+    payload: { interval },
+  };
+}
+
+/**
+ * Action to set active technical indicators for token charts
+ */
+export function setTokenIndicators(
+  indicators: string[],
+): SetTokenIndicatorsAction {
+  return {
+    type: UserActionType.SET_TOKEN_INDICATORS,
+    payload: { indicators },
   };
 }
 

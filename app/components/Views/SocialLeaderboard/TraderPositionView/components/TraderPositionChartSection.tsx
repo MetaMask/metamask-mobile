@@ -43,6 +43,8 @@ export interface TraderPositionChartSectionProps {
   focusRequest?: TradeFocusRequest;
   /** Request a wider period when the focused trade is older than loaded chart data. */
   onRequestTimePeriod?: (period: TimePeriod) => void;
+  /** Fired when the user taps a trade circle on the chart (the marker's trade id). */
+  onTradeMarkerPress?: (id: string) => void;
 }
 
 const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
@@ -57,6 +59,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
   onScrubPercentChange,
   focusRequest,
   onRequestTimePeriod,
+  onTradeMarkerPress,
 }) => (
   <PriceChartProvider>
     <Box twClassName="mx-4 my-3">
@@ -73,6 +76,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
           isPricesLoading={isPricesLoading}
           onChartIndexChange={onChartIndexChange}
           onScrubPercentChange={onScrubPercentChange}
+          onTradeMarkerPress={onTradeMarkerPress}
           chartHeight={SOCIAL_POSITION_CHART_HEIGHT}
         />
       ) : (

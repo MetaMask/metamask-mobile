@@ -221,6 +221,8 @@ export interface TraderAdvancedChartProps {
    * while scrubbing the TradingView chart, or null when the crosshair leaves.
    */
   onScrubPercentChange?: (percent: number | null) => void;
+  /** Fired when the user taps a trade circle on the chart (the marker's trade id). */
+  onTradeMarkerPress?: (id: string) => void;
   chartHeight?: number;
 }
 
@@ -244,6 +246,7 @@ const TraderAdvancedChart = ({
   isPricesLoading,
   onChartIndexChange,
   onScrubPercentChange,
+  onTradeMarkerPress,
   chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
 }: TraderAdvancedChartProps) => {
   const vsCurrency = CHART_VS_CURRENCY;
@@ -501,6 +504,7 @@ const TraderAdvancedChart = ({
         visibleToMs={visibleToMs}
         tradeMarkers={tradeMarkers}
         onCrosshairMove={handleCrosshairMove}
+        onTradeMarkerPress={onTradeMarkerPress}
       />
     </View>
   );

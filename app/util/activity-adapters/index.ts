@@ -27,6 +27,10 @@ export {
 } from './fiat';
 export {
   activityMatchesAssetId,
+  formatActivityListDateHeader,
+  getActivityFromTo,
+  getActivityValue,
+  getGroupedActivityListItemKey,
   groupActivityListItems,
   shouldShowPlusSign,
   type GroupedActivityListItem,

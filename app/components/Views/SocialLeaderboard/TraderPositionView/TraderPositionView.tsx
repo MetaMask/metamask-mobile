@@ -7,7 +7,6 @@ import React, {
   useState,
 } from 'react';
 import { RefreshControl, View } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
 import {
   useNavigation,
   useRoute,
@@ -40,7 +39,9 @@ import TraderTokenInfoRow from './components/TraderTokenInfoRow';
 import TraderPositionChartSection from './components/TraderPositionChartSection';
 import TraderTimePeriodSelector from './components/TraderTimePeriodSelector';
 import TraderPositionPnLCard from './components/TraderPositionPnLCard';
-import TraderTradesSection from './components/TraderTradesSection';
+import TraderTradesSection, {
+  type TraderTradesSectionHandle,
+} from './components/TraderTradesSection';
 import TraderPositionSkeleton from './components/TraderPositionSkeleton';
 import TraderPositionFallback from './components/TraderPositionFallback';
 import {
@@ -382,6 +383,40 @@ const TraderPositionView = () => {
     [activeTimePeriod],
   );
 
+  // Reverse interaction: tapping a circle on the chart scrolls the trades list
+  // to that trade and briefly highlights its row. The emphasis is cleared after
+  // a short delay so a later tap can re-trigger it.
+  const tradesListRef = useRef<TraderTradesSectionHandle>(null);
+  const [emphasizedTradeId, setEmphasizedTradeId] = useState<string | null>(
+    null,
+  );
+  const emphasisTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMarkerPress = useCallback(
+    (id: string) => {
+      if (!allTrades.some((t) => t.transactionHash === id)) return;
+      setEmphasizedTradeId(id);
+      tradesListRef.current?.scrollToTrade(id);
+      if (emphasisTimeoutRef.current) {
+        clearTimeout(emphasisTimeoutRef.current);
+      }
+      emphasisTimeoutRef.current = setTimeout(() => {
+        setEmphasizedTradeId(null);
+        emphasisTimeoutRef.current = null;
+      }, 2000);
+    },
+    [allTrades],
+  );
+
+  useEffect(
+    () => () => {
+      if (emphasisTimeoutRef.current) {
+        clearTimeout(emphasisTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
   const isInitialLoading =
     !resolvedPosition && (isPositionLoading || isProfileLoading);
   const hasFailed =
@@ -438,6 +473,9 @@ const TraderPositionView = () => {
               onScrubPercentChange={setScrubPercent}
               focusRequest={focusRequest}
               onRequestTimePeriod={handleRequestFocusTimePeriod}
+              onTradeMarkerPress={
+                chartAssetId || isPerp ? handleMarkerPress : undefined
+              }
             />
 
             <TraderTimePeriodSelector
@@ -455,11 +493,15 @@ const TraderPositionView = () => {
             />
           </View>
 
-          {/* Scrollable region — the trades list is the only part that scrolls. */}
-          <ScrollView
-            style={tw.style('flex-1')}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style('pb-6')}
+          {/* Scrollable region — the trades list is the only part that scrolls.
+              It owns its own scroll (SectionList) so its day header can stick. */}
+          <TraderTradesSection
+            ref={tradesListRef}
+            trades={allTrades}
+            traderImageUrl={traderImageUrl}
+            traderAddress={traderAddress}
+            onTradePress={chartAssetId || isPerp ? handleTradePress : undefined}
+            emphasizedTradeId={emphasizedTradeId}
             refreshControl={
               <RefreshControl
                 refreshing={isRefreshing}
@@ -467,16 +509,7 @@ const TraderPositionView = () => {
                 testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
               />
             }
-          >
-            <TraderTradesSection
-              trades={allTrades}
-              traderImageUrl={traderImageUrl}
-              traderAddress={traderAddress}
-              onTradePress={
-                chartAssetId || isPerp ? handleTradePress : undefined
-              }
-            />
-          </ScrollView>
+          />
 
           {isPerp && resolvedPosition ? (
             <PerpsTradeButton

@@ -72,7 +72,6 @@ describe('useGasSponsorshipWarningAlert', () => {
       goToBuy: jest.fn(),
       goToAggregator: jest.fn(),
       goToSell: jest.fn(),
-      goToDeposit: jest.fn(),
     });
     mockUseIsGasSponsored.mockReturnValue(true);
   });

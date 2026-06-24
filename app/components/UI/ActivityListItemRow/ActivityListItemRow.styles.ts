@@ -99,6 +99,54 @@ export const createStyles = (
       lineHeight: 16,
       textAlign: 'right',
     } as TextStyle,
+    titleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+    },
+    titleSpinner: {
+      height: 18,
+      justifyContent: 'center',
+      marginLeft: 6,
+      transform: [{ translateY: -2 }],
+    },
+    statusRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 0,
+    },
+    subtitleRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      marginTop: 0,
+    },
+    subtitleLeadingIcon: {
+      height: 16,
+      justifyContent: 'center',
+      marginRight: 4,
+      transform: [{ translateY: -1 }],
+    },
+    statusText: {
+      marginTop: 0,
+    } as TextStyle,
+    pendingActions: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      alignItems: 'center',
+      paddingTop: 4,
+      paddingBottom: 8,
+    },
+    actionContainerStyle: {
+      height: 25,
+      padding: 0,
+    },
+    speedupActionContainerStyle: {
+      marginRight: 10,
+    },
+    actionStyle: {
+      fontSize: 10,
+      padding: 0,
+      paddingHorizontal: 10,
+    },
   });
 
 export type ActivityListItemRowStyles = ReturnType<typeof createStyles>;

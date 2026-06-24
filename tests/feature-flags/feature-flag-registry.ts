@@ -74,6 +74,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  addDeviceSyncEnabled: {
+    name: 'addDeviceSyncEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   aiSocialLeaderboardEnabled: {
     name: 'aiSocialLeaderboardEnabled',
     type: FeatureFlagType.Remote,
@@ -3238,6 +3246,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyVaultApyControl: {
+    name: 'earnMoneyVaultApyControl',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      vaultApyFallback: 0.04,
+      vaultApyOverride: 0.04,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyHubEnabled: {
     name: 'earnMoneyHubEnabled',
     type: FeatureFlagType.Remote,
@@ -4165,17 +4184,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  rampsUnifiedBuyV2: {
-    name: 'rampsUnifiedBuyV2',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.74.0',
-      enabled: true,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   rewardsAnnouncementModalEnabled: {
     name: 'rewardsAnnouncementModalEnabled',
     type: FeatureFlagType.Remote,
@@ -4450,13 +4458,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  tokenDetailsAdvancedCharts: {
-    name: 'tokenDetailsAdvancedCharts',
+  tokenDetailsTechnicalIndicators: {
+    name: 'tokenDetailsTechnicalIndicators',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
       enabled: true,
-      minimumVersion: '7.74.0',
+      minimumVersion: '7.83.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5507,17 +5515,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
-  tokenDetailsTechnicalIndicators: {
-    name: 'tokenDetailsTechnicalIndicators',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.83.0',
-      enabled: false,
-    },
     status: FeatureFlagStatus.Active,
   },
 };
