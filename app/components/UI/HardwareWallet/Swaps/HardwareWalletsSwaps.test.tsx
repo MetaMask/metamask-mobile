@@ -774,7 +774,7 @@ describe('HardwareWalletsSwaps', () => {
       expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Waiting);
     });
 
-    it('does not retry when connection is not retryable', async () => {
+    it('restarts the flow when reconnect is pressed from disconnected connection state', async () => {
       const { getByTestId, store } = renderScreen(DISCONNECTED_STATE);
 
       await act(async () => {
@@ -783,10 +783,13 @@ describe('HardwareWalletsSwaps', () => {
         );
       });
 
-      expect(getBridgeStatus(store)).toBe(
-        HardwareWalletsSwapsStatus.Disconnected,
-      );
-      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+      expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Waiting);
+      await waitFor(() => {
+        expect(mockSubmitBridgeTx).toHaveBeenCalledWith(
+          MOCK_SUBMISSION_PARAMS,
+        );
+      });
+      expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
     });
   });
 

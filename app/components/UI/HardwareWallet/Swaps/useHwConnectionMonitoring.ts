@@ -22,12 +22,24 @@ interface UseHwConnectionMonitoringOptions {
    */
   hasActiveSigning: boolean;
   /**
+   * Whether plain `Disconnected` status should fail the flow. Sendbundle sets
+   * this false because the provider also uses that status for normal
+   * post-confirmation Ledger transport cleanup.
+   */
+  monitorDisconnectedStatus?: boolean;
+  /**
    * When `.current` is true, all monitoring is suppressed. Used during retry
    * to prevent stale BLE-disconnect events (from the abort phase) from
    * interrupting the fresh batch after the device reconnects.
    */
   retryInProgressRef?: RefObject<boolean>;
 }
+
+const CONFIRMED_CONNECTED_STATUSES: ReadonlySet<ConnectionStatus> = new Set([
+  ConnectionStatus.Connected,
+  ConnectionStatus.Ready,
+  ConnectionStatus.AwaitingConfirmation,
+]);
 
 /**
  * Returns whether `current` should be treated as unchanged relative to the
@@ -68,6 +80,7 @@ export function useHwConnectionMonitoring({
   isEnabled,
   currentStatus,
   hasActiveSigning,
+  monitorDisconnectedStatus = true,
   retryInProgressRef,
 }: UseHwConnectionMonitoringOptions) {
   const dispatch = useDispatch();
@@ -107,14 +120,14 @@ export function useHwConnectionMonitoring({
       return;
     }
 
-    // Defer baseline capture until the device first reaches Connected so
-    // the initial Disconnected state (pre-ensureDeviceReady) is never
+    // Defer baseline capture until the device first reaches a confirmed
+    // connected state so the initial Disconnected state (pre-ensureDeviceReady) is never
     // used as the reference.  Without this, any transient BLE blip after
     // the initial connect clears the baseline and triggers a spurious
     // DeviceDisconnected dispatch.
     if (
       !hasDeviceConnectedRef.current &&
-      connectionState.status === ConnectionStatus.Connected
+      CONFIRMED_CONNECTED_STATUSES.has(connectionState.status)
     ) {
       hasDeviceConnectedRef.current = true;
       baselineStateRef.current = connectionState;
@@ -145,7 +158,7 @@ export function useHwConnectionMonitoring({
     }
 
     if (connectionState.status === ConnectionStatus.Disconnected) {
-      if (!hasActiveSigning) {
+      if (!monitorDisconnectedStatus || !hasActiveSigning) {
         return;
       }
       if (handledErrorRef.current === ConnectionStatus.Disconnected) return;
@@ -219,9 +232,15 @@ export function useHwConnectionMonitoring({
 
     handledErrorRef.current = error;
 
-    // Don't need to add refs into dep array.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [connectionState, currentStatus, hasActiveSigning, isEnabled, dispatch]);
+  }, [
+    connectionState,
+    currentStatus,
+    hasActiveSigning,
+    isEnabled,
+    monitorDisconnectedStatus,
+    retryInProgressRef,
+    dispatch,
+  ]);
 
   // Clear any pending debounced disconnect fire on unmount.
   useEffect(

@@ -131,7 +131,6 @@ export function HardwareWalletsSwaps() {
     handleDone,
   } = useHwSwapLifecycle({
     strategy,
-    connectionState,
     ensureDeviceReady,
     setPendingOperationAddress,
     isQrHardwareWallet,
