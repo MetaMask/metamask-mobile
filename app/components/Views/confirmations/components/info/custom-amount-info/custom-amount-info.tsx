@@ -45,6 +45,7 @@ import {
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
+import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import Text, {
@@ -161,7 +162,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const fiatPayment = useTransactionPayFiatPayment();
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const isFiatAvailable = useIsFiatPaymentAvailable();
-    const hasPaymentOption = hasAvailableTokens || isFiatAvailable;
+    const moneyAccountSection = usePayWithMoneyAccountSection();
+    const hasPaymentOption =
+      hasAvailableTokens || isFiatAvailable || moneyAccountSection !== null;
     const fiatEverSelectedRef = useRef(false);
     if (selectedFiatPaymentMethodId) {
       fiatEverSelectedRef.current = true;
