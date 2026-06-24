@@ -658,18 +658,6 @@ function hasActiveSubPaneIndicators() {
   return found;
 }
 
-function afterSubPaneIndicatorAdded(chart, indicatorName) {
-  if (isSubPaneIndicator(indicatorName)) {
-    scheduleApplySubPaneHeightRatio(chart);
-  }
-}
-
-function afterSubPaneIndicatorRemoved(chart, indicatorName) {
-  if (isSubPaneIndicator(indicatorName) && hasActiveSubPaneIndicators()) {
-    scheduleApplySubPaneHeightRatio(chart);
-  }
-}
-
 /** Reads CONFIG.subPaneHeightRatio; null means TradingView default pane sizing. */
 function getSubPaneHeightRatio() {
   const ratio = window.CONFIG && window.CONFIG.subPaneHeightRatio;
@@ -712,16 +700,6 @@ function applySubPaneHeightRatio(chart) {
   } catch (e) {}
 }
 
-function scheduleApplySubPaneHeightRatio(chart) {
-  if (getSubPaneHeightRatio() === null) return;
-  waitForChartRenderCompletion(function () {
-    applySubPaneHeightRatio(chart);
-    waitForChartRenderCompletion(function () {
-      applySubPaneHeightRatio(chart);
-    });
-  });
-}
-
 function handleSetSubPaneLayout(payload) {
   window.CONFIG = window.CONFIG || {};
   const ratio = payload && payload.heightRatio;
@@ -738,7 +716,7 @@ function handleSetSubPaneLayout(payload) {
     window.isChartReady &&
     hasActiveSubPaneIndicators()
   ) {
-    scheduleApplySubPaneHeightRatio(window.chartWidget.activeChart());
+    applySubPaneHeightRatio(window.chartWidget.activeChart());
   }
 }
 
@@ -812,9 +790,11 @@ function handleAddIndicator(payload) {
       .then(function (studyId) {
         window.legendStudyOrder.set(indicatorName, studyId);
         window.activeStudies.set(indicatorName, studyId);
+        if (isSubPaneIndicator(indicatorName)) {
+          applySubPaneHeightRatio(chart);
+        }
         subscribeStudyDataLoaded(studyId, function () {
           refreshStudyLegendFromExport();
-          afterSubPaneIndicatorAdded(chart, indicatorName);
         });
         notifyIndicatorAdded(indicatorName, studyId);
       })
@@ -846,7 +826,9 @@ function handleRemoveIndicator(payload) {
     window.legendStudyOrder.delete(indicatorName);
     refreshStudyLegendFromExport();
     sendToReactNative('INDICATOR_REMOVED', { name: indicatorName });
-    afterSubPaneIndicatorRemoved(chart, indicatorName);
+    if (isSubPaneIndicator(indicatorName) && hasActiveSubPaneIndicators()) {
+      applySubPaneHeightRatio(chart);
+    }
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
   }
