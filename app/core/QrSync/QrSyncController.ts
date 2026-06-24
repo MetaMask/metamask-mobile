@@ -15,7 +15,10 @@ import type {
   QrSyncWireMessage,
 } from './types';
 import { createQrSyncWalletClient } from './services/create-qr-sync-wallet-client';
-import { parseQrSyncConnectionRequest } from './services/qr-sync-validation';
+import {
+  parseQrSyncConnectionRequest,
+  validateQrSyncImportPlanForOnboarding,
+} from './services/qr-sync-validation';
 import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
@@ -215,18 +218,30 @@ export class QrSyncController extends BaseController<
       return;
     }
 
-    const { importPlan } = routedMessage;
-    if (importPlan) {
-      this.update((state) => {
-        state.importPlan = importPlan;
-      });
+    if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
+      const importPlanValidation = validateQrSyncImportPlanForOnboarding(
+        routedMessage.importPlan,
+        this.getIsOnboardingCompleted(),
+      );
+
+      if (!importPlanValidation.valid) {
+        this.terminateWithError(importPlanValidation.error);
+        return;
+      }
+
+      if (!this.client) {
+        throw new Error('Wallet client not found');
+      }
     }
 
     this.handleSessionServiceEvent(routedMessage.event);
 
     if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
-      if (!this.client) {
-        throw new Error('Wallet client not found');
+      const { importPlan } = routedMessage;
+      if (importPlan) {
+        this.update((state) => {
+          state.importPlan = importPlan;
+        });
       }
 
       this.sendSyncCompleted().catch(() => undefined);

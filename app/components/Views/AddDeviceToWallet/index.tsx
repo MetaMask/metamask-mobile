@@ -66,7 +66,6 @@ const AddDeviceToWallet = () => {
   const navigation = useNavigation();
   const [manualQrPayload, setManualQrPayload] = useState('');
   const hasOpenedVerificationSheetRef = useRef(false);
-  const hasNavigatedToImportRef = useRef(false);
   const presentation = useSelector(selectQrSyncPresentation);
   const shouldNavigateToImport = useSelector(
     selectQrSyncShouldNavigateToImport,
@@ -107,15 +106,8 @@ const AddDeviceToWallet = () => {
 
   useEffect(() => {
     if (!shouldNavigateToImport) {
-      hasNavigatedToImportRef.current = false;
       return;
     }
-
-    if (hasNavigatedToImportRef.current) {
-      return;
-    }
-
-    hasNavigatedToImportRef.current = true;
 
     navigation.navigate(Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE, {
       initialStep: 1,

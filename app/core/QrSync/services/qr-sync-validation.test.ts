@@ -20,6 +20,7 @@ import {
   validateAndNormalizeQrSyncSyncReadyMessage,
   validateQrSyncData,
   validateQrSyncDataSemantics,
+  validateQrSyncImportPlanForOnboarding,
   validateQrSyncSyncReadyMessage,
 } from './qr-sync-validation';
 
@@ -444,6 +445,50 @@ describe('qr-sync-validation', () => {
           message: 'QR sync payload deadline has expired.',
           retryable: false,
         },
+      });
+    });
+  });
+
+  describe('validateQrSyncImportPlanForOnboarding', () => {
+    const importPlan = [
+      {
+        index: 0,
+        value: 'word1 word2 word3',
+        type: 'MNEMONIC' as const,
+        accountName: null,
+        hiddenIndexes: [],
+        isPrimary: true,
+      },
+    ];
+
+    it('requires a primary mnemonic when onboarding is not completed', () => {
+      expect(validateQrSyncImportPlanForOnboarding(importPlan, false)).toEqual({
+        valid: true,
+      });
+      expect(
+        validateQrSyncImportPlanForOnboarding(
+          [{ ...importPlan[0], isPrimary: false }],
+          false,
+        ),
+      ).toEqual({
+        valid: false,
+        error: {
+          code: 'INVALID_PAYLOAD',
+          message:
+            'QR sync payload must include a primary mnemonic when onboarding is not completed.',
+          retryable: false,
+        },
+      });
+    });
+
+    it('does not require a primary mnemonic when onboarding is completed', () => {
+      expect(
+        validateQrSyncImportPlanForOnboarding(
+          [{ ...importPlan[0], isPrimary: false }],
+          true,
+        ),
+      ).toEqual({
+        valid: true,
       });
     });
   });

@@ -1,7 +1,11 @@
 import { QrSyncPhases } from '../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../core/QrSync/QrSyncController';
 import type { RootState } from '../../reducers';
-import { selectQrSyncHasImportPlan, selectQrSyncPresentation } from './index';
+import {
+  selectQrSyncHasImportPlan,
+  selectQrSyncPresentation,
+  selectQrSyncShouldNavigateToImport,
+} from './index';
 
 const buildState = (
   qrSyncState: Partial<typeof defaultQrSyncControllerState>,
@@ -43,6 +47,41 @@ describe('qrSyncController selectors', () => {
       expect(selectQrSyncHasImportPlan(buildState({ importPlan: [] }))).toBe(
         false,
       );
+    });
+  });
+
+  describe('selectQrSyncShouldNavigateToImport', () => {
+    const importPlan = [
+      {
+        index: 0,
+        value: 'word1 word2 word3',
+        type: 'MNEMONIC' as const,
+        accountName: null,
+        hiddenIndexes: [],
+        isPrimary: true,
+      },
+    ];
+
+    it('returns true while reviewing import data', () => {
+      expect(
+        selectQrSyncShouldNavigateToImport(
+          buildState({
+            phase: QrSyncPhases.REVIEWING_IMPORT,
+            importPlan,
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false after sync completes', () => {
+      expect(
+        selectQrSyncShouldNavigateToImport(
+          buildState({
+            phase: QrSyncPhases.COMPLETED,
+            importPlan,
+          }),
+        ),
+      ).toBe(false);
     });
   });
 

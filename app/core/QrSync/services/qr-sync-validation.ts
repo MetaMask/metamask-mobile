@@ -317,6 +317,28 @@ export function validateQrSyncData(
   return validateQrSyncDataSemantics(data);
 }
 
+export function validateQrSyncImportPlanForOnboarding(
+  importPlan: QrSyncImportPlan | undefined,
+  isOnboardingCompleted: boolean,
+): QrSyncValidationResult {
+  if (isOnboardingCompleted) {
+    return { valid: true };
+  }
+
+  const hasPrimaryMnemonic = importPlan?.some(
+    (entry) => entry.type === 'MNEMONIC' && entry.isPrimary,
+  );
+
+  if (!hasPrimaryMnemonic) {
+    return buildValidationError(
+      'INVALID_PAYLOAD',
+      'QR sync payload must include a primary mnemonic when onboarding is not completed.',
+    );
+  }
+
+  return { valid: true };
+}
+
 export function validateQrSyncDataSemantics(
   data: QrSyncData,
 ): QrSyncValidationResult {

@@ -239,9 +239,9 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('QR sync import navigation', () => {
-    it('navigates to import when sync completes with import data', async () => {
+    it('navigates to import when sync-ready provides import data', async () => {
       renderComponent({
-        phase: QrSyncPhases.COMPLETED,
+        phase: QrSyncPhases.REVIEWING_IMPORT,
         importPlan: [
           {
             index: 0,
@@ -261,6 +261,29 @@ describe('AddDeviceToWallet', () => {
             initialStep: 1,
             qrSyncImport: true,
           },
+        );
+      });
+    });
+
+    it('does not navigate to import after sync has completed', async () => {
+      renderComponent({
+        phase: QrSyncPhases.COMPLETED,
+        importPlan: [
+          {
+            index: 0,
+            value: 'word1 word2 word3',
+            type: 'MNEMONIC',
+            accountName: null,
+            hiddenIndexes: [],
+            isPrimary: true,
+          },
+        ],
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+          expect.anything(),
         );
       });
     });

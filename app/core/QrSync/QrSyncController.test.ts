@@ -58,10 +58,13 @@ const createSessionRequest = (
   ...overrides,
 });
 
-const createSyncReadyWireMessage = (): QrSyncMessage<QrSyncData> => {
+const createSyncReadyWireMessage = (
+  options: { isPrimary?: boolean } = {},
+): QrSyncMessage<QrSyncData> => {
   const entry: QrSyncDataEntry = {
     value: encodeSecret('word1 word2 word3'),
     type: 'MNEMONIC',
+    ...(options.isPrimary === false ? {} : { metadata: { isPrimary: true } }),
   };
 
   return {
@@ -348,7 +351,7 @@ describe('QrSyncController', () => {
           type: 'MNEMONIC',
           accountName: null,
           hiddenIndexes: [],
-          isPrimary: false,
+          isPrimary: true,
         },
       ]);
       expect(walletClient.client.sendResponse).toHaveBeenCalledWith({
@@ -356,6 +359,67 @@ describe('QrSyncController', () => {
         version: QrSyncMessageVersion.V1,
       });
       expect(walletClient.client.disconnect).toHaveBeenCalled();
+    });
+
+    it('fails when sync-ready omits a primary mnemonic during onboarding', async () => {
+      const controller = buildController({
+        getIsOnboardingCompleted: () => false,
+      });
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+
+      walletClient.emit(
+        'message',
+        createSyncReadyWireMessage({ isPrimary: false }),
+      );
+      await flushPromises();
+
+      expect(controller.state.phase).toBe(QrSyncPhases.FAILED);
+      expect(controller.state.error).toEqual({
+        code: 'INVALID_PAYLOAD',
+        message:
+          'QR sync payload must include a primary mnemonic when onboarding is not completed.',
+        retryable: false,
+      });
+      expect(controller.state.importPlan).toBeNull();
+      expect(walletClient.client.sendResponse).toHaveBeenCalledWith({
+        type: QrSyncActionTypes.SYNC_ERROR,
+        version: QrSyncMessageVersion.V1,
+        data: {
+          code: 'INVALID_PAYLOAD',
+          message:
+            'QR sync payload must include a primary mnemonic when onboarding is not completed.',
+          retryable: false,
+        },
+      });
+    });
+
+    it('accepts sync-ready without a primary mnemonic when onboarding is completed', async () => {
+      const controller = buildController({
+        getIsOnboardingCompleted: () => true,
+      });
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+
+      walletClient.emit(
+        'message',
+        createSyncReadyWireMessage({ isPrimary: false }),
+      );
+      await flushPromises();
+
+      expect(controller.state.phase).toBe(QrSyncPhases.COMPLETED);
+      expect(controller.state.importPlan).toEqual([
+        {
+          index: 0,
+          value: 'word1 word2 word3',
+          type: 'MNEMONIC',
+          accountName: null,
+          hiddenIndexes: [],
+          isPrimary: false,
+        },
+      ]);
     });
 
     it('returns to idle when the extension sends sync-cancel', async () => {
