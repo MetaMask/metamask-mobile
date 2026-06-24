@@ -7,6 +7,10 @@ import type { Transaction } from '@metamask/keyring-api';
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import type { CaipChainId } from '@metamask/utils';
 import type { TransactionGroup } from './adapters/transaction-group';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { PerpsTransaction } from '../../components/UI/Perps/types/transactionHistory';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { PredictActivity } from '../../components/UI/Predict/types';
 
 export type Status = 'pending' | 'success' | 'failed' | 'cancelled';
 
@@ -77,7 +81,9 @@ interface ActivityData<Type extends ActivityKind, Data> {
   raw?:
     | { type: 'apiEvmTransaction'; data: V1TransactionByHashResponse }
     | { type: 'keyringTransaction'; data: Transaction }
-    | { type: 'localTransaction'; data: TransactionGroup };
+    | { type: 'localTransaction'; data: TransactionGroup }
+    | { type: 'perpsTransaction'; data: PerpsTransaction }
+    | { type: 'predictActivity'; data: PredictActivity };
   data: Data;
 }
 
