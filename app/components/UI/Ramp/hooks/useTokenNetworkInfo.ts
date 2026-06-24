@@ -5,7 +5,7 @@ import { ImageSourcePropType } from 'react-native';
 
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../util/networks';
-import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../Deposit/constants/networks';
+import { DEPOSIT_NETWORKS_BY_CHAIN_ID } from '../constants/networks';
 
 interface TokenNetworkInfo {
   networkName?: string;
