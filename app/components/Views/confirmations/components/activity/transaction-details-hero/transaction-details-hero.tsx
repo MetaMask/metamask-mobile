@@ -212,7 +212,8 @@ export function TransactionDetailsHero() {
     (!hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountWithdraw,
     ]) ||
-      isSingleRowMusdMoneyWithdraw(transactionMeta));
+      isSingleRowMusdMoneyWithdraw(transactionMeta) ||
+      !isMoneyContext);
 
   if (showTokenIcon) {
     const showDepositPrefix =

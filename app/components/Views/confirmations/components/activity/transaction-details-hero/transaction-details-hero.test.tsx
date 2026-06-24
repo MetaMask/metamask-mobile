@@ -272,6 +272,28 @@ describe('TransactionDetailsHero', () => {
     expect(getByText('$123.46')).toBeDefined();
   });
 
+  it('renders single-row token hero for cross-token moneyAccountWithdraw outside money context', () => {
+    jest.mocked(selectTransactionsByIds).mockReturnValue([]);
+
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        ...TRANSACTION_META_MOCK,
+        type: TransactionType.moneyAccountWithdraw,
+        metamaskPay: {
+          tokenAddress: TOKEN_ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          targetFiat: '200.00',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText, queryByText } = render();
+
+    expect(getByText(/200\.00 mUSD/)).toBeDefined();
+    expect(queryByText('You sent')).toBeNull();
+    expect(queryByText('You received')).toBeNull();
+  });
+
   describe('money context (isMoneyContext = true)', () => {
     const useIsMoneyAccountContextMock = jest.mocked(useIsMoneyAccountContext);
     const selectTransactionsByIdsMock = jest.mocked(selectTransactionsByIds);
