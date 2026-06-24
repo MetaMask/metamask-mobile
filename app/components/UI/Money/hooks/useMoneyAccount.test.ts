@@ -462,6 +462,39 @@ describe('useMoneyAccountWithdrawal', () => {
     );
   });
 
+  it('sets isGasFeeSponsored to true when vault chain is Monad', async () => {
+    setupSelectors({
+      vaultConfig: { ...MOCK_VAULT_CONFIG, chainId: '0x8f' },
+    });
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await act(async () => {
+      await result.current.initiateWithdrawal();
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGasFeeSponsored: true,
+        skipInitialGasEstimate: true,
+      }),
+    );
+  });
+
+  it('sets isGasFeeSponsored to false when vault chain is not Monad', async () => {
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await act(async () => {
+      await result.current.initiateWithdrawal();
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGasFeeSponsored: false,
+      }),
+    );
+  });
+
   it('logs and rethrows when addTransactionBatch fails', async () => {
     const txError = new Error('batch failed');
     mockAddTransactionBatch.mockRejectedValue(txError);

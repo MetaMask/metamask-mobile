@@ -12,7 +12,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
@@ -30,6 +30,7 @@ import PredictSportScoreboard from '../PredictSportScoreboard';
 import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
 import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
 import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
@@ -37,7 +38,9 @@ import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsConte
 
 const CHIPS_STICKY_INDEX = 2;
 
-const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
+const PredictGameDetailsContentComponent: React.FC<
+  PredictGameDetailsContentProps
+> = ({
   market,
   onBack,
   onRefresh,
@@ -56,13 +59,13 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     usePredictBottomSheet();
 
   const sheetHandlers = useMemo(() => getRefHandlers(), [getRefHandlers]);
+  const { game } = usePredictGame(market, { live: true });
 
   const handleInfoPress = useCallback(() => {
     sheetHandlers.onOpenBottomSheet();
   }, [sheetHandlers]);
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
-  const game = market.game;
 
   const { data: activePositions = [] } = usePredictPositions({
     marketId: market.id,
@@ -125,6 +128,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
           accessibilityLabel={strings('predict.buttons.back')}
+          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
         >
           <Icon
             name={IconName.ArrowLeft}
@@ -148,6 +152,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
       </Box>
 
       <ScrollView
+        testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.SCROLL_VIEW}
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-4')}
         stickyHeaderIndices={stickyHeaderIndices}
@@ -230,5 +235,11 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     </SafeAreaView>
   );
 };
+
+// Memoized so a parent (PredictMarketDetails) re-render driven by its own live
+// subscriptions does not re-render this entire subtree when our props are
+// unchanged. The screen's live odds updates are driven by this component's own
+// hooks instead.
+const PredictGameDetailsContent = memo(PredictGameDetailsContentComponent);
 
 export default PredictGameDetailsContent;

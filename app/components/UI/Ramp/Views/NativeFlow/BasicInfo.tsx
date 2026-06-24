@@ -22,18 +22,18 @@ import {
 } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from '../../Deposit/Views/BasicInfo/BasicInfo.styles';
+import styleSheet from './BasicInfo.styles';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
-import DepositTextField from '../../Deposit/components/DepositTextField';
-import { useForm } from '../../Deposit/hooks/useForm';
-import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
-import DepositDateField from '../../Deposit/components/DepositDateField';
-import { VALIDATION_REGEX } from '../../Deposit/constants/constants';
-import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import PrivacySection from '../../Deposit/components/PrivacySection';
-import { timestampToTransakFormat } from '../../Deposit/utils';
+import DepositTextField from '../../components/DepositTextField';
+import { useForm } from '../../hooks/useForm';
+import DepositProgressBar from '../../components/DepositProgressBar';
+import DepositDateField from '../../components/DepositDateField';
+import { VALIDATION_REGEX } from '../../constants/transak';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import PrivacySection from '../../components/PrivacySection';
+import { timestampToTransakFormat } from '../../utils/depositUtils';
 import useAnalytics from '../../hooks/useAnalytics';
 import Logger from '../../../../../util/Logger';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert';
@@ -44,9 +44,14 @@ import { useTransakController } from '../../hooks/useTransakController';
 import useRampsController from '../../hooks/useRampsController';
 import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import { useRampsCountries } from '../../hooks/useRampsCountries';
-import type { TransakBuyQuote } from '@metamask/ramps-controller';
-import type { AddressFormData } from '../../Deposit/Views/EnterAddress/EnterAddress';
+import {
+  getTransakApiMessage,
+  isTransakPhoneRegisteredError,
+  type TransakBuyQuote,
+} from '@metamask/ramps-controller';
+import type { AddressFormData } from '../../types/transakNativeForms';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
 import { BASIC_INFO_TEST_IDS } from './BasicInfo.testIds';
 import { createV2EnterEmailNavDetails } from './EnterEmail';
 import PhoneField from './components/PhoneField';
@@ -84,6 +89,11 @@ const V2BasicInfo = (): JSX.Element => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPhoneRegisteredError, setIsPhoneRegisteredError] = useState(false);
+
+  // Headless deposit (TRAM-3623): tag RAMPS_BASIC_INFO_ENTERED with
+  // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when this screen is
+  // part of a headless buy flow; keep 'DEPOSIT' otherwise.
+  const { headlessDepositRampProps } = useHeadlessRampProps(headlessSessionId);
 
   const firstNameInputRef = useRef<TextInput>(null);
   const lastNameInputRef = useRef<TextInput>(null);
@@ -178,7 +188,7 @@ const V2BasicInfo = (): JSX.Element => {
 
     trackEvent('RAMPS_BASIC_INFO_ENTERED', {
       region: regionIsoCode,
-      ramp_type: 'DEPOSIT',
+      ...headlessDepositRampProps,
       kyc_type: 'SIMPLE',
     });
 
@@ -204,26 +214,20 @@ const V2BasicInfo = (): JSX.Element => {
         ...(headlessSessionId ? { headlessSessionId } : {}),
       });
     } catch (submissionError) {
-      const apiError = (
-        submissionError as {
-          response?: {
-            data?: { error?: { errorCode?: number; message?: string } };
-          };
-        }
-      )?.response?.data?.error;
-
-      const isPhoneError = apiError?.errorCode === 2020;
+      const isPhoneError = isTransakPhoneRegisteredError(submissionError);
       setIsPhoneRegisteredError(isPhoneError);
 
-      const errorMessageText = parseUserFacingError(
-        submissionError,
-        strings('deposit.basic_info.unexpected_error'),
-      );
+      const errorMessageText =
+        getTransakApiMessage(submissionError) ??
+        parseUserFacingError(
+          submissionError,
+          strings('deposit.basic_info.unexpected_error'),
+        );
 
       let errorMessage = errorMessageText;
       if (isPhoneError && errorMessageText) {
         const emailMatch = errorMessageText.match(/[\w*]+@[\w*]+(?:\.[\w*]+)*/);
-        const email = emailMatch ? emailMatch[0] : '';
+        const email = emailMatch?.[0] ?? '';
         if (email) {
           errorMessage = strings(
             'deposit.basic_info.phone_already_registered',
@@ -251,36 +255,29 @@ const V2BasicInfo = (): JSX.Element => {
     headlessSessionId,
     regionIsoCode,
     trackEvent,
+    headlessDepositRampProps,
   ]);
 
   const enterEmailParamsForLogout = useMemo(
-    () =>
-      headlessSessionId
-        ? {
-            headlessSessionId,
-            amount:
-              quote?.fiatAmount != null ? String(quote.fiatAmount) : undefined,
-            // TransakBuyQuote uses plain strings for fiatCurrency / cryptoCurrency
-            // (not `{ symbol }` / `{ assetId }` objects).
-            currency: quote?.fiatCurrency,
-            // CAIP asset id for post-logout OTP quote fetch — prefer controller
-            // (seeded in headless buy) over quote.cryptoCurrency (a display ticker).
-            assetId: selectedToken?.assetId,
-          }
-        : undefined,
+    () => ({
+      ...(headlessSessionId ? { headlessSessionId } : {}),
+      amount: quote?.fiatAmount == null ? undefined : String(quote.fiatAmount),
+      // TransakBuyQuote uses plain strings for fiatCurrency / cryptoCurrency
+      // (not `{ symbol }` / `{ assetId }` objects).
+      currency: quote?.fiatCurrency,
+      // CAIP asset id for post-logout OTP quote fetch — prefer controller
+      // (seeded in headless buy) over quote.cryptoCurrency (a display ticker).
+      assetId: selectedToken?.assetId,
+    }),
     [headlessSessionId, quote, selectedToken?.assetId],
   );
 
   const handleLogout = useCallback(async () => {
     try {
       await logoutFromProvider(false);
-      if (enterEmailParamsForLogout) {
-        navigation.navigate(
-          ...createV2EnterEmailNavDetails(enterEmailParamsForLogout),
-        );
-      } else {
-        navigation.navigate(Routes.RAMP.ENTER_EMAIL as never);
-      }
+      navigation.navigate(
+        ...createV2EnterEmailNavDetails(enterEmailParamsForLogout),
+      );
     } catch (logoutError) {
       Logger.error(
         logoutError as Error,

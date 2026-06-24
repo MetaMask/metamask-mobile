@@ -10,7 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import HeaderRoot from '../../../../component-library/components-temp/HeaderRoot';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
@@ -19,13 +19,18 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   selectActiveTab,
   selectHasAcceptedVipInvite,
+  selectHasAcceptedVipRefereeInvite,
+  selectIsVipReferee,
   selectHideUnlinkedAccountsBanner,
   selectHideCurrentAccountNotOptedInBannerArray,
+  selectPendingDeeplink,
 } from '../../../../reducers/rewards/selectors';
+import { setPendingDeeplink } from '../../../../reducers/rewards';
 import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { useRewardOptinSummary } from '../hooks/useRewardOptinSummary';
 import {
   useRewardDashboardModals,
@@ -36,6 +41,9 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { useGeoRewardsMetadata } from '../hooks/useGeoRewardsMetadata';
+import { useReferralDetails } from '../hooks/useReferralDetails';
+import { navigateToRewardsRoute } from '../utils';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
 import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
@@ -52,10 +60,17 @@ const VIP_UNLOCK_TAP_WINDOW_MS = 3000;
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const dispatch = useDispatch();
+  const pendingDeeplink = useSelector(selectPendingDeeplink);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
   const hasAcceptedVipInvite = useSelector(
     selectHasAcceptedVipInvite(subscriptionId),
+  );
+  const isVipReferee = useSelector(selectIsVipReferee);
+  const hasAcceptedVipRefereeInvite = useSelector(
+    selectHasAcceptedVipRefereeInvite(subscriptionId),
   );
   const activeTab = useSelector(selectActiveTab);
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -65,6 +80,64 @@ const RewardsDashboard: React.FC = () => {
   useOndoOutcomeToast();
   usePerpsTradingCampaignEndedOutcomeToast();
   useGetPredictThePitchOutcomeToast();
+
+  // Data hooks that populate Redux for the dashboard and its pushed sub-pages.
+  // The version guard and candidate-subscription fetch live one level up in
+  // RewardsHome (MainNavigator) so they also cover the onboarding entry path for
+  // non-enrolled users; only dashboard-specific hooks remain here.
+  useGeoRewardsMetadata({});
+  useReferralDetails();
+
+  // Handle deeplink-driven navigation into a rewards sub-page. The dashboard is
+  // what mounts on a rewards deeplink (the Rewards tab); the sub-pages are
+  // registered as a group at the root MainNavigator level, so a direct
+  // navigate(<screen>) resolves them. We read the pending deeplink from Redux —
+  // rather than navigation params — because the Rewards tab is UnmountOnBlur, so
+  // params would be lost while on another tab. Once handled, the pending deeplink
+  // is cleared so it doesn't re-fire on subsequent mounts.
+  useEffect(() => {
+    if (!pendingDeeplink) {
+      return;
+    }
+
+    let handled = true;
+    if (pendingDeeplink.page === 'campaigns') {
+      navigateToRewardsRoute(navigation, Routes.REWARDS_CAMPAIGNS_VIEW);
+    } else if (pendingDeeplink.campaign === 'ondo') {
+      navigateToRewardsRoute(
+        navigation,
+        Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+      );
+    } else if (pendingDeeplink.campaign === 'season1') {
+      navigateToRewardsRoute(
+        navigation,
+        Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
+      );
+    } else if (pendingDeeplink.campaign === 'perps-comp') {
+      navigateToRewardsRoute(
+        navigation,
+        Routes.REWARDS_PERPS_TRADING_CAMPAIGN_DETAILS_VIEW,
+      );
+    } else if (pendingDeeplink.campaign === 'predict-the-pitch') {
+      navigateToRewardsRoute(
+        navigation,
+        Routes.REWARDS_PREDICT_THE_PITCH_CAMPAIGN_DETAILS_VIEW,
+      );
+    } else if (pendingDeeplink.page === 'musd') {
+      navigateToRewardsRoute(navigation, Routes.REWARDS_MUSD_CALCULATOR_VIEW);
+    } else if (pendingDeeplink.page === 'benefits') {
+      // Benefits full view is registered at the root MainNavigator level.
+      navigation.navigate(Routes.REWARD_BENEFITS_FULL_VIEW);
+    } else {
+      // Unrecognized page/campaign: do not clear the pending deeplink so the
+      // intent is preserved and can be retried, rather than silently dropped.
+      handled = false;
+    }
+
+    if (handled) {
+      dispatch(setPendingDeeplink(null));
+    }
+  }, [navigation, dispatch, pendingDeeplink]);
 
   const hideUnlinkedAccountsBanner = useSelector(
     selectHideUnlinkedAccountsBanner,
@@ -263,12 +336,22 @@ const RewardsDashboard: React.FC = () => {
   }, [isVipEnabled, subscriptionId]);
 
   const handleVipPress = useCallback(() => {
-    navigation.navigate(
+    navigateToRewardsRoute(
+      navigation,
       hasAcceptedVipInvite
         ? Routes.REWARDS_VIP_VIEW
         : Routes.REWARDS_VIP_SPLASH_VIEW,
     );
   }, [hasAcceptedVipInvite, navigation]);
+
+  const handleVipRefereePress = useCallback(() => {
+    navigateToRewardsRoute(
+      navigation,
+      hasAcceptedVipRefereeInvite
+        ? Routes.REWARDS_VIP_REFEREE_VIEW
+        : Routes.REWARDS_VIP_REFEREE_SPLASH_VIEW,
+    );
+  }, [hasAcceptedVipRefereeInvite, navigation]);
 
   useEffect(() => {
     trackEvent(
@@ -288,7 +371,17 @@ const RewardsDashboard: React.FC = () => {
         <HeaderRoot
           endAccessory={
             <Box twClassName="flex-row gap-2">
-              {isVipEnabled && (
+              {isVipProgramEnabled && isVipReferee && (
+                <Pressable
+                  accessibilityRole="button"
+                  onPress={handleVipRefereePress}
+                  style={tw.style('h-8 w-8 items-center justify-center')}
+                  testID={REWARDS_VIEW_SELECTORS.VIP_REFEREE_BUTTON}
+                >
+                  <VipIcon width={24} height={24} name="VipIcon" />
+                </Pressable>
+              )}
+              {isVipProgramEnabled && isVipEnabled && (
                 <Pressable
                   accessibilityRole="button"
                   onPress={handleVipPress}
@@ -301,7 +394,10 @@ const RewardsDashboard: React.FC = () => {
               <ButtonIcon
                 iconName={IconName.UserCircleAdd}
                 onPress={() =>
-                  navigation.navigate(Routes.REFERRAL_REWARDS_VIEW)
+                  navigateToRewardsRoute(
+                    navigation,
+                    Routes.REFERRAL_REWARDS_VIEW,
+                  )
                 }
                 size={ButtonIconSize.Md}
                 testID={REWARDS_VIEW_SELECTORS.REFERRAL_BUTTON}
@@ -310,7 +406,10 @@ const RewardsDashboard: React.FC = () => {
                 disabled={!subscriptionId}
                 iconName={IconName.Setting}
                 onPress={() =>
-                  navigation.navigate(Routes.REWARDS_SETTINGS_VIEW)
+                  navigateToRewardsRoute(
+                    navigation,
+                    Routes.REWARDS_SETTINGS_VIEW,
+                  )
                 }
                 size={ButtonIconSize.Md}
                 testID={REWARDS_VIEW_SELECTORS.SETTINGS_BUTTON}

@@ -13,10 +13,10 @@ import {
   TextVariant,
   Text,
   Box,
+  ActionListItem,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import MainActionButton from '../../../component-library/components-temp/MainActionButton';
-import ActionListItem from '../../../component-library/components-temp/ActionListItem';
 import { IconName as LocalIconName } from '../../../component-library/components/Icons/Icon';
 import { EVENT_NAME } from '../../../core/Analytics/MetaMetrics.events';
 import { Authentication } from '../../../core/';
@@ -25,8 +25,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
-import useRampsUnifiedV1Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
-import useRampsUnifiedV2Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV2Enabled';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
@@ -51,8 +49,6 @@ const AccountsMenu = () => {
   const { goToBuy } = useRampNavigation();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampsButtonClickData = useRampsButtonClickData();
-  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
-  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -68,10 +64,9 @@ const AccountsMenu = () => {
         .addProperties({
           button_text: 'Buy',
           location: 'AccountsMenu',
-          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY',
+          ramp_type: 'UNIFIED_BUY_2',
           chain_id_destination: null,
           region: rampGeodetectedRegion ?? null,
-          ramp_routing: rampsButtonClickData.ramp_routing ?? null,
           is_authenticated: rampsButtonClickData.is_authenticated ?? null,
           preferred_provider: rampsButtonClickData.preferred_provider ?? null,
           order_count: rampsButtonClickData.order_count,
@@ -85,7 +80,6 @@ const AccountsMenu = () => {
     trackEvent,
     rampGeodetectedRegion,
     rampsButtonClickData,
-    isV2UnifiedEnabled,
   ]);
 
   const onPressNotifications = useCallback(() => {
@@ -371,16 +365,14 @@ const AccountsMenu = () => {
       >
         {/* Quick Actions Section */}
         <Box style={tw.style('px-4 py-3 flex-row gap-4 justify-between')}>
-          {rampUnifiedV1Enabled && (
-            <Box style={tw.style('mb-2 flex-1')}>
-              <MainActionButton
-                iconName={LocalIconName.AttachMoney}
-                label={strings('accounts_menu.buy')}
-                onPress={onPressDeposit}
-                testID={AccountsMenuSelectorsIDs.BUY_BUTTON}
-              />
-            </Box>
-          )}
+          <Box style={tw.style('mb-2 flex-1')}>
+            <MainActionButton
+              iconName={LocalIconName.AttachMoney}
+              label={strings('accounts_menu.buy')}
+              onPress={onPressDeposit}
+              testID={AccountsMenuSelectorsIDs.BUY_BUTTON}
+            />
+          </Box>
           <Box style={tw.style('mb-2 flex-1')}>
             <MainActionButton
               iconName={LocalIconName.QrCode}

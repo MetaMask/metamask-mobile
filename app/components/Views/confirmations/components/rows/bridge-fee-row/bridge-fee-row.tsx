@@ -22,6 +22,7 @@ import {
 import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
+  useTransactionPaySourceAmounts,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
@@ -39,12 +40,14 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { resolveTransactionType } from '../../../utils/transaction';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const isLoading = useIsTransactionPayLoading();
   const quotes = useTransactionPayQuotes();
   const totals = useTransactionPayTotals();
+  const sourceAmounts = useTransactionPaySourceAmounts();
   const paidByMetaMask = useIsPaidByMetaMask();
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
@@ -55,6 +58,7 @@ export function BridgeFeeRow() {
       totals={totals}
       quotes={quotes}
       transactionMeta={transactionMetadata}
+      hasSourceAmounts={Boolean(sourceAmounts?.length)}
       hasAlert={hasAlert}
       isLoading={isLoading}
       paidByMetaMask={paidByMetaMask}
@@ -67,6 +71,7 @@ export function BridgeFeeRow() {
 function TransactionFeeRow({
   transactionMeta,
   hasAlert,
+  hasSourceAmounts,
   quotes,
   totals,
   isLoading,
@@ -76,6 +81,7 @@ function TransactionFeeRow({
 }: {
   transactionMeta: TransactionMeta;
   hasAlert: boolean;
+  hasSourceAmounts: boolean;
   quotes?: TransactionPayQuote<Json>[];
   totals?: TransactionPayTotals;
   isLoading: boolean;
@@ -88,6 +94,10 @@ function TransactionFeeRow({
   const hasQuotes = Boolean(quotes?.length);
 
   const feeTotalUsd = useMemo(() => {
+    if (transactionMeta?.isGasFeeSponsored && !hasSourceAmounts) {
+      return formatFiat(new BigNumber(0));
+    }
+
     if (!totals?.fees) return '';
 
     const metaMask = totals.fees.metaMask.usd ?? 0;
@@ -101,7 +111,12 @@ function TransactionFeeRow({
         .plus(sourceNetwork)
         .plus(targetNetwork),
     );
-  }, [totals, formatFiat]);
+  }, [
+    totals,
+    formatFiat,
+    transactionMeta?.isGasFeeSponsored,
+    hasSourceAmounts,
+  ]);
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
 
@@ -200,7 +215,15 @@ function Tooltip({
   transactionMeta: TransactionMeta;
   totals: TransactionPayTotals;
 }): ReactNode {
-  const key = TOOLTIP_MESSAGE_KEY[transactionMeta.type as TransactionType];
+  const transactionType = resolveTransactionType(
+    transactionMeta,
+    Object.keys(TOOLTIP_MESSAGE_KEY) as TransactionType[],
+  );
+
+  const key =
+    transactionType !== undefined
+      ? TOOLTIP_MESSAGE_KEY[transactionType]
+      : undefined;
 
   if (!key) return null;
 

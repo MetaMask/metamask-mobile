@@ -89,6 +89,7 @@ enum EVENT_NAME {
   TOKEN_LIST_ITEM_CLICKED = 'Token List Item Clicked',
   TOKEN_DETAILS_OPENED = 'Token Details Opened',
   TOKEN_DETAILS_CLOSED = 'Token Details Closed',
+  TOKEN_DETAILS_SHARED = 'Token Details Shared',
   TOKEN_DETAILS_CTA_CLICKED = 'Token Details CTA Clicked',
   TOKEN_DETAILS_ACTION_CLICKED = 'Token Details Action Clicked',
   /**
@@ -195,6 +196,8 @@ enum EVENT_NAME {
   REHYDRATION_PASSWORD_ATTEMPTED = 'Rehydration Password Attempted',
   REHYDRATION_COMPLETED = 'Rehydration Completed',
   REHYDRATION_PASSWORD_FAILED = 'Rehydration Password Failed',
+  SEEDLESS_ONBOARDING_MIGRATION_COMPLETED = 'Seedless Onboarding Migration Completed',
+  SEEDLESS_ONBOARDING_MIGRATION_FAILED = 'Seedless Onboarding Migration Failed',
   PASSWORD_OUTDATED_MODAL_VIEWED = 'Password Outdated Modal Viewed',
   PASSWORD_CHANGED = 'Password Changed',
   FORGOT_PASSWORD_CLICKED = 'Forgot Password Clicked',
@@ -418,6 +421,9 @@ enum EVENT_NAME {
   // Bridge
   BRIDGE_LINK_CLICKED = 'Bridge Linked Clicked',
   SWAP_PAGE_VIEWED = 'Unified SwapBridge Page Viewed',
+  SWAPBRIDGE_STATUS_MODAL_VIEWED = 'Unified SwapBridge Status Modal Viewed',
+  SWAPBRIDGE_STATUS_MODAL_DISMISSED = 'Unified SwapBridge Status Modal Dismissed',
+  SWAPBRIDGE_STATUS_MODAL_BUTTON_CLICKED = 'Unified SwapBridge Status Modal Button Clicked',
   /** Unified funnel: Predict / Perps / Swaps screen views (alongside legacy events). */
   ASSET_VIEWED = 'Asset Viewed',
 
@@ -765,6 +771,7 @@ enum EVENT_NAME {
   SOCIAL_QUICK_BUY_TRADE_SUBMITTED = 'Quick Buy Trade Submitted',
   SOCIAL_QUICK_BUY_TRADE_COMPLETED = 'Quick Buy Trade Completed',
   SOCIAL_QUICK_BUY_DISMISSED = 'Quick Buy Dismissed',
+  SOCIAL_QUICK_BUY_INTERACTED = 'Quick Buy Interacted',
   SOCIAL_QUICK_TRADE_MODE_TOGGLED = 'Quick Trade Mode Toggled',
   SOCIAL_FOLLOW_TRADING_NOTIFICATION_CLICKED = 'Follow Trading Notification Clicked',
   // Activity
@@ -1040,6 +1047,12 @@ const events = {
   REHYDRATION_COMPLETED: generateOpt(EVENT_NAME.REHYDRATION_COMPLETED),
   REHYDRATION_PASSWORD_FAILED: generateOpt(
     EVENT_NAME.REHYDRATION_PASSWORD_FAILED,
+  ),
+  SEEDLESS_ONBOARDING_MIGRATION_COMPLETED: generateOpt(
+    EVENT_NAME.SEEDLESS_ONBOARDING_MIGRATION_COMPLETED,
+  ),
+  SEEDLESS_ONBOARDING_MIGRATION_FAILED: generateOpt(
+    EVENT_NAME.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
   ),
   PASSWORD_OUTDATED_MODAL_VIEWED: generateOpt(
     EVENT_NAME.PASSWORD_OUTDATED_MODAL_VIEWED,
@@ -1664,6 +1677,7 @@ const events = {
   ),
   TOKEN_DETAILS_OPENED: generateOpt(EVENT_NAME.TOKEN_DETAILS_OPENED),
   TOKEN_DETAILS_CLOSED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CLOSED),
+  TOKEN_DETAILS_SHARED: generateOpt(EVENT_NAME.TOKEN_DETAILS_SHARED),
   TOKEN_DETAILS_CTA_CLICKED: generateOpt(EVENT_NAME.TOKEN_DETAILS_CTA_CLICKED),
   TOKEN_DETAILS_ACTION_CLICKED: generateOpt(
     EVENT_NAME.TOKEN_DETAILS_ACTION_CLICKED,
@@ -1688,6 +1702,15 @@ const events = {
 
   // Bridge
   SWAP_PAGE_VIEWED: generateOpt(EVENT_NAME.SWAP_PAGE_VIEWED), // Temporary event until unified swap/bridge is done
+  SWAPBRIDGE_STATUS_MODAL_VIEWED: generateOpt(
+    EVENT_NAME.SWAPBRIDGE_STATUS_MODAL_VIEWED,
+  ),
+  SWAPBRIDGE_STATUS_MODAL_DISMISSED: generateOpt(
+    EVENT_NAME.SWAPBRIDGE_STATUS_MODAL_DISMISSED,
+  ),
+  SWAPBRIDGE_STATUS_MODAL_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.SWAPBRIDGE_STATUS_MODAL_BUTTON_CLICKED,
+  ),
   ASSET_VIEWED: generateOpt(EVENT_NAME.ASSET_VIEWED),
 
   // RPC Failover
@@ -2034,6 +2057,9 @@ const events = {
   ),
   SOCIAL_QUICK_BUY_DISMISSED: generateOpt(
     EVENT_NAME.SOCIAL_QUICK_BUY_DISMISSED,
+  ),
+  SOCIAL_QUICK_BUY_INTERACTED: generateOpt(
+    EVENT_NAME.SOCIAL_QUICK_BUY_INTERACTED,
   ),
   SOCIAL_QUICK_TRADE_MODE_TOGGLED: generateOpt(
     EVENT_NAME.SOCIAL_QUICK_TRADE_MODE_TOGGLED,

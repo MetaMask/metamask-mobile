@@ -8,6 +8,8 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { StyleSheet } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
 import formatFiat from '../../../../../../util/formatFiat';
 import { isGaslessQuote } from '../../../../../UI/Bridge/utils/isGaslessQuote';
@@ -16,11 +18,15 @@ import { strings } from '../../../../../../../locales/i18n';
 import { useQuickBuyContext } from './useQuickBuyContext';
 import QuickBuySubScreenHeader from './components/QuickBuySubScreenHeader';
 
+const styles = StyleSheet.create({
+  scrollView: { flex: 1 },
+});
+
 const QuickBuySelectQuoteScreen: React.FC = () => {
   const {
     sortedQuotes,
     selectedQuoteRequestId,
-    setSelectedQuoteRequestId,
+    handleSelectQuote,
     isQuoteLoading,
     destToken,
     currentCurrency,
@@ -53,7 +59,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
         },
         quoteRequestId: quote.quote.requestId,
         onPress: (requestId: string) => {
-          setSelectedQuoteRequestId(requestId);
+          handleSelectQuote(requestId);
           setActiveScreen('quoteDetails');
         },
         loading: isQuoteLoading,
@@ -71,7 +77,7 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
       destToken,
       isQuoteLoading,
       selectedQuoteRequestId,
-      setSelectedQuoteRequestId,
+      handleSelectQuote,
       setActiveScreen,
     ],
   );
@@ -92,7 +98,11 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
           </Text>
         </Box>
       ) : (
-        <>
+        <ScrollView
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          style={styles.scrollView}
+        >
           <Box twClassName="px-4 pb-2 mb-2">
             <Text
               variant={TextVariant.BodySm}
@@ -101,12 +111,12 @@ const QuickBuySelectQuoteScreen: React.FC = () => {
               {strings('bridge.select_quote_info')}
             </Text>
           </Box>
-          <Box twClassName="pb-4">
+          <Box>
             {rows.map((rowProps) => (
               <QuoteRow key={rowProps.quoteRequestId} {...rowProps} />
             ))}
           </Box>
-        </>
+        </ScrollView>
       )}
     </>
   );
