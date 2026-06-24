@@ -54,16 +54,18 @@ export const usePerpsWatchlistActions = (
 
         await controller.toggleWatchlistMarket(symbol);
 
-        const watchlistCount = controller.getWatchlistMarkets().length;
-        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.FAVORITE_TOGGLED,
-          [PERPS_EVENT_PROPERTY.ACTION_TYPE]:
-            PERPS_EVENT_VALUE.ACTION_TYPE.FAVORITE_MARKET,
-          [PERPS_EVENT_PROPERTY.ASSET]: symbol,
-          [PERPS_EVENT_PROPERTY.SOURCE]: source,
-          [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistCount,
-        });
+        const watchlistAfter = controller.getWatchlistMarkets();
+        if (watchlistAfter.includes(symbol)) {
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.FAVORITE_TOGGLED,
+            [PERPS_EVENT_PROPERTY.ACTION_TYPE]:
+              PERPS_EVENT_VALUE.ACTION_TYPE.FAVORITE_MARKET,
+            [PERPS_EVENT_PROPERTY.ASSET]: symbol,
+            [PERPS_EVENT_PROPERTY.SOURCE]: source,
+            [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistAfter.length,
+          });
+        }
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.add'), {
           tags: {
@@ -89,16 +91,18 @@ export const usePerpsWatchlistActions = (
         const controller = Engine.context.PerpsController;
         await controller.toggleWatchlistMarket(symbol);
 
-        const watchlistCount = controller.getWatchlistMarkets().length;
-        track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-            PERPS_EVENT_VALUE.INTERACTION_TYPE.FAVORITE_TOGGLED,
-          [PERPS_EVENT_PROPERTY.ACTION_TYPE]:
-            PERPS_EVENT_VALUE.ACTION_TYPE.UNFAVORITE_MARKET,
-          [PERPS_EVENT_PROPERTY.ASSET]: symbol,
-          [PERPS_EVENT_PROPERTY.SOURCE]: source,
-          [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistCount,
-        });
+        const watchlistAfter = controller.getWatchlistMarkets();
+        if (!watchlistAfter.includes(symbol)) {
+          track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.FAVORITE_TOGGLED,
+            [PERPS_EVENT_PROPERTY.ACTION_TYPE]:
+              PERPS_EVENT_VALUE.ACTION_TYPE.UNFAVORITE_MARKET,
+            [PERPS_EVENT_PROPERTY.ASSET]: symbol,
+            [PERPS_EVENT_PROPERTY.SOURCE]: source,
+            [PERPS_EVENT_PROPERTY.FAVORITES_COUNT]: watchlistAfter.length,
+          });
+        }
       } catch (error) {
         Logger.error(ensureError(error, 'usePerpsWatchlistActions.remove'), {
           tags: {
