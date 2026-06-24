@@ -106,19 +106,27 @@ describe('prefixError', () => {
       );
     });
 
-    it('falls through to plain-Error handling when reason is missing', () => {
+    it('formats as "eth_call failed - method" when reason is absent but method is present', () => {
       const error = Object.assign(new Error(VERBOSE_ETHERS_MESSAGE), {
         code: 'CALL_EXCEPTION',
+        method: 'previewDeposit(address,uint256,address,address)',
       });
       expect(prefixError(error, PREFIX).message).toBe(
-        `MyModule: ${VERBOSE_ETHERS_MESSAGE}`,
+        'MyModule: eth_call failed - previewDeposit',
       );
     });
 
-    it('falls through to plain-Error handling when reason is not a string', () => {
+    it('returns "eth_call failed" when reason is absent and neither method nor transaction.data is present', () => {
+      const error = Object.assign(new Error(VERBOSE_ETHERS_MESSAGE), {
+        code: 'CALL_EXCEPTION',
+      });
+      expect(prefixError(error, PREFIX).message).toBe('MyModule: eth_call failed');
+    });
+
+    it('formats as "eth_call failed - method" when reason is not a string', () => {
       expect(
         prefixError(makeCallException({ reason: 42 }), PREFIX).message,
-      ).toBe(`MyModule: ${VERBOSE_ETHERS_MESSAGE}`);
+      ).toBe('MyModule: eth_call failed - previewDeposit');
     });
   });
 });
