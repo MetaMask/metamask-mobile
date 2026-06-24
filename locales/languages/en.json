@@ -1092,6 +1092,7 @@
       "twitter_link": "View on X (Twitter)",
       "sort": {
         "value": "Value",
+        "top_trades": "Top Trades",
         "pnl_percent": "P&L %",
         "recent": "Recent"
       }

@@ -805,14 +805,14 @@ describe('TraderProfileView', () => {
       expect(screen.getByText('Value')).toBeOnTheScreen();
     });
 
-    it('defaults Closed tab sort to Value and cycles Value -> P&L % -> Recent -> Value', () => {
+    it('defaults Closed tab sort to Top Trades and cycles Top Trades -> P&L % -> Recent -> Top Trades', () => {
       mockPositionsResult.closedPositions = fixtureClosedPositions;
       renderWithProvider(<TraderProfileView />);
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
       );
 
-      expect(screen.getByText('Value')).toBeOnTheScreen();
+      expect(screen.getByText('Top Trades')).toBeOnTheScreen();
 
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
@@ -827,7 +827,7 @@ describe('TraderProfileView', () => {
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
       );
-      expect(screen.getByText('Value')).toBeOnTheScreen();
+      expect(screen.getByText('Top Trades')).toBeOnTheScreen();
     });
 
     it('preserves independent sort state when switching between tabs', () => {
@@ -842,7 +842,7 @@ describe('TraderProfileView', () => {
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
       );
-      expect(screen.getByText('Value')).toBeOnTheScreen();
+      expect(screen.getByText('Top Trades')).toBeOnTheScreen();
 
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),

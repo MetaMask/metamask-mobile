@@ -84,8 +84,17 @@ const POSITION_SKELETON_KEYS = Array.from(
   (_, i) => `position-skeleton-${i}`,
 );
 
-const SORT_LABEL_KEYS: Record<SortKey, string> = {
+// Closed tab uses "Top Trades" for the value sort because the underlying field
+// is realized $ PnL — "Value" reads as notional/market value on Open, which
+// doesn't apply to a closed position.
+const OPEN_SORT_LABEL_KEYS: Record<OpenSortKey, string> = {
   value: 'social_leaderboard.trader_profile.sort.value',
+  pnl: 'social_leaderboard.trader_profile.sort.pnl_percent',
+  recent: 'social_leaderboard.trader_profile.sort.recent',
+};
+
+const CLOSED_SORT_LABEL_KEYS: Record<ClosedSortKey, string> = {
+  value: 'social_leaderboard.trader_profile.sort.top_trades',
   pnl: 'social_leaderboard.trader_profile.sort.pnl_percent',
   recent: 'social_leaderboard.trader_profile.sort.recent',
 };
@@ -485,7 +494,11 @@ const TraderProfileView = () => {
                     </Box>
                     {positions.length > 0 && (
                       <SortButton
-                        label={strings(SORT_LABEL_KEYS[currentSortKey])}
+                        label={strings(
+                          activeTab === 'open'
+                            ? OPEN_SORT_LABEL_KEYS[openSort]
+                            : CLOSED_SORT_LABEL_KEYS[closedSort],
+                        )}
                         onPress={handleSortPress}
                         testID={TraderProfileViewSelectorsIDs.SORT_BUTTON}
                       />
@@ -517,6 +530,7 @@ const TraderProfileView = () => {
                         position={position}
                         onPress={handlePositionPress}
                         isClosed={activeTab === 'closed'}
+                        showTradeDate={currentSortKey === 'recent'}
                       />
                     ))
                   )}
