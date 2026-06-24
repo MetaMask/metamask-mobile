@@ -17,6 +17,9 @@ import { useRampsTokens } from './useRampsTokens';
 import { useRampsUserRegion } from './useRampsUserRegion';
 import { useRampsCountries } from './useRampsCountries';
 import { isRampRegionDefinitivelyUnsupported } from '../utils/rampRegionEligibility';
+import { isRampsServiceDisruptionActive } from '../utils/rampsServiceDisruption';
+import { createRampsServiceDisruptionModalNavigationDetails } from '../components/RampsServiceDisruptionModal/RampsServiceDisruptionModal';
+import { selectRampsServiceDisruptionRegions } from '../../../../selectors/featureFlagController/rampsServiceDisruption';
 import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
 import Engine from '../../../../core/Engine';
 import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
@@ -40,6 +43,9 @@ export const useRampNavigation = () => {
   const navigation = useNavigation();
   const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const geolocationLocation = useSelector(selectGeolocationLocation);
+  const rampsServiceDisruptionRegions = useSelector(
+    selectRampsServiceDisruptionRegions,
+  );
   const { userRegion } = useRampsUserRegion();
   const { countries } = useRampsCountries();
   const { setSelectedToken, tokens: rampsTokens } = useRampsTokens();
@@ -58,6 +64,22 @@ export const useRampNavigation = () => {
 
       const isUnifiedRoutingEnabled =
         isRampsUnifiedV2Enabled && !overrideUnifiedRouting;
+
+      // Region service disruption kill-switch — applies to every buy entry point (including
+      // the deprecated aggregator/reorder path) and takes precedence over the
+      // eligibility/unsupported gating below.
+      if (
+        isRampsServiceDisruptionActive(
+          rampsServiceDisruptionRegions,
+          userRegion,
+          geolocationLocation,
+        )
+      ) {
+        navigation.navigate(
+          ...createRampsServiceDisruptionModalNavigationDetails(),
+        );
+        return;
+      }
 
       // Eligibility gate: region + support now come from RampsController
       // (selectUserRegion / selectCountries) plus GeolocationController,
@@ -159,6 +181,7 @@ export const useRampNavigation = () => {
       countries,
       rampsTokens,
       geolocationLocation,
+      rampsServiceDisruptionRegions,
     ],
   );
 
