@@ -152,6 +152,21 @@ export function formatTradeDate(timestamp: number): string {
 }
 
 /**
+ * Time-only label for trade rows when the day is shown in a section header
+ * (e.g. `8:27 pm`). Matches the clock portion of `toDateFormat`.
+ */
+export function formatTradeTime(timestamp: number): string {
+  const date = new Date(tradeTimestampToMs(timestamp));
+  let hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? 'pm' : 'am';
+  hours %= 12;
+  hours = hours || 12;
+  const minutesStr = minutes < 10 ? `0${minutes}` : String(minutes);
+  return `${hours}:${minutesStr} ${ampm}`;
+}
+
+/**
  * Stable per-day key (local `YYYY-MM-DD`) for grouping trades into day sections.
  * Trades on the same calendar day share a key.
  */

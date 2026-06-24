@@ -28,7 +28,7 @@ const TraderPositionPnLCard: React.FC<TraderPositionPnLCardProps> = ({
   pnlPercent,
   isPnlPositive,
 }) => (
-  <Box twClassName="mx-4 mt-3 p-4 bg-muted rounded-2xl">
+  <Box twClassName="mx-4 mt-3 mb-1 p-4 bg-muted rounded-2xl">
     <Box
       flexDirection={BoxFlexDirection.Row}
       justifyContent={BoxJustifyContent.Between}
