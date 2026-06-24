@@ -1041,7 +1041,6 @@ export type MessengerClientsToInitialize =
   | 'CardController'
   | 'QrSyncController'
   | 'ClientController'
-  | 'PreferencesController'
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'

@@ -401,6 +401,7 @@ app/core/Engine/wallet-init/keyrings* @MetaMask/accounts-engineers @MetaMask/mob
 app/core/Engine/wallet-init/instance-options/approval-controller* @MetaMask/confirmations
 app/core/Engine/wallet-init/instance-options/connectivity-controller* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/keyring-controller* @MetaMask/accounts-engineers @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/preferences-controller* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/remote-feature-flag-controller* @MetaMask/mobile-platform @MetaMask/core-platform
 app/core/Engine/wallet-init/instance-options/storage-service* @MetaMask/mobile-platform @MetaMask/core-platform
 

@@ -15,6 +15,7 @@ import {
   setupTransactionControllerListeners,
 } from './instance-options/transaction-controller';
 import { getTransactionControllerInitMessenger } from './messengers/transaction-controller-messenger';
+import { getPreferencesControllerInitialState } from './instance-options/preferences-controller';
 
 /**
  * Construct the `@metamask/wallet` `Wallet` for mobile. Each controller's
@@ -40,7 +41,10 @@ export function initializeWallet({
 
   const wallet: Wallet = new Wallet({
     messenger,
-    state,
+    state: {
+      ...state,
+      PreferencesController: getPreferencesControllerInitialState(state),
+    },
     instanceOptions: {
       approvalController: getApprovalControllerInstanceOptions(),
       connectivityController: getConnectivityControllerInstanceOptions(),

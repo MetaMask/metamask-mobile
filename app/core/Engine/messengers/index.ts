@@ -62,7 +62,6 @@ import {
   getPermissionControllerMessenger,
 } from './permission-controller-messenger';
 import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
-import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
 import { getTokenSearchDiscoveryDataControllerMessenger } from './token-search-discovery-data-controller-messenger';
 import { getAssetsContractControllerMessenger } from './assets-contract-controller-messenger';
 import {
@@ -227,10 +226,6 @@ export const MESSENGER_FACTORIES = {
   },
   AppMetadataController: {
     getMessenger: getAppMetadataControllerMessenger,
-    getInitMessenger: noop,
-  },
-  PreferencesController: {
-    getMessenger: getPreferencesControllerMessenger,
     getInitMessenger: noop,
   },
   SignatureController: {
