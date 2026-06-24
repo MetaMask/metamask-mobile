@@ -1035,7 +1035,7 @@ describe('ChoosePassword', () => {
       mockNewWalletAndKeychain.mockRestore();
     });
 
-    it('does not block submit waiting for geolocation refresh', async () => {
+    it('keeps submit disabled until geolocation refresh completes', async () => {
       store = mockStore(createInitialState(UNKNOWN_LOCATION));
       ReduxService.store = store as unknown as ReduxStore;
       mockRefreshGeolocation.mockImplementation(
@@ -1063,10 +1063,65 @@ describe('ChoosePassword', () => {
         .mockResolvedValue(undefined);
 
       const component = renderWithProviders(<ChoosePassword />);
+      await fillForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      expect(submitButton).toBeDisabled();
+
+      await waitFor(
+        () => {
+          expect(submitButton).not.toBeDisabled();
+        },
+        { timeout: 2000 },
+      );
+
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      await waitFor(() => {
+        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+      });
+
+      mockNewWalletAndKeychain.mockRestore();
+    });
+
+    it('shows the same marketing opt-in value in the checkbox and on submit for USA OAuth users', async () => {
+      store = mockStore(createInitialState('US'));
+      ReduxService.store = store as unknown as ReduxStore;
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
+        currentAuthType: 'passcode',
+        availableBiometryType: 'faceID',
+      });
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValue(undefined);
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+        provider: 'google',
+      };
+      const spyUpdateMarketingOptInStatus = jest
+        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
+        .mockResolvedValue(undefined);
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      const { checkbox } = getFormElements(component);
+      expect(checkbox).toBeChecked();
+
       await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
 
       await waitFor(() => {
-        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
+        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
       });
 
       mockNewWalletAndKeychain.mockRestore();
