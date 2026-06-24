@@ -985,6 +985,14 @@ describe('AdvancedChart', () => {
 
     expect(onChartReady).toHaveBeenCalledTimes(2);
 
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_LAYOUT_SETTLED', payload: {} }),
+        },
+      });
+    });
+
     const addIndicatorCall = mockPostMessage.mock.calls.find((call) => {
       const parsed = JSON.parse(call[0] as string);
       return parsed.type === 'ADD_INDICATOR' && parsed.payload.name === 'RSI';
