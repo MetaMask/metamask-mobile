@@ -68,6 +68,8 @@ const mockWithdrawalStartFailed = jest.fn((onRetry: () => void) => {
   retryWithdraw = onRetry;
   return mockWithdrawalStartFailedToast;
 });
+// Inner curried selector returned by selectSelectedInternalAccountByScope(state)
+const mockScopedSelector = jest.fn();
 
 describe('usePerpsWithdrawConfirmation', () => {
   const mockAddTransactionBatch = jest.mocked(addTransactionBatch);
@@ -90,8 +92,9 @@ describe('usePerpsWithdrawConfirmation', () => {
     retryWithdraw = undefined;
 
     mockSelectSelectedInternalAccountAddress.mockReturnValue(MOCK_ACCOUNT);
+    mockScopedSelector.mockReturnValue({ address: MOCK_ACCOUNT });
     mockSelectSelectedInternalAccountByScope.mockReturnValue(
-      (() => undefined) as never,
+      mockScopedSelector as never,
     );
     mockSelectDefaultEndpointByChainId.mockReturnValue({
       networkClientId: MOCK_NETWORK_CLIENT_ID,
@@ -167,16 +170,8 @@ describe('usePerpsWithdrawConfirmation', () => {
     });
   });
 
-  it('uses the selected group EVM account for the batch when the account tree is available', async () => {
-    const stateWithAccountTree = {
-      engine: { backgroundState: { AccountTreeController: {} } },
-    };
-    (useSelector as jest.Mock).mockImplementation(((
-      selector: (state: object) => unknown,
-    ) => selector(stateWithAccountTree)) as typeof useSelector);
-    mockSelectSelectedInternalAccountByScope.mockReturnValue((() => ({
-      address: MOCK_EVM_ACCOUNT,
-    })) as never);
+  it('resolves the from address from the selected group EVM account (eip155:0)', async () => {
+    mockScopedSelector.mockReturnValue({ address: MOCK_EVM_ACCOUNT });
 
     const { result } = renderHook(() => usePerpsWithdrawConfirmation());
 
@@ -184,30 +179,9 @@ describe('usePerpsWithdrawConfirmation', () => {
       await result.current.withdrawWithConfirmation();
     });
 
-    expect(mockSelectSelectedInternalAccountByScope).toHaveBeenCalledWith(
-      stateWithAccountTree,
-    );
+    expect(mockScopedSelector).toHaveBeenCalledWith('eip155:0');
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
       expect.objectContaining({ from: MOCK_EVM_ACCOUNT }),
-    );
-  });
-
-  it('falls back to the globally selected account when the account tree is unavailable', async () => {
-    // Default useSelector mock passes an empty state (no AccountTreeController),
-    // so the scoped EVM lookup is skipped in favour of the selected account.
-    mockSelectSelectedInternalAccountByScope.mockReturnValue((() => ({
-      address: MOCK_EVM_ACCOUNT,
-    })) as never);
-
-    const { result } = renderHook(() => usePerpsWithdrawConfirmation());
-
-    await act(async () => {
-      await result.current.withdrawWithConfirmation();
-    });
-
-    expect(mockSelectSelectedInternalAccountByScope).not.toHaveBeenCalled();
-    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
-      expect.objectContaining({ from: MOCK_ACCOUNT }),
     );
   });
 
