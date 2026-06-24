@@ -53,7 +53,6 @@ react {
     // Added by install-expo-modules
     entryFile = file(["node", "-e", "require('expo/scripts/resolveAppEntry')", projectRoot, "android", "absolute"].execute(null, rootDir).text.trim())
     reactNativeDir = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
-    hermesCommand = new File(["node", "--print", "require.resolve('react-native/package.json')"].execute(null, rootDir).text.trim()).getParentFile().getAbsolutePath() + "/sdks/hermesc/%OS-BIN%/hermesc"
     codegenDir = new File(["node", "--print", "require.resolve('@react-native/codegen/package.json', { paths: [require.resolve('react-native/package.json')] })"].execute(null, rootDir).text.trim()).getParentFile().getAbsoluteFile()
     cliFile = new File(["node", "--print", "require.resolve('@expo/cli', { paths: [require.resolve('expo/package.json')] })"].execute(null, rootDir).text.trim())
     bundleCommand = "export:embed"
@@ -61,16 +60,6 @@ react {
     /* Autolinking */
     autolinkLibrariesWithApp()
 }
-
-// Override default React Native to generate source maps for Hermes
-project.ext.react = [
-  bundleCommand: "ram-bundle",
-  bundleAssetName: "index.bundle",
-  entryFile: "index.js",
-  hermesCommand: "../../node_modules/hermes-engine/%OS-BIN%/hermesc",
-  cliPath: "../../node_modules/react-native/cli.js",
-  composeSourceMapsPath: "../../node_modules/react-native/scripts/compose-source-maps.js",
-]
 
 // Sentry environment variables used by Sentry CLI to upload files. Upload is disabled by default
 // TODO - Move to JS side to be shared between platform - Android sets these automatically
