@@ -80,6 +80,7 @@ window.CONFIG = {
     borderColor: '${stripHexAlpha(theme.colors.border.muted)}',
     textColor: '${stripHexAlpha(theme.colors.text.muted)}',
     textAlternativeColor: '${stripHexAlpha(theme.colors.text.alternative)}',
+    sectionBackgroundColor: '${stripHexAlpha(theme.colors.background.section)}',
     successColor: '${successColor}',
     lineColor: '${lineColor}',
     errorColor: '${errorColor}',
@@ -93,8 +94,7 @@ window.CONFIG = {
   lineChrome: {
     hideTimeScale: ${lc.hideTimeScale ? 'true' : 'false'},
     useCustomLineEndMarker: ${lc.useCustomLineEndMarker ? 'true' : 'false'},
-    useCustomDashedLastPriceLine: ${lc.useCustomDashedLastPriceLine ? 'true' : 'false'},
-    useCustomPriceLabels: ${lc.useCustomPriceLabels ? 'true' : 'false'}
+    useCustomDashedLastPriceLine: ${lc.useCustomDashedLastPriceLine ? 'true' : 'false'}
   },
   legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
   indicatorColors: ${JSON.stringify(getIndicatorColorsForWebview(theme.themeAppearance))}
@@ -112,8 +112,6 @@ export const createAdvancedChartTemplate = (
   theme: Theme,
   features: ChartFeatures = {},
 ): string => {
-  const resolvedLineColor =
-    features.lineColorOverride ?? getChartSuccessColor(theme);
   const configInline = createConfigScript(
     CHARTING_LIBRARY_URL,
     theme,
@@ -162,97 +160,6 @@ export const createAdvancedChartTemplate = (
             box-sizing: border-box;
         }
         /*
-         * Transparent layer on top of the chart, same size as #chart_surface.
-         * - pointer-events: none — touches pass through to the chart (we do not block gestures).
-         * - z-index: 50 — above the TV canvas so labels render on top.
-         * chartLogic sets left/top on the pills inside; this div only defines the coordinate system.
-         */
-        #custom-crosshair-overlay {
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            z-index: 50;
-        }
-        /*
-         * Shared “pill” look for crosshair price, crosshair time, and last-close labels.
-         * - position: absolute — placed by chartLogic (px from overlay edges).
-         * - display: none by default; chartLogic sets display:flex when showing a label.
-         * - flex + center — keeps text centered inside the pill; gap reserved if an icon is added later.
-         * - min-width / padding — minimum tap target; horizontal padding matches design spacing.
-         * - ellipsis + nowrap — long strings stay on one line with … if needed.
-         * Colors: section background + default text (success theme applied on last-close only).
-         */
-        .crosshair-label {
-            position: absolute;
-            display: none;
-            box-sizing: border-box;
-            flex-direction: row;
-            align-items: center;
-            justify-content: center;
-            gap: 4px;
-            min-width: 22px;
-            padding: 0 6px;
-            overflow: hidden;
-            text-align: center;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            font-family: Geist, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
-                Roboto, sans-serif;
-            font-size: 12px;
-            font-style: normal;
-            font-weight: 500;
-            line-height: 20px;
-            border-radius: 4px;
-            background: ${stripHexAlpha(theme.colors.background.section)};
-            color: ${stripHexAlpha(theme.colors.text.default)};
-        }
-        /*
-         * Price pills (crosshair + last close): default vertical centering on the Y from chartLogic.
-         * - translateY(-50%) — shifts the pill up by half its height so it sits on the crosshair line.
-         * - right: 0; left: auto — fallback when JS cannot measure the axis (pill hugs the overlay right).
-         * When measurement works, chartLogic sets left/right explicitly and overrides this.
-         */
-        .crosshair-price-label {
-            right: 0;
-            left: auto;
-            transform: translateY(-50%);
-        }
-        /*
-         * Time pill along the bottom axis: pinned to the bottom of the overlay.
-         * - translateX(-50%) — horizontal center of the pill aligns with the inline left set by chartLogic (crosshair X).
-         */
-        .crosshair-time-label {
-            bottom: 0;
-            top: auto;
-            transform: translateX(-50%);
-        }
-        /*
-         * Last-close: green pill (matches TV last-price line), same stacking context as the overlay.
-         */
-        #last-close-price-label {
-            z-index: 50;
-            background: ${stripHexAlpha(resolvedLineColor)};
-            color: ${stripHexAlpha(theme.colors.success.inverse)};
-        }
-        /*
-         * Visible-edge outline pill: same pill metrics as .crosshair-label + .crosshair-price-label
-         * as the filled last-close label, but transparent fill + success border and success (green)
-         * text for readability on the chart background. Shown only when the series tail is off-screen
-         * and lineChrome.useCustomPriceLabels is true (chartLogic.js).
-         */
-        #custom-series-last-value-label {
-            z-index: 55;
-            background: transparent;
-            border: 1px solid ${stripHexAlpha(resolvedLineColor)};
-            color: ${stripHexAlpha(resolvedLineColor)};
-        }
-        /*
-         * Crosshair price pill draws above last-close when both share the same Y so text stays readable.
-         */
-        #crosshair-price-label {
-            z-index: 60;
-        }
-        /*
          * Study legend pills (chartLogic.js): semi-transparent background via color-mix.
          */
         .legend-pill {
@@ -294,12 +201,6 @@ export const createAdvancedChartTemplate = (
     <div id="loading-overlay" class="loading-overlay">Loading chart...</div>
     <div id="chart_surface">
         <div id="tv_chart_container"></div>
-        <div id="custom-crosshair-overlay" aria-hidden="true">
-            <div id="last-close-price-label" class="crosshair-label crosshair-price-label" style="display: none;"></div>
-            <div id="custom-series-last-value-label" class="crosshair-label crosshair-price-label" style="display: none;" aria-hidden="true"></div>
-            <div id="crosshair-price-label" class="crosshair-label crosshair-price-label"></div>
-            <div id="crosshair-time-label" class="crosshair-label crosshair-time-label"></div>
-        </div>
     </div>
 
     <script type="text/javascript">
