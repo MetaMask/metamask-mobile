@@ -708,8 +708,16 @@ const TraderPositionView = () => {
                 pinnedChartStyle,
               ]}
             >
+              {/* The chart block stays fully interactive whether at rest or
+                  pinned (crosshair scrubbing + marker taps). The page still
+                  scrolls because the trades list below the chart is a normal
+                  touchable region — the user scrolls there, not over the chart,
+                  exactly like the fixed-header reference layout. `box-none` keeps
+                  the wrapper itself from being a touch target so the bg-default
+                  fill never blocks the list peeking out beside/below it. */}
               <View
                 onLayout={handleChartBlockLayout}
+                pointerEvents="box-none"
                 style={tw.style('bg-default')}
               >
                 <TraderPositionChartSection
@@ -727,17 +735,12 @@ const TraderPositionView = () => {
                   onTradeMarkerPress={
                     chartAssetId || isPerp ? handleMarkerPress : undefined
                   }
-                  scrollPassthrough={isPinnedChartElevated}
                 />
-                {/* Pills stay tappable even while the chart passes touches
-                    through to the scrolling list. */}
-                <View pointerEvents="auto">
-                  <TraderTimePeriodSelector
-                    timePeriods={timePeriods}
-                    activeTimePeriod={activeTimePeriod}
-                    onSelectPeriod={setActiveTimePeriod}
-                  />
-                </View>
+                <TraderTimePeriodSelector
+                  timePeriods={timePeriods}
+                  activeTimePeriod={activeTimePeriod}
+                  onSelectPeriod={setActiveTimePeriod}
+                />
               </View>
 
               {/* Custom sticky day header: native sticky headers would be hidden

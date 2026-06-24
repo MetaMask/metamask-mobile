@@ -742,7 +742,7 @@ describe('TraderPositionView', () => {
 
     expect(screen.getByText('Closed position')).toBeOnTheScreen();
     expect(screen.getByText('+$300.00')).toBeOnTheScreen();
-    expect(screen.getByText('+25%')).toBeOnTheScreen();
+    expect(screen.getByText('+25.00%')).toBeOnTheScreen();
   });
 
   it('displays market cap from the fallback API when cache is empty', async () => {
