@@ -23,6 +23,8 @@ export interface UsePredictWorldCupFeedSessionResult<T extends string> {
   tabsScrollViewRef: React.RefObject<ScrollView>;
   feedSessionId: string;
   feedSessionStartTime: number;
+  /** Returns the current number of feed pages viewed (tab switches since mount). */
+  getPageViewCount: () => number;
   scrollActiveTabIntoView: (tabKey: T, animated: boolean) => void;
   handleTabLayout: (tabKey: T, event: LayoutChangeEvent) => void;
   handleTabPress: (tabKey: T) => void;
@@ -122,6 +124,8 @@ export function usePredictWorldCupFeedSession<T extends string>({
     navigateToMarketList();
   }, [navigation, navigateToMarketList]);
 
+  const getPageViewCount = useCallback(() => feedPageViewCount.current, []);
+
   // Keep the active pill visible when the tab changes.
   useEffect(() => {
     scrollActiveTabIntoView(activeTab, true);
@@ -133,6 +137,7 @@ export function usePredictWorldCupFeedSession<T extends string>({
     tabsScrollViewRef,
     feedSessionId,
     feedSessionStartTime,
+    getPageViewCount,
     scrollActiveTabIntoView,
     handleTabLayout,
     handleTabPress,

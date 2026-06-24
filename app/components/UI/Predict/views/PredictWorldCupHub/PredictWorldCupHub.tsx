@@ -475,6 +475,7 @@ const PredictWorldCupHub: React.FC = () => {
     tabsScrollViewRef,
     feedSessionId,
     feedSessionStartTime,
+    getPageViewCount,
     handleTabLayout,
     handleTabPress,
     handleBack,
@@ -486,7 +487,6 @@ const PredictWorldCupHub: React.FC = () => {
   });
 
   const hasTrackedInitialFeedViewed = useRef(false);
-  const feedPageViewCount = useRef(0);
 
   // Single hook call — sections, live status and refetch are passed down to GamesTabContent.
   // No `enabled` guard needed: PredictWorldCupRoute already ensures this component only
@@ -507,13 +507,19 @@ const PredictWorldCupHub: React.FC = () => {
       sessionId: feedSessionId,
       feedTab: initialTab,
       predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
-      numPagesViewed: feedPageViewCount.current,
+      numPagesViewed: getPageViewCount(),
       sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
       entryPoint,
       isSessionEnd: false,
     });
     hasTrackedInitialFeedViewed.current = true;
-  }, [entryPoint, feedSessionId, feedSessionStartTime, initialTab]);
+  }, [
+    entryPoint,
+    feedSessionId,
+    feedSessionStartTime,
+    getPageViewCount,
+    initialTab,
+  ]);
 
   return (
     <SafeAreaView

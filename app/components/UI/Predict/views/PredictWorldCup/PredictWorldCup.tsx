@@ -322,6 +322,7 @@ const PredictWorldCup: React.FC = () => {
     tabsScrollViewRef,
     feedSessionId,
     feedSessionStartTime,
+    getPageViewCount,
     handleTabLayout,
     handleTabPress,
     navigateToMarketList,
@@ -334,7 +335,6 @@ const PredictWorldCup: React.FC = () => {
   });
 
   const hasTrackedInitialFeedViewed = useRef(false);
-  const feedPageViewCount = useRef(0);
 
   useEffect(() => {
     if (isScreenEnabled) return;
@@ -355,7 +355,7 @@ const PredictWorldCup: React.FC = () => {
       sessionId: feedSessionId,
       feedTab: initialTab,
       predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
-      numPagesViewed: feedPageViewCount.current,
+      numPagesViewed: getPageViewCount(),
       sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
       entryPoint,
       isSessionEnd: false,
@@ -365,6 +365,7 @@ const PredictWorldCup: React.FC = () => {
     entryPoint,
     feedSessionId,
     feedSessionStartTime,
+    getPageViewCount,
     initialTab,
     isAvailabilityFetching,
     isAvailabilityLoading,
