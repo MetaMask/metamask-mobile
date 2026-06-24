@@ -119,6 +119,7 @@ export function HardwareWalletsSwaps() {
     useHwQrState({
       isEnabled: Boolean(strategy.walletAddress),
       currentStatus: progress.status,
+      walletAddress: strategy.walletAddress,
     });
 
   // ── Flow state machine (initial submit, retry, cancel, done) ──────
@@ -133,6 +134,7 @@ export function HardwareWalletsSwaps() {
     connectionState,
     ensureDeviceReady,
     setPendingOperationAddress,
+    isQrHardwareWallet,
   });
 
   const isSigning = useMemo(() => {

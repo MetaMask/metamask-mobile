@@ -43,8 +43,7 @@ export const GO_BACK_TYPES = [
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
   const navigation = useNavigation();
-  const { shouldDefer: shouldDeferHwSend, defer: deferHwSend } =
-    useHandleHwSend();
+  const { shouldDefer: shouldDeferHwSend, defer: deferHwSend } = useHandleHwSend();
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
   const { chainId, isGasFeeTokenIgnoredIfBalance, type } =

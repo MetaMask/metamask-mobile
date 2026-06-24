@@ -25,6 +25,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
+import Routes from '../../../../constants/navigation/Routes';
 import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
 import { UR } from '@ngraveio/bc-ur';
 import { stringify as uuidStringify } from 'uuid';
@@ -194,7 +195,14 @@ export function HwQrScanner() {
             cbor: Buffer.from(ur.cbor).toString('hex'),
           });
           setRequestCompleted();
-          navigation.goBack();
+          // Last-step: navigate directly to the activity view instead
+          // of goBack()-ing to HardwareWalletsSwaps, which would collide
+          // with its auto-success-navigate on Android (addViewAt crash).
+          if (isLastStep) {
+            navigation.navigate(Routes.TRANSACTIONS_VIEW);
+          } else {
+            navigation.goBack();
+          }
           return true;
         }
       }

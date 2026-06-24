@@ -7,7 +7,7 @@ import {
   useState,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import Logger from '../../../../util/Logger';
 
@@ -57,6 +57,8 @@ interface UseHwSwapLifecycleInputs {
   ensureDeviceReady?: (deviceId?: string | null) => Promise<boolean>;
   /** Sets the pending operation address so the provider can derive the wallet type for device connection. Forwarded to submit. */
   setPendingOperationAddress?: (address: string | null) => void;
+  /** True when the active wallet is a QR hardware wallet. Disables BLE connection monitoring (QR has no persistent transport). */
+  isQrHardwareWallet?: boolean;
 }
 
 /**
@@ -76,9 +78,11 @@ export function useHwSwapLifecycle({
   connectionState,
   ensureDeviceReady,
   setPendingOperationAddress,
+  isQrHardwareWallet,
 }: UseHwSwapLifecycleInputs) {
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const toastRef = useContext(ToastContext)?.toastRef;
 
   const progress = useSelector(selectHardwareWalletsSwaps);
@@ -109,7 +113,7 @@ export function useHwSwapLifecycle({
   });
 
   const { resetHandledError } = useHwConnectionMonitoring({
-    isEnabled: Boolean(strategy.walletAddress),
+    isEnabled: Boolean(strategy.walletAddress) && !isQrHardwareWallet,
     currentStatus: progress.status,
     hasActiveSigning: Boolean(confirmationTxId),
     retryInProgressRef,
@@ -165,10 +169,17 @@ export function useHwSwapLifecycle({
     // Fires exactly once (guarded by hasAutoNavigatedRef) to show the
     // success toast, reset HW-swaps state, and navigate to activity view.
     if (!allStepsSigned) return;
+    // For QR wallets the HwQrScanner screen handles final navigation
+    // directly (it navigates to TRANSACTIONS_VIEW on the last scan
+    // instead of calling goBack()).  Letting this effect also fire would
+    // produce two native view insertions in the same frame, colliding
+    // on Android (java.lang.IllegalStateException / addViewAt).
+    if (isQrHardwareWallet) return;
+    if (!isFocused) return;
     if (hasAutoNavigatedRef.current) return;
     if (!hasInitialSubmissionRef.current) return;
     navigateOnSuccess();
-  }, [allStepsSigned, navigateOnSuccess]);
+  }, [allStepsSigned, isQrHardwareWallet, isFocused, navigateOnSuccess]);
 
   // ── Initial submit (first Waiting) ───────────────────────────────
   useEffect(() => {

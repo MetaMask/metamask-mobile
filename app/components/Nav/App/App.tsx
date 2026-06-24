@@ -122,6 +122,7 @@ import { selectExistingUser } from '../../../reducers/user/selectors';
 import { useTheme } from '../../../util/theme';
 import { Confirm } from '../../Views/confirmations/components/confirm';
 import { HardwareWalletsSwaps } from '../../UI/HardwareWallet/Swaps/HardwareWalletsSwaps';
+import { HwQrScanner } from '../../UI/HardwareWallet/Swaps/HwQrScanner';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
 import VerificationCodeBottomSheet from '../../Views/AddDeviceToWallet/VerificationCodeBottomSheet';
@@ -1198,6 +1199,11 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.BRIDGE.HARDWARE_WALLETS_SWAPS}
         component={HardwareWalletsSwaps}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
+        name={Routes.BRIDGE.HW_QR_SCANNER}
+        component={HwQrScanner}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
