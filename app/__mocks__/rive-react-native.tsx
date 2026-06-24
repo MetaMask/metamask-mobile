@@ -11,6 +11,9 @@ export const __mockRiveFireState = jest.fn();
 
 export interface RiveRef {
   setInputState: jest.Mock;
+  setBoolean: jest.Mock;
+  setNumber: jest.Mock;
+  setString: jest.Mock;
   fireState: jest.Mock;
   reset: jest.Mock;
   play: jest.Mock;
@@ -20,6 +23,9 @@ export interface RiveRef {
 
 interface MockedMethods {
   setInputState?: jest.Mock;
+  setBoolean?: jest.Mock;
+  setNumber?: jest.Mock;
+  setString?: jest.Mock;
   fireState?: jest.Mock;
   reset?: jest.Mock;
   play?: jest.Mock;
@@ -43,6 +49,9 @@ const DEFAULT_TEST_ID = 'mock-rive-animation';
 
 const createMockedMethods = (overrides?: MockedMethods): RiveRef => ({
   setInputState: jest.fn(),
+  setBoolean: jest.fn(),
+  setNumber: jest.fn(),
+  setString: jest.fn(),
   fireState: __mockRiveFireState,
   reset: jest.fn(),
   play: jest.fn(),
@@ -89,6 +98,9 @@ RiveMock.displayName = 'RiveMock';
 
 const Fit = {
   Contain: 'contain',
+  Cover: 'cover',
+  FitWidth: 'fitWidth',
+  Layout: 'layout',
 } as const;
 
 const Alignment = {
@@ -112,6 +124,19 @@ export const __resetAllMocks = (): void => {
     });
   }
 };
+
+export const AutoBind = (value: boolean) => ({ type: 'autobind', value });
+
+export const useRive = () => {
+  const ref = React.useRef<RiveRef>(createMockedMethods());
+  updateLastMockedMethods(ref.current);
+  return [ref, ref.current] as const;
+};
+
+export const useRiveString = () => [undefined, jest.fn()] as const;
+export const useRiveNumber = () => [undefined, jest.fn()] as const;
+export const useRiveBoolean = () => [undefined, jest.fn()] as const;
+export const useRiveTrigger = () => jest.fn();
 
 export { Alignment, Fit };
 export default RiveMock;

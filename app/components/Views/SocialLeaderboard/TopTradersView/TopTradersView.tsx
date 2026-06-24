@@ -66,6 +66,7 @@ import {
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
+import TopTradersNuxRiveOverlay from './TopTradersNuxRiveOverlay';
 
 type TabFilter = 'all' | 'tokens' | 'perps';
 
@@ -169,6 +170,7 @@ const TopTradersView = () => {
 
   const [selectedTab, setSelectedTab] = useState<TabFilter>('all');
   const [refreshing, setRefreshing] = useState(false);
+  const [showNuxOverlay, setShowNuxOverlay] = useState(true);
   // Tracks whether we've already emitted the screen-viewed event this mount.
   // Avoids re-firing if the user changes filters or refreshes.
   const hasFiredScreenViewedRef = useRef(false);
@@ -434,6 +436,10 @@ const TopTradersView = () => {
           }
         />
       )}
+      <TopTradersNuxRiveOverlay
+        visible={showNuxOverlay}
+        onDismiss={() => setShowNuxOverlay(false)}
+      />
     </SafeAreaView>
   );
 };
