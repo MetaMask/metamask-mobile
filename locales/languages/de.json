@@ -125,7 +125,7 @@
       "title": "Betrag außerhalb des zulässigen Bereichs"
     },
     "deposit_limit": {
-      "title": "Max deposit: {{amount}}"
+      "title": "Maximale Einzahlung: {{amount}}"
     },
     "headless_buy_error": {
       "title": "Fiat-Kauf fehlgeschlagen",
@@ -449,7 +449,7 @@
     "forgot_password": "Passwort vergessen?",
     "cant_proceed": "Sie können nicht fortfahren, bevor Sie das Wort „Delete“ eingeben. Mit dieser Aktion entscheiden Sie sich dazu, Ihr aktuelles Wallet zu löschen.",
     "invalid_password": "Das Passwort ist falsch. Versuchen Sie es erneut.",
-    "type_delete": "Type ‘{{erase}}’ to confirm",
+    "type_delete": "Geben Sie zur Bestätigung „{{erase}}“ ein",
     "erase_my": "Ja, Wallet zurücksetzen",
     "cancel": "Abbrechen",
     "are_you_sure": "Sind Sie sicher?",
@@ -616,8 +616,8 @@
     "invalid_qr_code_title": "Ungültiger QR-Code",
     "invalid_qr_code_message": "Dieser QR-Code repräsentiert keine gültige geheime Wiederherstellungsphrase",
     "enter_your_secret_recovery_phrase": "Geben Sie Ihre geheime Wiederherstellungsphrase ein.",
-    "or": "or",
-    "import_wallet_from_extension": "import from the MetaMask extension",
+    "or": "oder",
+    "import_wallet_from_extension": "Aus der MetaMask-Erweiterung importieren",
     "metamask_password": "MetaMask-Passwort",
     "metamask_password_description": "Schaltet MetaMask nur auf diesem Gerät frei.",
     "seed_phrase_required": "Geheime Wiederherstellungsphrase ist erforderlich",
@@ -1049,7 +1049,7 @@
       "title": "Top-Trader der Woche",
       "chain_filter": {
         "all": "Alle",
-        "tokens": "Tokens",
+        "tokens": "Token",
         "perps": "Perps"
       }
     },
@@ -1081,9 +1081,9 @@
     "trader_profile": {
       "followers_count": "{{count}} Follower",
       "followers_count_plural": "{{count}} Follower",
-      "win_rate": "Win rate",
-      "pnl_7d": "7D P&L",
-      "hold_time": "Avg. hold",
+      "win_rate": "Gewinnrate",
+      "pnl_7d": "7T GuV",
+      "hold_time": "Durchschnittliches Halten",
       "hold_time_minutes": "{{count}} Min.",
       "hold_time_hours": "{{count}} Std.",
       "hold_time_days": "{{count}} Tage",
@@ -1105,8 +1105,8 @@
       "trades": "Trades",
       "buy": "Kaufen",
       "trade": "Trade",
-      "unsupported_market": "Unsupported market",
-      "bought": "Bought",
+      "unsupported_market": "Nicht unterstützter Markt",
+      "bought": "Gekauft",
       "sold": "Verkauft",
       "no_trades": "Noch keine Trades",
       "closed_position": "Geschlossene Position",
@@ -1117,7 +1117,7 @@
       "sell": "Verkaufen",
       "long": "Long",
       "short": "Short",
-      "opened": "Opened",
+      "opened": "Geöffnet",
       "closed_action": "Geschlossen"
     },
     "quick_buy": {
@@ -2503,6 +2503,7 @@
       "soccer_anytime_goalscorer": "Torschützen",
       "soccer_exact_score": "Genaues Ergebnis",
       "soccer_halftime_result": "Halbzeitergebnis",
+      "soccer_first_to_score": "First Team to Score",
       "total_corners": "Eckstöße",
       "tennis_set_totals": "Sätze insgesamt",
       "tennis_set_handicap": "Handicap festlegen",
@@ -2754,7 +2755,7 @@
     "error": {
       "title": "Verbindung zu Prognosen nicht möglich",
       "description": "Die Prognosemärkte sind vorübergehend nicht verfügbar. Bitte überprüfen Sie Ihre Internetverbindung und versuchen Sie es erneut.",
-      "chart_connection_error": "There is an issue connecting. Please try again later.",
+      "chart_connection_error": "Bei der Verbindung ist ein Problem aufgetreten. Bitte versuchen Sie es später erneut.",
       "retry": "Erneut versuchen"
     },
     "error_messages": {
@@ -3030,61 +3031,61 @@
   },
   "activity_view": {
     "title": "Aktivität",
-    "search_placeholder": "Search tokens, transaction types...",
+    "search_placeholder": "Suche nach Token, Transaktionsarten ...",
     "filter_all_networks": "Alle Netzwerke",
-    "filter_all_types": "All types",
-    "filter_types_selected": "Types: {{label}}",
-    "filter_network_selected": "Network: {{label}}",
+    "filter_all_types": "Alle Arten",
+    "filter_types_selected": "Arten: {{label}}",
+    "filter_network_selected": "Netzwerk: {{label}}",
     "type_filter": {
-      "title": "Types",
-      "all": "All types",
+      "title": "Arten",
+      "all": "Alle Arten",
       "transactions": "Transaktionen",
-      "buy_sell": "Buy/Sell",
+      "buy_sell": "Kaufen/Verkaufen",
       "perps": "Perps",
       "predictions": "Prognosen",
-      "metamask_card": "Card",
+      "metamask_card": "Karte",
       "money": "Money"
     },
     "empty_state": {
       "default_funded": {
-        "description": "Nothing to see yet. Swap your first token today.",
+        "description": "Noch nichts zu sehen. Swappen Sie heute Ihr erstes Token.",
         "action": "Tokens tauschen"
       },
       "default_unfunded": {
-        "description": "Nothing to see yet. Add funds to your wallet to get started.",
+        "description": "Noch nichts zu sehen. Fügen Sie Ihrer Wallet Geld hinzu, um loszulegen.",
         "action": "Gelder hinzufügen"
       },
       "predictions": {
-        "description": "Your first prediction could be your best.",
-        "action": "Make a prediction"
+        "description": "Ihre erste Prognose könnte Ihre beste sein.",
+        "action": "Treffen Sie eine Prognose"
       },
       "perps": {
-        "description": "Your first perps trade could be your best.",
+        "description": "Ihr erster Perps-Handel könnte Ihr bester sein.",
         "action": "Märkte durchsuchen"
       },
       "transactions_funded": {
-        "description": "Swap your first token today.",
+        "description": "Swappen Sie heute Ihr erstes Token.",
         "action": "Tokens tauschen"
       },
       "transactions_unfunded": {
-        "description": "Add funds to your wallet to get started.",
+        "description": "Fügen Sie Ihrer Wallet Geld hinzu, um loszulegen.",
         "action": "Gelder hinzufügen"
       },
       "buy_sell": {
-        "description": "Add funds to your wallet to get started.",
+        "description": "Fügen Sie Ihrer Wallet Geld hinzu, um loszulegen.",
         "action": "Gelder hinzufügen"
       },
       "money_funded": {
-        "description": "You've got funds—put them to work in MetaMask Money.",
+        "description": "Sie haben Guthaben – stecken Sie es einfach in MetaMask-Geld.",
         "action": "Geld überweisen"
       },
       "money_unfunded": {
-        "description": "Transfer to MetaMask Money and unlock all it has to offer.",
+        "description": "Wechseln Sie zu MetaMask-Geld und nutzen Sie alle damit verbundenen Vorteile.",
         "action": "Geld überweisen"
       },
       "metamask_card": {
-        "description": "Manage your MetaMask Card and spend crypto anywhere.",
-        "action": "Open MetaMask Card"
+        "description": "Verwalten Sie Ihre MetaMask Card und geben Sie überall Krypto aus.",
+        "action": "MetaMask Card öffnen"
       }
     }
   },
@@ -3974,32 +3975,32 @@
       "description": "Überschreiben Sie die Feature-Flags der App lokal."
     },
     "add_device": {
-      "title": "Add device",
-      "enter_your_password": "Enter your password",
-      "enter_your_password_desc": "For account security, enter your password to view the QR code.",
-      "continue": "Continue",
-      "add_wallets": "Add wallets",
-      "add_wallets_desc": "Pick the wallets you’d like to use on this device. You can add or remove them later.",
-      "select_all": "Select all",
-      "scan_qr_code": "Scan QR code",
-      "scan_qr_code_desc": "Scan this with the MetaMask app on the device you want to add.",
-      "enter_verification_code": "Enter verification code",
-      "enter_verification_code_desc": "For security, enter the code shown in the MetaMask app on your device.",
-      "add_device_to_wallet": "Add this device to wallet",
+      "title": "Gerät hinzufügen",
+      "enter_your_password": "Geben Sie Ihr Passwort ein",
+      "enter_your_password_desc": "Geben Sie aus Sicherheitsgründen Ihr Passwort ein, um den QR-Code anzuzeigen.",
+      "continue": "Fortfahren",
+      "add_wallets": "Wallets hinzufügen",
+      "add_wallets_desc": "Wählen Sie die Wallets aus, die Sie auf diesem Gerät verwenden möchten. Sie können sie später hinzufügen oder entfernen.",
+      "select_all": "Alle auswählen",
+      "scan_qr_code": "QR-Code scannen",
+      "scan_qr_code_desc": "Scannen Sie dies mit der MetaMask-App auf dem Gerät, das Sie hinzufügen möchten.",
+      "enter_verification_code": "Verifizierungscode eingeben",
+      "enter_verification_code_desc": "Geben Sie aus Sicherheitsgründen den Code ein, der in der MetaMask-App auf Ihrem Gerät angezeigt wird.",
+      "add_device_to_wallet": "Dieser Gerät zur Wallet hinzufügen",
       "points": {
-        "one": "Open MetaMask on your other device",
-        "two": "Go to",
-        "two_bold_one": "Settings",
-        "two_bold_two": "Add device",
+        "one": "Öffnen Sie MetaMask auf Ihrem anderen Gerät",
+        "two": "Gehen Sie zu",
+        "two_bold_one": "Einstellungen",
+        "two_bold_two": "Gerät hinzufügen",
         "two_icon": ">",
-        "three": "Scan the QR code with this device",
-        "four": "Enter the security code on your extension"
+        "three": "Scannen Sie den QR-Code mit diesem Gerät",
+        "four": "Geben Sie den Sicherheitscode in Ihrer Erweiterung ein"
       },
-      "scan_qr_code_button": "Scan QR code",
-      "enter_code_on_extension": "Enter code on extension",
-      "enter_code_on_extension_desc": "For security, enter the verification code below on your MetaMask extension.",
-      "done": "Done",
-      "device_added": "Device added"
+      "scan_qr_code_button": "QR-Code scannen",
+      "enter_code_on_extension": "Code in Erweiterung eingeben",
+      "enter_code_on_extension_desc": "Geben Sie aus Sicherheitsgründen den untenstehenden Bestätigungscode in Ihre MetaMask-Erweiterung ein.",
+      "done": "Fertig",
+      "device_added": "Gerät hinzugefügt"
     }
   },
   "aes_crypto_test_form": {
@@ -4146,27 +4147,27 @@
     "sell_description": "Krypto für Bargeld verkaufen"
   },
   "price_alerts": {
-    "create_title": "Create {{ticker}} price alert",
-    "edit_title": "Edit {{ticker}} price alert",
-    "price_reaches": "Price reaches",
+    "create_title": "{{ticker}}-Preisbenachrichtigung erstellen",
+    "edit_title": "{{ticker}}-Preisbenachrichtigung bearbeiten",
+    "price_reaches": "Preis erreicht",
     "price_change": "Preisänderung",
-    "enter_target_price": "Enter target price",
+    "enter_target_price": "Zielkurs eingeben",
     "approx_percent": "≈ {{percent}}%",
-    "approx_percent_above": "above current {{ticker}} price",
-    "approx_percent_below": "below current {{ticker}} price",
-    "recurring": "Recurring",
-    "quick_percentage": "{{percentage}}%",
-    "price_change_under_development": "This experience is currently under development",
-    "set_price_alert": "Set price alert",
-    "update_price_alert": "Update price alert",
-    "save_success": "Price alert for {{ticker}} saved successfully.",
-    "delete_success": "Price alert deleted.",
-    "duplicate_threshold": "An alert at this price already exists.",
-    "manage_title": "Price alerts",
-    "add_alert": "Add alert",
-    "reaches_threshold": "Reaches {{threshold}}",
-    "once_label": "Once",
-    "no_alerts": "No price alerts set for this asset."
+    "approx_percent_above": "über aktuellem {{ticker}}-Kurs",
+    "approx_percent_below": "unter aktuellem {{ticker}}-Kurs",
+    "recurring": "Wiederkehrend",
+    "quick_percentage": "{{percentage}} %",
+    "price_change_under_development": "Dieses Erlebnis ist derzeit in Entwicklung",
+    "set_price_alert": "Preisbenachrichtigung festlegen",
+    "update_price_alert": "Preisbenachrichtigung aktualisieren",
+    "save_success": "Preisbenachrichtigung für {{ticker}} erfolgreich gespeichert.",
+    "delete_success": "Preisbenachrichtigung gelöscht.",
+    "duplicate_threshold": "Eine Benachrichtigung zu diesem Preis existiert bereits.",
+    "manage_title": "Preisbenachrichtigung",
+    "add_alert": "Benachrichtigung hinzufügen",
+    "reaches_threshold": "Erreicht {{threshold}}",
+    "once_label": "Einmal",
+    "no_alerts": "Für dieses Asset wurde keine Preisbenachrichtigung festgelegt."
   },
   "asset_overview": {
     "market_closed": "Markt geschlossen",
@@ -4257,8 +4258,8 @@
       "3y": "3J",
       "all": "Alle"
     },
-    "ma_picker_title": "Moving average",
-    "done": "Done",
+    "ma_picker_title": "Gleitender Durchschnitt",
+    "done": "Fertig",
     "no_chart_data": {
       "title": "Keine Diagrammdaten",
       "description": "Für dieses Token konnten keine Daten abgerufen werden.",
@@ -4564,7 +4565,7 @@
     "confirmed": "Bestätigt",
     "pending": "Ausstehend",
     "submitted": "Eingereicht",
-    "queued": "Queued",
+    "queued": "In der Warteschlange",
     "failed": "Fehlgeschlagen",
     "cancelled": "Storniert",
     "signed": "Ausstehend",
@@ -4758,35 +4759,35 @@
     "tx_review_predict_withdraw": "Prognosenwiderruf",
     "tx_review_perps_withdraw": "Perps-Auszahlung",
     "tx_review_musd_conversion": "mUSD-Konvertierung",
-    "activity_buy": "Bought",
+    "activity_buy": "Gekauft",
     "activity_sell": "Verkauft",
-    "activity_claim_musd_bonus": "Claimed mUSD bonus",
-    "activity_wrap": "Wrapped",
-    "activity_unwrap": "Unwrapped",
-    "activity_revoke_spending_cap": "Revoked spending cap",
-    "activity_nft_mint": "NFT mint",
-    "activity_smart_account_upgrade": "Smart account upgrade",
-    "activity_prediction_cashed_out": "Prediction cashed out",
+    "activity_claim_musd_bonus": "Eingeforderter mUSD-Bonus",
+    "activity_wrap": "Eingepackt",
+    "activity_unwrap": "Ausgepackt",
+    "activity_revoke_spending_cap": "Ausgabenobergrenze widerrufen",
+    "activity_nft_mint": "NFT-Prägung",
+    "activity_smart_account_upgrade": "Smart-Konto-Upgrade",
+    "activity_prediction_cashed_out": "Prognose ausgezahlt",
     "activity_prediction_placed": "Prognose platziert",
-    "activity_perps_balance": "Perps balance",
+    "activity_perps_balance": "Perps-Saldo",
     "activity_predictions_balance": "Predictions balance",
     "activity_prediction_account_funded": "Account funded",
     "activity_prediction_withdrawal": "Prediction withdrawal",
     "activity_perps_account_funded": "Account funded",
     "activity_perps_withdrawal": "Perps withdrawal",
-    "activity_perps_open_long": "Opened long",
-    "activity_perps_close_long": "Closed long",
+    "activity_perps_open_long": "Geöffnete Long-Position",
+    "activity_perps_close_long": "Geschlossene Long-Position",
     "activity_perps_close_long_liquidated": "Closed long—liquidated",
     "activity_perps_close_long_stop_loss": "Closed long—stop loss",
-    "activity_perps_open_short": "Opened short",
-    "activity_perps_close_short": "Closed short",
+    "activity_perps_open_short": "Geöffnete Short-Position",
+    "activity_perps_close_short": "Geschlossene Short-Position",
     "activity_perps_close_short_liquidated": "Closed short—liquidated",
     "activity_perps_close_short_stop_loss": "Closed short—stop loss",
-    "activity_perps_paid_funding_fees": "Paid funding fees",
-    "activity_perps_received_funding_fees": "Received funding fees",
+    "activity_perps_paid_funding_fees": "Bezahlte Finanzierungsgebühren",
+    "activity_perps_received_funding_fees": "Erhaltene Finanzierungsgebühren",
     "activity_perps_close_short_take_profit": "Closed short—take profit",
     "activity_perps_close_long_take_profit": "Closed long—take profit",
-    "activity_market_short": "Market short",
+    "activity_market_short": "Markt-Short-Position",
     "activity_stop_market_close_short": "Stop market—close short",
     "activity_market_close_short": "Market—close short",
     "claim": "Einfordern",
@@ -4953,7 +4954,7 @@
     "others": "Sonstige",
     "memo": "Notiz",
     "network": "Netzwerk",
-    "custom": "Custom"
+    "custom": "Benutzerdefiniert"
   },
   "duplicate_address": {
     "title": "Dies ist eine Doppeladresse",
@@ -5652,7 +5653,7 @@
   },
   "transaction_update_toast": {
     "title": "Transaktionsaktualisierung fehlgeschlagen",
-    "amount_update_title": "Error",
+    "amount_update_title": "Fehler",
     "already_confirmed": "Diese Transaktion wurde bereits bestätigt und kann nicht mehr geändert werden."
   },
   "payment_request": {
@@ -6391,7 +6392,7 @@
     }
   },
   "invalid_network": {
-    "title": "The chain ID for custom network \n {{network}} \n has to be re-entered.",
+    "title": "Die Chain-ID für das benutzerdefinierte Netzwerk \n{{network}} \n muss erneut eingegeben werden.",
     "message": "Um Sie vor bösartigen oder fehlerhaften Netzwerkanbietern zu schützen, sind Chain-IDs nun für alle benutzerdefinierten Netzwerke erforderlich.",
     "hint": "Hier finden Sie die Chain-IDs der beliebtesten Netzwerke:",
     "edit_network_button": "Netzwerk bearbeiten",
@@ -7045,7 +7046,7 @@
     "apy_info_label": "Info zum effektiven Jahreszins (APY)",
     "balance_unavailable": "Kontostand nicht verfügbar",
     "balance_unavailable_value": "$—",
-    "balance_unavailable_banner_description": "We’re temporarily unable to display your balance. Your funds are safe—please try again shortly.",
+    "balance_unavailable_banner_description": "Wir können Ihr Guthaben vorübergehend nicht anzeigen. Ihr Guthaben ist gesichert – bitte versuchen Sie es in Kürze erneut.",
     "balance_retry": "Erneut versuchen",
     "balance_no_account": "Geldkonto nicht gefunden",
     "onboarding": {
@@ -7070,9 +7071,9 @@
       }
     },
     "first_time_deposit": {
-      "title": "First deposit, done",
-      "content": "It’s in your Money account —\n and already earning.",
-      "button_text": "Done"
+      "title": "Erste Einzahlung, durchgeführt",
+      "content": "Es befindet sich auf Ihrem Geldkonto –\nund bringt bereits Erträge.",
+      "button_text": "Fertig"
     },
     "rive_onboarding": {
       "step1_title": "Geldkonten sind hier",
@@ -7082,13 +7083,13 @@
       "step2_body": "Bewegen Sie Stablecoins ohne Tauschgebühren. Ihre Gelder beginnen sofort, Erträge zu erwirtschaften.",
       "step2_footer_text": "Das Geldkonto nutzt die Veda-Infrastruktur.",
       "step3_title": "Überall ausgeben",
-      "step3_body_card_eligible": "Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask Card.",
-      "step3_body_card_ineligible": "Coming soon! Get up to {{percentage}}% back on purchases by linking your Money account to a MetaMask Card.",
+      "step3_body_card_eligible": "Erhalten Sie bis zu {{percentage}} % auf Ihre Käufe zurück, indem Sie Ihr Geldkonto mit einer MetaMask-Karte verknüpfen.",
+      "step3_body_card_ineligible": "Demnächst verfügbar! Erhalten Sie bis zu {{percentage}} % auf Ihre Käufe zurück, indem Sie Ihr Geldkonto mit einer MetaMask-Karte verknüpfen.",
       "step3_footer_text": "Umfasst die Überwachung von Steakhouse Financial.",
       "step4_title": "Handeln und verdienen an einem Ort",
       "step4_body": "Nutzen Sie Ihren Geldsaldo, um über MetaMask zu handeln und dabei weiterhin Erträge zu erzielen.",
       "step4_footer_text": "Unterstützt von Monad.",
-      "button_text": "Continue"
+      "button_text": "Fortfahren"
     },
     "action": {
       "add": "Hinzufügen",
@@ -7164,7 +7165,7 @@
       "benefit_liquidity": "Erhalten Sie volle Liquidität ohne Sperrfristen, sodass Sie jederzeit handeln oder auszahlen können",
       "benefit_spend_prefix": "Geben Sie bei über 150 Mio. Händlern mit MetaMask Card aus und verdienen Sie dabei ",
       "benefit_spend_cashback": "1 bis 3 % mUSD zurück",
-      "benefit_transfer": "Send to any of your wallets across MetaMask",
+      "benefit_transfer": "Senden Sie an jede Ihrer Wallets über MetaMask",
       "benefit_global": "Senden und empfangen Sie Geld weltweit",
       "learn_more": "Mehr erfahren"
     },
@@ -7174,7 +7175,7 @@
     "add_money_sheet": {
       "title": "Gelder hinzufügen",
       "convert_crypto": "Krypto umwandeln",
-      "deposit_funds": "Debit card or Apple Pay",
+      "deposit_funds": "Debitkarte oder Apple Pay",
       "bank_account": "Bankkonto",
       "move_musd": "{{amount}} mUSD",
       "add_musd": "mUSD hinzufügen",
@@ -7200,12 +7201,12 @@
       "in_progress_body": "Das könnte ein paar Minuten dauern.",
       "deposit_in_progress_title_convert": "Krypto wird konvertiert",
       "deposit_in_progress_title_add_musd": "Gelder hinzufügen",
-      "deposit_in_progress_title_card": "Depositing",
-      "deposit_in_progress_body_card": "Card orders may take a few minutes.",
+      "deposit_in_progress_title_card": "Einzahlung",
+      "deposit_in_progress_body_card": "Kartenbestellungen können einige Minuten dauern.",
       "success_title": "Transaktion abgeschlossen",
       "deposit_success_title_convert": "Konvertierung abgeschlossen",
       "deposit_success_title_add_musd": "Gelder hinzugefügt",
-      "deposit_success_title_card": "Deposit complete",
+      "deposit_success_title_card": "Einzahlung abgeschlossen",
       "deposit_success_body": "{{amount}} zum Geldkonto hinzugefügt.",
       "deposit_success_body_no_amount": "Zum Geldkonto hinzugefügt.",
       "withdraw_in_progress_title": "Transfer läuft",
@@ -7215,24 +7216,24 @@
       "withdraw_fallback_destination": "Ihr Konto",
       "deposit_failed_title_convert": "Konvertierung fehlgeschlagen",
       "deposit_failed_title_add_musd": "Gelder hinzufügen fehlgeschlagen",
-      "deposit_failed_title_card": "Deposit failed",
+      "deposit_failed_title_card": "Einzahlung fehlgeschlagen",
       "deposit_failed_body_convert": "Konvertierung nicht möglich. Versuchen Sie es erneut.",
       "deposit_failed_body_add_musd": "Geld hinzufügen nicht möglich. Versuchen Sie es erneut.",
       "withdraw_failed_title": "Überweisung fehlgeschlagen",
       "withdraw_failed_body": "Gelder können nicht überwiesen werden. Versuchen Sie es erneut.",
-      "send_in_progress_title": "Sending funds",
+      "send_in_progress_title": "Geld wird überwiesen",
       "send_success_title": "Gelder gesendet",
-      "send_success_body": "{{amount}} is available in {{destination}}.",
-      "send_success_body_no_amount": "Available in {{destination}}.",
+      "send_success_body": "{{amount}} ist in {{destination}} verfügbar.",
+      "send_success_body_no_amount": "In {{destination}} verfügbar.",
       "send_failed_title": "Senden fehlgeschlagen",
-      "send_failed_body": "Unable to send funds. Try again.",
+      "send_failed_body": "Gelder überweisen nicht möglich. Versuchen Sie es erneut.",
       "send_destination_perps": "Perps",
       "send_destination_predict": "Prognostizieren"
     },
     "apy_tooltip": {
       "title": "Effektivertrag",
       "paragraph_1": "Ihr Geldkonto verdient automatisch bis zu {{percentage}} %.",
-      "paragraph_2": "The rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed. Funds go into a DeFi vault, administered by Veda with risk oversight by Steakhouse Financial, that generates returns across established lending markets.",
+      "paragraph_2": "Der angegebene effektive Jahreszins (APY) ist ein Schätzwert, der auf den aktuellen Marktbedingungen basiert. Der APY ist variabel und nicht garantiert. Die Gelder fließen in einen DeFi-Tresor, der von Veda verwaltet und von Steakhouse Financial risikoüberwacht wird und Renditen auf den etablierten Kreditmärkten erwirtschaftet.",
       "paragraph_3": "Wenn Sie Ihre MetaMask-Karte verknüpfen, werden Einkäufe von diesem Saldo abgebucht.",
       "paragraph_4": "Das Geldkonto wird durch Monad betrieben.",
       "deposit_body": "Der angegebene effektive Jahreszins (APY) ist ein auf den aktuellen Marktbedingungen basierender Schätzwert. Der effektive Jahreszins ist variabel und wird nicht garantiert."
@@ -7268,10 +7269,10 @@
       "received": "Empfangen",
       "sent": "Versendet",
       "card_transaction": "Kartentransaktion",
-      "cashback": "mUSD back",
-      "card": "Card",
-      "purchase": "Purchase",
-      "musd_back": "mUSD back",
+      "cashback": "mUSD zurück",
+      "card": "Karte",
+      "purchase": "Kaufen",
+      "musd_back": "mUSD zurück",
       "converted": "Konvertiert",
       "depositing": "Einzahlung",
       "converting": "Konvertieren",
@@ -7284,14 +7285,14 @@
       "failed": "Fehlgeschlagen"
     },
     "api_activity_details": {
-      "card_title": "Card transaction",
-      "cashback_title": "mUSD back",
-      "you_spent": "You spent",
-      "you_earned": "You earned",
-      "completed": "Completed",
-      "paid_to": "Paid to",
-      "received_from": "Received from",
-      "date": "Date"
+      "card_title": "Kartentransaktion",
+      "cashback_title": "mUSD zurück",
+      "you_spent": "Sie haben ausgegeben",
+      "you_earned": "Sie haben verdient",
+      "completed": "Abgeschlossen",
+      "paid_to": "Bezahlt an",
+      "received_from": "Empfangen von",
+      "date": "Datum"
     },
     "convert_stablecoins": {
       "title": "Konvertieren Sie Ihre Stablecoins",
@@ -7315,7 +7316,7 @@
       "description_3": "Das Geldkonto wird durch Monad betrieben.",
       "faq_title": "FAQs",
       "faq_q1": "Was ist ein MetaMask-Geldkonto?",
-      "faq_a1": "MetaMask Money Account is a self-custodial account built into MetaMask that earns up to {{percentage}}% variable APY on deposited funds—with no lockups, no withdrawal penalties, and no account fees. When you deposit a supported stablecoin ({{stablecoins}}) or aTokens into a Money Account, it converts to mUSD, MetaMask's dollar-backed stablecoin, with no conversion fees. You can also deposit any token into a Money Account, with a conversion fee. Your Money Account balance (mUSD) stays available to trade, send, and earn—or spend anytime via MetaMask Card, across 150+ million Mastercard merchants worldwide.",
+      "faq_a1": "Das MetaMask-Geldkonto ist ein in MetaMask integriertes, selbstverwaltetes Konto, das einen variablen effektiven Jahreszins von bis zu {{percentage}} % auf eingezahlte Gelder erwirtschaftet – ohne Sperren, ohne Auszahlungsgebühren und ohne Kontogebühren. Bei der Einzahlung eines unterstützten Stablecoins ({{stablecoins}}) oder aTokens auf ein Geldkonto wird dieser ohne Konvertierungsgebühren in mUSD, in MetaMasks US-Dollar gedeckten Stablecoin, konvertiert. Sie können auch jedes Token auf ein Geldkonto einzahlen, wobei eine Konvertierungsgebühr anfällt. Ihr Guthaben auf dem Geldkonto (mUSD) bleibt für Handel, Senden und Verdienen zugänglich – oder geben Sie es jederzeit über die MetaMask Card bei über 150 Millionen Mastercard-Händlern weltweit aus. Konto.",
       "faq_q2": "Ist das MetaMask-Geldkonto sicher?",
       "faq_a2": "MetaMask ist eine selbstverwahrende Wallet – nur Sie haben die Kontrolle über Ihre privaten Schlüssel und Gelder. MetaMask kann nicht auf Ihr Guthaben zugreifen, es einfrieren oder verschieben. mUSD selbst ist 1:1 durch US-Dollars und kurzfristige US-Schatzbriefe gedeckt, die von Bridge (einem Stripe-Unternehmen) verwahrt werden. Wie bei allen DeFi-basierten Produkten birgt auch das Geldkonto Risiken, wie z. B. Ausfälle von Smart Contracts, Missbrauch von Protokollen, Liquiditätsengpässe, Ausfälle von Drittanbietern sowie rechtliche oder regulatorische Einschränkungen. Der effektive Jahreszins ist variabel und nicht garantiert, weshalb ein Verlustrisiko besteht. Das Geldguthaben (mUSD) ist nicht durch die FDIC oder eine staatliche Behörde versichert.",
       "faq_q3": "Wer kontrolliert mein MetaMask-Geldkonto?",
@@ -7325,9 +7326,9 @@
       "faq_q5": "Wie viel kann ich mit einem MetaMask-Geldkonto verdienen?",
       "faq_a5": "Mit dem MetaMask-Geldkonto verdienen Sie bis zu {{percentage}} % effektiven Jahreszins. Der Zinssatz ist variabel und schwankt mit den Marktbedingungen. Der aktuelle Zinssatz ist immer im Geldkonto sichtbar.",
       "faq_q6": "Woher kommt die Rendite?",
-      "faq_a6": "When funds are deposited into a Money Account, these assets go into a third-party smart contract vault. The vault interacts with established DeFi protocols—for example, lending markets like Aave and Morpho—where they earn returns from real economic activity, primarily interest paid by borrowers. Any resulting returns, after applicable protocol costs and product fees, show up as APY. Earnings are not interest paid by MetaMask or by the issuer of mUSD. They are the onchain returns generated by the vault's positions in third-party DeFi protocols.\n\nThe rate shown is an estimated Annual Percentage Yield (APY) based on current market conditions. APY is variable and is not guaranteed. The DeFi vault is administered by Veda with risk oversight by Steakhouse Financial.",
+      "faq_a6": "Wenn Gelder auf ein Geldkonto eingezahlt werden, fließen diese Assets in einen Smart-Contract-Tresor eines Dritten. Dieser Tresor interagiert mit etablierten DeFi-Protokollen – z. B. mit Kreditmärkten wie Aave und Morpho – und erwirtschaftet dort Erträge aus realer wirtschaftlicher Aktivität, vor allem Zinsen, die von Kreditnehmern gezahlt werden. Die daraus resultierenden Erträge werden nach den anfallenden Protokollkosten und Produktgebühren als effektiver Jahreszins ausgewiesen. Bei den Erträgen handelt es sich nicht um Zinsen, die von MetaMask oder dem Emittenten von mUSD gezahlt werden. Es sind die Onchain-Renditen, die durch die Positionen des Tresors in DeFi-Protokollen Dritter generiert werden.\n\nDer angegebene effektive Jahreszins (APY) ist ein Schätzwert, der auf den aktuellen Marktbedingungen basiert. Der APY ist variabel und nicht garantiert. Die Gelder fließen in einen DeFi-Tresor, der von Veda verwaltet und von Steakhouse Financial risikoüberwacht wird und Renditen auf den etablierten Kreditmärkten erwirtschaftet.",
       "faq_q7": "Welche Token kann ich auf das Geldkonto einzahlen?",
-      "faq_a7": "You can deposit the following stablecoins and aTokens into your Money Account with no conversion fees:\n\n{{tokenBullets}}\n\nAll other EVM tokens can also be deposited into the Money Account, but standard exchange fees may apply. You can also fund your Money Account using a debit card, credit card, or Apple Pay.\n\nNote: There is an initial max deposit of $100,000 per token to ensure liquidity.",
+      "faq_a7": "Sie können die folgenden Stablecoins und aTokens ohne Konvertierungsgebühren auf Ihr Geldkonto einzahlen:\n\n{{tokenBullets}}\n\nAlle anderen EVM-Token können ebenfalls auf das Geldkonto eingezahlt werden, wobei jedoch die üblichen Konvertierungsgebühren anfallen könnten. Sie können Ihr Geldkonto auch mit einer Debit- oder Kreditkarte, einem Bankkonto, PayPal, Apple Pay oder Google Pay aufladen.\n\nHinweis: Zur Sicherstellung der Liquidität gibt es eine anfängliche Höchsteinzahlung von 100.000 $ pro Token.",
       "faq_q8": "Kann ich jederzeit vom MetaMask-Geldkonto eine Auszahlung vornehmen?",
       "faq_a8": "Ja. Ihr mUSD ist nie gesperrt. Sie können Ihr gesamtes Guthaben jederzeit handeln, senden, ausgeben oder auszahlen lassen, ohne Kündigungsfristen, ohne Strafen und ohne Auszahlungsgebühren von MetaMask. Auszahlungen werden sofort bearbeitet, vorbehaltlich der üblichen Netzwerkbestätigungszeiten auf der entsprechenden Blockchain. Bei knapper Liquidität kann es zu vorübergehenden Verzögerungen kommen.",
       "faq_q9": "Muss ich KYC ausfüllen, um das MetaMask-Geldkonto zu nutzen?",
@@ -7336,9 +7337,9 @@
       "faq_a10": "Das MetaMask-Geldkonto ist mit Ausnahme der folgenden Regionen weltweit verfügbar: Vereinigtes Königreich und Länder, die auf der Sanktionsliste der USA stehen."
     },
     "geo_block": {
-      "title": "Money account unavailable",
-      "description": "Money account isn't available in your location due to local restrictions or sanctions.",
-      "button": "Got it"
+      "title": "Geldkonto nicht verfügbar",
+      "description": "Geldkonto ist an Ihrem Standort aufgrund lokaler Beschränkungen oder Sanktionen nicht verfügbar.",
+      "button": "Verstanden"
     }
   },
   "stake": {
@@ -7832,7 +7833,7 @@
     "confirm_swap": "Swap",
     "terms_and_conditions": "Geschäftsbedingungen",
     "select_token": "Token auswählen",
-    "batch_sell_transaction_label": "Batch sell",
+    "batch_sell_transaction_label": "Batch-Verkauf",
     "batch_sell_select_title": "Wählen Sie bis zu 5 Token",
     "batch_sell_select_subtitle": "Alle Token müssen sich im selben Netzwerk befinden.",
     "batch_sell_empty_state_title": "Keine Token. Kein Problem.",
@@ -7846,7 +7847,7 @@
     "batch_sell_review_title": "Batch-Verkauf-Review",
     "batch_sell_select_stablecoin": "Stablecoin wählen",
     "batch_sell_total_received": "Insgesamt empfangen",
-    "batch_sell_minimum_received": "Min. received:",
+    "batch_sell_minimum_received": "Min. empfangen:",
     "batch_sell_quote_details_row": "{{tokenSymbol}} • {{slippage}} Slippage",
     "batch_sell_no_quote_available": "Kein Angebot verfügbar",
     "batch_sell_high_price_impact": "Hohe Preisauswirkungen",
@@ -8043,7 +8044,7 @@
   "bridge_transaction_details": {
     "status": "Status",
     "date": "Datum",
-    "network": "Network",
+    "network": "Netzwerk",
     "total_gas_fee": "Gesamte Gas-Gebühr",
     "estimated_completion": "Geschätzte Fertigstellung",
     "bridge_step_action_bridge_complete": "{{destSymbol}} empfangen bei {{destChainName}}",
@@ -8053,8 +8054,8 @@
     "view_on_block_explorer": "Im Block-Explorer anzeigen",
     "block_explorer_description": "Diese Transaktion findet in zwei Netzwerken statt. Der erste Link zeigt die Quelle; der zweite zeigt das Ziel an, sobald sie bestätigt wurde.",
     "transaction_details": "Transaktionsdetails",
-    "you_swapped": "You swapped",
-    "you_received": "You received",
+    "you_swapped": "Sie haben geswappt",
+    "you_received": "Sie haben empfangen",
     "bridge_to_chain": "Bridge zu {{chainName}}",
     "recipient": "Empfänger"
   },
@@ -8211,8 +8212,8 @@
     "add_wallet_hardware_description": "Über Bluetooth oder einen QR-Code",
     "add_hardware_wallet": "Eine Hardware-Wallet hinzufügen",
     "syncing": "Synchronisierung",
-    "link_metamask_extension": "Import accounts from MetaMask extension",
-    "link_metamask_extension_description": "Import accounts from MetaMask extension to your wallet",
+    "link_metamask_extension": "Konten aus der MetaMask-Erweiterung importieren",
+    "link_metamask_extension_description": "Konten von der MetaMask-Erweiterung in Ihre Wallet importieren",
     "account_details": {
       "header_title": "Kontodetails",
       "account_name": "Kontoname",
@@ -8783,9 +8784,9 @@
         "confirm_button_label": "Finanzierung einrichten"
       },
       "money_account_required": {
-        "title": "Set up Money Account",
-        "description": "You need a linked Money Account before redeeming mUSD back.",
-        "confirm_button_label": "Set up Money Account"
+        "title": "Geldkonto einrichten",
+        "description": "Zum Einlösen von mUSD benötigen Sie ein verknüpftes Geldkonto.",
+        "confirm_button_label": "Geldkonto einrichten"
       }
     },
     "change_asset": {
@@ -8821,6 +8822,7 @@
       "password_label": "Passwort",
       "login_button": "Anmelden",
       "signup_button": "Anmelden",
+      "forgot_password_button": "Passwort vergessen?",
       "errors": {
         "invalid_credentials": "Ungültige Anmeldedaten",
         "invalid_otp_code": "Falscher Code, bitte versuchen Sie es erneut",
@@ -8835,6 +8837,11 @@
         "server_error": "Serverfehler. Bitte versuchen Sie es später erneut.",
         "configuration_error": "Der Service ist vorübergehend nicht verfügbar. Bitte versuchen Sie es später erneut."
       }
+    },
+    "card_forgot_password": {
+      "load_error": "Something went wrong loading the page. Please try again.",
+      "try_again": "Erneut versuchen",
+      "reset_success": "Password reset successful"
     },
     "card_otp_authentication": {
       "title": "Bestätigen Sie Ihre Telefonnummer",
@@ -9009,7 +9016,7 @@
       "points_from_referrals_label": "Punkte aus Empfehlungen",
       "referrals_label": "VIP-Empfehlungen",
       "tier_benefits_title": "Vorteile der Stufe",
-      "splash_title": "WELCOME\nTO GOLD FOX\nCOLLECTIVE",
+      "splash_title": "WILLKOMMEN \nBEIM GOLD FOX\nCOLLECTIVE",
       "splash_description": "Schalten Sie exklusive Vorteile, frühe Funktionen und besondere Belohnungen frei. Nur auf Einladung.",
       "splash_accept_invite": "Einladung annehmen",
       "splash_not_now": "Nicht jetzt",
@@ -9031,12 +9038,15 @@
       "referee_period_last_30d": "Letzten 30 Tage",
       "referee_swaps_volume_label": "Swap-Volumen",
       "referee_perps_volume_label": "Perps-Volumen",
-      "referee_points_to_label": "Points to {{code}}",
+      "referee_points_to_label": "Punkte für den {{code}}",
       "referee_error_title": "Wir konnten Ihre Daten zur VIP-Referenzperson nicht laden",
       "referee_error_description": "Überprüfen Sie Ihre Verbindung und versuchen Sie es erneut.",
       "referee_contact_support": "Support kontaktieren",
-      "referee_priority_support_disclaimer": "By contacting priority support you will connect your wallet.",
-      "last_updated": "Zuletzt aktualisiert: {{time}}"
+      "referee_priority_support_disclaimer": "Durch die Kontaktaufnahme zum Priority-Support verbinden Sie Ihre Wallet.",
+      "last_updated": "Zuletzt aktualisiert: {{time}}",
+      "swaps_volume_info_label": "Swaps volume information",
+      "swaps_volume_info_title": "Swap-Volumen",
+      "swaps_volume_info_description": "Your swaps volume updates once per day, so recent swaps may take up to 24 hours to appear here."
     },
     "referral_title": "Empfehlungen",
     "referral_stats_earned_from_referrals": "Durch Empfehlungen verdient",
@@ -9477,9 +9487,9 @@
       "stats_title": "Statistiken",
       "label_rank": "Rang",
       "label_your_rank": "Ihr Rang",
-      "label_roi": "ROI (after fees)",
+      "label_roi": "ROI (nach Gebühren)",
       "label_total_volume": "Gesamtvolumen",
-      "label_pnl": "PnL (after fees)",
+      "label_pnl": "GuV (nach Gebühren)",
       "predict_now_cta": "Jetzt prognostizieren",
       "positions_title": "Ihre Prognosen",
       "positions_open_section": "Eröffnen",
@@ -9593,15 +9603,15 @@
       "money_account_withdraw": "Von Geldkonto transferieren",
       "money_account_sent": "{{symbol}} gesendet",
       "money_account_received": "Empfangen",
-      "deposited_musd": "Deposited mUSD",
-      "depositing_musd": "Depositing mUSD",
-      "deposit_failed": "Deposit failed",
-      "sent": "Sent",
-      "sending_musd": "Sending mUSD",
-      "send_failed": "Send failed",
-      "converted_to_musd": "Converted to mUSD",
-      "converting_to_musd": "Converting to mUSD",
-      "conversion_failed": "Conversion failed",
+      "deposited_musd": "mUSD eingezahlt",
+      "depositing_musd": "mUSD einzahlen",
+      "deposit_failed": "Einzahlung fehlgeschlagen",
+      "sent": "Versendet",
+      "sending_musd": "mUSD senden",
+      "send_failed": "Senden fehlgeschlagen",
+      "converted_to_musd": "Zu mUSD konvertiert",
+      "converting_to_musd": "Umwandlung in mUSD",
+      "conversion_failed": "Konvertierung fehlgeschlagen",
       "default": "Transaktionsdetails"
     },
     "label": {
@@ -9609,7 +9619,7 @@
       "provider_fee": "Anbietergebühr",
       "network_fee": "Netzwerk-Gebühr",
       "transaction_fee": "Transaktionsgebühr",
-      "transaction_fees": "Transaction fees",
+      "transaction_fees": "Transaktionsgebühren",
       "paid_with": "Bezahlt mit",
       "receive_token": "Token empfangen",
       "retry_button": "Erneut versuchen",
@@ -9622,12 +9632,12 @@
       "order_id": "Auftrags-ID",
       "network": "Netzwerk",
       "you_sent": "Sie sandten",
-      "you_received": "You received",
+      "you_received": "Sie haben empfangen",
       "token_received": "Token erhalten",
       "money_account": "Geldkonto",
-      "perps_account": "Perps Account 1",
-      "predictions_account": "Predictions Account 1",
-      "steps_completed": "Steps ({{count}} completed)",
+      "perps_account": "Perps-Konto 1",
+      "predictions_account": "Prognosekonto 1",
+      "steps_completed": "Schritte ({{count}} abgeschlossen)",
       "summary": "Zusammenfassung"
     },
     "view_on_block_explorer": "Im Block-Explorer anzeigen",
@@ -9745,7 +9755,7 @@
     "low_to_high": "Niedrig bis hoch",
     "apply": "Anwenden",
     "search_placeholder": "Token, Märkte und URLs suchen",
-    "quick_trade": "Quick Buy & Sell",
+    "quick_trade": "Schnelles Kaufen und Verkaufen",
     "cancel": "Stornieren",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
