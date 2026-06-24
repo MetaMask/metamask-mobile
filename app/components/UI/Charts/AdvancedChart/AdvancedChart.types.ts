@@ -557,7 +557,10 @@ export interface AdvancedChartProps {
   successColorOverride?: string;
   /** Override the candlestick down/error color baked into the HTML template (A/B test). */
   errorColorOverride?: string;
-  /** Override the current-price horizontal line color. Does not affect candle or volume colors. */
+  /**
+   * Override last-value scale pill + native price line color independently of `lineColorOverride`.
+   * Omitted → follows `lineColorOverride` (or success green). Hot-swapped via `SET_THEME_COLORS`.
+   */
   currentPriceLineColorOverride?: string;
 
   /**
