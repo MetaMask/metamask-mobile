@@ -13,7 +13,7 @@ import {
   TextField,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { Image } from 'react-native';
 import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
@@ -64,10 +64,10 @@ const Points = ({
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const [manualQrPayload, setManualQrPayload] = useState('');
   const hasOpenedVerificationSheetRef = useRef(false);
   const hasNavigatedToImportRef = useRef(false);
-  const pendingScanPayloadRef = useRef<string | null>(null);
   const presentation = useSelector(selectQrSyncPresentation);
   const shouldNavigateToImport = useSelector(
     selectQrSyncShouldNavigateToImport,
@@ -106,27 +106,23 @@ const AddDeviceToWallet = () => {
   }, []);
 
   useEffect(() => {
+    if (!isFocused) {
+      return;
+    }
+
     if (!shouldShowOtpSheet) {
       hasOpenedVerificationSheetRef.current = false;
       return;
     }
 
     openVerificationSheetIfNeeded();
-  }, [openVerificationSheetIfNeeded, shouldShowOtpSheet]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (pendingScanPayloadRef.current) {
-        const payload = pendingScanPayloadRef.current;
-        pendingScanPayloadRef.current = null;
-        submitQrPayload(payload).catch(() => undefined);
-      }
-
-      openVerificationSheetIfNeeded();
-    }, [openVerificationSheetIfNeeded, submitQrPayload]),
-  );
+  }, [isFocused, openVerificationSheetIfNeeded, shouldShowOtpSheet]);
 
   useEffect(() => {
+    if (!isFocused) {
+      return;
+    }
+
     if (!shouldNavigateToImport) {
       hasNavigatedToImportRef.current = false;
       return;
@@ -142,7 +138,7 @@ const AddDeviceToWallet = () => {
       initialStep: 1,
       qrSyncImport: true,
     });
-  }, [shouldNavigateToImport, navigation]);
+  }, [isFocused, shouldNavigateToImport, navigation]);
 
   const onScanSuccess = useCallback(
     (data: ScanSuccess, content?: string) => {
@@ -155,10 +151,9 @@ const AddDeviceToWallet = () => {
 
   const onMwpDeeplinkScanned = useCallback(
     (deeplink: string) => {
-      pendingScanPayloadRef.current = deeplink;
-      navigation.goBack();
+      submitQrPayload(deeplink).catch(() => undefined);
     },
-    [navigation],
+    [submitQrPayload],
   );
 
   const openQRScanner = useCallback(() => {

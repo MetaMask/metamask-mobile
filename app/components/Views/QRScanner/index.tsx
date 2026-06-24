@@ -2,7 +2,11 @@
 /* eslint @typescript-eslint/no-require-imports: "off" */
 
 'use strict';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import {
+  useNavigation,
+  useFocusEffect,
+  useIsFocused,
+} from '@react-navigation/native';
 import { parse } from 'eth-url-parser';
 import React, { useCallback, useRef, useEffect, useState } from 'react';
 import {
@@ -13,6 +17,7 @@ import {
   View,
   Linking,
 } from 'react-native';
+import { useSelector } from 'react-redux';
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
@@ -67,6 +72,13 @@ import AddDeviceScannerRecovery, {
   AddDeviceScannerPermissionDenied,
 } from './AddDeviceScannerRecovery';
 import { EXTENSION_ACCOUNT_SYNC_CONNECTION_FAILED_EVENT } from '../../../core/ExtensionAccountSync/types';
+import { QrSyncPhases } from '../../../core/QrSync/constants';
+import {
+  selectQrSyncPhase,
+  selectQrSyncPresentation,
+  selectQrSyncShouldNavigateToImport,
+  selectQrSyncShouldShowOtpSheet,
+} from '../../../selectors/qrSyncController';
 
 const sleep = (ms: number) =>
   new Promise<void>((resolve) => {
@@ -100,14 +112,97 @@ const QRScanner = ({
   shouldDismissOnScan?: boolean;
 }) => {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
 
   const mountedRef = useRef<boolean>(true);
   const shouldReadBarCodeRef = useRef<boolean>(true);
+  const addDeviceScanHandledRef = useRef(false);
   const [isCameraActive, setIsCameraActive] = useState(true);
   const [addDeviceScannerUiState, setAddDeviceScannerUiState] =
     useState<AddDeviceScannerUiState>(AddDeviceScannerUiState.Searching);
 
   const isAddDeviceScanner = origin === Routes.ONBOARDING.ADD_DEVICE_TO_WALLET;
+
+  const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
+  const shouldNavigateToImport = useSelector(
+    selectQrSyncShouldNavigateToImport,
+  );
+  const qrSyncPresentation = useSelector(selectQrSyncPresentation);
+  const qrSyncPhase = useSelector(selectQrSyncPhase);
+  const hasOpenedOtpSheetRef = useRef(false);
+  const hasHandledPostSyncNavigationRef = useRef(false);
+
+  const showAddDeviceVerificationSheet = useCallback(() => {
+    (navigation.navigate as (route: string, params: object) => void)(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      { screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE },
+    );
+  }, [navigation]);
+
+  useEffect(() => {
+    if (!isAddDeviceScanner || !isFocused) {
+      return;
+    }
+
+    if (!shouldShowOtpSheet) {
+      hasOpenedOtpSheetRef.current = false;
+      return;
+    }
+
+    if (hasOpenedOtpSheetRef.current) {
+      return;
+    }
+
+    hasOpenedOtpSheetRef.current = true;
+    showAddDeviceVerificationSheet();
+  }, [
+    isAddDeviceScanner,
+    isFocused,
+    shouldShowOtpSheet,
+    showAddDeviceVerificationSheet,
+  ]);
+
+  useEffect(() => {
+    if (!isAddDeviceScanner || !isFocused) {
+      return;
+    }
+
+    if (qrSyncPresentation === 'error') {
+      setAddDeviceScannerUiState(AddDeviceScannerUiState.ConnectionFailed);
+      addDeviceScanHandledRef.current = false;
+      hasHandledPostSyncNavigationRef.current = false;
+      return;
+    }
+
+    if (shouldNavigateToImport && !hasHandledPostSyncNavigationRef.current) {
+      hasHandledPostSyncNavigationRef.current = true;
+      navigation.goBack();
+      navigation.navigate(
+        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        {
+          initialStep: 1,
+          qrSyncImport: true,
+        },
+      );
+      return;
+    }
+
+    if (
+      qrSyncPresentation === 'device-linked' &&
+      qrSyncPhase !== QrSyncPhases.DISPLAYING_OTP &&
+      !hasHandledPostSyncNavigationRef.current
+    ) {
+      hasHandledPostSyncNavigationRef.current = true;
+      navigation.goBack();
+    }
+  }, [
+    isAddDeviceScanner,
+    isFocused,
+    navigation,
+    qrSyncPhase,
+    qrSyncPresentation,
+    shouldNavigateToImport,
+  ]);
 
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, permissionCheckCompleted } =
@@ -126,6 +221,8 @@ const QRScanner = ({
   const resetAddDeviceScanning = useCallback(() => {
     setAddDeviceScannerUiState(AddDeviceScannerUiState.Searching);
     shouldReadBarCodeRef.current = true;
+    addDeviceScanHandledRef.current = false;
+    hasHandledPostSyncNavigationRef.current = false;
     setIsCameraActive(true);
   }, []);
 
@@ -271,7 +368,13 @@ const QRScanner = ({
           return;
         }
 
+        if (addDeviceScanHandledRef.current) {
+          return;
+        }
+
+        addDeviceScanHandledRef.current = true;
         shouldReadBarCodeRef.current = false;
+        setIsCameraActive(false);
         setAddDeviceScannerUiState(AddDeviceScannerUiState.Detected);
         trackEvent(
           createEventBuilder(MetaMetricsEvents.QR_SCANNED)
@@ -286,13 +389,9 @@ const QRScanner = ({
 
         await sleep(ADD_DEVICE_QR_DETECTED_DELAY_MS);
 
-        if (!mountedRef.current) {
-          return;
-        }
-
         if (onMwpDeeplinkScanned) {
           onMwpDeeplinkScanned(addDeviceDeeplink);
-        } else {
+        } else if (mountedRef.current) {
           SDKConnectV2.handleMwpDeeplink(addDeviceDeeplink);
         }
 
