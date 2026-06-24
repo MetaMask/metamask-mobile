@@ -16,8 +16,15 @@ module.exports = {
   },
 
   settings: {
-    // 2. Skip node_modules so unparseable deps (react-native/Flow) don't add noise.
-    'import-x/ignore': ['node_modules'],
+    // 2. Ignore ONLY the deps import-x can't parse (Flow/other), by exact package
+    //    dir (trailing slash so react-native-* siblings aren't caught). This kills
+    //    the parse-error noise while keeping deprecation/named-export coverage for
+    //    the rest of node_modules.
+    'import-x/ignore': [
+      '/node_modules/react-native/',
+      '/node_modules/react-native-view-shot/',
+      '/node_modules/react-native-i18n/',
+    ],
   },
 
   overrides: [

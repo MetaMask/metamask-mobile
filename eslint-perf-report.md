@@ -81,12 +81,14 @@ NODE_OPTIONS='--max-old-space-size=12288' \
 | Run                   | Time        | Warnings shown | vs baseline             |
 | --------------------- | ----------- | -------------- | ----------------------- |
 | baseline (type-aware) | 304.97s     | 6,049          | —                       |
-| swap, keep `project`  | **228.85s** | 1,971          | **~25% faster (1.33x)** |
+| swap, keep `project`  | **228.85s** | 1,991          | **~25% faster (1.33x)** |
 
-**Result: ✅ ~25% faster**, and clean — of the 1,971 warnings, 1,464 are
-`import-x/no-deprecated` flags and **0** are parse-error noise (with
-`import-x/ignore: ['node_modules']`). Baseline's ~5.7K `no-deprecated` warnings
-are gone, replaced by the leaner resolver-based count.
+**Result: ✅ ~25% faster**, and clean. Rather than ignoring _all_ of
+`node_modules` (which also silences real findings), the config ignores only the 3
+deps import-x genuinely can't parse — `react-native` (2,589 of the noise),
+`react-native-view-shot`, `react-native-i18n`. So of the 1,991 warnings, **1,481**
+are `import-x/no-deprecated` flags, **0** are parse-error noise, and the real
+`import-x/no-named-as-default-member` (axios) flags are kept.
 
 It is important to flag the decrease in warnings shown. This probably indicates a lot of type level deprecations are missing.
 
@@ -98,6 +100,8 @@ It is important to flag the decrease in warnings shown. This probably indicates 
 | Runs on `.js` files                                                          | ❌ (only in `*.{ts,tsx}` override) | ✅ (registered at root)                      |
 | `@deprecated` from typed packages / `.d.ts` (3rd-party, design-system, etc.) | ✅                                 | ❌ (only flags JSDoc it can resolve & parse) |
 | Needs `parserOptions.project` (the expensive bit)                            | ✅                                 | ❌                                           |
+
+> **Validated:** import-x catches deprecated type aliases/interfaces from parseable source, but only checks _imported specifiers_ — so it misses deprecations reachable only via type inference (e.g. a `@deprecated` method/property on a typed value, `obj.oldMethod()`) plus anything declared in `.d.ts`/typed packages.
 
 ---
 
@@ -204,11 +208,11 @@ deprecations in `tests/` (e.g. `checkIfDisabled`) that the current rule scope mi
 
 ## Options compared (cold, full repo)
 
-| #   | Option                                                                                                                    | Cold lint           | Warnings shown | Δ vs 305s baseline | Notes                                                                                                             |
-| --- | ------------------------------------------------------------------------------------------------------------------------- | ------------------- | -------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------- |
-| 1   | **Base** — `main` today (type-aware `no-deprecated`)                                                                      | 305s                | 6,049          | —                  | needs `project`                                                                                                   |
-| 2   | **`--quiet`**                                                                                                             | 302s                | 0              | ~1%                | no real win on ESLint v8 (output-only filter)                                                                     |
-| 3   | **Swap to `import-x/no-deprecated`** (keep `project`)                                                                     | 229s                | 1,971          | ~25%               | low-risk; keeps all other type-aware rules; needs `import-x/ignore`; loses type-level/package `@deprecated`       |
-| 4   | **My branch — remove `no-deprecated` + bash burndown** ([#32262](https://github.com/MetaMask/metamask-mobile/pull/32262)) | 212s                | 511            | ~30%               | keeps `project`; replaces rule with `bn-migration-burndown.sh`; no eslint deprecation surfacing                   |
-| 5   | **(⚠️ danger) Full type-aware removal** (drop `project`)                                                                  | 173s                | 511            | ~43%               | biggest cold win; disables ALL type-aware rules                                                                   |
-| 6   | **Hybrid — ESLint (non-type-aware) + oxlint (type-aware `no-deprecated`)**                                                | ~178s seq / ~166s ∥ | 6,465          | ~42–46%            | full type-aware coverage restored; oxlint adds only ~13s; needs `oxlint`+`oxlint-tsgolint` + TS7 tsconfig (alpha) |
+| #   | Option                                                                                                                    | Cold lint           | Warnings shown | Δ vs 305s baseline | Notes                                                                                                                   |
+| --- | ------------------------------------------------------------------------------------------------------------------------- | ------------------- | -------------- | ------------------ | ----------------------------------------------------------------------------------------------------------------------- |
+| 1   | **Base** — `main` today (type-aware `no-deprecated`)                                                                      | 305s                | 6,049          | —                  | needs `project`                                                                                                         |
+| 2   | **`--quiet`**                                                                                                             | 302s                | 0              | ~1%                | no real win on ESLint v8 (output-only filter)                                                                           |
+| 3   | **Swap to `import-x/no-deprecated`** (keep `project`)                                                                     | 229s                | 1,991          | ~25%               | low-risk; keeps all other type-aware rules; targeted `import-x/ignore` (3 deps); loses type-level/package `@deprecated` |
+| 4   | **My branch — remove `no-deprecated` + bash burndown** ([#32262](https://github.com/MetaMask/metamask-mobile/pull/32262)) | 212s                | 511            | ~30%               | keeps `project`; replaces rule with `bn-migration-burndown.sh`; no eslint deprecation surfacing                         |
+| 5   | **(⚠️ danger) Full type-aware removal** (drop `project`)                                                                  | 173s                | 511            | ~43%               | biggest cold win; disables ALL type-aware rules                                                                         |
+| 6   | **Hybrid — ESLint (non-type-aware) + oxlint (type-aware `no-deprecated`)**                                                | ~178s seq / ~166s ∥ | 6,465          | ~42–46%            | full type-aware coverage restored; oxlint adds only ~13s; needs `oxlint`+`oxlint-tsgolint` + TS7 tsconfig (alpha)       |
