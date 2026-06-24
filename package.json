@@ -328,7 +328,7 @@
     "@metamask/sample-controllers": "^3.0.0",
     "@metamask/scure-bip39": "^2.1.0",
     "@metamask/sdk-communication-layer": "0.33.1",
-    "@metamask/seedless-onboarding-controller": "^10.0.1",
+    "@metamask/seedless-onboarding-controller": "npm:@metamask-previews/seedless-onboarding-controller@10.0.2-preview-e80844493",
     "@metamask/selected-network-controller": "^26.1.4",
     "@metamask/signature-controller": "^39.2.0",
     "@metamask/slip44": "^4.2.0",
@@ -810,12 +810,6 @@
       "eslint-import-resolver-typescript>unrs-resolver": false,
       "tsx>esbuild": false,
       "@metamask/transaction-pay-controller>@metamask/bridge-status-controller>@metamask/keyring-controller>ethereumjs-wallet>ethereum-cryptography>keccak": false
-    }
-  },
-  "previewBuilds": {
-    "@metamask/seedless-onboarding-controller": {
-      "type": "non-breaking",
-      "previewVersion": "10.0.2-preview-e80844493"
     }
   },
   "packageManager": "yarn@4.14.1+sha256.5c7a0c5ea1c5b690df603c8e16b3742f87169b814d56bb5e63881145e8a84033",
