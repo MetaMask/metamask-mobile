@@ -40,7 +40,6 @@ export interface QrSyncSecretMetadata {
 /** Mobile-generated offer sent to the extension for selection/review. */
 export interface QrSyncOffer {
   sessionId?: string;
-  deadline: number;
   /** Whether the user has completed mobile onboarding at offer-send time. */
   isOnboardingCompleted: boolean;
 }

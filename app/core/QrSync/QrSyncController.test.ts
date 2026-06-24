@@ -199,7 +199,6 @@ describe('QrSyncController', () => {
         version: QrSyncMessageVersion.V1,
         data: {
           sessionId: VALID_SESSION_ID,
-          deadline: FIXED_NOW + SYNC_OFFER_DEADLINE_MS,
           isOnboardingCompleted: true,
         },
       });
@@ -328,7 +327,6 @@ describe('QrSyncController', () => {
         version: QrSyncMessageVersion.V1,
         data: {
           sessionId: VALID_SESSION_ID,
-          deadline: FIXED_NOW + SYNC_OFFER_DEADLINE_MS,
           isOnboardingCompleted: false,
         },
       });

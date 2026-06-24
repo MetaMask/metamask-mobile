@@ -27,8 +27,6 @@ import {
 } from './constants';
 import { routeIncomingQrSyncMessage } from './services/qr-sync-message-router';
 
-const SYNC_OFFER_DEADLINE_MS = 5 * 60 * 1000;
-
 const metadata: StateMetadata<QrSyncControllerState> = {
   phase: {
     persist: false,
@@ -315,7 +313,6 @@ export class QrSyncController extends BaseController<
       version: QrSyncMessageVersion.V1,
       data: {
         sessionId: this.sessionId ?? undefined,
-        deadline: Date.now() + SYNC_OFFER_DEADLINE_MS,
         isOnboardingCompleted: this.getIsOnboardingCompleted(),
       },
     });
