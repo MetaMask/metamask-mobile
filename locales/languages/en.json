@@ -2372,8 +2372,10 @@
       "tabs": {
         "all": "All",
         "props": "Props",
-        "live": "Live"
+        "live": "Live",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Group Stage",
         "round_of_32": "Round of 32",
