@@ -76,3 +76,9 @@ export const selectQrSyncShouldShowOtpSheet = createSelector(
   selectQrSyncPhase,
   (phase) => phase === QrSyncPhases.DISPLAYING_OTP,
 );
+
+export const selectQrSyncShouldNavigateToImport = createSelector(
+  selectQrSyncPhase,
+  selectQrSyncHasImportPlan,
+  (phase, hasImportPlan) => phase === QrSyncPhases.COMPLETED && hasImportPlan,
+);

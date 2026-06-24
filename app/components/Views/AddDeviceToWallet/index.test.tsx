@@ -20,16 +20,19 @@ jest.mock(
   () => 'add_wallet_to_device_image',
 );
 
-const mockCancelSession = jest.fn();
-
 jest.mock('../../../core/Engine', () => ({
   context: {
     QrSyncController: {
-      cancelSession: mockCancelSession,
+      cancelSession: jest.fn(),
       handleScannedQrPayload: jest.fn(),
     },
   },
 }));
+
+import Engine from '../../../core/Engine';
+
+const mockCancelSession = Engine.context.QrSyncController
+  .cancelSession as jest.Mock;
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -134,6 +137,36 @@ describe('AddDeviceToWallet', () => {
         queryByText(strings('app_settings.add_device.device_added')),
       ).not.toBeOnTheScreen();
     });
+
+    it('does not navigate to import on initial load', () => {
+      renderComponent();
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('back navigation', () => {
+    it('calls navigation.goBack when back button is pressed', () => {
+      const { getByTestId } = renderComponent();
+
+      fireEvent.press(getByTestId('button-icon'));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('cancels the QR sync session when back is pressed during an active session', () => {
+      const { getByTestId } = renderComponent({
+        phase: QrSyncPhases.DISPLAYING_OTP,
+      });
+
+      fireEvent.press(getByTestId('button-icon'));
+
+      expect(mockCancelSession).toHaveBeenCalledTimes(1);
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('QR scanner', () => {
@@ -191,6 +224,18 @@ describe('AddDeviceToWallet', () => {
         getByText(strings('app_settings.add_device.device_added')),
       ).toBeOnTheScreen();
     });
+    it('shows sync error message when the session fails', () => {
+      const { getByText } = renderComponent({
+        phase: QrSyncPhases.FAILED,
+        error: {
+          code: 'SYNC_FAILED',
+          message: 'Sync failed',
+          retryable: true,
+        },
+      });
+
+      expect(getByText('Sync failed')).toBeOnTheScreen();
+    });
   });
 
   describe('QR sync import navigation', () => {
@@ -216,6 +261,34 @@ describe('AddDeviceToWallet', () => {
             initialStep: 1,
             qrSyncImport: true,
           },
+        );
+      });
+    });
+
+    it('does not navigate to import when sync failed with stale import data', async () => {
+      renderComponent({
+        phase: QrSyncPhases.FAILED,
+        importPlan: [
+          {
+            index: 0,
+            value: 'word1 word2 word3',
+            type: 'MNEMONIC',
+            accountName: null,
+            hiddenIndexes: [],
+            isPrimary: true,
+          },
+        ],
+        error: {
+          code: 'SYNC_FAILED',
+          message: 'Sync failed',
+          retryable: true,
+        },
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+          expect.anything(),
         );
       });
     });

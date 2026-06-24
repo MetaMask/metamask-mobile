@@ -30,7 +30,10 @@ const DeviceAdded = () => {
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
-      <HeaderCompactStandard onBack={handleBack} />
+      <HeaderCompactStandard
+        onBack={handleBack}
+        backButtonProps={{ testID: 'device-added-back-button' }}
+      />
       <Box twClassName="flex-1 px-4 justify-center items-center">
         <Text
           variant={TextVariant.HeadingLg}

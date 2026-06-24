@@ -809,6 +809,13 @@
     "selectedPaymentToken": null,
     "accountMeta": {}
   },
+  "QrSyncController": {
+    "phase": "idle",
+    "connectionStatus": "disconnected",
+    "otp": null,
+    "error": null,
+    "importPlan": null
+  },
   "AiDigestController": {
     "marketInsights": {},
     "marketOverview": null

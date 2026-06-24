@@ -28,10 +28,10 @@ import DeviceAdded from './DeviceAdded';
 import Engine from '../../../core/Engine';
 import {
   selectQrSyncError,
-  selectQrSyncHasImportPlan,
   selectQrSyncIsBusy,
   selectQrSyncIsSessionActive,
   selectQrSyncPresentation,
+  selectQrSyncShouldNavigateToImport,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
 
@@ -68,7 +68,9 @@ const AddDeviceToWallet = () => {
   const hasOpenedVerificationSheetRef = useRef(false);
   const hasNavigatedToImportRef = useRef(false);
   const presentation = useSelector(selectQrSyncPresentation);
-  const hasImportPlan = useSelector(selectQrSyncHasImportPlan);
+  const shouldNavigateToImport = useSelector(
+    selectQrSyncShouldNavigateToImport,
+  );
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
@@ -104,7 +106,12 @@ const AddDeviceToWallet = () => {
   }, [shouldShowOtpSheet, showVerificationSheet]);
 
   useEffect(() => {
-    if (!hasImportPlan || hasNavigatedToImportRef.current) {
+    if (!shouldNavigateToImport) {
+      hasNavigatedToImportRef.current = false;
+      return;
+    }
+
+    if (hasNavigatedToImportRef.current) {
       return;
     }
 
@@ -114,7 +121,7 @@ const AddDeviceToWallet = () => {
       initialStep: 1,
       qrSyncImport: true,
     });
-  }, [hasImportPlan, navigation]);
+  }, [shouldNavigateToImport, navigation]);
 
   const submitQrPayload = useCallback(async (qrPayload: string) => {
     await Engine.context.QrSyncController.handleScannedQrPayload(qrPayload);

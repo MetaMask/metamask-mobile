@@ -201,6 +201,11 @@ describe('QrScanner', () => {
     // counts, not implementations set via mockResolvedValue.
     (SharedDeeplinkManager.parse as jest.Mock).mockResolvedValue(false);
 
+    const EngineModule = jest.requireMock('../../../core/Engine');
+    (
+      EngineModule.context.KeyringController.isUnlocked as jest.Mock
+    ).mockReturnValue(true);
+
     // Setup useSelector mock
     mockUseSelector.mockImplementation(
       (selector: (state: unknown) => unknown) => {
