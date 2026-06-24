@@ -539,8 +539,13 @@ function handleSetOHLCVData(payload) {
         chart.setResolution(newResolution, function () {
           try {
             chart.resetData();
+            // resetData() drops the trade-marker shapes; clear our tracking and
+            // re-schedule a draw, otherwise placeTradeMarkers skips the redraw
+            // (its id set still matches) and the circles stay gone.
+            clearTradeMarkers();
             beginDeferredLayoutSettleAfterOhlcvReload();
             scheduleVisibleRangeAfterDataLoad(chart);
+            scheduleTradeMarkerRefresh();
           } catch (eR) {
             abortDeferredLayoutSettleAndNotify();
             return;
@@ -549,8 +554,13 @@ function handleSetOHLCVData(payload) {
       } else {
         try {
           chart.resetData();
+          // resetData() drops the trade-marker shapes; clear our tracking and
+          // re-schedule a draw, otherwise placeTradeMarkers skips the redraw
+          // (its id set still matches) and the circles stay gone.
+          clearTradeMarkers();
           beginDeferredLayoutSettleAfterOhlcvReload();
           scheduleVisibleRangeAfterDataLoad(chart);
+          scheduleTradeMarkerRefresh();
         } catch (e) {
           abortDeferredLayoutSettleAndNotify();
           return;
@@ -2786,11 +2796,18 @@ function findTradeMarkerIdNearPoint(timeSec, offsetY) {
   if (!(plotW > 0)) return null;
   var pxPerSec = plotW / (range.hi - range.lo);
 
+  var drawn = window.tradeMarkerShapeIdsById;
+  if (!drawn || typeof drawn.has !== 'function') return null;
+
   var bestId = null;
   var bestDist = Infinity;
   for (var i = 0; i < window.tradeMarkersData.length; i++) {
     var m = window.tradeMarkersData[i];
     if (!m || m.id == null || !isFinite(m.time)) continue;
+    // Only match markers that actually have a circle on screen. Markers whose
+    // candle isn't in the loaded range are tracked in data but not drawn, so a
+    // tap near where one *would* be must not fire a press for an invisible circle.
+    if (!drawn.has(String(m.id))) continue;
     var mSec = m.time / 1000;
     if (mSec < range.lo || mSec > range.hi) continue; // off-screen
     var dxPx = (mSec - timeSec) * pxPerSec;
