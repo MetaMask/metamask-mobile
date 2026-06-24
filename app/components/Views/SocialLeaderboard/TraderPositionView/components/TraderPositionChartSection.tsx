@@ -15,7 +15,7 @@ import TraderPriceChart from './TraderPriceChart';
  * fixed top block (token info → chart → period selector → PnL card) stays
  * compact and leaves room for the scrollable trades list below.
  */
-const SOCIAL_POSITION_CHART_HEIGHT = Math.round(
+export const SOCIAL_POSITION_CHART_HEIGHT = Math.round(
   TOKEN_OVERVIEW_CHART_HEIGHT * 0.8,
 );
 
@@ -45,6 +45,11 @@ export interface TraderPositionChartSectionProps {
   onRequestTimePeriod?: (period: TimePeriod) => void;
   /** Fired when the user taps a trade circle on the chart (the marker's trade id). */
   onTradeMarkerPress?: (id: string) => void;
+  /**
+   * When true, the chart stops capturing touches so drags fall through to the
+   * scrolling list behind it once the chart is pinned as a scroll-linked overlay.
+   */
+  scrollPassthrough?: boolean;
 }
 
 const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
@@ -60,6 +65,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
   focusRequest,
   onRequestTimePeriod,
   onTradeMarkerPress,
+  scrollPassthrough = false,
 }) => (
   <PriceChartProvider>
     <Box twClassName="mx-4 my-3">
@@ -78,6 +84,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
           onScrubPercentChange={onScrubPercentChange}
           onTradeMarkerPress={onTradeMarkerPress}
           chartHeight={SOCIAL_POSITION_CHART_HEIGHT}
+          scrollPassthrough={scrollPassthrough}
         />
       ) : (
         <TraderPriceChart
@@ -87,6 +94,7 @@ const TraderPositionChartSection: React.FC<TraderPositionChartSectionProps> = ({
           onChartIndexChange={onChartIndexChange}
           trades={trades}
           chartHeight={SOCIAL_POSITION_CHART_HEIGHT}
+          scrollPassthrough={scrollPassthrough}
         />
       )}
     </Box>

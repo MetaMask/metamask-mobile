@@ -617,6 +617,14 @@ export interface AdvancedChartProps {
    * When omitted or `enabled: false`, the native TV legend is used as-is.
    */
   legendOverlay?: LegendOverlayConfig;
+
+  /**
+   * When true, the chart surface stops capturing touches (`pointerEvents="none"`)
+   * so gestures fall through to whatever scrolls behind it. Used when the chart is
+   * pinned as a scroll-linked overlay (e.g. Trader Position): once pinned, drags on
+   * the chart must scroll the list underneath rather than pan the WebView.
+   */
+  scrollPassthrough?: boolean;
 }
 
 export interface LegendPlotConfig {

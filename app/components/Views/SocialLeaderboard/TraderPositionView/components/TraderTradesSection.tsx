@@ -18,6 +18,7 @@ import {
   SectionList,
   type RefreshControlProps,
   type SectionListData,
+  type ViewToken,
 } from 'react-native';
 import Animated, { type ScrollHandlerProcessed } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
@@ -28,6 +29,19 @@ interface TradeDaySection {
   dayKey: string;
   dayLabel: string;
   data: Trade[];
+}
+
+/**
+ * Day label of the top-most visible section, used to drive the custom sticky
+ * day header below the pinned chart. `viewableItems[0]` (with a 0% visibility
+ * threshold) is the section currently behind the top of the list — i.e. the one
+ * hidden under the chart overlay — which is exactly the day to pin.
+ */
+export function resolveTopDayLabel(
+  viewableItems: Pick<ViewToken, 'section'>[],
+): string | null {
+  const topSection = viewableItems[0]?.section as TradeDaySection | undefined;
+  return topSection?.dayLabel ?? null;
 }
 
 const AnimatedSectionList = Animated.createAnimatedComponent(
@@ -55,6 +69,21 @@ export interface TraderTradesSectionProps {
   refreshControl?: React.ReactElement<RefreshControlProps>;
   /** Reanimated scroll handler for header collapse (split-view layout). */
   onScroll?: ScrollHandlerProcessed<Record<string, unknown>>;
+  /**
+   * Rendered above the first trade section. In the scroll-linked pinned-chart
+   * layout this carries the token info row (scrolls behind the nav), a spacer that
+   * reserves room for the pinned chart overlay, and the PnL card.
+   */
+  listHeaderComponent?: React.ComponentProps<
+    typeof SectionList
+  >['ListHeaderComponent'];
+  /**
+   * Reports the day label of the top-most visible section as the user scrolls, so
+   * the parent can render a custom sticky day header below the pinned chart
+   * (the native sticky header would be hidden behind the chart overlay). `null`
+   * when no section is visible (e.g. only the list header is on screen).
+   */
+  onTopDayLabelChange?: (dayLabel: string | null) => void;
 }
 
 /**
@@ -78,11 +107,30 @@ const TraderTradesSection = forwardRef<
       emphasizedTradeId,
       refreshControl,
       onScroll,
+      listHeaderComponent,
+      onTopDayLabelChange,
     },
     ref,
   ) => {
     const tw = useTailwind();
     const listRef = useRef<SectionList<Trade, TradeDaySection>>(null);
+
+    // Stable ref so onViewableItemsChanged stays referentially constant
+    // (RN throws if it changes on the fly).
+    const onTopDayLabelChangeRef = useRef(onTopDayLabelChange);
+    onTopDayLabelChangeRef.current = onTopDayLabelChange;
+
+    // Any pixel visible counts: viewableItems[0] is then the section currently
+    // behind the top of the list (hidden under the pinned chart overlay), which
+    // is exactly the day the custom sticky header should display.
+    const viewabilityConfig = useRef({
+      itemVisiblePercentThreshold: 0,
+    }).current;
+    const handleViewableItemsChanged = useRef(
+      ({ viewableItems }: { viewableItems: ViewToken[] }) => {
+        onTopDayLabelChangeRef.current?.(resolveTopDayLabel(viewableItems));
+      },
+    ).current;
     // Remembered target so onScrollToIndexFailed can retry once layout settles.
     const pendingScrollRef = useRef<{
       sectionIndex: number;
@@ -203,12 +251,18 @@ const TraderTradesSection = forwardRef<
         keyExtractor={keyExtractor}
         renderItem={renderItem}
         renderSectionHeader={renderSectionHeader}
-        stickySectionHeadersEnabled
+        ListHeaderComponent={listHeaderComponent}
+        // Native sticky headers stick at the list's top edge, which is hidden
+        // behind the pinned chart overlay. The parent renders a custom sticky
+        // day header below the chart instead (fed by onTopDayLabelChange).
+        stickySectionHeadersEnabled={false}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('pb-6')}
         refreshControl={refreshControl}
         onScroll={onScroll}
         scrollEventThrottle={onScroll ? 16 : undefined}
+        viewabilityConfig={viewabilityConfig}
+        onViewableItemsChanged={handleViewableItemsChanged}
         onScrollToIndexFailed={handleScrollToIndexFailed}
         ListEmptyComponent={
           <Box twClassName="px-4 py-6 items-center">

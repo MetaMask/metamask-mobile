@@ -1,11 +1,11 @@
 import React from 'react';
 import { screen } from '@testing-library/react-native';
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Text, type ViewToken } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import type { Trade } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { formatTradeDayLabel } from '../../utils/formatters';
-import TraderTradesSection from './TraderTradesSection';
+import TraderTradesSection, { resolveTopDayLabel } from './TraderTradesSection';
 
 const makeTrade = (overrides: Partial<Trade> = {}): Trade => ({
   intent: 'enter',
@@ -62,5 +62,31 @@ describe('TraderTradesSection', () => {
 
     expect(screen.queryByText('Bought')).toBeNull();
     expect(screen.queryByText('Sold')).toBeNull();
+  });
+
+  it('renders the provided list header component', () => {
+    renderWithProvider(
+      <TraderTradesSection
+        trades={[]}
+        listHeaderComponent={<Text>PINNED HEADER</Text>}
+      />,
+    );
+
+    expect(screen.getByText('PINNED HEADER')).toBeOnTheScreen();
+  });
+});
+
+describe('resolveTopDayLabel', () => {
+  it('returns the day label of the top-most visible section', () => {
+    const viewableItems = [
+      { section: { dayKey: '2026-01-01', dayLabel: 'Jan 1 2026', data: [] } },
+      { section: { dayKey: '2026-01-02', dayLabel: 'Jan 2 2026', data: [] } },
+    ] as unknown as ViewToken[];
+
+    expect(resolveTopDayLabel(viewableItems)).toBe('Jan 1 2026');
+  });
+
+  it('returns null when no section is visible', () => {
+    expect(resolveTopDayLabel([])).toBeNull();
   });
 });

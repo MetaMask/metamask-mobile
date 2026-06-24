@@ -1,0 +1,46 @@
+/**
+ * Layout math for the Trader Position scroll-linked pinned-chart layout.
+ *
+ * The token info row lives inside the trades list header and scrolls up behind
+ * the nav. The chart + time-period selector render in an absolutely-positioned
+ * overlay that translates up so it stays glued just below the token row, then
+ * pins directly under the nav once the token row has fully scrolled off.
+ *
+ * IMPORTANT (Reanimated worklet pitfall): these helpers carry the `'worklet'`
+ * directive so they CAN run on the UI thread, but Reanimated does NOT auto-bundle
+ * sibling worklet helpers that are called from inside another worklet (e.g. from
+ * a `useAnimatedStyle`/`useAnimatedReaction` body). Calling them that way crashes
+ * with "<fn> is not a function". The view therefore INLINES this same math inside
+ * its animated worklets; these exports exist for the JS thread and unit tests.
+ */
+
+/**
+ * Vertical offset for the pinned chart overlay.
+ *
+ * At rest (`scrollY === 0`) the chart sits below the token row at
+ * `titleSectionHeight`. As the list scrolls the chart rises to `0` (pinned under
+ * the nav) and stays there. Negative `scrollY` (pull-to-refresh overscroll) is
+ * intentionally preserved so the chart follows the bounce DOWNWARD instead of
+ * freezing.
+ */
+export function getPinnedChartTranslateY(
+  titleSectionHeight: number,
+  scrollY: number,
+): number {
+  'worklet';
+  const clamped = scrollY < titleSectionHeight ? scrollY : titleSectionHeight;
+  return titleSectionHeight - clamped;
+}
+
+/**
+ * Whether the chart overlay should be elevated — i.e. the token info row has
+ * fully scrolled behind the nav. Only true once a real height has been measured
+ * (`titleSectionHeight > 0`) so the chart never elevates before layout settles.
+ */
+export function isPinnedChartElevated(
+  titleSectionHeight: number,
+  scrollY: number,
+): boolean {
+  'worklet';
+  return titleSectionHeight > 0 && scrollY >= titleSectionHeight;
+}
