@@ -11,7 +11,7 @@ export interface VedaTokenConfig {
   caipChainId: CaipChainId;
   address: string;
   decimals: number;
-  delegationContract: string;
+  delegationContract?: string;
 }
 
 const parseEvmCaipChainId = (chainId: string): CaipChainId => {
@@ -49,6 +49,49 @@ export const getVedaTokenConfig = (
     decimals: vedaToken.decimals,
     delegationContract: monadNetwork.delegationContract,
   };
+};
+
+export const getVedaTokenConfigFromFeatureFlag = (
+  chains:
+    | Record<
+        string,
+        | {
+            tokens?:
+              | {
+                  address?: string | null;
+                  symbol?: string | null;
+                  decimals?: number | null;
+                  enabled?: boolean | null;
+                }[]
+              | null;
+          }
+        | undefined
+      >
+    | null
+    | undefined,
+): VedaTokenConfig | null => {
+  if (!chains) {
+    return null;
+  }
+
+  for (const [chainId, chain] of Object.entries(chains)) {
+    const vedaToken = (chain?.tokens ?? []).find(
+      (token) =>
+        token?.enabled !== false &&
+        !!token?.address &&
+        token.symbol?.toLowerCase() === MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+    );
+
+    if (vedaToken?.address) {
+      return {
+        caipChainId: chainId as CaipChainId,
+        address: vedaToken.address,
+        decimals: vedaToken.decimals ?? 6,
+      };
+    }
+  }
+
+  return null;
 };
 
 export const isVedaToken = (
