@@ -28,6 +28,10 @@ const mockPreferences = {
     pushNotificationsEnabled: true,
     inAppNotificationsEnabled: true,
   },
+  agenticCli: {
+    pushNotificationsEnabled: true,
+    inAppNotificationsEnabled: true,
+  },
   socialAI: {
     pushNotificationsEnabled: true,
     inAppNotificationsEnabled: true,
