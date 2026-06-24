@@ -66,6 +66,9 @@ const openInAppBrowser = (url: string) => {
 /** Hide layout skeleton if WebView never sends `CHART_LAYOUT_SETTLED` (e.g. older HTML). */
 const LAYOUT_SETTLE_FALLBACK_MS = 2500;
 
+/** Defer indicator/MA sync until layout settles; fallback if WebView never posts settle. */
+const INDICATORS_SYNC_FALLBACK_MS = 500;
+
 /** Debounce TradingView external opens (redirect chains can fire multiple navigation requests). */
 const TRADINGVIEW_OPEN_DEBOUNCE_MS = 800;
 
@@ -124,6 +127,11 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const layoutSettleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
       null,
     );
+    /** Gate ADD_INDICATOR / SET_MA_VISIBILITY until post-OHLCV layout settle (see chartLogic). */
+    const [indicatorsSyncReady, setIndicatorsSyncReady] = useState(false);
+    const indicatorsSyncFallbackRef = useRef<ReturnType<
+      typeof setTimeout
+    > | null>(null);
 
     const activeIndicatorsRef = useRef<Set<IndicatorType>>(new Set());
     const [appliedIndicatorCount, setAppliedIndicatorCount] = useState(0);
@@ -221,6 +229,27 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }
     }, []);
 
+    const clearIndicatorsSyncFallback = useCallback(() => {
+      const t = indicatorsSyncFallbackRef.current;
+      if (t !== null) {
+        clearTimeout(t);
+        indicatorsSyncFallbackRef.current = null;
+      }
+    }, []);
+
+    const markIndicatorsSyncReady = useCallback(() => {
+      clearIndicatorsSyncFallback();
+      setIndicatorsSyncReady(true);
+    }, [clearIndicatorsSyncFallback]);
+
+    const scheduleIndicatorsSyncFallback = useCallback(() => {
+      clearIndicatorsSyncFallback();
+      indicatorsSyncFallbackRef.current = setTimeout(() => {
+        indicatorsSyncFallbackRef.current = null;
+        markIndicatorsSyncReady();
+      }, INDICATORS_SYNC_FALLBACK_MS);
+    }, [clearIndicatorsSyncFallback, markIndicatorsSyncReady]);
+
     const beginFullOhlcvLayoutSettle = useCallback(() => {
       if (!isChartReady) {
         return;
@@ -238,13 +267,15 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setChartReadyCount(0);
       setWebViewLoaded(false);
       setLayoutSettling(false);
+      setIndicatorsSyncReady(false);
       clearLayoutSettleTimeout();
+      clearIndicatorsSyncFallback();
       activeIndicatorsRef.current.clear();
       setAppliedIndicatorCount(0);
       setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
-    }, [clearLayoutSettleTimeout]);
+    }, [clearLayoutSettleTimeout, clearIndicatorsSyncFallback]);
 
     const resetForInstanceRemount = useCallback(() => {
       resetWebViewSessionState();
@@ -293,8 +324,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     useEffect(
       () => () => {
         clearLayoutSettleTimeout();
+        clearIndicatorsSyncFallback();
       },
-      [clearLayoutSettleTimeout],
+      [clearLayoutSettleTimeout, clearIndicatorsSyncFallback],
     );
 
     const paginationRef = useRef<OHLCVPaginationConfig | undefined>(
@@ -406,6 +438,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             prevChartTypeRef.current = undefined;
             clearLayoutSettleTimeout();
             setLayoutSettling(false);
+            setIndicatorsSyncReady(false);
+            scheduleIndicatorsSyncFallback();
             setChartReadyCount((c) => c + 1);
             setWebViewError(null);
             onChartReady?.();
@@ -414,6 +448,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           case 'CHART_LAYOUT_SETTLED':
             clearLayoutSettleTimeout();
             setLayoutSettling(false);
+            markIndicatorsSyncReady();
             onChartLayoutSettled?.();
             break;
 
@@ -467,6 +502,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       [
         isChartReady,
         clearLayoutSettleTimeout,
+        scheduleIndicatorsSyncFallback,
+        markIndicatorsSyncReady,
         onChartReady,
         onChartLayoutSettled,
         onError,
@@ -623,7 +660,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     // Sync indicators prop (depends on chartReadyCount to re-fire on chart recreation)
     useEffect(() => {
-      if (chartReadyCount === 0) return;
+      if (chartReadyCount === 0 || !indicatorsSyncReady) return;
 
       const currentIndicators = new Set(indicators);
       const active = activeIndicatorsRef.current;
@@ -639,16 +676,22 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           removeIndicator(indicator);
         }
       });
-    }, [indicators, chartReadyCount, addIndicator, removeIndicator]);
+    }, [
+      indicators,
+      chartReadyCount,
+      indicatorsSyncReady,
+      addIndicator,
+      removeIndicator,
+    ]);
 
     useEffect(() => {
-      if (chartReadyCount === 0) return;
+      if (chartReadyCount === 0 || !indicatorsSyncReady) return;
 
       postMessage({
         type: 'SET_MA_VISIBILITY',
         payload: { visible: selectedMAs },
       });
-    }, [selectedMAs, chartReadyCount, postMessage]);
+    }, [selectedMAs, chartReadyCount, indicatorsSyncReady, postMessage]);
 
     // Sync positionLines prop
     useEffect(() => {

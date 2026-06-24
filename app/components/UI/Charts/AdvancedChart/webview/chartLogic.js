@@ -129,6 +129,52 @@ function scheduleChartLayoutSettledNotify() {
   }
 }
 
+/**
+ * Cold init: deferred settle never starts (no resetData), so RN would only unblock indicators
+ * via fallback. Fire CHART_LAYOUT_SETTLED after TV finishes its initial layout pass.
+ */
+function scheduleInitialColdLayoutSettled() {
+  if (window.__mmLayoutSettlePending) {
+    return;
+  }
+  setTimeout(function () {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        if (!window.chartWidget || !window.isChartReady) {
+          return;
+        }
+        if (window.__mmLayoutSettlePending) {
+          return;
+        }
+        scheduleChartLayoutSettledNotify();
+      });
+    });
+  }, 220);
+}
+
+/** Re-run widget resize after studies mount so overlay lines align with the price scale. */
+function scheduleChartWidgetResize() {
+  if (!window.chartWidget) {
+    return;
+  }
+  function run() {
+    if (!window.chartWidget) {
+      return;
+    }
+    try {
+      window.chartWidget.resize();
+    } catch (e) {}
+  }
+  try {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(run);
+    });
+  } catch (e) {
+    setTimeout(run, 0);
+  }
+  setTimeout(run, 120);
+}
+
 /** Milliseconds to wait if TradingView never calls `getBars` again after `resetData` (e.g. same-resolution cache). */
 const LAYOUT_SETTLE_DATA_FALLBACK_MS = 400;
 
@@ -761,7 +807,12 @@ function handleSetMAVisibility(payload) {
   }
 
   if (promises.length > 0) {
-    Promise.all(promises).then(refreshStudyLegendFromExport);
+    Promise.all(promises).then(function () {
+      refreshStudyLegendFromExport();
+      if (window.currentChartType !== 2) {
+        scheduleChartWidgetResize();
+      }
+    });
   } else {
     refreshStudyLegendFromExport();
   }
@@ -4679,6 +4730,10 @@ function initChart() {
       }
 
       sendToReactNative('CHART_READY', {});
+
+      if (window.currentChartType !== 2) {
+        scheduleInitialColdLayoutSettled();
+      }
 
       installTradingViewExternalOpenBridge();
 

@@ -102,9 +102,6 @@
       "message": "{{amount}} 미만을 추가하거나 다른 토큰을 사용하세요.",
       "title": "자금 부족"
     },
-    "insufficient_pay_token_balance_fees_no_target": {
-      "message": "더 적은 액수를 추가하거나 다른 토큰을 사용하세요."
-    },
     "insufficient_pay_token_native": {
       "message": "{{ticker}} 잔액이 부족해 수수료를 결제할 수 없습니다. 다른 네트워크의 토큰을 사용하거나 {{ticker}} 추가 후 계속 진행하세요.",
       "title": "자금 부족"
