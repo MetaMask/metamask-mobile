@@ -44,10 +44,13 @@ jest.mock('../analytics', () => {
   };
 });
 
+const mockSelectSocialLeaderboardPerpsEnabled = jest.fn(() => true);
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
     selectSocialLeaderboardEnabled: () => true,
+    selectSocialLeaderboardPerpsEnabled: () =>
+      mockSelectSocialLeaderboardPerpsEnabled(),
   }),
 );
 
@@ -228,6 +231,26 @@ const fixtureOpenPositions: Position[] = [
   },
 ];
 
+const fixturePerpOpenPosition: Position = {
+  positionId: 'btc-hyperliquid-long',
+  tokenSymbol: 'BTC',
+  tokenName: 'Bitcoin',
+  tokenAddress: 'BTC',
+  chain: 'hyperliquid',
+  positionAmount: 1,
+  boughtUsd: 100000,
+  soldUsd: 0,
+  realizedPnl: 0,
+  costBasis: 100000,
+  trades: [],
+  lastTradeAt: Date.now(),
+  currentValueUSD: 125000,
+  pnlValueUsd: 25000,
+  pnlPercent: 25,
+  perpPositionType: 'long',
+  perpLeverage: 5,
+};
+
 const fixtureClosedPositions: Position[] = [
   {
     positionId: 'cult-eth',
@@ -335,6 +358,7 @@ describe('TraderProfileView', () => {
     mockHasNotificationPreferences.mockReturnValue(true);
     mockIsLoadingPreferences = false;
     mockIsTraderNotificationEnabled.mockReturnValue(true);
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockRouteParams = {
       traderId: 'trader-1',
       traderName: 'trader1',
@@ -427,6 +451,19 @@ describe('TraderProfileView', () => {
     renderWithProvider(<TraderProfileView />);
     expect(screen.getByText('STARKBOT')).toBeOnTheScreen();
     expect(screen.getByText('$2,259.96')).toBeOnTheScreen();
+  });
+
+  it('does not render perp positions when social leaderboard perps are disabled', () => {
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+    mockPositionsResult.openPositions = [
+      ...fixtureOpenPositions,
+      fixturePerpOpenPosition,
+    ];
+
+    renderWithProvider(<TraderProfileView />);
+
+    expect(screen.getByText('STARKBOT')).toBeOnTheScreen();
+    expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
   });
 
   it('navigates to the trader position view when a position is pressed', () => {
@@ -1012,6 +1049,34 @@ describe('TraderProfileView', () => {
           screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
         ).getByText('+$20,610'),
       ).toBeOnTheScreen();
+    });
+
+    it('excludes Hyperliquid from headline PnL when social leaderboard perps are disabled', () => {
+      mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl7d: 999999 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: {
+            base: 50_000,
+            solana: 30_000,
+            ethereum: 20_000,
+            hyperliquid: 900_000,
+          },
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      expect(
+        within(
+          screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+        ).getByText('+$100,000'),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText('+$1,000,000')).not.toBeOnTheScreen();
     });
   });
 });
