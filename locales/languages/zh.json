@@ -102,9 +102,6 @@
       "message": "添加少于 {{amount}} 或使用其他代币。",
       "title": "资金不足"
     },
-    "insufficient_pay_token_balance_fees_no_target": {
-      "message": "添加更少金额或使用其他代币。"
-    },
     "insufficient_pay_token_native": {
       "message": "{{ticker}} 不足，无法支付费用。请使用其他网络的代币，或添加更多 {{ticker}} 以继续。",
       "title": "资金不足"

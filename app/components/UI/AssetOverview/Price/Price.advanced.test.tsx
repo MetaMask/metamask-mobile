@@ -1953,7 +1953,7 @@ describe('PriceAdvanced', () => {
       );
     });
 
-    it('replaces other sub-pane indicators when selecting a new one', () => {
+    it('allows RSI and MACD to be active at the same time', () => {
       enableIndicatorBar(['MACD']);
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
@@ -1968,7 +1968,7 @@ describe('PriceAdvanced', () => {
           properties: expect.objectContaining({
             indicator_type: 'RSI',
             indicator_action: 'on',
-            indicators_active: ['RSI'],
+            indicators_active: expect.arrayContaining(['MACD', 'RSI']),
           }),
         }),
       );

@@ -386,6 +386,52 @@ describe('TransactionDetailsHero', () => {
       expect(getByText(/\+123\.46 TST/)).toBeDefined();
     });
 
+    it('renders two-asset hero for perpsWithdraw with USDC as sent and mUSD as received', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.perpsWithdraw,
+          metamaskPay: {
+            tokenAddress: TOKEN_ADDRESS_MOCK,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '50.00',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('You sent')).toBeDefined();
+      expect(
+        getByText(new RegExp(`-123\\.46 ${ARBITRUM_USDC.symbol}`)),
+      ).toBeDefined();
+      expect(getByText('You received')).toBeDefined();
+      expect(getByText(/\+50\.00 mUSD/)).toBeDefined();
+    });
+
+    it('renders two-asset hero for predictWithdraw with pUSD as sent and mUSD as received', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.predictWithdraw,
+          metamaskPay: {
+            tokenAddress: TOKEN_ADDRESS_MOCK,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '10.00',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('You sent')).toBeDefined();
+      expect(
+        getByText(new RegExp(`-123\\.46 ${POLYGON_PUSD.symbol}`)),
+      ).toBeDefined();
+      expect(getByText('You received')).toBeDefined();
+      expect(getByText(/\+10\.00 mUSD/)).toBeDefined();
+    });
+
     it('renders fiat deposit hero with green + prefix for moneyAccountDeposit with fiat orderId', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
