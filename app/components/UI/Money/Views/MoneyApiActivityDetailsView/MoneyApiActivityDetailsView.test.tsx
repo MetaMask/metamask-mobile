@@ -164,10 +164,10 @@ describe('MoneyApiActivityDetailsView', () => {
   });
 
   describe('card spend', () => {
-    it('renders the card title', () => {
+    it('renders the Purchase title', () => {
       const { getByTestId } = render(<MoneyApiActivityDetailsView />);
       expect(getByTestId('header-title')).toHaveTextContent(
-        'money.api_activity_details.card_title',
+        'money.transaction.purchase',
       );
     });
 
@@ -181,10 +181,23 @@ describe('MoneyApiActivityDetailsView', () => {
       expect(getByText('money.api_activity_details.you_spent')).toBeTruthy();
     });
 
-    it('renders the "To" row with the "Money account" label', () => {
+    it('renders the Money account hero icon', () => {
+      const { getByTestId } = render(<MoneyApiActivityDetailsView />);
+      expect(getByTestId('money-account-hero-icon')).toBeTruthy();
+    });
+
+    it('renders the From row with the Money account label', () => {
       const { getByText } = render(<MoneyApiActivityDetailsView />);
-      expect(getByText('transaction_details.label.to')).toBeTruthy();
+      expect(getByText('transaction_details.label.from')).toBeTruthy();
       expect(getByText('transaction_details.label.money_account')).toBeTruthy();
+    });
+
+    it('renders the To row with the merchant address', () => {
+      const { getByText, getByTestId } = render(
+        <MoneyApiActivityDetailsView />,
+      );
+      expect(getByText('transaction_details.label.to')).toBeTruthy();
+      expect(getByTestId('counterparty-name')).toHaveTextContent(card.paidTo);
     });
   });
 
@@ -193,10 +206,10 @@ describe('MoneyApiActivityDetailsView', () => {
       mockRouteParams = { activity: cashback };
     });
 
-    it('renders the cashback title', () => {
+    it('renders the mUSD back title', () => {
       const { getByTestId } = render(<MoneyApiActivityDetailsView />);
       expect(getByTestId('header-title')).toHaveTextContent(
-        'money.api_activity_details.cashback_title',
+        'money.transaction.musd_back',
       );
     });
 

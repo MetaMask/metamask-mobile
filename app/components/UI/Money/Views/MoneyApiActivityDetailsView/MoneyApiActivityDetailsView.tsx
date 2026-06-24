@@ -63,6 +63,7 @@ const iconStyles = StyleSheet.create({
     justifyContent: 'center' as const,
   },
   moneyIcon: { width: 32, height: 32 },
+  heroMoneyIcon: { width: 32, height: 32, borderRadius: 16 },
 });
 
 /**
@@ -159,11 +160,7 @@ function MoneyApiActivityDetailsContent({
   return (
     <View style={styles.wrapper}>
       <HeaderStandard
-        title={strings(
-          isCard
-            ? 'money.api_activity_details.card_title'
-            : 'money.api_activity_details.cashback_title',
-        )}
+        title={display.label}
         onBack={handleBack}
         backButtonProps={{ testID: 'card-transaction-details-back-button' }}
         includesTopInset
@@ -184,12 +181,20 @@ function MoneyApiActivityDetailsContent({
               alignItems={AlignItems.center}
               gap={12}
             >
-              <TokenIcon
-                chainId={activity.chainId}
-                address={activity.token.address}
-                symbol={activity.token.symbol}
-                variant={TokenIconVariant.Hero}
-              />
+              {isCard ? (
+                <Image
+                  source={MoneyIcon}
+                  style={iconStyles.heroMoneyIcon}
+                  testID="money-account-hero-icon"
+                />
+              ) : (
+                <TokenIcon
+                  chainId={activity.chainId}
+                  address={activity.token.address}
+                  symbol={activity.token.symbol}
+                  variant={TokenIconVariant.Hero}
+                />
+              )}
               <Text
                 variant={TextVariant.DisplayMD}
                 color={
@@ -238,29 +243,42 @@ function MoneyApiActivityDetailsContent({
             </TransactionDetailsRow>
           ) : null}
 
-          {/* Counterparty. Card spends are framed as leaving the money account
-              ("To: Money account"); musdback shows the actual sender. */}
+          {/* Card spends mirror send details: From Money account → merchant. */}
           {isCard ? (
-            <TransactionDetailsRow
-              label={strings('transaction_details.label.to')}
-            >
-              <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
-                gap={6}
+            <>
+              <TransactionDetailsRow
+                label={strings('transaction_details.label.from')}
               >
-                <View style={iconStyles.moneyIconWrapper}>
-                  <Image
-                    source={MoneyIcon}
-                    style={iconStyles.moneyIcon}
-                    testID="money-account-icon"
-                  />
-                </View>
-                <Text>
-                  {strings('transaction_details.label.money_account')}
-                </Text>
-              </Box>
-            </TransactionDetailsRow>
+                <Box
+                  flexDirection={FlexDirection.Row}
+                  alignItems={AlignItems.center}
+                  gap={6}
+                >
+                  <View style={iconStyles.moneyIconWrapper}>
+                    <Image
+                      source={MoneyIcon}
+                      style={iconStyles.moneyIcon}
+                      testID="money-account-icon"
+                    />
+                  </View>
+                  <Text>
+                    {strings('transaction_details.label.money_account')}
+                  </Text>
+                </Box>
+              </TransactionDetailsRow>
+
+              <TransactionDetailDivider />
+
+              <TransactionDetailsRow
+                label={strings('transaction_details.label.to')}
+              >
+                <Name
+                  type={NameType.EthereumAddress}
+                  value={activity.paidTo}
+                  variation={activity.chainId}
+                />
+              </TransactionDetailsRow>
+            </>
           ) : (
             <TransactionDetailsRow
               label={strings('money.api_activity_details.received_from')}
