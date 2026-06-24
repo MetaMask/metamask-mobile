@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Linking, View } from 'react-native';
 import { providerErrors } from '@metamask/rpc-errors';
 import { useNavigation } from '@react-navigation/native';
@@ -18,8 +18,9 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 import AppConstants from '../../../../../core/AppConstants';
 import ConfirmAlertModal from '../../components/modals/confirm-alert-modal';
-import ScamQuestionnaire from '../../Views/scam-questionnaire';
-import { AlertKeys } from '../../constants/alerts';
+import ScamQuestionnaire, {
+  useSendScamQuestionnaire,
+} from '../../external/scam-questionnaire';
 import { ResultType } from '../../constants/signatures';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
@@ -62,7 +63,6 @@ export const Footer = () => {
     hasBlockingAlerts,
     hasDangerAlerts,
     hasUnconfirmedDangerAlerts,
-    setAlertConfirmed,
   } = useAlerts();
   const { onConfirm, onReject } = useConfirmActions();
   const { needsCameraPermission } = useQRHardwareContext();
@@ -84,16 +84,14 @@ export const Footer = () => {
 
   const [confirmAlertModalVisible, setConfirmAlertModalVisible] =
     useState(false);
-  const [scamQuestionnaireVisible, setScamQuestionnaireVisible] =
-    useState(false);
-  // Once the questionnaire is completed (clean pass or bypass), later Confirm
-  // taps skip both it and the danger-alert checkbox modal.
-  const scamQuestionnaireCompletedRef = useRef(false);
 
-  const shouldShowScamQuestionnaire =
-    !scamQuestionnaireCompletedRef.current &&
-    isMMSendReq &&
-    securityAlertResponse?.result_type === ResultType.Malicious;
+  const {
+    isScamQuestionnaireRequired,
+    isScamQuestionnaireCompleted,
+    isScamQuestionnaireVisible,
+    showScamQuestionnaire,
+    scamQuestionnaireProps,
+  } = useSendScamQuestionnaire({ onReject });
 
   const showConfirmAlertModal = useCallback(() => {
     setConfirmAlertModalVisible(true);
@@ -103,56 +101,36 @@ export const Footer = () => {
     setConfirmAlertModalVisible(false);
   }, []);
 
-  const hideScamQuestionnaire = useCallback(() => {
-    setScamQuestionnaireVisible(false);
-  }, []);
-
-  // Returns the user to the confirm screen (does not submit). Acknowledging the
-  // blockaid alert flips the button label to "Confirm" and skips the checkbox
-  // modal on the next tap.
-  const onScamComplete = useCallback(() => {
-    scamQuestionnaireCompletedRef.current = true;
-    setAlertConfirmed(AlertKeys.Blockaid, true);
-    setScamQuestionnaireVisible(false);
-  }, [setAlertConfirmed]);
-
   const onHandleReject = useCallback(async () => {
     hideConfirmAlertModal();
-    hideScamQuestionnaire();
     await onReject();
-  }, [hideConfirmAlertModal, hideScamQuestionnaire, onReject]);
-
-  // "Stop this payment" on the scam warning rejects the tx and returns the user
-  // to the wallet home rather than dropping them back on the confirm screen.
-  const onScamReject = useCallback(async () => {
-    hideScamQuestionnaire();
-    await onReject(providerErrors.userRejectedRequest(), false, true);
-  }, [hideScamQuestionnaire, onReject]);
+  }, [hideConfirmAlertModal, onReject]);
 
   const onHandleConfirm = useCallback(async () => {
     hideConfirmAlertModal();
-    hideScamQuestionnaire();
     try {
       await onConfirm();
     } catch {
       navigation.navigate(Routes.TRANSACTIONS_VIEW);
     }
-  }, [hideConfirmAlertModal, hideScamQuestionnaire, onConfirm, navigation]);
+  }, [hideConfirmAlertModal, onConfirm, navigation]);
 
   const onSignConfirm = useCallback(async () => {
-    if (shouldShowScamQuestionnaire) {
-      setScamQuestionnaireVisible(true);
+    if (isScamQuestionnaireRequired) {
+      showScamQuestionnaire();
       return;
     }
     // A completed questionnaire stands in for the danger-alert checkbox modal,
     // so don't surface it again after the user has been through that friction.
-    if (hasDangerAlerts && !scamQuestionnaireCompletedRef.current) {
+    if (hasDangerAlerts && !isScamQuestionnaireCompleted) {
       showConfirmAlertModal();
       return;
     }
     await onConfirm();
   }, [
-    shouldShowScamQuestionnaire,
+    isScamQuestionnaireRequired,
+    isScamQuestionnaireCompleted,
+    showScamQuestionnaire,
     hasDangerAlerts,
     onConfirm,
     showConfirmAlertModal,
@@ -253,13 +231,8 @@ export const Footer = () => {
           onConfirm={onHandleConfirm}
         />
       )}
-      {scamQuestionnaireVisible && (
-        <ScamQuestionnaire
-          onReject={onScamReject}
-          onCleanPass={onScamComplete}
-          onBypass={onScamComplete}
-          onDismiss={hideScamQuestionnaire}
-        />
+      {isScamQuestionnaireVisible && (
+        <ScamQuestionnaire {...scamQuestionnaireProps} />
       )}
       <BottomSheetFooter
         buttonsAlignment={ButtonsAlignment.Horizontal}
