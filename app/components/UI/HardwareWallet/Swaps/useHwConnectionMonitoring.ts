@@ -75,6 +75,11 @@ export function useHwConnectionMonitoring({
   const handledErrorRef = useRef<unknown>(null);
   const baselineStateRef = useRef<typeof connectionState | null>(null);
   const prevWaitingRef = useRef(false);
+  // True once the device reaches Connected in the current Waiting window.
+  // Baseline is deferred until this point so the initial pre-connect
+  // Disconnected state never becomes the baseline; only actual disconnects
+  // from a confirmed Connected state trigger the disconnect detection.
+  const hasDeviceConnectedRef = useRef(false);
   // Debounce buffer: Ledger transports briefly report Disconnected during
   // multi-tx signing (e.g. a BLE blip right after a retry reconnect). We wait
   // out the blip instead of interrupting the batch with a spurious disconnect.
@@ -88,7 +93,8 @@ export function useHwConnectionMonitoring({
     latestConnectionStatusRef.current = connectionState.status;
 
     if (isWaiting && !prevWaitingRef.current) {
-      baselineStateRef.current = connectionState;
+      hasDeviceConnectedRef.current = false;
+      baselineStateRef.current = null;
       handledErrorRef.current = null;
     }
     prevWaitingRef.current = isWaiting;
@@ -99,6 +105,19 @@ export function useHwConnectionMonitoring({
         disconnectDebounceRef.current = null;
       }
       return;
+    }
+
+    // Defer baseline capture until the device first reaches Connected so
+    // the initial Disconnected state (pre-ensureDeviceReady) is never
+    // used as the reference.  Without this, any transient BLE blip after
+    // the initial connect clears the baseline and triggers a spurious
+    // DeviceDisconnected dispatch.
+    if (
+      !hasDeviceConnectedRef.current &&
+      connectionState.status === ConnectionStatus.Connected
+    ) {
+      hasDeviceConnectedRef.current = true;
+      baselineStateRef.current = connectionState;
     }
 
     // Suppress during retry — the abort phase causes a transient disconnect
@@ -219,6 +238,7 @@ export function useHwConnectionMonitoring({
   const resetHandledError = useCallback(() => {
     handledErrorRef.current = null;
     baselineStateRef.current = null;
+    hasDeviceConnectedRef.current = false;
     if (disconnectDebounceRef.current) {
       clearTimeout(disconnectDebounceRef.current);
       disconnectDebounceRef.current = null;
