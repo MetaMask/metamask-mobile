@@ -434,10 +434,28 @@ describe('getTerminalApiUrl', () => {
     expect(getTerminalApiUrl()).toBe('https://terminal.uat-api.cx.metamask.io');
   });
 
-  it('returns uat URL for flask build type', () => {
+  it('returns uat URL for flask build type (falls through to default)', () => {
     process.env.METAMASK_ENVIRONMENT = 'exp';
     process.env.METAMASK_BUILD_TYPE = 'flask';
     expect(getTerminalApiUrl()).toBe('https://terminal.uat-api.cx.metamask.io');
+  });
+
+  it('returns uat URL when METAMASK_ENVIRONMENT is undefined', () => {
+    delete process.env.METAMASK_ENVIRONMENT;
+    delete process.env.METAMASK_BUILD_TYPE;
+    expect(getTerminalApiUrl()).toBe('https://terminal.uat-api.cx.metamask.io');
+  });
+
+  it('returns uat URL for local environment', () => {
+    process.env.METAMASK_ENVIRONMENT = 'local';
+    delete process.env.METAMASK_BUILD_TYPE;
+    expect(getTerminalApiUrl()).toBe('https://terminal.uat-api.cx.metamask.io');
+  });
+
+  it('returns dev URL when env is dev even if build type is beta', () => {
+    process.env.METAMASK_ENVIRONMENT = 'dev';
+    process.env.METAMASK_BUILD_TYPE = 'beta';
+    expect(getTerminalApiUrl()).toBe('https://terminal.dev-api.cx.metamask.io');
   });
 });
 

@@ -1986,6 +1986,21 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
     });
 
+    it('passes useTerminalApi: true to getMarkets during prewarm', async () => {
+      await testStreamManager.prices.prewarm();
+
+      const mockController = (
+        Engine.context as unknown as {
+          PerpsController: Record<string, jest.Mock>;
+        }
+      ).PerpsController;
+      await waitFor(() => {
+        expect(mockController.getMarkets).toHaveBeenCalledWith({
+          useTerminalApi: true,
+        });
+      });
+    });
+
     it('uses cached data for subsequent subscriptions within cache duration', async () => {
       const callback1 = jest.fn();
       const callback2 = jest.fn();

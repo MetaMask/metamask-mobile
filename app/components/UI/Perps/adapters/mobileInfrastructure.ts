@@ -45,33 +45,34 @@ import {
 } from '../utils/formatUtils';
 import { getIntlNumberFormatter } from '../../../../util/intl';
 
-const TERMINAL_API_URLS = {
-  dev: 'https://terminal.dev-api.cx.metamask.io',
-  uat: 'https://terminal.uat-api.cx.metamask.io',
-  prd: 'https://terminal.api.cx.metamask.io',
-} as const;
+import { TERMINAL_API_URLS } from '../constants/terminalApi';
 
 /**
  * Resolves the Terminal API base URL based on build environment.
- * Follows the Shield pattern: dev/test → dev, production/rc → prd, else → uat.
+ *
+ * Mapping:
+ * - dev / test / e2e → DEV (takes priority over beta)
+ * - beta build type (non-dev envs) → UAT
+ * - production / rc → PRD
+ * - all other cases (local, undefined, flask, etc.) → UAT
  */
 export function getTerminalApiUrl(): string {
   const env = process.env.METAMASK_ENVIRONMENT;
 
   if (env === 'dev' || env === 'test' || env === 'e2e') {
-    return TERMINAL_API_URLS.dev;
+    return TERMINAL_API_URLS.DEV;
   }
 
-  // Beta builds always target UAT regardless of environment.
+  // Beta builds target UAT (except dev/test/e2e which are handled above).
   if (process.env.METAMASK_BUILD_TYPE === 'beta') {
-    return TERMINAL_API_URLS.uat;
+    return TERMINAL_API_URLS.UAT;
   }
 
   if (env === 'production' || env === 'rc') {
-    return TERMINAL_API_URLS.prd;
+    return TERMINAL_API_URLS.PRD;
   }
 
-  return TERMINAL_API_URLS.uat;
+  return TERMINAL_API_URLS.UAT;
 }
 
 /**

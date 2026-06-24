@@ -24,6 +24,7 @@ import {
   type PerpsMarketData,
   findEvmAccount,
 } from '@metamask/perps-controller';
+import { USE_TERMINAL_API } from '../constants/terminalApi';
 import {
   PROVIDER_CONFIG,
   PERPS_DISK_CACHE_MARKETS,
@@ -535,6 +536,8 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
             funding: update.funding,
             openInterest: update.openInterest,
             volume24h: update.volume24h,
+            // Backward-compatible default: pre-8.3.0 streams don't emit isTradable,
+            // so treat absence as tradable to avoid breaking existing market display.
             isTradable: update.isTradable ?? true,
           };
           this.priceCache.set(update.symbol, priceUpdate);
@@ -631,7 +634,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     // Start market fetch in background (non-blocking)
     // We need the symbols to register subscribers, but we can return immediately
     controller
-      .getMarkets({ useTerminalApi: true })
+      .getMarkets({ useTerminalApi: USE_TERMINAL_API })
       .then((markets) => {
         // If this promise is from a stale cycle, don't set up subscription
         // This prevents leaks when prewarm is called multiple times rapidly
@@ -680,6 +683,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
                 funding: update.funding,
                 openInterest: update.openInterest,
                 volume24h: update.volume24h,
+                // Backward-compatible default: see comment in connect() callback.
                 isTradable: update.isTradable ?? true,
               };
               this.priceCache.set(update.symbol, priceUpdate);
@@ -1596,7 +1600,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         const preFetchNetworkKey = getProviderNetworkKey(controller.state);
 
         const data = await controller.getMarketDataWithPrices({
-          useTerminalApi: true,
+          useTerminalApi: USE_TERMINAL_API,
         });
         const fetchTime = Date.now() - fetchStartTime;
 
