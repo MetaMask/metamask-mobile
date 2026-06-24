@@ -102,9 +102,6 @@
       "message": "Ajoutez moins de {{amount}} ou utilisez un autre jeton.",
       "title": "Fonds insuffisants"
     },
-    "insufficient_pay_token_balance_fees_no_target": {
-      "message": "Ajoutez moins ou utilisez un autre jeton."
-    },
     "insufficient_pay_token_native": {
       "message": "Pas assez de {{ticker}} pour couvrir les frais. Utilisez un jeton sur un autre réseau ou ajoutez plus de {{ticker}} pour continuer.",
       "title": "Fonds insuffisants"
