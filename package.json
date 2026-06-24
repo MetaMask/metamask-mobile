@@ -373,7 +373,6 @@
     "@react-native-masked-view/masked-view": "^0.3.1",
     "@react-native/babel-preset": "0.83.0",
     "@react-native/eslint-config": "0.83.0",
-    "@react-native/new-app-screen": "0.83.0",
     "@react-native/typescript-config": "0.83.0",
     "@react-navigation/bottom-tabs": "^6.5.0",
     "@react-navigation/native": "^6.1.0",
