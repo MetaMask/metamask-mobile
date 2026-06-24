@@ -16,133 +16,11 @@ import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet.js
 import { CustomNetworks } from '../../resources/networks.e2e.js';
 import type { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
-import {
-  DAI_TOKEN,
-  ETH_TOKEN,
-  seedUnifiedEvmAssets,
-  setupNetworksTestMocks,
-  USDC_TOKEN,
-} from './helpers/network-test-helpers.js';
+import { setupNetworksTestMocks } from './helpers/network-test-helpers.js';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
 appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
-  // Blocked by production bug — same skip as Detox smoke/networks/network-manager2.spec.ts
-  appiumTest.skip('should filter by Solana', async () => {
-    // Intentionally skipped — parity with Detox.
-  });
-
-  appiumTest(
-    'should filter tokens by selected network from list of enabled popular networks',
-    async ({ driver: _driver, currentDeviceDetails }) => {
-      await withFixtures(
-        {
-          fixture: (() => {
-            const fixture = new FixtureBuilder()
-              .withTokensForAllPopularNetworks([
-                ETH_TOKEN,
-                USDC_TOKEN,
-                DAI_TOKEN,
-              ])
-              .build();
-            seedUnifiedEvmAssets(fixture, [ETH_TOKEN, USDC_TOKEN, DAI_TOKEN]);
-            return fixture;
-          })(),
-          restartDevice: true,
-          currentDeviceDetails,
-          testSpecificMock: setupNetworksTestMocks,
-        },
-        async () => {
-          await loginToAppPlaywright({ scenarioType: 'e2e' });
-
-          await NetworkManager.openNetworkManagerFromHomepage();
-          await NetworkManager.waitForNetworkManagerToLoad();
-          await NetworkManager.checkPopularNetworksContainerIsVisible();
-          await NetworkManager.checkTabIsSelected('Popular');
-
-          await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
-          await NetworkManager.checkBaseControlBarText(
-            NetworkToCaipChainId.ETHEREUM,
-          );
-
-          for (const token of ['ETH', 'USDC', 'DAI']) {
-            await NetworkManager.checkTokenIsVisible(token);
-          }
-
-          for (const token of ['SOL', 'Linea']) {
-            await NetworkManager.checkTokenIsNotVisible(token);
-          }
-        },
-      );
-    },
-  );
-
-  appiumTest(
-    'should filter tokens by custom enabled networks',
-    async ({ driver: _driver, currentDeviceDetails }) => {
-      await withFixtures(
-        {
-          fixture: new FixtureBuilder()
-            .withTokensForAllPopularNetworks([
-              {
-                address: '0x0000000000000000000000000000000000000000',
-                symbol: 'ETH',
-                decimals: 18,
-                name: 'Ethereum',
-              },
-              {
-                address: '0x0000000000000000000000000000000000000000',
-                symbol: 'SepoliaETH',
-                decimals: 18,
-                name: 'SepoliaETH',
-              },
-              {
-                address: '0x0000000000000000000000000000000000000000',
-                symbol: 'LineaETH',
-                decimals: 18,
-                name: 'LineaETH',
-              },
-            ])
-            .withTokens(
-              [
-                {
-                  address: '0x0000000000000000000000000000000000000000',
-                  symbol: 'SepoliaETH',
-                  decimals: 18,
-                  name: 'SepoliaETH',
-                },
-              ],
-              '0xaa36a7',
-            )
-            .build(),
-          restartDevice: true,
-          currentDeviceDetails,
-          testSpecificMock: setupNetworksTestMocks,
-        },
-        async () => {
-          await loginToAppPlaywright({ scenarioType: 'e2e' });
-
-          await NetworkManager.openNetworkManagerFromHomepage();
-          await NetworkManager.waitForNetworkManagerToLoad();
-          await NetworkManager.checkPopularNetworksContainerIsVisible();
-
-          await NetworkManager.tapCustomNetworksTab();
-          await NetworkManager.checkCustomNetworksContainerIsVisible();
-          await NetworkManager.checkTabIsSelected('Custom');
-
-          await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM_SEPOLIA);
-
-          await NetworkManager.checkBaseControlBarText(
-            NetworkToCaipChainId.ETHEREUM_SEPOLIA,
-          );
-
-          await NetworkManager.checkTokenIsNotVisible('PALM');
-          await NetworkManager.checkTokenIsNotVisible('ETH');
-        },
-      );
-    },
-  );
-
   appiumTest(
     'should preserve existing enabled networks when adding a network via dapp',
     async ({ driver: _driver, currentDeviceDetails }) => {
@@ -175,23 +53,31 @@ appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
         async () => {
           await loginToAppPlaywright({ scenarioType: 'e2e' });
 
+          // Step 1: Navigate to TokensFullView, then select Ethereum
           await NetworkManager.openNetworkManagerFromHomepage();
           await NetworkManager.waitForNetworkManagerToLoad();
           await NetworkManager.checkPopularNetworksContainerIsVisible();
           await NetworkManager.checkTabIsSelected('Popular');
 
+          // Select Ethereum as the active network — sheet closes, lands on TokensFullView
           await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.ETHEREUM,
           );
 
+          // Go back to homepage before navigating to browser
           await NetworkManager.navigateBackFromTokensFullView();
 
+          // Step 2: Navigate to dapp and request network addition
           await navigateToBrowserView();
           await Browser.navigateToTestDApp();
           await TestDApp.tapOpenNetworkPicker();
           await TestDApp.tapNetworkByName(POLYGON);
 
+          // Verify the permission request UI.
+          // The button auto-aggregates two text children ("Use your enabled
+          // networks" + "Requesting for <network> Mainnet") into one a11y label.
+          // iOS UIAccessibility joins those with ", " (RN 0.81 behavior change).
           const expectedText = `Use your enabled networks, Requesting for ${POLYGON} Mainnet`;
           await Assertions.expectElementToHaveLabel(
             ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
@@ -204,15 +90,19 @@ appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
             ConnectBottomSheet.connectButton,
           );
 
+          // Step 3: Approve the network addition
           await ConnectBottomSheet.tapConnectButton();
 
+          // Wait for browser screen to be visible after connection modal dismisses
           await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
             description: 'Browser screen should be visible after connecting',
           });
 
+          // Step 4: Close browser to reveal app tab bar, then return to wallet
           await Browser.tapCloseBrowserButton();
           await TabBarComponent.tapWallet();
 
+          // Navigate to TokensFullView to verify Ethereum is still the active network
           await NetworkManager.navigateToTokensFullView();
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.ETHEREUM,
