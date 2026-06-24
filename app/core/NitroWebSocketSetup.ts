@@ -38,6 +38,7 @@ interface WsEvent {
 interface WsMessageEvent extends WsEvent {
   type: 'message';
   data: string | ArrayBuffer;
+  origin: string;
 }
 interface WsCloseEvent extends WsEvent {
   type: 'close';
@@ -121,6 +122,7 @@ class NitroWebSocketAdapter {
         // string-encoded fallback the native layer may set when binaryData is
         // absent (defensive — not currently observed in practice).
         data: e.isBinary ? (e.binaryData ?? e.data) : e.data,
+        origin: '',
       });
     };
 
