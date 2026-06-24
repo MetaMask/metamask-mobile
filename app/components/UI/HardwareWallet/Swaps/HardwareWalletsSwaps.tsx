@@ -42,6 +42,11 @@ import type { RootStackParamList } from '../../../../core/NavigationService/type
 import { useHardwareWallet } from '../../../../core/HardwareWallet';
 import { useHwQrState } from './hooks/useHwQrState';
 import { StepRow } from './StepRow';
+import {
+  getCameraScanStep,
+  getDisplayScanStep,
+  getTotalQrScans,
+} from './step-helpers';
 import { HwSwapAnimation } from './HwSwapAnimation';
 import { resolveFlowStrategy } from './flowStrategy';
 import { useHwSwapLifecycle } from './useHwSwapLifecycle';
@@ -142,12 +147,29 @@ export function HardwareWalletsSwaps() {
   }, [progress.currentStep, progress.status, progress.steps]);
 
   const signingTitle = useMemo(() => {
+    // QR wallets use a two-scan cycle per transaction (display + camera).
+    // This title covers the display phase (Phase A); the camera phase
+    // (Phase B) title lives in HwQrScanner. Scan-step math is centralised
+    // in step-helpers to avoid bare "* 2" literals at every call site.
+    if (isQrHardwareWallet) {
+      return strings('bridge.hardware_wallet_progress.qr_display_step_text', {
+        current: getDisplayScanStep(progress.currentStep || 0),
+        total: getTotalQrScans(progress.totalSteps || 1),
+      });
+    }
     const totalSteps = progress.totalSteps || 1;
     return strings('bridge.hardware_wallet_progress.confirm_title', {
       current: (progress.currentStep || 0) + 1,
       total: totalSteps,
     });
-  }, [progress.currentStep, progress.totalSteps]);
+  }, [progress.currentStep, progress.totalSteps, isQrHardwareWallet]);
+
+  const isFinalQrCode = useMemo(
+    () =>
+      progress.steps.length > 0 &&
+      progress.currentStep >= progress.steps.length - 1,
+    [progress.currentStep, progress.steps],
+  );
 
   const title = useMemo(() => {
     switch (progress.status) {
@@ -252,14 +274,20 @@ export function HardwareWalletsSwaps() {
             isFullWidth
             testID={HardwareWalletsSwapsSelectorsIDs.SCAN_NEXT_QR_BUTTON}
             onPress={() =>
-              // The +1 is for the title because its 1 based.
+              // Scan-based numbering: each transaction has two scans
+              // (display + camera). Pass the camera-phase scan step and
+              // total scans so HwQrScanner shows the correct Phase B title.
               navigation.navigate(Routes.BRIDGE.HW_QR_SCANNER, {
-                currentStep: progress.currentStep + 1,
-                totalSteps: progress.totalSteps,
+                currentStep: getCameraScanStep(progress.currentStep),
+                totalSteps: getTotalQrScans(progress.totalSteps),
               })
             }
           >
-            {strings('bridge.hardware_wallet_progress.scan_next_qr_code')}
+            {strings(
+              isFinalQrCode
+                ? 'bridge.hardware_wallet_progress.scan_final_qr_code'
+                : 'bridge.hardware_wallet_progress.scan_next_qr_code',
+            )}
           </Button>
         ) : null}
         {showRejectedActions ? (

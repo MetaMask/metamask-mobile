@@ -3,7 +3,14 @@ import {
   HardwareWalletsSwapsStepKind,
   HardwareWalletsSwapsStepStatus,
 } from './HardwareWalletsSwaps.state';
-import { getStepTitle, getStepDescription, getStepIcon } from './step-helpers';
+import {
+  getStepTitle,
+  getStepDescription,
+  getStepIcon,
+  getTotalQrScans,
+  getDisplayScanStep,
+  getCameraScanStep,
+} from './step-helpers';
 
 describe('step-helpers', () => {
   describe('getStepTitle', () => {
@@ -282,6 +289,51 @@ describe('step-helpers', () => {
         label: '3',
         isSigning: false,
       });
+    });
+  });
+
+  describe('QR scan-step helpers', () => {
+    describe('getTotalQrScans', () => {
+      it('doubles the transaction count', () => {
+        expect(getTotalQrScans(1)).toBe(2);
+        expect(getTotalQrScans(2)).toBe(4);
+        expect(getTotalQrScans(3)).toBe(6);
+      });
+
+      it('returns 0 for zero transactions', () => {
+        expect(getTotalQrScans(0)).toBe(0);
+      });
+    });
+
+    describe('getDisplayScanStep', () => {
+      // Display phase = odd-numbered scans (1, 3, 5, …)
+      it.each([
+        [0, 1],
+        [1, 3],
+        [2, 5],
+      ])('returns scan %i for transaction step %i', (txStep, expected) => {
+        expect(getDisplayScanStep(txStep)).toBe(expected);
+      });
+    });
+
+    describe('getCameraScanStep', () => {
+      // Camera phase = even-numbered scans (2, 4, 6, …)
+      it.each([
+        [0, 2],
+        [1, 4],
+        [2, 6],
+      ])('returns scan %i for transaction step %i', (txStep, expected) => {
+        expect(getCameraScanStep(txStep)).toBe(expected);
+      });
+    });
+
+    it('display and camera steps interleave across a full 2-tx flow', () => {
+      // 2 transactions → 4 scans: display(1) → camera(2) → display(3) → camera(4)
+      expect(getDisplayScanStep(0)).toBe(1);
+      expect(getCameraScanStep(0)).toBe(2);
+      expect(getDisplayScanStep(1)).toBe(3);
+      expect(getCameraScanStep(1)).toBe(4);
+      expect(getTotalQrScans(2)).toBe(4);
     });
   });
 });
