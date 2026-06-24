@@ -17,16 +17,17 @@ const makeTrade = (overrides: Partial<Trade> = {}): Trade => ({
 });
 
 describe('TraderTradesSection', () => {
-  it('renders the Trades title', () => {
+  it('renders the day-grouped Trades title', () => {
     renderWithProvider(<TraderTradesSection trades={[makeTrade()]} />);
 
-    expect(screen.getByText('Trades')).toBeOnTheScreen();
+    // Sticky section header reads "Trades - <day of the trade>".
+    expect(screen.getByText(/^Trades - /)).toBeOnTheScreen();
   });
 
   it('does not render a white underline below the title', () => {
     renderWithProvider(<TraderTradesSection trades={[makeTrade()]} />);
 
-    let node: ReactTestInstance | null = screen.getByText('Trades');
+    let node: ReactTestInstance | null = screen.getByText(/^Trades - /);
     while (node) {
       const flat = StyleSheet.flatten(node.props.style) as
         | { borderBottomWidth?: number }

@@ -6,8 +6,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { RefreshControl, View } from 'react-native';
 import {
   useNavigation,
   useRoute,
@@ -23,7 +22,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -36,16 +34,20 @@ import ClipboardManager from '../../../../core/ClipboardManager';
 import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import { useTheme } from '../../../../util/theme';
 import TraderPositionQuickBuy from './components/QuickBuy';
-import TraderPositionAnimatedHeader from './components/TraderPositionAnimatedHeader';
 import TraderPositionHeader from './components/TraderPositionHeader';
 import TraderTokenInfoRow from './components/TraderTokenInfoRow';
 import TraderPositionChartSection from './components/TraderPositionChartSection';
 import TraderTimePeriodSelector from './components/TraderTimePeriodSelector';
 import TraderPositionPnLCard from './components/TraderPositionPnLCard';
-import TraderTradesSection from './components/TraderTradesSection';
+import TraderTradesSection, {
+  type TraderTradesSectionHandle,
+} from './components/TraderTradesSection';
 import TraderPositionSkeleton from './components/TraderPositionSkeleton';
 import TraderPositionFallback from './components/TraderPositionFallback';
-import { useTraderPositionData } from './useTraderPositionData';
+import {
+  useTraderPositionData,
+  type TimePeriod,
+} from './useTraderPositionData';
 import { useTraderPosition } from './hooks/useTraderPosition';
 import { useTraderProfile } from '../TraderProfileView/hooks/useTraderProfile';
 import {
@@ -62,6 +64,11 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import type { Trade } from '@metamask/social-controllers';
+import {
+  getTradeFocusSpanMs,
+  type TradeFocusRequest,
+} from './components/TraderAdvancedChart';
 
 const TraderPositionView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -133,7 +140,6 @@ const TraderPositionView = () => {
     pnlPercent,
     isPnlPositive,
     allTrades,
-    chartTrades,
     activeTimePeriod,
     setActiveTimePeriod,
     timePeriods,
@@ -292,8 +298,18 @@ const TraderPositionView = () => {
   }, []);
 
   const handleChartIndexChange = useCallback((_index: number) => {
-    // TODO: update displayed price on scrub.
+    // Legacy (perp) chart scrub: price readout not wired for the SVG chart.
   }, []);
+
+  // Crosshair % change reported by the spot AdvancedChart while scrubbing.
+  // Overrides the header percent until the crosshair leaves the chart.
+  const [scrubPercent, setScrubPercent] = useState<number | null>(null);
+  // Reset the scrub override whenever the time period changes so a stale
+  // percent from a previous range never lingers in the header.
+  useEffect(() => {
+    setScrubPercent(null);
+  }, [activeTimePeriod]);
+  const displayPercentChange = scrubPercent ?? pricePercentChange;
 
   // Perp positions surface Long/Short CTAs instead of Buy. Hyperliquid has no
   // long/short preselect param on the market page (direction only exists on the
@@ -301,6 +317,17 @@ const TraderPositionView = () => {
   // page. A minimal { symbol, name } market is enough — PerpsMarketDetailsView
   // enriches it from usePerpsMarkets (same pattern as PerpsPositionTransactionView).
   const isPerp = resolvedPosition ? isPerpPosition(resolvedPosition) : false;
+
+  // CAIP-19 asset id for the spot chart. Resolves only for non-perp positions on
+  // a supported chain; when undefined the chart section uses the legacy SVG
+  // chart (perps have no CAIP id and feed prices from the Hyperliquid candle
+  // feed instead).
+  const chartAssetId = useMemo(() => {
+    if (!resolvedPosition || isPerp) return undefined;
+    const caipChainId = chainNameToId(resolvedPosition.chain);
+    if (!caipChainId) return undefined;
+    return toAssetId(resolvedPosition.tokenAddress, caipChainId);
+  }, [resolvedPosition, isPerp]);
 
   // The xyz/HIP-3 resolution + existence check lives in PerpsTradeButton (it
   // owns the market-data subscription); here we just navigate to whichever
@@ -322,127 +349,167 @@ const TraderPositionView = () => {
     [navigation],
   );
 
+  // Tapping a trade row slides the chart to center that trade. The nonce changes
+  // on every tap so re-tapping the same trade re-centers it.
+  const focusNonceRef = useRef(0);
+  const [focusRequest, setFocusRequest] = useState<TradeFocusRequest>();
+  const handleRequestFocusTimePeriod = useCallback(
+    (timePeriod: TimePeriod) => {
+      setActiveTimePeriod(timePeriod);
+      setFocusRequest((current) =>
+        current
+          ? {
+              ...current,
+              timePeriod,
+              spanMs: getTradeFocusSpanMs(timePeriod),
+            }
+          : current,
+      );
+    },
+    [setActiveTimePeriod],
+  );
+
+  const handleTradePress = useCallback(
+    (trade: Trade) => {
+      focusNonceRef.current += 1;
+      setFocusRequest({
+        id: trade.transactionHash,
+        timestamp: trade.timestamp,
+        nonce: focusNonceRef.current,
+        timePeriod: activeTimePeriod,
+        spanMs: getTradeFocusSpanMs(activeTimePeriod),
+      });
+    },
+    [activeTimePeriod],
+  );
+
+  // Reverse interaction: tapping a circle on the chart scrolls the trades list
+  // to that trade and briefly highlights its row. The emphasis is cleared after
+  // a short delay so a later tap can re-trigger it.
+  const tradesListRef = useRef<TraderTradesSectionHandle>(null);
+  const [emphasizedTradeId, setEmphasizedTradeId] = useState<string | null>(
+    null,
+  );
+  const emphasisTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleMarkerPress = useCallback(
+    (id: string) => {
+      if (!allTrades.some((t) => t.transactionHash === id)) return;
+      setEmphasizedTradeId(id);
+      tradesListRef.current?.scrollToTrade(id);
+      if (emphasisTimeoutRef.current) {
+        clearTimeout(emphasisTimeoutRef.current);
+      }
+      emphasisTimeoutRef.current = setTimeout(() => {
+        setEmphasizedTradeId(null);
+        emphasisTimeoutRef.current = null;
+      }, 2000);
+    },
+    [allTrades],
+  );
+
+  useEffect(
+    () => () => {
+      if (emphasisTimeoutRef.current) {
+        clearTimeout(emphasisTimeoutRef.current);
+      }
+    },
+    [],
+  );
+
   const isInitialLoading =
     !resolvedPosition && (isPositionLoading || isProfileLoading);
   const hasFailed =
     !resolvedPosition && !isPositionLoading && !isProfileLoading;
-
-  const {
-    scrollY: scrollYShared,
-    onScroll,
-    setTitleSectionHeight,
-    titleSectionHeightSv,
-  } = useHeaderStandardAnimated();
 
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
       testID={TraderPositionViewSelectorsIDs.CONTAINER}
     >
+      <TraderPositionHeader
+        traderName={traderName}
+        traderImageUrl={traderImageUrl}
+        traderAddress={traderAddress}
+        onBack={handleBack}
+        onTraderPress={handleTraderPress}
+        backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+        traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
+      />
+
       {isInitialLoading ? (
-        <>
-          <TraderPositionHeader
-            traderName={traderName}
-            traderImageUrl={traderImageUrl}
-            traderAddress={traderAddress}
-            onBack={handleBack}
-            onTraderPress={handleTraderPress}
-            backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
-            traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
-          />
-          <TraderPositionSkeleton />
-        </>
+        <TraderPositionSkeleton />
       ) : hasFailed ? (
-        <>
-          <TraderPositionHeader
-            traderName={traderName}
-            traderImageUrl={traderImageUrl}
-            traderAddress={traderAddress}
-            onBack={handleBack}
-            onTraderPress={handleTraderPress}
-            backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
-            traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
-          />
-          <TraderPositionFallback traderId={traderId} traderName={traderName} />
-        </>
+        <TraderPositionFallback traderId={traderId} traderName={traderName} />
       ) : (
         <>
-          <TraderPositionAnimatedHeader
-            scrollY={scrollYShared}
-            titleSectionHeight={titleSectionHeightSv}
-            traderName={traderName}
+          {/* Fixed top block — token info, chart, period selector and the
+              position PnL card stay pinned; only the trades list below scrolls.
+              `shrink-0` keeps this block at its natural height so the sibling
+              flex-1 ScrollView only consumes the space below it. */}
+          <View style={tw.style('shrink-0')}>
+            <TraderTokenInfoRow
+              symbol={symbol}
+              position={resolvedPosition}
+              marketCap={marketCap}
+              currentPrice={currentPrice}
+              pricePercentChange={displayPercentChange}
+              activeTimePeriodLabel={activeTimePeriod}
+              onCopyTokenAddress={handleCopyTokenAddress}
+              copyTokenAddressTestID={
+                TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
+              }
+            />
+
+            <TraderPositionChartSection
+              historicalPrices={historicalPrices}
+              priceDiff={priceDiff}
+              isPricesLoading={isPricesLoading}
+              onChartIndexChange={handleChartIndexChange}
+              trades={allTrades}
+              assetId={chartAssetId}
+              isPerp={isPerp}
+              activeTimePeriod={activeTimePeriod}
+              onScrubPercentChange={setScrubPercent}
+              focusRequest={focusRequest}
+              onRequestTimePeriod={handleRequestFocusTimePeriod}
+              onTradeMarkerPress={
+                chartAssetId || isPerp ? handleMarkerPress : undefined
+              }
+            />
+
+            <TraderTimePeriodSelector
+              timePeriods={timePeriods}
+              activeTimePeriod={activeTimePeriod}
+              onSelectPeriod={setActiveTimePeriod}
+            />
+
+            <TraderPositionPnLCard
+              isClosed={isClosed}
+              positionValue={positionValue}
+              pnlValue={pnlValue}
+              pnlPercent={pnlPercent}
+              isPnlPositive={isPnlPositive}
+            />
+          </View>
+
+          {/* Scrollable region — the trades list is the only part that scrolls.
+              It owns its own scroll (SectionList) so its day header can stick. */}
+          <TraderTradesSection
+            ref={tradesListRef}
+            trades={allTrades}
             traderImageUrl={traderImageUrl}
             traderAddress={traderAddress}
-            symbol={symbol}
-            pricePercentChange={pricePercentChange}
-            activeTimePeriodLabel={activeTimePeriod}
-            onBack={handleBack}
-            onTraderPress={handleTraderPress}
+            onTradePress={chartAssetId || isPerp ? handleTradePress : undefined}
+            emphasizedTradeId={emphasizedTradeId}
+            refreshControl={
+              <RefreshControl
+                refreshing={isRefreshing}
+                onRefresh={handleRefresh}
+                testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
+              />
+            }
           />
-
-          <Box twClassName="flex-1">
-            <Animated.ScrollView
-              showsVerticalScrollIndicator={false}
-              contentContainerStyle={tw.style('pb-6')}
-              onScroll={onScroll}
-              scrollEventThrottle={16}
-              refreshControl={
-                <RefreshControl
-                  refreshing={isRefreshing}
-                  onRefresh={handleRefresh}
-                  testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
-                />
-              }
-            >
-              <Box
-                testID={TraderPositionViewSelectorsIDs.TITLE_SECTION_WRAPPER}
-                onLayout={(e) =>
-                  setTitleSectionHeight(e.nativeEvent.layout.height)
-                }
-              >
-                <TraderTokenInfoRow
-                  symbol={symbol}
-                  position={resolvedPosition}
-                  marketCap={marketCap}
-                  currentPrice={currentPrice}
-                  pricePercentChange={pricePercentChange}
-                  activeTimePeriodLabel={activeTimePeriod}
-                  onCopyTokenAddress={handleCopyTokenAddress}
-                  copyTokenAddressTestID={
-                    TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
-                  }
-                />
-              </Box>
-
-              <TraderPositionChartSection
-                historicalPrices={historicalPrices}
-                priceDiff={priceDiff}
-                isPricesLoading={isPricesLoading}
-                onChartIndexChange={handleChartIndexChange}
-                trades={chartTrades}
-              />
-
-              <TraderTimePeriodSelector
-                timePeriods={timePeriods}
-                activeTimePeriod={activeTimePeriod}
-                onSelectPeriod={setActiveTimePeriod}
-              />
-
-              <TraderPositionPnLCard
-                isClosed={isClosed}
-                positionValue={positionValue}
-                pnlValue={pnlValue}
-                pnlPercent={pnlPercent}
-                isPnlPositive={isPnlPositive}
-              />
-
-              <TraderTradesSection
-                trades={allTrades}
-                traderImageUrl={traderImageUrl}
-                traderAddress={traderAddress}
-              />
-            </Animated.ScrollView>
-          </Box>
 
           {isPerp && resolvedPosition ? (
             <PerpsTradeButton

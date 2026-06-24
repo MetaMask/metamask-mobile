@@ -9,6 +9,7 @@ import { chainNameToId } from '../utils/chainMapping';
 import { isPerpPosition, isClosedPosition } from '../utils/perp';
 import {
   fetchHyperliquidHistoricalPrices,
+  resolveHyperliquidCandleLimit,
   type HyperliquidCandleInterval,
 } from '../utils/hyperliquidPrices';
 import {
@@ -43,21 +44,26 @@ const PERIOD_DURATION_MS: Record<TimePeriod, number> = {
   All: 3 * 365 * 24 * 60 * 60 * 1000,
 };
 
+const TRADE_FOCUS_PREFETCH_PERIODS: readonly TimePeriod[] = ['1M', 'All'];
+
 /**
- * Hyperliquid candle interval + count per chart period. Counts cover each
- * period's window while keeping the line chart smooth (well above
- * CHART_DATA_THRESHOLD). Unlike the spot API, each period maps to a distinct
- * interval, so there's no 1D→1H reuse.
+ * Hyperliquid candle interval + baseline candle count per chart period. The base
+ * count fills the period's default window when a position has no (or only recent)
+ * trades; for older / closed positions {@link resolveHyperliquidCandleLimit} grows
+ * it to reach the earliest trade, capped at the API's per-request maximum
+ * (~5000 candles). Counts stay well above CHART_DATA_THRESHOLD so the line stays
+ * smooth. Unlike the spot API, each period maps to a distinct interval
+ * (granularity), so there's no 1D→1H reuse.
  */
 const PERP_PERIOD_TO_CANDLES: Record<
   TimePeriod,
-  { interval: HyperliquidCandleInterval; limit: number }
+  { interval: HyperliquidCandleInterval; baseLimit: number }
 > = {
-  '1H': { interval: '1m', limit: 60 }, // 60 × 1m  = 1 hour
-  '1D': { interval: '15m', limit: 96 }, // 96 × 15m = 24 hours
-  '1W': { interval: '1h', limit: 168 }, // 168 × 1h = 7 days
-  '1M': { interval: '4h', limit: 180 }, // 180 × 4h = 30 days
-  All: { interval: '1d', limit: 365 }, // 365 × 1d ≈ 1 year
+  '1H': { interval: '1m', baseLimit: 60 }, // 60 × 1m  = 1 hour
+  '1D': { interval: '15m', baseLimit: 96 }, // 96 × 15m = 24 hours
+  '1W': { interval: '1h', baseLimit: 168 }, // 168 × 1h = 7 days
+  '1M': { interval: '4h', baseLimit: 180 }, // 180 × 4h = 30 days
+  All: { interval: '1d', baseLimit: 1095 }, // 1095 × 1d ≈ 3 years (matches spot 'All')
 };
 
 /**
@@ -156,6 +162,37 @@ export function useTraderPositionData(
     return getAssetImageUrl(positionParam.tokenAddress, caipChainId);
   }, [positionParam, caipChainId]);
 
+  const isPerp = useMemo(
+    () => positionParam != null && isPerpPosition(positionParam),
+    [positionParam],
+  );
+
+  // Stable cache key per perp position; prices cached under a different key (a
+  // previously-viewed position) are treated as a miss (see `resolvedPrices`).
+  const perpKey = useMemo(
+    () =>
+      isPerp && positionParam
+        ? `${positionParam.chain}:${positionParam.tokenSymbol}`
+        : '',
+    [isPerp, positionParam],
+  );
+
+  // Earliest trade time (ms) — anchors the perp candle window back to the
+  // position's first trade so closed positions still frame their trades.
+  const earliestTradeMs = useMemo(() => {
+    const trades = positionParam?.trades;
+    if (!trades?.length) return undefined;
+    let min = Infinity;
+    for (const trade of trades) {
+      const ms =
+        trade.timestamp > 0 && trade.timestamp < 1e12
+          ? trade.timestamp * 1000
+          : trade.timestamp;
+      if (Number.isFinite(ms) && ms < min) min = ms;
+    }
+    return Number.isFinite(min) ? min : undefined;
+  }, [positionParam?.trades]);
+
   // ── Market cap ──────────────────────────────────────────────────────────
 
   const allMarketData = useSelector(selectTokenMarketData);
@@ -213,6 +250,13 @@ export function useTraderPositionData(
   const [allPrices, setAllPrices] = useState<
     Partial<Record<TimePeriod, TokenPrice[]>>
   >({});
+  // Perp prices are cached lazily, per selected period, scoped to one position
+  // via `key`. A stale-position cache is ignored rather than cleared, so there's
+  // no flash of empty data when switching positions.
+  const [perpCache, setPerpCache] = useState<{
+    key: string;
+    prices: Partial<Record<TimePeriod, TokenPrice[]>>;
+  }>({ key: '', prices: {} });
   const [isPricesLoading, setIsPricesLoading] = useState(true);
 
   useEffect(() => {
@@ -222,12 +266,13 @@ export function useTraderPositionData(
       return;
     }
 
-    const isPerp = isPerpPosition(positionParam);
+    // Hyperliquid perps have no CAIP id and use the exchange's candle feed
+    // directly; they're fetched lazily, per selected period, by the effect below.
+    if (isPerpPosition(positionParam)) return;
 
     // Spot tokens resolve prices via the MetaMask price API, which needs a CAIP
-    // chain id. Hyperliquid perps have no CAIP id and instead use the
-    // exchange's candle feed directly (keyed by perp symbol).
-    if (!isPerp && !caipChainId) {
+    // chain id.
+    if (!caipChainId) {
       setAllPrices({});
       setIsPricesLoading(false);
       return;
@@ -235,47 +280,6 @@ export function useTraderPositionData(
 
     setIsPricesLoading(true);
     let cancelled = false;
-
-    // ── Hyperliquid perps: candleSnapshot REST feed ──────────────────────────
-    if (isPerp) {
-      const symbol = positionParam.tokenSymbol;
-      // One clock shared across all period fetches so their windows line up.
-      const nowMs = Date.now();
-
-      const fetchPerpPeriod = async (period: TimePeriod) => {
-        const { interval, limit } = PERP_PERIOD_TO_CANDLES[period];
-        const prices = await fetchHyperliquidHistoricalPrices({
-          symbol,
-          interval,
-          limit,
-          nowMs,
-        });
-        return { period, prices };
-      };
-
-      // allSettled so one period's fetch failing doesn't blank out the others;
-      // failed periods are logged and simply omitted from the cache.
-      Promise.allSettled(TIME_PERIODS.map(fetchPerpPeriod)).then((results) => {
-        if (cancelled) return;
-        const cache: Partial<Record<TimePeriod, TokenPrice[]>> = {};
-        for (const result of results) {
-          if (result.status === 'fulfilled') {
-            cache[result.value.period] = result.value.prices;
-          } else {
-            Logger.error(
-              result.reason as Error,
-              'useTraderPositionData: failed to fetch perp prices',
-            );
-          }
-        }
-        setAllPrices(cache);
-        setIsPricesLoading(false);
-      });
-
-      return () => {
-        cancelled = true;
-      };
-    }
 
     // ── Spot tokens: MetaMask price API ──────────────────────────────────────
     const assetIdentifier = `erc20:${positionParam.tokenAddress}`;
@@ -322,16 +326,91 @@ export function useTraderPositionData(
     };
   }, [positionParam, caipChainId, currentCurrency]);
 
+  // ── Hyperliquid perps: cached candleSnapshot data ─────────────────────────
+  // Fetch the selected period plus 1M/All ahead of trade taps. Trade focus only
+  // jumps between 1M and All, so warming both avoids a fresh network request on
+  // most taps. The candle count is anchored back to the earliest trade (capped at
+  // the API max) so closed positions still frame their trades.
+  useEffect(() => {
+    if (!positionParam || !isPerp) return;
+
+    const periodsToFetch = Array.from(
+      new Set([activeTimePeriod, ...TRADE_FOCUS_PREFETCH_PERIODS]),
+    ).filter(
+      (period) => !(perpCache.key === perpKey && perpCache.prices[period]),
+    );
+
+    if (!periodsToFetch.length) {
+      setIsPricesLoading(false);
+      return;
+    }
+
+    const isFetchingActivePeriod = periodsToFetch.includes(activeTimePeriod);
+    setIsPricesLoading(isFetchingActivePeriod);
+    let cancelled = false;
+    const nowMs = Date.now();
+
+    // fetchHyperliquidHistoricalPrices never rejects (it logs + returns [] on
+    // failure), so the empty result is cached and we don't refetch in a loop.
+    periodsToFetch.forEach((period) => {
+      const { interval, baseLimit } = PERP_PERIOD_TO_CANDLES[period];
+      const limit = resolveHyperliquidCandleLimit({
+        interval,
+        baseLimit,
+        earliestTradeMs,
+        nowMs,
+      });
+
+      fetchHyperliquidHistoricalPrices({
+        symbol: positionParam.tokenSymbol,
+        interval,
+        limit,
+        nowMs,
+      }).then((prices) => {
+        if (cancelled) return;
+        setPerpCache((prev) => ({
+          key: perpKey,
+          prices:
+            prev.key === perpKey
+              ? { ...prev.prices, [period]: prices }
+              : { [period]: prices },
+        }));
+        if (period === activeTimePeriod) {
+          setIsPricesLoading(false);
+        }
+      });
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    positionParam,
+    isPerp,
+    perpKey,
+    activeTimePeriod,
+    earliestTradeMs,
+    perpCache,
+  ]);
+
+  // Active price cache: perps read their position-scoped lazy cache (ignoring a
+  // stale-position one); spot reads the eagerly-fetched `allPrices`.
+  const resolvedPrices = useMemo<Partial<Record<TimePeriod, TokenPrice[]>>>(
+    () =>
+      isPerp ? (perpCache.key === perpKey ? perpCache.prices : {}) : allPrices,
+    [isPerp, perpCache, perpKey, allPrices],
+  );
+
   // Resolve with fallbacks (single useMemo + one Date.now() per recompute so 1H
   // slice and derivePercentChange share the same clock; deps omit "now" so
   // window updates when price data or period changes, not on every parent render).
   const { historicalPrices, priceDiff, pricePercentChange } = useMemo(() => {
     const now = Date.now();
-    let prices = allPrices[activeTimePeriod] ?? [];
+    let prices = resolvedPrices[activeTimePeriod] ?? [];
 
     if (activeTimePeriod === 'All' && !prices.length) {
       prices =
-        [allPrices['1M'], allPrices['1W'], allPrices['1D']].find(
+        [resolvedPrices['1M'], resolvedPrices['1W'], resolvedPrices['1D']].find(
           (fallbackPrices) => fallbackPrices?.length,
         ) ?? [];
     }
@@ -350,20 +429,20 @@ export function useTraderPositionData(
       priceDiff: diff,
       pricePercentChange: derivePercentChange(prices, activeTimePeriod, now),
     };
-  }, [allPrices, activeTimePeriod]);
+  }, [resolvedPrices, activeTimePeriod]);
 
   // Latest price for the header (perps show this in place of market cap).
   // Prefers the freshest dataset so it's stable regardless of selected period.
   const currentPrice = useMemo(() => {
     const source =
-      allPrices['1H'] ??
-      allPrices['1D'] ??
-      allPrices['1W'] ??
-      allPrices['1M'] ??
-      allPrices.All;
+      resolvedPrices['1H'] ??
+      resolvedPrices['1D'] ??
+      resolvedPrices['1W'] ??
+      resolvedPrices['1M'] ??
+      resolvedPrices.All;
     if (!source?.length) return undefined;
     return source[source.length - 1][1];
-  }, [allPrices]);
+  }, [resolvedPrices]);
 
   // ── Position card ──────────────────────────────────────────────────────
 
@@ -372,7 +451,6 @@ export function useTraderPositionData(
   const symbol = getPerpsDisplaySymbol(
     positionParam?.tokenSymbol ?? tokenSymbol ?? '',
   );
-  const isPerp = positionParam != null && isPerpPosition(positionParam);
   const isClosed =
     isClosedOverride ??
     (positionParam != null && isClosedPosition(positionParam));
