@@ -1,8 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { PaymentOverride } from '@metamask/transaction-pay-controller';
-import type { Hex } from '@metamask/utils';
-import Engine from '../../../../../core/Engine';
 import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -12,6 +9,7 @@ import {
 } from '../../components/confirm/confirm-component';
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
 import { isTransactionPayWithdraw } from '../../utils/transaction';
+import { applyMoneyAccountOverride } from '../../utils/transaction-pay';
 
 export function useDefaultPaySelectedSection() {
   const { payWithOption } = useParams<ConfirmationParams>({});
@@ -36,15 +34,6 @@ export function useDefaultPaySelectedSection() {
 
     appliedRef.current = transactionId;
 
-    Engine.context.TransactionPayController.setTransactionConfig(
-      transactionId,
-      (config) => {
-        (config as Record<string, unknown>).paymentOverride =
-          PaymentOverride.MoneyAccount;
-        if (moneyAccount?.address && !isWithdraw) {
-          config.refundTo = moneyAccount.address as Hex;
-        }
-      },
-    );
+    applyMoneyAccountOverride(transactionId, moneyAccount?.address, isWithdraw);
   }, [isMoneyAccount, isWithdraw, transactionId, moneyAccount?.address]);
 }

@@ -16,6 +16,9 @@ type FungibleAsset = Extract<
   { fungible: true }
 >;
 
+// Mirrors EVM TOKEN_VALUE_UNLIMITED_THRESHOLD: amounts above 10^15 are treated as unlimited.
+const APPROVE_AMOUNT_UNLIMITED_THRESHOLD = 1e15;
+
 function mapStatus(status: Transaction['status']): Status {
   switch (status) {
     case KeyringTransactionStatus.Confirmed:
@@ -58,6 +61,34 @@ function getToken(
     symbol: movement.asset.unit,
     assetId: movement.asset.type,
     direction,
+  };
+}
+
+function isUnlimitedApprovalMovement(movement: Movement) {
+  return (
+    hasFungibleAsset(movement) &&
+    Number.parseFloat(movement.asset.amount) >
+      APPROVE_AMOUNT_UNLIMITED_THRESHOLD
+  );
+}
+
+function getApprovalToken(transaction: Transaction): TokenAmount | undefined {
+  const movement =
+    transaction.to.find(hasFungibleAsset) ??
+    transaction.from.find(hasFungibleAsset);
+
+  if (!movement) {
+    return undefined;
+  }
+
+  return {
+    amount: movement.asset.amount,
+    assetId: movement.asset.type,
+    direction: 'out',
+    isUnlimitedApproval:
+      transaction.from.some(isUnlimitedApprovalMovement) ||
+      transaction.to.some(isUnlimitedApprovalMovement),
+    symbol: movement.asset.unit,
   };
 }
 
@@ -175,6 +206,20 @@ export function mapKeyringTransaction({
       data: {
         destinationToken: getToken(transaction.to, 'in'),
         sourceToken: getToken(transaction.from, 'out'),
+      },
+    };
+  }
+
+  if (transaction.type === KeyringTransactionType.TokenApprove) {
+    return {
+      type: 'approveSpendingCap',
+      chainId,
+      status,
+      timestamp,
+      hash: transaction.id,
+      raw: { type: 'keyringTransaction', data: transaction },
+      data: {
+        token: getApprovalToken(transaction),
       },
     };
   }

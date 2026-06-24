@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import type { Position } from '@metamask/social-controllers';
+import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import type { Hex } from '@metamask/utils';
 import { handleFetch } from '@metamask/controller-utils';
@@ -366,7 +367,11 @@ export function useTraderPositionData(
 
   // ── Position card ──────────────────────────────────────────────────────
 
-  const symbol = positionParam?.tokenSymbol ?? tokenSymbol ?? '';
+  // Display symbol strips the HIP-3 provider prefix (`xyz:SPCX` → `SPCX`);
+  // non-HIP-3 symbols pass through unchanged.
+  const symbol = getPerpsDisplaySymbol(
+    positionParam?.tokenSymbol ?? tokenSymbol ?? '',
+  );
   const isPerp = positionParam != null && isPerpPosition(positionParam);
   const isClosed =
     isClosedOverride ??

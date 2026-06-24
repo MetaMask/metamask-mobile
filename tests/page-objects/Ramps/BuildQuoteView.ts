@@ -3,6 +3,7 @@ import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
 
 import { BuildQuoteSelectors } from '../../../app/components/UI/Ramp/Aggregator/Views/BuildQuote/BuildQuote.testIds';
+import { BUILD_QUOTE_TEST_IDS } from '../../../app/components/UI/Ramp/Views/BuildQuote/BuildQuote.testIds';
 import { AddressSelectorSelectors } from '../../../app/components/Views/AddressSelector/AddressSelector.testIds';
 import { EncapsulatedElementType } from '../../framework';
 
@@ -73,6 +74,10 @@ class BuildQuoteView {
     return Matchers.getElementByID(BuildQuoteSelectors.CONTINUE_BUTTON);
   }
 
+  get backButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(BUILD_QUOTE_TEST_IDS.BACK_BUTTON);
+  }
+
   get quickAmount25(): EncapsulatedElementType {
     return Matchers.getElementByLabel('25%');
   }
@@ -113,6 +118,12 @@ class BuildQuoteView {
     await Gestures.waitAndTap(this.continueButton, {
       timeout: 2500,
       elemDescription: 'Continue Button in Build Quote View',
+    });
+  }
+
+  async tapBackButton(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back Button in Build Quote View',
     });
   }
 

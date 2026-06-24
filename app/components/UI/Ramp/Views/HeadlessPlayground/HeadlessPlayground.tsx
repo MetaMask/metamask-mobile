@@ -39,7 +39,7 @@ import {
   type QuotesResponse,
 } from '../../headless';
 import type { Quote } from '../../types';
-import { RAMP_SURFACE } from '../../Deposit/types/analytics';
+import { RAMP_SURFACE } from '../../types/depositAnalytics';
 
 import styleSheet from './HeadlessPlayground.styles';
 

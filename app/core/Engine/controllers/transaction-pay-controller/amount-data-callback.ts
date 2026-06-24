@@ -8,6 +8,10 @@ import ReduxService from '../../../../core/redux/ReduxService';
 import { RootState } from '../../../../reducers';
 import { selectMoneyAccountVaultConfig } from '../../../../selectors/featureFlagController/moneyAccount';
 import { getProviderByChainId } from '../../../../util/notifications/methods/common';
+import { prefixError } from '../../../../util/transactions/error-prefix';
+
+const UPDATE_AMOUNT_DATA_ERROR_PREFIX = 'Update Amount Data: ';
+const MONEY_ACCOUNT_DEPOSIT_ERROR_PREFIX = 'Money Account Deposit: ';
 
 interface GetAmountDataRequest {
   amount: string;
@@ -53,20 +57,30 @@ export async function getAmountData(
 
   const rawAmount = BigInt(amount);
 
-  const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
-    amount: rawAmount,
-    chainId: chainIdHex,
-    boringVault: vaultConfig.boringVault,
-    tellerAddress: vaultConfig.tellerAddress,
-    accountantAddress: vaultConfig.accountantAddress,
-    lensAddress: vaultConfig.lensAddress,
-    provider,
-  });
+  try {
+    let buildResult;
 
-  return {
-    updates: [
-      { nestedTransactionIndex: 0, data: approveTx.params.data },
-      { nestedTransactionIndex: 1, data: depositTx.params.data },
-    ],
-  };
+    try {
+      buildResult = await buildMoneyAccountDepositBatch({
+        amount: rawAmount,
+        chainId: chainIdHex,
+        boringVault: vaultConfig.boringVault,
+        tellerAddress: vaultConfig.tellerAddress,
+        accountantAddress: vaultConfig.accountantAddress,
+        lensAddress: vaultConfig.lensAddress,
+        provider,
+      });
+    } catch (error) {
+      throw prefixError(error, MONEY_ACCOUNT_DEPOSIT_ERROR_PREFIX);
+    }
+
+    return {
+      updates: [
+        { nestedTransactionIndex: 0, data: buildResult.approveTx.params.data },
+        { nestedTransactionIndex: 1, data: buildResult.depositTx.params.data },
+      ],
+    };
+  } catch (error) {
+    throw prefixError(error, UPDATE_AMOUNT_DATA_ERROR_PREFIX);
+  }
 }

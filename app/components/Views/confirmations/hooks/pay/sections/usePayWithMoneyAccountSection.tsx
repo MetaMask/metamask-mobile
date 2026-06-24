@@ -3,9 +3,7 @@ import { Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
-import type { Hex } from '@metamask/utils';
 import { strings } from '../../../../../../../locales/i18n';
-import Engine from '../../../../../../core/Engine';
 import MoneyIcon from '../../../../../../images/money.png';
 import { RootState } from '../../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
@@ -17,6 +15,7 @@ import {
   getTransactionType,
   isTransactionPayWithdraw,
 } from '../../../utils/transaction';
+import { applyMoneyAccountOverride } from '../../../utils/transaction-pay';
 import {
   PayWithRowConfig,
   PayWithSectionConfig,
@@ -55,15 +54,10 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
 
   const handlePress = useCallback(() => {
     if (transactionId) {
-      Engine.context.TransactionPayController.setTransactionConfig(
+      applyMoneyAccountOverride(
         transactionId,
-        (config) => {
-          (config as Record<string, unknown>).paymentOverride =
-            PaymentOverride.MoneyAccount;
-          if (moneyAccount?.address && !isWithdraw) {
-            config.refundTo = moneyAccount.address as Hex;
-          }
-        },
+        moneyAccount?.address,
+        isWithdraw,
       );
     }
     navigation.goBack();
@@ -89,7 +83,6 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
       title: strings('confirm.pay_with_bottom_sheet.money_account'),
       subtitle,
       isSelected: isMoneyAccountSelected,
-      isLastUsed: false,
       trailingElement: isMoneyAccountSelected ? 'checkmark' : 'none',
       onPress: handlePress,
       testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,

@@ -1,4 +1,10 @@
 import React, { useCallback } from 'react';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -7,11 +13,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsProvider } from '../../hooks/usePerpsProvider';
 import { selectPerpsNetwork } from '../../selectors/perpsController';
@@ -70,7 +71,7 @@ const PerpsProviderSelectorBadge: React.FC<PerpsProviderSelectorBadgeProps> = ({
       <Icon
         name={IconName.ArrowDown}
         size={IconSize.Xs}
-        color={isTestnet ? IconColor.Warning : IconColor.Alternative}
+        color={isTestnet ? IconColor.WarningDefault : IconColor.IconAlternative}
       />
     </TouchableOpacity>
   );

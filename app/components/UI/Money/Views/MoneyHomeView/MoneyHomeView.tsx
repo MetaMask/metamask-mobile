@@ -35,9 +35,8 @@ import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
 import styleSheet from './MoneyHomeView.styles';
 import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
-import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
-import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
+import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
+import { MoneyActivityFilter } from '../../constants/mockActivityData';
 import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -85,6 +84,7 @@ import {
   MONEY_BUTTON_TYPES,
 } from '../../constants/moneyEvents';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import useRefreshMusdFiatRate from '../../hooks/useRefreshMusdFiatRate';
 
 const Divider = () => <Box twClassName="h-px bg-border-muted my-7" />;
 
@@ -121,6 +121,8 @@ const MoneyHomeView = () => {
     apyPercent,
   } = useMoneyAccountBalance();
 
+  const refreshMusdFiatRate = useRefreshMusdFiatRate();
+
   // Pull-to-refresh state
   const [refreshing, setRefreshing] = useState(false);
 
@@ -129,13 +131,13 @@ const MoneyHomeView = () => {
   const handlePullRefresh = useCallback(async () => {
     setRefreshing(true);
     try {
-      await refetchBalance();
+      await Promise.all([refetchBalance(), refreshMusdFiatRate()]);
     } catch (error) {
       Logger.error(error as Error, '[MoneyHomeView] Pull-to-refresh failed');
     } finally {
       setRefreshing(false);
     }
-  }, [refetchBalance]);
+  }, [refetchBalance, refreshMusdFiatRate]);
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
   const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
@@ -143,21 +145,16 @@ const MoneyHomeView = () => {
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { allTransactions, moneyAddress, mockDataEnabled } =
-    useMoneyAccountTransactions();
-  const { cardTransactions, isLoading: isCardActivityLoading } =
-    useMoneyAccountCardTransactions();
-  // Mock mode shows curated demo data only — never merge real card spends (or
-  // their loading state) into it.
-  const showCardActivityLoading = isCardActivityLoading && !mockDataEnabled;
-  const activityItems = useMemo(
-    () =>
-      mergeMoneyActivity(
-        allTransactions,
-        mockDataEnabled ? [] : cardTransactions,
-      ),
-    [allTransactions, cardTransactions, mockDataEnabled],
-  );
+  // Share the single merge/bucket path with the full activity view so the home
+  // preview and that view never diverge (notably in mock mode). The home
+  // preview shows the "All" bucket; `isLoading` is already mock-aware.
+  const {
+    buckets,
+    isLoading: showCardActivityLoading,
+    moneyAddress,
+    mockDataEnabled,
+  } = useMoneyActivityItems();
+  const activityItems = buckets[MoneyActivityFilter.All];
 
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
