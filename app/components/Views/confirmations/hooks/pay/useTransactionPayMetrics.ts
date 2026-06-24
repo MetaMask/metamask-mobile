@@ -73,7 +73,7 @@ export function useTransactionPayMetrics() {
   const availablePaymentMethods = useMemo(() => {
     const methods = new Set<string>();
 
-    if (hasTokens) {
+    if (availableTokens.length > 0) {
       methods.add('crypto');
     }
 
@@ -86,7 +86,7 @@ export function useTransactionPayMetrics() {
     }
 
     return [...methods];
-  }, [fiatPaymentActions, hasTokens]);
+  }, [availableTokens, fiatPaymentActions]);
 
   const currentPaymentMethodSelection =
     normalizeMetaMaskPayPaymentMethod(selectedFiatMethod?.paymentType) ??

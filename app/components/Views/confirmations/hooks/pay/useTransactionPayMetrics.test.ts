@@ -500,6 +500,39 @@ describe('useTransactionPayMetrics', () => {
       });
     });
 
+    it('excludes crypto when all tokens are disabled even if hasTokens is true (post-quote)', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: PAY_TOKEN_MOCK,
+        setPayToken: noop,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          { disabled: true },
+          { disabled: true },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      useFiatPaymentHighlightedActionsMock.mockReturnValue([
+        { paymentType: 'debit-credit-card' },
+      ] as ReturnType<typeof useFiatPaymentHighlightedActions>);
+
+      runHook();
+
+      await act(async () => noop());
+
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_payment_method_available: ['debit_credit_card'],
+          }),
+          sensitiveProperties: {},
+        },
+      });
+    });
+
     it('excludes crypto when crypto tokens are unavailable', async () => {
       useTransactionPayTokenMock.mockReturnValue({
         payToken: PAY_TOKEN_MOCK,
