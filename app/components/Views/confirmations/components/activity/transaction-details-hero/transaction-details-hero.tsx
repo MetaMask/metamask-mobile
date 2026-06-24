@@ -1,11 +1,5 @@
 import React from 'react';
-import {
-  Image,
-  StyleProp,
-  StyleSheet,
-  TextStyle,
-  ViewStyle,
-} from 'react-native';
+import { Image, StyleProp, StyleSheet, TextStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { type Hex } from '@metamask/utils';
 import { Box } from '../../../../../UI/Box/Box';
@@ -176,125 +170,6 @@ function AssetLine({
   );
 }
 
-function getTwoAssetHeroProps(
-  isMoneyContext: boolean,
-  transactionMeta: TransactionMeta,
-  sentData: TokenDisplayData | null,
-  receivedData: TokenDisplayData | null,
-): { sent: TokenDisplayData; received: TokenDisplayData } | null {
-  if (
-    !isMoneyContext ||
-    !hasTransactionType(transactionMeta, TWO_ASSET_HERO_TYPES) ||
-    !sentData ||
-    !receivedData
-  ) {
-    return null;
-  }
-
-  return resolveTwoAssetData(transactionMeta, sentData, receivedData);
-}
-
-function isFiatDepositTransaction(
-  isMoneyContext: boolean,
-  transactionMeta: TransactionMeta,
-): boolean {
-  return (
-    isMoneyContext &&
-    hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountDeposit,
-    ]) &&
-    Boolean(transactionMeta.metamaskPay?.fiat?.orderId)
-  );
-}
-
-function TokenIconHero({
-  transactionMeta,
-  tokenMeta,
-  isMoneyContext,
-  containerStyle,
-}: {
-  transactionMeta: TransactionMeta;
-  tokenMeta: NonNullable<ReturnType<typeof useTokenMeta>>;
-  isMoneyContext: boolean;
-  containerStyle: StyleProp<ViewStyle>;
-}) {
-  const isFiatDeposit = isFiatDepositTransaction(
-    isMoneyContext,
-    transactionMeta,
-  );
-
-  const icon = isMusdToken(tokenMeta.contractAddress) ? (
-    <Image
-      source={MoneyIcon}
-      style={iconStyles.moneyIcon}
-      testID="money-account-icon"
-    />
-  ) : (
-    <TokenIcon
-      chainId={tokenMeta.chainId}
-      address={tokenMeta.contractAddress as Hex}
-      symbol={tokenMeta.symbol}
-      showNetwork={false}
-    />
-  );
-
-  return (
-    <Box
-      testID="transaction-details-hero"
-      flexDirection={FlexDirection.Row}
-      alignItems={AlignItems.center}
-      gap={12}
-      style={containerStyle}
-    >
-      {icon}
-      <Text
-        variant={TextVariant.DisplayMD}
-        color={isFiatDeposit ? TextColor.Success : undefined}
-      >
-        {isFiatDeposit ? '+' : ''}
-        {tokenMeta.amount} {tokenMeta.symbol}
-      </Text>
-    </Box>
-  );
-}
-
-function FiatAmountHero({
-  targetFiat,
-  claimAmount,
-  decodedAmount,
-  isClaimConverted,
-  formatFiatPerps,
-  formatFiatUser,
-  containerStyle,
-}: {
-  targetFiat: BigNumber | null;
-  claimAmount: BigNumber | null;
-  decodedAmount: ReturnType<typeof useDecodedAmount>;
-  isClaimConverted: boolean;
-  formatFiatPerps: (amount: BigNumber) => string;
-  formatFiatUser: (amount: BigNumber) => string;
-  containerStyle: StyleProp<ViewStyle>;
-}) {
-  const amount = targetFiat ?? claimAmount ?? decodedAmount;
-
-  if (!amount) {
-    return null;
-  }
-
-  const formatFiat = isClaimConverted ? formatFiatUser : formatFiatPerps;
-
-  return (
-    <Box
-      testID="transaction-details-hero"
-      alignItems={AlignItems.center}
-      gap={12}
-      style={containerStyle}
-    >
-      <Text variant={TextVariant.DisplayLG}>{formatFiat(amount)}</Text>
-    </Box>
-  );
-}
-
 export function TransactionDetailsHero() {
   const formatFiatPerps = useFiatFormatter({ currency: PERPS_CURRENCY });
   const formatFiatUser = useFiatFormatter();
@@ -313,43 +188,85 @@ export function TransactionDetailsHero() {
     return null;
   }
 
-  const twoAssetHeroProps = getTwoAssetHeroProps(
-    isMoneyContext,
-    transactionMeta,
-    sentData,
-    receivedData,
-  );
+  const showTwoAssetHero =
+    isMoneyContext &&
+    hasTransactionType(transactionMeta, TWO_ASSET_HERO_TYPES) &&
+    sentData &&
+    receivedData;
 
-  if (twoAssetHeroProps) {
-    return (
-      <TwoAssetHero
-        sentData={twoAssetHeroProps.sent}
-        receivedData={twoAssetHeroProps.received}
+  if (showTwoAssetHero) {
+    const { sent, received } = resolveTwoAssetData(
+      transactionMeta,
+      sentData,
+      receivedData,
+    );
+    return <TwoAssetHero sentData={sent} receivedData={received} />;
+  }
+
+  const showTokenIcon =
+    hasTransactionType(transactionMeta, TOKEN_ICON_TYPES) && tokenMeta;
+
+  if (showTokenIcon) {
+    const isFiatDeposit =
+      isMoneyContext &&
+      hasTransactionType(transactionMeta, [
+        TransactionType.moneyAccountDeposit,
+      ]) &&
+      Boolean(transactionMeta.metamaskPay?.fiat?.orderId);
+
+    const icon = isMusdToken(tokenMeta.contractAddress) ? (
+      <Image
+        source={MoneyIcon}
+        style={iconStyles.moneyIcon}
+        testID="money-account-icon"
       />
+    ) : (
+      <TokenIcon
+        chainId={tokenMeta.chainId}
+        address={tokenMeta.contractAddress as Hex}
+        symbol={tokenMeta.symbol}
+        showNetwork={false}
+      />
+    );
+
+    return (
+      <Box
+        testID="transaction-details-hero"
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        gap={12}
+        style={styles.container}
+      >
+        {icon}
+        <Text
+          variant={TextVariant.DisplayMD}
+          color={isFiatDeposit ? TextColor.Success : undefined}
+        >
+          {isFiatDeposit ? '+' : ''}
+          {tokenMeta.amount} {tokenMeta.symbol}
+        </Text>
+      </Box>
     );
   }
 
-  if (tokenMeta && hasTransactionType(transactionMeta, TOKEN_ICON_TYPES)) {
-    return (
-      <TokenIconHero
-        transactionMeta={transactionMeta}
-        tokenMeta={tokenMeta}
-        isMoneyContext={isMoneyContext}
-        containerStyle={styles.container}
-      />
-    );
+  const amount = targetFiat ?? claimAmount ?? decodedAmount;
+
+  if (!amount) {
+    return null;
   }
+
+  const formatFiat = isClaimConverted ? formatFiatUser : formatFiatPerps;
+  const formattedAmount = formatFiat(amount);
 
   return (
-    <FiatAmountHero
-      targetFiat={targetFiat}
-      claimAmount={claimAmount}
-      decodedAmount={decodedAmount}
-      isClaimConverted={isClaimConverted}
-      formatFiatPerps={formatFiatPerps}
-      formatFiatUser={formatFiatUser}
-      containerStyle={styles.container}
-    />
+    <Box
+      testID="transaction-details-hero"
+      alignItems={AlignItems.center}
+      gap={12}
+      style={styles.container}
+    >
+      <Text variant={TextVariant.DisplayLG}>{formattedAmount}</Text>
+    </Box>
   );
 }
 
