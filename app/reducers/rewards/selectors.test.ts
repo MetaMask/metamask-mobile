@@ -86,6 +86,8 @@ import {
   selectPredictThePitchPrizePoolLoading,
   selectPredictThePitchPrizePoolError,
   selectDismissedCampaignOutcomeToasts,
+  selectSubscribedCampaignReminders,
+  selectIsCampaignOutcomeToastDismissed,
 } from './selectors';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
@@ -4233,6 +4235,73 @@ describe('Rewards selectors', () => {
       });
       const result = selectDismissedCampaignOutcomeToasts(state);
       expect(result['campaign-1:sub-1:winner']).toBeUndefined();
+    });
+  });
+
+  describe('selectIsCampaignOutcomeToastDismissed', () => {
+    it('returns true when the outcome toast key is dismissed', () => {
+      const state = createMockRootState({
+        dismissedCampaignOutcomeToasts: {
+          'camp-2:sub-1:winner': true,
+        },
+      });
+      expect(
+        selectIsCampaignOutcomeToastDismissed(
+          'sub-1',
+          'camp-2',
+          'winner',
+        )(state),
+      ).toBe(true);
+    });
+
+    it('returns false when the outcome toast key is not dismissed', () => {
+      const state = createMockRootState({ dismissedCampaignOutcomeToasts: {} });
+      expect(
+        selectIsCampaignOutcomeToastDismissed(
+          'sub-1',
+          'camp-2',
+          'winner',
+        )(state),
+      ).toBe(false);
+    });
+
+    it('returns true when subscription or campaign id is missing', () => {
+      const state = createMockRootState({ dismissedCampaignOutcomeToasts: {} });
+      expect(
+        selectIsCampaignOutcomeToastDismissed(
+          undefined,
+          'camp-2',
+          'winner',
+        )(state),
+      ).toBe(true);
+    });
+  });
+
+  describe('selectSubscribedCampaignReminders', () => {
+    it('returns empty object when no reminders have been subscribed', () => {
+      const state = createMockRootState({ subscribedCampaignReminders: {} });
+      expect(selectSubscribedCampaignReminders(state)).toEqual({});
+    });
+
+    it('returns empty object when subscribed reminders are undefined', () => {
+      const state = createMockRootState({
+        subscribedCampaignReminders: undefined as unknown as Record<
+          string,
+          boolean
+        >,
+      });
+      expect(selectSubscribedCampaignReminders(state)).toEqual({});
+    });
+
+    it('returns the subscribed reminders map', () => {
+      const subscribed = {
+        'sub-1:camp-1': true,
+        'sub-1:camp-2': true,
+      };
+      const state = createMockRootState({
+        subscribedCampaignReminders: subscribed,
+      });
+      expect(selectSubscribedCampaignReminders(state)).toEqual(subscribed);
     });
   });
 });

@@ -3,6 +3,11 @@ import type { RootState } from '..';
 import { initialState } from '.';
 import { RewardsTab, OnboardingStep } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
+import {
+  buildSubscriptionCampaignCompositeKey,
+  buildCampaignOutcomeToastCompositeKey,
+  type CampaignOutcomeToastVariant,
+} from './compositeKeys';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
   state.rewards.activeTab;
@@ -239,7 +244,10 @@ export const selectCampaignParticipantStatus =
   ) =>
   (state: RootState) => {
     if (!subscriptionId || !campaignId) return null;
-    const key = `${subscriptionId}:${campaignId}`;
+    const key = buildSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
     return state.rewards.campaignParticipantStatuses?.[key] ?? null;
   };
 
@@ -256,7 +264,10 @@ export const selectCampaignParticipantCount =
   (subscriptionId: string | undefined, campaignId: string | undefined) =>
   (state: RootState) => {
     if (!subscriptionId || !campaignId) return null;
-    const key = `${subscriptionId}:${campaignId}`;
+    const key = buildSubscriptionCampaignCompositeKey(
+      subscriptionId,
+      campaignId,
+    );
     return (
       state.rewards.campaignParticipantStatuses?.[key]?.participantCount ?? null
     );
@@ -335,7 +346,7 @@ export const selectOndoCampaignLeaderboardPositionById =
     campaignId &&
     state.rewards.ondoCampaignLeaderboardPositions
       ? (state.rewards.ondoCampaignLeaderboardPositions[
-          `${subscriptionId}:${campaignId}`
+          buildSubscriptionCampaignCompositeKey(subscriptionId, campaignId)
         ] ?? null)
       : null;
 
@@ -347,7 +358,7 @@ export const selectOndoCampaignPortfolioById =
   (state: RootState) =>
     subscriptionId && campaignId && state.rewards.ondoCampaignPortfolio
       ? (state.rewards.ondoCampaignPortfolio[
-          `${subscriptionId}:${campaignId}`
+          buildSubscriptionCampaignCompositeKey(subscriptionId, campaignId)
         ] ?? null)
       : null;
 
@@ -356,7 +367,7 @@ export const selectOndoCampaignActivityById =
   (state: RootState) =>
     subscriptionId && campaignId && state.rewards.ondoCampaignActivity
       ? (state.rewards.ondoCampaignActivity[
-          `${subscriptionId}:${campaignId}`
+          buildSubscriptionCampaignCompositeKey(subscriptionId, campaignId)
         ] ?? null)
       : null;
 
@@ -379,6 +390,30 @@ export const selectDismissedCampaignOutcomeToasts = (
   state.rewards.dismissedCampaignOutcomeToasts ??
   initialState.dismissedCampaignOutcomeToasts;
 
+export const selectSubscribedCampaignReminders = (
+  state: RootState,
+): RootState['rewards']['subscribedCampaignReminders'] =>
+  state.rewards.subscribedCampaignReminders ??
+  initialState.subscribedCampaignReminders;
+
+export const selectIsCampaignOutcomeToastDismissed =
+  (
+    subscriptionId: string | undefined,
+    campaignId: string | undefined,
+    variant: CampaignOutcomeToastVariant,
+  ) =>
+  (state: RootState): boolean => {
+    if (!subscriptionId || !campaignId) {
+      return true;
+    }
+    const key = buildCampaignOutcomeToastCompositeKey(
+      campaignId,
+      subscriptionId,
+      variant,
+    );
+    return selectDismissedCampaignOutcomeToasts(state)[key] === true;
+  };
+
 // Perps Trading Campaign leaderboard selectors
 export const selectPerpsTradingCampaignLeaderboard = (state: RootState) =>
   state.rewards.perpsTradingCampaignLeaderboard;
@@ -396,7 +431,7 @@ export const selectPerpsTradingCampaignLeaderboardPositionById =
   (state: RootState) =>
     subscriptionId && campaignId
       ? (state.rewards.perpsTradingCampaignLeaderboardPositions[
-          `${subscriptionId}:${campaignId}`
+          buildSubscriptionCampaignCompositeKey(subscriptionId, campaignId)
         ] ?? null)
       : null;
 
@@ -425,7 +460,7 @@ export const selectPredictThePitchLeaderboardPositionById =
   (state: RootState) =>
     subscriptionId && campaignId
       ? (state.rewards.predictThePitchLeaderboardPositions[
-          `${subscriptionId}:${campaignId}`
+          buildSubscriptionCampaignCompositeKey(subscriptionId, campaignId)
         ] ?? null)
       : null;
 
@@ -434,7 +469,7 @@ export const selectPredictThePitchPositionsById =
   (state: RootState) =>
     subscriptionId && campaignId
       ? (state.rewards.predictThePitchPositions[
-          `${subscriptionId}:${campaignId}`
+          buildSubscriptionCampaignCompositeKey(subscriptionId, campaignId)
         ] ?? null)
       : null;
 

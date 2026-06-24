@@ -27,6 +27,10 @@ import {
   VipDashboardState,
   VipRefereeMeState,
 } from '../../core/Engine/controllers/rewards-controller/types';
+import {
+  buildCampaignOutcomeToastCompositeKey,
+  buildSubscriptionCampaignCompositeKey,
+} from './compositeKeys';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
 
@@ -226,6 +230,9 @@ export interface RewardsState {
 
   // Dismissed outcome toasts (keyed by `${campaignId}:${subscriptionId}:${variant}`)
   dismissedCampaignOutcomeToasts: Record<string, boolean>;
+
+  // Subscribed campaign start reminders (keyed by `${subscriptionId}:${campaignId}`)
+  subscribedCampaignReminders: Record<string, boolean>;
 }
 
 /**
@@ -364,6 +371,8 @@ export const initialState: RewardsState = {
   pendingDeeplink: null,
 
   dismissedCampaignOutcomeToasts: {},
+
+  subscribedCampaignReminders: {},
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -547,6 +556,7 @@ const rewardsSlice = createSlice({
           hideUnlinkedAccountsBanner: state.hideUnlinkedAccountsBanner,
           bulkLink: state.bulkLink,
           dismissedCampaignOutcomeToasts: state.dismissedCampaignOutcomeToasts,
+          subscribedCampaignReminders: state.subscribedCampaignReminders,
           vipSplashAccepted: state.vipSplashAccepted,
           vipRefereeSplashAccepted: state.vipRefereeSplashAccepted,
           versionGuardMinimumMobileVersion:
@@ -672,7 +682,10 @@ const rewardsSlice = createSlice({
         status: CampaignParticipantStatusDto;
       }>,
     ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       state.campaignParticipantStatuses[key] = action.payload.status;
     },
 
@@ -741,7 +754,10 @@ const rewardsSlice = createSlice({
         position: CampaignLeaderboardPositionDto | null;
       }>,
     ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       if (action.payload.position) {
         state.ondoCampaignLeaderboardPositions[key] = action.payload.position;
       } else {
@@ -757,7 +773,10 @@ const rewardsSlice = createSlice({
         portfolio: OndoGmPortfolioDto | null;
       }>,
     ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       if (action.payload.portfolio) {
         state.ondoCampaignPortfolio[key] = action.payload.portfolio;
       } else {
@@ -847,7 +866,10 @@ const rewardsSlice = createSlice({
         entries: OndoGmActivityEntryDto[] | null;
       }>,
     ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       state.ondoCampaignActivity[key] = action.payload.entries;
     },
 
@@ -902,7 +924,10 @@ const rewardsSlice = createSlice({
         position: PerpsTradingCampaignLeaderboardPositionDto | null;
       }>,
     ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       if (action.payload.position) {
         state.perpsTradingCampaignLeaderboardPositions[key] =
           action.payload.position;
@@ -967,7 +992,10 @@ const rewardsSlice = createSlice({
         position: PredictThePitchLeaderboardPositionDto | null;
       }>,
     ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       if (action.payload.position) {
         state.predictThePitchLeaderboardPositions[key] =
           action.payload.position;
@@ -984,7 +1012,10 @@ const rewardsSlice = createSlice({
         positions: PredictThePitchPositionsDto | null;
       }>,
     ) => {
-      const key = `${action.payload.subscriptionId}:${action.payload.campaignId}`;
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
       if (action.payload.positions) {
         state.predictThePitchPositions[key] = action.payload.positions;
       } else {
@@ -1091,8 +1122,27 @@ const rewardsSlice = createSlice({
         variant: 'winner' | 'non_winner';
       }>,
     ) => {
-      const key = `${action.payload.campaignId}:${action.payload.subscriptionId}:${action.payload.variant}`;
+      const { campaignId, subscriptionId, variant } = action.payload;
+      const key = buildCampaignOutcomeToastCompositeKey(
+        campaignId,
+        subscriptionId,
+        variant,
+      );
       state.dismissedCampaignOutcomeToasts[key] = true;
+    },
+
+    subscribeCampaignReminder: (
+      state,
+      action: PayloadAction<{
+        subscriptionId: string;
+        campaignId: string;
+      }>,
+    ) => {
+      const key = buildSubscriptionCampaignCompositeKey(
+        action.payload.subscriptionId,
+        action.payload.campaignId,
+      );
+      state.subscribedCampaignReminders[key] = true;
     },
   },
   extraReducers: (builder) => {
@@ -1164,6 +1214,9 @@ const rewardsSlice = createSlice({
 
               dismissedCampaignOutcomeToasts:
                 action.payload.rewards.dismissedCampaignOutcomeToasts ?? {},
+
+              subscribedCampaignReminders:
+                action.payload.rewards.subscribedCampaignReminders ?? {},
 
               // Bulk link state - preserve interrupted status for resume capability
               bulkLink: {
@@ -1273,6 +1326,7 @@ export const {
   bulkLinkResumed,
   setPendingDeeplink,
   dismissCampaignOutcomeToast,
+  subscribeCampaignReminder,
 } = rewardsSlice.actions;
 
 export default rewardsSlice.reducer;
