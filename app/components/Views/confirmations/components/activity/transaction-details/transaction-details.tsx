@@ -26,6 +26,7 @@ import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
 import { TransactionDetailsToRow } from '../transaction-details-to-row';
 import { TransactionDetailsFiatOrderIdRow } from '../transaction-details-fiat-order-id-row';
+import { isMusdToken } from '../../../../../UI/Earn/constants/musd';
 
 export const SUMMARY_SECTION_TYPES = [
   TransactionType.musdClaim,
@@ -103,7 +104,10 @@ function getTitle(
   ) {
     if (isMoneyContext) {
       const isFiatDeposit = Boolean(transactionMeta.metamaskPay?.fiat?.orderId);
-      return isFiatDeposit
+      const isMusdDeposit = isMusdToken(
+        transactionMeta.metamaskPay?.tokenAddress,
+      );
+      return isFiatDeposit || isMusdDeposit
         ? statusTitle(transactionMeta.status, {
             confirmed: 'transaction_details.title.deposited_musd',
             failed: 'transaction_details.title.deposit_failed',
