@@ -80,10 +80,10 @@ NODE_OPTIONS='--max-old-space-size=12288' \
 
 | Run                   | Time        | Warnings shown | vs baseline             |
 | --------------------- | ----------- | -------------- | ----------------------- |
-| baseline (type-aware) | 331.16s     | 6,049          | —                       |
-| swap, keep `project`  | **222.90s** | 1,971          | **~33% faster (1.49x)** |
+| baseline (type-aware) | 304.97s     | 6,049          | —                       |
+| swap, keep `project`  | **228.85s** | 1,971          | **~25% faster (1.33x)** |
 
-**Result: ✅ ~33% faster**, and clean — of the 1,971 warnings, 1,464 are
+**Result: ✅ ~25% faster**, and clean — of the 1,971 warnings, 1,464 are
 `import-x/no-deprecated` flags and **0** are parse-error noise (with
 `import-x/ignore: ['node_modules']`). Baseline's ~5.7K `no-deprecated` warnings
 are gone, replaced by the leaner resolver-based count.
@@ -92,12 +92,12 @@ It is important to flag the decrease in warnings shown. This probably indicates 
 
 ### Functional verification (same `.ts/.tsx` sample, both rules)
 
-| Behaviour                                                                   | `@typescript-eslint/no-deprecated` | `import-x/no-deprecated`                      |
-| --------------------------------------------------------------------------- | ---------------------------------- | --------------------------------------------- |
-| BN.js number deprecations (`fromWei`, `isBN`, `renderFromWei`, `toGwei`, …) | ✅                                 | ✅ (flags import line **and** each usage)     |
-| Runs on `.js` files                                                         | ❌ (only in `*.{ts,tsx}` override) | ✅ (registered at root)                       |
-| `@deprecated` on typed libs (`Card`/`Text`/`Avatar` from design-system)     | ✅                                 | ❌ (can't resolve/parse those modules' JSDoc) |
-| Needs `parserOptions.project` (the expensive bit)                           | ✅                                 | ❌                                            |
+| Behaviour                                                                    | `@typescript-eslint/no-deprecated` | `import-x/no-deprecated`                     |
+| ---------------------------------------------------------------------------- | ---------------------------------- | -------------------------------------------- |
+| BN.js number deprecations (`fromWei`, `isBN`, `renderFromWei`, `toGwei`, …)  | ✅                                 | ✅ (flags import line **and** each usage)    |
+| Runs on `.js` files                                                          | ❌ (only in `*.{ts,tsx}` override) | ✅ (registered at root)                      |
+| `@deprecated` from typed packages / `.d.ts` (3rd-party, design-system, etc.) | ✅                                 | ❌ (only flags JSDoc it can resolve & parse) |
+| Needs `parserOptions.project` (the expensive bit)                            | ✅                                 | ❌                                           |
 
 ---
 
@@ -119,10 +119,10 @@ NODE_OPTIONS='--max-old-space-size=12288' \
 
 | Run                            | Time        | Warnings shown | vs baseline             |
 | ------------------------------ | ----------- | -------------- | ----------------------- |
-| baseline (type-aware)          | 331.16s     | 6,049          | —                       |
-| drop `project` (no type-aware) | **172.93s** | 511            | **~48% faster (1.92x)** |
+| baseline (type-aware)          | 304.97s     | 6,049          | —                       |
+| drop `project` (no type-aware) | **173.38s** | 511            | **~43% faster (1.76x)** |
 
-**Result: ✅ ~48% faster** — and this is the floor (~173s). It's the irreducible
+**Result: ✅ ~43% faster** — and this is the floor (~173s). It's the irreducible
 non-type-aware cost (import resolution, react, `import-x/order`, jsdoc, tailwind
 across ~12K files). You can't go lower cold without cutting more rules.
 
@@ -134,10 +134,10 @@ Core-alignment files) must be re-scoped to a minimal tsconfig to keep working.
 
 ## Options compared (cold, full repo)
 
-| #   | Option                                                                                                                    | Cold lint | Δ vs 331s baseline | Notes                                                                                           |
-| --- | ------------------------------------------------------------------------------------------------------------------------- | --------- | ------------------ | ----------------------------------------------------------------------------------------------- |
-| 1   | **Base** — `main` today (type-aware `no-deprecated`)                                                                      | 331s      | —                  | 6K warnings, needs `project`                                                                    |
-| 2   | **`--quiet`**                                                                                                             | 327s      | ~1%                | no real win on ESLint v8 (output-only filter)                                                   |
-| 3   | **Swap to `import-x/no-deprecated`** (keep `project`)                                                                     | 223s      | ~33%               | low-risk; keeps all other type-aware rules; needs `import-x/ignore`; loses lib `@deprecated`    |
-| 4   | **My branch — remove `no-deprecated` + bash burndown** ([#32262](https://github.com/MetaMask/metamask-mobile/pull/32262)) | ~221s     | ~33%               | keeps `project`; replaces rule with `bn-migration-burndown.sh`; no eslint deprecation surfacing |
-| 5   | **(⚠️ danger) Full type-aware removal** (drop `project`)                                                                  | ~173s     | ~48%               | biggest cold win; disables ALL type-aware rules                                                 |
+| #   | Option                                                                                                                    | Cold lint | Warnings shown | Δ vs 305s baseline | Notes                                                                                                       |
+| --- | ------------------------------------------------------------------------------------------------------------------------- | --------- | -------------- | ------------------ | ----------------------------------------------------------------------------------------------------------- |
+| 1   | **Base** — `main` today (type-aware `no-deprecated`)                                                                      | 305s      | 6,049          | —                  | needs `project`                                                                                             |
+| 2   | **`--quiet`**                                                                                                             | 302s      | 0              | ~1%                | no real win on ESLint v8 (output-only filter)                                                               |
+| 3   | **Swap to `import-x/no-deprecated`** (keep `project`)                                                                     | 229s      | 1,971          | ~25%               | low-risk; keeps all other type-aware rules; needs `import-x/ignore`; loses type-level/package `@deprecated` |
+| 4   | **My branch — remove `no-deprecated` + bash burndown** ([#32262](https://github.com/MetaMask/metamask-mobile/pull/32262)) | 212s      | 511            | ~30%               | keeps `project`; replaces rule with `bn-migration-burndown.sh`; no eslint deprecation surfacing             |
+| 5   | **(⚠️ danger) Full type-aware removal** (drop `project`)                                                                  | 173s      | 511            | ~43%               | biggest cold win; disables ALL type-aware rules                                                             |
