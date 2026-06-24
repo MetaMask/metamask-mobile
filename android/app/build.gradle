@@ -61,6 +61,41 @@ react {
     autolinkLibrariesWithApp()
 }
 
+// Workaround for upstream React Native bug facebook/react-native#56334 (New Arch, RN 0.78–0.83.x).
+//
+// The intended build ordering for codegen-only libraries (e.g. react-native-keychain,
+// react-native-mmkv, @sentry/react-native) is:
+//   1. Each library runs `generateCodegenArtifactsFromSchema` (via its `preBuild`), which CREATES
+//      its `build/generated/source/codegen/jni/` directory of generated C++ glue.
+//   2. THEN the app's `configureCMake*`/`buildCMake*` reads `Android-autolinking.cmake` and
+//      `add_subdirectory(...)`s into each of those directories to compile + link the glue.
+//
+// `GenerateAutolinkingNewArchitecturesFileTask` emits those `add_subdirectory(...)` entries
+// unconditionally, but `:app:configureCMake*` declares NO dependency on the step-1 tasks, so
+// Gradle is free to run step 2 before step 1. On a clean machine (e.g. CI) those directories don't
+// pre-exist, so the app's CMake configure runs first and fails with:
+//   add_subdirectory given source ".../codegen/jni/" which is not an existing directory
+// (Prefab-publishing libraries have the same gap via their `prefab<Variant>Package` outputs.)
+//
+// Restore the missing ordering edges so every library's step-1 codegen/prefab output is produced
+// before the app's step-2 CMake configure/build runs. This is the proper fix (vs. guarding the
+// generated CMake) because it guarantees the codegen-only TurboModule specs are actually built and
+// linked, instead of being silently skipped.
+afterEvaluate {
+    def cmakeTasks = tasks.matching {
+        it.name.startsWith("configureCMake") || it.name.startsWith("buildCMake")
+    }
+    rootProject.subprojects.each { sub ->
+        if (sub == project) return
+        sub.tasks.matching { it.name == "preBuild" }.all { preBuildTask ->
+            cmakeTasks.configureEach { it.dependsOn(preBuildTask) }
+        }
+        sub.tasks.matching { it.name.startsWith("prefab") && it.name.endsWith("Package") }.all { prefabTask ->
+            cmakeTasks.configureEach { it.dependsOn(prefabTask) }
+        }
+    }
+}
+
 // Sentry environment variables used by Sentry CLI to upload files. Upload is disabled by default
 // TODO - Move to JS side to be shared between platform - Android sets these automatically
 // System.env.SENTRY_DIST
