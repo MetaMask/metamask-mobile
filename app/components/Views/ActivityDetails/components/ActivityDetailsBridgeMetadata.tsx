@@ -78,7 +78,10 @@ export function ActivityDetailsBridgeMetadata({
         label={strings('activity_details.account')}
         value={
           accountAddress ? (
-            <ActivityDetailsAccountValue address={accountAddress} />
+            <ActivityDetailsAccountValue
+              address={accountAddress}
+              chainId={item.chainId}
+            />
           ) : undefined
         }
         testID={ActivityDetailsSelectorsIDs.ACCOUNT_ROW}

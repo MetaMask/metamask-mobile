@@ -44,12 +44,22 @@ export function ActivityDetailsMetadata({ item }: { item: ActivityListItem }) {
         <>
           <ActivityDetailRow
             label={strings('activity_details.from')}
-            value={<ActivityDetailsAccountValue address={from} />}
+            value={
+              <ActivityDetailsAccountValue
+                address={from}
+                chainId={item.chainId}
+              />
+            }
             testID={ActivityDetailsSelectorsIDs.FROM_ROW}
           />
           <ActivityDetailRow
             label={strings('activity_details.to')}
-            value={<ActivityDetailsAccountValue address={to} />}
+            value={
+              <ActivityDetailsAccountValue
+                address={to}
+                chainId={item.chainId}
+              />
+            }
             testID={ActivityDetailsSelectorsIDs.TO_ROW}
           />
         </>
@@ -58,7 +68,10 @@ export function ActivityDetailsMetadata({ item }: { item: ActivityListItem }) {
           label={strings('activity_details.account')}
           value={
             accountAddress ? (
-              <ActivityDetailsAccountValue address={accountAddress} />
+              <ActivityDetailsAccountValue
+                address={accountAddress}
+                chainId={item.chainId}
+              />
             ) : undefined
           }
           testID={ActivityDetailsSelectorsIDs.ACCOUNT_ROW}

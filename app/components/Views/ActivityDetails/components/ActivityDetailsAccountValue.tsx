@@ -14,13 +14,20 @@ import { getAvatarAccountVariant } from '../../../../component-library/component
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { renderShortAddress } from '../../../../util/address';
 
-export function ActivityDetailsAccountValue({ address }: { address: string }) {
+export function ActivityDetailsAccountValue({
+  address,
+  chainId,
+}: {
+  address: string;
+  chainId: string;
+}) {
   const accountVariant = getAvatarAccountVariant(
     useSelector(selectAvatarAccountType),
   );
   const accountName = useAccountNames([
     {
       value: address,
+      variation: chainId,
       type: NameType.EthereumAddress,
     },
   ])?.[0];
