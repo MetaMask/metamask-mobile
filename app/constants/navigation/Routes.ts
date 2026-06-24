@@ -555,6 +555,7 @@ const Routes = {
       VIEW_PIN: 'CardViewPinModal',
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
       WAITLIST_FORM: 'CardWaitlistFormModal',
+      FORGOT_PASSWORD: 'CardForgotPasswordModal',
     },
   },
   SEND: {

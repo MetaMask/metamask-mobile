@@ -102,9 +102,6 @@
       "message": "Geben Sie weniger als {{amount}} ein oder verwenden Sie ein anderes Token.",
       "title": "Unzureichende Gelder"
     },
-    "insufficient_pay_token_balance_fees_no_target": {
-      "message": "Weniger hinzufügen oder ein anderes Token verwenden."
-    },
     "insufficient_pay_token_native": {
       "message": "Nicht genügend {{ticker}}, um die Gebühren zu decken. Verwenden Sie ein Token in einem anderen Netzwerk oder fügen Sie weitere {{ticker}} hinzu, um fortzufahren.",
       "title": "Unzureichende Gelder"

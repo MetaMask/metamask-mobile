@@ -16,6 +16,7 @@ import type { VipDashboardState } from '../../../../core/Engine/controllers/rewa
 import RewardsVipView, { REWARDS_VIP_VIEW_TEST_IDS } from './RewardsVipView';
 import { VIP_TIER_PROGRESS_CARD_TEST_IDS } from '../components/Vip/VipTierProgressCard';
 import { VIP_VOLUME_SECTION_TEST_IDS } from '../components/Vip/VipVolumeSection';
+import { VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS } from '../components/Vip/VipSwapsVolumeInfoSheet';
 import { VIP_POINTS_SECTION_TEST_IDS } from '../components/Vip/VipPointsSection';
 import { VIP_FEE_TILE_TEST_IDS } from '../components/Vip/VipFeeTile';
 
@@ -23,11 +24,16 @@ const mockDispatch = jest.fn();
 const mockReduxDispatch = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockExitRewardsFlow = jest.fn();
 let mockVipSplashAccepted: Record<string, boolean> = {};
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => mockReduxDispatch),
   useSelector: jest.fn(),
+}));
+
+jest.mock('../utils', () => ({
+  exitRewardsFlow: (...args: unknown[]) => mockExitRewardsFlow(...args),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -112,7 +118,23 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     FontWeight: { Medium: 'medium', Bold: 'bold' },
     Icon: passthrough,
+    ButtonIcon: ({
+      onPress,
+      testID,
+      accessibilityLabel,
+    }: {
+      onPress?: () => void;
+      testID?: string;
+      accessibilityLabel?: string;
+    }) =>
+      ReactActual.createElement(Pressable, {
+        testID,
+        accessibilityLabel,
+        onPress,
+      }),
+    ButtonIconSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
     IconColor: {
+      IconDefault: 'default',
       IconAlternative: 'alt',
       SuccessDefault: 'success',
       WarningDefault: 'warning',
@@ -121,11 +143,20 @@ jest.mock('@metamask/design-system-react-native', () => {
       ArrowDown: 'ArrowDown',
       ArrowRight: 'ArrowRight',
       ArrowUp: 'ArrowUp',
+      Close: 'Close',
+      Info: 'Info',
       MetamaskFoxOutline: 'MetamaskFoxOutline',
       TrendUp: 'TrendUp',
       UserCircleAdd: 'UserCircleAdd',
     },
-    IconSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
+    IconSize: { Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
+    BottomSheet: ({
+      children,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(View, { testID }, children),
     Skeleton,
   };
 });
@@ -177,6 +208,10 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.vip.error_title': 'Error title',
       'rewards.vip.error_description': 'Error description',
       'rewards.vip.retry_button': 'Retry',
+      'rewards.vip.swaps_volume_info_label': 'Swaps volume information',
+      'rewards.vip.swaps_volume_info_title': 'Swaps volume',
+      'rewards.vip.swaps_volume_info_description':
+        'Your swaps volume updates once per day, so recent swaps may take up to 24 hours to appear here.',
     };
     return translations[key] ?? key;
   }),
@@ -534,6 +569,29 @@ describe('RewardsVipView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders the swaps volume help icon and opens the daily-refresh info sheet on press', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: defaultDashboard,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByTestId, queryByTestId } = render(<RewardsVipView />);
+
+    // The info sheet is not mounted until the help icon is pressed.
+    expect(
+      queryByTestId(VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS.SHEET),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId(VIP_VOLUME_SECTION_TEST_IDS.SWAPS_INFO));
+
+    const sheet = getByTestId(VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS.SHEET);
+    expect(sheet).toHaveTextContent(/Swaps volume/);
+    expect(sheet).toHaveTextContent(/updates once per day/);
+  });
+
   it('renders an up arrow when next-tier revenue share equals current revenue share', () => {
     mockUseVipDashboard.mockReturnValue({
       dashboard: {
@@ -718,13 +776,11 @@ describe('RewardsVipView', () => {
       enabled: false,
     });
     await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.REWARDS_DASHBOARD),
-      );
+      expect(mockExitRewardsFlow).toHaveBeenCalled();
     });
   });
 
-  it('redirects to the rewards dashboard when the VIP program flag is off, even for a VIP subscription', async () => {
+  it('exits the rewards flow when the VIP program flag is off, even for a VIP subscription', async () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) {
         return 'test-subscription-id';
@@ -746,9 +802,7 @@ describe('RewardsVipView', () => {
       enabled: false,
     });
     await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.REWARDS_DASHBOARD),
-      );
+      expect(mockExitRewardsFlow).toHaveBeenCalled();
     });
   });
 });

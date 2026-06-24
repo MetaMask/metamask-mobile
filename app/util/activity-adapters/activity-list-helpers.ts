@@ -116,7 +116,11 @@ export const getGroupedActivityListItemKey = (
     return `api-evm-transaction-${chainId}-${item.item.hash}`;
   }
 
-  return `${chainId}-${item.item.type}-${item.item.hash ?? item.item.timestamp}-${index}`;
+  if (item.item.hash) {
+    return `${chainId}-${item.item.type}-${item.item.hash}`;
+  }
+
+  return `${chainId}-${item.item.type}-${item.item.timestamp}-${index}`;
 };
 
 export function activityMatchesAssetId(
