@@ -18,6 +18,7 @@ jest.mock('../../../../../core/Engine', () => ({
     context: {
       TransactionPayController: {
         setTransactionConfig: jest.fn(),
+        updateFiatPayment: jest.fn(),
       },
     },
   },
@@ -42,6 +43,9 @@ jest.mock('./useIsMoneyAccountFlagDefault', () => ({
 
 const setTransactionConfigMock = jest.mocked(
   Engine.context.TransactionPayController.setTransactionConfig,
+);
+const updateFiatPaymentMock = jest.mocked(
+  Engine.context.TransactionPayController.updateFiatPayment,
 );
 
 const render = () =>
@@ -100,6 +104,31 @@ describe('useDefaultPaySelectedSection', () => {
 
     expect(config.paymentOverride).toBe(PaymentOverride.MoneyAccount);
     expect(config.refundTo).toBe(MONEY_ACCOUNT_ADDRESS);
+  });
+
+  it('clears selectedPaymentMethodId via updateFiatPayment for deposit transactions', () => {
+    (useParams as jest.Mock).mockReturnValue({
+      payWithOption: PayWithOption.MoneyAccount,
+    });
+    (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
+      id: TRANSACTION_ID,
+      type: TransactionType.perpsDeposit,
+    });
+
+    render();
+
+    expect(updateFiatPaymentMock).toHaveBeenCalledWith({
+      transactionId: TRANSACTION_ID,
+      callback: expect.any(Function),
+    });
+
+    const fiatPayment = { selectedPaymentMethodId: 'some-method' } as Record<
+      string,
+      unknown
+    >;
+    updateFiatPaymentMock.mock.calls[0][0].callback(fiatPayment as never);
+
+    expect(fiatPayment.selectedPaymentMethodId).toBeUndefined();
   });
 
   it('sets PaymentOverride.MoneyAccount but omits refundTo for withdraw transactions', () => {
@@ -196,6 +225,28 @@ describe('useDefaultPaySelectedSection', () => {
       expect(config.refundTo).toBeUndefined();
     });
 
+    it('clears selectedPaymentMethodId via updateFiatPayment when flag is active', () => {
+      (useIsMoneyAccountFlagDefault as jest.Mock).mockReturnValue(true);
+      (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
+        id: TRANSACTION_ID,
+        type: TransactionType.predictWithdraw,
+      });
+
+      render();
+
+      expect(updateFiatPaymentMock).toHaveBeenCalledWith({
+        transactionId: TRANSACTION_ID,
+        callback: expect.any(Function),
+      });
+
+      const fiatPayment = {
+        selectedPaymentMethodId: 'existing-method',
+      } as Record<string, unknown>;
+      updateFiatPaymentMock.mock.calls[0][0].callback(fiatPayment as never);
+
+      expect(fiatPayment.selectedPaymentMethodId).toBeUndefined();
+    });
+
     it('does not set override when useIsMoneyAccountFlagDefault returns false', () => {
       (useIsMoneyAccountFlagDefault as jest.Mock).mockReturnValue(false);
       (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
@@ -205,6 +256,7 @@ describe('useDefaultPaySelectedSection', () => {
       render();
 
       expect(setTransactionConfigMock).not.toHaveBeenCalled();
+      expect(updateFiatPaymentMock).not.toHaveBeenCalled();
     });
   });
 });
