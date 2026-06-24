@@ -25,7 +25,7 @@ describe('resolveLineChromeOptions', () => {
       resolveLineChromeOptions(advancedChartLineChromePresets.tokenOverview),
     ).toEqual({
       hideTimeScale: false,
-      useCustomLineEndMarker: true,
+      useCustomLineEndMarker: false,
       useCustomDashedLastPriceLine: false,
       useCustomPriceLabels: false,
     });
