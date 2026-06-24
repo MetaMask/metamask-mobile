@@ -72,3 +72,66 @@ export function isStickyDayHeaderVisible(
     scrollY >= listHeaderHeight - chartBlockHeight
   );
 }
+
+/**
+ * Cumulative start offset of each day section, measured from the top of the
+ * first section (i.e. relative to `listHeaderHeight`, so `offsets[0]` is always
+ * `0`). Rows and section headers are treated as uniform height — a deliberate
+ * approximation that derives smooth, frame-accurate section geometry from a few
+ * measured constants instead of the batched/laggy `onViewableItemsChanged`.
+ *
+ * Section `i` occupies, in content space:
+ * `sectionHeaderHeight + sectionItemCounts[i] * rowHeight`, so the next
+ * section starts that much further down.
+ */
+export function computeSectionStartOffsets(
+  sectionItemCounts: number[],
+  rowHeight: number,
+  sectionHeaderHeight: number,
+): number[] {
+  const offsets: number[] = [];
+  let cursor = 0;
+  for (const count of sectionItemCounts) {
+    offsets.push(cursor);
+    cursor += sectionHeaderHeight + count * rowHeight;
+  }
+  return offsets;
+}
+
+/**
+ * Index of the day section currently pinned behind the chart's bottom edge — the
+ * label the floating sticky should show — or `-1` when the sticky is hidden.
+ *
+ * The probe is the content offset of the chart's bottom edge expressed relative
+ * to the first section: `scrollY + chartBlockHeight - listHeaderHeight`. While it
+ * is negative the first section header is still visible below the chart (sticky
+ * hidden, matching {@link isStickyDayHeaderVisible}); otherwise the active
+ * section is the last one whose start offset is at or above the probe.
+ *
+ * `sectionStartOffsets` are relative offsets from {@link computeSectionStartOffsets}.
+ * The view INLINES this math inside its `useAnimatedReaction` worklet (see the
+ * worklet pitfall note above); this export exists for the JS thread and tests.
+ */
+export function resolveTopDayIndex(
+  sectionStartOffsets: number[],
+  listHeaderHeight: number,
+  chartBlockHeight: number,
+  scrollY: number,
+): number {
+  if (listHeaderHeight <= 0 || chartBlockHeight <= 0) {
+    return -1;
+  }
+  const probe = scrollY + chartBlockHeight - listHeaderHeight;
+  if (probe < 0) {
+    return -1;
+  }
+  let index = -1;
+  for (let i = 0; i < sectionStartOffsets.length; i++) {
+    if (sectionStartOffsets[i] <= probe) {
+      index = i;
+    } else {
+      break;
+    }
+  }
+  return index;
+}

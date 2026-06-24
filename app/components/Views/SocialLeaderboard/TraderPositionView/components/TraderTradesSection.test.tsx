@@ -1,11 +1,25 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
-import { StyleSheet, Text, type ViewToken } from 'react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
+import { StyleSheet, Text } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import type { Trade } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { formatTradeDayLabel } from '../../utils/formatters';
-import TraderTradesSection, { resolveTopDayLabel } from './TraderTradesSection';
+import TraderTradesSection from './TraderTradesSection';
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const fireLayout = (node: ReactTestInstance | null, height: number) => {
+  let target: ReactTestInstance | null = node;
+  while (target && !target.props?.onLayout) {
+    target = target.parent;
+  }
+  if (target) {
+    fireEvent(target, 'layout', {
+      nativeEvent: { layout: { x: 0, y: 0, width: 320, height } },
+    });
+  }
+};
 
 const makeTrade = (overrides: Partial<Trade> = {}): Trade => ({
   intent: 'enter',
@@ -149,19 +163,52 @@ describe('TraderTradesSection', () => {
 
     expect(foundHidden).toBe(false);
   });
-});
 
-describe('resolveTopDayLabel', () => {
-  it('returns the day label of the top-most visible section', () => {
-    const viewableItems = [
-      { section: { dayKey: '2026-01-01', dayLabel: 'Jan 1 2026', data: [] } },
-      { section: { dayKey: '2026-01-02', dayLabel: 'Jan 2 2026', data: [] } },
-    ] as unknown as ViewToken[];
+  it('reports section geometry from measured row and header heights', () => {
+    const dayOne = 1_700_000_000_000;
+    const trades = [
+      makeTrade({ transactionHash: '0x1', timestamp: dayOne }),
+      makeTrade({ transactionHash: '0x2', timestamp: dayOne + 60_000 }),
+      makeTrade({ transactionHash: '0x3', timestamp: dayOne + 2 * DAY_MS }),
+    ];
+    const onSectionGeometryChange = jest.fn();
 
-    expect(resolveTopDayLabel(viewableItems)).toBe('Jan 1 2026');
+    renderWithProvider(
+      <TraderTradesSection
+        trades={trades}
+        onSectionGeometryChange={onSectionGeometryChange}
+      />,
+    );
+
+    fireLayout(screen.getByTestId('trade-row-0x1'), 60);
+    fireLayout(screen.getByText(formatTradeDayLabel(dayOne)), 40);
+
+    const lastCall =
+      onSectionGeometryChange.mock.calls[
+        onSectionGeometryChange.mock.calls.length - 1
+      ]?.[0];
+    expect(lastCall).toEqual({
+      dayLabels: [
+        formatTradeDayLabel(dayOne),
+        formatTradeDayLabel(dayOne + 2 * DAY_MS),
+      ],
+      sectionOffsets: [0, 160],
+    });
   });
 
-  it('returns null when no section is visible', () => {
-    expect(resolveTopDayLabel([])).toBeNull();
+  it('does not report geometry until both row and header heights are measured', () => {
+    const trade = makeTrade();
+    const onSectionGeometryChange = jest.fn();
+
+    renderWithProvider(
+      <TraderTradesSection
+        trades={[trade]}
+        onSectionGeometryChange={onSectionGeometryChange}
+      />,
+    );
+
+    fireLayout(screen.getByTestId(`trade-row-${trade.transactionHash}`), 60);
+
+    expect(onSectionGeometryChange).not.toHaveBeenCalled();
   });
 });

@@ -10,20 +10,24 @@ import type { Trade } from '@metamask/social-controllers';
 import React, {
   forwardRef,
   useCallback,
+  useEffect,
   useImperativeHandle,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 import {
+  type LayoutChangeEvent,
   SectionList,
   type RefreshControlProps,
   type SectionListData,
   StyleSheet,
-  type ViewToken,
+  View,
 } from 'react-native';
 import Animated, { type ScrollHandlerProcessed } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { formatTradeDayLabel, getTradeDayKey } from '../../utils/formatters';
+import { computeSectionStartOffsets } from '../utils/traderPositionScrollLayout';
 import TradeRow from './TradeRow';
 
 interface TradeDaySection {
@@ -33,16 +37,14 @@ interface TradeDaySection {
 }
 
 /**
- * Day label of the top-most visible section, used to drive the custom sticky
- * day header below the pinned chart. `viewableItems[0]` (with a 0% visibility
- * threshold) is the section currently behind the top of the list — i.e. the one
- * hidden under the chart overlay — which is exactly the day to pin.
+ * Geometry the parent needs to drive the floating sticky day header from scroll
+ * offset (smoothly, on the UI thread) instead of the batched/laggy
+ * `onViewableItemsChanged`: the day label per section and each section's start
+ * offset relative to the first section (see {@link computeSectionStartOffsets}).
  */
-export function resolveTopDayLabel(
-  viewableItems: Pick<ViewToken, 'section'>[],
-): string | null {
-  const topSection = viewableItems[0]?.section as TradeDaySection | undefined;
-  return topSection?.dayLabel ?? null;
+export interface TraderTradesSectionGeometry {
+  dayLabels: string[];
+  sectionOffsets: number[];
 }
 
 const AnimatedSectionList = Animated.createAnimatedComponent(
@@ -85,12 +87,13 @@ export interface TraderTradesSectionProps {
     typeof SectionList
   >['ListHeaderComponent'];
   /**
-   * Reports the day label of the top-most visible section as the user scrolls, so
-   * the parent can render a custom sticky day header below the pinned chart
-   * (the native sticky header would be hidden behind the chart overlay). `null`
-   * when no section is visible (e.g. only the list header is on screen).
+   * Reports the measured section geometry (day labels + relative start offsets)
+   * whenever the sections or measured row / header heights change, so the parent
+   * can resolve the top-most day from scroll offset on the UI thread and render a
+   * custom sticky day header below the pinned chart (the native sticky header
+   * would be hidden behind the chart overlay).
    */
-  onTopDayLabelChange?: (dayLabel: string | null) => void;
+  onSectionGeometryChange?: (geometry: TraderTradesSectionGeometry) => void;
   /**
    * When the parent renders a custom sticky day header for this label, the
    * matching in-list section header is hidden to avoid duplicate day labels.
@@ -120,7 +123,7 @@ const TraderTradesSection = forwardRef<
       refreshControl,
       onScroll,
       listHeaderComponent,
-      onTopDayLabelChange,
+      onSectionGeometryChange,
       stickyDayLabel,
     },
     ref,
@@ -128,22 +131,35 @@ const TraderTradesSection = forwardRef<
     const tw = useTailwind();
     const listRef = useRef<SectionList<Trade, TradeDaySection>>(null);
 
-    // Stable ref so onViewableItemsChanged stays referentially constant
-    // (RN throws if it changes on the fly).
-    const onTopDayLabelChangeRef = useRef(onTopDayLabelChange);
-    onTopDayLabelChangeRef.current = onTopDayLabelChange;
+    // Stable ref so the geometry effect doesn't re-run when the parent passes a
+    // new callback identity.
+    const onSectionGeometryChangeRef = useRef(onSectionGeometryChange);
+    onSectionGeometryChangeRef.current = onSectionGeometryChange;
 
-    // Any pixel visible counts: viewableItems[0] is then the section currently
-    // behind the top of the list (hidden under the pinned chart overlay), which
-    // is exactly the day the custom sticky header should display.
-    const viewabilityConfig = useRef({
-      itemVisiblePercentThreshold: 0,
-    }).current;
-    const handleViewableItemsChanged = useRef(
-      ({ viewableItems }: { viewableItems: ViewToken[] }) => {
-        onTopDayLabelChangeRef.current?.(resolveTopDayLabel(viewableItems));
+    // Uniform row / section-header heights, measured once from the first laid-out
+    // instance of each. They feed the offset-based sticky day header so the label
+    // tracks scroll position smoothly instead of lagging behind viewability
+    // batches. Subsequent onLayout calls keep the first value (`prev` returned
+    // unchanged), so React bails out of the re-render — no per-row state churn.
+    const [rowHeight, setRowHeight] = useState(0);
+    const [sectionHeaderHeight, setSectionHeaderHeight] = useState(0);
+
+    const handleRowLayout = useCallback((event: LayoutChangeEvent) => {
+      const height = Math.ceil(event.nativeEvent.layout.height);
+      if (height > 0) {
+        setRowHeight((prev) => (prev === 0 ? height : prev));
+      }
+    }, []);
+
+    const handleSectionHeaderLayout = useCallback(
+      (event: LayoutChangeEvent) => {
+        const height = Math.ceil(event.nativeEvent.layout.height);
+        if (height > 0) {
+          setSectionHeaderHeight((prev) => (prev === 0 ? height : prev));
+        }
       },
-    ).current;
+      [],
+    );
     // Remembered target so onScrollToIndexFailed can retry once layout settles.
     const pendingScrollRef = useRef<{
       sectionIndex: number;
@@ -169,6 +185,23 @@ const TraderTradesSection = forwardRef<
       }
       return result;
     }, [trades]);
+
+    // Recompute the section geometry only when the sections or the measured
+    // constants change (never per scroll frame) and hand it to the parent, which
+    // turns it into the offset-driven sticky day label.
+    useEffect(() => {
+      if (rowHeight === 0 || sectionHeaderHeight === 0) {
+        return;
+      }
+      onSectionGeometryChangeRef.current?.({
+        dayLabels: sections.map((section) => section.dayLabel),
+        sectionOffsets: computeSectionStartOffsets(
+          sections.map((section) => section.data.length),
+          rowHeight,
+          sectionHeaderHeight,
+        ),
+      });
+    }, [sections, rowHeight, sectionHeaderHeight]);
 
     const scrollToLocation = useCallback(
       (location: { sectionIndex: number; itemIndex: number }) => {
@@ -229,39 +262,51 @@ const TraderTradesSection = forwardRef<
           stickyDayLabel != null && section.dayLabel === stickyDayLabel;
 
         return (
-          <Box
-            twClassName="bg-default px-4 pt-3"
-            style={
-              isHiddenBySticky ? sectionHeaderStyles.hiddenBySticky : undefined
-            }
-          >
-            <Box twClassName="self-start pb-2">
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Bold}
-                color={TextColor.TextDefault}
-              >
-                {section.dayLabel}
-              </Text>
+          <View onLayout={handleSectionHeaderLayout}>
+            <Box
+              twClassName="bg-default px-4 pt-3"
+              style={
+                isHiddenBySticky
+                  ? sectionHeaderStyles.hiddenBySticky
+                  : undefined
+              }
+            >
+              <Box twClassName="self-start pb-2">
+                <Text
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Bold}
+                  color={TextColor.TextDefault}
+                >
+                  {section.dayLabel}
+                </Text>
+              </Box>
+              <Box twClassName="h-px bg-muted" />
             </Box>
-            <Box twClassName="h-px bg-muted" />
-          </Box>
+          </View>
         );
       },
-      [stickyDayLabel],
+      [stickyDayLabel, handleSectionHeaderLayout],
     );
 
     const renderItem = useCallback(
       ({ item }: { item: Trade }) => (
-        <TradeRow
-          trade={item}
-          traderImageUrl={traderImageUrl}
-          traderAddress={traderAddress}
-          onPress={onTradePress}
-          isEmphasized={item.transactionHash === emphasizedTradeId}
-        />
+        <View onLayout={handleRowLayout}>
+          <TradeRow
+            trade={item}
+            traderImageUrl={traderImageUrl}
+            traderAddress={traderAddress}
+            onPress={onTradePress}
+            isEmphasized={item.transactionHash === emphasizedTradeId}
+          />
+        </View>
       ),
-      [traderImageUrl, traderAddress, onTradePress, emphasizedTradeId],
+      [
+        traderImageUrl,
+        traderAddress,
+        onTradePress,
+        emphasizedTradeId,
+        handleRowLayout,
+      ],
     );
 
     const keyExtractor = useCallback((item: Trade) => item.transactionHash, []);
@@ -277,15 +322,13 @@ const TraderTradesSection = forwardRef<
         ListHeaderComponent={listHeaderComponent}
         // Native sticky headers stick at the list's top edge, which is hidden
         // behind the pinned chart overlay. The parent renders a custom sticky
-        // day header below the chart instead (fed by onTopDayLabelChange).
+        // day header below the chart instead (fed by onSectionGeometryChange).
         stickySectionHeadersEnabled={false}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('pb-6')}
         refreshControl={refreshControl}
         onScroll={onScroll}
         scrollEventThrottle={onScroll ? 16 : undefined}
-        viewabilityConfig={viewabilityConfig}
-        onViewableItemsChanged={handleViewableItemsChanged}
         onScrollToIndexFailed={handleScrollToIndexFailed}
         ListEmptyComponent={
           <Box twClassName="px-4 py-6 items-center">

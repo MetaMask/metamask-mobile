@@ -54,6 +54,7 @@ import TraderPositionChartSection, {
 import TraderTimePeriodSelector from './components/TraderTimePeriodSelector';
 import TraderPositionPnLCard from './components/TraderPositionPnLCard';
 import TraderTradesSection, {
+  type TraderTradesSectionGeometry,
   type TraderTradesSectionHandle,
 } from './components/TraderTradesSection';
 import TraderPositionSkeleton from './components/TraderPositionSkeleton';
@@ -460,17 +461,39 @@ const TraderPositionView = () => {
     INITIAL_CHART_BLOCK_HEIGHT,
   );
   const [isPinnedChartElevated, setIsPinnedChartElevated] = useState(false);
-  // Separate from the chart pin: the floating sticky day header only appears
-  // once trades scroll behind the pinned chart's bottom edge (see the reaction
-  // below), not as soon as the token row scrolls off.
-  const [isStickyDayHeaderVisible, setIsStickyDayHeaderVisible] =
-    useState(false);
-  const [topDayLabel, setTopDayLabel] = useState<string | null>(null);
+  // Floating sticky day header, driven by scroll OFFSET (not viewability):
+  // `topDayIndex` is the index of the day section currently pinned behind the
+  // chart's bottom edge (-1 = hidden). It is resolved on the UI thread from the
+  // measured section geometry and only crosses back to JS when the index
+  // actually changes — so the label tracks the scroll smoothly and never
+  // burst-lags/snaps across day boundaries on fast scroll.
+  const [topDayIndex, setTopDayIndex] = useState(-1);
+  const [dayLabels, setDayLabels] = useState<string[]>([]);
 
-  // UI-thread mirrors of the measured heights so the sticky-visibility reaction
-  // can read them off the worklet (React state isn't readable from a worklet).
+  // UI-thread mirrors of the measured heights + section offsets so the sticky
+  // reaction can read them off the worklet (React state isn't readable from a
+  // worklet). `sectionOffsetsSv` holds each section's start offset relative to
+  // the first section (see computeSectionStartOffsets).
   const chartBlockHeightSv = useSharedValue(INITIAL_CHART_BLOCK_HEIGHT);
   const listHeaderHeightSv = useSharedValue(0);
+  const sectionOffsetsSv = useSharedValue<number[]>([]);
+
+  // Geometry arrives only when the sections / measured heights change (never per
+  // frame): mirror the offsets into the shared value for the worklet and keep
+  // the labels in JS to map the resolved index back to its day label.
+  const handleSectionGeometryChange = useCallback(
+    (geometry: TraderTradesSectionGeometry) => {
+      setDayLabels(geometry.dayLabels);
+      sectionOffsetsSv.value = geometry.sectionOffsets;
+    },
+    [sectionOffsetsSv],
+  );
+
+  // Label shown by the floating sticky (and hidden in-list to avoid a duplicate).
+  // Guarded with `?? null` so a stale index from a previous section set (e.g.
+  // mid pull-to-refresh) never indexes past the new labels.
+  const stickyTopDayLabel =
+    topDayIndex >= 0 ? (dayLabels[topDayIndex] ?? null) : null;
 
   const handleTitleSectionLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -528,24 +551,40 @@ const TraderPositionView = () => {
     },
   );
 
-  // The floating sticky shows only once the first in-list section header has
-  // passed behind the pinned chart's bottom edge — i.e. once the PnL card and
-  // that header are no longer visible below the chart. Math is inlined here (not
-  // imported) because Reanimated does not auto-bundle sibling worklet helpers
-  // called from inside another worklet.
+  // Resolve the floating sticky's day index from scroll offset on the UI thread.
+  // The probe is the chart's bottom edge in content space, relative to the first
+  // section (`scrollY + chartHeight - listHeaderHeight`): while negative the
+  // first in-list header is still visible below the chart (sticky hidden, index
+  // -1); otherwise the active section is the last one whose start offset is at or
+  // before the probe. Only crossing to JS on an index CHANGE keeps this off the
+  // per-frame React path (the screen previously regressed FPS from per-frame JS
+  // state). Math is inlined (not imported) because Reanimated does not
+  // auto-bundle sibling worklet helpers called from inside another worklet.
   useAnimatedReaction(
     () => {
       const headerHeight = listHeaderHeightSv.value;
       const chartHeight = chartBlockHeightSv.value;
-      return (
-        headerHeight > 0 &&
-        chartHeight > 0 &&
-        scrollYShared.value >= headerHeight - chartHeight
-      );
+      const offsets = sectionOffsetsSv.value;
+      if (headerHeight <= 0 || chartHeight <= 0) {
+        return -1;
+      }
+      const probe = scrollYShared.value + chartHeight - headerHeight;
+      if (probe < 0) {
+        return -1;
+      }
+      let index = -1;
+      for (let i = 0; i < offsets.length; i++) {
+        if (offsets[i] <= probe) {
+          index = i;
+        } else {
+          break;
+        }
+      }
+      return index;
     },
-    (visible, previous) => {
-      if (visible !== previous) {
-        runOnJS(setIsStickyDayHeaderVisible)(visible);
+    (index, previous) => {
+      if (index !== previous) {
+        runOnJS(setTopDayIndex)(index);
       }
     },
   );
@@ -612,8 +651,8 @@ const TraderPositionView = () => {
               }
               emphasizedTradeId={emphasizedTradeId}
               onScroll={onScroll}
-              onTopDayLabelChange={setTopDayLabel}
-              stickyDayLabel={isStickyDayHeaderVisible ? topDayLabel : null}
+              onSectionGeometryChange={handleSectionGeometryChange}
+              stickyDayLabel={stickyTopDayLabel}
               listHeaderComponent={
                 // Measured as a whole (token row + spacer + PnL card) to derive
                 // the sticky-header handoff threshold.
@@ -704,12 +743,12 @@ const TraderPositionView = () => {
               {/* Custom sticky day header: native sticky headers would be hidden
                   behind the pinned chart, so once trades scroll behind the
                   chart's bottom edge we render the top-most visible day below it.
-                  Driven by `isStickyDayHeaderVisible` (not `isPinnedChartElevated`)
-                  so it doesn't appear while the PnL card / first in-list header
-                  are still visible below the chart — which would duplicate the
-                  day label. `pointerEvents="none"` keeps the trades scrollable
-                  under the label. */}
-              {isStickyDayHeaderVisible && topDayLabel ? (
+                  Driven by the offset-resolved `topDayIndex` (not
+                  `isPinnedChartElevated`) so it doesn't appear while the PnL card
+                  / first in-list header are still visible below the chart — which
+                  would duplicate the day label. `pointerEvents="none"` keeps the
+                  trades scrollable under the label. */}
+              {stickyTopDayLabel ? (
                 <View pointerEvents="none">
                   <Box
                     twClassName="bg-default px-4 pt-3"
@@ -721,7 +760,7 @@ const TraderPositionView = () => {
                         fontWeight={FontWeight.Bold}
                         color={TextColor.TextDefault}
                       >
-                        {topDayLabel}
+                        {stickyTopDayLabel}
                       </Text>
                     </Box>
                     <Box twClassName="h-px bg-muted" />
