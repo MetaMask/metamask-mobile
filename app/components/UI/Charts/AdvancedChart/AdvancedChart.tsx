@@ -148,6 +148,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const initialLineColorRef = useRef(lineColorOverride);
     const initialSuccessColorRef = useRef(successColorOverride);
     const initialErrorColorRef = useRef(errorColorOverride);
+    const initialCurrentPriceColorRef = useRef(currentPriceLineColorOverride);
     const themeColorsSentRef = useRef(false);
 
     const htmlContent = useMemo(() => {
@@ -159,6 +160,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       initialLineColorRef.current = lineColorOverride;
       initialSuccessColorRef.current = successColorOverride;
       initialErrorColorRef.current = errorColorOverride;
+      initialCurrentPriceColorRef.current = currentPriceLineColorOverride;
       return createAdvancedChartTemplate(theme, {
         enableDrawingTools,
         disabledFeatures,
@@ -690,7 +692,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     // Gates on webViewLoaded (not chartReady) so messages sent during chart
     // init get queued in pendingMessages and drained inside onChartReady —
     // before the first overlay paint — eliminating stale-color flashes.
-    // Skips only the very first invocation (mount) when colors already match
+    // Skips only the very first invocation (mount) when all color overrides still match
     // the HTML template; all subsequent changes always send.
     useEffect(() => {
       if (!webViewLoaded) return;
@@ -699,7 +701,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         const colorsMatch =
           lineColorOverride === initialLineColorRef.current &&
           successColorOverride === initialSuccessColorRef.current &&
-          errorColorOverride === initialErrorColorRef.current;
+          errorColorOverride === initialErrorColorRef.current &&
+          currentPriceLineColorOverride === initialCurrentPriceColorRef.current;
         themeColorsSentRef.current = true;
         if (colorsMatch) return;
       }
