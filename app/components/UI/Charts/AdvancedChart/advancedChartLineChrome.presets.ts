@@ -4,6 +4,8 @@ interface AdvancedChartConsumerPreset {
   lineChrome: LineChromeOptions;
   /** Omit on AdvancedChart for TradingView default sub-pane sizing. */
   subPaneHeightRatio?: number;
+  /** TV built-in scale + last-value pill subscript notation (see `useSubscriptPriceFormat`). */
+  useSubscriptPriceFormat?: boolean;
 }
 
 /**
@@ -20,5 +22,6 @@ export const advancedChartLineChromePresets = {
     },
     // Other consumers can omit this prop for TradingView default sub-pane sizing.
     subPaneHeightRatio: 0.2,
+    useSubscriptPriceFormat: true,
   },
 } as const satisfies Record<string, AdvancedChartConsumerPreset>;

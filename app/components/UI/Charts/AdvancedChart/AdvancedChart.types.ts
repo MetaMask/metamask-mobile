@@ -514,6 +514,13 @@ export interface AdvancedChartProps {
    */
   subPaneHeightRatio?: number | null;
 
+  /**
+   * When true, TV built-in price scale + last-value pill use MetaMask subscript notation for tiny
+   * prices (`custom_formatters.priceFormatterFactory`). Default false (TV decimals). Does not
+   * affect custom DOM pills when `lineChrome.useCustomPriceLabels` is true.
+   */
+  useSubscriptPriceFormat?: boolean;
+
   /** Callback when chart is ready */
   onChartReady?: () => void;
   /**

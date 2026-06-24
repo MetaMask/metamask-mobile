@@ -11,6 +11,7 @@
  *   useCustomPriceLabels }
  *   Fully resolved on RN via `resolveLineChromeOptions` (inline CONFIG + `SET_LINE_CHROME`).
  *   WebView reads `CONFIG.lineChrome` only; omitted keys coerce to false (built-in-first).
+ * - useSubscriptPriceFormat: boolean — TV built-in scale/pill subscript notation (default false)
  * - indicatorColors: { MA, MACD, RSI, BOL } — sourced from indicatorColors.ts
  */
 
@@ -1284,8 +1285,8 @@ function formatSubscriptNotationCrosshair(abs) {
 }
 
 /**
- * Custom crosshair labels (DOM overlay in #chart_surface; built-in TV labels disabled).
- * Number only — no currency symbol.
+ * Shared price text for custom DOM pills and TV built-in scale labels (via
+ * `custom_formatters.priceFormatterFactory` on widget init). Number only — no currency symbol.
  */
 function formatCrosshairPrice(price) {
   if (price === undefined || price === null || isNaN(Number(price))) {
@@ -1305,6 +1306,24 @@ function formatCrosshairPrice(price) {
     minimumFractionDigits: 2,
     maximumFractionDigits: abs >= 1 ? 2 : 4,
   }).format(p);
+}
+
+/**
+ * Advanced Charts price scale + last-value pill formatting (Widget `custom_formatters`).
+ * Lightweight Charts uses `localization.priceFormatter`; that does not apply here.
+ */
+function advancedChartPriceFormatterFactory(symbolInfo, minTick) {
+  if (symbolInfo === null || symbolInfo.format === 'volume') {
+    return null;
+  }
+  if (!(window.CONFIG && window.CONFIG.useSubscriptPriceFormat)) {
+    return null;
+  }
+  return {
+    format: function (price, signPositive) {
+      return formatCrosshairPrice(price);
+    },
+  };
 }
 
 function formatCrosshairTime(timeSeconds) {
@@ -4672,6 +4691,9 @@ function initChart() {
       datafeed: customDatafeed,
       library_path: window.CONFIG.libraryUrl,
       locale: 'en',
+      custom_formatters: {
+        priceFormatterFactory: advancedChartPriceFormatterFactory,
+      },
       timezone: userTimezone,
       fullscreen: false,
       autosize: true,

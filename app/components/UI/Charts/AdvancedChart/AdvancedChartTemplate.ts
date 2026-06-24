@@ -56,6 +56,7 @@ interface ChartFeatures {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
   lineChrome?: LineChromeOptions;
+  useSubscriptPriceFormat?: boolean;
   lineColorOverride?: string;
   successColorOverride?: string;
   errorColorOverride?: string;
@@ -121,6 +122,7 @@ window.CONFIG = {
     useCustomPriceLabels: ${lc.useCustomPriceLabels ? 'true' : 'false'}
   },
   legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
+  useSubscriptPriceFormat: ${features.useSubscriptPriceFormat ? 'true' : 'false'},
   indicatorColors: ${JSON.stringify(getIndicatorColorsForWebview(theme.themeAppearance))}
 };
 `;

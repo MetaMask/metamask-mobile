@@ -100,6 +100,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       isLoading = false,
       lineChrome,
       subPaneHeightRatio,
+      useSubscriptPriceFormat,
       visibleFromMs,
       visibleToMs,
       lineColorOverride,
@@ -174,6 +175,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         enableDrawingTools,
         disabledFeatures,
         lineChrome,
+        useSubscriptPriceFormat,
         lineColorOverride,
         successColorOverride,
         errorColorOverride,
@@ -190,6 +192,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       enableDrawingTools,
       disabledFeatures,
       lineChrome,
+      useSubscriptPriceFormat,
       labelStyleOverrides,
       legendOverlay,
     ]);

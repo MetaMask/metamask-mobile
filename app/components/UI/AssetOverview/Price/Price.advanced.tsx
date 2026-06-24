@@ -1100,6 +1100,10 @@ const PriceAdvanced = ({
               subPaneHeightRatio={
                 advancedChartLineChromePresets.tokenOverview.subPaneHeightRatio
               }
+              useSubscriptPriceFormat={
+                advancedChartLineChromePresets.tokenOverview
+                  .useSubscriptPriceFormat
+              }
               isLoading={
                 isTechnicalIndicatorsEnabled
                   ? !hasChartBeenRevealed && chartLoading
