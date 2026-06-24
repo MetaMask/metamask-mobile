@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import Engine from '../../../../core/Engine';
+import { USE_TERMINAL_API } from '../constants/terminalApi';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import {
   type AccountState,
@@ -68,7 +69,10 @@ export function usePerpsTrading() {
   const getMarkets = useCallback(
     async (params?: GetMarketsParams): Promise<MarketInfo[]> => {
       const controller = Engine.context.PerpsController;
-      return controller.getMarkets(params);
+      return controller.getMarkets({
+        useTerminalApi: USE_TERMINAL_API,
+        ...params,
+      });
     },
     [],
   );
