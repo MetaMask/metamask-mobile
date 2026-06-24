@@ -5,7 +5,7 @@ import { v4 as uuidv4 } from 'uuid';
 import Engine from '../../../../core/Engine';
 import Routes from '../../../../constants/navigation/Routes';
 import type { PredictEntryPoint } from '../types/navigation';
-import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { PredictEventValues } from '../constants/eventNames';
 
 export interface UsePredictWorldCupFeedSessionOptions<T extends string> {
@@ -20,7 +20,7 @@ export interface UsePredictWorldCupFeedSessionOptions<T extends string> {
 export interface UsePredictWorldCupFeedSessionResult<T extends string> {
   activeTab: T;
   setActiveTab: (tab: T) => void;
-  tabsScrollViewRef: React.RefObject<ScrollView>;
+  tabsScrollViewRef: React.RefObject<ScrollView | null>;
   feedSessionId: string;
   feedSessionStartTime: number;
   /** Returns the current number of feed pages viewed (tab switches since mount). */
