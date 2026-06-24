@@ -156,19 +156,6 @@ describe('CreatePriceAlertView', () => {
     ).not.toBeDisabled();
   });
 
-  it('shows under development message when price change is selected', () => {
-    const { getByTestId, getByText } = renderWithToast();
-
-    fireEvent.press(getByTestId(CreatePriceAlertTestIds.PRICE_CHANGE_TAB));
-
-    expect(
-      getByTestId(CreatePriceAlertTestIds.UNDER_DEVELOPMENT),
-    ).toBeOnTheScreen();
-    expect(
-      getByText('This experience is currently under development'),
-    ).toBeOnTheScreen();
-  });
-
   it('updates the displayed price when a quick-percentage pill is pressed', () => {
     const { getByTestId, getByText } = renderWithToast();
 

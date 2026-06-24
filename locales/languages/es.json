@@ -102,9 +102,6 @@
       "message": "Agrega menos de {{amount}} o usa un token diferente.",
       "title": "Fondos insuficientes"
     },
-    "insufficient_pay_token_balance_fees_no_target": {
-      "message": "Agrega menos o usa un token diferente."
-    },
     "insufficient_pay_token_native": {
       "message": "No hay suficientes {{ticker}} para cubrir las tarifas. Usa un token en otra red o añade más {{ticker}} para continuar.",
       "title": "Fondos insuficientes"
