@@ -42,14 +42,13 @@ All manual staging tests should be run against a **non-production build** of the
 Before testing, confirm the following:
 
 - You are using a **non-production build** of the app (debug, QA, or RC build targeting staging)
-- The following **remote feature flags** are active on your build:
+- The following **remote feature flag** is active on your build:
 
-  | Flag                | Purpose                                        |
-  | ------------------- | ---------------------------------------------- |
-  | `rampsUnifiedBuyV2` | Enables the V2 provider/quote flow             |
-  | `depositConfig`     | Required for the Transak native (deposit) flow |
+  | Flag            | Purpose                                        |
+  | --------------- | ---------------------------------------------- |
+  | `depositConfig` | Required for the Transak native (deposit) flow |
 
-  If the Buy button is missing, these flags are likely inactive on your build. Check with the team or enable them via a local override.
+  If the Buy button is missing, this flag is likely inactive on your build. Check with the team or enable it via a local override.
 
 - Your device's **region is supported**. The staging environment is confirmed to work for:
   - United States (California)
@@ -229,7 +228,7 @@ Regardless of provider, verify:
 ## Troubleshooting
 
 **Buy button is not visible**
-Confirm the `rampsUnifiedBuyV2` feature flag is active on your build. The Buy entry point is always rendered, but V2 enables the V2 provider/quote flow.
+Confirm the `depositConfig` feature flag is active on your build when testing the Transak native deposit flow.
 
 **No providers or quotes returned**
 Your detected region may not be supported. Verify your device's region is set to a supported country (US, France, Spain, or Saint Lucia) and relaunch the app.

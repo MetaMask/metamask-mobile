@@ -86,8 +86,14 @@ export function PayWithModal() {
     isPredictContext ? resetSelectedPaymentToken : undefined,
   );
 
+  const isMoneyWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
   const { renderNoFeeTag } = usePayWithNoFeeToken();
-  const tagRenderers = useMemo(() => [renderNoFeeTag], [renderNoFeeTag]);
+  const tagRenderers = useMemo(
+    () => (isWithdraw && !isMoneyWithdraw ? undefined : [renderNoFeeTag]),
+    [isWithdraw, isMoneyWithdraw, renderNoFeeTag],
+  );
 
   const close = useCallback((onClosed?: () => void) => {
     // Called after the bottom sheet's closing animation completes.

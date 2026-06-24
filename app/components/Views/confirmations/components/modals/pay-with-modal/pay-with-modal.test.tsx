@@ -441,7 +441,7 @@ describe('PayWithModal', () => {
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
 
-    it('delegates no-fee tagging to renderNoFeeTag for withdrawal tokens (hook decides visibility)', async () => {
+    it('does not render no-fee tags for withdrawal transactions', async () => {
       const withdrawToken = {
         accountType: EthAccountType.Eoa,
         address: '0xWithdrawToken',
@@ -460,9 +460,39 @@ describe('PayWithModal', () => {
       const { findByText } = render();
 
       expect(await findByText('Withdraw Token')).toBeOnTheScreen();
-      // The modal always wires renderNoFeeTag; usePayWithNoFeeToken returns null
-      // for withdrawals so no pill renders. Here the hook is mocked, so we only
-      // assert the renderer is invoked per token row.
+      expect(mockRenderNoFeeTag).not.toHaveBeenCalled();
+    });
+
+    it('renders no-fee tags for Money Account withdrawals', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_1_MOCK,
+        networkClientId: '',
+        status: TransactionStatus.unapproved,
+        time: 0,
+        txParams: { from: EMPTY_ADDRESS },
+        type: TransactionType.moneyAccountWithdraw,
+        nestedTransactions: [{ type: TransactionType.moneyAccountWithdraw }],
+      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+      const withdrawToken = {
+        accountType: EthAccountType.Eoa,
+        address: '0xWithdrawToken',
+        balance: '1',
+        balanceInSelectedCurrency: '$1.00',
+        chainId: CHAIN_ID_1_MOCK,
+        decimals: 6,
+        name: 'Withdraw Token',
+        standard: TokenStandard.ERC20,
+        symbol: 'WITHDRAW',
+      } as AssetType;
+      useWithdrawTokenFilterMock.mockReturnValue(
+        jest.fn(() => [withdrawToken]),
+      );
+
+      const { findByText } = render();
+
+      expect(await findByText('Withdraw Token')).toBeOnTheScreen();
       expect(mockRenderNoFeeTag).toHaveBeenCalled();
     });
 
