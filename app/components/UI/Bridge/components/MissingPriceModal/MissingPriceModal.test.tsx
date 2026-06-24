@@ -110,9 +110,7 @@ describe('MissingPriceModal', () => {
     mockUseBridgeQuoteData.mockReturnValue({
       activeQuote: mockQuoteWithMetadata,
     } as ReturnType<typeof useBridgeQuoteData>);
-    mockUseBridgeConfirm.mockReturnValue({
-      handleConfirm: mockConfirmBridge,
-    });
+    mockUseBridgeConfirm.mockReturnValue(mockConfirmBridge);
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectSourceToken) {
         return mockSourceToken;

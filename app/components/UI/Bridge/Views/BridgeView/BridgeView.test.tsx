@@ -287,17 +287,14 @@ jest.mock('../../../../../util/address', () => ({
   isHardwareAccount: jest.fn(),
 }));
 
-jest.mock(
-  '../../Views/HardwareWalletsSwaps/hooks/useHwConnectionMonitoring',
-  () => ({
-    useHwConnectionMonitoring: jest.fn(() => ({
-      isDisconnectedRef: { current: false },
-      resetHandledError: jest.fn(),
-    })),
-  }),
-);
+jest.mock('../../../HardwareWallet/Swaps/useHwConnectionMonitoring', () => ({
+  useHwConnectionMonitoring: jest.fn(() => ({
+    isDisconnectedRef: { current: false },
+    resetHandledError: jest.fn(),
+  })),
+}));
 
-jest.mock('../../Views/HardwareWalletsSwaps/hooks/useHwQrState', () => ({
+jest.mock('../../../HardwareWallet/Swaps/hooks/useHwQrState', () => ({
   useHwQrState: jest.fn(() => ({
     isReadingQrSignature: false,
     setIsReadingQrSignature: jest.fn(),

@@ -101,7 +101,7 @@ export const SwapsConfirmButton = ({
     insufficientNativeReserveError,
   );
 
-  const { handleConfirm } = useBridgeConfirm({
+  const handleConfirm = useBridgeConfirm({
     activeQuote,
     location,
     transactionActiveAbTests,

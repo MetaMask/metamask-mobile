@@ -25,7 +25,6 @@ interface MockedMethods {
   play?: jest.Mock;
   pause?: jest.Mock;
   stop?: jest.Mock;
-  onError?: (error: { message: string; type: string }) => void;
 }
 
 type MockRiveProps = ViewProps & {

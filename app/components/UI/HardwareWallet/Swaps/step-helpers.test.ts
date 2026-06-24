@@ -87,6 +87,63 @@ describe('step-helpers', () => {
         }),
       ).toBe('Send  ');
     });
+
+    describe('FeeTransfer step kind (send-only)', () => {
+      it.each([
+        {
+          statusName: 'Waiting',
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+          opts: { amount: '5', tokenSymbol: 'USDC' },
+        },
+        {
+          statusName: 'Signing',
+          status: HardwareWalletsSwapsStepStatus.Signing,
+          opts: { tokenSymbol: 'USDC' },
+        },
+        {
+          statusName: 'Rejected',
+          status: HardwareWalletsSwapsStepStatus.Rejected,
+          opts: { tokenSymbol: 'USDC' },
+        },
+      ])(
+        'returns paying-network-fee title for $statusName fee transfer step',
+        ({ status, opts }) => {
+          expect(
+            getStepTitle(
+              {
+                kind: HardwareWalletsSwapsStepKind.FeeTransfer,
+                status,
+              },
+              opts,
+            ),
+          ).toBe('Paying network fee with USDC');
+        },
+      );
+
+      it('returns network-fee-paid title for signed fee transfer step', () => {
+        expect(
+          getStepTitle(
+            {
+              kind: HardwareWalletsSwapsStepKind.FeeTransfer,
+              status: HardwareWalletsSwapsStepStatus.Signed,
+            },
+            { tokenSymbol: 'USDC' },
+          ),
+        ).toBe('Network fee paid with USDC');
+      });
+
+      it('ignores amount in the fee transfer title (symbol-only)', () => {
+        expect(
+          getStepTitle(
+            {
+              kind: HardwareWalletsSwapsStepKind.FeeTransfer,
+              status: HardwareWalletsSwapsStepStatus.Waiting,
+            },
+            { amount: '999', tokenSymbol: 'DAI' },
+          ),
+        ).toBe('Paying network fee with DAI');
+      });
+    });
   });
 
   describe('getStepDescription', () => {
@@ -104,9 +161,9 @@ describe('step-helpers', () => {
         getStepDescription({
           kind: HardwareWalletsSwapsStepKind.Approval,
           status: HardwareWalletsSwapsStepStatus.Waiting,
-          address: '0xABC',
+          address: '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
         }),
-      ).toBe('Spender 0xABC');
+      ).toBe('Spender 0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc');
     });
 
     it('returns undefined for approval without address', () => {
@@ -123,9 +180,9 @@ describe('step-helpers', () => {
         getStepDescription({
           kind: HardwareWalletsSwapsStepKind.Transaction,
           status: HardwareWalletsSwapsStepStatus.Waiting,
-          address: '0xDEF',
+          address: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
         }),
-      ).toBe('Recipient 0xDEF');
+      ).toBe('Recipient 0x70997970C51812dc3A010C7d01b50e0d17dc79C8');
     });
 
     it('returns undefined for transaction without address', () => {
@@ -135,6 +192,37 @@ describe('step-helpers', () => {
           status: HardwareWalletsSwapsStepStatus.Waiting,
         }),
       ).toBeUndefined();
+    });
+
+    describe('FeeTransfer step kind (send-only)', () => {
+      it.each([
+        {
+          name: 'with an address',
+          step: {
+            kind: HardwareWalletsSwapsStepKind.FeeTransfer,
+            status: HardwareWalletsSwapsStepStatus.Waiting,
+            address: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+          },
+        },
+        {
+          name: 'without an address',
+          step: {
+            kind: HardwareWalletsSwapsStepKind.FeeTransfer,
+            status: HardwareWalletsSwapsStepStatus.Waiting,
+          },
+        },
+      ])('returns undefined for fee transfer $name', ({ step }) => {
+        expect(getStepDescription(step)).toBeUndefined();
+      });
+
+      it('returns rejected for rejected fee transfer step', () => {
+        expect(
+          getStepDescription({
+            kind: HardwareWalletsSwapsStepKind.FeeTransfer,
+            status: HardwareWalletsSwapsStepStatus.Rejected,
+          }),
+        ).toBe('Rejected');
+      });
     });
   });
 

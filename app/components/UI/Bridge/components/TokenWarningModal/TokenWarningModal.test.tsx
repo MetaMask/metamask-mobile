@@ -140,9 +140,7 @@ describe('TokenWarningModal', () => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue(defaultWarningParams);
     mockUseLatestBalance.mockReturnValue(undefined);
-    mockUseBridgeConfirm.mockReturnValue({
-      handleConfirm: mockConfirmBridge,
-    });
+    mockUseBridgeConfirm.mockReturnValue(mockConfirmBridge);
     mockUseBridgeQuoteData.mockReturnValue({
       activeQuote: mockActiveQuote,
     } as ReturnType<typeof useBridgeQuoteData>);

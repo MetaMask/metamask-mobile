@@ -144,5 +144,5 @@ export const useBridgeConfirm = ({
     }
   };
 
-  return { handleConfirm };
+  return handleConfirm;
 };

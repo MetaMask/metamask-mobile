@@ -36,7 +36,7 @@ export const PriceImpactModal = () => {
   const { formattedQuoteData, activeQuote } = useBridgeQuoteData({
     latestSourceAtomicBalance: tokenBalance?.atomicBalance,
   });
-  const { handleConfirm: confirmBridge } = useBridgeConfirm({
+  const confirmBridge = useBridgeConfirm({
     activeQuote,
     location,
   });

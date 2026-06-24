@@ -81,14 +81,14 @@ function dedupeTransactions(transactions: LocalTransaction[]) {
     // Retries reuse the same nonce. If no live attempt exists at this nonce,
     // dedupe terminal-failed txs by id so multiple failed attempts remain
     // visible side-by-side as failure history.
-    const dedupeKey =
-      isBridgeTransaction && hash
-        ? `${dedupeKeyPrefix}-bridge-${hash.toLowerCase()}`
-        : isTerminalFailed
-          ? `${dedupeKeyPrefix}-${id}`
-          : hasNonce
-            ? `${dedupeKeyPrefix}-${nonce}`
-            : `${dedupeKeyPrefix}-${id}`;
+    let dedupeKey: string;
+    if (isBridgeTransaction && hash) {
+      dedupeKey = `${dedupeKeyPrefix}-bridge-${hash.toLowerCase()}`;
+    } else if (hasNonce && !isTerminalFailed) {
+      dedupeKey = `${dedupeKeyPrefix}-${nonce}`;
+    } else {
+      dedupeKey = `${dedupeKeyPrefix}-${id}`;
+    }
 
     if (seenTransactions.has(dedupeKey)) {
       return false;

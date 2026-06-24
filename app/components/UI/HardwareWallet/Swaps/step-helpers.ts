@@ -43,6 +43,20 @@ export function getStepTitle(
     });
   }
 
+  if (step.kind === HardwareWalletsSwapsStepKind.FeeTransfer) {
+    if (step.status === HardwareWalletsSwapsStepStatus.Signed) {
+      return strings(
+        'bridge.hardware_wallet_progress.network_fee_paid_with_symbol',
+        { amount, symbol },
+      );
+    }
+    // Waiting / Signing / Rejected all use the "paying" form.
+    return strings(
+      'bridge.hardware_wallet_progress.paying_network_fee_with_symbol',
+      { amount, symbol },
+    );
+  }
+
   if (step.status === HardwareWalletsSwapsStepStatus.Signed) {
     return strings('bridge.hardware_wallet_progress.sent_token', {
       amount,
@@ -84,6 +98,12 @@ export function getStepDescription(step: HardwareWalletsSwapsStep) {
         address: step.address,
       });
     }
+    return undefined;
+  }
+
+  // Send-only FeeTransfer step: no description. The gas token's symbol is
+  // already in the title; the gas-token address is intentionally not shown.
+  if (step.kind === HardwareWalletsSwapsStepKind.FeeTransfer) {
     return undefined;
   }
 
