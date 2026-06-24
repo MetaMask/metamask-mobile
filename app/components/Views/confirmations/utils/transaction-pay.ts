@@ -4,16 +4,17 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
+import {
+  PaymentOverride,
+  TransactionFiatPayment,
+  TransactionPayRequiredToken,
+  TransactionPaymentToken,
+} from '@metamask/transaction-pay-controller';
 import { PREDICT_MINIMUM_DEPOSIT } from '../constants/predict';
 import { hasTransactionType } from './transaction';
 import { Hex } from '@metamask/utils';
 import { PERPS_MINIMUM_DEPOSIT } from '../constants/perps';
 import { AssetType, TokenStandard } from '../types/token';
-import {
-  TransactionFiatPayment,
-  TransactionPayRequiredToken,
-  TransactionPaymentToken,
-} from '@metamask/transaction-pay-controller';
 import { BigNumber } from 'bignumber.js';
 import { isTestNet } from '../../../../util/networks';
 import {
@@ -22,6 +23,7 @@ import {
 } from '../../../../selectors/featureFlagController/confirmations';
 import { strings } from '../../../../../locales/i18n';
 import Logger from '../../../../util/Logger';
+import Engine from '../../../../core/Engine';
 import { updateAtomicBatchData } from '../../../../util/transaction-controller';
 import { MUSD_TOKEN_ADDRESS } from '../../../UI/Earn/constants/musd';
 
@@ -306,4 +308,33 @@ export function resolvePreferredPayToken({
   }
 
   return undefined;
+}
+
+/**
+ * Sets the money account payment override on a transaction and clears any
+ * previously selected fiat payment method. For deposit flows the money
+ * account address is stored as the refund destination.
+ */
+export function applyMoneyAccountOverride(
+  transactionId: string,
+  moneyAccountAddress: string | undefined,
+  isWithdraw: boolean,
+): void {
+  Engine.context.TransactionPayController.setTransactionConfig(
+    transactionId,
+    (config) => {
+      (config as Record<string, unknown>).paymentOverride =
+        PaymentOverride.MoneyAccount;
+      if (moneyAccountAddress && !isWithdraw) {
+        config.refundTo = moneyAccountAddress as Hex;
+      }
+    },
+  );
+
+  Engine.context.TransactionPayController.updateFiatPayment({
+    transactionId,
+    callback: (fp) => {
+      fp.selectedPaymentMethodId = undefined;
+    },
+  });
 }

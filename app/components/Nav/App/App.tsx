@@ -132,6 +132,7 @@ import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import EligibilityFailedModal from '../../UI/Ramp/components/EligibilityFailedModal';
 import RampUnsupportedModal from '../../UI/Ramp/components/RampUnsupportedModal';
+import RampsServiceDisruptionModal from '../../UI/Ramp/components/RampsServiceDisruptionModal';
 import RampsBootstrap from '../../UI/Ramp/RampsBootstrap';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
@@ -174,11 +175,25 @@ const accountSelectorTransitionOptions: NativeStackNavigationOptions = {
   animation: 'slide_from_right',
 };
 
+const tradeWalletActionsRootModalOptions: NativeStackNavigationOptions = {
+  presentation: 'containedTransparentModal',
+  animation: 'none',
+  contentStyle: { backgroundColor: importedColors.transparent },
+  gestureEnabled: false,
+};
+
 const isAccountSelectorRootModalRoute = (params: object | undefined) =>
   Boolean(
     params &&
       'screen' in params &&
       params.screen === Routes.SHEET.ACCOUNT_SELECTOR,
+  );
+
+const isTradeWalletActionsRootModalRoute = (params: object | undefined) =>
+  Boolean(
+    params &&
+      'screen' in params &&
+      params.screen === Routes.MODAL.TRADE_WALLET_ACTIONS,
   );
 
 // Type helper for screen components that use v5 pattern of requiring route props
@@ -500,6 +515,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.SHEET.UNSUPPORTED_REGION_MODAL}
       component={RampUnsupportedModal}
+    />
+    <NativeStack.Screen
+      name={Routes.SHEET.RAMPS_SERVICE_DISRUPTION_MODAL}
+      component={RampsServiceDisruptionModal}
     />
     <NativeStack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
@@ -1044,11 +1063,19 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.MODAL.ROOT_MODAL_FLOW}
         component={RootModalFlow as ScreenComponent}
-        options={({ route }) =>
-          isAccountSelectorRootModalRoute(route.params)
-            ? accountSelectorTransitionOptions
-            : {}
-        }
+        options={({ route }) => {
+          if (isAccountSelectorRootModalRoute(route.params)) {
+            return accountSelectorTransitionOptions;
+          }
+          if (isTradeWalletActionsRootModalRoute(route.params)) {
+            return tradeWalletActionsRootModalOptions;
+          }
+          return {
+            presentation: 'transparentModal',
+            animation: 'none',
+            contentStyle: { backgroundColor: importedColors.transparent },
+          };
+        }}
       />
       <NativeStack.Screen
         name={Routes.IMPORT_PRIVATE_KEY_VIEW}

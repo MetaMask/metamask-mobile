@@ -8,15 +8,8 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
-import { addCurrencySymbol } from '../../../../util/number';
-import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
-import {
-  Box,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
+import { TokenPriceTitleHub } from './TokenPriceTitleHub';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 
@@ -24,7 +17,6 @@ import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConf
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
-import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import ChartNavigationButton from '../ChartNavigationButton';
 import { useSelector } from 'react-redux';
 import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
@@ -145,85 +137,16 @@ const PriceLegacy = ({
 
   return (
     <>
-      <View style={styles.wrapper}>
-        {!isNaN(price) && (
-          <Text
-            testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
-            variant={TextVariant.DisplayLg}
-          >
-            {isLoading ? (
-              <View style={styles.loadingPrice}>
-                <SkeletonPlaceholder
-                  backgroundColor={theme.colors.background.section}
-                  highlightColor={theme.colors.background.subsection}
-                >
-                  <SkeletonPlaceholder.Item
-                    width={100}
-                    height={40}
-                    borderRadius={6}
-                  />
-                </SkeletonPlaceholder>
-              </View>
-            ) : (
-              formatPriceWithSubscriptNotation(price, currentCurrency)
-            )}
-          </Text>
-        )}
-        <Text allowFontScaling={false}>
-          {isLoading ? (
-            <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
-              <SkeletonPlaceholder
-                backgroundColor={theme.colors.background.section}
-                highlightColor={theme.colors.background.subsection}
-              >
-                <SkeletonPlaceholder.Item
-                  width={150}
-                  height={24}
-                  borderRadius={6}
-                />
-              </SkeletonPlaceholder>
-            </View>
-          ) : (
-            <Text
-              testID={TokenOverviewSelectorsIDs.TODAYS_CHANGE}
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={
-                displayDiff > 0
-                  ? TextColor.SuccessDefault
-                  : displayDiff < 0
-                    ? TextColor.ErrorDefault
-                    : TextColor.TextAlternative
-              }
-              style={getPriceDiffStyle()}
-              allowFontScaling={false}
-            >
-              {diffSign}
-              {displayDiff !== 0
-                ? formatPriceWithSubscriptNotation(
-                    Math.abs(displayDiff),
-                    currentCurrency,
-                  )
-                : addCurrencySymbol(0, currentCurrency, true)}{' '}
-              {'('}
-              {displayDiff > 0 ? '+' : ''}
-              {displayDiff === 0 || comparePrice === 0
-                ? '0'
-                : ((displayDiff / comparePrice) * 100).toFixed(2)}
-              %){' '}
-              <Text
-                testID="price-label"
-                color={TextColor.TextAlternative}
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                allowFontScaling={false}
-              >
-                {date}
-              </Text>
-            </Text>
-          )}
-        </Text>
-      </View>
+      <TokenPriceTitleHub
+        price={price}
+        displayDiff={displayDiff}
+        comparePrice={comparePrice}
+        periodLabel={date}
+        currentCurrency={currentCurrency}
+        isLoading={isLoading}
+        ambientColor={ambientColor}
+        getPriceDiffStyle={getPriceDiffStyle}
+      />
       {/* Skeleton bar when feature flag ON and loading */}
       {isTechnicalIndicatorsEnabled && isLoading && (
         <View style={styles.intervalBarContainer}>

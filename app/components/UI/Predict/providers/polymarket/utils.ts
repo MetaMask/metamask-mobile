@@ -30,7 +30,6 @@ import {
 } from '../../utils/gameParser';
 import {
   getNegRiskMoneylineTeamLogo,
-  hasNegRiskMoneylineGroupItem,
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
   resolveNegRiskMoneylineShortTitles,
@@ -758,6 +757,22 @@ const sortOutcomeTokens = (
   return outcomeTokens;
 };
 
+const getNegRiskYesTokenTitle = (
+  market: PolymarketApiMarket,
+): string | undefined => {
+  if (
+    !market.negRisk ||
+    !isMoneylineLikeMarket(market) ||
+    !market.groupItemTitle
+  ) {
+    return undefined;
+  }
+
+  return market.groupItemTitle.toLowerCase().startsWith('draw')
+    ? 'Draw'
+    : market.groupItemTitle;
+};
+
 const parsePolymarketMarketOutcomes = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
@@ -772,7 +787,8 @@ const parsePolymarketMarketOutcomes = (
     ? JSON.parse(market.outcomePrices)
     : [];
 
-  const isNegRiskMoneyline = hasNegRiskMoneylineGroupItem(market);
+  const negRiskYesTitle = getNegRiskYesTokenTitle(market);
+  const isNegRiskMoneyline = negRiskYesTitle !== undefined;
   const negRiskShort = game
     ? resolveNegRiskMoneylineShortTitles(market, game)
     : {};
@@ -783,6 +799,10 @@ const parsePolymarketMarketOutcomes = (
       const isNo = outcomes[index] === 'No';
 
       let shortTitle: string | undefined = shortTitles[index];
+      let title = outcomes[index];
+      if (isNegRiskMoneyline && isYes && negRiskYesTitle) {
+        title = negRiskYesTitle;
+      }
       if (isNegRiskMoneyline && isYes && negRiskShort.yesShort) {
         shortTitle = negRiskShort.yesShort;
       } else if (isNegRiskMoneyline && isNo && negRiskShort.noShort) {
@@ -791,7 +811,7 @@ const parsePolymarketMarketOutcomes = (
 
       return {
         id: tokenId,
-        title: outcomes[index],
+        title,
         ...(shortTitle && { shortTitle }),
         price: parseFloat(outcomePrices[index]),
       };

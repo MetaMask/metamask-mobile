@@ -123,6 +123,7 @@ export function useMoneyAccountDeposit() {
           batchId,
           disableHook: true,
           disableSequential: true,
+          disableUpgrade: true,
           from: primaryMoneyAccount.address as Hex,
           isGasFeeSponsored,
           isInternal: true,
@@ -205,6 +206,7 @@ export function useMoneyAccountWithdrawal() {
       await addTransactionBatch({
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
         from: primaryMoneyAccount.address as Hex,
         isGasFeeSponsored,
         isInternal: true,
