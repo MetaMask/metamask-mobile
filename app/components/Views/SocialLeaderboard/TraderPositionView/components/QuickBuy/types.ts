@@ -1,7 +1,7 @@
 import type { Position } from '@metamask/social-controllers';
 import type { CaipChainId } from '@metamask/utils';
 import type { ReactNode } from 'react';
-import type { QuickBuySheetSource } from '../../../analytics';
+import type { QuickBuySheetSource } from './analytics';
 import { chainNameToId } from '../../../utils/chainMapping';
 
 /** Host-agnostic trade target — maps from social `Position` via adapter. */
@@ -39,6 +39,7 @@ export interface QuickBuyAnalyticsContext {
   traderAddress?: string;
   marketCap?: number;
   source?: QuickBuySheetSource;
+  traderTradeType?: 'buy' | 'sell';
 }
 
 export interface QuickBuySheetProps {

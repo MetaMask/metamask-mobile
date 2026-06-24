@@ -136,6 +136,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_authentication.password_label': 'Password',
       'card.card_authentication.login_button': 'Log in',
       'card.card_authentication.signup_button': "I don't have an account",
+      'card.card_authentication.forgot_password_button': 'Forgot password?',
       'card.card_authentication.errors.invalid_credentials':
         'Invalid login details',
       'card.card_authentication.errors.network_error':
@@ -1003,6 +1004,45 @@ describe('CardAuthentication Component', () => {
       render();
 
       expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Forgot Password', () => {
+    it('renders the forgot password link on the login step', () => {
+      render();
+
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the forgot password link on the OTP step', () => {
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('navigates to the forgot password modal when pressed', () => {
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.FORGOT_PASSWORD,
+        params: { location: 'international' },
+      });
     });
   });
 });

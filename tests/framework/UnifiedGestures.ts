@@ -4,10 +4,11 @@ import {
   GestureStrategy,
   UnifiedGestureOptions,
   TapAtIndexElement,
-  ScrollViewMatcher,
+  type ScrollContainer,
   DetoxGestureStrategy,
   AppiumGestureStrategy,
 } from './GestureStrategy.ts';
+import Matchers from './Matchers.ts';
 import { resolve, isSelector, type Selector } from './Selector.ts';
 
 /**
@@ -46,6 +47,27 @@ export default class UnifiedGestures {
   /** Reset the cached strategy (useful in tests) */
   static resetStrategy(): void {
     this._strategy = null;
+  }
+
+  /**
+   * Resolve scroll container for scrollToElement.
+   * - `string` testID → Detox matcher via Matchers.getIdentifier; passed through on Appium.
+   * - `EncapsulatedElementType` → passed through for Appium scrollableElement resolution.
+   * - `ScrollViewMatcher` → Detox-only matcher promise.
+   */
+  private static resolveScrollContainer(
+    scrollView?: ScrollContainer,
+  ): ScrollContainer | undefined {
+    if (scrollView === undefined) {
+      return undefined;
+    }
+    if (typeof scrollView === 'string') {
+      if (FrameworkDetector.isAppium()) {
+        return scrollView;
+      }
+      return Matchers.getIdentifier(scrollView);
+    }
+    return scrollView;
   }
 
   // ── Gesture Methods ─────────────────────────────────────────
@@ -105,12 +127,12 @@ export default class UnifiedGestures {
 
   static async scrollToElement(
     target: EncapsulatedElementType | Selector,
-    scrollView: ScrollViewMatcher,
+    scrollView?: ScrollContainer,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     await this.strategy.scrollToElement(
       isSelector(target) ? resolve(target) : target,
-      scrollView,
+      this.resolveScrollContainer(scrollView),
       opts,
     );
   }

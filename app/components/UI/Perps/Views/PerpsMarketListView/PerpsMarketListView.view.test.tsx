@@ -20,6 +20,7 @@ const cryptoMarket: PerpsMarketData = {
   change24h: '$0',
   change24hPercent: '0%',
   volume: '$1M',
+  openInterest: '$500K',
 };
 
 /** Commodity market (HIP-3): counted in marketCounts.commodities so "Commodities" badge appears */
@@ -31,6 +32,7 @@ const commodityMarket: PerpsMarketData = {
   change24h: '$0',
   change24hPercent: '0%',
   volume: '$500K',
+  openInterest: '$250K',
   marketType: 'commodity',
   isHip3: true,
 };
@@ -94,16 +96,14 @@ describe('PerpsMarketListView', () => {
       });
     });
 
-    it('shows empty favorites state when view starts in watchlist-only mode with no favorites', async () => {
+    it('shows empty watchlist state when view starts in watchlist-only mode with no favorites', async () => {
       renderPerpsMarketListView({
         initialParams: { showWatchlistOnly: true },
+        streamOverrides: { marketData: marketDataWithCategories },
       });
 
       expect(
-        await screen.findByText(strings('perps.no_favorites_found')),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByText(strings('perps.no_favorites_description')),
+        await screen.findByText(strings('perps.watchlist.empty_subtitle')),
       ).toBeOnTheScreen();
     });
   });

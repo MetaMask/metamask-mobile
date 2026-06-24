@@ -4,11 +4,22 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { selectIsCardAuthenticated } from '../../../../selectors/cardController';
 import { cardQueries } from '../queries';
 import Engine from '../../../../core/Engine';
+import { cardNetworkInfos } from '../constants';
+import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
+import type { CardNetwork } from '../types';
 
 type MonitoringStatus = 'idle' | 'monitoring' | 'success' | 'failed';
 
 const TX_POLLING_INTERVAL_MS = 5000;
 const TX_POLLING_TIMEOUT_MS = 3 * 60 * 1000;
+const LINEA_CHAIN_ID = '0xe708';
+
+const resolvePollingChainId = (network?: string): string => {
+  const info = network ? cardNetworkInfos[network as CardNetwork] : undefined;
+  return info?.caipChainId
+    ? safeFormatChainIdToHex(info.caipChainId)
+    : LINEA_CHAIN_ID;
+};
 
 const useCashbackWallet = () => {
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
@@ -51,7 +62,7 @@ const useCashbackWallet = () => {
   }, [queryClient]);
 
   const startTxPolling = useCallback(
-    (hash: string) => {
+    (hash: string, chainId: string) => {
       if (pollingIntervalRef.current) {
         return;
       }
@@ -77,7 +88,9 @@ const useCashbackWallet = () => {
         try {
           const { NetworkController } = Engine.context;
           const provider = NetworkController.getNetworkClientById(
-            NetworkController.findNetworkClientIdByChainId('0xe708'),
+            NetworkController.findNetworkClientIdByChainId(
+              chainId as `0x${string}`,
+            ),
           )?.provider;
           if (provider) {
             const receipt = await provider.request({
@@ -116,7 +129,10 @@ const useCashbackWallet = () => {
     mutationFn: async (amount: string) =>
       Engine.context.CardController.withdrawCashback({ amount }),
     onSuccess: (data) => {
-      startTxPolling(data.txHash);
+      startTxPolling(
+        data.txHash,
+        resolvePollingChainId(estimationQuery.data?.network),
+      );
     },
   });
 

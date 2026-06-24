@@ -11,9 +11,10 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { withImplicitWait } from '../../framework/PlaywrightUtilities';
 
 class ExperienceEnhancerBottomSheet {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       ExperienceEnhancerBottomSheetSelectorsIDs.BOTTOM_SHEET,
     );
@@ -69,14 +70,20 @@ class ExperienceEnhancerBottomSheet {
       },
       appium: async () => {
         try {
-          const noThanks = await asPlaywrightElement(this.noThanksButton);
-          if (await noThanks.unwrap().isDisplayed()) {
-            await PlaywrightGestures.waitAndTap(noThanks, {
-              checkForDisplayed: true,
-              checkForEnabled: true,
-              timeout: 5_000,
-            });
-          }
+          await withImplicitWait(500, async () => {
+            const noThanks = await asPlaywrightElement(this.noThanksButton);
+            const exists = await noThanks.unwrap().isExisting();
+            if (!exists) {
+              return;
+            }
+            if (await noThanks.isVisible()) {
+              await PlaywrightGestures.waitAndTap(noThanks, {
+                checkForDisplayed: true,
+                checkForEnabled: true,
+                timeout: 5_000,
+              });
+            }
+          });
         } catch {
           // Modal not shown
         }

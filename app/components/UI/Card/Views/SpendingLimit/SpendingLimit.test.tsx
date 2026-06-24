@@ -9,6 +9,13 @@ const mockDispatch = jest.fn();
 const mockUseFocusEffect = jest.fn();
 const mockNavigationDispatch = jest.fn();
 const mockFetchSpendingLimitData = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'built-event' }));
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn((_eventName?: unknown) => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -29,6 +36,13 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 // Mock useCardHomeData hook (SpendingLimit now reads from it)
 jest.mock('../../hooks/useCardHomeData', () => ({
@@ -333,6 +347,7 @@ describe('SpendingLimit Component', () => {
     limitType: 'full' as const,
     customLimit: '',
     isLoading: false,
+    isUiInteractionLocked: false,
     setSelectedToken: mockSetSelectedToken,
     handleAccountSelect: mockHandleAccountSelect,
     handleOtherSelect: mockHandleOtherSelect,
@@ -755,13 +770,50 @@ describe('SpendingLimit Component', () => {
       );
     });
 
-    it('blocks navigation when isLoading is true', () => {
+    it('blocks navigation when UI interaction is locked', () => {
       mockUseSpendingLimit.mockReturnValue({
         ...getDefaultUseSpendingLimitMock(),
         isLoading: true,
+        isUiInteractionLocked: true,
       });
 
       render();
+
+      const mockEvent = { preventDefault: jest.fn() };
+      const beforeRemoveCallback = mockAddListener.mock.calls[0][1];
+
+      beforeRemoveCallback(mockEvent);
+
+      expect(mockEvent.preventDefault).toHaveBeenCalled();
+    });
+
+    it('allows navigation when Money Account linkage is processing outside onboarding', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isLoading: true,
+        isMoneyAccountSource: true,
+        isUiInteractionLocked: false,
+      });
+
+      render();
+
+      const mockEvent = { preventDefault: jest.fn() };
+      const beforeRemoveCallback = mockAddListener.mock.calls[0][1];
+
+      beforeRemoveCallback(mockEvent);
+
+      expect(mockEvent.preventDefault).not.toHaveBeenCalled();
+    });
+
+    it('blocks navigation when Money Account linkage is processing during onboarding', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isLoading: true,
+        isMoneyAccountSource: true,
+        isUiInteractionLocked: true,
+      });
+
+      render({ params: { flow: 'onboarding' } });
 
       const mockEvent = { preventDefault: jest.fn() };
       const beforeRemoveCallback = mockAddListener.mock.calls[0][1];
@@ -839,11 +891,27 @@ describe('SpendingLimit Component', () => {
         ...getDefaultUseSpendingLimitMock(),
         isLoading: true,
         isMoneyAccountSource: true,
+        isUiInteractionLocked: false,
       });
 
       render();
 
       expect(screen.queryByTestId('button-loading-indicator')).toBeNull();
+    });
+
+    it('disables cancel when Money Account linkage is processing outside onboarding', () => {
+      mockUseSpendingLimit.mockReturnValue({
+        ...getDefaultUseSpendingLimitMock(),
+        isLoading: true,
+        isMoneyAccountSource: true,
+        isUiInteractionLocked: false,
+      });
+
+      render();
+
+      const cancelButton = screen.getByText('Cancel');
+
+      expect(cancelButton).toBeDisabled();
     });
   });
 

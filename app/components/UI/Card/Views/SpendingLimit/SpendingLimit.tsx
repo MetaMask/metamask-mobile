@@ -34,6 +34,7 @@ import useSpendingLimitData from '../../hooks/useSpendingLimitData';
 import { buildTokenIconUrl } from '../../util/buildTokenIconUrl';
 import { mapCaipChainIdToChainName } from '../../util/mapCaipChainIdToChainName';
 import { LINEA_CAIP_CHAIN_ID } from '../../util/buildTokenList';
+import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 import AccountRow from './components/AccountRow';
 import TokenRow from './components/TokenRow';
 import SpendAndEarnPromoCard from './components/SpendAndEarnPromoCard';
@@ -107,6 +108,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     limitType,
     customLimit,
     isLoading,
+    isUiInteractionLocked,
     handleAccountSelect,
     handleOtherSelect,
     handleLimitSelect,
@@ -128,14 +130,14 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     routeParams: route?.params as Record<string, unknown> | undefined,
   });
 
-  const isLoadingRef = useRef(isLoading);
+  const isUiInteractionLockedRef = useRef(isUiInteractionLocked);
   useEffect(() => {
-    isLoadingRef.current = isLoading;
-  }, [isLoading]);
+    isUiInteractionLockedRef.current = isUiInteractionLocked;
+  }, [isUiInteractionLocked]);
 
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (!isLoadingRef.current) return;
+      if (!isUiInteractionLockedRef.current) return;
       e.preventDefault();
     });
     return unsubscribe;
@@ -327,6 +329,11 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           <SpendAndEarnPromoCard
             apyPercent={moneyAccountApyPercent}
             onPress={selectMoneyAccountAsSource}
+            analytics={{
+              screen: CardScreens.SPENDING_LIMIT,
+              entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
+              flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+            }}
           />
         )}
 

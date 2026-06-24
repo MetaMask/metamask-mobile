@@ -13,10 +13,14 @@ const AddAccountBottomSheetSelectorsIDs = {
 };
 
 class AddAccountBottomSheet {
-  get importAccountButton(): DetoxElement {
+  get importAccountButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       AddAccountBottomSheetSelectorsIDs.IMPORT_ACCOUNT_BUTTON,
     );
+  }
+
+  get backButton(): EncapsulatedElementType {
+    return Matchers.getElementByID('add-wallet-back-button');
   }
 
   get importSrpButton(): EncapsulatedElementType {
@@ -42,6 +46,12 @@ class AddAccountBottomSheet {
   async tapImportSrp(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.importSrpButton, {
       description: 'Import SRP button',
+    });
+  }
+
+  async tapBackToWalletView(): Promise<void> {
+    await Gestures.waitAndTap(this.backButton, {
+      elemDescription: 'Back button',
     });
   }
 }

@@ -11,12 +11,14 @@ import {
 const logger = createPlaywrightLogger('PlaywrightGestures');
 
 export interface ScrollOptions {
-  scrollParams?: { direction?: 'up' | 'down' };
+  scrollParams?: { direction?: 'up' | 'down' | 'left' | 'right' };
   from?: { x: number; y: number };
   to?: { x: number; y: number };
   percent?: number;
   scrollableElement?: PlaywrightElement;
   duration?: number;
+  /** WDIO native scrollIntoView limit; default is 10. */
+  maxScrolls?: number;
 }
 
 /**
@@ -316,6 +318,7 @@ export default class PlaywrightGestures {
       percent,
       scrollableElement,
       duration,
+      maxScrolls = 30,
     } = options || {};
     await debugElementAction(logger, 'Scrolling element into view', elem);
     await elem.unwrap().scrollIntoView({
@@ -325,6 +328,7 @@ export default class PlaywrightGestures {
       percent,
       scrollableElement: scrollableElement?.unwrap(),
       duration,
+      maxScrolls,
     });
   }
 
@@ -482,7 +486,7 @@ export default class PlaywrightGestures {
    * Hide keyboard for both Android and iOS
    * @param keyName - The key to press on iOS keyboard (default: 'Done'). Common values: 'Done', 'Return', 'Search', 'Go', 'Next'
    */
-  static async hideKeyboard(keyName: string = 'Done'): Promise<void> {
+  static async hideKeyboard(): Promise<void> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
@@ -490,15 +494,72 @@ export default class PlaywrightGestures {
     if (PlatformDetector.isAndroid()) {
       await drv.hideKeyboard();
     } else {
-      // iOS - tapOutside dismisses the keyboard by tapping outside the focused
-      // element, which works regardless of keyboard type (password, numeric, etc.)
+      // iOS — use 'tapOutside' to dismiss the keyboard without pressing a
+      // return key. 'pressKey: Done' would trigger onSubmitEditing on inputs
+      // that have returnKeyType='done', causing unintended form submissions
+      // before the test has a chance to interact with other elements.
       try {
         await drv.executeScript('mobile: hideKeyboard', [
-          { strategy: 'pressKey', key: keyName },
+          { strategy: 'tapOutside' },
         ]);
       } catch {
         // Keyboard may already be hidden
       }
     }
+  }
+
+  /**
+   * Press a return key on the soft keyboard (e.g. 'Next', 'Done', 'Go').
+   * Use when tapOutside cannot dismiss the keyboard (keyboardDismissMode="none")
+   * or when onSubmitEditing must fire to advance the flow.
+   */
+  @boxedStep
+  static async tapKeyboardReturnKey(keyName: string): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    logger.debug(`Tapping keyboard return key: ${keyName}`);
+
+    if (PlatformDetector.isAndroid()) {
+      try {
+        await drv.execute('mobile: performEditorAction', [
+          { action: keyName.toLowerCase() },
+        ]);
+      } catch {
+        await drv.hideKeyboard();
+      }
+      return;
+    }
+
+    // iOS — tap the keyboard return key directly (separate window from app UI).
+    // e.g. Next: name="Next:" label="next" inside XCUIElementTypeKeyboard
+    const normalized = keyName.toLowerCase();
+    const titleCase = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+
+    // iOS keyboard keys commonly use "Next:" / label "next" — try those first.
+    const locators = [
+      `~${titleCase}:`,
+      `-ios predicate string:type == 'XCUIElementTypeButton' AND name == '${titleCase}:'`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${titleCase}:']`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@label='${normalized}']`,
+      `~${titleCase}`,
+      `~${normalized}`,
+      `-ios predicate string:type == 'XCUIElementTypeButton' AND label == '${normalized}'`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${titleCase}']`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${normalized}']`,
+    ];
+
+    for (const locator of locators) {
+      const button = await drv.$(locator);
+      try {
+        await button.waitForDisplayed({ timeout: 5000 });
+        await button.click();
+        return;
+      } catch {
+        // try next locator variant
+      }
+    }
+
+    throw new Error(`Could not find iOS keyboard key "${keyName}"`);
   }
 }

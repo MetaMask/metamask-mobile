@@ -128,6 +128,26 @@ describe('TraderPositionQuickBuy', () => {
     );
   });
 
+  it('maps isTraderPositionClosed to traderTradeType in analyticsContext', () => {
+    render(
+      <TraderPositionQuickBuy
+        isVisible
+        position={mockPosition}
+        onClose={jest.fn()}
+        source="leaderboard"
+        isTraderPositionClosed
+      />,
+    );
+    expect(mockQuickBuyRoot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        analyticsContext: expect.objectContaining({
+          source: 'leaderboard',
+          traderTradeType: 'sell',
+        }),
+      }),
+    );
+  });
+
   it('passes only defined analytics props in context', () => {
     render(
       <TraderPositionQuickBuy

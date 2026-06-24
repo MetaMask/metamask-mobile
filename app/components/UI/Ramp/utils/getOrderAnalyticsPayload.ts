@@ -1,7 +1,7 @@
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
 import { FiatOrder } from '../../../../reducers/fiatOrders';
 import { RootState } from '../../../../reducers';
-import getDepositAnalyticsPayload from '../Deposit/utils/getDepositAnalyticsPayload';
+import getDepositAnalyticsPayload from '../utils/getDepositAnalyticsPayload';
 import getAggregatorAnalyticsPayload from '../Aggregator/utils/getAggregatorAnalyticsPayload';
 import getRampsV2AnalyticsPayload from './getRampsV2AnalyticsPayload';
 

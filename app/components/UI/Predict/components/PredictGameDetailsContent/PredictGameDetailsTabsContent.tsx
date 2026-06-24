@@ -9,6 +9,7 @@ import type {
   PredictPosition,
 } from '../../types';
 import type { PredictMarketDetailsTabKey } from '../../Predict.testIds';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import PredictPicks from '../PredictPicks/PredictPicks';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import PredictGameOutcomesTab from './PredictGameOutcomesTab';
@@ -22,6 +23,7 @@ interface PredictGameDetailsTabsContentProps {
   activePositions: PredictPosition[];
   claimablePositions: PredictPosition[];
   groupMap: Map<string, PredictOutcomeGroup>;
+  resolvedOutcomeGroups?: PredictOutcomeGroup[];
   activeChipKey: string;
   onBetPress: (token: PredictOutcomeToken) => void;
 }
@@ -36,9 +38,11 @@ const PredictGameDetailsTabsContent = memo(
     activePositions,
     claimablePositions,
     groupMap,
+    resolvedOutcomeGroups = [],
     activeChipKey,
     onBetPress,
   }: PredictGameDetailsTabsContentProps) => {
+    const { game } = usePredictGame(market, { live: false });
     const handleBuyPress = useCallback(
       (_outcome: PredictOutcome, token: PredictOutcomeToken) => {
         onBetPress(token);
@@ -69,10 +73,30 @@ const PredictGameDetailsTabsContent = memo(
     }
 
     if (!showTabBar) {
+      if (hasPositions) {
+        return (
+          <Box twClassName="px-4 py-2">
+            <Text
+              variant={TextVariant.HeadingMd}
+              twClassName="font-medium pt-8"
+            >
+              {strings('predict.market_details.your_picks')}
+            </Text>
+            <PredictPicks
+              market={market}
+              positions={activePositions}
+              claimablePositions={claimablePositions}
+              testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_PICK}
+            />
+          </Box>
+        );
+      }
+
       return (
         <PredictGameOutcomesTab
           groupMap={groupMap}
-          game={market.game}
+          resolvedOutcomeGroups={resolvedOutcomeGroups}
+          game={game}
           activeChipKey={activeChipKey}
           onBuyPress={handleBuyPress}
         />
@@ -99,7 +123,8 @@ const PredictGameDetailsTabsContent = memo(
         {currentKey === 'outcomes' && (
           <PredictGameOutcomesTab
             groupMap={groupMap}
-            game={market.game}
+            resolvedOutcomeGroups={resolvedOutcomeGroups}
+            game={game}
             activeChipKey={activeChipKey}
             onBuyPress={handleBuyPress}
           />
