@@ -57,7 +57,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
-import { SUB_PANE_INDICATORS } from '../../TokenDetails/constants/constants';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -601,11 +600,6 @@ const PriceAdvanced = ({
         if (wasActive) {
           next.delete(name);
         } else {
-          if ((SUB_PANE_INDICATORS as readonly string[]).includes(name)) {
-            SUB_PANE_INDICATORS.forEach((i) => {
-              if (i !== name) next.delete(i);
-            });
-          }
           next.add(name);
         }
 
@@ -1100,7 +1094,12 @@ const PriceAdvanced = ({
               chartType={chartType}
               indicators={showChartIndicators ? indicatorsArray : []}
               selectedMAs={showChartIndicators ? selectedMAs : []}
-              lineChrome={advancedChartLineChromePresets.tokenOverview}
+              lineChrome={
+                advancedChartLineChromePresets.tokenOverview.lineChrome
+              }
+              subPaneHeightRatio={
+                advancedChartLineChromePresets.tokenOverview.subPaneHeightRatio
+              }
               isLoading={
                 isTechnicalIndicatorsEnabled
                   ? !hasChartBeenRevealed && chartLoading

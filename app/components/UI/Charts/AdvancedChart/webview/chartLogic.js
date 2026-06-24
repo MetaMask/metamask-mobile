@@ -317,6 +317,9 @@ function handleMessage(event) {
       case 'SET_LINE_CHROME':
         handleSetLineChrome(message.payload);
         break;
+      case 'SET_SUB_PANE_LAYOUT':
+        handleSetSubPaneLayout(message.payload);
+        break;
       case 'SET_POSITION_LINES':
         handleSetPositionLines(message.payload);
         break;
@@ -633,6 +636,87 @@ function isOwnStringKey(key) {
   );
 }
 
+/**
+ * Indicators that render in a dedicated pane below the main series.
+ * Keep in sync with SUB_PANE_INDICATORS in TokenDetails constants.
+ */
+var SUB_PANE_INDICATOR_NAMES = { MACD: true, RSI: true };
+
+function isSubPaneIndicator(name) {
+  return isOwnStringKey(name) && SUB_PANE_INDICATOR_NAMES[name] === true;
+}
+
+function hasActiveSubPaneIndicators() {
+  if (!window.activeStudies) return false;
+  var found = false;
+  window.activeStudies.forEach(function (_studyId, name) {
+    if (isSubPaneIndicator(name)) found = true;
+  });
+  return found;
+}
+
+/** Reads CONFIG.subPaneHeightRatio; null means TradingView default pane sizing. */
+function getSubPaneHeightRatio() {
+  const ratio = window.CONFIG && window.CONFIG.subPaneHeightRatio;
+  if (typeof ratio !== 'number' || !(ratio > 0 && ratio <= 1)) {
+    return null;
+  }
+  return ratio;
+}
+
+function applySubPaneHeightRatio(chart) {
+  const ratio = getSubPaneHeightRatio();
+  if (ratio === null || !chart) return;
+  try {
+    const heights = chart.getAllPanesHeight();
+    if (heights.length < 2) return;
+    const total = heights.reduce(function (sum, h) {
+      return sum + h;
+    }, 0);
+    const bottomCount = heights.length - 1;
+    const MIN_MAIN_PX = 72;
+
+    let bottomTotal = Math.round(total * ratio * bottomCount);
+    let main = total - bottomTotal;
+    if (main < MIN_MAIN_PX) {
+      main = MIN_MAIN_PX;
+      bottomTotal = total - main;
+    }
+
+    const newHeights = [main];
+    let remaining = bottomTotal;
+    for (let i = 0; i < bottomCount; i++) {
+      const h =
+        i === bottomCount - 1
+          ? remaining
+          : Math.floor(bottomTotal / bottomCount);
+      newHeights.push(h);
+      remaining -= h;
+    }
+    chart.setAllPanesHeight(newHeights);
+  } catch (e) {}
+}
+
+function handleSetSubPaneLayout(payload) {
+  window.CONFIG = window.CONFIG || {};
+  const ratio = payload && payload.heightRatio;
+  if (ratio === null || ratio === undefined) {
+    delete window.CONFIG.subPaneHeightRatio;
+    return;
+  }
+  if (typeof ratio !== 'number' || !(ratio > 0 && ratio <= 1)) {
+    return;
+  }
+  window.CONFIG.subPaneHeightRatio = ratio;
+  if (
+    window.chartWidget &&
+    window.isChartReady &&
+    hasActiveSubPaneIndicators()
+  ) {
+    applySubPaneHeightRatio(window.chartWidget.activeChart());
+  }
+}
+
 function handleAddIndicator(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
   if (!payload || !payload.name) return;
@@ -703,7 +787,12 @@ function handleAddIndicator(payload) {
       .then(function (studyId) {
         window.legendStudyOrder.set(indicatorName, studyId);
         window.activeStudies.set(indicatorName, studyId);
-        subscribeStudyDataLoaded(studyId, refreshStudyLegendFromExport);
+        if (isSubPaneIndicator(indicatorName)) {
+          applySubPaneHeightRatio(chart);
+        }
+        subscribeStudyDataLoaded(studyId, function () {
+          refreshStudyLegendFromExport();
+        });
         notifyIndicatorAdded(indicatorName, studyId);
       })
       .catch(function (error) {
@@ -734,6 +823,9 @@ function handleRemoveIndicator(payload) {
     window.legendStudyOrder.delete(indicatorName);
     refreshStudyLegendFromExport();
     sendToReactNative('INDICATOR_REMOVED', { name: indicatorName });
+    if (isSubPaneIndicator(indicatorName) && hasActiveSubPaneIndicators()) {
+      applySubPaneHeightRatio(chart);
+    }
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
   }
