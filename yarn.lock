@@ -7825,13 +7825,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/accounts-controller@npm:^39.0.0":
-  version: 39.0.3
-  resolution: "@metamask/accounts-controller@npm:39.0.3"
+"@metamask/accounts-controller@npm:39.0.2":
+  version: 39.0.2
+  resolution: "@metamask/accounts-controller@npm:39.0.2"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/eth-snap-keyring": "npm:^22.3.0"
+    "@metamask/eth-snap-keyring": "npm:^22.0.1"
     "@metamask/keyring-api": "npm:^23.1.0"
     "@metamask/keyring-controller": "npm:^27.1.0"
     "@metamask/keyring-internal-api": "npm:^11.0.1"
@@ -7849,7 +7849,7 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/c33f2bb60838313c85f87026ae553303552c9979cb9da1ad6abcf8d6f1c5e5e2387e90ba0df2735f0373487b905ad31e1afe9326ab8ab9eaacea72f8c17c3ff6
+  checksum: 10/1f423b6290753869f2b5177d28e65ca141ebf404607f919f518f3a0b8af7dbcdb1cf15d526749290e6bab7ddc3fbc004eeaf429fbeba1da9e61c8f2e1bc12e4c
   languageName: node
   linkType: hard
 
