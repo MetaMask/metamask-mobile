@@ -201,4 +201,31 @@ describe('ReceiveSummaryLine', () => {
       ),
     ).toBeDefined();
   });
+
+  it('renders perps withdraw title with mUSD and destination network', () => {
+    useNetworkNameMock.mockImplementation((chainId?: Hex) =>
+      chainId === '0xmonad' ? 'Monad' : 'Arbitrum',
+    );
+
+    const { getByText } = render({
+      id: 'tx-id',
+      chainId: '0xa4b1' as Hex,
+      hash: '0x123',
+      submittedTime: 1755719285723,
+      type: TransactionType.perpsWithdraw,
+      metamaskPay: {
+        chainId: '0xmonad' as Hex,
+        tokenAddress: '0xmusd' as Hex,
+      },
+    } as Partial<TransactionMeta>);
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_receive', {
+          targetSymbol: 'mUSD',
+          targetChain: 'Monad',
+        }),
+      ),
+    ).toBeDefined();
+  });
 });
