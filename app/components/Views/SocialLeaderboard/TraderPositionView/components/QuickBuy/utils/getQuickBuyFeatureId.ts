@@ -16,7 +16,6 @@ export function getQuickBuyFeatureId(source?: QuickBuySheetSource): FeatureId {
     case 'explore_crypto':
     case 'explore_now':
     case 'explore_rwas':
-    case 'explore_trending':
     case 'explore_stocks':
       return FeatureId.QUICK_BUY_EXPLORE;
     default:

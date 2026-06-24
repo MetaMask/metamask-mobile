@@ -40,9 +40,6 @@ describe('getQuickBuyFeatureId', () => {
     expect(getQuickBuyFeatureId('explore_rwas')).toBe(
       FeatureId.QUICK_BUY_EXPLORE,
     );
-    expect(getQuickBuyFeatureId('explore_trending')).toBe(
-      FeatureId.QUICK_BUY_EXPLORE,
-    );
     expect(getQuickBuyFeatureId('explore_stocks')).toBe(
       FeatureId.QUICK_BUY_EXPLORE,
     );
