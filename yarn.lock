@@ -7903,21 +7903,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^9.0.2":
-  version: 9.0.2
-  resolution: "@metamask/assets-controller@npm:9.0.2"
+"@metamask/assets-controller@npm:^9.0.2, @metamask/assets-controller@npm:^9.1.0":
+  version: 9.1.0
+  resolution: "@metamask/assets-controller@npm:9.1.0"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/account-tree-controller": "npm:^7.5.2"
-    "@metamask/accounts-controller": "npm:^39.0.2"
-    "@metamask/assets-controllers": "npm:^109.2.1"
+    "@metamask/account-tree-controller": "npm:^7.5.3"
+    "@metamask/accounts-controller": "npm:^39.0.3"
+    "@metamask/assets-controllers": "npm:^109.2.2"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/client-controller": "npm:^1.0.1"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/core-backend": "npm:^6.3.3"
-    "@metamask/keyring-api": "npm:^23.1.0"
+    "@metamask/keyring-api": "npm:^23.3.0"
     "@metamask/keyring-controller": "npm:^27.1.0"
     "@metamask/keyring-internal-api": "npm:^11.0.1"
     "@metamask/keyring-snap-client": "npm:^9.0.2"
@@ -7936,7 +7936,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     lodash: "npm:^4.17.21"
     p-limit: "npm:^3.1.0"
-  checksum: 10/1389b90a1ac2087c7d8900086bfc6b540bfd7312b4be99c0332f24d88107c574cb1998d4f79b900db2a0362f632466be7143ca38e69e378072e7e2ee0236abcc
+  checksum: 10/c46357539608a0e46dbd0fb4d987ac07047e64d56cc5a6e1084d0fde0d24d68cfb848f0da383d4bac34140d8a104cf373478845774fdd762844e3acdf1a1f251
   languageName: node
   linkType: hard
 
@@ -8105,7 +8105,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^76.0.0, @metamask/bridge-controller@npm:^76.1.0":
+"@metamask/bridge-controller@npm:^76.1.0":
   version: 76.1.0
   resolution: "@metamask/bridge-controller@npm:76.1.0"
   dependencies:
@@ -8138,7 +8138,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-status-controller@npm:^72.2.0, @metamask/bridge-status-controller@npm:^72.3.0":
+"@metamask/bridge-status-controller@npm:^72.3.0":
   version: 72.3.0
   resolution: "@metamask/bridge-status-controller@npm:72.3.0"
   dependencies:
@@ -8965,7 +8965,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^23.1.0, @metamask/keyring-api@npm:^23.2.0":
+"@metamask/keyring-api@npm:^23.1.0, @metamask/keyring-api@npm:^23.2.0, @metamask/keyring-api@npm:^23.3.0":
   version: 23.3.0
   resolution: "@metamask/keyring-api@npm:23.3.0"
   dependencies:
@@ -10395,18 +10395,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^23.14.0":
-  version: 23.14.0
-  resolution: "@metamask/transaction-pay-controller@npm:23.14.0"
+"@metamask/transaction-pay-controller@npm:^23.15.0":
+  version: 23.15.0
+  resolution: "@metamask/transaction-pay-controller@npm:23.15.0"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/assets-controller": "npm:^9.0.2"
-    "@metamask/assets-controllers": "npm:^109.2.1"
+    "@metamask/assets-controller": "npm:^9.1.0"
+    "@metamask/assets-controllers": "npm:^109.2.2"
     "@metamask/base-controller": "npm:^9.1.0"
-    "@metamask/bridge-controller": "npm:^76.0.0"
-    "@metamask/bridge-status-controller": "npm:^72.2.0"
+    "@metamask/bridge-controller": "npm:^76.1.0"
+    "@metamask/bridge-status-controller": "npm:^72.3.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/gas-fee-controller": "npm:^26.2.3"
     "@metamask/keyring-controller": "npm:^27.1.0"
@@ -10421,7 +10421,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/9a17f0c0d13a6e5df578d87c7da9e8dc34d5d716a4afc6d18101c0dc898c8d98ac221dcbf20b3ed9dd15a9cb8061ef577db07ccf3eb67d1a1326a8b81cd1e3f1
+  checksum: 10/a7d6f39377900c51300ab0c0da6acb1bde14b92bca83c82cafc1361757d192a475e0e20f64e231244b95944427f8da56acaf1138e62bbfdf8a66a9745cf8dbc8
   languageName: node
   linkType: hard
 
@@ -35553,7 +35553,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^68.1.1"
-    "@metamask/transaction-pay-controller": "npm:^23.14.0"
+    "@metamask/transaction-pay-controller": "npm:^23.15.0"
     "@metamask/tron-wallet-snap": "npm:^1.27.0"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^4.0.0"
