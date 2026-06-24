@@ -392,7 +392,7 @@ describe('AccountsMenu', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.NOTIFICATIONS.VIEW);
     });
 
-    it('navigates to notifications view when not enabled and pressed', () => {
+    it('does not navigate to notifications view when not enabled and pressed', () => {
       jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(true);
       setupNotificationMocks({ notificationEnabled: false });
 
@@ -403,7 +403,7 @@ describe('AccountsMenu', () => {
 
       fireEvent.press(notificationsButton);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.NOTIFICATIONS.VIEW);
+      expect(mockNavigate).not.toHaveBeenCalled();
     });
 
     it('display badge with count when notifications are enabled and unread count > 0', () => {
@@ -466,41 +466,6 @@ describe('AccountsMenu', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         unread_count: 5,
         read_count: 3,
-      });
-      expect(mockTrackEvent).toHaveBeenCalled();
-    });
-
-    it('track NOTIFICATIONS_ACTIVATED event when not enabled and pressed', () => {
-      jest.mocked(isNotificationsFeatureEnabled).mockReturnValue(true);
-      setupNotificationMocks({
-        notificationEnabled: false,
-        backupSyncEnabled: true,
-      });
-
-      mockCreateEventBuilder.mockClear();
-      mockTrackEvent.mockClear();
-
-      const mockAddProperties = jest.fn().mockReturnThis();
-      const mockBuild = jest.fn(() => ({
-        name: 'NOTIFICATIONS_ACTIVATED',
-      }));
-
-      mockCreateEventBuilder.mockReturnValue({
-        addProperties: mockAddProperties,
-        build: mockBuild,
-      });
-
-      const { getByText } = render(<AccountsMenu />);
-      const notificationsButton = getByText('accounts_menu.notifications');
-
-      fireEvent.press(notificationsButton);
-
-      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'Notifications Activated',
-      );
-      expect(mockAddProperties).toHaveBeenCalledWith({
-        action_type: 'started',
-        is_profile_syncing_enabled: true,
       });
       expect(mockTrackEvent).toHaveBeenCalled();
     });

@@ -3,7 +3,10 @@ import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 
 import { fireEvent, render } from '@testing-library/react-native';
-import type { OnChainRawNotification } from '@metamask/notification-services-controller/notification-services';
+import {
+  getNotificationSubtype,
+  type OnChainRawNotification,
+} from '@metamask/notification-services-controller/notification-services';
 import { strings } from '../../../../../../locales/i18n';
 import BlockExplorerFooter from './BlockExplorerFooter';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -111,6 +114,7 @@ describe('BlockExplorerFooter', () => {
         .addProperties({
           notification_id: props.notification.id,
           notification_type: props.notification.type,
+          notification_subtype: getNotificationSubtype(props.notification),
           chain_id: (props.notification as OnChainRawNotification).payload
             .chain_id,
           clicked_item: 'block_explorer',
