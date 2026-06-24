@@ -146,7 +146,9 @@ describe('getAmountData', () => {
   });
 
   it('throws a prefixed error when buildMoneyAccountDepositBatch fails', async () => {
-    buildDepositBatchMock.mockRejectedValueOnce(new Error('previewDeposit reverted'));
+    buildDepositBatchMock.mockRejectedValueOnce(
+      new Error('previewDeposit reverted'),
+    );
 
     await expect(
       getAmountData({ amount: '5000000', transaction: buildTransaction() }),

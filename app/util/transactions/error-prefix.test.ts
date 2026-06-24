@@ -120,7 +120,9 @@ describe('prefixError', () => {
       const error = Object.assign(new Error(VERBOSE_ETHERS_MESSAGE), {
         code: 'CALL_EXCEPTION',
       });
-      expect(prefixError(error, PREFIX).message).toBe('MyModule: eth_call failed');
+      expect(prefixError(error, PREFIX).message).toBe(
+        'MyModule: eth_call failed',
+      );
     });
 
     it('formats as "eth_call failed - method" when reason is not a string', () => {
