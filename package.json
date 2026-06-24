@@ -215,7 +215,11 @@
     "react-native-ble-plx@npm:3.4.0": "patch:react-native-ble-plx@npm%3A3.4.0#~/.yarn/patches/react-native-ble-plx-npm-3.4.0-401e8b3343.patch",
     "@metamask/transaction-controller": "68.2.0",
     "@metamask/keyring-controller": "^26.0.0",
-    "@metamask/accounts-controller": "^39.0.2"
+    "@metamask/accounts-controller": "^39.0.2",
+    "@metamask/transaction-controller@npm:^65.4.0": "patch:@metamask/transaction-controller@npm%3A68.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-68.2.0-6044586daa.patch",
+    "@metamask/transaction-controller@npm:^68.1.1": "patch:@metamask/transaction-controller@npm%3A68.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-68.2.0-6044586daa.patch",
+    "@metamask/transaction-controller@npm:^64.2.0": "patch:@metamask/transaction-controller@npm%3A68.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-68.2.0-6044586daa.patch",
+    "@metamask/transaction-controller@npm:^68.0.1": "patch:@metamask/transaction-controller@npm%3A68.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-68.2.0-6044586daa.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -346,7 +350,7 @@
     "@metamask/storage-service": "^1.0.0",
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
-    "@metamask/transaction-controller": "^68.2.0",
+    "@metamask/transaction-controller": "patch:@metamask/transaction-controller@npm%3A68.2.0#~/.yarn/patches/@metamask-transaction-controller-npm-68.2.0-6044586daa.patch",
     "@metamask/transaction-pay-controller": "^23.15.0",
     "@metamask/tron-wallet-snap": "^1.27.0",
     "@metamask/utils": "^11.11.0",

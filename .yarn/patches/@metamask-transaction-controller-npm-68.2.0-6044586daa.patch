@@ -1,0 +1,26 @@
+diff --git a/dist/api/simulation-api.cjs b/dist/api/simulation-api.cjs
+index e902c6bd4701aff2eddd10e8f5e15126352e2654..17120cfd423c87cfbfc876222d08c84272d21115 100644
+--- a/dist/api/simulation-api.cjs
++++ b/dist/api/simulation-api.cjs
+@@ -9,7 +9,7 @@ const errors_1 = require("../errors.cjs");
+ const logger_1 = require("../logger.cjs");
+ const log = (0, utils_1.createModuleLogger)(logger_1.projectLogger, 'simulation-api');
+ const RPC_METHOD = 'infura_simulateTransactions';
+-const BASE_URL = 'https://tx-sentinel-{0}.api.cx.metamask.io/';
++const BASE_URL = 'https://tx-sentinel-{0}.dev-api.cx.metamask.io/';
+ const ENDPOINT_NETWORKS = 'networks';
+ let requestIdCounter = 0;
+ /**
+diff --git a/dist/api/simulation-api.mjs b/dist/api/simulation-api.mjs
+index a098d54d4e4888cb405a4478b11fa2f44e42064e..0a58c3aac8747edbdc4bab9b4a98814352380396 100644
+--- a/dist/api/simulation-api.mjs
++++ b/dist/api/simulation-api.mjs
+@@ -7,7 +7,7 @@ import { SimulationChainNotSupportedError, SimulationError } from "../errors.mjs
+ import { projectLogger } from "../logger.mjs";
+ const log = createModuleLogger(projectLogger, 'simulation-api');
+ const RPC_METHOD = 'infura_simulateTransactions';
+-const BASE_URL = 'https://tx-sentinel-{0}.api.cx.metamask.io/';
++const BASE_URL = 'https://tx-sentinel-{0}.dev-api.cx.metamask.io/';
+ const ENDPOINT_NETWORKS = 'networks';
+ let requestIdCounter = 0;
+ /**

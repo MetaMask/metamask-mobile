@@ -3,7 +3,7 @@ import { Hex } from '@metamask/utils';
 import { prefixError } from './error-prefix';
 
 // TODO: Make it configurable via environment variable
-const BASE_URL = 'https://tx-sentinel-{0}.api.cx.metamask.io/';
+const BASE_URL = 'https://tx-sentinel-{0}.dev-api.cx.metamask.io/';
 const ENDPOINT_NETWORKS = 'networks';
 const ERROR_PREFIX = 'Sentinel: ';
 
