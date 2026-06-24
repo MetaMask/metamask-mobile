@@ -281,18 +281,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     () => createSelectIsWatchlistMarket(market?.symbol || ''),
     [market?.symbol],
   );
-  const isWatchlistFromRedux = useSelector(selectIsWatchlist);
-
-  // Optimistic local state for instant UI feedback
-  const [optimisticWatchlist, setOptimisticWatchlist] = useState<
-    boolean | null
-  >(null);
-  const isWatchlist = optimisticWatchlist ?? isWatchlistFromRedux;
-
-  // Reset optimistic state when market changes
-  useEffect(() => {
-    setOptimisticWatchlist(null);
-  }, [market?.symbol]);
+  // Source of truth for the favorite icon. The controller applies its own
+  // synchronous optimistic update (so the icon flips on the same tick the toggle
+  // fires) and reverts internally on remote-write failure, so no separate
+  // component-level optimistic copy is needed — a second copy could disagree with
+  // Redux if the controller's optimistic-then-revert collapsed before a reconcile.
+  const isWatchlist = useSelector(selectIsWatchlist);
 
   // Keep current market symbol ref in sync for staleness checks in async callbacks
   useEffect(() => {
@@ -303,16 +297,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   useEffect(() => {
     scrollViewRef.current?.scrollTo({ y: 0, animated: false });
   }, [market?.symbol]);
-
-  // Clear optimistic state once Redux has caught up
-  useEffect(() => {
-    if (
-      optimisticWatchlist !== null &&
-      optimisticWatchlist === isWatchlistFromRedux
-    ) {
-      setOptimisticWatchlist(null);
-    }
-  }, [isWatchlistFromRedux, optimisticWatchlist]);
 
   const {
     scrollY: scrollYShared,
@@ -715,12 +699,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       return;
     }
 
-    // Optimistic update - instant UI feedback
-    const newWatchlistState = isAdding;
-    setOptimisticWatchlist(newWatchlistState);
-
-    // Actual state update (controller applies its own optimistic update and
-    // reverts internally on remote-write failure; fire-and-forget here).
+    // Controller applies its own synchronous optimistic update (instant UI
+    // feedback via Redux) and reverts internally on remote-write failure;
+    // fire-and-forget here.
     void controller.toggleWatchlistMarket(market.symbol);
 
     // Track watchlist toggle event
@@ -729,7 +710,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.FAVORITE_TOGGLED,
-      [PERPS_EVENT_PROPERTY.ACTION_TYPE]: newWatchlistState
+      [PERPS_EVENT_PROPERTY.ACTION_TYPE]: isAdding
         ? PERPS_EVENT_VALUE.ACTION_TYPE.FAVORITE_MARKET
         : PERPS_EVENT_VALUE.ACTION_TYPE.UNFAVORITE_MARKET,
       [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
