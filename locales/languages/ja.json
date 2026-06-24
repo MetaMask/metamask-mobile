@@ -6961,7 +6961,7 @@
       "title": "報酬獲得の仕組み",
       "description_prefix": "Add mUSD and earn up to",
       "description_suffix": " (変動制)。残高はドルの裏付けがあり、いつでも支払い、取引、送金に利用できます。",
-      "description_no_apy": "Add mUSD. Your balance is dollar-backed and ready to spend, trade, or send anytime."
+      "description_no_apy": "Add mUSD and earn APY. Your balance is dollar-backed and ready to spend, trade, or send anytime."
     },
     "musd_row": {
       "add": "追加"

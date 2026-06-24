@@ -109,7 +109,7 @@ describe('MoneyPotentialEarnings', () => {
       getByText(strings('money.potential_earnings.title')),
     ).toBeOnTheScreen();
     const description = getByTestId(MoneyPotentialEarningsTestIds.TEXT);
-    expect(description).toHaveTextContent(/Convert your/);
+    expect(description).toHaveTextContent(/Add your/);
     expect(description).toHaveTextContent(/in one year\./);
   });
 
