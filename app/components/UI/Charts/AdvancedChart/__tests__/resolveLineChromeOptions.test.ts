@@ -22,7 +22,9 @@ describe('resolveLineChromeOptions', () => {
 
   it('respects explicit preset values and fills omitted keys from defaults', () => {
     expect(
-      resolveLineChromeOptions(advancedChartLineChromePresets.tokenOverview),
+      resolveLineChromeOptions(
+        advancedChartLineChromePresets.tokenOverview.lineChrome,
+      ),
     ).toEqual({
       hideTimeScale: false,
       useCustomLineEndMarker: false,
