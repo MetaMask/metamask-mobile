@@ -16,6 +16,7 @@ import {
   type ICardProvider,
   type CardAuthSession,
   type CardAuthTokens,
+  type CardCredentials,
   type CardHomeData,
   type CardFundingAsset,
 } from './provider-types';
@@ -200,13 +201,15 @@ const mockCardHomeData: CardHomeData = {
 
 const mockSession: CardAuthSession = {
   id: 'session-1',
-  currentStep: { type: 'email_password' },
-  _metadata: {
-    initiateToken: 'tok',
-    location: 'international',
-    state: 's',
-    codeVerifier: 'cv',
-  },
+  currentStep: { type: 'oauth2' },
+};
+
+const mockOAuth2Credentials: CardCredentials = {
+  type: 'oauth2',
+  code: 'oauth-code',
+  codeVerifier: 'verifier',
+  redirectUri: 'https://link.metamask.io/card-oauth',
+  appId: 'FOX',
 };
 
 const mockTokenSet: CardAuthTokens = {
@@ -315,9 +318,9 @@ describe('CardController — auth methods', () => {
       provider.initiateAuth.mockResolvedValue(mockSession);
       const controller = buildController(provider);
 
-      await controller.initiateAuth('US');
+      await controller.initiateAuth();
 
-      expect(provider.initiateAuth).toHaveBeenCalledWith('US');
+      expect(provider.initiateAuth).toHaveBeenCalledWith();
       expect(controller.getCurrentAuthStep()).toStrictEqual(
         mockSession.currentStep,
       );
@@ -330,7 +333,7 @@ describe('CardController — auth methods', () => {
         state: { activeProviderId: null },
       });
 
-      await expect(controller.initiateAuth('US')).rejects.toBeInstanceOf(
+      await expect(controller.initiateAuth()).rejects.toBeInstanceOf(
         CardProviderError,
       );
     });
@@ -342,11 +345,7 @@ describe('CardController — auth methods', () => {
       const controller = buildController(provider);
 
       await expect(
-        controller.submitCredentials({
-          type: 'email_password',
-          email: 'a@b.com',
-          password: 'pass',
-        }),
+        controller.submitCredentials(mockOAuth2Credentials),
       ).rejects.toMatchObject({ code: CardProviderErrorCode.Unknown });
     });
 
@@ -360,12 +359,8 @@ describe('CardController — auth methods', () => {
       mockTokenStore.set.mockResolvedValue(true);
       const controller = buildController(provider);
 
-      await controller.initiateAuth('US');
-      const result = await controller.submitCredentials({
-        type: 'email_password',
-        email: 'a@b.com',
-        password: 'pass',
-      });
+      await controller.initiateAuth();
+      const result = await controller.submitCredentials(mockOAuth2Credentials);
 
       expect(mockTokenStore.set).toHaveBeenCalledWith('baanx', mockTokenSet);
       expect(controller.state.isAuthenticated).toBe(true);
@@ -418,12 +413,8 @@ describe('CardController — auth methods', () => {
 
       expect(getOnChainAssetsMock).toHaveBeenCalledTimes(1);
 
-      await controller.initiateAuth('US');
-      await controller.submitCredentials({
-        type: 'email_password',
-        email: 'a@b.com',
-        password: 'pass',
-      });
+      await controller.initiateAuth();
+      await controller.submitCredentials(mockOAuth2Credentials);
       await flushPromises();
 
       expect(provider.getCardHomeData).toHaveBeenCalledTimes(1);
@@ -450,12 +441,8 @@ describe('CardController — auth methods', () => {
       mockTokenStore.set.mockResolvedValue(false);
       const controller = buildController(provider);
 
-      await controller.initiateAuth('US');
-      await controller.submitCredentials({
-        type: 'email_password',
-        email: 'a@b.com',
-        password: 'pass',
-      });
+      await controller.initiateAuth();
+      await controller.submitCredentials(mockOAuth2Credentials);
 
       expect(controller.state.isAuthenticated).toBe(true);
     });
@@ -469,12 +456,8 @@ describe('CardController — auth methods', () => {
       });
       const controller = buildController(provider);
 
-      await controller.initiateAuth('US');
-      const result = await controller.submitCredentials({
-        type: 'email_password',
-        email: 'a@b.com',
-        password: 'pass',
-      });
+      await controller.initiateAuth();
+      const result = await controller.submitCredentials(mockOAuth2Credentials);
 
       expect(controller.state.isAuthenticated).toBe(false);
       expect(result.done).toBe(false);
@@ -493,12 +476,8 @@ describe('CardController — auth methods', () => {
       });
       const controller = buildController(provider);
 
-      await controller.initiateAuth('US');
-      const result = await controller.submitCredentials({
-        type: 'email_password',
-        email: 'a@b.com',
-        password: 'pass',
-      });
+      await controller.initiateAuth();
+      const result = await controller.submitCredentials(mockOAuth2Credentials);
 
       expect(controller.state.isAuthenticated).toBe(false);
       expect(result.onboardingRequired?.phase).toBe('kyc');
@@ -522,7 +501,7 @@ describe('CardController — auth methods', () => {
       (provider.executeStepAction as jest.Mock).mockResolvedValue(undefined);
       const controller = buildController(provider);
 
-      await controller.initiateAuth('US');
+      await controller.initiateAuth();
       await controller.executeStepAction();
 
       expect(provider.executeStepAction).toHaveBeenCalledWith(mockSession);
@@ -533,7 +512,7 @@ describe('CardController — auth methods', () => {
       provider.initiateAuth.mockResolvedValue(mockSession);
       const controller = buildController(provider);
 
-      await controller.initiateAuth('US');
+      await controller.initiateAuth();
       await expect(controller.executeStepAction()).resolves.toBeUndefined();
     });
   });

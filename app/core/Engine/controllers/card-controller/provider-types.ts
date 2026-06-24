@@ -56,7 +56,7 @@ export class CardLinkageInProgressError extends Error {
 
 export type CardProviderId = string;
 
-export type CardAuthMethod = 'email_password' | 'siwe';
+export type CardAuthMethod = 'email_password' | 'siwe' | 'oauth2';
 
 // -- Auth Tokens --
 
@@ -84,6 +84,7 @@ export interface CardAuthResult {
 
 export type CardAuthStep =
   | { type: 'email_password' }
+  | { type: 'oauth2' }
   | { type: 'otp'; destination: string }
   | { type: 'siwe'; message: string }
   | { type: 'complete' };
@@ -91,17 +92,15 @@ export type CardAuthStep =
 export interface CardAuthSession {
   id: string;
   currentStep: CardAuthStep;
-  _metadata: Record<string, unknown>;
 }
 
-export type CardCredentials =
-  | {
-      type: 'email_password';
-      email: string;
-      password: string;
-      otpCode?: string;
-    }
-  | { type: 'siwe'; signature: string };
+export interface CardCredentials {
+  type: 'oauth2';
+  code: string;
+  codeVerifier: string;
+  redirectUri: string;
+  appId: string;
+}
 
 // -- Capabilities --
 
@@ -345,7 +344,7 @@ export interface ICardProvider {
   readonly id: CardProviderId;
   readonly capabilities: CardProviderCapabilities;
 
-  initiateAuth(country: string): Promise<CardAuthSession>;
+  initiateAuth(): Promise<CardAuthSession>;
   submitCredentials(
     session: CardAuthSession,
     credentials: CardCredentials,
