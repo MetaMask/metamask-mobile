@@ -119,7 +119,7 @@ const ImportFromSecretRecoveryPhrase = ({
   saveOnboardingEvent,
   route,
 }) => {
-  const isQrSyncImport = Boolean(route.params?.qrSyncImport);
+  const isQrSyncImport = Boolean(route?.params?.qrSyncImport);
   const qrSyncPrimaryMnemonic = useSelector(selectQrSyncPrimaryMnemonic);
   const walletSetupCompletedAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
@@ -330,7 +330,7 @@ const ImportFromSecretRecoveryPhrase = ({
     }
     animateToStep(currentStep + 1);
     // Start the trace when moving to the password setup step
-    const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+    const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
     if (onboardingTraceCtx) {
       passwordSetupAttemptTraceCtxRef.current = trace({
         name: TraceName.OnboardingPasswordSetupAttempt,
@@ -398,8 +398,8 @@ const ImportFromSecretRecoveryPhrase = ({
     } else {
       try {
         setLoading(true);
-        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
-        const oauthLoginSuccess = route.params?.oauthLoginSuccess || false;
+        const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
+        const oauthLoginSuccess = route?.params?.oauthLoginSuccess || false;
         trace({
           name: TraceName.OnboardingSRPAccountImportTime,
           op: TraceOperation.OnboardingUserJourney,
@@ -479,7 +479,7 @@ const ImportFromSecretRecoveryPhrase = ({
           error_type: error.toString(),
         });
 
-        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+        const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
         if (onboardingTraceCtx) {
           trace({
             name: TraceName.OnboardingPasswordSetupError,

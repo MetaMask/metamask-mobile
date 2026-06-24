@@ -30,6 +30,8 @@ import {
   endTrace,
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
+import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
+import { QrSyncImportPlan } from '../../../core/QrSync/types';
 
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
   const keyboard = {
@@ -95,6 +97,13 @@ const initialState = {
   user: {
     passwordSet: true,
     seedphraseBackedUp: false,
+  },
+  engine: {
+    backgroundState: {
+      QrSyncController: {
+        ...defaultQrSyncControllerState,
+      },
+    },
   },
 };
 
@@ -1190,6 +1199,104 @@ describe('ImportFromSecretRecoveryPhrase', () => {
           queryByTestId(`${ImportFromSeedSelectorsIDs.SEED_PHRASE_INPUT_ID}_2`),
         ).toBeNull();
       });
+    });
+  });
+
+  describe('QR sync import flow', () => {
+    const qrSyncMnemonic =
+      'say devote wasp video cool lunch brief add fever uncover novel offer';
+
+    const qrSyncImportState = {
+      ...initialState,
+      engine: {
+        backgroundState: {
+          QrSyncController: {
+            ...defaultQrSyncControllerState,
+            importPlan: [
+              {
+                index: 0,
+                value: qrSyncMnemonic,
+                type: 'MNEMONIC',
+                accountName: null,
+                hiddenIndexes: [],
+                isPrimary: true,
+              },
+            ] as QrSyncImportPlan,
+          },
+        },
+      },
+    };
+
+    it('prefills the seed phrase and opens the password step for QR sync imports', async () => {
+      const { getByText, queryByPlaceholderText } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: qrSyncImportState },
+        { qrSyncImport: true },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByText(strings('import_from_seed.metamask_password')),
+        ).toBeOnTheScreen();
+      });
+
+      expect(
+        queryByPlaceholderText(strings('import_from_seed.srp_placeholder')),
+      ).toBeNull();
+    });
+
+    it('calls navigation.goBack when back is pressed on the password step', async () => {
+      const mockGoBack = jest.fn();
+      const Stack = createStackNavigator();
+
+      const { getByTestId } = renderWithProvider(
+        <NavigationContainer>
+          <Stack.Navigator>
+            <Stack.Screen
+              name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
+              initialParams={{ qrSyncImport: true }}
+            >
+              {({ navigation, route }) => {
+                jest.spyOn(navigation, 'goBack').mockImplementation(mockGoBack);
+                return (
+                  <ImportFromSecretRecoveryPhrase
+                    navigation={navigation}
+                    route={route}
+                  />
+                );
+              }}
+            </Stack.Screen>
+          </Stack.Navigator>
+        </NavigationContainer>,
+        { state: qrSyncImportState },
+        false,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not prefill the seed phrase when qrSyncImport is false', async () => {
+      const { getByPlaceholderText, queryByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: qrSyncImportState },
+      );
+
+      expect(
+        getByPlaceholderText(strings('import_from_seed.srp_placeholder')),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+      ).toBeNull();
     });
   });
 
