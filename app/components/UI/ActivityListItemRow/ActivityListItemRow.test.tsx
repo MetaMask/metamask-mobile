@@ -14,6 +14,11 @@ import { ActivityListItemRowPendingActions } from './ActivityListItemRowPendingA
 import { strings } from '../../../../locales/i18n';
 import { getNetworkImageSource } from '../../../util/networks';
 import { hasGasFeeTokenSelected } from '../../Views/confirmations/utils/transaction';
+import {
+  selectConversionRateByChainId,
+  selectCurrentCurrency,
+  selectUSDConversionRateByChainId,
+} from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
@@ -501,6 +506,311 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('avatar-token-USDT')).toBeOnTheScreen();
   });
 
+  it('renders perps deposits with Perps balance subtitle, fiat primary, and token secondary', () => {
+    const addFunds = makeItem({
+      type: 'perpsAddFunds',
+      status: 'success',
+      hash: '0xperpsdep',
+      token: { amount: '4000', symbol: 'USDC', direction: 'in' },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={addFunds} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xperpsdep').props.children).toBe(
+      strings('transactions.activity_perps_account_funded'),
+    );
+    expect(getByTestId('activity-subtitle-0xperpsdep').props.children).toBe(
+      strings('transactions.activity_perps_balance'),
+    );
+    // Primary is fiat-style (USD, incoming sign); secondary is the token amount.
+    const primary = getByTestId('activity-primary-amount-0xperpsdep').props
+      .children as string;
+    expect(primary.startsWith('+')).toBe(true);
+    expect(primary).toContain('$');
+    expect(
+      getByTestId('activity-secondary-amount-0xperpsdep').props.children,
+    ).toBe('4,000 USDC');
+  });
+
+  it('renders perps withdrawals with fiat primary and signed token secondary', () => {
+    const withdrawFunds = makeItem({
+      type: 'perpsWithdraw',
+      status: 'success',
+      hash: '0xperpswd',
+      token: { amount: '4000', symbol: 'USDC', direction: 'out' },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={withdrawFunds} index={1} />,
+    );
+
+    expect(getByTestId('activity-title-0xperpswd').props.children).toBe(
+      strings('transactions.activity_perps_withdrawal'),
+    );
+    expect(getByTestId('activity-subtitle-0xperpswd').props.children).toBe(
+      strings('transactions.activity_perps_balance'),
+    );
+    const primary = getByTestId('activity-primary-amount-0xperpswd').props
+      .children as string;
+    expect(primary.startsWith('-')).toBe(true);
+    expect(primary).toContain('$');
+    expect(
+      getByTestId('activity-secondary-amount-0xperpswd').props.children,
+    ).toBe('-4,000 USDC');
+  });
+
+  it('renders the position size as the subtitle for perps trades', () => {
+    const openLong = {
+      type: 'perpsOpenLong',
+      chainId: 'eip155:42161',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xlong',
+      data: {
+        token: { amount: '4000', symbol: 'USD', direction: 'out' },
+        sourceToken: { amount: '2.01', symbol: 'ETH', direction: 'in' },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId, queryByTestId } = render(
+      <ActivityListItemRow item={openLong} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xlong').props.children).toBe(
+      strings('transactions.activity_perps_open_long'),
+    );
+    expect(getByTestId('activity-subtitle-0xlong').props.children).toBe(
+      '2.01 ETH',
+    );
+    // Amount is fiat-style (USD), not token-style "4000 USD".
+    const primary = getByTestId('activity-primary-amount-0xlong').props
+      .children as string;
+    expect(primary.startsWith('-')).toBe(true);
+    expect(primary).toContain('$');
+    // No secondary amount on trades — the position size is the subtitle.
+    expect(queryByTestId('activity-secondary-amount-0xlong')).toBeNull();
+  });
+
+  it('gives liquidation, stop-loss, and neutral close titles distinct colors', () => {
+    const { StyleSheet } = jest.requireActual('react-native');
+    const makePerpsClose = (
+      type: ActivityListItem['type'],
+      hash: string,
+    ): ActivityListItem =>
+      ({
+        type,
+        chainId: 'eip155:42161',
+        status: 'success',
+        timestamp: 1_700_000_000_000,
+        hash,
+        data: {
+          token: { amount: '300', symbol: 'USD', direction: 'out' },
+          sourceToken: { amount: '2.01', symbol: 'ETH', direction: 'out' },
+        },
+      }) as unknown as ActivityListItem;
+
+    const titleColor = (item: ActivityListItem, hash: string, index: number) =>
+      StyleSheet.flatten(
+        render(<ActivityListItemRow item={item} index={index} />).getByTestId(
+          `activity-title-${hash}`,
+        ).props.style,
+      ).color;
+
+    const neutral = titleColor(
+      makePerpsClose('perpsCloseLong', '0xn'),
+      '0xn',
+      0,
+    );
+    const liquidated = titleColor(
+      makePerpsClose('perpsCloseLongLiquidated', '0xliq'),
+      '0xliq',
+      1,
+    );
+    const stopLoss = titleColor(
+      makePerpsClose('perpsCloseShortStopLoss', '0xsl'),
+      '0xsl',
+      2,
+    );
+
+    // Liquidation → error color, stop-loss → warning color, both distinct from
+    // the neutral close title and from each other.
+    expect(liquidated).not.toBe(neutral);
+    expect(stopLoss).not.toBe(neutral);
+    expect(liquidated).not.toBe(stopLoss);
+  });
+
+  it('strips the HyperLiquid builder prefix from the trade subtitle', () => {
+    const openLong = {
+      type: 'perpsOpenLong',
+      chainId: 'eip155:42161',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xbuilder',
+      data: {
+        token: { amount: '0.02', symbol: 'USD', direction: 'out' },
+        sourceToken: { amount: '0.002', symbol: 'xyz:GOLD', direction: 'in' },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={openLong} index={0} />,
+    );
+
+    expect(getByTestId('activity-subtitle-0xbuilder').props.children).toBe(
+      '0.002 GOLD',
+    );
+  });
+
+  it('renders the market symbol as the subtitle for perps funding fees', () => {
+    const funding = {
+      type: 'perpsPaidFundingFees',
+      chainId: 'eip155:42161',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xfunding',
+      data: {
+        token: { amount: '0.0006', symbol: 'USD', direction: 'out' },
+        sourceToken: { symbol: 'BTC', direction: 'out' },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={funding} index={0} />,
+    );
+
+    expect(getByTestId('activity-subtitle-0xfunding').props.children).toBe(
+      'BTC',
+    );
+    // Sub-cent funding fee keeps precision in currency format (not $0.00).
+    const primary = getByTestId('activity-primary-amount-0xfunding').props
+      .children as string;
+    expect(primary.startsWith('-')).toBe(true);
+    expect(primary).toContain('$');
+    expect(primary).toContain('0.0006');
+  });
+
+  it('renders predict funds rows with balance subtitle, fiat primary, and token secondary', () => {
+    const addFunds = {
+      type: 'predictionsAddFunds',
+      chainId: 'eip155:137',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xpredictdep',
+      data: {
+        token: { amount: '4000', symbol: 'USDC', direction: 'in' },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={addFunds} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xpredictdep').props.children).toBe(
+      strings('transactions.activity_prediction_account_funded'),
+    );
+    expect(getByTestId('activity-subtitle-0xpredictdep').props.children).toBe(
+      strings('transactions.activity_predictions_balance'),
+    );
+    const primary = getByTestId('activity-primary-amount-0xpredictdep').props
+      .children as string;
+    expect(primary.startsWith('+')).toBe(true);
+    expect(primary).toContain('$');
+    expect(
+      getByTestId('activity-secondary-amount-0xpredictdep').props.children,
+    ).toBe('4,000 USDC');
+  });
+
+  it('appends an em-dash "Failed" suffix to a failed domain (predict) row title', () => {
+    const failedWithdraw = {
+      type: 'predictionsWithdrawFunds',
+      chainId: 'eip155:137',
+      status: 'failed',
+      timestamp: 1_700_000_000_000,
+      hash: '0xpredictwdfailed',
+      data: {
+        token: {
+          amount: '1000000',
+          symbol: 'USDC',
+          decimals: 6,
+          direction: 'out',
+        },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={failedWithdraw} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xpredictwdfailed').props.children).toBe(
+      `${strings('transactions.activity_prediction_withdrawal')}—${strings(
+        'transaction.failed',
+      )}`,
+    );
+  });
+
+  it('renders predict rows with market subtitle, fiat amount, and market icon', () => {
+    const placed = {
+      type: 'predictionPlaced',
+      chainId: 'eip155:137',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      raw: {
+        type: 'predictActivity',
+        data: {
+          id: 'p1',
+          providerId: 'polymarket',
+          title: 'Will Spain win the 2026 FIFA World Cup?',
+          icon: 'https://example.com/spain.png',
+          entry: { type: 'buy', timestamp: 1, amount: 3 },
+        },
+      },
+      hash: 'predict-1',
+      data: {
+        token: { amount: '3', symbol: 'USDC', direction: 'out' },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={placed} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-predict-1').props.children).toBe(
+      strings('transactions.activity_prediction_placed'),
+    );
+    expect(getByTestId('activity-subtitle-predict-1').props.children).toBe(
+      'Will Spain win the 2026 FIFA World Cup?',
+    );
+    const primary = getByTestId('activity-primary-amount-predict-1').props
+      .children as string;
+    expect(primary.startsWith('-')).toBe(true);
+    expect(primary).toContain('$');
+  });
+
+  it('renders very small funding fees in subscript notation', () => {
+    const funding = {
+      type: 'perpsPaidFundingFees',
+      chainId: 'eip155:42161',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xtiny',
+      data: {
+        token: { amount: '0.00005', symbol: 'USD', direction: 'out' },
+        sourceToken: { symbol: 'BTC', direction: 'out' },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={funding} index={0} />,
+    );
+
+    // 0.00005 → subscript notation "$0.0₄5" (4 leading zeros).
+    const primary = getByTestId('activity-primary-amount-0xtiny').props
+      .children as string;
+    expect(primary).toContain('₄');
+    expect(primary).toContain('$');
+    expect(primary.startsWith('-')).toBe(true);
+  });
+
   it('renders spending cap rows with token subtitle and no empty amount', () => {
     const item = makeItem({
       type: 'approveSpendingCap',
@@ -808,6 +1118,78 @@ describe('ActivityListItemRow — row content', () => {
   });
 });
 
+describe('ActivityListItemRow — display currency conversion', () => {
+  const mockCurrency = jest.mocked(selectCurrentCurrency);
+  const mockConversionRate = jest.mocked(selectConversionRateByChainId);
+  const mockUsdConversionRate = jest.mocked(selectUSDConversionRateByChainId);
+
+  // These selector mocks use persistent return values (clearAllMocks does not
+  // reset them), so restore the suite-wide defaults (USD, equal rates) after
+  // each test to keep overrides from leaking.
+  afterEach(() => {
+    mockCurrency.mockReturnValue('usd');
+    mockConversionRate.mockReturnValue(2500);
+    mockUsdConversionRate.mockReturnValue(2500);
+  });
+
+  const makeFundingFee = (hash: string, amount: string): ActivityListItem =>
+    ({
+      type: 'perpsPaidFundingFees',
+      chainId: 'eip155:42161',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash,
+      data: {
+        token: { amount, symbol: 'USD', direction: 'out' },
+        sourceToken: { symbol: 'BTC', direction: 'out' },
+      },
+    }) as unknown as ActivityListItem;
+
+  it('converts a USD-denominated amount into the user display currency', () => {
+    // Native→EUR 2300, Native→USD 2500 → USD→display factor 0.92.
+    mockCurrency.mockReturnValue('eur');
+    mockConversionRate.mockReturnValue(2300);
+    mockUsdConversionRate.mockReturnValue(2500);
+
+    const { getByTestId } = render(
+      <ActivityListItemRow
+        item={makeFundingFee('0xeurfunding', '1')}
+        index={0}
+      />,
+    );
+
+    const primary = getByTestId('activity-primary-amount-0xeurfunding').props
+      .children as string;
+    expect(primary.startsWith('-')).toBe(true);
+    // 1 USD × (2300 / 2500) = 0.92 in the user's currency, not the raw $1.
+    expect(primary).toContain('0.92');
+    expect(primary).not.toContain('$');
+  });
+
+  it('omits the domain fiat for a non-USD user when rates are unavailable', () => {
+    // No rates to convert with: rather than mislabel a USD figure with another
+    // currency's symbol, the domain fiat is dropped and the row falls back to
+    // the raw token amount.
+    mockCurrency.mockReturnValue('eur');
+    mockConversionRate.mockReturnValue(undefined);
+    mockUsdConversionRate.mockReturnValue(undefined);
+
+    const { getByTestId } = render(
+      <ActivityListItemRow
+        item={makeFundingFee('0xnorate', '0.0006')}
+        index={0}
+      />,
+    );
+
+    const primary = getByTestId('activity-primary-amount-0xnorate').props
+      .children as string;
+    expect(primary).not.toContain('$');
+    expect(primary).not.toContain('€');
+    expect(primary).toContain('0.0006');
+    expect(primary).toContain('USD');
+  });
+});
+
 describe('ActivityListItemRow — network badge', () => {
   it('uses the row item chainId for the network badge', () => {
     const item = makeItem({ status: 'success' });
@@ -996,13 +1378,17 @@ const EXPECTED_TITLES = {
   contractInteraction: strings('transactions.smart_contract_interaction'),
   contractDeployment: strings('transactions.tx_review_contract_deployment'),
   smartAccountUpgrade: 'Smart account upgraded',
-  predictionsAddFunds: strings('transactions.tx_review_predict_deposit'),
-  predictionsWithdrawFunds: strings('transactions.tx_review_predict_withdraw'),
-  predictionClaimWinnings: strings('transactions.tx_review_predict_claim'),
-  predictionCashedOut: strings('transactions.activity_prediction_cashed_out'),
+  predictionsAddFunds: strings(
+    'transactions.activity_prediction_account_funded',
+  ),
+  predictionsWithdrawFunds: strings(
+    'transactions.activity_prediction_withdrawal',
+  ),
+  predictionClaimWinnings: strings('predict.transactions.claim_title'),
+  predictionCashedOut: strings('predict.transactions.sell_title'),
   predictionPlaced: strings('transactions.activity_prediction_placed'),
-  perpsAddFunds: strings('transactions.tx_review_perps_deposit'),
-  perpsWithdraw: strings('transactions.tx_review_perps_withdraw'),
+  perpsAddFunds: strings('transactions.activity_perps_account_funded'),
+  perpsWithdraw: strings('transactions.activity_perps_withdrawal'),
   perpsOpenLong: strings('transactions.activity_perps_open_long'),
   perpsCloseLong: strings('transactions.activity_perps_close_long'),
   perpsCloseLongLiquidated: strings(
@@ -1057,6 +1443,122 @@ describe('ActivityListItemRow — title display for all ActivityKind values', ()
 
     expect(getByText('Swap ETH to USDC')).toBeOnTheScreen();
     expect(queryByText(strings('transactions.swaps_transaction'))).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// getLocalTransactionStatus exhaustiveness test
+// ---------------------------------------------------------------------------
+
+describe('getLocalTransactionStatus — all local transaction status paths', () => {
+  const { getLocalTransactionStatus } = jest.requireActual(
+    '../../../util/activity-adapters/adapters/helpers',
+  );
+  const { TransactionStatus } = jest.requireActual(
+    '@metamask/transaction-controller',
+  );
+
+  const makeGroup = (overrides: Record<string, unknown>) => ({
+    primaryTransaction: {
+      txReceipt: {},
+      type: 'simpleSend',
+      status: 'submitted',
+      ...overrides,
+    },
+    initialTransaction: {
+      isSmartTransaction: false,
+      txParams: {},
+      ...overrides,
+    },
+  });
+
+  it('maps confirmed → success', () => {
+    const group = makeGroup({ status: TransactionStatus.confirmed });
+    expect(getLocalTransactionStatus(group)).toBe('success');
+  });
+
+  it('maps failed → failed', () => {
+    const group = makeGroup({ status: TransactionStatus.failed });
+    expect(getLocalTransactionStatus(group)).toBe('failed');
+  });
+
+  it('maps dropped → failed', () => {
+    const group = makeGroup({ status: TransactionStatus.dropped });
+    expect(getLocalTransactionStatus(group)).toBe('failed');
+  });
+
+  it('maps rejected → failed', () => {
+    const group = makeGroup({ status: TransactionStatus.rejected });
+    expect(getLocalTransactionStatus(group)).toBe('failed');
+  });
+
+  it('maps cancelled (cancel-type tx) → failed', () => {
+    const group = makeGroup({
+      status: TransactionStatus.confirmed,
+      type: 'cancel',
+    });
+    expect(getLocalTransactionStatus(group)).toBe('failed');
+  });
+
+  it('maps submitted → pending', () => {
+    const group = makeGroup({ status: TransactionStatus.submitted });
+    expect(getLocalTransactionStatus(group)).toBe('pending');
+  });
+
+  it('maps approved → pending', () => {
+    const group = makeGroup({ status: TransactionStatus.approved });
+    expect(getLocalTransactionStatus(group)).toBe('pending');
+  });
+
+  it('maps unapproved → pending', () => {
+    const group = makeGroup({ status: TransactionStatus.unapproved });
+    expect(getLocalTransactionStatus(group)).toBe('pending');
+  });
+
+  it('maps signed → pending', () => {
+    const group = makeGroup({ status: TransactionStatus.signed });
+    expect(getLocalTransactionStatus(group)).toBe('pending');
+  });
+
+  it('maps receipt status 0x0 (revert) → failed', () => {
+    const group = makeGroup({
+      status: TransactionStatus.confirmed,
+      txReceipt: { status: '0x0' },
+    });
+    expect(getLocalTransactionStatus(group)).toBe('failed');
+  });
+
+  it('maps smart tx pending → pending', () => {
+    const group = {
+      primaryTransaction: makeGroup({}).primaryTransaction,
+      initialTransaction: {
+        isSmartTransaction: true,
+        status: 'pending',
+      },
+    };
+    expect(getLocalTransactionStatus(group)).toBe('pending');
+  });
+
+  it('maps smart tx success → success', () => {
+    const group = {
+      primaryTransaction: makeGroup({}).primaryTransaction,
+      initialTransaction: {
+        isSmartTransaction: true,
+        status: 'success',
+      },
+    };
+    expect(getLocalTransactionStatus(group)).toBe('success');
+  });
+
+  it('maps smart tx cancelled → failed', () => {
+    const group = {
+      primaryTransaction: makeGroup({}).primaryTransaction,
+      initialTransaction: {
+        isSmartTransaction: true,
+        status: 'cancelled',
+      },
+    };
+    expect(getLocalTransactionStatus(group)).toBe('failed');
   });
 });
 

@@ -75,6 +75,10 @@ jest.mock('@react-navigation/native', () => ({
 const mockTrackAmountSelected = jest.fn();
 const mockTrackTradeSubmitted = jest.fn();
 const mockTrackTradeCompleted = jest.fn();
+const mockTrackQuoteSelected = jest.fn();
+const mockTrackPayWithSelected = jest.fn();
+const mockTrackReceiveTokenSelected = jest.fn();
+const mockTrackSlippageChanged = jest.fn();
 
 jest.mock('./hooks/useQuickBuyAnalytics', () => ({
   useQuickBuyAnalytics: () => ({
@@ -87,6 +91,10 @@ jest.mock('./hooks/useQuickBuyAnalytics', () => ({
     },
     trackAmountSelected: mockTrackAmountSelected,
     trackTradeModeToggled: jest.fn(),
+    trackQuoteSelected: mockTrackQuoteSelected,
+    trackPayWithSelected: mockTrackPayWithSelected,
+    trackReceiveTokenSelected: mockTrackReceiveTokenSelected,
+    trackSlippageChanged: mockTrackSlippageChanged,
     trackTradeSubmitted: mockTrackTradeSubmitted,
     trackTradeCompleted: mockTrackTradeCompleted,
     markTradeSubmitted: jest.fn(),
@@ -808,6 +816,31 @@ describe('useQuickBuyController', () => {
       expect(result.current.selectedSourceToken).toEqual(usdt);
       expect(result.current.fiatAmount).toBe('');
       expect(result.current.sliderPercent).toBe(0);
+    });
+
+    it('tracks pay_with_selected when the user picks a different token', () => {
+      const usdc = createSourceToken({
+        symbol: 'USDC',
+        currencyExchangeRate: 1,
+      });
+      const usdt = createSourceToken({
+        symbol: 'USDT',
+        address: '0xdac17f958d2ee523a2206206994597c13d831ec7',
+        currencyExchangeRate: 1,
+      });
+      (usePayWithTokens as jest.Mock).mockReturnValue({
+        options: [usdc, usdt],
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleSelectSourceToken(usdt);
+      });
+
+      expect(mockTrackPayWithSelected).toHaveBeenCalledWith('USDT', 'USDC');
     });
   });
 
@@ -2663,6 +2696,93 @@ describe('useQuickBuyController', () => {
       rerender(props);
 
       expect(result.current.selectedQuoteRequestId).toBeUndefined();
+    });
+
+    it('tracks quote_selected with index when user selects a quote', () => {
+      const sortedQuotes = [
+        quoteWithRequestId('quote-a'),
+        quoteWithRequestId('quote-b'),
+      ];
+      (useQuickBuyQuotes as jest.Mock).mockReturnValue({
+        activeQuote: sortedQuotes[0],
+        sortedQuotes,
+        destTokenAmount: '1',
+        isQuoteLoading: false,
+        isNoQuotesAvailable: false,
+        quoteFetchError: null,
+        isActiveQuoteForCurrentTokenPair: true,
+        isQuoteRequestStale: false,
+        quoteCount: sortedQuotes.length,
+        quotesLastFetchedAt: Date.now(),
+        refreshCount: 1,
+        quoteRefreshRateMs: 30000,
+        maxRefreshCount: 5,
+        refetchQuotes: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      act(() => {
+        result.current.handleSelectQuote('quote-b');
+      });
+
+      expect(mockTrackQuoteSelected).toHaveBeenCalledWith(1, 2);
+      expect(result.current.selectedQuoteRequestId).toBe('quote-b');
+    });
+  });
+
+  describe('quick buy interacted analytics', () => {
+    it('does not track slippage_changed on initial mount', () => {
+      renderHook(() => useQuickBuyController(createTarget(), jest.fn()));
+      expect(mockTrackSlippageChanged).not.toHaveBeenCalled();
+    });
+
+    it('tracks slippage_changed when slippage updates after mount', () => {
+      const props = {
+        target: createTarget(),
+        onClose: jest.fn(),
+      };
+      const { rerender } = renderHook(
+        ({ target, onClose }) => useQuickBuyController(target, onClose),
+        { initialProps: props },
+      );
+
+      (selectSlippage as unknown as jest.Mock).mockReturnValue('2');
+      rerender(props);
+
+      expect(mockTrackSlippageChanged).toHaveBeenCalledWith('2', '0.5');
+    });
+
+    it('tracks receive_token_selected when the user picks a receive token', () => {
+      const usdc = createSourceToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        currencyExchangeRate: 1,
+      });
+      const eth = createSourceToken({
+        symbol: 'ETH',
+        address: '0x0000000000000000000000000000000000000000',
+        currencyExchangeRate: 2000,
+      });
+      (useReceiveTokens as jest.Mock).mockReturnValue([usdc, eth]);
+
+      const { result } = renderHook(() =>
+        useQuickBuyController(createTarget(), jest.fn()),
+      );
+
+      const previousSymbol = result.current.selectedDestStable?.symbol;
+      const nextToken = previousSymbol === 'USDC' ? eth : usdc;
+
+      act(() => {
+        result.current.handleSelectDestStable(nextToken);
+      });
+
+      expect(mockTrackReceiveTokenSelected).toHaveBeenCalledWith(
+        nextToken.symbol,
+        previousSymbol ?? '',
+      );
     });
   });
 
