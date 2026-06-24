@@ -240,6 +240,16 @@ function buildTestInfrastructure(): PerpsPlatformDependencies {
   };
 }
 
+interface GetNotificationPreferencesAction {
+  type: 'AuthenticatedUserStorageService:getNotificationPreferences';
+  handler: () => Promise<NotificationPreferences | null>;
+}
+
+interface PutNotificationPreferencesAction {
+  type: 'AuthenticatedUserStorageService:putNotificationPreferences';
+  handler: (prefs: NotificationPreferences) => Promise<void>;
+}
+
 function buildRealController(
   getNotificationPreferencesImpl: () => Promise<NotificationPreferences | null>,
 ) {
@@ -254,7 +264,10 @@ function buildRealController(
     getDefaultPerpsControllerState: () => PerpsControllerState;
   };
 
-  const baseMessenger = new ExtendedMessenger<MockAnyNamespace>({
+  const baseMessenger = new ExtendedMessenger<
+    MockAnyNamespace,
+    GetNotificationPreferencesAction | PutNotificationPreferencesAction
+  >({
     namespace: MOCK_ANY_NAMESPACE,
   });
 
