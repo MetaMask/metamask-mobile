@@ -164,7 +164,7 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
   ) {
     let userInfo = notification.request.content.userInfo
     // Tell Firebase about the message — this triggers messaging().onMessage() in JS.
-    FIRMessaging.messaging().appDidReceiveMessage(userInfo)
+    Messaging.messaging().appDidReceiveMessage(userInfo)
     // Show the notification visually in the foreground.
     completionHandler([.sound, .badge, .banner, .list])
   }
@@ -176,7 +176,9 @@ extension AppDelegate: UNUserNotificationCenterDelegate {
     didReceive response: UNNotificationResponse,
     withCompletionHandler completionHandler: @escaping () -> Void
   ) {
-    AppDelegate.braze?.notifications.handleNotificationResponse(response, withCompletionHandler: completionHandler)
+    if AppDelegate.braze?.notifications.handleUserNotification(response: response, withCompletionHandler: completionHandler) != true {
+      completionHandler()
+    }
   }
 }
 
