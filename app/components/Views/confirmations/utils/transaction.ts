@@ -133,6 +133,18 @@ export function resolveTransactionType(
   return nestedType ?? transaction.type;
 }
 
+export function getTransactionType(
+  transactionMeta: TransactionMeta | undefined,
+): string | undefined {
+  if (!transactionMeta) return undefined;
+  const { type, nestedTransactions } = transactionMeta;
+  if (nestedTransactions?.length) {
+    const nestedType = nestedTransactions.find((tx) => tx.type)?.type;
+    if (nestedType) return nestedType;
+  }
+  return type;
+}
+
 export function hasTransactionType(
   transactionMeta: TransactionMeta | undefined,
   types: readonly TransactionType[],

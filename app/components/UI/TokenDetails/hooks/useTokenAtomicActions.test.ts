@@ -31,10 +31,9 @@ import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets
 import {
   getDetectedGeolocation,
   getOrders,
-  getRampRoutingDecision,
 } from '../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
-import { getProviderToken } from '../../Ramp/Deposit/utils/ProviderTokenVault';
+import { getProviderToken } from '../../Ramp/utils/ProviderTokenVault';
 import { TokenDetailsSource } from '../constants/constants';
 import {
   createMockInternalAccount,
@@ -92,14 +91,13 @@ jest.mock('../../../../selectors/assets/assets-list', () => ({
 jest.mock('../../../../reducers/fiatOrders', () => ({
   getDetectedGeolocation: jest.fn(),
   getOrders: jest.fn(),
-  getRampRoutingDecision: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rampsController', () => ({
   selectRampsOrdersForSelectedAccountGroup: jest.fn(),
 }));
 
-jest.mock('../../Ramp/Deposit/utils/ProviderTokenVault', () => ({
+jest.mock('../../Ramp/utils/ProviderTokenVault', () => ({
   getProviderToken: jest.fn(),
 }));
 
@@ -149,12 +147,6 @@ jest.mock('../../Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({
     goToBuy: mockGoToBuy,
   }),
-}));
-
-const mockRampsUnifiedV1Enabled = jest.fn(() => false);
-jest.mock('../../Ramp/hooks/useRampsUnifiedV1Enabled', () => ({
-  __esModule: true,
-  default: () => mockRampsUnifiedV1Enabled(),
 }));
 
 const mockSendNonEvmAsset = jest.fn().mockResolvedValue(false);
@@ -228,7 +220,6 @@ const mockSelectAssetsBySelectedAccountGroup = jest.mocked(
 );
 const mockGetDetectedGeolocation = jest.mocked(getDetectedGeolocation);
 const mockGetOrders = jest.mocked(getOrders);
-const mockGetRampRoutingDecision = jest.mocked(getRampRoutingDecision);
 const mockSelectRampsOrdersForSelectedAccountGroup = jest.mocked(
   selectRampsOrdersForSelectedAccountGroup,
 );
@@ -266,7 +257,6 @@ const setupSelectorDefaults = () => {
   mockSelectAssetsBySelectedAccountGroup.mockReturnValue({});
   mockGetDetectedGeolocation.mockReturnValue('US');
   mockGetOrders.mockReturnValue([]);
-  mockGetRampRoutingDecision.mockReturnValue(null);
   mockSelectRampsOrdersForSelectedAccountGroup.mockReturnValue([]);
   mockGetProviderToken.mockResolvedValue({
     success: true,
@@ -291,7 +281,6 @@ beforeEach(() => {
     goToSwaps: mockGoToSwaps,
     networkModal: null,
   });
-  mockRampsUnifiedV1Enabled.mockReturnValue(false);
 });
 
 /**
@@ -568,18 +557,7 @@ describe('useTokenAtomicActions - useHandleOnBuy', () => {
       is_authenticated: true,
       region: 'US',
       order_count: 0,
-      ramp_type: 'BUY',
-    });
-  });
-
-  it('switches ramp_type to UNIFIED_BUY when the unified-v1 flag is enabled', async () => {
-    mockRampsUnifiedV1Enabled.mockReturnValue(true);
-
-    const { result } = await renderOnBuy();
-    result.current();
-
-    assertAnalyticsEvent(MetaMetricsEvents.RAMPS_BUTTON_CLICKED, {
-      ramp_type: 'UNIFIED_BUY',
+      ramp_type: 'UNIFIED_BUY_2',
     });
   });
 

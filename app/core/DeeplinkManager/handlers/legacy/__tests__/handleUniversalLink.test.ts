@@ -24,6 +24,7 @@ import { handleSocialTraderPositionUrl } from '../handleSocialTraderPositionUrl'
 import { handleWhatsHappeningUrl } from '../handleWhatsHappeningUrl';
 import { handleSwapUrl } from '../handleSwapUrl';
 import { handleBatchSellUrl } from '../handleBatchSellUrl';
+import { handleAssetUrl } from '../handleAssetUrl';
 import {
   createRewardsDeeplinkIntent,
   handleRewardsUrl,
@@ -56,6 +57,7 @@ jest.mock('../handleRampReturnUrl');
 jest.mock('../handleHomeUrl');
 jest.mock('../handleSwapUrl');
 jest.mock('../handleBatchSellUrl');
+jest.mock('../handleAssetUrl');
 jest.mock('../handleBrowserUrl');
 jest.mock('../handleDappUrl', () => {
   const actual = jest.requireActual('../handleDappUrl');
@@ -495,6 +497,61 @@ describe('handleUniversalLink', () => {
 
       expect(handleRampReturnUrl).toHaveBeenCalledWith({
         rampReturnPath: onRampPath,
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+  });
+
+  describe('ACTIONS.ASSET', () => {
+    it('calls handleAssetUrl with the path after the action', async () => {
+      const assetPath = '?assetId=eip155:1/erc20:0xabc';
+      const assetUrl = `https://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.ASSET}${assetPath}`;
+      const assetUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: assetUrl,
+        pathname: `/${ACTIONS.ASSET}`,
+        search: assetPath,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: assetUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: assetUrl,
+        source: 'test-source',
+      });
+
+      expect(handleAssetUrl).toHaveBeenCalledWith({
+        assetPath,
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+
+    it('does not show interstitial modal for ASSET action (whitelisted)', async () => {
+      const assetPath = '?assetId=eip155:1/erc20:0xabc';
+      const assetUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.ASSET}${assetPath}`;
+      const assetUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_IO_UNIVERSAL_LINK_HOST,
+        href: assetUrl,
+        pathname: `/${ACTIONS.ASSET}`,
+        search: assetPath,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: assetUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: assetUrl,
+        source: 'test-source',
+      });
+
+      expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
+      expect(handleAssetUrl).toHaveBeenCalledWith({
+        assetPath,
       });
       expect(handled).toHaveBeenCalled();
     });
@@ -1258,14 +1315,14 @@ describe('handleUniversalLink', () => {
 
   describe('ACTIONS.SOCIAL_TRADER_POSITION', () => {
     it('calls _handleSocialTraderPosition when action is SOCIAL_TRADER_POSITION', async () => {
-      const positionUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER_POSITION}?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy`;
+      const positionUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.SOCIAL_TRADER_POSITION}?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_subtype=follow_newtrade_buy`;
       const positionUrlObj = {
         ...urlObj,
         hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
         href: positionUrl,
         pathname: `/${ACTIONS.SOCIAL_TRADER_POSITION}`,
         search:
-          '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
+          '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_subtype=follow_newtrade_buy',
       };
 
       await handleUniversalLink({
@@ -1280,7 +1337,7 @@ describe('handleUniversalLink', () => {
       expect(mockHandleDeepLinkModalDisplay).not.toHaveBeenCalled();
       expect(handleSocialTraderPositionUrl).toHaveBeenCalledWith({
         actionPath:
-          '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_event=follow_newtrade_buy',
+          '?positionId=position-1&traderId=trader-1&deduplication_id=dedup-1&notification_subtype=follow_newtrade_buy',
       });
       expect(handled).toHaveBeenCalled();
     });

@@ -2,6 +2,9 @@ import { web, system } from 'detox';
 import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
 import { FrameworkDetector } from './FrameworkDetector.ts';
 import { resolve } from './Selector.ts';
+import PlaywrightMatchers from './PlaywrightMatchers.ts';
+import type { PlaywrightElement } from './PlaywrightAdapter.ts';
+import type { ScrollContainer } from './types.ts';
 
 /**
  * Utility class for matching (locating) UI elements
@@ -17,10 +20,8 @@ export default class Matchers {
     if (typeof elementId === 'string') {
       return resolve({ testID: elementId, index });
     }
-    const el = element(by.id(elementId));
-    return (index !== undefined
-      ? el.atIndex(index)
-      : el) as unknown as DetoxElement;
+
+    return resolve({ testIDPattern: elementId, index });
   }
 
   /**
@@ -33,7 +34,8 @@ export default class Matchers {
     if (typeof text === 'string') {
       return resolve({ text, index });
     }
-    return element(by.text(text)).atIndex(index) as unknown as DetoxElement;
+
+    return resolve({ textPattern: text, index });
   }
 
   /**
@@ -193,11 +195,40 @@ export default class Matchers {
   }
 
   /**
+   * Scroll container for Gestures.scrollToElement.
+   * Detox: native matcher by testID. Appium: testID string (resolved in UnifiedGestures).
+   */
+  static scrollContainer(selectorString: string): ScrollContainer {
+    if (FrameworkDetector.isAppium()) {
+      return selectorString;
+    }
+    return this.getIdentifier(selectorString);
+  }
+
+  /**
    * Get system dialogs in the system-level (e.g. permissions, alerts, etc.), by text
    */
   static async getSystemElementByText(
     text: string,
   ): Promise<Detox.IndexableSystemElement> {
     return system.element(by.system.label(text));
+  }
+
+  /**
+   * Get all elements matching an XPath selector (Appium-only).
+   * Returns an empty array when no element matches — use this when the count
+   * itself is meaningful (e.g. asserting a duplicate label appears N times).
+   * Detox has no direct equivalent; matched elements there are addressed via
+   * `.atIndex(N)` on a Detox matcher instead.
+   */
+  static async getAllElementsByXPath(
+    xpath: string,
+  ): Promise<PlaywrightElement[]> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error(
+        'Matchers.getAllElementsByXPath is Appium-only. On Detox, use the matcher returned by getElementByID/getElementByIDAndLabel and address indices via .atIndex(N).',
+      );
+    }
+    return PlaywrightMatchers.getAllElementsByXPath(xpath);
   }
 }

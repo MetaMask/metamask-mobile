@@ -1,35 +1,36 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { View, StyleSheet } from 'react-native';
-import { useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
 import {
   Button,
   ButtonAnimated,
   ButtonVariant,
+  Icon,
   IconName,
   IconSize,
   TextColor,
 } from '@metamask/design-system-react-native';
-import type { TokenSecurityData } from '@metamask/assets-controllers';
+import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import { StyleSheet, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
+import Routes from '../../../../constants/navigation/Routes';
+import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
+import { useTokenChartPreferences } from '../../AssetOverview/Price/hooks/useTokenChartPreferences';
+import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions';
+import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
-import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
-import { AMBIENT_NEGATIVE_COLOR } from './abTestConfig';
-import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
-import Routes from '../../../../constants/navigation/Routes';
 import type { BridgeToken } from '../../Bridge/types';
+import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
+import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
 import type { TokenDetailsRouteParams } from '../constants/constants';
-import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
-import { ONDO_RESTRICTED_COUNTRIES } from '../../../../util/ondoGeoRestrictions';
+import { useStickyFooterTracking } from '../hooks/useStickyFooterTracking';
+import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
+import { AMBIENT_NEGATIVE_COLOR } from './abTestConfig';
 import RwaUnavailableBottomSheet, {
   type RwaUnavailableBottomSheetRef,
 } from './RwaUnavailableBottomSheet/RwaUnavailableBottomSheet';
-import { useStickyTokenActions } from '../hooks/useStickyTokenActions';
-import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
-import FlashFilledIcon from './assets/flash-filled.svg';
 
 const styles = StyleSheet.create({
   footer: {
@@ -114,6 +115,8 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
   const insets = useSafeAreaInsets();
   const { colors, themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
+
+  const { indicators: indicatorsActive } = useTokenChartPreferences();
 
   const useErrorAccent = useAmbientColor && isPricePositive === false;
 
@@ -293,6 +296,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 balanceFiatUsd,
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
+                indicatorsActive,
               });
               handleFooterAction(
                 onSwap,
@@ -325,6 +329,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 balanceFiatUsd,
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
+                indicatorsActive,
               });
               handleFooterAction(
                 onBuy,
@@ -349,6 +354,7 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
                 balanceFiatUsd,
                 tokenAddress: token.address ?? '',
                 chainId: token.chainId ?? '',
+                indicatorsActive,
               });
               handleFooterAction(
                 onQuickBuyPress,
@@ -356,11 +362,10 @@ const TokenDetailsStickyFooter: React.FC<TokenStickyFooterProps> = ({
               );
             }}
           >
-            <FlashFilledIcon
-              name="FlashFilled"
-              width={20}
-              height={20}
-              fill={successColorHex}
+            <Icon
+              name={IconName.FlashFilled}
+              size={IconSize.Md}
+              twClassName={successText}
             />
           </ButtonAnimated>
         )}

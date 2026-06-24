@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, View } from 'react-native';
-import styleSheet from '../../Deposit/Views/KycProcessing/KycProcessing.styles';
+import styleSheet from './KycProcessing.styles';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
+import DepositProgressBar from '../../components/DepositProgressBar';
 import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { strings } from '../../../../../../locales/i18n';
@@ -19,26 +19,46 @@ import {
   FontWeight,
   HeaderStandard,
 } from '@metamask/design-system-react-native';
-import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import { KycStatus } from '../../Deposit/constants';
+import PoweredByTransak from '../../components/PoweredByTransak';
+import { KycStatus } from '../../constants';
 import Logger from '../../../../../util/Logger';
 import useAnalytics from '../../hooks/useAnalytics';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import type { TransakUserDetails } from '@metamask/ramps-controller';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { useHeadlessRampProps } from '../../headless/useHeadlessRampProps';
+import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
+import { useParams } from '../../../../../util/navigation/navUtils';
 import { KYC_PROCESSING_TEST_IDS } from './KycProcessing.testIds';
+
+export interface V2KycProcessingParams {
+  /**
+   * Threaded from `useTransakRouting` resets when the KYC step is part of a
+   * headless buy flow (TRAM-3623). Used to flip the KYC analytics to
+   * `ramp_type: 'HEADLESS'` + the seeded `ramp_surface`.
+   */
+  headlessSessionId?: string;
+}
 
 const V2KycProcessing = () => {
   const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const trackEvent = useAnalytics();
+  const { headlessSessionId } = useParams<V2KycProcessingParams>();
+
+  // Headless deposit (TRAM-3623): flip the KYC outcome events to
+  // `ramp_type: 'HEADLESS'` + the seeded `ramp_surface` when in a headless
+  // flow; keep 'DEPOSIT' otherwise.
+  const { headlessDepositRampProps } = useHeadlessRampProps(headlessSessionId);
 
   const {
     getAdditionalRequirements,
     getUserDetails,
     buyQuote: quote,
   } = useTransakController();
+  const { userRegion } = useRampsUserRegion();
+  const regionIsoCode = userRegion?.regionCode || '';
   const { routeAfterAuthentication } = useTransakRouting({
     screenLocation: 'V2 KycProcessing Screen',
   });
@@ -156,16 +176,26 @@ const V2KycProcessing = () => {
   useEffect(() => {
     if (kycStatus === KycStatus.REJECTED) {
       trackEvent('RAMPS_KYC_APPLICATION_FAILED', {
-        ramp_type: 'DEPOSIT',
+        ...headlessDepositRampProps,
         kyc_type: userDetails?.kyc?.type || '',
+        region: regionIsoCode,
+        error_message:
+          error || strings('deposit.kyc_processing.error_description'),
       });
     } else if (kycStatus === KycStatus.APPROVED) {
       trackEvent('RAMPS_KYC_APPLICATION_APPROVED', {
-        ramp_type: 'DEPOSIT',
+        ...headlessDepositRampProps,
         kyc_type: userDetails?.kyc?.type || '',
       });
     }
-  }, [kycStatus, trackEvent, userDetails?.kyc?.type]);
+  }, [
+    kycStatus,
+    trackEvent,
+    userDetails?.kyc?.type,
+    headlessDepositRampProps,
+    regionIsoCode,
+    error,
+  ]);
 
   if (error || kycStatus === KycStatus.REJECTED || hasPendingForms) {
     return (

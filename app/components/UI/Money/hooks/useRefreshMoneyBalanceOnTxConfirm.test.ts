@@ -1,8 +1,10 @@
 import {
+  CHAIN_IDS,
   TransactionMeta,
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
+import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import Engine from '../../../../core/Engine';
@@ -83,14 +85,15 @@ const getConfirmedHandler = (): TransactionConfirmedHandler => {
 beforeEach(() => {
   jest.clearAllMocks();
   let readCount = 0;
-  mockGetQueryData.mockImplementation((queryKey: [string]) => {
-    const phase = readCount < 2 ? 'baseline' : 'next';
+  mockGetQueryData.mockImplementation(() => {
+    const phase = readCount < 1 ? 'baseline' : 'next';
     readCount += 1;
 
-    if (queryKey[0] === MoneyAccountBalanceServiceQueryKeys.GET_MUSD_BALANCE) {
-      return { balance: phase === 'baseline' ? '1000000' : '1100000' };
-    }
-    return { balanceOfInAssets: phase === 'baseline' ? '2000000' : '2100000' };
+    return {
+      musdBalance: phase === 'baseline' ? '1000000' : '1100000',
+      vmusdValueInMusd: phase === 'baseline' ? '2000000' : '2100000',
+      totalBalance: phase === 'baseline' ? '3000000' : '3200000',
+    };
   });
 
   mockSelectPrimaryMoneyAccount.mockReturnValue({
@@ -116,41 +119,34 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
     );
   });
 
-  it('invalidates both balance queries on confirmed deposit tx', async () => {
+  it('invalidates the balance query on confirmed deposit tx', async () => {
     renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
     const handler = getConfirmedHandler();
 
     handler(makeTx(TransactionType.moneyAccountDeposit));
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
     });
 
     expect(mockInvalidateQueries).toHaveBeenCalledWith({
       queryKey: [
-        MoneyAccountBalanceServiceQueryKeys.GET_MUSD_BALANCE,
-        MOCK_ADDRESS,
-      ],
-      refetchType: 'all',
-    });
-    expect(mockInvalidateQueries).toHaveBeenCalledWith({
-      queryKey: [
-        MoneyAccountBalanceServiceQueryKeys.GET_MUSD_EQUIVALENT_VALUE,
+        MoneyAccountBalanceServiceQueryKeys.GET_MONEY_ACCOUNT_BALANCE,
         MOCK_ADDRESS,
       ],
       refetchType: 'all',
     });
   });
 
-  it('invalidates both balance queries on confirmed withdraw tx', async () => {
+  it('invalidates the balance query on confirmed withdraw tx', async () => {
     renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
     const handler = getConfirmedHandler();
 
     handler(makeTx(TransactionType.moneyAccountWithdraw));
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
   });
 
   it('invalidates on confirmed tx with nested deposit', async () => {
@@ -163,10 +159,10 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       ]),
     );
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
   });
 
   it('invalidates on confirmed tx with nested withdraw', async () => {
@@ -179,10 +175,62 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
       ]),
     );
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+  });
+
+  const MUSD_ON_MONAD = {
+    tokenAddress: MUSD_TOKEN_ADDRESS,
+    chainId: CHAIN_IDS.MONAD,
+  };
+
+  it('invalidates on a confirmed Perps deposit funded from the Money account', async () => {
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+    const handler = getConfirmedHandler();
+
+    handler({
+      ...makeTx(TransactionType.perpsDeposit),
+      metamaskPay: MUSD_ON_MONAD,
+    } as unknown as TransactionMeta);
+    await waitFor(() => {
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    });
+
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+  });
+
+  it('invalidates on a confirmed Predict withdraw landing in the Money account', async () => {
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+    const handler = getConfirmedHandler();
+
+    handler({
+      ...makeTx(TransactionType.batch, TransactionStatus.confirmed, [
+        { type: TransactionType.predictWithdraw },
+      ]),
+      metamaskPay: MUSD_ON_MONAD,
+    } as unknown as TransactionMeta);
+    await waitFor(() => {
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+    });
+
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not invalidate for a Perps deposit NOT funded from the Money account', () => {
+    renderHook(() => useRefreshMoneyBalanceOnTxConfirm());
+    const handler = getConfirmedHandler();
+
+    handler({
+      ...makeTx(TransactionType.perpsDeposit),
+      metamaskPay: {
+        tokenAddress: '0xaf88d065e77c8cC2239327C5EDb3A432268e5831',
+        chainId: CHAIN_IDS.ARBITRUM,
+      },
+    } as unknown as TransactionMeta);
+
+    expect(mockInvalidateQueries).not.toHaveBeenCalled();
   });
 
   it('does not invalidate for non-confirmed status', () => {
@@ -227,9 +275,9 @@ describe('useRefreshMoneyBalanceOnTxConfirm', () => {
 
     handler(makeTx(TransactionType.moneyAccountDeposit));
     await waitFor(() => {
-      expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
+      expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
     });
 
-    expect(mockInvalidateQueries).toHaveBeenCalledTimes(2);
+    expect(mockInvalidateQueries).toHaveBeenCalledTimes(1);
   });
 });

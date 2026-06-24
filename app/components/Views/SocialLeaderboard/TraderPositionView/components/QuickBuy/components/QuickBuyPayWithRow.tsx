@@ -1,12 +1,9 @@
 import {
-  AvatarToken,
   AvatarTokenSize,
-  BadgeNetwork,
-  BadgeWrapper,
-  BadgeWrapperPosition,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  FontWeight,
   Icon,
   IconColor,
   IconName,
@@ -17,10 +14,9 @@ import {
 } from '@metamask/design-system-react-native';
 import React, { useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
-import { getNetworkImageSource } from '../../../../../../../util/networks';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
-import { getBridgeTokenImageSource } from '../getBridgeTokenImageSource';
 import { getTokenKey } from '../tokenKey';
+import QuickBuyTokenIcon from './QuickBuyTokenIcon';
 
 interface QuickBuyPayWithRowProps {
   token: BridgeToken;
@@ -51,7 +47,6 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
   isSelected,
   onPress,
 }) => {
-  const networkImage = getNetworkImageSource({ chainId: token.chainId });
   const tokenKey = getTokenKey(token);
   const cryptoBalanceLabel = useMemo(
     () => formatTokenBalance(token.balance, token.symbol),
@@ -71,26 +66,9 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
         gap={4}
         twClassName={`px-4 py-2 ${isSelected ? 'bg-muted' : ''}`}
       >
-        {networkImage ? (
-          <BadgeWrapper
-            position={BadgeWrapperPosition.BottomRight}
-            badge={<BadgeNetwork src={networkImage} />}
-          >
-            <AvatarToken
-              size={AvatarTokenSize.Md}
-              name={token.symbol}
-              src={getBridgeTokenImageSource(token)}
-            />
-          </BadgeWrapper>
-        ) : (
-          <AvatarToken
-            size={AvatarTokenSize.Md}
-            name={token.symbol}
-            src={getBridgeTokenImageSource(token)}
-          />
-        )}
+        <QuickBuyTokenIcon token={token} size={AvatarTokenSize.Md} />
 
-        <Box twClassName="flex-1" gap={1}>
+        <Box twClassName="flex-1" gap={0}>
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
@@ -98,6 +76,7 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
           >
             <Text
               variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
               numberOfLines={1}
             >
@@ -112,16 +91,28 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
               />
             ) : null}
           </Box>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
             {token.symbol}
           </Text>
         </Box>
 
-        <Box alignItems={BoxAlignItems.End} gap={1}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+        <Box alignItems={BoxAlignItems.End} gap={0}>
+          <Text
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
+          >
             {token.balanceFiat ?? '—'}
           </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodySm}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextAlternative}
+          >
             {cryptoBalanceLabel ?? '—'}
           </Text>
         </Box>

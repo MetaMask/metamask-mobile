@@ -34,15 +34,13 @@ import parseRampIntent from '../../Ramp/utils/parseRampIntent';
 import {
   getDetectedGeolocation,
   getOrders,
-  getRampRoutingDecision,
 } from '../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
-import { getProviderToken } from '../../Ramp/Deposit/utils/ProviderTokenVault';
+import { getProviderToken } from '../../Ramp/utils/ProviderTokenVault';
 import {
   completedOrdersFromFiatOrders,
   completedOrdersFromRampsOrders,
 } from '../../Ramp/utils/determinePreferredProvider';
-import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../../Bridge/types';
 import { adaptTokenSecurityData } from '../../Bridge/utils/tokenSecurityUtils';
 import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
@@ -222,7 +220,6 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
   const store = useStore<RootState>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goToBuy } = useRampNavigation();
-  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isAuthenticated = useIsRampAuthenticated();
 
   return useCallback(() => {
@@ -253,7 +250,6 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
     const rampGeodetectedRegion = getDetectedGeolocation(state);
     const orders = getOrders(state);
     const controllerOrders = selectRampsOrdersForSelectedAccountGroup(state);
-    const rampRoutingDecision = getRampRoutingDecision(state);
 
     const completedOrders = [
       ...completedOrdersFromFiatOrders(orders),
@@ -273,9 +269,8 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
           button_text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(tokenChainIdHex),
-          ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
+          ramp_type: 'UNIFIED_BUY_2',
           region: rampGeodetectedRegion,
-          ramp_routing: rampRoutingDecision ?? undefined,
           is_authenticated: isAuthenticated,
           preferred_provider: preferredProvider,
           order_count: orders.length + controllerOrders.length,
@@ -285,15 +280,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
     );
 
     goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
-  }, [
-    store,
-    token,
-    trackEvent,
-    createEventBuilder,
-    rampUnifiedV1Enabled,
-    isAuthenticated,
-    goToBuy,
-  ]);
+  }, [store, token, trackEvent, createEventBuilder, isAuthenticated, goToBuy]);
 };
 
 /**

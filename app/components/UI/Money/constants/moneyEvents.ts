@@ -16,8 +16,7 @@ export enum SCREEN_NAMES {
   MONEY_ACTIVITY = 'money_activity',
   MONEY_ACTIVITY_DETAILS = 'money_activity_details',
   MONEY_POTENTIAL_EARNINGS = 'money_potential_earnings',
-  ASSET_OVERVIEW = 'asset_overview',
-  RAMP_BUY = 'ramp_buy',
+  MONEY_FIRST_TIME_DEPOSIT = 'money_first_time_deposit',
 }
 
 export enum BOTTOM_SHEET_NAMES {
@@ -30,6 +29,7 @@ export enum BOTTOM_SHEET_NAMES {
   MONEY_EARN_CRYPTO_INFO_SHEET = 'money_earn_crypto_info_sheet',
   MONEY_MORE_SHEET = 'money_more_sheet',
   MONEY_BALANCE_INFO_SHEET = 'money_balance_info_sheet',
+  MONEY_GEO_BLOCK_SHEET = 'money_geo_block_sheet',
 }
 
 export enum REDIRECT_TARGETS_TYPES {
@@ -40,7 +40,8 @@ export enum REDIRECT_TARGETS_TYPES {
 
 // Not using enum because we want to use existing URL constants.
 export const MONEY_URLS = {
-  MUSD_LEARN_MORE: AppConstants.URLS.MUSD_LEARN_MORE,
+  MONEY_LANDING: AppConstants.URLS.MONEY_LANDING,
+  MUSD_PRICE: AppConstants.URLS.MUSD_PRICE,
   METAMASK_SUPPORT: METAMASK_SUPPORT_URL,
 } as const;
 
