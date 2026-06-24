@@ -188,7 +188,7 @@ describe('useUpdateTransactionPayAmount', () => {
 
     await expect(
       result.current.updateTransactionPayAmount('1.23'),
-    ).rejects.toThrow('boom');
+    ).rejects.toThrow('Update Amount Data: Money Account Deposit: boom');
   });
 
   it('rejects and logs when updateMoneyAccountDepositTokenAmount rejects', async () => {
@@ -199,7 +199,7 @@ describe('useUpdateTransactionPayAmount', () => {
 
     await expect(
       result.current.updateTransactionPayAmount('1.23'),
-    ).rejects.toThrow('rpc failure');
+    ).rejects.toThrow('Update Amount Data: Money Account Deposit: rpc failure');
 
     expect(updateAtomicBatchDataMock).not.toHaveBeenCalled();
   });
@@ -403,7 +403,9 @@ describe('useUpdateTransactionPayAmount', () => {
 
       await expect(
         result.current.updateTransactionPayAmount('1'),
-      ).rejects.toThrow('updateTransaction failed');
+      ).rejects.toThrow(
+        'Update Amount Data: Money Account Deposit: updateTransaction failed',
+      );
     });
 
     it('still applies money account deposit updates after syncing requiredAssets', async () => {

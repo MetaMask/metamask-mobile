@@ -22,6 +22,7 @@ import { hasTransactionType } from '../../utils/transaction';
 import { prefixError } from '../../../../../util/transactions/error-prefix';
 import { useTransactionPayRequiredTokens } from './useTransactionPayData';
 
+const UPDATE_AMOUNT_DATA_ERROR_PREFIX = 'Update Amount Data: ';
 const DEPOSIT_ERROR_PREFIX = 'Money Account Deposit: ';
 const WITHDRAW_ERROR_PREFIX = 'Money Account Withdrawal: ';
 
@@ -87,16 +88,20 @@ export function useUpdateTransactionPayAmount() {
           TransactionType.moneyAccountDeposit,
         ])
       ) {
-        syncMoneyAccountDepositRequiredAssets(
-          transactionMeta,
-          amountHuman,
-          requiredTokens?.[0]?.decimals,
-        );
-        await applyMoneyAccountAmountUpdates(
-          amountHuman,
-          updateMoneyAccountDepositTokenAmount,
-          DEPOSIT_ERROR_PREFIX,
-        );
+        try {
+          syncMoneyAccountDepositRequiredAssets(
+            transactionMeta,
+            amountHuman,
+            requiredTokens?.[0]?.decimals,
+          );
+          await applyMoneyAccountAmountUpdates(
+            amountHuman,
+            updateMoneyAccountDepositTokenAmount,
+            DEPOSIT_ERROR_PREFIX,
+          );
+        } catch (error) {
+          throw prefixError(error, UPDATE_AMOUNT_DATA_ERROR_PREFIX);
+        }
         return;
       }
 
