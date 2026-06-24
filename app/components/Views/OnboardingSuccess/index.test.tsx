@@ -25,6 +25,7 @@ import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboardi
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { clearAttribution } from '../../../core/redux/slices/attribution';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -205,6 +206,7 @@ describe('OnboardingSuccessComponent', () => {
         skipInitialBalanceWait: true,
       }),
     );
+    expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
   });
 
   it('logs when discoverAccounts rejects and still invokes onDone', async () => {
@@ -249,6 +251,7 @@ describe('OnboardingSuccessComponent', () => {
         (call) => call[0]?.type === SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
       ),
     ).toBe(false);
+    expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
   });
 
   it('navigate to the default settings screen when the manage default settings button is pressed', () => {
