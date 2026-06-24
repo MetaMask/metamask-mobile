@@ -7,7 +7,7 @@ import type { TokenDetailsRouteParams } from '../constants/constants';
 
 export const useTokenSecurityBadgePress = (
   token: TokenDetailsRouteParams,
-  securityData: TokenSecurityData | undefined,
+  securityData: TokenSecurityData | null | undefined,
 ) => {
   const navigation = useNavigation();
 

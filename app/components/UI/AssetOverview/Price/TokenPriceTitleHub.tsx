@@ -30,25 +30,29 @@ export interface TokenPriceTitleHubProps {
   changeFormat?: TokenPriceChangeFormat;
 }
 
+type CurrencyCode = Parameters<typeof addCurrencySymbol>[1];
+
 const buildChangeText = (
   displayDiff: number,
   comparePrice: number,
   currentCurrency: string,
   changeFormat: TokenPriceChangeFormat,
 ): string => {
+  const currencyCode = currentCurrency as CurrencyCode;
+
   if (changeFormat === 'signedCurrency') {
     const percent =
       displayDiff === 0 || comparePrice === 0
         ? '0'
         : ((displayDiff / comparePrice) * 100).toFixed(2);
-    return `${displayDiff > 0 ? '+' : ''}${addCurrencySymbol(displayDiff, currentCurrency, true)} (${displayDiff > 0 ? '+' : ''}${percent}%)`;
+    return `${displayDiff > 0 ? '+' : ''}${addCurrencySymbol(displayDiff, currencyCode, true)} (${displayDiff > 0 ? '+' : ''}${percent}%)`;
   }
 
   const diffSign = displayDiff > 0 ? '+' : displayDiff < 0 ? '-' : '';
   const absoluteChange =
     displayDiff !== 0
       ? formatPriceWithSubscriptNotation(Math.abs(displayDiff), currentCurrency)
-      : addCurrencySymbol(0, currentCurrency, true);
+      : addCurrencySymbol(0, currencyCode, true);
   const percent =
     displayDiff === 0 || comparePrice === 0
       ? '0'
@@ -114,6 +118,7 @@ export const TokenPriceTitleHub = ({
   return (
     <TitleHub
       twClassName="px-4 pb-3 pt-4"
+      title={undefined}
       amount={
         isLoading ? (
           <Box twClassName="pt-2">

@@ -58,7 +58,7 @@ const mockToken: TokenDetailsRouteParams = {
   name: 'Ethereum',
   ticker: 'ETH',
   isETH: true,
-};
+} as unknown as TokenDetailsRouteParams;
 
 const createMockSecurityData = (
   resultType: TokenSecurityData['resultType'],
@@ -173,7 +173,7 @@ describe('TokenDetailsInlineHeader', () => {
       const { getByTestId } = renderHeader({
         token: {
           ...mockToken,
-          name: undefined,
+          name: '',
           ticker: 'AAPL',
           symbol: 'AAPL',
         },
@@ -297,10 +297,10 @@ describe('TokenDetailsInlineHeader', () => {
   });
 
   describe('treatment group (useAmbientColor=true)', () => {
-    it('does not render back button when iconColor is undefined', () => {
-      const { queryByTestId } = renderHeader({ useAmbientColor: true });
+    it('renders back button with default color when iconColor is undefined', () => {
+      const { getByTestId } = renderHeader({ useAmbientColor: true });
 
-      expect(queryByTestId('back-arrow-button')).not.toBeOnTheScreen();
+      expect(getByTestId('back-arrow-button')).toBeOnTheScreen();
     });
 
     it('renders back button when iconColor is provided', () => {
@@ -313,10 +313,7 @@ describe('TokenDetailsInlineHeader', () => {
     });
 
     it('calls onBackPress when back button is pressed', () => {
-      const { getByTestId } = renderHeader({
-        iconColor: LIGHT_MODE_SUCCESS_GREEN,
-        useAmbientColor: true,
-      });
+      const { getByTestId } = renderHeader({ useAmbientColor: true });
 
       fireEvent.press(getByTestId('back-arrow-button'));
 

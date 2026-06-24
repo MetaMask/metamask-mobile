@@ -43,7 +43,7 @@ export const TokenDetailsInlineHeader = ({
   useAmbientColor = false,
 }: {
   token: TokenDetailsRouteParams;
-  securityData: TokenSecurityData | undefined;
+  securityData: TokenSecurityData | null | undefined;
   onBackPress: () => void;
   onPriceAlertPress?: () => void;
   onSharePress?: () => void;
@@ -66,23 +66,32 @@ export const TokenDetailsInlineHeader = ({
     onCopyAddress,
   );
 
-  const shouldShowButton = !useAmbientColor || iconColor !== undefined;
+  const shouldShowEndButtons = !useAmbientColor || iconColor !== undefined;
+
+  const backButtonIconProps = useMemo(() => {
+    if (useAmbientColor && iconColor) {
+      return { twClassName: `text-[${iconColor}]` };
+    }
+    return undefined;
+  }, [useAmbientColor, iconColor]);
 
   const networkBadgeSource = token.chainId
     ? NetworkBadgeSource(token.chainId as Hex)
     : undefined;
 
   const titleEndAccessory = useMemo(() => {
-    const showVerified =
-      securityData?.resultType === 'Verified' && securityConfig.badge;
+    const verifiedBadgeConfig =
+      securityData?.resultType === 'Verified'
+        ? securityConfig.badge
+        : undefined;
     const showStock = isStockToken(token as BridgeToken);
 
-    const verifiedBadge = showVerified ? (
+    const verifiedBadge = verifiedBadgeConfig ? (
       <ButtonIcon
-        iconName={securityConfig.badge!.icon}
+        iconName={verifiedBadgeConfig.icon}
         size={ButtonIconSize.Sm}
         onPress={handleSecurityBadgePress}
-        iconProps={{ color: securityConfig.badge!.iconColor }}
+        iconProps={{ color: verifiedBadgeConfig.iconColor }}
         testID="security-badge-verified"
         accessibilityLabel={securityConfig.label}
       />
@@ -119,7 +128,7 @@ export const TokenDetailsInlineHeader = ({
   ]);
 
   const endButtonIconProps = useMemo(() => {
-    if (!shouldShowButton) {
+    if (!shouldShowEndButtons) {
       return undefined;
     }
     const buttons = [];
@@ -140,7 +149,7 @@ export const TokenDetailsInlineHeader = ({
       });
     }
     return buttons.length > 0 ? buttons : undefined;
-  }, [shouldShowButton, onSharePress, onPriceAlertPress]);
+  }, [shouldShowEndButtons, onSharePress, onPriceAlertPress]);
 
   const descriptionEndAccessory = useMemo(() => {
     if (!contractAddress) {
@@ -148,6 +157,7 @@ export const TokenDetailsInlineHeader = ({
     }
 
     return (
+      // TODO: Replace this with ButtonIcon size XS when available
       <ButtonIcon
         iconName={IconName.Copy}
         size={ButtonIconSize.Sm}
@@ -164,17 +174,13 @@ export const TokenDetailsInlineHeader = ({
       includesTopInset
       twClassName="min-h-14 h-auto bg-default justify-center"
       startAccessory={
-        shouldShowButton ? (
-          <ButtonIcon
-            iconName={IconName.ArrowLeft}
-            size={ButtonIconSize.Md}
-            onPress={onBackPress}
-            iconProps={
-              iconColor ? { twClassName: `text-[${iconColor}]` } : undefined
-            }
-            testID="back-arrow-button"
-          />
-        ) : undefined
+        <ButtonIcon
+          iconName={IconName.ArrowLeft}
+          size={ButtonIconSize.Md}
+          onPress={onBackPress}
+          iconProps={backButtonIconProps}
+          testID="back-arrow-button"
+        />
       }
       endButtonIconProps={endButtonIconProps}
       avatar={
