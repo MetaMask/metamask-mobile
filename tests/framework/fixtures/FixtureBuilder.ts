@@ -1420,6 +1420,19 @@ class FixtureBuilder {
   }
 
   /**
+   * Enables basic functionality in settings.
+   * Required for remote feature flags and other external-service gated features.
+   * @returns The current instance for method chaining.
+   */
+  withBasicFunctionalityEnabled() {
+    merge(this.fixture.state.settings, {
+      basicFunctionalityEnabled: true,
+    });
+
+    return this;
+  }
+
+  /**
    * Disables profile syncing in the fixture.
    * @returns The current instance for method chaining.
    */
