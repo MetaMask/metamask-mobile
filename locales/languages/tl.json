@@ -102,9 +102,6 @@
       "message": "Magdagdag ng mas mababa sa {{amount}} o gumamit ng ibang token.",
       "title": "Hindi sapat ang mga pondo"
     },
-    "insufficient_pay_token_balance_fees_no_target": {
-      "message": "Magdagdag ng mas mababa o gumamit ng ibang token."
-    },
     "insufficient_pay_token_native": {
       "message": "Walang sapat na {{ticker}} para sa mga bayarin. Gumamit ng token sa ibang network o magdagdag pa ng {{ticker}} para makapagpatuloy.",
       "title": "Hindi sapat ang mga pondo"
