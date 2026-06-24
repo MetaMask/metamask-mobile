@@ -110,7 +110,8 @@ export default {
   CARD: {
     URL: 'https://card.metamask.io',
     TRAVEL_URL: 'https://travel.metamask.io/access',
-    CARD_TOS_URL: 'https://secure.baanx.co.uk/MM-Card-RoW-Terms-2025-Sept.pdf',
+    CARD_TOS_URL:
+      'https://www.baanxuk.com/docs/CL-Platform-Terms-of-Use-2026.pdf',
   },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
