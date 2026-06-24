@@ -7,7 +7,7 @@ import type {
   UpdateAlertParams,
 } from './constants';
 
-const ALERTS_URL = `${AppConstants.PRICE_ALERTS_API.URL}/alerts`;
+const ALERTS_URL = `${AppConstants.PRICE_ALERTS_API.URL}/v1/alerts`;
 
 export const priceAlertsQueryKey = (assetId: string) =>
   ['priceAlerts', assetId] as const;

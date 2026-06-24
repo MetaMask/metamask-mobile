@@ -1,5 +1,4 @@
 import { PerpsControllerMessenger } from '@metamask/perps-controller';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
 import {
   Messenger,
   MessengerActions,
@@ -7,6 +6,11 @@ import {
   type ActionConstraint,
   type EventConstraint,
 } from '@metamask/messenger';
+import { RootMessenger } from '../../types';
+
+type AllowedActions = MessengerActions<PerpsControllerMessenger>;
+
+type AllowedEvents = MessengerEvents<PerpsControllerMessenger>;
 
 /**
  * Get the PerpsControllerMessenger for the PerpsController.
@@ -18,34 +22,19 @@ import {
  * The root messenger already registers actions for these controllers,
  * so the child messenger can call them through the parent.
  *
- * @param rootExtendedMessenger - The root extended messenger.
+ * @param rootMessenger - The base messenger used to create the restricted
+ * messenger.
  * @returns The PerpsControllerMessenger.
  */
 export function getPerpsControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
+  rootMessenger: RootMessenger<AllowedActions, AllowedEvents>,
 ): PerpsControllerMessenger {
-  const messenger = new Messenger<
-    'PerpsController',
-    MessengerActions<PerpsControllerMessenger>,
-    MessengerEvents<PerpsControllerMessenger>,
-    RootMessenger
-  >({
+  const messenger: PerpsControllerMessenger = new Messenger({
     namespace: 'PerpsController',
-    parent: rootExtendedMessenger,
+    parent: rootMessenger,
   });
-  rootExtendedMessenger.delegate({
-    // Widen `messenger` to a generic `Messenger<...>` for the delegate call only.
-    // `delegate`'s constraint intersects the delegatee's action union with the
-    // root messenger's action union, which hits TypeScript's union-type-complexity
-    // ceiling (TS2590). Erasing the delegatee's specific action union to the open
-    // `ActionConstraint` short-circuits the intersection without affecting runtime
-    // behavior — `delegate` only inspects the action/event name strings at runtime.
-    messenger: messenger as Messenger<
-      'PerpsController',
-      ActionConstraint,
-      EventConstraint,
-      RootMessenger
-    >,
+  rootMessenger.delegate({
+    messenger,
     actions: [
       'GeolocationController:getGeolocation',
       'NetworkController:getState',

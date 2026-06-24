@@ -406,6 +406,15 @@ tests/websocket/                                                @MetaMask/qa
 app/util/parseAmount.ts                      @MetaMask/swaps-engineers @MetaMask/money-movement
 app/util/parseAmount.test.ts                 @MetaMask/swaps-engineers @MetaMask/money-movement
 
+# Wallet Library initialization  
+app/core/Engine/wallet-init/initialization* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/keyrings* @MetaMask/accounts-engineers @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/approval-controller* @MetaMask/confirmations
+app/core/Engine/wallet-init/instance-options/connectivity-controller* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/keyring-controller* @MetaMask/accounts-engineers @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/remote-feature-flag-controller* @MetaMask/mobile-platform @MetaMask/core-platform
+app/core/Engine/wallet-init/instance-options/storage-service* @MetaMask/mobile-platform @MetaMask/core-platform
+
 # Snapshots – no code owners assigned
 # This allows anyone with write access to approve changes to any *.snap files.
 # ⚠️ Note: Leaving this rule unassigned disables Code Owner review enforcement for snapshot files.
