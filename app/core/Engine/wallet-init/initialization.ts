@@ -5,10 +5,14 @@ import { getKeyringControllerInstanceOptions } from './instance-options/keyring-
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
 import { getConnectivityControllerInstanceOptions } from './instance-options/connectivity-controller';
 import { getStorageServiceInstanceOptions } from './instance-options/storage-service';
+import { getPreferencesControllerInitialState } from './preferences-controller-state';
 
 /**
  * Construct the `@metamask/wallet` `Wallet` for mobile. Each controller's
  * client-specific options live in its own builder under `./instance-options/`.
+ *
+ * The wallet-owned `PreferencesController` takes no instance options, so mobile
+ * seeds its defaults through `state` via `getPreferencesControllerInitialState`.
  */
 export function initializeWallet({
   messenger,
@@ -19,7 +23,10 @@ export function initializeWallet({
 }) {
   return new Wallet({
     messenger,
-    state,
+    state: {
+      ...state,
+      PreferencesController: getPreferencesControllerInitialState(state),
+    },
     instanceOptions: {
       approvalController: getApprovalControllerInstanceOptions(),
       keyringController: getKeyringControllerInstanceOptions(messenger),

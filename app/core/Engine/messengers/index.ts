@@ -66,7 +66,6 @@ import {
   getPermissionControllerMessenger,
 } from './permission-controller-messenger';
 import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
-import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
 import {
   getNetworkControllerInitMessenger,
   getNetworkControllerMessenger,
@@ -237,10 +236,6 @@ export const MESSENGER_FACTORIES = {
   },
   AppMetadataController: {
     getMessenger: getAppMetadataControllerMessenger,
-    getInitMessenger: noop,
-  },
-  PreferencesController: {
-    getMessenger: getPreferencesControllerMessenger,
     getInitMessenger: noop,
   },
   SignatureController: {

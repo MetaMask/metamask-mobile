@@ -152,7 +152,6 @@ import { permissionControllerInit } from './controllers/permission-controller-in
 import { subjectMetadataControllerInit } from './controllers/subject-metadata-controller-init';
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
-import { preferencesControllerInit } from './controllers/preferences-controller-init';
 import { networkControllerInit } from './controllers/network-controller-init';
 import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
@@ -311,7 +310,6 @@ export class Engine {
       wallet: this.#wallet,
       initFunctions: {
         LoggingController: loggingControllerInit,
-        PreferencesController: preferencesControllerInit,
         NetworkController: networkControllerInit,
         PermissionController: permissionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
@@ -441,7 +439,9 @@ export class Engine {
       messengerClientsByName.GatorPermissionsController;
     const selectedNetworkController =
       messengerClientsByName.SelectedNetworkController;
-    const preferencesController = messengerClientsByName.PreferencesController;
+    const preferencesController = this.#wallet.getInstance(
+      'PreferencesController',
+    );
     const delegationController = messengerClientsByName.DelegationController;
     const addressBookController = messengerClientsByName.AddressBookController;
     const connectivityController = this.#wallet.getInstance(
