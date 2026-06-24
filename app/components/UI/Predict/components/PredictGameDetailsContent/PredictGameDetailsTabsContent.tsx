@@ -73,6 +73,25 @@ const PredictGameDetailsTabsContent = memo(
     }
 
     if (!showTabBar) {
+      if (hasPositions) {
+        return (
+          <Box twClassName="px-4 py-2">
+            <Text
+              variant={TextVariant.HeadingMd}
+              twClassName="font-medium pt-8"
+            >
+              {strings('predict.market_details.your_picks')}
+            </Text>
+            <PredictPicks
+              market={market}
+              positions={activePositions}
+              claimablePositions={claimablePositions}
+              testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_PICK}
+            />
+          </Box>
+        );
+      }
+
       return (
         <PredictGameOutcomesTab
           groupMap={groupMap}
