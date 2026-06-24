@@ -102,9 +102,6 @@
       "message": "Προσθέστε λιγότερα από {{amount}} ή χρησιμοποιήστε διαφορετικό token.",
       "title": "Ανεπαρκές ποσό"
     },
-    "insufficient_pay_token_balance_fees_no_target": {
-      "message": "Προσθέστε λιγότερα ή χρησιμοποιήστε διαφορετικό token."
-    },
     "insufficient_pay_token_native": {
       "message": "Δεν υπάρχουν αρκετά {{ticker}} για την κάλυψη των τελών. Χρησιμοποιήστε token σε άλλο δίκτυο ή προσθέστε περισσότερα {{ticker}} για να συνεχίσετε.",
       "title": "Ανεπαρκές ποσό"

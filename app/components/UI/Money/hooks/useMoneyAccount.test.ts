@@ -216,6 +216,7 @@ describe('useMoneyAccountDeposit', () => {
         origin: ORIGIN_METAMASK,
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
       }),
     );
   });
@@ -454,6 +455,7 @@ describe('useMoneyAccountWithdrawal', () => {
         origin: ORIGIN_METAMASK,
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
         transactions: [
           expect.objectContaining({ type: 'moneyAccountWithdraw' }),
           expect.objectContaining({ type: 'tokenMethodTransfer' }),

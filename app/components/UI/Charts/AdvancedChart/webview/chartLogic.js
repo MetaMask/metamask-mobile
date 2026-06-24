@@ -3518,7 +3518,7 @@ function createStudyLegendOverlay() {
   const div = document.createElement('div');
   div.id = 'study-legend-overlay';
   div.style.cssText =
-    'position:absolute;top:21px;left:' +
+    'position:absolute;top:1px;left:' +
     LEGEND_OVERLAY_LEFT_PX +
     'px;z-index:5;pointer-events:none;' +
     'display:flex;flex-wrap:wrap;align-items:flex-start;column-gap:8px;row-gap:2px;';
