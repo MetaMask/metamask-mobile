@@ -44,3 +44,31 @@ export function isPinnedChartElevated(
   'worklet';
   return titleSectionHeight > 0 && scrollY >= titleSectionHeight;
 }
+
+/**
+ * Whether the floating sticky day header should be shown.
+ *
+ * The list header (token row + chart spacer + PnL card) has total height
+ * `listHeaderHeight`; the first in-list section header sits directly below it at
+ * content offset `listHeaderHeight`. The pinned chart overlay covers the top
+ * `chartBlockHeight` of the list, so that section header is still visible below
+ * the chart while `scrollY < listHeaderHeight - chartBlockHeight` and only slides
+ * behind the chart's bottom edge once `scrollY >= listHeaderHeight - chartBlockHeight`.
+ *
+ * The floating sticky is therefore the handoff for that moment: before it the
+ * natural in-list header is shown; at/after it the in-list header is behind the
+ * chart and the floating sticky takes over, so the two are never visible at once.
+ * Guarded on measured heights so it never shows before layout settles.
+ */
+export function isStickyDayHeaderVisible(
+  listHeaderHeight: number,
+  chartBlockHeight: number,
+  scrollY: number,
+): boolean {
+  'worklet';
+  return (
+    listHeaderHeight > 0 &&
+    chartBlockHeight > 0 &&
+    scrollY >= listHeaderHeight - chartBlockHeight
+  );
+}

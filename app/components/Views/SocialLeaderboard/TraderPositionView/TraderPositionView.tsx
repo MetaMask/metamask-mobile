@@ -11,6 +11,7 @@ import Animated, {
   runOnJS,
   useAnimatedReaction,
   useAnimatedStyle,
+  useSharedValue,
 } from 'react-native-reanimated';
 import {
   useNavigation,
@@ -82,6 +83,11 @@ import {
   getTradeFocusSpanMs,
   type TradeFocusRequest,
 } from './components/TraderAdvancedChart';
+
+// Estimate (chart + vertical margins + time selector) so the spacer and the
+// sticky-header math are close before onLayout measures the real height — avoids
+// a first-frame jump and a premature/late sticky toggle.
+const INITIAL_CHART_BLOCK_HEIGHT = SOCIAL_POSITION_CHART_HEIGHT + 24 + 58;
 
 const TraderPositionView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -451,12 +457,20 @@ const TraderPositionView = () => {
   //   the nav once the token row has scrolled off. A spacer in the list header
   //   reserves its height so the PnL card / trades start below the chart at rest.
   const [chartBlockHeight, setChartBlockHeight] = useState(
-    // Estimate (chart + vertical margins + time selector) so the spacer is close
-    // before onLayout measures the real height — avoids a first-frame jump.
-    SOCIAL_POSITION_CHART_HEIGHT + 24 + 58,
+    INITIAL_CHART_BLOCK_HEIGHT,
   );
   const [isPinnedChartElevated, setIsPinnedChartElevated] = useState(false);
+  // Separate from the chart pin: the floating sticky day header only appears
+  // once trades scroll behind the pinned chart's bottom edge (see the reaction
+  // below), not as soon as the token row scrolls off.
+  const [isStickyDayHeaderVisible, setIsStickyDayHeaderVisible] =
+    useState(false);
   const [topDayLabel, setTopDayLabel] = useState<string | null>(null);
+
+  // UI-thread mirrors of the measured heights so the sticky-visibility reaction
+  // can read them off the worklet (React state isn't readable from a worklet).
+  const chartBlockHeightSv = useSharedValue(INITIAL_CHART_BLOCK_HEIGHT);
+  const listHeaderHeightSv = useSharedValue(0);
 
   const handleTitleSectionLayout = useCallback(
     (event: LayoutChangeEvent) => {
@@ -467,12 +481,29 @@ const TraderPositionView = () => {
     [setTitleSectionHeight],
   );
 
-  const handleChartBlockLayout = useCallback((event: LayoutChangeEvent) => {
-    const height = Math.ceil(event.nativeEvent.layout.height);
-    if (height > 0) {
-      setChartBlockHeight(height);
-    }
-  }, []);
+  const handleChartBlockLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const height = Math.ceil(event.nativeEvent.layout.height);
+      if (height > 0) {
+        setChartBlockHeight(height);
+        chartBlockHeightSv.value = height;
+      }
+    },
+    [chartBlockHeightSv],
+  );
+
+  // Total list-header height (token row + chart spacer + PnL card). The first
+  // in-list section header sits directly below this, so it's the basis for the
+  // sticky-header handoff threshold.
+  const handleListHeaderLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const height = Math.ceil(event.nativeEvent.layout.height);
+      if (height > 0) {
+        listHeaderHeightSv.value = height;
+      }
+    },
+    [listHeaderHeightSv],
+  );
 
   // Visual offset that also follows pull-to-refresh overscroll: at scrollY < 0
   // the chart moves DOWN with the bounce instead of freezing. Math is inlined
@@ -493,6 +524,28 @@ const TraderPositionView = () => {
     (elevated, previous) => {
       if (elevated !== previous) {
         runOnJS(setIsPinnedChartElevated)(elevated);
+      }
+    },
+  );
+
+  // The floating sticky shows only once the first in-list section header has
+  // passed behind the pinned chart's bottom edge — i.e. once the PnL card and
+  // that header are no longer visible below the chart. Math is inlined here (not
+  // imported) because Reanimated does not auto-bundle sibling worklet helpers
+  // called from inside another worklet.
+  useAnimatedReaction(
+    () => {
+      const headerHeight = listHeaderHeightSv.value;
+      const chartHeight = chartBlockHeightSv.value;
+      return (
+        headerHeight > 0 &&
+        chartHeight > 0 &&
+        scrollYShared.value >= headerHeight - chartHeight
+      );
+    },
+    (visible, previous) => {
+      if (visible !== previous) {
+        runOnJS(setIsStickyDayHeaderVisible)(visible);
       }
     },
   );
@@ -560,8 +613,11 @@ const TraderPositionView = () => {
               emphasizedTradeId={emphasizedTradeId}
               onScroll={onScroll}
               onTopDayLabelChange={setTopDayLabel}
+              stickyDayLabel={isStickyDayHeaderVisible ? topDayLabel : null}
               listHeaderComponent={
-                <>
+                // Measured as a whole (token row + spacer + PnL card) to derive
+                // the sticky-header handoff threshold.
+                <View onLayout={handleListHeaderLayout}>
                   <View
                     testID={TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW}
                     onLayout={handleTitleSectionLayout}
@@ -589,7 +645,7 @@ const TraderPositionView = () => {
                     pnlPercent={pnlPercent}
                     isPnlPositive={isPnlPositive}
                   />
-                </>
+                </View>
               }
               refreshControl={
                 <RefreshControl
@@ -646,10 +702,14 @@ const TraderPositionView = () => {
               </View>
 
               {/* Custom sticky day header: native sticky headers would be hidden
-                  behind the pinned chart, so once the chart is pinned we render
-                  the top-most visible day below it. `pointerEvents="none"` keeps
-                  the trades scrollable under the label. */}
-              {isPinnedChartElevated && topDayLabel ? (
+                  behind the pinned chart, so once trades scroll behind the
+                  chart's bottom edge we render the top-most visible day below it.
+                  Driven by `isStickyDayHeaderVisible` (not `isPinnedChartElevated`)
+                  so it doesn't appear while the PnL card / first in-list header
+                  are still visible below the chart — which would duplicate the
+                  day label. `pointerEvents="none"` keeps the trades scrollable
+                  under the label. */}
+              {isStickyDayHeaderVisible && topDayLabel ? (
                 <View pointerEvents="none">
                   <Box
                     twClassName="bg-default px-4 pt-3"

@@ -18,6 +18,7 @@ import {
   SectionList,
   type RefreshControlProps,
   type SectionListData,
+  StyleSheet,
   type ViewToken,
 } from 'react-native';
 import Animated, { type ScrollHandlerProcessed } from 'react-native-reanimated';
@@ -47,6 +48,12 @@ export function resolveTopDayLabel(
 const AnimatedSectionList = Animated.createAnimatedComponent(
   SectionList<Trade, TradeDaySection>,
 );
+
+const sectionHeaderStyles = StyleSheet.create({
+  hiddenBySticky: {
+    opacity: 0,
+  },
+});
 
 /** Imperative handle so the chart can scroll the list to a specific trade. */
 export interface TraderTradesSectionHandle {
@@ -84,6 +91,11 @@ export interface TraderTradesSectionProps {
    * when no section is visible (e.g. only the list header is on screen).
    */
   onTopDayLabelChange?: (dayLabel: string | null) => void;
+  /**
+   * When the parent renders a custom sticky day header for this label, the
+   * matching in-list section header is hidden to avoid duplicate day labels.
+   */
+  stickyDayLabel?: string | null;
 }
 
 /**
@@ -109,6 +121,7 @@ const TraderTradesSection = forwardRef<
       onScroll,
       listHeaderComponent,
       onTopDayLabelChange,
+      stickyDayLabel,
     },
     ref,
   ) => {
@@ -211,21 +224,31 @@ const TraderTradesSection = forwardRef<
     }, []);
 
     const renderSectionHeader = useCallback(
-      ({ section }: { section: SectionListData<Trade, TradeDaySection> }) => (
-        <Box twClassName="bg-default px-4 pt-3">
-          <Box twClassName="self-start pb-2">
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-            >
-              {section.dayLabel}
-            </Text>
+      ({ section }: { section: SectionListData<Trade, TradeDaySection> }) => {
+        const isHiddenBySticky =
+          stickyDayLabel != null && section.dayLabel === stickyDayLabel;
+
+        return (
+          <Box
+            twClassName="bg-default px-4 pt-3"
+            style={
+              isHiddenBySticky ? sectionHeaderStyles.hiddenBySticky : undefined
+            }
+          >
+            <Box twClassName="self-start pb-2">
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Bold}
+                color={TextColor.TextDefault}
+              >
+                {section.dayLabel}
+              </Text>
+            </Box>
+            <Box twClassName="h-px bg-muted" />
           </Box>
-          <Box twClassName="h-px bg-muted" />
-        </Box>
-      ),
-      [],
+        );
+      },
+      [stickyDayLabel],
     );
 
     const renderItem = useCallback(

@@ -74,6 +74,81 @@ describe('TraderTradesSection', () => {
 
     expect(screen.getByText('PINNED HEADER')).toBeOnTheScreen();
   });
+
+  it('hides the in-list section header when it matches the sticky day label', () => {
+    const trade = makeTrade();
+    const dayLabel = formatTradeDayLabel(trade.timestamp);
+
+    renderWithProvider(
+      <TraderTradesSection trades={[trade]} stickyDayLabel={dayLabel} />,
+    );
+
+    let node: ReactTestInstance | null = screen.getByText(dayLabel);
+    let foundHidden = false;
+    while (node) {
+      const flat = StyleSheet.flatten(node.props.style) as
+        | { opacity?: number }
+        | undefined;
+      if (flat?.opacity === 0) {
+        foundHidden = true;
+        break;
+      }
+      node = node.parent;
+    }
+
+    expect(foundHidden).toBe(true);
+  });
+
+  it('keeps the in-list section header visible when no sticky day label is set', () => {
+    const trade = makeTrade();
+    const dayLabel = formatTradeDayLabel(trade.timestamp);
+
+    renderWithProvider(
+      <TraderTradesSection trades={[trade]} stickyDayLabel={null} />,
+    );
+
+    let node: ReactTestInstance | null = screen.getByText(dayLabel);
+    let foundHidden = false;
+    while (node) {
+      const flat = StyleSheet.flatten(node.props.style) as
+        | { opacity?: number }
+        | undefined;
+      if (flat?.opacity === 0) {
+        foundHidden = true;
+        break;
+      }
+      node = node.parent;
+    }
+
+    expect(foundHidden).toBe(false);
+  });
+
+  it('keeps a non-matching in-list section header visible while a different day is sticky', () => {
+    const trade = makeTrade();
+    const dayLabel = formatTradeDayLabel(trade.timestamp);
+
+    renderWithProvider(
+      <TraderTradesSection
+        trades={[trade]}
+        stickyDayLabel="Some Other Day 2020"
+      />,
+    );
+
+    let node: ReactTestInstance | null = screen.getByText(dayLabel);
+    let foundHidden = false;
+    while (node) {
+      const flat = StyleSheet.flatten(node.props.style) as
+        | { opacity?: number }
+        | undefined;
+      if (flat?.opacity === 0) {
+        foundHidden = true;
+        break;
+      }
+      node = node.parent;
+    }
+
+    expect(foundHidden).toBe(false);
+  });
 });
 
 describe('resolveTopDayLabel', () => {
