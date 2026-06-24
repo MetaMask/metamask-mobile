@@ -3,6 +3,8 @@ import Expo
 import React
 import ReactAppDependencyProvider
 import FirebaseCore
+import FirebaseMessaging
+import UserNotifications
 import RNBranch
 import BrazeKit
 
@@ -82,6 +84,12 @@ class AppDelegate: ExpoAppDelegate {
       braze.delegate = self
       AppDelegate.braze = braze
       BrazeHelperPopulateInitialPayload(launchOptions)
+
+      // Braze's push.automation=true sets itself as UNUserNotificationCenterDelegate,
+      // which swallows willPresent for non-Braze notifications and prevents
+      // Firebase's messaging().onMessage() from firing in JS. Reclaim the delegate
+      // here (after Braze init) so our own willPresent can forward to Firebase.
+      UNUserNotificationCenter.current().delegate = self
     }
 
     factory.startReactNative(
@@ -141,6 +149,35 @@ class AppDelegate: ExpoAppDelegate {
       didReceiveRemoteNotification: userInfo,
       fetchCompletionHandler: completionHandler
     )
+  }
+}
+
+// MARK: - UNUserNotificationCenterDelegate
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+  // Called when a notification arrives while the app is in the foreground.
+  // Braze's push.automation would have consumed this without forwarding to
+  // Firebase, so we own the delegate and do both here.
+  func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    willPresent notification: UNNotification,
+    withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+  ) {
+    let userInfo = notification.request.content.userInfo
+    // Tell Firebase about the message — this triggers messaging().onMessage() in JS.
+    Messaging.messaging().appDidReceiveMessage(userInfo)
+    // Show the notification visually in the foreground.
+    completionHandler([.sound, .badge, .banner, .list])
+  }
+
+  // Called when the user taps a notification or one of its action buttons.
+  // Forward to Braze so it can track opens and handle Braze-originated deep links.
+  func userNotificationCenter(
+    _ center: UNUserNotificationCenter,
+    didReceive response: UNNotificationResponse,
+    withCompletionHandler completionHandler: @escaping () -> Void
+  ) {
+    AppDelegate.braze?.notifications.handleNotificationResponse(response, withCompletionHandler: completionHandler)
   }
 }
 
