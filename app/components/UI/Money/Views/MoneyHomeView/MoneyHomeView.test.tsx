@@ -130,6 +130,11 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   default: jest.fn(),
 }));
 
+jest.mock('../../hooks/useRefreshMusdFiatRate', () => ({
+  __esModule: true,
+  default: jest.fn(() => jest.fn().mockResolvedValue(undefined)),
+}));
+
 jest.mock('../../hooks/useMoneyAccountInfo', () => ({
   __esModule: true,
   default: jest.fn(),

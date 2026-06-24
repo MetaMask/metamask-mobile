@@ -45,6 +45,7 @@ describe(SmokePredictions('Predictions - Geo Restriction'), () => {
       {
         fixture: new FixtureBuilder()
           .withPolygon()
+          .withBasicFunctionalityEnabled()
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
