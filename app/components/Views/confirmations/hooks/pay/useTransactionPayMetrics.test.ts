@@ -530,7 +530,7 @@ describe('useTransactionPayMetrics', () => {
       });
     });
 
-    it('is omitted when no payment methods are available', async () => {
+    it('is an empty array when no payment methods are available', async () => {
       useTransactionPayAvailableTokensMock.mockReturnValue({
         availableTokens: [] as AssetType[],
         hasTokens: false,
@@ -540,13 +540,15 @@ describe('useTransactionPayMetrics', () => {
 
       await act(async () => noop());
 
-      const calledProps = (
-        updateConfirmationMetricMock.mock.calls[0]?.[0] as {
-          params: { properties: Record<string, unknown> };
-        }
-      )?.params?.properties;
-
-      expect(calledProps).not.toHaveProperty('mm_pay_payment_method_available');
+      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
+        id: transactionIdMock,
+        params: {
+          properties: expect.objectContaining({
+            mm_pay_payment_method_available: [],
+          }),
+          sensitiveProperties: {},
+        },
+      });
     });
   });
 

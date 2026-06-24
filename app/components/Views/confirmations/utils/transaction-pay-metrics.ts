@@ -37,7 +37,9 @@ export function getMetaMaskPayFiatChainTarget({
   caipAssetId?: string;
   chainId?: string;
 }): string | undefined {
-  return getHexChainId(chainId) ?? getHexChainId(getCaipAssetChainId(caipAssetId));
+  return (
+    getHexChainId(chainId) ?? getHexChainId(getCaipAssetChainId(caipAssetId))
+  );
 }
 
 function getPaymentMethodCode(paymentMethod: string): string {

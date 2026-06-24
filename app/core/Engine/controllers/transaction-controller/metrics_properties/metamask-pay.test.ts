@@ -864,52 +864,49 @@ describe('Metamask Pay Metrics', () => {
       ['/payments/revolut-pay', 'rev_pay'],
       ['/payments/rev-pay', 'rev_pay'],
       ['debit-credit-card', 'debit_credit_card'],
-    ])(
-      'normalizes %s to %s',
-      (paymentMethodId, expected) => {
-        request.transactionMeta.type = TransactionType.moneyAccountDeposit;
-        request.transactionMeta.metamaskPay = {
-          chainId: '0x1',
-          tokenAddress: '0xA0b8',
-        };
+    ])('normalizes %s to %s', (paymentMethodId, expected) => {
+      request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+      request.transactionMeta.metamaskPay = {
+        chainId: '0x1',
+        tokenAddress: '0xA0b8',
+      };
 
-        getStateMock.mockReturnValue({
-          engine: {
-            backgroundState: {
-              TokensController: { allTokens: {} },
-              TransactionPayController: {
-                transactionData: {
-                  'child-1': {
-                    paymentToken: { symbol: 'ETH', chainId: '0x1' },
-                    quotes: [],
-                    tokens: [],
-                    totals: {
-                      targetAmount: { usd: '0', fiat: '0' },
-                      fees: {
-                        metaMask: { usd: '0', fiat: '0' },
-                        provider: { usd: '0', fiat: '0' },
-                        sourceNetwork: { estimate: { usd: '0', fiat: '0' } },
-                        targetNetwork: { usd: '0', fiat: '0' },
-                      },
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            TransactionPayController: {
+              transactionData: {
+                'child-1': {
+                  paymentToken: { symbol: 'ETH', chainId: '0x1' },
+                  quotes: [],
+                  tokens: [],
+                  totals: {
+                    targetAmount: { usd: '0', fiat: '0' },
+                    fees: {
+                      metaMask: { usd: '0', fiat: '0' },
+                      provider: { usd: '0', fiat: '0' },
+                      sourceNetwork: { estimate: { usd: '0', fiat: '0' } },
+                      targetNetwork: { usd: '0', fiat: '0' },
                     },
-                    fiatPayment: { selectedPaymentMethodId: paymentMethodId },
                   },
+                  fiatPayment: { selectedPaymentMethodId: paymentMethodId },
                 },
               },
             },
           },
-        } as never);
+        },
+      } as never);
 
-        const result = getMetaMaskPayProperties(request);
+      const result = getMetaMaskPayProperties(request);
 
-        expect(result).toStrictEqual({
-          properties: expect.objectContaining({
-            mm_pay_payment_method_selected: expected,
-          }),
-          sensitiveProperties: {},
-        });
-      },
-    );
+      expect(result).toStrictEqual({
+        properties: expect.objectContaining({
+          mm_pay_payment_method_selected: expected,
+        }),
+        sensitiveProperties: {},
+      });
+    });
   });
 
   describe('mm_pay_fiat_provider / mm_pay_fiat_token_target / mm_pay_fiat_chain_target', () => {
@@ -940,7 +937,8 @@ describe('Metamask Pay Metrics', () => {
             },
           },
         },
-        caipAssetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        caipAssetId:
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
       },
     };
 

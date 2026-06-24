@@ -137,12 +137,11 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_entry_point = getEntryPoint(transactionMeta) ?? null;
   }
 
-  if (availablePaymentMethods.length > 0) {
-    properties.mm_pay_payment_method_available = availablePaymentMethods;
-  }
+  properties.mm_pay_payment_method_available = availablePaymentMethods;
 
   if (presentedPaymentMethodRef.current) {
-    properties.mm_pay_payment_method_presented = presentedPaymentMethodRef.current;
+    properties.mm_pay_payment_method_presented =
+      presentedPaymentMethodRef.current;
   }
 
   if (
