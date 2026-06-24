@@ -78,6 +78,7 @@ import {
   CardStateWarning,
   CardStatus,
   CardType,
+  type RegistrationSettingsResponse,
 } from '../../types';
 import type { TokenI } from '../../../Tokens/types';
 import { useCardHomeData } from '../../hooks/useCardHomeData';
@@ -253,7 +254,15 @@ const mockUseAssetBalances = jest.fn(() =>
 const mockNavigateToTravelPage = jest.fn();
 const mockNavigateToCardTosPage = jest.fn();
 
-const mockUseNavigateToCardPage = jest.fn(() => ({
+interface NavigateToCardPageHookReturn {
+  navigateToTravelPage: jest.Mock;
+  navigateToCardTosPage: jest.Mock;
+}
+
+const mockUseNavigateToCardPage = jest.fn<
+  NavigateToCardPageHookReturn,
+  [unknown, string | undefined]
+>(() => ({
   navigateToTravelPage: mockNavigateToTravelPage,
   navigateToCardTosPage: mockNavigateToCardTosPage,
 }));
@@ -261,6 +270,13 @@ const mockUseNavigateToCardPage = jest.fn(() => ({
 const mockUseSwapBridgeNavigation = jest.fn(() => ({
   goToSwaps: mockGoToSwaps,
 }));
+
+interface RegistrationSettingsHookReturn {
+  data: RegistrationSettingsResponse | null;
+  isLoading: boolean;
+  error: Error | null;
+  fetchData: jest.Mock;
+}
 
 jest.mock('../../hooks/useCardHomeData', () => ({
   __esModule: true,
@@ -277,7 +293,24 @@ jest.mock('../../hooks/useAssetBalances', () => ({
 }));
 
 jest.mock('../../hooks/useNavigateToCardPage', () => ({
-  useNavigateToCardPage: () => mockUseNavigateToCardPage(),
+  useNavigateToCardPage: (
+    navigation: unknown,
+    cardTermsAndConditionsUrl?: string,
+  ) => mockUseNavigateToCardPage(navigation, cardTermsAndConditionsUrl),
+}));
+
+const mockUseRegistrationSettings = jest.fn<RegistrationSettingsHookReturn, []>(
+  () => ({
+    data: null,
+    isLoading: false,
+    error: null,
+    fetchData: jest.fn(),
+  }),
+);
+
+jest.mock('../../hooks/useRegistrationSettings', () => ({
+  __esModule: true,
+  default: () => mockUseRegistrationSettings(),
 }));
 
 jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
@@ -1132,6 +1165,12 @@ describe('CardHome Component', () => {
       navigateToTravelPage: mockNavigateToTravelPage,
       navigateToCardTosPage: mockNavigateToCardTosPage,
     });
+    mockUseRegistrationSettings.mockReturnValue({
+      data: null,
+      isLoading: false,
+      error: null,
+      fetchData: jest.fn(),
+    });
 
     mockUseSwapBridgeNavigation.mockReturnValue({
       goToSwaps: mockGoToSwaps,
@@ -1413,7 +1452,110 @@ describe('CardHome Component', () => {
     });
   });
 
-  it('opens mailto link when contact support item is pressed', async () => {
+  it('loads registration settings on Card Home', () => {
+    render();
+
+    expect(mockUseRegistrationSettings).toHaveBeenCalledWith();
+  });
+
+  it('passes dynamic TOS URL to Card navigation actions', () => {
+    const dynamicTosUrl = 'https://docs.baanx.us/metamask/terms.pdf';
+    mockUseRegistrationSettings.mockReturnValue({
+      data: {
+        countries: [],
+        usStates: [],
+        links: {
+          us: {
+            termsAndConditions: dynamicTosUrl,
+            accountOpeningDisclosure: '',
+            noticeOfPrivacy: '',
+            eSignConsentDisclosure: '',
+          },
+          intl: {
+            termsAndConditions: '',
+            rightToInformation: '',
+          },
+        },
+        config: {
+          us: {
+            emailSpecialCharactersDomainsException: '',
+            consentSmsNumber: '',
+            supportEmail: CARD_SUPPORT_EMAIL,
+          },
+          intl: {
+            emailSpecialCharactersDomainsException: '',
+            consentSmsNumber: '',
+            supportEmail: CARD_SUPPORT_EMAIL,
+          },
+        },
+      },
+      isLoading: false,
+      error: null,
+      fetchData: jest.fn(),
+    });
+    setupMockSelectors({ userLocation: 'us' });
+
+    render();
+
+    expect(mockUseNavigateToCardPage).toHaveBeenCalledWith(
+      expect.any(Object),
+      dynamicTosUrl,
+    );
+  });
+
+  it('opens dynamic support email when contact support item is pressed', async () => {
+    const dynamicSupportEmail = 'us-support@cl-cards.com';
+    mockUseRegistrationSettings.mockReturnValue({
+      data: {
+        countries: [],
+        usStates: [],
+        links: {
+          us: {
+            termsAndConditions: '',
+            accountOpeningDisclosure: '',
+            noticeOfPrivacy: '',
+            eSignConsentDisclosure: '',
+          },
+          intl: {
+            termsAndConditions: '',
+            rightToInformation: '',
+          },
+        },
+        config: {
+          us: {
+            emailSpecialCharactersDomainsException: '',
+            consentSmsNumber: '',
+            supportEmail: dynamicSupportEmail,
+          },
+          intl: {
+            emailSpecialCharactersDomainsException: '',
+            consentSmsNumber: '',
+            supportEmail: CARD_SUPPORT_EMAIL,
+          },
+        },
+      },
+      isLoading: false,
+      error: null,
+      fetchData: jest.fn(),
+    });
+    setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
+    setupLoadCardDataMock({ isAuthenticated: true });
+
+    render();
+
+    const contactSupportItem = screen.getByTestId(
+      CardHomeSelectors.CONTACT_SUPPORT_ITEM,
+    );
+    fireEvent.press(contactSupportItem);
+
+    await waitFor(() => {
+      expect(Linking.openURL).toHaveBeenCalledWith(
+        `mailto:${dynamicSupportEmail}`,
+      );
+    });
+  });
+
+  it('opens fallback support email when contact support item is pressed', async () => {
     setupMockSelectors({ isAuthenticated: true });
     setupLoadCardDataMock({ isAuthenticated: true });
 
@@ -6319,9 +6461,6 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP),
-      ).toBeOnTheScreen();
-      expect(
         screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM),
       ).toBeOnTheScreen();
       expect(
@@ -6339,7 +6478,9 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.queryByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP),
+        screen.queryByTestId(
+          CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM,
+        ),
       ).not.toBeOnTheScreen();
       expect(
         screen.queryByText(strings('money.metamask_card.link_title')),
@@ -6353,7 +6494,7 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP),
+        screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM),
       ).toBeOnTheScreen();
     });
 

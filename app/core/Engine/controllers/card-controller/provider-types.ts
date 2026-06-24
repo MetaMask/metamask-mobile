@@ -184,6 +184,8 @@ export interface CardAccountStatus {
   provisioningEligible: boolean;
   holderName: string | null;
   shippingAddress: CardShippingAddress | null;
+  countryOfResidence: string | null;
+  usState: string | null;
 }
 
 // -- Alerts & Actions --
@@ -281,6 +283,7 @@ export interface CashbackWithdrawEstimationResponse {
   wei: string;
   eth: string;
   price: string;
+  network: string;
 }
 
 export interface CashbackWithdrawParams {

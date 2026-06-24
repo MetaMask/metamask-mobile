@@ -1,23 +1,36 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import Routes from '../../../../constants/navigation/Routes';
 import { acceptVipRefereeInvite } from '../../../../reducers/rewards';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
 import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import {
+  createMockEventBuilder,
+  createMockUseAnalyticsHook,
+} from '../../../../util/test/analyticsMock';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipRefereeDashboard } from '../hooks/useVipRefereeDashboard';
 import type { VipRefereeMeState } from '../../../../core/Engine/controllers/rewards-controller/types';
 import RewardsVipRefereeView, {
   REWARDS_VIP_REFEREE_VIEW_TEST_IDS,
 } from './RewardsVipRefereeView';
+import { VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS } from '../components/Vip/VipSwapsVolumeInfoSheet';
 
 const mockNavDispatch = jest.fn();
 const mockReduxDispatch = jest.fn();
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockExitRewardsFlow = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 // Obviously-synthetic fixtures — never real VIP codes/figures.
 const mockSubscriptionId = 'test-subscription-id';
+const mockAccountAddress = '0xAbC0000000000000000000000000000000000123';
 let mockIsVipReferee = true;
 let mockIsVipProgramEnabled = true;
 let mockVipRefereeSplashAccepted: Record<string, boolean> = {};
@@ -27,6 +40,10 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock('../utils', () => ({
+  exitRewardsFlow: (...args: unknown[]) => mockExitRewardsFlow(...args),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -34,6 +51,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       dispatch: mockNavDispatch,
       goBack: mockGoBack,
+      navigate: mockNavigate,
     }),
   };
 });
@@ -60,10 +78,68 @@ jest.mock('@metamask/design-system-react-native', () => {
   }) =>
     ReactActual.createElement(View, { testID: props.testID }, props.children);
 
+  const Button = ({
+    children,
+    onPress,
+    testID,
+    disabled,
+  }: {
+    children?: React.ReactNode;
+    onPress?: () => void;
+    testID?: string;
+    disabled?: boolean;
+  }) =>
+    ReactActual.createElement(
+      Pressable,
+      { onPress: disabled ? undefined : onPress, testID, disabled },
+      ReactActual.createElement(Text, null, children),
+    );
+
+  const ButtonIcon = ({
+    onPress,
+    testID,
+    accessibilityLabel,
+  }: {
+    onPress?: () => void;
+    testID?: string;
+    accessibilityLabel?: string;
+  }) =>
+    ReactActual.createElement(Pressable, {
+      testID,
+      accessibilityLabel,
+      onPress,
+    });
+
   return {
     HeaderStandard,
     Box: passthrough,
     BoxFlexDirection: { Row: 'row', Column: 'column' },
+    BoxAlignItems: { Center: 'center', Start: 'start', End: 'end' },
+    BoxJustifyContent: { Between: 'between', Center: 'center', End: 'end' },
+    Button,
+    ButtonVariant: { Primary: 'primary', Secondary: 'secondary' },
+    ButtonSize: { Lg: 'lg' },
+    ButtonIcon,
+    ButtonIconSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
+    Icon: passthrough,
+    IconColor: {
+      IconDefault: 'default',
+      IconAlternative: 'alt',
+    },
+    IconName: {
+      MessageQuestion: 'MessageQuestion',
+      Export: 'Export',
+      Close: 'Close',
+      Info: 'Info',
+    },
+    IconSize: { Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
+    BottomSheet: ({
+      children,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(View, { testID }, children),
     Text: ({ children, ...rest }: { children?: React.ReactNode }) =>
       ReactActual.createElement(Text, rest, children),
     TextColor: { TextDefault: 'default', TextAlternative: 'alt' },
@@ -93,7 +169,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
   };
 });
 
-jest.mock('../../../../images/rewards/vip_splash.png', () => 1);
+jest.mock('../../../../images/rewards/vip.svg', () => 'VipIcon');
 
 jest.mock('../../../../../locales/i18n', () => ({
   __esModule: true,
@@ -102,15 +178,23 @@ jest.mock('../../../../../locales/i18n', () => ({
     if (key === 'rewards.vip.referee_referred_by') {
       return `Referred by ${params?.code ?? ''}`;
     }
+    if (key === 'rewards.vip.referee_points_to_label') {
+      return `Points to ${params?.code ?? ''}`;
+    }
     const translations: Record<string, string> = {
       'rewards.vip.referee_page_title': 'VIP Pilot',
       'rewards.vip.referee_stats_title': 'Stats',
       'rewards.vip.referee_period_last_30d': 'Last 30d',
-      'rewards.vip.referee_points_label': 'Points',
       'rewards.vip.referee_swaps_volume_label': 'Swaps volume',
       'rewards.vip.referee_perps_volume_label': 'Perps volume',
+      'rewards.vip.swaps_volume_info_label': 'Swaps volume information',
+      'rewards.vip.swaps_volume_info_title': 'Swaps volume',
+      'rewards.vip.swaps_volume_info_description':
+        'Your swaps volume updates once per day, so recent swaps may take up to 24 hours to appear here.',
       'rewards.vip.referee_error_title': 'Error title',
       'rewards.vip.referee_error_description': 'Error description',
+      'rewards.vip.referee_contact_support': 'Contact support',
+      'app_settings.contact_support': 'Contact support',
       'rewards.vip.retry_button': 'Retry',
     };
     return translations[key] ?? key;
@@ -119,6 +203,10 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountFormattedAddress: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/featureFlagController/vipProgram', () => ({
@@ -145,6 +233,10 @@ jest.mock('../components/RewardsErrorBanner', () => {
 });
 
 jest.mock('../hooks/useTrackRewardsPageView', () => jest.fn());
+
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
 
 jest.mock('../hooks/useVipRefereeDashboard', () => ({
   useVipRefereeDashboard: jest.fn(),
@@ -185,8 +277,16 @@ describe('RewardsVipRefereeView', () => {
     mockIsVipProgramEnabled = true;
     mockVipRefereeSplashAccepted = {};
     mockUseDispatch.mockReturnValue(mockReduxDispatch);
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
+      if (selector === selectSelectedInternalAccountFormattedAddress)
+        return mockAccountAddress;
       if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
       return (
         selector as (
@@ -229,19 +329,73 @@ describe('RewardsVipRefereeView', () => {
     ).toBeOnTheScreen();
     expect(getByText('VIP Pilot')).toBeOnTheScreen();
     expect(getByText('Referred by TESTCODE')).toBeOnTheScreen();
-    expect(
-      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS),
-    ).toBeOnTheScreen();
+    expect(getByText('Swaps volume')).toBeOnTheScreen();
+    expect(getByText('Perps volume')).toBeOnTheScreen();
+    expect(getByText('Points to TESTCODE')).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME),
     ).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.PERPS_VOLUME),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS_TO),
+    ).toBeOnTheScreen();
     expect(mockUseTrack).toHaveBeenCalledWith({
       page_type: 'vip_referee',
       enabled: true,
     });
+  });
+
+  it('displays swaps and perps volume in separate stat cells', () => {
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME),
+    ).toHaveTextContent(/\$1,000/);
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.PERPS_VOLUME),
+    ).toHaveTextContent(/\$2,000/);
+  });
+
+  it('displays dashboard points in the points-to stat cell', () => {
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS_TO),
+    ).toHaveTextContent(/1,234/);
+  });
+
+  it('renders the swaps volume help icon and opens the daily-refresh info sheet on press', () => {
+    const { getByTestId, queryByTestId } = render(<RewardsVipRefereeView />);
+
+    // The info sheet is not mounted until the help icon is pressed.
+    expect(
+      queryByTestId(VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS.SHEET),
+    ).toBeNull();
+
+    const helpIcon = getByTestId(
+      REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME_INFO,
+    );
+    fireEvent.press(helpIcon);
+
+    const sheet = getByTestId(VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS.SHEET);
+    expect(sheet).toHaveTextContent(/Swaps volume/);
+    expect(sheet).toHaveTextContent(/updates once per day/);
+  });
+
+  it('renders an empty points-to label when referredByCode is missing', () => {
+    mockUseVipRefereeDashboard.mockReturnValue({
+      dashboard: { ...defaultDashboard, referredByCode: null },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipRefereeDashboard: mockFetch,
+    });
+
+    const { getByText } = render(<RewardsVipRefereeView />);
+
+    expect(getByText('Points to ')).toBeOnTheScreen();
   });
 
   it('renders the "Last updated" row when computedAt is present', () => {
@@ -268,6 +422,126 @@ describe('RewardsVipRefereeView', () => {
     ).toBeNull();
   });
 
+  it('renders the referred-by card when dashboard data is present', () => {
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.REFERRED_BY_CARD),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the loading skeleton without the contact support button', () => {
+    mockUseVipRefereeDashboard.mockReturnValue({
+      dashboard: null,
+      isLoading: true,
+      hasError: false,
+      hasAttemptedFetch: false,
+      fetchVipRefereeDashboard: mockFetch,
+    });
+
+    const { getByTestId, queryByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SKELETON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    ).toBeNull();
+  });
+
+  it('does not render the contact support button when the fetch errors with no data', () => {
+    mockUseVipRefereeDashboard.mockReturnValue({
+      dashboard: null,
+      isLoading: false,
+      hasError: true,
+      hasAttemptedFetch: true,
+      fetchVipRefereeDashboard: mockFetch,
+    });
+
+    const { getByTestId, queryByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.ERROR),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    ).toBeNull();
+  });
+
+  it('renders the contact support button', () => {
+    const { getByTestId, getByText } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    ).toBeOnTheScreen();
+    expect(getByText('Contact support')).toBeOnTheScreen();
+  });
+
+  it('disables the contact support button when the selected account address is missing', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
+      if (selector === selectSelectedInternalAccountFormattedAddress)
+        return undefined;
+      if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      return (
+        selector as (
+          state: ReturnType<typeof getRewardsSelectorState>,
+        ) => unknown
+      )(getRewardsSelectorState());
+    });
+
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    ).toBeDisabled();
+  });
+
+  it('opens the priority support webview tagged as VIP with the account address on press', () => {
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    fireEvent.press(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    );
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
+      screen: Routes.WEBVIEW.SIMPLE,
+      params: {
+        url: expect.stringContaining(
+          `priority=vip&address=${encodeURIComponent(mockAccountAddress)}`,
+        ),
+        title: 'Contact support',
+      },
+    });
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.NAVIGATION_TAPS_GET_HELP,
+    );
+    expect(mockTrackEvent).toHaveBeenCalled();
+  });
+
+  it('does not open support when the selected account address is missing', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
+      if (selector === selectSelectedInternalAccountFormattedAddress)
+        return undefined;
+      if (selector === selectVipProgramEnabled) return mockIsVipProgramEnabled;
+      return (
+        selector as (
+          state: ReturnType<typeof getRewardsSelectorState>,
+        ) => unknown
+      )(getRewardsSelectorState());
+    });
+
+    const { getByTestId } = render(<RewardsVipRefereeView />);
+
+    fireEvent.press(
+      getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.CONTACT_SUPPORT_BUTTON),
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockTrackEvent).not.toHaveBeenCalled();
+  });
+
   it('renders the error banner when the fetch errors with no data', () => {
     mockUseVipRefereeDashboard.mockReturnValue({
       dashboard: null,
@@ -284,25 +558,21 @@ describe('RewardsVipRefereeView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('replaces with the dashboard when the user is not a VIP referee', () => {
+  it('exits the rewards flow when the user is not a VIP referee', () => {
     mockIsVipReferee = false;
 
     const { queryByTestId } = render(<RewardsVipRefereeView />);
 
     expect(queryByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.VIEW)).toBeNull();
-    expect(mockNavDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_DASHBOARD),
-    );
+    expect(mockExitRewardsFlow).toHaveBeenCalled();
   });
 
-  it('replaces with the dashboard when the VIP program flag is off', () => {
+  it('exits the rewards flow when the VIP program flag is off', () => {
     mockIsVipProgramEnabled = false;
 
     const { queryByTestId } = render(<RewardsVipRefereeView />);
 
     expect(queryByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.VIEW)).toBeNull();
-    expect(mockNavDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_DASHBOARD),
-    );
+    expect(mockExitRewardsFlow).toHaveBeenCalled();
   });
 });

@@ -82,7 +82,7 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Ramp/Aggregator/hooks/useHandleSuccessfulOrder.ts',
   'app/components/UI/Ramp/Aggregator/hooks/useIntentAmount.ts',
   'app/components/UI/Ramp/Aggregator/utils/index.ts',
-  'app/components/UI/Ramp/Deposit/utils/index.ts',
+  'app/components/UI/Ramp/utils/depositUtils.ts',
   'app/components/UI/Ramp/utils/getOrderAmount.ts',
   'app/components/UI/Ramp/utils/v2OrderToast.ts',
   'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',
@@ -167,6 +167,22 @@ module.exports = {
     {
       files: ['tests/**/*.{js,ts}'],
       extends: ['./tests/framework/.eslintrc.js'],
+    },
+    {
+      // These files intentionally omit dependencies from a useEffect/useCallback
+      // (documented inline at each call site). The React Compiler refuses to
+      // optimize any file containing an inline `eslint-disable` for a React
+      // rule, so the suppression is relocated here (invisible to the compiler)
+      // instead of being a per-line comment. Runtime behavior is unchanged.
+      files: [
+        'app/components/hooks/useAsyncResult.ts',
+        'app/components/hooks/useOTAUpdates.ts',
+        'app/components/Nav/Main/index.js',
+        'app/components/Nav/App/App.tsx',
+      ],
+      rules: {
+        'react-hooks/exhaustive-deps': 'off',
+      },
     },
     {
       files: ['*.{ts,tsx}'],

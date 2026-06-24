@@ -34,3 +34,62 @@ export const MOCK_PREDICT_MARKET: PredictMarket = {
   liquidity: 500_000,
   volume: 1_000_000,
 };
+
+/** Scoreboard-capable live sports market for Live Now / sport-card view tests. */
+export const MOCK_PREDICT_LIVE_SPORT_MARKET: PredictMarket = {
+  id: 'market-live-sport-1',
+  providerId: 'polymarket',
+  slug: 'spain-vs-england-live',
+  title: 'Spain vs England',
+  description: 'Live World Cup matchup between Spain and England',
+  image: '',
+  status: 'open',
+  recurrence: Recurrence.NONE,
+  category: 'sports',
+  tags: ['World Cup'],
+  outcomes: [
+    {
+      id: 'outcome-game-winner',
+      providerId: 'polymarket',
+      marketId: 'market-live-sport-1',
+      title: 'Game Winner',
+      description: 'Who will win the game',
+      image: '',
+      status: 'open',
+      tokens: [
+        { id: 'token-home', title: 'Spain', price: 0.6 },
+        { id: 'token-draw', title: 'Draw', price: 0.15 },
+        { id: 'token-away', title: 'England', price: 0.62 },
+      ],
+      volume: 1_000_000,
+      groupItemTitle: '',
+    },
+  ],
+  liquidity: 500_000,
+  volume: 1_000_000,
+  game: {
+    id: 'game-live-1',
+    startTime: '2026-06-08T21:30:00Z',
+    status: 'ongoing',
+    league: 'fifwc',
+    elapsed: "45'",
+    period: '1H',
+    score: { home: 1, away: 0, raw: '0-1' },
+    awayTeam: {
+      id: 'england',
+      name: 'England',
+      logo: 'https://example.com/england.png',
+      abbreviation: 'ENG',
+      color: '#FF0000',
+      alias: 'England',
+    },
+    homeTeam: {
+      id: 'spain',
+      name: 'Spain',
+      logo: 'https://example.com/spain.png',
+      abbreviation: 'SPA',
+      color: '#FF8800',
+      alias: 'Spain',
+    },
+  },
+};

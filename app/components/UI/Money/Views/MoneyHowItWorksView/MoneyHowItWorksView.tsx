@@ -24,9 +24,15 @@ import Animated, {
   withTiming,
   Easing,
 } from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
+import { selectMoneyNoFeeDepositTokens } from '../../selectors/featureFlags';
+import {
+  formatNoFeeTokenBullets,
+  formatBaseStablecoins,
+} from '../../utils/depositFaqTokens';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
 import useMountEffect from '../../hooks/useMountEffect';
 import { COMPONENT_NAMES, SCREEN_NAMES } from '../../constants/moneyEvents';
@@ -54,7 +60,6 @@ const FAQ_KEYS = [
 ] as const;
 
 const ANIMATION_DURATION = 200;
-const FALLBACK_APY = 4;
 
 const FaqItem = ({
   question,
@@ -124,7 +129,10 @@ const MoneyHowItWorksView = () => {
   const insets = useSafeAreaInsets();
   const { colors: themeColors } = useTheme();
   const { apyPercent } = useMoneyAccountBalance();
-  const percentage = apyPercent ?? FALLBACK_APY;
+
+  const noFeeTokens = useSelector(selectMoneyNoFeeDepositTokens);
+  const tokenBullets = formatNoFeeTokenBullets(noFeeTokens);
+  const stablecoins = formatBaseStablecoins(noFeeTokens);
 
   const { trackScreenViewed } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
@@ -185,7 +193,9 @@ const MoneyHowItWorksView = () => {
             color={TextColor.TextAlternative}
             testID={MoneyHowItWorksViewTestIds.DESCRIPTION_1}
           >
-            {strings('money.how_it_works_page.description_1', { percentage })}
+            {strings('money.how_it_works_page.description_1', {
+              percentage: apyPercent ?? '-',
+            })}
           </Text>
           <Text
             variant={TextVariant.BodyMd}
@@ -220,10 +230,12 @@ const MoneyHowItWorksView = () => {
             {index > 0 && <FaqDivider />}
             <FaqItem
               question={strings(`money.how_it_works_page.${key}`, {
-                percentage,
+                percentage: apyPercent,
               })}
               answer={strings(`money.how_it_works_page.faq_a${index + 1}`, {
-                percentage,
+                percentage: apyPercent,
+                tokenBullets,
+                stablecoins,
               })}
               testID={MoneyHowItWorksViewTestIds.FAQ_ITEM(index + 1)}
             />

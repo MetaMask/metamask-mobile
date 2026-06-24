@@ -1,7 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import FoxIcon from './FoxIcon';
-import { IconColor } from '../../../../../component-library/components/Icons/Icon';
+import { IconColor } from '@metamask/design-system-react-native';
 
 const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
@@ -56,14 +56,16 @@ describe('FoxIcon', () => {
   });
 
   it('uses muted icon color when specified', () => {
-    const { getByTestId } = render(<FoxIcon iconColor={IconColor.Muted} />);
+    const { getByTestId } = render(<FoxIcon iconColor={IconColor.IconMuted} />);
 
     const xmlContent = getByTestId('fox-icon-xml').props.children;
     expect(xmlContent).toContain(`fill="${mockTheme.colors.icon.muted}"`);
   });
 
   it('uses default icon color when specified', () => {
-    const { getByTestId } = render(<FoxIcon iconColor={IconColor.Default} />);
+    const { getByTestId } = render(
+      <FoxIcon iconColor={IconColor.IconDefault} />,
+    );
 
     const xmlContent = getByTestId('fox-icon-xml').props.children;
     expect(xmlContent).toContain(`fill="${mockTheme.colors.icon.default}"`);
@@ -126,7 +128,9 @@ describe('FoxIcon', () => {
     });
 
     it('handles Primary icon color', () => {
-      const { getByTestId } = render(<FoxIcon iconColor={IconColor.Primary} />);
+      const { getByTestId } = render(
+        <FoxIcon iconColor={IconColor.PrimaryDefault} />,
+      );
 
       const xmlContent = getByTestId('fox-icon-xml').props.children;
       expect(xmlContent).toContain(
@@ -137,12 +141,20 @@ describe('FoxIcon', () => {
     it('memoizes SVG XML to prevent unnecessary regeneration', () => {
       // Arrange
       const { rerender } = render(
-        <FoxIcon width={14} height={14} iconColor={IconColor.Alternative} />,
+        <FoxIcon
+          width={14}
+          height={14}
+          iconColor={IconColor.IconAlternative}
+        />,
       );
 
       // Act - Rerender with same props
       rerender(
-        <FoxIcon width={14} height={14} iconColor={IconColor.Alternative} />,
+        <FoxIcon
+          width={14}
+          height={14}
+          iconColor={IconColor.IconAlternative}
+        />,
       );
 
       // Assert - Component should render without errors (memoization working)
@@ -153,13 +165,19 @@ describe('FoxIcon', () => {
     it('regenerates SVG XML when props change', () => {
       // Arrange
       const { getByTestId, rerender } = render(
-        <FoxIcon width={14} height={14} iconColor={IconColor.Alternative} />,
+        <FoxIcon
+          width={14}
+          height={14}
+          iconColor={IconColor.IconAlternative}
+        />,
       );
 
       const initialXml = getByTestId('fox-icon-xml').props.children;
 
       // Act - Rerender with different props
-      rerender(<FoxIcon width={20} height={20} iconColor={IconColor.Muted} />);
+      rerender(
+        <FoxIcon width={20} height={20} iconColor={IconColor.IconMuted} />,
+      );
 
       const updatedXml = getByTestId('fox-icon-xml').props.children;
 

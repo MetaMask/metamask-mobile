@@ -101,11 +101,12 @@ scripts/                  # Build and automation scripts
 
 **Detailed guidelines are in `docs/testing/`** (canonical, in-repo) and the `mms-*` skill set installed via `yarn skills` (Cursor / Codex / Claude harnesses):
 
-| Guide                                                                          | Scope                                             |
-| ------------------------------------------------------------------------------ | ------------------------------------------------- |
-| [`docs/testing/unit-testing.md`](docs/testing/unit-testing.md)                 | `*.test.*` files — test patterns, mocking, AAA    |
-| [`docs/testing/e2e-testing.md`](docs/testing/e2e-testing.md)                   | Detox smoke/regression — Page Objects, gestures   |
-| [`docs/testing/component-view-tests.md`](docs/testing/component-view-tests.md) | `*.view.test.tsx` — framework, presets, renderers |
+| Guide                                                                                      | Scope                                                                        |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| [`docs/testing/unit-testing.md`](docs/testing/unit-testing.md)                             | `*.test.*` files — test patterns, mocking, AAA                               |
+| [`docs/testing/e2e-testing.md`](docs/testing/e2e-testing.md)                               | Detox smoke/regression — Page Objects, gestures                              |
+| [`docs/testing/component-view-tests.md`](docs/testing/component-view-tests.md)             | `*.view.test.tsx` — framework, presets, renderers                            |
+| [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) | Version-gated remote flags — `validatedVersionGatedFeatureFlag` in selectors |
 
 General coding, UI, deeplink-handler, and PR-creation guidance now lives in the centralized `mms-*` skill set installed via `yarn skills` (see `.agents/skills/mms-*` after sync).
 
@@ -115,6 +116,7 @@ General coding, UI, deeplink-handler, and PR-creation guidance now lives in the 
 - **Components**: Design system first → `component-library` second → custom last
 - **Styling**: Use `useTailwind()` hook, `Box`/`Text` components, design tokens
 - **Testing**: Mandatory for all code, AAA pattern, mock everything external
+- **Version-gated feature flags**: Use `validatedVersionGatedFeatureFlag` from `app/util/remoteFeatureFlag` in selectors — see [`docs/readme/version-gated-feature-flags.md`](docs/readme/version-gated-feature-flags.md) and [`.cursor/rules/version-gated-feature-flags.mdc`](.cursor/rules/version-gated-feature-flags.mdc)
 - **Commands**: ONLY use yarn (never npm/npx)
 
 ## Environment Setup
@@ -125,7 +127,7 @@ See detailed setup documentation:
 - **Native development**: [docs/readme/environment.md](./docs/readme/environment.md)
 - **Infura & Firebase**: [README.md](./README.md#getting-started)
 
-**Required Tools**: Node.js ^20.18.0 • Yarn ^4.14.1 • Watchman
+**Required Tools**: Node.js ^24.16.0 • Yarn ^4.14.1 • Watchman
 
 ### AI Tooling — Developer Usage Collection
 
