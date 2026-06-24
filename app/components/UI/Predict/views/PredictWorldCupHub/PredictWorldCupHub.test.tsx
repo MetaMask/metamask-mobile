@@ -12,7 +12,6 @@ const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn(() => true);
 const mockTrackFeedViewed = jest.fn();
 let mockRouteParams: Record<string, unknown> | undefined;
-let mockIsScreenEnabled = true;
 let mockConfig = {
   ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
   enabled: true,
@@ -47,16 +46,12 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => {
     if (selector === 'selectPredictWorldCupConfig') return mockConfig;
-    if (selector === 'selectPredictWorldCupScreenEnabledFlag')
-      return mockIsScreenEnabled;
     return undefined;
   }),
 }));
 
 jest.mock('../../selectors/featureFlags', () => ({
   selectPredictWorldCupConfig: 'selectPredictWorldCupConfig',
-  selectPredictWorldCupScreenEnabledFlag:
-    'selectPredictWorldCupScreenEnabledFlag',
 }));
 
 jest.mock('@shopify/flash-list', () => {
@@ -169,6 +164,7 @@ jest.mock('../../hooks/usePredictWorldCupHub', () => ({
 }));
 
 jest.mock('../../hooks', () => ({
+  ...jest.requireActual('../../hooks'),
   usePredictWorldCupMarkets: (...args: unknown[]) =>
     mockUsePredictWorldCupMarkets(...args),
 }));
@@ -184,7 +180,6 @@ describe('PredictWorldCupHub', () => {
     jest.clearAllMocks();
     mockCanGoBack.mockReturnValue(true);
     mockRouteParams = undefined;
-    mockIsScreenEnabled = true;
     mockConfig = {
       ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
       enabled: true,
@@ -339,17 +334,6 @@ describe('PredictWorldCupHub', () => {
     );
 
     expect(screen.getByTestId('winner-module')).toBeOnTheScreen();
-  });
-
-  it('navigates to market list when screen is disabled', () => {
-    mockIsScreenEnabled = false;
-
-    render(<PredictWorldCupHub />);
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      expect.anything(),
-      expect.objectContaining({}),
-    );
   });
 
   it('tracks feedViewed on initial render', () => {

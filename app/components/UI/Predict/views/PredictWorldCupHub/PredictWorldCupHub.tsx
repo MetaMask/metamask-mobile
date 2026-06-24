@@ -5,7 +5,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   type LayoutChangeEvent,
@@ -28,13 +28,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { v4 as uuidv4 } from 'uuid';
-import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
-import {
-  selectPredictWorldCupConfig,
-  selectPredictWorldCupScreenEnabledFlag,
-} from '../../selectors/featureFlags';
+import { selectPredictWorldCupConfig } from '../../selectors/featureFlags';
 import type {
   PredictEntryPoint,
   PredictNavigationParamList,
@@ -53,7 +48,10 @@ import {
   usePredictWorldCupWinnerMarket,
   type PredictWorldCupStageSection,
 } from '../../hooks/usePredictWorldCupHub';
-import { usePredictWorldCupMarkets } from '../../hooks';
+import {
+  usePredictWorldCupMarkets,
+  usePredictWorldCupFeedSession,
+} from '../../hooks';
 import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import PredictOffline from '../../components/PredictOffline';
@@ -369,7 +367,7 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
   const renderFooter = useCallback(() => {
     if (!isFetchingMore) return null;
     return (
-      <Box twClassName="py-2">
+      <Box twClassName="px-4 py-2">
         <PredictMarketSkeleton
           testID={`${PREDICT_WORLD_CUP_HUB_TEST_IDS.SKELETON}-props-footer`}
         />
@@ -377,14 +375,18 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
     );
   }, [isFetchingMore]);
 
-  const winnerModuleNode = winnerMarket ? (
-    <PredictWorldCupWinnerModule
-      market={winnerMarket}
-      entryPoint={entryPoint}
-      predictScreen={PredictEventValues.PREDICT_SCREEN.WORLD_CUP}
-      transactionActiveAbTests={transactionActiveAbTests}
-    />
-  ) : null;
+  const winnerModuleNode = useMemo(
+    () =>
+      winnerMarket ? (
+        <PredictWorldCupWinnerModule
+          market={winnerMarket}
+          entryPoint={entryPoint}
+          predictScreen={PredictEventValues.PREDICT_SCREEN.WORLD_CUP}
+          transactionActiveAbTests={transactionActiveAbTests}
+        />
+      ) : null,
+    [winnerMarket, entryPoint, transactionActiveAbTests],
+  );
 
   const ListHeaderComponent = useMemo(
     () => (
@@ -399,8 +401,7 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
         </Text>
       </>
     ),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [winnerMarket, entryPoint, transactionActiveAbTests, tw],
+    [winnerModuleNode, tw],
   );
 
   if (isFetching && !isRefreshing && !isFetchingMore) {
@@ -456,62 +457,51 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
 
 const PredictWorldCupHub: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
-  const tabsScrollViewRef = useRef<ScrollView>(null);
-  const tabLayoutsRef = useRef<Record<string, { x: number; width: number }>>(
-    {},
-  );
-  const hasScrolledToInitialTabRef = useRef(false);
-  const hasTrackedInitialFeedViewed = useRef(false);
-  const feedSessionId = useMemo(() => uuidv4(), []);
-  const feedSessionStartTime = useMemo(() => Date.now(), []);
-  const feedPageViewCount = useRef(0);
-
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictWorldCup'>>();
   const config = useSelector(selectPredictWorldCupConfig);
-  const isScreenEnabled = useSelector(selectPredictWorldCupScreenEnabledFlag);
 
   const entryPoint = (route.params?.entryPoint ??
     PredictEventValues.ENTRY_POINT.PREDICT_FEED) as PredictEntryPoint;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
+  const initialTab = useMemo(
+    () => resolvePredictWorldCupHubInitialTab(route.params?.initialTab),
+    [route.params?.initialTab],
+  );
+
+  const {
+    activeTab,
+    tabsScrollViewRef,
+    feedSessionId,
+    feedSessionStartTime,
+    handleTabLayout,
+    handleTabPress,
+    handleBack,
+  } = usePredictWorldCupFeedSession<PredictWorldCupHubTabKey>({
+    initialTab,
+    entryPoint,
+    routeEntryPoint: route.params?.entryPoint as PredictEntryPoint | undefined,
+    transactionActiveAbTests,
+  });
+
+  const hasTrackedInitialFeedViewed = useRef(false);
+  const feedPageViewCount = useRef(0);
+
   // Single hook call — sections, live status and refetch are passed down to GamesTabContent.
+  // No `enabled` guard needed: PredictWorldCupRoute already ensures this component only
+  // mounts when `enabled && showWorldCupScreen && showHubV2` are all true.
   const {
     sections: gamesSections,
     isLive,
     isFetching: isGamesFetching,
     error: gamesError,
     refetch: refetchGames,
-  } = usePredictWorldCupGamesSections(config, { enabled: isScreenEnabled });
+  } = usePredictWorldCupGamesSections(config);
   const tabs = useMemo(() => buildPredictWorldCupHubTabs(isLive), [isLive]);
 
-  const initialTab = useMemo(
-    () => resolvePredictWorldCupHubInitialTab(route.params?.initialTab),
-    [route.params?.initialTab],
-  );
-  const [activeTab, setActiveTab] =
-    useState<PredictWorldCupHubTabKey>(initialTab);
-
   useEffect(() => {
-    setActiveTab(initialTab);
-  }, [initialTab]);
-
-  useEffect(() => {
-    if (isScreenEnabled) return;
-    navigation.navigate(Routes.PREDICT.MARKET_LIST, {
-      entryPoint: route.params?.entryPoint,
-      ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
-    });
-  }, [
-    isScreenEnabled,
-    navigation,
-    route.params?.entryPoint,
-    transactionActiveAbTests,
-  ]);
-
-  useEffect(() => {
-    if (!isScreenEnabled || hasTrackedInitialFeedViewed.current) return;
+    if (hasTrackedInitialFeedViewed.current) return;
 
     Engine.context.PredictController.trackFeedViewed({
       sessionId: feedSessionId,
@@ -523,70 +513,7 @@ const PredictWorldCupHub: React.FC = () => {
       isSessionEnd: false,
     });
     hasTrackedInitialFeedViewed.current = true;
-  }, [
-    entryPoint,
-    feedSessionId,
-    feedSessionStartTime,
-    initialTab,
-    isScreenEnabled,
-  ]);
-
-  const handleBack = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-    navigation.navigate(Routes.PREDICT.MARKET_LIST, {
-      entryPoint: route.params?.entryPoint,
-      ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
-    });
-  }, [navigation, route.params?.entryPoint, transactionActiveAbTests]);
-
-  const scrollActiveTabIntoView = useCallback(
-    (tabKey: PredictWorldCupHubTabKey, animated: boolean) => {
-      const layout = tabLayoutsRef.current[tabKey];
-      if (!layout || !tabsScrollViewRef.current) return;
-      const targetX = Math.max(layout.x - 16, 0);
-      tabsScrollViewRef.current.scrollTo({ x: targetX, animated });
-    },
-    [],
-  );
-
-  const handleTabLayout = useCallback(
-    (tabKey: PredictWorldCupHubTabKey, event: LayoutChangeEvent) => {
-      const { x, width } = event.nativeEvent.layout;
-      tabLayoutsRef.current[tabKey] = { x, width };
-      if (!hasScrolledToInitialTabRef.current && tabKey === activeTab) {
-        hasScrolledToInitialTabRef.current = true;
-        scrollActiveTabIntoView(tabKey, false);
-      }
-    },
-    [activeTab, scrollActiveTabIntoView],
-  );
-
-  const handleTabPress = useCallback(
-    (tabKey: PredictWorldCupHubTabKey) => {
-      if (tabKey === activeTab) return;
-      feedPageViewCount.current += 1;
-      Engine.context.PredictController.trackFeedViewed({
-        sessionId: feedSessionId,
-        feedTab: tabKey,
-        predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
-        numPagesViewed: feedPageViewCount.current,
-        sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
-        entryPoint,
-        isSessionEnd: false,
-      });
-      setActiveTab(tabKey);
-    },
-    [activeTab, entryPoint, feedSessionId, feedSessionStartTime],
-  );
-
-  useEffect(() => {
-    scrollActiveTabIntoView(activeTab, true);
-  }, [activeTab, scrollActiveTabIntoView]);
-
-  if (!isScreenEnabled) return null;
+  }, [entryPoint, feedSessionId, feedSessionStartTime, initialTab]);
 
   return (
     <SafeAreaView

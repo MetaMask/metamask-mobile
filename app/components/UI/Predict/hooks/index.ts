@@ -53,3 +53,9 @@ export {
   type UsePredictWorldCupGamesSectionsResult,
   type UsePredictWorldCupWinnerMarketResult,
 } from './usePredictWorldCupHub';
+
+export {
+  usePredictWorldCupFeedSession,
+  type UsePredictWorldCupFeedSessionOptions,
+  type UsePredictWorldCupFeedSessionResult,
+} from './usePredictWorldCupFeedSession';
