@@ -3,6 +3,7 @@ import { parseAccountsApiActivity } from './accountsApi';
 const MONEY_ADDRESS = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
 const SETTLEMENT_ADDRESS = '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e';
 const REWARDER_ADDRESS = '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0';
+const CASHBACK_MULTISEND_TO = '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb';
 
 const cardPaymentRow = {
   hash: '0x2b45bda071d8feff265c541e251a5e035e5f55270f8ad288dcd80f6740793847',
@@ -37,6 +38,28 @@ const cashbackRow = {
       from: REWARDER_ADDRESS,
       to: MONEY_ADDRESS.toLowerCase(),
       amount: '300000',
+      decimal: 6,
+      contractAddress: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      symbol: 'mUSD',
+    },
+  ],
+};
+
+/** Unclassified Accounts API row — Baanx multisend mUSD payout on Monad. */
+const unclassifiedCashbackRow = {
+  hash: '0x126be466696f2e3d124c97dedd7a6abd02e31883f544e92f80de732d566b9b16',
+  timestamp: '2026-06-22T21:41:12.000Z',
+  chainId: 143,
+  from: '0xb978703B01a60c7fbD4541D6c29299C65C8e61EA',
+  to: CASHBACK_MULTISEND_TO,
+  isError: false,
+  methodId: '0x0d49b711',
+  transactionType: 'GENERIC_CONTRACT_CALL',
+  valueTransfers: [
+    {
+      from: '0x21607d4c8cf71844955889890c1711655fd08d72',
+      to: MONEY_ADDRESS.toLowerCase(),
+      amount: '999454',
       decimal: 6,
       contractAddress: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
       symbol: 'mUSD',
@@ -169,6 +192,142 @@ describe('parseAccountsApiActivity', () => {
 
     // Assert
     expect(result).toEqual([]);
+  });
+
+  it('maps an unclassified Baanx multisend payout to cashback when it credits the money account', () => {
+    // Arrange — Accounts API has not yet tagged the row as METAMASK_CARD_CASHBACK.
+    const response = { data: [unclassifiedCashbackRow, inboundTopUpRow] };
+
+    // Act
+    const result = parseAccountsApiActivity(response, MONEY_ADDRESS);
+
+    // Assert
+    expect(result).toEqual([
+      {
+        kind: 'cashback',
+        hash: unclassifiedCashbackRow.hash,
+        time: Date.parse('2026-06-22T21:41:12.000Z'),
+        chainId: '0x8f',
+        token: {
+          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          symbol: 'mUSD',
+          decimals: 6,
+        },
+        amount: '999454',
+        receivedFrom: '0x21607d4c8cf71844955889890c1711655fd08d72',
+      },
+    ]);
+  });
+
+  it('ignores unclassified multisend rows that do not match the cashback heuristics', () => {
+    expect(
+      parseAccountsApiActivity(
+        {
+          data: [
+            {
+              ...unclassifiedCashbackRow,
+              to: '0x0000000000000000000000000000000000000001',
+            },
+            {
+              ...unclassifiedCashbackRow,
+              methodId: '0xdeadbeef',
+            },
+          ],
+        },
+        MONEY_ADDRESS,
+      ),
+    ).toEqual([]);
+  });
+
+  it('ignores multisend rows where the money account inbound credit is not mUSD', () => {
+    expect(
+      parseAccountsApiActivity(
+        {
+          data: [
+            {
+              ...unclassifiedCashbackRow,
+              valueTransfers: [
+                {
+                  from: '0x21607d4c8cf71844955889890c1711655fd08d72',
+                  to: MONEY_ADDRESS.toLowerCase(),
+                  amount: '1000000',
+                  decimal: 6,
+                  contractAddress: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
+                  symbol: 'USDC',
+                },
+                {
+                  from: '0x0000000000000000000000000000000000000000',
+                  to: '0x0000000000000000000000000000000000000001',
+                  amount: '999454',
+                  decimal: 6,
+                  contractAddress: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+                  symbol: 'mUSD',
+                },
+              ],
+            },
+          ],
+        },
+        MONEY_ADDRESS,
+      ),
+    ).toEqual([]);
+  });
+
+  it('selects the mUSD inbound leg when multiple inbound transfers credit the money account', () => {
+    const response = {
+      data: [
+        {
+          ...unclassifiedCashbackRow,
+          valueTransfers: [
+            {
+              from: '0x0000000000000000000000000000000000000000',
+              to: MONEY_ADDRESS.toLowerCase(),
+              amount: '1',
+              decimal: 6,
+              contractAddress: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
+              symbol: 'USDC',
+            },
+            unclassifiedCashbackRow.valueTransfers[0],
+          ],
+        },
+      ],
+    };
+
+    const [cashback] = parseAccountsApiActivity(response, MONEY_ADDRESS);
+
+    expect(cashback.amount).toBe('999454');
+    expect(cashback.token.symbol).toBe('mUSD');
+  });
+
+  it('uses the provided cashback multisend contract list instead of defaults', () => {
+    const customContract = '0x00000000000000000000000000000000000000aa';
+
+    expect(
+      parseAccountsApiActivity(
+        { data: [unclassifiedCashbackRow] },
+        MONEY_ADDRESS,
+        [customContract],
+      ),
+    ).toEqual([]);
+
+    expect(
+      parseAccountsApiActivity(
+        {
+          data: [
+            {
+              ...unclassifiedCashbackRow,
+              to: customContract,
+            },
+          ],
+        },
+        MONEY_ADDRESS,
+        [customContract],
+      ),
+    ).toEqual([
+      expect.objectContaining({
+        kind: 'cashback',
+        hash: unclassifiedCashbackRow.hash,
+      }),
+    ]);
   });
 
   it('ignores rows of other transaction types', () => {
