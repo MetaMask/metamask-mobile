@@ -326,10 +326,14 @@ class AccountListBottomSheet {
         });
       },
       appium: async () => {
-        const accountEl = await PlaywrightMatchers.getElementByText(
-          accountName,
-          exactMatch,
-        );
+        const escapedAccountName = accountName.replace(/'/g, "\\'");
+        const accountEl = PlatformDetector.isAndroid()
+          ? await PlaywrightMatchers.getElementByXPath(
+              exactMatch
+                ? `//*[@name='${escapedAccountName}' or @label='${escapedAccountName}' or @text='${escapedAccountName}' or @content-desc='${escapedAccountName}']/ancestor::*[@clickable='true'][1]`
+                : `//*[contains(@name,'${escapedAccountName}') or contains(@label,'${escapedAccountName}') or contains(@text,'${escapedAccountName}') or contains(@content-desc,'${escapedAccountName}')]/ancestor::*[@clickable='true'][1]`,
+            )
+          : await PlaywrightMatchers.getElementByText(accountName, exactMatch);
         await PlaywrightGestures.scrollIntoView(accountEl);
         await PlaywrightGestures.waitAndTap(accountEl);
       },
