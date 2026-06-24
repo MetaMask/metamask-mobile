@@ -31,11 +31,6 @@ export interface PositionRowProps {
    * profile's Closed tab). Falls back to {@link isClosedPosition} when omitted.
    */
   isClosed?: boolean;
-  /**
-   * When true, the subtitle shows the last-trade date instead of token amount.
-   * Set this when the parent list is sorted by recency so the row surfaces
-   * the field that drives the order.
-   */
   showTradeDate?: boolean;
 }
 

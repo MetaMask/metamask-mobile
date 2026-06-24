@@ -84,9 +84,6 @@ const POSITION_SKELETON_KEYS = Array.from(
   (_, i) => `position-skeleton-${i}`,
 );
 
-// Closed tab uses "Top Trades" for the value sort because the underlying field
-// is realized $ PnL — "Value" reads as notional/market value on Open, which
-// doesn't apply to a closed position.
 const OPEN_SORT_LABEL_KEYS: Record<OpenSortKey, string> = {
   value: 'social_leaderboard.trader_profile.sort.value',
   pnl: 'social_leaderboard.trader_profile.sort.pnl_percent',
