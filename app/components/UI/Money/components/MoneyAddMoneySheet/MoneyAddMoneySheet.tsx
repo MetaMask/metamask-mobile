@@ -211,7 +211,7 @@ const MoneyAddMoneySheet: React.FC = () => {
           {
             label: strings(
               Platform.OS === 'android'
-                ? 'money.add_money_sheet.deposit_funds_android'
+                ? 'fiat_on_ramp.debit_card'
                 : 'money.add_money_sheet.deposit_funds',
             ),
             icon: IconName.Card,
