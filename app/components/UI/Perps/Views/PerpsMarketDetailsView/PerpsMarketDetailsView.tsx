@@ -719,8 +719,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     const newWatchlistState = isAdding;
     setOptimisticWatchlist(newWatchlistState);
 
-    // Actual state update
-    controller.toggleWatchlistMarket(market.symbol);
+    // Actual state update (controller applies its own optimistic update and
+    // reverts internally on remote-write failure; fire-and-forget here).
+    void controller.toggleWatchlistMarket(market.symbol);
 
     // Track watchlist toggle event
     const watchlistCount = controller.getWatchlistMarkets().length;

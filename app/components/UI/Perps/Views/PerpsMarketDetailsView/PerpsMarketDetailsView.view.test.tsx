@@ -355,6 +355,7 @@ describe('PerpsMarketDetailsView', () => {
           price: '2800',
           markPrice: '2800',
           timestamp: Date.now(),
+          isTradable: true,
         },
       });
       stream.emitPositions([]);

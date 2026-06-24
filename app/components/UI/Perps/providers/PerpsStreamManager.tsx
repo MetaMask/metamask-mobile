@@ -535,6 +535,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
             funding: update.funding,
             openInterest: update.openInterest,
             volume24h: update.volume24h,
+            isTradable: update.isTradable,
           };
           this.priceCache.set(update.symbol, priceUpdate);
           priceMap[update.symbol] = priceUpdate;
@@ -679,6 +680,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
                 funding: update.funding,
                 openInterest: update.openInterest,
                 volume24h: update.volume24h,
+                isTradable: update.isTradable,
               };
               this.priceCache.set(update.symbol, priceUpdate);
               priceMap[update.symbol] = priceUpdate;
