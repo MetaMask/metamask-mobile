@@ -71,13 +71,19 @@ function outboundTransfer(
   );
 }
 
-/** The leg that credits the money account — a cashback reward. */
-function inboundTransfer(
+/** Inbound mUSD credit to the money account — the cashback settlement leg. */
+function inboundMusdTransfer(
   tx: AccountsApiTransaction,
   moneyAddress: string,
 ): AccountsApiValueTransfer | undefined {
-  return (tx.valueTransfers ?? []).find((vt) =>
-    areAddressesEqual(vt.to, moneyAddress),
+  const chainId = parseChainId(tx.chainId);
+  if (!chainId) {
+    return undefined;
+  }
+  return (tx.valueTransfers ?? []).find(
+    (vt) =>
+      areAddressesEqual(vt.to, moneyAddress) &&
+      isMusdTokenOnChain(vt.contractAddress, chainId),
   );
 }
 
@@ -153,8 +159,8 @@ export function parseAccountsApiActivity(
       }
       return [{ ...parsed, kind: 'card', paidTo: transfer.to as Hex }];
     }
-    if (isCashbackTransaction(tx, cashbackMultisendContracts)) {
-      const transfer = inboundTransfer(tx, moneyAddress);
+    if (isCashbackTransaction(tx, moneyAddress, cashbackMultisendContracts)) {
+      const transfer = inboundMusdTransfer(tx, moneyAddress);
       const parsed = parseSettlement(tx, transfer);
       if (!parsed || !transfer) {
         return [];
@@ -165,16 +171,6 @@ export function parseAccountsApiActivity(
     }
     return [];
   });
-}
-
-function hasMusdValueTransfer(tx: AccountsApiTransaction): boolean {
-  const chainId = parseChainId(tx.chainId);
-  if (!chainId) {
-    return false;
-  }
-  return (tx.valueTransfers ?? []).some((vt) =>
-    isMusdTokenOnChain(vt.contractAddress, chainId),
-  );
 }
 
 function isCashbackMultisendTarget(
@@ -191,6 +187,7 @@ function isCashbackMultisendTarget(
  */
 function isCashbackTransaction(
   tx: AccountsApiTransaction,
+  moneyAddress: string,
   cashbackMultisendContracts: readonly string[],
 ): boolean {
   if (tx.isError) {
@@ -207,7 +204,7 @@ function isCashbackTransaction(
   }
   if (
     !isCashbackMultisendTarget(tx.to, cashbackMultisendContracts) ||
-    !hasMusdValueTransfer(tx)
+    !inboundMusdTransfer(tx, moneyAddress)
   ) {
     return false;
   }

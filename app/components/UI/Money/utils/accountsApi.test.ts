@@ -239,6 +239,65 @@ describe('parseAccountsApiActivity', () => {
     ).toEqual([]);
   });
 
+  it('ignores multisend rows where the money account inbound credit is not mUSD', () => {
+    expect(
+      parseAccountsApiActivity(
+        {
+          data: [
+            {
+              ...unclassifiedCashbackRow,
+              valueTransfers: [
+                {
+                  from: '0x21607d4c8cf71844955889890c1711655fd08d72',
+                  to: MONEY_ADDRESS.toLowerCase(),
+                  amount: '1000000',
+                  decimal: 6,
+                  contractAddress: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
+                  symbol: 'USDC',
+                },
+                {
+                  from: '0x0000000000000000000000000000000000000000',
+                  to: '0x0000000000000000000000000000000000000001',
+                  amount: '999454',
+                  decimal: 6,
+                  contractAddress: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+                  symbol: 'mUSD',
+                },
+              ],
+            },
+          ],
+        },
+        MONEY_ADDRESS,
+      ),
+    ).toEqual([]);
+  });
+
+  it('selects the mUSD inbound leg when multiple inbound transfers credit the money account', () => {
+    const response = {
+      data: [
+        {
+          ...unclassifiedCashbackRow,
+          valueTransfers: [
+            {
+              from: '0x0000000000000000000000000000000000000000',
+              to: MONEY_ADDRESS.toLowerCase(),
+              amount: '1',
+              decimal: 6,
+              contractAddress: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
+              symbol: 'USDC',
+            },
+            unclassifiedCashbackRow.valueTransfers[0],
+          ],
+        },
+      ],
+    };
+
+    const [cashback] = parseAccountsApiActivity(response, MONEY_ADDRESS);
+
+    expect(cashback.amount).toBe('999454');
+    expect(cashback.token.symbol).toBe('mUSD');
+  });
+
   it('uses the provided cashback multisend contract list instead of defaults', () => {
     const customContract = '0x00000000000000000000000000000000000000aa';
 
