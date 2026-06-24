@@ -1,29 +1,16 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Image, Pressable, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  ButtonIcon,
-  ButtonIconSize,
-  ButtonIconVariant,
-  FontWeight,
-  IconName,
-  IconSize,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Engine from '../../../../../core/Engine';
 import { handleRewardsUrl } from '../../../../../core/DeeplinkManager/handlers/legacy/handleRewardsUrl';
 import { selectPredictWorldCupHubBannerEnabledFlag } from '../../selectors/featureFlags';
 import { PredictEventValues } from '../../constants/eventNames';
+import PredictWorldCupBannerCard from '../PredictWorldCupBannerCard';
 import { PredictWorldCupHubBannerSelectorsIDs } from './PredictWorldCupHubBanner.testIds';
 
 import predictThePitchImage from '../../assets/predict-the-pitch-hub-banner.png';
 
 const PREDICT_THE_PITCH_REWARDS_PATH = '/rewards?campaign=predict-the-pitch';
-const HUB_BANNER_IMAGE_SIZE = 80;
 
 /**
  * Promotional "$75K up for grabs" banner for the Predict the Pitch leaderboard
@@ -33,7 +20,6 @@ const HUB_BANNER_IMAGE_SIZE = 80;
  * the Safari-opens-universal-link pitfall of `Linking.openURL`.
  */
 const PredictWorldCupHubBanner: React.FC = () => {
-  const tw = useTailwind();
   const isEnabled = useSelector(selectPredictWorldCupHubBannerEnabledFlag);
   const hasTrackedBannerViewed = useRef(false);
 
@@ -61,64 +47,24 @@ const PredictWorldCupHubBanner: React.FC = () => {
     return null;
   }
 
+  const title = strings('predict.world_cup.hub_banner_title');
+  const description = strings('predict.world_cup.hub_banner_description');
+
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={`${strings(
-        'predict.world_cup.hub_banner_title',
-      )}. ${strings('predict.world_cup.hub_banner_description')}`}
+    <PredictWorldCupBannerCard
+      variant="compact"
+      imageSource={predictThePitchImage}
+      title={title}
+      description={description}
       onPress={handlePress}
-      style={tw.style('mx-4 mb-3')}
-      testID={PredictWorldCupHubBannerSelectorsIDs.CONTAINER}
-    >
-      <View
-        style={tw.style(
-          'bg-muted rounded-xl overflow-hidden flex-row items-center',
-        )}
-      >
-        <Image
-          source={predictThePitchImage}
-          resizeMode="cover"
-          testID={PredictWorldCupHubBannerSelectorsIDs.IMAGE}
-          style={tw.style('rounded-l-xl', {
-            height: HUB_BANNER_IMAGE_SIZE,
-            width: HUB_BANNER_IMAGE_SIZE,
-          })}
-        />
-        <View
-          style={tw.style('flex-row items-center justify-between p-3 flex-1')}
-        >
-          <View style={tw.style('flex-shrink')}>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextDefault}
-              fontWeight={FontWeight.Medium}
-            >
-              {strings('predict.world_cup.hub_banner_title')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('predict.world_cup.hub_banner_description')}
-            </Text>
-          </View>
-          <View
-            accessibilityElementsHidden
-            importantForAccessibility="no-hide-descendants"
-          >
-            <ButtonIcon
-              onPress={handlePress}
-              iconName={IconName.ArrowRight}
-              iconProps={{ size: IconSize.Md }}
-              size={ButtonIconSize.Md}
-              variant={ButtonIconVariant.Filled}
-              testID={PredictWorldCupHubBannerSelectorsIDs.ARROW}
-            />
-          </View>
-        </View>
-      </View>
-    </Pressable>
+      accessibilityLabel={`${title}. ${description}`}
+      containerClassName="mx-4 mb-3"
+      testIDs={{
+        container: PredictWorldCupHubBannerSelectorsIDs.CONTAINER,
+        image: PredictWorldCupHubBannerSelectorsIDs.IMAGE,
+        arrow: PredictWorldCupHubBannerSelectorsIDs.ARROW,
+      }}
+    />
   );
 };
 
