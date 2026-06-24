@@ -44,7 +44,7 @@ const styleSheet = (params: { theme: Theme }) =>
       width: '100%',
       alignSelf: 'stretch',
       paddingTop: 12,
-      paddingBottom: 16,
+      paddingBottom: 8,
       flexDirection: 'column',
       alignItems: 'flex-start',
       gap: 10,

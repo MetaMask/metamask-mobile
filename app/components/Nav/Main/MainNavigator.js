@@ -46,6 +46,7 @@ import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
+import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import ResetPassword from '../../Views/ResetPassword';
@@ -77,13 +78,12 @@ import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/Activ
 import RampHeadlessPlayground from '../../UI/Ramp/Views/HeadlessPlayground';
 import TokenListRoutes from '../../UI/Ramp/routes';
 
-import DepositRoutes from '../../UI/Ramp/Deposit/routes';
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
-import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
+import DepositOrderDetails from '../../UI/Ramp/Views/OrderDetails/DepositOrderDetails/DepositOrderDetails';
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
@@ -1127,6 +1127,11 @@ const MainNavigator = () => {
         component={QRTabSwitcher}
       />
       <NativeStack.Screen
+        name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+        component={AddDeviceToWallet}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
         name="NftDetails"
         component={NftDetailsModeView}
         options={slideFromRightNativeOptions}
@@ -1179,7 +1184,6 @@ const MainNavigator = () => {
       >
         {() => <RampRoutes rampType={RampType.SELL} />}
       </NativeStack.Screen>
-      <NativeStack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}

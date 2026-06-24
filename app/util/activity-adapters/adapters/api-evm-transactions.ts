@@ -13,6 +13,7 @@ import {
   getTokenMetadataFromKnownToken,
   getTokenAmountFromTransfer,
   getTokenApprovalAmountFromData,
+  isUnlimitedApprovalAmount,
   isNftTransferType,
   isNativeTransferType,
   withFallbackTokenAssetId,
@@ -191,6 +192,16 @@ export function mapApiEvmTransactions({
       getTransactionCalldata(transaction),
       environment,
     );
+    const token =
+      approveToken && approveAmount
+        ? {
+            ...approveToken,
+            amount: approveAmount,
+            ...(isUnlimitedApprovalAmount(approveAmount, approveToken.decimals)
+              ? { isUnlimitedApproval: true }
+              : {}),
+          }
+        : approveToken;
 
     return {
       type: 'approveSpendingCap',
@@ -200,10 +211,7 @@ export function mapApiEvmTransactions({
       hash,
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
-        token:
-          approveToken && approveAmount
-            ? { ...approveToken, amount: approveAmount }
-            : approveToken,
+        token,
       },
     };
   }
@@ -454,6 +462,15 @@ export function mapApiEvmTransactions({
     };
   }
 
+  const contractInteractionTransfer = sentTransfer ?? receivedTransfer;
+  const contractInteractionToken = getToken(
+    contractInteractionTransfer,
+    sentTransfer ? 'out' : 'in',
+  );
+  const contractInteractionTokenWithAmount = contractInteractionToken?.amount
+    ? contractInteractionToken
+    : undefined;
+
   return {
     type: 'contractInteraction',
     chainId,
@@ -468,6 +485,9 @@ export function mapApiEvmTransactions({
       transactionCategory,
       transactionProtocol: transaction.transactionProtocol,
       transactionType: transaction.transactionType,
+      ...(contractInteractionTokenWithAmount
+        ? { token: contractInteractionTokenWithAmount }
+        : {}),
     },
   };
 }
