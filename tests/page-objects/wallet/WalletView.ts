@@ -941,14 +941,14 @@ class WalletView {
     try {
       await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
         direction: 'down',
-        scrollAmount: 220,
+        scrollAmount: 250,
         timeout: 12000,
         elemDescription: `Scroll to prediction position: ${positionName}`,
       });
     } catch {
       await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
         direction: 'up',
-        scrollAmount: 220,
+        scrollAmount: 250,
         timeout: 12000,
         elemDescription: `Scroll up fallback to prediction position: ${positionName}`,
       });
