@@ -24,6 +24,7 @@ import {
 } from './constants';
 import {
   getKnownTokenMetadata,
+  getLocalTransactionFees,
   getLocalTransactionStatus,
   getTokenApprovalAmountFromData,
   isUnlimitedApprovalAmount,
@@ -54,6 +55,14 @@ export function mapLocalTransaction(
   // Localhost (0x539) regardless of how the user configured the network.
   const nativeSymbol =
     transactionGroup.nativeAssetSymbol ?? nativeAsset?.symbol;
+
+  // Base network (gas) fee in the chain's native token, derived from the tx
+  // receipt. Spread into `data` for types that surface fees in the UI.
+  const fees = getLocalTransactionFees(
+    transactionGroup,
+    nativeAsset,
+    nativeSymbol,
+  );
 
   const getNativeToken = (
     transaction: TransactionGroup['initialTransaction'],
@@ -310,6 +319,7 @@ export function mapLocalTransaction(
           from,
           to,
           token: getNativeToken(initialTransaction, 'out'),
+          ...(fees ? { fees } : {}),
         },
       };
     }
@@ -342,6 +352,7 @@ export function mapLocalTransaction(
             direction: 'out',
             contractAddress: initialTransaction.txParams.to,
           }),
+          ...(fees ? { fees } : {}),
         },
       };
     }
@@ -365,6 +376,7 @@ export function mapLocalTransaction(
                   initialTransaction.transferInformation.contractAddress,
               })
             : getNativeToken(initialTransaction, 'in'),
+          ...(fees ? { fees } : {}),
         },
       };
     }

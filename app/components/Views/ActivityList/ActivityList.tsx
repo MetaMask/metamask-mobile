@@ -22,6 +22,7 @@ import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Routes from '../../../constants/navigation/Routes';
 import { RPC } from '../../../constants/network';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
 import {
@@ -238,6 +239,9 @@ const ActivityList = ({
   );
 
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+  const isTransactionsRedesignEnabled = useSelector(
+    selectIsTransactionsRedesignEnabled,
+  );
 
   /** Drop confirmed EVM rows not on a configured chain (guards stale query pages / removed networks). */
   const allConfirmedForConfiguredChains = useMemo<ActivityListItem[]>(() => {
@@ -601,6 +605,14 @@ const ActivityList = ({
 
   const handleActivityItemPress = useCallback(
     async (item: ActivityListItem) => {
+      if (isTransactionsRedesignEnabled && item.hash) {
+        navigation.navigate(Routes.ACTIVITY_DETAILS, {
+          chainId: item.chainId,
+          txIdentifier: item.hash,
+        });
+        return;
+      }
+
       const { raw } = item;
       if (!raw) return;
 
@@ -741,6 +753,7 @@ const ActivityList = ({
     [
       bridgeHistory,
       getBridgeHistoryItemByHash,
+      isTransactionsRedesignEnabled,
       navigation,
       selectedAccountGroupEvmAddress,
       selectedInternalAccount?.address,

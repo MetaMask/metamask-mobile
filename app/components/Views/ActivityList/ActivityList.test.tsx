@@ -94,6 +94,10 @@ jest.mock('../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: jest.fn((state) => state.bridgeHistory),
 }));
 
+jest.mock('../../../selectors/featureFlagController/activityRedesign', () => ({
+  selectIsTransactionsRedesignEnabled: jest.fn((state) => state.isTxRedesign),
+}));
+
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: () => ({}) }),
 }));
@@ -432,6 +436,7 @@ const selectorValues = {
   related: new Map(),
   selectedAccount: { address: '0xselected' },
   selectedGroupAccounts: [{ address: '0xevm', type: 'eip155:eoa' }],
+  isTxRedesign: false,
 };
 
 const confirmedItem = {
@@ -479,6 +484,7 @@ describe('ActivityList', () => {
     selectorValues.selectedGroupAccounts = [
       { address: '0xevm', type: 'eip155:eoa' },
     ];
+    selectorValues.isTxRedesign = false;
     (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
     (useTransactionsQuery as jest.Mock).mockReturnValue({
       data: { pages: [{ data: [confirmedItem] }] },
@@ -581,6 +587,23 @@ describe('ActivityList', () => {
         }),
       ),
     );
+  });
+
+  it('navigates to the redesigned ActivityDetails screen when the transactions redesign flag is on', () => {
+    selectorValues.isTxRedesign = true;
+    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
+
+    fireEvent.press(screen.getByTestId('row-0xconfirmed'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
+      chainId: 'eip155:1',
+      txIdentifier: '0xconfirmed',
+    });
+    // Must not also open the legacy sheet.
+    const legacyCalls = mockNavigate.mock.calls.filter(
+      (call) => call[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
+    );
+    expect(legacyCalls).toHaveLength(0);
   });
 
   it('opens only the most-recently-pressed row when decodes resolve out of order', async () => {

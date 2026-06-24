@@ -66,6 +66,19 @@ export interface TokenAmount {
   direction: 'in' | 'out';
 }
 
+/**
+ * A fee associated with a transaction (e.g. the base network/gas fee). `amount`
+ * is in the smallest unit of `symbol`/`assetId` (typically the native token).
+ * Mirrors metamask-extension `shared/lib/activity/types.ts#ActivityFee`.
+ */
+export interface ActivityFee {
+  type: string;
+  amount?: string;
+  decimals?: number;
+  symbol?: string;
+  assetId?: string;
+}
+
 interface ActivityData<Type extends ActivityKind, Data> {
   type: Type;
   chainId: CaipChainId;
@@ -88,6 +101,7 @@ export type ActivityListItem =
         from: string;
         to: string;
         token?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<
@@ -100,6 +114,7 @@ export type ActivityListItem =
       {
         sourceToken?: TokenAmount;
         destinationToken?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<
@@ -113,6 +128,7 @@ export type ActivityListItem =
       {
         sourceToken?: TokenAmount;
         destinationToken?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<
@@ -133,6 +149,7 @@ export type ActivityListItem =
       'approveSpendingCap' | 'revokeSpendingCap' | 'increaseSpendingCap',
       {
         token?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<
@@ -149,6 +166,7 @@ export type ActivityListItem =
         from: string;
         to: string;
         token?: TokenAmount;
+        fees?: ActivityFee[];
         methodId?: string;
         transactionCategory?: string;
         transactionProtocol?: string;
