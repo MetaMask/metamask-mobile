@@ -1,4 +1,4 @@
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { Image } from 'expo-image';
 import { AvatarAccount } from '@metamask/design-system-react-native';
@@ -53,5 +53,27 @@ describe('TradeRow', () => {
 
     expect(screen.UNSAFE_queryByType(AvatarAccount)).not.toBeNull();
     expect(screen.UNSAFE_queryByType(Image)).toBeNull();
+  });
+
+  it('calls onPress with the trade when the row is tapped', () => {
+    const onPress = jest.fn();
+    renderWithProvider(<TradeRow trade={baseTrade} onPress={onPress} />);
+
+    fireEvent.press(
+      screen.getByTestId(`trade-row-${baseTrade.transactionHash}`),
+    );
+
+    expect(onPress).toHaveBeenCalledWith(baseTrade);
+  });
+
+  it('does not fire a press when no onPress is provided', () => {
+    renderWithProvider(<TradeRow trade={baseTrade} />);
+
+    // Disabled Pressable: pressing is a no-op (no throw, nothing to assert beyond render).
+    expect(() =>
+      fireEvent.press(
+        screen.getByTestId(`trade-row-${baseTrade.transactionHash}`),
+      ),
+    ).not.toThrow();
   });
 });
