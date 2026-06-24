@@ -1,8 +1,8 @@
 import type { Mockttp } from 'mockttp';
 import FixtureBuilder, {
   DEFAULT_SOLANA_FIXTURE_ACCOUNT,
-  type TokenInfo,
 } from '../../../framework/fixtures/FixtureBuilder.js';
+import type { TokenInfo } from '../../../framework/fixtures/types.ts';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
 import type { AssetsControllerState } from '@metamask/assets-controller';
 import type {

@@ -77,7 +77,8 @@ export default class PlaywrightMatchers {
       if (!drv) throw new Error('Driver is not available');
       if (options.index !== undefined) {
         const elements = await drv.$$(locator);
-        if (elements.length > options.index) {
+        const length = await elements.length;
+        if (length > options.index) {
           return wrapElement(
             elements[options.index] as unknown as ChainablePromiseElement,
           );
@@ -113,7 +114,8 @@ export default class PlaywrightMatchers {
     if (!drv) throw new Error('Driver is not available');
     if (options.index !== undefined) {
       const elements = await drv.$$(locator);
-      if (elements.length > options.index) {
+      const length = await elements.length;
+      if (length > options.index) {
         return wrapElement(
           elements[options.index] as unknown as ChainablePromiseElement,
         );
