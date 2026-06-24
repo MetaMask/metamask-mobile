@@ -40,8 +40,21 @@ import {
 } from './app/core/ErrorHandler';
 
 import { enableFreeze } from 'react-native-screens';
+import notifee from '@notifee/react-native';
 import messaging from '@react-native-firebase/messaging';
 import { logPushEvent } from './app/util/notifications/pushDebugLog';
+
+// REQUIRED on iOS: calling onForegroundEvent here registers notifee as
+// UNUserNotificationCenterDelegate before the app renders. Without this,
+// notifee holds the delegate slot (because it's installed) but has no JS
+// handler, so it silently swallows foreground messages and
+// messaging().onMessage() never fires.
+notifee.onForegroundEvent(({ type, detail }) => {
+  logPushEvent('NOTIFEE_FOREGROUND_EVENT', `Notifee foreground event type: ${type}`, {
+    notificationId: detail?.notification?.id,
+    notificationTitle: detail?.notification?.title,
+  });
+});
 
 // Must be registered before AppRegistry — runs in headless JS context when app is
 // killed/backgrounded and a data-only FCM message arrives (primarily Android).
