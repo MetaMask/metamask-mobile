@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect } from 'react';
 import { ScrollView } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
@@ -19,6 +19,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { exitRewardsFlow } from '../utils';
 import {
   buildVipPrioritySupportUrl,
   METAMASK_SUPPORT_URL,
@@ -102,7 +103,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
 
   useEffect(() => {
     if (!canViewReferee) {
-      navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+      exitRewardsFlow(navigation);
     }
   }, [canViewReferee, navigation]);
 
