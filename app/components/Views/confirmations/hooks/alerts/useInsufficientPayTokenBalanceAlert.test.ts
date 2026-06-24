@@ -700,6 +700,73 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
       expect(result.current).toStrictEqual([]);
     });
+
+    it('returns alert when total (amount + fees) exceeds money account balance', () => {
+      jest.mocked(useMoneyAccountBalance).mockReturnValue({
+        totalFiatRaw: '3.00',
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        { ...REQUIRED_TOKEN_MOCK, amountUsd: '2.99' },
+      ]);
+
+      useTransactionPayTotalsMock.mockReturnValue({
+        ...TOTALS_MOCK,
+        total: { usd: '3.06' },
+      } as TransactionPayTotals);
+
+      const { result } = runHook({}, moneyAccountState);
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenBalance,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          title: strings('alert_system.insufficient_pay_token_balance.message'),
+          message: strings(
+            'alert_system.insufficient_pay_token_balance_fees_no_target.message',
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
+
+    it('returns no alert when total is within money account balance', () => {
+      jest.mocked(useMoneyAccountBalance).mockReturnValue({
+        totalFiatRaw: '5.00',
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      useTransactionPayRequiredTokensMock.mockReturnValue([
+        { ...REQUIRED_TOKEN_MOCK, amountUsd: '2.99' },
+      ]);
+
+      useTransactionPayTotalsMock.mockReturnValue({
+        ...TOTALS_MOCK,
+        total: { usd: '3.06' },
+      } as TransactionPayTotals);
+
+      const { result } = runHook({}, moneyAccountState);
+
+      expect(result.current).toStrictEqual([]);
+    });
+
+    it('skips total check during pending input (keyboard visible)', () => {
+      jest.mocked(useMoneyAccountBalance).mockReturnValue({
+        totalFiatRaw: '3.00',
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      useTransactionPayTotalsMock.mockReturnValue({
+        ...TOTALS_MOCK,
+        total: { usd: '3.06' },
+      } as TransactionPayTotals);
+
+      const { result } = runHook(
+        { pendingAmountUsd: '2.99' },
+        moneyAccountState,
+      );
+
+      expect(result.current).toStrictEqual([]);
+    });
   });
 
   describe('fiat payment', () => {
