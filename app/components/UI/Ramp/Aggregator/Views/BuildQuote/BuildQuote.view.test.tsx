@@ -76,20 +76,14 @@ async function selectTokenInOpenModal(
 async function selectTokenViaSearch(
   renderApi: Pick<
     RenderAPI,
-    | 'getByText'
-    | 'queryByText'
-    | 'findByRole'
-    | 'findByTestId'
-    | 'queryByTestId'
-    | 'getAllByText'
+    'findByText' | 'findByTestId' | 'queryByTestId' | 'getAllByText'
   >,
   searchQuery: string | undefined,
   tokenLabel: string,
 ) {
-  const { getByText, queryByText, findByRole } = renderApi;
+  const { findByText } = renderApi;
 
-  await waitForBuildQuoteReady({ getByText, queryByText });
-  fireEvent.press(await findByRole('button', { name: 'Ethereum' }));
+  fireEvent.press(await findByText('Ethereum'));
   await selectTokenInOpenModal(renderApi, searchQuery, tokenLabel);
 }
 
@@ -168,14 +162,7 @@ describe('Aggregator BuildQuote', () => {
       expect(await findByText(/current balance/i)).toBeOnTheScreen();
 
       await selectTokenViaSearch(
-        {
-          getByText,
-          queryByText,
-          findByRole,
-          findByTestId,
-          queryByTestId,
-          getAllByText,
-        },
+        { findByText, findByTestId, queryByTestId, getAllByText },
         'mUSD',
         'mUSD',
       );
@@ -257,13 +244,9 @@ describe('Aggregator BuildQuote', () => {
 
   describe('buy mode (Aggregator / V1)', () => {
     it('changes the selected payment method from Apple Pay to Debit or Credit', async () => {
-      const { findByText, getByText, queryByText } = renderBuildQuoteWithRoutes(
-        {
-          rampType: RampType.BUY,
-        },
-      );
-
-      await waitForBuildQuoteReady({ getByText, queryByText });
+      const { findByText, queryByText } = renderBuildQuoteWithRoutes({
+        rampType: RampType.BUY,
+      });
 
       fireEvent.press(await findByText('Apple Pay'));
       fireEvent.press(await findByText('Debit or Credit'));
@@ -279,9 +262,9 @@ describe('Aggregator BuildQuote', () => {
         rampType: RampType.BUY,
         includeBuySettingsAndTransactionsRoutes: true,
       });
-      const { findByText, findByTestId, getByText, queryByText } = renderApi;
+      const { findByText, findByTestId } = renderApi;
 
-      await waitForBuildQuoteReady({ getByText, queryByText });
+      await findByText('Ethereum');
 
       fireEvent.press(
         await findByTestId(NavbarSelectorsIDs.DEPOSIT_CONFIGURATION_BUTTON),
@@ -301,27 +284,13 @@ describe('Aggregator BuildQuote', () => {
     });
 
     it('changes the selected token from Ethereum to Dai Stablecoin', async () => {
-      const {
-        findByText,
-        getByText,
-        queryByText,
-        findByRole,
-        findByTestId,
-        queryByTestId,
-        getAllByText,
-      } = renderBuildQuoteWithRoutes({
-        rampType: RampType.BUY,
-      });
+      const { findByText, findByTestId, queryByTestId, getAllByText } =
+        renderBuildQuoteWithRoutes({
+          rampType: RampType.BUY,
+        });
 
       await selectTokenViaSearch(
-        {
-          getByText,
-          queryByText,
-          findByRole,
-          findByTestId,
-          queryByTestId,
-          getAllByText,
-        },
+        { findByText, findByTestId, queryByTestId, getAllByText },
         'DAI',
         'Dai Stablecoin',
       );
