@@ -87,13 +87,6 @@ jest.mock('../../Perps/components/PerpsBottomSheetTooltip', () => ({
   default: (...args: unknown[]) => mockPerpsBottomSheetTooltipInner(...args),
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart',
-  () => ({
-    selectTokenOverviewAdvancedChartEnabled: jest.fn(() => false),
-  }),
-);
-
 jest.mock('../../Perps/hooks/usePerpsPositionForAsset', () => ({
   usePerpsPositionForAsset: (...args: unknown[]) =>
     mockUsePerpsPositionForAsset(...args),

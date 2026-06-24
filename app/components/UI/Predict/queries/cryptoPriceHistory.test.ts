@@ -67,6 +67,14 @@ describe('cryptoPriceHistory queries', () => {
     });
   });
 
+  describe('predictCryptoPriceHistoryOptions', () => {
+    it('disables retries so interval polling does not multiply failed requests', () => {
+      const options = predictCryptoPriceHistoryOptions(defaultParams);
+
+      expect(options.retry).toBe(0);
+    });
+  });
+
   describe('queryFn', () => {
     it('converts millisecond timestamps to Liveline seconds', async () => {
       (
