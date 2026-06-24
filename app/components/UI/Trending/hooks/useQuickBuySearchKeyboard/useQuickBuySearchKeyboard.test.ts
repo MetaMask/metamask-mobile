@@ -1,12 +1,17 @@
 import { renderHook, act } from '@testing-library/react-native';
+import type { TrendingAsset } from '@metamask/assets-controllers';
 import { Keyboard, Platform } from 'react-native';
 import { useQuickBuySearchKeyboard } from './useQuickBuySearchKeyboard';
 
-const mockToken = {
+const mockToken: TrendingAsset = {
   assetId: 'eip155:1/slip44:60',
   symbol: 'ETH',
   name: 'Ethereum',
-} as const;
+  decimals: 18,
+  price: '2000',
+  aggregatedUsdVolume: 1_000_000,
+  marketCap: 100_000_000,
+};
 
 describe('useQuickBuySearchKeyboard', () => {
   let keyboardShowCallback: (() => void) | undefined;
@@ -16,15 +21,19 @@ describe('useQuickBuySearchKeyboard', () => {
     jest.spyOn(Keyboard, 'dismiss').mockImplementation(() => undefined);
     jest
       .spyOn(Keyboard, 'addListener')
-      .mockImplementation((event, callback) => {
-        if (
-          event ===
-          (Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow')
-        ) {
-          keyboardShowCallback = callback as () => void;
-        }
-        return { remove: jest.fn() };
-      });
+      .mockImplementation(
+        (event, callback: Parameters<typeof Keyboard.addListener>[1]) => {
+          if (
+            event ===
+            (Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow')
+          ) {
+            keyboardShowCallback = callback as () => void;
+          }
+          return { remove: jest.fn() } as unknown as ReturnType<
+            typeof Keyboard.addListener
+          >;
+        },
+      );
   });
 
   afterEach(() => {
@@ -35,8 +44,9 @@ describe('useQuickBuySearchKeyboard', () => {
     const closeQuickBuy = jest.fn();
 
     const { rerender } = renderHook(
-      ({ token }) => useQuickBuySearchKeyboard(token, closeQuickBuy),
-      { initialProps: { token: null as typeof mockToken | null } },
+      (props: { token: TrendingAsset | null }) =>
+        useQuickBuySearchKeyboard(props.token, closeQuickBuy),
+      { initialProps: { token: null as TrendingAsset | null } },
     );
 
     expect(Keyboard.dismiss).not.toHaveBeenCalled();
