@@ -14,6 +14,7 @@ import {
   isQrSyncSyncReadyMessage,
   normalizeQrSyncData,
   normalizeQrSyncDataEntry,
+  classifyQrSyncScanContent,
   parseQrSyncConnectionRequest,
   QR_SYNC_MWP_DEEPLINK_PREFIX,
   validateAndNormalizeQrSyncData,
@@ -189,6 +190,40 @@ describe('qr-sync-validation', () => {
       expect(() => parseQrSyncConnectionRequest(rawQrData)).toThrow(
         'QR sync scan payload does not contain a valid session request.',
       );
+    });
+  });
+
+  describe('classifyQrSyncScanContent', () => {
+    it('returns valid for compressed MWP deeplinks accepted by manual entry', () => {
+      const connectionRequest = { sessionRequest: createSessionRequest() };
+      const deeplink = createMwpDeeplink(
+        compressAndEncode(encodeBase64Json(connectionRequest)),
+        { compressed: true },
+      );
+
+      expect(classifyQrSyncScanContent(deeplink)).toBe('valid');
+    });
+
+    it('returns valid for base64 JSON payloads used by manual entry', () => {
+      const connectionRequest = { sessionRequest: createSessionRequest() };
+      const rawQrData = encodeBase64Json(connectionRequest);
+
+      expect(classifyQrSyncScanContent(rawQrData)).toBe('valid');
+    });
+
+    it('returns expired for expired session requests', () => {
+      const connectionRequest = {
+        sessionRequest: createSessionRequest({
+          expiresAt: FIXED_NOW - 1_000,
+        }),
+      };
+      const deeplink = createMwpDeeplink(encodeBase64Json(connectionRequest));
+
+      expect(classifyQrSyncScanContent(deeplink)).toBe('expired');
+    });
+
+    it('returns invalid for malformed payloads', () => {
+      expect(classifyQrSyncScanContent('not-json')).toBe('invalid');
     });
   });
 

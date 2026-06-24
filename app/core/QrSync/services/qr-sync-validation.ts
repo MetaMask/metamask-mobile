@@ -212,6 +212,58 @@ export function parseQrSyncConnectionRequest(
   return parsed;
 }
 
+export type QrSyncScanClassification = 'valid' | 'invalid' | 'expired';
+
+const extractSessionRequestFromParsedPayload = (
+  parsed: unknown,
+): SessionRequest | null => {
+  if (isQrSyncSessionRequest(parsed)) {
+    return parsed;
+  }
+
+  if (isRecord(parsed) && isQrSyncSessionRequest(parsed.sessionRequest)) {
+    return parsed.sessionRequest;
+  }
+
+  return null;
+};
+
+/**
+ * Classifies a QR scan payload using the same parsing rules as manual entry.
+ *
+ * Supports MWP deeplinks (including compressed `c=1`), base64 JSON, and raw JSON.
+ */
+export function classifyQrSyncScanContent(
+  rawQrData: string,
+): QrSyncScanClassification {
+  if (!rawQrData?.trim()) {
+    return 'invalid';
+  }
+
+  let parsed: unknown;
+  try {
+    parsed = parseQrSyncScanPayloadJson(rawQrData.trim());
+  } catch {
+    return 'invalid';
+  }
+
+  const sessionRequest = extractSessionRequestFromParsedPayload(parsed);
+
+  if (!sessionRequest) {
+    return 'invalid';
+  }
+
+  if (sessionRequest.expiresAt <= Date.now()) {
+    return 'expired';
+  }
+
+  if (!isQrSyncConnectionRequest(parsed)) {
+    return 'invalid';
+  }
+
+  return 'valid';
+}
+
 // --- Sync-ready payload shape guards ---
 
 export function isQrSyncSecretMetadata(

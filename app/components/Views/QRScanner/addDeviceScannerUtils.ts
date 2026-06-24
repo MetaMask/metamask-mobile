@@ -1,9 +1,4 @@
-import SDKConnectV2 from '../../../core/SDKConnectV2';
-import {
-  decodeAddDeviceQrPayloadFromMwpDeeplink,
-  extractAddDeviceQrSessionExpiresAt,
-  tryParseAddDeviceQrMwpDeeplink,
-} from '../../../core/ExtensionAccountSync/parseAddDeviceQrMwpDeeplink';
+import { classifyQrSyncScanContent } from '../../../core/QrSync/services/qr-sync-validation';
 
 export enum AddDeviceScannerUiState {
   Searching = 'searching',
@@ -18,30 +13,11 @@ export const ADD_DEVICE_QR_DETECTED_DELAY_MS = 400;
 export type AddDeviceScanClassification = 'valid' | 'invalid' | 'expired';
 
 /**
- * Classifies Add Device camera scans.
- *
- * Accepted format: `metamask://connect/mwp?p=<base64(session-request-json)>`
+ * Classifies Add Device camera scans using the same rules as QrSyncController
+ * manual entry (MWP deeplink, compressed payload, base64 JSON, or raw JSON).
  */
 export function classifyAddDeviceScanContent(
   content: string,
 ): AddDeviceScanClassification {
-  if (!SDKConnectV2.isMwpDeeplink(content)) {
-    return 'invalid';
-  }
-
-  if (tryParseAddDeviceQrMwpDeeplink(content)) {
-    return 'valid';
-  }
-
-  try {
-    const payload = decodeAddDeviceQrPayloadFromMwpDeeplink(content);
-    const expiresAt = extractAddDeviceQrSessionExpiresAt(payload);
-    if (typeof expiresAt === 'number' && expiresAt <= Date.now()) {
-      return 'expired';
-    }
-  } catch {
-    // Fall through to invalid.
-  }
-
-  return 'invalid';
+  return classifyQrSyncScanContent(content);
 }

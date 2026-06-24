@@ -1,14 +1,4 @@
-import SDKConnectV2 from '../../../core/SDKConnectV2';
 import { classifyAddDeviceScanContent } from './addDeviceScannerUtils';
-
-jest.mock('../../../core/SDKConnectV2', () => ({
-  __esModule: true,
-  default: {
-    isMwpDeeplink: jest.fn(),
-  },
-}));
-
-const mockIsMwpDeeplink = jest.mocked(SDKConnectV2.isMwpDeeplink);
 
 const validSessionRequest = () => ({
   id: '550e8400-e29b-41d4-a716-446655440000',
@@ -26,15 +16,7 @@ const buildAddDeviceQrDeeplink = (payload: unknown) => {
 };
 
 describe('classifyAddDeviceScanContent', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockIsMwpDeeplink.mockImplementation(
-      (url: unknown): url is string =>
-        typeof url === 'string' && url.startsWith('metamask://connect/mwp'),
-    );
-  });
-
-  it('returns invalid for non-MWP content', () => {
+  it('returns invalid for non-QR-sync content', () => {
     expect(classifyAddDeviceScanContent('hello')).toBe('invalid');
   });
 
@@ -42,6 +24,22 @@ describe('classifyAddDeviceScanContent', () => {
     const deeplink = buildAddDeviceQrDeeplink(validSessionRequest());
 
     expect(classifyAddDeviceScanContent(deeplink)).toBe('valid');
+  });
+
+  it('returns valid for wrapped sessionRequest payloads', () => {
+    const deeplink = buildAddDeviceQrDeeplink({
+      sessionRequest: validSessionRequest(),
+    });
+
+    expect(classifyAddDeviceScanContent(deeplink)).toBe('valid');
+  });
+
+  it('returns valid for base64 JSON payloads used by manual entry', () => {
+    const rawQrData = Buffer.from(
+      JSON.stringify({ sessionRequest: validSessionRequest() }),
+    ).toString('base64');
+
+    expect(classifyAddDeviceScanContent(rawQrData)).toBe('valid');
   });
 
   it('returns expired when sessionRequest expiresAt is in the past', () => {

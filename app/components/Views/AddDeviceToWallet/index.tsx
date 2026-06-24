@@ -13,7 +13,7 @@ import {
   TextField,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { Image } from 'react-native';
 import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
@@ -67,6 +67,7 @@ const AddDeviceToWallet = () => {
   const [manualQrPayload, setManualQrPayload] = useState('');
   const hasOpenedVerificationSheetRef = useRef(false);
   const hasNavigatedToImportRef = useRef(false);
+  const pendingScanPayloadRef = useRef<string | null>(null);
   const presentation = useSelector(selectQrSyncPresentation);
   const shouldNavigateToImport = useSelector(
     selectQrSyncShouldNavigateToImport,
@@ -91,19 +92,39 @@ const AddDeviceToWallet = () => {
     );
   }, [navigation]);
 
-  useEffect(() => {
-    if (!shouldShowOtpSheet) {
-      hasOpenedVerificationSheetRef.current = false;
-      return;
-    }
-
-    if (hasOpenedVerificationSheetRef.current) {
+  const openVerificationSheetIfNeeded = useCallback(() => {
+    if (!shouldShowOtpSheet || hasOpenedVerificationSheetRef.current) {
       return;
     }
 
     hasOpenedVerificationSheetRef.current = true;
     showVerificationSheet();
   }, [shouldShowOtpSheet, showVerificationSheet]);
+
+  const submitQrPayload = useCallback(async (qrPayload: string) => {
+    await Engine.context.QrSyncController.handleScannedQrPayload(qrPayload);
+  }, []);
+
+  useEffect(() => {
+    if (!shouldShowOtpSheet) {
+      hasOpenedVerificationSheetRef.current = false;
+      return;
+    }
+
+    openVerificationSheetIfNeeded();
+  }, [openVerificationSheetIfNeeded, shouldShowOtpSheet]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (pendingScanPayloadRef.current) {
+        const payload = pendingScanPayloadRef.current;
+        pendingScanPayloadRef.current = null;
+        submitQrPayload(payload).catch(() => undefined);
+      }
+
+      openVerificationSheetIfNeeded();
+    }, [openVerificationSheetIfNeeded, submitQrPayload]),
+  );
 
   useEffect(() => {
     if (!shouldNavigateToImport) {
@@ -123,10 +144,6 @@ const AddDeviceToWallet = () => {
     });
   }, [shouldNavigateToImport, navigation]);
 
-  const submitQrPayload = useCallback(async (qrPayload: string) => {
-    await Engine.context.QrSyncController.handleScannedQrPayload(qrPayload);
-  }, []);
-
   const onScanSuccess = useCallback(
     (data: ScanSuccess, content?: string) => {
       const scannedQrPayload = content ?? data.content ?? '';
@@ -138,10 +155,10 @@ const AddDeviceToWallet = () => {
 
   const onMwpDeeplinkScanned = useCallback(
     (deeplink: string) => {
+      pendingScanPayloadRef.current = deeplink;
       navigation.goBack();
-      submitQrPayload(deeplink).catch(() => undefined);
     },
-    [navigation, submitQrPayload],
+    [navigation],
   );
 
   const openQRScanner = useCallback(() => {

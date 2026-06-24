@@ -193,6 +193,7 @@ describe('AddDeviceToWallet', () => {
           disableTabber: true,
           origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
           onScanSuccess: expect.any(Function),
+          onMwpDeeplinkScanned: expect.any(Function),
         }),
       );
     });
