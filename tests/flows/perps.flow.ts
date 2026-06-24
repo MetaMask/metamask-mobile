@@ -5,6 +5,8 @@ import {
   encapsulatedAction,
   PlaywrightGestures,
 } from '../framework';
+import PlaywrightMatchers from '../framework/PlaywrightMatchers';
+import { PerpsOrderViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.testIds';
 import PerpsMarketDetailsView from '../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsMarketListView from '../page-objects/Perps/PerpsMarketListView';
 import PerpsOnboarding from '../page-objects/Perps/PerpsOnboarding';
@@ -12,6 +14,7 @@ import PerpsOrderView from '../page-objects/Perps/PerpsOrderView';
 import WalletView from '../page-objects/wallet/WalletView';
 
 const PERPS_GTM_MODAL_FALLBACK_WAIT_MS = 10_000;
+const PERPS_NOTIFICATION_TOOLTIP_WAIT_MS = 15_000;
 
 /**
  * Resolves whether the Perps GTM onboarding tutorial should be handled.
@@ -64,6 +67,52 @@ export const dismissPerpsOnboardingTutorialIfPresent =
     } catch {
       // Tutorial not shown or already dismissed.
     }
+  };
+
+/**
+ * Dismisses the post-order "Turn on notifications" bottom sheet when shown.
+ * Blocks navigation until closed (first successful perps order with push disabled).
+ */
+export const dismissPerpsNotificationTooltipIfPresent =
+  async (): Promise<void> => {
+    const turnOnTestId = PerpsOrderViewSelectorsIDs.TURN_ON_NOTIFICATION_BUTTON;
+
+    await encapsulatedAction({
+      detox: async () => {
+        try {
+          const turnOn = asDetoxElement(
+            PerpsOrderView.turnNotificationsOnButton,
+          );
+          await Assertions.expectElementToBeVisible(turnOn, {
+            timeout: PERPS_NOTIFICATION_TOOLTIP_WAIT_MS,
+            description: 'Perps notification tooltip',
+          });
+          await device.pressBack();
+        } catch {
+          // Tooltip not shown.
+        }
+      },
+      appium: async () => {
+        try {
+          const turnOnEl = await PlaywrightMatchers.getElementById(
+            turnOnTestId,
+            { exact: true },
+          );
+          await turnOnEl
+            .unwrap()
+            .waitForDisplayed({ timeout: PERPS_NOTIFICATION_TOOLTIP_WAIT_MS });
+          await PlaywrightGestures.waitAndTap(turnOnEl, {
+            checkForDisplayed: true,
+            timeout: 10_000,
+          });
+          await turnOnEl
+            .unwrap()
+            .waitForDisplayed({ reverse: true, timeout: 10_000 });
+        } catch {
+          // Tooltip not shown.
+        }
+      },
+    });
   };
 
 /**
@@ -165,6 +214,8 @@ export const waitForOrderScreenVisible = async (
 
 export type PerpsPositionDirection = 'long' | 'short';
 
+export type PerpsLimitPricePreset = 'Mid' | 'Bid' | 'Ask' | number;
+
 /**
  * Opens Perps from the wallet home, selects a watchlist market, and taps Long/Short.
  */
@@ -176,12 +227,38 @@ export const navigateToPerpsOrderEntry = async (
   await PerpsMarketListView.selectMarketAndTapOrderSide(symbol, direction);
 };
 
+/**
+ * Navigates to order entry, selects Limit, applies a price preset, confirms, and places the order.
+ */
+export const placeLimitOrderAtPreset = async (
+  symbol: string,
+  direction: PerpsPositionDirection,
+  preset: PerpsLimitPricePreset = 'Mid',
+): Promise<void> => {
+  await navigateToPerpsOrderEntry(symbol, direction);
+  await PerpsOrderView.openOrderTypeSelector();
+  await PerpsOrderView.selectLimitOrderType();
+
+  if (typeof preset === 'number') {
+    await PerpsOrderView.setLimitPricePresetPercent(preset);
+  } else if (preset === 'Mid') {
+    await PerpsOrderView.setLimitPricePreset(preset);
+  } else {
+    await PerpsOrderView.setLimitPricePresetNamed(preset);
+  }
+
+  await PerpsOrderView.confirmLimitPrice();
+  await PerpsOrderView.tapPlaceOrderButton();
+  await dismissPerpsNotificationTooltipIfPresent();
+};
+
 export const openPosition = async (
   symbol: string,
   direction: PerpsPositionDirection,
 ): Promise<void> => {
   await navigateToPerpsOrderEntry(symbol, direction);
   await PerpsOrderView.tapPlaceOrderButton();
+  await dismissPerpsNotificationTooltipIfPresent();
   await PerpsMarketDetailsView.waitForScreenReady();
   await PerpsMarketDetailsView.expectClosePositionButtonVisible();
 };

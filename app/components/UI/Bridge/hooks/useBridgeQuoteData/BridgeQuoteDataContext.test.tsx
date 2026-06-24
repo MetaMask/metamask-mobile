@@ -25,12 +25,9 @@ jest.mock('../../utils/quoteUtils', () => ({
   shouldRefreshQuote: jest.fn(),
 }));
 
-jest.mock(
-  '../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
-  () => ({
-    hasMinimumRequiredVersion: jest.fn(() => true),
-  }),
-);
+jest.mock('../../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: jest.fn(() => true),
+}));
 
 jest.mock('@metamask/bridge-controller', () => {
   const actual = jest.requireActual('@metamask/bridge-controller');

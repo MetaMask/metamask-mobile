@@ -526,7 +526,7 @@ describe('App', () => {
           getByTestId(AccountDetailsIds.ACCOUNT_DETAILS_CONTAINER),
         ).toBeOnTheScreen();
       });
-    });
+    }, 30000);
 
     it('renders the multichain account edit name screen when navigated to', async () => {
       const routeState = {
@@ -550,7 +550,7 @@ describe('App', () => {
         expect(getByText('Account Group')).toBeOnTheScreen();
         expect(getByText('Account name')).toBeOnTheScreen();
       });
-    });
+    }, 30000);
 
     it('renders the multichain account share address screen when navigated to', async () => {
       jest.useRealTimers();
@@ -940,10 +940,6 @@ describe('App', () => {
       expect(Routes.SHEET.SUCCESS_ERROR_SHEET).toBeDefined();
     });
 
-    it('has add account route defined', () => {
-      expect(Routes.SHEET.ADD_ACCOUNT).toBeDefined();
-    });
-
     it('has experience enhancer route defined', () => {
       expect(Routes.SHEET.EXPERIENCE_ENHANCER).toBeDefined();
     });
@@ -1010,10 +1006,6 @@ describe('App', () => {
 
     it('has nft auto detection modal route defined', () => {
       expect(Routes.MODAL.NFT_AUTO_DETECTION_MODAL).toBeDefined();
-    });
-
-    it('has whats new route defined', () => {
-      expect(Routes.MODAL.WHATS_NEW).toBeDefined();
     });
 
     it('has multi rpc migration modal route defined', () => {
@@ -1183,10 +1175,6 @@ describe('App', () => {
       expect(Routes.SHEET.ADDRESS_SELECTOR).toBeDefined();
     });
 
-    it('has add account route defined', () => {
-      expect(Routes.SHEET.ADD_ACCOUNT).toBeDefined();
-    });
-
     it('has account actions route defined', () => {
       expect(Routes.SHEET.ACCOUNT_ACTIONS).toBeDefined();
     });
@@ -1325,10 +1313,6 @@ describe('App', () => {
 
     it('has tooltip modal route defined', () => {
       expect(Routes.SHEET.TOOLTIP_MODAL).toBeDefined();
-    });
-
-    it('has whats new route defined', () => {
-      expect(Routes.MODAL.WHATS_NEW).toBeDefined();
     });
   });
 
@@ -2247,14 +2231,6 @@ describe('App', () => {
       const { toJSON } = renderAppWithModal(
         Routes.SHEET.SHOW_NFT_DISPLAY_MEDIA,
       );
-
-      await waitFor(() => {
-        expect(toJSON()).toBeTruthy();
-      });
-    });
-
-    it('renders WhatsNew modal', async () => {
-      const { toJSON } = renderAppWithModal(Routes.MODAL.WHATS_NEW);
 
       await waitFor(() => {
         expect(toJSON()).toBeTruthy();

@@ -5,16 +5,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import {
   TransactionStatus,
   TransactionType,
-  type TransactionMeta,
 } from '@metamask/transaction-controller';
-import { providerErrors } from '@metamask/rpc-errors';
 import { createProjectLogger, Hex } from '@metamask/utils';
 import {
   BottomSheet,
@@ -31,7 +29,6 @@ import {
   MUSD_CONVERSION_DEFAULT_CHAIN_ID,
   MUSD_TOKEN_ADDRESS_BY_CHAIN,
 } from '../../../Earn/constants/musd';
-import Engine from '../../../../../core/Engine';
 import {
   useMoneyAccountDeposit,
   type InitiateDepositOptions,
@@ -47,6 +44,7 @@ import styleSheet from './MoneyAddMoneySheet.styles';
 import { MoneyAddMoneySheetTestIds } from './MoneyAddMoneySheet.testIds';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 import useMountEffect from '../../hooks/useMountEffect';
+import { rejectPendingTransactions } from '../../utils/rejectPendingTransactions';
 import {
   BOTTOM_SHEET_NAMES,
   COMPONENT_NAMES,
@@ -158,7 +156,7 @@ const MoneyAddMoneySheet: React.FC = () => {
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
 
-    startDeposit({ autoSelectFiatPayment: true });
+    startDeposit({ autoSelectFiatPayment: true, intent: 'card' });
   }, [startDeposit, trackSurfaceClicked]);
 
   const handleMoveMusd = useCallback(() => {
@@ -211,7 +209,11 @@ const MoneyAddMoneySheet: React.FC = () => {
     ...(isFiatDepositEnabled
       ? [
           {
-            label: strings('money.add_money_sheet.deposit_funds'),
+            label: strings(
+              Platform.OS === 'android'
+                ? 'money.add_money_sheet.deposit_funds_android'
+                : 'money.add_money_sheet.deposit_funds',
+            ),
             icon: IconName.Card,
             onPress: handleDepositFunds,
             testID: MoneyAddMoneySheetTestIds.DEPOSIT_FUNDS_OPTION,
@@ -264,24 +266,5 @@ const MoneyAddMoneySheet: React.FC = () => {
     </BottomSheet>
   );
 };
-
-function rejectPendingTransactions(transactions: TransactionMeta[]) {
-  const { ApprovalController } = Engine.context;
-
-  for (const tx of transactions) {
-    if (tx.status !== TransactionStatus.unapproved) {
-      continue;
-    }
-    try {
-      ApprovalController.rejectRequest(
-        tx.id,
-        providerErrors.userRejectedRequest(),
-      );
-      log('Rejected transaction', tx.type, tx.id);
-    } catch {
-      log('Failed to reject transaction', tx.type, tx.id);
-    }
-  }
-}
 
 export default MoneyAddMoneySheet;

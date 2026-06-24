@@ -74,8 +74,12 @@ describe('usePayWithMoneyAccountSection', () => {
       }
       if (selector === selectMetaMaskPayFlags) {
         return {
-          enablePerpsMoneyAccountTransactions: true,
-          enablePredictMoneyAccountTransactions: true,
+          enableMoneyAccountTransactions: {
+            perpsDeposit: true,
+            perpsWithdraw: true,
+            predictDeposit: true,
+            predictWithdraw: true,
+          },
         };
       }
       return undefined;
@@ -86,15 +90,14 @@ describe('usePayWithMoneyAccountSection', () => {
     } as never);
   });
 
-  it('returns null when both money account flags are false', () => {
+  it('returns null when all money account flags are false', () => {
     useSelectorMock.mockImplementation((selector) => {
       if (selector === selectPrimaryMoneyAccount) {
         return moneyAccountMock;
       }
       if (selector === selectMetaMaskPayFlags) {
         return {
-          enablePerpsMoneyAccountTransactions: false,
-          enablePredictMoneyAccountTransactions: false,
+          enableMoneyAccountTransactions: {},
         };
       }
       return undefined;
@@ -105,15 +108,17 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current).toBeNull();
   });
 
-  it('returns null for predict transaction when only perps flag is true', () => {
+  it('returns null for predict transaction when only perps types are enabled', () => {
     useSelectorMock.mockImplementation((selector) => {
       if (selector === selectPrimaryMoneyAccount) {
         return moneyAccountMock;
       }
       if (selector === selectMetaMaskPayFlags) {
         return {
-          enablePerpsMoneyAccountTransactions: true,
-          enablePredictMoneyAccountTransactions: false,
+          enableMoneyAccountTransactions: {
+            perpsDeposit: true,
+            perpsWithdraw: true,
+          },
         };
       }
       return undefined;
@@ -130,15 +135,17 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current).toBeNull();
   });
 
-  it('returns null for perps transaction when only predict flag is true', () => {
+  it('returns null for perps transaction when only predict types are enabled', () => {
     useSelectorMock.mockImplementation((selector) => {
       if (selector === selectPrimaryMoneyAccount) {
         return moneyAccountMock;
       }
       if (selector === selectMetaMaskPayFlags) {
         return {
-          enablePerpsMoneyAccountTransactions: false,
-          enablePredictMoneyAccountTransactions: true,
+          enableMoneyAccountTransactions: {
+            predictDeposit: true,
+            predictWithdraw: true,
+          },
         };
       }
       return undefined;
@@ -174,8 +181,12 @@ describe('usePayWithMoneyAccountSection', () => {
       }
       if (selector === selectMetaMaskPayFlags) {
         return {
-          enablePerpsMoneyAccountTransactions: true,
-          enablePredictMoneyAccountTransactions: true,
+          enableMoneyAccountTransactions: {
+            perpsDeposit: true,
+            perpsWithdraw: true,
+            predictDeposit: true,
+            predictWithdraw: true,
+          },
         };
       }
       return undefined;
@@ -199,7 +210,6 @@ describe('usePayWithMoneyAccountSection', () => {
     TransactionType.predictDeposit,
     TransactionType.perpsWithdraw,
     TransactionType.predictWithdraw,
-    TransactionType.predictDepositAndOrder,
   ])(
     'returns section config with "available" subtitle for transaction type %s',
     (txType) => {
@@ -225,7 +235,6 @@ describe('usePayWithMoneyAccountSection', () => {
           title: 'Money account',
           subtitle: '$100.00 available',
           isSelected: false,
-          isLastUsed: false,
           trailingElement: 'none',
           testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
         }),

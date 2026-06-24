@@ -30,6 +30,7 @@ import PredictSportScoreboard from '../PredictSportScoreboard';
 import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
 import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
 import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
@@ -58,13 +59,13 @@ const PredictGameDetailsContentComponent: React.FC<
     usePredictBottomSheet();
 
   const sheetHandlers = useMemo(() => getRefHandlers(), [getRefHandlers]);
+  const { game } = usePredictGame(market, { live: true });
 
   const handleInfoPress = useCallback(() => {
     sheetHandlers.onOpenBottomSheet();
   }, [sheetHandlers]);
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
-  const game = market.game;
 
   const { data: activePositions = [] } = usePredictPositions({
     marketId: market.id,
@@ -127,6 +128,7 @@ const PredictGameDetailsContentComponent: React.FC<
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
           accessibilityLabel={strings('predict.buttons.back')}
+          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
         >
           <Icon
             name={IconName.ArrowLeft}
@@ -150,6 +152,7 @@ const PredictGameDetailsContentComponent: React.FC<
       </Box>
 
       <ScrollView
+        testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.SCROLL_VIEW}
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-4')}
         stickyHeaderIndices={stickyHeaderIndices}

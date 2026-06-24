@@ -141,33 +141,6 @@ export const remoteFeatureFlagHomepageSectionsV1Enabled = (enabled = true) => ({
   },
 });
 
-export const remoteFeatureFlagRampsUnifiedV2Enabled = (enabled = true) => ({
-  rampsUnifiedBuyV2: {
-    enabled,
-    minimumVersion: '7.63.0',
-  },
-});
-
-/**
- * Enables unified ramps (V2).
- */
-export const remoteFeatureFlagRampsUnifiedEnabled = (enabled = true) => ({
-  ...remoteFeatureFlagRampsUnifiedV2Enabled(enabled),
-});
-
-/**
- * V2 toggle for E2E. Uses minimumVersion 0.0.0 so debug builds pass the gate.
- * Pair with FixtureBuilder.withRampsUnifiedBuyRemoteFlagsSeededForE2E({ rampsUnifiedBuyV2 }).
- */
-export const remoteFeatureFlagRampsUnifiedMatrixForE2E = (
-  rampsUnifiedBuyV2Enabled: boolean,
-) => ({
-  rampsUnifiedBuyV2: {
-    enabled: rampsUnifiedBuyV2Enabled,
-    minimumVersion: '0.0.0',
-  },
-});
-
 export const remoteFeatureFlagTrendingTokensEnabled = (enabled = true) => ({
   trendingTokens: enabled,
 });

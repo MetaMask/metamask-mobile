@@ -9,9 +9,9 @@ import {
   selectPredictGtmOnboardingModalEnabledFlag,
   selectPredictHomeFeaturedVariant,
   selectPredictHomeRedesignEnabledFlag,
-  selectPredictHomepageDiscoveryNbaChampionEnabledFlag,
   selectPredictHotTabFlag,
   selectPredictPortfolioEnabledFlag,
+  selectPredictSportCardLivePricesEnabledFlag,
   selectPredictUpDownEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
   selectPredictWorldCupConfig,
@@ -1476,11 +1476,6 @@ describe('Predict Feature Flag Selectors', () => {
       expect(
         selectPredictWorldCupScreenEnabledFlag(mockedEmptyFlagsState),
       ).toBe(false);
-      expect(
-        selectPredictHomepageDiscoveryNbaChampionEnabledFlag(
-          mockedEmptyFlagsState,
-        ),
-      ).toBe(true);
     });
 
     it('returns normalized config and gated booleans when enabled', () => {
@@ -1788,7 +1783,13 @@ describe('Predict Feature Flag Selectors', () => {
     });
   });
 
-  describe('selectPredictHomepageDiscoveryNbaChampionEnabledFlag', () => {
+  describe('selectPredictSportCardLivePricesEnabledFlag', () => {
+    it('defaults to true when the remote flag is missing', () => {
+      expect(
+        selectPredictSportCardLivePricesEnabledFlag(mockedEmptyFlagsState),
+      ).toBe(true);
+    });
+
     it('returns false when the remote flag is disabled', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(true);
       const state = {
@@ -1796,7 +1797,7 @@ describe('Predict Feature Flag Selectors', () => {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                predictHomepageDiscoveryNbaChampionEnabled: {
+                predictSportCardLivePrices: {
                   enabled: false,
                   minimumVersion: '1.0.0',
                 },
@@ -1807,9 +1808,7 @@ describe('Predict Feature Flag Selectors', () => {
         },
       };
 
-      expect(selectPredictHomepageDiscoveryNbaChampionEnabledFlag(state)).toBe(
-        false,
-      );
+      expect(selectPredictSportCardLivePricesEnabledFlag(state)).toBe(false);
     });
   });
 

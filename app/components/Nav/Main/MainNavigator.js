@@ -46,6 +46,7 @@ import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
+import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import ResetPassword from '../../Views/ResetPassword';
@@ -77,13 +78,12 @@ import RampActivationKeyForm from '../../UI/Ramp/Aggregator/Views/Settings/Activ
 import RampHeadlessPlayground from '../../UI/Ramp/Views/HeadlessPlayground';
 import TokenListRoutes from '../../UI/Ramp/routes';
 
-import DepositRoutes from '../../UI/Ramp/Deposit/routes';
 import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
-import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
+import DepositOrderDetails from '../../UI/Ramp/Views/OrderDetails/DepositOrderDetails/DepositOrderDetails';
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
@@ -127,6 +127,7 @@ import {
 } from '../../UI/Money/routes';
 import MoneyOnboardingView from '../../UI/Money/Views/MoneyOnboardingView';
 import MoneyPotentialEarningsView from '../../UI/Money/Views/MoneyPotentialEarningsView';
+import MoneyFirstTimeDepositView from '../../UI/Money/Views/MoneyFirstTimeDepositView';
 import { selectMoneyEnableMoneyAccountFlag } from '../../UI/Money/selectors/featureFlags';
 import { selectIsMoneyAccountGeoEligible } from '../../UI/Money/selectors/eligibility';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
@@ -166,6 +167,7 @@ import WalletRecovery from '../../Views/WalletRecovery';
 import CardRoutes from '../../UI/Card/routes';
 import { Send } from '../../Views/confirmations/components/send';
 import { TransactionDetails } from '../../Views/confirmations/components/activity/transaction-details/transaction-details';
+import { MoneyApiActivityDetailsView } from '../../UI/Money/Views/MoneyApiActivityDetailsView';
 import RewardsBottomSheetModal from '../../UI/Rewards/components/RewardsBottomSheetModal';
 import RewardsClaimBottomSheetModal from '../../UI/Rewards/components/Tabs/LevelsTab/RewardsClaimBottomSheetModal';
 import RewardOptInAccountGroupModal from '../../UI/Rewards/components/Settings/RewardOptInAccountGroupModal';
@@ -190,6 +192,15 @@ const styles = StyleSheet.create({
     height: 50,
   },
 });
+
+// Registered on the root MainNavigator so sheets are reachable from both the
+// Rewards tab (dashboard/onboarding) and REWARDS_FLOW sub-pages. Use
+// animation: 'none' so only the BottomSheet's internal slide runs — without it
+// the native stack slides the entire screen (overlay included) from the bottom.
+const rewardsModalScreenOptions = {
+  ...clearNativeStackNavigatorOptions,
+  ...transparentModalScreenOptions,
+};
 
 /* eslint-disable react/prop-types */
 const AssetStackFlow = (props) => (
@@ -329,10 +340,6 @@ const RewardsHome = () => {
   // 'pending' state). Only RewardsHome mounts for non-opted-in users, so fetching at
   // this shared entry point prevents the onboarding tab from loading indefinitely.
   useCandidateSubscriptionId();
-  const rewardsModalScreenOptions = {
-    ...transparentModalScreenOptions,
-    contentStyle: { backgroundColor: 'transparent' },
-  };
 
   if (isVersionBlocked) {
     return <RewardsUpdateRequired />;
@@ -357,31 +364,6 @@ const RewardsHome = () => {
           component={RewardsOnboardingNavigator}
         />
       )}
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
-        component={RewardsBottomSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
-        component={RewardsClaimBottomSheetModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
-        component={RewardOptInAccountGroupModal}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
-        component={EndOfSeasonClaimBottomSheet}
-        options={rewardsModalScreenOptions}
-      />
-      <NativeStack.Screen
-        name={Routes.MODAL.REWARDS_SELECT_SHEET}
-        component={RewardsSelectSheet}
-        options={rewardsModalScreenOptions}
-      />
     </NativeStack.Navigator>
   );
 };
@@ -1049,6 +1031,31 @@ const MainNavigator = () => {
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
+        name={Routes.MODAL.REWARDS_BOTTOM_SHEET_MODAL}
+        component={RewardsBottomSheetModal}
+        options={rewardsModalScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.MODAL.REWARDS_CLAIM_BOTTOM_SHEET_MODAL}
+        component={RewardsClaimBottomSheetModal}
+        options={rewardsModalScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.MODAL.REWARDS_OPTIN_ACCOUNT_GROUP_MODAL}
+        component={RewardOptInAccountGroupModal}
+        options={rewardsModalScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.MODAL.REWARDS_END_OF_SEASON_CLAIM_BOTTOM_SHEET}
+        component={EndOfSeasonClaimBottomSheet}
+        options={rewardsModalScreenOptions}
+      />
+      <NativeStack.Screen
+        name={Routes.MODAL.REWARDS_SELECT_SHEET}
+        component={RewardsSelectSheet}
+        options={rewardsModalScreenOptions}
+      />
+      <NativeStack.Screen
         name={Routes.DEPRECATED_NETWORK_DETAILS}
         component={DeprecatedNetworkDetails}
         options={{
@@ -1120,6 +1127,11 @@ const MainNavigator = () => {
         component={QRTabSwitcher}
       />
       <NativeStack.Screen
+        name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+        component={AddDeviceToWallet}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
         name="NftDetails"
         component={NftDetailsModeView}
         options={slideFromRightNativeOptions}
@@ -1172,7 +1184,6 @@ const MainNavigator = () => {
       >
         {() => <RampRoutes rampType={RampType.SELL} />}
       </NativeStack.Screen>
-      <NativeStack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
       <NativeStack.Screen
         name={Routes.BRIDGE.ROOT}
         component={BridgeScreenStack}
@@ -1222,6 +1233,15 @@ const MainNavigator = () => {
             options={{ headerShown: false, ...fadeNativeOptions }}
           />
           <NativeStack.Screen
+            name={Routes.MONEY.FIRST_TIME_DEPOSIT}
+            component={MoneyFirstTimeDepositView}
+            options={{
+              ...clearNativeStackNavigatorOptions,
+              ...transparentModalScreenOptions,
+              gestureEnabled: false,
+            }}
+          />
+          <NativeStack.Screen
             name={Routes.MONEY.POTENTIAL_EARNINGS}
             component={MoneyPotentialEarningsView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
@@ -1237,6 +1257,11 @@ const MainNavigator = () => {
           <NativeStack.Screen
             name={Routes.MONEY.TRANSACTION_DETAILS}
             component={TransactionDetails}
+            options={{ headerShown: false, ...slideFromRightNativeOptions }}
+          />
+          <NativeStack.Screen
+            name={Routes.MONEY.CARD_TRANSACTION_DETAILS}
+            component={MoneyApiActivityDetailsView}
             options={{ headerShown: false, ...slideFromRightNativeOptions }}
           />
           <NativeStack.Screen
@@ -1421,7 +1446,10 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.CARD.ROOT}
         component={CardRoutes}
-        options={fullScreenModalSlideFromBottomNativeOptions}
+        options={({ route }) => ({
+          ...fullScreenModalSlideFromBottomNativeOptions,
+          animation: route.params?.animation ?? 'slide_from_right',
+        })}
       />
       <NativeStack.Screen
         name={Routes.RAMP.MODALS.PROCESSING_INFO}

@@ -145,7 +145,7 @@ describe('useBridgeConfirm', () => {
       });
 
       await act(async () => {
-        await result.current.handleConfirm();
+        await result.current();
       });
 
       expect(mockSubmitBridgeTx).toHaveBeenCalledWith(
@@ -222,7 +222,7 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current.handleConfirm();
+        await result.current();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
@@ -236,12 +236,12 @@ describe('useBridgeConfirm', () => {
         ...defaultParams,
         activeQuote: {
           ...mockQuoteWithMetadata,
-          approval: {},
+          approval: { raw_data_hex: '0xabc' },
         },
       });
 
       await act(async () => {
-        await result.current.handleConfirm();
+        await result.current();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -259,7 +259,7 @@ describe('useBridgeConfirm', () => {
       const { result, store } = renderHook();
 
       await act(async () => {
-        await result.current.handleConfirm();
+        await result.current();
       });
 
       expect(
@@ -279,12 +279,12 @@ describe('useBridgeConfirm', () => {
         ...defaultParams,
         activeQuote: {
           ...mockQuoteWithMetadata,
-          approval: {},
+          approval: { raw_data_hex: '0xabc' },
         },
       });
 
       await act(async () => {
-        await result.current.handleConfirm();
+        await result.current();
       });
 
       expect(
@@ -303,7 +303,7 @@ describe('useBridgeConfirm', () => {
       const { result, store } = renderHook();
 
       await act(async () => {
-        await result.current.handleConfirm();
+        await result.current();
       });
 
       expect(
@@ -389,7 +389,7 @@ describe('useBridgeConfirm', () => {
       const { result } = renderHook();
 
       await act(async () => {
-        await result.current.handleConfirm();
+        await result.current();
       });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
