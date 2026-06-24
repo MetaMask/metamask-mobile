@@ -578,31 +578,6 @@ export class BaanxProvider implements ICardProvider {
     await this.service.put('/v1/wallet/external/priority', { wallets }, tokens);
   }
 
-  async getFundingConfig(tokens: CardAuthTokens): Promise<CardFundingConfig> {
-    const settings = await this.service.get<DelegationSettingsResponse>(
-      '/v1/delegation/chain/config',
-      tokens,
-    );
-
-    const supportedChains = settings.networks
-      .filter((n: DelegationSettingsNetwork) =>
-        SUPPORTED_ASSET_NETWORKS.includes(
-          n.network?.toLowerCase() as CardNetwork,
-        ),
-      )
-      .map((n: DelegationSettingsNetwork) => {
-        const info =
-          cardNetworkInfos[n.network as keyof typeof cardNetworkInfos];
-        return info?.caipChainId ?? `eip155:${n.chainId}`;
-      });
-
-    return {
-      maxLimit: BAANX_MAX_LIMIT,
-      fundingOptions: this.buildFundingOptions(settings),
-      supportedChains,
-    };
-  }
-
   async fetchDelegationChallenge(
     params: { network: string; address: string; faucet?: boolean },
     tokens: CardAuthTokens,

@@ -376,7 +376,6 @@ export interface ICardProvider {
     allAssets: CardFundingAsset[],
     tokens: CardAuthTokens,
   ): Promise<void>;
-  getFundingConfig?(tokens: CardAuthTokens): Promise<CardFundingConfig>;
   fetchDelegationChallenge?(
     params: { network: string; address: string; faucet?: boolean },
     tokens: CardAuthTokens,

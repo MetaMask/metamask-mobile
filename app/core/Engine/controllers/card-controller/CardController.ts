@@ -982,18 +982,6 @@ export class CardController extends BaseController<
     return this.#withAuthRetry((tokens) => getCardPinView(tokens, params));
   }
 
-  async getFundingConfig(): Promise<CardFundingConfig> {
-    const provider = this.getActiveProvider();
-    const getFundingConfig = provider.getFundingConfig?.bind(provider);
-    if (!getFundingConfig) {
-      throw new CardProviderError(
-        CardProviderErrorCode.Unknown,
-        'Funding config not supported',
-      );
-    }
-    return this.#withAuthRetry((tokens) => getFundingConfig(tokens));
-  }
-
   async updateAssetPriority(
     asset: CardFundingAsset,
     allAssets: CardFundingAsset[],
