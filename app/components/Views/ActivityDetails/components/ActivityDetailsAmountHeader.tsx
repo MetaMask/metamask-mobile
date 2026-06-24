@@ -62,11 +62,6 @@ export function ActivityDetailsAmountHeader({
             {content.primaryAmount}
           </Text>
         ) : null}
-        {content.secondaryAmount ? (
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {content.secondaryAmount}
-          </Text>
-        ) : null}
       </Box>
     </Box>
   );

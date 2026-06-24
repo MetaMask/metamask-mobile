@@ -687,7 +687,7 @@ describe('ActivityList', () => {
 
   it('navigates to the redesigned ActivityDetails screen when the transactions redesign flag is on', () => {
     selectorValues.isTxRedesign = true;
-    render(<ActivityList header={<></>} onScroll={mockOnScroll} />);
+    render(<ActivityList header={<></>} />);
 
     fireEvent.press(screen.getByTestId('row-0xconfirmed'));
 
@@ -1211,6 +1211,39 @@ describe('ActivityList', () => {
     expect(mockNavigate).toHaveBeenCalledWith('PerpsPositionTransaction', {
       transaction: perpsTx,
     });
+  });
+
+  it('keeps perps rows on their dedicated screen even when the transactions redesign flag is on', () => {
+    selectorValues.perpsEnabled = true;
+    selectorValues.isTxRedesign = true;
+    const perpsTx = { id: 'fill-2', type: 'trade' };
+    mockPerpsSourceState = {
+      items: [
+        {
+          type: 'perpsOpenLong',
+          chainId: 'eip155:42161',
+          status: 'success',
+          timestamp: 5,
+          raw: { type: 'perpsTransaction', data: perpsTx },
+          hash: 'perps-fill-2',
+          data: { token: { symbol: 'USD' } },
+        },
+      ],
+      isLoading: false,
+      error: null,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
+    fireEvent.press(screen.getByTestId('row-perps-fill-2'));
+
+    // Redesign route must NOT intercept perps rows — they have a dedicated screen.
+    expect(mockNavigate).toHaveBeenCalledWith('PerpsPositionTransaction', {
+      transaction: perpsTx,
+    });
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.ACTIVITY_DETAILS,
+      expect.anything(),
+    );
   });
 
   it('navigates a perps funding row to the funding transaction detail screen', () => {

@@ -757,19 +757,26 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     const handleActivityItemPress = useCallback(
       async (item: ActivityListItem) => {
-        // Redesigned details path (flag-gated). Routes EVM + non-EVM rows to the
-        // new ActivityDetails screen, which re-resolves the item by hash. Falls
-        // through to the legacy sheets when off or when the item has no hash yet.
-        if (isTransactionsRedesignEnabled && item.hash) {
+        const { raw } = item;
+        if (!raw) return;
+
+        // Redesigned details (flag-gated): route resolvable EVM / non-EVM rows
+        // to the new ActivityDetails screen, replacing the legacy detail sheets.
+        // Specialized flows (perps, predict, bridge) keep their dedicated
+        // screens until they get redesigned templates — ActivityDetails only
+        // resolves local/API/non-EVM items, so it can't render those yet.
+        const hasDedicatedScreen =
+          raw.type === 'perpsTransaction' ||
+          raw.type === 'predictActivity' ||
+          (raw.type === 'localTransaction' &&
+            raw.data.primaryTransaction?.type === TransactionType.bridge);
+        if (isTransactionsRedesignEnabled && item.hash && !hasDedicatedScreen) {
           navigation.navigate(Routes.ACTIVITY_DETAILS, {
             chainId: item.chainId,
             txIdentifier: item.hash,
           });
           return;
         }
-
-        const { raw } = item;
-        if (!raw) return;
 
         const pressToken = (activityPressTokenRef.current += 1);
 
