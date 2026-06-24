@@ -109,7 +109,9 @@ describe('isAndroidKeychainBiometricLockout', () => {
     ['code:7, msg: lockout', true],
     ['code: 10, msg: Fingerprint operation canceled by user', false],
   ])('returns %s -> %s', (message, expected) => {
-    expect(isAndroidKeychainBiometricLockout(new Error(message))).toBe(expected);
+    expect(isAndroidKeychainBiometricLockout(new Error(message))).toBe(
+      expected,
+    );
   });
 });
 
