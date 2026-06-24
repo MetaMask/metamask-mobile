@@ -18,6 +18,7 @@
     "lint": "NODE_OPTIONS='--max-old-space-size=12288' eslint '**/*.{js,ts,tsx}' --cache && yarn generate-method-action-types:check",
     "lint:fix": "NODE_OPTIONS='--max-old-space-size=12288' eslint '**/*.{js,ts,tsx}' --fix --cache && yarn generate-method-action-types",
     "lint:clean": "rm -f .eslintcache",
+    "lint:type-aware": "bash scripts/oxlint-type-aware.sh",
     "lint:tsc": "NODE_OPTIONS='--max-old-space-size=12288' tsc --project ./tsconfig.json",
     "format": "prettier '**/*.{js,ts,tsx,json}' --write",
     "format:check": "prettier '**/*.{js,ts,tsx,json}' --check",
