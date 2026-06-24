@@ -6,6 +6,7 @@ import {
   selectConversionRateByChainId,
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
+import { selectMultichainAssetsRates } from '../../../../selectors/multichain';
 import { selectContractExchangeRatesByChainId } from '../../../../selectors/tokenRatesController';
 import {
   balanceToFiatNumber,
@@ -21,10 +22,15 @@ import {
 } from '../../../../util/activity-adapters';
 
 type FiatCurrency = Parameters<typeof renderFiat>[1];
+type MultichainAssetRates = Record<
+  string,
+  { rate?: string | number | null } | undefined
+>;
 
 export interface ActivityFeeFiatRow {
   label: string;
-  value: string;
+  value?: string;
+  fee: ActivityFee;
 }
 
 export interface ActivityAmountsFiat {
@@ -84,14 +90,31 @@ function tokenToFiatNumber(
   contractExchangeRates:
     | Record<string, { price?: number | null } | undefined>
     | undefined,
+  multichainAssetRates: MultichainAssetRates | undefined,
 ): number | undefined {
-  if (!token || !conversionRate || token.isUnlimitedApproval) {
+  if (!token || token.isUnlimitedApproval) {
     return undefined;
   }
   const human = getHumanReadableTokenAmount(token);
   if (human === undefined) {
     return undefined;
   }
+  const parsedAmount = Number.parseFloat(human);
+  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    return undefined;
+  }
+
+  const multichainAssetRate = token.assetId
+    ? multichainAssetRates?.[token.assetId]?.rate
+    : undefined;
+  if (multichainAssetRate) {
+    return balanceToFiatNumber(parsedAmount, Number(multichainAssetRate), 1);
+  }
+
+  if (!conversionRate) {
+    return undefined;
+  }
+
   const lookupToken = hexChainId
     ? toMarketRateLookupToken(token, hexChainId)
     : undefined;
@@ -103,11 +126,7 @@ function tokenToFiatNumber(
   if (!exchangeRate) {
     return undefined;
   }
-  return balanceToFiatNumber(
-    Number.parseFloat(human),
-    conversionRate,
-    exchangeRate,
-  );
+  return balanceToFiatNumber(parsedAmount, conversionRate, exchangeRate);
 }
 
 function feeToFiatNumber(
@@ -126,14 +145,24 @@ function feeToFiatNumber(
   if (human === undefined) {
     return undefined;
   }
-  return balanceToFiatNumber(Number.parseFloat(human), conversionRate, 1);
+  const parsedAmount = Number.parseFloat(human);
+  if (!Number.isFinite(parsedAmount) || parsedAmount <= 0) {
+    return undefined;
+  }
+  return balanceToFiatNumber(parsedAmount, conversionRate, 1);
 }
 
-function getFeeLabel(fee: ActivityFee): string {
-  if (fee.type === 'base') {
-    return strings('activity_details.network_fee');
+function feeToTokenAmount(fee: ActivityFee): string | undefined {
+  const human = getHumanReadableTokenAmount({
+    amount: fee.amount,
+    decimals: fee.decimals,
+    direction: 'out',
+  });
+  if (human === undefined) {
+    return undefined;
   }
-  return fee.symbol ?? fee.type;
+  const parsedAmount = Number.parseFloat(human);
+  return Number.isFinite(parsedAmount) && parsedAmount > 0 ? human : undefined;
 }
 
 /**
@@ -144,6 +173,7 @@ function getFeeLabel(fee: ActivityFee): string {
  */
 export function useActivityAmountsFiat(
   item: ActivityListItem,
+  totalToken?: TokenAmount,
 ): ActivityAmountsFiat {
   const hexChainId = getHexChainId(item.chainId);
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -157,11 +187,13 @@ export function useActivityAmountsFiat(
       ? selectContractExchangeRatesByChainId(state, hexChainId)
       : undefined,
   );
+  const multichainAssetRates = useSelector(selectMultichainAssetsRates);
 
   const token =
-    'token' in item.data
+    totalToken ??
+    ('token' in item.data
       ? (item.data.token as TokenAmount | undefined)
-      : undefined;
+      : undefined);
   const fees: ActivityFee[] = 'fees' in item.data ? (item.data.fees ?? []) : [];
 
   const tokenFiat = tokenToFiatNumber(
@@ -169,23 +201,38 @@ export function useActivityAmountsFiat(
     conversionRate,
     hexChainId,
     contractExchangeRates,
+    multichainAssetRates,
   );
 
   const feeRows: ActivityFeeFiatRow[] = [];
   let feeFiatTotal = 0;
   let hasFee = false;
+  const primaryFee = fees.find((fee) => fee.type === 'base') ?? fees[0];
+
   for (const fee of fees) {
     const feeFiat = feeToFiatNumber(fee, conversionRate);
     if (feeFiat !== undefined && currentCurrency) {
       hasFee = true;
       feeFiatTotal += feeFiat;
+    }
+  }
+
+  if (primaryFee) {
+    const primaryFeeFiat = feeToFiatNumber(primaryFee, conversionRate);
+    const primaryFeeValue =
+      primaryFeeFiat !== undefined && currentCurrency
+        ? renderFiat(
+            primaryFeeFiat,
+            currentCurrency as FiatCurrency,
+            FIAT_DECIMALS,
+          )
+        : feeToTokenAmount(primaryFee);
+
+    if (primaryFeeValue) {
       feeRows.push({
-        label: getFeeLabel(fee),
-        value: renderFiat(
-          feeFiat,
-          currentCurrency as FiatCurrency,
-          FIAT_DECIMALS,
-        ),
+        label: strings('activity_details.network_fee'),
+        value: primaryFeeValue,
+        fee: primaryFee,
       });
     }
   }

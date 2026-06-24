@@ -76,23 +76,25 @@ function AssetLine({ label, token }: { label: string; token: TokenAmount }) {
   const amount = formatActivityTokenAmount(token);
 
   return (
-    <Box twClassName="items-center gap-1">
+    <Box twClassName="gap-1">
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         {label}
       </Text>
-      <ActivityDetailsAvatar tokens={[token]} size={AvatarTokenSize.Lg} />
-      {amount ? (
-        <Text
-          variant={TextVariant.HeadingMd}
-          color={
-            token.direction === 'in'
-              ? TextColor.SuccessDefault
-              : TextColor.TextDefault
-          }
-        >
-          {amount}
-        </Text>
-      ) : null}
+      <Box twClassName="flex-row items-center gap-3">
+        <ActivityDetailsAvatar tokens={[token]} size={AvatarTokenSize.Lg} />
+        {amount ? (
+          <Text
+            variant={TextVariant.HeadingMd}
+            color={
+              token.direction === 'in'
+                ? TextColor.SuccessDefault
+                : TextColor.TextDefault
+            }
+          >
+            {amount}
+          </Text>
+        ) : null}
+      </Box>
     </Box>
   );
 }
@@ -104,30 +106,23 @@ function AssetLine({ label, token }: { label: string; token: TokenAmount }) {
 export function ActivityDetailsDualAmountHeader({
   sentToken,
   receivedToken,
+  sentLabel = strings('activity_details.you_sent'),
+  receivedLabel = strings('activity_details.you_received'),
 }: {
   sentToken?: TokenAmount;
   receivedToken?: TokenAmount;
+  sentLabel?: string;
+  receivedLabel?: string;
 }) {
   if (!sentToken && !receivedToken) {
     return null;
   }
 
   return (
-    <Box
-      twClassName="items-center gap-4"
-      testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}
-    >
-      {sentToken ? (
-        <AssetLine
-          label={strings('activity_details.you_sent')}
-          token={sentToken}
-        />
-      ) : null}
+    <Box twClassName="gap-4" testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}>
+      {sentToken ? <AssetLine label={sentLabel} token={sentToken} /> : null}
       {receivedToken ? (
-        <AssetLine
-          label={strings('activity_details.you_received')}
-          token={receivedToken}
-        />
+        <AssetLine label={receivedLabel} token={receivedToken} />
       ) : null}
     </Box>
   );

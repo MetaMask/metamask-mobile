@@ -1,12 +1,7 @@
 import React from 'react';
-import { Box, SectionDivider } from '@metamask/design-system-react-native';
-import {
-  ActivityDetailsAmountHeader,
-  ActivityDetailsBlockExplorerButton,
-  ActivityDetailsFooter,
-  ActivityDetailsMetadata,
-} from '../components';
+import { ActivityDetailsAmountHeader } from '../components';
 import type { ActivityDetailsTemplateProps } from '../ActivityDetails.types';
+import { ActivityDetailsStandardTemplate } from './ActivityDetailsStandardTemplate';
 
 /**
  * Generic, type-agnostic details layout used as the fallback for any activity
@@ -15,18 +10,10 @@ import type { ActivityDetailsTemplateProps } from '../ActivityDetails.types';
  */
 export function DefaultDetails({ item }: ActivityDetailsTemplateProps) {
   return (
-    <Box twClassName="flex-1">
-      <ActivityDetailsAmountHeader item={item} />
-      <SectionDivider marginVertical={3} />
-      <ActivityDetailsMetadata item={item} />
-      <Box twClassName="mt-auto pt-4">
-        <ActivityDetailsFooter>
-          <ActivityDetailsBlockExplorerButton
-            chainId={item.chainId}
-            hash={item.hash}
-          />
-        </ActivityDetailsFooter>
-      </Box>
-    </Box>
+    <ActivityDetailsStandardTemplate
+      item={item}
+      header={<ActivityDetailsAmountHeader item={item} />}
+      showFeesAndTotal={false}
+    />
   );
 }
