@@ -683,17 +683,23 @@ export const loginAndOpenAccountList = async (
 
   await loginToAppPlaywright(loginOptions);
 
-  await Assertions.expectElementToBeVisible(WalletView.container, {
-    description: 'Wallet should be visible after login',
-    timeout: walletTimeout,
-  });
+  await waitForWalletHomePlaywright(walletTimeout);
 
-  await WalletView.tapIdenticon();
-
-  await Assertions.expectElementToBeVisible(
-    AccountListBottomSheet.accountList,
+  await Utilities.executeWithRetry(
+    async () => {
+      await WalletView.tapIdenticon();
+      await Assertions.expectElementToBeVisible(
+        AccountListBottomSheet.accountList,
+        {
+          description: accountListDescription,
+          timeout: walletTimeout,
+        },
+      );
+    },
     {
-      description: accountListDescription,
+      timeout: walletTimeout + 10_000,
+      interval: 1_000,
+      description: 'Open account list after wallet login',
     },
   );
 };
