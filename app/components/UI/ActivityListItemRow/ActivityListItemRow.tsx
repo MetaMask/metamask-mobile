@@ -17,9 +17,42 @@ import { PendingActivityListItemRow } from './PendingActivityListItemRow';
 import { resolveIconType } from './resolveIconType';
 import { useActivityListItemRowContent } from './useActivityListItemRowContent';
 import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
+import type { ActivityKind } from '../../../util/activity-adapters';
 
 export { resolveActivityListItemTitle } from './useActivityListItemRowContent';
 export { resolveIconType } from './resolveIconType';
+
+/**
+ * Perps (always Arbitrum) and Predict (always Polygon) are single-network
+ * domains, so the network badge on the avatar conveys nothing — suppress it.
+ */
+function isSingleNetworkDomainKind(type: ActivityKind): boolean {
+  return (
+    type.startsWith('perps') ||
+    type.startsWith('prediction') ||
+    type.startsWith('market') ||
+    type.startsWith('stopMarket')
+  );
+}
+
+/**
+ * Per-kind title severity for perps closes (design): liquidations are an error
+ * (red), stop-loss closes are a warning (amber). Everything else is neutral.
+ */
+function resolveTitleSeverity(
+  type: ActivityKind,
+): 'error' | 'warning' | undefined {
+  switch (type) {
+    case 'perpsCloseLongLiquidated':
+    case 'perpsCloseShortLiquidated':
+      return 'error';
+    case 'perpsCloseLongStopLoss':
+    case 'perpsCloseShortStopLoss':
+      return 'warning';
+    default:
+      return undefined;
+  }
+}
 
 function ResolvedActivityListItemRow({
   bridgeHistoryItem,
@@ -46,9 +79,11 @@ function ResolvedActivityListItemRow({
     appTheme,
     osColorScheme,
   );
-  const networkImageSource = getNetworkImageSource({
-    chainId: item.chainId,
-  });
+  const networkImageSource = isSingleNetworkDomainKind(item.type)
+    ? undefined
+    : getNetworkImageSource({
+        chainId: item.chainId,
+      });
 
   const handlePress = useCallback(() => {
     onPress?.(item);
@@ -60,12 +95,14 @@ function ResolvedActivityListItemRow({
         <ActivityListItemRowIcon
           fallbackIcon={icon}
           networkImageSource={networkImageSource}
+          iconUrl={content.avatarIconUrl}
           styles={styles}
           tokens={content.avatarTokens}
         />
       }
       index={index}
       isFailed={isFailed}
+      titleSeverity={resolveTitleSeverity(item.type)}
       item={item}
       onPress={handlePress}
       primaryAmount={content.primaryAmount}
