@@ -1620,11 +1620,12 @@ describe('Predict Feature Flag Selectors', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(true);
     });
 
-    it('returns true only when enabled, showWorldCupScreen and showHubBanner are all true', () => {
+    it('returns true only when enabled, showWorldCupScreen, showHubV2 and showHubBanner are all true', () => {
       const state = buildWorldCupState({
         enabled: true,
         minimumVersion: '1.0.0',
         showWorldCupScreen: true,
+        showHubV2: true,
         showHubBanner: true,
       });
 
@@ -1636,6 +1637,19 @@ describe('Predict Feature Flag Selectors', () => {
         enabled: true,
         minimumVersion: '1.0.0',
         showWorldCupScreen: false,
+        showHubV2: true,
+        showHubBanner: true,
+      });
+
+      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(false);
+    });
+
+    it('returns false when showHubV2 is false even if showHubBanner is true', () => {
+      const state = buildWorldCupState({
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: true,
+        showHubV2: false,
         showHubBanner: true,
       });
 
@@ -1647,6 +1661,7 @@ describe('Predict Feature Flag Selectors', () => {
         enabled: true,
         minimumVersion: '1.0.0',
         showWorldCupScreen: true,
+        showHubV2: true,
         showHubBanner: false,
       });
 
@@ -1658,6 +1673,7 @@ describe('Predict Feature Flag Selectors', () => {
         enabled: false,
         minimumVersion: '1.0.0',
         showWorldCupScreen: true,
+        showHubV2: true,
         showHubBanner: true,
       });
 

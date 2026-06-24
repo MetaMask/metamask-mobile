@@ -98,4 +98,44 @@ describe('PredictWorldCupHubBanner', () => {
       rewardsPath: '/rewards?campaign=predict-the-pitch',
     });
   });
+
+  it('fires a single clicked event and navigation per tap (no double-fire)', () => {
+    const { getByTestId } = render(<PredictWorldCupHubBanner />);
+
+    fireEvent.press(
+      getByTestId(PredictWorldCupHubBannerSelectorsIDs.CONTAINER),
+    );
+
+    const clickedCalls = mockTrackBannerAction.mock.calls.filter(
+      ([args]) => args?.actionType === PredictEventValues.ACTION_TYPE.CLICKED,
+    );
+    expect(clickedCalls).toHaveLength(1);
+    expect(mockHandleRewardsUrl).toHaveBeenCalledTimes(1);
+  });
+
+  it('hides the decorative arrow from the accessibility tree', () => {
+    const { queryByTestId } = render(<PredictWorldCupHubBanner />);
+
+    expect(
+      queryByTestId(PredictWorldCupHubBannerSelectorsIDs.ARROW),
+    ).toBeNull();
+  });
+
+  it('routes to the rewards deeplink when the arrow affordance is pressed', () => {
+    const { getByTestId } = render(<PredictWorldCupHubBanner />);
+
+    fireEvent.press(
+      getByTestId(PredictWorldCupHubBannerSelectorsIDs.ARROW, {
+        includeHiddenElements: true,
+      }),
+    );
+
+    expect(mockTrackBannerAction).toHaveBeenCalledWith({
+      actionType: PredictEventValues.ACTION_TYPE.CLICKED,
+      bannerType: PredictEventValues.BANNER_TYPE.PREDICT_THE_PITCH,
+    });
+    expect(mockHandleRewardsUrl).toHaveBeenCalledWith({
+      rewardsPath: '/rewards?campaign=predict-the-pitch',
+    });
+  });
 });

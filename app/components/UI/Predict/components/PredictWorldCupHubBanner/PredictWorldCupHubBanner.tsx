@@ -64,6 +64,9 @@ const PredictWorldCupHubBanner: React.FC = () => {
   return (
     <Pressable
       accessibilityRole="button"
+      accessibilityLabel={`${strings(
+        'predict.world_cup.hub_banner_title',
+      )}. ${strings('predict.world_cup.hub_banner_description')}`}
       onPress={handlePress}
       style={tw.style('mx-4 mb-3')}
       testID={PredictWorldCupHubBannerSelectorsIDs.CONTAINER}
@@ -100,14 +103,19 @@ const PredictWorldCupHubBanner: React.FC = () => {
               {strings('predict.world_cup.hub_banner_description')}
             </Text>
           </View>
-          <ButtonIcon
-            accessibilityLabel={strings('predict.world_cup.hub_banner_title')}
-            onPress={handlePress}
-            iconName={IconName.ArrowRight}
-            iconProps={{ size: IconSize.Md }}
-            size={ButtonIconSize.Md}
-            variant={ButtonIconVariant.Filled}
-          />
+          <View
+            accessibilityElementsHidden
+            importantForAccessibility="no-hide-descendants"
+          >
+            <ButtonIcon
+              onPress={handlePress}
+              iconName={IconName.ArrowRight}
+              iconProps={{ size: IconSize.Md }}
+              size={ButtonIconSize.Md}
+              variant={ButtonIconVariant.Filled}
+              testID={PredictWorldCupHubBannerSelectorsIDs.ARROW}
+            />
+          </View>
         </View>
       </View>
     </Pressable>

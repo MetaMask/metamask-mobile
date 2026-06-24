@@ -177,10 +177,16 @@ export const selectPredictWorldCupHubV2EnabledFlag = createSelector(
   (config) => config.enabled && config.showWorldCupScreen && config.showHubV2,
 );
 
+// The banner is only mounted inside the V2 hub (`PredictWorldCupHub`), so it
+// must also require `showHubV2`. Without this, enabling `showHubBanner` while
+// `showHubV2` is off would silently render nothing (the V1 hub has no banner).
 export const selectPredictWorldCupHubBannerEnabledFlag = createSelector(
   selectPredictWorldCupConfig,
   (config) =>
-    config.enabled && config.showWorldCupScreen && config.showHubBanner,
+    config.enabled &&
+    config.showWorldCupScreen &&
+    config.showHubV2 &&
+    config.showHubBanner,
 );
 
 export const selectPredictPortfolioEnabledFlag = createSelector(
