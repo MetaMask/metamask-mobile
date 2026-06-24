@@ -377,17 +377,19 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
     );
   }, [isFetchingMore]);
 
+  const winnerModuleNode = winnerMarket ? (
+    <PredictWorldCupWinnerModule
+      market={winnerMarket}
+      entryPoint={entryPoint}
+      predictScreen={PredictEventValues.PREDICT_SCREEN.WORLD_CUP}
+      transactionActiveAbTests={transactionActiveAbTests}
+    />
+  ) : null;
+
   const ListHeaderComponent = useMemo(
     () => (
       <>
-        {winnerMarket && (
-          <PredictWorldCupWinnerModule
-            market={winnerMarket}
-            entryPoint={entryPoint}
-            predictScreen={PredictEventValues.PREDICT_SCREEN.WORLD_CUP}
-            transactionActiveAbTests={transactionActiveAbTests}
-          />
-        )}
+        {winnerModuleNode}
         <Text
           variant={TextVariant.HeadingSm}
           color={TextColor.TextDefault}
@@ -397,20 +399,14 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
         </Text>
       </>
     ),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [winnerMarket, entryPoint, transactionActiveAbTests, tw],
   );
 
   if (isFetching && !isRefreshing && !isFetchingMore) {
     return (
       <Box twClassName="flex-1">
-        {winnerMarket && (
-          <PredictWorldCupWinnerModule
-            market={winnerMarket}
-            entryPoint={entryPoint}
-            predictScreen={PredictEventValues.PREDICT_SCREEN.WORLD_CUP}
-            transactionActiveAbTests={transactionActiveAbTests}
-          />
-        )}
+        {winnerModuleNode}
         <Box twClassName="px-4">
           <PredictMarketSkeleton
             testID={`${PREDICT_WORLD_CUP_HUB_TEST_IDS.SKELETON}-props-1`}
@@ -429,14 +425,7 @@ const PropsTabContent: React.FC<PropsTabContentProps> = ({
         twClassName="flex-1"
         testID={PREDICT_WORLD_CUP_HUB_TEST_IDS.ERROR_STATE}
       >
-        {winnerMarket && (
-          <PredictWorldCupWinnerModule
-            market={winnerMarket}
-            entryPoint={entryPoint}
-            predictScreen={PredictEventValues.PREDICT_SCREEN.WORLD_CUP}
-            transactionActiveAbTests={transactionActiveAbTests}
-          />
-        )}
+        {winnerModuleNode}
         <PredictOffline onRetry={handleRefresh} />
       </Box>
     );

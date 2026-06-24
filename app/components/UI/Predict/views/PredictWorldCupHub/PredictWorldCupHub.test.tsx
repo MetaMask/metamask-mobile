@@ -1,5 +1,6 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { act, fireEvent, render, screen } from '@testing-library/react-native';
+import { RefreshControl } from 'react-native';
 import PredictWorldCupHub, {
   PREDICT_WORLD_CUP_HUB_TEST_IDS,
 } from './PredictWorldCupHub';
@@ -59,7 +60,7 @@ jest.mock('../../selectors/featureFlags', () => ({
 }));
 
 jest.mock('@shopify/flash-list', () => {
-  const { View } = jest.requireActual('react-native');
+  const { View, TouchableOpacity } = jest.requireActual('react-native');
   const FlashList = ({
     data = [],
     renderItem,
@@ -67,6 +68,8 @@ jest.mock('@shopify/flash-list', () => {
     ListHeaderComponent,
     ListFooterComponent,
     testID,
+    refreshControl,
+    onEndReached,
   }: {
     data?: unknown[];
     renderItem: (info: { item: unknown; index: number }) => React.ReactNode;
@@ -74,8 +77,17 @@ jest.mock('@shopify/flash-list', () => {
     ListHeaderComponent?: React.ComponentType | React.ReactNode;
     ListFooterComponent?: React.ComponentType | React.ReactNode;
     testID?: string;
+    refreshControl?: React.ReactNode;
+    onEndReached?: () => void;
   }) => (
     <View testID={testID}>
+      {refreshControl}
+      {onEndReached && (
+        <TouchableOpacity
+          testID={`${testID ?? ''}-end-reached`}
+          onPress={onEndReached}
+        />
+      )}
       {typeof ListHeaderComponent === 'function' ? (
         <ListHeaderComponent />
       ) : (
@@ -125,6 +137,27 @@ jest.mock('../../components/PredictOffline', () => {
   return {
     __esModule: true,
     default: () => <Text testID="predict-offline">offline</Text>,
+  };
+});
+
+jest.mock('../../components/PredictMarketSkeleton', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
+  };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { TouchableOpacity, View } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    HeaderStandard: ({ onBack }: { onBack?: () => void; title?: string }) => (
+      <View>
+        <TouchableOpacity testID="header-back-button" onPress={onBack} />
+      </View>
+    ),
   };
 });
 
@@ -479,5 +512,299 @@ describe('PredictWorldCupHub', () => {
       screen.getByTestId(PREDICT_WORLD_CUP_HUB_TEST_IDS.ERROR_STATE),
     ).toBeOnTheScreen();
     expect(screen.getByTestId('predict-offline')).toBeOnTheScreen();
+  });
+
+  it('shows Games tab skeleton while initial data is loading', () => {
+    mockUsePredictWorldCupGamesSections.mockReturnValue({
+      sections: [],
+      isLive: false,
+      isFetching: true,
+      error: null,
+      refetch: jest.fn(),
+    });
+
+    render(<PredictWorldCupHub />);
+
+    expect(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_HUB_TEST_IDS.SKELETON}-1`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PREDICT_WORLD_CUP_HUB_TEST_IDS.GAMES_LIST),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows Props tab loading skeleton while the props feed is loading', () => {
+    mockUsePredictWorldCupMarkets.mockReturnValue({
+      marketData: [],
+      isFetching: true,
+      isFetchingMore: false,
+      error: null,
+      hasMore: false,
+      refetch: jest.fn(),
+      fetchMore: jest.fn(),
+    });
+
+    render(<PredictWorldCupHub />);
+    fireEvent.press(
+      screen.getByTestId(
+        `${PREDICT_WORLD_CUP_HUB_TEST_IDS.TAB}-${PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS}`,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_HUB_TEST_IDS.SKELETON}-props-1`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(PREDICT_WORLD_CUP_HUB_TEST_IDS.PROPS_LIST),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('shows Props tab loading skeleton alongside the winner module when both are present', () => {
+    mockUsePredictWorldCupWinnerMarket.mockReturnValue({
+      market: {
+        id: 'winner',
+        title: 'World Cup Winner',
+        outcomes: [],
+        parentMarketId: null,
+      },
+      isFetching: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    mockUsePredictWorldCupMarkets.mockReturnValue({
+      marketData: [],
+      isFetching: true,
+      isFetchingMore: false,
+      error: null,
+      hasMore: false,
+      refetch: jest.fn(),
+      fetchMore: jest.fn(),
+    });
+
+    render(<PredictWorldCupHub />);
+    fireEvent.press(
+      screen.getByTestId(
+        `${PREDICT_WORLD_CUP_HUB_TEST_IDS.TAB}-${PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS}`,
+      ),
+    );
+
+    expect(screen.getByTestId('winner-module')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_HUB_TEST_IDS.SKELETON}-props-1`),
+    ).toBeOnTheScreen();
+  });
+
+  it('shows Props tab error state when the props feed errors', () => {
+    mockUsePredictWorldCupMarkets.mockReturnValue({
+      marketData: [],
+      isFetching: false,
+      isFetchingMore: false,
+      error: new Error('network'),
+      hasMore: false,
+      refetch: jest.fn(),
+      fetchMore: jest.fn(),
+    });
+
+    render(<PredictWorldCupHub />);
+    fireEvent.press(
+      screen.getByTestId(
+        `${PREDICT_WORLD_CUP_HUB_TEST_IDS.TAB}-${PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS}`,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(PREDICT_WORLD_CUP_HUB_TEST_IDS.ERROR_STATE),
+    ).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-offline')).toBeOnTheScreen();
+  });
+
+  it('keeps winner module visible in Props error state', () => {
+    mockUsePredictWorldCupWinnerMarket.mockReturnValue({
+      market: {
+        id: 'winner',
+        title: 'World Cup Winner',
+        outcomes: [],
+        parentMarketId: null,
+      },
+      isFetching: false,
+      error: null,
+      refetch: jest.fn(),
+    });
+    mockUsePredictWorldCupMarkets.mockReturnValue({
+      marketData: [],
+      isFetching: false,
+      isFetchingMore: false,
+      error: new Error('network'),
+      hasMore: false,
+      refetch: jest.fn(),
+      fetchMore: jest.fn(),
+    });
+
+    render(<PredictWorldCupHub />);
+    fireEvent.press(
+      screen.getByTestId(
+        `${PREDICT_WORLD_CUP_HUB_TEST_IDS.TAB}-${PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS}`,
+      ),
+    );
+
+    expect(screen.getByTestId('winner-module')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-offline')).toBeOnTheScreen();
+  });
+
+  it('shows Props footer skeleton when fetching more items', () => {
+    mockUsePredictWorldCupMarkets.mockReturnValue({
+      marketData: [],
+      isFetching: false,
+      isFetchingMore: true,
+      error: null,
+      hasMore: true,
+      refetch: jest.fn(),
+      fetchMore: jest.fn(),
+    });
+
+    render(<PredictWorldCupHub />);
+    fireEvent.press(
+      screen.getByTestId(
+        `${PREDICT_WORLD_CUP_HUB_TEST_IDS.TAB}-${PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS}`,
+      ),
+    );
+
+    expect(
+      screen.getByTestId(
+        `${PREDICT_WORLD_CUP_HUB_TEST_IDS.SKELETON}-props-footer`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('calls fetchMore when end of Props list is reached and more data is available', () => {
+    const mockFetchMore = jest.fn();
+    mockUsePredictWorldCupMarkets.mockReturnValue({
+      marketData: [],
+      isFetching: false,
+      isFetchingMore: false,
+      error: null,
+      hasMore: true,
+      refetch: jest.fn(),
+      fetchMore: mockFetchMore,
+    });
+
+    render(<PredictWorldCupHub />);
+    fireEvent.press(
+      screen.getByTestId(
+        `${PREDICT_WORLD_CUP_HUB_TEST_IDS.TAB}-${PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS}`,
+      ),
+    );
+
+    fireEvent.press(
+      screen.getByTestId(
+        `${PREDICT_WORLD_CUP_HUB_TEST_IDS.PROPS_LIST}-end-reached`,
+      ),
+    );
+
+    expect(mockFetchMore).toHaveBeenCalled();
+  });
+
+  it('calls goBack when back button is pressed and navigation can go back', () => {
+    mockCanGoBack.mockReturnValue(true);
+
+    render(<PredictWorldCupHub />);
+    fireEvent.press(screen.getByTestId('header-back-button'));
+
+    expect(mockGoBack).toHaveBeenCalled();
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('navigates to market list when back button is pressed and cannot go back', () => {
+    mockCanGoBack.mockReturnValue(false);
+
+    render(<PredictWorldCupHub />);
+    fireEvent.press(screen.getByTestId('header-back-button'));
+
+    expect(mockGoBack).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({}),
+    );
+  });
+
+  it('triggers Games tab refetch on pull-to-refresh', async () => {
+    const mockRefetch = jest.fn().mockResolvedValue(undefined);
+    mockUsePredictWorldCupGamesSections.mockReturnValue({
+      sections: [
+        {
+          key: 'final',
+          label: 'Final',
+          markets: [
+            {
+              id: 'm-1',
+              title: 'Final Match',
+              outcomes: [],
+              parentMarketId: null,
+            },
+          ],
+          isFetching: false,
+        },
+      ],
+      isLive: false,
+      isFetching: false,
+      error: null,
+      refetch: mockRefetch,
+    });
+
+    const { UNSAFE_getAllByType } = render(<PredictWorldCupHub />);
+    const refreshControls = UNSAFE_getAllByType(RefreshControl);
+    await act(async () => {
+      refreshControls[0].props.onRefresh();
+    });
+
+    expect(mockRefetch).toHaveBeenCalled();
+  });
+
+  it('triggers Props tab refetch on pull-to-refresh', async () => {
+    const mockPropsRefetch = jest.fn().mockResolvedValue(undefined);
+    const mockWinnerRefetch = jest.fn().mockResolvedValue(undefined);
+    mockUsePredictWorldCupMarkets.mockReturnValue({
+      marketData: [],
+      isFetching: false,
+      isFetchingMore: false,
+      error: null,
+      hasMore: false,
+      refetch: mockPropsRefetch,
+      fetchMore: jest.fn(),
+    });
+    mockUsePredictWorldCupWinnerMarket.mockReturnValue({
+      market: null,
+      isFetching: false,
+      error: null,
+      refetch: mockWinnerRefetch,
+    });
+
+    const { UNSAFE_getAllByType } = render(<PredictWorldCupHub />);
+    fireEvent.press(
+      screen.getByTestId(
+        `${PREDICT_WORLD_CUP_HUB_TEST_IDS.TAB}-${PREDICT_WORLD_CUP_HUB_TAB_KEYS.PROPS}`,
+      ),
+    );
+
+    const refreshControls = UNSAFE_getAllByType(RefreshControl);
+    await act(async () => {
+      refreshControls[0].props.onRefresh();
+    });
+
+    expect(mockPropsRefetch).toHaveBeenCalled();
+  });
+
+  it('stores tab layout and does not throw when a tab receives a layout event', () => {
+    render(<PredictWorldCupHub />);
+
+    const gamesTab = screen.getByTestId(
+      `${PREDICT_WORLD_CUP_HUB_TEST_IDS.TAB}-${PREDICT_WORLD_CUP_HUB_TAB_KEYS.GAMES}`,
+    );
+
+    expect(() => {
+      fireEvent(gamesTab, 'layout', {
+        nativeEvent: { layout: { x: 10, y: 0, width: 80, height: 40 } },
+      });
+    }).not.toThrow();
   });
 });
