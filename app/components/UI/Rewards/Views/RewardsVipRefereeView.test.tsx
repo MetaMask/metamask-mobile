@@ -24,6 +24,7 @@ const mockNavDispatch = jest.fn();
 const mockReduxDispatch = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockExitRewardsFlow = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => createMockEventBuilder());
 // Obviously-synthetic fixtures — never real VIP codes/figures.
@@ -36,6 +37,10 @@ let mockVipRefereeSplashAccepted: Record<string, boolean> = {};
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => mockReduxDispatch),
   useSelector: jest.fn(),
+}));
+
+jest.mock('../utils', () => ({
+  exitRewardsFlow: (...args: unknown[]) => mockExitRewardsFlow(...args),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -493,25 +498,21 @@ describe('RewardsVipRefereeView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('replaces with the dashboard when the user is not a VIP referee', () => {
+  it('exits the rewards flow when the user is not a VIP referee', () => {
     mockIsVipReferee = false;
 
     const { queryByTestId } = render(<RewardsVipRefereeView />);
 
     expect(queryByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.VIEW)).toBeNull();
-    expect(mockNavDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_DASHBOARD),
-    );
+    expect(mockExitRewardsFlow).toHaveBeenCalled();
   });
 
-  it('replaces with the dashboard when the VIP program flag is off', () => {
+  it('exits the rewards flow when the VIP program flag is off', () => {
     mockIsVipProgramEnabled = false;
 
     const { queryByTestId } = render(<RewardsVipRefereeView />);
 
     expect(queryByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.VIEW)).toBeNull();
-    expect(mockNavDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_DASHBOARD),
-    );
+    expect(mockExitRewardsFlow).toHaveBeenCalled();
   });
 });
