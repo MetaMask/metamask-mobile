@@ -1,17 +1,17 @@
-import React from 'react';
 import {
   Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import React from 'react';
 import { strings } from '../../../../../../locales/i18n';
 import { formatPnl } from '../../../../UI/Perps/utils/formatUtils';
-import { formatUsd, formatPercent } from '../../utils/formatters';
+import { formatPercent, formatUsd } from '../../utils/formatters';
 
 export interface TraderPositionPnLCardProps {
   isClosed: boolean;

@@ -119,9 +119,22 @@ export function formatTokenAmount(value: number): string {
   return String(formatAmountWithThreshold(value, 5));
 }
 
-export function formatPercent(value: number | null | undefined): string {
-  if (value == null) return EM_DASH;
-  return formatPercentage(value, 0);
+export interface FormatPercentOptions {
+  showSign?: boolean;
+  decimals?: number;
+  fallback?: string;
+}
+
+export function formatPercent(
+  value: number | null | undefined,
+  options?: FormatPercentOptions,
+): string {
+  const { showSign = true, decimals = 2, fallback = EM_DASH } = options ?? {};
+
+  if (value == null) return fallback;
+
+  const formatted = formatPercentage(value, decimals);
+  return showSign ? formatted : formatted.replace(/^[+-]/, '');
 }
 
 /** Trade timestamps from the social API may be in seconds or milliseconds. */

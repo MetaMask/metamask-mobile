@@ -169,16 +169,16 @@ describe('formatTokenAmount', () => {
 });
 
 describe('formatPercent', () => {
-  it('formats positive percent with plus sign', () => {
-    expect(formatPercent(182)).toBe('+182%');
+  it('formats positive percent with plus sign and two decimals', () => {
+    expect(formatPercent(182)).toBe('+182.00%');
   });
 
   it('formats negative percent', () => {
-    expect(formatPercent(-25)).toBe('-25%');
+    expect(formatPercent(-25)).toBe('-25.00%');
   });
 
   it('formats zero percent with plus sign', () => {
-    expect(formatPercent(0)).toBe('+0%');
+    expect(formatPercent(0)).toBe('+0.00%');
   });
 
   it('returns an em dash for null', () => {
@@ -187,6 +187,20 @@ describe('formatPercent', () => {
 
   it('returns an em dash for undefined', () => {
     expect(formatPercent(undefined)).toBe('\u2014');
+  });
+
+  it('omits the sign when showSign is false', () => {
+    expect(formatPercent(182, { showSign: false })).toBe('182.00%');
+    expect(formatPercent(-25, { showSign: false })).toBe('25.00%');
+  });
+
+  it('uses custom decimal places', () => {
+    expect(formatPercent(1.234, { decimals: 0 })).toBe('+1%');
+    expect(formatPercent(1.234, { decimals: 1 })).toBe('+1.2%');
+  });
+
+  it('uses a custom fallback for null', () => {
+    expect(formatPercent(null, { fallback: '-' })).toBe('-');
   });
 });
 
