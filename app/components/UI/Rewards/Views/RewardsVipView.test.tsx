@@ -23,11 +23,16 @@ const mockDispatch = jest.fn();
 const mockReduxDispatch = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockExitRewardsFlow = jest.fn();
 let mockVipSplashAccepted: Record<string, boolean> = {};
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => mockReduxDispatch),
   useSelector: jest.fn(),
+}));
+
+jest.mock('../utils', () => ({
+  exitRewardsFlow: (...args: unknown[]) => mockExitRewardsFlow(...args),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -718,13 +723,11 @@ describe('RewardsVipView', () => {
       enabled: false,
     });
     await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.REWARDS_DASHBOARD),
-      );
+      expect(mockExitRewardsFlow).toHaveBeenCalled();
     });
   });
 
-  it('redirects to the rewards dashboard when the VIP program flag is off, even for a VIP subscription', async () => {
+  it('exits the rewards flow when the VIP program flag is off, even for a VIP subscription', async () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) {
         return 'test-subscription-id';
@@ -746,9 +749,7 @@ describe('RewardsVipView', () => {
       enabled: false,
     });
     await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.REWARDS_DASHBOARD),
-      );
+      expect(mockExitRewardsFlow).toHaveBeenCalled();
     });
   });
 });

@@ -2198,21 +2198,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@consensys/native-ramps-sdk@npm:^2.1.7":
-  version: 2.1.7
-  resolution: "@consensys/native-ramps-sdk@npm:2.1.7"
-  dependencies:
-    "@metamask/utils": "npm:^11.5.0"
-    async: "npm:^3.2.3"
-    axios: "npm:^1.11.0"
-    axios-retry: "npm:^3.1.2"
-    crypto-js: "npm:^4.2.0"
-    reflect-metadata: "npm:^0.1.13"
-    uuid: "npm:^9.0.0"
-  checksum: 10/52c8a7911861dce0b2828c1dee039ffd40934e343bdda4a29b742cc104919c477f033dea95b6686a7cbf03c4ef21bcf1c7617ae000001d617fc618189d6cabc4
-  languageName: node
-  linkType: hard
-
 "@consensys/on-ramp-sdk@npm:2.1.12":
   version: 2.1.12
   resolution: "@consensys/on-ramp-sdk@npm:2.1.12"
@@ -3805,7 +3790,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@exodus/bitcoin-wallet-standard@npm:^0.0.0":
+"@exodus/bitcoin-wallet-standard@npm:0.0.0":
   version: 0.0.0
   resolution: "@exodus/bitcoin-wallet-standard@npm:0.0.0"
   dependencies:
@@ -8108,17 +8093,15 @@ __metadata:
   linkType: hard
 
 "@metamask/bitcoin-wallet-standard@npm:^1.0.0":
-  version: 1.0.0
-  resolution: "@metamask/bitcoin-wallet-standard@npm:1.0.0"
+  version: 1.1.0
+  resolution: "@metamask/bitcoin-wallet-standard@npm:1.1.0"
   dependencies:
-    "@exodus/bitcoin-wallet-standard": "npm:^0.0.0"
-    "@metamask/multichain-api-client": "npm:^0.11.0"
-    "@wallet-standard/base": "npm:^1.1.0"
-    "@wallet-standard/features": "npm:^1.1.0"
-    "@wallet-standard/wallet": "npm:^1.1.0"
-    bs58: "npm:^6.0.0"
-    jsontokens: "npm:^4.0.1"
-  checksum: 10/c0484f16aa4e290a47eab7b6a17afd08028a7b1d3d684b17114865b39f53120ef587aa854567659f5fac520bd2b1a5acf0d88e5528a73ea957e2399a2cb05f03
+    "@exodus/bitcoin-wallet-standard": "npm:0.0.0"
+    "@metamask/multichain-api-client": "npm:0.12.0"
+    "@wallet-standard/base": "npm:1.1.0"
+    "@wallet-standard/features": "npm:1.1.0"
+    "@wallet-standard/wallet": "npm:1.1.0"
+  checksum: 10/d0d381259c0342e3c7993c773cbc99f42235678c2a3aa8522b8a1521b57092904940a8a4bd55158926e07f9f79588b6d29124b58d023d757e62bfee0adc4399a
   languageName: node
   linkType: hard
 
@@ -9271,6 +9254,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/multichain-api-client@npm:0.12.0":
+  version: 0.12.0
+  resolution: "@metamask/multichain-api-client@npm:0.12.0"
+  checksum: 10/79f7b2e53cae25fb825a825650b98bbedf4d700b82b87a4df90c7e5ae62eb1aa8d3089fcdeaa66b104d737fe1ade93f202eae1b2599346599fccbc62d046a5fa
+  languageName: node
+  linkType: hard
+
 "@metamask/multichain-api-client@npm:^0.11.0":
   version: 0.11.0
   resolution: "@metamask/multichain-api-client@npm:0.11.0"
@@ -9870,13 +9860,13 @@ __metadata:
   linkType: hard
 
 "@metamask/seedless-onboarding-controller@npm:^10.0.1":
-  version: 10.0.1
-  resolution: "@metamask/seedless-onboarding-controller@npm:10.0.1"
+  version: 10.0.2
+  resolution: "@metamask/seedless-onboarding-controller@npm:10.0.2"
   dependencies:
     "@metamask/auth-network-utils": "npm:^0.3.0"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
-    "@metamask/keyring-controller": "npm:^26.0.0"
+    "@metamask/keyring-controller": "npm:^27.0.0"
     "@metamask/messenger": "npm:^1.2.0"
     "@metamask/toprf-secure-backup": "npm:^1.0.0"
     "@metamask/utils": "npm:^11.9.0"
@@ -9884,7 +9874,7 @@ __metadata:
     "@noble/curves": "npm:^1.9.2"
     "@noble/hashes": "npm:^1.8.0"
     async-mutex: "npm:^0.5.0"
-  checksum: 10/8ea21268dd212c8d0059fca6d246ceb266e218cb21195695588120dd58fb99366af91f16353d3727afc7a49fa6fe3736d579517b1ff9900f6c896ba94516d441
+  checksum: 10/6a69118488e208d32ab6d675f5980af22368cbe651cb390e48343389bc1bd5046a408ed899ffdd63c9aecad159fa2a25712ac163c3b1265fbb0b9f952e7679cc
   languageName: node
   linkType: hard
 
@@ -10386,13 +10376,13 @@ __metadata:
   linkType: hard
 
 "@metamask/tron-wallet-snap@npm:^1.27.0":
-  version: 1.27.0
-  resolution: "@metamask/tron-wallet-snap@npm:1.27.0"
-  checksum: 10/7555f647d89502aebe5f629242113203b123ab981b9a59105cc9ae9c404cfe3ee2ac10c7d246bb58c86f15b87a874ced0629bb91429f9cc01696ac22132a5da9
+  version: 1.28.0
+  resolution: "@metamask/tron-wallet-snap@npm:1.28.0"
+  checksum: 10/e8fe563735e0fca306cd1caa2cde45b193d0f09f7a3da545be24eee55a64f1ff239a7460ad9c4a0c6b67552a1423ef18328350a4b76a2409a1fbe609f69b8769
   languageName: node
   linkType: hard
 
-"@metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.10.0, @metamask/utils@npm:^11.11.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.4.2, @metamask/utils@npm:^11.5.0, @metamask/utils@npm:^11.8.1, @metamask/utils@npm:^11.9.0":
+"@metamask/utils@npm:^11.0.1, @metamask/utils@npm:^11.10.0, @metamask/utils@npm:^11.11.0, @metamask/utils@npm:^11.4.0, @metamask/utils@npm:^11.4.2, @metamask/utils@npm:^11.8.1, @metamask/utils@npm:^11.9.0":
   version: 11.11.0
   resolution: "@metamask/utils@npm:11.11.0"
   dependencies:
@@ -20238,7 +20228,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wallet-standard/base@npm:^1.0.1, @wallet-standard/base@npm:^1.1.0":
+"@wallet-standard/base@npm:1.1.0, @wallet-standard/base@npm:^1.0.1, @wallet-standard/base@npm:^1.1.0":
   version: 1.1.0
   resolution: "@wallet-standard/base@npm:1.1.0"
   checksum: 10/11dbb8ed80566265916ab193ad5eab1585d55996781a88039d2bc4480428b1e778901b2dcff3e688dcac7de45e8a9272026f37f07f1e75168caff581906c5079
@@ -20270,7 +20260,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wallet-standard/features@npm:^1.0.3, @wallet-standard/features@npm:^1.1.0":
+"@wallet-standard/features@npm:1.1.0, @wallet-standard/features@npm:^1.0.3, @wallet-standard/features@npm:^1.1.0":
   version: 1.1.0
   resolution: "@wallet-standard/features@npm:1.1.0"
   dependencies:
@@ -20279,7 +20269,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@wallet-standard/wallet@npm:^1.1.0":
+"@wallet-standard/wallet@npm:1.1.0, @wallet-standard/wallet@npm:^1.1.0":
   version: 1.1.0
   resolution: "@wallet-standard/wallet@npm:1.1.0"
   dependencies:
@@ -33998,7 +33988,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"jsontokens@npm:4.0.1, jsontokens@npm:^4.0.1":
+"jsontokens@npm:4.0.1":
   version: 4.0.1
   resolution: "jsontokens@npm:4.0.1"
   dependencies:
@@ -35362,7 +35352,6 @@ __metadata:
     "@babel/runtime": "npm:^7.25.0"
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch"
     "@config-plugins/detox": "npm:^9.0.0"
-    "@consensys/native-ramps-sdk": "npm:^2.1.7"
     "@consensys/on-ramp-sdk": "npm:2.1.12"
     "@craftzdog/react-native-buffer": "npm:^6.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -46488,7 +46477,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"valibot@npm:1.3.1, valibot@npm:^1.2.0":
+"valibot@npm:1.3.1":
   version: 1.3.1
   resolution: "valibot@npm:1.3.1"
   peerDependencies:
@@ -46497,6 +46486,18 @@ __metadata:
     typescript:
       optional: true
   checksum: 10/e14d085fa87fbf41f76d040cdcf17e31527f868c8b82f878bc488a5bc3bc81162406c605182fc720473ec6dcff05393b89fb4a921a4206d9f7b6f76e3c93cf34
+  languageName: node
+  linkType: hard
+
+"valibot@npm:^1.2.0":
+  version: 1.4.1
+  resolution: "valibot@npm:1.4.1"
+  peerDependencies:
+    typescript: ">=5"
+  peerDependenciesMeta:
+    typescript:
+      optional: true
+  checksum: 10/39092725e4045e332e3593e9b95253c1a3429033e13be1805597fb8d346ad20a727bef82971e3b9a1b7d631bb8ad65fff186ec55d430e16f25b6bbba151c4e80
   languageName: node
   linkType: hard
 
