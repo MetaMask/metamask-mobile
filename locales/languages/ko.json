@@ -1094,7 +1094,6 @@
     "trader_position": {
       "market_cap": "시가총액",
       "position": "포지션",
-      "trades": "거래하기",
       "buy": "매수",
       "bought": "{{name}} 매수함",
       "sold": "{{name}} 매도함",

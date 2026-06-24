@@ -1094,7 +1094,6 @@
     "trader_position": {
       "market_cap": "市值",
       "position": "仓位",
-      "trades": "交易",
       "buy": "买入",
       "bought": "{{name}} 已买入",
       "sold": "{{name}} 已卖出",

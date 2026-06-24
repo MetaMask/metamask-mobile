@@ -1094,7 +1094,6 @@
     "trader_position": {
       "market_cap": "Market cap",
       "position": "Posisyon",
-      "trades": "Mga Trade",
       "buy": "Bumili",
       "bought": "{{name}} na binili",
       "sold": "{{name}} na ibinenta",

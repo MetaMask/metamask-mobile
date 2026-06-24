@@ -4,6 +4,7 @@ import { StyleSheet } from 'react-native';
 import type { ReactTestInstance } from 'react-test-renderer';
 import type { Trade } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { formatTradeDayLabel } from '../../utils/formatters';
 import TraderTradesSection from './TraderTradesSection';
 
 const makeTrade = (overrides: Partial<Trade> = {}): Trade => ({
@@ -17,17 +18,22 @@ const makeTrade = (overrides: Partial<Trade> = {}): Trade => ({
 });
 
 describe('TraderTradesSection', () => {
-  it('renders the day-grouped Trades title', () => {
-    renderWithProvider(<TraderTradesSection trades={[makeTrade()]} />);
+  it('renders the day-grouped section header', () => {
+    const trade = makeTrade();
+    renderWithProvider(<TraderTradesSection trades={[trade]} />);
 
-    // Sticky section header reads "Trades - <day of the trade>".
-    expect(screen.getByText(/^Trades - /)).toBeOnTheScreen();
+    expect(
+      screen.getByText(formatTradeDayLabel(trade.timestamp)),
+    ).toBeOnTheScreen();
   });
 
   it('does not render a white underline below the title', () => {
-    renderWithProvider(<TraderTradesSection trades={[makeTrade()]} />);
+    const trade = makeTrade();
+    renderWithProvider(<TraderTradesSection trades={[trade]} />);
 
-    let node: ReactTestInstance | null = screen.getByText(/^Trades - /);
+    let node: ReactTestInstance | null = screen.getByText(
+      formatTradeDayLabel(trade.timestamp),
+    );
     while (node) {
       const flat = StyleSheet.flatten(node.props.style) as
         | { borderBottomWidth?: number }

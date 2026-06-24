@@ -1,3 +1,12 @@
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import type { Trade } from '@metamask/social-controllers';
 import React, {
   forwardRef,
   useCallback,
@@ -7,18 +16,10 @@ import React, {
 } from 'react';
 import {
   SectionList,
-  type SectionListData,
   type RefreshControlProps,
+  type SectionListData,
 } from 'react-native';
-import {
-  Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-} from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { Trade } from '@metamask/social-controllers';
+import Animated, { type ScrollHandlerProcessed } from 'react-native-reanimated';
 import { strings } from '../../../../../../locales/i18n';
 import { formatTradeDayLabel, getTradeDayKey } from '../../utils/formatters';
 import TradeRow from './TradeRow';
@@ -28,6 +29,10 @@ interface TradeDaySection {
   dayLabel: string;
   data: Trade[];
 }
+
+const AnimatedSectionList = Animated.createAnimatedComponent(
+  SectionList<Trade, TradeDaySection>,
+);
 
 /** Imperative handle so the chart can scroll the list to a specific trade. */
 export interface TraderTradesSectionHandle {
@@ -48,12 +53,14 @@ export interface TraderTradesSectionProps {
   emphasizedTradeId?: string | null;
   /** Pull-to-refresh control — this list owns the scroll for the page. */
   refreshControl?: React.ReactElement<RefreshControlProps>;
+  /** Reanimated scroll handler for header collapse (split-view layout). */
+  onScroll?: ScrollHandlerProcessed<Record<string, unknown>>;
 }
 
 /**
  * Groups trades into day sections (`Jan 1 2026`) and renders them in a
  * `SectionList` whose section headers are sticky: the header pinned at the top
- * always reads `Trades - <day of the topmost visible trade>` and swaps as the
+ * always reads `<day of the topmost visible trade>` and swaps as the
  * user scrolls across days. The list owns the page's scroll (the chart and PnL
  * card above it stay pinned), and exposes {@link TraderTradesSectionHandle} so a
  * chart-marker tap can scroll to the matching trade.
@@ -70,6 +77,7 @@ const TraderTradesSection = forwardRef<
       onTradePress,
       emphasizedTradeId,
       refreshControl,
+      onScroll,
     },
     ref,
   ) => {
@@ -80,8 +88,6 @@ const TraderTradesSection = forwardRef<
       sectionIndex: number;
       itemIndex: number;
     } | null>(null);
-
-    const tradesLabel = strings('social_leaderboard.trader_position.trades');
 
     // Consecutive grouping by calendar day, preserving the trades' order so the
     // sticky header reflects whatever day is currently at the top.
@@ -158,20 +164,20 @@ const TraderTradesSection = forwardRef<
 
     const renderSectionHeader = useCallback(
       ({ section }: { section: SectionListData<Trade, TradeDaySection> }) => (
-        <Box twClassName="bg-default px-4 pt-3 pb-2">
+        <Box twClassName="bg-default px-4 pt-3">
           <Box twClassName="self-start pb-2">
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Bold}
               color={TextColor.TextDefault}
             >
-              {`${tradesLabel} - ${section.dayLabel}`}
+              {section.dayLabel}
             </Text>
           </Box>
           <Box twClassName="h-px bg-muted" />
         </Box>
       ),
-      [tradesLabel],
+      [],
     );
 
     const renderItem = useCallback(
@@ -190,7 +196,7 @@ const TraderTradesSection = forwardRef<
     const keyExtractor = useCallback((item: Trade) => item.transactionHash, []);
 
     return (
-      <SectionList
+      <AnimatedSectionList
         ref={listRef}
         style={tw.style('flex-1')}
         sections={sections}
@@ -201,6 +207,8 @@ const TraderTradesSection = forwardRef<
         showsVerticalScrollIndicator={false}
         contentContainerStyle={tw.style('pb-6')}
         refreshControl={refreshControl}
+        onScroll={onScroll}
+        scrollEventThrottle={onScroll ? 16 : undefined}
         onScrollToIndexFailed={handleScrollToIndexFailed}
         ListEmptyComponent={
           <Box twClassName="px-4 py-6 items-center">

@@ -22,6 +22,7 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -35,6 +36,7 @@ import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import { useTheme } from '../../../../util/theme';
 import TraderPositionQuickBuy from './components/QuickBuy';
 import TraderPositionHeader from './components/TraderPositionHeader';
+import TraderPositionAnimatedHeader from './components/TraderPositionAnimatedHeader';
 import TraderTokenInfoRow from './components/TraderTokenInfoRow';
 import TraderPositionChartSection from './components/TraderPositionChartSection';
 import TraderTimePeriodSelector from './components/TraderTimePeriodSelector';
@@ -422,20 +424,60 @@ const TraderPositionView = () => {
   const hasFailed =
     !resolvedPosition && !isPositionLoading && !isProfileLoading;
 
+  const {
+    scrollY: scrollYShared,
+    onScroll,
+    setTitleSectionHeight,
+    titleSectionHeightSv,
+  } = useHeaderStandardAnimated();
+
+  // Split-view: the token row stays pinned above the trades list, so use a
+  // minimal threshold so the compact header appears once the list scrolls.
+  useEffect(() => {
+    if (!isInitialLoading && !hasFailed) {
+      setTitleSectionHeight(1);
+    }
+  }, [hasFailed, isInitialLoading, setTitleSectionHeight]);
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
       testID={TraderPositionViewSelectorsIDs.CONTAINER}
     >
-      <TraderPositionHeader
-        traderName={traderName}
-        traderImageUrl={traderImageUrl}
-        traderAddress={traderAddress}
-        onBack={handleBack}
-        onTraderPress={handleTraderPress}
-        backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
-        traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
-      />
+      {isInitialLoading ? (
+        <TraderPositionHeader
+          traderName={traderName}
+          traderImageUrl={traderImageUrl}
+          traderAddress={traderAddress}
+          onBack={handleBack}
+          onTraderPress={handleTraderPress}
+          backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+          traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
+        />
+      ) : hasFailed ? (
+        <TraderPositionHeader
+          traderName={traderName}
+          traderImageUrl={traderImageUrl}
+          traderAddress={traderAddress}
+          onBack={handleBack}
+          onTraderPress={handleTraderPress}
+          backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+          traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
+        />
+      ) : (
+        <TraderPositionAnimatedHeader
+          scrollY={scrollYShared}
+          titleSectionHeight={titleSectionHeightSv}
+          traderName={traderName}
+          traderImageUrl={traderImageUrl}
+          traderAddress={traderAddress}
+          symbol={symbol}
+          pricePercentChange={displayPercentChange}
+          activeTimePeriodLabel={activeTimePeriod}
+          onBack={handleBack}
+          onTraderPress={handleTraderPress}
+        />
+      )}
 
       {isInitialLoading ? (
         <TraderPositionSkeleton />
@@ -502,6 +544,7 @@ const TraderPositionView = () => {
             traderAddress={traderAddress}
             onTradePress={chartAssetId || isPerp ? handleTradePress : undefined}
             emphasizedTradeId={emphasizedTradeId}
+            onScroll={onScroll}
             refreshControl={
               <RefreshControl
                 refreshing={isRefreshing}

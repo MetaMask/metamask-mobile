@@ -1094,7 +1094,6 @@
     "trader_position": {
       "market_cap": "Capitalização de mercado",
       "position": "Posição",
-      "trades": "Negociações",
       "buy": "Comprar",
       "bought": "{{name}} comprado",
       "sold": "{{name}} vendido",

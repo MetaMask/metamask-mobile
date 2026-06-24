@@ -1094,7 +1094,6 @@
     "trader_position": {
       "market_cap": "Kap pasar",
       "position": "Posisi",
-      "trades": "Perdagangan",
       "buy": "Beli",
       "bought": "{{name}} dibeli",
       "sold": "{{name}} terjual",
