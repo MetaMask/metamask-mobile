@@ -176,8 +176,6 @@ describe('usePerpsOrderExecution', () => {
           mmPayTokenSelected: 'USDC',
           mmPayNetworkSelected: 'ethereum',
           chartLibrary: 'advanced',
-        } as NonNullable<OrderParams['trackingData']> & {
-          chartLibrary: string;
         },
       };
 
@@ -297,8 +295,6 @@ describe('usePerpsOrderExecution', () => {
           mmPayTokenSelected: 'USDC',
           mmPayNetworkSelected: 'ethereum',
           chartLibrary: 'advanced',
-        } as NonNullable<OrderParams['trackingData']> & {
-          chartLibrary: string;
         },
       };
 
@@ -417,8 +413,6 @@ describe('usePerpsOrderExecution', () => {
           mmPayTokenSelected: 'USDC',
           mmPayNetworkSelected: 'ethereum',
           chartLibrary: 'advanced',
-        } as NonNullable<OrderParams['trackingData']> & {
-          chartLibrary: string;
         },
       };
 
