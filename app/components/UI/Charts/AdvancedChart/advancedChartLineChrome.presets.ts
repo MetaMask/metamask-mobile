@@ -1,18 +1,24 @@
 import type { LineChromeOptions } from './AdvancedChart.types';
 
+interface AdvancedChartConsumerPreset {
+  lineChrome: LineChromeOptions;
+  /** Omit on AdvancedChart for TradingView default sub-pane sizing. */
+  subPaneHeightRatio?: number;
+}
+
 /**
- * Partial `lineChrome` maps for {@link AdvancedChart}. Unset keys use `DEFAULT_LINE_CHROME`
- * via `resolveLineChromeOptions` in the component and template.
+ * Per-consumer {@link AdvancedChart} presets. `lineChrome` partials merge with
+ * `DEFAULT_LINE_CHROME` via `resolveLineChromeOptions`.
  */
 export const advancedChartLineChromePresets = {
-  /**
-   * Token overview (AssetOverview): TradingView built-ins for scale, price line, and crosshair
-   * labels; no custom line-end icon.
-   */
   tokenOverview: {
-    useCustomLineEndMarker: true,
-    useCustomDashedLastPriceLine: true,
-    useCustomPriceLabels: true,
-    hideTimeScale: false,
+    lineChrome: {
+      useCustomLineEndMarker: true,
+      useCustomDashedLastPriceLine: true,
+      useCustomPriceLabels: true,
+      hideTimeScale: false,
+    },
+    // Other consumers can omit this prop for TradingView default sub-pane sizing.
+    subPaneHeightRatio: 0.2,
   },
-} as const satisfies Record<string, LineChromeOptions>;
+} as const satisfies Record<string, AdvancedChartConsumerPreset>;
