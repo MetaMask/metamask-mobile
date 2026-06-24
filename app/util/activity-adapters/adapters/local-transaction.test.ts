@@ -711,6 +711,46 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('adds receipt-derived network fees to local swap activities', () => {
+    const transaction = {
+      chainId: base,
+      id: 'swap-fee-id',
+      hash: '0xswapfee',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      swapMetaData: {
+        token_from: 'ETH',
+        token_to: 'USDC',
+      },
+      type: TransactionType.swap,
+      txParams: {
+        from,
+        to: '0x9dda6ef3d919c9bc8885d5560999a3640431e8e6',
+        value: '0x246139ca8000',
+      },
+      txReceipt: {
+        gasUsed: '0x5208',
+        effectiveGasPrice: '0x3b9aca00',
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const item = mapLocalTransaction(makeGroup(transaction));
+
+    expect(item.type).toBe('swap');
+    if (item.type !== 'swap') {
+      throw new Error(`Expected swap item, got ${item.type}`);
+    }
+
+    expect(item.data.fees).toStrictEqual([
+      expect.objectContaining({
+        type: 'base',
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+      }),
+    ]);
+  });
+
   it('maps a WETH9 deposit contract interaction to a Wrap activity', () => {
     const transaction = {
       chainId: mainnet,

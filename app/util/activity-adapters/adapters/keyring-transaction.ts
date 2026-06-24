@@ -271,6 +271,7 @@ export function mapKeyringTransaction({
       from,
       to,
       transactionType: transaction.type,
+      ...(fees ? { fees } : {}),
     },
   };
 }

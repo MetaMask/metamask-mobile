@@ -165,6 +165,17 @@ function feeToTokenAmount(fee: ActivityFee): string | undefined {
   return Number.isFinite(parsedAmount) && parsedAmount > 0 ? human : undefined;
 }
 
+function getFeeLabel(fee: ActivityFee): string {
+  switch (fee.type) {
+    case 'base':
+      return strings('activity_details.network_fee');
+    case 'bridge':
+      return strings('activity_details.bridge_fee');
+    default:
+      return strings('activity_details.transaction_fee');
+  }
+}
+
 /**
  * Converts an item's native fees and token amount to fiat for the details
  * screen: a fiat value per fee row plus a fiat "Total amount" (token + fees).
@@ -207,7 +218,6 @@ export function useActivityAmountsFiat(
   const feeRows: ActivityFeeFiatRow[] = [];
   let feeFiatTotal = 0;
   let hasFee = false;
-  const primaryFee = fees.find((fee) => fee.type === 'base') ?? fees[0];
 
   for (const fee of fees) {
     const feeFiat = feeToFiatNumber(fee, conversionRate);
@@ -215,24 +225,17 @@ export function useActivityAmountsFiat(
       hasFee = true;
       feeFiatTotal += feeFiat;
     }
-  }
 
-  if (primaryFee) {
-    const primaryFeeFiat = feeToFiatNumber(primaryFee, conversionRate);
-    const primaryFeeValue =
-      primaryFeeFiat !== undefined && currentCurrency
-        ? renderFiat(
-            primaryFeeFiat,
-            currentCurrency as FiatCurrency,
-            FIAT_DECIMALS,
-          )
-        : feeToTokenAmount(primaryFee);
+    const feeValue =
+      feeFiat !== undefined && currentCurrency
+        ? renderFiat(feeFiat, currentCurrency as FiatCurrency, FIAT_DECIMALS)
+        : feeToTokenAmount(fee);
 
-    if (primaryFeeValue) {
+    if (feeValue) {
       feeRows.push({
-        label: strings('activity_details.network_fee'),
-        value: primaryFeeValue,
-        fee: primaryFee,
+        label: getFeeLabel(fee),
+        value: feeValue,
+        fee,
       });
     }
   }

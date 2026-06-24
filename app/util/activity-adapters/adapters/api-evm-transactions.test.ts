@@ -946,4 +946,37 @@ describe('mapApiEvmTransactions', () => {
       },
     });
   });
+
+  it('adds API gas fees to contract interaction activities', () => {
+    const transaction = {
+      hash: '0xcontractfee',
+      timestamp: '2026-05-01T13:39:47.000Z',
+      chainId: 1,
+      from: subjectAddress,
+      to: subjectAddress,
+      methodId: '0xe9ae5c53',
+      value: '0',
+      gasUsed: 21000,
+      effectiveGasPrice: 1000000000,
+      transactionCategory: 'CONTRACT_CALL',
+      transactionType: 'GENERIC_CONTRACT_CALL',
+      valueTransfers: [],
+    } as unknown as V1TransactionByHashResponse;
+
+    const item = mapApiEvmTransactions({ subjectAddress, transaction });
+
+    expect(item.type).toBe('contractInteraction');
+    if (item.type !== 'contractInteraction') {
+      throw new Error(`Expected contractInteraction item, got ${item.type}`);
+    }
+
+    expect(item.data.fees).toStrictEqual([
+      expect.objectContaining({
+        type: 'base',
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+      }),
+    ]);
+  });
 });

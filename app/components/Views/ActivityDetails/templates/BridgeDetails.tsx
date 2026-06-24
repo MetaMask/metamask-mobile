@@ -19,6 +19,7 @@ import {
 import {
   getBridgeDestinationChainId,
   getBridgeDestinationTxHash,
+  getBridgeHistoryItem,
 } from './bridgeDetailsUtils';
 
 export function BridgeDetails({
@@ -27,7 +28,7 @@ export function BridgeDetails({
   item: Extract<ActivityListItem, { type: 'bridge' }>;
 }) {
   const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
-  const bridgeHistoryItem = item.hash ? bridgeHistory[item.hash] : undefined;
+  const bridgeHistoryItem = getBridgeHistoryItem(item, bridgeHistory);
   const destinationChainId = getBridgeDestinationChainId(
     item.data.destinationToken,
   );

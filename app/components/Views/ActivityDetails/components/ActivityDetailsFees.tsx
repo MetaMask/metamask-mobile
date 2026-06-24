@@ -29,9 +29,9 @@ function ActivityDetailsFeeRowsContent({
 
   return (
     <ActivityDetailSection>
-      {feeRows.map((fee) => (
+      {feeRows.map((fee, index) => (
         <ActivityDetailRow
-          key={fee.label}
+          key={`${fee.label}-${fee.fee.type}-${index}`}
           label={fee.label}
           value={
             <ActivityDetailsFeeValue
