@@ -30,7 +30,10 @@ jest.mock('../transactions/useTransactionMetadataRequest', () => ({
 const MONEY_ACCOUNT_ADDRESS = '0xabc1111111111111111111111111111111111111';
 
 const MONEY_ACCOUNT_FLAG = {
-  defaultPaySelectedSection: 'money-account',
+  defaultPaySelectedSection: {
+    perpsWithdraw: 'money-account',
+    predictWithdraw: 'money-account',
+  },
 };
 
 const DEFAULT_FLAGS = {
@@ -62,13 +65,8 @@ describe('useIsMoneyAccountFlagDefault', () => {
     expect(result.current).toBe(false);
   });
 
-  it.each([
-    TransactionType.perpsDeposit,
-    TransactionType.perpsWithdraw,
-    TransactionType.predictDeposit,
-    TransactionType.predictWithdraw,
-  ])(
-    'returns true for %s when flag is "money-account" and money account exists',
+  it.each([TransactionType.perpsWithdraw, TransactionType.predictWithdraw])(
+    'returns true for %s when flag maps type to "money-account" and money account exists',
     (type) => {
       (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue(
         MONEY_ACCOUNT_FLAG,
@@ -77,6 +75,19 @@ describe('useIsMoneyAccountFlagDefault', () => {
 
       const { result } = render();
       expect(result.current).toBe(true);
+    },
+  );
+
+  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
+    'returns false for %s when type has no key in the flag object',
+    (type) => {
+      (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue(
+        MONEY_ACCOUNT_FLAG,
+      );
+      (useTransactionMetadataRequest as jest.Mock).mockReturnValue({ type });
+
+      const { result } = render();
+      expect(result.current).toBe(false);
     },
   );
 
@@ -95,12 +106,12 @@ describe('useIsMoneyAccountFlagDefault', () => {
     expect(result.current).toBe(false);
   });
 
-  it('returns false when flag is a different value', () => {
+  it('returns false when flag maps type to a different value', () => {
     (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
-      defaultPaySelectedSection: 'crypto',
+      defaultPaySelectedSection: { perpsWithdraw: 'crypto' },
     });
     (useTransactionMetadataRequest as jest.Mock).mockReturnValue({
-      type: TransactionType.perpsDeposit,
+      type: TransactionType.perpsWithdraw,
     });
 
     const { result } = render();
