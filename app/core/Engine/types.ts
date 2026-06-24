@@ -1014,7 +1014,6 @@ export type MessengerClientsToInitialize =
   | 'PredictController'
   | 'CardController'
   | 'ClientController'
-  | 'PreferencesController'
   | 'BridgeController'
   | 'BridgeStatusController'
   | 'NetworkEnablementController'
