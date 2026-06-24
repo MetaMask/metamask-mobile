@@ -658,4 +658,4 @@ if (require.main === module) {
   });
 }
 
-module.exports = { main, repackAndroid, repackIos, repackAndroidDevice, repackIosDevice };
+module.exports = { main, repackAndroid, repackIos, repackAndroidDevice, repackIosDevice, getDeviceKeystoreConfig };

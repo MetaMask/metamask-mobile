@@ -69,6 +69,8 @@ const newOverrides = [
       'tests/framework/services/appium/AppiumServer.ts',
       '.yarn/plugins/plugin-usage-tracking.cjs',
       '.yarn/plugins/plugin-usage-tracking.test.ts',
+      'scripts/repack.js',
+      'scripts/repack.test.js',
     ],
     plugins: ['transform-inline-environment-variables'],
   },
