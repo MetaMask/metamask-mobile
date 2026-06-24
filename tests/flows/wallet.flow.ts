@@ -4,7 +4,6 @@ import {
   createLogger,
   encapsulated,
   Matchers,
-  PlatformDetector,
   PlaywrightAssertions,
   PlaywrightGestures,
   PlaywrightMatchers,
