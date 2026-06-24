@@ -26,7 +26,7 @@ automatically **uninstalls and reinstalls** it on the emulator every run.
 | --------------------------- | ------------------------------------------------------------- |
 | Android emulator            | Running and reachable via `adb`                               |
 | MetaMask wallet APK         | Built or pointed to via `buildPath` in `playwright.config.ts` |
-| `connect-monorepo` checkout | Cloned **next to** `metamask-mobile` (same parent directory)  |
+| `metamask-connect` checkout | Cloned **next to** `metamask-mobile` (same parent directory)  |
 
 Expected directory layout:
 
