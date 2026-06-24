@@ -3,11 +3,11 @@ import {
   TransactionStatus,
 } from '@metamask/transaction-controller';
 import {
-  NO_ACTION,
   type TrackingStrategy,
   type SignedEventClassifier,
   type StrategyEventResult,
   type StrategyConfig,
+  NO_ACTION,
 } from './tracking-strategy';
 
 /**
@@ -15,7 +15,7 @@ import {
  *
  * currentBatchId states:
  * undefined → initial (accept all)
- * null → retry pending (block stale, accept new)
+ * null      → retry pending (block stale, accept new)
  * "batch-x" → locked (only accept matching)
  */
 export function createBatchTrackingStrategy(

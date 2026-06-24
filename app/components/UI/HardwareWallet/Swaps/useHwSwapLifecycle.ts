@@ -7,8 +7,7 @@ import {
   useState,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 import Logger from '../../../../util/Logger';
 
 import Routes from '../../../../constants/navigation/Routes';
@@ -33,15 +32,6 @@ import { useHwConnectionMonitoring } from './useHwConnectionMonitoring';
 import { useHardwareWalletSubmit } from './useHardwareWalletSubmit';
 import { type FlowStrategy, CancelTargetType } from './flowStrategy';
 
-/** Connection states from which a retry is allowed. Exclusive of `Disconnected` and unknowns. */
-const RETRY_ALLOWED_CONNECTION_STATUSES: ReadonlySet<ConnectionStatus> =
-  new Set<ConnectionStatus>([
-    ConnectionStatus.Connected,
-    ConnectionStatus.Ready,
-    ConnectionStatus.AwaitingConfirmation,
-    ConnectionStatus.ErrorState,
-  ]);
-
 /**
  * Safety-net timeout: if the state machine is stuck in a non-terminal status
  * after this delay, dispatch terminal Signed for the last unsigned step.
@@ -51,12 +41,12 @@ const SAFETY_NET_TIMEOUT_MS = 120_000;
 
 interface UseHwSwapLifecycleInputs {
   strategy: FlowStrategy;
-  /** Connection state from `useHardwareWallet()`. Used to gate retry on reconnect. */
-  connectionState: { status: ConnectionStatus };
   /** Imperative device-readiness gate from `useHardwareWallet()`. Forwarded to submit. */
   ensureDeviceReady?: (deviceId?: string | null) => Promise<boolean>;
   /** Sets the pending operation address so the provider can derive the wallet type for device connection. Forwarded to submit. */
   setPendingOperationAddress?: (address: string | null) => void;
+  /** True when the active wallet is a QR hardware wallet. Disables BLE connection monitoring (QR has no persistent transport). */
+  isQrHardwareWallet?: boolean;
 }
 
 /**
@@ -73,12 +63,13 @@ interface UseHwSwapLifecycleInputs {
  */
 export function useHwSwapLifecycle({
   strategy,
-  connectionState,
   ensureDeviceReady,
   setPendingOperationAddress,
+  isQrHardwareWallet,
 }: UseHwSwapLifecycleInputs) {
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const toastRef = useContext(ToastContext)?.toastRef;
 
   const progress = useSelector(selectHardwareWalletsSwaps);
@@ -109,9 +100,10 @@ export function useHwSwapLifecycle({
   });
 
   const { resetHandledError } = useHwConnectionMonitoring({
-    isEnabled: Boolean(strategy.walletAddress),
+    isEnabled: Boolean(strategy.walletAddress) && !isQrHardwareWallet,
     currentStatus: progress.status,
     hasActiveSigning: Boolean(confirmationTxId),
+    monitorDisconnectedStatus: !strategy.isSendFlow,
     retryInProgressRef,
   });
 
@@ -165,10 +157,17 @@ export function useHwSwapLifecycle({
     // Fires exactly once (guarded by hasAutoNavigatedRef) to show the
     // success toast, reset HW-swaps state, and navigate to activity view.
     if (!allStepsSigned) return;
+    // For QR wallets the HwQrScanner screen handles final navigation
+    // directly (it navigates to TRANSACTIONS_VIEW on the last scan
+    // instead of calling goBack()).  Letting this effect also fire would
+    // produce two native view insertions in the same frame, colliding
+    // on Android (java.lang.IllegalStateException / addViewAt).
+    if (isQrHardwareWallet) return;
+    if (!isFocused) return;
     if (hasAutoNavigatedRef.current) return;
     if (!hasInitialSubmissionRef.current) return;
     navigateOnSuccess();
-  }, [allStepsSigned, navigateOnSuccess]);
+  }, [allStepsSigned, isQrHardwareWallet, isFocused, navigateOnSuccess]);
 
   // ── Initial submit (first Waiting) ───────────────────────────────
   useEffect(() => {
@@ -281,10 +280,7 @@ export function useHwSwapLifecycle({
     if (target.type === CancelTargetType.GoBack) {
       navigation.goBack();
     } else if (target.params) {
-      navigation.navigate(
-        target.route as string,
-        target.params as Record<string, unknown>,
-      );
+      navigation.navigate(target.route as string, target.params);
     } else {
       navigation.navigate(target.route as string);
     }
@@ -299,13 +295,13 @@ export function useHwSwapLifecycle({
   }, [dispatch, cancelCurrentBatch, navigateOnCancel, clearCachedSubmission]);
 
   const retryFallback = useCallback(() => {
-    // Retry data missing → reset + cancel-navigation (send: confirm screen, bridge: BRIDGE_VIEW).
+    // Retry data missing → reset + cancel-navigation (send: goBack, bridge: BRIDGE_VIEW).
     dispatch(resetHardwareWalletsSwaps());
     navigateOnCancel();
   }, [dispatch, navigateOnCancel]);
 
   const retrySubmission = useCallback(
-    async (checkConnection: boolean) => {
+    async () => {
       if (retryInProgressRef.current) return;
       if (!canRetry()) {
         retryFallback();
@@ -319,15 +315,8 @@ export function useHwSwapLifecycle({
         retryGenerationRef.current += 1;
         await cancelCurrentBatch();
 
-        if (checkConnection) {
-          const connectionAllowsRetry = RETRY_ALLOWED_CONNECTION_STATUSES.has(
-            connectionState.status,
-          );
-
-          if (!connectionAllowsRetry) return;
-        }
-
         submissionGenerationRef.current += 1;
+        hasInitialSubmissionRef.current = true;
         dispatch(
           updateHardwareWalletsSwaps({
             type: HardwareWalletsSwapsEventType.Retry,
@@ -349,7 +338,6 @@ export function useHwSwapLifecycle({
       dispatch,
       cancelCurrentBatch,
       submitWithDeviceReady,
-      connectionState.status,
       resetHandledError,
       canRetry,
       retryFallback,
@@ -357,12 +345,12 @@ export function useHwSwapLifecycle({
   );
 
   const handleTryAgain = useCallback(
-    () => retrySubmission(false),
+    () => retrySubmission(),
     [retrySubmission],
   );
 
   const handleReconnect = useCallback(
-    () => retrySubmission(true),
+    () => retrySubmission(),
     [retrySubmission],
   );
 

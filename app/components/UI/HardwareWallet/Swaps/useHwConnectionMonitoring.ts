@@ -22,12 +22,24 @@ interface UseHwConnectionMonitoringOptions {
    */
   hasActiveSigning: boolean;
   /**
+   * Whether plain `Disconnected` status should fail the flow. Sendbundle sets
+   * this false because the provider also uses that status for normal
+   * post-confirmation Ledger transport cleanup.
+   */
+  monitorDisconnectedStatus?: boolean;
+  /**
    * When `.current` is true, all monitoring is suppressed. Used during retry
    * to prevent stale BLE-disconnect events (from the abort phase) from
    * interrupting the fresh batch after the device reconnects.
    */
   retryInProgressRef?: RefObject<boolean>;
 }
+
+const CONFIRMED_CONNECTED_STATUSES: ReadonlySet<ConnectionStatus> = new Set([
+  ConnectionStatus.Connected,
+  ConnectionStatus.Ready,
+  ConnectionStatus.AwaitingConfirmation,
+]);
 
 /**
  * Returns whether `current` should be treated as unchanged relative to the
@@ -68,6 +80,7 @@ export function useHwConnectionMonitoring({
   isEnabled,
   currentStatus,
   hasActiveSigning,
+  monitorDisconnectedStatus = true,
   retryInProgressRef,
 }: UseHwConnectionMonitoringOptions) {
   const dispatch = useDispatch();
@@ -75,6 +88,11 @@ export function useHwConnectionMonitoring({
   const handledErrorRef = useRef<unknown>(null);
   const baselineStateRef = useRef<typeof connectionState | null>(null);
   const prevWaitingRef = useRef(false);
+  // True once the device reaches Connected in the current Waiting window.
+  // Baseline is deferred until this point so the initial pre-connect
+  // Disconnected state never becomes the baseline; only actual disconnects
+  // from a confirmed Connected state trigger the disconnect detection.
+  const hasDeviceConnectedRef = useRef(false);
   // Debounce buffer: Ledger transports briefly report Disconnected during
   // multi-tx signing (e.g. a BLE blip right after a retry reconnect). We wait
   // out the blip instead of interrupting the batch with a spurious disconnect.
@@ -88,7 +106,8 @@ export function useHwConnectionMonitoring({
     latestConnectionStatusRef.current = connectionState.status;
 
     if (isWaiting && !prevWaitingRef.current) {
-      baselineStateRef.current = connectionState;
+      hasDeviceConnectedRef.current = false;
+      baselineStateRef.current = null;
       handledErrorRef.current = null;
     }
     prevWaitingRef.current = isWaiting;
@@ -99,6 +118,19 @@ export function useHwConnectionMonitoring({
         disconnectDebounceRef.current = null;
       }
       return;
+    }
+
+    // Defer baseline capture until the device first reaches a confirmed
+    // connected state so the initial Disconnected state (pre-ensureDeviceReady) is never
+    // used as the reference.  Without this, any transient BLE blip after
+    // the initial connect clears the baseline and triggers a spurious
+    // DeviceDisconnected dispatch.
+    if (
+      !hasDeviceConnectedRef.current &&
+      CONFIRMED_CONNECTED_STATUSES.has(connectionState.status)
+    ) {
+      hasDeviceConnectedRef.current = true;
+      baselineStateRef.current = connectionState;
     }
 
     // Suppress during retry — the abort phase causes a transient disconnect
@@ -126,7 +158,7 @@ export function useHwConnectionMonitoring({
     }
 
     if (connectionState.status === ConnectionStatus.Disconnected) {
-      if (!hasActiveSigning) {
+      if (!monitorDisconnectedStatus || !hasActiveSigning) {
         return;
       }
       if (handledErrorRef.current === ConnectionStatus.Disconnected) return;
@@ -199,13 +231,15 @@ export function useHwConnectionMonitoring({
     }
 
     handledErrorRef.current = error;
+
   }, [
     connectionState,
     currentStatus,
     hasActiveSigning,
     isEnabled,
-    dispatch,
+    monitorDisconnectedStatus,
     retryInProgressRef,
+    dispatch,
   ]);
 
   // Clear any pending debounced disconnect fire on unmount.
@@ -223,6 +257,7 @@ export function useHwConnectionMonitoring({
   const resetHandledError = useCallback(() => {
     handledErrorRef.current = null;
     baselineStateRef.current = null;
+    hasDeviceConnectedRef.current = false;
     if (disconnectDebounceRef.current) {
       clearTimeout(disconnectDebounceRef.current);
       disconnectDebounceRef.current = null;

@@ -34,7 +34,6 @@ import {
 } from './hw-batch-sign/constants';
 import type {
   HwBatchSignTrackerLatestValues,
-  HwBatchSignTrackerState,
   UseHwBatchSignTrackerOptions,
 } from './hw-batch-sign/types';
 import {
@@ -62,11 +61,11 @@ import {
 } from './hw-batch-sign/utils';
 import { createBatchTrackingStrategy } from './hw-batch-sign/batch-tracking-strategy';
 import {
-  NO_ACTION,
   type SignedEventClassifier,
   type StrategyConfig,
   type StrategyEventResult,
   type TrackingStrategy,
+  NO_ACTION,
 } from './hw-batch-sign/tracking-strategy';
 
 /**

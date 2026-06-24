@@ -67,8 +67,6 @@ export function useHardwareWalletSubmit({
   preparedTxMetaRef.current = preparedTxMeta;
   const approvalRequestIdRef = useRef(approvalRequestId);
   approvalRequestIdRef.current = approvalRequestId;
-  /** Set after a successful `acceptPendingApproval` so retries can use `addTransactionBatch`. */
-  const hasConsumedApprovalRef = useRef(false);
 
   const { submitBridgeTx } = useSubmitBridgeTx();
   const submitBridgeTxRef = useRef(submitBridgeTx);
@@ -120,27 +118,13 @@ export function useHardwareWalletSubmit({
       return;
     }
 
-    // WALLET SAFETY: on the initial submit, refuse unless the pending
-    // approval's id matches the one deferred. On retry the approval is
-    // consumed (deleteAfterResult) so we fall through to addTransactionBatch.
+    // WALLET SAFETY: on the initial submit, refuse to accept unless the
+    // pending approval's id matches the one deferred. On retry the approval
+    // is consumed (deleteAfterResult) so we fall through to the retry path.
     const isInitialSubmit =
       Boolean(currentApprovalRequest) &&
       Boolean(expectedApprovalRequestId) &&
       currentApprovalRequest?.id === expectedApprovalRequestId;
-
-    if (!isInitialSubmit && !hasConsumedApprovalRef.current) {
-      Logger.log(
-        'HardwareWalletsSwaps: approval-id mismatch — refusing to accept ' +
-          `(expected=${expectedApprovalRequestId}, ` +
-          `actual=${currentApprovalRequest?.id})`,
-      );
-      dispatch(
-        updateHardwareWalletsSwaps({
-          type: HardwareWalletsSwapsEventType.TransactionFailed,
-        }),
-      );
-      return;
-    }
 
     await runSubmit(async () => {
       setPendingOperationAddress?.(walletAddress);
@@ -148,10 +132,19 @@ export function useHardwareWalletSubmit({
         const deviceId = await getDeviceIdForAddress(walletAddress);
         const isReady = await ensureDeviceReady?.(deviceId);
         if (!isReady) {
+          dispatch(
+            updateHardwareWalletsSwaps({
+              type: HardwareWalletsSwapsEventType.TransactionFailed,
+            }),
+          );
           return;
         }
 
-        if (isInitialSubmit && currentApprovalRequest) {
+        if (
+          currentApprovalRequest &&
+          expectedApprovalRequestId &&
+          currentApprovalRequest.id === expectedApprovalRequestId
+        ) {
           // Initial submit: accept the confirmation approval.
           await Engine.acceptPendingApproval(
             currentApprovalRequest.id,
@@ -165,7 +158,6 @@ export function useHardwareWalletSubmit({
               handleErrors: false,
             },
           );
-          hasConsumedApprovalRef.current = true;
         } else {
           // Retry: the confirmation approval was consumed by the first attempt
           // (deleteAfterResult: true). Recreate via addTransactionBatch with
@@ -191,7 +183,7 @@ export function useHardwareWalletSubmit({
                 'HW send retry — dropping orphan parent tx',
               );
             } catch {
-              // Best-effort: orphan parent may already be gone
+              // Ignore errors from dropping the orphan parent tx
             }
           }
 

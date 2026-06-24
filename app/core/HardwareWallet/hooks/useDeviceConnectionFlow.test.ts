@@ -620,14 +620,10 @@ describe('useDeviceConnectionFlow', () => {
     });
 
     it('connects and runs readiness check', async () => {
+      // Report "not ready" so the pending promise stays unresolved; otherwise
+      // connect() treats the already-resolved flow as cancelled and bails early.
       const mockAdapter = createMockAdapter({
-        // First call is from ensureDeviceReady's async setup — must stay pending
-        // so connect still sees pendingReadyResolveRef and calls setDeviceId.
-        // Second call is connect's post-connect readiness check.
-        ensureDeviceReady: jest
-          .fn()
-          .mockResolvedValueOnce(false)
-          .mockResolvedValueOnce(true),
+        ensureDeviceReady: jest.fn().mockResolvedValue(false),
       });
       const refs = createMockRefs();
       refs.adapterRef.current = mockAdapter;
