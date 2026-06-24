@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Pressable, ScrollView } from 'react-native';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import {
@@ -38,6 +38,7 @@ import VipFeeTile, {
 import VipPointsSection from '../components/Vip/VipPointsSection';
 import VipTierProgressCard from '../components/Vip/VipTierProgressCard';
 import VipVolumeSection from '../components/Vip/VipVolumeSection';
+import VipSwapsVolumeInfoSheet from '../components/Vip/VipSwapsVolumeInfoSheet';
 import {
   VIP_GOLD_BACKGROUND_MUTED,
   VIP_GOLD_BORDER_DEFAULT,
@@ -121,6 +122,9 @@ const RewardsVipViewContent: React.FC = () => {
   const handleTiersPress = useCallback(() => {
     navigation.navigate(Routes.REWARDS_VIP_TIERS_VIEW as never);
   }, [navigation]);
+
+  const [isSwapsVolumeInfoVisible, setIsSwapsVolumeInfoVisible] =
+    useState(false);
 
   if (!canViewVip) {
     return null;
@@ -400,6 +404,7 @@ const RewardsVipViewContent: React.FC = () => {
                   perpsVolume: dashboard.localizedText.perpsVolumeTitle,
                   vipReferrals: dashboard.localizedText.vipReferralsTitle,
                 }}
+                onSwapsVolumeInfoPress={() => setIsSwapsVolumeInfoVisible(true)}
               />
 
               {dashboard.computedAt ? (
@@ -435,6 +440,11 @@ const RewardsVipViewContent: React.FC = () => {
           ) : null}
         </ScrollView>
       </SafeAreaView>
+      {isSwapsVolumeInfoVisible ? (
+        <VipSwapsVolumeInfoSheet
+          onClose={() => setIsSwapsVolumeInfoVisible(false)}
+        />
+      ) : null}
     </ErrorBoundary>
   );
 };
