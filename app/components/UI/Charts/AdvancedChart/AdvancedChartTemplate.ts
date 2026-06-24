@@ -5,6 +5,7 @@ import {
   type LineChromeOptions,
   type LegendOverlayConfig,
   resolveLineChromeOptions,
+  resolveCurrentPriceColor,
 } from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
 import { getIndicatorColorsForWebview } from './indicatorColors';
@@ -88,10 +89,13 @@ const createConfigScript = (
   const legendTextColor = stripHexAlpha(
     labelStyles?.legendTextColor ?? theme.colors.text.alternative,
   );
-  const resolvedCurrentPriceColor =
-    labelStyles?.lastValuePillColor ??
-    features.currentPriceLineColorOverride ??
-    lineColor;
+  const resolvedCurrentPriceColor = resolveCurrentPriceColor({
+    lastValuePillColor: labelStyles?.lastValuePillColor,
+    currentPriceLineColorOverride: features.currentPriceLineColorOverride,
+    lineColorOverride: features.lineColorOverride,
+    successColorOverride: features.successColorOverride,
+    themeSuccessDefault: getChartSuccessColor(theme),
+  });
   return `
 window.CONFIG = {
   libraryUrl: '${libraryUrl}',

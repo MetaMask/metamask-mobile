@@ -170,6 +170,24 @@ export function resolveLineChromeOptions(
   };
 }
 
+/** Matches template + `SET_THEME_COLORS` resolution for `theme.currentPriceColor`. */
+export function resolveCurrentPriceColor(options: {
+  lastValuePillColor?: string;
+  currentPriceLineColorOverride?: string;
+  lineColorOverride?: string;
+  successColorOverride?: string;
+  themeSuccessDefault: string;
+}): string {
+  const effectiveSuccessColor =
+    options.successColorOverride ?? options.themeSuccessDefault;
+  const effectiveLineColor = options.lineColorOverride ?? effectiveSuccessColor;
+  return (
+    options.lastValuePillColor ??
+    options.currentPriceLineColorOverride ??
+    effectiveLineColor
+  );
+}
+
 export type RNToWebViewMessageType =
   | 'SET_OHLCV_DATA'
   | 'ADD_INDICATOR'

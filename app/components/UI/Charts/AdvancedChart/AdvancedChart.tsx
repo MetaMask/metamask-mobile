@@ -24,6 +24,7 @@ import {
   DEFAULT_DISABLED_FEATURES,
   parseWebViewMessage,
   resolveLineChromeOptions,
+  resolveCurrentPriceColor,
   type AdvancedChartProps,
   type AdvancedChartRef,
   type IndicatorType,
@@ -158,7 +159,15 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const initialLineColorRef = useRef(lineColorOverride);
     const initialSuccessColorRef = useRef(successColorOverride);
     const initialErrorColorRef = useRef(errorColorOverride);
-    const initialCurrentPriceColorRef = useRef(currentPriceLineColorOverride);
+    const initialCurrentPriceColorRef = useRef(
+      resolveCurrentPriceColor({
+        lastValuePillColor: labelStyleOverrides?.lastValuePillColor,
+        currentPriceLineColorOverride,
+        lineColorOverride,
+        successColorOverride,
+        themeSuccessDefault: theme.colors.success.default,
+      }),
+    );
     const themeColorsSentRef = useRef(false);
 
     const htmlContent = useMemo(() => {
@@ -170,7 +179,13 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       initialLineColorRef.current = lineColorOverride;
       initialSuccessColorRef.current = successColorOverride;
       initialErrorColorRef.current = errorColorOverride;
-      initialCurrentPriceColorRef.current = currentPriceLineColorOverride;
+      initialCurrentPriceColorRef.current = resolveCurrentPriceColor({
+        lastValuePillColor: labelStyleOverrides?.lastValuePillColor,
+        currentPriceLineColorOverride,
+        lineColorOverride,
+        successColorOverride,
+        themeSuccessDefault: theme.colors.success.default,
+      });
       return createAdvancedChartTemplate(theme, {
         enableDrawingTools,
         disabledFeatures,
@@ -752,12 +767,19 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     useEffect(() => {
       if (!webViewLoaded) return;
       if (!themeColorsSentRef.current) {
+        const effectiveCurrentPriceColor = resolveCurrentPriceColor({
+          lastValuePillColor: labelStyleOverrides?.lastValuePillColor,
+          currentPriceLineColorOverride,
+          lineColorOverride,
+          successColorOverride,
+          themeSuccessDefault: theme.colors.success.default,
+        });
         // First run after webViewLoaded: skip only if colors still match template
         const colorsMatch =
           lineColorOverride === initialLineColorRef.current &&
           successColorOverride === initialSuccessColorRef.current &&
           errorColorOverride === initialErrorColorRef.current &&
-          currentPriceLineColorOverride === initialCurrentPriceColorRef.current;
+          effectiveCurrentPriceColor === initialCurrentPriceColorRef.current;
         themeColorsSentRef.current = true;
         if (colorsMatch) return;
       }
@@ -766,8 +788,13 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       const effectiveLineColor = lineColorOverride ?? effectiveSuccessColor;
       const effectiveErrorColor =
         errorColorOverride ?? theme.colors.error.default;
-      const effectiveCurrentPriceColor =
-        currentPriceLineColorOverride ?? effectiveLineColor;
+      const effectiveCurrentPriceColor = resolveCurrentPriceColor({
+        lastValuePillColor: labelStyleOverrides?.lastValuePillColor,
+        currentPriceLineColorOverride,
+        lineColorOverride,
+        successColorOverride,
+        themeSuccessDefault: theme.colors.success.default,
+      });
       postMessage({
         type: 'SET_THEME_COLORS',
         payload: {
@@ -782,6 +809,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       successColorOverride,
       errorColorOverride,
       currentPriceLineColorOverride,
+      labelStyleOverrides?.lastValuePillColor,
       webViewLoaded,
       postMessage,
       theme.colors.success.default,
