@@ -223,6 +223,34 @@ describe('Delegation 7702 Publish Hook', () => {
       });
     });
 
+    it('throws when atomic batch is not supported for a gas-sponsored transaction', async () => {
+      await expect(
+        hookClass.getHook()(
+          {
+            ...TRANSACTION_META_MOCK,
+            isGasFeeSponsored: true,
+          },
+          SIGNED_TX_MOCK,
+        ),
+      ).rejects.toThrow(
+        'Gas Station 7702: Chain must support EIP-7702 for sponsored or gas included transaction',
+      );
+    });
+
+    it('throws when atomic batch is not supported for a gas-included transaction', async () => {
+      await expect(
+        hookClass.getHook()(
+          {
+            ...TRANSACTION_META_MOCK,
+            isGasFeeIncluded: true,
+          },
+          SIGNED_TX_MOCK,
+        ),
+      ).rejects.toThrow(
+        'Gas Station 7702: Chain must support EIP-7702 for sponsored or gas included transaction',
+      );
+    });
+
     it('no selected gas fee token', async () => {
       isAtomicBatchSupportedMock.mockResolvedValueOnce([
         {

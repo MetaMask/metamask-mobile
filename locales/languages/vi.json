@@ -102,9 +102,6 @@
       "message": "Nạp ít hơn {{amount}} hoặc sử dụng một token khác.",
       "title": "Không đủ tiền"
     },
-    "insufficient_pay_token_balance_fees_no_target": {
-      "message": "Nạp ít hơn hoặc sử dụng một token khác."
-    },
     "insufficient_pay_token_native": {
       "message": "Không đủ {{ticker}} để chi trả phí. Hãy sử dụng token trên mạng khác hoặc nạp thêm {{ticker}} để tiếp tục.",
       "title": "Không đủ tiền"
