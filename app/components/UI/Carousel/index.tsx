@@ -34,7 +34,7 @@ import {
   isActive,
 } from './fetchCarouselSlidesFromContentful';
 import { selectContentfulCarouselEnabledFlag } from './selectors/featureFlags';
-import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import { createTokenSelectionNavDetails } from '../Ramp/Views/TokenSelection/TokenSelection';
 import { subscribeToContentPreviewToken } from '../../../actions/notification/helpers';
 import { BANNER_EVENT_DISPLAY } from '../../../constants/engagement';
 import SharedDeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
@@ -196,7 +196,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
           ...s,
           navigation: {
             type: 'function',
-            navigate: () => createBuyNavigationDetails(),
+            navigate: () => createTokenSelectionNavDetails(),
           },
         };
       }

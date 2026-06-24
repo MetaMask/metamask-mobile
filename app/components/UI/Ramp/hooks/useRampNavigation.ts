@@ -5,7 +5,7 @@ import {
   RampIntent,
   RampType as AggregatorRampType,
 } from '../Aggregator/types';
-import { createRampNavigationDetails } from '../Aggregator/routes/utils';
+import { createSellNavigationDetails } from '../Aggregator/routes/utils';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
 import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import type { BuyFlowOrigin } from '../Views/BuildQuote/BuildQuote';
@@ -24,9 +24,8 @@ import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
  * Hook that returns functions to navigate to ramp flows.
  *
  * @returns An object containing navigation functions:
- * - goToBuy: Unified V2 routing gated by RampsController region/eligibility
- * - goToAggregator: deprecated Always navigates to aggregator BUY flow (bypasses smart routing)
- * - goToSell: Always navigates to aggregator SELL flow
+ * - goToBuy: Unified buy flow gated by RampsController region/eligibility
+ * - goToSell: Aggregator sell flow
  */
 export const useRampNavigation = () => {
   const navigation = useNavigation();
@@ -39,37 +38,28 @@ export const useRampNavigation = () => {
     async (
       intent?: RampIntent,
       options?: {
-        overrideUnifiedRouting?: boolean;
         buyFlowOrigin?: BuyFlowOrigin;
       },
     ) => {
-      const { overrideUnifiedRouting = false } = options || {};
+      let location: string | undefined = geolocationLocation;
 
-      const isUnifiedRoutingEnabled = !overrideUnifiedRouting;
-
-      if (isUnifiedRoutingEnabled) {
-        let location: string | undefined = geolocationLocation;
-
-        if (!location || location === UNKNOWN_LOCATION) {
-          location = await Promise.resolve(
-            Engine.context.GeolocationController?.refreshGeolocation?.(),
-          ).catch(() => undefined);
-        }
-
-        if (!location || location === UNKNOWN_LOCATION) {
-          navigation.navigate(
-            ...createEligibilityFailedModalNavigationDetails(),
-          );
-          return;
-        }
-
-        if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
-          navigation.navigate(...createRampUnsupportedModalNavigationDetails());
-          return;
-        }
+      if (!location || location === UNKNOWN_LOCATION) {
+        location = await Promise.resolve(
+          Engine.context.GeolocationController?.refreshGeolocation?.(),
+        ).catch(() => undefined);
       }
 
-      if (intent?.assetId && !overrideUnifiedRouting) {
+      if (!location || location === UNKNOWN_LOCATION) {
+        navigation.navigate(...createEligibilityFailedModalNavigationDetails());
+        return;
+      }
+
+      if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
+        navigation.navigate(...createRampUnsupportedModalNavigationDetails());
+        return;
+      }
+
+      if (intent?.assetId) {
         const controllerAssetId = resolveRampControllerAssetId(
           intent.assetId,
           rampsTokens?.allTokens ?? [],
@@ -101,14 +91,7 @@ export const useRampNavigation = () => {
         return;
       }
 
-      if (!intent?.assetId && !overrideUnifiedRouting) {
-        navigation.navigate(...createTokenSelectionNavDetails());
-        return;
-      }
-
-      navigation.navigate(
-        ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
-      );
+      navigation.navigate(...createTokenSelectionNavDetails());
     },
     [
       setSelectedToken,
@@ -120,25 +103,12 @@ export const useRampNavigation = () => {
     ],
   );
 
-  /**
-   * @deprecated Use goToBuy instead. This function always navigates to the aggregator BUY flow,
-   * bypassing unified routing. Use goToBuy for smart routing that respects user preferences.
-   */
-  const goToAggregator = useCallback(
-    (intent?: RampIntent) => {
-      goToBuy(intent, { overrideUnifiedRouting: true });
-    },
-    [goToBuy],
-  );
-
   const goToSell = useCallback(
     (intent?: RampIntent) => {
-      navigation.navigate(
-        ...createRampNavigationDetails(AggregatorRampType.SELL, intent),
-      );
+      navigation.navigate(...createSellNavigationDetails(intent));
     },
     [navigation],
   );
 
-  return { goToBuy, goToAggregator, goToSell };
+  return { goToBuy, goToSell };
 };
