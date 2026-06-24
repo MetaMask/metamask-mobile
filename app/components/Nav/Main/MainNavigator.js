@@ -347,23 +347,26 @@ const RewardsHome = () => {
 
   return (
     <NativeStack.Navigator
+      initialRouteName={
+        subscriptionId
+          ? Routes.REWARDS_DASHBOARD
+          : Routes.REWARDS_ONBOARDING_FLOW
+      }
       screenOptions={{
         headerShown: false,
         animation: 'none',
         contentStyle: { backgroundColor: colors.background.default },
       }}
     >
-      {subscriptionId ? (
-        <NativeStack.Screen
-          name={Routes.REWARDS_DASHBOARD}
-          component={RewardsDashboard}
-        />
-      ) : (
-        <NativeStack.Screen
-          name={Routes.REWARDS_ONBOARDING_FLOW}
-          component={RewardsOnboardingNavigator}
-        />
-      )}
+      <NativeStack.Screen
+        name={Routes.REWARDS_ONBOARDING_FLOW}
+        component={RewardsOnboardingNavigator}
+      />
+      <NativeStack.Screen
+        name={Routes.REWARDS_DASHBOARD}
+        component={RewardsDashboard}
+        options={slideFromRightNativeOptions}
+      />
     </NativeStack.Navigator>
   );
 };

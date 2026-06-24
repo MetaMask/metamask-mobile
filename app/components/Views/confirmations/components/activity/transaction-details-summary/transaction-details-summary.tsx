@@ -146,6 +146,7 @@ function SummaryLine({
     hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
       TransactionType.perpsDeposit,
+      TransactionType.perpsWithdraw,
       TransactionType.predictDeposit,
       TransactionType.musdConversion,
       TransactionType.predictWithdraw,
