@@ -800,7 +800,7 @@ describe('TraderProfileView', () => {
       expect(screen.getByText('Value')).toBeOnTheScreen();
     });
 
-    it('defaults Closed tab sort to Recent and cycles Recent -> Value -> P&L % -> Recent', () => {
+    it('defaults Closed tab sort to Recent and cycles Recent -> PNL -> P&L % -> Recent', () => {
       mockPositionsResult.closedPositions = fixtureClosedPositions;
       renderWithProvider(<TraderProfileView />);
       fireEvent.press(
@@ -812,7 +812,7 @@ describe('TraderProfileView', () => {
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
       );
-      expect(screen.getByText('Value')).toBeOnTheScreen();
+      expect(screen.getByText('PNL')).toBeOnTheScreen();
 
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
@@ -842,7 +842,7 @@ describe('TraderProfileView', () => {
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
       );
-      expect(screen.getByText('Value')).toBeOnTheScreen();
+      expect(screen.getByText('PNL')).toBeOnTheScreen();
 
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_OPEN),
@@ -852,7 +852,7 @@ describe('TraderProfileView', () => {
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
       );
-      expect(screen.getByText('Value')).toBeOnTheScreen();
+      expect(screen.getByText('PNL')).toBeOnTheScreen();
     });
 
     it('triggers a haptic on each sort tap', () => {

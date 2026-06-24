@@ -1094,6 +1094,7 @@
       "twitter_link": "View on X (Twitter)",
       "sort": {
         "value": "Value",
+        "pnl": "PNL",
         "pnl_percent": "P&L %",
         "recent": "Recent"
       }

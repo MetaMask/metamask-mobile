@@ -90,6 +90,13 @@ const SORT_LABEL_KEYS: Record<SortKey, string> = {
   recent: 'social_leaderboard.trader_profile.sort.recent',
 };
 
+const getSortLabelKey = (sortKey: SortKey, tab: 'open' | 'closed'): string => {
+  if (sortKey === 'value' && tab === 'closed') {
+    return 'social_leaderboard.trader_profile.sort.pnl';
+  }
+  return SORT_LABEL_KEYS[sortKey];
+};
+
 interface TabButtonProps {
   label: string;
   isActive: boolean;
@@ -485,7 +492,9 @@ const TraderProfileView = () => {
                     </Box>
                     {positions.length > 0 && (
                       <SortButton
-                        label={strings(SORT_LABEL_KEYS[currentSortKey])}
+                        label={strings(
+                          getSortLabelKey(currentSortKey, activeTab),
+                        )}
                         onPress={handleSortPress}
                         testID={TraderProfileViewSelectorsIDs.SORT_BUTTON}
                       />
