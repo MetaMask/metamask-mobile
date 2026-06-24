@@ -129,6 +129,52 @@ function scheduleChartLayoutSettledNotify() {
   }
 }
 
+/**
+ * Cold init: deferred settle never starts (no resetData), so RN would only unblock indicators
+ * via fallback. Fire CHART_LAYOUT_SETTLED after TV finishes its initial layout pass.
+ */
+function scheduleInitialColdLayoutSettled() {
+  if (window.__mmLayoutSettlePending) {
+    return;
+  }
+  setTimeout(function () {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(function () {
+        if (!window.chartWidget || !window.isChartReady) {
+          return;
+        }
+        if (window.__mmLayoutSettlePending) {
+          return;
+        }
+        scheduleChartLayoutSettledNotify();
+      });
+    });
+  }, 220);
+}
+
+/** Re-run widget resize after studies mount so overlay lines align with the price scale. */
+function scheduleChartWidgetResize() {
+  if (!window.chartWidget) {
+    return;
+  }
+  function run() {
+    if (!window.chartWidget) {
+      return;
+    }
+    try {
+      window.chartWidget.resize();
+    } catch (e) {}
+  }
+  try {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(run);
+    });
+  } catch (e) {
+    setTimeout(run, 0);
+  }
+  setTimeout(run, 120);
+}
+
 /** Milliseconds to wait if TradingView never calls `getBars` again after `resetData` (e.g. same-resolution cache). */
 const LAYOUT_SETTLE_DATA_FALLBACK_MS = 400;
 
@@ -149,6 +195,7 @@ function clearMmLayoutSettleFallbackTimer() {
  * - No-ops if `__mmLayoutSettlePending` is false (idempotent / avoids double-fire).
  * - Clears the pending flag and the fallback timer, then runs `applyChartScaleLayout` and line
  *   overlays when applicable, then `scheduleChartLayoutSettledNotify`.
+ * - Refreshes the custom study legend when indicators/MAs are active (see inline comment below).
  */
 function tryCompleteLayoutSettleAfterDataCore() {
   if (!window.__mmLayoutSettlePending) {
@@ -164,6 +211,23 @@ function tryCompleteLayoutSettleAfterDataCore() {
       }
     }
   } catch (e) {}
+
+  /**
+   * Interval / time-range hot reload (`handleSetOHLCVData` → `resetData`) keeps MA and sub-pane
+   * studies mounted; TradingView recalculates their series from the new bars, but our legend is a
+   * separate DOM overlay (`#study-legend-overlay`) fed by a one-shot `chart.exportData()` snapshot
+   * in `refreshStudyLegendFromExport`. Without re-export here, pills like MA(10) would keep showing
+   * the pre-switch value even though the plotted line already moved (regression vs WebView remount,
+   * which recreated studies and triggered legend refresh via `subscribeStudyDataLoaded`).
+   */
+  if (
+    window.legendStudyOrder.size > 0 ||
+    window.activeStudies.size > 0 ||
+    window.maStudies.size > 0
+  ) {
+    refreshStudyLegendFromExport();
+  }
+
   scheduleChartLayoutSettledNotify();
 }
 
@@ -252,6 +316,9 @@ function handleMessage(event) {
         break;
       case 'SET_LINE_CHROME':
         handleSetLineChrome(message.payload);
+        break;
+      case 'SET_SUB_PANE_LAYOUT':
+        handleSetSubPaneLayout(message.payload);
         break;
       case 'SET_POSITION_LINES':
         handleSetPositionLines(message.payload);
@@ -609,6 +676,87 @@ function isOwnStringKey(key) {
   );
 }
 
+/**
+ * Indicators that render in a dedicated pane below the main series.
+ * Keep in sync with SUB_PANE_INDICATORS in TokenDetails constants.
+ */
+var SUB_PANE_INDICATOR_NAMES = { MACD: true, RSI: true };
+
+function isSubPaneIndicator(name) {
+  return isOwnStringKey(name) && SUB_PANE_INDICATOR_NAMES[name] === true;
+}
+
+function hasActiveSubPaneIndicators() {
+  if (!window.activeStudies) return false;
+  var found = false;
+  window.activeStudies.forEach(function (_studyId, name) {
+    if (isSubPaneIndicator(name)) found = true;
+  });
+  return found;
+}
+
+/** Reads CONFIG.subPaneHeightRatio; null means TradingView default pane sizing. */
+function getSubPaneHeightRatio() {
+  const ratio = window.CONFIG && window.CONFIG.subPaneHeightRatio;
+  if (typeof ratio !== 'number' || !(ratio > 0 && ratio <= 1)) {
+    return null;
+  }
+  return ratio;
+}
+
+function applySubPaneHeightRatio(chart) {
+  const ratio = getSubPaneHeightRatio();
+  if (ratio === null || !chart) return;
+  try {
+    const heights = chart.getAllPanesHeight();
+    if (heights.length < 2) return;
+    const total = heights.reduce(function (sum, h) {
+      return sum + h;
+    }, 0);
+    const bottomCount = heights.length - 1;
+    const MIN_MAIN_PX = 72;
+
+    let bottomTotal = Math.round(total * ratio * bottomCount);
+    let main = total - bottomTotal;
+    if (main < MIN_MAIN_PX) {
+      main = MIN_MAIN_PX;
+      bottomTotal = total - main;
+    }
+
+    const newHeights = [main];
+    let remaining = bottomTotal;
+    for (let i = 0; i < bottomCount; i++) {
+      const h =
+        i === bottomCount - 1
+          ? remaining
+          : Math.floor(bottomTotal / bottomCount);
+      newHeights.push(h);
+      remaining -= h;
+    }
+    chart.setAllPanesHeight(newHeights);
+  } catch (e) {}
+}
+
+function handleSetSubPaneLayout(payload) {
+  window.CONFIG = window.CONFIG || {};
+  const ratio = payload && payload.heightRatio;
+  if (ratio === null || ratio === undefined) {
+    delete window.CONFIG.subPaneHeightRatio;
+    return;
+  }
+  if (typeof ratio !== 'number' || !(ratio > 0 && ratio <= 1)) {
+    return;
+  }
+  window.CONFIG.subPaneHeightRatio = ratio;
+  if (
+    window.chartWidget &&
+    window.isChartReady &&
+    hasActiveSubPaneIndicators()
+  ) {
+    applySubPaneHeightRatio(window.chartWidget.activeChart());
+  }
+}
+
 function handleAddIndicator(payload) {
   if (!window.chartWidget || !window.isChartReady) return;
   if (!payload || !payload.name) return;
@@ -679,7 +827,12 @@ function handleAddIndicator(payload) {
       .then(function (studyId) {
         window.legendStudyOrder.set(indicatorName, studyId);
         window.activeStudies.set(indicatorName, studyId);
-        subscribeStudyDataLoaded(studyId, refreshStudyLegendFromExport);
+        if (isSubPaneIndicator(indicatorName)) {
+          applySubPaneHeightRatio(chart);
+        }
+        subscribeStudyDataLoaded(studyId, function () {
+          refreshStudyLegendFromExport();
+        });
         notifyIndicatorAdded(indicatorName, studyId);
       })
       .catch(function (error) {
@@ -710,6 +863,9 @@ function handleRemoveIndicator(payload) {
     window.legendStudyOrder.delete(indicatorName);
     refreshStudyLegendFromExport();
     sendToReactNative('INDICATOR_REMOVED', { name: indicatorName });
+    if (isSubPaneIndicator(indicatorName) && hasActiveSubPaneIndicators()) {
+      applySubPaneHeightRatio(chart);
+    }
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
   }
@@ -783,7 +939,12 @@ function handleSetMAVisibility(payload) {
   }
 
   if (promises.length > 0) {
-    Promise.all(promises).then(refreshStudyLegendFromExport);
+    Promise.all(promises).then(function () {
+      refreshStudyLegendFromExport();
+      if (window.currentChartType !== 2) {
+        scheduleChartWidgetResize();
+      }
+    });
   } else {
     refreshStudyLegendFromExport();
   }
@@ -3449,7 +3610,7 @@ function createStudyLegendOverlay() {
   const div = document.createElement('div');
   div.id = 'study-legend-overlay';
   div.style.cssText =
-    'position:absolute;top:21px;left:' +
+    'position:absolute;top:1px;left:' +
     LEGEND_OVERLAY_LEFT_PX +
     'px;z-index:5;pointer-events:none;' +
     'display:flex;flex-wrap:wrap;align-items:flex-start;column-gap:8px;row-gap:2px;';
@@ -3704,6 +3865,13 @@ const LEGEND_RETRY_DELAY_MS = 100;
 const LEGEND_RENDER_TIMEOUT_MS = 3000;
 let _legendTimeoutId = null;
 
+/**
+ * Rebuilds `#study-legend-overlay` from TradingView `chart.exportData()` (last bar per study).
+ *
+ * Called when studies are added/removed, on crosshair dismiss, and after OHLCV hot reload
+ * completes in `tryCompleteLayoutSettleAfterDataCore` so MA/indicator pills reflect the new
+ * resolution (studies recalculate internally; this overlay does not update automatically).
+ */
 function refreshStudyLegendFromExport() {
   if (!isLegendOverlayEnabled()) return;
   if (!window.chartWidget || !window.isChartReady) return;
@@ -4622,6 +4790,10 @@ function initChart() {
       }
 
       sendToReactNative('CHART_READY', {});
+
+      if (window.currentChartType !== 2) {
+        scheduleInitialColdLayoutSettled();
+      }
 
       installTradingViewExternalOpenBridge();
 

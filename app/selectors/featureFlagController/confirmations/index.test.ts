@@ -549,18 +549,22 @@ describe('selectMetaMaskPayFlags extended flags', () => {
       );
     });
 
-    it('returns "money-account" when remote flag is set', () => {
+    it('returns per-type object when remote flag is set', () => {
       const state = cloneDeep(mockedEmptyFlagsState);
       state.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags =
         {
           confirmations_pay_extended: {
-            defaultPaySelectedSection: 'money-account',
+            defaultPaySelectedSection: {
+              perpsWithdraw: 'money-account',
+              predictWithdraw: 'money-account',
+            },
           },
         };
 
-      expect(selectMetaMaskPayFlags(state).defaultPaySelectedSection).toBe(
-        'money-account',
-      );
+      expect(selectMetaMaskPayFlags(state).defaultPaySelectedSection).toEqual({
+        perpsWithdraw: 'money-account',
+        predictWithdraw: 'money-account',
+      });
     });
   });
 

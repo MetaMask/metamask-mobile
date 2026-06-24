@@ -7,7 +7,7 @@ import React, {
   useState,
 } from 'react';
 import { View, Platform } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useSelector } from 'react-redux';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
@@ -17,6 +17,7 @@ import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import styleSheet from './Price.styles';
 import {
   CHART_DATA_THRESHOLD,
+  isTokenOverviewChartInterval,
   TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
 } from './tokenOverviewChart.constants';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
@@ -56,18 +57,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
-import { SUB_PANE_INDICATORS } from '../../TokenDetails/constants/constants';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import {
-  selectTokenOverviewChartType,
-  selectTokenIndicators,
-} from '../../../../reducers/user/selectors';
-import {
-  setTokenOverviewChartType,
-  setTokenIndicators,
-} from '../../../../actions/user';
+import { useTokenChartPreferences } from './hooks/useTokenChartPreferences';
 import type {
   TimePeriod,
   TokenPrice,
@@ -179,18 +172,25 @@ const PriceAdvanced = ({
   useAmbientColor = false,
   hasInsufficientCoverage = false,
 }: PriceAdvancedProps) => {
-  const dispatch = useDispatch();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
-  const chartType = useSelector(selectTokenOverviewChartType);
-  const persistedIndicators = useSelector(selectTokenIndicators);
+  const {
+    chartType,
+    chartInterval: persistedChartInterval,
+    indicators: persistedIndicators,
+    setChartType,
+    setChartInterval,
+    setIndicators,
+  } = useTokenChartPreferences();
   const isOhlcvWsEnabled = useSelector(selectTokenDetailsOhlcvWsEnabled);
   const isTechnicalIndicatorsEnabled = useSelector(
     selectTokenDetailsTechnicalIndicatorsEnabled,
   );
   /** `null` = WebView init pending; `false` = chart ready; `true` = init failed → legacy fallback. */
   const [chartInitFailed, setChartInitFailed] = useState<boolean | null>(null);
+  /** True after the chart skeleton has been hidden once this WebView session. */
+  const [hasChartBeenRevealed, setHasChartBeenRevealed] = useState(false);
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
@@ -258,8 +258,8 @@ const PriceAdvanced = ({
 
   // Sync activeIndicators to Redux for persistence
   useEffect(() => {
-    dispatch(setTokenIndicators([...activeIndicators]));
-  }, [activeIndicators, dispatch]);
+    setIndicators([...activeIndicators]);
+  }, [activeIndicators, setIndicators]);
 
   const isMAIndicator = useCallback((name: string) => /^MA\d+$/.test(name), []);
 
@@ -298,13 +298,13 @@ const PriceAdvanced = ({
           .addProperties(properties)
           .build(),
       );
-      dispatch(setTokenOverviewChartType(next));
+      setChartType(next);
     },
     [
       chartType,
       createEventBuilder,
       trackEvent,
-      dispatch,
+      setChartType,
       isTechnicalIndicatorsEnabled,
       activeIndicators,
     ],
@@ -360,13 +360,35 @@ const PriceAdvanced = ({
   const config = TIME_RANGE_CONFIGS[timeRange];
   const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
 
-  const [displayInterval, setDisplayInterval] = useState(
-    wsInterval.toUpperCase(),
+  const resolveDisplayInterval = useCallback(
+    (interval: string | undefined | null) => {
+      const normalised = interval?.toLowerCase();
+      if (isTokenOverviewChartInterval(normalised)) {
+        return normalised.toUpperCase();
+      }
+      return wsInterval.toUpperCase();
+    },
+    [wsInterval],
+  );
+
+  const [displayInterval, setDisplayInterval] = useState(() =>
+    isTechnicalIndicatorsEnabled
+      ? resolveDisplayInterval(persistedChartInterval)
+      : wsInterval.toUpperCase(),
   );
 
   useEffect(() => {
+    if (isTechnicalIndicatorsEnabled) {
+      setDisplayInterval(resolveDisplayInterval(persistedChartInterval));
+      return;
+    }
     setDisplayInterval(wsInterval.toUpperCase());
-  }, [wsInterval]);
+  }, [
+    isTechnicalIndicatorsEnabled,
+    persistedChartInterval,
+    resolveDisplayInterval,
+    wsInterval,
+  ]);
 
   const chartInterval = displayInterval.toLowerCase();
 
@@ -387,6 +409,15 @@ const PriceAdvanced = ({
     [assetId, effectiveTimePeriod, effectiveInterval, currentCurrency],
   );
 
+  /** Stable WebView key for interval hot-reload (technical-indicators path only). */
+  const webViewInstanceKey = useMemo(
+    () =>
+      isTechnicalIndicatorsEnabled
+        ? `${assetId}|${currentCurrency}`
+        : undefined,
+    [isTechnicalIndicatorsEnabled, assetId, currentCurrency],
+  );
+
   const assetIdRef = useRef(assetId);
   assetIdRef.current = assetId;
 
@@ -397,10 +428,9 @@ const PriceAdvanced = ({
     traceName: TraceName;
   } | null>(null);
 
-  const handleAdvancedChartSkeletonHidden = useCallback(() => {
-    setChartInitFailed(false);
+  const completeVisibilityTrace = useCallback(() => {
     const open = activeVisibilityTraceRef.current;
-    if (!open) {
+    if (!open || open.seriesKey !== visibilityTraceStartedRef.current) {
       return;
     }
     endTrace({
@@ -409,6 +439,31 @@ const PriceAdvanced = ({
     });
     activeVisibilityTraceRef.current = null;
   }, []);
+
+  const handleAdvancedChartSkeletonHidden = useCallback(() => {
+    const isInitialReveal = !hasChartBeenRevealed;
+    setHasChartBeenRevealed(true);
+    setChartInitFailed(false);
+    // Technical-indicators path: skeleton hides once; interval refreshes complete via layout settled.
+    if (!isTechnicalIndicatorsEnabled || isInitialReveal) {
+      completeVisibilityTrace();
+    }
+  }, [
+    hasChartBeenRevealed,
+    isTechnicalIndicatorsEnabled,
+    completeVisibilityTrace,
+  ]);
+
+  const handleAdvancedChartLayoutSettled = useCallback(() => {
+    if (!isTechnicalIndicatorsEnabled || !hasChartBeenRevealed) {
+      return;
+    }
+    completeVisibilityTrace();
+  }, [
+    isTechnicalIndicatorsEnabled,
+    hasChartBeenRevealed,
+    completeVisibilityTrace,
+  ]);
 
   const handleAdvancedChartError = useCallback((error: string) => {
     const open = activeVisibilityTraceRef.current;
@@ -442,9 +497,14 @@ const PriceAdvanced = ({
     activeVisibilityTraceRef.current = null;
   }, []);
 
+  const chartSessionResetKey = isTechnicalIndicatorsEnabled
+    ? webViewInstanceKey
+    : ohlcvSeriesKey;
+
   useEffect(() => {
     setChartInitFailed(null);
-  }, [ohlcvSeriesKey]);
+    setHasChartBeenRevealed(false);
+  }, [chartSessionResetKey]);
 
   const {
     ohlcvData,
@@ -540,11 +600,6 @@ const PriceAdvanced = ({
         if (wasActive) {
           next.delete(name);
         } else {
-          if ((SUB_PANE_INDICATORS as readonly string[]).includes(name)) {
-            SUB_PANE_INDICATORS.forEach((i) => {
-              if (i !== name) next.delete(i);
-            });
-          }
           next.add(name);
         }
 
@@ -579,17 +634,22 @@ const PriceAdvanced = ({
   /** OHLCV or WebView init still in flight — mirrors TimeRangeSelector `isChartLoading`. */
   const isAdvancedChartUiPending = chartLoading || chartInitFailed === null;
 
+  /** Technical-indicators path: first visit only; interval refresh keeps chart/bars visible. */
+  const isInitialChartPending = isTechnicalIndicatorsEnabled
+    ? !hasChartBeenRevealed && isAdvancedChartUiPending
+    : isAdvancedChartUiPending;
+
   /**
    * Only show technical indicators UI when we're certain the advanced chart is being used.
-   * This prevents a confusing flash where interval/indicator bars appear then disappear
-   * when falling back to legacy chart or while WebView init is still pending.
+   * After first reveal, keep bars visible during interval refresh.
    */
   const shouldShowTechnicalIndicators =
     isTechnicalIndicatorsEnabled &&
-    !isAdvancedChartUiPending &&
-    ohlcvData.length >= CHART_DATA_THRESHOLD &&
-    !hasEmptyData &&
-    !chartError;
+    (hasChartBeenRevealed ||
+      (!isInitialChartPending &&
+        ohlcvData.length >= CHART_DATA_THRESHOLD &&
+        !hasEmptyData &&
+        !chartError));
 
   /** Candlestick-only: keep selections in state/Redux but hide studies on line chart. */
   const showChartIndicators =
@@ -608,6 +668,7 @@ const PriceAdvanced = ({
   const handleInlineIntervalSelect = useCallback(
     (interval: string) => {
       setDisplayInterval(interval);
+      setChartInterval(interval);
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
@@ -621,7 +682,13 @@ const PriceAdvanced = ({
           .build(),
       );
     },
-    [trackEvent, createEventBuilder, chartType, activeIndicators],
+    [
+      trackEvent,
+      createEventBuilder,
+      chartType,
+      activeIndicators,
+      setChartInterval,
+    ],
   );
 
   // TradingView Advanced Charts Bar.time expects milliseconds
@@ -969,7 +1036,7 @@ const PriceAdvanced = ({
         </Text>
       </View>
       {/* Unified skeleton bar when feature flag ON and chart not yet revealed */}
-      {isTechnicalIndicatorsEnabled && isAdvancedChartUiPending && (
+      {isTechnicalIndicatorsEnabled && isInitialChartPending && (
         <View style={styles.intervalBarContainer}>
           <View style={styles.timeRangeSelectorWrap}>
             <Box twClassName="w-full px-4">
@@ -1012,6 +1079,9 @@ const PriceAdvanced = ({
             <AdvancedChart
               ohlcvData={ohlcvData}
               ohlcvSeriesKey={ohlcvSeriesKey}
+              webViewInstanceKey={
+                isTechnicalIndicatorsEnabled ? webViewInstanceKey : undefined
+              }
               realtimeBar={realtimeBar}
               height={chartHeight}
               showVolume={
@@ -1024,8 +1094,17 @@ const PriceAdvanced = ({
               chartType={chartType}
               indicators={showChartIndicators ? indicatorsArray : []}
               selectedMAs={showChartIndicators ? selectedMAs : []}
-              lineChrome={advancedChartLineChromePresets.tokenOverview}
-              isLoading={chartLoading}
+              lineChrome={
+                advancedChartLineChromePresets.tokenOverview.lineChrome
+              }
+              subPaneHeightRatio={
+                advancedChartLineChromePresets.tokenOverview.subPaneHeightRatio
+              }
+              isLoading={
+                isTechnicalIndicatorsEnabled
+                  ? !hasChartBeenRevealed && chartLoading
+                  : chartLoading
+              }
               ohlcvPagination={ohlcvPagination}
               visibleFromMs={visibleFromMs}
               visibleToMs={visibleToMs}
@@ -1033,6 +1112,11 @@ const PriceAdvanced = ({
               onChartInteracted={handleChartInteracted}
               onChartTradingViewClicked={handleChartTradingViewClicked}
               onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+              onChartLayoutSettled={
+                isTechnicalIndicatorsEnabled
+                  ? handleAdvancedChartLayoutSettled
+                  : undefined
+              }
               onError={handleAdvancedChartError}
               onInitFailed={handleAdvancedChartInitFailed}
               lineColorOverride={initialAmbientColor}
@@ -1067,7 +1151,7 @@ const PriceAdvanced = ({
         <View style={styles.timeRangeContainer}>
           <View style={styles.timeRangeSelectorWrap}>
             <TimeRangeSelector
-              isChartLoading={isAdvancedChartUiPending}
+              isChartLoading={isInitialChartPending}
               selected={timeRange}
               onSelect={handleTimeRangeSelect}
               chartType={chartType}

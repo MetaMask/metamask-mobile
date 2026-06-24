@@ -10,14 +10,15 @@ export type PayWithSectionId =
 
 export type PayWithRowTrailingVariant = 'checkmark' | 'chevron' | 'none';
 
+export type PayWithRowTagRenderer = () => ReactNode;
+
 export interface PayWithRowConfig {
   id: string;
   icon: ReactNode;
   title: string;
   subtitle?: string;
   isSelected?: boolean;
-  isLastUsed?: boolean;
-  isNoFee?: boolean;
+  tagRenderers?: PayWithRowTagRenderer[];
   trailingElement?: PayWithRowTrailingVariant | ReactElement;
   onPress?: () => void;
   disabled?: boolean;
