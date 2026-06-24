@@ -19,6 +19,7 @@ import type { VipRefereeMeState } from '../../../../core/Engine/controllers/rewa
 import RewardsVipRefereeView, {
   REWARDS_VIP_REFEREE_VIEW_TEST_IDS,
 } from './RewardsVipRefereeView';
+import { VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS } from '../components/Vip/VipSwapsVolumeInfoSheet';
 
 const mockNavDispatch = jest.fn();
 const mockReduxDispatch = jest.fn();
@@ -94,14 +95,51 @@ jest.mock('@metamask/design-system-react-native', () => {
       ReactActual.createElement(Text, null, children),
     );
 
+  const ButtonIcon = ({
+    onPress,
+    testID,
+    accessibilityLabel,
+  }: {
+    onPress?: () => void;
+    testID?: string;
+    accessibilityLabel?: string;
+  }) =>
+    ReactActual.createElement(Pressable, {
+      testID,
+      accessibilityLabel,
+      onPress,
+    });
+
   return {
     HeaderStandard,
     Box: passthrough,
     BoxFlexDirection: { Row: 'row', Column: 'column' },
+    BoxAlignItems: { Center: 'center', Start: 'start', End: 'end' },
+    BoxJustifyContent: { Between: 'between', Center: 'center', End: 'end' },
     Button,
     ButtonVariant: { Primary: 'primary', Secondary: 'secondary' },
     ButtonSize: { Lg: 'lg' },
-    IconName: { MessageQuestion: 'MessageQuestion', Export: 'Export' },
+    ButtonIcon,
+    ButtonIconSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
+    Icon: passthrough,
+    IconColor: {
+      IconDefault: 'default',
+      IconAlternative: 'alt',
+    },
+    IconName: {
+      MessageQuestion: 'MessageQuestion',
+      Export: 'Export',
+      Close: 'Close',
+      Info: 'Info',
+    },
+    IconSize: { Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
+    BottomSheet: ({
+      children,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(View, { testID }, children),
     Text: ({ children, ...rest }: { children?: React.ReactNode }) =>
       ReactActual.createElement(Text, rest, children),
     TextColor: { TextDefault: 'default', TextAlternative: 'alt' },
@@ -149,6 +187,10 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.vip.referee_period_last_30d': 'Last 30d',
       'rewards.vip.referee_swaps_volume_label': 'Swaps volume',
       'rewards.vip.referee_perps_volume_label': 'Perps volume',
+      'rewards.vip.swaps_volume_info_label': 'Swaps volume information',
+      'rewards.vip.swaps_volume_info_title': 'Swaps volume',
+      'rewards.vip.swaps_volume_info_description':
+        'Your swaps volume updates once per day, so recent swaps may take up to 24 hours to appear here.',
       'rewards.vip.referee_error_title': 'Error title',
       'rewards.vip.referee_error_description': 'Error description',
       'rewards.vip.referee_contact_support': 'Contact support',
@@ -322,6 +364,24 @@ describe('RewardsVipRefereeView', () => {
     expect(
       getByTestId(REWARDS_VIP_REFEREE_VIEW_TEST_IDS.POINTS_TO),
     ).toHaveTextContent(/1,234/);
+  });
+
+  it('renders the swaps volume help icon and opens the daily-refresh info sheet on press', () => {
+    const { getByTestId, queryByTestId } = render(<RewardsVipRefereeView />);
+
+    // The info sheet is not mounted until the help icon is pressed.
+    expect(
+      queryByTestId(VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS.SHEET),
+    ).toBeNull();
+
+    const helpIcon = getByTestId(
+      REWARDS_VIP_REFEREE_VIEW_TEST_IDS.SWAPS_VOLUME_INFO,
+    );
+    fireEvent.press(helpIcon);
+
+    const sheet = getByTestId(VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS.SHEET);
+    expect(sheet).toHaveTextContent(/Swaps volume/);
+    expect(sheet).toHaveTextContent(/updates once per day/);
   });
 
   it('renders an empty points-to label when referredByCode is missing', () => {

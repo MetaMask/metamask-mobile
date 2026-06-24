@@ -1094,6 +1094,7 @@
       "twitter_link": "View on X (Twitter)",
       "sort": {
         "value": "Value",
+        "top_trades": "Top Trades",
         "pnl_percent": "P&L %",
         "recent": "Recent"
       }
@@ -2371,8 +2372,10 @@
       "tabs": {
         "all": "All",
         "props": "Props",
-        "live": "Live"
+        "live": "Live",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Group Stage",
         "round_of_32": "Round of 32",
@@ -2503,6 +2506,7 @@
       "soccer_anytime_goalscorer": "Goalscorers",
       "soccer_exact_score": "Exact Score",
       "soccer_halftime_result": "Halftime Result",
+      "soccer_first_to_score": "First Team to Score",
       "total_corners": "Corners",
       "tennis_set_totals": "Total Sets",
       "tennis_set_handicap": "Set Handicap",
@@ -3539,6 +3543,8 @@
       "wallet_activity_desc": "Buy, sells, transfers, swaps and rewards",
       "perps_title": "Trading Activity",
       "perps_desc": "Perps position changes, liquidations, funding rates, and margin updates",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "Trading Signals",
       "social_ai_desc": "Updates from traders and assets you follow, plus currated market news",
       "marketing_title": "Updates and Rewards",
@@ -9043,7 +9049,10 @@
       "referee_contact_support": "Contact support",
       "referee_priority_support_disclaimer": "By contacting priority support you will connect your wallet.",
       "referral_tag_label": "VIP",
-      "last_updated": "Last updated: {{time}}"
+      "last_updated": "Last updated: {{time}}",
+      "swaps_volume_info_label": "Swaps volume information",
+      "swaps_volume_info_title": "Swaps volume",
+      "swaps_volume_info_description": "Your swaps volume updates once per day, so recent swaps may take up to 24 hours to appear here."
     },
     "referral_title": "Referrals",
     "referral_stats_earned_from_referrals": "Earned from referrals",
