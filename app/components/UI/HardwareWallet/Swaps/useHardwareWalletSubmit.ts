@@ -132,6 +132,11 @@ export function useHardwareWalletSubmit({
         const deviceId = await getDeviceIdForAddress(walletAddress);
         const isReady = await ensureDeviceReady?.(deviceId);
         if (!isReady) {
+          dispatch(
+            updateHardwareWalletsSwaps({
+              type: HardwareWalletsSwapsEventType.TransactionFailed,
+            }),
+          );
           return;
         }
 

@@ -450,7 +450,7 @@ describe('HardwareWalletsSwaps', () => {
       {
         status: HardwareWalletsSwapsStatus.Waiting,
         steps: [signingStep, defaultSteps[1]],
-        expectedTrigger: 'wallet_locked',
+        expectedTrigger: 'reset',
       },
       {
         status: HardwareWalletsSwapsStatus.Rejected,
