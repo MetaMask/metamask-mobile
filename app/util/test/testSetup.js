@@ -470,60 +470,15 @@ jest.mock(
 jest.mock('@react-native-cookies/cookies', () => 'RNCookies');
 
 /**
- * Inline Jest mock for `react-native-worklets` when the package is not installed
- * (e.g. older RN/reanimated stacks). Mirrors the critical behavior from the
- * upstream package mock — especially `runOnJS` scheduling via `queueMicrotask`.
+ * Use the official `react-native-worklets` Jest mock. Reanimated 4 depends on
+ * react-native-worklets, and requiring the real package eagerly initializes its
+ * native part (absent under Jest), throwing "Native part of Worklets doesn't
+ * seem to be initialized". The mock also installs `globalThis._getAnimationTimestamp`
+ * and a timestamp-correct `requestAnimationFrame` that animation tests rely on.
  * See: https://docs.swmansion.com/react-native-worklets/docs/guides/testing/
  */
-jest.mock(
-  'react-native-worklets',
-  () => {
-    const RuntimeKind = { ReactNative: 0 };
-    const NOOP = () => {};
-    const identity = (value) => value;
-
-    const runOnJS =
-      (fun) =>
-      (...args) =>
-        queueMicrotask(() => (args.length ? fun(...args) : fun()));
-
-    return {
-      __esModule: true,
-      RuntimeKind,
-      isShareableRef: () => true,
-      makeShareable: identity,
-      makeShareableCloneOnUIRecursive: identity,
-      makeShareableCloneRecursive: identity,
-      shareableMappingCache: new Map(),
-      getStaticFeatureFlag: () => false,
-      setDynamicFeatureFlag: NOOP,
-      isSynchronizable: () => false,
-      getRuntimeKind: () => RuntimeKind.ReactNative,
-      createWorkletRuntime: () => NOOP,
-      runOnRuntime: identity,
-      runOnRuntimeAsync: async (_runtime, worklet, ...args) => worklet(...args),
-      scheduleOnRuntime: (callback) => callback(),
-      createSerializable: identity,
-      isSerializableRef: identity,
-      serializableMappingCache: new Map(),
-      createSynchronizable: identity,
-      callMicrotasks: NOOP,
-      executeOnUIRuntimeSync: identity,
-      runOnJS,
-      runOnUI:
-        (worklet) =>
-        (...args) => {
-          worklet(...args);
-        },
-      runOnUIAsync: async (worklet, ...args) => worklet(...args),
-      runOnUISync: (callback) => callback(),
-      scheduleOnRN: (fun, ...args) => runOnJS(fun)(...args),
-      scheduleOnUI: (worklet, ...args) => worklet(...args),
-      isWorkletFunction: () => false,
-      WorkletsModule: {},
-    };
-  },
-  { virtual: true },
+jest.mock('react-native-worklets', () =>
+  require('react-native-worklets/lib/module/mock'),
 );
 
 jest.mock('react-native-mmkv', () => {
@@ -775,17 +730,6 @@ if (typeof Reanimated.configureReanimatedLogger !== 'function') {
 }
 if (!Reanimated.ReanimatedLogLevel) {
   Reanimated.ReanimatedLogLevel = { warn: 1, error: 2 };
-}
-
-// Reanimated v4 reads the current animation time from `global._getAnimationTimestamp`
-// inside `withTiming`/`withSpring`. That global is normally installed during native
-// initialization, which never runs under Jest, so animations crash with
-// "TypeError: global._getAnimationTimestamp is not a function". Provide a JS timer.
-if (typeof global._getAnimationTimestamp !== 'function') {
-  global._getAnimationTimestamp = () =>
-    typeof performance !== 'undefined' && typeof performance.now === 'function'
-      ? performance.now()
-      : Date.now();
 }
 
 // Patch Reanimated's makeMutable so that shared values' toJSON() won't blow up
