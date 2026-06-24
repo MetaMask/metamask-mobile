@@ -1,4 +1,4 @@
-import { IconName } from '@metamask/design-system-react-native';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 
 export interface PerpsMarketCategoryBadgeProps {
   /**

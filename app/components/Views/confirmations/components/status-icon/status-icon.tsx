@@ -4,6 +4,7 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import { ButtonIconSizes } from '../../../../../component-library/components/Buttons/ButtonIcon';
 import { useStyles } from '../../../../hooks/useStyles';
 import Tooltip from '../UI/Tooltip';
 import styleSheet from './status-icon.styles';
@@ -27,7 +28,7 @@ export function StatusIcon({
       <Tooltip
         iconColor={iconColour}
         iconName={iconName}
-        iconSize={IconSize.Md}
+        iconSize={ButtonIconSizes.Md}
         iconStyle={styles.tooltipIcon}
         tooltipTestId={STATUS_ICON_TOOLTIP_TEST_ID}
         content={tooltip}

@@ -45,7 +45,6 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
   };
 
   const textStyle = tw.style('font-medium text-center', getTextColor());
-  const isInline = layout === 'inline' || layout === 'inlineNoSeparator';
   const inlineLabel =
     layout === 'inlineNoSeparator'
       ? `${label.toUpperCase()} ${price}¢`
@@ -57,21 +56,16 @@ const PredictBetButton: React.FC<PredictBetButtonProps> = ({
       isDisabled={disabled}
       testID={testID}
       style={{ backgroundColor: getBackgroundColor() }}
-      twClassName={isInline ? 'px-1' : undefined}
-      contentWrapperProps={isInline ? { twClassName: 'w-full' } : undefined}
       isFullWidth
       size={size}
     >
-      {isInline ? (
+      {layout === 'inline' || layout === 'inlineNoSeparator' ? (
         <Text
           variant={
             layout === 'inlineNoSeparator' ? TextVariant.BodySm : undefined
           }
-          style={tw.style('flex-1', textStyle)}
+          style={textStyle}
           numberOfLines={1}
-          adjustsFontSizeToFit
-          minimumFontScale={0.7}
-          ellipsizeMode="clip"
         >
           {inlineLabel}
         </Text>

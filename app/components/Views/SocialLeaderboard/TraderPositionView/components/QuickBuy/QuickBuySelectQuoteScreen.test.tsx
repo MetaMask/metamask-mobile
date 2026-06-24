@@ -97,7 +97,7 @@ const makeQuote = (id: string) => ({
 const buildContext = (overrides = {}) => ({
   sortedQuotes: [],
   selectedQuoteRequestId: undefined,
-  handleSelectQuote: jest.fn(),
+  setSelectedQuoteRequestId: jest.fn(),
   isQuoteLoading: false,
   destToken: undefined,
   currentCurrency: 'USD',
@@ -194,19 +194,19 @@ describe('QuickBuySelectQuoteScreen', () => {
     expect(screen.getByTestId('quote-row-receive-q1')).toHaveTextContent('1.5');
   });
 
-  it('calls handleSelectQuote and navigates back when a quote is selected', () => {
-    const handleSelectQuote = jest.fn();
+  it('calls setSelectedQuoteRequestId and navigates back when a quote is selected', () => {
+    const setSelectedQuoteRequestId = jest.fn();
     const setActiveScreen = jest.fn();
     (useQuickBuyContext as jest.Mock).mockReturnValue(
       buildContext({
         sortedQuotes: [makeQuote('q1')],
-        handleSelectQuote,
+        setSelectedQuoteRequestId,
         setActiveScreen,
       }),
     );
     render(<QuickBuySelectQuoteScreen />);
     fireEvent.press(screen.getByTestId('quote-row-q1'));
-    expect(handleSelectQuote).toHaveBeenCalledWith('q1');
+    expect(setSelectedQuoteRequestId).toHaveBeenCalledWith('q1');
     expect(setActiveScreen).toHaveBeenCalledWith('quoteDetails');
   });
 

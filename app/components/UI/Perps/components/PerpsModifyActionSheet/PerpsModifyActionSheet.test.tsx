@@ -110,7 +110,6 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
 
 // Mock Box component
 jest.mock('@metamask/design-system-react-native', () => ({
-  ...jest.requireActual('@metamask/design-system-react-native'),
   Box: function MockBox({ children }: { children: React.ReactNode }) {
     const ReactModule = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');

@@ -5,15 +5,16 @@ import {
   validatedVersionGatedFeatureFlag,
   VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
+import { selectBasicFunctionalityEnabled } from '../../settings';
 
 const DEFAULT_OTA_UPDATES_ENABLED = false;
 export const OTA_UPDATES_FLAG_NAME = 'otaUpdatesEnabled';
 
 /**
- * Selector for the OTA updates enabled flag.
- * Returns false when basic functionality is disabled via selectRemoteFeatureFlags.
+ * Selector for the raw OTA updates enabled remote flag value.
+ * Returns the flag value without considering basic functionality.
  */
-export const selectOtaUpdatesEnabledFlag = createSelector(
+export const selectOtaUpdatesEnabledRawFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     if (!hasProperty(remoteFeatureFlags, OTA_UPDATES_FLAG_NAME)) {
@@ -30,5 +31,17 @@ export const selectOtaUpdatesEnabledFlag = createSelector(
   },
 );
 
-/** @deprecated Use selectOtaUpdatesEnabledFlag — basic functionality is gated centrally. */
-export const selectOtaUpdatesEnabledRawFlag = selectOtaUpdatesEnabledFlag;
+/**
+ * Selector for the OTA updates enabled flag.
+ * Returns false if basic functionality is disabled, otherwise returns the remote flag value.
+ */
+export const selectOtaUpdatesEnabledFlag = createSelector(
+  selectBasicFunctionalityEnabled,
+  selectOtaUpdatesEnabledRawFlag,
+  (isBasicFunctionalityEnabled, otaUpdatesEnabledRawFlag) => {
+    if (!isBasicFunctionalityEnabled) {
+      return false;
+    }
+    return otaUpdatesEnabledRawFlag;
+  },
+);

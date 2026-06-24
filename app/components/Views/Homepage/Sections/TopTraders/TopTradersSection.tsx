@@ -12,9 +12,8 @@ import React, {
   useImperativeHandle,
   useMemo,
   useRef,
-  useState,
 } from 'react';
-import { FlatList, View, type ViewToken } from 'react-native';
+import { View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -26,14 +25,12 @@ import ViewMoreCard from '../../components/ViewMoreCard';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
-import useSectionViewportVisible from '../../hooks/useSectionViewportVisible';
 import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
-import { ALL_CHAINS } from '../../../shared/top-traders-constants';
-import { usePrefetchTraderProfiles, useTopTraders } from './hooks';
-import type { TopTrader } from './types';
+import { SPOT_CHAINS } from './constants';
+import { useTopTraders } from './hooks';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
@@ -43,14 +40,6 @@ const SKELETON_KEYS = Array.from(
   { length: HOME_TRADER_DISPLAY_COUNT },
   (_, i) => `home-trader-skeleton-${i}`,
 );
-
-const viewabilityConfig = {
-  itemVisiblePercentThreshold: 50,
-};
-
-type TopTradersCarouselItem =
-  | { kind: 'trader'; trader: TopTrader }
-  | { kind: 'view_more' };
 
 interface TopTradersSectionProps {
   sectionIndex: number;
@@ -73,7 +62,6 @@ const TopTradersSection = forwardRef<
   const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
-  const [visibleTraderIds, setVisibleTraderIds] = useState<string[]>([]);
 
   const {
     traders: allTraders,
@@ -84,11 +72,11 @@ const TopTradersSection = forwardRef<
     toggleFollow,
   } = useTopTraders({
     limit: HOME_TRADER_FETCH_LIMIT,
-    chains: ALL_CHAINS,
+    chains: SPOT_CHAINS,
     enabled: isEnabled,
   });
 
-  // Trimming the shared fetch to the display count here; matches TopTradersView "All".
+  // Trimming the shared fetch to the display count here; preserves the broader "All" fetch.
   const traders = useMemo(
     () => allTraders.slice(0, HOME_TRADER_DISPLAY_COUNT),
     [allTraders],
@@ -108,7 +96,7 @@ const TopTradersSection = forwardRef<
   const showError = hasError && !isFetching && !hasTraders;
   const willRender = isEnabled && (isInFlight || hasError || hasTraders);
 
-  const { onLayout: homeViewedOnLayout } = useHomeViewedEvent({
+  const { onLayout } = useHomeViewedEvent({
     sectionRef: willRender ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.TOP_TRADERS,
@@ -117,19 +105,6 @@ const TopTradersSection = forwardRef<
     isEmpty: traders.length === 0,
     itemCount: traders.length,
   });
-
-  const { isVisible: isSectionVisible, onLayout: sectionVisibleOnLayout } =
-    useSectionViewportVisible(sectionViewRef, { isLoading });
-
-  usePrefetchTraderProfiles(visibleTraderIds, {
-    enabled: isEnabled && hasTraders,
-    isSectionVisible,
-  });
-
-  const handleSectionLayout = useCallback(() => {
-    homeViewedOnLayout();
-    sectionVisibleOnLayout();
-  }, [homeViewedOnLayout, sectionVisibleOnLayout]);
 
   useSectionPerformance({
     sectionId: HomeSectionNames.TOP_TRADERS,
@@ -149,19 +124,6 @@ const TopTradersSection = forwardRef<
   const showSkeletons = isInFlight && !hasTraders;
   const showViewMore = hasTraders;
   const isEmpty = !isInFlight && !hasError && !hasTraders;
-
-  const carouselData = useMemo((): TopTradersCarouselItem[] => {
-    const items: TopTradersCarouselItem[] = traders.map((trader) => ({
-      kind: 'trader',
-      trader,
-    }));
-
-    if (showViewMore) {
-      items.push({ kind: 'view_more' });
-    }
-
-    return items;
-  }, [traders, showViewMore]);
 
   const handleViewAll = useCallback(() => {
     navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW, {
@@ -196,54 +158,6 @@ const TopTradersSection = forwardRef<
     [traders, toggleFollow],
   );
 
-  const onViewableItemsChanged = useRef(
-    ({
-      viewableItems,
-    }: {
-      viewableItems: ViewToken<TopTradersCarouselItem>[];
-    }) => {
-      const ids = viewableItems
-        .filter(
-          (
-            token,
-          ): token is ViewToken<TopTradersCarouselItem> & {
-            item: { kind: 'trader'; trader: TopTrader };
-          } => token.item?.kind === 'trader',
-        )
-        .map((token) => token.item.trader.id);
-      setVisibleTraderIds(ids);
-    },
-  ).current;
-
-  const renderCarouselItem = useCallback(
-    ({ item }: { item: TopTradersCarouselItem }) => {
-      if (item.kind === 'view_more') {
-        return (
-          <ViewMoreCard
-            onPress={handleViewAll}
-            twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] self-stretch`}
-            testID="top-traders-view-more-card"
-          />
-        );
-      }
-
-      return (
-        <TopTraderCard
-          trader={item.trader}
-          onFollowPress={handleFollowPress}
-          onTraderPress={handleTraderPress}
-        />
-      );
-    },
-    [handleFollowPress, handleTraderPress, handleViewAll],
-  );
-
-  const keyExtractor = useCallback(
-    (item: TopTradersCarouselItem) =>
-      item.kind === 'view_more' ? 'view-more' : item.trader.id,
-    [],
-  );
-
   if (!isEnabled || isEmpty) {
     return null;
   }
@@ -252,7 +166,7 @@ const TopTradersSection = forwardRef<
     return (
       <View
         ref={sectionViewRef}
-        onLayout={handleSectionLayout}
+        onLayout={onLayout}
         testID="homepage-top-traders-section-root"
       >
         <Box paddingBottom={3}>
@@ -279,7 +193,7 @@ const TopTradersSection = forwardRef<
   return (
     <View
       ref={sectionViewRef}
-      onLayout={handleSectionLayout}
+      onLayout={onLayout}
       testID="homepage-top-traders-section-root"
     >
       <Box paddingBottom={3}>
@@ -290,32 +204,30 @@ const TopTradersSection = forwardRef<
           onPress={handleViewAll}
           testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('top-traders')}
         />
-        <Box paddingTop={3}>
-          {showSkeletons ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={tw.style('px-4 gap-3')}
-              testID="homepage-top-traders-carousel"
-            >
-              {SKELETON_KEYS.map((key) => (
-                <TopTraderCardSkeleton key={key} />
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={tw.style('px-4 gap-3')}
+          testID="homepage-top-traders-carousel"
+        >
+          {showSkeletons
+            ? SKELETON_KEYS.map((key) => <TopTraderCardSkeleton key={key} />)
+            : traders.map((trader) => (
+                <TopTraderCard
+                  key={trader.id}
+                  trader={trader}
+                  onFollowPress={handleFollowPress}
+                  onTraderPress={handleTraderPress}
+                />
               ))}
-            </ScrollView>
-          ) : (
-            <FlatList
-              horizontal
-              data={carouselData}
-              renderItem={renderCarouselItem}
-              keyExtractor={keyExtractor}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
-              testID="homepage-top-traders-carousel"
-              viewabilityConfig={viewabilityConfig}
-              onViewableItemsChanged={onViewableItemsChanged}
+          {showViewMore && (
+            <ViewMoreCard
+              onPress={handleViewAll}
+              twClassName={`w-[${TOP_TRADER_CARD_WIDTH}px] h-auto`}
+              testID="top-traders-view-more-card"
             />
           )}
-        </Box>
+        </ScrollView>
       </Box>
     </View>
   );

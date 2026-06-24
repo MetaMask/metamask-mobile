@@ -1,6 +1,6 @@
 import React, { useEffect, useRef } from 'react';
 import { Animated, Platform, TouchableOpacity, View } from 'react-native';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
 import Text, {
   TextColor,
@@ -103,7 +103,9 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
       <View style={styles.amountRow}>
         {/* Text only takes 1 arg */}
         {isLoading ? (
-          <Skeleton width={80} height={20} />
+          <SkeletonPlaceholder>
+            <SkeletonPlaceholder.Item width={80} height={20} borderRadius={4} />
+          </SkeletonPlaceholder>
         ) : (
           <Text
             testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}

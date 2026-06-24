@@ -1,10 +1,4 @@
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
-import {
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
 import { View, TouchableOpacity } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import BottomSheet, {
@@ -15,6 +9,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import styleSheet from './PerpsAdjustMarginActionSheet.styles';
 import type {
@@ -103,7 +102,7 @@ const PerpsAdjustMarginActionSheet: React.FC<
               <Icon
                 name={option.iconName}
                 size={IconSize.Lg}
-                color={IconColor.IconDefault}
+                color={IconColor.Default}
               />
               <View style={styles.actionContent}>
                 <Text variant={TextVariant.BodyMDBold}>{option.label}</Text>

@@ -26,9 +26,6 @@ import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import ChartNavigationButton from '../ChartNavigationButton';
-import { useSelector } from 'react-redux';
-import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
-import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from './tokenOverviewChart.constants';
 
 export interface PriceLegacyProps {
   prices: TokenPrice[];
@@ -60,9 +57,6 @@ const PriceLegacy = ({
   hasInsufficientCoverage = false,
 }: PriceLegacyProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
-  const isTechnicalIndicatorsEnabled = useSelector(
-    selectTokenDetailsTechnicalIndicatorsEnabled,
-  );
 
   const distributedPriceData = useMemo(() => {
     if (prices.length > 0) {
@@ -224,53 +218,7 @@ const PriceLegacy = ({
           )}
         </Text>
       </View>
-      {/* Skeleton bar when feature flag ON and loading */}
-      {isTechnicalIndicatorsEnabled && isLoading && (
-        <View style={styles.intervalBarContainer}>
-          <Box twClassName="w-full px-4">
-            <SkeletonPlaceholder
-              backgroundColor={theme.colors.background.section}
-              highlightColor={theme.colors.background.subsection}
-            >
-              <SkeletonPlaceholder.Item
-                width="100%"
-                height={29}
-                borderRadius={6}
-              />
-            </SkeletonPlaceholder>
-          </Box>
-        </View>
-      )}
-      {/* Technical indicators flag ON: time range above chart (matches advanced chart) */}
-      {isTechnicalIndicatorsEnabled &&
-        !isLoading &&
-        chartNavigationButtons.length > 0 &&
-        onTimePeriodChange && (
-          <View style={styles.intervalBarContainer}>
-            <Box twClassName="w-full px-4">
-              <View style={styles.chartNavigationWrapper}>
-                {chartNavigationButtons.map((label) => (
-                  <ChartNavigationButton
-                    key={label}
-                    label={strings(
-                      `asset_overview.chart_time_period_navigation.${label}`,
-                    )}
-                    onPress={() => onTimePeriodChange(label)}
-                    selected={timePeriod === label}
-                    selectedColor={initialAmbientColor}
-                  />
-                ))}
-              </View>
-            </Box>
-          </View>
-        )}
-      <Box
-        twClassName={
-          isTechnicalIndicatorsEnabled
-            ? 'w-full overflow-hidden mb-4'
-            : 'mt-3 w-full overflow-hidden'
-        }
-      >
+      <Box twClassName="mt-3 w-full overflow-hidden">
         <PriceChart
           prices={distributedPriceData}
           priceDiff={priceDiff}
@@ -280,28 +228,25 @@ const PriceLegacy = ({
           hasInsufficientCoverage={hasInsufficientCoverage}
         />
       </Box>
-      {/* Technical indicators flag OFF: time range below chart (legacy position) */}
-      {!isTechnicalIndicatorsEnabled &&
-        chartNavigationButtons.length > 0 &&
-        onTimePeriodChange && (
-          <View style={styles.timeRangeContainer}>
-            <Box twClassName="w-full px-4">
-              <View style={styles.chartNavigationWrapper}>
-                {chartNavigationButtons.map((label) => (
-                  <ChartNavigationButton
-                    key={label}
-                    label={strings(
-                      `asset_overview.chart_time_period_navigation.${label}`,
-                    )}
-                    onPress={() => onTimePeriodChange(label)}
-                    selected={timePeriod === label}
-                    selectedColor={initialAmbientColor}
-                  />
-                ))}
-              </View>
-            </Box>
-          </View>
-        )}
+      {chartNavigationButtons.length > 0 && onTimePeriodChange && (
+        <View style={styles.timeRangeContainer}>
+          <Box twClassName="w-full px-4">
+            <View style={styles.chartNavigationWrapper}>
+              {chartNavigationButtons.map((label) => (
+                <ChartNavigationButton
+                  key={label}
+                  label={strings(
+                    `asset_overview.chart_time_period_navigation.${label}`,
+                  )}
+                  onPress={() => onTimePeriodChange(label)}
+                  selected={timePeriod === label}
+                  selectedColor={initialAmbientColor}
+                />
+              ))}
+            </View>
+          </Box>
+        </View>
+      )}
     </>
   );
 };

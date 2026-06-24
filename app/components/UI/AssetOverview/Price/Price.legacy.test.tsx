@@ -1,42 +1,11 @@
 import React from 'react';
-import { View } from 'react-native';
-import { userEvent, fireEvent } from '@testing-library/react-native';
-import { useSelector } from 'react-redux';
-import renderWithProvider from '../../../../util/test/renderWithProvider';
+import { render, userEvent } from '@testing-library/react-native';
 import PriceLegacy, { type PriceLegacyProps } from './Price.legacy';
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import type { TokenPrice } from '../../../../components/hooks/useTokenHistoricalPrices';
-import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
-import { CHART_DATA_THRESHOLD } from './tokenOverviewChart.constants';
-
-const mockSelectTechnicalIndicatorsEnabled = jest.fn(() => false);
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
-}));
-
-jest.mock(
-  '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators',
-  () => ({
-    selectTokenDetailsTechnicalIndicatorsEnabled: jest.fn(),
-  }),
-);
-
-jest.mock('../ChartNavigationButton', () => {
-  const { Pressable } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ onPress }: { onPress: () => void }) => (
-      <Pressable testID="chart-navigation-button" onPress={onPress} />
-    ),
-  };
-});
-
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 /** Matches CHART_DATA_THRESHOLD (tokenOverviewChart.constants) — enough points for a non-empty line chart. */
 const mockPricesAtLeast5: TokenPrice[] = Array.from({ length: 5 }, (_, i) => [
@@ -45,6 +14,7 @@ const mockPricesAtLeast5: TokenPrice[] = Array.from({ length: 5 }, (_, i) => [
 ]);
 
 jest.mock('../PriceChart/PriceChart', () => ({
+  ...jest.requireActual('../PriceChart/PriceChart'),
   __esModule: true,
   default: jest.fn().mockImplementation(() => null),
 }));
@@ -62,25 +32,18 @@ const baseProps: PriceLegacyProps = {
 describe('PriceLegacy', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockSelectTechnicalIndicatorsEnabled.mockReturnValue(false);
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectTokenDetailsTechnicalIndicatorsEnabled) {
-        return mockSelectTechnicalIndicatorsEnabled();
-      }
-      return undefined;
-    });
     jest.mocked(PriceChart).mockImplementation(() => <></>);
   });
 
   it('renders the token price when not loading', () => {
-    const { getByTestId } = renderWithProvider(<PriceLegacy {...baseProps} />);
+    const { getByTestId } = render(<PriceLegacy {...baseProps} />);
     expect(
       getByTestId(TokenOverviewSelectorsIDs.TOKEN_PRICE),
     ).toBeOnTheScreen();
   });
 
   it('shows loading skeletons when isLoading is true', () => {
-    const { getByTestId, queryByTestId } = renderWithProvider(
+    const { getByTestId, queryByTestId } = render(
       <PriceLegacy {...baseProps} isLoading />,
     );
 
@@ -89,20 +52,18 @@ describe('PriceLegacy', () => {
   });
 
   it('renders price diff with positive color and sign', () => {
-    const { getByTestId } = renderWithProvider(<PriceLegacy {...baseProps} />);
+    const { getByTestId } = render(<PriceLegacy {...baseProps} />);
     const label = getByTestId('price-label');
     expect(label).toBeOnTheScreen();
   });
 
   it('shows price diff text even when prices array is empty', () => {
-    const { getByTestId } = renderWithProvider(
-      <PriceLegacy {...baseProps} prices={[]} />,
-    );
+    const { getByTestId } = render(<PriceLegacy {...baseProps} prices={[]} />);
     expect(getByTestId('price-label')).toBeOnTheScreen();
   });
 
   it('does not render token price when currentPrice is NaN', () => {
-    const { queryByTestId } = renderWithProvider(
+    const { queryByTestId } = render(
       <PriceLegacy {...baseProps} currentPrice={NaN} />,
     );
     expect(
@@ -121,7 +82,7 @@ describe('PriceLegacy', () => {
       </Button>
     ));
 
-    const { getByTestId } = renderWithProvider(<PriceLegacy {...baseProps} />);
+    const { getByTestId } = render(<PriceLegacy {...baseProps} />);
 
     expect(getByTestId('price-label')).toHaveTextContent('Today');
 
@@ -131,7 +92,7 @@ describe('PriceLegacy', () => {
   });
 
   it('passes PriceChart the correct props', () => {
-    renderWithProvider(<PriceLegacy {...baseProps} />);
+    render(<PriceLegacy {...baseProps} />);
 
     expect(PriceChart).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -143,14 +104,14 @@ describe('PriceLegacy', () => {
   });
 
   it('handles zero priceDiff without sign prefix', () => {
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId } = render(
       <PriceLegacy {...baseProps} priceDiff={0} comparePrice={100} />,
     );
     expect(getByTestId('price-label')).toBeOnTheScreen();
   });
 
   it('handles negative priceDiff', () => {
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId } = render(
       <PriceLegacy
         {...baseProps}
         priceDiff={-10}
@@ -162,21 +123,18 @@ describe('PriceLegacy', () => {
   });
 
   it('passes sparse prices to PriceChart so empty state uses the same threshold', () => {
+    const ActualPriceChart = jest.requireActual<
+      typeof import('../PriceChart/PriceChart')
+    >('../PriceChart/PriceChart').default;
     jest
       .mocked(PriceChart)
-      .mockImplementationOnce(({ prices }) =>
-        prices.length < CHART_DATA_THRESHOLD ? (
-          <View testID="price-chart-insufficient-data" />
-        ) : (
-          <></>
-        ),
-      );
+      .mockImplementationOnce((props) => <ActualPriceChart {...props} />);
 
     const fourPrices: TokenPrice[] = Array.from({ length: 4 }, (_, i) => [
       String(1736761237983 + i),
       100 + i,
     ]);
-    const { getByTestId } = renderWithProvider(
+    const { getByTestId } = render(
       <PriceLegacy {...baseProps} prices={fourPrices} />,
     );
 
@@ -187,47 +145,5 @@ describe('PriceLegacy', () => {
       undefined,
     );
     expect(getByTestId('price-chart-insufficient-data')).toBeOnTheScreen();
-  });
-
-  describe('chart navigation buttons', () => {
-    it('calls onTimePeriodChange when a button is pressed with flag OFF (below chart)', () => {
-      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(false);
-      const onTimePeriodChange = jest.fn();
-      const { getAllByTestId } = renderWithProvider(
-        <PriceLegacy
-          {...baseProps}
-          chartNavigationButtons={['1d', '7d']}
-          onTimePeriodChange={onTimePeriodChange}
-        />,
-      );
-
-      fireEvent.press(getAllByTestId('chart-navigation-button')[0]);
-
-      expect(onTimePeriodChange).toHaveBeenCalledWith('1d');
-    });
-
-    it('calls onTimePeriodChange when a button is pressed with flag ON (above chart)', () => {
-      mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
-      const onTimePeriodChange = jest.fn();
-      const { getAllByTestId } = renderWithProvider(
-        <PriceLegacy
-          {...baseProps}
-          chartNavigationButtons={['1d', '7d']}
-          onTimePeriodChange={onTimePeriodChange}
-        />,
-      );
-
-      fireEvent.press(getAllByTestId('chart-navigation-button')[1]);
-
-      expect(onTimePeriodChange).toHaveBeenCalledWith('7d');
-    });
-
-    it('does not render navigation buttons when onTimePeriodChange is omitted', () => {
-      const { queryAllByTestId } = renderWithProvider(
-        <PriceLegacy {...baseProps} chartNavigationButtons={['1d', '7d']} />,
-      );
-
-      expect(queryAllByTestId('chart-navigation-button')).toHaveLength(0);
-    });
   });
 });

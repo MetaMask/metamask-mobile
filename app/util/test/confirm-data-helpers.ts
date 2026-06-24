@@ -685,7 +685,6 @@ const stakingConfirmationBaseState = {
   },
   settings: {
     showFiatOnTestnets: true,
-    basicFunctionalityEnabled: true,
   },
 };
 

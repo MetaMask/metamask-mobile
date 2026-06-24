@@ -1,5 +1,4 @@
 import React, { useCallback, useMemo } from 'react';
-import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
 import { Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,7 +24,6 @@ import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
 import { AddWalletTestIds } from './AddWallet.testIds';
 interface ActionConfig {
   analyticsEvent: IMetaMetricsEvent;
@@ -40,7 +38,6 @@ const AddWallet = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const isAddDeviceSyncEnabled = useSelector(selectAddDeviceSyncEnabled);
 
   const actionConfigs = useMemo<ActionConfig[]>(
     () => [
@@ -72,23 +69,8 @@ const AddWallet = () => {
         testID: AddWalletTestIds.CONNECT_HARDWARE_BUTTON,
         title: strings('connect_hardware.title_select_hardware'),
       },
-      ...(isAddDeviceSyncEnabled
-        ? [
-            {
-              // TODO: This is a temporary event for the add device to wallet. Event will be updated after the add device to wallet is implemented.
-              analyticsEvent: MetaMetricsEvents.ADD_HARDWARE_WALLET,
-              description: strings(
-                'multichain_accounts.link_metamask_extension_description',
-              ),
-              iconName: IconName.Extension,
-              routeName: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-              testID: AddWalletTestIds.LINK_METAMASK_EXTENSION_BUTTON,
-              title: strings('multichain_accounts.link_metamask_extension'),
-            },
-          ]
-        : []),
     ],
-    [isAddDeviceSyncEnabled],
+    [],
   );
 
   const handleBack = useCallback(() => navigation.goBack(), [navigation]);
@@ -107,13 +89,9 @@ const AddWallet = () => {
   );
 
   return (
-    <SafeAreaView
-      edges={['bottom', 'left', 'right']}
-      style={tw`flex-1 bg-default`}
-    >
+    <SafeAreaView style={tw`flex-1 bg-default`} edges={['top', 'bottom']}>
       <Box testID={AddWalletTestIds.SCREEN} twClassName="flex-1 bg-default">
         <HeaderStandard
-          includesTopInset
           backButtonProps={{
             accessibilityLabel: strings('navigation.back'),
             onPress: handleBack,

@@ -4,7 +4,6 @@ import {
   findAnrDialogWaitTapPoint,
   isAndroidPingSuccessful,
   shouldWaitForOfflineEmulator,
-  shouldWaitForUnidentifiedOfflineEmulator,
 } from './EmulatorHelpers.ts';
 
 describe('EmulatorHelpers', () => {
@@ -25,32 +24,6 @@ describe('EmulatorHelpers', () => {
       expect(shouldWaitForOfflineEmulator('appium_smoke_avd', 'emulator')).toBe(
         false,
       );
-    });
-  });
-
-  describe('shouldWaitForUnidentifiedOfflineEmulator', () => {
-    it('returns true in CI when exactly one emulator is starting', () => {
-      expect(
-        shouldWaitForUnidentifiedOfflineEmulator({
-          isCI: true,
-          offlineOrAuthorizingCount: 1,
-        }),
-      ).toBe(true);
-    });
-
-    it('returns false when multiple emulators are starting or not in CI', () => {
-      expect(
-        shouldWaitForUnidentifiedOfflineEmulator({
-          isCI: true,
-          offlineOrAuthorizingCount: 2,
-        }),
-      ).toBe(false);
-      expect(
-        shouldWaitForUnidentifiedOfflineEmulator({
-          isCI: false,
-          offlineOrAuthorizingCount: 1,
-        }),
-      ).toBe(false);
     });
   });
 

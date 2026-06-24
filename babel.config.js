@@ -1,8 +1,4 @@
-// React Compiler plugin (incl. bailout logging and test-env gating) lives in its
-// own module so this config stays focused on wiring plugins together.
-// `reactCompilerPlugins` is empty under Jest and a single-element array otherwise.
-// eslint-disable-next-line import-x/no-commonjs
-const { reactCompilerBabelConfig } = require('./scripts/react-compiler');
+const isTestEnv = process.env.NODE_ENV === 'test';
 
 // Hermes (RN's bytecode compiler) does not accept dynamic `import()` syntax —
 // even inside dead code branches — and aborts with "Invalid expression
@@ -64,8 +60,11 @@ module.exports = {
         /\/expo\/virtual\/streams\.js$/.test(filename)),
   ],
   presets: ['babel-preset-expo'],
+  // Babel can find the plugin without the `babel-plugin-` prefix. Ex. `babel-plugin-react-compiler` -> `react-compiler`
   plugins: [
-    ...reactCompilerBabelConfig,
+    // Disabled under Jest (see isTestEnv note above) to avoid the jest.mock
+    // hoisting conflict with the compiler-injected `_c` helper.
+    ...(isTestEnv ? [] : ['react-compiler']),
     'transform-inline-environment-variables',
     dynamicImportToRequire,
     // NOTE: react-native-reanimated/plugin must be listed LAST.

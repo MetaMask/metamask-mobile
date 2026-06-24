@@ -1,7 +1,10 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
-import type { TraderProfileResponse } from '@metamask/social-controllers';
+import type {
+  TraderProfileResponse,
+  FetchTraderProfileOptions,
+} from '@metamask/social-controllers';
 import {
   formatSocialQueryErrorMessage,
   reportSocialServiceFailure,
@@ -12,7 +15,6 @@ import {
   type UseFollowToggleResult,
 } from '../../../../hooks/useFollowToggle';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
-import { buildTraderProfileQueryKey } from '../../../../../util/social/traderProfileQueries';
 
 export interface UseTraderProfileOptions {
   refetchInterval?: number;
@@ -34,13 +36,17 @@ export const useTraderProfile = (
   options?: UseTraderProfileOptions,
 ): UseTraderProfileResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
-  const queryKey = buildTraderProfileQueryKey(addressOrId);
+  const fetchOptions: FetchTraderProfileOptions = { addressOrId };
+
+  const queryKey: [string, FetchTraderProfileOptions] = [
+    'SocialService:fetchTraderProfile',
+    fetchOptions,
+  ];
 
   const { data, isLoading, error, refetch } = useQuery<TraderProfileResponse>({
     queryKey,
     enabled: Boolean(addressOrId) && isUnlocked,
     refetchInterval: options?.refetchInterval,
-    refetchOnMount: 'always',
   });
 
   useLogSocialQueryError(error, {

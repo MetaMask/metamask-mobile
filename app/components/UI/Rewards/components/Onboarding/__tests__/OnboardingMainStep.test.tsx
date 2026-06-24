@@ -3,7 +3,6 @@ import { screen, fireEvent } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import { renderWithProviders, createMockDispatch } from '../testUtils';
 import OnboardingMainStep from '../OnboardingMainStep';
-import { StackActions } from '@react-navigation/native';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
   REWARDS_ONBOARD_TERMS_URL,
@@ -22,7 +21,6 @@ import { selectVipProgramEnabled } from '../../../../../../selectors/featureFlag
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockNavigationDispatch = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -32,7 +30,6 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
-      dispatch: mockNavigationDispatch,
     }),
     useFocusEffect: (effect: () => void | (() => void)) => {
       ReactActual.useEffect(() => {
@@ -781,22 +778,18 @@ describe('OnboardingMainStep', () => {
     });
   });
 
-  describe('post-opt-in transition', () => {
-    it('replaces onboarding with dashboard when subscriptionId exists on focus', () => {
+  describe('auto-redirect to dashboard', () => {
+    it('navigates to dashboard when subscriptionId exists on focus', () => {
       setupSelectors(new Map([[selectRewardsSubscriptionId, 'sub-123']]));
 
       renderWithProviders(<OnboardingMainStep />);
 
-      expect(mockNavigationDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.REWARDS_DASHBOARD),
-      );
-      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
     });
 
     it('does not navigate when subscriptionId does not exist', () => {
       renderWithProviders(<OnboardingMainStep />);
 
-      expect(mockNavigationDispatch).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.REWARDS_DASHBOARD);
     });
   });

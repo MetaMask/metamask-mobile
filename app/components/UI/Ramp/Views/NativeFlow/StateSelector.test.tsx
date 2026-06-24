@@ -17,7 +17,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../constants', () => ({
+jest.mock('../../Deposit/constants', () => ({
   US_STATES: [
     { code: 'CA', name: 'California' },
     { code: 'NY', name: 'New York' },

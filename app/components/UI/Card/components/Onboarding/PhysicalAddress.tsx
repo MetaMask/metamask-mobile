@@ -52,8 +52,13 @@ import {
   setOnValueChange,
 } from './RegionSelectorModal';
 import { countryCodeToFlag } from '../../util/countryCodeToFlag';
-import { COINME_TERMS_URL, CRB_PRIVACY_POLICY_URL } from '../../constants';
-import { getCardUsDisclosureUrls } from '../../util/registrationSettings';
+import {
+  COINME_TERMS_URL,
+  CRB_ACCOUNT_OPENING_URL,
+  CRB_PRIVACY_NOTICE_URL,
+  CRB_PRIVACY_POLICY_URL,
+  CRB_TERMS_URL,
+} from '../../constants';
 
 const VERIFICATION_POLLING_INTERVAL_MS = 3000;
 
@@ -265,14 +270,9 @@ const PhysicalAddress = () => {
     }
   }, [user]);
 
-  const {
-    eSignConsentDisclosureUSUrl,
-    crbTermsUrl,
-    crbAccountOpeningUrl,
-    crbNoticeOfPrivacyUrl,
-  } = useMemo(
-    () => getCardUsDisclosureUrls(registrationSettings),
-    [registrationSettings],
+  const eSignConsentDisclosureUSUrl = useMemo(
+    () => registrationSettings?.links?.us?.eSignConsentDisclosure || '',
+    [registrationSettings?.links?.us?.eSignConsentDisclosure],
   );
 
   const {
@@ -306,22 +306,22 @@ const PhysicalAddress = () => {
   }, []);
 
   const openCrbTerms = useCallback(() => {
-    if (crbTermsUrl) {
-      Linking.openURL(crbTermsUrl);
+    if (CRB_TERMS_URL) {
+      Linking.openURL(CRB_TERMS_URL);
     }
-  }, [crbTermsUrl]);
+  }, []);
 
   const openCrbAccountOpening = useCallback(() => {
-    if (crbAccountOpeningUrl) {
-      Linking.openURL(crbAccountOpeningUrl);
+    if (CRB_ACCOUNT_OPENING_URL) {
+      Linking.openURL(CRB_ACCOUNT_OPENING_URL);
     }
-  }, [crbAccountOpeningUrl]);
+  }, []);
 
   const openCrbPrivacyNotice = useCallback(() => {
-    if (crbNoticeOfPrivacyUrl) {
-      Linking.openURL(crbNoticeOfPrivacyUrl);
+    if (CRB_PRIVACY_NOTICE_URL) {
+      Linking.openURL(CRB_PRIVACY_NOTICE_URL);
     }
-  }, [crbNoticeOfPrivacyUrl]);
+  }, []);
 
   const openCrbPrivacyPolicy = useCallback(() => {
     if (CRB_PRIVACY_POLICY_URL) {

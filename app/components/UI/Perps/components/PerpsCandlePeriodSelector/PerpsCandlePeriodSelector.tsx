@@ -1,18 +1,15 @@
 import React from 'react';
 import { Pressable } from 'react-native';
-import {
-  Box,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-  Text,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { CandlePeriod, CANDLE_PERIODS } from '@metamask/perps-controller';
 import { getPerpsCandlePeriodSelector } from '../../Perps.testIds';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import { styleSheet } from './PerpsCandlePeriodSelector.styles';
 
 // Default candle periods with preset values
@@ -122,7 +119,7 @@ const PerpsCandlePeriodSelector: React.FC<PerpsCandlePeriodSelectorProps> = ({
         <Icon
           name={IconName.ArrowDown}
           size={IconSize.Xs}
-          color={IconColor.IconAlternative}
+          color={IconColor.Alternative}
         />
       </Pressable>
     </Box>

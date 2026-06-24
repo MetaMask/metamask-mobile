@@ -17,8 +17,6 @@ export interface ScrollOptions {
   percent?: number;
   scrollableElement?: PlaywrightElement;
   duration?: number;
-  /** WDIO native scrollIntoView limit; default is 10. */
-  maxScrolls?: number;
 }
 
 /**
@@ -318,7 +316,6 @@ export default class PlaywrightGestures {
       percent,
       scrollableElement,
       duration,
-      maxScrolls = 30,
     } = options || {};
     await debugElementAction(logger, 'Scrolling element into view', elem);
     await elem.unwrap().scrollIntoView({
@@ -328,7 +325,6 @@ export default class PlaywrightGestures {
       percent,
       scrollableElement: scrollableElement?.unwrap(),
       duration,
-      maxScrolls,
     });
   }
 

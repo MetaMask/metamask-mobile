@@ -1,5 +1,5 @@
 import type { NotificationServicesPushControllerMessenger } from '@metamask/notification-services-controller/push-services';
-import { RootMessenger } from '../../types';
+import { RootExtendedMessenger, RootMessenger } from '../../types';
 import {
   Messenger,
   MessengerActions,
@@ -7,16 +7,18 @@ import {
 } from '@metamask/messenger';
 
 export function getNotificationServicesPushControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<NotificationServicesPushControllerMessenger>,
-    MessengerEvents<NotificationServicesPushControllerMessenger>
-  >,
+  baseControllerMessenger: RootExtendedMessenger,
 ): NotificationServicesPushControllerMessenger {
-  const messenger: NotificationServicesPushControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'NotificationServicesPushController',
+    MessengerActions<NotificationServicesPushControllerMessenger>,
+    MessengerEvents<NotificationServicesPushControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'NotificationServicesPushController',
-    parent: rootMessenger,
+    parent: baseControllerMessenger,
   });
-  rootMessenger.delegate({
+  baseControllerMessenger.delegate({
     actions: ['AuthenticationController:getBearerToken'],
     events: [],
     messenger,

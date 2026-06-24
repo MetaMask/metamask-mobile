@@ -10,51 +10,69 @@ import { getTransactionIcon } from '../../../util/transaction-icons';
 import { getNetworkImageSource } from '../../../util/networks';
 import { RootState } from '../../../reducers';
 import { AppThemeKey } from '../../../util/theme/models';
+import type { ActivityKind } from '../../../util/activity-adapters';
 import { createStyles } from './ActivityListItemRow.styles';
 import { ActivityListItemRowIcon } from './ActivityListItemRowIcon';
 import { ActivityListItemRowLayout } from './ActivityListItemRowLayout';
-import { PendingActivityListItemRow } from './PendingActivityListItemRow';
-import { resolveIconType } from './resolveIconType';
 import { useActivityListItemRowContent } from './useActivityListItemRowContent';
 import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
-import type { ActivityKind } from '../../../util/activity-adapters';
 
 export { resolveActivityListItemTitle } from './useActivityListItemRowContent';
-export { resolveIconType } from './resolveIconType';
 
-/**
- * Perps (always Arbitrum) and Predict (always Polygon) are single-network
- * domains, so the network badge on the avatar conveys nothing — suppress it.
- */
-function isSingleNetworkDomainKind(type: ActivityKind): boolean {
-  return (
-    type.startsWith('perps') ||
-    type.startsWith('prediction') ||
-    type.startsWith('market') ||
-    type.startsWith('stopMarket')
-  );
-}
-
-/**
- * Per-kind title severity for perps closes (design): liquidations are an error
- * (red), stop-loss closes are a warning (amber). Everything else is neutral.
- */
-function resolveTitleSeverity(
-  type: ActivityKind,
-): 'error' | 'warning' | undefined {
+function resolveIconType(type: ActivityKind): string {
   switch (type) {
+    case 'send':
+    case 'sell':
+    case 'lendingDeposit':
+    case 'deposit':
+    case 'wrap':
+    case 'perpsAddFunds':
+    case 'predictionsAddFunds':
+      return 'send';
+    case 'receive':
+    case 'buy':
+    case 'claim':
+    case 'claimMusdBonus':
+    case 'lendingWithdrawal':
+    case 'unwrap':
+    case 'nftMint':
+    case 'perpsWithdraw':
+    case 'predictionsWithdrawFunds':
+    case 'predictionClaimWinnings':
+    case 'predictionCashedOut':
+    case 'predictionPlaced':
+    case 'perpsReceivedFundingFees':
+      return 'receive';
+    case 'swap':
+    case 'swapIncomplete':
+    case 'bridge':
+    case 'convert':
+      return 'swap';
+    case 'approveSpendingCap':
+    case 'revokeSpendingCap':
+    case 'increaseSpendingCap':
+    case 'contractInteraction':
+    case 'contractDeployment':
+    case 'smartAccountUpgrade':
+    case 'perpsOpenLong':
+    case 'perpsCloseLong':
     case 'perpsCloseLongLiquidated':
-    case 'perpsCloseShortLiquidated':
-      return 'error';
     case 'perpsCloseLongStopLoss':
+    case 'perpsOpenShort':
+    case 'perpsCloseShort':
+    case 'perpsCloseShortLiquidated':
     case 'perpsCloseShortStopLoss':
-      return 'warning';
-    default:
-      return undefined;
+    case 'perpsPaidFundingFees':
+    case 'perpsCloseShortTakeProfit':
+    case 'perpsCloseLongTakeProfit':
+    case 'marketShort':
+    case 'stopMarketCloseShort':
+    case 'marketCloseShort':
+      return 'interaction';
   }
 }
 
-function ResolvedActivityListItemRow({
+export function ActivityListItemRow({
   bridgeHistoryItem,
   item,
   index,
@@ -79,11 +97,9 @@ function ResolvedActivityListItemRow({
     appTheme,
     osColorScheme,
   );
-  const networkImageSource = isSingleNetworkDomainKind(item.type)
-    ? undefined
-    : getNetworkImageSource({
-        chainId: item.chainId,
-      });
+  const networkImageSource = getNetworkImageSource({
+    chainId: item.chainId,
+  });
 
   const handlePress = useCallback(() => {
     onPress?.(item);
@@ -95,14 +111,12 @@ function ResolvedActivityListItemRow({
         <ActivityListItemRowIcon
           fallbackIcon={icon}
           networkImageSource={networkImageSource}
-          iconUrl={content.avatarIconUrl}
           styles={styles}
           tokens={content.avatarTokens}
         />
       }
       index={index}
       isFailed={isFailed}
-      titleSeverity={resolveTitleSeverity(item.type)}
       item={item}
       onPress={handlePress}
       primaryAmount={content.primaryAmount}
@@ -113,19 +127,6 @@ function ResolvedActivityListItemRow({
       title={titleOverride ?? content.title}
     />
   );
-}
-
-/**
- * Dispatches to the pending or resolved row variant, mirroring the extension's
- * `ActivityRow`. Holds no hooks so the branch can switch as a row transitions
- * from pending to a final status.
- */
-export function ActivityListItemRow(props: ActivityListItemRowProps) {
-  if (props.item.status === 'pending') {
-    return <PendingActivityListItemRow {...props} />;
-  }
-
-  return <ResolvedActivityListItemRow {...props} />;
 }
 
 export default ActivityListItemRow;

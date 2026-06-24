@@ -19,7 +19,6 @@ import {
 } from './environment';
 
 const MAINNET_HEX_CHAIN_ID = '0x1';
-const TOKEN_VALUE_UNLIMITED_THRESHOLD = 10 ** 15;
 
 export type ValueTransfer = NonNullable<
   V1TransactionByHashResponse['valueTransfers']
@@ -81,19 +80,6 @@ export function getTokenApprovalAmountFromData(
 
   return stringifyParsedTokenAmount(
     args._value ?? args.value ?? args.amount ?? args[1],
-  );
-}
-
-export function isUnlimitedApprovalAmount(
-  amount: string | undefined,
-  decimals = 0,
-): boolean {
-  if (!amount) {
-    return false;
-  }
-
-  return (
-    Number.parseFloat(amount) / 10 ** decimals > TOKEN_VALUE_UNLIMITED_THRESHOLD
   );
 }
 

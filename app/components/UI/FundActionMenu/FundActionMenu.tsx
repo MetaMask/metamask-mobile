@@ -30,6 +30,7 @@ import type {
   ActionConfig,
 } from './FundActionMenu.types';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
+import useRampsUnifiedV2Enabled from '../Ramp/hooks/useRampsUnifiedV2Enabled';
 import { useRampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 import { useElevatedSurface } from '../../../util/theme/themeUtils';
 
@@ -47,6 +48,7 @@ const FundActionMenu = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
+  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
   const { goToBuy, goToSell } = useRampNavigation();
   const rampsButtonClickData = useRampsButtonClickData();
 
@@ -113,7 +115,7 @@ const FundActionMenu = () => {
             button_text: 'Buy',
             location: 'FundActionMenu',
             chain_id_destination: getChainIdForAsset(),
-            ramp_type: 'UNIFIED_BUY_2',
+            ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'BUY',
             region: rampGeodetectedRegion,
             is_authenticated: rampsButtonClickData.is_authenticated,
             preferred_provider: rampsButtonClickData.preferred_provider,
@@ -154,6 +156,7 @@ const FundActionMenu = () => {
         },
       ] as ActionConfig[],
     [
+      isV2UnifiedEnabled,
       rampGeodetectedRegion,
       getChainIdForAsset,
       canSignTransactions,

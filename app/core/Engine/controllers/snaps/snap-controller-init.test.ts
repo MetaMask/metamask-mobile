@@ -68,6 +68,7 @@ describe('SnapControllerInit', () => {
         name: 'mock-event',
         properties: {},
         sensitiveProperties: {},
+        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },

@@ -30,7 +30,7 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   }),
 }));
 
-jest.mock('../../constants', () => ({
+jest.mock('../../Deposit/constants', () => ({
   TRANSAK_SUPPORT_URL: 'https://support.transak.com',
 }));
 
@@ -53,14 +53,17 @@ jest.mock(
   },
 );
 
-jest.mock('../../components/DepositOrderContent/DepositOrderContent', () => {
-  const { createElement } = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () => createElement(View, { testID: 'deposit-order-content' }),
-  };
-});
+jest.mock(
+  '../../Deposit/components/DepositOrderContent/DepositOrderContent',
+  () => {
+    const { createElement } = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: () => createElement(View, { testID: 'deposit-order-content' }),
+    };
+  },
+);
 
 const renderWithTheme = (component: React.ReactElement) =>
   render(

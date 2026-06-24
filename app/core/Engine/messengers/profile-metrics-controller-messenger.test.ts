@@ -26,8 +26,6 @@ describe('getProfileMetricsControllerMessenger', () => {
         actions: expect.arrayContaining([
           'AccountsController:getState',
           'ProfileMetricsService:submitMetrics',
-          'ProfileMetricsService:fetchNonces',
-          'ProofOfOwnershipService:sign',
         ]),
       }),
     );

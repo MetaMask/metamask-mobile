@@ -14,15 +14,14 @@ import { RootMessenger } from '../types';
  * @returns The MoneyAccountBalanceServiceMessenger.
  */
 export function getMoneyAccountBalanceServiceMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<MoneyAccountBalanceServiceMessenger>,
-    MessengerEvents<MoneyAccountBalanceServiceMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): MoneyAccountBalanceServiceMessenger {
-  const messenger: MoneyAccountBalanceServiceMessenger = new Messenger({
-    namespace: 'MoneyAccountBalanceService',
-    parent: rootMessenger,
-  });
+  const messenger = new Messenger<
+    'MoneyAccountBalanceService',
+    MessengerActions<MoneyAccountBalanceServiceMessenger>,
+    MessengerEvents<MoneyAccountBalanceServiceMessenger>,
+    RootMessenger
+  >({ namespace: 'MoneyAccountBalanceService', parent: rootMessenger });
 
   rootMessenger.delegate({
     messenger,

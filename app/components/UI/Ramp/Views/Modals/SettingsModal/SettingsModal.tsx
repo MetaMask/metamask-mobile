@@ -32,7 +32,7 @@ import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import {
   getProviderToken,
   resetProviderToken,
-} from '../../../utils/ProviderTokenVault';
+} from '../../../Deposit/utils/ProviderTokenVault';
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 

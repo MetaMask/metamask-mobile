@@ -316,8 +316,6 @@ const NowTabContent: React.FC<TabProps> = ({
               onViewAll={() =>
                 navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW, {
                   initialTimeOption: CRYPTO_MOVERS_TIME_OPTION,
-                  entryPoint: 'crypto_movers',
-                  quickBuySource: 'explore_now',
                 })
               }
               testID="section-header-view-all-crypto_movers"

@@ -1,5 +1,4 @@
 jest.mock('../framework/logger', () => ({
-  ...jest.requireActual('../framework/logger'),
   createLogger: jest.fn(() => ({
     debug: jest.fn(),
     error: jest.fn(),
@@ -79,10 +78,7 @@ describe('general.flow Playwright dev screens', () => {
     );
     expect(PlaywrightAssertions.expectElementToBeVisible).toHaveBeenCalledWith(
       serverRow,
-      expect.objectContaining({
-        timeout: 1500,
-        description: 'Dev Server Row should be visible',
-      }),
+      expect.objectContaining({ timeout: 2000 }),
     );
     expect(PlaywrightGestures.waitAndTap).toHaveBeenCalledWith(serverRow);
     expect(PlaywrightMatchers.getElementById).not.toHaveBeenCalled();

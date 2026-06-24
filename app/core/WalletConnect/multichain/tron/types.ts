@@ -1,9 +1,54 @@
-import type { RpcMethod } from '../types';
+import type { SnapMappedRequest } from '../types';
 
 /**
  * A Tron address in Base58Check format, starting with 'T'.
  */
 export type TronAddress = `T${string}`;
+
+/**
+ * Canonical Snap params for `signMessage`.
+ */
+export interface TronSnapSignMessageParams {
+  address: TronAddress;
+  /**
+   * Base64-encoded message. The Snap base64-decodes it before signing.
+   */
+  message: string;
+}
+
+/**
+ * Canonical Snap params for `signTransaction`.
+ */
+export interface TronSnapSignTransactionParams {
+  address: TronAddress;
+  transaction: {
+    rawDataHex: string;
+    type: string;
+  };
+}
+
+/**
+ * WalletConnect JSON-RPC method names supported by the Tron bridge.
+ */
+export type TronWalletConnectMethod =
+  | 'tron_signMessage'
+  | 'tron_signTransaction';
+
+/**
+ * Raw WalletConnect request handled by the Tron mapper.
+ */
+export interface TronWalletConnectRequest<Params = unknown> {
+  method: TronWalletConnectMethod | string;
+  params: Params;
+}
+
+/**
+ * WalletConnect params for `tron_signMessage`.
+ */
+export interface TronWalletConnectSignMessageParams {
+  address?: string;
+  message?: string;
+}
 
 /**
  * Minimal TronWeb `raw_data` shape needed to recover the contract type.
@@ -23,58 +68,32 @@ export interface TronWalletConnectTransaction {
 }
 
 /**
- * WalletConnect Tron RPC contract.
- *
- * `tron_method_version: 'v1'` asks dapps for the flat v1 transaction shape,
- * but the mapper still accepts the legacy double-wrapped shape for backwards
- * compatibility.
- *
- * @see https://docs.reown.com/advanced/multichain/rpc-reference/tron-rpc
+ * WalletConnect params for `tron_signTransaction`.
  */
-export interface TronWalletConnectSpec {
-  tron_signMessage: {
-    params: {
-      address: string;
-      message: string;
-    };
-    response: {
-      signature: string;
-    };
-  };
-  tron_signTransaction: {
-    params: {
-      address: string;
-      transaction: TronWalletConnectTransaction;
-    };
-    response: TronWalletConnectTransaction & {
-      signature: string[];
-    };
-  };
+export interface TronWalletConnectSignTransactionParams {
+  address?: string;
+  transaction?: TronWalletConnectTransaction;
+  [key: string]: unknown;
 }
 
 /**
- * Tron Snap RPC contract used by the mobile WalletConnect bridge.
+ * Signature result from the Tron Snap. Always a single hex-encoded
+ * signature for both `signMessage` and `signTransaction`.
  */
-export interface TronSnapSpec {
-  signMessage: {
-    params: {
-      address: TronAddress;
-      message: string;
-    };
-    response: {
-      signature: string;
-    };
-  };
-  signTransaction: {
-    params: {
-      address: TronAddress;
-      transaction: {
-        rawDataHex?: string;
-        type?: string;
-      };
-    };
-    response: {
-      signature: string;
-    };
-  };
+export interface TronSnapSignatureResult {
+  signature?: string;
 }
+
+/**
+ * Union of request shapes returned by the inbound Tron mapper.
+ */
+export type TronSnapMappedRequest =
+  | (SnapMappedRequest<Partial<TronSnapSignMessageParams>> & {
+      method: 'signMessage';
+    })
+  | (SnapMappedRequest<{
+      address?: TronSnapSignTransactionParams['address'];
+      transaction: Partial<TronSnapSignTransactionParams['transaction']>;
+    }> & {
+      method: 'signTransaction';
+    });

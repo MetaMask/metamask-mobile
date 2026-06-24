@@ -300,7 +300,6 @@ jest.mock('./Sections/TopTraders/hooks', () => ({
     refresh: jest.fn().mockResolvedValue(undefined),
     toggleFollow: jest.fn(),
   })),
-  usePrefetchTraderProfiles: jest.fn(),
 }));
 
 /** Shape of first argument to useHomeViewedEvent (for asserting in tests). */

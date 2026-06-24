@@ -3,13 +3,14 @@ import { View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Button,
-  ButtonSize,
   ButtonVariant,
-  Icon,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
+import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
@@ -85,7 +86,7 @@ const PerpsErrorState: React.FC<PerpsErrorStateProps> = ({
       <View style={styles.content}>
         <Icon
           name={errorContent.icon}
-          color={IconColor.IconMuted}
+          color={IconColor.Muted}
           size={iconSize}
           style={styles.icon}
         />

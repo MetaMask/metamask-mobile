@@ -1,16 +1,9 @@
 import { useMutation } from '@tanstack/react-query';
 import AppConstants from '../../../../core/AppConstants';
 import Engine from '../../../../core/Engine';
-import type {
-  PriceAlert,
-  SaveAlertParams,
-  UpdateAlertParams,
-} from './constants';
+import type { SaveAlertParams, UpdateAlertParams } from './constants';
 
-const ALERTS_URL = `${AppConstants.PRICE_ALERTS_API.URL}/v1/alerts`;
-
-export const priceAlertsQueryKey = (assetId: string) =>
-  ['priceAlerts', assetId] as const;
+const ALERTS_URL = `${AppConstants.PRICE_ALERTS_API.URL}/alerts`;
 
 async function authenticatedFetch(
   url: string,
@@ -30,12 +23,6 @@ async function authenticatedFetch(
 
 export const fetchAlerts = (assetId: string): Promise<Response> =>
   authenticatedFetch(`${ALERTS_URL}?asset=${encodeURIComponent(assetId)}`);
-
-export const fetchSupportedChains = (): Promise<Response> =>
-  fetch(`${ALERTS_URL}/supported-chains`, {
-    headers: { Accept: 'application/json' },
-    credentials: 'omit',
-  });
 
 export const createAlert = (params: SaveAlertParams): Promise<Response> =>
   authenticatedFetch(ALERTS_URL, {
@@ -57,17 +44,15 @@ export const updateAlert = (
     body: JSON.stringify(params),
   });
 
-export const useSubmitPriceAlert = (editingAlert?: PriceAlert) => {
+export const useSavePriceAlert = () => {
   const { mutateAsync, isPending } = useMutation<void, Error, SaveAlertParams>({
-    mutationFn: async ({ asset, threshold, recurring }) => {
-      const response = editingAlert
-        ? await updateAlert(editingAlert.id, { threshold, recurring })
-        : await createAlert({ asset, threshold, recurring });
+    mutationFn: async (params) => {
+      const response = await createAlert(params);
       if (!response.ok) {
         const body = await response.text().catch(() => '(no body)');
         throw new Error(`HTTP ${response.status}: ${body}`);
       }
     },
   });
-  return { submit: mutateAsync, isSubmitting: isPending };
+  return { save: mutateAsync, isSubmitting: isPending };
 };

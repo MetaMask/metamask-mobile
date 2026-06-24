@@ -461,14 +461,9 @@ export const selectMusdConversionStatuses = createSelector(
 
 **Path:** `app/components/UI/Earn/selectors/featureFlags/index.ts`
 
-Add new version-gated flag with local fallback (see [`docs/readme/version-gated-feature-flags.md`](../../readme/version-gated-feature-flags.md)):
+Add new version-gated flag with local fallback (following the same pattern as other mUSD flags):
 
 ```typescript
-import {
-  validatedVersionGatedFeatureFlag,
-  type VersionGatedFeatureFlag,
-} from '../../../../util/remoteFeatureFlag';
-
 export const selectMusdQuickConvertEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {

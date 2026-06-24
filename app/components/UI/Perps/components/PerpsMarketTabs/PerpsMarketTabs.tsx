@@ -5,17 +5,15 @@ import React, {
   useRef,
   useMemo,
 } from 'react';
-import {
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import { View, Modal } from 'react-native';
 import {
   TabsList,
@@ -128,7 +126,7 @@ const OrdersTabContent = React.memo<OrdersTabContentProps>(
             <Icon
               name={IconName.Book}
               size={IconSize.Xl}
-              color={IconColor.IconMuted}
+              color={TextColor.Muted}
               style={styles.emptyStateIcon}
               testID={PerpsMarketTabsSelectorsIDs.ORDERS_EMPTY_ICON}
             />

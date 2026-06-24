@@ -15,12 +15,14 @@ import type { RootMessenger } from '../types';
  * @returns The ChompApiServiceMessenger.
  */
 export function getChompApiServiceMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<ChompApiServiceMessenger>,
-    MessengerEvents<ChompApiServiceMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): ChompApiServiceMessenger {
-  const messenger: ChompApiServiceMessenger = new Messenger({
+  const messenger = new Messenger<
+    'ChompApiService',
+    MessengerActions<ChompApiServiceMessenger>,
+    MessengerEvents<ChompApiServiceMessenger>,
+    RootMessenger
+  >({
     namespace: 'ChompApiService',
     parent: rootMessenger,
   });
@@ -34,10 +36,8 @@ export function getChompApiServiceMessenger(
 
 type AllowedInitializationActions = RemoteFeatureFlagControllerGetStateAction;
 
-export type ChompApiServiceInitMessenger = Messenger<
-  'ChompApiServiceInitialization',
-  AllowedInitializationActions,
-  never
+export type ChompApiServiceInitMessenger = ReturnType<
+  typeof getChompApiServiceInitMessenger
 >;
 
 /**
@@ -47,13 +47,13 @@ export type ChompApiServiceInitMessenger = Messenger<
  * @param rootMessenger - The root messenger.
  * @returns The restricted init messenger.
  */
-export function getChompApiServiceInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<ChompApiServiceInitMessenger>,
-    MessengerEvents<ChompApiServiceInitMessenger>
-  >,
-): ChompApiServiceInitMessenger {
-  const messenger: ChompApiServiceInitMessenger = new Messenger({
+export function getChompApiServiceInitMessenger(rootMessenger: RootMessenger) {
+  const messenger = new Messenger<
+    'ChompApiServiceInitialization',
+    AllowedInitializationActions,
+    never,
+    RootMessenger
+  >({
     namespace: 'ChompApiServiceInitialization',
     parent: rootMessenger,
   });

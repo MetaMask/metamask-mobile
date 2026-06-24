@@ -6,6 +6,8 @@ import {
 import { WebSocketServiceMessenger } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../../types';
 
+export type { WebSocketServiceMessenger };
+
 /**
  * Get a messenger for the WebSocket service. This is scoped to the
  * actions and events that the WebSocket service is allowed to handle.
@@ -14,12 +16,14 @@ import { RootMessenger } from '../../types';
  * @returns The WebSocketServiceMessenger.
  */
 export function getWebSocketServiceMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<WebSocketServiceMessenger>,
-    MessengerEvents<WebSocketServiceMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): WebSocketServiceMessenger {
-  const messenger: WebSocketServiceMessenger = new Messenger({
+  const messenger = new Messenger<
+    'WebSocketService',
+    MessengerActions<WebSocketServiceMessenger>,
+    MessengerEvents<WebSocketServiceMessenger>,
+    RootMessenger
+  >({
     namespace: 'WebSocketService',
     parent: rootMessenger,
   });

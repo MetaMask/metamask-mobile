@@ -1,9 +1,24 @@
-import { Messenger, MOCK_ANY_NAMESPACE } from '@metamask/messenger';
+import {
+  Messenger,
+  type MessengerActions,
+  type MessengerEvents,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import {
   getPermissionControllerMessenger,
   getPermissionControllerInitMessenger,
+  PermissionControllerInitMessenger,
 } from './permission-controller-messenger';
-import { RootMessenger } from '../types';
+import { PermissionControllerMessenger } from '@metamask/permission-controller';
+
+type RootMessenger = Messenger<
+  MockAnyNamespace,
+  | MessengerActions<PermissionControllerMessenger>
+  | MessengerActions<PermissionControllerInitMessenger>,
+  | MessengerEvents<PermissionControllerMessenger>
+  | MessengerEvents<PermissionControllerInitMessenger>
+>;
 
 function getRootMessenger(): RootMessenger {
   return new Messenger({

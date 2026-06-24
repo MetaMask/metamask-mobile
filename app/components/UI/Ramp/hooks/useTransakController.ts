@@ -6,7 +6,7 @@ import {
   getProviderToken,
   storeProviderToken,
   resetProviderToken,
-} from '../utils/ProviderTokenVault';
+} from '../Deposit/utils/ProviderTokenVault';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import type {

@@ -2,17 +2,18 @@ import React, { useMemo, useState, useCallback, useRef } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
 import {
   Button,
-  ButtonSize,
   ButtonVariant,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -247,8 +248,8 @@ const PerpsOpenOrderCard: React.FC<PerpsOpenOrderCardProps> = ({
                 <View style={styles.fillBadge}>
                   <Icon
                     name={IconName.Loading}
-                    size={IconSize.Xs}
-                    color={IconColor.IconAlternative}
+                    size={IconSize.Xss}
+                    color={IconColor.Alternative}
                     style={styles.fillBadgeIcon}
                   />
                   <Text

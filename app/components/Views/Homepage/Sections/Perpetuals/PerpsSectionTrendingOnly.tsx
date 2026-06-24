@@ -86,21 +86,19 @@ const PerpsSectionTrendingOnly = forwardRef<
             onPress={handleViewAllPerps}
             testID={homepageSectionTitleTestId(analyticsName)}
           />
-          <Box paddingTop={3}>
-            {marketsLoading ? (
-              <SectionRow>
-                <PerpsPositionSkeleton />
-              </SectionRow>
-            ) : (
-              <PerpsTrendingCarousel
-                markets={allCarouselMarkets}
-                watchlistSymbolSet={watchlistSymbolSet}
-                sparklines={sparklines}
-                onPressMarket={handleTilePress}
-                onPressViewMore={handleViewMorePerps}
-              />
-            )}
-          </Box>
+          {marketsLoading ? (
+            <SectionRow>
+              <PerpsPositionSkeleton />
+            </SectionRow>
+          ) : (
+            <PerpsTrendingCarousel
+              markets={allCarouselMarkets}
+              watchlistSymbolSet={watchlistSymbolSet}
+              sparklines={sparklines}
+              onPressMarket={handleTilePress}
+              onPressViewMore={handleViewMorePerps}
+            />
+          )}
         </Box>
       </View>
     );

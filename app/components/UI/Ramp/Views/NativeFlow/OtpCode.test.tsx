@@ -134,7 +134,7 @@ jest.mock('react-native-confirmation-code-field', () => ({
   useClearByFocusCell: () => [{}, jest.fn()],
 }));
 
-jest.mock('../../constants', () => ({
+jest.mock('../../Deposit/constants', () => ({
   TRANSAK_SUPPORT_URL: 'https://support.transak.com',
 }));
 

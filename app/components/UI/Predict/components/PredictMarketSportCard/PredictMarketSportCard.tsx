@@ -390,8 +390,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                   <Button
                     onPress={() => handleBuy(item)}
                     style={{ backgroundColor: getButtonBackgroundColor(item) }}
-                    twClassName={isCompact ? 'p-0' : 'px-1'}
-                    contentWrapperProps={{ twClassName: 'w-full' }}
+                    twClassName={`${isCompact ? 'p-0' : ''}`}
                     isFullWidth
                     size={isCompact ? ButtonBaseSize.Md : ButtonBaseSize.Lg}
                     testID={
@@ -401,11 +400,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                     <Text
                       variant={TextVariant.BodySm}
                       numberOfLines={1}
-                      adjustsFontSizeToFit
-                      minimumFontScale={0.7}
-                      ellipsizeMode="clip"
                       style={tw.style(
-                        'font-medium text-center flex-1',
+                        'font-medium text-center',
                         getButtonTextColorClass(item),
                       )}
                     >

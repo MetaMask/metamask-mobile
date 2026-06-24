@@ -36,8 +36,9 @@ jest.mock('react-native-modal', () => {
     ) : null;
 });
 
-jest.mock('../../../Ramp/types/legacyDeposit', () => ({
-  ...jest.requireActual('../../../Ramp/types/legacyDeposit'),
+// Mock @consensys/native-ramps-sdk to provide missing enum
+jest.mock('@consensys/native-ramps-sdk', () => ({
+  ...jest.requireActual('@consensys/native-ramps-sdk'),
   DepositPaymentMethodDuration: {
     instant: 'instant',
     oneToTwoDays: 'oneToTwoDays',

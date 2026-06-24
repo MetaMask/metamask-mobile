@@ -8,11 +8,7 @@ import {
   Dimensions,
 } from 'react-native';
 import {
-  Icon,
-  IconColor,
   IconColor as ReactNativeDsIconColor,
-  IconName,
-  IconSize,
   IconSize as ReactNativeDsIconSize,
   Spinner,
 } from '@metamask/design-system-react-native';
@@ -21,6 +17,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../locales/i18n';
 import { WebSocketConnectionState } from '@metamask/perps-controller';
 import { PerpsWebSocketHealthToastSelectorsIDs } from '../../Perps.testIds';
@@ -127,7 +128,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
           description: strings(
             'perps.connection.websocket_disconnected_message',
           ),
-          iconColor: IconColor.ErrorDefault,
+          iconColor: IconColor.Error,
           showSpinner: false,
         };
 
@@ -140,7 +141,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
               attempt: reconnectionAttempt,
             },
           ),
-          iconColor: IconColor.WarningDefault,
+          iconColor: IconColor.Warning,
           showSpinner: false,
         };
 
@@ -148,7 +149,7 @@ const PerpsWebSocketHealthToast: React.FC = memo(() => {
         return {
           title: strings('perps.connection.websocket_connected'),
           description: strings('perps.connection.websocket_connected_message'),
-          iconColor: IconColor.SuccessDefault,
+          iconColor: IconColor.Success,
           showSpinner: false,
         };
 

@@ -77,7 +77,7 @@ jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../constants/transak', () => ({
+jest.mock('../../Deposit/constants/constants', () => ({
   VALIDATION_REGEX: {
     addressLine1: /^.{1,100}$/,
     addressLine2: /^.{0,100}$/,
@@ -92,7 +92,7 @@ jest.mock('../../constants/transak', () => ({
   ],
 }));
 
-jest.mock('../../hooks/useForm', () => ({
+jest.mock('../../Deposit/hooks/useForm', () => ({
   useForm: <T extends Record<string, string>>({
     initialFormData,
     validateForm,

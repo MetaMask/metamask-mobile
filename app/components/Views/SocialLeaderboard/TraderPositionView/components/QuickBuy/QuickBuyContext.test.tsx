@@ -78,7 +78,6 @@ const buildController = (
   sortedQuotes: [],
   selectedQuoteRequestId: undefined,
   setSelectedQuoteRequestId: jest.fn(),
-  handleSelectQuote: jest.fn(),
   quotesLastFetchedAt: null,
   refreshCount: 0,
   quoteRefreshRateMs: 30000,

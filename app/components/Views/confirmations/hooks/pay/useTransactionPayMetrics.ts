@@ -21,9 +21,6 @@ import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTo
 import { useAccountTokens } from '../send/useAccountTokens';
 import { usePaySectionSourceMetrics } from './usePaySectionSourceMetrics';
 import { usePaySectionRecipientMetrics } from './usePaySectionRecipientMetrics';
-import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
-import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
-import { normalizeMetaMaskPayPaymentMethod } from '../../utils/transaction-pay-metrics';
 
 /**
  * Dispatches UI-only mm_pay_* properties to confirmationMetrics.
@@ -43,12 +40,7 @@ export function useTransactionPayMetrics() {
   const automaticPayToken = useRef<BridgeToken | undefined>(undefined);
   const hasLoadedQuoteRef = useRef(false);
   const quotes = useTransactionPayQuotes();
-  const { availableTokens: tokens, hasTokens } =
-    useTransactionPayAvailableTokens();
-
-  const presentedPaymentMethodRef = useRef<string | null>(null);
-  const fiatPaymentActions = useFiatPaymentHighlightedActions();
-  const selectedFiatMethod = useTransactionPaySelectedFiatPaymentMethod();
+  const { availableTokens: tokens } = useTransactionPayAvailableTokens();
 
   const transactionId = transactionMeta?.id ?? '';
   const storedMetrics = useSelector((state: RootState) =>
@@ -69,35 +61,6 @@ export function useTransactionPayMetrics() {
     () => tokens.filter((t) => !t.disabled),
     [tokens],
   );
-
-  const availablePaymentMethods = useMemo(() => {
-    const methods = new Set<string>();
-
-    if (availableTokens.length > 0) {
-      methods.add('crypto');
-    }
-
-    for (const action of fiatPaymentActions) {
-      const method = normalizeMetaMaskPayPaymentMethod(action.paymentType);
-
-      if (method) {
-        methods.add(method);
-      }
-    }
-
-    return [...methods];
-  }, [availableTokens, fiatPaymentActions]);
-
-  const currentPaymentMethodSelection =
-    normalizeMetaMaskPayPaymentMethod(selectedFiatMethod?.paymentType) ??
-    (payToken ? 'crypto' : null);
-
-  if (
-    currentPaymentMethodSelection &&
-    presentedPaymentMethodRef.current === null
-  ) {
-    presentedPaymentMethodRef.current = currentPaymentMethodSelection;
-  }
 
   const primaryRequiredToken = useTransactionPayRequiredTokens().find(
     (t) => !t.skipIfBalance,
@@ -135,13 +98,6 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_section_recipient_switch_count = recipient.switchCount;
 
     properties.mm_pay_entry_point = getEntryPoint(transactionMeta) ?? null;
-  }
-
-  properties.mm_pay_payment_method_available = availablePaymentMethods;
-
-  if (presentedPaymentMethodRef.current) {
-    properties.mm_pay_payment_method_presented =
-      presentedPaymentMethodRef.current;
   }
 
   if (

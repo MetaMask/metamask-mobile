@@ -42,7 +42,8 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => ({
-  ...jest.requireActual('@metamask/design-system-react-native'),
+  IconColor: { PrimaryDefault: 'PrimaryDefault' },
+  IconSize: { Md: 'Md' },
   Spinner: () => null,
 }));
 

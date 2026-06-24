@@ -1,7 +1,7 @@
-import { AvatarAccount } from '@metamask/design-system-react-native';
 import { screen } from '@testing-library/react-native';
-import { Image } from 'expo-image';
 import React from 'react';
+import { Image } from 'expo-image';
+import { AvatarAccount } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TraderPositionHeader from './TraderPositionHeader';
 
@@ -9,7 +9,7 @@ const REAL_AVATAR_URL = 'https://example.com/avatar.png';
 const TRADER_ADDRESS = '0x0000000000000000000000000000000000000001';
 
 const baseProps = {
-  traderName: 'trader-1',
+  traderName: 'nodestack.eth',
   onBack: jest.fn(),
   onTraderPress: jest.fn(),
   backButtonTestID: 'back-button',
@@ -20,7 +20,7 @@ describe('TraderPositionHeader', () => {
   it('renders the trader name', () => {
     renderWithProvider(<TraderPositionHeader {...baseProps} />);
 
-    expect(screen.getByText('trader-1')).toBeOnTheScreen();
+    expect(screen.getByText('nodestack.eth')).toBeOnTheScreen();
   });
 
   it('renders the avatar image when a real image url is provided', () => {

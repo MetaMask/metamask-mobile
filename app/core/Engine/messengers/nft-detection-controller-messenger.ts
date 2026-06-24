@@ -5,7 +5,6 @@ import {
 } from '@metamask/messenger';
 import { RootMessenger } from '../types';
 import { NftDetectionControllerMessenger } from '@metamask/assets-controllers';
-
 /**
  * Get the messenger for the NFT detection controller. This is scoped to the
  * NFT detection controller is allowed to handle.
@@ -14,12 +13,14 @@ import { NftDetectionControllerMessenger } from '@metamask/assets-controllers';
  * @returns The NftDetectionControllerMessenger.
  */
 export function getNftDetectionControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<NftDetectionControllerMessenger>,
-    MessengerEvents<NftDetectionControllerMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): NftDetectionControllerMessenger {
-  const messenger: NftDetectionControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'NftDetectionController',
+    MessengerActions<NftDetectionControllerMessenger>,
+    MessengerEvents<NftDetectionControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'NftDetectionController',
     parent: rootMessenger,
   });

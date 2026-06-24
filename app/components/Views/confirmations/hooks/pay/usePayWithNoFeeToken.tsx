@@ -1,16 +1,9 @@
 import React, { ReactNode, useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
-import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
-import {
-  isSubsidizedRoute,
-  isSubsidizedSource,
-} from '../../utils/relayFixedSpread';
-import { hasTransactionType } from '../../utils/transaction';
+import { isSubsidizedSource } from '../../utils/relayFixedSpread';
 import { safeFormatChainIdToHex } from '../../../../UI/Card/util/safeFormatChainIdToHex';
-import { MUSD_TOKEN_ADDRESS } from '../../../../UI/Earn/constants/musd';
-import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { AssetType } from '../../types/token';
 import { NoFeeTag } from '../../components/UI/no-fee-tag';
@@ -23,16 +16,6 @@ export interface NoFeeTokenResult {
   symbol: string;
 }
 
-/** The Money Account vault token; withdrawals always convert FROM this. */
-const MONAD_MUSD_TARGET = {
-  address: MUSD_TOKEN_ADDRESS,
-  chainId: CHAIN_IDS.MONAD,
-};
-
-const isMonadMusd = (address: string, chainId: string) =>
-  chainId?.toLowerCase() === MONAD_MUSD_TARGET.chainId.toLowerCase() &&
-  address?.toLowerCase() === MONAD_MUSD_TARGET.address.toLowerCase();
-
 export type NoFeeTokenTagRenderer = (
   address: string,
   chainId: string,
@@ -40,13 +23,8 @@ export type NoFeeTokenTagRenderer = (
 ) => ReactNode;
 
 /**
- * Identifies payment tokens that incur no Relay fixed-spread fee.
- *
- * For deposits (and perps/predict) the picker token is the source, so a token
- * is no-fee when it is a subsidised source. For a Money Account withdrawal the
- * picker token is instead the destination and the source is always Monad mUSD,
- * so the match is directional: a subsidised route FROM Monad mUSD INTO the
- * token, or Monad mUSD itself (same-token routes are omitted from the flag).
+ * Identifies payment tokens whose `(chainId, address)` matches a subsidised
+ * source declared by the `confirmationsRelayFixedSpread` LD flag.
  *
  * Accepts an optional `excludeToken` to de-duplicate against the preferred
  * token row — when the preferred token is already a no-fee token, this hook
@@ -64,48 +42,38 @@ export function usePayWithNoFeeToken({
 } {
   const relayFixedSpread = useSelector(selectRelayFixedSpread);
   const { availableTokens } = useTransactionPayAvailableTokens();
-  const transactionMeta = useTransactionMetadataRequest();
-  const isMoneyWithdraw = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountWithdraw,
-  ]);
 
-  const matchesNoFee = useCallback(
+  const matchesSubsidizedSource = useCallback(
     (address: string | undefined, chainId: string | undefined): boolean => {
       if (!address || !chainId) return false;
-      const hexChainId = safeFormatChainIdToHex(chainId);
-
-      if (isMoneyWithdraw) {
-        return (
-          isMonadMusd(address, hexChainId) ||
-          isSubsidizedRoute(relayFixedSpread, MONAD_MUSD_TARGET, {
-            address,
-            chainId: hexChainId,
-          })
-        );
-      }
-
       return isSubsidizedSource(relayFixedSpread, {
         address,
-        chainId: hexChainId,
+        chainId: safeFormatChainIdToHex(chainId),
       });
     },
-    [relayFixedSpread, isMoneyWithdraw],
+    [relayFixedSpread],
   );
 
-  // Matches purely on the route config — NOT gated on `availableTokens`. The
-  // full token-list modal tags via `matchesNoFee` directly, and withdrawal
-  // receive tokens (incl. mUSD) come from the allowlist rather than the user's
-  // held tokens, so gating here would drop their tag on bottom-sheet rows.
   const isNoFeeToken = useCallback(
-    (address: string, chainId: string): boolean =>
-      matchesNoFee(address, chainId),
-    [matchesNoFee],
+    (address: string, chainId: string): boolean => {
+      const token = availableTokens.find(
+        (t) =>
+          t.address.toLowerCase() === address.toLowerCase() &&
+          t.chainId?.toLowerCase() === chainId.toLowerCase(),
+      );
+
+      if (!token) return false;
+
+      return matchesSubsidizedSource(token.address, token.chainId);
+    },
+    [availableTokens, matchesSubsidizedSource],
   );
 
   const noFeeToken = useMemo(() => {
     const eligible = availableTokens.filter(
       (token: AssetType) =>
-        !token.disabled && matchesNoFee(token.address, token.chainId),
+        !token.disabled &&
+        matchesSubsidizedSource(token.address, token.chainId),
     );
 
     const sorted = [...eligible].sort(
@@ -129,24 +97,24 @@ export function usePayWithNoFeeToken({
       chainId: match.chainId as Hex,
       symbol: match.symbol,
     };
-  }, [availableTokens, excludeToken, matchesNoFee]);
+  }, [availableTokens, excludeToken, matchesSubsidizedSource]);
 
   const renderNoFeeTag: TokenTagRenderer = useCallback(
     (token: AssetType) => {
-      if (!matchesNoFee(token.address, token.chainId)) {
+      if (!matchesSubsidizedSource(token.address, token.chainId)) {
         return null;
       }
       return <NoFeeTag />;
     },
-    [matchesNoFee],
+    [matchesSubsidizedSource],
   );
 
   const renderNoFeeTagForToken: NoFeeTokenTagRenderer = useCallback(
     (address, chainId, options) =>
-      matchesNoFee(address, chainId) ? (
+      matchesSubsidizedSource(address, chainId) ? (
         <NoFeeTag testID={options?.testID} />
       ) : null,
-    [matchesNoFee],
+    [matchesSubsidizedSource],
   );
 
   return { noFeeToken, isNoFeeToken, renderNoFeeTag, renderNoFeeTagForToken };

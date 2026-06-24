@@ -15,12 +15,14 @@ import { TransactionControllerIsAtomicBatchSupportedAction } from '@metamask/tra
 import { NetworkControllerGetNetworkConfigurationByChainIdAction } from '@metamask/network-controller';
 
 export function getTransactionPayControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<TransactionPayControllerMessenger>,
-    MessengerEvents<TransactionPayControllerMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): TransactionPayControllerMessenger {
-  const messenger: TransactionPayControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'TransactionPayController',
+    MessengerActions<TransactionPayControllerMessenger>,
+    MessengerEvents<TransactionPayControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'TransactionPayController',
     parent: rootMessenger,
   });
@@ -68,22 +70,21 @@ type InitMessengerActions =
   | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetNetworkConfigurationByChainIdAction
   | TransactionControllerIsAtomicBatchSupportedAction;
-
 type InitMessengerEvents = never;
 
-export type TransactionPayControllerInitMessenger = Messenger<
-  'TransactionPayControllerInit',
-  InitMessengerActions,
-  InitMessengerEvents
+export type TransactionPayControllerInitMessenger = ReturnType<
+  typeof getTransactionPayControllerInitMessenger
 >;
 
 export function getTransactionPayControllerInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<TransactionPayControllerInitMessenger>,
-    MessengerEvents<TransactionPayControllerInitMessenger>
-  >,
-): TransactionPayControllerInitMessenger {
-  const messenger: TransactionPayControllerInitMessenger = new Messenger({
+  rootMessenger: RootMessenger,
+) {
+  const messenger = new Messenger<
+    'TransactionPayControllerInit',
+    InitMessengerActions,
+    InitMessengerEvents,
+    RootMessenger
+  >({
     namespace: 'TransactionPayControllerInit',
     parent: rootMessenger,
   });

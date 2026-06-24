@@ -222,6 +222,7 @@ describe('EarnMusdConversionEducationView', () => {
       goToBuy: jest.fn(),
       goToAggregator: mockGoToAggregator,
       goToSell: jest.fn(),
+      goToDeposit: jest.fn(),
     });
     mockSelectMoneyHubEnabledFlag.mockReturnValue(false);
 
@@ -504,6 +505,7 @@ describe('EarnMusdConversionEducationView', () => {
         goToBuy: mockGoToBuy,
         goToAggregator: mockGoToAggregator,
         goToSell: jest.fn(),
+        goToDeposit: jest.fn(),
       });
 
       mockUseMusdConversionFlowData.mockReturnValue({

@@ -7,11 +7,11 @@ import {
   FIAT_ORDER_STATES,
 } from '../../../../constants/on-ramp';
 import { Order } from '@consensys/on-ramp-sdk';
-import { NativeTransakAccessToken } from '../types/legacyDeposit';
+import { NativeTransakAccessToken } from '@consensys/native-ramps-sdk';
 import initialRootState from '../../../../util/test/initial-root-state';
-import { getProviderToken } from '../utils/ProviderTokenVault';
+import { getProviderToken } from '../Deposit/utils/ProviderTokenVault';
 
-jest.mock('../utils/ProviderTokenVault', () => ({
+jest.mock('../Deposit/utils/ProviderTokenVault', () => ({
   getProviderToken: jest.fn(),
 }));
 

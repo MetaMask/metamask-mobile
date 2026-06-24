@@ -227,7 +227,7 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
   };
 });
 
-jest.mock('../../../Ramp/components/DepositDateField', () => {
+jest.mock('../../../Ramp/Deposit/components/DepositDateField', () => {
   const React = jest.requireActual('react');
   const { TextInput } = jest.requireActual('react-native');
 

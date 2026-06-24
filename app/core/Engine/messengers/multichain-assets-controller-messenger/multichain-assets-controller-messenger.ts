@@ -3,26 +3,28 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
-import { RootMessenger } from '../../types';
+import { RootExtendedMessenger, RootMessenger } from '../../types';
 import { MultichainAssetsControllerMessenger } from '@metamask/assets-controllers';
 
 /**
  * Get the MultichainAssetsControllerMessenger for the MultichainAssetsController.
  *
- * @param rootMessenger - The root messenger.
+ * @param baseControllerMessenger - The base controller messenger.
  * @returns The MultichainAssetsControllerMessenger.
  */
 export function getMultichainAssetsControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<MultichainAssetsControllerMessenger>,
-    MessengerEvents<MultichainAssetsControllerMessenger>
-  >,
+  rootExtendedMessenger: RootExtendedMessenger,
 ): MultichainAssetsControllerMessenger {
-  const messenger: MultichainAssetsControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'MultichainAssetsController',
+    MessengerActions<MultichainAssetsControllerMessenger>,
+    MessengerEvents<MultichainAssetsControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'MultichainAssetsController',
-    parent: rootMessenger,
+    parent: rootExtendedMessenger,
   });
-  rootMessenger.delegate({
+  rootExtendedMessenger.delegate({
     actions: [
       'PermissionController:getPermissions',
       'SnapController:handleRequest',

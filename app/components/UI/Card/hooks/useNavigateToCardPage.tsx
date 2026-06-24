@@ -2,7 +2,7 @@ import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { BrowserTab } from '../../Tokens/types';
-import { isCardTravelUrl } from '../../../../util/url';
+import { isCardTravelUrl, isCardTosUrl } from '../../../../util/url';
 import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -10,10 +10,10 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { CardActions } from '../util/metrics';
 import { Linking } from 'react-native';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
-import Logger from '../../../../util/Logger';
 
 export enum CardInternalBrowserPage {
   TRAVEL = 'travel',
+  TOS = 'tos',
 }
 
 const PAGE_CONFIG: Record<
@@ -29,6 +29,11 @@ const PAGE_CONFIG: Record<
     getUrl: () => AppConstants.CARD.TRAVEL_URL,
     action: CardActions.NAVIGATE_TO_TRAVEL_PAGE,
   },
+  [CardInternalBrowserPage.TOS]: {
+    urlCheck: isCardTosUrl,
+    getUrl: () => AppConstants.CARD.CARD_TOS_URL,
+    action: CardActions.NAVIGATE_TO_CARD_TOS_PAGE,
+  },
 };
 
 export const useNavigateToInternalBrowserPage = (
@@ -40,6 +45,18 @@ export const useNavigateToInternalBrowserPage = (
   const navigateToInternalBrowserPage = useCallback(
     (page: CardInternalBrowserPage) => {
       const { urlCheck, getUrl, action } = PAGE_CONFIG[page];
+
+      if (page === CardInternalBrowserPage.TOS) {
+        Linking.openURL(getUrl());
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+            .addProperties({
+              action,
+            })
+            .build(),
+        );
+        return;
+      }
 
       const existingTab = browserTabs?.find(({ url }: BrowserTab) =>
         urlCheck(url),
@@ -85,36 +102,17 @@ export const useNavigateToInternalBrowserPage = (
  * Hook that provides navigation functions for Card-related internal browser flows.
  * Returns convenience methods for Travel (in-app browser) and TOS (external link).
  */
-export const useNavigateToCardPage = (
-  navigation: AppNavigationProp,
-  cardTermsAndConditionsUrl: string = AppConstants.CARD.CARD_TOS_URL,
-) => {
+export const useNavigateToCardPage = (navigation: AppNavigationProp) => {
   const { navigateToInternalBrowserPage } =
     useNavigateToInternalBrowserPage(navigation);
-  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const navigateToTravelPage = useCallback(() => {
     navigateToInternalBrowserPage(CardInternalBrowserPage.TRAVEL);
   }, [navigateToInternalBrowserPage]);
 
   const navigateToCardTosPage = useCallback(() => {
-    Linking.openURL(cardTermsAndConditionsUrl).catch((error) => {
-      Logger.error(error as Error, {
-        tags: { feature: 'card' },
-        context: {
-          name: 'useNavigateToCardPage',
-          data: { url: cardTermsAndConditionsUrl },
-        },
-      });
-    });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.NAVIGATE_TO_CARD_TOS_PAGE,
-        })
-        .build(),
-    );
-  }, [cardTermsAndConditionsUrl, trackEvent, createEventBuilder]);
+    navigateToInternalBrowserPage(CardInternalBrowserPage.TOS);
+  }, [navigateToInternalBrowserPage]);
 
   return {
     navigateToTravelPage,

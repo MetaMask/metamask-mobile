@@ -294,20 +294,6 @@ const CardAuthentication = () => {
     resetToLogin();
   }, [resetToLogin]);
 
-  const handleForgotPassword = useCallback(() => {
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-        .addProperties({
-          action: CardActions.AUTHENTICATION_FORGOT_PASSWORD,
-        })
-        .build(),
-    );
-    navigation.navigate(Routes.CARD.MODALS.ID, {
-      screen: Routes.CARD.MODALS.FORGOT_PASSWORD,
-      params: { location: selectedLocation },
-    });
-  }, [navigation, trackEvent, createEventBuilder, selectedLocation]);
-
   const title = useMemo(
     () =>
       isOtpStep
@@ -500,19 +486,6 @@ const CardAuthentication = () => {
                 testID: CardAuthenticationSelectors.PASSWORD_FIELD,
               }}
             />
-            <TouchableOpacity
-              onPress={handleForgotPassword}
-              testID={CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON}
-              style={tw.style('self-end mt-2')}
-            >
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                twClassName="text-default"
-              >
-                {strings('card.card_authentication.forgot_password_button')}
-              </Text>
-            </TouchableOpacity>
           </Box>
         </>
       ),
@@ -521,7 +494,6 @@ const CardAuthentication = () => {
       email,
       error,
       handleEmailChange,
-      handleForgotPassword,
       handleOtpValueChange,
       handlePasswordChange,
       handleResendOtp,

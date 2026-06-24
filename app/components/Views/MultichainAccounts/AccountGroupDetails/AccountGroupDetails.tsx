@@ -174,9 +174,8 @@ export const AccountGroupDetails = () => {
   }, [navigation]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right', 'bottom']}>
+    <SafeAreaView style={styles.safeArea}>
       <HeaderBase
-        includesTopInset
         style={styles.header}
         startButtonIconProps={{
           testID: AccountDetailsIds.BACK_BUTTON,

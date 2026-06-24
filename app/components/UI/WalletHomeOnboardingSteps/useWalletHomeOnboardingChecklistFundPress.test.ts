@@ -30,6 +30,12 @@ jest.mock('../Ramp/hooks/useRampsButtonClickData', () => ({
   useRampsButtonClickData: () => mockUseRampsButtonClickData(),
 }));
 
+const mockUseRampsUnifiedV2Enabled = jest.fn();
+jest.mock('../Ramp/hooks/useRampsUnifiedV2Enabled', () => ({
+  __esModule: true,
+  default: () => mockUseRampsUnifiedV2Enabled(),
+}));
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector: (...args: unknown[]) => unknown) =>
     selector({} as never),
@@ -56,6 +62,7 @@ describe('useWalletHomeOnboardingChecklistFundPress', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRampsButtonClickData.mockReturnValue(defaultButtonClickData);
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
     mockUseWalletHomeOnboardingFundRampIntent.mockReturnValue({
       rampIntent: undefined,
       isLoading: false,
@@ -77,7 +84,7 @@ describe('useWalletHomeOnboardingChecklistFundPress', () => {
     expect(mockAddProperties).toHaveBeenCalledWith({
       button_text: 'Add funds',
       location: ActionLocation.ONBOARDING_CHECKLIST,
-      ramp_type: 'UNIFIED_BUY_2',
+      ramp_type: 'BUY',
       region: 'US',
       is_authenticated: true,
       preferred_provider: 'test-provider',
@@ -104,5 +111,23 @@ describe('useWalletHomeOnboardingChecklistFundPress', () => {
     expect(goToBuy).toHaveBeenCalledWith({
       assetId: MAINNET_MUSD_RAMP_ASSET_ID,
     });
+  });
+
+  it('uses UNIFIED_BUY_2 ramp_type when V2 unified is enabled', () => {
+    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+
+    const { result } = renderHook(() =>
+      useWalletHomeOnboardingChecklistFundPress(goToBuy),
+    );
+
+    act(() => {
+      result.current();
+    });
+
+    expect(mockAddProperties).toHaveBeenCalledWith(
+      expect.objectContaining({
+        ramp_type: 'UNIFIED_BUY_2',
+      }),
+    );
   });
 });

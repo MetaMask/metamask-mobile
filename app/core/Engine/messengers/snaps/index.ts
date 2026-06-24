@@ -1,4 +1,5 @@
 export { getCronjobControllerMessenger } from './cronjob-controller-messenger';
+export type { CronjobControllerMessenger } from './cronjob-controller-messenger';
 export { getExecutionServiceMessenger } from './execution-service-messenger';
 export {
   getSnapControllerMessenger,
@@ -6,5 +7,7 @@ export {
 } from './snap-controller-messenger';
 export type { SnapControllerInitMessenger } from './snap-controller-messenger';
 export { getSnapInterfaceControllerMessenger } from './snap-interface-controller-messenger';
+export type { SnapInterfaceControllerMessenger } from './snap-interface-controller-messenger';
 export { getSnapRegistryControllerMessenger } from './snap-registry-controller-messenger.ts';
 export { getWebSocketServiceMessenger } from './websocket-service-messenger';
+export type { WebSocketServiceMessenger } from './websocket-service-messenger';

@@ -81,14 +81,6 @@ import {
 } from '../../../core/HardwareWallet';
 import { getTransactionUpdateErrorToastOptions } from '../../../util/confirmation/transactions';
 import { LedgerReplacementTxTypes } from '../LedgerModals/LedgerTransactionModal';
-import { selectIsActivityRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
-import AssetDetailsActivityListItem from './AssetDetailsActivityListItem';
-import ActivityListDateHeader from '../ActivityListItemRow/ActivityListDateHeader';
-import {
-  getGroupedActivityListItemKey,
-  groupActivityListItems,
-} from '../../../util/activity-adapters';
-import { mapTransactionToActivityItem } from './AssetDetailsActivityListItem.utils';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -227,7 +219,6 @@ class Transactions extends PureComponent {
       hideAwaitingConfirmation: PropTypes.func,
       showHardwareWalletError: PropTypes.func,
     }),
-    isActivityRedesignEnabled: PropTypes.bool,
   };
 
   static defaultProps = {
@@ -843,38 +834,6 @@ class Transactions extends PureComponent {
     />
   );
 
-  renderGroupedActivityItem = ({ item, index }) => {
-    if (item.type === 'pending-header') {
-      return <ActivityListDateHeader label={strings('transaction.pending')} />;
-    }
-
-    if (item.type === 'date-header') {
-      return <ActivityListDateHeader timestamp={item.date} />;
-    }
-
-    const tx =
-      item.item.raw?.type === 'localTransaction'
-        ? item.item.raw.data.primaryTransaction
-        : undefined;
-
-    if (!tx) {
-      return null;
-    }
-
-    return (
-      <AssetDetailsActivityListItem
-        transaction={tx}
-        index={index}
-        assetSymbol={this.props.assetSymbol}
-        chainId={this.props.chainId}
-        tokenChainId={this.props.tokenChainId}
-        navigation={this.props.navigation}
-        onSpeedUpAction={this.onSpeedUpAction}
-        onCancelAction={this.onCancelAction}
-      />
-    );
-  };
-
   get footer() {
     const {
       chainId,
@@ -923,21 +882,6 @@ class Transactions extends PureComponent {
 
     const filteredTransactions =
       filterDuplicateOutgoingTransactions(transactions);
-    const shouldUseActivityRedesign =
-      this.props.isActivityRedesignEnabled &&
-      this.props.location === TransactionDetailLocation.AssetDetails;
-    const activityListData = shouldUseActivityRedesign
-      ? groupActivityListItems(
-          filteredTransactions.map((transaction) =>
-            mapTransactionToActivityItem({
-              transaction,
-              assetSymbol: this.props.assetSymbol,
-              currentChainId: this.props.chainId,
-              tokenChainId: this.props.tokenChainId,
-            }),
-          ),
-        )
-      : filteredTransactions;
 
     return (
       <View style={styles.wrapper}>
@@ -946,16 +890,10 @@ class Transactions extends PureComponent {
             <FlatList
               testID={ActivitiesViewSelectorsIDs.CONTAINER}
               ref={this.flatList}
-              getItemLayout={
-                shouldUseActivityRedesign ? undefined : this.getItemLayout
-              }
-              data={activityListData}
+              getItemLayout={this.getItemLayout}
+              data={filteredTransactions}
               extraData={this.state}
-              keyExtractor={
-                shouldUseActivityRedesign
-                  ? getGroupedActivityListItemKey
-                  : this.keyExtractor
-              }
+              keyExtractor={this.keyExtractor}
               refreshControl={
                 <RefreshControl
                   colors={[colors.primary.default]}
@@ -964,11 +902,7 @@ class Transactions extends PureComponent {
                   onRefresh={this.onRefresh}
                 />
               }
-              renderItem={
-                shouldUseActivityRedesign
-                  ? this.renderGroupedActivityItem
-                  : this.renderItem
-              }
+              renderItem={this.renderItem}
               initialNumToRender={10}
               maxToRenderPerBatch={2}
               onEndReachedThreshold={0.5}
@@ -1047,7 +981,6 @@ const mapStateToProps = (state) => ({
   primaryCurrency: selectPrimaryCurrency(state),
   gasEstimateType: selectGasFeeControllerEstimateType(state),
   networkType: selectProviderType(state),
-  isActivityRedesignEnabled: selectIsActivityRedesignEnabled(state),
 });
 
 Transactions.contextType = ThemeContext;

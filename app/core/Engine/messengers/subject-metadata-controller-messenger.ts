@@ -14,12 +14,14 @@ import { RootMessenger } from '../types';
  * @returns The SubjectMetadataControllerMessenger.
  */
 export function getSubjectMetadataControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<SubjectMetadataControllerMessenger>,
-    MessengerEvents<SubjectMetadataControllerMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): SubjectMetadataControllerMessenger {
-  const messenger: SubjectMetadataControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'SubjectMetadataController',
+    MessengerActions<SubjectMetadataControllerMessenger>,
+    MessengerEvents<SubjectMetadataControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'SubjectMetadataController',
     parent: rootMessenger,
   });

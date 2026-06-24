@@ -347,16 +347,6 @@ export class E2EControllerOverrides {
     coin: string;
   }): Promise<OrderResult> {
     const result = this.mockService.mockCancelOrder(params.orderId);
-    try {
-      (this.controller as ControllerWithUpdate).update(
-        (state: PerpsControllerState) => {
-          state.lastUpdateTimestamp = Date.now();
-          state.lastError = null;
-        },
-      );
-    } catch (e) {
-      console.error('E2E Mock: cancelOrder — controller.update() failed:', e);
-    }
     return result;
   }
 
@@ -415,9 +405,9 @@ export class E2EControllerOverrides {
   // Mock orders subscription
   subscribeToOrders(params: { callback: (data: Order[]) => void }): () => void {
     console.log('E2E Mock: Intercepted subscribeToOrders');
-    this.mockService.registerOrderCallback(params.callback);
-    setTimeout(() => params.callback(this.mockService.getMockOrders()), 0);
-    return () => this.mockService.unregisterOrderCallback(params.callback);
+    const mockOrders = this.mockService.getMockOrders();
+    setTimeout(() => params.callback(mockOrders), 0);
+    return () => undefined;
   }
 
   // Mock order fills subscription

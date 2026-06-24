@@ -2,7 +2,6 @@ import type { Position, Trade } from '@metamask/social-controllers';
 import {
   getPerpPositionDirection,
   getPerpTradeDirection,
-  getSupportedXyzPerpMarketSymbol,
   isPerpPosition,
   isPerpTrade,
 } from './perp';
@@ -137,40 +136,6 @@ describe('perp utils', () => {
           direction: 'sell',
         }),
       ).toBe('short');
-    });
-  });
-
-  describe('getSupportedXyzPerpMarketSymbol', () => {
-    it('links non-HIP-3 symbols directly with no existence check', () => {
-      expect(getSupportedXyzPerpMarketSymbol('BTC')).toStrictEqual({
-        targetSymbol: 'BTC',
-        requiresXyzMarketCheck: false,
-      });
-    });
-
-    it('links xyz markets directly with no existence check', () => {
-      expect(getSupportedXyzPerpMarketSymbol('xyz:SPCX')).toStrictEqual({
-        targetSymbol: 'xyz:SPCX',
-        requiresXyzMarketCheck: false,
-      });
-    });
-
-    it('treats the xyz prefix case-insensitively', () => {
-      expect(getSupportedXyzPerpMarketSymbol('XYZ:SPCX')).toStrictEqual({
-        targetSymbol: 'XYZ:SPCX',
-        requiresXyzMarketCheck: false,
-      });
-    });
-
-    it('remaps another HIP-3 provider to its xyz equivalent and flags the check', () => {
-      expect(getSupportedXyzPerpMarketSymbol('cash:SPCX')).toStrictEqual({
-        targetSymbol: 'xyz:SPCX',
-        requiresXyzMarketCheck: true,
-      });
-      expect(getSupportedXyzPerpMarketSymbol('kv:TSLA')).toStrictEqual({
-        targetSymbol: 'xyz:TSLA',
-        requiresXyzMarketCheck: true,
-      });
     });
   });
 });

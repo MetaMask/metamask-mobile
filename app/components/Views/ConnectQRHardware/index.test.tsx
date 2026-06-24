@@ -328,7 +328,7 @@ describe('ConnectQRHardware', () => {
     );
   });
 
-  it('adds header top margin for the top inset', async () => {
+  it('does not add header top margin when SafeAreaView handles top inset', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
 
     const { getByTestId } = renderWithProvider(
@@ -343,10 +343,10 @@ describe('ConnectQRHardware', () => {
     const header = getByTestId(ConnectQRHardwareSelectorsIDs.HEADER);
 
     expect(header).toBeOnTheScreen();
-    expect(StyleSheet.flatten(header.props.style).marginTop).toBe(44);
+    expect(StyleSheet.flatten(header.props.style).marginTop).toBeUndefined();
   });
 
-  it('excludes top and bottom edges from parent SafeAreaView because header and instruction own spacing', async () => {
+  it('excludes bottom edge from parent SafeAreaView because instruction owns bottom spacing', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
 
     const { getByTestId } = renderWithProvider(
@@ -362,10 +362,14 @@ describe('ConnectQRHardware', () => {
       ConnectQRHardwareSelectorsIDs.CONTAINER,
     );
 
-    expect(safeAreaContainer.props.edges).toStrictEqual(['left', 'right']);
+    expect(safeAreaContainer.props.edges).toStrictEqual([
+      'top',
+      'left',
+      'right',
+    ]);
   });
 
-  it('excludes top and bottom edges from parent SafeAreaView when account selector owns bottom spacing', async () => {
+  it('excludes bottom edge from parent SafeAreaView when account selector owns bottom spacing', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
 
     const { getByTestId } = renderWithProvider(
@@ -385,7 +389,7 @@ describe('ConnectQRHardware', () => {
 
     expect(
       getByTestId(ConnectQRHardwareSelectorsIDs.CONTAINER).props.edges,
-    ).toStrictEqual(['left', 'right']);
+    ).toStrictEqual(['top', 'left', 'right']);
   });
 
   it('renders first page correctly when user clicks `continue` button', async () => {

@@ -46,7 +46,7 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { createStyles } from './PerpsLeverageBottomSheet.styles';
 import { usePerpsLivePrices } from '../../hooks';
 import {
@@ -708,7 +708,13 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
             />
             <View style={styles.warningTextContainer}>
               {isRecalculating ? (
-                <Skeleton width="80%" height={14} />
+                <SkeletonPlaceholder>
+                  <SkeletonPlaceholder.Item
+                    width="80%"
+                    height={14}
+                    borderRadius={4}
+                  />
+                </SkeletonPlaceholder>
               ) : (
                 <Text
                   variant={TextVariant.BodySm}
@@ -738,7 +744,13 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
                 </Text>
                 <View style={styles.priceValueContainer}>
                   {isRecalculating ? (
-                    <Skeleton width={80} height={16} />
+                    <SkeletonPlaceholder>
+                      <SkeletonPlaceholder.Item
+                        width={80}
+                        height={16}
+                        borderRadius={4}
+                      />
+                    </SkeletonPlaceholder>
                   ) : (
                     <Text
                       variant={TextVariant.BodyMd}

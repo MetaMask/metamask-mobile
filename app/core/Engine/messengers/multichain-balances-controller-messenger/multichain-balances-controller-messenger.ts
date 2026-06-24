@@ -3,26 +3,28 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
-import { RootMessenger } from '../../types';
+import { RootExtendedMessenger, RootMessenger } from '../../types';
 import { MultichainBalancesControllerMessenger } from '@metamask/assets-controllers';
 
 /**
  * Get the MultichainBalancesControllerMessenger for the MultichainBalancesController.
  *
- * @param rootMessenger - The root messenger.
+ * @param rootExtendedMessenger - The root extended messenger.
  * @returns The MultichainBalancesControllerMessenger.
  */
 export function getMultichainBalancesControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<MultichainBalancesControllerMessenger>,
-    MessengerEvents<MultichainBalancesControllerMessenger>
-  >,
+  rootExtendedMessenger: RootExtendedMessenger,
 ): MultichainBalancesControllerMessenger {
-  const messenger: MultichainBalancesControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'MultichainBalancesController',
+    MessengerActions<MultichainBalancesControllerMessenger>,
+    MessengerEvents<MultichainBalancesControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'MultichainBalancesController',
-    parent: rootMessenger,
+    parent: rootExtendedMessenger,
   });
-  rootMessenger.delegate({
+  rootExtendedMessenger.delegate({
     actions: [
       'AccountsController:listMultichainAccounts',
       'SnapController:handleRequest',

@@ -148,11 +148,8 @@ export const formatPrice = (
  * @example formatPriceWithSubscriptNotation(1.2345, 'EUR') => "€1.23"
  * @example formatPriceWithSubscriptNotation(0.00003415, 'USD', { maxDigitsAfterSubscript: 2 }) => "$0.0₄34"
  */
-export interface FormatPriceWithSubscriptNotationOptions
-  extends FormatSubscriptNotationOptions {
-  /** Override the default max decimal places (2 for ≥1, 4 for <1). */
-  maximumFractionDigits?: number;
-}
+export type FormatPriceWithSubscriptNotationOptions =
+  FormatSubscriptNotationOptions;
 
 export const formatPriceWithSubscriptNotation = (
   price: string | number,
@@ -179,12 +176,10 @@ export const formatPriceWithSubscriptNotation = (
   const subscript = formatSubscriptNotation(num, options);
   if (subscript) return addSymbol(subscript);
 
-  const maximumFractionDigits =
-    options?.maximumFractionDigits ?? (num >= 1 ? 2 : 4);
   const formattedNumber = new Intl.NumberFormat('en-US', {
     style: 'decimal',
     minimumFractionDigits: 2,
-    maximumFractionDigits,
+    maximumFractionDigits: num >= 1 ? 2 : 4,
   }).format(num);
   return addSymbol(formattedNumber);
 };

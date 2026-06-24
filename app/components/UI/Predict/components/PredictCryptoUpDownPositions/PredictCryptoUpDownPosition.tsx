@@ -132,10 +132,7 @@ const PredictCryptoUpDownPosition: React.FC<
   const handleClaimPress = useCallback(async () => {
     await executeGuardedAction(
       async () => {
-        // Claims are aggregate; market attribution is derived controller-side.
-        await claim({
-          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-        });
+        await claim();
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );

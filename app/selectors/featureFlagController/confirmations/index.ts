@@ -20,9 +20,8 @@ export const PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT: Record<
   string,
   boolean
 > = {};
-export const PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT:
-  | Record<string, string>
-  | undefined = undefined;
+export const PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT: string | undefined =
+  undefined;
 export const PAY_DEPOSIT_LIMITS_DEFAULT: Record<string, number> = {};
 export const SLIPPAGE_DEFAULT = 0.005;
 export const STX_DISABLED_DEFAULT = false;
@@ -65,7 +64,7 @@ export interface MetaMaskPayFlags {
 export interface MetaMaskPayExtendedFlags {
   enableDepositWalletWithdraw: boolean;
   enableMoneyAccountTransactions: Record<string, boolean>;
-  defaultPaySelectedSection?: Record<string, string>;
+  defaultPaySelectedSection?: string;
 }
 
 export interface MetaMaskPayTokensFlags {
@@ -134,10 +133,8 @@ export const selectMetaMaskPayFlags = createSelector(
       >) ?? PAY_ENABLE_MONEY_ACCOUNT_TRANSACTIONS_DEFAULT;
 
     const defaultPaySelectedSection =
-      (metaMaskPayExtendedFlags?.defaultPaySelectedSection as Record<
-        string,
-        string
-      >) ?? PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT;
+      (metaMaskPayExtendedFlags?.defaultPaySelectedSection as string) ??
+      PAY_DEFAULT_PAY_SELECTED_SECTION_DEFAULT;
 
     return {
       attemptsMax,

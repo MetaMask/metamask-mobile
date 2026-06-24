@@ -1,4 +1,4 @@
-import type { RampSurface } from '../types/depositAnalytics';
+import type { RampSurface } from '../Deposit/types/analytics';
 import { redactUrlForAnalytics } from './redactUrlForAnalytics';
 
 export type CloseSource =

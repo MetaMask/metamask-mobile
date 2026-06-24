@@ -64,6 +64,8 @@ jest.mock('../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
 
+jest.mock('../../UI/Ramp/hooks/useRampsUnifiedV2Enabled');
+
 const mockGoToBuy = jest.fn();
 jest.mock('../../UI/Ramp/hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({
@@ -219,7 +221,7 @@ describe('AccountsMenu', () => {
       expect(mockAddProperties).toHaveBeenCalledWith({
         button_text: 'Buy',
         location: 'AccountsMenu',
-        ramp_type: 'UNIFIED_BUY_2',
+        ramp_type: 'BUY',
         chain_id_destination: null,
         region: 'US',
         is_authenticated: true,

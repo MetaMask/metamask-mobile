@@ -187,9 +187,7 @@ const PredictPositionsHeader = forwardRef<
   const handleClaim = async () => {
     await executeGuardedAction(
       async () => {
-        await claim({
-          entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-        });
+        await claim();
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );

@@ -1,10 +1,4 @@
 import { useNavigation } from '@react-navigation/native';
-import {
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
 import BigNumber from 'bignumber.js';
 import React, { useCallback, useState } from 'react';
 import { Modal, TouchableOpacity, View } from 'react-native';
@@ -14,6 +8,11 @@ import {
   PerpsTabViewSelectorsIDs,
 } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextVariant,
   TextColor,
@@ -193,7 +192,7 @@ const PerpsTabView = () => {
         <View style={styles.startTradeIconContainer}>
           <Icon
             name={IconName.Add}
-            color={IconColor.IconDefault}
+            color={IconColor.Default}
             size={IconSize.Sm}
           />
         </View>

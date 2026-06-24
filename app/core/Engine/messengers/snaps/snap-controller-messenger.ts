@@ -1,8 +1,4 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-} from '@metamask/messenger';
+import { Messenger } from '@metamask/messenger';
 import {
   KeyringControllerLockEvent,
   KeyringControllerUnlockEvent,
@@ -23,12 +19,7 @@ import {
  * @param rootMessenger - The root messenger.
  * @returns The SnapControllerMessenger.
  */
-export function getSnapControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<SnapControllerMessenger>,
-    MessengerEvents<SnapControllerMessenger>
-  >,
-): SnapControllerMessenger {
+export function getSnapControllerMessenger(rootMessenger: RootMessenger) {
   const messenger: SnapControllerMessenger = new Messenger({
     namespace: 'SnapController',
     parent: rootMessenger,
@@ -86,10 +77,8 @@ type InitActions =
 
 type InitEvents = KeyringControllerLockEvent | KeyringControllerUnlockEvent;
 
-export type SnapControllerInitMessenger = Messenger<
-  'SnapControllerInit',
-  InitActions,
-  InitEvents
+export type SnapControllerInitMessenger = ReturnType<
+  typeof getSnapControllerInitMessenger
 >;
 
 /**
@@ -99,13 +88,13 @@ export type SnapControllerInitMessenger = Messenger<
  * @param rootMessenger - The root messenger.
  * @returns The SnapControllerInitMessenger.
  */
-export function getSnapControllerInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<SnapControllerInitMessenger>,
-    MessengerEvents<SnapControllerInitMessenger>
-  >,
-): SnapControllerInitMessenger {
-  const messenger: SnapControllerInitMessenger = new Messenger({
+export function getSnapControllerInitMessenger(rootMessenger: RootMessenger) {
+  const messenger = new Messenger<
+    'SnapControllerInit',
+    InitActions,
+    InitEvents,
+    RootMessenger
+  >({
     namespace: 'SnapControllerInit',
     parent: rootMessenger,
   });

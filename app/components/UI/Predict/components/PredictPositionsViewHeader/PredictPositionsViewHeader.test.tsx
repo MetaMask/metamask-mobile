@@ -154,7 +154,7 @@ describe('PredictPositionsViewHeader', () => {
     expect(screen.getByText('-$18.47 (-2.1%)')).toBeOnTheScreen();
   });
 
-  it('wraps claim CTA presses in the Predict action guard and passes analytics context to claim', async () => {
+  it('wraps claim CTA presses in the Predict action guard and tracks the tap', async () => {
     renderHeader({
       portfolio: createPortfolio({
         claimableAmount: 46.35,
@@ -177,21 +177,22 @@ describe('PredictPositionsViewHeader', () => {
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
       );
     });
-    expect(mockClaim).toHaveBeenCalledWith({
+    expect(mockTrackPortfolioTransactionInitiated).toHaveBeenCalledWith({
       entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
       openPositionsCount: 2,
       claimablePositionsCount: 1,
       hasClaimableWinnings: true,
       predictScreen: PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+      transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
     });
-    const payload = mockClaim.mock.calls[0][0];
+    const payload = mockTrackPortfolioTransactionInitiated.mock.calls[0][0];
     expect(payload).not.toHaveProperty('claimableAmount');
     expect(payload).not.toHaveProperty('portfolioValue');
     expect(payload).not.toHaveProperty('totalUnrealizedPnlAmount');
     expect(mockClaim).toHaveBeenCalledTimes(1);
   });
 
-  it('does not claim when the action guard short-circuits', async () => {
+  it('does not track claim initiated when the action guard short-circuits', async () => {
     mockExecuteGuardedAction.mockImplementationOnce(async () => undefined);
 
     renderHeader({
@@ -213,6 +214,7 @@ describe('PredictPositionsViewHeader', () => {
         { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
       );
     });
+    expect(mockTrackPortfolioTransactionInitiated).not.toHaveBeenCalled();
     expect(mockClaim).not.toHaveBeenCalled();
   });
 

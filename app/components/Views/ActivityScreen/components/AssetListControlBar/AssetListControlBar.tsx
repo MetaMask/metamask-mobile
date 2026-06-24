@@ -14,11 +14,9 @@ export interface AssetListControlBarProps {
   networkLabel: string;
   isNetworkFilterActive: boolean;
   onNetworkPress: () => void;
-  isNetworkFilterDisabled?: boolean;
   typeLabel: string;
   isTypeFilterActive: boolean;
   onTypePress: () => void;
-  suppressTestIDs?: boolean;
 }
 
 /**
@@ -33,11 +31,9 @@ const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
   networkLabel,
   isNetworkFilterActive,
   onNetworkPress,
-  isNetworkFilterDisabled = false,
   typeLabel,
   isTypeFilterActive,
   onTypePress,
-  suppressTestIDs = false,
 }) => {
   const tw = useTailwind();
 
@@ -49,28 +45,19 @@ const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
     >
       <ButtonBase
         size={ButtonBaseSize.Md}
-        isDisabled={isNetworkFilterDisabled}
         startIconName={IconName.Filter}
         startIconProps={
-          isNetworkFilterDisabled
-            ? { color: IconColor.IconMuted }
-            : isNetworkFilterActive
-              ? { color: IconColor.PrimaryDefault }
-              : undefined
+          isNetworkFilterActive
+            ? { color: IconColor.PrimaryDefault }
+            : undefined
         }
         textProps={
-          isNetworkFilterDisabled
-            ? { color: TextColor.TextMuted }
-            : isNetworkFilterActive
-              ? { color: TextColor.PrimaryDefault }
-              : undefined
+          isNetworkFilterActive
+            ? { color: TextColor.PrimaryDefault }
+            : undefined
         }
         onPress={onNetworkPress}
-        testID={
-          suppressTestIDs
-            ? undefined
-            : ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP
-        }
+        testID={ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP}
       >
         {networkLabel}
       </ButtonBase>
@@ -84,11 +71,7 @@ const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
           isTypeFilterActive ? { color: TextColor.PrimaryDefault } : undefined
         }
         onPress={onTypePress}
-        testID={
-          suppressTestIDs
-            ? undefined
-            : ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP
-        }
+        testID={ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP}
       >
         {typeLabel}
       </ButtonBase>

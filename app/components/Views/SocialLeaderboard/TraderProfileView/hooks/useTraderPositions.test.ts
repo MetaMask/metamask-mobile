@@ -151,7 +151,7 @@ describe('useTraderPositions', () => {
       );
     });
 
-    it('forwards refetchInterval to both open and closed positions queries', () => {
+    it('forwards refetchInterval only to the open positions query', () => {
       renderHook(() =>
         useTraderPositions('trader-1', { refetchInterval: 30_000 }),
       );
@@ -160,20 +160,8 @@ describe('useTraderPositions', () => {
       expect(calls[0][0]).toEqual(
         expect.objectContaining({ refetchInterval: 30_000 }),
       );
-      expect(calls[1][0]).toEqual(
-        expect.objectContaining({ refetchInterval: 30_000 }),
-      );
-    });
-
-    it('uses refetchOnMount always on both position queries', () => {
-      renderHook(() => useTraderPositions('trader-1'));
-
-      const calls = mockUseQuery.mock.calls;
-      expect(calls[0][0]).toEqual(
-        expect.objectContaining({ refetchOnMount: 'always' }),
-      );
-      expect(calls[1][0]).toEqual(
-        expect.objectContaining({ refetchOnMount: 'always' }),
+      expect(calls[1][0]).not.toEqual(
+        expect.objectContaining({ refetchInterval: expect.anything() }),
       );
     });
 

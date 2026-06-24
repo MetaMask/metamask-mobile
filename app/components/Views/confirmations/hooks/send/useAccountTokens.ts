@@ -64,13 +64,9 @@ export function useAccountTokens({
   const accountOverride = useTransactionAccountOverride();
   const globalAssets = useSelector(selectAssetsBySelectedAccountGroup);
   const accountAssets = useAccountGroupAssets(accountOverride);
-  // When an account override is active, always use its assets (even if empty)
-  // to avoid showing stale tokens from the globally selected account.
-  const assets = useMemo(
-    () =>
-      accountOverride !== undefined ? (accountAssets ?? {}) : globalAssets,
-    [accountOverride, accountAssets, globalAssets],
-  );
+  const hasOverrideData =
+    accountAssets !== undefined && Object.keys(accountAssets).length > 0;
+  const assets = hasOverrideData ? accountAssets : globalAssets;
   const fiatCurrency = useSelector(selectCurrentCurrency);
 
   const assetIds = useMemo(

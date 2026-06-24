@@ -662,7 +662,7 @@ class WalletConnect2Session {
       }
 
       return this.handleAdapterRequest({
-        origin: this.channelId,
+        channelId: this.channelId,
         requestEvent,
         scope: normalizedRequestChainId,
       });
@@ -791,11 +791,11 @@ class WalletConnect2Session {
    * the request namespace.
    */
   private handleAdapterRequest = async ({
-    origin,
+    channelId,
     requestEvent,
     scope,
   }: {
-    origin: string;
+    channelId: string;
     requestEvent: WalletKitTypes.SessionRequest;
     scope: CaipChainId;
   }) => {
@@ -806,7 +806,7 @@ class WalletConnect2Session {
 
     try {
       const result = await handleMultichainRequestByAdapter({
-        origin,
+        channelId,
         connectedAddresses,
         scope,
         requestId: requestEvent.id,

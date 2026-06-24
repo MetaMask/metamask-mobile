@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -51,10 +51,7 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
   const isUserTypeNew = type === 'new';
   const accountType = getSocialAccountType(provider ?? '', !isUserTypeNew);
 
-  const hasTrackedView = useRef(false);
   useEffect(() => {
-    if (hasTrackedView.current) return;
-    hasTrackedView.current = true;
     trackEvent(
       createEventBuilder(MetaMetricsEvents.SOCIAL_LOGIN_IOS_SUCCESS_VIEWED)
         .addProperties({
@@ -63,7 +60,8 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
         })
         .build(),
     );
-  }, [trackEvent, createEventBuilder, isUserTypeNew, accountType]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleSetMetaMaskPin = () => {
     trackEvent(

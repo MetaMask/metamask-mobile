@@ -39,10 +39,12 @@ jobs:
     needs: generate-build-version
     uses: ./.github/workflows/commit-build-version.yml
     permissions:
-      id-token: write
+      contents: write
     with:
       base-branch: ${{ inputs.source_branch || github.ref_name }}
       build_number: ${{ needs.generate-build-version.outputs.build-version }}
+    secrets:
+      PR_TOKEN: ${{ secrets.PR_TOKEN }}
 
   build:
     name: Build iOS + Android (main-rc)

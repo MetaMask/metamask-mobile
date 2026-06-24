@@ -10,18 +10,9 @@ jobs:
     name: Publish Slack release testing status
     runs-on: ubuntu-latest
     permissions:
-      contents: read
-      id-token: write
+      contents: write
+      pull-requests: write
     steps:
-      - name: Get token
-        id: get-token
-        uses: MetaMask/github-tools/.github/actions/get-token@v1
-        with:
-          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
-          permissions: |
-            contents: read
-            pull_requests: read
-
       - name: Publish Slack release testing status
         uses: MetaMask/github-tools/.github/actions/publish-slack-release-testing-status@v1
         with:
@@ -29,5 +20,5 @@ jobs:
           test-only: 'true'
           google-document-id: '1tsoodlAlyvEUpkkcNcbZ4PM9HuC9cEM80RZeoVv5OCQ'
           slack-api-key: ${{ secrets.SLACKBOT_RLS_TOKEN }}
-          github-token: ${{ steps.get-token.outputs.token }}
+          github-token: ${{ secrets.PR_TOKEN }}
           google-application-creds-base64: ${{ secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 }}

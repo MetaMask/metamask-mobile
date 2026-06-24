@@ -12,10 +12,6 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Card,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
 } from '@metamask/design-system-react-native';
 import {
   PERPS_CONSTANTS,
@@ -37,6 +33,11 @@ import PerpsBadge from '../PerpsBadge';
 import PerpsLeverage from '../PerpsLeverage/PerpsLeverage';
 import PerpsTokenLogo from '../PerpsTokenLogo';
 import { PerpsMarketRowItemProps } from './PerpsMarketRowItem.types';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import type { Theme } from '@metamask/design-tokens';
 
@@ -268,7 +269,7 @@ const PerpsMarketRowItem = ({
               <Icon
                 name={IconName.Add}
                 size={IconSize.Md}
-                color={IconColor.IconDefault}
+                color={IconColor.Default}
               />
             </View>
           </TouchableOpacity>

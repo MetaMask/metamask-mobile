@@ -6,7 +6,6 @@ import { AMBIENT_NEGATIVE_COLOR } from './abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
-import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -35,17 +34,6 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(() => undefined),
-}));
-
-jest.mock('../../AssetOverview/Price/hooks/useTokenChartPreferences', () => ({
-  useTokenChartPreferences: () => ({
-    chartType: 'line',
-    chartInterval: '15m',
-    indicators: [],
-    setChartType: jest.fn(),
-    setChartInterval: jest.fn(),
-    setIndicators: jest.fn(),
-  }),
 }));
 
 jest.mock('../../../../reducers/fiatOrders', () => ({
@@ -128,22 +116,12 @@ const defaultProps = {
   balanceFiatUsd: 50,
 };
 
-const setupSelectorMock = (geolocation?: string) => {
-  (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
-    if (selector === getDetectedGeolocation) {
-      return geolocation;
-    }
-    return undefined;
-  });
-};
-
 describe('TokenDetailsStickyFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsBuyable.mockReturnValue(true);
     mockIsTokenTradingOpen.mockReturnValue(true);
     mockHasEligibleSwapTokens = true;
-    setupSelectorMock();
   });
 
   describe('button visibility', () => {
@@ -310,7 +288,6 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
-        indicatorsActive: [],
       });
     });
 
@@ -326,7 +303,6 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
-        indicatorsActive: [],
       });
     });
 
@@ -342,7 +318,6 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: 150,
         tokenAddress: '0x123',
         chainId: '0x1',
-        indicatorsActive: [],
       });
     });
 
@@ -362,7 +337,6 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: undefined,
         tokenAddress: '0x123',
         chainId: '0x1',
-        indicatorsActive: [],
       });
     });
   });
@@ -514,7 +488,7 @@ describe('TokenDetailsStickyFooter', () => {
   describe('RWA geo-restriction', () => {
     it('blocks the buy action when token is a geo-restricted stock', () => {
       mockIsStockToken.mockReturnValue(true);
-      setupSelectorMock('US');
+      (useSelector as jest.Mock).mockReturnValue('US');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -527,7 +501,7 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('blocks the swap action when token is a geo-restricted stock', () => {
       mockIsStockToken.mockReturnValue(true);
-      setupSelectorMock('GB');
+      (useSelector as jest.Mock).mockReturnValue('GB');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -540,7 +514,7 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('proceeds normally for a stock token in a non-restricted country', () => {
       mockIsStockToken.mockReturnValue(true);
-      setupSelectorMock('AR');
+      (useSelector as jest.Mock).mockReturnValue('AR');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -553,7 +527,7 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('proceeds normally for a non-stock token even if in a restricted country', () => {
       mockIsStockToken.mockReturnValue(false);
-      setupSelectorMock('US');
+      (useSelector as jest.Mock).mockReturnValue('US');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -586,7 +560,7 @@ describe('TokenDetailsStickyFooter', () => {
     it('does not call onSwapPress when geo-restricted', () => {
       const onSwapPress = jest.fn();
       mockIsStockToken.mockReturnValue(true);
-      setupSelectorMock('US');
+      (useSelector as jest.Mock).mockReturnValue('US');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter
@@ -618,7 +592,7 @@ describe('TokenDetailsStickyFooter', () => {
     it('does not call onBuyPress when geo-restricted', () => {
       const onBuyPress = jest.fn();
       mockIsStockToken.mockReturnValue(true);
-      setupSelectorMock('GB');
+      (useSelector as jest.Mock).mockReturnValue('GB');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
@@ -753,13 +727,12 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
-        indicatorsActive: [],
       });
     });
 
     it('blocks quick buy when token is a geo-restricted stock', () => {
       mockIsStockToken.mockReturnValue(true);
-      setupSelectorMock('US');
+      (useSelector as jest.Mock).mockReturnValue('US');
       const onQuickBuyPress = jest.fn();
       const { getByTestId } = render(
         <TokenDetailsStickyFooter

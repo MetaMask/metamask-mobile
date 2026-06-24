@@ -62,46 +62,34 @@ jest.mock('../../../../../util/theme', () => {
 });
 
 // Mock FlashList
-const mockFlashListScrollToIndex = jest.fn();
-const mockFlashListScrollToOffset = jest.fn();
-
 jest.mock('@shopify/flash-list', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 
-  const FlashList = ReactActual.forwardRef(
-    (
-      {
-        data,
-        renderItem,
-        keyExtractor,
-        getItemType,
-        ListHeaderComponent,
-        ListEmptyComponent,
-        ListFooterComponent,
-        ...props
-      }: {
-        data: unknown[];
-        renderItem: (info: {
-          item: unknown;
-          index: number;
-        }) => React.ReactElement;
-        keyExtractor: (item: unknown, index: number) => string;
-        getItemType?: (item: unknown) => string;
-        ListHeaderComponent?: () => React.ReactElement;
-        ListEmptyComponent?: () => React.ReactElement;
-        ListFooterComponent?: () => React.ReactElement;
-        [key: string]: unknown;
-      },
-      ref: unknown,
-    ) => {
-      ReactActual.useImperativeHandle(ref, () => ({
-        scrollToIndex: mockFlashListScrollToIndex,
-        scrollToOffset: mockFlashListScrollToOffset,
-        scrollToEnd: jest.fn(),
-      }));
-
-      return ReactActual.createElement(
+  return {
+    FlashList: ({
+      data,
+      renderItem,
+      keyExtractor,
+      getItemType,
+      ListHeaderComponent,
+      ListEmptyComponent,
+      ListFooterComponent,
+      ...props
+    }: {
+      data: unknown[];
+      renderItem: (info: {
+        item: unknown;
+        index: number;
+      }) => React.ReactElement;
+      keyExtractor: (item: unknown, index: number) => string;
+      getItemType?: (item: unknown) => string;
+      ListHeaderComponent?: () => React.ReactElement;
+      ListEmptyComponent?: () => React.ReactElement;
+      ListFooterComponent?: () => React.ReactElement;
+      [key: string]: unknown;
+    }) =>
+      ReactActual.createElement(
         View,
         { testID: 'rewards-settings-flash-list', ...props },
         ListHeaderComponent &&
@@ -119,6 +107,7 @@ jest.mock('@shopify/flash-list', () => {
                 {
                   key,
                   testID: `flash-list-item-${key}`,
+                  // Store item type as accessibility label for testing
                   accessibilityLabel: itemType,
                 },
                 renderItem({
@@ -139,11 +128,8 @@ jest.mock('@shopify/flash-list', () => {
             { testID: 'list-footer' },
             ReactActual.createElement(ListFooterComponent),
           ),
-      );
-    },
-  );
-
-  return { FlashList };
+      ),
+  };
 });
 
 // Mock component library components
@@ -368,18 +354,12 @@ jest.mock('./RewardSettingsAccountGroup', () => {
 // Mock ReferredByCodeSection component to avoid navigation context requirement
 jest.mock('./ReferredByCodeSection', () => {
   const ReactActual = jest.requireActual('react');
-  const { View, TouchableOpacity } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
 
-  return ({ onInputFocus }: { onInputFocus?: () => void }) =>
-    ReactActual.createElement(
-      View,
-      { testID: 'referred-by-code-section' },
-      onInputFocus &&
-        ReactActual.createElement(TouchableOpacity, {
-          testID: 'referred-by-code-focus-trigger',
-          onPress: onInputFocus,
-        }),
-    );
+  return () =>
+    ReactActual.createElement(View, {
+      testID: 'referred-by-code-section',
+    });
 });
 
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -669,30 +649,11 @@ describe('RewardSettingsAccountGroupList', () => {
       expect(getByTestId('account-group-group-3')).toBeOnTheScreen();
     });
 
-    it('renders header and settings footer list items', () => {
+    it('renders header and footer components', () => {
       const { getByTestId } = render(<RewardSettingsAccountGroupList />);
 
       expect(getByTestId('rewards-settings-header')).toBeOnTheScreen();
-      expect(getByTestId('flash-list-item-referredByCode')).toBeOnTheScreen();
-      expect(
-        getByTestId('flash-list-item-environmentToggle'),
-      ).toBeOnTheScreen();
-    });
-
-    it('scrolls to referral section on input focus', () => {
-      jest.useFakeTimers();
-      const { getByTestId } = render(<RewardSettingsAccountGroupList />);
-
-      fireEvent.press(getByTestId('referred-by-code-focus-trigger'));
-      jest.runAllTimers();
-
-      expect(mockFlashListScrollToIndex).toHaveBeenCalledWith(
-        expect.objectContaining({
-          viewPosition: 0.2,
-          animated: true,
-        }),
-      );
-      jest.useRealTimers();
+      expect(getByTestId('list-footer')).toBeOnTheScreen();
     });
   });
 

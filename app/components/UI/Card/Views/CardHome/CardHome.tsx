@@ -40,11 +40,6 @@ import {
   selectCardUserLocation,
   selectCardHomeDataStatus,
 } from '../../../../../selectors/cardController';
-import useRegistrationSettings from '../../hooks/useRegistrationSettings';
-import {
-  getCardSupportEmail,
-  getCardTermsAndConditionsUrl,
-} from '../../util/registrationSettings';
 import {
   CardStatus,
   FundingAssetStatus,
@@ -92,7 +87,6 @@ const CardHome = () => {
   const capabilities = useCardCapabilities();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const userLocation = useSelector(selectCardUserLocation);
-  const { data: registrationSettings } = useRegistrationSettings();
   const privacyMode = useSelector(selectPrivacyMode);
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
@@ -113,21 +107,12 @@ const CardHome = () => {
   const hasSetupActions = (data?.actions ?? []).some(
     (a) => a.type === 'enable_card',
   );
-  const cardTermsAndConditionsUrl = useMemo(
-    () => getCardTermsAndConditionsUrl(registrationSettings, userLocation),
-    [registrationSettings, userLocation],
-  );
-  const supportEmail = useMemo(
-    () => getCardSupportEmail(registrationSettings, userLocation),
-    [registrationSettings, userLocation],
-  );
 
   // --- Extracted hooks ---
   const actions = useCardHomeActions({
     data,
     primaryToken,
     isFrozen,
-    cardTermsAndConditionsUrl,
   });
 
   const { initiateProvisioning, isProvisioning, canAddToWallet } =
@@ -497,7 +482,6 @@ const CardHome = () => {
           isLoading={isLoading}
           hasAlerts={hasAlertOnlyState}
           hasSetupActions={hasSetupActions}
-          supportEmail={supportEmail}
           onNavigateToCardTos={actions.navigateToCardTosPage}
           onLogout={actions.logoutAction}
         />

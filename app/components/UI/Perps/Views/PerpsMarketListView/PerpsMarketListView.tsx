@@ -1,13 +1,11 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
-import {
-  HeaderStandard,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { View, Animated, ScrollView } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -359,7 +357,7 @@ const PerpsMarketListView = ({
             <Icon
               name={IconName.Search}
               size={IconSize.Xl}
-              color={IconColor.IconMuted}
+              color={theme.colors.icon.muted}
               style={styles.emptyStateIcon}
             />
             <Text
@@ -406,7 +404,7 @@ const PerpsMarketListView = ({
           <Icon
             name={IconName.Search}
             size={IconSize.Xl}
-            color={IconColor.IconMuted}
+            color={theme.colors.icon.muted}
             style={styles.emptyStateIcon}
           />
           <Text

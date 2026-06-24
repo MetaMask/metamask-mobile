@@ -6,6 +6,7 @@ import TimeRangeSelector, {
   type TimeRange,
 } from '../TimeRangeSelector';
 import { ChartType } from '../AdvancedChart.types';
+import { AMBIENT_NEGATIVE_COLOR } from '../../../TokenDetails/components/abTestConfig';
 
 describe('TimeRangeSelector', () => {
   const defaultProps = {
@@ -62,55 +63,49 @@ describe('TimeRangeSelector', () => {
     expect(onSelect).toHaveBeenCalledWith('1D');
   });
 
-  describe('chart type segmented toggle', () => {
-    it('highlights the active chart type icon', () => {
+  describe('selectedColor prop', () => {
+    it('applies selectedColor to chart type toggle icon', () => {
+      const { getByLabelText } = render(
+        <TimeRangeSelector
+          {...defaultProps}
+          selectedColor={AMBIENT_NEGATIVE_COLOR}
+          chartType={ChartType.Line}
+          onChartTypeToggle={jest.fn()}
+        />,
+      );
+
+      const toggleButton = getByLabelText('Switch to candlestick chart');
+      const icon = toggleButton.children[0] as ReactTestInstance;
+      expect(icon.props.twClassName).toBe(`text-[${AMBIENT_NEGATIVE_COLOR}]`);
+    });
+
+    it('uses default icon class when selectedColor is not set', () => {
       const { getByLabelText } = render(
         <TimeRangeSelector
           {...defaultProps}
           chartType={ChartType.Line}
-          onChartTypeSelect={jest.fn()}
+          onChartTypeToggle={jest.fn()}
         />,
       );
 
-      const lineButton = getByLabelText('Line chart');
-      const lineIcon = lineButton.children[0] as ReactTestInstance;
-      expect(lineIcon.props.twClassName).toBe('text-icon-default');
-
-      const candleButton = getByLabelText('Candlestick chart');
-      const candleIcon = candleButton.children[0] as ReactTestInstance;
-      expect(candleIcon.props.twClassName).toBe('text-icon-alternative');
+      const toggleButton = getByLabelText('Switch to candlestick chart');
+      const icon = toggleButton.children[0] as ReactTestInstance;
+      expect(icon.props.twClassName).toBe('text-icon-alternative');
     });
 
-    it('highlights candlestick icon when candles are active', () => {
+    it('applies selectedColor to candlestick toggle icon', () => {
       const { getByLabelText } = render(
         <TimeRangeSelector
           {...defaultProps}
+          selectedColor={AMBIENT_NEGATIVE_COLOR}
           chartType={ChartType.Candles}
-          onChartTypeSelect={jest.fn()}
+          onChartTypeToggle={jest.fn()}
         />,
       );
 
-      const candleButton = getByLabelText('Candlestick chart');
-      const candleIcon = candleButton.children[0] as ReactTestInstance;
-      expect(candleIcon.props.twClassName).toBe('text-icon-default');
-
-      const lineButton = getByLabelText('Line chart');
-      const lineIcon = lineButton.children[0] as ReactTestInstance;
-      expect(lineIcon.props.twClassName).toBe('text-icon-alternative');
-    });
-
-    it('calls onChartTypeSelect with the tapped chart type', () => {
-      const onChartTypeSelect = jest.fn();
-      const { getByLabelText } = render(
-        <TimeRangeSelector
-          {...defaultProps}
-          chartType={ChartType.Line}
-          onChartTypeSelect={onChartTypeSelect}
-        />,
-      );
-
-      fireEvent.press(getByLabelText('Candlestick chart'));
-      expect(onChartTypeSelect).toHaveBeenCalledWith(ChartType.Candles);
+      const toggleButton = getByLabelText('Switch to line chart');
+      const icon = toggleButton.children[0] as ReactTestInstance;
+      expect(icon.props.twClassName).toBe(`text-[${AMBIENT_NEGATIVE_COLOR}]`);
     });
   });
 

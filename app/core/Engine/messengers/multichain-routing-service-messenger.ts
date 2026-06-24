@@ -1,8 +1,4 @@
-import {
-  Messenger,
-  MessengerActions,
-  MessengerEvents,
-} from '@metamask/messenger';
+import { Messenger } from '@metamask/messenger';
 import { MultichainRoutingServiceMessenger } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../types';
 import { SnapAccountServiceGetLegacySnapKeyringAction } from '@metamask/snap-account-service';
@@ -15,11 +11,7 @@ import { SnapAccountServiceGetLegacySnapKeyringAction } from '@metamask/snap-acc
  * @returns The multichain routing service messenger.
  */
 export function getMultichainRoutingServiceMessenger(
-  rootMessenger: Messenger<
-    'Root',
-    MessengerActions<MultichainRoutingServiceMessenger>,
-    MessengerEvents<MultichainRoutingServiceMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): MultichainRoutingServiceMessenger {
   const messenger: MultichainRoutingServiceMessenger = new Messenger({
     namespace: 'MultichainRoutingService',
@@ -43,10 +35,8 @@ export function getMultichainRoutingServiceMessenger(
 type AllowedInitializationActions =
   SnapAccountServiceGetLegacySnapKeyringAction;
 
-export type MultichainRoutingServiceInitMessenger = Messenger<
-  'MultichainRoutingServiceInit',
-  AllowedInitializationActions,
-  never
+export type MultichainRoutingServiceInitMessenger = ReturnType<
+  typeof getMultichainRoutingServiceInitMessenger
 >;
 
 /**
@@ -58,12 +48,14 @@ export type MultichainRoutingServiceInitMessenger = Messenger<
  * @returns The multichain routing service init messenger.
  */
 export function getMultichainRoutingServiceInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<MultichainRoutingServiceInitMessenger>,
-    MessengerEvents<MultichainRoutingServiceInitMessenger>
-  >,
-): MultichainRoutingServiceInitMessenger {
-  const messenger: MultichainRoutingServiceInitMessenger = new Messenger({
+  rootMessenger: RootMessenger,
+) {
+  const messenger = new Messenger<
+    'MultichainRoutingServiceInit',
+    AllowedInitializationActions,
+    never,
+    RootMessenger
+  >({
     namespace: 'MultichainRoutingServiceInit',
     parent: rootMessenger,
   });

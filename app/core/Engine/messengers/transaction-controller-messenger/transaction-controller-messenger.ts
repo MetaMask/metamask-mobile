@@ -66,12 +66,14 @@ import type {
 } from '../../../../components/UI/Predict/controllers/PredictController-method-action-types';
 
 export function getTransactionControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<TransactionControllerMessenger>,
-    MessengerEvents<TransactionControllerMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): TransactionControllerMessenger {
-  const messenger: TransactionControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'TransactionController',
+    MessengerActions<TransactionControllerMessenger>,
+    MessengerEvents<TransactionControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'TransactionController',
     parent: rootMessenger,
   });
@@ -148,19 +150,19 @@ type InitMessengerEvents =
   | SmartTransactionsControllerSmartTransactionEvent
   | SmartTransactionsControllerSmartTransactionConfirmationDoneEvent;
 
-export type TransactionControllerInitMessenger = Messenger<
-  'TransactionControllerInit',
-  InitMessengerActions,
-  InitMessengerEvents
+export type TransactionControllerInitMessenger = ReturnType<
+  typeof getTransactionControllerInitMessenger
 >;
 
 export function getTransactionControllerInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<TransactionControllerInitMessenger>,
-    MessengerEvents<TransactionControllerInitMessenger>
-  >,
-): TransactionControllerInitMessenger {
-  const messenger: TransactionControllerInitMessenger = new Messenger({
+  rootMessenger: RootMessenger,
+) {
+  const messenger = new Messenger<
+    'TransactionControllerInit',
+    InitMessengerActions,
+    InitMessengerEvents,
+    RootMessenger
+  >({
     namespace: 'TransactionControllerInit',
     parent: rootMessenger,
   });

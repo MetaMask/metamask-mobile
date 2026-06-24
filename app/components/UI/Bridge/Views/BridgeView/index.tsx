@@ -109,7 +109,6 @@ import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/inde
 import BridgeTrendingTokensSection from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import type { RootState } from '../../../../../reducers';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
 import { getQuoteStreamReasonString } from './BridgeView.utils';
@@ -198,8 +197,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
   /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
-  const location =
-    route.params?.location ?? MetaMetricsSwapsEventSource.MainView;
+  const location = route.params?.location;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   // inputRef is used to programmatically blur the input field after a delay
@@ -387,7 +385,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     headerTitle = `${strings('swaps.title')}/${strings('bridge.title')}`;
   }
 
-  useTrackSwapPageViewed(location);
+  useTrackSwapPageViewed();
 
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {

@@ -13,12 +13,14 @@ import { RootMessenger } from '../types';
  * @returns The AddressBookControllerMessenger.
  */
 export function getAddressBookControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<AddressBookControllerMessenger>,
-    MessengerEvents<AddressBookControllerMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): AddressBookControllerMessenger {
-  const messenger: AddressBookControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'AddressBookController',
+    MessengerActions<AddressBookControllerMessenger>,
+    MessengerEvents<AddressBookControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'AddressBookController',
     parent: rootMessenger,
   });

@@ -39,7 +39,10 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   }),
 }));
 
-jest.mock('../../assets/additional-verification.png', () => 'mock-image');
+jest.mock(
+  '../../Deposit/assets/additional-verification.png',
+  () => 'mock-image',
+);
 
 const renderWithTheme = (component: React.ReactElement) =>
   render(

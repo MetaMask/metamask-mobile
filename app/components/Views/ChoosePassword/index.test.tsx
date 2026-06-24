@@ -695,12 +695,9 @@ describe('ChoosePassword', () => {
           index: 0,
           routes: [
             {
-              name: 'OnboardingSuccessFlow',
+              name: 'OnboardingSuccess',
               params: {
-                screen: 'OnboardingSuccess',
-                params: {
-                  successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-                },
+                successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
               },
             },
           ],

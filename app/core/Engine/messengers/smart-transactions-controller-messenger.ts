@@ -15,12 +15,14 @@ import { AnalyticsControllerActions } from '@metamask/analytics-controller';
  * @returns The SmartTransactionsControllerMessenger.
  */
 export function getSmartTransactionsControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<SmartTransactionsControllerMessenger>,
-    MessengerEvents<SmartTransactionsControllerMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): SmartTransactionsControllerMessenger {
-  const messenger: SmartTransactionsControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'SmartTransactionsController',
+    MessengerActions<SmartTransactionsControllerMessenger>,
+    MessengerEvents<SmartTransactionsControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'SmartTransactionsController',
     parent: rootMessenger,
   });
@@ -46,12 +48,6 @@ export function getSmartTransactionsControllerMessenger(
 type SmartTransactionsControllerInitMessengerActions =
   AnalyticsControllerActions;
 
-export type SmartTransactionsControllerInitMessenger = Messenger<
-  'SmartTransactionsControllerInit',
-  SmartTransactionsControllerInitMessengerActions,
-  never
->;
-
 /**
  * Get the SmartTransactionsControllerInitMessenger for the SmartTransactionsController.
  * This messenger is used during controller initialization to call other controllers.
@@ -59,13 +55,24 @@ export type SmartTransactionsControllerInitMessenger = Messenger<
  * @param rootMessenger - The root messenger.
  * @returns The SmartTransactionsControllerInitMessenger.
  */
+export type SmartTransactionsControllerInitMessenger = ReturnType<
+  typeof getSmartTransactionsControllerInitMessenger
+>;
+
 export function getSmartTransactionsControllerInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<SmartTransactionsControllerInitMessenger>,
-    MessengerEvents<SmartTransactionsControllerInitMessenger>
-  >,
-): SmartTransactionsControllerInitMessenger {
-  const messenger: SmartTransactionsControllerInitMessenger = new Messenger({
+  rootMessenger: RootMessenger,
+): Messenger<
+  'SmartTransactionsControllerInit',
+  SmartTransactionsControllerInitMessengerActions,
+  never,
+  RootMessenger
+> {
+  const messenger = new Messenger<
+    'SmartTransactionsControllerInit',
+    SmartTransactionsControllerInitMessengerActions,
+    never,
+    RootMessenger
+  >({
     namespace: 'SmartTransactionsControllerInit',
     parent: rootMessenger,
   });

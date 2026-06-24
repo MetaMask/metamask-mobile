@@ -9,10 +9,7 @@ import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 import WalletView from '../../page-objects/wallet/WalletView';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import {
-  remoteFeatureFlagHomepageSectionsV1Enabled,
-  remoteFeatureFlagPredictEnabled,
-} from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { remoteFeatureFlagPredictEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_COMPLETE_MOCKS,
   POLYMARKET_GEO_BLOCKED_MOCKS,
@@ -27,11 +24,6 @@ import { geoBlockedCombinedExpectations } from '../../helpers/analytics/expectat
 const predictionGeoBlockedFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
-    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-    perpsPerpTradingEnabled: {
-      enabled: false,
-      minimumVersion: '0.0.0',
-    },
     carouselBanners: false,
   });
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
@@ -45,7 +37,6 @@ describe(SmokePredictions('Predictions - Geo Restriction'), () => {
       {
         fixture: new FixtureBuilder()
           .withPolygon()
-          .withBasicFunctionalityEnabled()
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
@@ -67,16 +58,8 @@ describe(SmokePredictions('Predictions - Geo Restriction'), () => {
         await PredictUnavailableView.expectVisible();
         await PredictUnavailableView.tapGotIt();
         await PredictMarketList.tapBackButton();
-        await TabBarComponent.tapWallet();
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          description: 'Wallet home after leaving predict market list',
-          timeout: 15_000,
-        });
 
-        await WalletView.scrollAndTapPredictionsPosition(
-          'Spurs vs. Pelicans',
-          SPURS_PELICANS_POSITION_ID,
-        );
+        await WalletView.scrollAndTapPredictionsPosition('Spurs vs. Pelicans');
         await PredictDetailsPage.tapGameCashOutButton(
           SPURS_PELICANS_POSITION_ID,
         );
@@ -96,7 +79,6 @@ describe(SmokePredictions('Predictions - Geo Restriction'), () => {
         await PredictAddFunds.tapAddFunds();
         await PredictUnavailableView.expectVisible();
         await PredictUnavailableView.tapGotIt();
-        await device.enableSynchronization();
         await Assertions.expectElementToBeVisible(
           PredictDetailsPage.balanceCard,
           {

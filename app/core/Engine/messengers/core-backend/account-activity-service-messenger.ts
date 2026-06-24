@@ -1,5 +1,5 @@
 import { AccountActivityServiceMessenger } from '@metamask/core-backend';
-import { RootMessenger } from '../../types';
+import { RootExtendedMessenger, RootMessenger } from '../../types';
 import {
   Messenger,
   MessengerActions,
@@ -10,20 +10,22 @@ import {
  * Get a messenger for the Account Activity service. This is scoped to the
  * actions and events that the Account Activity service is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
+ * @param rootExtendedMessenger - The root extended messenger.
  * @returns The AccountActivityServiceMessenger.
  */
 export function getAccountActivityServiceMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<AccountActivityServiceMessenger>,
-    MessengerEvents<AccountActivityServiceMessenger>
-  >,
+  rootExtendedMessenger: RootExtendedMessenger,
 ): AccountActivityServiceMessenger {
-  const messenger: AccountActivityServiceMessenger = new Messenger({
+  const messenger = new Messenger<
+    'AccountActivityService',
+    MessengerActions<AccountActivityServiceMessenger>,
+    MessengerEvents<AccountActivityServiceMessenger>,
+    RootMessenger
+  >({
     namespace: 'AccountActivityService',
-    parent: rootMessenger,
+    parent: rootExtendedMessenger,
   });
-  rootMessenger.delegate({
+  rootExtendedMessenger.delegate({
     actions: [
       'AccountsController:getSelectedAccount',
       'BackendWebSocketService:connect',

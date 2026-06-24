@@ -1,6 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect } from 'react';
 import { Pressable, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import {
   Box,
   BoxFlexDirection,
@@ -20,7 +20,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import { exitRewardsFlow } from '../utils';
 import { acceptVipInvite } from '../../../../reducers/rewards';
 import {
   selectIsCurrentSubscriptionVipEnabled,
@@ -39,7 +38,6 @@ import VipFeeTile, {
 import VipPointsSection from '../components/Vip/VipPointsSection';
 import VipTierProgressCard from '../components/Vip/VipTierProgressCard';
 import VipVolumeSection from '../components/Vip/VipVolumeSection';
-import VipSwapsVolumeInfoSheet from '../components/Vip/VipSwapsVolumeInfoSheet';
 import {
   VIP_GOLD_BACKGROUND_MUTED,
   VIP_GOLD_BORDER_DEFAULT,
@@ -108,7 +106,7 @@ const RewardsVipViewContent: React.FC = () => {
 
   useEffect(() => {
     if (!canViewVip) {
-      exitRewardsFlow(navigation);
+      navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
     }
   }, [canViewVip, navigation]);
 
@@ -123,9 +121,6 @@ const RewardsVipViewContent: React.FC = () => {
   const handleTiersPress = useCallback(() => {
     navigation.navigate(Routes.REWARDS_VIP_TIERS_VIEW as never);
   }, [navigation]);
-
-  const [isSwapsVolumeInfoVisible, setIsSwapsVolumeInfoVisible] =
-    useState(false);
 
   if (!canViewVip) {
     return null;
@@ -405,14 +400,13 @@ const RewardsVipViewContent: React.FC = () => {
                   perpsVolume: dashboard.localizedText.perpsVolumeTitle,
                   vipReferrals: dashboard.localizedText.vipReferralsTitle,
                 }}
-                onSwapsVolumeInfoPress={() => setIsSwapsVolumeInfoVisible(true)}
               />
 
               {dashboard.computedAt ? (
                 <Text
                   variant={TextVariant.BodySm}
                   color={TextColor.TextAlternative}
-                  twClassName="text-left px-4"
+                  twClassName="text-right"
                   testID={REWARDS_VIP_VIEW_TEST_IDS.LAST_UPDATED}
                 >
                   {strings('rewards.vip.last_updated', {
@@ -441,11 +435,6 @@ const RewardsVipViewContent: React.FC = () => {
           ) : null}
         </ScrollView>
       </SafeAreaView>
-      {isSwapsVolumeInfoVisible ? (
-        <VipSwapsVolumeInfoSheet
-          onClose={() => setIsSwapsVolumeInfoVisible(false)}
-        />
-      ) : null}
     </ErrorBoundary>
   );
 };

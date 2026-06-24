@@ -1,17 +1,17 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { useQuery } from '@metamask/react-data-query';
-import type { PositionsResponse, Position } from '@metamask/social-controllers';
+import type {
+  PositionsResponse,
+  FetchPositionsOptions,
+  Position,
+} from '@metamask/social-controllers';
 import {
   formatSocialQueryErrorMessage,
   reportSocialServiceFailure,
   useLogSocialQueryError,
 } from '../../../../../util/social/socialServiceTelemetry';
 import { selectIsUnlocked } from '../../../../../selectors/keyringController';
-import {
-  buildClosedPositionsQueryKey,
-  buildOpenPositionsQueryKey,
-} from '../../../../../util/social/traderProfileQueries';
 
 const EMPTY_POSITIONS: Position[] = [];
 const TRADER_POSITIONS_SOURCE = 'useTraderPositions';
@@ -34,6 +34,18 @@ export const useTraderPositions = (
   options?: UseTraderPositionsOptions,
 ): UseTraderPositionsResult => {
   const isUnlocked = useSelector(selectIsUnlocked);
+  const FETCH_LIMIT = 100;
+  const openFetchOptions: FetchPositionsOptions = {
+    addressOrId,
+    limit: FETCH_LIMIT,
+  };
+  // Clicker's default closed-positions sort is value-desc, which buries
+  // smaller recent closes; ask for recency instead.
+  const closedFetchOptions: FetchPositionsOptions = {
+    addressOrId,
+    sort: 'latest',
+    limit: FETCH_LIMIT,
+  };
 
   const {
     data: openData,
@@ -41,10 +53,9 @@ export const useTraderPositions = (
     error: openError,
     refetch: refetchOpen,
   } = useQuery<PositionsResponse>({
-    queryKey: buildOpenPositionsQueryKey(addressOrId),
+    queryKey: ['SocialService:fetchOpenPositions', openFetchOptions],
     enabled: Boolean(addressOrId) && isUnlocked,
     refetchInterval: options?.refetchInterval,
-    refetchOnMount: 'always',
   });
 
   const {
@@ -53,10 +64,8 @@ export const useTraderPositions = (
     error: closedError,
     refetch: refetchClosed,
   } = useQuery<PositionsResponse>({
-    queryKey: buildClosedPositionsQueryKey(addressOrId),
+    queryKey: ['SocialService:fetchClosedPositions', closedFetchOptions],
     enabled: Boolean(addressOrId) && isUnlocked,
-    refetchInterval: options?.refetchInterval,
-    refetchOnMount: 'always',
   });
 
   useLogSocialQueryError(openError, {

@@ -16,13 +16,14 @@ import { PerpsClosePositionViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Button,
-  ButtonSize,
   ButtonVariant,
-  Icon,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
+import Icon, {
   IconColor,
   IconName,
   IconSize,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Icons/Icon';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
@@ -674,7 +675,7 @@ const PerpsClosePositionView: React.FC = () => {
                 <Icon
                   name={IconName.Danger}
                   size={IconSize.Sm}
-                  color={IconColor.ErrorDefault}
+                  color={IconColor.Error}
                 />
                 <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                   {error}

@@ -364,9 +364,6 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       return null;
     }
 
-    const shouldAddContentTopGap =
-      !showHomepageUnrealizedPnl && !shouldShowPillsEmptyState;
-
     const sectionContent = (
       <>
         <SectionDivider />
@@ -375,8 +372,9 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           isInteractive
           onPress={handleViewAllPerps}
           testID={homepageSectionTitleTestId(analyticsName)}
+          twClassName="pb-1"
         />
-        <Box gap={3} paddingTop={shouldAddContentTopGap ? 3 : undefined}>
+        <Box gap={3}>
           {showHomepageUnrealizedPnl && (
             <HomepageSectionUnrealizedPnlRow
               isLoading={perpsAccountLoading}

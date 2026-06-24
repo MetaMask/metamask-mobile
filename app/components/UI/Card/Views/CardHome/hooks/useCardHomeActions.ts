@@ -35,14 +35,12 @@ interface UseCardHomeActionsParams {
   data: CardHomeData | null | undefined;
   primaryToken: CardFundingTokenWithBalance | null;
   isFrozen: boolean;
-  cardTermsAndConditionsUrl: string;
 }
 
 export function useCardHomeActions({
   data,
   primaryToken,
   isFrozen,
-  cardTermsAndConditionsUrl,
 }: UseCardHomeActionsParams) {
   const navigation = useNavigation();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
@@ -51,10 +49,8 @@ export function useCardHomeActions({
   const { toastRef } = useContext(ToastContext);
   const { reauthenticate } = useAuthentication();
 
-  const { navigateToTravelPage, navigateToCardTosPage } = useNavigateToCardPage(
-    navigation,
-    cardTermsAndConditionsUrl,
-  );
+  const { navigateToTravelPage, navigateToCardTosPage } =
+    useNavigateToCardPage(navigation);
   const { freeze, unfreeze } = useCardFreeze(data?.card?.id);
   const {
     fetchCardDetailsToken,

@@ -44,10 +44,6 @@ export interface TrendingTokensListProps {
    * Whether a pagination request is in flight. Shows a spinner in the list footer.
    */
   isLoadingMore?: boolean;
-  /**
-   * When provided, shows a Quick Trade flash button on each row.
-   */
-  onQuickTrade?: (token: TrendingAsset) => void;
 }
 
 /**
@@ -64,7 +60,6 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
     filterContext,
     onLoadMore,
     isLoadingMore,
-    onQuickTrade,
   }) => {
     const renderItem = useCallback(
       ({ item, index }: { item: TrendingAsset; index: number }) => (
@@ -73,10 +68,9 @@ const TrendingTokensList: React.FC<TrendingTokensListProps> = React.memo(
           selectedTimeOption={selectedTimeOption}
           position={index}
           filterContext={filterContext}
-          onQuickTrade={onQuickTrade}
         />
       ),
-      [selectedTimeOption, filterContext, onQuickTrade],
+      [selectedTimeOption, filterContext],
     );
 
     const keyExtractor = useCallback(

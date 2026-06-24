@@ -18,24 +18,24 @@ type ProfileMetricsControllerInitMessengerActions =
  * Create a messenger restricted to the allowed actions and events of the
  * profile metrics controller.
  *
- * @param rootMessenger - The base messenger used to create the restricted
+ * @param messenger - The base messenger used to create the restricted
  * messenger.
  */
-export function getProfileMetricsControllerMessenger(
-  rootMessenger: RootMessenger<AllowedActions, AllowedEvents>,
-): ProfileMetricsControllerMessenger {
-  const profileMetricsControllerMessenger: ProfileMetricsControllerMessenger =
-    new Messenger({
-      namespace: 'ProfileMetricsController',
-      parent: rootMessenger,
-    });
-  rootMessenger.delegate({
+export function getProfileMetricsControllerMessenger(messenger: RootMessenger) {
+  const profileMetricsControllerMessenger = new Messenger<
+    'ProfileMetricsController',
+    AllowedActions,
+    AllowedEvents,
+    typeof messenger
+  >({
+    namespace: 'ProfileMetricsController',
+    parent: messenger,
+  });
+  messenger.delegate({
     messenger: profileMetricsControllerMessenger,
     actions: [
       'AccountsController:getState',
       'ProfileMetricsService:submitMetrics',
-      'ProfileMetricsService:fetchNonces',
-      'ProofOfOwnershipService:sign',
     ],
     events: [
       'AccountsController:accountAdded',
@@ -48,30 +48,30 @@ export function getProfileMetricsControllerMessenger(
   return profileMetricsControllerMessenger;
 }
 
-export type ProfileMetricsControllerInitMessenger = Messenger<
-  'ProfileMetricsControllerInit',
-  ProfileMetricsControllerInitMessengerActions,
-  never
+export type ProfileMetricsControllerInitMessenger = ReturnType<
+  typeof getProfileMetricsControllerInitMessenger
 >;
 
 /**
  * Create a messenger for ProfileMetricsController initialization.
  * This messenger provides access to AnalyticsController state.
  *
- * @param rootMessenger - The base messenger used to create the restricted
+ * @param messenger - The base messenger used to create the restricted
  * messenger.
  */
 export function getProfileMetricsControllerInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<ProfileMetricsControllerInitMessenger>,
-    MessengerEvents<ProfileMetricsControllerInitMessenger>
-  >,
-): ProfileMetricsControllerInitMessenger {
-  const initMessenger: ProfileMetricsControllerInitMessenger = new Messenger({
+  messenger: RootMessenger,
+) {
+  const initMessenger = new Messenger<
+    'ProfileMetricsControllerInit',
+    ProfileMetricsControllerInitMessengerActions,
+    never,
+    RootMessenger
+  >({
     namespace: 'ProfileMetricsControllerInit',
-    parent: rootMessenger,
+    parent: messenger,
   });
-  rootMessenger.delegate({
+  messenger.delegate({
     actions: ['AnalyticsController:getState'],
     messenger: initMessenger,
   });

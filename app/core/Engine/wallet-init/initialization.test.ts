@@ -1,59 +1,56 @@
+import {
+  Messenger,
+  MOCK_ANY_NAMESPACE,
+  type MockAnyNamespace,
+} from '@metamask/messenger';
 import { Wallet } from '@metamask/wallet';
 import { initializeWallet } from './initialization';
-import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
-import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
-import type { RootMessenger } from '../types';
+import { getKeyringBuilders, getKeyringV2Builders } from './keyrings';
 
-jest.mock('@metamask/wallet', () => ({ Wallet: jest.fn() }));
-jest.mock('./instance-options/approval-controller', () => ({
-  getApprovalControllerInstanceOptions: jest.fn(() => 'approval-options'),
+jest.mock('@metamask/wallet', () => ({
+  Wallet: jest.fn(),
 }));
-jest.mock('./instance-options/keyring-controller', () => ({
-  getKeyringControllerInstanceOptions: jest.fn(() => 'keyring-options'),
+
+jest.mock('./keyrings', () => ({
+  getKeyringBuilders: jest.fn(() => ['v1-builder']),
+  getKeyringV2Builders: jest.fn(() => ['v2-builder']),
+  qrKeyringBridge: {},
 }));
-jest.mock('./instance-options/remote-feature-flag-controller', () => ({
-  getRemoteFeatureFlagControllerInstanceOptions: jest.fn(() => 'rffc-options'),
-}));
-jest.mock('./instance-options/connectivity-controller', () => ({
-  getConnectivityControllerInstanceOptions: jest.fn(
-    () => 'connectivity-options',
-  ),
-}));
-jest.mock('./instance-options/storage-service', () => ({
-  getStorageServiceInstanceOptions: jest.fn(() => 'storage-options'),
+
+jest.mock('../utils/storage-service-utils', () => ({
+  mobileStorageAdapter: { name: 'mock-storage-adapter' },
 }));
 
 describe('initializeWallet', () => {
-  const messenger = {} as RootMessenger;
-  const state = { KeyringController: { vault: 'encrypted-vault-blob' } };
-
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('constructs a Wallet, wiring each builder output to its instanceOptions slot', () => {
+  it('constructs a Wallet with the configured encryptor, V1 and V2 builders, and storage adapter', () => {
+    const messenger = new Messenger<MockAnyNamespace, never, never>({
+      namespace: MOCK_ANY_NAMESPACE,
+    });
+    const state = { KeyringController: { vault: 'encrypted-vault-blob' } };
+
     initializeWallet({ messenger, state });
 
-    expect(Wallet).toHaveBeenCalledWith({
-      messenger,
-      state,
-      instanceOptions: {
-        approvalController: 'approval-options',
-        keyringController: 'keyring-options',
-        remoteFeatureFlagController: 'rffc-options',
-        connectivityController: 'connectivity-options',
-        storageService: 'storage-options',
-      },
-    });
-  });
-
-  it('threads the messenger and state through to the builders that need them', () => {
-    initializeWallet({ messenger, state });
-
-    expect(getKeyringControllerInstanceOptions).toHaveBeenCalledWith(messenger);
-    expect(getRemoteFeatureFlagControllerInstanceOptions).toHaveBeenCalledWith({
-      messenger,
-      state,
-    });
+    expect(getKeyringBuilders).toHaveBeenCalledWith(messenger);
+    expect(getKeyringV2Builders).toHaveBeenCalled();
+    expect(Wallet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        messenger,
+        state,
+        instanceOptions: expect.objectContaining({
+          keyringController: expect.objectContaining({
+            keyringBuilders: ['v1-builder'],
+            keyringV2Builders: ['v2-builder'],
+            encryptor: expect.any(Object),
+          }),
+          storageService: expect.objectContaining({
+            storage: expect.objectContaining({ name: 'mock-storage-adapter' }),
+          }),
+        }),
+      }),
+    );
   });
 });

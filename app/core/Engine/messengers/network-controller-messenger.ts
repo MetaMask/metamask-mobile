@@ -24,21 +24,20 @@ import { AnalyticsControllerActions } from '@metamask/analytics-controller';
  * @returns The NetworkControllerMessenger.
  */
 export function getNetworkControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<NetworkControllerMessenger>,
-    MessengerEvents<NetworkControllerMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): NetworkControllerMessenger {
-  const messenger: NetworkControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'NetworkController',
+    MessengerActions<NetworkControllerMessenger>,
+    MessengerEvents<NetworkControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'NetworkController',
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: [
-      'ConnectivityController:getState',
-      'RemoteFeatureFlagController:getState',
-    ],
-    events: ['RemoteFeatureFlagController:stateChange'],
+    actions: ['ConnectivityController:getState'],
+    events: [],
     messenger,
   });
   return messenger;
@@ -56,10 +55,8 @@ type AllowedInitializationEvents =
       RemoteFeatureFlagControllerState
     >;
 
-export type NetworkControllerInitMessenger = Messenger<
-  'NetworkControllerInit',
-  AllowedInitializationActions,
-  AllowedInitializationEvents
+export type NetworkControllerInitMessenger = ReturnType<
+  typeof getNetworkControllerInitMessenger
 >;
 
 /**
@@ -71,20 +68,26 @@ export type NetworkControllerInitMessenger = Messenger<
  * @returns The NetworkControllerInitMessenger.
  */
 export function getNetworkControllerInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<NetworkControllerInitMessenger>,
-    MessengerEvents<NetworkControllerInitMessenger>
-  >,
-): NetworkControllerInitMessenger {
-  const messenger: NetworkControllerInitMessenger = new Messenger({
+  rootMessenger: RootMessenger,
+) {
+  const messenger = new Messenger<
+    'NetworkControllerInit',
+    AllowedInitializationActions,
+    AllowedInitializationEvents,
+    RootMessenger
+  >({
     namespace: 'NetworkControllerInit',
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    actions: ['AnalyticsController:trackEvent'],
+    actions: [
+      'RemoteFeatureFlagController:getState',
+      'AnalyticsController:trackEvent',
+    ],
     events: [
       'NetworkController:rpcEndpointDegraded',
       'NetworkController:rpcEndpointUnavailable',
+      'RemoteFeatureFlagController:stateChange',
     ],
     messenger,
   });

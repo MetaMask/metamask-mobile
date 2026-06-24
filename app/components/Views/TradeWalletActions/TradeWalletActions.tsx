@@ -148,16 +148,6 @@ function TradeWalletActions() {
     swapButtonEventLocationOverride: ActionLocation.NAVBAR,
   });
 
-  const dismissRootModalFlow = useCallback(() => {
-    const parentNavigation = navigation.getParent();
-    if (parentNavigation?.canGoBack()) {
-      parentNavigation.goBack();
-      return;
-    }
-
-    navigation.goBack();
-  }, [navigation]);
-
   const handleNavigateBack = useCallback(() => {
     onDismiss?.();
     setIsVisible(false);
@@ -259,20 +249,10 @@ function TradeWalletActions() {
   const exitingWithNavigateBack = useMemo(
     () =>
       exitingAnimationWithCallback(() => {
-        const callback = postCallback.current;
-        postCallback.current = undefined;
-
-        dismissRootModalFlow();
-
-        if (callback) {
-          // Defer navigation until RootModalFlow is fully dismissed so screens
-          // on MainNavigator (e.g. StakeModals) are not opened underneath it.
-          requestAnimationFrame(() => {
-            callback();
-          });
-        }
+        navigation.goBack();
+        postCallback.current?.();
       }),
-    [dismissRootModalFlow, exitingAnimationWithCallback],
+    [exitingAnimationWithCallback, navigation],
   );
 
   return (

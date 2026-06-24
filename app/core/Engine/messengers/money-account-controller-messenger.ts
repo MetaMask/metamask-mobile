@@ -20,15 +20,14 @@ import { RootMessenger } from '../types';
  * @returns The restricted controller messenger.
  */
 export function getMoneyAccountControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<MoneyAccountControllerMessenger>,
-    MessengerEvents<MoneyAccountControllerMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): MoneyAccountControllerMessenger {
-  const messenger: MoneyAccountControllerMessenger = new Messenger({
-    namespace: 'MoneyAccountController',
-    parent: rootMessenger,
-  });
+  const messenger = new Messenger<
+    'MoneyAccountController',
+    MessengerActions<MoneyAccountControllerMessenger>,
+    MessengerEvents<MoneyAccountControllerMessenger>,
+    RootMessenger
+  >({ namespace: 'MoneyAccountController', parent: rootMessenger });
 
   rootMessenger.delegate({
     messenger,
@@ -52,10 +51,8 @@ type AllowedInitializationEvents = ControllerStateChangeEvent<
   RemoteFeatureFlagControllerState
 >;
 
-export type MoneyAccountControllerInitMessenger = Messenger<
-  'MoneyAccountControllerInit',
-  AllowedInitializationActions,
-  AllowedInitializationEvents
+export type MoneyAccountControllerInitMessenger = ReturnType<
+  typeof getMoneyAccountControllerInitMessenger
 >;
 
 /**
@@ -66,12 +63,14 @@ export type MoneyAccountControllerInitMessenger = Messenger<
  * @returns The MoneyAccountControllerInitMessenger.
  */
 export function getMoneyAccountControllerInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<MoneyAccountControllerInitMessenger>,
-    MessengerEvents<MoneyAccountControllerInitMessenger>
-  >,
-): MoneyAccountControllerInitMessenger {
-  const messenger: MoneyAccountControllerInitMessenger = new Messenger({
+  rootMessenger: RootMessenger,
+) {
+  const messenger = new Messenger<
+    'MoneyAccountControllerInit',
+    AllowedInitializationActions,
+    AllowedInitializationEvents,
+    RootMessenger
+  >({
     namespace: 'MoneyAccountControllerInit',
     parent: rootMessenger,
   });

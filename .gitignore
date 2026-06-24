@@ -58,9 +58,6 @@ ios/GoogleService-Info.plist
 node_modules/
 npm-debug.log
 yarn-error.log
-
-# React Compiler bailout log (generated at build time)
-react-compiler.log
 .yalc
 yalc.lock
 
@@ -220,12 +217,10 @@ release-signoffs.json
 .claude/skills/
 .claude/commands/
 .agents/skills/
-.cursor/rules/*
-!.cursor/rules/*.mdc
+.cursor/rules/
 .cursor/skills/
 .cursor/commands/
 # Carve-outs: IDE/bugbot config that must stay tracked
-!.cursor/rules/*.mdc
 !.cursor/BUGBOT.md
 !.cursor/hooks.json
 !.cursor/worktrees.json

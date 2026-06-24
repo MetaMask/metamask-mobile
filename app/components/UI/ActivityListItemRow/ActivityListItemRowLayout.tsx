@@ -9,10 +9,8 @@ import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
 
 export function ActivityListItemRowLayout({
   avatar,
-  footer,
   index,
   isFailed,
-  titleSeverity,
   item,
   onPress,
   primaryAmount,
@@ -20,15 +18,11 @@ export function ActivityListItemRowLayout({
   secondaryAmount,
   styles,
   subtitle,
-  subtitleLeadingAccessory,
   title,
-  titleAccessory,
 }: {
   avatar: React.ReactNode;
-  footer?: React.ReactNode;
   index?: number;
   isFailed: boolean;
-  titleSeverity?: 'error' | 'warning';
   item: ActivityListItem;
   onPress?: () => void;
   primaryAmount?: string;
@@ -36,55 +30,26 @@ export function ActivityListItemRowLayout({
   secondaryAmount?: string;
   styles: ActivityListItemRowStyles;
   subtitle?: string;
-  subtitleLeadingAccessory?: React.ReactNode;
   title: string;
-  titleAccessory?: React.ReactNode;
 }) {
   const testIdSuffix = item.hash ?? index;
-  const titleSeverityStyle =
-    isFailed || titleSeverity === 'error'
-      ? styles.listItemTitleFailed
-      : titleSeverity === 'warning'
-        ? styles.listItemTitleWarning
-        : undefined;
-  const titleText = (
+  const titleNode = (
     <Text
       numberOfLines={1}
-      style={[styles.listItemTitle, titleSeverityStyle]}
+      style={[styles.listItemTitle, isFailed && styles.listItemTitleFailed]}
       testID={`activity-title-${testIdSuffix}`}
     >
       {title}
     </Text>
   );
-  const titleNode = titleAccessory ? (
-    <View style={styles.titleRow}>
-      {titleText}
-      {titleAccessory}
-    </View>
-  ) : (
-    titleText
-  );
   const subtitleNode = subtitle ? (
-    subtitleLeadingAccessory ? (
-      <View style={styles.subtitleRow}>
-        {subtitleLeadingAccessory}
-        <Text
-          numberOfLines={1}
-          style={styles.subtitleText}
-          testID={`activity-subtitle-${testIdSuffix}`}
-        >
-          {subtitle}
-        </Text>
-      </View>
-    ) : (
-      <Text
-        numberOfLines={1}
-        style={styles.subtitleText}
-        testID={`activity-subtitle-${testIdSuffix}`}
-      >
-        {subtitle}
-      </Text>
-    )
+    <Text
+      numberOfLines={1}
+      style={styles.subtitleText}
+      testID={`activity-subtitle-${testIdSuffix}`}
+    >
+      {subtitle}
+    </Text>
   ) : undefined;
   const primaryAmountNode = primaryAmount ? (
     <Text
@@ -118,19 +83,15 @@ export function ActivityListItemRowLayout({
     ) : undefined;
 
   return (
-    <View style={styles.row}>
-      <ListItem
-        isInteractive
-        avatar={avatar}
-        description={subtitleNode}
-        endAccessory={amountColumn}
-        onPress={onPress}
-        style={styles.listItem}
-        testID={`transaction-item-${index ?? 0}`}
-        title={titleNode}
-        accessoryGap={4}
-      />
-      {footer}
-    </View>
+    <ListItem
+      isInteractive
+      avatar={avatar}
+      description={subtitleNode}
+      endAccessory={amountColumn}
+      onPress={onPress}
+      style={[styles.row, styles.listItem]}
+      testID={`transaction-item-${index ?? 0}`}
+      title={titleNode}
+    />
   );
 }

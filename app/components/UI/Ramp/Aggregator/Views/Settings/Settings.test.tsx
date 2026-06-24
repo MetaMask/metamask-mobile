@@ -47,6 +47,12 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../../utils/withRampAndDepositSDK', () =>
+  jest.fn((Component) => (props: Record<string, unknown>) => (
+    <Component {...props} />
+  )),
+);
+
 const mockedActivationKeys: ActivationKey[] = [
   {
     key: 'testKey1',
@@ -170,6 +176,12 @@ jest.mock('../../sdk', () => ({
   withRampSDK: jest.fn().mockImplementation((Component) => Component),
 }));
 
+let mockUseRampsUnifiedV2EnabledValue = true;
+
+jest.mock('../../../hooks/useRampsUnifiedV2Enabled', () =>
+  jest.fn(() => mockUseRampsUnifiedV2EnabledValue),
+);
+
 describe('Settings', () => {
   afterEach(() => {
     jest.clearAllMocks();
@@ -185,6 +197,7 @@ describe('Settings', () => {
     mockUseRampsControllerValues = {
       ...mockUseRampsControllerInitialValues,
     };
+    mockUseRampsUnifiedV2EnabledValue = true;
   });
 
   it('renders correctly', () => {
@@ -218,53 +231,89 @@ describe('Settings', () => {
   });
 
   describe('Region', () => {
-    it('renders correctly when region is set', () => {
-      render(Settings);
-      expect(
-        screen.getByRole('button', { name: 'Change region' }),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders correctly when region is not set', () => {
-      mockUseRampsControllerValues = {
-        ...mockUseRampsControllerInitialValues,
-        userRegion: null,
-      };
-      render(Settings);
-      expect(
-        screen.getByRole('button', { name: 'Change region' }),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders correctly when region has state', () => {
-      mockUseRampsControllerValues = {
-        ...mockUseRampsControllerInitialValues,
-        userRegion: createMockUserRegion('eu-fr'),
-      };
-      render(Settings);
-      expect(screen.getByText('FR')).toBeOnTheScreen();
-    });
-
-    it('renders correctly when region is country only (no state)', () => {
-      mockUseRampsControllerValues = {
-        ...mockUseRampsControllerInitialValues,
-        userRegion: createMockUserRegion('fr'),
-      };
-      render(Settings);
-      expect(
-        screen.getByRole('button', { name: 'Change region' }),
-      ).toBeOnTheScreen();
-    });
-
-    it('navigates to region selector when change region button is pressed', () => {
-      render(Settings);
-      const changeRegionButton = screen.getByRole('button', {
-        name: 'Change region',
+    describe('V2 enabled', () => {
+      beforeEach(() => {
+        mockUseRampsUnifiedV2EnabledValue = true;
       });
-      fireEvent.press(changeRegionButton);
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.SETTINGS.REGION_SELECTOR,
-      );
+
+      it('renders correctly when region is set', () => {
+        render(Settings);
+        expect(
+          screen.getByRole('button', { name: 'Change region' }),
+        ).toBeOnTheScreen();
+      });
+
+      it('renders correctly when region is not set', () => {
+        mockUseRampsControllerValues = {
+          ...mockUseRampsControllerInitialValues,
+          userRegion: null,
+        };
+        render(Settings);
+        expect(
+          screen.getByRole('button', { name: 'Change region' }),
+        ).toBeOnTheScreen();
+      });
+
+      it('renders correctly when region has state', () => {
+        mockUseRampsControllerValues = {
+          ...mockUseRampsControllerInitialValues,
+          userRegion: createMockUserRegion('eu-fr'),
+        };
+        render(Settings);
+        expect(screen.getByText('FR')).toBeOnTheScreen();
+      });
+
+      it('renders correctly when region is country only (no state)', () => {
+        mockUseRampsControllerValues = {
+          ...mockUseRampsControllerInitialValues,
+          userRegion: createMockUserRegion('fr'),
+        };
+        render(Settings);
+        expect(
+          screen.getByRole('button', { name: 'Change region' }),
+        ).toBeOnTheScreen();
+      });
+
+      it('navigates to region selector when change region button is pressed', () => {
+        render(Settings);
+        const changeRegionButton = screen.getByRole('button', {
+          name: 'Change region',
+        });
+        fireEvent.press(changeRegionButton);
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.SETTINGS.REGION_SELECTOR,
+        );
+      });
+    });
+
+    describe('V2 disabled (Original)', () => {
+      beforeEach(() => {
+        mockUseRampsUnifiedV2EnabledValue = false;
+      });
+
+      it('renders correctly when region is set', () => {
+        render(Settings);
+        expect(
+          screen.getByRole('button', { name: 'Reset region' }),
+        ).toBeOnTheScreen();
+      });
+
+      it('renders correctly when region is not set', () => {
+        mockUseRampSDKValues = {
+          ...mockuseRampSDKInitialValues,
+          selectedRegion: null,
+        };
+        expect(() => render(Settings)).not.toThrow();
+      });
+
+      it('calls reset region when reset button is pressed', () => {
+        render(Settings);
+        const resetRegionButton = screen.getByRole('button', {
+          name: 'Reset region',
+        });
+        fireEvent.press(resetRegionButton);
+        expect(mockSetSelectedRegion).toHaveBeenCalledWith(null);
+      });
     });
   });
 

@@ -13,12 +13,14 @@ import { RootMessenger } from '../types';
  * @returns The LoggingControllerMessenger.
  */
 export function getLoggingControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<LoggingControllerMessenger>,
-    MessengerEvents<LoggingControllerMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): LoggingControllerMessenger {
-  const messenger: LoggingControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'LoggingController',
+    MessengerActions<LoggingControllerMessenger>,
+    MessengerEvents<LoggingControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'LoggingController',
     parent: rootMessenger,
   });

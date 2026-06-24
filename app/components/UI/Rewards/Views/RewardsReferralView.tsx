@@ -2,8 +2,9 @@ import React, { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { InteractionManager, Platform, ScrollView, Share } from 'react-native';
+import { ScrollView } from 'react-native';
 import { useSelector } from 'react-redux';
+import Share from 'react-native-share';
 import {
   Box,
   Button,
@@ -22,7 +23,6 @@ import {
 } from '../../../../reducers/rewards/selectors';
 import { buildReferralUrl, RewardsMetricsButtons } from '../utils';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
-import Logger from '../../../../util/Logger';
 
 const ReferralRewardsView: React.FC = () => {
   const tw = useTailwind();
@@ -44,7 +44,7 @@ const ReferralRewardsView: React.FC = () => {
     }
   }, [trackEvent, createEventBuilder]);
 
-  const handleShareLink = () => {
+  const handleShareLink = async () => {
     if (!referralCode) return;
     const link = buildReferralUrl(referralCode);
     trackEvent(
@@ -54,22 +54,9 @@ const ReferralRewardsView: React.FC = () => {
         })
         .build(),
     );
-    // Use RN's built-in Share API instead of react-native-share. On Android,
-    // react-native-share uses startActivityForResult, which notifies every
-    // ActivityEventListener (including ReactNativePayments) and can crash when
-    // the sheet is dismissed with a null intent.
-    InteractionManager.runAfterInteractions(() => {
-      const subject = strings(
-        'rewards.referral.actions.share_referral_subject',
-      );
-      const shareContent =
-        Platform.OS === 'ios'
-          ? { message: subject, url: link }
-          : { message: `${subject}\n${link}` };
-
-      Share.share(shareContent).catch((error) => {
-        Logger.log('Error while trying to share referral link', error);
-      });
+    await Share.open({
+      message: strings('rewards.referral.actions.share_referral_subject'),
+      url: link,
     });
   };
 

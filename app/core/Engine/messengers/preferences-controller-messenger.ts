@@ -7,12 +7,14 @@ import { PreferencesControllerMessenger } from '@metamask/preferences-controller
 import { RootMessenger } from '../types';
 
 export function getPreferencesControllerMessenger(
-  rootMessenger: RootMessenger<
+  rootMessenger: RootMessenger,
+) {
+  const messenger = new Messenger<
+    'PreferencesController',
     MessengerActions<PreferencesControllerMessenger>,
-    MessengerEvents<PreferencesControllerMessenger>
-  >,
-): PreferencesControllerMessenger {
-  const messenger: PreferencesControllerMessenger = new Messenger({
+    MessengerEvents<PreferencesControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'PreferencesController',
     parent: rootMessenger,
   });

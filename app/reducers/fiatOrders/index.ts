@@ -5,7 +5,7 @@ import type {
   DepositRegion,
   DepositCryptoCurrency,
   DepositPaymentMethod,
-} from '../../components/UI/Ramp/types/legacyDeposit';
+} from '@consensys/native-ramps-sdk';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../../selectors/multichainAccounts/accountTreeController';
 import { selectChainId } from '../../selectors/networkController';

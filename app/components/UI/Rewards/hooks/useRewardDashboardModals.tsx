@@ -139,6 +139,7 @@ export const useRewardDashboardModals = () => {
 
       onCancel: () => {
         dispatch(setHideUnlinkedAccountsBanner(true));
+        navigation.navigate(Routes.REWARDS_DASHBOARD);
       },
       type: ModalType.Confirmation,
       showCancelButton: true,
@@ -192,6 +193,7 @@ export const useRewardDashboardModals = () => {
         onPress: async () => {
           if (!isLinking) {
             const linkSuccess = await linkAccountGroup(selectedAccountGroup.id);
+            navigation.navigate(Routes.REWARDS_DASHBOARD);
             if (linkSuccess) {
               handleDismissCurrentAccountBanner();
             }

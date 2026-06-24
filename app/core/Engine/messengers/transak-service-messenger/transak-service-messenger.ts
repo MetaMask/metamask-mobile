@@ -17,11 +17,15 @@ type AllowedEvents = MessengerEvents<TransakServiceMessenger>;
  * @returns The TransakServiceMessenger.
  */
 export function getTransakServiceMessenger(
-  rootMessenger: RootMessenger<AllowedActions, AllowedEvents>,
+  rootMessenger: RootMessenger,
 ): TransakServiceMessenger {
-  const messenger: TransakServiceMessenger = new Messenger({
+  return new Messenger<
+    'TransakService',
+    AllowedActions,
+    AllowedEvents,
+    typeof rootMessenger
+  >({
     namespace: 'TransakService',
     parent: rootMessenger,
   });
-  return messenger;
 }

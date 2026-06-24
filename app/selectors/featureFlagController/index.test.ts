@@ -1,7 +1,5 @@
-import {
-  selectRemoteFeatureFlags,
-  selectRemoteFeatureFlagControllerState,
-} from '.';
+import mockedEngine from '../../core/__mocks__/MockedEngine';
+import { selectRemoteFeatureFlagControllerState } from '.';
 import {
   mockedEmptyFlagsState,
   mockedState,
@@ -9,7 +7,7 @@ import {
 } from './mocks';
 
 jest.mock('../../core/Engine', () => ({
-  init: jest.fn(),
+  init: () => mockedEngine.init(),
 }));
 
 describe('featureFlagController selector', () => {
@@ -34,40 +32,5 @@ describe('featureFlagController selector', () => {
       mockedUndefinedFlagsState,
     );
     expect(result).toBeUndefined();
-  });
-
-  describe('selectRemoteFeatureFlags', () => {
-    const stateWithFlagsAndBasicFunctionality = {
-      ...mockedState,
-      settings: {
-        basicFunctionalityEnabled: true,
-      },
-    };
-
-    const stateWithFlagsAndBasicFunctionalityDisabled = {
-      ...mockedState,
-      settings: {
-        basicFunctionalityEnabled: false,
-      },
-    };
-
-    it('returns merged flags when basic functionality is enabled', () => {
-      const result = selectRemoteFeatureFlags(
-        stateWithFlagsAndBasicFunctionality,
-      );
-
-      expect(result).toEqual(
-        mockedState.engine.backgroundState.RemoteFeatureFlagController
-          ?.remoteFeatureFlags ?? {},
-      );
-    });
-
-    it('returns empty flags when basic functionality is disabled', () => {
-      const result = selectRemoteFeatureFlags(
-        stateWithFlagsAndBasicFunctionalityDisabled,
-      );
-
-      expect(result).toEqual({});
-    });
   });
 });

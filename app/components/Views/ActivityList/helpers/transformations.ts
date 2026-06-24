@@ -46,27 +46,12 @@ function isIncomingTokenTransfer(
   address: string,
   transaction: V1TransactionByHashResponse,
 ) {
-  const normalizedAddress = address.toLowerCase();
-
   return (
     (transaction.valueTransfers?.some(
-      (transfer) =>
-        Boolean(transfer.contractAddress) &&
-        transfer.to?.toLowerCase() === normalizedAddress &&
-        transfer.from?.toLowerCase() !== normalizedAddress,
+      (transfer) => transfer.to?.toLowerCase() === address,
     ) ??
       false) &&
-    transaction.from?.toLowerCase() !== normalizedAddress
-  );
-}
-
-function isNativeValueTransfer(
-  transfer: NonNullable<V1TransactionByHashResponse['valueTransfers']>[number],
-) {
-  const transferType = transfer.transferType?.toLowerCase();
-  return (
-    !transfer.contractAddress &&
-    (transferType === 'native' || transferType === 'normal')
+    transaction.from?.toLowerCase() !== address
   );
 }
 
@@ -89,7 +74,7 @@ function isIncomingNativeTransfer(
     if (
       !hasIncomingNativeTransfer &&
       transfer.to?.toLowerCase() === normalizedAddress &&
-      isNativeValueTransfer(transfer)
+      !transfer.contractAddress
     ) {
       hasIncomingNativeTransfer = true;
     }
@@ -193,22 +178,13 @@ export function mapNonEvmTransactions(
 }
 
 /**
- * Merges and sorts all transaction sources into a single ActivityListItem list.
- * Dedup precedence by hash: perps/predict > API-confirmed EVM > local EVM >
- * non-EVM (see mergeActivityItems).
+ * Merges and sorts all three transaction sources into a single ActivityListItem list.
+ * API-confirmed EVM items win deduplication by hash over local items.
  */
 export function mergeTransactionsByTime(
   localItems: ActivityListItem[],
   confirmedEvmItems: ActivityListItem[],
   nonEvmItems: ActivityListItem[],
-  perpsItems: ActivityListItem[] = [],
-  predictItems: ActivityListItem[] = [],
 ): ActivityListItem[] {
-  return mergeActivityItems(
-    localItems,
-    confirmedEvmItems,
-    nonEvmItems,
-    perpsItems,
-    predictItems,
-  );
+  return mergeActivityItems(localItems, confirmedEvmItems, nonEvmItems);
 }

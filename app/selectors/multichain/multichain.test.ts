@@ -143,7 +143,6 @@ function getEvmState(
     },
     settings: {
       showFiatOnTestnets,
-      basicFunctionalityEnabled: true,
     },
   };
   return state as unknown as RootState;

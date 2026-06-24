@@ -100,7 +100,10 @@ import {
 } from '../../../../../../UI/Bridge/utils/getPriceImpactViewData';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useGasFeeEstimates } from '../../../../../confirmations/hooks/gas/useGasFeeEstimates';
-import { QuickBuyEventProperties, QuickBuyEventValues } from '../analytics';
+import {
+  SocialLeaderboardEventProperties,
+  SocialLeaderboardEventValues,
+} from '../../../../analytics';
 import { buildQuickBuyToastOptions } from '../quickBuyToastOptions';
 import {
   trackQuickBuyTrade,
@@ -200,7 +203,6 @@ export interface UseQuickBuyControllerResult {
   setSelectedQuoteRequestId: React.Dispatch<
     React.SetStateAction<string | undefined>
   >;
-  handleSelectQuote: (requestId: string) => void;
   quotesLastFetchedAt: number | null;
   refreshCount: number;
   quoteRefreshRateMs: number;
@@ -247,10 +249,6 @@ export function useQuickBuyController(
     refs: { lastInputMethodRef, lastTrackedAmountRef, submitStartedAtRef },
     trackAmountSelected,
     trackTradeModeToggled,
-    trackQuoteSelected,
-    trackPayWithSelected,
-    trackReceiveTokenSelected,
-    trackSlippageChanged,
     trackTradeSubmitted,
     trackTradeCompleted,
     markTradeSubmitted,
@@ -702,33 +700,6 @@ export function useQuickBuyController(
     }
   }, [selectedQuoteRequestId, sortedQuotes]);
 
-  const handleSelectQuote = useCallback(
-    (requestId: string) => {
-      const index = sortedQuotes.findIndex(
-        (quote) => quote.quote.requestId === requestId,
-      );
-      if (index >= 0) {
-        trackQuoteSelected(index, sortedQuotes.length);
-      }
-      setSelectedQuoteRequestId(requestId);
-    },
-    [sortedQuotes, trackQuoteSelected],
-  );
-
-  const prevSlippageRef = useRef(slippage);
-  const hasSlippageInitializedRef = useRef(false);
-  useEffect(() => {
-    if (!hasSlippageInitializedRef.current) {
-      hasSlippageInitializedRef.current = true;
-      prevSlippageRef.current = slippage;
-      return;
-    }
-    const prev = prevSlippageRef.current;
-    if (prev === slippage) return;
-    prevSlippageRef.current = slippage;
-    trackSlippageChanged(slippage ?? '', prev ?? '');
-  }, [slippage, trackSlippageChanged]);
-
   const formattedNetworkFee = useFormattedNetworkFee(activeQuote ?? null);
 
   const networkFeeFiat = useMemo(() => {
@@ -962,7 +933,7 @@ export function useQuickBuyController(
           : ((maxSpendFiat * rounded) / 100).toFixed(FIAT_INPUT_DECIMALS);
       setFiatAmount(nextFiat);
       lastInputMethodRef.current =
-        QuickBuyEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
+        SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
     },
     [hasSourcePrice, maxSpendTokens, maxSpendFiat, lastInputMethodRef],
   );
@@ -1010,7 +981,7 @@ export function useQuickBuyController(
         setImmediateFetchToken((token) => token + 1);
         trackAmountSelected(
           toAmountUsd(numericFiat),
-          QuickBuyEventValues.AMOUNT_SELECTION_METHOD.SLIDER,
+          SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER,
           tradeMode === 'buy' ? sourceToken?.symbol : undefined,
           rounded,
           tradeMode === 'sell' ? destToken?.symbol : undefined,
@@ -1053,7 +1024,7 @@ export function useQuickBuyController(
     lastCommittedFiatRef.current = '';
     lastTrackedAmountRef.current = '';
     lastInputMethodRef.current =
-      QuickBuyEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
+      SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.SLIDER;
   }, [lastInputMethodRef, lastTrackedAmountRef]);
 
   // Reset amount/slider when tradeMode flips and emit analytics.
@@ -1103,33 +1074,25 @@ export function useQuickBuyController(
 
   const handleSelectSourceToken = useCallback(
     (token: BridgeToken) => {
-      const previousToken = selectedSourceToken?.symbol ?? '';
-      if (token.symbol !== previousToken) {
-        trackPayWithSelected(token.symbol, previousToken);
-      }
       isManualSelectionRef.current = true;
       setSelectedSourceToken(token);
       resetAmountState();
     },
-    [resetAmountState, selectedSourceToken?.symbol, trackPayWithSelected],
+    [resetAmountState],
   );
 
   const handleSelectDestStable = useCallback(
     (token: BridgeToken) => {
-      const previousToken = selectedDestStable?.symbol ?? '';
-      if (token.symbol !== previousToken) {
-        trackReceiveTokenSelected(token.symbol, previousToken);
-      }
       setSelectedDestStable(token);
       resetAmountState();
     },
-    [resetAmountState, selectedDestStable?.symbol, trackReceiveTokenSelected],
+    [resetAmountState],
   );
 
   const handleAmountChange = useCallback(
     (text: string) => {
       lastInputMethodRef.current =
-        QuickBuyEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT;
+        SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT;
       const cleaned = dotAndCommaDecimalFormatter(text).replace(/[^0-9.]/g, '');
       const normalized = cleaned.startsWith('.') ? `0${cleaned}` : cleaned;
       const parts = normalized.split('.');
@@ -1169,7 +1132,7 @@ export function useQuickBuyController(
     const handle = setTimeout(() => {
       trackAmountSelected(
         amountUsd,
-        QuickBuyEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT,
+        SocialLeaderboardEventValues.AMOUNT_SELECTION_METHOD.CUSTOM_INPUT,
         tradeMode === 'buy' ? sourceToken?.symbol : undefined,
         undefined,
         tradeMode === 'sell' ? destToken?.symbol : undefined,
@@ -1213,24 +1176,26 @@ export function useQuickBuyController(
       ? {
           ...(submittedTraderAddress
             ? {
-                [QuickBuyEventProperties.TRADER_ADDRESS]:
+                [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
                   submittedTraderAddress,
               }
             : {}),
-          [QuickBuyEventProperties.CAIP19]: submittedCaip19,
-          [QuickBuyEventProperties.ASSET_NAME]: submittedAssetName,
+          [SocialLeaderboardEventProperties.CAIP19]: submittedCaip19,
+          [SocialLeaderboardEventProperties.ASSET_NAME]: submittedAssetName,
           ...(amountUsd !== undefined
-            ? { [QuickBuyEventProperties.AMOUNT_USD]: amountUsd }
+            ? { [SocialLeaderboardEventProperties.AMOUNT_USD]: amountUsd }
             : {}),
-          [QuickBuyEventProperties.TRADE_TYPE]: tradeMode,
+          [SocialLeaderboardEventProperties.TRADE_TYPE]: tradeMode,
           ...(submittedPayWith
             ? {
-                [QuickBuyEventProperties.PAY_WITH_TOKEN]: submittedPayWith,
+                [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]:
+                  submittedPayWith,
               }
             : {}),
           ...(submittedReceiveToken
             ? {
-                [QuickBuyEventProperties.RECEIVE_TOKEN]: submittedReceiveToken,
+                [SocialLeaderboardEventProperties.RECEIVE_TOKEN]:
+                  submittedReceiveToken,
               }
             : {}),
         }
@@ -1314,10 +1279,11 @@ export function useQuickBuyController(
       if (tradeBaseProps) {
         trackTradeCompleted({
           ...tradeBaseProps,
-          [QuickBuyEventProperties.AMOUNT_TOKEN]: amountToken,
-          [QuickBuyEventProperties.TX_HASH]: txHash,
-          [QuickBuyEventProperties.EXECUTION_TIME_MS]: elapsedMs(),
-          [QuickBuyEventProperties.STATUS]: QuickBuyEventValues.STATUS.SUCCESS,
+          [SocialLeaderboardEventProperties.AMOUNT_TOKEN]: amountToken,
+          [SocialLeaderboardEventProperties.TX_HASH]: txHash,
+          [SocialLeaderboardEventProperties.EXECUTION_TIME_MS]: elapsedMs(),
+          [SocialLeaderboardEventProperties.STATUS]:
+            SocialLeaderboardEventValues.STATUS.SUCCESS,
         });
       }
     } catch (error) {
@@ -1345,9 +1311,10 @@ export function useQuickBuyController(
       if (tradeBaseProps) {
         trackTradeCompleted({
           ...tradeBaseProps,
-          [QuickBuyEventProperties.AMOUNT_TOKEN]: amountToken,
-          [QuickBuyEventProperties.EXECUTION_TIME_MS]: elapsedMs(),
-          [QuickBuyEventProperties.STATUS]: QuickBuyEventValues.STATUS.FAILED,
+          [SocialLeaderboardEventProperties.AMOUNT_TOKEN]: amountToken,
+          [SocialLeaderboardEventProperties.EXECUTION_TIME_MS]: elapsedMs(),
+          [SocialLeaderboardEventProperties.STATUS]:
+            SocialLeaderboardEventValues.STATUS.FAILED,
         });
       }
     } finally {
@@ -1585,7 +1552,6 @@ export function useQuickBuyController(
     sortedQuotes,
     selectedQuoteRequestId,
     setSelectedQuoteRequestId,
-    handleSelectQuote,
     quotesLastFetchedAt,
     refreshCount,
     quoteRefreshRateMs,

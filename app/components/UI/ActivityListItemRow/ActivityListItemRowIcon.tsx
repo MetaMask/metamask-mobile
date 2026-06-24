@@ -50,23 +50,16 @@ function getImageUri(
 
 function TokenAvatar({
   fallbackIcon,
-  iconUrl,
   styles,
   tokens,
 }: {
   fallbackIcon: ImageSourcePropType;
-  iconUrl?: string;
   styles: ActivityListItemRowStyles;
   tokens: TokenAmount[];
 }) {
   const tokenImageSources = useMemo(
-    () =>
-      tokens.map((token, index) =>
-        // An explicit iconUrl (HyperLiquid market icon) overrides the
-        // token-derived source for the single-avatar case.
-        index === 0 && iconUrl ? { uri: iconUrl } : getTokenImageSource(token),
-      ),
-    [tokens, iconUrl],
+    () => tokens.map((token) => getTokenImageSource(token)),
+    [tokens],
   );
 
   useEffect(() => {
@@ -124,20 +117,12 @@ function TokenAvatar({
 
 export function ActivityListItemRowIcon({
   fallbackIcon,
-  iconUrl,
   networkImageSource,
   styles,
   tokens,
 }: {
   fallbackIcon: ImageSourcePropType;
-  /** Explicit avatar image URL (e.g. HyperLiquid market icon) for the single-avatar case. */
-  iconUrl?: string;
-  /**
-   * Network badge source. Omitted for single-network domains (perps =
-   * Arbitrum, predict = Polygon) where the badge adds no information, so the
-   * avatar renders without it.
-   */
-  networkImageSource?: ImageSourcePropType;
+  networkImageSource: ImageSourcePropType;
   styles: ActivityListItemRowStyles;
   tokens: TokenAmount[];
 }) {
@@ -147,19 +132,6 @@ export function ActivityListItemRowIcon({
       Image.prefetch(uri);
     }
   }, [networkImageSource]);
-
-  const avatar = (
-    <TokenAvatar
-      fallbackIcon={fallbackIcon}
-      iconUrl={iconUrl}
-      styles={styles}
-      tokens={tokens}
-    />
-  );
-
-  if (!networkImageSource) {
-    return avatar;
-  }
 
   return (
     <BadgeWrapper
@@ -173,7 +145,11 @@ export function ActivityListItemRowIcon({
         />
       }
     >
-      {avatar}
+      <TokenAvatar
+        fallbackIcon={fallbackIcon}
+        styles={styles}
+        tokens={tokens}
+      />
     </BadgeWrapper>
   );
 }

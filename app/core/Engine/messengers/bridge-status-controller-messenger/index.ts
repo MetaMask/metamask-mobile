@@ -1,5 +1,5 @@
 import { BridgeStatusControllerMessenger } from '@metamask/bridge-status-controller';
-import { RootMessenger } from '../../types';
+import { RootExtendedMessenger, RootMessenger } from '../../types';
 import {
   Messenger,
   MessengerActions,
@@ -9,20 +9,22 @@ import {
 /**
  * Get the BridgeControllerMessenger for the BridgeController.
  *
- * @param rootMessenger - The root messenger.
+ * @param rootExtendedMessenger - The base controller messenger.
  * @returns The BridgeControllerMessenger.
  */
 export function getBridgeStatusControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<BridgeStatusControllerMessenger>,
-    MessengerEvents<BridgeStatusControllerMessenger>
-  >,
+  rootExtendedMessenger: RootExtendedMessenger,
 ): BridgeStatusControllerMessenger {
-  const messenger: BridgeStatusControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'BridgeStatusController',
+    MessengerActions<BridgeStatusControllerMessenger>,
+    MessengerEvents<BridgeStatusControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'BridgeStatusController',
-    parent: rootMessenger,
+    parent: rootExtendedMessenger,
   });
-  rootMessenger.delegate({
+  rootExtendedMessenger.delegate({
     actions: [
       'AccountsController:getAccountByAddress',
       'NetworkController:getNetworkClientById',

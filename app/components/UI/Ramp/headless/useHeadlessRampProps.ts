@@ -1,6 +1,6 @@
 import { useMemo } from 'react';
 import { getSession } from './sessionRegistry';
-import type { RampSurface } from '../types/depositAnalytics';
+import type { RampSurface } from '../Deposit/types/analytics';
 
 /**
  * Analytics ramp-type/surface props for a NativeFlow screen, in the two shapes

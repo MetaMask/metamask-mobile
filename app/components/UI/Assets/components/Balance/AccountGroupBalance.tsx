@@ -10,6 +10,7 @@ import {
   selectBalanceChangeBySelectedAccountGroup,
   selectAccountGroupBalanceForEmptyState,
 } from '../../../../../selectors/assets/balances';
+import { selectWalletHomeOnboardingStepsEnabled } from '../../../../../selectors/featureFlagController/homepage';
 import {
   selectShouldShowWalletHomeOnboardingSteps,
   selectWalletHomeOnboardingSkipInitialBalanceWait,
@@ -59,6 +60,9 @@ const AccountGroupBalance = ({
   const { PreferencesController } = Engine.context;
   const styles = createStyles();
   const { formatCurrency } = useFormatters();
+  const isWalletHomeOnboardingStepsEnabled = useSelector(
+    selectWalletHomeOnboardingStepsEnabled,
+  );
   const shouldShowWalletHomeOnboardingSteps = useSelector(
     selectShouldShowWalletHomeOnboardingSteps,
   );
@@ -137,7 +141,8 @@ const AccountGroupBalance = ({
   const shouldShowEmptyState =
     hasZeroAccountGroupBalance && !isCurrentNetworkTestnet;
 
-  const inWalletHomePostOnboardingFlow = shouldShowWalletHomeOnboardingSteps;
+  const inWalletHomePostOnboardingFlow =
+    isWalletHomeOnboardingStepsEnabled && shouldShowWalletHomeOnboardingSteps;
 
   const isWalletHomeOnboardingFundStep =
     inWalletHomePostOnboardingFlow && walletHomeOnboardingStepIndex === 0;

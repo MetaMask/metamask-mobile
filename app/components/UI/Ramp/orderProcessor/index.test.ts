@@ -3,6 +3,7 @@ import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import processOrder from '.';
 import Logger from '../../../../util/Logger';
 import { processAggregatorOrder } from '../Aggregator/orderProcessor/aggregator';
+import { processDepositOrder } from '../Deposit/orderProcessor';
 import { processUnifiedOrder } from './unifiedOrderProcessor';
 import { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
@@ -56,6 +57,10 @@ jest.mock('../Aggregator/orderProcessor/aggregator', () => ({
   processAggregatorOrder: jest.fn((order) => order),
 }));
 
+jest.mock('../Deposit/orderProcessor', () => ({
+  processDepositOrder: jest.fn((order) => order),
+}));
+
 jest.mock('./unifiedOrderProcessor', () => ({
   processUnifiedOrder: jest.fn((order) => order),
 }));
@@ -72,6 +77,9 @@ describe('processOrder', () => {
       >
     ).mockClear();
     (
+      processDepositOrder as jest.MockedFunction<typeof processDepositOrder>
+    ).mockClear();
+    (
       processUnifiedOrder as jest.MockedFunction<typeof processUnifiedOrder>
     ).mockClear();
   });
@@ -80,7 +88,6 @@ describe('processOrder', () => {
     FIAT_ORDER_PROVIDERS.WYRE_APPLE_PAY,
     FIAT_ORDER_PROVIDERS.TRANSAK,
     FIAT_ORDER_PROVIDERS.MOONPAY,
-    FIAT_ORDER_PROVIDERS.DEPOSIT,
   ])('should return same order for provider %s', async (provider) => {
     const providerOrder = {
       ...mockOrder1,
@@ -123,6 +130,7 @@ describe('processOrder', () => {
       await processOrder(rampsV2Order);
       expect(processUnifiedOrder).toHaveBeenCalledWith(rampsV2Order, undefined);
       expect(processAggregatorOrder).not.toHaveBeenCalled();
+      expect(processDepositOrder).not.toHaveBeenCalled();
     });
 
     it('routes AGGREGATOR order to processAggregatorOrder', async () => {
@@ -131,6 +139,16 @@ describe('processOrder', () => {
         mockOrder1,
         undefined,
       );
+      expect(processUnifiedOrder).not.toHaveBeenCalled();
+    });
+
+    it('routes DEPOSIT order to processDepositOrder', async () => {
+      const depositOrder: FiatOrder = {
+        ...mockOrder1,
+        provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+      };
+      await processOrder(depositOrder);
+      expect(processDepositOrder).toHaveBeenCalledWith(depositOrder, undefined);
       expect(processUnifiedOrder).not.toHaveBeenCalled();
     });
   });

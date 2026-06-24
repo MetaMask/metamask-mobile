@@ -1,8 +1,4 @@
-import {
-  Messenger,
-  type MessengerActions,
-  type MessengerEvents,
-} from '@metamask/messenger';
+import { Messenger } from '@metamask/messenger';
 import { SnapRegistryControllerMessenger } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../../types';
 
@@ -14,10 +10,7 @@ import { RootMessenger } from '../../types';
  * @returns The Snap registry controller messenger.
  */
 export function getSnapRegistryControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<SnapRegistryControllerMessenger>,
-    MessengerEvents<SnapRegistryControllerMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): SnapRegistryControllerMessenger {
   const messenger: SnapRegistryControllerMessenger = new Messenger({
     namespace: 'SnapRegistryController',

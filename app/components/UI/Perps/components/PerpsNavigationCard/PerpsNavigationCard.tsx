@@ -1,15 +1,14 @@
 import React from 'react';
-import {
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
-} from '@metamask/design-system-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
@@ -34,7 +33,7 @@ export interface NavigationItem {
    */
   showArrow?: boolean;
   /**
-   * Optional color for the right arrow icon (defaults to IconColor.IconAlternative)
+   * Optional color for the right arrow icon (defaults to IconColor.Alternative)
    */
   arrowColor?: IconColor;
   /**
@@ -89,7 +88,7 @@ const PerpsNavigationCard: React.FC<PerpsNavigationCardProps> = ({ items }) => {
                 <Icon
                   name={item.iconName}
                   size={IconSize.Md}
-                  color={IconColor.IconDefault}
+                  color={IconColor.Default}
                 />
               )}
               <ListItemColumn widthType={WidthType.Fill}>
@@ -102,7 +101,7 @@ const PerpsNavigationCard: React.FC<PerpsNavigationCardProps> = ({ items }) => {
                   <Icon
                     name={IconName.ArrowRight}
                     size={IconSize.Md}
-                    color={item.arrowColor ?? IconColor.IconAlternative}
+                    color={item.arrowColor ?? IconColor.Alternative}
                   />
                 </ListItemColumn>
               )}

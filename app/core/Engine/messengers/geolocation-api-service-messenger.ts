@@ -14,12 +14,14 @@ import type { GeolocationApiServiceMessenger } from '@metamask/geolocation-contr
  * @returns The GeolocationApiServiceMessenger.
  */
 export function getGeolocationApiServiceMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<GeolocationApiServiceMessenger>,
-    MessengerEvents<GeolocationApiServiceMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): GeolocationApiServiceMessenger {
-  const messenger: GeolocationApiServiceMessenger = new Messenger({
+  const messenger = new Messenger<
+    'GeolocationApiService',
+    MessengerActions<GeolocationApiServiceMessenger>,
+    MessengerEvents<GeolocationApiServiceMessenger>,
+    RootMessenger
+  >({
     namespace: 'GeolocationApiService',
     parent: rootMessenger,
   });

@@ -15,7 +15,7 @@ import {
 } from '../headlessOrderContextRegistry';
 // Type-only import so `react` is not pulled into core; mirrors the emission in
 // `useAnalytics` without importing the hook.
-import type { AnalyticsEvents } from '../../../../../components/UI/Ramp/types/depositAnalytics';
+import type { AnalyticsEvents } from '../../../../../components/UI/Ramp/Deposit/types/analytics';
 
 /**
  * Builds the `RAMPS_TRANSACTION_FAILED` payload for a headless order. Mirrors

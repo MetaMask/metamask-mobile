@@ -9,8 +9,6 @@ import {
   stopFailureRecordingAndAttach,
 } from '../../services/appium/ScreenRecording.ts';
 import { createPlaywrightLogger } from '../../playwrightLogger.ts';
-import { FrameworkDetector, TestFramework } from '../../FrameworkDetector.ts';
-import UnifiedGestures from '../../UnifiedGestures.ts';
 
 const logger = createPlaywrightLogger('driver');
 
@@ -54,9 +52,6 @@ export const driverFixture = {
       }
 
       globalThis.driver = driver;
-      FrameworkDetector.reset();
-      FrameworkDetector.setFramework(TestFramework.APPIUM);
-      UnifiedGestures.resetStrategy();
 
       const platformName = (await driver.capabilities)?.platformName;
       const windowSize = await driver.getWindowSize();
@@ -143,8 +138,6 @@ export const driverFixture = {
 
       try {
         delete globalThis.driver;
-        FrameworkDetector.reset();
-        UnifiedGestures.resetStrategy();
       } catch (error) {
         logger.error('Failed to clean up global driver:', error);
       }

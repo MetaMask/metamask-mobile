@@ -1,6 +1,5 @@
 import React, { useRef, useCallback, useEffect, useState } from 'react';
-import { View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { Animated as RNAnimated, View } from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import isUrl from 'is-url';
 import {
@@ -348,7 +347,7 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
         ) : null}
 
         {/* Form — always mounted, height-animated to drive sheet resize */}
-        <Animated.View style={contentWrapperStyle}>
+        <RNAnimated.View style={contentWrapperStyle}>
           <View
             style={FORM_INNER_STYLE}
             onLayout={onContentLayout}
@@ -402,10 +401,10 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
               </Box>
             </View>
           </View>
-        </Animated.View>
+        </RNAnimated.View>
 
         {/* Add button — crossfades out as form grows */}
-        <Animated.View
+        <RNAnimated.View
           style={toggleButtonStyle}
           pointerEvents={showForm ? 'none' : 'auto'}
         >
@@ -420,7 +419,7 @@ const BlockExplorerModals: React.FC<BlockExplorerSectionProps> = ({
               testID={NetworkDetailsViewSelectorsIDs.ADD_BLOCK_EXPLORER}
             />
           </Box>
-        </Animated.View>
+        </RNAnimated.View>
       </ScrollView>
     </BottomSheet>
   );

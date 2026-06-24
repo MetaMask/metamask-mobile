@@ -35,7 +35,6 @@ import { deprecatedGetNetworkId } from '../../util/networks/engineNetworkUtils';
 import AppConstants from '../AppConstants';
 import { store } from '../../store';
 import { selectIsAssetsUnifyStateEnabled } from '../../selectors/featureFlagController/assetsUnifyState';
-import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 import {
   renderFromTokenMinimalUnit,
   balanceToFiatNumber,
@@ -124,6 +123,7 @@ import {
 import { getGlobalChainId } from '../../util/networks/global-network';
 import { logEngineCreation } from './utils/logger';
 import { initMessengerClients } from './utils';
+import { accountsControllerInit } from './controllers/accounts-controller';
 import { accountTreeControllerInit } from '../../multichain-accounts/controllers/account-tree-controller';
 import { bridgeControllerInit } from './controllers/bridge-controller/bridge-controller-init';
 import { bridgeStatusControllerInit } from './controllers/bridge-status-controller/bridge-status-controller-init';
@@ -173,16 +173,15 @@ import { moneyAccountBalanceServiceInit } from './controllers/money-account-bala
 import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
-import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
-import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
+import { remoteFeatureFlagControllerInit } from './controllers/remote-feature-flag-controller-init';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
 import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
+import { connectivityControllerInit } from './controllers/connectivity/connectivity-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
-import { proofOfOwnershipServiceInit } from './controllers/proof-of-ownership-service-init';
 import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
@@ -312,7 +311,9 @@ export class Engine {
       initFunctions: {
         LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
+        RemoteFeatureFlagController: remoteFeatureFlagControllerInit,
         NetworkController: networkControllerInit,
+        AccountsController: accountsControllerInit,
         PermissionController: permissionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
@@ -391,9 +392,9 @@ export class Engine {
         RewardsController: rewardsControllerInit,
         RewardsDataService: rewardsDataServiceInit,
         DelegationController: DelegationControllerInit,
+        ConnectivityController: connectivityControllerInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
-        ProofOfOwnershipService: proofOfOwnershipServiceInit,
         AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
         TransakService: transakServiceInit,
@@ -415,10 +416,9 @@ export class Engine {
 
     const analyticsController = messengerClientsByName.AnalyticsController;
     const loggingController = messengerClientsByName.LoggingController;
-    const remoteFeatureFlagController = this.#wallet.getInstance(
-      'RemoteFeatureFlagController',
-    );
-    const accountsController = this.#wallet.getInstance('AccountsController');
+    const remoteFeatureFlagController =
+      messengerClientsByName.RemoteFeatureFlagController;
+    const accountsController = messengerClientsByName.AccountsController;
     const accountTreeController = messengerClientsByName.AccountTreeController;
     const approvalController = this.#wallet.getInstance('ApprovalController');
     const assetsContractController =
@@ -444,14 +444,11 @@ export class Engine {
     const preferencesController = messengerClientsByName.PreferencesController;
     const delegationController = messengerClientsByName.DelegationController;
     const addressBookController = messengerClientsByName.AddressBookController;
-    const connectivityController = this.#wallet.getInstance(
-      'ConnectivityController',
-    );
+    const connectivityController =
+      messengerClientsByName.ConnectivityController;
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
-    const proofOfOwnershipService =
-      messengerClientsByName.ProofOfOwnershipService;
     const rampsService = messengerClientsByName.RampsService;
     const transakService = messengerClientsByName.TransakService;
     const rampsController = messengerClientsByName.RampsController;
@@ -544,25 +541,6 @@ export class Engine {
       messengerClientsByName.NetworkEnablementController;
     networkEnablementController.init();
 
-    // The wallet constructs AccountsController; emit the startup breadcrumb
-    // (account counts) that the deleted local init used to log.
-    Logger.log('AccountsController initialized', {
-      hasSelectedAccount:
-        !!accountsController.state.internalAccounts.selectedAccount,
-      accountsCount: Object.keys(
-        accountsController.state.internalAccounts.accounts,
-      ).length,
-    });
-
-    // The wallet constructs ConnectivityController but does not seed its initial
-    // status; do that here (fire-and-forget).
-    connectivityController.init().catch((error) => {
-      Logger.error(
-        error as Error,
-        'ConnectivityController: failed to initialize',
-      );
-    });
-
     // Initialize RPC domain validation cache for analytics
     // This runs asynchronously and doesn't block Engine initialization
     initializeRpcProviderDomains().catch((error) => {
@@ -653,7 +631,6 @@ export class Engine {
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
-      ProofOfOwnershipService: proofOfOwnershipService,
       RampsService: rampsService,
       TransakService: transakService,
       RampsController: rampsController,
@@ -852,65 +829,6 @@ export class Engine {
 
     this.configureControllersOnNetworkChange();
     this.handleVaultBackup();
-
-    const clearRemoteFeatureFlags = () => {
-      // @ts-expect-error TS2589 - BaseController.update causes deep type recursion.
-      remoteFeatureFlagController.update(
-        (state: RemoteFeatureFlagControllerState) => ({
-          ...state,
-          remoteFeatureFlags: {},
-          rawRemoteFeatureFlags: {},
-          cacheTimestamp: 0,
-        }),
-      );
-    };
-
-    const syncWithBasicFunctionality = (enabled: boolean) => {
-      if (enabled) {
-        remoteFeatureFlagController.enable();
-        remoteFeatureFlagController
-          .updateRemoteFeatureFlags()
-          .catch((error) => Logger.log('Feature flags update failed: ', error));
-      } else {
-        remoteFeatureFlagController.disable();
-        clearRemoteFeatureFlags();
-      }
-    };
-
-    // The wallet constructs RemoteFeatureFlagController but does not trigger the
-    // initial fetch; that stays client-side.
-    const isBasicFunctionalityEnabled = selectBasicFunctionalityEnabled(
-      store.getState(),
-    );
-    if (!isBasicFunctionalityEnabled) {
-      clearRemoteFeatureFlags();
-      Logger.log('Feature flag controller disabled.');
-    } else if (isRemoteFeatureFlagOverrideActivated) {
-      Logger.log('Remote feature flags override activated.');
-    } else {
-      remoteFeatureFlagController
-        .updateRemoteFeatureFlags()
-        .then(() => {
-          Logger.log('Feature flags updated');
-        })
-        .catch((error) => Logger.log('Feature flags update failed: ', error));
-    }
-
-    let previousBasicFunctionalityEnabled = isBasicFunctionalityEnabled;
-    store.subscribe(() => {
-      const currentBasicFunctionalityEnabled = selectBasicFunctionalityEnabled(
-        store.getState(),
-      );
-
-      if (
-        currentBasicFunctionalityEnabled === previousBasicFunctionalityEnabled
-      ) {
-        return;
-      }
-
-      previousBasicFunctionalityEnabled = currentBasicFunctionalityEnabled;
-      syncWithBasicFunctionality(currentBasicFunctionalityEnabled);
-    });
 
     Engine.instance = this;
   }

@@ -1,9 +1,11 @@
 import React, { useCallback } from 'react';
-import { Switch, TouchableOpacity, View } from 'react-native';
+import { Image, Switch, TouchableOpacity, View } from 'react-native';
 import { useNavigation, type NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
+  AvatarBase,
+  AvatarBaseSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -43,15 +45,12 @@ import {
 import ThresholdRadioList from '../../SocialLeaderboard/NotificationPreferences/components/ThresholdRadioList';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NotificationPreferencesSelectorsIDs } from '../../SocialLeaderboard/NotificationPreferences/NotificationPreferences.testIds';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import TraderAvatar from '../../Homepage/Sections/TopTraders/components/TraderAvatar';
 
 const AVATAR_SIZE = 40;
 
 interface TraderNotificationRowProps {
   traderId: string;
   username: string;
-  address: string;
   avatarUri?: string;
   isEnabled: boolean;
   isDisabled: boolean;
@@ -63,7 +62,6 @@ interface TraderNotificationRowProps {
 const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
   traderId,
   username,
-  address,
   avatarUri,
   isEnabled,
   isDisabled,
@@ -90,12 +88,20 @@ const TraderNotificationRow: React.FC<TraderNotificationRowProps> = ({
         style={tw.style('flex-row items-center gap-3 flex-1 min-w-0 mr-3')}
         testID={NotificationPreferencesSelectorsIDs.TRADER_PRESS(traderId)}
       >
-        <TraderAvatar
-          imageUrl={avatarUri}
-          address={address}
-          size={AVATAR_SIZE}
-          recyclingKey={traderId}
-        />
+        {avatarUri ? (
+          <Image
+            source={{ uri: avatarUri }}
+            style={tw.style(
+              `w-[${AVATAR_SIZE}px] h-[${AVATAR_SIZE}px] rounded-full bg-muted`,
+            )}
+            resizeMode="cover"
+          />
+        ) : (
+          <AvatarBase
+            size={AvatarBaseSize.Lg}
+            fallbackText={username.charAt(0).toUpperCase()}
+          />
+        )}
 
         <Text
           variant={TextVariant.BodyMd}
@@ -331,7 +337,6 @@ const SocialAINotificationPreferencesContent = ({
             key={trader.id}
             traderId={trader.id}
             username={trader.username}
-            address={trader.address}
             avatarUri={trader.avatarUri}
             isEnabled={isTraderNotificationEnabled(trader.id)}
             isDisabled={pushNotificationsOff}

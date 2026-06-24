@@ -19,7 +19,6 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'SnapAccountService',
   'GeolocationApiService',
   'ProfileMetricsService',
-  'ProofOfOwnershipService',
   'RampsService',
   'TransakService',
   'ComplianceService',

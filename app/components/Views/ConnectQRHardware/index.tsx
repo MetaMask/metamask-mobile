@@ -5,7 +5,7 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 import { CommonActions } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
@@ -19,6 +19,7 @@ import { UR } from '@ngraveio/bc-ur';
 import Alert, { AlertType } from '../../Base/Alert';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
+import MaterialIcon from 'react-native-vector-icons/MaterialIcons';
 import { useTheme } from '../../../util/theme';
 import { fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
@@ -37,7 +38,6 @@ import { useHardwareWallet } from '../../../core/HardwareWallet/contexts/Hardwar
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { useQrScanErrorForwarding } from '../../../core/HardwareWallet/hooks/useQrScanErrorForwarding';
 import Routes from '../../../constants/navigation/Routes';
-import { HeaderStandard } from '@metamask/design-system-react-native';
 
 interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
@@ -48,7 +48,7 @@ interface IConnectQRHardwareProps {
   route?: any;
 }
 
-const SAFE_AREA_EDGES: Edge[] = ['left', 'right'];
+const SAFE_AREA_EDGES: Edge[] = ['top', 'left', 'right'];
 
 const createStyles = (colors: ThemeColors) =>
   StyleSheet.create({
@@ -58,13 +58,26 @@ const createStyles = (colors: ThemeColors) =>
       alignItems: 'center',
     },
     header: {
-      paddingLeft: 32,
-      paddingRight: 32,
+      flexDirection: 'row',
+      width: '100%',
+      paddingHorizontal: 32,
       alignItems: 'center',
     },
+    navbarRightButton: {
+      flexDirection: 'row',
+      justifyContent: 'flex-end',
+      height: 48,
+      width: 48,
+      flex: 1,
+    },
+    closeIcon: {
+      fontSize: 28,
+      color: colors.text.default,
+    },
     qrcode: {
-      alignItems: 'center',
-      justifyContent: 'center',
+      flex: 1,
+      flexDirection: 'row',
+      justifyContent: 'flex-start',
     },
     error: {
       ...fontStyles.normal,
@@ -324,23 +337,23 @@ const ConnectQRHardware = ({ navigation, route }: IConnectQRHardwareProps) => {
         edges={safeAreaEdges}
         testID={ConnectQRHardwareSelectorsIDs.CONTAINER}
       >
-        <HeaderStandard
-          includesTopInset
-          testID={ConnectQRHardwareSelectorsIDs.HEADER}
+        <View
           style={styles.header}
-          startAccessory={
-            <Icon
-              name="qrcode"
-              size={42}
-              style={styles.qrcode}
-              color={colors.text.default}
-            />
-          }
-          onClose={navigation.goBack}
-          closeButtonProps={{
-            iconProps: { style: { width: 30, height: 30 } },
-          }}
-        />
+          testID={ConnectQRHardwareSelectorsIDs.HEADER}
+        >
+          <Icon
+            name="qrcode"
+            size={42}
+            style={styles.qrcode}
+            color={colors.text.default}
+          />
+          <TouchableOpacity
+            onPress={navigation.goBack}
+            style={styles.navbarRightButton}
+          >
+            <MaterialIcon name="close" size={15} style={styles.closeIcon} />
+          </TouchableOpacity>
+        </View>
         {accounts.length <= 0 ? (
           <ConnectQRInstruction
             onConnect={onConnectHardware}

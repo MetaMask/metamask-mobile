@@ -33,10 +33,10 @@ import { getDecimalChainId } from '../../../../../../../util/networks';
 import Logger from '../../../../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../../../../util/social/socialServiceTelemetry';
 import {
-  QuickBuyEventProperties,
+  SocialLeaderboardEventProperties,
+  useSocialLeaderboardAnalytics,
   type QuickBuySheetSource,
-} from '../analytics';
-import { useSocialLeaderboardAnalytics } from '../../../../analytics';
+} from '../../../../analytics';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import { getQuoteRefreshRate } from '../../../../../../UI/Bridge/utils/quoteUtils';
 import { getQuickBuyFeatureId } from '../utils/getQuickBuyFeatureId';
@@ -292,12 +292,13 @@ export function useQuickBuyQuotes({
     const quotesBaseProps =
       analyticsContext?.traderAddress && analyticsContext?.caip19
         ? {
-            [QuickBuyEventProperties.TRADER_ADDRESS]:
+            [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
               analyticsContext.traderAddress,
-            [QuickBuyEventProperties.CAIP19]: analyticsContext.caip19,
-            [QuickBuyEventProperties.AMOUNT_USD]:
+            [SocialLeaderboardEventProperties.CAIP19]: analyticsContext.caip19,
+            [SocialLeaderboardEventProperties.AMOUNT_USD]:
               analyticsContext.amountUsd ?? 0,
-            [QuickBuyEventProperties.PAY_WITH_TOKEN]: sourceToken.symbol,
+            [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]:
+              sourceToken.symbol,
           }
         : null;
 
@@ -312,8 +313,9 @@ export function useQuickBuyQuotes({
       if (quotesBaseProps) {
         track(MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_RECEIVED, {
           ...quotesBaseProps,
-          [QuickBuyEventProperties.QUOTE_COUNT]: quoteCount,
-          [QuickBuyEventProperties.LATENCY_MS]: Date.now() - requestedAt,
+          [SocialLeaderboardEventProperties.QUOTE_COUNT]: quoteCount,
+          [SocialLeaderboardEventProperties.LATENCY_MS]:
+            Date.now() - requestedAt,
         });
       }
     };

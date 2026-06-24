@@ -4,7 +4,7 @@ import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
 } from '../../../../../../constants/on-ramp';
-import { DepositOrderType } from '../../../types/legacyDeposit';
+import { DepositOrderType } from '@consensys/native-ramps-sdk';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../../../util/test/renderWithProvider';
@@ -14,7 +14,10 @@ import { fireEvent, screen } from '@testing-library/react-native';
 import { createMockInternalAccount } from '../../../../../../util/test/accountsControllerTestUtils';
 import { mockNetworkState } from '../../../../../../util/test/network';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { MOCK_USDC_TOKEN, MOCK_USDT_TOKEN } from '../../../testUtils/constants';
+import {
+  MOCK_USDC_TOKEN,
+  MOCK_USDT_TOKEN,
+} from '../../../Deposit/testUtils/constants';
 import { AccountGroupType } from '@metamask/account-api';
 const MOCK_ADDRESS = '0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A';
 
@@ -219,7 +222,7 @@ function render(Component: React.ReactElement, orders = testOrders) {
 }
 
 const mockNavigate = jest.fn();
-const mockGoToBuy = jest.fn();
+const mockGoToDeposit = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -232,13 +235,13 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: jest.fn(() => ({ goToBuy: mockGoToBuy })),
+  useRampNavigation: jest.fn(() => ({ goToDeposit: mockGoToDeposit })),
 }));
 
 describe('OrdersList', () => {
   beforeEach(() => {
     mockNavigate.mockClear();
-    mockGoToBuy.mockClear();
+    mockGoToDeposit.mockClear();
   });
 
   it('renders correctly', () => {
@@ -332,12 +335,12 @@ describe('OrdersList', () => {
     });
   });
 
-  it('navigates to buy flow when pressing created deposit order item', () => {
+  it('navigates to deposit flow when pressing created deposit order item', () => {
     render(<OrdersList />);
 
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
     fireEvent.press(screen.getByRole('button', { name: /Purchased USDT/ }));
 
-    expect(mockGoToBuy).toHaveBeenCalledWith();
+    expect(mockGoToDeposit).toHaveBeenCalledWith();
   });
 });

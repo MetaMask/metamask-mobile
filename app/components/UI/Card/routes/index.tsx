@@ -27,7 +27,6 @@ import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
 import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
 import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal';
-import ForgotPasswordModal from '../components/ForgotPasswordModal/ForgotPasswordModal';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
 import {
@@ -143,10 +142,6 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.WAITLIST_FORM}
       component={WaitlistFormModal}
-    />
-    <ModalsStack.Screen
-      name={Routes.CARD.MODALS.FORGOT_PASSWORD}
-      component={ForgotPasswordModal}
     />
   </ModalsStack.Navigator>
 );

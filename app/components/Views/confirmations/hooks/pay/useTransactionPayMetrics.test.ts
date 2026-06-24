@@ -28,14 +28,11 @@ import {
 } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
-import { useTransactionPaySelectedFiatPaymentMethod } from './useTransactionPaySelectedFiatPaymentMethod';
 import { AssetType } from '../../types/token';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useIsPerpsBalanceSelected } from '../../../../UI/Perps/hooks/useIsPerpsBalanceSelected';
 import { selectPredictSelectedPaymentToken } from '../../../../UI/Predict/selectors/predictController';
 import { useIsMoneyAccountFlagDefault } from './useIsMoneyAccountFlagDefault';
-import { PaymentMethod } from '@metamask/ramps-controller';
-import { useFiatPaymentHighlightedActions } from './useFiatPaymentHighlightedActions';
 
 jest.mock('./useTransactionPayToken');
 jest.mock('../useTokenAmount');
@@ -46,8 +43,6 @@ jest.mock('../send/useAccountTokens');
 jest.mock('../../../../UI/Perps/hooks/useIsPerpsBalanceSelected');
 jest.mock('../../../../UI/Predict/selectors/predictController');
 jest.mock('./useIsMoneyAccountFlagDefault');
-jest.mock('./useTransactionPaySelectedFiatPaymentMethod');
-jest.mock('./useFiatPaymentHighlightedActions');
 
 const mockSelectConfirmationMetricsById = jest.fn();
 
@@ -118,12 +113,6 @@ describe('useTransactionPayMetrics', () => {
   const useTransactionPayFiatPaymentMock = jest.mocked(
     useTransactionPayFiatPayment,
   );
-  const useTransactionPaySelectedFiatPaymentMethodMock = jest.mocked(
-    useTransactionPaySelectedFiatPaymentMethod,
-  );
-  const useFiatPaymentHighlightedActionsMock = jest.mocked(
-    useFiatPaymentHighlightedActions,
-  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -160,11 +149,9 @@ describe('useTransactionPayMetrics', () => {
     });
     useIsMoneyAccountFlagDefaultMock.mockReturnValue(false);
     useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
-    useFiatPaymentHighlightedActionsMock.mockReturnValue([]);
-    useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue(undefined);
   });
 
-  it('includes available crypto method even before a pay token is selected', async () => {
+  it('dispatches empty properties if no pay token selected', async () => {
     runHook();
 
     await act(async () => noop());
@@ -172,9 +159,7 @@ describe('useTransactionPayMetrics', () => {
     expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
       id: transactionIdMock,
       params: {
-        properties: {
-          mm_pay_payment_method_available: ['crypto'],
-        },
+        properties: {},
         sensitiveProperties: {},
       },
     });
@@ -433,249 +418,6 @@ describe('useTransactionPayMetrics', () => {
           sensitiveProperties: {},
         },
       });
-    });
-  });
-
-  describe('mm_pay_payment_method_available', () => {
-    it('includes crypto and normalized fiat payment method types', async () => {
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: PAY_TOKEN_MOCK,
-        setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
-
-      useFiatPaymentHighlightedActionsMock.mockReturnValue([
-        { paymentType: 'debit-credit-card' },
-        { paymentType: 'bank-transfer' },
-        { paymentType: 'google-pay' },
-      ] as ReturnType<typeof useFiatPaymentHighlightedActions>);
-
-      runHook();
-
-      await act(async () => noop());
-
-      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-        id: transactionIdMock,
-        params: {
-          properties: expect.objectContaining({
-            mm_pay_payment_method_available: [
-              'crypto',
-              'debit_credit_card',
-              'bank_transfer',
-              'google_pay',
-            ],
-          }),
-          sensitiveProperties: {},
-        },
-      });
-    });
-
-    it.each([
-      ['sepa-bank-transfer', 'bank_transfer'],
-      ['instant-bank-transfer', 'bank_transfer'],
-      ['revolut-pay', 'rev_pay'],
-      ['rev-pay', 'rev_pay'],
-      ['apple-pay', 'apple_pay'],
-    ])('normalizes %s to %s', async (paymentType, expected) => {
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: PAY_TOKEN_MOCK,
-        setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
-
-      useFiatPaymentHighlightedActionsMock.mockReturnValue([
-        { paymentType },
-      ] as ReturnType<typeof useFiatPaymentHighlightedActions>);
-
-      runHook();
-
-      await act(async () => noop());
-
-      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-        id: transactionIdMock,
-        params: {
-          properties: expect.objectContaining({
-            mm_pay_payment_method_available: ['crypto', expected],
-          }),
-          sensitiveProperties: {},
-        },
-      });
-    });
-
-    it('excludes crypto when all tokens are disabled even if hasTokens is true (post-quote)', async () => {
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: PAY_TOKEN_MOCK,
-        setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
-
-      useTransactionPayAvailableTokensMock.mockReturnValue({
-        availableTokens: [
-          { disabled: true },
-          { disabled: true },
-        ] as AssetType[],
-        hasTokens: true,
-      });
-
-      useFiatPaymentHighlightedActionsMock.mockReturnValue([
-        { paymentType: 'debit-credit-card' },
-      ] as ReturnType<typeof useFiatPaymentHighlightedActions>);
-
-      runHook();
-
-      await act(async () => noop());
-
-      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-        id: transactionIdMock,
-        params: {
-          properties: expect.objectContaining({
-            mm_pay_payment_method_available: ['debit_credit_card'],
-          }),
-          sensitiveProperties: {},
-        },
-      });
-    });
-
-    it('excludes crypto when crypto tokens are unavailable', async () => {
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: PAY_TOKEN_MOCK,
-        setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
-
-      useTransactionPayAvailableTokensMock.mockReturnValue({
-        availableTokens: [] as AssetType[],
-        hasTokens: false,
-      });
-
-      useFiatPaymentHighlightedActionsMock.mockReturnValue([
-        { paymentType: 'debit-credit-card' },
-      ] as ReturnType<typeof useFiatPaymentHighlightedActions>);
-
-      runHook();
-
-      await act(async () => noop());
-
-      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-        id: transactionIdMock,
-        params: {
-          properties: expect.objectContaining({
-            mm_pay_payment_method_available: ['debit_credit_card'],
-          }),
-          sensitiveProperties: {},
-        },
-      });
-    });
-
-    it('is an empty array when no payment methods are available', async () => {
-      useTransactionPayAvailableTokensMock.mockReturnValue({
-        availableTokens: [] as AssetType[],
-        hasTokens: false,
-      });
-
-      runHook();
-
-      await act(async () => noop());
-
-      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-        id: transactionIdMock,
-        params: {
-          properties: expect.objectContaining({
-            mm_pay_payment_method_available: [],
-          }),
-          sensitiveProperties: {},
-        },
-      });
-    });
-  });
-
-  describe('mm_pay_payment_method_presented', () => {
-    it('is crypto when no fiat method is selected on load', async () => {
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: PAY_TOKEN_MOCK,
-        setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
-
-      useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue(undefined);
-
-      runHook();
-
-      await act(async () => noop());
-
-      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-        id: transactionIdMock,
-        params: {
-          properties: expect.objectContaining({
-            mm_pay_payment_method_presented: 'crypto',
-          }),
-          sensitiveProperties: {},
-        },
-      });
-    });
-
-    it('is the fiat paymentType when a fiat method is auto-selected on load', async () => {
-      useTransactionPayTokenMock.mockReturnValue({
-        payToken: PAY_TOKEN_MOCK,
-        setPayToken: noop,
-      } as ReturnType<typeof useTransactionPayToken>);
-
-      useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue({
-        paymentType: 'debit-credit-card',
-      } as PaymentMethod);
-
-      runHook();
-
-      await act(async () => noop());
-
-      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-        id: transactionIdMock,
-        params: {
-          properties: expect.objectContaining({
-            mm_pay_payment_method_presented: 'debit_credit_card',
-          }),
-          sensitiveProperties: {},
-        },
-      });
-    });
-
-    it('is the fiat paymentType when fiat is selected before crypto pay token loads', async () => {
-      useTransactionPayAvailableTokensMock.mockReturnValue({
-        availableTokens: [] as AssetType[],
-        hasTokens: false,
-      });
-
-      useFiatPaymentHighlightedActionsMock.mockReturnValue([
-        { paymentType: 'revolut-pay' },
-      ] as ReturnType<typeof useFiatPaymentHighlightedActions>);
-
-      useTransactionPaySelectedFiatPaymentMethodMock.mockReturnValue({
-        paymentType: 'revolut-pay',
-      } as PaymentMethod);
-
-      runHook();
-
-      await act(async () => noop());
-
-      expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-        id: transactionIdMock,
-        params: {
-          properties: expect.objectContaining({
-            mm_pay_payment_method_available: ['rev_pay'],
-            mm_pay_payment_method_presented: 'rev_pay',
-          }),
-          sensitiveProperties: {},
-        },
-      });
-    });
-
-    it('is omitted when no method has been selected yet', async () => {
-      runHook();
-
-      await act(async () => noop());
-
-      const calledProps = (
-        updateConfirmationMetricMock.mock.calls[0]?.[0] as {
-          params: { properties: Record<string, unknown> };
-        }
-      )?.params?.properties;
-
-      expect(calledProps).not.toHaveProperty('mm_pay_payment_method_presented');
     });
   });
 

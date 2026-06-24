@@ -1,4 +1,6 @@
 import React from 'react';
+import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import {
   Box,
   BoxAlignItems,
@@ -6,16 +8,22 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
 import QuickBuyAmount from './QuickBuyAmount';
 import QuickBuyActionFooter from './components/QuickBuyActionFooter';
 import QuickBuyToolbar from './components/QuickBuyToolbar';
 import { useQuickBuyContext } from './useQuickBuyContext';
 
+const AnimatedScrollView = Animated.createAnimatedComponent(
+  GestureHandlerScrollView,
+);
+
 /**
  * Default amount-first buy layout (Figma Swap For You).
  */
 const QuickBuyAmountScreen: React.FC = () => {
+  const tw = useTailwind();
   const { isUnsupportedChain } = useQuickBuyContext();
 
   if (isUnsupportedChain) {
@@ -31,9 +39,13 @@ const QuickBuyAmountScreen: React.FC = () => {
   return (
     <>
       <QuickBuyToolbar />
-      <Box twClassName="shrink" testID="quick-buy-amount-container">
+      <AnimatedScrollView
+        style={tw.style('shrink')}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
         <QuickBuyAmount />
-      </Box>
+      </AnimatedScrollView>
       <QuickBuyActionFooter />
     </>
   );

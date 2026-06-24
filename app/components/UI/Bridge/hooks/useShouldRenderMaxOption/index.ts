@@ -4,7 +4,6 @@ import { BridgeToken } from '../../types';
 import { useTokenAddress } from '../useTokenAddress';
 import { isNativeAddress, isSolanaChainId } from '@metamask/bridge-controller';
 import { BigNumber } from 'bignumber.js';
-import { isArcTokenUSDC } from '../../../../../enablement/assets/arc';
 
 export const useShouldRenderMaxOption = (
   token?: BridgeToken,
@@ -23,8 +22,8 @@ export const useShouldRenderMaxOption = (
     return false;
   }
 
-  // Always show for non-native tokens. Arc ERC20 USDC considered as native.
-  if (!isNativeAsset && !isArcTokenUSDC(token)) {
+  // Always show for non-native tokens
+  if (!isNativeAsset) {
     return true;
   }
 

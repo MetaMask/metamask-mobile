@@ -1,5 +1,5 @@
 import { BackendWebSocketServiceMessenger as BackendPlatformWebSocketServiceMessenger } from '@metamask/core-backend';
-import { RootMessenger } from '../../types';
+import { RootExtendedMessenger, RootMessenger } from '../../types';
 import {
   Messenger,
   MessengerActions,
@@ -15,20 +15,22 @@ export type BackendWebSocketServiceMessenger =
  * Get a restricted messenger for the Backend Platform WebSocket service.
  * This is scoped to backend platform operations and services.
  *
- * @param rootMessenger - The root messenger.
+ * @param rootExtendedMessenger - The root extended messenger.
  * @returns The BackendWebSocketServiceMessenger.
  */
 export function getBackendWebSocketServiceMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<BackendPlatformWebSocketServiceMessenger>,
-    MessengerEvents<BackendPlatformWebSocketServiceMessenger>
-  >,
+  rootExtendedMessenger: RootExtendedMessenger,
 ): BackendPlatformWebSocketServiceMessenger {
-  const messenger: BackendPlatformWebSocketServiceMessenger = new Messenger({
+  const messenger = new Messenger<
+    'BackendWebSocketService',
+    MessengerActions<BackendPlatformWebSocketServiceMessenger>,
+    MessengerEvents<BackendPlatformWebSocketServiceMessenger>,
+    RootMessenger
+  >({
     namespace: 'BackendWebSocketService',
-    parent: rootMessenger,
+    parent: rootExtendedMessenger,
   });
-  rootMessenger.delegate({
+  rootExtendedMessenger.delegate({
     actions: [
       'AuthenticationController:getBearerToken', // Get auth token (includes wallet unlock check)
     ],
@@ -42,27 +44,24 @@ export function getBackendWebSocketServiceMessenger(
   return messenger;
 }
 
-type BackendWebSocketServiceInitMessengerActions =
-  | RemoteFeatureFlagControllerGetStateAction
-  | AuthenticationController.AuthenticationControllerGetBearerTokenAction;
-
-export type BackendWebSocketServiceInitMessenger = Messenger<
-  'BackendWebSocketServiceInit',
-  BackendWebSocketServiceInitMessengerActions,
-  never
+export type BackendWebSocketServiceInitMessenger = ReturnType<
+  typeof getBackendWebSocketServiceInitMessenger
 >;
 
 export function getBackendWebSocketServiceInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<BackendWebSocketServiceInitMessenger>,
-    MessengerEvents<BackendWebSocketServiceInitMessenger>
-  >,
-): BackendWebSocketServiceInitMessenger {
-  const messenger: BackendWebSocketServiceInitMessenger = new Messenger({
+  rootExtendedMessenger: RootExtendedMessenger,
+) {
+  const messenger = new Messenger<
+    'BackendWebSocketServiceInit',
+    | RemoteFeatureFlagControllerGetStateAction
+    | AuthenticationController.AuthenticationControllerGetBearerTokenAction,
+    never,
+    RootMessenger
+  >({
     namespace: 'BackendWebSocketServiceInit',
-    parent: rootMessenger,
+    parent: rootExtendedMessenger,
   });
-  rootMessenger.delegate({
+  rootExtendedMessenger.delegate({
     actions: [
       'RemoteFeatureFlagController:getState',
       'AuthenticationController:getBearerToken',

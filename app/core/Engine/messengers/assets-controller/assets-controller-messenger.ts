@@ -8,26 +8,28 @@ import { AuthenticationController } from '@metamask/profile-sync-controller';
 import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type { AnalyticsControllerActions } from '@metamask/analytics-controller';
-import { RootMessenger } from '../../types';
+import { RootExtendedMessenger, RootMessenger } from '../../types';
 
 /**
  * Get the messenger for the AssetsController. This is scoped to the
  * actions and events that the AssetsController is allowed to handle.
  *
- * @param rootMessenger - The root messenger.
+ * @param rootExtendedMessenger - The root extended messenger.
  * @returns The AssetsControllerMessenger.
  */
 export function getAssetsControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<AssetsControllerMessenger>,
-    MessengerEvents<AssetsControllerMessenger>
-  >,
+  rootExtendedMessenger: RootExtendedMessenger,
 ): AssetsControllerMessenger {
-  const messenger: AssetsControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'AssetsController',
+    MessengerActions<AssetsControllerMessenger>,
+    MessengerEvents<AssetsControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'AssetsController',
-    parent: rootMessenger,
+    parent: rootExtendedMessenger,
   });
-  rootMessenger.delegate({
+  rootExtendedMessenger.delegate({
     actions: [
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'NetworkEnablementController:getState',
@@ -65,16 +67,8 @@ export function getAssetsControllerMessenger(
   return messenger;
 }
 
-type AssetsControllerInitMessengerActions =
-  | AuthenticationController.AuthenticationControllerGetBearerTokenAction
-  | PreferencesControllerGetStateAction
-  | RemoteFeatureFlagControllerGetStateAction
-  | AnalyticsControllerActions;
-
-export type AssetsControllerInitMessenger = Messenger<
-  'AssetsControllerInit',
-  AssetsControllerInitMessengerActions,
-  never
+export type AssetsControllerInitMessenger = ReturnType<
+  typeof getAssetsControllerInitMessenger
 >;
 
 /**
@@ -82,20 +76,25 @@ export type AssetsControllerInitMessenger = Messenger<
  * actions and events that the AssetsController is allowed to handle during
  * initialization.
  *
- * @param rootMessenger - The root messenger.
+ * @param rootExtendedMessenger - The root extended messenger.
  * @returns The AssetsControllerInitMessenger.
  */
 export function getAssetsControllerInitMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<AssetsControllerInitMessenger>,
-    MessengerEvents<AssetsControllerInitMessenger>
-  >,
-): AssetsControllerInitMessenger {
-  const messenger: AssetsControllerInitMessenger = new Messenger({
+  rootExtendedMessenger: RootExtendedMessenger,
+) {
+  const messenger = new Messenger<
+    'AssetsControllerInit',
+    | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+    | PreferencesControllerGetStateAction
+    | RemoteFeatureFlagControllerGetStateAction
+    | AnalyticsControllerActions,
+    never,
+    RootMessenger
+  >({
     namespace: 'AssetsControllerInit',
-    parent: rootMessenger,
+    parent: rootExtendedMessenger,
   });
-  rootMessenger.delegate({
+  rootExtendedMessenger.delegate({
     actions: [
       'AuthenticationController:getBearerToken',
       'PreferencesController:getState',

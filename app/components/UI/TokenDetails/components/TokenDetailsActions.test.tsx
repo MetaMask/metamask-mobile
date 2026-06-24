@@ -27,7 +27,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../Ramp/hooks/useDepositEnabled', () => ({
+jest.mock('../../Ramp/Deposit/hooks/useDepositEnabled', () => ({
   __esModule: true,
   default: () => ({ isDepositEnabled: true }),
 }));

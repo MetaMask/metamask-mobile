@@ -3,6 +3,7 @@ import {
   Keyboard,
   Platform,
   ScrollView,
+  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
@@ -16,7 +17,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  Input,
   TextVariant,
   TextColor,
   Text,
@@ -85,11 +85,11 @@ const PerpsTPSLView: React.FC = () => {
   // Keypad state management
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
-  // Refs for Input components to programmatically blur them
-  const takeProfitPriceRef = useRef<React.ElementRef<typeof Input>>(null);
-  const takeProfitPercentageRef = useRef<React.ElementRef<typeof Input>>(null);
-  const stopLossPriceRef = useRef<React.ElementRef<typeof Input>>(null);
-  const stopLossPercentageRef = useRef<React.ElementRef<typeof Input>>(null);
+  // Refs for TextInput components to programmatically blur them
+  const takeProfitPriceRef = useRef<TextInput>(null);
+  const takeProfitPercentageRef = useRef<TextInput>(null);
+  const stopLossPriceRef = useRef<TextInput>(null);
+  const stopLossPercentageRef = useRef<TextInput>(null);
 
   // Guard: when we programmatically dismiss the native keyboard on iOS,
   // the TextInput fires onBlur. We store the *specific* input being
@@ -659,11 +659,9 @@ const PerpsTPSLView: React.FC = () => {
                 >
                   {strings('perps.tpsl.usd_label')}
                 </Text>
-                <Input
+                <TextInput
                   ref={takeProfitPriceRef}
                   testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT}
-                  isStateStylesDisabled
-                  twClassName="bg-transparent border-0"
                   style={styles.input}
                   value={takeProfitPrice}
                   onChangeText={(text) => {
@@ -674,7 +672,7 @@ const PerpsTPSLView: React.FC = () => {
                   placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
-                  isDisabled={inputsDisabled}
+                  editable={!inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('takeProfitPrice');
                   }}
@@ -698,10 +696,8 @@ const PerpsTPSLView: React.FC = () => {
                   !isValid && takeProfitError && styles.inputError,
                 ]}
               >
-                <Input
+                <TextInput
                   ref={takeProfitPercentageRef}
-                  isStateStylesDisabled
-                  twClassName="bg-transparent border-0"
                   style={styles.input}
                   value={formattedTakeProfitPercentage}
                   onChangeText={(text) => {
@@ -712,7 +708,7 @@ const PerpsTPSLView: React.FC = () => {
                   placeholder={strings('perps.tpsl.profit_roe_placeholder')}
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
-                  isDisabled={inputsDisabled}
+                  editable={!inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('takeProfitPercentage');
                   }}
@@ -849,11 +845,9 @@ const PerpsTPSLView: React.FC = () => {
                 >
                   {strings('perps.tpsl.usd_label')}
                 </Text>
-                <Input
+                <TextInput
                   ref={stopLossPriceRef}
                   testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT}
-                  isStateStylesDisabled
-                  twClassName="bg-transparent border-0"
                   style={styles.input}
                   value={stopLossPrice}
                   onChangeText={(text) => {
@@ -864,7 +858,7 @@ const PerpsTPSLView: React.FC = () => {
                   placeholder={strings('perps.tpsl.trigger_price_placeholder')}
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
-                  isDisabled={inputsDisabled}
+                  editable={!inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('stopLossPrice');
                   }}
@@ -888,10 +882,8 @@ const PerpsTPSLView: React.FC = () => {
                   !isValid && stopLossError && styles.inputError,
                 ]}
               >
-                <Input
+                <TextInput
                   ref={stopLossPercentageRef}
-                  isStateStylesDisabled
-                  twClassName="bg-transparent border-0"
                   style={styles.input}
                   value={formattedStopLossPercentage}
                   onChangeText={(text) => {
@@ -902,7 +894,7 @@ const PerpsTPSLView: React.FC = () => {
                   placeholder={strings('perps.tpsl.loss_roe_placeholder')}
                   placeholderTextColor={colors.text.muted}
                   showSoftInputOnFocus={false}
-                  isDisabled={inputsDisabled}
+                  editable={!inputsDisabled}
                   onFocus={() => {
                     handleInputFocus('stopLossPercentage');
                   }}
@@ -976,7 +968,6 @@ const PerpsTPSLView: React.FC = () => {
               size={ButtonSize.Lg}
               isFullWidth
               onPress={dismissKeypad}
-              testID={PerpsTPSLViewSelectorsIDs.DONE_BUTTON}
             >
               {strings('perps.tpsl.done')}
             </Button>

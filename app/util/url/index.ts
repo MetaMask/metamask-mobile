@@ -34,12 +34,10 @@ export function isBridgeUrl(url: string) {
   }
 }
 
-export const isCardUrl = (
-  url: string,
-  baseUrl: string = AppConstants.CARD.URL,
-) => {
+export const isCardUrl = (url: string) => {
   try {
-    return new URL(url).origin === new URL(baseUrl).origin;
+    const currentUrl = new URL(url);
+    return currentUrl.origin === AppConstants.CARD.URL;
   } catch (error) {
     Logger.log('Error in isCardUrl', error);
     return false;
@@ -64,22 +62,6 @@ export const isCardTosUrl = (url: string) => {
     return currentUrl.origin === tosUrl.origin;
   } catch (error) {
     Logger.log('Error in isCardTosUrl', error);
-    return false;
-  }
-};
-
-export const isCardLoginUrl = (
-  url: string,
-  baseUrl: string = AppConstants.CARD.URL,
-) => {
-  try {
-    const currentUrl = new URL(url);
-    return (
-      currentUrl.origin === new URL(baseUrl).origin &&
-      currentUrl.pathname.startsWith(AppConstants.CARD.LOGIN_PATH)
-    );
-  } catch (error) {
-    Logger.log('Error in isCardLoginUrl', error);
     return false;
   }
 };

@@ -4,7 +4,6 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { playNotification, NotificationMoment } from '../../../../util/haptics';
 import { useCampaignOutcomeToast } from './useCampaignOutcomeToast';
-import { navigateToRewardsRoute } from '../utils';
 import { dismissCampaignOutcomeToast } from '../../../../reducers/rewards';
 import {
   selectCampaigns,
@@ -90,10 +89,6 @@ jest.mock('../components/Campaigns/CampaignTile.utils', () => ({
   getCampaignStatus: jest.fn(() => 'complete'),
 }));
 
-jest.mock('../utils', () => ({
-  navigateToRewardsRoute: jest.fn(),
-}));
-
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
 const mockShowToast = jest.fn();
@@ -114,8 +109,6 @@ const mockDismissCampaignOutcomeToast =
   dismissCampaignOutcomeToast as jest.MockedFunction<
     typeof dismissCampaignOutcomeToast
   >;
-const mockNavigateToRewardsRoute =
-  navigateToRewardsRoute as jest.MockedFunction<typeof navigateToRewardsRoute>;
 
 const SUBSCRIPTION_ID = 'sub-123';
 const CAMPAIGN_ID = 'campaign-456';
@@ -429,10 +422,9 @@ describe('useCampaignOutcomeToast', () => {
       const { onPress } = mockShowToast.mock.calls[0][0].linkButtonOptions;
       onPress();
 
-      expect(mockNavigateToRewardsRoute).toHaveBeenCalledWith(
-        { navigate: mockNavigate },
-        WINNER_NAV.route,
-        WINNER_NAV.params,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        WINNER_NAV.route as never,
+        WINNER_NAV.params as never,
       );
       expect(mockDismissCampaignOutcomeToast).toHaveBeenCalledWith(
         expect.objectContaining({ variant: 'winner' }),
@@ -452,10 +444,9 @@ describe('useCampaignOutcomeToast', () => {
       const { onPress } = mockShowToast.mock.calls[0][0].linkButtonOptions;
       onPress();
 
-      expect(mockNavigateToRewardsRoute).toHaveBeenCalledWith(
-        { navigate: mockNavigate },
-        NON_WINNER_NAV.route,
-        NON_WINNER_NAV.params,
+      expect(mockNavigate).toHaveBeenCalledWith(
+        NON_WINNER_NAV.route as never,
+        NON_WINNER_NAV.params as never,
       );
       expect(mockDismissCampaignOutcomeToast).toHaveBeenCalledWith(
         expect.objectContaining({ variant: 'non_winner' }),

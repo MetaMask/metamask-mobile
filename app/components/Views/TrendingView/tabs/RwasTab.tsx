@@ -1,5 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { View, StyleSheet } from 'react-native';
+import React, { useCallback, useMemo } from 'react';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { ListRenderItem } from '@shopify/flash-list';
@@ -43,17 +42,6 @@ import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
-import TrendingQuickBuy from '../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
-import { useABTest } from '../../../../hooks/useABTest';
-import {
-  EXPLORE_QUICK_BUY_AB_KEY,
-  EXPLORE_QUICK_BUY_VARIANTS,
-  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
-} from '../search/abTestConfig';
-
-const styles = StyleSheet.create({
-  container: { flex: 1 },
-});
 
 /** Perps category pills for the RWAs tab, in perps display order. */
 const RWA_PERPS_CATEGORIES: PerpsFilterKey[] = [
@@ -120,16 +108,6 @@ const RwasTabContent: React.FC<TabProps> = ({
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
-  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
-    null,
-  );
-
-  const { variant: quickBuyVariant } = useABTest(
-    EXPLORE_QUICK_BUY_AB_KEY,
-    EXPLORE_QUICK_BUY_VARIANTS,
-    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
-  );
-
   const politics = usePredictionsFeed({ variant: 'politics', refresh });
   const stocks = useStocksFeed({
     refresh,
@@ -155,12 +133,9 @@ const RwasTabContent: React.FC<TabProps> = ({
             item_clicked: item.assetId,
           })
         }
-        onQuickTrade={
-          quickBuyVariant.showQuickTradeButton ? setQuickTradeToken : undefined
-        }
       />
     ),
-    [quickBuyVariant.showQuickTradeButton],
+    [],
   );
 
   const showStocks = stocks.isLoading || stocks.data.length > 0;
@@ -250,21 +225,13 @@ const RwasTabContent: React.FC<TabProps> = ({
   ]);
 
   return (
-    <View style={styles.container}>
-      <ExploreScroll
-        refreshing={refreshing}
-        onRefresh={onRefresh}
-        testID={TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW}
-      >
-        <ExploreSectionList sections={sections} />
-      </ExploreScroll>
-
-      <TrendingQuickBuy
-        token={quickTradeToken}
-        onClose={() => setQuickTradeToken(null)}
-        source="explore_rwas"
-      />
-    </View>
+    <ExploreScroll
+      refreshing={refreshing}
+      onRefresh={onRefresh}
+      testID={TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW}
+    >
+      <ExploreSectionList sections={sections} />
+    </ExploreScroll>
   );
 };
 

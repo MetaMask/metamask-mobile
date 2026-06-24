@@ -6,7 +6,6 @@ import PlaywrightGestures from './PlaywrightGestures.ts';
 import {
   addOverhead,
   isOverheadTrackingActive,
-  withImplicitWait,
 } from './PlaywrightUtilities.ts';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
 
@@ -60,10 +59,6 @@ export default class PlaywrightAssertions {
    * - After detection a {@link probeOverhead} call measures the pure
    * per-command cost and registers it for subtraction.
    */
-  private static readonly FINAL_WAIT_RESERVE_MS = 2_000;
-  /** Fast implicit wait for poll probes — avoids 3.5s find penalty per attempt. */
-  private static readonly POLL_IMPLICIT_WAIT_MS = 300;
-
   private static async pollUntilVisible(
     el: PlaywrightElement,
     timeout: number,
@@ -71,34 +66,24 @@ export default class PlaywrightAssertions {
     const interval = 300;
     const start = Date.now();
     let attempt = 0;
-    while (Date.now() - start < timeout - this.FINAL_WAIT_RESERVE_MS) {
-      const remaining = timeout - (Date.now() - start);
-      if (remaining <= 0) {
-        break;
-      }
+    while (Date.now() - start < timeout - interval) {
       try {
         attempt++;
         const t0 = Date.now();
-        const exists = await withImplicitWait(this.POLL_IMPLICIT_WAIT_MS, () =>
-          el.unwrap().isExisting(),
-        );
+        const exists = await el.unwrap().isExisting();
         if (exists) {
-          const displayed = await el.isVisible();
-          if (displayed) {
-            if (isOverheadTrackingActive()) {
-              addOverhead(Date.now() - t0);
-            }
-            return;
+          if (isOverheadTrackingActive()) {
+            await this.probeOverhead(el);
           }
+          return;
         }
       } catch {
         // element not ready yet
       }
-      await sleep(Math.min(interval, remaining));
+      await sleep(interval);
     }
-    const remainingTimeout = timeout - (Date.now() - start);
     await el.waitForDisplayed({
-      timeout: Math.max(interval, remainingTimeout),
+      timeout: Math.max(interval, timeout - (Date.now() - start)),
     });
     if (isOverheadTrackingActive()) {
       await this.probeOverhead(el);
@@ -239,23 +224,11 @@ export default class PlaywrightAssertions {
     targetElement: PlaywrightElement | Promise<PlaywrightElement>,
     options: AssertionOptions = {},
   ): Promise<void> {
-    try {
-      const el = await targetElement;
-      await el.waitForDisplayed({
-        reverse: true,
-        timeout: this.getTimeout(options),
-      });
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        (error.message.includes('No elements found for XPath') ||
-          error.message.includes('An element could not be located') ||
-          error.message.includes('no such element'))
-      ) {
-        return;
-      }
-      throw error;
-    }
+    const el = await targetElement;
+    await el.waitForDisplayed({
+      reverse: true,
+      timeout: this.getTimeout(options),
+    });
   }
 
   static async expectTextDisplayed(
@@ -270,22 +243,11 @@ export default class PlaywrightAssertions {
     text: string,
     options: AssertionOptions = {},
   ): Promise<void> {
-    try {
-      const el = await PlaywrightMatchers.getElementByText(text);
-      await el.waitForDisplayed({
-        reverse: true,
-        timeout: this.getTimeout(options),
-      });
-    } catch (error) {
-      if (
-        error instanceof Error &&
-        (error.message.includes('No elements found for XPath') ||
-          error.message.includes('No elements found'))
-      ) {
-        return;
-      }
-      throw error;
-    }
+    const el = await PlaywrightMatchers.getElementByText(text);
+    await el.waitForDisplayed({
+      reverse: true,
+      timeout: this.getTimeout(options),
+    });
   }
 
   /**

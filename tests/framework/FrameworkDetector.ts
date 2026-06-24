@@ -13,10 +13,6 @@ declare const device: unknown;
 declare const driver: unknown;
 declare const browser: unknown;
 
-interface DriverGlobal {
-  driver?: WebdriverIO.Browser;
-}
-
 /**
  * Framework detector - determines which testing framework is currently running
  *
@@ -54,9 +50,7 @@ export class FrameworkDetector {
    */
   private static hasAppiumGlobals(): boolean {
     try {
-      const globalDriver = (globalThis as DriverGlobal).driver;
       return (
-        (typeof globalDriver !== 'undefined' && globalDriver !== null) ||
         (typeof driver !== 'undefined' && driver !== null) ||
         (typeof browser !== 'undefined' && browser !== null)
       );

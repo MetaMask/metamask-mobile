@@ -592,6 +592,7 @@ describe('DeFiPositionsList', () => {
             addSensitiveProperties: jest.fn().mockReturnThis(),
             removeProperties: jest.fn().mockReturnThis(),
             removeSensitiveProperties: jest.fn().mockReturnThis(),
+            setSaveDataRecording: jest.fn().mockReturnThis(),
             build: jest.fn(),
           }),
         }),

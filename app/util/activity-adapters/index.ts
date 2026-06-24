@@ -12,8 +12,6 @@ export type {
 export { mapApiEvmTransactions } from './adapters/api-evm-transactions';
 export { mapKeyringTransaction } from './adapters/keyring-transaction';
 export { mapLocalTransaction } from './adapters/local-transaction';
-export { mapPredictActivity } from './adapters/predict-activity';
-export { mapPerpsTransaction } from './adapters/perps-transaction';
 export {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
@@ -29,10 +27,6 @@ export {
 } from './fiat';
 export {
   activityMatchesAssetId,
-  formatActivityListDateHeader,
-  getActivityFromTo,
-  getActivityValue,
-  getGroupedActivityListItemKey,
   groupActivityListItems,
   shouldShowPlusSign,
   type GroupedActivityListItem,

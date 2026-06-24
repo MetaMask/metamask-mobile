@@ -14,12 +14,14 @@ import { RootMessenger } from '../types';
  * @returns The restricted controller messenger.
  */
 export function getEarnControllerMessenger(
-  rootMessenger: RootMessenger<
-    MessengerActions<EarnControllerMessenger>,
-    MessengerEvents<EarnControllerMessenger>
-  >,
+  rootMessenger: RootMessenger,
 ): EarnControllerMessenger {
-  const messenger: EarnControllerMessenger = new Messenger({
+  const messenger = new Messenger<
+    'EarnController',
+    MessengerActions<EarnControllerMessenger>,
+    MessengerEvents<EarnControllerMessenger>,
+    RootMessenger
+  >({
     namespace: 'EarnController',
     parent: rootMessenger,
   });

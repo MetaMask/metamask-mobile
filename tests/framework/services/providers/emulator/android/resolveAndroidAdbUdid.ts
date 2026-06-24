@@ -123,11 +123,6 @@ export async function resolveAndroidAdbUdidForDevice(
 
   const promise = (async () => {
     try {
-      const envUdid = process.env.ANDROID_DEVICE_UDID?.trim();
-      if (!device.udid && envUdid) {
-        return envUdid;
-      }
-
       if (device.udid) {
         const udid = device.udid;
         if (device.name) {
@@ -221,16 +216,8 @@ export async function applyResolvedAndroidAdbToDevice(
 }
 
 /**
- * Clears the in-process adb serial resolution cache.
- * Call before re-resolving after Playwright retries or emulator restarts.
- */
-export function clearAndroidAdbUdidResolutionCache(): void {
-  resolutionCache.clear();
-}
-
-/**
  * Clears the in-process resolution cache (for tests).
  */
 export function __clearAndroidAdbUdidCacheForTests(): void {
-  clearAndroidAdbUdidResolutionCache();
+  resolutionCache.clear();
 }

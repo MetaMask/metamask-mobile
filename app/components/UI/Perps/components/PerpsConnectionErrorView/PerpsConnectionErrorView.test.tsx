@@ -92,7 +92,6 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
 jest.mock('@metamask/design-system-react-native', () => {
   const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
-    ...jest.requireActual('@metamask/design-system-react-native'),
     __esModule: true,
     Button: ({
       label,

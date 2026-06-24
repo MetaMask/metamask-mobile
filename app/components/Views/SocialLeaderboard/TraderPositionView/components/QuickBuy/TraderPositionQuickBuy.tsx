@@ -1,6 +1,6 @@
 import type { Position } from '@metamask/social-controllers';
 import React, { useMemo } from 'react';
-import type { QuickBuySheetSource } from './analytics';
+import type { QuickBuySheetSource } from '../../../analytics';
 import { QuickBuy } from './quickBuy';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import {

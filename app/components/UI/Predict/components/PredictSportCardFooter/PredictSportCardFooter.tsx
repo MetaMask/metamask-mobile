@@ -103,15 +103,11 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   const handleClaimPress = useCallback(async () => {
     await executeGuardedAction(
       async () => {
-        // Claims are aggregate; market attribution is derived controller-side.
-        await claim({
-          entryPoint:
-            resolvedEntryPoint ?? PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-        });
+        await claim();
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
-  }, [executeGuardedAction, claim, resolvedEntryPoint]);
+  }, [executeGuardedAction, claim]);
 
   const hasPositions = positions.length > 0;
   const hasClaimablePositions = claimablePositions.length > 0;

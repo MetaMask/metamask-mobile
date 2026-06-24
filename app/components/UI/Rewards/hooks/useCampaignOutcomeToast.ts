@@ -20,7 +20,6 @@ import {
   selectDismissedCampaignOutcomeToasts,
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { navigateToRewardsRoute } from '../utils';
 import useRewardsToast from './useRewardsToast';
 
 export interface CampaignOutcomeToastConfig {
@@ -113,11 +112,7 @@ export function useCampaignOutcomeToast(
       variant === 'winner'
         ? getWinnerNavigation(targetCampaign)
         : getNonWinnerNavigation(targetCampaign);
-    navigateToRewardsRoute(
-      navigation,
-      nav.route,
-      nav.params as Record<string, unknown>,
-    );
+    navigation.navigate(nav.route, nav.params);
   }, [
     variant,
     targetCampaign,

@@ -1,10 +1,12 @@
 import React, { ReactNode, useState } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
-import { TouchableOpacity, View, ViewStyle } from 'react-native';
-import Icon, {
+import { View, ViewStyle } from 'react-native';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../../component-library/components/Buttons/ButtonIcon';
+import {
   IconColor,
   IconName,
-  IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
 import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
@@ -16,7 +18,7 @@ interface TooltipProps {
   disabled?: boolean;
   iconColor?: IconColor;
   iconName?: IconName;
-  iconSize?: IconSize;
+  iconSize?: ButtonIconSizes;
   iconStyle?: ViewStyle;
   onPress?: () => void;
   title?: string;
@@ -62,8 +64,6 @@ export const TooltipModal = ({
   );
 };
 
-const TOOLTIP_HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
-
 const Tooltip = ({
   content,
   disabled,
@@ -72,11 +72,10 @@ const Tooltip = ({
   onPress,
   iconName = IconName.Info,
   iconColor = IconColor.Muted,
-  iconSize = IconSize.Sm,
-  iconStyle,
+  iconSize = ButtonIconSizes.Sm,
+  iconStyle = {},
 }: TooltipProps) => {
   const [open, setOpen] = useState(false);
-  const { styles } = useStyles(styleSheet, {});
 
   const handlePress = () => {
     if (disabled) return;
@@ -86,15 +85,15 @@ const Tooltip = ({
 
   return (
     <View>
-      <TouchableOpacity
+      <ButtonIcon
+        iconColor={iconColor}
+        iconName={iconName}
         onPress={handlePress}
         disabled={disabled}
-        hitSlop={TOOLTIP_HIT_SLOP}
+        size={iconSize}
         testID={`${tooltipTestId}-open-btn`}
-        style={[styles.iconButton, iconStyle]}
-      >
-        <Icon name={iconName} size={iconSize} color={iconColor} />
-      </TouchableOpacity>
+        style={iconStyle}
+      />
       <TooltipModal
         open={open}
         setOpen={setOpen}
