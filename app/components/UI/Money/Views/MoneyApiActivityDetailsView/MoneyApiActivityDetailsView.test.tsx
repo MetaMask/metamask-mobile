@@ -187,17 +187,12 @@ describe('MoneyApiActivityDetailsView', () => {
     });
 
     it('renders the From row with the Money account label', () => {
-      const { getByText } = render(<MoneyApiActivityDetailsView />);
-      expect(getByText('transaction_details.label.from')).toBeTruthy();
-      expect(getByText('transaction_details.label.money_account')).toBeTruthy();
-    });
-
-    it('renders the To row with the merchant address', () => {
-      const { getByText, getByTestId } = render(
+      const { getByText, queryByText } = render(
         <MoneyApiActivityDetailsView />,
       );
-      expect(getByText('transaction_details.label.to')).toBeTruthy();
-      expect(getByTestId('counterparty-name')).toHaveTextContent(card.paidTo);
+      expect(getByText('transaction_details.label.from')).toBeTruthy();
+      expect(getByText('transaction_details.label.money_account')).toBeTruthy();
+      expect(queryByText('transaction_details.label.to')).toBeNull();
     });
   });
 
@@ -221,6 +216,11 @@ describe('MoneyApiActivityDetailsView', () => {
     it('renders the "You earned" label', () => {
       const { getByText } = render(<MoneyApiActivityDetailsView />);
       expect(getByText('money.api_activity_details.you_earned')).toBeTruthy();
+    });
+
+    it('renders the Money account hero icon', () => {
+      const { getByTestId } = render(<MoneyApiActivityDetailsView />);
+      expect(getByTestId('money-account-hero-icon')).toBeTruthy();
     });
 
     it('renders the "Received from" row with the sender', () => {

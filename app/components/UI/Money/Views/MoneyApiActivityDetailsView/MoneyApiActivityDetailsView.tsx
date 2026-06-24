@@ -33,10 +33,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { TransactionDetailDivider } from '../../../../Views/confirmations/components/activity/transaction-detail-divider/transaction-detail-divider';
 import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
-import {
-  TokenIcon,
-  TokenIconVariant,
-} from '../../../../Views/confirmations/components/token-icon';
 import useNetworkInfo from '../../../../Views/confirmations/hooks/useNetworkInfo';
 import Name from '../../../Name/Name';
 import { NameType } from '../../../Name/Name.types';
@@ -181,20 +177,11 @@ function MoneyApiActivityDetailsContent({
               alignItems={AlignItems.center}
               gap={12}
             >
-              {isCard ? (
-                <Image
-                  source={MoneyIcon}
-                  style={iconStyles.heroMoneyIcon}
-                  testID="money-account-hero-icon"
-                />
-              ) : (
-                <TokenIcon
-                  chainId={activity.chainId}
-                  address={activity.token.address}
-                  symbol={activity.token.symbol}
-                  variant={TokenIconVariant.Hero}
-                />
-              )}
+              <Image
+                source={MoneyIcon}
+                style={iconStyles.heroMoneyIcon}
+                testID="money-account-hero-icon"
+              />
               <Text
                 variant={TextVariant.DisplayMD}
                 color={
@@ -243,42 +230,28 @@ function MoneyApiActivityDetailsContent({
             </TransactionDetailsRow>
           ) : null}
 
-          {/* Card spends mirror send details: From Money account → merchant. */}
+          {/* Card spends show the source account only; merchant is not surfaced yet. */}
           {isCard ? (
-            <>
-              <TransactionDetailsRow
-                label={strings('transaction_details.label.from')}
+            <TransactionDetailsRow
+              label={strings('transaction_details.label.from')}
+            >
+              <Box
+                flexDirection={FlexDirection.Row}
+                alignItems={AlignItems.center}
+                gap={6}
               >
-                <Box
-                  flexDirection={FlexDirection.Row}
-                  alignItems={AlignItems.center}
-                  gap={6}
-                >
-                  <View style={iconStyles.moneyIconWrapper}>
-                    <Image
-                      source={MoneyIcon}
-                      style={iconStyles.moneyIcon}
-                      testID="money-account-icon"
-                    />
-                  </View>
-                  <Text>
-                    {strings('transaction_details.label.money_account')}
-                  </Text>
-                </Box>
-              </TransactionDetailsRow>
-
-              <TransactionDetailDivider />
-
-              <TransactionDetailsRow
-                label={strings('transaction_details.label.to')}
-              >
-                <Name
-                  type={NameType.EthereumAddress}
-                  value={activity.paidTo}
-                  variation={activity.chainId}
-                />
-              </TransactionDetailsRow>
-            </>
+                <View style={iconStyles.moneyIconWrapper}>
+                  <Image
+                    source={MoneyIcon}
+                    style={iconStyles.moneyIcon}
+                    testID="money-account-icon"
+                  />
+                </View>
+                <Text>
+                  {strings('transaction_details.label.money_account')}
+                </Text>
+              </Box>
+            </TransactionDetailsRow>
           ) : (
             <TransactionDetailsRow
               label={strings('money.api_activity_details.received_from')}
