@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleProp, TextStyle } from 'react-native';
+import { Image, StyleProp, StyleSheet, TextStyle } from 'react-native';
 import { useSelector } from 'react-redux';
 import { type Hex } from '@metamask/utils';
 import { Box } from '../../../../../UI/Box/Box';
@@ -43,6 +43,7 @@ import { TokenIcon } from '../../token-icon';
 import { resolveMusdTransferMeta } from '../../../../../UI/Money/constants/activityStyles';
 import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
 import {
+  isMusdToken,
   MUSD_TOKEN,
   MUSD_TOKEN_ADDRESS,
   MUSD_DECIMALS,
@@ -51,6 +52,11 @@ import { selectTransactionsByIds } from '../../../../../../selectors/transaction
 import { RELAY_DEPOSIT_TYPES } from '../../../constants/confirmations';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { strings } from '../../../../../../../locales/i18n';
+import MoneyIcon from '../../../../../../images/money.png';
+
+const iconStyles = StyleSheet.create({
+  moneyIcon: { width: 32, height: 32, borderRadius: 16 },
+});
 
 const SUPPORTED_TYPES = [
   TransactionType.moneyAccountDeposit,
@@ -95,12 +101,21 @@ function TwoAssetHero({
 }) {
   const { styles } = useStyles(styleSheet, {});
 
+  const moneyIcon = (
+    <Image
+      source={MoneyIcon}
+      style={iconStyles.moneyIcon}
+      testID="money-account-icon"
+    />
+  );
+
   return (
     <Box testID="transaction-details-hero" gap={4} style={styles.container}>
       <AssetLine
         label={strings('transaction_details.label.you_sent')}
         sign="-"
         data={sentData}
+        iconOverride={isMusdToken(sentData.address) && moneyIcon}
       />
       <AssetLine
         label={strings('transaction_details.label.you_received')}
@@ -108,6 +123,7 @@ function TwoAssetHero({
         sign="+"
         data={receivedData}
         amountColor={TextColor.Success}
+        iconOverride={isMusdToken(receivedData.address) && moneyIcon}
       />
     </Box>
   );
@@ -119,12 +135,14 @@ function AssetLine({
   sign,
   data,
   amountColor,
+  iconOverride,
 }: {
   label: string;
   labelStyle?: StyleProp<TextStyle>;
   sign: string;
   data: TokenDisplayData;
   amountColor?: TextColor;
+  iconOverride?: React.ReactNode;
 }) {
   return (
     <>
@@ -136,11 +154,13 @@ function AssetLine({
         alignItems={AlignItems.center}
         gap={12}
       >
-        <TokenIcon
-          chainId={data.chainId}
-          address={data.address as Hex}
-          symbol={data.symbol}
-        />
+        {iconOverride || (
+          <TokenIcon
+            chainId={data.chainId}
+            address={data.address as Hex}
+            symbol={data.symbol}
+          />
+        )}
         <Text variant={TextVariant.DisplayMD} color={amountColor}>
           {sign}
           {data.amount} {data.symbol}
@@ -194,6 +214,21 @@ export function TransactionDetailsHero() {
       ]) &&
       Boolean(transactionMeta.metamaskPay?.fiat?.orderId);
 
+    const icon = isMusdToken(tokenMeta.contractAddress) ? (
+      <Image
+        source={MoneyIcon}
+        style={iconStyles.moneyIcon}
+        testID="money-account-icon"
+      />
+    ) : (
+      <TokenIcon
+        chainId={tokenMeta.chainId}
+        address={tokenMeta.contractAddress as Hex}
+        symbol={tokenMeta.symbol}
+        showNetwork={false}
+      />
+    );
+
     return (
       <Box
         testID="transaction-details-hero"
@@ -202,12 +237,7 @@ export function TransactionDetailsHero() {
         gap={12}
         style={styles.container}
       >
-        <TokenIcon
-          chainId={tokenMeta.chainId}
-          address={tokenMeta.contractAddress as Hex}
-          symbol={tokenMeta.symbol}
-          showNetwork={false}
-        />
+        {icon}
         <Text
           variant={TextVariant.DisplayMD}
           color={isFiatDeposit ? TextColor.Success : undefined}
