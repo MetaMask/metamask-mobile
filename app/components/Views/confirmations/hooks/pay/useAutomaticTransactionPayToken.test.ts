@@ -1309,6 +1309,86 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
+  it('does not fall back to target token for moneyAccountDeposit with empty tokens', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0x123' },
+    } as never);
+
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        address: MUSD_TOKEN_ADDRESS as Hex,
+        chainId: CHAIN_IDS.MONAD as Hex,
+      } as TransactionPayRequiredToken,
+    ]);
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [] as AssetType[],
+      hasTokens: false,
+    });
+
+    const { result } = runHook();
+
+    expect(result.current).toBeUndefined();
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+  });
+
+  it('re-selects pay token when tokens arrive after account switch', () => {
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0xAddress1' },
+    } as never);
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        { address: TOKEN_ADDRESS_1_MOCK, chainId: CHAIN_ID_1_MOCK },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    const { rerender } = runHook();
+
+    expect(setPayTokenMock).toHaveBeenCalledTimes(1);
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_1_MOCK,
+      chainId: CHAIN_ID_1_MOCK,
+    });
+    setPayTokenMock.mockClear();
+
+    // Account switch — balances not yet loaded for new account
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      type: TransactionType.moneyAccountDeposit,
+      txParams: { from: '0xAddress2' },
+    } as never);
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [] as AssetType[],
+      hasTokens: false,
+    });
+
+    rerender(undefined);
+
+    expect(setPayTokenMock).not.toHaveBeenCalled();
+
+    // Balances arrive for the new account
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [
+        { address: TOKEN_ADDRESS_2_MOCK, chainId: CHAIN_ID_2_MOCK },
+      ] as AssetType[],
+      hasTokens: true,
+    });
+
+    rerender(undefined);
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: TOKEN_ADDRESS_2_MOCK,
+      chainId: CHAIN_ID_2_MOCK,
+    });
+  });
+
   describe('no-fee token preference', () => {
     it('selects no-fee token over first available when no preferred tokens match', () => {
       selectMetaMaskPayTokensFlagsMock.mockReturnValue({

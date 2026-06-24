@@ -456,5 +456,13 @@ function getBestToken({
     };
   }
 
+  // Deposit target is the vault (Monad mUSD), not a user-held asset — defer
+  // until balances load so the correct no-fee option surfaces.
+  if (
+    hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
+  ) {
+    return undefined;
+  }
+
   return targetTokenFallback;
 }
