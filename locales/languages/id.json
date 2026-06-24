@@ -102,9 +102,6 @@
       "message": "Tambahkan kurang dari {{amount}} atau gunakan token yang berbeda.",
       "title": "Dana tidak cukup"
     },
-    "insufficient_pay_token_balance_fees_no_target": {
-      "message": "Tambahkan lebih sedikit atau gunakan token yang berbeda."
-    },
     "insufficient_pay_token_native": {
       "message": "Token {{ticker}} tidak cukup untuk menutupi biaya. Gunakan token di jaringan lain atau tambahkan token {{ticker}} untuk melanjutkan.",
       "title": "Dana tidak cukup"
