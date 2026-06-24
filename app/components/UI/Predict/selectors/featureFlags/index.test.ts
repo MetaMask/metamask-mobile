@@ -15,6 +15,7 @@ import {
   selectPredictUpDownEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
   selectPredictWorldCupConfig,
+  selectPredictWorldCupHubBannerEnabledFlag,
   selectPredictWorldCupHubV2EnabledFlag,
   selectPredictWorldCupMainFeedBannerEnabledFlag,
   selectPredictWorldCupMainFeedTabEnabledFlag,
@@ -1600,6 +1601,67 @@ describe('Predict Feature Flag Selectors', () => {
       });
 
       expect(selectPredictWorldCupHubV2EnabledFlag(state)).toBe(false);
+    });
+  });
+
+  describe('selectPredictWorldCupHubBannerEnabledFlag', () => {
+    const buildWorldCupState = <T>(predictWorldCup: T) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: { predictWorldCup },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    beforeEach(() => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+    });
+
+    it('returns true only when enabled, showWorldCupScreen and showHubBanner are all true', () => {
+      const state = buildWorldCupState({
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: true,
+        showHubBanner: true,
+      });
+
+      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(true);
+    });
+
+    it('returns false when showWorldCupScreen is false even if showHubBanner is true', () => {
+      const state = buildWorldCupState({
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: false,
+        showHubBanner: true,
+      });
+
+      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(false);
+    });
+
+    it('returns false when showHubBanner is false', () => {
+      const state = buildWorldCupState({
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: true,
+        showHubBanner: false,
+      });
+
+      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(false);
+    });
+
+    it('returns false when the World Cup feature is disabled', () => {
+      const state = buildWorldCupState({
+        enabled: false,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: true,
+        showHubBanner: true,
+      });
+
+      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(false);
     });
   });
 
