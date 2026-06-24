@@ -1178,14 +1178,6 @@ const MainNavigator = () => {
         }}
       />
       <NativeStack.Screen
-        name={Routes.RAMP.BUY}
-        options={{
-          contentStyle: { backgroundColor: colors.background.default },
-        }}
-      >
-        {() => <RampRoutes rampType={RampType.BUY} />}
-      </NativeStack.Screen>
-      <NativeStack.Screen
         name={Routes.RAMP.SELL}
         options={{
           contentStyle: { backgroundColor: colors.background.default },

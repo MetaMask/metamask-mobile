@@ -502,19 +502,6 @@ describe('MainNavigator', () => {
       expect(cardScreen).toBeDefined();
     });
 
-    it('includes Ramp BUY route', () => {
-      const container = renderWithProvider(<MainNavigator />, {
-        state: initialRootState,
-      });
-
-      const screenProps = getScreenProps(container);
-      const rampBuyScreen = screenProps?.find(
-        (screen) => screen?.name === Routes.RAMP.BUY,
-      );
-
-      expect(rampBuyScreen).toBeDefined();
-    });
-
     it('includes Ramp SELL route', () => {
       const container = renderWithProvider(<MainNavigator />, {
         state: initialRootState,

@@ -1,6 +1,6 @@
 import { strings } from '../../../../locales/i18n';
 import { CarouselSlide } from './types';
-import { createBuyNavigationDetails } from '../Ramp/Aggregator/routes/utils';
+import { createTokenSelectionNavDetails } from '../Ramp/Views/TokenSelection/TokenSelection';
 
 export const PREDEFINED_SLIDES: CarouselSlide[] = [
   {
@@ -10,7 +10,7 @@ export const PREDEFINED_SLIDES: CarouselSlide[] = [
     undismissable: false,
     navigation: {
       type: 'function',
-      navigate: () => createBuyNavigationDetails(),
+      navigate: () => createTokenSelectionNavDetails(),
     },
   },
 ];
