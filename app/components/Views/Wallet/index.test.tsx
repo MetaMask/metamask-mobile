@@ -722,7 +722,6 @@ const render = (Component: React.ComponentType) =>
 /** Provider preloaded state must match useSelector mock implementation for connected Wallet. */
 const renderWalletWithRootState = (rootState: typeof mockInitialState) =>
   renderScreen(
-    // @ts-expect-error navigation params intentionally omitted (same as render(Wallet))
     Wallet,
     {
       name: Routes.WALLET_VIEW,
@@ -753,13 +752,11 @@ describe('Wallet', () => {
   });
 
   it('should render correctly', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
     expect(capturedContext).toBeDefined();
   });
 
   it('should render homepage scroll context', () => {
-    //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
 
     expect(capturedContext).toBeDefined();
@@ -771,7 +768,6 @@ describe('Wallet', () => {
       .mockImplementation((callback: (state: unknown) => unknown) =>
         callback(mockInitialState),
       );
-    //@ts-expect-error we are ignoring the navigation params on purpose
     render(Wallet);
     expect(capturedContext).toBeDefined();
   });
@@ -787,7 +783,6 @@ describe('Wallet', () => {
     });
 
     it('passes required props to AssetDetailsActions', () => {
-      //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
       expect(getAssetDetailsActionsProps()).toMatchObject({
@@ -844,7 +839,7 @@ describe('Wallet', () => {
         .mocked(useSelector)
         .mockImplementation((callback) => callback(mockStateWithReceiveData));
 
-      //@ts-expect-error we are ignoring the navigation params on purpose
+      // @ts-expect-error partial root state intentionally provided for testing
       renderWalletWithRootState(mockStateWithReceiveData);
       getAssetDetailsActionsProps().onReceive();
 
@@ -879,7 +874,7 @@ describe('Wallet', () => {
           callback(mockStateWithMultichainAccounts),
         );
 
-      //@ts-expect-error we are ignoring the navigation params on purpose
+      // @ts-expect-error partial root state intentionally provided for testing
       renderWalletWithRootState(mockStateWithMultichainAccounts);
       getAssetDetailsActionsProps().onReceive();
 
@@ -890,7 +885,6 @@ describe('Wallet', () => {
     });
 
     it('opens Send flow from onSend when native ticker is set', async () => {
-      //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
       await getAssetDetailsActionsProps().onSend();
@@ -926,7 +920,6 @@ describe('Wallet', () => {
           callback(stateWithoutNativeCurrency),
         );
 
-      //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
       await getAssetDetailsActionsProps().onSend();
@@ -938,7 +931,6 @@ describe('Wallet', () => {
     });
 
     it('omits onBuy while still passing buyButtonActionID', () => {
-      //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
       const passedProps = getAssetDetailsActionsProps();
@@ -947,7 +939,6 @@ describe('Wallet', () => {
     });
 
     it('passes goToSwaps as a function', () => {
-      //@ts-expect-error we are ignoring the navigation params on purpose
       render(Wallet);
 
       expect(typeof getAssetDetailsActionsProps().goToSwaps).toBe('function');
@@ -977,7 +968,6 @@ describe('Wallet', () => {
           throw new Error('Transaction initialization failed');
         });
       try {
-        //@ts-expect-error we are ignoring the navigation params on purpose
         render(Wallet);
         await getAssetDetailsActionsProps().onSend();
         expect(mockNavigate.mock.calls.some((call) => call[0] === 'Send')).toBe(
@@ -1412,9 +1402,7 @@ describe('HomepageScrollContext callbacks', () => {
     capturedContext = null;
   });
 
-  const renderWalletWithSections = () =>
-    //@ts-expect-error we are ignoring navigation params on purpose
-    render(Wallet);
+  const renderWalletWithSections = () => render(Wallet);
 
   it('getVisitMaxDepth returns -1 before any section is viewed', () => {
     renderWalletWithSections();
@@ -1917,7 +1905,6 @@ describe('MoneyBalanceCard slot', () => {
   it('renders the MoneyBalanceCard when Money account is enabled', () => {
     mockMoneyAccountEnabled = true;
 
-    //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
     const { getByTestId } = render(Wallet);
 
     expect(getByTestId('money-balance-card-mock')).toBeOnTheScreen();
@@ -1926,7 +1913,6 @@ describe('MoneyBalanceCard slot', () => {
   it('does not render the MoneyBalanceCard when Money account is disabled', () => {
     mockMoneyAccountEnabled = false;
 
-    //@ts-expect-error navigation params intentionally omitted (same as render(Wallet))
     const { queryByTestId } = render(Wallet);
 
     expect(queryByTestId('money-balance-card-mock')).not.toBeOnTheScreen();

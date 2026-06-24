@@ -777,6 +777,17 @@ if (!Reanimated.ReanimatedLogLevel) {
   Reanimated.ReanimatedLogLevel = { warn: 1, error: 2 };
 }
 
+// Reanimated v4 reads the current animation time from `global._getAnimationTimestamp`
+// inside `withTiming`/`withSpring`. That global is normally installed during native
+// initialization, which never runs under Jest, so animations crash with
+// "TypeError: global._getAnimationTimestamp is not a function". Provide a JS timer.
+if (typeof global._getAnimationTimestamp !== 'function') {
+  global._getAnimationTimestamp = () =>
+    typeof performance !== 'undefined' && typeof performance.now === 'function'
+      ? performance.now()
+      : Date.now();
+}
+
 // Patch Reanimated's makeMutable so that shared values' toJSON() won't blow up
 // on circular references (the default implementation does JSON.stringify(value)
 // which throws "Converting circular structure to JSON" or causes RangeError).
@@ -808,13 +819,6 @@ try {
   }
 } catch {
   // Reanimated internals may change — fall through silently
-}
-
-// useAnimatedGestureHandler was removed in react-native-reanimated v4 but is
-// still imported by legacy source code (e.g. ReusableModal). Patch the module
-// so tests that render those components don't crash.
-if (typeof Reanimated.useAnimatedGestureHandler !== 'function') {
-  Reanimated.useAnimatedGestureHandler = jest.fn(() => ({}));
 }
 
 global.__DEV__ = false;

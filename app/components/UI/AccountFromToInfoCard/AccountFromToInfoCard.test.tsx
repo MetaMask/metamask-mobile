@@ -158,18 +158,14 @@ describe('AccountFromToInfoCard', () => {
   });
 
   it('should render to account name', async () => {
-    const { findByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
-      <AccountFromToInfoCard transactionState={transactionState} />,
+    const { findByText } = renderWithProvider(      <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
     expect(await findByText('Account 2')).toBeDefined();
   });
 
   it('should render to address', async () => {
-    const { findByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
-      <AccountFromToInfoCard transactionState={transactionState} />,
+    const { findByText } = renderWithProvider(      <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
     expect(await findByText('0x519d2...c9CC7')).toBeDefined();
@@ -194,9 +190,7 @@ describe('AccountFromToInfoCard', () => {
       transactionTo: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
       transactionToName: '0xF4e8263979A89Dc357d7f9F79533Febc7f3e287B',
     };
-    const { findByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
-      <AccountFromToInfoCard transactionState={NFTTransaction} />,
+    const { findByText } = renderWithProvider(      <AccountFromToInfoCard transactionState={NFTTransaction} />,
       { state: mockInitialState },
     );
     expect(await findByText('0xF4e82...e287B')).toBeDefined();
@@ -223,9 +217,7 @@ describe('AccountFromToInfoCard', () => {
         timestamp: new Date().getTime(),
       },
     };
-    const { queryByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
-      <AccountFromToInfoCard transactionState={txState} />,
+    const { queryByText } = renderWithProvider(      <AccountFromToInfoCard transactionState={txState} />,
       { state: mockInitialState },
     );
     expect(await queryByText('test1.eth')).toBeDefined();
@@ -233,9 +225,7 @@ describe('AccountFromToInfoCard', () => {
   });
 
   it('renders correct network name', async () => {
-    const { findByText } = renderWithProvider(
-      //@ts-expect-error - Rest props are ignored for testing purposes
-      <AccountFromToInfoCard transactionState={transactionState} />,
+    const { findByText } = renderWithProvider(      <AccountFromToInfoCard transactionState={transactionState} />,
       { state: mockInitialState },
     );
     expect(await findByText(NETWORK_NAME_MOCK)).toBeDefined();

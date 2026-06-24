@@ -608,6 +608,7 @@
     "@types/node": "^24.0.0",
     "@types/pako": "^2.0.4",
     "@types/prompts": "^2.4.9",
+    "@types/prop-types": "^15.7.15",
     "@types/qs": "^6.9.15",
     "@types/react": "^19.2.0",
     "@types/react-native-background-timer": "^2.0.0",
