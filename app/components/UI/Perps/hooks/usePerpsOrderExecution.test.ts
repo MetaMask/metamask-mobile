@@ -175,9 +175,6 @@ describe('usePerpsOrderExecution', () => {
           tradeWithToken: true,
           mmPayTokenSelected: 'USDC',
           mmPayNetworkSelected: 'ethereum',
-          chartLibrary: 'advanced',
-        } as NonNullable<OrderParams['trackingData']> & {
-          chartLibrary: string;
         },
       };
 
@@ -206,7 +203,6 @@ describe('usePerpsOrderExecution', () => {
           [PERPS_EVENT_PROPERTY.STATUS]:
             PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
-          [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
           [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
           [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
         }),
@@ -296,9 +292,6 @@ describe('usePerpsOrderExecution', () => {
           tradeWithToken: true,
           mmPayTokenSelected: 'USDC',
           mmPayNetworkSelected: 'ethereum',
-          chartLibrary: 'advanced',
-        } as NonNullable<OrderParams['trackingData']> & {
-          chartLibrary: string;
         },
       };
 
@@ -322,7 +315,6 @@ describe('usePerpsOrderExecution', () => {
         expect.objectContaining({
           [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
-          [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
           [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
           [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
         }),
@@ -416,9 +408,6 @@ describe('usePerpsOrderExecution', () => {
           tradeWithToken: true,
           mmPayTokenSelected: 'USDC',
           mmPayNetworkSelected: 'ethereum',
-          chartLibrary: 'advanced',
-        } as NonNullable<OrderParams['trackingData']> & {
-          chartLibrary: string;
         },
       };
 
@@ -439,7 +428,6 @@ describe('usePerpsOrderExecution', () => {
         expect.objectContaining({
           [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
-          [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
           [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
           [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
         }),

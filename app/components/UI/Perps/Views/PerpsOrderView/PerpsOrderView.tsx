@@ -176,8 +176,6 @@ interface OrderRouteParams {
   fromTokenDetails?: boolean;
   /** Analytics: how the user got to the order screen (e.g. trade_action, order_book_long_button, asset_detail_screen) */
   source?: string;
-  /** Analytics: chart library active when the order flow started */
-  chartLibrary?: string;
   defaultSzDecimals?: number;
   defaultMaxLeverage?: number;
 }
@@ -212,8 +210,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     (TrendingFeedSessionManager.getInstance().isFromTrending
       ? 'trending'
       : undefined);
-  const chartLibrary =
-    route.params?.chartLibrary ?? PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -412,8 +408,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : PERPS_EVENT_VALUE.DIRECTION.SHORT,
     [PERPS_EVENT_PROPERTY.SOURCE]:
       source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-    [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
-    [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
     [PERPS_EVENT_PROPERTY.OPEN_POSITION]: currentMarketPosition ? 1 : 0,
     [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
       isServiceInterruptionBannerEnabled,
@@ -1192,7 +1186,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
             estimatedPoints: feeResults.estimatedPoints,
             inputMethod: inputMethodRef.current,
             source,
-            chartLibrary,
             tradeAction: currentMarketPosition
               ? 'increase_exposure'
               : 'create_position',
@@ -1290,7 +1283,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       feeResults.feeDiscountPercentage,
       feeResults.estimatedPoints,
       source,
-      chartLibrary,
       isButtonColorTestEnabled,
       buttonColorVariant,
       isTradeWithAnyTokenEnabled,
