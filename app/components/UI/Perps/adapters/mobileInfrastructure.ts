@@ -51,10 +51,10 @@ import { TERMINAL_API_URLS } from '../constants/terminalApi';
  * Resolves the Terminal API base URL based on build environment.
  *
  * Mapping:
- * - dev / test / e2e → DEV (takes priority over beta)
+ * - dev / test / e2e → DEV (takes priority over beta build type)
  * - beta build type (non-dev envs) → UAT
  * - production / rc → PRD
- * - all other cases (local, undefined, flask, etc.) → UAT
+ * - all other environments (local, undefined, etc.) → UAT
  */
 export function getTerminalApiUrl(): string {
   const env = process.env.METAMASK_ENVIRONMENT;

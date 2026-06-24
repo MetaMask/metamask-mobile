@@ -8,6 +8,7 @@ import {
   createMobileClientConfig,
   getTerminalApiUrl,
 } from './mobileInfrastructure';
+import { TERMINAL_API_URLS } from '../constants/terminalApi';
 import Engine from '../../../../core/Engine';
 
 jest.mock('../../../../util/analytics/analytics', () => ({
@@ -395,67 +396,67 @@ describe('getTerminalApiUrl', () => {
   it('returns dev URL for dev environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'dev';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe('https://terminal.dev-api.cx.metamask.io');
+    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
   });
 
   it('returns dev URL for test environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'test';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe('https://terminal.dev-api.cx.metamask.io');
+    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
   });
 
   it('returns dev URL for e2e environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'e2e';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe('https://terminal.dev-api.cx.metamask.io');
+    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
   });
 
   it('returns uat URL for beta build type', () => {
     process.env.METAMASK_ENVIRONMENT = 'production';
     process.env.METAMASK_BUILD_TYPE = 'beta';
-    expect(getTerminalApiUrl()).toBe('https://terminal.uat-api.cx.metamask.io');
+    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
   });
 
   it('returns prd URL for production environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'production';
     process.env.METAMASK_BUILD_TYPE = 'main';
-    expect(getTerminalApiUrl()).toBe('https://terminal.api.cx.metamask.io');
+    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.PRD);
   });
 
   it('returns prd URL for rc environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'rc';
     process.env.METAMASK_BUILD_TYPE = 'main';
-    expect(getTerminalApiUrl()).toBe('https://terminal.api.cx.metamask.io');
+    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.PRD);
   });
 
-  it('returns uat URL for exp environment', () => {
+  it('returns uat URL for exp environment (default fallthrough)', () => {
     process.env.METAMASK_ENVIRONMENT = 'exp';
     process.env.METAMASK_BUILD_TYPE = 'main';
-    expect(getTerminalApiUrl()).toBe('https://terminal.uat-api.cx.metamask.io');
+    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
   });
 
-  it('returns uat URL for flask build type (falls through to default)', () => {
+  it('returns uat URL for non-beta build type in non-prod env (default fallthrough)', () => {
     process.env.METAMASK_ENVIRONMENT = 'exp';
     process.env.METAMASK_BUILD_TYPE = 'flask';
-    expect(getTerminalApiUrl()).toBe('https://terminal.uat-api.cx.metamask.io');
+    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
   });
 
   it('returns uat URL when METAMASK_ENVIRONMENT is undefined', () => {
     delete process.env.METAMASK_ENVIRONMENT;
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe('https://terminal.uat-api.cx.metamask.io');
+    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
   });
 
   it('returns uat URL for local environment', () => {
     process.env.METAMASK_ENVIRONMENT = 'local';
     delete process.env.METAMASK_BUILD_TYPE;
-    expect(getTerminalApiUrl()).toBe('https://terminal.uat-api.cx.metamask.io');
+    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.UAT);
   });
 
   it('returns dev URL when env is dev even if build type is beta', () => {
     process.env.METAMASK_ENVIRONMENT = 'dev';
     process.env.METAMASK_BUILD_TYPE = 'beta';
-    expect(getTerminalApiUrl()).toBe('https://terminal.dev-api.cx.metamask.io');
+    expect(getTerminalApiUrl()).toBe(TERMINAL_API_URLS.DEV);
   });
 });
 
@@ -485,6 +486,6 @@ describe('createMobileInfrastructure - terminalApiUrl', () => {
     process.env.METAMASK_ENVIRONMENT = 'production';
     process.env.METAMASK_BUILD_TYPE = 'main';
     const infra = createMobileInfrastructure();
-    expect(infra.terminalApiUrl).toBe('https://terminal.api.cx.metamask.io');
+    expect(infra.terminalApiUrl).toBe(TERMINAL_API_URLS.PRD);
   });
 });
