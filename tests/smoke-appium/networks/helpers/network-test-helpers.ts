@@ -52,9 +52,7 @@ const getDecodedProxiedURL = (url: string): string => {
 
 const createGenericInfuraRpcHandler =
   () =>
-  async (request: {
-    body: { getText: () => Promise<string | undefined> };
-  }) => {
+  async (request: { body: { getText: () => Promise<string | undefined> } }) => {
     try {
       const bodyText = await request.body.getText();
       const body = bodyText ? JSON.parse(bodyText) : null;
