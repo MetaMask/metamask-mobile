@@ -136,6 +136,7 @@ export interface PolymarketApiActivity {
   type: 'TRADE' | 'REDEEM';
   side: 'BUY' | 'SELL' | '';
   price: number;
+  size?: number;
   usdcSize: number;
   timestamp: number;
   transactionHash: string;

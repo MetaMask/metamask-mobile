@@ -22,6 +22,7 @@ let mockRoute: {
         timestamp: number;
         amount?: number;
         price?: number;
+        size?: number;
       };
       priceImpactPercentage?: number;
       netPnlUsd?: number;
@@ -226,6 +227,37 @@ describe('PredictActivityDetails', () => {
 
     // Assert
     expect(getByText('Price impact')).toBeOnTheScreen();
+  });
+
+  it('renders buy stake, shares, and bundled fees from activity size', () => {
+    // Arrange
+    mockRoute = {
+      params: {
+        activity: {
+          ...mockBuyActivity,
+          amountUsd: 2.129179,
+          entry: {
+            ...mockBuyActivity.entry,
+            amount: 2.129179,
+            price: 0.18,
+            size: 11.11111,
+          },
+        },
+      },
+    };
+
+    // Act
+    const { getByText } = renderWithProvider(<PredictActivityDetails />, {
+      state: initialState,
+    });
+
+    // Assert
+    expect(getByText('Predicted amount')).toBeOnTheScreen();
+    expect(getByText('$2.00')).toBeOnTheScreen();
+    expect(getByText('Shares bought')).toBeOnTheScreen();
+    expect(getByText('11.11')).toBeOnTheScreen();
+    expect(getByText('Fees')).toBeOnTheScreen();
+    expect(getByText('$0.13')).toBeOnTheScreen();
   });
 
   it('navigates back when back button is pressed and canGoBack is true', () => {

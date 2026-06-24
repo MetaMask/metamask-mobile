@@ -363,6 +363,7 @@ export interface PredictActivityBuy {
   outcomeTokenId: number;
   amount: number;
   price: number;
+  size?: number;
 }
 
 export interface PredictActivitySell {
@@ -373,6 +374,7 @@ export interface PredictActivitySell {
   outcomeTokenId: number;
   amount: number;
   price: number;
+  size?: number;
 }
 
 export interface PredictActivityClaimWinnings {
