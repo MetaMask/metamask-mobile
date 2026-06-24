@@ -20,6 +20,44 @@ export interface UseMoneyAccountApiActivityResult {
 
 const EMPTY: AccountsApiActivity[] = [];
 
+/** Cap upfront pagination — the UI only surfaces a subset of card/cashback rows. */
+export const MAX_MONEY_ACCOUNT_API_ACTIVITY_PAGES = 5;
+
+const ACCOUNT_ACTIVITY_QUERY_OPTIONS = {
+  chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS,
+  sortDirection: 'DESC' as const,
+};
+
+/**
+ * Fetch up to {@link MAX_MONEY_ACCOUNT_API_ACTIVITY_PAGES} pages from the
+ * Accounts API v1 transactions endpoint, merging rows into one response.
+ */
+export async function fetchMoneyAccountApiActivityPages(
+  moneyAddress: string,
+): Promise<V1AccountTransactionsResponse> {
+  let cursor: string | undefined;
+  const data: NonNullable<V1AccountTransactionsResponse['data']> = [];
+  let pageInfo: V1AccountTransactionsResponse['pageInfo'] = {
+    count: 0,
+    hasNextPage: false,
+  };
+
+  for (let page = 0; page < MAX_MONEY_ACCOUNT_API_ACTIVITY_PAGES; page++) {
+    const response = await apiClient.accounts.fetchV1AccountTransactions(
+      moneyAddress,
+      { ...ACCOUNT_ACTIVITY_QUERY_OPTIONS, cursor },
+    );
+    data.push(...(response.data ?? []));
+    pageInfo = response.pageInfo;
+    if (!response.pageInfo.hasNextPage || !response.pageInfo.cursor) {
+      break;
+    }
+    cursor = response.pageInfo.cursor;
+  }
+
+  return { data, pageInfo };
+}
+
 /**
  * Off-device MetaMask Card activity (spends and cashback) for the primary Money
  * account, sourced from the Accounts API via the shared {@link apiClient} (same
@@ -38,7 +76,7 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
 
   const queryOptions = apiClient.accounts.getV1AccountTransactionsQueryOptions(
     moneyAddress,
-    { chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS, sortDirection: 'DESC' },
+    ACCOUNT_ACTIVITY_QUERY_OPTIONS,
   );
 
   // Parse at the boundary: the cache holds raw rows, the view gets activity.
@@ -56,6 +94,7 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   // the query options aren't nominally compatible. The shapes match at runtime.
   const query = useQuery({
     ...queryOptions,
+    queryFn: () => fetchMoneyAccountApiActivityPages(moneyAddress),
     select,
     enabled: moneyAddress !== '',
     staleTime: 5 * MINUTE,

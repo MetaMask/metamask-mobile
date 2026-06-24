@@ -5,7 +5,11 @@ import { apiClient } from '../../../../core/apiClient';
 import { selectPrimaryMoneyAccount } from '../../../../selectors/moneyAccountController';
 import { selectMoneyCardActivityCashbackMultisendContracts } from '../selectors/featureFlags';
 import { parseAccountsApiActivity } from '../utils/accountsApi';
-import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
+import {
+  fetchMoneyAccountApiActivityPages,
+  MAX_MONEY_ACCOUNT_API_ACTIVITY_PAGES,
+  useMoneyAccountApiActivity,
+} from './useMoneyAccountApiActivity';
 import { MUSD_MONEY_ACCOUNT_CHAIN_IDS } from '../../Earn/constants/musd';
 import { MINUTE } from '../../../../constants/time';
 import type { AccountsApiActivity } from '../types/moneyActivity';
@@ -22,6 +26,7 @@ jest.mock('../../../../core/apiClient', () => ({
   apiClient: {
     accounts: {
       getV1AccountTransactionsQueryOptions: jest.fn(),
+      fetchV1AccountTransactions: jest.fn(),
     },
   },
 }));
@@ -37,6 +42,9 @@ const mockUseSelector = jest.mocked(useSelector);
 const mockUseQuery = jest.mocked(useQuery);
 const mockGetQueryOptions = jest.mocked(
   apiClient.accounts.getV1AccountTransactionsQueryOptions,
+);
+const mockFetchV1AccountTransactions = jest.mocked(
+  apiClient.accounts.fetchV1AccountTransactions,
 );
 const mockParse = jest.mocked(parseAccountsApiActivity);
 
@@ -107,12 +115,13 @@ describe('useMoneyAccountApiActivity', () => {
     });
   });
 
-  it('delegates to useQuery with select, enabled, staleTime and retry', () => {
+  it('delegates to useQuery with a multi-page queryFn, select, enabled, staleTime and retry', () => {
     renderHook(() => useMoneyAccountApiActivity());
 
     expect(mockUseQuery).toHaveBeenCalledWith(
       expect.objectContaining({
         ...QUERY_OPTIONS_MOCK,
+        queryFn: expect.any(Function),
         select: expect.any(Function),
         enabled: true,
         staleTime: 5 * MINUTE,
@@ -178,5 +187,104 @@ describe('useMoneyAccountApiActivity', () => {
       CASHBACK_MULTISEND_CONTRACTS,
     );
     expect(parsed).toEqual([CARD]);
+  });
+
+  it('queryFn fetches up to five pages and merges the rows', async () => {
+    mockFetchV1AccountTransactions
+      .mockResolvedValueOnce({
+        data: [{ hash: '0x1' }] as never,
+        pageInfo: { count: 1, hasNextPage: true, cursor: 'cursor-1' },
+      })
+      .mockResolvedValueOnce({
+        data: [{ hash: '0x2' }] as never,
+        pageInfo: { count: 1, hasNextPage: true, cursor: 'cursor-2' },
+      })
+      .mockResolvedValueOnce({
+        data: [{ hash: '0x3' }] as never,
+        pageInfo: { count: 1, hasNextPage: true, cursor: 'cursor-3' },
+      })
+      .mockResolvedValueOnce({
+        data: [{ hash: '0x4' }] as never,
+        pageInfo: { count: 1, hasNextPage: true, cursor: 'cursor-4' },
+      })
+      .mockResolvedValueOnce({
+        data: [{ hash: '0x5' }] as never,
+        pageInfo: { count: 1, hasNextPage: true, cursor: 'cursor-5' },
+      })
+      .mockResolvedValueOnce({
+        data: [{ hash: '0x6' }] as never,
+        pageInfo: { count: 1, hasNextPage: false },
+      });
+
+    renderHook(() => useMoneyAccountApiActivity());
+    const { queryFn } = mockUseQuery.mock.calls[0][0] as unknown as {
+      queryFn: () => Promise<unknown>;
+    };
+
+    const response = await queryFn();
+
+    expect(mockFetchV1AccountTransactions).toHaveBeenCalledTimes(5);
+    expect(mockFetchV1AccountTransactions).toHaveBeenNthCalledWith(1, ADDR_A, {
+      chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS,
+      sortDirection: 'DESC',
+      cursor: undefined,
+    });
+    expect(mockFetchV1AccountTransactions).toHaveBeenNthCalledWith(5, ADDR_A, {
+      chainIds: MUSD_MONEY_ACCOUNT_CHAIN_IDS,
+      sortDirection: 'DESC',
+      cursor: 'cursor-4',
+    });
+    expect(response).toEqual({
+      data: [
+        { hash: '0x1' },
+        { hash: '0x2' },
+        { hash: '0x3' },
+        { hash: '0x4' },
+        { hash: '0x5' },
+      ],
+      pageInfo: { count: 1, hasNextPage: true, cursor: 'cursor-5' },
+    });
+  });
+});
+
+describe('fetchMoneyAccountApiActivityPages', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFetchV1AccountTransactions.mockReset();
+  });
+
+  it('stops after the first page when there is no next page', async () => {
+    mockFetchV1AccountTransactions.mockResolvedValue({
+      data: [{ hash: '0xonly' }] as never,
+      pageInfo: { count: 1, hasNextPage: false },
+    });
+
+    const response = await fetchMoneyAccountApiActivityPages(ADDR_A);
+
+    expect(mockFetchV1AccountTransactions).toHaveBeenCalledTimes(1);
+    expect(response).toEqual({
+      data: [{ hash: '0xonly' }],
+      pageInfo: { count: 1, hasNextPage: false },
+    });
+  });
+
+  it(`fetches at most ${MAX_MONEY_ACCOUNT_API_ACTIVITY_PAGES} pages`, async () => {
+    mockFetchV1AccountTransactions.mockImplementation(
+      async (_address, opts) => ({
+        data: [{ hash: opts?.cursor ?? 'page-0' }] as never,
+        pageInfo: {
+          count: 1,
+          hasNextPage: true,
+          cursor: `next-${opts?.cursor ?? 'page-0'}`,
+        },
+      }),
+    );
+
+    const response = await fetchMoneyAccountApiActivityPages(ADDR_A);
+
+    expect(mockFetchV1AccountTransactions).toHaveBeenCalledTimes(
+      MAX_MONEY_ACCOUNT_API_ACTIVITY_PAGES,
+    );
+    expect(response.data).toHaveLength(MAX_MONEY_ACCOUNT_API_ACTIVITY_PAGES);
   });
 });
