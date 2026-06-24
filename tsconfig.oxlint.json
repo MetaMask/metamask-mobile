@@ -1,0 +1,87 @@
+{
+  // EXPERIMENT-ONLY tsconfig for oxlint type-aware linting (tsgolint / typescript-go, TS7).
+  // tsgolint rejects the real tsconfig.json (baseUrl removed, moduleResolution=node
+  // removed, non-relative `paths` values). This is a TS7-compatible variant:
+  //   - drop `baseUrl`
+  //   - moduleResolution: node -> bundler (+ module: esnext)
+  //   - prefix every `paths` value with `./`
+  // Standalone (does NOT extend tsconfig.json, since `extends` can't delete baseUrl).
+  "compilerOptions": {
+    "target": "esnext",
+    "module": "esnext",
+    "lib": ["es2022"],
+    "allowJs": true,
+    "jsx": "react-native",
+    "noEmit": true,
+    "isolatedModules": true,
+    "strict": true,
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "paths": {
+      "images/*": ["./app/images/*"],
+      "@keystonehq/ur-decoder": [
+        "./app/declarations/@keystonehq/ur-decoder.d.ts"
+      ],
+      "@metamask/perps-controller/types": [
+        "./node_modules/@metamask/perps-controller/dist/types/index.d.cts"
+      ],
+      "@metamask/perps-controller/constants": [
+        "./node_modules/@metamask/perps-controller/dist/constants/index.d.cts"
+      ],
+      "@metamask/perps-controller/constants/*": [
+        "./node_modules/@metamask/perps-controller/dist/constants/*.d.cts"
+      ],
+      "@metamask/perps-controller/utils/*": [
+        "./node_modules/@metamask/perps-controller/dist/utils/*.d.cts"
+      ],
+      "@metamask/json-rpc-engine/v2": [
+        "./node_modules/@metamask/json-rpc-engine/dist/v2/index.d.cts"
+      ],
+      "@metamask/keyring-api/v2": [
+        "./node_modules/@metamask/keyring-api/dist/v2/index.d.cts"
+      ],
+      "@metamask/keyring-sdk/v2": [
+        "./node_modules/@metamask/keyring-sdk/dist/v2/index.d.cts"
+      ],
+      "@metamask/eth-snap-keyring/v2": [
+        "./node_modules/@metamask/eth-snap-keyring/dist/v2/index.d.cts"
+      ],
+      "@metamask/eth-hd-keyring/v2": [
+        "./node_modules/@metamask/eth-hd-keyring/dist/v2/index.d.cts"
+      ],
+      "@metamask/eth-ledger-bridge-keyring/v2": [
+        "./node_modules/@metamask/eth-ledger-bridge-keyring/dist/v2/index.d.cts"
+      ],
+      "@metamask/eth-qr-keyring/v2": [
+        "./node_modules/@metamask/eth-qr-keyring/dist/v2/index.d.cts"
+      ],
+      "@metamask/eth-money-keyring/v2": [
+        "./node_modules/@metamask/eth-money-keyring/dist/v2/index.d.cts"
+      ],
+      "@metamask/design-system-react-native/spinner": [
+        "./node_modules/@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs"
+      ],
+      "@metamask/delegation-controller/types": [
+        "./node_modules/@metamask/delegation-controller/dist/types.d.cts"
+      ]
+    },
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowImportingTsExtensions": true
+  },
+  "include": [
+    "app/declarations/index.d.ts",
+    "app/**/*",
+    "tests/**/*",
+    "scripts/**/*"
+  ],
+  "exclude": [
+    "node_modules",
+    "babel.config.js",
+    "metro.config.js",
+    "jest.config.js",
+    "app/core/InpageBridgeWeb3.js",
+    "scripts/inpage-bridge/dist"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  // EXPERIMENT CONFIG (hybrid, Experiment 4). Benchmark/review only; not wired into CI.
+  // oxlint runs ONLY the type-aware rule(s) ESLint drops (no-deprecated). ESLint keeps
+  // every non-type-aware rule via .eslintrc.no-type-aware.js. Together = the hybrid.
+  //
+  // tsgolint rejects the real tsconfig.json, so swap in tsconfig.oxlint.json first. Run:
+  //   cp tsconfig.json tsconfig.json.bak && cp tsconfig.oxlint.json tsconfig.json
+  //   /usr/bin/time -p yarn oxlint --type-aware -c .oxlintrc.json
+  //   mv tsconfig.json.bak tsconfig.json
+  "plugins": ["typescript"],
+  // Turn off oxlint's default (non-type-aware) rules; ESLint owns those.
+  "categories": {
+    "correctness": "off"
+  },
+  "rules": {
+    "typescript/no-deprecated": "warn"
+  }
+}
