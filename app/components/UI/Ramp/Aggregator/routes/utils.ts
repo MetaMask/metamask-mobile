@@ -1,16 +1,12 @@
-import { RampIntent, RampType } from '../types';
+import { RampIntent } from '../types';
 import Routes from '../../../../../constants/navigation/Routes';
 
-export function createRampNavigationDetails(
-  rampType: RampType,
-  intent?: RampIntent,
-) {
-  const route = rampType === RampType.BUY ? Routes.RAMP.BUY : Routes.RAMP.SELL;
+export function createSellNavigationDetails(intent?: RampIntent) {
   if (!intent) {
-    return [route] as const;
+    return [Routes.RAMP.SELL] as const;
   }
   return [
-    route,
+    Routes.RAMP.SELL,
     {
       screen: Routes.RAMP.ID,
       params: {
@@ -19,12 +15,4 @@ export function createRampNavigationDetails(
       },
     },
   ] as const;
-}
-
-export function createBuyNavigationDetails(intent?: RampIntent) {
-  return createRampNavigationDetails(RampType.BUY, intent);
-}
-
-export function createSellNavigationDetails(intent?: RampIntent) {
-  return createRampNavigationDetails(RampType.SELL, intent);
 }

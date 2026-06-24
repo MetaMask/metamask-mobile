@@ -8,6 +8,7 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import BigNumber from 'bignumber.js';
 import { getNativeSourceToken } from '../../../../components/UI/Bridge/utils/tokenUtils';
 import NavigationService from '../../../NavigationService';
+import { createTokenSelectionNavDetails } from '../../../../components/UI/Ramp/Views/TokenSelection/TokenSelection';
 
 export function handleCreateAccountUrl({ path }: { path: string }) {
   const chainId = new URLSearchParams(path).get('chainId');
@@ -53,10 +54,5 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
   }
 
   // if there are account in scope bu non of them have funds, navigate to ramps
-  NavigationService.navigation.navigate(Routes.RAMP.BUY, {
-    screen: Routes.RAMP.GET_STARTED,
-    params: {
-      chainId,
-    },
-  });
+  NavigationService.navigation.navigate(...createTokenSelectionNavDetails());
 }

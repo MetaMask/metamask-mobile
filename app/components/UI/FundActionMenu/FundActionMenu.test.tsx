@@ -29,7 +29,6 @@ jest.mock('../../../util/networks', () => ({
   getDecimalChainId: jest.fn(),
 }));
 jest.mock('../Ramp/Aggregator/routes/utils', () => ({
-  createBuyNavigationDetails: jest.fn(),
   createSellNavigationDetails: jest.fn(),
 }));
 jest.mock('../../../../locales/i18n', () => ({
@@ -57,14 +56,14 @@ const mockUseRampNavigation = useRampNavigation as jest.MockedFunction<
   typeof useRampNavigation
 >;
 const { getDecimalChainId } = jest.requireMock('../../../util/networks');
-const { createBuyNavigationDetails, createSellNavigationDetails } =
-  jest.requireMock('../Ramp/Aggregator/routes/utils');
+const { createSellNavigationDetails } = jest.requireMock(
+  '../Ramp/Aggregator/routes/utils',
+);
 
 describe('FundActionMenu', () => {
   // Mock functions
   const mockNavigate = jest.fn();
   const mockGoToBuy = jest.fn();
-  const mockGoToAggregator = jest.fn();
   const mockGoToSell = jest.fn();
   const mockTrackEvent = jest.fn();
   const mockCreateEventBuilder = jest.fn();
@@ -110,11 +109,9 @@ describe('FundActionMenu', () => {
 
     mockUseRampNavigation.mockReturnValue({
       goToBuy: mockGoToBuy,
-      goToAggregator: mockGoToAggregator,
       goToSell: mockGoToSell,
     });
     getDecimalChainId.mockReturnValue(1);
-    createBuyNavigationDetails.mockReturnValue(['BuyScreen', {}] as never);
     createSellNavigationDetails.mockReturnValue(['SellScreen', {}] as never);
   });
 
