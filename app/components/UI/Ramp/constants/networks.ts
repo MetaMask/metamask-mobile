@@ -25,6 +25,10 @@ export const BSC_MAINNET: DepositNetwork = {
   chainId: 'eip155:56',
   name: 'BNB Smart Chain',
 };
+export const ARC_MAINNET: DepositNetwork = {
+  chainId: 'eip155:5042',
+  name: 'Arc',
+};
 
 export const DEPOSIT_NETWORKS_BY_CHAIN_ID: Record<CaipChainId, DepositNetwork> =
   {
@@ -33,4 +37,5 @@ export const DEPOSIT_NETWORKS_BY_CHAIN_ID: Record<CaipChainId, DepositNetwork> =
     [BASE_MAINNET.chainId]: BASE_MAINNET,
     [SOLANA_MAINNET.chainId]: SOLANA_MAINNET,
     [BSC_MAINNET.chainId]: BSC_MAINNET,
+    [ARC_MAINNET.chainId]: ARC_MAINNET,
   };
