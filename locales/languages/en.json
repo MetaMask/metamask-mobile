@@ -6022,6 +6022,11 @@
       "description": "Buying crypto isn't available in your region due to limitations with local payment providers or regulatory restrictions.",
       "got_it": "Got it"
     },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "Got it"
+    },
     "region": {
       "buy_crypto_tokens": "Buy crypto tokens",
       "sell_crypto_tokens": "Sell crypto tokens",
