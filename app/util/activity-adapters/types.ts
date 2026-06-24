@@ -149,6 +149,7 @@ export type ActivityListItem =
       'claimMusdBonus',
       {
         token?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<
@@ -164,6 +165,7 @@ export type ActivityListItem =
         from: string;
         to: string;
         token?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<

@@ -61,7 +61,7 @@ export function ActivityDetailSection({
   testID?: string;
 }) {
   return (
-    <Box twClassName="gap-3" testID={testID}>
+    <Box twClassName="gap-4" testID={testID}>
       {children}
     </Box>
   );

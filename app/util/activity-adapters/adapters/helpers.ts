@@ -73,6 +73,30 @@ export function getLocalTransactionFees(
   ];
 }
 
+export function getApiTransactionFees(
+  transaction: V1TransactionByHashResponse,
+  nativeAsset: ActivityTokenMetadata | undefined,
+): ActivityFee[] | undefined {
+  const amount = getNetworkFeeAmount(
+    transaction.gasUsed?.toString(),
+    transaction.effectiveGasPrice?.toString(),
+  );
+
+  if (!amount) {
+    return undefined;
+  }
+
+  return [
+    {
+      type: 'base',
+      amount,
+      decimals: nativeAsset?.decimals ?? NATIVE_FEE_DECIMALS,
+      ...(nativeAsset?.symbol ? { symbol: nativeAsset.symbol } : {}),
+      ...(nativeAsset?.assetId ? { assetId: nativeAsset.assetId } : {}),
+    },
+  ];
+}
+
 const MAINNET_HEX_CHAIN_ID = '0x1';
 const TOKEN_VALUE_UNLIMITED_THRESHOLD = 10 ** 15;
 

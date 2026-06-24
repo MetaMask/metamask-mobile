@@ -9674,6 +9674,8 @@
     "network": "Network",
     "transaction_id": "Transaction ID",
     "network_fee": "Network fee",
+    "bridge_fee": "Bridge fee",
+    "transaction_fee": "Transaction fee",
     "total": "Total",
     "total_amount": "Total amount",
     "you_sent": "You sent",
