@@ -6,9 +6,14 @@ import {
   PerpsOrderTransactionStatusType,
   type PerpsTransaction,
 } from '../../../components/UI/Perps/types/transactionHistory';
+// eslint-disable-next-line import-x/no-restricted-paths -- exercise the real perps order transform output
+import { transformOrdersToTransactions } from '../../../components/UI/Perps/utils/transactionTransforms';
 import { mapPerpsTransaction } from './perps-transaction';
 
 const ARBITRUM: CaipChainId = 'eip155:42161';
+
+/** The real Perps order shape accepted by the transform. */
+type Order = Parameters<typeof transformOrdersToTransactions>[0][number];
 
 const base: Pick<
   PerpsTransaction,
@@ -484,6 +489,73 @@ describe('mapPerpsTransaction', () => {
       expect(sourceToken).toEqual({
         amount: '5',
         symbol: 'BTC',
+        direction: 'out',
+      });
+    });
+  });
+
+  describe('orders (real transformOrdersToTransactions output)', () => {
+    const makeOrder = (overrides: Partial<Order> = {}): Order => ({
+      orderId: 'order-1',
+      symbol: 'ETH',
+      side: 'sell',
+      orderType: 'limit',
+      size: '0',
+      originalSize: '2.01',
+      price: '2000',
+      filledSize: '2.01',
+      remainingSize: '0',
+      status: 'filled',
+      timestamp: 1_700_000_000_000,
+      ...overrides,
+    });
+
+    const mapFromOrder = (order: Order) => {
+      const [transaction] = transformOrdersToTransactions([order]);
+      return mapPerpsTransaction({ transaction, chainId: ARBITRUM });
+    };
+
+    it.each([
+      [
+        'Limit short (open)',
+        { orderType: 'limit', side: 'sell' },
+        'limitShort',
+      ],
+      [
+        'Limit close short',
+        { orderType: 'limit', side: 'buy', reduceOnly: true },
+        'limitCloseShort',
+      ],
+      [
+        'Market short (open)',
+        { orderType: 'market', side: 'sell' },
+        'marketShort',
+      ],
+      [
+        'Market close short',
+        { orderType: 'market', side: 'buy', reduceOnly: true },
+        'marketCloseShort',
+      ],
+    ] as const)(
+      'maps a real %s order to the matching Activity kind',
+      (_label, overrides, expectedKind) => {
+        const result = mapFromOrder(makeOrder(overrides));
+        expect(result?.type).toBe(expectedKind);
+      },
+    );
+
+    it('carries the transform subtitle position size into sourceToken.amount', () => {
+      const result = mapFromOrder(
+        makeOrder({ orderType: 'limit', side: 'sell', originalSize: '2.01' }),
+      );
+      const sourceToken =
+        result && 'sourceToken' in result.data
+          ? result.data.sourceToken
+          : undefined;
+      // transform subtitle is "2.01 ETH" -> asset quantity is reused verbatim.
+      expect(sourceToken).toEqual({
+        amount: '2.01',
+        symbol: 'ETH',
         direction: 'out',
       });
     });
