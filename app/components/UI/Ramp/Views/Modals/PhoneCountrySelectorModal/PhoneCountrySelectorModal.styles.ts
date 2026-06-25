@@ -1,29 +1,7 @@
 import { StyleSheet } from 'react-native';
-import { Theme } from '../../../../../../util/theme/models';
 
-interface PhoneCountrySelectorModalStyleSheetVars {
-  screenHeight: number;
-}
-
-const styleSheet = (params: {
-  theme: Theme;
-  vars: PhoneCountrySelectorModalStyleSheetVars;
-}) => {
-  const { vars } = params;
-  const { screenHeight } = vars;
-
-  return StyleSheet.create({
-    list: {
-      height: screenHeight * 0.4,
-    },
-    searchContainer: {
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-    },
-    sectionHeader: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-    },
+const styleSheet = () =>
+  StyleSheet.create({
     region: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -31,15 +9,6 @@ const styleSheet = (params: {
     emoji: {
       marginRight: 12,
     },
-    emptyList: {
-      padding: 16,
-      alignItems: 'center',
-    },
-    listItem: {
-      paddingHorizontal: 16,
-      paddingVertical: 8,
-    },
   });
-};
 
 export default styleSheet;
