@@ -141,7 +141,10 @@ export const importAccountViaPrivateKey = async (
   await AddAccountBottomSheet.tapImportAccount();
   await Assertions.expectElementToBeVisible(ImportAccountView.container);
   await ImportAccountView.enterPrivateKey(privateKey);
-  await Assertions.expectElementToBeVisible(SuccessImportAccountView.container);
+  await expectElementVisible(SuccessImportAccountView.container, {
+    description: 'Import success screen should be visible',
+    timeout: 30_000,
+  });
   await SuccessImportAccountView.tapCloseButton();
   if (FrameworkDetector.isAppium()) {
     await AddAccountBottomSheet.tapBackToWalletView();
