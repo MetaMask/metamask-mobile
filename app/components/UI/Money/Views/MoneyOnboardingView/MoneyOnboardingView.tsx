@@ -149,6 +149,9 @@ const styles = StyleSheet.create({
   },
 });
 
+// Used if user accessing onboarding BEFORE apy is loaded from balance service.
+const FALLBACK_APY = 4;
+
 const MoneyOnboardingTextOverlay = ({
   content,
   isVisible,
@@ -299,7 +302,7 @@ const MoneyOnboardingView = () => {
       {
         title: strings('money.rive_onboarding.step1_title'),
         content: strings('money.rive_onboarding.step1_body', {
-          percentage: apyPercent,
+          percentage: apyPercent ?? FALLBACK_APY,
         }),
         footer: strings('money.rive_onboarding.step1_footer_text'),
       },
