@@ -383,13 +383,8 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
     });
   });
 
-  it.skip('navigate to browser from trending view and interact with dapp — skipped: requires BrowserTab WebView and TestDApp (see BrowserTab.view.test.tsx)', () => {
-    // Blocked: trending-browser.spec.ts full flow.
-  });
-
-  it.skip('Navigate to all sections full views via View All for Predictions and Perps — skipped: requires predict/perps API mocks in component-view framework', () => {
-    // Blocked: trending-feed.spec.ts Predictions + Perps sections.
-  });
+  // E2E-only: trending-browser.spec.ts (Explore → Browser → TestDApp WebView)
+  // and trending-feed Predictions/Perps sections (need predict/perps API mocks).
 });
 
 describeForPlatforms('TrendingTokensFullView - Component Tests', () => {

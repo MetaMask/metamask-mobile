@@ -65,13 +65,8 @@ describeForPlatforms('PhishingModal component views', () => {
     jest.clearAllMocks();
   });
 
-  it.skip('shows phishing warning when navigating to a blocked site — skipped: requires BrowserTab WebView navigation and mocked dapp-scanning API', () => {
-    // Blocked: WebView + dapp-scanning redirect flow.
-  });
-
-  it.skip('shows phishing warning when page contains a blocked iframe — skipped: requires BrowserTab WebView and iframe load detection', () => {
-    // Blocked: WebView iframe phishing detection pipeline.
-  });
+  // E2E-only: WebView navigation to blocked URL / blocked iframe (browser-phishing.spec.ts).
+  // CV covers the modal UI once phishing detection has fired.
 
   it('renders the phishing detection title and back to safety button for a blocked URL', async () => {
     const { findByTestId, findByText } = renderPhishingModalHarness();

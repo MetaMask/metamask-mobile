@@ -3,7 +3,7 @@ import '../../../../tests/component-view/mocks';
  * Component View tests for ActivityList.
  *
  * Mirrors (partial): tests/smoke/wallet/incoming-transactions.spec.ts
- * — outgoing "Sent ETH" via local TransactionController; incoming/API paths skipped.
+ * — local TransactionController outgoing rows; accounts API for incoming/outgoing API paths.
  */
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import { RefreshControl } from 'react-native';
@@ -14,7 +14,13 @@ import {
   buildConfirmedLocalSendTransaction,
   buildPendingLocalSendTransaction,
   initialStateActivityWithLocalTransactions,
+  initialStateActivityWithAccountsApi,
+  ACTIVITY_CV_ACCOUNT,
 } from '../../../../tests/component-view/presets/activity';
+import {
+  setupAccountsTransactionsApiMock,
+  clearAccountsTransactionsApiMocks,
+} from '../../../../tests/component-view/api-mocking/accounts-transactions';
 import {
   renderActivityListView,
   renderActivityListViewWithRoutes,
@@ -24,7 +30,10 @@ import {
   activityListRowItemTestId,
   activityListRowPendingSpinnerTestId,
   activityListRowSubtitleTestId,
+  activityListRowTitleTestId,
 } from './ActivityList.testIds';
+
+const ACTIVITY_CV_RECIPIENT = '0x80181d3ba89220cdb80234fc7aa19d5cc56229cc';
 
 const transactionControllerWithIncomingSync = Engine.context
   .TransactionController as unknown as {
@@ -103,17 +112,74 @@ describeForPlatforms('ActivityList', () => {
 
     updateIncomingSpy.mockRestore();
   });
+});
 
-  it.skip('displays incoming native transfer from another own account — skipped: incoming txs are loaded from accounts API, not TransactionController local state', () => {
-    // Blocked: selectLocalTransactions filters to outgoing (from === active address) only.
-    // Mirrors incoming-transactions.spec.ts accounts API + address-book poisoning path.
+describeForPlatforms('ActivityList — accounts API transactions', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it.skip('displays incoming native transfer from accounts API with trusted sender — skipped: requires nock mock for accounts.api.cx.metamask.io and address-book poisoning filter', () => {
-    // Blocked: mirrors incoming-transactions.spec.ts accounts API path.
+  afterEach(() => {
+    clearAccountsTransactionsApiMocks();
   });
 
-  it.skip('displays nothing if privacyMode is enabled — skipped: requires accounts API mock and PrivacyController state driving empty feed', () => {
-    // Blocked: E2E spec is already skipped; privacy + API integration not in CV yet.
+  it('displays incoming native transfer from another account via accounts API', async () => {
+    const incomingHash = '0xactivitycvincomingapi';
+    setupAccountsTransactionsApiMock([
+      {
+        hash: incomingHash,
+        timestamp: new Date().toISOString(),
+        chainId: 1,
+        from: ACTIVITY_CV_RECIPIENT,
+        to: ACTIVITY_CV_ACCOUNT,
+        value: '1230000000000000000',
+        valueTransfers: [],
+        isError: false,
+        transactionCategory: 'STANDARD',
+      },
+    ]);
+
+    const state = initialStateActivityWithAccountsApi().build();
+    const { findByTestId } = renderActivityListView({ state });
+
+    const incomingTitle = await waitFor(
+      () => findByTestId(activityListRowTitleTestId(incomingHash)),
+      { timeout: 10000 },
+    );
+
+    expect(incomingTitle).toHaveTextContent('Received');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(incomingHash)),
+    ).toHaveTextContent('From: 0x80181...229cC');
+  });
+
+  it('displays outgoing native transfer via accounts API', async () => {
+    const outgoingHash = '0xactivitycvoutgoingapi';
+    setupAccountsTransactionsApiMock([
+      {
+        hash: outgoingHash,
+        timestamp: new Date().toISOString(),
+        chainId: 1,
+        from: ACTIVITY_CV_ACCOUNT,
+        to: ACTIVITY_CV_RECIPIENT,
+        value: '1230000000000000000',
+        valueTransfers: [],
+        isError: false,
+        transactionCategory: 'STANDARD',
+      },
+    ]);
+
+    const state = initialStateActivityWithAccountsApi().build();
+    const { findByTestId } = renderActivityListView({ state });
+
+    const outgoingTitle = await waitFor(
+      () => findByTestId(activityListRowTitleTestId(outgoingHash)),
+      { timeout: 10000 },
+    );
+
+    expect(outgoingTitle).toHaveTextContent('Sent');
+    expect(
+      await findByTestId(activityListRowSubtitleTestId(outgoingHash)),
+    ).toHaveTextContent('To: 0x80181...229cC');
   });
 });
