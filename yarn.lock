@@ -7903,7 +7903,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^9.0.2, @metamask/assets-controller@npm:^9.1.0":
+"@metamask/assets-controller@npm:^9.1.0":
   version: 9.1.0
   resolution: "@metamask/assets-controller@npm:9.1.0"
   dependencies:
@@ -8105,9 +8105,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^76.1.0":
-  version: 76.1.0
-  resolution: "@metamask/bridge-controller@npm:76.1.0"
+"@metamask/bridge-controller@npm:@metamask-previews/bridge-controller@76.1.0-preview-31eae6ba5":
+  version: 76.1.0-preview-31eae6ba5
+  resolution: "@metamask-previews/bridge-controller@npm:76.1.0-preview-31eae6ba5"
   dependencies:
     "@ethersproject/address": "npm:^5.7.0"
     "@ethersproject/bignumber": "npm:^5.7.0"
@@ -8115,12 +8115,12 @@ __metadata:
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
     "@metamask/accounts-controller": "npm:^39.0.3"
-    "@metamask/assets-controller": "npm:^9.0.2"
+    "@metamask/assets-controller": "npm:^9.1.0"
     "@metamask/assets-controllers": "npm:^109.2.2"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/gas-fee-controller": "npm:^26.2.3"
-    "@metamask/keyring-api": "npm:^23.1.0"
+    "@metamask/keyring-api": "npm:^23.3.0"
     "@metamask/messenger": "npm:^1.2.0"
     "@metamask/metamask-eth-abis": "npm:^3.1.1"
     "@metamask/multichain-network-controller": "npm:^3.1.4"
@@ -8134,7 +8134,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.1.1"
     uuid: "npm:^8.3.2"
-  checksum: 10/fc50db1f53c9dbd12193cd0f41b74c4bab9de5434b36e33ebf1cd1e8a5c5ac3a15349a909dd3af44515ff5f367fed286019a93915df6253c55f7da13a7a1c88e
+  checksum: 10/879a4b13a07daab41631cf9b1c51105769e4fd1c986e390963fa2bb40d6303b8c991675904c56b7f2202f23e1b2146fb6243d74c0936cfa98566124f424f367c
   languageName: node
   linkType: hard
 

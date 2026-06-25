@@ -9,8 +9,8 @@ import {
 } from '../testUtils/fixtures';
 import { BalancesByAssetId } from './useBalancesByAssetId';
 import {
-  ARC_NATIVE_ASSET_ID,
-  ARC_USDC_ASSET_ID,
+  ARC_NATIVE_USDC_ASSET_ID,
+  ARC_ERC20_USDC_ASSET_ID,
 } from '../../../hooks/useArcDefaultTokens';
 
 describe('useTokensWithBalances', () => {
@@ -243,14 +243,14 @@ describe('useTokensWithBalances', () => {
   });
 
   describe('Arc native token filtering', () => {
-    it('keeps other Arc tokens while filtering out the native duplicate', () => {
+    it('keeps other Arc tokens while filtering out the ERC20 duplicate', () => {
       const arcNativeToken = createMockPopularToken({
-        assetId: ARC_NATIVE_ASSET_ID,
+        assetId: ARC_NATIVE_USDC_ASSET_ID,
         symbol: 'USDC',
         name: 'USDC',
       });
       const arcErc20Usdc = createMockPopularToken({
-        assetId: ARC_USDC_ASSET_ID,
+        assetId: ARC_ERC20_USDC_ASSET_ID,
         symbol: 'USDC',
         name: 'USDC',
       });
@@ -263,7 +263,7 @@ describe('useTokensWithBalances', () => {
       expect(result.current[0]).toMatchObject({
         symbol: 'USDC',
         chainId: '0x13b2',
-        address: '0x3600000000000000000000000000000000000000',
+        address: '0x0000000000000000000000000000000000000000',
       });
     });
   });

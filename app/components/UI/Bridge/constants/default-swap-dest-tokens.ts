@@ -183,13 +183,13 @@ export const DefaultSwapDestTokens: Partial<
         'https://static.cx.metamask.io/api/v1/tokenIcons/5042/0xbef5f6d51cb62b58e6a8f77868681825c6fe21c1.png',
       chainId: NETWORK_CHAIN_ID.ARC,
     },
-    // When the user holds EURC on Arc, route them to ERC20 USDC instead.
+    // When the user holds EURC on Arc, route them to native USDC instead.
     '0xbEf5f6d51CB62b58e6A8f77868681825C6fe21c1': {
-      address: '0x3600000000000000000000000000000000000000',
+      address: '0x0000000000000000000000000000000000000000',
       chainId: NETWORK_CHAIN_ID.ARC,
       symbol: 'USDC',
       name: 'USD Coin',
-      decimals: 6,
+      decimals: 18,
     },
   },
   [SolScope.Mainnet]: {
