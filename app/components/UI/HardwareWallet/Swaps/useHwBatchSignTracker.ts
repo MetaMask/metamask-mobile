@@ -90,8 +90,8 @@ export function useHwBatchSignTracker({
 }: UseHwBatchSignTrackerOptions) {
   // SEND-MODE ISOLATION: send-mode activates ONLY when flow===Flow.Send.
   // Bridge callers pass no flow → bridge branches stay byte-identical. DO NOT "simplify" this gate.
-  const SEND_MODE = flow === Flow.Send;
-  const trackedTypes: Set<TransactionType> = SEND_MODE
+  const isSendMode = flow === Flow.Send;
+  const trackedTypes: Set<TransactionType> = isSendMode
     ? SEND_TYPES
     : ALL_BATCH_TYPES;
   const normalizedGasTokenAddress = normalizeAddress(gasTokenAddress);
@@ -117,7 +117,7 @@ export function useHwBatchSignTracker({
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
-    isSendMode: SEND_MODE,
+    isSendMode,
     deferredApprovalRequestId,
     expectedBatchTransactionCount,
   });
@@ -133,7 +133,7 @@ export function useHwBatchSignTracker({
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
-    isSendMode: SEND_MODE,
+    isSendMode,
     deferredApprovalRequestId,
     expectedBatchTransactionCount,
   };
@@ -333,14 +333,14 @@ export function useHwBatchSignTracker({
     // Active-flow closures: capture current values for the effect's lifetime.
     const effectTrackedTypes = trackedTypes;
     const effectGasTokenAddress = normalizedGasTokenAddress;
-    const effectExpectedBatchTransactionCount = SEND_MODE
+    const effectExpectedBatchTransactionCount = isSendMode
       ? expectedBatchTransactionCount
       : undefined;
 
     // Strategy owns batch-tracking state (batch locking + stale filtering).
     const strategyConfig: StrategyConfig = {
       targetFrom,
-      isSendMode: SEND_MODE,
+      isSendMode,
       gasTokenAddress: effectGasTokenAddress,
       deferredApprovalRequestId,
       expectedBatchTransactionCount: effectExpectedBatchTransactionCount,
@@ -557,7 +557,7 @@ export function useHwBatchSignTracker({
           const txMeta = getTransactions().find(
             (tx: TransactionMeta) => tx.id === requestId,
           );
-          if (SEND_MODE && !txMeta?.batchId) {
+          if (isSendMode && !txMeta?.batchId) {
             continue;
           }
           if (
@@ -587,11 +587,11 @@ export function useHwBatchSignTracker({
             effectTrackedTypes,
           );
           const expectedApprovedTransactionCount =
-            SEND_MODE && expectedBatchTransactionCount
+            isSendMode && expectedBatchTransactionCount
               ? expectedBatchTransactionCount
               : 1;
           if (
-            (SEND_MODE &&
+            (isSendMode &&
               approvedBatchTransactionIds.length <
                 expectedApprovedTransactionCount) ||
             (!hasMatchingTransactions && hasAnyBatchTransaction(requestId))
@@ -618,7 +618,7 @@ export function useHwBatchSignTracker({
     const shouldIgnoreUnbatchedSend = (
       transactionMeta: TransactionMeta,
     ): boolean =>
-      SEND_MODE &&
+      isSendMode &&
       !transactionMeta.batchId &&
       Boolean(effectGasTokenAddress) &&
       transactionMeta.id !== deferredApprovalRequestId;
@@ -636,7 +636,7 @@ export function useHwBatchSignTracker({
       meta: TransactionMeta,
       txType: TransactionType,
     ): HardwareWalletsSwapsStepKind => {
-      if (!SEND_MODE) return getStepKind(txType);
+      if (!isSendMode) return getStepKind(txType);
       if (deferredApprovalRequestId && meta.id === deferredApprovalRequestId)
         return HardwareWalletsSwapsStepKind.Transaction;
       if (txType === TransactionType.gasPayment)
@@ -648,7 +648,7 @@ export function useHwBatchSignTracker({
       meta: TransactionMeta,
       stepKind: HardwareWalletsSwapsStepKind,
     ): number | undefined => {
-      if (!SEND_MODE || !effectExpectedBatchTransactionCount) return undefined;
+      if (!isSendMode || !effectExpectedBatchTransactionCount) return undefined;
       if (stepKind === HardwareWalletsSwapsStepKind.FeeTransfer)
         return effectExpectedBatchTransactionCount - 1;
       if (stepKind !== HardwareWalletsSwapsStepKind.Transaction)
@@ -894,7 +894,7 @@ export function useHwBatchSignTracker({
     isEnabled,
     normalizedGasTokenAddress,
     retryGenerationRef,
-    SEND_MODE,
+    isSendMode,
     syncConfirmationTxId,
     trackTransactionCancelledEvent,
     trackedTypes,
