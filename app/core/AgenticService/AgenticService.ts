@@ -452,6 +452,20 @@ async function initializeFixtureAccountTree(
   }
 }
 
+async function markFixtureMetricsOptInSeenIfNeeded(fixture: WalletFixture) {
+  if (fixture.settings?.metametrics !== undefined) {
+    await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, 'true');
+  }
+}
+
+function resetNavigationToWalletHome(
+  navRef: NavigationContainerRef<ParamListBase>,
+) {
+  navRef.reset({
+    routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+  });
+}
+
 async function unlockFixtureVault(
   fixture: WalletFixture,
   keyringController: FixtureKeyringController,
@@ -1369,10 +1383,18 @@ const AgenticService = {
           // the class (not the facade) before importing/renaming accounts to
           // avoid racing native keychain export during fixture apply.
           EngineClass.disableAutomaticVaultBackup = true;
+          // Authentication.unlockWallet can navigate to the metrics opt-in
+          // screen when the seen flag is absent. Persist the fixture preference
+          // before unlock so existing-vault fixture replay stays on the wallet
+          // setup path instead of being interrupted by onboarding UI.
+          setupStep = 'persist-metrics-setting';
+          await markFixtureMetricsOptInSeenIfNeeded(fixture);
+
           // Unlock via the real auth flow (loginVaultCreation + dispatchLogin +
           // post-login) rather than a bare KeyringController.submitPassword, so
           // multichain services and Redux/auth state are consistent before we
           // mutate accounts.
+          setupStep = 'unlock-fixture-vault';
           await unlockFixtureVault(fixture, KeyringController);
           // Existing replay vaults can have the same historical multichain
           // account-tree init gap as fresh legacy setup. Only the known legacy
@@ -1541,9 +1563,7 @@ const AgenticService = {
           // 5b. Set metrics UI as seen (prevents Authentication.unlockWallet
           // from navigating to OptinMetrics after setupWallet resets to Wallet)
           setupStep = 'persist-metrics-setting';
-          if (settings.metametrics !== undefined) {
-            await StorageWrapper.setItem(OPTIN_META_METRICS_UI_SEEN, 'true');
-          }
+          await markFixtureMetricsOptInSeenIfNeeded(fixture);
 
           // 5c. Mark multichain accounts intro modal as seen
           setupStep = 'dispatch-multichain-intro-seen';
@@ -1599,9 +1619,7 @@ const AgenticService = {
 
           // 10. Navigate to wallet (same as Authentication.unlockWallet)
           setupStep = 'navigate-wallet';
-          NavigationService.navigation?.reset({
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
-          });
+          resetNavigationToWalletHome(navRef);
 
           // 11. Collect all ETH accounts for the summary
           setupStep = 'collect-accounts';
