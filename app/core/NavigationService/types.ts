@@ -160,6 +160,7 @@ import type {
 
 // Card params
 import type { CardConfirmModalParams } from '../../components/UI/Card/Card.types';
+import type { ShippingAddress } from '../../components/UI/Card/util/buildUserAddress';
 
 // Account actions params
 import type {
@@ -315,7 +316,11 @@ type TraderPositionViewParams =
 // signature and therefore satisfies React Navigation's `ParamListBase`
 // constraint (used by `RouteProp`/`StackNavigationProp`), while `keyof`
 // stays a strict union of literal route names (no real index signature).
-export interface RootStackParamList {
+// The repo's `consistent-type-definitions` rule prefers `interface`, but an
+// interface would NOT get the implicit index signature and would break the
+// `ParamListBase` constraint, so this declaration must stay a `type`.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type RootStackParamList = {
   // Top-level routes
   WalletView: undefined;
   BrowserTabHome: BrowserParams | NestedNavigationParams | undefined;
@@ -486,6 +491,7 @@ export interface RootStackParamList {
   AssetsSettings: undefined;
   SecuritySettings: undefined;
   HomeNav: undefined;
+  Home: NestedNavigationParams | undefined;
   Onboarding: undefined;
   Login: undefined;
   OnboardingNav: undefined;
@@ -596,6 +602,7 @@ export interface RootStackParamList {
   TokensFullView: undefined;
   CashTokensFullView: undefined;
   MoneyScreens: undefined;
+  MoneyModals: NestedNavigationParams | undefined;
   TrendingTokensFullView: TrendingTokensFullViewParams | undefined;
   RWATokensFullView: undefined;
 
@@ -784,8 +791,11 @@ export interface RootStackParamList {
   CardHome: undefined;
   CardWelcome: undefined;
   CardAuthentication: { showAuthPrompt?: boolean } | undefined;
-  CardSpendingLimit: undefined;
-  ChooseYourCard: undefined;
+  CardSpendingLimit: { flow: string } | undefined;
+  ChooseYourCard:
+    | { flow: string; shippingAddress?: ShippingAddress }
+    | undefined;
+  CardCashback: undefined;
   ReviewOrder: undefined;
   OrderCompleted:
     | {
@@ -806,7 +816,7 @@ export interface RootStackParamList {
   CardOnboardingComplete: undefined;
   CardOnboardingKYCFailed: undefined;
   CardOnboardingKYCPending: undefined;
-  CardModals: undefined;
+  CardModals: NestedNavigationParams | undefined;
   CardAddFundsModal: undefined;
   CardAssetSelectionModal: undefined;
   CardRegionSelectionModal: undefined;
@@ -829,7 +839,7 @@ export interface RootStackParamList {
 
   // Feature flag route
   FeatureFlagOverride: undefined;
-}
+};
 
 // NOTE: The global ReactNavigation.RootParamList is intentionally kept LOOSE
 // (extends ParamListBase) during the incremental migration to strict navigation

@@ -22,9 +22,15 @@ interface PerpsNestedNavigationParams {
 }
 
 /**
- * PERPS navigation parameter types
+ * PERPS navigation parameter types.
+ *
+ * Declared as a `type` (not `interface`) so it gains an implicit index
+ * signature and satisfies React Navigation's `ParamListBase` constraint while
+ * `keyof` stays a strict union of route names. The repo's
+ * `consistent-type-definitions` rule prefers `interface`, hence the suppression.
  */
-export interface PerpsNavigationParamList {
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsNavigationParamList = {
   // Order flow routes
   PerpsOrder: {
     direction: 'long' | 'short';
@@ -282,7 +288,7 @@ export interface PerpsNavigationParamList {
   PerpsSelectProvider: undefined;
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithBottomSheet: undefined;
-}
+};
 
 /**
  * Type helper for PERPS route parameters

@@ -176,7 +176,12 @@ export type PredictSellPreviewProps =
   | ({ mode: 'sheet' } & PredictSellPreviewContentProps)
   | { mode?: never };
 
-export interface PredictNavigationParamList {
+// Declared as a `type` (not `interface`) so it gains an implicit index
+// signature and satisfies React Navigation's `ParamListBase` constraint while
+// `keyof` stays a strict union of route names. The repo's
+// `consistent-type-definitions` rule prefers `interface`, hence the suppression.
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PredictNavigationParamList = {
   Predict: PredictNestedNavigationParams | undefined;
   PredictMarketList: PredictMarketListRouteParams | undefined;
   PredictFeed: PredictFeedRouteParams | undefined;
@@ -194,4 +199,4 @@ export interface PredictNavigationParamList {
   NoHeaderConfirmations: undefined;
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithBottomSheet: undefined;
-}
+};
