@@ -92,9 +92,22 @@ const RIVE_TRANSITION_STATES = new Set<string>(
 );
 
 const TOTAL_ONBOARDING_STEPS = Object.keys(RIVE_STATE_TO_STEP_INDEX).length;
-const OVERLAY_HORIZONTAL_PADDING = 24;
 const OVERLAY_FADE_IN_DURATION_MS = 300;
 const OVERLAY_FADE_OUT_DURATION_MS = 300;
+const SMALL_OVERLAY_DEVICE_MAX_WIDTH = 375;
+const SMALL_OVERLAY_DEVICE_MAX_HEIGHT = 700;
+const OVERLAY_TEXT_PRESETS = {
+  small: {
+    title: { fontSize: 18, lineHeight: 30 },
+    content: { fontSize: 14, lineHeight: 20 },
+    footer: { fontSize: 10, lineHeight: 14 },
+  },
+  default: {
+    title: { fontSize: 24 },
+    content: { fontSize: 16 },
+    footer: { fontSize: 12 },
+  },
+} as const;
 
 interface OnboardingTextContent {
   title: string;
@@ -102,17 +115,26 @@ interface OnboardingTextContent {
   footer: string;
 }
 
-const STEP_LAYOUT: Record<
-  number,
-  { titleTopPct: number; footerBottomPct: number }
-> = {
-  0: { titleTopPct: 0.07, footerBottomPct: 0.1 },
-  1: { titleTopPct: 0.07, footerBottomPct: 0.1 },
-  2: { titleTopPct: 0.07, footerBottomPct: 0.1 },
-  3: { titleTopPct: 0.07, footerBottomPct: 0.1 },
-};
+type StepLayout = Readonly<
+  Record<number, Readonly<{ titleTopPct: number; footerBottomPct: number }>>
+>;
 
-const DEFAULT_STEP_LAYOUT = STEP_LAYOUT[0];
+const STEP_LAYOUT_PRESETS = {
+  small: {
+    0: { titleTopPct: 0.08, footerBottomPct: 0.1 },
+    1: { titleTopPct: 0.08, footerBottomPct: 0.1 },
+    2: { titleTopPct: 0.08, footerBottomPct: 0.1 },
+    3: { titleTopPct: 0.08, footerBottomPct: 0.1 },
+  },
+  default: {
+    0: { titleTopPct: 0.05, footerBottomPct: 0.1 },
+    1: { titleTopPct: 0.05, footerBottomPct: 0.1 },
+    2: { titleTopPct: 0.05, footerBottomPct: 0.1 },
+    3: { titleTopPct: 0.05, footerBottomPct: 0.1 },
+  },
+} as const satisfies Record<'small' | 'default', StepLayout>;
+
+const DEFAULT_STEP_LAYOUT = STEP_LAYOUT_PRESETS.default[0];
 
 const styles = StyleSheet.create({
   root: {
@@ -148,7 +170,21 @@ const MoneyOnboardingTextOverlay = ({
   step: number;
 }) => {
   const insets = useSafeAreaInsets();
-  const { height } = useWindowDimensions();
+  const { height, width } = useWindowDimensions();
+  const isSmallScreen =
+    width <= SMALL_OVERLAY_DEVICE_MAX_WIDTH ||
+    height < SMALL_OVERLAY_DEVICE_MAX_HEIGHT;
+  const overlayTextPreset = useMemo(
+    () =>
+      isSmallScreen ? OVERLAY_TEXT_PRESETS.small : OVERLAY_TEXT_PRESETS.default,
+    [isSmallScreen],
+  );
+  const stepLayout = useMemo<StepLayout>(
+    () =>
+      isSmallScreen ? STEP_LAYOUT_PRESETS.small : STEP_LAYOUT_PRESETS.default,
+    [isSmallScreen],
+  );
+
   const fadeAnim = useRef(new Animated.Value(isVisible ? 1 : 0)).current;
   const hasMountedRef = useRef(false);
 
@@ -184,7 +220,7 @@ const MoneyOnboardingTextOverlay = ({
     return null;
   }
 
-  const layout = STEP_LAYOUT[step] ?? DEFAULT_STEP_LAYOUT;
+  const layout = stepLayout[step] ?? DEFAULT_STEP_LAYOUT;
 
   return (
     <Animated.View
@@ -203,9 +239,8 @@ const MoneyOnboardingTextOverlay = ({
           adjustsFontSizeToFit
           color={TextColor.OverlayInverse}
           fontWeight={FontWeight.Bold}
-          minimumFontScale={0.8}
-          numberOfLines={2}
-          style={styles.title}
+          numberOfLines={1}
+          style={[styles.title, overlayTextPreset.title]}
           testID={MoneyOnboardingViewTestIds.OVERLAY_TITLE}
           variant={TextVariant.HeadingLg}
         >
@@ -214,9 +249,8 @@ const MoneyOnboardingTextOverlay = ({
         <Text
           adjustsFontSizeToFit
           color={TextColor.OverlayInverse}
-          minimumFontScale={0.5}
           numberOfLines={3}
-          style={styles.content}
+          style={[styles.content, overlayTextPreset.content]}
           testID={MoneyOnboardingViewTestIds.OVERLAY_CONTENT}
           variant={TextVariant.BodyMd}
         >
@@ -231,6 +265,7 @@ const MoneyOnboardingTextOverlay = ({
         numberOfLines={1}
         style={[
           styles.footer,
+          overlayTextPreset.footer,
           {
             bottom: insets.bottom + height * layout.footerBottomPct,
           },

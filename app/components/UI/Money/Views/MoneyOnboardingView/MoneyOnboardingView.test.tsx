@@ -1,5 +1,6 @@
 import React from 'react';
 import { act, render } from '@testing-library/react-native';
+import { Dimensions, StyleSheet } from 'react-native';
 import MoneyOnboardingView from './MoneyOnboardingView';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -15,6 +16,29 @@ const mockTrackOnboardingEvent = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
 let mockIsUsUnauthenticatedNonCardholder = false;
+
+const setWindowDimensions = ({
+  height,
+  width,
+}: {
+  height: number;
+  width: number;
+}) => {
+  Dimensions.set({
+    screen: {
+      fontScale: 1,
+      height,
+      scale: 3,
+      width,
+    },
+    window: {
+      fontScale: 1,
+      height,
+      scale: 3,
+      width,
+    },
+  });
+};
 
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -72,6 +96,7 @@ describe('MoneyOnboardingView', () => {
     jest.clearAllMocks();
     mockTriggerCallbacks = {};
     mockIsUsUnauthenticatedNonCardholder = false;
+    setWindowDimensions({ height: 844, width: 390 });
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackOnboardingEvent: mockTrackOnboardingEvent,
     });
@@ -98,6 +123,48 @@ describe('MoneyOnboardingView', () => {
       expect(
         getByTestId(MoneyOnboardingViewTestIds.OVERLAY_FOOTER).props.children,
       ).toBe(strings('money.rive_onboarding.step1_footer_text'));
+    });
+
+    it('uses default overlay text size preset on regular devices', () => {
+      const { getByTestId } = render(<MoneyOnboardingView />);
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.style,
+        ).fontSize,
+      ).toBe(24);
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.style,
+        ).fontSize,
+      ).toBe(16);
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_FOOTER).props.style,
+        ).fontSize,
+      ).toBe(12);
+    });
+
+    it('uses small overlay text size preset on small devices', () => {
+      setWindowDimensions({ height: 667, width: 375 });
+
+      const { getByTestId } = render(<MoneyOnboardingView />);
+
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.style,
+        ).fontSize,
+      ).toBe(18);
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.style,
+        ).fontSize,
+      ).toBe(14);
+      expect(
+        StyleSheet.flatten(
+          getByTestId(MoneyOnboardingViewTestIds.OVERLAY_FOOTER).props.style,
+        ).fontSize,
+      ).toBe(10);
     });
   });
 
