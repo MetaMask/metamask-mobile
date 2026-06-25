@@ -48,8 +48,11 @@ function getNativePackageNames() {
 
 const nativePackages = getNativePackageNames();
 
-// Accumulates `package.json` content across streamed chunks (see fileHookTransform).
+// Accumulates file content across streamed chunks (see fileHookTransform).
 let packageJsonBuffer = '';
+// Buffers for files that need to be transformed atomically at EOF.
+let pbxprojBuffer = '';
+let buildGradleBuffer = '';
 
 const config = {
   /**
@@ -105,8 +108,19 @@ const config = {
    *   patches whose filename starts with a known native package name contribute
    *   to the hash.
    *
+   * - `ios/MetaMask.xcodeproj/project.pbxproj`: `CURRENT_PROJECT_VERSION`
+   *   lines are stripped so build-number-only bumps (committed on every RC
+   *   push) do not invalidate the native fingerprint. Real native changes
+   *   (Swift/ObjC source, Podfile.lock, etc.) still bust the fingerprint
+   *   through the normal @expo/fingerprint ios/** hashing.
+   *
+   * - `android/app/build.gradle`: the `versionCode` line is stripped for the
+   *   same reason — Gradle build-number bumps must not bust the fingerprint.
+   *
    * If autolinking resolution failed at startup (`nativePackages === null`),
-   * both transforms fall back to hashing everything unchanged.
+   * the package.json and yarn-patches transforms fall back to hashing
+   * everything unchanged. The pbxproj and build.gradle transforms always apply
+   * (they do not depend on autolinking resolution).
    *
    * The hook is called as a streaming transform: once per file chunk (with
    * `isEndOfFile === false`) and once more at end-of-file (`chunk === null`,
@@ -116,6 +130,32 @@ const config = {
    * @type {import('@expo/fingerprint').FileHookTransformFunction}
    */
   fileHookTransform: (source, chunk, isEndOfFile) => {
+    // Strip CURRENT_PROJECT_VERSION from iOS project.pbxproj so build-number
+    // bumps (committed on every RC push) do not bust the native fingerprint.
+    // This transform always applies regardless of nativePackages resolution.
+    if (source.type === 'file' && source.filePath.endsWith('project.pbxproj')) {
+      if (chunk) pbxprojBuffer += chunk.toString();
+      if (!isEndOfFile) return '';
+      const content = pbxprojBuffer;
+      pbxprojBuffer = '';
+      // Remove lines of the form: `\t\t\tCURRENT_PROJECT_VERSION = 4823;`
+      return content.replace(/^\s*CURRENT_PROJECT_VERSION\s*=\s*\d+\s*;/gm, '');
+    }
+
+    // Strip the versionCode line from android/app/build.gradle so build-number
+    // bumps do not bust the native fingerprint.
+    if (
+      source.type === 'file' &&
+      source.filePath === 'android/app/build.gradle'
+    ) {
+      if (chunk) buildGradleBuffer += chunk.toString();
+      if (!isEndOfFile) return '';
+      const content = buildGradleBuffer;
+      buildGradleBuffer = '';
+      // Remove lines of the form: `        versionCode 4532`
+      return content.replace(/^(\s*versionCode\s+)\d+\s*$/gm, '$1__stripped__');
+    }
+
     // Fall back to hashing everything if we couldn't resolve native packages.
     if (!nativePackages) return chunk;
 
