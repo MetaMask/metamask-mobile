@@ -303,7 +303,7 @@ describe('TransactionDetailsHero', () => {
       selectTransactionsByIdsMock.mockReturnValue([]);
     });
 
-    it('renders two-asset hero for musdConversion', () => {
+    it('renders single-line hero for musdConversion with + prefix and green', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -316,15 +316,14 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { getByText } = render();
+      const { getByText, queryByText } = render();
 
-      expect(getByText('You sent')).toBeDefined();
-      expect(getByText(/-123\.46 TST/)).toBeDefined();
-      expect(getByText('You received')).toBeDefined();
       expect(getByText(/\+123\.46 mUSD/)).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
     });
 
-    it('renders Money Account icon instead of token icon for mUSD in two-asset hero', () => {
+    it('renders Money Account icon for musdConversion single-line hero', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -337,9 +336,9 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { getAllByTestId } = render();
+      const { getByTestId } = render();
 
-      expect(getAllByTestId('money-account-icon').length).toBeGreaterThan(0);
+      expect(getByTestId('money-account-icon')).toBeDefined();
     });
 
     it('renders two-asset hero for perpsDeposit with USDC symbol', () => {
@@ -388,7 +387,7 @@ describe('TransactionDetailsHero', () => {
       ).toBeDefined();
     });
 
-    it('renders two-asset hero for cross-chain moneyAccountWithdraw', () => {
+    it('renders single-line hero for moneyAccountWithdraw with - prefix', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -401,12 +400,11 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { getByText } = render();
+      const { getByText, queryByText } = render();
 
-      expect(getByText('You sent')).toBeDefined();
       expect(getByText(/-200\.00 mUSD/)).toBeDefined();
-      expect(getByText('You received')).toBeDefined();
-      expect(getByText(/\+123\.46 TST/)).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
     });
 
     it('renders single-row hero with Money Account icon for mUSD-to-mUSD moneyAccountWithdraw', () => {
@@ -539,7 +537,7 @@ describe('TransactionDetailsHero', () => {
       expect(queryByText('You received')).toBeNull();
     });
 
-    it('renders two-asset hero for crypto moneyAccountDeposit conversion', () => {
+    it('renders single-line hero for crypto moneyAccountDeposit with + prefix', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -552,12 +550,11 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { getByText } = render();
+      const { getByText, queryByText } = render();
 
-      expect(getByText('You sent')).toBeDefined();
-      expect(getByText(/-123\.46 TST/)).toBeDefined();
-      expect(getByText('You received')).toBeDefined();
       expect(getByText(/\+123\.46 mUSD/)).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
     });
 
     it('renders null for unsupported type in money context', () => {
@@ -572,7 +569,7 @@ describe('TransactionDetailsHero', () => {
       expect(queryByTestId('transaction-details-hero')).toBeNull();
     });
 
-    it('extracts sent amount from relay deposit child transaction', () => {
+    it('renders single-line hero for musdConversion even with relay deposit child', () => {
       selectTransactionsByIdsMock.mockReturnValue([
         {
           type: TransactionType.relayDeposit,
@@ -593,41 +590,14 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { getByText } = render();
+      const { getByText, queryByText } = render();
 
-      expect(getByText('You sent')).toBeDefined();
-      expect(getByText(/-123\.46 TST/)).toBeDefined();
+      expect(getByText(/\+123\.46 mUSD/)).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
     });
 
-    it('extracts sent amount from relay deposit native value', () => {
-      const nativeAddress = '0x0000000000000000000000000000000000000000';
-      selectTransactionsByIdsMock.mockReturnValue([
-        {
-          type: TransactionType.relayDeposit,
-          txParams: { value: '1000000000000000000' },
-        } as unknown as TransactionMeta,
-      ]);
-
-      useTransactionDetailsMock.mockReturnValue({
-        transactionMeta: {
-          ...TRANSACTION_META_MOCK,
-          type: TransactionType.musdConversion,
-          requiredTransactionIds: ['child-tx-1'],
-          metamaskPay: {
-            tokenAddress: nativeAddress,
-            chainId: '0x1',
-            targetFiat: '123.46',
-          },
-        } as unknown as TransactionMeta,
-      });
-
-      const { getByText } = render();
-
-      expect(getByText('You sent')).toBeDefined();
-      expect(getByText(/-1\.00/)).toBeDefined();
-    });
-
-    it('shows fiat display when parent data is not decodable (no two-asset hero)', () => {
+    it('falls back to tokenMeta amount when parent data is not decodable', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -641,10 +611,10 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { queryByText, getByText } = render();
+      const { getByText } = render();
 
-      expect(queryByText('You sent')).toBeNull();
-      expect(getByText(/\$77/)).toBeDefined();
+      expect(getByText('You sent')).toBeDefined();
+      expect(getByText(/-77\.00 TST/)).toBeDefined();
     });
   });
 });

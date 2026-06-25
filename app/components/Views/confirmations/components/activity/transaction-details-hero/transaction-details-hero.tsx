@@ -37,12 +37,10 @@ import {
   selectConversionRateByChainId,
   selectCurrencyRates,
 } from '../../../../../../selectors/currencyRateController';
-import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 import { RootState } from '../../../../../../reducers';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { TokenIcon } from '../../token-icon';
 import { resolveMusdTransferMeta } from '../../../../../UI/Money/constants/activityStyles';
-import { isSingleRowMusdMoneyWithdraw } from '../../../../../UI/Money/utils/moneyTransactionGuards';
 import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
 import {
   isMusdToken,
@@ -78,9 +76,6 @@ const TOKEN_ICON_TYPES = [
 ];
 
 const TWO_ASSET_HERO_TYPES = [
-  TransactionType.moneyAccountDeposit,
-  TransactionType.moneyAccountWithdraw,
-  TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
@@ -193,8 +188,6 @@ export function TransactionDetailsHero() {
   const showTwoAssetHero =
     isMoneyContext &&
     hasTransactionType(transactionMeta, TWO_ASSET_HERO_TYPES) &&
-    !isSingleRowMoneyDeposit(transactionMeta) &&
-    !isSingleRowMusdMoneyWithdraw(transactionMeta) &&
     sentData &&
     receivedData;
 
@@ -208,24 +201,21 @@ export function TransactionDetailsHero() {
   }
 
   const showTokenIcon =
-    hasTransactionType(transactionMeta, TOKEN_ICON_TYPES) &&
-    tokenMeta &&
-    (!hasTransactionType(transactionMeta, [
-      TransactionType.moneyAccountWithdraw,
-    ]) ||
-      isSingleRowMusdMoneyWithdraw(transactionMeta) ||
-      !isMoneyContext);
+    hasTransactionType(transactionMeta, TOKEN_ICON_TYPES) && tokenMeta;
 
   if (showTokenIcon) {
-    const showDepositPrefix =
+    const isDeposit =
       isMoneyContext &&
       hasTransactionType(transactionMeta, [
         TransactionType.moneyAccountDeposit,
-      ]) &&
-      isSingleRowMoneyDeposit(transactionMeta);
+        TransactionType.musdConversion,
+      ]);
 
-    const isMusdWithdrawSingleRow =
-      isMoneyContext && isSingleRowMusdMoneyWithdraw(transactionMeta);
+    const isWithdraw =
+      isMoneyContext &&
+      hasTransactionType(transactionMeta, [
+        TransactionType.moneyAccountWithdraw,
+      ]);
 
     const icon = isMusdToken(tokenMeta.contractAddress) ? (
       <Image
@@ -253,9 +243,9 @@ export function TransactionDetailsHero() {
         {icon}
         <Text
           variant={TextVariant.DisplayMD}
-          color={showDepositPrefix ? TextColor.Success : undefined}
+          color={isDeposit ? TextColor.Success : undefined}
         >
-          {showDepositPrefix ? '+' : isMusdWithdrawSingleRow ? '-' : ''}
+          {isDeposit ? '+' : isWithdraw ? '-' : ''}
           {tokenMeta.amount} {tokenMeta.symbol}
         </Text>
       </Box>
@@ -323,17 +313,6 @@ const SENT_OVERRIDE: Partial<
   },
 };
 
-function isSingleRowMoneyDeposit(transactionMeta: TransactionMeta): boolean {
-  if (
-    !hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
-  ) {
-    return false;
-  }
-
-  const { fiat, tokenAddress } = transactionMeta.metamaskPay ?? {};
-  return Boolean(fiat?.orderId) || isMusdToken(tokenAddress);
-}
-
 function resolveTwoAssetData(
   transactionMeta: TransactionMeta,
   sentData: TokenDisplayData,
@@ -389,6 +368,7 @@ function useReceivedTokenData(
 
 function useSourceSentData(): TokenDisplayData | null {
   const { transactionMeta } = useTransactionDetails();
+  const tokenMeta = useTokenMeta(transactionMeta);
   const { metamaskPay, requiredTransactionIds } = transactionMeta;
   const { tokenAddress, chainId: sourceChainId } = metamaskPay ?? {};
 
@@ -399,17 +379,6 @@ function useSourceSentData(): TokenDisplayData | null {
 
   const childTransactions = useSelector((state: RootState) =>
     selectTransactionsByIds(state, requiredTransactionIds ?? []),
-  );
-
-  const sourceChainConversionRate = useSelector((state: RootState) =>
-    selectConversionRateByChainId(state, (sourceChainId ?? '0x0') as Hex),
-  );
-
-  const contractExchangeRates = useSelector((state: RootState) =>
-    selectContractExchangeRatesByChainId(
-      state,
-      (sourceChainId ?? '0x0') as Hex,
-    ),
   );
 
   if (!tokenAddress || !sourceChainId) {
@@ -447,15 +416,11 @@ function useSourceSentData(): TokenDisplayData | null {
     return { ...base, amount: parentAmount };
   }
 
-  const fiatDerivedAmount = extractSentAmountFromFiat(
-    metamaskPay,
-    sourceChainConversionRate,
-    tokenAddress as Hex,
-    sourceChainId as Hex,
-    contractExchangeRates,
-  );
-  if (fiatDerivedAmount) {
-    return { ...base, amount: fiatDerivedAmount };
+  // Fallback: use the received mUSD amount as an approximation when
+  // we have source token info but can't extract the exact sent amount
+  // (e.g. complex bridge calldata that isn't a simple ERC-20 transfer).
+  if (tokenMeta) {
+    return { ...base, amount: tokenMeta.amount };
   }
 
   return null;
@@ -490,36 +455,6 @@ function extractSentAmountFromParent(
   }
 
   return null;
-}
-
-function extractSentAmountFromFiat(
-  metamaskPay: TransactionMeta['metamaskPay'],
-  nativeConversionRate: number | null | undefined,
-  tokenAddress: Hex,
-  chainId: Hex,
-  contractExchangeRates: Record<string, { price: number }> | undefined,
-): string | null {
-  const totalFiat = metamaskPay?.totalFiat;
-  if (!totalFiat || !nativeConversionRate || nativeConversionRate === 0) {
-    return null;
-  }
-
-  const nativeTokenAddr = getNativeTokenAddress(chainId);
-  const isNative = tokenAddress.toLowerCase() === nativeTokenAddr.toLowerCase();
-
-  let tokenFiatRate: number;
-  if (isNative) {
-    tokenFiatRate = nativeConversionRate;
-  } else {
-    const contractRate = contractExchangeRates?.[tokenAddress]?.price ?? 0;
-    if (contractRate === 0) return null;
-    tokenFiatRate = nativeConversionRate * contractRate;
-  }
-
-  const tokenAmount = new BigNumber(totalFiat).dividedBy(tokenFiatRate);
-  if (tokenAmount.isNaN() || tokenAmount.isZero()) return null;
-
-  return tokenAmount.toFixed(tokenAmount.lt(0.01) ? 6 : 2);
 }
 
 function extractSentAmount(
