@@ -133,7 +133,7 @@ function feeToFiatNumber(
   // The conversion rate is the native token's rate, so only native fees can be
   // converted. Resource fees (e.g. Tron Bandwidth/Energy) are non-native and
   // must not be priced at the native rate — that would inflate the total.
-  if (fee.assetId && !isNativeAssetId(fee.assetId)) {
+  if (isResourceFee(fee)) {
     return undefined;
   }
   // Base/network fees are denominated in the chain's native token.
@@ -171,26 +171,43 @@ function titleCaseSymbol(symbol: string): string {
 }
 
 /**
- * Resolves the label for a resource fee paid in a non-native asset. Some chains
- * (e.g. Tron) report resource consumption — Bandwidth, Energy — as a second
- * `base` fee. Labeling these by their resource keeps them distinct from the
- * native "Network fee" row rather than duplicating it.
+ * Known resource symbols reported as fees by chains that meter execution
+ * (e.g. Tron Bandwidth/Energy). The snap surfaces these as virtual assets, so
+ * their CAIP `assetId` is unreliable — the symbol is the dependable signal.
+ */
+const RESOURCE_FEE_LABEL_BY_SYMBOL: Record<string, string> = {
+  BANDWIDTH: 'activity_details.bandwidth_fee',
+  ENERGY: 'activity_details.energy_fee',
+};
+
+/**
+ * A `base` fee is a "resource" fee (not the native network fee) when it is paid
+ * in a recognized resource (Bandwidth/Energy) or, more generally, in a
+ * non-native asset. Such fees get a distinct label so they don't duplicate the
+ * native "Network fee" row, and are kept out of native-rate fiat conversion.
+ */
+function isResourceFee(fee: ActivityFee): boolean {
+  if (fee.symbol && fee.symbol.toUpperCase() in RESOURCE_FEE_LABEL_BY_SYMBOL) {
+    return true;
+  }
+  return Boolean(fee.assetId && !isNativeAssetId(fee.assetId));
+}
+
+/**
+ * Resolves the label for a resource fee. Some chains (e.g. Tron) report
+ * resource consumption — Bandwidth, Energy — as a second `base` fee. Labeling
+ * these by their resource keeps them distinct from the native "Network fee"
+ * row rather than duplicating it.
  */
 function getResourceFeeLabel(symbol: string): string {
-  switch (symbol.toUpperCase()) {
-    case 'BANDWIDTH':
-      return strings('activity_details.bandwidth_fee');
-    case 'ENERGY':
-      return strings('activity_details.energy_fee');
-    default:
-      return titleCaseSymbol(symbol);
-  }
+  const key = RESOURCE_FEE_LABEL_BY_SYMBOL[symbol.toUpperCase()];
+  return key ? strings(key) : titleCaseSymbol(symbol);
 }
 
 function getFeeLabel(fee: ActivityFee): string {
   switch (fee.type) {
     case 'base':
-      if (fee.assetId && !isNativeAssetId(fee.assetId) && fee.symbol) {
+      if (fee.symbol && isResourceFee(fee)) {
         return getResourceFeeLabel(fee.symbol);
       }
       return strings('activity_details.network_fee');

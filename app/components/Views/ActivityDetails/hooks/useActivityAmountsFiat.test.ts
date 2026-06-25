@@ -111,11 +111,12 @@ describe('useActivityAmountsFiat', () => {
         assetId: 'tron:728126428/slip44:195',
       },
       {
+        // The Tron snap surfaces resource fees as virtual assets, so `assetId`
+        // is unreliable/absent — detection must rely on the symbol.
         type: 'base',
         amount: '268',
         decimals: 0,
         symbol: 'BANDWIDTH',
-        assetId: 'tron:728126428/resource:bandwidth',
       },
     ];
     const tronActivity: ActivityListItem = {
