@@ -11,6 +11,7 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
+import Logger from '../../../../../util/Logger';
 
 const mockTrackOnboardingEvent = jest.fn();
 const mockNavigate = jest.fn();
@@ -60,9 +61,15 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   default: () => ({ apyPercent: 4 }),
 }));
 
+jest.mock('../../../../../util/Logger', () => ({
+  error: jest.fn(),
+}));
+
 let mockOnStateChanged: (stateMachineName: string, stateName: string) => void;
+let mockOnError: (error: { message: string; type: string }) => void;
 let mockTriggerCallbacks: Record<string, () => void> = {};
 const mockSetNumber = jest.fn();
+const mockSetString = jest.fn();
 
 const triggerStateChange = (stateName: string) => {
   act(() => {
@@ -75,7 +82,8 @@ jest.mock('rive-react-native', () => {
 
   return {
     __esModule: true,
-    default: jest.fn(({ onStateChanged, ...props }) => {
+    default: jest.fn(({ onError, onStateChanged, ...props }) => {
+      mockOnError = onError;
       mockOnStateChanged = onStateChanged;
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const { View } = require('react-native');
@@ -83,6 +91,7 @@ jest.mock('rive-react-native', () => {
     }),
     useRive: () => [jest.fn(), mockRiveRef],
     useRiveNumber: () => [undefined, mockSetNumber],
+    useRiveString: () => [undefined, mockSetString],
     useRiveTrigger: (_riveRef: unknown, path: string, callback: () => void) => {
       mockTriggerCallbacks[path] = callback;
     },
@@ -345,6 +354,29 @@ describe('MoneyOnboardingView', () => {
       render(<MoneyOnboardingView />);
 
       expect(mockSetNumber).toHaveBeenCalledWith(300);
+    });
+  });
+
+  describe('Rive errors', () => {
+    it('redirects to Money home when Rive reports load error', () => {
+      const riveError = {
+        message: 'Unable to load artboard',
+        type: 'IncorrectArtboardName',
+      };
+      render(<MoneyOnboardingView />);
+
+      mockOnError(riveError);
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({
+          message:
+            'MoneyOnboardingView: Rive error: Unable to load artboard - IncorrectArtboardName',
+        }),
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
     });
   });
 

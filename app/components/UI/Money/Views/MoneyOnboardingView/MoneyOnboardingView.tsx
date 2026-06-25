@@ -31,6 +31,7 @@ import Rive, {
   Fit,
   useRiveTrigger,
   useRiveString,
+  RNRiveError,
 } from 'rive-react-native';
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibility';
@@ -42,6 +43,7 @@ import {
   View,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import Logger from '../../../../../util/Logger';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MoneyOnboardingAnimationNoTextV2 = require('../../../../../animations/money_account_onboarding_flow_final_no_text_button_text_configurable_v2.riv');
@@ -93,8 +95,7 @@ const RIVE_TRANSITION_STATES = new Set<string>(
 );
 
 const TOTAL_ONBOARDING_STEPS = Object.keys(RIVE_STATE_TO_STEP_INDEX).length;
-const OVERLAY_FADE_IN_DURATION_MS = 300;
-const OVERLAY_FADE_OUT_DURATION_MS = 300;
+const OVERLAY_FADE_DURATION_MS = 200;
 const SMALL_OVERLAY_DEVICE_MAX_WIDTH = 375;
 const SMALL_OVERLAY_DEVICE_MAX_HEIGHT = 700;
 const OVERLAY_TEXT_PRESETS = {
@@ -205,9 +206,7 @@ const MoneyOnboardingTextOverlay = ({
     }
 
     Animated.timing(fadeAnim, {
-      duration: isVisible
-        ? OVERLAY_FADE_IN_DURATION_MS
-        : OVERLAY_FADE_OUT_DURATION_MS,
+      duration: OVERLAY_FADE_DURATION_MS,
       toValue: isVisible ? 1 : 0,
       useNativeDriver: true,
     }).start();
@@ -355,6 +354,13 @@ const MoneyOnboardingView = () => {
     setButtonText(strings('money.rive_onboarding.button_text'));
   }, [riveRef, setTransitionSpeed, setButtonText]);
 
+  const navigateToMoneyHome = useCallback(() => {
+    navigation.navigate(Routes.HOME_TABS, {
+      screen: Routes.MONEY.ROOT,
+      params: { screen: Routes.MONEY.HOME },
+    });
+  }, [navigation]);
+
   const handleClose = useCallback(
     (stepIndex: number) => {
       trackOnboardingEvent({
@@ -366,12 +372,9 @@ const MoneyOnboardingView = () => {
       });
 
       dispatch(setMoneyOnboardingSeen(true));
-      navigation.navigate(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      navigateToMoneyHome();
     },
-    [dispatch, navigation, stepTitlesEnglish, trackOnboardingEvent],
+    [dispatch, navigateToMoneyHome, stepTitlesEnglish, trackOnboardingEvent],
   );
 
   const handleStepViewed = useCallback(
@@ -398,12 +401,9 @@ const MoneyOnboardingView = () => {
         redirect_target: SCREEN_NAMES.MONEY_HOME,
       });
 
-      navigation.navigate(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
+      navigateToMoneyHome();
     },
-    [dispatch, navigation, stepTitlesEnglish, trackOnboardingEvent],
+    [dispatch, navigateToMoneyHome, stepTitlesEnglish, trackOnboardingEvent],
   );
 
   useRiveTrigger(riveRef, CLOSE_TRIGGER, () => {
@@ -412,11 +412,6 @@ const MoneyOnboardingView = () => {
 
   const handleStateChanged = useCallback(
     (_stateMachineName: string, stateName: string) => {
-      // eslint-disable-next-line no-console
-      console.log('_stateMachineName: ', _stateMachineName);
-      // eslint-disable-next-line no-console
-      console.log('stateName: ', stateName);
-
       if (RIVE_TRANSITION_STATES.has(stateName)) {
         setIsOverlayVisible(false);
         return;
@@ -442,6 +437,18 @@ const MoneyOnboardingView = () => {
     [handleStepViewed, handleComplete, stepContent],
   );
 
+  const handleError = useCallback(
+    (riveError: RNRiveError) => {
+      Logger.error(
+        new Error(
+          `MoneyOnboardingView: Rive error: ${riveError.message} - ${riveError.type}`,
+        ),
+      );
+      navigateToMoneyHome();
+    },
+    [navigateToMoneyHome],
+  );
+
   return (
     <View style={styles.root}>
       <Rive
@@ -453,12 +460,13 @@ const MoneyOnboardingView = () => {
         fit={Fit.Layout}
         layoutScaleFactor={PixelRatio.get()}
         onStateChanged={handleStateChanged}
+        onError={handleError}
         style={StyleSheet.absoluteFillObject}
         testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
       />
       <MoneyOnboardingTextOverlay
         content={stepContent[overlayStep]}
-        isVisible={isOverlayVisible}
+        isVisible={Boolean(riveRef) && isOverlayVisible}
         step={overlayStep}
       />
     </View>
