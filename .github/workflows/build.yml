@@ -306,8 +306,21 @@ jobs:
           xcodebuild -version
 
       # PR-B: Warm Xcode DerivedData + ios/build cache for incremental native builds.
-      # Key intentionally excludes project.pbxproj (CURRENT_PROJECT_VERSION) so
-      # build-number bumps do not bust the cache.
+      # The cache key includes a stripped hash of project.pbxproj (CURRENT_PROJECT_VERSION
+      # removed) so build-number bumps do not bust the cache, while genuine native changes
+      # (new targets, build settings, etc.) still produce a new key.
+      - name: Compute iOS DerivedData cache key (strip CURRENT_PROJECT_VERSION)
+        id: ios-cache-key
+        if: matrix.platform == 'ios'
+        shell: bash
+        run: |
+          HASH=$(
+            grep -v '^\s*CURRENT_PROJECT_VERSION\s*=\s*[0-9]' \
+              ios/MetaMask.xcodeproj/project.pbxproj | sha256sum | cut -c1-64
+          )
+          echo "pbxproj_hash=$HASH" >> "$GITHUB_OUTPUT"
+          echo "iOS cache key pbxproj hash (CURRENT_PROJECT_VERSION stripped): $HASH"
+
       - name: Restore Xcode DerivedData from branch cache (iOS)
         id: xcode-derived-cache
         if: matrix.platform == 'ios'
@@ -318,7 +331,8 @@ jobs:
             ios/build
           key: >-
             ${{ runner.os }}-xcode-device-${{ github.ref_name }}-${{ env.CACHE_GENERATION }}-v1-${{
-              hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
+              hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}-${{
+              steps.ios-cache-key.outputs.pbxproj_hash }}
 
       - name: Restore Xcode DerivedData from main cache (iOS)
         if: >-
@@ -332,7 +346,8 @@ jobs:
             ios/build
           key: >-
             ${{ runner.os }}-xcode-device-main-${{ env.CACHE_GENERATION }}-v1-${{
-              hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
+              hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}-${{
+              steps.ios-cache-key.outputs.pbxproj_hash }}
 
       # TapAndPay SDK Setup (Android only)
       - name: Clone TapAndPay SDK
