@@ -23,10 +23,9 @@ jest.mock('../../../../../../../util/navigation/navUtils', () => ({
     (params: unknown) => ['MockRoute', params],
 }));
 
-jest.mock(
-  '../../../../Deposit/components/DepositPhoneField/formatNumberToTemplate',
-  () => ({ formatNumberToTemplate: (num: string) => num }),
-);
+jest.mock('../../../../utils/formatNumberToTemplate', () => ({
+  formatNumberToTemplate: (num: string) => num,
+}));
 
 const makeCountry = (isoCode: string, flag: string, prefix: string): Country =>
   ({
