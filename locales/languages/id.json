@@ -103,7 +103,7 @@
       "title": "Dana tidak cukup"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Kurangi atau gunakan metode pembayaran yang berbeda."
     },
     "insufficient_pay_token_native": {
       "message": "Token {{ticker}} tidak cukup untuk menutupi biaya. Gunakan token di jaringan lain atau tambahkan token {{ticker}} untuk melanjutkan.",
@@ -1094,6 +1094,7 @@
       "twitter_link": "Lihat di X (Twitter)",
       "sort": {
         "value": "Nilai",
+        "top_trades": "Top Trades",
         "pnl_percent": "P&L %",
         "recent": "Terbaru"
       }
@@ -1133,6 +1134,8 @@
       "price_impact": "Dampak harga",
       "est_points": "Estimasi poin",
       "no_quotes": "Kuotasi untuk token ini tidak tersedia",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Memuat...",
       "unavailable": "Swap tidak tersedia",
       "unsupported_chain": "Chain ini belum didukung untuk Pembelian Cepat",
@@ -2368,11 +2371,15 @@
       "predictions_title": "Prediksi Piala Dunia",
       "banner_title": "Piala Dunia 2026",
       "banner_description": "Lakukan perdagangan di setiap pertandingan, di setiap momennya.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "Semua",
         "props": "Prop",
-        "live": "Langsung"
+        "live": "Langsung",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Babak Penyisihan Grup",
         "round_of_32": "Babak 32 besar",
@@ -3540,6 +3547,8 @@
       "wallet_activity_desc": "Beli, jual, transfer, swap, dan reward",
       "perps_title": "Aktivitas Perdagangan",
       "perps_desc": "Perubahan posisi perp, likuidasi, tingkat pendanaan, dan pembaruan margin",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "Sinyal Perdagangan",
       "social_ai_desc": "Informasi terbaru dari para trader dan aset yang Anda ikuti, ditambah berita pasar pilihan",
       "marketing_title": "Pembaruan dan Reward",
@@ -6029,6 +6038,11 @@
       "description": "Pembelian kripto tidak tersedia di wilayah Anda karena keterbatasan penyedia pembayaran lokal atau pembatasan peraturan.",
       "got_it": "Mengerti"
     },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "Mengerti"
+    },
     "region": {
       "buy_crypto_tokens": "Beli token kripto",
       "sell_crypto_tokens": "Jual token kripto",
@@ -7949,9 +7963,13 @@
       "rejected": "Ditolak",
       "reconnect": "Hubungkan kembali",
       "done": "Selesai",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "Pindai kode QR berikutnya",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "Langkah {{current}} dari {{total}}: Pindai kode QR yang ditampilkan di dompet Anda",
-      "scanner_last_step_text": "Langkah terakhir: Pindai kode QR yang ditampilkan di dompet Anda"
+      "scanner_last_step_text": "Langkah terakhir: Pindai kode QR yang ditampilkan di dompet Anda",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "Dampak harga",
     "price_impact_info_description": "Beginilah cara perdagangan Anda mengubah harga pasar suatu token. Hal ini bergantung pada ukuran perdagangan, likuiditas yang tersedia, dan biaya penyedia. MetaMask tidak mengontrol dampak harga tersebut.",
@@ -9601,17 +9619,6 @@
       "predict_withdraw": "Penarikan",
       "money_account_deposit": "Deposit ke Akun Dana",
       "money_account_withdraw": "Transfer dari Akun Dana",
-      "money_account_sent": "Mengirim {{symbol}}",
-      "money_account_received": "Diterima",
-      "deposited_musd": "mUSD didepositkan",
-      "depositing_musd": "Mendepositkan mUSD",
-      "deposit_failed": "Deposit gagal",
-      "sent": "Mengirim",
-      "sending_musd": "Mengirim mUSD",
-      "send_failed": "Pengiriman gagal",
-      "converted_to_musd": "Dikonversi ke mUSD",
-      "converting_to_musd": "Mengonversi ke mUSD",
-      "conversion_failed": "Konversi gagal",
       "default": "Detail transaksi"
     },
     "label": {
@@ -9660,6 +9667,24 @@
       "fiat_purchase": "Beli {{token}} dengan {{paymentMethod}}"
     },
     "perps_deposit_solution": "Saat ini Anda memiliki {{fiat}} USDC di Arbitrum. Coba deposit lagi."
+  },
+  "activity_details": {
+    "status": "Status",
+    "date": "Tanggal",
+    "account": "Akun",
+    "from": "Dari",
+    "to": "Ke",
+    "network": "Jaringan",
+    "transaction_id": "ID Transaksi",
+    "network_fee": "Biaya jaringan",
+    "bridge_fee": "Biaya bridge",
+    "transaction_fee": "Biaya transaksi",
+    "total_amount": "Jumlah total",
+    "you_sent": "Anda mengirim",
+    "you_received": "Anda menerima",
+    "view_on_block_explorer": "Lihat di block explorer",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {
