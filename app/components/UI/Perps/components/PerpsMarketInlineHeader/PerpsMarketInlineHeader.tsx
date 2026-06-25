@@ -1,6 +1,5 @@
 import React, { useMemo } from 'react';
 import {
-  Box,
   ButtonIcon,
   ButtonIconSize,
   HeaderSubpage,
@@ -49,11 +48,7 @@ export const PerpsMarketInlineHeader = ({
       return undefined;
     }
 
-    return (
-      <Box twClassName="ml-1">
-        <PerpsLeverage maxLeverage={market.maxLeverage} />
-      </Box>
-    );
+    return <PerpsLeverage maxLeverage={market.maxLeverage} />;
   }, [market.maxLeverage]);
 
   const description = useMemo(
@@ -135,7 +130,7 @@ export const PerpsMarketInlineHeader = ({
       avatar={
         <PerpsTokenLogo
           symbol={market.symbol}
-          size={32}
+          size={40}
           testID={PerpsMarketHeaderSelectorsIDs.ASSET_ICON}
         />
       }
