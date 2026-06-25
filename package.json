@@ -168,6 +168,7 @@
     ]
   },
   "resolutions": {
+    "@metamask/bridge-controller": "npm:@metamask-previews/bridge-controller@76.1.0-preview-31eae6ba5",
     "@metamask/network-controller": "33.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
