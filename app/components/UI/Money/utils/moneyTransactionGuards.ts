@@ -32,6 +32,11 @@ export const isMoneyWithdrawTx = (transactionMeta: TransactionMeta) =>
     nestedTxWithType(transactionMeta, TransactionType.moneyAccountWithdraw),
   );
 
+/**
+ * True when a Money Account withdrawal lands as mUSD (single-row hero and
+ * "Sent mUSD" title). Cross-token destinations (e.g. USDC) return false.
+ * Chain is irrelevant — only the destination token matters.
+ */
 export const isSingleRowMusdMoneyWithdraw = (
   transactionMeta: TransactionMeta,
 ): boolean => {
