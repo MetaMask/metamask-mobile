@@ -43,12 +43,19 @@ jest.mock(
   () => 'mockGenericHardwareWalletRiv',
 );
 
+jest.mock('../../QRHardware/AnimatedQRCode', () => ({
+  __esModule: true,
+  default: () => null,
+}));
+
 const mockCancelCurrentBatch = jest.fn();
+const mockUseHwBatchSignTracker = jest.fn((_options?: unknown) => ({
+  cancelCurrentBatch: mockCancelCurrentBatch,
+  confirmationTxId: undefined,
+}));
 jest.mock('./useHwBatchSignTracker', () => ({
-  useHwBatchSignTracker: () => ({
-    cancelCurrentBatch: mockCancelCurrentBatch,
-    confirmationTxId: undefined,
-  }),
+  useHwBatchSignTracker: (options: unknown) =>
+    mockUseHwBatchSignTracker(options),
 }));
 
 const mockSubmitBridgeTx = jest.fn();
@@ -67,8 +74,16 @@ const mockEnsureDeviceReady = jest.fn();
 const mockSetPendingOperationAddress = jest.fn();
 const mockSetForceHideBottomSheet = jest.fn();
 const mockConnectionState = { status: 'disconnected' };
+const mockPendingScanRequest = {
+  type: 'sign',
+  request: {
+    requestId: 'test-request-id',
+    payload: { type: 'eth-sign-request', cbor: 'aabbccdd' },
+  },
+};
 const mockHardwareWalletState = {
   walletType: null as string | null,
+  pendingScanRequest: null as typeof mockPendingScanRequest | null,
 };
 jest.mock('../../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
@@ -78,13 +93,19 @@ jest.mock('../../../../core/HardwareWallet', () => ({
     setPendingOperationAddress: mockSetPendingOperationAddress,
     setForceHideBottomSheet: mockSetForceHideBottomSheet,
     qr: {
-      pendingScanRequest: null,
+      pendingScanRequest: mockHardwareWalletState.pendingScanRequest,
       isSigningQRObject: false,
       setRequestCompleted: jest.fn(),
       isRequestCompleted: jest.fn(),
       cancelQRScanRequestIfPresent: jest.fn(),
     },
   }),
+}));
+
+jest.mock('../../../../core/HardwareWallet/helpers', () => ({
+  getDeviceIdForAddress: jest.fn().mockResolvedValue('ledger-device-id'),
+  // Re-export anything else the component tree might import from helpers
+  getHardwareWalletTypeForAddress: jest.fn().mockReturnValue('ledger'),
 }));
 
 jest.mock('../../../../core/Ledger/Ledger', () => ({
@@ -99,6 +120,24 @@ jest.mock('../../../../core/Engine', () => ({
     subscribe: jest.fn(),
     unsubscribe: jest.fn(),
   },
+  acceptPendingApproval: jest.fn().mockResolvedValue(undefined),
+}));
+const mockAccept = (
+  jest.requireMock('../../../../core/Engine') as {
+    acceptPendingApproval: jest.Mock;
+  }
+).acceptPendingApproval;
+
+const MOCK_APPROVAL_REQUEST = {
+  id: 'test-approval-id',
+  type: 'transaction',
+  requestData: { origin: 'metamask' },
+};
+let mockApprovalRequestValue: typeof MOCK_APPROVAL_REQUEST | undefined =
+  MOCK_APPROVAL_REQUEST;
+jest.mock('../../../Views/confirmations/hooks/useApprovalRequest', () => ({
+  __esModule: true,
+  default: () => ({ approvalRequest: mockApprovalRequestValue }),
 }));
 
 jest.mock('../../../../component-library/components/Toast', () => {
@@ -169,7 +208,7 @@ const renderScreen = (
       bridge: {
         sourceAmount: SOURCE_AMOUNT,
         sourceToken: {
-          address: '0xToken',
+          address: '0x15d34AAf54267DB7D7c367839Aaf71A00a2C6A65',
           symbol: SOURCE_TOKEN_SYMBOL,
           decimals: 6,
           chainId: '0x1',
@@ -286,11 +325,86 @@ const STATUS_RENDERING_CASES = [
   },
 ];
 
+const SEND_FROM = '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266';
+const SEND_GAS_TOKEN_ADDRESS = '0x90F79bf6EB2c4f870365E785982E1f101E93b906';
+const SEND_RECIPIENT = '0x70997970C51812dc3A010C7d01b50e0d17dc79C8';
+
+const preparedTxMeta = {
+  id: 'send-prepared-tx',
+  type: 'simpleSend',
+  status: 'unapproved',
+  chainId: '0x1',
+  txParams: {
+    from: SEND_FROM,
+    to: SEND_RECIPIENT,
+    value: '0x0',
+    data: '0x',
+  },
+  batchTransactions: [
+    {
+      data: '0x',
+      to: SEND_GAS_TOKEN_ADDRESS,
+      maxFeePerGas: '0x1',
+      maxPriorityFeePerGas: '0x1',
+    },
+  ],
+} as any;
+
+function setSendRouteParams(opts?: {
+  withGasToken?: boolean;
+  withApproval?: boolean;
+}) {
+  Object.keys(mockRouteParams).forEach((k) => delete mockRouteParams[k]);
+  mockRouteParams.flow = 'send';
+  mockRouteParams.preparedTxMeta = preparedTxMeta;
+  mockRouteParams.displayContext = {
+    amount: '7',
+    tokenSymbol: 'DAI',
+    gasTokenSymbol: 'DAI',
+    recipient: SEND_RECIPIENT,
+  };
+  if (opts?.withGasToken) {
+    mockRouteParams.gasTokenAddress = SEND_GAS_TOKEN_ADDRESS;
+  }
+  if (opts?.withApproval) {
+    mockApprovalRequestValue = MOCK_APPROVAL_REQUEST;
+    mockRouteParams.approvalRequestId = MOCK_APPROVAL_REQUEST.id;
+  } else {
+    mockApprovalRequestValue = undefined;
+  }
+}
+
+// Pre-built Sendbundle progress: [Transaction, FeeTransfer] both Waiting.
+const sendbundleWaitingSteps = [
+  step(HardwareWalletsSwapsStepKind.Transaction, StepWaiting),
+  step(HardwareWalletsSwapsStepKind.FeeTransfer, StepWaiting),
+];
+
+const plainSendWaitingSteps = [
+  step(HardwareWalletsSwapsStepKind.Transaction, StepWaiting),
+];
+
+function renderSendScreen(state: Partial<HardwareWalletsSwapsState>) {
+  return renderWithProvider(<HardwareWalletsSwaps />, {
+    state: {
+      bridge: {
+        hardwareWalletsSwaps: {
+          ...defaultBridgeState,
+          totalSteps: 2,
+          steps: sendbundleWaitingSteps,
+          ...state,
+        },
+      },
+    },
+  });
+}
+
 describe('HardwareWalletsSwaps', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     __clearLastMockedMethods();
     mockHardwareWalletState.walletType = null;
+    mockHardwareWalletState.pendingScanRequest = null;
     jest.mocked(selectSourceWalletAddress).mockReturnValue(WALLET_ADDRESS);
     mockRouteSubmissionParams();
     mockEnsureDeviceReady.mockResolvedValue(true);
@@ -340,6 +454,93 @@ describe('HardwareWalletsSwaps', () => {
     );
   });
 
+  describe('QR wallet titles', () => {
+    beforeEach(() => {
+      mockHardwareWalletState.walletType = HardwareWalletType.Qr;
+    });
+
+    it('renders scan-based display title on the first tx of a 2-tx flow', () => {
+      const { getByTestId } = renderScreen({
+        currentStep: 0,
+        totalSteps: 2,
+        steps: [signingStep, defaultSteps[1]],
+      });
+
+      expect(
+        getByTestId(HardwareWalletsSwapsSelectorsIDs.TITLE).props.children,
+      ).toBe('Step 1 of 4: Scan this QR code with your wallet');
+    });
+
+    it('renders scan-based display title on the second tx of a 2-tx flow', () => {
+      const { getByTestId } = renderScreen({
+        currentStep: 1,
+        totalSteps: 2,
+        steps: [step(Approval, Signed), signingStep],
+      });
+
+      expect(
+        getByTestId(HardwareWalletsSwapsSelectorsIDs.TITLE).props.children,
+      ).toBe('Step 3 of 4: Scan this QR code with your wallet');
+    });
+
+    it('renders scan-based display title for a single-tx flow', () => {
+      const { getByTestId } = renderScreen({
+        currentStep: 0,
+        totalSteps: 1,
+        steps: [signingStep],
+      });
+
+      expect(
+        getByTestId(HardwareWalletsSwapsSelectorsIDs.TITLE).props.children,
+      ).toBe('Step 1 of 2: Scan this QR code with your wallet');
+    });
+  });
+
+  describe('QR wallet scan button', () => {
+    beforeEach(() => {
+      mockHardwareWalletState.walletType = HardwareWalletType.Qr;
+      mockHardwareWalletState.pendingScanRequest = mockPendingScanRequest;
+    });
+
+    it('shows "Scan final QR code" on the last tx of a 2-tx flow', () => {
+      const { getByText } = renderScreen({
+        currentStep: 1,
+        totalSteps: 2,
+        steps: [step(Approval, Signed), signingStep],
+      });
+
+      expect(getByText('Scan final QR code')).toBeDefined();
+    });
+
+    it('shows "Scan next QR code" on a non-final tx of a 2-tx flow', () => {
+      const { getByText, queryByText } = renderScreen({
+        currentStep: 0,
+        totalSteps: 2,
+        steps: [signingStep, defaultSteps[1]],
+      });
+
+      expect(getByText('Scan next QR code')).toBeDefined();
+      expect(queryByText('Scan final QR code')).toBeNull();
+    });
+
+    it('passes scan-based step numbering to the QR scanner screen', () => {
+      const { getByTestId } = renderScreen({
+        currentStep: 0,
+        totalSteps: 2,
+        steps: [signingStep, defaultSteps[1]],
+      });
+
+      fireEvent.press(
+        getByTestId(HardwareWalletsSwapsSelectorsIDs.SCAN_NEXT_QR_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.HW_QR_SCANNER, {
+        currentStep: 2,
+        totalSteps: 4,
+      });
+    });
+  });
+
   describe('animation triggers', () => {
     it.each([
       {
@@ -350,7 +551,7 @@ describe('HardwareWalletsSwaps', () => {
       {
         status: HardwareWalletsSwapsStatus.Waiting,
         steps: [signingStep, defaultSteps[1]],
-        expectedTrigger: 'wallet_locked',
+        expectedTrigger: 'reset',
       },
       {
         status: HardwareWalletsSwapsStatus.Rejected,
@@ -439,13 +640,25 @@ describe('HardwareWalletsSwaps', () => {
     it('renders step addresses when provided', () => {
       const { getByText } = renderScreen({
         steps: [
-          step(Approval, StepWaiting, '0x1234567890abcdef'),
-          step(Transaction, StepWaiting, '0xabcdef1234567890'),
+          step(
+            Approval,
+            StepWaiting,
+            '0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc',
+          ),
+          step(
+            Transaction,
+            StepWaiting,
+            '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+          ),
         ],
       });
 
-      expect(getByText('Spender 0x1234567890abcdef')).toBeDefined();
-      expect(getByText('Recipient 0xabcdef1234567890')).toBeDefined();
+      expect(
+        getByText('Spender 0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc'),
+      ).toBeDefined();
+      expect(
+        getByText('Recipient 0x70997970C51812dc3A010C7d01b50e0d17dc79C8'),
+      ).toBeDefined();
     });
 
     it('hides description when no address is provided', () => {
@@ -561,7 +774,7 @@ describe('HardwareWalletsSwaps', () => {
       expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Waiting);
     });
 
-    it('does not retry when connection is not retryable', async () => {
+    it('restarts the flow when reconnect is pressed from disconnected connection state', async () => {
       const { getByTestId, store } = renderScreen(DISCONNECTED_STATE);
 
       await act(async () => {
@@ -570,10 +783,11 @@ describe('HardwareWalletsSwaps', () => {
         );
       });
 
-      expect(getBridgeStatus(store)).toBe(
-        HardwareWalletsSwapsStatus.Disconnected,
-      );
-      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+      expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Waiting);
+      await waitFor(() => {
+        expect(mockSubmitBridgeTx).toHaveBeenCalledWith(MOCK_SUBMISSION_PARAMS);
+      });
+      expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -680,48 +894,186 @@ describe('HardwareWalletsSwaps', () => {
   });
 
   describe('force-hide bottom sheet', () => {
-    describe('non-QR wallets', () => {
-      beforeEach(() => {
-        mockHardwareWalletState.walletType = HardwareWalletType.Ledger;
-      });
+    it('shows the shared bottom sheet on mount for Ledger (connection phase)', () => {
+      mockHardwareWalletState.walletType = HardwareWalletType.Ledger;
+      renderScreen({});
 
-      it('force-hides the shared bottom sheet once all steps are signed', () => {
-        renderScreen(SUBMITTED_STATE);
-
-        expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
-      });
-
-      it('does not force-hide while signing is still in progress', () => {
-        renderScreen({});
-
-        expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(true);
-        expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(false);
-      });
-
-      it('keeps force-hide latched on unmount after all steps are signed', () => {
-        const { unmount } = renderScreen(SUBMITTED_STATE);
-
-        expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
-        mockSetForceHideBottomSheet.mockClear();
-
-        unmount();
-
-        expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(false);
-      });
+      // Not in AwaitingConfirmation → sheet is visible for device selection
+      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(false);
     });
 
-    describe('QR wallets', () => {
-      beforeEach(() => {
-        mockHardwareWalletState.walletType = HardwareWalletType.Qr;
+    it('shows the shared bottom sheet on mount for QR wallets', () => {
+      mockHardwareWalletState.walletType = HardwareWalletType.Qr;
+      renderScreen({});
+
+      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(false);
+    });
+
+    it('hides the bottom sheet during AwaitingConfirmation', () => {
+      mockHardwareWalletState.walletType = HardwareWalletType.Ledger;
+      mockConnectionState.status = 'awaiting_confirmation';
+      renderScreen({});
+
+      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
+    });
+
+    it('restores the bottom sheet on unmount', () => {
+      mockHardwareWalletState.walletType = HardwareWalletType.Ledger;
+      const { unmount } = renderScreen({});
+
+      mockSetForceHideBottomSheet.mockClear();
+
+      unmount();
+
+      expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('send flow', () => {
+    afterEach(() => {
+      Object.keys(mockRouteParams).forEach((k) => delete mockRouteParams[k]);
+      mockRouteSubmissionParams();
+      mockApprovalRequestValue = MOCK_APPROVAL_REQUEST;
+    });
+
+    it('renders the sendbundle steps [FeeTransfer, Transaction] with paying-network-fee copy', () => {
+      setSendRouteParams({ withGasToken: true, withApproval: true });
+
+      const { getByText } = renderSendScreen({
+        currentStep: 0,
+        totalSteps: 2,
+        steps: sendbundleWaitingSteps,
       });
 
-      it('force-hides the shared bottom sheet on mount', () => {
-        renderScreen({});
+      // FeeTransfer title (Waiting → paying form). StepRow renders the title.
+      expect(getByText('Paying network fee with DAI')).toBeDefined();
+      // Transaction title (Waiting → Send form). Send-amount copy uses the
+      // route-params displayContext, NOT the bridge source selectors.
+      expect(getByText('Send 7 DAI')).toBeDefined();
+    });
 
-        expect(mockSetForceHideBottomSheet).toHaveBeenCalledWith(true);
-        expect(mockSetForceHideBottomSheet).not.toHaveBeenCalledWith(false);
-        expect(mockSetForceHideBottomSheet.mock.calls.at(-1)?.[0]).toBe(true);
+    it('renders the plain-send step [Transaction] without a FeeTransfer', () => {
+      setSendRouteParams({ withApproval: true });
+
+      const { queryByText, getByText } = renderSendScreen({
+        currentStep: 0,
+        totalSteps: 1,
+        steps: plainSendWaitingSteps,
       });
+
+      expect(getByText('Send 7 DAI')).toBeDefined();
+      expect(queryByText(/Paying network fee/)).toBeNull();
+    });
+
+    it('passes the expected sendbundle transaction count to the tracker', () => {
+      setSendRouteParams({ withGasToken: true, withApproval: true });
+
+      renderSendScreen({
+        currentStep: 0,
+        totalSteps: 2,
+        steps: sendbundleWaitingSteps,
+      });
+
+      expect(mockUseHwBatchSignTracker).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasTokenAddress: SEND_GAS_TOKEN_ADDRESS,
+          expectedBatchTransactionCount: 2,
+        }),
+      );
+    });
+
+    it('does not pass a bundle transaction count without a gas-token route param', () => {
+      setSendRouteParams({ withApproval: true });
+
+      renderSendScreen({
+        currentStep: 0,
+        totalSteps: 1,
+        steps: plainSendWaitingSteps,
+      });
+
+      expect(mockUseHwBatchSignTracker).toHaveBeenCalledWith(
+        expect.objectContaining({
+          gasTokenAddress: undefined,
+          expectedBatchTransactionCount: undefined,
+        }),
+      );
+    });
+
+    it('cancel navigates to send flow start (NOT Routes.BRIDGE.BRIDGE_VIEW)', () => {
+      setSendRouteParams({ withGasToken: true, withApproval: true });
+
+      const { getByTestId } = renderSendScreen({});
+
+      fireEvent.press(
+        getByTestId(HardwareWalletsSwapsSelectorsIDs.CANCEL_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.SEND.DEFAULT, {
+        screen: Routes.SEND.AMOUNT,
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(Routes.BRIDGE.BRIDGE_VIEW);
+    });
+
+    it('submit calls Engine.acceptPendingApproval with the prepared tx meta', async () => {
+      setSendRouteParams({ withGasToken: true, withApproval: true });
+
+      renderSendScreen({});
+
+      await waitFor(() => {
+        expect(mockAccept).toHaveBeenCalledWith(
+          MOCK_APPROVAL_REQUEST.id,
+          expect.objectContaining({
+            ...MOCK_APPROVAL_REQUEST.requestData,
+            txMeta: preparedTxMeta,
+          }),
+          {
+            waitForResult: true,
+            deleteAfterResult: true,
+            handleErrors: false,
+          },
+        );
+      });
+      // Bridge submit must NOT have fired in send mode.
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+
+    it.each([
+      {
+        name: 'refuses to accept approval when approvalRequestId mismatches (WALLET SAFETY)',
+        mutate: () => {
+          mockRouteParams.approvalRequestId = 'a-DIFFERENT-id';
+        },
+      },
+      {
+        name: 'refuses to accept approval when approvalRequestId is missing from route params (WALLET SAFETY)',
+        mutate: () => {
+          delete mockRouteParams.approvalRequestId;
+        },
+      },
+    ])('$name', async ({ mutate }) => {
+      setSendRouteParams({ withGasToken: true, withApproval: true });
+      mutate();
+      mockAccept.mockClear();
+
+      const { store } = renderSendScreen({});
+
+      await waitFor(() => {
+        expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Failed);
+      });
+
+      expect(mockAccept).not.toHaveBeenCalled();
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
+    });
+
+    it('dispatches TRANSACTION_FAILED when approval request is missing on submit', async () => {
+      setSendRouteParams({ withGasToken: true, withApproval: false });
+
+      const { store } = renderSendScreen({});
+
+      await waitFor(() => {
+        expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Failed);
+      });
+      expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
   });
 });

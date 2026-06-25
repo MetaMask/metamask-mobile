@@ -104,6 +104,9 @@ const Routes = {
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
   TRANSACTION_DETAILS: 'TransactionDetails',
+  // Redesigned activity details screen (gated by selectIsTransactionsRedesignEnabled).
+  // Distinct from TRANSACTION_DETAILS, which is the confirmations team's screen.
+  ACTIVITY_DETAILS: 'ActivityDetails',
   REWARDS_VIEW: 'RewardsView',
   REWARDS_FLOW: 'RewardsFlow',
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
