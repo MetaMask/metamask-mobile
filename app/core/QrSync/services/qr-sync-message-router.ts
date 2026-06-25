@@ -24,11 +24,7 @@ const isQrSyncErrorPayload = (data: unknown): data is QrSyncError => {
     return false;
   }
 
-  return (
-    typeof data.code === 'string' &&
-    typeof data.message === 'string' &&
-    typeof data.retryable === 'boolean'
-  );
+  return typeof data.code === 'string' && typeof data.message === 'string';
 };
 
 const toInvalidPayloadEvent = (message: string): QrSyncRoutedMessageResult => ({
@@ -38,7 +34,6 @@ const toInvalidPayloadEvent = (message: string): QrSyncRoutedMessageResult => ({
     data: {
       code: 'INVALID_PAYLOAD',
       message,
-      retryable: false,
     },
   } satisfies QrSyncSyncErrorEvent,
 });

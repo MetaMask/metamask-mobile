@@ -205,7 +205,6 @@ export class QrSyncController extends BaseController<
     this.terminateWithError({
       code: 'CHANNEL_DISCONNECTED',
       message: 'QR sync connection was lost.',
-      retryable: true,
     });
   };
 
@@ -228,7 +227,7 @@ export class QrSyncController extends BaseController<
       }
 
       if (!this.client) {
-        throw new Error('Wallet client not found');
+        throw this.toQrSyncError(new Error('Wallet client not found'));
       }
     }
 
@@ -339,7 +338,7 @@ export class QrSyncController extends BaseController<
 
   private async sendMessage(message: QrSyncWireMessage): Promise<void> {
     if (!this.client) {
-      throw new Error('Wallet client not found');
+      throw this.toQrSyncError(new Error('Wallet client not found'));
     }
 
     await this.client.sendResponse(message);
@@ -464,7 +463,6 @@ export class QrSyncController extends BaseController<
     return {
       code: 'SYNC_FAILED',
       message: error.message,
-      retryable: false,
     };
   }
 
@@ -474,7 +472,6 @@ export class QrSyncController extends BaseController<
     return {
       code: 'INVALID_PAYLOAD',
       message,
-      retryable: false,
     };
   }
 }

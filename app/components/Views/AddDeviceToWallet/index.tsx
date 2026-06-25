@@ -216,49 +216,54 @@ const AddDeviceToWallet = () => {
             {strings('app_settings.add_device.scan_qr_code_button')}
           </Button>
 
-          <Box
-            backgroundColor={BoxBackgroundColor.BackgroundSection}
-            twClassName="rounded-xl p-4 gap-3"
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextDefault}
-              fontWeight={FontWeight.Bold}
+          {__DEV__ ? (
+            <Box
+              backgroundColor={BoxBackgroundColor.BackgroundSection}
+              twClassName="rounded-xl p-4 gap-3"
             >
-              Enter QR data manually
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              Paste the QR code payload here when testing on an emulator.
-            </Text>
-            <TextField
-              value={manualQrPayload}
-              onChangeText={setManualQrPayload}
-              placeholder="Paste QR payload"
-              isDisabled={isBusy}
-              inputProps={{
-                autoCapitalize: 'none',
-                autoCorrect: false,
-                onSubmitEditing: triggerManualQrSubmit,
-                returnKeyType: 'done',
-              }}
-            />
-            {presentation === 'error' && error?.message ? (
-              <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
-                {error.message}
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
+                fontWeight={FontWeight.Bold}
+              >
+                Enter QR data manually
               </Text>
-            ) : null}
-            <Button
-              twClassName="w-full"
-              onPress={triggerManualQrSubmit}
-              isDisabled={!manualQrPayload.trim() || isBusy}
-              isLoading={isBusy}
-            >
-              Submit QR data
-            </Button>
-          </Box>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                Paste the QR code payload here when testing on an emulator.
+              </Text>
+              <TextField
+                value={manualQrPayload}
+                onChangeText={setManualQrPayload}
+                placeholder="Paste QR payload"
+                isDisabled={isBusy}
+                inputProps={{
+                  autoCapitalize: 'none',
+                  autoCorrect: false,
+                  onSubmitEditing: triggerManualQrSubmit,
+                  returnKeyType: 'done',
+                }}
+              />
+              {presentation === 'error' && error?.message ? (
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.ErrorDefault}
+                >
+                  {error.message}
+                </Text>
+              ) : null}
+              <Button
+                twClassName="w-full"
+                onPress={triggerManualQrSubmit}
+                isDisabled={!manualQrPayload.trim() || isBusy}
+                isLoading={isBusy}
+              >
+                Submit QR data
+              </Button>
+            </Box>
+          ) : null}
         </Box>
       </Box>
     </SafeAreaView>

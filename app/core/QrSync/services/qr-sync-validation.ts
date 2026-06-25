@@ -53,7 +53,6 @@ const buildValidationError = (
   error: {
     code,
     message,
-    retryable: false,
   },
 });
 

@@ -427,7 +427,6 @@ describe('qr-sync-validation', () => {
         error: {
           code: 'INVALID_PAYLOAD',
           message: 'QR sync payload must include at least one import entry.',
-          retryable: false,
         },
       });
     });
@@ -443,7 +442,6 @@ describe('qr-sync-validation', () => {
         error: {
           code: 'SESSION_EXPIRED',
           message: 'QR sync payload deadline has expired.',
-          retryable: false,
         },
       });
     });
@@ -476,7 +474,6 @@ describe('qr-sync-validation', () => {
           code: 'INVALID_PAYLOAD',
           message:
             'QR sync payload must include a primary mnemonic when onboarding is not completed.',
-          retryable: false,
         },
       });
     });
@@ -525,7 +522,6 @@ describe('qr-sync-validation', () => {
         error: {
           code: 'INVALID_PAYLOAD',
           message: 'Only mnemonic entries may be marked as primary.',
-          retryable: false,
         },
       });
     });
@@ -547,7 +543,6 @@ describe('qr-sync-validation', () => {
         error: {
           code: 'INVALID_PAYLOAD',
           message: 'hiddenIndexes is only supported for mnemonic entries.',
-          retryable: false,
         },
       });
     });
@@ -567,7 +562,6 @@ describe('qr-sync-validation', () => {
         error: {
           code: 'INVALID_PAYLOAD',
           message: 'QR sync payload may include at most one primary mnemonic.',
-          retryable: false,
         },
       });
     });
@@ -672,7 +666,6 @@ describe('qr-sync-validation', () => {
         error: {
           code: 'INVALID_PAYLOAD',
           message: 'QR sync payload must include at least one import entry.',
-          retryable: false,
         },
       });
     });
@@ -703,7 +696,6 @@ describe('qr-sync-validation', () => {
         error: {
           code: 'INVALID_PAYLOAD',
           message: `Expected QR sync message type "${QrSyncActionTypes.SYNC_READY}".`,
-          retryable: false,
         },
       });
     });
@@ -724,7 +716,6 @@ describe('qr-sync-validation', () => {
           code: 'INVALID_PAYLOAD',
           message:
             'QR sync message does not match the expected envelope structure.',
-          retryable: false,
         },
       });
     });
@@ -744,7 +735,6 @@ describe('qr-sync-validation', () => {
         error: {
           code: 'INVALID_PAYLOAD',
           message: 'QR sync message payload is malformed.',
-          retryable: false,
         },
       });
     });
@@ -791,7 +781,6 @@ describe('qr-sync-validation', () => {
           code: 'INVALID_PAYLOAD',
           message:
             'QR sync message does not match the expected envelope structure.',
-          retryable: false,
         },
       });
     });

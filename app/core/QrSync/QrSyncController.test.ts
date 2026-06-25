@@ -217,7 +217,6 @@ describe('QrSyncController', () => {
       expect(controller.state.error).toEqual({
         code: 'INVALID_PAYLOAD',
         message: 'QR sync scan payload is not valid JSON.',
-        retryable: false,
       });
     });
 
@@ -235,7 +234,6 @@ describe('QrSyncController', () => {
       expect(controller.state.error).toEqual({
         code: 'INVALID_PAYLOAD',
         message: 'Relay unavailable',
-        retryable: false,
       });
     });
 
@@ -378,7 +376,6 @@ describe('QrSyncController', () => {
         code: 'INVALID_PAYLOAD',
         message:
           'QR sync payload must include a primary mnemonic when onboarding is not completed.',
-        retryable: false,
       });
       expect(controller.state.importPlan).toBeNull();
       expect(walletClient.client.sendResponse).toHaveBeenCalledWith({
@@ -388,7 +385,6 @@ describe('QrSyncController', () => {
           code: 'INVALID_PAYLOAD',
           message:
             'QR sync payload must include a primary mnemonic when onboarding is not completed.',
-          retryable: false,
         },
       });
     });
@@ -443,7 +439,6 @@ describe('QrSyncController', () => {
       const peerError = {
         code: 'SYNC_REJECTED' as const,
         message: 'User rejected sync on extension',
-        retryable: false,
       };
 
       await startSession(controller, walletClient);
@@ -478,7 +473,6 @@ describe('QrSyncController', () => {
       expect(controller.state.error).toEqual({
         code: 'CHANNEL_DISCONNECTED',
         message: 'QR sync connection was lost.',
-        retryable: true,
       });
     });
 
@@ -513,7 +507,6 @@ describe('QrSyncController', () => {
       expect(controller.state.error).toEqual({
         code: 'SYNC_FAILED',
         message: 'Handshake failed',
-        retryable: false,
       });
     });
   });

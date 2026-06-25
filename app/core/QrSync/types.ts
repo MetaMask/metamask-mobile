@@ -64,7 +64,6 @@ export type QrSyncErrorCode =
 export type QrSyncError = {
   code: QrSyncErrorCode;
   message: string;
-  retryable: boolean;
 };
 
 /**
