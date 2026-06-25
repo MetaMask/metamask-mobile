@@ -1,6 +1,9 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeAccounts } from '../../tags.js';
-import { loginAndOpenAccountList } from '../../flows/wallet.flow.js';
+import {
+  loginAndOpenAccountList,
+  waitForWalletHomePlaywright,
+} from '../../flows/wallet.flow.js';
 import { assertAccountCount } from '../../flows/accounts.flow.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
@@ -62,10 +65,7 @@ appiumTest.describe(SmokeAccounts('Create wallet accounts - multi-SRP'), () => {
 
           await AccountListBottomSheet.tapAccountByNameV2('Account 3');
 
-          await Assertions.expectElementToBeVisible(WalletView.container, {
-            description:
-              'WalletView container should be visible after switching account',
-          });
+          await waitForWalletHomePlaywright();
           await Assertions.expectElementToHaveText(
             WalletView.accountName,
             'Account 3',

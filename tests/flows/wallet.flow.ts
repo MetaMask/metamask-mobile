@@ -683,10 +683,7 @@ export const loginAndOpenAccountList = async (
 
   await loginToAppPlaywright(loginOptions);
 
-  await Assertions.expectElementToBeVisible(WalletView.container, {
-    description: 'Wallet should be visible after login',
-    timeout: walletTimeout,
-  });
+  await waitForWalletHomePlaywright(walletTimeout);
 
   await WalletView.tapIdenticon();
 

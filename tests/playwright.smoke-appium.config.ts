@@ -31,6 +31,9 @@ const DEFAULT_IOS_APP =
  * - ANDROID_AVD_NAME — AVD name (default: 'Pixel_5_Pro_API_34')
  * - IOS_SIMULATOR_NAME — simulator name (default: 'iPhone 16 Pro')
  * - IOS_SIMULATOR_UDID — booted sim UDID (CI sets this from prepare-ios-appium-runner)
+ * - IOS_SIMULATOR_POST_BOOT_SETTLE_MS — pause after sim boot before install/tests (CI: 30000)
+ * - IOS_APP_WARM_LAUNCH_SETTLE_MS — prepare-step warm launch dwell time (CI: 15000)
+ * - IOS_PRE_LAUNCH_SETTLE_MS — pause after terminate before Appium relaunch (default: 1500)
  * - APPIUM_SMOKE_SUITE_NAME — CI suite id for per-job report/video paths
  * - PLAYWRIGHT_JSON_OUTPUT_FILE — CI path for Playwright JSON report (always playwright-report.json per job; suite id is the artifact name)
  *

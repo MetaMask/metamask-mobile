@@ -29,6 +29,11 @@ type AndroidIntentExtra = ['s', string, string];
 
 /** Brief pause after force-stopping Android before startActivity (CI emulators). */
 const ANDROID_PRE_LAUNCH_SETTLE_MS = 1500;
+/** Brief pause after terminating iOS before relaunch (mirrors Android pre-launch settle). */
+const IOS_PRE_LAUNCH_SETTLE_MS = Number.parseInt(
+  process.env.IOS_PRE_LAUNCH_SETTLE_MS ?? '1500',
+  10,
+);
 /** Let UiAutomator2 stabilize after Expo dev-client deep link before element queries. */
 const ANDROID_POST_DEEPLINK_SETTLE_MS = 3000;
 /** Cold Metro bundles can exceed 2 min; pre-warm before deep link to avoid DevLauncherError. */
@@ -656,7 +661,12 @@ class PlaywrightUtilities {
     });
 
     logger.debug(`Launching iOS app ${bundleId}`);
-    await drv.terminateApp(bundleId);
+    await drv.terminateApp(bundleId).catch(() => undefined);
+    if (IOS_PRE_LAUNCH_SETTLE_MS > 0) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, IOS_PRE_LAUNCH_SETTLE_MS),
+      );
+    }
 
     await drv.execute('mobile: launchApp', {
       bundleId,
