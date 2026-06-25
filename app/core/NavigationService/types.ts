@@ -3,6 +3,7 @@ import type {
   NavigationProp,
   NavigationState,
 } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
 
 // ============================================================================
@@ -765,6 +766,18 @@ declare global {
  */
 export type AppNavigationProp = Omit<
   NavigationProp<ReactNavigation.RootParamList>,
+  'getState'
+> & {
+  getState(): NavigationState<ReactNavigation.RootParamList> | undefined;
+};
+
+/**
+ * Use when calling stack-only APIs (`replace`, `push`, `pop`, `popToTop`).
+ * Mirrors {@link AppNavigationProp}'s `getState()` override, which accounts for
+ * `getState()` potentially returning undefined when the navigator is not mounted.
+ */
+export type AppStackNavigationProp = Omit<
+  NativeStackNavigationProp<ReactNavigation.RootParamList>,
   'getState'
 > & {
   getState(): NavigationState<ReactNavigation.RootParamList> | undefined;

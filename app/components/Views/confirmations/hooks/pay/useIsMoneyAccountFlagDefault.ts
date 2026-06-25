@@ -5,7 +5,10 @@ import { selectMetaMaskPayFlags } from '../../../../../selectors/featureFlagCont
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { ConfirmationParams } from '../../components/confirm/confirm-component';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../utils/transaction';
+import {
+  getTransactionType,
+  hasTransactionType,
+} from '../../utils/transaction';
 
 const PERPS_PREDICT_TRANSACTION_TYPES: TransactionType[] = [
   TransactionType.perpsDeposit,
@@ -36,9 +39,14 @@ export function useIsMoneyAccountFlagDefault(): boolean {
     PERPS_PREDICT_TRANSACTION_TYPES,
   );
 
+  const effectiveType = getTransactionType(transactionMeta);
+  const sectionForType = effectiveType
+    ? defaultPaySelectedSection?.[effectiveType]
+    : undefined;
+
   return (
     !payWithOption &&
-    defaultPaySelectedSection === 'money-account' &&
+    sectionForType === 'money-account' &&
     !!moneyAccount &&
     isPerpsOrPredict
   );
