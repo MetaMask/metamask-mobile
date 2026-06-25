@@ -109,7 +109,11 @@ const gasFeeToken = (
   ({
     tokenAddress: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
     symbol: 'USDC',
-    transferTransaction: { data: '0xabc', to: '0x90F79bf6EB2c4f870365E785982E1f101E93b906', value: '0x0' },
+    transferTransaction: {
+      data: '0xabc',
+      to: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+      value: '0x0',
+    },
     gas: '0x5208',
     maxFeePerGas: '0x1',
     maxPriorityFeePerGas: '0x2',
@@ -169,9 +173,7 @@ function setupHwSend(
 }
 
 // Wraps setupHwSend + renderHook + act(onConfirm); returns the spy.
-async function renderAndConfirm(
-  opts: Parameters<typeof setupHwSend>[0] = {},
-) {
+async function renderAndConfirm(opts: Parameters<typeof setupHwSend>[0] = {}) {
   const spy = setupHwSend(opts);
   const { result } = renderHook();
   await act(async () => {
@@ -939,7 +941,9 @@ describe('useTransactionConfirm', () => {
       expect(spy).toHaveBeenCalledWith(
         expect.objectContaining({
           type: TransactionType.simpleSend,
-          txParams: expect.objectContaining({ to: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8' }),
+          txParams: expect.objectContaining({
+            to: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+          }),
         }),
       );
       expect(onApprovalConfirm).not.toHaveBeenCalled();
@@ -961,7 +965,9 @@ describe('useTransactionConfirm', () => {
       expect(spy).toHaveBeenCalledWith(
         expect.objectContaining({
           type: TransactionType.tokenMethodTransfer,
-          txParams: expect.objectContaining({ to: '0x15d34AAf54267DB7D7c367839Aaf71A00a2C6A65' }),
+          txParams: expect.objectContaining({
+            to: '0x15d34AAf54267DB7D7c367839Aaf71A00a2C6A65',
+          }),
         }),
       );
       expect(onApprovalConfirm).not.toHaveBeenCalled();
@@ -977,7 +983,11 @@ describe('useTransactionConfirm', () => {
       // handleSmartTransaction) + the appended batchTransactions.
       expect(spy).toHaveBeenCalledWith(
         expect.objectContaining({
-          batchTransactions: [expect.objectContaining({ to: '0x90F79bf6EB2c4f870365E785982E1f101E93b906' })],
+          batchTransactions: [
+            expect.objectContaining({
+              to: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+            }),
+          ],
           txParams: expect.objectContaining({
             gas: '0x5208',
             maxFeePerGas: '0x1',
@@ -992,7 +1002,9 @@ describe('useTransactionConfirm', () => {
       await renderAndConfirm({
         fires: false,
         isHardware: false,
-        txParamsOverride: { from: '0x976EA74026E726554dB657fA54763abd0C3a0aa9' },
+        txParamsOverride: {
+          from: '0x976EA74026E726554dB657fA54763abd0C3a0aa9',
+        },
       });
 
       expect(onApprovalConfirm).toHaveBeenCalled();
@@ -1009,7 +1021,10 @@ describe('useTransactionConfirm', () => {
       await renderAndConfirm({
         fires: false,
         type: TransactionType.contractInteraction,
-        txParamsOverride: { to: '0x15d34AAf54267DB7D7c367839Aaf71A00a2C6A65', value: '0x0' },
+        txParamsOverride: {
+          to: '0x15d34AAf54267DB7D7c367839Aaf71A00a2C6A65',
+          value: '0x0',
+        },
       });
 
       expect(onApprovalConfirm).toHaveBeenCalled();
@@ -1046,7 +1061,11 @@ describe('useTransactionConfirm', () => {
 
       expect(spy).toHaveBeenCalledWith(
         expect.objectContaining({
-          batchTransactions: [expect.objectContaining({ to: '0x90F79bf6EB2c4f870365E785982E1f101E93b906' })],
+          batchTransactions: [
+            expect.objectContaining({
+              to: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+            }),
+          ],
         }),
       );
     });
