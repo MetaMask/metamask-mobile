@@ -59,7 +59,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={jest.fn()}
         onButtonPress={jest.fn()}
       />,
@@ -73,7 +73,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={jest.fn()}
         onButtonPress={jest.fn()}
       />,
@@ -87,7 +87,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={jest.fn()}
         onButtonPress={jest.fn()}
       />,
@@ -101,7 +101,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={0}
+        apyDecimal={0}
         onCardPress={jest.fn()}
         onButtonPress={jest.fn()}
       />,
@@ -115,7 +115,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={jest.fn()}
         onButtonPress={jest.fn()}
       />,
@@ -131,7 +131,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={jest.fn()}
         onButtonPress={jest.fn()}
       />,
@@ -147,7 +147,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={jest.fn()}
         onButtonPress={jest.fn()}
       />,
@@ -164,7 +164,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={jest.fn()}
         onButtonPress={mockOnPress}
       />,
@@ -181,7 +181,7 @@ describe('PotentialEarningsTokenRow', () => {
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
-        apyPercent={20}
+        apyDecimal={0.2}
         onCardPress={mockOnPress}
         onButtonPress={jest.fn()}
       />,

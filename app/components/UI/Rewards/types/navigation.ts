@@ -1,19 +1,29 @@
 import type { RewardsSelectSheetParams } from '../components/RewardsSelectSheet';
 
-export interface RewardsOndoCampaignDetailsParams { campaignId?: string }
+export interface RewardsOndoCampaignDetailsParams {
+  campaignId?: string;
+}
 
 export interface RewardsOndoCampaignWinningParams {
   campaignId: string;
   campaignName?: string;
 }
 
-export interface RewardsSeasonOneCampaignDetailsParams { campaignId?: string }
+export interface RewardsSeasonOneCampaignDetailsParams {
+  campaignId?: string;
+}
 
-export interface RewardsCampaignMechanicsParams { campaignId: string }
+export interface RewardsCampaignMechanicsParams {
+  campaignId: string;
+}
 
-export interface RewardsOndoCampaignLeaderboardParams { campaignId: string }
+export interface RewardsOndoCampaignLeaderboardParams {
+  campaignId: string;
+}
 
-export interface RewardsOndoCampaignPortfolioParams { campaignId: string }
+export interface RewardsOndoCampaignPortfolioParams {
+  campaignId: string;
+}
 
 export interface RewardsOndoCampaignStatsParams {
   campaignId: string;
@@ -29,9 +39,13 @@ export interface RewardsOndoRwaAssetSelectorParams {
   campaignId: string;
 }
 
-export interface RewardsCampaignTourStepParams { campaignId: string }
+export interface RewardsCampaignTourStepParams {
+  campaignId: string;
+}
 
-export interface RewardsPerpsTradingCampaignDetailsParams { campaignId?: string }
+export interface RewardsPerpsTradingCampaignDetailsParams {
+  campaignId?: string;
+}
 
 export interface RewardsPerpsTradingCampaignWinningParams {
   campaignId: string;
@@ -42,7 +56,9 @@ export interface RewardsPerpsTradingCampaignLeaderboardParams {
   campaignId: string;
 }
 
-export interface RewardsPerpsTradingCampaignStatsParams { campaignId: string }
+export interface RewardsPerpsTradingCampaignStatsParams {
+  campaignId: string;
+}
 
 export interface RewardsPredictThePitchCampaignDetailsParams {
   campaignId?: string;
@@ -61,7 +77,9 @@ export interface RewardsPredictThePitchCampaignPortfolioParams {
   campaignId: string;
 }
 
-export interface RewardsPredictThePitchCampaignStatsParams { campaignId: string }
+export interface RewardsPredictThePitchCampaignStatsParams {
+  campaignId: string;
+}
 
 /** Param list for screens registered in RewardsNavigator. */
 export interface RewardsNavigationParamList {

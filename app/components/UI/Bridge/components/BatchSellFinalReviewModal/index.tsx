@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useDispatch, useSelector } from 'react-redux';
@@ -290,8 +290,7 @@ function NetworkFeeRow({
 
 export function BatchSellFinalReviewModal() {
   const dispatch = useDispatch();
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const selectedTokens = useSelector(selectBatchSellSourceTokens);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
   const batchSellQuoteData = useBatchSellQuoteData({

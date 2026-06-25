@@ -88,6 +88,32 @@ export interface PositionLines {
 }
 
 /**
+ * A point marker rendered on the chart at an exact `(time, price)` using the
+ * Drawing API circle icon. Used to surface trade entries/exits (e.g. Social
+ * Trading open/close circles). `intent` selects the color: `'enter'` → success
+ * (green), `'exit'` → error (red).
+ *
+ * `price` is optional. When omitted, the WebView snaps the marker's Y to the
+ * interpolated close of the rendered line at `time`. When provided it is used
+ * only as a fallback for trades whose candle is outside the currently-loaded
+ * data window (the WebView's `interpolateCloseAlongLineAtTimeMs` always takes
+ * precedence when it yields a finite value).
+ */
+export interface TradeMarker {
+  /** Unix timestamp in **milliseconds** (matches OHLCVBar.time). */
+  time: number;
+  /**
+   * Optional Y anchor. Omit to let the WebView snap to the line automatically.
+   * Only used as a fallback when the trade's candle is outside loaded data.
+   */
+  price?: number;
+  /** `'enter'` = buy/open (green); `'exit'` = sell/close (red). */
+  intent: 'enter' | 'exit';
+  /** Stable id used as the React key and to track the created shape entity. */
+  id: string;
+}
+
+/**
  * Crosshair OHLC data forwarded from the WebView when the user
  * scrubs over the chart. Mirrors the Perps OhlcData contract.
  */
@@ -196,10 +222,13 @@ export type RNToWebViewMessageType =
   | 'SET_LINE_CHROME'
   | 'SET_SUB_PANE_LAYOUT'
   | 'SET_POSITION_LINES'
+  | 'SET_TRADE_MARKERS'
   | 'REALTIME_UPDATE'
   | 'TOGGLE_VOLUME'
   | 'SET_MA_VISIBILITY'
-  | 'SET_THEME_COLORS';
+  | 'SET_THEME_COLORS'
+  | 'FOCUS_TIME'
+  | 'PULSE_TRADE_MARKER';
 
 export type WebViewToRNMessageType =
   | 'CHART_READY'
@@ -208,6 +237,7 @@ export type WebViewToRNMessageType =
   | 'INDICATOR_REMOVED'
   | 'LEGEND_RENDERED'
   | 'CROSSHAIR_MOVE'
+  | 'TRADE_MARKER_PRESSED'
   | 'ERROR'
   | 'DEBUG';
 
@@ -253,6 +283,11 @@ export interface SetChartTypePayload {
 
 export interface SetPositionLinesPayload {
   position: PositionLines | null;
+}
+
+export interface SetTradeMarkersPayload {
+  /** Markers to render. Empty array (or null) clears all existing markers. */
+  markers: TradeMarker[] | null;
 }
 
 export interface RealtimeUpdatePayload {
@@ -305,6 +340,23 @@ export interface ChartLabelStyleOverrides {
   legendTextColor?: string;
 }
 
+export interface FocusTimePayload {
+  /** Center the viewport on this point in time (Unix timestamp in **milliseconds**). */
+  timeMs: number;
+  /**
+   * Visible span (ms) to apply while centering. Omitted → keep the current zoom
+   * so the chart simply slides to the point at the same scale.
+   */
+  spanMs?: number;
+  /** Smoothly animate the scroll (default `true`); `false` jumps instantly. */
+  animate?: boolean;
+}
+
+export interface PulseTradeMarkerPayload {
+  /** `id` of the trade marker to pulse (matches {@link TradeMarker.id}). No-op if not found. */
+  id: string;
+}
+
 export type RNToWebViewMessage =
   | { type: 'SET_OHLCV_DATA'; payload: SetOHLCVDataPayload }
   | { type: 'ADD_INDICATOR'; payload: AddIndicatorPayload }
@@ -313,10 +365,13 @@ export type RNToWebViewMessage =
   | { type: 'SET_LINE_CHROME'; payload: SetLineChromePayload }
   | { type: 'SET_SUB_PANE_LAYOUT'; payload: SetSubPaneLayoutPayload }
   | { type: 'SET_POSITION_LINES'; payload: SetPositionLinesPayload }
+  | { type: 'SET_TRADE_MARKERS'; payload: SetTradeMarkersPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
   | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload }
   | { type: 'SET_MA_VISIBILITY'; payload: SetMAVisibilityPayload }
-  | { type: 'SET_THEME_COLORS'; payload: SetThemeColorsPayload };
+  | { type: 'SET_THEME_COLORS'; payload: SetThemeColorsPayload }
+  | { type: 'FOCUS_TIME'; payload: FocusTimePayload }
+  | { type: 'PULSE_TRADE_MARKER'; payload: PulseTradeMarkerPayload };
 
 export interface IndicatorAddedPayload {
   name: IndicatorType;
@@ -337,6 +392,11 @@ export interface ChartInteractedPayload {
   interaction_type: ChartInteractionType;
 }
 
+export interface TradeMarkerPressedPayload {
+  /** `id` of the tapped trade marker (matches {@link TradeMarker.id}). */
+  id: string;
+}
+
 export interface ErrorPayload {
   message: string;
   code?: string;
@@ -349,6 +409,7 @@ export type WebViewToRNMessage =
   | { type: 'INDICATOR_REMOVED'; payload: IndicatorRemovedPayload }
   | { type: 'LEGEND_RENDERED' }
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
+  | { type: 'TRADE_MARKER_PRESSED'; payload: TradeMarkerPressedPayload }
   | { type: 'CHART_INTERACTED'; payload: ChartInteractedPayload }
   | { type: 'CHART_TRADINGVIEW_CLICKED'; payload?: { url?: string } }
   | { type: 'ERROR'; payload: ErrorPayload }
@@ -416,6 +477,12 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
               : null,
         },
       };
+
+    case 'TRADE_MARKER_PRESSED':
+      if (typeof obj.id === 'string' && obj.id.length > 0) {
+        return { type, payload: { id: obj.id } };
+      }
+      return null;
 
     case 'CHART_INTERACTED':
       if (
@@ -500,6 +567,12 @@ export interface AdvancedChartProps {
   selectedMAs?: string[];
   /** Position lines to overlay (Perps). Set to undefined to clear. */
   positionLines?: PositionLines;
+  /**
+   * Trade markers (open/close circles) to overlay at exact `(time, price)`
+   * points — e.g. Social Trading entries/exits. Set to undefined or an empty
+   * array to clear. Synced declaratively via useEffect.
+   */
+  tradeMarkers?: TradeMarker[];
 
   /** Initial chart type */
   chartType?: ChartType;
@@ -562,6 +635,12 @@ export interface AdvancedChartProps {
   /** Crosshair OHLC data callback (for overlay legend) */
   onCrosshairMove?: (data: CrosshairData | null) => void;
   /**
+   * Fired when the user taps a trade marker (open/close circle) on the chart.
+   * Receives the marker's `id` (matches {@link TradeMarker.id}). Powers the
+   * reverse interaction: tapping a circle scrolls the trades list to that trade.
+   */
+  onTradeMarkerPress?: (id: string) => void;
+  /**
    * User-driven chart interaction from the WebView: zoom (bar spacing), pan (visible range), or
    * crosshair tooltip (first OHLC payload per crosshair session). Suppressed during data reloads.
    */
@@ -618,6 +697,14 @@ export interface AdvancedChartProps {
    * When omitted or `enabled: false`, the native TV legend is used as-is.
    */
   legendOverlay?: LegendOverlayConfig;
+
+  /**
+   * When true, the chart surface stops capturing touches (`pointerEvents="none"`)
+   * so gestures fall through to whatever scrolls behind it. Used when the chart is
+   * pinned as a scroll-linked overlay (e.g. Trader Position): once pinned, drags on
+   * the chart must scroll the list underneath rather than pan the WebView.
+   */
+  scrollPassthrough?: boolean;
 }
 
 export interface LegendPlotConfig {
@@ -653,4 +740,18 @@ export interface AdvancedChartRef {
   removeIndicator: (indicator: IndicatorType) => void;
   setChartType: (chartType: ChartType) => void;
   reset: () => void;
+  /**
+   * Slide the viewport so `timeMs` (Unix ms) is centered. By default keeps the
+   * current zoom and animates; pass `spanMs` to set the zoom and `animate: false`
+   * to jump. No-op until the chart is ready.
+   */
+  focusTime: (
+    timeMs: number,
+    options?: { spanMs?: number; animate?: boolean },
+  ) => void;
+  /**
+   * Briefly pulse the trade marker with this `id` (matches {@link TradeMarker.id})
+   * to draw attention to it. No-op if no such marker exists or the chart isn't ready.
+   */
+  pulseTradeMarker: (id: string) => void;
 }
