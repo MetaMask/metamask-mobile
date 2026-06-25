@@ -1079,6 +1079,54 @@ describe('AdvancedChart', () => {
     );
   });
 
+  it('sends SET_SUB_PANE_LAYOUT with null by default after CHART_READY', () => {
+    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_SUB_PANE_LAYOUT',
+        payload: { heightRatio: null },
+      }),
+    );
+  });
+
+  it('sends SET_SUB_PANE_LAYOUT when subPaneHeightRatio prop is set', () => {
+    const { getByTestId } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} subPaneHeightRatio={0.25} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_SUB_PANE_LAYOUT',
+        payload: { heightRatio: 0.25 },
+      }),
+    );
+  });
+
   it('sends SET_CHART_TYPE when chartType prop changes', () => {
     const { getByTestId, rerender } = render(
       <AdvancedChart ohlcvData={MOCK_BARS} chartType={ChartType.Candles} />,
@@ -1157,6 +1205,14 @@ describe('AdvancedChart', () => {
     });
 
     expect(onChartReady).toHaveBeenCalledTimes(2);
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_LAYOUT_SETTLED', payload: {} }),
+        },
+      });
+    });
 
     const addIndicatorCall = mockPostMessage.mock.calls.find((call) => {
       const parsed = JSON.parse(call[0] as string);

@@ -4,6 +4,7 @@ import { useTransactionDetails } from '../../../hooks/activity/useTransactionDet
 import {
   TransactionMeta,
   TransactionType,
+  CHAIN_IDS,
 } from '@metamask/transaction-controller';
 import { TransactionDetailsHero } from './transaction-details-hero';
 import { merge } from 'lodash';
@@ -271,6 +272,28 @@ describe('TransactionDetailsHero', () => {
     expect(getByText('$123.46')).toBeDefined();
   });
 
+  it('renders single-row token hero for cross-token moneyAccountWithdraw outside money context', () => {
+    jest.mocked(selectTransactionsByIds).mockReturnValue([]);
+
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        ...TRANSACTION_META_MOCK,
+        type: TransactionType.moneyAccountWithdraw,
+        metamaskPay: {
+          tokenAddress: TOKEN_ADDRESS_MOCK,
+          chainId: CHAIN_ID_MOCK,
+          targetFiat: '200.00',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText, queryByText } = render();
+
+    expect(getByText(/200\.00 mUSD/)).toBeDefined();
+    expect(queryByText('You sent')).toBeNull();
+    expect(queryByText('You received')).toBeNull();
+  });
+
   describe('money context (isMoneyContext = true)', () => {
     const useIsMoneyAccountContextMock = jest.mocked(useIsMoneyAccountContext);
     const selectTransactionsByIdsMock = jest.mocked(selectTransactionsByIds);
@@ -365,7 +388,7 @@ describe('TransactionDetailsHero', () => {
       ).toBeDefined();
     });
 
-    it('renders two-asset hero for moneyAccountWithdraw with swapped sent/received', () => {
+    it('renders two-asset hero for cross-chain moneyAccountWithdraw', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -386,6 +409,96 @@ describe('TransactionDetailsHero', () => {
       expect(getByText(/\+123\.46 TST/)).toBeDefined();
     });
 
+    it('renders single-row hero with Money Account icon for mUSD-to-mUSD moneyAccountWithdraw', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountWithdraw,
+          chainId: CHAIN_IDS.MONAD,
+          metamaskPay: {
+            tokenAddress: MUSD_TOKEN_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            targetFiat: '200.00',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText, getByTestId, queryByText } = render();
+
+      expect(getByText(/-200\.00 mUSD/)).toBeDefined();
+      expect(getByTestId('money-account-icon')).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
+    });
+
+    it('renders single-row hero for cross-chain mUSD moneyAccountWithdraw', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountWithdraw,
+          chainId: CHAIN_IDS.LINEA_MAINNET,
+          metamaskPay: {
+            tokenAddress: MUSD_TOKEN_ADDRESS,
+            chainId: CHAIN_IDS.LINEA_MAINNET,
+            targetFiat: '0.10',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText, getByTestId, queryByText } = render();
+
+      expect(getByText(/-0\.10 mUSD/)).toBeDefined();
+      expect(getByTestId('money-account-icon')).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
+    });
+
+    it('renders two-asset hero for perpsWithdraw with USDC as sent and mUSD as received', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.perpsWithdraw,
+          metamaskPay: {
+            tokenAddress: TOKEN_ADDRESS_MOCK,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '50.00',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('You sent')).toBeDefined();
+      expect(
+        getByText(new RegExp(`-123\\.46 ${ARBITRUM_USDC.symbol}`)),
+      ).toBeDefined();
+      expect(getByText('You received')).toBeDefined();
+      expect(getByText(/\+50\.00 mUSD/)).toBeDefined();
+    });
+
+    it('renders two-asset hero for predictWithdraw with pUSD as sent and mUSD as received', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.predictWithdraw,
+          metamaskPay: {
+            tokenAddress: TOKEN_ADDRESS_MOCK,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '10.00',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('You sent')).toBeDefined();
+      expect(
+        getByText(new RegExp(`-123\\.46 ${POLYGON_PUSD.symbol}`)),
+      ).toBeDefined();
+      expect(getByText('You received')).toBeDefined();
+      expect(getByText(/\+10\.00 mUSD/)).toBeDefined();
+    });
+
     it('renders fiat deposit hero with green + prefix for moneyAccountDeposit with fiat orderId', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
@@ -398,9 +511,53 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { getByText } = render();
+      const { getByText, queryByText } = render();
 
       expect(getByText(/\+100\.00 mUSD/)).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
+    });
+
+    it('renders single-row mUSD deposit hero with Money Account icon', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountDeposit,
+          metamaskPay: {
+            tokenAddress: MUSD_TOKEN_ADDRESS,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '50.12',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText, getByTestId, queryByText } = render();
+
+      expect(getByTestId('money-account-icon')).toBeDefined();
+      expect(getByText(/\+50\.12 mUSD/)).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
+    });
+
+    it('renders two-asset hero for crypto moneyAccountDeposit conversion', () => {
+      useTransactionDetailsMock.mockReturnValue({
+        transactionMeta: {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.moneyAccountDeposit,
+          metamaskPay: {
+            tokenAddress: TOKEN_ADDRESS_MOCK,
+            chainId: CHAIN_ID_MOCK,
+            targetFiat: '123.46',
+          },
+        } as unknown as TransactionMeta,
+      });
+
+      const { getByText } = render();
+
+      expect(getByText('You sent')).toBeDefined();
+      expect(getByText(/-123\.46 TST/)).toBeDefined();
+      expect(getByText('You received')).toBeDefined();
+      expect(getByText(/\+123\.46 mUSD/)).toBeDefined();
     });
 
     it('renders null for unsupported type in money context', () => {

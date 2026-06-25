@@ -10,10 +10,12 @@ import {
   selectMoneyDepositMinBalance,
   selectMoneyAccountGeoBlockedCountries,
   DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES,
+  selectMoneyCardActivityCashbackMultisendContracts,
   selectMoneyNoFeeDepositTokens,
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
   selectMoneyVaultApyRemoteConfig,
 } from './featureFlags';
+import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {},
@@ -416,6 +418,50 @@ describe('selectMoneyDepositMinBalance', () => {
     const result = selectMoneyDepositMinBalance(state as never);
 
     expect(result).toBe(0.01);
+  });
+});
+
+describe('selectMoneyCardActivityCashbackMultisendContracts', () => {
+  it('returns the remote contract list when valid', () => {
+    const contracts = [
+      '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+      '0x00000000000000000000000000000000000000aa',
+    ];
+    const state = createState({
+      moneyCardActivityCashbackMultisendContracts: contracts,
+    });
+
+    const result = selectMoneyCardActivityCashbackMultisendContracts(
+      state as never,
+    );
+
+    expect(result).toEqual(contracts);
+  });
+
+  it('falls back to the default contract list when remote flag is absent', () => {
+    const state = createState({});
+
+    const result = selectMoneyCardActivityCashbackMultisendContracts(
+      state as never,
+    );
+
+    expect(result).toEqual([
+      ...DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS,
+    ]);
+  });
+
+  it('falls back to the default contract list when remote flag is invalid', () => {
+    const state = createState({
+      moneyCardActivityCashbackMultisendContracts: ['not-an-address', 123],
+    });
+
+    const result = selectMoneyCardActivityCashbackMultisendContracts(
+      state as never,
+    );
+
+    expect(result).toEqual([
+      ...DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS,
+    ]);
   });
 });
 

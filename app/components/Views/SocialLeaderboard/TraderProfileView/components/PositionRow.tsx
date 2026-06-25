@@ -31,12 +31,14 @@ export interface PositionRowProps {
    * profile's Closed tab). Falls back to {@link isClosedPosition} when omitted.
    */
   isClosed?: boolean;
+  showTradeDate?: boolean;
 }
 
 const PositionRow: React.FC<PositionRowProps> = ({
   position,
   onPress,
   isClosed: isClosedProp,
+  showTradeDate,
 }) => {
   // Honor main's spot closed-detection; the explicit prop (from the profile's
   // Open/Closed tab) overrides it, which perps rely on.
@@ -181,7 +183,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
             color={TextColor.TextAlternative}
             numberOfLines={1}
           >
-            {isClosed
+            {isClosed || showTradeDate
               ? formatTradeDate(position.lastTradeAt)
               : `${formatTokenAmount(
                   isPerp

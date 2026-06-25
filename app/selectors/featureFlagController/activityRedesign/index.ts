@@ -6,3 +6,11 @@ export const selectIsActivityRedesignEnabled = createSelector(
   (remoteFeatureFlags): boolean =>
     remoteFeatureFlags.tmcuActivityRedesignEnabled === true,
 );
+
+export const selectIsTransactionsRedesignEnabled = createSelector(
+  selectIsActivityRedesignEnabled,
+  selectRemoteFeatureFlags,
+  (isActivityRedesignEnabled, remoteFeatureFlags): boolean =>
+    isActivityRedesignEnabled &&
+    remoteFeatureFlags.tmcuTransactionsRedesignEnabled === true,
+);

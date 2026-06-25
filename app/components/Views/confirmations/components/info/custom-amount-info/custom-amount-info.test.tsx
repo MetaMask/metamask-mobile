@@ -44,7 +44,8 @@ import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
-
+import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
+import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
@@ -77,6 +78,7 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 }));
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../hooks/pay/useMoneyNoFeeTokens');
+jest.mock('../../../hooks/pay/sections/usePayWithMoneyAccountSection');
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -266,6 +268,9 @@ describe('CustomAmountInfo', () => {
     useClearConfirmationOnBackSwipe,
   );
   const useMoneyNoFeeTokensMock = jest.mocked(useMoneyNoFeeTokens);
+  const usePayWithMoneyAccountSectionMock = jest.mocked(
+    usePayWithMoneyAccountSection,
+  );
   const setIsConfirmationSubmittingMock = jest.fn();
 
   const useRouteMock = jest.mocked(useRoute);
@@ -366,6 +371,7 @@ describe('CustomAmountInfo', () => {
     } as never);
 
     useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: false });
+    usePayWithMoneyAccountSectionMock.mockReturnValue(null);
   });
 
   it('renders amount', () => {
@@ -469,6 +475,24 @@ describe('CustomAmountInfo', () => {
     expect(
       getByText(strings('confirm.custom_amount.buy_button')),
     ).toBeDefined();
+  });
+
+  it('does not render buy button when money account is available', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
+
+    usePayWithMoneyAccountSectionMock.mockReturnValue({
+      id: 'money-account',
+      title: '',
+      testID: 'pay-with-section-money-account',
+      rows: [],
+    });
+
+    const { queryByText } = render();
+
+    expect(queryByText(strings('confirm.custom_amount.buy_button'))).toBeNull();
   });
 
   it('navigates to ramps if buy button pressed', () => {
