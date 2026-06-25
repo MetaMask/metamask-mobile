@@ -116,20 +116,30 @@ describe('TransactionDetailsSheet', () => {
 
   it('uses live transaction from Redux when transaction id matches', () => {
     const routeTransaction = createTransaction({
+      id: 'route-tx-id',
       time: 1111,
       status: TransactionStatus.submitted,
       txParams: { nonce: '0x1' },
     });
+    const otherLiveTransaction = createTransaction({
+      id: 'other-tx-id',
+      time: 9999,
+      status: TransactionStatus.confirmed,
+      hash: '0xotherlivehash',
+      txParams: { nonce: '0x3' },
+    });
     const liveTransaction = createTransaction({
+      id: routeTransaction.id,
       time: 2222,
       status: TransactionStatus.confirmed,
       hash: '0xlivehash',
       txParams: { nonce: '0x2' },
     });
 
-    renderSheet([liveTransaction], routeTransaction);
+    renderSheet([otherLiveTransaction, liveTransaction], routeTransaction);
 
     expect(screen.getAllByText('formatted-2222')).toHaveLength(2);
+    expect(screen.queryByText('formatted-9999')).not.toBeOnTheScreen();
     expect(screen.queryByText('formatted-1111')).not.toBeOnTheScreen();
   });
 
