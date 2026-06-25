@@ -836,7 +836,7 @@
   "previewBuilds": {
     "@metamask/transaction-pay-controller": {
       "type": "non-breaking",
-      "previewVersion": "23.16.1-preview-0e62f8959"
+      "previewVersion": "23.16.1-preview-1ec310ea7"
     }
   }
 }
