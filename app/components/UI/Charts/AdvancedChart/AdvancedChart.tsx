@@ -99,6 +99,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onChartTradingViewClicked,
       isLoading = false,
       lineChrome,
+      subPaneHeightRatio,
       visibleFromMs,
       visibleToMs,
       lineColorOverride,
@@ -733,6 +734,14 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         payload: resolveLineChromeOptions(lineChrome),
       });
     }, [lineChrome, chartReadyCount, postMessage]);
+
+    useEffect(() => {
+      if (chartReadyCount === 0) return;
+      postMessage({
+        type: 'SET_SUB_PANE_LAYOUT',
+        payload: { heightRatio: subPaneHeightRatio ?? null },
+      });
+    }, [subPaneHeightRatio, chartReadyCount, postMessage]);
 
     // Hot-swap chart colors via postMessage whenever overrides change.
     // Gates on webViewLoaded (not chartReady) so messages sent during chart
