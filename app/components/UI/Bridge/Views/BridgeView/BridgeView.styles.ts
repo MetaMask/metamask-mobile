@@ -18,6 +18,14 @@ export const createStyles = (params: { theme: Theme }) => {
       paddingVertical: 12,
       paddingHorizontal: 16,
     },
+    inputCardsWrapper: {
+      position: 'relative',
+    },
+    tokenCard: {
+      backgroundColor: theme.colors.background.alternative,
+      borderRadius: 16,
+      padding: 12,
+    },
     buttonContainer: {
       width: '100%',
       paddingHorizontal: 16,

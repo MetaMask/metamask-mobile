@@ -1,8 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useRef, useState } from 'react';
 import { useStyles } from '../../../../../component-library/hooks';
 import { createStyles } from './styles';
 import { Box } from '../../../Box/Box';
-import { TouchableOpacity, View } from 'react-native';
+import { Animated, Easing, TouchableOpacity } from 'react-native';
 import Icon, {
   IconName,
 } from '../../../../../component-library/components/Icons/Icon';
@@ -19,6 +19,7 @@ interface Props {
 
 export const FLipQuoteButton = ({ onPress, disabled }: Props) => {
   const [pressed, setPressed] = useState(false);
+  const rotationValue = useRef(new Animated.Value(0)).current;
   const { styles } = useStyles(createStyles, {
     disabled,
     pressed,
@@ -32,13 +33,28 @@ export const FLipQuoteButton = ({ onPress, disabled }: Props) => {
     setPressed(false);
   }, [setPressed]);
 
+  const triggerOnPress = useCallback(() => {
+    rotationValue.setValue(0);
+    Animated.timing(rotationValue, {
+      toValue: 1,
+      duration: 300,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: true,
+    }).start();
+    onPress();
+  }, [onPress, rotationValue]);
+
+  const rotate = rotationValue.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0deg', '360deg'],
+  });
+
   return (
     <Box style={styles.arrowContainer}>
-      <View style={styles.separator} />
       <Box style={styles.arrowCircle}>
         <TouchableOpacity
           style={styles.button}
-          onPress={!disabled ? onPress : undefined}
+          onPress={!disabled ? triggerOnPress : undefined}
           onPressIn={!disabled ? triggerOnPressedIn : undefined}
           onPressOut={!disabled ? triggerOnPressedOut : undefined}
           disabled={disabled}
@@ -46,11 +62,13 @@ export const FLipQuoteButton = ({ onPress, disabled }: Props) => {
           activeOpacity={1}
           testID="arrow-button"
         >
-          <Icon
-            name={IconName.SwapVertical}
-            size={ICONSIZE_BY_BUTTONICONSIZE[ButtonIconSizes.Lg]}
-            color={DEFAULT_BUTTONICON_ICONCOLOR}
-          />
+          <Animated.View style={{ transform: [{ rotate }] }}>
+            <Icon
+              name={IconName.Arrow2Down}
+              size={ICONSIZE_BY_BUTTONICONSIZE[ButtonIconSizes.Lg]}
+              color={DEFAULT_BUTTONICON_ICONCOLOR}
+            />
+          </Animated.View>
         </TouchableOpacity>
       </Box>
     </Box>

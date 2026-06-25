@@ -65,7 +65,7 @@ const createStyles = ({
 }) =>
   StyleSheet.create({
     content: {
-      paddingVertical: 16,
+      paddingVertical: 0,
     },
     row: {
       flexDirection: 'row',
@@ -387,6 +387,7 @@ export const TokenInputArea = forwardRef<
                 networkName={networkName}
                 testID={testID}
                 onPress={onTokenPress}
+                isVerified={token?.isVerified}
               />
             ) : (
               <Button
