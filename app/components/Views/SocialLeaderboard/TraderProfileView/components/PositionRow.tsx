@@ -1,27 +1,27 @@
-import React from 'react';
-import { TouchableOpacity } from 'react-native';
 import {
   Box,
-  Text,
-  TextVariant,
-  FontWeight,
-  TextColor,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import type { Position } from '@metamask/social-controllers';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
-import PositionTokenAvatar from '../../components/PositionTokenAvatar';
+import type { Position } from '@metamask/social-controllers';
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
 import PerpBadges from '../../components/PerpBadges';
-import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
+import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import {
-  formatUsd,
+  formatPercent,
   formatSignedUsd,
   formatTokenAmount,
-  formatPercent,
   formatTradeDate,
+  formatUsd,
 } from '../../utils/formatters';
+import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
 
 export interface PositionRowProps {
   position: Position;
@@ -31,12 +31,14 @@ export interface PositionRowProps {
    * profile's Closed tab). Falls back to {@link isClosedPosition} when omitted.
    */
   isClosed?: boolean;
+  showTradeDate?: boolean;
 }
 
 const PositionRow: React.FC<PositionRowProps> = ({
   position,
   onPress,
   isClosed: isClosedProp,
+  showTradeDate,
 }) => {
   // Honor main's spot closed-detection; the explicit prop (from the profile's
   // Open/Closed tab) overrides it, which perps rely on.
@@ -132,7 +134,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
         twClassName={pnlColorClass}
         color={pnlColorClass ? undefined : TextColor.TextAlternative}
       >
-        {formatPercent(displayPnlPercent).replace(/^[+-]/, '')}
+        {formatPercent(displayPnlPercent, { showSign: false })}
       </Text>
     </Box>
   );
@@ -181,7 +183,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
             color={TextColor.TextAlternative}
             numberOfLines={1}
           >
-            {isClosed
+            {isClosed || showTradeDate
               ? formatTradeDate(position.lastTradeAt)
               : `${formatTokenAmount(
                   isPerp

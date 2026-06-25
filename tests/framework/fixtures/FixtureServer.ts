@@ -6,6 +6,7 @@ import type { Fixture } from './types.ts';
 import { createLogger } from '../logger.ts';
 import { Resource, ServerStatus } from '../types.ts';
 import PortManager, { ResourceType } from '../PortManager.ts';
+import { resolveE2EWaitTimeoutMs } from '../Constants.ts';
 
 const logger = createLogger({
   name: 'FixtureServer',
@@ -20,7 +21,7 @@ const fixtureSubstitutionCommands = {
   currentDateInMilliseconds: 'currentDateInMilliseconds',
 };
 
-const DEFAULT_STATE_REQUEST_TIMEOUT_MS = 60_000;
+const DEFAULT_STATE_REQUEST_TIMEOUT_MS = resolveE2EWaitTimeoutMs(60_000);
 
 /**
  * Interface for contract registry objects

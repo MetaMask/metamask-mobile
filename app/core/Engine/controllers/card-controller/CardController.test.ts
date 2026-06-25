@@ -2324,33 +2324,6 @@ describe('CardController — data pass-throughs', () => {
     });
   });
 
-  describe('getFundingConfig', () => {
-    it('delegates to provider.getFundingConfig', async () => {
-      const mockConfig = {
-        maxLimit: 1000,
-        fundingOptions: [],
-        supportedChains: [],
-      };
-      const mockGetFundingConfig = jest.fn().mockResolvedValue(mockConfig);
-      const provider = buildMockProvider({
-        getFundingConfig: mockGetFundingConfig,
-      });
-      const { controller } = buildAuthenticatedController(provider);
-
-      const result = await controller.getFundingConfig();
-      expect(result).toStrictEqual(mockConfig);
-    });
-
-    it('throws when provider does not support getFundingConfig', async () => {
-      const provider = buildMockProvider({ getFundingConfig: undefined });
-      const { controller } = buildAuthenticatedController(provider);
-
-      await expect(controller.getFundingConfig()).rejects.toThrow(
-        'Funding config not supported',
-      );
-    });
-  });
-
   describe('fetchDelegationChallenge', () => {
     it('delegates to provider.fetchDelegationChallenge', async () => {
       const mockFetch = jest.fn().mockResolvedValue({
