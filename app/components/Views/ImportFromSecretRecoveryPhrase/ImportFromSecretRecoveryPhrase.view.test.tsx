@@ -28,14 +28,19 @@ import { AccountType } from '../../../constants/onboarding';
 // fires analytics.trackEvent immediately inside the test's act/waitFor boundary.
 // ---------------------------------------------------------------------------
 beforeAll(() => {
-  jest
-    .spyOn(InteractionManager, 'runAfterInteractions')
-    .mockImplementation((callback) => {
+  jest.spyOn(InteractionManager, 'runAfterInteractions').mockImplementation(
+    jest.fn().mockImplementation((callback) => {
       if (typeof callback === 'function') {
         callback();
       }
-      return { cancel: jest.fn() };
-    });
+      return {
+        then: (onfulfilled?: () => void) => Promise.resolve(onfulfilled?.()),
+        done: (onfulfilled?: () => void, onrejected?: () => void) =>
+          Promise.resolve().then(onfulfilled, onrejected),
+        cancel: jest.fn(),
+      };
+    }),
+  );
 });
 
 afterAll(() => {
@@ -110,7 +115,7 @@ describeForPlatforms('import-wallet analytics (CV)', () => {
             typeof e === 'object' &&
             e !== null &&
             'name' in e &&
-            (e as Record<string, unknown>).name ===
+            (e as unknown as Record<string, unknown>).name ===
               'Analytics Preference Selected',
         );
         expect(preferenceEvent).toBeDefined();
@@ -157,7 +162,7 @@ describeForPlatforms('import-wallet analytics (CV)', () => {
             typeof e === 'object' &&
             e !== null &&
             'name' in e &&
-            (e as Record<string, unknown>).name ===
+            (e as unknown as Record<string, unknown>).name ===
               'Analytics Preference Selected',
         );
         expect(preferenceEvent).toBeDefined();

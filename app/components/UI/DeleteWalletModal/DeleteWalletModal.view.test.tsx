@@ -30,7 +30,7 @@ function renderDeleteWalletModal(routeParams: Record<string, unknown> = {}) {
 
   return renderComponentViewScreen(
     DeleteWalletModal as unknown as React.ComponentType,
-    { name: Routes.SETTINGS.DELETE_WALLET },
+    { name: Routes.MODAL.DELETE_WALLET },
     { state },
     routeParams,
   );

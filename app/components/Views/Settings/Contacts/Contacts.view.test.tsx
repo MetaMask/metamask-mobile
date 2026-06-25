@@ -16,8 +16,13 @@ import { strings } from '../../../../../locales/i18n';
 import { NETWORK_LIST_BOTTOM_SHEET } from '../../AddAsset/components/NetworkListBottomSheet/NetworkListBottomSheet';
 import { AddContactViewSelectorsIDs } from './AddContactView.testIds';
 import { ContactsViewSelectorIDs } from './ContactsView.testIds';
-// eslint-disable-next-line import-x/no-namespace -- required for jest.spyOn on doENSLookup
-import * as ENSUtils from '../../../../util/ENSUtils';
+
+const ENSUtilsModule = jest.requireActual('../../../../util/ENSUtils') as {
+  doENSLookup: (
+    ensName: string,
+    chainId?: string,
+  ) => Promise<string | undefined>;
+};
 
 const ENS_NAME = 'ibrahim.team.mask.eth';
 const ENS_RESOLVED_ADDRESS = '0x1234567890aBCdef1234567890abCDef12345678';
@@ -140,7 +145,7 @@ describeForPlatforms('Contacts component views', () => {
   it('resolves an ENS name and saves the contact with the resolved address', async () => {
     // Spy on doENSLookup so no live Infura connection is needed.
     const ensLookupSpy = jest
-      .spyOn(ENSUtils, 'doENSLookup')
+      .spyOn(ENSUtilsModule, 'doENSLookup')
       .mockResolvedValue(ENS_RESOLVED_ADDRESS);
 
     const setContactSpy = jest.spyOn(
@@ -182,7 +187,7 @@ describeForPlatforms('Contacts component views', () => {
 
   it('shows a "could not resolve ENS" error when ENS lookup returns nothing', async () => {
     const ensLookupSpy = jest
-      .spyOn(ENSUtils, 'doENSLookup')
+      .spyOn(ENSUtilsModule, 'doENSLookup')
       .mockResolvedValue(undefined);
 
     const { findByTestId, findByText } = renderContactForm();
