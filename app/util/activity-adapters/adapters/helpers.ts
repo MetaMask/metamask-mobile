@@ -325,37 +325,111 @@ export function getTokenMetadataFromKnownToken(
   };
 }
 
+/**
+ * Finds the fungible/native payment leg of an NFT trade, mirroring the
+ * extension's `getNftPaymentTransfer`. For a buy this is the native/token
+ * amount the subject sent to the seller; for a sell it is the amount the
+ * subject received from the buyer.
+ *
+ * @param params - Resolved NFT trade transfers and counterparty context.
+ * @returns The matching fungible payment transfer, or `undefined`.
+ */
+export function getNftPaymentTransfer({
+  side,
+  sentTransfer,
+  receivedTransfer,
+  sentNativeTransfer,
+  nftCounterparty,
+  transactionFrom,
+  subjectAddress,
+  environment = mobileActivityAdapterEnvironment,
+}: {
+  side: 'buy' | 'sell';
+  sentTransfer?: ValueTransfer;
+  receivedTransfer?: ValueTransfer;
+  sentNativeTransfer?: ValueTransfer;
+  nftCounterparty: string;
+  transactionFrom?: string;
+  subjectAddress: string;
+  environment?: ActivityAdapterEnvironment;
+}): ValueTransfer | undefined {
+  const isFungible = (transfer?: ValueTransfer) =>
+    Boolean(transfer && !isNftTransferType(transfer.transferType));
+
+  if (side === 'buy') {
+    for (const transfer of [sentNativeTransfer, sentTransfer]) {
+      if (!transfer || !isFungible(transfer)) {
+        continue;
+      }
+
+      if (
+        environment.equalsIgnoreCase(transfer.to, nftCounterparty) ||
+        normalizeTransferType(transfer.transferType) === 'normal'
+      ) {
+        return transfer;
+      }
+    }
+
+    return undefined;
+  }
+
+  if (!receivedTransfer || !isFungible(receivedTransfer)) {
+    return undefined;
+  }
+
+  if (
+    environment.equalsIgnoreCase(receivedTransfer.from, nftCounterparty) ||
+    (transactionFrom &&
+      !environment.equalsIgnoreCase(transactionFrom, subjectAddress) &&
+      environment.equalsIgnoreCase(receivedTransfer.from, transactionFrom))
+  ) {
+    return receivedTransfer;
+  }
+
+  return undefined;
+}
+
 export function getTokenAmountFromTransfer(
   transfer: ValueTransfer | undefined,
   direction: TokenAmount['direction'],
   chainId: CaipChainId,
   environment: ActivityAdapterEnvironment = mobileActivityAdapterEnvironment,
 ) {
-  if (!transfer?.symbol && transfer?.amount === undefined) {
+  if (!transfer) {
     return undefined;
   }
 
-  const isNftTransfer = isNftTransferType(transfer?.transferType);
+  const isNftTransfer = isNftTransferType(transfer.transferType);
+  // NFTs carry a collection/token name that's friendlier than the symbol, so
+  // prefer it. Mirrors the extension's `getTokenAmountFromTransfer`.
+  const symbol = isNftTransfer
+    ? transfer.name || transfer.symbol
+    : transfer.symbol;
 
-  const assetId =
-    transfer && !isNftTransfer
-      ? resolveAssetId(
-          chainId,
-          {
-            contractAddress: transfer.contractAddress,
-            transferType: transfer.transferType,
-          },
-          environment,
-        )
-      : undefined;
+  if (!symbol && transfer.amount === undefined) {
+    return undefined;
+  }
+
+  const assetId = !isNftTransfer
+    ? resolveAssetId(
+        chainId,
+        {
+          contractAddress: transfer.contractAddress,
+          transferType: transfer.transferType,
+        },
+        environment,
+      )
+    : undefined;
+
+  // NFT quantities (typically "1") aren't meaningful to display, so omit them.
+  const hasTransferAmount =
+    !isNftTransfer && transfer.amount !== null && transfer.amount !== undefined;
 
   return {
     direction,
-    ...(transfer.amount === null || transfer.amount === undefined
-      ? {}
-      : { amount: String(transfer.amount) }),
+    ...(hasTransferAmount ? { amount: String(transfer.amount) } : {}),
     ...(transfer.decimal === undefined ? {} : { decimals: transfer.decimal }),
-    ...(transfer.symbol ? { symbol: transfer.symbol } : {}),
+    ...(symbol ? { symbol } : {}),
     ...(assetId ? { assetId } : {}),
   };
 }

@@ -25,6 +25,12 @@ jest.mock('../../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: jest.fn(() => ({})),
 }));
 
+// The amount header resolves NFT artwork via redux selectors; stub it so these
+// tests stay focused on template dispatch.
+jest.mock('../../../UI/ActivityListItemRow/useNftActivityImage', () => ({
+  useNftActivityImage: () => undefined,
+}));
+
 const sendItem: ActivityListItem = {
   type: 'send',
   chainId: 'eip155:1',
@@ -133,6 +139,52 @@ const nftItem: ActivityListItem = {
   },
 } as ActivityListItem;
 
+const nftBuyItem: ActivityListItem = {
+  type: 'nftBuy',
+  chainId: 'eip155:1',
+  status: 'success',
+  timestamp: 1,
+  hash: '0xnftbuy',
+  data: {
+    from: '0xseller',
+    to: '0xbuyer',
+    token: {
+      symbol: 'FLUF World: Scenes and Sounds',
+      direction: 'in',
+    },
+    paymentToken: {
+      amount: '89990000000000',
+      decimals: 18,
+      symbol: 'ETH',
+      assetId: 'eip155:1/slip44:60',
+      direction: 'out',
+    },
+  },
+} as ActivityListItem;
+
+const nftSellItem: ActivityListItem = {
+  type: 'nftSell',
+  chainId: 'eip155:1',
+  status: 'success',
+  timestamp: 1,
+  hash: '0xnftsell',
+  data: {
+    from: '0xseller',
+    to: '0xrecipient',
+    token: {
+      symbol: 'BAE',
+      direction: 'out',
+    },
+    paymentToken: {
+      amount: '1000000000000000',
+      decimals: 18,
+      symbol: 'ETH',
+      assetId: 'eip155:1/slip44:60',
+      direction: 'in',
+    },
+  },
+} as ActivityListItem;
+
 const claimMusdBonusItem: ActivityListItem = {
   type: 'claimMusdBonus',
   chainId: 'eip155:59144',
@@ -208,7 +260,9 @@ describe('TemplateLoader', () => {
     ['swap', swapItem],
     ['bridge', bridgeItem],
     ['approval', approvalItem],
-    ['nft', nftItem],
+    ['nft mint', nftItem],
+    ['nft buy', nftBuyItem],
+    ['nft sell', nftSellItem],
     ['contract interaction', contractItem],
     ['claim mUSD bonus', claimMusdBonusItem],
   ])('renders the %s details template', (_type, item) => {

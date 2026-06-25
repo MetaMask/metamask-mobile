@@ -33,6 +33,8 @@ export type ActivityKind =
   | 'contractDeployment'
   | 'bridge'
   | 'convert'
+  | 'nftBuy'
+  | 'nftSell'
   | 'smartAccountUpgrade'
   | 'lendingDeposit'
   | 'lendingWithdrawal'
@@ -160,11 +162,14 @@ export type ActivityListItem =
       }
     >
   | ActivityData<
-      'nftMint',
+      'nftBuy' | 'nftMint' | 'nftSell',
       {
-        from: string;
-        to: string;
+        from?: string;
+        to?: string;
+        // The NFT being minted, bought, or sold.
         token?: TokenAmount;
+        // The fungible/native asset paid (buy) or received (sell). Undefined for mints.
+        paymentToken?: TokenAmount;
         fees?: ActivityFee[];
       }
     >

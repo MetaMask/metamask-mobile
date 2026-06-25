@@ -8,6 +8,7 @@ export function resolveIconType(type: ActivityKind): string {
   switch (type) {
     case 'send':
     case 'sell':
+    case 'nftSell':
     case 'lendingDeposit':
     case 'deposit':
     case 'wrap':
@@ -16,6 +17,7 @@ export function resolveIconType(type: ActivityKind): string {
       return 'send';
     case 'receive':
     case 'buy':
+    case 'nftBuy':
     case 'claim':
     case 'claimMusdBonus':
     case 'lendingWithdrawal':

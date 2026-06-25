@@ -1059,10 +1059,9 @@ describe('ActivityListItemRow — row content', () => {
 
   it('renders nameless NFT buys as Bought NFT without a primary amount', () => {
     const item = makeItem({
-      type: 'buy',
+      type: 'nftBuy',
       status: 'success',
       token: {
-        amount: '1',
         direction: 'in',
       },
     });
@@ -1074,6 +1073,73 @@ describe('ActivityListItemRow — row content', () => {
       'Bought NFT',
     );
     expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
+  it('renders a named NFT buy with the collection name and the amount paid', () => {
+    const item: ActivityListItem = {
+      type: 'nftBuy',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xabc',
+      data: {
+        from: '0xseller',
+        to: '0xbuyer',
+        token: {
+          direction: 'in',
+          symbol: 'FLUF World: Scenes and Sounds',
+        },
+        paymentToken: {
+          amount: '89990000000000',
+          decimals: 18,
+          direction: 'out',
+          symbol: 'ETH',
+          assetId: 'eip155:1/slip44:60',
+        },
+      },
+    } as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Bought FLUF World: Scenes and Sounds',
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-0.00008999 ETH',
+    );
+  });
+
+  it('renders a named NFT sale with the collection name and the amount received', () => {
+    const item: ActivityListItem = {
+      type: 'nftSell',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xabc',
+      data: {
+        from: '0xseller',
+        to: '0xrecipient',
+        token: { direction: 'out', symbol: 'BAE' },
+        paymentToken: {
+          amount: '1000000000000000',
+          decimals: 18,
+          direction: 'in',
+          symbol: 'ETH',
+          assetId: 'eip155:1/slip44:60',
+        },
+      },
+    } as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe('Sold BAE');
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+0.001 ETH',
+    );
   });
 
   it('shortens long crypto decimals in token amounts', () => {
@@ -1327,7 +1393,9 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'increaseSpendingCap',
   'lendingDeposit',
   'lendingWithdrawal',
+  'nftBuy',
   'nftMint',
+  'nftSell',
   'contractInteraction',
   'contractDeployment',
   'smartAccountUpgrade',
@@ -1374,7 +1442,9 @@ const EXPECTED_TITLES = {
   increaseSpendingCap: 'Increased spending cap',
   lendingDeposit: strings('transactions.tx_review_lending_deposit'),
   lendingWithdrawal: strings('transactions.tx_review_lending_withdraw'),
+  nftBuy: 'Bought NFT',
   nftMint: strings('transactions.activity_nft_mint'),
+  nftSell: 'Sold NFT',
   contractInteraction: strings('transactions.smart_contract_interaction'),
   contractDeployment: strings('transactions.tx_review_contract_deployment'),
   smartAccountUpgrade: 'Smart account upgraded',

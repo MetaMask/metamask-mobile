@@ -51,6 +51,17 @@ function TokenAvatar({
   }, [tokenImageSources]);
 
   if (tokens.length === 0) {
+    // A nameless NFT yields no avatar token, but we may still have resolved its
+    // artwork via `iconUrl` — prefer that over the generic fallback icon.
+    if (iconUrl) {
+      return (
+        <AvatarToken
+          imageSource={{ uri: iconUrl }}
+          size={AvatarSize.Md}
+          isIpfsGatewayCheckBypassed
+        />
+      );
+    }
     return (
       <Image source={fallbackIcon} style={styles.icon} resizeMode="stretch" />
     );

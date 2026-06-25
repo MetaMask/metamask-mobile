@@ -42,7 +42,9 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'contractInteraction',
     'contractDeployment',
     'smartAccountUpgrade',
+    'nftBuy',
     'nftMint',
+    'nftSell',
   ]),
   [ActivityTypeFilter.BuySell]: new Set<ActivityKind>([
     'buy',
