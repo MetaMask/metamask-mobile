@@ -16,7 +16,13 @@ export interface AddPrecreatedOrderParams {
 }
 
 export interface UseRampsOrdersResult {
+  /** Ramp order lists (e.g. OrdersList). Scoped to the selected account group. */
   orders: RampsOrder[];
+  /**
+   * Resolves a single cached order by id. Searches all `RampsController`
+   * orders — not scoped to the selected group. Money Home activity rows are
+   * built from `TransactionController`, not this hook.
+   */
   getOrderById: (providerOrderId: string) => RampsOrder | undefined;
   addOrder: (order: RampsOrder) => void;
   addPrecreatedOrder: (params: AddPrecreatedOrderParams) => void;
