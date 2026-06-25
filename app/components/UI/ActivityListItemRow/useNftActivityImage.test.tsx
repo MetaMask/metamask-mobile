@@ -105,6 +105,37 @@ describe('useNftActivityImage', () => {
     expect(mockSelectNftByIdentity).not.toHaveBeenCalled();
   });
 
+  it('selects the NFT leg matching the activity, not the first NFT transfer', () => {
+    // NFT-for-NFT style trade: the subject sends one NFT and receives another.
+    // The received leg (matching the nftBuy from/to) must win over the first
+    // (sent) NFT transfer in the list.
+    const item = makeNftBuyItem([
+      {
+        from: '0xbuyer',
+        to: '0xseller',
+        contractAddress: '0xSENT',
+        tokenId: '1',
+        transferType: 'erc721',
+      },
+      {
+        from: '0xseller',
+        to: '0xbuyer',
+        contractAddress: '0xRECEIVED',
+        tokenId: '2',
+        transferType: 'erc721',
+      },
+    ]);
+
+    renderUseNftActivityImage(item);
+
+    expect(mockSelectNftByIdentity).toHaveBeenCalledWith(
+      expect.anything(),
+      '0xRECEIVED',
+      '2',
+      '0x1',
+    );
+  });
+
   it('looks up the NFT by contract address, token id, and hex chain id', () => {
     renderUseNftActivityImage(makeNftBuyItem());
 

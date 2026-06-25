@@ -21,6 +21,8 @@ interface NftIdentity {
 // Value transfers carry `tokenId` at runtime but it isn't part of the indexed
 // API response type, so widen it locally.
 interface NftValueTransfer {
+  from?: string;
+  to?: string;
   contractAddress?: string;
   tokenId?: string | number;
   transferType?: string;
@@ -29,6 +31,10 @@ interface NftValueTransfer {
 function isNftTransferType(transferType?: string): boolean {
   const normalized = transferType?.toLowerCase();
   return normalized === 'erc721' || normalized === 'erc1155';
+}
+
+function addressesEqual(a?: string, b?: string): boolean {
+  return Boolean(a && b && a.toLowerCase() === b.toLowerCase());
 }
 
 function caipToHexChainId(chainId: string): Hex | undefined {
@@ -50,6 +56,12 @@ function caipToHexChainId(chainId: string): Hex | undefined {
  * the indexed transaction's value transfers (the adapter shape doesn't carry
  * the token id). Returns `undefined` for non-NFT kinds or local/keyring items.
  *
+ * Selects the NFT leg the adapter classified this activity from — matched by the
+ * `from`/`to` it recorded on `item.data` — so a transaction with multiple NFT
+ * transfers (e.g. an NFT-for-NFT trade) resolves the correct token rather than
+ * whichever NFT transfer happens to come first. Falls back to the first NFT
+ * transfer when no leg matches.
+ *
  * @param item - The activity list item.
  * @returns The NFT identity, or `undefined`.
  */
@@ -65,9 +77,15 @@ function getNftIdentity(item: ActivityListItem): NftIdentity | undefined {
   const transfers = item.raw.data.valueTransfers as
     | NftValueTransfer[]
     | undefined;
-  const nftTransfer = transfers?.find(({ transferType }) =>
-    isNftTransferType(transferType),
-  );
+
+  const { from, to } = item.data as { from?: string; to?: string };
+  const nftTransfer =
+    transfers?.find(
+      (transfer) =>
+        isNftTransferType(transfer.transferType) &&
+        addressesEqual(transfer.from, from) &&
+        addressesEqual(transfer.to, to),
+    ) ?? transfers?.find(({ transferType }) => isNftTransferType(transferType));
 
   const contractAddress = nftTransfer?.contractAddress;
   const tokenId = nftTransfer?.tokenId;
