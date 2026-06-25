@@ -130,6 +130,21 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   // Upper bound on cached candles per cacheKey. Matches fetchHistoricalCandles
   // so merge-on-update can't cause unbounded memory growth.
   private static readonly MAX_CACHED_CANDLES = 1000;
+  private static readonly INTERVAL_MS: Partial<Record<string, number>> = {
+    '1m': 60_000,
+    '3m': 3 * 60_000,
+    '5m': 5 * 60_000,
+    '15m': 15 * 60_000,
+    '30m': 30 * 60_000,
+    '1h': 60 * 60_000,
+    '2h': 2 * 60 * 60_000,
+    '4h': 4 * 60 * 60_000,
+    '8h': 8 * 60 * 60_000,
+    '12h': 12 * 60 * 60_000,
+    '1d': 24 * 60 * 60_000,
+    '3d': 3 * 24 * 60 * 60_000,
+    '1w': 7 * 24 * 60 * 60_000,
+  };
   private readonly getIsInitialized: () => boolean;
 
   /**
@@ -181,6 +196,17 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       interval: incoming.interval,
       candles: capped,
     };
+  }
+
+  private static isCacheFresh(data: CandleData, nowMs = Date.now()): boolean {
+    const latestCandle = data.candles.at(-1);
+    const intervalMs = CandleStreamChannel.INTERVAL_MS[data.interval as string];
+    if (!latestCandle || intervalMs === undefined) {
+      return false;
+    }
+
+    // Allow one missed candle plus transport jitter before treating the cache as stale.
+    return nowMs - latestCandle.time <= intervalMs * 2.5;
   }
 
   /**
@@ -311,9 +337,17 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
 
     // Give immediate cached data if available
     const cached = this.cache.get(cacheKey);
-    if (cached) {
+    if (cached && CandleStreamChannel.isCacheFresh(cached)) {
       callback(cached);
       subscription.hasReceivedFirstUpdate = true;
+    } else if (cached) {
+      this.prewarmCandles(symbol, interval, params.duration).catch((error) => {
+        DevLogger.log('CandleStreamChannel: Failed to refresh stale cache', {
+          symbol,
+          interval,
+          error: error instanceof Error ? error.message : String(error),
+        });
+      });
     }
 
     // Ensure WebSocket connected for this symbol+interval
@@ -647,7 +681,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
           newCandles: newUnique.length,
           totalCandles: finalCandles.length,
           oldestTime: finalCandles[0]?.time,
-          newestTime: finalCandles[finalCandles.length - 1]?.time,
+          newestTime: finalCandles.at(-1)?.time,
         },
       );
     } catch (error) {
@@ -695,7 +729,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   ): Promise<void> {
     const cacheKey = this.getCacheKey(symbol, interval);
     const cachedData = this.cache.get(cacheKey);
-    if (cachedData?.candles.length) {
+    if (cachedData && CandleStreamChannel.isCacheFresh(cachedData)) {
       return;
     }
     if (this.prewarmRequests.has(cacheKey)) {
@@ -720,17 +754,10 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         return;
       }
 
-      const sortedCandles = [...candleData.candles].sort(
-        (a, b) => a.time - b.time,
+      const warmedData = CandleStreamChannel.mergeCandleData(
+        cachedData,
+        candleData,
       );
-      const warmedData: CandleData = {
-        symbol: candleData.symbol,
-        interval: candleData.interval,
-        candles:
-          sortedCandles.length > CandleStreamChannel.MAX_CACHED_CANDLES
-            ? sortedCandles.slice(-CandleStreamChannel.MAX_CACHED_CANDLES)
-            : sortedCandles,
-      };
 
       this.cache.set(cacheKey, warmedData);
       this.notifySubscribers(cacheKey, warmedData);
