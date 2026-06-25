@@ -104,66 +104,21 @@ function getFallbackTradeFocusPeriod(
 }
 
 /**
- * Linear-interpolated `close` along the OHLCV line at `timeMs`, mirroring the
- * WebView's `interpolateCloseAlongLineAtTimeMs`. Returns `null` when the data is
- * empty or can't yield a finite value. Times outside the data clamp to the first
- * / last close.
- */
-function lineCloseAtTime(
-  ohlcvData: readonly OHLCVBar[],
-  timeMs: number,
-): number | null {
-  if (!ohlcvData.length || !Number.isFinite(timeMs)) return null;
-  const first = ohlcvData[0];
-  const last = ohlcvData[ohlcvData.length - 1];
-  if (timeMs <= first.time)
-    return Number.isFinite(first.close) ? first.close : null;
-  if (timeMs >= last.time)
-    return Number.isFinite(last.close) ? last.close : null;
-  for (let i = 0; i < ohlcvData.length - 1; i++) {
-    const t0 = ohlcvData[i].time;
-    const t1 = ohlcvData[i + 1].time;
-    if (timeMs >= t0 && timeMs <= t1) {
-      const a = ohlcvData[i].close;
-      const b = ohlcvData[i + 1].close;
-      if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
-      if (t1 === t0) return a;
-      return a + ((b - a) * (timeMs - t0)) / (t1 - t0);
-    }
-  }
-  return null;
-}
-
-/**
- * Builds {@link TradeMarker}s (open/close circles) from spot trades.
+ * Builds {@link TradeMarker}s (open/close circles) from trades.
  *
- * Each marker is anchored on the chart's price line — its Y is the interpolated
- * `close` of `ohlcvData` at the trade's timestamp (see {@link lineCloseAtTime}) —
- * so the circle sits ON the line, matching the legacy SVG chart and the design.
- *
- * The raw execution price (`|usdCost| / |tokenAmount|`) is only a fallback for
- * trades outside the loaded data window: it includes fees, slippage and price
- * impact, so it floats above/below the close-price line and the circle reads as
- * misplaced. Absolute values are required because sells carry a negative
- * `usdCost`/`tokenAmount` (see {@link TradeRow}, which normalizes with
- * `Math.abs`); a signed division would yield a negative price and drop the exit
- * marker. Trades with a zero token amount or non-finite price are dropped.
+ * No price is set — the WebView snaps each marker's Y onto the rendered
+ * close-price line via its own `interpolateCloseAlongLineAtTimeMs`. Markers
+ * whose candle hasn't loaded yet are skipped and drawn once pagination brings
+ * that range in. Trades with a zero token amount are dropped.
  */
 export function mapTradesToAdvancedMarkers(
   trades: readonly Trade[],
-  ohlcvData: readonly OHLCVBar[] = [],
 ): TradeMarker[] {
   const markers: TradeMarker[] = [];
   for (const trade of trades) {
     if (!trade.tokenAmount) continue;
-    const executionPrice =
-      Math.abs(trade.usdCost) / Math.abs(trade.tokenAmount);
-    if (!Number.isFinite(executionPrice) || executionPrice <= 0) continue;
-    const time = normalizeTs(trade.timestamp);
-    const linePrice = lineCloseAtTime(ohlcvData, time);
     markers.push({
-      time,
-      price: linePrice != null && linePrice > 0 ? linePrice : executionPrice,
+      time: normalizeTs(trade.timestamp),
       intent: trade.intent,
       id: trade.transactionHash,
     });
@@ -345,8 +300,8 @@ const TraderAdvancedChart = ({
   // their history paginates in, rather than being dropped up front. The WebView
   // also re-snaps each marker's Y onto the line using its own paginating candles.
   const tradeMarkers = useMemo(
-    () => mapTradesToAdvancedMarkers(trades, ohlcvData),
-    [trades, ohlcvData],
+    () => mapTradesToAdvancedMarkers(trades),
+    [trades],
   );
 
   // Subset within the currently-loaded window — used ONLY to frame the initial

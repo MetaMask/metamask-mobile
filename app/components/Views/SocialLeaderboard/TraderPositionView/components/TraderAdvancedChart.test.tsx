@@ -139,53 +139,16 @@ describe('mapTradesToAdvancedMarkers', () => {
     ...overrides,
   });
 
-  it('falls back to the execution price (usdCost / tokenAmount) when no OHLCV data is provided', () => {
+  it('maps a trade to a marker without a price (WebView snaps to line)', () => {
     const markers = mapTradesToAdvancedMarkers([baseTrade()]);
 
     expect(markers).toEqual([
       {
         time: 1_700_000_000_000, // normalized seconds → ms
-        price: 100,
         intent: 'enter',
         id: '0xabc',
       },
     ]);
-  });
-
-  it('anchors the marker price on the OHLCV line at the trade time, not the execution price', () => {
-    const ohlcv: OHLCVBar[] = [
-      {
-        time: 1_700_000_000_000,
-        open: 0,
-        high: 0,
-        low: 0,
-        close: 10,
-        volume: 0,
-      },
-      {
-        time: 1_700_000_060_000,
-        open: 0,
-        high: 0,
-        low: 0,
-        close: 20,
-        volume: 0,
-      },
-    ];
-
-    // Trade at the time midpoint → interpolated close = 15, regardless of the
-    // execution price (usdCost / tokenAmount = 100).
-    const markers = mapTradesToAdvancedMarkers(
-      [
-        baseTrade({
-          timestamp: 1_700_000_030_000,
-          usdCost: 100,
-          tokenAmount: 1,
-        }),
-      ],
-      ohlcv,
-    );
-
-    expect(markers[0].price).toBe(15);
   });
 
   it('keeps millisecond timestamps unchanged', () => {
@@ -196,7 +159,7 @@ describe('mapTradesToAdvancedMarkers', () => {
     expect(markers[0].time).toBe(1_700_000_000_000);
   });
 
-  it('uses absolute values so sells with a negative usdCost/tokenAmount keep a positive price', () => {
+  it('maps sells with correct intent and id', () => {
     const markers = mapTradesToAdvancedMarkers([
       baseTrade({
         intent: 'exit',
@@ -210,14 +173,13 @@ describe('mapTradesToAdvancedMarkers', () => {
     expect(markers).toEqual([
       {
         time: 1_700_000_000_000,
-        price: 420.32,
         intent: 'exit',
         id: '0xsell',
       },
     ]);
   });
 
-  it('drops trades with a zero token amount or non-finite price', () => {
+  it('drops trades with a zero token amount', () => {
     const markers = mapTradesToAdvancedMarkers([
       baseTrade({ tokenAmount: 0, transactionHash: '0xzero' }),
       baseTrade({ transactionHash: '0xok' }),
@@ -258,9 +220,7 @@ describe('TraderAdvancedChart', () => {
         tradeMarkers: [
           {
             time: 1_700_000_060_000,
-            // Snapped onto the line: close at bar[1] (time 1_700_000_060_000) is
-            // 101, not the execution price of 100.
-            price: 101,
+            // No price — the WebView snaps the marker onto the line itself.
             intent: 'enter',
             id: '0xbuy',
           },
