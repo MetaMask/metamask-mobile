@@ -26,6 +26,7 @@ import { Skeleton } from '../../../../component-library/components-temp/Skeleton
 import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
   ChartType,
+  type ChartRangeSettlePayload,
   type ChartInteractedPayload,
   type CrosshairData,
   type IndicatorType,
@@ -62,6 +63,7 @@ import {
   trace,
   TraceName,
   TraceOperation,
+  type TraceValue,
 } from '../../../../util/trace';
 import { selectTokenDetailsOhlcvWsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsOhlcvWsIntegration';
 import { selectTokenDetailsTechnicalIndicatorsEnabled } from '../../../../selectors/featureFlagController/tokenDetailsTechnicalIndicators';
@@ -127,6 +129,28 @@ function getAdvancedChartVisibilityTraceRequest(
     name: TraceName.TokenOverviewAdvancedChartInitialVisible,
     op: TraceOperation.TokenOverviewAdvancedChart,
   };
+}
+
+function getAdvancedChartRangeTraceData(
+  payload?: ChartRangeSettlePayload,
+): Record<string, TraceValue> | undefined {
+  if (!payload) {
+    return undefined;
+  }
+
+  const data: Record<string, TraceValue> = {};
+
+  Object.entries(payload).forEach(([key, value]) => {
+    if (
+      typeof value === 'number' ||
+      typeof value === 'string' ||
+      typeof value === 'boolean'
+    ) {
+      data[key] = value;
+    }
+  });
+
+  return Object.keys(data).length > 0 ? data : undefined;
 }
 
 export interface PriceAdvancedProps {
@@ -419,25 +443,27 @@ const PriceAdvanced = ({
     traceName: TraceName;
   } | null>(null);
 
-  const completeVisibilityTrace = useCallback(() => {
+  const completeVisibilityTrace = useCallback((payload?: ChartRangeSettlePayload) => {
     const open = activeVisibilityTraceRef.current;
     if (!open || open.seriesKey !== visibilityTraceStartedRef.current) {
       return;
     }
+    const data = getAdvancedChartRangeTraceData(payload);
     endTrace({
       name: open.traceName,
       id: open.seriesKey,
+      ...(data ? { data } : {}),
     });
     activeVisibilityTraceRef.current = null;
   }, []);
 
-  const handleAdvancedChartSkeletonHidden = useCallback(() => {
+  const handleAdvancedChartSkeletonHidden = useCallback((payload?: ChartRangeSettlePayload) => {
     const isInitialReveal = !hasChartBeenRevealed;
     setHasChartBeenRevealed(true);
     setChartInitFailed(false);
     // Technical-indicators path: skeleton hides once; interval refreshes complete via layout settled.
     if (!isTechnicalIndicatorsEnabled || isInitialReveal) {
-      completeVisibilityTrace();
+      completeVisibilityTrace(payload);
     }
   }, [
     hasChartBeenRevealed,
