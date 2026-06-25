@@ -14,6 +14,7 @@ import { RootState } from '../../reducers';
 import { areAddressesEqual } from '../../util/address';
 import { createDeepEqualSelector } from '../util';
 import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../multichainAccounts/accountTreeController';
+import { selectSelectedAccountGroupMoneyAccountAddresses } from '../moneyAccountController';
 
 /**
  * Selects the RampsController state from Redux.
@@ -128,6 +129,40 @@ export const selectRampsOrdersForSelectedAccountGroup = createDeepEqualSelector(
     },
   },
 );
+
+/**
+ * V2 on-ramp orders whose `walletAddress` belongs to the selected account
+ * group or the selected group's Money account.
+ */
+export const selectRampsOrdersForSelectedAccountGroupOrMoneyAccount =
+  createDeepEqualSelector(
+    [
+      selectRampsOrders,
+      selectSelectedAccountGroupWithInternalAccountsAddresses,
+      selectSelectedAccountGroupMoneyAccountAddresses,
+    ],
+    (orders, addresses, moneyAccountAddresses): RampsOrder[] => {
+      const lookupAddresses = [...addresses, ...moneyAccountAddresses];
+      if (lookupAddresses.length === 0) {
+        return [];
+      }
+
+      return orders.filter((order) => {
+        const walletAddress = order.walletAddress;
+        if (!walletAddress) {
+          return false;
+        }
+        return lookupAddresses.some(
+          (addr) => addr != null && areAddressesEqual(walletAddress, addr),
+        );
+      });
+    },
+    {
+      devModeChecks: {
+        identityFunctionCheck: 'never',
+      },
+    },
+  );
 
 /**
  * Selects whether the current provider was auto-selected by the system
