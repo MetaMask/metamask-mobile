@@ -590,11 +590,12 @@ function handleSetOHLCVData(payload) {
         window.__mmInHotReloadPreResetPhase = true;
         var preResetSeq = (window.__mmHotReloadPreResetSeq = (window.__mmHotReloadPreResetSeq || 0) + 1);
         chart.setResolution(newResolution, function () {
-          // Pre-reset window is over — post-reset getBars must pass through.
-          // Guard: only clear if no newer switch has started since (stale callback).
-          if (window.__mmHotReloadPreResetSeq === preResetSeq) {
-            window.__mmInHotReloadPreResetPhase = false;
+          if (window.__mmHotReloadPreResetSeq !== preResetSeq) {
+            // Stale callback — a newer interval switch has started; don't interfere.
+            return;
           }
+          // Pre-reset window is over — post-reset getBars must pass through.
+          window.__mmInHotReloadPreResetPhase = false;
           try {
             // Flush the noData:true TV cached from the pre-reset getBars so that
             // resetData() below forces a fresh getBars with real bars.
@@ -610,7 +611,6 @@ function handleSetOHLCVData(payload) {
             scheduleTradeMarkerRefresh();
           } catch (eR) {
             abortDeferredLayoutSettleAndNotify();
-            return;
           }
         });
       } else {
