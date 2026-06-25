@@ -260,11 +260,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     }
   }, [getAuthType]);
 
-  // default biometric choice to true
-  useEffect(() => {
-    setBiometryChoice(true);
-  }, [setBiometryChoice]);
-
   const tooManyAttemptsError = useCallback(
     async (initialRemainingTime: number) => {
       const lockEnd = Date.now() + initialRemainingTime * 1000;
@@ -672,17 +667,23 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     };
   }, []);
 
-  const handleBackPress = () => {
-    navigation.goBack();
-    return false;
-  };
-
+  const hasTrackedScreenView = useRef(false);
   useEffect(() => {
+    if (hasTrackedScreenView.current) return;
+    hasTrackedScreenView.current = true;
     trace({
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
+  }, [track]);
+
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+    return false;
+  }, [navigation]);
+
+  useEffect(() => {
     const backHandlerSubscription = BackHandler.addEventListener(
       'hardwareBackPress',
       handleBackPress,
@@ -691,8 +692,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     return () => {
       backHandlerSubscription.remove();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleBackPress]);
 
   useEffect(() => {
     const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;

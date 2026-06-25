@@ -307,3 +307,15 @@ export const resolvePredictFeedDefaultFilter = (
     (filter) => filter.id === tab.defaultFilterId,
   );
 };
+
+export const resolvePredictFeedDynamicFilterConfig = (
+  feedId?: string | null,
+  tabId?: string | null,
+): PredictDynamicFilterConfig | undefined => {
+  const config = resolvePredictFeedConfig(feedId);
+  const tab = tabId
+    ? config?.tabs.find((candidateTab) => candidateTab.id === tabId)
+    : config?.tabs[0];
+
+  return tab?.filters.dynamic;
+};

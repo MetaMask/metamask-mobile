@@ -1,13 +1,20 @@
+import {
+  CHAIN_IDS,
+  TransactionMeta,
+  TransactionType,
+} from '@metamask/transaction-controller';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { usePayWithNoFeeToken } from './usePayWithNoFeeToken';
-import { selectMoneyNoFeeTokens } from '../../../../UI/Money/selectors/featureFlags';
+import { selectRelayFixedSpread } from '../../../../../selectors/featureFlagController/confirmations';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { AssetType } from '../../types/token';
 import { Hex } from '@metamask/utils';
-import { WildcardTokenList } from '../../../../UI/Earn/utils/wildcardTokenList';
+import { RelayFixedSpreadConfig } from '../../utils/relayFixedSpread';
 
-jest.mock('../../../../UI/Money/selectors/featureFlags');
+jest.mock('../../../../../selectors/featureFlagController/confirmations');
 jest.mock('./useTransactionPayAvailableTokens');
+jest.mock('../transactions/useTransactionMetadataRequest');
 
 const STATE_MOCK = {
   engine: {
@@ -19,10 +26,33 @@ const STATE_MOCK = {
   },
 };
 
+const MUSD_ETH = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+const route = (
+  sourceChain: string,
+  sourceToken: string,
+  targetChain = sourceChain,
+  targetToken = MUSD_ETH,
+) => ({
+  sourceChain: sourceChain as Hex,
+  sourceToken: sourceToken.toLowerCase() as Hex,
+  targetChain: targetChain as Hex,
+  targetToken: targetToken.toLowerCase() as Hex,
+});
+
+const config = (
+  ...routes: ReturnType<typeof route>[]
+): RelayFixedSpreadConfig => ({
+  routes,
+});
+
 describe('usePayWithNoFeeToken', () => {
-  const selectMoneyNoFeeTokensMock = jest.mocked(selectMoneyNoFeeTokens);
+  const selectRelayFixedSpreadMock = jest.mocked(selectRelayFixedSpread);
   const useTransactionPayAvailableTokensMock = jest.mocked(
     useTransactionPayAvailableTokens,
+  );
+  const useTransactionMetadataRequestMock = jest.mocked(
+    useTransactionMetadataRequest,
   );
 
   const createMockToken = (
@@ -49,17 +79,18 @@ describe('usePayWithNoFeeToken', () => {
   beforeEach(() => {
     jest.resetAllMocks();
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({} as WildcardTokenList);
+    selectRelayFixedSpreadMock.mockReturnValue(config());
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [],
       hasTokens: false,
     });
+    useTransactionMetadataRequestMock.mockReturnValue(undefined);
   });
 
   it('returns undefined noFeeToken when no tokens are available', () => {
-    selectMoneyNoFeeTokensMock.mockReturnValue({
-      '*': ['USDC', 'USDT'],
-    } as WildcardTokenList);
+    selectRelayFixedSpreadMock.mockReturnValue(
+      config(route('0x1', '0xUSDC'), route('0x1', '0xUSDT')),
+    );
 
     const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
       state: STATE_MOCK,
@@ -68,15 +99,15 @@ describe('usePayWithNoFeeToken', () => {
     expect(result.current.noFeeToken).toBeUndefined();
   });
 
-  it('returns undefined noFeeToken when no tokens match no-fee list', () => {
+  it('returns undefined noFeeToken when no tokens match a subsidised source', () => {
     const tokens = [
-      createMockToken('0x123', 'DAI', '0x1', 100),
-      createMockToken('0x456', 'POL', '0x1', 200),
+      createMockToken('0x111', 'DAI', '0x1', 100),
+      createMockToken('0x222', 'POL', '0x1', 200),
     ];
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({
-      '*': ['USDC', 'USDT'],
-    } as WildcardTokenList);
+    selectRelayFixedSpreadMock.mockReturnValue(
+      config(route('0x1', '0xaaa'), route('0x1', '0xbbb')),
+    );
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: tokens,
@@ -90,16 +121,16 @@ describe('usePayWithNoFeeToken', () => {
     expect(result.current.noFeeToken).toBeUndefined();
   });
 
-  it('returns highest balance no-fee token', () => {
+  it('returns highest balance subsidised-source token', () => {
     const tokens = [
-      createMockToken('0x123', 'USDC', '0x1', 100),
-      createMockToken('0x456', 'USDT', '0x1', 200),
-      createMockToken('0x789', 'DAI', '0x1', 300),
+      createMockToken('0xAAA', 'USDC', '0x1', 100),
+      createMockToken('0xBBB', 'USDT', '0x1', 200),
+      createMockToken('0xCCC', 'DAI', '0x1', 300),
     ];
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({
-      '*': ['USDC', 'USDT'],
-    } as WildcardTokenList);
+    selectRelayFixedSpreadMock.mockReturnValue(
+      config(route('0x1', '0xAAA'), route('0x1', '0xBBB')),
+    );
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: tokens,
@@ -111,7 +142,7 @@ describe('usePayWithNoFeeToken', () => {
     });
 
     expect(result.current.noFeeToken).toEqual({
-      address: '0x456',
+      address: '0xBBB',
       balanceUsd: '200',
       chainId: '0x1',
       symbol: 'USDT',
@@ -120,13 +151,13 @@ describe('usePayWithNoFeeToken', () => {
 
   it('excludes the specified token from results', () => {
     const tokens = [
-      createMockToken('0x123', 'USDC', '0x1', 100),
-      createMockToken('0x456', 'USDT', '0x1', 200),
+      createMockToken('0xAAA', 'USDC', '0x1', 100),
+      createMockToken('0xBBB', 'USDT', '0x1', 200),
     ];
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({
-      '*': ['USDC', 'USDT'],
-    } as WildcardTokenList);
+    selectRelayFixedSpreadMock.mockReturnValue(
+      config(route('0x1', '0xAAA'), route('0x1', '0xBBB')),
+    );
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: tokens,
@@ -136,7 +167,7 @@ describe('usePayWithNoFeeToken', () => {
     const { result } = renderHookWithProvider(
       () =>
         usePayWithNoFeeToken({
-          excludeToken: { address: '0x456', chainId: '0x1' },
+          excludeToken: { address: '0xBBB', chainId: '0x1' },
         }),
       {
         state: STATE_MOCK,
@@ -144,22 +175,20 @@ describe('usePayWithNoFeeToken', () => {
     );
 
     expect(result.current.noFeeToken).toEqual({
-      address: '0x123',
+      address: '0xAAA',
       balanceUsd: '100',
       chainId: '0x1',
       symbol: 'USDC',
     });
   });
 
-  it('returns undefined when only available no-fee token is excluded', () => {
+  it('returns undefined when only available subsidised-source token is excluded', () => {
     const tokens = [
-      createMockToken('0x123', 'USDC', '0x1', 100),
-      createMockToken('0x456', 'DAI', '0x1', 200),
+      createMockToken('0xAAA', 'USDC', '0x1', 100),
+      createMockToken('0xBBB', 'DAI', '0x1', 200),
     ];
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({
-      '*': ['USDC'],
-    } as WildcardTokenList);
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xAAA')));
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: tokens,
@@ -169,7 +198,7 @@ describe('usePayWithNoFeeToken', () => {
     const { result } = renderHookWithProvider(
       () =>
         usePayWithNoFeeToken({
-          excludeToken: { address: '0x123', chainId: '0x1' },
+          excludeToken: { address: '0xAAA', chainId: '0x1' },
         }),
       {
         state: STATE_MOCK,
@@ -181,13 +210,13 @@ describe('usePayWithNoFeeToken', () => {
 
   it('skips disabled tokens', () => {
     const tokens = [
-      createMockToken('0x123', 'USDC', '0x1', 100, true),
-      createMockToken('0x456', 'USDT', '0x1', 200),
+      createMockToken('0xAAA', 'USDC', '0x1', 100, true),
+      createMockToken('0xBBB', 'USDT', '0x1', 200),
     ];
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({
-      '*': ['USDC', 'USDT'],
-    } as WildcardTokenList);
+    selectRelayFixedSpreadMock.mockReturnValue(
+      config(route('0x1', '0xAAA'), route('0x1', '0xBBB')),
+    );
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: tokens,
@@ -199,7 +228,7 @@ describe('usePayWithNoFeeToken', () => {
     });
 
     expect(result.current.noFeeToken).toEqual({
-      address: '0x456',
+      address: '0xBBB',
       balanceUsd: '200',
       chainId: '0x1',
       symbol: 'USDT',
@@ -207,11 +236,9 @@ describe('usePayWithNoFeeToken', () => {
   });
 
   it('isNoFeeToken returns true for matching token', () => {
-    const tokens = [createMockToken('0x123', 'USDC', '0x1', 100)];
+    const tokens = [createMockToken('0xAAA', 'USDC', '0x1', 100)];
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({
-      '*': ['USDC'],
-    } as WildcardTokenList);
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xAAA')));
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: tokens,
@@ -222,15 +249,13 @@ describe('usePayWithNoFeeToken', () => {
       state: STATE_MOCK,
     });
 
-    expect(result.current.isNoFeeToken('0x123', '0x1')).toBe(true);
+    expect(result.current.isNoFeeToken('0xAAA', '0x1')).toBe(true);
   });
 
   it('isNoFeeToken returns false for non-matching token', () => {
-    const tokens = [createMockToken('0x123', 'USDC', '0x1', 100)];
+    const tokens = [createMockToken('0xAAA', 'USDC', '0x1', 100)];
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({
-      '*': ['USDT'],
-    } as WildcardTokenList);
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xBBB')));
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: tokens,
@@ -241,18 +266,35 @@ describe('usePayWithNoFeeToken', () => {
       state: STATE_MOCK,
     });
 
-    expect(result.current.isNoFeeToken('0x123', '0x1')).toBe(false);
+    expect(result.current.isNoFeeToken('0xAAA', '0x1')).toBe(false);
   });
 
-  it('handles chain-specific no-fee token lists', () => {
+  it('treats source-only matches as subsidised regardless of target', () => {
+    const tokens = [createMockToken('0xAAA', 'USDC', '0x1', 100)];
+
+    selectRelayFixedSpreadMock.mockReturnValue(
+      config(route('0x1', '0xAAA', '0xe708', MUSD_ETH)),
+    );
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: tokens,
+      hasTokens: true,
+    });
+
+    const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
+      state: STATE_MOCK,
+    });
+
+    expect(result.current.isNoFeeToken('0xAAA', '0x1')).toBe(true);
+  });
+
+  it('handles chain-specific subsidised sources', () => {
     const tokens = [
-      createMockToken('0x123', 'USDC', '0x1', 100),
-      createMockToken('0x456', 'USDC', '0x89', 200),
+      createMockToken('0xAAA', 'USDC', '0x1', 100),
+      createMockToken('0xBBB', 'USDC', '0x89', 200),
     ];
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({
-      '0x1': ['USDC'],
-    } as WildcardTokenList);
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xAAA')));
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: tokens,
@@ -264,7 +306,7 @@ describe('usePayWithNoFeeToken', () => {
     });
 
     expect(result.current.noFeeToken).toEqual({
-      address: '0x123',
+      address: '0xAAA',
       balanceUsd: '100',
       chainId: '0x1',
       symbol: 'USDC',
@@ -274,9 +316,7 @@ describe('usePayWithNoFeeToken', () => {
   it('handles case-insensitive address and chainId matching', () => {
     const tokens = [createMockToken('0xABC', 'USDC', '0x1', 100)];
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({
-      '*': ['USDC'],
-    } as WildcardTokenList);
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xABC')));
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: tokens,
@@ -296,9 +336,9 @@ describe('usePayWithNoFeeToken', () => {
       createMockToken('0xDEF', 'USDT', '0x1', 50),
     ];
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({
-      '*': ['USDC', 'USDT'],
-    } as WildcardTokenList);
+    selectRelayFixedSpreadMock.mockReturnValue(
+      config(route('0x1', '0xABC'), route('0x1', '0xDEF')),
+    );
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: tokens,
@@ -326,16 +366,14 @@ describe('usePayWithNoFeeToken', () => {
   it('returns undefined when token has no chainId', () => {
     const tokens = [
       {
-        address: '0x123' as Hex,
+        address: '0xAAA' as Hex,
         symbol: 'USDC',
         fiat: { balance: 100 },
         disabled: false,
       } as AssetType,
     ];
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({
-      '*': ['USDC'],
-    } as WildcardTokenList);
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xAAA')));
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: tokens,
@@ -349,41 +387,41 @@ describe('usePayWithNoFeeToken', () => {
     expect(result.current.noFeeToken).toBeUndefined();
   });
 
-  it('isNoFeeToken returns false when token has no chainId', () => {
-    const tokens = [
-      {
-        address: '0x123' as Hex,
-        symbol: 'USDC',
-        fiat: { balance: 100 },
-        disabled: false,
-      } as AssetType,
-    ];
+  it('isNoFeeToken returns false when chainId is missing', () => {
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xAAA')));
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({
-      '*': ['USDC'],
-    } as WildcardTokenList);
+    const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
+      state: STATE_MOCK,
+    });
 
+    expect(result.current.isNoFeeToken('0xAAA', '')).toBe(false);
+  });
+
+  it('isNoFeeToken does not require the token to be in availableTokens', () => {
+    // The full token modal tags via the route config directly; the bottom
+    // sheet must stay consistent even for tokens the user does not hold.
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xAAA')));
     useTransactionPayAvailableTokensMock.mockReturnValue({
-      availableTokens: tokens,
-      hasTokens: true,
+      availableTokens: [],
+      hasTokens: false,
     });
 
     const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
       state: STATE_MOCK,
     });
 
-    expect(result.current.isNoFeeToken('0x123', '0x1')).toBe(false);
+    expect(result.current.isNoFeeToken('0xAAA', '0x1')).toBe(true);
   });
 
   it('handles tokens with zero fiat balance', () => {
     const tokens = [
-      createMockToken('0x123', 'USDC', '0x1', 0),
-      createMockToken('0x456', 'USDT', '0x1', 100),
+      createMockToken('0xAAA', 'USDC', '0x1', 0),
+      createMockToken('0xBBB', 'USDT', '0x1', 100),
     ];
 
-    selectMoneyNoFeeTokensMock.mockReturnValue({
-      '*': ['USDC', 'USDT'],
-    } as WildcardTokenList);
+    selectRelayFixedSpreadMock.mockReturnValue(
+      config(route('0x1', '0xAAA'), route('0x1', '0xBBB')),
+    );
 
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: tokens,
@@ -395,10 +433,106 @@ describe('usePayWithNoFeeToken', () => {
     });
 
     expect(result.current.noFeeToken).toEqual({
-      address: '0x456',
+      address: '0xBBB',
       balanceUsd: '100',
       chainId: '0x1',
       symbol: 'USDT',
+    });
+  });
+
+  it('renderNoFeeTagForToken returns a non-null node for a matching token', () => {
+    const tokens = [createMockToken('0xAAA', 'USDC', '0x1', 100)];
+
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xAAA')));
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: tokens,
+      hasTokens: true,
+    });
+
+    const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
+      state: STATE_MOCK,
+    });
+
+    expect(
+      result.current.renderNoFeeTagForToken('0xAAA', '0x1'),
+    ).not.toBeNull();
+  });
+
+  it('renderNoFeeTagForToken returns null for a non-matching token', () => {
+    const tokens = [createMockToken('0xAAA', 'USDC', '0x1', 100)];
+
+    selectRelayFixedSpreadMock.mockReturnValue(config(route('0x1', '0xBBB')));
+
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: tokens,
+      hasTokens: true,
+    });
+
+    const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
+      state: STATE_MOCK,
+    });
+
+    expect(result.current.renderNoFeeTagForToken('0xAAA', '0x1')).toBeNull();
+  });
+
+  describe('Money Account withdrawal — directional no-fee', () => {
+    const ETH_DEST = '0xdddddddddddddddddddddddddddddddddddddddd';
+
+    beforeEach(() => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountWithdraw,
+      } as TransactionMeta);
+    });
+
+    it('tags a token that is the destination of a Monad mUSD route', () => {
+      selectRelayFixedSpreadMock.mockReturnValue(
+        config(route(CHAIN_IDS.MONAD, MUSD_ETH, '0x1', ETH_DEST)),
+      );
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [createMockToken(ETH_DEST, 'USDC', '0x1', 100)],
+        hasTokens: true,
+      });
+
+      const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
+        state: STATE_MOCK,
+      });
+
+      expect(result.current.isNoFeeToken(ETH_DEST, '0x1')).toBe(true);
+    });
+
+    it('does not tag a deposit-only subsidised source (route target is Monad mUSD, not the source)', () => {
+      // 0xAAA is a subsidised SOURCE into Monad mUSD — source-only matching
+      // would tag it, but withdrawals require a route FROM Monad mUSD.
+      selectRelayFixedSpreadMock.mockReturnValue(
+        config(route('0x1', '0xAAA', CHAIN_IDS.MONAD, MUSD_ETH)),
+      );
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [createMockToken('0xAAA', 'USDC', '0x1', 100)],
+        hasTokens: true,
+      });
+
+      const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
+        state: STATE_MOCK,
+      });
+
+      expect(result.current.isNoFeeToken('0xAAA', '0x1')).toBe(false);
+    });
+
+    it('tags Monad mUSD itself even though the flag omits the same-token route', () => {
+      selectRelayFixedSpreadMock.mockReturnValue(config());
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          createMockToken(MUSD_ETH, 'mUSD', CHAIN_IDS.MONAD, 100),
+        ],
+        hasTokens: true,
+      });
+
+      const { result } = renderHookWithProvider(() => usePayWithNoFeeToken(), {
+        state: STATE_MOCK,
+      });
+
+      expect(result.current.isNoFeeToken(MUSD_ETH, CHAIN_IDS.MONAD)).toBe(true);
     });
   });
 });

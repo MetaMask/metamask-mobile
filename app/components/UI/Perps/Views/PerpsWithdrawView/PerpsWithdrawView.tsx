@@ -15,17 +15,18 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   Button,
-  ButtonVariant,
   ButtonSize,
+  ButtonVariant,
   HeaderStandard,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
-import Icon, {
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
@@ -71,10 +72,6 @@ import Badge, {
 } from '../../../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { BadgePosition } from '../../../../../component-library/components/Badges/BadgeWrapper/BadgeWrapper.types';
-import {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon/Icon.types';
 import { NetworkBadgeSource } from '../../../../UI/AssetOverview/Balance/Balance';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 
@@ -442,7 +439,7 @@ const PerpsWithdrawView: React.FC = () => {
               <Icon
                 name={IconName.Info}
                 size={IconSize.Md}
-                color={IconColor.Alternative}
+                color={IconColor.IconAlternative}
               />
             </Pressable>
           </Box>
@@ -494,7 +491,7 @@ const PerpsWithdrawView: React.FC = () => {
                     <Icon
                       name={IconName.Info}
                       size={IconSize.Md}
-                      color={IconColor.Alternative}
+                      color={IconColor.IconAlternative}
                     />
                   </Pressable>
                 </Box>

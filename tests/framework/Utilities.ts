@@ -1,13 +1,21 @@
 import { waitFor } from 'detox';
 import { blacklistURLs } from '../resources/blacklistURLs.json';
 import { RetryOptions, StabilityOptions } from './types.ts';
-import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
+import {
+  asPlaywrightElement,
+  type EncapsulatedElementType,
+} from './EncapsulatedElement.ts';
+import { FrameworkDetector } from './FrameworkDetector.ts';
+import PlaywrightAssertions from './PlaywrightAssertions.ts';
+import PlaywrightGestures from './PlaywrightGestures.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 import { createLogger } from './logger.ts';
+import { resolveE2EWaitTimeoutMs } from './Constants.ts';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { setTimeout as asyncSetTimeout } from 'node:timers/promises';
 
 const TEST_CONFIG_DEFAULTS = {
-  timeout: 15000,
+  timeout: resolveE2EWaitTimeoutMs(15000),
   retryInterval: 500,
   actionDelay: 100,
   stabilityCheckInterval: 200,
@@ -43,6 +51,24 @@ export default class Utilities {
   static async checkElementEnabled(
     elem: EncapsulatedElementType,
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      const el = await asPlaywrightElement(elem);
+      if (!(await el.isEnabled())) {
+        throw new Error(
+          [
+            '🚫 Element is not enabled.',
+            '',
+            '💡 If this element might be disabled in some situations,',
+            '   consider using the {checkEnabled: false} option.',
+            '',
+            '📝 Example:',
+            '   await Gestures.waitAndTap(element, {checkEnabled: false})',
+          ].join('\n'),
+        );
+      }
+      return;
+    }
+
     const el = (await elem) as Detox.IndexableNativeElement;
     const attributes = await el.getAttributes();
     if (!('enabled' in attributes) || !attributes.enabled) {
@@ -249,6 +275,35 @@ export default class Utilities {
      * - Stability check: 2000ms (allows time for UI to settle)
      */
 
+    if (FrameworkDetector.isAppium()) {
+      const playwrightElem = asPlaywrightElement(elem);
+
+      if (checkVisibility) {
+        const visibilityTimeout = timeout || 100;
+        await PlaywrightAssertions.expectElementToBeVisible(playwrightElem, {
+          timeout: visibilityTimeout,
+        });
+      }
+
+      if (checkEnabled && PlatformDetector.isAndroid()) {
+        const pwEl = await playwrightElem;
+        if (!(await pwEl.isEnabled())) {
+          throw new Error('Element is not enabled');
+        }
+      }
+
+      if (checkStability) {
+        const stabilityTimeout = timeout || 2000;
+        const stabilityCheckInterval = timeout ? timeout / 10 : 200;
+        await PlaywrightGestures.waitForElementStable(await playwrightElem, {
+          timeout: stabilityTimeout,
+          interval: stabilityCheckInterval,
+        });
+      }
+
+      return el;
+    }
+
     if (checkVisibility) {
       const visibilityTimeout = timeout || 100; // If no timeout is provided, default to 100ms
       if (device.getPlatform() === 'ios') {
@@ -308,6 +363,14 @@ export default class Utilities {
     elem: DetoxMatcher | EncapsulatedElementType,
     timeout: number = 2000,
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      await PlaywrightAssertions.expectElementToBeVisible(
+        asPlaywrightElement(elem as EncapsulatedElementType),
+        { timeout },
+      );
+      return;
+    }
+
     const el = (await elem) as Detox.IndexableNativeElement;
     const isWebElement = this.isWebElement(el);
 
@@ -326,6 +389,14 @@ export default class Utilities {
     elem: DetoxMatcher | EncapsulatedElementType,
     timeout: number = 2000,
   ): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      await PlaywrightAssertions.expectElementToNotBeVisible(
+        asPlaywrightElement(elem as EncapsulatedElementType),
+        { timeout },
+      );
+      return;
+    }
+
     const el = (await elem) as Detox.IndexableNativeElement;
     const isWebElement = this.isWebElement(el);
     if (isWebElement) {

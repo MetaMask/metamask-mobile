@@ -13,7 +13,6 @@ import {
 } from './constants';
 import {
   buildMarketListQueryParams,
-  buildOutcomeGroups,
   calculateConservativeBuyMarketFee,
   clearClobMarketInfoCache,
   clearClobMarketInfoSessionState,
@@ -147,6 +146,92 @@ describe('polymarket utils', () => {
     ...overrides,
   });
 
+  const createNbaTeam = (
+    abbreviation: string,
+    overrides: Partial<PolymarketApiTeam> = {},
+  ): PolymarketApiTeam => ({
+    id: `team-${abbreviation}`,
+    name: abbreviation.toUpperCase(),
+    logo: `${abbreviation}.png`,
+    abbreviation,
+    color: 'red',
+    alias: abbreviation.toUpperCase(),
+    league: 'nba',
+    ...overrides,
+  });
+
+  const nbaTeamsByAbbreviation: Record<string, PolymarketApiTeam> = {
+    bos: createNbaTeam('bos'),
+    nyk: createNbaTeam('nyk', { color: 'blue' }),
+  };
+
+  const createSportsMarket = ({
+    id,
+    sportsMarketType,
+    volume = 100,
+    overrides = {},
+  }: {
+    id: string;
+    sportsMarketType?: string;
+    volume?: number;
+    overrides?: Partial<PolymarketApiEvent['markets'][number]>;
+  }): PolymarketApiEvent['markets'][number] =>
+    ({
+      conditionId: id,
+      question: `${id} question`,
+      description: `${id} description`,
+      icon: 'icon.png',
+      image: 'image.png',
+      groupItemTitle: id,
+      sportsMarketType,
+      status: 'open',
+      volumeNum: volume,
+      liquidity: 100,
+      negRisk: false,
+      clobTokenIds: `["${id}-yes","${id}-no"]`,
+      outcomes: '["Yes","No"]',
+      outcomePrices: '["0.5","0.5"]',
+      closed: false,
+      active: true,
+      acceptingOrders: true,
+      resolvedBy: '',
+      orderPriceMinTickSize: 0.01,
+      umaResolutionStatus: '',
+      ...overrides,
+    }) as PolymarketApiEvent['markets'][number];
+
+  const createNbaGameEvent = (
+    markets: PolymarketApiEvent['markets'],
+  ): PolymarketApiEvent => ({
+    id: 'nba-game-event',
+    slug: 'nba-bos-nyk-2026-06-12',
+    title: 'Boston Celtics vs New York Knicks',
+    description: 'NBA game',
+    icon: 'icon.png',
+    closed: false,
+    active: true,
+    series: [
+      {
+        id: 'nba-series',
+        slug: 'nba',
+        title: 'NBA',
+        recurrence: 'daily',
+      },
+    ],
+    markets,
+    tags: [
+      { id: 'games', label: 'Games', slug: 'games' },
+      { id: 'nba', label: 'NBA', slug: 'nba' },
+    ],
+    teams: Object.values(nbaTeamsByAbbreviation),
+    liquidity: 100,
+    volume: 100,
+    gameId: 'nba-game-1',
+    startTime: '2026-06-12T20:00:00.000Z',
+    live: false,
+    ended: false,
+  });
+
   it('parses activity with deterministic ids when transaction hash is missing', () => {
     const rawActivity = createRawActivity({
       transactionHash: undefined as unknown as string,
@@ -167,46 +252,171 @@ describe('polymarket utils', () => {
     expect(parsedActivity[0].id).not.toBe(parsedActivity[1].id);
   });
 
-  it('groups tennis first set markets separately from game lines', () => {
-    const createOutcome = (
-      id: string,
-      sportsMarketType: string,
-    ): PredictOutcome => ({
-      id,
-      providerId: POLYMARKET_PROVIDER_ID,
-      marketId: 'market-1',
-      title: id,
-      description: id,
-      image: 'icon.png',
-      status: 'open',
-      tokens: [{ id: `${id}-token`, title: 'Yes', price: 0.5 }],
-      volume: 100,
-      groupItemTitle: id,
-      sportsMarketType,
+  it('builds outcome groups only from supported and enabled sports market types', () => {
+    const event = createNbaGameEvent([
+      createSportsMarket({ id: 'moneyline', sportsMarketType: 'moneyline' }),
+      createSportsMarket({ id: 'spreads', sportsMarketType: 'spreads' }),
+      createSportsMarket({ id: 'totals', sportsMarketType: 'totals' }),
+      createSportsMarket({ id: 'points', sportsMarketType: 'points' }),
+      createSportsMarket({
+        id: 'first-half-moneyline',
+        sportsMarketType: 'first_half_moneyline',
+      }),
+    ]);
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) =>
+        nbaTeamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['nba'],
+      enabledSportsMarketTypes: [
+        'moneyline',
+        'spreads',
+        'totals',
+        'points',
+        'first_half_moneyline',
+      ],
     });
 
-    const groups = buildOutcomeGroups([
-      createOutcome('moneyline', 'moneyline'),
-      createOutcome('set-total', 'tennis_set_totals'),
-      createOutcome('match-total', 'tennis_match_totals'),
-      createOutcome('completed', 'tennis_completed_match'),
-      createOutcome('first-set-winner', 'tennis_first_set_winner'),
-      createOutcome('first-set-total', 'tennis_first_set_totals'),
+    expect(market.outcomes).toHaveLength(5);
+    expect(market.outcomes.map((outcome) => outcome.sportsMarketType)).toEqual(
+      expect.arrayContaining([
+        'moneyline',
+        'spreads',
+        'totals',
+        'points',
+        'first_half_moneyline',
+      ]),
+    );
+    expect(market.outcomeGroups).toEqual([
+      expect.objectContaining({
+        key: 'game_lines',
+        outcomes: [],
+        subgroups: [
+          expect.objectContaining({ key: 'moneyline' }),
+          expect.objectContaining({ key: 'spreads' }),
+          expect.objectContaining({ key: 'totals' }),
+        ],
+      }),
+    ]);
+  });
+
+  it('keeps supported but unlisted sports market types out of outcome groups', () => {
+    const event = createNbaGameEvent([
+      createSportsMarket({ id: 'moneyline', sportsMarketType: 'moneyline' }),
+      createSportsMarket({ id: 'spreads', sportsMarketType: 'spreads' }),
+      createSportsMarket({ id: 'totals', sportsMarketType: 'totals' }),
     ]);
 
-    expect(groups.map((group) => group.key)).toEqual([
-      'game_lines',
-      'first_set',
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) =>
+        nbaTeamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['nba'],
+      enabledSportsMarketTypes: ['moneyline'],
+    });
+
+    expect(market.outcomes).toHaveLength(3);
+    expect(market.outcomes.map((outcome) => outcome.sportsMarketType)).toEqual(
+      expect.arrayContaining(['moneyline', 'spreads', 'totals']),
+    );
+    expect(market.outcomeGroups).toEqual([
+      expect.objectContaining({
+        key: 'game_lines',
+        outcomes: [expect.objectContaining({ sportsMarketType: 'moneyline' })],
+      }),
     ]);
-    expect(groups[0].subgroups?.map((group) => group.key)).toEqual([
-      'moneyline',
-      'tennis_set_totals',
-      'tennis_match_totals',
-      'tennis_completed_match',
+  });
+
+  it('defaults outcome groups to supported market types when enabledSportsMarketTypes is missing', () => {
+    const event = createNbaGameEvent([
+      createSportsMarket({ id: 'moneyline', sportsMarketType: 'moneyline' }),
+      createSportsMarket({ id: 'spreads', sportsMarketType: 'spreads' }),
     ]);
-    expect(groups[1].subgroups?.map((group) => group.key)).toEqual([
-      'tennis_first_set_winner',
-      'tennis_first_set_totals',
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) =>
+        nbaTeamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['nba'],
+    });
+
+    expect(market.outcomes).toHaveLength(2);
+    expect(market.outcomes.map((outcome) => outcome.sportsMarketType)).toEqual(
+      expect.arrayContaining(['moneyline', 'spreads']),
+    );
+    expect(market.outcomeGroups).toEqual([
+      expect.objectContaining({
+        key: 'game_lines',
+        outcomes: [],
+        subgroups: [
+          expect.objectContaining({ key: 'moneyline' }),
+          expect.objectContaining({ key: 'spreads' }),
+        ],
+      }),
+    ]);
+  });
+
+  it('does not build outcome groups when enabledSportsMarketTypes is empty', () => {
+    const event = createNbaGameEvent([
+      createSportsMarket({ id: 'moneyline', sportsMarketType: 'moneyline' }),
+      createSportsMarket({ id: 'spreads', sportsMarketType: 'spreads' }),
+    ]);
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) =>
+        nbaTeamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['nba'],
+      enabledSportsMarketTypes: [],
+    });
+
+    expect(market.outcomes).toHaveLength(2);
+    expect(market.outcomeGroups).toBeUndefined();
+  });
+
+  it('uses group item title for neg-risk soccer first-to-score yes token labels', () => {
+    const event = createNbaGameEvent([
+      createSportsMarket({
+        id: 'portugal-first',
+        sportsMarketType: 'soccer_first_to_score',
+        overrides: {
+          groupItemTitle: 'Portugal',
+          negRisk: true,
+          clobTokenIds: '["portugal-yes","portugal-no"]',
+          outcomePrices: '["0.83","0.17"]',
+        },
+      }),
+      createSportsMarket({
+        id: 'neither-first',
+        sportsMarketType: 'soccer_first_to_score',
+        overrides: {
+          groupItemTitle: 'Neither',
+          negRisk: true,
+          clobTokenIds: '["neither-yes","neither-no"]',
+          outcomePrices: '["0.03","0.97"]',
+        },
+      }),
+      createSportsMarket({
+        id: 'uzbekistan-first',
+        sportsMarketType: 'soccer_first_to_score',
+        overrides: {
+          groupItemTitle: 'Uzbekistan',
+          negRisk: true,
+          clobTokenIds: '["uzbekistan-yes","uzbekistan-no"]',
+          outcomePrices: '["0.13","0.87"]',
+        },
+      }),
+    ]);
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+    });
+
+    expect(market.outcomes.map((outcome) => outcome.tokens[0].title)).toEqual([
+      'Portugal',
+      'Neither',
+      'Uzbekistan',
     ]);
   });
 
@@ -329,7 +539,7 @@ describe('polymarket utils', () => {
         tokens: [
           expect.objectContaining({
             id: 'token-yes',
-            title: 'Yes',
+            title: 'United States',
             shortTitle: 'usa',
           }),
           expect.objectContaining({
@@ -346,7 +556,7 @@ describe('polymarket utils', () => {
         tokens: [
           expect.objectContaining({
             id: 'token-draw-yes',
-            title: 'Yes',
+            title: 'Draw',
             shortTitle: 'Draw',
           }),
           expect.objectContaining({

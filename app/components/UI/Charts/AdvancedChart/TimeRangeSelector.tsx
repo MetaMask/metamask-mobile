@@ -14,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../util/theme';
 import { ChartType } from './AdvancedChart.types';
+import ChartTypeToggle from './ChartTypeToggle';
 import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from '../../AssetOverview/Price/tokenOverviewChart.constants';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 
@@ -59,8 +60,10 @@ interface TimeRangeSelectorProps {
   ranges?: TimeRange[];
   /** Current chart type -- drives the toggle icon appearance. */
   chartType?: ChartType;
-  /** Called when the user taps the chart type toggle icon. */
+  /** Called when the user taps the single chart-type toggle button (main branch style). */
   onChartTypeToggle?: () => void;
+  /** Called when the user selects a chart type from the segmented toggle. */
+  onChartTypeSelect?: (type: ChartType) => void;
   /** Override background color for the selected pill (A/B test). */
   selectedColor?: string;
 }
@@ -72,6 +75,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   ranges = TIME_RANGES,
   chartType,
   onChartTypeToggle,
+  onChartTypeSelect,
   selectedColor,
 }) => {
   const tw = useTailwind();
@@ -188,6 +192,11 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
                 />
               )}
             </Pressable>
+          ) : onChartTypeSelect ? (
+            <ChartTypeToggle
+              chartType={chartType}
+              onChartTypeSelect={onChartTypeSelect}
+            />
           ) : null}
         </Box>
       )}

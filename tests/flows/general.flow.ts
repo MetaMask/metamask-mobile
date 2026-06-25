@@ -9,7 +9,11 @@ import {
 import Matchers from '../framework/Matchers';
 import Utilities, { sleep } from '../framework/Utilities';
 import LoginView from '../page-objects/wallet/LoginView';
+import WalletView from '../page-objects/wallet/WalletView';
 import { PlatformDetector } from '../framework/PlatformLocator';
+import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
+// eslint-disable-next-line import-x/no-nodejs-modules
+import { execSync } from 'node:child_process';
 
 const logger = createLogger({
   name: 'GeneralFlow',
@@ -85,12 +89,21 @@ export const dismissDevelopmentServerPickerPlaywright =
     const serverUrl = getMetroServerUrl();
 
     try {
-      const devServerRow = await PlaywrightMatchers.getElementByText(serverUrl);
-      await PlaywrightAssertions.expectElementToBeVisible(devServerRow, {
-        timeout: 2000,
-        description: 'Dev Server Row should be visible',
-      });
-      await PlaywrightGestures.waitAndTap(devServerRow);
+      const end = Date.now() + 8000;
+      while (Date.now() < end) {
+        try {
+          const devServerRow =
+            await PlaywrightMatchers.getElementByText(serverUrl);
+          await PlaywrightAssertions.expectElementToBeVisible(devServerRow, {
+            timeout: 1500,
+            description: 'Dev Server Row should be visible',
+          });
+          await PlaywrightGestures.waitAndTap(devServerRow);
+          return;
+        } catch {
+          await sleep(500);
+        }
+      }
     } catch (error) {
       logger.debug(
         `Playwright development server picker was not dismissed (best effort): ${
@@ -146,20 +159,6 @@ const closeDeveloperMenuPlaywright = async (): Promise<void> => {
       }`,
     );
   }
-
-  if (!PlatformDetector.isAndroid()) {
-    return;
-  }
-
-  try {
-    await globalThis.driver?.back();
-  } catch (backError) {
-    logger.debug(
-      `Playwright developer menu Android back dismissal failed: ${
-        backError instanceof Error ? backError.message : String(backError)
-      }`,
-    );
-  }
 };
 
 const dismissDeveloperMenuOnboardingPlaywright = async (): Promise<void> => {
@@ -191,6 +190,34 @@ export const dismissDeveloperMenuPlaywright = async (): Promise<void> => {
 };
 
 /**
+ * Collapses the Android notification shade / Quick Settings panel.
+ * Accidental status-bar swipes during launch or gestures can leave the shade
+ * open and block all in-app interactions.
+ */
+export const dismissAndroidSystemOverlaysPlaywright =
+  async (): Promise<void> => {
+    if (!PlatformDetector.isAndroid()) {
+      return;
+    }
+
+    const serial = process.env.ANDROID_DEVICE_UDID?.trim();
+    const adbFlag = serial ? `-s ${serial}` : '';
+
+    try {
+      execSync(`adb ${adbFlag} shell cmd statusbar collapse`, {
+        stdio: 'ignore',
+      });
+      logger.debug('Collapsed Android status bar via adb shell');
+    } catch (error) {
+      logger.debug(
+        `statusbar collapse failed (best effort): ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
+    }
+  };
+
+/**
  * Waits for app initialization and rehydration to complete.
  * This ensures the app is in a stable state before proceeding with tests.
  * Handles the case where React Native reload triggers state rehydration that may
@@ -203,44 +230,48 @@ export const dismissDeveloperMenuPlaywright = async (): Promise<void> => {
  * @throws {Error} Throws an error if app fails to stabilize within timeout
  */
 export const waitForAppReady = async (
-  timeout: number = 60000,
+  timeout: number = resolveE2EWaitTimeoutMs(60_000),
 ): Promise<void> => {
   const startTime = Date.now();
+  const deadline = startTime + timeout;
 
-  logger.debug('Waiting for app to complete rehydration and stabilize...');
+  logger.debug('Waiting for app to reach login or wallet home...');
 
-  try {
-    // Initial wait for app to finish launching and start rehydration
-    await sleep(1000);
-    await Utilities.executeWithRetry(
-      async () => {
-        await Assertions.expectElementToBeVisible(LoginView.container, {
-          description: 'Login view should be stable',
-          timeout: 3000,
-        });
+  while (Date.now() < deadline) {
+    try {
+      await Assertions.expectElementToBeVisible(WalletView.container, {
+        description: 'Wallet home should be visible',
+        timeout: 3000,
+      });
+      logger.debug(
+        `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
+      );
+      return;
+    } catch {
+      // Not on wallet yet.
+    }
 
-        // Verify it stays visible (not flickering during rehydration)
-        await sleep(1500);
+    try {
+      await Assertions.expectElementToBeVisible(LoginView.container, {
+        description: 'Login view should be stable',
+        timeout: 3000,
+      });
+      await sleep(1500);
+      await Assertions.expectElementToBeVisible(LoginView.container, {
+        description: 'Login view should remain visible',
+        timeout: 2000,
+      });
+      logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
+      return;
+    } catch {
+      // Still booting — keep polling.
+    }
 
-        await Assertions.expectElementToBeVisible(LoginView.container, {
-          description: 'Login view should remain visible',
-          timeout: 2000,
-        });
-      },
-      {
-        timeout,
-        interval: 2000,
-        description:
-          'wait for app to complete rehydration and stabilize on login screen',
-      },
-    );
-
-    logger.debug(`App ready after ${Date.now() - startTime}ms`);
-  } catch (error) {
-    logger.error(`App failed to stabilize within ${timeout}ms`, error);
-    throw new Error(
-      `App did not stabilize on login screen within ${timeout}ms. ` +
-        `This may indicate rehydration issues or state corruption.`,
-    );
+    await sleep(2000);
   }
+
+  throw new Error(
+    `App did not reach login or wallet home within ${timeout}ms. ` +
+      `This may indicate rehydration issues or state corruption.`,
+  );
 };

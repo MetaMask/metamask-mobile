@@ -1,7 +1,6 @@
 import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { WhatsHappeningExploreVariant } from '../abTestConfig';
 
 const mockNavigate = jest.fn();
 
@@ -35,12 +34,6 @@ jest.mock('../feeds/tokens/CryptoMoversPillItem', () => {
       ),
   };
 });
-
-const mockUseABTest = jest.fn();
-jest.mock('../../../../hooks', () => ({
-  useABTest: (...args: unknown[]) =>
-    Reflect.apply(mockUseABTest, undefined, args),
-}));
 
 const mockUsePerpsFeed = jest.fn(() => ({
   data: [],
@@ -154,13 +147,72 @@ const mockWhatsHappeningImpl = jest.fn<React.ReactElement | null, [unknown]>(
   () => null,
 );
 
+const mockWhatsHappeningRefresh = jest.fn();
+const mockUseWhatsHappening = jest.fn(() => ({
+  items: [] as { id: string }[],
+  isLoading: false,
+  error: null as string | null,
+  refresh: mockWhatsHappeningRefresh,
+}));
+
+jest.mock('../../../UI/WhatsHappening/hooks', () => ({
+  ...jest.requireActual('../../../UI/WhatsHappening/hooks'),
+  useWhatsHappening: () => mockUseWhatsHappening(),
+}));
+
+const mockPredictionsCarouselSection = jest.fn(
+  (props: {
+    idPrefix?: string;
+    title?: string;
+    onViewAll?: () => void;
+    isEnabled?: boolean;
+    feed?: { isLoading: boolean; data: unknown[] };
+  }) => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { createElement, Fragment } = require('react');
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { Pressable, Text } = require('react-native');
+
+    if (
+      !props.isEnabled ||
+      (!props.feed?.isLoading && props.feed?.data.length === 0)
+    ) {
+      return null;
+    }
+
+    return createElement(
+      Fragment,
+      null,
+      createElement(
+        Pressable,
+        {
+          testID: `section-header-view-all-${props.idPrefix}`,
+          onPress: props.onViewAll,
+        },
+        createElement(Text, null, props.title),
+      ),
+    );
+  },
+);
+
+jest.mock('../feeds/predictions/PredictionsCarouselSection', () => ({
+  __esModule: true,
+  default: (props: {
+    idPrefix?: string;
+    title?: string;
+    onViewAll?: () => void;
+    isEnabled?: boolean;
+    feed?: { isLoading: boolean; data: unknown[] };
+  }) => mockPredictionsCarouselSection(props),
+}));
+
 jest.mock('../../../UI/WhatsHappening', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const { forwardRef } = require('react');
   return {
     __esModule: true,
-    default: forwardRef((_props: unknown, ref: unknown) =>
-      mockWhatsHappeningImpl(ref),
+    default: forwardRef((props: unknown, ref: unknown) =>
+      mockWhatsHappeningImpl({ ...(props as object), ref }),
     ),
   };
 });
@@ -223,27 +275,12 @@ const getIntroSectionOrder = (tree: unknown) =>
     [predictSectionTestId, whatsHappeningSectionTestId].includes(testId),
   );
 
-const mockControlAbTest = () =>
-  mockUseABTest.mockReturnValue({
-    variant: { whatsHappeningBeforePredict: false },
-    variantName: WhatsHappeningExploreVariant.Control,
-    isActive: true,
-  });
-
 const mockUseTokensFeed = useTokensFeed as jest.MockedFunction<
   typeof useTokensFeed
 >;
 
-const mockTreatmentAbTest = () =>
-  mockUseABTest.mockReturnValue({
-    variant: { whatsHappeningBeforePredict: true },
-    variantName: WhatsHappeningExploreVariant.Treatment,
-    isActive: true,
-  });
-
 beforeEach(() => {
   jest.clearAllMocks();
-  mockControlAbTest();
   mockUsePerpsFeed.mockReturnValue({
     data: [],
     isLoading: false,
@@ -255,6 +292,12 @@ beforeEach(() => {
     data: [],
     isLoading: false,
     isEnabled: false,
+  });
+  mockUseWhatsHappening.mockReturnValue({
+    items: [],
+    isLoading: false,
+    error: null,
+    refresh: mockWhatsHappeningRefresh,
   });
   mockWhatsHappeningImpl.mockReturnValue(null);
 });
@@ -273,7 +316,6 @@ describe('NowTab — WhatsHappeningSection integration', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockImplementation(mockSelectorBase);
-    mockControlAbTest();
     // Default: section mock renders nothing; individual tests override as needed.
     mockWhatsHappeningImpl.mockReturnValue(null);
   });
@@ -282,6 +324,12 @@ describe('NowTab — WhatsHappeningSection integration', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectWhatsHappeningEnabled) return true;
       return mockSelectorBase(selector);
+    });
+    mockUseWhatsHappening.mockReturnValue({
+      items: [{ id: 'trend-0' }],
+      isLoading: false,
+      error: null,
+      refresh: mockWhatsHappeningRefresh,
     });
     (mockWhatsHappeningImpl as jest.Mock).mockReturnValue(
       React.createElement('View', {
@@ -307,22 +355,81 @@ describe('NowTab — WhatsHappeningSection integration', () => {
     expect(screen.queryByTestId('whats-happening-carousel')).toBeNull();
   });
 
-  it('passes a ref to WhatsHappeningSection so pull-to-refresh can trigger it', () => {
+  it('calls whatsHappening.refresh when pull-to-refresh is triggered', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectWhatsHappeningEnabled) return true;
       return mockSelectorBase(selector);
+    });
+
+    const { rerender } = renderNowTab();
+
+    expect(mockWhatsHappeningRefresh).not.toHaveBeenCalled();
+
+    rerender(
+      <NavigationContainer>
+        <NowTab
+          {...defaultTabProps}
+          refresh={{ trigger: 1, silentRefresh: true }}
+        />
+      </NavigationContainer>,
+    );
+
+    expect(mockWhatsHappeningRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders Predict before Whats Happening', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectWhatsHappeningEnabled) return true;
+      if (selector === selectPredictEnabledFlag) return true;
+      return mockSelectorBase(selector);
+    });
+    mockUsePredictionsFeed.mockReturnValue({
+      data: [{ id: 'market-1' }],
+      isLoading: false,
+    });
+    mockUseWhatsHappening.mockReturnValue({
+      items: [{ id: 'trend-0' }],
+      isLoading: false,
+      error: null,
+      refresh: mockWhatsHappeningRefresh,
+    });
+    mockWhatsHappeningImpl.mockReturnValue(
+      React.createElement('View', {
+        testID: whatsHappeningSectionTestId,
+      }),
+    );
+
+    const { toJSON } = renderNowTab();
+
+    expect(getIntroSectionOrder(toJSON())).toEqual([
+      predictSectionTestId,
+      whatsHappeningSectionTestId,
+    ]);
+  });
+
+  it('does not add a divider when Whats Happening feed is empty', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectWhatsHappeningEnabled) return true;
+      if (selector === selectPredictEnabledFlag) return true;
+      return mockSelectorBase(selector);
+    });
+    mockUsePredictionsFeed.mockReturnValue({
+      data: [{ id: 'market-1' }],
+      isLoading: false,
+    });
+    mockUseWhatsHappening.mockReturnValue({
+      items: [],
+      isLoading: false,
+      error: null,
+      refresh: mockWhatsHappeningRefresh,
     });
 
     renderNowTab();
 
-    // The mock's first argument is the forwarded ref (we dropped props in the mock).
-    // It should be a React ref object so the useEffect bridge can call .refresh().
-    expect(mockWhatsHappeningImpl).toHaveBeenCalled();
-    const [forwardedRef] = mockWhatsHappeningImpl.mock.calls[0];
-    expect(forwardedRef).not.toBeNull();
+    expect(screen.queryByTestId('explore-section-divider')).toBeNull();
   });
 
-  it('renders Predict before Whats Happening for the control variant', () => {
+  it('adds a divider between Predict and Whats Happening when Whats Happening has content', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectWhatsHappeningEnabled) return true;
       if (selector === selectPredictEnabledFlag) return true;
@@ -332,30 +439,11 @@ describe('NowTab — WhatsHappeningSection integration', () => {
       data: [{ id: 'market-1' }],
       isLoading: false,
     });
-    mockWhatsHappeningImpl.mockReturnValue(
-      React.createElement('View', {
-        testID: whatsHappeningSectionTestId,
-      }),
-    );
-
-    const { toJSON } = renderNowTab();
-
-    expect(getIntroSectionOrder(toJSON())).toEqual([
-      predictSectionTestId,
-      whatsHappeningSectionTestId,
-    ]);
-  });
-
-  it('renders Whats Happening before Predict for the treatment variant', () => {
-    mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectWhatsHappeningEnabled) return true;
-      if (selector === selectPredictEnabledFlag) return true;
-      return mockSelectorBase(selector);
-    });
-    mockTreatmentAbTest();
-    mockUsePredictionsFeed.mockReturnValue({
-      data: [{ id: 'market-1' }],
+    mockUseWhatsHappening.mockReturnValue({
+      items: [{ id: 'trend-0' }],
       isLoading: false,
+      error: null,
+      refresh: mockWhatsHappeningRefresh,
     });
     mockWhatsHappeningImpl.mockReturnValue(
       React.createElement('View', {
@@ -363,12 +451,9 @@ describe('NowTab — WhatsHappeningSection integration', () => {
       }),
     );
 
-    const { toJSON } = renderNowTab();
+    renderNowTab();
 
-    expect(getIntroSectionOrder(toJSON())).toEqual([
-      whatsHappeningSectionTestId,
-      predictSectionTestId,
-    ]);
+    expect(screen.getByTestId('explore-section-divider')).toBeOnTheScreen();
   });
 });
 
@@ -387,7 +472,6 @@ describe('NowTab — Perps Movers "View All" navigation', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSelector.mockImplementation(mockSelectorBase);
-    mockControlAbTest();
     mockWhatsHappeningImpl.mockReturnValue(null);
   });
 
@@ -536,7 +620,6 @@ describe('NowTab — Predictions navigation', () => {
       if (selector === selectWhatsHappeningEnabled) return false;
       return undefined;
     });
-    mockControlAbTest();
     mockUsePredictionsFeed.mockReturnValue({
       data: [{ id: 'market-1' }],
       isLoading: false,
@@ -593,7 +676,6 @@ describe('NowTab — Crypto Movers', () => {
       if (selector === selectWhatsHappeningEnabled) return false;
       return undefined;
     });
-    mockControlAbTest();
     mockUseTokensFeed.mockReturnValue({
       data: [
         {
@@ -632,7 +714,11 @@ describe('NowTab — Crypto Movers', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
-      { initialTimeOption: '1h' },
+      {
+        initialTimeOption: '1h',
+        entryPoint: 'crypto_movers',
+        quickBuySource: 'explore_now',
+      },
     );
   });
 
