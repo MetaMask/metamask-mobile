@@ -13,6 +13,7 @@ jobs:
     if: github.event.pull_request.merged == true
     permissions:
       id-token: write
+      contents: read
     steps:
       - name: Get token
         id: get-token
