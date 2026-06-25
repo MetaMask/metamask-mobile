@@ -579,9 +579,14 @@ function handleSetOHLCVData(payload) {
       let chart = window.chartWidget.activeChart();
       if (previousResolution !== newResolution) {
         window.__mmInHotReloadPreResetPhase = true;
+        var preResetSeq = (window.__mmHotReloadPreResetSeq =
+          (window.__mmHotReloadPreResetSeq || 0) + 1);
         chart.setResolution(newResolution, function () {
           // Pre-reset window is over — post-reset getBars must pass through.
-          window.__mmInHotReloadPreResetPhase = false;
+          // Guard: only clear if no newer switch has started since (stale callback).
+          if (window.__mmHotReloadPreResetSeq === preResetSeq) {
+            window.__mmInHotReloadPreResetPhase = false;
+          }
           try {
             // Flush the noData:true TV cached from the pre-reset getBars so that
             // resetData() below forces a fresh getBars with real bars.
