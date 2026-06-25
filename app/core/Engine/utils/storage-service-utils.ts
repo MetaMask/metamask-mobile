@@ -7,6 +7,7 @@ import {
 import { Json } from '@metamask/utils';
 import Device from '../../../util/device';
 import Logger from '../../../util/Logger';
+import { trackPersistPayloadSize } from '../../../util/storage/persistPayloadTelemetry';
 
 /**
  * Utility functions for StorageService key encoding/decoding.
@@ -99,11 +100,10 @@ export const mobileStorageAdapter: StorageAdapter = {
       const encodedKey = encodeStorageKey(key);
       const fullKey = `${STORAGE_KEY_PREFIX}${encodedNamespace}:${encodedKey}`;
 
-      await FilesystemStorage.setItem(
-        fullKey,
-        JSON.stringify(value),
-        Device.isIos(),
-      );
+      const serialized = JSON.stringify(value);
+      trackPersistPayloadSize(fullKey, serialized);
+
+      await FilesystemStorage.setItem(fullKey, serialized, Device.isIos());
     } catch (error) {
       Logger.error(error as Error, {
         message: `StorageService: Failed to set item: ${namespace}:${key}`,
