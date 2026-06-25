@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
-- Revert "feat(networking): integrate nitro-fetch with startup prefetching (#31206)" (#31206)
+- Revert "feat(networking): integrate nitro-fetch with startup prefetching" (#31206)
 - Improved QuickBuy and Weekly Top Traders interactions (#32392)
 - chore: migrate StackNavigationProp types to native-stack equivalents (#32119)
 - Updated the Follow / Following button and row spacing on the Top Traders leaderboard to match the latest design. (#32367)
