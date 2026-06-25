@@ -152,7 +152,7 @@ describe('TransactionDetailsHero', () => {
     expect(queryByTestId('transaction-details-hero')).toBeNull();
   });
 
-  it('renders token amount with symbol for Money types with targetFiat', () => {
+  it('renders token amount for Money types with targetFiat', () => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
         ...TRANSACTION_META_MOCK,
@@ -165,8 +165,7 @@ describe('TransactionDetailsHero', () => {
 
     const { getByText } = render();
 
-    expect(getByText(/456\.78/)).toBeDefined();
-    expect(getByText(/mUSD/)).toBeDefined();
+    expect(getByText(/\$456\.78/)).toBeDefined();
   });
 
   it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
@@ -202,8 +201,7 @@ describe('TransactionDetailsHero', () => {
 
     const { getByText } = render();
 
-    expect(getByText(/100\.00/)).toBeDefined();
-    expect(getByText(/mUSD/)).toBeDefined();
+    expect(getByText(/\$100/)).toBeDefined();
   });
 
   it('renders claim amount for musdClaim with valid claim data', () => {
@@ -289,7 +287,7 @@ describe('TransactionDetailsHero', () => {
 
     const { getByText, queryByText } = render();
 
-    expect(getByText(/200\.00 mUSD/)).toBeDefined();
+    expect(getByText(/\$200/)).toBeDefined();
     expect(queryByText('You sent')).toBeNull();
     expect(queryByText('You received')).toBeNull();
   });

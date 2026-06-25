@@ -262,12 +262,11 @@ export function TransactionDetailsHero() {
           color={showDepositPrefix ? TextColor.Success : undefined}
         >
           {showDepositPrefix ? '+' : isMusdWithdrawSingleRow ? '-' : ''}
-          {(showDepositPrefix || isMusdWithdrawSingleRow) &&
-          transactionMeta.metamaskPay?.targetFiat
-            ? formatFiatPay(
-                new BigNumber(transactionMeta.metamaskPay.targetFiat),
-              )
-            : `${tokenMeta.amount} ${tokenMeta.symbol}`}
+          {formatFiatPay(
+            new BigNumber(
+              transactionMeta.metamaskPay?.targetFiat ?? tokenMeta.amount,
+            ),
+          )}
         </Text>
       </Box>
     );
@@ -352,10 +351,6 @@ function resolveTwoAssetData(
   formatFiat: (value: BigNumber) => string,
 ): { sent: TokenDisplayData; received: TokenDisplayData } {
   const { totalFiat, targetFiat } = transactionMeta.metamaskPay ?? {};
-  const fiatSent = formatFiat(new BigNumber(totalFiat ?? sentData.amount));
-  const fiatReceived = formatFiat(
-    new BigNumber(targetFiat ?? receivedData.amount),
-  );
 
   const isOutbound = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
@@ -363,10 +358,21 @@ function resolveTwoAssetData(
 
   if (isOutbound) {
     return {
-      sent: { ...receivedData, fiatAmount: fiatSent },
-      received: { ...sentData, fiatAmount: fiatReceived },
+      sent: {
+        ...receivedData,
+        fiatAmount: formatFiat(new BigNumber(totalFiat ?? receivedData.amount)),
+      },
+      received: {
+        ...sentData,
+        fiatAmount: formatFiat(new BigNumber(targetFiat ?? sentData.amount)),
+      },
     };
   }
+
+  const fiatSent = formatFiat(new BigNumber(totalFiat ?? sentData.amount));
+  const fiatReceived = formatFiat(
+    new BigNumber(targetFiat ?? receivedData.amount),
+  );
 
   for (const [type, override] of Object.entries(SENT_OVERRIDE)) {
     if (hasTransactionType(transactionMeta, [type as TransactionType])) {
