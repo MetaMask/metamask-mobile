@@ -7,12 +7,18 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { FlashList } from '@shopify/flash-list';
 import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView as GestureHandlerScrollView } from 'react-native-gesture-handler';
+import { StyleSheet } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import QuickBuyPayWithChainFilter from './components/QuickBuyPayWithChainFilter';
+
+const styles = StyleSheet.create({
+  tokenList: {
+    flex: 1,
+  },
+});
 import QuickBuyPayWithRow from './components/QuickBuyPayWithRow';
 import { useChainDisplayInfos } from './hooks/useChainDisplayInfos';
 import { getTokenKey } from './tokenKey';
@@ -56,7 +62,6 @@ const QuickBuyTokenSelectList: React.FC<QuickBuyTokenSelectListProps> = ({
   defaultChainId = null,
   priorityChainId = null,
 }) => {
-  const tw = useTailwind();
   const [selectedChainId, setSelectedChainId] = useState<string | null>(
     defaultChainId,
   );
@@ -93,6 +98,22 @@ const QuickBuyTokenSelectList: React.FC<QuickBuyTokenSelectListProps> = ({
   const selectedTokenKey = selectedToken
     ? getTokenKey(selectedToken)
     : undefined;
+
+  const keyExtractor = useCallback(
+    (token: BridgeToken) => getTokenKey(token),
+    [],
+  );
+
+  const renderItem = useCallback(
+    ({ item: token }: { item: BridgeToken }) => (
+      <QuickBuyPayWithRow
+        token={token}
+        isSelected={getTokenKey(token) === selectedTokenKey}
+        onPress={onSelect}
+      />
+    ),
+    [onSelect, selectedTokenKey],
+  );
 
   const renderEmpty = useCallback(
     () => (
@@ -134,21 +155,15 @@ const QuickBuyTokenSelectList: React.FC<QuickBuyTokenSelectListProps> = ({
           {filteredTokens.length === 0 ? (
             renderEmpty()
           ) : (
-            <GestureHandlerScrollView
-              style={tw.style('flex-1')}
+            <FlashList
+              style={styles.tokenList}
+              data={filteredTokens}
+              renderItem={renderItem}
+              keyExtractor={keyExtractor}
               keyboardShouldPersistTaps="handled"
               showsVerticalScrollIndicator={false}
               testID="quick-buy-pay-with-scroll"
-            >
-              {filteredTokens.map((token) => (
-                <QuickBuyPayWithRow
-                  key={getTokenKey(token)}
-                  token={token}
-                  isSelected={getTokenKey(token) === selectedTokenKey}
-                  onPress={onSelect}
-                />
-              ))}
-            </GestureHandlerScrollView>
+            />
           )}
         </>
       )}
