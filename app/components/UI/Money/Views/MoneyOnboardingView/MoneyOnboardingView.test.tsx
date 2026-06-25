@@ -12,6 +12,7 @@ import {
 } from '../../constants/moneyEvents';
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import Logger from '../../../../../util/Logger';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 
 const mockTrackOnboardingEvent = jest.fn();
 const mockNavigate = jest.fn();
@@ -63,6 +64,13 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
 
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
+}));
+
+jest.mock('../../../../../util/haptics', () => ({
+  ImpactMoment: {
+    PageNavigation: 'pageNavigation',
+  },
+  playImpact: jest.fn(),
 }));
 
 let mockOnStateChanged: (stateMachineName: string, stateName: string) => void;
@@ -347,6 +355,14 @@ describe('MoneyOnboardingView', () => {
         }),
       );
     });
+
+    it('plays page navigation haptic when close trigger fires', () => {
+      render(<MoneyOnboardingView />);
+
+      mockTriggerCallbacks.close();
+
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+    });
   });
 
   describe('Rive config initialization', () => {
@@ -362,6 +378,32 @@ describe('MoneyOnboardingView', () => {
       expect(mockSetString).toHaveBeenCalledWith(
         strings('money.rive_onboarding.button_text'),
       );
+    });
+  });
+
+  describe('Transition haptics', () => {
+    it('plays page navigation haptic when Rive enters forward transition state', () => {
+      render(<MoneyOnboardingView />);
+
+      triggerStateChange('UI to APY');
+
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+    });
+
+    it('plays page navigation haptic when Rive enters backward transition state', () => {
+      render(<MoneyOnboardingView />);
+
+      triggerStateChange('APY to UI');
+
+      expect(playImpact).toHaveBeenCalledWith(ImpactMoment.PageNavigation);
+    });
+
+    it('does not play haptic when Rive enters settled step state', () => {
+      render(<MoneyOnboardingView />);
+
+      triggerStateChange('APY');
+
+      expect(playImpact).not.toHaveBeenCalled();
     });
   });
 

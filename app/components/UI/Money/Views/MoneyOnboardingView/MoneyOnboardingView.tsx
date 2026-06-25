@@ -24,6 +24,7 @@ import {
   MONEY_ONBOARDING_STEP_ACTIONS,
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import Rive, {
   AutoBind,
   useRive,
@@ -345,6 +346,7 @@ const MoneyOnboardingView = () => {
 
   const handleClose = useCallback(
     (stepIndex: number) => {
+      playImpact(ImpactMoment.PageNavigation);
       trackOnboardingEvent({
         step: stepIndex + 1, // Use 1-based index for event tracking to match total_steps count.
         step_title: stepTitlesEnglish[stepIndex],
@@ -395,6 +397,7 @@ const MoneyOnboardingView = () => {
   const handleStateChanged = useCallback(
     (_stateMachineName: string, stateName: string) => {
       if (RIVE_TRANSITION_STATES.has(stateName)) {
+        playImpact(ImpactMoment.PageNavigation);
         setIsOverlayVisible(false);
         return;
       }
