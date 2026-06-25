@@ -1,5 +1,6 @@
-import { renderHook, waitFor } from '@testing-library/react-native';
+import { act, renderHook, waitFor } from '@testing-library/react-native';
 import type { Position } from '@metamask/social-controllers';
+import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import {
   fetchHyperliquidHistoricalPrices,
   type HyperliquidCandleInterval,
@@ -95,5 +96,36 @@ describe('useTraderPositionData — perp candle pre-fetch', () => {
     for (const [opts] of mockFetchHyperliquid.mock.calls) {
       expect(opts.symbol).toBe('ETH');
     }
+  });
+
+  it('does not refetch already-loaded periods when positionParam gets a new reference', async () => {
+    // Each period resolves to non-empty candles, so all five get cached.
+    const goodPrices: TokenPrice[] = [
+      ['1', 100],
+      ['2', 101],
+    ];
+    mockFetchHyperliquid.mockResolvedValue(goodPrices);
+
+    const { rerender } = renderHook(
+      (position: Position) => useTraderPositionData(position),
+      { initialProps: perpPosition },
+    );
+
+    // Let all five fetches resolve and populate the cache.
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockFetchHyperliquid).toHaveBeenCalledTimes(5);
+
+    // Pull-to-refresh hands down a NEW positionParam reference with the same
+    // identity (chain + symbol → same perpKey), re-running the pre-fetch effect.
+    rerender({ ...perpPosition } as Position);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    // Every period already holds non-empty candles, so none are refetched — a
+    // transient empty response therefore cannot overwrite the cached data.
+    expect(mockFetchHyperliquid).toHaveBeenCalledTimes(5);
   });
 });

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import type { Position } from '@metamask/social-controllers';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
@@ -257,6 +257,13 @@ export function useTraderPositionData(
   }>({ key: '', prices: {} });
   const [isPricesLoading, setIsPricesLoading] = useState(true);
 
+  // Latest cache mirrored into a ref so the pre-fetch effect can read it WITHOUT
+  // depending on `perpCache` — depending on it would re-run the effect on every
+  // per-period resolve and refetch the still-in-flight periods (a 5+4+3+2+1
+  // cascade). The ref lets the effect skip already-loaded periods cheaply.
+  const perpCacheRef = useRef(perpCache);
+  perpCacheRef.current = perpCache;
+
   useEffect(() => {
     if (!positionParam) {
       setAllPrices({});
@@ -332,8 +339,15 @@ export function useTraderPositionData(
   // arrived. Each perp period maps to a distinct Hyperliquid interval, so there's
   // no reuse — up to 5 candleSnapshot requests. The candle count is anchored back
   // to the earliest trade (capped at the API max) so closed positions still frame
-  // their trades. Fires once per position; the cache is scoped by `perpKey` so a
-  // stale-position result is ignored, not flashed.
+  // their trades. The cache is scoped by `perpKey` so a stale-position result is
+  // ignored, not flashed.
+  //
+  // Re-runs when `positionParam` gets a new reference (e.g. pull-to-refresh), so
+  // periods that already hold NON-EMPTY candles are skipped: a transient failure
+  // (which resolves to `[]`) must not overwrite good data — the loading gate
+  // treats a cached empty array as "loaded", which would otherwise strand the
+  // chart on the empty/fallback state. Empty or missing periods are still
+  // (re)fetched so a prior failure can recover on the next refresh.
   useEffect(() => {
     if (!positionParam || !isPerp) return;
 
@@ -344,6 +358,9 @@ export function useTraderPositionData(
     // fetchHyperliquidHistoricalPrices never rejects (it logs + returns [] on
     // failure), so an empty result is cached and we don't refetch in a loop.
     TIME_PERIODS.forEach((period) => {
+      const cached = perpCacheRef.current;
+      if (cached.key === perpKey && cached.prices[period]?.length) return;
+
       const { interval, baseLimit } = PERP_PERIOD_TO_CANDLES[period];
       const limit = resolveHyperliquidCandleLimit({
         interval,
