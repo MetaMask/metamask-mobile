@@ -53,7 +53,7 @@ export function setupRpcEndpointMetrics(messenger: RootMessenger) {
       onRpcEndpointUnavailable({
         chainId,
         endpointUrl,
-        infuraProjectId: INFURA_PROJECT_ID,
+        infuraProjectId: INFURA_PROJECT_ID as string,
         error,
         trackEvent: ({ event, properties }) => {
           buildAndTrackEvent(messenger, event, properties);
@@ -81,7 +81,7 @@ export function setupRpcEndpointMetrics(messenger: RootMessenger) {
         duration,
         endpointUrl,
         error,
-        infuraProjectId: INFURA_PROJECT_ID,
+        infuraProjectId: INFURA_PROJECT_ID as string,
         retryReason,
         rpcMethodName,
         traceId,
