@@ -56,7 +56,7 @@ const PENDING_STATUSES = new Set([
 /**
  * V2 order detail screen. Reads RampsOrder from controller state only.
  * Legacy orders (DEPOSIT, RAMPS_V2 in Redux) are routed to the aggregator
- * detail screen by OrdersList — they never reach this component.
+ * detail screen by OrdersList, they never reach this component.
  */
 const styles = StyleSheet.create({
   scrollContentContainer: {
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
 const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();
   const { getOrderById, refreshOrder, getOrderFromCallback, addOrder } =
-    useRampsOrders();
+    useRampsOrders({ includeMoneyAccountOrdersInLookup: true });
   const orderCode = params.orderId ? extractOrderCode(params.orderId) : '';
   const order = getOrderById(orderCode);
   const isPending = order ? PENDING_STATUSES.has(order.status) : false;

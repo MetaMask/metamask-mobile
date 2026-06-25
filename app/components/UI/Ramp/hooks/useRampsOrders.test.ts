@@ -4,15 +4,19 @@ import { configureStore } from '@reduxjs/toolkit';
 import React from 'react';
 import { AccountGroupType } from '@metamask/account-api';
 import { RampsOrderStatus, type RampsOrder } from '@metamask/ramps-controller';
+import type { MoneyAccount } from '@metamask/money-account-controller';
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 import { useRampsOrders } from './useRampsOrders';
 
-const RAMP_HOOKS_TEST_WALLET_ID = 'keyring:use-ramps-orders-test' as const;
-const RAMP_HOOKS_TEST_GROUP_ID =
-  `${RAMP_HOOKS_TEST_WALLET_ID}/ethereum` as const;
+const RAMP_HOOKS_TEST_ENTROPY_ID = 'use-ramps-orders-test';
+const RAMP_HOOKS_TEST_WALLET_ID =
+  `entropy:${RAMP_HOOKS_TEST_ENTROPY_ID}` as const;
+const RAMP_HOOKS_TEST_GROUP_ID = `${RAMP_HOOKS_TEST_WALLET_ID}/0` as const;
 const RAMP_HOOKS_TEST_ACCOUNT_ID = 'account-rh-1';
 /** Must be a valid EVM address (20 bytes) so `areAddressesEqual` treats it as EVM. */
 const RAMP_HOOKS_TEST_ADDRESS = '0x2990079bcdee240329a520d2444386fc119da21a';
+const RAMP_HOOKS_TEST_MONEY_ADDRESS =
+  '0x0000000000000000000000000000000000000002';
 
 const rampHooksTestInternalAccount = {
   ...createMockInternalAccount(RAMP_HOOKS_TEST_ADDRESS, 'Test'),
@@ -60,7 +64,30 @@ const createMockOrder = (overrides: Partial<RampsOrder> = {}): RampsOrder => ({
   ...overrides,
 });
 
-const createMockStore = (orders: RampsOrder[] = []) =>
+const createMoneyAccount = (
+  overrides: Partial<MoneyAccount> = {},
+): MoneyAccount => ({
+  id: 'money-account-1',
+  address: RAMP_HOOKS_TEST_MONEY_ADDRESS,
+  type: 'eip155:eoa',
+  scopes: [],
+  methods: [],
+  options: {
+    entropy: {
+      type: 'mnemonic',
+      id: RAMP_HOOKS_TEST_ENTROPY_ID,
+      derivationPath: "m/44'/60'/0'/0/0",
+      groupIndex: 0,
+    },
+    exportable: false,
+  },
+  ...overrides,
+});
+
+const createMockStore = (
+  orders: RampsOrder[] = [],
+  moneyAccounts: Record<string, MoneyAccount> = {},
+) =>
   configureStore({
     reducer: {
       engine: () => ({
@@ -77,9 +104,12 @@ const createMockStore = (orders: RampsOrder[] = []) =>
                   groups: {
                     [RAMP_HOOKS_TEST_GROUP_ID]: {
                       id: RAMP_HOOKS_TEST_GROUP_ID,
-                      type: AccountGroupType.SingleAccount,
+                      type: AccountGroupType.MultichainAccount,
                       accounts: [RAMP_HOOKS_TEST_ACCOUNT_ID],
-                      metadata: { name: 'Test Group' },
+                      metadata: {
+                        name: 'Test Group',
+                        entropy: { groupIndex: 0 },
+                      },
                     },
                   },
                 },
@@ -106,6 +136,9 @@ const createMockStore = (orders: RampsOrder[] = []) =>
           },
           KeyringController: {
             keyrings: [],
+          },
+          MoneyAccountController: {
+            moneyAccounts,
           },
         },
       }),
@@ -163,6 +196,46 @@ describe('useRampsOrders', () => {
     });
 
     expect(result.current.getOrderById('order-2')).toEqual(order2);
+  });
+
+  it('excludes Money-only orders from lookup by default', () => {
+    const moneyAccount = createMoneyAccount();
+    const moneyOrder = createMockOrder({
+      providerOrderId: 'money-order',
+      walletAddress: RAMP_HOOKS_TEST_MONEY_ADDRESS,
+    });
+    const store = createMockStore([moneyOrder], {
+      [moneyAccount.id]: moneyAccount,
+    });
+    const { result } = renderHook(() => useRampsOrders(), {
+      wrapper: wrapper(store),
+    });
+
+    expect(result.current.orders).toEqual([]);
+    expect(result.current.getOrderById('money-order')).toBeUndefined();
+  });
+
+  it('finds selected group Money orders in lookup when opted in without widening returned orders', () => {
+    const selectedGroupOrder = createMockOrder({
+      providerOrderId: 'selected-group-order',
+    });
+    const moneyAccount = createMoneyAccount();
+    const moneyOrder = createMockOrder({
+      providerOrderId: 'money-order',
+      walletAddress: RAMP_HOOKS_TEST_MONEY_ADDRESS,
+    });
+    const store = createMockStore([selectedGroupOrder, moneyOrder], {
+      [moneyAccount.id]: moneyAccount,
+    });
+    const { result } = renderHook(
+      () => useRampsOrders({ includeMoneyAccountOrdersInLookup: true }),
+      {
+        wrapper: wrapper(store),
+      },
+    );
+
+    expect(result.current.orders).toEqual([selectedGroupOrder]);
+    expect(result.current.getOrderById('money-order')).toEqual(moneyOrder);
   });
 
   it('returns undefined for non-existent order id', () => {

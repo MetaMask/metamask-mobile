@@ -18,6 +18,7 @@ import {
   selectRampsControllerState,
   selectRampsOrders,
   selectRampsOrdersForSelectedAccountGroup,
+  selectRampsOrdersForSelectedAccountGroupOrMoneyAccount,
   selectTransak,
 } from './index';
 
@@ -438,6 +439,122 @@ describe('RampsController Selectors', () => {
       );
 
       expect(selectRampsOrdersForSelectedAccountGroup(state)).toEqual([]);
+    });
+  });
+
+  describe('selectRampsOrdersForSelectedAccountGroupOrMoneyAccount', () => {
+    const accountId = 'account-ramps-money-1';
+    const walletAddrLower = '0x2990079bcdee240329a520d2444386fc119da21a';
+    const moneyAccountAddress = '0x0000000000000000000000000000000000000002';
+    const moneyWalletId = 'entropy:ramps-money-selector-test' as const;
+    const moneyGroupId = `${moneyWalletId}/0` as const;
+    const internalAccount = {
+      ...createMockInternalAccount(walletAddrLower, 'Account 1'),
+      id: accountId,
+    };
+
+    function createStateWithSelectedMoneyAccountGroup(
+      rampsController: RampsControllerStateOverride,
+    ): RootState {
+      return createMockState(rampsController, {
+        AccountTreeController: {
+          accountTree: {
+            wallets: {
+              [moneyWalletId]: {
+                id: moneyWalletId,
+                metadata: { name: 'Test wallet' },
+                groups: {
+                  [moneyGroupId]: {
+                    id: moneyGroupId,
+                    type: AccountGroupType.MultichainAccount,
+                    accounts: [accountId],
+                    metadata: {
+                      name: 'Test Group',
+                      entropy: { groupIndex: 0 },
+                    },
+                  },
+                },
+              },
+            },
+          },
+          selectedAccountGroup: moneyGroupId,
+        },
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {
+            enableMultichainAccounts: {
+              enabled: true,
+              featureVersion: '1',
+              minimumVersion: '1.0.0',
+            },
+          },
+        },
+        AccountsController: {
+          internalAccounts: {
+            accounts: {
+              [accountId]: internalAccount,
+            },
+            selectedAccount: accountId,
+          },
+        },
+        MoneyAccountController: {
+          moneyAccounts: {
+            'money-account-1': {
+              id: 'money-account-1',
+              address: moneyAccountAddress,
+              type: 'eip155:eoa',
+              scopes: [],
+              methods: [],
+              options: {
+                entropy: {
+                  type: 'mnemonic',
+                  id: 'ramps-money-selector-test',
+                  derivationPath: "m/44'/60'/0'/0/0",
+                  groupIndex: 0,
+                },
+                exportable: false,
+              },
+            },
+          },
+        },
+      });
+    }
+
+    it('keeps selected group and selected group Money orders only', () => {
+      const selectedGroupOrder = {
+        providerOrderId: 'selected-group-order',
+        walletAddress: walletAddrLower,
+        status: 'COMPLETED',
+        createdAt: 1000,
+      };
+      const selectedGroupMoneyOrder = {
+        providerOrderId: 'selected-group-money-order',
+        walletAddress: moneyAccountAddress,
+        status: 'COMPLETED',
+        createdAt: 2000,
+      };
+      const unrelatedOrder = {
+        providerOrderId: 'unrelated-order',
+        walletAddress: '0x0000000000000000000000000000000000000003',
+        status: 'COMPLETED',
+        createdAt: 3000,
+      };
+      const missingWalletAddressOrder = {
+        providerOrderId: 'missing-wallet-address-order',
+        status: 'COMPLETED',
+        createdAt: 4000,
+      };
+      const state = createStateWithSelectedMoneyAccountGroup({
+        orders: [
+          selectedGroupOrder,
+          selectedGroupMoneyOrder,
+          unrelatedOrder,
+          missingWalletAddressOrder,
+        ],
+      } as never);
+
+      expect(
+        selectRampsOrdersForSelectedAccountGroupOrMoneyAccount(state),
+      ).toEqual([selectedGroupOrder, selectedGroupMoneyOrder]);
     });
   });
 

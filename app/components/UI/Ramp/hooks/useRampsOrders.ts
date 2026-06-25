@@ -3,7 +3,10 @@ import { useSelector } from 'react-redux';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { extractOrderCode } from '../utils/extractOrderCode';
 import Engine from '../../../../core/Engine';
-import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
+import {
+  selectRampsOrdersForSelectedAccountGroup,
+  selectRampsOrdersForSelectedAccountGroupOrMoneyAccount,
+} from '../../../../selectors/rampsController';
 
 export interface AddPrecreatedOrderParams {
   orderId: string;
@@ -30,15 +33,26 @@ export interface UseRampsOrdersResult {
   ) => Promise<RampsOrder>;
 }
 
-export function useRampsOrders(): UseRampsOrdersResult {
+export interface UseRampsOrdersConfig {
+  includeMoneyAccountOrdersInLookup?: boolean;
+}
+
+export function useRampsOrders(
+  config: UseRampsOrdersConfig = {},
+): UseRampsOrdersResult {
   const orders = useSelector(selectRampsOrdersForSelectedAccountGroup);
+  const lookupOrders = useSelector(
+    config.includeMoneyAccountOrdersInLookup
+      ? selectRampsOrdersForSelectedAccountGroupOrMoneyAccount
+      : selectRampsOrdersForSelectedAccountGroup,
+  );
 
   const getOrderById = useCallback(
     (providerOrderId: string) => {
       const orderCode = extractOrderCode(providerOrderId);
-      return orders.find((o) => o.providerOrderId === orderCode);
+      return lookupOrders.find((o) => o.providerOrderId === orderCode);
     },
-    [orders],
+    [lookupOrders],
   );
 
   const addOrder = useCallback(

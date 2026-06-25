@@ -27,13 +27,14 @@ const mockGetOrderById = jest.fn();
 const mockRefreshOrder = jest.fn();
 const mockGetOrderFromCallback = jest.fn();
 const mockAddOrder = jest.fn();
+const mockUseRampsOrders = jest.fn((_config?: unknown) => ({
+  getOrderById: mockGetOrderById,
+  refreshOrder: mockRefreshOrder,
+  getOrderFromCallback: mockGetOrderFromCallback,
+  addOrder: mockAddOrder,
+}));
 jest.mock('../../hooks/useRampsOrders', () => ({
-  useRampsOrders: () => ({
-    getOrderById: mockGetOrderById,
-    refreshOrder: mockRefreshOrder,
-    getOrderFromCallback: mockGetOrderFromCallback,
-    addOrder: mockAddOrder,
-  }),
+  useRampsOrders: (config?: unknown) => mockUseRampsOrders(config),
 }));
 
 jest.mock('../../../../../util/theme', () => {
@@ -129,6 +130,14 @@ describe('OrderDetails', () => {
       expect(mockGetOrderById).toHaveBeenCalledWith('ord-123');
     });
     expect(getByTestId('order-content')).toBeOnTheScreen();
+  });
+
+  it('looks up orders with selected group Money accounts included', () => {
+    render();
+
+    expect(mockUseRampsOrders).toHaveBeenCalledWith({
+      includeMoneyAccountOrdersInLookup: true,
+    });
   });
 
   it('displays order content when order is loaded', async () => {
