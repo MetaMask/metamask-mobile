@@ -165,6 +165,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const rangeSettlePayloadRef = useRef<ChartRangeSettlePayload | undefined>(
       undefined,
     );
+    const pendingSeriesSettleRef = useRef(false);
     const webViewRemountedGenerationsRef = useRef<Set<number>>(new Set());
     const markNextGenerationAsRemountedRef = useRef(false);
     const [webViewRemountNonce, setWebViewRemountNonce] = useState(0);
@@ -383,6 +384,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       activeSettleGenerationRef.current = null;
       activeSettleRequiresRangeProofRef.current = false;
       rangeSettlePayloadRef.current = undefined;
+      pendingSeriesSettleRef.current = false;
       setChartReadyCount(0);
       setWebViewLoaded(false);
       webViewLoadedRef.current = false;
@@ -413,8 +415,17 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     }, [htmlContent, resetWebViewRuntimeState]);
 
     const beginFullOhlcvLayoutSettle = useCallback(
-      (seriesGeneration?: number) => {
-        skeletonHiddenReportedRef.current = false;
+      (
+        seriesGeneration?: number,
+        shouldReportSkeleton = true,
+        shouldWaitForSettle = activeSettleRequiresRangeProofRef.current,
+      ) => {
+        if (shouldReportSkeleton) {
+          skeletonHiddenReportedRef.current = false;
+          pendingSeriesSettleRef.current = shouldWaitForSettle;
+        } else {
+          pendingSeriesSettleRef.current = false;
+        }
         rangeSettlePayloadRef.current = undefined;
         if (!isChartReady && !activeSettleRequiresRangeProofRef.current) {
           return;
@@ -440,6 +451,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             };
             webViewRemountedGenerationsRef.current.delete(seriesGeneration);
           }
+          pendingSeriesSettleRef.current = false;
           setLayoutSettling(false);
         }, LAYOUT_SETTLE_FALLBACK_MS);
       },
@@ -475,6 +487,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         }
         activeSettleRequiresRangeProofRef.current = false;
         rangeSettlePayloadRef.current = payloadWithRemount;
+        pendingSeriesSettleRef.current = false;
         clearLayoutSettleTimeout();
         setLayoutSettling(false);
       },
@@ -487,30 +500,46 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setWebViewRemountNonce((nonce) => nonce + 1);
     }, [resetWebViewRuntimeState]);
 
-    const beginPendingSeriesSettle = useCallback(() => {
-      skeletonHiddenReportedRef.current = false;
-      rangeSettlePayloadRef.current = undefined;
-      setLayoutSettling(true);
-      clearLayoutSettleTimeout();
-      layoutSettleTimeoutRef.current = setTimeout(() => {
-        layoutSettleTimeoutRef.current = null;
-        setLayoutSettling(false);
-      }, LAYOUT_SETTLE_FALLBACK_MS);
-    }, [clearLayoutSettleTimeout]);
-
     const useIntervalHotReload = webViewInstanceKey !== undefined;
+
+    const beginPendingSeriesSettle = useCallback(
+      (shouldReportSkeleton: boolean) => {
+        if (shouldReportSkeleton) {
+          skeletonHiddenReportedRef.current = false;
+          pendingSeriesSettleRef.current = true;
+        } else {
+          pendingSeriesSettleRef.current = false;
+        }
+        rangeSettlePayloadRef.current = undefined;
+        setLayoutSettling(true);
+        clearLayoutSettleTimeout();
+        layoutSettleTimeoutRef.current = setTimeout(() => {
+          layoutSettleTimeoutRef.current = null;
+          pendingSeriesSettleRef.current = false;
+          setLayoutSettling(false);
+        }, LAYOUT_SETTLE_FALLBACK_MS);
+      },
+      [clearLayoutSettleTimeout],
+    );
 
     useEffect(() => {
       if (ohlcvSeriesKey === undefined) {
         return;
       }
       resetChartTiming();
-      beginPendingSeriesSettle();
+      beginPendingSeriesSettle(
+        !useIntervalHotReload && prevOhlcvSeriesKeyRef.current !== undefined,
+      );
       ohlcvSeriesStaleSnapshotRef.current =
         prevOhlcvSeriesKeyRef.current !== undefined
           ? prevOhlcvDataRef.current
           : null;
-    }, [ohlcvSeriesKey, resetChartTiming, beginPendingSeriesSettle]);
+    }, [
+      ohlcvSeriesKey,
+      useIntervalHotReload,
+      resetChartTiming,
+      beginPendingSeriesSettle,
+    ]);
 
     // Remount only for explicit WebView instance changes (asset/currency) or fallback.
     useEffect(() => {
@@ -551,7 +580,13 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           markNextGenerationAsRemountedRef.current = false;
           webViewRemountedGenerationsRef.current.add(seriesGeneration);
         }
-        beginFullOhlcvLayoutSettle(seriesGeneration);
+        beginFullOhlcvLayoutSettle(
+          seriesGeneration,
+          !useIntervalHotReload || !skeletonHiddenReportedRef.current,
+          activeSettleRequiresRangeProofRef.current ||
+            (!useIntervalHotReload &&
+              prevOhlcvSeriesKeyRef.current !== undefined),
+        );
         postMessage({
           type: 'SET_OHLCV_DATA',
           payload: {
@@ -563,7 +598,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           },
         });
       },
-      [beginFullOhlcvLayoutSettle, postMessage],
+      [beginFullOhlcvLayoutSettle, postMessage, useIntervalHotReload],
     );
 
     const addIndicator = useCallback(
@@ -630,10 +665,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     const handleMessage = useCallback(
       (event: WebViewMessageEvent) => {
-        let raw;
+        let raw: unknown;
         try {
           raw = JSON.parse(event.nativeEvent.data);
-        } catch (err) {
+        } catch {
           return;
         }
 
@@ -1069,6 +1104,12 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       if (webViewError) return;
       if (!onSkeletonHidden) return;
       if (isLoading || !isChartReady || layoutSettling) {
+        return;
+      }
+      if (
+        pendingSeriesSettleRef.current &&
+        rangeSettlePayloadRef.current === undefined
+      ) {
         return;
       }
 

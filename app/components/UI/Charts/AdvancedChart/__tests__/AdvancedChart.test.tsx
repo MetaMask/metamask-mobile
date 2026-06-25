@@ -1430,12 +1430,12 @@ describe('AdvancedChart', () => {
       />,
     );
 
-    expect(mockPostMessage).toHaveBeenCalledWith(
-      JSON.stringify({
+    expect(getPostedMessagesByType('SET_OHLCV_DATA')).toEqual([
+      {
         type: 'SET_OHLCV_DATA',
-        payload: { data: freshBars },
-      }),
-    );
+        payload: { data: freshBars, seriesGeneration: 2 },
+      },
+    ]);
   });
 
   it('with webViewInstanceKey, does not show skeleton after first reveal on series key change', () => {
@@ -1548,12 +1548,12 @@ describe('AdvancedChart', () => {
       />,
     );
 
-    expect(mockPostMessage).toHaveBeenCalledWith(
-      JSON.stringify({
+    expect(getPostedMessagesByType('SET_OHLCV_DATA')).toEqual([
+      {
         type: 'SET_OHLCV_DATA',
-        payload: { data: freshBars },
-      }),
-    );
+        payload: { data: freshBars, seriesGeneration: 2 },
+      },
+    ]);
   });
 
   it('with webViewInstanceKey, calls onChartLayoutSettled on interval refresh without calling onSkeletonHidden again', () => {
@@ -1666,12 +1666,12 @@ describe('AdvancedChart', () => {
       webViewAfterInstanceChange.props.onLoadEnd();
     });
 
-    expect(mockPostMessage).toHaveBeenCalledWith(
-      JSON.stringify({
+    expect(getPostedMessagesByType('SET_OHLCV_DATA')).toEqual([
+      {
         type: 'SET_OHLCV_DATA',
-        payload: { data: MOCK_BARS },
-      }),
-    );
+        payload: { data: MOCK_BARS, seriesGeneration: 2 },
+      },
+    ]);
   });
 
   it('does not show skeleton when adding indicators after initial reveal', () => {
