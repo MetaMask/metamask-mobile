@@ -1372,6 +1372,7 @@ const AgenticService = {
       },
       queryUiTarget,
       applyWalletFixture: async (fixture) => {
+        let setupStep = 'start';
         try {
           const {
             MultichainAccountService,
@@ -1432,7 +1433,11 @@ const AgenticService = {
           ).map(toAccountSummary);
           return { ok: true, accounts: ethAccs };
         } catch (e) {
-          return { ok: false, error: String((e as Error).message || e) };
+          return {
+            ok: false,
+            step: setupStep,
+            error: String((e as Error).message || e),
+          };
         }
       },
       setupWallet: async (fixture) => {
