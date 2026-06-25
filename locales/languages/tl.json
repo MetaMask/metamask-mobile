@@ -2349,7 +2349,8 @@
     "home": {
       "live_now_title": "Live ngayon",
       "categories_placeholder": "Mga Kategorya",
-      "trending_placeholder": "Nagte-trend"
+      "trending_title": "Nagte-trend",
+      "trending_unable_to_load": "Unable to load markets, please try again"
     },
     "homepage_discovery": {
       "btc_title": "Presyo ng BTC: {{price}}",

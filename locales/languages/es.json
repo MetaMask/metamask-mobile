@@ -2349,7 +2349,8 @@
     "home": {
       "live_now_title": "En vivo ahora",
       "categories_placeholder": "Categorías",
-      "trending_placeholder": "Tendencias"
+      "trending_title": "Tendencias",
+      "trending_unable_to_load": "Unable to load markets, please try again"
     },
     "homepage_discovery": {
       "btc_title": "Precio de BTC: {{price}}",

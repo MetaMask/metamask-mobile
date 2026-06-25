@@ -44,6 +44,20 @@ jest.mock('../../../../components/PredictMarketMultiple', () => {
     default: ({ testID }: { testID?: string }) => <View testID={testID} />,
   };
 });
+jest.mock('../../../../components/PredictMarketSportCard', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
+  };
+});
+jest.mock('../../../../components/PredictCryptoUpDownMarketCard', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => <View testID={testID} />,
+  };
+});
 
 const mockUsePredictTrendingSection = usePredictTrendingSection as jest.Mock;
 

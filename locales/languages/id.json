@@ -2349,7 +2349,8 @@
     "home": {
       "live_now_title": "Sedang live",
       "categories_placeholder": "Kategori",
-      "trending_placeholder": "Sedang tren"
+      "trending_title": "Sedang tren",
+      "trending_unable_to_load": "Unable to load markets, please try again"
     },
     "homepage_discovery": {
       "btc_title": "Harga BTC: {{price}}",
