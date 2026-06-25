@@ -515,7 +515,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Error state
   if (error) {
     return (
-      <SafeAreaView style={styles.container} testID={testID}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+        testID={testID}
+      >
         {market ? (
           <PerpsMarketHeader
             market={market}
@@ -548,7 +552,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   }
 
   return (
-    <SafeAreaView style={styles.container} testID={testID}>
+    <SafeAreaView
+      style={styles.container}
+      edges={['bottom', 'left', 'right']}
+      testID={testID}
+    >
       {/* Market Header */}
       {market && (
         <PerpsMarketHeader

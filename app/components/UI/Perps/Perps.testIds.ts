@@ -416,7 +416,6 @@ export const PerpsMarketDetailsViewSelectorsIDs = {
   STOP_LOSS_PROMPT_BANNER: 'perps-market-details-stop-loss-prompt-banner',
   SERVICE_INTERRUPTION_BANNER:
     'perps-market-details-service-interruption-banner',
-  TITLE_SECTION_WRAPPER: 'perps-market-details-title-section-wrapper',
 };
 
 // ========================================
@@ -430,8 +429,6 @@ export const PerpsMarketHeaderSelectorsIDs = {
   ASSET_NAME: 'perps-market-header-asset-name',
   PRICE: 'perps-market-header-price',
   PRICE_CHANGE: 'perps-market-header-price-change',
-  PRICE_TITLE_SECTION: 'perps-market-header-price-title-section',
-  PRICE_CHANGE_TITLE_SECTION: 'perps-market-header-price-change-title-section',
   MORE_BUTTON: 'perps-market-header-more-button',
   FAVORITE_BUTTON: 'perps-market-header-favorite-button',
   CATEGORY_SEARCH_BUTTON: 'perps-market-header-category-search-button',
