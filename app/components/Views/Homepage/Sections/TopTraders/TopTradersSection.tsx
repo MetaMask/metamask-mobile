@@ -5,7 +5,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
 import React, {
   forwardRef,
   useCallback,
@@ -19,7 +18,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import type { RootStackParamList } from '../../../../../core/NavigationService/types';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import ErrorState from '../../components/ErrorState';
 import ViewMoreCard from '../../components/ViewMoreCard';
@@ -69,7 +68,7 @@ const TopTradersSection = forwardRef<
   TopTradersSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
@@ -290,30 +289,32 @@ const TopTradersSection = forwardRef<
           onPress={handleViewAll}
           testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('top-traders')}
         />
-        {showSkeletons ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('px-4 gap-3')}
-            testID="homepage-top-traders-carousel"
-          >
-            {SKELETON_KEYS.map((key) => (
-              <TopTraderCardSkeleton key={key} />
-            ))}
-          </ScrollView>
-        ) : (
-          <FlatList
-            horizontal
-            data={carouselData}
-            renderItem={renderCarouselItem}
-            keyExtractor={keyExtractor}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
-            testID="homepage-top-traders-carousel"
-            viewabilityConfig={viewabilityConfig}
-            onViewableItemsChanged={onViewableItemsChanged}
-          />
-        )}
+        <Box paddingTop={3}>
+          {showSkeletons ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={tw.style('px-4 gap-3')}
+              testID="homepage-top-traders-carousel"
+            >
+              {SKELETON_KEYS.map((key) => (
+                <TopTraderCardSkeleton key={key} />
+              ))}
+            </ScrollView>
+          ) : (
+            <FlatList
+              horizontal
+              data={carouselData}
+              renderItem={renderCarouselItem}
+              keyExtractor={keyExtractor}
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
+              testID="homepage-top-traders-carousel"
+              viewabilityConfig={viewabilityConfig}
+              onViewableItemsChanged={onViewableItemsChanged}
+            />
+          )}
+        </Box>
       </Box>
     </View>
   );

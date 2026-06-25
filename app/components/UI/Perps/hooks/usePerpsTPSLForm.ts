@@ -411,12 +411,13 @@ export function usePerpsTPSLForm(
       // Set price as source of truth when user is actively typing
       setTpSourceOfTruth('price');
 
-      // Update RoE percentage based on price only if percentage field is not focused
-      // and we have valid base prices for calculation
+      // Update RoE percentage based on price whenever the user types a trigger
+      // price. The price field is the active source of truth here, so we do not
+      // gate on tpPercentInputFocused — a stale true value must not silently
+      // block the auto-fill (mirrors the same reasoning in handleTakeProfitPercentageChange).
       if (
         sanitized &&
         leverage &&
-        !tpPercentInputFocused &&
         ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
       ) {
         const roePercent = calculateRoEForPrice(sanitized, true, !!position, {
@@ -442,7 +443,6 @@ export function usePerpsTPSLForm(
       actualDirection,
       leverage,
       entryPrice,
-      tpPercentInputFocused,
       takeProfitPrice,
       position,
     ],
@@ -532,12 +532,13 @@ export function usePerpsTPSLForm(
       // Set price as source of truth when user is actively typing
       setSlSourceOfTruth('price');
 
-      // Update RoE percentage based on price only if percentage field is not focused
-      // and we have valid base prices for calculation
+      // Update RoE percentage based on price whenever the user types a trigger
+      // price. The price field is the active source of truth here, so we do not
+      // gate on slPercentInputFocused — a stale true value must not silently
+      // block the auto-fill (mirrors the same reasoning in handleStopLossPercentageChange).
       if (
         sanitized &&
         leverage &&
-        !slPercentInputFocused &&
         ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
       ) {
         const roePercent = calculateRoEForPrice(sanitized, false, !!position, {
@@ -563,7 +564,6 @@ export function usePerpsTPSLForm(
       actualDirection,
       leverage,
       entryPrice,
-      slPercentInputFocused,
       stopLossPrice,
       position,
     ],

@@ -60,6 +60,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatPrice } from '../../utils/format';
+import { getDisplayBuyPrice } from '../../utils/prices';
 import { usePredictBuyError } from './hooks/usePredictBuyError';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
@@ -268,7 +269,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isPayFeesLoading,
     isPaySystemSettling,
     blockingPayAlertMessage,
-    outcomeTokenPrice: outcomeToken?.price,
+    outcomeTokenPrice: getDisplayBuyPrice(outcomeToken),
     isSheetMode,
   });
 
@@ -546,7 +547,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             disabled={isBuyActionButtonDisabled}
             showReducedOpacity={showBuyActionButtonReducedOpacity}
             outcomeTokenTitle={outcomeToken?.title}
-            sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+            sharePrice={
+              preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+            }
             isSheetMode={isSheetMode}
             isRetry={isSheetMode && isBannerActive}
             isChangePaymentMode={!isBannerActive && isChangePaymentMode}
@@ -573,7 +576,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           providerFee={exchangeFee}
           metamaskFee={metamaskFee}
           depositFee={depositFee}
-          sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+          sharePrice={
+            preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+          }
           contractCount={preview?.minAmountReceived ?? 0}
           betAmount={currentValue}
           total={total}
@@ -584,7 +589,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
-        sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+        sharePrice={
+          preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+        }
         side={Side.BUY}
         onRetry={handleRetryWithBestPrice}
         onDismiss={resetOrderNotFilled}
