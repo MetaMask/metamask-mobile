@@ -18,6 +18,7 @@ describe('completeHwSwapSuccess', () => {
   const mockDispatch = jest.fn();
   const mockNavigate = jest.fn();
   const mockShowToast = jest.fn();
+  const mockCloseToast = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -27,7 +28,9 @@ describe('completeHwSwapSuccess', () => {
     completeHwSwapSuccess({
       dispatch: mockDispatch,
       navigation: { navigate: mockNavigate },
-      toastRef: { current: { showToast: mockShowToast } },
+      toastRef: {
+        current: { showToast: mockShowToast, closeToast: mockCloseToast },
+      },
     });
 
     expect(mockShowToast).toHaveBeenCalledWith({
