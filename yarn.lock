@@ -9487,7 +9487,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-api-client@npm:0.12.0":
+"@metamask/multichain-api-client@npm:0.12.0, @metamask/multichain-api-client@npm:^0.12.0":
   version: 0.12.0
   resolution: "@metamask/multichain-api-client@npm:0.12.0"
   checksum: 10/79f7b2e53cae25fb825a825650b98bbedf4d700b82b87a4df90c7e5ae62eb1aa8d3089fcdeaa66b104d737fe1ade93f202eae1b2599346599fccbc62d046a5fa
@@ -9498,13 +9498,6 @@ __metadata:
   version: 0.11.0
   resolution: "@metamask/multichain-api-client@npm:0.11.0"
   checksum: 10/fee3751b8bfdce08db37be205aa2d78de6544060ccbe57ff790ddf9c0aad830ee6cfb1844e4ea838ce97f0b7851badd0271cb0ec32ac42d3f7d4cfa15ccb1298
-  languageName: node
-  linkType: hard
-
-"@metamask/multichain-api-client@npm:^0.12.0":
-  version: 0.12.0
-  resolution: "@metamask/multichain-api-client@npm:0.12.0"
-  checksum: 10/79f7b2e53cae25fb825a825650b98bbedf4d700b82b87a4df90c7e5ae62eb1aa8d3089fcdeaa66b104d737fe1ade93f202eae1b2599346599fccbc62d046a5fa
   languageName: node
   linkType: hard
 
@@ -37337,8 +37330,6 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/test-dapp-stellar": "npm:^0.2.0"
-    "@metamask/transaction-controller": "npm:^68.1.1"
-    "@metamask/transaction-pay-controller": "npm:^23.13.0"
     "@metamask/transaction-controller": "npm:^68.2.0"
     "@metamask/transaction-pay-controller": "npm:^23.15.0"
     "@metamask/tron-wallet-snap": "npm:^1.27.0"
