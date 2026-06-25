@@ -57,6 +57,9 @@ jest.mock('@react-navigation/native', () => ({
     goBack: jest.fn(),
     setOptions: jest.fn(),
   }),
+  useRoute: () => ({
+    params: {},
+  }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -66,6 +69,10 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
+}));
+
+jest.mock('../../hooks/useTrackBatchSellTokenPageViewed', () => ({
+  useTrackBatchSellTokenPageViewed: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {

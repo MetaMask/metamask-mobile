@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ListRenderItemInfo, Pressable } from 'react-native';
 import { FlatList, ScrollView } from 'react-native-gesture-handler';
@@ -31,6 +31,7 @@ import {
   formatChainIdToCaip,
   formatChainIdToHex,
   isNonEvmChainId,
+  BatchSellMetricsLocation,
 } from '@metamask/bridge-controller';
 import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
@@ -72,6 +73,8 @@ import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/util
 import { normalizeTokenAddress } from '../../utils/tokenUtils';
 import { useBatchSellTokens } from './useBatchSellTokens';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
+import { useTrackBatchSellTokenPageViewed } from '../../hooks/useTrackBatchSellTokenPageViewed';
+import type { BatchSellTokenSelectRouteParams } from './types';
 
 const getTokenKey = (token: BridgeToken) =>
   `${formatChainIdToCaip(token.chainId)}:${normalizeTokenAddress(
@@ -121,6 +124,14 @@ function getDefaultBatchSellSourceTokenAmounts(selectedTokens: BridgeToken[]) {
 
 export function BatchSellTokenSelect() {
   const navigation = useNavigation();
+  const route = useRoute<
+    RouteProp<
+      {
+        BatchSellTokenSelect: BatchSellTokenSelectRouteParams | undefined;
+      },
+      'BatchSellTokenSelect'
+    >
+  >();
   const dispatch = useDispatch();
   const tw = useTailwind();
   const evmNetworkConfigurations = useSelector(
@@ -154,6 +165,16 @@ export function BatchSellTokenSelect() {
     () => buildBatchSellEligibleChains(sortedEligibleSourceTokens),
     [sortedEligibleSourceTokens],
   );
+  const batchSellLocation =
+    route.params?.batchSellLocation ??
+    // @ts-expect-error Unknown added in upcoming bridge-controller preview
+    BatchSellMetricsLocation.Unknown;
+
+  useTrackBatchSellTokenPageViewed({
+    location: batchSellLocation,
+    sortedEligibleChains,
+  });
+
   const [selectedChainId, setSelectedChainId] = useState<
     CaipChainId | undefined
   >(() => sortedEligibleChains[0]?.chainId);
