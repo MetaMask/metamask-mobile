@@ -142,6 +142,15 @@ ignores:
   # Used in Yarn plugin for preview builds
   - '@yarnpkg/core'
 
+  # Preview-scoped packages added as direct entries so Yarn can resolve
+  # preview-scoped imports baked into the @metamask-previews/design-system-react-native
+  # dist output. Source code imports via @metamask/* aliases — these are never
+  # imported directly. Test branch only; remove when reverting preview packages.
+  - '@metamask-previews/design-system-react-native'
+  - '@metamask-previews/design-system-shared'
+  - '@metamask-previews/design-system-twrnc-preset'
+  - '@metamask-previews/design-tokens'
+
   # Babel plugins referenced in babel.config.js by their short name (without
   # the `babel-plugin-` prefix). Babel resolves them correctly at build time
   # but depcheck doesn't recognize the indirect reference. See babel.config.js
