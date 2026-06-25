@@ -7063,8 +7063,10 @@
     "balance_no_account": "Money account not found",
     "onboarding": {
       "step_1": {
-        "title": "Fund your account",
-        "description": "Drop in some funds. Your Money account will handle the rest.",
+        "title": "Earn up to {{apy}}% APY",
+        "title_no_apy": "Fund your Money account",
+        "description": "Fund your Money account and watch your balance grow with up to {{apy}}% APY (variable).",
+        "description_no_apy": "Fund your Money account and watch your balance grow.",
         "cta": "Add funds"
       },
       "step_2": {
@@ -7170,7 +7172,7 @@
       "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
     },
     "what_you_get": {
-      "title": "What you get",
+      "title": "Money account benefits",
       "benefit_auto_earn": "Auto-earn up to",
       "benefit_auto_earn_variable": "(variable)",
       "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
@@ -7197,7 +7199,7 @@
     "more_sheet": {
       "title": "More",
       "how_it_works": "How it works",
-      "what_you_get": "What you get",
+      "what_you_get": "Money account benefits",
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
@@ -7270,10 +7272,10 @@
     },
     "condensed_cards": {
       "how_it_works_title": "How it works",
-      "how_it_works_subtitle": "See how your money can grow",
+      "how_it_works_subtitle": "See how your money works for you",
       "musd_title": "MetaMask USD",
       "musd_subtitle": "Learn more about mUSD",
-      "what_you_get_title": "What you get",
+      "what_you_get_title": "Money account benefits",
       "what_you_get_subtitle": "Explore your benefits"
     },
     "transaction": {
@@ -7717,7 +7719,7 @@
         "transaction_fee": "Conversion fees include network costs and may include provider fees."
       },
       "title": {
-        "transaction_fee": "Fees"
+        "transaction_fee": "Transaction fees"
       },
       "network_fee": "Network fees depend on how busy the network is and how complex your transaction is."
     },
