@@ -154,6 +154,22 @@ describe('useRampsOrders', () => {
     expect(result.current.orders).toEqual([]);
   });
 
+  it('finds a cached order by id even when its wallet is outside the selected account group', () => {
+    const moneyAccountOrder = createMockOrder({
+      providerOrderId: 'money-account-order',
+      walletAddress: '0x0000000000000000000000000000000000000002',
+    });
+    const store = createMockStore([moneyAccountOrder]);
+    const { result } = renderHook(() => useRampsOrders(), {
+      wrapper: wrapper(store),
+    });
+
+    expect(result.current.orders).toEqual([]);
+    expect(result.current.getOrderById('money-account-order')).toEqual(
+      moneyAccountOrder,
+    );
+  });
+
   it('finds an order by providerOrderId', () => {
     const order1 = createMockOrder({ providerOrderId: 'order-1' });
     const order2 = createMockOrder({ providerOrderId: 'order-2' });
