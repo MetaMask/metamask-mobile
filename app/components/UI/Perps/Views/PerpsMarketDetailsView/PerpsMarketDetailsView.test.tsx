@@ -349,8 +349,7 @@ jest.mock('../../../../../core/Engine', () => ({
       getOrderFills: (...args: unknown[]) => mockGetOrderFills(...args),
       toggleWatchlistMarket: (...args: unknown[]) =>
         mockToggleWatchlistMarket(...args),
-      getWatchlistMarkets: (...args: unknown[]) =>
-        mockGetWatchlistMarkets(...args),
+      getWatchlistMarkets: () => mockGetWatchlistMarkets(),
     },
   },
 }));
