@@ -453,9 +453,6 @@ jest.mock('react-native-keychain', () => ({
 }));
 
 jest.mock('react-native-share', () => 'RNShare');
-jest.mock('react-native-localize', () => ({
-  getCountry: jest.fn(() => 'GB'),
-}));
 jest.mock('react-native-branch', () => ({
   subscribe: jest.fn(),
 }));
