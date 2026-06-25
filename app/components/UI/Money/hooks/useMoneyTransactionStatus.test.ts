@@ -773,7 +773,8 @@ describe('useMoneyTransactionStatus', () => {
         metamaskPay: {
           tokenAddress: MUSD_ADDRESS,
           chainId: CHAIN_IDS.MONAD,
-          totalFiat: '100',
+          targetFiat: '100',
+          totalFiat: '106',
         },
         ...overrides,
       } as unknown as Partial<TransactionMeta>);
@@ -796,7 +797,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(withdrawInProgressFn).not.toHaveBeenCalled();
     });
 
-    it('confirmed → send success toast with fiat amount and "Perps" destination', () => {
+    it('confirmed → send success toast uses targetFiat (amount received), not totalFiat (amount + fee), with "Perps" destination', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 
       confirmedHandler(
@@ -808,6 +809,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(sendSuccessFn).toHaveBeenCalledTimes(1);
       const params = sendSuccessFn.mock.calls[0][0];
       expect(params.amountFiat).toContain('100');
+      expect(params.amountFiat).not.toContain('106');
       expect(params.destination).toBe('Perps');
       expect(depositSuccessFn).not.toHaveBeenCalled();
       expect(withdrawSuccessFn).not.toHaveBeenCalled();
@@ -835,7 +837,25 @@ describe('useMoneyTransactionStatus', () => {
           metamaskPay: {
             tokenAddress: MUSD_ADDRESS,
             chainId: CHAIN_IDS.MONAD,
-            totalFiat: '0',
+            targetFiat: '0',
+          },
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(sendSuccessFn).toHaveBeenCalledTimes(1);
+      expect(sendSuccessFn.mock.calls[0][0].amountFiat).toBeUndefined();
+    });
+
+    it('confirmed with missing targetFiat → success without amount, never falls back to totalFiat', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildSendTxMeta(TransactionType.perpsDeposit, {
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            tokenAddress: MUSD_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            totalFiat: '106',
           },
         } as unknown as Partial<TransactionMeta>),
       );

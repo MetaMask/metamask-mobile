@@ -634,6 +634,7 @@ enum EVENT_NAME {
   CARD_ADD_FUNDS_DEPOSIT_CLICKED = 'Card Add Funds Deposit Clicked',
   CARD_VIEWED = 'Card Viewed',
   CARD_BUTTON_CLICKED = 'Card Button Clicked',
+  CARD_PASSWORD_RESET_COMPLETED = 'Card Password Reset Completed',
   CARD_DELEGATION_PROCESS_STARTED = 'Card Delegation Process Started',
   CARD_DELEGATION_PROCESS_COMPLETED = 'Card Delegation Process Completed',
   CARD_DELEGATION_PROCESS_FAILED = 'Card Delegation Process Failed',
@@ -1806,6 +1807,9 @@ const events = {
   ),
   CARD_VIEWED: generateOpt(EVENT_NAME.CARD_VIEWED),
   CARD_BUTTON_CLICKED: generateOpt(EVENT_NAME.CARD_BUTTON_CLICKED),
+  CARD_PASSWORD_RESET_COMPLETED: generateOpt(
+    EVENT_NAME.CARD_PASSWORD_RESET_COMPLETED,
+  ),
   CARD_DELEGATION_PROCESS_STARTED: generateOpt(
     EVENT_NAME.CARD_DELEGATION_PROCESS_STARTED,
   ),

@@ -755,6 +755,12 @@ describe('resolvePredictFeatureFlags', () => {
         'moneyline',
         'spreads',
         'totals',
+        'both_teams_to_score',
+        'soccer_first_to_score',
+        'team_totals',
+        'soccer_team_totals',
+        'basketball_team_to_score_first',
+        'soccer_exact_score',
       ]);
     });
 
