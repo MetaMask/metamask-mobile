@@ -26,7 +26,6 @@ function getCallErrorMessage(error: unknown): string | undefined {
 
   if (
     !(error instanceof Error) ||
-    typeof errorRecord.reason !== 'string' ||
     errorRecord.code !== 'CALL_EXCEPTION' ||
     !error.message.includes('code=CALL_EXCEPTION')
   ) {
@@ -35,12 +34,14 @@ function getCallErrorMessage(error: unknown): string | undefined {
 
   const { method, reason, transaction } = errorRecord as {
     method?: string;
-    reason: string;
+    reason?: string | null;
     transaction?: { data?: string };
   };
 
+  const reasonStr = typeof reason === 'string' ? ` - ${reason}` : '';
+
   if (method) {
-    return `eth_call failed - ${method.split('(')[0]} - ${reason}`;
+    return `eth_call failed - ${method.split('(')[0]}${reasonStr}`;
   }
 
   const selector = transaction?.data?.slice(0, 10);

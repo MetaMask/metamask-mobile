@@ -121,10 +121,13 @@ const mockUseTopTradersHook = jest.fn(
 );
 
 const mockSelectSocialLeaderboardEnabled = jest.fn((): boolean => true);
+const mockSelectSocialLeaderboardPerpsEnabled = jest.fn((): boolean => true);
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
     selectSocialLeaderboardEnabled: () => mockSelectSocialLeaderboardEnabled(),
+    selectSocialLeaderboardPerpsEnabled: () =>
+      mockSelectSocialLeaderboardPerpsEnabled(),
   }),
 );
 
@@ -161,6 +164,7 @@ describe('TopTradersView', () => {
         mockResultsByTab[resolveTabKey(options?.chains)],
     );
     mockSelectSocialLeaderboardEnabled.mockReturnValue(true);
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockHasNotificationPreferences.mockReturnValue(true);
   });
 
@@ -171,9 +175,50 @@ describe('TopTradersView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the Top Traders title', () => {
+  it('renders the Top Traders title in the scrollable title section', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('Weekly Top Traders')).toBeOnTheScreen();
+
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TITLE),
+    ).toHaveTextContent('Weekly Top Traders');
+  });
+
+  it('connects the scrollable title section to the compact header', () => {
+    renderWithProvider(<TopTradersView />);
+
+    act(() => {
+      fireEvent(
+        screen.getByTestId(TopTradersViewSelectorsIDs.TITLE_SECTION_WRAPPER),
+        'layout',
+        {
+          nativeEvent: { layout: { height: 64 } },
+        },
+      );
+    });
+
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.HEADER_TITLE),
+    ).toHaveTextContent('Weekly Top Traders');
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST).props.onScroll,
+    ).toEqual(expect.any(Function));
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST).props
+        .scrollEventThrottle,
+    ).toBe(16);
+  });
+
+  it('renders a pinned filter bar without duplicate filter test IDs', () => {
+    renderWithProvider(<TopTradersView />);
+
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.PINNED_FILTER_BAR, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getAllByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_ALL),
+    ).toHaveLength(1);
   });
 
   it('calls goBack when the back button is pressed', () => {
@@ -272,6 +317,19 @@ describe('TopTradersView', () => {
     expect(mockRefresh).toHaveBeenCalledTimes(3);
   });
 
+  it('invalidates only the spot-backed all query when perps are disabled', async () => {
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+    mockRefresh.mockResolvedValue(undefined);
+    renderWithProvider(<TopTradersView />);
+    const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+
+    await act(async () => {
+      await list.props.refreshControl.props.onRefresh();
+    });
+
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
   it('logs an error when refresh fails', async () => {
     const refreshError = new Error('fetch failed');
     mockRefresh.mockRejectedValue(refreshError);
@@ -316,6 +374,21 @@ describe('TopTradersView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders only the All filter pill when perps are disabled', () => {
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+    renderWithProvider(<TopTradersView />);
+
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_ALL),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
+    ).not.toBeOnTheScreen();
+  });
+
   it('fires a separate query per tab on mount (parallel prefetch)', () => {
     renderWithProvider(<TopTradersView />);
 
@@ -328,6 +401,33 @@ describe('TopTradersView', () => {
         ['base', 'solana', 'ethereum'],
         ['hyperliquid'],
       ]),
+    );
+  });
+
+  it('uses the spot-only chains for the All tab when perps are disabled', () => {
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+    renderWithProvider(<TopTradersView />);
+
+    expect(mockUseTopTradersHook).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        chains: ['base', 'solana', 'ethereum'],
+        enabled: true,
+      }),
+    );
+    expect(mockUseTopTradersHook).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        chains: ['base', 'solana', 'ethereum'],
+        enabled: false,
+      }),
+    );
+    expect(mockUseTopTradersHook).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({
+        chains: ['hyperliquid'],
+        enabled: false,
+      }),
     );
   });
 

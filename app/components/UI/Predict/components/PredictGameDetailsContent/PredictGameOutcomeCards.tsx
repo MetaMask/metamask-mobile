@@ -179,14 +179,18 @@ const SubgroupCards = memo(
     groupKey: string;
     index: number;
   }) => {
-    const translatedTitle = getTranslatedSportsMarketTypeLabel(subgroup.key);
+    const translatedTitle = subgroup.title
+      ? undefined
+      : getTranslatedSportsMarketTypeLabel(subgroup.key);
     const firstOutcomeTitle = subgroup.outcomes[0]
       ? formatOutcomeCardTitle(subgroup.outcomes[0])
       : undefined;
-    const title = getFallbackSportsMarketTypeLabel(
-      subgroup.key,
-      translatedTitle ?? firstOutcomeTitle,
-    );
+    const title =
+      subgroup.title ??
+      getFallbackSportsMarketTypeLabel(
+        subgroup.key,
+        translatedTitle ?? firstOutcomeTitle,
+      );
     const testID = `${groupKey}-${subgroup.key}-${index}`;
 
     if (
@@ -220,7 +224,7 @@ const SubgroupCards = memo(
     return (
       <LineOutcomeCard
         outcomes={subgroup.outcomes}
-        title={translatedTitle}
+        title={subgroup.title ?? translatedTitle}
         onBuyPress={onBuyPress}
         game={game}
         sportsMarketType={subgroup.key}

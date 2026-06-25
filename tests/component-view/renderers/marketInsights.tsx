@@ -1,7 +1,7 @@
 import '../mocks';
 import React from 'react';
 import { Text } from 'react-native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import renderWithProvider, {
   type DeepPartial,
 } from '../../../app/util/test/renderWithProvider';
@@ -15,10 +15,10 @@ import {
   fiatOrdersRampRoutingSupported,
 } from '../presets/marketInsightsView';
 
-const RootStack = createStackNavigator();
-const BridgeInnerStack = createStackNavigator();
-const RampMainStack = createStackNavigator();
-const RampOuterStack = createStackNavigator();
+const RootStack = createNativeStackNavigator();
+const BridgeInnerStack = createNativeStackNavigator();
+const RampMainStack = createNativeStackNavigator();
+const RampOuterStack = createNativeStackNavigator();
 
 const BridgeViewProbe = (): React.ReactElement => (
   <Text testID="route-BridgeView">BridgeView</Text>
