@@ -18,6 +18,7 @@ import {
   type HardwareWalletsSwapsState,
 } from './HardwareWalletsSwaps.state';
 import type { SubmissionParams } from './HardwareWalletsSwaps';
+import { getTransactionById } from './hw-batch-sign/utils';
 
 /** Returns the deferred send approval when it still matches the route id. */
 function getMatchingDeferredApproval<T extends { id: string }>(
@@ -41,10 +42,7 @@ function getMatchingDeferredApproval<T extends { id: string }>(
 async function retrySendTransaction(
   preparedTxMeta: TransactionMeta,
 ): Promise<void> {
-  const orphanParent =
-    Engine.context.TransactionController.state.transactions.find(
-      (tx) => tx.id === preparedTxMeta.id,
-    );
+  const orphanParent = getTransactionById(preparedTxMeta.id);
   if (
     orphanParent &&
     (orphanParent.status === TransactionStatus.approved ||

@@ -10,17 +10,13 @@ import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
 
 import Routes from '../../../../constants/navigation/Routes';
-import { strings } from '../../../../../locales/i18n';
 import {
   resetHardwareWalletsSwaps,
   selectHardwareWalletsSwaps,
   updateHardwareWalletsSwaps,
 } from '../../../../core/redux/slices/bridge';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
-import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
+import { ToastContext } from '../../../../component-library/components/Toast';
+import { completeHwSwapSuccess } from './hwSwapSuccess';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
@@ -141,19 +137,16 @@ export function useHwSwapLifecycle({
   const navigateOnSuccess = useCallback(() => {
     if (hasAutoNavigatedRef.current) return;
     hasAutoNavigatedRef.current = true;
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: ToastIconName.Check,
-      hasNoTimeout: false,
-      labelOptions: [
-        {
-          label: strings('bridge.hardware_wallet_progress.submitted_title'),
-        },
-      ],
-    });
-    dispatch(resetHardwareWalletsSwaps());
-    navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    completeHwSwapSuccess({ dispatch, navigation, toastRef });
   }, [dispatch, navigation, toastRef]);
+
+  // QR wallets navigate to activity from HwQrScanner on the last scan.
+  // Only reset stale progress state here — no toast or second navigation.
+  const cleanupAfterQrSuccess = useCallback(() => {
+    if (hasAutoNavigatedRef.current) return;
+    hasAutoNavigatedRef.current = true;
+    dispatch(resetHardwareWalletsSwaps());
+  }, [dispatch]);
 
   useEffect(() => {
     // All device signing steps complete AND a submission was started.
@@ -194,7 +187,11 @@ export function useHwSwapLifecycle({
     // early because the flag was false. Re-check here and navigate straight
     // to success instead of submitting a no-op.
     if (allStepsSigned) {
-      navigateOnSuccess();
+      if (isQrHardwareWallet) {
+        cleanupAfterQrSuccess();
+      } else {
+        navigateOnSuccess();
+      }
       return;
     }
 
@@ -207,7 +204,9 @@ export function useHwSwapLifecycle({
     canRetry,
     strategy.isSendFlow,
     allStepsSigned,
+    isQrHardwareWallet,
     navigateOnSuccess,
+    cleanupAfterQrSuccess,
   ]);
 
   // ── Safety-net dispatch ──────────────────────────────────────────
@@ -253,8 +252,13 @@ export function useHwSwapLifecycle({
       const resolution = reconcileStuckProgress(current.steps);
 
       if (resolution.action === 'navigate') {
-        // All signed but status hasn't transitioned — navigate directly
-        navigateOnSuccess();
+        // All signed but status hasn't transitioned. QR wallets already
+        // navigated from HwQrScanner on the last scan — reset only.
+        if (isQrHardwareWallet) {
+          cleanupAfterQrSuccess();
+        } else {
+          navigateOnSuccess();
+        }
         return;
       }
 
@@ -262,7 +266,14 @@ export function useHwSwapLifecycle({
     }, SAFETY_NET_TIMEOUT_MS);
 
     return () => clearTimeout(timeout);
-  }, [progress.status, progress.steps, dispatch, navigateOnSuccess]);
+  }, [
+    progress.status,
+    progress.steps,
+    dispatch,
+    isQrHardwareWallet,
+    navigateOnSuccess,
+    cleanupAfterQrSuccess,
+  ]);
 
   // ── Navigation helper ────────────────────────────────────────────
   const navigateOnCancel = useCallback(() => {
