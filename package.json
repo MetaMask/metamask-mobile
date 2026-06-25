@@ -808,7 +808,8 @@
       "eslint-import-resolver-typescript>unrs-resolver": false,
       "tsx>esbuild": false,
       "@metamask/transaction-pay-controller>@metamask/bridge-status-controller>@metamask/keyring-controller>ethereumjs-wallet>ethereum-cryptography>keccak": false,
-      "@metamask/transaction-pay-controller>@metamask/keyring-controller>ethereumjs-wallet>ethereum-cryptography>keccak": false
+      "@metamask/transaction-pay-controller>@metamask/keyring-controller>ethereumjs-wallet>ethereum-cryptography>keccak": false,
+      "@metamask/bridge-controller>@metamask/assets-controller>@metamask/keyring-controller>ethereumjs-wallet>ethereum-cryptography>keccak": false
     }
   },
   "packageManager": "yarn@4.14.1+sha256.5c7a0c5ea1c5b690df603c8e16b3742f87169b814d56bb5e63881145e8a84033",
