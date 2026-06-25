@@ -119,6 +119,7 @@ const MoneyHomeView = () => {
     lastKnownTotalFiatFormatted,
     refetchBalance,
     apyPercent,
+    apyDecimal,
   } = useMoneyAccountBalance();
 
   const refreshMusdFiatRate = useRefreshMusdFiatRate();
@@ -220,32 +221,32 @@ const MoneyHomeView = () => {
   );
 
   const monthlyEarnings = useMemo(() => {
-    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    if (!totalFiatRaw || !apyDecimal) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
     const earnings = calculateProjectedEarnings(
       balance.toNumber(),
-      apyPercent,
+      apyDecimal,
       1 / 12,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
     const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
     return formatted === formattedZero ? formatted : `+${formatted}`;
-  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
+  }, [totalFiatRaw, apyDecimal, currentCurrency, formattedZero]);
 
   const yearlyEarnings = useMemo(() => {
-    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    if (!totalFiatRaw || !apyDecimal) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
     const earnings = calculateProjectedEarnings(
       balance.toNumber(),
-      apyPercent,
+      apyDecimal,
       1,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
     const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
     return formatted === formattedZero ? formatted : `+${formatted}`;
-  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
+  }, [totalFiatRaw, apyDecimal, currentCurrency, formattedZero]);
 
   const handleMenuPress = useCallback(() => {
     trackButtonClicked({
@@ -709,7 +710,7 @@ const MoneyHomeView = () => {
       node: (
         <MoneyPotentialEarnings
           tokens={depositTokens}
-          apy={apyPercent}
+          apyDecimal={apyDecimal}
           isNoFeeToken={isNoFeeToken}
           onTokenCardPress={handleTokenCardPress}
           onTokenButtonPress={handleTokenButtonPress}

@@ -3,16 +3,23 @@
 /**
  * Prepares the iOS Appium runner before Playwright tests:
  * 1. Boot simulator (must complete before WDA prebuild so xcodebuild has a destination)
- * 2. Prebuild WDA into ~/appium-wda on cache miss
- * 3. simctl install WebDriverAgentRunner + MetaMask.app (sequential — same UDID)
- * 4. Warm WDA via a throwaway Appium session; leaves Appium running for tests
+ * 2. Post-boot settle (SpringBoard / system UI — mirrors Android emulator settle)
+ * 3. Prebuild WDA into ~/appium-wda on cache miss
+ * 4. simctl install WebDriverAgentRunner + MetaMask.app (sequential — same UDID)
+ * 5. Grant common simulator permissions + warm-launch MetaMask once
+ * 6. Warm WDA via a throwaway Appium session; leaves Appium running for tests
  *
  * Sets GITHUB_OUTPUT: ios-simulator-udid, ios-wda-preinstalled, ios-wda-bundle-id.
  * WDA simctl install failures fall back to the xcodebuild path in tests.
  */
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, existsSync } from 'node:fs';
-import { bootIosSimulator, installIosApp } from './ios-simulator-lib.mjs';
+import {
+  bootIosSimulator,
+  grantIosAppPermissions,
+  installIosApp,
+  warmLaunchIosApp,
+} from './ios-simulator-lib.mjs';
 import {
   ensureWdaPrebuilt,
   findWdaArtifacts,
@@ -75,6 +82,8 @@ if (hasUsableWdaArtifacts()) {
 
 if (appPath) {
   await installIosApp({ udid, bundleId, appPath });
+  await grantIosAppPermissions({ udid, bundleId });
+  await warmLaunchIosApp({ udid, bundleId });
 }
 
 if (iosWdaPreinstalled === 'true' && iosWdaBundleIdBase) {

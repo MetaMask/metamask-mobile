@@ -4,10 +4,6 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
-  Icon,
-  IconColor,
-  IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -17,6 +13,7 @@ import { TouchableOpacity } from 'react-native';
 import type { BridgeToken } from '../../../../../../UI/Bridge/types';
 import { getTokenKey } from '../tokenKey';
 import QuickBuyTokenIcon from './QuickBuyTokenIcon';
+import QuickBuyTokenSecurityBadge from './QuickBuyTokenSecurityBadge';
 
 interface QuickBuyPayWithRowProps {
   token: BridgeToken;
@@ -82,14 +79,10 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
             >
               {token.name}
             </Text>
-            {token.isVerified ? (
-              <Icon
-                name={IconName.VerifiedFilled}
-                size={IconSize.Sm}
-                color={IconColor.InfoDefault}
-                testID={`quick-buy-pay-with-verified-${tokenKey}`}
-              />
-            ) : null}
+            <QuickBuyTokenSecurityBadge
+              token={token}
+              iconTestID={`quick-buy-pay-with-verified-${tokenKey}`}
+            />
           </Box>
           <Text
             variant={TextVariant.BodySm}
@@ -121,4 +114,4 @@ const QuickBuyPayWithRow: React.FC<QuickBuyPayWithRowProps> = ({
   );
 };
 
-export default QuickBuyPayWithRow;
+export default React.memo(QuickBuyPayWithRow);

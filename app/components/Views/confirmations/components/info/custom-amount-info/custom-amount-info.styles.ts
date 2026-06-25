@@ -1,6 +1,9 @@
 import { Platform, StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
+const ACCOUNT_SELECTOR_VERTICAL_PADDING = 12;
+const BOTTOM_BLOCK_GAP = 16;
+
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   return StyleSheet.create({
@@ -32,6 +35,7 @@ const styleSheet = (params: { theme: Theme }) => {
     separator: {
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border.muted,
+      marginBottom: ACCOUNT_SELECTOR_VERTICAL_PADDING - BOTTOM_BLOCK_GAP,
     },
   });
 };
