@@ -57,7 +57,7 @@ function getHardwareWalletRiveTrigger(progress: HardwareWalletsSwapsState) {
 }
 
 export interface HwSwapAnimationProps {
-  progress: HardwareWalletsSwapsState;
+  readonly progress: HardwareWalletsSwapsState;
 }
 
 /**

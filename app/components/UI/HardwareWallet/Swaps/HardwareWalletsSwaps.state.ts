@@ -356,9 +356,9 @@ export function hardwareWalletsSwapsReducer(
       const stepIndex = event.payload?.stepIndex;
       const isValidTarget =
         stepKind &&
-        (stepIndex !== undefined
-          ? state.steps[stepIndex]?.kind === stepKind
-          : isCurrentStepKind(state, stepKind));
+        (stepIndex === undefined
+          ? isCurrentStepKind(state, stepKind)
+          : state.steps[stepIndex]?.kind === stepKind);
       if (!isValidTarget) {
         return state;
       }
