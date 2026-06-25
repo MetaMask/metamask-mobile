@@ -10,6 +10,7 @@ function createGroupingOutcome(
   sportsMarketType: string,
   line?: number,
   shortTitle = id,
+  groupItemTitle = id,
 ): PredictOutcome {
   return {
     id,
@@ -21,7 +22,7 @@ function createGroupingOutcome(
     status: 'open',
     tokens: [{ id: `${id}-token`, title: shortTitle, shortTitle, price: 0.5 }],
     volume: 100,
-    groupItemTitle: id,
+    groupItemTitle,
     sportsMarketType,
     ...(line !== undefined && { line }),
   };
@@ -34,6 +35,12 @@ describe('outcomeGrouping', () => {
         'moneyline',
         'spreads',
         'totals',
+        'both_teams_to_score',
+        'soccer_first_to_score',
+        'team_totals',
+        'soccer_team_totals',
+        'basketball_team_to_score_first',
+        'soccer_exact_score',
       ]);
     });
 
@@ -150,6 +157,63 @@ describe('outcomeGrouping', () => {
         'total-211.5',
         'total-214.5',
         'total-216.5',
+      ]);
+    });
+
+    it('splits soccer team totals into one line subgroup per team', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome(
+          'portugal-total-1.5',
+          'soccer_team_totals',
+          1.5,
+          'O 1.5',
+          'Portugal O/U 1.5',
+        ),
+        createGroupingOutcome(
+          'uzbekistan-total-0.5',
+          'soccer_team_totals',
+          0.5,
+          'O 0.5',
+          'Uzbekistan O/U 0.5',
+        ),
+        createGroupingOutcome(
+          'portugal-total-0.5',
+          'soccer_team_totals',
+          0.5,
+          'O 0.5',
+          'Portugal O/U 0.5',
+        ),
+        createGroupingOutcome(
+          'uzbekistan-total-1.5',
+          'soccer_team_totals',
+          1.5,
+          'O 1.5',
+          'Uzbekistan O/U 1.5',
+        ),
+      ]);
+
+      expect(groups).toHaveLength(1);
+      expect(groups[0]).toMatchObject({
+        key: 'team_totals',
+        outcomes: [],
+      });
+      expect(groups[0].subgroups).toEqual([
+        expect.objectContaining({
+          key: 'soccer_team_totals-0',
+          title: 'Portugal Totals',
+          outcomes: [
+            expect.objectContaining({ id: 'portugal-total-0.5' }),
+            expect.objectContaining({ id: 'portugal-total-1.5' }),
+          ],
+        }),
+        expect.objectContaining({
+          key: 'soccer_team_totals-1',
+          title: 'Uzbekistan Totals',
+          outcomes: [
+            expect.objectContaining({ id: 'uzbekistan-total-0.5' }),
+            expect.objectContaining({ id: 'uzbekistan-total-1.5' }),
+          ],
+        }),
       ]);
     });
   });

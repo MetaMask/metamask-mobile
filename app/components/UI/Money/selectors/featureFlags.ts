@@ -16,6 +16,7 @@ import { MONEY_NO_FEE_TOKENS_FALLBACK } from '../utils/depositFaqTokens';
 import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmations/utils/relayFixedSpread';
 import { parseNonNegativeFinite } from '../utils/number';
 import { MoneyVaultApyRemoteConfig } from './featureFlags.types';
+import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
 
 /**
  * Selects whether the Money activity detail view is enabled.
@@ -45,6 +46,26 @@ export const selectMoneyEnableActivityDetailsBlockexplorerLinkFlag =
       remoteFeatureFlags?.moneyEnableActivityDetailsBlockexplorerLink as unknown as VersionGatedFeatureFlag;
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   });
+
+/**
+ * Baanx card-cashback multisend contract addresses used to classify unlabeled
+ * Accounts API rows as cashback. Remote flag takes precedence; falls back to
+ * the built-in default list when absent or invalid.
+ */
+export const selectMoneyCardActivityCashbackMultisendContracts = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string[] => {
+    const remote =
+      remoteFeatureFlags?.moneyCardActivityCashbackMultisendContracts;
+    if (
+      Array.isArray(remote) &&
+      remote.every((item): item is string => typeof item === 'string')
+    ) {
+      return remote;
+    }
+    return [...DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS];
+  },
+);
 
 /** Temporary flag: remote value is a boolean only. */
 export const selectMoneyActivityMockDataEnabledFlag = createSelector(

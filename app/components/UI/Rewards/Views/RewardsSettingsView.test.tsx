@@ -2,7 +2,7 @@ import React from 'react';
 import { render, fireEvent, act } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { configureStore } from '@reduxjs/toolkit';
 import RewardsSettingsView, {
   REWARDS_SETTINGS_SAFE_AREA_TEST_ID,
@@ -191,7 +191,7 @@ jest.mock('../components/Settings/LinkedOffDeviceAccountsSheet', () => {
 
 describe('RewardsSettingsView', () => {
   let store: ReturnType<typeof configureStore>;
-  const Stack = createStackNavigator();
+  const Stack = createNativeStackNavigator();
 
   // Helper function to create mock store
   const createMockStore = () =>
