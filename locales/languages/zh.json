@@ -9544,8 +9544,8 @@
     },
     "earn_rewards": {
       "title": "赚取奖励",
-      "musd_title": "稳定币最高可享 3% 奖励",
-      "musd_subtitle": "计算您的 mUSD 奖励",
+      "musd_title": "mUSD 最高可享 {{percentage}}% 奖励",
+      "musd_subtitle": "Money 账户已上线",
       "card_title": "消费享最高 3% 返现",
       "card_subtitle": "立即获取您的 MetaMask 卡",
       "card_subtitle_cardholder": "查看您的 MetaMask 卡专属福利"
