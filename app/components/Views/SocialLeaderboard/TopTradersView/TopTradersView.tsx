@@ -4,29 +4,30 @@ import React, {
   useMemo,
   useRef,
   useState,
+  useTransition,
 } from 'react';
 import {
   Box,
-  BoxAlignItems,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  ButtonIcon,
-  ButtonIconSize,
+  FontWeight,
+  HeaderStandardAnimated,
   IconName,
   Text,
   TextColor,
   TextVariant,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
-  FlatList,
   Pressable,
   RefreshControl,
-  Text as RNText,
   ScrollView,
-  StyleSheet,
   useWindowDimensions,
 } from 'react-native';
+import Animated, {
+  runOnJS,
+  useAnimatedReaction,
+  useAnimatedStyle,
+} from 'react-native-reanimated';
 import {
   useNavigation,
   useRoute,
@@ -43,7 +44,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
-import { fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
@@ -86,39 +86,12 @@ const getTabFilters = (): { key: TabFilter; label: string }[] => [
   },
 ];
 
-const styles = StyleSheet.create({
-  filterScrollView: {
-    flexGrow: 0,
-    flexShrink: 0,
-  },
-  filterRow: {
-    paddingHorizontal: 16,
-    paddingTop: 12,
-    paddingBottom: 12,
-    marginBottom: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  pill: {
-    borderRadius: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginRight: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-    minHeight: 40,
-  },
-  pillText: {
-    ...fontStyles.medium,
-    fontSize: 16,
-  },
-});
-
 interface TabPillProps {
   filterKey: TabFilter;
   label: string;
   isSelected: boolean;
   onPress: () => void;
+  suppressTestID?: boolean;
 }
 
 const TabPill: React.FC<TabPillProps> = ({
@@ -126,30 +99,76 @@ const TabPill: React.FC<TabPillProps> = ({
   label,
   isSelected,
   onPress,
+  suppressTestID = false,
 }) => {
   const { colors } = useTheme();
+  const tw = useTailwind();
+
   return (
     <Pressable
       onPress={onPress}
-      testID={`tab-filter-${filterKey}`}
+      testID={suppressTestID ? undefined : `tab-filter-${filterKey}`}
       accessibilityRole="button"
       accessibilityState={{ selected: isSelected }}
-      style={[
-        styles.pill,
-        isSelected
-          ? { backgroundColor: colors.icon.default }
-          : { backgroundColor: colors.background.muted },
+      style={({ pressed }) => [
+        tw.style(
+          'mr-2 min-h-10 items-center justify-center rounded-xl px-3 py-2',
+          pressed && 'opacity-80',
+        ),
+        {
+          backgroundColor: isSelected
+            ? colors.icon.default
+            : colors.background.muted,
+        },
       ]}
     >
-      <RNText
-        style={[
-          styles.pillText,
-          { color: isSelected ? colors.primary.inverse : colors.text.default },
-        ]}
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        color={isSelected ? TextColor.PrimaryInverse : TextColor.TextDefault}
       >
         {label}
-      </RNText>
+      </Text>
     </Pressable>
+  );
+};
+
+interface FilterTabsProps {
+  selectedTab: TabFilter;
+  onTabPress: (filter: TabFilter) => void;
+  suppressTestIDs?: boolean;
+}
+
+const FilterTabs: React.FC<FilterTabsProps> = ({
+  selectedTab,
+  onTabPress,
+  suppressTestIDs = false,
+}) => {
+  const tw = useTailwind();
+
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      // `flexGrow: 0` + `flexShrink: 0` pin the ScrollView's height to
+      // its content so neither the FlatList nor the loading ScrollView
+      // below can stretch or compress it.
+      style={tw.style('flex-grow-0 flex-shrink-0')}
+      contentContainerStyle={tw.style(
+        'mb-3 flex-row items-center px-4 pt-3 pb-3',
+      )}
+    >
+      {getTabFilters().map(({ key, label }) => (
+        <TabPill
+          key={key}
+          filterKey={key}
+          label={label}
+          isSelected={selectedTab === key}
+          onPress={() => onTabPress(key)}
+          suppressTestID={suppressTestIDs}
+        />
+      ))}
+    </ScrollView>
   );
 };
 
@@ -166,8 +185,11 @@ const TopTradersView = () => {
   } = useNotificationStoragePreferences();
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
+  const title = strings('social_leaderboard.top_traders_view.title');
 
   const [selectedTab, setSelectedTab] = useState<TabFilter>('all');
+  const [renderedTab, setRenderedTab] = useState<TabFilter>('all');
+  const [, startTabTransition] = useTransition();
   const [refreshing, setRefreshing] = useState(false);
   // Tracks whether we've already emitted the screen-viewed event this mount.
   // Avoids re-firing if the user changes filters or refreshes.
@@ -205,7 +227,7 @@ const TopTradersView = () => {
     [allResult, tokensResult, perpsResult],
   );
 
-  const activeResult = resultsByTab[selectedTab];
+  const activeResult = resultsByTab[renderedTab];
   const { traders, isLoading, toggleFollow } = activeResult;
 
   useEffect(() => {
@@ -234,8 +256,11 @@ const TopTradersView = () => {
         [SocialLeaderboardEventProperties.PREVIOUS_CHAIN_FILTER]: selectedTab,
       });
       setSelectedTab(next);
+      startTabTransition(() => {
+        setRenderedTab(next);
+      });
     },
-    [selectedTab, track],
+    [selectedTab, startTabTransition, track],
   );
 
   const handleFollowPress = useCallback(
@@ -250,6 +275,32 @@ const TopTradersView = () => {
     },
     [traders, toggleFollow],
   );
+
+  const {
+    scrollY: scrollYShared,
+    onScroll,
+    setTitleSectionHeight,
+    titleSectionHeightSv,
+  } = useHeaderStandardAnimated();
+  const [isFilterBarPinned, setIsFilterBarPinned] = useState(false);
+
+  useAnimatedReaction(
+    () =>
+      titleSectionHeightSv.value > 0 &&
+      scrollYShared.value >= titleSectionHeightSv.value,
+    (pinned, previous) => {
+      if (previous !== null && pinned !== previous) {
+        runOnJS(setIsFilterBarPinned)(pinned);
+      }
+    },
+  );
+
+  const pinnedFilterStyle = useAnimatedStyle(() => {
+    const titleHeight = titleSectionHeightSv.value;
+    return {
+      opacity: titleHeight > 0 && scrollYShared.value >= titleHeight ? 1 : 0,
+    };
+  });
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -317,7 +368,7 @@ const TopTradersView = () => {
           [SocialLeaderboardEventProperties.TRADER_ADDRESS]: trader.address,
           [SocialLeaderboardEventProperties.TRADER_USERNAME]: trader.username,
           [SocialLeaderboardEventProperties.TRADER_RANK]: trader.rank,
-          [SocialLeaderboardEventProperties.CHAIN_FILTER]: selectedTab,
+          [SocialLeaderboardEventProperties.CHAIN_FILTER]: renderedTab,
         });
       }
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
@@ -328,7 +379,7 @@ const TopTradersView = () => {
         traderRank: trader?.rank,
       });
     },
-    [navigation, traders, selectedTab, track],
+    [navigation, traders, renderedTab, track],
   );
 
   const renderTraderRow = useCallback(
@@ -342,98 +393,123 @@ const TopTradersView = () => {
     [handleFollowPress, handleTraderPress],
   );
 
+  const listHeader = useMemo(
+    () => (
+      <>
+        <Box
+          twClassName="px-4 pt-2 pb-3"
+          testID={TopTradersViewSelectorsIDs.TITLE_SECTION_WRAPPER}
+          onLayout={(e) => setTitleSectionHeight(e.nativeEvent.layout.height)}
+        >
+          <Text
+            variant={TextVariant.HeadingLg}
+            color={TextColor.TextDefault}
+            testID={TopTradersViewSelectorsIDs.TITLE}
+          >
+            {title}
+          </Text>
+        </Box>
+
+        <FilterTabs selectedTab={selectedTab} onTabPress={handleTabPress} />
+      </>
+    ),
+    [handleTabPress, selectedTab, setTitleSectionHeight, title],
+  );
+
   return (
     <SafeAreaView
       edges={['top']}
       style={tw.style('flex-1 bg-default')}
       testID={TopTradersViewSelectorsIDs.CONTAINER}
     >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="px-2 py-2"
-      >
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          onPress={handleBack}
-          testID={TopTradersViewSelectorsIDs.BACK_BUTTON}
-        />
-        <ButtonIcon
-          iconName={IconName.Notification}
-          size={ButtonIconSize.Md}
-          onPress={handleNotificationPreferencesPress}
-          testID={TopTradersViewSelectorsIDs.NOTIFICATION_BUTTON}
-        />
-      </Box>
+      <HeaderStandardAnimated
+        scrollY={scrollYShared}
+        titleSectionHeight={titleSectionHeightSv}
+        title={title}
+        titleProps={{ testID: TopTradersViewSelectorsIDs.HEADER_TITLE }}
+        onBack={handleBack}
+        backButtonProps={{
+          testID: TopTradersViewSelectorsIDs.BACK_BUTTON,
+        }}
+        endButtonIconProps={[
+          {
+            iconName: IconName.Notification,
+            onPress: handleNotificationPreferencesPress,
+            testID: TopTradersViewSelectorsIDs.NOTIFICATION_BUTTON,
+          },
+        ]}
+        testID={TopTradersViewSelectorsIDs.HEADER}
+      />
 
-      <Box twClassName="px-4 pt-2 pb-3">
-        <Text variant={TextVariant.HeadingLg} color={TextColor.TextDefault}>
-          {strings('social_leaderboard.top_traders_view.title')}
-        </Text>
-      </Box>
-
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        // `flexGrow: 0` + `flexShrink: 0` pin the ScrollView's height to
-        // its content so neither the FlatList nor the loading ScrollView
-        // below can stretch or compress it.
-        style={styles.filterScrollView}
-        contentContainerStyle={styles.filterRow}
-      >
-        {getTabFilters().map(({ key, label }) => (
-          <TabPill
-            key={key}
-            filterKey={key}
-            label={label}
-            isSelected={selectedTab === key}
-            onPress={() => handleTabPress(key)}
+      <Box twClassName="flex-1">
+        {isLoading && traders.length === 0 ? (
+          <Animated.ScrollView
+            // `flex-1` matches FlatList's default behavior so the list area sits
+            // directly under the filters and skeletons render top-aligned.
+            style={tw.style('flex-1')}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={tw.style('pb-6')}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
+            refreshControl={
+              <RefreshControl
+                colors={[colors.primary.default]}
+                tintColor={colors.icon.default}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
+            }
+          >
+            {listHeader}
+            {skeletonKeys.map((key) => (
+              <TraderRowSkeleton key={key} />
+            ))}
+          </Animated.ScrollView>
+        ) : (
+          <Animated.FlatList<TopTrader>
+            data={traders}
+            keyExtractor={(item) => item.id}
+            renderItem={renderTraderRow}
+            ListHeaderComponent={listHeader}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={tw.style('pb-6')}
+            testID={TopTradersViewSelectorsIDs.TRADER_LIST}
+            initialNumToRender={15}
+            windowSize={5}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
+            refreshControl={
+              <RefreshControl
+                colors={[colors.primary.default]}
+                tintColor={colors.icon.default}
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+              />
+            }
           />
-        ))}
-      </ScrollView>
+        )}
 
-      {isLoading && traders.length === 0 ? (
-        <ScrollView
-          // `flex-1` matches FlatList's default behavior so the list area sits
-          // directly under the filters and skeletons render top-aligned.
-          style={tw.style('flex-1')}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('pb-6')}
-          refreshControl={
-            <RefreshControl
-              colors={[colors.primary.default]}
-              tintColor={colors.icon.default}
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-            />
+        <Animated.View
+          pointerEvents={isFilterBarPinned ? 'auto' : 'none'}
+          accessibilityElementsHidden={!isFilterBarPinned}
+          importantForAccessibility={
+            isFilterBarPinned ? 'auto' : 'no-hide-descendants'
           }
+          style={[
+            tw.style(
+              'absolute top-0 left-0 right-0 z-10 border-b border-muted bg-default',
+            ),
+            pinnedFilterStyle,
+          ]}
+          testID={TopTradersViewSelectorsIDs.PINNED_FILTER_BAR}
         >
-          {skeletonKeys.map((key) => (
-            <TraderRowSkeleton key={key} />
-          ))}
-        </ScrollView>
-      ) : (
-        <FlatList
-          data={traders}
-          keyExtractor={(item) => item.id}
-          renderItem={renderTraderRow}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={tw.style('pb-6')}
-          testID={TopTradersViewSelectorsIDs.TRADER_LIST}
-          initialNumToRender={15}
-          windowSize={5}
-          refreshControl={
-            <RefreshControl
-              colors={[colors.primary.default]}
-              tintColor={colors.icon.default}
-              refreshing={refreshing}
-              onRefresh={handleRefresh}
-            />
-          }
-        />
-      )}
+          <FilterTabs
+            selectedTab={selectedTab}
+            onTabPress={handleTabPress}
+            suppressTestIDs
+          />
+        </Animated.View>
+      </Box>
     </SafeAreaView>
   );
 };
