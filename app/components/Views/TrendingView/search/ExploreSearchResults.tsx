@@ -49,6 +49,7 @@ import {
   EXPLORE_QUICK_BUY_VARIANTS,
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
 } from './abTestConfig';
+import { useQuickBuySearchKeyboard } from '../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 
 const POPULAR_ASSETS: TrendingAsset[] = [
   {
@@ -118,6 +119,12 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     EXPLORE_QUICK_BUY_VARIANTS,
     EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
   );
+
+  const closeQuickBuy = useCallback(() => {
+    setQuickTradeToken(null);
+  }, []);
+
+  useQuickBuySearchKeyboard(quickTradeToken, closeQuickBuy);
 
   const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
     'scrolled',
@@ -383,10 +390,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         ListFooterComponent={renderFooter}
         onScrollBeginDrag={onScrollBeginDrag}
       />
-      <TrendingQuickBuy
-        token={quickTradeToken}
-        onClose={() => setQuickTradeToken(null)}
-      />
+      <TrendingQuickBuy token={quickTradeToken} onClose={closeQuickBuy} />
     </Box>
   );
 };

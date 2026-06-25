@@ -7,19 +7,16 @@ import React, {
   useState,
 } from 'react';
 import { View, Platform } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
-import { addCurrencySymbol } from '../../../../util/number';
 import { toDateFormat } from '../../../../util/date';
-import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import styleSheet from './Price.styles';
 import {
   CHART_DATA_THRESHOLD,
+  isTokenOverviewChartInterval,
   TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
 } from './tokenOverviewChart.constants';
-import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
@@ -47,32 +44,19 @@ import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
 import { getTokenDetailsLegendOverlay } from '../../Charts/AdvancedChart/indicatorColors';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
-import { SUB_PANE_INDICATORS } from '../../TokenDetails/constants/constants';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
-import {
-  selectTokenOverviewChartType,
-  selectTokenIndicators,
-} from '../../../../reducers/user/selectors';
-import {
-  setTokenOverviewChartType,
-  setTokenIndicators,
-} from '../../../../actions/user';
+import { useTokenChartPreferences } from './hooks/useTokenChartPreferences';
 import type {
   TimePeriod,
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
 import PriceLegacy from './Price.legacy';
+import { TokenPriceTitleHub } from './TokenPriceTitleHub';
 import {
   endTrace,
   trace,
@@ -154,6 +138,7 @@ export interface PriceAdvancedProps {
   /** From parent (`Price`); used when falling back to {@link PriceLegacy}. */
   comparePrice: number;
   isLoading: boolean;
+  /** From parent (`Price`); forwarded to {@link PriceLegacy} on fallback only — AdvancedChart uses OHLCV. */
   prices?: TokenPrice[];
   timePeriod?: TimePeriod;
   chartNavigationButtons?: TimePeriod[];
@@ -178,16 +163,25 @@ const PriceAdvanced = ({
   useAmbientColor = false,
   hasInsufficientCoverage = false,
 }: PriceAdvancedProps) => {
-  const dispatch = useDispatch();
   const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [timeRange, setTimeRange] = useState<TimeRange>('1D');
-  const chartType = useSelector(selectTokenOverviewChartType);
-  const persistedIndicators = useSelector(selectTokenIndicators);
+  const {
+    chartType,
+    chartInterval: persistedChartInterval,
+    indicators: persistedIndicators,
+    setChartType,
+    setChartInterval,
+    setIndicators,
+  } = useTokenChartPreferences();
   const isOhlcvWsEnabled = useSelector(selectTokenDetailsOhlcvWsEnabled);
   const isTechnicalIndicatorsEnabled = useSelector(
     selectTokenDetailsTechnicalIndicatorsEnabled,
   );
+  /** `null` = WebView init pending; `false` = chart ready; `true` = init failed → legacy fallback. */
+  const [chartInitFailed, setChartInitFailed] = useState<boolean | null>(null);
+  /** True after the chart skeleton has been hidden once this WebView session. */
+  const [hasChartBeenRevealed, setHasChartBeenRevealed] = useState(false);
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
@@ -255,8 +249,8 @@ const PriceAdvanced = ({
 
   // Sync activeIndicators to Redux for persistence
   useEffect(() => {
-    dispatch(setTokenIndicators([...activeIndicators]));
-  }, [activeIndicators, dispatch]);
+    setIndicators([...activeIndicators]);
+  }, [activeIndicators, setIndicators]);
 
   const isMAIndicator = useCallback((name: string) => /^MA\d+$/.test(name), []);
 
@@ -295,13 +289,13 @@ const PriceAdvanced = ({
           .addProperties(properties)
           .build(),
       );
-      dispatch(setTokenOverviewChartType(next));
+      setChartType(next);
     },
     [
       chartType,
       createEventBuilder,
       trackEvent,
-      dispatch,
+      setChartType,
       isTechnicalIndicatorsEnabled,
       activeIndicators,
     ],
@@ -357,13 +351,35 @@ const PriceAdvanced = ({
   const config = TIME_RANGE_CONFIGS[timeRange];
   const wsInterval = WS_INTERVAL_BY_TIME_RANGE[timeRange];
 
-  const [displayInterval, setDisplayInterval] = useState(
-    wsInterval.toUpperCase(),
+  const resolveDisplayInterval = useCallback(
+    (interval: string | undefined | null) => {
+      const normalised = interval?.toLowerCase();
+      if (isTokenOverviewChartInterval(normalised)) {
+        return normalised.toUpperCase();
+      }
+      return wsInterval.toUpperCase();
+    },
+    [wsInterval],
+  );
+
+  const [displayInterval, setDisplayInterval] = useState(() =>
+    isTechnicalIndicatorsEnabled
+      ? resolveDisplayInterval(persistedChartInterval)
+      : wsInterval.toUpperCase(),
   );
 
   useEffect(() => {
+    if (isTechnicalIndicatorsEnabled) {
+      setDisplayInterval(resolveDisplayInterval(persistedChartInterval));
+      return;
+    }
     setDisplayInterval(wsInterval.toUpperCase());
-  }, [wsInterval]);
+  }, [
+    isTechnicalIndicatorsEnabled,
+    persistedChartInterval,
+    resolveDisplayInterval,
+    wsInterval,
+  ]);
 
   const chartInterval = displayInterval.toLowerCase();
 
@@ -384,6 +400,15 @@ const PriceAdvanced = ({
     [assetId, effectiveTimePeriod, effectiveInterval, currentCurrency],
   );
 
+  /** Stable WebView key for interval hot-reload (technical-indicators path only). */
+  const webViewInstanceKey = useMemo(
+    () =>
+      isTechnicalIndicatorsEnabled
+        ? `${assetId}|${currentCurrency}`
+        : undefined,
+    [isTechnicalIndicatorsEnabled, assetId, currentCurrency],
+  );
+
   const assetIdRef = useRef(assetId);
   assetIdRef.current = assetId;
 
@@ -394,9 +419,9 @@ const PriceAdvanced = ({
     traceName: TraceName;
   } | null>(null);
 
-  const handleAdvancedChartSkeletonHidden = useCallback(() => {
+  const completeVisibilityTrace = useCallback(() => {
     const open = activeVisibilityTraceRef.current;
-    if (!open) {
+    if (!open || open.seriesKey !== visibilityTraceStartedRef.current) {
       return;
     }
     endTrace({
@@ -405,6 +430,31 @@ const PriceAdvanced = ({
     });
     activeVisibilityTraceRef.current = null;
   }, []);
+
+  const handleAdvancedChartSkeletonHidden = useCallback(() => {
+    const isInitialReveal = !hasChartBeenRevealed;
+    setHasChartBeenRevealed(true);
+    setChartInitFailed(false);
+    // Technical-indicators path: skeleton hides once; interval refreshes complete via layout settled.
+    if (!isTechnicalIndicatorsEnabled || isInitialReveal) {
+      completeVisibilityTrace();
+    }
+  }, [
+    hasChartBeenRevealed,
+    isTechnicalIndicatorsEnabled,
+    completeVisibilityTrace,
+  ]);
+
+  const handleAdvancedChartLayoutSettled = useCallback(() => {
+    if (!isTechnicalIndicatorsEnabled || !hasChartBeenRevealed) {
+      return;
+    }
+    completeVisibilityTrace();
+  }, [
+    isTechnicalIndicatorsEnabled,
+    hasChartBeenRevealed,
+    completeVisibilityTrace,
+  ]);
 
   const handleAdvancedChartError = useCallback((error: string) => {
     const open = activeVisibilityTraceRef.current;
@@ -420,6 +470,32 @@ const PriceAdvanced = ({
     });
     activeVisibilityTraceRef.current = null;
   }, []);
+
+  const handleAdvancedChartInitFailed = useCallback((error: string) => {
+    setChartInitFailed(true);
+    const open = activeVisibilityTraceRef.current;
+    if (!open) {
+      return;
+    }
+    endTrace({
+      name: open.traceName,
+      id: open.seriesKey,
+      data: {
+        errorMessage: error.slice(0, 200),
+        chartInitFailed: true,
+      },
+    });
+    activeVisibilityTraceRef.current = null;
+  }, []);
+
+  const chartSessionResetKey = isTechnicalIndicatorsEnabled
+    ? webViewInstanceKey
+    : ohlcvSeriesKey;
+
+  useEffect(() => {
+    setChartInitFailed(null);
+    setHasChartBeenRevealed(false);
+  }, [chartSessionResetKey]);
 
   const {
     ohlcvData,
@@ -515,11 +591,6 @@ const PriceAdvanced = ({
         if (wasActive) {
           next.delete(name);
         } else {
-          if ((SUB_PANE_INDICATORS as readonly string[]).includes(name)) {
-            SUB_PANE_INDICATORS.forEach((i) => {
-              if (i !== name) next.delete(i);
-            });
-          }
           next.add(name);
         }
 
@@ -551,17 +622,25 @@ const PriceAdvanced = ({
     !hasEmptyData &&
     !chartError;
 
+  /** OHLCV or WebView init still in flight — mirrors TimeRangeSelector `isChartLoading`. */
+  const isAdvancedChartUiPending = chartLoading || chartInitFailed === null;
+
+  /** Technical-indicators path: first visit only; interval refresh keeps chart/bars visible. */
+  const isInitialChartPending = isTechnicalIndicatorsEnabled
+    ? !hasChartBeenRevealed && isAdvancedChartUiPending
+    : isAdvancedChartUiPending;
+
   /**
    * Only show technical indicators UI when we're certain the advanced chart is being used.
-   * This prevents a confusing flash where interval/indicator bars appear then disappear
-   * when falling back to legacy chart.
+   * After first reveal, keep bars visible during interval refresh.
    */
   const shouldShowTechnicalIndicators =
     isTechnicalIndicatorsEnabled &&
-    !chartLoading &&
-    ohlcvData.length >= CHART_DATA_THRESHOLD &&
-    !hasEmptyData &&
-    !chartError;
+    (hasChartBeenRevealed ||
+      (!isInitialChartPending &&
+        ohlcvData.length >= CHART_DATA_THRESHOLD &&
+        !hasEmptyData &&
+        !chartError));
 
   /** Candlestick-only: keep selections in state/Redux but hide studies on line chart. */
   const showChartIndicators =
@@ -580,6 +659,7 @@ const PriceAdvanced = ({
   const handleInlineIntervalSelect = useCallback(
     (interval: string) => {
       setDisplayInterval(interval);
+      setChartInterval(interval);
 
       trackEvent(
         createEventBuilder(MetaMetricsEvents.CHART_INTERACTED)
@@ -593,7 +673,13 @@ const PriceAdvanced = ({
           .build(),
       );
     },
-    [trackEvent, createEventBuilder, chartType, activeIndicators],
+    [
+      trackEvent,
+      createEventBuilder,
+      chartType,
+      activeIndicators,
+      setChartInterval,
+    ],
   );
 
   // TradingView Advanced Charts Bar.time expects milliseconds
@@ -746,7 +832,10 @@ const PriceAdvanced = ({
 
   const shouldFallbackToLegacy =
     !chartLoading &&
-    (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || chartError);
+    (ohlcvData.length < CHART_DATA_THRESHOLD ||
+      hasEmptyData ||
+      chartError ||
+      chartInitFailed === true);
 
   useLayoutEffect(() => {
     if (initialPriceDiff !== null && !shouldFallbackToLegacy) {
@@ -757,6 +846,16 @@ const PriceAdvanced = ({
   const displayDate = crosshairData
     ? toDateFormat(crosshairData.time)
     : dateLabel;
+
+  const getPriceDiffStyle = () => {
+    if (ambientColor) {
+      return { color: ambientColor };
+    }
+    if (isLightMode && displayDiff !== null && displayDiff > 0) {
+      return { color: LIGHT_MODE_SUCCESS_GREEN };
+    }
+    return undefined;
+  };
 
   const shouldFallbackToLegacyRef = useRef(shouldFallbackToLegacy);
   shouldFallbackToLegacyRef.current = shouldFallbackToLegacy;
@@ -858,87 +957,24 @@ const PriceAdvanced = ({
 
   return (
     <>
-      <View style={styles.wrapper}>
-        {!isNaN(currentPrice) && (
-          <Text
-            testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
-            variant={TextVariant.DisplayLg}
-          >
-            {isLoading ? (
-              <View style={styles.loadingPrice}>
-                <SkeletonPlaceholder
-                  backgroundColor={theme.colors.background.section}
-                  highlightColor={theme.colors.background.subsection}
-                >
-                  <SkeletonPlaceholder.Item
-                    width={100}
-                    height={40}
-                    borderRadius={6}
-                  />
-                </SkeletonPlaceholder>
-              </View>
-            ) : (
-              formatPriceWithSubscriptNotation(displayPrice, currentCurrency)
-            )}
-          </Text>
-        )}
-        <Text allowFontScaling={false}>
-          {(isTechnicalIndicatorsEnabled ? chartLoading : isLoading) ? (
-            <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
-              <SkeletonPlaceholder
-                backgroundColor={theme.colors.background.section}
-                highlightColor={theme.colors.background.subsection}
-              >
-                <SkeletonPlaceholder.Item
-                  width={150}
-                  height={24}
-                  borderRadius={6}
-                />
-              </SkeletonPlaceholder>
-            </View>
-          ) : displayDiff !== null && dynamicComparePrice !== null ? (
-            <Text
-              testID={TokenOverviewSelectorsIDs.TODAYS_CHANGE}
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={
-                displayDiff > 0
-                  ? TextColor.SuccessDefault
-                  : displayDiff < 0
-                    ? TextColor.ErrorDefault
-                    : TextColor.TextAlternative
-              }
-              style={
-                ambientColor
-                  ? { color: ambientColor }
-                  : isLightMode && displayDiff > 0
-                    ? { color: LIGHT_MODE_SUCCESS_GREEN }
-                    : undefined
-              }
-              allowFontScaling={false}
-            >
-              {displayDiff > 0 ? '+' : ''}
-              {addCurrencySymbol(displayDiff, currentCurrency, true)} (
-              {displayDiff > 0 ? '+' : ''}
-              {displayDiff === 0 || dynamicComparePrice === 0
-                ? '0'
-                : ((displayDiff / dynamicComparePrice) * 100).toFixed(2)}
-              %){' '}
-              <Text
-                testID="price-label"
-                color={TextColor.TextAlternative}
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                allowFontScaling={false}
-              >
-                {displayDate}
-              </Text>
-            </Text>
-          ) : null}
-        </Text>
-      </View>
-      {/* Unified skeleton bar when feature flag ON and loading */}
-      {isTechnicalIndicatorsEnabled && chartLoading && (
+      {!isNaN(currentPrice) && (
+        <TokenPriceTitleHub
+          price={displayPrice}
+          displayDiff={displayDiff}
+          comparePrice={dynamicComparePrice}
+          periodLabel={displayDate}
+          currentCurrency={currentCurrency}
+          isLoading={isLoading}
+          isChangeLoading={
+            isTechnicalIndicatorsEnabled ? chartLoading : isLoading
+          }
+          ambientColor={ambientColor}
+          getPriceDiffStyle={getPriceDiffStyle}
+          changeFormat="signedCurrency"
+        />
+      )}
+      {/* Unified skeleton bar when feature flag ON and chart not yet revealed */}
+      {isTechnicalIndicatorsEnabled && isInitialChartPending && (
         <View style={styles.intervalBarContainer}>
           <View style={styles.timeRangeSelectorWrap}>
             <Box twClassName="w-full px-4">
@@ -947,23 +983,21 @@ const PriceAdvanced = ({
           </View>
         </View>
       )}
-      {/* IntervalBar appears when not loading */}
-      {isTechnicalIndicatorsEnabled &&
-        !chartLoading &&
-        shouldShowTechnicalIndicators && (
-          <View style={styles.intervalBarContainer}>
-            <View style={styles.timeRangeSelectorWrap}>
-              <Box twClassName="w-full">
-                <IntervalBar
-                  selectedInterval={displayInterval}
-                  onIntervalSelect={handleInlineIntervalSelect}
-                  chartType={chartType}
-                  onChartTypeSelect={handleChartTypeSelect}
-                />
-              </Box>
-            </View>
+      {/* IntervalBar appears once OHLCV and WebView init have completed */}
+      {isTechnicalIndicatorsEnabled && shouldShowTechnicalIndicators && (
+        <View style={styles.intervalBarContainer}>
+          <View style={styles.timeRangeSelectorWrap}>
+            <Box twClassName="w-full">
+              <IntervalBar
+                selectedInterval={displayInterval}
+                onIntervalSelect={handleInlineIntervalSelect}
+                chartType={chartType}
+                onChartTypeSelect={handleChartTypeSelect}
+              />
+            </Box>
           </View>
-        )}
+        </View>
+      )}
       <Box
         twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
       >
@@ -983,6 +1017,9 @@ const PriceAdvanced = ({
             <AdvancedChart
               ohlcvData={ohlcvData}
               ohlcvSeriesKey={ohlcvSeriesKey}
+              webViewInstanceKey={
+                isTechnicalIndicatorsEnabled ? webViewInstanceKey : undefined
+              }
               realtimeBar={realtimeBar}
               height={chartHeight}
               showVolume={
@@ -995,8 +1032,21 @@ const PriceAdvanced = ({
               chartType={chartType}
               indicators={showChartIndicators ? indicatorsArray : []}
               selectedMAs={showChartIndicators ? selectedMAs : []}
-              lineChrome={advancedChartLineChromePresets.tokenOverview}
-              isLoading={chartLoading}
+              lineChrome={
+                advancedChartLineChromePresets.tokenOverview.lineChrome
+              }
+              subPaneHeightRatio={
+                advancedChartLineChromePresets.tokenOverview.subPaneHeightRatio
+              }
+              useSubscriptPriceFormat={
+                advancedChartLineChromePresets.tokenOverview
+                  .useSubscriptPriceFormat
+              }
+              isLoading={
+                isTechnicalIndicatorsEnabled
+                  ? !hasChartBeenRevealed && chartLoading
+                  : chartLoading
+              }
               ohlcvPagination={ohlcvPagination}
               visibleFromMs={visibleFromMs}
               visibleToMs={visibleToMs}
@@ -1004,7 +1054,13 @@ const PriceAdvanced = ({
               onChartInteracted={handleChartInteracted}
               onChartTradingViewClicked={handleChartTradingViewClicked}
               onSkeletonHidden={handleAdvancedChartSkeletonHidden}
+              onChartLayoutSettled={
+                isTechnicalIndicatorsEnabled
+                  ? handleAdvancedChartLayoutSettled
+                  : undefined
+              }
               onError={handleAdvancedChartError}
+              onInitFailed={handleAdvancedChartInitFailed}
               lineColorOverride={initialAmbientColor}
               successColorOverride={
                 initialAmbientColor ? ambientSuccessGreen : undefined
@@ -1037,7 +1093,7 @@ const PriceAdvanced = ({
         <View style={styles.timeRangeContainer}>
           <View style={styles.timeRangeSelectorWrap}>
             <TimeRangeSelector
-              isChartLoading={chartLoading}
+              isChartLoading={isInitialChartPending}
               selected={timeRange}
               onSelect={handleTimeRangeSelect}
               chartType={chartType}

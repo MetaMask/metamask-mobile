@@ -20,7 +20,7 @@ import {
   HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../hooks/useStyles';
-import styleSheet from '../../Deposit/Views/OtpCode/OtpCode.styles';
+import styleSheet from './OtpCode.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import {
   createNavigationDetails,
@@ -35,10 +35,10 @@ import {
   useBlurOnFulfill,
   useClearByFocusCell,
 } from 'react-native-confirmation-code-field';
-import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
+import DepositProgressBar from '../../components/DepositProgressBar';
 import Row from '../../Aggregator/components/Row';
-import { TRANSAK_SUPPORT_URL } from '../../Deposit/constants';
-import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
+import { TRANSAK_SUPPORT_URL } from '../../constants';
+import PoweredByTransak from '../../components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';

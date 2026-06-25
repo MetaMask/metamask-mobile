@@ -566,6 +566,71 @@ describe('PolymarketProvider', () => {
     });
   });
 
+  describe('getPrices', () => {
+    it('maps Polymarket SELL to the ask (entry.buy) and BUY to the bid (entry.sell)', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest
+          .fn()
+          .mockResolvedValue({ 'tok-1': { BUY: '0.34', SELL: '0.92' } }),
+      });
+
+      const result = await provider.getPrices({
+        queries: [
+          { marketId: 'm-1', outcomeId: 'o-1', outcomeTokenId: 'tok-1' },
+        ],
+      });
+
+      // entry.buy = best ask (price to buy), entry.sell = best bid (price to sell)
+      expect(result.results[0].entry).toEqual({ buy: 0.92, sell: 0.34 });
+    });
+
+    it('defaults missing price data to zero on both sides', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({}),
+      });
+
+      const result = await provider.getPrices({
+        queries: [
+          { marketId: 'm-1', outcomeId: 'o-1', outcomeTokenId: 'tok-1' },
+        ],
+      });
+
+      expect(result.results[0].entry).toEqual({ buy: 0, sell: 0 });
+    });
+
+    it('coerces malformed (non-numeric) prices to zero instead of NaN', async () => {
+      const provider = createProvider();
+      global.fetch = jest.fn().mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          'tok-1': { BUY: 'not-a-number', SELL: '0.92' },
+        }),
+      });
+
+      const result = await provider.getPrices({
+        queries: [
+          { marketId: 'm-1', outcomeId: 'o-1', outcomeTokenId: 'tok-1' },
+        ],
+      });
+
+      // Valid ask is kept; malformed bid falls back to 0 (never NaN).
+      expect(result.results[0].entry.buy).toBe(0.92);
+      expect(result.results[0].entry.sell).toBe(0);
+      expect(Number.isNaN(result.results[0].entry.sell)).toBe(false);
+    });
+
+    it('throws when queries are empty', async () => {
+      const provider = createProvider();
+      await expect(provider.getPrices({ queries: [] })).rejects.toThrow(
+        'queries parameter is required and must not be empty',
+      );
+    });
+  });
+
   beforeAll(() => {
     process.env.MM_PREDICT_BUILDER_CODE =
       '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
@@ -1740,6 +1805,54 @@ describe('PolymarketProvider', () => {
         variant: 'hourly',
       }),
     ).rejects.toThrow('Failed to get crypto price history');
+  });
+
+  it('downgrades transient network failures to a breadcrumb instead of a Sentry error', async () => {
+    const Logger = jest.requireMock('../../../../../util/Logger').default;
+    (Logger.error as jest.Mock).mockClear();
+    (Logger.log as jest.Mock).mockClear();
+    global.fetch = jest
+      .fn()
+      .mockRejectedValue(new TypeError('Network request failed'));
+
+    await expect(
+      createProvider().getCryptoPriceHistory({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'hourly',
+      }),
+    ).rejects.toThrow('Network request failed');
+
+    expect(Logger.error).not.toHaveBeenCalled();
+    expect(Logger.log).toHaveBeenCalledWith(
+      'Predict crypto price history fetch failed (transient network/availability):',
+      'Network request failed',
+      expect.any(Object),
+    );
+  });
+
+  it('still reports unexpected (non-network) crypto price history errors to Sentry', async () => {
+    const Logger = jest.requireMock('../../../../../util/Logger').default;
+    (Logger.error as jest.Mock).mockClear();
+    (Logger.log as jest.Mock).mockClear();
+    const unexpectedError = new Error('Unexpected parsing failure');
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: jest.fn().mockRejectedValue(unexpectedError),
+    });
+
+    await expect(
+      createProvider().getCryptoPriceHistory({
+        symbol: 'BTC',
+        eventStartTime: '2025-01-01T00:00:00Z',
+        variant: 'hourly',
+      }),
+    ).rejects.toThrow('Unexpected parsing failure');
+
+    expect(Logger.error).toHaveBeenCalledWith(
+      unexpectedError,
+      expect.any(Object),
+    );
   });
 });
 

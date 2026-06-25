@@ -44,10 +44,13 @@ jest.mock('../analytics', () => {
   };
 });
 
+const mockSelectSocialLeaderboardPerpsEnabled = jest.fn(() => true);
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
     selectSocialLeaderboardEnabled: () => true,
+    selectSocialLeaderboardPerpsEnabled: () =>
+      mockSelectSocialLeaderboardPerpsEnabled(),
   }),
 );
 
@@ -228,6 +231,26 @@ const fixtureOpenPositions: Position[] = [
   },
 ];
 
+const fixturePerpOpenPosition: Position = {
+  positionId: 'btc-hyperliquid-long',
+  tokenSymbol: 'BTC',
+  tokenName: 'Bitcoin',
+  tokenAddress: 'BTC',
+  chain: 'hyperliquid',
+  positionAmount: 1,
+  boughtUsd: 100000,
+  soldUsd: 0,
+  realizedPnl: 0,
+  costBasis: 100000,
+  trades: [],
+  lastTradeAt: Date.now(),
+  currentValueUSD: 125000,
+  pnlValueUsd: 25000,
+  pnlPercent: 25,
+  perpPositionType: 'long',
+  perpLeverage: 5,
+};
+
 const fixtureClosedPositions: Position[] = [
   {
     positionId: 'cult-eth',
@@ -335,6 +358,7 @@ describe('TraderProfileView', () => {
     mockHasNotificationPreferences.mockReturnValue(true);
     mockIsLoadingPreferences = false;
     mockIsTraderNotificationEnabled.mockReturnValue(true);
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockRouteParams = {
       traderId: 'trader-1',
       traderName: 'trader1',
@@ -429,6 +453,19 @@ describe('TraderProfileView', () => {
     expect(screen.getByText('$2,259.96')).toBeOnTheScreen();
   });
 
+  it('does not render perp positions when social leaderboard perps are disabled', () => {
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+    mockPositionsResult.openPositions = [
+      ...fixtureOpenPositions,
+      fixturePerpOpenPosition,
+    ];
+
+    renderWithProvider(<TraderProfileView />);
+
+    expect(screen.getByText('STARKBOT')).toBeOnTheScreen();
+    expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
+  });
+
   it('navigates to the trader position view when a position is pressed', () => {
     renderWithProvider(<TraderProfileView />);
 
@@ -477,12 +514,23 @@ describe('TraderProfileView', () => {
   });
 
   it('renders position skeletons when positions are loading', () => {
+    mockPositionsResult.openPositions = [];
     mockPositionsResult.isLoadingOpen = true;
     renderWithProvider(<TraderProfileView />);
     expect(screen.queryByText('STARKBOT')).not.toBeOnTheScreen();
   });
 
+  it('keeps cached positions visible during background refetch', () => {
+    mockPositionsResult.isLoadingOpen = true;
+    renderWithProvider(<TraderProfileView />);
+    expect(screen.getByText('STARKBOT')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
   it('renders closed position skeletons when closed tab is loading', () => {
+    mockPositionsResult.closedPositions = [];
     mockPositionsResult.isLoadingClosed = true;
     renderWithProvider(<TraderProfileView />);
     fireEvent.press(
@@ -586,6 +634,15 @@ describe('TraderProfileView', () => {
     });
   });
 
+  it('keeps cached profile visible during background refetch', () => {
+    mockProfileResult.isLoading = true;
+    renderWithProvider(<TraderProfileView />);
+    expect(
+      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('Follow')).toBeOnTheScreen();
+  });
+
   it('title section onLayout sets header height for scroll animation', () => {
     renderWithProvider(<TraderProfileView />);
 
@@ -602,7 +659,7 @@ describe('TraderProfileView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders skeleton when profile is null even if not loading', () => {
+  it('does not render profile header when profile is null and not loading', () => {
     mockProfileResult.profile = null;
     renderWithProvider(<TraderProfileView />);
     expect(
@@ -766,13 +823,18 @@ describe('TraderProfileView', () => {
       expect(screen.getByText('Value')).toBeOnTheScreen();
     });
 
-    it('cycles Open tab sort Value -> P&L % -> Value on consecutive taps', () => {
+    it('cycles Open tab sort Value -> P&L % -> Recent -> Value on consecutive taps', () => {
       renderWithProvider(<TraderProfileView />);
 
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
       );
       expect(screen.getByText('P&L %')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+      expect(screen.getByText('Recent')).toBeOnTheScreen();
 
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
@@ -780,19 +842,14 @@ describe('TraderProfileView', () => {
       expect(screen.getByText('Value')).toBeOnTheScreen();
     });
 
-    it('defaults Closed tab sort to Recent and cycles Recent -> Value -> P&L % -> Recent', () => {
+    it('defaults Closed tab sort to Top Trades and cycles Top Trades -> P&L % -> Recent -> Top Trades', () => {
       mockPositionsResult.closedPositions = fixtureClosedPositions;
       renderWithProvider(<TraderProfileView />);
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
       );
 
-      expect(screen.getByText('Recent')).toBeOnTheScreen();
-
-      fireEvent.press(
-        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
-      );
-      expect(screen.getByText('Value')).toBeOnTheScreen();
+      expect(screen.getByText('Top Trades')).toBeOnTheScreen();
 
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
@@ -803,6 +860,11 @@ describe('TraderProfileView', () => {
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
       );
       expect(screen.getByText('Recent')).toBeOnTheScreen();
+
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
+      );
+      expect(screen.getByText('Top Trades')).toBeOnTheScreen();
     });
 
     it('preserves independent sort state when switching between tabs', () => {
@@ -817,12 +879,12 @@ describe('TraderProfileView', () => {
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
       );
-      expect(screen.getByText('Recent')).toBeOnTheScreen();
+      expect(screen.getByText('Top Trades')).toBeOnTheScreen();
 
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.SORT_BUTTON),
       );
-      expect(screen.getByText('Value')).toBeOnTheScreen();
+      expect(screen.getByText('P&L %')).toBeOnTheScreen();
 
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_OPEN),
@@ -832,7 +894,7 @@ describe('TraderProfileView', () => {
       fireEvent.press(
         screen.getByTestId(TraderProfileViewSelectorsIDs.TAB_CLOSED),
       );
-      expect(screen.getByText('Value')).toBeOnTheScreen();
+      expect(screen.getByText('P&L %')).toBeOnTheScreen();
     });
 
     it('triggers a haptic on each sort tap', () => {
@@ -857,7 +919,8 @@ describe('TraderProfileView', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('hides the sort button while positions are loading', () => {
+    it('hides the sort button when positions are loading with no cached data', () => {
+      mockPositionsResult.openPositions = [];
       mockPositionsResult.isLoadingOpen = true;
       renderWithProvider(<TraderProfileView />);
 
@@ -991,6 +1054,34 @@ describe('TraderProfileView', () => {
           screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
         ).getByText('+$20,610'),
       ).toBeOnTheScreen();
+    });
+
+    it('excludes Hyperliquid from headline PnL when social leaderboard perps are disabled', () => {
+      mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+      mockProfileResult.profile = {
+        ...fixtureProfile,
+        stats: { ...fixtureProfile.stats, pnl7d: 999999 },
+        perChainBreakdown: {
+          perChainPnl: {},
+          perChainRoi: {},
+          perChainVolume: {},
+          perChainPnl7d: {
+            base: 50_000,
+            solana: 30_000,
+            ethereum: 20_000,
+            hyperliquid: 900_000,
+          },
+        },
+      };
+
+      renderWithProvider(<TraderProfileView />);
+
+      expect(
+        within(
+          screen.getByTestId(TraderProfileViewSelectorsIDs.STATS_ROW),
+        ).getByText('+$100,000'),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText('+$1,000,000')).not.toBeOnTheScreen();
     });
   });
 });
