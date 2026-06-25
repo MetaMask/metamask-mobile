@@ -40,6 +40,7 @@ import {
   KeyringControllerGetStateAction,
   KeyringControllerSignEip7702AuthorizationAction,
   KeyringControllerSignTypedMessageAction,
+  KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
 import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
 import {
@@ -138,6 +139,7 @@ type InitMessengerActions =
 
 type InitMessengerEvents =
   | BridgeStatusControllerEvents
+  | KeyringControllerUnlockEvent
   | TransactionControllerStateChangeEvent
   | TransactionControllerTransactionApprovedEvent
   | TransactionControllerTransactionConfirmedEvent
@@ -232,6 +234,7 @@ export function getTransactionControllerInitMessenger(
     ],
     events: [
       'BridgeStatusController:stateChange',
+      'KeyringController:unlock',
       'TransactionController:stateChange',
       'TransactionController:transactionApproved',
       'TransactionController:transactionConfirmed',
