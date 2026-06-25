@@ -283,6 +283,16 @@ describe('TraderPositionView', () => {
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
   });
 
+  it('does not render the floating sticky day header at rest', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    // At rest the natural in-list day headers carry the labels; the floating
+    // sticky only appears once trades scroll behind the pinned chart's edge.
+    expect(
+      screen.queryByTestId(TraderPositionViewSelectorsIDs.STICKY_DAY_HEADER),
+    ).toBeNull();
+  });
+
   it('shows empty state when trades array is empty', () => {
     mockRouteParams.position = { ...makeDefaultPosition(), trades: [] };
 
@@ -317,22 +327,6 @@ describe('TraderPositionView', () => {
       },
     );
     expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('title section onLayout sets header height for scroll animation', () => {
-    renderWithProvider(<TraderPositionView />, { state: mockState });
-
-    const titleSectionWrapper = screen.getByTestId(
-      TraderPositionViewSelectorsIDs.TITLE_SECTION_WRAPPER,
-    );
-    fireEvent(titleSectionWrapper, 'layout', {
-      nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 80 } },
-    });
-
-    expect(titleSectionWrapper).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(TraderPositionViewSelectorsIDs.HEADER),
-    ).toBeOnTheScreen();
   });
 
   it('renders the fallback when position is undefined and no positionId is provided', () => {
@@ -803,7 +797,7 @@ describe('TraderPositionView', () => {
 
     expect(screen.getByText('Closed position')).toBeOnTheScreen();
     expect(screen.getByText('+$300.00')).toBeOnTheScreen();
-    expect(screen.getByText('+25%')).toBeOnTheScreen();
+    expect(screen.getByText('+25.00%')).toBeOnTheScreen();
   });
 
   it('displays market cap from the fallback API when cache is empty', async () => {
@@ -820,7 +814,11 @@ describe('TraderPositionView', () => {
     });
   });
 
-  it('shows all trades regardless of the active time period, but filters chart markers', async () => {
+  it('passes all trades to the chart regardless of the active time period', async () => {
+    // Markers are bounded to the chart's loaded data window inside the chart
+    // component (not a now-relative period window), so the view forwards the
+    // full trade list and never drops past trades — e.g. a closed position whose
+    // fills predate the selected period must still surface on the chart.
     const now = Date.now();
 
     mockRouteParams.position = {
@@ -857,8 +855,10 @@ describe('TraderPositionView', () => {
         mockTraderPriceChart.mock.calls[
           mockTraderPriceChart.mock.calls.length - 1
         ]?.[0]?.trades;
-      expect(chartTrades).toHaveLength(1);
-      expect(chartTrades[0].transactionHash).toBe('0xrecent');
+      expect(chartTrades).toHaveLength(2);
+      expect(
+        chartTrades.map((t: { transactionHash: string }) => t.transactionHash),
+      ).toEqual(expect.arrayContaining(['0xrecent', '0xolder']));
     });
     expect(screen.getByTestId('trade-row-0xrecent')).toBeOnTheScreen();
     expect(screen.getByTestId('trade-row-0xolder')).toBeOnTheScreen();

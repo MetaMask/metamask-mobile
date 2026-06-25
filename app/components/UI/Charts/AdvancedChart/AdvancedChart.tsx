@@ -112,6 +112,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       legendOverlay,
       currentPriceLineColorOverride,
       labelStyleOverrides,
+      scrollPassthrough = false,
     },
     ref,
   ) => {
@@ -966,7 +967,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     return (
       <View style={styles.container}>
-        <View style={styles.chartSurface}>
+        <View
+          style={styles.chartSurface}
+          pointerEvents={scrollPassthrough ? 'none' : 'auto'}
+        >
           <WebView
             key={`advanced-chart-${resolvedWebViewKey}`}
             ref={webViewRef}

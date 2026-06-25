@@ -3,7 +3,11 @@ import {
   TransactionType,
   type TransactionMeta,
 } from '@metamask/transaction-controller';
-import { getLocalTransactionStatus } from './helpers';
+import {
+  getLocalTransactionFees,
+  getLocalTransactionStatus,
+  getNetworkFeeAmount,
+} from './helpers';
 
 type LocalTransactionStatusInput = Parameters<
   typeof getLocalTransactionStatus
@@ -139,5 +143,70 @@ describe('getLocalTransactionStatus', () => {
     };
 
     expect(getLocalTransactionStatus(group)).toBe('failed');
+  });
+});
+
+describe('getNetworkFeeAmount', () => {
+  it('multiplies gas used by gas price (hex inputs)', () => {
+    // 21000 * 1 gwei
+    expect(getNetworkFeeAmount('0x5208', '0x3b9aca00')).toBe('21000000000000');
+  });
+
+  it('returns undefined when gas used or price is missing', () => {
+    expect(getNetworkFeeAmount(undefined, '0x3b9aca00')).toBeUndefined();
+    expect(getNetworkFeeAmount('0x5208', undefined)).toBeUndefined();
+  });
+
+  it('returns undefined for non-numeric input', () => {
+    expect(getNetworkFeeAmount('not-a-number', '0x1')).toBeUndefined();
+  });
+});
+
+describe('getLocalTransactionFees', () => {
+  const nativeAsset = {
+    decimals: 18,
+    symbol: 'ETH',
+    assetId: 'eip155:1/slip44:60',
+  };
+
+  it('builds a base network fee from the receipt (gasUsed * effectiveGasPrice)', () => {
+    const group = {
+      primaryTransaction: {
+        chainId: '0x1',
+        txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+        txParams: {},
+      },
+    } as unknown as Parameters<typeof getLocalTransactionFees>[0];
+
+    expect(getLocalTransactionFees(group, nativeAsset, 'ETH')).toEqual([
+      {
+        type: 'base',
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+        assetId: 'eip155:1/slip44:60',
+      },
+    ]);
+  });
+
+  it('falls back to txParams.gasPrice while pending (no receipt)', () => {
+    const group = {
+      primaryTransaction: {
+        chainId: '0x1',
+        txReceipt: {},
+        txParams: { gasPrice: '0x3b9aca00', gas: '0x5208' },
+      },
+    } as unknown as Parameters<typeof getLocalTransactionFees>[0];
+
+    // No gasUsed in receipt -> no fee (mirrors extension, which keys off gasUsed)
+    expect(getLocalTransactionFees(group, nativeAsset, 'ETH')).toBeUndefined();
+  });
+
+  it('returns undefined when there is no gas data', () => {
+    const group = {
+      primaryTransaction: { chainId: '0x1', txReceipt: {}, txParams: {} },
+    } as unknown as Parameters<typeof getLocalTransactionFees>[0];
+
+    expect(getLocalTransactionFees(group, nativeAsset, 'ETH')).toBeUndefined();
   });
 });
