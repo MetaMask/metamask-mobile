@@ -9,8 +9,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import type { PerpDirection } from '../utils/perp';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import PerpsLeverage from '../../../UI/Perps/components/PerpsLeverage/PerpsLeverage';
+
+const pillClassName = 'bg-muted rounded px-1.5 py-0.5';
 
 export interface PerpBadgesProps {
   direction: PerpDirection;
@@ -21,7 +21,7 @@ export interface PerpBadgesProps {
 
 /**
  * Renders the perp metadata badges shown next to a token symbol: an optional
- * leverage pill (e.g. "10x") and a direction pill (LONG green / SHORT red).
+ * leverage pill (e.g. "10x") and a direction pill (Long green / Short red).
  * Used across the trader profile position list, the position detail header,
  * and individual trade rows so perp positions read consistently.
  */
@@ -35,7 +35,7 @@ const PerpBadges: React.FC<PerpBadgesProps> = ({
     isLong
       ? 'social_leaderboard.trader_position.long'
       : 'social_leaderboard.trader_position.short',
-  ).toUpperCase();
+  );
 
   return (
     <Box
@@ -45,12 +45,20 @@ const PerpBadges: React.FC<PerpBadgesProps> = ({
       testID={testID}
     >
       {leverage ? (
-        <PerpsLeverage
-          maxLeverage={`${leverage}x`}
+        <Box
+          twClassName={pillClassName}
           testID={testID ? `${testID}-leverage` : undefined}
-        />
+        >
+          <Text
+            variant={TextVariant.BodyXs}
+            fontWeight={FontWeight.Medium}
+            twClassName="text-alternative"
+          >
+            {`${leverage}x`}
+          </Text>
+        </Box>
       ) : null}
-      <Box twClassName="bg-muted rounded px-1.5 py-0.5">
+      <Box twClassName={pillClassName}>
         <Text
           variant={TextVariant.BodyXs}
           fontWeight={FontWeight.Medium}

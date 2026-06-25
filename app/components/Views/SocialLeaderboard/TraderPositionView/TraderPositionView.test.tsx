@@ -466,7 +466,7 @@ describe('TraderPositionView', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
       expect(screen.getByText('10x')).toBeOnTheScreen();
-      expect(screen.getByText('SHORT')).toBeOnTheScreen();
+      expect(screen.getByText('Short')).toBeOnTheScreen();
     });
 
     it('does not render the copy token address button for a perp position', () => {

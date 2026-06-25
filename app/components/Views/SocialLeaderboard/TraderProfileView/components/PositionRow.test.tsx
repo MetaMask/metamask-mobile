@@ -82,25 +82,20 @@ describe('PositionRow', () => {
     expect(screen.getByText('$2,259.96')).toBeOnTheScreen();
   });
 
-  it('renders an up triangle with the unsigned percent on the bottom-right (no absolute PnL)', () => {
+  it('renders a signed positive percent on the bottom-right (no absolute PnL)', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
-    // Direction lives in the caret, so the percent is unsigned.
-    expect(screen.getByText('▲')).toBeOnTheScreen();
-    expect(screen.getByText('182%')).toBeOnTheScreen();
-    expect(screen.queryByText('+182%')).toBeNull();
+    expect(screen.getByText('+182%')).toBeOnTheScreen();
     expect(screen.queryByText('+$1,059.96 (+182%)')).toBeNull();
     expect(screen.queryByText('+$1,059.96')).toBeNull();
   });
 
-  it('colors the percent to match the up triangle for a winning position', () => {
+  it('colors the percent for a winning position', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
-    const triangleColor = colorOf(screen.getByText('▲'));
-    const percentColor = colorOf(screen.getByText('182%'));
+    const percentColor = colorOf(screen.getByText('+182%'));
     expect(percentColor).toBeDefined();
-    expect(percentColor).toBe(triangleColor);
   });
 
-  it('renders a down triangle with the unsigned percent for a losing open position', () => {
+  it('renders a signed negative percent for a losing open position', () => {
     const position = {
       ...basePosition,
       pnlValueUsd: -250,
@@ -108,20 +103,16 @@ describe('PositionRow', () => {
     };
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('▼')).toBeOnTheScreen();
-    expect(screen.getByText('25%')).toBeOnTheScreen();
-    expect(screen.queryByText('-25%')).toBeNull();
+    expect(screen.getByText('-25%')).toBeOnTheScreen();
     expect(screen.queryByText('-$250.00 (-25%)')).toBeNull();
   });
 
-  it('colors the percent to match the down triangle for a losing position', () => {
+  it('colors the percent for a losing position', () => {
     const position = { ...basePosition, pnlValueUsd: -250, pnlPercent: -25 };
 
     renderWithProvider(<PositionRow position={position} />);
-    const triangleColor = colorOf(screen.getByText('▼'));
-    const percentColor = colorOf(screen.getByText('25%'));
+    const percentColor = colorOf(screen.getByText('-25%'));
     expect(percentColor).toBeDefined();
-    expect(percentColor).toBe(triangleColor);
   });
 
   it('renders the percent even when pnlValueUsd is missing', () => {
@@ -131,7 +122,7 @@ describe('PositionRow', () => {
     } as unknown as Position;
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('182%')).toBeOnTheScreen();
+    expect(screen.getByText('+182%')).toBeOnTheScreen();
   });
 
   it('renders dash when pnlPercent is null', () => {
@@ -157,7 +148,7 @@ describe('PositionRow', () => {
     expect(dashes.length).toBeGreaterThanOrEqual(1);
   });
 
-  it('renders a neutral minus and unsigned 0% when unrealized PnL is zero', () => {
+  it('renders +0% with neutral styling when unrealized PnL is zero', () => {
     const position = {
       ...basePosition,
       pnlValueUsd: 0,
@@ -165,10 +156,7 @@ describe('PositionRow', () => {
     };
 
     renderWithProvider(<PositionRow position={position} />);
-    // U+2212 minus glyph (not a triangle) for break-even, then unsigned 0%.
-    expect(screen.getByText('−')).toBeOnTheScreen();
-    expect(screen.getByText('0%')).toBeOnTheScreen();
-    expect(screen.queryByText('+0%')).toBeNull();
+    expect(screen.getByText('+0%')).toBeOnTheScreen();
     expect(screen.queryByText('$0.00 (+0%)')).toBeNull();
   });
 
@@ -262,12 +250,11 @@ describe('PositionRow', () => {
       expect(screen.getByText('Apr 15 at 2:00 pm')).toBeOnTheScreen();
     });
 
-    it('renders realized PnL percent as unsigned magnitude (sign comes from caret)', () => {
+    it('renders realized PnL percent with a signed value', () => {
       renderWithProvider(<PositionRow position={closedPosition} />);
 
       // realizedPnl (300) / boughtUsd (1200) * 100 = 25%
-      expect(screen.getByText('25%')).toBeOnTheScreen();
-      expect(screen.queryByText('+25%')).toBeNull();
+      expect(screen.getByText('+25%')).toBeOnTheScreen();
     });
 
     it('renders dash for PnL when boughtUsd is zero', () => {
@@ -278,14 +265,13 @@ describe('PositionRow', () => {
       expect(screen.getByText('—')).toBeOnTheScreen();
     });
 
-    it('renders negative realized PnL percent as unsigned magnitude', () => {
+    it('renders negative realized PnL percent with a signed value', () => {
       const position = { ...closedPosition, realizedPnl: -300 };
 
       renderWithProvider(<PositionRow position={position} />);
 
       // -300 / 1200 * 100 = -25%
-      expect(screen.getByText('25%')).toBeOnTheScreen();
-      expect(screen.queryByText('-25%')).toBeNull();
+      expect(screen.getByText('-25%')).toBeOnTheScreen();
     });
 
     it('uses realized PnL percent even when pnlPercent is 0', () => {
@@ -293,18 +279,16 @@ describe('PositionRow', () => {
 
       renderWithProvider(<PositionRow position={position} />);
 
-      expect(screen.getByText('25%')).toBeOnTheScreen();
+      expect(screen.getByText('+25%')).toBeOnTheScreen();
     });
 
-    it('renders break-even realized PnL with a neutral minus and 0% percent', () => {
+    it('renders break-even realized PnL with +0% percent', () => {
       const position = { ...closedPosition, realizedPnl: 0, boughtUsd: 1200 };
 
       renderWithProvider(<PositionRow position={position} />);
 
       expect(screen.getByText('$0.00')).toBeOnTheScreen();
-      // U+2212 minus glyph, not a hyphen
-      expect(screen.getByText('−')).toBeOnTheScreen();
-      expect(screen.getByText('0%')).toBeOnTheScreen();
+      expect(screen.getByText('+0%')).toBeOnTheScreen();
     });
 
     it('renders realized PnL value when boughtUsd is zero (percent null)', () => {
@@ -339,19 +323,19 @@ describe('PositionRow', () => {
       positionAmountWithLeverage: 25,
     };
 
-    it('renders the leverage and LONG direction badges for a long perp', () => {
+    it('renders the leverage and Long direction badges for a long perp', () => {
       renderWithProvider(<PositionRow position={perpPosition} />);
 
       expect(screen.getByText('5x')).toBeOnTheScreen();
-      expect(screen.getByText('LONG')).toBeOnTheScreen();
+      expect(screen.getByText('Long')).toBeOnTheScreen();
     });
 
-    it('renders a SHORT badge for a short perp', () => {
+    it('renders a Short badge for a short perp', () => {
       const position = { ...perpPosition, perpPositionType: 'short' as const };
 
       renderWithProvider(<PositionRow position={position} />);
 
-      expect(screen.getByText('SHORT')).toBeOnTheScreen();
+      expect(screen.getByText('Short')).toBeOnTheScreen();
     });
 
     it('omits the leverage badge when perpLeverage is null', () => {
@@ -360,14 +344,14 @@ describe('PositionRow', () => {
       renderWithProvider(<PositionRow position={position} />);
 
       expect(screen.queryByText('5x')).not.toBeOnTheScreen();
-      expect(screen.getByText('LONG')).toBeOnTheScreen();
+      expect(screen.getByText('Long')).toBeOnTheScreen();
     });
 
     it('does not render perp badges for a spot position', () => {
       renderWithProvider(<PositionRow position={basePosition} />);
 
-      expect(screen.queryByText('LONG')).not.toBeOnTheScreen();
-      expect(screen.queryByText('SHORT')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Long')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Short')).not.toBeOnTheScreen();
     });
 
     it('hides the HIP-3 provider prefix in the symbol and amount subtitle', () => {
@@ -404,7 +388,7 @@ describe('PositionRow', () => {
       expect(screen.queryByText('1.50B ETH')).not.toBeOnTheScreen();
     });
 
-    it('renders an up triangle with a colored, unsigned percent for a winning closed perp (matching spot)', () => {
+    it('renders a colored signed percent for a winning closed perp (matching spot)', () => {
       const closedPerp = {
         ...perpPosition,
         currentValueUSD: 0,
@@ -415,13 +399,11 @@ describe('PositionRow', () => {
 
       renderWithProvider(<PositionRow position={closedPerp} isClosed />);
 
-      // 300 / 1200 * 100 = 25%, rendered unsigned with the caret carrying direction.
-      expect(screen.getByText('▲')).toBeOnTheScreen();
-      expect(screen.getByText('25%')).toBeOnTheScreen();
-      expect(screen.queryByText('+25%')).toBeNull();
+      // 300 / 1200 * 100 = 25%
+      expect(screen.getByText('+25%')).toBeOnTheScreen();
     });
 
-    it('renders a down triangle with a colored, unsigned percent for a losing closed perp', () => {
+    it('renders a colored signed percent for a losing closed perp', () => {
       const closedPerp = {
         ...perpPosition,
         currentValueUSD: 0,
@@ -432,18 +414,13 @@ describe('PositionRow', () => {
 
       renderWithProvider(<PositionRow position={closedPerp} isClosed />);
 
-      expect(screen.getByText('▼')).toBeOnTheScreen();
-      expect(screen.getByText('25%')).toBeOnTheScreen();
-      expect(screen.queryByText('-25%')).toBeNull();
+      expect(screen.getByText('-25%')).toBeOnTheScreen();
     });
 
-    it('renders the directional triangle with an unsigned percent for an open perp', () => {
+    it('renders a signed percent for an open perp', () => {
       renderWithProvider(<PositionRow position={perpPosition} />);
 
-      // Open positions now match closed: caret carries direction, percent is unsigned.
-      expect(screen.getByText('▲')).toBeOnTheScreen();
-      expect(screen.getByText('182%')).toBeOnTheScreen();
-      expect(screen.queryByText('+182%')).toBeNull();
+      expect(screen.getByText('+182%')).toBeOnTheScreen();
     });
   });
 });
