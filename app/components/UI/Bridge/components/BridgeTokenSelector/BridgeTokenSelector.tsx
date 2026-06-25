@@ -397,7 +397,7 @@ export const BridgeTokenSelector: React.FC = () => {
         >
           <ButtonIcon
             iconName={IconName.Info}
-            size={ButtonIconSize.Sm}
+            size={ButtonIconSize.Xs}
             onPress={() => handleInfoButtonPress(item)}
             iconProps={{ color: IconColor.IconAlternative }}
           />

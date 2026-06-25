@@ -157,12 +157,11 @@ export const TokenDetailsInlineHeader = ({
     }
 
     return (
-      // TODO: Replace this with ButtonIcon size XS when available
       <ButtonIcon
         iconName={IconName.Copy}
-        size={ButtonIconSize.Sm}
+        size={ButtonIconSize.Xs}
         onPress={handleCopyContractAddress}
-        iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
+        iconProps={{ color: IconColor.IconAlternative }}
         testID="copy-contract-address-button"
         accessibilityLabel={strings('token.contract_address')}
       />

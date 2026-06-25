@@ -291,7 +291,7 @@ const AssetOverviewClaimBonus: React.FC<AssetOverviewClaimBonusProps> = ({
             </Text>
             <ButtonIcon
               iconName={IconName.Info}
-              size={ButtonIconSize.Sm}
+              size={ButtonIconSize.Xs}
               iconProps={{ color: IconColor.IconAlternative }}
               onPress={handleInfoPress}
               testID={ASSET_OVERVIEW_CLAIM_BONUS_TEST_IDS.INFO_BUTTON}

@@ -91,7 +91,7 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
             <ButtonIcon
               iconName={IconName.Info}
               iconProps={{ color: IconColor.IconAlternative }}
-              size={ButtonIconSize.Sm}
+              size={ButtonIconSize.Xs}
               onPress={onSwapsVolumeInfoPress}
               accessibilityLabel={strings(
                 'rewards.vip.swaps_volume_info_label',

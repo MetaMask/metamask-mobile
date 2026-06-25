@@ -362,7 +362,7 @@ export function BatchSellReview() {
             <ButtonIcon
               iconName={IconName.Info}
               iconProps={{ color: IconColor.IconDefault }}
-              size={ButtonIconSize.Sm}
+              size={ButtonIconSize.Xs}
               onPress={handleOpenQuoteDetails}
               testID={BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_INFO_BUTTON}
             />

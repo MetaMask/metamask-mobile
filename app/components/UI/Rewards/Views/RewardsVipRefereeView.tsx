@@ -296,7 +296,7 @@ const RewardsVipRefereeViewContent: React.FC = () => {
                       <ButtonIcon
                         iconName={IconName.Info}
                         iconProps={{ color: IconColor.IconAlternative }}
-                        size={ButtonIconSize.Sm}
+                        size={ButtonIconSize.Xs}
                         onPress={() => setIsSwapsVolumeInfoVisible(true)}
                         accessibilityLabel={strings(
                           'rewards.vip.swaps_volume_info_label',
