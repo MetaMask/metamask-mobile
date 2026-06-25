@@ -14,6 +14,23 @@ jest.mock('./hooks/useChainDisplayInfos', () => ({
   useChainDisplayInfos: jest.fn(),
 }));
 
+jest.mock('./components/QuickBuyTokenSecurityBadge', () => {
+  const ReactMock = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: () => ReactMock.createElement(ReactMock.Fragment),
+  };
+});
+
+jest.mock('@shopify/flash-list', () => {
+  const ReactActual = jest.requireActual('react');
+  const { FlatList } = jest.requireActual('react-native');
+  return {
+    FlashList: (props: Record<string, unknown>) =>
+      ReactActual.createElement(FlatList, props),
+  };
+});
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
