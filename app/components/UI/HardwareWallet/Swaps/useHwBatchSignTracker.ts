@@ -84,9 +84,9 @@ export function useHwBatchSignTracker({
   isEnabled,
   retryGenerationRef,
   // Gasless 2-step: (1) approval → (2) FeeTransfer + main tx
-  flow = Flow.Bridge,                // Session origin: Bridge or Send
-  gasTokenAddress,                   // Step (2) — gas-fee-token address for FeeTransfer (sendbundle)
-  deferredApprovalRequestId,         // Step (1) — approval consumed by submit, skipped by tracker
+  flow = Flow.Bridge, // Session origin: Bridge or Send
+  gasTokenAddress, // Step (2) — gas-fee-token address for FeeTransfer (sendbundle)
+  deferredApprovalRequestId, // Step (1) — approval consumed by submit, skipped by tracker
   expectedBatchTransactionCount,
 }: UseHwBatchSignTrackerOptions) {
   // SEND-MODE ISOLATION: send-mode activates ONLY when flow===Flow.Send.
@@ -678,21 +678,33 @@ export function useHwBatchSignTracker({
       return HardwareWalletsSwapsStepKind.Transaction;
     };
 
+    // Maps a transaction to a stable step index for the HW UI progress display.
+    // Indices are 0-based. Layout of an N-tx batch:
+    //   [0 .. N-2]  regular transactions (assigned in arrival order)
+    //   [N-1]       FeeTransfer (gas token payment) — always the LAST step
     const resolveStepIndex = (
       meta: TransactionMeta,
       stepKind: HardwareWalletsSwapsStepKind,
     ): number | undefined => {
+      // No indexing outside multi-step send mode (single-step swaps don't use it).
       if (!isSendMode || !effectiveExpectedBatchTransactionCount)
         return undefined;
+      // FeeTransfer is always pinned to the final tx of the batch.
       if (stepKind === HardwareWalletsSwapsStepKind.FeeTransfer)
         return effectiveExpectedBatchTransactionCount - 1;
+      // Any other non-Transaction kind (e.g. approvals) is not step-indexed.
       if (stepKind !== HardwareWalletsSwapsStepKind.Transaction)
         return undefined;
       const state = trackerStateRef.current;
+      // Reuse a previously assigned index so a tx keeps its position across events.
       const existing = state.sendTransactionStepIndexes.get(meta.id);
       if (existing !== undefined) return existing;
+      // Next index = number of txs already assigned (auto-increment from 0).
       const next = state.sendTransactionStepIndexes.size;
+      // Guard the reserved FeeTransfer slot: if the next index would reach or
+      // pass N-1, stop handing out indices rather than collide with the fee step.
       if (next >= effectiveExpectedBatchTransactionCount - 1) return undefined;
+      // Persist so subsequent calls for this tx return the same index.
       state.sendTransactionStepIndexes.set(meta.id, next);
       return next;
     };
@@ -824,11 +836,14 @@ export function useHwBatchSignTracker({
       );
     };
 
-    const handleRejected = ({
-      transactionMeta,
-    }: {
-      transactionMeta: TransactionMeta;
-    }) => {
+    const handleFinalized = (
+      transactionMeta: TransactionMeta,
+      process: (
+        meta: TransactionMeta,
+        classifier: SignedEventClassifier,
+      ) => StrategyEventResult,
+      classifier: SignedEventClassifier,
+    ) => {
       if (shouldIgnoreUnbatchedSend(transactionMeta)) return;
       if (trackerStateRef.current.handledTxIds.has(transactionMeta.id)) return;
       if (trackerStateRef.current.pendingAbortTxIds.has(transactionMeta.id)) {
@@ -836,9 +851,18 @@ export function useHwBatchSignTracker({
         return;
       }
       detectAndApplyRetryGeneration();
-      applyResult(
-        strategy.processRejected(transactionMeta, classifyRejected),
+      applyResult(process(transactionMeta, classifier), transactionMeta);
+    };
+
+    const handleRejected = ({
+      transactionMeta,
+    }: {
+      transactionMeta: TransactionMeta;
+    }) => {
+      handleFinalized(
         transactionMeta,
+        strategy.processRejected,
+        classifyRejected,
       );
     };
 
@@ -847,32 +871,20 @@ export function useHwBatchSignTracker({
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      if (shouldIgnoreUnbatchedSend(transactionMeta)) return;
-      if (trackerStateRef.current.handledTxIds.has(transactionMeta.id)) return;
-      if (trackerStateRef.current.pendingAbortTxIds.has(transactionMeta.id)) {
-        trackerStateRef.current.pendingAbortTxIds.delete(transactionMeta.id);
-        return;
-      }
-      detectAndApplyRetryGeneration();
-      applyResult(
-        strategy.processFinished(transactionMeta, classifyFinished),
+      handleFinalized(
         transactionMeta,
+        strategy.processFinished,
+        classifyFinished,
       );
     };
 
     const handleFinished = (transactionMeta: TransactionMeta) => {
       if (!matchesTx(transactionMeta, targetFrom, effectiveTrackedTypes))
         return;
-      if (shouldIgnoreUnbatchedSend(transactionMeta)) return;
-      if (trackerStateRef.current.handledTxIds.has(transactionMeta.id)) return;
-      if (trackerStateRef.current.pendingAbortTxIds.has(transactionMeta.id)) {
-        trackerStateRef.current.pendingAbortTxIds.delete(transactionMeta.id);
-        return;
-      }
-      detectAndApplyRetryGeneration();
-      applyResult(
-        strategy.processFinished(transactionMeta, classifyFinished),
+      handleFinalized(
         transactionMeta,
+        strategy.processFinished,
+        classifyFinished,
       );
     };
 
