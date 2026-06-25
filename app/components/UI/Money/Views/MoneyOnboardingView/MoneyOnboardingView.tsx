@@ -37,12 +37,17 @@ import Rive, {
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibility';
 import {
-  Animated,
   PixelRatio,
   StyleSheet,
   useWindowDimensions,
   View,
 } from 'react-native';
+import Animated, {
+  type SharedValue,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Logger from '../../../../../util/Logger';
 
@@ -99,12 +104,12 @@ const TOTAL_ONBOARDING_STEPS = Object.keys(RIVE_STATE_TO_STEP_INDEX).length;
 const OVERLAY_FADE_DURATION_MS = 200;
 const SMALL_OVERLAY_DEVICE_MAX_WIDTH = 375;
 const SMALL_OVERLAY_DEVICE_MAX_HEIGHT = 700;
-const FOOTER_BOTTOM_OFFSET = 112;
+const FOOTER_BOTTOM_OFFSET = 105;
 const OVERLAY_TEXT_PRESETS = {
   small: {
     title: { fontSize: 18, lineHeight: 25, paddingHorizontal: 42 },
     content: { fontSize: 14, lineHeight: 20 },
-    footer: { fontSize: 10, lineHeight: 14 },
+    footer: { fontSize: 10, lineHeight: 12 },
   },
   default: {
     title: { fontSize: 24 },
@@ -159,10 +164,10 @@ const FALLBACK_APY = 4;
 
 const MoneyOnboardingTextOverlay = ({
   content,
-  isVisible,
+  opacity,
 }: {
   content?: OnboardingTextContent;
-  isVisible: boolean;
+  opacity: SharedValue<number>;
 }) => {
   const insets = useSafeAreaInsets();
   const { height, width } = useWindowDimensions();
@@ -180,90 +185,65 @@ const MoneyOnboardingTextOverlay = ({
     [isSmallScreen],
   );
 
-  const fadeAnim = useRef(new Animated.Value(isVisible ? 1 : 0)).current;
-  const hasMountedRef = useRef(false);
-
-  useEffect(() => {
-    fadeAnim.stopAnimation();
-
-    if (!hasMountedRef.current) {
-      hasMountedRef.current = true;
-      fadeAnim.setValue(isVisible ? 1 : 0);
-      return () => {
-        fadeAnim.stopAnimation();
-      };
-    }
-
-    if (isVisible) {
-      fadeAnim.setValue(0);
-    }
-
-    Animated.timing(fadeAnim, {
-      duration: OVERLAY_FADE_DURATION_MS,
-      toValue: isVisible ? 1 : 0,
-      useNativeDriver: true,
-    }).start();
-
-    return () => {
-      fadeAnim.stopAnimation();
-    };
-  }, [fadeAnim, isVisible]);
-
-  if (!content) {
-    return null;
-  }
+  const animatedStyle = useAnimatedStyle(() => ({
+    opacity: opacity.value,
+  }));
 
   return (
     <Animated.View
       pointerEvents="none"
-      style={[StyleSheet.absoluteFill, { opacity: fadeAnim }]}
+      style={[StyleSheet.absoluteFill, animatedStyle]}
     >
-      <View
-        style={[
-          styles.textGroup,
-          {
-            top: insets.top + height * stepLayout.titleTopPct,
-          },
-        ]}
-      >
-        <Text
-          color={TextColor.OverlayInverse}
-          fontWeight={FontWeight.Bold}
-          numberOfLines={3}
-          style={[styles.title, overlayTextPreset.title]}
-          testID={MoneyOnboardingViewTestIds.OVERLAY_TITLE}
-          variant={TextVariant.HeadingLg}
-        >
-          {content.title}
-        </Text>
-        <Text
-          color={TextColor.OverlayInverse}
-          numberOfLines={3}
-          style={[styles.content, overlayTextPreset.content]}
-          testID={MoneyOnboardingViewTestIds.OVERLAY_CONTENT}
-          variant={TextVariant.BodyMd}
-        >
-          {content.content}
-        </Text>
-      </View>
-      <View
-        style={[
-          styles.footerContainer,
-          {
-            bottom: insets.bottom + FOOTER_BOTTOM_OFFSET,
-          },
-        ]}
-      >
-        <Text
-          color={TextColor.OverlayInverse}
-          numberOfLines={1}
-          style={[styles.footer, overlayTextPreset.footer]}
-          testID={MoneyOnboardingViewTestIds.OVERLAY_FOOTER}
-          variant={TextVariant.BodyXs}
-        >
-          {content.footer}
-        </Text>
-      </View>
+      {content && (
+        <>
+          <View
+            style={[
+              styles.textGroup,
+              {
+                top: insets.top + height * stepLayout.titleTopPct,
+              },
+            ]}
+          >
+            <Text
+              color={TextColor.OverlayInverse}
+              fontWeight={FontWeight.Bold}
+              numberOfLines={3}
+              style={[styles.title, overlayTextPreset.title]}
+              testID={MoneyOnboardingViewTestIds.OVERLAY_TITLE}
+              variant={TextVariant.HeadingLg}
+            >
+              {content.title}
+            </Text>
+            <Text
+              color={TextColor.OverlayInverse}
+              numberOfLines={3}
+              style={[styles.content, overlayTextPreset.content]}
+              testID={MoneyOnboardingViewTestIds.OVERLAY_CONTENT}
+              variant={TextVariant.BodyMd}
+            >
+              {content.content}
+            </Text>
+          </View>
+          <View
+            style={[
+              styles.footerContainer,
+              {
+                bottom: insets.bottom + FOOTER_BOTTOM_OFFSET,
+              },
+            ]}
+          >
+            <Text
+              color={TextColor.OverlayInverse}
+              numberOfLines={1}
+              style={[styles.footer, overlayTextPreset.footer]}
+              testID={MoneyOnboardingViewTestIds.OVERLAY_FOOTER}
+              variant={TextVariant.BodyXs}
+            >
+              {content.footer}
+            </Text>
+          </View>
+        </>
+      )}
     </Animated.View>
   );
 };
@@ -288,7 +268,7 @@ const MoneyOnboardingView = () => {
 
   const stepRef = useRef(0);
   const [overlayStep, setOverlayStep] = useState(0);
-  const [isOverlayVisible, setIsOverlayVisible] = useState(true);
+  const overlayOpacity = useSharedValue(0);
 
   const [, setButtonText] = useRiveString(riveRef, 'button');
   const [, setTransitionSpeed] = useRiveNumber(riveRef, 'transitionSpeed');
@@ -346,7 +326,12 @@ const MoneyOnboardingView = () => {
     // Config
     setTransitionSpeed(300);
     setButtonText(strings('money.rive_onboarding.button_text'));
-  }, [riveRef, setTransitionSpeed, setButtonText]);
+    overlayOpacity.set(
+      withTiming(1, {
+        duration: OVERLAY_FADE_DURATION_MS,
+      }),
+    );
+  }, [riveRef, setTransitionSpeed, setButtonText, overlayOpacity]);
 
   const navigateToMoneyHome = useCallback(() => {
     navigation.navigate(Routes.HOME_TABS, {
@@ -409,7 +394,11 @@ const MoneyOnboardingView = () => {
     (_stateMachineName: string, stateName: string) => {
       if (RIVE_TRANSITION_STATES.has(stateName)) {
         playImpact(ImpactMoment.PageNavigation);
-        setIsOverlayVisible(false);
+        overlayOpacity.set(
+          withTiming(0, {
+            duration: OVERLAY_FADE_DURATION_MS,
+          }),
+        );
         return;
       }
 
@@ -420,7 +409,11 @@ const MoneyOnboardingView = () => {
 
         if (stepContent[stepIndex]) {
           setOverlayStep(stepIndex);
-          setIsOverlayVisible(true);
+          overlayOpacity.set(
+            withTiming(1, {
+              duration: OVERLAY_FADE_DURATION_MS,
+            }),
+          );
         }
 
         handleStepViewed(stepIndex);
@@ -430,7 +423,7 @@ const MoneyOnboardingView = () => {
         handleComplete(stepRef.current);
       }
     },
-    [handleStepViewed, handleComplete, stepContent],
+    [handleStepViewed, handleComplete, overlayOpacity, stepContent],
   );
 
   const handleError = useCallback(
@@ -463,7 +456,7 @@ const MoneyOnboardingView = () => {
       />
       <MoneyOnboardingTextOverlay
         content={stepContent[overlayStep]}
-        isVisible={Boolean(riveRef) && isOverlayVisible}
+        opacity={overlayOpacity}
       />
     </View>
   );

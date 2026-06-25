@@ -1,6 +1,7 @@
 import React from 'react';
 import { act, render } from '@testing-library/react-native';
 import { Dimensions, StyleSheet } from 'react-native';
+import { useSharedValue, withTiming } from 'react-native-reanimated';
 import MoneyOnboardingView from './MoneyOnboardingView';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -73,6 +74,26 @@ jest.mock('../../../../../util/haptics', () => ({
   playImpact: jest.fn(),
 }));
 
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+
+  return {
+    ...Reanimated,
+    useAnimatedStyle: jest.fn((updater) => updater()),
+    useSharedValue: jest.fn((initialValue) => {
+      const sharedValue = {
+        value: initialValue,
+        set: jest.fn((nextValue) => {
+          sharedValue.value = nextValue;
+        }),
+      };
+
+      return sharedValue;
+    }),
+    withTiming: jest.fn((toValue, config) => ({ config, toValue })),
+  };
+});
+
 let mockOnStateChanged: (stateMachineName: string, stateName: string) => void;
 let mockOnError: (error: { message: string; type: string }) => void;
 let mockTriggerCallbacks: Record<string, () => void> = {};
@@ -84,6 +105,8 @@ const triggerStateChange = (stateName: string) => {
     mockOnStateChanged('State Machine 1', stateName);
   });
 };
+
+const renderMoneyOnboardingView = () => render(<MoneyOnboardingView />);
 
 jest.mock('rive-react-native', () => {
   const mockRiveRef = {};
@@ -121,7 +144,7 @@ describe('MoneyOnboardingView', () => {
 
   describe('Rendering', () => {
     it('renders the Rive animation component', () => {
-      const { getByTestId } = render(<MoneyOnboardingView />);
+      const { getByTestId } = renderMoneyOnboardingView();
 
       expect(
         getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION),
@@ -129,7 +152,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('renders the initial native text overlay for step 1', () => {
-      const { getByTestId } = render(<MoneyOnboardingView />);
+      const { getByTestId } = renderMoneyOnboardingView();
 
       expect(
         getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
@@ -143,7 +166,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('uses default overlay text size preset on regular devices', () => {
-      const { getByTestId } = render(<MoneyOnboardingView />);
+      const { getByTestId } = renderMoneyOnboardingView();
 
       expect(
         StyleSheet.flatten(
@@ -165,7 +188,7 @@ describe('MoneyOnboardingView', () => {
     it('uses small overlay text size preset on small devices', () => {
       setWindowDimensions({ height: 667, width: 375 });
 
-      const { getByTestId } = render(<MoneyOnboardingView />);
+      const { getByTestId } = renderMoneyOnboardingView();
 
       expect(
         StyleSheet.flatten(
@@ -187,7 +210,7 @@ describe('MoneyOnboardingView', () => {
 
   describe('Analytics initialization', () => {
     it('initializes useMoneyAnalytics with onboarding screen and stepper component', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       expect(useMoneyAnalytics).toHaveBeenCalledWith({
         screen_name: SCREEN_NAMES.MONEY_ONBOARDING,
@@ -198,7 +221,7 @@ describe('MoneyOnboardingView', () => {
 
   describe('State changes (onStateChanged)', () => {
     it('tracks VIEWED event with step 1 when state changes to UI1', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       triggerStateChange('UI1');
 
@@ -212,7 +235,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('tracks VIEWED event with step 2 when state changes to APY', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       triggerStateChange('APY');
 
@@ -226,7 +249,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('tracks VIEWED event with step 3 when state changes to Card', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       triggerStateChange('Card');
 
@@ -240,7 +263,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('tracks VIEWED event with step 4 when state changes to Coins', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       triggerStateChange('Coins');
 
@@ -254,7 +277,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('does not track events for unknown state names', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       triggerStateChange('SomeTransitionState');
 
@@ -262,7 +285,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('tracks VIEWED event when FinalState fires', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       triggerStateChange('FinalState');
 
@@ -275,7 +298,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('tracks COMPLETED event when FinalState fires', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       triggerStateChange('FinalState');
 
@@ -289,7 +312,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('navigates to Money home when FinalState fires', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       triggerStateChange('FinalState');
 
@@ -300,7 +323,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('dispatches setMoneyOnboardingSeen when FinalState fires', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       triggerStateChange('FinalState');
 
@@ -315,7 +338,7 @@ describe('MoneyOnboardingView', () => {
 
   describe('Close trigger', () => {
     it('tracks EXITED event at current step when close trigger fires', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
       triggerStateChange('APY');
       jest.clearAllMocks();
 
@@ -331,7 +354,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('navigates to Money home when close trigger fires', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
       triggerStateChange('APY');
       jest.clearAllMocks();
 
@@ -344,7 +367,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('dispatches setMoneyOnboardingSeen when close trigger fires', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       mockTriggerCallbacks.close();
 
@@ -357,7 +380,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('plays page navigation haptic when close trigger fires', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       mockTriggerCallbacks.close();
 
@@ -367,23 +390,32 @@ describe('MoneyOnboardingView', () => {
 
   describe('Rive config initialization', () => {
     it('sets transition speed in Rive', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       expect(mockSetNumber).toHaveBeenCalledWith(300);
     });
 
     it('sets Rive button text from localized onboarding button label', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       expect(mockSetString).toHaveBeenCalledWith(
         strings('money.rive_onboarding.button_text'),
       );
     });
+
+    it('starts the overlay hidden and fades it in after Rive initializes', () => {
+      renderMoneyOnboardingView();
+
+      expect(useSharedValue).toHaveBeenCalledWith(0);
+      expect(withTiming).toHaveBeenCalledWith(1, {
+        duration: 200,
+      });
+    });
   });
 
   describe('Transition haptics', () => {
     it('plays page navigation haptic when Rive enters forward transition state', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       triggerStateChange('UI to APY');
 
@@ -391,7 +423,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('plays page navigation haptic when Rive enters backward transition state', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       triggerStateChange('APY to UI');
 
@@ -399,11 +431,28 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('does not play haptic when Rive enters settled step state', () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       triggerStateChange('APY');
 
       expect(playImpact).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('Overlay fade animation', () => {
+    it('fades out during transition states and fades in when a step settles', () => {
+      renderMoneyOnboardingView();
+      (withTiming as jest.Mock).mockClear();
+
+      triggerStateChange('UI to APY');
+      triggerStateChange('APY');
+
+      expect(withTiming).toHaveBeenCalledWith(0, {
+        duration: 200,
+      });
+      expect(withTiming).toHaveBeenCalledWith(1, {
+        duration: 200,
+      });
     });
   });
 
@@ -414,7 +463,7 @@ describe('MoneyOnboardingView', () => {
     };
 
     const renderAndTriggerRiveError = () => {
-      render(<MoneyOnboardingView />);
+      renderMoneyOnboardingView();
 
       mockOnError(riveError);
     };
@@ -461,7 +510,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('keeps step1 text during UI to APY transition and swaps when APY settles', () => {
-      const { getByTestId } = render(<MoneyOnboardingView />);
+      const { getByTestId } = renderMoneyOnboardingView();
 
       triggerStateChange('UI to APY');
 
@@ -486,7 +535,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('keeps step2 text during APY to Wallet transition and swaps when Card settles', () => {
-      const { getByTestId } = render(<MoneyOnboardingView />);
+      const { getByTestId } = renderMoneyOnboardingView();
 
       triggerStateChange('APY');
       triggerStateChange('APY to Wallet');
@@ -513,7 +562,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('keeps step2 text during APY to UI transition and swaps when UI1 settles', () => {
-      const { getByTestId } = render(<MoneyOnboardingView />);
+      const { getByTestId } = renderMoneyOnboardingView();
 
       triggerStateChange('APY');
       triggerStateChange('APY to UI');
@@ -536,7 +585,7 @@ describe('MoneyOnboardingView', () => {
     });
 
     it('keeps step4 text during Coins to Card transition and swaps when Card settles', () => {
-      const { getByTestId } = render(<MoneyOnboardingView />);
+      const { getByTestId } = renderMoneyOnboardingView();
 
       triggerStateChange('Coins');
       triggerStateChange('Coins to Card');
@@ -565,7 +614,7 @@ describe('MoneyOnboardingView', () => {
     it('renders step3 card_eligible body when user is not US unauthenticated non-cardholder', () => {
       mockIsUsUnauthenticatedNonCardholder = false;
 
-      const { getByTestId } = render(<MoneyOnboardingView />);
+      const { getByTestId } = renderMoneyOnboardingView();
 
       triggerStateChange('Card');
 
@@ -581,7 +630,7 @@ describe('MoneyOnboardingView', () => {
     it('renders step3 card_ineligible body when user is US unauthenticated non-cardholder', () => {
       mockIsUsUnauthenticatedNonCardholder = true;
 
-      const { getByTestId } = render(<MoneyOnboardingView />);
+      const { getByTestId } = renderMoneyOnboardingView();
 
       triggerStateChange('Card');
 
