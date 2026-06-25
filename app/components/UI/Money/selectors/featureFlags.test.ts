@@ -856,7 +856,17 @@ describe('selectMoneyNoFeeDepositTokens', () => {
       expect.arrayContaining(['USDC', 'aUSDC', 'aUSDT', 'USDT']),
     );
     expect(result['0xe708']).toEqual(['MUSD']);
-    expect(result['0x8f']).toEqual(['USDC']);
+    expect(result['0x8f']).toEqual(['USDC', 'MUSD']);
+  });
+
+  it('lists Monad mUSD even though no route emits a Monad mUSD -> Monad mUSD deposit', () => {
+    const state = createState({
+      confirmations_relay_fixed_spread: MOCK_RELAY_FLAG,
+    });
+
+    const result = selectMoneyNoFeeDepositTokens(state as never);
+
+    expect(result['0x8f']).toContain('MUSD');
   });
 
   it('deduplicates symbols within a chain', () => {

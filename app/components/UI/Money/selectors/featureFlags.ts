@@ -12,7 +12,10 @@ import {
   WildcardTokenList,
 } from '../../Earn/utils/wildcardTokenList';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
-import { MONEY_NO_FEE_TOKENS_FALLBACK } from '../utils/depositFaqTokens';
+import {
+  MONEY_NO_FEE_TOKENS_FALLBACK,
+  ensureMonadMusdListed,
+} from '../utils/depositFaqTokens';
 import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmations/utils/relayFixedSpread';
 import { parseNonNegativeFinite } from '../utils/number';
 import { MoneyVaultApyRemoteConfig } from './featureFlags.types';
@@ -212,9 +215,10 @@ export const selectMoneyNoFeeDepositTokens = createSelector(
       }
     }
 
-    return Object.keys(catalog).length > 0
-      ? catalog
-      : MONEY_NO_FEE_TOKENS_FALLBACK;
+    const result =
+      Object.keys(catalog).length > 0 ? catalog : MONEY_NO_FEE_TOKENS_FALLBACK;
+
+    return ensureMonadMusdListed(result);
   },
 );
 
