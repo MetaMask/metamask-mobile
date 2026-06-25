@@ -12,7 +12,7 @@ export enum QrSyncMessageVersion {
  * - idle → no active session
  * - initializing → validating QR payload and opening the MWP session
  * - displaying-otp → verification bottom sheet is shown
- * - waiting-for-sync-ready → OTP step done; waiting for extension sync-ready after sending sync-offer
+ * - awaiting-sync-ready → OTP verified and sync-offer sent; waiting for extension sync-ready
  * - reviewing-import → import payload received; onboarding import screen
  * - completed / failed → terminal outcomes
  */
@@ -22,8 +22,6 @@ export const QrSyncPhases = {
   INITIALIZING: 'initializing',
   /** OTP is available; verification bottom sheet should be shown. */
   DISPLAYING_OTP: 'displaying-otp',
-  /** Extension handshake acknowledged (OTP verified); sync-offer is sent next. */
-  CONNECTED: 'connected',
   /** Sync-offer sent; waiting for sync-ready from the extension. */
   AWAITING_SYNC_READY: 'awaiting-sync-ready',
   /** Import payload received; navigate to onboarding import. */

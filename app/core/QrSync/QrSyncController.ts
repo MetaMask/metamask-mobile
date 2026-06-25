@@ -294,18 +294,6 @@ export class QrSyncController extends BaseController<
     }
   };
 
-  private onHandshakeAcknowledged(): void {
-    this.transitionTo(QrSyncPhases.CONNECTED);
-
-    if (!this.client) {
-      return;
-    }
-
-    this.sendSyncOffer().catch((error) => {
-      this.terminateWithError(this.toQrSyncError(error));
-    });
-  }
-
   private async sendSyncOffer(): Promise<void> {
     await this.sendMessage({
       type: QrSyncActionTypes.SYNC_OFFER,
@@ -440,13 +428,6 @@ export class QrSyncController extends BaseController<
     this.update((state) => {
       state.connectionStatus = status;
     });
-
-    if (
-      status === 'connected' &&
-      this.state.phase === QrSyncPhases.DISPLAYING_OTP
-    ) {
-      this.onHandshakeAcknowledged();
-    }
   }
 
   private clearControllerState(): void {

@@ -34,7 +34,6 @@ const VALID_CHANNEL = 'handshake:aabbccdd-1122-3344-5566-778899aabbcc';
 const VALID_PUBLIC_KEY_B64 = 'AoBDLWxRbJNe8yUv5bmmoVnNo8DCilzbFz/nWD+RKC2V';
 const TEST_RELAY_URL = 'wss://test-relay.example.com';
 const FIXED_NOW = 1_800_000_000_000;
-const SYNC_OFFER_DEADLINE_MS = 5 * 60 * 1000;
 
 type WalletClientListener = (...args: unknown[]) => void;
 
@@ -53,7 +52,7 @@ const createSessionRequest = (
   id: VALID_SESSION_ID,
   publicKeyB64: VALID_PUBLIC_KEY_B64,
   channel: VALID_CHANNEL,
-  mode: 'trusted',
+  mode: 'untrusted',
   expiresAt: Date.now() + 600_000,
   ...overrides,
 });
@@ -91,10 +90,20 @@ const buildMessenger = (): QrSyncControllerMessenger =>
 interface MockWalletClientHarness {
   client: jest.Mocked<WalletClient>;
   emit: (event: string, ...args: unknown[]) => void;
+  completeOtpHandshake: () => void;
 }
 
-const buildMockWalletClient = (): MockWalletClientHarness => {
+const buildMockWalletClient = (
+  options: { deferOtpAck?: boolean } = {},
+): MockWalletClientHarness => {
   const listeners = new Map<string, Set<WalletClientListener>>();
+  let completeHandshake: (() => void) | undefined;
+
+  const emit = (event: string, ...args: unknown[]) => {
+    listeners.get(event)?.forEach((listener) => {
+      listener(...args);
+    });
+  };
 
   const client = {
     on: jest.fn((event: string, listener: WalletClientListener) => {
@@ -105,17 +114,26 @@ const buildMockWalletClient = (): MockWalletClientHarness => {
     off: jest.fn((event: string, listener: WalletClientListener) => {
       listeners.get(event)?.delete(listener);
     }),
-    connect: jest.fn().mockResolvedValue(undefined),
+    connect: jest.fn().mockImplementation(async () => {
+      emit('display_otp', '123456', FIXED_NOW + 30_000);
+
+      if (options.deferOtpAck) {
+        await new Promise<void>((resolve) => {
+          completeHandshake = resolve;
+        });
+      }
+
+      emit('connected');
+    }),
     disconnect: jest.fn().mockResolvedValue(undefined),
     sendResponse: jest.fn().mockResolvedValue(undefined),
   } as unknown as jest.Mocked<WalletClient>;
 
   return {
     client,
-    emit: (event: string, ...args: unknown[]) => {
-      listeners.get(event)?.forEach((listener) => {
-        listener(...args);
-      });
+    emit,
+    completeOtpHandshake: () => {
+      completeHandshake?.();
     },
   };
 };
@@ -202,8 +220,9 @@ describe('QrSyncController', () => {
           isOnboardingCompleted: true,
         },
       });
+      expect(walletClient.client.sendResponse).toHaveBeenCalledTimes(1);
       expect(controller.state.phase).toBe(QrSyncPhases.AWAITING_SYNC_READY);
-      expect(controller.state.connectionStatus).toBe('connecting');
+      expect(controller.state.connectionStatus).toBe('connected');
     });
 
     it('enters failed phase with INVALID_PAYLOAD when the scan payload cannot be parsed', async () => {
@@ -292,30 +311,45 @@ describe('QrSyncController', () => {
   });
 
   describe('wallet client events', () => {
-    it('stores OTP details when the client emits display_otp', async () => {
+    it('stores OTP details while connect waits for extension OTP verification', async () => {
       const controller = buildController();
-      const walletClient = buildMockWalletClient();
+      const walletClient = buildMockWalletClient({ deferOtpAck: true });
 
-      await startSession(controller, walletClient);
+      mockCreateQrSyncWalletClient.mockResolvedValue({
+        sessionId: VALID_SESSION_ID,
+        client: walletClient.client,
+      });
 
-      walletClient.emit('display_otp', '123456', FIXED_NOW + 30_000);
+      const scanPromise = controller.handleScannedQrPayload(
+        buildValidScanPayload(),
+      );
+      await flushPromises();
 
       expect(controller.state.phase).toBe(QrSyncPhases.DISPLAYING_OTP);
       expect(controller.state.otp).toEqual({
         otp: '123456',
         deadline: FIXED_NOW + 30_000,
       });
+      expect(walletClient.client.sendResponse).not.toHaveBeenCalled();
+
+      walletClient.completeOtpHandshake();
+      await scanPromise;
+      await flushPromises();
+
+      expect(controller.state.phase).toBe(QrSyncPhases.AWAITING_SYNC_READY);
+      expect(walletClient.client.sendResponse).toHaveBeenCalledTimes(1);
     });
 
-    it('sends a second sync-offer after OTP verification when the client connects', async () => {
+    it('sends sync-offer once after connect completes the OTP handshake', async () => {
       const controller = buildController();
       const walletClient = buildMockWalletClient();
 
-      await startSession(controller, walletClient);
-      walletClient.client.sendResponse.mockClear();
+      mockCreateQrSyncWalletClient.mockResolvedValue({
+        sessionId: VALID_SESSION_ID,
+        client: walletClient.client,
+      });
 
-      walletClient.emit('display_otp', '123456', FIXED_NOW + 30_000);
-      walletClient.emit('connected');
+      await controller.handleScannedQrPayload(buildValidScanPayload());
       await flushPromises();
 
       expect(controller.state.phase).toBe(QrSyncPhases.AWAITING_SYNC_READY);
@@ -328,6 +362,7 @@ describe('QrSyncController', () => {
           isOnboardingCompleted: false,
         },
       });
+      expect(walletClient.client.sendResponse).toHaveBeenCalledTimes(1);
     });
 
     it('stores import plan and completes the session after sync-ready message', async () => {

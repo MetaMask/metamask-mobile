@@ -39,8 +39,7 @@ export const selectQrSyncIsBusy = createSelector(
   selectQrSyncPhase,
   (phase) =>
     phase === QrSyncPhases.INITIALIZING ||
-    phase === QrSyncPhases.DISPLAYING_OTP ||
-    phase === QrSyncPhases.CONNECTED,
+    phase === QrSyncPhases.DISPLAYING_OTP,
 );
 
 export const selectQrSyncIsSessionActive = createSelector(

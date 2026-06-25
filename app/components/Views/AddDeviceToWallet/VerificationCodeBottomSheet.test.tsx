@@ -136,7 +136,7 @@ describe('VerificationCodeBottomSheet', () => {
   describe('phase changes', () => {
     it('closes the sheet when not in the OTP display phase', async () => {
       renderComponent({
-        phase: QrSyncPhases.CONNECTED,
+        phase: QrSyncPhases.AWAITING_SYNC_READY,
         otp: null,
       });
 
