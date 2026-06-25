@@ -1,8 +1,7 @@
-import React from 'react';
+import type React from 'react';
 import { act, render } from '@testing-library/react-native';
 import { CandlePeriod, TimeDuration } from '@metamask/perps-controller';
-import {
-  default as PerpsAdvancedChart,
+import PerpsAdvancedChart, {
   mapTpslToPositionLines,
   getPerpsPositionLineColors,
 } from '../PerpsAdvancedChart';
@@ -105,14 +104,14 @@ describe('PerpsAdvancedChart', () => {
   });
 
   it('passes the visible current-price token to AdvancedChart', () => {
-    const volumeColors = getPerpsVolumeColors(mockTheme.colors as Colors);
+    const volumeColors = getPerpsVolumeColors(mockTheme.colors);
 
     renderChart();
 
     expect(mockAdvancedChart).toHaveBeenCalledWith(
       expect.objectContaining({
         lineChrome: advancedChartLineChromePresets.perps.lineChrome,
-        currentPriceLineColorOverride: mockTheme.colors.background.muted,
+        currentPriceLineColorOverride: mockTheme.colors.text.default,
         volumeSuccessColorOverride: volumeColors.success,
         volumeErrorColorOverride: volumeColors.error,
       }),
@@ -176,7 +175,7 @@ describe('PerpsAdvancedChart', () => {
     expect(onLatestPriceChange).toHaveBeenCalledWith(42050);
   });
 
-  it('passes latest close as the unlabeled current-price guide', () => {
+  it('uses the native price line for latest close instead of a custom position shape', () => {
     mockUsePerpsAdvancedChartAdapter.mockReturnValue({
       ...mockAdapterResult,
       latestBar: {
@@ -193,15 +192,15 @@ describe('PerpsAdvancedChart', () => {
 
     expect(mockAdvancedChart).toHaveBeenCalledWith(
       expect.objectContaining({
-        positionLines: {
-          side: 'long',
-          currentPrice: 42050,
-        },
+        positionLines: undefined,
+        currentPriceLineColorOverride: mockTheme.colors.text.default,
       }),
     );
   });
 
   it('passes mapped position lines to AdvancedChart', () => {
+    const positionLineColors = getPerpsPositionLineColors(mockTheme.colors);
+
     renderChart({
       tpslLines: {
         entryPrice: '42000',
@@ -221,8 +220,39 @@ describe('PerpsAdvancedChart', () => {
           stopLossPrice: 40000,
           liquidationPrice: 38000,
         },
+        positionLineColors,
       }),
     );
+  });
+
+  it('does not recreate custom position lines when only TPSL currentPrice changes', () => {
+    const tpslLines = {
+      entryPrice: '42000',
+      takeProfitPrice: '45000',
+      stopLossPrice: '40000',
+      liquidationPrice: '38000',
+      currentPrice: '42100',
+    };
+    const { rerender } = renderChart({
+      tpslLines,
+      positionSize: '-0.5',
+    });
+
+    const initialPositionLines = latestAdvancedChartProps().positionLines;
+
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.FourHours}
+        visibleCandleCount={100}
+        height={240}
+        tpslLines={{ ...tpslLines, currentPrice: '42200' }}
+        positionSize="-0.5"
+        fallbackCandleData={null}
+      />,
+    );
+
+    expect(latestAdvancedChartProps().positionLines).toBe(initialPositionLines);
   });
 
   it('converts crosshair data to string OHLC values and emits haptics on OHLC changes', () => {
@@ -495,7 +525,7 @@ describe('getPerpsPositionLineColors', () => {
 
 describe('getPerpsVolumeColors', () => {
   it('matches the Lightweight chart 30% opacity volume colors', () => {
-    const colors = mockTheme.colors as Colors;
+    const colors = mockTheme.colors;
 
     expect(getPerpsVolumeColors(colors)).toEqual({
       success: hexToRgba(colors.success.default, 0.3),
