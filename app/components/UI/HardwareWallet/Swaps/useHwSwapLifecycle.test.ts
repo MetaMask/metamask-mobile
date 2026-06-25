@@ -86,9 +86,9 @@ const mockUseIsFocused = useIsFocused as jest.MockedFunction<
 
 const getMockShowToast = () =>
   (
-    jest.requireMock(
-      '../../../../component-library/components/Toast',
-    ) as { getMockShowToast: () => jest.Mock }
+    jest.requireMock('../../../../component-library/components/Toast') as {
+      getMockShowToast: () => jest.Mock;
+    }
   ).getMockShowToast();
 
 const strategy: FlowStrategy = {

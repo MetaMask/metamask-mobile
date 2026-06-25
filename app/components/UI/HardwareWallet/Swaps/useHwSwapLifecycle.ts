@@ -266,11 +266,7 @@ export function useHwSwapLifecycle({
     );
 
     return () => clearTimeout(timeout);
-  }, [
-    progress.status,
-    progress.steps,
-    reconcileStuckFlowProgress,
-  ]);
+  }, [progress.status, progress.steps, reconcileStuckFlowProgress]);
 
   // ── Navigation helper ────────────────────────────────────────────
   const navigateOnCancel = useCallback(() => {

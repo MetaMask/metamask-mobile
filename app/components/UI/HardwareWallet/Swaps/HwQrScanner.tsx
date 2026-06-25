@@ -1,4 +1,10 @@
-import React, { useCallback, useContext, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useDispatch } from 'react-redux';
 import { Image, Linking, StyleSheet, View } from 'react-native';
 import {

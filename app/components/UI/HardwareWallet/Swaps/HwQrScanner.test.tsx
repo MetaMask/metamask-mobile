@@ -160,9 +160,9 @@ const mockUseHardwareWallet = useHardwareWallet as jest.Mock;
 
 const getMockShowToast = () =>
   (
-    jest.requireMock(
-      '../../../../component-library/components/Toast',
-    ) as { getMockShowToast: () => jest.Mock }
+    jest.requireMock('../../../../component-library/components/Toast') as {
+      getMockShowToast: () => jest.Mock;
+    }
   ).getMockShowToast();
 
 const mockScannerResult = {
