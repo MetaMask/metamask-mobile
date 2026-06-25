@@ -3,6 +3,7 @@ import ConnectBottomSheet from '../page-objects/Browser/ConnectBottomSheet';
 import ConnectedAccountsModal from '../page-objects/Browser/ConnectedAccountsModal';
 import StellarTestDapp from '../page-objects/Browser/StellarTestDapp';
 import Assertions from '../framework/Assertions';
+import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import { navigateToBrowserView } from './browser.flow';
 
 export const account1Short = 'GDEM2...YE6K';
@@ -42,6 +43,7 @@ export const connectStellarTestDapp = async (
 };
 
 export const navigateToStellarTestDApp = async (): Promise<void> => {
+  await TabBarComponent.tapHome();
   await navigateToBrowserView();
   await Assertions.expectElementToBeVisible(BrowserView.browserScreenID);
   await StellarTestDapp.navigateToStellarTestDApp();

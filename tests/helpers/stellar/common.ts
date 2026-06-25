@@ -5,9 +5,33 @@ import { DappVariants } from '../../framework/Constants';
 import { loginToApp } from '../../flows/wallet.flow';
 import WalletView from '../../page-objects/wallet/WalletView';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import Utilities from '../../framework/Utilities';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
+
+const returnToWalletAfterStellarAccountSetup = async (): Promise<void> => {
+  await AccountListBottomSheet.tapBackButton();
+  await Assertions.expectElementToBeVisible(WalletView.container, {
+    description: 'Wallet view should be visible after Stellar account setup',
+    timeout: 15000,
+  });
+
+  const accountListStillOpen = await Utilities.isElementVisible(
+    AccountListBottomSheet.accountList,
+    1000,
+  );
+  if (accountListStillOpen) {
+    await AccountListBottomSheet.dismissAccountListModalV2();
+    await Assertions.expectElementToBeVisible(WalletView.container, {
+      description:
+        'Wallet view should be visible after dismissing account list',
+      timeout: 15000,
+    });
+  }
+
+  await TabBarComponent.tapHome();
+};
 
 export const withStellarAccountSnap = async (
   testFn: () => Promise<void>,
@@ -43,7 +67,7 @@ export const withStellarAccountSnap = async (
           description: 'Wait for Stellar account creation to finish',
         },
       );
-      await AccountListBottomSheet.dismissAccountListModalV2();
+      await returnToWalletAfterStellarAccountSetup();
 
       await testFn();
     },
