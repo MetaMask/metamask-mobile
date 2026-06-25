@@ -28,7 +28,6 @@ import {
   type CardCredentials,
   type CardDetails,
   type CardFundingAsset,
-  type CardFundingConfig,
   type CardHomeData,
   type CardProviderCapabilities,
   type CardSecureView,

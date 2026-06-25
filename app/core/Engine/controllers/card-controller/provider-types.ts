@@ -258,17 +258,6 @@ export interface DelegationChallengeResponse {
   expiresAt: string;
 }
 
-export interface CardFundingOption {
-  symbol: string;
-  asset: CardFundingAsset | null;
-}
-
-export interface CardFundingConfig {
-  maxLimit: string;
-  fundingOptions: CardFundingOption[];
-  supportedChains: CaipChainId[];
-}
-
 // -- Cashback --
 
 export interface CashbackWalletResponse {

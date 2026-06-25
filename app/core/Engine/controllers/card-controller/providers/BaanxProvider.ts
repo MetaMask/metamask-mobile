@@ -9,7 +9,6 @@ import {
   CardLoginResponse,
   CardAuthorizeResponse,
   DelegationSettingsResponse,
-  DelegationSettingsNetwork,
   UserResponse,
   RegistrationSettingsResponse,
   CardLocation,
@@ -23,7 +22,6 @@ import type {
 import {
   ARBITRARY_ALLOWANCE,
   BALANCE_SCANNER_ABI,
-  BAANX_MAX_LIMIT,
   SUPPORTED_ASSET_NETWORKS,
   cardNetworkInfos,
   caipChainIdToNetwork,
@@ -46,7 +44,6 @@ import {
   CardCredentials,
   CardDetails,
   CardFundingAsset,
-  CardFundingConfig,
   CardHomeData,
   CardProviderCapabilities,
   CardSecureView,
