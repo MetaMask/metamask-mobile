@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { act, render } from '@testing-library/react-native';
 import MoneyOnboardingView from './MoneyOnboardingView';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -38,8 +38,13 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
 
 let mockOnStateChanged: (stateMachineName: string, stateName: string) => void;
 let mockTriggerCallbacks: Record<string, () => void> = {};
-const mockSetString = jest.fn();
 const mockSetNumber = jest.fn();
+
+const triggerStateChange = (stateName: string) => {
+  act(() => {
+    mockOnStateChanged('State Machine 1', stateName);
+  });
+};
 
 jest.mock('rive-react-native', () => {
   const mockRiveRef = {};
@@ -53,7 +58,6 @@ jest.mock('rive-react-native', () => {
       return <View {...props} />;
     }),
     useRive: () => [jest.fn(), mockRiveRef],
-    useRiveString: () => [undefined, mockSetString],
     useRiveNumber: () => [undefined, mockSetNumber],
     useRiveTrigger: (_riveRef: unknown, path: string, callback: () => void) => {
       mockTriggerCallbacks[path] = callback;
@@ -81,6 +85,20 @@ describe('MoneyOnboardingView', () => {
         getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION),
       ).toBeOnTheScreen();
     });
+
+    it('renders the initial native text overlay for step 1', () => {
+      const { getByTestId } = render(<MoneyOnboardingView />);
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
+      ).toBe(strings('money.rive_onboarding.step1_title'));
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
+      ).toBe(strings('money.rive_onboarding.step1_body', { percentage: 4 }));
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_FOOTER).props.children,
+      ).toBe(strings('money.rive_onboarding.step1_footer_text'));
+    });
   });
 
   describe('Analytics initialization', () => {
@@ -98,7 +116,7 @@ describe('MoneyOnboardingView', () => {
     it('tracks VIEWED event with step 1 when state changes to UI1', () => {
       render(<MoneyOnboardingView />);
 
-      mockOnStateChanged('State Machine 1', 'UI1');
+      triggerStateChange('UI1');
 
       expect(mockTrackOnboardingEvent).toHaveBeenCalledWith({
         step: 1,
@@ -112,7 +130,7 @@ describe('MoneyOnboardingView', () => {
     it('tracks VIEWED event with step 2 when state changes to APY', () => {
       render(<MoneyOnboardingView />);
 
-      mockOnStateChanged('State Machine 1', 'APY');
+      triggerStateChange('APY');
 
       expect(mockTrackOnboardingEvent).toHaveBeenCalledWith({
         step: 2,
@@ -126,7 +144,7 @@ describe('MoneyOnboardingView', () => {
     it('tracks VIEWED event with step 3 when state changes to Card', () => {
       render(<MoneyOnboardingView />);
 
-      mockOnStateChanged('State Machine 1', 'Card');
+      triggerStateChange('Card');
 
       expect(mockTrackOnboardingEvent).toHaveBeenCalledWith({
         step: 3,
@@ -140,7 +158,7 @@ describe('MoneyOnboardingView', () => {
     it('tracks VIEWED event with step 4 when state changes to Coins', () => {
       render(<MoneyOnboardingView />);
 
-      mockOnStateChanged('State Machine 1', 'Coins');
+      triggerStateChange('Coins');
 
       expect(mockTrackOnboardingEvent).toHaveBeenCalledWith({
         step: 4,
@@ -154,7 +172,7 @@ describe('MoneyOnboardingView', () => {
     it('does not track events for unknown state names', () => {
       render(<MoneyOnboardingView />);
 
-      mockOnStateChanged('State Machine 1', 'SomeTransitionState');
+      triggerStateChange('SomeTransitionState');
 
       expect(mockTrackOnboardingEvent).not.toHaveBeenCalled();
     });
@@ -162,7 +180,7 @@ describe('MoneyOnboardingView', () => {
     it('tracks VIEWED event when FinalState fires', () => {
       render(<MoneyOnboardingView />);
 
-      mockOnStateChanged('State Machine 1', 'FinalState');
+      triggerStateChange('FinalState');
 
       expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -175,7 +193,7 @@ describe('MoneyOnboardingView', () => {
     it('tracks COMPLETED event when FinalState fires', () => {
       render(<MoneyOnboardingView />);
 
-      mockOnStateChanged('State Machine 1', 'FinalState');
+      triggerStateChange('FinalState');
 
       expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -189,7 +207,7 @@ describe('MoneyOnboardingView', () => {
     it('navigates to Money home when FinalState fires', () => {
       render(<MoneyOnboardingView />);
 
-      mockOnStateChanged('State Machine 1', 'FinalState');
+      triggerStateChange('FinalState');
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
         screen: Routes.MONEY.ROOT,
@@ -200,7 +218,7 @@ describe('MoneyOnboardingView', () => {
     it('dispatches setMoneyOnboardingSeen when FinalState fires', () => {
       render(<MoneyOnboardingView />);
 
-      mockOnStateChanged('State Machine 1', 'FinalState');
+      triggerStateChange('FinalState');
 
       expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -214,7 +232,7 @@ describe('MoneyOnboardingView', () => {
   describe('Close trigger', () => {
     it('tracks EXITED event at current step when close trigger fires', () => {
       render(<MoneyOnboardingView />);
-      mockOnStateChanged('State Machine 1', 'APY');
+      triggerStateChange('APY');
       jest.clearAllMocks();
 
       mockTriggerCallbacks.close();
@@ -230,7 +248,7 @@ describe('MoneyOnboardingView', () => {
 
     it('navigates to Money home when close trigger fires', () => {
       render(<MoneyOnboardingView />);
-      mockOnStateChanged('State Machine 1', 'APY');
+      triggerStateChange('APY');
       jest.clearAllMocks();
 
       mockTriggerCallbacks.close();
@@ -255,49 +273,152 @@ describe('MoneyOnboardingView', () => {
     });
   });
 
-  describe('Rive text run initialization', () => {
-    it('sets step3 card_eligible body when user is not US unauthenticated non-cardholder', () => {
-      mockIsUsUnauthenticatedNonCardholder = false;
-
+  describe('Rive config initialization', () => {
+    it('sets transition speed in Rive', () => {
       render(<MoneyOnboardingView />);
-
-      const expectedStrings = [
-        strings('money.rive_onboarding.step1_title'),
-        strings('money.rive_onboarding.step1_body', { percentage: 4 }),
-        strings('money.rive_onboarding.step1_footer_text'),
-        strings('money.rive_onboarding.step2_title'),
-        strings('money.rive_onboarding.step2_body'),
-        strings('money.rive_onboarding.step2_footer_text'),
-        strings('money.rive_onboarding.step3_title'),
-        strings('money.rive_onboarding.step3_body_card_eligible', {
-          percentage: 3,
-        }),
-        strings('money.rive_onboarding.step3_footer_text'),
-        strings('money.rive_onboarding.step4_title'),
-        strings('money.rive_onboarding.step4_body'),
-        strings('money.rive_onboarding.step4_footer_text'),
-      ];
-
-      expectedStrings.forEach((text) => {
-        expect(mockSetString).toHaveBeenCalledWith(text);
-      });
 
       expect(mockSetNumber).toHaveBeenCalledWith(300);
-      expect(mockSetNumber).toHaveBeenCalledWith(0);
+    });
+  });
+
+  describe('Native text overlay', () => {
+    beforeEach(() => {
+      jest.useFakeTimers();
     });
 
-    it('sets step3 card_ineligible body when user is US unauthenticated non-cardholder', () => {
-      mockIsUsUnauthenticatedNonCardholder = true;
+    afterEach(() => {
+      jest.useRealTimers();
+    });
 
-      render(<MoneyOnboardingView />);
+    it('keeps step1 text during UI to APY transition and swaps when APY settles', () => {
+      const { getByTestId } = render(<MoneyOnboardingView />);
 
-      expect(mockSetString).toHaveBeenCalledWith(
-        strings('money.rive_onboarding.step3_body_card_ineligible', {
+      triggerStateChange('UI to APY');
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
+      ).toBe(strings('money.rive_onboarding.step1_title'));
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
+      ).toBe(strings('money.rive_onboarding.step1_body', { percentage: 4 }));
+
+      triggerStateChange('APY');
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
+      ).toBe(strings('money.rive_onboarding.step2_title'));
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
+      ).toBe(strings('money.rive_onboarding.step2_body'));
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_FOOTER).props.children,
+      ).toBe(strings('money.rive_onboarding.step2_footer_text'));
+    });
+
+    it('keeps step2 text during APY to Wallet transition and swaps when Card settles', () => {
+      const { getByTestId } = render(<MoneyOnboardingView />);
+
+      triggerStateChange('APY');
+      triggerStateChange('APY to Wallet');
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
+      ).toBe(strings('money.rive_onboarding.step2_title'));
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
+      ).toBe(strings('money.rive_onboarding.step2_body'));
+
+      triggerStateChange('Card');
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
+      ).toBe(strings('money.rive_onboarding.step3_title'));
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
+      ).toBe(
+        strings('money.rive_onboarding.step3_body_card_eligible', {
           percentage: 3,
         }),
       );
-      expect(mockSetString).not.toHaveBeenCalledWith(
+    });
+
+    it('keeps step2 text during APY to UI transition and swaps when UI1 settles', () => {
+      const { getByTestId } = render(<MoneyOnboardingView />);
+
+      triggerStateChange('APY');
+      triggerStateChange('APY to UI');
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
+      ).toBe(strings('money.rive_onboarding.step2_title'));
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
+      ).toBe(strings('money.rive_onboarding.step2_body'));
+
+      triggerStateChange('UI1');
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
+      ).toBe(strings('money.rive_onboarding.step1_title'));
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
+      ).toBe(strings('money.rive_onboarding.step1_body', { percentage: 4 }));
+    });
+
+    it('keeps step4 text during Coins to Card transition and swaps when Card settles', () => {
+      const { getByTestId } = render(<MoneyOnboardingView />);
+
+      triggerStateChange('Coins');
+      triggerStateChange('Coins to Card');
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
+      ).toBe(strings('money.rive_onboarding.step4_title'));
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
+      ).toBe(strings('money.rive_onboarding.step4_body'));
+
+      triggerStateChange('Card');
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_TITLE).props.children,
+      ).toBe(strings('money.rive_onboarding.step3_title'));
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
+      ).toBe(
         strings('money.rive_onboarding.step3_body_card_eligible', {
+          percentage: 3,
+        }),
+      );
+    });
+
+    it('renders step3 card_eligible body when user is not US unauthenticated non-cardholder', () => {
+      mockIsUsUnauthenticatedNonCardholder = false;
+
+      const { getByTestId } = render(<MoneyOnboardingView />);
+
+      triggerStateChange('Card');
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
+      ).toBe(
+        strings('money.rive_onboarding.step3_body_card_eligible', {
+          percentage: 3,
+        }),
+      );
+    });
+
+    it('renders step3 card_ineligible body when user is US unauthenticated non-cardholder', () => {
+      mockIsUsUnauthenticatedNonCardholder = true;
+
+      const { getByTestId } = render(<MoneyOnboardingView />);
+
+      triggerStateChange('Card');
+
+      expect(
+        getByTestId(MoneyOnboardingViewTestIds.OVERLAY_CONTENT).props.children,
+      ).toBe(
+        strings('money.rive_onboarding.step3_body_card_ineligible', {
           percentage: 3,
         }),
       );

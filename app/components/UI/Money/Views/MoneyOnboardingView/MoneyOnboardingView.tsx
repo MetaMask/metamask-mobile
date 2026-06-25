@@ -1,7 +1,19 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useDispatch, useSelector } from 'react-redux';
+import {
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
@@ -15,17 +27,23 @@ import {
 import Rive, {
   AutoBind,
   useRive,
-  useRiveString,
   useRiveNumber,
   Fit,
   useRiveTrigger,
 } from 'rive-react-native';
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibility';
-import { PixelRatio } from 'react-native';
+import {
+  Animated,
+  PixelRatio,
+  StyleSheet,
+  useWindowDimensions,
+  View,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-const MoneyOnboardingAnimationV6 = require('../../../../../animations/money_account_onboarding_animation_v6.riv');
+const MoneyOnboardingAnimationNoText = require('../../../../../animations/onboarding_flow_v20_no_text.riv');
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -48,6 +66,19 @@ const RIVE_STEP_NAMES = {
   FINAL_STATE: 'FinalState',
 };
 
+const RIVE_TRANSITION_STATE_NAMES = {
+  // Forward navigation states
+  UI_TO_APY: 'UI to APY',
+  APY_TO_WALLET: 'APY to Wallet',
+  CARD_TO_COINS: 'Card to Coins',
+  COINS_TO_FOX: 'Coins to Fox',
+  // Backward navigation states
+  APY_TO_UI: 'APY to UI',
+  WALLET_TO_APY: 'Wallet to APY',
+  COINS_TO_CARD: 'Coins to Card',
+  FOX_TO_COINS: 'Fox to Coins',
+};
+
 const RIVE_STATE_TO_STEP_INDEX: Record<string, number> = {
   [RIVE_STEP_NAMES.UI1]: 0,
   [RIVE_STEP_NAMES.APY]: 1,
@@ -56,7 +87,161 @@ const RIVE_STATE_TO_STEP_INDEX: Record<string, number> = {
   [RIVE_STEP_NAMES.FINAL_STATE]: 4,
 };
 
+const RIVE_TRANSITION_STATES = new Set<string>(
+  Object.values(RIVE_TRANSITION_STATE_NAMES),
+);
+
 const TOTAL_ONBOARDING_STEPS = Object.keys(RIVE_STATE_TO_STEP_INDEX).length;
+const OVERLAY_HORIZONTAL_PADDING = 24;
+const OVERLAY_FADE_IN_DURATION_MS = 300;
+const OVERLAY_FADE_OUT_DURATION_MS = 300;
+
+interface OnboardingTextContent {
+  title: string;
+  content: string;
+  footer: string;
+}
+
+const STEP_LAYOUT: Record<
+  number,
+  { titleTopPct: number; footerBottomPct: number }
+> = {
+  0: { titleTopPct: 0.07, footerBottomPct: 0.1 },
+  1: { titleTopPct: 0.07, footerBottomPct: 0.1 },
+  2: { titleTopPct: 0.07, footerBottomPct: 0.1 },
+  3: { titleTopPct: 0.07, footerBottomPct: 0.1 },
+};
+
+const DEFAULT_STEP_LAYOUT = STEP_LAYOUT[0];
+
+const styles = StyleSheet.create({
+  root: {
+    flex: 1,
+  },
+  textGroup: {
+    position: 'absolute',
+  },
+  title: {
+    textAlign: 'center',
+    paddingHorizontal: 32,
+  },
+  content: {
+    marginTop: 12,
+    textAlign: 'center',
+    paddingHorizontal: 16,
+  },
+  footer: {
+    opacity: 0.7,
+    paddingHorizontal: 16,
+    position: 'absolute',
+    alignSelf: 'center',
+  },
+});
+
+const MoneyOnboardingTextOverlay = ({
+  content,
+  isVisible,
+  step,
+}: {
+  content?: OnboardingTextContent;
+  isVisible: boolean;
+  step: number;
+}) => {
+  const insets = useSafeAreaInsets();
+  const { height } = useWindowDimensions();
+  const fadeAnim = useRef(new Animated.Value(isVisible ? 1 : 0)).current;
+  const hasMountedRef = useRef(false);
+
+  useEffect(() => {
+    fadeAnim.stopAnimation();
+
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      fadeAnim.setValue(isVisible ? 1 : 0);
+      return () => {
+        fadeAnim.stopAnimation();
+      };
+    }
+
+    if (isVisible) {
+      fadeAnim.setValue(0);
+    }
+
+    Animated.timing(fadeAnim, {
+      duration: isVisible
+        ? OVERLAY_FADE_IN_DURATION_MS
+        : OVERLAY_FADE_OUT_DURATION_MS,
+      toValue: isVisible ? 1 : 0,
+      useNativeDriver: true,
+    }).start();
+
+    return () => {
+      fadeAnim.stopAnimation();
+    };
+  }, [fadeAnim, isVisible]);
+
+  if (!content) {
+    return null;
+  }
+
+  const layout = STEP_LAYOUT[step] ?? DEFAULT_STEP_LAYOUT;
+
+  return (
+    <Animated.View
+      pointerEvents="none"
+      style={[StyleSheet.absoluteFill, { opacity: fadeAnim }]}
+    >
+      <View
+        style={[
+          styles.textGroup,
+          {
+            top: insets.top + height * layout.titleTopPct,
+          },
+        ]}
+      >
+        <Text
+          adjustsFontSizeToFit
+          color={TextColor.OverlayInverse}
+          fontWeight={FontWeight.Bold}
+          minimumFontScale={0.8}
+          numberOfLines={2}
+          style={styles.title}
+          testID={MoneyOnboardingViewTestIds.OVERLAY_TITLE}
+          variant={TextVariant.HeadingLg}
+        >
+          {content.title}
+        </Text>
+        <Text
+          adjustsFontSizeToFit
+          color={TextColor.OverlayInverse}
+          minimumFontScale={0.5}
+          numberOfLines={3}
+          style={styles.content}
+          testID={MoneyOnboardingViewTestIds.OVERLAY_CONTENT}
+          variant={TextVariant.BodyMd}
+        >
+          {content.content}
+        </Text>
+      </View>
+      <Text
+        adjustsFontSizeToFit
+        color={TextColor.OverlayInverse}
+        variant={TextVariant.BodyXs}
+        minimumFontScale={0.7}
+        numberOfLines={1}
+        style={[
+          styles.footer,
+          {
+            bottom: insets.bottom + height * layout.footerBottomPct,
+          },
+        ]}
+        testID={MoneyOnboardingViewTestIds.OVERLAY_FOOTER}
+      >
+        {content.footer}
+      </Text>
+    </Animated.View>
+  );
+};
 
 const MoneyOnboardingView = () => {
   const navigation = useNavigation<AppNavigationProp>();
@@ -77,32 +262,11 @@ const MoneyOnboardingView = () => {
   const [ref, riveRef] = useRive();
 
   const stepRef = useRef(0);
-
-  // --- Text runs (stepText1–4: title, content, footer) ---
-  const [, setStep1Title] = useRiveString(riveRef, 'stepText1/title');
-  const [, setStep1Content] = useRiveString(riveRef, 'stepText1/content');
-  const [, setStep1Footer] = useRiveString(riveRef, 'stepText1/footer');
-  const [, setStep1ButtonText] = useRiveString(riveRef, 'stepText1/button');
-
-  const [, setStep2Title] = useRiveString(riveRef, 'stepText2/title');
-  const [, setStep2Content] = useRiveString(riveRef, 'stepText2/content');
-  const [, setStep2Footer] = useRiveString(riveRef, 'stepText2/footer');
-  const [, setStep2ButtonText] = useRiveString(riveRef, 'stepText2/button');
-
-  const [, setStep3Title] = useRiveString(riveRef, 'stepText3/title');
-  const [, setStep3Content] = useRiveString(riveRef, 'stepText3/content');
-  const [, setStep3Footer] = useRiveString(riveRef, 'stepText3/footer');
-  const [, setStep3ButtonText] = useRiveString(riveRef, 'stepText3/button');
-
-  const [, setStep4Title] = useRiveString(riveRef, 'stepText4/title');
-  const [, setStep4Content] = useRiveString(riveRef, 'stepText4/content');
-  const [, setStep4Footer] = useRiveString(riveRef, 'stepText4/footer');
-  const [, setStep4ButtonText] = useRiveString(riveRef, 'stepText4/button');
+  const [overlayStep, setOverlayStep] = useState(0);
+  const [isOverlayVisible, setIsOverlayVisible] = useState(true);
 
   // --- Number inputs ---
   const [, setTransitionSpeed] = useRiveNumber(riveRef, 'transitionSpeed');
-  const [, setCoinSeq] = useRiveNumber(riveRef, 'coinSeq');
-  const [, setCardSeq] = useRiveNumber(riveRef, 'cardSeq');
 
   // Hardcoded to English to simplify event tracking.
   const stepTitlesEnglish: string[] = useMemo(
@@ -116,72 +280,47 @@ const MoneyOnboardingView = () => {
     [],
   );
 
+  const stepContent: OnboardingTextContent[] = useMemo(
+    () => [
+      {
+        title: strings('money.rive_onboarding.step1_title'),
+        content: strings('money.rive_onboarding.step1_body', {
+          percentage: apyPercent,
+        }),
+        footer: strings('money.rive_onboarding.step1_footer_text'),
+      },
+      {
+        title: strings('money.rive_onboarding.step2_title'),
+        content: strings('money.rive_onboarding.step2_body'),
+        footer: strings('money.rive_onboarding.step2_footer_text'),
+      },
+      {
+        title: strings('money.rive_onboarding.step3_title'),
+        content: strings(
+          isUsUnauthenticatedNonCardholder
+            ? 'money.rive_onboarding.step3_body_card_ineligible'
+            : 'money.rive_onboarding.step3_body_card_eligible',
+          {
+            percentage: CARD_CASHBACK_PERCENTAGE,
+          },
+        ),
+        footer: strings('money.rive_onboarding.step3_footer_text'),
+      },
+      {
+        title: strings('money.rive_onboarding.step4_title'),
+        content: strings('money.rive_onboarding.step4_body'),
+        footer: strings('money.rive_onboarding.step4_footer_text'),
+      },
+    ],
+    [apyPercent, isUsUnauthenticatedNonCardholder],
+  );
+
   useEffect(() => {
     if (!riveRef) return;
 
-    // Step 1
-    setStep1Title(strings('money.rive_onboarding.step1_title'));
-    setStep1Content(
-      strings('money.rive_onboarding.step1_body', { percentage: apyPercent }),
-    );
-    setStep1Footer(strings('money.rive_onboarding.step1_footer_text'));
-    setStep1ButtonText(strings('money.rive_onboarding.button_text'));
-
-    // Step 2
-    setStep2Title(strings('money.rive_onboarding.step2_title'));
-    setStep2Content(strings('money.rive_onboarding.step2_body'));
-    setStep2Footer(strings('money.rive_onboarding.step2_footer_text'));
-    setStep2ButtonText(strings('money.rive_onboarding.button_text'));
-
-    // Step 3
-    setStep3Title(strings('money.rive_onboarding.step3_title'));
-    setStep3Content(
-      strings(
-        isUsUnauthenticatedNonCardholder
-          ? 'money.rive_onboarding.step3_body_card_ineligible'
-          : 'money.rive_onboarding.step3_body_card_eligible',
-        {
-          percentage: CARD_CASHBACK_PERCENTAGE,
-        },
-      ),
-    );
-    setStep3Footer(strings('money.rive_onboarding.step3_footer_text'));
-    setStep3ButtonText(strings('money.rive_onboarding.button_text'));
-
-    // Step 4
-    setStep4Title(strings('money.rive_onboarding.step4_title'));
-    setStep4Content(strings('money.rive_onboarding.step4_body'));
-    setStep4Footer(strings('money.rive_onboarding.step4_footer_text'));
-    setStep4ButtonText(strings('money.rive_onboarding.button_text'));
-
     // Config
     setTransitionSpeed(300);
-    setCoinSeq(0);
-    setCardSeq(0);
-  }, [
-    riveRef,
-    apyPercent,
-    setStep1Title,
-    setStep1Content,
-    setStep1Footer,
-    setStep2Title,
-    setStep2Content,
-    setStep2Footer,
-    setStep3Title,
-    setStep3Content,
-    setStep3Footer,
-    setStep4Title,
-    setStep4Content,
-    setStep4Footer,
-    setTransitionSpeed,
-    setCoinSeq,
-    setCardSeq,
-    setStep1ButtonText,
-    setStep2ButtonText,
-    setStep3ButtonText,
-    setStep4ButtonText,
-    isUsUnauthenticatedNonCardholder,
-  ]);
+  }, [riveRef, setTransitionSpeed]);
 
   const handleClose = useCallback(
     (stepIndex: number) => {
@@ -240,10 +379,26 @@ const MoneyOnboardingView = () => {
 
   const handleStateChanged = useCallback(
     (_stateMachineName: string, stateName: string) => {
+      // eslint-disable-next-line no-console
+      console.log('_stateMachineName: ', _stateMachineName);
+      // eslint-disable-next-line no-console
+      console.log('stateName: ', stateName);
+
+      if (RIVE_TRANSITION_STATES.has(stateName)) {
+        setIsOverlayVisible(false);
+        return;
+      }
+
       const stepIndex = RIVE_STATE_TO_STEP_INDEX[stateName];
 
       if (stepIndex !== undefined) {
         stepRef.current = stepIndex;
+
+        if (stepContent[stepIndex]) {
+          setOverlayStep(stepIndex);
+          setIsOverlayVisible(true);
+        }
+
         handleStepViewed(stepIndex);
       }
 
@@ -251,21 +406,29 @@ const MoneyOnboardingView = () => {
         handleComplete(stepRef.current);
       }
     },
-    [handleStepViewed, handleComplete],
+    [handleStepViewed, handleComplete, stepContent],
   );
 
   return (
-    <Rive
-      ref={ref}
-      source={MoneyOnboardingAnimationV6}
-      artboardName={RIVE_ARTBOARD_NAME}
-      stateMachineName={RIVE_STATE_MACHINE_NAME}
-      dataBinding={AutoBind(true)}
-      fit={Fit.Layout}
-      layoutScaleFactor={PixelRatio.get()}
-      onStateChanged={handleStateChanged}
-      testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
-    />
+    <View style={styles.root}>
+      <Rive
+        ref={ref}
+        source={MoneyOnboardingAnimationNoText}
+        artboardName={RIVE_ARTBOARD_NAME}
+        stateMachineName={RIVE_STATE_MACHINE_NAME}
+        dataBinding={AutoBind(true)}
+        fit={Fit.Layout}
+        layoutScaleFactor={PixelRatio.get()}
+        onStateChanged={handleStateChanged}
+        style={StyleSheet.absoluteFillObject}
+        testID={MoneyOnboardingViewTestIds.RIVE_ANIMATION}
+      />
+      <MoneyOnboardingTextOverlay
+        content={stepContent[overlayStep]}
+        isVisible={isOverlayVisible}
+        step={overlayStep}
+      />
+    </View>
   );
 };
 
