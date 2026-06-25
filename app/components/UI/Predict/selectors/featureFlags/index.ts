@@ -196,10 +196,7 @@ export const selectPredictPortfolioEnabledFlag = createSelector(
 
 export const selectPredictHomeRedesignEnabledFlag = createSelector(
   selectPredictFeatureFlags,
-  // TODO: TEMP QA OVERRIDE — force the redesigned PredictHome on so the new
-  // sections can be reviewed locally. REVERT before commit:
-  // restore `(flags) => flags.predictHomeRedesignEnabled`.
-  () => true,
+  (flags) => flags.predictHomeRedesignEnabled,
 );
 
 export const selectPredictSportCardLivePricesEnabledFlag = createSelector(
