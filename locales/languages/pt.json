@@ -9543,8 +9543,8 @@
     },
     "earn_rewards": {
       "title": "Ganhe recompensas",
-      "musd_title": "Até 3% de bônus sobre stablecoins",
-      "musd_subtitle": "Calcule seu bônus em mUSD",
+      "musd_title": "Até {{percentage}}% de bônus sobre mUSD",
+      "musd_subtitle": "As contas Money chegaram",
       "card_title": "Até 3% de reembolso em gastos",
       "card_subtitle": "Peça já o seu Cartão MetaMask",
       "card_subtitle_cardholder": "Acesse os benefícios do seu Cartão MetaMask"

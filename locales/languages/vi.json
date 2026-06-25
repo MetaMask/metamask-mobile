@@ -9543,8 +9543,8 @@
     },
     "earn_rewards": {
       "title": "Nhận phần thưởng",
-      "musd_title": "Thưởng lên đến 3% cho đồng ổn định",
-      "musd_subtitle": "Tính toán thưởng mUSD của bạn",
+      "musd_title": "Thưởng lên đến {{percentage}}% cho mUSD",
+      "musd_subtitle": "Tài khoản Tài chính đã ra mắt",
       "card_title": "Hoàn tiền lên đến 3% cho chi tiêu",
       "card_subtitle": "Nhận MetaMask Card của bạn ngay",
       "card_subtitle_cardholder": "Truy cập các quyền lợi MetaMask Card của bạn"

@@ -9543,8 +9543,8 @@
     },
     "earn_rewards": {
       "title": "보상 받기",
-      "musd_title": "스테이블코인 최대 3% 보너스",
-      "musd_subtitle": "mUSD 보너스 계산하기",
+      "musd_title": "mUSD 최대 {{percentage}}% 보너스",
+      "musd_subtitle": "머니 계정을 소개합니다",
       "card_title": "지출 금액의 최대 3% 캐시백",
       "card_subtitle": "지금 MetaMask 카드를 받으세요",
       "card_subtitle_cardholder": "MetaMask 카드 혜택을 이용하세요"

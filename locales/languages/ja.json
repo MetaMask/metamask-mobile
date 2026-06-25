@@ -9543,8 +9543,8 @@
     },
     "earn_rewards": {
       "title": "報酬を獲得しましょう",
-      "musd_title": "ステーブルで最大3%のボーナス",
-      "musd_subtitle": "mUSDボーナスの計算",
+      "musd_title": "mUSDで最大{{percentage}}%のボーナス",
+      "musd_subtitle": "マネーアカウントが新登場",
       "card_title": "使用額の最大3%を還元",
       "card_subtitle": "今すぐMetaMaskカードを取得",
       "card_subtitle_cardholder": "MetaMaskカードの特典を利用"

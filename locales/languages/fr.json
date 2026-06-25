@@ -9543,8 +9543,8 @@
     },
     "earn_rewards": {
       "title": "Gagner des récompenses",
-      "musd_title": "Jusqu’à 3 % de bonus sur les stablecoins",
-      "musd_subtitle": "Calculer votre bonus en mUSD",
+      "musd_title": "Jusqu’à {{percentage}} % de bonus sur mUSD",
+      "musd_subtitle": "Les comptes Money sont disponibles",
       "card_title": "Jusqu’à 3 % de remise sur vos dépenses",
       "card_subtitle": "Obtenez votre carte MetaMask Card dès maintenant",
       "card_subtitle_cardholder": "Accédez aux avantages de votre carte MetaMask Card"

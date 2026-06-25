@@ -9543,8 +9543,8 @@
     },
     "earn_rewards": {
       "title": "Κερδίστε ανταμοιβές",
-      "musd_title": "Έως 3% μπόνους σε stables",
-      "musd_subtitle": "Υπολογίστε το μπόνους σας σε mUSD",
+      "musd_title": "Έως {{percentage}}% μπόνους σε mUSD",
+      "musd_subtitle": "Οι καταθετικοί λογαριασμοί είναι εδώ",
       "card_title": "Έως 3% επιστροφή σε κάθε αγορά",
       "card_subtitle": "Αποκτήστε τώρα την MetaMask Card",
       "card_subtitle_cardholder": "Δείτε τα προνόμια της MetaMask Card"
