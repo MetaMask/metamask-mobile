@@ -82,6 +82,22 @@ describe('TransactionDetailsFeeSection', () => {
     expect(getByText(strings('transactions.paid_by_metamask'))).toBeDefined();
   });
 
+  it('renders single "Transaction fee" row for moneyAccountWithdraw when sponsored', () => {
+    useIsMoneyAccountContextMock.mockReturnValue(true);
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        type: TransactionType.moneyAccountWithdraw,
+        metamaskPay: {
+          networkFeeFiat: '0',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+
+    expect(getByText(strings('transactions.paid_by_metamask'))).toBeDefined();
+  });
+
   it('renders both fee rows individually when gas is sponsored but a bridge fee is charged', () => {
     useIsMoneyAccountContextMock.mockReturnValue(true);
     useTransactionDetailsMock.mockReturnValue({

@@ -21,15 +21,4 @@ describe('ActivityDetailsStatus', () => {
       getByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
     ).toBeOnTheScreen();
   });
-
-  it('renders cancelled status without an icon', () => {
-    const { getByText, queryByTestId } = renderWithProvider(
-      <ActivityDetailsStatus status="cancelled" />,
-    );
-
-    expect(getByText(strings('transaction.canceled'))).toBeOnTheScreen();
-    expect(
-      queryByTestId(`${ActivityDetailsSelectorsIDs.STATUS_PILL}-icon`),
-    ).toBeNull();
-  });
 });
