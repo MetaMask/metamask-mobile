@@ -15,7 +15,6 @@ import {
   type OHLCVBar,
   type TradeMarker,
 } from '../../../../UI/Charts/AdvancedChart/AdvancedChart.types';
-import { advancedChartLineChromePresets } from '../../../../UI/Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
   TIME_RANGE_CONFIGS,
   type TimeRange,
@@ -505,7 +504,14 @@ const TraderAdvancedChart = ({
         chartType={ChartType.Line}
         showVolume={false}
         indicators={EMPTY_INDICATORS}
-        lineChrome={advancedChartLineChromePresets.tokenOverview}
+        // Use TradingView's built-in price labels, last-price line and line-end
+        // marker. The custom DOM/drawing equivalents are being removed (see #32322),
+        // so opt out of all of them explicitly.
+        lineChrome={{
+          useCustomPriceLabels: false,
+          useCustomDashedLastPriceLine: false,
+          useCustomLineEndMarker: false,
+        }}
         isLoading={chartLoading}
         ohlcvPagination={ohlcvPagination}
         visibleFromMs={visibleFromMs}
