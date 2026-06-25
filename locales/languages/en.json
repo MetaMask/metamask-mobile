@@ -1134,6 +1134,8 @@
       "price_impact": "Price impact",
       "est_points": "Est. points",
       "no_quotes": "No quotes available for this token",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Loading...",
       "unavailable": "Swap unavailable",
       "unsupported_chain": "This chain is not supported for Quick Buy yet",
