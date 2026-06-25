@@ -74,13 +74,32 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  addDeviceSyncEnabled: {
+    name: 'addDeviceSyncEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
   aiSocialLeaderboardEnabled: {
     name: 'aiSocialLeaderboardEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '7.72.0',
+      minimumVersion: '8.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  aiSocialLeaderboardPerpsEnabled: {
+    name: 'aiSocialLeaderboardPerpsEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -673,6 +692,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         accountsApiUrl: 'https://accounts.api.cx.metamask.io',
         onRampApiUrl: 'https://on-ramp.uat-api.cx.metamask.io',
       },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  cardForgotPasswordFeature: {
+    name: 'cardForgotPasswordFeature',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '8.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -3238,6 +3268,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  earnMoneyVaultApyControl: {
+    name: 'earnMoneyVaultApyControl',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      vaultApyFallback: 0.04,
+      vaultApyOverride: 0.04,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   earnMoneyHubEnabled: {
     name: 'earnMoneyHubEnabled',
     type: FeatureFlagType.Remote,
@@ -3246,27 +3287,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       enabled: true,
       minimumVersion: '7.74.0',
     },
-    status: FeatureFlagStatus.Active,
-  },
-
-  earnMoneyPaymentTokensBlocklist: {
-    name: 'earnMoneyPaymentTokensBlocklist',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      '0x1': ['USDC', 'USDT', 'DAI', 'aUSDC', 'aUSDT', 'aDAI'],
-      '0x2105': ['USDC'],
-      '0x38': ['USDC', 'USDT'],
-      '0xa4b1': ['USDC'],
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  earnMoneyTokensSortMode: {
-    name: 'earnMoneyTokensSortMode',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: 'noFeePriority',
     status: FeatureFlagStatus.Active,
   },
 
@@ -3530,29 +3550,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  homeTMCU610AbtestWalletHomePostOnboardingSteps: {
-    name: 'homeTMCU610AbtestWalletHomePostOnboardingSteps',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: [
-      {
-        name: 'control',
-        scope: {
-          type: 'percentage_rollout',
-          value: 0,
-        },
-      },
-      {
-        name: 'postOnboardingSteps',
-        scope: {
-          type: 'percentage_rollout',
-          value: 1,
-        },
-      },
-    ],
-    status: FeatureFlagStatus.Active,
-  },
-
   legacyIosGoogleConfigEnabled: {
     name: 'legacyIosGoogleConfigEnabled',
     type: FeatureFlagType.Remote,
@@ -3635,6 +3632,36 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyCardActivityCashbackMultisendContracts: {
+    name: 'moneyCardActivityCashbackMultisendContracts',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [
+      '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+      '0xA90b298d05C2667dDC64e2A4e17111357c215dD2',
+      '0x40A695A16C213afEf1c87Fd471Fb73157b948f3f',
+      '0x144c1cE815Bd1Eb71678978fE8641cC4e3fd59e6',
+      '0xC7f1b2228fbf28451c7bf791C4f610111f0f32cb',
+    ],
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableActivityDetails: {
+    name: 'moneyEnableActivityDetails',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: { enabled: false, minimumVersion: '0.0.0' },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyEnableActivityDetailsBlockexplorerLink: {
+    name: 'moneyEnableActivityDetailsBlockexplorerLink',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: { enabled: false, minimumVersion: '0.0.0' },
     status: FeatureFlagStatus.Active,
   },
 
@@ -4193,13 +4220,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  rampsUnifiedBuyV2: {
-    name: 'rampsUnifiedBuyV2',
+  rampsServiceDisruptionModal: {
+    name: 'rampsServiceDisruptionModal',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      minimumVersion: '7.74.0',
-      enabled: true,
+      regions: [],
+      minimumVersion: '8.0.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -4478,13 +4505,13 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  tokenDetailsAdvancedCharts: {
-    name: 'tokenDetailsAdvancedCharts',
+  tokenDetailsTechnicalIndicators: {
+    name: 'tokenDetailsTechnicalIndicators',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
       enabled: true,
-      minimumVersion: '7.74.0',
+      minimumVersion: '7.83.0',
     },
     status: FeatureFlagStatus.Active,
   },
@@ -5538,14 +5565,11 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  tokenDetailsTechnicalIndicators: {
-    name: 'tokenDetailsTechnicalIndicators',
+  tmcuTransactionsRedesignEnabled: {
+    name: 'tmcuTransactionsRedesignEnabled',
     type: FeatureFlagType.Remote,
     inProd: true,
-    productionDefault: {
-      minimumVersion: '7.83.0',
-      enabled: false,
-    },
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 };

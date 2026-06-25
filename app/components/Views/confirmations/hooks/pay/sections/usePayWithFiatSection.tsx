@@ -48,7 +48,6 @@ export function usePayWithFiatSection(): PayWithSectionConfig | null {
         title: item.name,
         subtitle: item.name_description,
         isSelected,
-        isLastUsed: false,
         trailingElement: isSelected ? 'checkmark' : 'none',
         onPress,
         testID: `pay-with-fiat-${rowKey}-row`,

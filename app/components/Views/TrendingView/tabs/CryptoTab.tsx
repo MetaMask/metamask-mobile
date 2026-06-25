@@ -1,4 +1,5 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import type { ListRenderItem } from '@shopify/flash-list';
@@ -33,6 +34,17 @@ import TileCarousel from '../components/TileCarousel';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import { trackExploreInteracted } from '../search/analytics';
 import { TrendingViewSelectorsIDs } from '../TrendingView.testIds';
+import TrendingQuickBuy from '../../../UI/Trending/components/TrendingQuickBuy/TrendingQuickBuy';
+import { useABTest } from '../../../../hooks/useABTest';
+import {
+  EXPLORE_QUICK_BUY_AB_KEY,
+  EXPLORE_QUICK_BUY_VARIANTS,
+  EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+} from '../search/abTestConfig';
+
+const styles = StyleSheet.create({
+  container: { flex: 1 },
+});
 
 interface CryptoPerpsBlockProps {
   refresh: TabProps['refresh'];
@@ -67,6 +79,7 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
           <PerpsTileRowItem
             item={item}
             testIdPrefix="crypto-tab-perps-market-tile-card"
+            sourceSection="perps_crypto"
             onCardPress={() =>
               trackExploreInteracted({
                 interaction_type: 'section_item_tapped',
@@ -99,6 +112,16 @@ const CryptoTabContent: React.FC<TabProps> = ({
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
+  const [quickTradeToken, setQuickTradeToken] = useState<TrendingAsset | null>(
+    null,
+  );
+
+  const { variant: quickBuyVariant } = useABTest(
+    EXPLORE_QUICK_BUY_AB_KEY,
+    EXPLORE_QUICK_BUY_VARIANTS,
+    EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
+  );
+
   const tokens = useTokensFeed({ refresh });
   const cryptoPredictions = usePredictionsFeed({
     variant: 'crypto',
@@ -128,9 +151,12 @@ const CryptoTabContent: React.FC<TabProps> = ({
             item_clicked: item.assetId,
           })
         }
+        onQuickTrade={
+          quickBuyVariant.showQuickTradeButton ? setQuickTradeToken : undefined
+        }
       />
     ),
-    [],
+    [quickBuyVariant.showQuickTradeButton],
   );
 
   const showTokens = tokens.isLoading || tokens.data.length > 0;
@@ -217,13 +243,21 @@ const CryptoTabContent: React.FC<TabProps> = ({
   ]);
 
   return (
-    <ExploreScroll
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-      testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
-    >
-      <ExploreSectionList sections={sections} />
-    </ExploreScroll>
+    <View style={styles.container}>
+      <ExploreScroll
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        testID={TrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW}
+      >
+        <ExploreSectionList sections={sections} />
+      </ExploreScroll>
+
+      <TrendingQuickBuy
+        token={quickTradeToken}
+        onClose={() => setQuickTradeToken(null)}
+        source="explore_crypto"
+      />
+    </View>
   );
 };
 

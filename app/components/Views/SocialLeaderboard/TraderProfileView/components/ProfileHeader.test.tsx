@@ -24,34 +24,26 @@ const baseProfile: TraderProfile = {
 
 describe('ProfileHeader', () => {
   it('renders the header container', () => {
-    renderWithProvider(
-      <ProfileHeader profile={baseProfile} followerCount={45} />,
-    );
+    renderWithProvider(<ProfileHeader profile={baseProfile} />);
     expect(
-      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+      screen.getByTestId(TraderProfileViewSelectorsIDs.PROFILE_HEADER),
     ).toBeOnTheScreen();
   });
 
   it('renders the trader name', () => {
-    renderWithProvider(
-      <ProfileHeader profile={baseProfile} followerCount={45} />,
-    );
+    renderWithProvider(<ProfileHeader profile={baseProfile} />);
     expect(screen.getByText('trader1')).toBeOnTheScreen();
   });
 
   it('renders avatar image when imageUrl is present', () => {
-    renderWithProvider(
-      <ProfileHeader profile={baseProfile} followerCount={45} />,
-    );
+    renderWithProvider(<ProfileHeader profile={baseProfile} />);
     expect(
-      screen.getByTestId(TraderProfileViewSelectorsIDs.HEADER),
+      screen.getByTestId(TraderProfileViewSelectorsIDs.PROFILE_HEADER),
     ).toBeOnTheScreen();
   });
 
   it('does not render a podium medal badge on the profile avatar', () => {
-    renderWithProvider(
-      <ProfileHeader profile={baseProfile} followerCount={45} />,
-    );
+    renderWithProvider(<ProfileHeader profile={baseProfile} />);
     expect(screen.queryByTestId('rank-medal-1')).toBeNull();
     expect(screen.queryByTestId('rank-medal-2')).toBeNull();
     expect(screen.queryByTestId('rank-medal-3')).toBeNull();
@@ -59,31 +51,13 @@ describe('ProfileHeader', () => {
 
   it('renders Maskicon fallback when imageUrl is falsy', () => {
     const profileNoImage = { ...baseProfile, imageUrl: '' };
-    renderWithProvider(
-      <ProfileHeader profile={profileNoImage} followerCount={45} />,
-    );
+    renderWithProvider(<ProfileHeader profile={profileNoImage} />);
     expect(screen.getByText('trader1')).toBeOnTheScreen();
   });
 
-  it('renders singular follower string when count is 1', () => {
-    renderWithProvider(
-      <ProfileHeader profile={baseProfile} followerCount={1} />,
-    );
-    expect(screen.getByText('1 follower')).toBeOnTheScreen();
-  });
-
-  it('renders plural followers string when count is greater than 1', () => {
-    renderWithProvider(
-      <ProfileHeader profile={baseProfile} followerCount={45} />,
-    );
-    expect(screen.getByText('45 followers')).toBeOnTheScreen();
-  });
-
-  it('renders plural followers string when count is 0', () => {
-    renderWithProvider(
-      <ProfileHeader profile={baseProfile} followerCount={0} />,
-    );
-    expect(screen.getByText('0 followers')).toBeOnTheScreen();
+  it('does not render a follower count', () => {
+    renderWithProvider(<ProfileHeader profile={baseProfile} />);
+    expect(screen.queryByText(/follower/i)).toBeNull();
   });
 
   it('renders without a fallback letter when imageUrl is undefined', () => {
@@ -92,9 +66,7 @@ describe('ProfileHeader', () => {
       imageUrl: undefined,
     };
 
-    renderWithProvider(
-      <ProfileHeader profile={profileWithoutImage} followerCount={45} />,
-    );
+    renderWithProvider(<ProfileHeader profile={profileWithoutImage} />);
 
     expect(screen.queryByText('D')).toBeNull();
     expect(screen.getByText('trader1')).toBeOnTheScreen();
@@ -106,9 +78,7 @@ describe('ProfileHeader', () => {
       imageUrl: '',
     };
 
-    renderWithProvider(
-      <ProfileHeader profile={profileWithoutImage} followerCount={45} />,
-    );
+    renderWithProvider(<ProfileHeader profile={profileWithoutImage} />);
 
     expect(screen.queryByText('D')).toBeNull();
     expect(screen.getByText('trader1')).toBeOnTheScreen();
@@ -121,11 +91,7 @@ describe('ProfileHeader', () => {
 
     it('renders the X icon link when twitterHandle is provided', () => {
       renderWithProvider(
-        <ProfileHeader
-          profile={baseProfile}
-          followerCount={45}
-          twitterHandle="trader1"
-        />,
+        <ProfileHeader profile={baseProfile} twitterHandle="trader1" />,
       );
       expect(
         screen.getByTestId(TraderProfileViewSelectorsIDs.TWITTER_LINK),
@@ -134,11 +100,7 @@ describe('ProfileHeader', () => {
 
     it('does not render the X icon link when twitterHandle is null', () => {
       renderWithProvider(
-        <ProfileHeader
-          profile={baseProfile}
-          followerCount={45}
-          twitterHandle={null}
-        />,
+        <ProfileHeader profile={baseProfile} twitterHandle={null} />,
       );
       expect(
         screen.queryByTestId(TraderProfileViewSelectorsIDs.TWITTER_LINK),
@@ -146,9 +108,7 @@ describe('ProfileHeader', () => {
     });
 
     it('does not render the X icon link when twitterHandle is undefined', () => {
-      renderWithProvider(
-        <ProfileHeader profile={baseProfile} followerCount={45} />,
-      );
+      renderWithProvider(<ProfileHeader profile={baseProfile} />);
       expect(
         screen.queryByTestId(TraderProfileViewSelectorsIDs.TWITTER_LINK),
       ).toBeNull();
@@ -156,11 +116,7 @@ describe('ProfileHeader', () => {
 
     it('calls Linking.openURL with the correct X URL when the icon is pressed', () => {
       renderWithProvider(
-        <ProfileHeader
-          profile={baseProfile}
-          followerCount={45}
-          twitterHandle="trader1"
-        />,
+        <ProfileHeader profile={baseProfile} twitterHandle="trader1" />,
       );
 
       fireEvent.press(

@@ -448,6 +448,14 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(result.current.canLink).toBe(false);
     });
 
+    it('reports hasMoneyAccountRequirements=false when VEDA is allowlisted in cardFeature but missing from DelegationSettings', () => {
+      mockResolveMoneyAccountCardToken.mockReturnValue(null);
+      const { result } = renderLinkageHook();
+      expect(result.current.moneyAccountCardToken).toBeNull();
+      expect(result.current.hasMoneyAccountRequirements).toBe(false);
+      expect(result.current.canLink).toBe(false);
+    });
+
     it('reports canLink=false when the Money Account is already delegated for card (re-link suppressed)', () => {
       applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
       const { result } = renderLinkageHook();

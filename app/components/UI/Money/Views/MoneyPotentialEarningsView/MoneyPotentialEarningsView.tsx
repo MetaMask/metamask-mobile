@@ -22,7 +22,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useMoneyDepositTokens } from '../../hooks/useMoneyDepositTokens';
+import { useMoneyEarnableTokens } from '../../hooks/useMoneyEarnableTokens';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { useProjectedEarnings } from '../../hooks/useProjectedEarnings';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -53,13 +53,14 @@ const MoneyPotentialEarningsView = () => {
   const { styles } = useStyles(styleSheet, {});
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  const { tokens: depositTokens, isNoFeeToken } = useMoneyDepositTokens();
+  const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens();
+
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { apyPercent } = useMoneyAccountBalance();
-  const apyPercentForProjection = apyPercent ?? 0;
+  const { apyDecimal } = useMoneyAccountBalance();
+  const apyDecimalForProjection = apyDecimal ?? 0;
 
   const { eligibleTokens, totalAssetsFiat, projectedAmount } =
-    useProjectedEarnings(depositTokens, apyPercent);
+    useProjectedEarnings(depositTokens, apyDecimal);
 
   const {
     trackButtonClicked,
@@ -258,7 +259,7 @@ const MoneyPotentialEarningsView = () => {
             key={`${token.address}-${token.chainId}`}
             token={token}
             hasSubsidizedFee={isNoFeeToken(token)}
-            apyPercent={apyPercentForProjection}
+            apyDecimal={apyDecimalForProjection}
             onCardPress={handleTokenCardPress(token, index)}
             onButtonPress={handleTokenButtonPress(token, index)}
             testID={MoneyPotentialEarningsViewTestIds.TOKEN_ROW(index)}
