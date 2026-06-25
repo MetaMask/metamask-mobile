@@ -1,4 +1,10 @@
 import '../../../../tests/component-view/mocks';
+/**
+ * Component View tests for ActivityList.
+ *
+ * Mirrors (partial): tests/smoke/wallet/incoming-transactions.spec.ts
+ * — outgoing "Sent ETH" via local TransactionController; incoming/API paths skipped.
+ */
 import { fireEvent, waitFor, within } from '@testing-library/react-native';
 import { RefreshControl } from 'react-native';
 import Engine from '../../../core/Engine';
@@ -96,5 +102,18 @@ describeForPlatforms('ActivityList', () => {
     });
 
     updateIncomingSpy.mockRestore();
+  });
+
+  it.skip('displays incoming native transfer from another own account — skipped: incoming txs are loaded from accounts API, not TransactionController local state', () => {
+    // Blocked: selectLocalTransactions filters to outgoing (from === active address) only.
+    // Mirrors incoming-transactions.spec.ts accounts API + address-book poisoning path.
+  });
+
+  it.skip('displays incoming native transfer from accounts API with trusted sender — skipped: requires nock mock for accounts.api.cx.metamask.io and address-book poisoning filter', () => {
+    // Blocked: mirrors incoming-transactions.spec.ts accounts API path.
+  });
+
+  it.skip('displays nothing if privacyMode is enabled — skipped: requires accounts API mock and PrivacyController state driving empty feed', () => {
+    // Blocked: E2E spec is already skipped; privacy + API integration not in CV yet.
   });
 });

@@ -315,6 +315,81 @@ describeForPlatforms('ExploreFeed - Component Tests', () => {
       ],
     });
   });
+
+  it('exits search mode when cancel is pressed and restores the search button', async () => {
+    const { findByTestId, getByTestId, queryByTestId } =
+      renderTrendingViewWithRoutes();
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    await actButtonPress(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+    );
+
+    const searchInput = await findByTestId(
+      TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT,
+    );
+    await userEvent.type(searchInput, 'test');
+
+    await findByTestId(TrendingViewSelectorsIDs.TRENDING_SEARCH_RESULTS_LIST);
+
+    await actButtonPress(
+      getByTestId(TrendingViewSelectorsIDs.EXPLORE_SEARCH_CANCEL_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(TrendingViewSelectorsIDs.EXPLORE_VIEW_SEARCH_TEXT_INPUT),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  it('opens RWAs full view via View All and returns to the feed', async () => {
+    const { getByTestId, findByTestId } = renderTrendingViewWithRoutes();
+
+    await navigateToExploreTab(EXPLORE_TAB_TEST_IDS.RWAS, getByTestId);
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_STOCKS),
+      ).toBeOnTheScreen();
+    });
+
+    await actButtonPress(
+      getByTestId(TrendingViewSelectorsIDs.SECTION_HEADER_VIEW_ALL_STOCKS),
+    );
+
+    expect(
+      await findByTestId(TrendingViewSelectorsIDs.RWA_TOKENS_HEADER),
+    ).toBeOnTheScreen();
+
+    await actButtonPress(
+      await findByTestId(
+        TrendingViewSelectorsIDs.RWA_TOKENS_HEADER_BACK_BUTTON,
+      ),
+    );
+
+    await waitFor(() => {
+      expect(
+        getByTestId(TrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  it.skip('navigate to browser from trending view and interact with dapp — skipped: requires BrowserTab WebView and TestDApp (see BrowserTab.view.test.tsx)', () => {
+    // Blocked: trending-browser.spec.ts full flow.
+  });
+
+  it.skip('Navigate to all sections full views via View All for Predictions and Perps — skipped: requires predict/perps API mocks in component-view framework', () => {
+    // Blocked: trending-feed.spec.ts Predictions + Perps sections.
+  });
 });
 
 describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
