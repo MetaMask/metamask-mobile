@@ -34,6 +34,7 @@ import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
 import KYCDemo from '../../Views/KYCDemo';
+import MoonpayDemo from '../../Views/MoonpayDemo';
 import AssetDetails from '../../Views/AssetDetails';
 import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
@@ -1390,6 +1391,11 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.KYC_DEMO}
         component={KYCDemo}
+        options={{ headerShown: false, ...slideFromRightNativeOptions }}
+      />
+      <NativeStack.Screen
+        name={Routes.MOONPAY_DEMO}
+        component={MoonpayDemo}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen

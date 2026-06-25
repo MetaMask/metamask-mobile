@@ -133,6 +133,20 @@ module.exports = function (baseConfig) {
           ) {
             return { type: 'empty' };
           }
+          // The MoonPay SDK (`@moonpay/react-native-moonpay-sdk`, used by
+          // KYCDemo) does a bare `import WebView from "react-native-webview"`
+          // at the top of its dist. We don't install the upstream package —
+          // redirect to MetaMask's fork (used everywhere else in the app).
+          if (
+            moduleName === 'react-native-webview' ||
+            moduleName.startsWith('react-native-webview/')
+          ) {
+            const rewritten = moduleName.replace(
+              'react-native-webview',
+              '@metamask/react-native-webview',
+            );
+            return context.resolveRequest(context, rewritten, platform);
+          }
           // @ledgerhq packages use exports field subpath mapping (e.g. ./signers/index -> ./lib/signers/index.js)
           // which doesn't work with unstable_enablePackageExports: false — manually replicate the lib/ mapping
           // Affected: domain-service, evm-tools, devices, cryptoassets-evm-signatures

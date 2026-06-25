@@ -75,7 +75,10 @@ import {
   IconName as MMDSIconName,
   Text as CustomText,
   TextColor,
-} from '@metamask/design-system-react-native';
+
+  Button as DSButton,
+  ButtonVariant as DSButtonVariant,
+  ButtonSize as DSButtonSize} from '@metamask/design-system-react-native';
 
 import {
   NavigationProp,
@@ -200,16 +203,16 @@ import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
-import {
-  Button as DSButton,
-  ButtonVariant as DSButtonVariant,
-  ButtonSize as DSButtonSize,
-} from '@metamask/design-system-react-native';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
     base: {
       paddingHorizontal: 16,
+    },
+    demoButtons: {
+      flexDirection: 'row',
+      flexWrap: 'wrap',
+      gap: 8,
     },
     wrapper: {
       flex: 1,
@@ -1070,6 +1073,10 @@ const Wallet = ({
     navigation.navigate(Routes.KYC_DEMO);
   }, [navigation]);
 
+  const handleMoonpayDemoPress = useCallback(() => {
+    navigation.navigate(Routes.MOONPAY_DEMO);
+  }, [navigation]);
+
   const portfolioHeaderBase = (
     <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
@@ -1080,13 +1087,20 @@ const Wallet = ({
         homeGrowthBannerContent}
       {homepageDiscoveryPills}
       {isMoneyAccountVisible && <MoneyBalanceCard />}
-      <View style={styles.base}>
+      <View style={[styles.base, styles.demoButtons]}>
         <DSButton
           variant={DSButtonVariant.Secondary}
           size={DSButtonSize.Md}
           onPress={handleKYCDemoPress}
         >
           KYC Demo
+        </DSButton>
+        <DSButton
+          variant={DSButtonVariant.Secondary}
+          size={DSButtonSize.Md}
+          onPress={handleMoonpayDemoPress}
+        >
+          Moonpay Demo
         </DSButton>
       </View>
     </View>
@@ -1104,13 +1118,20 @@ const Wallet = ({
         homeGrowthBannerContent}
       {homepageDiscoveryPills}
       {isMoneyAccountVisible && <MoneyBalanceCard />}
-      <View style={styles.base}>
+      <View style={[styles.base, styles.demoButtons]}>
         <DSButton
           variant={DSButtonVariant.Secondary}
           size={DSButtonSize.Md}
           onPress={handleKYCDemoPress}
         >
           KYC Demo
+        </DSButton>
+        <DSButton
+          variant={DSButtonVariant.Secondary}
+          size={DSButtonSize.Md}
+          onPress={handleMoonpayDemoPress}
+        >
+          Moonpay Demo
         </DSButton>
       </View>
     </View>

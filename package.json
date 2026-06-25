@@ -352,6 +352,7 @@
     "@metamask/tron-wallet-snap": "^1.26.0",
     "@metamask/utils": "^11.11.0",
     "@metamask/wallet": "^3.0.0",
+    "@moonpay/react-native-moonpay-sdk": "^1.1.8",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.32.2",
