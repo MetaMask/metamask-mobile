@@ -99,6 +99,7 @@ const TOTAL_ONBOARDING_STEPS = Object.keys(RIVE_STATE_TO_STEP_INDEX).length;
 const OVERLAY_FADE_DURATION_MS = 200;
 const SMALL_OVERLAY_DEVICE_MAX_WIDTH = 375;
 const SMALL_OVERLAY_DEVICE_MAX_HEIGHT = 700;
+const FOOTER_BOTTOM_OFFSET = 112;
 const OVERLAY_TEXT_PRESETS = {
   small: {
     title: { fontSize: 18, lineHeight: 25, paddingHorizontal: 42 },
@@ -118,11 +119,11 @@ interface OnboardingTextContent {
   footer: string;
 }
 
-type StepLayout = Readonly<{ titleTopPct: number; footerBottomPct: number }>;
+type StepLayout = Readonly<{ titleTopPct: number }>;
 
 const STEP_LAYOUT_PRESETS = {
-  small: { titleTopPct: 0.08, footerBottomPct: 0.1 },
-  default: { titleTopPct: 0.05, footerBottomPct: 0.1 },
+  small: { titleTopPct: 0.08 },
+  default: { titleTopPct: 0.05 },
 } as const satisfies Record<'small' | 'default', StepLayout>;
 
 const styles = StyleSheet.create({
@@ -141,11 +142,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     paddingHorizontal: 16,
   },
+  footerContainer: {
+    left: 0,
+    position: 'absolute',
+    right: 0,
+  },
   footer: {
     opacity: 0.7,
     paddingHorizontal: 16,
-    position: 'absolute',
-    alignSelf: 'center',
+    textAlign: 'center',
   },
 });
 
@@ -241,21 +246,24 @@ const MoneyOnboardingTextOverlay = ({
           {content.content}
         </Text>
       </View>
-      <Text
-        color={TextColor.OverlayInverse}
-        variant={TextVariant.BodyXs}
-        numberOfLines={1}
+      <View
         style={[
-          styles.footer,
-          overlayTextPreset.footer,
+          styles.footerContainer,
           {
-            bottom: insets.bottom + height * stepLayout.footerBottomPct,
+            bottom: insets.bottom + FOOTER_BOTTOM_OFFSET,
           },
         ]}
-        testID={MoneyOnboardingViewTestIds.OVERLAY_FOOTER}
       >
-        {content.footer}
-      </Text>
+        <Text
+          color={TextColor.OverlayInverse}
+          numberOfLines={1}
+          style={[styles.footer, overlayTextPreset.footer]}
+          testID={MoneyOnboardingViewTestIds.OVERLAY_FOOTER}
+          variant={TextVariant.BodyXs}
+        >
+          {content.footer}
+        </Text>
+      </View>
     </Animated.View>
   );
 };
