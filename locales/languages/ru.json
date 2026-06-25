@@ -9525,8 +9525,8 @@
     },
     "earn_rewards": {
       "title": "Заработать вознаграждения",
-      "musd_title": "Бонус до 3% на стейблкойны",
-      "musd_subtitle": "Рассчитайте свой бонус в mUSD",
+      "musd_title": "Бонус до {{percentage}}% на mUSD",
+      "musd_subtitle": "Денежные счета уже здесь",
       "card_title": "Кешбэк до 3% за покупки",
       "card_subtitle": "Получите свою карту MetaMask прямо сейчас",
       "card_subtitle_cardholder": "Воспользуйтесь преимуществами своей карты MetaMask"

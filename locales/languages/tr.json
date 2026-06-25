@@ -9525,8 +9525,8 @@
     },
     "earn_rewards": {
       "title": "Ödül kazan",
-      "musd_title": "Stabil kripto paralarda %3'e kadar bonus",
-      "musd_subtitle": "mUSD bonusunuzu hesaplayın",
+      "musd_title": "mUSD'de %{{percentage}}'e kadar bonus",
+      "musd_subtitle": "Para hesapları burada",
       "card_title": "Harcamalarda %3'e varan iade",
       "card_subtitle": "MetaMask Card'ınızı hemen alın",
       "card_subtitle_cardholder": "MetaMask Card faydalarınıza erişim sağlayın"

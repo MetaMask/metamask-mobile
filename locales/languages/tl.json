@@ -9525,8 +9525,8 @@
     },
     "earn_rewards": {
       "title": "Kumita ng mga reward",
-      "musd_title": "Hanggang 3% bonus sa mga stable",
-      "musd_subtitle": "Kalkulahin ang iyong mUSD bonus",
+      "musd_title": "Hanggang {{percentage}}% bonus sa mUSD",
+      "musd_subtitle": "Narito ang mga money account",
       "card_title": "Hanggang sa 3% ang maibabalik sa ginastos",
       "card_subtitle": "Kunin ang iyong MetaMask Card ngayon",
       "card_subtitle_cardholder": "I-access ang mga benepisyo ng iyong MetaMask Card"

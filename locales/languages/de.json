@@ -9525,8 +9525,8 @@
     },
     "earn_rewards": {
       "title": "Belohnungen verdienen",
-      "musd_title": "Bis zu 3 % Bonus auf Stablecoins",
-      "musd_subtitle": "Berechnen Sie Ihren mUSD-Bonus",
+      "musd_title": "Bis zu {{percentage}} % Bonus auf mUSD",
+      "musd_subtitle": "Geldkonten sind hier",
       "card_title": "Bis zu 3 % Rabatt auf Ausgaben",
       "card_subtitle": "Sichern Sie sich jetzt Ihre MetaMask Card",
       "card_subtitle_cardholder": "Nutzen Sie die Vorteile Ihrer MetaMask Card"

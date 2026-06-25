@@ -9525,8 +9525,8 @@
     },
     "earn_rewards": {
       "title": "Gana recompensas",
-      "musd_title": "Bono de hasta el 3 % en monedas estables",
-      "musd_subtitle": "Calcula tu bono en mUSD",
+      "musd_title": "Bono de hasta el {{percentage}} % en mUSD",
+      "musd_subtitle": "Ya llegaron las cuentas Finanzas",
       "card_title": "Hasta un 3 % de cashback en tus gastos",
       "card_subtitle": "Obtén tu tarjeta MetaMask ahora",
       "card_subtitle_cardholder": "Accede a los beneficios de tu tarjeta MetaMask"
