@@ -46,6 +46,7 @@ const makeStable = (
   decimals,
   image: tokenIconUrl(chainId, address),
   chainId,
+  isVerified: true,
 });
 
 export const RECEIVE_STABLECOIN_CANDIDATES: BridgeToken[] = [

@@ -44,7 +44,7 @@ export function TransactionDetailsFeeSection() {
           testID="paid-by-metamask"
         >
           <Icon
-            name={IconName.Check}
+            name={IconName.CheckBold}
             color={IconColor.Success}
             size={IconSize.Sm}
           />

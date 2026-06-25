@@ -61,10 +61,13 @@ jobs:
         inputs.runner_provider == 'namespace' &&
         (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' ||
          'namespace-profile-metamask-android-build') ||
-        (inputs.platform == 'ios' && 'macos-latest' ||
-         (startsWith(github.base_ref, 'release/') &&
+        (inputs.platform == 'ios' &&
+          (startsWith(github.base_ref, 'release/') &&
+            fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') ||
+            fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]'))) ||
+        (startsWith(github.base_ref, 'release/') &&
           fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
-          fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]')))
+          fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]'))
       }}
 
     steps:
@@ -252,6 +255,8 @@ jobs:
           IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
           IOS_BUNDLE_ID: io.metamask.MetaMask
           SKIP_WDA_PREBUILD: ${{ steps.wda-prebuilt.outputs.ready == 'true' && 'true' || 'false' }}
+          IOS_SIMULATOR_POST_BOOT_SETTLE_MS: '30000'
+          IOS_APP_WARM_LAUNCH_SETTLE_MS: '15000'
 
       - name: Resolve Appium test grep pattern
         id: appium-grep
@@ -319,6 +324,8 @@ jobs:
           SKIP_DEVICE_BOOT: 'true'
           SKIP_APP_REINSTALL: 'true'
           USE_PREBUILT_WDA: 'true'
+          IOS_SIMULATOR_POST_BOOT_SETTLE_MS: '30000'
+          IOS_PRE_LAUNCH_SETTLE_MS: '1500'
 
       - name: Upload Playwright HTML report (Namespace)
         if: ${{ always() && inputs.runner_provider == 'namespace' }}

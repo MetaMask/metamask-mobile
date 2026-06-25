@@ -99,6 +99,9 @@ const CLOSED_SORT_LABEL_KEYS: Record<ClosedSortKey, string> = {
   recent: 'social_leaderboard.trader_profile.sort.recent',
 };
 
+const getPositionListKey = (position: Position): string =>
+  position.positionId ?? `${position.tokenAddress}-${position.chain}`;
+
 interface TabButtonProps {
   label: string;
   isActive: boolean;
@@ -270,19 +273,25 @@ const TraderProfileView = () => {
   const handleTabChange = useCallback(
     (tab: 'open' | 'closed') => {
       if (activeTab === tab) return;
+      setActiveTab(tab);
       if (traderAddress) {
-        track(MetaMetricsEvents.SOCIAL_TRADER_PROFILE_TAB_CHANGED, {
-          [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
-          [SocialLeaderboardEventProperties.TAB]: tab,
+        queueMicrotask(() => {
+          track(MetaMetricsEvents.SOCIAL_TRADER_PROFILE_TAB_CHANGED, {
+            [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
+            [SocialLeaderboardEventProperties.TAB]: tab,
+          });
         });
       }
-      setActiveTab(tab);
     },
     [activeTab, traderAddress, track],
   );
 
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+
   const handlePositionPress = useCallback(
     (position: Position) => {
+      const isOpenTab = activeTabRef.current === 'open';
       const caipChainId = chainNameToId(position.chain);
       const caip19 = caipChainId
         ? (toAssetId(position.tokenAddress, caipChainId) ?? '')
@@ -292,7 +301,7 @@ const TraderProfileView = () => {
           [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
           [SocialLeaderboardEventProperties.CAIP19]: caip19,
           [SocialLeaderboardEventProperties.ASSET_NAME]: position.tokenSymbol,
-          [SocialLeaderboardEventProperties.IS_OPEN]: activeTab === 'open',
+          [SocialLeaderboardEventProperties.IS_OPEN]: isOpenTab,
         });
       }
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.POSITION, {
@@ -303,7 +312,7 @@ const TraderProfileView = () => {
         tokenSymbol: position.tokenSymbol,
         position,
         source: 'profile_position',
-        isClosed: activeTab === 'closed',
+        isClosed: !isOpenTab,
       });
     },
     [
@@ -312,7 +321,6 @@ const TraderProfileView = () => {
       traderName,
       profile?.profile.imageUrl,
       traderAddress,
-      activeTab,
       track,
     ],
   );
@@ -328,7 +336,6 @@ const TraderProfileView = () => {
     activeTab === 'open' ? isLoadingOpen : isLoadingClosed;
 
   const currentSortKey: SortKey = activeTab === 'open' ? openSort : closedSort;
-
   const sortedPositions = useMemo(
     () => sortPositions(positions, currentSortKey, activeTab),
     [positions, currentSortKey, activeTab],
@@ -533,9 +540,9 @@ const TraderProfileView = () => {
                       </Text>
                     </Box>
                   ) : (
-                    sortedPositions.map((position, index) => (
+                    sortedPositions.map((position) => (
                       <PositionRow
-                        key={`${position.tokenAddress}-${position.chain}-${index}`}
+                        key={getPositionListKey(position)}
                         position={position}
                         onPress={handlePositionPress}
                         isClosed={activeTab === 'closed'}
