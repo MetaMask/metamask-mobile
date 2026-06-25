@@ -23,6 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { TraceName } from '../../../../../util/trace';
+import { strings } from '../../../../../../locales/i18n';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import PredictBuyActionButton from './components/PredictBuyActionButton';
 import PredictBuyAmountSection from './components/PredictBuyAmountSection';
@@ -237,6 +238,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isBelowMinimum,
     isInsufficientBalance,
     isCurrentTokenInsufficient,
+    isPayRouteUnavailable,
     hasAlternativeBalance,
     isPaySystemSettling,
     isPaymentSelectorNavigationLocked,
@@ -250,6 +252,14 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     totalPayForPredictBalance,
     hasBlockingPayAlerts,
   });
+
+  // Reuse the existing no-pay-token-quotes copy when the betslip blocks a bet
+  // because no usable pay route to pUSD is available.
+  const effectiveBlockingPayAlertMessage =
+    blockingPayAlertMessage ??
+    (isPayRouteUnavailable
+      ? strings('alert_system.no_pay_token_quotes.message')
+      : null);
 
   const {
     errorMessage,
@@ -267,7 +277,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isConfirming,
     isPayFeesLoading,
     isPaySystemSettling,
-    blockingPayAlertMessage,
+    blockingPayAlertMessage: effectiveBlockingPayAlertMessage,
     outcomeTokenPrice: outcomeToken?.price,
     isSheetMode,
   });
