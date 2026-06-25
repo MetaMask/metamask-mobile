@@ -71,9 +71,9 @@ export async function executeHardwareWalletOperation({
   setPendingOperationAddress,
   showAwaitingConfirmation,
   hideAwaitingConfirmation,
-  showConfirmation = true,
   showHardwareWalletError,
   onError,
+  showConfirmation = true,
   execute,
   onRejected,
 }: ExecuteHardwareWalletOperationOptions): Promise<boolean> {
@@ -108,6 +108,7 @@ export async function executeHardwareWalletOperation({
     }
 
     await execute();
+
     if (hasShownConfirmation) {
       hideAwaitingConfirmation();
     }
