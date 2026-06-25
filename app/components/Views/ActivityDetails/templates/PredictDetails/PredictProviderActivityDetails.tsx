@@ -49,6 +49,14 @@ export function PredictProviderActivityDetails({
   const isBuy = entry.type === 'buy';
   const isSell = entry.type === 'sell';
   const amount = formatCurrencyValue(entry.amount, { showSign: !isBuy });
+  const netPnlNumeric = isSell
+    ? (activity.netPnlUsd ?? entry.amount)
+    : activity.netPnlUsd;
+  const netPnlValue = isSell
+    ? formatCurrencyValue(netPnlNumeric, { showSign: true })
+    : undefined;
+  const isNegativeNetPnl =
+    typeof netPnlNumeric === 'number' && netPnlNumeric < 0;
   const shares =
     'price' in entry && entry.price
       ? formatPositionSize(entry.amount / entry.price)
@@ -120,9 +128,13 @@ export function PredictProviderActivityDetails({
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
-                  color={TextColor.SuccessDefault}
+                  color={
+                    isNegativeNetPnl
+                      ? TextColor.ErrorDefault
+                      : TextColor.SuccessDefault
+                  }
                 >
-                  {formatCurrencyValue(entry.amount, { showSign: true })}
+                  {netPnlValue}
                 </Text>
               }
             />

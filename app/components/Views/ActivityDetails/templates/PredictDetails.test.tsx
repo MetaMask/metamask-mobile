@@ -105,6 +105,7 @@ describe('PredictDetails', () => {
               title: 'Will the Denver Broncos win the AFC West?',
               outcome: 'Yes',
               icon: 'https://example.com/broncos.png',
+              netPnlUsd: -2.5,
               entry: {
                 type: 'sell',
                 timestamp: 1_765_361_640,
@@ -126,6 +127,7 @@ describe('PredictDetails', () => {
     ).toBeOnTheScreen();
     expect(getByText('Shares sold')).toBeOnTheScreen();
     expect(getByText('Net P&L')).toBeOnTheScreen();
+    expect(getByText('-$2.50')).toBeOnTheScreen();
     expect(getByText('View on Polymarket')).toBeOnTheScreen();
     expect(queryByTestId('activity-details-amount-header')).toBeNull();
   });
