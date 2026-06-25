@@ -13,6 +13,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 import {
   useNavigation,
   useRoute,
@@ -86,6 +87,7 @@ import {
   getTradeFocusSpanMs,
   type TradeFocusRequest,
 } from './components/TraderAdvancedChart';
+import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 
 // Estimate (chart + vertical margins + time selector) so the spacer and the
 // sticky-header math are close before onLayout measures the real height — avoids
@@ -112,6 +114,7 @@ const TraderPositionView = () => {
     notificationSubtype,
   } = route.params;
   const { track } = useSocialLeaderboardAnalytics();
+  const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
 
   const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -129,6 +132,11 @@ const TraderPositionView = () => {
     refetch: refetchPosition,
   } = useTraderPosition(effectivePositionId);
   const resolvedPosition = fetchedPosition ?? positionParam;
+  const isBlockedPerpPosition =
+    resolvedPosition != null &&
+    !isPerpsEnabled &&
+    isPerpPosition(resolvedPosition);
+  const displayPosition = isBlockedPerpPosition ? undefined : resolvedPosition;
 
   // Nav-param values win on first render to avoid a header flicker; once the
   // profile resolves it fills in any missing fields and powers pull-to-refresh.
@@ -144,7 +152,7 @@ const TraderPositionView = () => {
     traderAddressParam ?? fetchedProfile?.profile?.address ?? '';
 
   const positionData = useTraderPositionData(
-    resolvedPosition,
+    displayPosition,
     tokenSymbol,
     isClosedParam,
   );
@@ -196,11 +204,11 @@ const TraderPositionView = () => {
   }, [navigation, traderId, traderName]);
 
   const handleCopyTokenAddress = useCallback(async () => {
-    if (!resolvedPosition?.tokenAddress) {
+    if (!displayPosition?.tokenAddress) {
       return;
     }
 
-    await ClipboardManager.setString(resolvedPosition.tokenAddress);
+    await ClipboardManager.setString(displayPosition.tokenAddress);
     toastRef?.current?.showToast({
       variant: ToastVariants.Icon,
       iconName: ComponentLibraryIconName.CheckBold,
@@ -214,7 +222,7 @@ const TraderPositionView = () => {
   }, [
     colors.accent03.dark,
     colors.accent03.normal,
-    resolvedPosition?.tokenAddress,
+    displayPosition?.tokenAddress,
     toastRef,
   ]);
 
@@ -236,19 +244,19 @@ const TraderPositionView = () => {
 
   // Derive identifiers once so screen-viewed / buy-clicked / dismissed share them.
   const followTradingTokenContext = useMemo(() => {
-    if (!resolvedPosition || !traderAddress) return null;
-    const caipChainId = chainNameToId(resolvedPosition.chain);
+    if (!displayPosition || !traderAddress) return null;
+    const caipChainId = chainNameToId(displayPosition.chain);
     const caip19 = caipChainId
-      ? (toAssetId(resolvedPosition.tokenAddress, caipChainId) ?? '')
+      ? (toAssetId(displayPosition.tokenAddress, caipChainId) ?? '')
       : '';
     if (!caip19) return null;
     return {
       [SocialLeaderboardEventProperties.TRADER_ADDRESS]: traderAddress,
       [SocialLeaderboardEventProperties.CAIP19]: caip19,
       [SocialLeaderboardEventProperties.ASSET_NAME]:
-        resolvedPosition.tokenSymbol,
+        displayPosition.tokenSymbol,
     };
-  }, [resolvedPosition, traderAddress]);
+  }, [displayPosition, traderAddress]);
 
   // Ref-guarded so the event fires once per mount, not on every context refresh.
   const hasFiredScreenViewedRef = useRef(false);
@@ -300,7 +308,7 @@ const TraderPositionView = () => {
   );
 
   const handleBuyPress = useCallback(() => {
-    if (!resolvedPosition) return;
+    if (!displayPosition) return;
     // Primary CTA opening the buy flow — distinct from tab-bar `TabChange`.
     // Success/error notification haptics fire later in useQuickBuyBottomSheet.
     playImpact(ImpactMoment.PrimaryCTA);
@@ -313,7 +321,7 @@ const TraderPositionView = () => {
         followTradingTokenContext,
       );
     }
-  }, [resolvedPosition, followTradingTokenContext, track]);
+  }, [displayPosition, followTradingTokenContext, track]);
 
   const handleQuickBuyClose = useCallback(() => {
     setIsQuickBuyVisible(false);
@@ -338,7 +346,7 @@ const TraderPositionView = () => {
   // funded trade-entry flow), so both CTAs land the user on that market's Perps
   // page. A minimal { symbol, name } market is enough — PerpsMarketDetailsView
   // enriches it from usePerpsMarkets (same pattern as PerpsPositionTransactionView).
-  const isPerp = resolvedPosition ? isPerpPosition(resolvedPosition) : false;
+  const isPerp = displayPosition ? isPerpPosition(displayPosition) : false;
 
   // CAIP-19 asset id for the spot chart. Resolves only for non-perp positions on
   // a supported chain; when undefined the chart section uses the legacy SVG
@@ -440,9 +448,12 @@ const TraderPositionView = () => {
   );
 
   const isInitialLoading =
-    !resolvedPosition && (isPositionLoading || isProfileLoading);
+    !displayPosition &&
+    !isBlockedPerpPosition &&
+    (isPositionLoading || isProfileLoading);
   const hasFailed =
-    !resolvedPosition && !isPositionLoading && !isProfileLoading;
+    isBlockedPerpPosition ||
+    (!displayPosition && !isPositionLoading && !isProfileLoading);
 
   const {
     scrollY: scrollYShared,
@@ -665,7 +676,7 @@ const TraderPositionView = () => {
                   >
                     <TraderTokenInfoRow
                       symbol={symbol}
-                      position={resolvedPosition}
+                      position={displayPosition}
                       marketCap={marketCap}
                       currentPrice={currentPrice}
                       pricePercentChange={displayPercentChange}
@@ -775,9 +786,9 @@ const TraderPositionView = () => {
             </Animated.View>
           </View>
 
-          {isPerp && resolvedPosition ? (
+          {isPerp && displayPosition ? (
             <PerpsTradeButton
-              symbol={resolvedPosition.tokenSymbol}
+              symbol={displayPosition.tokenSymbol}
               onTrade={handlePerpTrade}
               testID={TraderPositionViewSelectorsIDs.TRADE_BUTTON}
             />
@@ -797,7 +808,7 @@ const TraderPositionView = () => {
 
               <TraderPositionQuickBuy
                 isVisible={isQuickBuyVisible}
-                position={resolvedPosition ?? null}
+                position={displayPosition ?? null}
                 onClose={handleQuickBuyClose}
                 traderAddress={traderAddress}
                 marketCap={
