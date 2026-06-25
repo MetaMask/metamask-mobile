@@ -1074,6 +1074,15 @@ describe('usePayWithCryptoSection', () => {
   });
 
   describe('no-fee token row', () => {
+    beforeEach(() => {
+      // No-fee tokens only surface for Money Account flows. Default these tests
+      // to a Money Account deposit; cases that need a different flow override it.
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: TransactionType.moneyAccountDeposit,
+        txParams: {},
+      } as never);
+    });
+
     it('renders no-fee token row when noFeeToken is available', () => {
       const noFeeTokenMock = {
         address: '0xnoFee' as Hex,
@@ -1321,5 +1330,40 @@ describe('usePayWithCryptoSection', () => {
       );
       expect(hasTag(selectedRow, NO_FEE_TAG_SENTINEL)).toBe(true);
     });
+
+    it.each([
+      ['perps deposit', TransactionType.perpsDeposit],
+      ['predict deposit', TransactionType.predictDeposit],
+    ])(
+      'does not render no-fee row or tags for %s',
+      (_label, transactionType) => {
+        isNoFeeTokenSharedMock.mockReturnValue(true);
+        usePayWithNoFeeTokenMock.mockReturnValue({
+          noFeeToken: {
+            address: '0xnoFee' as Hex,
+            chainId: '0x1' as Hex,
+            symbol: 'USDT',
+            balanceUsd: '10',
+          },
+          isNoFeeToken: isNoFeeTokenSharedMock,
+          renderNoFeeTag: jest.fn().mockReturnValue(null),
+          renderNoFeeTagForToken: renderNoFeeTagForTokenSharedMock,
+        });
+        useTransactionMetadataRequestMock.mockReturnValue({
+          type: transactionType,
+          txParams: {},
+        } as never);
+
+        const { result } = renderHook(() => usePayWithCryptoSection());
+
+        expect(
+          result.current?.rows.find((row) => row.id === 'crypto-no-fee-token'),
+        ).toBeUndefined();
+        for (const row of result.current?.rows ?? []) {
+          if (row.id === 'crypto-other-assets') continue;
+          expect(hasTag(row, NO_FEE_TAG_SENTINEL)).toBe(false);
+        }
+      },
+    );
   });
 });
