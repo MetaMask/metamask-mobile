@@ -51,11 +51,13 @@ import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
 import {
   TokenDetailsSource,
+  TokenDetailsAction,
   type TokenDetailsRouteParams,
   type TokenDetailsExitAction,
 } from '../constants/constants';
 import { useTokenActions } from '../hooks/useTokenActions';
 import { useTokenBalance } from '../hooks/useTokenBalance';
+import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
@@ -302,6 +304,13 @@ const TokenDetails: React.FC<{
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token, { calculateUsdBalance: true });
 
+  const hasBalanceValue = Boolean(balance) && balance !== '0';
+  const trackActionTapped = useTokenDetailsActionTracking({
+    token,
+    hasBalance: hasBalanceValue,
+    severity: securityData?.resultType,
+  });
+
   const { onBuy, onSend, onReceive } = useTokenActions({
     token,
     networkName,
@@ -404,6 +413,8 @@ const TokenDetails: React.FC<{
   return (
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
+        token={token}
+        securityData={securityData}
         onBackPress={() => navigation.goBack()}
         onSharePress={handleShare}
         onPriceAlertPress={
@@ -416,6 +427,9 @@ const TokenDetails: React.FC<{
         }
         iconColor={ambientIconColor}
         useAmbientColor={useAmbientColor}
+        onCopyAddress={() =>
+          trackActionTapped(TokenDetailsAction.CopyTokenAddress)
+        }
       />
 
       {txLoading ? (

@@ -33,10 +33,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { TransactionDetailDivider } from '../../../../Views/confirmations/components/activity/transaction-detail-divider/transaction-detail-divider';
 import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
-import {
-  TokenIcon,
-  TokenIconVariant,
-} from '../../../../Views/confirmations/components/token-icon';
 import useNetworkInfo from '../../../../Views/confirmations/hooks/useNetworkInfo';
 import Name from '../../../Name/Name';
 import { NameType } from '../../../Name/Name.types';
@@ -63,6 +59,7 @@ const iconStyles = StyleSheet.create({
     justifyContent: 'center' as const,
   },
   moneyIcon: { width: 32, height: 32 },
+  heroMoneyIcon: { width: 32, height: 32, borderRadius: 16 },
 });
 
 /**
@@ -159,11 +156,7 @@ function MoneyApiActivityDetailsContent({
   return (
     <View style={styles.wrapper}>
       <HeaderStandard
-        title={strings(
-          isCard
-            ? 'money.api_activity_details.card_title'
-            : 'money.api_activity_details.cashback_title',
-        )}
+        title={display.label}
         onBack={handleBack}
         backButtonProps={{ testID: 'card-transaction-details-back-button' }}
         includesTopInset
@@ -184,11 +177,10 @@ function MoneyApiActivityDetailsContent({
               alignItems={AlignItems.center}
               gap={12}
             >
-              <TokenIcon
-                chainId={activity.chainId}
-                address={activity.token.address}
-                symbol={activity.token.symbol}
-                variant={TokenIconVariant.Hero}
+              <Image
+                source={MoneyIcon}
+                style={iconStyles.heroMoneyIcon}
+                testID="money-account-hero-icon"
               />
               <Text
                 variant={TextVariant.DisplayMD}
@@ -238,11 +230,10 @@ function MoneyApiActivityDetailsContent({
             </TransactionDetailsRow>
           ) : null}
 
-          {/* Counterparty. Card spends are framed as leaving the money account
-              ("To: Money account"); musdback shows the actual sender. */}
+          {/* Card spends show the source account only; merchant is not surfaced yet. */}
           {isCard ? (
             <TransactionDetailsRow
-              label={strings('transaction_details.label.to')}
+              label={strings('transaction_details.label.from')}
             >
               <Box
                 flexDirection={FlexDirection.Row}

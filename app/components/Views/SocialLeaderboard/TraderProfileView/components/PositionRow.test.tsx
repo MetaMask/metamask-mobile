@@ -70,6 +70,13 @@ describe('PositionRow', () => {
     expect(screen.getByText('1.50B STARKBOT')).toBeOnTheScreen();
   });
 
+  it('renders last trade date instead of token amount when showTradeDate is set', () => {
+    renderWithProvider(<PositionRow position={basePosition} showTradeDate />);
+
+    expect(screen.getByText('Apr 15 at 2:00 pm')).toBeOnTheScreen();
+    expect(screen.queryByText('1.50B STARKBOT')).toBeNull();
+  });
+
   it('renders current value formatted as USD on the top-right', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
     expect(screen.getByText('$2,259.96')).toBeOnTheScreen();
