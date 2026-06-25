@@ -31,13 +31,13 @@ export function createBatchTrackingStrategy(
   // ── Helpers ───────────────────────────────────────────────────
 
   function shouldIgnoreBatchEvent(meta: TransactionMeta): boolean {
+    const batchId = meta.batchId;
+
     if (currentBatchId === undefined) return false; // Initial: accept all
     if (currentBatchId === null) {
-      const batchId = meta.batchId;
       if (batchId && staleBatchIds.has(batchId)) return true;
       return false;
     }
-    const batchId = meta.batchId;
     if (batchId && staleBatchIds.has(batchId)) return true;
     if (batchId && batchId !== currentBatchId) return true;
     return false;
