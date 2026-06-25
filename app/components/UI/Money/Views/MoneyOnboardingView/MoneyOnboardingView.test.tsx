@@ -366,14 +366,39 @@ describe('MoneyOnboardingView', () => {
   });
 
   describe('Rive errors', () => {
-    it('redirects to Money home when Rive reports load error', () => {
-      const riveError = {
-        message: 'Unable to load artboard',
-        type: 'IncorrectArtboardName',
-      };
+    const riveError = {
+      message: 'Unable to load artboard',
+      type: 'IncorrectArtboardName',
+    };
+
+    const renderAndTriggerRiveError = () => {
       render(<MoneyOnboardingView />);
 
       mockOnError(riveError);
+    };
+
+    it('redirects to Money home when Rive reports error', () => {
+      renderAndTriggerRiveError();
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+    });
+
+    it('dispatches onboarding seen when Rive reports error so users are not shown onboarding again', () => {
+      renderAndTriggerRiveError();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'SET_MONEY_ONBOARDING_SEEN',
+          payload: { seen: true },
+        }),
+      );
+    });
+
+    it('logs when Rive reports error', () => {
+      renderAndTriggerRiveError();
 
       expect(Logger.error).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -381,10 +406,6 @@ describe('MoneyOnboardingView', () => {
             'MoneyOnboardingView: Rive error: Unable to load artboard - IncorrectArtboardName',
         }),
       );
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
-        screen: Routes.MONEY.ROOT,
-        params: { screen: Routes.MONEY.HOME },
-      });
     });
   });
 

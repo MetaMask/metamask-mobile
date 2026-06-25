@@ -426,9 +426,10 @@ const MoneyOnboardingView = () => {
           `MoneyOnboardingView: Rive error: ${riveError.message} - ${riveError.type}`,
         ),
       );
+      dispatch(setMoneyOnboardingSeen(true));
       navigateToMoneyHome();
     },
-    [navigateToMoneyHome],
+    [dispatch, navigateToMoneyHome],
   );
 
   return (
