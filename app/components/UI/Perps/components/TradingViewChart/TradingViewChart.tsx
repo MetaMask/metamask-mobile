@@ -11,9 +11,10 @@ import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../../component-library/hooks';
 import { styleSheet } from './TradingViewChart.styles';
-import { type CandleData } from '@metamask/perps-controller';
+import { type CandleData, PERPS_CONSTANTS } from '@metamask/perps-controller';
 import { TradingViewChartSelectorsIDs } from '../../Perps.testIds';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import { Platform } from 'react-native';
 import { LIGHTWEIGHT_CHARTS_LIBRARY } from '../../../../../lib/lightweight-charts/LightweightChartsLib';
@@ -303,6 +304,35 @@ const TradingViewChart = React.forwardRef<
               );
               onNeedMoreHistory?.();
               break;
+            case 'CHART_ERROR': {
+              const chartError = new Error(
+                `TradingViewChart WebView error: ${message.message}`,
+              );
+              DevLogger.log('TradingViewChart: CHART_ERROR from WebView', {
+                message: message.message,
+                timestamp: message.timestamp,
+              });
+              Logger.error(chartError, {
+                tags: {
+                  feature: PERPS_CONSTANTS.FeatureName,
+                  component: 'TradingViewChart',
+                },
+                context: {
+                  name: 'webview_chart_error',
+                  data: {
+                    operation: 'createChart',
+                    errorMessage: message.message,
+                  },
+                },
+              });
+              break;
+            }
+            case 'DEBUG':
+              DevLogger.log('TradingViewChart: WebView DEBUG', {
+                message: message.message,
+                timestamp: message.timestamp,
+              });
+              break;
             default:
               break;
           }
@@ -585,13 +615,15 @@ const TradingViewChart = React.forwardRef<
         // Increment this version number to force WebView remount and HTML reload
         // when making incompatible changes to TradingViewChartTemplate.tsx
         //
-        // Current version: v21 (fixed y-axis spacing and debug borders)
+        // Current version: v22 (iOS layout fix: deferred chart creation until
+        //   container has non-zero dimensions via bounded rAF retry; added
+        //   window.innerWidth/Height fallback; surface CHART_ERROR/DEBUG to RN)
         //
         // Future improvement: Consider using a content hash of the template
         // for automatic cache busting: key={`chart-webview-${templateHash}`}
         //
         // Note: HTML content is already memoized and regenerates on theme/coloredVolume changes
-        key="chart-webview-v21"
+        key="chart-webview-v22"
         ref={webViewRef}
         source={{ html: htmlContent }}
         style={[styles.webView, { height, width: '100%' }]} // eslint-disable-line react-native/no-inline-styles

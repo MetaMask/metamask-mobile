@@ -456,9 +456,13 @@ export const createTradingViewChartTemplate = (
             try {
                 // Create chart with theme applied via template literals
                 const container = document.getElementById('container');
+                // Fallback to window dimensions when container hasn't been laid out yet
+                // (common on iOS WKWebView where the script executes before layout is stable)
+                const width = (container && container.clientWidth) || window.innerWidth;
+                const height = (container && container.clientHeight) || window.innerHeight;
                 window.chart = LightweightCharts.createChart(container, {
-                    width: container.clientWidth,
-                    height: container.clientHeight,
+                    width,
+                    height,
                     layout: {
                         background: {
                             color: 'transparent'
@@ -679,6 +683,13 @@ export const createTradingViewChartTemplate = (
                 window.setupEdgeDetection();
             } catch (error) {
                 console.error('TradingView: Error creating chart:', error);
+                if (window.ReactNativeWebView) {
+                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                        type: 'CHART_ERROR',
+                        message: String(error && error.message ? error.message : error),
+                        timestamp: new Date().toISOString()
+                    }));
+                }
             }
         }
         // Create candlestick series when data is received
@@ -1680,9 +1691,30 @@ export const createTradingViewChartTemplate = (
         document.addEventListener('message', function(event) {
             window.dispatchEvent(new MessageEvent('message', event));
         });
-        // Start loading after a small delay
-        // Library is already loaded inline, so start creating chart
-        createChart();
+        // Defer chart creation until the container has a stable non-zero layout.
+        // On iOS, WKWebView can execute the script before the container has been
+        // laid out, leaving clientWidth/clientHeight at 0. Retry up to 30 rAF
+        // frames (~500ms at 60fps) and then proceed regardless so we always call
+        // createChart() (the window.innerWidth fallback inside handles the zero case).
+        function createChartWhenReady(attempt) {
+            attempt = attempt || 0;
+            var container = document.getElementById('container');
+            var w = (container && container.clientWidth) || 0;
+            var h = (container && container.clientHeight) || 0;
+            if ((!w || !h) && attempt < 30) {
+                requestAnimationFrame(function () { createChartWhenReady(attempt + 1); });
+                return;
+            }
+            if (window.ReactNativeWebView) {
+                window.ReactNativeWebView.postMessage(JSON.stringify({
+                    type: 'DEBUG',
+                    message: 'createChartWhenReady attempt=' + attempt + ' containerW=' + w + ' containerH=' + h + ' innerW=' + window.innerWidth + ' innerH=' + window.innerHeight,
+                    timestamp: new Date().toISOString()
+                }));
+            }
+            createChart();
+        }
+        requestAnimationFrame(function () { createChartWhenReady(0); });
     </script>
 </body>
 </html>`;

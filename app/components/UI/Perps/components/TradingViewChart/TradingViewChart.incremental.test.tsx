@@ -14,6 +14,7 @@ import { render, act } from '@testing-library/react-native';
 import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
 import TradingViewChart from './TradingViewChart';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
 
 const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
@@ -65,6 +66,10 @@ jest.mock('../../../../../component-library/hooks', () => ({
 
 jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
+}));
+
+jest.mock('../../../../../util/Logger', () => ({
+  error: jest.fn(),
 }));
 
 jest.mock('../../Perps.testIds', () => ({
@@ -475,5 +480,84 @@ describe('TradingViewChart — incremental update routing', () => {
       );
     });
     expect(lastMessageType()).toBe('SET_CANDLESTICK_DATA');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// CHART_ERROR / DEBUG message handling
+// ---------------------------------------------------------------------------
+
+/** Fire a synthetic message into the component's onMessage handler. */
+function triggerWebViewMessage(
+  getByTestId: (id: string) => { props: Record<string, unknown> },
+  testID: string,
+  payload: object,
+) {
+  const webViewEl = getByTestId(`${testID}-webview`);
+  const onMessage = webViewEl.props.onMessage as (e: unknown) => void;
+  act(() => {
+    onMessage({
+      nativeEvent: { data: JSON.stringify(payload) },
+    });
+  });
+}
+
+describe('TradingViewChart — WebView diagnostic messages', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    jest.useFakeTimers();
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+  });
+
+  it('logs and reports CHART_ERROR to Logger.error when WebView posts CHART_ERROR', () => {
+    const testID = 'diagnostic-chart-error';
+    const { getByTestId } = render(<TradingViewChart testID={testID} />);
+
+    triggerWebViewMessage(getByTestId, testID, {
+      type: 'CHART_ERROR',
+      message: 'LightweightCharts: container has zero width',
+      timestamp: new Date().toISOString(),
+    });
+
+    // DevLogger should have been called with the error details
+    expect(DevLogger.log).toHaveBeenCalledWith(
+      'TradingViewChart: CHART_ERROR from WebView',
+      expect.objectContaining({
+        message: 'LightweightCharts: container has zero width',
+      }),
+    );
+
+    // Logger.error should have been called so the error reaches Sentry
+    expect(Logger.error).toHaveBeenCalledWith(
+      expect.any(Error),
+      expect.objectContaining({
+        tags: expect.objectContaining({ component: 'TradingViewChart' }),
+        context: expect.objectContaining({ name: 'webview_chart_error' }),
+      }),
+    );
+  });
+
+  it('logs DEBUG messages from WebView via DevLogger only (no Sentry)', () => {
+    const testID = 'diagnostic-debug';
+    const { getByTestId } = render(<TradingViewChart testID={testID} />);
+
+    triggerWebViewMessage(getByTestId, testID, {
+      type: 'DEBUG',
+      message: 'createChartWhenReady attempt=2 containerW=390 containerH=350',
+      timestamp: new Date().toISOString(),
+    });
+
+    expect(DevLogger.log).toHaveBeenCalledWith(
+      'TradingViewChart: WebView DEBUG',
+      expect.objectContaining({
+        message: 'createChartWhenReady attempt=2 containerW=390 containerH=350',
+      }),
+    );
+
+    // DEBUG messages must NOT be escalated to Sentry
+    expect(Logger.error).not.toHaveBeenCalled();
   });
 });
