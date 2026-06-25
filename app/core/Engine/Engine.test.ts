@@ -336,46 +336,6 @@ describe('Engine', () => {
     );
   });
 
-<<<<<<< HEAD
-  it('enables the RPC failover feature if the walletFrameworkRpcFailoverEnabled feature flag is already enabled', () => {
-    const state = {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          walletFrameworkRpcFailoverEnabled: true,
-        },
-        cacheTimestamp: 0,
-      },
-    };
-    const enableRpcFailoverSpy = jest.spyOn(
-      NetworkController.prototype,
-      'enableRpcFailover',
-    );
-=======
-  it('getSnapKeyring delegates to SnapAccountService.getLegacySnapKeyring', async () => {
-    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
-
-    jest
-      .spyOn(engine.context.SnapAccountService, 'getLegacySnapKeyring')
-      .mockResolvedValue(mockSnapKeyring as never);
-
-    const result = await engine.getSnapKeyring();
-
-    expect(result).toEqual(mockSnapKeyring);
-  });
-
-  it('getSnapKeyring propagates errors from SnapAccountService.getLegacySnapKeyring', async () => {
-    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-
-    jest
-      .spyOn(engine.context.SnapAccountService, 'getLegacySnapKeyring')
-      .mockRejectedValue(new Error('keyring unavailable'));
-
-    await expect(engine.getSnapKeyring()).rejects.toThrow(
-      'keyring unavailable',
-    );
-  });
-
   describe('RemoteFeatureFlagController startup fetch', () => {
     afterEach(() => {
       // `jest.mock` return values survive `restoreAllMocks()`, so reset the
@@ -386,7 +346,6 @@ describe('Engine', () => {
       mockRemoteFeatureFlagControllerModule.isRemoteFeatureFlagOverrideActivated = false;
       jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
     });
->>>>>>> main
 
     it('logs and skips the fetch when basic functionality is disabled', () => {
       // The selector is read twice per init (the RFFC instance-options builder
