@@ -117,26 +117,12 @@ interface OnboardingTextContent {
   footer: string;
 }
 
-type StepLayout = Readonly<
-  Record<number, Readonly<{ titleTopPct: number; footerBottomPct: number }>>
->;
+type StepLayout = Readonly<{ titleTopPct: number; footerBottomPct: number }>;
 
 const STEP_LAYOUT_PRESETS = {
-  small: {
-    0: { titleTopPct: 0.08, footerBottomPct: 0.1 },
-    1: { titleTopPct: 0.08, footerBottomPct: 0.1 },
-    2: { titleTopPct: 0.08, footerBottomPct: 0.1 },
-    3: { titleTopPct: 0.08, footerBottomPct: 0.1 },
-  },
-  default: {
-    0: { titleTopPct: 0.05, footerBottomPct: 0.1 },
-    1: { titleTopPct: 0.05, footerBottomPct: 0.1 },
-    2: { titleTopPct: 0.05, footerBottomPct: 0.1 },
-    3: { titleTopPct: 0.05, footerBottomPct: 0.1 },
-  },
+  small: { titleTopPct: 0.08, footerBottomPct: 0.1 },
+  default: { titleTopPct: 0.05, footerBottomPct: 0.1 },
 } as const satisfies Record<'small' | 'default', StepLayout>;
-
-const DEFAULT_STEP_LAYOUT = STEP_LAYOUT_PRESETS.default[0];
 
 const styles = StyleSheet.create({
   root: {
@@ -165,11 +151,9 @@ const styles = StyleSheet.create({
 const MoneyOnboardingTextOverlay = ({
   content,
   isVisible,
-  step,
 }: {
   content?: OnboardingTextContent;
   isVisible: boolean;
-  step: number;
 }) => {
   const insets = useSafeAreaInsets();
   const { height, width } = useWindowDimensions();
@@ -220,8 +204,6 @@ const MoneyOnboardingTextOverlay = ({
     return null;
   }
 
-  const layout = stepLayout[step] ?? DEFAULT_STEP_LAYOUT;
-
   return (
     <Animated.View
       pointerEvents="none"
@@ -231,7 +213,7 @@ const MoneyOnboardingTextOverlay = ({
         style={[
           styles.textGroup,
           {
-            top: insets.top + height * layout.titleTopPct,
+            top: insets.top + height * stepLayout.titleTopPct,
           },
         ]}
       >
@@ -263,7 +245,7 @@ const MoneyOnboardingTextOverlay = ({
           styles.footer,
           overlayTextPreset.footer,
           {
-            bottom: insets.bottom + height * layout.footerBottomPct,
+            bottom: insets.bottom + height * stepLayout.footerBottomPct,
           },
         ]}
         testID={MoneyOnboardingViewTestIds.OVERLAY_FOOTER}
@@ -467,7 +449,6 @@ const MoneyOnboardingView = () => {
       <MoneyOnboardingTextOverlay
         content={stepContent[overlayStep]}
         isVisible={Boolean(riveRef) && isOverlayVisible}
-        step={overlayStep}
       />
     </View>
   );
