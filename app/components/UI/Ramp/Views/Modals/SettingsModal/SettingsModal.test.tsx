@@ -10,7 +10,7 @@ import { ToastContext } from '../../../../../../component-library/components/Toa
 import {
   getProviderToken,
   resetProviderToken,
-} from '../../../Deposit/utils/ProviderTokenVault';
+} from '../../../utils/ProviderTokenVault';
 import { PROVIDER_LINKS } from '../../../Aggregator/types';
 import type { Provider } from '@metamask/ramps-controller';
 
@@ -72,7 +72,7 @@ const createMockTransakStagingProvider = (
   ...overrides,
 });
 
-jest.mock('../../../Deposit/utils/ProviderTokenVault', () => ({
+jest.mock('../../../utils/ProviderTokenVault', () => ({
   getProviderToken: jest.fn(),
   resetProviderToken: jest.fn(),
 }));

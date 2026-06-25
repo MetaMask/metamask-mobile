@@ -575,6 +575,7 @@
   },
   "ProfileMetricsController": {
     "initialEnqueueCompleted": false,
+    "proofBackfillEnqueued": false,
     "syncQueue": {}
   },
   "UserStorageController": {
@@ -672,6 +673,7 @@
     "assetExchangeRates": {},
     "batchSellTrades": null,
     "batchSellTradesLoadingStatus": null,
+    "inputPrimaryDenomination": "token_amount",
     "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
     "quoteRequest": [
@@ -828,7 +830,7 @@
     "countries": {
       "data": [],
       "selected": null,
-      "isLoading": false,
+      "isLoading": true,
       "error": null
     },
     "providerAutoSelected": false,
@@ -873,7 +875,15 @@
         }
       }
     },
-    "requests": {},
+    "requests": {
+      "getCountries:[]": {
+        "data": null,
+        "error": null,
+        "lastFetchedAt": 123,
+        "status": "loading",
+        "timestamp": 123
+      }
+    },
     "orders": [],
     "providerAutoSelected": false
   },

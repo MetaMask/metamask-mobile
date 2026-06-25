@@ -11,6 +11,8 @@ import {
 import { mockNetworkState } from '../../util/test/network';
 import { Hex, KnownCaipNamespace } from '@metamask/utils';
 import { KeyringControllerState } from '@metamask/keyring-controller';
+import { ClientConfigApiService } from '@metamask/remote-feature-flag-controller';
+import { ConnectivityController } from '@metamask/connectivity-controller';
 import { backupVault } from '../BackupVault';
 import { getVersion } from 'react-native-device-info';
 import { version as migrationVersion } from '../../store/migrations';
@@ -20,6 +22,8 @@ import configureStore from '../../util/test/configureStore';
 import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { isEmpty } from 'lodash';
 import { store } from '../../store';
+import Logger from '../../util/Logger';
+import { selectBasicFunctionalityEnabled } from '../../selectors/settings';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('7.44.0'),
@@ -56,6 +60,7 @@ jest.mock('../../store', () => ({
         },
       },
     })),
+    subscribe: jest.fn(),
   },
 }));
 jest.mock('../../selectors/smartTransactionsController', () => ({
@@ -94,10 +99,24 @@ jest.mock('@metamask/remote-feature-flag-controller', () => ({
   }),
 }));
 
+// `__esModule: true` lets the override test mutate
+// `isRemoteFeatureFlagOverrideActivated` live; interop would otherwise snapshot
+// the export. Other exports are preserved via `requireActual`.
+jest.mock('./controllers/remote-feature-flag-controller', () => ({
+  __esModule: true,
+  ...jest.requireActual('./controllers/remote-feature-flag-controller'),
+  isRemoteFeatureFlagOverrideActivated: false,
+}));
+const mockRemoteFeatureFlagControllerModule = jest.requireMock(
+  './controllers/remote-feature-flag-controller',
+) as { isRemoteFeatureFlagOverrideActivated: boolean };
+
 jest.mock('./utils', () => ({
   ...jest.requireActual('./utils'),
   rejectOriginApprovals: jest.fn(),
 }));
+
+const ClientConfigApiServiceMock = jest.mocked(ClientConfigApiService);
 
 describe('Engine', () => {
   // Create a shared mock account for tests
@@ -341,6 +360,203 @@ describe('Engine', () => {
     await expect(engine.getSnapKeyring()).rejects.toThrow(
       'keyring unavailable',
     );
+  });
+
+  describe('RemoteFeatureFlagController startup fetch', () => {
+    afterEach(() => {
+      // `jest.mock` return values survive `restoreAllMocks()`, so reset the
+      // ones these tests override back to their file-level defaults.
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: matches the file-level default shape.
+        .mockReturnValue({ remoteFeatureFlags: {}, cacheTimestamp: 0 });
+      mockRemoteFeatureFlagControllerModule.isRemoteFeatureFlagOverrideActivated = false;
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
+    });
+
+    it('logs and skips the fetch when basic functionality is disabled', () => {
+      // The selector is read twice per init (the RFFC instance-options builder
+      // seeds `disabled`, then the Engine startup gate re-reads it), so use a
+      // persistent return rather than `mockReturnValueOnce`.
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      const fetchRemoteFeatureFlags = jest.fn();
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({ fetchRemoteFeatureFlags });
+      const logSpy = jest.spyOn(Logger, 'log');
+
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(logSpy).toHaveBeenCalledWith('Feature flag controller disabled.');
+      expect(fetchRemoteFeatureFlags).not.toHaveBeenCalled();
+    });
+
+    it('logs and skips the fetch when the override is active', () => {
+      mockRemoteFeatureFlagControllerModule.isRemoteFeatureFlagOverrideActivated = true;
+      const fetchRemoteFeatureFlags = jest.fn();
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({ fetchRemoteFeatureFlags });
+      const logSpy = jest.spyOn(Logger, 'log');
+
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(logSpy).toHaveBeenCalledWith(
+        'Remote feature flags override activated.',
+      );
+      expect(fetchRemoteFeatureFlags).not.toHaveBeenCalled();
+    });
+
+    it('logs success after the startup fetch resolves', async () => {
+      (Date.now as jest.Mock).mockReturnValue(1000000);
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({
+          fetchRemoteFeatureFlags: jest.fn().mockResolvedValue({
+            remoteFeatureFlags: {},
+            cacheTimestamp: 1,
+          }),
+        });
+      const logSpy = jest.spyOn(Logger, 'log');
+
+      Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {},
+          cacheTimestamp: 0,
+        },
+      });
+
+      while (
+        !logSpy.mock.calls.some(
+          ([message]) => message === 'Feature flags updated',
+        )
+      ) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 50));
+      }
+
+      expect(logSpy).toHaveBeenCalledWith('Feature flags updated');
+    });
+
+    it('logs failure when the startup fetch rejects', async () => {
+      (Date.now as jest.Mock).mockReturnValue(1000000);
+      const fetchError = new Error('Network error');
+      ClientConfigApiServiceMock
+        // @ts-expect-error Partial service: only `fetchRemoteFeatureFlags` is needed.
+        .mockReturnValue({
+          fetchRemoteFeatureFlags: jest.fn().mockRejectedValue(fetchError),
+        });
+      const logSpy = jest.spyOn(Logger, 'log');
+
+      Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: {},
+          cacheTimestamp: 0,
+        },
+      });
+
+      while (
+        !logSpy.mock.calls.some(
+          ([message]) => message === 'Feature flags update failed: ',
+        )
+      ) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 50));
+      }
+
+      expect(logSpy).toHaveBeenCalledWith(
+        'Feature flags update failed: ',
+        fetchError,
+      );
+    });
+
+    it('clears cached remote flags when basic functionality is disabled at init', () => {
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: { otaUpdatesEnabled: true },
+          rawRemoteFeatureFlags: { otaUpdatesEnabled: true },
+          localOverrides: { testOverride: true },
+          cacheTimestamp: 123,
+        },
+      });
+      const controller = engine.context.RemoteFeatureFlagController;
+
+      expect(controller.state).toEqual(
+        expect.objectContaining({
+          remoteFeatureFlags: {},
+          rawRemoteFeatureFlags: {},
+          localOverrides: { testOverride: true },
+          cacheTimestamp: 0,
+        }),
+      );
+    });
+
+    it('subscribes to basic functionality changes', () => {
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(store.subscribe).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('syncs controller when basic functionality changes', () => {
+      jest.mocked(store.subscribe).mockClear();
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: { otaUpdatesEnabled: true },
+          rawRemoteFeatureFlags: { otaUpdatesEnabled: true },
+          cacheTimestamp: 123,
+        },
+      });
+      const subscribeCallback = jest.mocked(store.subscribe).mock
+        .calls[0][0] as () => void;
+      const controller = engine.context.RemoteFeatureFlagController;
+      const disableSpy = jest.spyOn(controller, 'disable');
+
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      subscribeCallback();
+
+      expect(disableSpy).toHaveBeenCalled();
+      expect(controller.state).toEqual(
+        expect.objectContaining({
+          remoteFeatureFlags: {},
+          rawRemoteFeatureFlags: {},
+          cacheTimestamp: 0,
+        }),
+      );
+    });
+  });
+
+  describe('ConnectivityController startup seeding', () => {
+    it('seeds the initial connectivity status via init() on startup', () => {
+      const initSpy = jest
+        .spyOn(ConnectivityController.prototype, 'init')
+        .mockResolvedValue(undefined);
+
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(initSpy).toHaveBeenCalled();
+    });
+
+    it('logs an error when the startup init() rejects', async () => {
+      const initError = new Error('netinfo unavailable');
+      jest
+        .spyOn(ConnectivityController.prototype, 'init')
+        .mockRejectedValue(initError);
+      const errorSpy = jest.spyOn(Logger, 'error');
+
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      while (
+        !errorSpy.mock.calls.some(
+          ([, message]) =>
+            message === 'ConnectivityController: failed to initialize',
+        )
+      ) {
+        await new Promise<void>((resolve) => setTimeout(resolve, 50));
+      }
+
+      expect(errorSpy).toHaveBeenCalledWith(
+        initError,
+        'ConnectivityController: failed to initialize',
+      );
+    });
   });
 
   describe('getTotalEvmFiatAccountBalance', () => {

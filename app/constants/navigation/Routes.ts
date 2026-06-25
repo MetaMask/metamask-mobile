@@ -156,7 +156,6 @@ const Routes = {
     ROOT_MODAL_FLOW: 'RootModalFlow',
     MODAL_CONFIRMATION: 'ModalConfirmation',
     MODAL_MANDATORY: 'ModalMandatory',
-    WHATS_NEW: 'WhatsNewModal',
     TURN_OFF_REMEMBER_ME: 'TurnOffRememberMeModal',
     UPDATE_NEEDED: 'UpdateNeededModal',
     SRP_REVEAL_QUIZ: 'SRPRevealQuiz',
@@ -275,6 +274,7 @@ const Routes = {
     SUCCESS_ERROR_SHEET: 'SuccessErrorSheet',
     ELIGIBILITY_FAILED_MODAL: 'EligibilityFailedModal',
     UNSUPPORTED_REGION_MODAL: 'UnsupportedRegionModal',
+    RAMPS_SERVICE_DISRUPTION_MODAL: 'RampsServiceDisruptionModal',
     MULTICHAIN_TRANSACTION_DETAILS: 'MultichainTransactionDetails',
     TRANSACTION_DETAILS: 'TransactionDetailsSheet',
     IMPORT_WALLET_TIP: 'ImportWalletTipSheet',
@@ -556,6 +556,7 @@ const Routes = {
       VIEW_PIN: 'CardViewPinModal',
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
       WAITLIST_FORM: 'CardWaitlistFormModal',
+      FORGOT_PASSWORD: 'CardForgotPasswordModal',
     },
   },
   SEND: {

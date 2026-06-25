@@ -1,5 +1,7 @@
 export const ActivityListSelectorsIDs = {
   CONTAINER: 'activity-list',
+  LOADING_INDICATOR: 'activity-list-loading',
+  LOAD_MORE_INDICATOR: 'activity-list-load-more',
 } as const;
 
 export const activityListRowItemTestId = (index: number): string =>
