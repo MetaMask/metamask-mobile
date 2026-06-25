@@ -151,7 +151,13 @@ function main() {
 
   const aabs = findProdReleaseAab();
   lines.push('');
-  if (aabs.length !== 1) {
+  if (aabs.length === 0) {
+    // AAB is only built for production. Non-production environments (rc, beta, etc.)
+    // distribute via APK — bundletool validation is not applicable here.
+    lines.push(
+      '*bundletool validate* — skipped (_no AAB produced for this environment — production only_).',
+    );
+  } else if (aabs.length !== 1) {
     anyFail = true;
     lines.push(
       `*bundletool validate* — skipped (_expected exactly one .aab in prodRelease, found ${aabs.length}._)`,

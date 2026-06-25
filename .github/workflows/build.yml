@@ -480,9 +480,9 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Prod Play–shaped Android: lint merged prodRelease manifest, then validate the AAB produced above (bundletool).
-      # Only for production builds (AAB is now skipped for all non-prod envs in build.sh).
-      # Mirrors former ci.yml android-play-store-manifest-check without a second bundle.
+      # Android Play Store checks: Gradle lint (all main release builds) + bundletool AAB validation (production only).
+      # The lint + Slack report run for every main release build so RC gets Slack feedback.
+      # bundletool cache is gated on production because non-prod builds don't produce an AAB.
       - name: Cache bundletool (Android Play bundle validation)
         id: bundletool-cache-play-check
         if: >-
@@ -501,8 +501,7 @@ jobs:
           success() &&
           matrix.platform == 'android' &&
           env.CONFIGURATION != 'Debug' &&
-          env.METAMASK_BUILD_TYPE == 'main' &&
-          env.METAMASK_ENVIRONMENT == 'production'
+          env.METAMASK_BUILD_TYPE == 'main'
         env:
           SENTRY_DISABLE_AUTO_UPLOAD: true
         run: node scripts/android-play-store-check-slack.mjs
@@ -513,8 +512,7 @@ jobs:
           matrix.platform == 'android' &&
           inputs.build_name == 'main-rc' &&
           env.CONFIGURATION != 'Debug' &&
-          env.METAMASK_BUILD_TYPE == 'main' &&
-          env.METAMASK_ENVIRONMENT == 'production'
+          env.METAMASK_BUILD_TYPE == 'main'
         uses: actions/upload-artifact@v4
         with:
           name: android-play-store-check-slack
