@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.82.1]
+
+### Added
+
+- Added support for Predict the Pitch campaign deeplink (#32266)
+
 ## [7.82.0]
 
 ### Added
@@ -33,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show card transactions in money account activity list (#31088)
 - Added a post-trade swap modal flow behind an A/B test (#30841)
 - Excluded RWA and Ondo tokenized assets from Batch Sell source token selection (#31096)
-- Added Products section with category pills to Perps home screen and expanded market category filters to include Pre-IPO,  Indices, and ETFs (#31058)
+- Added Products section with category pills to Perps home screen and expanded market category filters to include Pre-IPO, Indices, and ETFs (#31058)
 - Perps market search now matches full market names and keywords — e.g. searching "bitcoin" finds BTC (and BCH), "tesla" finds TSLA, "spacex" finds SPCX. (#31537)
 - Add TDP origin from explore search (#31165)
 - Add result count instrumentation to explore search: (#31155)
@@ -146,6 +152,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Reduced false-positive RPC connection banners — single-provider outages no longer pop the banner, even when many popular networks fail at once.(#31047)
 - Update analytic events (#30069)
 - Updated the Spending Limit spend-and-earn promo card copy, styling, and Link card CTA to match the Money account design. (#30709)
+- Updated the Sei native token icon to Sei's maroon token mark. (#31038)
+- Updated the Sei network and token logo to Sei's new brand mark. (#30892)
+- Show even zero APY values on money home (#30630)
+- chore(pure-black): use background.section for bottom sheets that disappear against pure black (#30411)
 
 ### Fixed
 
@@ -157,7 +167,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed an issue where Card login and session data was retained after resetting the app, leaving the user still logged in to the Card.(#31579)
 - QuickBuy now stays on the current screen after you tap Buy and shows pending, complete, and failed swap toasts (including for slow cross-chain swaps). (#31073)
 - Fixed a bug that destination token to be reset upon source token change. (#31577)
-- Fixed incorrect fiat balances shown in the Sell (off-ramp) flow when the selected asset was on a different network than  the globally selected one. (#30869)
+- Fixed incorrect fiat balances shown in the Sell (off-ramp) flow when the selected asset was on a different network than the globally selected one. (#30869)
 - Fixed the AI Market Insights page showing Long/Short trade buttons when a perps market is at its open interest cap. (#31194)
 - Fix add money with pending transaction bug (#31143)
 - Remove inconsistencies on token import flow (#30791)
@@ -175,7 +185,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added Solana, Tron and Bitcoin network options to the Quick Buy receive view (#31457)
 - Fixed QuickBuy showing duplicate transaction toasts for smart-account and gas-included trades (#31462)
 - Fixed QuickBuy so selling a token no longer lists or defaults the receive token to the same token; the sold token is removed from the receive options and the default is now the chain's native token (e.g. selling USDC on Base defaults to ETH). (#31469)
-- Fixed a bug where selling your entire balance of a token in QuickBuy could be incorrectly blocked with an "Insufficient  funds" error. (#31450)
+- Fixed a bug where selling your entire balance of a token in QuickBuy could be incorrectly blocked with an "Insufficient funds" error. (#31450)
 - Fixed Ledger signing not appearing on device after app relaunch when the device was previously disconnected (#30920)
 - Fixed back swipe not rejecting confirmation transactions on full-screen confirmations (#31451)
 - Polished the Money account screens (FAQs heading, button and divider spacing, light-blue "No fee" tag, full-screen card education) and fixed a flicker of the "How it works" section when
@@ -210,7 +220,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Show transfers in the money account account activity list (#30537)
 - Added the client version to the transaction metadata (#30726)
 - Improve UX around when toasts are shown for requests made via MetaMask Connect (#30702)
-- Updated the homepage to hide the NFTs section when users have no NFTs and added import token, import NFT, and contact  support actions. (#30593)
+- Updated the homepage to hide the NFTs section when users have no NFTs and added import token, import NFT, and contact support actions. (#30593)
 - Improved the wallet home onboarding **Trade** step to open swaps with sensible default tokens (mUSD→ETH or ETH→BTC) when the user has matching mainnet balances. (#30697)
 - Added haptic feedback to the Trade button in the What's Happening detail card. (#30669)
 - Improved Money balance refresh reliability after deposits/withdrawals and added clearer unavailable/retry states on Money screens. (#30650)
@@ -224,16 +234,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added in-app toasts for Money Account deposit and withdrawal transactions, including a "Try again" action when a transaction fails.(#30420)
 - Fixed order type bottom sheet dismissal incorrectly closing the order screen (#30561)
 - Refactored the Money onboarding stepper; created generic StepperCard and SegmentedProgressBar component (#30226)
-
-### Changed
-
-- Updated the Sei native token icon to Sei's maroon token mark. (#31038)
-- Updated the Sei network and token logo to Sei's new brand mark. (#30892)
-- Show even zero APY values on money home (#30630)
-- chore(pure-black): use background.section for bottom sheets that disappear against pure black (#30411)
-
-### Fixed
-
 - Fixed token balances not updating immediately after a swap when the unified assets state is enabled. (#31091)
 - Fixed a crash during social login onboarding when completing wallet creation (#31076)
 - Added an "Earn up to X% APY" prompt on the Money account input screen empty state. (#31064)
@@ -12214,7 +12214,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.82.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.82.1...HEAD
+[7.82.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.82.0...v7.82.1
 [7.82.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.81.2...v7.82.0
 [7.81.2]: https://github.com/MetaMask/metamask-mobile/compare/v7.81.1...v7.81.2
 [7.81.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.81.0...v7.81.1

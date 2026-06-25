@@ -1094,6 +1094,7 @@
       "twitter_link": "View on X (Twitter)",
       "sort": {
         "value": "Value",
+        "top_trades": "Top Trades",
         "pnl_percent": "P&L %",
         "recent": "Recent"
       }
@@ -2368,11 +2369,15 @@
       "predictions_title": "World Cup predictions",
       "banner_title": "World Cup 2026",
       "banner_description": "Trade every match, every moment.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "All",
         "props": "Props",
-        "live": "Live"
+        "live": "Live",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Group Stage",
         "round_of_32": "Round of 32",
@@ -2503,6 +2508,7 @@
       "soccer_anytime_goalscorer": "Goalscorers",
       "soccer_exact_score": "Exact Score",
       "soccer_halftime_result": "Halftime Result",
+      "soccer_first_to_score": "First Team to Score",
       "total_corners": "Corners",
       "tennis_set_totals": "Total Sets",
       "tennis_set_handicap": "Set Handicap",
@@ -3539,6 +3545,8 @@
       "wallet_activity_desc": "Buy, sells, transfers, swaps and rewards",
       "perps_title": "Trading Activity",
       "perps_desc": "Perps position changes, liquidations, funding rates, and margin updates",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "Trading Signals",
       "social_ai_desc": "Updates from traders and assets you follow, plus currated market news",
       "marketing_title": "Updates and Rewards",
@@ -6026,6 +6034,11 @@
     "unsupported_region_modal": {
       "title": "Unavailable in your region",
       "description": "Buying crypto isn't available in your region due to limitations with local payment providers or regulatory restrictions.",
+      "got_it": "Got it"
+    },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
       "got_it": "Got it"
     },
     "region": {
@@ -9043,7 +9056,10 @@
       "referee_contact_support": "Contact support",
       "referee_priority_support_disclaimer": "By contacting priority support you will connect your wallet.",
       "referral_tag_label": "VIP",
-      "last_updated": "Last updated: {{time}}"
+      "last_updated": "Last updated: {{time}}",
+      "swaps_volume_info_label": "Swaps volume information",
+      "swaps_volume_info_title": "Swaps volume",
+      "swaps_volume_info_description": "Your swaps volume updates once per day, so recent swaps may take up to 24 hours to appear here."
     },
     "referral_title": "Referrals",
     "referral_stats_earned_from_referrals": "Earned from referrals",
@@ -9598,17 +9614,6 @@
       "predict_withdraw": "Withdrawal",
       "money_account_deposit": "Deposit to Money Account",
       "money_account_withdraw": "Transfer from Money Account",
-      "money_account_sent": "Sent {{symbol}}",
-      "money_account_received": "Received",
-      "deposited_musd": "Deposited mUSD",
-      "depositing_musd": "Depositing mUSD",
-      "deposit_failed": "Deposit failed",
-      "sent": "Sent",
-      "sending_musd": "Sending mUSD",
-      "send_failed": "Send failed",
-      "converted_to_musd": "Converted to mUSD",
-      "converting_to_musd": "Converting to mUSD",
-      "conversion_failed": "Conversion failed",
       "default": "Transaction details"
     },
     "label": {

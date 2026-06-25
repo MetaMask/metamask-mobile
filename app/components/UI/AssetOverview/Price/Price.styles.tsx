@@ -18,12 +18,6 @@ const styleSheet = (params: { theme: Theme }) =>
     stockBadge: {
       marginLeft: 8,
     },
-    loadingPrice: {
-      paddingTop: 8,
-    },
-    loadingPriceDiff: {
-      paddingTop: 2,
-    },
     chartContainer: {
       width: '100%',
       alignSelf: 'stretch',

@@ -45,8 +45,8 @@ jest.mock('@react-navigation/native', () => ({
   StackActions: { push: jest.fn() },
 }));
 
-jest.mock('@react-navigation/stack', () => ({
-  ...jest.requireActual('@react-navigation/stack'),
+jest.mock('@react-navigation/native-stack', () => ({
+  ...jest.requireActual('@react-navigation/native-stack'),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
