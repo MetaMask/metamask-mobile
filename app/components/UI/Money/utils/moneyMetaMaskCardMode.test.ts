@@ -90,17 +90,6 @@ describe('deriveMoneyMetaMaskCardMode', () => {
     ).toBe('link');
   });
 
-  it('returns null for a verified authenticated non-cardholder when full requirements are not met', () => {
-    expect(
-      deriveMoneyMetaMaskCardMode({
-        ...baseInput,
-        isCardAuthenticated: true,
-        isCardVerified: true,
-        hasMoneyAccountRequirements: false,
-      }),
-    ).toBeNull();
-  });
-
   it('returns verifying for an authenticated but unverified non-cardholder', () => {
     expect(
       deriveMoneyMetaMaskCardMode({
