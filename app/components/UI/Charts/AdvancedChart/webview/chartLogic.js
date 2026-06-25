@@ -668,7 +668,7 @@ function isOwnStringKey(key) {
  * Indicators that render in a dedicated pane below the main series.
  * Keep in sync with SUB_PANE_INDICATORS in TokenDetails constants.
  */
-var SUB_PANE_INDICATOR_NAMES = { MACD: true, RSI: true };
+const SUB_PANE_INDICATOR_NAMES = { MACD: true, RSI: true };
 
 function isSubPaneIndicator(name) {
   return isOwnStringKey(name) && SUB_PANE_INDICATOR_NAMES[name] === true;
@@ -676,7 +676,7 @@ function isSubPaneIndicator(name) {
 
 function hasActiveSubPaneIndicators() {
   if (!window.activeStudies) return false;
-  var found = false;
+  let found = false;
   window.activeStudies.forEach(function (_studyId, name) {
     if (isSubPaneIndicator(name)) found = true;
   });
