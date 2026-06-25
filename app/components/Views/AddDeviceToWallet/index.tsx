@@ -216,6 +216,12 @@ const AddDeviceToWallet = () => {
             {strings('app_settings.add_device.scan_qr_code_button')}
           </Button>
 
+          {presentation === 'error' && error?.message ? (
+            <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+              {error.message}
+            </Text>
+          ) : null}
+
           {__DEV__ ? (
             <Box
               backgroundColor={BoxBackgroundColor.BackgroundSection}
@@ -246,14 +252,6 @@ const AddDeviceToWallet = () => {
                   returnKeyType: 'done',
                 }}
               />
-              {presentation === 'error' && error?.message ? (
-                <Text
-                  variant={TextVariant.BodySm}
-                  color={TextColor.ErrorDefault}
-                >
-                  {error.message}
-                </Text>
-              ) : null}
               <Button
                 twClassName="w-full"
                 onPress={triggerManualQrSubmit}
