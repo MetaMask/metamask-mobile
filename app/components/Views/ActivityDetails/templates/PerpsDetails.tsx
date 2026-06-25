@@ -174,13 +174,13 @@ function OrderDetails({
 }) {
   const order = transaction.order;
   const handleTryAgain = useTradeAgain(transaction.asset);
-  const { totalFee, protocolFee, metamaskFee } = usePerpsOrderFees({
-    orderType: order?.type ?? 'market',
-    amount: order?.size ?? '0',
-  });
   const shouldShowTryAgain =
     item.status === 'cancelled' || item.status === 'failed';
   const isFilled = item.status === 'success';
+  const { totalFee, protocolFee, metamaskFee } = usePerpsOrderFees({
+    orderType: order?.type ?? 'market',
+    amount: isFilled ? (order?.size ?? '0') : '0',
+  });
 
   return (
     <ActivityDetailsTemplateFrame

@@ -49,10 +49,9 @@ export function PredictProviderActivityDetails({
   const isBuy = entry.type === 'buy';
   const isSell = entry.type === 'sell';
   const amount = formatCurrencyValue(entry.amount, { showSign: !isBuy });
-  const netPnlNumeric = isSell
-    ? (activity.netPnlUsd ?? entry.amount)
-    : activity.netPnlUsd;
-  const netPnlValue = isSell
+  const netPnlNumeric = isSell ? activity.netPnlUsd : undefined;
+  const hasNetPnl = typeof netPnlNumeric === 'number';
+  const netPnlValue = hasNetPnl
     ? formatCurrencyValue(netPnlNumeric, { showSign: true })
     : undefined;
   const isNegativeNetPnl =
@@ -120,7 +119,7 @@ export function PredictProviderActivityDetails({
             amount={signedClaimAmount}
             title={activity.title}
           />
-        ) : isSell ? (
+        ) : isSell && hasNetPnl ? (
           <ActivityDetailSection>
             <ActivityDetailRow
               label={strings('predict.transactions.net_pnl')}

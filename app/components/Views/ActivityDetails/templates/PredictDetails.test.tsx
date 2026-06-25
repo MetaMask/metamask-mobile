@@ -132,6 +132,39 @@ describe('PredictDetails', () => {
     expect(queryByTestId('activity-details-amount-header')).toBeNull();
   });
 
+  it('omits the Net P&L row for a sell when the provider does not supply net P&L', () => {
+    const { getByText, queryByText } = renderWithProvider(
+      <PredictDetails
+        item={predictItem({
+          type: 'predictionCashedOut',
+          raw: {
+            type: 'predictActivity',
+            data: {
+              id: 'predict-2b',
+              providerId: 'polymarket',
+              title: 'Will the Denver Broncos win the AFC West?',
+              outcome: 'Yes',
+              icon: 'https://example.com/broncos.png',
+              entry: {
+                type: 'sell',
+                timestamp: 1_765_361_640,
+                marketId: 'market-1',
+                outcomeId: 'outcome-1',
+                outcomeTokenId: 1,
+                amount: 10,
+                price: 0.7,
+              },
+            },
+          },
+        })}
+      />,
+    );
+
+    expect(getByText('Shares sold')).toBeOnTheScreen();
+    expect(queryByText('Net P&L')).toBeNull();
+    expect(queryByText('+$10.00')).toBeNull();
+  });
+
   it('renders claimed winnings total and available market payout row', () => {
     const { getAllByText, getByText } = renderWithProvider(
       <PredictDetails
