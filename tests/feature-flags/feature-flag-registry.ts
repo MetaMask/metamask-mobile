@@ -4224,6 +4224,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  rampsServiceDisruptionModal: {
+    name: 'rampsServiceDisruptionModal',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      regions: [],
+      minimumVersion: '8.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   rewardsAnnouncementModalEnabled: {
     name: 'rewardsAnnouncementModalEnabled',
     type: FeatureFlagType.Remote,

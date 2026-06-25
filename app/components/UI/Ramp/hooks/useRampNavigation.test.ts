@@ -12,6 +12,7 @@ import { RampType as AggregatorRampType } from '../Aggregator/types';
 import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
+import { createRampsServiceDisruptionModalNavigationDetails } from '../components/RampsServiceDisruptionModal/RampsServiceDisruptionModal';
 
 const mockSetSelectedToken = jest.fn();
 let mockTokens: { allTokens: unknown[]; topTokens: unknown[] } | undefined;
@@ -464,6 +465,102 @@ describe('useRampNavigation', () => {
             ...unsupportedNavDetails,
           );
         });
+      });
+    });
+
+    describe('service disruption routing', () => {
+      beforeEach(() => {
+        mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+      });
+
+      it('navigates to RampsServiceDisruptionModal when a service disruption covers the user region', async () => {
+        mockUserRegion = supportedUserRegion; // regionCode 'us-ca'
+        const { result } = renderUseRampNavigation({
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: { rampsServiceDisruptionModal: ['us-ca'] },
+              },
+            },
+          },
+        });
+
+        await result.current.goToBuy();
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          ...createRampsServiceDisruptionModalNavigationDetails(),
+        );
+      });
+
+      it('does not block when the service disruption list does not cover the region', async () => {
+        mockUserRegion = supportedUserRegion; // 'us-ca'
+        const { result } = renderUseRampNavigation({
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: { rampsServiceDisruptionModal: ['fr'] },
+              },
+            },
+          },
+        });
+
+        await result.current.goToBuy();
+
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          ...createRampsServiceDisruptionModalNavigationDetails(),
+        );
+        // falls through to TokenSelection (no assetId intent)
+        expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.TOKEN_SELECTION);
+      });
+
+      it('blocks the deprecated override/aggregator path during a service disruption', async () => {
+        mockUserRegion = supportedUserRegion; // 'us-ca'
+        const { result } = renderUseRampNavigation({
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: { rampsServiceDisruptionModal: ['us-ca'] },
+              },
+            },
+          },
+        });
+
+        await result.current.goToBuy(undefined, {
+          overrideUnifiedRouting: true,
+        });
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          ...createRampsServiceDisruptionModalNavigationDetails(),
+        );
+        expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
+      });
+
+      it('shows the service disruption modal over the eligibility modal when geolocation is unknown but the region is in service disruption', async () => {
+        mockUserRegion = {
+          regionCode: 'in',
+          country: { isoCode: 'IN', supported: { buy: true, sell: true } },
+          state: null,
+        } as unknown as UserRegion;
+        mockRefreshGeolocation.mockResolvedValue('UNKNOWN');
+        const { result } = renderUseRampNavigation({
+          engine: {
+            backgroundState: {
+              GeolocationController: { location: 'UNKNOWN' },
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: { rampsServiceDisruptionModal: ['in'] },
+              },
+            },
+          },
+        });
+
+        await result.current.goToBuy();
+
+        expect(mockNavigate).toHaveBeenCalledWith(
+          ...createRampsServiceDisruptionModalNavigationDetails(),
+        );
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          ...createEligibilityFailedModalNavigationDetails(),
+        );
       });
     });
 
