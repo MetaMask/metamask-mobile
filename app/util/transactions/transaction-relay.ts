@@ -34,7 +34,6 @@ export interface RelayWaitResponse {
   errorReason?: string;
   status: string;
   transactionHash?: Hex;
-  uuid?: string;
 }
 
 export enum RelayStatus {
