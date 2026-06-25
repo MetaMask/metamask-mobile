@@ -640,7 +640,7 @@ describe('moneyAccountTransactions', () => {
       );
     });
 
-    it('encodes minimumAssets as amount - 1 for defense-in-depth', async () => {
+    it('encodes minimumAssets as amount - 10 for defense-in-depth', async () => {
       mockGetRate.mockResolvedValue(ethers.BigNumber.from('1000000'));
 
       const amount = BigInt(1_960_000);
@@ -654,7 +654,7 @@ describe('moneyAccountTransactions', () => {
         provider: MOCK_PROVIDER,
       });
 
-      // Decode withdraw calldata to verify minimumAssets = amount - 1
+      // Decode withdraw calldata to verify minimumAssets = amount - 10
       const iface = new ethers.utils.Interface([
         'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
       ]);
@@ -663,7 +663,7 @@ describe('moneyAccountTransactions', () => {
         result.withdrawTx.params.data,
       );
       const encodedMinimumAssets = BigInt(decoded.minimumAssets.toString());
-      expect(encodedMinimumAssets).toBe(amount - 1n);
+      expect(encodedMinimumAssets).toBe(amount - 10n);
     });
 
     it('encodes minimumAssets as 0 when amount is 0 (placeholder batch)', async () => {

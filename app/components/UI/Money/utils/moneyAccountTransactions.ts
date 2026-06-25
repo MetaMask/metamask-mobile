@@ -469,16 +469,16 @@ export async function buildMoneyAccountWithdrawBatch({
           amount,
           await getVaultRate({ accountantAddress, provider }),
         );
-  // Allow 1-unit slippage on minimumAssets as defense-in-depth against
+  // Allow 10-unit slippage on minimumAssets as defense-in-depth against
   // rounding: the contract's mulDivDown can truncate assetsOut by up to
-  // 1 unit relative to the requested amount. This tolerance is safe
+  // 10 units relative to the requested amount. This tolerance is safe
   // because ceiling division in getSharesForWithdrawal already guarantees
-  // assetsOut >= amount; the 1-unit slack here is a second line of
+  // assetsOut >= amount; the 10-unit slack here is a second line of
   // defense, not a standalone fix. The subsequent ERC-20 transfer uses
   // the original `amount`, so the tolerance does not affect how much the
   // user receives — it only prevents a spurious revert from the teller's
   // MinimumAssetsNotMet check.
-  const minimumAssets = amount > 0n ? amount - 1n : 0n;
+  const minimumAssets = amount > 0n ? amount - 10n : 0n;
   const withdrawData = buildWithdrawData(
     musdAddress,
     shareAmount,
