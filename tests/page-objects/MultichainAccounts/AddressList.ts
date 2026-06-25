@@ -1,7 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { AddressListIds } from '../../../app/components/Views/MultichainAccounts/AddressList/AddressList.testIds';
-import { MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID } from '../../../app/component-library/components-temp/MultichainAccounts/MultichainAddressRow/MultichainAddressRow.constants';
 import {
   EncapsulatedElementType,
   asPlaywrightElement,
@@ -12,6 +11,10 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+
+/** Mirrors MultichainAddressRow.constants — inlined to avoid RN design-system imports in e2e. */
+const MULTICHAIN_ADDRESS_ROW_NETWORK_NAME_TEST_ID =
+  'multichain-address-row-network-name';
 
 class AddressList {
   get backButton(): EncapsulatedElementType {
