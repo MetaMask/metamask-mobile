@@ -254,7 +254,11 @@ export function useTraderPositionData(
   const [perpCache, setPerpCache] = useState<{
     key: string;
     prices: Partial<Record<TimePeriod, TokenPrice[]>>;
-  }>({ key: '', prices: {} });
+    // Candle limit each period was fetched with. A later, earlier trade grows the
+    // required limit, so a period is refetched when its cached limit no longer
+    // covers it (see the pre-fetch effect).
+    limits: Partial<Record<TimePeriod, number>>;
+  }>({ key: '', prices: {}, limits: {} });
   const [isPricesLoading, setIsPricesLoading] = useState(true);
 
   // Latest cache mirrored into a ref so the pre-fetch effect can read it WITHOUT
@@ -342,12 +346,17 @@ export function useTraderPositionData(
   // their trades. The cache is scoped by `perpKey` so a stale-position result is
   // ignored, not flashed.
   //
-  // Re-runs when `positionParam` gets a new reference (e.g. pull-to-refresh), so
-  // periods that already hold NON-EMPTY candles are skipped: a transient failure
-  // (which resolves to `[]`) must not overwrite good data — the loading gate
-  // treats a cached empty array as "loaded", which would otherwise strand the
-  // chart on the empty/fallback state. Empty or missing periods are still
-  // (re)fetched so a prior failure can recover on the next refresh.
+  // Re-runs when `positionParam` gets a new reference (e.g. pull-to-refresh) or
+  // `earliestTradeMs` changes. A period is skipped only when it already holds
+  // NON-EMPTY candles fetched with a limit that still covers the required
+  // look-back. Two reasons NOT to skip:
+  //   1. An earlier trade (e.g. the fetched position replacing the row-tap
+  //      snapshot) grows the required `limit`, so the cached shorter window must
+  //      be refetched or the older trade can't be framed/drawn.
+  //   2. The period is empty/missing — retry so a prior failure can recover.
+  // A transient failure resolves to `[]`; the merge below refuses to overwrite
+  // good candles with it (the loading gate treats a cached empty array as
+  // "loaded", which would otherwise strand the chart on the fallback state).
   useEffect(() => {
     if (!positionParam || !isPerp) return;
 
@@ -355,12 +364,7 @@ export function useTraderPositionData(
     const nowMs = Date.now();
     const { tokenSymbol: perpSymbol } = positionParam;
 
-    // fetchHyperliquidHistoricalPrices never rejects (it logs + returns [] on
-    // failure), so an empty result is cached and we don't refetch in a loop.
     TIME_PERIODS.forEach((period) => {
-      const cached = perpCacheRef.current;
-      if (cached.key === perpKey && cached.prices[period]?.length) return;
-
       const { interval, baseLimit } = PERP_PERIOD_TO_CANDLES[period];
       const limit = resolveHyperliquidCandleLimit({
         interval,
@@ -369,6 +373,15 @@ export function useTraderPositionData(
         nowMs,
       });
 
+      const cached = perpCacheRef.current;
+      if (
+        cached.key === perpKey &&
+        cached.prices[period]?.length &&
+        (cached.limits[period] ?? 0) >= limit
+      ) {
+        return;
+      }
+
       fetchHyperliquidHistoricalPrices({
         symbol: perpSymbol,
         interval,
@@ -376,13 +389,23 @@ export function useTraderPositionData(
         nowMs,
       }).then((prices) => {
         if (cancelled) return;
-        setPerpCache((prev) => ({
-          key: perpKey,
-          prices:
-            prev.key === perpKey
+        setPerpCache((prev) => {
+          const samePos = prev.key === perpKey;
+          // Don't replace good candles with a transient empty result; leave the
+          // cached limit trailing so the next refresh retries the larger window.
+          if (samePos && prev.prices[period]?.length && !prices.length) {
+            return prev;
+          }
+          return {
+            key: perpKey,
+            prices: samePos
               ? { ...prev.prices, [period]: prices }
               : { [period]: prices },
-        }));
+            limits: samePos
+              ? { ...prev.limits, [period]: limit }
+              : { [period]: limit },
+          };
+        });
       });
     });
 

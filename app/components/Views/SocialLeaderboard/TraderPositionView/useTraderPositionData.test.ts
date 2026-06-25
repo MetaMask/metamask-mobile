@@ -128,4 +128,56 @@ describe('useTraderPositionData — perp candle pre-fetch', () => {
     // transient empty response therefore cannot overwrite the cached data.
     expect(mockFetchHyperliquid).toHaveBeenCalledTimes(5);
   });
+
+  it('refetches with a larger limit when an earlier trade extends the required window', async () => {
+    // resolveHyperliquidCandleLimit grows the limit from `nowMs - earliestTradeMs`,
+    // and the test harness pins Date.now() to a tiny value — push it forward so an
+    // old trade produces a meaningfully larger window. Restore the harness clock
+    // afterwards.
+    const savedNow = Date.now;
+    Date.now = () => 2_000_000_000_000; // ~2033
+    try {
+      mockFetchHyperliquid.mockResolvedValue([
+        ['1', 100],
+        ['2', 101],
+      ] as TokenPrice[]);
+
+      // Row-tap snapshot has no trades → each period uses its baseLimit.
+      const snapshot = { ...perpPosition, trades: [] } as unknown as Position;
+      const { rerender } = renderHook(
+        (position: Position) => useTraderPositionData(position),
+        { initialProps: snapshot },
+      );
+      await act(async () => {
+        await Promise.resolve();
+      });
+      expect(mockFetchHyperliquid).toHaveBeenCalledTimes(5);
+      const initialOneMinLimit = mockFetchHyperliquid.mock.calls.find(
+        ([opts]) => opts.interval === '1m',
+      )?.[0].limit as number;
+
+      // Fetched position (same market) arrives with a much older trade (~2001),
+      // growing the required candle window beyond what the cached candles cover.
+      const withOldTrade = {
+        ...perpPosition,
+        trades: [{ timestamp: 1_000_000_000_000 }],
+      } as unknown as Position;
+      rerender(withOldTrade);
+      await act(async () => {
+        await Promise.resolve();
+      });
+
+      // The fine-interval periods are refetched with a larger limit so the older
+      // trade can be framed — without this fix the cache skip would keep the
+      // shorter window and total calls would stay at 5.
+      expect(mockFetchHyperliquid.mock.calls.length).toBeGreaterThan(5);
+      const oneMinCalls = mockFetchHyperliquid.mock.calls.filter(
+        ([opts]) => opts.interval === '1m',
+      );
+      expect(oneMinCalls.length).toBeGreaterThanOrEqual(2);
+      expect(oneMinCalls.at(-1)?.[0].limit).toBeGreaterThan(initialOneMinLimit);
+    } finally {
+      Date.now = savedNow;
+    }
+  });
 });
