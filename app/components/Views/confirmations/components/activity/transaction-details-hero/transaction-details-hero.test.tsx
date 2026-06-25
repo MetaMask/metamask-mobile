@@ -627,7 +627,7 @@ describe('TransactionDetailsHero', () => {
       expect(getByText(/-1\.00/)).toBeDefined();
     });
 
-    it('falls back to tokenMeta amount when parent data is not decodable', () => {
+    it('shows fiat display when parent data is not decodable (no two-asset hero)', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -641,10 +641,10 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { getByText } = render();
+      const { queryByText, getByText } = render();
 
-      expect(getByText('You sent')).toBeDefined();
-      expect(getByText(/-77\.00 TST/)).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(getByText(/\$77/)).toBeDefined();
     });
   });
 });

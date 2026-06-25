@@ -37,6 +37,7 @@ import {
   selectConversionRateByChainId,
   selectCurrencyRates,
 } from '../../../../../../selectors/currencyRateController';
+import { selectContractExchangeRatesByChainId } from '../../../../../../selectors/tokenRatesController';
 import { RootState } from '../../../../../../reducers';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { TokenIcon } from '../../token-icon';
@@ -388,7 +389,6 @@ function useReceivedTokenData(
 
 function useSourceSentData(): TokenDisplayData | null {
   const { transactionMeta } = useTransactionDetails();
-  const tokenMeta = useTokenMeta(transactionMeta);
   const { metamaskPay, requiredTransactionIds } = transactionMeta;
   const { tokenAddress, chainId: sourceChainId } = metamaskPay ?? {};
 
@@ -399,6 +399,17 @@ function useSourceSentData(): TokenDisplayData | null {
 
   const childTransactions = useSelector((state: RootState) =>
     selectTransactionsByIds(state, requiredTransactionIds ?? []),
+  );
+
+  const sourceChainConversionRate = useSelector((state: RootState) =>
+    selectConversionRateByChainId(state, (sourceChainId ?? '0x0') as Hex),
+  );
+
+  const contractExchangeRates = useSelector((state: RootState) =>
+    selectContractExchangeRatesByChainId(
+      state,
+      (sourceChainId ?? '0x0') as Hex,
+    ),
   );
 
   if (!tokenAddress || !sourceChainId) {
@@ -436,11 +447,15 @@ function useSourceSentData(): TokenDisplayData | null {
     return { ...base, amount: parentAmount };
   }
 
-  // Fallback: use the received mUSD amount as an approximation when
-  // we have source token info but can't extract the exact sent amount
-  // (e.g. complex bridge calldata that isn't a simple ERC-20 transfer).
-  if (tokenMeta) {
-    return { ...base, amount: tokenMeta.amount };
+  const fiatDerivedAmount = extractSentAmountFromFiat(
+    metamaskPay,
+    sourceChainConversionRate,
+    tokenAddress as Hex,
+    sourceChainId as Hex,
+    contractExchangeRates,
+  );
+  if (fiatDerivedAmount) {
+    return { ...base, amount: fiatDerivedAmount };
   }
 
   return null;
@@ -475,6 +490,36 @@ function extractSentAmountFromParent(
   }
 
   return null;
+}
+
+function extractSentAmountFromFiat(
+  metamaskPay: TransactionMeta['metamaskPay'],
+  nativeConversionRate: number | null | undefined,
+  tokenAddress: Hex,
+  chainId: Hex,
+  contractExchangeRates: Record<string, { price: number }> | undefined,
+): string | null {
+  const totalFiat = metamaskPay?.totalFiat;
+  if (!totalFiat || !nativeConversionRate || nativeConversionRate === 0) {
+    return null;
+  }
+
+  const nativeTokenAddr = getNativeTokenAddress(chainId);
+  const isNative = tokenAddress.toLowerCase() === nativeTokenAddr.toLowerCase();
+
+  let tokenFiatRate: number;
+  if (isNative) {
+    tokenFiatRate = nativeConversionRate;
+  } else {
+    const contractRate = contractExchangeRates?.[tokenAddress]?.price ?? 0;
+    if (contractRate === 0) return null;
+    tokenFiatRate = nativeConversionRate * contractRate;
+  }
+
+  const tokenAmount = new BigNumber(totalFiat).dividedBy(tokenFiatRate);
+  if (tokenAmount.isNaN() || tokenAmount.isZero()) return null;
+
+  return tokenAmount.toFixed(tokenAmount.lt(0.01) ? 6 : 2);
 }
 
 function extractSentAmount(
