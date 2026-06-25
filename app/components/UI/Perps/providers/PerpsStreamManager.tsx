@@ -474,6 +474,26 @@ abstract class StreamChannel<T> {
   public abstract getSnapshot(): T | null;
 }
 
+/**
+ * Normalize a raw price update into the cached PriceUpdate shape, stamping a
+ * local receive timestamp. Shared by the price subscription callbacks so the
+ * field carry-through (including the required isTradable field) lives in one place.
+ */
+const mapToPriceUpdate = (update: PriceUpdate): PriceUpdate => ({
+  symbol: update.symbol,
+  price: update.price,
+  timestamp: Date.now(),
+  percentChange24h: update.percentChange24h,
+  bestBid: update.bestBid,
+  bestAsk: update.bestAsk,
+  spread: update.spread,
+  markPrice: update.markPrice,
+  funding: update.funding,
+  openInterest: update.openInterest,
+  volume24h: update.volume24h,
+  isTradable: update.isTradable,
+});
+
 // Specific channel for prices
 class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   private readonly symbols = new Set<string>();
@@ -523,20 +543,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         const priceMap: Record<string, PriceUpdate> = {};
         updates.forEach((update) => {
           // Map the update to PriceUpdate format
-          const priceUpdate: PriceUpdate = {
-            symbol: update.symbol,
-            price: update.price,
-            timestamp: Date.now(),
-            percentChange24h: update.percentChange24h,
-            bestBid: update.bestBid,
-            bestAsk: update.bestAsk,
-            spread: update.spread,
-            markPrice: update.markPrice,
-            funding: update.funding,
-            openInterest: update.openInterest,
-            volume24h: update.volume24h,
-            isTradable: update.isTradable,
-          };
+          const priceUpdate = mapToPriceUpdate(update);
           this.priceCache.set(update.symbol, priceUpdate);
           priceMap[update.symbol] = priceUpdate;
         });
@@ -668,20 +675,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           callback: (updates: PriceUpdate[]) => {
             const priceMap: Record<string, PriceUpdate> = {};
             updates.forEach((update) => {
-              const priceUpdate: PriceUpdate = {
-                symbol: update.symbol,
-                price: update.price,
-                timestamp: Date.now(),
-                percentChange24h: update.percentChange24h,
-                bestBid: update.bestBid,
-                bestAsk: update.bestAsk,
-                spread: update.spread,
-                markPrice: update.markPrice,
-                funding: update.funding,
-                openInterest: update.openInterest,
-                volume24h: update.volume24h,
-                isTradable: update.isTradable,
-              };
+              const priceUpdate = mapToPriceUpdate(update);
               this.priceCache.set(update.symbol, priceUpdate);
               priceMap[update.symbol] = priceUpdate;
             });
