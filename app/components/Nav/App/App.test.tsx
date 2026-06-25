@@ -76,6 +76,9 @@ jest.mock(
 );
 
 jest.mock('../../UI/Ramp/RampsBootstrap', () => () => null);
+jest.mock('../../UI/Ramp/components/RampsServiceDisruptionModal', () => () => (
+  <MockView testID="mock-ramps-service-disruption-modal" />
+));
 
 jest.mock('../../Views/Onboarding', () => () => (
   <MockView testID="mock-onboarding" />
@@ -2245,11 +2248,23 @@ describe('App', () => {
       });
     });
 
+    it('renders RampsServiceDisruptionModal sheet', async () => {
+      const { getByTestId } = renderAppWithModal(
+        Routes.SHEET.RAMPS_SERVICE_DISRUPTION_MODAL,
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId('mock-ramps-service-disruption-modal'),
+        ).toBeOnTheScreen();
+      });
+    });
+
     it('renders WalletActions modal', async () => {
       const { getByTestId } = renderAppWithModal(Routes.MODAL.WALLET_ACTIONS);
 
       await waitFor(() => {
-        expect(getByTestId('mock-wallet-actions')).toBeTruthy();
+        expect(getByTestId('mock-wallet-actions')).toBeOnTheScreen();
       });
     });
 
