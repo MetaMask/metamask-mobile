@@ -667,8 +667,8 @@ export type RootStackParamList = {
   PerpsPnlHeroCard: PerpsNavigationParamList['PerpsPnlHeroCard'];
   PerpsActivity: PerpsNavigationParamList['PerpsActivity'];
   PerpsOrderBook: PerpsNavigationParamList['PerpsOrderBook'];
-  PerpsModals: undefined;
-  PerpsClosePositionModals: undefined;
+  PerpsModals: PerpsNavigationParamList['PerpsModals'];
+  PerpsClosePositionModals: PerpsNavigationParamList['PerpsClosePositionModals'];
   PerpsQuoteExpiredModal: undefined;
   PerpsGTMModal: undefined;
   PerpsCloseAllPositions: undefined;

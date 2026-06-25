@@ -277,7 +277,7 @@ export type PerpsNavigationParamList = {
     action?: 'view' | 'edit' | 'cancel';
   };
   PerpsHIP3Debug: undefined;
-  PerpsClosePositionModals: undefined;
+  PerpsClosePositionModals: PerpsNestedNavigationParams | undefined;
   PerpsModals: PerpsNestedNavigationParams | undefined;
   PerpsQuoteExpiredModal: undefined;
   PerpsGTMModal: undefined;
