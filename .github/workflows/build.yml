@@ -249,11 +249,24 @@ jobs:
         with:
           name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
 
+      - name: Ensure zstd is available
+        shell: bash
+        run: |
+          if command -v zstd >/dev/null 2>&1; then
+            echo "✅ zstd present: $(zstd --version)"
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            echo "Installing zstd via Homebrew..."
+            brew install zstd
+          else
+            echo "Installing zstd via apt..."
+            sudo apt-get update -qq && sudo apt-get install -y -qq zstd
+          fi
+
       - name: Extract tarball (preserves symlinks)
         run: |
           echo "📦 Extracting tarball..."
-          tar -xzf node-modules-${{ matrix.platform }}.tar.gz
-          rm node-modules-${{ matrix.platform }}.tar.gz
+          tar --use-compress-program 'zstd -d' -xf node-modules-${{ matrix.platform }}.tar.zst
+          rm node-modules-${{ matrix.platform }}.tar.zst
           echo "✅ Tarball extracted"
 
       - name: Verify artifacts and symlinks
