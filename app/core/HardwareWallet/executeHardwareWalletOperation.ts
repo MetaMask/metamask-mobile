@@ -1,6 +1,5 @@
 import { getDeviceIdForAddress } from './helpers';
 import { isUserCancellation } from './errors';
-import Logger from '../../util/Logger';
 
 /**
  * Operation type accepted by {@link executeHardwareWalletOperation}.
@@ -95,12 +94,6 @@ export async function executeHardwareWalletOperation({
   try {
     const deviceId = await getDeviceIdForAddress(address);
     const isReady = await ensureDeviceReady(deviceId);
-
-    Logger.log('[HW-SendBundle] device ready check', {
-      address,
-      deviceId,
-      isReady,
-    });
 
     if (!isReady) {
       await rejectOnce();
