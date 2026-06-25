@@ -23,7 +23,7 @@ const mockedStorageWrapper = jest.mocked(StorageWrapper);
 
 const PREFIX = 'rewards_campaign_reminder_subscribed::';
 
-const arrangeStorage = (entries: Record<string, string>) => {
+const arrangeStorage = (entries: Record<string, string | null>) => {
   mockedStorageWrapper.getAllKeys.mockResolvedValue(Object.keys(entries));
   mockedStorageWrapper.getItemSync.mockImplementation(
     (key: string) => entries[key] ?? null,
@@ -47,18 +47,7 @@ describe('Migration 146: carry campaign reminder subscriptions from MMKV to Redu
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('returns state unchanged and skips storage when the rewards slice is absent', async () => {
-    const state = { engine: { backgroundState: {} } };
-    mockedEnsureValidState.mockReturnValue(true);
-
-    const migratedState = await migrate(state);
-
-    expect(migratedState).toStrictEqual(state);
-    expect(mockedStorageWrapper.getAllKeys).not.toHaveBeenCalled();
-    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
-  });
-
-  it('carries subscribed reminders into Redux and deletes the legacy keys', async () => {
+  it('carries subscribed reminders into Redux and deletes the migrated keys', async () => {
     const state = {
       engine: { backgroundState: {} },
       rewards: { subscribedCampaignReminders: {} },
@@ -88,7 +77,40 @@ describe('Migration 146: carry campaign reminder subscriptions from MMKV to Redu
     expect(mockedCaptureException).not.toHaveBeenCalled();
   });
 
-  it('ignores legacy keys whose value is not the subscribed marker', async () => {
+  it('carries reminders over and creates the rewards slice when it is absent from persisted state', async () => {
+    const state = { engine: { backgroundState: {} } };
+    mockedEnsureValidState.mockReturnValue(true);
+    arrangeStorage({ [`${PREFIX}sub-1:camp-1`]: '1' });
+
+    const migratedState = (await migrate(state)) as {
+      rewards: { subscribedCampaignReminders: Record<string, boolean> };
+    };
+
+    expect(migratedState.rewards.subscribedCampaignReminders).toEqual({
+      'sub-1:camp-1': true,
+    });
+    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
+      `${PREFIX}sub-1:camp-1`,
+    );
+  });
+
+  it('does not delete a key (nor copy it) when its value cannot be read', async () => {
+    const state = {
+      engine: { backgroundState: {} },
+      rewards: { subscribedCampaignReminders: {} },
+    };
+    mockedEnsureValidState.mockReturnValue(true);
+    // getItemSync returns null on read failure even though the key exists.
+    arrangeStorage({ [`${PREFIX}sub-1:camp-1`]: null });
+
+    const migratedState = (await migrate(state)) as typeof state;
+
+    expect(migratedState.rewards.subscribedCampaignReminders).toEqual({});
+    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
+    expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('only deletes keys read as subscribed, leaving other-valued keys untouched', async () => {
     const state = {
       engine: { backgroundState: {} },
       rewards: { subscribedCampaignReminders: {} },
@@ -97,7 +119,7 @@ describe('Migration 146: carry campaign reminder subscriptions from MMKV to Redu
     arrangeStorage({
       [`${PREFIX}sub-1:camp-1`]: '1',
       [`${PREFIX}sub-3:camp-3`]: '0',
-      [`${PREFIX}sub-4:camp-4`]: '',
+      [`${PREFIX}sub-4:camp-4`]: null,
     });
 
     const migratedState = (await migrate(state)) as typeof state;
@@ -105,22 +127,31 @@ describe('Migration 146: carry campaign reminder subscriptions from MMKV to Redu
     expect(migratedState.rewards.subscribedCampaignReminders).toEqual({
       'sub-1:camp-1': true,
     });
-    // Every matching legacy key is cleaned up regardless of its value.
-    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledTimes(3);
+    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledTimes(1);
+    expect(mockedStorageWrapper.removeItem).toHaveBeenCalledWith(
+      `${PREFIX}sub-1:camp-1`,
+    );
   });
 
-  it('preserves reminders already present in Redux', async () => {
+  it('preserves reminders and other rewards fields already present in Redux', async () => {
     const state = {
       engine: { backgroundState: {} },
       rewards: {
+        balanceTotal: 123,
         subscribedCampaignReminders: { 'sub-existing:camp-existing': true },
       },
     };
     mockedEnsureValidState.mockReturnValue(true);
     arrangeStorage({ [`${PREFIX}sub-1:camp-1`]: '1' });
 
-    const migratedState = (await migrate(state)) as typeof state;
+    const migratedState = (await migrate(state)) as {
+      rewards: {
+        balanceTotal: number;
+        subscribedCampaignReminders: Record<string, boolean>;
+      };
+    };
 
+    expect(migratedState.rewards.balanceTotal).toBe(123);
     expect(migratedState.rewards.subscribedCampaignReminders).toEqual({
       'sub-existing:camp-existing': true,
       'sub-1:camp-1': true,
@@ -154,9 +185,22 @@ describe('Migration 146: carry campaign reminder subscriptions from MMKV to Redu
 
     const migratedState = (await migrate(state)) as typeof state;
 
+    expect(migratedState).toBe(state);
     expect(migratedState.rewards.subscribedCampaignReminders).toEqual({});
     expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
     expect(mockedCaptureException).not.toHaveBeenCalled();
+  });
+
+  it('does not fabricate a rewards slice when there is nothing to migrate', async () => {
+    const state = { engine: { backgroundState: {} } };
+    mockedEnsureValidState.mockReturnValue(true);
+    arrangeStorage({ [`${PREFIX}sub-1:camp-1`]: null });
+
+    const migratedState = (await migrate(state)) as Record<string, unknown>;
+
+    expect(migratedState).toBe(state);
+    expect(migratedState.rewards).toBeUndefined();
+    expect(mockedStorageWrapper.removeItem).not.toHaveBeenCalled();
   });
 
   it('still carries data over when an individual key deletion fails', async () => {
