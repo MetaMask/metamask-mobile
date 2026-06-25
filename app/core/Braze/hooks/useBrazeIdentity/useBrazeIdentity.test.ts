@@ -1,10 +1,10 @@
+import { waitFor } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { useBrazeIdentity } from './useBrazeIdentity';
 import { setBrazeUser, clearBrazeUser, refreshBrazeBanners } from '../..';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 
 jest.mock('../..', () => ({
-  ...jest.requireActual('../..'),
   setBrazeUser: jest.fn(),
   clearBrazeUser: jest.fn(),
   refreshBrazeBanners: jest.fn(),
@@ -50,12 +50,47 @@ describe('useBrazeIdentity', () => {
     expect(mockSetBrazeUser).not.toHaveBeenCalled();
   });
 
-  it('calls refreshBrazeBanners immediately on sign-in without waiting for setBrazeUser', () => {
+  it('waits for setBrazeUser before refreshing banners on sign-in', async () => {
+    let resolveSetBrazeUser: () => void = () => undefined;
+    mockSetBrazeUser.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveSetBrazeUser = resolve;
+      }),
+    );
+
     renderHookWithProvider(() => useBrazeIdentity(), {
       state: createState(true),
     });
 
-    expect(mockRefreshBrazeBanners).toHaveBeenCalledTimes(1);
+    expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
+
+    resolveSetBrazeUser();
+
+    await waitFor(() => {
+      expect(mockRefreshBrazeBanners).toHaveBeenCalledTimes(1);
+    });
+    expect(mockSetBrazeUser).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not refresh banners if the hook unmounts before setBrazeUser resolves', async () => {
+    let resolveSetBrazeUser: () => void = () => undefined;
+    mockSetBrazeUser.mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolveSetBrazeUser = resolve;
+      }),
+    );
+
+    const { unmount } = renderHookWithProvider(() => useBrazeIdentity(), {
+      state: createState(true),
+    });
+
+    unmount();
+    resolveSetBrazeUser();
+
+    await Promise.resolve();
+
+    expect(mockSetBrazeUser).toHaveBeenCalledTimes(1);
+    expect(mockRefreshBrazeBanners).not.toHaveBeenCalled();
   });
 
   it('does not call refreshBrazeBanners when not signed in', () => {

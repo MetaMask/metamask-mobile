@@ -9,6 +9,8 @@ import {
 } from '../../../core/Braze';
 import { setLastDismissedBrazeBanner } from '../../../reducers/banners';
 import { selectLastDismissedBrazeBanner } from '../../../selectors/banner';
+import Logger from '../../../util/Logger';
+import { isProduction } from '../../../util/environment';
 import { SKELETON_TIMEOUT_MS } from './BrazeBanner.constants';
 import {
   getRawStringOrImageProp,
@@ -47,6 +49,26 @@ const PROP_BODY = 'body';
 const PROP_IMAGE_URL = 'image_url';
 const PROP_CTA_LABEL = 'cta_label';
 const PROP_VARIANT_NAME = 'variant_name';
+
+function logBrazeBannerDebug(
+  message: string,
+  placementId: string,
+  banner: Banner | null,
+  extra: Record<string, unknown> = {},
+) {
+  if (isProduction()) return;
+
+  Logger.log(`[BrazeBanner] ${message}`, {
+    placementId,
+    campaignName: banner ? getRawStringProp(banner, PROP_BANNER_NAME) : null,
+    variantName: banner ? getRawStringProp(banner, PROP_VARIANT_NAME) : null,
+    bannerPlacementId: banner?.placementId ?? null,
+    isControl: banner?.isControl ?? null,
+    isTestSend: banner?.isTestSend ?? null,
+    hasBody: banner ? Boolean(getRawStringProp(banner, PROP_BODY)) : false,
+    ...extra,
+  });
+}
 
 /**
  * Drives the BrazeBanner state machine.
@@ -102,9 +124,21 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
 
       // null means no cached/available banner — stay in loading state and
       // wait for a bannerCardsUpdated event or the skeleton timeout.
-      if (candidate === null) return;
+      if (candidate === null) {
+        logBrazeBannerDebug(
+          'No candidate banner available yet',
+          placementId,
+          null,
+        );
+        return;
+      }
 
       if (candidate.isControl || candidate.placementId !== placementId) {
+        logBrazeBannerDebug(
+          'Ignoring control or mismatched placement banner',
+          placementId,
+          candidate,
+        );
         // Control-group assignment or no banner for this placement.
         clearNoResponseTimeout();
         setStatus('empty');
@@ -113,6 +147,11 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
 
       const body = getRawStringProp(candidate, PROP_BODY);
       if (!body) {
+        logBrazeBannerDebug(
+          'Ignoring banner without body',
+          placementId,
+          candidate,
+        );
         return; // wait for a meaningful banner
       }
 
@@ -121,10 +160,20 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         bannerName !== null &&
         bannerName === lastDismissedBrazeBannerRef.current
       ) {
+        logBrazeBannerDebug(
+          'Ignoring previously dismissed banner',
+          placementId,
+          candidate,
+        );
         // This banner was explicitly dismissed last session - skip it.
         return;
       }
 
+      logBrazeBannerDebug(
+        'Accepting banner for display',
+        placementId,
+        candidate,
+      );
       clearNoResponseTimeout();
       shownRef.current = true;
 
@@ -145,6 +194,7 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
     // placement (e.g. returning user), show it immediately without waiting for
     // the next `bannerCardsUpdated` event.
     getBannerForPlacement(placementId).then((result) => {
+      logBrazeBannerDebug('Warm-cache probe resolved', placementId, result);
       handleBanner(result);
     });
 
@@ -156,6 +206,16 @@ export function useBrazeBanner(placementId: string): UseBrazeBannerResult {
         const match = event.banners.find(
           (b) =>
             b.placementId === placementId && getRawStringProp(b, PROP_BODY),
+        );
+
+        logBrazeBannerDebug(
+          'bannerCardsUpdated received',
+          placementId,
+          match ?? null,
+          {
+            bannerCount: event.banners.length,
+            matched: Boolean(match),
+          },
         );
 
         if (match) {
