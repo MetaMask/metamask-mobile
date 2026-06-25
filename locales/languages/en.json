@@ -26,6 +26,9 @@
     "description_line2": "If you believe this is an error, contact support to request a review.",
     "contact_support": "Contact support"
   },
+  "storage": {
+    "device_full_alert": "Your device is low on storage. Free up space so MetaMask can save your wallet data."
+  },
   "alert_system": {
     "alert_modal": {
       "title": "Alert",
