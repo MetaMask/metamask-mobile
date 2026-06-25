@@ -597,6 +597,44 @@ describe('PerpsTPSLView', () => {
       );
     });
 
+    it('reports signed RoE percentages in tracking metadata for negative TP and gain-side SL', async () => {
+      const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
+      mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
+      renderView({
+        formState: {
+          ...defaultMockReturn.formState,
+          takeProfitPrice: '$2,850.00',
+          stopLossPrice: '$3,150.00',
+          takeProfitSign: '-',
+          stopLossSign: '+',
+        },
+        display: {
+          ...defaultMockReturn.display,
+          formattedTakeProfitPercentage: '10%',
+          formattedStopLossPercentage: '10%',
+        },
+        validation: {
+          ...defaultMockReturn.validation,
+          hasChanges: true,
+        },
+      });
+
+      const setButton = screen.getByText('perps.tpsl.set');
+      await act(async () => {
+        fireEvent.press(setButton);
+      });
+
+      expect(mockOnConfirm).toHaveBeenCalledWith(
+        undefined,
+        '2850.00',
+        '3150.00',
+        expect.objectContaining({
+          takeProfitPercentage: -10,
+          stopLossPercentage: 10,
+        }),
+      );
+    });
+
     it('calls onConfirm with undefined when values are empty', async () => {
       const mockOnConfirm = jest.fn().mockResolvedValue(undefined);
       mockRouteParams = { ...defaultRouteParams, onConfirm: mockOnConfirm };
