@@ -185,13 +185,30 @@ describe('getVedaTokenConfigFromFeatureFlag', () => {
     expect(config?.decimals).toBe(6);
   });
 
-  it('uses the chain key as the CAIP chain id', () => {
+  it('ignores veda tokens on non-Monad chains', () => {
+    expect(
+      getVedaTokenConfigFromFeatureFlag({
+        'eip155:59144': {
+          tokens: [{ symbol: 'veda', address: VEDA_ADDRESS, decimals: 6 }],
+        },
+      }),
+    ).toBeNull();
+  });
+
+  it('resolves the Monad veda row when veda is listed on multiple chains', () => {
     const config = getVedaTokenConfigFromFeatureFlag({
       'eip155:59144': {
+        tokens: [{ symbol: 'veda', address: USDC_ADDRESS, decimals: 6 }],
+      },
+      'eip155:143': {
         tokens: [{ symbol: 'veda', address: VEDA_ADDRESS, decimals: 6 }],
       },
     });
-    expect(config?.caipChainId).toBe('eip155:59144');
+    expect(config).toEqual({
+      caipChainId: 'eip155:143',
+      address: VEDA_ADDRESS,
+      decimals: 6,
+    });
   });
 });
 

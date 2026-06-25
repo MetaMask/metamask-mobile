@@ -3,6 +3,9 @@ import type { DelegationSettingsResponse } from '../types';
 
 export const MONEY_ACCOUNT_DELEGATION_NETWORK = 'monad';
 
+export const MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID =
+  'eip155:143' as CaipChainId;
+
 export const MONEY_ACCOUNT_DELEGATION_TOKEN_KEY = 'veda';
 
 export const MONEY_ACCOUNT_DISPLAY_SYMBOL = 'mUSD';
@@ -70,28 +73,24 @@ export const getVedaTokenConfigFromFeatureFlag = (
     | null
     | undefined,
 ): VedaTokenConfig | null => {
-  if (!chains) {
+  const vedaToken = (
+    chains?.[MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID]?.tokens ?? []
+  ).find(
+    (token) =>
+      token?.enabled !== false &&
+      !!token?.address &&
+      token.symbol?.toLowerCase() === MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
+  );
+
+  if (!vedaToken?.address) {
     return null;
   }
 
-  for (const [chainId, chain] of Object.entries(chains)) {
-    const vedaToken = (chain?.tokens ?? []).find(
-      (token) =>
-        token?.enabled !== false &&
-        !!token?.address &&
-        token.symbol?.toLowerCase() === MONEY_ACCOUNT_DELEGATION_TOKEN_KEY,
-    );
-
-    if (vedaToken?.address) {
-      return {
-        caipChainId: chainId as CaipChainId,
-        address: vedaToken.address,
-        decimals: vedaToken.decimals ?? 6,
-      };
-    }
-  }
-
-  return null;
+  return {
+    caipChainId: MONEY_ACCOUNT_DELEGATION_CAIP_CHAIN_ID,
+    address: vedaToken.address,
+    decimals: vedaToken.decimals ?? 6,
+  };
 };
 
 export const isVedaToken = (
