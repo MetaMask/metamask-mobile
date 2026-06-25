@@ -103,7 +103,7 @@
       "title": "資金不足"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "追加する額を減らすか、別の支払方法を使用してください。"
     },
     "insufficient_pay_token_native": {
       "message": "手数料の支払いに十分な{{ticker}}がありません。続行するには、別のネットワークのトークンを使用するか、{{ticker}}をさらに追加してください。",
@@ -1094,6 +1094,7 @@
       "twitter_link": "X (Twitter) で表示",
       "sort": {
         "value": "価値",
+        "top_trades": "Top Trades",
         "pnl_percent": "損益額 %",
         "recent": "最近"
       }
@@ -1132,6 +1133,8 @@
       "price_impact": "プライスインパクト",
       "est_points": "推定ポイント数",
       "no_quotes": "このトークンの見積もりはご利用いただけません",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "読み込み中...",
       "unavailable": "スワップはご利用いただけません",
       "unsupported_chain": "このチェーンはまだクイック購入に対応していません",
@@ -2367,11 +2370,15 @@
       "predictions_title": "ワールドカップ予測",
       "banner_title": "ワールドカップ2026",
       "banner_description": "あらゆる試合、あらゆる瞬間を取引できます。",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "すべて",
         "props": "プロップベット",
-        "live": "ライブ"
+        "live": "ライブ",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "グループステージ",
         "round_of_32": "ラウンド32",
@@ -3539,6 +3546,8 @@
       "wallet_activity_desc": "購入、売却、送金、スワップ、リワード",
       "perps_title": "取引アクティビティ",
       "perps_desc": "パーペチュアルポジションの変更、清算、入金レート、証拠金の最新情報",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "取引シグナル",
       "social_ai_desc": "フォローしているトレーダーと資産の最新情報、キュレートされたマーケットニュース",
       "marketing_title": "最新情報とRewards",
@@ -6028,6 +6037,11 @@
       "description": "お住まいの地域では、現地の決済サービス業者または規制上の制限により、暗号資産の購入はご利用いただけません。",
       "got_it": "了解"
     },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "了解"
+    },
     "region": {
       "buy_crypto_tokens": "クリプトトークンを購入",
       "sell_crypto_tokens": "クリプトトークンを売却",
@@ -7948,9 +7962,13 @@
       "rejected": "拒否されました",
       "reconnect": "再接続",
       "done": "完了",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "次のQRコードをスキャン",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "手順{{current}} / {{total}}：ウォレットに表示されているQRコードをスキャンします",
-      "scanner_last_step_text": "最終手順：ウォレットに表示されているQRコードをスキャンします"
+      "scanner_last_step_text": "最終手順：ウォレットに表示されているQRコードをスキャンします",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "プライスインパクト",
     "price_impact_info_description": "これは、取引によってトークンの市場価格がどのように変動するかを示しています。取引量、利用可能な流動性、プロバイダー手数料によって異なります。MetaMaskは価格への影響を制御することはできません。",
@@ -9600,17 +9618,6 @@
       "predict_withdraw": "出金",
       "money_account_deposit": "マネーアカウントに入金",
       "money_account_withdraw": "マネーアカウントから送金",
-      "money_account_sent": "{{symbol}}を送りました",
-      "money_account_received": "受け取りました",
-      "deposited_musd": "mUSDをデポジットしました",
-      "depositing_musd": "mUSDをデポジット中",
-      "deposit_failed": "デポジット失敗",
-      "sent": "送信済み",
-      "sending_musd": "mUSDを送金中",
-      "send_failed": "送金に失敗しました",
-      "converted_to_musd": "mUSDへの変換完了",
-      "converting_to_musd": "mUSDに変換中",
-      "conversion_failed": "換金に失敗しました",
       "default": "トランザクションの詳細"
     },
     "label": {
@@ -9659,6 +9666,24 @@
       "fiat_purchase": "{{paymentMethod}}で{{token}}を購入"
     },
     "perps_deposit_solution": "Arbitrumの残高が{{fiat}}のUSDCになりました。もう一度入金をお試しください。"
+  },
+  "activity_details": {
+    "status": "ステータス",
+    "date": "日付",
+    "account": "アカウント",
+    "from": "送り元",
+    "to": "送り先",
+    "network": "ネットワーク",
+    "transaction_id": "トランザクションID",
+    "network_fee": "ネットワーク手数料",
+    "bridge_fee": "ブリッジ手数料",
+    "transaction_fee": "トランザクション手数料",
+    "total_amount": "合計額",
+    "you_sent": "送金額",
+    "you_received": "受取額",
+    "view_on_block_explorer": "ブロックエクスプローラーで表示",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {
