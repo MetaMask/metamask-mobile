@@ -10,7 +10,6 @@ import messaging, {
 } from '@react-native-firebase/messaging';
 import { NativeModules, Platform } from 'react-native';
 import Logger from '../../../util/Logger';
-import { logPushEvent } from '../pushDebugLog';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { analytics } from '../../analytics/analytics';
 import { AnalyticsEventBuilder } from '../../analytics/AnalyticsEventBuilder';
@@ -150,14 +149,6 @@ async function processAndHandleNotification(
       : undefined;
 
     if (!data) {
-      logPushEvent(
-        'FCM_FOREGROUND_NO_DATA',
-        'Foreground message received but no data.data — dropped',
-        {
-          hasNotificationPayload: Boolean(payload.notification),
-          dataKeys: Object.keys(payload.data ?? {}),
-        },
-      );
       await platformHandler?.(payload);
       return;
     }
@@ -169,20 +160,8 @@ async function processAndHandleNotification(
 
     const notificationData = toRawAPINotification(data);
     const notification = processNotification(notificationData);
-    logPushEvent(
-      'FCM_FOREGROUND_PROCESSING',
-      `Foreground notification parsed: ${notification?.id}`,
-      { id: notification?.id, type: (notification as { type?: string })?.type },
-    );
     await handler(notification);
-    logPushEvent(
-      'FCM_FOREGROUND_DISPLAYED',
-      `Notification displayed: ${notification?.id}`,
-    );
   } catch (error) {
-    logPushEvent('FCM_FOREGROUND_ERROR', 'processAndHandleNotification threw', {
-      error: String(error),
-    });
     // Do Nothing, cannot parse a bad notification
     Logger.log('Unable to send push notification:', {
       notification: payload?.data?.data,
@@ -205,10 +184,6 @@ class FCMService {
     try {
       await registerForRemoteMessages();
       const fcmToken = await messaging().getToken();
-      logPushEvent(
-        'FCM_TOKEN_CREATED',
-        `Token registered (last 8): ...${fcmToken.slice(-8)}`,
-      );
       return fcmToken;
     } catch {
       return null;
@@ -252,11 +227,6 @@ class FCMService {
       // IOS - requires isHeadless injection and app modification to ship a minimal app when headless (https://rnfirebase.io/messaging/usage#background-application-state).
       // Android - will cause double notifications if a remote message contains both `notification` + `data` payloads
       // Firebase will still send push notifications in background + app kill as there is a `notification` payload in the remote message
-      logPushEvent(
-        'FCM_SETUP',
-        'listenToPushNotificationsReceived called',
-        { hasPlatformHandler: Boolean(platformHandler) },
-      );
       await this.#registerForegroundMessages(handler, platformHandler);
       return this.#hasRegisteredForeground;
     } catch {
@@ -286,16 +256,6 @@ class FCMService {
 
     try {
       this.#hasRegisteredForeground = messaging().onMessage(async (payload) => {
-        logPushEvent(
-          'FCM_FOREGROUND_RECEIVED',
-          'onMessage fired (app in foreground)',
-          {
-            hasNotification: Boolean(payload.notification),
-            hasDataData: Boolean(payload?.data?.data),
-            hasMetadata: Boolean(payload?.data?.metadata),
-            dataKeys: Object.keys(payload.data ?? {}),
-          },
-        );
         processAndHandleNotification(payload, handler, platformHandler);
       });
     } catch {
@@ -315,16 +275,6 @@ class FCMService {
   onClickPushNotificationWhenAppClosed = async () => {
     try {
       const remoteMessage = await getInitialNotification();
-      if (remoteMessage) {
-        logPushEvent(
-          'FCM_OPENED_FROM_KILLED',
-          'App opened from a notification (was killed)',
-          {
-            deeplink: remoteMessage?.data?.deeplink,
-            hasDataData: Boolean(remoteMessage?.data?.data),
-          },
-        );
-      }
       analyticsTrackPushClickEvent(remoteMessage);
       const deeplink = remoteMessage?.data?.deeplink?.toString();
       return deeplink;
@@ -339,14 +289,6 @@ class FCMService {
     try {
       messaging().onNotificationOpenedApp((remoteMessage) => {
         try {
-          logPushEvent(
-            'FCM_OPENED_FROM_BACKGROUND',
-            'App opened from a notification (was backgrounded)',
-            {
-              deeplink: remoteMessage?.data?.deeplink,
-              hasDataData: Boolean(remoteMessage?.data?.data),
-            },
-          );
           analyticsTrackPushClickEvent(remoteMessage);
           const deeplink = remoteMessage?.data?.deeplink?.toString();
           deeplinkCallback(deeplink);
