@@ -26,6 +26,12 @@ import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
 import { TransactionDetailsToRow } from '../transaction-details-to-row';
 import { TransactionDetailsFiatOrderIdRow } from '../transaction-details-fiat-order-id-row';
+import { resolveMusdTransferMeta } from '../../../../../UI/Money/constants/activityStyles';
+import {
+  isPerpsPredictMoneyDeposit,
+  isSingleRowMusdMoneyWithdraw,
+} from '../../../../../UI/Money/utils/moneyTransactionGuards';
+import { isMusdToken, MUSD_TOKEN } from '../../../../../UI/Earn/constants/musd';
 
 export const SUMMARY_SECTION_TYPES = [
   TransactionType.musdClaim,
@@ -37,6 +43,22 @@ export const SUMMARY_SECTION_TYPES = [
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];
+
+const MONEY_SEND_TYPES: TransactionType[] = [
+  TransactionType.moneyAccountWithdraw,
+  TransactionType.simpleSend,
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+  TransactionType.predictDeposit,
+  TransactionType.predictDepositAndOrder,
+];
+
+function isMoneySendTransaction(transactionMeta: TransactionMeta): boolean {
+  return (
+    hasTransactionType(transactionMeta, MONEY_SEND_TYPES) ||
+    isPerpsPredictMoneyDeposit(transactionMeta)
+  );
+}
 
 export function TransactionDetails() {
   const { styles } = useStyles(styleSheet, {});
@@ -103,7 +125,10 @@ function getTitle(
   ) {
     if (isMoneyContext) {
       const isFiatDeposit = Boolean(transactionMeta.metamaskPay?.fiat?.orderId);
-      return isFiatDeposit
+      const isMusdDeposit = isMusdToken(
+        transactionMeta.metamaskPay?.tokenAddress,
+      );
+      return isFiatDeposit || isMusdDeposit
         ? statusTitle(transactionMeta.status, {
             confirmed: 'transaction_details.title.deposited_musd',
             failed: 'transaction_details.title.deposit_failed',
@@ -118,6 +143,14 @@ function getTitle(
     return strings('transaction_details.title.money_account_deposit');
   }
 
+  if (isMoneyContext && isMoneySendTransaction(transactionMeta)) {
+    const symbol = isSingleRowMusdMoneyWithdraw(transactionMeta)
+      ? (resolveMusdTransferMeta(transactionMeta)?.symbol ?? MUSD_TOKEN.symbol)
+      : undefined;
+
+    return getMoneySendTitle(transactionMeta.status, symbol);
+  }
+
   if (
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
   ) {
@@ -129,13 +162,6 @@ function getTitle(
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    if (isMoneyContext) {
-      return statusTitle(transactionMeta.status, {
-        confirmed: 'transaction_details.title.sent',
-        failed: 'transaction_details.title.send_failed',
-        pending: 'transaction_details.title.sending_musd',
-      });
-    }
     return strings('transaction_details.title.predict_deposit');
   }
 
@@ -166,17 +192,23 @@ function getTitle(
     case TransactionType.musdClaim:
       return strings('transaction_details.title.musd_claim');
     case TransactionType.perpsDeposit:
-      if (isMoneyContext) {
-        return statusTitle(transactionMeta.status, {
-          confirmed: 'transaction_details.title.sent',
-          failed: 'transaction_details.title.send_failed',
-          pending: 'transaction_details.title.sending_musd',
-        });
-      }
       return strings('transaction_details.title.perps_deposit');
     default:
       return strings('transaction_details.title.default');
   }
+}
+
+function getMoneySendTitle(status: TransactionStatus, symbol?: string): string {
+  if (status === TransactionStatus.confirmed) {
+    return symbol
+      ? strings('transaction_details.title.money_account_sent', { symbol })
+      : strings('transaction_details.title.sent');
+  }
+  return statusTitle(status, {
+    confirmed: 'transaction_details.title.sent',
+    failed: 'transaction_details.title.send_failed',
+    pending: 'transaction_details.title.sending_musd',
+  });
 }
 
 function statusTitle(
