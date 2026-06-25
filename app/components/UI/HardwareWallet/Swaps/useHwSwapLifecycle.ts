@@ -37,6 +37,32 @@ import { type FlowStrategy, CancelTargetType } from './flowStrategy';
  */
 const SAFETY_NET_TIMEOUT_MS = 120_000;
 
+/** Flow is finished or was reset — no safety-net reconciliation needed. */
+function isHwSwapFlowInactive(
+  status: HardwareWalletsSwapsStatus,
+  stepCount: number,
+): boolean {
+  return (
+    status === HardwareWalletsSwapsStatus.Idle ||
+    stepCount === 0 ||
+    status === HardwareWalletsSwapsStatus.Submitted ||
+    status === HardwareWalletsSwapsStatus.Failed ||
+    status === HardwareWalletsSwapsStatus.Rejected ||
+    status === HardwareWalletsSwapsStatus.Cancelled
+  );
+}
+
+/** True when the safety-net timer should not be scheduled. */
+function shouldSkipSafetyNetScheduling(
+  status: HardwareWalletsSwapsStatus,
+  stepCount: number,
+): boolean {
+  return (
+    isHwSwapFlowInactive(status, stepCount) ||
+    status === HardwareWalletsSwapsStatus.Disconnected
+  );
+}
+
 interface UseHwSwapLifecycleInputs {
   strategy: FlowStrategy;
   /** Imperative device-readiness gate from `useHardwareWallet()`. Forwarded to submit. */
@@ -134,19 +160,34 @@ export function useHwSwapLifecycle({
   );
 
   // ── Flow termination ─────────────────────────────────────────────
-  const navigateOnSuccess = useCallback(() => {
+  const completeSignedFlow = useCallback(() => {
     if (hasAutoNavigatedRef.current) return;
     hasAutoNavigatedRef.current = true;
     completeHwSwapSuccess({ dispatch, navigation, toastRef });
   }, [dispatch, navigation, toastRef]);
 
-  // QR wallets navigate to activity from HwQrScanner on the last scan.
-  // Only reset stale progress state here — no toast or second navigation.
-  const cleanupAfterQrSuccess = useCallback(() => {
-    if (hasAutoNavigatedRef.current) return;
-    hasAutoNavigatedRef.current = true;
-    dispatch(resetHardwareWalletsSwaps());
-  }, [dispatch]);
+  const reconcileStuckFlowProgress = useCallback(() => {
+    const current = progressRef.current;
+    // Intentionally omitting Disconnected: if the device disconnected after
+    // signing completed, we still complete the flow below.
+    if (
+      isHwSwapFlowInactive(current.status, current.steps.length) ||
+      hasAutoNavigatedRef.current
+    ) {
+      return;
+    }
+
+    const resolution = reconcileStuckProgress(current.steps);
+    if (resolution.action === 'navigate') {
+      // All signed but status hasn't transitioned. QR wallets normally
+      // complete on the last HwQrScanner scan; when the user is still on
+      // progress/disconnected, finish here instead.
+      completeSignedFlow();
+      return;
+    }
+
+    dispatch(updateHardwareWalletsSwaps(resolution.event));
+  }, [completeSignedFlow, dispatch]);
 
   useEffect(() => {
     // All device signing steps complete AND a submission was started.
@@ -162,8 +203,8 @@ export function useHwSwapLifecycle({
     if (!isFocused) return;
     if (hasAutoNavigatedRef.current) return;
     if (!hasInitialSubmissionRef.current) return;
-    navigateOnSuccess();
-  }, [allStepsSigned, isQrHardwareWallet, isFocused, navigateOnSuccess]);
+    completeSignedFlow();
+  }, [allStepsSigned, isQrHardwareWallet, isFocused, completeSignedFlow]);
 
   // ── Initial submit (first Waiting) ───────────────────────────────
   useEffect(() => {
@@ -187,11 +228,7 @@ export function useHwSwapLifecycle({
     // early because the flag was false. Re-check here and navigate straight
     // to success instead of submitting a no-op.
     if (allStepsSigned) {
-      if (isQrHardwareWallet) {
-        cleanupAfterQrSuccess();
-      } else {
-        navigateOnSuccess();
-      }
+      completeSignedFlow();
       return;
     }
 
@@ -204,9 +241,7 @@ export function useHwSwapLifecycle({
     canRetry,
     strategy.isSendFlow,
     allStepsSigned,
-    isQrHardwareWallet,
-    navigateOnSuccess,
-    cleanupAfterQrSuccess,
+    completeSignedFlow,
   ]);
 
   // ── Safety-net dispatch ──────────────────────────────────────────
@@ -222,57 +257,19 @@ export function useHwSwapLifecycle({
   useEffect(() => {
     if (!hasInitialSubmissionRef.current) return;
     if (hasAutoNavigatedRef.current) return;
-
-    const status = progress.status;
-    if (
-      status === HardwareWalletsSwapsStatus.Submitted ||
-      status === HardwareWalletsSwapsStatus.Failed ||
-      status === HardwareWalletsSwapsStatus.Rejected ||
-      status === HardwareWalletsSwapsStatus.Cancelled ||
-      status === HardwareWalletsSwapsStatus.Disconnected
-    ) {
+    if (shouldSkipSafetyNetScheduling(progress.status, progress.steps.length))
       return;
-    }
 
-    const timeout = setTimeout(() => {
-      const current = progressRef.current;
-      // Intentionally omitting Disconnected: if the device disconnected
-      // after signing completed, we still navigate to success below.
-      if (
-        current.status === HardwareWalletsSwapsStatus.Submitted ||
-        current.status === HardwareWalletsSwapsStatus.Failed ||
-        current.status === HardwareWalletsSwapsStatus.Rejected ||
-        current.status === HardwareWalletsSwapsStatus.Cancelled ||
-        hasAutoNavigatedRef.current
-      ) {
-        return;
-      }
-
-      // Find the last unsigned step
-      const resolution = reconcileStuckProgress(current.steps);
-
-      if (resolution.action === 'navigate') {
-        // All signed but status hasn't transitioned. QR wallets already
-        // navigated from HwQrScanner on the last scan — reset only.
-        if (isQrHardwareWallet) {
-          cleanupAfterQrSuccess();
-        } else {
-          navigateOnSuccess();
-        }
-        return;
-      }
-
-      dispatch(updateHardwareWalletsSwaps(resolution.event));
-    }, SAFETY_NET_TIMEOUT_MS);
+    const timeout = setTimeout(
+      reconcileStuckFlowProgress,
+      SAFETY_NET_TIMEOUT_MS,
+    );
 
     return () => clearTimeout(timeout);
   }, [
     progress.status,
     progress.steps,
-    dispatch,
-    isQrHardwareWallet,
-    navigateOnSuccess,
-    cleanupAfterQrSuccess,
+    reconcileStuckFlowProgress,
   ]);
 
   // ── Navigation helper ────────────────────────────────────────────

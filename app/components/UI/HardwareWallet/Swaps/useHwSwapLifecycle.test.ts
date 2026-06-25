@@ -140,7 +140,7 @@ describe('useHwSwapLifecycle safety net', () => {
     jest.useRealTimers();
   });
 
-  it('resets QR progress without navigating or showing toast when all steps are signed', () => {
+  it('completes QR success with toast and navigation when all steps are signed', () => {
     renderLifecycle(true);
 
     act(() => {
@@ -148,12 +148,12 @@ describe('useHwSwapLifecycle safety net', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(resetHardwareWalletsSwaps());
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(getMockShowToast()).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(getMockShowToast()).toHaveBeenCalled();
     expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
-  it('safety net resets QR state without navigation after steps become signed post-submit', () => {
+  it('safety net completes QR success after steps become signed post-submit', () => {
     const unsignedWaiting = {
       ...initialHardwareWalletsSwapsState,
       status: HardwareWalletsSwapsStatus.Waiting,
@@ -181,8 +181,8 @@ describe('useHwSwapLifecycle safety net', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(resetHardwareWalletsSwaps());
-    expect(mockNavigate).not.toHaveBeenCalled();
-    expect(getMockShowToast()).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(getMockShowToast()).toHaveBeenCalled();
   });
 
   it('navigates to activity and shows toast for non-QR wallets when all steps are signed', () => {
@@ -195,5 +195,39 @@ describe('useHwSwapLifecycle safety net', () => {
     expect(mockDispatch).toHaveBeenCalledWith(resetHardwareWalletsSwaps());
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
     expect(getMockShowToast()).toHaveBeenCalled();
+  });
+
+  it('does not re-navigate after HwQrScanner already reset progress to Idle', () => {
+    const unsignedWaiting = {
+      ...initialHardwareWalletsSwapsState,
+      status: HardwareWalletsSwapsStatus.Waiting,
+      currentStep: 0,
+      totalSteps: 1,
+      steps: [
+        {
+          kind: HardwareWalletsSwapsStepKind.Transaction,
+          status: HardwareWalletsSwapsStepStatus.Waiting,
+        },
+      ],
+    };
+    mockUseSelector.mockReturnValue(unsignedWaiting);
+
+    const { rerender } = renderLifecycle(true);
+    expect(mockSubmit).toHaveBeenCalled();
+    mockNavigate.mockClear();
+    getMockShowToast().mockClear();
+
+    mockUseSelector.mockReturnValue(allStepsSignedWaiting);
+    rerender({ isQr: true });
+
+    mockUseSelector.mockReturnValue(initialHardwareWalletsSwapsState);
+    rerender({ isQr: true });
+
+    act(() => {
+      jest.advanceTimersByTime(SAFETY_NET_TIMEOUT_MS);
+    });
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(getMockShowToast()).not.toHaveBeenCalled();
   });
 });

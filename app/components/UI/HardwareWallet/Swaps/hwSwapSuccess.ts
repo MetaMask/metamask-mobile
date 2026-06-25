@@ -15,8 +15,11 @@ export interface CompleteHwSwapSuccessParams {
 
 /**
  * Terminal success handler shared by Ledger (via `useHwSwapLifecycle`) and QR
- * (via `HwQrScanner` on the final camera scan). Shows the submitted toast,
- * resets `hardwareWalletsSwaps` Redux state, and navigates to activity view.
+ * (via `HwQrScanner` on the final camera scan, or `useHwSwapLifecycle` when
+ * the user is still on the progress/disconnected screen). Shows the submitted
+ * toast, resets `hardwareWalletsSwaps` Redux state, and navigates to activity
+ * view. Callers guard against duplicate invocation (`hasAutoNavigatedRef` in
+ * the lifecycle hook, `hasCompletedOnSuccessRef` in HwQrScanner).
  */
 export function completeHwSwapSuccess({
   dispatch,
