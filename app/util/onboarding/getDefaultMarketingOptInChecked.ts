@@ -1,4 +1,4 @@
-import { isUsaDeviceRegion } from '../region/isUsaDeviceRegion';
+import { isUsaGeolocationLocation } from '../region/isUsaGeolocationLocation';
 import { hasTestOverrides } from '../test/utils';
 
 /**
@@ -7,11 +7,12 @@ import { hasTestOverrides } from '../test/utils';
  */
 export function getDefaultMarketingOptInChecked(
   isSocialLoginUser: boolean,
+  geolocationLocation?: string,
 ): boolean {
   // E2E builds keep the checkbox unchecked so tests can opt in with a single tap.
   if (hasTestOverrides) {
     return false;
   }
 
-  return isSocialLoginUser && isUsaDeviceRegion();
+  return isSocialLoginUser && isUsaGeolocationLocation(geolocationLocation);
 }
