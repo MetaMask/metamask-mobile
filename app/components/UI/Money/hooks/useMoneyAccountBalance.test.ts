@@ -358,6 +358,23 @@ describe('useMoneyAccountBalance', () => {
     expect(result.current.apyPercentFormatted).toBe('5%');
   });
 
+  it('rounds apyPercent half up to one decimal place for high-precision service APY', () => {
+    const apyDecimal = 0.0377356238130822;
+
+    setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
+      data: { apy: apyDecimal },
+      isLoading: false,
+      isError: false,
+      isFetching: false,
+    });
+
+    const { result } = renderHook(() => useMoneyAccountBalance());
+
+    expect(result.current.apyDecimal).toBe(apyDecimal);
+    expect(result.current.apyPercent).toBe(3.8);
+    expect(result.current.apyPercentFormatted).toBe('3.8%');
+  });
+
   it('returns undefined for all APY fields when vault APY data is not available and no fallback configured', () => {
     setupDefaultQueries(DEFAULT_MONEY_BALANCE_QUERY, {
       data: undefined,
