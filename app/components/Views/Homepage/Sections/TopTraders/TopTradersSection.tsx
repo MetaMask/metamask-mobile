@@ -19,7 +19,10 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { selectSocialLeaderboardEnabled } from '../../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  selectSocialLeaderboardEnabled,
+  selectSocialLeaderboardPerpsEnabled,
+} from '../../../../../selectors/featureFlagController/socialLeaderboard';
 import ErrorState from '../../components/ErrorState';
 import ViewMoreCard from '../../components/ViewMoreCard';
 import useHomeViewedEvent, {
@@ -30,7 +33,7 @@ import { useSectionPerformance } from '../../hooks/useSectionPerformance';
 import { SectionRefreshHandle } from '../../types';
 import { TopTraderCard, TopTraderCardSkeleton } from './components';
 import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
-import { ALL_CHAINS } from '../../../shared/top-traders-constants';
+import { ALL_CHAINS, SPOT_CHAINS } from '../../../shared/top-traders-constants';
 import { usePrefetchTraderProfiles, useTopTraders } from './hooks';
 import type { TopTrader } from './types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -71,8 +74,10 @@ const TopTradersSection = forwardRef<
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
   const title = strings('homepage.sections.top_traders');
   const [visibleTraderIds, setVisibleTraderIds] = useState<string[]>([]);
+  const chains = isPerpsEnabled ? ALL_CHAINS : SPOT_CHAINS;
 
   const {
     traders: allTraders,
@@ -83,7 +88,7 @@ const TopTradersSection = forwardRef<
     toggleFollow,
   } = useTopTraders({
     limit: HOME_TRADER_FETCH_LIMIT,
-    chains: ALL_CHAINS,
+    chains,
     enabled: isEnabled,
   });
 
