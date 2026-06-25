@@ -41,10 +41,15 @@ export interface ActivityAmountsFiat {
 
 const FIAT_DECIMALS = 2;
 
-function isNativeAsset(token: TokenAmount): boolean {
+/** A CAIP asset id refers to the chain's native token (e.g. `slip44`/`native`). */
+function isNativeAssetId(assetId: string | undefined): boolean {
   return Boolean(
-    token.assetId?.includes('/slip44:') || token.assetId?.includes('/native:'),
+    assetId?.includes('/slip44:') || assetId?.includes('/native:'),
   );
+}
+
+function isNativeAsset(token: TokenAmount): boolean {
+  return isNativeAssetId(token.assetId);
 }
 
 /** Mirrors the activity row's market-price lookup (checksum, then lowercase). */
@@ -125,6 +130,12 @@ function feeToFiatNumber(
   if (!conversionRate || fee.amount === undefined) {
     return undefined;
   }
+  // The conversion rate is the native token's rate, so only native fees can be
+  // converted. Resource fees (e.g. Tron Bandwidth/Energy) are non-native and
+  // must not be priced at the native rate — that would inflate the total.
+  if (fee.assetId && !isNativeAssetId(fee.assetId)) {
+    return undefined;
+  }
   // Base/network fees are denominated in the chain's native token.
   const human = getHumanReadableTokenAmount({
     amount: fee.amount,
@@ -154,9 +165,34 @@ function feeToTokenAmount(fee: ActivityFee): string | undefined {
   return Number.isFinite(parsedAmount) && parsedAmount > 0 ? human : undefined;
 }
 
+/** Title-cases a fee symbol for use as a fallback label (e.g. `BANDWIDTH` -> `Bandwidth`). */
+function titleCaseSymbol(symbol: string): string {
+  return symbol.charAt(0).toUpperCase() + symbol.slice(1).toLowerCase();
+}
+
+/**
+ * Resolves the label for a resource fee paid in a non-native asset. Some chains
+ * (e.g. Tron) report resource consumption — Bandwidth, Energy — as a second
+ * `base` fee. Labeling these by their resource keeps them distinct from the
+ * native "Network fee" row rather than duplicating it.
+ */
+function getResourceFeeLabel(symbol: string): string {
+  switch (symbol.toUpperCase()) {
+    case 'BANDWIDTH':
+      return strings('activity_details.bandwidth_fee');
+    case 'ENERGY':
+      return strings('activity_details.energy_fee');
+    default:
+      return titleCaseSymbol(symbol);
+  }
+}
+
 function getFeeLabel(fee: ActivityFee): string {
   switch (fee.type) {
     case 'base':
+      if (fee.assetId && !isNativeAssetId(fee.assetId) && fee.symbol) {
+        return getResourceFeeLabel(fee.symbol);
+      }
       return strings('activity_details.network_fee');
     case 'bridge':
       return strings('activity_details.bridge_fee');
