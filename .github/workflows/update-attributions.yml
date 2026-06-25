@@ -28,6 +28,7 @@ jobs:
     if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     permissions:
       id-token: write
+      contents: read
     steps:
       - name: Get token
         id: get-token
@@ -131,6 +132,8 @@ jobs:
     if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
     permissions:
       id-token: write
+      contents: read
+      pull-requests: read
     steps:
       - name: Get token
         id: get-token
@@ -213,6 +216,7 @@ jobs:
       - check-status
     permissions:
       id-token: write
+      contents: read
     steps:
       - name: Get token
         id: get-token
