@@ -785,9 +785,7 @@ describe('HardwareWalletsSwaps', () => {
 
       expect(getBridgeStatus(store)).toBe(HardwareWalletsSwapsStatus.Waiting);
       await waitFor(() => {
-        expect(mockSubmitBridgeTx).toHaveBeenCalledWith(
-          MOCK_SUBMISSION_PARAMS,
-        );
+        expect(mockSubmitBridgeTx).toHaveBeenCalledWith(MOCK_SUBMISSION_PARAMS);
       });
       expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
     });

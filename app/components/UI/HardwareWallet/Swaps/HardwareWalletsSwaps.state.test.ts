@@ -1,12 +1,15 @@
 import {
   hardwareWalletsSwapsReducer,
   type HardwareWalletsSwapsEvent,
+  type HardwareWalletsSwapsStep,
+  type StuckProgressResolution,
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsStepKind,
   HardwareWalletsSwapsStepStatus,
   HardwareWalletsSwapsEventType,
   initialHardwareWalletsSwapsState,
   buildStartPayload,
+  reconcileStuckProgress,
 } from './HardwareWalletsSwaps.state';
 import { Flow } from './flowStrategy';
 import type { TxData } from '@metamask/bridge-controller';
@@ -1016,6 +1019,40 @@ describe('hardwareWalletsSwapsReducer', () => {
       ],
     );
   });
+
+  it('throws when a sendbundle Start (flow=send, totalSteps>1) omits gasTokenAddress', () => {
+    // Without gasTokenAddress the tracker cannot identify the FeeTransfer tx
+    // (it matches by `txParams.to === gasTokenAddress`), so the flow would
+    // hang. The reducer fails loudly instead.
+    expect(() =>
+      hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: {
+          totalSteps: 2,
+          flow: Flow.Send,
+          recipientAddress: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+        },
+      }),
+    ).toThrow(/gasTokenAddress/);
+  });
+
+  it('does not require gasTokenAddress for a plain send Start (flow=send, totalSteps=1)', () => {
+    expect(() =>
+      hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: { totalSteps: 1, flow: Flow.Send },
+      }),
+    ).not.toThrow();
+  });
+
+  it('does not require gasTokenAddress for a bridge Start without flow', () => {
+    expect(() =>
+      hardwareWalletsSwapsReducer(initialHardwareWalletsSwapsState, {
+        type: HardwareWalletsSwapsEventType.Start,
+        payload: { totalSteps: 2 },
+      }),
+    ).not.toThrow();
+  });
 });
 
 describe('buildStartPayload', () => {
@@ -1046,5 +1083,157 @@ describe('buildStartPayload', () => {
     expect(result.payload.recipientAddress).toBe(
       '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
     );
+  });
+});
+
+describe('reconcileStuckProgress', () => {
+  const step = (
+    kind: HardwareWalletsSwapsStepKind,
+    status: HardwareWalletsSwapsStepStatus,
+  ): HardwareWalletsSwapsStep => ({ kind, status });
+
+  it('returns a navigate resolution when every step is Signed', () => {
+    const steps = [
+      step(
+        HardwareWalletsSwapsStepKind.Approval,
+        HardwareWalletsSwapsStepStatus.Signed,
+      ),
+      step(
+        HardwareWalletsSwapsStepKind.Transaction,
+        HardwareWalletsSwapsStepStatus.Signed,
+      ),
+    ];
+
+    const resolution = reconcileStuckProgress(steps);
+
+    expect(resolution).toEqual<StuckProgressResolution>({ action: 'navigate' });
+  });
+
+  it('dispatches Signed for the only unsigned step when exactly one step is unsigned', () => {
+    const steps = [
+      step(
+        HardwareWalletsSwapsStepKind.Approval,
+        HardwareWalletsSwapsStepStatus.Signed,
+      ),
+      step(
+        HardwareWalletsSwapsStepKind.Transaction,
+        HardwareWalletsSwapsStepStatus.Waiting,
+      ),
+    ];
+
+    const resolution = reconcileStuckProgress(steps);
+
+    expect(resolution).toEqual<StuckProgressResolution>({
+      action: 'dispatch',
+      event: {
+        type: HardwareWalletsSwapsEventType.Signed,
+        payload: {
+          stepKind: HardwareWalletsSwapsStepKind.Transaction,
+          stepIndex: 1,
+        },
+      },
+    });
+  });
+
+  it('dispatches Signed for a lone unsigned step regardless of position', () => {
+    const steps = [
+      step(
+        HardwareWalletsSwapsStepKind.Approval,
+        HardwareWalletsSwapsStepStatus.Waiting,
+      ),
+      step(
+        HardwareWalletsSwapsStepKind.Transaction,
+        HardwareWalletsSwapsStepStatus.Signed,
+      ),
+    ];
+
+    const resolution = reconcileStuckProgress(steps);
+
+    expect(resolution).toEqual<StuckProgressResolution>({
+      action: 'dispatch',
+      event: {
+        type: HardwareWalletsSwapsEventType.Signed,
+        payload: {
+          stepKind: HardwareWalletsSwapsStepKind.Approval,
+          stepIndex: 0,
+        },
+      },
+    });
+  });
+
+  it('dispatches TransactionFailed when more than one step is unsigned', () => {
+    // Regression: previously the safety net dispatched Signed for only the
+    // last unsigned step, flipping overall status to Submitted while an
+    // earlier step stayed Waiting. allStepsSigned then never became true,
+    // so success navigation never fired and the flow hung permanently.
+    // Multiple missed events means the "missed the final event" premise no
+    // longer holds, so fail explicitly instead of half-completing.
+    const steps = [
+      step(
+        HardwareWalletsSwapsStepKind.Approval,
+        HardwareWalletsSwapsStepStatus.Waiting,
+      ),
+      step(
+        HardwareWalletsSwapsStepKind.Transaction,
+        HardwareWalletsSwapsStepStatus.Waiting,
+      ),
+    ];
+
+    const resolution = reconcileStuckProgress(steps);
+
+    expect(resolution).toEqual<StuckProgressResolution>({
+      action: 'dispatch',
+      event: { type: HardwareWalletsSwapsEventType.TransactionFailed },
+    });
+  });
+
+  it('dispatches TransactionFailed when two of three steps are unsigned', () => {
+    const steps = [
+      step(
+        HardwareWalletsSwapsStepKind.Approval,
+        HardwareWalletsSwapsStepStatus.Signed,
+      ),
+      step(
+        HardwareWalletsSwapsStepKind.Transaction,
+        HardwareWalletsSwapsStepStatus.Waiting,
+      ),
+      step(
+        HardwareWalletsSwapsStepKind.FeeTransfer,
+        HardwareWalletsSwapsStepStatus.Waiting,
+      ),
+    ];
+
+    const resolution = reconcileStuckProgress(steps);
+
+    expect(resolution).toEqual<StuckProgressResolution>({
+      action: 'dispatch',
+      event: { type: HardwareWalletsSwapsEventType.TransactionFailed },
+    });
+  });
+
+  it('treats a Signing step as the single unsigned step', () => {
+    const steps = [
+      step(
+        HardwareWalletsSwapsStepKind.Approval,
+        HardwareWalletsSwapsStepStatus.Signed,
+      ),
+      step(
+        HardwareWalletsSwapsStepKind.Transaction,
+        HardwareWalletsSwapsStepStatus.Signing,
+      ),
+    ];
+
+    const resolution = reconcileStuckProgress(steps);
+
+    expect(resolution).toEqual<StuckProgressResolution>({
+      action: 'dispatch',
+      event: {
+        type: HardwareWalletsSwapsEventType.Signed,
+        payload: {
+          stepKind: HardwareWalletsSwapsStepKind.Transaction,
+          stepIndex: 1,
+        },
+      },
+    });
   });
 });
