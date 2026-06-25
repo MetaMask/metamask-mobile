@@ -110,10 +110,9 @@ const TabPill: React.FC<TabPillProps> = ({
       testID={suppressTestID ? undefined : `tab-filter-${filterKey}`}
       accessibilityRole="button"
       accessibilityState={{ selected: isSelected }}
-      style={({ pressed }) => [
+      style={[
         tw.style(
           'mr-2 min-h-10 items-center justify-center rounded-xl px-3 py-2',
-          pressed && 'opacity-80',
         ),
         {
           backgroundColor: isSelected
@@ -145,6 +144,20 @@ const FilterTabs: React.FC<FilterTabsProps> = ({
   suppressTestIDs = false,
 }) => {
   const tw = useTailwind();
+  const [optimisticSelectedTab, setOptimisticSelectedTab] =
+    useState<TabFilter>(selectedTab);
+
+  useEffect(() => {
+    setOptimisticSelectedTab(selectedTab);
+  }, [selectedTab]);
+
+  const handleTabPress = useCallback(
+    (next: TabFilter) => {
+      setOptimisticSelectedTab(next);
+      onTabPress(next);
+    },
+    [onTabPress],
+  );
 
   return (
     <ScrollView
@@ -163,8 +176,8 @@ const FilterTabs: React.FC<FilterTabsProps> = ({
           key={key}
           filterKey={key}
           label={label}
-          isSelected={selectedTab === key}
-          onPress={() => onTabPress(key)}
+          isSelected={optimisticSelectedTab === key}
+          onPress={() => handleTabPress(key)}
           suppressTestID={suppressTestIDs}
         />
       ))}
@@ -187,13 +200,13 @@ const TopTradersView = () => {
   const source = route.params?.source ?? 'nav_tab';
   const title = strings('social_leaderboard.top_traders_view.title');
 
-  const [selectedTab, setSelectedTab] = useState<TabFilter>('all');
   const [renderedTab, setRenderedTab] = useState<TabFilter>('all');
   const [, startTabTransition] = useTransition();
   const [refreshing, setRefreshing] = useState(false);
   // Tracks whether we've already emitted the screen-viewed event this mount.
   // Avoids re-firing if the user changes filters or refreshes.
   const hasFiredScreenViewedRef = useRef(false);
+  const selectedTabRef = useRef<TabFilter>('all');
 
   // Render enough skeleton rows to cover the visible list area. Add a couple of
   // extras so users can see the shimmer continue past the fold while scrolling.
@@ -241,26 +254,24 @@ const TopTradersView = () => {
     hasFiredScreenViewedRef.current = true;
     track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED, {
       [SocialLeaderboardEventProperties.SOURCE]: source,
-      [SocialLeaderboardEventProperties.CHAIN_FILTER]: selectedTab,
+      [SocialLeaderboardEventProperties.CHAIN_FILTER]: 'all',
     });
-    // selectedTab is intentionally captured at mount-time so subsequent
-    // pill changes only fire the chain-filter-changed event.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEnabled, source, track]);
 
   const handleTabPress = useCallback(
     (next: TabFilter) => {
-      if (selectedTab === next) return;
+      const previousTab = selectedTabRef.current;
+      if (previousTab === next) return;
+      selectedTabRef.current = next;
       track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_CHAIN_FILTER_CHANGED, {
         [SocialLeaderboardEventProperties.CHAIN_FILTER]: next,
-        [SocialLeaderboardEventProperties.PREVIOUS_CHAIN_FILTER]: selectedTab,
+        [SocialLeaderboardEventProperties.PREVIOUS_CHAIN_FILTER]: previousTab,
       });
-      setSelectedTab(next);
       startTabTransition(() => {
         setRenderedTab(next);
       });
     },
-    [selectedTab, startTabTransition, track],
+    [startTabTransition, track],
   );
 
   const handleFollowPress = useCallback(
@@ -410,10 +421,10 @@ const TopTradersView = () => {
           </Text>
         </Box>
 
-        <FilterTabs selectedTab={selectedTab} onTabPress={handleTabPress} />
+        <FilterTabs selectedTab={renderedTab} onTabPress={handleTabPress} />
       </>
     ),
-    [handleTabPress, selectedTab, setTitleSectionHeight, title],
+    [handleTabPress, renderedTab, setTitleSectionHeight, title],
   );
 
   return (
@@ -504,7 +515,7 @@ const TopTradersView = () => {
           testID={TopTradersViewSelectorsIDs.PINNED_FILTER_BAR}
         >
           <FilterTabs
-            selectedTab={selectedTab}
+            selectedTab={renderedTab}
             onTabPress={handleTabPress}
             suppressTestIDs
           />
