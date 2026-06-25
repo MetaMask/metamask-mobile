@@ -2061,6 +2061,7 @@
       "commodities": "Commodities",
       "stocks_and_commodities": "Explore stocks and commodities",
       "tabs": {
+        "all": "All",
         "crypto": "Crypto",
         "pre_ipo": "Pre-IPO",
         "forex": "Forex",
