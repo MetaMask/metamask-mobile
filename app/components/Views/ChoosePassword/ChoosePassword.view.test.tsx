@@ -1,10 +1,8 @@
 /**
  * Component View tests for analytics events in the new-wallet onboarding flow.
  *
- * Mirrors: tests/smoke/wallet/analytics/new-wallet.spec.ts
- *
- * CV covers OptinMetrics analytics preference only. Full wallet-creation analytics
- * require Authentication.newWalletAndKeychain (native Keychain) — see it.skip placeholders.
+ * Mirrors (partial): tests/smoke/wallet/analytics/new-wallet.spec.ts
+ * — OptinMetrics analytics preference (opt-in / opt-out).
  *
  * Run: yarn jest -c jest.config.view.js ChoosePassword.view.test.tsx --runInBand
  */
@@ -182,21 +180,5 @@ describeForPlatforms('new-wallet analytics (CV)', () => {
     } finally {
       trackEventSpy.mockRestore();
     }
-  });
-
-  // -----------------------------------------------------------------------
-  // SKIPPED: full new wallet analytics events
-  // -----------------------------------------------------------------------
-
-  it.skip('tracks WALLET_SETUP_STARTED, WALLET_CREATION_ATTEMPTED, WALLET_CREATED, WALLET_SETUP_COMPLETED after new wallet creation with metrics opt-in', () => {
-    // Blocked: Authentication.newWalletAndKeychain requires native Keychain mocking in CV.
-  });
-
-  it.skip('Wallet Setup Completed includes persisted UTM and attribution_id when marketing is on', () => {
-    // Blocked: same Authentication gap plus attribution slice pre-seeding.
-  });
-
-  it.skip('does not dispatch analytics events when user opts out of metrics', () => {
-    // Blocked: completing wallet creation requires Authentication mock in CV framework.
   });
 });

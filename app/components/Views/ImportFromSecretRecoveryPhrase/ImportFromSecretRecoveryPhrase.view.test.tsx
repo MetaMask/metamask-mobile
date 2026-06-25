@@ -1,10 +1,8 @@
 /**
  * Component View tests for analytics events in the import-wallet onboarding flow.
  *
- * Mirrors: tests/smoke/wallet/analytics/import-wallet.spec.ts
- *
- * CV covers OptinMetrics analytics preference only. Full wallet-import analytics
- * require Authentication.newWalletAndRestore (native Keychain) — see it.skip placeholders.
+ * Mirrors (partial): tests/smoke/wallet/analytics/import-wallet.spec.ts
+ * — OptinMetrics analytics preference (opt-in / opt-out).
  *
  * Run: yarn jest -c jest.config.view.js ImportFromSecretRecoveryPhrase.view.test.tsx --runInBand
  */
@@ -178,17 +176,5 @@ describeForPlatforms('import-wallet analytics (CV)', () => {
     } finally {
       trackEventSpy.mockRestore();
     }
-  });
-
-  // -----------------------------------------------------------------------
-  // SKIPPED: full import wallet analytics events
-  // -----------------------------------------------------------------------
-
-  it.skip('tracks WALLET_IMPORT_STARTED, WALLET_IMPORT_ATTEMPTED, WALLET_IMPORTED, WALLET_SETUP_COMPLETED after wallet import with metrics opt-in', () => {
-    // Blocked: Authentication.newWalletAndRestore requires native Keychain mocking in CV.
-  });
-
-  it.skip('Wallet Setup Completed includes persisted UTM and attribution_id when marketing is on', () => {
-    // Blocked: same Authentication gap plus attribution slice pre-seeding.
   });
 });

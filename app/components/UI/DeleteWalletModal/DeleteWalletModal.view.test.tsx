@@ -13,10 +13,8 @@ import Routes from '../../../constants/navigation/Routes';
 /**
  * Component View tests for DeleteWalletModal.
  *
- * Mirrors: tests/smoke/wallet/settings/delete-wallet.spec.ts
- *
- * CV covers modal UI states only. Full E2E flow (change password, lock, delete)
- * requires native Keychain and multi-screen navigation — see it.skip placeholders.
+ * Mirrors (partial): tests/smoke/wallet/settings/delete-wallet.spec.ts
+ * — modal UI states and confirmation navigation only.
  *
  * Run: yarn jest -c jest.config.view.js DeleteWalletModal.view.test.tsx --runInBand
  */
@@ -40,16 +38,6 @@ describeForPlatforms('DeleteWalletModal component views', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
-  it.skip('changes password before deleting wallet — skipped: requires ChangePasswordView and SecurityAndPrivacyView multi-screen navigation plus KeyringController.verifyPassword with real keychain state', () => {
-    // Blocked: KeyringController.verifyPassword + multi-screen settings navigation.
-  });
-
-  it.skip('locks the wallet — skipped: requires AccountMenu + native Keychain and is outside this component', () => {
-    // Blocked: Authentication.lockApp() writes to native Keychain.
-  });
-
-  // --- CV-testable: modal renders and state transitions ---
 
   it('renders the "Forgot your password?" initial state with a Reset Wallet button', async () => {
     const { findByTestId, findByText } = renderDeleteWalletModal();
@@ -124,9 +112,5 @@ describeForPlatforms('DeleteWalletModal component views', () => {
         ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON,
       ),
     ).toBeOnTheScreen();
-  });
-
-  it.skip('deletes the wallet and navigates to onboarding — skipped: Authentication.deleteWallet() requires real Keychain / native storage and full-app navigation reset', () => {
-    // Blocked: Authentication.deleteWallet() + full navigation reset to onboarding.
   });
 });

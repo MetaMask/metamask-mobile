@@ -11,10 +11,8 @@ import Routes from '../../../constants/navigation/Routes';
 /**
  * Component View tests for ImportNewSecretRecoveryPhrase (multi-SRP import flow).
  *
- * Mirrors: tests/smoke-appium/accounts/import-srp.spec.ts
- *
- * CV covers screen render, disabled import button, and SRP validation error.
- * Full import flow requires native Keychain — see it.skip placeholder.
+ * Mirrors (partial): tests/smoke-appium/accounts/import-srp.spec.ts
+ * — screen render, disabled import button, and SRP validation error.
  *
  * Run: yarn jest -c jest.config.view.js ImportNewSecretRecoveryPhrase.view.test.tsx --runInBand
  */
@@ -79,13 +77,5 @@ describeForPlatforms('ImportNewSecretRecoveryPhrase component views', () => {
         strings('import_new_secret_recovery_phrase.error_invalid_srp'),
       ),
     ).toBeOnTheScreen();
-  });
-
-  // -----------------------------------------------------------------------
-  // SKIPPED: full SRP import flow
-  // -----------------------------------------------------------------------
-
-  it.skip('imports account with SRP and shows Account 1 as selected — skipped: requires Authentication.checkIsSeedlessPasswordOutdated and importNewSecretRecoveryPhrase which call native Keychain and the real Engine crypto pipeline', () => {
-    // Blocked: Authentication + importNewSecretRecoveryPhrase require native Keychain in CV.
   });
 });

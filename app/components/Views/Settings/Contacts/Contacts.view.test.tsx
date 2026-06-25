@@ -14,6 +14,7 @@ import {
 import { strings } from '../../../../../locales/i18n';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NETWORK_LIST_BOTTOM_SHEET } from '../../AddAsset/components/NetworkListBottomSheet/NetworkListBottomSheet';
+import { toChecksumAddress } from '../../../../util/address';
 import { AddContactViewSelectorsIDs } from './AddContactView.testIds';
 import { ContactsViewSelectorIDs } from './ContactsView.testIds';
 
@@ -174,10 +175,10 @@ describeForPlatforms('Contacts component views', () => {
     await waitFor(() => {
       // The controller must be called with the resolved ETH address, not the ENS name.
       expect(setContactSpy).toHaveBeenCalledWith(
-        ENS_RESOLVED_ADDRESS,
+        toChecksumAddress(ENS_RESOLVED_ADDRESS),
         'Ibrahim',
         expect.any(String), // chainId
-        expect.anything(), // memo
+        null,
       );
     });
 
@@ -211,8 +212,9 @@ describeForPlatforms('Contacts component views', () => {
       Engine.context.AddressBookController,
       'delete',
     );
+    const onDeleteCallback = jest.fn();
 
-    const { findByTestId } = renderContactForm({
+    const { findByTestId, getByTestId } = renderContactForm({
       stateOptions: {
         addressBook: syncedContactAddressBook,
       },
@@ -221,11 +223,13 @@ describeForPlatforms('Contacts component views', () => {
         address: SYNCED_CONTACT.address,
         name: SYNCED_CONTACT.name,
         chainId: SYNCED_CONTACT.chainId,
-        onDelete: jest.fn(),
+        onDelete: onDeleteCallback,
       },
     });
 
-    // In edit mode the delete button should be visible.
+    // Edit mode opens read-only; tap Edit to enable save/delete actions (matches E2E).
+    fireEvent.press(await findByTestId(AddContactViewSelectorsIDs.EDIT_BUTTON));
+
     const deleteButton = await findByTestId(
       AddContactViewSelectorsIDs.DELETE_BUTTON,
     );
@@ -233,11 +237,18 @@ describeForPlatforms('Contacts component views', () => {
 
     fireEvent.press(deleteButton);
 
+    // Delete opens a confirmation action sheet before calling the controller.
+    await waitFor(() => {
+      expect(getByTestId('action-sheet-option-0')).toBeOnTheScreen();
+    });
+    fireEvent.press(getByTestId('action-sheet-option-0'));
+
     await waitFor(() => {
       expect(deleteContactSpy).toHaveBeenCalledWith(
         SYNCED_CONTACT.chainId,
         expect.stringContaining(SYNCED_CONTACT.address.slice(2).toLowerCase()),
       );
+      expect(onDeleteCallback).toHaveBeenCalled();
     });
 
     deleteContactSpy.mockRestore();
