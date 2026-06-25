@@ -1094,6 +1094,7 @@
       "twitter_link": "X(Twitter)에서 보기",
       "sort": {
         "value": "가격",
+        "top_trades": "Top Trades",
         "pnl_percent": "손익 %",
         "recent": "최근"
       }
@@ -2368,11 +2369,15 @@
       "predictions_title": "월드컵 예측",
       "banner_title": "월드컵 2026",
       "banner_description": "모든 경기, 모든 순간에 대해 거래하세요.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "모두",
         "props": "프롭",
-        "live": "진행 중"
+        "live": "진행 중",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "조별 예선",
         "round_of_32": "32강",
@@ -3540,6 +3545,8 @@
       "wallet_activity_desc": "구매, 판매, 이체, 스왑, 보상",
       "perps_title": "거래 활동",
       "perps_desc": "포지션 변동, 청산, 펀딩비, 마진 관련 업데이트",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "트레이딩 신호",
       "social_ai_desc": "팔로우하는 트레이더와 자산에 관한 최신 정보, 그리고 엄선된 시장 뉴스",
       "marketing_title": "업데이트 및 보상",
@@ -6028,6 +6035,11 @@
       "title": "귀하의 지역에서는 사용할 수 없습니다",
       "description": "현지 결제 제공업체의 제한 또는 규제 요건으로 인해 해당 지역에서는 암호화폐를 구매할 수 없습니다.",
       "got_it": "확인"
+    },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "Got it"
     },
     "region": {
       "buy_crypto_tokens": "암호화폐 토큰 구매",
@@ -9601,17 +9613,6 @@
       "predict_withdraw": "출금",
       "money_account_deposit": "머니 계정에 입금하기",
       "money_account_withdraw": "머니 계정에서 이체",
-      "money_account_sent": "{{symbol}} 보냄",
-      "money_account_received": "받음",
-      "deposited_musd": "예치된 mUSD",
-      "depositing_musd": "mUSD 입금 중",
-      "deposit_failed": "예치 실패",
-      "sent": "보낸",
-      "sending_musd": "mUSD 전송 중",
-      "send_failed": "전송 실패",
-      "converted_to_musd": "mUSD로 전환 완료",
-      "converting_to_musd": "mUSD로 환전 중",
-      "conversion_failed": "전환 실패",
       "default": "트랜잭션 세부 사항"
     },
     "label": {

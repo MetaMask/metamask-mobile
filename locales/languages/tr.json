@@ -1094,6 +1094,7 @@
       "twitter_link": "X (Twitter) üzerinde görüntüle",
       "sort": {
         "value": "Değer",
+        "top_trades": "Top Trades",
         "pnl_percent": "K&Z %",
         "recent": "Son Kullanılanlar"
       }
@@ -2368,11 +2369,15 @@
       "predictions_title": "Dünya Kupası tahminleri",
       "banner_title": "Dünya Kupası 2026",
       "banner_description": "Her maçta, her an işlem yapın.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "Tümü",
         "props": "Özel Bahisler",
-        "live": "Canlı"
+        "live": "Canlı",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Grup Aşaması",
         "round_of_32": "Son 32 Tur",
@@ -3540,6 +3545,8 @@
       "wallet_activity_desc": "Alış, satış, transfer, takas işlemleri ve ödülleri",
       "perps_title": "İşlem Hareketleri",
       "perps_desc": "Perps pozisyonundaki değişiklikler, likidasyonlar, fonlama oranları ve marj güncellemeleri",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "İşlem Sinyalleri",
       "social_ai_desc": "Takip ettiğiniz yatırımcılardan ve varlıklardan güncellemeler ve ayrıca özel olarak seçilmiş piyasa haberleri",
       "marketing_title": "Güncellemeler ve Ödüller",
@@ -6028,6 +6035,11 @@
       "title": "Bölgenizde kullanılamıyor",
       "description": "Kripto alımı, yerel ödeme sağlayıcılarıyla olan sınırlamalar veya düzenleyici kısıtlamalar nedeniyle bölgenize kullanılamıyor.",
       "got_it": "Anladım"
+    },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "Got it"
     },
     "region": {
       "buy_crypto_tokens": "Kripto token al",
@@ -9601,17 +9613,6 @@
       "predict_withdraw": "Çekme işlemi",
       "money_account_deposit": "Para Hesabına Para Yatır",
       "money_account_withdraw": "Para Hesabından Para Transfer Et",
-      "money_account_sent": "{{symbol}} Gönderdi",
-      "money_account_received": "Alınan",
-      "deposited_musd": "Yatırılan mUSD",
-      "depositing_musd": "mUSD yatırılıyor",
-      "deposit_failed": "Para yatırma işlemi başarısız oldu",
-      "sent": "Gönderildi",
-      "sending_musd": "mUSD gönderiliyor",
-      "send_failed": "Gönderilemedi",
-      "converted_to_musd": "mUSD'ye dönüştürüldü",
-      "converting_to_musd": "mUSD'ye dönüştürülüyor",
-      "conversion_failed": "Dönüştürme işlemi başarısız oldu",
       "default": "İşlem bilgileri"
     },
     "label": {

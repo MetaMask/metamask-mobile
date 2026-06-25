@@ -1094,6 +1094,7 @@
       "twitter_link": "Auf X (Twitter) ansehen",
       "sort": {
         "value": "Wert",
+        "top_trades": "Top Trades",
         "pnl_percent": "GuV %",
         "recent": "Aktuell"
       }
@@ -2368,11 +2369,15 @@
       "predictions_title": "Prognosen zur Weltmeisterschaft",
       "banner_title": "Weltmeisterschaft 2026",
       "banner_description": "Handeln Sie jedes Spiel, jeden Moment.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "Alle",
         "props": "Props",
-        "live": "Live"
+        "live": "Live",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Gruppenphase",
         "round_of_32": "Sechzehntelfinale",
@@ -3540,6 +3545,8 @@
       "wallet_activity_desc": "Kaufen, Verkaufen, Überweisen, Swaps und Belohnungen",
       "perps_title": "Handelsaktivität",
       "perps_desc": "Perps-Positionsänderungen sowie -Liquidationen, Finanzierungssätze und Margin-Aktualisierungen",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "Trading-Signale",
       "social_ai_desc": "Updates von Tradern und Vermögenswerten, denen Sie folgen, sowie ausgewählte Marktnachrichten",
       "marketing_title": "Updates und Belohnungen",
@@ -6028,6 +6035,11 @@
       "title": "In Ihrer Region nicht verfügbar",
       "description": "Der Kauf von Krypto ist in Ihrer Region aufgrund von Einschränkungen lokaler Zahlungsanbieter oder regulatorischer Beschränkungen nicht möglich.",
       "got_it": "Verstanden"
+    },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "Got it"
     },
     "region": {
       "buy_crypto_tokens": "Krypto-Tokens kaufen",
@@ -9601,17 +9613,6 @@
       "predict_withdraw": "Auszahlung",
       "money_account_deposit": "Auf Geldkonto einzahlen",
       "money_account_withdraw": "Von Geldkonto transferieren",
-      "money_account_sent": "{{symbol}} gesendet",
-      "money_account_received": "Empfangen",
-      "deposited_musd": "mUSD eingezahlt",
-      "depositing_musd": "mUSD einzahlen",
-      "deposit_failed": "Einzahlung fehlgeschlagen",
-      "sent": "Versendet",
-      "sending_musd": "mUSD senden",
-      "send_failed": "Senden fehlgeschlagen",
-      "converted_to_musd": "Zu mUSD konvertiert",
-      "converting_to_musd": "Umwandlung in mUSD",
-      "conversion_failed": "Konvertierung fehlgeschlagen",
       "default": "Transaktionsdetails"
     },
     "label": {
