@@ -44,8 +44,6 @@ const PERIOD_DURATION_MS: Record<TimePeriod, number> = {
   All: 3 * 365 * 24 * 60 * 60 * 1000,
 };
 
-const TRADE_FOCUS_PREFETCH_PERIODS: readonly TimePeriod[] = ['1M', 'All'];
-
 /**
  * Hyperliquid candle interval + baseline candle count per chart period. The base
  * count fills the period's default window when a position has no (or only recent)
@@ -327,32 +325,25 @@ export function useTraderPositionData(
   }, [positionParam, caipChainId, currentCurrency]);
 
   // ── Hyperliquid perps: cached candleSnapshot data ─────────────────────────
-  // Fetch the selected period plus 1M/All ahead of trade taps. Trade focus only
-  // jumps between 1M and All, so warming both avoids a fresh network request on
-  // most taps. The candle count is anchored back to the earliest trade (capped at
-  // the API max) so closed positions still frame their trades.
+  // Pre-fetch EVERY period up front (like the spot path) so an interval switch is
+  // an instant cache read with no network round-trip. Previously only the active
+  // period + 1M/All were warmed, so the first tap on a cold period (1H, 1D, 1W)
+  // fetched on demand and the chart flashed the stale period until the new candles
+  // arrived. Each perp period maps to a distinct Hyperliquid interval, so there's
+  // no reuse — up to 5 candleSnapshot requests. The candle count is anchored back
+  // to the earliest trade (capped at the API max) so closed positions still frame
+  // their trades. Fires once per position; the cache is scoped by `perpKey` so a
+  // stale-position result is ignored, not flashed.
   useEffect(() => {
     if (!positionParam || !isPerp) return;
 
-    const periodsToFetch = Array.from(
-      new Set([activeTimePeriod, ...TRADE_FOCUS_PREFETCH_PERIODS]),
-    ).filter(
-      (period) => !(perpCache.key === perpKey && perpCache.prices[period]),
-    );
-
-    if (!periodsToFetch.length) {
-      setIsPricesLoading(false);
-      return;
-    }
-
-    const isFetchingActivePeriod = periodsToFetch.includes(activeTimePeriod);
-    setIsPricesLoading(isFetchingActivePeriod);
     let cancelled = false;
     const nowMs = Date.now();
+    const { tokenSymbol: perpSymbol } = positionParam;
 
     // fetchHyperliquidHistoricalPrices never rejects (it logs + returns [] on
-    // failure), so the empty result is cached and we don't refetch in a loop.
-    periodsToFetch.forEach((period) => {
+    // failure), so an empty result is cached and we don't refetch in a loop.
+    TIME_PERIODS.forEach((period) => {
       const { interval, baseLimit } = PERP_PERIOD_TO_CANDLES[period];
       const limit = resolveHyperliquidCandleLimit({
         interval,
@@ -362,7 +353,7 @@ export function useTraderPositionData(
       });
 
       fetchHyperliquidHistoricalPrices({
-        symbol: positionParam.tokenSymbol,
+        symbol: perpSymbol,
         interval,
         limit,
         nowMs,
@@ -375,23 +366,24 @@ export function useTraderPositionData(
               ? { ...prev.prices, [period]: prices }
               : { [period]: prices },
         }));
-        if (period === activeTimePeriod) {
-          setIsPricesLoading(false);
-        }
       });
     });
 
     return () => {
       cancelled = true;
     };
-  }, [
-    positionParam,
-    isPerp,
-    perpKey,
-    activeTimePeriod,
-    earliestTradeMs,
-    perpCache,
-  ]);
+  }, [positionParam, isPerp, perpKey, earliestTradeMs]);
+
+  // Perp loading reflects only the ACTIVE period: clear as soon as its candles are
+  // cached so the initial skeleton doesn't wait on the slowest of the five
+  // requests, while the others keep warming in the background. Switching to an
+  // already-warmed period clears instantly → no flash.
+  useEffect(() => {
+    if (!isPerp) return;
+    const hasActivePeriod =
+      perpCache.key === perpKey && Boolean(perpCache.prices[activeTimePeriod]);
+    setIsPricesLoading(!hasActivePeriod);
+  }, [isPerp, perpKey, activeTimePeriod, perpCache]);
 
   // Active price cache: perps read their position-scoped lazy cache (ignoring a
   // stale-position one); spot reads the eagerly-fetched `allPrices`.

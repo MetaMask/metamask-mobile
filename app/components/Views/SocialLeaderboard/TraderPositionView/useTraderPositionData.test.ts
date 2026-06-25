@@ -1,0 +1,99 @@
+import { renderHook, waitFor } from '@testing-library/react-native';
+import type { Position } from '@metamask/social-controllers';
+import {
+  fetchHyperliquidHistoricalPrices,
+  type HyperliquidCandleInterval,
+} from '../utils/hyperliquidPrices';
+import { useTraderPositionData } from './useTraderPositionData';
+
+// useSelector calls the selector with no state; the mocked selectors below return
+// fixed values, so the hook reads `{}` market data and `usd` currency.
+jest.mock('react-redux', () => ({
+  useSelector: (selector: () => unknown) => selector(),
+}));
+
+jest.mock('../../../../selectors/tokenRatesController', () => ({
+  selectTokenMarketData: jest.fn(() => ({})),
+}));
+
+jest.mock('../../../../selectors/currencyRateController', () => ({
+  selectCurrentCurrency: jest.fn(() => 'usd'),
+}));
+
+// Keep caipChainId undefined so the spot/market-cap machinery stays dormant and
+// the test isolates the perp candle pre-fetch path.
+jest.mock('../utils/chainMapping', () => ({
+  chainNameToId: jest.fn(() => undefined),
+}));
+
+jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
+  getAssetImageUrl: jest.fn(() => undefined),
+  toAssetId: jest.fn(() => undefined),
+}));
+
+jest.mock('@metamask/controller-utils', () => ({
+  handleFetch: jest.fn().mockResolvedValue({}),
+}));
+
+// The real module pulls in PerpsController (and a native dep) at import time;
+// only the display-symbol helper is needed here.
+jest.mock('@metamask/perps-controller', () => ({
+  getPerpsDisplaySymbol: (symbol: string) => symbol,
+}));
+
+jest.mock('../../../../util/Logger', () => ({ error: jest.fn() }));
+
+// Partial mock: keep resolveHyperliquidCandleLimit (pure) real; stub the network.
+jest.mock('../utils/hyperliquidPrices', () => ({
+  ...jest.requireActual('../utils/hyperliquidPrices'),
+  fetchHyperliquidHistoricalPrices: jest.fn().mockResolvedValue([]),
+}));
+
+const mockFetchHyperliquid =
+  fetchHyperliquidHistoricalPrices as jest.MockedFunction<
+    typeof fetchHyperliquidHistoricalPrices
+  >;
+
+const perpPosition = {
+  chain: 'hyperliquid',
+  perpPositionType: 'long',
+  tokenSymbol: 'ETH',
+  tokenAddress: '0x0000000000000000000000000000000000000000',
+  trades: [],
+} as unknown as Position;
+
+describe('useTraderPositionData — perp candle pre-fetch', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockFetchHyperliquid.mockResolvedValue([]);
+  });
+
+  it('pre-fetches every period up front so an interval switch needs no network', async () => {
+    renderHook(() => useTraderPositionData(perpPosition));
+
+    // One candleSnapshot request per period (1H, 1D, 1W, 1M, All), each with its
+    // own distinct Hyperliquid interval — warmed on mount, not on demand.
+    await waitFor(() => expect(mockFetchHyperliquid).toHaveBeenCalledTimes(5));
+
+    const intervals = mockFetchHyperliquid.mock.calls.map(
+      ([opts]) => opts.interval,
+    );
+    const expected: HyperliquidCandleInterval[] = [
+      '1m',
+      '15m',
+      '1h',
+      '4h',
+      '1d',
+    ];
+    expect(new Set(intervals)).toEqual(new Set(expected));
+  });
+
+  it('requests every period for the position symbol', async () => {
+    renderHook(() => useTraderPositionData(perpPosition));
+
+    await waitFor(() => expect(mockFetchHyperliquid).toHaveBeenCalledTimes(5));
+    for (const [opts] of mockFetchHyperliquid.mock.calls) {
+      expect(opts.symbol).toBe('ETH');
+    }
+  });
+});
