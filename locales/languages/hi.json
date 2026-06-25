@@ -103,7 +103,7 @@
       "title": "अपर्याप्त फंड"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "कम राशि जोड़ें या किसी अन्य भुगतान विधि का उपयोग करें।"
     },
     "insufficient_pay_token_native": {
       "message": "फीस कवर करने के लिए ज़्यादा {{ticker}} मौजूद नहीं हैं। जारी रखने के लिए किसी दूसरे नेटवर्क पर टोकन इस्तेमाल करें या और {{ticker}} जोड़ें।",
@@ -1094,6 +1094,7 @@
       "twitter_link": "X (ट्विटर) पर देखें",
       "sort": {
         "value": "वैल्यू",
+        "top_trades": "Top Trades",
         "pnl_percent": "पी एंड एल %",
         "recent": "हालिया"
       }
@@ -1133,6 +1134,8 @@
       "price_impact": "कीमत का प्रभाव",
       "est_points": "अनुमानित पॉइंट्स",
       "no_quotes": "इस टोकन के लिए कोई कोटेशन उपलब्ध नहीं है",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "लोड हो रहा है...",
       "unavailable": "स्वैप अनुपलब्ध है",
       "unsupported_chain": "यह चेन अभी क्विक बाय के लिए सपोर्टेड नहीं है",
@@ -2368,11 +2371,15 @@
       "predictions_title": "वर्ल्ड कप प्रेडिक्शन्स",
       "banner_title": "वर्ल्ड कप 2026",
       "banner_description": "हर मैच, हर पल में ट्रेड करें।",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "सभी",
         "props": "प्रॉप्स",
-        "live": "लाइव"
+        "live": "लाइव",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "ग्रुप स्टेज",
         "round_of_32": "राउंड ऑफ़ 32",
@@ -3540,6 +3547,8 @@
       "wallet_activity_desc": "खरीद, बिक्री, ट्रांसफर, स्वैप और रिवॉर्ड्स",
       "perps_title": "ट्रेडिंग गतिविधि",
       "perps_desc": "पर्प्स पोज़िशन में बदलाव, लिक्विडेशन, फंडिंग रेट और मार्जिन अपडेट्स",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "ट्रेडिंग सिग्नल्स",
       "social_ai_desc": "जिन ट्रेडर्स और एसेट्स को आप फ़ॉलो करते हैं उनसे अपडेट, साथ ही चुनी हुई मार्केट न्यूज़",
       "marketing_title": "अपडेट्स और रिवॉर्ड्स",
@@ -6029,6 +6038,11 @@
       "description": "क्षेत्रीय पेमेंट प्रोवाइडर की बाध्यताओं या रेगुलेटरी पाबंदियों की वजह से आपके क्षेत्र में क्रिप्टो खरीदने की सुविधा उपलब्ध नहीं है।",
       "got_it": "समझ गए"
     },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "समझ गए"
+    },
     "region": {
       "buy_crypto_tokens": "क्रिप्टो टोकन खरीदें",
       "sell_crypto_tokens": "क्रिप्टो टोकन बेचें",
@@ -7949,9 +7963,13 @@
       "rejected": "रिजेक्ट किया गया",
       "reconnect": "रीकनेक्ट करें",
       "done": "पूरा हुआ",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "अगला QR कोड स्कैन करें",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "{{total}} में से {{current}} स्टेप: अपने वॉलेट पर दिखाए गए QR कोड को स्कैन करें",
-      "scanner_last_step_text": "आखिरी स्टेप: अपने वॉलेट पर दिखाए गए QR कोड को स्कैन करें"
+      "scanner_last_step_text": "आखिरी स्टेप: अपने वॉलेट पर दिखाए गए QR कोड को स्कैन करें",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "कीमत का प्रभाव",
     "price_impact_info_description": "इस तरह आपका ट्रेड किसी टोकन की मार्केट प्राइस बदलता है। यह ट्रेड साइज़, उपलब्ध लिक्विडिटी और प्रोवाइडर फीस पर निर्भर करता है। MetaMask प्राइस इम्पैक्ट को कंट्रोल नहीं करता है।",
@@ -9601,17 +9619,6 @@
       "predict_withdraw": "विदड्रॉवल",
       "money_account_deposit": "Money अकाउंट में डिपॉज़िट करें",
       "money_account_withdraw": "Money अकाउंट से ट्रांसफर करें",
-      "money_account_sent": "{{symbol}} भेजा गया",
-      "money_account_received": "प्राप्त किया गया",
-      "deposited_musd": "डिपॉज़िट किया गया mUSD",
-      "depositing_musd": "mUSD डिपॉज़िट किया जा रहा है",
-      "deposit_failed": "डिपॉज़िट नहीं हो पाया",
-      "sent": "भेजा गया",
-      "sending_musd": "mUSD भेजा जा रहा है",
-      "send_failed": "भेजना नहीं हो पाया",
-      "converted_to_musd": "mUSD में कन्वर्ट किया गया",
-      "converting_to_musd": "mUSD में कन्वर्ट किया जा रहा है",
-      "conversion_failed": "कन्वर्शन नहीं हो पाया",
       "default": "ट्रांसेक्शन संबंधी विवरण"
     },
     "label": {
@@ -9660,6 +9667,24 @@
       "fiat_purchase": "{{paymentMethod}} के साथ {{token}} खरीदें"
     },
     "perps_deposit_solution": "अब आपके पास Arbitrum पर USDC का {{fiat}} है। कृपया अपना डिपॉज़िट फिर से प्रयास करें।"
+  },
+  "activity_details": {
+    "status": "स्टेटस",
+    "date": "तिथि",
+    "account": "अकाउंट",
+    "from": "से",
+    "to": "प्रति",
+    "network": "नेटवर्क",
+    "transaction_id": "ट्रांसेक्शन आईडी",
+    "network_fee": "नेटवर्क फीस",
+    "bridge_fee": "ब्रिज फीस",
+    "transaction_fee": "ट्रांसेक्शन फीस",
+    "total_amount": "कुल रकम",
+    "you_sent": "आपने भेजे",
+    "you_received": "आपने प्राप्त किया",
+    "view_on_block_explorer": "ब्लॉक एक्सप्लोरर पर देखें",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

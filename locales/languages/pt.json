@@ -103,7 +103,7 @@
       "title": "Fundos insuficientes"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Adicione menos fundos ou use outra forma de pagamento."
     },
     "insufficient_pay_token_native": {
       "message": "Não há {{ticker}} suficientes para cobrir as taxas. Use um token em outra rede ou adicione mais {{ticker}} para continuar.",
@@ -1094,6 +1094,7 @@
       "twitter_link": "Ver no X (Twitter)",
       "sort": {
         "value": "Valor",
+        "top_trades": "Top Trades",
         "pnl_percent": "P&L %",
         "recent": "Recente"
       }
@@ -1133,6 +1134,8 @@
       "price_impact": "Impacto do preço",
       "est_points": "Est. de pontos",
       "no_quotes": "Não há cotações disponíveis para este token",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Carregando...",
       "unavailable": "Swap não disponível",
       "unsupported_chain": "Esta blockchain ainda não é compatível com a Quick Buy",
@@ -2368,11 +2371,15 @@
       "predictions_title": "Previsões para a Copa do Mundo",
       "banner_title": "Copa do Mundo 2026",
       "banner_description": "Negocie cada partida, cada momento.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "Tudo",
         "props": "Props",
-        "live": "Em tempo real"
+        "live": "Em tempo real",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Fase de grupos",
         "round_of_32": "Primeira fase eliminatória",
@@ -3540,6 +3547,8 @@
       "wallet_activity_desc": "Compra, vendas, transferências, trocas e recompensas",
       "perps_title": "Atividade de negociação",
       "perps_desc": "Alterações na posição de perps, liquidações, taxas de financiamento e atualizações de margem",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "Indicadores de negociação",
       "social_ai_desc": "Atualizações de traders e ativos que você acompanha, além de notícias de mercado selecionadas",
       "marketing_title": "Atualizações e recompensas",
@@ -6029,6 +6038,11 @@
       "description": "A compra de criptomoedas não está disponível na sua região devido a limitações dos provedores de pagamento locais ou restrições regulatórias.",
       "got_it": "Entendi"
     },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "Entendi"
+    },
     "region": {
       "buy_crypto_tokens": "Compre tokens de criptomoedas",
       "sell_crypto_tokens": "Vender tokens de criptoativos",
@@ -7949,9 +7963,13 @@
       "rejected": "Rejeitado",
       "reconnect": "Reconectar",
       "done": "Pronto",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "Escanear próximo código QR",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "Etapa {{current}} de {{total}}: Escaneie o código QR exibido em sua carteira",
-      "scanner_last_step_text": "Última etapa: Escaneie o código QR exibido em sua carteira"
+      "scanner_last_step_text": "Última etapa: Escaneie o código QR exibido em sua carteira",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "Impacto do preço",
     "price_impact_info_description": "É assim que sua negociação altera o preço de mercado de um token. Ele depende do volume da negociação, da liquidez disponível e das taxas do fornecedor. A MetaMask não controla o impacto no preço.",
@@ -9601,17 +9619,6 @@
       "predict_withdraw": "Sacar",
       "money_account_deposit": "Depositar em conta bancária",
       "money_account_withdraw": "Transferência da conta bancária",
-      "money_account_sent": "Enviou {{symbol}}",
-      "money_account_received": "Recebido",
-      "deposited_musd": "Depositado em mUSD",
-      "depositing_musd": "Depositando mUSD",
-      "deposit_failed": "Falha no depósito",
-      "sent": "Enviados",
-      "sending_musd": "Enviando mUSD",
-      "send_failed": "Falha ao enviar",
-      "converted_to_musd": "Convertido para mUSD",
-      "converting_to_musd": "Convertendo para mUSD",
-      "conversion_failed": "Falha na conversão",
       "default": "Dados da transação"
     },
     "label": {
@@ -9660,6 +9667,24 @@
       "fiat_purchase": "Comprar {{token}} com {{paymentMethod}}"
     },
     "perps_deposit_solution": "Agora você possui {{fiat}} de USDC na Arbitrum. Tente depositar novamente."
+  },
+  "activity_details": {
+    "status": "Status",
+    "date": "Data",
+    "account": "Conta",
+    "from": "De",
+    "to": "Para",
+    "network": "Rede",
+    "transaction_id": "ID da transação",
+    "network_fee": "Taxa de rede",
+    "bridge_fee": "Taxa de ponte",
+    "transaction_fee": "Taxa de transação",
+    "total_amount": "Valor total",
+    "you_sent": "Você enviou",
+    "you_received": "Você recebeu",
+    "view_on_block_explorer": "Ver no explorador de blocos",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

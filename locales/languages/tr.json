@@ -103,7 +103,7 @@
       "title": "Yetersiz bakiye"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Daha az miktar girin veya farklı bir ödeme yöntemi kullanın."
     },
     "insufficient_pay_token_native": {
       "message": "Ücretleri karşılamak için yeterli {{ticker}} yok. Devam etmek için başka bir ağda bir token kullanın veya daha fazla {{ticker}} ekleyin.",
@@ -1094,6 +1094,7 @@
       "twitter_link": "X (Twitter) üzerinde görüntüle",
       "sort": {
         "value": "Değer",
+        "top_trades": "Top Trades",
         "pnl_percent": "K&Z %",
         "recent": "Son Kullanılanlar"
       }
@@ -1133,6 +1134,8 @@
       "price_impact": "Piyasa etkisi",
       "est_points": "Tah. puanlar",
       "no_quotes": "Bu token için fiyat teklifi mevcut değil",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Yükleniyor...",
       "unavailable": "Takas kullanılamıyor",
       "unsupported_chain": "Hızlı Satın Alma özelliği henüz bu zincirde desteklemiyor",
@@ -2368,11 +2371,15 @@
       "predictions_title": "Dünya Kupası tahminleri",
       "banner_title": "Dünya Kupası 2026",
       "banner_description": "Her maçta, her an işlem yapın.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "Tümü",
         "props": "Özel Bahisler",
-        "live": "Canlı"
+        "live": "Canlı",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Grup Aşaması",
         "round_of_32": "Son 32 Tur",
@@ -3540,6 +3547,8 @@
       "wallet_activity_desc": "Alış, satış, transfer, takas işlemleri ve ödülleri",
       "perps_title": "İşlem Hareketleri",
       "perps_desc": "Perps pozisyonundaki değişiklikler, likidasyonlar, fonlama oranları ve marj güncellemeleri",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "İşlem Sinyalleri",
       "social_ai_desc": "Takip ettiğiniz yatırımcılardan ve varlıklardan güncellemeler ve ayrıca özel olarak seçilmiş piyasa haberleri",
       "marketing_title": "Güncellemeler ve Ödüller",
@@ -6029,6 +6038,11 @@
       "description": "Kripto alımı, yerel ödeme sağlayıcılarıyla olan sınırlamalar veya düzenleyici kısıtlamalar nedeniyle bölgenize kullanılamıyor.",
       "got_it": "Anladım"
     },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "Anladım"
+    },
     "region": {
       "buy_crypto_tokens": "Kripto token al",
       "sell_crypto_tokens": "Kripto token sat",
@@ -7949,9 +7963,13 @@
       "rejected": "Reddedildi",
       "reconnect": "Tekrar bağla",
       "done": "Bitti",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "Bir sonraki QR kodunu tara",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "{{current}} / {{total}}: Cüzdanınızda gösterilen QR kodunu tarayın",
-      "scanner_last_step_text": "Son adım: Cüzdanınızda gösterilen QR kodunu tarayın"
+      "scanner_last_step_text": "Son adım: Cüzdanınızda gösterilen QR kodunu tarayın",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "Piyasa etkisi",
     "price_impact_info_description": "Bu, işleminizin bir tokenın piyasa fiyatını nasıl değiştirdiğini ifade eder. Bu durum; işlem boyutuna, mevcut likiditeye ve sağlayıcı ücretlerine bağlıdır. MetaMask fiyat etkisini kontrol etmez.",
@@ -9601,17 +9619,6 @@
       "predict_withdraw": "Çekme işlemi",
       "money_account_deposit": "Para Hesabına Para Yatır",
       "money_account_withdraw": "Para Hesabından Para Transfer Et",
-      "money_account_sent": "{{symbol}} Gönderdi",
-      "money_account_received": "Alınan",
-      "deposited_musd": "Yatırılan mUSD",
-      "depositing_musd": "mUSD yatırılıyor",
-      "deposit_failed": "Para yatırma işlemi başarısız oldu",
-      "sent": "Gönderildi",
-      "sending_musd": "mUSD gönderiliyor",
-      "send_failed": "Gönderilemedi",
-      "converted_to_musd": "mUSD'ye dönüştürüldü",
-      "converting_to_musd": "mUSD'ye dönüştürülüyor",
-      "conversion_failed": "Dönüştürme işlemi başarısız oldu",
       "default": "İşlem bilgileri"
     },
     "label": {
@@ -9660,6 +9667,24 @@
       "fiat_purchase": "{{paymentMethod}} ile {{token}} satın alın"
     },
     "perps_deposit_solution": "Şu anda Arbitrum üzerinde {{fiat}} USDC'niz var. Yatırma işleminizi tekrar deneyin."
+  },
+  "activity_details": {
+    "status": "Durum",
+    "date": "Tarih",
+    "account": "Hesap",
+    "from": "Gönderen",
+    "to": "Alıcı",
+    "network": "Ağ",
+    "transaction_id": "İşlem Kimliği",
+    "network_fee": "Ağ ücreti",
+    "bridge_fee": "Köprü ücreti",
+    "transaction_fee": "İşlem ücreti",
+    "total_amount": "Toplam tutar",
+    "you_sent": "Gönderdiğiniz",
+    "you_received": "Aldığınız",
+    "view_on_block_explorer": "Blok gezgininde görüntüle",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {
