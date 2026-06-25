@@ -26,7 +26,7 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
-import styleSheet from '../../../Deposit/Views/Modals/RegionSelectorModal/RegionSelectorModal.styles';
+import styleSheet from './PhoneCountrySelectorModal.styles';
 
 const MAX_COUNTRY_RESULTS = 20;
 

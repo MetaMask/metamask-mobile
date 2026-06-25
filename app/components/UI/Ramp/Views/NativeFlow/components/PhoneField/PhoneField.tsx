@@ -5,8 +5,8 @@ import { Text } from '@metamask/design-system-react-native';
 import type { Country } from '@metamask/ramps-controller';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { strings } from '../../../../../../../../locales/i18n';
-import DepositTextField from '../../../../Deposit/components/DepositTextField';
-import { formatNumberToTemplate } from '../../../../Deposit/components/DepositPhoneField/formatNumberToTemplate';
+import DepositTextField from '../../../../components/DepositTextField';
+import { formatNumberToTemplate } from '../../../../utils/formatNumberToTemplate';
 import { createPhoneCountrySelectorModalNavigationDetails } from '../../../Modals/PhoneCountrySelectorModal';
 import {
   DEFAULT_PHONE_TEMPLATE,
