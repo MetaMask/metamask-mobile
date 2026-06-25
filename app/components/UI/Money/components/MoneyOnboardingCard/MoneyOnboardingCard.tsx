@@ -6,6 +6,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
+import { isPositiveNumber } from '../../utils/number';
 import StepperCard, {
   type StepperCardStep,
 } from '../../../../../component-library/components-temp/StepperCard';
@@ -48,7 +49,8 @@ const MoneyOnboardingCard = () => {
   });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { tokenTotal, isBalanceLoading } = useMoneyAccountBalance();
+  const { tokenTotal, isBalanceLoading, apyPercent } = useMoneyAccountBalance();
+  const showApy = isPositiveNumber(apyPercent);
   const { trackOnboardingEvent } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
     component_name: COMPONENT_NAMES.MONEY_ONBOARDING_CARD,
@@ -240,7 +242,9 @@ const MoneyOnboardingCard = () => {
   const handleStep1CtaPressed = useCallback(() => {
     trackOnboardingEvent({
       step: currentStep + 1, // Use 1-based index for event tracking to match total_steps count.
-      step_title: strings('money.onboarding.step_1.title', { locale: 'en' }),
+      step_title: strings('money.onboarding.step_1.title_no_apy', {
+        locale: 'en',
+      }),
       total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
       step_action: MONEY_ONBOARDING_STEP_ACTIONS.DEPOSIT_INITIATED,
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
@@ -253,8 +257,12 @@ const MoneyOnboardingCard = () => {
     if (!isOnboardingCardVisible || !isVisibleAfterAutoSkip) return [];
 
     const step1: StepperCardStep = {
-      title: strings('money.onboarding.step_1.title'),
-      description: strings('money.onboarding.step_1.description'),
+      title: showApy
+        ? strings('money.onboarding.step_1.title', { apy: apyPercent })
+        : strings('money.onboarding.step_1.title_no_apy'),
+      description: showApy
+        ? strings('money.onboarding.step_1.description', { apy: apyPercent })
+        : strings('money.onboarding.step_1.description_no_apy'),
       primaryCta: {
         text: strings('money.onboarding.step_1.cta'),
         onPress: handleStep1CtaPressed,
@@ -330,6 +338,8 @@ const MoneyOnboardingCard = () => {
   }, [
     isOnboardingCardVisible,
     isVisibleAfterAutoSkip,
+    showApy,
+    apyPercent,
     handleStep1CtaPressed,
     shouldShowLinkCardAction,
     isLinking,

@@ -1,27 +1,27 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { TouchableOpacity } from 'react-native';
 import {
   Box,
-  Text,
-  TextVariant,
-  FontWeight,
-  TextColor,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import type { Position } from '@metamask/social-controllers';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
-import PositionTokenAvatar from '../../components/PositionTokenAvatar';
+import type { Position } from '@metamask/social-controllers';
 import PerpBadges from '../../components/PerpBadges';
-import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
+import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import {
-  formatUsd,
+  formatPercent,
   formatSignedUsd,
   formatTokenAmount,
-  formatPercent,
   formatTradeDate,
+  formatUsd,
 } from '../../utils/formatters';
+import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
 
 export interface PositionRowProps {
   position: Position;
@@ -34,7 +34,7 @@ export interface PositionRowProps {
   showTradeDate?: boolean;
 }
 
-const PositionRow: React.FC<PositionRowProps> = ({
+const PositionRowComponent: React.FC<PositionRowProps> = ({
   position,
   onPress,
   isClosed: isClosedProp,
@@ -77,6 +77,10 @@ const PositionRow: React.FC<PositionRowProps> = ({
   const displaySymbol = getPerpsDisplaySymbol(position.tokenSymbol);
 
   const perpDirection = getPerpPositionDirection(position);
+
+  const handlePress = useCallback(() => {
+    onPress?.(position);
+  }, [onPress, position]);
 
   // Open positions — perp and spot alike — show the current position value in
   // neutral white (matching spot). Closed positions show signed, colored
@@ -134,7 +138,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
         twClassName={pnlColorClass}
         color={pnlColorClass ? undefined : TextColor.TextAlternative}
       >
-        {formatPercent(displayPnlPercent).replace(/^[+-]/, '')}
+        {formatPercent(displayPnlPercent, { showSign: false })}
       </Text>
     </Box>
   );
@@ -206,7 +210,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={() => onPress(position)} testID={testID}>
+      <TouchableOpacity onPress={handlePress} testID={testID}>
         {content}
       </TouchableOpacity>
     );
@@ -214,5 +218,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
 
   return content;
 };
+
+const PositionRow = React.memo(PositionRowComponent);
 
 export default PositionRow;
