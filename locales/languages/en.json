@@ -1103,7 +1103,6 @@
       "market_cap": "Market cap",
       "price": "Price",
       "position": "Position",
-      "trades": "Trades",
       "buy": "Buy",
       "trade": "Trade",
       "unsupported_market": "Unsupported market",
@@ -1134,6 +1133,8 @@
       "price_impact": "Price impact",
       "est_points": "Est. points",
       "no_quotes": "No quotes available for this token",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Loading...",
       "unavailable": "Swap unavailable",
       "unsupported_chain": "This chain is not supported for Quick Buy yet",
@@ -9666,6 +9667,24 @@
       "fiat_purchase": "Buy {{token}} with {{paymentMethod}}"
     },
     "perps_deposit_solution": "You now have {{fiat}} of USDC on Arbitrum. Try your deposit again."
+  },
+  "activity_details": {
+    "status": "Status",
+    "date": "Date",
+    "account": "Account",
+    "from": "From",
+    "to": "To",
+    "network": "Network",
+    "transaction_id": "Transaction ID",
+    "network_fee": "Network fee",
+    "bridge_fee": "Bridge fee",
+    "transaction_fee": "Transaction fee",
+    "total_amount": "Total amount",
+    "you_sent": "You sent",
+    "you_received": "You received",
+    "view_on_block_explorer": "View on block explorer",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

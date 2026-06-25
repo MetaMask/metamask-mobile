@@ -1,27 +1,27 @@
-import React from 'react';
-import { TouchableOpacity } from 'react-native';
 import {
   Box,
-  Text,
-  TextVariant,
-  FontWeight,
-  TextColor,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
   BoxJustifyContent,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
-import type { Position } from '@metamask/social-controllers';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
-import PositionTokenAvatar from '../../components/PositionTokenAvatar';
+import type { Position } from '@metamask/social-controllers';
+import React from 'react';
+import { TouchableOpacity } from 'react-native';
 import PerpBadges from '../../components/PerpBadges';
-import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
+import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import {
-  formatUsd,
+  formatPercent,
   formatSignedUsd,
   formatTokenAmount,
-  formatPercent,
   formatTradeDate,
+  formatUsd,
 } from '../../utils/formatters';
+import { getPerpPositionDirection, isPerpPosition } from '../../utils/perp';
 
 export interface PositionRowProps {
   position: Position;
@@ -134,7 +134,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
         twClassName={pnlColorClass}
         color={pnlColorClass ? undefined : TextColor.TextAlternative}
       >
-        {formatPercent(displayPnlPercent).replace(/^[+-]/, '')}
+        {formatPercent(displayPnlPercent, { showSign: false })}
       </Text>
     </Box>
   );

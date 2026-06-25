@@ -92,12 +92,21 @@ export interface PositionLines {
  * Drawing API circle icon. Used to surface trade entries/exits (e.g. Social
  * Trading open/close circles). `intent` selects the color: `'enter'` → success
  * (green), `'exit'` → error (red).
+ *
+ * `price` is optional. When omitted, the WebView snaps the marker's Y to the
+ * interpolated close of the rendered line at `time`. When provided it is used
+ * only as a fallback for trades whose candle is outside the currently-loaded
+ * data window (the WebView's `interpolateCloseAlongLineAtTimeMs` always takes
+ * precedence when it yields a finite value).
  */
 export interface TradeMarker {
   /** Unix timestamp in **milliseconds** (matches OHLCVBar.time). */
   time: number;
-  /** Price the marker is anchored to on the Y axis. */
-  price: number;
+  /**
+   * Optional Y anchor. Omit to let the WebView snap to the line automatically.
+   * Only used as a fallback when the trade's candle is outside loaded data.
+   */
+  price?: number;
   /** `'enter'` = buy/open (green); `'exit'` = sell/close (red). */
   intent: 'enter' | 'exit';
   /** Stable id used as the React key and to track the created shape entity. */
@@ -688,6 +697,14 @@ export interface AdvancedChartProps {
    * When omitted or `enabled: false`, the native TV legend is used as-is.
    */
   legendOverlay?: LegendOverlayConfig;
+
+  /**
+   * When true, the chart surface stops capturing touches (`pointerEvents="none"`)
+   * so gestures fall through to whatever scrolls behind it. Used when the chart is
+   * pinned as a scroll-linked overlay (e.g. Trader Position): once pinned, drags on
+   * the chart must scroll the list underneath rather than pan the WebView.
+   */
+  scrollPassthrough?: boolean;
 }
 
 export interface LegendPlotConfig {
