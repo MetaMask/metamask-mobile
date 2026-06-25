@@ -1,5 +1,4 @@
-import { RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import { RouteProp, type NavigationProp } from '@react-navigation/native';
 
 /**
  * Route params for ManualBackupStep1
@@ -44,7 +43,7 @@ export interface BackupFlowParamList {
 /**
  * Navigation prop type with proper typing for navigate() calls
  */
-export type ManualBackupStep1NavigationProp = StackNavigationProp<
+export type ManualBackupStep1NavigationProp = NavigationProp<
   BackupFlowParamList,
   'ManualBackupStep1'
 >;

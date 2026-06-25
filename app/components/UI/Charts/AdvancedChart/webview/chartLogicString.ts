@@ -35,6 +35,11 @@ window.maStudies = new Map();
 /** name → studyId, insertion order = legend pill order (Maps preserve add order). */
 window.legendStudyOrder = new Map();
 window.positionShapeIds = [];
+window.tradeMarkerShapeIds = [];
+/** Map<tradeId, shapeEntityId> so a specific trade marker can be pulsed on demand. */
+window.tradeMarkerShapeIdsById = new Map();
+/** Latest full marker set from RN; markers are (re)drawn as their candles load (draw-on-pan). */
+window.tradeMarkersData = null;
 window.isChartReady = false;
 window.pendingMessages = [];
 window.libraryLoaded = false;
@@ -333,6 +338,15 @@ function handleMessage(event) {
       case 'SET_POSITION_LINES':
         handleSetPositionLines(message.payload);
         break;
+      case 'SET_TRADE_MARKERS':
+        handleSetTradeMarkers(message.payload);
+        break;
+      case 'FOCUS_TIME':
+        handleFocusTime(message.payload);
+        break;
+      case 'PULSE_TRADE_MARKER':
+        handlePulseTradeMarker(message.payload);
+        break;
       case 'REALTIME_UPDATE':
         handleRealtimeUpdate(message.payload);
         break;
@@ -535,8 +549,13 @@ function handleSetOHLCVData(payload) {
         chart.setResolution(newResolution, function () {
           try {
             chart.resetData();
+            // resetData() drops the trade-marker shapes; clear our tracking and
+            // re-schedule a draw, otherwise placeTradeMarkers skips the redraw
+            // (its id set still matches) and the circles stay gone.
+            clearTradeMarkers();
             beginDeferredLayoutSettleAfterOhlcvReload();
             scheduleVisibleRangeAfterDataLoad(chart);
+            scheduleTradeMarkerRefresh();
           } catch (eR) {
             abortDeferredLayoutSettleAndNotify();
             return;
@@ -545,8 +564,13 @@ function handleSetOHLCVData(payload) {
       } else {
         try {
           chart.resetData();
+          // resetData() drops the trade-marker shapes; clear our tracking and
+          // re-schedule a draw, otherwise placeTradeMarkers skips the redraw
+          // (its id set still matches) and the circles stay gone.
+          clearTradeMarkers();
           beginDeferredLayoutSettleAfterOhlcvReload();
           scheduleVisibleRangeAfterDataLoad(chart);
+          scheduleTradeMarkerRefresh();
         } catch (e) {
           abortDeferredLayoutSettleAndNotify();
           return;
@@ -566,6 +590,9 @@ function handleSetOHLCVData(payload) {
       window.lineEndDotShapeId = null;
       window.lineLastPriceShapeId = null;
       window.positionShapeIds = [];
+      window.tradeMarkerShapeIds = [];
+      window.tradeMarkerShapeIdsById = new Map();
+      window.tradeMarkersData = null;
       window.realtimeCallbacks = {};
       window.currentChartType = 2;
       initChart();
@@ -1891,6 +1918,8 @@ function subscribeLastCloseLabelUpdates() {
         if (getLineChrome().useCustomLineEndMarker) {
           scheduleLineEndDotAfterVisibleRangeChange();
         }
+        // Re-place trade markers so ones that scroll into the loaded range appear.
+        scheduleTradeMarkerRefresh();
       });
   } catch (e) {}
 }
@@ -2552,6 +2581,570 @@ function handleSetPositionLines(payload) {
     sendToReactNative('ERROR', {
       message: 'Failed to add position lines: ' + error.message,
     });
+  }
+}
+
+// ============================================
+// Trade markers (open/close circles via SET_TRADE_MARKERS)
+// ============================================
+
+/** Circle glyph (FontAwesome fa-circle), same icon used for the line-end dot. */
+const TRADE_MARKER_ICON = 0xf111;
+/** Inner colored circle diameter (px). */
+const TRADE_MARKER_SIZE = 10;
+/**
+ * Outer ring diameter (px). The colored circle ({@link TRADE_MARKER_SIZE}) sits
+ * on top, leaving a ~2px black rim around it so the markers are easier to spot.
+ */
+const TRADE_MARKER_RING_SIZE = 14;
+/** Ring/outline color drawn behind every colored circle. */
+const TRADE_MARKER_RING_COLOR = '#000000';
+/** Bumped when the visible marker set changes so stale async createShape resolves are discarded. */
+window.__tradeMarkerGen = 0;
+/** Debounce handle for re-placing markers after pan / zoom / pagination. */
+let tradeMarkerRefreshDebounce = null;
+
+/**
+ * Creates one trade-marker icon (a colored fa-circle anchored at time/price).
+ * Returns the \`createShape\` promise (resolves to the entity id).
+ */
+function createTradeMarkerIcon(chart, timeSec, price, color, size) {
+  return chart.createShape(
+    { time: timeSec, price: price },
+    {
+      // Drawings API: icon + fixed size (matches the line-end dot).
+      // https://www.tradingview.com/charting-library-docs/latest/customization/overrides/Drawings-Overrides/
+      shape: 'icon',
+      icon: TRADE_MARKER_ICON,
+      lock: true,
+      overrides: {
+        color: color,
+        size: size,
+      },
+      disableSelection: true,
+      disableSave: true,
+      disableUndo: true,
+      showInObjectsTree: false,
+      zOrder: 'top',
+    },
+  );
+}
+
+/** Best-effort \`removeEntity\` (ignores already-removed / invalid ids). */
+function removeMarkerEntity(chart, entityId) {
+  if (!entityId) return;
+  try {
+    chart.removeEntity(entityId);
+  } catch (e) {}
+}
+
+function clearTradeMarkers() {
+  if (!window.chartWidget || !window.isChartReady) return;
+
+  try {
+    const chart = window.chartWidget.activeChart();
+    for (let i = 0; i < window.tradeMarkerShapeIds.length; i++) {
+      try {
+        chart.removeEntity(window.tradeMarkerShapeIds[i]);
+      } catch (e) {
+        // Shape may already be removed
+      }
+    }
+    window.tradeMarkerShapeIds = [];
+    window.tradeMarkerShapeIdsById = new Map();
+  } catch (error) {
+    sendToReactNative('ERROR', {
+      message: 'Failed to clear trade markers: ' + error.message,
+    });
+  }
+}
+
+function handleSetTradeMarkers(payload) {
+  if (!window.chartWidget || !window.isChartReady) return;
+
+  // Store the full marker set (RN sends ALL trades, not just the visible window).
+  window.tradeMarkersData =
+    payload && payload.markers && payload.markers.length
+      ? payload.markers
+      : null;
+
+  // "clear only" — no markers to draw.
+  if (!window.tradeMarkersData) {
+    clearTradeMarkers();
+    return;
+  }
+
+  placeTradeMarkers();
+}
+
+/**
+ * Draws the trade markers whose candle is within the currently-loaded data range,
+ * snapping each Y onto the rendered close-price line. Markers older than the loaded
+ * range are skipped and drawn later, once the user pans/zooms and the WebView
+ * paginates their candles in (see {@link scheduleTradeMarkerRefresh}) — this is why
+ * a trade from weeks ago appears as you scroll back instead of being dropped.
+ *
+ * No-ops when the visible marker set is unchanged (avoids redraw flicker on pan).
+ * A generation token discards stale async \`createShape\` resolves when the set
+ * changes. Y is taken from the WebView's own candles (which grow via pagination),
+ * so older markers RN couldn't snap still land on the line.
+ */
+function placeTradeMarkers() {
+  if (!window.chartWidget || !window.isChartReady) return;
+  let chart;
+  try {
+    chart = window.chartWidget.activeChart();
+  } catch (e) {
+    return;
+  }
+  if (!chart) return;
+
+  const markers = window.tradeMarkersData || [];
+  const data = window.ohlcvData || [];
+  if (!data.length) return; // no candles loaded yet; re-runs after data / pan
+  const firstT = data[0].time;
+  const lastT = data[data.length - 1].time;
+
+  // Markers whose candle is within the loaded range → drawable right now.
+  const desired = [];
+  for (let i = 0; i < markers.length; i++) {
+    const m = markers[i];
+    if (
+      m &&
+      m.id != null &&
+      isFinite(m.time) &&
+      isFinite(m.price) &&
+      m.time >= firstT &&
+      m.time <= lastT
+    ) {
+      desired.push(m);
+    }
+  }
+
+  // Skip the redraw when the drawn set already matches (prevents pan flicker).
+  const desiredKey = desired
+    .map(function (mk) {
+      return String(mk.id);
+    })
+    .sort()
+    .join('|');
+  const drawnIds = [];
+  window.tradeMarkerShapeIdsById.forEach(function (_entityId, id) {
+    drawnIds.push(id);
+  });
+  if (desiredKey === drawnIds.sort().join('|')) return;
+
+  window.__tradeMarkerGen = (window.__tradeMarkerGen || 0) + 1;
+  const gen = window.__tradeMarkerGen;
+  clearTradeMarkers();
+
+  const theme = window.CONFIG.theme;
+
+  function createDesired() {
+    if (gen !== window.__tradeMarkerGen) return;
+    if (!window.chartWidget || !window.isChartReady) return;
+    let activeChart;
+    try {
+      activeChart = window.chartWidget.activeChart();
+    } catch (e) {
+      return;
+    }
+    if (!activeChart) return;
+
+    // Draw oldest → newest, each marker as a black ring then its colored circle,
+    // and draw the markers SEQUENTIALLY (one fully placed before the next starts).
+    // Because every new shape is created with zOrder 'top', this guarantees the
+    // stack order ring1, fill1, ring2, fill2, … — so each circle's black ring
+    // lands ON TOP of the previous circle's fill. That keeps a black outline
+    // visible BETWEEN adjacent/overlapping circles, not just between a circle and
+    // the price line. (Creating them in parallel left every ring under every
+    // fill, so touching circles merged into one colored blob.)
+    const ordered = desired.slice().sort(function (a, b) {
+      return a.time - b.time;
+    });
+
+    let chain = Promise.resolve();
+    ordered.forEach(function (marker) {
+      chain = chain.then(function () {
+        if (gen !== window.__tradeMarkerGen) return undefined;
+        const timeSec = Math.floor(marker.time / 1000);
+        // Snap Y onto the rendered line at the trade time using the WebView's own
+        // (paginating) candles — works for older markers RN couldn't snap.
+        const lineY = interpolateCloseAlongLineAtTimeMs(
+          window.ohlcvData,
+          marker.time,
+        );
+        const price = lineY !== null && isFinite(lineY) ? lineY : marker.price;
+        const color =
+          marker.intent === 'exit' ? theme.errorColor : theme.successColor;
+
+        return createTradeMarkerIcon(
+          activeChart,
+          timeSec,
+          price,
+          TRADE_MARKER_RING_COLOR,
+          TRADE_MARKER_RING_SIZE,
+        ).then(function (ringId) {
+          // Discard if a newer placement superseded this one.
+          if (gen !== window.__tradeMarkerGen) {
+            removeMarkerEntity(activeChart, ringId);
+            return undefined;
+          }
+          return createTradeMarkerIcon(
+            activeChart,
+            timeSec,
+            price,
+            color,
+            TRADE_MARKER_SIZE,
+          ).then(function (fillId) {
+            if (gen !== window.__tradeMarkerGen) {
+              removeMarkerEntity(activeChart, ringId);
+              removeMarkerEntity(activeChart, fillId);
+              return;
+            }
+            if (ringId) {
+              window.tradeMarkerShapeIds.push(ringId);
+            }
+            if (fillId) {
+              window.tradeMarkerShapeIds.push(fillId);
+            }
+            window.tradeMarkerShapeIdsById.set(String(marker.id), {
+              fill: fillId || null,
+              ring: ringId || null,
+            });
+          });
+        });
+      });
+    });
+    chain.catch(function () {});
+  }
+
+  // Defer to dataReady so the series has the bars for correct X anchoring.
+  try {
+    if (typeof chart.dataReady === 'function') {
+      chart.dataReady(createDesired);
+    } else {
+      createDesired();
+    }
+  } catch (e) {
+    createDesired();
+  }
+}
+
+/** Debounced re-place after pan / zoom / pagination so off-screen markers appear. */
+function scheduleTradeMarkerRefresh() {
+  if (!window.tradeMarkersData) return;
+  if (tradeMarkerRefreshDebounce) {
+    clearTimeout(tradeMarkerRefreshDebounce);
+  }
+  tradeMarkerRefreshDebounce = setTimeout(function () {
+    tradeMarkerRefreshDebounce = null;
+    placeTradeMarkers();
+  }, 150);
+}
+
+/** Bumped on each pulse so a newer pulse (or marker rebuild) cancels the previous loop. */
+window.__tradeMarkerPulseGen = 0;
+/** Pulse animation duration (ms). */
+const TRADE_MARKER_PULSE_MS = 1100;
+/** Peak (colored-circle) size at the crest of a pulse (base is TRADE_MARKER_SIZE). */
+const TRADE_MARKER_PULSE_PEAK = 22;
+/** Number of grow/shrink humps over the animation. */
+const TRADE_MARKER_PULSE_CYCLES = 2;
+
+/**
+ * Briefly pulses (grows + shrinks, fading out) the trade marker for \`payload.id\`
+ * to draw attention to it — e.g. after the chart slides to a tapped trade.
+ * Animates both the colored circle and its ring via \`setProperties\`, keeping the
+ * ring's proportional rim; a generation token cancels an in-flight pulse if a
+ * newer one starts or the markers are rebuilt.
+ */
+function handlePulseTradeMarker(payload) {
+  if (!window.chartWidget || !window.isChartReady) return;
+  if (!payload || payload.id == null) return;
+
+  const markerId = String(payload.id);
+  const byId = window.tradeMarkerShapeIdsById;
+  if (!byId || typeof byId.get !== 'function') return;
+  const record = byId.get(markerId);
+  if (!record) return;
+  const fillId = record.fill;
+  const ringId = record.ring;
+  if (fillId == null && ringId == null) return;
+
+  let chart;
+  try {
+    chart = window.chartWidget.activeChart();
+  } catch (e) {
+    return;
+  }
+  if (!chart || typeof chart.getShapeById !== 'function') return;
+
+  function getShape(id) {
+    if (id == null) return null;
+    try {
+      return chart.getShapeById(id);
+    } catch (e) {
+      return null;
+    }
+  }
+  const fillShape = getShape(fillId);
+  const ringShape = getShape(ringId);
+  const canPulse =
+    (fillShape && typeof fillShape.setProperties === 'function') ||
+    (ringShape && typeof ringShape.setProperties === 'function');
+  if (!canPulse) return;
+
+  window.__tradeMarkerPulseGen = (window.__tradeMarkerPulseGen || 0) + 1;
+  const gen = window.__tradeMarkerPulseGen;
+  const startTs = Date.now();
+  // Keep the ring proportionally larger than the fill so the rim stays even.
+  const ringRatio = TRADE_MARKER_RING_SIZE / TRADE_MARKER_SIZE;
+
+  function setSizes(fillSize) {
+    if (fillShape && typeof fillShape.setProperties === 'function') {
+      try {
+        fillShape.setProperties({ size: Math.round(fillSize) });
+      } catch (e) {}
+    }
+    if (ringShape && typeof ringShape.setProperties === 'function') {
+      try {
+        ringShape.setProperties({ size: Math.round(fillSize * ringRatio) });
+      } catch (e) {}
+    }
+  }
+
+  function step() {
+    if (gen !== window.__tradeMarkerPulseGen) return;
+    if (!window.chartWidget || !window.isChartReady) return;
+    // Bail if the markers were rebuilt (ids no longer map to this marker).
+    const current = window.tradeMarkerShapeIdsById.get(markerId);
+    if (!current || current.fill !== fillId || current.ring !== ringId) return;
+
+    const t = (Date.now() - startTs) / TRADE_MARKER_PULSE_MS;
+    if (t >= 1) {
+      setSizes(TRADE_MARKER_SIZE);
+      return;
+    }
+    // Decaying |sine| envelope: humps that shrink back to the base size.
+    const envelope =
+      Math.abs(Math.sin(Math.PI * TRADE_MARKER_PULSE_CYCLES * t)) * (1 - t);
+    setSizes(
+      TRADE_MARKER_SIZE +
+        (TRADE_MARKER_PULSE_PEAK - TRADE_MARKER_SIZE) * envelope,
+    );
+    try {
+      requestAnimationFrame(step);
+    } catch (e) {
+      setTimeout(step, 16);
+    }
+  }
+
+  try {
+    requestAnimationFrame(step);
+  } catch (e) {
+    setSizes(TRADE_MARKER_SIZE);
+  }
+}
+
+/**
+ * Pixel hit radius for matching a tap to a trade marker (see
+ * {@link findTradeMarkerIdNearPoint}).
+ */
+const TRADE_MARKER_TAP_RADIUS_PX = 26;
+
+/**
+ * Finds the id of the trade marker closest to a tap at (\`timeSec\`, \`offsetY\`) —
+ * \`timeSec\` is the crosshair time (unix seconds) and \`offsetY\` the crosshair Y
+ * in overlay pixels. Returns the id when within {@link TRADE_MARKER_TAP_RADIUS_PX}
+ * (pixel distance, measuring Y against the line-snapped marker price), else null.
+ * Powers the reverse interaction: tapping a circle scrolls the trades list.
+ */
+function findTradeMarkerIdNearPoint(timeSec, offsetY) {
+  if (!window.tradeMarkersData || !window.tradeMarkersData.length) return null;
+  if (!window.chartWidget || !window.isChartReady) return null;
+  if (!isFinite(timeSec)) return null;
+
+  let chart;
+  try {
+    chart = window.chartWidget.activeChart();
+  } catch (e) {
+    return null;
+  }
+  if (!chart) return null;
+
+  const range = getVisibleTimeRangeSecFromChart(chart);
+  if (!range || !(range.hi > range.lo)) return null;
+
+  let plotW = 0;
+  try {
+    const ts = chart.getTimeScale();
+    if (ts && typeof ts.width === 'function') plotW = ts.width();
+  } catch (e) {}
+  if (!(plotW > 0)) return null;
+  const pxPerSec = plotW / (range.hi - range.lo);
+
+  const drawn = window.tradeMarkerShapeIdsById;
+  if (!drawn || typeof drawn.has !== 'function') return null;
+
+  let bestId = null;
+  let bestDist = Infinity;
+  for (let i = 0; i < window.tradeMarkersData.length; i++) {
+    const m = window.tradeMarkersData[i];
+    if (!m || m.id == null || !isFinite(m.time)) continue;
+    // Only match markers that actually have a circle on screen. Markers whose
+    // candle isn't in the loaded range are tracked in data but not drawn, so a
+    // tap near where one *would* be must not fire a press for an invisible circle.
+    if (!drawn.has(String(m.id))) continue;
+    const mSec = m.time / 1000;
+    if (mSec < range.lo || mSec > range.hi) continue; // off-screen
+    const dxPx = (mSec - timeSec) * pxPerSec;
+    let dyPx = 0;
+    if (offsetY != null && isFinite(offsetY)) {
+      const lineY = interpolateCloseAlongLineAtTimeMs(window.ohlcvData, m.time);
+      const price = lineY !== null && isFinite(lineY) ? lineY : m.price;
+      const markerY = getPriceYForLastCloseOverlay(chart, price);
+      if (markerY != null && isFinite(markerY)) dyPx = markerY - offsetY;
+    }
+    const dist = Math.sqrt(dxPx * dxPx + dyPx * dyPx);
+    if (dist < bestDist) {
+      bestDist = dist;
+      bestId = String(m.id);
+    }
+  }
+  return bestDist <= TRADE_MARKER_TAP_RADIUS_PX ? bestId : null;
+}
+
+// ============================================
+// Focus / center on a point in time (FOCUS_TIME) — e.g. tapping a trade row
+// ============================================
+
+/** Bumped on each FOCUS_TIME so a newer focus cancels the previous animation loop. */
+window.__focusTimeAnimGen = 0;
+/** Animation duration for the slide-to-center, ms. */
+const FOCUS_TIME_ANIM_MS = 600;
+/** Fallback visible span (in bar durations) when no current range is readable. */
+const FOCUS_TIME_FALLBACK_BARS = 60;
+/**
+ * Fraction of the visible span treated as an inset on each edge. A target time
+ * inside the inset window is "already comfortably visible" → the chart doesn't
+ * move (it only pulses). Keeps re-taps and taps on nearby trades from re-centering.
+ */
+const FOCUS_TIME_VISIBLE_INSET = 0.08;
+
+function focusTimeEaseInOutCubic(t) {
+  // ease-in-out quart: a gentler, more gradual acceleration/deceleration than
+  // cubic. Paired with a longer FOCUS_TIME_ANIM_MS the slide reads as a smooth
+  // glide rather than a near-linear jump.
+  return t < 0.5 ? 8 * t * t * t * t : 1 - Math.pow(-2 * t + 2, 4) / 2;
+}
+
+/**
+ * Slides the visible range so \`payload.timeMs\` is centered. Keeps the current zoom
+ * unless \`payload.spanMs\` is given, and animates (eased) unless \`payload.animate === false\`.
+ * A generation token cancels an in-flight slide when a newer FOCUS_TIME arrives.
+ */
+function handleFocusTime(payload) {
+  if (!window.chartWidget || !window.isChartReady) return;
+  if (!payload || !isFinite(payload.timeMs)) return;
+
+  let chart;
+  try {
+    chart = window.chartWidget.activeChart();
+  } catch (e) {
+    return;
+  }
+  if (!chart || typeof chart.setVisibleRange !== 'function') return;
+
+  const centerSec = payload.timeMs / 1000;
+
+  // Current visible range (seconds) — used for the start of the animation and to
+  // preserve the zoom when no explicit span is requested.
+  let curFrom = null;
+  let curTo = null;
+  try {
+    const vr = chart.getVisibleRange();
+    if (vr) {
+      const f = normalizeChartUnixSec(vr.from);
+      const t = normalizeChartUnixSec(vr.to);
+      if (f !== null && t !== null && t > f) {
+        curFrom = f;
+        curTo = t;
+      }
+    }
+  } catch (e2) {}
+
+  // Already comfortably within the visible window → leave the chart exactly where
+  // it is (no scroll, no zoom); the caller pulses the marker separately. This is
+  // what makes re-tapping the same trade — or tapping a nearby one that's already
+  // on screen — only pulse instead of re-centering.
+  if (curFrom !== null && curTo !== null) {
+    const visibleInset = (curTo - curFrom) * FOCUS_TIME_VISIBLE_INSET;
+    if (
+      centerSec >= curFrom + visibleInset &&
+      centerSec <= curTo - visibleInset
+    ) {
+      return;
+    }
+  }
+
+  let spanSec;
+  if (isFinite(payload.spanMs) && payload.spanMs > 0) {
+    spanSec = payload.spanMs / 1000;
+  } else if (curFrom !== null) {
+    spanSec = curTo - curFrom;
+  } else {
+    spanSec = getApproxBarDurationSec() * FOCUS_TIME_FALLBACK_BARS;
+  }
+
+  const targetFrom = centerSec - spanSec / 2;
+  const targetTo = centerSec + spanSec / 2;
+
+  function applyRange(from, to) {
+    try {
+      chart.setVisibleRange({ from: from, to: to });
+    } catch (e) {}
+  }
+
+  window.__focusTimeAnimGen = (window.__focusTimeAnimGen || 0) + 1;
+  const gen = window.__focusTimeAnimGen;
+
+  // Jump when animation is disabled or we have no start range to interpolate from.
+  if (payload.animate === false || curFrom === null) {
+    suppressChartUserInteraction(500);
+    applyRange(targetFrom, targetTo);
+    return;
+  }
+
+  const startFrom = curFrom;
+  const startTo = curTo;
+  const startTs = Date.now();
+  suppressChartUserInteraction(FOCUS_TIME_ANIM_MS + 300);
+
+  function step() {
+    if (gen !== window.__focusTimeAnimGen) return;
+    if (!window.chartWidget || !window.isChartReady) return;
+    const elapsed = Date.now() - startTs;
+    const progress =
+      elapsed >= FOCUS_TIME_ANIM_MS ? 1 : elapsed / FOCUS_TIME_ANIM_MS;
+    const eased = focusTimeEaseInOutCubic(progress);
+    applyRange(
+      startFrom + (targetFrom - startFrom) * eased,
+      startTo + (targetTo - startTo) * eased,
+    );
+    if (progress < 1) {
+      try {
+        requestAnimationFrame(step);
+      } catch (e) {
+        setTimeout(step, 16);
+      }
+    }
+  }
+
+  try {
+    requestAnimationFrame(step);
+  } catch (e) {
+    applyRange(targetFrom, targetTo);
   }
 }
 
@@ -3404,9 +3997,18 @@ function removeLineEndDot() {
   window.lineEndDotShapeId = null;
 }
 
+/** True when \`id\` belongs to a trade marker (open/close circle), which must survive icon sweeps. */
+function isTradeMarkerShapeId(id) {
+  return (
+    !!window.tradeMarkerShapeIds &&
+    window.tradeMarkerShapeIds.indexOf(id) !== -1
+  );
+}
+
 /**
  * Removes Drawing API \`icon\` shapes on the active chart. Line mode only uses icons for the end
  * dot; stale async \`createShape\` calls can leave orphans with no \`lineEndDotShapeId\` reference.
+ * Trade markers are also \`icon\` shapes, so they are explicitly preserved by id.
  */
 function sweepOrphanLineChartIconShapes() {
   if (
@@ -3425,6 +4027,9 @@ function sweepOrphanLineChartIconShapes() {
     for (let i = 0; i < shapes.length; i++) {
       let name = String(shapes[i].name || '');
       if (!/icon/i.test(name)) {
+        continue;
+      }
+      if (isTradeMarkerShapeId(shapes[i].id)) {
         continue;
       }
       try {
@@ -3450,7 +4055,7 @@ function ensureNoLineChartEndIcons() {
     if (!shapes || !shapes.length) return;
     for (let i = 0; i < shapes.length; i++) {
       let name = String(shapes[i].name || '');
-      if (/icon/i.test(name)) {
+      if (/icon/i.test(name) && !isTradeMarkerShapeId(shapes[i].id)) {
         try {
           chart.removeEntity(shapes[i].id);
         } catch (err) {}
@@ -4334,6 +4939,8 @@ function fetchOlderBars(pending) {
 
       if (newBars.length > 0) {
         window.ohlcvData = newBars.concat(window.ohlcvData);
+        // Older history just paginated in → draw any trade markers now in range.
+        scheduleTradeMarkerRefresh();
       }
 
       let olderBars = [];
@@ -4966,6 +5573,15 @@ function initChart() {
 
             updateCustomCrosshairLabels(params);
 
+            // Remember the latest crosshair point so a tap/short-press release
+            // (mouse_up) can hit-test it against the trade markers for the
+            // reverse interaction (tap a circle → scroll the trades list).
+            window.__lastChartTapPoint = {
+              timeSec: params.time,
+              offsetY: params.offsetY,
+              at: Date.now(),
+            };
+
             if (!window.ohlcvBarVisible) {
               window.ohlcvBarShownAt = Date.now();
             }
@@ -5013,6 +5629,21 @@ function initChart() {
         });
 
         window.chartWidget.subscribe('mouse_up', function () {
+          // Reverse interaction: a press landing on a trade circle tells RN to
+          // scroll the trades list to that trade. Uses the crosshair point
+          // captured just before release; consume it so it fires only once.
+          let tap = window.__lastChartTapPoint;
+          window.__lastChartTapPoint = null;
+          if (tap && Date.now() - tap.at < 700) {
+            let pressedId = findTradeMarkerIdNearPoint(
+              tap.timeSec,
+              tap.offsetY,
+            );
+            if (pressedId != null) {
+              sendToReactNative('TRADE_MARKER_PRESSED', { id: pressedId });
+            }
+          }
+
           if (!window.ohlcvBarVisible) return;
           let pressDuration = Date.now() - mouseDownTime;
           if (pressDuration < 400) {
