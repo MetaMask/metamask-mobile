@@ -335,17 +335,11 @@ const TraderProfileView = () => {
   const isLoadingPositions =
     activeTab === 'open' ? isLoadingOpen : isLoadingClosed;
 
-  const sortedOpenPositions = useMemo(
-    () => sortPositions(openPositions, openSort, 'open'),
-    [openPositions, openSort],
-  );
-  const sortedClosedPositions = useMemo(
-    () => sortPositions(closedPositions, closedSort, 'closed'),
-    [closedPositions, closedSort],
-  );
-  const sortedPositions =
-    activeTab === 'open' ? sortedOpenPositions : sortedClosedPositions;
   const currentSortKey: SortKey = activeTab === 'open' ? openSort : closedSort;
+  const sortedPositions = useMemo(
+    () => sortPositions(positions, currentSortKey, activeTab),
+    [positions, currentSortKey, activeTab],
+  );
 
   const handleSortPress = useCallback(() => {
     // Fire-and-forget haptic; ignore rejection (unsupported platforms).
