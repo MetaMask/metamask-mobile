@@ -172,12 +172,9 @@ const MoneyOnboardingTextOverlay = ({
 }) => {
   const insets = useSafeAreaInsets();
   const { height, width } = useWindowDimensions();
-  console.log('width: ', width);
-  console.log('height: ', height);
   const isSmallScreen =
     width <= SMALL_OVERLAY_DEVICE_MAX_WIDTH ||
     height < SMALL_OVERLAY_DEVICE_MAX_HEIGHT;
-  console.log('isSmallScreen: ', isSmallScreen);
   const overlayTextPreset = useMemo(
     () =>
       isSmallScreen ? OVERLAY_TEXT_PRESETS.small : OVERLAY_TEXT_PRESETS.default,
@@ -240,7 +237,6 @@ const MoneyOnboardingTextOverlay = ({
         ]}
       >
         <Text
-          adjustsFontSizeToFit
           color={TextColor.OverlayInverse}
           fontWeight={FontWeight.Bold}
           numberOfLines={3}
@@ -251,7 +247,6 @@ const MoneyOnboardingTextOverlay = ({
           {content.title}
         </Text>
         <Text
-          adjustsFontSizeToFit
           color={TextColor.OverlayInverse}
           numberOfLines={3}
           style={[styles.content, overlayTextPreset.content]}
@@ -262,10 +257,8 @@ const MoneyOnboardingTextOverlay = ({
         </Text>
       </View>
       <Text
-        adjustsFontSizeToFit
         color={TextColor.OverlayInverse}
         variant={TextVariant.BodyXs}
-        minimumFontScale={0.7}
         numberOfLines={1}
         style={[
           styles.footer,
