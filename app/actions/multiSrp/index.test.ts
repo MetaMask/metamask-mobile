@@ -357,7 +357,6 @@ describe('MultiSRP Actions', () => {
         );
         expect(mockRemoveMultichainAccountWallet).toHaveBeenCalledWith(
           mockEntropySource,
-          mockAddress,
         );
       });
     });
@@ -412,7 +411,6 @@ describe('MultiSRP Actions', () => {
       );
       expect(mockRemoveMultichainAccountWallet).toHaveBeenCalledWith(
         mockEntropySource,
-        mockAddress,
       );
     });
 
