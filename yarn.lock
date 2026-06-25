@@ -9774,7 +9774,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^14.1.0, @metamask/ramps-controller@npm:^14.3.0":
+"@metamask/ramps-controller@npm:^14.1.0":
   version: 14.3.0
   resolution: "@metamask/ramps-controller@npm:14.3.0"
   dependencies:
