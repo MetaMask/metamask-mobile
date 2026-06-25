@@ -107,12 +107,13 @@ function SettingsModal() {
         })
         .build(),
     );
-    sheetRef.current?.onCloseBottomSheet();
-    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-      screen: Routes.TRANSACTIONS_VIEW,
-      params: {
-        redirectToOrders: true,
-      },
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: {
+          redirectToOrders: true,
+        },
+      });
     });
   }, [navigation, trackEvent, createEventBuilder]);
 

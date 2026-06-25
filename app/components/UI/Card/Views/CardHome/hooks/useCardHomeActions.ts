@@ -1,6 +1,7 @@
 import { useCallback, useContext } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import { useTheme } from '../../../../../../util/theme';
@@ -44,7 +45,7 @@ export function useCardHomeActions({
   isFrozen,
   cardTermsAndConditionsUrl,
 }: UseCardHomeActionsParams) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const theme = useTheme();
