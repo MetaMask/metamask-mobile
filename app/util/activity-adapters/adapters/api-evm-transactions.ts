@@ -16,6 +16,7 @@ import {
   isUnlimitedApprovalAmount,
   isNftTransferType,
   isNativeTransferType,
+  getApiTransactionFees,
   withFallbackTokenAssetId,
   type ValueTransfer,
 } from './helpers';
@@ -55,6 +56,10 @@ export function mapApiEvmTransactions({
     transaction.chainId.toString(),
   );
   const hexChainId = `0x${transaction.chainId.toString(16)}`;
+  const fees = getApiTransactionFees(
+    transaction,
+    environment.getNativeAssetForChainId(hexChainId),
+  );
   const getToken = (
     transfer: ValueTransfer | undefined,
     direction: TokenAmount['direction'],
@@ -124,6 +129,7 @@ export function mapApiEvmTransactions({
       data: {
         sourceToken: getToken(sentNativeTransfer, 'out'),
         destinationToken: getToken(receivedWrappedTokenTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -143,6 +149,7 @@ export function mapApiEvmTransactions({
       data: {
         sourceToken: getToken(sentWrappedTokenTransfer, 'out'),
         destinationToken: getToken(receivedNativeTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -172,6 +179,7 @@ export function mapApiEvmTransactions({
       data: {
         sourceToken: getToken(sentTransfer, 'out'),
         destinationToken: getToken(receivedTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -212,6 +220,7 @@ export function mapApiEvmTransactions({
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
         token,
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -231,6 +240,7 @@ export function mapApiEvmTransactions({
             from: receivedNftTransfer.from,
             to: receivedNftTransfer.to,
             token: getToken(receivedNftTransfer, 'in'),
+            ...(fees ? { fees } : {}),
           },
         };
       }
@@ -326,6 +336,7 @@ export function mapApiEvmTransactions({
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
         token: getToken(receivedTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -358,6 +369,7 @@ export function mapApiEvmTransactions({
       data: {
         sourceToken: getToken(sentTransfer, 'out'),
         destinationToken: getToken(receivedTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -372,6 +384,7 @@ export function mapApiEvmTransactions({
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
         sourceToken: getToken(sentTransfer, 'out'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -388,6 +401,7 @@ export function mapApiEvmTransactions({
       data: {
         sourceToken: getToken(sentTransfer, 'out'),
         destinationToken: getToken(receivedTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -409,6 +423,7 @@ export function mapApiEvmTransactions({
       data: {
         sourceToken: getToken(sentTransfer, 'out'),
         destinationToken: getToken(receivedTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -429,6 +444,7 @@ export function mapApiEvmTransactions({
       data: {
         sourceToken: getToken(sentTransfer, 'out'),
         destinationToken: getToken(receivedTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -444,6 +460,7 @@ export function mapApiEvmTransactions({
       data: {
         sourceToken: getToken(sentTransfer, 'out'),
         destinationToken: getToken(receivedTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -488,6 +505,7 @@ export function mapApiEvmTransactions({
       ...(contractInteractionTokenWithAmount
         ? { token: contractInteractionTokenWithAmount }
         : {}),
+      ...(fees ? { fees } : {}),
     },
   };
 }

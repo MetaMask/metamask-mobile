@@ -36,9 +36,27 @@ export const getLiveVedaVaultExchangeRate = async () =>
     .call('MoneyAccountBalanceService:getExchangeRate', { staleTime: 0 })
     .then(({ rate }) => rate);
 
+interface UseMoneyAccountBalanceResult {
+  moneyBalanceQuery: UseQueryResult<MoneyAccountBalanceResponse>;
+  vaultApyQuery: UseQueryResult<NormalizedVaultApyResponse>;
+  isBalanceLoading: boolean;
+  isBalanceFetchError: boolean;
+  isBalanceFetching: boolean;
+  isBalanceUnavailable: boolean;
+  lastKnownTotalFiatFormatted: string | undefined;
+  refetchBalance: () => void;
+  tokenTotal: BigNumber | undefined;
+  totalFiatFormatted: string | undefined;
+  totalFiatRaw: string | undefined;
+  withdrawableMusd: BigNumber | undefined;
+  apyDecimal: number | undefined;
+  apyPercent: number | undefined;
+  apyPercentFormatted: string | undefined;
+}
+
 const useMoneyAccountBalance = (
   refetchInterval: number = DEFAULT_REFETCH_INTERVAL,
-) => {
+): UseMoneyAccountBalanceResult => {
   const dispatch = useDispatch();
   const { primaryMoneyAccount } = useMoneyAccountInfo();
   const moneyAccountAddress = primaryMoneyAccount?.address;
@@ -234,7 +252,14 @@ const useMoneyAccountBalance = (
       ? vaultApyOverride
       : (serviceApy ?? (shouldUseFallback ? vaultApyFallback : undefined));
 
-  const apyPercent = apyDecimal !== undefined ? apyDecimal * 100 : undefined;
+  const apyPercent =
+    apyDecimal !== undefined
+      ? new BigNumber(apyDecimal)
+          .multipliedBy(100)
+          .dp(1, BigNumber.ROUND_HALF_UP)
+          .toNumber()
+      : undefined;
+
   const apyPercentFormatted =
     apyPercent !== undefined ? `${apyPercent}%` : undefined;
 
