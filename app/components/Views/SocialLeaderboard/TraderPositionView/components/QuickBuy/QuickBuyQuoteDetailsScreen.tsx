@@ -111,7 +111,6 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
                 tooltip={{
                   title: strings('bridge.quote_info_title'),
                   content: strings('bridge.quote_info_content'),
-                  size: TooltipSizes.Sm,
                   iconName: IconNameLegacy.Info,
                 }}
               />

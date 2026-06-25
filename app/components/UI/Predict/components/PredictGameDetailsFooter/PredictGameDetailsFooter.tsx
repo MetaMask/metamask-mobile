@@ -79,7 +79,7 @@ const PredictGameDetailsFooter: React.FC<PredictGameDetailsFooterProps> = ({
               {strings(labelKey)}
             </Text>
             <ButtonIcon
-              size={ButtonIconSize.Xs}
+              size={ButtonIconSize.Sm}
               iconProps={{ color: IconColor.IconAlternative }}
               iconName={IconName.Info}
               onPress={onInfoPress}

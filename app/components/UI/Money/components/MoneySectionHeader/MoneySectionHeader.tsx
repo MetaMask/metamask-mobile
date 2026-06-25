@@ -67,7 +67,7 @@ const MoneySectionHeader = ({
         <ButtonIcon
           iconName={IconName.Info}
           iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-          size={ButtonIconSize.Xs}
+          size={ButtonIconSize.Sm}
           onPress={onInfoPress}
           accessibilityLabel={infoAccessibilityLabel}
           testID={infoTestID ?? MoneySectionHeaderTestIds.INFO_BUTTON}

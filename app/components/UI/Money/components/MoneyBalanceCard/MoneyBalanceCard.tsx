@@ -232,7 +232,7 @@ const MoneyBalanceCard = () => {
           <ButtonIcon
             iconName={IconName.Refresh}
             iconProps={{ color: IconColor.InfoDefault, size: IconSize.Sm }}
-            size={ButtonIconSize.Xs}
+            size={ButtonIconSize.Sm}
             onPress={refetchBalance}
             accessibilityLabel={strings('money.balance_retry')}
             testID={MoneyBalanceCardTestIds.BALANCE_RETRY}
@@ -292,7 +292,7 @@ const MoneyBalanceCard = () => {
           <ButtonIcon
             iconName={IconName.Info}
             iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-            size={ButtonIconSize.Xs}
+            size={ButtonIconSize.Sm}
             onPress={handleInfoPress}
             accessibilityLabel={strings('money.balance_card.info_sheet_title')}
             testID={MoneyBalanceCardTestIds.INFO_BUTTON}

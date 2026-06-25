@@ -65,7 +65,7 @@ const MoneyBalanceSummary = ({
           <ButtonIcon
             iconName={IconName.Info}
             iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-            size={ButtonIconSize.Xs}
+            size={ButtonIconSize.Sm}
             onPress={onApyInfoPress}
             accessibilityLabel={strings('money.apy_info_label')}
             testID={MoneyBalanceSummaryTestIds.APY_INFO_BUTTON}

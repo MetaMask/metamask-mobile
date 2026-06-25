@@ -118,7 +118,7 @@ export function BalanceProjection({
           <ButtonIcon
             iconName={IconName.Info}
             iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-            size={ButtonIconSize.Xs}
+            size={ButtonIconSize.Sm}
             onPress={handleEarnCryptoInfoPress}
             accessibilityLabel={strings(
               'money.earn_crypto_info_sheet.deposit_title',
@@ -145,7 +145,7 @@ export function BalanceProjection({
         <ButtonIcon
           iconName={IconName.Info}
           iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
-          size={ButtonIconSize.Xs}
+          size={ButtonIconSize.Sm}
           onPress={handleApyInfoPress}
           accessibilityLabel={strings('money.apy_info_label')}
           testID="balance-projection-apy-pitch-info-button"
