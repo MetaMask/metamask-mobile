@@ -19,6 +19,7 @@ import {
   useSwapBridgeNavigation,
 } from '../../hooks/useSwapBridgeNavigation';
 import { HighRateAlertModalSelectorsIDs } from './HighRateAlertModal.testIds';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export interface HighRateAlertModalParams {
   sourceToken: BridgeToken;
@@ -33,6 +34,7 @@ export function HighRateAlertModal() {
     location: SwapBridgeNavigationLocation.MainView,
     sourcePage: 'BatchSell',
   });
+  const surfaceClass = useElevatedSurface();
 
   const handleClose = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet();
@@ -49,6 +51,7 @@ export function HighRateAlertModal() {
       ref={sheetRef}
       goBack={goBack}
       testID={HighRateAlertModalSelectorsIDs.SHEET}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onClose={handleClose}

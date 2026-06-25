@@ -1,19 +1,20 @@
 import React, { forwardRef } from 'react';
 
 import {
-  Box,
   BottomSheet,
   BottomSheetFooter,
   BottomSheetHeader,
-  type BottomSheetRef,
+  Box,
+  BoxAlignItems,
   ButtonSize,
   Text,
   TextVariant,
-  BoxAlignItems,
+  type BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 
 import { NetworksManagementViewSelectorsIDs } from '../NetworksManagementView.testIds';
+import { useElevatedSurface } from '../../../../util/theme/themeUtils';
 
 interface DeleteNetworkModalProps {
   networkName: string;
@@ -37,12 +38,15 @@ const DeleteNetworkModal = forwardRef<BottomSheetRef, DeleteNetworkModalProps>(
       testID: NetworksManagementViewSelectorsIDs.DELETE_CONFIRM_BUTTON,
     };
 
+    const surfaceClass = useElevatedSurface();
+
     return (
       <BottomSheet
         ref={ref}
         onClose={onClose}
         goBack={onClose}
         testID={NetworksManagementViewSelectorsIDs.DELETE_MODAL}
+        twClassName={surfaceClass}
       >
         <BottomSheetHeader onClose={onClose}>
           {`${strings('app_settings.delete')} ${networkName} ${strings('app_settings.network')}`}

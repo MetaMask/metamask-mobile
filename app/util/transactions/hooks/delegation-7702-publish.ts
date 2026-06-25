@@ -8,6 +8,7 @@ import {
   PublishHook,
   PublishHookResult,
   TransactionMeta,
+  TransactionType,
   decodeAuthorizationSignature,
 } from '@metamask/transaction-controller';
 import { Hex, createProjectLogger } from '@metamask/utils';
@@ -42,13 +43,16 @@ import { NetworkClientId } from '@metamask/network-controller';
 import { isE2ETest } from '../util';
 import {
   getClientForTransactionMetadata,
+  getClientVersionForTransactionMetadata,
   sanitizeOrigin,
 } from '../../../constants/smartTransactions';
+import { prefixError } from '../error-prefix';
 
 // Test chain ID (Sepolia) used in E2E tests to match the delegation package's test contract configuration
 const SEPOLIA_CHAIN_ID = '0xaa36a7';
 const EMPTY_HEX = '0x';
 const POLLING_INTERVAL_MS = 1000; // 1 Second
+const ERROR_PREFIX = 'Gas Station 7702: ';
 
 const EMPTY_RESULT = {
   transactionHash: undefined,
@@ -99,7 +103,7 @@ export class Delegation7702PublishHook {
       return await this.#hook(transactionMeta, _signedTx);
     } catch (error) {
       log('Error', error);
-      throw error;
+      throw prefixError(error, ERROR_PREFIX);
     }
   }
 
@@ -107,10 +111,17 @@ export class Delegation7702PublishHook {
     transactionMeta: TransactionMeta,
     _signedTx: string,
   ): Promise<PublishHookResult> {
+    if (transactionMeta.type === TransactionType.revokeDelegation) {
+      log('Skipping: revokeDelegation must publish as top-level setCode');
+      return EMPTY_RESULT;
+    }
+
     const { chainId, gasFeeTokens, selectedGasFeeToken, txParams } =
       transactionMeta;
 
     const { from } = txParams;
+    const isGaslessBridge = Boolean(transactionMeta.isGasFeeIncluded);
+    const isSponsored = Boolean(transactionMeta.isGasFeeSponsored);
 
     const atomicBatchSupport = await this.#isAtomicBatchSupported({
       address: from as Hex,
@@ -128,15 +139,18 @@ export class Delegation7702PublishHook {
 
     if (!isChainSupported) {
       log('Skipping as EIP-7702 is not supported', { from, chainId });
+
+      if (isGaslessBridge || isSponsored) {
+        throw new Error(
+          'Chain must support EIP-7702 for sponsored or gas included transaction',
+        );
+      }
+
       return EMPTY_RESULT;
     }
 
     const { delegationAddress, upgradeContractAddress } =
       atomicBatchChainSupport;
-
-    const isGaslessBridge = transactionMeta.isGasFeeIncluded;
-
-    const isSponsored = Boolean(transactionMeta.isGasFeeSponsored);
 
     if (
       (!selectedGasFeeToken || !gasFeeTokens?.length) &&
@@ -164,8 +178,7 @@ export class Delegation7702PublishHook {
       parseInt(isE2ETest(chainId) ? SEPOLIA_CHAIN_ID : chainId, 16),
     );
     const delegationManagerAddress = delegationEnvironment.DelegationManager;
-    const includeTransfer =
-      !isGaslessBridge && !transactionMeta.isGasFeeSponsored;
+    const includeTransfer = !isGaslessBridge && !isSponsored;
 
     if (includeTransfer && (!gasFeeToken || gasFeeToken === undefined)) {
       throw new Error('Gas fee token not found');
@@ -200,6 +213,7 @@ export class Delegation7702PublishHook {
       metadata: {
         txType: transactionMeta.type,
         client: getClientForTransactionMetadata(),
+        clientVersion: getClientVersionForTransactionMetadata(),
         origin: sanitizeOrigin(transactionMeta.origin),
       },
     };

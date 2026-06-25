@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { ScrollView } from 'react-native';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import {
   Box,
   HeaderStandard,
@@ -10,15 +10,17 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import Routes from '../../../../constants/navigation/Routes';
 import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { exitRewardsFlow } from '../utils';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipDashboard } from '../hooks/useVipDashboard';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
+import ForcedDarkThemeProvider from '../components/ForcedDarkThemeProvider/ForcedDarkThemeProvider';
 import VipTierRow from '../components/Vip/VipTierRow';
 
 export const REWARDS_VIP_TIERS_VIEW_TEST_IDS = {
@@ -28,12 +30,15 @@ export const REWARDS_VIP_TIERS_VIEW_TEST_IDS = {
   ERROR: 'rewards-vip-tiers-error',
 } as const;
 
-const RewardsVipTiersView: React.FC = () => {
+const RewardsVipTiersViewContent: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
   const isVipEnabled = useSelector(selectIsCurrentSubscriptionVipEnabled);
-  const canViewVip = Boolean(subscriptionId && isVipEnabled);
+  const canViewVip = Boolean(
+    isVipProgramEnabled && subscriptionId && isVipEnabled,
+  );
 
   const {
     dashboard,
@@ -50,7 +55,7 @@ const RewardsVipTiersView: React.FC = () => {
 
   useEffect(() => {
     if (!canViewVip) {
-      navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+      exitRewardsFlow(navigation);
     }
   }, [canViewVip, navigation]);
 
@@ -60,13 +65,13 @@ const RewardsVipTiersView: React.FC = () => {
 
   const showSkeleton = (!hasAttemptedFetch || isLoading) && !dashboard;
   const showError = hasError && !dashboard;
-  const tiers = dashboard?.tiers ?? [];
+  const tiers = dashboard?.tiers.filter((tier) => tier.tier > 0) ?? [];
   const nextTierId = dashboard?.nextTier?.id;
 
   return (
     <ErrorBoundary navigation={navigation} view="RewardsVipTiersView">
       <SafeAreaView
-        edges={{ top: 'additive' }}
+        edges={{ top: 'additive', bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
         testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.ROOT}
       >
@@ -75,42 +80,52 @@ const RewardsVipTiersView: React.FC = () => {
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'header-back-button' }}
         />
-        <ScrollView contentContainerStyle={tw.style('p-4 gap-2 pb-8')}>
+        <ScrollView contentContainerStyle={tw.style('py-4 gap-2 pb-8')}>
           {showSkeleton ? (
             <Box
-              twClassName="gap-2"
+              twClassName="gap-2 px-4"
               testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.SKELETON}
             >
               {[0, 1, 2, 3, 4].map((i) => (
-                <Skeleton key={i} style={tw.style('h-12 rounded-xl')} />
+                <Skeleton key={i} style={tw.style('h-16 rounded-xl')} />
               ))}
             </Box>
           ) : showError ? (
-            <RewardsErrorBanner
-              title={strings('rewards.vip.error_title')}
-              description={strings('rewards.vip.error_description')}
-              onConfirm={fetchVipDashboard}
-              confirmButtonLabel={strings('rewards.vip.retry_button')}
-              testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.ERROR}
-            />
-          ) : (
+            <Box twClassName="px-4">
+              <RewardsErrorBanner
+                title={strings('rewards.vip.error_title')}
+                description={strings('rewards.vip.error_description')}
+                onConfirm={fetchVipDashboard}
+                confirmButtonLabel={strings('rewards.vip.retry_button')}
+                testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.ERROR}
+              />
+            </Box>
+          ) : dashboard ? (
             <Box
-              twClassName="gap-1"
+              twClassName="mx-4 rounded-2xl overflow-hidden bg-section"
               testID={REWARDS_VIP_TIERS_VIEW_TEST_IDS.LIST}
             >
               {tiers.map((tier) => (
                 <VipTierRow
                   key={tier.id}
                   tier={tier}
+                  localizedText={dashboard.localizedText}
                   isNext={tier.id === nextTierId}
+                  isLast={tier.id === tiers[tiers.length - 1]?.id}
                 />
               ))}
             </Box>
-          )}
+          ) : null}
         </ScrollView>
       </SafeAreaView>
     </ErrorBoundary>
   );
 };
+
+const RewardsVipTiersView: React.FC = () => (
+  <ForcedDarkThemeProvider>
+    <RewardsVipTiersViewContent />
+  </ForcedDarkThemeProvider>
+);
 
 export default RewardsVipTiersView;

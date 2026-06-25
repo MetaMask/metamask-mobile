@@ -60,6 +60,7 @@ import {
 import Routes from '../../../../../constants/navigation/Routes';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatPrice } from '../../utils/format';
+import { getDisplayBuyPrice } from '../../utils/prices';
 import { usePredictBuyError } from './hooks/usePredictBuyError';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
@@ -129,6 +130,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     outcome,
     outcomeToken,
     entryPoint,
+    predictFeedTab,
+    predictScreen,
     transactionActiveAbTests,
   } = isSheetMode ? props : route.params;
   const onClose = isSheetMode ? props.onClose : undefined;
@@ -144,8 +147,15 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const analyticsProperties = useMemo(
-    () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
-    [market, outcomeToken, entryPoint],
+    () =>
+      parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        entryPoint,
+        predictFeedTab,
+        predictScreen,
+      ),
+    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
   );
 
   const { availableBalance, isBalanceLoading } =
@@ -259,7 +269,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isPayFeesLoading,
     isPaySystemSettling,
     blockingPayAlertMessage,
-    outcomeTokenPrice: outcomeToken?.price,
+    outcomeTokenPrice: getDisplayBuyPrice(outcomeToken),
     isSheetMode,
   });
 
@@ -274,7 +284,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
   const handleChangePaymentMethod = useCallback(() => {
     lockPaymentSelectorNavigation();
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
   }, [lockPaymentSelectorNavigation, navigation]);
 
   const handleAddFunds = useCallback(() => {
@@ -537,7 +547,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             disabled={isBuyActionButtonDisabled}
             showReducedOpacity={showBuyActionButtonReducedOpacity}
             outcomeTokenTitle={outcomeToken?.title}
-            sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+            sharePrice={
+              preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+            }
             isSheetMode={isSheetMode}
             isRetry={isSheetMode && isBannerActive}
             isChangePaymentMode={!isBannerActive && isChangePaymentMode}
@@ -564,7 +576,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           providerFee={exchangeFee}
           metamaskFee={metamaskFee}
           depositFee={depositFee}
-          sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+          sharePrice={
+            preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+          }
           contractCount={preview?.minAmountReceived ?? 0}
           betAmount={currentValue}
           total={total}
@@ -575,7 +589,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
-        sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+        sharePrice={
+          preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+        }
         side={Side.BUY}
         onRetry={handleRetryWithBestPrice}
         onDismiss={resetOrderNotFilled}

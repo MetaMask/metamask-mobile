@@ -27,6 +27,18 @@ const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
     pattern: /^nba-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
     teamOrder: 'away-home',
   },
+  wnba: {
+    pattern: /^wnba-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'away-home',
+  },
+  mlb: {
+    pattern: /^mlb-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'away-home',
+  },
+  nhl: {
+    pattern: /^nhl-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'away-home',
+  },
   ucl: {
     pattern: /^ucl-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
     teamOrder: 'home-away',
@@ -212,6 +224,18 @@ const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
     teamOrder: 'home-away',
     tagSlug: 'fifa-world-cup',
   },
+  atp: {
+    pattern: /^atp-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  wta: {
+    pattern: /^wta-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
+  itf: {
+    pattern: /^itf-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
 };
 
 export type TeamLookup = (
@@ -233,6 +257,13 @@ const hasTeamsMatchingLeague = (
   return teams.length > 0 && teams.every((team) => team.league === league);
 };
 
+const hasSeriesMatchingLeague = (
+  event: PolymarketApiEvent,
+  league: PredictSportsLeague,
+): boolean =>
+  Array.isArray(event.series) &&
+  event.series.some((series) => series.slug === league);
+
 export function getEventLeague(
   event: PolymarketApiEvent,
   extendedSportsMarketsLeagues: string[] = [],
@@ -248,13 +279,17 @@ export function getEventLeague(
     const { pattern, tagSlug } = LEAGUE_SLUG_CONFIGS[league];
     const leagueTagSlug = tagSlug ?? league;
     const hasLeagueTag = tags.some((tag) => tag.slug === leagueTagSlug);
+    const hasProviderLeagueMetadata =
+      hasLeagueTag ||
+      hasSeriesMatchingLeague(event, league) ||
+      hasTeamsMatchingLeague(event, league);
     const hasValidSlug = pattern.test(event.slug);
-    if (hasLeagueTag && hasValidSlug) {
+    if (hasProviderLeagueMetadata && hasValidSlug) {
       return league;
     }
 
     const canInferFromTeams =
-      hasLeagueTag &&
+      event.slug.startsWith(`${league}-`) &&
       extendedSportsMarketsLeagues.includes(league) &&
       hasTeamsMatchingLeague(event, league);
 

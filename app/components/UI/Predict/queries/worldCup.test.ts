@@ -77,7 +77,7 @@ describe('worldCup queries', () => {
     });
   });
 
-  it('fetches Live markets with series, games tag, and live filters', async () => {
+  it('fetches Live markets with tag slug, games tag, and live filters', async () => {
     mockGetMarkets.mockResolvedValue({
       markets: [createMarket()],
       nextCursor: null,
@@ -94,12 +94,12 @@ describe('worldCup queries', () => {
     expect(mockGetMarkets).toHaveBeenCalledWith({
       category: 'hot',
       customQueryParams:
-        'active=true&archived=false&closed=false&series_id=11433&tag_id=100639&live=true&order=startDate',
+        'active=true&archived=false&closed=false&tag_slug=fifa-world-cup&tag_id=100639&live=true&order=startDate',
       limit: 5,
     });
   });
 
-  it('fetches stage markets with repeated event IDs and sorts by match start time', async () => {
+  it('fetches stage markets with repeated event IDs', async () => {
     const baseGame = {
       id: 'game-later',
       startTime: '2026-06-13T20:00:00.000Z',
@@ -154,7 +154,7 @@ describe('worldCup queries', () => {
         'active=true&archived=false&closed=false&id=123&id=456',
       limit: 2,
     });
-    expect(result.map((market) => market.id)).toEqual(['earlier', 'later']);
+    expect(result.map((market) => market.id)).toEqual(['later', 'earlier']);
   });
 
   it('uses lightweight availability requests for Live, Props, and stages', async () => {

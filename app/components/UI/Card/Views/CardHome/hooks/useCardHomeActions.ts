@@ -35,12 +35,14 @@ interface UseCardHomeActionsParams {
   data: CardHomeData | null | undefined;
   primaryToken: CardFundingTokenWithBalance | null;
   isFrozen: boolean;
+  cardTermsAndConditionsUrl: string;
 }
 
 export function useCardHomeActions({
   data,
   primaryToken,
   isFrozen,
+  cardTermsAndConditionsUrl,
 }: UseCardHomeActionsParams) {
   const navigation = useNavigation();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
@@ -49,8 +51,10 @@ export function useCardHomeActions({
   const { toastRef } = useContext(ToastContext);
   const { reauthenticate } = useAuthentication();
 
-  const { navigateToTravelPage, navigateToCardTosPage } =
-    useNavigateToCardPage(navigation);
+  const { navigateToTravelPage, navigateToCardTosPage } = useNavigateToCardPage(
+    navigation,
+    cardTermsAndConditionsUrl,
+  );
   const { freeze, unfreeze } = useCardFreeze(data?.card?.id);
   const {
     fetchCardDetailsToken,
@@ -314,6 +318,13 @@ export function useCardHomeActions({
       createEventBuilder(MetaMetricsEvents.CARD_ADD_FUNDS_CLICKED).build(),
     );
 
+    if (primaryToken?.isMoneyAccountEntry) {
+      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
+        screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+      });
+      return;
+    }
+
     const isPriorityTokenSupportedDeposit = !!DEPOSIT_SUPPORTED_TOKENS.find(
       (t) =>
         t.toLowerCase() === data?.primaryFundingAsset?.symbol?.toLowerCase(),
@@ -360,7 +371,7 @@ export function useCardHomeActions({
         .build(),
     );
     navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
-      flow: 'manage',
+      flow: 'enable_card',
     });
   }, [navigation, trackEvent, createEventBuilder]);
 
@@ -372,7 +383,7 @@ export function useCardHomeActions({
     );
     if (isAuthenticated) {
       navigation.navigate(Routes.CARD.SPENDING_LIMIT, {
-        flow: 'enable',
+        flow: 'manage',
       });
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });

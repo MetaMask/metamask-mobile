@@ -65,6 +65,123 @@ const MOCK_RATE = {
   pricePercentChange1y: 0,
   totalVolume: 1,
 };
+const MAINNET_NATIVE_ASSET_ID = 'eip155:1/slip44:60';
+const createMainnetErc20AssetId = (address: string) =>
+  `eip155:1/erc20:${toChecksumHexAddress(address)}`;
+const MOCK_EARN_ASSETS_CONTROLLER_STATE = {
+  selectedCurrency: 'usd',
+  assetsInfo: {
+    [MAINNET_NATIVE_ASSET_ID]: {
+      type: 'native',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      decimals: 18,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDT.underlying.address)]: {
+      type: 'erc20',
+      symbol: 'USDT',
+      name: 'USDT Token',
+      decimals: 6,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDC.underlying.address)]: {
+      type: 'erc20',
+      symbol: 'USDC',
+      name: 'USDC Token',
+      decimals: 6,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_WETH.underlying.address)]: {
+      type: 'erc20',
+      symbol: 'WETH',
+      name: 'WETH Token',
+      decimals: 12,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDT.outputToken.address)]: {
+      type: 'erc20',
+      symbol: 'aUSDT',
+      name: 'aUSDT Token',
+      decimals: 6,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDC.outputToken.address)]: {
+      type: 'erc20',
+      symbol: 'aUSDC',
+      name: 'aUSDC Token',
+      decimals: 6,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_WETH.outputToken.address)]: {
+      type: 'erc20',
+      symbol: 'aWETH',
+      name: 'aWETH Token',
+      decimals: 12,
+    },
+  },
+  assetsBalance: {
+    [internalAccount2.id]: {
+      [MAINNET_NATIVE_ASSET_ID]: { amount: '0.000000000355751235' },
+      [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDT.underlying.address)]:
+        { amount: '18844059.451957' },
+      [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDC.underlying.address)]:
+        { amount: '0' },
+      [createMainnetErc20AssetId(MOCK_LENDING_MARKET_WETH.underlying.address)]:
+        { amount: '54.028431540789' },
+      [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDT.outputToken.address)]:
+        { amount: '71620617.585205' },
+      [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDC.outputToken.address)]:
+        { amount: '89212803.629621' },
+      [createMainnetErc20AssetId(MOCK_LENDING_MARKET_WETH.outputToken.address)]:
+        { amount: '106.804989674037' },
+    },
+  },
+  assetsPrice: {
+    [MAINNET_NATIVE_ASSET_ID]: {
+      assetPriceType: 'fungible',
+      price: 1,
+      usdPrice: 1,
+      lastUpdated: 1717334400000,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDT.underlying.address)]: {
+      assetPriceType: 'fungible',
+      ...MOCK_RATE,
+      price: 0.000005123,
+      usdPrice: 0.000005123,
+      lastUpdated: 1717334400000,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDC.underlying.address)]: {
+      assetPriceType: 'fungible',
+      ...MOCK_RATE,
+      price: 0.0000000123,
+      usdPrice: 0.0000000123,
+      lastUpdated: 1717334400000,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_WETH.underlying.address)]: {
+      assetPriceType: 'fungible',
+      ...MOCK_RATE,
+      price: 0.0000654123,
+      usdPrice: 0.0000654123,
+      lastUpdated: 1717334400000,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDT.outputToken.address)]: {
+      assetPriceType: 'fungible',
+      ...MOCK_RATE,
+      price: 0.0000654123,
+      usdPrice: 0.0000654123,
+      lastUpdated: 1717334400000,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_USDC.outputToken.address)]: {
+      assetPriceType: 'fungible',
+      ...MOCK_RATE,
+      price: 0.003654123,
+      usdPrice: 0.003654123,
+      lastUpdated: 1717334400000,
+    },
+    [createMainnetErc20AssetId(MOCK_LENDING_MARKET_WETH.outputToken.address)]: {
+      assetPriceType: 'fungible',
+      ...MOCK_RATE,
+      price: 0.00040123,
+      usdPrice: 0.00040123,
+      lastUpdated: 1717334400000,
+    },
+  },
+};
 const mockState = {
   ...MOCK_ROOT_STATE_WITH_EARN_CONTROLLER,
   engine: {
@@ -223,6 +340,7 @@ const mockState = {
           },
         },
       },
+      AssetsController: MOCK_EARN_ASSETS_CONTROLLER_STATE,
       KeyringController: {
         isUnlocked: true,
         keyrings: [],

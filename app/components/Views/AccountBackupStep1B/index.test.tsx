@@ -4,6 +4,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../locales/i18n';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
 import Routes from '../../../constants/navigation/Routes';
@@ -144,13 +145,11 @@ describe('AccountBackupStep1B', () => {
       expect(androidBackHandler.props.customBackPress).toBeDefined();
     });
 
-    it('sets navigation header with empty left component', () => {
-      const { mockNav } = setupTest();
+    it('renders HeaderStandard with MetaMask logo and no back button', () => {
+      const { wrapper, mockNav } = setupTest();
 
-      expect(mockNav.setOptions).toHaveBeenCalled();
-      const headerLeft = mockNav.setOptions.mock.calls[0][0].headerLeft();
-
-      expect(React.isValidElement(headerLeft)).toBe(true);
+      expect(mockNav.setOptions).not.toHaveBeenCalled();
+      expect(wrapper.queryByTestId('back-button')).toBeNull();
     });
   });
 

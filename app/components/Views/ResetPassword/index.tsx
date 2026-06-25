@@ -17,6 +17,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  HeaderStandard,
   Icon,
   IconName,
   IconSize,
@@ -37,7 +38,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { passwordSet } from '../../../actions/user';
 import { setLockTime } from '../../../actions/settings';
 import { strings } from '../../../../locales/i18n';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import AppConstants from '../../../core/AppConstants';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
@@ -58,6 +58,7 @@ import { LoginOptionsSwitch } from '../../UI/LoginOptionsSwitch';
 import { recreateVaultsWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../../core/NavigationService';
@@ -69,10 +70,8 @@ import {
   selectSeedlessOnboardingLoginFlow,
   selectSeedlessOnboardingAuthConnection,
 } from '../../../selectors/seedlessOnboardingController';
-import {
-  AuthConnection,
-  SeedlessOnboardingControllerErrorMessage,
-} from '@metamask/seedless-onboarding-controller';
+import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 import { ReauthenticateErrorType } from '../../../core/Authentication/types';
 import Device from '../../../util/device';
 import SearchingFox from '../../../animations/Searching_Fox.json';
@@ -604,7 +603,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
     const isSrp =
       authConnection !== AuthConnection.Apple &&
-      authConnection !== AuthConnection.Google;
+      authConnection !== AuthConnection.Google &&
+      authConnection !== AuthConnection.Telegram;
 
     return (
       <Box
@@ -803,7 +803,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       edges={{ bottom: 'additive' }}
       style={tw.style('flex-1 bg-default')}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
+        testID="header"
         title={strings('password_reset.change_password')}
         onBack={() => navigation.goBack()}
         backButtonProps={{ isDisabled: loading }}

@@ -3,11 +3,12 @@ import { fireEvent } from '@testing-library/react-native';
 import { describeForPlatforms } from '../../../../../tests/component-view/platform';
 import { renderMultichainPermissionsSummary } from '../../../../../tests/component-view/renderers/multichainAccounts';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
-import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
 import {
   PermissionSummaryBottomSheetSelectorsIDs,
   PermissionSummaryBottomSheetSelectorsText,
-} from '../../AccountConnect/PermissionSummaryBottomSheet.testIds';
+} from '../../MultichainAccounts/shared/PermissionSummaryBottomSheet.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import { strings } from '../../../../../locales/i18n';
 

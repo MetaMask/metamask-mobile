@@ -136,9 +136,16 @@ describe('useTraderPosition', () => {
     expect(Logger.error).toHaveBeenCalledWith(
       fetchError,
       expect.objectContaining({
-        message: 'useTraderPosition: fetch failed',
-        endpoint: 'position_by_id',
-        errorCategory: expect.any(String),
+        tags: expect.objectContaining({
+          feature: 'social',
+          surface: 'trader_position',
+          operation: 'fetch_position_by_id',
+          endpoint: 'position_by_id',
+        }),
+        extras: expect.objectContaining({
+          message: 'Trader position fetch failed at useTraderPosition',
+          endpoint: 'position_by_id',
+        }),
       }),
     );
   });
@@ -201,7 +208,14 @@ describe('useTraderPosition', () => {
 
       expect(Logger.error).toHaveBeenCalledWith(
         expect.any(Error),
-        'useTraderPosition: refetch failed',
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'trader_position',
+            operation: 'refresh',
+            endpoint: 'position_by_id',
+          }),
+        }),
       );
     });
   });

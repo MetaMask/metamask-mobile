@@ -42,6 +42,7 @@ interface NotificationsPresetOptions {
   notificationsEnabled?: boolean;
   featureAnnouncementsEnabled?: boolean;
   pushEnabled?: boolean;
+  socialLeaderboardEnabled?: boolean;
   notifications?: typeof MOCK_NOTIFICATIONS;
 }
 
@@ -62,6 +63,7 @@ export function buildNotificationsState(
     notificationsEnabled = true,
     featureAnnouncementsEnabled = true,
     pushEnabled = true,
+    socialLeaderboardEnabled = false,
     notifications = MOCK_NOTIFICATIONS,
   } = options;
 
@@ -93,6 +95,10 @@ export function buildNotificationsState(
         RemoteFeatureFlagController: {
           remoteFeatureFlags: {
             assetsNotificationsEnabled: true,
+            aiSocialLeaderboardEnabled: {
+              enabled: socialLeaderboardEnabled,
+              minimumVersion: '0.0.1',
+            },
           },
         },
         AccountsController: {

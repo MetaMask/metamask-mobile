@@ -4,6 +4,8 @@ import {
   PerpsCandlestickChartSelectorsIDs,
   PerpsOpenOrderCardSelectorsIDs,
   PerpsClosePositionViewSelectorsIDs,
+  PerpsPositionCardSelectorsIDs,
+  PerpsCompactOrderRowSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
@@ -133,7 +135,7 @@ class PerpsMarketDetailsView {
   }
 
   // Scroll view
-  get scrollView(): DetoxElement {
+  get scrollView(): EncapsulatedElementType {
     return Matchers.getElementByID(
       PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
     );
@@ -167,16 +169,23 @@ class PerpsMarketDetailsView {
     });
   }
 
-  // Trading action buttons
+  // Trading action buttons — On Android, Reanimated's AnimatedPressable
+  // inside ButtonSemantic doesn't propagate testID to resource-id, so Appium
+  // targets the plain View wrapper (LONG/SHORT_BUTTON_WRAPPER) instead.
   get longButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
-          { exact: true },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementById(
+            PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+          ),
+      },
     });
   }
 
@@ -186,11 +195,16 @@ class PerpsMarketDetailsView {
         Matchers.getElementByID(
           PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
         ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
-          { exact: true },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementById(
+            PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
+          ),
+      },
     });
   }
 
@@ -222,7 +236,20 @@ class PerpsMarketDetailsView {
 
   // Actions
   async tapBackButton() {
-    await Gestures.waitAndTap(this.backButton);
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.backButton, {
+          elemDescription: 'Perps market details back',
+        });
+      },
+      appium: async () => {
+        const backEl = await asPlaywrightElement(this.backButton);
+        await PlaywrightGestures.waitAndTap(backEl, {
+          checkForDisplayed: true,
+          timeout: 15_000,
+        });
+      },
+    });
   }
 
   async tapLongButton() {
@@ -236,8 +263,14 @@ class PerpsMarketDetailsView {
         });
       },
       appium: async () => {
+        console.log('tapLongButton appium');
         await PlaywrightGestures.waitAndTap(
           await asPlaywrightElement(this.longButton),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            checkForStable: true,
+          },
         );
       },
     });
@@ -251,6 +284,11 @@ class PerpsMarketDetailsView {
       appium: async () => {
         await PlaywrightGestures.waitAndTap(
           await asPlaywrightElement(this.shortButton),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            checkForStable: true,
+          },
         );
       },
     });
@@ -330,7 +368,7 @@ class PerpsMarketDetailsView {
   async expectClosePositionButtonVisible() {
     const closeBtn = Matchers.getElementByID(
       PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-    ) as DetoxElement;
+    );
 
     for (let i = 0; i < 3; i++) {
       const visible = await Utilities.isElementVisible(closeBtn, 2000);
@@ -354,11 +392,81 @@ class PerpsMarketDetailsView {
   async expectClosePositionButtonNotVisible() {
     const closeBtn = Matchers.getElementByID(
       PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON,
-    ) as DetoxElement;
+    );
     await Assertions.expectElementToNotBeVisible(closeBtn, {
       description:
         'Close position button should not be visible when there is no open position on this market',
       timeout: 5000,
+    });
+  }
+
+  async tapFirstCompactOrderRow(): Promise<void> {
+    const firstOrderRow = Matchers.getElementByID(
+      PerpsCompactOrderRowSelectorsIDs.FIRST_ROW,
+    );
+
+    await Gestures.scrollToElement(
+      firstOrderRow,
+      Matchers.scrollContainer(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      {
+        direction: 'down',
+        scrollAmount: 250,
+        elemDescription: 'Scroll market details to first open order row',
+      },
+    );
+
+    await Gestures.waitAndTap(firstOrderRow, {
+      elemDescription: 'Tap first compact open order row',
+      timeout: 15000,
+    });
+  }
+
+  async tapAutoCloseSection(): Promise<void> {
+    const autoCloseSection = Matchers.getElementByID(
+      PerpsPositionCardSelectorsIDs.AUTO_CLOSE_TOGGLE,
+    );
+    const scrollContainer = Matchers.scrollContainer(
+      PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+    );
+
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.scrollToElement(autoCloseSection, scrollContainer, {
+          direction: 'down',
+          scrollAmount: 250,
+          elemDescription: 'Scroll market details to Auto close section',
+        });
+        await Gestures.waitAndTap(autoCloseSection, {
+          elemDescription: 'Tap Auto close section on position card',
+          checkStability: true,
+        });
+      },
+      appium: async () => {
+        await UnifiedGestures.scrollToElement(
+          autoCloseSection,
+          scrollContainer,
+          {
+            direction: 'down',
+            description: 'Scroll market details to Auto close section',
+          },
+        );
+
+        await UnifiedGestures.waitAndTap(autoCloseSection, {
+          description: 'Tap Auto close section on position card',
+          checkForDisplayed: true,
+          checkForEnabled: false,
+        });
+      },
+    });
+  }
+
+  async tapOpenOrderCancelButton(): Promise<void> {
+    const cancelButton = Matchers.getElementByID(
+      PerpsOpenOrderCardSelectorsIDs.CANCEL_BUTTON,
+    );
+    await Gestures.waitAndTap(cancelButton, {
+      elemDescription: 'Cancel open order button',
+      timeout: 15000,
     });
   }
 

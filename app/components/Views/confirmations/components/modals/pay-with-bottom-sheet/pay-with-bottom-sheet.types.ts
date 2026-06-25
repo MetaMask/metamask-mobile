@@ -3,11 +3,14 @@ import { ReactElement, ReactNode } from 'react';
 export type PayWithSectionId =
   | 'perps'
   | 'predict'
+  | 'money-account'
   | 'bank-card'
   | 'crypto'
   | (string & {});
 
 export type PayWithRowTrailingVariant = 'checkmark' | 'chevron' | 'none';
+
+export type PayWithRowTagRenderer = () => ReactNode;
 
 export interface PayWithRowConfig {
   id: string;
@@ -15,7 +18,7 @@ export interface PayWithRowConfig {
   title: string;
   subtitle?: string;
   isSelected?: boolean;
-  isLastUsed?: boolean;
+  tagRenderers?: PayWithRowTagRenderer[];
   trailingElement?: PayWithRowTrailingVariant | ReactElement;
   onPress?: () => void;
   disabled?: boolean;

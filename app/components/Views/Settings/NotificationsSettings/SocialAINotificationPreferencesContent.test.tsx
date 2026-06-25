@@ -1,5 +1,7 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
+import { AvatarAccount } from '@metamask/design-system-react-native';
+import { Image } from 'expo-image';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -16,7 +18,9 @@ import {
   type SocialAIPreference,
   type UseFollowedTradersResult,
   type UseNotificationPreferencesResult,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../SocialLeaderboard/NotificationPreferences/hooks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NotificationPreferencesSelectorsIDs } from '../../SocialLeaderboard/NotificationPreferences/NotificationPreferences.testIds';
 import SocialAINotificationPreferencesContent from './SocialAINotificationPreferencesContent';
 
@@ -104,12 +108,14 @@ const makeNotificationPreferencesResult = (
 const followedTraders: FollowedTrader[] = [
   {
     id: 'trader-1',
-    username: 'dutchiono',
+    username: 'trader1',
+    address: '0x0000000000000000000000000000000000000001',
     avatarUri: 'https://example.com/avatar.png',
   },
   {
     id: 'trader-2',
     username: 'pixelmage',
+    address: '0x0000000000000000000000000000000000000002',
   },
 ];
 
@@ -205,6 +211,17 @@ describe('SocialAINotificationPreferencesContent', () => {
         NotificationPreferencesSelectorsIDs.TRADER_TOGGLE('trader-2'),
       ).props.value,
     ).toBe(false);
+  });
+
+  it('renders the Maskicon fallback for traders without a profile image', () => {
+    mockUseFollowedTraders.mockReturnValue(
+      makeFollowedTradersResult({ traders: followedTraders }),
+    );
+
+    renderComponent();
+
+    expect(screen.UNSAFE_getAllByType(AvatarAccount)).toHaveLength(1);
+    expect(screen.UNSAFE_getAllByType(Image)).toHaveLength(1);
   });
 
   it('sets push notifications enabled and fires a medium switch haptic when the global toggle changes', () => {
@@ -323,7 +340,7 @@ describe('SocialAINotificationPreferencesContent', () => {
       Routes.SOCIAL_LEADERBOARD.PROFILE,
       {
         traderId: 'trader-1',
-        traderName: 'dutchiono',
+        traderName: 'trader1',
       },
     );
   });

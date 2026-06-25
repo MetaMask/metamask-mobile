@@ -3,7 +3,9 @@ import { NotificationTransactionTypes } from '../util/notifications';
 import NotificationManager, {
   IN_PROGRESS_SKIP_STATUS,
   SKIP_NOTIFICATION_TRANSACTION_TYPES,
+  clearNotificationSkipPredicates,
   constructTitleAndMessage,
+  registerNotificationSkipPredicate,
 } from './NotificationManager';
 import { strings } from '../../locales/i18n';
 import { SmartTransactionStatuses } from '@metamask/smart-transactions-controller';
@@ -777,6 +779,84 @@ describe('NotificationManager', () => {
       });
 
       expect(showNotificationSpy).not.toHaveBeenCalled();
+    });
+
+    describe('notification skip predicates', () => {
+      afterEach(() => {
+        clearNotificationSkipPredicates();
+      });
+
+      it('does not show a notification when a registered predicate matches', () => {
+        registerNotificationSkipPredicate(() => true);
+
+        notificationManager.watchSubmittedTransaction({
+          id: '0x123',
+          txParams: { nonce: '0x1' },
+          silent: false,
+        });
+
+        expect(showNotificationSpy).not.toHaveBeenCalled();
+      });
+
+      it('shows a notification when no registered predicate matches', () => {
+        registerNotificationSkipPredicate(() => false);
+
+        notificationManager.watchSubmittedTransaction({
+          id: '0x123',
+          txParams: { nonce: '0x1' },
+          silent: false,
+        });
+
+        expect(showNotificationSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'pending' }),
+        );
+      });
+
+      it('ignores a throwing predicate and still shows the notification', () => {
+        registerNotificationSkipPredicate(() => {
+          throw new Error('predicate boom');
+        });
+
+        notificationManager.watchSubmittedTransaction({
+          id: '0x123',
+          txParams: { nonce: '0x1' },
+          silent: false,
+        });
+
+        expect(showNotificationSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'pending' }),
+        );
+      });
+
+      it('passes the transaction meta to the predicate', () => {
+        const predicate = jest.fn(() => false);
+        registerNotificationSkipPredicate(predicate);
+
+        notificationManager.watchSubmittedTransaction({
+          id: '0x123',
+          txParams: { nonce: '0x1' },
+          silent: false,
+        });
+
+        expect(predicate).toHaveBeenCalledWith(
+          expect.objectContaining({ id: '0x123' }),
+        );
+      });
+
+      it('stops showing notifications only while the predicate is registered', () => {
+        const unregister = registerNotificationSkipPredicate(() => true);
+        unregister();
+
+        notificationManager.watchSubmittedTransaction({
+          id: '0x123',
+          txParams: { nonce: '0x1' },
+          silent: false,
+        });
+
+        expect(showNotificationSpy).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'pending' }),
+        );
+      });
     });
   });
 });

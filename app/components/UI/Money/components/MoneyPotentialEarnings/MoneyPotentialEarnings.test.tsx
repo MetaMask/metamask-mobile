@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import MoneyPotentialEarnings from './MoneyPotentialEarnings';
 import { MoneyPotentialEarningsTestIds } from './MoneyPotentialEarnings.testIds';
+import { MoneySectionHeaderTestIds } from '../MoneySectionHeader/MoneySectionHeader.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import { AssetType } from '../../../../Views/confirmations/types/token';
 
@@ -223,27 +224,33 @@ describe('MoneyPotentialEarnings', () => {
     expect(onViewAll).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onTokenPress with the pressed token when Convert is tapped', () => {
+  it('calls onTokenButtonPress with the pressed token when the Add button is tapped', () => {
     const onTokenPress = jest.fn();
     const { getByText } = render(
       <MoneyPotentialEarnings
         apy={4}
         tokens={[MOCK_USDC]}
-        onTokenPress={onTokenPress}
+        onTokenButtonPress={onTokenPress}
       />,
     );
 
-    fireEvent.press(getByText(strings('money.potential_earnings.convert')));
+    fireEvent.press(getByText(strings('money.potential_earnings.add')));
 
-    expect(onTokenPress).toHaveBeenCalledWith(MOCK_USDC);
+    expect(onTokenPress).toHaveBeenCalledWith(MOCK_USDC, 0, 1);
   });
 
   it('calls onHeaderPress when the section header is tapped', () => {
     const onHeader = jest.fn();
+    const extra = makeToken({
+      name: 'Extra',
+      symbol: 'EXT',
+      address: '0x0000000000000000000000000000000000000004',
+      fiat: { balance: 100 },
+    });
     const { getByText } = render(
       <MoneyPotentialEarnings
         apy={4}
-        tokens={[MOCK_USDC]}
+        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
         onHeaderPress={onHeader}
       />,
     );
@@ -251,6 +258,42 @@ describe('MoneyPotentialEarnings', () => {
     fireEvent.press(getByText(strings('money.potential_earnings.title')));
 
     expect(onHeader).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders the section arrow when more than five tokens are eligible', () => {
+    const extra = makeToken({
+      name: 'Extra',
+      symbol: 'EXT',
+      address: '0x0000000000000000000000000000000000000004',
+      fiat: { balance: 100 },
+    });
+    const { getByTestId } = render(
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL, extra]}
+        onHeaderPress={jest.fn()}
+      />,
+    );
+
+    expect(getByTestId(MoneySectionHeaderTestIds.CHEVRON)).toBeOnTheScreen();
+  });
+
+  it('hides the section arrow and ignores header taps with five or fewer eligible tokens', () => {
+    const onHeader = jest.fn();
+    const { queryByTestId, getByText } = render(
+      <MoneyPotentialEarnings
+        apy={4}
+        tokens={[MOCK_USDC, MOCK_USDT, MOCK_DAI, MOCK_ETH, MOCK_SOL]}
+        onHeaderPress={onHeader}
+      />,
+    );
+
+    expect(
+      queryByTestId(MoneySectionHeaderTestIds.CHEVRON),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(getByText(strings('money.potential_earnings.title')));
+    expect(onHeader).not.toHaveBeenCalled();
   });
 
   it('renders the inline info button when onInfoPress is provided', () => {
@@ -325,5 +368,60 @@ describe('MoneyPotentialEarnings', () => {
     // With apy=0 the projected multiplier is 0 so projectedFiatNumber is 0,
     // which fails isPositiveNumber and hides the "+$..." text in each token row.
     expect(queryByText(/^\+\$/)).not.toBeOnTheScreen();
+  });
+
+  describe('isNoFeeToken prop — "No fee" badge', () => {
+    it('renders the No fee badge on a token row when isNoFeeToken returns true', () => {
+      const { getByText } = render(
+        <MoneyPotentialEarnings
+          apy={4}
+          tokens={[MOCK_USDC]}
+          isNoFeeToken={() => true}
+        />,
+      );
+
+      expect(
+        getByText(strings('money.potential_earnings.no_fee')),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the No fee badge when isNoFeeToken returns false', () => {
+      const { queryByText } = render(
+        <MoneyPotentialEarnings
+          apy={4}
+          tokens={[MOCK_USDC]}
+          isNoFeeToken={() => false}
+        />,
+      );
+
+      expect(
+        queryByText(strings('money.potential_earnings.no_fee')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render any No fee badge when isNoFeeToken is omitted', () => {
+      const { queryByText } = render(
+        <MoneyPotentialEarnings apy={4} tokens={[MOCK_USDC]} />,
+      );
+
+      expect(
+        queryByText(strings('money.potential_earnings.no_fee')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('renders No fee badge only on eligible token rows', () => {
+      const { getAllByText, queryByText } = render(
+        <MoneyPotentialEarnings
+          apy={4}
+          tokens={[MOCK_USDC, MOCK_USDT]}
+          isNoFeeToken={(token) => token.symbol === 'USDC'}
+        />,
+      );
+
+      expect(
+        getAllByText(strings('money.potential_earnings.no_fee')),
+      ).toHaveLength(1);
+      expect(queryByText('USDT')).toBeOnTheScreen();
+    });
   });
 });

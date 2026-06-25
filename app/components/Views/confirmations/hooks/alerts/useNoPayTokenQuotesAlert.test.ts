@@ -138,6 +138,50 @@ describe('useNoPayTokenQuotesAlert', () => {
     ]);
   });
 
+  it('returns no alerts for fiat when rampsQuote is present', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+      selectedPaymentMethodId: 'pm-card',
+      amountFiat: '50.00',
+      rampsQuote: { id: 'quote-1' },
+    } as never);
+
+    useTransactionPayQuotesMock.mockReturnValue([]);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns alert for fiat when sourceAmounts is non-empty but no rampsQuote', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+      selectedPaymentMethodId: 'pm-card',
+      amountFiat: '50.00',
+    });
+
+    useTransactionPaySourceAmountsMock.mockReturnValue([
+      {} as TransactionPaySourceAmount,
+    ]);
+    useTransactionPayQuotesMock.mockReturnValue([]);
+
+    const { result } = runHook();
+
+    expect(result.current).toEqual([
+      expect.objectContaining({
+        key: AlertKeys.NoPayTokenQuotes,
+        severity: Severity.Danger,
+        isBlocking: true,
+      }),
+    ]);
+  });
+
   it('returns no alerts for fiat when amount is not entered', () => {
     jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
       selectedPaymentMethodId: 'pm-card',
@@ -212,13 +256,11 @@ describe('useNoPayTokenQuotesAlert', () => {
     ]);
   });
 
-  // Money account withdraw MUSD -> MUSD: `calculatePostQuoteSourceAmounts`
-  // filters out same-token/same-chain entries, so `sourceAmounts` is empty
-  // even when the user has entered a positive amount. The alert must still
-  // fire so the Withdraw button stays disabled.
-  it('returns alert for post-quote when sourceAmounts is empty but a required token has a positive amount', () => {
+  it('returns alert for post-quote when sourceAmounts is non-empty but a required token has a positive amount and no quotes', () => {
     useTransactionPayIsPostQuoteMock.mockReturnValue(true);
-    useTransactionPaySourceAmountsMock.mockReturnValue([]);
+    useTransactionPaySourceAmountsMock.mockReturnValue([
+      { address: ADDRESS_MOCK, chainId: CHAIN_ID_MOCK } as never,
+    ]);
     useTransactionPayQuotesMock.mockReturnValue([]);
 
     useTransactionPayRequiredTokensMock.mockReturnValue([
@@ -260,9 +302,11 @@ describe('useNoPayTokenQuotesAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
-  it('returns alert for post-quote with empty sourceAmounts when isMaxAmount is true', () => {
+  it('returns alert for post-quote with non-empty sourceAmounts when isMaxAmount is true', () => {
     useTransactionPayIsPostQuoteMock.mockReturnValue(true);
-    useTransactionPaySourceAmountsMock.mockReturnValue([]);
+    useTransactionPaySourceAmountsMock.mockReturnValue([
+      { address: ADDRESS_MOCK, chainId: CHAIN_ID_MOCK } as never,
+    ]);
     useTransactionPayQuotesMock.mockReturnValue([]);
     jest.mocked(useTransactionPayIsMaxAmount).mockReturnValue(true);
 

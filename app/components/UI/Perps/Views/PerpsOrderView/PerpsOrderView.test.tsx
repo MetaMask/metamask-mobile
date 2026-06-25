@@ -210,6 +210,7 @@ jest.mock('../../hooks', () => ({
   usePerpsLiquidationPrice: jest.fn(),
   usePerpsOrderFees: jest.fn(() => ({
     totalFee: 45,
+    undiscountedTotalFee: 45,
     protocolFee: 45,
     metamaskFee: 0,
     protocolFeeRate: 0.00045,
@@ -1401,11 +1402,26 @@ describe('PerpsOrderView', () => {
     });
   });
 
-  it('shows limit price bottom sheet for limit orders', () => {
+  it('opens limit price bottom sheet from limit price row', async () => {
+    (usePerpsOrderContext as jest.Mock).mockReturnValue({
+      ...defaultMockHooks.usePerpsOrderContext,
+      orderForm: {
+        ...defaultMockHooks.usePerpsOrderContext.orderForm,
+        type: 'limit',
+      },
+      calculations: {
+        marginRequired: '11',
+        positionSize: '0.0037',
+      },
+    });
+
     render(<PerpsOrderView />, { wrapper: TestWrapper });
 
-    // Limit price is only shown for limit orders, skip this test for market orders
-    expect(true).toBe(true);
+    fireEvent.press(
+      await screen.findByTestId(PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW),
+    );
+
+    expect(screen.getByTestId('limit-price-bottom-sheet')).toBeOnTheScreen();
   });
 
   it('handles short direction from route params', async () => {
@@ -4368,8 +4384,7 @@ describe('PerpsOrderView', () => {
 
       // The critical AC invariant: an order whose estimated slippage exceeds
       // the configured cap must NOT reach the order execution path. (The toast
-      // copy and event payload are verified separately by the slippage agentic
-      // recipe and the `eventNames` constants tests.)
+      // copy and event payload are verified separately by the slippage recipe and the `eventNames` constants tests.)
       expect(mockPlaceOrder).not.toHaveBeenCalled();
     });
   });

@@ -150,9 +150,22 @@ describe('series utilities', () => {
     it('formats recurrence durations for reset copy', () => {
       expect(formatSeriesDuration(5 * 60 * 1000)).toBe('5 min');
       expect(formatSeriesDuration(15 * 60 * 1000)).toBe('15 min');
-      expect(formatSeriesDuration(60 * 60 * 1000)).toBe('1:00:00');
-      expect(formatSeriesDuration(4 * 60 * 60 * 1000)).toBe('4:00:00');
-      expect(formatSeriesDuration(24 * 60 * 60 * 1000)).toBe('24:00:00');
+      expect(formatSeriesDuration(60 * 60 * 1000)).toBe('1 hour');
+      expect(formatSeriesDuration(4 * 60 * 60 * 1000)).toBe('4 hours');
+      expect(formatSeriesDuration(24 * 60 * 60 * 1000)).toBe('1 day');
+      expect(formatSeriesDuration(2 * 24 * 60 * 60 * 1000)).toBe('2 days');
+      expect(formatSeriesDuration(7 * 24 * 60 * 60 * 1000)).toBe('1 week');
+      expect(formatSeriesDuration(2 * 7 * 24 * 60 * 60 * 1000)).toBe('2 weeks');
+    });
+
+    it('falls back to stopwatch format for non-aligned sub-hour durations', () => {
+      expect(formatSeriesDuration(90 * 1000)).toBe('1:30');
+    });
+
+    it('returns "--" for invalid durations', () => {
+      expect(formatSeriesDuration(0)).toBe('--');
+      expect(formatSeriesDuration(-1)).toBe('--');
+      expect(formatSeriesDuration(Number.NaN)).toBe('--');
     });
 
     it('computes the remaining progress ratio', () => {

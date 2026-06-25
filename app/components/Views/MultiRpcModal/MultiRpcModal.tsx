@@ -7,15 +7,10 @@ import { strings } from '../../../../locales/i18n';
 import { useStyles } from '../../../component-library/hooks';
 import styleSheet from './MultiRpcModal.styles';
 import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
-import Text from '../../../component-library/components/Texts/Text';
 import { View, Image } from 'react-native';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NftDetectionModalSelectorsIDs } from '../NFTAutoDetectionModal/NftDetectionModal.testIds';
 
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../core/Engine';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
@@ -36,6 +31,12 @@ import {
 import { IconName } from '../../../component-library/components/Icons/Icon';
 import { getNetworkImageSource } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
+import {
+  Text,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const networkImage = require('../../../images/networks1.png');
@@ -136,12 +137,13 @@ const MultiRpcModal = () => {
         <View style={styles.buttonsContainer}>
           <Button
             testID={NftDetectionModalSelectorsIDs.ALLOW_BUTTON}
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('multi_rpc_migration_modal.accept')}
+            isFullWidth
             onPress={() => dismissMultiRpcModalMigration()}
-          />
+          >
+            {strings('multi_rpc_migration_modal.accept')}
+          </Button>
         </View>
       </View>
     </BottomSheet>

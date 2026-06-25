@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
 import {
   PredictMarket,
+  PredictMarketGame,
   PredictMarketStatus,
   PredictPosition,
 } from '../../types';
@@ -10,24 +11,7 @@ import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 import type { PredictMarketDetailsTabKey } from '../../Predict.testIds';
-
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: jest.fn() }),
-}));
-
-jest.mock('../../hooks/usePredictActionGuard', () => ({
-  usePredictActionGuard: () => ({
-    executeGuardedAction: (action: () => void) => action(),
-    isEligible: true,
-  }),
-}));
-
-const mockNavigateToBuyPreview = jest.fn();
-jest.mock('../../hooks/usePredictNavigation', () => ({
-  usePredictNavigation: () => ({
-    navigateToBuyPreview: mockNavigateToBuyPreview,
-  }),
-}));
+import { usePredictGame } from '../../hooks/usePredictGame';
 
 jest.mock('./PredictGameOutcomesTab', () => {
   const { View, Pressable, Text } = jest.requireActual('react-native');
@@ -36,12 +20,16 @@ jest.mock('./PredictGameOutcomesTab', () => {
   );
   return {
     __esModule: true,
-    default: (
-      props: Record<string, ((...args: unknown[]) => void) | undefined>,
-    ) => {
-      const mockBuyPress = props.onBuyPress;
+    default: (props: Record<string, unknown>) => {
+      const mockBuyPress = props.onBuyPress as
+        | ((...args: unknown[]) => void)
+        | undefined;
+      const game = props.game as { status?: string } | undefined;
       return (
-        <View testID={IDS.OUTCOMES_CONTENT}>
+        <View
+          testID={IDS.OUTCOMES_CONTENT}
+          accessibilityHint={`gameStatus:${game?.status ?? 'undefined'}`}
+        >
           <Pressable
             testID="mock-buy-button"
             onPress={() =>
@@ -80,6 +68,11 @@ jest.mock('../PredictPicks/PredictPicks', () => {
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
 }));
+
+jest.mock('../../hooks/usePredictGame');
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
+>;
 
 const mockBaseGame = {
   id: 'game-123',
@@ -148,8 +141,15 @@ const positionsTabs: { label: string; key: PredictMarketDetailsTabKey }[] = [
 ];
 
 describe('PredictGameDetailsTabs', () => {
+  const mockOnBetPress = jest.fn();
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
   });
 
   describe('disabled (flag off)', () => {
@@ -167,6 +167,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -187,6 +188,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -207,6 +209,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -232,6 +235,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -256,6 +260,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -278,6 +283,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -300,6 +306,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -308,7 +315,7 @@ describe('PredictGameDetailsTabs', () => {
       ).not.toBeOnTheScreen();
     });
 
-    it('calls navigateToBuyPreview when buy button is pressed', () => {
+    it('calls onBetPress when buy button is pressed', () => {
       const market = createMockMarket();
 
       const { getByTestId } = render(
@@ -322,18 +329,113 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
       fireEvent.press(getByTestId('mock-buy-button'));
 
-      expect(mockNavigateToBuyPreview).toHaveBeenCalledWith(
-        expect.objectContaining({
-          market,
-          outcome: { id: 'outcome-1', title: 'Test' },
-          outcomeToken: { id: 'token-1', title: 'Yes' },
-        }),
+      expect(mockOnBetPress).toHaveBeenCalledWith({
+        id: 'token-1',
+        title: 'Yes',
+      });
+    });
+
+    it('passes the cached game to the outcomes content', () => {
+      const staleOngoingGame: PredictMarketGame = {
+        ...mockBaseGame,
+        status: 'ongoing',
+        period: 'Q4',
+      };
+      const cachedEndedGame: PredictMarketGame = {
+        ...staleOngoingGame,
+        status: 'ended',
+        period: 'FT',
+      };
+      const market = createMockMarket({ game: staleOngoingGame });
+      mockUsePredictGame.mockReturnValue({
+        game: cachedEndedGame,
+        isConnected: false,
+        lastUpdateTime: Date.now(),
+      });
+
+      const { getByTestId } = render(
+        <PredictGameDetailsTabsContent
+          market={market}
+          activeTab={0}
+          tabs={[]}
+          enabled
+          showTabBar={false}
+          activePositions={[]}
+          claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
+          onBetPress={mockOnBetPress}
+        />,
       );
+
+      expect(
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT)
+          .props.accessibilityHint,
+      ).toBe('gameStatus:ended');
+    });
+  });
+
+  describe('enabled, with positions and no extended outcomes (no tab bar)', () => {
+    it.each<[string, PredictPosition[], PredictPosition[]]>([
+      ['active', mockActivePositions, []],
+      ['claimable', [], mockActivePositions],
+    ])(
+      'renders PredictPicks instead of outcomes content when only %s positions exist',
+      (_positionType, activePositions, claimablePositions) => {
+        const market = createMockMarket();
+
+        const { getByTestId, queryByTestId } = render(
+          <PredictGameDetailsTabsContent
+            market={market}
+            activeTab={0}
+            tabs={[{ label: 'Positions', key: 'positions' }]}
+            enabled
+            showTabBar={false}
+            activePositions={activePositions}
+            claimablePositions={claimablePositions}
+            groupMap={emptyGroupMap}
+            activeChipKey=""
+            onBetPress={mockOnBetPress}
+          />,
+        );
+
+        const picks = getByTestId(
+          PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_PICK,
+        );
+
+        expect(picks).toBeOnTheScreen();
+        expect(picks.props.accessibilityHint).toBe('marketId:test-market-id');
+        expect(
+          queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT),
+        ).not.toBeOnTheScreen();
+      },
+    );
+
+    it('renders the "Your picks" title', () => {
+      const market = createMockMarket();
+
+      const { getByText } = render(
+        <PredictGameDetailsTabsContent
+          market={market}
+          activeTab={0}
+          tabs={[{ label: 'Positions', key: 'positions' }]}
+          enabled
+          showTabBar={false}
+          activePositions={mockActivePositions}
+          claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
+          onBetPress={mockOnBetPress}
+        />,
+      );
+
+      expect(getByText('predict.market_details.your_picks')).toBeOnTheScreen();
     });
   });
 
@@ -352,6 +454,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -381,6 +484,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -403,6 +507,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 
@@ -428,6 +533,7 @@ describe('PredictGameDetailsTabs', () => {
           claimablePositions={[]}
           groupMap={emptyGroupMap}
           activeChipKey=""
+          onBetPress={mockOnBetPress}
         />,
       );
 

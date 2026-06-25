@@ -42,34 +42,48 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import {
-  BASE_DISPLAY_NAME,
-  MAINNET_DISPLAY_NAME,
-  SOLANA_DISPLAY_NAME,
-} from '../../../../core/Engine/constants';
 import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import { fontStyles } from '../../../../styles/common';
 import Logger from '../../../../util/Logger';
+import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
 import {
   TraderRow,
   TraderRowSkeleton,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../Homepage/Sections/TopTraders/components';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { TRADER_ROW_HEIGHT } from '../../Homepage/Sections/TopTraders/components/TraderRow';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
+import {
+  ALL_CHAINS,
+  PERP_CHAINS,
+  SPOT_CHAINS,
+} from '../../shared/top-traders-constants';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
-type ChainFilter = 'all' | 'base' | 'solana' | 'ethereum';
+type TabFilter = 'all' | 'tokens' | 'perps';
 
-const getChainFilters = (): { key: ChainFilter; label: string }[] => [
+const LEADERBOARD_LIMIT = 50;
+
+const getTabFilters = (): { key: TabFilter; label: string }[] => [
   {
     key: 'all',
     label: strings('social_leaderboard.top_traders_view.chain_filter.all'),
   },
-  { key: 'base', label: BASE_DISPLAY_NAME },
-  { key: 'solana', label: SOLANA_DISPLAY_NAME },
-  { key: 'ethereum', label: MAINNET_DISPLAY_NAME },
+  {
+    key: 'tokens',
+    label: strings('social_leaderboard.top_traders_view.chain_filter.tokens'),
+  },
+  {
+    key: 'perps',
+    label: strings('social_leaderboard.top_traders_view.chain_filter.perps'),
+  },
 ];
 
 const styles = StyleSheet.create({
@@ -100,14 +114,14 @@ const styles = StyleSheet.create({
   },
 });
 
-interface ChainPillProps {
-  filterKey: ChainFilter;
+interface TabPillProps {
+  filterKey: TabFilter;
   label: string;
   isSelected: boolean;
   onPress: () => void;
 }
 
-const ChainPill: React.FC<ChainPillProps> = ({
+const TabPill: React.FC<TabPillProps> = ({
   filterKey,
   label,
   isSelected,
@@ -117,7 +131,7 @@ const ChainPill: React.FC<ChainPillProps> = ({
   return (
     <Pressable
       onPress={onPress}
-      testID={`chain-filter-${filterKey}`}
+      testID={`tab-filter-${filterKey}`}
       accessibilityRole="button"
       accessibilityState={{ selected: isSelected }}
       style={[
@@ -153,7 +167,7 @@ const TopTradersView = () => {
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
 
-  const [selectedChain, setSelectedChain] = useState<ChainFilter>('all');
+  const [selectedTab, setSelectedTab] = useState<TabFilter>('all');
   const [refreshing, setRefreshing] = useState(false);
   // Tracks whether we've already emitted the screen-viewed event this mount.
   // Avoids re-firing if the user changes filters or refreshes.
@@ -166,10 +180,33 @@ const TopTradersView = () => {
     return Array.from({ length: count }, (_, i) => `top-trader-skeleton-${i}`);
   }, [windowHeight]);
 
-  const { traders, isLoading, refresh, toggleFollow } = useTopTraders({
-    limit: 250,
+  const allResult = useTopTraders({
+    limit: LEADERBOARD_LIMIT,
+    chains: ALL_CHAINS,
     enabled: isEnabled,
   });
+  const tokensResult = useTopTraders({
+    limit: LEADERBOARD_LIMIT,
+    chains: SPOT_CHAINS,
+    enabled: isEnabled,
+  });
+  const perpsResult = useTopTraders({
+    limit: LEADERBOARD_LIMIT,
+    chains: PERP_CHAINS,
+    enabled: isEnabled,
+  });
+
+  const resultsByTab = useMemo(
+    () => ({
+      all: allResult,
+      tokens: tokensResult,
+      perps: perpsResult,
+    }),
+    [allResult, tokensResult, perpsResult],
+  );
+
+  const activeResult = resultsByTab[selectedTab];
+  const { traders, isLoading, toggleFollow } = activeResult;
 
   useEffect(() => {
     if (!isEnabled) {
@@ -182,42 +219,28 @@ const TopTradersView = () => {
     hasFiredScreenViewedRef.current = true;
     track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_SCREEN_VIEWED, {
       [SocialLeaderboardEventProperties.SOURCE]: source,
-      [SocialLeaderboardEventProperties.CHAIN_FILTER]: selectedChain,
+      [SocialLeaderboardEventProperties.CHAIN_FILTER]: selectedTab,
     });
-    // selectedChain is intentionally captured at mount-time so subsequent
+    // selectedTab is intentionally captured at mount-time so subsequent
     // pill changes only fire the chain-filter-changed event.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEnabled, source, track]);
 
-  const handleChainFilterPress = useCallback(
-    (next: ChainFilter) => {
-      if (selectedChain === next) return;
+  const handleTabPress = useCallback(
+    (next: TabFilter) => {
+      if (selectedTab === next) return;
       track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_CHAIN_FILTER_CHANGED, {
         [SocialLeaderboardEventProperties.CHAIN_FILTER]: next,
-        [SocialLeaderboardEventProperties.PREVIOUS_CHAIN_FILTER]: selectedChain,
+        [SocialLeaderboardEventProperties.PREVIOUS_CHAIN_FILTER]: selectedTab,
       });
-      setSelectedChain(next);
+      setSelectedTab(next);
     },
-    [selectedChain, track],
+    [selectedTab, track],
   );
-
-  const filteredTraders = useMemo(() => {
-    const filtered =
-      selectedChain === 'all'
-        ? traders
-        : traders.filter((t) => (t.pnlPerChain[selectedChain] ?? 0) !== 0);
-
-    // Re-number the displayed rank to reflect the trader's position within the
-    // filtered slice, but keep `overallRank` pointing at the unfiltered rank
-    // so podium decorations only apply to true top-3 traders.
-    return filtered
-      .slice(0, 50)
-      .map((t, i) => ({ ...t, rank: i + 1, overallRank: t.overallRank }));
-  }, [traders, selectedChain]);
 
   const handleFollowPress = useCallback(
     (traderId: string) => {
-      const trader = filteredTraders.find((t) => t.id === traderId);
+      const trader = traders.find((t) => t.id === traderId);
       toggleFollow(traderId, {
         source: 'leaderboard',
         traderAddress: trader?.address ?? '',
@@ -225,7 +248,7 @@ const TopTradersView = () => {
         traderRank: trader?.rank,
       });
     },
-    [filteredTraders, toggleFollow],
+    [traders, toggleFollow],
   );
 
   const handleBack = useCallback(() => {
@@ -264,23 +287,37 @@ const TopTradersView = () => {
       const minDuration = new Promise<void>((resolve) =>
         setTimeout(resolve, 1000),
       );
-      await Promise.all([refresh(), minDuration]);
+      await Promise.all([
+        allResult.refresh(),
+        tokensResult.refresh(),
+        perpsResult.refresh(),
+        minDuration,
+      ]);
     } catch (err) {
-      Logger.error(err as Error, 'TopTradersView: pull-to-refresh failed');
+      Logger.error(
+        err as Error,
+        buildSocialLoggerErrorOptions({
+          surface: 'top_traders',
+          operation: 'pull_to_refresh',
+          extraMessage: 'Top traders pull-to-refresh failed',
+          source: 'TopTradersView',
+          error: err,
+        }),
+      );
     } finally {
       setRefreshing(false);
     }
-  }, [refresh]);
+  }, [allResult, tokensResult, perpsResult]);
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
-      const trader = filteredTraders.find((t) => t.id === traderId);
+      const trader = traders.find((t) => t.id === traderId);
       if (trader) {
         track(MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_TRADER_CLICKED, {
           [SocialLeaderboardEventProperties.TRADER_ADDRESS]: trader.address,
           [SocialLeaderboardEventProperties.TRADER_USERNAME]: trader.username,
           [SocialLeaderboardEventProperties.TRADER_RANK]: trader.rank,
-          [SocialLeaderboardEventProperties.CHAIN_FILTER]: selectedChain,
+          [SocialLeaderboardEventProperties.CHAIN_FILTER]: selectedTab,
         });
       }
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
@@ -288,14 +325,26 @@ const TopTradersView = () => {
         traderName,
         traderAddress: trader?.address,
         source: 'leaderboard',
-        traderRank: trader?.overallRank,
+        traderRank: trader?.rank,
       });
     },
-    [navigation, filteredTraders, selectedChain, track],
+    [navigation, traders, selectedTab, track],
+  );
+
+  const renderTraderRow = useCallback(
+    ({ item }: { item: TopTrader }) => (
+      <TraderRow
+        trader={item}
+        onFollowPress={handleFollowPress}
+        onTraderPress={handleTraderPress}
+      />
+    ),
+    [handleFollowPress, handleTraderPress],
   );
 
   return (
     <SafeAreaView
+      edges={['top']}
       style={tw.style('flex-1 bg-default')}
       testID={TopTradersViewSelectorsIDs.CONTAINER}
     >
@@ -334,18 +383,18 @@ const TopTradersView = () => {
         style={styles.filterScrollView}
         contentContainerStyle={styles.filterRow}
       >
-        {getChainFilters().map(({ key, label }) => (
-          <ChainPill
+        {getTabFilters().map(({ key, label }) => (
+          <TabPill
             key={key}
             filterKey={key}
             label={label}
-            isSelected={selectedChain === key}
-            onPress={() => handleChainFilterPress(key)}
+            isSelected={selectedTab === key}
+            onPress={() => handleTabPress(key)}
           />
         ))}
       </ScrollView>
 
-      {isLoading ? (
+      {isLoading && traders.length === 0 ? (
         <ScrollView
           // `flex-1` matches FlatList's default behavior so the list area sits
           // directly under the filters and skeletons render top-aligned.
@@ -367,15 +416,9 @@ const TopTradersView = () => {
         </ScrollView>
       ) : (
         <FlatList
-          data={filteredTraders}
+          data={traders}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => (
-            <TraderRow
-              trader={item}
-              onFollowPress={handleFollowPress}
-              onTraderPress={handleTraderPress}
-            />
-          )}
+          renderItem={renderTraderRow}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={tw.style('pb-6')}
           testID={TopTradersViewSelectorsIDs.TRADER_LIST}

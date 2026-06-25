@@ -7,6 +7,7 @@ import {
 import {
   HomepageEntryPoint,
   HomepageEntryPoints,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../Homepage/context/HomepageScrollContext';
 
 // React Navigation v5 exposes these via "dangerously" prefixed methods.

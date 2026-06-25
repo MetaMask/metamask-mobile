@@ -9,7 +9,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
-const mockInitiateCustomConversion = jest.fn();
+const mockInitiateDeposit = jest.fn();
 let mockTokens: unknown[] = [];
 
 jest.mock('@react-navigation/native', () => {
@@ -23,7 +23,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockConversionTokens = [
+const mockDepositTokens = [
   {
     name: 'USD Coin',
     symbol: 'USDC',
@@ -80,11 +80,11 @@ const mockConversionTokens = [
   },
 ];
 
-jest.mock('../../../Earn/hooks/useMusdConversionTokens', () => ({
-  useMusdConversionTokens: () => ({ tokens: mockTokens }),
-  STABLECOIN_SYMBOLS: new Set(['USDC', 'USDT', 'DAI']),
-  tokenFiatValue: (token: { fiat?: { balance?: number } }) =>
-    token?.fiat?.balance ?? 0,
+jest.mock('../../hooks/useMoneyEarnableTokens', () => ({
+  useMoneyEarnableTokens: () => ({
+    tokens: mockTokens,
+    isNoFeeToken: jest.fn(() => false),
+  }),
 }));
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
@@ -92,9 +92,9 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   default: jest.fn(),
 }));
 
-jest.mock('../../../Earn/hooks/useMusdConversion', () => ({
-  useMusdConversion: () => ({
-    initiateCustomConversion: mockInitiateCustomConversion,
+jest.mock('../../hooks/useMoneyAccount', () => ({
+  useMoneyAccountDeposit: () => ({
+    initiateDeposit: mockInitiateDeposit,
   }),
 }));
 
@@ -123,14 +123,23 @@ jest.mock('@react-native-masked-view/masked-view', () => 'MaskedView');
 jest.mock('../../utils/moneyFormatFiat', () => ({
   moneyFormatFiat: jest.fn((value: BigNumber) => `$${value.toFixed(2)}`),
 }));
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(() => ({
+    trackButtonClicked: jest.fn(),
+    trackScreenViewed: jest.fn(),
+    trackTokenButtonClicked: jest.fn(),
+    trackTokenSurfaceClicked: jest.fn(),
+    trackTooltipClicked: jest.fn(),
+  })),
+}));
 
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 
 describe('MoneyPotentialEarningsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockTokens = mockConversionTokens;
-    mockInitiateCustomConversion.mockResolvedValue(undefined);
+    mockTokens = mockDepositTokens;
+    mockInitiateDeposit.mockResolvedValue(undefined);
     mockUseMoneyAccountBalance.mockReturnValue({
       apyPercent: 4,
       apyDecimal: 0.04,
@@ -138,23 +147,19 @@ describe('MoneyPotentialEarningsView', () => {
       totalFiatFormatted: '$10,000.00',
       totalFiatRaw: '10000',
       tokenTotal: undefined,
-      isAggregatedBalanceLoading: false,
+      isBalanceLoading: false,
       vaultApyQuery: {
         data: { apy: 0.04, timestamp: '2026-01-01T00:00:00Z' },
         isLoading: false,
       },
-      musdBalanceQuery: {
-        data: { balance: '10000000000' },
-        isLoading: false,
-      },
-      musdEquivalentBalanceQuery: {
+      moneyBalanceQuery: {
         data: {
-          balanceOfInAssets: '0',
+          musdBalance: '10000000000',
+          vmusdValueInMusd: '0',
+          totalBalance: '10000000000',
         },
         isLoading: false,
       },
-      musdFiatFormatted: '$10,000.00',
-      musdSHFvdFiatFormatted: '$0.00',
     } as ReturnType<typeof useMoneyAccountBalance>);
   });
 
@@ -260,14 +265,12 @@ describe('MoneyPotentialEarningsView', () => {
     );
   });
 
-  it('triggers conversion when the bottom Convert CTA is pressed', async () => {
+  it('triggers deposit when the bottom Convert CTA is pressed', async () => {
     const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
 
     fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
 
-    await waitFor(() =>
-      expect(mockInitiateCustomConversion).toHaveBeenCalled(),
-    );
+    await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalled());
   });
 
   it('disables the Convert CTA when there are no eligible tokens', () => {
@@ -294,46 +297,24 @@ describe('MoneyPotentialEarningsView', () => {
 
     fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
 
-    await waitFor(() =>
-      expect(mockInitiateCustomConversion).not.toHaveBeenCalled(),
-    );
+    await waitFor(() => expect(mockInitiateDeposit).not.toHaveBeenCalled());
   });
 
-  it('logs but swallows conversion errors from the Convert CTA', async () => {
-    const conversionError = new Error('conversion failed');
-    mockInitiateCustomConversion.mockRejectedValueOnce(conversionError);
+  it('calls initiateDeposit from the Convert CTA', async () => {
     const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
 
     fireEvent.press(getByTestId(MoneyPotentialEarningsViewTestIds.CTA_BUTTON));
 
-    await waitFor(() =>
-      expect(mockInitiateCustomConversion).toHaveBeenCalled(),
-    );
+    await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalled());
   });
 
-  it('triggers conversion when a token row is pressed', async () => {
+  it('triggers deposit when a token row is pressed', async () => {
     const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
 
     fireEvent.press(
       getByTestId(MoneyPotentialEarningsViewTestIds.TOKEN_ROW(0)),
     );
 
-    await waitFor(() =>
-      expect(mockInitiateCustomConversion).toHaveBeenCalled(),
-    );
-  });
-
-  it('logs but swallows conversion errors when a token row press throws', async () => {
-    const conversionError = new Error('token conversion failed');
-    mockInitiateCustomConversion.mockRejectedValueOnce(conversionError);
-    const { getByTestId } = renderWithProvider(<MoneyPotentialEarningsView />);
-
-    fireEvent.press(
-      getByTestId(MoneyPotentialEarningsViewTestIds.TOKEN_ROW(0)),
-    );
-
-    await waitFor(() =>
-      expect(mockInitiateCustomConversion).toHaveBeenCalled(),
-    );
+    await waitFor(() => expect(mockInitiateDeposit).toHaveBeenCalled());
   });
 });

@@ -15,6 +15,7 @@ export enum MarketInsightsSelectorsIDs {
   SHORT_BUTTON = 'market-insights-short-button',
   SWAP_BUTTON = 'market-insights-swap-button',
   BUY_BUTTON = 'market-insights-buy-button',
+  QUICK_BUY_BUTTON = 'market-insights-quick-buy-button',
   FEEDBACK_BOTTOM_SHEET = 'market-insights-feedback-bottom-sheet',
   FEEDBACK_OPTION_NOT_RELEVANT = 'market-insights-feedback-option-not-relevant',
   FEEDBACK_OPTION_NOT_ACCURATE = 'market-insights-feedback-option-not-accurate',

@@ -19,6 +19,7 @@ import {
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
 import { filterSupportedLeagues } from '../../constants/sports';
+import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
 import {
   CryptoPriceHistoryPoint,
@@ -49,6 +50,7 @@ import {
   CryptoPriceUpdateCallback,
   GameUpdateCallback,
   GeoBlockResponse,
+  GetActivityParams,
   GetAccountStateParams,
   GetBalanceParams,
   GetMarketsParams,
@@ -58,6 +60,10 @@ import {
   OrderPreview,
   OrderResult,
   PlaceOrderParams,
+  PredictFilterOption,
+  PredictFilterOptionsParams,
+  PredictMarketListParams,
+  PredictMarketListResponse,
   PredictProvider,
   PrepareDepositParams,
   PrepareDepositResponse,
@@ -100,6 +106,9 @@ import {
   createApiKey,
   encodeErc20Transfer,
   fetchEventsFromPolymarketApi,
+  fetchMarketsFromPolymarketApi,
+  fetchRelatedTagsFromPolymarketApi,
+  normalizeRelatedTagsToFilterOptions,
   fetchCarouselFromPolymarketApi,
   getBalance,
   getL2Headers,
@@ -257,6 +266,19 @@ const isWithinWindow = ({
   (startSeconds === undefined || timestamp >= startSeconds) &&
   (endSeconds === undefined || timestamp <= endSeconds);
 
+/**
+ * Whether an error from the crypto price history fetch is an expected,
+ * transient availability issue (low-level network failure or a non-OK HTTP
+ * response from the upstream endpoint) rather than an unexpected bug. These are
+ * routinely produced while polling an unreachable endpoint and should not raise
+ * error-level Sentry events.
+ */
+const isTransientPriceHistoryError = (error: Error): boolean =>
+  error instanceof TypeError ||
+  /network request failed|failed to get crypto price history/i.test(
+    error.message,
+  );
+
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
   readonly name = 'Polymarket';
@@ -324,6 +346,10 @@ export class PolymarketProvider implements PredictProvider {
     return this.#getFeatureFlags().extendedSportsMarketsLeagues;
   }
 
+  #getEnabledSportsMarketTypes(): string[] {
+    return this.#getFeatureFlags().enabledSportsMarketTypes;
+  }
+
   #createTeamLookup(
     enabled: boolean,
   ):
@@ -380,6 +406,7 @@ export class PolymarketProvider implements PredictProvider {
       sortMarketsBy: 'price',
       teamLookup,
       extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+      enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
     });
 
     if (filterEmptyOutcomes) {
@@ -836,6 +863,7 @@ export class PolymarketProvider implements PredictProvider {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
         extendedSportsMarketsLeagues,
+        enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
       });
 
       if (!parsedMarket) {
@@ -892,7 +920,9 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
-  public getActivity(_params: { address: string }): Promise<PredictActivity[]> {
+  public getActivity(
+    _params: GetActivityParams & { address: string },
+  ): Promise<PredictActivity[]> {
     return this.fetchActivity(_params);
   }
 
@@ -959,26 +989,85 @@ export class PolymarketProvider implements PredictProvider {
     }
   }
 
+  public async listMarkets(
+    params: PredictMarketListParams,
+  ): Promise<PredictMarketListResponse> {
+    try {
+      const { events, nextCursor } =
+        await fetchMarketsFromPolymarketApi(params);
+
+      const markets = await this.#parseEventsToMarkets({
+        events,
+        category: PolymarketProvider.FALLBACK_CATEGORY,
+      });
+
+      return { markets, nextCursor };
+    } catch (error) {
+      DevLogger.log('Error listing markets via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('listMarkets', {
+          hasAfterCursor: Boolean(params?.afterCursor),
+        }),
+      );
+
+      return { markets: [], nextCursor: null };
+    }
+  }
+
+  public async listFilterOptions(
+    params: PredictFilterOptionsParams,
+  ): Promise<PredictFilterOption[]> {
+    const slug = params.baseTagSlug ?? 'all';
+
+    try {
+      const tags = await fetchRelatedTagsFromPolymarketApi(slug);
+
+      return normalizeRelatedTagsToFilterOptions(tags, {
+        source: params.source,
+        baseParams: params.baseParams,
+        limit: params.limit,
+      });
+    } catch (error) {
+      // Dynamic filters are best-effort and non-blocking: on any failure return
+      // an empty list so the UI can keep static filters and hide dynamic ones.
+      DevLogger.log('Error listing filter options via Polymarket API:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('listFilterOptions', {
+          source: params.source,
+          slug,
+        }),
+      );
+
+      return [];
+    }
+  }
+
   public async searchMarkets(
     params: SearchMarketsParams,
-  ): Promise<PredictMarket[]> {
+  ): Promise<{ markets: PredictMarket[]; totalResults: number }> {
     const query = params.q.trim();
 
     if (!query) {
-      return [];
+      return { markets: [], totalResults: 0 };
     }
 
     try {
-      const events = await searchEventsFromPolymarketApi({
+      const { events, totalResults } = await searchEventsFromPolymarketApi({
         ...params,
         q: query,
       });
 
-      return await this.#parseEventsToMarkets({
+      const markets = await this.#parseEventsToMarkets({
         events,
         category: PolymarketProvider.FALLBACK_CATEGORY,
         filterEmptyOutcomes: true,
       });
+
+      return { markets, totalResults };
     } catch (error) {
       DevLogger.log('Error searching markets via Polymarket API:', error);
 
@@ -989,7 +1078,7 @@ export class PolymarketProvider implements PredictProvider {
         }),
       );
 
-      return [];
+      return { markets: [], totalResults: 0 };
     }
   }
 
@@ -1041,6 +1130,7 @@ export class PolymarketProvider implements PredictProvider {
         category: PolymarketProvider.FALLBACK_CATEGORY,
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+        enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
       });
     } catch (error) {
       DevLogger.log('Error fetching series events via Polymarket API:', error);
@@ -1079,6 +1169,7 @@ export class PolymarketProvider implements PredictProvider {
         sortMarketsBy: 'price',
         teamLookup,
         extendedSportsMarketsLeagues: this.#getExtendedSportsMarketsLeagues(),
+        enabledSportsMarketTypes: this.#getEnabledSportsMarketTypes(),
       })
         .filter((m) => m.status === 'open' && m.outcomes.length > 0)
         .map((market) => {
@@ -1266,15 +1357,28 @@ export class PolymarketProvider implements PredictProvider {
         error,
       );
 
-      Logger.error(
-        error instanceof Error ? error : new Error(String(error)),
-        this.getErrorContext('getCryptoPriceHistory', {
-          symbol,
-          eventStartTime,
-          variant,
-          endDate,
-        } as Record<string, unknown>),
-      );
+      const normalizedError =
+        error instanceof Error ? error : new Error(String(error));
+      const errorContext = this.getErrorContext('getCryptoPriceHistory', {
+        symbol,
+        eventStartTime,
+        variant,
+        endDate,
+      } as Record<string, unknown>);
+
+      // Transient network/availability failures are expected while polling and
+      // would otherwise flood Sentry with error-level events. Record them as
+      // breadcrumbs (Logger.log) instead, and reserve Logger.error for
+      // unexpected failures.
+      if (isTransientPriceHistoryError(normalizedError)) {
+        Logger.log(
+          'Predict crypto price history fetch failed (transient network/availability):',
+          normalizedError.message,
+          errorContext,
+        );
+      } else {
+        Logger.error(normalizedError, errorContext);
+      }
 
       throw error;
     }
@@ -1311,9 +1415,12 @@ export class PolymarketProvider implements PredictProvider {
   /**
    * Get current prices for multiple tokens from CLOB /prices endpoint
    *
-   * Fetches BUY (best ask) and SELL (best bid) prices for outcome tokens.
-   * BUY = what you'd pay to buy
-   * SELL = what you'd receive to sell
+   * IMPORTANT: Polymarket's /prices endpoint returns the side of the book, not
+   * the price for an action. The `BUY` field is the best bid (top of the buy
+   * side of the book) and the `SELL` field is the best ask (top of the sell
+   * side). We therefore map them to our action-oriented semantics, where
+   * `entry.buy` is the best ask (what you'd pay to buy) and `entry.sell` is the
+   * best bid (what you'd receive to sell).
    *
    * @param params - Query parameters with marketId, outcomeId, and outcomeTokenId
    * @returns Structured price response with results
@@ -1354,6 +1461,13 @@ export class PolymarketProvider implements PredictProvider {
       >;
       const data = (await response.json()) as PolymarketPricesResponse;
 
+      // Guard against malformed upstream payloads: a non-numeric string would
+      // otherwise produce NaN and propagate into UI/analytics calculations.
+      const toFinitePrice = (value: string | undefined): number => {
+        const parsed = Number(value);
+        return Number.isFinite(parsed) ? parsed : 0;
+      };
+
       const results: PriceResult[] = queries.map((query) => {
         const priceData = data[query.outcomeTokenId];
         return {
@@ -1361,8 +1475,9 @@ export class PolymarketProvider implements PredictProvider {
           outcomeId: query.outcomeId,
           outcomeTokenId: query.outcomeTokenId,
           entry: {
-            buy: priceData?.BUY ? Number(priceData.BUY) : 0,
-            sell: priceData?.SELL ? Number(priceData.SELL) : 0,
+            // Polymarket SELL = best ask = price to buy; BUY = best bid = price to sell.
+            buy: toFinitePrice(priceData?.SELL),
+            sell: toFinitePrice(priceData?.BUY),
           },
         };
       });
@@ -1854,9 +1969,9 @@ export class PolymarketProvider implements PredictProvider {
 
   private async fetchActivity({
     address,
-  }: {
-    address: string;
-  }): Promise<PredictActivity[]> {
+    limit = PREDICT_ACTIVITY_PAGE_SIZE,
+    offset = 0,
+  }: GetActivityParams & { address: string }): Promise<PredictActivity[]> {
     const { DATA_API_ENDPOINT } = getPolymarketEndpoints();
 
     if (!address) {
@@ -1871,6 +1986,8 @@ export class PolymarketProvider implements PredictProvider {
       const queryParams = new URLSearchParams({
         user: predictAddress,
         excludeLostRedeems: 'true',
+        limit: String(limit),
+        offset: String(offset),
       });
 
       const response = await fetch(
@@ -1887,19 +2004,30 @@ export class PolymarketProvider implements PredictProvider {
         throw new Error('Failed to get activity');
       }
 
-      const activityRaw = (await response.json()) as PolymarketApiActivity[];
-      const parsedActivity = parsePolymarketActivity(activityRaw);
-      return Array.isArray(parsedActivity) ? parsedActivity : [];
+      const activityRaw = (await response.json()) as unknown;
+
+      if (!Array.isArray(activityRaw)) {
+        throw new Error('Invalid activity response');
+      }
+
+      const parsedActivity = parsePolymarketActivity(
+        activityRaw as PolymarketApiActivity[],
+      );
+
+      if (!Array.isArray(parsedActivity)) {
+        throw new Error('Invalid parsed activity response');
+      }
+
+      return parsedActivity;
     } catch (error) {
       DevLogger.log('Error getting activity via Polymarket API:', error);
 
-      // Log to Sentry - this error is swallowed (returns []) so controller won't see it
       Logger.error(
         error instanceof Error ? error : new Error(String(error)),
         this.getErrorContext('fetchActivity'),
       );
 
-      return [];
+      throw error;
     }
   }
 

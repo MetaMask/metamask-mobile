@@ -15,6 +15,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { BatchSellMinimumReceivedInfoModalSelectorsIDs } from './BatchSellMinimumReceivedInfoModal.testIds';
 import { BatchSellMinimumReceivedInfoModalParams } from './BatchSellMinimumReceivedInfoModal.types';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export function BatchSellMinimumReceivedInfoModal() {
   const navigation =
@@ -23,11 +24,13 @@ export function BatchSellMinimumReceivedInfoModal() {
   const handleBack = sourceModal
     ? () => navigation.replace(sourceModal.screen, sourceModal.params)
     : undefined;
+  const surfaceClass = useElevatedSurface();
 
   return (
     <BottomSheet
       testID={BatchSellMinimumReceivedInfoModalSelectorsIDs.SHEET}
       goBack={navigation.goBack}
+      twClassName={surfaceClass}
     >
       <BottomSheetHeader
         onBack={handleBack}
@@ -44,7 +47,7 @@ export function BatchSellMinimumReceivedInfoModal() {
       </BottomSheetHeader>
       <Box paddingHorizontal={4} paddingTop={2} paddingBottom={4}>
         <Text
-          variant={TextVariant.BodySm}
+          variant={TextVariant.BodyMd}
           color={TextColor.TextAlternative}
           testID={BatchSellMinimumReceivedInfoModalSelectorsIDs.DESCRIPTION}
         >

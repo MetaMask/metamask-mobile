@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
+import { IconColor } from '@metamask/design-system-react-native';
 import { SvgXml } from 'react-native-svg';
 import { useStyles } from '../../../../../component-library/hooks';
-import { IconColor } from '../../../../../component-library/components/Icons/Icon';
 
 interface FoxIconProps {
   width?: number;
@@ -12,23 +12,26 @@ interface FoxIconProps {
 const FoxIcon: React.FC<FoxIconProps> = ({
   width = 14,
   height = 14,
-  iconColor = IconColor.Alternative,
+  iconColor = IconColor.IconAlternative,
 }) => {
   const { theme } = useStyles(() => ({}), {});
 
   let fillColor;
   switch (iconColor) {
-    case IconColor.Alternative:
+    case IconColor.IconAlternative:
       fillColor = theme.colors.icon.alternative;
       break;
-    case IconColor.Default:
+    case IconColor.IconDefault:
       fillColor = theme.colors.icon.default;
       break;
-    case IconColor.Muted:
+    case IconColor.IconMuted:
       fillColor = theme.colors.icon.muted;
       break;
-    case IconColor.Primary:
+    case IconColor.PrimaryDefault:
       fillColor = theme.colors.primary.default;
+      break;
+    case IconColor.WarningDefault:
+      fillColor = theme.colors.warning.default;
       break;
     default:
       fillColor = theme.colors.icon.alternative;

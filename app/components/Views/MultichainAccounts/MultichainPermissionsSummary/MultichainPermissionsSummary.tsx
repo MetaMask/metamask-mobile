@@ -41,6 +41,7 @@ import ButtonIcon, {
 import TabBar from '../../../../component-library/components-temp/TabBar';
 import { getNetworkImageSource } from '../../../../util/networks';
 import Engine from '../../../../core/Engine';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SDKSelectorsIDs } from '../../SDK/SDK.testIds';
 import { useSelector } from 'react-redux';
 import {
@@ -48,8 +49,9 @@ import {
   selectProviderConfig,
 } from '../../../../selectors/networkController';
 import { useNetworkInfo } from '../../../../selectors/selectedNetworkController';
-import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
-import { PermissionSummaryBottomSheetSelectorsIDs } from '../../AccountConnect/PermissionSummaryBottomSheet.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../MultichainAccounts/shared/PermissionSummaryBottomSheet.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
@@ -59,7 +61,7 @@ import Badge, {
 import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import { endTrace, trace, TraceName } from '../../../../util/trace';
-import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
+import { NetworkAvatarProps } from '../../MultichainAccounts/shared/AccountConnect.types';
 import MultichainAccountsConnectedList from '../MultichainAccountsConnectedList/MultichainAccountsConnectedList';
 import { AccountGroupId } from '@metamask/account-api';
 import { selectAccountGroups } from '../../../../selectors/multichainAccounts/accountTreeController';

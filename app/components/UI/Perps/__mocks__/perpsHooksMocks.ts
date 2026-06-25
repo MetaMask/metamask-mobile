@@ -19,6 +19,7 @@ export const defaultPerpsTopOfBookMock = {
 
 export const defaultPerpsOrderFeesMock = {
   totalFee: 45,
+  undiscountedTotalFee: 45,
   protocolFee: 45,
   metamaskFee: 0,
   protocolFeeRate: 0.00045,

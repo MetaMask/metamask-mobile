@@ -15,8 +15,13 @@ import {
   startMultiInstanceResourceWithRetry,
   cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
-import Utilities from '../Utilities';
-import { dismissDevScreens } from '../../flows/general.flow';
+import Utilities, { sleep } from '../Utilities';
+import {
+  dismissAndroidSystemOverlaysPlaywright,
+  dismissDevScreens,
+  dismissDeveloperMenuPlaywright,
+  dismissDevelopmentServerPickerPlaywright,
+} from '../../flows/general.flow';
 import TestHelpers from '../../helpers';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -41,6 +46,7 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  resolveE2EFixtureBootstrapTimeoutMs,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
@@ -62,6 +68,9 @@ import {
   setupAccountActivityMocks,
   resetAccountActivityMockState,
 } from '../../websocket/account-activity-mocks';
+import { FrameworkDetector } from '../FrameworkDetector';
+import PlaywrightUtilities from '../PlaywrightUtilities';
+import { DeviceCommandHandler } from '../services/device-commands';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -111,6 +120,17 @@ async function handleDapps(
               dapp.dappPath ||
               TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
             dappVariant: DappVariants.SOLANA_TEST_DAPP,
+          }),
+        );
+        break;
+      case DappVariants.BITCOIN_TEST_DAPP:
+        dappServer.push(
+          new DappServer({
+            dappCounter: i,
+            rootDirectory:
+              dapp.dappPath ||
+              TestDapps[DappVariants.BITCOIN_TEST_DAPP].dappPath,
+            dappVariant: DappVariants.BITCOIN_TEST_DAPP,
           }),
         );
         break;
@@ -516,8 +536,13 @@ export async function withFixtures(
     skipReactNativeReload = false,
     useCommandQueueServer = false,
     analyticsExpectations,
+    currentDeviceDetails,
     disableSynchronization = false,
   } = options;
+  const deviceCommands =
+    currentDeviceDetails && !currentDeviceDetails.isBrowserstack
+      ? new DeviceCommandHandler({ currentDeviceDetails, logger })
+      : undefined;
 
   // Clean up any stale port forwarding from previous failed tests
   // This ensures we start with a clean slate on Android
@@ -555,6 +580,7 @@ export async function withFixtures(
     ResourceType.ACCOUNT_ACTIVITY_WS,
   );
   let testError: Error | null = null;
+  let didAttemptPlaywrightDevelopmentServerPickerDismissal = false;
 
   try {
     // Step 1: Start local nodes (Anvil/Ganache)
@@ -623,11 +649,36 @@ export async function withFixtures(
       // On Android, LaunchArguments library integration is unreliable on CI
       // We must pass fallback ports so the app uses them and adb reverse can map them
       // to the actual allocated ports
-      const isAndroid = device.getPlatform() === 'android';
+      const isAndroid = await PlatformDetector.isAndroid();
+      const framework = FrameworkDetector.isDetox() ? 'Detox' : 'Appium';
 
-      await TestHelpers.launchApp({
-        delete: true,
-        launchArgs: {
+      if (framework === 'Detox') {
+        await TestHelpers.launchApp({
+          delete: true,
+          launchArgs: {
+            fixtureServerPort: isAndroid
+              ? `${FALLBACK_FIXTURE_SERVER_PORT}`
+              : `${getFixturesServerPort()}`,
+            commandQueueServerPort: isAndroid
+              ? `${FALLBACK_COMMAND_QUEUE_SERVER_PORT}`
+              : `${commandQueueServer.getServerPort()}`,
+            detoxURLBlacklistRegex: Utilities.BlacklistURLs,
+            mockServerPort: isAndroid
+              ? `${FALLBACK_MOCKSERVER_PORT}`
+              : `${mockServerPort}`,
+            [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
+              ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
+              : `${accountActivityWsServer.getServerPort()}`,
+            ...(launchArgs || {}),
+          },
+          languageAndLocale,
+          permissions,
+        });
+      } else if (framework === 'Appium') {
+        if (!currentDeviceDetails) {
+          throw new Error('currentDeviceDetails is not available');
+        }
+        const testArgs = {
           fixtureServerPort: isAndroid
             ? `${FALLBACK_FIXTURE_SERVER_PORT}`
             : `${getFixturesServerPort()}`,
@@ -642,21 +693,69 @@ export async function withFixtures(
             ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
             : `${accountActivityWsServer.getServerPort()}`,
           ...(launchArgs || {}),
-        },
-        languageAndLocale,
-        permissions,
-      });
+        };
+
+        if (deviceCommands) {
+          await deviceCommands.clearAppData();
+        }
+
+        // Cold Metro bundles can take 60–160s locally; pre-warm runs in launchApp but
+        // device-side load + E2E bootstrap still need headroom after deep link.
+        const appStateRequest = fixtureServer.waitForNextStateRequest(
+          resolveE2EFixtureBootstrapTimeoutMs(),
+        );
+        try {
+          await PlaywrightUtilities.launchApp(currentDeviceDetails, {
+            launchArgs: testArgs,
+          });
+          if (process.env.CI !== 'true') {
+            didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
+            await Promise.all([
+              appStateRequest,
+              (async () => {
+                for (;;) {
+                  await dismissDevelopmentServerPickerPlaywright();
+                  const bootstrapped = await Promise.race([
+                    appStateRequest.then(() => true),
+                    sleep(1500).then(() => false),
+                  ]);
+                  if (bootstrapped) {
+                    return;
+                  }
+                }
+              })(),
+            ]);
+          } else {
+            await appStateRequest;
+          }
+        } catch (error) {
+          appStateRequest.catch(() => undefined);
+          throw error;
+        }
+      } else {
+        throw new Error(`Unsupported test runner: ${framework}`);
+      }
     }
 
-    if (disableSynchronization) {
-      await device.disableSynchronization();
-    } else {
-      await device.enableSynchronization();
+    if (FrameworkDetector.isDetox()) {
+      if (disableSynchronization) {
+        await device.disableSynchronization();
+      } else {
+        await device.enableSynchronization();
+      }
     }
 
-    // Dismiss dev screens if running locally (not in CI)
+    // Dismiss dev menu after bootstrap (Appium: adb-only overlay dismiss — element
+    // queries here crash UiAutomator2 while Metro is still loading).
     if (process.env.CI !== 'true') {
-      await dismissDevScreens();
+      if (FrameworkDetector.isDetox()) {
+        await dismissDevScreens();
+      } else if (FrameworkDetector.isAppium()) {
+        if (!didAttemptPlaywrightDevelopmentServerPickerDismissal) {
+          await dismissDevelopmentServerPickerPlaywright();
+        }
+        await dismissDeveloperMenuPlaywright();
+      }
     }
 
     await testSuite({
@@ -664,6 +763,7 @@ export async function withFixtures(
       mockServer: mockServerInstance.server,
       localNodes,
       commandQueueServer,
+      deviceCommands,
     });
   } catch (error) {
     testError = error as Error;
@@ -730,7 +830,7 @@ export async function withFixtures(
     }
 
     // skipReactNativeReload needs to happen before killing the mock server to avoid race conditions
-    if (!skipReactNativeReload) {
+    if (!skipReactNativeReload && FrameworkDetector.isDetox()) {
       try {
         // Disable synchronization to prevent race conditions with pending timers
         await device.disableSynchronization();

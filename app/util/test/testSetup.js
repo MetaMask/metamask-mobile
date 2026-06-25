@@ -276,7 +276,6 @@ jest.mock('../../core/NotificationManager', () => ({
   watchSubmittedTransaction: jest.fn(),
   getTransactionToView: jest.fn(),
   setTransactionToView: jest.fn(),
-  gotIncomingTransaction: jest.fn(),
   requestPushNotificationsPermission: jest.fn(),
   showSimpleNotification: jest.fn(),
 }));
@@ -454,6 +453,9 @@ jest.mock('react-native-keychain', () => ({
 }));
 
 jest.mock('react-native-share', () => 'RNShare');
+jest.mock('react-native-localize', () => ({
+  getCountry: jest.fn(() => 'GB'),
+}));
 jest.mock('react-native-branch', () => ({
   subscribe: jest.fn(),
 }));
@@ -757,6 +759,8 @@ jest.mock('redux-persist', () => ({
 
 jest.mock('../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
+  getItemSync: jest.fn(),
+  removeItem: jest.fn(),
   setItem: jest.fn(),
 }));
 
@@ -1160,16 +1164,6 @@ jest.mock('@react-native-firebase/messaging', () => {
   };
 
   return module;
-});
-
-jest.mock('../../core/Analytics/MetaMetricsTestUtils', () => {
-  return {
-    default: {
-      getInstance: jest.fn().mockReturnValue({
-        trackEvent: jest.fn(),
-      }),
-    },
-  };
 });
 
 // Mock whenEngineReady to prevent async Engine access after Jest teardown.

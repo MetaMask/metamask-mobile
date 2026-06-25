@@ -1,10 +1,11 @@
-import { Messenger } from '@metamask/messenger';
-import { MultichainRoutingServiceMessenger } from '@metamask/snaps-controllers';
 import {
-  KeyringControllerAddNewKeyringAction,
-  KeyringControllerGetKeyringsByTypeAction,
-} from '@metamask/keyring-controller';
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
+import { MultichainRoutingServiceMessenger } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../types';
+import { SnapAccountServiceGetLegacySnapKeyringAction } from '@metamask/snap-account-service';
 
 /**
  * Get the multichain routing service messenger for the multichain routing
@@ -14,7 +15,11 @@ import { RootMessenger } from '../types';
  * @returns The multichain routing service messenger.
  */
 export function getMultichainRoutingServiceMessenger(
-  rootMessenger: RootMessenger,
+  rootMessenger: Messenger<
+    'Root',
+    MessengerActions<MultichainRoutingServiceMessenger>,
+    MessengerEvents<MultichainRoutingServiceMessenger>
+  >,
 ): MultichainRoutingServiceMessenger {
   const messenger: MultichainRoutingServiceMessenger = new Messenger({
     namespace: 'MultichainRoutingService',
@@ -36,11 +41,12 @@ export function getMultichainRoutingServiceMessenger(
 }
 
 type AllowedInitializationActions =
-  | KeyringControllerAddNewKeyringAction
-  | KeyringControllerGetKeyringsByTypeAction;
+  SnapAccountServiceGetLegacySnapKeyringAction;
 
-export type MultichainRoutingServiceInitMessenger = ReturnType<
-  typeof getMultichainRoutingServiceInitMessenger
+export type MultichainRoutingServiceInitMessenger = Messenger<
+  'MultichainRoutingServiceInit',
+  AllowedInitializationActions,
+  never
 >;
 
 /**
@@ -52,23 +58,18 @@ export type MultichainRoutingServiceInitMessenger = ReturnType<
  * @returns The multichain routing service init messenger.
  */
 export function getMultichainRoutingServiceInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'MultichainRoutingServiceInit',
-    AllowedInitializationActions,
-    never,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<MultichainRoutingServiceInitMessenger>,
+    MessengerEvents<MultichainRoutingServiceInitMessenger>
+  >,
+): MultichainRoutingServiceInitMessenger {
+  const messenger: MultichainRoutingServiceInitMessenger = new Messenger({
     namespace: 'MultichainRoutingServiceInit',
     parent: rootMessenger,
   });
 
   rootMessenger.delegate({
-    actions: [
-      'KeyringController:addNewKeyring',
-      'KeyringController:getKeyringsByType',
-    ],
+    actions: ['SnapAccountService:getLegacySnapKeyring'],
     events: [],
     messenger,
   });

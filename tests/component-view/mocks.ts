@@ -32,6 +32,14 @@ jest.mock('../../app/core/Engine', () => {
       },
       AccountTreeController: {
         setAccountGroupName: jest.fn(),
+        setSelectedAccountGroup: jest.fn(),
+        getAccountsFromSelectedAccountGroup: jest.fn().mockReturnValue([
+          {
+            id: 'acc-1',
+            address: '0x0000000000000000000000000000000000000001',
+            type: 'eip155:eoa',
+          },
+        ]),
       },
       MultichainAccountService: {
         alignWallets: jest.fn().mockResolvedValue(undefined),
@@ -74,6 +82,11 @@ jest.mock('../../app/core/Engine', () => {
         stopPollingByPollingToken() {
           return undefined;
         },
+        getGasFeeEstimatesAndStartPolling: jest
+          .fn()
+          .mockResolvedValue('poll-token'),
+        stopPolling: jest.fn(),
+        disconnectPoller: jest.fn(),
       },
       PreferencesController: {
         state: {
@@ -82,6 +95,26 @@ jest.mock('../../app/core/Engine', () => {
         setTokenNetworkFilter() {
           return undefined;
         },
+        setPrivacyMode: jest.fn(),
+      },
+      CardController: {
+        fetchCardHomeData: jest.fn().mockResolvedValue(undefined),
+        logout: jest.fn().mockResolvedValue(undefined),
+        getCapabilities: jest.fn().mockReturnValue({
+          authMethod: 'otp',
+          supportsOTP: true,
+          supportsFundingApproval: true,
+          supportsFundingLimits: true,
+          fundingChains: ['eip155:59144'],
+          supportsFreeze: true,
+          supportsPushProvisioning: false,
+          onboarding: { requiresEmail: true },
+          supportsPinView: true,
+          supportsCashback: true,
+        }),
+      },
+      PhishingController: {
+        checkAddressPoisoning: jest.fn().mockReturnValue([]),
       },
       TokensController: {
         addTokens() {
@@ -213,6 +246,16 @@ jest.mock('../../app/core/Engine', () => {
       },
       RampsController: {
         setSelectedToken: jest.fn(),
+        setSelectedProvider: jest.fn(),
+        setSelectedPaymentMethod: jest.fn(),
+        setUserRegion: jest.fn().mockResolvedValue(null),
+        // Default stubs — tests override via `.mockReset().mockResolvedValue(...)`.
+        // Stable resolved values let useRampsProviders / useRampsPaymentMethods
+        // react-query layers run for real in component-view tests.
+        getProviders: jest.fn().mockResolvedValue({ providers: [] }),
+        getPaymentMethods: jest.fn().mockResolvedValue({ payments: [] }),
+        getQuotes: jest.fn().mockResolvedValue({ success: [], error: [] }),
+        getBuyWidgetData: jest.fn().mockResolvedValue(null),
       },
       AssetsContractController: {
         getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
@@ -225,12 +268,14 @@ jest.mock('../../app/core/Engine', () => {
         addTransaction: jest.fn().mockResolvedValue({}),
         getTransactions: jest.fn().mockReturnValue([]),
         updateEditableParams: jest.fn(),
+        updateIncomingTransactions: jest.fn().mockResolvedValue(undefined),
         getNonceLock: jest
           .fn()
           .mockResolvedValue({ nextNonce: 0, releaseLock: jest.fn() }),
       },
       NetworkController: {
-        state: { networksMetadata: {} },
+        state: { networksMetadata: {}, networkConfigurationsByChainId: {} },
+        addNetwork: jest.fn().mockResolvedValue(undefined),
         getProviderAndBlockTracker() {
           return {
             provider: {
@@ -249,7 +294,6 @@ jest.mock('../../app/core/Engine', () => {
         getNetworkConfigurationByNetworkClientId() {
           return null;
         },
-        // Is this a valid option?
         getNetworkClientById(id: string) {
           const twoEthHex = '0x1bc16d674ec80000';
           const hundredEthHex = '0x56BC75E2D63100000';
@@ -290,9 +334,21 @@ jest.mock('../../app/core/Engine', () => {
           markets: [],
           nextCursor: null,
         }),
-        searchMarkets: jest.fn().mockResolvedValue([]),
+        listMarkets: jest.fn().mockResolvedValue({
+          markets: [],
+          nextCursor: null,
+        }),
+        listFilterOptions: jest.fn().mockResolvedValue([]),
+        searchMarkets: jest
+          .fn()
+          .mockResolvedValue({ markets: [], totalResults: 0 }),
         getMarket: jest.fn().mockResolvedValue(null),
         getBalance: jest.fn().mockResolvedValue(0),
+        getAccountState: jest.fn().mockResolvedValue({
+          address: '0x0000000000000000000000000000000000000001',
+          walletType: 'metamask',
+        }),
+        getActivity: jest.fn().mockResolvedValue([]),
         getPositions: jest.fn().mockResolvedValue([]),
         getPrices: jest.fn().mockResolvedValue({ providerId: '', results: [] }),
         getMarketSeries: jest.fn().mockResolvedValue([]),
@@ -300,16 +356,29 @@ jest.mock('../../app/core/Engine', () => {
         getCryptoTargetPrice: jest.fn().mockResolvedValue(69000),
         subscribeToMarketPrices: jest.fn(() => () => undefined),
         subscribeToCryptoPrices: jest.fn(() => () => undefined),
-        getConnectionStatus: jest.fn(() => ({ marketConnected: false })),
+        subscribeToGameUpdates: jest.fn(() => () => undefined),
+        getConnectionStatus: jest.fn(() => ({
+          marketConnected: false,
+          sportsConnected: false,
+        })),
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
         trackBannerAction: jest.fn(),
         trackMarketDetailsOpened: jest.fn(),
         trackGeoBlockTriggered: jest.fn(),
+        trackActivityViewed: jest.fn(),
+        trackSearchInteracted: jest.fn(),
+        trackPortfolioPositionsButtonTapped: jest.fn(),
+        trackPortfolioTransactionInitiated: jest.fn(),
+        trackPositionsScreenViewed: jest.fn(),
+        trackPositionsTabViewed: jest.fn(),
         refreshEligibility: jest.fn().mockResolvedValue(undefined),
+        claimWithConfirmation: jest.fn().mockResolvedValue(undefined),
+        depositWithConfirmation: jest.fn().mockResolvedValue(undefined),
+        prepareWithdraw: jest.fn().mockResolvedValue(undefined),
       },
       // Perps: stub so hooks (usePerpsClosePosition, usePerpsMarkets, etc.) do not throw
-      // getMarkets returns one market so PerpsTabView explore section renders "See all perps"
+      // getMarkets returns one market so explore sections render "See all perps"
       PerpsController: {
         state: { isTestnet: false },
         init: jest.fn().mockResolvedValue({ success: true }),
@@ -337,6 +406,7 @@ jest.mock('../../app/core/Engine', () => {
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
+            openInterest: '$500K',
             szDecimals: 2,
           },
           {
@@ -347,6 +417,7 @@ jest.mock('../../app/core/Engine', () => {
             change24h: '$0',
             change24hPercent: '0%',
             volume: '$1M',
+            openInterest: '$500K',
           },
         ]),
         getOrders: jest.fn().mockResolvedValue([]),
@@ -430,6 +501,7 @@ jest.mock('../../app/core/Engine', () => {
     async lookupEnabledNetworks() {
       return undefined;
     },
+    setSelectedAddress: jest.fn(),
   };
   return { __esModule: true, default: engine };
 });

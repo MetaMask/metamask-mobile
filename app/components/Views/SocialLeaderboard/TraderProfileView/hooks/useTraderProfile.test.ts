@@ -32,6 +32,10 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('@metamask/react-data-query');
 
+jest.mock('@sentry/react-native', () => ({
+  addBreadcrumb: jest.fn(),
+}));
+
 const mockRefetch = jest.fn();
 const mockUseQuery = useQuery as jest.MockedFunction<typeof useQuery>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
@@ -52,7 +56,7 @@ const fixtureProfile = {
     profileId: 'trader-1',
     address: '0xabc',
     allAddresses: ['0xabc'],
-    name: 'dutchiono',
+    name: 'trader1',
     imageUrl: 'https://example.com/avatar.png',
   },
   stats: {
@@ -96,6 +100,14 @@ describe('useTraderProfile', () => {
 
       expect(mockUseQuery).toHaveBeenCalledWith(
         expect.objectContaining({ enabled: true }),
+      );
+    });
+
+    it('uses refetchOnMount always so cached prefetch data refreshes in the background', () => {
+      renderHook(() => useTraderProfile('trader-1'));
+
+      expect(mockUseQuery).toHaveBeenCalledWith(
+        expect.objectContaining({ refetchOnMount: 'always' }),
       );
     });
 
@@ -170,13 +182,24 @@ describe('useTraderProfile', () => {
       expect(result.current.error).toBeNull();
     });
 
-    it('logs errors when error is present', () => {
+    it('logs errors with feature:social tags when error is present', () => {
       const error = new Error('fetch failed');
       mockUseQuery.mockReturnValue(makeQueryResult({ error }));
       renderHook(() => useTraderProfile('trader-1'));
       expect(Logger.error).toHaveBeenCalledWith(
         error,
-        'useTraderProfile: profile fetch failed',
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'trader_profile',
+            operation: 'fetch_profile',
+            endpoint: 'trader_profile',
+          }),
+          extras: expect.objectContaining({
+            message: 'Trader profile fetch failed at useTraderProfile',
+            endpoint: 'trader_profile',
+          }),
+        }),
       );
     });
 
@@ -325,7 +348,14 @@ describe('useTraderProfile', () => {
 
       expect(Logger.error).toHaveBeenCalledWith(
         error,
-        'useTraderProfile: refresh failed',
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'trader_profile',
+            operation: 'refresh',
+            endpoint: 'trader_profile',
+          }),
+        }),
       );
     });
   });

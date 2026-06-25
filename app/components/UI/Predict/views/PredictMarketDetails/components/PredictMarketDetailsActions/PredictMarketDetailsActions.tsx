@@ -25,6 +25,7 @@ import {
   type PredictOutcomeToken,
 } from '../../../../types';
 import { formatCurrencyValue } from '../../../../utils/format';
+import { getDisplayBuyPrice } from '../../../../utils/prices';
 
 const LONG_OUTCOME_LABEL_THRESHOLD = 12;
 const TALL_ACTION_BUTTON_MIN_HEIGHT = 48;
@@ -64,7 +65,6 @@ export interface PredictMarketDetailsActionsProps {
   isMarketLoading: boolean;
   market: PredictMarket | null;
   openOutcomes: PredictOutcome[];
-  yesPercentage: number;
   onClaimPress: () => void;
   onBuyPress: (token: PredictOutcomeToken) => void;
   isClaimPending?: boolean;
@@ -80,7 +80,6 @@ const PredictMarketDetailsActions = memo(
     isMarketLoading,
     market,
     openOutcomes,
-    yesPercentage,
     onClaimPress,
     onBuyPress,
     isClaimPending = false,
@@ -144,6 +143,12 @@ const PredictMarketDetailsActions = memo(
           firstOpenOutcome?.tokens?.[1] ?? market?.outcomes?.[0]?.tokens?.[1];
         const yesTitle = yesToken?.title ?? '';
         const noTitle = noToken?.title ?? '';
+        // BUY CTAs show the best ask (what the user pays), matching the outcome
+        // cards and Polymarket; on wide-spread markets this differs from the mid.
+        const yesBuyCents = Math.round(
+          (getDisplayBuyPrice(yesToken) ?? 0) * 100,
+        );
+        const noBuyCents = Math.round((getDisplayBuyPrice(noToken) ?? 0) * 100);
         const useStackedLabels =
           shouldUseStackedActionButtonLabel(yesTitle) ||
           shouldUseStackedActionButtonLabel(noTitle);
@@ -151,12 +156,16 @@ const PredictMarketDetailsActions = memo(
           tw.style(
             showPayoutEstimate ? 'w-full' : 'flex-1',
             backgroundClassName,
+            { minHeight: TALL_ACTION_BUTTON_MIN_HEIGHT },
             useStackedLabels && {
               height: 'auto',
               minHeight: TALL_ACTION_BUTTON_MIN_HEIGHT,
               paddingVertical: 8,
             },
           );
+        const actionColumnStyle = {
+          minHeight: TALL_ACTION_BUTTON_MIN_HEIGHT,
+        };
         const renderPayoutEstimate = (
           token: PredictOutcomeToken | undefined,
           color: TextColor,
@@ -168,7 +177,7 @@ const PredictMarketDetailsActions = memo(
               color={color}
               twClassName="text-center"
             >
-              {formatPayoutEstimate(token?.price)}
+              {formatPayoutEstimate(getDisplayBuyPrice(token))}
             </Text>
           ) : null;
         return (
@@ -178,7 +187,7 @@ const PredictMarketDetailsActions = memo(
             alignItems={BoxAlignItems.Center}
             twClassName="w-full mt-4 gap-3"
           >
-            <Box twClassName="flex-1 gap-2">
+            <Box twClassName="flex-1 gap-2" style={actionColumnStyle}>
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
@@ -186,7 +195,7 @@ const PredictMarketDetailsActions = memo(
                 style={getActionButtonStyle('bg-success-muted')}
                 label={renderActionButtonLabel({
                   title: yesTitle,
-                  price: yesPercentage,
+                  price: yesBuyCents,
                   color: TextColor.SuccessDefault,
                   useStackedLabels,
                 })}
@@ -198,7 +207,7 @@ const PredictMarketDetailsActions = memo(
               />
               {renderPayoutEstimate(yesToken, TextColor.SuccessDefault)}
             </Box>
-            <Box twClassName="flex-1 gap-2">
+            <Box twClassName="flex-1 gap-2" style={actionColumnStyle}>
               <Button
                 variant={ButtonVariants.Secondary}
                 size={ButtonSize.Lg}
@@ -206,7 +215,7 @@ const PredictMarketDetailsActions = memo(
                 style={getActionButtonStyle('bg-error-muted')}
                 label={renderActionButtonLabel({
                   title: noTitle,
-                  price: 100 - yesPercentage,
+                  price: noBuyCents,
                   color: TextColor.ErrorDefault,
                   useStackedLabels,
                 })}

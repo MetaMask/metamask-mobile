@@ -1,12 +1,10 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQuery } from '@metamask/react-data-query';
 import type { FollowingResponse } from '@metamask/social-controllers';
-import Logger from '../../../../../util/Logger';
 import {
-  addSocialBreadcrumb,
-  buildSocialErrorExtras,
-  categoriseSocialError,
-  extractHttpStatus,
+  formatSocialQueryErrorMessage,
+  reportSocialServiceFailure,
+  useLogSocialQueryError,
 } from '../../../../../util/social/socialServiceTelemetry';
 
 export interface FollowedTrader {
@@ -14,6 +12,8 @@ export interface FollowedTrader {
   id: string;
   /** Display name or truncated address. */
   username: string;
+  /** Wallet address used for the Maskicon fallback. */
+  address: string;
   /** Profile avatar URL, if any. */
   avatarUri?: string;
 }
@@ -37,6 +37,8 @@ export interface UseFollowedTradersResult {
 
 const EMPTY_TRADERS: FollowedTrader[] = [];
 
+const FOLLOWED_TRADERS_SOURCE = 'useFollowedTraders';
+
 /**
  * Fetches the list of traders the current user follows, with their
  * full profile summary (name + avatar).
@@ -58,6 +60,14 @@ export const useFollowedTraders = (
     enabled,
   });
 
+  useLogSocialQueryError(error, {
+    surface: 'followed_traders',
+    operation: 'fetch_following',
+    extraMessage: 'Followed traders fetch failed',
+    source: FOLLOWED_TRADERS_SOURCE,
+    endpoint: 'following',
+  });
+
   const traders = useMemo<FollowedTrader[]>(() => {
     if (!data?.following) {
       return EMPTY_TRADERS;
@@ -65,6 +75,7 @@ export const useFollowedTraders = (
     return data.following.map((profile) => ({
       id: profile.profileId,
       username: profile.name,
+      address: profile.address,
       avatarUri: profile.imageUrl ?? undefined,
     }));
   }, [data]);
@@ -73,41 +84,25 @@ export const useFollowedTraders = (
     try {
       await refetch();
     } catch (err) {
-      Logger.error(
-        err as Error,
-        buildSocialErrorExtras({
-          legacyMessage: 'useFollowedTraders: refresh failed',
+      reportSocialServiceFailure(
+        err,
+        {
+          surface: 'followed_traders',
+          operation: 'refresh',
+          extraMessage: 'Followed traders refresh failed',
+          source: FOLLOWED_TRADERS_SOURCE,
           endpoint: 'following',
-          error: err,
-        }),
+        },
+        { breadcrumb: false },
       );
       throw err;
     }
   }, [refetch]);
 
-  useEffect(() => {
-    if (error) {
-      Logger.error(
-        error as Error,
-        buildSocialErrorExtras({
-          legacyMessage: 'useFollowedTraders: following fetch failed',
-          endpoint: 'following',
-          error,
-        }),
-      );
-      addSocialBreadcrumb({
-        endpoint: 'following',
-        errorCategory: categoriseSocialError(error),
-        httpStatus: extractHttpStatus(error),
-      });
-    }
-  }, [error]);
-
   return {
     traders,
     isLoading: enabled && isLoading,
-    error:
-      error instanceof Error ? error.message : error ? String(error) : null,
+    error: formatSocialQueryErrorMessage(error),
     refresh,
   };
 };

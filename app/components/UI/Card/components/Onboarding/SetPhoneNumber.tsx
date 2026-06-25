@@ -322,6 +322,7 @@ const SetPhoneNumber = () => {
       formFields={renderFormFields()}
       actions={renderActions()}
       stickyActions
+      headerMode="close-with-confirmation"
     />
   );
 };

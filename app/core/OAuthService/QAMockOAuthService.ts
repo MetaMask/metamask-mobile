@@ -9,7 +9,6 @@ import {
   OAuthLoginResultType,
   type AuthResponse,
   type HandleOAuthLoginResult,
-  type OAuthUserInfo,
 } from './OAuthInterface';
 
 export interface QAMockTokenExchangeResult {
@@ -55,11 +54,9 @@ export class QAMockOAuthService {
     const rawResponse: unknown = await response.json();
     const data = QAMockOAuthService.parseAuthServiceResponse(rawResponse);
 
-    const jwtPayload = JSON.parse(
-      loginHandler.decodeIdToken(data.id_token),
-    ) as Partial<OAuthUserInfo>;
-    const userId = jwtPayload.sub ?? `e2e-user-${e2eEmail}`;
-    const accountName = jwtPayload.email ?? e2eEmail;
+    const userInfo = loginHandler.getUserInfo(data);
+    const userId = userInfo.userId || `e2e-user-${e2eEmail}`;
+    const accountName = userInfo.accountName || e2eEmail;
 
     return { data, userId, accountName };
   }

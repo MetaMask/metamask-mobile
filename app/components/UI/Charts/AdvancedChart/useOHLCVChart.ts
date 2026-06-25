@@ -74,7 +74,19 @@ async function fetchOHLCV(
     url.searchParams.set('vsCurrency', params.vsCurrency);
   }
 
-  const response = await fetch(url.toString(), { signal });
+  // Add 3 second timeout to prevent infinite hang
+  const FETCH_TIMEOUT_MS = 3000;
+  const timeoutPromise = new Promise<never>((_, reject) => {
+    setTimeout(
+      () => reject(new Error('OHLCV fetch timeout')),
+      FETCH_TIMEOUT_MS,
+    );
+  });
+
+  const response = await Promise.race([
+    fetch(url.toString(), { signal }),
+    timeoutPromise,
+  ]);
 
   if (!response.ok) {
     throw new Error(`OHLCV API error: ${response.status}`);

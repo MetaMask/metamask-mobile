@@ -12,20 +12,8 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import {
-  InteractionManager,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  useWindowDimensions,
-} from 'react-native';
+import React, { memo, useCallback, useMemo } from 'react';
+import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -42,6 +30,7 @@ import PredictSportScoreboard from '../PredictSportScoreboard';
 import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
 import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
 import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
@@ -49,7 +38,9 @@ import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsConte
 
 const CHIPS_STICKY_INDEX = 2;
 
-const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
+const PredictGameDetailsContentComponent: React.FC<
+  PredictGameDetailsContentProps
+> = ({
   market,
   onBack,
   onRefresh,
@@ -68,13 +59,13 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     usePredictBottomSheet();
 
   const sheetHandlers = useMemo(() => getRefHandlers(), [getRefHandlers]);
+  const { game } = usePredictGame(market, { live: true });
 
   const handleInfoPress = useCallback(() => {
     sheetHandlers.onOpenBottomSheet();
   }, [sheetHandlers]);
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
-  const game = market.game;
 
   const { data: activePositions = [] } = usePredictPositions({
     marketId: market.id,
@@ -96,6 +87,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     handleTabPress,
     chips,
     groupMap,
+    resolvedOutcomeGroups,
     activeChipKey,
     handleChipSelect,
     showChips,
@@ -106,46 +98,11 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     outcomeGroups: market.outcomeGroups ?? [],
   });
 
-  const { height: windowHeight } = useWindowDimensions();
-  const scrollRef = useRef<ScrollView>(null);
-  const [stickyHeaderY, setStickyHeaderY] = useState(0);
-  const pendingChipScroll = useRef(false);
-
-  const handleStickyHeaderLayout = useCallback(
-    (e: { nativeEvent: { layout: { y: number } } }) => {
-      setStickyHeaderY(e.nativeEvent.layout.y);
-    },
-    [],
-  );
-
-  const onChipSelect = useCallback(
-    (key: string) => {
-      scrollRef.current?.scrollTo({
-        y: stickyHeaderY,
-        animated: false,
-      });
-      handleChipSelect(key);
-      pendingChipScroll.current = true;
-    },
-    [handleChipSelect, stickyHeaderY],
-  );
-
-  // Guard: only scroll after an explicit chip selection (pendingChipScroll is
-  // set to true in onChipSelect). This prevents scrolling on initial render
-  // or when stickyHeaderY updates from layout measurements.
-  useEffect(() => {
-    if (!pendingChipScroll.current) return;
-    pendingChipScroll.current = false;
-    const handle = InteractionManager.runAfterInteractions(() => {
-      scrollRef.current?.scrollTo({
-        y: stickyHeaderY,
-        animated: false,
-      });
-    });
-    return () => handle.cancel();
-  }, [activeChipKey, stickyHeaderY]);
-
+  const resolvedGroups = resolvedOutcomeGroups ?? [];
   const showStickyHeader = showTabBar || showChips;
+  const hasOpenExtendedOutcomes = tabsEnabled && groupMap.size > 0;
+  const showFooter =
+    !hasOpenExtendedOutcomes || (claimableAmount > 0 && Boolean(onClaimPress));
   const stickyHeaderIndices = useMemo(
     () => (showStickyHeader ? [CHIPS_STICKY_INDEX] : undefined),
     [showStickyHeader],
@@ -173,6 +130,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
           accessibilityLabel={strings('predict.buttons.back')}
+          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
         >
           <Icon
             name={IconName.ArrowLeft}
@@ -196,7 +154,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
       </Box>
 
       <ScrollView
-        ref={scrollRef}
+        testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.SCROLL_VIEW}
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-4')}
         stickyHeaderIndices={stickyHeaderIndices}
@@ -224,7 +182,7 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
         </Box>
 
         {showStickyHeader && (
-          <Box twClassName="bg-default" onLayout={handleStickyHeaderLayout}>
+          <Box twClassName="bg-default">
             {showTabBar && (
               <PredictMarketDetailsTabBar
                 tabs={tabs}
@@ -236,37 +194,39 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
               <PredictChipList
                 chips={chips}
                 activeChipKey={activeChipKey}
-                onChipSelect={onChipSelect}
+                onChipSelect={handleChipSelect}
               />
             )}
           </Box>
         )}
 
-        <Box style={{ minHeight: windowHeight - stickyHeaderY }}>
-          <PredictGameDetailsTabsContent
-            market={market}
-            activeTab={activeTab}
-            tabs={tabs}
-            enabled={tabsEnabled}
-            showTabBar={showTabBar}
-            activePositions={activePositions}
-            claimablePositions={claimablePositions}
-            groupMap={groupMap}
-            activeChipKey={activeChipKey}
-          />
-        </Box>
+        <PredictGameDetailsTabsContent
+          market={market}
+          activeTab={activeTab}
+          tabs={tabs}
+          enabled={tabsEnabled}
+          showTabBar={showTabBar}
+          activePositions={activePositions}
+          claimablePositions={claimablePositions}
+          groupMap={groupMap}
+          resolvedOutcomeGroups={resolvedGroups}
+          activeChipKey={activeChipKey}
+          onBetPress={onBetPress}
+        />
       </ScrollView>
 
-      <PredictGameDetailsFooter
-        market={market}
-        outcome={outcome}
-        onBetPress={onBetPress}
-        onClaimPress={onClaimPress}
-        onInfoPress={handleInfoPress}
-        claimableAmount={claimableAmount}
-        isLoading={isLoading}
-        isClaimPending={isClaimPending}
-      />
+      {showFooter && (
+        <PredictGameDetailsFooter
+          market={market}
+          outcome={outcome}
+          onBetPress={onBetPress}
+          onClaimPress={onClaimPress}
+          onInfoPress={handleInfoPress}
+          claimableAmount={claimableAmount}
+          isLoading={isLoading}
+          isClaimPending={isClaimPending}
+        />
+      )}
 
       {isVisible && (
         <PredictGameAboutSheet
@@ -278,5 +238,11 @@ const PredictGameDetailsContent: React.FC<PredictGameDetailsContentProps> = ({
     </SafeAreaView>
   );
 };
+
+// Memoized so a parent (PredictMarketDetails) re-render driven by its own live
+// subscriptions does not re-render this entire subtree when our props are
+// unchanged. The screen's live odds updates are driven by this component's own
+// hooks instead.
+const PredictGameDetailsContent = memo(PredictGameDetailsContentComponent);
 
 export default PredictGameDetailsContent;

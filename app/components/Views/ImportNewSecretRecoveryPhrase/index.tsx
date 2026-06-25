@@ -7,7 +7,7 @@ import React, {
   useRef,
 } from 'react';
 import { Alert, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
@@ -26,6 +26,7 @@ import {
   ButtonIcon,
   ButtonSize,
   ButtonVariant,
+  HeaderStandard,
   IconName,
   IconColor,
   Text,
@@ -35,7 +36,6 @@ import {
 import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
-import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
 import {
   ToastContext,
@@ -48,6 +48,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Logger from '../../../util/Logger';
 import { v4 as uuidv4 } from 'uuid';
@@ -68,6 +69,11 @@ import {
 const ImportNewSecretRecoveryPhrase = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
+  const insets = useSafeAreaInsets();
+  const footerStyle = useMemo(
+    () => tw.style('px-4 py-4 bg-default', { marginBottom: insets.bottom }),
+    [insets, tw],
+  );
   const { toastRef } = useContext(ToastContext);
   const srpInputGridRef = useRef<SrpInputGridRef>(null);
 
@@ -237,11 +243,8 @@ const ImportNewSecretRecoveryPhrase = () => {
   };
 
   const content = (
-    <SafeAreaView
-      edges={{ bottom: 'additive' }}
-      style={tw.style('flex-1 bg-default')}
-    >
-      <HeaderCompactStandard
+    <Box twClassName="flex-1 bg-default">
+      <HeaderStandard
         includesTopInset
         backButtonProps={{
           onPress: dismiss,
@@ -310,7 +313,7 @@ const ImportNewSecretRecoveryPhrase = () => {
           />
         </Box>
       </KeyboardAwareScrollView>
-      <Box twClassName="px-4 py-4 bg-default">
+      <Box style={footerStyle}>
         <Button
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
@@ -337,7 +340,7 @@ const ImportNewSecretRecoveryPhrase = () => {
         </KeyboardStickyView>
       )}
       <ScreenshotDeterrent enabled isSRP />
-    </SafeAreaView>
+    </Box>
   );
 
   return <KeyboardProvider>{content}</KeyboardProvider>;

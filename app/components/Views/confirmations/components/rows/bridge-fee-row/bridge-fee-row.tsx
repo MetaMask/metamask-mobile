@@ -15,7 +15,6 @@ import {
   FlexDirection,
   JustifyContent,
 } from '../../../../../UI/Box/box.types';
-import { hasTransactionType } from '../../../utils/transaction';
 import {
   TransactionPayQuote,
   TransactionPayTotals,
@@ -23,6 +22,7 @@ import {
 import {
   useIsTransactionPayLoading,
   useTransactionPayQuotes,
+  useTransactionPaySourceAmounts,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
@@ -40,12 +40,14 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
+import { resolveTransactionType } from '../../../utils/transaction';
 
 export function BridgeFeeRow() {
   const transactionMetadata = useTransactionMetadataOrThrow();
   const isLoading = useIsTransactionPayLoading();
   const quotes = useTransactionPayQuotes();
   const totals = useTransactionPayTotals();
+  const sourceAmounts = useTransactionPaySourceAmounts();
   const paidByMetaMask = useIsPaidByMetaMask();
   const { fieldAlerts } = useAlerts();
   const hasAlert = fieldAlerts.some((a) => a.field === RowAlertKey.PayWithFee);
@@ -56,6 +58,7 @@ export function BridgeFeeRow() {
       totals={totals}
       quotes={quotes}
       transactionMeta={transactionMetadata}
+      hasSourceAmounts={Boolean(sourceAmounts?.length)}
       hasAlert={hasAlert}
       isLoading={isLoading}
       paidByMetaMask={paidByMetaMask}
@@ -68,6 +71,7 @@ export function BridgeFeeRow() {
 function TransactionFeeRow({
   transactionMeta,
   hasAlert,
+  hasSourceAmounts,
   quotes,
   totals,
   isLoading,
@@ -77,6 +81,7 @@ function TransactionFeeRow({
 }: {
   transactionMeta: TransactionMeta;
   hasAlert: boolean;
+  hasSourceAmounts: boolean;
   quotes?: TransactionPayQuote<Json>[];
   totals?: TransactionPayTotals;
   isLoading: boolean;
@@ -89,6 +94,10 @@ function TransactionFeeRow({
   const hasQuotes = Boolean(quotes?.length);
 
   const feeTotalUsd = useMemo(() => {
+    if (transactionMeta?.isGasFeeSponsored && !hasSourceAmounts) {
+      return formatFiat(new BigNumber(0));
+    }
+
     if (!totals?.fees) return '';
 
     const metaMask = totals.fees.metaMask.usd ?? 0;
@@ -102,7 +111,12 @@ function TransactionFeeRow({
         .plus(sourceNetwork)
         .plus(targetNetwork),
     );
-  }, [totals, formatFiat]);
+  }, [
+    totals,
+    formatFiat,
+    transactionMeta?.isGasFeeSponsored,
+    hasSourceAmounts,
+  ]);
 
   if (isLoading) return <InfoRowSkeleton testId="bridge-fee-row-skeleton" />;
 
@@ -177,6 +191,23 @@ function getNetworkFeeUsdBN({
   return new BigNumber(sourceNetworkUsd).plus(targetNetworkUsd);
 }
 
+const TOOLTIP_MESSAGE_KEY: Partial<Record<TransactionType, string>> = {
+  [TransactionType.perpsWithdraw]:
+    'confirm.tooltip.perps_withdraw.transaction_fee',
+  [TransactionType.predictWithdraw]:
+    'confirm.tooltip.predict_withdraw.transaction_fee',
+  [TransactionType.predictDeposit]:
+    'confirm.tooltip.predict_deposit.transaction_fee',
+  [TransactionType.musdConversion]:
+    'confirm.tooltip.musd_conversion.transaction_fee',
+  [TransactionType.moneyAccountWithdraw]:
+    'confirm.tooltip.money_account_withdraw.transaction_fee',
+  [TransactionType.moneyAccountDeposit]:
+    'confirm.tooltip.money_account_deposit.transaction_fee',
+  [TransactionType.perpsDeposit]:
+    'confirm.tooltip.perps_deposit.transaction_fee',
+};
+
 function Tooltip({
   transactionMeta,
   totals,
@@ -184,45 +215,19 @@ function Tooltip({
   transactionMeta: TransactionMeta;
   totals: TransactionPayTotals;
 }): ReactNode {
-  let message: string | undefined;
+  const transactionType = resolveTransactionType(
+    transactionMeta,
+    Object.keys(TOOLTIP_MESSAGE_KEY) as TransactionType[],
+  );
 
-  if (
-    hasTransactionType(transactionMeta, [
-      TransactionType.predictDeposit,
-      TransactionType.predictWithdraw,
-      TransactionType.perpsWithdraw,
-    ])
-  ) {
-    if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
-      message = strings('confirm.tooltip.perps_withdraw.transaction_fee');
-    } else if (
-      hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
-    ) {
-      message = strings('confirm.tooltip.predict_withdraw.transaction_fee');
-    } else {
-      message = strings('confirm.tooltip.predict_deposit.transaction_fee');
-    }
-  }
+  const key =
+    transactionType !== undefined
+      ? TOOLTIP_MESSAGE_KEY[transactionType]
+      : undefined;
 
-  if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {
-    message = strings('confirm.tooltip.musd_conversion.transaction_fee');
-  }
+  if (!key) return null;
 
-  if (
-    hasTransactionType(transactionMeta, [TransactionType.moneyAccountWithdraw])
-  ) {
-    message = strings('confirm.tooltip.money_account_withdraw.transaction_fee');
-  }
-
-  switch (transactionMeta.type) {
-    case TransactionType.perpsDeposit:
-      message = strings('confirm.tooltip.perps_deposit.transaction_fee');
-      break;
-  }
-
-  if (!message) return null;
-
-  return <FeesTooltip message={message} totals={totals} />;
+  return <FeesTooltip message={strings(key)} totals={totals} />;
 }
 
 function FeesTooltip({

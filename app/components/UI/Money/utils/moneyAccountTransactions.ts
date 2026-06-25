@@ -23,7 +23,7 @@ const LENS_ABI = [
   'function previewDeposit(address depositAsset, uint256 depositAmount, address boringVault, address accountant) view returns (uint256 shares)',
 ];
 
-const TELLER_ABI = [
+export const TELLER_ABI = [
   'function deposit(address depositAsset, uint256 depositAmount, uint256 minimumMint, address referralAddress) payable returns (uint256 shares)',
   'function withdraw(address withdrawAsset, uint256 shareAmount, uint256 minimumAssets, address to) returns (uint256 assetsOut)',
 ];
@@ -263,11 +263,12 @@ export async function updateMoneyAccountDepositTokenAmount(
 export async function updateMoneyAccountWithdrawTokenAmount(
   transactionMeta: TransactionMeta,
   amountHuman: string,
+  recipientOverride?: Hex,
 ): Promise<UpdateTransactionPayAmountCall[]> {
   const state = ReduxService.store.getState() as RootState;
   const vaultConfig = selectMoneyAccountVaultConfig(state);
   const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
-  const recipient = selectEvmAddress(state);
+  const recipient = recipientOverride ?? selectEvmAddress(state);
   if (!vaultConfig || !primaryMoneyAccount?.address || !recipient) return [];
 
   const chainIdHex = transactionMeta.chainId as Hex;
@@ -296,6 +297,86 @@ export async function updateMoneyAccountWithdrawTokenAmount(
   ];
 }
 
+/**
+ * Returns the approve + deposit transaction params for a Money Account deposit.
+ *
+ * @param chainId - Chain ID in hex
+ * @param amountHuman - Human-readable deposit amount (e.g. "10.5")
+ * @returns `[approveTx.params, depositTx.params]`, or `[]` if vault config or provider is unavailable
+ */
+export async function getMoneyAccountDepositTransactionsData(
+  chainId: Hex,
+  amountHuman: string,
+): Promise<MoneyAccountTxParams['params'][]> {
+  const vaultConfig = selectMoneyAccountVaultConfig(
+    ReduxService.store.getState() as RootState,
+  );
+  if (!vaultConfig) return [];
+
+  const provider = getProviderByChainId(chainId);
+  if (!provider) return [];
+
+  const amount = BigInt(
+    calcTokenValue(amountHuman, MUSD_DECIMALS)
+      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .toFixed(0),
+  );
+
+  const { approveTx, depositTx } = await buildMoneyAccountDepositBatch({
+    amount,
+    chainId,
+    boringVault: vaultConfig.boringVault,
+    tellerAddress: vaultConfig.tellerAddress,
+    accountantAddress: vaultConfig.accountantAddress,
+    lensAddress: vaultConfig.lensAddress,
+    provider,
+  });
+
+  return [approveTx.params, depositTx.params];
+}
+
+/**
+ * Returns encoded calldata for the withdraw + transfer batch of a Money Account withdrawal.
+ *
+ * @param chainId - Chain ID in hex
+ * @param amountHuman - Human-readable withdrawal amount (e.g. "10.5")
+ * @param recipientOverride - Optional EVM address to receive the withdrawn USDC.
+ * When omitted, defaults to the currently selected EVM account.
+ * @returns `[withdrawTx.params, transferTx.params]`, or `[]` if vault config or provider is unavailable
+ */
+export async function getMoneyAccountWithdrawTransactionsData(
+  chainId: Hex,
+  amountHuman: string,
+  recipientOverride?: Hex,
+): Promise<MoneyAccountTxParams['params'][]> {
+  const state = ReduxService.store.getState() as RootState;
+  const vaultConfig = selectMoneyAccountVaultConfig(state);
+  const primaryMoneyAccount = selectPrimaryMoneyAccount(state);
+  const recipient = recipientOverride ?? selectEvmAddress(state);
+  if (!vaultConfig || !primaryMoneyAccount?.address) return [];
+
+  const provider = getProviderByChainId(chainId);
+  if (!provider) return [];
+
+  const amount = BigInt(
+    calcTokenValue(amountHuman, MUSD_DECIMALS)
+      .decimalPlaces(0, BigNumber.ROUND_UP)
+      .toFixed(0),
+  );
+
+  const { withdrawTx, transferTx } = await buildMoneyAccountWithdrawBatch({
+    amount,
+    chainId,
+    tellerAddress: vaultConfig.tellerAddress as Hex,
+    accountantAddress: vaultConfig.accountantAddress as Hex,
+    moneyAccountAddress: primaryMoneyAccount.address as Hex,
+    recipient: recipient as Hex,
+    provider,
+  });
+
+  return [withdrawTx.params, transferTx.params];
+}
+
 // -- Withdrawal helpers ----------------------------------------------------
 
 async function getVaultRate({
@@ -319,9 +400,14 @@ const SHARE_DECIMALS_SCALAR = BigInt(1_000_000);
 /**
  * Converts a USD asset amount (6 decimals) to vault shares given a pre-fetched rate.
  * Pure arithmetic — no I/O, safe to call directly inside workflows.
+ *
+ * Uses ceiling division so the contract's `mulDivDown(shares × rate / ONE_SHARE)`
+ * always produces `assetsOut >= minimumAssets`. Floor division caused a double-
+ * truncation bug where `assetsOut` could land 1 unit below `minimumAssets`,
+ * reverting with `MinimumAssetsNotMet`.
  */
 export function getSharesForWithdrawal(amount: bigint, rate: bigint): bigint {
-  return (amount * SHARE_DECIMALS_SCALAR) / rate;
+  return (amount * SHARE_DECIMALS_SCALAR + rate - 1n) / rate;
 }
 
 function buildWithdrawData(
@@ -383,11 +469,16 @@ export async function buildMoneyAccountWithdrawBatch({
           amount,
           await getVaultRate({ accountantAddress, provider }),
         );
-  // No slippage on minimumAssets — the exact amount is needed for the
-  // subsequent transfer. If the rate moves down between encoding and
-  // execution, the batch reverts atomically and the user retries with a
-  // fresh quote; we accept that over partial-fill fragility.
-  const minimumAssets = amount;
+  // Allow 1-unit slippage on minimumAssets as defense-in-depth against
+  // rounding: the contract's mulDivDown can truncate assetsOut by up to
+  // 1 unit relative to the requested amount. This tolerance is safe
+  // because ceiling division in getSharesForWithdrawal already guarantees
+  // assetsOut >= amount; the 1-unit slack here is a second line of
+  // defense, not a standalone fix. The subsequent ERC-20 transfer uses
+  // the original `amount`, so the tolerance does not affect how much the
+  // user receives — it only prevents a spurious revert from the teller's
+  // MinimumAssetsNotMet check.
+  const minimumAssets = amount > 0n ? amount - 1n : 0n;
   const withdrawData = buildWithdrawData(
     musdAddress,
     shareAmount,

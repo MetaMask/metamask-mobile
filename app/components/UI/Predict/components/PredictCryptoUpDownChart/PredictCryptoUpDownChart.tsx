@@ -1,25 +1,51 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import { Box } from '@metamask/design-system-react-native';
+import React, { useEffect, useState } from 'react';
+import { PixelRatio } from 'react-native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { strings } from '../../../../../../locales/i18n';
 import { LivelineChart } from '../../../Charts/LivelineChart';
 import { useCryptoUpDownChartData } from '../../hooks/useCryptoUpDownChartData';
-import { usePredictOrderbook } from '../../hooks/usePredictOrderbook';
 import type { PredictCryptoUpDownChartProps } from './PredictCryptoUpDownChart.types';
 
+const MIN_BOTTOM_PADDING_PX = 64;
+const BOTTOM_PADDING_HEIGHT_RATIO = 0.15;
+const BOTTOM_PADDING_FONT_SCALE_BOOST_PX = 24;
+
+export const computeBottomPadding = (
+  chartHeight: number,
+  fontScale: number,
+): number =>
+  Math.max(
+    MIN_BOTTOM_PADDING_PX,
+    Math.round(
+      chartHeight * BOTTOM_PADDING_HEIGHT_RATIO +
+        Math.max(0, fontScale - 1) * BOTTOM_PADDING_FONT_SCALE_BOOST_PX,
+    ),
+  );
+
 /**
- * USD currency formatter body for `LivelineChart` axis/tooltip values, e.g.
- * `1234567.89` → `"$1,234,567.89"`. Keeps two decimals to match the CTA
- * price display on the details and feed cards (see PR #30342). Serialised
- * as a JS function body string because functions cannot cross the RN ↔
- * WebView JSON bridge — the WebView reconstructs it via
+ * USD whole-dollar formatter body for `LivelineChart` axis/tooltip values,
+ * e.g. `1234567.89` -> `"$1,234,568"`. Serialised as a JS function body
+ * string because functions cannot cross the RN <-> WebView JSON bridge; the
+ * WebView reconstructs it via
  * `new Function('v', CRYPTO_UP_DOWN_FORMAT_VALUE)`. Exact output is locked
  * by a regression test in `PredictCryptoUpDownChart.test.tsx` since drift
  * only surfaces on device.
  */
 export const CRYPTO_UP_DOWN_FORMAT_VALUE =
   "const sign = v < 0 ? '-' : ''; " +
-  "const parts = Math.abs(v).toFixed(2).split('.'); " +
-  "parts[0] = parts[0].replace(/\\B(?=(\\d{3})+(?!\\d))/g, ','); " +
-  "return sign + '$' + parts.join('.')";
+  'const whole = String(Math.round(Math.abs(v))); ' +
+  "return sign + '$' + whole.replace(/\\B(?=(\\d{3})+(?!\\d))/g, ',')";
 
 /**
  * 12-hour `h:mm:ss` time formatter body for `LivelineChart` time-axis
@@ -46,33 +72,21 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
     data,
     value,
     loading,
+    connectionError,
     window: chartWindow,
   } = useCryptoUpDownChartData(market, targetPrice);
 
-  const outcomeTokenId = market.outcomes?.[0]?.tokens?.[0]?.id;
-  const { orderbook } = usePredictOrderbook(outcomeTokenId);
-
   const chartHeight = explicitHeight ?? measuredHeight;
-
-  // Override liveline's momentum so the price badge (and direction arrows) color
-  // by target comparison instead of recent-tick momentum.
-  const directionMomentum = useMemo<'up' | 'down' | undefined>(() => {
-    if (
-      loading ||
-      typeof targetPrice !== 'number' ||
-      typeof value !== 'number' ||
-      value <= 0
-    ) {
-      return undefined;
-    }
-    return value >= targetPrice ? 'up' : 'down';
-  }, [loading, targetPrice, value]);
+  const bottomPadding = computeBottomPadding(
+    chartHeight,
+    PixelRatio.getFontScale(),
+  );
 
   useEffect(() => {
-    if (!loading && data.length > 0 && Number.isFinite(value)) {
+    if (data.length > 0 && Number.isFinite(value)) {
       onCurrentPriceChange?.(value);
     }
-  }, [data.length, loading, onCurrentPriceChange, value]);
+  }, [data.length, onCurrentPriceChange, value]);
 
   return (
     <Box
@@ -84,32 +98,62 @@ const PredictCryptoUpDownChart: React.FC<PredictCryptoUpDownChartProps> = ({
       }
       testID="predict-crypto-up-down-chart-container"
     >
-      {chartHeight > 0 && (
-        <LivelineChart
-          data={data}
-          value={value}
-          loading={loading}
-          window={chartWindow}
-          height={chartHeight}
-          color={color}
-          lineWidth={2}
-          grid
-          hideControls
-          badge
-          momentum={directionMomentum ?? true}
-          padding={{ top: 8, bottom: 48 }}
-          referenceLine={
-            targetPrice ? { value: targetPrice, label: 'Target' } : undefined
-          }
-          // Coalesce null → undefined so JSON.stringify in the WebView
-          // bridge omits the key entirely when there is no book yet. null
-          // would otherwise serialize and clobber any prior orderbook in
-          // the WebView.
-          orderbook={orderbook ?? undefined}
-          formatValue={CRYPTO_UP_DOWN_FORMAT_VALUE}
-          formatTime={CRYPTO_UP_DOWN_FORMAT_TIME}
-        />
-      )}
+      {chartHeight > 0 &&
+        (connectionError ? (
+          /*
+           * Connection-error state for an upstream data outage. Sized to the
+           * exact chart height and centered so it occupies the same space as
+           * the chart. This only swaps the view — `useCryptoUpDownChartData`
+           * (above) keeps the live subscription and history polling active
+           * underneath, so the chart re-renders automatically as soon as data
+           * flows again. Do not gate the hook on this.
+           */
+          <Box
+            style={{ height: chartHeight }}
+            twClassName="px-8 gap-2"
+            alignItems={BoxAlignItems.Center}
+            justifyContent={BoxJustifyContent.Center}
+            testID="predict-crypto-up-down-chart-connection-error"
+          >
+            <Icon
+              name={IconName.WifiOff}
+              size={IconSize.Xl}
+              color={IconColor.IconMuted}
+            />
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
+              twClassName="text-center"
+            >
+              {strings('predict.error.chart_connection_error')}
+            </Text>
+          </Box>
+        ) : (
+          <LivelineChart
+            data={data}
+            value={value}
+            loading={loading}
+            window={chartWindow}
+            height={chartHeight}
+            color={color}
+            lineWidth={2}
+            grid
+            hideControls
+            badge={false}
+            momentum={false}
+            padding={{ top: 8, right: 64, bottom: bottomPadding }}
+            referenceLine={
+              targetPrice ? { value: targetPrice, label: 'Target' } : undefined
+            }
+            /*
+             * TODO: Re-enable orderbook once Liveline supports one-shot updates
+             * instead of resampling a persistent book.
+             * orderbook={orderbook ?? undefined}
+             */
+            formatValue={CRYPTO_UP_DOWN_FORMAT_VALUE}
+            formatTime={CRYPTO_UP_DOWN_FORMAT_TIME}
+          />
+        ))}
     </Box>
   );
 };

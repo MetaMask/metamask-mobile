@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import {
+  BottomSheet,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -8,12 +9,11 @@ import {
   ButtonIcon,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
   IconColor,
   IconName,
   Text,
   TextVariant,
-  FontWeight,
-  BottomSheet,
 } from '@metamask/design-system-react-native';
 import { type CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { useOptInToCampaign } from '../../hooks/useOptInToCampaign';
@@ -25,6 +25,7 @@ import ContentfulRichText, {
 } from '../ContentfulRichText/ContentfulRichText';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 interface CampaignOptInSheetProps {
   campaign: CampaignDto;
@@ -43,6 +44,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { optInToCampaign, isOptingIn, optInError } = useOptInToCampaign();
   const { showToast, RewardsToastOptions } = useRewardsToast();
+  const surfaceClass = useElevatedSurface();
 
   const handleOptIn = useCallback(async () => {
     try {
@@ -76,7 +78,7 @@ const CampaignOptInSheet: React.FC<CampaignOptInSheetProps> = ({
   ]);
 
   return (
-    <BottomSheet onClose={onClose}>
+    <BottomSheet onClose={onClose} twClassName={surfaceClass}>
       <Box twClassName="px-4 pb-4">
         {/* Header: centered title + close button */}
         <Box

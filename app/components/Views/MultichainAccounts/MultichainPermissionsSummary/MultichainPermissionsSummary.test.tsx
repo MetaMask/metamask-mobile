@@ -8,11 +8,12 @@ import renderWithProvider, {
   DeepPartial,
 } from '../../../../util/test/renderWithProvider';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
-import { NetworkAvatarProps } from '../../AccountConnect/AccountConnect.types';
+import { NetworkAvatarProps } from '../../MultichainAccounts/shared/AccountConnect.types';
 import { RootState } from '../../../../reducers';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
-import { ConnectedAccountsSelectorsIDs } from '../../AccountConnect/ConnectedAccountModal.testIds';
-import { PermissionSummaryBottomSheetSelectorsIDs } from '../../AccountConnect/PermissionSummaryBottomSheet.testIds';
+import { ConnectedAccountsSelectorsIDs } from '../../MultichainAccounts/shared/ConnectedAccountModal.testIds';
+import { PermissionSummaryBottomSheetSelectorsIDs } from '../../MultichainAccounts/shared/PermissionSummaryBottomSheet.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NetworkNonPemittedBottomSheetSelectorsIDs } from '../../NetworkConnect/NetworkNonPemittedBottomSheet.testIds';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => {

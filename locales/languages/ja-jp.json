@@ -132,7 +132,7 @@
     "reset_wallet": "ウォレットのリセット",
     "cant_proceed": "「削除」という文字を入力しないと前に進めません。この操作により現在のウォレットの消去を選択します。",
     "invalid_password": "無効なパスワード",
-    "type_delete": "「%{delete}」を入慮することで現在のウォレットを完全に削除します",
+    "type_delete": "「{{delete}}」を入慮することで現在のウォレットを完全に削除します",
     "delete_my": "自分のウォレットを削除する",
     "are_you_sure": "あなたのウォレットを削除しますか?",
     "your_current_wallet": "続行すると、現在のアカウントと資産は",
@@ -501,13 +501,13 @@
     "security_heading": "セキュリティ",
     "privacy_heading": "プライバシー",
     "failed_to_fetch_chain_id": "チェーン ID を取り込むことができませんでした。お使いの RPC URL は正しいですか?",
-    "endpoint_returned_different_chain_id": "エンドポイントが別のチェーン ID を返してきました。%{chainIdReturned}",
+    "endpoint_returned_different_chain_id": "エンドポイントが別のチェーン ID を返してきました。{{chainIdReturned}}",
     "chain_id_required": "チェーン ID が必要です。チェーン ID はネットワークが返すチェーン ID と一致する必要があります。10 進数、または '0x' が先行する 16 進数で入力できます。",
     "invalid_hex_number": "無効な 10 進数です。",
     "invalid_hex_number_leading_zeros": "無効な 10 進数です。先行ゼロを削除します。",
     "invalid_number": "無効な数値です。10 進数、または '0x' が先行する 16 進数を入力します。",
     "invalid_number_leading_zeros": "無効な数値です。先行ゼロを削除します。",
-    "invalid_number_range": "無効な数値です。1 から %{maxSafeChainId}の数値を入力",
+    "invalid_number_range": "無効な数値です。1 から {{maxSafeChainId}}の数値を入力",
     "hide_zero_balance_tokens_title": "残高なしトークンを隠す",
     "hide_zero_balance_tokens_desc": "トークンリストに残高なしトークンを表示させない。"
   },
@@ -1532,7 +1532,7 @@
     "title": "新機能の表示"
   },
   "invalid_network": {
-    "title": "カスタムネットワーク\n %{network} \n のチェーンIDを再入力してください。",
+    "title": "カスタムネットワーク\n {{network}} \n のチェーンIDを再入力してください。",
     "message": "悪意のあるまたは欠陥のあるネットワーク プロバイダからお客様を保護するために、すべてのカスタム ネットワークに対してチェーン ID が必要になりました。",
     "hint": "によく使用されるネットワークのチェーンIDはあります。",
     "edit_network_button": "ネットワークの編集",
@@ -1561,7 +1561,7 @@
     "cancel": "キャンセル",
     "approve": "承認",
     "unrecognized_chain": "カスタムネットワークが認識されません",
-    "invalid_chain": "このチェーン ID の %{rpcUrl} は、chainid.networkのリストと一致しません。",
+    "invalid_chain": "このチェーン ID の {{rpcUrl}} は、chainid.networkのリストと一致しません。",
     "alert_recommend": "私達はチェーン ID を",
     "alert_verify": "検証することを推奨します"
   },

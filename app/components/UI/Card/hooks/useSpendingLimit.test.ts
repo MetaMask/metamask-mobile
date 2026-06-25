@@ -197,12 +197,9 @@ const buildBalanceReturn = (
   overrides: Partial<ReturnType<typeof useMoneyAccountBalance>> = {},
 ) =>
   ({
-    musdBalanceQuery: {} as never,
+    moneyBalanceQuery: {} as never,
     vaultApyQuery: {} as never,
-    musdEquivalentBalanceQuery: {} as never,
-    isAggregatedBalanceLoading: false,
-    musdFiatFormatted: undefined,
-    musdSHFvdFiatFormatted: undefined,
+    isBalanceLoading: false,
     tokenTotal: new BigNumber(0),
     totalFiatFormatted: '$0.00',
     totalFiatRaw: '0',
@@ -261,6 +258,7 @@ describe('useSpendingLimit', () => {
     goBack: jest.Mock;
     dispatch: jest.Mock;
     setParams: jest.Mock;
+    isFocused: jest.Mock;
   };
   let mockSubmitDelegation: jest.Mock;
   let mockTrackEvent: jest.Mock;
@@ -282,6 +280,7 @@ describe('useSpendingLimit', () => {
       goBack: jest.fn(),
       dispatch: jest.fn(),
       setParams: jest.fn(),
+      isFocused: jest.fn().mockReturnValue(true),
     };
     mockUseNavigation.mockReturnValue(mockNavigation as never);
 
@@ -535,31 +534,7 @@ describe('useSpendingLimit', () => {
       expect(result.current.selectedToken?.symbol).toBe('mUSD');
     });
 
-    it('defaults to mUSD on Linea when all tokens have zero fiat balance', () => {
-      const musdToken = createMockToken({
-        symbol: 'mUSD',
-        address: '0xmusd',
-        caipChainId: LINEA_CAIP_CHAIN_ID,
-        fundingStatus: FundingStatus.NotEnabled,
-      });
-      const usdcToken = createMockToken({
-        symbol: 'USDC',
-        address: '0xusdc',
-        fundingStatus: FundingStatus.NotEnabled,
-      });
-
-      (useTokensWithBalance as jest.Mock).mockReturnValue([]);
-
-      const { result } = renderHook(() =>
-        useSpendingLimit(
-          createDefaultParams({ allTokens: [usdcToken, musdToken] }),
-        ),
-      );
-
-      expect(result.current.selectedToken?.symbol).toBe('mUSD');
-    });
-
-    it('falls back to first sorted token when mUSD on Linea is not present', () => {
+    it('falls back to the first sorted token when all balances are zero', () => {
       const usdcToken = createMockToken({
         symbol: 'USDC',
         address: '0xusdc',
@@ -1010,6 +985,71 @@ describe('useSpendingLimit', () => {
       });
 
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate when Money Account linkage is processing', async () => {
+      const MONEY_ACCOUNT_TOKEN: CardFundingToken = {
+        address: '0xMonadUsdc',
+        symbol: 'USDC',
+        name: 'USDC',
+        decimals: 6,
+        caipChainId: 'eip155:143',
+        walletAddress: undefined,
+        fundingStatus: FundingStatus.NotEnabled,
+        spendableBalance: '0',
+        delegationContract: '0xMonadDelegation',
+        priority: undefined,
+        isMoneyAccountEntry: true,
+      };
+
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: true,
+        }),
+      );
+      mockUseMoneyAccountBalance.mockReturnValue(
+        buildBalanceReturn({
+          tokenTotal: new BigNumber('12.34'),
+          totalFiatFormatted: '$12.34',
+        }),
+      );
+
+      let resolveLink: (value: boolean) => void = () => undefined;
+      mockConfirmLinkInBackground.mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveLink = resolve;
+          }),
+      );
+
+      const priorityToken = createMockToken({
+        ...MONEY_ACCOUNT_TOKEN,
+        isMoneyAccountEntry: true,
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ flow: 'manage', priorityToken }),
+        ),
+      );
+
+      act(() => {
+        result.current.submit().catch(() => undefined);
+      });
+
+      act(() => {
+        result.current.cancel();
+      });
+
+      expect(mockNavigation.goBack).not.toHaveBeenCalled();
+
+      await act(async () => {
+        resolveLink(true);
+        await jest.runAllTimersAsync();
+      });
     });
 
     it('tracks button click event', () => {
@@ -1650,6 +1690,153 @@ describe('useSpendingLimit', () => {
     });
   });
 
+  describe('isUiInteractionLocked', () => {
+    it('returns false when not loading', () => {
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams()),
+      );
+
+      expect(result.current.isUiInteractionLocked).toBe(false);
+    });
+
+    it('returns true when delegation is loading for regular funding assets', () => {
+      mockUseCardDelegation.mockReturnValue({
+        submitDelegation: mockSubmitDelegation,
+        isLoading: true,
+        error: null,
+        needsFaucet: false,
+        isFaucetCheckLoading: false,
+        refetchFaucetCheck: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams()),
+      );
+
+      expect(result.current.isUiInteractionLocked).toBe(true);
+    });
+
+    it('returns false when Money Account linkage is processing outside onboarding', async () => {
+      const MONEY_ACCOUNT_TOKEN: CardFundingToken = {
+        address: '0xMonadUsdc',
+        symbol: 'USDC',
+        name: 'USDC',
+        decimals: 6,
+        caipChainId: 'eip155:143',
+        walletAddress: undefined,
+        fundingStatus: FundingStatus.NotEnabled,
+        spendableBalance: '0',
+        delegationContract: '0xMonadDelegation',
+        priority: undefined,
+        isMoneyAccountEntry: true,
+      };
+
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: true,
+        }),
+      );
+      mockUseMoneyAccountBalance.mockReturnValue(
+        buildBalanceReturn({
+          tokenTotal: new BigNumber('12.34'),
+          totalFiatFormatted: '$12.34',
+        }),
+      );
+
+      let resolveLink: (value: boolean) => void = () => undefined;
+      mockConfirmLinkInBackground.mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveLink = resolve;
+          }),
+      );
+
+      const priorityToken = createMockToken({
+        ...MONEY_ACCOUNT_TOKEN,
+        isMoneyAccountEntry: true,
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ flow: 'manage', priorityToken }),
+        ),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(true);
+
+      act(() => {
+        result.current.submit().catch(() => undefined);
+      });
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isUiInteractionLocked).toBe(false);
+
+      await act(async () => {
+        resolveLink(true);
+        await jest.runAllTimersAsync();
+      });
+    });
+
+    it('returns true when Money Account linkage is processing during onboarding', async () => {
+      const MONEY_ACCOUNT_TOKEN: CardFundingToken = {
+        address: '0xMonadUsdc',
+        symbol: 'USDC',
+        name: 'USDC',
+        decimals: 6,
+        caipChainId: 'eip155:143',
+        walletAddress: undefined,
+        fundingStatus: FundingStatus.NotEnabled,
+        spendableBalance: '0',
+        delegationContract: '0xMonadDelegation',
+        priority: undefined,
+      };
+
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: true,
+        }),
+      );
+      mockUseMoneyAccountBalance.mockReturnValue(
+        buildBalanceReturn({
+          tokenTotal: new BigNumber('12.34'),
+          totalFiatFormatted: '$12.34',
+        }),
+      );
+
+      let resolveLink: (value: boolean) => void = () => undefined;
+      mockConfirmLinkInBackground.mockImplementation(
+        () =>
+          new Promise<boolean>((resolve) => {
+            resolveLink = resolve;
+          }),
+      );
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(true);
+
+      act(() => {
+        result.current.submit().catch(() => undefined);
+      });
+
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.isUiInteractionLocked).toBe(true);
+
+      await act(async () => {
+        resolveLink(true);
+        await jest.runAllTimersAsync();
+      });
+    });
+  });
+
   describe('Money Account source (onboarding flow)', () => {
     const MONEY_ACCOUNT_TOKEN: CardFundingToken = {
       address: '0xMonadUsdc',
@@ -1693,7 +1880,7 @@ describe('useSpendingLimit', () => {
       expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
-    it('does NOT preselect Money Account when balance is zero', () => {
+    it('preselects Money Account on the onboarding flow even when balance is zero', () => {
       mockUseMoneyAccountCardLinkage.mockReturnValue(
         buildLinkageReturn({
           hasMoneyAccountRequirements: true,
@@ -1710,15 +1897,153 @@ describe('useSpendingLimit', () => {
         useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
       );
 
+      expect(result.current.isMoneyAccountSource).toBe(true);
+      expect(result.current.selectedToken).toEqual(MONEY_ACCOUNT_TOKEN);
+    });
+
+    it('preselects Money Account on the enable_card flow even when balance is zero', () => {
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: true,
+        }),
+      );
+      mockUseMoneyAccountBalance.mockReturnValue(
+        buildBalanceReturn({ tokenTotal: new BigNumber(0) }),
+      );
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'enable_card' })),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(true);
+      expect(result.current.selectedToken).toEqual(MONEY_ACCOUNT_TOKEN);
+    });
+
+    it('preselects Money Account on the enable_card flow even when mUSD-on-Linea exists with zero balance', () => {
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: true,
+        }),
+      );
+      mockUseMoneyAccountBalance.mockReturnValue(
+        buildBalanceReturn({ tokenTotal: new BigNumber(0) }),
+      );
+      const musdOnLinea = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        caipChainId: LINEA_CAIP_CHAIN_ID,
+        fundingStatus: FundingStatus.NotEnabled,
+      });
+      const usdcToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        fundingStatus: FundingStatus.NotEnabled,
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            flow: 'enable_card',
+            allTokens: [usdcToken, musdOnLinea],
+          }),
+        ),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(true);
+      expect(result.current.selectedToken).toEqual(MONEY_ACCOUNT_TOKEN);
+    });
+
+    it('falls through to highest-balance selection when canLinkMoneyAccount is false on enable_card', () => {
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: false,
+        }),
+      );
+      const usdcToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        fundingStatus: FundingStatus.NotEnabled,
+      });
+      const daiToken = createMockToken({
+        symbol: 'DAI',
+        address: '0xdai',
+        fundingStatus: FundingStatus.NotEnabled,
+      });
+      (useTokensWithBalance as jest.Mock).mockReturnValue([
+        { address: '0xusdc', chainId: '0xe708', tokenFiatAmount: 50 },
+        { address: '0xdai', chainId: '0xe708', tokenFiatAmount: 200 },
+      ]);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            flow: 'enable_card',
+            allTokens: [usdcToken, daiToken],
+          }),
+        ),
+      );
+
       expect(result.current.isMoneyAccountSource).toBe(false);
+      expect(result.current.selectedToken?.symbol).toBe('DAI');
+    });
+
+    it('locks the manage flow to Money Account when the priority token has isMoneyAccountEntry (even with zero balance)', () => {
+      mockUseMoneyAccountCardLinkage.mockReturnValue(
+        buildLinkageReturn({
+          hasMoneyAccountRequirements: true,
+          isCardAuthenticated: true,
+          moneyAccountCardToken: MONEY_ACCOUNT_TOKEN,
+          canLink: true,
+        }),
+      );
+      mockUseMoneyAccountBalance.mockReturnValue(
+        buildBalanceReturn({ tokenTotal: new BigNumber(0) }),
+      );
+      const priorityToken = createMockToken({
+        symbol: 'mUSD',
+        isMoneyAccountEntry: true,
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ flow: 'manage', priorityToken }),
+        ),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(true);
+      expect(result.current.isMoneyAccountLocked).toBe(true);
+      expect(result.current.selectedToken).toEqual(priorityToken);
       expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
-    it('preselects Money Account in the manage flow when funded + requirements met', () => {
+    it('does NOT lock on onboarding-like flows even when Money Account is preselected as source', () => {
+      setupFunded();
+
+      const { result: onboarding } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'onboarding' })),
+      );
+      expect(onboarding.current.isMoneyAccountSource).toBe(true);
+      expect(onboarding.current.isMoneyAccountLocked).toBe(false);
+
+      const { result: enableCard } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'enable_card' })),
+      );
+      expect(enableCard.current.isMoneyAccountSource).toBe(true);
+      expect(enableCard.current.isMoneyAccountLocked).toBe(false);
+    });
+
+    it('preselects Money Account on the enable_card flow when funded + requirements met', () => {
       setupFunded();
 
       const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ flow: 'manage' })),
+        useSpendingLimit(createDefaultParams({ flow: 'enable_card' })),
       );
 
       expect(result.current.isMoneyAccountSource).toBe(true);
@@ -1726,14 +2051,78 @@ describe('useSpendingLimit', () => {
       expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
-    it('does NOT preselect Money Account in the enable flow (managing an existing asset)', () => {
+    it('shows the Money Account CTA on the enable_card flow after the user exits Money Account mode', () => {
       setupFunded();
 
+      const { result, rerender } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'enable_card' })),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(true);
+
+      mockUseSelector.mockReturnValue({
+        id: 'account-2',
+        address: '0xaccount2',
+        metadata: { name: 'Account 2' },
+      });
+      rerender();
+
+      expect(result.current.isMoneyAccountSource).toBe(false);
+      expect(result.current.canShowMoneyAccountCta).toBe(true);
+      expect(result.current.isMoneyAccountLocked).toBe(false);
+    });
+
+    it('does NOT lock the manage flow when the priority token is not a money-account entry, even when Money Account is funded', () => {
+      setupFunded();
+      const priorityToken = createMockToken({ symbol: 'USDC' });
+
       const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ flow: 'enable' })),
+        useSpendingLimit(
+          createDefaultParams({ flow: 'manage', priorityToken }),
+        ),
       );
 
       expect(result.current.isMoneyAccountSource).toBe(false);
+      expect(result.current.canShowMoneyAccountCta).toBe(false);
+    });
+
+    it('does NOT preselect Money Account in the enable flow when the initial token is already Enabled', () => {
+      setupFunded();
+      const initialToken = createMockToken({
+        symbol: 'USDC',
+        fundingStatus: FundingStatus.Enabled,
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'enable', initialToken })),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(false);
+      expect(result.current.canShowMoneyAccountCta).toBe(false);
+    });
+
+    it('shows the Money Account CTA in the enable flow when the initial token is NotEnabled', () => {
+      setupFunded();
+      const initialToken = createMockToken({
+        symbol: 'USDC',
+        fundingStatus: FundingStatus.NotEnabled,
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'enable', initialToken })),
+      );
+
+      expect(result.current.isMoneyAccountSource).toBe(false);
+      expect(result.current.canShowMoneyAccountCta).toBe(true);
+    });
+
+    it('does NOT show the Money Account CTA on the manage flow regardless of funding', () => {
+      setupFunded();
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ flow: 'manage' })),
+      );
+
       expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
@@ -1749,11 +2138,17 @@ describe('useSpendingLimit', () => {
       expect(result.current.selectedToken).toEqual(initialToken);
     });
 
-    it('exits Money Account mode and exposes the switch-back CTA when the user changes account from the picker in the manage flow', () => {
+    it('exits Money Account mode when the user changes account from the picker in the manage flow (CTA stays hidden on manage)', () => {
       setupFunded();
+      const priorityToken = createMockToken({
+        symbol: 'mUSD',
+        isMoneyAccountEntry: true,
+      });
 
       const { result, rerender } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ flow: 'manage' })),
+        useSpendingLimit(
+          createDefaultParams({ flow: 'manage', priorityToken }),
+        ),
       );
 
       expect(result.current.isMoneyAccountSource).toBe(true);
@@ -1766,13 +2161,16 @@ describe('useSpendingLimit', () => {
       rerender();
 
       expect(result.current.isMoneyAccountSource).toBe(false);
-      expect(result.current.canShowMoneyAccountCta).toBe(true);
+      expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
     it('exits Money Account mode when the picker invokes onSelectAccount, even with the same already-selected account', () => {
       setupFunded();
 
-      const priorityToken = createMockToken({ symbol: 'USDC' });
+      const priorityToken = createMockToken({
+        symbol: 'mUSD',
+        isMoneyAccountEntry: true,
+      });
       const { result } = renderHook(() =>
         useSpendingLimit(
           createDefaultParams({ flow: 'manage', priorityToken }),
@@ -1780,7 +2178,7 @@ describe('useSpendingLimit', () => {
       );
 
       expect(result.current.isMoneyAccountSource).toBe(true);
-      expect(result.current.selectedToken).toEqual(MONEY_ACCOUNT_TOKEN);
+      expect(result.current.selectedToken).toEqual(priorityToken);
 
       // Open the picker (this captures the onSelectAccount callback)
       act(() => {
@@ -1799,15 +2197,20 @@ describe('useSpendingLimit', () => {
       });
 
       expect(result.current.isMoneyAccountSource).toBe(false);
-      expect(result.current.canShowMoneyAccountCta).toBe(true);
-      expect(result.current.selectedToken).toEqual(priorityToken);
+      expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
     it('does not re-trigger Money Account auto-preselect after exiting via the picker callback', () => {
       setupFunded();
+      const priorityToken = createMockToken({
+        symbol: 'mUSD',
+        isMoneyAccountEntry: true,
+      });
 
       const { result, rerender } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ flow: 'manage' })),
+        useSpendingLimit(
+          createDefaultParams({ flow: 'manage', priorityToken }),
+        ),
       );
 
       expect(result.current.isMoneyAccountSource).toBe(true);
@@ -1826,19 +2229,25 @@ describe('useSpendingLimit', () => {
 
       expect(result.current.isMoneyAccountSource).toBe(false);
 
-      // Subsequent re-renders (while Money Account is still funded + linkable)
-      // must NOT silently re-select Money Account — the user just opted out.
+      // Subsequent re-renders (priority token still flagged) must NOT silently
+      // re-select Money Account — the user just opted out.
       rerender();
 
       expect(result.current.isMoneyAccountSource).toBe(false);
-      expect(result.current.canShowMoneyAccountCta).toBe(true);
+      expect(result.current.canShowMoneyAccountCta).toBe(false);
     });
 
     it('submit on the manage flow goes back instead of replacing to Card Home (Money Account source path)', async () => {
       setupFunded();
+      const priorityToken = createMockToken({
+        symbol: 'mUSD',
+        isMoneyAccountEntry: true,
+      });
 
       const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ flow: 'manage' })),
+        useSpendingLimit(
+          createDefaultParams({ flow: 'manage', priorityToken }),
+        ),
       );
 
       await act(async () => {

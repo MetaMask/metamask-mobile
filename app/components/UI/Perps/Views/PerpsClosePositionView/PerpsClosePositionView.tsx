@@ -16,14 +16,13 @@ import { PerpsClosePositionViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
 import {
   Button,
-  ButtonVariant,
   ButtonSize,
-} from '@metamask/design-system-react-native';
-import Icon, {
+  ButtonVariant,
+  Icon,
   IconColor,
   IconName,
   IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
@@ -79,6 +78,7 @@ import PerpsAmountDisplay from '../../components/PerpsAmountDisplay';
 import PerpsLimitPriceBottomSheet from '../../components/PerpsLimitPriceBottomSheet';
 import PerpsSlider from '../../components/PerpsSlider/PerpsSlider';
 import PerpsCloseSummary from '../../components/PerpsCloseSummary';
+import { useVipTier } from '../../../Rewards/hooks/useVipTier';
 
 const PerpsClosePositionView: React.FC = () => {
   const theme = useTheme();
@@ -280,6 +280,8 @@ const PerpsClosePositionView: React.FC = () => {
     orderAmount: closingValueString,
   });
 
+  const vipTier = useVipTier();
+
   // Calculate what user will receive (margin - fees)
   // Round each component separately to match what user sees in UI
   // This ensures: displayed margin - displayed fees = displayed receive amount
@@ -396,6 +398,8 @@ const PerpsClosePositionView: React.FC = () => {
         estimatedPoints: rewardsState.estimatedPoints,
         inputMethod: inputMethodRef.current,
         source: routeSource,
+        vipTier: vipTier ?? undefined,
+        vipDiscount: feeResults.feeDiscountPercentage,
       },
       marketPrice: priceData[position.symbol]?.price,
       // Always pass slippage parameters for price context
@@ -542,6 +546,7 @@ const PerpsClosePositionView: React.FC = () => {
       totalMargin={(closePercentage / 100) * marginUsed}
       totalPnl={effectivePnL * (closePercentage / 100)}
       totalFees={feeResults.totalFee}
+      originalTotalFees={feeResults.undiscountedTotalFee}
       feeDiscountPercentage={rewardsState.feeDiscountPercentage}
       metamaskFeeRate={feeResults.metamaskFeeRate}
       protocolFeeRate={feeResults.protocolFeeRate}
@@ -669,7 +674,7 @@ const PerpsClosePositionView: React.FC = () => {
                 <Icon
                   name={IconName.Danger}
                   size={IconSize.Sm}
-                  color={IconColor.Error}
+                  color={IconColor.ErrorDefault}
                 />
                 <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                   {error}

@@ -13,7 +13,7 @@ import {
 
 import MultichainAccountConnect from './MultichainAccountConnect';
 import { AccountGroupWithInternalAccounts } from '../../../../selectors/multichainAccounts/accounts.type';
-import { AccountConnectProps } from '../../AccountConnect/AccountConnect.types';
+import { AccountConnectProps } from '../../MultichainAccounts/shared/AccountConnect.types';
 import { createMockInternalAccount } from '../../../../util/test/accountsControllerTestUtils';
 
 const Stack = createStackNavigator();

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
 import { Linking, View } from 'react-native';
 import { useSelector } from 'react-redux';
-import styleSheet from '../../Deposit/Views/OrderProcessing/OrderProcessing.styles';
+import styleSheet from './OrderProcessing.styles';
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -10,9 +10,9 @@ import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { getOrderById } from '../../../../../reducers/fiatOrders';
 import { RootState } from '../../../../../reducers';
 import { strings } from '../../../../../../locales/i18n';
-import DepositOrderContent from '../../Deposit/components/DepositOrderContent/DepositOrderContent';
+import DepositOrderContent from '../../components/DepositOrderContent/DepositOrderContent';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
-import { TRANSAK_SUPPORT_URL } from '../../Deposit/constants';
+import { TRANSAK_SUPPORT_URL } from '../../constants';
 import {
   Button,
   ButtonSize,

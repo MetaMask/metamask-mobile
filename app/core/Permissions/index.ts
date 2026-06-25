@@ -16,7 +16,6 @@ import {
   getAllScopesFromCaip25CaveatValue,
   getCaipAccountIdsFromCaip25CaveatValue,
   getEthAccounts,
-  getPermittedEthChainIds,
   isInternalAccountInPermittedAccountIds,
   setChainIdsInCaip25CaveatValue,
   setNonSCACaipAccountIdsInCaip25CaveatValue,
@@ -549,30 +548,44 @@ export const getPermittedAccounts = (
 };
 
 /**
- * Get permitted chains for the given the host.
+ * Get permitted chains for the given the host, across all namespaces.
+ * Returns all non-wallet scopes stored in the CAIP-25 caveat.
  *
  * @param hostname - Subject to check if permissions exists. Ex: A Dapp is a subject.
- * @returns An array containing permitted chains for the specified host.
+ * @returns An array containing permitted CAIP chain IDs for the specified host.
  */
-export const getPermittedChains = async (
+export const getPermittedCaipChainIds = async (
   hostname: string,
 ): Promise<CaipChainId[]> => {
   const { PermissionController } = Engine.context;
-  const caveat = PermissionController.getCaveat(
-    hostname,
-    Caip25EndowmentPermissionName,
-    Caip25CaveatType,
-  );
+
+  let caveat;
+  try {
+    caveat = PermissionController.getCaveat(
+      hostname,
+      Caip25EndowmentPermissionName,
+      Caip25CaveatType,
+    );
+  } catch (err) {
+    if (err instanceof PermissionDoesNotExistError) {
+      // suppress expected error in case that the origin
+      // does not have the target permission yet
+      return [];
+    }
+    throw err;
+  }
 
   if (caveat) {
-    const chains = getPermittedEthChainIds(caveat.value).map(
-      (chainId: string) =>
-        `${KnownCaipNamespace.Eip155.toString()}:${parseInt(
-          chainId,
-        )}` as CaipChainId,
+    return getAllScopesFromCaip25CaveatValue(caveat.value).filter(
+      (caipChainId: CaipChainId) => {
+        try {
+          const { namespace } = parseCaipChainId(caipChainId);
+          return namespace !== KnownCaipNamespace.Wallet;
+        } catch {
+          return false;
+        }
+      },
     );
-
-    return chains;
   }
 
   return [];

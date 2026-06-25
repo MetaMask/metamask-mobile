@@ -2,14 +2,24 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import { SuccessImportAccountIDs } from '../../../app/components/Views/ImportPrivateKeySuccess/SuccessImportAccount.testIds';
 import WalletView from '../wallet/WalletView';
-import { asDetoxElement, Utilities } from '../../framework';
+import {
+  asDetoxElement,
+  asPlaywrightElement,
+  Utilities,
+  EncapsulatedElementType,
+  Assertions,
+} from '../../framework';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import { getDriver } from '../../framework/PlaywrightUtilities';
+import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 
 class SuccessImportAccountView {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(SuccessImportAccountIDs.CONTAINER);
   }
 
-  get closeButton(): DetoxElement {
+  get closeButton(): EncapsulatedElementType {
     return Matchers.getElementByID(SuccessImportAccountIDs.CLOSE_BUTTON);
   }
 
@@ -23,21 +33,30 @@ class SuccessImportAccountView {
    * @returns A promise that resolves when the modal is closed
    */
   async tapCloseButton(): Promise<void> {
-    if (device.getPlatform() === 'ios') {
+    if (PlatformDetector.isIOS()) {
       await Gestures.waitAndTap(this.closeButton, {
         elemDescription: 'Close button',
         waitForElementToDisappear: true,
       });
       return;
     }
-    // On Android, tapping the close button does not close the modal
-    // Workaround to dismiss the success modal
-    await device.pressBack();
-    await device.tap();
-    await Utilities.waitForElementToBeVisible(
-      asDetoxElement(WalletView.container),
-    );
-    await WalletView.tapIdenticon();
+
+    await encapsulatedAction({
+      detox: async () => {
+        await device.pressBack();
+      },
+      appium: async () => {
+        const drv = getDriver();
+        if (!drv) {
+          throw new Error('Driver is not available');
+        }
+        await drv.back();
+        await Assertions.expectElementToNotBeVisible(this.closeButton, {
+          description: 'Success Import Account modal',
+          timeout: 15_000,
+        });
+      },
+    });
   }
 }
 

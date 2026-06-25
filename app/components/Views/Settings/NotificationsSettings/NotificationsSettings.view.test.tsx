@@ -23,6 +23,10 @@ const MOCK_NOTIFICATION_PREFERENCES = {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },
+  agenticCli: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
   socialAI: {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
@@ -36,9 +40,7 @@ const MOCK_NOTIFICATION_PREFERENCES = {
 };
 
 /**
- * Component-view coverage for smoke `notification-settings-flow`.
- *
- * Smoke spec: tests/smoke/notifications/notification-settings-flow.spec.ts
+ * Component-view coverage for notification settings toggles and section visibility.
  *
  * AUS-backed notification preferences are provided through Engine, matching
  * the component-view boundary for data-service calls.
@@ -50,6 +52,7 @@ const GET_NOTIFICATION_PREFERENCES_ACTION =
 const SECTION_TITLES = {
   walletActivity: 'Wallet Activity',
   perps: 'Trading Activity',
+  agenticCli: 'Agentic CLI',
   socialAI: 'Trading Signals',
   marketing: 'Updates and Rewards',
 };
@@ -110,7 +113,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
 
   it('renders notification sections when notifications are enabled', async () => {
     const { getByTestId, getByText, findAllByText, findByText } =
-      renderSettings();
+      renderSettings({ socialLeaderboardEnabled: true });
 
     expect(
       getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
@@ -118,10 +121,23 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
 
     expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.perps)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.socialAI)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
-    expect(await findAllByText('Push, In app')).toHaveLength(3);
+    expect(await findAllByText('Push, In app')).toHaveLength(4);
     expect(getByText('Off')).toBeOnTheScreen();
+  });
+
+  it('hides social AI section when social leaderboard feature flag is disabled', async () => {
+    const { getByText, queryByText, findAllByText, findByText } =
+      renderSettings({ socialLeaderboardEnabled: false });
+
+    expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.perps)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
+    expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
+    expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
+    expect(await findAllByText('Push, In app')).toHaveLength(3);
   });
 
   it('hides notification sections when main toggle is off', async () => {
@@ -138,6 +154,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
       expect(queryByText(SECTION_TITLES.walletActivity)).toBeNull();
     });
     expect(queryByText(SECTION_TITLES.perps)).toBeNull();
+    expect(queryByText(SECTION_TITLES.agenticCli)).toBeNull();
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
     expect(queryByText(SECTION_TITLES.marketing)).toBeNull();
   });
@@ -173,6 +190,18 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     const { getByText, findByTestId } = renderSettingsWithSectionRoute();
 
     fireEvent.press(getByText(SECTION_TITLES.walletActivity));
+
+    expect(
+      await findByTestId(
+        `route-${Routes.SETTINGS.NOTIFICATION_SETTINGS_SECTION}`,
+      ),
+    ).toBeOnTheScreen();
+  });
+
+  it('navigates to the agentic CLI notification section when its row is pressed', async () => {
+    const { getByText, findByTestId } = renderSettingsWithSectionRoute();
+
+    fireEvent.press(getByText(SECTION_TITLES.agenticCli));
 
     expect(
       await findByTestId(

@@ -32,7 +32,6 @@ import {
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds.ts';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge.tsx';
-import { formatAccountToCaipAccountId } from '../../hooks/useRewards/useRewards.ts';
 import { useFeeDisclaimer } from '../../hooks/useFeeDisclaimer';
 
 interface Props {
@@ -87,11 +86,6 @@ export const BridgeViewFooter = ({
     return null;
   }
 
-  const caipAccountId =
-    selectedAddress && sourceToken?.chainId
-      ? formatAccountToCaipAccountId(selectedAddress, sourceToken.chainId)
-      : null;
-
   const approval =
     activeQuote?.approval && sourceAmount && sourceToken
       ? { amount: sourceAmount, symbol: sourceToken.symbol }
@@ -127,9 +121,7 @@ export const BridgeViewFooter = ({
             gap={2}
             testID={BridgeViewSelectorsIDs.FEE_DISCLAIMER}
           >
-            {showVipBadge && caipAccountId ? (
-              <RewardsVipBadge accountId={caipAccountId} />
-            ) : null}
+            {showVipBadge ? <RewardsVipBadge /> : null}
 
             <Text
               variant={TextVariant.BodySm}

@@ -68,7 +68,7 @@ const PulseDot: React.FC = () => {
   const ringBaseStyle = useMemo(
     () =>
       tw.style(
-        `absolute w-[${PULSE_RING_SIZE}px] h-[${PULSE_RING_SIZE}px] rounded-full bg-icon-default/40`,
+        `absolute w-[${PULSE_RING_SIZE}px] h-[${PULSE_RING_SIZE}px] rounded-full bg-success-default/40`,
       ),
     [tw],
   );
@@ -84,7 +84,7 @@ const PulseDot: React.FC = () => {
     >
       <Animated.View style={[ringBaseStyle, ringAnimatedStyle]} />
       <Box
-        twClassName={`w-[${PULSE_DOT_SIZE}px] h-[${PULSE_DOT_SIZE}px] rounded-full bg-error-default`}
+        twClassName={`w-[${PULSE_DOT_SIZE}px] h-[${PULSE_DOT_SIZE}px] rounded-full bg-success-default`}
       />
     </Box>
   );
@@ -110,8 +110,8 @@ const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
   const pillStyle = useMemo((): PillStyle => {
     if (isSelected && isLive) {
       return {
-        bg: BoxBackgroundColor.ErrorMuted,
-        border: BoxBorderColor.ErrorDefault,
+        bg: BoxBackgroundColor.SuccessMuted,
+        border: BoxBorderColor.SuccessDefault,
         textColor: TextColor.TextDefault,
         bgClassName: undefined,
       };
@@ -169,7 +169,7 @@ const TimeSlotPill: React.FC<TimeSlotPillProps> = ({
             <Text
               testID={`time-slot-countdown-${market.id}`}
               variant={TextVariant.BodySm}
-              color={TextColor.ErrorDefault}
+              color={TextColor.SuccessDefault}
               fontWeight={FontWeight.Medium}
             >
               {countdown}
@@ -212,24 +212,55 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({
     return findNearestMarket(markets)?.id;
   }, [selectedMarketId, liveMarketId, markets]);
 
-  const handlePillLayout = useCallback((marketId: string, x: number) => {
-    pillPositions.current.set(marketId, x);
-  }, []);
+  // Stable key describing the ordered set of rendered markets. When a slot
+  // expires and is filtered out upstream the remaining pills shift left, so we
+  // must re-anchor even if `resolvedSelectedId` is unchanged.
+  const marketsKey = useMemo(
+    () => markets.map((market) => market.id).join('|'),
+    [markets],
+  );
+
+  const anchorToSelected = useCallback(() => {
+    if (!resolvedSelectedId) return;
+    const offset = pillPositions.current.get(resolvedSelectedId);
+    if (offset === undefined) return;
+    scrollRef.current?.scrollTo({
+      x: Math.max(0, offset - SCROLL_CONTENT_PADDING_PX),
+      animated: true,
+    });
+  }, [resolvedSelectedId]);
+
+  // Drop cached positions for markets that no longer render. Stale offsets
+  // (e.g. the expired live pill's x) would otherwise mis-anchor the scroll.
+  useEffect(() => {
+    const presentIds = new Set(markets.map((market) => market.id));
+    for (const id of pillPositions.current.keys()) {
+      if (!presentIds.has(id)) {
+        pillPositions.current.delete(id);
+      }
+    }
+  }, [markets]);
+
+  const handlePillLayout = useCallback(
+    (marketId: string, x: number) => {
+      const previous = pillPositions.current.get(marketId);
+      pillPositions.current.set(marketId, x);
+      // When the selected pill re-lays out at a new position (the left shift
+      // after a slot expires), re-anchor against the fresh offset rather than
+      // the stale one a fixed-delay timer might race against.
+      if (marketId === resolvedSelectedId && previous !== x) {
+        anchorToSelected();
+      }
+    },
+    [resolvedSelectedId, anchorToSelected],
+  );
 
   useEffect(() => {
-    if (!resolvedSelectedId) return;
-    // Delay so onLayout can settle after markets refetch (e.g. on rollover).
-    const timeout = setTimeout(() => {
-      const offset = pillPositions.current.get(resolvedSelectedId);
-      if (offset !== undefined) {
-        scrollRef.current?.scrollTo({
-          x: Math.max(0, offset - SCROLL_CONTENT_PADDING_PX),
-          animated: true,
-        });
-      }
-    }, SCROLL_SETTLE_DELAY_MS);
+    if (!resolvedSelectedId) return undefined;
+    const timeout = setTimeout(anchorToSelected, SCROLL_SETTLE_DELAY_MS);
     return () => clearTimeout(timeout);
-  }, [resolvedSelectedId, markets]);
+    // marketsKey re-anchors after an upstream expiry shifts the remaining pills.
+  }, [resolvedSelectedId, marketsKey, anchorToSelected]);
 
   if (markets.length === 0) return null;
 

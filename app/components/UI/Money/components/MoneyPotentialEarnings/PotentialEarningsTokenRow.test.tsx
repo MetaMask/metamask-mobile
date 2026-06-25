@@ -60,7 +60,8 @@ describe('PotentialEarningsTokenRow', () => {
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={20}
-        onPress={jest.fn()}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
       />,
     );
 
@@ -73,7 +74,8 @@ describe('PotentialEarningsTokenRow', () => {
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={20}
-        onPress={jest.fn()}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
       />,
     );
 
@@ -86,7 +88,8 @@ describe('PotentialEarningsTokenRow', () => {
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={20}
-        onPress={jest.fn()}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
       />,
     );
 
@@ -99,20 +102,22 @@ describe('PotentialEarningsTokenRow', () => {
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={0}
-        onPress={jest.fn()}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
       />,
     );
 
     expect(queryByText(/^\+\$/)).toBeNull();
   });
 
-  it('renders the "No MetaMask fee" tag when hasSubsidizedFee is true', () => {
+  it('renders the "No fee" tag when hasSubsidizedFee is true', () => {
     const { getByText } = render(
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee
         apyPercent={20}
-        onPress={jest.fn()}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
       />,
     );
 
@@ -121,13 +126,14 @@ describe('PotentialEarningsTokenRow', () => {
     ).toBeOnTheScreen();
   });
 
-  it('hides the "No MetaMask fee" tag when hasSubsidizedFee is false', () => {
+  it('hides the "No fee" tag when hasSubsidizedFee is false', () => {
     const { queryByText } = render(
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={20}
-        onPress={jest.fn()}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
       />,
     );
 
@@ -136,45 +142,48 @@ describe('PotentialEarningsTokenRow', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('renders the Convert button', () => {
+  it('renders the Add button', () => {
     const { getByText } = render(
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={20}
-        onPress={jest.fn()}
+        onCardPress={jest.fn()}
+        onButtonPress={jest.fn()}
       />,
     );
 
     expect(
-      getByText(strings('money.potential_earnings.convert')),
+      getByText(strings('money.potential_earnings.add')),
     ).toBeOnTheScreen();
   });
 
-  it('calls onPress when the Convert button is pressed', () => {
+  it('calls onButtonPress when the Add button is pressed', () => {
     const mockOnPress = jest.fn();
     const { getByText } = render(
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={20}
-        onPress={mockOnPress}
+        onCardPress={jest.fn()}
+        onButtonPress={mockOnPress}
       />,
     );
 
-    fireEvent.press(getByText(strings('money.potential_earnings.convert')));
+    fireEvent.press(getByText(strings('money.potential_earnings.add')));
 
     expect(mockOnPress).toHaveBeenCalledTimes(1);
   });
 
-  it('calls onPress when the row pressable area is pressed', () => {
+  it('calls onCardPress when the row pressable area is pressed', () => {
     const mockOnPress = jest.fn();
     const { getByText } = render(
       <PotentialEarningsTokenRow
         token={MOCK_USDC}
         hasSubsidizedFee={false}
         apyPercent={20}
-        onPress={mockOnPress}
+        onCardPress={mockOnPress}
+        onButtonPress={jest.fn()}
       />,
     );
 

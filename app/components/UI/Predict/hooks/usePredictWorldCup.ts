@@ -21,13 +21,13 @@ import {
   resolvePredictWorldCupStageLabel,
 } from '../utils/worldCup';
 import {
-  fetchPredictWorldCupMarkets,
   fetchPredictWorldCupMarketsPage,
   PREDICT_WORLD_CUP_PAGE_SIZE,
 } from '../services/worldCup';
 import { strings } from '../../../../../locales/i18n';
 import type { PredictMarket } from '../types';
 import type { PredictWorldCupConfig } from '../types/flags';
+import { filterStandaloneMarkets } from '../utils/feed';
 import { getVisiblePredictMarkets } from '../utils/marketStaleness';
 import type { UsePredictMarketDataResult } from './usePredictMarketData';
 
@@ -50,7 +50,7 @@ export interface PredictWorldCupAvailableTab {
 
 type PredictWorldCupDataConfig = Pick<
   PredictWorldCupConfig,
-  'seriesId' | 'tagSlug' | 'gamesTagId' | 'stages'
+  'tagSlug' | 'gamesTagId' | 'stages'
 >;
 
 interface WorldCupMarketDataConfig {
@@ -238,11 +238,12 @@ export const usePredictWorldCupMarkets = ({
     [infiniteQuery.data],
   );
   const visibleInfiniteMarketData = useMemo(
-    () => getVisiblePredictMarkets(infiniteMarketData),
+    () => getVisiblePredictMarkets(filterStandaloneMarkets(infiniteMarketData)),
     [infiniteMarketData],
   );
   const visibleSingleMarketData = useMemo(
-    () => getVisiblePredictMarkets(singleQuery.data ?? []),
+    () =>
+      getVisiblePredictMarkets(filterStandaloneMarkets(singleQuery.data ?? [])),
     [singleQuery.data],
   );
 
@@ -386,7 +387,7 @@ export const usePredictWorldCupAvailableTabs = (
             );
             return {
               key,
-              label: stage ? resolvePredictWorldCupStageLabel(stage) : key,
+              label: resolvePredictWorldCupStageLabel(stage ?? { key }),
             };
           }
         }

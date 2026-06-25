@@ -30,6 +30,11 @@ import rewardsReducer, {
   setVipDashboard,
   setVipDashboardError,
   setVipDashboardLoading,
+  setVipRefereeDashboard,
+  setVipRefereeDashboardError,
+  setVipRefereeDashboardLoading,
+  acceptVipInvite,
+  acceptVipRefereeInvite,
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
@@ -51,6 +56,14 @@ import rewardsReducer, {
   setPerpsTradingCampaignVolume,
   setPerpsTradingCampaignVolumeLoading,
   setPerpsTradingCampaignVolumeError,
+  setPredictThePitchLeaderboard,
+  setPredictThePitchLeaderboardLoading,
+  setPredictThePitchLeaderboardError,
+  setPredictThePitchLeaderboardPosition,
+  setPredictThePitchPositions,
+  setPredictThePitchPrizePool,
+  setPredictThePitchPrizePoolLoading,
+  setPredictThePitchPrizePoolError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -78,6 +91,10 @@ import {
   OndoGmActivityEntryDto,
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
+  PredictThePitchLeaderboardDto,
+  PredictThePitchLeaderboardPositionDto,
+  PredictThePitchPositionsDto,
+  PredictThePitchPrizePoolDto,
   VipDashboardState,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -561,6 +578,18 @@ describe('rewardsReducer', () => {
 
       // Assert
       expect(state.refereeCount).toBe(0);
+    });
+
+    it('should store isVipReferee and referredByVipCode when provided', () => {
+      const action = setReferralDetails({
+        isVipReferee: true,
+        referredByVipCode: 'VIPCODE',
+      });
+
+      const state = rewardsReducer(initialState, action);
+
+      expect(state.isVipReferee).toBe(true);
+      expect(state.referredByVipCode).toBe('VIPCODE');
     });
 
     it('should set referralDetailsLoading to false', () => {
@@ -1978,6 +2007,12 @@ describe('rewardsReducer', () => {
         referralCode: 'TEST123',
         refereeCount: 10,
         referredByCode: null,
+        isVipReferee: false,
+        referredByVipCode: null,
+        vipRefereeDashboard: {},
+        vipRefereeDashboardLoading: false,
+        vipRefereeDashboardError: false,
+        vipRefereeSplashAccepted: {},
         currentTier: {
           id: 'tier-platinum',
           name: 'Platinum',
@@ -2070,6 +2105,9 @@ describe('rewardsReducer', () => {
         vipDashboard: {},
         vipDashboardLoading: false,
         vipDashboardError: false,
+        vipSplashAccepted: {
+          'sub-1': true,
+        },
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -2095,6 +2133,14 @@ describe('rewardsReducer', () => {
         perpsTradingCampaignVolume: null,
         perpsTradingCampaignVolumeLoading: false,
         perpsTradingCampaignVolumeError: false,
+        predictThePitchLeaderboard: null,
+        predictThePitchLeaderboardLoading: false,
+        predictThePitchLeaderboardError: false,
+        predictThePitchLeaderboardPositions: {},
+        predictThePitchPositions: {},
+        predictThePitchPrizePool: null,
+        predictThePitchPrizePoolLoading: false,
+        predictThePitchPrizePoolError: false,
         pendingDeeplink: null,
         dismissedCampaignOutcomeToasts: {},
       };
@@ -2119,6 +2165,12 @@ describe('rewardsReducer', () => {
         referralCode: 'PERSISTED123',
         refereeCount: 15,
         referredByCode: null,
+        isVipReferee: false,
+        referredByVipCode: null,
+        vipRefereeDashboard: {},
+        vipRefereeDashboardLoading: false,
+        vipRefereeDashboardError: false,
+        vipRefereeSplashAccepted: {},
         currentTier: {
           id: 'tier-diamond',
           name: 'Diamond',
@@ -2201,6 +2253,7 @@ describe('rewardsReducer', () => {
         vipDashboard: {},
         vipDashboardLoading: false,
         vipDashboardError: false,
+        vipSplashAccepted: {},
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
@@ -2226,6 +2279,14 @@ describe('rewardsReducer', () => {
         perpsTradingCampaignVolume: null,
         perpsTradingCampaignVolumeLoading: false,
         perpsTradingCampaignVolumeError: false,
+        predictThePitchLeaderboard: null,
+        predictThePitchLeaderboardLoading: false,
+        predictThePitchLeaderboardError: false,
+        predictThePitchLeaderboardPositions: {},
+        predictThePitchPositions: {},
+        predictThePitchPrizePool: null,
+        predictThePitchPrizePoolLoading: false,
+        predictThePitchPrizePoolError: false,
         pendingDeeplink: null,
         dismissedCampaignOutcomeToasts: {},
       };
@@ -4783,63 +4844,80 @@ describe('setBenefitsError', () => {
 
 describe('setVipDashboard', () => {
   const mockVipDashboard: VipDashboardState = {
-    program: { id: 'vip', name: 'VIP Pilot' },
+    program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
     period: {
-      start: '2026-03-31T00:00:00.000Z',
-      end: '2026-04-30T23:59:59.999Z',
+      start: '2099-06-01T00:00:00.000Z',
+      end: '2099-06-30T23:59:59.999Z',
     },
-    currentTier: { id: 'gold-fox-vip-3', name: 'Gold Fox VIP 3', tier: 3 },
-    nextTier: { id: 'gold-fox-vip-4', name: 'Gold Fox VIP 4', tier: 4 },
+    computedAt: '2099-06-30T14:52:00.000Z',
+    currentTier: {
+      id: 'mock-tier-alpha-3',
+      name: 'Mock Tier Alpha 3',
+      tier: 3,
+    },
+    nextTier: { id: 'mock-tier-alpha-4', name: 'Mock Tier Alpha 4', tier: 4 },
     progress: {
-      percent: 72,
-      remainingSwapsUsd: 800000,
-      remainingPerpsUsd: 3600000,
-      estimatedDaysToNextTier: 4,
+      percent: 42,
+      remainingPointsToNextTier: 123456,
       status: 'on_track',
     },
     fees: {
-      revenueShareBps: 150,
-      swapsBps: 15,
-      perpsBps: 4,
-      nextTierRevenueShareBps: 200,
-      nextTierSwapsBps: 12,
-      nextTierPerpsBps: 3,
+      revenueShareBps: 99,
+      swapsBps: 11,
+      perpsBps: 7,
+      nextTierRevenueShareBps: 88,
+      nextTierSwapsBps: 9,
+      nextTierPerpsBps: 6,
     },
     volume: {
-      swapsUsd: 4100000,
-      perpsUsd: 2300000,
+      swapsUsd: 1234567,
+      perpsUsd: 9876543,
+      points: 5555555,
+      pointsFromReferrals: 111111,
+      referrals: 3,
+      referralsCap: 7,
     },
     pointsAllocation: {
-      earned: 24400000,
-      max: 100000000,
-      percent: 24.4,
+      earned: 5555555,
+      threshold: 7777777,
+      percent: 71.4,
     },
     tiers: [
       {
-        id: 'gold-fox-vip-3',
-        name: 'Gold Fox 3',
+        id: 'mock-tier-alpha-3',
+        name: 'Mock Tier Alpha 3',
         tier: 3,
-        swapsRequirementUsd: 7000000,
-        perpsRequirementUsd: 35000000,
-        revenueShareBps: 150,
-        swapsBps: 15,
-        perpsBps: 4,
+        pointsRequirement: 321000,
+        revenueShareBps: 99,
+        swapsBps: 11,
+        perpsBps: 7,
+        referralCarryoverBps: 4242,
         status: 'current',
       },
     ],
     localizedText: {
-      period: 'Mar 31 - Apr 30',
-      progressToNextTier: 'Subline',
+      periodTitle: 'Jun 1 - Jun 30',
+      memberIdTitle: 'Member ID',
       swapsFeeTitle: 'Swaps fee',
       perpsFeeTitle: 'Perps fee',
-      nextTierSwapsFeeDelta: '↓ 12 bps next tier',
-      nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+      nextTierSwapsFeeDelta: '↓ 9 bps next tier',
+      nextTierPerpsFeeDelta: '↓ 6 bps next tier',
       revenueShareTitle: 'Revenue share',
-      volumeTitle: 'Volume',
-      statusMessage: 'On track',
+      referralPointsTitle: 'Referral points',
+      nextTierRevenueShareDelta: '↑ 1% next tier',
+      nextTierReferralPointsDelta: '↑ 42% next tier',
+      topTierDescription: 'Top tier reached',
+      statsTitle: 'Volume',
       pointsTitle: 'Points',
-      pointsAllocationTitle: 'Earn VIP allocations',
-      pointsAllocationDescription: 'Body copy',
+      swapsVolumeTitle: 'Swaps Volume',
+      pointsFromReferralsTitle: 'Points from Referrals',
+      perpsVolumeTitle: 'Perps Volume',
+      vipReferralsTitle: 'VIP Referrals',
+      totalPointsTitle: 'Points',
+      equityLockedTitle: 'Earn VIP allocations',
+      equityLockedDescription: 'Body copy',
+      equityUnlockedTitle: 'VIP allocation unlocked',
+      equityUnlockedDescription: 'Unlocked body copy',
     },
     lastFetched: 1767225600000,
   };
@@ -4897,6 +4975,123 @@ describe('setVipDashboardError', () => {
     const state = rewardsReducer(initialState, action);
 
     expect(state.vipDashboardError).toBe(true);
+  });
+});
+
+describe('acceptVipInvite', () => {
+  it('marks the VIP invite as accepted for a subscription', () => {
+    const state = rewardsReducer(
+      initialState,
+      acceptVipInvite({ subscriptionId: 'sub-1' }),
+    );
+
+    expect(state.vipSplashAccepted['sub-1']).toBe(true);
+  });
+
+  it('preserves existing accepted VIP invites for other subscriptions', () => {
+    const stateWithAcceptedInvite: RewardsState = {
+      ...initialState,
+      vipSplashAccepted: {
+        'sub-1': true,
+      },
+    };
+
+    const state = rewardsReducer(
+      stateWithAcceptedInvite,
+      acceptVipInvite({ subscriptionId: 'sub-2' }),
+    );
+
+    expect(state.vipSplashAccepted).toEqual({
+      'sub-1': true,
+      'sub-2': true,
+    });
+  });
+});
+
+describe('VIP referee actions', () => {
+  // Obviously-synthetic fixture — never real VIP codes/figures.
+  const mockRefereeDashboard = {
+    referredByCode: 'TESTCODE',
+    points: 1234,
+    swapsVolume: 1000,
+    perpsVolume: 2000,
+    computedAt: '2099-06-30T14:52:00.000Z',
+    lastFetched: 1767225600000,
+  };
+
+  it('setReferralDetails stores isVipReferee and referredByVipCode', () => {
+    const state = rewardsReducer(
+      initialState,
+      setReferralDetails({
+        referralCode: 'MYCODE',
+        refereeCount: 0,
+        referredByCode: 'TESTCODE',
+        isVipReferee: true,
+        referredByVipCode: 'TESTCODE',
+      }),
+    );
+
+    expect(state.isVipReferee).toBe(true);
+    expect(state.referredByVipCode).toBe('TESTCODE');
+  });
+
+  it('setVipRefereeDashboard sets the dashboard by subscription id and clears error', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      vipRefereeDashboardError: true,
+    };
+    const state = rewardsReducer(
+      stateWithError,
+      setVipRefereeDashboard({
+        subscriptionId: 'sub-1',
+        dashboard: mockRefereeDashboard,
+      }),
+    );
+
+    expect(state.vipRefereeDashboard['sub-1']).toEqual(mockRefereeDashboard);
+    expect(state.vipRefereeDashboardError).toBe(false);
+  });
+
+  it('setVipRefereeDashboard removes the dashboard when payload is null', () => {
+    const stateWithDashboard: RewardsState = {
+      ...initialState,
+      vipRefereeDashboard: { 'sub-1': mockRefereeDashboard },
+    };
+    const state = rewardsReducer(
+      stateWithDashboard,
+      setVipRefereeDashboard({ subscriptionId: 'sub-1', dashboard: null }),
+    );
+
+    expect(state.vipRefereeDashboard['sub-1']).toBeUndefined();
+  });
+
+  it('setVipRefereeDashboardLoading sets the loading flag', () => {
+    const state = rewardsReducer(
+      initialState,
+      setVipRefereeDashboardLoading(true),
+    );
+
+    expect(state.vipRefereeDashboardLoading).toBe(true);
+  });
+
+  it('setVipRefereeDashboardError sets the error flag', () => {
+    const state = rewardsReducer(
+      initialState,
+      setVipRefereeDashboardError(true),
+    );
+
+    expect(state.vipRefereeDashboardError).toBe(true);
+  });
+
+  it('acceptVipRefereeInvite marks the referee splash accepted, distinct from vipSplashAccepted', () => {
+    const state = rewardsReducer(
+      initialState,
+      acceptVipRefereeInvite({ subscriptionId: 'sub-1' }),
+    );
+
+    expect(state.vipRefereeSplashAccepted['sub-1']).toBe(true);
+    // Must NOT touch the regular VIP splash flag.
+    expect(state.vipSplashAccepted['sub-1']).toBeUndefined();
   });
 });
 
@@ -5790,13 +5985,16 @@ const mockPerpsLeaderboard: PerpsTradingCampaignLeaderboardDto = {
   computedAt: '2025-08-15T12:00:00.000Z',
   entries: [],
   totalParticipants: 42,
+  minVolumeForEligibility: 25_000,
 };
 
 const mockPerpsPosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 2,
+  totalParticipants: 42,
   pnl: 100,
-  notionalVolume: 5000,
-  qualified: true,
+  volume: 5000,
+  eligible: true,
+  minVolumeForEligibility: 25000,
   neighbors: [],
   computedAt: '2025-08-15T12:00:00.000Z',
 };
@@ -5962,6 +6160,173 @@ describe('perps trading campaign volume', () => {
 
     const off = rewardsReducer(on, setPerpsTradingCampaignVolumeError(false));
     expect(off.perpsTradingCampaignVolumeError).toBe(false);
+  });
+});
+
+const mockPredictLeaderboard: PredictThePitchLeaderboardDto = {
+  campaignId: 'predict-c-1',
+  computedAt: '2026-06-30T12:00:00.000Z',
+  entries: [],
+  totalParticipants: 10,
+};
+
+const mockPredictPosition: PredictThePitchLeaderboardPositionDto = {
+  rank: 1,
+  totalParticipants: 10,
+  roi: 0.25,
+  pnl: 50,
+  volume: 200,
+  eligible: true,
+  neighbors: [],
+  computedAt: '2026-06-30T12:00:00.000Z',
+  marketsTraded: 3,
+  minimumMarketsTraded: 3,
+};
+
+const mockPredictPositions: PredictThePitchPositionsDto = {
+  openPositions: [
+    {
+      outcomeAssetId: 'token-1',
+      outcomeAsset: 'Yes',
+      conditionId: '0xcondition',
+      conditionName: 'Brazil vs Argentina',
+      conditionSlug: 'brazil-vs-argentina',
+      eventId: '0xnav',
+      eventSlug: 'world-cup',
+      iconUrl: null,
+      capitalDeployed: 200,
+      pnl: 50,
+      roi: 0.25,
+      status: 'open',
+      fillShares: 100,
+      fillSharesBought: 100,
+      fillSharesSold: 0,
+      fillPrice: 2,
+      fillDate: '2026-06-30T12:00:00.000Z',
+    },
+  ],
+  resolvedPositions: [],
+  computedAt: '2026-06-30T12:00:00.000Z',
+};
+
+const mockPredictPrizePool: PredictThePitchPrizePoolDto = {
+  totalVolumeUsd: 1000,
+  unlockedPoolUsd: 500,
+  thresholdsUsd: [0, 1000],
+  poolScheduleUsd: [250, 500],
+  breakdown: [{ rank: 1, amountUsd: 500 }],
+  computedAt: null,
+};
+
+describe('predict the pitch reducers', () => {
+  it('sets and removes leaderboard data', () => {
+    let state = rewardsReducer(
+      { ...initialState, predictThePitchLeaderboardError: true },
+      setPredictThePitchLeaderboard(mockPredictLeaderboard),
+    );
+
+    expect(state.predictThePitchLeaderboard).toEqual(mockPredictLeaderboard);
+    expect(state.predictThePitchLeaderboardError).toBe(false);
+
+    state = rewardsReducer(state, setPredictThePitchLeaderboard(null));
+
+    expect(state.predictThePitchLeaderboard).toBeNull();
+  });
+
+  it('skips leaderboard loading when leaderboard is cached and toggles errors', () => {
+    const withData = rewardsReducer(
+      {
+        ...initialState,
+        predictThePitchLeaderboard: mockPredictLeaderboard,
+      },
+      setPredictThePitchLeaderboardLoading(true),
+    );
+    expect(withData.predictThePitchLeaderboardLoading).toBe(false);
+
+    const withError = rewardsReducer(
+      initialState,
+      setPredictThePitchLeaderboardError(true),
+    );
+    expect(withError.predictThePitchLeaderboardError).toBe(true);
+  });
+
+  it('sets and removes leaderboard positions and positions by subscription/campaign key', () => {
+    let state = rewardsReducer(
+      initialState,
+      setPredictThePitchLeaderboardPosition({
+        subscriptionId: 'sub-1',
+        campaignId: 'predict-c-1',
+        position: mockPredictPosition,
+      }),
+    );
+    state = rewardsReducer(
+      state,
+      setPredictThePitchPositions({
+        subscriptionId: 'sub-1',
+        campaignId: 'predict-c-1',
+        positions: mockPredictPositions,
+      }),
+    );
+
+    expect(
+      state.predictThePitchLeaderboardPositions['sub-1:predict-c-1'],
+    ).toEqual(mockPredictPosition);
+    expect(state.predictThePitchPositions['sub-1:predict-c-1']).toEqual(
+      mockPredictPositions,
+    );
+
+    state = rewardsReducer(
+      state,
+      setPredictThePitchLeaderboardPosition({
+        subscriptionId: 'sub-1',
+        campaignId: 'predict-c-1',
+        position: null,
+      }),
+    );
+    state = rewardsReducer(
+      state,
+      setPredictThePitchPositions({
+        subscriptionId: 'sub-1',
+        campaignId: 'predict-c-1',
+        positions: null,
+      }),
+    );
+
+    expect(
+      state.predictThePitchLeaderboardPositions['sub-1:predict-c-1'],
+    ).toBeUndefined();
+    expect(state.predictThePitchPositions['sub-1:predict-c-1']).toBeUndefined();
+  });
+
+  it('sets and removes prize-pool data', () => {
+    let state = rewardsReducer(
+      { ...initialState, predictThePitchPrizePoolError: true },
+      setPredictThePitchPrizePool(mockPredictPrizePool),
+    );
+
+    expect(state.predictThePitchPrizePool).toEqual(mockPredictPrizePool);
+    expect(state.predictThePitchPrizePoolError).toBe(false);
+
+    state = rewardsReducer(state, setPredictThePitchPrizePool(null));
+
+    expect(state.predictThePitchPrizePool).toBeNull();
+  });
+
+  it('skips prize-pool loading when data is cached and toggles errors', () => {
+    const withData = rewardsReducer(
+      {
+        ...initialState,
+        predictThePitchPrizePool: mockPredictPrizePool,
+      },
+      setPredictThePitchPrizePoolLoading(true),
+    );
+    expect(withData.predictThePitchPrizePoolLoading).toBe(false);
+
+    const withError = rewardsReducer(
+      initialState,
+      setPredictThePitchPrizePoolError(true),
+    );
+    expect(withError.predictThePitchPrizePoolError).toBe(true);
   });
 });
 
@@ -6133,6 +6498,36 @@ describe('ondoCampaignDeposits', () => {
     });
   });
 
+  describe('persist/REHYDRATE — vipSplashAccepted', () => {
+    it('restores accepted VIP invite state from persisted rewards state', () => {
+      const persisted: RewardsState = {
+        ...initialState,
+        vipSplashAccepted: {
+          'sub-1': true,
+        },
+      };
+
+      const state = rewardsReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persisted },
+      });
+
+      expect(state.vipSplashAccepted).toEqual({ 'sub-1': true });
+    });
+
+    it('defaults to empty object when vipSplashAccepted is absent from persisted state', () => {
+      const persisted = { ...initialState } as Partial<RewardsState>;
+      delete persisted.vipSplashAccepted;
+
+      const state = rewardsReducer(initialState, {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persisted },
+      });
+
+      expect(state.vipSplashAccepted).toEqual({});
+    });
+  });
+
   describe('setCandidateSubscriptionId — preserves dismissedCampaignOutcomeToasts', () => {
     it('preserves dismissedCampaignOutcomeToasts when subscription ID changes', () => {
       const stateWithDismissals: RewardsState = {
@@ -6150,6 +6545,27 @@ describe('ondoCampaignDeposits', () => {
 
       expect(state.dismissedCampaignOutcomeToasts).toEqual({
         'campaign-1:old-sub:winner': true,
+      });
+    });
+  });
+
+  describe('setCandidateSubscriptionId — preserves vipSplashAccepted', () => {
+    it('preserves accepted VIP invites when subscription ID changes', () => {
+      const stateWithAcceptedInvite: RewardsState = {
+        ...initialState,
+        candidateSubscriptionId: 'old-sub',
+        vipSplashAccepted: {
+          'old-sub': true,
+        },
+      };
+
+      const state = rewardsReducer(
+        stateWithAcceptedInvite,
+        setCandidateSubscriptionId('new-sub'),
+      );
+
+      expect(state.vipSplashAccepted).toEqual({
+        'old-sub': true,
       });
     });
   });

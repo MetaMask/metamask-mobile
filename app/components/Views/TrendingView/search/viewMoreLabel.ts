@@ -3,55 +3,45 @@ import type { SearchFeedId } from './useExploreSearch';
 
 export const MAX_ITEMS_PER_SECTION = 3;
 
-/**
- * Feeds whose full result set is available client-side, enabling an exact
- * "View X more" count. Predictions is included but uses `hasMore` as a
- * fallback when the loaded page has ≤ MAX_ITEMS_PER_SECTION results.
- */
+/** Feeds whose result set is fully loaded client-side; count-based "View X more" is exact. */
 export const LOCAL_SEARCH_FEEDS: ReadonlySet<SearchFeedId> = new Set([
   'perps',
-  'stocks',
   'sites',
-  'predictions',
 ]);
 
 /**
- * Returns the label for the "View all / View X more / View more" button in a
- * search section header.
+ * Label for the section header "View X more" button, or `null` when the
+ * button should not be shown.
  *
- * Local-search feeds (perps, stocks, sites, predictions) show an exact count
- * when the active query produces more than MAX_ITEMS_PER_SECTION hits.
- * For predictions, falls back to "View more" when the server signals there are
- * additional pages (hasMore) but the loaded slice fits in the preview.
- * Tokens use totalCount from the search API to compute the remaining count
- * across all pages not yet loaded.
- * The no-query state always shows "View all".
+ * Returns `null` when there is an active query but all results fit within the
+ * section cap — there is nothing more to reveal.
+ *
+ * @param visibleCount - items loaded in the section (may exceed MAX_ITEMS_PER_SECTION)
+ * @param searchQuery  - current search input
+ * @param serverTotal  - server-reported total for feeds that expose it (tokens, predictions)
  */
 export function getViewMoreLabel(
   feedId: SearchFeedId,
-  totalItems: number,
+  visibleCount: number,
   searchQuery: string,
-  hasMore?: boolean,
-  totalCount?: number,
-): string {
-  if (searchQuery.trim()) {
-    if (LOCAL_SEARCH_FEEDS.has(feedId)) {
-      const extra = totalItems - MAX_ITEMS_PER_SECTION;
-      if (extra > 0) {
-        return strings('trending.view_x_more', { count: extra });
-      }
-      // Predictions: loaded page fits within the preview but server has more pages
-      if (hasMore) {
-        return strings('trending.view_more');
-      }
-    } else if (feedId === 'tokens' && totalCount !== undefined) {
-      // totalCount covers all pages from the API; subtract what is already
-      // visible (capped at the preview limit) to get the remaining count.
-      const extra = totalCount - Math.min(totalItems, MAX_ITEMS_PER_SECTION);
-      if (extra > 0) {
-        return strings('trending.view_x_more', { count: extra });
-      }
-    }
+  serverTotal?: number,
+): string | null {
+  if (!searchQuery.trim()) {
+    return strings('trending.view_all');
   }
+
+  if (serverTotal !== undefined) {
+    if (serverTotal <= MAX_ITEMS_PER_SECTION) return null;
+    const hidden = serverTotal - Math.min(visibleCount, MAX_ITEMS_PER_SECTION);
+    return strings('trending.view_x_more', { count: hidden });
+  }
+
+  const hidden = visibleCount - MAX_ITEMS_PER_SECTION;
+  if (hidden <= 0) return null;
+
+  if (LOCAL_SEARCH_FEEDS.has(feedId)) {
+    return strings('trending.view_x_more', { count: hidden });
+  }
+
   return strings('trending.view_all');
 }

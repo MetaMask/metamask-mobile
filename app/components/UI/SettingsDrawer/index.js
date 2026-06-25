@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import PropTypes from 'prop-types';
 import { fontStyles } from '../../../styles/common';
 import { useTheme } from '../../../util/theme';
+import Pressable from '../../../component-library/components-temp/Pressable';
 import Icon, {
   IconColor,
   IconName,
@@ -12,16 +13,15 @@ import {
   Box,
   BoxFlexDirection,
   FontWeight,
-  ListItem,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import ListItem from '../../../component-library/components/List/ListItem';
 
 const createStyles = (colors) =>
   StyleSheet.create({
     root: {
-      backgroundColor: colors.background.default,
       paddingTop: 12,
       paddingBottom: 12,
       paddingLeft: 16,
@@ -100,7 +100,7 @@ const SettingsDrawer = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   return (
-    <TouchableOpacity onPress={onPress} testID={testID}>
+    <Pressable onPress={onPress} testID={testID}>
       <ListItem style={styles.root} gap={16}>
         <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
           <Text
@@ -146,7 +146,7 @@ const SettingsDrawer = ({
           </Box>
         )}
       </ListItem>
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

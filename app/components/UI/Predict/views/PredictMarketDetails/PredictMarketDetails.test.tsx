@@ -128,10 +128,12 @@ jest.mock('../../../../../component-library/components/Buttons/Button', () => {
 
 const mockOpenBuySheet = jest.fn();
 const mockOpenSellSheet = jest.fn();
+let mockIsBuySheetOpen = false;
 jest.mock('../../contexts', () => ({
   usePredictPreviewSheet: () => ({
     openBuySheet: mockOpenBuySheet,
     openSellSheet: mockOpenSellSheet,
+    isBuySheetOpen: mockIsBuySheetOpen,
   }),
 }));
 
@@ -774,6 +776,7 @@ describe('PredictMarketDetails', () => {
   afterEach(() => {
     jest.clearAllMocks();
     mockRunAfterInteractions.mockReset();
+    mockIsBuySheetOpen = false;
   });
 
   afterAll(() => {
@@ -793,6 +796,31 @@ describe('PredictMarketDetails', () => {
       const { mockMarket } = setupPredictMarketDetailsTest();
 
       expect(screen.getByText(mockMarket.title)).toBeOnTheScreen();
+    });
+
+    it('tracks market details opened with explore entry point from route params', async () => {
+      setupPredictMarketDetailsTest(
+        {},
+        {
+          params: {
+            marketId: 'market-1',
+            entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+          },
+        },
+      );
+
+      const trackMarketDetailsOpened =
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('../../../../../core/Engine').context.PredictController
+          .trackMarketDetailsOpened;
+
+      await waitFor(() => {
+        expect(trackMarketDetailsOpened).toHaveBeenCalledWith(
+          expect.objectContaining({
+            entryPoint: PredictEventValues.ENTRY_POINT.EXPLORE,
+          }),
+        );
+      });
     });
 
     it('displays loading state when market is fetching', () => {
@@ -1489,12 +1517,14 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithoutPrice);
 
-      // The component now shows 0% in the action buttons when price is undefined
+      // Each button now shows its own token's price: the Yes token has no
+      // price so it shows 0c, while the No token shows its real 35c (no longer
+      // the synthetic 100 - yes complement).
       const actionButtons = getActionButtons();
       const buttonLabels = actionButtons.map(getActionButtonText);
 
       expect(buttonLabels).toEqual(
-        expect.arrayContaining(['Yes•0¢', 'No•100¢']),
+        expect.arrayContaining(['Yes•0¢', 'No•35¢']),
       );
     });
   });
@@ -2120,9 +2150,9 @@ describe('PredictMarketDetails', () => {
 
       setupPredictMarketDetailsTest(marketWithUndefinedPrice);
 
-      // The component now shows 0% in the action buttons when price is undefined
+      // Yes has no price -> 0c; No shows its own price (35c), not 100 - yes.
       const yesButton = findActionButtonByPrice(0);
-      const noButton = findActionButtonByPrice(100);
+      const noButton = findActionButtonByPrice(35);
 
       expect(yesButton).toBeDefined();
       expect(noButton).toBeDefined();
@@ -3539,6 +3569,69 @@ describe('PredictMarketDetails', () => {
           queries: expect.any(Array),
         }),
       );
+    });
+
+    it('pauses and resumes broad outcome price updates as buy sheet visibility changes', () => {
+      const { usePredictPrices } = jest.requireMock(
+        '../../hooks/usePredictPrices',
+      );
+      const { useLiveMarketPrices } = jest.requireMock(
+        '../../hooks/useLiveMarketPrices',
+      );
+      const worldCupWinnerMarket = createMockMarket({
+        status: 'open',
+        outcomes: Array.from({ length: 64 }, (_, index) => ({
+          id: `outcome-${index + 1}`,
+          title: `Team ${index + 1}`,
+          groupItemTitle: `Team ${index + 1}`,
+          status: 'open',
+          tokens: [
+            { id: `token-${index + 1}-yes`, title: 'Yes', price: 0.5 },
+            { id: `token-${index + 1}-no`, title: 'No', price: 0.5 },
+          ],
+          volume: 1000000,
+        })),
+      });
+
+      mockIsBuySheetOpen = false;
+      const { rerender } = setupPredictMarketDetailsTest(worldCupWinnerMarket);
+
+      expect(usePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: true,
+          pollingInterval: 2000,
+        }),
+      );
+      expect(useLiveMarketPrices).toHaveBeenLastCalledWith(expect.any(Array), {
+        enabled: true,
+      });
+
+      mockIsBuySheetOpen = true;
+      rerender(<PredictMarketDetails />);
+
+      expect(usePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: false,
+          queries: [],
+          pollingInterval: undefined,
+        }),
+      );
+      expect(useLiveMarketPrices).toHaveBeenLastCalledWith([], {
+        enabled: false,
+      });
+
+      mockIsBuySheetOpen = false;
+      rerender(<PredictMarketDetails />);
+
+      expect(usePredictPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          enabled: true,
+          pollingInterval: 2000,
+        }),
+      );
+      expect(useLiveMarketPrices).toHaveBeenLastCalledWith(expect.any(Array), {
+        enabled: true,
+      });
     });
 
     it('handles price fetching errors gracefully', () => {

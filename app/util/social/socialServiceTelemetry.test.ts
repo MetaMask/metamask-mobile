@@ -1,9 +1,17 @@
+import { renderHook } from '@testing-library/react-native';
 import { addBreadcrumb } from '@sentry/react-native';
+import Logger from '../Logger';
 import {
   extractHttpStatus,
   categoriseSocialError,
   buildSocialErrorExtras,
+  buildSocialLoggerErrorOptions,
+  formatSocialExtraMessage,
+  formatSocialQueryErrorMessage,
+  reportSocialServiceFailure,
+  useLogSocialQueryError,
   addSocialBreadcrumb,
+  SOCIAL_SENTRY_FEATURE,
   type SocialEndpoint,
 } from './socialServiceTelemetry';
 
@@ -11,7 +19,12 @@ jest.mock('@sentry/react-native', () => ({
   addBreadcrumb: jest.fn(),
 }));
 
+jest.mock('../Logger', () => ({
+  error: jest.fn(),
+}));
+
 const mockAddBreadcrumb = addBreadcrumb as jest.Mock;
+const mockLoggerError = Logger.error as jest.Mock;
 
 // ---------------------------------------------------------------------------
 // Helpers to create errors matching the shapes SocialService throws
@@ -137,14 +150,14 @@ describe('categoriseSocialError', () => {
 // ---------------------------------------------------------------------------
 
 describe('buildSocialErrorExtras', () => {
-  it('preserves legacyMessage verbatim under the message field', () => {
-    const legacy = 'useTopTraders: leaderboard fetch failed';
+  it('maps extraMessage to the message field in extras', () => {
+    const extraMessage = 'useTopTraders: leaderboard fetch failed';
     const result = buildSocialErrorExtras({
-      legacyMessage: legacy,
+      extraMessage,
       endpoint: 'leaderboard',
       error: new Error('something'),
     });
-    expect(result.message).toBe(legacy);
+    expect(result.message).toBe(extraMessage);
   });
 
   it('includes endpoint, errorCategory, errorMessage', () => {
@@ -152,7 +165,7 @@ describe('buildSocialErrorExtras', () => {
       'SocialService: Leaderboard returned invalid response',
     );
     const result = buildSocialErrorExtras({
-      legacyMessage: 'msg',
+      extraMessage: 'msg',
       endpoint: 'leaderboard',
       error,
     });
@@ -163,7 +176,7 @@ describe('buildSocialErrorExtras', () => {
 
   it('includes httpStatus when the error is an HttpError', () => {
     const result = buildSocialErrorExtras({
-      legacyMessage: 'msg',
+      extraMessage: 'msg',
       endpoint: 'following',
       error: makeHttpError(403, 'Forbidden'),
     });
@@ -173,7 +186,7 @@ describe('buildSocialErrorExtras', () => {
 
   it('omits httpStatus when not an HttpError', () => {
     const result = buildSocialErrorExtras({
-      legacyMessage: 'msg',
+      extraMessage: 'msg',
       endpoint: 'leaderboard',
       error: new Error('plain'),
     });
@@ -182,7 +195,7 @@ describe('buildSocialErrorExtras', () => {
 
   it('includes durationMs and queryParams when provided', () => {
     const result = buildSocialErrorExtras({
-      legacyMessage: 'msg',
+      extraMessage: 'msg',
       endpoint: 'open_positions',
       error: new Error('plain'),
       durationMs: 250,
@@ -194,7 +207,7 @@ describe('buildSocialErrorExtras', () => {
 
   it('does NOT leak an addressOrId field even if accidentally passed', () => {
     const result = buildSocialErrorExtras({
-      legacyMessage: 'msg',
+      extraMessage: 'msg',
       endpoint: 'open_positions',
       error: new Error('plain'),
       // Simulate a caller accidentally passing address-like data via queryParams
@@ -205,6 +218,281 @@ describe('buildSocialErrorExtras', () => {
     expect(Object.keys(result)).not.toContain('addressOrId');
     expect(Object.keys(result)).not.toContain('address');
     expect(Object.keys(result)).not.toContain('profileId');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatSocialExtraMessage
+// ---------------------------------------------------------------------------
+
+describe('formatSocialExtraMessage', () => {
+  it('returns the message unchanged when source is omitted', () => {
+    expect(formatSocialExtraMessage('Error submitting QuickBuy tx')).toBe(
+      'Error submitting QuickBuy tx',
+    );
+  });
+
+  it('appends at {source} when source is provided', () => {
+    expect(
+      formatSocialExtraMessage(
+        'Error submitting QuickBuy tx',
+        'useQuickBuyBottomSheet',
+      ),
+    ).toBe('Error submitting QuickBuy tx at useQuickBuyBottomSheet');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// buildSocialLoggerErrorOptions
+// ---------------------------------------------------------------------------
+
+describe('buildSocialLoggerErrorOptions', () => {
+  it('sets feature:social tags and hybrid extra message in extras', () => {
+    const error = makeHttpError(503, 'Service unavailable');
+    const result = buildSocialLoggerErrorOptions({
+      surface: 'top_traders',
+      operation: 'fetch_leaderboard',
+      extraMessage: 'Top traders leaderboard fetch failed',
+      source: 'useTopTraders',
+      endpoint: 'leaderboard',
+      error,
+      queryParams: { limit: 10 },
+    });
+
+    expect(result.tags).toEqual(
+      expect.objectContaining({
+        feature: SOCIAL_SENTRY_FEATURE,
+        surface: 'top_traders',
+        operation: 'fetch_leaderboard',
+        endpoint: 'leaderboard',
+        source: 'useTopTraders',
+        errorCategory: 'http_error',
+      }),
+    );
+    expect(result.extras).toEqual(
+      expect.objectContaining({
+        message: 'Top traders leaderboard fetch failed at useTopTraders',
+        httpStatus: 503,
+      }),
+    );
+    expect(result.context).toEqual({
+      name: 'social',
+      data: {
+        operation: 'fetch_leaderboard',
+        source: 'useTopTraders',
+        endpoint: 'leaderboard',
+        queryParams: { limit: 10 },
+      },
+    });
+  });
+
+  it('supports quick_buy without a SocialService endpoint', () => {
+    const error = new Error('submit failed');
+    const result = buildSocialLoggerErrorOptions({
+      surface: 'quick_buy',
+      operation: 'submit_tx',
+      extraMessage: 'Error submitting QuickBuy tx',
+      source: 'useQuickBuyBottomSheet',
+      error,
+      extraTags: { sourceChainId: '0x1' },
+    });
+
+    expect(result.tags?.feature).toBe('social');
+    expect(result.tags?.surface).toBe('quick_buy');
+    expect(result.tags?.source).toBe('useQuickBuyBottomSheet');
+    expect(result.tags?.sourceChainId).toBe('0x1');
+    expect(result.extras).toEqual(
+      expect.objectContaining({
+        message: 'Error submitting QuickBuy tx at useQuickBuyBottomSheet',
+        errorCategory: 'unknown',
+      }),
+    );
+    expect(result.context?.data).toEqual({
+      operation: 'submit_tx',
+      source: 'useQuickBuyBottomSheet',
+    });
+  });
+
+  it('includes durationMs and queryParams on the non-endpoint extras branch', () => {
+    const result = buildSocialLoggerErrorOptions({
+      surface: 'quick_buy',
+      operation: 'fetch_quotes',
+      extraMessage: 'Error fetching QuickBuy quotes',
+      error: new Error('Network request failed'),
+      queryParams: { destChainId: '0x89' },
+      durationMs: 120,
+    });
+
+    expect(result.extras).toEqual({
+      message: 'Error fetching QuickBuy quotes',
+      errorCategory: 'network_error',
+      errorMessage: 'Network request failed',
+      queryParams: { destChainId: '0x89' },
+      durationMs: 120,
+    });
+    expect(result.context?.data).toEqual({
+      operation: 'fetch_quotes',
+      queryParams: { destChainId: '0x89' },
+    });
+    expect(result.tags?.endpoint).toBeUndefined();
+    expect(result.tags?.source).toBeUndefined();
+  });
+
+  it('formats non-Error throw values in errorMessage', () => {
+    const result = buildSocialLoggerErrorOptions({
+      surface: 'top_traders',
+      operation: 'fetch_leaderboard',
+      extraMessage: 'Top traders leaderboard fetch failed',
+      endpoint: 'leaderboard',
+      error: 'offline',
+    });
+
+    expect(result.extras).toEqual(
+      expect.objectContaining({
+        errorMessage: 'offline',
+        errorCategory: 'unknown',
+      }),
+    );
+  });
+
+  it('omits source tag when source is not provided', () => {
+    const result = buildSocialLoggerErrorOptions({
+      surface: 'top_traders',
+      operation: 'refresh',
+      extraMessage: 'Top traders refresh failed',
+      endpoint: 'leaderboard',
+      error: new Error('fail'),
+    });
+
+    expect(result.extras).toEqual(
+      expect.objectContaining({
+        message: 'Top traders refresh failed',
+      }),
+    );
+    expect(result.tags?.source).toBeUndefined();
+    expect(result.context?.data).toEqual({
+      operation: 'refresh',
+      endpoint: 'leaderboard',
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// formatSocialQueryErrorMessage
+// ---------------------------------------------------------------------------
+
+describe('formatSocialQueryErrorMessage', () => {
+  it('returns null when error is falsy', () => {
+    expect(formatSocialQueryErrorMessage(null)).toBeNull();
+    expect(formatSocialQueryErrorMessage(undefined)).toBeNull();
+  });
+
+  it('returns the message from an Error instance', () => {
+    expect(formatSocialQueryErrorMessage(new Error('boom'))).toBe('boom');
+  });
+
+  it('stringifies non-Error values', () => {
+    expect(formatSocialQueryErrorMessage('offline')).toBe('offline');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// reportSocialServiceFailure
+// ---------------------------------------------------------------------------
+
+describe('reportSocialServiceFailure', () => {
+  beforeEach(() => {
+    mockLoggerError.mockClear();
+    mockAddBreadcrumb.mockClear();
+  });
+
+  it('logs with feature:social tags and emits a breadcrumb by default', () => {
+    const error = new Error('fetch failed');
+    reportSocialServiceFailure(error, {
+      surface: 'followed_traders',
+      operation: 'fetch_following',
+      extraMessage: 'Followed traders fetch failed',
+      source: 'useFollowedTraders',
+      endpoint: 'following',
+    });
+
+    expect(mockLoggerError).toHaveBeenCalledWith(
+      error,
+      expect.objectContaining({
+        tags: expect.objectContaining({
+          feature: SOCIAL_SENTRY_FEATURE,
+          surface: 'followed_traders',
+          operation: 'fetch_following',
+        }),
+      }),
+    );
+    expect(mockAddBreadcrumb).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: 'social_service',
+        message: expect.stringContaining('social_service.following.failure'),
+      }),
+    );
+  });
+
+  it('skips the breadcrumb when breadcrumb is false', () => {
+    reportSocialServiceFailure(
+      new Error('refresh failed'),
+      {
+        surface: 'trader_profile',
+        operation: 'refresh',
+        extraMessage: 'Trader profile refresh failed',
+        source: 'useTraderProfile',
+        endpoint: 'trader_profile',
+      },
+      { breadcrumb: false },
+    );
+
+    expect(mockLoggerError).toHaveBeenCalled();
+    expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+  });
+
+  it('skips the breadcrumb when endpoint is omitted', () => {
+    reportSocialServiceFailure(new Error('refetch failed'), {
+      surface: 'trader_profile',
+      operation: 'refetch_positions',
+      extraMessage: 'Trader positions refetch failed',
+      source: 'useTraderPositions',
+    });
+
+    expect(mockLoggerError).toHaveBeenCalled();
+    expect(mockAddBreadcrumb).not.toHaveBeenCalled();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// useLogSocialQueryError
+// ---------------------------------------------------------------------------
+
+describe('useLogSocialQueryError', () => {
+  beforeEach(() => {
+    mockLoggerError.mockClear();
+    mockAddBreadcrumb.mockClear();
+  });
+
+  it('reports when error is set and does not report when error clears', () => {
+    const context = {
+      surface: 'trader_profile' as const,
+      operation: 'fetch_profile',
+      extraMessage: 'Trader profile fetch failed',
+      source: 'useTraderProfile',
+      endpoint: 'trader_profile' as const,
+    };
+
+    const { rerender } = renderHook(
+      ({ queryError }: { queryError: unknown }) =>
+        useLogSocialQueryError(queryError, context),
+      { initialProps: { queryError: new Error('fail') as unknown } },
+    );
+
+    expect(mockLoggerError).toHaveBeenCalledTimes(1);
+
+    rerender({ queryError: null });
+    expect(mockLoggerError).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -229,6 +517,17 @@ describe('addSocialBreadcrumb', () => {
     addSocialBreadcrumb({ endpoint: 'leaderboard' });
     const { message } = mockAddBreadcrumb.mock.calls[0][0];
     expect(message).toBe('social_service.leaderboard.failure');
+  });
+
+  it('appends category without status when only errorCategory is provided', () => {
+    addSocialBreadcrumb({
+      endpoint: 'closed_positions',
+      errorCategory: 'network_error',
+    });
+    const { message } = mockAddBreadcrumb.mock.calls[0][0];
+    expect(message).toBe(
+      'social_service.closed_positions.failure category=network_error',
+    );
   });
 
   it('appends status and category when provided', () => {
@@ -272,6 +571,9 @@ describe('addSocialBreadcrumb', () => {
       'open_positions',
       'closed_positions',
       'position_by_id',
+      'trader_profile',
+      'follow',
+      'unfollow',
     ];
     endpoints.forEach((endpoint) => {
       mockAddBreadcrumb.mockClear();

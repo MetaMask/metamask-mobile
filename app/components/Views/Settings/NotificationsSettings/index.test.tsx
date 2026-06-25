@@ -6,22 +6,65 @@ import { Props } from './NotificationsSettings.types';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../../util/test/accountsControllerTestUtils';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 import { NotificationSettingsViewSelectorsIDs } from './NotificationSettingsView.testIds';
+import { strings } from '../../../../../locales/i18n';
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('7.72.0'),
+}));
 
 jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
   selectPerpsEnabledFlag: jest.fn().mockReturnValue(true),
 }));
 
-const mockInitialState = {
+const createMockState = ({
+  notificationsEnabled = false,
+  socialLeaderboardEnabled = false,
+} = {}) => ({
   settings: {
     avatarAccountType: AvatarAccountType.Maskicon,
+    basicFunctionalityEnabled: true,
   },
   engine: {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      NotificationServicesController: {
+        ...backgroundState.NotificationServicesController,
+        isNotificationServicesEnabled: notificationsEnabled,
+      },
+      RemoteFeatureFlagController: {
+        ...backgroundState.RemoteFeatureFlagController,
+        remoteFeatureFlags: {
+          ...backgroundState.RemoteFeatureFlagController.remoteFeatureFlags,
+          aiSocialLeaderboardEnabled: {
+            enabled: socialLeaderboardEnabled,
+            minimumVersion: '0.0.1',
+          },
+        },
+      },
     },
   },
-};
+});
+
+const setOptions = jest.fn();
+
+const renderNotificationsSettings = (
+  state = createMockState(),
+  navigation = {
+    setOptions,
+    goBack: jest.fn(),
+    navigate: jest.fn(),
+  } as unknown as Props['navigation'],
+) =>
+  renderWithProvider(
+    <NotificationsSettings
+      navigation={navigation}
+      route={{} as unknown as Props['route']}
+    />,
+    {
+      state,
+    },
+  );
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -40,8 +83,6 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../UI/Notification/SwitchLoadingModal', () => () => null);
-
 jest.mock('./hooks/useNotificationStoragePreferences', () => ({
   useNotificationStoragePreferences: () => ({
     preferences: {
@@ -50,6 +91,10 @@ jest.mock('./hooks/useNotificationStoragePreferences', () => ({
         inAppNotificationsEnabled: false,
       },
       perps: {
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: false,
+      },
+      agenticCli: {
         pushNotificationsEnabled: false,
         inAppNotificationsEnabled: false,
       },
@@ -76,25 +121,42 @@ jest.mock('./hooks/useNotificationStoragePreferences', () => ({
   }),
 }));
 
-const setOptions = jest.fn();
+const socialAISectionTitle = strings(
+  'app_settings.notifications_opts.social_ai_title',
+);
 
 describe('NotificationsSettings', () => {
-  it('renders correctly', () => {
-    const { getByTestId } = renderWithProvider(
-      <NotificationsSettings
-        navigation={
-          {
-            setOptions,
-          } as unknown as Props['navigation']
-        }
-        route={{} as unknown as Props['route']}
-      />,
-      {
-        state: mockInitialState,
-      },
-    );
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('renders main notifications toggle', () => {
+    const { getByTestId } = renderNotificationsSettings();
+
     expect(
       getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
     ).toBeOnTheScreen();
+  });
+
+  it('renders social AI section when social leaderboard feature flag is enabled', () => {
+    const state = createMockState({
+      notificationsEnabled: true,
+      socialLeaderboardEnabled: true,
+    });
+
+    const { getByText } = renderNotificationsSettings(state);
+
+    expect(getByText(socialAISectionTitle)).toBeOnTheScreen();
+  });
+
+  it('hides social AI section when social leaderboard feature flag is disabled', () => {
+    const state = createMockState({
+      notificationsEnabled: true,
+      socialLeaderboardEnabled: false,
+    });
+
+    const { queryByText } = renderNotificationsSettings(state);
+
+    expect(queryByText(socialAISectionTitle)).toBeNull();
   });
 });

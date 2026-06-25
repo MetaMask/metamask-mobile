@@ -5,12 +5,21 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Pressable, RefreshControl, ScrollView } from 'react-native';
+import {
+  type LayoutChangeEvent,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+} from 'react-native';
 import { FlashList } from '@shopify/flash-list';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { v4 as uuidv4 } from 'uuid';
+import {
+  Theme,
+  ThemeProvider as DesignSystemThemeProvider,
+  useTailwind,
+  useTheme as useDesignSystemTheme,
+} from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   HeaderStandard,
@@ -19,7 +28,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import {
   selectPredictWorldCupConfig,
@@ -29,6 +37,7 @@ import type {
   PredictEntryPoint,
   PredictNavigationParamList,
 } from '../../types/navigation';
+import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import type { PredictMarket as PredictMarketType } from '../../types';
 import {
   resolvePredictWorldCupInitialTab,
@@ -37,6 +46,8 @@ import {
 import {
   usePredictWorldCupAvailableTabs,
   usePredictWorldCupMarkets,
+  usePredictWorldCupFeedSession,
+  type PredictWorldCupAvailableTab,
 } from '../../hooks';
 import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
@@ -60,19 +71,101 @@ export const PREDICT_WORLD_CUP_SCREEN_TEST_IDS = {
 
 type WorldCupConfigSubset = Pick<
   PredictWorldCupConfig,
-  'seriesId' | 'tagSlug' | 'gamesTagId' | 'stages'
+  'tagSlug' | 'gamesTagId' | 'stages'
 >;
 
 interface WorldCupTabContentProps {
   activeTab: PredictWorldCupTabKey;
   config: WorldCupConfigSubset;
   entryPoint?: PredictEntryPoint;
+  transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
+
+interface WorldCupTabButtonProps {
+  tab: PredictWorldCupAvailableTab;
+  isActive: boolean;
+  onPress: () => void;
+  onLayout: (event: LayoutChangeEvent) => void;
+}
+
+const WorldCupLiveTabLabelContent = ({ label }: { label: string }) => {
+  const tw = useTailwind();
+
+  return (
+    <>
+      <PulsingLiveDot color={tw.color('success-default')} />
+      <Text
+        variant={TextVariant.BodySm}
+        style={tw.style('font-medium leading-[22px]', 'text-success-default')}
+      >
+        {label}
+      </Text>
+    </>
+  );
+};
+
+const WorldCupLiveTabLabel = ({
+  label,
+  isActive,
+}: {
+  label: string;
+  isActive: boolean;
+}) => {
+  const designSystemTheme = useDesignSystemTheme();
+  const inverseDesignSystemTheme =
+    designSystemTheme === Theme.Dark ? Theme.Light : Theme.Dark;
+
+  if (!isActive) {
+    return <WorldCupLiveTabLabelContent label={label} />;
+  }
+
+  return (
+    <DesignSystemThemeProvider theme={inverseDesignSystemTheme}>
+      <WorldCupLiveTabLabelContent label={label} />
+    </DesignSystemThemeProvider>
+  );
+};
+
+const WorldCupTabButton = ({
+  tab,
+  isActive,
+  onPress,
+  onLayout,
+}: WorldCupTabButtonProps) => {
+  const tw = useTailwind();
+
+  return (
+    <Pressable
+      onPress={onPress}
+      onLayout={onLayout}
+      style={tw.style(
+        'min-w-[51px] flex-row items-center justify-center gap-2 rounded-xl bg-muted p-2',
+        isActive && 'bg-icon-default',
+      )}
+      testID={`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-${tab.key}`}
+    >
+      {tab.isLive ? (
+        <WorldCupLiveTabLabel label={tab.label} isActive={isActive} />
+      ) : (
+        <Text
+          color={
+            isActive ? TextColor.PrimaryInverse : TextColor.TextAlternative
+          }
+          variant={TextVariant.BodySm}
+          style={tw.style('font-medium leading-[22px]')}
+        >
+          {tab.label}
+        </Text>
+      )}
+    </Pressable>
+  );
+};
 
 const WorldCupTabContent = ({
   activeTab,
   config,
   entryPoint,
+  transactionActiveAbTests,
 }: WorldCupTabContentProps) => {
   const tw = useTailwind();
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -110,9 +203,12 @@ const WorldCupTabContent = ({
         market={item}
         entryPoint={entryPoint}
         testID={`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_CARD}-${index + 1}`}
+        predictFeedTab={activeTab}
+        predictScreen={PredictEventValues.PREDICT_SCREEN.WORLD_CUP}
+        transactionActiveAbTests={transactionActiveAbTests}
       />
     ),
-    [entryPoint],
+    [activeTab, entryPoint, transactionActiveAbTests],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);
@@ -193,15 +289,14 @@ const WorldCupTabContent = ({
 
 const PredictWorldCup: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
-  const hasTrackedInitialFeedViewed = useRef(false);
-  const feedSessionId = useMemo(() => uuidv4(), []);
-  const feedSessionStartTime = useMemo(() => Date.now(), []);
-  const feedPageViewCount = useRef(0);
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictWorldCup'>>();
   const config = useSelector(selectPredictWorldCupConfig);
   const isScreenEnabled = useSelector(selectPredictWorldCupScreenEnabledFlag);
+
+  const entryPoint = (route.params?.entryPoint ??
+    PredictEventValues.ENTRY_POINT.PREDICT_FEED) as PredictEntryPoint;
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   const {
     tabs,
@@ -222,13 +317,29 @@ const PredictWorldCup: React.FC = () => {
     [availability, config, route.params?.initialTab],
   );
 
-  const [activeTab, setActiveTab] = useState<PredictWorldCupTabKey>(initialTab);
-  const entryPoint = (route.params?.entryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED) as PredictEntryPoint;
+  const {
+    activeTab,
+    tabsScrollViewRef,
+    feedSessionId,
+    feedSessionStartTime,
+    getPageViewCount,
+    handleTabLayout,
+    handleTabPress,
+    navigateToMarketList,
+    handleBack,
+  } = usePredictWorldCupFeedSession<PredictWorldCupTabKey>({
+    initialTab,
+    entryPoint,
+    routeEntryPoint: route.params?.entryPoint as PredictEntryPoint | undefined,
+    transactionActiveAbTests,
+  });
+
+  const hasTrackedInitialFeedViewed = useRef(false);
 
   useEffect(() => {
-    setActiveTab(initialTab);
-  }, [initialTab]);
+    if (isScreenEnabled) return;
+    navigateToMarketList();
+  }, [isScreenEnabled, navigateToMarketList]);
 
   useEffect(() => {
     if (
@@ -244,7 +355,7 @@ const PredictWorldCup: React.FC = () => {
       sessionId: feedSessionId,
       feedTab: initialTab,
       predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
-      numPagesViewed: feedPageViewCount.current,
+      numPagesViewed: getPageViewCount(),
       sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
       entryPoint,
       isSessionEnd: false,
@@ -254,54 +365,12 @@ const PredictWorldCup: React.FC = () => {
     entryPoint,
     feedSessionId,
     feedSessionStartTime,
+    getPageViewCount,
     initialTab,
     isAvailabilityFetching,
     isAvailabilityLoading,
     isScreenEnabled,
   ]);
-
-  useEffect(() => {
-    if (isScreenEnabled) {
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MARKET_LIST, {
-      entryPoint: route.params?.entryPoint,
-    });
-  }, [isScreenEnabled, navigation, route.params?.entryPoint]);
-
-  const handleBack = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MARKET_LIST, {
-      entryPoint: route.params?.entryPoint,
-    });
-  }, [navigation, route.params?.entryPoint]);
-
-  const handleTabPress = useCallback(
-    (tabKey: PredictWorldCupTabKey) => {
-      if (tabKey === activeTab) {
-        return;
-      }
-
-      feedPageViewCount.current += 1;
-
-      Engine.context.PredictController.trackFeedViewed({
-        sessionId: feedSessionId,
-        feedTab: tabKey,
-        predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
-        numPagesViewed: feedPageViewCount.current,
-        sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
-        entryPoint,
-        isSessionEnd: false,
-      });
-      setActiveTab(tabKey);
-    },
-    [activeTab, entryPoint, feedSessionId, feedSessionStartTime],
-  );
 
   if (!isScreenEnabled) {
     return null;
@@ -321,45 +390,22 @@ const PredictWorldCup: React.FC = () => {
 
       <Box twClassName="flex-1">
         <ScrollView
+          ref={tabsScrollViewRef}
           horizontal
           showsHorizontalScrollIndicator={false}
           style={tw.style('grow-0')}
           contentContainerStyle={tw.style('gap-2 px-4 pb-4')}
           testID={PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TABS}
         >
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.key;
-
-            return (
-              <Pressable
-                key={tab.key}
-                onPress={() => handleTabPress(tab.key)}
-                style={tw.style(
-                  'min-w-[51px] flex-row items-center justify-center gap-2 rounded-xl bg-muted p-2',
-                  isActive && 'bg-icon-default',
-                )}
-                testID={`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-${tab.key}`}
-              >
-                {tab.isLive && (
-                  <PulsingLiveDot color={tw.color('success-default')} />
-                )}
-                <Text
-                  color={
-                    isActive
-                      ? TextColor.PrimaryInverse
-                      : TextColor.TextAlternative
-                  }
-                  variant={TextVariant.BodySm}
-                  style={tw.style(
-                    'font-medium leading-[22px]',
-                    tab.isLive && !isActive && 'text-success-default',
-                  )}
-                >
-                  {tab.label}
-                </Text>
-              </Pressable>
-            );
-          })}
+          {tabs.map((tab) => (
+            <WorldCupTabButton
+              key={tab.key}
+              tab={tab}
+              isActive={activeTab === tab.key}
+              onPress={() => handleTabPress(tab.key)}
+              onLayout={(event) => handleTabLayout(tab.key, event)}
+            />
+          ))}
         </ScrollView>
 
         <Text
@@ -373,6 +419,7 @@ const PredictWorldCup: React.FC = () => {
           activeTab={activeTab}
           config={config}
           entryPoint={entryPoint}
+          transactionActiveAbTests={transactionActiveAbTests}
         />
       </Box>
     </SafeAreaView>

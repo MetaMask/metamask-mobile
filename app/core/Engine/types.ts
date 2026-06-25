@@ -377,6 +377,11 @@ import {
   MultichainAccountServiceActions,
   MultichainAccountServiceEvents,
 } from '@metamask/multichain-account-service';
+import type {
+  SnapAccountService,
+  SnapAccountServiceActions,
+  SnapAccountServiceEvents,
+} from '@metamask/snap-account-service';
 import {
   GatorPermissionsController,
   GatorPermissionsControllerActions,
@@ -394,8 +399,6 @@ import {
 // (or we move to Node16/NodeNext module resolution), drop both the alias and
 // this dedicated import.
 import type { DelegationControllerState } from '@metamask/delegation-controller/types';
-import { SnapKeyringBuilder } from '../SnapKeyring/SnapKeyring';
-import { QrKeyringDeferredPromiseBridge } from '@metamask/eth-qr-keyring';
 import {
   ControllerGetStateAction,
   ControllerStateChangeEvent,
@@ -409,6 +412,9 @@ import {
   ProfileMetricsService,
   ProfileMetricsServiceActions,
   ProfileMetricsServiceEvents,
+  ProofOfOwnershipService,
+  ProofOfOwnershipServiceActions,
+  ProofOfOwnershipServiceEvents,
 } from '@metamask/profile-metrics-controller';
 
 type NftDetectionControllerActions = ControllerGetStateAction<
@@ -473,16 +479,16 @@ import {
   MoneyAccountUpgradeControllerState,
 } from '@metamask/money-account-upgrade-controller';
 import { captureException } from '@sentry/react-native';
+import { Wallet } from '@metamask/wallet';
 
 /**
- * Controllers that area always instantiated
+ * Controllers that are always instantiated
  */
 type RequiredControllers = Omit<
   MessengerClients,
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
-  | 'SnapKeyringBuilder'
   | 'StorageService'
   | 'ComplianceService'
   | 'ChompApiService'
@@ -496,7 +502,6 @@ type OptionalControllers = Pick<
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
-  | 'SnapKeyringBuilder'
   | 'StorageService'
   | 'ComplianceService'
   | 'ChompApiService'
@@ -520,7 +525,7 @@ type SnapsGlobalEvents =
   | PhishingControllerEvents;
 ///: END:ONLY_INCLUDE_IF
 
-type GlobalActions =
+export type GlobalActions =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerActions
   ///: END:ONLY_INCLUDE_IF
@@ -560,6 +565,7 @@ type GlobalActions =
   | MultichainAssetsRatesControllerActions
   | MultichainTransactionsControllerActions
   | MultichainAccountServiceActions
+  | SnapAccountServiceActions
   ///: END:ONLY_INCLUDE_IF
   | AccountsControllerActions
   | AccountTreeControllerActions
@@ -598,6 +604,7 @@ type GlobalActions =
   | NftDetectionControllerActions
   | ProfileMetricsControllerActions
   | ProfileMetricsServiceActions
+  | ProofOfOwnershipServiceActions
   | RampsControllerActions
   | RampsServiceActions
   | AiDigestControllerActions
@@ -610,7 +617,7 @@ type GlobalActions =
   | ChompApiServiceActions
   | MoneyAccountUpgradeControllerActions;
 
-type GlobalEvents =
+export type GlobalEvents =
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
   | SamplePetnamesControllerEvents
   ///: END:ONLY_INCLUDE_IF
@@ -646,6 +653,7 @@ type GlobalEvents =
   | MultichainAssetsRatesControllerEvents
   | MultichainTransactionsControllerEvents
   | MultichainAccountServiceEvents
+  | SnapAccountServiceEvents
   ///: END:ONLY_INCLUDE_IF
   | SignatureControllerEvents
   | LoggingControllerEvents
@@ -685,6 +693,7 @@ type GlobalEvents =
   | NftDetectionControllerEvents
   | ProfileMetricsControllerEvents
   | ProfileMetricsServiceEvents
+  | ProofOfOwnershipServiceEvents
   | RampsControllerEvents
   | RampsServiceEvents
   | AiDigestControllerEvents
@@ -717,7 +726,10 @@ export const getRootExtendedMessenger = (): RootExtendedMessenger =>
  * Type definition for the root messenger used in the Engine.
  * It extends the root messenger with global actions and events.
  */
-export type RootMessenger = Messenger<'Root', GlobalActions, GlobalEvents>;
+export type RootMessenger<
+  AllowedActions extends GlobalActions = GlobalActions,
+  AllowedEvents extends GlobalEvents = GlobalEvents,
+> = Messenger<'Root', AllowedActions, AllowedEvents>;
 
 export const getRootMessenger = (): RootMessenger =>
   new Messenger<'Root', GlobalActions, GlobalEvents>({
@@ -795,7 +807,7 @@ export type MessengerClients = {
   MultichainRoutingService: MultichainRoutingService;
   MultichainTransactionsController: MultichainTransactionsController;
   MultichainAccountService: MultichainAccountService;
-  SnapKeyringBuilder: SnapKeyringBuilder;
+  SnapAccountService: SnapAccountService;
   ///: END:ONLY_INCLUDE_IF
   TokenSearchDiscoveryDataController: TokenSearchDiscoveryDataController;
   MultichainNetworkController: MultichainNetworkController;
@@ -817,6 +829,7 @@ export type MessengerClients = {
   DelegationController: DelegationController;
   ProfileMetricsController: ProfileMetricsController;
   ProfileMetricsService: ProfileMetricsService;
+  ProofOfOwnershipService: ProofOfOwnershipService;
   RampsService: RampsService;
   AiDigestController: AiDigestController;
   SocialController: SocialController;
@@ -946,7 +959,6 @@ export type MessengerClientsToInitialize =
   | 'AddressBookController'
   | 'AssetsContractController'
   | 'AssetsController'
-  | 'ConnectivityController'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'
   | 'CronjobController'
@@ -971,28 +983,23 @@ export type MessengerClientsToInitialize =
   | 'MultichainRoutingService'
   | 'MultichainTransactionsController'
   | 'MultichainAccountService'
-  | 'SnapKeyringBuilder'
+  | 'SnapAccountService'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
   | 'MoneyAccountController'
   | 'MoneyAccountBalanceService'
-  | 'StorageService'
   | 'LoggingController'
   | 'NetworkController'
   | 'AccountTreeController'
-  | 'AccountsController'
-  | 'ApprovalController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
   | 'GasFeeController'
   | 'GeolocationController'
   | 'GeolocationApiService'
-  | 'KeyringController'
   | 'MultichainNetworkController'
   | 'NftController'
   | 'NftDetectionController'
   | 'PhishingController'
-  | 'RemoteFeatureFlagController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'
@@ -1022,6 +1029,7 @@ export type MessengerClientsToInitialize =
   | 'SelectedNetworkController'
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
+  | 'ProofOfOwnershipService'
   | 'AnalyticsController'
   | 'AiDigestController'
   | 'SocialService'
@@ -1128,11 +1136,6 @@ export type MessengerClientInitRequest<
   initialKeyringState?: KeyringControllerState | null;
 
   /**
-   * QR keyring scanner bridge.
-   */
-  qrKeyringScanner: QrKeyringDeferredPromiseBridge;
-
-  /**
    * Required initialization messenger instance.
    * Generated using the callback specified in `getInitMessenger`.
    */
@@ -1174,13 +1177,12 @@ export type MessengerClientInitFunctionsByMessengerClientName = {
 };
 
 export interface InitMessengerClientsFunctionRequest {
+  wallet: Wallet;
   baseControllerMessenger: RootExtendedMessenger;
   initFunctions: MessengerClientInitFunctionsByMessengerClientName;
   getGlobalChainId: () => Hex;
   getState: () => RootState;
   analyticsId: string;
-  initialKeyringState?: KeyringControllerState | null;
-  qrKeyringScanner: QrKeyringDeferredPromiseBridge;
   codefiTokenApiV2: CodefiTokenPricesServiceV2;
   tokenListService: TokenListService;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
@@ -1190,10 +1192,19 @@ export interface InitMessengerClientsFunctionRequest {
 }
 
 /**
+ * Map of only the messenger clients that `initMessengerClients` constructs.
+ * Wallet-owned controllers (e.g. `AccountsController`) are intentionally absent;
+ * resolve those via `wallet.getInstance(...)`, not this map.
+ */
+export type InitializedMessengerClientsByName = {
+  [Name in MessengerClientsToInitialize]: MessengerClientsByName[Name];
+};
+
+/**
  * Function to initialize the messenger clients in the engine.
  */
 export type InitMessengerClientsFunction = (
   request: InitMessengerClientsFunctionRequest,
 ) => {
-  messengerClientsByName: MessengerClientsByName;
+  messengerClientsByName: InitializedMessengerClientsByName;
 };

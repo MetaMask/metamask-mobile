@@ -34,19 +34,21 @@ import parseRampIntent from '../../Ramp/utils/parseRampIntent';
 import {
   getDetectedGeolocation,
   getOrders,
-  getRampRoutingDecision,
 } from '../../../../reducers/fiatOrders';
 import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
-import { getProviderToken } from '../../Ramp/Deposit/utils/ProviderTokenVault';
+import { getProviderToken } from '../../Ramp/utils/ProviderTokenVault';
 import {
   completedOrdersFromFiatOrders,
   completedOrdersFromRampsOrders,
 } from '../../Ramp/utils/determinePreferredProvider';
-import useRampsUnifiedV1Enabled from '../../Ramp/hooks/useRampsUnifiedV1Enabled';
 import { BridgeToken } from '../../Bridge/types';
 import { adaptTokenSecurityData } from '../../Bridge/utils/tokenSecurityUtils';
+import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
-import { TokenDetailsSource } from '../constants/constants';
+import {
+  isExploreTokenDetailsSource,
+  TokenDetailsSource,
+} from '../constants/constants';
 import type { RootState } from '../../../../reducers';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
@@ -218,7 +220,6 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
   const store = useStore<RootState>();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { goToBuy } = useRampNavigation();
-  const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
   const isAuthenticated = useIsRampAuthenticated();
 
   return useCallback(() => {
@@ -249,7 +250,6 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
     const rampGeodetectedRegion = getDetectedGeolocation(state);
     const orders = getOrders(state);
     const controllerOrders = selectRampsOrdersForSelectedAccountGroup(state);
-    const rampRoutingDecision = getRampRoutingDecision(state);
 
     const completedOrders = [
       ...completedOrdersFromFiatOrders(orders),
@@ -269,9 +269,8 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
           button_text: 'Buy',
           location: 'TokenDetails',
           chain_id_destination: getDecimalChainId(tokenChainIdHex),
-          ramp_type: rampUnifiedV1Enabled ? 'UNIFIED_BUY' : 'BUY',
+          ramp_type: 'UNIFIED_BUY_2',
           region: rampGeodetectedRegion,
-          ramp_routing: rampRoutingDecision ?? undefined,
           is_authenticated: isAuthenticated,
           preferred_provider: preferredProvider,
           order_count: orders.length + controllerOrders.length,
@@ -281,15 +280,7 @@ export const useHandleOnBuy = ({ token }: { token: TokenActionInput }) => {
     );
 
     goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
-  }, [
-    store,
-    token,
-    trackEvent,
-    createEventBuilder,
-    rampUnifiedV1Enabled,
-    isAuthenticated,
-    goToBuy,
-  ]);
+  }, [store, token, trackEvent, createEventBuilder, isAuthenticated, goToBuy]);
 };
 
 /**
@@ -313,8 +304,12 @@ export const useHandleOnSwap = ({
   // location from the session that opened the bridge (e.g. "Main View").
   const isFromBridgeAssetPicker = token.source === TokenDetailsSource.Swap;
 
+  const swapLocation = isExploreTokenDetailsSource(token.source)
+    ? SwapBridgeNavigationLocation.TrendingExplore
+    : SwapBridgeNavigationLocation.TokenView;
+
   const { goToSwaps } = useSwapBridgeNavigation({
-    location: SwapBridgeNavigationLocation.TokenView,
+    location: swapLocation,
     sourcePage,
     transactionActiveAbTests: token.transactionActiveAbTests,
     skipLocationUpdate: isFromBridgeAssetPicker,
@@ -326,8 +321,12 @@ export const useHandleOnSwap = ({
     const currentTokenAsBridgeToken = toCurrentTokenAsBridgeToken(token);
     const balanceForCheck = currentTokenBalance ?? token.balance;
 
+    const destTokenOverride = token.chainId
+      ? getSwapDestToken(token.chainId, token.address)
+      : undefined;
+
     if (hasPositiveBalance(balanceForCheck)) {
-      goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
+      goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);
       return;
     }
 
@@ -340,11 +339,15 @@ export const useHandleOnSwap = ({
     );
 
     if (buySourceToken) {
-      goToSwaps(buySourceToken, currentTokenAsBridgeToken, undefined, true);
+      goToSwaps(
+        buySourceToken,
+        destTokenOverride ?? currentTokenAsBridgeToken,
+        undefined,
+        true,
+      );
       return;
     }
-
-    goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
+    goToSwaps(currentTokenAsBridgeToken, destTokenOverride, undefined, true);
   }, [goToSwaps, store, token, currentTokenBalance]);
 };
 
@@ -470,6 +473,8 @@ export const useHandleOnReceive = ({
           networkName: networkName || 'Unknown Network',
           chainId,
           groupId: selectedAccountGroup.id,
+          location: 'asset-details',
+          account: accountForChain,
         },
       });
     } else {

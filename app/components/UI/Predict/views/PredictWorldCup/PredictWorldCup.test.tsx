@@ -1,4 +1,5 @@
 import React from 'react';
+import { ScrollView } from 'react-native';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import PredictWorldCup, {
   PREDICT_WORLD_CUP_SCREEN_TEST_IDS,
@@ -6,6 +7,7 @@ import PredictWorldCup, {
 import Routes from '../../../../../constants/navigation/Routes';
 import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
 import { PredictEventValues } from '../../constants/eventNames';
+import { PREDICT_WORLD_CUP_FALLBACK_STAGE_TAB_KEYS } from '../../constants/worldCupTabs';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -121,14 +123,26 @@ jest.mock('../../components/PredictMarket', () => {
     default: ({
       market,
       testID,
+      predictFeedTab,
+      predictScreen,
     }: {
       market: { title: string };
       testID: string;
-    }) => <Text testID={testID}>{market.title}</Text>,
+      predictFeedTab?: string;
+      predictScreen?: string;
+    }) => (
+      <Text
+        testID={testID}
+        accessibilityLabel={`${predictFeedTab ?? ''}|${predictScreen ?? ''}`}
+      >
+        {market.title}
+      </Text>
+    ),
   };
 });
 
 jest.mock('../../hooks', () => ({
+  ...jest.requireActual('../../hooks'),
   usePredictWorldCupAvailableTabs: () => ({
     tabs: mockAvailableTabs,
     availability: mockAvailability,
@@ -156,6 +170,10 @@ describe('PredictWorldCup', () => {
       { key: 'all', label: 'All' },
       { key: 'live', label: 'Live', isLive: true },
       { key: 'props', label: 'Props' },
+      ...PREDICT_WORLD_CUP_FALLBACK_STAGE_TAB_KEYS.map((key) => ({
+        key,
+        label: key,
+      })),
     ];
     mockAvailability = {
       live: true,
@@ -197,11 +215,42 @@ describe('PredictWorldCup', () => {
       screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-props`),
     ).toBeOnTheScreen();
     expect(
-      screen.queryByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-group-a`),
-    ).toBeNull();
+      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-group_a`),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-group_l`),
+    ).toBeOnTheScreen();
     expect(
       screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.EMPTY_STATE),
     ).toBeOnTheScreen();
+  });
+
+  it('maps hyphenated group tab param to canonical stage key for default stages', () => {
+    mockRouteParams = { initialTab: 'group-b' };
+
+    render(<PredictWorldCup />);
+
+    expect(
+      screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.INITIAL_TAB),
+    ).toHaveTextContent('group_b');
+  });
+
+  it('matches configured stage when URL uses hyphens but flag uses underscores', () => {
+    mockRouteParams = { initialTab: 'group-stage' };
+    mockConfig = {
+      ...mockConfig,
+      stages: [{ key: 'group_stage', eventIds: ['1'] }],
+    };
+    mockAvailability = {
+      ...mockAvailability,
+      stages: { group_stage: true },
+    };
+
+    render(<PredictWorldCup />);
+
+    expect(
+      screen.getByTestId(PREDICT_WORLD_CUP_SCREEN_TEST_IDS.INITIAL_TAB),
+    ).toHaveTextContent('group_stage');
   });
 
   it('uses a valid requested initial tab', () => {
@@ -283,6 +332,60 @@ describe('PredictWorldCup', () => {
     expect(mockTrackFeedViewed).toHaveBeenCalledTimes(1);
   });
 
+  it('scrolls the initial pill into view once its layout is measured', () => {
+    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+    mockRouteParams = { initialTab: 'group_l' };
+
+    render(<PredictWorldCup />);
+
+    fireEvent(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-group_l`),
+      'layout',
+      { nativeEvent: { layout: { x: 800, width: 51 } } },
+    );
+
+    expect(scrollToSpy).toHaveBeenCalledWith({ x: 784, animated: false });
+
+    scrollToSpy.mockRestore();
+  });
+
+  it('scrolls the selected pill into view when a tab is pressed', () => {
+    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+
+    render(<PredictWorldCup />);
+
+    fireEvent(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-props`),
+      'layout',
+      { nativeEvent: { layout: { x: 200, width: 51 } } },
+    );
+
+    fireEvent.press(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-props`),
+    );
+
+    expect(scrollToSpy).toHaveBeenLastCalledWith({ x: 184, animated: true });
+
+    scrollToSpy.mockRestore();
+  });
+
+  it('clamps the scroll offset to zero for an early pill', () => {
+    const scrollToSpy = jest.spyOn(ScrollView.prototype, 'scrollTo');
+    mockRouteParams = { initialTab: 'live' };
+
+    render(<PredictWorldCup />);
+
+    fireEvent(
+      screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.TAB}-live`),
+      'layout',
+      { nativeEvent: { layout: { x: 10, width: 51 } } },
+    );
+
+    expect(scrollToSpy).toHaveBeenCalledWith({ x: 0, animated: false });
+
+    scrollToSpy.mockRestore();
+  });
+
   it('uses a configured available stage initial tab', () => {
     mockRouteParams = { initialTab: 'group-stage' };
     mockConfig = {
@@ -329,6 +432,27 @@ describe('PredictWorldCup', () => {
     expect(
       screen.getByTestId(`${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_CARD}-1`),
     ).toHaveTextContent('World Cup winner');
+  });
+
+  it('forwards the active tab key and world_cup screen to market cards', () => {
+    mockUsePredictWorldCupMarkets.mockReturnValue({
+      marketData: [{ id: 'market-1', title: 'World Cup winner' }],
+      isFetching: false,
+      isFetchingMore: false,
+      error: null,
+      hasMore: false,
+      refetch: jest.fn(),
+      fetchMore: jest.fn(),
+    });
+
+    render(<PredictWorldCup />);
+
+    const card = screen.getByTestId(
+      `${PREDICT_WORLD_CUP_SCREEN_TEST_IDS.MARKET_CARD}-1`,
+    );
+    expect(card.props.accessibilityLabel).toBe(
+      `all|${PredictEventValues.PREDICT_SCREEN.WORLD_CUP}`,
+    );
   });
 
   it('does not render tabs hidden by availability', () => {

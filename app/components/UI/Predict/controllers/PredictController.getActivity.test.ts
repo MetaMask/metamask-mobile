@@ -7,7 +7,7 @@ import {
 } from '@metamask/messenger';
 
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
-import type { PredictActivity } from '../types';
+import type { GetActivityParams, PredictActivity } from '../types';
 import {
   PredictController,
   type PredictControllerMessenger,
@@ -35,7 +35,10 @@ function getRootMessenger(): RootMessenger {
 
 describe('PredictController.getActivity', () => {
   const mockPolymarketProvider = {
-    getActivity: jest.fn<Promise<PredictActivity[]>, [{ address: string }]>(),
+    getActivity: jest.fn<
+      Promise<PredictActivity[]>,
+      [GetActivityParams & { address: string }]
+    >(),
     isEligible: jest.fn().mockResolvedValue({ isEligible: false }),
   } as unknown as jest.Mocked<PolymarketProvider>;
 
@@ -129,6 +132,30 @@ describe('PredictController.getActivity', () => {
 
     expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
       address: '0xcustom',
+    });
+    expect(result).toEqual(stubActivity);
+  });
+
+  it('passes pagination params to provider', async () => {
+    const stubActivity: PredictActivity[] = [
+      {
+        id: 'a',
+        providerId: 'stub',
+        entry: { type: 'claimWinnings', timestamp: 2, amount: 2 },
+      },
+    ];
+    mockPolymarketProvider.getActivity.mockResolvedValue(stubActivity);
+    const controller = createController();
+
+    const result = await controller.getActivity({
+      limit: 20,
+      offset: 40,
+    });
+
+    expect(mockPolymarketProvider.getActivity).toHaveBeenCalledWith({
+      address: '0xselected',
+      limit: 20,
+      offset: 40,
     });
     expect(result).toEqual(stubActivity);
   });

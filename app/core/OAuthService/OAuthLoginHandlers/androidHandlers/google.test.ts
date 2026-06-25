@@ -48,6 +48,58 @@ describe('AndroidGoogleLoginHandler', () => {
       expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
     });
 
+    it('treats American spelling "canceled" as UserCancelled', async () => {
+      mockSignInWithGoogle.mockRejectedValue(
+        new Error('One Tap was canceled by the user'),
+      );
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.UserCancelled,
+      });
+    });
+
+    it('treats One Tap failure with cancel wording as UserCancelled', async () => {
+      mockSignInWithGoogle.mockRejectedValue(
+        new Error(
+          'During begin signin, failure response from one tap: canceled',
+        ),
+      );
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.UserCancelled,
+      });
+    });
+
+    it('throws GoogleLoginOneTapFailure for One Tap failure without cancel wording', async () => {
+      mockSignInWithGoogle.mockRejectedValue(
+        new Error('During begin signin, failure response from one tap'),
+      );
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.GoogleLoginOneTapFailure,
+      });
+    });
+
+    it('throws GoogleLoginNoMatchingCredential when One Tap failure includes matching credential', async () => {
+      mockSignInWithGoogle.mockRejectedValue(
+        new Error(
+          'During begin signin, failure response from one tap. 16: [28433] Cannot find matching credential error',
+        ),
+      );
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.GoogleLoginNoMatchingCredential,
+      });
+    });
+
+    it('treats resolved cancel result as UserCancelled', async () => {
+      mockSignInWithGoogle.mockResolvedValue({ type: 'cancel' });
+
+      await expect(handler.login()).rejects.toMatchObject({
+        code: OAuthErrorType.UserCancelled,
+      });
+    });
+
     it('throws GoogleLoginUserDisabledOneTapFeature when user disabled One Tap', async () => {
       mockSignInWithGoogle.mockRejectedValue(
         new Error('user disabled the feature'),

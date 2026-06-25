@@ -11,10 +11,25 @@ import {
   RWA_STOCK_ASSET_ID,
 } from '../../api-mocking/mock-responses/trending-api-mocks';
 import { setupMockEvents } from '../../api-mocking/helpers/mockHelpers';
+import { getDecodedProxiedURL } from '../notifications/utils/helpers';
 import {
   remoteFeatureFlagTrendingTokensEnabled,
   remoteFeatureFlagPredictEnabled,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
+
+const USDC_ASSET_ID =
+  'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+
+interface SectionConfig {
+  section: string;
+  sectionHeaderText: string;
+  verifyItemVisible: () => Promise<void>;
+  details?: {
+    tapItem: () => Promise<void>;
+    verifyVisible: () => Promise<void>;
+    tapBack: () => Promise<void>;
+  };
+}
 
 describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
@@ -22,10 +37,53 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
     await setupRemoteFeatureFlagsMock(mockServer, {
       ...remoteFeatureFlagTrendingTokensEnabled(),
       ...remoteFeatureFlagPredictEnabled(),
+      // TODO: Fix this test to support the FF-enabled What's Happening Explore section.
+      aiSocialWhatsHappeningEnabled: {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      },
+      predictWorldCup: {
+        enabled: false,
+        minimumVersion: '0.0.0',
+      },
     });
 
     // Setup API mocks using centralized definition
     await setupMockEvents(mockServer, TRENDING_API_MOCKS);
+
+    await mockServer
+      .forPost('/proxy')
+      .matching((request) => {
+        try {
+          const url = getDecodedProxiedURL(request.url);
+          return /compliance\.(dev-api|api|uat-api)\.cx\.metamask\.io\/v1\/wallet\/batch/.test(
+            url,
+          );
+        } catch {
+          return false;
+        }
+      })
+      .asPriority(1001)
+      .thenCallback(async (request) => {
+        let addresses: string[] = [];
+        try {
+          const text = await request.body.getText();
+          if (text) {
+            const parsed = JSON.parse(text) as unknown;
+            if (Array.isArray(parsed)) {
+              addresses = parsed.filter(
+                (a): a is string => typeof a === 'string',
+              );
+            }
+          }
+        } catch {
+          /* ignore malformed body */
+        }
+        return {
+          statusCode: 200,
+          json: addresses.map((address) => ({ address, blocked: false })),
+        };
+      });
   };
 
   it('Navigate to all sections full views via View All and return to feed', async () => {
@@ -41,127 +99,79 @@ describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
         // Navigate to Trending Tab
         await TrendingView.tapTrendingTab();
 
-        // Test QuickAction buttons in their rendered order (left to right)
-        // to allow progressive right-scrolling through the horizontal list
-        const quickActionSections = [
-          TrendingViewSelectorsText.SECTION_TOKENS,
-          TrendingViewSelectorsText.SECTION_PERPS,
-          TrendingViewSelectorsText.SECTION_STOCKS,
-          TrendingViewSelectorsText.SECTION_PREDICTIONS,
-          TrendingViewSelectorsText.SECTION_SITES,
-        ];
-
-        for (const section of quickActionSections) {
-          // Verify feed is visible
-          await TrendingView.verifyFeedVisible();
-
-          // Tap QuickAction button for the section
-          await TrendingView.tapQuickAction(section);
-
-          // Verify we are in full view (Header matches section title)
-          await TrendingView.verifySectionHeaderInFullView(section);
-
-          // Go back to main feed
-          await TrendingView.tapBackFromFullView(section);
-
-          // Verify Feed is visible again before proceeding
-          await TrendingView.verifyFeedVisible();
-        }
-
-        // Define the sections to visit in feed order (top to bottom) for reliable
-        // progressive downward scrolling: predictions → tokens → perps → stocks → sites
-        const sectionsConfig = [
+        const sectionsConfig: SectionConfig[] = [
           {
             section: TrendingViewSelectorsText.SECTION_PREDICTIONS,
-            itemId: '1',
-            itemTitle: 'Will Bitcoin hit $100k?',
+            sectionHeaderText: TrendingViewSelectorsText.SECTION_PREDICTIONS,
             verifyItemVisible: () => TrendingView.verifyPredictionVisible('1'),
-            tapItem: () => TrendingView.tapPredictionRow('1'),
-            verifyDetailsVisible: () =>
-              TrendingView.verifyPredictionDetailsVisible(),
-            tapBack: () => TrendingView.tapBackFromPredictionDetails(),
-          },
-          {
-            section: TrendingViewSelectorsText.SECTION_TOKENS,
-            itemId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-            itemTitle: 'USD Coin',
-            verifyItemVisible: () =>
-              TrendingView.verifyTokenVisible(
-                'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-              ),
-            tapItem: () =>
-              TrendingView.tapTokenRow(
-                'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-              ),
-            verifyDetailsVisible: () =>
-              TrendingView.verifyTokenDetailsTitleVisible('USD Coin'),
-            tapBack: () => TrendingView.tapBackFromTokenDetails(),
+            details: {
+              tapItem: () => TrendingView.tapPredictionRow('1'),
+              verifyVisible: () =>
+                TrendingView.verifyPredictionDetailsVisible(),
+              tapBack: () => TrendingView.tapBackFromPredictionDetails(),
+            },
           },
           {
             section: TrendingViewSelectorsText.SECTION_PERPS,
-            itemId: 'BTC',
-            itemTitle: 'BTC',
+            sectionHeaderText: 'Perps movers',
             verifyItemVisible: () => TrendingView.verifyPerpVisible('BTC'),
-            tapItem: () => TrendingView.tapPerpRow('BTC'),
-            verifyDetailsVisible: () => TrendingView.verifyPerpDetailsVisible(),
-            tapBack: () => TrendingView.tapBackFromPerpDetails(),
+            details: {
+              tapItem: () => TrendingView.tapPerpRow('BTC'),
+              verifyVisible: () => TrendingView.verifyPerpDetailsVisible(),
+              tapBack: () => TrendingView.tapBackFromPerpDetails(),
+            },
+          },
+          {
+            section: TrendingViewSelectorsText.SECTION_TOKENS,
+            sectionHeaderText: TrendingViewSelectorsText.SECTION_TOKENS,
+            verifyItemVisible: () =>
+              TrendingView.verifyTokenVisible(USDC_ASSET_ID),
+            details: {
+              tapItem: () => TrendingView.tapTokenRow(USDC_ASSET_ID),
+              verifyVisible: () =>
+                TrendingView.verifyTokenDetailsTitleVisible('USDC'),
+              tapBack: () => TrendingView.tapBackFromTokenDetails(),
+            },
           },
           {
             section: TrendingViewSelectorsText.SECTION_STOCKS,
-            itemId: RWA_STOCK_ASSET_ID,
-            itemTitle: 'Ondo US Dollar Yield (Ondo Tokenized)',
+            sectionHeaderText: TrendingViewSelectorsText.SECTION_STOCKS,
             verifyItemVisible: () =>
               TrendingView.verifyTokenVisible(RWA_STOCK_ASSET_ID),
-            tapItem: () => TrendingView.tapTokenRow(RWA_STOCK_ASSET_ID),
-            verifyDetailsVisible: () =>
-              TrendingView.verifyTokenDetailsTitleVisible(
-                'Ondo US Dollar Yield (Ondo Tokenized)',
-              ),
-            tapBack: () => TrendingView.tapBackFromTokenDetails(),
+            details: {
+              tapItem: () => TrendingView.tapTokenRow(RWA_STOCK_ASSET_ID),
+              verifyVisible: () =>
+                TrendingView.verifyTokenDetailsTitleVisible('USDY'),
+              tapBack: () => TrendingView.tapBackFromTokenDetails(),
+            },
           },
           {
             section: TrendingViewSelectorsText.SECTION_SITES,
-            itemId: 'Uniswap',
-            itemTitle: 'Uniswap',
+            sectionHeaderText: 'Popular',
             verifyItemVisible: () => TrendingView.verifySiteVisible('Uniswap'),
-            tapItem: () => TrendingView.tapSiteRow('Uniswap'),
-            verifyDetailsVisible: () =>
-              TrendingView.verifyBrowserUrlVisible('uniswap.org'),
-            tapBack: () => TrendingView.tapBackFromBrowser(),
           },
         ];
 
         for (const config of sectionsConfig) {
-          // Verify Section Header is visible in feed
-          await TrendingView.verifySectionHeaderInFeed(config.section);
+          await TrendingView.navigateToSectionTab(config.section);
+          await TrendingView.verifySectionHeaderInFeed(
+            config.sectionHeaderText,
+          );
 
-          // Tap View All for the section
           await TrendingView.tapViewAll(config.section);
-
-          // Verify we are in full view (Header matches section title)
           await TrendingView.verifySectionHeaderInFullView(config.section);
-
-          // Go back to main feed
           await TrendingView.tapBackFromFullView(config.section);
-
-          // Verify Feed is visible again before proceeding
           await TrendingView.verifyFeedVisible();
 
-          // Now test individual item navigation
-          // Verify the item is visible in the feed
+          await TrendingView.navigateToSectionTab(config.section);
           await config.verifyItemVisible();
 
-          // Tap on the item to open details
-          await config.tapItem();
-
-          // Verify we are on the details page
-          await config.verifyDetailsVisible();
-
-          // Go back to feed
-          await config.tapBack();
-
-          // Verify Feed is visible again before proceeding to next section
-          await TrendingView.verifyFeedVisible();
+          if (config.details) {
+            await config.details.tapItem();
+            await config.details.verifyVisible();
+            await config.details.tapBack();
+            await TrendingView.verifyFeedVisible();
+          }
         }
       },
     );

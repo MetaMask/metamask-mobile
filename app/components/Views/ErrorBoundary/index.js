@@ -17,6 +17,7 @@ import {
   captureSentryFeedback,
   captureExceptionForced,
 } from '../../../util/sentry/utils';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { RevealPrivateCredential } from '../RevealPrivateCredential';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
@@ -39,7 +40,7 @@ import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBui
 import AppConstants from '../../../core/AppConstants';
 import { METAMASK_SUPPORT_URL } from '../../../constants/urls';
 import { useSelector } from 'react-redux';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -161,9 +162,12 @@ export const Fallback = (props) => {
   };
 
   const forceSentryReport = async (error) => {
+    // Resolve the view outside the try: the React Compiler cannot yet optimize
+    // "value blocks" (optional chaining / logical expressions) inside try/catch.
+    const view = props.onboardingErrorConfig?.view || 'Unknown';
     try {
       await captureExceptionForced(error, {
-        view: props.onboardingErrorConfig?.view || 'Unknown',
+        view,
         context: 'ErrorBoundary forced report',
       });
     } catch (sentryError) {
@@ -244,7 +248,7 @@ export const Fallback = (props) => {
         />
       )}
 
-      {isTest && !isOnboardingError && (
+      {isTestEnvironment && !isOnboardingError && (
         <Text
           onPress={props.showExportSeedphrase}
           variant={TextVariant.BodyMD}

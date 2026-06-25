@@ -6,6 +6,7 @@ import {
   getPerpsDisplaySymbol,
   type Position,
   type OrderDirection,
+  type TrackingData,
 } from '@metamask/perps-controller';
 import usePerpsToasts from './usePerpsToasts';
 
@@ -28,7 +29,7 @@ export function usePerpsFlipPosition(options?: UsePerpsFlipPositionOptions) {
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   const handleFlipPosition = useCallback(
-    async (position: Position) => {
+    async (position: Position, trackingData?: TrackingData) => {
       setIsFlipping(true);
       DevLogger.log('usePerpsFlipPosition: Setting isFlipping to true');
 
@@ -43,6 +44,7 @@ export function usePerpsFlipPosition(options?: UsePerpsFlipPositionOptions) {
         const result = await flipPosition({
           symbol: position.symbol,
           position,
+          trackingData,
         });
 
         if (result.success) {

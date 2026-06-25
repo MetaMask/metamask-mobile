@@ -7,4 +7,5 @@ export {
   shouldSuppressLegacyOrderFailureToast,
   PredictPreviewSheetProvider,
   usePredictPreviewSheet,
+  dismissActivePreviewSheet,
 } from './PredictPreviewSheetContext';

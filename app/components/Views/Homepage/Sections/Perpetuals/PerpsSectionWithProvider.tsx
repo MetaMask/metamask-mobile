@@ -16,6 +16,10 @@ export interface PerpsSectionProps {
   sectionName?: HomeSectionName;
   /** Override the section header title. */
   titleOverride?: string;
+  /** Empty state content rendered when there are no positions or orders. */
+  emptyStateContent?: 'tiles' | 'pills';
+  /** Override the section title only while rendering empty state content. */
+  emptyStateTitleOverride?: string;
 }
 
 /**
@@ -34,6 +38,8 @@ const PerpsSectionWithProvider = forwardRef<
       mode = 'default',
       sectionName,
       titleOverride,
+      emptyStateContent,
+      emptyStateTitleOverride,
     },
     ref,
   ) => {
@@ -53,6 +59,8 @@ const PerpsSectionWithProvider = forwardRef<
             mode={mode}
             sectionName={sectionName}
             titleOverride={titleOverride}
+            emptyStateContent={emptyStateContent}
+            emptyStateTitleOverride={emptyStateTitleOverride}
           />
         </PerpsStreamProvider>
       </PerpsConnectionProvider>

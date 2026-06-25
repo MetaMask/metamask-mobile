@@ -20,6 +20,8 @@ import type {
 import type { NetworkControllerFindNetworkClientIdByChainIdAction } from '@metamask/network-controller';
 import type {
   TransactionControllerAddTransactionAction,
+  TransactionControllerAddTransactionBatchAction,
+  TransactionControllerGetStateAction,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
 } from '@metamask/transaction-controller';
@@ -55,6 +57,8 @@ export type CardControllerState = {
   cardHomeData: Record<string, Json> | null;
   /** Fetch status for cardHomeData. Not persisted. */
   cardHomeDataStatus: CardHomeDataStatus;
+  /** True while `linkMoneyAccountCard` is in flight. Not persisted. */
+  moneyAccountCardLinkInProgress: boolean;
 };
 
 export type CardControllerActions = ControllerGetStateAction<
@@ -73,7 +77,9 @@ type CardControllerAllowedActions =
   | RemoteFeatureFlagControllerGetStateAction
   | KeyringControllerSignPersonalMessageAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
-  | TransactionControllerAddTransactionAction;
+  | TransactionControllerAddTransactionAction
+  | TransactionControllerAddTransactionBatchAction
+  | TransactionControllerGetStateAction;
 
 type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent

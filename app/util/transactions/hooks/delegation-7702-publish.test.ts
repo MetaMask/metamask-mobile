@@ -194,6 +194,25 @@ describe('Delegation 7702 Publish Hook', () => {
   });
 
   describe('returns empty result if', () => {
+    it('transaction type is revokeDelegation', async () => {
+      const result = await hookClass.getHook()(
+        {
+          ...TRANSACTION_META_MOCK,
+          type: TransactionType.revokeDelegation,
+          isGasFeeSponsored: true,
+          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        },
+        SIGNED_TX_MOCK,
+      );
+
+      expect(result).toEqual({
+        transactionHash: undefined,
+      });
+      expect(isAtomicBatchSupportedMock).not.toHaveBeenCalled();
+      expect(submitRelayTransactionMock).not.toHaveBeenCalled();
+    });
+
     it('atomic batch is not supported', async () => {
       const result = await hookClass.getHook()(
         TRANSACTION_META_MOCK,
@@ -202,6 +221,34 @@ describe('Delegation 7702 Publish Hook', () => {
       expect(result).toEqual({
         transactionHash: undefined,
       });
+    });
+
+    it('throws when atomic batch is not supported for a gas-sponsored transaction', async () => {
+      await expect(
+        hookClass.getHook()(
+          {
+            ...TRANSACTION_META_MOCK,
+            isGasFeeSponsored: true,
+          },
+          SIGNED_TX_MOCK,
+        ),
+      ).rejects.toThrow(
+        'Gas Station 7702: Chain must support EIP-7702 for sponsored or gas included transaction',
+      );
+    });
+
+    it('throws when atomic batch is not supported for a gas-included transaction', async () => {
+      await expect(
+        hookClass.getHook()(
+          {
+            ...TRANSACTION_META_MOCK,
+            isGasFeeIncluded: true,
+          },
+          SIGNED_TX_MOCK,
+        ),
+      ).rejects.toThrow(
+        'Gas Station 7702: Chain must support EIP-7702 for sponsored or gas included transaction',
+      );
     });
 
     it('no selected gas fee token', async () => {
@@ -274,7 +321,7 @@ describe('Delegation 7702 Publish Hook', () => {
           },
           SIGNED_TX_MOCK,
         ),
-      ).rejects.toThrow('Selected gas fee token not found');
+      ).rejects.toThrow('Gas Station 7702: Selected gas fee token not found');
     });
 
     it('throws error when upgrade contract address not found for non-upgraded accounts', async () => {
@@ -295,7 +342,7 @@ describe('Delegation 7702 Publish Hook', () => {
           },
           SIGNED_TX_MOCK,
         ),
-      ).rejects.toThrow('Upgrade contract address not found');
+      ).rejects.toThrow('Gas Station 7702: Upgrade contract address not found');
     });
 
     it('throws error when gas fee token is undefined in buildExecutions for includeTransfer', async () => {
@@ -324,7 +371,7 @@ describe('Delegation 7702 Publish Hook', () => {
           },
           SIGNED_TX_MOCK,
         ),
-      ).rejects.toThrow('Selected gas fee token not found');
+      ).rejects.toThrow('Gas Station 7702: Selected gas fee token not found');
     });
   });
 
@@ -658,7 +705,34 @@ describe('Delegation 7702 Publish Hook', () => {
         },
         SIGNED_TX_MOCK,
       ),
-    ).rejects.toThrow('Transaction relay error - TEST_STATUS');
+    ).rejects.toThrow(
+      'Gas Station 7702: Transaction relay error - TEST_STATUS',
+    );
+  });
+
+  it('prefixes relay submit errors', async () => {
+    submitRelayTransactionMock.mockRejectedValueOnce(
+      new Error('Sentinel: Relay: submission failed'),
+    );
+    isAtomicBatchSupportedMock.mockResolvedValueOnce([
+      {
+        chainId: TRANSACTION_META_MOCK.chainId,
+        delegationAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+        isSupported: true,
+        upgradeContractAddress: UPGRADE_CONTRACT_ADDRESS_MOCK,
+      },
+    ]);
+
+    await expect(
+      hookClass.getHook()(
+        {
+          ...TRANSACTION_META_MOCK,
+          gasFeeTokens: [GAS_FEE_TOKEN_MOCK],
+          selectedGasFeeToken: GAS_FEE_TOKEN_MOCK.tokenAddress,
+        },
+        SIGNED_TX_MOCK,
+      ),
+    ).rejects.toThrow('Gas Station 7702: Sentinel: Relay: submission failed');
   });
 
   it('submits request to relay for gasless 7702 swap without gas fee tokens', async () => {

@@ -1,4 +1,10 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
@@ -9,11 +15,6 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
@@ -46,7 +47,6 @@ import { useIsPerpsBalanceSelected } from '../../hooks/useIsPerpsBalanceSelected
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { Hex } from '@metamask/utils';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
-import { isPayWithBottomSheetEnabled } from '../../../../Views/confirmations/utils/transaction-pay';
 
 const tokenIconStyles = StyleSheet.create({
   iconSmall: {
@@ -123,11 +123,7 @@ export const PerpsPayRow = ({
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.PAYMENT_TOKEN_SELECTOR,
     });
-    if (isPayWithBottomSheetEnabled()) {
-      navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
-      return;
-    }
-    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_MODAL);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
   }, [canEdit, navigation, setConfirmationMetric, track]);
 
   // Display data: use local state (defaults to Perps balance) so UI always shows "Perps balance" by default
@@ -183,7 +179,7 @@ export const PerpsPayRow = ({
           <Icon
             name={IconName.Info}
             size={IconSize.Sm}
-            color={IconColor.Alternative}
+            color={IconColor.IconAlternative}
           />
         </TouchableOpacity>
       </Box>

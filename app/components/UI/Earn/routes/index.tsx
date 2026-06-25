@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import Routes from '../../../../constants/navigation/Routes';
 import EarnLendingDepositConfirmationView from '../../Earn/Views/EarnLendingDepositConfirmationView';
 import EarnLendingWithdrawalConfirmationView from '../Views/EarnLendingWithdrawalConfirmationView';
@@ -8,23 +8,28 @@ import EarnLendingMaxWithdrawalModal from '../modals/LendingMaxWithdrawalModal';
 import LendingLearnMoreModal from '../LendingLearnMoreModal';
 import { Confirm } from '../../../Views/confirmations/components/confirm';
 import { useEmptyNavHeaderForConfirmations } from '../../../Views/confirmations/hooks/ui/useEmptyNavHeaderForConfirmations';
-import { clearStackNavigatorOptions } from '../../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  transparentModalScreenOptions,
+} from '../../../../constants/navigation/clearStackNavigatorOptions';
 
-const Stack = createStackNavigator();
-const ModalStack = createStackNavigator();
+const Stack = createNativeStackNavigator();
+const ModalStack = createNativeStackNavigator();
 
 const EarnScreenStack = () => {
   const emptyNavHeaderOptions = useEmptyNavHeaderForConfirmations();
 
   return (
-    <Stack.Navigator screenOptions={{ presentation: 'transparentModal' }}>
+    <Stack.Navigator screenOptions={transparentModalScreenOptions}>
       <Stack.Screen
         name={Routes.EARN.LENDING_DEPOSIT_CONFIRMATION}
         component={EarnLendingDepositConfirmationView}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.EARN.LENDING_WITHDRAWAL_CONFIRMATION}
         component={EarnLendingWithdrawalConfirmationView}
+        options={{ headerShown: false }}
       />
       <Stack.Screen
         name={Routes.FULL_SCREEN_CONFIRMATIONS.REDESIGNED_CONFIRMATIONS}
@@ -43,8 +48,8 @@ const EarnScreenStack = () => {
 const EarnModalStack = () => (
   <ModalStack.Navigator
     screenOptions={{
-      ...clearStackNavigatorOptions,
-      presentation: 'transparentModal',
+      ...clearNativeStackNavigatorOptions,
+      ...transparentModalScreenOptions,
     }}
   >
     <ModalStack.Screen

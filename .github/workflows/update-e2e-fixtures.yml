@@ -250,7 +250,7 @@ jobs:
       - name: Run fixture validation spec
         timeout-minutes: 30
         run: |
-          IS_TEST='true' NODE_OPTIONS='--experimental-vm-modules' \
+          HAS_TEST_OVERRIDES='true' NODE_OPTIONS='--experimental-vm-modules' \
             yarn detox test -c ios.sim.main.ci --headless \
             tests/smoke/fixtures/fixture-validation.spec.ts
         env:

@@ -33,6 +33,7 @@ jest.mock('../../../selectors/featureFlagController/whatsHappening', () => ({
 }));
 
 jest.mock('./hooks', () => ({
+  ...jest.requireActual('./hooks'),
   useWhatsHappening: jest.fn(() => ({
     items: [],
     isLoading: false,
@@ -90,6 +91,20 @@ describe('WhatsHappeningSection', () => {
 
   it('returns null when not loading and items are empty', () => {
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+    expect(
+      screen.queryByTestId(WhatsHappeningSelectorsIDs.CAROUSEL),
+    ).toBeNull();
+  });
+
+  it('renders null (not ErrorState) when items are empty but there is no error', () => {
+    mockUseWhatsHappening.mockReturnValue({
+      items: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+    });
+    renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+    expect(screen.queryByText(/unable to load/i)).toBeNull();
     expect(
       screen.queryByTestId(WhatsHappeningSelectorsIDs.CAROUSEL),
     ).toBeNull();

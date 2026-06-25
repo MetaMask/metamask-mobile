@@ -177,7 +177,7 @@ function buildCommitTable(commits: { hash: string; subject: string }[]): string 
   return lines.join('\n');
 }
 
-export function buildWhatsInRcSection(result: WhatsInRcResult): string {
+export function buildWhatsInRcSection(result: WhatsInRcResult, buildNumber?: string): string {
   const { cherryPicks, changelog } = result;
 
   // If both are empty, return nothing
@@ -185,14 +185,18 @@ export function buildWhatsInRcSection(result: WhatsInRcResult): string {
     return '';
   }
 
+  // Use build number for unique anchors so Slack can link to the correct comment
+  const isValidBuildNumber = buildNumber && buildNumber !== 'Unknown' && buildNumber !== 'N/A';
+  const anchorSuffix = isValidBuildNumber ? `-${buildNumber}` : '';
+
   const lines: string[] = [
-    '<a id="whats-in-this-rc"></a>',
+    `<a id="whats-in-this-rc${anchorSuffix}"></a>`,
     '### :cherries: What\'s in this RC\n',
   ];
 
   // Cherry-picks section
   if (cherryPicks.length > 0) {
-    lines.push('<a id="cherry-picks"></a>');
+    lines.push(`<a id="cherry-picks${anchorSuffix}"></a>`);
     lines.push('<details>');
     lines.push(`<summary>Cherry-picks (${cherryPicks.length} commits)</summary>\n`);
     lines.push(buildCommitTable(cherryPicks));
@@ -201,7 +205,7 @@ export function buildWhatsInRcSection(result: WhatsInRcResult): string {
 
   // Changelog section
   if (changelog.length > 0) {
-    lines.push('<a id="changelog"></a>');
+    lines.push(`<a id="changelog${anchorSuffix}"></a>`);
     lines.push('<details>');
     lines.push(`<summary>Changelog (${changelog.length} commits from main at RC cut)</summary>\n`);
     lines.push(buildCommitTable(changelog));

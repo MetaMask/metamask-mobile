@@ -10,8 +10,10 @@ import {
   MISSING_TOKENS_URL,
   MM_ANDROID_BUNDLE_ID,
   MM_UNIVERSAL_LINK_HOST,
+  MONEY_LANDING_URL,
   MULTICHAIN_ACCOUNTS_URL,
   MUSD_LEARN_MORE_URL,
+  MUSD_PRICE_URL,
   PRIVACY_BEST_PRACTICES_URL,
   PROFILE_SYNC_URL,
   SMART_ACCOUNTS_URL,
@@ -24,13 +26,16 @@ import {
 
 const DEVELOPMENT = 'development';
 
-// Server APIs: GH Actions use builds.yml (apply-build-config.js sets PORTFOLIO_API_URL, etc.). Local can use .js.env or same keys.
-const PORTFOLIO_URL =
-  process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
+// Keep portfolio navigation pinned to the website host (not API hosts).
+const PORTFOLIO_URL = 'https://portfolio.metamask.io';
 
 const SECURITY_ALERTS_API_URL =
   process.env.SECURITY_ALERTS_API_URL ??
   'https://security-alerts.api.cx.metamask.io';
+
+const PRICE_ALERTS_API_URL =
+  process.env.PRICE_ALERTS_API_URL ??
+  'https://price-alerts.dev-api.cx.metamask.io';
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
@@ -46,6 +51,9 @@ export default {
   MAX_PUSH_NOTIFICATION_PROMPT_TIMES: 2,
   SECURITY_ALERTS_API: {
     URL: SECURITY_ALERTS_API_URL,
+  },
+  PRICE_ALERTS_API: {
+    URL: PRICE_ALERTS_API_URL,
   },
   PORTFOLIO: {
     URL: PORTFOLIO_URL,
@@ -101,8 +109,16 @@ export default {
   },
   CARD: {
     URL: 'https://card.metamask.io',
+    WEB_URL: {
+      DEV: 'https://ew2foxdev-card.foxcard.io',
+      UAT: 'https://ew2foxuat-card.foxcard.io',
+      PRD: 'https://card.metamask.io',
+    },
     TRAVEL_URL: 'https://travel.metamask.io/access',
-    CARD_TOS_URL: 'https://secure.baanx.co.uk/MM-Card-RoW-Terms-2025-Sept.pdf',
+    CARD_TOS_URL:
+      'https://www.baanxuk.com/docs/CL-Platform-Terms-of-Use-2026.pdf',
+    PASSWORD_RESET_PATH: '/account/password/request',
+    LOGIN_PATH: '/account/login',
   },
   CONNEXT: {
     HUB_EXCHANGE_CEILING_TOKEN: 69,
@@ -223,6 +239,8 @@ export default {
     MUSD_CONVERSION_BONUS_TERMS_OF_USE:
       'https://metamask.io/musd-bonus-terms-of-use',
     MUSD_LEARN_MORE: MUSD_LEARN_MORE_URL,
+    MONEY_LANDING: MONEY_LANDING_URL,
+    MUSD_PRICE: MUSD_PRICE_URL,
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||

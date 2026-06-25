@@ -1,12 +1,12 @@
 import { KeyringTypes } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
-import { importNewSecretRecoveryPhrase, addNewHdAccount } from './';
+import { importNewSecretRecoveryPhrase } from './';
 import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
 import { TraceName, TraceOperation } from '../../util/trace';
 import ReduxService from '../../core/redux/ReduxService';
 import { RootState } from '../../reducers';
-import { SecretType } from '@metamask/seedless-onboarding-controller';
+import { EncAccountDataType } from '@metamask/seedless-onboarding-controller';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { waitFor } from '@testing-library/react-native';
 import { toMultichainAccountWalletId } from '@metamask/account-api';
@@ -41,6 +41,7 @@ const mockSelectSeedlessOnboardingLoginFlow = jest.fn();
 const mockAddNewSecretData = jest.fn();
 const mockTrace = jest.fn();
 const mockEndTrace = jest.fn();
+const mockRunSeedlessOnboardingMigrations = jest.fn();
 
 const hdKeyring = {
   getAccounts: () => {
@@ -63,6 +64,13 @@ const hdKeyringV2 = {
 jest.mock('../../selectors/seedlessOnboardingController', () => ({
   selectSeedlessOnboardingLoginFlow: (state: unknown) =>
     mockSelectSeedlessOnboardingLoginFlow(state),
+}));
+
+jest.mock('../../core', () => ({
+  Authentication: {
+    runSeedlessOnboardingMigrations: () =>
+      mockRunSeedlessOnboardingMigrations(),
+  },
 }));
 
 jest.mock('../../util/trace', () => ({
@@ -116,9 +124,9 @@ jest.mock('../../core/Engine', () => ({
     SeedlessOnboardingController: {
       addNewSecretData: (
         seed: Uint8Array,
-        type: SecretType,
-        keyringId: string,
-      ) => mockAddNewSecretData(seed, type, keyringId),
+        dataType: EncAccountDataType,
+        options: { keyringId: string },
+      ) => mockAddNewSecretData(seed, dataType, options),
     },
     AccountTreeController: {
       syncWithUserStorage: () => mockSyncAccountTreeWithUserStorage(),
@@ -156,6 +164,7 @@ describe('MultiSRP Actions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockAddNewSecretData.mockReset();
+    mockRunSeedlessOnboardingMigrations.mockReset();
     mockGetSnapKeyring.mockResolvedValue(true);
     mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(false);
     mockCreateMultichainAccountWallet.mockResolvedValue(
@@ -263,6 +272,7 @@ describe('MultiSRP Actions', () => {
     describe('seedless onboarding login flow', () => {
       beforeEach(() => {
         mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
+        mockRunSeedlessOnboardingMigrations.mockResolvedValue(undefined);
       });
 
       it('successfully adds seed phrase backup when seedless onboarding is enabled', async () => {
@@ -282,9 +292,10 @@ describe('MultiSRP Actions', () => {
           name: TraceName.OnboardingAddSrp,
           op: TraceOperation.OnboardingSecurityOp,
         });
+        expect(mockRunSeedlessOnboardingMigrations).toHaveBeenCalled();
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
-          SecretType.Mnemonic,
+          EncAccountDataType.ImportedSrp,
           {
             keyringId: mockEntropySource,
           },
@@ -316,7 +327,7 @@ describe('MultiSRP Actions', () => {
         });
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
-          SecretType.Mnemonic,
+          EncAccountDataType.ImportedSrp,
           {
             keyringId: mockEntropySource,
           },
@@ -345,7 +356,7 @@ describe('MultiSRP Actions', () => {
 
         expect(mockAddNewSecretData).toHaveBeenCalledWith(
           expect.any(Uint8Array),
-          SecretType.Mnemonic,
+          EncAccountDataType.ImportedSrp,
           {
             keyringId: mockEntropySource,
           },
@@ -360,6 +371,7 @@ describe('MultiSRP Actions', () => {
     it('calls addNewSeedPhraseBackup when seedless onboarding login flow is active', async () => {
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
       mockAddNewSecretData.mockResolvedValue(undefined);
+      mockRunSeedlessOnboardingMigrations.mockResolvedValue(undefined);
       mockDiscoverAccounts.mockResolvedValue(3);
 
       const mockCallback = jest.fn();
@@ -371,9 +383,10 @@ describe('MultiSRP Actions', () => {
         mockCallback,
       );
 
+      expect(mockRunSeedlessOnboardingMigrations).toHaveBeenCalled();
       expect(mockAddNewSecretData).toHaveBeenCalledWith(
         expect.any(Uint8Array),
-        SecretType.Mnemonic,
+        EncAccountDataType.ImportedSrp,
         {
           keyringId: mockEntropySource,
         },
@@ -396,6 +409,7 @@ describe('MultiSRP Actions', () => {
       // Arrange
       mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
       const syncError = new Error('Sync failed');
+      mockRunSeedlessOnboardingMigrations.mockResolvedValue(undefined);
       mockAddNewSecretData.mockRejectedValue(syncError);
 
       // Act & Assert
@@ -476,69 +490,6 @@ describe('MultiSRP Actions', () => {
           discoveredAccountsCount: 3,
         });
       });
-    });
-  });
-
-  describe('addNewHdAccount', () => {
-    it('adds a new HD account, sets the selected address and returns the account', async () => {
-      mockAddAccounts.mockReturnValue([mockAddress]);
-      mockGetAccountByAddress.mockReturnValue(mockExpectedAccount);
-
-      const account = await addNewHdAccount();
-
-      expect(mockAddAccounts).toHaveBeenCalledWith(1);
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockAddress);
-      expect(account).toEqual(mockExpectedAccount);
-    });
-
-    it('adds a new HD account with a specific keyring ID and sets the selected address', async () => {
-      const keyringId = 'test-keyring-id';
-      mockGetAccountByAddress.mockReturnValue(mockExpectedAccount);
-      mockAddAccounts.mockReturnValue([mockAddress]);
-
-      await addNewHdAccount(keyringId);
-
-      expect(mockAddAccounts).toHaveBeenCalledWith(1);
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockAddress);
-    });
-
-    it('adds a new HD account and sets the account label if a name is provided', async () => {
-      const accountName = 'Test Account';
-      mockAddAccounts.mockReturnValue([mockAddress]);
-      mockGetAccountByAddress.mockReturnValue(mockExpectedAccount);
-
-      await addNewHdAccount(undefined, accountName);
-
-      expect(mockAddAccounts).toHaveBeenCalledWith(1);
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockAddress);
-      expect(mockSetAccountLabel).toHaveBeenCalledWith(
-        mockAddress,
-        accountName,
-      );
-    });
-
-    it('adds a new HD account with a specific keyring ID and sets the account label if a name is provided', async () => {
-      const keyringId = 'test-keyring-id';
-      const accountName = 'Test Account';
-      mockAddAccounts.mockReturnValue([mockAddress]);
-      mockGetAccountByAddress.mockReturnValue(mockExpectedAccount);
-
-      await addNewHdAccount(keyringId, accountName);
-
-      expect(mockAddAccounts).toHaveBeenCalledWith(1);
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockAddress);
-      expect(mockSetAccountLabel).toHaveBeenCalledWith(
-        mockAddress,
-        accountName,
-      );
-    });
-
-    it('throws if the newly added account is not found', async () => {
-      mockGetAccountByAddress.mockReturnValue(undefined);
-
-      await expect(async () => await addNewHdAccount()).rejects.toThrow(
-        'Account not found',
-      );
     });
   });
 });

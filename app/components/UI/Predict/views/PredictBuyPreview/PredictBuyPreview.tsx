@@ -54,6 +54,7 @@ import {
 } from '../../constants/eventNames';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatCents, formatPrice } from '../../utils/format';
+import { getDisplayBuyPrice } from '../../utils/prices';
 import PredictAmountDisplay from '../../components/PredictAmountDisplay';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictFeeSummary from '../PredictBuyWithAnyToken/components/PredictFeeSummary/PredictFeeSummary';
@@ -139,6 +140,8 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     outcome,
     outcomeToken,
     entryPoint,
+    predictFeedTab,
+    predictScreen,
     transactionActiveAbTests,
     trackSwipeDismiss,
   } = isSheetMode ? props : route.params;
@@ -146,8 +149,15 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
   const ActiveScrollView = isSheetMode ? GHScrollView : ScrollView;
 
   const analyticsProperties = useMemo(
-    () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
-    [market, outcomeToken, entryPoint],
+    () =>
+      parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        entryPoint,
+        predictFeedTab,
+        predictScreen,
+      ),
+    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
   );
 
   // Track swipe/hardware-back dismissals in screen mode, but only when
@@ -271,7 +281,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
     controller.trackPredictOrderEvent({
       status: PredictTradeStatus.INITIATED,
       analyticsProperties,
-      sharePrice: outcomeToken?.price,
+      sharePrice: getDisplayBuyPrice(outcomeToken),
       activeAbTests: transactionActiveAbTests,
     });
     // eslint-disable-next-line react-compiler/react-compiler
@@ -322,7 +332,7 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
 
   const separator = '·';
   const outcomeTokenLabel = `${outcomeToken?.title} at ${formatCents(
-    preview?.sharePrice ?? outcomeToken?.price ?? 0,
+    preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0,
   )}`;
 
   useEffect(() => {
@@ -577,7 +587,9 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           style={tw.style('text-white font-medium')}
         >
           {outcomeToken?.title} ·{' '}
-          {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
+          {formatCents(
+            preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0,
+          )}
         </Text>
       </ButtonHero>
     );
@@ -682,7 +694,9 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
           ref={feeBreakdownSheetRef}
           providerFee={exchangeFee}
           metamaskFee={metamaskFee}
-          sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+          sharePrice={
+            preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+          }
           contractCount={preview?.minAmountReceived ?? 0}
           betAmount={currentValue}
           total={total}
@@ -693,7 +707,9 @@ const PredictBuyPreview = (props: PredictBuyPreviewProps) => {
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
-        sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+        sharePrice={
+          preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+        }
         side={Side.BUY}
         onRetry={handleRetryWithBestPrice}
         onDismiss={resetOrderNotFilled}

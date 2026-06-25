@@ -32,6 +32,9 @@ export const PREDICT_ERROR_CODES = {
   BUY_ORDER_NOT_FULLY_FILLED: 'PREDICT_BUY_ORDER_NOT_FULLY_FILLED',
   SELL_ORDER_NOT_FULLY_FILLED: 'PREDICT_SELL_ORDER_NOT_FULLY_FILLED',
   PREVIEW_NOT_AVAILABLE: 'PREDICT_PREVIEW_NOT_AVAILABLE',
+  MARKET_PENDING_RESOLUTION: 'PREDICT_MARKET_PENDING_RESOLUTION',
+  MARKET_NOT_ACCEPTING_BETS: 'PREDICT_MARKET_NOT_ACCEPTING_BETS',
+  MARKET_BETTABLE_CHECK_FAILED: 'PREDICT_MARKET_BETTABLE_CHECK_FAILED',
 } as const;
 
 export const getPredictErrorMessages = () =>
@@ -71,5 +74,14 @@ export const getPredictErrorMessages = () =>
     ),
     [PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE]: strings(
       'predict.error_messages.preview_not_available',
+    ),
+    [PREDICT_ERROR_CODES.MARKET_PENDING_RESOLUTION]: strings(
+      'predict.error_messages.market_pending_resolution',
+    ),
+    [PREDICT_ERROR_CODES.MARKET_NOT_ACCEPTING_BETS]: strings(
+      'predict.error_messages.market_not_accepting_bets',
+    ),
+    [PREDICT_ERROR_CODES.MARKET_BETTABLE_CHECK_FAILED]: strings(
+      'predict.error_messages.market_bettable_check_failed',
     ),
   }) as const;

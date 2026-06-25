@@ -1,4 +1,4 @@
-import { test } from '../../framework/fixture';
+import { test } from '../../framework/fixtures/playwright';
 import { Performance } from '../../tags.performance.js';
 
 import { loginToAppPlaywright } from '../../flows/wallet.flow';
@@ -9,7 +9,13 @@ import DappConnectionModal from '../../page-objects/MMConnect/DappConnectionModa
 import SignModal from '../../page-objects/MMConnect/SignModal';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
-import { DappServer, DappVariants, TestDapps, sleep } from '../../framework';
+import {
+  DappServer,
+  DappVariants,
+  PlaywrightGestures,
+  TestDapps,
+  sleep,
+} from '../../framework';
 import {
   getDappUrlForBrowser,
   setupAdbReverse,
@@ -25,7 +31,6 @@ import {
   switchToMobileBrowser,
 } from '../../flows/native-browser.flow';
 import PlaywrightUtilities from '../../framework/PlaywrightUtilities';
-import { APP_PACKAGE_IDS } from '../../framework/Constants';
 
 const DAPP_PORT = 8090;
 
@@ -84,7 +89,8 @@ test.describe(Performance, () => {
   // 6. CLEANUP
   //    - Tap disconnect to reset dapp state
 
-  test('@metamask/connect-evm - Account switching and wallet-side verification', async ({
+  // This test is currently being skipped as it is flaky - https://consensyssoftware.atlassian.net/browse/WAPI-1511
+  test.skip('@metamask/connect-evm - Account switching and wallet-side verification', async ({
     currentDeviceDetails,
     driver,
   }) => {
@@ -133,9 +139,7 @@ test.describe(Performance, () => {
       // Wait here to make sure UI is visible before attempted interaction
       await sleep(1000);
       // We're only using Android for now
-      await PlaywrightUtilities.launchApp({
-        packageName: APP_PACKAGE_IDS.ANDROID,
-      });
+      await PlaywrightGestures.activateApp(currentDeviceDetails);
       await unlockIfLockScreenVisible();
 
       // Change selected account to Account 3 in MetaMask

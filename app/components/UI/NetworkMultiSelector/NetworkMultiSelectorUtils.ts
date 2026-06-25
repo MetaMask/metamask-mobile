@@ -8,8 +8,24 @@ import { toHex } from '@metamask/controller-utils';
 import type { NetworkConfiguration } from '@metamask/network-controller';
 import type { MultichainNetworkConfiguration } from '@metamask/multichain-network-controller';
 import { strings } from '../../../../locales/i18n';
+import { NETWORK_TO_NAME_MAP } from '../../../core/Engine/constants';
 
 const unknownNetwork = () => strings('network_information.unknown_network');
+
+/**
+ * Resolves the display name for an EVM hex chain ID, preferring the user's
+ * persisted network configuration and falling back to the curated
+ * `NETWORK_TO_NAME_MAP`. This keeps known popular networks (e.g. MegaETH,
+ * HyperEVM) readable even when they aren't present in the user's
+ * NetworkController state yet.
+ */
+const resolveEvmNetworkName = (
+  hexChainId: Hex,
+  evmNetworkConfigurations: Record<Hex, NetworkConfiguration>,
+): string =>
+  evmNetworkConfigurations[hexChainId]?.name ??
+  (NETWORK_TO_NAME_MAP as Record<string, string>)[hexChainId] ??
+  unknownNetwork();
 
 export interface CurrentSelectedNetworkForDisplayName {
   caipChainId: CaipChainId;
@@ -60,8 +76,7 @@ export function resolveNetworkDisplayName({
 
   const isEvmChainId = chainId.startsWith('0x');
   if (isEvmChainId) {
-    const networkConfig = evmNetworkConfigurations[chainId as Hex];
-    return networkConfig?.name ?? unknownNetwork();
+    return resolveEvmNetworkName(chainId as Hex, evmNetworkConfigurations);
   }
 
   const nonEvmConfig = nonEvmNetworkConfigurations[chainId as CaipChainId];
@@ -73,8 +88,7 @@ export function resolveNetworkDisplayName({
     const parsed = parseCaipChainId(chainId as CaipChainId);
     if (parsed.namespace === KnownCaipNamespace.Eip155) {
       const hexChainId = toHex(parsed.reference);
-      const networkConfig = evmNetworkConfigurations[hexChainId];
-      return networkConfig?.name ?? unknownNetwork();
+      return resolveEvmNetworkName(hexChainId, evmNetworkConfigurations);
     }
   } catch {
     // Not a valid CAIP chain ID

@@ -329,6 +329,39 @@ describe('RecipientInput', () => {
     jest.advanceTimersByTime(100);
   });
 
+  it('clears pastedRecipient when clear button is pressed', () => {
+    mockUseSendContext.mockReturnValue({
+      to: '0x1234567890123456789012345678901234567890',
+      updateTo: mockUpdateTo,
+      asset: undefined,
+      chainId: undefined,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      fromAccount: {} as any,
+      from: '',
+      maxValueMode: false,
+      updateAsset: jest.fn(),
+      updateValue: jest.fn(),
+      value: undefined,
+    });
+
+    const mockSetPastedRecipient = jest.fn();
+    const { getByText } = renderWithProvider(
+      <RecipientInput
+        isRecipientSelectedFromList={false}
+        resetStateOnInput={noop}
+        setPastedRecipient={mockSetPastedRecipient}
+      />,
+    );
+
+    const clearButton = getByText('Clear');
+    fireEvent.press(clearButton);
+
+    expect(mockUpdateTo).toHaveBeenCalledWith('');
+    expect(mockSetPastedRecipient).toHaveBeenCalledWith(undefined);
+
+    jest.advanceTimersByTime(100);
+  });
+
   it('maintains correct button state based on isRecipientSelectedFromList prop', () => {
     mockUseSendContext.mockReturnValue({
       to: '0x123...',

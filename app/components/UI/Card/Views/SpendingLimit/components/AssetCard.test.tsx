@@ -16,10 +16,6 @@ jest.mock('../../../util/safeFormatChainIdToHex', () => ({
   safeFormatChainIdToHex: jest.fn(() => '0xe708'),
 }));
 
-jest.mock('../../../../AssetOverview/Balance/Balance', () => ({
-  NetworkBadgeSource: jest.fn(() => ({ uri: 'https://network-badge.url' })),
-}));
-
 const mockBuildTokenIconUrl = buildTokenIconUrl as jest.MockedFunction<
   typeof buildTokenIconUrl
 >;

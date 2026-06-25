@@ -23,16 +23,10 @@ const styleSheet = (params: {
   const { colors } = theme;
   const { style, isDisabled } = vars;
   return StyleSheet.create({
-    base: Object.assign(
-      {
-        flex: 1,
-        position: 'relative',
-        opacity: isDisabled ? 0.5 : 1,
-        padding: 16,
-        zIndex: 1,
-      } as ViewStyle,
-      style,
-    ) as ViewStyle,
+    base: {
+      flex: 1,
+      padding: 16,
+    } as ViewStyle,
     containerColumn: {
       flexDirection: 'column',
       alignItems: 'flex-start',
@@ -40,13 +34,16 @@ const styleSheet = (params: {
       paddingTop: 0,
       paddingBottom: 0,
       paddingLeft: 0,
-      zIndex: 2,
     },
-    container: {
-      backgroundColor: colors.background.default,
-      flexDirection: 'row',
-      alignItems: 'center',
-    },
+    container: Object.assign(
+      {
+        backgroundColor: colors.background.default,
+        flexDirection: 'row',
+        alignItems: 'center',
+        opacity: isDisabled ? 0.5 : 1,
+      } as ViewStyle,
+      style,
+    ) as ViewStyle,
     buttonIcon: {
       paddingRight: 20,
     },

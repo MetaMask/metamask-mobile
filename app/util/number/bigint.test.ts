@@ -37,6 +37,7 @@ import {
   safeBigIntToHex,
   safeNumberToBigInt,
   toBigInt,
+  toDecimalString,
   toGwei,
   toHexadecimal,
   toTokenMinimalUnit,
@@ -1063,6 +1064,21 @@ describe('Number utils :: isNumberScientificNotationWhenString', () => {
     expect(isNumberScientificNotationWhenString('1.337e21' as any)).toEqual(
       false,
     );
+  });
+});
+
+describe('Number utils :: toDecimalString', () => {
+  it.each([
+    ['1e+21', '1000000000000000000000'],
+    ['1.234e+17', '123400000000000000'],
+    ['1.4e+18', '1400000000000000000'],
+    ['1.6e+21', '1600000000000000000000'],
+    ['4.2e+17', '420000000000000000'],
+    ['1000000', '1000000'],
+    // Verifies no float precision loss — Number() would corrupt this to 10000000000000000000000
+    ['9999999999999999999999', '9999999999999999999999'],
+  ])('converts %s to %s', (input, expected) => {
+    expect(toDecimalString(input)).toEqual(expected);
   });
 });
 

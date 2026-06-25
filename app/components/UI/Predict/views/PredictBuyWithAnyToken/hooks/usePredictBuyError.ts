@@ -8,6 +8,7 @@ import { formatCents, formatPrice } from '../../../utils/format';
 import { getPlaceOrderErrorOutcome } from '../../../utils/predictErrorHandler';
 import type { PredictBuyErrorBannerVariant } from '../components/PredictBuyErrorBanner';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
+import DevLogger from '../../../../../../core/SDKConnect/utils/DevLogger';
 
 export interface PredictBuyErrorBannerData {
   variant: PredictBuyErrorBannerVariant;
@@ -271,10 +272,18 @@ export const usePredictBuyError = ({
       }
 
       if (orderError.status === 'error') {
+        const errorMessage =
+          orderError.error ?? strings('predict.order.order_failed_body');
+
+        DevLogger.log('usePredictBuyError: Showing order error banner', {
+          rawError: activeOrder.error,
+          errorMessage,
+        });
+
         return {
           variant: 'order_failed',
           title: strings('predict.order.order_failed_title'),
-          description: strings('predict.order.order_failed_body'),
+          description: errorMessage,
         };
       }
 

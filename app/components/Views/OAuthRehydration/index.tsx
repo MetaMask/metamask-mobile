@@ -25,8 +25,10 @@ import {
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { Dispatch } from 'redux';
 import Routes from '../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { LoginViewSelectors } from '../Login/LoginView.testIds';
 import { downloadStateLogs } from '../../../util/logs';
 import {
@@ -44,6 +46,7 @@ import {
   WRONG_PASSWORD_ERROR,
   WRONG_PASSWORD_ERROR_ANDROID,
   WRONG_PASSWORD_ERROR_ANDROID_2,
+  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../Login/constants';
 import { isBiometricUnlockCancelledByUser } from '../../../core/Authentication/utils';
 import {
@@ -55,6 +58,7 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import { useNetInfo } from '@react-native-community/netinfo';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
@@ -255,11 +259,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       );
     }
   }, [getAuthType]);
-
-  // default biometric choice to true
-  useEffect(() => {
-    setBiometryChoice(true);
-  }, [setBiometryChoice]);
 
   const tooManyAttemptsError = useCallback(
     async (initialRemainingTime: number) => {
@@ -668,17 +667,23 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     };
   }, []);
 
-  const handleBackPress = () => {
-    navigation.goBack();
-    return false;
-  };
-
+  const hasTrackedScreenView = useRef(false);
   useEffect(() => {
+    if (hasTrackedScreenView.current) return;
+    hasTrackedScreenView.current = true;
     trace({
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
     track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
+  }, [track]);
+
+  const handleBackPress = useCallback(() => {
+    navigation.goBack();
+    return false;
+  }, [navigation]);
+
+  useEffect(() => {
     const backHandlerSubscription = BackHandler.addEventListener(
       'hardwareBackPress',
       handleBackPress,
@@ -687,8 +692,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     return () => {
       backHandlerSubscription.remove();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [handleBackPress]);
 
   useEffect(() => {
     const onboardingTraceCtxFromRoute = route.params?.onboardingTraceCtx;

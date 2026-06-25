@@ -87,29 +87,39 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
       isOptedIn ? campaignId : undefined,
     );
 
-  const pnlValue = position ? formatSignedUsd(position.pnl) : '—';
-  const pnlColor = position
-    ? position.pnl >= 0
-      ? TextColor.SuccessDefault
-      : TextColor.ErrorDefault
-    : TextColor.TextDefault;
+  const pnl =
+    position != null && Number.isFinite(position.pnl) ? position.pnl : null;
+  const volume =
+    position != null && Number.isFinite(position.volume)
+      ? position.volume
+      : null;
 
-  const volumeValue = position ? formatUsd(position.notionalVolume) : '—';
-  const isQualified = position != null && position.qualified;
-  const isPending = position != null && !position.qualified;
+  const pnlValue = pnl != null ? formatSignedUsd(pnl) : '—';
+  const pnlColor =
+    pnl != null
+      ? pnl >= 0
+        ? TextColor.SuccessDefault
+        : TextColor.ErrorDefault
+      : TextColor.TextDefault;
+
+  const volumeValue = volume != null ? formatUsd(volume) : '—';
+  const isEligible = position != null && position.eligible;
+  const isPending = position != null && !position.eligible;
 
   const isCampaignComplete =
     campaign != null && getCampaignStatus(campaign) === 'complete';
 
-  const notionalGap = position
-    ? Math.max(0, PERPS_QUALIFICATION_NOTIONAL_USD - position.notionalVolume)
-    : 0;
+  const minVolumeForEligibility =
+    position?.minVolumeForEligibility ?? PERPS_QUALIFICATION_NOTIONAL_USD;
+
+  const volumeGap =
+    volume != null ? Math.max(0, minVolumeForEligibility - volume) : 0;
 
   const showQualifiedCard =
-    !isCampaignComplete && isQualified && position != null;
+    !isCampaignComplete && isEligible && position != null;
 
   const showQualifyForRankCard =
-    !isCampaignComplete && isPending && position != null && notionalGap > 0;
+    !isCampaignComplete && isPending && position != null && volumeGap > 0;
 
   const positionError = hasError && !position;
 
@@ -179,7 +189,7 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
                   label={strings('rewards.perps_trading_campaign.label_volume')}
                   value={volumeValue}
                   isLoading={isLoading}
-                  suffix={isQualified ? <CheckIcon /> : undefined}
+                  suffix={isEligible ? <CheckIcon /> : undefined}
                   testID={PERPS_CAMPAIGN_STATS_VIEW_TEST_IDS.PERFORMANCE_VOLUME}
                 />
               ) : (
@@ -239,7 +249,7 @@ const PerpsTradingCampaignStatsView: React.FC = () => {
                   {strings(
                     'rewards.perps_trading_campaign.stats_qualify_for_rank_description',
                     {
-                      notionalRemaining: formatUsd(notionalGap),
+                      notionalRemaining: formatUsd(volumeGap),
                     },
                   )}
                 </Text>

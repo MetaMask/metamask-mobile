@@ -1,4 +1,9 @@
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  CommonActions,
+} from '@react-navigation/native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Platform, TouchableOpacity, TextInputProps } from 'react-native';
 import {
@@ -27,6 +32,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
 import { setOnboardingId } from '../../../../../core/redux/slices/card';
 import { selectCardUserLocation } from '../../../../../selectors/cardController';
+import { selectCardForgotPasswordFeatureEnabled } from '../../../../../selectors/featureFlagController/card';
 import { CardMessageBoxType, type CardLocation } from '../../types';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
@@ -62,6 +68,9 @@ const CardAuthentication = () => {
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const persistedLocation = useSelector(selectCardUserLocation);
+  const isForgotPasswordEnabled = useSelector(
+    selectCardForgotPasswordFeatureEnabled,
+  );
   const [selectedLocation, setSelectedLocation] = useState<CardLocation>(
     persistedLocation ?? 'international',
   );
@@ -215,7 +224,19 @@ const CardAuthentication = () => {
         }
 
         if (postAuthRedirect) {
-          NavigationService.navigation?.goBack();
+          if (postAuthRedirect.screen === Routes.HOME_TABS) {
+            NavigationService.navigation?.navigate(
+              postAuthRedirect.screen,
+              postAuthRedirect.params,
+            );
+          } else {
+            navigation.dispatch(
+              CommonActions.navigate(
+                postAuthRedirect.screen,
+                postAuthRedirect.params,
+              ),
+            );
+          }
           return;
         }
 
@@ -277,6 +298,20 @@ const CardAuthentication = () => {
     resetToLogin();
   }, [resetToLogin]);
 
+  const handleForgotPassword = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.AUTHENTICATION_FORGOT_PASSWORD,
+        })
+        .build(),
+    );
+    navigation.navigate(Routes.CARD.MODALS.ID, {
+      screen: Routes.CARD.MODALS.FORGOT_PASSWORD,
+      params: { location: selectedLocation },
+    });
+  }, [navigation, trackEvent, createEventBuilder, selectedLocation]);
+
   const title = useMemo(
     () =>
       isOtpStep
@@ -320,12 +355,12 @@ const CardAuthentication = () => {
                 accessibilityLabel: strings(
                   'card.card_otp_authentication.confirm_code_label',
                 ),
-                testID: 'otp-code-field',
+                testID: CardAuthenticationSelectors.OTP_CODE_FIELD,
               }}
             />
             {error && (
               <Text
-                testID="otp-code-field-error"
+                testID={CardAuthenticationSelectors.OTP_CODE_FIELD_ERROR}
                 variant={TextVariant.BodySm}
                 twClassName="text-error-default"
               >
@@ -339,7 +374,7 @@ const CardAuthentication = () => {
             <Text
               variant={TextVariant.BodySm}
               twClassName="text-text-alternative"
-              testID="otp-resend-verification"
+              testID={CardAuthenticationSelectors.OTP_RESEND_VERIFICATION}
             >
               {resendCooldown > 0 ? (
                 strings('card.card_otp_authentication.resend_cooldown', {
@@ -363,7 +398,7 @@ const CardAuthentication = () => {
             </Text>
             {otpError && (
               <Text
-                testID="otp-error-text"
+                testID={CardAuthenticationSelectors.OTP_ERROR_TEXT}
                 variant={TextVariant.BodySm}
                 twClassName="text-error-default"
               >
@@ -386,7 +421,7 @@ const CardAuthentication = () => {
             >
               <Box
                 twClassName="flex flex-col items-center justify-center w-full p-4"
-                testID="international-location-box"
+                testID={CardAuthenticationSelectors.INTERNATIONAL_LOCATION_BOX}
               >
                 <Icon name={IconName.Global} size={IconSize.Lg} />
                 <Text
@@ -405,7 +440,7 @@ const CardAuthentication = () => {
             >
               <Box
                 twClassName="flex flex-col items-center justify-center flex-1 w-full p-4"
-                testID="us-location-box"
+                testID={CardAuthenticationSelectors.US_LOCATION_BOX}
               >
                 <Text twClassName="text-center">{countryCodeToFlag('US')}</Text>
                 <Text
@@ -433,7 +468,7 @@ const CardAuthentication = () => {
                 accessibilityLabel: strings(
                   'card.card_authentication.email_label',
                 ),
-                testID: 'email-field',
+                testID: CardAuthenticationSelectors.EMAIL_FIELD,
               }}
             />
           </Box>
@@ -445,7 +480,9 @@ const CardAuthentication = () => {
               endAccessory={
                 <TouchableOpacity
                   onPress={() => setIsPasswordVisible(!isPasswordVisible)}
-                  testID="password-visibility-toggle"
+                  testID={
+                    CardAuthenticationSelectors.PASSWORD_VISIBILITY_TOGGLE
+                  }
                 >
                   <Icon
                     name={isPasswordVisible ? IconName.EyeSlash : IconName.Eye}
@@ -464,9 +501,24 @@ const CardAuthentication = () => {
                 accessibilityLabel: strings(
                   'card.card_authentication.password_label',
                 ),
-                testID: 'password-field',
+                testID: CardAuthenticationSelectors.PASSWORD_FIELD,
               }}
             />
+            {isForgotPasswordEnabled && (
+              <TouchableOpacity
+                onPress={handleForgotPassword}
+                testID={CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON}
+                style={tw.style('self-end mt-2')}
+              >
+                <Text
+                  variant={TextVariant.BodySm}
+                  fontWeight={FontWeight.Medium}
+                  twClassName="text-default"
+                >
+                  {strings('card.card_authentication.forgot_password_button')}
+                </Text>
+              </TouchableOpacity>
+            )}
           </Box>
         </>
       ),
@@ -475,9 +527,11 @@ const CardAuthentication = () => {
       email,
       error,
       handleEmailChange,
+      handleForgotPassword,
       handleOtpValueChange,
       handlePasswordChange,
       handleResendOtp,
+      isForgotPasswordEnabled,
       isPasswordVisible,
       isOtpStep,
       otpError,
@@ -504,13 +558,13 @@ const CardAuthentication = () => {
               loading || !confirmCode || confirmCode.length < CODE_LENGTH
             }
             isFullWidth
-            testID="otp-confirm-button"
+            testID={CardAuthenticationSelectors.OTP_CONFIRM_BUTTON}
           >
             {strings('card.card_otp_authentication.confirm_button')}
           </Button>
           <TouchableOpacity
             onPress={handleBackToLogin}
-            testID="otp-back-to-login-button"
+            testID={CardAuthenticationSelectors.OTP_BACK_TO_LOGIN_BUTTON}
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -527,7 +581,7 @@ const CardAuthentication = () => {
             <Text
               variant={TextVariant.BodySm}
               style={{ color: theme.colors.error.default }}
-              testID="login-error-text"
+              testID={CardAuthenticationSelectors.LOGIN_ERROR_TEXT}
             >
               {error}
             </Text>
@@ -578,6 +632,7 @@ const CardAuthentication = () => {
       description={description}
       formFields={formFields}
       actions={actions}
+      headerMode="back"
     />
   );
 };

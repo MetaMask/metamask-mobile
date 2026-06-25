@@ -4,17 +4,18 @@ import { BackHandler } from 'react-native';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { createStackNavigator } from '@react-navigation/stack';
-import { cleanup, fireEvent } from '@testing-library/react-native';
+import { cleanup, fireEvent, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import-x/no-namespace
 import * as networkManagerUtils from '../../UI/NetworkManager';
 import { useCurrentNetworkInfo } from '../../hooks/useCurrentNetworkInfo';
 import { ActivitiesViewSelectorsIDs } from './ActivitiesView.testIds';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../Wallet/WalletView.testIds';
 import Routes from '../../../constants/navigation/Routes';
 
-let mockMoneyHomeScreenEnabled = false;
+let mockMoneyAccountEnabled = false;
 jest.mock('../../UI/Money/selectors/featureFlags', () => ({
-  selectMoneyHomeScreenEnabledFlag: jest.fn(() => mockMoneyHomeScreenEnabled),
+  selectMoneyEnableMoneyAccountFlag: jest.fn(() => mockMoneyAccountEnabled),
 }));
 
 // Mock the Perps feature flag selector - will be controlled per test
@@ -215,6 +216,18 @@ jest.mock('../UnifiedTransactionsView/UnifiedTransactionsView', () => {
   };
 });
 
+// The redesigned screen is lazily imported by ActivityView; mock it so the
+// dynamic import resolves to a lightweight component in tests.
+jest.mock('../ActivityScreen/ActivityScreen', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockActivityScreen() {
+      return <View testID="activity-screen-mock" />;
+    },
+  };
+});
+
 let mockIsEvmSelected = true;
 jest.mock('../../../selectors/multichainNetworkController', () => ({
   selectIsEvmNetworkSelected: jest.fn(() => mockIsEvmSelected),
@@ -285,7 +298,7 @@ describe('ActivityView', () => {
       >);
     mockUseCurrentNetworkInfo.mockReturnValue(defaultNetworkInfo);
     mockIsEvmSelected = true;
-    mockMoneyHomeScreenEnabled = false;
+    mockMoneyAccountEnabled = false;
     mockPerpsEnabled = false;
     mockPredictEnabled = false;
     mockAreAllEvmPopularNetworksEnabled = false;
@@ -442,8 +455,8 @@ describe('ActivityView', () => {
       expect(mockNavigation.goBack).not.toHaveBeenCalled();
     });
 
-    it('displays back button when Money home screen flag is enabled without showBackButton param', () => {
-      mockMoneyHomeScreenEnabled = true;
+    it('displays back button when Money account flag is enabled without showBackButton param', () => {
+      mockMoneyAccountEnabled = true;
       mockRoute.params = {};
 
       const { getByTestId } = renderComponent(mockInitialState);
@@ -451,8 +464,8 @@ describe('ActivityView', () => {
       expect(getByTestId('activity-view-back-button')).toBeOnTheScreen();
     });
 
-    it('calls navigation.navigate with HOME_TABS on back button press when Money flag is enabled', () => {
-      mockMoneyHomeScreenEnabled = true;
+    it('calls navigation.navigate with HOME_TABS on back button press when Money account flag is enabled', () => {
+      mockMoneyAccountEnabled = true;
       mockRoute.params = {};
       const { getByTestId } = renderComponent(mockInitialState);
 
@@ -463,7 +476,7 @@ describe('ActivityView', () => {
     });
 
     it('calls navigation.navigate with HOME_TABS and not goBack when both flag and showBackButton param are true', () => {
-      mockMoneyHomeScreenEnabled = true;
+      mockMoneyAccountEnabled = true;
       mockRoute.params = { showBackButton: true };
       const { getByTestId } = renderComponent(mockInitialState);
 
@@ -474,7 +487,7 @@ describe('ActivityView', () => {
     });
 
     it('registers hardwareBackPress handler when Money flag is enabled', () => {
-      mockMoneyHomeScreenEnabled = true;
+      mockMoneyAccountEnabled = true;
       mockRoute.params = {};
 
       renderComponent(mockInitialState);
@@ -486,7 +499,7 @@ describe('ActivityView', () => {
     });
 
     it('navigates to HOME_TABS when hardwareBackPress fires with Money flag enabled', () => {
-      mockMoneyHomeScreenEnabled = true;
+      mockMoneyAccountEnabled = true;
       mockRoute.params = {};
       renderComponent(mockInitialState);
       const [[, handler]] = (BackHandler.addEventListener as jest.Mock).mock
@@ -499,7 +512,7 @@ describe('ActivityView', () => {
     });
 
     it('does not navigate to HOME_TABS on hardwareBackPress when Money flag is disabled', () => {
-      mockMoneyHomeScreenEnabled = false;
+      mockMoneyAccountEnabled = false;
       mockRoute.params = {};
 
       renderComponent(mockInitialState);
@@ -532,6 +545,16 @@ describe('ActivityView', () => {
       ).toBeOnTheScreen();
     });
 
+    it('renders SafeAreaView with left, right, and bottom edges only', () => {
+      mockRoute.params = {};
+
+      const { getByTestId } = renderComponent(mockInitialState);
+
+      expect(
+        getByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW).props.edges,
+      ).toEqual(['left', 'right', 'bottom']);
+    });
+
     it('renders HeaderRoot with Activity title when showBackButton is false', () => {
       mockRoute.params = { showBackButton: false };
 
@@ -547,7 +570,7 @@ describe('ActivityView', () => {
       expect(getByText('Activity')).toBeOnTheScreen();
     });
 
-    it('renders HeaderCompactStandard with back button when showBackButton is true', () => {
+    it('renders HeaderStandard with back button when showBackButton is true', () => {
       mockRoute.params = { showBackButton: true };
 
       const { getByTestId } = renderComponent(mockInitialState);
@@ -566,7 +589,7 @@ describe('ActivityView', () => {
       expect(queryByTestId(ActivitiesViewSelectorsIDs.HEADER_ROOT)).toBeNull();
     });
 
-    it('does not render HeaderCompactStandard when showBackButton is false', () => {
+    it('does not render HeaderStandard when showBackButton is false', () => {
       mockRoute.params = { showBackButton: false };
 
       const { queryByTestId } = renderComponent(mockInitialState);
@@ -576,8 +599,8 @@ describe('ActivityView', () => {
       ).toBeNull();
     });
 
-    it('renders HeaderCompactStandard when Money home screen flag is enabled', () => {
-      mockMoneyHomeScreenEnabled = true;
+    it('renders HeaderCompactStandard when Money account flag is enabled', () => {
+      mockMoneyAccountEnabled = true;
       mockRoute.params = {};
 
       const { getByTestId, queryByTestId } = renderComponent(mockInitialState);
@@ -758,6 +781,53 @@ describe('ActivityView', () => {
       renderComponent(mockInitialState);
 
       expect(getRenderedTabs()).toEqual(['transactions', 'orders']);
+    });
+  });
+
+  describe('activity redesign feature flag', () => {
+    const stateWithRedesignEnabled = {
+      engine: {
+        backgroundState: {
+          ...backgroundState,
+          RemoteFeatureFlagController: {
+            ...backgroundState.RemoteFeatureFlagController,
+            remoteFeatureFlags: {
+              ...backgroundState.RemoteFeatureFlagController
+                ?.remoteFeatureFlags,
+              tmcuActivityRedesignEnabled: true,
+            },
+          },
+        },
+      },
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockRoute.params = {};
+    });
+
+    it('renders the legacy activity view when the flag is off', () => {
+      const { getByTestId, queryByTestId } = renderComponent(mockInitialState);
+
+      expect(
+        getByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW),
+      ).toBeOnTheScreen();
+      expect(getByTestId('unified-transactions-view-mock')).toBeOnTheScreen();
+      expect(queryByTestId('activity-screen-mock')).toBeNull();
+    });
+
+    it('renders the redesigned activity screen when the flag is on', async () => {
+      const { getByTestId, queryByTestId } = renderComponent(
+        stateWithRedesignEnabled,
+      );
+
+      await waitFor(() =>
+        expect(getByTestId('activity-screen-mock')).toBeOnTheScreen(),
+      );
+      expect(queryByTestId('unified-transactions-view-mock')).toBeNull();
+      expect(
+        queryByTestId(ActivitiesViewSelectorsIDs.SAFE_AREA_VIEW),
+      ).toBeNull();
     });
   });
 });

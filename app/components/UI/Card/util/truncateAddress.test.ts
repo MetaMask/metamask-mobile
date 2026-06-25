@@ -2,17 +2,23 @@ jest.mock('@metamask/utils', () => ({
   isHexAddress: jest.fn(),
 }));
 
+jest.mock('@solana/addresses', () => ({
+  isAddress: jest.fn(),
+}));
+
 jest.mock('../../../../util/address', () => ({
   safeToChecksumAddress: jest.fn(),
 }));
 
 import { isHexAddress } from '@metamask/utils';
+import { isAddress } from '@solana/addresses';
 import { safeToChecksumAddress } from '../../../../util/address';
 import { truncateAddress } from './truncateAddress';
 
 const mockIsHexAddress = isHexAddress as jest.MockedFunction<
   typeof isHexAddress
 >;
+const mockIsAddress = isAddress as jest.MockedFunction<typeof isAddress>;
 const mockSafeToChecksumAddress = safeToChecksumAddress as jest.MockedFunction<
   typeof safeToChecksumAddress
 >;
@@ -20,6 +26,30 @@ const mockSafeToChecksumAddress = safeToChecksumAddress as jest.MockedFunction<
 describe('truncateAddress', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsAddress.mockReturnValue(false);
+  });
+
+  describe('valid Solana addresses', () => {
+    const solanaAddress = '7EcDhSYGxXyscQzY5BF8zY3j6ftUpF8E5uMEnDZmv7d';
+
+    it('truncates a Solana address with default chars without checksumming', () => {
+      mockIsAddress.mockReturnValue(true);
+
+      const result = truncateAddress(solanaAddress);
+
+      expect(mockIsAddress).toHaveBeenCalledWith(solanaAddress);
+      expect(mockIsHexAddress).not.toHaveBeenCalled();
+      expect(mockSafeToChecksumAddress).not.toHaveBeenCalled();
+      expect(result).toBe('7EcD...mv7d');
+    });
+
+    it('truncates a Solana address with custom character count', () => {
+      mockIsAddress.mockReturnValue(true);
+
+      const result = truncateAddress(solanaAddress, 6);
+
+      expect(result).toBe('7EcDhS...DZmv7d');
+    });
   });
 
   describe('valid hex addresses', () => {
@@ -79,40 +109,39 @@ describe('truncateAddress', () => {
     });
   });
 
-  describe('non-hex addresses', () => {
-    it('truncates non-hex string without checksumming', () => {
-      const address = 'some-non-hex-string-1234567890';
+  describe('non-hex inputs (display labels)', () => {
+    it('returns a non-hex string verbatim (so labels like "Money account" are not mangled)', () => {
+      const label = 'Money account';
+      mockIsAddress.mockReturnValue(false);
       mockIsHexAddress.mockReturnValue(false);
 
-      const result = truncateAddress(address);
+      const result = truncateAddress(label);
 
-      expect(mockIsHexAddress).toHaveBeenCalledWith(address);
+      expect(mockIsAddress).toHaveBeenCalledWith(label);
+      expect(mockIsHexAddress).toHaveBeenCalledWith(label);
       expect(mockSafeToChecksumAddress).not.toHaveBeenCalled();
-      expect(result).toBe('some...7890');
+      expect(result).toBe(label);
     });
 
-    it('truncates alphanumeric string without 0x prefix', () => {
-      const address = '1234567890abcdef1234567890abcdef12345678';
+    it('returns an alphanumeric string without 0x prefix unchanged', () => {
+      const value = '1234567890abcdef1234567890abcdef12345678';
+      mockIsAddress.mockReturnValue(false);
       mockIsHexAddress.mockReturnValue(false);
 
-      const result = truncateAddress(address);
+      const result = truncateAddress(value);
 
-      expect(result).toBe('1234...5678');
+      expect(result).toBe(value);
     });
   });
 
   describe('edge cases', () => {
     it('returns undefined when address is undefined', () => {
-      mockIsHexAddress.mockReturnValue(false);
-
       const result = truncateAddress(undefined);
 
       expect(result).toBeUndefined();
     });
 
     it('returns undefined when address is empty string', () => {
-      mockIsHexAddress.mockReturnValue(false);
-
       const result = truncateAddress('');
 
       expect(result).toBeUndefined();
@@ -130,13 +159,14 @@ describe('truncateAddress', () => {
       expect(result).toBeUndefined();
     });
 
-    it('truncates single character address', () => {
-      const address = 'x';
+    it('returns a single non-hex character unchanged', () => {
+      const value = 'x';
+      mockIsAddress.mockReturnValue(false);
       mockIsHexAddress.mockReturnValue(false);
 
-      const result = truncateAddress(address);
+      const result = truncateAddress(value);
 
-      expect(result).toBe('x...x');
+      expect(result).toBe('x');
     });
   });
 });

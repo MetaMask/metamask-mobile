@@ -46,7 +46,7 @@ import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
   CampaignType,
-  OndoCampaignHowItWorks,
+  type CampaignHowItWorks as CampaignHowItWorksData,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { selectReferralCode } from '../../../../reducers/rewards/selectors';
 import { getCampaignMechanicsButtonProps } from '../utils/campaignHeaderUtils';
@@ -134,13 +134,13 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
 
   const leaderboardUserPosition = useMemo(
     () =>
-      position
+      position?.rank
         ? { rank: position.rank, neighbors: position.neighbors ?? [] }
         : null,
     [position],
   );
-
-  const hasPosition = Boolean(leaderboardUserPosition);
+  const hasPosition =
+    position != null && Number.isFinite(position.volume) && position.volume > 0;
   const totalParticipants = leaderboard?.totalParticipants ?? 0;
 
   const {
@@ -291,7 +291,7 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                 <Box twClassName="p-4">
                   <CampaignHowItWorks
                     howItWorks={
-                      campaign.details?.howItWorks as OndoCampaignHowItWorks
+                      campaign.details?.howItWorks as CampaignHowItWorksData
                     }
                   />
                 </Box>
@@ -364,9 +364,7 @@ const PerpsTradingCampaignDetailsView: React.FC = () => {
                       fontWeight={FontWeight.Bold}
                       twClassName="mb-1"
                     >
-                      {strings(
-                        'rewards.perps_trading_campaign.prize_pool_title',
-                      )}
+                      {strings('rewards.campaign_prize_pool.title')}
                     </Text>
                     <PerpsTradingCampaignPrizePool
                       totalNotionalVolume={volume?.totalUsdVolume ?? null}

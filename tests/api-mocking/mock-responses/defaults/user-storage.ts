@@ -28,8 +28,9 @@ const notificationPreferences = {
       },
     ],
   },
+  // Feature announcements are controlled by marketing in-app preferences.
   marketing: {
-    inAppNotificationsEnabled: false,
+    inAppNotificationsEnabled: true,
     pushNotificationsEnabled: false,
   },
   perps: {

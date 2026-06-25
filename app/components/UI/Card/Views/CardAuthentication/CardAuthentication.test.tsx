@@ -60,6 +60,12 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../hooks/useCardAuth');
 
+let mockIsForgotPasswordEnabled = true;
+jest.mock('../../../../../selectors/featureFlagController/card', () => ({
+  ...jest.requireActual('../../../../../selectors/featureFlagController/card'),
+  selectCardForgotPasswordFeatureEnabled: () => mockIsForgotPasswordEnabled,
+}));
+
 const mockUseCardAuth = useCardAuth as jest.MockedFunction<typeof useCardAuth>;
 
 const mockInitiateMutateAsync = jest.fn();
@@ -136,6 +142,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.card_authentication.password_label': 'Password',
       'card.card_authentication.login_button': 'Log in',
       'card.card_authentication.signup_button': "I don't have an account",
+      'card.card_authentication.forgot_password_button': 'Forgot password?',
       'card.card_authentication.errors.invalid_credentials':
         'Invalid login details',
       'card.card_authentication.errors.network_error':
@@ -193,6 +200,7 @@ jest.useFakeTimers({ advanceTimers: true });
 describe('CardAuthentication Component', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsForgotPasswordEnabled = true;
     mockRouteParams = {};
 
     mockInitiateMutateAsync.mockResolvedValue(undefined);
@@ -456,11 +464,14 @@ describe('CardAuthentication Component', () => {
       });
     });
 
-    it('pops Card.ROOT off the root navigator on successful login when postAuthRedirect is set (no inner Card-stack reset, no cross-stack navigate)', async () => {
+    it('navigates root to HOME_TABS on successful login when postAuthRedirect targets a tab', async () => {
       mockRouteParams = {
         postAuthRedirect: {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
+          screen: Routes.HOME_TABS,
+          params: {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
         },
       };
       mockSubmitMutateAsync.mockResolvedValue({ done: true });
@@ -476,12 +487,85 @@ describe('CardAuthentication Component', () => {
       fireEvent.press(loginButton);
 
       await waitFor(() => {
-        expect(mockNavigationServiceGoBack).toHaveBeenCalledTimes(1);
+        expect(mockNavigationServiceNavigate).toHaveBeenCalledWith(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+        );
       });
-      // The origin (e.g. the Money tab) lives below Card.ROOT in the outer
-      // navigator — popping reveals it without touching its own state or
-      // doing a cross-stack navigate.
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
+      expect(mockNavigationServiceGoBack).not.toHaveBeenCalled();
+      expect(mockReset).not.toHaveBeenCalled();
+    });
+
+    it('returns to Money tab when login completed from sign-up entry path (CARD-416)', async () => {
+      mockRouteParams = {
+        postAuthRedirect: {
+          screen: Routes.HOME_TABS,
+          params: {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+        },
+      };
+      mockSubmitMutateAsync.mockResolvedValue({ done: true });
+      render();
+      const emailInput = screen.getByTestId('email-field');
+      const passwordInput = screen.getByTestId('password-field');
+      const loginButton = screen.getByTestId(
+        CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
+      );
+
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(passwordInput, 'password123');
+      fireEvent.press(loginButton);
+
+      await waitFor(() => {
+        expect(mockNavigationServiceNavigate).toHaveBeenCalledWith(
+          Routes.HOME_TABS,
+          {
+            screen: Routes.MONEY.ROOT,
+            params: { screen: Routes.MONEY.HOME },
+          },
+        );
+      });
+      expect(mockNavigationServiceGoBack).not.toHaveBeenCalled();
+    });
+
+    it('dispatches CommonActions.navigate locally for in-flow postAuthRedirect target (e.g. CardHome)', async () => {
+      mockRouteParams = {
+        postAuthRedirect: {
+          screen: Routes.CARD.HOME,
+        },
+      };
+      mockSubmitMutateAsync.mockResolvedValue({ done: true });
+      render();
+      const emailInput = screen.getByTestId('email-field');
+      const passwordInput = screen.getByTestId('password-field');
+      const loginButton = screen.getByTestId(
+        CardAuthenticationSelectors.VERIFY_ACCOUNT_BUTTON,
+      );
+
+      fireEvent.changeText(emailInput, 'test@example.com');
+      fireEvent.changeText(passwordInput, 'password123');
+      fireEvent.press(loginButton);
+
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'NAVIGATE',
+            payload: expect.objectContaining({
+              name: Routes.CARD.HOME,
+              params: undefined,
+            }),
+          }),
+        );
+      });
       expect(mockNavigationServiceNavigate).not.toHaveBeenCalled();
+      expect(mockNavigationServiceGoBack).not.toHaveBeenCalled();
       expect(mockReset).not.toHaveBeenCalled();
     });
 
@@ -927,6 +1011,57 @@ describe('CardAuthentication Component', () => {
       render();
 
       expect(screen.queryByTestId('card-message-box')).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('Forgot Password', () => {
+    it('renders the forgot password link on the login step', () => {
+      render();
+
+      expect(
+        screen.getByTestId(CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the forgot password link when the feature flag is disabled', () => {
+      mockIsForgotPasswordEnabled = false;
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('does not render the forgot password link on the OTP step', () => {
+      mockUseCardAuth.mockReturnValue(
+        makeDefaultHookReturn({
+          currentStep: { type: 'otp', destination: '+1555****90' },
+        }),
+      );
+
+      render();
+
+      expect(
+        screen.queryByTestId(
+          CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON,
+        ),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('navigates to the forgot password modal when pressed', () => {
+      render();
+
+      fireEvent.press(
+        screen.getByTestId(CardAuthenticationSelectors.FORGOT_PASSWORD_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.FORGOT_PASSWORD,
+        params: { location: 'international' },
+      });
     });
   });
 });

@@ -95,7 +95,7 @@ export function buildEnvValidationSection(
 
   lines.push('\n**Build Flags:**\n');
   lines.push(`- Build Name: \`${result.buildName}\``);
-  lines.push(`- IS_TEST: \`${result.extractedValues.IS_TEST ?? 'false'}\``);
+  lines.push(`- HAS_TEST_OVERRIDES: \`${result.extractedValues.HAS_TEST_OVERRIDES ?? 'false'}\``);
 
   const rampDevBuild = result.extractedValues.RAMP_DEV_BUILD;
   if (rampDevBuild) {

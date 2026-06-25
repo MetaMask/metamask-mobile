@@ -49,8 +49,11 @@ import {
 import MoneyConvertStablecoins from '../../UI/Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
 import MoneyMusdEmptyBalanceRow from '../../UI/Money/components/MoneyMusdEmptyBalanceRow';
 import AssetOverviewClaimBonus from '../../UI/Earn/components/AssetOverviewClaimBonus/AssetOverviewClaimBonus';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from '../Homepage/Sections/Cash/CashGetMusdEmptyState.constants';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import CashGetMusdEmptyState from '../Homepage/Sections/Cash/CashGetMusdEmptyState';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import SectionRow from '../Homepage/components/SectionRow/SectionRow';
 import CashTokensFullViewSkeleton from './CashTokensFullViewSkeleton';
 import { useCashTokensRefresh } from './useCashTokensRefresh';
@@ -60,11 +63,11 @@ import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { MUSD_EVENTS_CONSTANTS } from '../../UI/Earn/constants/events/musdEvents';
-import { MONEY_EVENTS_CONSTANTS } from '../../UI/Money/constants/moneyEvents';
+import { MONEY_HUB_EVENTS_CONSTANTS } from '../../UI/Money/constants/moneyHubEvents';
 import { getNetworkName } from '../../UI/Earn/utils/network';
 import { CashTokensFullViewTestIds } from './CashTokensFullView.testIds';
 
-const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_EVENTS_CONSTANTS;
+const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_HUB_EVENTS_CONSTANTS;
 const { EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
 
 const CashTokensFullView = () => {

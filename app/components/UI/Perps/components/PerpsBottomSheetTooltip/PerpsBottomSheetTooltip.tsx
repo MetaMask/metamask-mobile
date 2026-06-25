@@ -22,6 +22,7 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 /**
  * Tip: If want to render the PerpsBottomSheetTooltip from the root (not constrained by a parent component),
@@ -81,6 +82,7 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     };
 
     const { track } = usePerpsEventTracking();
+    const surfaceClass = useElevatedSurface();
 
     const handleClose = useCallback(() => {
       bottomSheetRef.current?.onCloseBottomSheet();
@@ -122,7 +124,12 @@ const PerpsBottomSheetTooltip = React.memo<PerpsBottomSheetTooltipProps>(
     if (!isVisible || !title) return null;
 
     return (
-      <BottomSheet ref={bottomSheetRef} onClose={onClose} testID={testID}>
+      <BottomSheet
+        ref={bottomSheetRef}
+        onClose={onClose}
+        testID={testID}
+        twClassName={surfaceClass}
+      >
         {!hasCustomHeader && (
           <BottomSheetHeader
             onClose={handleClose}

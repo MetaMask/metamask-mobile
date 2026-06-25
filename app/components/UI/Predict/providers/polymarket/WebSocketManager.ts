@@ -1,5 +1,13 @@
 import { AppState, AppStateStatus } from 'react-native';
 import {
+  array,
+  create,
+  optional,
+  string,
+  type as structType,
+  type Infer,
+} from '@metamask/superstruct';
+import {
   CryptoPriceUpdate,
   CryptoPriceUpdateCallback,
   GameUpdate,
@@ -10,10 +18,15 @@ import {
   PredictGameStatus,
   PriceUpdate,
 } from '../../types';
+import { PREDICT_CONSTANTS } from '../../constants/errors';
 import { GameCache } from './GameCache';
+import { POLYMARKET_PROVIDER_ID } from './constants';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
 import { trace, endTrace, TraceName } from '../../../../../util/trace';
 import { OrderBook } from './types';
+
+type WebSocketChannel = 'sports' | 'market' | 'rtds';
 
 const SPORTS_WS_URL = 'wss://sports-api.polymarket.com/ws';
 const MARKET_WS_URL = 'wss://ws-subscriptions-clob.polymarket.com/ws/market';
@@ -27,6 +40,11 @@ const RTDS_CRYPTO_PRICES_CHAINLINK_TOPIC = 'crypto_prices_chainlink';
 const RTDS_PING_INTERVAL_MS = 5000;
 const DEFAULT_THROTTLE_INTERVAL_MS = 16;
 const ORDERBOOK_EMIT_THROTTLE_MS = 250;
+const MARKET_PRICE_EMIT_THROTTLE_MS = 250;
+
+const HEARTBEAT_CHECK_INTERVAL_MS = 5000;
+const MARKET_STALE_THRESHOLD_MS = 60000;
+const RTDS_STALE_THRESHOLD_MS = 15000;
 
 type GameUpdateCallback = (update: GameUpdate) => void;
 type PriceUpdateCallback = (updates: PriceUpdate[]) => void;
@@ -42,20 +60,29 @@ interface SportsWebSocketEvent {
   ended: boolean;
 }
 
-interface MarketWebSocketEvent {
-  event_type: string;
-  market: string;
-  asset_id?: string;
-  bids?: { price: string; size: string }[];
-  asks?: { price: string; size: string }[];
-  price_changes?: {
-    asset_id: string;
-    price: string;
-    best_bid: string;
-    best_ask: string;
-  }[];
-  timestamp: string;
-}
+const MarketOrderbookLevelSchema = structType({
+  price: string(),
+  size: string(),
+});
+
+const MarketPriceChangeSchema = structType({
+  asset_id: string(),
+  price: string(),
+  best_bid: string(),
+  best_ask: string(),
+});
+
+const MarketWebSocketEventSchema = structType({
+  event_type: string(),
+  market: optional(string()),
+  asset_id: optional(string()),
+  bids: optional(array(MarketOrderbookLevelSchema)),
+  asks: optional(array(MarketOrderbookLevelSchema)),
+  price_changes: optional(array(MarketPriceChangeSchema)),
+  timestamp: optional(string()),
+});
+
+type MarketWebSocketEvent = Infer<typeof MarketWebSocketEventSchema>;
 
 interface RtdsWebSocketEvent {
   topic: string;
@@ -81,6 +108,16 @@ export class WebSocketManager {
 
   private gameSubscriptions: Map<string, Set<GameUpdateCallback>> = new Map();
   private priceSubscriptions: Map<string, Set<PriceUpdateCallback>> = new Map();
+  // Parsed token-id set per subscription key, precomputed once at subscribe
+  // time so the high-frequency message handler never re-runs
+  // `key.split(',')` + `new Set(...)` per message.
+  private priceSubscriptionTokenSets: Map<string, Set<string>> = new Map();
+  private marketPriceCache: Map<string, PriceUpdate> = new Map();
+  // Coalesced price emission: token ids that changed since the last flush, plus
+  // the leading/trailing throttle timer. Avoids re-rendering subscribers at the
+  // full WebSocket message rate.
+  private marketPricePendingTokenIds: Set<string> = new Set();
+  private marketPriceEmitTimer: ReturnType<typeof setTimeout> | null = null;
   private orderbookSubscriptions: Map<string, Set<OrderbookCallback>> =
     new Map();
   private orderbookState: Map<
@@ -103,14 +140,20 @@ export class WebSocketManager {
   private sportsPingInterval: ReturnType<typeof setInterval> | null = null;
   private marketPingInterval: ReturnType<typeof setInterval> | null = null;
 
+  private marketLastMessageAt = 0;
+  private marketHeartbeatInterval: ReturnType<typeof setInterval> | null = null;
+
   private rtdsWs: WebSocket | null = null;
   private cryptoPriceSubscriptions: Map<
     string,
     Set<CryptoPriceUpdateCallback>
   > = new Map();
   private rtdsReconnectAttempts = 0;
+  private rtdsHeartbeatTimeouts = 0;
   private rtdsReconnectTimeout: ReturnType<typeof setTimeout> | null = null;
   private rtdsPingInterval: ReturnType<typeof setInterval> | null = null;
+  private rtdsLastMessageAt = 0;
+  private rtdsHeartbeatInterval: ReturnType<typeof setInterval> | null = null;
   private cryptoPriceBuffer: Map<string, CryptoPriceUpdate> = new Map();
   private throttleTimer: ReturnType<typeof setInterval> | null = null;
 
@@ -146,6 +189,31 @@ export class WebSocketManager {
       this.disconnectAll();
     }
   };
+
+  private getErrorContext(
+    method: string,
+    channel: WebSocketChannel,
+    extra?: Record<string, unknown>,
+  ): LoggerErrorOptions {
+    return {
+      tags: {
+        feature: PREDICT_CONSTANTS.FEATURE_NAME,
+        provider: POLYMARKET_PROVIDER_ID,
+        channel,
+      },
+      context: {
+        name: 'WebSocketManager',
+        data: {
+          method,
+          ...extra,
+        },
+      },
+    };
+  }
+
+  private toError(error: unknown): Error {
+    return error instanceof Error ? error : new Error(String(error));
+  }
 
   subscribeToGame(gameId: string, callback: GameUpdateCallback): () => void {
     let callbacks = this.gameSubscriptions.get(gameId);
@@ -200,7 +268,9 @@ export class WebSocketManager {
       };
 
       this.sportsWs.onerror = () => {
-        // Error will trigger onclose
+        DevLogger.log('WebSocketManager: sports WebSocket onerror fired', {
+          reconnectAttempts: this.sportsReconnectAttempts,
+        });
       };
 
       this.sportsWs.onmessage = this.handleSportsMessage;
@@ -208,13 +278,51 @@ export class WebSocketManager {
       DevLogger.log('WebSocketManager: Failed to connect to sports WebSocket', {
         error,
       });
+      Logger.error(
+        this.toError(error),
+        this.getErrorContext('connectSports', 'sports', {
+          reconnectAttempts: this.sportsReconnectAttempts,
+        }),
+      );
       this.scheduleSportsReconnect();
     }
   }
 
-  private handleSportsMessage = (event: WebSocketMessageEvent): void => {
+  private parseSportsMessageData(
+    eventData: WebSocketMessageEvent['data'],
+  ): SportsWebSocketEvent | undefined {
+    if (typeof eventData !== 'string') {
+      DevLogger.log('WebSocketManager: Ignoring non-string sports message', {
+        dataType: typeof eventData,
+      });
+      return undefined;
+    }
+
+    const message = eventData.trim();
+
+    if (!message || message === 'PONG' || message === 'PING') {
+      return undefined;
+    }
+
     try {
-      const data: SportsWebSocketEvent = JSON.parse(event.data);
+      return JSON.parse(message) as SportsWebSocketEvent;
+    } catch (error) {
+      DevLogger.log('WebSocketManager: Ignoring non-JSON sports message', {
+        error,
+        bodySnippet: message.slice(0, 200),
+      });
+      return undefined;
+    }
+  }
+
+  private handleSportsMessage = (event: WebSocketMessageEvent): void => {
+    const data = this.parseSportsMessageData(event.data);
+
+    if (!data) {
+      return;
+    }
+
+    try {
       const gameId = String(data.gameId);
 
       const callbacks = this.gameSubscriptions.get(gameId);
@@ -237,6 +345,10 @@ export class WebSocketManager {
       DevLogger.log('WebSocketManager: Failed to parse sports message', {
         error,
       });
+      Logger.error(
+        this.toError(error),
+        this.getErrorContext('handleSportsMessage', 'sports'),
+      );
     }
   };
 
@@ -259,10 +371,16 @@ export class WebSocketManager {
       return;
     }
 
-    this.sportsReconnectAttempts++;
-    const delay = RECONNECT_DELAY_MS * this.sportsReconnectAttempts;
+    if (this.sportsReconnectTimeout) {
+      return;
+    }
+
+    const attemptNumber = this.sportsReconnectAttempts + 1;
+    const delay = RECONNECT_DELAY_MS * attemptNumber;
 
     this.sportsReconnectTimeout = setTimeout(() => {
+      this.sportsReconnectTimeout = null;
+      this.sportsReconnectAttempts++;
       this.connectSports();
     }, delay);
   }
@@ -323,10 +441,42 @@ export class WebSocketManager {
     if (!callbacks) {
       callbacks = new Set();
       this.priceSubscriptions.set(subscriptionKey, callbacks);
+      this.priceSubscriptionTokenSets.set(
+        subscriptionKey,
+        new Set(subscriptionKey.split(',').filter(Boolean)),
+      );
     }
     callbacks.add(callback);
 
     this.ensureMarketConnection(tokenIds);
+
+    const cachedUpdates: PriceUpdate[] = [];
+    tokenIds.forEach((tokenId) => {
+      const cached = this.marketPriceCache.get(tokenId);
+      if (cached) {
+        cachedUpdates.push(cached);
+      }
+    });
+    if (cachedUpdates.length > 0) {
+      try {
+        callback(cachedUpdates);
+      } catch (error) {
+        DevLogger.log(
+          'WebSocketManager: Market price subscriber failed on cached snapshot delivery',
+          {
+            error,
+            subscriptionKey,
+          },
+        );
+        Logger.error(
+          this.toError(error),
+          this.getErrorContext('subscribeToMarketPrices', 'market', {
+            subscriptionKey,
+            snapshotSize: cachedUpdates.length,
+          }),
+        );
+      }
+    }
 
     return () => {
       const subscriptionCallbacks =
@@ -335,6 +485,7 @@ export class WebSocketManager {
         subscriptionCallbacks.delete(callback);
         if (subscriptionCallbacks.size === 0) {
           this.priceSubscriptions.delete(subscriptionKey);
+          this.priceSubscriptionTokenSets.delete(subscriptionKey);
           const remainingPriceTokenIds = this.getSubscribedMarketTokenIds();
           const tokenIdsToUnsubscribe = tokenIds.filter(
             (tokenId) =>
@@ -490,6 +641,74 @@ export class WebSocketManager {
     };
   }
 
+  /**
+   * Throttle market price fan-out with a leading + trailing edge, mirroring
+   * {@link scheduleOrderbookEmit}. The first change in a window is delivered
+   * immediately; subsequent changes within the window are batched and flushed
+   * once when the window closes.
+   */
+  private scheduleMarketPriceEmit(): void {
+    if (this.marketPriceEmitTimer === null) {
+      this.flushMarketPriceUpdates();
+      this.marketPriceEmitTimer = setTimeout(() => {
+        this.marketPriceEmitTimer = null;
+        if (this.marketPricePendingTokenIds.size > 0) {
+          this.flushMarketPriceUpdates();
+        }
+      }, MARKET_PRICE_EMIT_THROTTLE_MS);
+    }
+  }
+
+  private flushMarketPriceUpdates(): void {
+    if (this.marketPricePendingTokenIds.size === 0) {
+      return;
+    }
+
+    const changedTokenIds = this.marketPricePendingTokenIds;
+    this.marketPricePendingTokenIds = new Set();
+
+    this.priceSubscriptions.forEach((callbacks, key) => {
+      if (callbacks.size === 0) {
+        return;
+      }
+      const subscribedTokenIds = this.priceSubscriptionTokenSets.get(key);
+      if (!subscribedTokenIds) {
+        return;
+      }
+
+      const relevantUpdates: PriceUpdate[] = [];
+      changedTokenIds.forEach((tokenId) => {
+        if (subscribedTokenIds.has(tokenId)) {
+          const cached = this.marketPriceCache.get(tokenId);
+          if (cached) {
+            relevantUpdates.push(cached);
+          }
+        }
+      });
+
+      if (relevantUpdates.length === 0) {
+        return;
+      }
+
+      callbacks.forEach((callback) => {
+        try {
+          callback(relevantUpdates);
+        } catch (error) {
+          DevLogger.log('WebSocketManager: Market price subscriber failed', {
+            error,
+            subscriptionKey: key,
+          });
+          Logger.error(
+            this.toError(error),
+            this.getErrorContext('flushMarketPriceUpdates', 'market', {
+              subscriptionKey: key,
+            }),
+          );
+        }
+      });
+    });
+  }
+
   private emitOrderbookSnapshot(tokenId: string): void {
     const cached = this.orderbookState.get(tokenId);
     const callbacks = this.orderbookSubscriptions.get(tokenId);
@@ -588,16 +807,20 @@ export class WebSocketManager {
       this.marketWs.onopen = () => {
         this.marketReconnectAttempts = 0;
         this.startMarketPing();
+        this.startMarketHeartbeat();
         this.resubscribeAllMarkets();
       };
 
       this.marketWs.onclose = () => {
         this.stopMarketPing();
+        this.stopMarketHeartbeat();
         this.scheduleMarketReconnect();
       };
 
       this.marketWs.onerror = () => {
-        // Error will trigger onclose
+        DevLogger.log('WebSocketManager: market WebSocket onerror fired', {
+          reconnectAttempts: this.marketReconnectAttempts,
+        });
       };
 
       this.marketWs.onmessage = this.handleMarketMessage;
@@ -605,14 +828,64 @@ export class WebSocketManager {
       DevLogger.log('WebSocketManager: Failed to connect to market WebSocket', {
         error,
       });
+      Logger.error(
+        this.toError(error),
+        this.getErrorContext('connectMarket', 'market', {
+          reconnectAttempts: this.marketReconnectAttempts,
+        }),
+      );
       this.scheduleMarketReconnect();
     }
   }
 
-  private handleMarketMessage = (event: WebSocketMessageEvent): void => {
-    try {
-      const data: MarketWebSocketEvent = JSON.parse(event.data);
+  private parseMarketMessageData(
+    eventData: WebSocketMessageEvent['data'],
+  ): MarketWebSocketEvent | undefined {
+    if (typeof eventData !== 'string') {
+      DevLogger.log('WebSocketManager: Ignoring non-string market message', {
+        dataType: typeof eventData,
+      });
+      return undefined;
+    }
 
+    const message = eventData.trim();
+
+    if (!message || message === 'PONG' || message === 'PING') {
+      return undefined;
+    }
+
+    let parsedMessage: unknown;
+    try {
+      parsedMessage = JSON.parse(message);
+    } catch (error) {
+      DevLogger.log('WebSocketManager: Ignoring non-JSON market message', {
+        error,
+        bodySnippet: message.slice(0, 200),
+      });
+      return undefined;
+    }
+
+    try {
+      return create(parsedMessage, MarketWebSocketEventSchema);
+    } catch (error) {
+      DevLogger.log('WebSocketManager: Ignoring invalid market message', {
+        error,
+        bodySnippet: message.slice(0, 200),
+      });
+      return undefined;
+    }
+  }
+
+  private handleMarketMessage = (event: WebSocketMessageEvent): void => {
+    this.marketLastMessageAt = Date.now();
+
+    const data = this.parseMarketMessageData(event.data);
+
+    if (!data) {
+      return;
+    }
+
+    try {
       if (data.event_type === 'book' && data.asset_id) {
         this.handleBookEvent(data);
         return;
@@ -629,16 +902,14 @@ export class WebSocketManager {
         bestAsk: parseFloat(change.best_ask) || 0,
       }));
 
-      this.priceSubscriptions.forEach((callbacks, key) => {
-        const subscribedTokenIds = new Set(key.split(','));
-        const relevantUpdates = updates.filter((u) =>
-          subscribedTokenIds.has(u.tokenId),
-        );
-
-        if (relevantUpdates.length > 0) {
-          callbacks.forEach((callback) => callback(relevantUpdates));
-        }
+      updates.forEach((update) => {
+        this.marketPriceCache.set(update.tokenId, update);
+        this.marketPricePendingTokenIds.add(update.tokenId);
       });
+
+      // Coalesce emission instead of fanning out synchronously on every
+      // message. Live odds stream far faster than the UI needs to render.
+      this.scheduleMarketPriceEmit();
 
       // Intentionally NOT forwarding `price_change` to orderbook subscribers.
       // The payload only carries `best_bid` / `best_ask` (no per-level
@@ -651,6 +922,10 @@ export class WebSocketManager {
       DevLogger.log('WebSocketManager: Failed to parse market message', {
         error,
       });
+      Logger.error(
+        this.toError(error),
+        this.getErrorContext('handleMarketMessage', 'market'),
+      );
     }
   };
 
@@ -749,10 +1024,16 @@ export class WebSocketManager {
       return;
     }
 
-    this.marketReconnectAttempts++;
-    const delay = RECONNECT_DELAY_MS * this.marketReconnectAttempts;
+    if (this.marketReconnectTimeout) {
+      return;
+    }
+
+    const attemptNumber = this.marketReconnectAttempts + 1;
+    const delay = RECONNECT_DELAY_MS * attemptNumber;
 
     this.marketReconnectTimeout = setTimeout(() => {
+      this.marketReconnectTimeout = null;
+      this.marketReconnectAttempts++;
       this.connectMarket();
     }, delay);
   }
@@ -772,8 +1053,40 @@ export class WebSocketManager {
     }
   }
 
+  private startMarketHeartbeat(): void {
+    this.marketLastMessageAt = Date.now();
+    this.marketHeartbeatInterval = setInterval(() => {
+      if (this.marketWs?.readyState !== WebSocket.OPEN) {
+        return;
+      }
+      const sinceLast = Date.now() - this.marketLastMessageAt;
+      if (sinceLast > MARKET_STALE_THRESHOLD_MS) {
+        DevLogger.log(
+          'WebSocketManager: market WebSocket stale, forcing reconnect',
+          { sinceLast, threshold: MARKET_STALE_THRESHOLD_MS },
+        );
+        Logger.error(
+          new Error('WebSocketManager: market WebSocket heartbeat timeout'),
+          this.getErrorContext('marketHeartbeat', 'market', {
+            sinceLastMessageMs: sinceLast,
+            thresholdMs: MARKET_STALE_THRESHOLD_MS,
+          }),
+        );
+        this.marketWs.close();
+      }
+    }, HEARTBEAT_CHECK_INTERVAL_MS);
+  }
+
+  private stopMarketHeartbeat(): void {
+    if (this.marketHeartbeatInterval) {
+      clearInterval(this.marketHeartbeatInterval);
+      this.marketHeartbeatInterval = null;
+    }
+  }
+
   private cleanupMarketConnection(): void {
     this.stopMarketPing();
+    this.stopMarketHeartbeat();
 
     if (this.marketReconnectTimeout) {
       clearTimeout(this.marketReconnectTimeout);
@@ -799,6 +1112,12 @@ export class WebSocketManager {
   private disconnectMarket(): void {
     this.cleanupMarketConnection();
     this.marketReconnectAttempts = 0;
+    this.marketPriceCache.clear();
+    if (this.marketPriceEmitTimer) {
+      clearTimeout(this.marketPriceEmitTimer);
+      this.marketPriceEmitTimer = null;
+    }
+    this.marketPricePendingTokenIds.clear();
     // Drop cached orderbook state so a future reconnect doesn't replay a
     // stale snapshot to subscribers. The provider's REST bootstrap and the
     // next live `book` event will repopulate. Also flush throttle timers so
@@ -832,16 +1151,20 @@ export class WebSocketManager {
       this.rtdsWs.onopen = () => {
         this.rtdsReconnectAttempts = 0;
         this.startRtdsPing();
+        this.startRtdsHeartbeat();
         this.resubscribeAllRtds();
       };
 
       this.rtdsWs.onclose = () => {
         this.stopRtdsPing();
+        this.stopRtdsHeartbeat();
         this.scheduleRtdsReconnect();
       };
 
       this.rtdsWs.onerror = () => {
-        // Error will trigger onclose
+        DevLogger.log('WebSocketManager: RTDS WebSocket onerror fired', {
+          reconnectAttempts: this.rtdsReconnectAttempts,
+        });
       };
 
       this.rtdsWs.onmessage = this.handleRtdsMessage;
@@ -849,11 +1172,19 @@ export class WebSocketManager {
       DevLogger.log('WebSocketManager: Failed to connect to RTDS WebSocket', {
         error,
       });
+      Logger.error(
+        this.toError(error),
+        this.getErrorContext('connectRtds', 'rtds', {
+          reconnectAttempts: this.rtdsReconnectAttempts,
+        }),
+      );
       this.scheduleRtdsReconnect();
     }
   }
 
   private handleRtdsMessage = (event: WebSocketMessageEvent): void => {
+    this.rtdsLastMessageAt = Date.now();
+
     let traceStarted = false;
 
     try {
@@ -895,6 +1226,10 @@ export class WebSocketManager {
       DevLogger.log('WebSocketManager: Failed to parse RTDS message', {
         error,
       });
+      Logger.error(
+        this.toError(error),
+        this.getErrorContext('handleRtdsMessage', 'rtds'),
+      );
     } finally {
       if (traceStarted) {
         endTrace({ name: TraceName.CryptoUpDownWsMessage });
@@ -942,6 +1277,12 @@ export class WebSocketManager {
                     error,
                     symbol,
                   },
+                );
+                Logger.error(
+                  this.toError(error),
+                  this.getErrorContext('flushCryptoPriceBuffer', 'rtds', {
+                    symbol,
+                  }),
                 );
               }
             });
@@ -1031,14 +1372,26 @@ export class WebSocketManager {
       return;
     }
 
-    if (this.rtdsReconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
+    // Cap reconnect attempts from both TCP failures and heartbeat-triggered
+    // disconnects to prevent an infinite loop when the server is reachable
+    // but not sending data.
+    if (
+      this.rtdsReconnectAttempts >= MAX_RECONNECT_ATTEMPTS ||
+      this.rtdsHeartbeatTimeouts > MAX_RECONNECT_ATTEMPTS
+    ) {
       return;
     }
 
-    this.rtdsReconnectAttempts++;
-    const delay = RECONNECT_DELAY_MS * this.rtdsReconnectAttempts;
+    if (this.rtdsReconnectTimeout) {
+      return;
+    }
+
+    const attemptNumber = this.rtdsReconnectAttempts + 1;
+    const delay = RECONNECT_DELAY_MS * attemptNumber;
 
     this.rtdsReconnectTimeout = setTimeout(() => {
+      this.rtdsReconnectTimeout = null;
+      this.rtdsReconnectAttempts++;
       this.connectRtds();
     }, delay);
   }
@@ -1058,8 +1411,51 @@ export class WebSocketManager {
     }
   }
 
+  private startRtdsHeartbeat(): void {
+    this.rtdsLastMessageAt = Date.now();
+    this.rtdsHeartbeatInterval = setInterval(() => {
+      if (this.rtdsWs?.readyState !== WebSocket.OPEN) {
+        return;
+      }
+      const sinceLast = Date.now() - this.rtdsLastMessageAt;
+      if (sinceLast > RTDS_STALE_THRESHOLD_MS) {
+        DevLogger.log(
+          'WebSocketManager: RTDS WebSocket stale, forcing reconnect',
+          { sinceLast, threshold: RTDS_STALE_THRESHOLD_MS },
+        );
+        this.rtdsHeartbeatTimeouts++;
+        // Only escalate to Sentry if heartbeat timeouts persist after reconnecting,
+        // to avoid noisy errors for transient network blips.
+        if (this.rtdsHeartbeatTimeouts > 1) {
+          Logger.error(
+            new Error('WebSocketManager: RTDS WebSocket heartbeat timeout'),
+            this.getErrorContext('rtdsHeartbeat', 'rtds', {
+              sinceLastMessageMs: sinceLast,
+              thresholdMs: RTDS_STALE_THRESHOLD_MS,
+              heartbeatTimeouts: this.rtdsHeartbeatTimeouts,
+            }),
+          );
+        } else {
+          DevLogger.log(
+            'WebSocketManager: RTDS WebSocket stale (first timeout), forcing reconnect',
+            { sinceLast, threshold: RTDS_STALE_THRESHOLD_MS },
+          );
+        }
+        this.rtdsWs.close();
+      }
+    }, HEARTBEAT_CHECK_INTERVAL_MS);
+  }
+
+  private stopRtdsHeartbeat(): void {
+    if (this.rtdsHeartbeatInterval) {
+      clearInterval(this.rtdsHeartbeatInterval);
+      this.rtdsHeartbeatInterval = null;
+    }
+  }
+
   private cleanupRtdsConnection(): void {
     this.stopRtdsPing();
+    this.stopRtdsHeartbeat();
 
     if (this.throttleTimer) {
       clearInterval(this.throttleTimer);
@@ -1091,6 +1487,7 @@ export class WebSocketManager {
   private disconnectRtds(): void {
     this.cleanupRtdsConnection();
     this.rtdsReconnectAttempts = 0;
+    this.rtdsHeartbeatTimeouts = 0;
   }
 
   private reconnectAll(): void {
@@ -1108,6 +1505,7 @@ export class WebSocketManager {
       this.connectMarket();
     }
     if (this.cryptoPriceSubscriptions.size > 0) {
+      this.rtdsHeartbeatTimeouts = 0;
       this.connectRtds();
     }
   }
@@ -1122,7 +1520,9 @@ export class WebSocketManager {
     this.disconnectAll();
     this.gameSubscriptions.clear();
     this.priceSubscriptions.clear();
+    this.priceSubscriptionTokenSets.clear();
     this.cryptoPriceSubscriptions.clear();
+    this.marketPriceCache.clear();
     this.orderbookSubscriptions.clear();
     this.orderbookState.clear();
     this.orderbookPendingEmit.clear();

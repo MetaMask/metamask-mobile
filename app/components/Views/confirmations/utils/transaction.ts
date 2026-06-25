@@ -85,6 +85,7 @@ export async function addMMOriginatedTransaction(
   const { transactionMeta } = await addTransaction(txParams, {
     ...options,
     origin: ORIGIN_METAMASK,
+    isInternal: true,
   });
 
   const id = transactionMeta.id;
@@ -103,6 +104,45 @@ export async function addMMOriginatedTransaction(
 
 export function get4ByteCode(data: string) {
   return data.slice(0, 10).toLowerCase();
+}
+
+/**
+ * Resolves the effective transaction type for fiat strategy purposes.
+ *
+ * For non-batch transactions returns the transaction's own type.
+ * For batch transactions returns the first nested transaction type
+ * that appears in the enabled types list, or the batch type itself
+ * if no nested type matches.
+ *
+ * @param transaction - The transaction metadata to inspect.
+ * @param types - Transaction types to resolve.
+ * @returns The resolved transaction type, or `undefined`.
+ */
+export function resolveTransactionType(
+  transaction: TransactionMeta,
+  types: TransactionType[],
+): TransactionType | undefined {
+  if (transaction.type !== TransactionType.batch) {
+    return transaction.type;
+  }
+
+  const nestedType = transaction.nestedTransactions?.find(
+    (tx) => tx.type && types.includes(tx.type),
+  )?.type;
+
+  return nestedType ?? transaction.type;
+}
+
+export function getTransactionType(
+  transactionMeta: TransactionMeta | undefined,
+): string | undefined {
+  if (!transactionMeta) return undefined;
+  const { type, nestedTransactions } = transactionMeta;
+  if (nestedTransactions?.length) {
+    const nestedType = nestedTransactions.find((tx) => tx.type)?.type;
+    if (nestedType) return nestedType;
+  }
+  return type;
 }
 
 export function hasTransactionType(
@@ -162,6 +202,33 @@ export function hasGasFeeTokenSelected(
   transactionMeta: TransactionMeta | undefined,
 ): boolean {
   return Boolean(transactionMeta?.selectedGasFeeToken);
+}
+
+export function isRevokeDelegationTransaction(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  return transactionMeta?.type === TransactionType.revokeDelegation;
+}
+
+export function isTransactionMarkedAsGasFeeSponsored(
+  transactionMeta: TransactionMeta | undefined,
+): boolean {
+  return Boolean(
+    transactionMeta?.isGasFeeSponsored &&
+      !isRevokeDelegationTransaction(transactionMeta),
+  );
+}
+
+export function shouldApplyGasFeeSponsorship({
+  transactionMeta,
+  isGaslessSupported,
+}: {
+  transactionMeta: TransactionMeta | undefined;
+  isGaslessSupported: boolean;
+}): boolean {
+  return (
+    isGaslessSupported && isTransactionMarkedAsGasFeeSponsored(transactionMeta)
+  );
 }
 
 export function getSeverity(status: TransactionStatus): Severity {

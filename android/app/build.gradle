@@ -169,7 +169,9 @@ def reactNativeArchitectures() {
 
 android {
     ndkVersion rootProject.ext.ndkVersion
-
+    lint {
+        baseline = file("lint-baseline.xml")
+    }
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
@@ -179,8 +181,8 @@ android {
         applicationId "io.metamask"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionName "7.79.0"
-        versionCode 5039
+        versionName "8.1.0"
+        versionCode 4532
         testBuildType System.getProperty('testBuildType', 'debug')
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         missingDimensionStrategy 'detox', 'full'
@@ -280,6 +282,12 @@ android {
       }
       flaskDev {
         storeFile file('debug.keystore')
+        storePassword 'android'
+        keyAlias 'androiddebugkey'
+        keyPassword 'android'
+      }
+      debug {
+        storeFile file('../keystores/debug.keystore')
         storePassword 'android'
         keyAlias 'androiddebugkey'
         keyPassword 'android'

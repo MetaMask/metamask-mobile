@@ -36,13 +36,13 @@ const fixtureFollowing = {
     {
       profileId: 'trader-1',
       address: '0x1',
-      name: 'dutchiono',
+      name: 'trader1',
       imageUrl: 'https://example.com/a1.png',
     },
     {
       profileId: 'trader-2',
       address: '0x2',
-      name: 'Kien',
+      name: 'trader2',
       imageUrl: null,
     },
   ],
@@ -99,10 +99,16 @@ describe('useFollowedTraders', () => {
       expect(result.current.traders).toEqual([
         {
           id: 'trader-1',
-          username: 'dutchiono',
+          username: 'trader1',
+          address: '0x1',
           avatarUri: 'https://example.com/a1.png',
         },
-        { id: 'trader-2', username: 'Kien', avatarUri: undefined },
+        {
+          id: 'trader-2',
+          username: 'trader2',
+          address: '0x2',
+          avatarUri: undefined,
+        },
       ]);
     });
   });
@@ -144,16 +150,23 @@ describe('useFollowedTraders', () => {
       expect(result.current.error).toBe('raw error');
     });
 
-    it('logs query errors with enriched extras', () => {
+    it('logs query errors with feature:social tags', () => {
       const error = new Error('fetch failed');
       mockUseQuery.mockReturnValue(makeQueryResult({ error }));
       renderHook(() => useFollowedTraders());
       expect(Logger.error).toHaveBeenCalledWith(
         error,
         expect.objectContaining({
-          message: 'useFollowedTraders: following fetch failed',
-          endpoint: 'following',
-          errorCategory: expect.any(String),
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'followed_traders',
+            operation: 'fetch_following',
+            endpoint: 'following',
+          }),
+          extras: expect.objectContaining({
+            message: 'Followed traders fetch failed at useFollowedTraders',
+            endpoint: 'following',
+          }),
         }),
       );
     });
@@ -191,9 +204,16 @@ describe('useFollowedTraders', () => {
       expect(Logger.error).toHaveBeenCalledWith(
         error,
         expect.objectContaining({
-          message: 'useFollowedTraders: refresh failed',
-          endpoint: 'following',
-          errorCategory: expect.any(String),
+          tags: expect.objectContaining({
+            feature: 'social',
+            surface: 'followed_traders',
+            operation: 'refresh',
+            endpoint: 'following',
+          }),
+          extras: expect.objectContaining({
+            message: 'Followed traders refresh failed at useFollowedTraders',
+            endpoint: 'following',
+          }),
         }),
       );
     });
