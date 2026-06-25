@@ -1085,6 +1085,50 @@ describe('AdvancedChart', () => {
     );
   });
 
+  it('sends initial SET_POSITION_LINES after chart ready when positionLines are already present', () => {
+    const position: PositionLines = {
+      side: 'long',
+      currentPrice: 1991.7,
+      entryPrice: 1900,
+    };
+    const positionLineColors: PositionLineColors = {
+      currentPrice: 'current-price-color',
+      entry: 'entry-color',
+      takeProfit: 'take-profit-color',
+      stopLoss: 'stop-loss-color',
+      liquidation: 'liquidation-color',
+    };
+
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        positionLines={position}
+        positionLineColors={positionLineColors}
+      />,
+    );
+
+    mockPostMessage.mockClear();
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_POSITION_LINES',
+        payload: {
+          position,
+          positionLineColors,
+        },
+      }),
+    );
+  });
+
   it('sends SET_POSITION_LINES with null when positionLines cleared', () => {
     const position: PositionLines = {
       side: 'long',
