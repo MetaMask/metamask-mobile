@@ -74,7 +74,6 @@ export async function importNewSecretRecoveryPhrase(
     } catch (error) {
       await MultichainAccountService.removeMultichainAccountWallet(
         entropySource,
-        newAccount.address,
       );
 
       const errorMessage =
