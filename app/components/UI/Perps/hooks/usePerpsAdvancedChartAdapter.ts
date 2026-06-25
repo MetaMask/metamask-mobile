@@ -29,6 +29,17 @@ export const INTERVAL_MS: Partial<Record<string, number>> = {
   '1w': 7 * 24 * 60 * 60_000,
 };
 
+export const PREWARM_CANDLE_PERIODS = [
+  CandlePeriod.OneMinute,
+  CandlePeriod.ThreeMinutes,
+  CandlePeriod.FiveMinutes,
+  CandlePeriod.FifteenMinutes,
+  CandlePeriod.OneHour,
+  CandlePeriod.FourHours,
+  CandlePeriod.OneDay,
+  CandlePeriod.OneWeek,
+] as const;
+
 /**
  * Converts Perps CandleData candles (string-typed OHLCV) to OHLCVBar[].
  * Drops any bar whose numeric fields are non-finite after parsing.
@@ -105,11 +116,39 @@ export function usePerpsAdvancedChartAdapter({
   const prevLastBarRef = useRef<OHLCVBar | null>(null);
   /** Cleared once the first delivery (or an error) lands, so the skeleton never hangs. */
   const hasReceivedFirstUpdateRef = useRef(false);
+  /** True once this chart has rendered at least one valid candle batch. */
+  const hasLoadedBarsRef = useRef(false);
+  const previousSymbolRef = useRef<string | null>(null);
 
   useEffect(() => {
-    // Reset on symbol/interval change.
-    setIsLoading(true);
-    setOhlcvData([]);
+    if (!symbol || typeof stream.candles.prewarmCandles !== 'function') {
+      return;
+    }
+
+    PREWARM_CANDLE_PERIODS.forEach((period) => {
+      stream.candles
+        .prewarmCandles(symbol, period, TimeDuration.OneWeek)
+        .catch((error: unknown) => {
+          DevLogger.log('usePerpsAdvancedChartAdapter: prewarm failed', {
+            symbol,
+            interval: period as string,
+            error: error instanceof Error ? error.message : String(error),
+          });
+        });
+    });
+  }, [symbol, stream]);
+
+  useEffect(() => {
+    const isIntervalRefresh =
+      previousSymbolRef.current === symbol && hasLoadedBarsRef.current;
+    previousSymbolRef.current = symbol;
+
+    // Reset on symbol change; keep the existing chart visible during interval refresh.
+    setIsLoading(!isIntervalRefresh);
+    if (!isIntervalRefresh) {
+      setOhlcvData([]);
+      hasLoadedBarsRef.current = false;
+    }
     setRealtimeBar(undefined);
     prevLastBarRef.current = null;
     latestCandleDataRef.current = null;
@@ -148,6 +187,7 @@ export function usePerpsAdvancedChartAdapter({
         if (prev === null) {
           // First data for this symbol+interval — send full dataset.
           setOhlcvData(converted);
+          hasLoadedBarsRef.current = true;
           // realtimeBar stays undefined; AdvancedChart uses ohlcvData for initial render.
         } else if (
           lastBar.time !== prev.time ||

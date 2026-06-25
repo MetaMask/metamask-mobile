@@ -223,6 +223,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   );
 
   const volumeColors = useMemo(() => getPerpsVolumeColors(colors), [colors]);
+  const webViewInstanceKey = useMemo(() => `${symbol}|perps`, [symbol]);
 
   useEffect(() => {
     onLatestPriceChange?.(
@@ -404,6 +405,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     <AdvancedChart
       ohlcvData={ohlcvData}
       ohlcvSeriesKey={ohlcvSeriesKey}
+      webViewInstanceKey={webViewInstanceKey}
       realtimeBar={realtimeBar}
       height={height}
       chartType={ChartType.Candles}

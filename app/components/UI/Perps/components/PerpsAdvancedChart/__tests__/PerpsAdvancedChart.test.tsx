@@ -94,6 +94,10 @@ describe('PerpsAdvancedChart', () => {
 
   const advancedChartProps = () =>
     mockAdvancedChart.mock.calls[0][0] as AdvancedChartProps;
+  const latestAdvancedChartProps = () =>
+    mockAdvancedChart.mock.calls[
+      mockAdvancedChart.mock.calls.length - 1
+    ][0] as AdvancedChartProps;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -126,6 +130,31 @@ describe('PerpsAdvancedChart', () => {
         paginationDuration: TimeDuration.YearToDate,
       }),
     );
+  });
+
+  it('keeps the AdvancedChart WebView instance stable across interval changes', () => {
+    const { rerender } = renderChart();
+
+    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps');
+    expect(latestAdvancedChartProps().ohlcvSeriesKey).toBe('BTC|1h');
+
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      ohlcvSeriesKey: 'BTC|4h',
+    });
+
+    rerender(
+      <PerpsAdvancedChart
+        symbol="BTC"
+        interval={CandlePeriod.FourHours}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+      />,
+    );
+
+    expect(latestAdvancedChartProps().webViewInstanceKey).toBe('BTC|perps');
+    expect(latestAdvancedChartProps().ohlcvSeriesKey).toBe('BTC|4h');
   });
 
   it('notifies the parent when the latest adapter close changes', () => {
