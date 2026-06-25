@@ -13,6 +13,8 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { useParams } from '../../../util/navigation/navUtils';
 import { resolveActivityListItemTitle } from '../../UI/ActivityListItemRow/ActivityListItemRow';
+// eslint-disable-next-line import-x/no-restricted-paths -- transient row hand-off from the activity list; route-isolation backlog
+import { getPreloadedActivityItem } from '../ActivityList/preloadedActivityItemStore';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import type { ActivityDetailsParams } from './ActivityDetails.types';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
@@ -28,8 +30,8 @@ import { TemplateLoader } from './templates/TemplateLoader';
 const ActivityDetails = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { chainId, txIdentifier, preloadedItem } =
-    useParams<ActivityDetailsParams>();
+  const { chainId, txIdentifier } = useParams<ActivityDetailsParams>();
+  const preloadedItem = getPreloadedActivityItem(chainId, txIdentifier);
 
   const item = useActivityDetailsItem(txIdentifier, chainId, preloadedItem);
   const title = item

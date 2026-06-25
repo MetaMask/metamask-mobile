@@ -109,6 +109,7 @@ import {
 } from './helpers/transformations';
 import { normalizeTransaction } from './helpers/adapters';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
+import { setPreloadedActivityItem } from './preloadedActivityItemStore';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
   PerpsActivitySource,
@@ -769,13 +770,15 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           raw.type === 'localTransaction' &&
           raw.data.primaryTransaction?.type === TransactionType.bridge;
         if (isTransactionsRedesignEnabled && item.hash && !hasDedicatedScreen) {
+          if (
+            raw.type === 'perpsTransaction' ||
+            raw.type === 'predictActivity'
+          ) {
+            setPreloadedActivityItem(item);
+          }
           navigation.navigate(Routes.ACTIVITY_DETAILS, {
             chainId: item.chainId,
             txIdentifier: item.hash,
-            ...(raw.type === 'perpsTransaction' ||
-            raw.type === 'predictActivity'
-              ? { preloadedItem: item }
-              : {}),
           });
           return;
         }

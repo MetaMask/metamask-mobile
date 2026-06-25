@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import ActivityList, { type ActivityListHandle } from './ActivityList';
 import { ActivityListSelectorsIDs } from './ActivityList.testIds';
+import { getPreloadedActivityItem } from './preloadedActivityItemStore';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
@@ -1238,8 +1239,10 @@ describe('ActivityList', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
       chainId: 'eip155:42161',
       txIdentifier: 'perps-fill-2',
-      preloadedItem: perpsItem,
     });
+    expect(getPreloadedActivityItem('eip155:42161', 'perps-fill-2')).toEqual(
+      perpsItem,
+    );
     expect(mockNavigate).not.toHaveBeenCalledWith(
       'PerpsPositionTransaction',
       expect.anything(),
