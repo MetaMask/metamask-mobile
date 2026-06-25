@@ -40,6 +40,15 @@ on:
         required: false
         type: string
         default: current
+      source_fingerprint:
+        description: >-
+          Optional pre-computed @expo/fingerprint hash for this commit. When provided,
+          the prepare job skips inline fingerprint computation and the status post is skipped.
+          Pass from a caller that already computed it to avoid double-posting the
+          device-build-source-hash commit status.
+        required: false
+        type: string
+        default: ''
     outputs:
       build_name:
         description: 'build_name input passed to this workflow'
@@ -109,6 +118,7 @@ on:
 permissions:
   contents: read
   id-token: write
+  statuses: write
 
 jobs:
   # Load config
@@ -124,6 +134,11 @@ jobs:
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
       script_name: ${{ steps.config.outputs.script_name }}
       checkout_ref_for_setup: ${{ inputs.source_branch }}
+      # Device build cache reuse outputs
+      reuse_eligible: ${{ steps.config.outputs.reuse_eligible }}
+      metamask_environment: ${{ steps.config.outputs.metamask_environment }}
+      is_sim_build: ${{ steps.config.outputs.is_sim_build }}
+      device_fingerprint: ${{ steps.device-fingerprint-resolve.outputs.fingerprint }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -169,7 +184,46 @@ jobs:
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_aws_secret=' + (signing ? signing.aws_secret || '' : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'signing_android_keystore_path=' + (signing && signing.android_keystore_path ? signing.android_keystore_path : '') + '\n');
           fs.appendFileSync(process.env.GITHUB_OUTPUT, 'script_name=' + (build.script_name || '${{ inputs.build_name }}') + '\n');
+          // Device build cache reuse eligibility:
+          // Eligible = device build (IS_SIM_BUILD != true) AND not production AND not dev.
+          const isSimBuild = env.IS_SIM_BUILD === 'true';
+          const metamaskEnv = env.METAMASK_ENVIRONMENT || '';
+          const reuseEligible = !isSimBuild && metamaskEnv !== 'production' && metamaskEnv !== 'dev';
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'is_sim_build=' + isSimBuild + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'metamask_environment=' + metamaskEnv + '\n');
+          fs.appendFileSync(process.env.GITHUB_OUTPUT, 'reuse_eligible=' + reuseEligible + '\n');
           "
+
+      # Compute the native fingerprint for device build cache reuse. Only runs for eligible
+      # build configs (non-sim, non-prod, non-dev). Uses a distinct commit-status context
+      # (device-build-source-hash) so it does not overwrite the E2E build-source-hash.
+      - name: Compute native build fingerprint (device reuse)
+        id: device-fingerprint-compute
+        if: ${{ steps.config.outputs.reuse_eligible == 'true' && inputs.source_fingerprint == '' }}
+        uses: ./.github/actions/post-build-source-hash
+        with:
+          github-token: ${{ github.token }}
+          post-status: 'true'
+          target-sha: ${{ github.event.pull_request.head.sha || github.sha }}
+          status-context: 'device-build-source-hash'
+
+      # Resolve the fingerprint: prefer the caller-supplied value (to avoid double-posting),
+      # then fall back to the inline-computed one.
+      - name: Resolve device build fingerprint
+        id: device-fingerprint-resolve
+        if: ${{ steps.config.outputs.reuse_eligible == 'true' }}
+        shell: bash
+        run: |
+          FP="${{ inputs.source_fingerprint }}"
+          if [[ -z "$FP" ]]; then
+            FP="${{ steps.device-fingerprint-compute.outputs.fingerprint }}"
+          fi
+          echo "fingerprint=$FP" >> "$GITHUB_OUTPUT"
+          if [[ -n "$FP" ]]; then
+            echo "Device build fingerprint: $FP"
+          else
+            echo "::warning::No device fingerprint available; artifact reuse disabled for this run."
+          fi
 
   # Setup dependencies (no secrets) - uses reusable workflow on platform-specific runner
   setup-dependencies:
@@ -206,6 +260,8 @@ jobs:
     env:
       GRADLE_USER_HOME: /home/admin/_work/.gradle
       CACHE_GENERATION: v1
+      # Artifact name for the device build reuse metadata JSON (PR-A).
+      DEVICE_BUILD_METADATA_ARTIFACT: ${{ inputs.build_name }}-${{ matrix.platform }}-device-build-metadata
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -237,6 +293,161 @@ jobs:
           fi
           ./scripts/set-build-version.sh "$BUILD_NUMBER"
           echo "Bump applied locally (no commit). Build number: $BUILD_NUMBER"
+
+      # ── Device build cache reuse gate (PR-A) ────────────────────────────────
+      # Only active for eligible builds (non-sim, non-prod, non-dev).
+      # If a prior run with the same native fingerprint exists the IPA/APK is
+      # downloaded and the full native build is skipped. Heavy setup steps
+      # (CocoaPods, Gradle, xcodebuild/Gradle build) are gated on the gate output.
+
+      - name: Check force-builds override (device reuse)
+        id: force-builds
+        if: >-
+          ${{ needs.prepare.outputs.reuse_eligible == 'true' &&
+              needs.prepare.outputs.device_fingerprint != '' }}
+        uses: ./.github/actions/check-force-builds
+        with:
+          github-token: ${{ github.token }}
+
+      - name: Find reusable device build from prior run
+        id: find-reusable-build
+        if: >-
+          ${{ needs.prepare.outputs.reuse_eligible == 'true' &&
+              needs.prepare.outputs.device_fingerprint != '' &&
+              steps.force-builds.outputs.force != 'true' }}
+        uses: ./.github/actions/find-reusable-build
+        with:
+          fingerprint: ${{ needs.prepare.outputs.device_fingerprint }}
+          artifact-names: >-
+            ${{ matrix.platform == 'ios'
+                && format('["ios-ipa-{0}"]', inputs.build_name)
+                || format('["android-apk-{0}"]', inputs.build_name) }}
+          metadata-artifact-name: ${{ env.DEVICE_BUILD_METADATA_ARTIFACT }}
+          github-token: ${{ github.token }}
+          workflow-file: build.yml
+          status-context: device-build-source-hash
+
+      - name: Download device build metadata from prior run
+        id: download-reusable-metadata
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.DEVICE_BUILD_METADATA_ARTIFACT }}
+          path: .device-reusable-metadata
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build.outputs.run-id }}
+
+      - name: Validate device build metadata
+        id: validate-reusable-metadata
+        if: ${{ steps.find-reusable-build.outputs.found == 'true' }}
+        shell: bash
+        env:
+          METADATA_FILE: .device-reusable-metadata/device.json
+        run: |
+          set -euo pipefail
+          echo "valid=false" >> "$GITHUB_OUTPUT"
+          if [[ "${{ steps.download-reusable-metadata.outcome }}" != "success" ]]; then
+            echo "::warning::Device build metadata download failed; falling back to fresh native build."
+            exit 0
+          fi
+          if [[ ! -f "$METADATA_FILE" ]]; then
+            echo "::warning::Device build metadata file missing; falling back to fresh native build."
+            exit 0
+          fi
+          EXPECTED_RUN_ID="${{ steps.find-reusable-build.outputs.run-id }}"
+          EXPECTED_SHA="${{ steps.find-reusable-build.outputs.source-sha }}"
+          EXPECTED_FINGERPRINT="${{ needs.prepare.outputs.device_fingerprint }}"
+          if jq -e \
+            --arg fingerprint "$EXPECTED_FINGERPRINT" \
+            --arg buildName "${{ inputs.build_name }}" \
+            --arg platform "${{ matrix.platform }}" \
+            --arg workflowRunId "$EXPECTED_RUN_ID" \
+            --arg headSha "$EXPECTED_SHA" \
+            '.schemaVersion == 1
+              and .fingerprint == $fingerprint
+              and .buildName == $buildName
+              and .platform == $platform
+              and .workflowRunId == $workflowRunId
+              and .headSha == $headSha' "$METADATA_FILE" >/dev/null; then
+            echo "valid=true" >> "$GITHUB_OUTPUT"
+            echo "Device build metadata is valid; reuse path active."
+          else
+            echo "::warning::Device build metadata mismatch; falling back to fresh native build."
+            cat "$METADATA_FILE"
+          fi
+
+      - name: Download reusable iOS IPA from prior run
+        id: download-reusable-ios-ipa
+        if: >-
+          ${{ matrix.platform == 'ios' &&
+              steps.validate-reusable-metadata.outputs.valid == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-ipa-${{ inputs.build_name }}
+          path: ios/build/output
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build.outputs.run-id }}
+
+      - name: Download reusable Android APK from prior run
+        id: download-reusable-android-apk
+        if: >-
+          ${{ matrix.platform == 'android' &&
+              steps.validate-reusable-metadata.outputs.valid == 'true' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          name: android-apk-${{ inputs.build_name }}
+          path: android/app/build/outputs/apk/prod/release
+          github-token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          run-id: ${{ steps.find-reusable-build.outputs.run-id }}
+
+      - name: Compute needs-native-build gate
+        id: gate
+        shell: bash
+        run: |
+          # Default: full native build required.
+          echo "needs-native-build=true" >> "$GITHUB_OUTPUT"
+
+          REUSE_ELIGIBLE="${{ needs.prepare.outputs.reuse_eligible }}"
+          FINGERPRINT="${{ needs.prepare.outputs.device_fingerprint }}"
+          FORCE="${{ steps.force-builds.outputs.force }}"
+          FOUND="${{ steps.find-reusable-build.outputs.found }}"
+          META_VALID="${{ steps.validate-reusable-metadata.outputs.valid }}"
+          IOS_DL="${{ steps.download-reusable-ios-ipa.outcome }}"
+          ANDROID_DL="${{ steps.download-reusable-android-apk.outcome }}"
+          PLATFORM="${{ matrix.platform }}"
+
+          if [[ "$REUSE_ELIGIBLE" != "true" || -z "$FINGERPRINT" ]]; then
+            echo "Reuse not eligible for this build config; running full native build."
+            exit 0
+          fi
+          if [[ "$FORCE" == "true" ]]; then
+            echo "force-builds override active; running full native build."
+            exit 0
+          fi
+          if [[ "$FOUND" == "true" && "$META_VALID" == "true" ]]; then
+            if [[ "$PLATFORM" == "ios" && "$IOS_DL" == "success" ]]; then
+              echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+              echo "Reuse path active for iOS: IPA downloaded from prior run."
+            elif [[ "$PLATFORM" == "android" && "$ANDROID_DL" == "success" ]]; then
+              echo "needs-native-build=false" >> "$GITHUB_OUTPUT"
+              echo "Reuse path active for Android: APK downloaded from prior run."
+            else
+              echo "::warning::Artifact download failed; running full native build."
+            fi
+          else
+            if [[ "$FOUND" == "true" ]]; then
+              echo "::warning::Reusable run found but metadata invalid or download failed; running full native build."
+            else
+              echo "No prior reusable build found; running full native build."
+            fi
+          fi
+      # ── End device build cache reuse gate ────────────────────────────────────
 
       # Node first so we can download/extract/verify; no yarn install here (we use the tarball to avoid running install in this job).
       - name: Setup Node.js
@@ -310,7 +521,7 @@ jobs:
       # build-number bumps do not bust the cache.
       - name: Restore Xcode DerivedData from branch cache (iOS)
         id: xcode-derived-cache
-        if: matrix.platform == 'ios'
+        if: matrix.platform == 'ios' && steps.gate.outputs.needs-native-build == 'true'
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |
@@ -323,6 +534,7 @@ jobs:
       - name: Restore Xcode DerivedData from main cache (iOS)
         if: >-
           matrix.platform == 'ios' &&
+          steps.gate.outputs.needs-native-build == 'true' &&
           steps.xcode-derived-cache.outputs.cache-hit != 'true' &&
           github.ref_name != 'main'
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -338,7 +550,8 @@ jobs:
       - name: Clone TapAndPay SDK
         if: |
           matrix.platform == 'android' &&
-          needs.prepare.outputs.tap_and_pay_sdk_repo_ssh != ''
+          needs.prepare.outputs.tap_and_pay_sdk_repo_ssh != '' &&
+          steps.gate.outputs.needs-native-build == 'true'
         run: |
           if [ -z "$TAP_AND_PAY_SDK_SSH_KEY" ]; then
             echo "⚠️ TAP_AND_PAY_SDK_SSH_KEY not set, skipping TapAndPay SDK clone"
@@ -381,7 +594,7 @@ jobs:
 
       # iOS: Install Pods here so generated paths match this runner (setup-node-modules skips pod install with --no-install-pods).
       - name: Install CocoaPods dependencies (iOS)
-        if: matrix.platform == 'ios'
+        if: matrix.platform == 'ios' && steps.gate.outputs.needs-native-build == 'true'
         env:
           BUNDLE_GEMFILE: ios/Gemfile
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
@@ -423,7 +636,7 @@ jobs:
       # android/app/build.gradle so build-number bumps do not bust the cache.
       - name: Compute Gradle cache key (exclude versionCode)
         id: gradle-hash
-        if: matrix.platform == 'android'
+        if: matrix.platform == 'android' && steps.gate.outputs.needs-native-build == 'true'
         shell: bash
         run: |
           HASH=$(
@@ -440,7 +653,7 @@ jobs:
           echo "Gradle cache key hash (versionCode excluded): $HASH"
 
       - name: Restore Gradle dependencies from branch cache (Android)
-        if: matrix.platform == 'android'
+        if: matrix.platform == 'android' && steps.gate.outputs.needs-native-build == 'true'
         id: gradle-cache-restore
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
@@ -450,7 +663,11 @@ jobs:
           key: gradle-release-${{ github.ref_name }}-${{ env.CACHE_GENERATION }}-${{ runner.os }}-${{ steps.gradle-hash.outputs.hash }}
 
       - name: Restore Gradle dependencies from main cache (Android)
-        if: matrix.platform == 'android' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main'
+        if: >-
+          matrix.platform == 'android' &&
+          steps.gate.outputs.needs-native-build == 'true' &&
+          steps.gradle-cache-restore.outputs.cache-hit != 'true' &&
+          github.ref_name != 'main'
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
         with:
           path: |
@@ -504,7 +721,9 @@ jobs:
           fi
 
       # Build with retry logic. Timeouts: 55min per attempt, 115min total for step, 120min job
+      # Skipped on the device-reuse path (when a prior IPA/APK was downloaded above).
       - name: Build ${{ matrix.platform }}
+        if: steps.gate.outputs.needs-native-build == 'true'
         timeout-minutes: 115
         env:
           # Must match Apply build config / artifact naming so build.sh loads the same
@@ -528,6 +747,119 @@ jobs:
             SCRIPT_BASE="${{ needs.prepare.outputs.script_name }}"
             SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"
+
+      # ── Device build cache reuse path: repack + re-stamp + re-sign ──────────
+      # Runs only when a prior-run IPA/APK was successfully downloaded (gate != 'true').
+      # configure-signing already ran above, so the keychain and keystore are available.
+
+      - name: Repack iOS IPA with updated JS bundle and re-stamp build number (device reuse path)
+        if: matrix.platform == 'ios' && steps.gate.outputs.needs-native-build != 'true'
+        shell: bash
+        run: yarn build:repack:ios:device
+        env:
+          PLATFORM: ios
+          DEVICE_BUILD: 'true'
+          BUILD_NUMBER: ${{ inputs.build_number }}
+          SEMVER: ${{ inputs.version }}
+          # IOS_RESIGN_KEYCHAIN: path set up by configure-signing (default used in repack.js)
+          METAMASK_ENVIRONMENT: ${{ env.METAMASK_ENVIRONMENT }}
+          METAMASK_BUILD_TYPE: ${{ env.METAMASK_BUILD_TYPE }}
+
+      - name: Repack Android APK with updated JS bundle and re-sign (device reuse path)
+        if: matrix.platform == 'android' && steps.gate.outputs.needs-native-build != 'true'
+        shell: bash
+        run: |
+          # Map the BITRISEIO_* env vars exported by configure-signing to the generic
+          # DEVICE_ANDROID_* names that getDeviceKeystoreConfig() reads.
+          if [[ -n "${BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD:-}" ]]; then
+            export DEVICE_ANDROID_KEYSTORE_PASSWORD="$BITRISEIO_ANDROID_RC_KEYSTORE_PASSWORD"
+            export DEVICE_ANDROID_KEY_ALIAS="$BITRISEIO_ANDROID_RC_KEYSTORE_ALIAS"
+            export DEVICE_ANDROID_KEY_PASSWORD="$BITRISEIO_ANDROID_RC_KEYSTORE_PRIVATE_KEY_PASSWORD"
+          elif [[ -n "${BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD:-}" ]]; then
+            export DEVICE_ANDROID_KEYSTORE_PASSWORD="$BITRISEIO_ANDROID_QA_KEYSTORE_PASSWORD"
+            export DEVICE_ANDROID_KEY_ALIAS="$BITRISEIO_ANDROID_QA_KEYSTORE_ALIAS"
+            export DEVICE_ANDROID_KEY_PASSWORD="$BITRISEIO_ANDROID_QA_KEYSTORE_PRIVATE_KEY_PASSWORD"
+          elif [[ -n "${BITRISEIO_ANDROID_KEYSTORE_PASSWORD:-}" ]]; then
+            export DEVICE_ANDROID_KEYSTORE_PASSWORD="$BITRISEIO_ANDROID_KEYSTORE_PASSWORD"
+            export DEVICE_ANDROID_KEY_ALIAS="$BITRISEIO_ANDROID_KEYSTORE_ALIAS"
+            export DEVICE_ANDROID_KEY_PASSWORD="$BITRISEIO_ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD"
+          fi
+          export DEVICE_ANDROID_KEYSTORE_PATH="android/keystores/${{ needs.prepare.outputs.signing_android_keystore_path }}"
+          yarn build:repack:android:device
+        env:
+          PLATFORM: android
+          DEVICE_BUILD: 'true'
+          METAMASK_ENVIRONMENT: ${{ env.METAMASK_ENVIRONMENT }}
+          METAMASK_BUILD_TYPE: ${{ env.METAMASK_BUILD_TYPE }}
+
+      # Validate that the re-stamped artifacts carry the expected build number so we
+      # catch any mis-stamp before the artifact reaches TestFlight / Play Store.
+      - name: Verify re-stamped iOS IPA build number (device reuse path)
+        if: >-
+          matrix.platform == 'ios' &&
+          steps.gate.outputs.needs-native-build != 'true' &&
+          inputs.build_number != ''
+        shell: bash
+        env:
+          EXPECTED_BUILD_NUMBER: ${{ inputs.build_number }}
+        run: |
+          set -euo pipefail
+          IPA=$(find ios/build/output -name "*.ipa" -type f | head -1)
+          if [[ -z "$IPA" ]]; then
+            echo "::error::No IPA found for build number verification."
+            exit 1
+          fi
+          WORK_DIR="$(mktemp -d)"
+          unzip -q "$IPA" -d "$WORK_DIR"
+          PLIST="$WORK_DIR/Payload/"*".app/Info.plist"
+          ACTUAL=$(eval /usr/libexec/PlistBuddy -c '"Print :CFBundleVersion"' "$PLIST" 2>/dev/null)
+          rm -rf "$WORK_DIR"
+          echo "Expected CFBundleVersion: $EXPECTED_BUILD_NUMBER"
+          echo "Actual   CFBundleVersion: $ACTUAL"
+          if [[ "$ACTUAL" != "$EXPECTED_BUILD_NUMBER" ]]; then
+            echo "::error::CFBundleVersion mismatch after device repack! Expected $EXPECTED_BUILD_NUMBER, got $ACTUAL."
+            exit 1
+          fi
+          echo "CFBundleVersion verification passed."
+
+      - name: Verify re-stamped Android APK build number (device reuse path)
+        if: >-
+          matrix.platform == 'android' &&
+          steps.gate.outputs.needs-native-build != 'true' &&
+          inputs.build_number != ''
+        shell: bash
+        env:
+          EXPECTED_BUILD_NUMBER: ${{ inputs.build_number }}
+          ANDROID_HOME: /opt/android-sdk
+        run: |
+          set -euo pipefail
+          BUILD_TYPE="${METAMASK_BUILD_TYPE:-main}"
+          FLAVOR="$([[ "$BUILD_TYPE" == "flask" ]] && echo "flask" || echo "prod")"
+          APK=$(find "android/app/build/outputs/apk/${FLAVOR}/release" -name "app-${FLAVOR}-release.apk" | head -1)
+          if [[ -z "$APK" ]]; then
+            echo "::error::No canonical APK found for build number verification."
+            exit 1
+          fi
+          # Use aapt2 or aapt to dump version info
+          AAPT="${ANDROID_HOME}/build-tools/$(ls "${ANDROID_HOME}/build-tools/" | sort -V | tail -1)/aapt2"
+          if [[ -x "$AAPT" ]]; then
+            ACTUAL=$("$AAPT" dump badging "$APK" 2>/dev/null | grep -oP "versionCode='[0-9]+'" | grep -oP "[0-9]+" | head -1 || true)
+          else
+            AAPT_V1="${ANDROID_HOME}/build-tools/$(ls "${ANDROID_HOME}/build-tools/" | sort -V | tail -1)/aapt"
+            ACTUAL=$("$AAPT_V1" dump badging "$APK" 2>/dev/null | grep -oP "versionCode='[0-9]+'" | grep -oP "[0-9]+" | head -1 || true)
+          fi
+          echo "Expected versionCode: $EXPECTED_BUILD_NUMBER"
+          echo "Actual   versionCode: $ACTUAL"
+          if [[ -z "$ACTUAL" ]]; then
+            echo "::warning::Could not read versionCode from APK; skipping verification."
+            exit 0
+          fi
+          if [[ "$ACTUAL" != "$EXPECTED_BUILD_NUMBER" ]]; then
+            echo "::error::versionCode mismatch after device repack! Expected $EXPECTED_BUILD_NUMBER, got $ACTUAL."
+            exit 1
+          fi
+          echo "versionCode verification passed."
+      # ── End device build cache reuse path ────────────────────────────────────
 
       # Prod Play–shaped Android: lint merged prodRelease manifest, then validate the AAB produced above (bundletool).
       # Only for production builds (AAB is now skipped for all non-prod envs in build.sh).
@@ -663,6 +995,62 @@ jobs:
           name: build-env-${{ inputs.build_name }}-${{ matrix.platform }}
           path: build-env.json
           if-no-files-found: warn
+
+      # ── Full-build path: write + upload device build metadata (PR-A) ────────
+      # Enables future runs to find and reuse this artifact via find-reusable-build.
+      # Only written on the full native build path for eligible device builds.
+      - name: Write device build metadata
+        id: write-device-metadata
+        if: >-
+          success() &&
+          steps.gate.outputs.needs-native-build == 'true' &&
+          needs.prepare.outputs.reuse_eligible == 'true' &&
+          needs.prepare.outputs.device_fingerprint != ''
+        shell: bash
+        env:
+          SOURCE_FINGERPRINT: ${{ needs.prepare.outputs.device_fingerprint }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          GITHUB_RUN_ID_VALUE: ${{ github.run_id }}
+        run: |
+          set -euo pipefail
+          mkdir -p .device-build-metadata
+          ARTIFACT_NAMES_JSON="${{ matrix.platform == 'ios'
+            && format('[\"ios-ipa-{0}\"]', inputs.build_name)
+            || format('[\"android-apk-{0}\"]', inputs.build_name) }}"
+          jq -n \
+            --arg fingerprint "$SOURCE_FINGERPRINT" \
+            --arg buildName "${{ inputs.build_name }}" \
+            --arg platform "${{ matrix.platform }}" \
+            --arg workflowRunId "$GITHUB_RUN_ID_VALUE" \
+            --arg headSha "$HEAD_SHA" \
+            --arg createdAt "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
+            --argjson artifactNames "$ARTIFACT_NAMES_JSON" \
+            '{
+              schemaVersion: 1,
+              fingerprint: $fingerprint,
+              buildName: $buildName,
+              platform: $platform,
+              workflowRunId: $workflowRunId,
+              headSha: $headSha,
+              artifactNames: $artifactNames,
+              createdAt: $createdAt
+            }' > .device-build-metadata/device.json
+          echo "Device build metadata written:"
+          cat .device-build-metadata/device.json
+
+      - name: Upload device build metadata
+        if: >-
+          success() &&
+          steps.gate.outputs.needs-native-build == 'true' &&
+          needs.prepare.outputs.reuse_eligible == 'true' &&
+          needs.prepare.outputs.device_fingerprint != ''
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.DEVICE_BUILD_METADATA_ARTIFACT }}
+          path: .device-build-metadata/device.json
+          retention-days: 14
+          if-no-files-found: warn
+      # ── End full-build path metadata ─────────────────────────────────────────
 
   # Single fan-in job so workflow_call outputs work with matrix `build` (matrix jobs cannot feed workflow outputs directly).
   emit-build-metadata:
