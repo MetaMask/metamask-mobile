@@ -30,7 +30,7 @@ import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import {
   asPerpsActivityItem,
   formatPerpsOrderFee,
-  formatPositivePerpsFiat,
+  formatPositiveFiat,
   formatPerpsTransactionDate,
   formatSignedPerpsFiat,
   getPerpsFundsCtaLabel,
@@ -130,7 +130,7 @@ function TradeDetails({
         <ActivityDetailSection>
           <ActivityDetailRow
             label={strings('perps.transactions.position.fees')}
-            value={fill?.fee ? formatPositivePerpsFiat(fill.fee) : undefined}
+            value={fill?.fee ? formatPositiveFiat(fill.fee) : undefined}
           />
           {shouldShowPerpsPnl(fill) ? (
             <ActivityDetailRow

@@ -2,7 +2,12 @@ import BigNumber from 'bignumber.js';
 import { strings } from '../../../../../locales/i18n';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuse Perps UI utilities until shared perps utilities are extracted. */
-import { formatTransactionDate as formatPerpsTransactionDate } from '../../../UI/Perps/utils/formatUtils';
+import {
+  formatTransactionDate as formatPerpsTransactionDate,
+  formatPerpsFiat,
+  formatPositiveFiat,
+  PRICE_RANGES_UNIVERSAL,
+} from '../../../UI/Perps/utils/formatUtils';
 import { getAssetIconUrls as getPerpsAssetIconUrls } from '../../../UI/Perps/utils/marketUtils';
 /* eslint-enable import-x/no-restricted-paths */
 
@@ -46,21 +51,11 @@ export function getPerpsTransaction(
   return item.raw?.type === 'perpsTransaction' ? item.raw.data : undefined;
 }
 
-export { formatPerpsTransactionDate, getPerpsAssetIconUrls };
-
-export function formatPositivePerpsFiat(fee: number | string): string {
-  const value = BigNumber(fee).absoluteValue();
-
-  if (value.isEqualTo(0)) {
-    return '$0.00';
-  }
-
-  if (value.isLessThan(0.01)) {
-    return '<$0.01';
-  }
-
-  return `$${value.toFormat(2)}`;
-}
+export {
+  formatPerpsTransactionDate,
+  getPerpsAssetIconUrls,
+  formatPositiveFiat,
+};
 
 export function asPerpsActivityItem(
   item: ActivityListItem,
@@ -79,7 +74,11 @@ export function formatSignedPerpsFiat(
     return '$0';
   }
 
-  return `${sign}$${absolute.toFixed()}`;
+  if (absolute.isLessThan(0.01)) {
+    return `${sign}$${absolute.toFixed()}`;
+  }
+
+  return `${sign}${formatPerpsFiat(absolute.toString())}`;
 }
 
 export function getPerpsPositionSize(
@@ -89,7 +88,7 @@ export function getPerpsPositionSize(
     return undefined;
   }
 
-  return formatPositivePerpsFiat(
+  return formatPositiveFiat(
     BigNumber(fill.size).times(fill.entryPrice).absoluteValue().toString(),
   );
 }
@@ -103,7 +102,9 @@ export function getPerpsPriceLabel(fill: PerpsTransaction['fill']): string {
 export function getPerpsPriceValue(
   price: string | undefined,
 ): string | undefined {
-  return price ? formatPositivePerpsFiat(price) : undefined;
+  return price
+    ? formatPerpsFiat(price, { ranges: PRICE_RANGES_UNIVERSAL })
+    : undefined;
 }
 
 export function shouldShowPerpsPnl(fill: PerpsTransaction['fill']): boolean {
@@ -113,7 +114,9 @@ export function shouldShowPerpsPnl(fill: PerpsTransaction['fill']): boolean {
 }
 
 export function formatPerpsOrderFee(fee: number, isFilled: boolean): string {
-  return formatPositivePerpsFiat(isFilled ? fee : 0);
+  return formatPerpsFiat(isFilled ? fee : 0, {
+    ranges: PRICE_RANGES_UNIVERSAL,
+  });
 }
 
 export function getPerpsFundsCtaLabel(

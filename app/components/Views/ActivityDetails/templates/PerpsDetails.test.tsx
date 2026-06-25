@@ -154,7 +154,7 @@ describe('PerpsDetails', () => {
     expect(getByText('+$0.00000001')).toBeOnTheScreen();
   });
 
-  it('formats perps fiat rows to two decimals with sub-cent handling', () => {
+  it('formats perps fiat rows with the shared Perps formatter (universal ranges)', () => {
     const transaction: PerpsTransaction = {
       ...baseTransaction,
       id: 'order-2',
@@ -175,11 +175,11 @@ describe('PerpsDetails', () => {
       <PerpsDetails item={perpsItem('marketShort', transaction)} />,
     );
 
-    expect(getByText('$10.24')).toBeOnTheScreen();
-    expect(getByText('$98,023.46')).toBeOnTheScreen();
-    expect(getByText('$1.23')).toBeOnTheScreen();
-    expect(getByText('$2.35')).toBeOnTheScreen();
-    expect(getByText('<$0.01')).toBeOnTheScreen();
+    expect(getByText('$10.239')).toBeOnTheScreen();
+    expect(getByText('$98,023')).toBeOnTheScreen();
+    expect(getByText('$1.229')).toBeOnTheScreen();
+    expect(getByText('$2.345')).toBeOnTheScreen();
+    expect(getByText('$0.005')).toBeOnTheScreen();
   });
 
   it('renders funds movement metadata and best-effort steps', () => {

@@ -3,7 +3,6 @@ import type { ActivityListItem } from '../../../../util/activity-adapters';
 import {
   asPerpsActivityItem,
   formatPerpsOrderFee,
-  formatPositivePerpsFiat,
   formatSignedPerpsFiat,
   getPerpsCompletedStepCount,
   getPerpsFundsCtaLabel,
@@ -41,31 +40,21 @@ describe('ActivityDetailsPerps.utils', () => {
     });
   });
 
-  describe('formatPositivePerpsFiat', () => {
-    it.each([
-      [0, '$0.00'],
-      ['0', '$0.00'],
-      [0.005, '<$0.01'],
-      [0.01, '$0.01'],
-      [1.5, '$1.50'],
-      [-2.5, '$2.50'],
-      ['92113', '$92,113.00'],
-    ])('formats %p as %s', (input, expected) => {
-      expect(formatPositivePerpsFiat(input)).toBe(expected);
-    });
-  });
-
   describe('formatSignedPerpsFiat', () => {
     it('returns $0 for zero regardless of sign', () => {
       expect(formatSignedPerpsFiat(0, true)).toBe('$0');
       expect(formatSignedPerpsFiat(0, false)).toBe('$0');
     });
 
-    it('prefixes the sign and keeps full precision', () => {
-      expect(formatSignedPerpsFiat(1.5, true)).toBe('+$1.5');
-      expect(formatSignedPerpsFiat(1.5, false)).toBe('-$1.5');
-      expect(formatSignedPerpsFiat(-2, true)).toBe('+$2');
+    it('keeps full precision for sub-cent funding fees', () => {
       expect(formatSignedPerpsFiat('0.00000001', true)).toBe('+$0.00000001');
+      expect(formatSignedPerpsFiat('0.00000001', false)).toBe('-$0.00000001');
+    });
+
+    it('uses the shared Perps fiat formatter for >= $0.01 values', () => {
+      expect(formatSignedPerpsFiat(1.5, true)).toBe('+$1.50');
+      expect(formatSignedPerpsFiat(1.5, false)).toBe('-$1.50');
+      expect(formatSignedPerpsFiat(-2, true)).toBe('+$2');
     });
   });
 
@@ -101,8 +90,8 @@ describe('ActivityDetailsPerps.utils', () => {
   });
 
   describe('getPerpsPriceValue', () => {
-    it('formats a present price and passes through undefined', () => {
-      expect(getPerpsPriceValue('92113')).toBe('$92,113.00');
+    it('formats a present price (universal ranges) and passes through undefined', () => {
+      expect(getPerpsPriceValue('92113')).toBe('$92,113');
       expect(getPerpsPriceValue(undefined)).toBeUndefined();
     });
   });
@@ -124,9 +113,9 @@ describe('ActivityDetailsPerps.utils', () => {
   });
 
   describe('formatPerpsOrderFee', () => {
-    it('formats the fee when filled and $0.00 when not', () => {
-      expect(formatPerpsOrderFee(2, true)).toBe('$2.00');
-      expect(formatPerpsOrderFee(2, false)).toBe('$0.00');
+    it('formats the fee when filled and $0 when not', () => {
+      expect(formatPerpsOrderFee(2, true)).toBe('$2');
+      expect(formatPerpsOrderFee(2, false)).toBe('$0');
     });
   });
 
