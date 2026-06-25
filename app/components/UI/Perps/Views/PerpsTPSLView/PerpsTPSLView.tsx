@@ -756,6 +756,10 @@ const PerpsTPSLView: React.FC = () => {
                   disabled={inputsDisabled}
                   testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_ROE_SIGN_BADGE}
                   accessibilityRole="button"
+                  accessibilityLabel={strings(
+                    'perps.tpsl.toggle_take_profit_sign',
+                  )}
+                  accessibilityState={{ disabled: inputsDisabled }}
                 >
                   <Text
                     variant={TextVariant.BodyMd}
@@ -963,6 +967,10 @@ const PerpsTPSLView: React.FC = () => {
                   disabled={inputsDisabled}
                   testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_ROE_SIGN_BADGE}
                   accessibilityRole="button"
+                  accessibilityLabel={strings(
+                    'perps.tpsl.toggle_stop_loss_sign',
+                  )}
+                  accessibilityState={{ disabled: inputsDisabled }}
                 >
                   <Text
                     variant={TextVariant.BodyMd}
