@@ -341,7 +341,7 @@ describe('TransactionDetailsHero', () => {
       expect(getByTestId('money-account-icon')).toBeDefined();
     });
 
-    it('renders two-asset hero for perpsDeposit with USDC symbol', () => {
+    it('renders single-line hero for perpsDeposit with - prefix', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -354,17 +354,14 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { getByText } = render();
+      const { getByText, queryByText } = render();
 
-      expect(getByText('You sent')).toBeDefined();
-      expect(getByText(/-123\.46 TST/)).toBeDefined();
-      expect(getByText('You received')).toBeDefined();
-      expect(
-        getByText(new RegExp(`\\+123\\.46 ${ARBITRUM_USDC.symbol}`)),
-      ).toBeDefined();
+      expect(getByText(/-123\.46 mUSD/)).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
     });
 
-    it('renders two-asset hero for predictDeposit with pUSD symbol', () => {
+    it('renders single-line hero for predictDeposit with - prefix', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -377,14 +374,11 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { getByText } = render();
+      const { getByText, queryByText } = render();
 
-      expect(getByText('You sent')).toBeDefined();
-      expect(getByText(/-123\.46 TST/)).toBeDefined();
-      expect(getByText('You received')).toBeDefined();
-      expect(
-        getByText(new RegExp(`\\+123\\.46 ${POLYGON_PUSD.symbol}`)),
-      ).toBeDefined();
+      expect(getByText(/-123\.46 mUSD/)).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
     });
 
     it('renders single-line hero for moneyAccountWithdraw with - prefix', () => {
@@ -451,7 +445,7 @@ describe('TransactionDetailsHero', () => {
       expect(queryByText('You received')).toBeNull();
     });
 
-    it('renders two-asset hero for perpsWithdraw with USDC as sent and mUSD as received', () => {
+    it('renders single-line hero for perpsWithdraw with + prefix and green', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -464,17 +458,14 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { getByText } = render();
+      const { getByText, queryByText } = render();
 
-      expect(getByText('You sent')).toBeDefined();
-      expect(
-        getByText(new RegExp(`-123\\.46 ${ARBITRUM_USDC.symbol}`)),
-      ).toBeDefined();
-      expect(getByText('You received')).toBeDefined();
       expect(getByText(/\+50\.00 mUSD/)).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
     });
 
-    it('renders two-asset hero for predictWithdraw with pUSD as sent and mUSD as received', () => {
+    it('renders single-line hero for predictWithdraw with + prefix and green', () => {
       useTransactionDetailsMock.mockReturnValue({
         transactionMeta: {
           ...TRANSACTION_META_MOCK,
@@ -487,14 +478,11 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { getByText } = render();
+      const { getByText, queryByText } = render();
 
-      expect(getByText('You sent')).toBeDefined();
-      expect(
-        getByText(new RegExp(`-123\\.46 ${POLYGON_PUSD.symbol}`)),
-      ).toBeDefined();
-      expect(getByText('You received')).toBeDefined();
       expect(getByText(/\+10\.00 mUSD/)).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
     });
 
     it('renders fiat deposit hero with green + prefix for moneyAccountDeposit with fiat orderId', () => {
@@ -611,10 +599,11 @@ describe('TransactionDetailsHero', () => {
         } as unknown as TransactionMeta,
       });
 
-      const { getByText } = render();
+      const { getByText, queryByText } = render();
 
-      expect(getByText('You sent')).toBeDefined();
-      expect(getByText(/-77\.00 TST/)).toBeDefined();
+      expect(getByText(/-77\.00 mUSD/)).toBeDefined();
+      expect(queryByText('You sent')).toBeNull();
+      expect(queryByText('You received')).toBeNull();
     });
   });
 });

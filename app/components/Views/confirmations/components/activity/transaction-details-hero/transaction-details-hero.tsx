@@ -75,12 +75,9 @@ const TOKEN_ICON_TYPES = [
   TransactionType.musdConversion,
 ];
 
-const TWO_ASSET_HERO_TYPES = [
-  TransactionType.perpsDeposit,
-  TransactionType.perpsWithdraw,
-  TransactionType.predictDeposit,
-  TransactionType.predictWithdraw,
-];
+// Temporarily empty — all money account flows use single-line hero until
+// metamaskPay stores source token amounts (see https://github.com/MetaMask/metamask-mobile/pull/32391).
+const TWO_ASSET_HERO_TYPES: TransactionType[] = [];
 
 interface TokenDisplayData {
   amount: string;
@@ -201,7 +198,15 @@ export function TransactionDetailsHero() {
   }
 
   const showTokenIcon =
-    hasTransactionType(transactionMeta, TOKEN_ICON_TYPES) && tokenMeta;
+    tokenMeta &&
+    (hasTransactionType(transactionMeta, TOKEN_ICON_TYPES) ||
+      (isMoneyContext &&
+        hasTransactionType(transactionMeta, [
+          TransactionType.perpsDeposit,
+          TransactionType.perpsWithdraw,
+          TransactionType.predictDeposit,
+          TransactionType.predictWithdraw,
+        ])));
 
   if (showTokenIcon) {
     const isDeposit =
@@ -209,12 +214,16 @@ export function TransactionDetailsHero() {
       hasTransactionType(transactionMeta, [
         TransactionType.moneyAccountDeposit,
         TransactionType.musdConversion,
+        TransactionType.perpsWithdraw,
+        TransactionType.predictWithdraw,
       ]);
 
     const isWithdraw =
       isMoneyContext &&
       hasTransactionType(transactionMeta, [
         TransactionType.moneyAccountWithdraw,
+        TransactionType.perpsDeposit,
+        TransactionType.predictDeposit,
       ]);
 
     const icon = isMusdToken(tokenMeta.contractAddress) ? (
