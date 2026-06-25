@@ -258,17 +258,6 @@ export interface DelegationChallengeResponse {
   expiresAt: string;
 }
 
-export interface CardFundingOption {
-  symbol: string;
-  asset: CardFundingAsset | null;
-}
-
-export interface CardFundingConfig {
-  maxLimit: string;
-  fundingOptions: CardFundingOption[];
-  supportedChains: CaipChainId[];
-}
-
 // -- Cashback --
 
 export interface CashbackWalletResponse {
@@ -376,7 +365,6 @@ export interface ICardProvider {
     allAssets: CardFundingAsset[],
     tokens: CardAuthTokens,
   ): Promise<void>;
-  getFundingConfig?(tokens: CardAuthTokens): Promise<CardFundingConfig>;
   fetchDelegationChallenge?(
     params: { network: string; address: string; faucet?: boolean },
     tokens: CardAuthTokens,

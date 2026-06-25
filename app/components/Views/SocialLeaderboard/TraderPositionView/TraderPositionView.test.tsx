@@ -23,6 +23,7 @@ const mockPriceChart = jest.fn();
 const mockTraderPriceChart = jest.fn();
 const mockRefetchPosition = jest.fn().mockResolvedValue(undefined);
 const mockRefreshProfile = jest.fn().mockResolvedValue(undefined);
+const mockSelectSocialLeaderboardPerpsEnabled = jest.fn(() => true);
 
 interface MockRouteParams {
   positionId?: string;
@@ -206,6 +207,14 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+jest.mock(
+  '../../../../selectors/featureFlagController/socialLeaderboard',
+  () => ({
+    selectSocialLeaderboardPerpsEnabled: () =>
+      mockSelectSocialLeaderboardPerpsEnabled(),
+  }),
+);
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
 
@@ -247,6 +256,7 @@ describe('TraderPositionView', () => {
       tradableSymbols: new Set<string>(),
       isLoading: false,
     });
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockRouteParams = {
       traderId: 'trader-1',
       traderName: 'trader1',
@@ -478,6 +488,51 @@ describe('TraderPositionView', () => {
           TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON,
         ),
       ).not.toBeOnTheScreen();
+    });
+
+    it('renders the fallback instead of perp details when social leaderboard perps are disabled', () => {
+      mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.FALLBACK),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByText('SHORT')).not.toBeOnTheScreen();
+    });
+
+    it('renders the fallback when a disabled perp position resolves from positionId', () => {
+      const { useTraderPosition } = jest.requireMock(
+        './hooks/useTraderPosition',
+      );
+      (useTraderPosition as jest.Mock).mockReturnValue({
+        position: mockRouteParams.position,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchPosition,
+      });
+      mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+      mockRouteParams.position = undefined;
+      mockRouteParams.positionId = 'position-uuid-1';
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.FALLBACK),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).not.toBeOnTheScreen();
+
+      (useTraderPosition as jest.Mock).mockReturnValue({
+        position: undefined,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchPosition,
+      });
     });
 
     describe('HIP-3 markets', () => {

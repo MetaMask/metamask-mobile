@@ -973,6 +973,12 @@ describe('EarnWithdrawInputView', () => {
       await act(async () => {
         fireEvent.press(screen.getByText('1'));
       });
+
+      // Reveal the TRON unstake preview, which renders the "Unstake" button.
+      await act(async () => {
+        fireEvent.press(screen.getByText('Done'));
+      });
+
       await waitFor(() => {
         expect(screen.getAllByText('Unstake')[0]).toBeOnTheScreen();
       });
