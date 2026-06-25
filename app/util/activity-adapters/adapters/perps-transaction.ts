@@ -15,7 +15,6 @@
  * (HyperLiquid has no public CAIP-2; callers pass Arbitrum). Open `order`
  * entries are not mapped — the feed only surfaces executed history.
  */
-import BigNumber from 'bignumber.js';
 import type { CaipChainId } from '@metamask/utils';
 import {
   FillType,
@@ -296,14 +295,7 @@ export function mapPerpsTransaction({
       return null;
     }
 
-    // Position size in asset units (e.g. "0.0001 BTC") for the row subtitle.
-    // `order.size` is the USD notional (originalSize × price), so recover the
-    // asset size from size / limitPrice; omit it when there's no usable price.
-    const limitPrice = Number(order.limitPrice);
-    const assetSize =
-      Number.isFinite(limitPrice) && limitPrice > 0
-        ? BigNumber(order.size).dividedBy(order.limitPrice).toString()
-        : undefined;
+    const assetSize = transaction.subtitle?.trim().split(/\s+/)[0];
 
     return {
       type: kind,

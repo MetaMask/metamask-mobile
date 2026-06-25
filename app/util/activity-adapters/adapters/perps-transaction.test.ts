@@ -1,4 +1,3 @@
-import BigNumber from 'bignumber.js';
 import type { CaipChainId } from '@metamask/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import {
@@ -448,10 +447,43 @@ describe('mapPerpsTransaction', () => {
         result && 'sourceToken' in result.data
           ? result.data.sourceToken
           : undefined;
-      // order.size is the USD notional; the subtitle size is size / limitPrice.
+      // The asset quantity comes from the perps subtitle ("2.01 ETH").
       expect(sourceToken).toEqual({
-        amount: new BigNumber('10.23').dividedBy('92023').toString(),
+        amount: '2.01',
         symbol: 'ETH',
+        direction: 'out',
+      });
+    });
+
+    it('reads the size from the subtitle even when the order has no limit price', () => {
+      const result = mapPerpsTransaction({
+        transaction: {
+          ...base,
+          id: 'order-no-price',
+          subtitle: '5 BTC',
+          asset: 'BTC',
+          title: 'Market short',
+          type: 'order',
+          category: 'limit_order',
+          order: {
+            text: PerpsOrderTransactionStatus.Canceled,
+            statusType: PerpsOrderTransactionStatusType.Canceled,
+            type: 'market',
+            size: '0',
+            limitPrice: '0',
+            filled: '0%',
+          },
+        },
+        chainId: ARBITRUM,
+      });
+
+      const sourceToken =
+        result && 'sourceToken' in result.data
+          ? result.data.sourceToken
+          : undefined;
+      expect(sourceToken).toEqual({
+        amount: '5',
+        symbol: 'BTC',
         direction: 'out',
       });
     });
