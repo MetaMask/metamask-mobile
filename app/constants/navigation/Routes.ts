@@ -566,6 +566,7 @@ const Routes = {
     ID: 'AgenticCliDashboardWebview',
     CONFIRM: 'AgenticCliDashboardConfirmation',
   },
+  KYC_DEMO: 'KYCDemo',
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
   CREATE_PRICE_ALERT: 'CreatePriceAlert',
   MANAGE_PRICE_ALERTS: 'ManagePriceAlerts',

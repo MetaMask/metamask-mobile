@@ -1,4 +1,6 @@
+source 'https://cdn.cocoapods.org/'
 source 'https://github.com/CocoaPods/Specs.git'
+source 'https://github.com/SumSubstance/Specs.git'
 
 require File.join(File.dirname(`node --print "require.resolve('expo/package.json')"`), "scripts/autolinking")
 require File.join(File.dirname(`node --print "require.resolve('react-native/package.json')"`), "scripts/react_native_pods")

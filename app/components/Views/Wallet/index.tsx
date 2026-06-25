@@ -200,6 +200,11 @@ import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { useHomeGrowthBanner } from './hooks/useHomeGrowthBanner';
+import {
+  Button as DSButton,
+  ButtonVariant as DSButtonVariant,
+  ButtonSize as DSButtonSize,
+} from '@metamask/design-system-react-native';
 
 const createStyles = ({ colors }: Theme) =>
   RNStyleSheet.create({
@@ -1061,6 +1066,10 @@ const Wallet = ({
     <HomepageDiscoveryPills iconStyle={discoveryPillsIconStyle} />
   ) : null;
 
+  const handleKYCDemoPress = useCallback(() => {
+    navigation.navigate(Routes.KYC_DEMO);
+  }, [navigation]);
+
   const portfolioHeaderBase = (
     <View style={styles.portfolioHeaderCluster}>
       {bannerContent}
@@ -1071,6 +1080,15 @@ const Wallet = ({
         homeGrowthBannerContent}
       {homepageDiscoveryPills}
       {isMoneyAccountVisible && <MoneyBalanceCard />}
+      <View style={styles.base}>
+        <DSButton
+          variant={DSButtonVariant.Secondary}
+          size={DSButtonSize.Md}
+          onPress={handleKYCDemoPress}
+        >
+          KYC Demo
+        </DSButton>
+      </View>
     </View>
   );
 
@@ -1086,6 +1104,15 @@ const Wallet = ({
         homeGrowthBannerContent}
       {homepageDiscoveryPills}
       {isMoneyAccountVisible && <MoneyBalanceCard />}
+      <View style={styles.base}>
+        <DSButton
+          variant={DSButtonVariant.Secondary}
+          size={DSButtonSize.Md}
+          onPress={handleKYCDemoPress}
+        >
+          KYC Demo
+        </DSButton>
+      </View>
     </View>
   );
 
