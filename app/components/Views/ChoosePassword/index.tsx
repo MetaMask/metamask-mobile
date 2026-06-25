@@ -5,9 +5,18 @@ import React, {
   useCallback,
   useContext,
 } from 'react';
-import { TouchableOpacity, Platform, Keyboard, TextInput } from 'react-native';
+import {
+  TouchableOpacity,
+  Platform,
+  Keyboard,
+  TextInput,
+  InteractionManager,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import {
+  KeyboardAwareScrollView,
+  KeyboardProvider,
+} from 'react-native-keyboard-controller';
 import { captureException } from '@sentry/react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -145,6 +154,7 @@ const ChoosePassword = () => {
 
   const mounted = useRef(true);
   const passwordSetupAttemptTraceCtx = useRef<TraceContext | null>(null);
+  const passwordInputRef = useRef<TextInput | null>(null);
   const confirmPasswordInputRef = useRef<TextInput | null>(null);
   // Flag to know if password in keyring was set or not
   const keyringControllerPasswordSet = useRef(false);
@@ -621,6 +631,17 @@ const ChoosePassword = () => {
     initBiometrics();
   }, [route.params?.onboardingTraceCtx]);
 
+  // Focus the password field only after the screen-enter transition and any
+  // pending interactions have settled. Focusing during the transition (the
+  // previous `autoFocus` behavior) makes the keyboard flash open, dismiss,
+  // then reopen under the New Architecture, so we defer it instead.
+  useEffect(() => {
+    const task = InteractionManager.runAfterInteractions(() => {
+      passwordInputRef.current?.focus();
+    });
+    return () => task.cancel();
+  }, []);
+
   //Reset mounted flag and end trace on unmount
   useEffect(
     () => () => {
@@ -673,8 +694,9 @@ const ChoosePassword = () => {
         ) : (
           <KeyboardAwareScrollView
             contentContainerStyle={tw.style('flex-1 px-4')}
-            resetScrollToCoords={{ x: 0, y: 0 }}
             keyboardShouldPersistTaps="handled"
+            bottomOffset={20}
+            showsVerticalScrollIndicator={false}
           >
             <Box flexDirection={BoxFlexDirection.Column} twClassName="flex-1">
               <Box
@@ -701,11 +723,11 @@ const ChoosePassword = () => {
                       >
                         {Platform.OS === 'ios' && getOauth2LoginSuccess()
                           ? strings(
-                              'choose_password.description_social_login_update_ios',
-                            )
+                            'choose_password.description_social_login_update_ios',
+                          )
                           : strings(
-                              'choose_password.description_social_login_update',
-                            )}
+                            'choose_password.description_social_login_update',
+                          )}
                         {Platform.OS === 'android' && (
                           <Text
                             variant={TextVariant.BodyMd}
@@ -737,7 +759,7 @@ const ChoosePassword = () => {
                     {strings('choose_password.password')}
                   </Label>
                   <TextField
-                    autoFocus
+                    inputRef={passwordInputRef}
                     value={password}
                     onChangeText={onPasswordChange}
                     onFocus={() => setIsPasswordFieldFocused(true)}
@@ -925,7 +947,7 @@ const ChoosePassword = () => {
     );
   };
 
-  return renderContent();
+  return <KeyboardProvider>{renderContent()}</KeyboardProvider>;
 };
 
 export default ChoosePassword;
