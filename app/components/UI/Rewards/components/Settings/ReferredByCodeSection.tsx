@@ -30,7 +30,13 @@ import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsVipReferralTag from '../RewardsVipReferralTag/RewardsVipReferralTag';
 import { selectVipProgramEnabled } from '../../../../../selectors/featureFlagController/vipProgram';
 
-const ReferredByCodeSection: React.FC = () => {
+interface ReferredByCodeSectionProps {
+  onInputFocus?: () => void;
+}
+
+const ReferredByCodeSection: React.FC<ReferredByCodeSectionProps> = ({
+  onInputFocus,
+}) => {
   const { colors } = useTheme();
   const referredByCode = useSelector(selectReferredByCode);
   const isVipReferee = useSelector(selectIsVipReferee);
@@ -198,7 +204,7 @@ const ReferredByCodeSection: React.FC = () => {
   return (
     <>
       {/* Divider */}
-      <Box twClassName="mt-4 border-b border-border-muted" />
+      <Box twClassName="my-4 border-b border-border-muted" />
       <Box testID="referred-by-code-section" twClassName="gap-4 flex-col px-4">
         <Box twClassName="gap-2 mt-2">
           <Text variant={TextVariant.HeadingMd}>
@@ -217,6 +223,7 @@ const ReferredByCodeSection: React.FC = () => {
             placeholder={strings('rewards.referred_by_code.input_placeholder')}
             value={hasReferredByCode ? (referredByCode ?? '') : inputCode}
             onChangeText={hasReferredByCode ? undefined : handleInputChange}
+            onFocus={hasReferredByCode ? undefined : onInputFocus}
             isDisabled={hasReferredByCode}
             autoCapitalize="characters"
             endAccessory={renderIcon()}

@@ -14,22 +14,22 @@ import { RootMessenger } from '../types';
  * @returns The AnalyticsControllerMessenger.
  */
 export function getAnalyticsControllerMessenger(
-  rootMessenger: RootMessenger,
-): AnalyticsControllerMessenger {
-  const messenger = new Messenger<
-    'AnalyticsController',
+  rootMessenger: RootMessenger<
     MessengerActions<AnalyticsControllerMessenger>,
-    MessengerEvents<AnalyticsControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<AnalyticsControllerMessenger>
+  >,
+): AnalyticsControllerMessenger {
+  const messenger: AnalyticsControllerMessenger = new Messenger({
     namespace: 'AnalyticsController',
     parent: rootMessenger,
   });
   return messenger;
 }
 
-export type AnalyticsControllerInitMessenger = ReturnType<
-  typeof getAnalyticsControllerInitMessenger
+export type AnalyticsControllerInitMessenger = Messenger<
+  'AnalyticsControllerInit',
+  never,
+  AccountsControllerChangeEvent
 >;
 
 /**
@@ -41,14 +41,12 @@ export type AnalyticsControllerInitMessenger = ReturnType<
  * @returns The AnalyticsControllerInitMessenger.
  */
 export function getAnalyticsControllerInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'AnalyticsControllerInit',
-    never,
-    AccountsControllerChangeEvent,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<AnalyticsControllerInitMessenger>,
+    MessengerEvents<AnalyticsControllerInitMessenger>
+  >,
+): AnalyticsControllerInitMessenger {
+  const messenger: AnalyticsControllerInitMessenger = new Messenger({
     namespace: 'AnalyticsControllerInit',
     parent: rootMessenger,
   });

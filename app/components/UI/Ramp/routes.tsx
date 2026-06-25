@@ -24,7 +24,7 @@ import TokenNotAvailableModal from './Views/Modals/TokenNotAvailableModal';
 import ProviderSelectionModal from './Views/Modals/ProviderSelectionModal';
 import ErrorDetailsModal from './Views/Modals/ErrorDetailsModal';
 import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
-import SsnInfoModal from './Deposit/Views/Modals/SsnInfoModal';
+import SsnInfoModal from './Views/Modals/SsnInfoModal';
 import StateSelectorModal from './Views/Modals/StateSelectorModal';
 import UnsupportedStateModal from './Views/Modals/UnsupportedStateModal';
 import RampsOrderDetails from './Views/OrderDetails';

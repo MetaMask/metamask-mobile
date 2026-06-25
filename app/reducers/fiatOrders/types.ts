@@ -9,7 +9,7 @@ import {
   DepositCryptoCurrency,
   DepositPaymentMethod,
   DepositRegion,
-} from '@consensys/native-ramps-sdk';
+} from '../../components/UI/Ramp/types/legacyDeposit';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import {
   addAuthenticationUrl,

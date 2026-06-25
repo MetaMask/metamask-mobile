@@ -23,10 +23,10 @@ import { MoneySectionHeaderTestIds } from '../../components/MoneySectionHeader/M
 import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
+import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
 import { strings } from '../../../../../../locales/i18n';
 import MOCK_MONEY_TRANSACTIONS from '../../constants/mockActivityData';
-import type { CardTransaction } from '../../types/moneyActivity';
+import type { AccountsApiActivity } from '../../types/moneyActivity';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import {
@@ -52,6 +52,8 @@ import {
   CardEntryPoint,
   CardScreens,
 } from '../../../Card/util/metrics';
+import { selectIsMoneyAccountGeoEligible } from '../../selectors/eligibility';
+import { selectMoneyEnableMoneyAccountFlag } from '../../selectors/featureFlags';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -91,40 +93,46 @@ const mockDepositTokens = [
   },
 ];
 
-const mockUseMoneyDepositTokens = jest.fn(() => ({
+const mockUseMoneyEarnableTokens = jest.fn(() => ({
   tokens: mockDepositTokens as ReturnType<typeof Array.from>,
   isNoFeeToken: jest.fn(() => false),
-  isEligibleToken: jest.fn(() => false),
-  filterAllowedTokens: jest.fn((t) => t),
 }));
 
-jest.mock('../../hooks/useMoneyDepositTokens', () => ({
-  useMoneyDepositTokens: () => mockUseMoneyDepositTokens(),
+jest.mock('../../hooks/useMoneyEarnableTokens', () => ({
+  useMoneyEarnableTokens: () => mockUseMoneyEarnableTokens(),
 }));
 
 jest.mock('../../hooks/useMoneyAccountTransactions', () => ({
   useMoneyAccountTransactions: jest.fn(),
 }));
 
-jest.mock('../../hooks/useMoneyAccountCardTransactions', () => ({
-  useMoneyAccountCardTransactions: jest.fn(),
+jest.mock('../../hooks/useMoneyAccountApiActivity', () => ({
+  useMoneyAccountApiActivity: jest.fn(),
 }));
 
-jest.mock('../../components/CardActivityItem/CardActivityItem', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: ({ card }: { card: { hash: string } }) => (
-      <TouchableOpacity testID={`money-activity-card-${card.hash}`}>
-        <Text>{card.hash}</Text>
-      </TouchableOpacity>
-    ),
-  };
-});
+jest.mock(
+  '../../components/AccountsApiActivityItem/AccountsApiActivityItem',
+  () => {
+    const { TouchableOpacity, Text } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ activity }: { activity: { hash: string } }) => (
+        <TouchableOpacity testID={`money-activity-api-${activity.hash}`}>
+          <Text>{activity.hash}</Text>
+        </TouchableOpacity>
+      ),
+    };
+  },
+);
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(),
+}));
+
+jest.mock('../../hooks/useRefreshMusdFiatRate', () => ({
+  __esModule: true,
+  default: jest.fn(() => jest.fn().mockResolvedValue(undefined)),
 }));
 
 jest.mock('../../hooks/useMoneyAccountInfo', () => ({
@@ -167,6 +175,16 @@ jest.mock('../../../../../selectors/cardController', () => ({
   selectHasMetalCard: jest.fn(),
   selectCardHomeDataStatus: jest.fn(() => 'idle'),
   selectIsMoneyAccountDelegatedForCard: jest.fn(() => false),
+}));
+
+jest.mock('../../selectors/eligibility', () => ({
+  ...jest.requireActual('../../selectors/eligibility'),
+  selectIsMoneyAccountGeoEligible: jest.fn(() => true),
+}));
+
+jest.mock('../../selectors/featureFlags', () => ({
+  ...jest.requireActual('../../selectors/featureFlags'),
+  selectMoneyEnableMoneyAccountFlag: jest.fn(() => true),
 }));
 
 jest.mock('../../../Card/hooks/useMoneyAccountCardLinkage', () => ({
@@ -244,6 +262,12 @@ jest.mock('../../hooks/useOnboardingStep', () => ({
 const mockSelectIsCardholder = jest.mocked(selectIsCardholder);
 const mockSelectHasMetalCard = jest.mocked(selectHasMetalCard);
 const mockSelectCardHomeDataStatus = jest.mocked(selectCardHomeDataStatus);
+const mockSelectIsMoneyAccountGeoEligible = jest.mocked(
+  selectIsMoneyAccountGeoEligible,
+);
+const mockSelectMoneyEnableMoneyAccountFlag = jest.mocked(
+  selectMoneyEnableMoneyAccountFlag,
+);
 const mockUseMoneyAccountCardLinkage = jest.mocked(useMoneyAccountCardLinkage);
 const mockOpenLinkCardSheet = jest.fn();
 const mockStartLinkFlow = jest.fn();
@@ -251,11 +275,10 @@ const mockStartLinkFlow = jest.fn();
 const mockUseMoneyAccountTransactions = jest.mocked(
   useMoneyAccountTransactions,
 );
-const mockUseMoneyAccountCardTransactions = jest.mocked(
-  useMoneyAccountCardTransactions,
-);
+const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
 
-const CARD_TX: CardTransaction = {
+const CARD_TX: AccountsApiActivity = {
+  kind: 'card',
   hash: '0xcard1',
   time: 1780574031000,
   chainId: '0x8f',
@@ -265,7 +288,7 @@ const CARD_TX: CardTransaction = {
     decimals: 6,
   },
   amount: '5381986',
-  to: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
+  paidTo: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
 };
 
 const mockUseMusdBalance = jest.mocked(useMusdBalance);
@@ -356,8 +379,8 @@ describe('MoneyHomeView', () => {
     jest.clearAllMocks();
     global.alert = jest.fn();
 
-    mockUseMoneyAccountCardTransactions.mockReturnValue({
-      cardTransactions: [],
+    mockUseMoneyAccountApiActivity.mockReturnValue({
+      activity: [],
       isLoading: false,
       error: false,
       refetch: jest.fn(),
@@ -368,6 +391,8 @@ describe('MoneyHomeView', () => {
     mockSelectIsCardholder.mockReturnValue(false);
     mockSelectHasMetalCard.mockReturnValue(false);
     mockSelectCardHomeDataStatus.mockReturnValue('idle');
+    mockSelectIsMoneyAccountGeoEligible.mockReturnValue(true);
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(true);
 
     mockOpenLinkCardSheet.mockReset();
     mockStartLinkFlow.mockReset();
@@ -1113,7 +1138,7 @@ describe('MoneyHomeView', () => {
   });
 
   it('navigates to potential earnings screen when View potential earnings is pressed', () => {
-    mockUseMoneyDepositTokens.mockReturnValueOnce({
+    mockUseMoneyEarnableTokens.mockReturnValueOnce({
       tokens: Array.from({ length: 6 }, (_, i) => ({
         ...mockDepositTokens[0],
         address:
@@ -1121,8 +1146,6 @@ describe('MoneyHomeView', () => {
         fiat: { balance: 5000 },
       })),
       isNoFeeToken: jest.fn(() => false),
-      isEligibleToken: jest.fn(() => false),
-      filterAllowedTokens: jest.fn((t) => t),
     });
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1267,9 +1290,9 @@ describe('MoneyHomeView', () => {
       expect(getByTestId(MoneyActivityListTestIds.CONTAINER)).toBeOnTheScreen();
     });
 
-    it('renders card payment rows in the activity list', () => {
-      mockUseMoneyAccountCardTransactions.mockReturnValue({
-        cardTransactions: [CARD_TX],
+    it('renders Accounts-API rows in the activity list', () => {
+      mockUseMoneyAccountApiActivity.mockReturnValue({
+        activity: [CARD_TX],
         isLoading: false,
         error: false,
         refetch: jest.fn(),
@@ -1278,11 +1301,11 @@ describe('MoneyHomeView', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
       expect(
-        getByTestId(`money-activity-card-${CARD_TX.hash}`),
+        getByTestId(`money-activity-api-${CARD_TX.hash}`),
       ).toBeOnTheScreen();
     });
 
-    it('does not render card rows in mock-data mode', () => {
+    it('does not render Accounts-API rows in mock-data mode', () => {
       mockUseMoneyAccountTransactions.mockReturnValue({
         allTransactions: Array.from({ length: 3 }, (_, index) => ({
           ...MOCK_MONEY_TRANSACTIONS[index % MOCK_MONEY_TRANSACTIONS.length],
@@ -1294,8 +1317,8 @@ describe('MoneyHomeView', () => {
         moneyAddress: '0x0000000000000000000000000000000000000001',
         mockDataEnabled: true,
       });
-      mockUseMoneyAccountCardTransactions.mockReturnValue({
-        cardTransactions: [CARD_TX],
+      mockUseMoneyAccountApiActivity.mockReturnValue({
+        activity: [CARD_TX],
         isLoading: false,
         error: false,
         refetch: jest.fn(),
@@ -1303,7 +1326,7 @@ describe('MoneyHomeView', () => {
 
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 
-      expect(queryByTestId(`money-activity-card-${CARD_TX.hash}`)).toBeNull();
+      expect(queryByTestId(`money-activity-api-${CARD_TX.hash}`)).toBeNull();
     });
 
     it('hides the Activity View all button with 5 or fewer transactions', () => {
@@ -1817,7 +1840,7 @@ describe('MoneyHomeView', () => {
 
   describe('navigation handlers', () => {
     it('navigates to Potential Earnings when View all is pressed on potential earnings section', () => {
-      mockUseMoneyDepositTokens.mockReturnValueOnce({
+      mockUseMoneyEarnableTokens.mockReturnValueOnce({
         tokens: Array.from({ length: 6 }, (_, i) => ({
           ...mockDepositTokens[0],
           address:
@@ -1825,8 +1848,6 @@ describe('MoneyHomeView', () => {
           fiat: { balance: 5000 },
         })),
         isNoFeeToken: jest.fn(() => false),
-        isEligibleToken: jest.fn(() => false),
-        filterAllowedTokens: jest.fn((t) => t),
       });
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -2104,6 +2125,44 @@ describe('MoneyHomeView', () => {
       expect(
         getByTestId(MoneyMetaMaskCardTestIds.VIRTUAL_CARD_ROW),
       ).toBeOnTheScreen();
+    });
+
+    it('hides the upsell MetaMask Card when the Money account is not visible', () => {
+      mockSelectIsCardholder.mockReturnValue(false);
+      mockSelectIsMoneyAccountGeoEligible.mockReturnValue(false);
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('hides the verifying MetaMask Card when the Money account is not visible', () => {
+      mockSelectIsCardholder.mockReturnValue(false);
+      mockSelectIsMoneyAccountGeoEligible.mockReturnValue(false);
+      mockUseMoneyAccountCardLinkage.mockReturnValue({
+        hasMoneyAccountRequirements: true,
+        hasMoneyAccountBaseRequirements: true,
+        isCardAuthenticated: true,
+        isCardVerified: false,
+        isCardLinkedToMoneyAccount: false,
+        primaryMoneyAccount: { address: '0xabc' },
+        moneyAccountCardToken: { symbol: 'USDC' },
+        canLink: false,
+        status: 'idle',
+        isLinking: false,
+        error: null,
+        startLinkFlow: mockStartLinkFlow,
+        openLinkCardSheet: mockOpenLinkCardSheet,
+        reset: jest.fn(),
+      } as unknown as ReturnType<typeof useMoneyAccountCardLinkage>);
+
+      const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      expect(
+        queryByTestId(MoneyMetaMaskCardTestIds.CONTAINER),
+      ).not.toBeOnTheScreen();
     });
 
     it('renders upsell MetaMask Card below Activity and Earn on your crypto', () => {

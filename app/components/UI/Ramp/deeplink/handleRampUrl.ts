@@ -2,14 +2,10 @@ import handleRedirection from './handleRedirection';
 import getRedirectPathsAndParams from '../utils/getRedirectPathAndParams';
 import { RampType } from '../Aggregator/types';
 import parseRampIntent from '../utils/parseRampIntent';
-import {
-  createBuyNavigationDetails,
-  createSellNavigationDetails,
-} from '../Aggregator/routes/utils';
+import { createSellNavigationDetails } from '../Aggregator/routes/utils';
 import Logger from '../../../../util/Logger';
 import NavigationService from '../../../../core/NavigationService';
 import ReduxService from '../../../../core/redux';
-import { isRampsUnifiedV2Enabled } from '../utils/isRampsUnifiedV2Enabled';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
@@ -22,6 +18,9 @@ import {
 import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { isRampRegionDefinitivelyUnsupported } from '../utils/rampRegionEligibility';
+import { isRampsServiceDisruptionActive } from '../utils/rampsServiceDisruption';
+import { createRampsServiceDisruptionModalNavigationDetails } from '../components/RampsServiceDisruptionModal/RampsServiceDisruptionModal';
+import { selectRampsServiceDisruptionRegions } from '../../../../selectors/featureFlagController/rampsServiceDisruption';
 import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
 import Engine from '../../../../core/Engine';
 
@@ -44,6 +43,21 @@ async function navigateUnifiedV2Buy(
     ).catch(() => undefined);
     // Geo refresh may hydrate RampsController; re-read store before eligibility.
     state = ReduxService.store.getState();
+  }
+
+  // Region service disruption kill-switch — takes precedence over the eligibility/unsupported
+  // gating below so a service disruption region is surfaced even when geolocation is unknown.
+  if (
+    isRampsServiceDisruptionActive(
+      selectRampsServiceDisruptionRegions(state),
+      selectUserRegion(state),
+      location,
+    )
+  ) {
+    NavigationService.navigation.navigate(
+      ...createRampsServiceDisruptionModalNavigationDetails(),
+    );
+    return;
   }
 
   if (!location || location === UNKNOWN_LOCATION) {
@@ -99,20 +113,8 @@ export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
     }
 
     switch (rampType) {
-      case RampType.BUY: {
-        try {
-          const state = ReduxService.store.getState();
-          if (isRampsUnifiedV2Enabled(state)) {
-            return navigateUnifiedV2Buy(rampIntent);
-          }
-        } catch {
-          // Store may not be ready; fall through to legacy behavior
-        }
-        NavigationService.navigation.navigate(
-          ...createBuyNavigationDetails(rampIntent),
-        );
-        break;
-      }
+      case RampType.BUY:
+        return navigateUnifiedV2Buy(rampIntent);
       case RampType.SELL:
         NavigationService.navigation.navigate(
           ...createSellNavigationDetails(rampIntent),

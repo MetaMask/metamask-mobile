@@ -35,6 +35,7 @@ describe('resolvePredictFeatureFlags', () => {
       predictUpDownEnabled: false,
       predictPortfolioEnabled: false,
       predictHomeRedesignEnabled: false,
+      predictSportCardLivePricesEnabled: true,
       predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
     });
   });
@@ -215,6 +216,39 @@ describe('resolvePredictFeatureFlags', () => {
 
     expect(result.fakOrdersEnabled).toBe(true);
     expect(result.predictWithAnyTokenEnabled).toBe(false);
+  });
+
+  describe('predictSportCardLivePricesEnabled', () => {
+    it('defaults to true so sport cards fetch live prices by default', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictSportCardLivePricesEnabled).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled and version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'enabled' in flag &&
+          'minimumVersion' in flag
+        ) {
+          return (flag as { enabled: boolean }).enabled;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictSportCardLivePrices: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictSportCardLivePricesEnabled).toBe(false);
+    });
   });
 
   describe('predictWorldCup', () => {
@@ -721,6 +755,12 @@ describe('resolvePredictFeatureFlags', () => {
         'moneyline',
         'spreads',
         'totals',
+        'both_teams_to_score',
+        'soccer_first_to_score',
+        'team_totals',
+        'soccer_team_totals',
+        'basketball_team_to_score_first',
+        'soccer_exact_score',
       ]);
     });
 

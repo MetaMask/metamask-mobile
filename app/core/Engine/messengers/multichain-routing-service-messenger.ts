@@ -1,4 +1,8 @@
-import { Messenger } from '@metamask/messenger';
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
 import { MultichainRoutingServiceMessenger } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../types';
 import { KeyringControllerWithKeyringV2Action } from '@metamask/keyring-controller';
@@ -11,7 +15,11 @@ import { KeyringControllerWithKeyringV2Action } from '@metamask/keyring-controll
  * @returns The multichain routing service messenger.
  */
 export function getMultichainRoutingServiceMessenger(
-  rootMessenger: RootMessenger,
+  rootMessenger: Messenger<
+    'Root',
+    MessengerActions<MultichainRoutingServiceMessenger>,
+    MessengerEvents<MultichainRoutingServiceMessenger>
+  >,
 ): MultichainRoutingServiceMessenger {
   const messenger: MultichainRoutingServiceMessenger = new Messenger({
     namespace: 'MultichainRoutingService',
@@ -34,8 +42,10 @@ export function getMultichainRoutingServiceMessenger(
 
 type AllowedInitializationActions = KeyringControllerWithKeyringV2Action;
 
-export type MultichainRoutingServiceInitMessenger = ReturnType<
-  typeof getMultichainRoutingServiceInitMessenger
+export type MultichainRoutingServiceInitMessenger = Messenger<
+  'MultichainRoutingServiceInit',
+  AllowedInitializationActions,
+  never
 >;
 
 /**
@@ -47,14 +57,12 @@ export type MultichainRoutingServiceInitMessenger = ReturnType<
  * @returns The multichain routing service init messenger.
  */
 export function getMultichainRoutingServiceInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'MultichainRoutingServiceInit',
-    AllowedInitializationActions,
-    never,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<MultichainRoutingServiceInitMessenger>,
+    MessengerEvents<MultichainRoutingServiceInitMessenger>
+  >,
+): MultichainRoutingServiceInitMessenger {
+  const messenger: MultichainRoutingServiceInitMessenger = new Messenger({
     namespace: 'MultichainRoutingServiceInit',
     parent: rootMessenger,
   });

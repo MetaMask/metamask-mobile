@@ -22,12 +22,22 @@ const mockGoBack = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockClaimWinnings = jest.fn();
 const mockShowToast = jest.fn();
+const mockTrackPredictOrderEvent = jest.fn();
 
 // Mock dependencies
 jest.mock('../../../../util/Logger', () => ({
   __esModule: true,
   default: {
     error: jest.fn(),
+  },
+}));
+
+jest.mock('../../../../core/Engine', () => ({
+  context: {
+    PredictController: {
+      trackPredictOrderEvent: (...args: unknown[]) =>
+        mockTrackPredictOrderEvent(...args),
+    },
   },
 }));
 
@@ -74,6 +84,20 @@ jest.mock('../../../../util/theme', () => ({
 jest.mock('../../../Views/confirmations/hooks/useConfirmNavigation', () => ({
   useConfirmNavigation: jest.fn(),
 }));
+
+// Mock the heavy confirm-component module to avoid loading the Perps import
+// chain (which relies on the real Engine module's load-order side effects).
+jest.mock(
+  '../../../Views/confirmations/components/confirm/confirm-component',
+  () => ({
+    ConfirmationLoader: {
+      Default: 'default',
+      CustomAmount: 'customAmount',
+      PredictClaim: 'predictClaim',
+      Transfer: 'transfer',
+    },
+  }),
+);
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -225,7 +249,9 @@ describe('usePredictClaim', () => {
         loader: ConfirmationLoader.PredictClaim,
         stack: 'Predict',
       });
-      expect(mockClaimWinnings).toHaveBeenCalledWith({});
+      expect(mockClaimWinnings).toHaveBeenCalledWith({
+        analyticsProperties: { transactionType: 'mm_predict_claim' },
+      });
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
@@ -241,7 +267,55 @@ describe('usePredictClaim', () => {
       });
 
       // Assert
-      expect(mockClaimWinnings).toHaveBeenCalledWith({});
+      expect(mockClaimWinnings).toHaveBeenCalledWith({
+        analyticsProperties: { transactionType: 'mm_predict_claim' },
+      });
+    });
+
+    it('fires the initiated event once with the provided entry-point context', async () => {
+      // Arrange
+      mockClaimWinnings.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      await act(async () => {
+        await result.current.claim({ entryPoint: 'predict_market_details' });
+      });
+
+      // Assert
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith({
+        status: 'initiated',
+        analyticsProperties: {
+          entryPoint: 'predict_market_details',
+          transactionType: 'mm_predict_claim',
+        },
+      });
+    });
+
+    it('merges entry-point context into the claim analytics properties', async () => {
+      // Arrange
+      mockClaimWinnings.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      await act(async () => {
+        await result.current.claim({
+          entryPoint: 'homepage_positions',
+          claimablePositionsCount: 3,
+        });
+      });
+
+      // Assert
+      expect(mockClaimWinnings).toHaveBeenCalledWith({
+        analyticsProperties: {
+          entryPoint: 'homepage_positions',
+          claimablePositionsCount: 3,
+          transactionType: 'mm_predict_claim',
+        },
+      });
     });
 
     it('sets isClaimPending from pending claim selector', () => {
@@ -406,10 +480,36 @@ describe('usePredictClaim', () => {
         loader: ConfirmationLoader.PredictClaim,
         stack: 'Predict',
       });
-      expect(mockClaimWinnings).toHaveBeenCalledWith({});
+      expect(mockClaimWinnings).toHaveBeenCalledWith({
+        analyticsProperties: { transactionType: 'mm_predict_claim' },
+      });
       expect(mockShowToast).not.toHaveBeenCalled();
       expect(mockGoBack).not.toHaveBeenCalled();
       expect(mockLoggerError).not.toHaveBeenCalled();
+    });
+
+    it('fires a failed event with a mapped failure_reason when claim throws', async () => {
+      // Arrange
+      mockClaimWinnings.mockRejectedValue(
+        new Error('No claimable positions found'),
+      );
+
+      const { result } = renderHook(() => usePredictClaim(), { wrapper });
+
+      // Act
+      await act(async () => {
+        await result.current.claim({ entryPoint: 'predict_market_details' });
+      });
+
+      // Assert
+      expect(mockTrackPredictOrderEvent).toHaveBeenCalledWith({
+        status: 'failed',
+        analyticsProperties: {
+          entryPoint: 'predict_market_details',
+          transactionType: 'mm_predict_claim',
+        },
+        failureReason: 'pending_resolution',
+      });
     });
 
     it('captures exception to Sentry when claim fails', async () => {

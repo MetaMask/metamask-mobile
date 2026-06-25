@@ -120,7 +120,7 @@ describe('money-account-override', () => {
   });
 
   describe('handleUnapprovedTransactionAddedForMoneyAccount', () => {
-    it('sets accountOverride for a moneyAccountDeposit transaction', () => {
+    it('sets accountOverride and isQuoteRequired for a moneyAccountDeposit transaction', () => {
       handleUnapprovedTransactionAddedForMoneyAccount(buildTransactionMeta());
 
       expect(setTransactionConfigMock).toHaveBeenCalledWith(
@@ -135,6 +135,22 @@ describe('money-account-override', () => {
 
       expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
       expect(config.isQuoteRequired).toBe(true);
+    });
+
+    it('does not set isQuoteRequired when transaction is postQuote', () => {
+      handleUnapprovedTransactionAddedForMoneyAccount(
+        buildTransactionMeta({
+          metamaskPay: { isPostQuote: true },
+        } as never),
+      );
+
+      const callback = setTransactionConfigMock.mock.calls[0][1];
+      const config: { accountOverride?: string; isQuoteRequired?: boolean } =
+        {};
+      callback(config as never);
+
+      expect(config.accountOverride).toBe(EVM_ADDRESS_MOCK);
+      expect(config.isQuoteRequired).toBeUndefined();
     });
 
     it('sets accountOverride for a moneyAccountWithdraw transaction', () => {

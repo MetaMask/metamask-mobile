@@ -72,7 +72,7 @@ import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
-import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
+import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/utils/ProviderTokenVault';
 import {
   setAllowLoginWithRememberMe,
   setOsAuthEnabled,
@@ -1552,6 +1552,11 @@ class AuthenticationService {
    * Delegates to SeedlessOnboardingController.runMigrations() which handles
    * version tracking and migration logic. Called before adding new secret data
    * to ensure data type consistency and correct ordering.
+   *
+   * Migration failures are reported via analytics and Sentry but do not
+   * propagate, so the caller's primary operation (e.g. import SRP / private
+   * key) can continue. Legacy secrets may remain unmigrated until a later
+   * successful run; new secrets are still written with the correct dataType.
    */
   runSeedlessOnboardingMigrations = async (): Promise<void> => {
     const { SeedlessOnboardingController } = Engine.context;
@@ -1618,8 +1623,6 @@ class AuthenticationService {
           sentryError,
         );
       }
-
-      throw migrationError;
     }
   };
 

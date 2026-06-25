@@ -52,7 +52,6 @@ export const DEFAULT_DISABLED_FEATURES: string[] = [
   'legend_context_menu',
   'symbol_search_hot_key',
   'symbol_info',
-  'legend_widget',
   'display_market_status',
   'scales_context_menu',
   'property_pages',
@@ -62,6 +61,7 @@ export const DEFAULT_DISABLED_FEATURES: string[] = [
   'popup_hints',
   'pane_context_menu',
   'create_volume_indicator_by_default',
+  'show_hide_button_in_legend',
   'go_to_date',
   'show_zoom_and_move_buttons_on_touch',
   'shift_visible_range_on_new_bar',
@@ -119,9 +119,10 @@ export type ChartType = (typeof ChartType)[keyof typeof ChartType];
 /**
  * Line / chart chrome for the TradingView WebView.
  *
- * When a `useCustom*` flag is **false**, TradingView built-ins apply where relevant
- * (`showSeriesLastValue`, `showPriceLine`, scale crosshair labels). When **true**, MetaMask uses
- * custom drawings/DOM instead and disables the TV equivalent to avoid duplicates.
+ * Omitted props resolve via {@link DEFAULT_LINE_CHROME} (built-in-first). When a `useCustom*`
+ * flag is **false**, TradingView built-ins apply where relevant (`showSeriesLastValue`,
+ * `showPriceLine`, scale crosshair labels). When **true**, MetaMask uses custom drawings/DOM
+ * instead and disables the TV equivalent to avoid duplicates.
  */
 export interface LineChromeOptions {
   /** When true, hide the time-axis row (line chart only). */
@@ -140,9 +141,9 @@ export interface LineChromeOptions {
 /** Default `lineChrome` when props omit fields; merged by `resolveLineChromeOptions`. */
 export const DEFAULT_LINE_CHROME = {
   hideTimeScale: false,
-  useCustomLineEndMarker: true,
-  useCustomDashedLastPriceLine: true,
-  useCustomPriceLabels: true,
+  useCustomLineEndMarker: false,
+  useCustomDashedLastPriceLine: false,
+  useCustomPriceLabels: false,
 } as const;
 
 export type ResolvedLineChromeOptions = {
@@ -169,15 +170,35 @@ export function resolveLineChromeOptions(
   };
 }
 
+/** Matches template + `SET_THEME_COLORS` resolution for `theme.currentPriceColor`. */
+export function resolveCurrentPriceColor(options: {
+  lastValuePillColor?: string;
+  currentPriceLineColorOverride?: string;
+  lineColorOverride?: string;
+  successColorOverride?: string;
+  themeSuccessDefault: string;
+}): string {
+  const effectiveSuccessColor =
+    options.successColorOverride ?? options.themeSuccessDefault;
+  const effectiveLineColor = options.lineColorOverride ?? effectiveSuccessColor;
+  return (
+    options.lastValuePillColor ??
+    options.currentPriceLineColorOverride ??
+    effectiveLineColor
+  );
+}
+
 export type RNToWebViewMessageType =
   | 'SET_OHLCV_DATA'
   | 'ADD_INDICATOR'
   | 'REMOVE_INDICATOR'
   | 'SET_CHART_TYPE'
   | 'SET_LINE_CHROME'
+  | 'SET_SUB_PANE_LAYOUT'
   | 'SET_POSITION_LINES'
   | 'REALTIME_UPDATE'
   | 'TOGGLE_VOLUME'
+  | 'SET_MA_VISIBILITY'
   | 'SET_THEME_COLORS';
 
 export type WebViewToRNMessageType =
@@ -185,6 +206,7 @@ export type WebViewToRNMessageType =
   | 'CHART_LAYOUT_SETTLED'
   | 'INDICATOR_ADDED'
   | 'INDICATOR_REMOVED'
+  | 'LEGEND_RENDERED'
   | 'CROSSHAIR_MOVE'
   | 'ERROR'
   | 'DEBUG';
@@ -245,10 +267,42 @@ export interface ToggleVolumePayload {
 
 export type SetLineChromePayload = ResolvedLineChromeOptions;
 
+/**
+ * When `heightRatio` is a number in (0, 1], RSI/MACD sub-panes use that fraction of total
+ * chart height each (via `setAllPanesHeight`). When `null` or omitted, TradingView default
+ * pane sizing applies.
+ */
+export interface SetSubPaneLayoutPayload {
+  heightRatio: number | null;
+}
+
+export interface SetMAVisibilityPayload {
+  visible: string[];
+}
+
 export interface SetThemeColorsPayload {
   lineColor: string;
   successColor: string;
   errorColor: string;
+  /** Last-value scale pill and native price line (ambient on token details). */
+  currentPriceColor?: string;
+}
+
+/**
+ * Optional overrides for TV built-in scale / crosshair / last-value label colors.
+ * Omitted fields use design tokens baked into the WebView CONFIG at template time.
+ */
+export interface ChartLabelStyleOverrides {
+  /** Crosshair price/time pill background (default: `background.section`). */
+  crosshairBackgroundColor?: string;
+  /** Crosshair pill text for custom DOM labels only. TV built-ins share `axisTextColor`. */
+  crosshairTextColor?: string;
+  /** Last-value scale pill + native price line (default: `currentPriceLineColorOverride` → line color). */
+  lastValuePillColor?: string;
+  /** Price/time scale tick labels (`scalesProperties.textColor`; default: `text.muted`). */
+  axisTextColor?: string;
+  /** Custom study legend value text (default: `text.alternative`). */
+  legendTextColor?: string;
 }
 
 export type RNToWebViewMessage =
@@ -257,9 +311,11 @@ export type RNToWebViewMessage =
   | { type: 'REMOVE_INDICATOR'; payload: RemoveIndicatorPayload }
   | { type: 'SET_CHART_TYPE'; payload: SetChartTypePayload }
   | { type: 'SET_LINE_CHROME'; payload: SetLineChromePayload }
+  | { type: 'SET_SUB_PANE_LAYOUT'; payload: SetSubPaneLayoutPayload }
   | { type: 'SET_POSITION_LINES'; payload: SetPositionLinesPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
   | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload }
+  | { type: 'SET_MA_VISIBILITY'; payload: SetMAVisibilityPayload }
   | { type: 'SET_THEME_COLORS'; payload: SetThemeColorsPayload };
 
 export interface IndicatorAddedPayload {
@@ -291,6 +347,7 @@ export type WebViewToRNMessage =
   | { type: 'CHART_LAYOUT_SETTLED' }
   | { type: 'INDICATOR_ADDED'; payload: IndicatorAddedPayload }
   | { type: 'INDICATOR_REMOVED'; payload: IndicatorRemovedPayload }
+  | { type: 'LEGEND_RENDERED' }
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
   | { type: 'CHART_INTERACTED'; payload: ChartInteractedPayload }
   | { type: 'CHART_TRADINGVIEW_CLICKED'; payload?: { url?: string } }
@@ -345,6 +402,9 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
         return { type, payload: { name: obj.name } };
       }
       return null;
+
+    case 'LEGEND_RENDERED':
+      return { type };
 
     case 'CROSSHAIR_MOVE':
       return {
@@ -416,6 +476,12 @@ export interface AdvancedChartProps {
    * Example: `${assetId}|${timePeriod}|${interval}|${currency}`.
    */
   ohlcvSeriesKey?: string;
+  /**
+   * Stable React `key` for the WebView document (technical-indicators path only). Remount only
+   * when this changes (e.g. asset or currency). Omit for legacy behavior: remount on
+   * `ohlcvSeriesKey` change. Interval/time-range hot reload requires this prop.
+   */
+  webViewInstanceKey?: string;
   /** Chart height in pixels */
   height?: number;
 
@@ -430,6 +496,8 @@ export interface AdvancedChartProps {
 
   /** Active indicators to display (Token Details). Synced declaratively via useEffect. */
   indicators?: IndicatorType[];
+  /** Selected MA names (e.g. ['MA5', 'MA10']). Sent as a single SET_MA_VISIBILITY batch message. */
+  selectedMAs?: string[];
   /** Position lines to overlay (Perps). Set to undefined to clear. */
   positionLines?: PositionLines;
 
@@ -458,15 +526,39 @@ export interface AdvancedChartProps {
    */
   lineChrome?: LineChromeOptions;
 
+  /**
+   * Fraction of total chart height for each RSI/MACD sub-pane (0–1). Omit or pass `null` for
+   * TradingView default pane sizing. With two sub-panes active, bottom area ≈ 2× this value.
+   */
+  subPaneHeightRatio?: number | null;
+
+  /**
+   * When true, TV built-in price scale + last-value pill use MetaMask subscript notation for tiny
+   * prices (`custom_formatters.priceFormatterFactory`). Default false (TV decimals). Does not
+   * affect custom DOM pills when `lineChrome.useCustomPriceLabels` is true.
+   */
+  useSubscriptPriceFormat?: boolean;
+
   /** Callback when chart is ready */
   onChartReady?: () => void;
   /**
    * Fires once when the native skeleton overlay is removed (chart ready, layout settled,
-   * and parent `isLoading` false). Resets when `ohlcvSeriesKey` or chart HTML reloads.
+   * and parent `isLoading` false). Resets when `webViewInstanceKey` or chart HTML reloads.
    */
   onSkeletonHidden?: () => void;
+  /**
+   * Fires when the WebView posts `CHART_LAYOUT_SETTLED` after OHLCV scale/layout apply.
+   * Used by Token Details (technical-indicators path) to complete interval visibility traces
+   * after first reveal — `onSkeletonHidden` only runs once per WebView session.
+   */
+  onChartLayoutSettled?: () => void;
   /** Callback when an error occurs */
   onError?: (error: string) => void;
+  /**
+   * Pre-`CHART_READY` failure (CDN, library boot, widget init). When set, AdvancedChart
+   * skips its error UI and delegates to the parent (e.g. legacy chart fallback).
+   */
+  onInitFailed?: (error: string) => void;
   /** Crosshair OHLC data callback (for overlay legend) */
   onCrosshairMove?: (data: CrosshairData | null) => void;
   /**
@@ -507,8 +599,46 @@ export interface AdvancedChartProps {
   successColorOverride?: string;
   /** Override the candlestick down/error color baked into the HTML template (A/B test). */
   errorColorOverride?: string;
-  /** Override the current-price horizontal line color. Does not affect candle or volume colors. */
+  /**
+   * Override last-value scale pill + native price line color independently of `lineColorOverride`.
+   * Omitted → follows `lineColorOverride` (or success green). Hot-swapped via `SET_THEME_COLORS`.
+   */
   currentPriceLineColorOverride?: string;
+
+  /**
+   * Optional TV built-in label colors. Omitted fields use theme tokens from the active
+   * appearance (`background.section`, `text.default`, `text.muted`).
+   */
+  labelStyleOverrides?: ChartLabelStyleOverrides;
+
+  /**
+   * Opt-in custom DOM legend overlay. When provided with `enabled: true`,
+   * the native TradingView legend is hidden and a custom overlay renders
+   * indicator labels/values with the specified colors and abbreviations.
+   * When omitted or `enabled: false`, the native TV legend is used as-is.
+   */
+  legendOverlay?: LegendOverlayConfig;
+}
+
+export interface LegendPlotConfig {
+  tvTitle: string;
+  label: string;
+  color: string | null;
+}
+
+export interface LegendIndicatorConfig {
+  plots: LegendPlotConfig[];
+  isMA?: boolean;
+  useIndex?: boolean;
+  /** Render all plots in a single pill (e.g. BB(20,2) U:… M:… L:…). */
+  combineInOnePill?: boolean;
+  /** Leading title when combineInOnePill is true (e.g. BB(20,2)). */
+  title?: string;
+}
+
+export interface LegendOverlayConfig {
+  enabled: boolean;
+  config: Record<string, LegendIndicatorConfig>;
 }
 
 /**

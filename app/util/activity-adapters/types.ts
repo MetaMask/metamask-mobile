@@ -7,6 +7,10 @@ import type { Transaction } from '@metamask/keyring-api';
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import type { CaipChainId } from '@metamask/utils';
 import type { TransactionGroup } from './adapters/transaction-group';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { PerpsTransaction } from '../../components/UI/Perps/types/transactionHistory';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { PredictActivity } from '../../components/UI/Predict/types';
 
 export type Status = 'pending' | 'success' | 'failed' | 'cancelled';
 
@@ -38,7 +42,7 @@ export type ActivityKind =
   | 'predictionCashedOut'
   | 'predictionPlaced'
   | 'perpsAddFunds'
-  | 'perpsWithdrawFunds'
+  | 'perpsWithdraw'
   | 'perpsOpenLong'
   | 'perpsCloseLong'
   | 'perpsCloseLongLiquidated'
@@ -59,6 +63,7 @@ export type ActivityKind =
 export interface TokenAmount {
   amount?: string;
   decimals?: number;
+  isUnlimitedApproval?: boolean;
   symbol?: string;
   // CAIP-19 asset id (from adapters)
   assetId?: string;
@@ -70,15 +75,16 @@ interface ActivityData<Type extends ActivityKind, Data> {
   chainId: CaipChainId;
   status: Status;
   timestamp: number;
+  hash?: string;
   isEarliestNonce?: boolean;
   /* Used by legacy details modals. Interim until redesigned details are implemented */
   raw?:
     | { type: 'apiEvmTransaction'; data: V1TransactionByHashResponse }
     | { type: 'keyringTransaction'; data: Transaction }
-    | { type: 'localTransaction'; data: TransactionGroup };
-  data: Data & {
-    hash?: string;
-  };
+    | { type: 'localTransaction'; data: TransactionGroup }
+    | { type: 'perpsTransaction'; data: PerpsTransaction }
+    | { type: 'predictActivity'; data: PredictActivity };
+  data: Data;
 }
 
 export type ActivityListItem =
@@ -118,6 +124,8 @@ export type ActivityListItem =
   | ActivityData<
       'buy' | 'claim' | 'deposit',
       {
+        from?: string;
+        to?: string;
         token?: TokenAmount;
       }
     >
@@ -163,7 +171,7 @@ export type ActivityListItem =
       | 'predictionCashedOut'
       | 'predictionPlaced'
       | 'perpsAddFunds'
-      | 'perpsWithdrawFunds'
+      | 'perpsWithdraw'
       | 'perpsOpenLong'
       | 'perpsCloseLong'
       | 'perpsCloseLongLiquidated'
