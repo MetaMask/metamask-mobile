@@ -533,7 +533,7 @@ generateAndroidBinary() {
 		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] && [ "${IS_BROWSERSTACK_BUILD:-false}" != "true" ] ; then
 			# CI uses x86_64 emulators only; local macOS (Apple Silicon) also needs arm64-v8a
 			if [ "${CI:-false}" = "true" ] ; then
-				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64,arm64-v8a"
+				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
 			else
 				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64,arm64-v8a"
 			fi
