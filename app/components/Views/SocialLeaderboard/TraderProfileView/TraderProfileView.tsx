@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { RefreshControl, TouchableOpacity } from 'react-native';
 import Animated from 'react-native-reanimated';
+import { useSelector } from 'react-redux';
 import {
   Box,
   BoxAlignItems,
@@ -69,6 +70,7 @@ import TraderNotificationsBottomSheet, {
   type TraderNotificationsBottomSheetRef,
 } from './components/TraderNotificationsBottomSheet';
 import { useTraderPositions, useTraderProfile } from './hooks';
+import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import {
   CLOSED_SORT_CYCLE,
   OPEN_SORT_CYCLE,
@@ -77,6 +79,7 @@ import {
   type OpenSortKey,
   type SortKey,
 } from './utils/sortPositions';
+import { HYPERLIQUID_CHAIN_NAME, isPerpPosition } from '../utils/perp';
 
 const POSITION_SKELETON_COUNT = 4;
 const POSITION_SKELETON_KEYS = Array.from(
@@ -84,8 +87,14 @@ const POSITION_SKELETON_KEYS = Array.from(
   (_, i) => `position-skeleton-${i}`,
 );
 
-const SORT_LABEL_KEYS: Record<SortKey, string> = {
+const OPEN_SORT_LABEL_KEYS: Record<OpenSortKey, string> = {
   value: 'social_leaderboard.trader_profile.sort.value',
+  pnl: 'social_leaderboard.trader_profile.sort.pnl_percent',
+  recent: 'social_leaderboard.trader_profile.sort.recent',
+};
+
+const CLOSED_SORT_LABEL_KEYS: Record<ClosedSortKey, string> = {
+  value: 'social_leaderboard.trader_profile.sort.top_trades',
   pnl: 'social_leaderboard.trader_profile.sort.pnl_percent',
   recent: 'social_leaderboard.trader_profile.sort.recent',
 };
@@ -133,6 +142,7 @@ const TraderProfileView = () => {
   } = route.params;
   const source = sourceParam ?? 'deep_link';
   const { track } = useSocialLeaderboardAnalytics();
+  const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
 
   const {
     profile,
@@ -154,10 +164,8 @@ const TraderProfileView = () => {
 
   const traderAddress = traderAddressParam ?? profile?.profile.address ?? '';
 
-  // The headline 7D return reflects the trader's PnL across every chain they
-  // traded, including Hyperliquid/perps. (Hyperliquid is excluded from the
-  // "All" leaderboard ranking so perps don't dominate it, but on an individual
-  // profile that exclusion would wrongly show 0 for a perps-only trader.)
+  // The headline 7D return reflects the trader's PnL across every enabled
+  // asset class they traded. When perps are enabled this includes Hyperliquid.
   // Summing the per-chain 7D breakdown is preferred over the global stats.pnl7d;
   // fall back to the global value only when no per-chain breakdown is available
   // (e.g. an older social-api that doesn't return perChainPnl7d).
@@ -167,12 +175,15 @@ const TraderProfileView = () => {
     if (!perChainPnl7d || Object.keys(perChainPnl7d).length === 0) {
       return profile.stats;
     }
-    const pnl7d = Object.values(perChainPnl7d).reduce(
-      (sum, value) => sum + (value ?? 0),
+    const pnl7d = Object.entries(perChainPnl7d).reduce(
+      (sum, [chain, value]) =>
+        !isPerpsEnabled && chain.toLowerCase() === HYPERLIQUID_CHAIN_NAME
+          ? sum
+          : sum + (value ?? 0),
       0,
     );
     return { ...profile.stats, pnl7d };
-  }, [profile]);
+  }, [profile, isPerpsEnabled]);
   // Fire Trader Profile Screen Viewed once profile resolves so we have an
   // accurate trader_address / is_following at the point the user lands.
   const hasFiredScreenViewedRef = useRef(false);
@@ -200,7 +211,7 @@ const TraderProfileView = () => {
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
   const [openSort, setOpenSort] = useState<OpenSortKey>('value');
-  const [closedSort, setClosedSort] = useState<ClosedSortKey>('recent');
+  const [closedSort, setClosedSort] = useState<ClosedSortKey>('value');
 
   const notificationsSheetRef = useRef<TraderNotificationsBottomSheetRef>(null);
   const setupSheetRef =
@@ -305,7 +316,14 @@ const TraderProfileView = () => {
       track,
     ],
   );
-  const positions = activeTab === 'open' ? openPositions : closedPositions;
+  const tabPositions = activeTab === 'open' ? openPositions : closedPositions;
+  const positions = useMemo(
+    () =>
+      isPerpsEnabled
+        ? tabPositions
+        : tabPositions.filter((position) => !isPerpPosition(position)),
+    [isPerpsEnabled, tabPositions],
+  );
   const isLoadingPositions =
     activeTab === 'open' ? isLoadingOpen : isLoadingClosed;
 
@@ -485,7 +503,11 @@ const TraderProfileView = () => {
                     </Box>
                     {positions.length > 0 && (
                       <SortButton
-                        label={strings(SORT_LABEL_KEYS[currentSortKey])}
+                        label={strings(
+                          activeTab === 'open'
+                            ? OPEN_SORT_LABEL_KEYS[openSort]
+                            : CLOSED_SORT_LABEL_KEYS[closedSort],
+                        )}
                         onPress={handleSortPress}
                         testID={TraderProfileViewSelectorsIDs.SORT_BUTTON}
                       />
@@ -517,6 +539,7 @@ const TraderProfileView = () => {
                         position={position}
                         onPress={handlePositionPress}
                         isClosed={activeTab === 'closed'}
+                        showTradeDate={currentSortKey === 'recent'}
                       />
                     ))
                   )}

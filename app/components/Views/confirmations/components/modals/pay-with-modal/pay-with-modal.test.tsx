@@ -579,6 +579,42 @@ describe('PayWithModal', () => {
     });
   });
 
+  describe('no-fee tags by flow', () => {
+    const setFlow = (type: TransactionType) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_1_MOCK,
+        networkClientId: '',
+        status: TransactionStatus.unapproved,
+        time: 0,
+        txParams: { from: EMPTY_ADDRESS },
+        type,
+        nestedTransactions: [{ type }],
+      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+    };
+
+    it('renders no-fee tags for Money Account deposits', async () => {
+      setFlow(TransactionType.moneyAccountDeposit);
+
+      const { findByText } = render();
+
+      expect(await findByText('TST1')).toBeOnTheScreen();
+      expect(mockRenderNoFeeTag).toHaveBeenCalled();
+    });
+
+    it.each([
+      ['perps deposit', TransactionType.perpsDepositAndOrder],
+      ['predict deposit', TransactionType.predictDepositAndOrder],
+    ])('does not render no-fee tags for %s', async (_label, type) => {
+      setFlow(type);
+
+      const { findByText } = render();
+
+      expect(await findByText('TST1')).toBeOnTheScreen();
+      expect(mockRenderNoFeeTag).not.toHaveBeenCalled();
+    });
+  });
+
   describe('fiat payment', () => {
     it('passes fiatPayment to getAvailableTokens', () => {
       const fiatPaymentMock = { selectedPaymentMethodId: 'pm-card' };

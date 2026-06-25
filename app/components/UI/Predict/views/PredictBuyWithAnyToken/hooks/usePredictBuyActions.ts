@@ -1,5 +1,5 @@
 import { StackActions, useNavigation } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { PredictNavigationParamList } from '../../../types/navigation';
 import { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
@@ -70,7 +70,7 @@ export const usePredictBuyActions = ({
   transactionActiveAbTests,
 }: UsePredictBuyActionsParams) => {
   const navigation =
-    useNavigation<StackNavigationProp<PredictNavigationParamList>>();
+    useNavigation<NativeStackNavigationProp<PredictNavigationParamList>>();
   const { onConfirm: onApprovalConfirm, approvalRequest } =
     useApprovalRequest();
   const { onReject } = useConfirmActions();

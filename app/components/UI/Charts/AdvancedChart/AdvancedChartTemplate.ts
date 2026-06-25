@@ -1,9 +1,11 @@
 import { AppThemeKey, type Theme } from '../../../../util/theme/models';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import {
+  type ChartLabelStyleOverrides,
   type LineChromeOptions,
   type LegendOverlayConfig,
   resolveLineChromeOptions,
+  resolveCurrentPriceColor,
 } from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
 import { getIndicatorColorsForWebview } from './indicatorColors';
@@ -55,10 +57,12 @@ interface ChartFeatures {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
   lineChrome?: LineChromeOptions;
+  useSubscriptPriceFormat?: boolean;
   lineColorOverride?: string;
   successColorOverride?: string;
   errorColorOverride?: string;
   currentPriceLineColorOverride?: string;
+  labelStyleOverrides?: ChartLabelStyleOverrides;
   legendOverlay?: LegendOverlayConfig;
 }
 
@@ -72,19 +76,44 @@ const createConfigScript = (
     features.successColorOverride ?? getChartSuccessColor(theme);
   const lineColor = features.lineColorOverride ?? successColor;
   const errorColor = features.errorColorOverride ?? theme.colors.error.default;
+  const labelStyles = features.labelStyleOverrides;
+  const sectionBackgroundColor = stripHexAlpha(
+    labelStyles?.crosshairBackgroundColor ?? theme.colors.background.section,
+  );
+  const textDefaultColor = stripHexAlpha(
+    labelStyles?.crosshairTextColor ?? theme.colors.text.default,
+  );
+  const axisTextColor = stripHexAlpha(
+    labelStyles?.axisTextColor ?? theme.colors.text.muted,
+  );
+  const legendTextColor = stripHexAlpha(
+    labelStyles?.legendTextColor ?? theme.colors.text.alternative,
+  );
+  const resolvedCurrentPriceColor = resolveCurrentPriceColor({
+    lastValuePillColor: labelStyles?.lastValuePillColor,
+    currentPriceLineColorOverride: features.currentPriceLineColorOverride,
+    lineColorOverride: features.lineColorOverride,
+    successColorOverride: features.successColorOverride,
+    themeSuccessDefault: getChartSuccessColor(theme),
+  });
   return `
 window.CONFIG = {
   libraryUrl: '${libraryUrl}',
   theme: {
     backgroundColor: '${theme.colors.background.default}',
     borderColor: '${stripHexAlpha(theme.colors.border.muted)}',
-    textColor: '${stripHexAlpha(theme.colors.text.muted)}',
-    textAlternativeColor: '${stripHexAlpha(theme.colors.text.alternative)}',
+    textColor: '${axisTextColor}',
+    textDefaultColor: '${textDefaultColor}',
+    sectionBackgroundColor: '${sectionBackgroundColor}',
+    crosshairBackgroundColor: '${sectionBackgroundColor}',
+    crosshairTextColor: '${textDefaultColor}',
+    legendTextColor: '${legendTextColor}',
+    textAlternativeColor: '${legendTextColor}',
     successColor: '${successColor}',
     lineColor: '${lineColor}',
     errorColor: '${errorColor}',
     primaryColor: '${theme.colors.primary.default}',
-    currentPriceColor: '${features.currentPriceLineColorOverride ?? ''}'
+    currentPriceColor: '${resolvedCurrentPriceColor}'
   },
   features: {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},
@@ -97,6 +126,7 @@ window.CONFIG = {
     useCustomPriceLabels: ${lc.useCustomPriceLabels ? 'true' : 'false'}
   },
   legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
+  useSubscriptPriceFormat: ${features.useSubscriptPriceFormat ? 'true' : 'false'},
   indicatorColors: ${JSON.stringify(getIndicatorColorsForWebview(theme.themeAppearance))}
 };
 `;

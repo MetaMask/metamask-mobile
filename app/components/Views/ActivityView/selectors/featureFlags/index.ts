@@ -1,1 +1,4 @@
-export { selectIsActivityRedesignEnabled } from '../../../../../selectors/featureFlagController/activityRedesign';
+export {
+  selectIsActivityRedesignEnabled,
+  selectIsTransactionsRedesignEnabled,
+} from '../../../../../selectors/featureFlagController/activityRedesign';
