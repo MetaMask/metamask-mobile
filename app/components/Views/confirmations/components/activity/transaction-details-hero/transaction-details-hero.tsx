@@ -42,6 +42,7 @@ import { RootState } from '../../../../../../reducers';
 import useNetworkInfo from '../../../hooks/useNetworkInfo';
 import { TokenIcon } from '../../token-icon';
 import { resolveMusdTransferMeta } from '../../../../../UI/Money/constants/activityStyles';
+import { isSingleRowMusdMoneyWithdraw } from '../../../../../UI/Money/utils/moneyTransactionGuards';
 import { fromTokenMinimalUnit } from '../../../../../../util/number/bigint';
 import {
   isMusdToken,
@@ -197,6 +198,8 @@ export function TransactionDetailsHero() {
   const showTwoAssetHero =
     isMoneyContext &&
     hasTransactionType(transactionMeta, TWO_ASSET_HERO_TYPES) &&
+    !isSingleRowMoneyDeposit(transactionMeta) &&
+    !isSingleRowMusdMoneyWithdraw(transactionMeta) &&
     sentData &&
     receivedData;
 
@@ -211,29 +214,24 @@ export function TransactionDetailsHero() {
   }
 
   const showTokenIcon =
-    hasTransactionType(transactionMeta, TOKEN_ICON_TYPES) && tokenMeta;
+    hasTransactionType(transactionMeta, TOKEN_ICON_TYPES) &&
+    tokenMeta &&
+    (!hasTransactionType(transactionMeta, [
+      TransactionType.moneyAccountWithdraw,
+    ]) ||
+      isSingleRowMusdMoneyWithdraw(transactionMeta) ||
+      !isMoneyContext);
 
   if (showTokenIcon) {
-    const isFiatDeposit =
+    const showDepositPrefix =
       isMoneyContext &&
       hasTransactionType(transactionMeta, [
         TransactionType.moneyAccountDeposit,
       ]) &&
-      Boolean(transactionMeta.metamaskPay?.fiat?.orderId);
-
-    const showDepositPrefix =
-      isFiatDeposit ||
-      (isMoneyContext &&
-        hasTransactionType(transactionMeta, [
-          TransactionType.moneyAccountDeposit,
-        ]));
+      isSingleRowMoneyDeposit(transactionMeta);
 
     const isMusdWithdrawSingleRow =
-      isMoneyContext &&
-      hasTransactionType(transactionMeta, [
-        TransactionType.moneyAccountWithdraw,
-      ]) &&
-      isMusdToken(tokenMeta.contractAddress);
+      isMoneyContext && isSingleRowMusdMoneyWithdraw(transactionMeta);
 
     const icon = isMusdToken(tokenMeta.contractAddress) ? (
       <Image
@@ -334,6 +332,17 @@ const SENT_OVERRIDE: Partial<
     chainId: CHAIN_IDS.POLYGON as Hex,
   },
 };
+
+function isSingleRowMoneyDeposit(transactionMeta: TransactionMeta): boolean {
+  if (
+    !hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
+  ) {
+    return false;
+  }
+
+  const { fiat, tokenAddress } = transactionMeta.metamaskPay ?? {};
+  return Boolean(fiat?.orderId) || isMusdToken(tokenAddress);
+}
 
 function resolveTwoAssetData(
   transactionMeta: TransactionMeta,
