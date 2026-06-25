@@ -355,6 +355,14 @@ describe('MoneyOnboardingView', () => {
 
       expect(mockSetNumber).toHaveBeenCalledWith(300);
     });
+
+    it('sets Rive button text from localized onboarding button label', () => {
+      render(<MoneyOnboardingView />);
+
+      expect(mockSetString).toHaveBeenCalledWith(
+        strings('money.rive_onboarding.button_text'),
+      );
+    });
   });
 
   describe('Rive errors', () => {
