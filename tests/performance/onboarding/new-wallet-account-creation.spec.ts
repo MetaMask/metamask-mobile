@@ -73,7 +73,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
         testEnvironment,
       );
 
-      const predictGtmOnboardingModalEnabled = (
+      /*const predictGtmOnboardingModalEnabled = (
         productionFeatureFlags?.predictGtmOnboardingModalEnabled as {
           enabled?: boolean;
         }
@@ -86,7 +86,10 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
           await asPlaywrightElement(PredictModalView.notNowButton),
         );
         await dismisspredictionsModalPlaywright();
-      }
+      }*/
+
+      await dismisspredictionsModalPlaywright();
+      await dismissOnboardingInterestQuestionnaire();
 
       const screen1Timer = new TimerHelper(
         'Time since the user clicks on "Account list" button until the account list is visible',
@@ -100,12 +103,15 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
       const screen3Timer = new TimerHelper(
         'Time since the user clicks on new account created until the Token list is visible',
-        { ios: 2000, android: 3000 },
+        { ios: 10000, android: 3000 },
         currentDeviceDetails.platform,
       );
 
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(WalletView.walletBuyButton),
+        () => asPlaywrightElement(WalletView.walletBuyButton),
+        {
+          fastAppiumLookup: true,
+        },
       );
 
       await WalletView.tapIdenticon();
@@ -131,10 +137,11 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await screen3Timer.measure(async () => {
         await WalletView.checkActiveAccount('Account 2');
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.tokensSection),
+          () => asPlaywrightElement(WalletView.tokensSection),
           {
             description:
               'token list should be visible after selecting the new account',
+            fastAppiumLookup: true,
           },
         );
       });

@@ -39,10 +39,11 @@ perfTest.describe(
       ) => {
         await loginToAppPlaywright();
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.totalBalance),
+          () => asPlaywrightElement(WalletView.totalBalance),
           {
             description:
               'Wallet account icon should be visible before warm start',
+            fastAppiumLookup: true,
           },
         );
 
@@ -66,9 +67,10 @@ perfTest.describe(
         await LoginView.tapLoginButton();
         await timer1.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(WalletView.container),
+            () => asPlaywrightElement(WalletView.tokensSection),
             {
               description: 'Wallet balance should be visible',
+              fastAppiumLookup: true,
             },
           );
           // await WalletView.waitForBalanceToStabilize();

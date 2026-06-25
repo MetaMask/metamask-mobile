@@ -8,6 +8,7 @@ import {
   isOverheadTrackingActive,
   withImplicitWait,
 } from './PlaywrightUtilities.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
 
 const logger = createPlaywrightLogger('PlaywrightAssertions');
@@ -15,6 +16,11 @@ const logger = createPlaywrightLogger('PlaywrightAssertions');
 export interface VisibilityWithSettleOptions extends AssertionOptions {
   settleMs?: number;
 }
+
+type PlaywrightElementTarget =
+  | PlaywrightElement
+  | Promise<PlaywrightElement>
+  | (() => PlaywrightElement | Promise<PlaywrightElement>);
 
 /**
  * Assertion helpers that integrate with TimerHelper's automatic overhead
@@ -43,6 +49,38 @@ export interface VisibilityWithSettleOptions extends AssertionOptions {
 export default class PlaywrightAssertions {
   private static getTimeout(options: AssertionOptions): number {
     return options.timeout ?? BASE_DEFAULTS.timeout;
+  }
+
+  private static async resolveElementTarget(
+    targetElement: PlaywrightElementTarget,
+  ): Promise<PlaywrightElement> {
+    if (typeof targetElement === 'function') {
+      return await targetElement();
+    }
+    return await targetElement;
+  }
+
+  private static async pollUntilResolved(
+    targetElement: PlaywrightElementTarget,
+    timeout: number,
+  ): Promise<void> {
+    const interval = 300;
+    const start = Date.now();
+
+    while (Date.now() - start < timeout) {
+      try {
+        const el = await this.resolveElementTarget(targetElement);
+        const elementId = await el.unwrap().elementId;
+        if (elementId) {
+          return;
+        }
+      } catch {
+        // element not ready yet
+      }
+      await sleep(interval);
+    }
+
+    throw new Error(`Expected element to resolve within ${timeout}ms`);
   }
 
   /**
@@ -127,11 +165,16 @@ export default class PlaywrightAssertions {
    * is confirmed visible (see {@link probeOverhead}).
    */
   static async expectElementToBeVisible(
-    targetElement: PlaywrightElement | Promise<PlaywrightElement>,
+    targetElement: PlaywrightElementTarget,
     options: AssertionOptions = {},
   ): Promise<void> {
+    if (options.fastAppiumLookup && PlatformDetector.isIOS()) {
+      await this.pollUntilResolved(targetElement, this.getTimeout(options));
+      return;
+    }
+
     const t0 = Date.now();
-    const el = await targetElement;
+    const el = await this.resolveElementTarget(targetElement);
     if (isOverheadTrackingActive()) {
       addOverhead(Date.now() - t0);
     }

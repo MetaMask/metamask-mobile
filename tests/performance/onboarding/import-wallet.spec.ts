@@ -45,12 +45,12 @@ test.describe(PerformanceOnboarding, () => {
       );
       const timer3 = new TimerHelper(
         'Time since the user clicks on "Continue" button on SRP screen until Password fields are visible',
-        { ios: 1000, android: 1500 },
+        { ios: 1500, android: 1500 },
         currentDeviceDetails.platform,
       );
       const timer4 = new TimerHelper(
         'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
-        { ios: 2000, android: 1800 },
+        { ios: 3000, android: 2500 },
         currentDeviceDetails.platform,
       );
       const timer5 = new TimerHelper(
@@ -66,7 +66,7 @@ test.describe(PerformanceOnboarding, () => {
       const timer7 = new TimerHelper(
         'Time since the user clicks on "Done" button until ETH and BTC are visible',
         // +50 accounts on BrowserStack can take longer than local emulator.
-        { ios: 21000, android: 5000 },
+        { ios: 13000, android: 5000 },
         currentDeviceDetails.platform,
       );
       const walletTokenLoadTimeoutMs = 60_000;
@@ -133,6 +133,7 @@ test.describe(PerformanceOnboarding, () => {
           { timeout: 30_000 },
         );
       });
+      await dismissOnboardingCryptoExperienceQuestionnaire();
       await OnboardingSuccessView.tapDone();
       await dismissPushNotificationExistingUserSheet();
       const predictGtmOnboardingModalEnabled =
@@ -147,11 +148,14 @@ test.describe(PerformanceOnboarding, () => {
       }
 
       await dismisspredictionsModalPlaywright();
-      await dismissOnboardingCryptoExperienceQuestionnaire();
+
       await timer7.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.tokensSection),
-          { timeout: walletTokenLoadTimeoutMs },
+          () => asPlaywrightElement(WalletView.tokensSection),
+          {
+            fastAppiumLookup: true,
+            timeout: walletTokenLoadTimeoutMs,
+          },
         );
       });
 

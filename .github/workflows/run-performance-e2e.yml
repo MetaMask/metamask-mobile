@@ -177,25 +177,13 @@ jobs:
         run: |
           FILE="tests/performance/device-matrix.json"
 
-          # PRs: run the AI-selected performance tests on Android low profile only.
-          # Pushes keep the previous low-device behavior to control cost and flakes.
-          # Schedule and workflow_dispatch use the full device matrix.
-          if [ -n "$PR_NUMBER" ]; then
-            ANDROID_MATRIX=$(jq '[.android_devices[] | select(.category == "low")]' "$FILE")
-            ANDROID_MM_CONNECT_MATRIX="$ANDROID_MATRIX"
-            IOS_MATRIX='[]'
-            echo "PR mode: Android low category devices only (PR: $PR_NUMBER, branch: $BRANCH_NAME)"
-          elif [ "${{ github.event_name }}" = "push" ]; then
-            ANDROID_MATRIX=$(jq '[.android_devices[] | select(.category == "low")]' "$FILE")
-            ANDROID_MM_CONNECT_MATRIX=$(jq '[.android_devices[] | select(.name | contains("Samsung"))]' "$FILE")
-            IOS_MATRIX=$(jq '[.ios_devices[] | select(.category == "low")]' "$FILE")
-            echo "Push mode: low category devices only (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
-          else
-            ANDROID_MATRIX=$(jq ".android_devices" "$FILE")
-            ANDROID_MM_CONNECT_MATRIX=$(jq '[.android_devices[] | select(.name | contains("Samsung"))]' "$FILE")
-            IOS_MATRIX=$(jq ".ios_devices" "$FILE")
-            echo "Full mode: All devices (event: ${{ github.event_name }}, branch: $BRANCH_NAME)"
-          fi
+          # Performance tests are pinned to low profile devices on every trigger.
+          # This keeps timing comparable and prevents high-end devices from
+          # entering CI via the full matrix or MM-Connect's previous Samsung filter.
+          ANDROID_MATRIX=$(jq '[.android_devices[] | select(.category == "low")]' "$FILE")
+          ANDROID_MM_CONNECT_MATRIX="$ANDROID_MATRIX"
+          IOS_MATRIX=$(jq '[.ios_devices[] | select(.category == "low")]' "$FILE")
+          echo "Low-device mode: low category devices only (event: ${{ github.event_name }}, PR: ${PR_NUMBER:-none}, branch: $BRANCH_NAME)"
 
           {
             echo "android_matrix<<EOF"
@@ -293,8 +281,7 @@ jobs:
     name: Trigger iOS Dual Versions and Extract BrowserStack URLs
     uses: ./.github/workflows/build-ios-upload-to-browserstack.yml
     needs: [determine-branch-name]
-    if: false # temporarily disabled — iOS tests not yet active
-    # if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
+    if: (!inputs.browserstack_app_url_ios_onboarding && !inputs.browserstack_app_url_ios_imported_wallet)
     with:
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       build_variant: ${{ inputs.build_variant || 'e2e' }}

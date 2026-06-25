@@ -52,6 +52,8 @@ export interface UnifiedGestureOptions {
   hideKeyboard?: boolean;
   /** Clear the field before typing — Detox only; Appium fill() replaces by default */
   clearFirst?: boolean;
+  /** Wait until element position is stable before tapping — Appium only */
+  checkForStable?: boolean;
 }
 
 /**
@@ -422,6 +424,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
       waitForInteractive: opts?.waitForInteractive,
       enabledStableReads: opts?.enabledStableReads,
       postEnabledSettleMs: opts?.postEnabledSettleMs,
+      checkForStable: opts?.checkForStable,
     });
   }
 

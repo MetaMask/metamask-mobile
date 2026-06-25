@@ -89,8 +89,8 @@ test.describe(Performance, () => {
     //
     await loginToAppPlaywright();
     await PlaywrightAssertions.expectElementToBeVisible(
-      await asPlaywrightElement(WalletView.container),
-      { timeout: 15000 },
+      () => asPlaywrightElement(WalletView.container),
+      { fastAppiumLookup: true, timeout: 15000 },
     );
 
     await ensureAccountGroupsFinishedLoading(currentDeviceDetails);

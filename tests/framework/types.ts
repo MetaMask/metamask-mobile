@@ -172,6 +172,7 @@ export interface ScrollOptions extends GestureOptions {
 export interface AssertionOptions extends RetryOptions {
   timeout?: number;
   description?: string; // Description for the assertion, e.g. "The Wallet View should be visible"
+  fastAppiumLookup?: boolean;
 }
 
 export interface RetryOptions {

@@ -527,8 +527,8 @@ class PerpsOrderView {
             `//android.view.ViewGroup[@content-desc="${leverageSelector}"]`,
           );
         } else {
-          optionEl = await PlaywrightMatchers.getElementByAccessibilityId(
-            `quick-select-button-${leverageSelector}`,
+          optionEl = await PlaywrightMatchers.getElementByXPath(
+            `//XCUIElementTypeOther[@name="${leverageSelector}"]`,
           );
         }
         await PlaywrightGestures.waitAndTap(optionEl);

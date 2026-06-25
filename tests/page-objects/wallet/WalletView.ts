@@ -676,8 +676,7 @@ class WalletView {
         // iOS: TokenListItem sets accessibilityLabel to "Name, $fiat, balance"
         // so the iOS predicate `name` (= accessibilityLabel) differs from testID.
         // Use `~testID` which maps to accessibilityIdentifier (= testID).
-        ios: () =>
-          PlaywrightMatchers.getElementByNameiOS(getAssetTestId(token)),
+        ios: () => PlaywrightMatchers.getElementById(getAssetTestId(token)),
       },
     });
   }
@@ -704,6 +703,7 @@ class WalletView {
       appium: async () => {
         await UnifiedGestures.waitAndTap(this.tokenRow(tokenLabel), {
           description: 'Token',
+          waitForInteractive: true,
         });
       },
     });
@@ -977,7 +977,9 @@ class WalletView {
   }
 
   get predictionsTab(): EncapsulatedElementType {
-    return Matchers.getElementByLabel(WalletViewSelectorsText.PREDICTIONS_TAB);
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_DISCOVERY_TAB_PREDICTIONS,
+    );
   }
 
   get availableBalanceLabel(): EncapsulatedElementType {
@@ -1020,7 +1022,7 @@ class WalletView {
           ),
         ios: () =>
           PlaywrightMatchers.getElementByAccessibilityId(
-            `${WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('tokens')}`,
+            WalletViewSelectorsIDs.TOKENS_SECTION_CONTAINER,
           ),
       },
     });
@@ -1577,12 +1579,22 @@ class WalletView {
   }
 
   get perpsTab(): EncapsulatedElementType {
-    return Matchers.getElementByText(WalletViewSelectorsText.PERPS_TAB);
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_DISCOVERY_TAB_PERPS,
+    );
+  }
+
+  get portfolioTab(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_DISCOVERY_TAB_PORTFOLIO,
+    );
   }
 
   async tapOnPerpsTab(): Promise<void> {
-    await Gestures.waitAndTap(this.perpsTab, {
-      elemDescription: 'Perps Tab Button',
+    await UnifiedGestures.waitAndTap(this.perpsTab, {
+      description: 'Perps Tab Button',
+      checkForDisplayed: false,
+      checkForEnabled: true,
     });
   }
 
