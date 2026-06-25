@@ -144,6 +144,8 @@ export interface PolymarketApiActivity {
   title: string;
   outcome?: 'Yes' | 'No' | '';
   icon: string;
+  slug?: string;
+  eventSlug?: string;
 }
 
 export interface PolymarketApiEventsKeysetResponse {

@@ -1117,6 +1117,10 @@ export const parsePolymarketActivity = (
     const title = String(activity.title ?? 'Market');
     const outcome = activity.outcome ? String(activity.outcome) : undefined;
     const icon = activity.icon as string | undefined;
+    const slug = activity.slug ? String(activity.slug) : undefined;
+    const eventSlug = activity.eventSlug
+      ? String(activity.eventSlug)
+      : undefined;
 
     const parsedActivity: PredictActivity = {
       id,
@@ -1136,10 +1140,14 @@ export const parsePolymarketActivity = (
       title,
       outcome,
       icon,
+      slug,
+      eventSlug,
     } as PredictActivity & {
       title?: string;
       outcome?: string;
       icon?: string;
+      slug?: string;
+      eventSlug?: string;
     };
 
     return parsedActivity;

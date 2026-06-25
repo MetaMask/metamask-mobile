@@ -10,7 +10,7 @@ describe('ActivityDetailsStatus', () => {
     ['success', strings('transaction.confirmed')],
     ['pending', strings('transaction.pending')],
     ['failed', strings('transaction.failed')],
-    ['cancelled', strings('transaction.cancelled')],
+    ['cancelled', strings('transaction.canceled')],
   ])('renders the %s status label', (status, label) => {
     const { getByText, getByTestId } = renderWithProvider(
       <ActivityDetailsStatus status={status} />,
@@ -20,5 +20,16 @@ describe('ActivityDetailsStatus', () => {
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.STATUS_PILL),
     ).toBeOnTheScreen();
+  });
+
+  it('renders cancelled status without an icon', () => {
+    const { getByText, queryByTestId } = renderWithProvider(
+      <ActivityDetailsStatus status="cancelled" />,
+    );
+
+    expect(getByText(strings('transaction.canceled'))).toBeOnTheScreen();
+    expect(
+      queryByTestId(`${ActivityDetailsSelectorsIDs.STATUS_PILL}-icon`),
+    ).toBeNull();
   });
 });

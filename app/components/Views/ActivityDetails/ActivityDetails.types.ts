@@ -13,6 +13,11 @@ export interface ActivityDetailsParams {
   chainId: CaipChainId;
   /** Transaction identifier — the transaction hash (lowercased on lookup). */
   txIdentifier?: string;
+  /**
+   * Already-normalized row data for domain activity sources that cannot be
+   * safely re-read outside their provider tree (for example Perps).
+   */
+  preloadedItem?: ActivityListItem;
 }
 
 /** Props shared by every per-type details template. */

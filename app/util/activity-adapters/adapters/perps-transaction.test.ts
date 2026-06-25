@@ -2,6 +2,8 @@ import type { CaipChainId } from '@metamask/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import {
   FillType,
+  PerpsOrderTransactionStatus,
+  PerpsOrderTransactionStatusType,
   type PerpsTransaction,
 } from '../../../components/UI/Perps/types/transactionHistory';
 import { mapPerpsTransaction } from './perps-transaction';
@@ -92,6 +94,27 @@ const withdrawalTx: PerpsTransaction = {
     type: 'withdrawal',
   },
 };
+
+const orderTx = (
+  title: string,
+  text: PerpsOrderTransactionStatus,
+  statusType: PerpsOrderTransactionStatusType,
+): PerpsTransaction => ({
+  ...base,
+  id: 'order-1',
+  title,
+  type: 'order',
+  category: 'limit_order',
+  order: {
+    text,
+    statusType,
+    type: 'limit',
+    size: '10.23',
+    limitPrice: '92023',
+    filled:
+      statusType === PerpsOrderTransactionStatusType.Filled ? '100%' : '0%',
+  },
+});
 
 // `token` lives only on some ActivityListItem arms, so narrow via `'token' in`
 // before reading it (the swap/bridge arms have no `token`).
@@ -307,8 +330,77 @@ describe('mapPerpsTransaction', () => {
     });
   });
 
+  describe('orders', () => {
+    it.each([
+      ['Market short', 'marketShort'],
+      ['Market close short', 'marketCloseShort'],
+      ['Stop market close short', 'stopMarketCloseShort'],
+    ] as const)('maps %s filled order → %s', (title, expectedType) => {
+      const transaction = orderTx(
+        title,
+        PerpsOrderTransactionStatus.Filled,
+        PerpsOrderTransactionStatusType.Filled,
+      );
+      const result = mapPerpsTransaction({
+        transaction,
+        chainId: ARBITRUM,
+      });
+
+      expect(result?.type).toBe(expectedType);
+      expect(result?.status).toBe('success');
+      expect(result?.hash).toBe('order-1');
+      expect(tokenOf(result)).toEqual({
+        amount: '10.23',
+        symbol: 'USD',
+        assetId: undefined,
+        direction: 'out',
+      });
+    });
+
+    it('maps canceled historical orders as cancelled Activity rows', () => {
+      const result = mapPerpsTransaction({
+        transaction: orderTx(
+          'Take profit close short',
+          PerpsOrderTransactionStatus.Canceled,
+          PerpsOrderTransactionStatusType.Canceled,
+        ),
+        chainId: ARBITRUM,
+      });
+
+      expect(result?.type).toBe('marketCloseShort');
+      expect(result?.status).toBe('cancelled');
+    });
+
+    it('maps rejected historical orders as failed Activity rows', () => {
+      const result = mapPerpsTransaction({
+        transaction: orderTx(
+          'Market short',
+          PerpsOrderTransactionStatus.Rejected,
+          PerpsOrderTransactionStatusType.Canceled,
+        ),
+        chainId: ARBITRUM,
+      });
+
+      expect(result?.type).toBe('marketShort');
+      expect(result?.status).toBe('failed');
+    });
+
+    it('returns null for pending/open orders', () => {
+      const result = mapPerpsTransaction({
+        transaction: orderTx(
+          'Market short',
+          PerpsOrderTransactionStatus.Open,
+          PerpsOrderTransactionStatusType.Pending,
+        ),
+        chainId: ARBITRUM,
+      });
+
+      expect(result).toBeNull();
+    });
+  });
+
   describe('skipped entries', () => {
-    it("returns null for orders (open orders aren't history)", () => {
+    it("returns null for orders that don't map to a known Activity kind", () => {
       const result = mapPerpsTransaction({
         transaction: {
           ...base,

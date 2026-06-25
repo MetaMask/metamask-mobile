@@ -18,6 +18,8 @@
 import type { CaipChainId } from '@metamask/utils';
 import {
   FillType,
+  PerpsOrderTransactionStatus,
+  PerpsOrderTransactionStatusType,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
   type PerpsTransaction,
 } from '../../../components/UI/Perps/types/transactionHistory';
@@ -123,6 +125,66 @@ function mapTradeKind(
   return null;
 }
 
+function mapOrderStatus(
+  order: NonNullable<PerpsTransaction['order']>,
+): Status | null {
+  if (
+    order.statusType === PerpsOrderTransactionStatusType.Filled ||
+    order.text === PerpsOrderTransactionStatus.Filled ||
+    order.text === PerpsOrderTransactionStatus.Triggered
+  ) {
+    return 'success';
+  }
+
+  if (order.text === PerpsOrderTransactionStatus.Rejected) {
+    return 'failed';
+  }
+
+  if (
+    order.statusType === PerpsOrderTransactionStatusType.Canceled ||
+    order.text === PerpsOrderTransactionStatus.Canceled
+  ) {
+    return 'cancelled';
+  }
+
+  return null;
+}
+
+/**
+ * Classifies a historical `order` entry into an Activity row type.
+ *
+ * Perps order records carry no structured side/direction field — only a display
+ * `title` ("Market short", "Stop market close short", …) produced by the perps
+ * domain. We therefore parse the title, which is fragile (breaks if upstream
+ * copy changes) but is the only signal available on the `order` shape.
+ *
+ * The shared `ActivityListItem` type union only models *short* order kinds
+ * today, so long orders are explicitly excluded (return `null`) rather than
+ * silently mismatched onto a "short" kind.
+ * TODO: add long order kinds to the union and map them here.
+ */
+function mapOrderKind(
+  transaction: PerpsTransaction,
+): ActivityListItem['type'] | null {
+  const title = transaction.title.toLowerCase();
+
+  // Long orders aren't representable yet — drop them explicitly so they don't
+  // fall through and get misclassified as a short order below.
+  if (title.includes('long') || title.includes('buy')) {
+    return null;
+  }
+  if (title.includes('stop')) {
+    return 'stopMarketCloseShort';
+  }
+  if (title.includes('close')) {
+    return 'marketCloseShort';
+  }
+  if (title.includes('short') || title.includes('sell')) {
+    return 'marketShort';
+  }
+  return null;
+}
+
 /**
  * Returns `null` for source entries that don't belong in the activity feed
  * (e.g. open `order` entries, unrecognized trades).
@@ -215,7 +277,31 @@ export function mapPerpsTransaction({
     } as ActivityListItem;
   }
 
-  // Open orders (`type: 'order'`) are intentionally excluded from the
-  // activity feed — they belong to the "open positions" surface, not history.
+  if (transaction.type === 'order') {
+    const order = transaction.order;
+    if (!order) {
+      return null;
+    }
+
+    const status = mapOrderStatus(order);
+    const kind = mapOrderKind(transaction);
+    if (!status || !kind) {
+      return null;
+    }
+
+    return {
+      type: kind,
+      chainId,
+      status,
+      timestamp,
+      hash: id,
+      raw: { type: 'perpsTransaction', data: transaction },
+      data: {
+        token: toToken(Number(order.size), 'out', quoteAsset),
+        sourceToken: { symbol: transaction.asset, direction: 'out' },
+      },
+    } as ActivityListItem;
+  }
+
   return null;
 }

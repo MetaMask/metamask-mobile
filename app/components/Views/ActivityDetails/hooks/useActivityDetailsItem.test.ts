@@ -117,4 +117,72 @@ describe('useActivityDetailsItem', () => {
     );
     expect(result.current).toBe(base);
   });
+
+  it('resolves a preloaded domain item by hash without reading provider-backed sources', () => {
+    const preloaded = makeItem({
+      type: 'perpsOpenLong',
+      chainId: 'eip155:42161',
+      hash: 'perps-fill-1',
+      raw: {
+        type: 'perpsTransaction',
+        data: {
+          id: 'fill-1',
+          type: 'trade',
+          category: 'position_open',
+          title: 'Opened long',
+          subtitle: '0.0001 BTC',
+          timestamp: 1,
+          asset: 'BTC',
+        },
+      },
+    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    setSources({});
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('perps-fill-1', 'eip155:42161', preloaded),
+    );
+
+    expect(result.current).toBe(preloaded);
+  });
+
+  it('prefers a matching preloaded domain item over a local hash collision', () => {
+    const local = makeItem({
+      type: 'send',
+      chainId: 'eip155:42161',
+      hash: '0xshared',
+    });
+    const preloaded = makeItem({
+      type: 'perpsAddFunds',
+      chainId: 'eip155:42161',
+      hash: '0xshared',
+      raw: {
+        type: 'perpsTransaction',
+        data: {
+          id: 'wallet-deposit-1',
+          type: 'deposit',
+          category: 'deposit',
+          title: 'Account funded',
+          subtitle: 'Completed',
+          timestamp: 1,
+          asset: 'USDC',
+          depositWithdrawal: {
+            amount: '+$1.00',
+            amountNumber: 1,
+            isPositive: true,
+            asset: 'USDC',
+            txHash: '0xshared',
+            status: 'completed',
+            type: 'deposit',
+          },
+        },
+      },
+    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    setSources({ local: [local] });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xshared', 'eip155:42161', preloaded),
+    );
+
+    expect(result.current).toBe(preloaded);
+  });
 });

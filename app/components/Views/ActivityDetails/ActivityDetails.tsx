@@ -28,9 +28,10 @@ import { TemplateLoader } from './templates/TemplateLoader';
 const ActivityDetails = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { chainId, txIdentifier } = useParams<ActivityDetailsParams>();
+  const { chainId, txIdentifier, preloadedItem } =
+    useParams<ActivityDetailsParams>();
 
-  const item = useActivityDetailsItem(txIdentifier, chainId);
+  const item = useActivityDetailsItem(txIdentifier, chainId, preloadedItem);
   const title = item
     ? resolveActivityListItemTitle(item)
     : strings('activity_details.not_found');

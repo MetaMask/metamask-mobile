@@ -252,6 +252,18 @@ describe('polymarket utils', () => {
     expect(parsedActivity[0].id).not.toBe(parsedActivity[1].id);
   });
 
+  it('preserves market slugs from activity rows when present', () => {
+    const [activity] = parsePolymarketActivity([
+      createRawActivity({
+        slug: 'will-it-rain-tomorrow',
+        eventSlug: 'weather-markets',
+      }),
+    ]);
+
+    expect(activity.slug).toBe('will-it-rain-tomorrow');
+    expect(activity.eventSlug).toBe('weather-markets');
+  });
+
   it('builds outcome groups only from supported and enabled sports market types', () => {
     const event = createNbaGameEvent([
       createSportsMarket({ id: 'moneyline', sportsMarketType: 'moneyline' }),

@@ -762,18 +762,20 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
         // Redesigned details (flag-gated): route resolvable EVM / non-EVM rows
         // to the new ActivityDetails screen, replacing the legacy detail sheets.
-        // Specialized flows (perps, predict, bridge) keep their dedicated
+        // Specialized flows (bridge) keep their dedicated
         // screens until they get redesigned templates — ActivityDetails only
-        // resolves local/API/non-EVM items, so it can't render those yet.
+        // resolves local/API/non-EVM/domain items, so it can't render those yet.
         const hasDedicatedScreen =
-          raw.type === 'perpsTransaction' ||
-          raw.type === 'predictActivity' ||
-          (raw.type === 'localTransaction' &&
-            raw.data.primaryTransaction?.type === TransactionType.bridge);
+          raw.type === 'localTransaction' &&
+          raw.data.primaryTransaction?.type === TransactionType.bridge;
         if (isTransactionsRedesignEnabled && item.hash && !hasDedicatedScreen) {
           navigation.navigate(Routes.ACTIVITY_DETAILS, {
             chainId: item.chainId,
             txIdentifier: item.hash,
+            ...(raw.type === 'perpsTransaction' ||
+            raw.type === 'predictActivity'
+              ? { preloadedItem: item }
+              : {}),
           });
           return;
         }

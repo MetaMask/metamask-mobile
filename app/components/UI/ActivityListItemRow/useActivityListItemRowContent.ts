@@ -257,7 +257,7 @@ function statusTitle(
   if (item.status === 'failed')
     return titles.failed ?? strings('transaction.failed');
   if (item.status === 'cancelled') {
-    return titles.cancelled ?? strings('transaction.cancelled');
+    return titles.cancelled ?? strings('transaction.canceled');
   }
   return titles.success;
 }
@@ -313,7 +313,7 @@ function withDomainStatusSuffix(
     return `${title}—${strings('transaction.failed')}`;
   }
   if (status === 'cancelled') {
-    return `${title}—${strings('transaction.cancelled')}`;
+    return `${title}—${strings('transaction.canceled')}`;
   }
   return title;
 }

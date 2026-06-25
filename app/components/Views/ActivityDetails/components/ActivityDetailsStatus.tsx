@@ -17,8 +17,8 @@ import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 interface StatusDisplay {
   label: string;
   textColor: TextColor;
-  iconColor: IconColor;
-  iconName: IconName;
+  iconColor?: IconColor;
+  iconName?: IconName;
 }
 
 function getStatusDisplay(status: Status): StatusDisplay {
@@ -39,10 +39,8 @@ function getStatusDisplay(status: Status): StatusDisplay {
       };
     case 'cancelled':
       return {
-        label: strings('transaction.cancelled'),
+        label: strings('transaction.canceled'),
         textColor: TextColor.ErrorDefault,
-        iconColor: IconColor.ErrorDefault,
-        iconName: IconName.Close,
       };
     case 'pending':
     default:
@@ -64,7 +62,14 @@ export function ActivityDetailsStatus({ status }: { status: Status }) {
       twClassName="flex-row items-center gap-1"
       testID={ActivityDetailsSelectorsIDs.STATUS_PILL}
     >
-      <Icon name={iconName} size={IconSize.Sm} color={iconColor} />
+      {iconName && iconColor ? (
+        <Icon
+          name={iconName}
+          size={IconSize.Sm}
+          color={iconColor}
+          testID={`${ActivityDetailsSelectorsIDs.STATUS_PILL}-icon`}
+        />
+      ) : null}
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
