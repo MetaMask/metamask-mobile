@@ -61,6 +61,7 @@ const createBenefit = (
   actionDate: '2026-08-01T00:00:00Z',
   chain: 'ethereum',
   type: { id: 9, name: 'Partner' },
+  companyName: 'Pudgy Penguins',
   ...overrides,
 });
 
