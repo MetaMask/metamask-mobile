@@ -590,6 +590,7 @@ export const PerpsOrderViewSelectorsIDs = {
   TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
   STOP_LOSS_BUTTON: 'perps-order-view-stop-loss-button',
   PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
+  SCROLL_VIEW: 'perps-order-view-scroll-view',
   KEYPAD: 'perps-order-view-keypad',
   // Keypad action buttons
   KEYPAD_25_PCT: 'perps-order-view-keypad-25pct',
