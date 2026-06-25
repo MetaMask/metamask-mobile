@@ -445,11 +445,6 @@ export function useHwBatchSignTracker({
 
           try {
             const latestValues = latestValuesRef.current;
-            Logger.log('[HW-SendBundle] dispatching signing', {
-              requestId,
-              pendingSignTxIds: [...trackerState.pendingSignTxIds],
-              fromAddress: latestValues.fromAddress ?? targetFrom,
-            });
             const result = await executeHardwareWalletOperation({
               address: latestValues.fromAddress ?? targetFrom,
               operationType: HARDWARE_WALLET_OPERATION_TRANSACTION,

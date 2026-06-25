@@ -5,7 +5,6 @@ import { useHardwareWallet } from '../../../../core/HardwareWallet';
 import { isUserCancellation } from '../../../../core/HardwareWallet/errors/helpers';
 import { parseErrorByType } from '../../../../core/HardwareWallet/errors/parser';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
-import Logger from '../../../../util/Logger';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
@@ -248,17 +247,6 @@ export function useHwConnectionMonitoring({
     retryInProgressRef,
     dispatch,
   ]);
-
-  // Clear any pending debounced disconnect fire on unmount.
-  useEffect(
-    () => () => {
-      if (disconnectDebounceRef.current) {
-        clearTimeout(disconnectDebounceRef.current);
-        disconnectDebounceRef.current = null;
-      }
-    },
-    [],
-  );
 
   // Clear any pending debounced disconnect fire on unmount.
   useEffect(
