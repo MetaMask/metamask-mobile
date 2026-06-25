@@ -1,4 +1,3 @@
-import { showAlert } from '../../actions/alert';
 import ReduxService from '../../core/redux/ReduxService';
 import Logger from '../Logger';
 import {
@@ -59,12 +58,12 @@ describe('diskSpaceError', () => {
 
       expect(Logger.error).toHaveBeenCalledTimes(1);
       expect(ReduxService.store.dispatch).toHaveBeenCalledWith(
-        showAlert(
-          expect.objectContaining({
-            content: 'storage-full-alert',
-          }),
-        ),
+        expect.objectContaining({
+          type: 'SHOW_ALERT',
+          content: 'storage-full-alert',
+        }),
       );
+      expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(1);
     });
 
     it('logs non-disk errors normally on each call', () => {
