@@ -9907,7 +9907,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/seedless-onboarding-controller@npm:^10.0.1":
+"@metamask/seedless-onboarding-controller@npm:^10.0.2":
   version: 10.0.2
   resolution: "@metamask/seedless-onboarding-controller@npm:10.0.2"
   dependencies:
@@ -35528,7 +35528,7 @@ __metadata:
     "@metamask/sample-controllers": "npm:^3.0.0"
     "@metamask/scure-bip39": "npm:^2.1.0"
     "@metamask/sdk-communication-layer": "npm:0.33.1"
-    "@metamask/seedless-onboarding-controller": "npm:^10.0.1"
+    "@metamask/seedless-onboarding-controller": "npm:^10.0.2"
     "@metamask/selected-network-controller": "npm:^26.1.4"
     "@metamask/signature-controller": "npm:^39.2.0"
     "@metamask/skills": "npm:^0.1.0"
