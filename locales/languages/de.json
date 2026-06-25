@@ -1094,7 +1094,6 @@
     "trader_position": {
       "market_cap": "Marktkapitalisierung",
       "position": "Position",
-      "trades": "Trades",
       "buy": "Kaufen",
       "bought": "{{name}} gekauft",
       "sold": "{{name}} verkauft",

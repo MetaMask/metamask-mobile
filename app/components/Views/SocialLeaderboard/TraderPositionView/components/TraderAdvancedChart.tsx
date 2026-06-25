@@ -224,6 +224,11 @@ export interface TraderAdvancedChartProps {
   /** Fired when the user taps a trade circle on the chart (the marker's trade id). */
   onTradeMarkerPress?: (id: string) => void;
   chartHeight?: number;
+  /**
+   * When true, the chart surface stops capturing touches so drags fall through to
+   * the scrolling list behind a pinned-overlay chart (Trader Position layout).
+   */
+  scrollPassthrough?: boolean;
 }
 
 /**
@@ -248,6 +253,7 @@ const TraderAdvancedChart = ({
   onScrubPercentChange,
   onTradeMarkerPress,
   chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
+  scrollPassthrough = false,
 }: TraderAdvancedChartProps) => {
   const vsCurrency = CHART_VS_CURRENCY;
   const chartRef = useRef<AdvancedChartRef>(null);
@@ -483,6 +489,7 @@ const TraderAdvancedChart = ({
         onChartIndexChange={onChartIndexChange}
         trades={trades}
         chartHeight={chartHeight}
+        scrollPassthrough={scrollPassthrough}
       />
     );
   }
@@ -491,6 +498,7 @@ const TraderAdvancedChart = ({
     <View style={{ height: chartHeight }} testID="trader-advanced-chart">
       <AdvancedChart
         ref={chartRef}
+        scrollPassthrough={scrollPassthrough}
         ohlcvData={ohlcvData}
         ohlcvSeriesKey={ohlcvSeriesKey}
         height={chartHeight}

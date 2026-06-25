@@ -1094,7 +1094,6 @@
     "trader_position": {
       "market_cap": "Κεφαλαιοποίηση αγοράς",
       "position": "Θέση",
-      "trades": "Συναλλαγές",
       "buy": "Αγορά",
       "bought": "Ο/Η {{name}} αγόρασε",
       "sold": "Ο/Η {{name}} πούλησε",

@@ -12,7 +12,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { Trade } from '@metamask/social-controllers';
 import { strings } from '../../../../../../locales/i18n';
-import { formatUsd, formatTradeDate } from '../../utils/formatters';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
+import { formatUsd, formatTradeTime } from '../../utils/formatters';
 import PerpBadges from '../../components/PerpBadges';
 import { getPerpTradeDirection, isPerpTrade } from '../../utils/perp';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -72,7 +73,14 @@ const TradeRow: React.FC<TradeRowProps> = ({
 
   return (
     <Pressable
-      onPress={onPress ? () => onPress(trade) : undefined}
+      onPress={
+        onPress
+          ? () => {
+              playImpact(ImpactMoment.ChartCrosshair);
+              onPress(trade);
+            }
+          : undefined
+      }
       disabled={!onPress}
       accessibilityRole={onPress ? 'button' : undefined}
       testID={`trade-row-${trade.transactionHash}`}
@@ -132,7 +140,7 @@ const TradeRow: React.FC<TradeRowProps> = ({
               color={TextColor.TextAlternative}
               numberOfLines={1}
             >
-              {formatTradeDate(trade.timestamp)}
+              {formatTradeTime(trade.timestamp)}
             </Text>
           </Box>
         </Box>

@@ -1094,7 +1094,6 @@
     "trader_position": {
       "market_cap": "Vốn hóa thị trường",
       "position": "Vị thế",
-      "trades": "Giao dịch",
       "buy": "Mua",
       "bought": "{{name}} đã mua",
       "sold": "{{name}} đã bán",

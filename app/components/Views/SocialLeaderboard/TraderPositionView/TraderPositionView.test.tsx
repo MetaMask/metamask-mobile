@@ -273,6 +273,16 @@ describe('TraderPositionView', () => {
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
   });
 
+  it('does not render the floating sticky day header at rest', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    // At rest the natural in-list day headers carry the labels; the floating
+    // sticky only appears once trades scroll behind the pinned chart's edge.
+    expect(
+      screen.queryByTestId(TraderPositionViewSelectorsIDs.STICKY_DAY_HEADER),
+    ).toBeNull();
+  });
+
   it('shows empty state when trades array is empty', () => {
     mockRouteParams.position = { ...makeDefaultPosition(), trades: [] };
 
@@ -732,7 +742,7 @@ describe('TraderPositionView', () => {
 
     expect(screen.getByText('Closed position')).toBeOnTheScreen();
     expect(screen.getByText('+$300.00')).toBeOnTheScreen();
-    expect(screen.getByText('+25%')).toBeOnTheScreen();
+    expect(screen.getByText('+25.00%')).toBeOnTheScreen();
   });
 
   it('displays market cap from the fallback API when cache is empty', async () => {

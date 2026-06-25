@@ -4,7 +4,16 @@ import { Image } from 'expo-image';
 import { AvatarAccount } from '@metamask/design-system-react-native';
 import type { Trade } from '@metamask/social-controllers';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
+import { ImpactMoment, playImpact } from '../../../../../util/haptics';
 import TradeRow from './TradeRow';
+import { formatTradeTime } from '../../utils/formatters';
+
+jest.mock('../../../../../util/haptics', () => ({
+  playImpact: jest.fn(),
+  ImpactMoment: { ChartCrosshair: 'chartCrosshair' },
+}));
+
+const mockPlayImpact = jest.mocked(playImpact);
 
 const baseTrade: Trade = {
   intent: 'enter',
@@ -19,11 +28,23 @@ const REAL_AVATAR_URL = 'https://example.com/avatar.png';
 const TRADER_ADDRESS = '0x0000000000000000000000000000000000000001';
 
 describe('TradeRow', () => {
+  beforeEach(() => {
+    mockPlayImpact.mockClear();
+  });
+
   it('renders the "Bought" label for an enter trade (no trader name)', () => {
     renderWithProvider(<TradeRow trade={baseTrade} />);
 
     expect(screen.getByText('Bought')).toBeOnTheScreen();
     expect(screen.queryByText(/nodestack\.eth/)).toBeNull();
+  });
+
+  it('renders a time-only timestamp without the date', () => {
+    renderWithProvider(<TradeRow trade={baseTrade} />);
+
+    expect(
+      screen.getByText(formatTradeTime(baseTrade.timestamp)),
+    ).toBeOnTheScreen();
   });
 
   it('renders the "Sold" label for an exit trade (no trader name)', () => {
@@ -63,6 +84,7 @@ describe('TradeRow', () => {
       screen.getByTestId(`trade-row-${baseTrade.transactionHash}`),
     );
 
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.ChartCrosshair);
     expect(onPress).toHaveBeenCalledWith(baseTrade);
   });
 
@@ -75,5 +97,6 @@ describe('TradeRow', () => {
         screen.getByTestId(`trade-row-${baseTrade.transactionHash}`),
       ),
     ).not.toThrow();
+    expect(mockPlayImpact).not.toHaveBeenCalled();
   });
 });

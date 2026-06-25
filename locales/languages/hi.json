@@ -1094,7 +1094,6 @@
     "trader_position": {
       "market_cap": "मार्केट कैप",
       "position": "पोज़िशन",
-      "trades": "ट्रेड्स",
       "buy": "खरीदें",
       "bought": "{{name}} ने खरीदा",
       "sold": "{{name}} ने बेचा",

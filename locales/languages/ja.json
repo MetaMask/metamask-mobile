@@ -1094,7 +1094,6 @@
     "trader_position": {
       "market_cap": "時価総額",
       "position": "ポジション",
-      "trades": "取引",
       "buy": "購入",
       "bought": "{{name}}さんが購入しました",
       "sold": "{{name}}さんが売却しました",

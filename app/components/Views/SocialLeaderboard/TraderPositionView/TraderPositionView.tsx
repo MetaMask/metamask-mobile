@@ -6,7 +6,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { RefreshControl, View } from 'react-native';
+import { type LayoutChangeEvent, RefreshControl, View } from 'react-native';
+import Animated, {
+  runOnJS,
+  useAnimatedReaction,
+  useAnimatedStyle,
+  useSharedValue,
+} from 'react-native-reanimated';
 import {
   useNavigation,
   useRoute,
@@ -22,6 +28,11 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+  useHeaderStandardAnimated,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -35,11 +46,15 @@ import { TraderPositionViewSelectorsIDs } from './TraderPositionView.testIds';
 import { useTheme } from '../../../../util/theme';
 import TraderPositionQuickBuy from './components/QuickBuy';
 import TraderPositionHeader from './components/TraderPositionHeader';
+import TraderPositionAnimatedHeader from './components/TraderPositionAnimatedHeader';
 import TraderTokenInfoRow from './components/TraderTokenInfoRow';
-import TraderPositionChartSection from './components/TraderPositionChartSection';
+import TraderPositionChartSection, {
+  SOCIAL_POSITION_CHART_HEIGHT,
+} from './components/TraderPositionChartSection';
 import TraderTimePeriodSelector from './components/TraderTimePeriodSelector';
 import TraderPositionPnLCard from './components/TraderPositionPnLCard';
 import TraderTradesSection, {
+  type TraderTradesSectionGeometry,
   type TraderTradesSectionHandle,
 } from './components/TraderTradesSection';
 import TraderPositionSkeleton from './components/TraderPositionSkeleton';
@@ -69,6 +84,11 @@ import {
   getTradeFocusSpanMs,
   type TradeFocusRequest,
 } from './components/TraderAdvancedChart';
+
+// Estimate (chart + vertical margins + time selector) so the spacer and the
+// sticky-header math are close before onLayout measures the real height — avoids
+// a first-frame jump and a premature/late sticky toggle.
+const INITIAL_CHART_BLOCK_HEIGHT = SOCIAL_POSITION_CHART_HEIGHT + 24 + 58;
 
 const TraderPositionView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
@@ -422,20 +442,192 @@ const TraderPositionView = () => {
   const hasFailed =
     !resolvedPosition && !isPositionLoading && !isProfileLoading;
 
+  const {
+    scrollY: scrollYShared,
+    onScroll,
+    setTitleSectionHeight,
+    titleSectionHeightSv,
+  } = useHeaderStandardAnimated();
+
+  // Scroll-linked pinned-chart layout:
+  // - The token info row lives in the trades list header and scrolls up behind
+  //   the nav; its measured height becomes `titleSectionHeight`, the threshold
+  //   for the compact header AND for pinning the chart.
+  // - The chart + time-period selector render in an absolutely-positioned overlay
+  //   that translates up so it stays glued below the token row, then pins under
+  //   the nav once the token row has scrolled off. A spacer in the list header
+  //   reserves its height so the PnL card / trades start below the chart at rest.
+  const [chartBlockHeight, setChartBlockHeight] = useState(
+    INITIAL_CHART_BLOCK_HEIGHT,
+  );
+  const [isPinnedChartElevated, setIsPinnedChartElevated] = useState(false);
+  // Floating sticky day header, driven by scroll OFFSET (not viewability):
+  // `topDayIndex` is the index of the day section currently pinned behind the
+  // chart's bottom edge (-1 = hidden). It is resolved on the UI thread from the
+  // measured section geometry and only crosses back to JS when the index
+  // actually changes — so the label tracks the scroll smoothly and never
+  // burst-lags/snaps across day boundaries on fast scroll.
+  const [topDayIndex, setTopDayIndex] = useState(-1);
+  const [dayLabels, setDayLabels] = useState<string[]>([]);
+
+  // UI-thread mirrors of the measured heights + section offsets so the sticky
+  // reaction can read them off the worklet (React state isn't readable from a
+  // worklet). `sectionOffsetsSv` holds each section's start offset relative to
+  // the first section (see computeSectionStartOffsets).
+  const chartBlockHeightSv = useSharedValue(INITIAL_CHART_BLOCK_HEIGHT);
+  const listHeaderHeightSv = useSharedValue(0);
+  const sectionOffsetsSv = useSharedValue<number[]>([]);
+
+  // Geometry arrives only when the sections / measured heights change (never per
+  // frame): mirror the offsets into the shared value for the worklet and keep
+  // the labels in JS to map the resolved index back to its day label.
+  const handleSectionGeometryChange = useCallback(
+    (geometry: TraderTradesSectionGeometry) => {
+      setDayLabels(geometry.dayLabels);
+      sectionOffsetsSv.value = geometry.sectionOffsets;
+    },
+    [sectionOffsetsSv],
+  );
+
+  // Label shown by the floating sticky (and hidden in-list to avoid a duplicate).
+  // Guarded with `?? null` so a stale index from a previous section set (e.g.
+  // mid pull-to-refresh) never indexes past the new labels.
+  const stickyTopDayLabel =
+    topDayIndex >= 0 ? (dayLabels[topDayIndex] ?? null) : null;
+
+  const handleTitleSectionLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      // Ceil to avoid a sub-pixel under-measure that would fire the compact
+      // header / pin the chart a hair before the token row is fully gone.
+      setTitleSectionHeight(Math.ceil(event.nativeEvent.layout.height));
+    },
+    [setTitleSectionHeight],
+  );
+
+  const handleChartBlockLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const height = Math.ceil(event.nativeEvent.layout.height);
+      if (height > 0) {
+        setChartBlockHeight(height);
+        chartBlockHeightSv.value = height;
+      }
+    },
+    [chartBlockHeightSv],
+  );
+
+  // Total list-header height (token row + chart spacer + PnL card). The first
+  // in-list section header sits directly below this, so it's the basis for the
+  // sticky-header handoff threshold.
+  const handleListHeaderLayout = useCallback(
+    (event: LayoutChangeEvent) => {
+      const height = Math.ceil(event.nativeEvent.layout.height);
+      if (height > 0) {
+        listHeaderHeightSv.value = height;
+      }
+    },
+    [listHeaderHeightSv],
+  );
+
+  // Visual offset that also follows pull-to-refresh overscroll: at scrollY < 0
+  // the chart moves DOWN with the bounce instead of freezing. Math is inlined
+  // here (not imported) because Reanimated does not auto-bundle sibling worklet
+  // helpers called from inside another worklet.
+  const pinnedChartStyle = useAnimatedStyle(() => {
+    const titleHeight = titleSectionHeightSv.value;
+    const scroll = scrollYShared.value;
+    const clamped = scroll < titleHeight ? scroll : titleHeight;
+    return { transform: [{ translateY: titleHeight - clamped }] };
+  });
+
+  useAnimatedReaction(
+    () => {
+      const titleHeight = titleSectionHeightSv.value;
+      return titleHeight > 0 && scrollYShared.value >= titleHeight;
+    },
+    (elevated, previous) => {
+      if (elevated !== previous) {
+        runOnJS(setIsPinnedChartElevated)(elevated);
+      }
+    },
+  );
+
+  // Resolve the floating sticky's day index from scroll offset on the UI thread.
+  // The probe is the chart's bottom edge in content space, relative to the first
+  // section (`scrollY + chartHeight - listHeaderHeight`): while negative the
+  // first in-list header is still visible below the chart (sticky hidden, index
+  // -1); otherwise the active section is the last one whose start offset is at or
+  // before the probe. Only crossing to JS on an index CHANGE keeps this off the
+  // per-frame React path (the screen previously regressed FPS from per-frame JS
+  // state). Math is inlined (not imported) because Reanimated does not
+  // auto-bundle sibling worklet helpers called from inside another worklet.
+  useAnimatedReaction(
+    () => {
+      const headerHeight = listHeaderHeightSv.value;
+      const chartHeight = chartBlockHeightSv.value;
+      const offsets = sectionOffsetsSv.value;
+      if (headerHeight <= 0 || chartHeight <= 0) {
+        return -1;
+      }
+      const probe = scrollYShared.value + chartHeight - headerHeight;
+      if (probe < 0) {
+        return -1;
+      }
+      let index = -1;
+      for (let i = 0; i < offsets.length; i++) {
+        if (offsets[i] <= probe) {
+          index = i;
+        } else {
+          break;
+        }
+      }
+      return index;
+    },
+    (index, previous) => {
+      if (index !== previous) {
+        runOnJS(setTopDayIndex)(index);
+      }
+    },
+  );
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
       testID={TraderPositionViewSelectorsIDs.CONTAINER}
     >
-      <TraderPositionHeader
-        traderName={traderName}
-        traderImageUrl={traderImageUrl}
-        traderAddress={traderAddress}
-        onBack={handleBack}
-        onTraderPress={handleTraderPress}
-        backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
-        traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
-      />
+      {isInitialLoading ? (
+        <TraderPositionHeader
+          traderName={traderName}
+          traderImageUrl={traderImageUrl}
+          traderAddress={traderAddress}
+          onBack={handleBack}
+          onTraderPress={handleTraderPress}
+          backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+          traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
+        />
+      ) : hasFailed ? (
+        <TraderPositionHeader
+          traderName={traderName}
+          traderImageUrl={traderImageUrl}
+          traderAddress={traderAddress}
+          onBack={handleBack}
+          onTraderPress={handleTraderPress}
+          backButtonTestID={TraderPositionViewSelectorsIDs.BACK_BUTTON}
+          traderNameTestID={TraderPositionViewSelectorsIDs.TRADER_NAME_LINK}
+        />
+      ) : (
+        <TraderPositionAnimatedHeader
+          scrollY={scrollYShared}
+          titleSectionHeight={titleSectionHeightSv}
+          traderName={traderName}
+          traderImageUrl={traderImageUrl}
+          traderAddress={traderAddress}
+          symbol={symbol}
+          pricePercentChange={displayPercentChange}
+          activeTimePeriodLabel={activeTimePeriod}
+          onBack={handleBack}
+          onTraderPress={handleTraderPress}
+        />
+      )}
 
       {isInitialLoading ? (
         <TraderPositionSkeleton />
@@ -443,73 +635,143 @@ const TraderPositionView = () => {
         <TraderPositionFallback traderId={traderId} traderName={traderName} />
       ) : (
         <>
-          {/* Fixed top block — token info, chart, period selector and the
-              position PnL card stay pinned; only the trades list below scrolls.
-              `shrink-0` keeps this block at its natural height so the sibling
-              flex-1 ScrollView only consumes the space below it. */}
-          <View style={tw.style('shrink-0')}>
-            <TraderTokenInfoRow
-              symbol={symbol}
-              position={resolvedPosition}
-              marketCap={marketCap}
-              currentPrice={currentPrice}
-              pricePercentChange={displayPercentChange}
-              activeTimePeriodLabel={activeTimePeriod}
-              onCopyTokenAddress={handleCopyTokenAddress}
-              copyTokenAddressTestID={
-                TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
-              }
-            />
-
-            <TraderPositionChartSection
-              historicalPrices={historicalPrices}
-              priceDiff={priceDiff}
-              isPricesLoading={isPricesLoading}
-              onChartIndexChange={handleChartIndexChange}
+          {/* Scroll-linked pinned-chart layout. The trades list owns the page
+              scroll: its header carries the token info row (scrolls behind the
+              nav), a spacer reserving the pinned chart's height, and the PnL
+              card. The chart + time selector live in an absolutely-positioned
+              overlay that translates up and pins below the nav. */}
+          <View style={tw.style('flex-1')}>
+            <TraderTradesSection
+              ref={tradesListRef}
               trades={allTrades}
-              assetId={chartAssetId}
-              isPerp={isPerp}
-              activeTimePeriod={activeTimePeriod}
-              onScrubPercentChange={setScrubPercent}
-              focusRequest={focusRequest}
-              onRequestTimePeriod={handleRequestFocusTimePeriod}
-              onTradeMarkerPress={
-                chartAssetId || isPerp ? handleMarkerPress : undefined
+              traderImageUrl={traderImageUrl}
+              traderAddress={traderAddress}
+              onTradePress={
+                chartAssetId || isPerp ? handleTradePress : undefined
+              }
+              emphasizedTradeId={emphasizedTradeId}
+              onScroll={onScroll}
+              onSectionGeometryChange={handleSectionGeometryChange}
+              stickyDayLabel={stickyTopDayLabel}
+              listHeaderComponent={
+                // Measured as a whole (token row + spacer + PnL card) to derive
+                // the sticky-header handoff threshold.
+                <View onLayout={handleListHeaderLayout}>
+                  <View
+                    testID={TraderPositionViewSelectorsIDs.TOKEN_INFO_ROW}
+                    onLayout={handleTitleSectionLayout}
+                  >
+                    <TraderTokenInfoRow
+                      symbol={symbol}
+                      position={resolvedPosition}
+                      marketCap={marketCap}
+                      currentPrice={currentPrice}
+                      pricePercentChange={displayPercentChange}
+                      activeTimePeriodLabel={activeTimePeriod}
+                      onCopyTokenAddress={handleCopyTokenAddress}
+                      copyTokenAddressTestID={
+                        TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON
+                      }
+                    />
+                  </View>
+                  {/* Reserves the pinned chart overlay's footprint so the PnL
+                      card and trades begin below the chart at rest. */}
+                  <View style={{ height: chartBlockHeight }} />
+                  <TraderPositionPnLCard
+                    isClosed={isClosed}
+                    positionValue={positionValue}
+                    pnlValue={pnlValue}
+                    pnlPercent={pnlPercent}
+                    isPnlPositive={isPnlPositive}
+                  />
+                </View>
+              }
+              refreshControl={
+                <RefreshControl
+                  refreshing={isRefreshing}
+                  onRefresh={handleRefresh}
+                  testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
+                />
               }
             />
 
-            <TraderTimePeriodSelector
-              timePeriods={timePeriods}
-              activeTimePeriod={activeTimePeriod}
-              onSelectPeriod={setActiveTimePeriod}
-            />
+            <Animated.View
+              testID={TraderPositionViewSelectorsIDs.PINNED_CHART_OVERLAY}
+              pointerEvents="box-none"
+              style={[
+                tw.style(
+                  'absolute inset-x-0 top-0',
+                  // Raise above the scrolling list only once the chart is pinned,
+                  // so the token info row stays fully visible at rest.
+                  isPinnedChartElevated ? 'z-10' : 'z-0',
+                ),
+                pinnedChartStyle,
+              ]}
+            >
+              {/* The chart block stays fully interactive whether at rest or
+                  pinned (crosshair scrubbing + marker taps). The page still
+                  scrolls because the trades list below the chart is a normal
+                  touchable region — the user scrolls there, not over the chart,
+                  exactly like the fixed-header reference layout. `box-none` keeps
+                  the wrapper itself from being a touch target so the bg-default
+                  fill never blocks the list peeking out beside/below it. */}
+              <View
+                onLayout={handleChartBlockLayout}
+                pointerEvents="box-none"
+                style={tw.style('bg-default')}
+              >
+                <TraderPositionChartSection
+                  historicalPrices={historicalPrices}
+                  priceDiff={priceDiff}
+                  isPricesLoading={isPricesLoading}
+                  onChartIndexChange={handleChartIndexChange}
+                  trades={allTrades}
+                  assetId={chartAssetId}
+                  isPerp={isPerp}
+                  activeTimePeriod={activeTimePeriod}
+                  onScrubPercentChange={setScrubPercent}
+                  focusRequest={focusRequest}
+                  onRequestTimePeriod={handleRequestFocusTimePeriod}
+                  onTradeMarkerPress={
+                    chartAssetId || isPerp ? handleMarkerPress : undefined
+                  }
+                />
+                <TraderTimePeriodSelector
+                  timePeriods={timePeriods}
+                  activeTimePeriod={activeTimePeriod}
+                  onSelectPeriod={setActiveTimePeriod}
+                />
+              </View>
 
-            <TraderPositionPnLCard
-              isClosed={isClosed}
-              positionValue={positionValue}
-              pnlValue={pnlValue}
-              pnlPercent={pnlPercent}
-              isPnlPositive={isPnlPositive}
-            />
+              {/* Custom sticky day header: native sticky headers would be hidden
+                  behind the pinned chart, so once trades scroll behind the
+                  chart's bottom edge we render the top-most visible day below it.
+                  Driven by the offset-resolved `topDayIndex` (not
+                  `isPinnedChartElevated`) so it doesn't appear while the PnL card
+                  / first in-list header are still visible below the chart — which
+                  would duplicate the day label. `pointerEvents="none"` keeps the
+                  trades scrollable under the label. */}
+              {stickyTopDayLabel ? (
+                <View pointerEvents="none">
+                  <Box
+                    twClassName="bg-default px-4 pt-3"
+                    testID={TraderPositionViewSelectorsIDs.STICKY_DAY_HEADER}
+                  >
+                    <Box twClassName="self-start pb-2">
+                      <Text
+                        variant={TextVariant.BodyMd}
+                        fontWeight={FontWeight.Bold}
+                        color={TextColor.TextDefault}
+                      >
+                        {stickyTopDayLabel}
+                      </Text>
+                    </Box>
+                    <Box twClassName="h-px bg-muted" />
+                  </Box>
+                </View>
+              ) : null}
+            </Animated.View>
           </View>
-
-          {/* Scrollable region — the trades list is the only part that scrolls.
-              It owns its own scroll (SectionList) so its day header can stick. */}
-          <TraderTradesSection
-            ref={tradesListRef}
-            trades={allTrades}
-            traderImageUrl={traderImageUrl}
-            traderAddress={traderAddress}
-            onTradePress={chartAssetId || isPerp ? handleTradePress : undefined}
-            emphasizedTradeId={emphasizedTradeId}
-            refreshControl={
-              <RefreshControl
-                refreshing={isRefreshing}
-                onRefresh={handleRefresh}
-                testID={TraderPositionViewSelectorsIDs.REFRESH_CONTROL}
-              />
-            }
-          />
 
           {isPerp && resolvedPosition ? (
             <PerpsTradeButton
