@@ -43,7 +43,10 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
+import {
+  selectSocialLeaderboardEnabled,
+  selectSocialLeaderboardPerpsEnabled,
+} from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
 import { useTheme } from '../../../../util/theme';
@@ -69,22 +72,35 @@ import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
 type TabFilter = 'all' | 'tokens' | 'perps';
 
+interface TabFilterItem {
+  key: TabFilter;
+  label: string;
+}
+
 const LEADERBOARD_LIMIT = 50;
 
-const getTabFilters = (): { key: TabFilter; label: string }[] => [
-  {
-    key: 'all',
+const getTabFilters = (isPerpsEnabled: boolean): TabFilterItem[] => {
+  const allFilter = {
+    key: 'all' as const,
     label: strings('social_leaderboard.top_traders_view.chain_filter.all'),
-  },
-  {
-    key: 'tokens',
-    label: strings('social_leaderboard.top_traders_view.chain_filter.tokens'),
-  },
-  {
-    key: 'perps',
-    label: strings('social_leaderboard.top_traders_view.chain_filter.perps'),
-  },
-];
+  };
+
+  if (!isPerpsEnabled) {
+    return [allFilter];
+  }
+
+  return [
+    allFilter,
+    {
+      key: 'tokens',
+      label: strings('social_leaderboard.top_traders_view.chain_filter.tokens'),
+    },
+    {
+      key: 'perps',
+      label: strings('social_leaderboard.top_traders_view.chain_filter.perps'),
+    },
+  ];
+};
 
 interface TabPillProps {
   filterKey: TabFilter;
@@ -133,12 +149,14 @@ const TabPill: React.FC<TabPillProps> = ({
 };
 
 interface FilterTabsProps {
+  filters: TabFilterItem[];
   selectedTab: TabFilter;
   onTabPress: (filter: TabFilter) => void;
   suppressTestIDs?: boolean;
 }
 
 const FilterTabs: React.FC<FilterTabsProps> = ({
+  filters,
   selectedTab,
   onTabPress,
   suppressTestIDs = false,
@@ -171,7 +189,7 @@ const FilterTabs: React.FC<FilterTabsProps> = ({
         'mb-3 flex-row items-center px-4 pt-3 pb-3',
       )}
     >
-      {getTabFilters().map(({ key, label }) => (
+      {filters.map(({ key, label }) => (
         <TabPill
           key={key}
           filterKey={key}
@@ -192,6 +210,7 @@ const TopTradersView = () => {
   const { colors } = useTheme();
   const { height: windowHeight } = useWindowDimensions();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
+  const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
   const {
     hasNotificationPreferences,
     isLoading: isLoadingNotificationPreferences,
@@ -215,20 +234,26 @@ const TopTradersView = () => {
     return Array.from({ length: count }, (_, i) => `top-trader-skeleton-${i}`);
   }, [windowHeight]);
 
+  const allChains = isPerpsEnabled ? ALL_CHAINS : SPOT_CHAINS;
+  const tabFilters = useMemo(
+    () => getTabFilters(isPerpsEnabled),
+    [isPerpsEnabled],
+  );
+
   const allResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
-    chains: ALL_CHAINS,
+    chains: allChains,
     enabled: isEnabled,
   });
   const tokensResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: SPOT_CHAINS,
-    enabled: isEnabled,
+    enabled: isEnabled && isPerpsEnabled,
   });
   const perpsResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: PERP_CHAINS,
-    enabled: isEnabled,
+    enabled: isEnabled && isPerpsEnabled,
   });
 
   const resultsByTab = useMemo(
@@ -240,7 +265,8 @@ const TopTradersView = () => {
     [allResult, tokensResult, perpsResult],
   );
 
-  const activeResult = resultsByTab[renderedTab];
+  const activeTab = isPerpsEnabled ? renderedTab : 'all';
+  const activeResult = resultsByTab[activeTab];
   const { traders, isLoading, toggleFollow } = activeResult;
 
   useEffect(() => {
@@ -248,6 +274,13 @@ const TopTradersView = () => {
       navigation.goBack();
     }
   }, [isEnabled, navigation]);
+
+  useEffect(() => {
+    if (!isPerpsEnabled && selectedTabRef.current !== 'all') {
+      selectedTabRef.current = 'all';
+      setRenderedTab('all');
+    }
+  }, [isPerpsEnabled]);
 
   useEffect(() => {
     if (!isEnabled || hasFiredScreenViewedRef.current) return;
@@ -260,6 +293,7 @@ const TopTradersView = () => {
 
   const handleTabPress = useCallback(
     (next: TabFilter) => {
+      if (!isPerpsEnabled && next !== 'all') return;
       const previousTab = selectedTabRef.current;
       if (previousTab === next) return;
       selectedTabRef.current = next;
@@ -271,7 +305,7 @@ const TopTradersView = () => {
         setRenderedTab(next);
       });
     },
-    [startTabTransition, track],
+    [isPerpsEnabled, startTabTransition, track],
   );
 
   const handleFollowPress = useCallback(
@@ -351,8 +385,9 @@ const TopTradersView = () => {
       );
       await Promise.all([
         allResult.refresh(),
-        tokensResult.refresh(),
-        perpsResult.refresh(),
+        ...(isPerpsEnabled
+          ? [tokensResult.refresh(), perpsResult.refresh()]
+          : []),
         minDuration,
       ]);
     } catch (err) {
@@ -369,7 +404,7 @@ const TopTradersView = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [allResult, tokensResult, perpsResult]);
+  }, [allResult, tokensResult, perpsResult, isPerpsEnabled]);
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
@@ -379,7 +414,7 @@ const TopTradersView = () => {
           [SocialLeaderboardEventProperties.TRADER_ADDRESS]: trader.address,
           [SocialLeaderboardEventProperties.TRADER_USERNAME]: trader.username,
           [SocialLeaderboardEventProperties.TRADER_RANK]: trader.rank,
-          [SocialLeaderboardEventProperties.CHAIN_FILTER]: renderedTab,
+          [SocialLeaderboardEventProperties.CHAIN_FILTER]: activeTab,
         });
       }
       navigation.navigate(Routes.SOCIAL_LEADERBOARD.PROFILE, {
@@ -390,7 +425,7 @@ const TopTradersView = () => {
         traderRank: trader?.rank,
       });
     },
-    [navigation, traders, renderedTab, track],
+    [navigation, traders, activeTab, track],
   );
 
   const renderTraderRow = useCallback(
@@ -421,10 +456,14 @@ const TopTradersView = () => {
           </Text>
         </Box>
 
-        <FilterTabs selectedTab={renderedTab} onTabPress={handleTabPress} />
+        <FilterTabs
+          filters={tabFilters}
+          selectedTab={activeTab}
+          onTabPress={handleTabPress}
+        />
       </>
     ),
-    [handleTabPress, renderedTab, setTitleSectionHeight, title],
+    [activeTab, handleTabPress, setTitleSectionHeight, tabFilters, title],
   );
 
   return (
@@ -515,7 +554,8 @@ const TopTradersView = () => {
           testID={TopTradersViewSelectorsIDs.PINNED_FILTER_BAR}
         >
           <FilterTabs
-            selectedTab={renderedTab}
+            filters={tabFilters}
+            selectedTab={activeTab}
             onTabPress={handleTabPress}
             suppressTestIDs
           />
