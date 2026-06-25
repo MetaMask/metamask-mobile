@@ -215,6 +215,7 @@ describe('PredictWorldCupSchema', () => {
       showMainFeedTab: true,
       showWorldCupScreen: true,
       showHubV2: true,
+      showHubBanner: true,
       tagSlug: 'fifa-world-cup',
       gamesTagId: '100639',
       winnerEventId: '987654',

@@ -1,7 +1,7 @@
 let mockHasTestOverrides = false;
 
-jest.mock('../region/isUsaDeviceRegion', () => ({
-  isUsaDeviceRegion: jest.fn(),
+jest.mock('../region/isUsaGeolocationLocation', () => ({
+  isUsaGeolocationLocation: jest.fn(),
 }));
 
 jest.mock('../test/utils', () => ({
@@ -11,11 +11,12 @@ jest.mock('../test/utils', () => ({
 }));
 
 import { getDefaultMarketingOptInChecked } from './getDefaultMarketingOptInChecked';
-import { isUsaDeviceRegion } from '../region/isUsaDeviceRegion';
+import { isUsaGeolocationLocation } from '../region/isUsaGeolocationLocation';
 
-const mockIsUsaDeviceRegion = isUsaDeviceRegion as jest.MockedFunction<
-  typeof isUsaDeviceRegion
->;
+const mockIsUsaGeolocationLocation =
+  isUsaGeolocationLocation as jest.MockedFunction<
+    typeof isUsaGeolocationLocation
+  >;
 
 describe('getDefaultMarketingOptInChecked', () => {
   beforeEach(() => {
@@ -25,32 +26,38 @@ describe('getDefaultMarketingOptInChecked', () => {
 
   it('returns false in E2E test builds regardless of region', () => {
     mockHasTestOverrides = true;
-    mockIsUsaDeviceRegion.mockReturnValue(true);
+    mockIsUsaGeolocationLocation.mockReturnValue(true);
 
-    expect(getDefaultMarketingOptInChecked(true)).toBe(false);
+    expect(getDefaultMarketingOptInChecked(true, 'US')).toBe(false);
   });
 
   it('returns true for social login users in the USA', () => {
-    mockIsUsaDeviceRegion.mockReturnValue(true);
+    mockIsUsaGeolocationLocation.mockReturnValue(true);
 
-    expect(getDefaultMarketingOptInChecked(true)).toBe(true);
+    expect(getDefaultMarketingOptInChecked(true, 'US')).toBe(true);
   });
 
   it('returns false for social login users outside the USA', () => {
-    mockIsUsaDeviceRegion.mockReturnValue(false);
+    mockIsUsaGeolocationLocation.mockReturnValue(false);
 
-    expect(getDefaultMarketingOptInChecked(true)).toBe(false);
+    expect(getDefaultMarketingOptInChecked(true, 'GB')).toBe(false);
   });
 
   it('returns false for non-social-login users in the USA', () => {
-    mockIsUsaDeviceRegion.mockReturnValue(true);
+    mockIsUsaGeolocationLocation.mockReturnValue(true);
 
-    expect(getDefaultMarketingOptInChecked(false)).toBe(false);
+    expect(getDefaultMarketingOptInChecked(false, 'US')).toBe(false);
   });
 
   it('returns false for non-social-login users outside the USA', () => {
-    mockIsUsaDeviceRegion.mockReturnValue(false);
+    mockIsUsaGeolocationLocation.mockReturnValue(false);
 
-    expect(getDefaultMarketingOptInChecked(false)).toBe(false);
+    expect(getDefaultMarketingOptInChecked(false, 'GB')).toBe(false);
+  });
+
+  it('returns false when geolocation is unknown for social login users', () => {
+    mockIsUsaGeolocationLocation.mockReturnValue(false);
+
+    expect(getDefaultMarketingOptInChecked(true, undefined)).toBe(false);
   });
 });

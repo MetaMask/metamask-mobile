@@ -16,9 +16,10 @@ Our end-to-end (E2E) testing strategy leverages a combination of technologies to
   - [iOS builds](#ios-builds)
   - [Android builds](#android-builds)
 - [Run the E2E Tests](#run-the-e2e-tests)
+- [Appium smoke tests (Playwright)](#appium-smoke-tests-playwright)
 - [Flask E2E Testing (Snaps Support)](#flask-e2e-testing-snaps-support)
 - [Setup Troubleshooting](#setup-troubleshooting)
-- [Appium](#appium)
+- [Legacy Appium (wdio)](#legacy-appium-wdio)
 
 ## Local environment setup
 
@@ -169,6 +170,34 @@ source .e2e.env && yarn test:e2e:android:debug:run --testNamePattern="Smoke"
 ```
 
 To know more about the E2E testing framework, see [E2E Testing Architecture and Framework](../../tests/docs/README.md).
+
+## Appium smoke tests (Playwright)
+
+Appium smoke tests live in `tests/smoke-appium/` and run via **Playwright + Appium** (not Detox). They mirror Detox smoke specs and share page objects, but use a **main-e2e release** build — no Metro bundler required.
+
+| Detox smoke                   | Appium smoke                                     |
+| ----------------------------- | ------------------------------------------------ |
+| `tests/smoke/`                | `tests/smoke-appium/`                            |
+| `yarn test:e2e:ios:debug:run` | `yarn appium-smoke:ios`                          |
+| Debug build + Metro           | `main-e2e-MetaMask.app` / `main-e2e-release.apk` |
+
+**Quick start (iOS, CI build):**
+
+```bash
+mkdir -p build/ci-main-e2e
+gh run download RUN_ID --repo MetaMask/metamask-mobile \
+  -n main-e2e-MetaMask.app -D build/ci-main-e2e
+
+IOS_APP_PATH=build/ci-main-e2e/MetaMask.app \
+IOS_SIMULATOR_NAME="iPhone 16 Pro" \
+node scripts/e2e/prepare-ios-appium-runner.mjs
+
+IOS_APP_PATH=build/ci-main-e2e/MetaMask.app \
+IOS_SIMULATOR_UDID="$(xcrun simctl list devices booted -j | node -e "const d=JSON.parse(require('fs').readFileSync(0,'utf8'));console.log(Object.values(d.devices).flat().find(x=>x.state==='Booted')?.udid||'')")" \
+yarn appium-smoke:ios --grep SmokeAccounts
+```
+
+Full guide: **[Appium smoke testing](../testing/appium-smoke-testing.md)** — builds, env vars, Android ABI caveats, CI, troubleshooting.
 
 ## Flask E2E Testing (Snaps Support)
 
@@ -346,9 +375,9 @@ yarn test:e2e:android:flask:run
     - on the metro server hit 'a' on the keyboard as indicated by metro for launching emulator
   - you don't need to repeat these steps unless emulator or metro server is restarted
 
-## ~~Appium~~ (Deprecated)
+## Legacy Appium (wdio)
 
-> **⚠️ DEPRECATED**: The Appium/WebDriver.io/Cucumber test infrastructure has been removed. This section is kept for historical reference only.
+> **⚠️ DEPRECATED**: The legacy Appium/WebDriver.io/Cucumber test infrastructure (`wdio/`) has been removed. **New** Appium coverage uses Playwright — see [Appium smoke tests (Playwright)](#appium-smoke-tests-playwright) and [docs/testing/appium-smoke-testing.md](../testing/appium-smoke-testing.md).
 
 ~~We currently utilize [Appium](https://appium.io/), [Webdriver.io](http://webdriver.io/), and [Cucumber](https://cucumber.io/) to test the application launch times and the upgrade between different versions. As a brief explanation, webdriver.io is the test framework that uses Appium Server as a service. This is responsible for communicating between our tests and devices, and cucumber as the test framework.~~
 
