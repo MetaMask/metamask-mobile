@@ -9,6 +9,7 @@ import type { FetchOlderBarsRequest } from '../../../Charts/AdvancedChart/Advanc
 import {
   convertCandlesToOHLCVBars,
   INTERVAL_MS,
+  PREWARM_CANDLE_PERIODS,
   usePerpsAdvancedChartAdapter,
 } from '../usePerpsAdvancedChartAdapter';
 
@@ -126,6 +127,7 @@ describe('INTERVAL_MS', () => {
 describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
   const mockSubscribe = jest.fn();
   const mockFetchHistoricalCandles = jest.fn();
+  const mockPrewarmCandles = jest.fn();
 
   const SYMBOL = 'BTC';
   const INTERVAL = CandlePeriod.OneHour;
@@ -143,7 +145,8 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
     );
 
   /** The params object passed into stream.candles.subscribe for the current mount. */
-  const subscribeParams = () => mockSubscribe.mock.calls[0][0];
+  const subscribeParams = (callIndex = 0) =>
+    mockSubscribe.mock.calls[callIndex][0];
 
   const fetchOlderRequest = (
     overrides: Partial<FetchOlderBarsRequest> = {},
@@ -171,10 +174,12 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
     jest.clearAllMocks();
     mockSubscribe.mockReturnValue(jest.fn());
     mockFetchHistoricalCandles.mockResolvedValue(undefined);
+    mockPrewarmCandles.mockResolvedValue(undefined);
     (usePerpsStream as jest.Mock).mockReturnValue({
       candles: {
         subscribe: mockSubscribe,
         fetchHistoricalCandles: mockFetchHistoricalCandles,
+        prewarmCandles: mockPrewarmCandles,
       },
     });
   });
@@ -183,6 +188,21 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
     const { result } = renderAdapter();
     expect(result.current.isLoading).toBe(true);
     expect(mockSubscribe).toHaveBeenCalledTimes(1);
+  });
+
+  it('prewarms common candle periods for the active symbol', () => {
+    renderAdapter();
+
+    expect(mockPrewarmCandles).toHaveBeenCalledTimes(
+      PREWARM_CANDLE_PERIODS.length,
+    );
+    PREWARM_CANDLE_PERIODS.forEach((period) => {
+      expect(mockPrewarmCandles).toHaveBeenCalledWith(
+        SYMBOL,
+        period,
+        TimeDuration.OneWeek,
+      );
+    });
   });
 
   it('clears isLoading on the first delivery even when the frame is empty (regression: no hang)', () => {
@@ -213,6 +233,55 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
 
     expect(result.current.isLoading).toBe(false);
     expect(result.current.ohlcvData).toHaveLength(1);
+  });
+
+  it('keeps previous candles visible during interval refresh and replaces them when fresh data arrives', () => {
+    const { result, rerender } = renderHook(
+      ({ interval }) =>
+        usePerpsAdvancedChartAdapter({
+          symbol: SYMBOL,
+          interval,
+          visibleCandleCount: 45,
+        }),
+      { initialProps: { interval: INTERVAL } },
+    );
+
+    act(() => {
+      subscribeParams().callback({
+        symbol: SYMBOL,
+        interval: INTERVAL,
+        candles: [candle(1000), candle(2000)],
+      });
+    });
+
+    const previousBars = result.current.ohlcvData;
+    expect(result.current.isLoading).toBe(false);
+    expect(previousBars).toEqual([
+      { time: 1000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
+      { time: 2000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
+    ]);
+
+    rerender({ interval: CandlePeriod.FourHours });
+
+    expect(mockSubscribe).toHaveBeenCalledTimes(2);
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.ohlcvData).toBe(previousBars);
+
+    act(() => {
+      subscribeParams(1).callback({
+        symbol: SYMBOL,
+        interval: CandlePeriod.FourHours,
+        candles: [candle(4000), candle(8000)],
+      });
+    });
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.ohlcvData).toEqual([
+      { time: 4000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
+      { time: 8000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
+    ]);
+    expect(result.current.visibleToMs).toBe(8000);
+    expect(result.current.visibleFromMs).toBe(8000 - INTERVAL_MS['4h'] * 45);
   });
 
   it('clears isLoading when the subscription reports an error', () => {

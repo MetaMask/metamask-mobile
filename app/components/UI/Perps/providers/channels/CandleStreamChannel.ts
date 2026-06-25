@@ -125,6 +125,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     ReturnType<typeof setTimeout>
   >();
   private connectRetryCounts = new Map<string, number>();
+  private readonly prewarmRequests = new Set<string>();
   private static readonly MAX_CONNECT_RETRIES = 50;
   // Upper bound on cached candles per cacheKey. Matches fetchHistoricalCandles
   // so merge-on-update can't cause unbounded memory growth.
@@ -193,11 +194,16 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }
 
   public override clearCache(): void {
-    this.deferConnectTimers.forEach((timer) => clearTimeout(timer));
+    this.deferConnectTimers.forEach((timer) => {
+      clearTimeout(timer);
+    });
     this.deferConnectTimers.clear();
-    this.pendingTeardownTimers.forEach((timer) => clearTimeout(timer));
+    this.pendingTeardownTimers.forEach((timer) => {
+      clearTimeout(timer);
+    });
     this.pendingTeardownTimers.clear();
     this.connectRetryCounts.clear();
+    this.prewarmRequests.clear();
     super.clearCache();
   }
 
@@ -678,16 +684,87 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   }
 
   /**
+   * Fetches the latest candles for a symbol+interval before the user selects it.
+   * This populates the same cache used by subscribe(), so interval switches can
+   * synchronously receive data instead of waiting for the WebSocket bootstrap.
+   */
+  public async prewarmCandles(
+    symbol: string,
+    interval: CandlePeriod,
+    duration: TimeDuration,
+  ): Promise<void> {
+    const cacheKey = this.getCacheKey(symbol, interval);
+    const cachedData = this.cache.get(cacheKey);
+    if (cachedData?.candles.length) {
+      return;
+    }
+    if (this.prewarmRequests.has(cacheKey)) {
+      return;
+    }
+
+    const dynamicLimit = calculateCandleCount(duration, interval);
+    const limit = Math.min(Math.max(dynamicLimit, 50), 500);
+    const endTime = Date.now();
+
+    this.prewarmRequests.add(cacheKey);
+    try {
+      const candleData =
+        await Engine.context.PerpsController.fetchHistoricalCandles({
+          symbol,
+          interval,
+          limit,
+          endTime,
+        });
+
+      if (!candleData?.candles.length) {
+        return;
+      }
+
+      const sortedCandles = [...candleData.candles].sort(
+        (a, b) => a.time - b.time,
+      );
+      const warmedData: CandleData = {
+        symbol: candleData.symbol,
+        interval: candleData.interval,
+        candles:
+          sortedCandles.length > CandleStreamChannel.MAX_CACHED_CANDLES
+            ? sortedCandles.slice(-CandleStreamChannel.MAX_CACHED_CANDLES)
+            : sortedCandles,
+      };
+
+      this.cache.set(cacheKey, warmedData);
+      this.notifySubscribers(cacheKey, warmedData);
+    } catch (error) {
+      if (isAbortError(error)) {
+        throw error;
+      }
+
+      DevLogger.log('CandleStreamChannel: Failed to prewarm candles', {
+        symbol,
+        interval,
+        error: error instanceof Error ? error.message : String(error),
+      });
+    } finally {
+      this.prewarmRequests.delete(cacheKey);
+    }
+  }
+
+  /**
    * Disconnect all subscriptions
    */
   public disconnectAll(): void {
     // Cancel all deferred connect timers
-    this.deferConnectTimers.forEach((timer) => clearTimeout(timer));
+    this.deferConnectTimers.forEach((timer) => {
+      clearTimeout(timer);
+    });
     this.deferConnectTimers.clear();
     // Cancel all deferred teardown timers — explicit disconnect supersedes them
-    this.pendingTeardownTimers.forEach((timer) => clearTimeout(timer));
+    this.pendingTeardownTimers.forEach((timer) => {
+      clearTimeout(timer);
+    });
     this.pendingTeardownTimers.clear();
     this.connectRetryCounts.clear();
+    this.prewarmRequests.clear();
 
     this.subscribers.forEach((subscriber) => {
       if (subscriber.timer) {

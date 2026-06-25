@@ -1065,6 +1065,49 @@ describe('CandleStreamChannel', () => {
     });
   });
 
+  describe('Prewarm Candles', () => {
+    it('fetches latest candles into cache so subscribe can emit them immediately', async () => {
+      const warmedData: CandleData = {
+        symbol: 'BTC',
+        interval: CandlePeriod.OneWeek,
+        candles: [
+          {
+            time: 1700000000000,
+            open: '50000',
+            high: '51000',
+            low: '49000',
+            close: '50500',
+            volume: '100',
+          },
+        ],
+      };
+      mockFetchHistoricalCandles.mockResolvedValue(warmedData);
+      mockSubscribeToCandles.mockReturnValue(jest.fn());
+
+      await channel.prewarmCandles(
+        'BTC',
+        CandlePeriod.OneWeek,
+        TimeDuration.OneWeek,
+      );
+
+      const callback = jest.fn();
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneWeek,
+        duration: TimeDuration.OneWeek,
+        callback,
+      });
+
+      expect(mockFetchHistoricalCandles).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneWeek,
+        limit: 50,
+        endTime: expect.any(Number),
+      });
+      expect(callback).toHaveBeenCalledWith(warmedData);
+    });
+  });
+
   describe('Initial Fetch Duration', () => {
     it('uses OneWeek duration on cold cache for lighter initial fetch', () => {
       mockSubscribeToCandles.mockReturnValue(jest.fn());

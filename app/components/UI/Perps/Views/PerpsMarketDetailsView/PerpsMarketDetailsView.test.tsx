@@ -19,7 +19,11 @@ import {
   selectPerpsAdvancedChartEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
 } from '../../selectors/featureFlags';
-import { TimeDuration, type PerpsMarketData } from '@metamask/perps-controller';
+import {
+  CandlePeriod,
+  TimeDuration,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 
 const mockPerpsAdvancedChartMount = jest.fn();
 const mockPerpsAdvancedChartUnmount = jest.fn();
@@ -1502,6 +1506,63 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(mockPerpsAdvancedChartUnmount).toHaveBeenCalledTimes(1);
       expect(mockPerpsAdvancedChartMount).toHaveBeenCalledTimes(2);
+    });
+
+    it('does not remount the advanced chart when only the candle period changes', () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      const mockSelectPerpsChartPreferredCandlePeriod = jest.requireMock(
+        '../../selectors/chartPreferences',
+      ).selectPerpsChartPreferredCandlePeriod;
+      let selectedPeriod = CandlePeriod.FifteenMinutes;
+
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        if (selector === mockSelectPerpsChartPreferredCandlePeriod) {
+          return selectedPeriod;
+        }
+        return undefined;
+      });
+
+      const renderView = () => (
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>
+      );
+      const { getByTestId, rerender } = renderWithProvider(renderView(), {
+        state: initialState,
+      });
+
+      const mountCountBeforeIntervalChange =
+        mockPerpsAdvancedChartMount.mock.calls.length;
+      const unmountCountBeforeIntervalChange =
+        mockPerpsAdvancedChartUnmount.mock.calls.length;
+      expect(getByTestId('mock-perps-advanced-chart').props.interval).toBe(
+        CandlePeriod.FifteenMinutes,
+      );
+
+      selectedPeriod = CandlePeriod.FourHours;
+      rerender(renderView());
+
+      expect(mockPerpsAdvancedChartMount).toHaveBeenCalledTimes(
+        mountCountBeforeIntervalChange,
+      );
+      expect(mockPerpsAdvancedChartUnmount).toHaveBeenCalledTimes(
+        unmountCountBeforeIntervalChange,
+      );
+      expect(getByTestId('mock-perps-advanced-chart').props.interval).toBe(
+        CandlePeriod.FourHours,
+      );
     });
 
     it('passes YearToDate pagination to advanced chart and uses its latest price for the header', async () => {
