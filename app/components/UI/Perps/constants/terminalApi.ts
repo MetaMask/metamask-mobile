@@ -5,9 +5,9 @@
  */
 
 export const TERMINAL_API_URLS = {
-  DEV: 'https://terminal.dev-api.cx.metamask.io',
-  UAT: 'https://terminal.uat-api.cx.metamask.io',
-  PRD: 'https://terminal.api.cx.metamask.io',
+  DEV: 'https://terminal.dev-api.cx.metamask.io/v1/perpetuals',
+  UAT: 'https://terminal.uat-api.cx.metamask.io/v1/perpetuals',
+  PRD: 'https://terminal.api.cx.metamask.io/v1/perpetuals',
 } as const;
 
 /**

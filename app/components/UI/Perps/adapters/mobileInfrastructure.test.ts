@@ -488,4 +488,22 @@ describe('createMobileInfrastructure - terminalApiUrl', () => {
     const infra = createMobileInfrastructure();
     expect(infra.terminalApiUrl).toBe(TERMINAL_API_URLS.PRD);
   });
+
+  it('terminalApiUrl is the full endpoint including /v1/perpetuals path', () => {
+    process.env.METAMASK_ENVIRONMENT = 'production';
+    process.env.METAMASK_BUILD_TYPE = 'main';
+    const infra = createMobileInfrastructure();
+    expect(infra.terminalApiUrl).toBe(
+      'https://terminal.api.cx.metamask.io/v1/perpetuals',
+    );
+  });
+
+  it('dev terminalApiUrl is the full endpoint including /v1/perpetuals path', () => {
+    process.env.METAMASK_ENVIRONMENT = 'dev';
+    delete process.env.METAMASK_BUILD_TYPE;
+    const infra = createMobileInfrastructure();
+    expect(infra.terminalApiUrl).toBe(
+      'https://terminal.dev-api.cx.metamask.io/v1/perpetuals',
+    );
+  });
 });
