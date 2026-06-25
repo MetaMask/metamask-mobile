@@ -5,7 +5,6 @@ import { useHardwareWallet } from '../../../../core/HardwareWallet';
 import { isUserCancellation } from '../../../../core/HardwareWallet/errors/helpers';
 import { parseErrorByType } from '../../../../core/HardwareWallet/errors/parser';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
-import Logger from '../../../../util/Logger';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
