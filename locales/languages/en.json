@@ -2350,7 +2350,8 @@
     "home": {
       "live_now_title": "Live now",
       "categories_placeholder": "Categories",
-      "trending_placeholder": "Trending"
+      "trending_title": "Trending",
+      "trending_unable_to_load": "Unable to load markets, please try again"
     },
     "homepage_discovery": {
       "btc_title": "BTC Price: {{price}}",
