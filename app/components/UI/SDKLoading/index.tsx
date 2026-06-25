@@ -15,11 +15,9 @@ import { useTheme } from '../../../util/theme';
 
 const foxLogo = require('../../../images/branding/fox.png');
 
-// Sizes are derived from device dimensions at runtime, so they stay as inline
-// style objects rather than static tailwind classes.
+// Size is derived from the device width at runtime, so it stays as an inline
+// style object rather than a static tailwind class.
 const FOX_SIZE = Device.getDeviceWidth() * 0.2;
-// Give the card height so the content can be vertically centered within it.
-const CARD_MIN_HEIGHT = Device.getDeviceHeight() * 0.35;
 
 export const SDKLoading = () => {
   const { colors } = useTheme();
@@ -34,8 +32,7 @@ export const SDKLoading = () => {
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
         gap={3}
-        twClassName="w-full px-6 py-6"
-        style={{ minHeight: CARD_MIN_HEIGHT }}
+        twClassName="w-full px-6 py-8"
       >
         <Image
           style={{ width: FOX_SIZE, height: FOX_SIZE }}
