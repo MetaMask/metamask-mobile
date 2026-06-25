@@ -436,11 +436,16 @@ const PerpsTPSLView: React.FC = () => {
           ? PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.POSITION_SCREEN
           : PERPS_EVENT_VALUE.RISK_MANAGEMENT_SOURCE.TRADE_SCREEN,
         positionSize: position?.size ? Math.abs(parseFloat(position.size)) : 0,
+        // Display strings are unsigned magnitudes (the badge renders the sign),
+        // so recompose the sign for analytics — a negative TP / gain-side SL
+        // must report the signed RoE, not the bare magnitude.
         takeProfitPercentage: formattedTakeProfitPercentage
-          ? parseFloat(formattedTakeProfitPercentage.replace('%', ''))
+          ? (takeProfitSign === '-' ? -1 : 1) *
+            parseFloat(formattedTakeProfitPercentage.replace('%', ''))
           : undefined,
         stopLossPercentage: formattedStopLossPercentage
-          ? parseFloat(formattedStopLossPercentage.replace('%', ''))
+          ? (stopLossSign === '-' ? -1 : 1) *
+            parseFloat(formattedStopLossPercentage.replace('%', ''))
           : undefined,
         isEditingExistingPosition,
         entryPrice: effectiveEntryPrice,
@@ -467,6 +472,8 @@ const PerpsTPSLView: React.FC = () => {
     position,
     formattedTakeProfitPercentage,
     formattedStopLossPercentage,
+    takeProfitSign,
+    stopLossSign,
     isEditingExistingPosition,
     effectiveEntryPrice,
   ]);
