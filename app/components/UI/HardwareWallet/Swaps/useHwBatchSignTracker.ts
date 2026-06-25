@@ -573,7 +573,7 @@ export function useHwBatchSignTracker({
       trackerState.approvalQueue.push(requestId);
     };
 
-    const shouldDeferBatchApproval = (
+    const shouldWaitForBatchReady = (
       batchId: string,
       approvedBatchTransactionIds: string[],
     ): boolean => {
@@ -610,7 +610,7 @@ export function useHwBatchSignTracker({
         targetFrom,
         effectiveTrackedTypes,
       );
-      if (shouldDeferBatchApproval(requestId, approvedBatchTransactionIds)) {
+      if (shouldWaitForBatchReady(requestId, approvedBatchTransactionIds)) {
         return;
       }
 

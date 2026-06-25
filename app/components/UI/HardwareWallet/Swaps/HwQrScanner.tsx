@@ -221,11 +221,12 @@ export function HwQrScanner() {
       return false;
     },
     [
-      pendingScanRequest,
-      navigation,
-      setRequestCompleted,
       trackEvent,
       createEventBuilder,
+      pendingScanRequest,
+      setRequestCompleted,
+      isLastStep,
+      navigation,
     ],
   );
 

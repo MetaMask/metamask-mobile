@@ -175,7 +175,7 @@ export const initialHardwareWalletsSwapsState: HardwareWalletsSwapsState = {
   disconnectedStep: null,
 };
 
-/** Builds the step array. Bridge/default: step 0 is `Approval` when totalSteps>1. Send: `[Transaction ×N, FeeTransfer]` (N sends + 1 fee) when totalSteps>1, else `[Transaction]` — the device signs the sends first, then the fee transfer.  */
+/** Builds the step array. Bridge/default: step 0 is `Approval` when totalSteps>1. Send: `[Transaction × N, FeeTransfer]` (N sends + 1 fee) when totalSteps>1, else `[Transaction]` — the device signs the sends first, then the fee transfer.  */
 function buildSteps(
   totalSteps: number,
   spenderAddress?: string,
