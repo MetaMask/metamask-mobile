@@ -119,6 +119,22 @@ export type HardwareWalletsSwapsEvent =
 type QuoteWithTxData = Pick<QuoteResponse, 'approval' | 'trade'>;
 
 /**
+ * Resolution emitted by the safety-net effect in `useHwSwapLifecycle` when the
+ * state machine is still in a non-terminal status after the safety-net
+ * timeout. Pure over the step list so it can be tested independently of
+ * timers, the redux dispatch, and React navigation.
+ *
+ * `navigate` means every step is Signed but the flow never reached success
+ * navigation, so navigate directly. `dispatch` means emit the carried event:
+ * terminal `Signed` for the single remaining unsigned step (the "tracker
+ * missed the final event" case), or `TransactionFailed` when more than one
+ * step is still unsigned.
+ */
+export type StuckProgressResolution =
+  | { readonly action: 'navigate' }
+  | { readonly action: 'dispatch'; readonly event: HardwareWalletsSwapsEvent };
+
+/**
  * Builds the `Start` event that initializes the swap signing flow from an
  * active bridge/swap quote.
  *
@@ -159,7 +175,7 @@ export const initialHardwareWalletsSwapsState: HardwareWalletsSwapsState = {
   disconnectedStep: null,
 };
 
-/** Builds the step array. Bridge/default: step 0 is `Approval` when totalSteps>1. Send: `[Transaction, FeeTransfer]` (2) or `[Transaction]` (1) — the device signs the send first, then the fee transfer.  */
+/** Builds the step array. Bridge/default: step 0 is `Approval` when totalSteps>1. Send: `[Transaction ×N, FeeTransfer]` (N sends + 1 fee) when totalSteps>1, else `[Transaction]` — the device signs the sends first, then the fee transfer.  */
 function buildSteps(
   totalSteps: number,
   spenderAddress?: string,
@@ -262,6 +278,20 @@ export function hardwareWalletsSwapsReducer(
   switch (event.type) {
     case HardwareWalletsSwapsEventType.Start: {
       const totalSteps = Math.max(event.payload.totalSteps, 1);
+      // A Sendbundle's FeeTransfer step is matched by the batch-sign tracker
+      // against `txParams.to === gasTokenAddress`; without it the fee step
+      // would never resolve and the flow would hang on Waiting indefinitely.
+      // Enforce the producer contract here so a misbuilt Start fails loudly
+      // instead of stalling the UI.
+      if (
+        event.payload.flow === Flow.Send &&
+        totalSteps > 1 &&
+        !event.payload.gasTokenAddress
+      ) {
+        throw new Error(
+          'HardwareWalletsSwaps: a Sendbundle Start with more than one step requires gasTokenAddress',
+        );
+      }
       return {
         status: HardwareWalletsSwapsStatus.Waiting,
         currentStep: 0,
@@ -445,4 +475,48 @@ export function hardwareWalletsSwapsReducer(
     default:
       return state;
   }
+}
+
+/**
+ * Decides what the safety-net timeout should do given the current step list.
+ *
+ * The premise is "the tracker missed the final signing event." That holds
+ * only when a single step remains unsigned. When two or more are unsigned the
+ * flow cannot be reconciled to a consistent terminal state by advancing one
+ * step, so it fails explicitly rather than flipping overall status to
+ * Submitted while earlier steps are still Waiting — which previously left
+ * `allStepsSigned` false and the success navigation permanently stuck.
+ *
+ * A step counts as unsigned when it is neither Signed nor Rejected, matching
+ * the reducer's notion of an actionable step (see {@link findStepIndexByKind}).
+ */
+export function reconcileStuckProgress(
+  steps: HardwareWalletsSwapsStep[],
+): StuckProgressResolution {
+  const unsignedSteps = steps.filter(
+    (step) =>
+      step.status !== HardwareWalletsSwapsStepStatus.Signed &&
+      step.status !== HardwareWalletsSwapsStepStatus.Rejected,
+  );
+
+  if (unsignedSteps.length === 0) {
+    return { action: 'navigate' };
+  }
+
+  if (unsignedSteps.length === 1) {
+    const unsignedStep = unsignedSteps[0];
+    const stepIndex = steps.indexOf(unsignedStep);
+    return {
+      action: 'dispatch',
+      event: {
+        type: HardwareWalletsSwapsEventType.Signed,
+        payload: { stepKind: unsignedStep.kind, stepIndex },
+      },
+    };
+  }
+
+  return {
+    action: 'dispatch',
+    event: { type: HardwareWalletsSwapsEventType.TransactionFailed },
+  };
 }
