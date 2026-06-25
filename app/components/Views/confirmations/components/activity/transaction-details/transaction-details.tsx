@@ -14,7 +14,6 @@ import { TransactionDetailsHero } from '../transaction-details-hero';
 import { TransactionDetailsTotalRow } from '../transaction-details-total-row';
 import {
   TransactionMeta,
-  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
@@ -26,6 +25,11 @@ import { TransactionDetailsRetry } from '../transaction-details-retry';
 import { TransactionDetailsAccountRow } from '../transaction-details-account-row';
 import { TransactionDetailsToRow } from '../transaction-details-to-row';
 import { TransactionDetailsFiatOrderIdRow } from '../transaction-details-fiat-order-id-row';
+import {
+  classifyMoneyActivity,
+  getMoneyActivityStatus,
+  moneyActivityLabel,
+} from '../../../../../UI/Money/utils/classifyMoneyActivity';
 
 export const SUMMARY_SECTION_TYPES = [
   TransactionType.musdClaim,
@@ -98,23 +102,19 @@ function getTitle(
     return strings('transaction_details.title.default');
   }
 
+  // In the Money account context the details header must read identically to
+  // the activity-list row that opened it. Both derive the title from the same
+  // classifier, so they can never drift out of sync.
+  if (isMoneyContext) {
+    return moneyActivityLabel(
+      classifyMoneyActivity(transactionMeta),
+      getMoneyActivityStatus(transactionMeta),
+    );
+  }
+
   if (
     hasTransactionType(transactionMeta, [TransactionType.moneyAccountDeposit])
   ) {
-    if (isMoneyContext) {
-      const isFiatDeposit = Boolean(transactionMeta.metamaskPay?.fiat?.orderId);
-      return isFiatDeposit
-        ? statusTitle(transactionMeta.status, {
-            confirmed: 'transaction_details.title.deposited_musd',
-            failed: 'transaction_details.title.deposit_failed',
-            pending: 'transaction_details.title.depositing_musd',
-          })
-        : statusTitle(transactionMeta.status, {
-            confirmed: 'transaction_details.title.converted_to_musd',
-            failed: 'transaction_details.title.conversion_failed',
-            pending: 'transaction_details.title.converting_to_musd',
-          });
-    }
     return strings('transaction_details.title.money_account_deposit');
   }
 
@@ -129,68 +129,25 @@ function getTitle(
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
-    if (isMoneyContext) {
-      return statusTitle(transactionMeta.status, {
-        confirmed: 'transaction_details.title.sent',
-        failed: 'transaction_details.title.send_failed',
-        pending: 'transaction_details.title.sending_musd',
-      });
-    }
     return strings('transaction_details.title.predict_deposit');
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
-    if (isMoneyContext) {
-      return strings('transaction_details.title.deposited_musd');
-    }
     return strings('transaction_details.title.predict_withdraw');
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
-    if (isMoneyContext) {
-      return strings('transaction_details.title.deposited_musd');
-    }
     return strings('transaction_details.title.perps_withdraw');
   }
 
   switch (transactionMeta.type) {
     case TransactionType.musdConversion:
-      if (isMoneyContext) {
-        return statusTitle(transactionMeta.status, {
-          confirmed: 'transaction_details.title.converted_to_musd',
-          failed: 'transaction_details.title.conversion_failed',
-          pending: 'transaction_details.title.converting_to_musd',
-        });
-      }
       return strings('transaction_details.title.musd_conversion');
     case TransactionType.musdClaim:
       return strings('transaction_details.title.musd_claim');
     case TransactionType.perpsDeposit:
-      if (isMoneyContext) {
-        return statusTitle(transactionMeta.status, {
-          confirmed: 'transaction_details.title.sent',
-          failed: 'transaction_details.title.send_failed',
-          pending: 'transaction_details.title.sending_musd',
-        });
-      }
       return strings('transaction_details.title.perps_deposit');
     default:
       return strings('transaction_details.title.default');
   }
-}
-
-function statusTitle(
-  status: TransactionStatus,
-  keys: { confirmed: string; failed: string; pending: string },
-): string {
-  if (status === TransactionStatus.confirmed) {
-    return strings(keys.confirmed);
-  }
-  if (
-    status === TransactionStatus.failed ||
-    status === TransactionStatus.dropped
-  ) {
-    return strings(keys.failed);
-  }
-  return strings(keys.pending);
 }

@@ -169,10 +169,12 @@ describe('polymarket utils', () => {
     id,
     sportsMarketType,
     volume = 100,
+    overrides = {},
   }: {
     id: string;
     sportsMarketType?: string;
     volume?: number;
+    overrides?: Partial<PolymarketApiEvent['markets'][number]>;
   }): PolymarketApiEvent['markets'][number] =>
     ({
       conditionId: id,
@@ -195,6 +197,7 @@ describe('polymarket utils', () => {
       resolvedBy: '',
       orderPriceMinTickSize: 0.01,
       umaResolutionStatus: '',
+      ...overrides,
     }) as PolymarketApiEvent['markets'][number];
 
   const createNbaGameEvent = (
@@ -372,6 +375,51 @@ describe('polymarket utils', () => {
     expect(market.outcomeGroups).toBeUndefined();
   });
 
+  it('uses group item title for neg-risk soccer first-to-score yes token labels', () => {
+    const event = createNbaGameEvent([
+      createSportsMarket({
+        id: 'portugal-first',
+        sportsMarketType: 'soccer_first_to_score',
+        overrides: {
+          groupItemTitle: 'Portugal',
+          negRisk: true,
+          clobTokenIds: '["portugal-yes","portugal-no"]',
+          outcomePrices: '["0.83","0.17"]',
+        },
+      }),
+      createSportsMarket({
+        id: 'neither-first',
+        sportsMarketType: 'soccer_first_to_score',
+        overrides: {
+          groupItemTitle: 'Neither',
+          negRisk: true,
+          clobTokenIds: '["neither-yes","neither-no"]',
+          outcomePrices: '["0.03","0.97"]',
+        },
+      }),
+      createSportsMarket({
+        id: 'uzbekistan-first',
+        sportsMarketType: 'soccer_first_to_score',
+        overrides: {
+          groupItemTitle: 'Uzbekistan',
+          negRisk: true,
+          clobTokenIds: '["uzbekistan-yes","uzbekistan-no"]',
+          outcomePrices: '["0.13","0.87"]',
+        },
+      }),
+    ]);
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+    });
+
+    expect(market.outcomes.map((outcome) => outcome.tokens[0].title)).toEqual([
+      'Portugal',
+      'Neither',
+      'Uzbekistan',
+    ]);
+  });
+
   it('parses World Cup game events with game metadata when team data is available', () => {
     const teamsByAbbreviation: Record<string, PolymarketApiTeam> = {
       usa: {
@@ -491,7 +539,7 @@ describe('polymarket utils', () => {
         tokens: [
           expect.objectContaining({
             id: 'token-yes',
-            title: 'Yes',
+            title: 'United States',
             shortTitle: 'usa',
           }),
           expect.objectContaining({
@@ -508,7 +556,7 @@ describe('polymarket utils', () => {
         tokens: [
           expect.objectContaining({
             id: 'token-draw-yes',
-            title: 'Yes',
+            title: 'Draw',
             shortTitle: 'Draw',
           }),
           expect.objectContaining({

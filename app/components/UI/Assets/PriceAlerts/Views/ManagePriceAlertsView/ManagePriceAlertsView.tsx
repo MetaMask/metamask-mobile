@@ -19,7 +19,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -66,8 +66,7 @@ const ManagePriceAlertsView: React.FC = () => {
   const { colors, brandColors } = useTheme();
   const queryClient = useQueryClient();
   const { toastRef } = useContext(ToastContext);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<
       RouteProp<
