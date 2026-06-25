@@ -24,7 +24,7 @@ import { useTokenAsset } from '../../../Views/confirmations/hooks/useTokenAsset'
  *
  * Split into a pure predicate (`shouldDefer`) and a side-effectful action
  * (`defer`) so callers don't have to invoke the action to find out whether
- * it would apply. v1 is fungible-only (simpleSend + tokenMethodTransfer) 
+ * it would apply. v1 is fungible-only (simpleSend + tokenMethodTransfer)
  *
  * NOTE: Bridge does NOT use this hook — it uses nested navigation
  * (`BRIDGE.ROOT` → `{ screen, params }`), a structurally different shape.
@@ -86,6 +86,7 @@ export function useHandleHwSend() {
         displayContext: {
           amount: displayAmount,
           tokenSymbol: displayTokenSymbol,
+          gasTokenSymbol: selectedGasFeeToken?.symbol,
           recipient: transactionMetadata.txParams.to,
         },
       });

@@ -12,7 +12,6 @@ import { HardwareWalletsSwapsSelectorsIDs } from './HardwareWalletsSwaps.testIds
 import {
   type HardwareWalletsSwapsState,
   HardwareWalletsSwapsStatus,
-  HardwareWalletsSwapsStepStatus,
 } from './HardwareWalletsSwaps.state';
 
 const HARDWARE_WALLET_RIVE_ARTBOARD = 'Generic';
@@ -47,21 +46,18 @@ const STATUS_TO_RIVE_TRIGGER: Record<string, string> = {
 
 /**
  * Picks the Rive state-machine trigger for a given flow state. Terminal
- * statuses have a 1:1 mapping; non-terminal statuses inspect the active
- * step's status (Signing → wallet-locked; anything else → reset).
+ * statuses have a 1:1 mapping; non-terminal statuses show the reset state
+ * while the user confirms transactions on their device.
  */
 function getHardwareWalletRiveTrigger(progress: HardwareWalletsSwapsState) {
   const mapped = STATUS_TO_RIVE_TRIGGER[progress.status];
   if (mapped) return mapped;
 
-  const activeStep = progress.steps[progress.currentStep];
-  return activeStep?.status === HardwareWalletsSwapsStepStatus.Signing
-    ? HardwareWalletRiveTrigger.WalletLocked
-    : HardwareWalletRiveTrigger.Reset;
+  return HardwareWalletRiveTrigger.Reset;
 }
 
 export interface HwSwapAnimationProps {
-  progress: HardwareWalletsSwapsState;
+  readonly progress: HardwareWalletsSwapsState;
 }
 
 /**

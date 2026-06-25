@@ -228,7 +228,9 @@ describe('useHandleHwSend', () => {
       string,
       { gasTokenAddress?: string },
     ];
-    expect(navParams.gasTokenAddress).toBe('0x90F79bf6EB2c4f870365E785982E1f101E93b906');
+    expect(navParams.gasTokenAddress).toBe(
+      '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+    );
   });
 
   it('totalSteps includes every bundled child transaction plus the root send', () => {

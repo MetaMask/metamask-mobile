@@ -7,49 +7,70 @@ import {
   useState,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigation } from '@react-navigation/native';
-import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
-import Logger from '../../../../util/Logger';
+import { useNavigation, useIsFocused } from '@react-navigation/native';
 
 import Routes from '../../../../constants/navigation/Routes';
-import { strings } from '../../../../../locales/i18n';
 import {
   resetHardwareWalletsSwaps,
   selectHardwareWalletsSwaps,
   updateHardwareWalletsSwaps,
 } from '../../../../core/redux/slices/bridge';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../component-library/components/Toast';
-import { IconName as ToastIconName } from '../../../../component-library/components/Icons/Icon';
+import { ToastContext } from '../../../../component-library/components/Toast';
+import { completeHwSwapSuccess } from './hwSwapSuccess';
 import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
   HardwareWalletsSwapsStepStatus,
+  reconcileStuckProgress,
 } from './HardwareWalletsSwaps.state';
 import { useHwBatchSignTracker } from './useHwBatchSignTracker';
 import { useHwConnectionMonitoring } from './useHwConnectionMonitoring';
 import { useHardwareWalletSubmit } from './useHardwareWalletSubmit';
 import { type FlowStrategy, CancelTargetType } from './flowStrategy';
 
-/** Connection states from which a retry is allowed. Exclusive of `Disconnected` and unknowns. */
-const RETRY_ALLOWED_CONNECTION_STATUSES: ReadonlySet<ConnectionStatus> =
-  new Set<ConnectionStatus>([
-    ConnectionStatus.Connected,
-    ConnectionStatus.Ready,
-    ConnectionStatus.AwaitingConfirmation,
-    ConnectionStatus.ErrorState,
-  ]);
+/**
+ * Safety-net timeout: if the state machine is stuck in a non-terminal status
+ * after this delay, reconcile via `reconcileStuckProgress` (navigate, dispatch
+ * terminal Signed for one missed step, or TransactionFailed when multiple
+ * steps are stuck). Needed because acceptPendingApproval resolves before
+ * batch signing finishes.
+ */
+const SAFETY_NET_TIMEOUT_MS = 120_000;
+
+/** Flow is finished or was reset — no safety-net reconciliation needed. */
+function isHwSwapFlowInactive(
+  status: HardwareWalletsSwapsStatus,
+  stepCount: number,
+): boolean {
+  return (
+    status === HardwareWalletsSwapsStatus.Idle ||
+    stepCount === 0 ||
+    status === HardwareWalletsSwapsStatus.Submitted ||
+    status === HardwareWalletsSwapsStatus.Failed ||
+    status === HardwareWalletsSwapsStatus.Rejected ||
+    status === HardwareWalletsSwapsStatus.Cancelled
+  );
+}
+
+/** True when the safety-net timer should not be scheduled. */
+function shouldSkipSafetyNetScheduling(
+  status: HardwareWalletsSwapsStatus,
+  stepCount: number,
+): boolean {
+  return (
+    isHwSwapFlowInactive(status, stepCount) ||
+    status === HardwareWalletsSwapsStatus.Disconnected
+  );
+}
 
 interface UseHwSwapLifecycleInputs {
   strategy: FlowStrategy;
-  /** Connection state from `useHardwareWallet()`. Used to gate retry on reconnect. */
-  connectionState: { status: ConnectionStatus };
   /** Imperative device-readiness gate from `useHardwareWallet()`. Forwarded to submit. */
   ensureDeviceReady?: (deviceId?: string | null) => Promise<boolean>;
   /** Sets the pending operation address so the provider can derive the wallet type for device connection. Forwarded to submit. */
   setPendingOperationAddress?: (address: string | null) => void;
+  /** True when the active wallet is a QR hardware wallet. Disables BLE connection monitoring (QR has no persistent transport). */
+  isQrHardwareWallet?: boolean;
 }
 
 /**
@@ -66,12 +87,13 @@ interface UseHwSwapLifecycleInputs {
  */
 export function useHwSwapLifecycle({
   strategy,
-  connectionState,
   ensureDeviceReady,
   setPendingOperationAddress,
+  isQrHardwareWallet,
 }: UseHwSwapLifecycleInputs) {
   const dispatch = useDispatch();
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
   const toastRef = useContext(ToastContext)?.toastRef;
 
   const progress = useSelector(selectHardwareWalletsSwaps);
@@ -89,9 +111,10 @@ export function useHwSwapLifecycle({
   const [isRetrying, setIsRetrying] = useState(false);
 
   // ── Sibling hooks (composed here so refs stay local) ─────────────
+  const isEnabled = Boolean(strategy.walletAddress);
   const { cancelCurrentBatch, confirmationTxId } = useHwBatchSignTracker({
     fromAddress: strategy.walletAddress,
-    isEnabled: Boolean(strategy.walletAddress),
+    isEnabled,
     retryGenerationRef,
     flow: strategy.trackerOptions.flow,
     gasTokenAddress: strategy.trackerOptions.gasTokenAddress,
@@ -102,9 +125,11 @@ export function useHwSwapLifecycle({
   });
 
   const { resetHandledError } = useHwConnectionMonitoring({
-    isEnabled: Boolean(strategy.walletAddress),
+    isEnabled: isEnabled && !isQrHardwareWallet,
     currentStatus: progress.status,
     hasActiveSigning: Boolean(confirmationTxId),
+    monitorDisconnectedStatus: !strategy.isSendFlow,
+    retryInProgressRef,
   });
 
   const {
@@ -135,38 +160,51 @@ export function useHwSwapLifecycle({
   );
 
   // ── Flow termination ─────────────────────────────────────────────
-  const navigateOnSuccess = useCallback(() => {
+  const completeSignedFlow = useCallback(() => {
     if (hasAutoNavigatedRef.current) return;
     hasAutoNavigatedRef.current = true;
-    toastRef?.current?.showToast({
-      variant: ToastVariants.Icon,
-      iconName: ToastIconName.Check,
-      hasNoTimeout: false,
-      labelOptions: [
-        {
-          label: strings('bridge.hardware_wallet_progress.submitted_title'),
-        },
-      ],
-    });
-    dispatch(resetHardwareWalletsSwaps());
-    navigation.navigate(Routes.TRANSACTIONS_VIEW);
+    completeHwSwapSuccess({ dispatch, navigation, toastRef });
   }, [dispatch, navigation, toastRef]);
+
+  const reconcileStuckFlowProgress = useCallback(() => {
+    const current = progressRef.current;
+    // Intentionally omitting Disconnected: if the device disconnected after
+    // signing completed, we still complete the flow below.
+    if (
+      isHwSwapFlowInactive(current.status, current.steps.length) ||
+      hasAutoNavigatedRef.current
+    ) {
+      return;
+    }
+
+    const resolution = reconcileStuckProgress(current.steps);
+    if (resolution.action === 'navigate') {
+      // All signed but status hasn't transitioned. QR wallets normally
+      // complete on the last HwQrScanner scan; when the user is still on
+      // progress/disconnected, finish here instead.
+      completeSignedFlow();
+      return;
+    }
+
+    dispatch(updateHardwareWalletsSwaps(resolution.event));
+  }, [completeSignedFlow, dispatch]);
 
   useEffect(() => {
     // All device signing steps complete AND a submission was started.
     // Fires exactly once (guarded by hasAutoNavigatedRef) to show the
     // success toast, reset HW-swaps state, and navigate to activity view.
-    Logger.log('[HW-SendBundle] nav effect', {
-      allStepsSigned,
-      steps: progress.steps.map((s) => ({ kind: s.kind, status: s.status })),
-      hasInitialSubmission: hasInitialSubmissionRef.current,
-      hasAutoNavigated: hasAutoNavigatedRef.current,
-    });
     if (!allStepsSigned) return;
+    // For QR wallets the HwQrScanner screen handles final navigation
+    // directly (it navigates to TRANSACTIONS_VIEW on the last scan
+    // instead of calling goBack()).  Letting this effect also fire would
+    // produce two native view insertions in the same frame, colliding
+    // on Android (java.lang.IllegalStateException / addViewAt).
+    if (isQrHardwareWallet) return;
+    if (!isFocused) return;
     if (hasAutoNavigatedRef.current) return;
     if (!hasInitialSubmissionRef.current) return;
-    navigateOnSuccess();
-  }, [allStepsSigned, navigateOnSuccess]);
+    completeSignedFlow();
+  }, [allStepsSigned, isQrHardwareWallet, isFocused, completeSignedFlow]);
 
   // ── Initial submit (first Waiting) ───────────────────────────────
   useEffect(() => {
@@ -190,7 +228,7 @@ export function useHwSwapLifecycle({
     // early because the flag was false. Re-check here and navigate straight
     // to success instead of submitting a no-op.
     if (allStepsSigned) {
-      navigateOnSuccess();
+      completeSignedFlow();
       return;
     }
 
@@ -203,14 +241,40 @@ export function useHwSwapLifecycle({
     canRetry,
     strategy.isSendFlow,
     allStepsSigned,
-    navigateOnSuccess,
+    completeSignedFlow,
   ]);
+
+  // ── Safety-net dispatch ──────────────────────────────────────────
+  // If the state machine is stuck in a non-terminal status after the
+  // safety-net timeout, the tracker likely missed the final signing
+  // event. `reconcileStuckProgress` decides how to reconcile: navigate
+  // directly when every step is Signed, dispatch terminal Signed for a
+  // single remaining unsigned step, or dispatch TransactionFailed when
+  // more than one step is still unsigned (the missed-event premise no
+  // longer holds — failing avoids leaving the flow half-done and hung).
+  // The reducer's guard clauses make a Signed dispatch a no-op if the
+  // tracker already dispatched it (status would be Submitted → early return).
+  useEffect(() => {
+    if (!hasInitialSubmissionRef.current) return;
+    if (hasAutoNavigatedRef.current) return;
+    if (shouldSkipSafetyNetScheduling(progress.status, progress.steps.length))
+      return;
+
+    const timeout = setTimeout(
+      reconcileStuckFlowProgress,
+      SAFETY_NET_TIMEOUT_MS,
+    );
+
+    return () => clearTimeout(timeout);
+  }, [progress.status, progress.steps, reconcileStuckFlowProgress]);
 
   // ── Navigation helper ────────────────────────────────────────────
   const navigateOnCancel = useCallback(() => {
     const target = strategy.cancelTarget;
     if (target.type === CancelTargetType.GoBack) {
       navigation.goBack();
+    } else if (target.params) {
+      navigation.navigate(target.route as string, target.params);
     } else {
       navigation.navigate(target.route as string);
     }
@@ -230,65 +294,54 @@ export function useHwSwapLifecycle({
     navigateOnCancel();
   }, [dispatch, navigateOnCancel]);
 
-  const retrySubmission = useCallback(
-    async (checkConnection: boolean) => {
-      if (retryInProgressRef.current) return;
-      if (!canRetry()) {
-        retryFallback();
-        return;
-      }
-      retryInProgressRef.current = true;
-      setIsRetrying(true);
-      hasAutoNavigatedRef.current = false;
+  const retrySubmission = useCallback(async () => {
+    if (retryInProgressRef.current) return;
+    if (!canRetry()) {
+      retryFallback();
+      return;
+    }
+    retryInProgressRef.current = true;
+    setIsRetrying(true);
+    hasAutoNavigatedRef.current = false;
 
-      try {
-        retryGenerationRef.current += 1;
-        await cancelCurrentBatch();
+    try {
+      retryGenerationRef.current += 1;
+      await cancelCurrentBatch();
 
-        if (checkConnection) {
-          const connectionAllowsRetry = RETRY_ALLOWED_CONNECTION_STATUSES.has(
-            connectionState.status,
-          );
-
-          if (!connectionAllowsRetry) return;
-        }
-
-        submissionGenerationRef.current += 1;
-        dispatch(
-          updateHardwareWalletsSwaps({
-            type: HardwareWalletsSwapsEventType.Retry,
-          }),
-        );
-        await submitWithDeviceReady();
-        // Clear the connection-error guard only AFTER the device has
-        // reconnected. Clearing it before the Retry dispatch (as before) let
-        // the monitoring hook re-fire DeviceDisconnected while the screen was
-        // Waiting and the connection was still Disconnected, overriding the
-        // Retry → Waiting reset and leaving the screen stuck on Disconnected.
-        resetHandledError();
-      } finally {
-        retryInProgressRef.current = false;
-        setIsRetrying(false);
-      }
-    },
-    [
-      dispatch,
-      cancelCurrentBatch,
-      submitWithDeviceReady,
-      connectionState.status,
-      resetHandledError,
-      canRetry,
-      retryFallback,
-    ],
-  );
+      submissionGenerationRef.current += 1;
+      hasInitialSubmissionRef.current = true;
+      dispatch(
+        updateHardwareWalletsSwaps({
+          type: HardwareWalletsSwapsEventType.Retry,
+        }),
+      );
+      await submitWithDeviceReady();
+      // Clear the connection-error guard only AFTER the device has
+      // reconnected. Clearing it before the Retry dispatch (as before) let
+      // the monitoring hook re-fire DeviceDisconnected while the screen was
+      // Waiting and the connection was still Disconnected, overriding the
+      // Retry → Waiting reset and leaving the screen stuck on Disconnected.
+      resetHandledError();
+    } finally {
+      retryInProgressRef.current = false;
+      setIsRetrying(false);
+    }
+  }, [
+    dispatch,
+    cancelCurrentBatch,
+    submitWithDeviceReady,
+    resetHandledError,
+    canRetry,
+    retryFallback,
+  ]);
 
   const handleTryAgain = useCallback(
-    () => retrySubmission(false),
+    () => retrySubmission(),
     [retrySubmission],
   );
 
   const handleReconnect = useCallback(
-    () => retrySubmission(true),
+    () => retrySubmission(),
     [retrySubmission],
   );
 

@@ -7,8 +7,8 @@ import {
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
-import { getDeviceIdForAddress } from '../../../../core/HardwareWallet/helpers';
 import Logger from '../../../../util/Logger';
+import { getDeviceIdForAddress } from '../../../../core/HardwareWallet/helpers';
 import { updateHardwareWalletsSwaps } from '../../../../core/redux/slices/bridge';
 import useApprovalRequest from '../../../Views/confirmations/hooks/useApprovalRequest';
 import useSubmitBridgeTx from '../../../../util/bridge/hooks/useSubmitBridgeTx';
@@ -18,6 +18,86 @@ import {
   type HardwareWalletsSwapsState,
 } from './HardwareWalletsSwaps.state';
 import type { SubmissionParams } from './HardwareWalletsSwaps';
+import { getTransactionById } from './hw-batch-sign/utils';
+
+/** Returns the deferred send approval when it still matches the route id. */
+function getMatchingDeferredApproval<T extends { id: string }>(
+  approvalRequest: T | undefined,
+  expectedApprovalRequestId: string | undefined,
+): T | undefined {
+  if (
+    !approvalRequest ||
+    !expectedApprovalRequestId ||
+    approvalRequest.id !== expectedApprovalRequestId
+  ) {
+    return undefined;
+  }
+  return approvalRequest;
+}
+
+/**
+ * Retry path after the confirmation approval was consumed. Drops any orphan
+ * parent tx, then re-adds the send batch without approval.
+ */
+async function retrySendTransaction(
+  preparedTxMeta: TransactionMeta,
+): Promise<void> {
+  const orphanParent = getTransactionById(preparedTxMeta.id);
+  if (
+    orphanParent &&
+    (orphanParent.status === TransactionStatus.approved ||
+      orphanParent.status === TransactionStatus.signed)
+  ) {
+    try {
+      Engine.controllerMessenger.call(
+        'TransactionController:updateTransaction',
+        { ...orphanParent, status: TransactionStatus.dropped },
+        'HW send retry — dropping orphan parent tx',
+      );
+    } catch {
+      // Ignore errors from dropping the orphan parent tx
+    }
+  }
+
+  const extras = preparedTxMeta.batchTransactions ?? [];
+  const before: TransactionBatchSingleRequest[] = [];
+  const after: TransactionBatchSingleRequest[] = [];
+  for (const extra of extras) {
+    const { isAfter, type, ...params } = extra;
+    const entry: TransactionBatchSingleRequest = { params, type };
+    if (isAfter === false) {
+      before.push(entry);
+    } else {
+      after.push(entry);
+    }
+  }
+
+  const { data, gas, maxFeePerGas, maxPriorityFeePerGas, to, value } =
+    preparedTxMeta.txParams;
+  const sendEntry: TransactionBatchSingleRequest = {
+    params: {
+      data: data as Hex | undefined,
+      gas: gas as Hex | undefined,
+      maxFeePerGas: maxFeePerGas as Hex | undefined,
+      maxPriorityFeePerGas: maxPriorityFeePerGas as Hex | undefined,
+      to: to as Hex | undefined,
+      value: value as Hex | undefined,
+    },
+    type: preparedTxMeta.type,
+  };
+
+  await Engine.context.TransactionController.addTransactionBatch({
+    from: preparedTxMeta.txParams.from as Hex,
+    networkClientId: preparedTxMeta.networkClientId,
+    origin: 'metamask',
+    isInternal: true,
+    requireApproval: false,
+    disableHook: false,
+    disableSequential: true,
+    disable7702: true,
+    transactions: [...before, sendEntry, ...after],
+  });
+}
 
 interface UseHardwareWalletSubmitOptions {
   isSendFlow: boolean;
@@ -87,19 +167,19 @@ export function useHardwareWalletSubmit({
       try {
         await submitFn();
       } catch (error) {
-        Logger.log('[HW-SendBundle] submit FAILED', {
-          error:
-            error instanceof Error
-              ? { message: error.message, name: error.name, stack: error.stack }
-              : typeof error === 'object' && error !== null
-                ? JSON.parse(JSON.stringify(error, Object.getOwnPropertyNames(error)))
-                : String(error),
-        });
         if (submissionGenerationRef.current !== myGeneration) return;
-        const s = progressRef.current.status;
+        Logger.error(error as Error, 'HW swap submit failed');
+        const status = progressRef.current.status;
+        // Only transition to Failed from active phases:
+        // - Waiting:  HW signing step failed (device error, keyring error, etc.)
+        // - Submitted: signing succeeded but the broadcast (STX backend) failed
+        //
+        // Other statuses (Rejected, Disconnected, Cancelled, Failed, Idle) are
+        // already terminal or handled — the error is redundant and skipping it
+        // avoids overwriting state the reducer deliberately expects to be retryable.
         if (
-          s === HardwareWalletsSwapsStatus.Waiting ||
-          s === HardwareWalletsSwapsStatus.Submitted
+          status === HardwareWalletsSwapsStatus.Waiting ||
+          status === HardwareWalletsSwapsStatus.Submitted
         ) {
           dispatch(
             updateHardwareWalletsSwaps({
@@ -126,47 +206,30 @@ export function useHardwareWalletSubmit({
       return;
     }
 
-    // WALLET SAFETY: on the initial submit, refuse to accept unless the
-    // pending approval's id matches the one deferred. On retry the approval
-    // is consumed (deleteAfterResult) so we fall through to the retry path.
-    const isInitialSubmit =
-      Boolean(currentApprovalRequest) &&
-      Boolean(expectedApprovalRequestId) &&
-      currentApprovalRequest?.id === expectedApprovalRequestId;
-
-    Logger.log('[HW-SendBundle] submit proceeding', {
-      expectedId: expectedApprovalRequestId,
-      actualId: currentApprovalRequest?.id,
-      hasPreparedTxMeta: Boolean(currentPreparedTxMeta),
-      batchTxCount: currentPreparedTxMeta.batchTransactions?.length ?? 0,
-      isRetry: !isInitialSubmit,
-    });
-
     await runSubmit(async () => {
       setPendingOperationAddress?.(walletAddress);
       try {
         const deviceId = await getDeviceIdForAddress(walletAddress);
-        Logger.log('[HW-SendBundle] connecting device (submit)', { deviceId });
         const isReady = await ensureDeviceReady?.(deviceId);
         if (!isReady) {
-          Logger.log('[HW-SendBundle] device not ready, aborting submit');
+          dispatch(
+            updateHardwareWalletsSwaps({
+              type: HardwareWalletsSwapsEventType.TransactionFailed,
+            }),
+          );
           return;
         }
 
-        if (
-          currentApprovalRequest &&
-          expectedApprovalRequestId &&
-          currentApprovalRequest.id === expectedApprovalRequestId
-        ) {
+        const matchingApproval = getMatchingDeferredApproval(
+          currentApprovalRequest,
+          expectedApprovalRequestId,
+        );
+        if (matchingApproval) {
           // Initial submit: accept the confirmation approval.
-          Logger.log('[HW-SendBundle] device connected, accepting deferred approval', {
-            approvalId: currentApprovalRequest.id,
-            hasBatchTransactions: Boolean(currentPreparedTxMeta.batchTransactions?.length),
-          });
           await Engine.acceptPendingApproval(
-            currentApprovalRequest.id,
+            matchingApproval.id,
             {
-              ...currentApprovalRequest.requestData,
+              ...matchingApproval.requestData,
               txMeta: currentPreparedTxMeta,
             },
             {
@@ -176,98 +239,19 @@ export function useHardwareWalletSubmit({
             },
           );
         } else {
-          // Retry: the confirmation approval was consumed by the first attempt
-          // (deleteAfterResult: true) and cannot be re-accepted. Recreate the
-          // batch the way the swaps flow does — via addTransactionBatch with
-          // requireApproval:false. That creates no Transaction approval, so the
-          // user is NOT routed back to the confirmation page, and every tx is
-          // signed via the keyring (device prompted), exactly like the initial
-          // flow's ExtraTransactionsPublishHook children.
-          //
-          // First drop the orphan parent tx left by the previous attempt.
-          // cancelCurrentBatch (run before submit) drops the batch children,
-          // but the parent send tx has no batchId and is deliberately shielded
-          // from cancellation (it is the in-flight confirmation tx during the
-          // initial flow). On retry its confirmation approval is already
-          // consumed, so it is a stuck pre-broadcast tx. Drop ONLY this parent
-          // by id, and only while it is still pre-broadcast (approved/signed) —
-          // never touch submitted/confirmed txs, which may be pending on-chain.
-          // Without this, the parent accumulates across attempts (previously
-          // surfaced as an extra transaction on re-confirm).
-          const orphanParent =
-            Engine.context.TransactionController.state.transactions.find(
-              (tx) => tx.id === currentPreparedTxMeta.id,
-            );
-          if (
-            orphanParent &&
-            (orphanParent.status === TransactionStatus.approved ||
-              orphanParent.status === TransactionStatus.signed)
-          ) {
-            try {
-              Engine.controllerMessenger.call(
-                'TransactionController:updateTransaction',
-                { ...orphanParent, status: TransactionStatus.dropped },
-                'HW send retry — dropping orphan parent tx',
-              );
-            } catch (dropError) {
-              Logger.log(
-                '[HW-SendBundle] retry — drop orphan parent failed',
-                dropError,
-              );
-            }
-          }
-
-          // Split "before" extras (isAfter === false) ahead of the send, then
-          // the rest — matching ExtraTransactionsPublishHook so batch nonces
-          // are assigned in the same order as the initial attempt.
-          const extras = currentPreparedTxMeta.batchTransactions ?? [];
-          const before: TransactionBatchSingleRequest[] = [];
-          const after: TransactionBatchSingleRequest[] = [];
-          for (const extra of extras) {
-            const { isAfter, type, ...params } = extra;
-            const entry: TransactionBatchSingleRequest = { params, type };
-            if (isAfter === false) {
-              before.push(entry);
-            } else {
-              after.push(entry);
-            }
-          }
-          // The send tx becomes a batch child with the BatchTransactionParams
-          // field set (from/nonce are supplied by the batch itself, mirroring
-          // ExtraTransactionsPublishHook's `firstParams`).
-          const { data, gas, maxFeePerGas, maxPriorityFeePerGas, to, value } =
-            currentPreparedTxMeta.txParams;
-          const sendEntry: TransactionBatchSingleRequest = {
-            params: {
-              data: data as Hex | undefined,
-              gas: gas as Hex | undefined,
-              maxFeePerGas: maxFeePerGas as Hex | undefined,
-              maxPriorityFeePerGas: maxPriorityFeePerGas as Hex | undefined,
-              to: to as Hex | undefined,
-              value: value as Hex | undefined,
-            },
-            type: currentPreparedTxMeta.type,
-          };
-
-          await Engine.context.TransactionController.addTransactionBatch({
-            from: currentPreparedTxMeta.txParams.from as Hex,
-            networkClientId: currentPreparedTxMeta.networkClientId,
-            origin: 'metamask',
-            isInternal: true,
-            requireApproval: false,
-            disableHook: false,
-            disableSequential: true,
-            disable7702: true,
-            transactions: [...before, sendEntry, ...after],
-          });
-          Logger.log('[HW-SendBundle] retry batch recreated');
+          await retrySendTransaction(currentPreparedTxMeta);
         }
-        Logger.log('[HW-SendBundle] submit resolved');
       } finally {
         setPendingOperationAddress?.(null);
       }
     });
-  }, [dispatch, walletAddress, runSubmit, ensureDeviceReady, setPendingOperationAddress]);
+  }, [
+    dispatch,
+    walletAddress,
+    runSubmit,
+    ensureDeviceReady,
+    setPendingOperationAddress,
+  ]);
 
   // ── Bridge flow (UNCHANGED) ─────────────────────────────────────────
   const submitBridgeFlow = useCallback(async () => {
@@ -292,8 +276,7 @@ export function useHardwareWalletSubmit({
     await submitBridgeFlow();
   }, [isSendFlow, submitSendFlow, submitBridgeFlow]);
 
-  // Behavior, not state: callers ask "can I retry?" / "clear the cache"
-  // without reaching into this hook's internal refs.
+  // Callers query behavior without reaching into internal refs.
   const canRetry = useCallback((): boolean => {
     if (isSendFlow) {
       // Don't require the approval — it's consumed after the first attempt

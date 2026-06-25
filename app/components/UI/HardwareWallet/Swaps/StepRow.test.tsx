@@ -143,7 +143,9 @@ describe('StepRow', () => {
     expect(
       getByTestId(`${HardwareWalletsSwapsSelectorsIDs.INLINE_QR_CODE}-1`),
     ).toBeOnTheScreen();
-    expect(getByText('Recipient 0x70997970C51812dc3A010C7d01b50e0d17dc79C8')).toBeOnTheScreen();
+    expect(
+      getByText('Recipient 0x70997970C51812dc3A010C7d01b50e0d17dc79C8'),
+    ).toBeOnTheScreen();
     expect(mockAnimatedQRCode).toHaveBeenCalledWith(
       expect.objectContaining({
         cbor: 'aabbccdd',
@@ -208,6 +210,8 @@ describe('StepRow', () => {
     );
 
     expect(getByText('Approving 10 ETH')).toBeOnTheScreen();
-    expect(getByText('Spender 0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc')).toBeOnTheScreen();
+    expect(
+      getByText('Spender 0x3C44CdDdB6a900fa2b585dd29e6B6F907B4c6CDc'),
+    ).toBeOnTheScreen();
   });
 });

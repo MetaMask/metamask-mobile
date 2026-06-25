@@ -541,6 +541,70 @@ describe('useHwConnectionMonitoring', () => {
     expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
   });
 
+  it('ignores initial Disconnected in send mode when disconnected-status monitoring is disabled', () => {
+    mockUseHardwareWallet.mockReturnValue(
+      mockContextWith(createDisconnectedState()),
+    );
+
+    renderHook(() =>
+      useHwConnectionMonitoring({
+        isEnabled: true,
+        currentStatus: HardwareWalletsSwapsStatus.Waiting,
+        hasActiveSigning: true,
+        monitorDisconnectedStatus: false,
+      }),
+    );
+
+    jest.advanceTimersByTime(1000);
+
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+  });
+
+  it('ignores bare Disconnected status when disconnected-status monitoring is disabled', () => {
+    mockUseHardwareWallet.mockReturnValue(mockContextWith(createReadyState()));
+
+    const { rerender } = renderHook(() =>
+      useHwConnectionMonitoring({
+        isEnabled: true,
+        currentStatus: HardwareWalletsSwapsStatus.Waiting,
+        hasActiveSigning: true,
+        monitorDisconnectedStatus: false,
+      }),
+    );
+
+    mockUseHardwareWallet.mockReturnValue(
+      mockContextWith(createDisconnectedState()),
+    );
+    rerender({});
+    jest.advanceTimersByTime(1000);
+
+    expect(updateHardwareWalletsSwaps).not.toHaveBeenCalled();
+  });
+
+  it('still dispatches ErrorState disconnect errors when disconnected-status monitoring is disabled', () => {
+    const error = new Error('device disconnected');
+    (parseErrorByType as jest.Mock).mockReturnValue(
+      makeParsedError(ErrorCode.DeviceDisconnected),
+    );
+
+    mockUseHardwareWallet.mockReturnValue(
+      mockContextWith(createErrorState(error)),
+    );
+
+    renderHook(() =>
+      useHwConnectionMonitoring({
+        isEnabled: true,
+        currentStatus: HardwareWalletsSwapsStatus.Waiting,
+        hasActiveSigning: true,
+        monitorDisconnectedStatus: false,
+      }),
+    );
+
+    expect(updateHardwareWalletsSwaps).toHaveBeenCalledWith({
+      type: HardwareWalletsSwapsEventType.DeviceDisconnected,
+    });
+  });
+
   it('ignores pre-existing ErrorState when first entering Waiting', () => {
     const error = new Error('stale error');
     (parseErrorByType as jest.Mock).mockReturnValue(

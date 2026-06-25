@@ -31,6 +31,8 @@ export interface CancelTarget {
   type: CancelTargetType;
   /** Route to push. Required when `type === CancelTargetType.Navigate`. */
   route?: string;
+  /** Additional params to pass. Used when `type === CancelTargetType.Navigate`. */
+  params?: Record<string, unknown>;
 }
 
 /** Bridge-only submission payload (a selected quote + analytics context). */
@@ -54,6 +56,8 @@ export interface HardwareWalletsSwapsRouteParams {
   displayContext?: {
     amount?: string;
     tokenSymbol?: string;
+    /** Symbol of the gas-fee token (may differ from the sent token). */
+    gasTokenSymbol?: string;
     recipient?: string;
   };
 }
@@ -68,11 +72,13 @@ export interface FlowStrategy {
   /** Convenience boolean for the few downstream APIs that take `isSendFlow: boolean`. */
   isSendFlow: boolean;
   /** Address of the signing wallet. Send: from prepared tx; bridge: bridge selector. */
-  walletAddress: string | undefined;
+  walletAddress?: string;
   /** Display amount for step rows. Send: route-params displayContext; bridge: source selector. */
-  displayedAmount: string | undefined;
+  displayedAmount?: string;
   /** Display symbol for step rows. Send: route-params displayContext; bridge: source selector. */
-  displayedTokenSymbol: string | undefined;
+  displayedTokenSymbol?: string;
+  /** Send only: gas-fee token symbol for the FeeTransfer step (may differ from displayedTokenSymbol). */
+  gasTokenSymbol?: string;
   /** Inputs for `useHwBatchSignTracker`. */
   trackerOptions: {
     flow: Flow;
@@ -116,7 +122,11 @@ export function resolveFlowStrategy(input: {
       routeParams.preparedTxMeta?.batchTransactions?.length ?? 0;
     const expectedBatchTransactionCount =
       routeParams.gasTokenAddress && batchTransactionCount > 0
-        ? batchTransactionCount + 1
+        ? // +1 for the FeeTransfer (gas token payment) step — when
+          // gasTokenAddress is set, the sendbundle includes an extra tx to
+          // pay gas with the fee token, making the total batch size
+          // batchTransactionCount + 1.
+          batchTransactionCount + 1
         : undefined;
 
     return {
@@ -125,6 +135,7 @@ export function resolveFlowStrategy(input: {
       walletAddress: routeParams.preparedTxMeta?.txParams.from,
       displayedAmount: routeParams.displayContext?.amount,
       displayedTokenSymbol: routeParams.displayContext?.tokenSymbol,
+      gasTokenSymbol: routeParams.displayContext?.gasTokenSymbol,
       trackerOptions: {
         flow: Flow.Send,
         gasTokenAddress: routeParams.gasTokenAddress,
@@ -137,7 +148,8 @@ export function resolveFlowStrategy(input: {
       },
       cancelTarget: {
         type: CancelTargetType.Navigate,
-        route: Routes.WALLET_VIEW,
+        route: Routes.SEND.DEFAULT,
+        params: { screen: Routes.SEND.AMOUNT },
       },
     };
   }
@@ -148,6 +160,7 @@ export function resolveFlowStrategy(input: {
     walletAddress: bridgedWalletAddress,
     displayedAmount: sourceAmount,
     displayedTokenSymbol: sourceToken?.symbol,
+    gasTokenSymbol: undefined,
     trackerOptions: { flow: Flow.Bridge },
     submitOptions: { submissionParams: routeParams.submissionParams },
     cancelTarget: {
