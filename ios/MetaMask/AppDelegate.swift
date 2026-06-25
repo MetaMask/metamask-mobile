@@ -83,12 +83,6 @@ class AppDelegate: ExpoAppDelegate {
       braze.delegate = self
       AppDelegate.braze = braze
       BrazeHelperPopulateInitialPayload(launchOptions)
-
-      // Braze's push.automation=true sets itself as UNUserNotificationCenterDelegate,
-      // which swallows willPresent for non-Braze notifications and prevents
-      // Firebase's messaging().onMessage() from firing in JS. Reclaim the delegate
-      // here (after Braze init) so our own willPresent can forward to Firebase.
-      UNUserNotificationCenter.current().delegate = self
     }
 
     factory.startReactNative(
@@ -100,7 +94,22 @@ class AppDelegate: ExpoAppDelegate {
 
     let superResult = super.application(application, didFinishLaunchingWithOptions: launchOptions)
 
+    // Claim UNUserNotificationCenterDelegate AFTER all SDK initializations.
+    // Braze (push.automation=true) and notifee both set themselves as delegate during
+    // their startup; we must be the last assignment so our willPresent can forward to
+    // Firebase and trigger messaging().onMessage() in JS.
+    // This is intentionally unconditional — it must run even when Braze is not configured.
+    UNUserNotificationCenter.current().delegate = self
+
     return superResult
+  }
+
+  override func applicationDidBecomeActive(_ application: UIApplication) {
+    super.applicationDidBecomeActive(application)
+    // Re-assert our delegate on every foreground entry. The JS bundle executes
+    // notifee.onForegroundEvent() asynchronously after didFinishLaunchingWithOptions,
+    // which can re-take the delegate slot. Re-claiming here ensures we win.
+    UNUserNotificationCenter.current().delegate = self
   }
 
   override func application(
