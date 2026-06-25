@@ -299,6 +299,8 @@ const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
   stopMarketCloseShort: () =>
     strings('transactions.activity_stop_market_close_short'),
   marketCloseShort: () => strings('transactions.activity_market_close_short'),
+  limitShort: () => strings('transactions.activity_limit_short'),
+  limitCloseShort: () => strings('transactions.activity_limit_close_short'),
 };
 
 // Domain (perps/predict) rows have no bespoke failed copy, so mark a

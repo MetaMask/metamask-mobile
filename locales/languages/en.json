@@ -4825,6 +4825,8 @@
     "activity_market_short": "Market short",
     "activity_stop_market_close_short": "Stop market—close short",
     "activity_market_close_short": "Market—close short",
+    "activity_limit_short": "Limit short",
+    "activity_limit_close_short": "Limit—close short",
     "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",

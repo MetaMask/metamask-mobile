@@ -32,7 +32,9 @@ export type PerpsActivityType =
   | 'perpsCloseLongTakeProfit'
   | 'marketShort'
   | 'stopMarketCloseShort'
-  | 'marketCloseShort';
+  | 'marketCloseShort'
+  | 'limitShort'
+  | 'limitCloseShort';
 
 export type PerpsActivityListItem = ActivityListItem & {
   type: PerpsActivityType;

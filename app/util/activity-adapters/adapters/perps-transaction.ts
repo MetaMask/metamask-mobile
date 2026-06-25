@@ -15,6 +15,7 @@
  * (HyperLiquid has no public CAIP-2; callers pass Arbitrum). Open `order`
  * entries are not mapped — the feed only surfaces executed history.
  */
+import BigNumber from 'bignumber.js';
 import type { CaipChainId } from '@metamask/utils';
 import {
   FillType,
@@ -153,14 +154,15 @@ function mapOrderStatus(
 /**
  * Classifies a historical `order` entry into an Activity row type.
  *
- * Perps order records carry no structured side/direction field — only a display
- * `title` ("Market short", "Stop market close short", …) produced by the perps
- * domain. We therefore parse the title, which is fragile (breaks if upstream
- * copy changes) but is the only signal available on the `order` shape.
+ * Direction (long/short) and open vs close come from the display `title` the
+ * perps domain produces ("Limit short", "Market close short", …) — fragile, but
+ * the only side/close signal on the record. Limit vs market, however, is taken
+ * from the *structured* `order.type`, so a limit order is never displayed as a
+ * market order.
  *
- * The shared `ActivityListItem` type union only models *short* order kinds
- * today, so long orders are explicitly excluded (return `null`) rather than
- * silently mismatched onto a "short" kind.
+ * The shared `ActivityListItem` union only models *short* order kinds today, so
+ * long orders are explicitly excluded (return `null`) rather than silently
+ * mismatched onto a "short" kind.
  * TODO: add long order kinds to the union and map them here.
  */
 function mapOrderKind(
@@ -173,14 +175,19 @@ function mapOrderKind(
   if (title.includes('long') || title.includes('buy')) {
     return null;
   }
+
+  // Stop orders are a triggered market close with their own dedicated kind.
   if (title.includes('stop')) {
     return 'stopMarketCloseShort';
   }
+
+  const isLimit = transaction.order?.type === 'limit';
+
   if (title.includes('close')) {
-    return 'marketCloseShort';
+    return isLimit ? 'limitCloseShort' : 'marketCloseShort';
   }
   if (title.includes('short') || title.includes('sell')) {
-    return 'marketShort';
+    return isLimit ? 'limitShort' : 'marketShort';
   }
   return null;
 }
@@ -289,6 +296,15 @@ export function mapPerpsTransaction({
       return null;
     }
 
+    // Position size in asset units (e.g. "0.0001 BTC") for the row subtitle.
+    // `order.size` is the USD notional (originalSize × price), so recover the
+    // asset size from size / limitPrice; omit it when there's no usable price.
+    const limitPrice = Number(order.limitPrice);
+    const assetSize =
+      Number.isFinite(limitPrice) && limitPrice > 0
+        ? BigNumber(order.size).dividedBy(order.limitPrice).toString()
+        : undefined;
+
     return {
       type: kind,
       chainId,
@@ -298,7 +314,11 @@ export function mapPerpsTransaction({
       raw: { type: 'perpsTransaction', data: transaction },
       data: {
         token: toToken(Number(order.size), 'out', quoteAsset),
-        sourceToken: { symbol: transaction.asset, direction: 'out' },
+        sourceToken: {
+          ...(assetSize ? { amount: assetSize } : {}),
+          symbol: transaction.asset,
+          direction: 'out',
+        },
       },
     } as ActivityListItem;
   }

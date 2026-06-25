@@ -1,3 +1,4 @@
+import BigNumber from 'bignumber.js';
 import type { CaipChainId } from '@metamask/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import {
@@ -99,6 +100,7 @@ const orderTx = (
   title: string,
   text: PerpsOrderTransactionStatus,
   statusType: PerpsOrderTransactionStatusType,
+  orderType: 'limit' | 'market' = 'market',
 ): PerpsTransaction => ({
   ...base,
   id: 'order-1',
@@ -108,7 +110,7 @@ const orderTx = (
   order: {
     text,
     statusType,
-    type: 'limit',
+    type: orderType,
     size: '10.23',
     limitPrice: '92023',
     filled:
@@ -396,6 +398,62 @@ describe('mapPerpsTransaction', () => {
       });
 
       expect(result).toBeNull();
+    });
+
+    it.each([
+      ['Limit short', 'limitShort'],
+      ['Limit close short', 'limitCloseShort'],
+    ] as const)(
+      'maps %s (limit order) to %s, not a market kind',
+      (title, expectedType) => {
+        const result = mapPerpsTransaction({
+          transaction: orderTx(
+            title,
+            PerpsOrderTransactionStatus.Filled,
+            PerpsOrderTransactionStatusType.Filled,
+            'limit',
+          ),
+          chainId: ARBITRUM,
+        });
+
+        expect(result?.type).toBe(expectedType);
+      },
+    );
+
+    it('keeps stop orders on their dedicated kind regardless of order type', () => {
+      const result = mapPerpsTransaction({
+        transaction: orderTx(
+          'Stop market close short',
+          PerpsOrderTransactionStatus.Filled,
+          PerpsOrderTransactionStatusType.Filled,
+          'limit',
+        ),
+        chainId: ARBITRUM,
+      });
+
+      expect(result?.type).toBe('stopMarketCloseShort');
+    });
+
+    it('includes the position size (asset units) in sourceToken for the row subtitle', () => {
+      const result = mapPerpsTransaction({
+        transaction: orderTx(
+          'Market short',
+          PerpsOrderTransactionStatus.Filled,
+          PerpsOrderTransactionStatusType.Filled,
+        ),
+        chainId: ARBITRUM,
+      });
+
+      const sourceToken =
+        result && 'sourceToken' in result.data
+          ? result.data.sourceToken
+          : undefined;
+      // order.size is the USD notional; the subtitle size is size / limitPrice.
+      expect(sourceToken).toEqual({
+        amount: new BigNumber('10.23').dividedBy('92023').toString(),
+        symbol: 'ETH',
+        direction: 'out',
+      });
     });
   });
 
