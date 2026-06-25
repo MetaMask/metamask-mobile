@@ -472,6 +472,9 @@ const TraderPositionView = () => {
                 marketCap={
                   typeof marketCap === 'number' ? marketCap : undefined
                 }
+                tokenPriceFiat={
+                  typeof currentPrice === 'number' ? currentPrice : undefined
+                }
                 source={quickBuySource}
                 isTraderPositionClosed={isClosed}
               />
