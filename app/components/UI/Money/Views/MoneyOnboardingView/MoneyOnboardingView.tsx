@@ -30,6 +30,7 @@ import Rive, {
   useRiveNumber,
   Fit,
   useRiveTrigger,
+  useRiveString,
 } from 'rive-react-native';
 import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 import { selectIsUsUnauthenticatedNonCardholder } from '../../selectors/eligibility';
@@ -43,7 +44,7 @@ import {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-const MoneyOnboardingAnimationNoText = require('../../../../../animations/onboarding_flow_v20_no_text.riv');
+const MoneyOnboardingAnimationNoTextV2 = require('../../../../../animations/money_account_onboarding_flow_final_no_text_button_text_configurable_v2.riv');
 
 /**
  * State machine constants must match the Rive file authored for this animation.
@@ -98,7 +99,7 @@ const SMALL_OVERLAY_DEVICE_MAX_WIDTH = 375;
 const SMALL_OVERLAY_DEVICE_MAX_HEIGHT = 700;
 const OVERLAY_TEXT_PRESETS = {
   small: {
-    title: { fontSize: 18, lineHeight: 30 },
+    title: { fontSize: 18, lineHeight: 25, paddingHorizontal: 42 },
     content: { fontSize: 14, lineHeight: 20 },
     footer: { fontSize: 10, lineHeight: 14 },
   },
@@ -171,9 +172,12 @@ const MoneyOnboardingTextOverlay = ({
 }) => {
   const insets = useSafeAreaInsets();
   const { height, width } = useWindowDimensions();
+  console.log('width: ', width);
+  console.log('height: ', height);
   const isSmallScreen =
     width <= SMALL_OVERLAY_DEVICE_MAX_WIDTH ||
     height < SMALL_OVERLAY_DEVICE_MAX_HEIGHT;
+  console.log('isSmallScreen: ', isSmallScreen);
   const overlayTextPreset = useMemo(
     () =>
       isSmallScreen ? OVERLAY_TEXT_PRESETS.small : OVERLAY_TEXT_PRESETS.default,
@@ -239,7 +243,7 @@ const MoneyOnboardingTextOverlay = ({
           adjustsFontSizeToFit
           color={TextColor.OverlayInverse}
           fontWeight={FontWeight.Bold}
-          numberOfLines={1}
+          numberOfLines={3}
           style={[styles.title, overlayTextPreset.title]}
           testID={MoneyOnboardingViewTestIds.OVERLAY_TITLE}
           variant={TextVariant.HeadingLg}
@@ -300,7 +304,7 @@ const MoneyOnboardingView = () => {
   const [overlayStep, setOverlayStep] = useState(0);
   const [isOverlayVisible, setIsOverlayVisible] = useState(true);
 
-  // --- Number inputs ---
+  const [, setButtonText] = useRiveString(riveRef, 'button');
   const [, setTransitionSpeed] = useRiveNumber(riveRef, 'transitionSpeed');
 
   // Hardcoded to English to simplify event tracking.
@@ -355,7 +359,8 @@ const MoneyOnboardingView = () => {
 
     // Config
     setTransitionSpeed(300);
-  }, [riveRef, setTransitionSpeed]);
+    setButtonText(strings('money.rive_onboarding.button_text'));
+  }, [riveRef, setTransitionSpeed, setButtonText]);
 
   const handleClose = useCallback(
     (stepIndex: number) => {
@@ -448,7 +453,7 @@ const MoneyOnboardingView = () => {
     <View style={styles.root}>
       <Rive
         ref={ref}
-        source={MoneyOnboardingAnimationNoText}
+        source={MoneyOnboardingAnimationNoTextV2}
         artboardName={RIVE_ARTBOARD_NAME}
         stateMachineName={RIVE_STATE_MACHINE_NAME}
         dataBinding={AutoBind(true)}
