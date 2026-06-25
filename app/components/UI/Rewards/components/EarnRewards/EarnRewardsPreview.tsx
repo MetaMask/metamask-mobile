@@ -33,6 +33,7 @@ import {
 } from '../../../../../selectors/cardController';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
+import { selectMoneyEnableMoneyAccountFlag } from '../../../Money/selectors/featureFlags';
 import musdImage from '../../../../../images/rewards/rewards-musd-earn.png';
 import cardImage from '../../../../../images/rewards/rewards-card-earn.png';
 
@@ -139,9 +140,13 @@ const EarnRewardsPreview: React.FC = () => {
   // mUSD geo check - hide for UK users, require positive geo confirmation to avoid flash
   const geoLocation = useSelector(selectGeolocationLocation);
   const geoStatus = useSelector(selectGeolocationStatus);
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isMusdGeoLoading = geoStatus === 'loading' || geoStatus === 'idle';
   const showMusdCard =
-    geoLocation !== undefined && geoLocation !== UK_COUNTRY_CODE;
+    isMoneyAccountEnabled &&
+    geoLocation !== undefined &&
+    geoLocation !== UK_COUNTRY_CODE;
+  const showMusdSkeleton = isMoneyAccountEnabled && isMusdGeoLoading;
   const { apyPercent } = useMoneyAccountBalance();
 
   // Card check — subtitle varies by cardholder status; card is always rendered
@@ -169,7 +174,7 @@ const EarnRewardsPreview: React.FC = () => {
 
   // Build the ordered list of carousel slots, preserving existing visibility logic.
   const items: CarouselSlotKey[] = [];
-  if (isMusdGeoLoading && !showMusdCard) {
+  if (showMusdSkeleton && !showMusdCard) {
     items.push('musd-skeleton');
   } else if (showMusdCard) {
     items.push('musd');
@@ -209,7 +214,7 @@ const EarnRewardsPreview: React.FC = () => {
         alignItems={BoxAlignItems.Center}
         twClassName="gap-2 px-4"
       >
-        {isMusdGeoLoading && (
+        {showMusdSkeleton && (
           <ActivityIndicator size="small" color={colors.primary.default} />
         )}
         <Text variant={TextVariant.HeadingMd}>
@@ -239,7 +244,7 @@ const EarnRewardsPreview: React.FC = () => {
                 testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
                 image={musdImage}
                 title={strings('rewards.earn_rewards.musd_title', {
-                  percentage: apyPercent ?? 0,
+                  percentage: apyPercent ?? 3,
                 })}
                 subtitle={strings('rewards.earn_rewards.musd_subtitle')}
                 onPress={handleMusdPress}

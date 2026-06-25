@@ -76,12 +76,14 @@ import {
   selectIsCardholder,
   selectIsCardAuthenticated,
 } from '../../../../../selectors/cardController';
+import { selectMoneyEnableMoneyAccountFlag } from '../../../Money/selectors/featureFlags';
 
 interface SetupOptions {
   geoLocation?: string;
   geoStatus?: 'idle' | 'loading' | 'complete';
   isCardholder?: boolean;
   isAuthenticatedCard?: boolean;
+  isMoneyAccountEnabled?: boolean;
 }
 
 const setupSelectors = ({
@@ -89,11 +91,14 @@ const setupSelectors = ({
   geoStatus = 'complete',
   isCardholder = false,
   isAuthenticatedCard = false,
+  isMoneyAccountEnabled = true,
 }: SetupOptions = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectGeolocationLocation)
       return geoLocation === undefined ? undefined : geoLocation;
     if (selector === selectGeolocationStatus) return geoStatus;
+    if (selector === selectMoneyEnableMoneyAccountFlag)
+      return isMoneyAccountEnabled;
     if (selector === selectIsCardholder) return isCardholder;
     if (selector === selectIsCardAuthenticated) return isAuthenticatedCard;
     return undefined;
@@ -195,6 +200,20 @@ describe('EarnRewardsPreview', () => {
       ).toBeOnTheScreen();
     });
 
+    it('hides only the mUSD card when Money account feature flag is disabled, keeps Card card visible', () => {
+      setupSelectors({ geoLocation: 'US', isMoneyAccountEnabled: false });
+      const { queryByTestId } = render(<EarnRewardsPreview />);
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
+      ).toBeNull();
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
+      ).toBeOnTheScreen();
+    });
+
     it('shows mUSD card when geoLocation is UNKNOWN (treated as non-UK)', () => {
       setupSelectors({ geoLocation: 'UNKNOWN' });
       const { getByTestId } = render(<EarnRewardsPreview />);
@@ -208,6 +227,15 @@ describe('EarnRewardsPreview', () => {
       const { getByText } = render(<EarnRewardsPreview />);
       expect(getByText('Up to 3.8% bonus on mUSD')).toBeOnTheScreen();
       expect(getByText('Money accounts are here')).toBeOnTheScreen();
+    });
+
+    it('falls back to 3% in the mUSD card title when APY is unavailable', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        apyPercent: undefined,
+      } as ReturnType<typeof useMoneyAccountBalance>);
+      setupSelectors({ geoLocation: 'US' });
+      const { getByText } = render(<EarnRewardsPreview />);
+      expect(getByText('Up to 3% bonus on mUSD')).toBeOnTheScreen();
     });
 
     it('renders correct text for MetaMask card', () => {
