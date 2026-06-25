@@ -551,6 +551,8 @@ jobs:
     if: ${{ github.ref == 'refs/heads/main' && inputs.runner_provider != 'namespace' && inputs.runner_provider != 'bitrise' }}
     permissions:
       id-token: write
+      contents: read
+      actions: read
     steps:
       - name: Get token
         id: get-token
