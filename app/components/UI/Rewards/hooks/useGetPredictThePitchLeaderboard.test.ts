@@ -9,7 +9,7 @@ import {
   initialState,
   type RewardsState,
 } from '../../../../reducers/rewards';
-import type { RootState } from '../../../..';
+import type { RootState } from '../../../../reducers';
 import type { PredictThePitchLeaderboardDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('react-redux', () => ({

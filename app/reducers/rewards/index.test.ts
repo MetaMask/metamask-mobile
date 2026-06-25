@@ -2133,7 +2133,6 @@ describe('rewardsReducer', () => {
         pendingDeeplink: null,
         dismissedCampaignOutcomeToasts: {},
         subscribedCampaignReminders: {},
-        subscribedCampaignReminders: {},
       };
       const action = resetRewardsState();
 
@@ -2268,7 +2267,6 @@ describe('rewardsReducer', () => {
         pendingDeeplink: null,
         dismissedCampaignOutcomeToasts: {},
         subscribedCampaignReminders: {},
-        subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2322,7 +2320,6 @@ describe('rewardsReducer', () => {
           },
         ],
         dismissedCampaignOutcomeToasts: {},
-        subscribedCampaignReminders: {},
         subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
@@ -2381,7 +2378,6 @@ describe('rewardsReducer', () => {
           },
         ],
         dismissedCampaignOutcomeToasts: {},
-        subscribedCampaignReminders: {},
         subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
@@ -2496,7 +2492,6 @@ describe('rewardsReducer', () => {
         ],
         dismissedCampaignOutcomeToasts: {},
         subscribedCampaignReminders: {},
-        subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2562,7 +2557,6 @@ describe('rewardsReducer', () => {
         onboardingActiveStep: OnboardingStep.STEP_4, // This should NOT be persisted
         onboardingReferralCode: 'PERSISTED_REF', // This should NOT be persisted
         dismissedCampaignOutcomeToasts: {},
-        subscribedCampaignReminders: {},
         subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
@@ -2649,7 +2643,6 @@ describe('rewardsReducer', () => {
         },
         dismissedCampaignOutcomeToasts: {},
         subscribedCampaignReminders: {},
-        subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2698,7 +2691,6 @@ describe('rewardsReducer', () => {
           'sub-1:campaign-1': persisted,
         },
         dismissedCampaignOutcomeToasts: {},
-        subscribedCampaignReminders: {},
         subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
