@@ -838,7 +838,7 @@ export function useHwBatchSignTracker({
 
     const handleFinalized = (
       transactionMeta: TransactionMeta,
-      process: (
+      handleStep: (
         meta: TransactionMeta,
         classifier: SignedEventClassifier,
       ) => StrategyEventResult,
@@ -851,7 +851,7 @@ export function useHwBatchSignTracker({
         return;
       }
       detectAndApplyRetryGeneration();
-      applyResult(process(transactionMeta, classifier), transactionMeta);
+      applyResult(handleStep(transactionMeta, classifier), transactionMeta);
     };
 
     const handleRejected = ({
