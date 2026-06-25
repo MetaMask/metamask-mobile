@@ -9667,6 +9667,24 @@
     },
     "perps_deposit_solution": "You now have {{fiat}} of USDC on Arbitrum. Try your deposit again."
   },
+  "activity_details": {
+    "status": "Status",
+    "date": "Date",
+    "account": "Account",
+    "from": "From",
+    "to": "To",
+    "network": "Network",
+    "transaction_id": "Transaction ID",
+    "network_fee": "Network fee",
+    "bridge_fee": "Bridge fee",
+    "transaction_fee": "Transaction fee",
+    "total_amount": "Total amount",
+    "you_sent": "You sent",
+    "you_received": "You received",
+    "view_on_block_explorer": "View on block explorer",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
+  },
   "sdk_connect_v2": {
     "show_loading": {
       "title": "Connecting to dApp",
