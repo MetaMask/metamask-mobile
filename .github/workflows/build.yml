@@ -305,6 +305,35 @@ jobs:
           sudo xcodes select 26.3
           xcodebuild -version
 
+      # PR-B: Warm Xcode DerivedData + ios/build cache for incremental native builds.
+      # Key intentionally excludes project.pbxproj (CURRENT_PROJECT_VERSION) so
+      # build-number bumps do not bust the cache.
+      - name: Restore Xcode DerivedData from branch cache (iOS)
+        id: xcode-derived-cache
+        if: matrix.platform == 'ios'
+        uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData
+            ios/build
+          key: >-
+            ${{ runner.os }}-xcode-device-${{ github.ref_name }}-${{ env.CACHE_GENERATION }}-v1-${{
+              hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
+
+      - name: Restore Xcode DerivedData from main cache (iOS)
+        if: >-
+          matrix.platform == 'ios' &&
+          steps.xcode-derived-cache.outputs.cache-hit != 'true' &&
+          github.ref_name != 'main'
+        uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
+        with:
+          path: |
+            ~/Library/Developer/Xcode/DerivedData
+            ios/build
+          key: >-
+            ${{ runner.os }}-xcode-device-main-${{ env.CACHE_GENERATION }}-v1-${{
+              hashFiles('ios/**/*.{h,m,mm,swift}', 'ios/**/Podfile.lock', 'yarn.lock') }}
+
       # TapAndPay SDK Setup (Android only)
       - name: Clone TapAndPay SDK
         if: |
@@ -390,6 +419,26 @@ jobs:
         if: matrix.platform == 'android'
         run: cp android/gradle.properties.release android/gradle.properties
 
+      # PR-B: Compute a Gradle cache key that excludes the versionCode line from
+      # android/app/build.gradle so build-number bumps do not bust the cache.
+      - name: Compute Gradle cache key (exclude versionCode)
+        id: gradle-hash
+        if: matrix.platform == 'android'
+        shell: bash
+        run: |
+          HASH=$(
+            find . \( -name "*.gradle" -o -name "*.gradle.kts" -o -name "gradle-wrapper.properties" \) \
+              -not -path "*/node_modules/*" -not -path "*/.git/*" | sort | while read -r f; do
+              if [[ "$f" == *"/app/build.gradle" ]]; then
+                grep -v '^\s*versionCode\s' "$f" 2>/dev/null || true
+              else
+                cat "$f" 2>/dev/null || true
+              fi
+            done | sha256sum | cut -c1-64
+          )
+          echo "hash=$HASH" >> "$GITHUB_OUTPUT"
+          echo "Gradle cache key hash (versionCode excluded): $HASH"
+
       - name: Restore Gradle dependencies from branch cache (Android)
         if: matrix.platform == 'android'
         id: gradle-cache-restore
@@ -398,7 +447,7 @@ jobs:
           path: |
             ~/_work/.gradle/caches
             ~/_work/.gradle/wrapper
-          key: gradle-release-${{ github.ref_name }}-${{ env.CACHE_GENERATION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-release-${{ github.ref_name }}-${{ env.CACHE_GENERATION }}-${{ runner.os }}-${{ steps.gradle-hash.outputs.hash }}
 
       - name: Restore Gradle dependencies from main cache (Android)
         if: matrix.platform == 'android' && steps.gradle-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main'
@@ -407,7 +456,7 @@ jobs:
           path: |
             ~/_work/.gradle/caches
             ~/_work/.gradle/wrapper
-          key: gradle-release-main-${{ env.CACHE_GENERATION }}-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: gradle-release-main-${{ env.CACHE_GENERATION }}-${{ runner.os }}-${{ steps.gradle-hash.outputs.hash }}
 
       # iOS: Clean up any existing keychains from previous runs
       - name: Clean up existing keychains
