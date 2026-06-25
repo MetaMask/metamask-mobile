@@ -9479,8 +9479,8 @@
     },
     "earn_rewards": {
       "title": "Earn rewards",
-      "musd_title": "Up to 3% bonus on stables",
-      "musd_subtitle": "Calculate your mUSD bonus",
+      "musd_title": "Up to {{percentage}}% bonus on mUSD",
+      "musd_subtitle": "Money accounts are here",
       "card_title": "Up to 3% back on spend",
       "card_subtitle": "Get your MetaMask Card now",
       "card_subtitle_cardholder": "Access your MetaMask Card benefits"

@@ -9544,8 +9544,8 @@
     },
     "earn_rewards": {
       "title": "Dapatkan reward",
-      "musd_title": "Bonus stabil hingga 3%",
-      "musd_subtitle": "Hitung bonus mUSD Anda",
+      "musd_title": "Bonus hingga {{percentage}}% pada mUSD",
+      "musd_subtitle": "Akun Dana telah hadir",
       "card_title": "Pengembalian hingga 3% dari penggunaan",
       "card_subtitle": "Dapatkan Kartu MetaMask sekarang",
       "card_subtitle_cardholder": "Manfaatkan keuntungan Kartu MetaMask"

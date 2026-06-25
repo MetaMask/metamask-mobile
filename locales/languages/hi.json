@@ -9544,8 +9544,8 @@
     },
     "earn_rewards": {
       "title": "रिवॉर्ड्स कमाएं",
-      "musd_title": "स्टेबल्स पर 3% तक बोनस",
-      "musd_subtitle": "अपना mUSD बोनस कैलकुलेट करें",
+      "musd_title": "mUSD पर {{percentage}}% तक बोनस",
+      "musd_subtitle": "मनी अकाउंट यहां हैं",
       "card_title": "खर्च पर 3% तक वापस",
       "card_subtitle": "अपना MetaMask कार्ड अभी पाएं",
       "card_subtitle_cardholder": "अपने MetaMask कार्ड के फ़ायदे पाएं"
