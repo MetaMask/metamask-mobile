@@ -587,7 +587,9 @@ describe('useHwConnectionMonitoring', () => {
       makeParsedError(ErrorCode.DeviceDisconnected),
     );
 
-    mockUseHardwareWallet.mockReturnValue(mockContextWith(createErrorState(error)));
+    mockUseHardwareWallet.mockReturnValue(
+      mockContextWith(createErrorState(error)),
+    );
 
     renderHook(() =>
       useHwConnectionMonitoring({

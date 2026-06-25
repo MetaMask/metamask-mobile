@@ -55,6 +55,7 @@ export function createBatchTrackingStrategy(
         staleBatchIds.add(id);
       }
       seenBatchIds = new Set();
+      trackedTxIds = new Set();
       currentBatchId = null;
       return true;
     },

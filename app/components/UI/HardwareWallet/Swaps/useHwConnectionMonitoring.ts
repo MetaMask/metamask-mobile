@@ -231,7 +231,6 @@ export function useHwConnectionMonitoring({
     }
 
     handledErrorRef.current = error;
-
   }, [
     connectionState,
     currentStatus,

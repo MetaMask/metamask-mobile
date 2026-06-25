@@ -90,6 +90,17 @@ describe('createBatchTrackingStrategy', () => {
       expect(strategy.checkRetryGeneration(1)).toBe(true);
       expect(strategy.checkRetryGeneration(1)).toBe(false);
     });
+
+    it('clears tracked tx ids', () => {
+      const strategy = createBatchTrackingStrategy(bridgeConfig);
+      strategy.processStatusUpdated(
+        mockMeta({ id: 'tx-1', batchId: 'batch-A' }),
+        classifyAccept,
+      );
+      expect(strategy.getTrackedTxIds().size).toBe(1);
+      strategy.checkRetryGeneration(1);
+      expect(strategy.getTrackedTxIds().size).toBe(0);
+    });
   });
 
   describe('processStatusUpdated batch locking', () => {

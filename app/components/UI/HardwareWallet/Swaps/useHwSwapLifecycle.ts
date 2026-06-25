@@ -87,9 +87,10 @@ export function useHwSwapLifecycle({
   const [isRetrying, setIsRetrying] = useState(false);
 
   // ── Sibling hooks (composed here so refs stay local) ─────────────
+  const isEnabled = Boolean(strategy.walletAddress);
   const { cancelCurrentBatch, confirmationTxId } = useHwBatchSignTracker({
     fromAddress: strategy.walletAddress,
-    isEnabled: Boolean(strategy.walletAddress),
+    isEnabled,
     retryGenerationRef,
     flow: strategy.trackerOptions.flow,
     gasTokenAddress: strategy.trackerOptions.gasTokenAddress,
@@ -100,7 +101,7 @@ export function useHwSwapLifecycle({
   });
 
   const { resetHandledError } = useHwConnectionMonitoring({
-    isEnabled: Boolean(strategy.walletAddress) && !isQrHardwareWallet,
+    isEnabled: isEnabled && !isQrHardwareWallet,
     currentStatus: progress.status,
     hasActiveSigning: Boolean(confirmationTxId),
     monitorDisconnectedStatus: !strategy.isSendFlow,
@@ -300,49 +301,46 @@ export function useHwSwapLifecycle({
     navigateOnCancel();
   }, [dispatch, navigateOnCancel]);
 
-  const retrySubmission = useCallback(
-    async () => {
-      if (retryInProgressRef.current) return;
-      if (!canRetry()) {
-        retryFallback();
-        return;
-      }
-      retryInProgressRef.current = true;
-      setIsRetrying(true);
-      hasAutoNavigatedRef.current = false;
+  const retrySubmission = useCallback(async () => {
+    if (retryInProgressRef.current) return;
+    if (!canRetry()) {
+      retryFallback();
+      return;
+    }
+    retryInProgressRef.current = true;
+    setIsRetrying(true);
+    hasAutoNavigatedRef.current = false;
 
-      try {
-        retryGenerationRef.current += 1;
-        await cancelCurrentBatch();
+    try {
+      retryGenerationRef.current += 1;
+      await cancelCurrentBatch();
 
-        submissionGenerationRef.current += 1;
-        hasInitialSubmissionRef.current = true;
-        dispatch(
-          updateHardwareWalletsSwaps({
-            type: HardwareWalletsSwapsEventType.Retry,
-          }),
-        );
-        await submitWithDeviceReady();
-        // Clear the connection-error guard only AFTER the device has
-        // reconnected. Clearing it before the Retry dispatch (as before) let
-        // the monitoring hook re-fire DeviceDisconnected while the screen was
-        // Waiting and the connection was still Disconnected, overriding the
-        // Retry → Waiting reset and leaving the screen stuck on Disconnected.
-        resetHandledError();
-      } finally {
-        retryInProgressRef.current = false;
-        setIsRetrying(false);
-      }
-    },
-    [
-      dispatch,
-      cancelCurrentBatch,
-      submitWithDeviceReady,
-      resetHandledError,
-      canRetry,
-      retryFallback,
-    ],
-  );
+      submissionGenerationRef.current += 1;
+      hasInitialSubmissionRef.current = true;
+      dispatch(
+        updateHardwareWalletsSwaps({
+          type: HardwareWalletsSwapsEventType.Retry,
+        }),
+      );
+      await submitWithDeviceReady();
+      // Clear the connection-error guard only AFTER the device has
+      // reconnected. Clearing it before the Retry dispatch (as before) let
+      // the monitoring hook re-fire DeviceDisconnected while the screen was
+      // Waiting and the connection was still Disconnected, overriding the
+      // Retry → Waiting reset and leaving the screen stuck on Disconnected.
+      resetHandledError();
+    } finally {
+      retryInProgressRef.current = false;
+      setIsRetrying(false);
+    }
+  }, [
+    dispatch,
+    cancelCurrentBatch,
+    submitWithDeviceReady,
+    resetHandledError,
+    canRetry,
+    retryFallback,
+  ]);
 
   const handleTryAgain = useCallback(
     () => retrySubmission(),

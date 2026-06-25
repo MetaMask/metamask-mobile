@@ -72,13 +72,13 @@ export interface FlowStrategy {
   /** Convenience boolean for the few downstream APIs that take `isSendFlow: boolean`. */
   isSendFlow: boolean;
   /** Address of the signing wallet. Send: from prepared tx; bridge: bridge selector. */
-  walletAddress: string | undefined;
+  walletAddress?: string;
   /** Display amount for step rows. Send: route-params displayContext; bridge: source selector. */
-  displayedAmount: string | undefined;
+  displayedAmount?: string;
   /** Display symbol for step rows. Send: route-params displayContext; bridge: source selector. */
-  displayedTokenSymbol: string | undefined;
+  displayedTokenSymbol?: string;
   /** Send only: gas-fee token symbol for the FeeTransfer step (may differ from displayedTokenSymbol). */
-  gasTokenSymbol: string | undefined;
+  gasTokenSymbol?: string;
   /** Inputs for `useHwBatchSignTracker`. */
   trackerOptions: {
     flow: Flow;
@@ -122,7 +122,11 @@ export function resolveFlowStrategy(input: {
       routeParams.preparedTxMeta?.batchTransactions?.length ?? 0;
     const expectedBatchTransactionCount =
       routeParams.gasTokenAddress && batchTransactionCount > 0
-        ? batchTransactionCount + 1
+        ? // +1 for the FeeTransfer (gas token payment) step — when
+          // gasTokenAddress is set, the sendbundle includes an extra tx to
+          // pay gas with the fee token, making the total batch size
+          // batchTransactionCount + 1.
+          batchTransactionCount + 1
         : undefined;
 
     return {
