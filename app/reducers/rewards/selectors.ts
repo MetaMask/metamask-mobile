@@ -8,6 +8,14 @@ import {
   buildCampaignOutcomeToastCompositeKey,
   type CampaignOutcomeToastVariant,
 } from './compositeKeys';
+import type {
+  CampaignLeaderboardDto,
+  OndoGmCampaignDepositsDto,
+  PerpsTradingCampaignLeaderboardDto,
+  PerpsTradingCampaignVolumeDto,
+  PredictThePitchLeaderboardDto,
+  PredictThePitchPrizePoolDto,
+} from '../../core/Engine/controllers/rewards-controller/types';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
   state.rewards.activeTab;
@@ -296,44 +304,82 @@ export const selectIsRewardsVersionBlocked = (state: RootState): boolean => {
 };
 
 // Campaign leaderboard selectors
-export const selectOndoCampaignLeaderboard = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboard;
+export const selectOndoCampaignLeaderboardByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): CampaignLeaderboardDto | null =>
+    campaignId
+      ? (state.rewards.ondoCampaignLeaderboards[campaignId]?.data ?? null)
+      : null;
 
-export const selectOndoCampaignLeaderboardLoading = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboardLoading;
+export const selectOndoCampaignLeaderboardLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.ondoCampaignLeaderboards[campaignId]?.loading ?? false)
+      : false;
 
-export const selectOndoCampaignLeaderboardError = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboardError;
+export const selectOndoCampaignLeaderboardErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.ondoCampaignLeaderboards[campaignId]?.error ?? false)
+      : false;
 
-export const selectOndoCampaignLeaderboardSelectedTier = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboardSelectedTier;
+export const selectOndoCampaignLeaderboardSelectedTierByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): string | null =>
+    campaignId
+      ? (state.rewards.ondoCampaignLeaderboards[campaignId]?.selectedTier ??
+        null)
+      : null;
 
 // Stable fallbacks to avoid returning new references from input selectors
 const EMPTY_TIERS: Record<string, never> = {};
 const EMPTY_ENTRIES: never[] = [];
 
-export const selectOndoCampaignLeaderboardTiers = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboard?.tiers ?? EMPTY_TIERS;
+export const selectOndoCampaignLeaderboardTiersByCampaignId =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.ondoCampaignLeaderboards[campaignId]?.data?.tiers ??
+        EMPTY_TIERS)
+      : EMPTY_TIERS;
 
-export const selectOndoCampaignLeaderboardComputedAt = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboard?.computedAt ?? null;
+export const selectOndoCampaignLeaderboardComputedAtByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): string | null =>
+    campaignId
+      ? (state.rewards.ondoCampaignLeaderboards[campaignId]?.data?.computedAt ??
+        null)
+      : null;
 
-export const selectOndoCampaignLeaderboardTierNames = createSelector(
-  selectOndoCampaignLeaderboardTiers,
-  (tiers) => Object.keys(tiers),
-);
+export const selectOndoCampaignLeaderboardTierNamesByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): string[] =>
+    Object.keys(
+      selectOndoCampaignLeaderboardTiersByCampaignId(campaignId)(state),
+    );
 
 export const selectOndoCampaignLeaderboardEntriesByTier =
-  (tierName: string | null) => (state: RootState) =>
-    tierName && state.rewards.ondoCampaignLeaderboard?.tiers[tierName]
-      ? state.rewards.ondoCampaignLeaderboard.tiers[tierName].entries
-      : EMPTY_ENTRIES;
+  (campaignId: string | undefined, tierName: string | null) =>
+  (state: RootState) => {
+    if (!campaignId || !tierName) {
+      return EMPTY_ENTRIES;
+    }
+    const tiers =
+      state.rewards.ondoCampaignLeaderboards[campaignId]?.data?.tiers;
+    return tiers?.[tierName]?.entries ?? EMPTY_ENTRIES;
+  };
 
 export const selectOndoCampaignLeaderboardTotalParticipantsByTier =
-  (tierName: string | null) => (state: RootState) =>
-    tierName && state.rewards.ondoCampaignLeaderboard?.tiers[tierName]
-      ? state.rewards.ondoCampaignLeaderboard.tiers[tierName].totalParticipants
-      : 0;
+  (campaignId: string | undefined, tierName: string | null) =>
+  (state: RootState): number => {
+    if (!campaignId || !tierName) {
+      return 0;
+    }
+    const tiers =
+      state.rewards.ondoCampaignLeaderboards[campaignId]?.data?.tiers;
+    return tiers?.[tierName]?.totalParticipants ?? 0;
+  };
 
 // Campaign leaderboard position selectors
 export const selectOndoCampaignLeaderboardPositions = (state: RootState) =>
@@ -372,14 +418,26 @@ export const selectOndoCampaignActivityById =
       : null;
 
 // Campaign deposits selectors
-export const selectOndoCampaignDeposits = (state: RootState) =>
-  state.rewards.ondoCampaignDeposits;
+export const selectOndoCampaignDepositsByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): OndoGmCampaignDepositsDto | null =>
+    campaignId
+      ? (state.rewards.ondoCampaignDeposits[campaignId]?.data ?? null)
+      : null;
 
-export const selectOndoCampaignDepositsLoading = (state: RootState) =>
-  state.rewards.ondoCampaignDepositsLoading;
+export const selectOndoCampaignDepositsLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.ondoCampaignDeposits[campaignId]?.loading ?? false)
+      : false;
 
-export const selectOndoCampaignDepositsError = (state: RootState) =>
-  state.rewards.ondoCampaignDepositsError;
+export const selectOndoCampaignDepositsErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.ondoCampaignDeposits[campaignId]?.error ?? false)
+      : false;
 
 export const selectPendingDeeplink = (state: RootState) =>
   state.rewards.pendingDeeplink;
@@ -415,15 +473,29 @@ export const selectIsCampaignOutcomeToastDismissed =
   };
 
 // Perps Trading Campaign leaderboard selectors
-export const selectPerpsTradingCampaignLeaderboard = (state: RootState) =>
-  state.rewards.perpsTradingCampaignLeaderboard;
+export const selectPerpsTradingCampaignLeaderboardByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): PerpsTradingCampaignLeaderboardDto | null =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignLeaderboards[campaignId]?.data ??
+        null)
+      : null;
 
-export const selectPerpsTradingCampaignLeaderboardLoading = (
-  state: RootState,
-) => state.rewards.perpsTradingCampaignLeaderboardLoading;
+export const selectPerpsTradingCampaignLeaderboardLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignLeaderboards[campaignId]?.loading ??
+        false)
+      : false;
 
-export const selectPerpsTradingCampaignLeaderboardError = (state: RootState) =>
-  state.rewards.perpsTradingCampaignLeaderboardError;
+export const selectPerpsTradingCampaignLeaderboardErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignLeaderboards[campaignId]?.error ??
+        false)
+      : false;
 
 // Perps Trading Campaign leaderboard position selectors
 export const selectPerpsTradingCampaignLeaderboardPositionById =
@@ -435,25 +507,51 @@ export const selectPerpsTradingCampaignLeaderboardPositionById =
         ] ?? null)
       : null;
 
-// Perps Trading Campaign prize pool selectors
-export const selectPerpsTradingCampaignVolume = (state: RootState) =>
-  state.rewards.perpsTradingCampaignVolume;
+// Perps Trading Campaign volume selectors
+export const selectPerpsTradingCampaignVolumeByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): PerpsTradingCampaignVolumeDto | null =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignVolumes[campaignId]?.data ?? null)
+      : null;
 
-export const selectPerpsTradingCampaignVolumeLoading = (state: RootState) =>
-  state.rewards.perpsTradingCampaignVolumeLoading;
+export const selectPerpsTradingCampaignVolumeLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignVolumes[campaignId]?.loading ??
+        false)
+      : false;
 
-export const selectPerpsTradingCampaignVolumeError = (state: RootState) =>
-  state.rewards.perpsTradingCampaignVolumeError;
+export const selectPerpsTradingCampaignVolumeErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.perpsTradingCampaignVolumes[campaignId]?.error ?? false)
+      : false;
 
 // Predict The Pitch leaderboard selectors
-export const selectPredictThePitchLeaderboard = (state: RootState) =>
-  state.rewards.predictThePitchLeaderboard;
+export const selectPredictThePitchLeaderboardByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): PredictThePitchLeaderboardDto | null =>
+    campaignId
+      ? (state.rewards.predictThePitchLeaderboards[campaignId]?.data ?? null)
+      : null;
 
-export const selectPredictThePitchLeaderboardLoading = (state: RootState) =>
-  state.rewards.predictThePitchLeaderboardLoading;
+export const selectPredictThePitchLeaderboardLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.predictThePitchLeaderboards[campaignId]?.loading ??
+        false)
+      : false;
 
-export const selectPredictThePitchLeaderboardError = (state: RootState) =>
-  state.rewards.predictThePitchLeaderboardError;
+export const selectPredictThePitchLeaderboardErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.predictThePitchLeaderboards[campaignId]?.error ?? false)
+      : false;
 
 export const selectPredictThePitchLeaderboardPositionById =
   (subscriptionId: string | undefined, campaignId: string | undefined) =>
@@ -474,11 +572,23 @@ export const selectPredictThePitchPositionsById =
       : null;
 
 // Predict The Pitch prize pool selectors
-export const selectPredictThePitchPrizePool = (state: RootState) =>
-  state.rewards.predictThePitchPrizePool;
+export const selectPredictThePitchPrizePoolByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): PredictThePitchPrizePoolDto | null =>
+    campaignId
+      ? (state.rewards.predictThePitchPrizePools[campaignId]?.data ?? null)
+      : null;
 
-export const selectPredictThePitchPrizePoolLoading = (state: RootState) =>
-  state.rewards.predictThePitchPrizePoolLoading;
+export const selectPredictThePitchPrizePoolLoadingByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.predictThePitchPrizePools[campaignId]?.loading ?? false)
+      : false;
 
-export const selectPredictThePitchPrizePoolError = (state: RootState) =>
-  state.rewards.predictThePitchPrizePoolError;
+export const selectPredictThePitchPrizePoolErrorByCampaignId =
+  (campaignId: string | undefined) =>
+  (state: RootState): boolean =>
+    campaignId
+      ? (state.rewards.predictThePitchPrizePools[campaignId]?.error ?? false)
+      : false;
