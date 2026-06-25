@@ -103,7 +103,7 @@
       "title": "Fundos insuficientes"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Adicione menos fundos ou use outra forma de pagamento."
     },
     "insufficient_pay_token_native": {
       "message": "Não há {{ticker}} suficientes para cobrir as taxas. Use um token em outra rede ou adicione mais {{ticker}} para continuar.",
@@ -1103,7 +1103,6 @@
       "market_cap": "Capitalização de mercado",
       "price": "Preço",
       "position": "Posição",
-      "trades": "Negociações",
       "buy": "Comprar",
       "trade": "Negociar",
       "unsupported_market": "Mercado não suportado",
@@ -1134,6 +1133,8 @@
       "price_impact": "Impacto do preço",
       "est_points": "Est. de pontos",
       "no_quotes": "Não há cotações disponíveis para este token",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Carregando...",
       "unavailable": "Swap não disponível",
       "unsupported_chain": "Esta blockchain ainda não é compatível com a Quick Buy",
@@ -6039,7 +6040,7 @@
     "service_disruption_modal": {
       "title": "Temporary service disruption",
       "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
-      "got_it": "Got it"
+      "got_it": "Entendi"
     },
     "region": {
       "buy_crypto_tokens": "Compre tokens de criptomoedas",
@@ -7961,9 +7962,13 @@
       "rejected": "Rejeitado",
       "reconnect": "Reconectar",
       "done": "Pronto",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "Escanear próximo código QR",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "Etapa {{current}} de {{total}}: Escaneie o código QR exibido em sua carteira",
-      "scanner_last_step_text": "Última etapa: Escaneie o código QR exibido em sua carteira"
+      "scanner_last_step_text": "Última etapa: Escaneie o código QR exibido em sua carteira",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "Impacto do preço",
     "price_impact_info_description": "É assim que sua negociação altera o preço de mercado de um token. Ele depende do volume da negociação, da liquidez disponível e das taxas do fornecedor. A MetaMask não controla o impacto no preço.",
@@ -9661,6 +9666,24 @@
       "fiat_purchase": "Comprar {{token}} com {{paymentMethod}}"
     },
     "perps_deposit_solution": "Agora você possui {{fiat}} de USDC na Arbitrum. Tente depositar novamente."
+  },
+  "activity_details": {
+    "status": "Status",
+    "date": "Data",
+    "account": "Conta",
+    "from": "De",
+    "to": "Para",
+    "network": "Rede",
+    "transaction_id": "ID da transação",
+    "network_fee": "Taxa de rede",
+    "bridge_fee": "Taxa de ponte",
+    "transaction_fee": "Taxa de transação",
+    "total_amount": "Valor total",
+    "you_sent": "Você enviou",
+    "you_received": "Você recebeu",
+    "view_on_block_explorer": "Ver no explorador de blocos",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

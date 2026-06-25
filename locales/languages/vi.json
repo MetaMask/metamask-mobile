@@ -103,7 +103,7 @@
       "title": "Không đủ tiền"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Nạp ít hơn hoặc sử dụng phương thức thanh toán khác."
     },
     "insufficient_pay_token_native": {
       "message": "Không đủ {{ticker}} để chi trả phí. Hãy sử dụng token trên mạng khác hoặc nạp thêm {{ticker}} để tiếp tục.",
@@ -1103,7 +1103,6 @@
       "market_cap": "Vốn hóa thị trường",
       "price": "Giá",
       "position": "Vị thế",
-      "trades": "Giao dịch",
       "buy": "Mua",
       "trade": "Giao dịch",
       "unsupported_market": "Thị trường không được hỗ trợ",
@@ -1134,6 +1133,8 @@
       "price_impact": "Mức tác động giá",
       "est_points": "Điểm ước tính",
       "no_quotes": "Không có báo giá nào cho token này",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Đang tải...",
       "unavailable": "Hoán đổi không khả dụng",
       "unsupported_chain": "Chuỗi này chưa được hỗ trợ tính năng Mua Nhanh",
@@ -6039,7 +6040,7 @@
     "service_disruption_modal": {
       "title": "Temporary service disruption",
       "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
-      "got_it": "Got it"
+      "got_it": "Tôi đã hiểu"
     },
     "region": {
       "buy_crypto_tokens": "Mua token tiền mã hóa",
@@ -7961,9 +7962,13 @@
       "rejected": "Bị từ chối",
       "reconnect": "Kết nối lại",
       "done": "Hoàn tất",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "Quét mã QR tiếp theo",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "Bước {{current}}/{{total}}: Quét mã QR hiển thị trên ví của bạn",
-      "scanner_last_step_text": "Bước cuối cùng: Quét mã QR hiển thị trên ví của bạn"
+      "scanner_last_step_text": "Bước cuối cùng: Quét mã QR hiển thị trên ví của bạn",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "Mức tác động giá",
     "price_impact_info_description": "Đây là cách giao dịch của bạn làm thay đổi giá thị trường của một token. Điều này phụ thuộc vào quy mô giao dịch, thanh khoản hiện có và phí nhà cung cấp. MetaMask không kiểm soát tác động giá.",
@@ -9661,6 +9666,24 @@
       "fiat_purchase": "Mua {{token}} bằng {{paymentMethod}}"
     },
     "perps_deposit_solution": "Bạn hiện có {{fiat}} USDC trên Arbitrum. Hãy thử nạp tiền lại."
+  },
+  "activity_details": {
+    "status": "Trạng thái",
+    "date": "Ngày",
+    "account": "Tài khoản",
+    "from": "Từ",
+    "to": "Đến",
+    "network": "Mạng",
+    "transaction_id": "ID giao dịch",
+    "network_fee": "Phí mạng",
+    "bridge_fee": "Phí cầu nối",
+    "transaction_fee": "Phí giao dịch",
+    "total_amount": "Tổng số tiền",
+    "you_sent": "Bạn đã gửi",
+    "you_received": "Bạn đã nhận được",
+    "view_on_block_explorer": "Xem trên trình khám phá khối",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

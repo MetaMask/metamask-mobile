@@ -103,7 +103,7 @@
       "title": "资金不足"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "添加更少的资金或使用其他支付方式。"
     },
     "insufficient_pay_token_native": {
       "message": "{{ticker}} 不足，无法支付费用。请使用其他网络的代币，或添加更多 {{ticker}} 以继续。",
@@ -1103,7 +1103,6 @@
       "market_cap": "市值",
       "price": "价格",
       "position": "仓位",
-      "trades": "交易",
       "buy": "买入",
       "trade": "交易",
       "unsupported_market": "不支持的市场",
@@ -1134,6 +1133,8 @@
       "price_impact": "价格影响",
       "est_points": "预计积分",
       "no_quotes": "该代币暂无报价",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "正在加载...",
       "unavailable": "兑换不可用",
       "unsupported_chain": "该链暂不支持快速购买",
@@ -6039,7 +6040,7 @@
     "service_disruption_modal": {
       "title": "Temporary service disruption",
       "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
-      "got_it": "Got it"
+      "got_it": "知道了"
     },
     "region": {
       "buy_crypto_tokens": "购买加密代币",
@@ -7961,9 +7962,13 @@
       "rejected": "已拒绝",
       "reconnect": "重新连接",
       "done": "已完成",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "扫描下一个二维码",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "第 {{current}}/{{total}} 步：扫描钱包上显示的二维码",
-      "scanner_last_step_text": "最后一步：扫描钱包上显示的二维码"
+      "scanner_last_step_text": "最后一步：扫描钱包上显示的二维码",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "价格影响",
     "price_impact_info_description": "这是您的交易对代币市场价格产生的影响。影响程度取决于交易规模、可用流动性和服务商费用。MetaMask 无法控制价格影响。",
@@ -9661,6 +9666,24 @@
       "fiat_purchase": "使用 {{paymentMethod}} 购买 {{token}}"
     },
     "perps_deposit_solution": "您目前在 Arbitrum 网络上持有价值 {{fiat}} 的 USDC。请重新尝试存款。"
+  },
+  "activity_details": {
+    "status": "状态",
+    "date": "日期",
+    "account": "账户",
+    "from": "从",
+    "to": "至",
+    "network": "网络",
+    "transaction_id": "交易 ID",
+    "network_fee": "网络费",
+    "bridge_fee": "跨链桥费用",
+    "transaction_fee": "交易费用",
+    "total_amount": "总数额",
+    "you_sent": "您已发送",
+    "you_received": "您已收到",
+    "view_on_block_explorer": "在区块浏览器上查看",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

@@ -103,7 +103,7 @@
       "title": "Недостаточно средств"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Добавьте меньше или используйте другой способ оплату."
     },
     "insufficient_pay_token_native": {
       "message": "Недостаточно {{ticker}} для покрытия комиссий. Используйте токен в другой сети или добавьте больше {{ticker}}, чтобы продолжить.",
@@ -1103,7 +1103,6 @@
       "market_cap": "Рыночная капитализация",
       "price": "Цена",
       "position": "Позиция",
-      "trades": "Сделки",
       "buy": "Купить",
       "trade": "Торговать",
       "unsupported_market": "Неподдерживаемый рынок",
@@ -1134,6 +1133,8 @@
       "price_impact": "Влияние на цену",
       "est_points": "Прим. баллов",
       "no_quotes": "Нет доступных котировок для этого токена",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Загрузка...",
       "unavailable": "Обмен недоступен",
       "unsupported_chain": "Этот блокчейн еще не поддерживается для быстрой покупки",
@@ -6039,7 +6040,7 @@
     "service_disruption_modal": {
       "title": "Temporary service disruption",
       "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
-      "got_it": "Got it"
+      "got_it": "Понятно"
     },
     "region": {
       "buy_crypto_tokens": "Купить криптотокены",
@@ -7961,9 +7962,13 @@
       "rejected": "Неудачно",
       "reconnect": "Переподключить",
       "done": "Готово",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "Отсканировать следующий QR-код",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "Шаг {{current}} из {{total}}: отсканируйте QR-код, отображаемый на вашем кошельке",
-      "scanner_last_step_text": "Последний шаг: отсканируйте QR-код, отображаемый на вашем кошельке"
+      "scanner_last_step_text": "Последний шаг: отсканируйте QR-код, отображаемый на вашем кошельке",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "Влияние на цену",
     "price_impact_info_description": "Вот как ваша сделка влияет на рыночную цену токена. Это зависит от размера сделки, доступной ликвидности и комиссий поставщика. MetaMask не контролирует влияние на цену.",
@@ -9661,6 +9666,24 @@
       "fiat_purchase": "Купить {{token}} с помощью {{paymentMethod}}"
     },
     "perps_deposit_solution": "Теперь у вас есть {{fiat}} USDC на Arbitrum. Попробуйте снова внести депозит."
+  },
+  "activity_details": {
+    "status": "Статус",
+    "date": "Дата",
+    "account": "Счет",
+    "from": "Из",
+    "to": "Место назначения",
+    "network": "Сеть",
+    "transaction_id": "ID транзакции",
+    "network_fee": "Комиссия сети",
+    "bridge_fee": "Комиссия моста",
+    "transaction_fee": "Комиссия за транзакцию",
+    "total_amount": "Общая сумма",
+    "you_sent": "Вы отправили",
+    "you_received": "Вы получили",
+    "view_on_block_explorer": "Просмотр в обозревателе блоков",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

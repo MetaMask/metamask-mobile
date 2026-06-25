@@ -103,7 +103,7 @@
       "title": "Unzureichende Gelder"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Weniger hinzufügen oder eine andere Zahlungsmethode verwenden."
     },
     "insufficient_pay_token_native": {
       "message": "Nicht genügend {{ticker}}, um die Gebühren zu decken. Verwenden Sie ein Token in einem anderen Netzwerk oder fügen Sie weitere {{ticker}} hinzu, um fortzufahren.",
@@ -1103,7 +1103,6 @@
       "market_cap": "Marktkapitalisierung",
       "price": "Preis",
       "position": "Position",
-      "trades": "Trades",
       "buy": "Kaufen",
       "trade": "Trade",
       "unsupported_market": "Nicht unterstützter Markt",
@@ -1134,6 +1133,8 @@
       "price_impact": "Preiseinfluss",
       "est_points": "Geschätzte Punkte",
       "no_quotes": "Keine Angebote für diesen Token verfügbar",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Wird geladen ...",
       "unavailable": "Swap nicht verfügbar",
       "unsupported_chain": "Diese Chain wird für Quick-Buy noch nicht unterstützt",
@@ -6039,7 +6040,7 @@
     "service_disruption_modal": {
       "title": "Temporary service disruption",
       "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
-      "got_it": "Got it"
+      "got_it": "Verstanden"
     },
     "region": {
       "buy_crypto_tokens": "Krypto-Tokens kaufen",
@@ -7961,9 +7962,13 @@
       "rejected": "Abgelehnt",
       "reconnect": "Erneut verbinden",
       "done": "Fertig",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "Nächsten QR-Code scannen",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "Schritt {{current}} von {{total}}: Scannen Sie den in Ihrer Wallet angezeigten QR-Code",
-      "scanner_last_step_text": "Letzter Schritt: Scannen Sie den auf Ihrer Wallet angezeigten QR-Code"
+      "scanner_last_step_text": "Letzter Schritt: Scannen Sie den auf Ihrer Wallet angezeigten QR-Code",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "Preiseinfluss",
     "price_impact_info_description": "Auf diese Weise verändert Ihr Handel den Marktpreis eines Tokens. Dies ist abhängig von der Handelsgröße, der verfügbaren Liquidität und den Gebühren des Anbieters. MetaMask hat keinen Einfluss auf den Preis.",
@@ -9661,6 +9666,24 @@
       "fiat_purchase": "{{token}} mit {{paymentMethod}} kaufen"
     },
     "perps_deposit_solution": "Sie haben nun {{fiat}} von USDC auf Arbitrum. Versuchen Sie Ihre Einzahlung erneut."
+  },
+  "activity_details": {
+    "status": "Status",
+    "date": "Datum",
+    "account": "Konto",
+    "from": "Von",
+    "to": "Bis",
+    "network": "Netzwerk",
+    "transaction_id": "Transaktions-ID",
+    "network_fee": "Netzwerkgebühr",
+    "bridge_fee": "Bridge-Gebühr",
+    "transaction_fee": "Transaktionsgebühr",
+    "total_amount": "Gesamtbetrag",
+    "you_sent": "Sie sandten",
+    "you_received": "Sie haben empfangen",
+    "view_on_block_explorer": "Im Block-Explorer anzeigen",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {
