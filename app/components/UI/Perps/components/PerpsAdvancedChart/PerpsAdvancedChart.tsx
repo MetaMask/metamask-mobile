@@ -1,14 +1,15 @@
 import React, {
+  type FC,
   useCallback,
   useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import {
+import type {
   CandlePeriod,
+  CandleData,
   TimeDuration,
-  type CandleData,
 } from '@metamask/perps-controller';
 import AdvancedChart from '../../../Charts/AdvancedChart/AdvancedChart';
 import { advancedChartLineChromePresets } from '../../../Charts/AdvancedChart/advancedChartLineChrome.presets';
@@ -195,27 +196,30 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
 
   const { colors } = useTheme();
 
+  const tpslEntryPrice = tpslLines?.entryPrice;
+  const tpslTakeProfitPrice = tpslLines?.takeProfitPrice;
+  const tpslStopLossPrice = tpslLines?.stopLossPrice;
+  const tpslLiquidationPrice = tpslLines?.liquidationPrice;
+
   const positionLines = useMemo(
-    () => mapTpslToPositionLines(tpslLines, positionSize),
-    [tpslLines, positionSize],
+    () =>
+      mapTpslToPositionLines(
+        {
+          entryPrice: tpslEntryPrice,
+          takeProfitPrice: tpslTakeProfitPrice,
+          stopLossPrice: tpslStopLossPrice,
+          liquidationPrice: tpslLiquidationPrice,
+        },
+        positionSize,
+      ),
+    [
+      tpslEntryPrice,
+      tpslTakeProfitPrice,
+      tpslStopLossPrice,
+      tpslLiquidationPrice,
+      positionSize,
+    ],
   );
-
-  const advancedChartPositionLines = useMemo(() => {
-    const currentPrice =
-      latestBar && Number.isFinite(latestBar.close)
-        ? latestBar.close
-        : undefined;
-
-    if (currentPrice === undefined) {
-      return positionLines;
-    }
-
-    return {
-      side: positionLines?.side ?? 'long',
-      ...positionLines,
-      currentPrice,
-    };
-  }, [latestBar, positionLines]);
 
   const positionLineColors = useMemo(
     () => getPerpsPositionLineColors(colors),
@@ -415,7 +419,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       hidePaneSeparator
       gridLineColorOverride={colors.border.muted}
       isLoading={isLoading}
-      positionLines={advancedChartPositionLines}
+      positionLines={positionLines}
       positionLineColors={positionLineColors}
       rnBackedPagination={{ enabled: true }}
       onFetchOlderBarsRequest={handleFetchOlderBarsRequest}
@@ -424,7 +428,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       onSkeletonHidden={handleSkeletonHidden}
       visibleFromMs={visibleFromMs}
       visibleToMs={visibleToMs}
-      currentPriceLineColorOverride={colors.background.muted}
+      currentPriceLineColorOverride={positionLineColors.currentPrice}
       volumeSuccessColorOverride={volumeColors.success}
       volumeErrorColorOverride={volumeColors.error}
     />

@@ -149,9 +149,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const [legendRendered, setLegendRendered] = useState(false);
     const [webViewLoaded, setWebViewLoaded] = useState(false);
     const webViewLoadedRef = useRef(false);
-    const prevPositionLinesRef = useRef<AdvancedChartProps['positionLines']>();
-    const prevPositionLineColorsRef =
-      useRef<AdvancedChartProps['positionLineColors']>();
+    const prevPositionLinesRef = useRef(positionLines);
+    const prevPositionLineColorsRef = useRef(positionLineColors);
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
     const prevOhlcvSeriesKeyRef = useRef<string | undefined>(undefined);
