@@ -55,9 +55,7 @@ appiumTest.describe(SmokeAccounts('Create wallet accounts - multi-SRP'), () => {
             'Linea Main Network',
             'Solana',
           ]) {
-            await Assertions.expectTextDisplayed(networkName, {
-              description: `${networkName} should be visible in the networks list`,
-            });
+            await AddressList.expectNetworkDisplayed(networkName);
           }
 
           await AddressList.tapBackButton();

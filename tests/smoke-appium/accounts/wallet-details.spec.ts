@@ -1,6 +1,9 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeAccounts } from '../../tags.js';
-import { loginAndOpenAccountList } from '../../flows/wallet.flow.js';
+import {
+  loginAndOpenAccountList,
+  waitForWalletHomePlaywright,
+} from '../../flows/wallet.flow.js';
 import { completeSrpQuiz } from '../../flows/accounts.flow.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import Assertions from '../../framework/Assertions.js';
@@ -47,13 +50,28 @@ appiumTest.describe(SmokeAccounts('Wallet details'), () => {
           await WalletDetails.tapSRP();
           await completeSrpQuiz(defaultGanacheOptions.mnemonic);
 
+          await WalletDetails.tapBackButton();
+          await AccountDetails.tapBackButton();
+          await AccountListBottomSheet.tapBackButton();
+          await waitForWalletHomePlaywright();
+
           await WalletView.tapIdenticon();
+          await Assertions.expectElementToBeVisible(
+            AccountListBottomSheet.accountList,
+            {
+              description:
+                'Account list should be open after tapping identicon',
+            },
+          );
           for (const accountName of visibleAccounts) {
             await Assertions.expectElementToBeVisible(
               AccountListBottomSheet.getAccountElementByAccountNameV2(
                 accountName,
               ),
-              { description: `Account ${accountName} should be visible` },
+              {
+                description: `Account ${accountName} should be visible`,
+                timeout: 15_000,
+              },
             );
           }
         },
