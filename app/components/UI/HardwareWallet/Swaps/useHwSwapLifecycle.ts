@@ -8,7 +8,6 @@ import {
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigation, useIsFocused } from '@react-navigation/native';
-import Logger from '../../../../util/Logger';
 
 import Routes from '../../../../constants/navigation/Routes';
 import { strings } from '../../../../../locales/i18n';
@@ -26,6 +25,7 @@ import {
   HardwareWalletsSwapsStatus,
   HardwareWalletsSwapsEventType,
   HardwareWalletsSwapsStepStatus,
+  reconcileStuckProgress,
 } from './HardwareWalletsSwaps.state';
 import { useHwBatchSignTracker } from './useHwBatchSignTracker';
 import { useHwConnectionMonitoring } from './useHwConnectionMonitoring';
@@ -34,8 +34,10 @@ import { type FlowStrategy, CancelTargetType } from './flowStrategy';
 
 /**
  * Safety-net timeout: if the state machine is stuck in a non-terminal status
- * after this delay, dispatch terminal Signed for the last unsigned step.
- * Needed because acceptPendingApproval resolves before batch signing finishes.
+ * after this delay, reconcile via `reconcileStuckProgress` (navigate, dispatch
+ * terminal Signed for one missed step, or TransactionFailed when multiple
+ * steps are stuck). Needed because acceptPendingApproval resolves before
+ * batch signing finishes.
  */
 const SAFETY_NET_TIMEOUT_MS = 120_000;
 
@@ -211,9 +213,13 @@ export function useHwSwapLifecycle({
   // ── Safety-net dispatch ──────────────────────────────────────────
   // If the state machine is stuck in a non-terminal status after the
   // safety-net timeout, the tracker likely missed the final signing
-  // event. Dispatch terminal Signed for the last unsigned step. The
-  // reducer's guard clauses make this a no-op if the tracker already
-  // dispatched it (status would be Submitted → effect returned early).
+  // event. `reconcileStuckProgress` decides how to reconcile: navigate
+  // directly when every step is Signed, dispatch terminal Signed for a
+  // single remaining unsigned step, or dispatch TransactionFailed when
+  // more than one step is still unsigned (the missed-event premise no
+  // longer holds — failing avoids leaving the flow half-done and hung).
+  // The reducer's guard clauses make a Signed dispatch a no-op if the
+  // tracker already dispatched it (status would be Submitted → early return).
   useEffect(() => {
     if (!hasInitialSubmissionRef.current) return;
     if (hasAutoNavigatedRef.current) return;
@@ -231,6 +237,8 @@ export function useHwSwapLifecycle({
 
     const timeout = setTimeout(() => {
       const current = progressRef.current;
+      // Intentionally omitting Disconnected: if the device disconnected
+      // after signing completed, we still navigate to success below.
       if (
         current.status === HardwareWalletsSwapsStatus.Submitted ||
         current.status === HardwareWalletsSwapsStatus.Failed ||
@@ -242,34 +250,15 @@ export function useHwSwapLifecycle({
       }
 
       // Find the last unsigned step
-      let lastUnsignedIndex = -1;
-      for (let i = current.steps.length - 1; i >= 0; i--) {
-        if (current.steps[i].status !== HardwareWalletsSwapsStepStatus.Signed) {
-          lastUnsignedIndex = i;
-          break;
-        }
-      }
+      const resolution = reconcileStuckProgress(current.steps);
 
-      if (lastUnsignedIndex < 0) {
+      if (resolution.action === 'navigate') {
         // All signed but status hasn't transitioned — navigate directly
         navigateOnSuccess();
         return;
       }
 
-      const step = current.steps[lastUnsignedIndex];
-      Logger.log('[HW-SafetyNet] dispatching terminal Signed', {
-        stepKind: step.kind,
-        stepIndex: lastUnsignedIndex,
-        status: current.status,
-        stepStatuses: current.steps.map((s) => s.status),
-      });
-
-      dispatch(
-        updateHardwareWalletsSwaps({
-          type: HardwareWalletsSwapsEventType.Signed,
-          payload: { stepKind: step.kind, stepIndex: lastUnsignedIndex },
-        }),
-      );
+      dispatch(updateHardwareWalletsSwaps(resolution.event));
     }, SAFETY_NET_TIMEOUT_MS);
 
     return () => clearTimeout(timeout);

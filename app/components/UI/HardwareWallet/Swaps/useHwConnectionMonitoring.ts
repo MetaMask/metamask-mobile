@@ -42,6 +42,14 @@ const CONFIRMED_CONNECTED_STATUSES: ReadonlySet<ConnectionStatus> = new Set([
 ]);
 
 /**
+ * Debounce window (ms) for Ledger disconnect detection.
+ * Ledger transports briefly report `Disconnected` during multi-tx signing
+ * (e.g. a BLE blip right after a retry reconnect).  This window lets the
+ * device auto-reconnect before we surface a spurious failure.
+ */
+const DISCONNECT_DEBOUNCE_MS = 1000;
+
+/**
  * Returns whether `current` should be treated as unchanged relative to the
  * baseline captured when entering {@link HardwareWalletsSwapsStatus.Waiting}.
  * Used to ignore stale disconnect/error state left over from a prior attempt.
@@ -182,7 +190,7 @@ export function useHwConnectionMonitoring({
               type: HardwareWalletsSwapsEventType.DeviceDisconnected,
             }),
           );
-        }, 1000);
+        }, DISCONNECT_DEBOUNCE_MS);
       }
       return;
     }
