@@ -1,7 +1,7 @@
 import '../mocks';
 import React from 'react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import type {
   CryptoCurrency,
   FiatCurrency,
@@ -210,7 +210,7 @@ interface RootModalFlowProps {
 
 const RootModalFlow = ({ route }: RootModalFlowProps) => {
   const initialScreen = route.params?.screen ?? Routes.SHEET.ACCOUNT_SELECTOR;
-  const ModalStack = createStackNavigator();
+  const ModalStack = createNativeStackNavigator();
 
   return (
     <ModalStack.Navigator
@@ -361,9 +361,9 @@ export function renderBuildQuoteWithRoutes(
     state = stateOverride ?? builder.build();
   }
 
-  const RootStack = createStackNavigator();
-  const MainStack = createStackNavigator();
-  const ModalsStack = createStackNavigator();
+  const RootStack = createNativeStackNavigator();
+  const MainStack = createNativeStackNavigator();
+  const ModalsStack = createNativeStackNavigator();
 
   const MainRoutes = () => (
     <MainStack.Navigator
@@ -473,7 +473,7 @@ export function renderV2BuildQuoteView(
   }
   const state = stateOverride ?? builder.build();
 
-  const RootStack = createStackNavigator();
+  const RootStack = createNativeStackNavigator();
 
   const stackTree = (
     <QueryClientProvider client={createQueryClient()}>
@@ -538,9 +538,9 @@ export function renderV2BuildQuoteWithRoutes(
   }
   const state = stateOverride ?? builder.build();
 
-  const RootStack = createStackNavigator();
-  const MainStack = createStackNavigator();
-  const ModalsStack = createStackNavigator();
+  const RootStack = createNativeStackNavigator();
+  const MainStack = createNativeStackNavigator();
+  const ModalsStack = createNativeStackNavigator();
 
   const MainRoutes = () => (
     <MainStack.Navigator

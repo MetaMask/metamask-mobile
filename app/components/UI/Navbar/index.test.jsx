@@ -1,6 +1,6 @@
 /* eslint-disable react/prop-types */
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../util/test/initial-root-state';
@@ -140,7 +140,7 @@ jest.mock('../AddressCopy', () => {
 });
 
 describe('getNetworkNavbarOptions', () => {
-  const Stack = createStackNavigator();
+  const Stack = createNativeStackNavigator();
 
   const mockNavigation = {
     pop: jest.fn(),
@@ -407,7 +407,7 @@ describe('getStakingNavbar', () => {
 });
 
 describe('getNavigationOptionsTitle', () => {
-  const Stack = createStackNavigator();
+  const Stack = createNativeStackNavigator();
 
   const mockNavigation = {
     goBack: jest.fn(),
