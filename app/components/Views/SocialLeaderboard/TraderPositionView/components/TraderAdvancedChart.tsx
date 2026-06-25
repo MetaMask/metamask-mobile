@@ -1,5 +1,11 @@
 import type { Trade } from '@metamask/social-controllers';
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { View } from 'react-native';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import {
@@ -215,40 +221,62 @@ const TraderAdvancedChart = ({
 
   const timeRange = SOCIAL_PERIOD_TO_TIME_RANGE[activeTimePeriod];
   const config = TIME_RANGE_CONFIGS[timeRange];
+  const hourConfig = TIME_RANGE_CONFIGS[SOCIAL_PERIOD_TO_TIME_RANGE['1H']];
+  const dayConfig = TIME_RANGE_CONFIGS[SOCIAL_PERIOD_TO_TIME_RANGE['1D']];
+  const weekConfig = TIME_RANGE_CONFIGS[SOCIAL_PERIOD_TO_TIME_RANGE['1W']];
   const monthConfig = TIME_RANGE_CONFIGS[SOCIAL_PERIOD_TO_TIME_RANGE['1M']];
   const allConfig = TIME_RANGE_CONFIGS[SOCIAL_PERIOD_TO_TIME_RANGE.All];
 
   // Spot: OHLCV from the MetaMask price API. A no-op (no fetch) when there is no
   // assetId — i.e. for perps, which supply their series via `historicalPrices`.
-  // Trade taps only target 1M/All, so keep both warm and use their cached hook
-  // state when selected.
+  //
+  // ONE warm hook per period (each holds its own period's data permanently, since
+  // useOHLCVChart is a single-series hook). Pre-fetching every period up front
+  // means an interval tap is an instant in-memory swap with no network round-trip
+  // — without this, switching to a not-yet-loaded period briefly shows the stale
+  // previous period's data until the new fetch lands (a visible flash). Cost: up
+  // to 5 concurrent OHLCV requests on mount instead of 3.
+  const spotAssetId = !isPerp ? (assetId ?? '') : '';
+  const hourSpot = useOHLCVChart({
+    assetId: spotAssetId,
+    timePeriod: hourConfig.timePeriod,
+    interval: hourConfig.interval,
+    vsCurrency,
+  });
+  const daySpot = useOHLCVChart({
+    assetId: spotAssetId,
+    timePeriod: dayConfig.timePeriod,
+    interval: dayConfig.interval,
+    vsCurrency,
+  });
+  const weekSpot = useOHLCVChart({
+    assetId: spotAssetId,
+    timePeriod: weekConfig.timePeriod,
+    interval: weekConfig.interval,
+    vsCurrency,
+  });
   const monthSpot = useOHLCVChart({
-    assetId: !isPerp ? (assetId ?? '') : '',
+    assetId: spotAssetId,
     timePeriod: monthConfig.timePeriod,
     interval: monthConfig.interval,
     vsCurrency,
   });
   const allSpot = useOHLCVChart({
-    assetId: !isPerp ? (assetId ?? '') : '',
+    assetId: spotAssetId,
     timePeriod: allConfig.timePeriod,
     interval: allConfig.interval,
     vsCurrency,
   });
-  const activeSpot = useOHLCVChart({
-    assetId:
-      !isPerp && activeTimePeriod !== '1M' && activeTimePeriod !== 'All'
-        ? (assetId ?? '')
-        : '',
-    timePeriod: config.timePeriod,
-    interval: config.interval,
-    vsCurrency,
-  });
   const spot =
-    activeTimePeriod === '1M'
-      ? monthSpot
-      : activeTimePeriod === 'All'
-        ? allSpot
-        : activeSpot;
+    activeTimePeriod === '1H'
+      ? hourSpot
+      : activeTimePeriod === '1D'
+        ? daySpot
+        : activeTimePeriod === '1W'
+          ? weekSpot
+          : activeTimePeriod === '1M'
+            ? monthSpot
+            : allSpot;
 
   // Perps (Hyperliquid) have no CAIP asset id and no spot OHLCV feed; their price
   // history is already fetched as a line series (`historicalPrices`, from the
@@ -278,6 +306,26 @@ const TraderAdvancedChart = ({
         perpOhlcvData[perpOhlcvData.length - 1]?.time ?? ''
       }`
     : `${assetId}|${config.timePeriod}|${config.interval ?? ''}|${vsCurrency}`;
+
+  // Stable WebView identity for the lifetime of this position. Because it does
+  // NOT include the period/interval, the WebView is NOT remounted on an interval
+  // tap — `AdvancedChart` hot-reloads the new OHLCV in place (stale-while-
+  // revalidate) instead of cold-booting TradingView and flashing the skeleton.
+  // The asset is fixed per mounted position and `vsCurrency` is constant, so this
+  // is effectively constant; it changes only if the chart is reused for another
+  // asset, which then re-runs the initial-load skeleton flow (see below).
+  const webViewInstanceKey = `${assetId ?? 'perp'}|${vsCurrency}`;
+
+  // First-reveal gate: once the chart has painted, interval taps must not re-show
+  // the skeleton. Reset when the WebView instance changes (new asset) so a genuine
+  // fresh load still shows it.
+  const [hasChartBeenRevealed, setHasChartBeenRevealed] = useState(false);
+  useEffect(() => {
+    setHasChartBeenRevealed(false);
+  }, [webViewInstanceKey]);
+  const handleSkeletonHidden = useCallback(() => {
+    setHasChartBeenRevealed(true);
+  }, []);
 
   // Perps have no paginated history feed (the price API doesn't serve them).
   const ohlcvPagination = useMemo(
@@ -455,6 +503,7 @@ const TraderAdvancedChart = ({
         scrollPassthrough={scrollPassthrough}
         ohlcvData={ohlcvData}
         ohlcvSeriesKey={ohlcvSeriesKey}
+        webViewInstanceKey={webViewInstanceKey}
         height={chartHeight}
         chartType={ChartType.Line}
         showVolume={false}
@@ -467,7 +516,11 @@ const TraderAdvancedChart = ({
           useCustomDashedLastPriceLine: false,
           useCustomLineEndMarker: false,
         }}
-        isLoading={chartLoading}
+        // Gate to first reveal: after the chart has painted once, a background
+        // refetch on an interval tap keeps the (stale) chart visible instead of
+        // re-showing the skeleton.
+        isLoading={!hasChartBeenRevealed && chartLoading}
+        onSkeletonHidden={handleSkeletonHidden}
         ohlcvPagination={ohlcvPagination}
         visibleFromMs={visibleFromMs}
         visibleToMs={visibleToMs}

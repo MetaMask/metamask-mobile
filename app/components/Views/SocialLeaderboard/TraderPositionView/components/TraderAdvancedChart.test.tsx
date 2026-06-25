@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, act } from '@testing-library/react-native';
 import type { Trade } from '@metamask/social-controllers';
 import type { TokenPrice } from '../../../../hooks/useTokenHistoricalPrices';
 import { useOHLCVChart } from '../../../../UI/Charts/AdvancedChart/useOHLCVChart';
@@ -426,5 +426,106 @@ describe('TraderAdvancedChart', () => {
     expect(mockFocusTime).not.toHaveBeenCalled();
     expect(mockPulseTradeMarker).not.toHaveBeenCalled();
     expect(mockRequestTimePeriod).toHaveBeenCalledWith('All');
+  });
+
+  describe('stale-while-revalidate interval switching', () => {
+    const lastProps = () =>
+      mockAdvancedChart.mock.calls.at(-1)?.[0] as {
+        webViewInstanceKey: string;
+        ohlcvSeriesKey: string;
+        isLoading: boolean;
+        onSkeletonHidden: () => void;
+      };
+
+    it('keeps a stable webViewInstanceKey across interval changes (no WebView remount)', () => {
+      setOHLCV(makeBars(20));
+
+      const { rerender } = render(
+        <TraderAdvancedChart {...defaultProps} activeTimePeriod="1D" />,
+      );
+      const first = lastProps();
+
+      rerender(<TraderAdvancedChart {...defaultProps} activeTimePeriod="1W" />);
+      const second = lastProps();
+
+      // The instance key (which drives the WebView React key) is unchanged, so
+      // the WebView is NOT remounted on an interval tap...
+      expect(second.webViewInstanceKey).toBe(first.webViewInstanceKey);
+      expect(first.webViewInstanceKey).toBe('eip155:1/erc20:0xtoken|usd');
+      // ...while the series key DOES change, triggering an in-place hot reload.
+      expect(second.ohlcvSeriesKey).not.toBe(first.ohlcvSeriesKey);
+    });
+
+    it('uses a perp instance key when there is no assetId', () => {
+      setOHLCV([]);
+      const historicalPrices: TokenPrice[] = Array.from(
+        { length: 10 },
+        (_, i) => [String(1_700_000_000_000 + i * 60_000), 100 + i],
+      );
+
+      render(
+        <TraderAdvancedChart
+          {...defaultProps}
+          assetId={undefined}
+          isPerp
+          historicalPrices={historicalPrices}
+        />,
+      );
+
+      expect(lastProps().webViewInstanceKey).toBe('perp|usd');
+    });
+
+    it('shows the skeleton on first load, then suppresses it on a background refetch', () => {
+      // First load still loading → skeleton is allowed.
+      setOHLCV(makeBars(20), { isLoading: true });
+      const { rerender } = render(<TraderAdvancedChart {...defaultProps} />);
+      expect(lastProps().isLoading).toBe(true);
+
+      // Chart paints and reports it is revealed.
+      act(() => lastProps().onSkeletonHidden());
+
+      // A later interval tap refetches (loading again), but the chart has been
+      // revealed, so the skeleton stays hidden (stale-while-revalidate).
+      setOHLCV(makeBars(20), { isLoading: true });
+      rerender(<TraderAdvancedChart {...defaultProps} activeTimePeriod="1W" />);
+      expect(lastProps().isLoading).toBe(false);
+    });
+
+    it('pre-fetches every period up front so an interval switch needs no network', () => {
+      setOHLCV(makeBars(20));
+      render(<TraderAdvancedChart {...defaultProps} activeTimePeriod="1D" />);
+
+      // One warm hook per period (1H, 1D, 1W, 1M, All) — five distinct configs,
+      // all keyed to the real spot asset id (deduped across re-renders).
+      const spotConfigs = new Set(
+        mockUseOHLCVChart.mock.calls
+          .map(([opts]) => opts)
+          .filter((opts) => opts.assetId === defaultProps.assetId)
+          .map((opts) => `${opts.timePeriod}|${opts.interval ?? ''}`),
+      );
+      expect(spotConfigs.size).toBe(5);
+    });
+
+    it('fetches no spot OHLCV for a perp position (data comes from historicalPrices)', () => {
+      setOHLCV([]);
+      const historicalPrices: TokenPrice[] = Array.from(
+        { length: 10 },
+        (_, i) => [String(1_700_000_000_000 + i * 60_000), 100 + i],
+      );
+
+      render(
+        <TraderAdvancedChart
+          {...defaultProps}
+          assetId={undefined}
+          isPerp
+          historicalPrices={historicalPrices}
+        />,
+      );
+
+      const spotFetches = mockUseOHLCVChart.mock.calls
+        .map(([opts]) => opts)
+        .filter((opts) => opts.assetId !== '');
+      expect(spotFetches).toHaveLength(0);
+    });
   });
 });
