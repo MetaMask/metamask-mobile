@@ -298,6 +298,7 @@ export type PredictOutcomeGroup = {
   key: string;
   outcomes: PredictOutcome[];
   subgroups?: PredictOutcomeGroup[];
+  title?: string;
 };
 
 export type PredictOutcome = {

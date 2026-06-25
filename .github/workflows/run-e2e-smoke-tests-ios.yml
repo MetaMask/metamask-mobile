@@ -100,7 +100,7 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeWalletPlatform')
     strategy:
       matrix:
-        split: [1, 2, 3]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -108,7 +108,7 @@ jobs:
       platform: ios
       test_suite_tag: 'SmokeWalletPlatform'
       split_number: ${{ matrix.split }}
-      total_splits: 3
+      total_splits: 2
       changed_files: ${{ inputs.changed_files }}
       build_type: 'main'
       runner_provider: ${{ inputs.runner_provider }}
@@ -118,31 +118,13 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeIdentity')
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: identity-ios-smoke-${{ matrix.split }}
       platform: ios
       test_suite_tag: 'SmokeIdentity'
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      changed_files: ${{ inputs.changed_files }}
-      build_type: 'main'
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
-  accounts-ios-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeAccounts')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: accounts-ios-smoke-${{ matrix.split }}
-      platform: ios
-      test_suite_tag: 'SmokeAccounts'
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
@@ -305,7 +287,6 @@ jobs:
       - perps-ios-smoke
       - wallet-platform-ios-smoke
       - identity-ios-smoke
-      - accounts-ios-smoke
       - network-abstraction-ios-smoke
       - network-expansion-ios-smoke
       - prediction-market-ios-smoke

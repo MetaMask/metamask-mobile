@@ -79,7 +79,7 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeWalletPlatform')
     strategy:
       matrix:
-        split: [1, 2, 3]
+        split: [1, 2]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
@@ -87,7 +87,7 @@ jobs:
       platform: android
       test_suite_tag: 'SmokeWalletPlatform'
       split_number: ${{ matrix.split }}
-      total_splits: 3
+      total_splits: 2
       changed_files: ${{ inputs.changed_files }}
       runner_provider: ${{ inputs.runner_provider }}
     secrets: inherit
@@ -96,30 +96,13 @@ jobs:
     if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeIdentity')
     strategy:
       matrix:
-        split: [1, 2]
+        split: [1]
       fail-fast: false
     uses: ./.github/workflows/run-e2e-workflow.yml
     with:
       test-suite-name: identity-android-smoke-${{ matrix.split }}
       platform: android
       test_suite_tag: 'SmokeIdentity'
-      split_number: ${{ matrix.split }}
-      total_splits: 2
-      changed_files: ${{ inputs.changed_files }}
-      runner_provider: ${{ inputs.runner_provider }}
-    secrets: inherit
-
-  accounts-android-smoke:
-    if: contains(fromJson(inputs.selected_tags), 'ALL') || contains(fromJson(inputs.selected_tags), 'SmokeAccounts')
-    strategy:
-      matrix:
-        split: [1]
-      fail-fast: false
-    uses: ./.github/workflows/run-e2e-workflow.yml
-    with:
-      test-suite-name: accounts-android-smoke-${{ matrix.split }}
-      platform: android
-      test_suite_tag: 'SmokeAccounts'
       split_number: ${{ matrix.split }}
       total_splits: 1
       changed_files: ${{ inputs.changed_files }}
@@ -289,7 +272,6 @@ jobs:
       - perps-android-smoke
       - wallet-platform-android-smoke
       - identity-android-smoke
-      - accounts-android-smoke
       - network-abstraction-android-smoke
       - network-expansion-android-smoke
       - confirmations-android-smoke
