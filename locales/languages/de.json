@@ -103,7 +103,7 @@
       "title": "Unzureichende Gelder"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Weniger hinzufügen oder eine andere Zahlungsmethode verwenden."
     },
     "insufficient_pay_token_native": {
       "message": "Nicht genügend {{ticker}}, um die Gebühren zu decken. Verwenden Sie ein Token in einem anderen Netzwerk oder fügen Sie weitere {{ticker}} hinzu, um fortzufahren.",
@@ -1094,6 +1094,7 @@
       "twitter_link": "Auf X (Twitter) ansehen",
       "sort": {
         "value": "Wert",
+        "top_trades": "Top Trades",
         "pnl_percent": "GuV %",
         "recent": "Aktuell"
       }
@@ -1102,7 +1103,6 @@
       "market_cap": "Marktkapitalisierung",
       "price": "Preis",
       "position": "Position",
-      "trades": "Trades",
       "buy": "Kaufen",
       "trade": "Trade",
       "unsupported_market": "Nicht unterstützter Markt",
@@ -1133,6 +1133,8 @@
       "price_impact": "Preiseinfluss",
       "est_points": "Geschätzte Punkte",
       "no_quotes": "Keine Angebote für diesen Token verfügbar",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Wird geladen ...",
       "unavailable": "Swap nicht verfügbar",
       "unsupported_chain": "Diese Chain wird für Quick-Buy noch nicht unterstützt",
@@ -2368,11 +2370,15 @@
       "predictions_title": "Prognosen zur Weltmeisterschaft",
       "banner_title": "Weltmeisterschaft 2026",
       "banner_description": "Handeln Sie jedes Spiel, jeden Moment.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "Alle",
         "props": "Props",
-        "live": "Live"
+        "live": "Live",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Gruppenphase",
         "round_of_32": "Sechzehntelfinale",
@@ -3540,6 +3546,8 @@
       "wallet_activity_desc": "Kaufen, Verkaufen, Überweisen, Swaps und Belohnungen",
       "perps_title": "Handelsaktivität",
       "perps_desc": "Perps-Positionsänderungen sowie -Liquidationen, Finanzierungssätze und Margin-Aktualisierungen",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "Trading-Signale",
       "social_ai_desc": "Updates von Tradern und Vermögenswerten, denen Sie folgen, sowie ausgewählte Marktnachrichten",
       "marketing_title": "Updates und Belohnungen",
@@ -6029,6 +6037,11 @@
       "description": "Der Kauf von Krypto ist in Ihrer Region aufgrund von Einschränkungen lokaler Zahlungsanbieter oder regulatorischer Beschränkungen nicht möglich.",
       "got_it": "Verstanden"
     },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "Verstanden"
+    },
     "region": {
       "buy_crypto_tokens": "Krypto-Tokens kaufen",
       "sell_crypto_tokens": "Krypto-Tokens verkaufen",
@@ -7949,9 +7962,13 @@
       "rejected": "Abgelehnt",
       "reconnect": "Erneut verbinden",
       "done": "Fertig",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "Nächsten QR-Code scannen",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "Schritt {{current}} von {{total}}: Scannen Sie den in Ihrer Wallet angezeigten QR-Code",
-      "scanner_last_step_text": "Letzter Schritt: Scannen Sie den auf Ihrer Wallet angezeigten QR-Code"
+      "scanner_last_step_text": "Letzter Schritt: Scannen Sie den auf Ihrer Wallet angezeigten QR-Code",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "Preiseinfluss",
     "price_impact_info_description": "Auf diese Weise verändert Ihr Handel den Marktpreis eines Tokens. Dies ist abhängig von der Handelsgröße, der verfügbaren Liquidität und den Gebühren des Anbieters. MetaMask hat keinen Einfluss auf den Preis.",
@@ -9526,8 +9543,8 @@
     },
     "earn_rewards": {
       "title": "Belohnungen verdienen",
-      "musd_title": "Bis zu 3 % Bonus auf Stablecoins",
-      "musd_subtitle": "Berechnen Sie Ihren mUSD-Bonus",
+      "musd_title": "Bis zu {{percentage}} % Bonus auf mUSD",
+      "musd_subtitle": "Geldkonten sind hier",
       "card_title": "Bis zu 3 % Rabatt auf Ausgaben",
       "card_subtitle": "Sichern Sie sich jetzt Ihre MetaMask Card",
       "card_subtitle_cardholder": "Nutzen Sie die Vorteile Ihrer MetaMask Card"
@@ -9601,17 +9618,6 @@
       "predict_withdraw": "Auszahlung",
       "money_account_deposit": "Auf Geldkonto einzahlen",
       "money_account_withdraw": "Von Geldkonto transferieren",
-      "money_account_sent": "{{symbol}} gesendet",
-      "money_account_received": "Empfangen",
-      "deposited_musd": "mUSD eingezahlt",
-      "depositing_musd": "mUSD einzahlen",
-      "deposit_failed": "Einzahlung fehlgeschlagen",
-      "sent": "Versendet",
-      "sending_musd": "mUSD senden",
-      "send_failed": "Senden fehlgeschlagen",
-      "converted_to_musd": "Zu mUSD konvertiert",
-      "converting_to_musd": "Umwandlung in mUSD",
-      "conversion_failed": "Konvertierung fehlgeschlagen",
       "default": "Transaktionsdetails"
     },
     "label": {
@@ -9660,6 +9666,24 @@
       "fiat_purchase": "{{token}} mit {{paymentMethod}} kaufen"
     },
     "perps_deposit_solution": "Sie haben nun {{fiat}} von USDC auf Arbitrum. Versuchen Sie Ihre Einzahlung erneut."
+  },
+  "activity_details": {
+    "status": "Status",
+    "date": "Datum",
+    "account": "Konto",
+    "from": "Von",
+    "to": "Bis",
+    "network": "Netzwerk",
+    "transaction_id": "Transaktions-ID",
+    "network_fee": "Netzwerkgebühr",
+    "bridge_fee": "Bridge-Gebühr",
+    "transaction_fee": "Transaktionsgebühr",
+    "total_amount": "Gesamtbetrag",
+    "you_sent": "Sie sandten",
+    "you_received": "Sie haben empfangen",
+    "view_on_block_explorer": "Im Block-Explorer anzeigen",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

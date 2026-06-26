@@ -688,7 +688,8 @@
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
     "tokenSecurityTypeDestination": null,
-    "tokenWarnings": []
+    "tokenWarnings": [],
+    "inputPrimaryDenomination": "token_amount"
   },
   "BridgeStatusController": {
     "txHistory": {}

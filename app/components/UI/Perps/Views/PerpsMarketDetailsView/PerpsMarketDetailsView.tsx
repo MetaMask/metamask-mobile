@@ -1,11 +1,9 @@
 import {
-  Box,
   Button as DSButton,
   ButtonSemantic,
   ButtonSemanticSeverity,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
-  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -22,15 +20,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Linking, RefreshControl, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { Linking, RefreshControl, ScrollView, View } from 'react-native';
 import {
   CandlePeriod,
   TimeDuration,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
-  getPerpsDisplaySymbol,
   type Position,
   type PerpsMarketData,
   type TPSLTrackingData,
@@ -40,6 +36,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import useHeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -57,18 +54,12 @@ import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
 import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
-  PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsTutorialSelectorsIDs,
   PerpsCompactOrderRowSelectorsIDs,
 } from '../../Perps.testIds';
-import HeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated';
-import useHeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated';
-import TitleSubpage from '../../../../../component-library/components-temp/TitleSubpage';
-import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
-import PerpsLeverage from '../../components/PerpsLeverage/PerpsLeverage';
+import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
-import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
 import PerpsMarketTradesList from '../../components/PerpsMarketTradesList';
 import PerpsNavigationCard, {
@@ -253,7 +244,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // This prevents stale closure issues where the captured position is outdated
   // Initialized to null, will be updated via useEffect when existingPosition is available
   const currentPositionRef = useRef<Position | null>(null);
-  const scrollViewRef = useRef<Animated.ScrollView>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const isEligible = useSelector(selectPerpsEligibility);
 
@@ -1257,98 +1248,35 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     Boolean(market?.symbol) &&
     (Boolean(perpsInsightsReport) || isPerpsInsightsLoading);
 
-  const displayTitle = `${getPerpsDisplaySymbol(market.symbol)}-USD`;
-
   return (
     <SafeAreaView
       style={styles.mainContainer}
+      edges={['bottom', 'left', 'right']}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandardAnimated
-        scrollY={scrollYShared}
-        titleSectionHeight={titleSectionHeightSv}
-        title={displayTitle}
-        subtitle={
-          <LivePriceHeader
-            symbol={market.symbol}
-            currentPrice={chartCurrentPrice}
-            testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
-            testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
-            throttleMs={1000}
-          />
-        }
-        onBack={handleBackPress}
-        backButtonProps={{
-          onPress: handleBackPress,
-          testID: PerpsMarketHeaderSelectorsIDs.BACK_BUTTON,
-        }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Expand,
-            onPress: handleFullscreenChartOpen,
-            testID: `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
-          },
-          {
-            iconName: isWatchlist ? IconName.StarFilled : IconName.Star,
-            onPress: handleWatchlistPress,
-            testID: PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
-          },
-          {
-            iconName: IconName.Search,
-            onPress: handleCategorySearchPress,
-            testID: PerpsMarketHeaderSelectorsIDs.CATEGORY_SEARCH_BUTTON,
-            accessibilityLabel: strings('perps.market_details.category_search'),
-          },
-        ]}
+      <PerpsMarketInlineHeader
+        market={market}
+        currentPrice={chartCurrentPrice}
+        onBackPress={handleBackPress}
+        onFullscreenPress={handleFullscreenChartOpen}
+        onFavoritePress={handleWatchlistPress}
+        onCategorySearchPress={handleCategorySearchPress}
+        isFavorite={isWatchlist}
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
+        fullscreenButtonTestID={`${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`}
       />
 
       <View style={styles.scrollableContentContainer}>
-        <Animated.ScrollView
+        <ScrollView
           ref={scrollViewRef}
           style={styles.mainContentScrollView}
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
-          onScroll={onScroll}
-          scrollEventThrottle={16}
           testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         >
-          <Box
-            testID={PerpsMarketDetailsViewSelectorsIDs.TITLE_SECTION_WRAPPER}
-            onLayout={(e) => setTitleSectionHeight(e.nativeEvent.layout.height)}
-          >
-            <TitleSubpage
-              startAccessory={
-                <PerpsTokenLogo symbol={market.symbol} size={40} />
-              }
-              title={displayTitle}
-              titleAccessory={
-                market.maxLeverage ? (
-                  <Box twClassName="ml-1">
-                    <PerpsLeverage maxLeverage={market.maxLeverage} />
-                  </Box>
-                ) : undefined
-              }
-              bottomAccessory={
-                <LivePriceHeader
-                  symbol={market.symbol}
-                  currentPrice={chartCurrentPrice}
-                  testIDPrice={
-                    PerpsMarketHeaderSelectorsIDs.PRICE_TITLE_SECTION
-                  }
-                  testIDChange={
-                    PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE_TITLE_SECTION
-                  }
-                  throttleMs={1000}
-                />
-              }
-              twClassName="px-4 pt-1 pb-3"
-            />
-          </Box>
-
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
             <ComponentErrorBoundary
@@ -1545,7 +1473,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               </Text>
             </Text>
           </View>
-        </Animated.ScrollView>
+        </ScrollView>
       </View>
 
       {/* Fixed Actions Footer */}

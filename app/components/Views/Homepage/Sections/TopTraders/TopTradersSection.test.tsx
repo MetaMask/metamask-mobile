@@ -51,6 +51,7 @@ jest.mock(
   '../../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
     selectSocialLeaderboardEnabled: jest.fn(() => true),
+    selectSocialLeaderboardPerpsEnabled: jest.fn(() => true),
   }),
 );
 
@@ -77,6 +78,9 @@ jest.mock('../../hooks/useSectionViewportVisible', () => ({
 const mockSelectSocialLeaderboardEnabled = jest.requireMock(
   '../../../../../selectors/featureFlagController/socialLeaderboard',
 ).selectSocialLeaderboardEnabled;
+const mockSelectSocialLeaderboardPerpsEnabled = jest.requireMock(
+  '../../../../../selectors/featureFlagController/socialLeaderboard',
+).selectSocialLeaderboardPerpsEnabled;
 
 const defaultProps = { sectionIndex: 1, totalSectionsLoaded: 3 };
 
@@ -84,6 +88,7 @@ describe('TopTradersSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectSocialLeaderboardEnabled.mockImplementation(() => true);
+    mockSelectSocialLeaderboardPerpsEnabled.mockImplementation(() => true);
     mockUseTopTraders.mockReturnValue({
       traders: mockTraders,
       isLoading: false,
@@ -99,6 +104,19 @@ describe('TopTradersSection', () => {
     expect(mockUseTopTraders).toHaveBeenCalledWith(
       expect.objectContaining({
         chains: ['base', 'solana', 'ethereum', 'hyperliquid'],
+        limit: 50,
+      }),
+    );
+  });
+
+  it('queries with spot-only chains when social leaderboard perps are disabled', () => {
+    mockSelectSocialLeaderboardPerpsEnabled.mockImplementation(() => false);
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    expect(mockUseTopTraders).toHaveBeenCalledWith(
+      expect.objectContaining({
+        chains: ['base', 'solana', 'ethereum'],
         limit: 50,
       }),
     );
