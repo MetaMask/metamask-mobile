@@ -6,11 +6,7 @@ import {
 import { BackendWebSocketService } from '@metamask/core-backend';
 import Logger from '../util/Logger';
 
-/**
- * AppStateWebSocketManager handles WebSocket lifecycle based on React Native app state changes.
- * This provides proper mobile optimization by disconnecting WebSocket connections when the app
- * goes to background and reconnecting when it returns to foreground.
- */
+// Manages WebSocket lifecycle based on app state (background/foreground).
 export class AppStateWebSocketManager {
   private appStateSubscription: NativeEventSubscription | null = null;
   private webSocketService: BackendWebSocketService | null = null;
@@ -21,19 +17,11 @@ export class AppStateWebSocketManager {
   private _pendingState: AppStateStatus | null = null;
   private _processing = false;
 
-  /**
-   * Initialize the manager with WebSocket service
-   *
-   * @param webSocketService - The WebSocket service to manage
-   */
   constructor(webSocketService: BackendWebSocketService) {
     this.webSocketService = webSocketService;
     this.setupAppStateListener();
   }
 
-  /**
-   * Setup the app state listener to handle WebSocket lifecycle
-   */
   private setupAppStateListener(): void {
     this.appStateSubscription = AppState.addEventListener(
       'change',
@@ -41,17 +29,7 @@ export class AppStateWebSocketManager {
     );
   }
 
-  /**
-   * Handle app state changes for WebSocket lifecycle management.
-   *
-   * Non-reentrant: if a connect/disconnect is already in flight, the new state
-   * is recorded as pending and processed immediately after the current operation
-   * completes. Only the latest pending state is kept — intermediate states that
-   * arrive while processing are coalesced so the socket always ends up in the
-   * correct final state without concurrent connect/disconnect calls.
-   *
-   * @param nextAppState - The new app state
-   */
+  // Non-reentrant: queues the latest state and drains one at a time to avoid concurrent connect/disconnect.
   private async handleAppStateChange(
     nextAppState: AppStateStatus,
   ): Promise<void> {
@@ -88,9 +66,6 @@ export class AppStateWebSocketManager {
     }
   }
 
-  /**
-   * Cleanup the manager and remove listeners
-   */
   cleanup(): void {
     if (this.appStateSubscription) {
       this.appStateSubscription.remove();
@@ -105,11 +80,6 @@ export class AppStateWebSocketManager {
     }
   }
 
-  /**
-   * Get the current WebSocket service
-   *
-   * @returns The WebSocket service instance
-   */
   getWebSocketService(): BackendWebSocketService | null {
     return this.webSocketService;
   }
