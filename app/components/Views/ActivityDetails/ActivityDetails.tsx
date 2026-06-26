@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -33,8 +33,21 @@ const ActivityDetails = () => {
   const { chainId, txIdentifier, preloadKey } =
     useParams<ActivityDetailsParams>();
   // Provider-backed rows (Perps / Predict) are handed off via a transient store
-  // keyed by `preloadKey`, so route params stay serializable.
-  const preloadedItem = getPreloadedActivityItem(preloadKey);
+  // keyed by `preloadKey` (params stay serializable). Capture the row once per
+  // key and hold it, so a later store eviction can't blank a still-mounted
+  // screen on re-render; re-read only when the key changes (the screen is reused
+  // across navigations).
+  const preloadedRef = useRef<{
+    key?: string;
+    item: ReturnType<typeof getPreloadedActivityItem>;
+  }>({ item: undefined });
+  if (preloadedRef.current.key !== preloadKey) {
+    preloadedRef.current = {
+      key: preloadKey,
+      item: getPreloadedActivityItem(preloadKey),
+    };
+  }
+  const preloadedItem = preloadedRef.current.item;
 
   const item = useActivityDetailsItem(txIdentifier, chainId, preloadedItem);
   const title = item
