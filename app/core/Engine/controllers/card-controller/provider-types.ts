@@ -2,6 +2,7 @@ import type { CaipChainId, Json } from '@metamask/utils';
 import {
   CardStatus,
   CardType,
+  CardWalletExternalPriorityResponse,
   DelegationSettingsResponse,
 } from '../../../../components/UI/Card/types';
 
@@ -223,6 +224,7 @@ export interface CardHomeData {
   alerts: CardAlert[];
   actions: CardAction[];
   delegationSettings: DelegationSettingsResponse | null;
+  externalWalletPriority?: CardWalletExternalPriorityResponse[];
 }
 
 export function emptyCardHomeData(): CardHomeData {

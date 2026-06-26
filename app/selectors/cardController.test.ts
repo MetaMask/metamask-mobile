@@ -23,6 +23,7 @@ import {
   selectCardCountryOfResidence,
   selectCardResidencyRegion,
   selectIsCardResidencyBlocked,
+  selectCardRedemptionDestinationIsMoneyAccount,
 } from './cardController';
 import { selectPrimaryMoneyAccount } from './moneyAccountController';
 import type { CardControllerState } from '../core/Engine/controllers/card-controller/types';
@@ -1693,5 +1694,76 @@ describe('selectCardAvailableTokens residency blocking', () => {
     expect(tokens).toHaveLength(1);
     expect(tokens[0].isMoneyAccountEntry).toBe(true);
     expect(tokens[0].fundingStatus).toBe(FundingStatus.Enabled);
+  });
+});
+
+describe('selectCardRedemptionDestinationIsMoneyAccount', () => {
+  const homeDataWithPriority = (
+    externalWalletPriority: unknown[],
+  ): CardControllerState['cardHomeData'] =>
+    ({
+      ...mockCardHomeData,
+      delegationSettings: makeVedaDelegationSettings(),
+      externalWalletPriority,
+    }) as unknown as CardControllerState['cardHomeData'];
+
+  beforeEach(() => {
+    (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue(
+      undefined,
+    );
+  });
+
+  it('is false when the top-priority destination is a non-VEDA wallet (steur/linea)', () => {
+    const state = createMockRootState({
+      cardHomeData: homeDataWithPriority([
+        {
+          id: 1,
+          address: '0xlinea',
+          currency: 'steur',
+          network: 'linea',
+          priority: 1,
+        },
+        {
+          id: 2,
+          address: '0xmonad',
+          currency: 'veda',
+          network: 'monad',
+          priority: 2,
+        },
+      ]),
+    });
+    expect(selectCardRedemptionDestinationIsMoneyAccount(state)).toBe(false);
+  });
+
+  it('is true when the top-priority destination is the veda/monad Money Account', () => {
+    const state = createMockRootState({
+      cardHomeData: homeDataWithPriority([
+        {
+          id: 1,
+          address: '0xmonad',
+          currency: 'veda',
+          network: 'monad',
+          priority: 1,
+        },
+        {
+          id: 2,
+          address: '0xlinea',
+          currency: 'steur',
+          network: 'linea',
+          priority: 2,
+        },
+      ]),
+    });
+    expect(selectCardRedemptionDestinationIsMoneyAccount(state)).toBe(true);
+  });
+
+  it('falls back to the region + has-MA heuristic when there is no priority data', () => {
+    (selectPrimaryMoneyAccount as unknown as jest.Mock).mockReturnValue({
+      address: '0xprimaryma',
+    });
+    const state = createMockRootState({
+      cardHomeData: homeDataWithPriority([]),
+    });
+    expect(selectCardRedemptionDestinationIsMoneyAccount(state)).toBe(true);
   });
 });
