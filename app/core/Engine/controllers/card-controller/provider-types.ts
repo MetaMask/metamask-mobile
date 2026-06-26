@@ -2,6 +2,7 @@ import type { CaipChainId, Json } from '@metamask/utils';
 import {
   CardStatus,
   CardType,
+  CardWalletExternalPriorityResponse,
   DelegationSettingsResponse,
 } from '../../../../components/UI/Card/types';
 
@@ -121,6 +122,7 @@ export interface CardProviderCapabilities {
   onboarding: CardOnboardingCapability;
   supportsPinView: boolean;
   supportsCashback: boolean;
+  supportsCredit: boolean;
 }
 
 // -- Funding Asset (provider-agnostic) --
@@ -223,6 +225,7 @@ export interface CardHomeData {
   alerts: CardAlert[];
   actions: CardAction[];
   delegationSettings: DelegationSettingsResponse | null;
+  externalWalletPriority?: CardWalletExternalPriorityResponse[];
 }
 
 export function emptyCardHomeData(): CardHomeData {
@@ -293,6 +296,23 @@ export interface CashbackWithdrawParams {
 export interface CashbackWithdrawResponse {
   txHash: string;
 }
+
+// -- Credit --
+
+export interface CreditWalletResponse {
+  id: string;
+  balance: string;
+  currency: string;
+  isWithdrawable: boolean;
+  type: string;
+}
+
+export type CreditWithdrawEstimationResponse =
+  CashbackWithdrawEstimationResponse;
+
+export type CreditWithdrawParams = CashbackWithdrawParams;
+
+export type CreditWithdrawResponse = CashbackWithdrawResponse;
 
 // -- Push Provisioning --
 
@@ -400,6 +420,15 @@ export interface ICardProvider {
     params: CashbackWithdrawParams,
     tokens: CardAuthTokens,
   ): Promise<CashbackWithdrawResponse>;
+
+  getCreditWallet?(tokens: CardAuthTokens): Promise<CreditWalletResponse>;
+  getCreditWithdrawEstimation?(
+    tokens: CardAuthTokens,
+  ): Promise<CreditWithdrawEstimationResponse>;
+  withdrawCredit?(
+    params: CreditWithdrawParams,
+    tokens: CardAuthTokens,
+  ): Promise<CreditWithdrawResponse>;
 
   createGoogleWalletProvisioningRequest?(
     tokens: CardAuthTokens,

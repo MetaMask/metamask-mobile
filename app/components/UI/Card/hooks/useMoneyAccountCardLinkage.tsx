@@ -74,7 +74,7 @@ export type LinkageStatus =
   | 'cancelled';
 
 export interface LinkFlowOrigin {
-  screen: string;
+  screen?: string;
   params?: object;
   entrypoint?: CardEntryPoint;
 }
