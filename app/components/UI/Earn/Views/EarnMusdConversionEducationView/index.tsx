@@ -10,7 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import {
   Box,
   BoxFlexDirection,
@@ -51,7 +51,7 @@ import { EARN_TEST_IDS } from '../../constants/testIds';
 import { MusdNavigationTarget } from '../../types/musd.types';
 import { toChecksumAddress } from '../../../../../util/address';
 import { safeFormatChainIdToHex } from '../../../Card/util/safeFormatChainIdToHex';
-import { MONEY_EVENTS_CONSTANTS } from '../../../Money/constants/moneyEvents';
+import { MONEY_HUB_EVENTS_CONSTANTS } from '../../../Money/constants/moneyHubEvents';
 import { selectMoneyHubEnabledFlag } from '../../../Money/selectors/featureFlags';
 
 const styles = StyleSheet.create({
@@ -122,8 +122,7 @@ const EarnMusdConversionEducationView = () => {
     conversionTokens,
   } = useMusdConversionFlowData();
 
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const colorScheme = useColorScheme();
 
@@ -201,7 +200,7 @@ const EarnMusdConversionEducationView = () => {
 
   const { BUTTON_TYPES, EVENT_LOCATIONS: MUSD_EVENT_LOCATIONS } =
     MUSD_EVENTS_CONSTANTS;
-  const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_EVENTS_CONSTANTS;
+  const { EVENT_LOCATIONS: MONEY_EVENT_LOCATIONS } = MONEY_HUB_EVENTS_CONSTANTS;
 
   const submitScreenViewedEvent = useCallback(() => {
     trackEvent(

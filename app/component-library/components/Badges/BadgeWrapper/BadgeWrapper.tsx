@@ -50,4 +50,4 @@ const BadgeWrapper: React.FC<BadgeWrapperProps> = ({
   );
 };
 
-export default BadgeWrapper;
+export default React.memo(BadgeWrapper);

@@ -14,11 +14,6 @@ interface UsePredictionsFeedOptions {
   query?: string;
   refresh?: RefreshConfig;
   enabled?: boolean;
-  /**
-   * Number of markets to fetch per page. Applies to both the no-query trending
-   * fetch and the search fetch. Defaults to 6 for home-tab previews.
-   */
-  pageSize?: number;
 }
 
 export interface UsePredictionsFeedResult {
@@ -38,17 +33,14 @@ export const usePredictionsFeed = ({
   query,
   refresh,
   enabled = true,
-  pageSize = 6,
 }: UsePredictionsFeedOptions = {}): UsePredictionsFeedResult => {
   const hasQuery = Boolean(query?.trim());
   const feed = usePredictMarketData({
     category: variant,
-    pageSize,
     enabled: enabled && !hasQuery,
   });
   const search = usePredictSearchMarketData({
     q: query ?? '',
-    pageSize,
     enabled: enabled && hasQuery,
   });
 

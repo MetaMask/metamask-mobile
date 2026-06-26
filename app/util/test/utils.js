@@ -21,30 +21,23 @@ export const testConfig = globalThis[E2E_TEST_CONFIG_GLOBAL_KEY];
 export const E2E_METAMETRICS_TRACK_URL = 'https://metametrics.test/track';
 
 /**
- * Returns true if the build type or environment is QA or if the environment is e2e
- * TODO: For the most part, this is meant for e2e testing. Check if this condition is truly needed for QA or if we can consolidate it to check for E2E environment.
+ * Used to enable features on testing environments: dev, test, and e2e.
  */
-export const isQa =
-  process.env.METAMASK_BUILD_TYPE === 'qa' ||
-  process.env.METAMASK_ENVIRONMENT === 'qa' ||
+export const isTestEnvironment =
+  process.env.METAMASK_ENVIRONMENT === 'dev' ||
+  process.env.METAMASK_ENVIRONMENT === 'test' ||
+  process.env.METAMASK_ENVIRONMENT === 'e2e';
+// Keep this narrower than isTestEnvironment: this intentionally excludes
+// dev/test and preserves the previous e2e/exp-only behavior.
+export const isE2EOrExpEnvironment =
   process.env.METAMASK_ENVIRONMENT === 'e2e' ||
   process.env.METAMASK_ENVIRONMENT === 'exp';
-/**
- * TODO: Update this condition once we change E2E builds to use release instead of debug
- */
-export const isTest =
-  process.env.METAMASK_ENVIRONMENT !== 'production' &&
-  process.env.METAMASK_ENVIRONMENT !== 'pre-release' &&
-  process.env.METAMASK_ENVIRONMENT !== 'beta' &&
-  process.env.METAMASK_ENVIRONMENT !== 'rc' &&
-  process.env.METAMASK_ENVIRONMENT !== 'exp';
 // IS_PERFORMANCE_TEST opts out of E2E runtime overhead (ReadOnlyNetworkStore,
 // command polling) while keeping METAMASK_ENVIRONMENT='e2e' so the build still
 // works on feature branches with e2e signing/secrets.
-export const isE2E =
+export const hasTestOverrides =
   process.env.IS_PERFORMANCE_TEST !== 'true' &&
-  (process.env.IS_TEST === 'true' ||
-    process.env.METAMASK_ENVIRONMENT === 'e2e');
+  process.env.HAS_TEST_OVERRIDES === 'true';
 export const enableApiCallLogs = process.env.LOG_API_CALLS === 'true';
 export const getFixturesServerPortInApp = () =>
   testConfig.fixtureServerPort ?? FALLBACK_FIXTURE_SERVER_PORT;

@@ -5,21 +5,17 @@
  *
  * Selection logic is defined in: tests/tools/e2e-ai-analyzer/modes/select-tags/prompt.ts
  */
+
 const smokeTags = {
   smokeAccounts: {
     tag: 'SmokeAccounts:',
     description:
-      'Tests account security and multi-account management within the wallet. Covers Secret Recovery Phrase (SRP) protection flows including the reveal quiz validation in Settings, SRP export from both Settings and account action menus, and wallet details credential display. Also tests multi-account workflows: creating new HD wallet accounts, adding QR-based hardware wallet accounts, importing accounts via private key, account switching and selection, account renaming, and managing account visibility in the account list. Integrates with the AccountSelector and RevealPrivateCredential components. When changes touch multi-SRP architecture, account list, or SRP export flows, also select SmokeWalletPlatform and SmokeIdentity. Related to SmokeWalletPlatform for multi-SRP architecture and SmokeIdentity for account sync features.',
+      'Tests account security, multi-account management, and profile sync within the wallet. Covers Secret Recovery Phrase (SRP) protection flows including the reveal quiz validation in Settings, SRP export from both Settings and account action menus, and wallet details credential display. Also tests multi-account workflows: creating new HD wallet accounts, adding QR-based hardware wallet accounts, importing accounts via private key, account switching and selection, account renaming, and managing account visibility in the account list. Covers profile sync via the Profile Sync Controller: account sync toggle, multi-SRP synchronization, automatic account discovery, imported-account exclusion, contact/address book sync toggle, contact creation and sync propagation, and verifying synced data persists after restart. Integrates with the AccountSelector and RevealPrivateCredential components. When changes touch multi-SRP architecture, account list, SRP export, or sync flows, also select SmokeWalletPlatform.',
   },
   smokeConfirmations: {
     tag: 'SmokeConfirmations:',
     description:
       'Tests the transaction and signature confirmation UI system. Covers signature request types: personal_sign messages, Sign-In with Ethereum (SIWE/EIP-4361), and typed data signing (EIP-712 V1/V3/V4). Tests Blockaid security alert integration for detecting malicious signature requests. Validates smart contract interactions including contract deployment, method calls, and token approvals (ERC-20 approve, increaseAllowance, ERC-721/ERC-1155 setApprovalForAll). Tests transaction sending for native tokens (ETH), ERC-20 tokens, and Solana SPL tokens. Covers gas fee customization (EIP-1559 and legacy), transaction simulation previews, and advanced EIP-7702 account abstraction features like batch transactions and gas fee token payments. Also tests per-dApp network selection within confirmations. Swap and bridge flows (SmokeSwap), stake/lending flows (SmokeStake), and fiat/card flows (SmokeMoney) often require confirmations—when selecting those tags, also select SmokeConfirmations where applicable. Solana transaction/signing flows (SmokeNetworkExpansion) also hit confirmations—when selecting SmokeNetworkExpansion for Solana flows, also select SmokeConfirmations. Integrates with SmokeNetworkExpansion for cross-chain transactions.',
-  },
-  smokeIdentity: {
-    tag: 'SmokeIdentity:',
-    description:
-      'Tests MetaMask Identity and cross-device synchronization via the Profile Sync Controller. Covers account syncing features: enabling/disabling sync via settings toggle, multi-SRP account synchronization, automatic account discovery with balance detection to find used accounts, adding and renaming accounts with sync propagation, and proper exclusion of imported (non-HD) accounts from sync. Also tests contact/address book syncing: contact sync toggle, creating and syncing user contacts, and verifying contact persistence after app restart and across devices. Tests the backup and sync onboarding flow. When changes touch account sync or multi-SRP flows, also select SmokeAccounts and SmokeWalletPlatform. Related to SmokeAccounts for account management and SmokeWalletPlatform for multi-SRP architecture.',
   },
   smokeNetworkAbstractions: {
     tag: 'SmokeNetworkAbstractions:',
@@ -44,7 +40,7 @@ const smokeTags = {
   smokeWalletPlatform: {
     tag: 'SmokeWalletPlatform:',
     description:
-      'Tests core wallet platform features and services. Covers the Trending discovery tab: search functionality, browsing content feeds (Predictions, Tokens, Perps, Sites sections), and browser navigation integration. Trending is the connecting point for all subsections—changes to Perps, Predictions, or Tokens views (headers, lists, full views) that are embedded in Trending affect this tag. Tests transaction history: displaying incoming/outgoing ETH transactions, token transfer details, and privacy mode support to hide sensitive balances. Validates wallet lifecycle analytics tracking for new wallet creation and SRP import events. Tests multi-SRP wallet architecture: importing additional Secret Recovery Phrases, adding accounts to different SRPs, exporting SRP from Settings and account action menus, and managing separate account hierarchies per SRP. Covers account deletion flows and EVM provider event handling (accountsChanged, chainChanged) for dApp communication. Integrates with SmokeAccounts for account management, SmokeSwap/SmokeStake/SmokeMoney for activity display, SmokePerps (Perps section inside Trending), and SmokeIdentity for sync features.',
+      'Tests core wallet platform features and services. Covers the Trending discovery tab: search functionality, browsing content feeds (Predictions, Tokens, Perps, Sites sections), and browser navigation integration. Trending is the connecting point for all subsections—changes to Perps, Predictions, or Tokens views (headers, lists, full views) that are embedded in Trending affect this tag. Tests transaction history: displaying incoming/outgoing ETH transactions, token transfer details, and privacy mode support to hide sensitive balances. Validates wallet lifecycle analytics tracking for new wallet creation and SRP import events. Tests multi-SRP wallet architecture: importing additional Secret Recovery Phrases, adding accounts to different SRPs, exporting SRP from Settings and account action menus, and managing separate account hierarchies per SRP. Covers account deletion flows and EVM provider event handling (accountsChanged, chainChanged) for dApp communication. Integrates with SmokeAccounts for account management and sync, SmokeSwap/SmokeStake/SmokeMoney for activity display, and SmokePerps (Perps section inside Trending).',
   },
   smokeMoney: {
     tag: 'SmokeMoney:',
@@ -69,7 +65,7 @@ const smokeTags = {
   smokeSeedlessOnboarding: {
     tag: 'SmokeSeedlessOnboarding:',
     description:
-      'Tests seedless onboarding flows using social login providers (Google and Apple). Covers new user wallet creation via Google and Apple OAuth, existing user detection with the Account Already Exists screen, lock and unlock after social login onboarding, wallet reset from the login screen, and importing an additional SRP after seedless onboarding. Tests the SeedlessOnboardingController mock integration, OAuth token exchange, and the full onboarding lifecycle including password creation, MetaMetrics opt-in, and wallet home arrival. When changes touch OAuth, SeedlessOnboardingController, social login UI, or the onboarding sheet, select this tag. Related to SmokeWalletPlatform for wallet lifecycle and SmokeIdentity for account sync after social login.',
+      'Tests seedless onboarding flows using social login providers (Google and Apple). Covers new user wallet creation via Google and Apple OAuth, existing user detection with the Account Already Exists screen, lock and unlock after social login onboarding, wallet reset from the login screen, and importing an additional SRP after seedless onboarding. Tests the SeedlessOnboardingController mock integration, OAuth token exchange, and the full onboarding lifecycle including password creation, MetaMetrics opt-in, and wallet home arrival. When changes touch OAuth, SeedlessOnboardingController, social login UI, or the onboarding sheet, select this tag. Related to SmokeWalletPlatform for wallet lifecycle and SmokeAccounts for account sync after social login.',
   },
   smokeBrowser: {
     tag: 'SmokeBrowser:',
@@ -101,62 +97,75 @@ const otherTags = {
   fixtureValidation: 'FixtureValidation:',
 };
 
-// Smoke test tag functions
-const SmokeAccounts = (testName) =>
-  `${smokeTags.smokeAccounts.tag} ${testName}`;
-const SmokeConfirmations = (testName) =>
-  `${smokeTags.smokeConfirmations.tag} ${testName}`;
-const SmokeIdentity = (testName) =>
-  `${smokeTags.smokeIdentity.tag} ${testName}`;
-const SmokeNetworkAbstractions = (testName) =>
-  `${smokeTags.smokeNetworkAbstractions.tag} ${testName}`;
-const SmokeNetworkExpansion = (testName) =>
-  `${smokeTags.smokeNetworkExpansion.tag} ${testName}`;
-const SmokeSwap = (testName) => `${smokeTags.smokeSwap.tag} ${testName}`;
-const SmokeStake = (testName) => `${smokeTags.smokeStake.tag} ${testName}`;
-const SmokeWalletPlatform = (testName) =>
-  `${smokeTags.smokeWalletPlatform.tag} ${testName}`;
-const SmokeMoney = (testName) => `${smokeTags.smokeMoney.tag} ${testName}`;
-const SmokePerps = (testName) => `${smokeTags.smokePerps.tag} ${testName}`;
-const SmokeMultiChainAPI = (testName) =>
-  `${smokeTags.smokeMultiChainAPI.tag} ${testName}`;
-const SmokePredictions = (testName) =>
-  `${smokeTags.smokePredictions.tag} ${testName}`;
-const SmokeSeedlessOnboarding = (testName) =>
-  `${smokeTags.smokeSeedlessOnboarding.tag} ${testName}`;
-const SmokeBrowser = (testName) => `${smokeTags.smokeBrowser.tag} ${testName}`;
-const SmokeSnaps = (testName) => `${smokeTags.smokeSnaps.tag} ${testName}`;
-// Other test tags functions.
-const RegressionAccounts = (testName) =>
-  `${otherTags.regressionAccounts} ${testName}`;
-const RegressionConfirmations = (testName) =>
-  `${otherTags.regressionConfirmations} ${testName}`;
-const RegressionIdentity = (testName) =>
-  `${otherTags.regressionIdentity} ${testName}`;
-const RegressionNetworkAbstractions = (testName) =>
-  `${otherTags.regressionNetworkAbstractions} ${testName}`;
-const RegressionWalletPlatform = (testName) =>
-  `${otherTags.regressionWalletPlatform} ${testName}`;
-const RegressionNetworkExpansion = (testName) =>
-  `${otherTags.regressionNetworkExpansion} ${testName}`;
-const RegressionAssets = (testName) =>
-  `${otherTags.regressionAssets} ${testName}`;
-const RegressionWalletUX = (testName) =>
-  `${otherTags.regressionWalletUX} ${testName}`;
-const RegressionTrade = (testName) =>
-  `${otherTags.regressionTrade} ${testName}`;
-const RegressionSampleFeature = (testName) =>
-  `${otherTags.regressionSampleFeature} ${testName}`;
-const SmokePerformance = (testName) => `${otherTags.performance} ${testName}`;
-const FixtureValidation = (testName) =>
-  `${otherTags.fixtureValidation} ${testName}`;
+/** @param {string} tagPrefix Tag label including trailing colon, e.g. "SmokeAccounts:" */
+const tagDescribe = (tagPrefix) => (testName) => `${tagPrefix} ${testName}`;
+
+/** smokeAccounts → SmokeAccounts */
+const smokeExportName = (key) => `Smoke${key.slice('smoke'.length)}`;
+
+/** regressionAccounts → RegressionAccounts; performance → SmokePerformance (tag stays "Performance:") */
+const otherExportName = (key) => {
+  if (key === 'performance') {
+    return 'SmokePerformance';
+  }
+  return key.charAt(0).toUpperCase() + key.slice(1);
+};
+
+/** @param {Record<string, { tag: string, description: string }>} tags */
+const createSmokeDescribeFunctions = (tags) =>
+  Object.fromEntries(
+    Object.entries(tags).map(([key, { tag }]) => [
+      smokeExportName(key),
+      tagDescribe(tag),
+    ]),
+  );
+
+/** @param {Record<string, string>} tags */
+const createOtherDescribeFunctions = (tags) =>
+  Object.fromEntries(
+    Object.entries(tags).map(([key, tag]) => [
+      otherExportName(key),
+      tagDescribe(tag),
+    ]),
+  );
+
+const {
+  SmokeAccounts,
+  SmokeConfirmations,
+  SmokeNetworkAbstractions,
+  SmokeNetworkExpansion,
+  SmokeSwap,
+  SmokeStake,
+  SmokeWalletPlatform,
+  SmokeMoney,
+  SmokePerps,
+  SmokeMultiChainAPI,
+  SmokePredictions,
+  SmokeSeedlessOnboarding,
+  SmokeBrowser,
+  SmokeSnaps,
+} = createSmokeDescribeFunctions(smokeTags);
+
+const {
+  RegressionAccounts,
+  RegressionConfirmations,
+  RegressionIdentity,
+  RegressionNetworkAbstractions,
+  RegressionWalletPlatform,
+  RegressionNetworkExpansion,
+  RegressionAssets,
+  RegressionWalletUX,
+  RegressionTrade,
+  RegressionSampleFeature,
+  SmokePerformance,
+  FixtureValidation,
+} = createOtherDescribeFunctions(otherTags);
 
 export {
   smokeTags,
   flaskTags,
   SmokeAccounts,
   SmokeConfirmations,
-  SmokeIdentity,
   SmokeNetworkAbstractions,
   SmokeNetworkExpansion,
   SmokeSwap,

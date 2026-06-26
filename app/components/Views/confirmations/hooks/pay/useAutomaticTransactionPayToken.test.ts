@@ -13,7 +13,9 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import {
   MetaMaskPayTokensFlags,
   selectMetaMaskPayTokensFlags,
+  selectRelayFixedSpread,
 } from '../../../../../selectors/featureFlagController/confirmations';
+import { RelayFixedSpreadConfig } from '../../utils/relayFixedSpread';
 import {
   isHardwareAccount,
   isQRHardwareAccount,
@@ -62,6 +64,7 @@ jest.mock(
       '../../../../../selectors/featureFlagController/confirmations',
     ),
     selectMetaMaskPayTokensFlags: jest.fn(),
+    selectRelayFixedSpread: jest.fn(),
   }),
 );
 
@@ -124,6 +127,7 @@ describe('useAutomaticTransactionPayToken', () => {
   const selectMetaMaskPayTokensFlagsMock = jest.mocked(
     selectMetaMaskPayTokensFlags,
   );
+  const selectRelayFixedSpreadMock = jest.mocked(selectRelayFixedSpread);
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
@@ -164,6 +168,8 @@ describe('useAutomaticTransactionPayToken', () => {
         overrides: {},
       },
     } as MetaMaskPayTokensFlags);
+
+    selectRelayFixedSpreadMock.mockReturnValue({ routes: [] });
 
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
@@ -1166,7 +1172,7 @@ describe('useAutomaticTransactionPayToken', () => {
     expect(setPayTokenMock).not.toHaveBeenCalled();
   });
 
-  it('does not re-select on money override change for post-quote transactions', () => {
+  it('re-selects MUSD on money override change for post-quote transactions', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [
         {
@@ -1195,6 +1201,7 @@ describe('useAutomaticTransactionPayToken', () => {
     const { rerender } = runHook();
 
     expect(setPayTokenMock).not.toHaveBeenCalled();
+    setPayTokenMock.mockClear();
 
     jest
       .mocked(selectPaymentOverrideByTransactionId)
@@ -1202,7 +1209,10 @@ describe('useAutomaticTransactionPayToken', () => {
 
     rerender(undefined);
 
-    expect(setPayTokenMock).not.toHaveBeenCalled();
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: MUSD_TOKEN_ADDRESS,
+      chainId: CHAIN_IDS.MONAD,
+    });
   });
 
   it('does not re-select when money override has not changed', () => {
@@ -1263,7 +1273,7 @@ describe('useAutomaticTransactionPayToken', () => {
     });
   });
 
-  it('does not select MUSD on MONAD when payment override is MoneyAccount in post-quote flow', () => {
+  it('selects MUSD on MONAD when payment override is MoneyAccount even in post-quote flow', () => {
     jest
       .mocked(selectPaymentOverrideByTransactionId)
       .mockReturnValue(PaymentOverride.MoneyAccount);
@@ -1291,11 +1301,228 @@ describe('useAutomaticTransactionPayToken', () => {
       },
     });
 
-    // For moneyAccountWithdraw (post-quote), the preferredToken takes priority,
-    // not the MUSD/MONAD override, because postQuoteTransactionType is set
-    expect(setPayTokenMock).not.toHaveBeenCalledWith({
+    // MoneyAccount override takes priority over preferredToken —
+    // getBestToken returns MUSD unconditionally when isMoneyPaymentOverride is true
+    expect(setPayTokenMock).toHaveBeenCalledWith({
       address: MUSD_TOKEN_ADDRESS,
       chainId: CHAIN_IDS.MONAD,
     });
+  });
+
+  describe('no-fee token preference', () => {
+    it('selects no-fee token over first available when no preferred tokens match', () => {
+      selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+        preferredTokens: { default: [], overrides: {} },
+        minimumRequiredTokenBalance: 5,
+        blockedTokens: {
+          default: {
+            chainIds: [],
+            tokens: [],
+          },
+          overrides: {},
+        },
+      } as MetaMaskPayTokensFlags);
+
+      selectRelayFixedSpreadMock.mockReturnValue({
+        routes: [
+          {
+            sourceChain: CHAIN_ID_2_MOCK,
+            sourceToken: TOKEN_ADDRESS_2_MOCK,
+            targetChain: CHAIN_ID_2_MOCK,
+            targetToken: TOKEN_ADDRESS_2_MOCK,
+          },
+        ],
+      } as RelayFixedSpreadConfig);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+            symbol: 'ETH',
+            fiat: { balance: 10 },
+          },
+          {
+            address: TOKEN_ADDRESS_2_MOCK,
+            chainId: CHAIN_ID_2_MOCK,
+            symbol: 'USDC',
+            fiat: { balance: 10 },
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: TOKEN_ADDRESS_2_MOCK,
+        chainId: CHAIN_ID_2_MOCK,
+      });
+    });
+
+    it('does not select no-fee token when balance below minimum', () => {
+      selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+        preferredTokens: { default: [], overrides: {} },
+        minimumRequiredTokenBalance: 15,
+        blockedTokens: {
+          default: {
+            chainIds: [],
+            tokens: [],
+          },
+          overrides: {},
+        },
+      } as MetaMaskPayTokensFlags);
+
+      selectRelayFixedSpreadMock.mockReturnValue({
+        routes: [
+          {
+            sourceChain: CHAIN_ID_2_MOCK,
+            sourceToken: TOKEN_ADDRESS_2_MOCK,
+            targetChain: CHAIN_ID_2_MOCK,
+            targetToken: TOKEN_ADDRESS_2_MOCK,
+          },
+        ],
+      } as RelayFixedSpreadConfig);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+            symbol: 'ETH',
+            fiat: { balance: 10 },
+          },
+          {
+            address: TOKEN_ADDRESS_2_MOCK,
+            chainId: CHAIN_ID_2_MOCK,
+            symbol: 'USDC',
+            fiat: { balance: 10 },
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      });
+    });
+
+    it('selects preferred flag tokens over no-fee tokens', () => {
+      selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+        preferredTokens: {
+          default: [],
+          overrides: {
+            perpsDeposit: [
+              {
+                address: TOKEN_ADDRESS_1_MOCK,
+                chainId: CHAIN_ID_1_MOCK,
+                successRate: 0.95,
+              },
+            ],
+          },
+        },
+        minimumRequiredTokenBalance: 5,
+        blockedTokens: {
+          default: {
+            chainIds: [],
+            tokens: [],
+          },
+          overrides: {},
+        },
+      } as MetaMaskPayTokensFlags);
+
+      selectRelayFixedSpreadMock.mockReturnValue({
+        routes: [
+          {
+            sourceChain: CHAIN_ID_2_MOCK,
+            sourceToken: TOKEN_ADDRESS_2_MOCK,
+            targetChain: CHAIN_ID_2_MOCK,
+            targetToken: TOKEN_ADDRESS_2_MOCK,
+          },
+        ],
+      } as RelayFixedSpreadConfig);
+
+      useTransactionPayAvailableTokensMock.mockReturnValue({
+        availableTokens: [
+          {
+            address: TOKEN_ADDRESS_1_MOCK,
+            chainId: CHAIN_ID_1_MOCK,
+            symbol: 'ETH',
+            fiat: { balance: 10 },
+          },
+          {
+            address: TOKEN_ADDRESS_2_MOCK,
+            chainId: CHAIN_ID_2_MOCK,
+            symbol: 'USDC',
+            fiat: { balance: 10 },
+          },
+        ] as AssetType[],
+        hasTokens: true,
+      });
+
+      runHook();
+
+      expect(setPayTokenMock).toHaveBeenCalledWith({
+        address: TOKEN_ADDRESS_1_MOCK,
+        chainId: CHAIN_ID_1_MOCK,
+      });
+    });
+
+    it.each([
+      ['perpsWithdraw', TransactionType.perpsWithdraw],
+      ['predictWithdraw', TransactionType.predictWithdraw],
+      ['moneyAccountWithdraw', TransactionType.moneyAccountWithdraw],
+    ])(
+      'does not auto-select a no-fee token for %s (no pre-quote subsidy signal)',
+      (_label, type) => {
+        selectMetaMaskPayTokensFlagsMock.mockReturnValue({
+          preferredTokens: { default: [], overrides: {} },
+          minimumRequiredTokenBalance: 5,
+          blockedTokens: {
+            default: {
+              chainIds: [],
+              tokens: [],
+            },
+            overrides: {},
+          },
+        } as MetaMaskPayTokensFlags);
+
+        selectRelayFixedSpreadMock.mockReturnValue({
+          routes: [
+            {
+              sourceChain: CHAIN_ID_2_MOCK,
+              sourceToken: TOKEN_ADDRESS_2_MOCK,
+              targetChain: CHAIN_ID_2_MOCK,
+              targetToken: TOKEN_ADDRESS_2_MOCK,
+            },
+          ],
+        } as RelayFixedSpreadConfig);
+
+        useTransactionMetadataRequestMock.mockReturnValue({
+          id: transactionIdMock,
+          type,
+          txParams: { from: '0xdc47789de4ceff0e8fe9d15d728af7f17550c164' },
+        } as never);
+
+        useTransactionPayAvailableTokensMock.mockReturnValue({
+          availableTokens: [
+            {
+              address: TOKEN_ADDRESS_2_MOCK,
+              chainId: CHAIN_ID_2_MOCK,
+              symbol: 'USDC',
+              fiat: { balance: 10 },
+            },
+          ] as AssetType[],
+          hasTokens: true,
+        });
+
+        runHook();
+
+        expect(setPayTokenMock).not.toHaveBeenCalled();
+      },
+    );
   });
 });

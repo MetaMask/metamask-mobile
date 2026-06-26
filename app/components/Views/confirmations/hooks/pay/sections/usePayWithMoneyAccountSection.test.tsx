@@ -39,6 +39,7 @@ jest.mock('../../../../../../core/Engine', () => ({
   context: {
     TransactionPayController: {
       setTransactionConfig: jest.fn(),
+      updateFiatPayment: jest.fn(),
     },
   },
 }));
@@ -74,27 +75,30 @@ describe('usePayWithMoneyAccountSection', () => {
       }
       if (selector === selectMetaMaskPayFlags) {
         return {
-          enablePerpsMoneyAccountTransactions: true,
-          enablePredictMoneyAccountTransactions: true,
+          enableMoneyAccountTransactions: {
+            perpsDeposit: true,
+            perpsWithdraw: true,
+            predictDeposit: true,
+            predictWithdraw: true,
+          },
         };
       }
       return undefined;
     });
 
     useMoneyAccountBalanceMock.mockReturnValue({
-      totalFiatFormatted: '$100.00',
+      withdrawableFiatFormatted: '$100.00',
     } as never);
   });
 
-  it('returns null when both money account flags are false', () => {
+  it('returns null when all money account flags are false', () => {
     useSelectorMock.mockImplementation((selector) => {
       if (selector === selectPrimaryMoneyAccount) {
         return moneyAccountMock;
       }
       if (selector === selectMetaMaskPayFlags) {
         return {
-          enablePerpsMoneyAccountTransactions: false,
-          enablePredictMoneyAccountTransactions: false,
+          enableMoneyAccountTransactions: {},
         };
       }
       return undefined;
@@ -105,15 +109,17 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current).toBeNull();
   });
 
-  it('returns null for predict transaction when only perps flag is true', () => {
+  it('returns null for predict transaction when only perps types are enabled', () => {
     useSelectorMock.mockImplementation((selector) => {
       if (selector === selectPrimaryMoneyAccount) {
         return moneyAccountMock;
       }
       if (selector === selectMetaMaskPayFlags) {
         return {
-          enablePerpsMoneyAccountTransactions: true,
-          enablePredictMoneyAccountTransactions: false,
+          enableMoneyAccountTransactions: {
+            perpsDeposit: true,
+            perpsWithdraw: true,
+          },
         };
       }
       return undefined;
@@ -130,15 +136,17 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current).toBeNull();
   });
 
-  it('returns null for perps transaction when only predict flag is true', () => {
+  it('returns null for perps transaction when only predict types are enabled', () => {
     useSelectorMock.mockImplementation((selector) => {
       if (selector === selectPrimaryMoneyAccount) {
         return moneyAccountMock;
       }
       if (selector === selectMetaMaskPayFlags) {
         return {
-          enablePerpsMoneyAccountTransactions: false,
-          enablePredictMoneyAccountTransactions: true,
+          enableMoneyAccountTransactions: {
+            predictDeposit: true,
+            predictWithdraw: true,
+          },
         };
       }
       return undefined;
@@ -174,8 +182,12 @@ describe('usePayWithMoneyAccountSection', () => {
       }
       if (selector === selectMetaMaskPayFlags) {
         return {
-          enablePerpsMoneyAccountTransactions: true,
-          enablePredictMoneyAccountTransactions: true,
+          enableMoneyAccountTransactions: {
+            perpsDeposit: true,
+            perpsWithdraw: true,
+            predictDeposit: true,
+            predictWithdraw: true,
+          },
         };
       }
       return undefined;
@@ -194,8 +206,13 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current).toBeNull();
   });
 
-  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
-    'returns section config with "available" suffix for deposit transaction type %s',
+  it.each([
+    TransactionType.perpsDeposit,
+    TransactionType.predictDeposit,
+    TransactionType.perpsWithdraw,
+    TransactionType.predictWithdraw,
+  ])(
+    'returns section config with "available" subtitle for transaction type %s',
     (txType) => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: 'tx-1',
@@ -208,7 +225,7 @@ describe('usePayWithMoneyAccountSection', () => {
       expect(result.current).toEqual(
         expect.objectContaining({
           id: 'money-account',
-          title: 'Money account',
+          title: '',
           testID: PAY_WITH_MONEY_ACCOUNT_SECTION_TEST_ID,
         }),
       );
@@ -216,37 +233,10 @@ describe('usePayWithMoneyAccountSection', () => {
       expect(result.current?.rows[0]).toEqual(
         expect.objectContaining({
           id: 'money-account-musd',
-          title: 'mUSD',
+          title: 'Money account',
           subtitle: '$100.00 available',
           isSelected: false,
-          isLastUsed: false,
           trailingElement: 'none',
-          testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
-        }),
-      );
-    },
-  );
-
-  it.each([
-    TransactionType.perpsWithdraw,
-    TransactionType.predictWithdraw,
-    TransactionType.predictDepositAndOrder,
-  ])(
-    'omits the "available" suffix for non-deposit transaction type %s',
-    (txType) => {
-      useTransactionMetadataRequestMock.mockReturnValue({
-        id: 'tx-1',
-        type: txType,
-        txParams: {},
-      } as never);
-
-      const { result } = renderHook(() => usePayWithMoneyAccountSection());
-
-      expect(result.current?.rows[0]).toEqual(
-        expect.objectContaining({
-          id: 'money-account-musd',
-          title: 'mUSD',
-          subtitle: '$100.00',
           testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
         }),
       );
@@ -255,7 +245,7 @@ describe('usePayWithMoneyAccountSection', () => {
 
   it('renders subtitle with formatted balance', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
-      totalFiatFormatted: '$250.50',
+      withdrawableFiatFormatted: '$250.50',
     } as never);
 
     const { result } = renderHook(() => usePayWithMoneyAccountSection());
@@ -263,9 +253,9 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current?.rows[0].subtitle).toBe('$250.50 available');
   });
 
-  it('renders undefined subtitle when totalFiatFormatted is falsy', () => {
+  it('renders undefined subtitle when withdrawableFiatFormatted is falsy', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
-      totalFiatFormatted: '',
+      withdrawableFiatFormatted: '',
     } as never);
 
     const { result } = renderHook(() => usePayWithMoneyAccountSection());
@@ -273,14 +263,14 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current?.rows[0].subtitle).toBeUndefined();
   });
 
-  it('renders an Image icon with the MUSD token image URI', () => {
+  it('renders an Image icon with the money.png source', () => {
     const { result } = renderHook(() => usePayWithMoneyAccountSection());
 
     const icon = result.current?.rows[0].icon as React.ReactElement<{
-      source: { uri: string };
+      source: number;
     }>;
     expect(icon).toBeDefined();
-    expect(icon.props.source.uri).toContain('tokenIcons');
+    expect(icon.props.source).toBeDefined();
   });
 
   it('keeps the result reference stable across renders when nothing changes', () => {
@@ -327,6 +317,31 @@ describe('usePayWithMoneyAccountSection', () => {
       });
 
       expect(goBackMock).toHaveBeenCalled();
+    });
+
+    it('clears selectedPaymentMethodId via updateFiatPayment on press', () => {
+      const updateFiatPaymentMock = jest.mocked(
+        Engine.context.TransactionPayController.updateFiatPayment,
+      );
+
+      const { result } = renderHook(() => usePayWithMoneyAccountSection());
+
+      act(() => {
+        result.current?.rows[0].onPress?.();
+      });
+
+      expect(updateFiatPaymentMock).toHaveBeenCalledWith({
+        transactionId: 'tx-1',
+        callback: expect.any(Function),
+      });
+
+      const fiatPayment = { selectedPaymentMethodId: 'some-method' } as Record<
+        string,
+        unknown
+      >;
+      updateFiatPaymentMock.mock.calls[0][0].callback(fiatPayment as never);
+
+      expect(fiatPayment.selectedPaymentMethodId).toBeUndefined();
     });
   });
 });

@@ -22,7 +22,6 @@ import type {
   TransactionControllerAddTransactionAction,
   TransactionControllerAddTransactionBatchAction,
   TransactionControllerGetStateAction,
-  TransactionControllerIsAtomicBatchSupportedAction,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
 } from '@metamask/transaction-controller';
@@ -58,6 +57,8 @@ export type CardControllerState = {
   cardHomeData: Record<string, Json> | null;
   /** Fetch status for cardHomeData. Not persisted. */
   cardHomeDataStatus: CardHomeDataStatus;
+  /** True while `linkMoneyAccountCard` is in flight. Not persisted. */
+  moneyAccountCardLinkInProgress: boolean;
 };
 
 export type CardControllerActions = ControllerGetStateAction<
@@ -78,8 +79,7 @@ type CardControllerAllowedActions =
   | NetworkControllerFindNetworkClientIdByChainIdAction
   | TransactionControllerAddTransactionAction
   | TransactionControllerAddTransactionBatchAction
-  | TransactionControllerGetStateAction
-  | TransactionControllerIsAtomicBatchSupportedAction;
+  | TransactionControllerGetStateAction;
 
 type CardControllerAllowedEvents =
   | AccountTreeControllerStateChangeEvent

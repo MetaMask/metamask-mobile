@@ -204,7 +204,7 @@ describe('AssetDetailsQuickBuy', () => {
     );
   });
 
-  it('sets analytics source to "asset_details"', () => {
+  it('defaults analytics source to "asset_details" when no source prop is provided', () => {
     render(
       <AssetDetailsQuickBuy isVisible token={mockToken} onClose={jest.fn()} />,
     );
@@ -212,6 +212,23 @@ describe('AssetDetailsQuickBuy', () => {
     expect(mockQuickBuyRoot).toHaveBeenCalledWith(
       expect.objectContaining({
         analyticsContext: { source: 'asset_details' },
+      }),
+    );
+  });
+
+  it('forwards an explicit source prop into the analytics context', () => {
+    render(
+      <AssetDetailsQuickBuy
+        isVisible
+        token={mockToken}
+        onClose={jest.fn()}
+        source="market_insights"
+      />,
+    );
+
+    expect(mockQuickBuyRoot).toHaveBeenCalledWith(
+      expect.objectContaining({
+        analyticsContext: { source: 'market_insights' },
       }),
     );
   });

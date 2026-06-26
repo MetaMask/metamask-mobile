@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import {
   type TransactionMeta,
   type RequiredAsset,
-  TransactionType,
 } from '@metamask/transaction-controller';
 import { type Hex } from '@metamask/utils';
 import BigNumber from 'bignumber.js';
@@ -11,6 +10,7 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { IconName } from '@metamask/design-system-react-native';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../util/intl';
+import { renderShortAddress } from '../../../../util/address';
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
@@ -23,13 +23,31 @@ import {
   getMusdDisplayAmountFromTransactionMeta,
   isIncomingMoneyTransactionMeta,
 } from '../constants/activityStyles';
+import { useFiatPaymentMethodName } from './useFiatPaymentMethodName';
 import { buildMoneyActivityFiatLine } from '../utils/moneyActivityFiat';
 import { moneyFormatFiat } from '../utils/moneyFormatFiat';
-import { fromTokenMinimalUnit } from '../../../../util/number/bigint';
-import type {
-  MoneyActivityTitleKey,
-  MoneyActivityTransactionMeta,
-} from '../constants/mockActivityData';
+import {
+  isMusdToken,
+  isMusdTokenOnChain,
+  MUSD_DECIMALS,
+  MUSD_TOKEN,
+} from '../../Earn/constants/musd';
+import { MONEY_WITHDRAW_TOKEN_SYMBOL } from '../constants/moneyTokens';
+import {
+  isMoneyWithdrawTx,
+  isPerpsPredictMoneyActivity,
+  isPerpsPredictMoneyWithdraw,
+  perpsPredictServiceFamily,
+} from '../utils/moneyTransactionGuards';
+import type { MoneyActivityTransactionMeta } from '../constants/mockActivityData';
+import {
+  classifyMoneyActivity,
+  getMoneyActivityStatus,
+  moneyActivityKindToIcon,
+  moneyActivityLabel,
+  type MoneyActivityKind,
+  type MoneyActivityStatus,
+} from '../utils/classifyMoneyActivity';
 
 export interface MoneyTransactionDisplayInfo {
   label: string;
@@ -38,48 +56,7 @@ export interface MoneyTransactionDisplayInfo {
   fiatAmount: string;
   isIncoming: boolean;
   icon: IconName;
-}
-
-function titleKeyToLabel(key: MoneyActivityTitleKey): string {
-  switch (key) {
-    case 'added':
-      return strings('money.transaction.added');
-    case 'deposited':
-      return strings('money.transaction.deposited');
-    case 'received':
-      return strings('money.transaction.received');
-    case 'card_transaction':
-      return strings('money.transaction.card_transaction');
-    case 'converted':
-      return strings('money.transaction.converted');
-    case 'sent':
-      return strings('money.transaction.sent');
-    case 'transferred':
-      return strings('money.transaction.transferred');
-    default:
-      return strings('money.transaction.received');
-  }
-}
-
-function getLabelForTransactionType(type: TransactionType | undefined): string {
-  if (!type) {
-    return strings('money.transaction.deposited');
-  }
-  switch (type) {
-    case TransactionType.moneyAccountDeposit:
-      return strings('money.transaction.deposited');
-    case TransactionType.incoming:
-    case TransactionType.tokenMethodTransfer:
-    case TransactionType.tokenMethodTransferFrom:
-      return strings('money.transaction.received');
-    case TransactionType.moneyAccountWithdraw:
-    case TransactionType.simpleSend:
-      return strings('money.transaction.sent');
-    case TransactionType.musdConversion:
-      return strings('money.transaction.converted');
-    default:
-      return strings('money.transaction.received');
-  }
+  status: MoneyActivityStatus;
 }
 
 function getMoneySubtitle(tx: TransactionMeta): string | undefined {
@@ -87,118 +64,105 @@ function getMoneySubtitle(tx: TransactionMeta): string | undefined {
   return extended.moneySubtitle;
 }
 
-function getLabel(tx: TransactionMeta): string {
-  const extended = tx as MoneyActivityTransactionMeta;
-  if (extended.moneyActivityTitleKey) {
-    return titleKeyToLabel(extended.moneyActivityTitleKey);
-  }
-  // For EIP-7702 batch transactions, derive the label from the most significant
-  // nested transaction type (e.g. moneyAccountDeposit, moneyAccountWithdraw).
-  if (tx.type === TransactionType.batch) {
-    const moneyNestedType = tx.nestedTransactions?.find(
-      (nested) =>
-        nested.type === TransactionType.moneyAccountDeposit ||
-        nested.type === TransactionType.moneyAccountWithdraw,
-    )?.type;
-    if (moneyNestedType) {
-      return getLabelForTransactionType(moneyNestedType);
-    }
-  }
-  return getLabelForTransactionType(tx.type);
-}
-
-function titleKeyToIcon(key: MoneyActivityTitleKey): IconName {
-  switch (key) {
-    case 'added':
-      return IconName.Add;
-    case 'deposited':
-      return IconName.Add;
-    case 'received':
-      return IconName.Arrow2Down;
-    case 'card_transaction':
-      return IconName.Card;
-    case 'converted':
-      return IconName.Refresh;
-    case 'sent':
-      return IconName.Arrow2UpRight;
-    case 'transferred':
-      return IconName.SwapHorizontal;
-    default:
-      return IconName.Arrow2Down;
-  }
-}
-
-function getIconForTransactionType(
-  type: TransactionType | undefined,
-): IconName {
-  if (!type) {
-    return IconName.Arrow2Down;
-  }
-  switch (type) {
-    case TransactionType.moneyAccountDeposit:
-      return IconName.Add;
-    case TransactionType.incoming:
-    case TransactionType.tokenMethodTransfer:
-    case TransactionType.tokenMethodTransferFrom:
-      return IconName.Arrow2Down;
-    case TransactionType.musdConversion:
-      return IconName.Refresh;
-    case TransactionType.moneyAccountWithdraw:
-      return IconName.SwapHorizontal;
-    case TransactionType.simpleSend:
-      return IconName.Arrow2UpRight;
-    default:
-      return IconName.Arrow2Down;
-  }
-}
-
-function getIcon(tx: TransactionMeta): IconName {
-  const extended = tx as MoneyActivityTransactionMeta;
-  if (extended.moneyActivityTitleKey) {
-    return titleKeyToIcon(extended.moneyActivityTitleKey);
-  }
-  // For EIP-7702 batch transactions, derive the icon from the most significant
-  // nested transaction type.
-  if (tx.type === TransactionType.batch) {
-    const moneyNestedType = tx.nestedTransactions?.find(
-      (nested) =>
-        nested.type === TransactionType.moneyAccountDeposit ||
-        nested.type === TransactionType.moneyAccountWithdraw,
-    )?.type;
-    if (moneyNestedType) {
-      return getIconForTransactionType(moneyNestedType);
-    }
-  }
-  return getIconForTransactionType(tx.type);
+/**
+ * Returns the mUSD required asset from a pay transaction, if present. Money
+ * deposits declare their target as mUSD on the tx's chain (see
+ * `getMoneyAccountDepositAssetAddress`); any other asset is not an amount we
+ * can render as mUSD, so it is ignored rather than mis-denominated.
+ */
+function getMusdRequiredAsset(tx: TransactionMeta): RequiredAsset | undefined {
+  return tx.requiredAssets?.find((asset) =>
+    isMusdTokenOnChain(asset.address, tx.chainId),
+  );
 }
 
 /**
- * Returns the first required asset from a pay transaction, if present.
+ * Formats an mUSD amount as a signed, symbol-suffixed string, e.g.
+ * "+1,000.00 mUSD" / "-0.00 mUSD". The sign follows the row's direction.
  */
-function getRequiredAsset(tx: TransactionMeta): RequiredAsset | undefined {
-  return tx.requiredAssets?.[0];
-}
-
-/**
- * Formats a hex or decimal token minimal-unit amount into a human-readable
- * string with symbol, e.g. "+1.00 USDC".
- */
-function buildSourceTokenAmount(
-  rawAmount: string,
-  decimals: number,
-  symbol: string,
-): string {
-  const humanReadable = fromTokenMinimalUnit(rawAmount, decimals);
-  const num = parseFloat(humanReadable);
-  if (isNaN(num)) {
-    return '';
-  }
+function formatMusdAmount(amount: BigNumber, isIncoming: boolean): string {
   const formatted = getIntlNumberFormatter(I18n.locale, {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
     useGrouping: true,
-  }).format(num);
-  return `+${formatted} ${symbol}`;
+  }).format(amount.toNumber());
+  return `${isIncoming ? '+' : '-'}${formatted} ${MUSD_TOKEN.symbol}`;
+}
+
+function prettifyFiatProvider(
+  provider: string | undefined,
+): string | undefined {
+  if (!provider) return undefined;
+  const base = provider.split('-')[0];
+  return base.charAt(0).toUpperCase() + base.slice(1);
+}
+
+/**
+ * Gets the subtitle for a Money activity row, by kind. An explicit
+ * `moneySubtitle` always wins (mock / enriched rows). Otherwise:
+ * - converted → "{token} → mUSD"
+ * - sent      → "mUSD → {token}" (the withdraw destination token)
+ * - received  → "From: 0x…" (the sender)
+ * - deposited → fiat payment method ("Apple Pay"), else provider ("Transak"), else funding token ("mUSD")
+ * - card / added / transferred → the source token symbol, if any
+ */
+function deriveSubtitle(
+  kind: MoneyActivityKind,
+  tx: TransactionMeta,
+  sourceTokenSymbol: string | undefined,
+  explicitSubtitle: string | undefined,
+  paymentMethodName: string | undefined,
+): string | undefined {
+  if (explicitSubtitle) {
+    return explicitSubtitle;
+  }
+
+  // Perps/Predict ↔ Money transfers (either direction) name the service account
+  // instead of a token pair / sender.
+  const serviceFamily = perpsPredictServiceFamily(tx);
+  if (serviceFamily === 'perps') {
+    return strings('transaction_details.label.perps_account');
+  }
+  if (serviceFamily === 'predict') {
+    return strings('transaction_details.label.predictions_account');
+  }
+
+  switch (kind) {
+    case 'converted':
+      return sourceTokenSymbol
+        ? `${sourceTokenSymbol} → ${MUSD_TOKEN.symbol}`
+        : undefined;
+    case 'sent': {
+      // Prefer the resolved destination token; for a withdrawal (always paid
+      // out in USDC) fall back to that known symbol, since the dest token
+      // usually isn't in the registry.
+      const destSymbol =
+        sourceTokenSymbol ??
+        (isMoneyWithdrawTx(tx) ? MONEY_WITHDRAW_TOKEN_SYMBOL : undefined);
+      // A plain mUSD send (destination is mUSD too) collapses to just "mUSD",
+      // mirroring the deposit row; only a cross-token withdrawal keeps the
+      // "mUSD → X" pair, where the destination token carries real information.
+      return destSymbol && destSymbol !== MUSD_TOKEN.symbol
+        ? `${MUSD_TOKEN.symbol} → ${destSymbol}`
+        : MUSD_TOKEN.symbol;
+    }
+    case 'received': {
+      const sender = tx.txParams?.from;
+      return sender
+        ? strings('money.transaction.received_from', {
+            address: renderShortAddress(sender),
+          })
+        : undefined;
+    }
+    case 'deposited':
+      return (
+        paymentMethodName ??
+        prettifyFiatProvider(tx.metamaskPay?.fiat?.provider) ??
+        sourceTokenSymbol
+      );
+    default:
+      return sourceTokenSymbol;
+  }
 }
 
 /**
@@ -222,6 +186,7 @@ export function useMoneyTransactionDisplayInfo(
   _moneyAddress: string | undefined,
 ): MoneyTransactionDisplayInfo {
   const subtitle = getMoneySubtitle(tx);
+  const paymentMethodName = useFiatPaymentMethodName(tx);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const currencyRates = useSelector(selectCurrencyRates);
   const tokenMarketData = useSelector(selectTokenMarketData);
@@ -252,53 +217,32 @@ export function useMoneyTransactionDisplayInfo(
   });
 
   return useMemo(() => {
-    const isNative = Boolean(nativeTicker);
+    // mUSD is registered with the uppercase symbol "MUSD"; canonicalise it to
+    // the branded "mUSD" so subtitles never leak the registry casing.
+    const sourceTokenSymbol = isMusdToken(payTokenAddress)
+      ? MUSD_TOKEN.symbol
+      : (payToken?.symbol ?? nativeTicker);
+    const kind = classifyMoneyActivity(tx);
+    const status = getMoneyActivityStatus(tx);
+    const isIncoming = isIncomingMoneyTransactionMeta(tx);
 
-    const sourceTokenSymbol = payToken?.symbol ?? nativeTicker;
-
-    // --- Primary amount ---
-    // Prefer transferInformation (set on simple confirmed txs).
-    // For batch deposits it's absent, so fall back to requiredAssets.
     let primaryAmount = getMusdDisplayAmountFromTransactionMeta(tx);
-    if (!primaryAmount && sourceTokenSymbol) {
-      const requiredAsset = getRequiredAsset(tx);
+    if (!primaryAmount) {
+      const requiredAsset = getMusdRequiredAsset(tx);
       if (requiredAsset) {
-        if (isNative) {
-          // For native tokens requiredAssets[0].amount is stored
-          // in USDC-equivalent 6-decimal units (the USD value of the deposit),
-          // NOT in wei.
-
-          const nativeToUsdRate = nativeTicker
-            ? currencyRates?.[nativeTicker]?.usdConversionRate
-            : undefined;
-          const usdValue = new BigNumber(requiredAsset.amount).dividedBy(1e6);
-          if (
-            usdValue.isGreaterThan(0) &&
-            nativeToUsdRate &&
-            nativeToUsdRate > 0
-          ) {
-            const nativeAmount = usdValue.dividedBy(nativeToUsdRate);
-            // Show up to 6 decimal places, trim trailing zeros.
-            const fixed = nativeAmount.toFixed(6, BigNumber.ROUND_DOWN);
-            const trimmed = fixed
-              .replace(/(\.\d*[1-9])0+$/, '$1')
-              .replace(/\.0+$/, '');
-            primaryAmount = `+${trimmed} ${sourceTokenSymbol}`;
-          }
-          // If the rate isn't available, primaryAmount stays empty and we fall
-          // through — the fiatAmount line will still show the correct value.
-        } else {
-          primaryAmount = buildSourceTokenAmount(
-            requiredAsset.amount,
-            payToken?.decimals ?? 6,
-            sourceTokenSymbol,
-          );
+        const musdAmount = new BigNumber(requiredAsset.amount).shiftedBy(
+          -MUSD_DECIMALS,
+        );
+        // Render only amounts visible at 2 decimals: a dust amount would
+        // otherwise display as "+0.00 mUSD"
+        if (musdAmount.decimalPlaces(2).isGreaterThan(0)) {
+          primaryAmount = formatMusdAmount(musdAmount, isIncoming);
         }
+        // If there's no mUSD required asset / visible amount, primaryAmount
+        // stays empty — the fiatAmount line below still shows the value.
       }
     }
 
-    // --- Fiat amount ---
-    // Prefer calculated market-rate value.
     let fiatAmount = buildMoneyActivityFiatLine(
       tx,
       currencyRates,
@@ -312,24 +256,60 @@ export function useMoneyTransactionDisplayInfo(
       }
     }
 
-    // Explicit moneySubtitle takes priority; otherwise use source token symbol
-    const description = subtitle ?? sourceTokenSymbol;
+    if (status === 'failed') {
+      primaryAmount = formatMusdAmount(new BigNumber(0), isIncoming);
+      if (currentCurrency) {
+        fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatFiat(
+          new BigNumber(0),
+          currentCurrency,
+        )}`;
+      }
+    }
+
+    // Perps/Predict ↔ Money transfers carry no `requiredAssets` and aren't token
+    // transfers, so neither amount path above resolves. Skip when failed so the
+    // signed-zero amount set above is preserved (as for every other failed row).
+    if (status !== 'failed' && isPerpsPredictMoneyActivity(tx)) {
+      const fiatStr = isPerpsPredictMoneyWithdraw(tx)
+        ? tx.metamaskPay?.targetFiat
+        : tx.metamaskPay?.totalFiat;
+      const fiat = Number(fiatStr);
+      if (!isNaN(fiat) && fiat > 0) {
+        const amount = new BigNumber(fiat);
+        primaryAmount = formatMusdAmount(amount, isIncoming);
+        if (currentCurrency) {
+          fiatAmount = `${isIncoming ? '+' : '-'}${moneyFormatFiat(
+            amount,
+            currentCurrency,
+          )}`;
+        }
+      }
+    }
 
     return {
-      label: getLabel(tx),
-      description,
+      label: moneyActivityLabel(kind, status),
+      description: deriveSubtitle(
+        kind,
+        tx,
+        sourceTokenSymbol,
+        subtitle,
+        paymentMethodName,
+      ),
       primaryAmount,
       fiatAmount,
-      isIncoming: isIncomingMoneyTransactionMeta(tx),
-      icon: getIcon(tx),
+      isIncoming,
+      icon: moneyActivityKindToIcon(kind),
+      status,
     };
   }, [
     tx,
     subtitle,
+    paymentMethodName,
     currentCurrency,
     currencyRates,
     tokenMarketData,
     payToken,
+    payTokenAddress,
     nativeTicker,
   ]);
 }

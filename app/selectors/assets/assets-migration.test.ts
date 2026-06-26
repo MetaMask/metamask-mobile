@@ -44,6 +44,12 @@ const mockAccountId3 = 'mock-account-id-3';
 const mockAccountAddressLowercase2: Hex =
   '0x1234567890abcdef1234567890abcdef12345678';
 
+// Pooled-staking vault token that should be filtered from token lists and
+// surfaced as stakedBalance instead.
+const stakedVaultAddress = '0x4fef9d741011476750a243ac70b9789a63dd47df';
+const stakedVaultAddressChecksummed = toChecksumHexAddress(stakedVaultAddress);
+const stakedVaultAssetId = `eip155:1/erc20:${stakedVaultAddress}`;
+
 const enabledFeatureFlagControllerState = {
   RemoteFeatureFlagController: {
     remoteFeatureFlags: {
@@ -312,6 +318,133 @@ describe('getAccountTrackerControllerAccountsByChainId', () => {
       ]);
     });
 
+    it('populates stakedBalance from pooled-staking vault ERC-20 balance', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            AccountTrackerController: { accountsByChainId: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+                [stakedVaultAssetId]: { type: 'erc20', decimals: 18 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '5' },
+                  [stakedVaultAssetId]: { amount: '1' },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getAccountTrackerControllerAccountsByChainId(state);
+
+      expect(
+        result['0x1'][mockAccountAddressChecksummed].balance,
+      ).toBeDefined();
+      // 1 ETH with 18 decimals → 0xde0b6b3a7640000
+      expect(result['0x1'][mockAccountAddressChecksummed].stakedBalance).toBe(
+        '0xde0b6b3a7640000',
+      );
+    });
+
+    it('preserves stakedBalance when vault token entry is processed before the native entry', () => {
+      // Object.entries preserves insertion order, so listing the vault asset
+      // first ensures we test the spread-guard on the native branch.
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            AccountTrackerController: { accountsByChainId: {} },
+            AssetsController: {
+              assetsInfo: {
+                [stakedVaultAssetId]: { type: 'erc20', decimals: 18 },
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  // vault first in iteration order
+                  [stakedVaultAssetId]: { amount: '2' },
+                  [nativeEthAssetId]: { amount: '3' },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getAccountTrackerControllerAccountsByChainId(state);
+
+      const account = result['0x1'][mockAccountAddressChecksummed];
+      // Both fields must survive regardless of iteration order
+      expect(account.balance).toBeDefined();
+      expect(account.stakedBalance).toBeDefined();
+      // 2 ETH with 18 decimals
+      expect(account.stakedBalance).toBe('0x1bc16d674ec80000');
+    });
+
+    it('does not set stakedBalance for regular ERC-20 addresses not in the filter list', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            AccountTrackerController: { accountsByChainId: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+                [erc20AssetId]: { type: 'erc20', decimals: 6 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1' },
+                  [erc20AssetId]: { amount: '500' },
+                },
+              },
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getAccountTrackerControllerAccountsByChainId(state);
+
+      expect(
+        result['0x1'][mockAccountAddressChecksummed].stakedBalance,
+      ).toBeUndefined();
+    });
+
     it('truncates fractional digits exceeding decimals in parseBalanceWithDecimals', () => {
       const state = {
         engine: {
@@ -551,6 +684,87 @@ describe('getTokensControllerAllTokens', () => {
                 },
               },
               customAssets: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getTokensControllerAllTokens(state);
+
+      expect(result).toStrictEqual({});
+    });
+
+    it('excludes the pooled-staking vault token from allTokens', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokensController: { allTokens: {}, allIgnoredTokens: {} },
+            AssetsController: {
+              assetsInfo: {
+                [stakedVaultAssetId]: {
+                  type: 'erc20',
+                  decimals: 18,
+                  symbol: 'MM-Staked-ETH',
+                  name: 'MetaMask Staked ETH',
+                },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [stakedVaultAssetId]: { amount: '1' },
+                },
+              },
+              customAssets: {},
+            },
+            AccountsController: {
+              internalAccounts: {
+                accounts: {
+                  [mockAccountId]: {
+                    id: mockAccountId,
+                    address: mockAccountAddressLowercase,
+                    type: 'eip155:eoa',
+                  },
+                },
+              },
+            },
+          },
+        },
+      };
+      const result = getTokensControllerAllTokens(state);
+
+      // The vault token must not appear in the regular token list
+      expect(result).toStrictEqual({});
+    });
+
+    it('excludes the pooled-staking vault token from customAssets path in allTokens', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokensController: { allTokens: {}, allIgnoredTokens: {} },
+            AssetsController: {
+              assetsInfo: {
+                [stakedVaultAssetId]: {
+                  type: 'erc20',
+                  decimals: 18,
+                  symbol: 'MM-Staked-ETH',
+                  name: 'MetaMask Staked ETH',
+                },
+              },
+              assetsBalance: {},
+              customAssets: {
+                [mockAccountId]: [stakedVaultAssetId as CaipAssetType],
+              },
             },
             AccountsController: {
               internalAccounts: {
@@ -1029,6 +1243,106 @@ describe('getTokenBalancesControllerTokenBalances', () => {
           erc20AssetAddressChecksummed
         ],
       ).toBe('0x1312d00'); // 20 * 10^6
+    });
+
+    it('excludes the pooled-staking vault token from tokenBalances', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenBalancesController: { tokenBalances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativeEthAssetId]: { type: 'native', decimals: 18 },
+                [stakedVaultAssetId]: { type: 'erc20', decimals: 18 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativeEthAssetId]: { amount: '1' },
+                  [stakedVaultAssetId]: { amount: '0.5' },
+                },
+              },
+              customAssets: {},
+            },
+            AccountsController: { internalAccounts: baseInternalAccounts },
+          },
+        },
+      };
+      const result = getTokenBalancesControllerTokenBalances(state);
+
+      // Vault address must not appear as a token balance key
+      expect(
+        result[mockAccountAddressLowercase]['0x1'][
+          stakedVaultAddressChecksummed as Hex
+        ],
+      ).toBeUndefined();
+    });
+
+    it('excludes the pooled-staking vault token from the customAssets zero-balance placeholder', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenBalancesController: { tokenBalances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [stakedVaultAssetId]: {
+                  type: 'erc20',
+                  decimals: 18,
+                  symbol: 'MM-Staked-ETH',
+                  name: 'MetaMask Staked ETH',
+                },
+              },
+              assetsBalance: {},
+              customAssets: {
+                [mockAccountId]: [stakedVaultAssetId],
+              },
+            },
+            AccountsController: { internalAccounts: baseInternalAccounts },
+          },
+        },
+      };
+      const result = getTokenBalancesControllerTokenBalances(state);
+
+      // The vault address must not appear as a token balance key in any chain
+      for (const chainMap of Object.values(result)) {
+        for (const tokenMap of Object.values(chainMap)) {
+          expect(
+            (tokenMap as Record<string, unknown>)[
+              stakedVaultAddressChecksummed
+            ],
+          ).toBeUndefined();
+        }
+      }
+    });
+
+    it('maps non-mainnet native assets to zero address to match TokenBalancesController behavior', () => {
+      const zeroAddress: Hex = '0x0000000000000000000000000000000000000000';
+      const state = {
+        engine: {
+          backgroundState: {
+            ...enabledFeatureFlagControllerState,
+            TokenBalancesController: { tokenBalances: {} },
+            AssetsController: {
+              assetsInfo: {
+                [nativePolygonAssetId]: { type: 'native', decimals: 18 },
+              },
+              assetsBalance: {
+                [mockAccountId]: {
+                  [nativePolygonAssetId]: { amount: '2' },
+                },
+              },
+              customAssets: {},
+            },
+            AccountsController: { internalAccounts: baseInternalAccounts },
+          },
+        },
+      };
+      const result = getTokenBalancesControllerTokenBalances(state);
+
+      expect(result[mockAccountAddressLowercase]['0x89']).toStrictEqual({
+        [zeroAddress]: '0x1bc16d674ec80000', // 2 MATIC (18 decimals)
+      });
     });
   });
 });

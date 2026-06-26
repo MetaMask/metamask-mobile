@@ -6,6 +6,7 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
 import Routes from '../../../constants/navigation/Routes';
+import { DOCUMENT_URL_FOR_URL_BAR } from '../../../util/browserScripts';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 
 const mockInjectJavaScript = jest.fn();
@@ -38,6 +39,7 @@ const mockNavigation = {
   canGoForward: true,
   addListener: jest.fn(() => jest.fn()),
   navigate: jest.fn(),
+  setParams: jest.fn(),
 };
 
 const mockRoute = {
@@ -87,8 +89,24 @@ jest.mock('../../../core/Engine', () => ({
     CurrencyRateController: {
       updateExchangeRate: jest.fn(),
     },
+    PermissionController: {
+      state: {
+        subjects: {},
+      },
+    },
+  },
+  controllerMessenger: {
+    call: jest.fn(),
   },
 }));
+
+jest.mock('../../../core/BackgroundBridge/BackgroundBridge', () =>
+  jest.fn().mockImplementation(() => ({
+    onDisconnect: jest.fn(),
+    onMessage: jest.fn(),
+    sendNotificationEip1193: jest.fn(),
+  })),
+);
 
 jest.mock('../../../core/EntryScriptWeb3', () => ({
   init: jest.fn(),
@@ -278,6 +296,26 @@ describe('BrowserTab', () => {
       ).toBe(true);
     });
 
+    it('rejects https URLs with explicit non-default ports', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const onShouldStartLoadWithRequest =
+        webView.props.onShouldStartLoadWithRequest;
+
+      expect(
+        onShouldStartLoadWithRequest({
+          url: 'https://example.com:83/page',
+        }),
+      ).toBe(false);
+    });
+
     it('shows alert for non-whitelisted protocol javascript:', async () => {
       renderWithProvider(<BrowserTab {...mockProps} />, {
         state: mockInitialState,
@@ -409,6 +447,129 @@ describe('BrowserTab', () => {
       });
 
       expect(mockInjectJavaScript).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('WebView onNavigationStateChange backforward URL resolution', () => {
+    const extractRequestIdFromInjectScript = (): string => {
+      const injectScript = mockInjectJavaScript.mock.calls[0]?.[0] as string;
+      const match = injectScript.match(/requestId:\s*"([^"]+)"/);
+      if (!match?.[1]) {
+        throw new Error('Expected document URL sync script to be injected');
+      }
+      return match[1];
+    };
+
+    it('does not sync the URL bar while a backforward navigation is loading', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onNavigationStateChange } = webView.props;
+
+      mockNavigation.setParams.mockClear();
+
+      onNavigationStateChange({
+        url: 'https://example.com:83/page',
+        title: 'Example',
+        loading: true,
+        canGoBack: true,
+        canGoForward: false,
+        navigationType: 'backforward',
+      });
+
+      expect(mockNavigation.setParams).not.toHaveBeenCalled();
+      expect(mockInjectJavaScript).not.toHaveBeenCalled();
+    });
+
+    it('updates the URL bar from the document URL after backforward navigation', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onNavigationStateChange, onMessage } = webView.props;
+
+      mockNavigation.setParams.mockClear();
+
+      onNavigationStateChange({
+        url: 'https://example.org/page',
+        title: 'Example Org',
+        loading: false,
+        canGoBack: true,
+        canGoForward: false,
+        navigationType: 'backforward',
+      });
+
+      expect(mockInjectJavaScript).toHaveBeenCalledTimes(1);
+      expect(mockNavigation.setParams).not.toHaveBeenCalled();
+
+      const requestId = extractRequestIdFromInjectScript();
+
+      onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: DOCUMENT_URL_FOR_URL_BAR,
+            payload: {
+              requestId,
+              url: 'https://example.com/page',
+              title: 'Example',
+            },
+          }),
+        },
+      });
+
+      await waitFor(() =>
+        expect(mockNavigation.setParams).toHaveBeenCalledWith(
+          expect.objectContaining({
+            url: expect.stringContaining('example.com'),
+          }),
+        ),
+      );
+      expect(mockNavigation.setParams).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: expect.stringContaining('example.org'),
+        }),
+      );
+    });
+
+    it('ignores document URL sync messages without a matching pending request', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onMessage } = webView.props;
+
+      mockNavigation.setParams.mockClear();
+
+      onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: DOCUMENT_URL_FOR_URL_BAR,
+            payload: {
+              requestId: 'unexpected-request-id',
+              url: 'https://example.com',
+              title: 'Example',
+            },
+          }),
+        },
+      });
+
+      expect(mockNavigation.setParams).not.toHaveBeenCalled();
     });
   });
 });

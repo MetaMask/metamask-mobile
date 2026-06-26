@@ -13,7 +13,7 @@ import Rive, {
 import { hideAsync } from 'expo-splash-screen';
 import { useStyles } from '../../../component-library/hooks';
 import Logger from '../../../util/Logger';
-import { isE2E } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 import styleSheet from './FoxLoader.styles';
 import { FoxLoaderSelectorsIDs } from './FoxLoader.testIds';
 
@@ -29,21 +29,6 @@ const ANIMATION_TIMEOUT_MS = 3_000;
 // Persist across remounts so animation state is consistent for the app session
 let animationStarted = false;
 let animationComplete = false;
-
-// Use Canvas renderer on Android — the default Rive SurfaceView causes geometry distortion
-if (Platform.OS === 'android') {
-  try {
-    RiveRenderer.defaultRenderer(
-      RiveRendererIOS.Rive,
-      RiveRendererAndroid.Canvas,
-    );
-  } catch (error) {
-    Logger.error(
-      error as Error,
-      'Failed to set Rive Canvas renderer on Android',
-    );
-  }
-}
 
 interface FoxLoaderProps {
   appServicesReady?: boolean;
@@ -249,7 +234,7 @@ const FoxLoaderAnimation = ({
 };
 
 const FoxLoader = (props: FoxLoaderProps) => {
-  if (isE2E) {
+  if (hasTestOverrides) {
     return <FoxLoaderE2E onAnimationComplete={props.onAnimationComplete} />;
   }
 

@@ -188,7 +188,6 @@ class FixtureBuilder {
       '@MetaMask:existingUser': 'true',
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
-      '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
     };
     return this;
@@ -496,34 +495,6 @@ class FixtureBuilder {
 
     // Use the provided region or fallback to the default
     this.fixture.state.fiatOrders.selectedPaymentMethodAgg = paymentType;
-    return this;
-  }
-
-  /**
-   * Seeds ramps unified buy V1/V2 flags in RemoteFeatureFlagController so deeplinks
-   * and early navigation match the intended path before the remote config API responds.
-   * Uses minimumVersion 0.0.0 so any E2E app build passes the version gate.
-   */
-  withRampsUnifiedBuyRemoteFlagsSeededForE2E(options?: {
-    rampsUnifiedBuyV1?: boolean;
-    rampsUnifiedBuyV2?: boolean;
-  }) {
-    const rampsUnifiedBuyV1 = options?.rampsUnifiedBuyV1 ?? true;
-    const rampsUnifiedBuyV2 = options?.rampsUnifiedBuyV2 ?? true;
-    merge(this.fixture.state.engine.backgroundState, {
-      RemoteFeatureFlagController: {
-        remoteFeatureFlags: {
-          rampsUnifiedBuyV1: {
-            active: rampsUnifiedBuyV1,
-            minimumVersion: '0.0.0',
-          },
-          rampsUnifiedBuyV2: {
-            enabled: rampsUnifiedBuyV2,
-            minimumVersion: '0.0.0',
-          },
-        },
-      },
-    });
     return this;
   }
 
@@ -1449,6 +1420,19 @@ class FixtureBuilder {
   }
 
   /**
+   * Enables basic functionality in settings.
+   * Required for remote feature flags and other external-service gated features.
+   * @returns The current instance for method chaining.
+   */
+  withBasicFunctionalityEnabled() {
+    merge(this.fixture.state.settings, {
+      basicFunctionalityEnabled: true,
+    });
+
+    return this;
+  }
+
+  /**
    * Disables profile syncing in the fixture.
    * @returns The current instance for method chaining.
    */
@@ -1983,9 +1967,6 @@ class FixtureBuilder {
     });
 
     this.fixture.state.fiatOrders = this.fixture.state.fiatOrders ?? {};
-    merge(this.fixture.state.fiatOrders, {
-      rampRoutingDecision: 'AGGREGATOR',
-    });
 
     this.withDetectedGeolocation('US');
 

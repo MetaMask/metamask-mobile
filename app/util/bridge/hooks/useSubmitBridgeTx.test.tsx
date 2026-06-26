@@ -91,11 +91,6 @@ jest.mock('../../../selectors/networkController', () => {
   };
 });
 
-jest.mock('../../../selectors/smartTransactionsController', () => ({
-  ...jest.requireActual('../../../selectors/smartTransactionsController'),
-  selectShouldUseSmartTransaction: jest.fn(() => true),
-}));
-
 jest.mock('../../../selectors/bridge', () => ({
   ...jest.requireActual('../../../selectors/bridge'),
   selectSourceWalletAddress: jest.fn(
@@ -118,12 +113,10 @@ describe('useSubmitBridgeTx', () => {
   const mockABTests = ({
     numpad = inactiveABTestResult,
     tokenSelector = inactiveABTestResult,
-    stickyFooter = inactiveABTestResult,
     ambientColor = inactiveABTestResult,
   }: {
     numpad?: MockABTestResult;
     tokenSelector?: MockABTestResult;
-    stickyFooter?: MockABTestResult;
     ambientColor?: MockABTestResult;
   } = {}) => {
     jest
@@ -132,7 +125,6 @@ describe('useSubmitBridgeTx', () => {
       .mockReturnValue(inactiveABTestResult)
       .mockReturnValueOnce(numpad)
       .mockReturnValueOnce(tokenSelector)
-      .mockReturnValueOnce(stickyFooter)
       .mockReturnValueOnce(ambientColor);
   };
 
@@ -166,6 +158,7 @@ describe('useSubmitBridgeTx', () => {
       },
       bridge: {
         abTestContext: undefined,
+        isGasIncludedSTXSendBundleSupported: true,
       },
       swaps: {
         featureFlags: {
@@ -616,6 +609,7 @@ describe('useSubmitBridgeTx', () => {
       wrapper: createWrapper({
         bridge: {
           abTestContext: undefined,
+          isGasIncludedSTXSendBundleSupported: true,
           destToken: {
             symbol: 'SCAM',
             securityData: {

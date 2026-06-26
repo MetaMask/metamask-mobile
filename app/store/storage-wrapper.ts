@@ -1,6 +1,6 @@
 import ReadOnlyNetworkStore from '../util/test/network-store';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { isE2E } from '../util/test/utils';
+import { hasTestOverrides } from '../util/test/utils';
 import { MMKV } from 'react-native-mmkv';
 import { EventEmitter2 } from 'eventemitter2';
 
@@ -39,7 +39,7 @@ class StorageWrapper extends EventEmitter2 {
      * The underlying storage implementation.
      * Use `ReadOnlyNetworkStore` in test mode otherwise use `AsyncStorage`.
      */
-    this.storage = isE2E ? ReadOnlyNetworkStore : new MMKV();
+    this.storage = hasTestOverrides ? ReadOnlyNetworkStore : new MMKV();
   }
 
   /**
@@ -58,7 +58,7 @@ class StorageWrapper extends EventEmitter2 {
    */
   getItemSync(key: string): string | null {
     try {
-      if (isE2E) return null;
+      if (hasTestOverrides) return null;
       return (this.storage as MMKV).getString(key) ?? null;
     } catch {
       return null;
@@ -74,7 +74,7 @@ class StorageWrapper extends EventEmitter2 {
       const value = (await this.storage.getString(key)) ?? null;
       return value;
     } catch (error) {
-      if (isE2E) {
+      if (hasTestOverrides) {
         // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
         return await AsyncStorage.getItem(key);
       }
@@ -109,7 +109,7 @@ class StorageWrapper extends EventEmitter2 {
       }
       return result;
     } catch (error) {
-      if (isE2E) {
+      if (hasTestOverrides) {
         const result = await AsyncStorage.setItem(key, value);
         if (opts.emitEvent) {
           this.emit(`storage.changed.${key}`, { key, value, action: 'set' });
@@ -137,7 +137,7 @@ class StorageWrapper extends EventEmitter2 {
     try {
       return await this.storage.delete(key);
     } catch (error) {
-      if (isE2E) {
+      if (hasTestOverrides) {
         // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
         return await AsyncStorage.removeItem(key);
       }
@@ -175,7 +175,7 @@ class StorageWrapper extends EventEmitter2 {
     try {
       return await this.storage.getAllKeys();
     } catch (error) {
-      if (isE2E) {
+      if (hasTestOverrides) {
         // Fall back to AsyncStorage in test mode if ReadOnlyNetworkStore fails
         return await AsyncStorage.getAllKeys();
       }
@@ -203,7 +203,7 @@ class StorageWrapper extends EventEmitter2 {
       );
       return results;
     } catch (error) {
-      if (isE2E) {
+      if (hasTestOverrides) {
         // Fall back to AsyncStorage in test mode
         return await AsyncStorage.multiGet(keys);
       }

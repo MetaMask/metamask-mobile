@@ -18,7 +18,7 @@ import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../constants/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { isNotificationsFeatureEnabled } from '../../../util/notifications';
-import { isTest } from '../../../util/test/utils';
+import { isTestEnvironment } from '../../../util/test/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
@@ -196,7 +196,7 @@ const Settings = () => {
            *
            * If this is shown in production, it is a bug.
            */
-          isTest && (
+          isTestEnvironment && (
             <SettingsDrawer
               title={strings('app_settings.aes_crypto_test_form_title')}
               description={strings(

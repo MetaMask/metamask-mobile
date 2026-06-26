@@ -4384,8 +4384,7 @@ describe('PerpsOrderView', () => {
 
       // The critical AC invariant: an order whose estimated slippage exceeds
       // the configured cap must NOT reach the order execution path. (The toast
-      // copy and event payload are verified separately by the slippage agentic
-      // recipe and the `eventNames` constants tests.)
+      // copy and event payload are verified separately by the slippage recipe and the `eventNames` constants tests.)
       expect(mockPlaceOrder).not.toHaveBeenCalled();
     });
   });

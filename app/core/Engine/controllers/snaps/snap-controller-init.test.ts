@@ -35,7 +35,7 @@ jest.mock('.../../../../store', () => ({
 }));
 
 jest.mock('../../../../util/test/utils', () => ({
-  isTest: false,
+  isTestEnvironment: false,
 }));
 
 function getInitRequestMock(
@@ -68,7 +68,6 @@ describe('SnapControllerInit', () => {
         name: 'mock-event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
         get isAnonymous(): boolean {
           return false;
         },

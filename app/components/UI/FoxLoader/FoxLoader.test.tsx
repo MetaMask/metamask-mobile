@@ -48,11 +48,11 @@ jest.mock('rive-react-native', () => {
   };
 });
 
-// Getter pattern so individual tests can flip isE2E without re-mocking the module
-let mockIsE2E = false;
+// Getter pattern so individual tests can flip hasTestOverrides without re-mocking the module
+let mockHasTestOverrides = false;
 jest.mock('../../../util/test/utils', () => ({
-  get isE2E() {
-    return mockIsE2E;
+  get hasTestOverrides() {
+    return mockHasTestOverrides;
   },
 }));
 
@@ -83,7 +83,7 @@ describe('FoxLoader', () => {
     _resetAnimationStateForTesting();
     jest.clearAllMocks();
     mockRiveCallbacks = {};
-    mockIsE2E = false;
+    mockHasTestOverrides = false;
   });
 
   it('renders the container, static fox, and Rive wrapper', () => {
@@ -107,7 +107,7 @@ describe('FoxLoader', () => {
   });
 
   it('returns null and completes immediately in E2E', async () => {
-    mockIsE2E = true;
+    mockHasTestOverrides = true;
     const onAnimationComplete = jest.fn();
 
     render(

@@ -10,9 +10,11 @@ import {
 } from '../../../../../../selectors/transactionController';
 import { useSelector } from 'react-redux';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
+import { useIsMoneyAccountContext } from '../../../hooks/activity/useIsMoneyAccountContext';
 import { RootState } from '../../../../../../reducers';
 import {
   TransactionMeta,
+  TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
 import { hasTransactionType } from '../../../utils/transaction';
@@ -24,9 +26,11 @@ import { ApprovalSummaryLine } from './approval-summary-line';
 import { ReceiveSummaryLine } from './receive-summary-line';
 import { DefaultSummaryLine } from './default-summary-line';
 import { FiatOrderSummaryLine } from './fiat-order-summary-line';
+import { strings } from '../../../../../../../locales/i18n';
 
 export function TransactionDetailsSummary() {
   const { transactionMeta } = useTransactionDetails();
+  const isMoneyContext = useIsMoneyAccountContext();
   const {
     batchId,
     id: transactionId,
@@ -71,14 +75,36 @@ export function TransactionDetailsSummary() {
   const { sourceHash, fiat } = metamaskPay ?? {};
   const { orderId: fiatOrderId } = fiat ?? {};
 
+  const showSourceHash = !hasDepositTransactions && sourceHash;
+
+  const txCompletedCount = transactions.filter(
+    (tx) => tx.status === TransactionStatus.confirmed,
+  ).length;
+
+  const parentConfirmed =
+    transactionMeta.status === TransactionStatus.confirmed;
+
+  // fiatOrderId (fiat deposits) and showSourceHash (perps/predict via polymarket)
+  // are mutually exclusive — at most one extra completed step applies.
+  const hasExtraCompletedStep =
+    parentConfirmed && (Boolean(fiatOrderId) || showSourceHash);
+
+  const completedCount = txCompletedCount + (hasExtraCompletedStep ? 1 : 0);
+
+  const heading = isMoneyContext
+    ? strings('transaction_details.label.steps_completed', {
+        count: completedCount,
+      })
+    : strings('transaction_details.label.summary');
+
   return (
     <Box gap={12}>
-      <Text color={TextColor.Alternative}>Summary</Text>
-      <ProgressList>
+      <Text color={TextColor.Alternative}>{heading}</Text>
+      <ProgressList showConnectors={false}>
         {fiatOrderId ? (
           <FiatOrderSummaryLine parentTransaction={transactionMeta} />
         ) : null}
-        {!hasDepositTransactions && sourceHash ? (
+        {showSourceHash ? (
           <SourceHashSummaryLine
             parentTransaction={transactionMeta}
             sourceHash={sourceHash}
@@ -103,7 +129,6 @@ function SummaryLine({
   transactionMeta: TransactionMeta;
   parentTransaction: TransactionMeta;
 }) {
-  // Relay deposit types render as send lines
   if (hasTransactionType(transactionMeta, RELAY_DEPOSIT_TYPES)) {
     return (
       <DepositSummaryLine
@@ -121,6 +146,7 @@ function SummaryLine({
     hasTransactionType(transactionMeta, [
       TransactionType.moneyAccountDeposit,
       TransactionType.perpsDeposit,
+      TransactionType.perpsWithdraw,
       TransactionType.predictDeposit,
       TransactionType.musdConversion,
       TransactionType.predictWithdraw,

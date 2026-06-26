@@ -16,6 +16,7 @@ import type { ToastRef } from '../../../../component-library/components/Toast/To
 import Routes from '../../../../constants/navigation/Routes';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
 import { useAppThemeFromContext } from '../../../../util/theme';
+import { PredictEventValues } from '../constants/eventNames';
 import type { PredictTransactionStatusChangedPayload } from '../controllers/PredictController';
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
@@ -25,6 +26,8 @@ import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
 import { usePredictWithdraw } from './usePredictWithdraw';
 import { store } from '../../../../store';
+import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
+import { isPerpsPredictMoneyDeposit } from '../../Money/utils/moneyTransactionGuards';
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
 import { shouldSuppressLegacyOrderFailureToast } from '../contexts/PredictPreviewSheetContext';
@@ -142,9 +145,8 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   // Subscribe to account group changes so the hook re-renders when the user switches accounts
   useSelector(selectSelectedAccountGroupId);
   const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
-  const selectedAddress =
-    getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
-  const normalizedSelectedAddress = selectedAddress.toLowerCase();
+  const selectedAddress = getEvmAccountFromSelectedAccountGroup()?.address;
+  const normalizedSelectedAddress = selectedAddress?.toLowerCase() ?? '';
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
       const { type, status, senderAddress, transactionId, amount, marketId } =
@@ -174,6 +176,13 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       }
 
       if (type === 'deposit') {
+        const depositMeta = transactionId
+          ? selectTransactionMetadataById(store.getState(), transactionId)
+          : undefined;
+        if (depositMeta && isPerpsPredictMoneyDeposit(depositMeta)) {
+          return;
+        }
+
         if (status === 'approved') {
           showPendingToast({
             showToast,
@@ -276,7 +285,9 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
               ? {
                   retryLabel: strings('predict.claim.toasts.error.try_again'),
                   onRetry: () => {
-                    claim().catch(() => undefined);
+                    claim({
+                      entryPoint: PredictEventValues.ENTRY_POINT.BACKGROUND,
+                    }).catch(() => undefined);
                   },
                 }
               : {}),

@@ -17,7 +17,6 @@ import {
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import CommandQueueServer from '../../framework/fixtures/CommandQueueServer';
 import {
   openPosition,
@@ -52,9 +51,7 @@ const MARK_PRICE_BY_DIRECTION: Record<
 };
 
 const setupPerpsMocks = async (mockServer: Mockttp) => {
-  await setupRemoteFeatureFlagsMock(mockServer, {
-    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-  });
+  await setupRemoteFeatureFlagsMock(mockServer, {});
   await PERPS_ARBITRUM_MOCKS(mockServer);
   await mockPerpsGeolocation(mockServer, RampsRegions[RampsRegionsEnum.SPAIN]);
 };
@@ -80,7 +77,6 @@ const buildPerpsFixture = () =>
         type: 'erc20',
       },
     ])
-    .withPopularNetworks()
     .build();
 
 const expectPositionClosedAfterLiquidation = async () => {
@@ -116,13 +112,13 @@ const waitForCommandQueueToProcess = async (
   await commandQueueServer.getExportedState();
 };
 
-// Unblocking CI
-describe.skip(SmokePerps('Perps Position Liquidation'), () => {
+describe(SmokePerps('Perps Position Liquidation'), () => {
   it(`liquidates a ${POSITION_DIRECTION} position when mark price moves ${MARK_PRICE_BY_DIRECTION[POSITION_DIRECTION].liquidatingPriceDirection} liquidation price`, async () => {
     await withFixtures(
       {
         fixture: buildPerpsFixture(),
         restartDevice: true,
+        permissions: { notifications: 'YES' },
         testSpecificMock: setupPerpsMocks,
         useCommandQueueServer: true,
       },

@@ -46,6 +46,7 @@ import {
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
   selectQuoteStreamComplete,
+  selectBridgeBalanceRefreshKey,
 } from '../../../../../core/redux/slices/bridge';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { IconName as CLIconName } from '../../../../../component-library/components/Icons/Icon';
@@ -108,6 +109,7 @@ import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/inde
 import BridgeTrendingTokensSection from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import type { RootState } from '../../../../../reducers';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
 import { getQuoteStreamReasonString } from './BridgeView.utils';
@@ -119,6 +121,10 @@ import {
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button/Button.types.ts';
 import { useIsNetworkFeeUnavailable } from '../../hooks/useIsNetworkFeeUnavailable/index.ts';
+import {
+  hidePostTradeNotificationSurface,
+  showPostTradeNotificationSurface,
+} from '../../utils/postTradeNotifications';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -192,7 +198,8 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
   /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
-  const location = route.params?.location;
+  const location =
+    route.params?.location ?? MetaMetricsSwapsEventSource.MainView;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   // inputRef is used to programmatically blur the input field after a delay
@@ -220,6 +227,16 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   useRecipientInitialization(hasInitializedRecipient);
 
   useBridgeViewOnFocus({ inputRef, keypadRef });
+
+  useFocusEffect(
+    useCallback(() => {
+      showPostTradeNotificationSurface();
+
+      return () => {
+        hidePostTradeNotificationSurface();
+      };
+    }, []),
+  );
 
   // Scroll to top when navigating to the bridge view if requested
   useFocusEffect(
@@ -370,7 +387,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     headerTitle = `${strings('swaps.title')}/${strings('bridge.title')}`;
   }
 
-  useTrackSwapPageViewed();
+  useTrackSwapPageViewed(location);
 
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
@@ -750,11 +767,13 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
 const BridgeView = () => {
   const sourceToken = useSelector(selectSourceToken);
+  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
   const latestSourceBalance = useLatestBalance({
     address: sourceToken?.address,
     decimals: sourceToken?.decimals,
     chainId: sourceToken?.chainId,
     balance: sourceToken?.balance,
+    refreshKey: balanceRefreshKey,
   });
 
   return (

@@ -9,7 +9,6 @@ import {
   CardLoginResponse,
   CardAuthorizeResponse,
   DelegationSettingsResponse,
-  DelegationSettingsNetwork,
   UserResponse,
   RegistrationSettingsResponse,
   CardLocation,
@@ -23,7 +22,6 @@ import type {
 import {
   ARBITRARY_ALLOWANCE,
   BALANCE_SCANNER_ABI,
-  BAANX_MAX_LIMIT,
   SUPPORTED_ASSET_NETWORKS,
   cardNetworkInfos,
   caipChainIdToNetwork,
@@ -46,7 +44,6 @@ import {
   CardCredentials,
   CardDetails,
   CardFundingAsset,
-  CardFundingConfig,
   CardHomeData,
   CardProviderCapabilities,
   CardSecureView,
@@ -67,6 +64,7 @@ import {
   CashbackWithdrawResponse,
   type DelegationChallengeResponse,
   emptyCardHomeData,
+  isCardAuthTokenError,
 } from '../provider-types';
 import AppConstants from '../../../../AppConstants';
 
@@ -316,20 +314,39 @@ export class BaanxProvider implements ICardProvider {
 
   async refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens> {
     if (!tokens.refreshToken) {
-      throw new Error('No refresh token available');
+      throw new CardProviderError(
+        CardProviderErrorCode.InvalidCredentials,
+        'No refresh token available',
+        401,
+      );
     }
 
-    const response = await this.service.request<CardExchangeTokenRawResponse>(
-      '/v1/auth/oauth/token',
-      {
-        method: 'POST',
-        body: {
-          grant_type: 'refresh_token',
-          refresh_token: tokens.refreshToken,
+    let response: CardExchangeTokenRawResponse;
+    try {
+      response = await this.service.request<CardExchangeTokenRawResponse>(
+        '/v1/auth/oauth/token',
+        {
+          method: 'POST',
+          body: {
+            grant_type: 'refresh_token',
+            refresh_token: tokens.refreshToken,
+          },
+          headers: { 'x-secret-key': this.service.apiKey },
         },
-        headers: { 'x-secret-key': this.service.apiKey },
-      },
-    );
+      );
+    } catch (error) {
+      if (
+        error instanceof CardApiError &&
+        [400, 401, 403].includes(error.statusCode)
+      ) {
+        throw new CardProviderError(
+          CardProviderErrorCode.InvalidCredentials,
+          'Refresh token rejected',
+          error.statusCode,
+        );
+      }
+      throw mapApiError(error, 'refreshTokens');
+    }
 
     return {
       accessToken: response.access_token,
@@ -371,6 +388,16 @@ export class BaanxProvider implements ICardProvider {
     _address: string,
     tokens: CardAuthTokens,
   ): Promise<CardHomeData> {
+    const swallowUnlessAuthError =
+      (logContext: string) =>
+      (err: unknown): null => {
+        if (isCardAuthTokenError(err)) {
+          throw mapApiError(err, logContext);
+        }
+        Logger.error(err as Error, getErrorContext(logContext));
+        return null;
+      };
+
     try {
       const [delegationSettings, cardDetailsResponse, user] = await Promise.all(
         [
@@ -379,26 +406,15 @@ export class BaanxProvider implements ICardProvider {
               '/v1/delegation/chain/config',
               tokens,
             )
-            .catch((err) => {
-              Logger.error(
-                err as Error,
-                getErrorContext('getCardHomeData.delegationSettings'),
-              );
-              return null;
-            }),
+            .catch(
+              swallowUnlessAuthError('getCardHomeData.delegationSettings'),
+            ),
           this.service
             .get<CardDetailsResponse>('/v1/card/status', tokens)
-            .catch((err) => {
-              Logger.error(
-                err as Error,
-                getErrorContext('getCardHomeData.cardDetails'),
-              );
-              return null;
-            }),
-          this.service.get<UserResponse>('/v1/user', tokens).catch((err) => {
-            Logger.error(err as Error, getErrorContext('getCardHomeData.user'));
-            return null;
-          }),
+            .catch(swallowUnlessAuthError('getCardHomeData.cardDetails')),
+          this.service
+            .get<UserResponse>('/v1/user', tokens)
+            .catch(swallowUnlessAuthError('getCardHomeData.user')),
         ],
       );
 
@@ -469,6 +485,9 @@ export class BaanxProvider implements ICardProvider {
         delegationSettings,
       };
     } catch (error) {
+      if (isCardAuthTokenError(error)) {
+        throw error;
+      }
       Logger.error(error as Error, getErrorContext('getCardHomeData'));
       return emptyCardHomeData();
     }
@@ -554,31 +573,6 @@ export class BaanxProvider implements ICardProvider {
     }));
 
     await this.service.put('/v1/wallet/external/priority', { wallets }, tokens);
-  }
-
-  async getFundingConfig(tokens: CardAuthTokens): Promise<CardFundingConfig> {
-    const settings = await this.service.get<DelegationSettingsResponse>(
-      '/v1/delegation/chain/config',
-      tokens,
-    );
-
-    const supportedChains = settings.networks
-      .filter((n: DelegationSettingsNetwork) =>
-        SUPPORTED_ASSET_NETWORKS.includes(
-          n.network?.toLowerCase() as CardNetwork,
-        ),
-      )
-      .map((n: DelegationSettingsNetwork) => {
-        const info =
-          cardNetworkInfos[n.network as keyof typeof cardNetworkInfos];
-        return info?.caipChainId ?? `eip155:${n.chainId}`;
-      });
-
-    return {
-      maxLimit: BAANX_MAX_LIMIT,
-      fundingOptions: this.buildFundingOptions(settings),
-      supportedChains,
-    };
   }
 
   async fetchDelegationChallenge(
@@ -1313,7 +1307,10 @@ export class BaanxProvider implements ICardProvider {
           .get<
             CardWalletExternalPriorityResponse[]
           >('/v1/wallet/external/priority', tokens)
-          .catch(() => [] as CardWalletExternalPriorityResponse[]),
+          .catch((err) => {
+            if (isCardAuthTokenError(err)) throw err;
+            return [] as CardWalletExternalPriorityResponse[];
+          }),
       ]);
 
       if (!rawWallets?.length) return [];
@@ -1365,6 +1362,9 @@ export class BaanxProvider implements ICardProvider {
 
       return enriched.sort((a, b) => a.priority - b.priority);
     } catch (error) {
+      if (isCardAuthTokenError(error)) {
+        throw mapApiError(error, 'fetchWalletDetails');
+      }
       Logger.error(error as Error, getErrorContext('fetchWalletDetails'));
       return [];
     }
@@ -1452,6 +1452,10 @@ export class BaanxProvider implements ICardProvider {
             country: user.countryOfResidence ?? '',
           }
         : null,
+      countryOfResidence: user.countryOfResidence
+        ? user.countryOfResidence.toUpperCase()
+        : null,
+      usState: user.usState ? user.usState.toUpperCase() : null,
     };
   }
 

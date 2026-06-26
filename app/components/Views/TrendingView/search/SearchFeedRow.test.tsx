@@ -7,6 +7,7 @@ import type { PredictMarket as PredictMarketType } from '../../../UI/Predict/typ
 import type { SiteData } from '../../../UI/Sites/components/SiteRowItem/SiteRowItem';
 import SearchFeedRow, { SearchFeedSkeleton } from './SearchFeedRow';
 import { trackExploreSearchEvent } from './analytics';
+import { TokenDetailsSource } from '../../../UI/TokenDetails/constants/constants';
 
 const MockPressable = Pressable;
 const MockText = Text;
@@ -30,9 +31,25 @@ jest.mock('./analytics', () => ({
   trackExploreSearchEvent: jest.fn(),
 }));
 
+const mockOnQuickTrade = jest.fn();
+
 jest.mock('../feeds/tokens/TokenRowItem', () => ({
-  TokenSearchRowItem: ({ token }: { token: TrendingAsset }) => (
-    <MockText testID="stub-token-row">{token.assetId}</MockText>
+  TokenSearchRowItem: ({
+    token,
+    tokenDetailsSource,
+    onQuickTrade,
+  }: {
+    token: TrendingAsset;
+    tokenDetailsSource?: TokenDetailsSource;
+    onQuickTrade?: (t: TrendingAsset) => void;
+  }) => (
+    <MockPressable
+      testID="stub-token-row"
+      accessibilityLabel={tokenDetailsSource}
+      onPress={() => onQuickTrade?.(token)}
+    >
+      <MockText>{token.assetId}</MockText>
+    </MockPressable>
   ),
   CryptoMoversSearchRowItem: ({ token }: { token: TrendingAsset }) => (
     <MockText testID="stub-crypto-movers-search">{token.assetId}</MockText>
@@ -131,6 +148,27 @@ describe('SearchFeedRow', () => {
     },
   );
 
+  it.each(['tokens', 'stocks'] as const)(
+    'passes explore_search tokenDetailsSource for %s feed',
+    (feedId) => {
+      const token = { assetId: 'asset-1' } as TrendingAsset;
+
+      const { getByTestId } = render(
+        <SearchFeedRow
+          feedId={feedId}
+          item={token}
+          index={0}
+          searchQuery="q"
+          tabName="all"
+        />,
+      );
+
+      expect(getByTestId('stub-token-row').props.accessibilityLabel).toBe(
+        TokenDetailsSource.ExploreSearch,
+      );
+    },
+  );
+
   it('omits section_name on result_clicked when not on the All tab', () => {
     const token = { assetId: 'asset-1' } as TrendingAsset;
     const { getByTestId } = render(
@@ -184,6 +222,66 @@ describe('SearchFeedRow', () => {
     expect(mockTrackExploreSearchEvent).toHaveBeenCalledWith(
       expect.objectContaining({ search_query: 'second' }),
     );
+  });
+});
+
+describe('onQuickTrade prop', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('forwards onQuickTrade to TokenSearchRowItem for the tokens feed', () => {
+    const token = { assetId: 'eip155:1/erc20:0xabc' } as TrendingAsset;
+
+    const { getByTestId } = render(
+      <SearchFeedRow
+        feedId="tokens"
+        item={token}
+        index={0}
+        searchQuery="q"
+        tabName="all"
+        onQuickTrade={mockOnQuickTrade}
+      />,
+    );
+
+    fireEvent.press(getByTestId('stub-token-row'));
+    expect(mockOnQuickTrade).toHaveBeenCalledWith(token);
+  });
+
+  it('forwards onQuickTrade to TokenSearchRowItem for the stocks feed', () => {
+    const token = { assetId: 'eip155:1/erc20:0xabc' } as TrendingAsset;
+
+    const { getByTestId } = render(
+      <SearchFeedRow
+        feedId="stocks"
+        item={token}
+        index={0}
+        searchQuery="q"
+        tabName="all"
+        onQuickTrade={mockOnQuickTrade}
+      />,
+    );
+
+    fireEvent.press(getByTestId('stub-token-row'));
+    expect(mockOnQuickTrade).toHaveBeenCalledWith(token);
+  });
+
+  it('renders tokens feed without onQuickTrade when prop is not provided', () => {
+    const token = { assetId: 'eip155:1/erc20:0xabc' } as TrendingAsset;
+
+    const { getByTestId } = render(
+      <SearchFeedRow
+        feedId="tokens"
+        item={token}
+        index={0}
+        searchQuery="q"
+        tabName="all"
+      />,
+    );
+
+    // pressing does not call anything (no handler wired)
+    fireEvent.press(getByTestId('stub-token-row'));
+    expect(mockOnQuickTrade).not.toHaveBeenCalled();
   });
 });
 

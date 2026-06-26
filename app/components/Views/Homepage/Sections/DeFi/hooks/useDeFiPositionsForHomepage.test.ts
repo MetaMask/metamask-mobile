@@ -8,14 +8,6 @@ jest.mock('../../../../../../selectors/defiPositionsController', () => ({
     mockSelectDefiPositionsByChainIds(),
 }));
 
-jest.mock('../../../../../../selectors/networkEnablementController', () => ({
-  selectEVMEnabledNetworks: () => [],
-}));
-
-jest.mock('../../../../../../selectors/featureFlagController/homepage', () => ({
-  selectHomepageSectionsV1Enabled: () => false,
-}));
-
 jest.mock(
   '../../../../../hooks/useNetworkEnablement/useNetworkEnablement',
   () => ({

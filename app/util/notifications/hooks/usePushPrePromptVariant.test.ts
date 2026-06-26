@@ -1,5 +1,7 @@
 import { act, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import-x/no-namespace
+import * as AnalyticsControllerSelectors from '../../../selectors/analyticsController';
+// eslint-disable-next-line import-x/no-namespace
 import * as NotificationSelectors from '../../../selectors/notifications';
 // eslint-disable-next-line import-x/no-namespace
 import * as OnboardingSelectors from '../../../selectors/onboarding';
@@ -62,10 +64,12 @@ const arrangeSelectors = ({
   completedOnboarding = true,
   isFeatureFlagOn = true,
   isBasicFunctionalityEnabled = true,
+  isMetaMetricsEnabled = true,
 }: {
   completedOnboarding?: boolean;
   isFeatureFlagOn?: boolean;
   isBasicFunctionalityEnabled?: boolean;
+  isMetaMetricsEnabled?: boolean;
 } = {}) => {
   jest
     .spyOn(OnboardingSelectors, 'selectCompletedOnboarding')
@@ -79,6 +83,9 @@ const arrangeSelectors = ({
   jest
     .spyOn(SettingsSelectors, 'selectBasicFunctionalityEnabled')
     .mockReturnValue(isBasicFunctionalityEnabled);
+  jest
+    .spyOn(AnalyticsControllerSelectors, 'selectAnalyticsEnabled')
+    .mockReturnValue(isMetaMetricsEnabled);
 };
 
 const renderUsePushPrePromptVariant = ({
@@ -441,6 +448,67 @@ describe('usePushPrePromptVariant', () => {
     });
     expect(result.current.variant).toBeNull();
     expect(result.current.nativeOsPermissionEnabled).toBeNull();
+  });
+
+  it('does not return the marketing consent prompt when MetaMetrics is off', async () => {
+    // OS push is granted, no marketing consent, but MetaMetrics is off —
+    // the marketing-consent sheet must never appear in this state.
+    arrangeSelectors({ isMetaMetricsEnabled: false });
+
+    const { result } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+    expect(result.current.nativeOsPermissionEnabled).toBe(true);
+  });
+
+  it('still returns the push permission prompt when MetaMetrics is off', async () => {
+    // MetaMetrics being off must not block the push-permission sheet.
+    arrangeSelectors({ isMetaMetricsEnabled: false });
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+
+    const { result } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
+    expect(result.current.nativeOsPermissionEnabled).toBe(false);
+  });
+
+  it('does not return a prompt when OS push is on, MetaMetrics is off, and marketing consent is already on', async () => {
+    // dc=on gates before the mm check — variant must be null regardless of mm state.
+    arrangeSelectors({ isMetaMetricsEnabled: false });
+    const { result } = renderUsePushPrePromptVariant({
+      hasMarketingConsent: true,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+    expect(result.current.nativeOsPermissionEnabled).toBe(true);
+  });
+
+  it('still returns the push permission prompt when MetaMetrics is off and marketing consent is on', async () => {
+    // push=off gates before dc and mm — push_permission must still appear.
+    arrangeSelectors({ isMetaMetricsEnabled: false });
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+    const { result } = renderUsePushPrePromptVariant({
+      hasMarketingConsent: true,
+    });
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
+    expect(result.current.nativeOsPermissionEnabled).toBe(false);
   });
 
   it('marks the prompt as shown without hiding it until dismissed', async () => {

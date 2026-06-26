@@ -66,6 +66,7 @@ jest.mock('../search-utils', () => ({
 }));
 
 jest.mock('@metamask/perps-controller', () => ({
+  ...jest.requireActual('@metamask/perps-controller'),
   filterMarketsByQuery: jest.fn((items: unknown[]) => items),
 }));
 
@@ -85,7 +86,7 @@ const makeMarket = (
     name: symbol,
     change24hPercent,
     volumeNumber,
-    marketType: 'equity',
+    marketType: 'stock',
     isHip3: false,
   }) as unknown as PerpsMarketData;
 
@@ -129,7 +130,7 @@ describe('usePerpsFeed', () => {
         makeMarket('LOW_VOL', '5', 10),
         makeMarket('HIGH_VOL', '1', 200),
         makeMarket('MID_VOL', '3', 100),
-      ].map((m) => ({ ...m, marketType: 'equity' as const }));
+      ].map((m) => ({ ...m, marketType: 'stock' as const }));
 
       (usePerpsMarkets as jest.Mock).mockReturnValue({
         markets,
@@ -209,7 +210,7 @@ describe('usePerpsFeed', () => {
         makeMarket('AAPL', '1', 10),
         makeMarket('MSFT', '5', 200),
         makeMarket('NVDA', '3', 100),
-      ].map((m) => ({ ...m, marketType: 'equity' as const }));
+      ].map((m) => ({ ...m, marketType: 'stock' as const }));
 
       (usePerpsMarkets as jest.Mock).mockReturnValue({
         markets,

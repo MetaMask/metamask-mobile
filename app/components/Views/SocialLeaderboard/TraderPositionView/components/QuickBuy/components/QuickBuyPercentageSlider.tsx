@@ -1,25 +1,26 @@
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useCallback, useEffect, useRef } from 'react';
-import { AccessibilityActionEvent, LayoutChangeEvent } from 'react-native';
 import {
-  Gesture,
-  GestureDetector,
-  GestureHandlerRootView,
-} from 'react-native-gesture-handler';
+  AccessibilityActionEvent,
+  LayoutChangeEvent,
+  View,
+} from 'react-native';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import Animated, {
   runOnJS,
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { playImpact, ImpactMoment } from '../../../../../../../util/haptics';
+import { ImpactMoment, playImpact } from '../../../../../../../util/haptics';
 
 const HANDLE_SIZE = 24;
 const MARKER_SIZE = 4;
 const ACCESSIBILITY_STEP = 1;
 // Decorative reference markers rendered on the track. The slider itself does
 // not snap to these positions, they exist purely as visual anchors so users
-// can eyeball quarter-balance amounts.
-const VISUAL_MARKERS = [0, 25, 50, 75, 100];
+// can eyeball quarter-balance amounts. Only the interior quarter marks are
+// drawn — 0 and 100 would sit under the handle and the track ends.
+const VISUAL_MARKERS = [25, 50, 75];
 const HAPTIC_THRESHOLDS = [25, 50, 75];
 
 interface QuickBuyPercentageSliderProps {
@@ -57,6 +58,14 @@ export function QuickBuyPercentageSlider({
     },
     [translateX],
   );
+
+  // Fired when the user grabs the handle (pan start) and again when they let
+  // go (pan end) — a tactile "pick up / drop" pair distinct from the per-tick
+  // SliderTick crossings.
+  const handleGrip = useCallback(() => {
+    if (disabled) return;
+    playImpact(ImpactMoment.SliderGrip);
+  }, [disabled]);
 
   const checkThresholdCrossing = useCallback((nextValue: number) => {
     const prevValue = previousValueRef.current;
@@ -149,12 +158,18 @@ export function QuickBuyPercentageSlider({
       runOnJS(commitFromPosition)(event.x, sliderWidth.value);
     }),
     Gesture.Pan()
+      .onStart(() => {
+        // Pick up — fire the grip haptic the moment the drag is recognized.
+        runOnJS(handleGrip)();
+      })
       .onUpdate((event) => {
         runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
       })
       .onEnd((event) => {
         // Commit the final position when the user lifts their finger.
         runOnJS(commitFromPosition)(event.x, sliderWidth.value);
+        // Drop — fire the grip haptic again on release.
+        runOnJS(handleGrip)();
       }),
   );
 
@@ -174,7 +189,7 @@ export function QuickBuyPercentageSlider({
   );
 
   return (
-    <GestureHandlerRootView
+    <View
       testID={testID}
       accessibilityRole="adjustable"
       accessibilityState={{ disabled }}
@@ -190,7 +205,7 @@ export function QuickBuyPercentageSlider({
         >
           <Animated.View
             style={tw.style(
-              'absolute left-0 right-0 h-1 rounded-full bg-icon-muted',
+              'absolute left-0 right-0 h-1 rounded-full bg-background-muted',
             )}
           />
           <Animated.View
@@ -204,7 +219,7 @@ export function QuickBuyPercentageSlider({
               key={marker}
               pointerEvents="none"
               style={[
-                tw.style('absolute h-1 w-1 rounded-full bg-icon-muted'),
+                tw.style('absolute h-1 w-1 rounded-full bg-background-pressed'),
                 {
                   left: `${marker}%`,
                   transform: [{ translateX: -MARKER_SIZE / 2 }],
@@ -220,6 +235,6 @@ export function QuickBuyPercentageSlider({
           />
         </Animated.View>
       </GestureDetector>
-    </GestureHandlerRootView>
+    </View>
   );
 }

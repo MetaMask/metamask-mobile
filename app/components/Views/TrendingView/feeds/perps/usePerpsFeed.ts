@@ -2,10 +2,12 @@ import { useContext, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   filterMarketsByQuery,
+  MarketCategory,
   type PerpsMarketData,
   type SortDirection,
   type SortOptionId,
 } from '@metamask/perps-controller';
+import { isEquityAsset } from '../../../../UI/Perps/utils/marketHours';
 import { usePerpsMarkets } from '../../../../UI/Perps/hooks';
 import type { PerpsMarketDataWithVolumeNumber } from '../../../../UI/Perps/hooks/usePerpsMarkets';
 import { PerpsConnectionContext } from '../../../../UI/Perps/providers/PerpsConnectionProvider';
@@ -100,13 +102,15 @@ const filterByVariant = (
     case 'rwa':
       return markets.filter(
         (m) =>
-          m.marketType === 'equity' ||
-          m.marketType === 'commodity' ||
-          m.marketType === 'forex',
+          isEquityAsset(m.marketType) ||
+          m.marketType === MarketCategory.Commodity ||
+          m.marketType === MarketCategory.Forex,
       );
     case 'macro':
       return markets.filter(
-        (m) => m.marketType === 'equity' || m.marketType === 'commodity',
+        (m) =>
+          isEquityAsset(m.marketType) ||
+          m.marketType === MarketCategory.Commodity,
       );
     case 'all':
     default:

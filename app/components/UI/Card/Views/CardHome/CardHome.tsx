@@ -38,7 +38,13 @@ import { strings } from '../../../../../../locales/i18n';
 import {
   selectIsCardAuthenticated,
   selectCardUserLocation,
+  selectCardHomeDataStatus,
 } from '../../../../../selectors/cardController';
+import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import {
+  getCardSupportEmail,
+  getCardTermsAndConditionsUrl,
+} from '../../util/registrationSettings';
 import {
   CardStatus,
   FundingAssetStatus,
@@ -72,6 +78,7 @@ import CardHomeFooter from './components/CardHomeFooter';
 import { useCardHomeActions } from './hooks/useCardHomeActions';
 import { useCardHomeAnalytics } from './hooks/useCardHomeAnalytics';
 import { useCardProvisioning } from './hooks/useCardProvisioning';
+import { CardEntryPoint, CardFlow, CardScreens } from '../../util/metrics';
 
 interface CardHomeRouteParams {
   showDeeplinkToast?: boolean;
@@ -85,6 +92,7 @@ const CardHome = () => {
   const capabilities = useCardCapabilities();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const userLocation = useSelector(selectCardUserLocation);
+  const { data: registrationSettings } = useRegistrationSettings();
   const privacyMode = useSelector(selectPrivacyMode);
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
@@ -105,24 +113,43 @@ const CardHome = () => {
   const hasSetupActions = (data?.actions ?? []).some(
     (a) => a.type === 'enable_card',
   );
+  const cardTermsAndConditionsUrl = useMemo(
+    () => getCardTermsAndConditionsUrl(registrationSettings, userLocation),
+    [registrationSettings, userLocation],
+  );
+  const supportEmail = useMemo(
+    () => getCardSupportEmail(registrationSettings, userLocation),
+    [registrationSettings, userLocation],
+  );
 
   // --- Extracted hooks ---
   const actions = useCardHomeActions({
     data,
     primaryToken,
     isFrozen,
+    cardTermsAndConditionsUrl,
   });
 
   const { initiateProvisioning, isProvisioning, canAddToWallet } =
     useCardProvisioning(data);
 
   // --- Money Account linkage ---
-  const { canLink: canLinkMoneyAccount, startLinkFlow: startMoneyAccountLink } =
-    useMoneyAccountCardLinkage();
+  const {
+    canLink: canLinkMoneyAccount,
+    startLinkFlow: startMoneyAccountLink,
+    isLinking: isMoneyAccountLinkInProgress,
+  } = useMoneyAccountCardLinkage();
   const { apyPercent: moneyAccountApyPercent } = useMoneyAccountBalance();
   const hasMetalCard = data?.card?.type === CardType.METAL;
+  const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+  const isCardAnalyticsReady =
+    cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
   const handleLinkMoneyAccountCard = useCallback(
-    () => startMoneyAccountLink({ screen: Routes.CARD.HOME }),
+    () =>
+      startMoneyAccountLink({
+        screen: Routes.CARD.HOME,
+        entrypoint: CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD,
+      }),
     [startMoneyAccountLink],
   );
 
@@ -365,7 +392,11 @@ const CardHome = () => {
                 '0'
               }
               remainingAllowance={data.primaryFundingAsset.spendingCap ?? '0'}
-              symbol={data.primaryFundingAsset.symbol ?? ''}
+              symbol={
+                primaryToken?.displaySymbol ??
+                data.primaryFundingAsset.symbol ??
+                ''
+              }
               privacyMode={privacyMode}
               hasOriginalAllowance={
                 !!data.primaryFundingAsset.originalSpendingCap
@@ -406,19 +437,23 @@ const CardHome = () => {
 
         {canLinkMoneyAccount && (
           <>
-            <Box
-              twClassName="h-px bg-border-muted mt-4"
-              testID={CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP}
-            />
-            <Box twClassName="mb-6 mt-4">
+            <Box twClassName="mb-6 mt-7">
               <MoneyMetaMaskCard
                 mode="link"
                 hideCardImage
                 apy={moneyAccountApyPercent}
                 showMetalCard={hasMetalCard}
+                isLinkDisabled={isMoneyAccountLinkInProgress}
                 onGetNowPress={handleLinkMoneyAccountCard}
                 onHeaderPress={handleLinkMoneyAccountCard}
                 onLinkPress={handleLinkMoneyAccountCard}
+                analyticsScreen={CardScreens.HOME}
+                analyticsEntryPoint={
+                  CardEntryPoint.CARD_HOME_MONEY_ACCOUNT_CARD
+                }
+                analyticsFlow={CardFlow.MONEY_ACCOUNT_LINKAGE}
+                analyticsCardState="unlinked_card"
+                analyticsReady={isCardAnalyticsReady}
               />
             </Box>
             <Box
@@ -462,6 +497,7 @@ const CardHome = () => {
           isLoading={isLoading}
           hasAlerts={hasAlertOnlyState}
           hasSetupActions={hasSetupActions}
+          supportEmail={supportEmail}
           onNavigateToCardTos={actions.navigateToCardTosPage}
           onLogout={actions.logoutAction}
         />

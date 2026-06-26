@@ -10,7 +10,6 @@ import NetworkManager from '../../page-objects/wallet/NetworkManager';
 import Assertions from '../../framework/Assertions';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { Mockttp } from 'mockttp';
 import { SolScope } from '@metamask/keyring-api';
 import type { AssetsControllerState } from '@metamask/assets-controller';
@@ -254,9 +253,7 @@ describe(
             .build(),
           restartDevice: true,
           testSpecificMock: async (mockServer: Mockttp) => {
-            await setupRemoteFeatureFlagsMock(mockServer, {
-              ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-            });
+            await setupRemoteFeatureFlagsMock(mockServer, {});
           },
         },
         async () => {
@@ -306,9 +303,7 @@ describe(
           })(),
           restartDevice: true,
           testSpecificMock: async (mockServer: Mockttp) => {
-            await setupRemoteFeatureFlagsMock(mockServer, {
-              ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-            });
+            await setupRemoteFeatureFlagsMock(mockServer, {});
           },
         },
         async () => {
@@ -352,9 +347,7 @@ describe(
           fixture: createHomepageTokensFilterFixture(),
           restartDevice: true,
           testSpecificMock: async (mockServer: Mockttp) => {
-            await setupRemoteFeatureFlagsMock(mockServer, {
-              ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-            });
+            await setupRemoteFeatureFlagsMock(mockServer, {});
           },
         },
         async () => {

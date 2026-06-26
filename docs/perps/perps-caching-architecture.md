@@ -139,7 +139,7 @@ MMKV snapshots are written by both `PerpsController` preload and `PerpsStreamMan
 
 `PerpsController` and `PerpsStreamManager` both persist MMKV snapshots, and `PerpsController.#hydrateCacheFromDiskSync()` hydrates them on startup. This eliminates the cold-start loading skeleton: the last-known market list renders immediately with `$---` placeholder prices until fresh values arrive.
 
-**Latest validation**: iOS simulator `mm-3` measured `3908ms` for the first clean-cache PerpsHome load, `0ms` for same-session reopen, and after `yarn a:reload` the controller hydrated `286` markets in `9ms` with the first post-reload PerpsHome market data at `0ms`.
+**Latest validation**: iOS simulator `mm-3` measured `3908ms` for the first clean-cache PerpsHome load, `0ms` for same-session reopen, and after a Metro reload the controller hydrated `286` markets in `9ms` with the first post-reload PerpsHome market data at `0ms`.
 
 See [Disk Layer](#disk-layer-mmkv-cold-start-cache) above for full details.
 

@@ -30,7 +30,7 @@ import {
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import OldButton, {
   ButtonVariants,
   ButtonSize as OldButtonSize,
@@ -73,7 +73,7 @@ const SRPErrorScreen = ({
 
   useEffect(() => {
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_VIEWED,
       )
         .addProperties({
@@ -90,7 +90,7 @@ const SRPErrorScreen = ({
 
   const handleTryAgain = useCallback(async () => {
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
       )
         .addProperties({
@@ -109,7 +109,7 @@ const SRPErrorScreen = ({
 
   const handleSendErrorReport = useCallback(() => {
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
       )
         .addProperties({
@@ -154,7 +154,7 @@ const SRPErrorScreen = ({
 
   const handleContactSupport = useCallback(() => {
     trackOnboarding(
-      MetricsEventBuilder.createEventBuilder(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.WALLET_CREATION_ERROR_SCREEN_CTA_CLICKED,
       )
         .addProperties({

@@ -1,8 +1,13 @@
-import React, { useEffect, useState, useRef } from 'react';
-import { HeaderStandard } from '@metamask/design-system-react-native';
+import React, { useEffect, useState, useRef, useMemo } from 'react';
+import {
+  HeaderStandard,
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { useSelector } from 'react-redux';
 import { Alert, TextInput, View, DimensionValue } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -16,10 +21,6 @@ import { QRTabSwitcherScreens } from '../QRTabSwitcher';
 import Routes from '../../../constants/navigation/Routes';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import { Authentication } from '../../../core';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -43,9 +44,14 @@ const ImportPrivateKey = () => {
     Device.isAndroid() ? '99%' : undefined,
   );
   const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
   const mounted = useRef<boolean>(false);
   const { colors, themeAppearance, typography } = useAppTheme();
   const styles = createStyles(colors, typography);
+  const footerStyle = useMemo(
+    () => [styles.buttonWrapper, { marginBottom: insets.bottom, flex: 0 }],
+    [insets.bottom, styles.buttonWrapper],
+  );
   const { fetchAccountsWithActivity } = useAccountsWithNetworkActivitySync({
     onFirstLoad: false,
     onTransactionComplete: false,
@@ -145,7 +151,14 @@ const ImportPrivateKey = () => {
   };
 
   return (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
+    <View style={styles.mainWrapper}>
+      <HeaderStandard
+        includesTopInset
+        backButtonProps={{
+          onPress: dismiss,
+          testID: ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON,
+        }}
+      />
       <KeyboardAwareScrollView
         contentContainerStyle={styles.wrapper}
         style={styles.topOverlay}
@@ -158,26 +171,19 @@ const ImportPrivateKey = () => {
         showsVerticalScrollIndicator={false}
       >
         <View testID={ImportAccountFromPrivateKeyIDs.CONTAINER}>
-          <HeaderStandard
-            includesTopInset
-            backButtonProps={{
-              onPress: dismiss,
-              testID: ImportAccountFromPrivateKeyIDs.CLOSE_BUTTON,
-            }}
-          />
           <TitleStandard
             title={strings('import_private_key.title')}
             bottomAccessory={
               <View style={styles.descriptionContainer}>
                 {isSRP ? (
                   <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
                   >
                     {strings('import_private_key.description_srp')}{' '}
                     <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Primary}
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.PrimaryDefault}
                       onPress={learnMore}
                     >
                       {strings('import_private_key.learn_more')}
@@ -186,19 +192,19 @@ const ImportPrivateKey = () => {
                 ) : (
                   <>
                     <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Alternative}
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
                     >
                       {strings('import_private_key.description_one')}
                     </Text>
                     <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Alternative}
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
                       onPress={learnMore}
                     >
                       <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Primary}
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.PrimaryDefault}
                       >
                         {strings('import_private_key.learn_more')}{' '}
                       </Text>
@@ -236,21 +242,21 @@ const ImportPrivateKey = () => {
             </View>
           </View>
         </View>
-        <View style={styles.buttonWrapper}>
-          <Button
-            onPress={() => goNext()}
-            label={strings('import_private_key.cta_text')}
-            variant={ButtonVariants.Primary}
-            size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            loading={loading}
-            isDisabled={loading}
-            testID={ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON}
-          />
-        </View>
       </KeyboardAwareScrollView>
+      <View style={footerStyle}>
+        <Button
+          onPress={() => goNext()}
+          label={strings('import_private_key.cta_text')}
+          variant={ButtonVariants.Primary}
+          size={ButtonSize.Lg}
+          width={ButtonWidthTypes.Full}
+          loading={loading}
+          isDisabled={loading}
+          testID={ImportAccountFromPrivateKeyIDs.IMPORT_BUTTON}
+        />
+      </View>
       <ScreenshotDeterrent enabled isSRP={false} />
-    </SafeAreaView>
+    </View>
   );
 };
 

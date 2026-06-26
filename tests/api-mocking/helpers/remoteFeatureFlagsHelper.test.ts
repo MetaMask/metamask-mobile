@@ -255,6 +255,26 @@ describe('Remote Feature Flags Helper', () => {
         arrayFlag: { replaced: 'with object' },
       });
     });
+
+    it('pins homepage trending sections A/B test to control by default', () => {
+      const result = createRemoteFeatureFlagsMock();
+
+      const response = result.response as Record<string, unknown>[];
+      expect(response).toContainEqual({
+        homeTMCU470AbtestTrendingSections: 'control',
+      });
+    });
+
+    it('allows homepage trending sections A/B test override', () => {
+      const result = createRemoteFeatureFlagsMock({
+        homeTMCU470AbtestTrendingSections: 'trendingSections',
+      });
+
+      const response = result.response as Record<string, unknown>[];
+      expect(response).toContainEqual({
+        homeTMCU470AbtestTrendingSections: 'trendingSections',
+      });
+    });
   });
 
   describe('setupRemoteFeatureFlagsMock', () => {

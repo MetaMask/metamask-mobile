@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
+import { useSelector } from 'react-redux';
 import PushNotificationOnboarding, {
   type PushPrePromptCompletionReason,
 } from '.';
@@ -6,7 +7,9 @@ import {
   usePushPrePromptVariant,
   type PushPrePromptVariant,
 } from '../../../../util/notifications/hooks/usePushPrePromptVariant';
-import { isE2E } from '../../../../util/test/utils';
+import { isE2EOrExpEnvironment } from '../../../../util/test/utils';
+import { selectPrePushPromptEnabled } from '../../../../selectors/featureFlagController/engagement';
+import PushNotificationPermissionFallback from './PushNotificationPermissionFallback';
 
 type VisibleVariant = Exclude<PushPrePromptVariant, null>;
 interface VisiblePrePrompt {
@@ -59,11 +62,17 @@ const PushNotificationOnboardingRootContent = () => {
 };
 
 const PushNotificationOnboardingRoot = () => {
-  if (isE2E) {
+  const isPrePromptEnabled = useSelector(selectPrePushPromptEnabled);
+
+  if (isE2EOrExpEnvironment) {
     return null;
   }
 
-  return <PushNotificationOnboardingRootContent />;
+  return isPrePromptEnabled ? (
+    <PushNotificationOnboardingRootContent />
+  ) : (
+    <PushNotificationPermissionFallback />
+  );
 };
 
 export default PushNotificationOnboardingRoot;

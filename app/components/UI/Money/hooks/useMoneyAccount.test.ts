@@ -22,6 +22,7 @@ import {
   useMoneyAccountDeposit,
   useMoneyAccountWithdrawal,
 } from './useMoneyAccount';
+import { showDevErrorAlert } from '../utils/devErrorAlert';
 
 jest.mock('react-redux');
 jest.mock('../../../../util/transaction-controller');
@@ -32,6 +33,10 @@ jest.mock('../../../../util/Logger', () => ({
     error: jest.fn(),
     log: jest.fn(),
   },
+}));
+
+jest.mock('../utils/devErrorAlert', () => ({
+  showDevErrorAlert: jest.fn(),
 }));
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -211,6 +216,7 @@ describe('useMoneyAccountDeposit', () => {
         origin: ORIGIN_METAMASK,
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
       }),
     );
   });
@@ -320,6 +326,10 @@ describe('useMoneyAccountDeposit', () => {
     expect(Logger.error).toHaveBeenCalledWith(
       txError,
       '[Money Account] Deposit transaction failed',
+    );
+    expect(showDevErrorAlert).toHaveBeenCalledWith(
+      '[Money Account] Deposit transaction failed',
+      txError,
     );
   });
 
@@ -445,10 +455,44 @@ describe('useMoneyAccountWithdrawal', () => {
         origin: ORIGIN_METAMASK,
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
         transactions: [
           expect.objectContaining({ type: 'moneyAccountWithdraw' }),
           expect.objectContaining({ type: 'tokenMethodTransfer' }),
         ],
+      }),
+    );
+  });
+
+  it('sets isGasFeeSponsored to true when vault chain is Monad', async () => {
+    setupSelectors({
+      vaultConfig: { ...MOCK_VAULT_CONFIG, chainId: '0x8f' },
+    });
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await act(async () => {
+      await result.current.initiateWithdrawal();
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGasFeeSponsored: true,
+        skipInitialGasEstimate: true,
+      }),
+    );
+  });
+
+  it('sets isGasFeeSponsored to false when vault chain is not Monad', async () => {
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await act(async () => {
+      await result.current.initiateWithdrawal();
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGasFeeSponsored: false,
       }),
     );
   });
@@ -472,6 +516,10 @@ describe('useMoneyAccountWithdrawal', () => {
     expect(Logger.error).toHaveBeenCalledWith(
       txError,
       '[Money Account] Withdrawal transaction failed',
+    );
+    expect(showDevErrorAlert).toHaveBeenCalledWith(
+      '[Money Account] Withdrawal transaction failed',
+      txError,
     );
   });
 

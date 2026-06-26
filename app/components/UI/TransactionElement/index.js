@@ -44,6 +44,7 @@ import BridgeActivityItemTxSegments from '../Bridge/components/TransactionDetail
 import {
   getSwapBridgeTxActivityTitle,
   handleUnifiedSwapsTxHistoryItemClick,
+  isBridgeTxHistoryItemBridge,
 } from '../Bridge/utils/transaction-history';
 import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
@@ -303,19 +304,16 @@ class TransactionElement extends PureComponent {
 
   onPressItem = () => {
     const { tx, i, onPressItem, trackTransactionDetailClicked } = this.props;
+    const bridgeTxHistoryItem =
+      this.props.bridgeTxHistoryData?.bridgeTxHistoryItem;
     onPressItem && onPressItem(tx.id, i);
     trackTransactionDetailClicked && trackTransactionDetailClicked();
 
-    const isUnifiedSwap =
-      tx.type === TransactionType.swap &&
-      this.props.bridgeTxHistoryData?.bridgeTxHistoryItem;
-
-    if (tx.type === TransactionType.bridge || isUnifiedSwap) {
+    if (tx.type === TransactionType.bridge || bridgeTxHistoryItem) {
       handleUnifiedSwapsTxHistoryItemClick({
         navigation: this.props.navigation,
         evmTxMeta: tx,
-        bridgeTxHistoryItem:
-          this.props.bridgeTxHistoryData?.bridgeTxHistoryItem,
+        bridgeTxHistoryItem,
       });
     } else if (hasTransactionType(tx, NEW_TRANSACTION_DETAILS_TYPES)) {
       // Navigate to TRANSACTIONS_VIEW first to ensure correct navigation context,
@@ -439,6 +437,7 @@ class TransactionElement extends PureComponent {
           ? transactionIconInteractionFailed
           : transactionIconInteraction;
         break;
+      case TRANSACTION_TYPES.BATCH_SELL_TRANSACTION:
       case TRANSACTION_TYPES.SWAPS_TRANSACTION:
         icon = isFailedTransaction
           ? transactionIconSwapFailed
@@ -519,10 +518,15 @@ class TransactionElement extends PureComponent {
       i,
       tx: { status, isSmartTransaction, chainId, type },
       tx,
-      bridgeTxHistoryData: { bridgeTxHistoryItem, isBridgeComplete },
+      bridgeTxHistoryData: {
+        bridgeTxHistoryItem,
+        is7702Batch,
+        isBridgeComplete,
+      },
     } = this.props;
-    const isBridgeTransaction = type === TransactionType.bridge;
-    const isUnifiedSwap = type === TransactionType.swap && bridgeTxHistoryItem;
+    const isBridgeTransaction =
+      type === TransactionType.bridge ||
+      (bridgeTxHistoryItem && isBridgeTxHistoryItemBridge(bridgeTxHistoryItem));
     const { colors, typography } = this.context || mockTheme;
     const styles = createStyles(colors, typography);
     const { value, fiatValue = false, actionKey } = transactionElement;
@@ -546,8 +550,9 @@ class TransactionElement extends PureComponent {
     const renderLedgerActions =
       transactionStatus === 'approved' && isLedgerAccount;
     let title = actionKey;
-    if ((isBridgeTransaction || isUnifiedSwap) && bridgeTxHistoryItem) {
-      title = getSwapBridgeTxActivityTitle(bridgeTxHistoryItem) ?? title;
+    if (bridgeTxHistoryItem) {
+      title =
+        getSwapBridgeTxActivityTitle(bridgeTxHistoryItem, is7702Batch) ?? title;
     }
 
     return (

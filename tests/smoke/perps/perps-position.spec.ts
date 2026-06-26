@@ -2,9 +2,7 @@ import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokePerps } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import WalletView from '../../page-objects/wallet/WalletView';
-import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
-import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
+import { navigateToPerpsOrderEntry } from '../../flows/perps.flow';
 import {
   PERPS_ARBITRUM_MOCKS,
   mockPerpsGeolocation,
@@ -16,9 +14,8 @@ import PerpsView from '../../page-objects/Perps/PerpsView';
 import { createLogger, LogLevel } from '../../framework';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
-// E2E environment setup - mocks auto-configure via isE2E flag
+// E2E environment setup - mocks auto-configure via hasTestOverrides flag
 
 const logger = createLogger({
   name: 'PerpsPositionSpec',
@@ -49,13 +46,11 @@ describe(SmokePerps('Perps Position'), () => {
               type: 'erc20',
             },
           ])
-          .withPopularNetworks()
           .build(),
         restartDevice: true,
+        permissions: { notifications: 'YES' },
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
+          await setupRemoteFeatureFlagsMock(mockServer, {});
           await PERPS_ARBITRUM_MOCKS(mockServer);
           await mockPerpsGeolocation(
             mockServer,
@@ -71,12 +66,7 @@ describe(SmokePerps('Perps Position'), () => {
         // streaming/network activity can block Detox idling.
         await device.disableSynchronization();
 
-        // Navigate to Perps via homepage section (same click path as smoke perps tests)
-        await WalletView.scrollAndTapPerpsSection();
-        await PerpsHomeView.tapExploreCryptoIfVisible();
-
-        await PerpsMarketListView.selectMarket('ETH');
-        await PerpsMarketDetailsView.tapLongButton();
+        await navigateToPerpsOrderEntry('ETH', 'long');
 
         // Custom TP trigger above mock ETH mark (~2500) for a long
         await PerpsOrderView.tapTakeProfitButton();
