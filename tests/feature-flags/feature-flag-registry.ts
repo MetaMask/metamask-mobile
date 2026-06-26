@@ -707,6 +707,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  cardFiatCreditFeature: {
+    name: 'cardFiatCreditFeature',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   cardSupportedCountries: {
     name: 'cardSupportedCountries',
     type: FeatureFlagType.Remote,
