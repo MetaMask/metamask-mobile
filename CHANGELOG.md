@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Uncategorized
 
+- chore: sync stable into release/8.0.0 (#32389)
+- chore: sync stable into release/8.0.0 (#32192)
+- Show batch-sell activity list item label (#32184)
 - Add flags for money activity details feature (#31831)
 - chore: sync stable to main for version 7.81.2 (#31957)
 - Release/7.81.2 (OTA) (#31926)
