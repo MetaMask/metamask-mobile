@@ -169,7 +169,7 @@ jest.mock('@metamask/react-native-actionsheet', () => {
         <Text>{title}</Text>
         {options.map((option, index) => (
           <TouchableOpacity
-            key={index}
+            key={String(option)}
             testID={`action-sheet-option-${index}`}
             onPress={() => onPress(index)}
           >
