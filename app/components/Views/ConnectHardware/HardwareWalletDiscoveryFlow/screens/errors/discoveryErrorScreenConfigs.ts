@@ -1,10 +1,7 @@
 import type { ImageSourcePropType } from 'react-native';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
-import BluetoothAccessDeniedImage from '../../../../../../images/bluetooth-access-denied.png';
 import BluetoothConnectionFailedImage from '../../../../../../images/bluetooth-connection-failed.png';
-import BluetoothOffImage from '../../../../../../images/bluetooth-turned-off.png';
 import EthereumAppClosedImage from '../../../../../../images/ethereum-app-closed.png';
-import LocationAccessDeniedImage from '../../../../../../images/location-access-denied.png';
 import NearbyDevicesDeniedImage from '../../../../../../images/nearby-devices-denied.png';
 import { DiscoveryStep } from '../../DiscoveryFlow.machine.types';
 
@@ -111,7 +108,7 @@ export const DISCOVERY_ERROR_SCREEN_CONFIGS: Record<
     titleKey: 'ledger.bluetooth_access_denied',
     subtitleKey: 'ledger.bluetooth_access_denied_message',
     testID: 'ledger-bt-access-denied-image',
-    imageSource: BluetoothAccessDeniedImage,
+    imageSource: BluetoothConnectionFailedImage,
     ...openSettingsButtons(
       'ledger-bt-access-denied-settings-button',
       'ledger-bt-access-denied-not-now-button',
@@ -121,7 +118,7 @@ export const DISCOVERY_ERROR_SCREEN_CONFIGS: Record<
     titleKey: 'ledger.location_access_denied',
     subtitleKey: 'ledger.location_access_denied_message',
     testID: 'ledger-location-denied-image',
-    imageSource: LocationAccessDeniedImage,
+    imageSource: NearbyDevicesDeniedImage,
     ...openSettingsButtons(
       'ledger-location-denied-settings-button',
       'ledger-location-denied-not-now-button',
@@ -141,7 +138,7 @@ export const DISCOVERY_ERROR_SCREEN_CONFIGS: Record<
     titleKey: 'ledger.bluetooth_turned_off',
     subtitleKey: 'ledger.bluetooth_turned_off_message',
     testID: 'ledger-bt-off-image',
-    imageSource: BluetoothOffImage,
+    imageSource: BluetoothConnectionFailedImage,
     ...openSettingsButtons(
       'ledger-bt-off-settings-button',
       'ledger-bt-off-not-now-button',
