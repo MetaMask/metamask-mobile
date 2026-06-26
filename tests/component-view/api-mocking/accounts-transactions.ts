@@ -22,6 +22,7 @@ export interface MockAccountsApiTransaction {
   value: string;
   valueTransfers?: unknown[];
   isError?: boolean;
+  transactionCategory?: string;
 }
 
 const defaultPageInfo = {
