@@ -9,7 +9,6 @@ import {
   useWindowDimensions,
   View,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
   Box,
@@ -22,8 +21,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
-import Routes from '../../../../../constants/navigation/Routes';
-import { navigateToRewardsRoute } from '../../utils';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { strings } from '../../../../../../locales/i18n';
 import {
@@ -35,6 +32,8 @@ import {
   selectIsCardholder,
 } from '../../../../../selectors/cardController';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
+import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
+import { selectMoneyEnableMoneyAccountFlag } from '../../../Money/selectors/featureFlags';
 import musdImage from '../../../../../images/rewards/rewards-musd-earn.png';
 import cardImage from '../../../../../images/rewards/rewards-card-earn.png';
 
@@ -46,6 +45,7 @@ const UK_COUNTRY_CODE = 'GB';
 const HORIZONTAL_PADDING = 16;
 const CARD_GAP = 12;
 const PEEK_WIDTH = 24;
+const MUSD_MONEY_URL = 'metamask://money';
 
 const styles = StyleSheet.create({
   avatar: { width: AVATAR_SIZE, height: AVATAR_SIZE },
@@ -130,7 +130,6 @@ type CarouselSlotKey = 'musd-skeleton' | 'musd' | 'card';
  */
 const EarnRewardsPreview: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
   const { colors } = useTheme();
   const { width: screenWidth } = useWindowDimensions();
   // Only the left padding consumes viewport space at scroll position 0.
@@ -141,9 +140,14 @@ const EarnRewardsPreview: React.FC = () => {
   // mUSD geo check - hide for UK users, require positive geo confirmation to avoid flash
   const geoLocation = useSelector(selectGeolocationLocation);
   const geoStatus = useSelector(selectGeolocationStatus);
+  const isMoneyAccountEnabled = useSelector(selectMoneyEnableMoneyAccountFlag);
   const isMusdGeoLoading = geoStatus === 'loading' || geoStatus === 'idle';
   const showMusdCard =
-    geoLocation !== undefined && geoLocation !== UK_COUNTRY_CODE;
+    isMoneyAccountEnabled &&
+    geoLocation !== undefined &&
+    geoLocation !== UK_COUNTRY_CODE;
+  const showMusdSkeleton = isMoneyAccountEnabled && isMusdGeoLoading;
+  const { apyPercent } = useMoneyAccountBalance();
 
   // Card check — subtitle varies by cardholder status; card is always rendered
   const isCardholder = useSelector(selectIsCardholder);
@@ -154,11 +158,11 @@ const EarnRewardsPreview: React.FC = () => {
       : strings('rewards.earn_rewards.card_subtitle');
 
   const handleMusdPress = useCallback(() => {
-    navigateToRewardsRoute(navigation, Routes.REWARDS_MUSD_CALCULATOR_VIEW);
-  }, [navigation]);
+    handleDeeplink({ uri: MUSD_MONEY_URL });
+  }, []);
 
   const handleCardPress = useCallback(() => {
-    handleDeeplink({ uri: 'metamask://card-onboarding' });
+    handleDeeplink({ uri: 'metamask://card-home' });
   }, []);
 
   // Disable presses only while the user is actively dragging the carousel.
@@ -170,7 +174,7 @@ const EarnRewardsPreview: React.FC = () => {
 
   // Build the ordered list of carousel slots, preserving existing visibility logic.
   const items: CarouselSlotKey[] = [];
-  if (isMusdGeoLoading && !showMusdCard) {
+  if (showMusdSkeleton && !showMusdCard) {
     items.push('musd-skeleton');
   } else if (showMusdCard) {
     items.push('musd');
@@ -210,7 +214,7 @@ const EarnRewardsPreview: React.FC = () => {
         alignItems={BoxAlignItems.Center}
         twClassName="gap-2 px-4"
       >
-        {isMusdGeoLoading && (
+        {showMusdSkeleton && (
           <ActivityIndicator size="small" color={colors.primary.default} />
         )}
         <Text variant={TextVariant.HeadingMd}>
@@ -239,7 +243,9 @@ const EarnRewardsPreview: React.FC = () => {
               <EarnCard
                 testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
                 image={musdImage}
-                title={strings('rewards.earn_rewards.musd_title')}
+                title={strings('rewards.earn_rewards.musd_title', {
+                  percentage: apyPercent ?? 3,
+                })}
                 subtitle={strings('rewards.earn_rewards.musd_subtitle')}
                 onPress={handleMusdPress}
                 disabled={isDragging}

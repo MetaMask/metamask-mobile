@@ -1,5 +1,6 @@
 import { useCallback } from 'react';
 import Engine from '../../../../core/Engine';
+import { USE_TERMINAL_API } from '../constants/terminalApi';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import {
   type AccountState,
@@ -35,6 +36,16 @@ import {
 } from '@metamask/perps-controller';
 
 /**
+ * UI-facing params for fetching markets.
+ *
+ * `useTerminalApi` is source-selection policy, not market-query intent, so it is
+ * intentionally hidden from callers. The hook injects the source flag, and the
+ * controller owns Terminal-first fetching with HyperLiquid fallback. Callers
+ * should only describe query intent (symbols, dex, standalone, filters, etc.).
+ */
+export type MobileGetMarketsParams = Omit<GetMarketsParams, 'useTerminalApi'>;
+
+/**
  * Hook for trading operations
  * Provides methods for placing, canceling, and closing trading positions
  */
@@ -66,9 +77,12 @@ export function usePerpsTrading() {
   );
 
   const getMarkets = useCallback(
-    async (params?: GetMarketsParams): Promise<MarketInfo[]> => {
+    async (params?: MobileGetMarketsParams): Promise<MarketInfo[]> => {
       const controller = Engine.context.PerpsController;
-      return controller.getMarkets(params);
+      return controller.getMarkets({
+        ...params,
+        useTerminalApi: USE_TERMINAL_API,
+      });
     },
     [],
   );

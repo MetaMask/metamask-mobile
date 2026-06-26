@@ -10,7 +10,7 @@ describe('ActivityDetailsStatus', () => {
     ['success', strings('transaction.confirmed')],
     ['pending', strings('transaction.pending')],
     ['failed', strings('transaction.failed')],
-    ['cancelled', strings('transaction.cancelled')],
+    ['cancelled', strings('transaction.canceled')],
   ])('renders the %s status label', (status, label) => {
     const { getByText, getByTestId } = renderWithProvider(
       <ActivityDetailsStatus status={status} />,
