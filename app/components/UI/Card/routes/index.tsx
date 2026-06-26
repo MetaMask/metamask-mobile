@@ -30,6 +30,7 @@ import WaitlistFormModal from '../components/WaitlistFormModal/WaitlistFormModal
 import ForgotPasswordModal from '../components/ForgotPasswordModal/ForgotPasswordModal';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
+import CreditRedeem from '../Views/CreditRedeem/CreditRedeem';
 import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
@@ -80,6 +81,7 @@ const MainRoutes = () => {
         component={OrderCompleted}
       />
       <Stack.Screen name={Routes.CARD.CASHBACK} component={Cashback} />
+      <Stack.Screen name={Routes.CARD.CREDIT_REDEEM} component={CreditRedeem} />
       <Stack.Screen
         name={Routes.CARD.AUTHENTICATION}
         component={CardAuthentication}

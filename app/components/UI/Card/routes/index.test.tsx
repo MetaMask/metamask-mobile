@@ -136,6 +136,11 @@ jest.mock('../Views/Cashback/Cashback', () => {
   return () => <View testID="cashback" />;
 });
 
+jest.mock('../Views/CreditRedeem/CreditRedeem', () => {
+  const { View } = require('react-native');
+  return () => <View testID="credit-redeem" />;
+});
+
 jest.mock('../sdk', () => ({
   withCardSDK: (Component: React.ComponentType) => Component,
 }));
@@ -148,6 +153,7 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     REVIEW_ORDER: 'ReviewOrder',
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'Cashback',
+    CREDIT_REDEEM: 'CreditRedeem',
     AUTHENTICATION: 'CardAuthentication',
     SPENDING_LIMIT: 'SpendingLimit',
     ONBOARDING: {

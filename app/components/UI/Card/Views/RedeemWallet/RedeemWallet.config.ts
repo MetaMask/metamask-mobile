@@ -1,9 +1,13 @@
 import { CardMessageBoxType } from '../../types';
 import { CardActions } from '../../util/metrics';
-import { CASHBACK_MONEY_ACCOUNT_ORIGIN } from '../../hooks/useCardPostAuthRedirect';
+import {
+  CASHBACK_MONEY_ACCOUNT_ORIGIN,
+  CREDIT_MONEY_ACCOUNT_ORIGIN,
+} from '../../hooks/useCardPostAuthRedirect';
 import type { LinkFlowOrigin } from '../../hooks/useMoneyAccountCardLinkage';
 import type { RedeemableWalletMode } from '../../hooks/useRedeemableWallet';
 import { CashbackSelectors } from '../Cashback/Cashback.testIds';
+import { CreditRedeemSelectors } from '../CreditRedeem/CreditRedeem.testIds';
 
 interface RedeemTestIds {
   CONTAINER: string;
@@ -16,6 +20,7 @@ interface RedeemTestIds {
 
 interface RedeemModeConfig {
   testIds: RedeemTestIds;
+  screenTitle?: string;
   strings: {
     available: string;
     networkFee: string;
@@ -27,10 +32,12 @@ interface RedeemModeConfig {
     withdrawalFailed: string;
     loadingError: string;
   };
+  withdrawToMoneyAccount?: string;
   fundingRequiredType: CardMessageBoxType;
   moneyAccountRequiredType: CardMessageBoxType;
   moneyAccountOrigin: LinkFlowOrigin;
   analyticsAction: CardActions;
+  showFiatBalance: boolean;
 }
 
 export const REDEEM_CONFIG: Record<RedeemableWalletMode, RedeemModeConfig> = {
@@ -51,5 +58,27 @@ export const REDEEM_CONFIG: Record<RedeemableWalletMode, RedeemModeConfig> = {
     moneyAccountRequiredType: CardMessageBoxType.CashbackMoneyAccountRequired,
     moneyAccountOrigin: CASHBACK_MONEY_ACCOUNT_ORIGIN,
     analyticsAction: CardActions.CASHBACK_BUTTON,
+    showFiatBalance: false,
+  },
+  credit: {
+    testIds: CreditRedeemSelectors,
+    screenTitle: 'card.credit_screen.title',
+    strings: {
+      available: 'card.credit_screen.available_credit',
+      networkFee: 'card.credit_screen.network_fee',
+      expectedToReceive: 'card.credit_screen.expected_to_receive',
+      to: 'card.credit_screen.to',
+      withdraw: 'card.credit_screen.withdraw',
+      withdrawUnavailable: 'card.credit_screen.withdraw_unavailable',
+      withdrawalSuccess: 'card.credit_screen.withdrawal_success',
+      withdrawalFailed: 'card.credit_screen.withdrawal_failed',
+      loadingError: 'card.credit_screen.loading_error',
+    },
+    withdrawToMoneyAccount: 'card.credit_screen.withdraw_to_money_account',
+    fundingRequiredType: CardMessageBoxType.CreditFundingRequired,
+    moneyAccountRequiredType: CardMessageBoxType.CreditMoneyAccountRequired,
+    moneyAccountOrigin: CREDIT_MONEY_ACCOUNT_ORIGIN,
+    analyticsAction: CardActions.CREDIT_BUTTON,
+    showFiatBalance: true,
   },
 };

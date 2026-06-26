@@ -35,6 +35,17 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'You need a linked Money Account before redeeming cashback.',
       'card.cashback_screen.money_account_required.confirm_button_label':
         'Set up Money Account',
+      'card.credit_screen.funding_required.title': 'Set up funding',
+      'card.credit_screen.funding_required.description':
+        'You need at least one approved funding source before redeeming your credit.',
+      'card.credit_screen.funding_required.confirm_button_label':
+        'Set up funding',
+      'card.credit_screen.money_account_required.title':
+        'Set up Money Account',
+      'card.credit_screen.money_account_required.description':
+        'You need a linked Money Account before redeeming your credit.',
+      'card.credit_screen.money_account_required.confirm_button_label':
+        'Set up Money Account',
     };
     return mockStrings[key] || key;
   }),
@@ -236,7 +247,9 @@ describe('CardMessageBox', () => {
 
       expect(getByText('Set up Money Account')).toBeOnTheScreen();
       expect(
-        getByText('You need a linked Money Account before redeeming cashback.'),
+        getByText(
+          'You need a linked Money Account before redeeming cashback.',
+        ),
       ).toBeOnTheScreen();
     });
 
@@ -250,6 +263,40 @@ describe('CardMessageBox', () => {
 
       fireEvent.press(getByTestId('confirm-button'));
       expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('CreditFundingRequired warning', () => {
+    it('renders title and description', () => {
+      const { getByText } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CreditFundingRequired}
+        />
+      ));
+
+      expect(getByText('Set up funding')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'You need at least one approved funding source before redeeming your credit.',
+        ),
+      ).toBeOnTheScreen();
+    });
+  });
+
+  describe('CreditMoneyAccountRequired warning', () => {
+    it('renders title and description', () => {
+      const { getByText } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CreditMoneyAccountRequired}
+        />
+      ));
+
+      expect(getByText('Set up Money Account')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'You need a linked Money Account before redeeming your credit.',
+        ),
+      ).toBeOnTheScreen();
     });
   });
 

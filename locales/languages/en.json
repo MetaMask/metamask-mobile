@@ -8801,6 +8801,29 @@
         "confirm_button_label": "Set up Money Account"
       }
     },
+    "credit_screen": {
+      "title": "Card refunds",
+      "available_credit": "Refund balance",
+      "network_fee": "Network fee",
+      "expected_to_receive": "Expected to receive",
+      "to": "To",
+      "withdraw": "Move funds",
+      "withdraw_to_money_account": "Move to Money account",
+      "withdraw_unavailable": "Redemption unavailable",
+      "withdrawal_success": "Redemption completed successfully",
+      "withdrawal_failed": "Redemption failed. Please try again.",
+      "loading_error": "Failed to load credit. Please try again.",
+      "funding_required": {
+        "title": "Set up funding",
+        "description": "You need at least one approved funding source before redeeming your credit.",
+        "confirm_button_label": "Set up funding"
+      },
+      "money_account_required": {
+        "title": "Set up Money Account",
+        "description": "You need a linked Money Account before redeeming your credit.",
+        "confirm_button_label": "Set up Money Account"
+      }
+    },
     "change_asset": {
       "title": "Change token and network",
       "full_spending_access": "Full spending access",

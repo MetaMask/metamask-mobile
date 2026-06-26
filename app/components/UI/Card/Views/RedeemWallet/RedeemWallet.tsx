@@ -19,7 +19,7 @@ import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import {
   ToastContext,
   ToastVariants,
@@ -36,6 +36,12 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { selectCardHomeDataStatus } from '../../../../../selectors/cardController';
 import { getMemoizedInternalAccountByAddress } from '../../../../../selectors/accountsController';
 import { selectAvatarAccountType } from '../../../../../selectors/settings';
+import {
+  selectCurrencyRates,
+  selectCurrentCurrency,
+} from '../../../../../selectors/currencyRateController';
+import { getUsdToFiatConversionRate } from '../../../Money/utils/moneyActivityFiat';
+import { formatWithThreshold } from '../../../../../util/assets';
 import { formatAddress } from '../../../../../util/address';
 import type { RootState } from '../../../../../reducers';
 import MoneyBalanceIcon from '../../../../../images/money-balance.svg';
@@ -63,6 +69,8 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
+  const currencyRates = useSelector(selectCurrencyRates);
+  const currentCurrency = useSelector(selectCurrentCurrency);
   const { startLinkFlow, canLink: canLinkMoneyAccount } =
     useMoneyAccountCardLinkage();
 
@@ -101,6 +109,28 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
       ? getMemoizedInternalAccountByAddress(state, receivingAddress)
       : undefined,
   );
+
+  const headlineBalance = useMemo(() => {
+    if (config.showFiatBalance) {
+      const usdToFiat = getUsdToFiatConversionRate(currencyRates);
+      const balanceNum = parseFloat(balance);
+      if (usdToFiat !== undefined && Number.isFinite(balanceNum)) {
+        // ponytail: prices the refund balance as 1 stablecoin ~= 1 USD
+        // (ceiling: assumes USDC/USDT ~= $1; upgrade path is a market lookup).
+        return formatWithThreshold(balanceNum * usdToFiat, 0.01, I18n.locale, {
+          style: 'currency',
+          currency: currentCurrency?.toUpperCase() || 'USD',
+        });
+      }
+    }
+    return `${formatAmount(balance)} ${currency}`;
+  }, [
+    config.showFiatBalance,
+    currencyRates,
+    balance,
+    currentCurrency,
+    currency,
+  ]);
 
   const destinationChip = useMemo(() => {
     if (destination.isMoneyAccountDestination) {
@@ -268,6 +298,12 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     ) {
       return strings(config.strings.withdrawUnavailable);
     }
+    if (
+      destination.isMoneyAccountDestination &&
+      config.withdrawToMoneyAccount
+    ) {
+      return strings(config.withdrawToMoneyAccount);
+    }
     return strings(config.strings.withdraw);
   }, [
     isWithdrawable,
@@ -275,6 +311,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     needsSetup,
     isFundingStatusUnavailable,
     destination.isResolved,
+    destination.isMoneyAccountDestination,
     config,
   ]);
 
@@ -304,6 +341,11 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
         {...headerHandlers}
       />
       <Box twClassName="flex-1 px-4">
+        {config.screenTitle ? (
+          <Text variant={TextVariant.HeadingLg} twClassName="pt-2 pb-2">
+            {strings(config.screenTitle)}
+          </Text>
+        ) : null}
         {showSetupBanner ? (
           <Box twClassName="pt-4" testID={testIds.FUNDING_WARNING}>
             <CardMessageBox
@@ -317,9 +359,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
           {isLoading ? (
             <Skeleton height={32} width={160} style={tw.style('rounded-lg')} />
           ) : (
-            <Text variant={TextVariant.HeadingLg}>
-              {formatAmount(balance)} {currency}
-            </Text>
+            <Text variant={TextVariant.HeadingLg}>{headlineBalance}</Text>
           )}
           <Box twClassName="flex-row items-center gap-1 mt-1">
             <Text

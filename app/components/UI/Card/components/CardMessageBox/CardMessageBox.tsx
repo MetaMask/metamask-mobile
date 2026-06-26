@@ -84,6 +84,24 @@ const CardMessageBox = ({
           'card.cashback_screen.money_account_required.confirm_button_label',
         ),
       },
+      [CardMessageBoxType.CreditFundingRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.credit_screen.funding_required.title'),
+        description: strings('card.credit_screen.funding_required.description'),
+        confirmButtonLabel: strings(
+          'card.credit_screen.funding_required.confirm_button_label',
+        ),
+      },
+      [CardMessageBoxType.CreditMoneyAccountRequired]: {
+        variant: CardMessageBoxVariant.Warning,
+        title: strings('card.credit_screen.money_account_required.title'),
+        description: strings(
+          'card.credit_screen.money_account_required.description',
+        ),
+        confirmButtonLabel: strings(
+          'card.credit_screen.money_account_required.confirm_button_label',
+        ),
+      },
     }),
     [],
   );

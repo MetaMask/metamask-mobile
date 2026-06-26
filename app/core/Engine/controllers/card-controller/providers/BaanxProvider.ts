@@ -65,6 +65,10 @@ import {
   CashbackWithdrawEstimationResponse,
   CashbackWithdrawParams,
   CashbackWithdrawResponse,
+  CreditWalletResponse,
+  CreditWithdrawEstimationResponse,
+  CreditWithdrawParams,
+  CreditWithdrawResponse,
   type DelegationChallengeResponse,
   emptyCardHomeData,
   isCardAuthTokenError,
@@ -236,6 +240,7 @@ export class BaanxProvider implements ICardProvider {
     },
     supportsPinView: true,
     supportsCashback: true,
+    supportsCredit: true,
   };
   private readonly service: BaanxService;
   private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
@@ -828,6 +833,32 @@ export class BaanxProvider implements ICardProvider {
   ): Promise<CashbackWithdrawResponse> {
     return this.service.post<CashbackWithdrawResponse>(
       '/v1/wallet/reward/withdraw',
+      params,
+      tokens,
+    );
+  }
+
+  // -- Credit --
+
+  async getCreditWallet(tokens: CardAuthTokens): Promise<CreditWalletResponse> {
+    return this.service.get<CreditWalletResponse>('/v1/wallet/credit', tokens);
+  }
+
+  async getCreditWithdrawEstimation(
+    tokens: CardAuthTokens,
+  ): Promise<CreditWithdrawEstimationResponse> {
+    return this.service.get<CreditWithdrawEstimationResponse>(
+      '/v1/wallet/credit/withdraw-estimation',
+      tokens,
+    );
+  }
+
+  async withdrawCredit(
+    params: CreditWithdrawParams,
+    tokens: CardAuthTokens,
+  ): Promise<CreditWithdrawResponse> {
+    return this.service.post<CreditWithdrawResponse>(
+      '/v1/wallet/credit/withdraw',
       params,
       tokens,
     );

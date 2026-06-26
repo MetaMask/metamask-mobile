@@ -40,6 +40,8 @@ export enum CardMessageBoxType {
   AuthPrompt = 'auth_prompt',
   CashbackFundingRequired = 'cashback_funding_required',
   CashbackMoneyAccountRequired = 'cashback_money_account_required',
+  CreditFundingRequired = 'credit_funding_required',
+  CreditMoneyAccountRequired = 'credit_money_account_required',
 }
 
 export type CardUserPhase =

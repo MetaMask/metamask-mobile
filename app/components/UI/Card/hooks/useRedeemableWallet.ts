@@ -8,7 +8,7 @@ import { cardNetworkInfos } from '../constants';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import type { CardNetwork } from '../types';
 
-export type RedeemableWalletMode = 'cashback';
+export type RedeemableWalletMode = 'cashback' | 'credit';
 
 type MonitoringStatus = 'idle' | 'monitoring' | 'success' | 'failed';
 
@@ -21,6 +21,11 @@ const resolvePollingChainId = (network?: string): string | undefined => {
     ? safeFormatChainIdToHex(info.caipChainId)
     : undefined;
 };
+
+const withdrawForMode = (mode: RedeemableWalletMode, amount: string) =>
+  mode === 'credit'
+    ? Engine.context.CardController.withdrawCredit({ amount })
+    : Engine.context.CardController.withdrawCashback({ amount });
 
 const useRedeemableWallet = (mode: RedeemableWalletMode) => {
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
@@ -126,8 +131,7 @@ const useRedeemableWallet = (mode: RedeemableWalletMode) => {
   );
 
   const withdrawMutation = useMutation({
-    mutationFn: async (amount: string) =>
-      Engine.context.CardController.withdrawCashback({ amount }),
+    mutationFn: async (amount: string) => withdrawForMode(mode, amount),
     onSuccess: (data) => {
       const chainId = resolvePollingChainId(estimationQuery.data?.network);
       if (chainId) {

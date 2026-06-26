@@ -2208,6 +2208,7 @@ describe('CardController — getCapabilities', () => {
     },
     supportsPinView: false,
     supportsCashback: true,
+    supportsCredit: true,
   };
 
   it('returns base capabilities', () => {
