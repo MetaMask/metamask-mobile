@@ -51,7 +51,7 @@ export const connectStellarTestDapp = async (
       );
     },
     {
-      timeout: 60_000,
+      timeout: 30_000,
       interval: 2_000,
       description: 'Wait for Stellar connect sheet to be ready',
     },
