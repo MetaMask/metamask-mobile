@@ -393,6 +393,9 @@ export function useBatchSellQuoteData({
   const totalNetworkFeeAmount = canDisplayAggregatedQuoteData
     ? totalNetworkFee?.amount
     : undefined;
+  const totalNetworkFeeUsd = canDisplayAggregatedQuoteData
+    ? totalNetworkFee?.usd
+    : undefined;
   const totalNetworkFeeValueInCurrency = canDisplayAggregatedQuoteData
     ? totalNetworkFee?.valueInCurrency
     : undefined;
@@ -424,6 +427,7 @@ export function useBatchSellQuoteData({
   };
   const networkFeeData = {
     amount: totalNetworkFeeAmount,
+    usd: totalNetworkFeeUsd,
     valueInCurrency: totalNetworkFeeValueInCurrency,
     asset: totalNetworkFee?.asset,
     formatted: formatTokenAmountWithSymbol(
