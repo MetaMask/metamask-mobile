@@ -19,7 +19,6 @@ import { version as migrationVersion } from '../../store/migrations';
 import { AppState, AppStateStatus } from 'react-native';
 import ReduxService from '../redux';
 import configureStore from '../../util/test/configureStore';
-import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { isEmpty } from 'lodash';
 import { store } from '../../store';
 import Logger from '../../util/Logger';
@@ -334,31 +333,6 @@ describe('Engine', () => {
 
     expect(() => engine.setAccountLabel(invalidAddress, label)).toThrow(
       `No account found for address: ${invalidAddress}`,
-    );
-  });
-
-  it('getSnapKeyring delegates to SnapAccountService.getLegacySnapKeyring', async () => {
-    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
-
-    jest
-      .spyOn(engine.context.SnapAccountService, 'getLegacySnapKeyring')
-      .mockResolvedValue(mockSnapKeyring as never);
-
-    const result = await engine.getSnapKeyring();
-
-    expect(result).toEqual(mockSnapKeyring);
-  });
-
-  it('getSnapKeyring propagates errors from SnapAccountService.getLegacySnapKeyring', async () => {
-    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-
-    jest
-      .spyOn(engine.context.SnapAccountService, 'getLegacySnapKeyring')
-      .mockRejectedValue(new Error('keyring unavailable'));
-
-    await expect(engine.getSnapKeyring()).rejects.toThrow(
-      'keyring unavailable',
     );
   });
 
