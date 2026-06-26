@@ -10,8 +10,6 @@ import Utilities from '../../framework/Utilities';
 import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 
-const STELLAR_ACCOUNT_NAME = 'Stellar Account 1';
-
 /**
  * Stellar snap accounts are not auto-discovered on login (unlike Bitcoin/Solana).
  * Create one via the wallet account list before running dapp tests.
@@ -39,43 +37,43 @@ const createStellarSnapAccount = async (): Promise<void> => {
 };
 
 /**
- * Account-list UI can block the tab bar after snap account creation on iOS CI.
- * Reload resets navigation while persisted state keeps the new account.
+ * The account-list sheet can cover the tab bar after snap account creation.
+ * Dismiss it in-place — do NOT reload the app (reload crashes Detox sync on
+ * Android and hangs iOS CI).
  */
-const reloadAndVerifyStellarAccount = async (): Promise<void> => {
-  await device.disableSynchronization();
-  try {
-    await device.reloadReactNative();
-  } finally {
-    await device.enableSynchronization();
+const returnToWalletAfterStellarAccountSetup = async (): Promise<void> => {
+  if (
+    await Utilities.isElementVisible(AccountListBottomSheet.accountList, 2000)
+  ) {
+    await AccountListBottomSheet.tapBackButton();
   }
 
-  await loginToApp();
-  await Assertions.expectElementToBeVisible(WalletView.container, {
-    description: 'Wallet view should be visible after Stellar account setup',
-    timeout: 15_000,
-  });
+  if (
+    await Utilities.isElementVisible(AccountListBottomSheet.accountList, 2000)
+  ) {
+    await AccountListBottomSheet.dismissAccountListModalV2();
+  }
 
-  // postLoginAsyncOperations resyncs snap accounts asynchronously after reload.
-  await WalletView.tapIdenticon();
+  if (
+    await Utilities.isElementVisible(AccountListBottomSheet.accountList, 1000)
+  ) {
+    await WalletView.tapIdenticon();
+  }
+
   await Utilities.executeWithRetry(
     async () => {
-      await Assertions.expectElementToBeVisible(
-        Matchers.getElementByText(STELLAR_ACCOUNT_NAME),
-        {
-          description: 'Stellar snap account should persist after reload',
-          timeout: 5000,
-        },
-      );
+      await Assertions.expectElementToBeVisible(WalletView.container, {
+        timeout: 5000,
+      });
+      await TabBarComponent.tapExploreButton();
+      await TabBarComponent.tapHome();
     },
     {
-      timeout: 90_000,
-      interval: 2_000,
-      description: 'Wait for Stellar account after reload',
+      timeout: 45_000,
+      interval: 1_500,
+      description: 'Ensure tab bar is usable after Stellar account setup',
     },
   );
-  await AccountListBottomSheet.tapBackButton();
-  await TabBarComponent.tapHome();
 };
 
 export const withStellarAccountSnap = async (
@@ -85,6 +83,7 @@ export const withStellarAccountSnap = async (
     {
       fixture: new FixtureBuilder().withStellarEnabled().build(),
       restartDevice: true,
+      skipReactNativeReload: true,
       dapps: [
         {
           dappVariant: DappVariants.STELLAR_TEST_DAPP,
@@ -94,7 +93,7 @@ export const withStellarAccountSnap = async (
     async () => {
       await loginToApp();
       await createStellarSnapAccount();
-      await reloadAndVerifyStellarAccount();
+      await returnToWalletAfterStellarAccountSetup();
       await testFn();
     },
   );
