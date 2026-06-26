@@ -306,6 +306,7 @@ describe('PerpsStreamManager', () => {
             bestAsk: '50100',
             spread: '200',
             markPrice: '50050',
+            isTradable: true,
           },
         ];
         params.callback(cachedData);
@@ -336,6 +337,7 @@ describe('PerpsStreamManager', () => {
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
+          isTradable: true,
         },
       });
     });
@@ -371,6 +373,7 @@ describe('PerpsStreamManager', () => {
           price: '50000',
           percentChange24h: '5',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -387,6 +390,7 @@ describe('PerpsStreamManager', () => {
           price: '50100',
           percentChange24h: '5.1',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -414,6 +418,7 @@ describe('PerpsStreamManager', () => {
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
+          isTradable: true,
         },
       });
     });
@@ -449,6 +454,7 @@ describe('PerpsStreamManager', () => {
           price: '50000',
           percentChange24h: '5',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -465,6 +471,7 @@ describe('PerpsStreamManager', () => {
           price: '50100',
           percentChange24h: '5.1',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
       controllerCallback?.([
@@ -473,6 +480,7 @@ describe('PerpsStreamManager', () => {
           price: '50200',
           percentChange24h: '5.2',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
       controllerCallback?.([
@@ -481,6 +489,7 @@ describe('PerpsStreamManager', () => {
           price: '50300',
           percentChange24h: '5.3',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -509,6 +518,7 @@ describe('PerpsStreamManager', () => {
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
+          isTradable: true,
         },
       });
     });
@@ -571,6 +581,7 @@ describe('PerpsStreamManager', () => {
           price: '3000',
           timestamp: Date.now(),
           percentChange24h: '2',
+          isTradable: true,
         },
       ]);
     });
@@ -586,6 +597,7 @@ describe('PerpsStreamManager', () => {
           price: '3010',
           timestamp: Date.now(),
           percentChange24h: '2.1',
+          isTradable: true,
         },
       ]);
     });
@@ -601,6 +613,7 @@ describe('PerpsStreamManager', () => {
           price: '3020',
           timestamp: Date.now(),
           percentChange24h: '2.2',
+          isTradable: true,
         },
       ]);
     });
@@ -641,6 +654,7 @@ describe('PerpsStreamManager', () => {
           price: '50000',
           timestamp: Date.now(),
           percentChange24h: '5',
+          isTradable: true,
         },
       ]);
     });
@@ -657,6 +671,7 @@ describe('PerpsStreamManager', () => {
           price: '50100',
           timestamp: Date.now(),
           percentChange24h: '5.1',
+          isTradable: true,
         },
       ]);
     });
@@ -739,6 +754,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     // Send first update from WebSocket
@@ -787,6 +803,7 @@ describe('PerpsStreamManager', () => {
             price: '50000',
             timestamp: Date.now(),
             percentChange24h: '5',
+            isTradable: true,
           },
         ]);
       });
@@ -1395,6 +1412,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     // Send first update - should be immediate
@@ -1411,6 +1429,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50100',
       timestamp: Date.now() + 10,
+      isTradable: true,
     };
 
     const thirdUpdate: PriceUpdate = {
@@ -1418,6 +1437,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50200',
       timestamp: Date.now() + 20,
+      isTradable: true,
     };
 
     // Send rapid subsequent updates
@@ -1499,6 +1519,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     // Send update
@@ -1603,6 +1624,7 @@ describe('PerpsStreamManager', () => {
       symbol,
       price,
       timestamp: Date.now(),
+      isTradable: true,
     });
 
     it('dispatches a single-symbol tick only to subscribers registered for that symbol', () => {
