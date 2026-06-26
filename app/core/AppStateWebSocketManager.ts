@@ -6,14 +6,10 @@ import {
 import { BackendWebSocketService } from '@metamask/core-backend';
 import Logger from '../util/Logger';
 
-// Manages WebSocket lifecycle based on app state (background/foreground).
 export class AppStateWebSocketManager {
   private appStateSubscription: NativeEventSubscription | null = null;
   private webSocketService: BackendWebSocketService | null = null;
 
-  // Rapid state changes (background→active→background faster than a connect/disconnect
-  // resolves) are serialised: only one operation runs at a time and the most-recently
-  // requested state is always the one ultimately applied.
   private _pendingState: AppStateStatus | null = null;
   private _processing = false;
 
@@ -29,7 +25,6 @@ export class AppStateWebSocketManager {
     );
   }
 
-  // Non-reentrant: queues the latest state and drains one at a time to avoid concurrent connect/disconnect.
   private async handleAppStateChange(
     nextAppState: AppStateStatus,
   ): Promise<void> {
@@ -72,9 +67,7 @@ export class AppStateWebSocketManager {
       this.appStateSubscription = null;
     }
 
-    // Cleanup WebSocket connection
     if (this.webSocketService) {
-      // Call destroy() to follow the standard controller pattern
       this.webSocketService.destroy();
       this.webSocketService = null;
     }
