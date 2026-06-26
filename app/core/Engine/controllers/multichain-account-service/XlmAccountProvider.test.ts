@@ -8,7 +8,12 @@ describe('XlmAccountProvider', () => {
   const messenger = {} as MultichainAccountServiceMessenger;
   const provider = new XlmAccountProvider(messenger, {
     maxConcurrency: 1,
-    discovery: { timeoutMs: 2000, maxAttempts: 3, backOffMs: 1000 },
+    discovery: {
+      enabled: true,
+      timeoutMs: 2000,
+      maxAttempts: 3,
+      backOffMs: 1000,
+    },
     createAccounts: { timeoutMs: 10000, batched: true },
     resyncAccounts: { autoRemoveExtraSnapAccounts: false },
   });
@@ -36,8 +41,25 @@ describe('XlmAccountProvider', () => {
     ).toBe(false);
   });
 
-  it('returns no discovered accounts', async () => {
-    await expect(provider.discoverAccounts()).resolves.toEqual([]);
+  it('returns no discovered accounts when discovery is disabled', async () => {
+    const disabledProvider = new XlmAccountProvider(messenger, {
+      maxConcurrency: 1,
+      discovery: {
+        enabled: false,
+        timeoutMs: 2000,
+        maxAttempts: 3,
+        backOffMs: 1000,
+      },
+      createAccounts: { timeoutMs: 10000, batched: true },
+      resyncAccounts: { autoRemoveExtraSnapAccounts: false },
+    });
+
+    await expect(
+      disabledProvider.discoverAccounts({
+        entropySource: 'entropy-source' as never,
+        groupIndex: 0,
+      }),
+    ).resolves.toEqual([]);
   });
 });
 ///: END:ONLY_INCLUDE_IF

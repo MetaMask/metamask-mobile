@@ -33,6 +33,7 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
     maxConcurrency: 1,
     // Re-use the default config for the rest:
     discovery: {
+      enabled: true,
       timeoutMs: 2000,
       maxAttempts: 3,
       backOffMs: 1000,

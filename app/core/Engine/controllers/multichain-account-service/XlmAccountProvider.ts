@@ -1,6 +1,7 @@
 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import type { Bip44Account } from '@metamask/account-api';
 import {
+  AccountCreationType,
   XlmAccountType,
   XlmScope,
   type EntropySourceId,
@@ -69,8 +70,58 @@ export class XlmAccountProvider extends SnapAccountProvider {
     });
   }
 
-  discoverAccounts(): Promise<Bip44Account<KeyringAccount>[]> {
-    return Promise.resolve([]);
+  async discoverAccounts({
+    entropySource,
+    groupIndex,
+  }: {
+    entropySource: EntropySourceId;
+    groupIndex: number;
+  }): Promise<Bip44Account<KeyringAccount>[]> {
+    if (!this.config.discovery.enabled) {
+      return [];
+    }
+
+    return this.withSnap(async ({ client, keyring }) => {
+      const { timeoutMs, maxAttempts, backOffMs } = this.config.discovery;
+      let discoveredAccounts: unknown;
+
+      for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+        try {
+          discoveredAccounts = await Promise.race([
+            client.discoverAccounts(
+              [XlmScope.Pubnet],
+              entropySource,
+              groupIndex,
+            ),
+            new Promise<never>((_, reject) => {
+              setTimeout(
+                () => reject(new Error(`Timed out after ${timeoutMs}ms`)),
+                timeoutMs,
+              );
+            }),
+          ]);
+          break;
+        } catch {
+          if (attempt === maxAttempts) {
+            return [];
+          }
+          await new Promise((resolve) => setTimeout(resolve, backOffMs));
+        }
+      }
+
+      if (
+        !Array.isArray(discoveredAccounts) ||
+        discoveredAccounts.length === 0
+      ) {
+        return [];
+      }
+
+      return this.createBip44Accounts(keyring, {
+        type: AccountCreationType.Bip44DeriveIndex,
+        entropySource,
+        groupIndex,
+      });
+    });
   }
 }
 ///: END:ONLY_INCLUDE_IF
