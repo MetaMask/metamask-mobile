@@ -51,6 +51,7 @@ import { baseStyles } from '../../../styles/common';
 import {
   PERPS_GTM_MODAL_SHOWN,
   PREDICT_GTM_MODAL_SHOWN,
+  SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
 } from '../../../constants/storage';
 import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
 import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
@@ -184,6 +185,10 @@ import {
   selectPredictEnabledFlag,
   selectPredictGtmOnboardingModalEnabledFlag,
 } from '../../UI/Predict/selectors/featureFlags';
+import {
+  selectSocialLeaderboardEnabled,
+  selectAiSocialLeaderboardOnboardingEnabled,
+} from '../../../selectors/featureFlagController/socialLeaderboard';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { InitSendLocation } from '../confirmations/constants/send';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -387,6 +392,13 @@ const Wallet = ({
   const isPredictFlagEnabled = useSelector(selectPredictEnabledFlag);
   const isPredictGTMModalEnabled = useSelector(
     selectPredictGtmOnboardingModalEnabledFlag,
+  );
+
+  const isSocialLeaderboardFlagEnabled = useSelector(
+    selectSocialLeaderboardEnabled,
+  );
+  const isSocialLeaderboardOnboardingEnabled = useSelector(
+    selectAiSocialLeaderboardOnboardingEnabled,
   );
 
   const { toastRef } = useContext(ToastContext);
@@ -631,6 +643,38 @@ const Wallet = ({
       });
     }
   }, [navigate]);
+
+  const checkAndNavigateToSocialLeaderboardOnboarding =
+    useCallback(async () => {
+      // Dev/QA escape hatch: when set, always navigate without persisting "seen".
+      const skipSeen =
+        process.env.MM_SOCIAL_LEADERBOARD_ONBOARDING_SKIP_SEEN === 'true';
+
+      if (!skipSeen) {
+        const hasSeenOnboarding = await StorageWrapper.getItem(
+          SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
+        );
+
+        if (hasSeenOnboarding === 'true') {
+          return;
+        }
+      }
+
+      navigate(Routes.SOCIAL_LEADERBOARD.ONBOARDING);
+    }, [navigate]);
+
+  useEffect(() => {
+    if (
+      isSocialLeaderboardFlagEnabled &&
+      isSocialLeaderboardOnboardingEnabled
+    ) {
+      checkAndNavigateToSocialLeaderboardOnboarding();
+    }
+  }, [
+    isSocialLeaderboardFlagEnabled,
+    isSocialLeaderboardOnboardingEnabled,
+    checkAndNavigateToSocialLeaderboardOnboarding,
+  ]);
 
   useEffect(() => {
     if (isPredictFlagEnabled && isPredictGTMModalEnabled) {

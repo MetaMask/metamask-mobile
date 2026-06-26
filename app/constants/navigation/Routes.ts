@@ -404,6 +404,7 @@ const Routes = {
     VIEW: 'TopTradersView',
     PROFILE: 'TraderProfileView',
     POSITION: 'TraderPositionView',
+    ONBOARDING: 'SocialLeaderboardOnboarding',
   },
   PREDICT: {
     ROOT: 'Predict',

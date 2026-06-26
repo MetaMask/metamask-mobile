@@ -633,6 +633,7 @@ export interface RootStackParamList extends ParamListBase {
     traderRank?: number;
   };
   TraderPositionView: TraderPositionViewParams;
+  SocialLeaderboardOnboarding: undefined;
 
   // Misc routes
   LockScreen: undefined;

@@ -18,6 +18,7 @@ export const SocialLeaderboardEventProperties = {
   NOTIFICATION_TYPE: 'notification_type',
   NOTIFICATION_SUBTYPE: 'notification_subtype',
   PREVIOUS_CHAIN_FILTER: 'previous_chain_filter',
+  SCREEN: 'screen',
   SOURCE: 'source',
   TAB: 'tab',
   TRADER_ADDRESS: 'trader_address',
@@ -79,7 +80,7 @@ export type TraderProfileScreenViewedSource = Extract<
 
 export type TraderFollowInteractionSource = Extract<
   SocialLeaderboardSource,
-  'leaderboard' | 'trader_profile' | 'home_carousel'
+  'leaderboard' | 'trader_profile' | 'home_carousel' | 'nux'
 >;
 
 export type FollowTradingTokenSource = Extract<
