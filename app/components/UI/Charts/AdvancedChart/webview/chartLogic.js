@@ -2759,7 +2759,6 @@ function placeTradeMarkers() {
       m &&
       m.id != null &&
       isFinite(m.time) &&
-      isFinite(m.price) &&
       m.time >= firstT &&
       m.time <= lastT
     ) {
@@ -2813,14 +2812,22 @@ function placeTradeMarkers() {
     ordered.forEach(function (marker) {
       chain = chain.then(function () {
         if (gen !== window.__tradeMarkerGen) return undefined;
-        const timeSec = Math.floor(marker.time / 1000);
-        // Snap Y onto the rendered line at the trade time using the WebView's own
-        // (paginating) candles — works for older markers RN couldn't snap.
-        const lineY = interpolateCloseAlongLineAtTimeMs(
-          window.ohlcvData,
-          marker.time,
-        );
-        const price = lineY !== null && isFinite(lineY) ? lineY : marker.price;
+        // Anchor BOTH X and Y to the nearest loaded bar so the circle lands on a
+        // line vertex (createShape snaps X to a bar; a raw time + interpolated Y
+        // would drift off the line). Uses the WebView's own paginating candles,
+        // so older markers RN couldn't snap still land on the line.
+        const snapped = snapMarkerToNearestBar(window.ohlcvData, marker.time);
+        const timeSec = snapped
+          ? snapped.timeSec
+          : Math.floor(marker.time / 1000);
+        const price = snapped
+          ? snapped.close
+          : marker.price != null && isFinite(marker.price)
+            ? marker.price
+            : null;
+        // Skip if no price anchor is available (candle outside loaded range and
+        // no fallback price supplied). The marker will be drawn on next refresh.
+        if (price === null) return undefined;
         const color =
           marker.intent === 'exit' ? theme.errorColor : theme.successColor;
 
@@ -3042,13 +3049,16 @@ function findTradeMarkerIdNearPoint(timeSec, offsetY) {
     // candle isn't in the loaded range are tracked in data but not drawn, so a
     // tap near where one *would* be must not fire a press for an invisible circle.
     if (!drawn.has(String(m.id))) continue;
-    const mSec = m.time / 1000;
+    // Measure against the bar the circle is actually drawn on (see
+    // snapMarkerToNearestBar), not the raw trade time, so hit-testing matches
+    // the rendered X/Y.
+    const snapped = snapMarkerToNearestBar(window.ohlcvData, m.time);
+    const mSec = snapped ? snapped.timeSec : m.time / 1000;
     if (mSec < range.lo || mSec > range.hi) continue; // off-screen
     const dxPx = (mSec - timeSec) * pxPerSec;
     let dyPx = 0;
     if (offsetY != null && isFinite(offsetY)) {
-      const lineY = interpolateCloseAlongLineAtTimeMs(window.ohlcvData, m.time);
-      const price = lineY !== null && isFinite(lineY) ? lineY : m.price;
+      const price = snapped ? snapped.close : m.price;
       const markerY = getPriceYForLastCloseOverlay(chart, price);
       if (markerY != null && isFinite(markerY)) dyPx = markerY - offsetY;
     }
@@ -3935,6 +3945,55 @@ function getVisiblePlotRightEdgeTimeMs(chart) {
   } catch (e) {
     return null;
   }
+}
+
+/**
+ * Snaps a trade time to the loaded bar nearest to `tMs` and returns that bar's
+ * exact `{ timeSec, close }`.
+ *
+ * **Why snap to a bar instead of interpolating?** Trade markers are drawn with
+ * the Drawing API (`createShape`), which anchors a shape's X to a bar on the
+ * time scale — it cannot float a shape between bars. If we pass the trade's raw
+ * time with an *interpolated* Y, TradingView snaps the X to a bar while the Y
+ * stays interpolated for the un-snapped time, so the circle drifts OFF the line.
+ *
+ * TradingView draws its line from these same `window.ohlcvData` bars, so a bar's
+ * `(time, close)` IS a vertex on the rendered line. Anchoring BOTH the X (the
+ * bar's own time, which needs no snapping) and the Y (that bar's close) to the
+ * same bar guarantees the circle center lands exactly on that vertex.
+ *
+ * Uses a binary search (data is sorted ascending by time). Returns null when the
+ * data is empty, `tMs` is non-finite, or the nearest close is non-finite.
+ */
+function snapMarkerToNearestBar(data, tMs) {
+  if (!data || !data.length || !isFinite(tMs)) return null;
+
+  // lower_bound: first index whose time >= tMs.
+  let lo = 0;
+  let hi = data.length - 1;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (data[mid].time < tMs) {
+      lo = mid + 1;
+    } else {
+      hi = mid;
+    }
+  }
+
+  // Compare the lower-bound bar with its predecessor; pick the closer one
+  // (ties favor the earlier bar — the candle the trade falls within).
+  let best = lo;
+  if (lo > 0) {
+    const prevDiff = tMs - data[lo - 1].time;
+    const curDiff = data[lo].time - tMs;
+    if (prevDiff <= curDiff) {
+      best = lo - 1;
+    }
+  }
+
+  const close = Number(data[best].close);
+  if (!isFinite(close)) return null;
+  return { timeSec: Math.floor(data[best].time / 1000), close };
 }
 
 /** Interpolate close between consecutive bars (line chart path). */

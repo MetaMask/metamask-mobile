@@ -142,7 +142,7 @@ function TransactionFeeRow({
     <AlertRow
       testID="bridge-fee-row"
       alertField={RowAlertKey.PayWithFee}
-      label={strings('confirm.label.transaction_fee')}
+      label={strings('confirm.label.transaction_fees')}
       tooltip={
         !paidByMetaMask && hasQuotes && totals ? (
           <Tooltip transactionMeta={transactionMeta} totals={totals} />
@@ -178,7 +178,7 @@ function PaidByLabel() {
       testID={ConfirmationRowComponentIDs.PAID_BY_METAMASK}
     >
       <Icon
-        name={IconName.Check}
+        name={IconName.CheckBold}
         color={IconColor.Success}
         size={IconSize.Sm}
       />
