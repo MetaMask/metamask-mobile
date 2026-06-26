@@ -16,7 +16,7 @@ interface UsePerpsWatchlistActionsResult {
   /**
    * Adds a market to the watchlist.
    *
-   * Currently wraps the synchronous PerpsController.toggleWatchlistMarket call.
+   * Currently wraps the asynchronous PerpsController.toggleWatchlistMarket call.
    *
    * TODO(TAT-2663 — optimistic UI): Before the await, apply an optimistic local
    * state update (e.g. pass an onOptimisticUpdate callback from the caller).
@@ -60,7 +60,7 @@ export const usePerpsWatchlistActions = (
         // TODO(TAT-2663 — optimistic UI): Call onOptimisticUpdate?.() here
         // to instantly reflect the add in the UI before the async call resolves.
 
-        controller.toggleWatchlistMarket(symbol);
+        await controller.toggleWatchlistMarket(symbol);
 
         // TODO(TAT-2663 — User Storage API): await userStorageApi.addWatchlistMarket(symbol)
 
@@ -102,7 +102,7 @@ export const usePerpsWatchlistActions = (
         // TODO(TAT-2663 — optimistic UI): Apply optimistic remove here.
 
         const controller = Engine.context.PerpsController;
-        controller.toggleWatchlistMarket(symbol);
+        await controller.toggleWatchlistMarket(symbol);
 
         // TODO(TAT-2663 — User Storage API): await userStorageApi.removeWatchlistMarket(symbol)
 

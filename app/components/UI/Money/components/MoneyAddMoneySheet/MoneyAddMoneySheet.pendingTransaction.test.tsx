@@ -14,6 +14,7 @@ import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
+import { useRegionHasNativeFiatProvider } from '../../hooks/useRegionHasNativeFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
@@ -149,6 +150,9 @@ jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig',
   () => ({ useMMPayFiatConfig: jest.fn() }),
 );
+jest.mock('../../hooks/useRegionHasNativeFiatProvider', () => ({
+  useRegionHasNativeFiatProvider: jest.fn(),
+}));
 jest.mock('../../../../../selectors/tokenBalancesController', () => ({
   ...jest.requireActual('../../../../../selectors/tokenBalancesController'),
   selectHasAnyNonZeroTokenBalance: jest.fn(),
@@ -210,6 +214,7 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
       true,
     );
+    (useRegionHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: jest.fn(),
       trackSurfaceClicked: jest.fn(),

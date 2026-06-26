@@ -49,6 +49,7 @@ import { formatExchangeRate } from '../utils/formatExchangeRate';
 import { formatQuickBuyRateValue } from '../utils/formatQuickBuyRateValue';
 import { getMetamaskFeePercent } from '../utils/getMetamaskFeePercent';
 import { selectDefaultReceiveToken } from '../utils/selectDefaultReceiveToken';
+import { useDestTokenExchangeRate } from './useDestTokenExchangeRate';
 import { usePayWithTokens } from './usePayWithTokens';
 import { usePositionTokenBalance } from './usePositionTokenBalance';
 import { useQuickBuyAnalytics } from './useQuickBuyAnalytics';
@@ -891,18 +892,37 @@ export function useQuickBuyController(
     ? maxSpendFiat <= 0
     : maxSpendTokens <= 0;
 
-  // For the toolbar rate pill in buy mode the dest token from `useQuickBuySetup`
-  // carries no price data, so we enrich a local copy with the rate already
-  // resolved by `usePositionTokenBalance`. We deliberately do NOT propagate this
-  // into `destToken` itself — the BridgeToken passed to quote fetching and
-  // redux must stay reference-stable, otherwise EVM→non-EVM (e.g. USDC/Base →
-  // SOL/Solana) flows lose their quote requests when market data ticks.
+  // Display-only copy of the dest token enriched with a balance-independent
+  // rate (`useDestTokenExchangeRate`) so the pre-quote pill renders even when
+  // the user holds no balance of the token being bought. Never propagated into
+  // `destToken` — the quote/redux reference must stay stable so market-data
+  // ticks don't churn quote requests.
+  const destTokenLookupRate = useDestTokenExchangeRate(
+    tradeMode === 'buy' ? destToken : undefined,
+  );
+  // Price source priority for the buy token: the host-supplied chart price
+  // (display currency, present even for un-held tokens) → the cached market-data
+  // lookup → the held-balance rate. The first two cover the common case of
+  // buying a token the user doesn't hold, where the lookup alone resolves
+  // nothing (TokenRatesController only tracks held tokens).
+  const hostTokenPriceFiat = analyticsContext?.tokenPriceFiat;
   const destTokenForRate = useMemo<BridgeToken | undefined>(() => {
     if (tradeMode !== 'buy' || !destToken) return destToken;
-    const rate = positionToken?.currencyExchangeRate;
+    const rate =
+      (hostTokenPriceFiat !== undefined && hostTokenPriceFiat > 0
+        ? hostTokenPriceFiat
+        : undefined) ??
+      destTokenLookupRate ??
+      positionToken?.currencyExchangeRate;
     if (rate === undefined) return destToken;
     return { ...destToken, currencyExchangeRate: rate };
-  }, [tradeMode, destToken, positionToken?.currencyExchangeRate]);
+  }, [
+    tradeMode,
+    destToken,
+    hostTokenPriceFiat,
+    destTokenLookupRate,
+    positionToken?.currencyExchangeRate,
+  ]);
 
   const formattedExchangeRate = useMemo(
     () =>

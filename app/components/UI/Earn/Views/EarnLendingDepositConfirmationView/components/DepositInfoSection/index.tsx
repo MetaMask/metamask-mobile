@@ -2,9 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../../locales/i18n';
-import KeyValueRow, {
-  TooltipSizes,
-} from '../../../../../../../component-library/components-temp/KeyValueRow';
+import KeyValueRow from '../../../../../../../component-library/components-temp/KeyValueRow';
 import Text, {
   TextColor,
   TextVariant,
@@ -65,7 +63,6 @@ const DepositInfoSection = ({
                   <Text>{strings('earn.tooltip_content.apr.part_two')}</Text>
                 </View>
               ),
-              size: TooltipSizes.Sm,
             },
           }}
           value={{
@@ -111,7 +108,6 @@ const DepositInfoSection = ({
             tooltip: {
               title: strings('stake.reward_frequency'),
               content: strings('earn.tooltip_content.reward_frequency'),
-              size: TooltipSizes.Sm,
             },
           }}
           value={{
@@ -129,7 +125,6 @@ const DepositInfoSection = ({
             tooltip: {
               title: strings('stake.withdrawal_time'),
               content: strings('earn.tooltip_content.withdrawal_time'),
-              size: TooltipSizes.Sm,
             },
           }}
           value={{
@@ -147,7 +142,6 @@ const DepositInfoSection = ({
             tooltip: {
               title: strings('earn.protocol'),
               content: strings('earn.tooltip_content.protocol'),
-              size: TooltipSizes.Sm,
             },
           }}
           value={{
