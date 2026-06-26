@@ -62,8 +62,14 @@ export function mapSignMessageResponse(
 
 /**
  * Convert WalletConnect transaction params into the canonical Solana Snap
- * transaction request. The signer is resolved from the first connected CAIP
- * account, matching the WalletConnect session account selected by Mobile.
+ * transaction request.
+ *
+ * WalletConnect treats the first account in the session account list as the
+ * currently selected account. Mobile preserves that invariant when building
+ * scoped permissions by prioritizing the selected CAIP account ID first, and
+ * refreshes the WalletConnect session whenever the selected MetaMask account
+ * changes. Because of that ordering contract, `connectedAddresses[0]` is the
+ * active signer for this request.
  */
 export function mapSignTransactionRequest({
   params,
@@ -106,6 +112,13 @@ export function mapSignTransactionResponse(
  * Convert WalletConnect sign-and-send params into the canonical Solana Snap
  * transaction request. WalletConnect names send options `sendOptions`; the
  * Solana Snap keyring API expects them under `options`.
+ *
+ * WalletConnect treats the first account in the session account list as the
+ * currently selected account. Mobile preserves that invariant when building
+ * scoped permissions by prioritizing the selected CAIP account ID first, and
+ * refreshes the WalletConnect session whenever the selected MetaMask account
+ * changes. Because of that ordering contract, `connectedAddresses[0]` is the
+ * active signer for this request.
  */
 export function mapSignAndSendTransactionRequest({
   params,
