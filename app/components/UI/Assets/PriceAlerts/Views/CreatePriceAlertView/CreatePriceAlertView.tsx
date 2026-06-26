@@ -265,7 +265,13 @@ const CreatePriceAlertView: React.FC = () => {
         navigation.pop(2);
       }
     } catch {
-      // submit() surfaces the error via its thrown rejection; nothing to do here
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Icon,
+        iconName: IconName.Danger,
+        iconColor: colors.error.default,
+        labelOptions: [{ label: strings('price_alerts.save_error') }],
+        hasNoTimeout: false,
+      });
     }
   }, [
     submit,

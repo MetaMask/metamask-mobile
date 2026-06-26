@@ -288,7 +288,7 @@ describe('CreatePriceAlertView', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('does not navigate or show toast when submit throws', async () => {
+    it('does not navigate but shows an error toast when submit throws', async () => {
       mockSubmit.mockRejectedValueOnce(new Error('HTTP 500'));
       const { getByTestId } = renderWithToast();
 
@@ -299,7 +299,16 @@ describe('CreatePriceAlertView', () => {
       });
 
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'Failed to save price alert. Please try again.',
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
     });
 
     it('does not call submit a second time when the button is pressed while already submitting', async () => {
