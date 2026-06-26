@@ -256,6 +256,7 @@ describe('CardController', () => {
       selectedCountry: 'US',
       activeProviderId: 'baanx',
       isAuthenticated: true,
+      lastUnauthenticatedReason: null,
       cardholderAccounts: [],
       providerData: {},
       cardHomeData: null,
@@ -553,6 +554,7 @@ describe('CardController — auth methods', () => {
       expect(provider.logout).toHaveBeenCalledWith(mockTokenSet);
       expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
       expect(controller.state.isAuthenticated).toBe(false);
+      expect(controller.state.lastUnauthenticatedReason).toBeNull();
     });
 
     it('still clears local state when provider.logout throws', async () => {
@@ -568,6 +570,7 @@ describe('CardController — auth methods', () => {
 
       expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
       expect(controller.state.isAuthenticated).toBe(false);
+      expect(controller.state.lastUnauthenticatedReason).toBeNull();
     });
 
     it('skips provider.logout call when no tokens exist', async () => {
@@ -980,6 +983,7 @@ describe('CardController — 401 retry and forced logout', () => {
 
     expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
     expect(controller.state.isAuthenticated).toBe(false);
+    expect(controller.state.lastUnauthenticatedReason).toBeNull();
     expect(controller.state.providerData.baanx).toStrictEqual({});
     expect(controller.state.cardHomeData).toBeNull();
     expect(controller.state.cardHomeDataStatus).toBe('idle');
@@ -1043,6 +1047,33 @@ describe('CardController — 401 retry and forced logout', () => {
     expect(provider.refreshTokens).not.toHaveBeenCalled();
     expect(mockTokenStore.remove).toHaveBeenCalledWith('baanx');
     expect(controller.state.isAuthenticated).toBe(false);
+    expect(controller.state.lastUnauthenticatedReason).toBe(
+      'onboarding_token_revoked',
+    );
+  });
+
+  it('keeps onboarding token revoked reason after unauthenticated repaint', async () => {
+    wireTokenStorage({ ...mockTokenSet, refreshToken: undefined });
+    const provider = buildAuthedProvider();
+    (provider.getCashbackWallet as jest.Mock).mockRejectedValue(
+      unauthorizedError,
+    );
+    (provider.getOnChainAssets as jest.Mock).mockResolvedValue(
+      mockCardHomeData,
+    );
+    const { controller } = buildControllerWithMockMessenger(provider, {
+      isAuthenticated: true,
+    });
+
+    await expect(controller.getCashbackWallet()).rejects.toBe(
+      unauthorizedError,
+    );
+    await flushPromises(10);
+
+    expect(provider.getOnChainAssets).toHaveBeenCalledWith('0xabc');
+    expect(controller.state.lastUnauthenticatedReason).toBe(
+      'onboarding_token_revoked',
+    );
   });
 
   it('does not attempt a refresh for non-401 errors', async () => {
