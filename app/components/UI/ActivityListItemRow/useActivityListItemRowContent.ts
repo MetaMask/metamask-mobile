@@ -257,7 +257,7 @@ function statusTitle(
   if (item.status === 'failed')
     return titles.failed ?? strings('transaction.failed');
   if (item.status === 'cancelled') {
-    return titles.cancelled ?? strings('transaction.cancelled');
+    return titles.cancelled ?? strings('transaction.canceled');
   }
   return titles.success;
 }
@@ -299,6 +299,8 @@ const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
   stopMarketCloseShort: () =>
     strings('transactions.activity_stop_market_close_short'),
   marketCloseShort: () => strings('transactions.activity_market_close_short'),
+  limitShort: () => strings('transactions.activity_limit_short'),
+  limitCloseShort: () => strings('transactions.activity_limit_close_short'),
 };
 
 // Domain (perps/predict) rows have no bespoke failed copy, so mark a
@@ -313,7 +315,7 @@ function withDomainStatusSuffix(
     return `${title}—${strings('transaction.failed')}`;
   }
   if (status === 'cancelled') {
-    return `${title}—${strings('transaction.cancelled')}`;
+    return `${title}—${strings('transaction.canceled')}`;
   }
   return title;
 }

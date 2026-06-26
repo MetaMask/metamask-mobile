@@ -507,11 +507,14 @@ function useIsResultReady({
 function useButtonLabel() {
   const transaction = useTransactionMetadataRequest();
 
+  if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
+    return strings('confirm.deposit_edit_amount_money_account_send');
+  }
+
   if (
     hasTransactionType(transaction, [
       TransactionType.predictWithdraw,
       TransactionType.perpsWithdraw,
-      TransactionType.moneyAccountWithdraw,
     ])
   ) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');

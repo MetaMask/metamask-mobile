@@ -103,7 +103,7 @@
       "title": "Hindi sapat ang mga pondo"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Magdagdag ng mas mababa o gumamit ng ibang paraan ng pagbabayad."
     },
     "insufficient_pay_token_native": {
       "message": "Walang sapat na {{ticker}} para sa mga bayarin. Gumamit ng token sa ibang network o magdagdag pa ng {{ticker}} para makapagpatuloy.",
@@ -1094,6 +1094,7 @@
       "twitter_link": "Tingnan sa X (Twitter)",
       "sort": {
         "value": "Value",
+        "top_trades": "Top Trades",
         "pnl_percent": "P&L %",
         "recent": "Kamakailan"
       }
@@ -1102,7 +1103,6 @@
       "market_cap": "Market cap",
       "price": "Presyo",
       "position": "Posisyon",
-      "trades": "Mga Trade",
       "buy": "Bumili",
       "trade": "Mag-trade",
       "unsupported_market": "Hindi sinusuportahang market",
@@ -1133,6 +1133,8 @@
       "price_impact": "Epekto ng presyo",
       "est_points": "Tinatayang mga point",
       "no_quotes": "Walang available na quote para sa token na ito",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Nilo-load...",
       "unavailable": "Hindi available ang swap",
       "unsupported_chain": "Hindi pa sinusuportahan sa Quick Buy ang chain na ito",
@@ -2368,11 +2370,15 @@
       "predictions_title": "Mga prediction sa World Cup",
       "banner_title": "World Cup 2026",
       "banner_description": "Mag-trade sa bawat match, sa bawat pagkakataon.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "Lahat",
         "props": "Props",
-        "live": "Live"
+        "live": "Live",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Group Stage",
         "round_of_32": "Round na 32",
@@ -3540,6 +3546,8 @@
       "wallet_activity_desc": "Mga pagbili, pagbebenta, paglilipat, pag-swap, at reward",
       "perps_title": "Aktibidad na Pag-trade",
       "perps_desc": "Mga pagbabago sa posisyon ng mga Perp, liquidation, mga rate ng pagpopondo, at update sa margin",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "Mga Signal sa Pag-trade",
       "social_ai_desc": "Mga update mula sa mga trader at asset na fina-follow mo, kabilang ang mga na-curate na balita sa merkado ",
       "marketing_title": "Mga Update at Reward",
@@ -6029,6 +6037,11 @@
       "description": "Hindi puwedeng bumili ng crypto sa rehiyon mo dahil sa mga limitasyon sa lokal na provider ng pagbabayad o mga paghihigpit sa regulasyon.",
       "got_it": "Nakuha ko"
     },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "Nakuha ko"
+    },
     "region": {
       "buy_crypto_tokens": "Bumili ng mga crypto token",
       "sell_crypto_tokens": "Magbenta ng mga crypto token",
@@ -7949,9 +7962,13 @@
       "rejected": "Tinanggihan",
       "reconnect": "Kumonekta muli",
       "done": "Tapos na",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "I-scan ang susunod na QR code",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "Hakbang {{current}} ng {{total}}: I-scan ang QR code na ipinapakita sa wallet mo",
-      "scanner_last_step_text": "Huling hakbang: I-scan ang QR code na ipinapakita sa wallet mo"
+      "scanner_last_step_text": "Huling hakbang: I-scan ang QR code na ipinapakita sa wallet mo",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "Epekto ng presyo",
     "price_impact_info_description": "Ganito binabago ng mga trade mo ang market price ng isang token. Depende ito sa laki ng trade, available na liquidity, at mga bayarin sa provider. Hindi kontrolado ng MetaMask ang epekto sa presyo.",
@@ -9526,8 +9543,8 @@
     },
     "earn_rewards": {
       "title": "Kumita ng mga reward",
-      "musd_title": "Hanggang 3% bonus sa mga stable",
-      "musd_subtitle": "Kalkulahin ang iyong mUSD bonus",
+      "musd_title": "Hanggang {{percentage}}% bonus sa mUSD",
+      "musd_subtitle": "Narito ang mga money account",
       "card_title": "Hanggang sa 3% ang maibabalik sa ginastos",
       "card_subtitle": "Kunin ang iyong MetaMask Card ngayon",
       "card_subtitle_cardholder": "I-access ang mga benepisyo ng iyong MetaMask Card"
@@ -9601,17 +9618,6 @@
       "predict_withdraw": "Pag-withdraw",
       "money_account_deposit": "Ideposito sa Money Account",
       "money_account_withdraw": "Maglipat mula sa Money Account",
-      "money_account_sent": "Nagpadala ng {{symbol}}",
-      "money_account_received": "Natanggap",
-      "deposited_musd": "Naidepositong mUSD",
-      "depositing_musd": "Nagdedeposiot ng mUSD",
-      "deposit_failed": "Nabigo ang pagdeposito",
-      "sent": "Nagpadala",
-      "sending_musd": "Nagpapadala ng mUSD",
-      "send_failed": "Nabigong ipadala",
-      "converted_to_musd": "Na-convert sa mUSD",
-      "converting_to_musd": "Ikino-convert sa mUSD",
-      "conversion_failed": "Pumalya ang pag-convert",
       "default": "Mga detalye ng transaksyon"
     },
     "label": {
@@ -9660,6 +9666,24 @@
       "fiat_purchase": "Bumili ng {{token}} gamit ang {{paymentMethod}}"
     },
     "perps_deposit_solution": "Mayroon ka na ngayong {{fiat}} ng USDC sa Arbitrum. Subukang magdeposito ulit."
+  },
+  "activity_details": {
+    "status": "Katayuan",
+    "date": "Petsa",
+    "account": "Account",
+    "from": "Mula sa/kay",
+    "to": "Sa/Kay",
+    "network": "Network",
+    "transaction_id": "ID ng Transaksyon",
+    "network_fee": "Bayad sa network",
+    "bridge_fee": "Bayad sa bridge",
+    "transaction_fee": "Bayarin sa transaksyon",
+    "total_amount": "Kabuuang halaga",
+    "you_sent": "Nagpadala ka",
+    "you_received": "Nakatanggap ka ng",
+    "view_on_block_explorer": "Tingnan sa block explorer",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

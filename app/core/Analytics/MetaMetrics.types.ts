@@ -21,16 +21,4 @@ export {
   DataDeleteStatus,
 } from '../../util/analytics/analyticsDataDeletion.types';
 
-/**
- * Monetized primitives associated with a transaction.
- * Only propagated when the transaction involves a monetized primitive.
- * Includes MoneyAccount which is absent from the analytics.types version.
- */
-export enum MonetizedPrimitive {
-  Swaps = 'swaps',
-  Perps = 'perps',
-  Ramps = 'ramps',
-  Predict = 'predict',
-  MmPay = 'mm_pay',
-  MoneyAccount = 'money_account',
-}
+export { MonetizedPrimitive } from '../../util/analytics/analytics.types';

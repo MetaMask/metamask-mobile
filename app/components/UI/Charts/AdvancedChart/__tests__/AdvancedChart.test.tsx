@@ -9,6 +9,7 @@ import {
   type OHLCVBar,
   type AdvancedChartRef,
   type PositionLines,
+  type TradeMarker,
 } from '../AdvancedChart.types';
 
 const mockInAppBrowserOpen = jest.fn();
@@ -291,6 +292,46 @@ describe('AdvancedChart', () => {
     );
   });
 
+  it('sends fresh data when the series key and data change in the SAME render (synchronous data, e.g. perps)', () => {
+    const oldBars: OHLCVBar[] = [
+      { time: 1000000, open: 10, high: 10, low: 10, close: 10, volume: 0 },
+      { time: 1000300, open: 11, high: 11, low: 11, close: 11, volume: 0 },
+    ];
+    const newBars: OHLCVBar[] = [
+      { time: 2000000, open: 20, high: 20, low: 20, close: 20, volume: 0 },
+      { time: 2000300, open: 21, high: 21, low: 21, close: 21, volume: 0 },
+    ];
+
+    const { getByTestId, rerender } = render(
+      <AdvancedChart ohlcvData={oldBars} ohlcvSeriesKey="perp|1M" />,
+    );
+    act(() => {
+      getByTestId('mock-webview').props.onLoadEnd();
+    });
+
+    mockPostMessage.mockClear();
+
+    // Perp-style: a period switch changes the key AND the (already in-memory) data
+    // in a single render, while the previous WebView still looks loaded.
+    rerender(<AdvancedChart ohlcvData={newBars} ohlcvSeriesKey="perp|1W" />);
+
+    // Must NOT post to the remounting (not-yet-loaded) WebView — that message is
+    // dropped and was never re-sent (the original "loading forever" bug).
+    expect(mockPostMessage).not.toHaveBeenCalled();
+
+    // Once the new WebView loads, the fresh data is delivered.
+    act(() => {
+      getByTestId('mock-webview').props.onLoadEnd();
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_OHLCV_DATA',
+        payload: { data: newBars },
+      }),
+    );
+  });
+
   it('reset() clears stale series snapshot so OHLCV sync runs after reload with the same data ref', () => {
     const staleBars: OHLCVBar[] = [
       { time: 1000000, open: 10, high: 12, low: 9, close: 11, volume: 100 },
@@ -353,6 +394,77 @@ describe('AdvancedChart', () => {
     expect(ref.current?.removeIndicator).toBeInstanceOf(Function);
     expect(ref.current?.setChartType).toBeInstanceOf(Function);
     expect(ref.current?.reset).toBeInstanceOf(Function);
+    expect(ref.current?.focusTime).toBeInstanceOf(Function);
+    expect(ref.current?.pulseTradeMarker).toBeInstanceOf(Function);
+  });
+
+  it('sends PULSE_TRADE_MARKER via the pulseTradeMarker ref method', () => {
+    const ref = React.createRef<AdvancedChartRef>();
+    render(<AdvancedChart ref={ref} ohlcvData={MOCK_BARS} />);
+
+    mockPostMessage.mockClear();
+    act(() => {
+      ref.current?.pulseTradeMarker('0xabc');
+    });
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'PULSE_TRADE_MARKER',
+        payload: { id: '0xabc' },
+      }),
+    );
+
+    // Empty id is a no-op.
+    mockPostMessage.mockClear();
+    act(() => {
+      ref.current?.pulseTradeMarker('');
+    });
+    expect(mockPostMessage).not.toHaveBeenCalled();
+  });
+
+  it('sends FOCUS_TIME with options via the focusTime ref method', () => {
+    const ref = React.createRef<AdvancedChartRef>();
+    render(<AdvancedChart ref={ref} ohlcvData={MOCK_BARS} />);
+
+    mockPostMessage.mockClear();
+    act(() => {
+      ref.current?.focusTime(1_700_000_000_000, {
+        spanMs: 86_400_000,
+        animate: false,
+      });
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'FOCUS_TIME',
+        payload: {
+          timeMs: 1_700_000_000_000,
+          spanMs: 86_400_000,
+          animate: false,
+        },
+      }),
+    );
+  });
+
+  it('omits unset options and ignores non-finite times in focusTime', () => {
+    const ref = React.createRef<AdvancedChartRef>();
+    render(<AdvancedChart ref={ref} ohlcvData={MOCK_BARS} />);
+
+    mockPostMessage.mockClear();
+    act(() => {
+      ref.current?.focusTime(1_700_000_000_000);
+    });
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'FOCUS_TIME',
+        payload: { timeMs: 1_700_000_000_000 },
+      }),
+    );
+
+    mockPostMessage.mockClear();
+    act(() => {
+      ref.current?.focusTime(Number.NaN);
+    });
+    expect(mockPostMessage).not.toHaveBeenCalled();
   });
 
   it('calls onChartReady when chart reports ready', () => {
@@ -843,6 +955,67 @@ describe('AdvancedChart', () => {
       JSON.stringify({
         type: 'SET_POSITION_LINES',
         payload: { position: null },
+      }),
+    );
+  });
+
+  it('sends SET_TRADE_MARKERS when tradeMarkers prop changes', () => {
+    const markers: TradeMarker[] = [
+      { time: 1000000, price: 11, intent: 'enter', id: '0xabc' },
+      { time: 1000300, price: 12, intent: 'exit', id: '0xdef' },
+    ];
+
+    const { getByTestId, rerender } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    mockPostMessage.mockClear();
+
+    rerender(<AdvancedChart ohlcvData={MOCK_BARS} tradeMarkers={markers} />);
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_TRADE_MARKERS',
+        payload: { markers },
+      }),
+    );
+  });
+
+  it('sends SET_TRADE_MARKERS with null when tradeMarkers cleared', () => {
+    const markers: TradeMarker[] = [
+      { time: 1000000, price: 11, intent: 'enter', id: '0xabc' },
+    ];
+
+    const { getByTestId, rerender } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} tradeMarkers={markers} />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    mockPostMessage.mockClear();
+
+    rerender(<AdvancedChart ohlcvData={MOCK_BARS} tradeMarkers={undefined} />);
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_TRADE_MARKERS',
+        payload: { markers: null },
       }),
     );
   });
