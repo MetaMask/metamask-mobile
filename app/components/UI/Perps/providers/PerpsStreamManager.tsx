@@ -486,6 +486,31 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   // Override cache to store individual PriceUpdate objects
   protected priceCache = new Map<string, PriceUpdate>();
 
+  /**
+   * Maps a raw price update to the cached PriceUpdate shape, stamping the
+   * receive time and applying backward-compatible defaults.
+   *
+   * Backward-compatible default for `isTradable`: pre-8.3.0 streams don't
+   * emit the field, so treat absence as tradable to avoid breaking existing
+   * market display.
+   */
+  private toPriceUpdate(update: PriceUpdate): PriceUpdate {
+    return {
+      symbol: update.symbol,
+      price: update.price,
+      timestamp: Date.now(),
+      percentChange24h: update.percentChange24h,
+      bestBid: update.bestBid,
+      bestAsk: update.bestAsk,
+      spread: update.spread,
+      markPrice: update.markPrice,
+      funding: update.funding,
+      openInterest: update.openInterest,
+      volume24h: update.volume24h,
+      isTradable: update.isTradable ?? true,
+    };
+  }
+
   protected connect() {
     if (this.wsSubscription) {
       return;
@@ -523,23 +548,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         // Update cache and build price map
         const priceMap: Record<string, PriceUpdate> = {};
         updates.forEach((update) => {
-          // Map the update to PriceUpdate format
-          const priceUpdate: PriceUpdate = {
-            symbol: update.symbol,
-            price: update.price,
-            timestamp: Date.now(),
-            percentChange24h: update.percentChange24h,
-            bestBid: update.bestBid,
-            bestAsk: update.bestAsk,
-            spread: update.spread,
-            markPrice: update.markPrice,
-            funding: update.funding,
-            openInterest: update.openInterest,
-            volume24h: update.volume24h,
-            // Backward-compatible default: pre-8.3.0 streams don't emit isTradable,
-            // so treat absence as tradable to avoid breaking existing market display.
-            isTradable: update.isTradable ?? true,
-          };
+          const priceUpdate = this.toPriceUpdate(update);
           this.priceCache.set(update.symbol, priceUpdate);
           priceMap[update.symbol] = priceUpdate;
         });
@@ -671,21 +680,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           callback: (updates: PriceUpdate[]) => {
             const priceMap: Record<string, PriceUpdate> = {};
             updates.forEach((update) => {
-              const priceUpdate: PriceUpdate = {
-                symbol: update.symbol,
-                price: update.price,
-                timestamp: Date.now(),
-                percentChange24h: update.percentChange24h,
-                bestBid: update.bestBid,
-                bestAsk: update.bestAsk,
-                spread: update.spread,
-                markPrice: update.markPrice,
-                funding: update.funding,
-                openInterest: update.openInterest,
-                volume24h: update.volume24h,
-                // Backward-compatible default: see comment in connect() callback.
-                isTradable: update.isTradable ?? true,
-              };
+              const priceUpdate = this.toPriceUpdate(update);
               this.priceCache.set(update.symbol, priceUpdate);
               priceMap[update.symbol] = priceUpdate;
             });
