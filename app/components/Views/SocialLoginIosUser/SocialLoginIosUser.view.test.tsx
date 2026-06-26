@@ -23,7 +23,10 @@ import {
   describeForPlatforms,
   itEach,
 } from '../../../../tests/component-view/platform';
-import { renderSocialLoginIosNewUser } from '../../../../tests/component-view/renderers/seedlessOnboarding';
+import {
+  renderSocialLoginIosNewUser,
+  renderSocialLoginIosExistingUser,
+} from '../../../../tests/component-view/renderers/seedlessOnboarding';
 import Routes from '../../../constants/navigation/Routes';
 import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -77,6 +80,35 @@ describeForPlatforms(
         );
 
         await findByTestId(`route-${Routes.ONBOARDING.CHOOSE_PASSWORD}`);
+      },
+    );
+
+    itEach(iosNewUserProviders)(
+      'shows iOS existing-user screen after $label login and navigates to OAuth rehydrate on Secure wallet',
+      async ({ provider }) => {
+        const { findByTestId } = renderSocialLoginIosExistingUser({
+          routeParams: {
+            provider,
+            oauthLoginSuccess: true,
+            accountName: 'seedless-cv@example.com',
+          },
+        });
+
+        expect(
+          await findByTestId(
+            OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_TITLE,
+          ),
+        ).toBeOnTheScreen();
+
+        fireEvent.press(
+          await findByTestId(
+            OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON,
+          ),
+        );
+
+        await findByTestId(
+          `route-${Routes.ONBOARDING.ONBOARDING_OAUTH_REHYDRATE}`,
+        );
       },
     );
   },
