@@ -16,7 +16,7 @@ type AllowedEvents = MessengerEvents<PerpsControllerMessenger>;
  * PerpsController uses the messenger for all cross-controller communication:
  * NetworkController, KeyringController, TransactionController,
  * RemoteFeatureFlagController, AccountsController, AccountTreeController,
- * AuthenticationController.
+ * AuthenticationController, AuthenticatedUserStorageService.
  * The root messenger already registers actions for these controllers,
  * so the child messenger can call them through the parent.
  *
@@ -45,6 +45,8 @@ export function getPerpsControllerMessenger(
       'AccountsController:getSelectedAccount',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'AuthenticationController:getBearerToken',
+      'AuthenticatedUserStorageService:getNotificationPreferences',
+      'AuthenticatedUserStorageService:putNotificationPreferences',
     ],
     events: [
       'RemoteFeatureFlagController:stateChange',
