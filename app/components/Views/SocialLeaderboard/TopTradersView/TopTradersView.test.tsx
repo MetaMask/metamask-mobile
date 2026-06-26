@@ -563,6 +563,15 @@ describe('TopTradersView', () => {
   });
 
   describe('performance', () => {
+    it('limits the initial trader row render batch during screen mount', () => {
+      const { UNSAFE_getByType } = renderWithProvider(<TopTradersView />);
+
+      const listProps = UNSAFE_getByType(FlatList).props;
+
+      expect(listProps.initialNumToRender).toBe(6);
+      expect(listProps.maxToRenderPerBatch).toBe(6);
+    });
+
     it('keeps a stable renderItem reference across a parent re-render with unchanged trader props', async () => {
       // An inline `renderItem` closure would be re-created on every render,
       // defeating the `React.memo` on `TraderRow`. The memoized `renderTraderRow`

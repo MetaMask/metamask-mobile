@@ -86,6 +86,7 @@ interface TabFilterItem {
 }
 
 const LEADERBOARD_LIMIT = 50;
+const INITIAL_TRADER_ROWS_TO_RENDER = 6;
 const SECONDARY_TAB_PREFETCH_IDLE_TIMEOUT_MS = 1000;
 
 const scheduleIdleTask = (task: () => void) => {
@@ -586,7 +587,8 @@ const TopTradersView = () => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style('pb-6')}
             testID={TopTradersViewSelectorsIDs.TRADER_LIST}
-            initialNumToRender={15}
+            initialNumToRender={INITIAL_TRADER_ROWS_TO_RENDER}
+            maxToRenderPerBatch={INITIAL_TRADER_ROWS_TO_RENDER}
             windowSize={5}
             onScroll={onScroll}
             scrollEventThrottle={16}
