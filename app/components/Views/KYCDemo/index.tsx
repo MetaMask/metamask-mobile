@@ -1,12 +1,9 @@
 import React, { useCallback, useState } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
+import { NativeModules, Platform, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import SNSMobileSDK from '@sumsub/react-native-mobilesdk-module';
 import { useTheme } from '../../../util/theme';
-import Engine from '../../../core/Engine';
-import { selectSelectedInternalAccountAddress } from '../../../selectors/accountsController';
 import {
   Button,
   ButtonVariant,
@@ -70,7 +67,13 @@ const styles = StyleSheet.create({
 //   });
 // }
 
-async function createSession(jwtToken: string): Promise<string> {
+interface CreateSessionResponse {
+  sessionId: string;
+  wrappedUserKey: string;
+  idosSessionId: string;
+}
+
+async function createSession(jwtToken: string): Promise<CreateSessionResponse> {
   const response = await fetch(`${UKYC_API_BASE_URL}/sessions`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -86,20 +89,26 @@ async function createSession(jwtToken: string): Promise<string> {
     throw new Error(`POST /sessions failed (${response.status}): ${errorBody}`);
   }
 
-  const data = await response.json();
-  return data.sessionId ?? data.id;
+  return response.json();
+}
+
+type SubmitWrappedKeyResponse = {
+  status: string
+  applicantAccessToken: string
 }
 
 async function fetchAccessToken(
   sessionId: string,
+  wrappedUserKey: string,
+  idosSessionId: string,
   jwtToken: string,
-): Promise<string> {
+): Promise<SubmitWrappedKeyResponse> {
   const response = await fetch(
     `${UKYC_API_BASE_URL}/sessions/${sessionId}/wrapped-key`,
     {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ jwtToken }),
+      body: JSON.stringify({ wrappedUserKey, jwtToken, idosSessionId }),
     },
   );
 
@@ -110,14 +119,12 @@ async function fetchAccessToken(
     );
   }
 
-  const data = await response.json();
-  return data.accessToken ?? data.token;
+  return await response.json();
 }
 
 const KYCDemo = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
 
   const [sdkResult, setSdkResult] = useState<Record<string, unknown> | null>(
     null,
@@ -126,30 +133,28 @@ const KYCDemo = () => {
   const [status, setStatus] = useState<string | null>(null);
 
   const launchSumSubSDK = useCallback(async () => {
-    if (!selectedAddress) {
-      setStatus('No account selected');
-      return;
-    }
-
     setIsLoading(true);
     setSdkResult(null);
     setStatus(null);
 
     try {
-      // setStatus('Signing authentication message...');
-      // const jwtToken = await signAuthMessage(selectedAddress);
+      if (!NativeModules.SNSMobileSDKModule) {
+        throw new Error(
+          'SumSub native module is not available. Rebuild the app with native dependencies (yarn start:ios or yarn start:android). Expo Go is not supported.',
+        );
+      }
 
       setStatus('Creating UKYC session...');
       const mockJwtToken = 'mock-jwt-token';
-      const sessionId = await createSession(mockJwtToken);
+      const { sessionId, idosSessionId, wrappedUserKey } = await createSession(mockJwtToken);
 
       setStatus('Fetching access token...');
-      const accessToken = await fetchAccessToken(sessionId, mockJwtToken);
+      const { applicantAccessToken } = await fetchAccessToken(sessionId, wrappedUserKey, idosSessionId, mockJwtToken);
 
       setStatus('Launching SumSub SDK...');
-      const snsMobileSDK = SNSMobileSDK.init(accessToken, async () => {
-        const refreshedToken = await fetchAccessToken(sessionId, mockJwtToken);
-        return refreshedToken;
+      const snsMobileSDK = SNSMobileSDK.init(applicantAccessToken, async () => {
+        const { applicantAccessToken: refreshedAccessToken } = await fetchAccessToken(sessionId, wrappedUserKey, idosSessionId, mockJwtToken);
+        return refreshedAccessToken;
       })
         .withHandlers({
           onStatusChanged: (event: {
@@ -179,7 +184,7 @@ const KYCDemo = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [selectedAddress]);
+  }, []);
 
   return (
     <SafeAreaView
@@ -198,17 +203,9 @@ const KYCDemo = () => {
 
       <View style={styles.content}>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          Launch the Sumsub identity verification flow. This will sign a message
-          with your connected account, create a UKYC session, and retrieve an
-          access token for SumSub.
+          Launch the Sumsub identity verification flow. This will create a UKYC
+          session and retrieve an access token to start the SumSub verification.
         </Text>
-
-        {selectedAddress && (
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            Account: {selectedAddress.slice(0, 6)}...
-            {selectedAddress.slice(-4)}
-          </Text>
-        )}
 
         {status && (
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
@@ -220,7 +217,7 @@ const KYCDemo = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={launchSumSubSDK}
-          isDisabled={isLoading || !selectedAddress}
+          isDisabled={isLoading}
         >
           {isLoading ? 'Launching...' : 'Start KYC Verification'}
         </Button>
