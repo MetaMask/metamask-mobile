@@ -11,7 +11,7 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.background.default,
     },
     groupingSelectButtonAccessory: {
-      marginRight: 4,
+      marginRight: 8,
       alignSelf: 'center',
       justifyContent: 'center',
     },
