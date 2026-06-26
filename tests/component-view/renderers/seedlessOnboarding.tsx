@@ -25,13 +25,17 @@ const ACCOUNT_NOT_FOUND_ROUTE = 'AccountNotFound';
 export const ONBOARDING_PREVIOUS_PROBE_ID =
   'seedless-onboarding-previous-probe';
 
-interface SeedlessOnboardingRendererOptions {
+interface SeedlessOnboardingStateOptions {
   overrides?: DeepPartial<RootState>;
+}
+
+interface SeedlessOnboardingRendererOptions
+  extends SeedlessOnboardingStateOptions {
   routeParams?: AccountStatusParams;
 }
 
 function buildSeedlessOnboardingState(
-  options: SeedlessOnboardingRendererOptions = {},
+  options: SeedlessOnboardingStateOptions = {},
 ) {
   const builder = initialStateSeedlessOnboarding();
   if (options.overrides) {

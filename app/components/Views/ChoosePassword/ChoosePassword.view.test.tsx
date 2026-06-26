@@ -53,7 +53,6 @@ function mockAuthenticationForSocialWalletCreation() {
 function mockAuthenticationGetType() {
   return jest.spyOn(Authentication, 'getType').mockResolvedValue({
     currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
-    availableBiometryType: null,
   });
 }
 
