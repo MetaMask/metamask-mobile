@@ -86,6 +86,7 @@ import { TransactionDetailLocation } from '../../../core/Analytics/events/transa
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
+import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ActivityEmptyState from '../ActivityScreen/components/ActivityEmptyState';
 import { ActivityListSelectorsIDs } from './ActivityList.testIds';
@@ -108,6 +109,7 @@ import {
 } from './helpers/transformations';
 import { normalizeTransaction } from './helpers/adapters';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
+import { stashPreloadedActivityItem } from './preloadedActivityItemStore';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
   PerpsActivitySource,
@@ -290,6 +292,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     );
 
     const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+    const isTransactionsRedesignEnabled = useSelector(
+      selectIsTransactionsRedesignEnabled,
+    );
 
     /** Drop confirmed EVM rows not on a configured chain (guards stale query pages / removed networks). */
     const allConfirmedForConfiguredChains = useMemo<ActivityListItem[]>(() => {
@@ -756,6 +761,30 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         const { raw } = item;
         if (!raw) return;
 
+        // Redesigned details (flag-gated): route resolvable EVM / non-EVM rows
+        // to the new ActivityDetails screen, replacing the legacy detail sheets.
+        // Specialized flows (bridge) keep their dedicated
+        // screens until they get redesigned templates — ActivityDetails only
+        // resolves local/API/non-EVM/domain items, so it can't render those yet.
+        const hasDedicatedScreen =
+          raw.type === 'localTransaction' &&
+          raw.data.primaryTransaction?.type === TransactionType.bridge;
+        if (isTransactionsRedesignEnabled && item.hash && !hasDedicatedScreen) {
+          // Provider-backed rows (Perps / Predict) can't be re-resolved by hash
+          // outside their source tree, so hand the row off via the transient
+          // store and pass only its key in the (serializable) params.
+          const preloadKey =
+            raw.type === 'perpsTransaction' || raw.type === 'predictActivity'
+              ? stashPreloadedActivityItem(item)
+              : undefined;
+          navigation.navigate(Routes.ACTIVITY_DETAILS, {
+            chainId: item.chainId,
+            txIdentifier: item.hash,
+            ...(preloadKey ? { preloadKey } : {}),
+          });
+          return;
+        }
+
         const pressToken = (activityPressTokenRef.current += 1);
 
         // Perps rows route to the dedicated perps detail screens, mirroring the
@@ -922,6 +951,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       [
         bridgeHistory,
         getBridgeHistoryItemByHash,
+        isTransactionsRedesignEnabled,
         navigation,
         selectedAccountGroupEvmAddress,
         selectedInternalAccount?.address,
