@@ -2,7 +2,12 @@ import {
   Button as DSButton,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
+  ButtonBaseSize,
+  FilterButton,
   HeaderStandard,
+  SegmentedControl,
+  SelectButton,
+  SelectButtonVariant,
 } from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, {
@@ -12,13 +17,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import {
-  Modal,
-  Pressable,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Modal, ScrollView, TouchableOpacity, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -176,32 +175,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Get market price for grouping calculations (available immediately from markets data)
   // market.price is formatted like '$90,000.00' so we need to parse it
   const marketPrice = useMemo(() => {
-    if (!market?.price) return null;
-    // Remove $ and commas, then parse
-    const cleaned = market.price.replace(/[$,]/g, '');
+    if (market?.price == null || market.price === '') return null;
+    const cleaned = String(market.price).replace(/[$,]/g, '');
     const parsed = parseFloat(cleaned);
-    return isNaN(parsed) ? null : parsed;
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
   }, [market]);
-
-  // Calculate dynamic grouping options based on market price
-  const groupingOptions = useMemo(() => {
-    if (!marketPrice) return [];
-    return calculateGroupingOptions(marketPrice);
-  }, [marketPrice]);
-
-  // Current grouping value (use selected or auto-select default)
-  const currentGrouping = useMemo(() => {
-    if (
-      selectedGrouping !== null &&
-      groupingOptions.includes(selectedGrouping)
-    ) {
-      return selectedGrouping;
-    }
-    if (groupingOptions.length > 0) {
-      return selectDefaultGrouping(groupingOptions);
-    }
-    return null;
-  }, [selectedGrouping, groupingOptions]);
 
   // Subscribe to top-of-book (best bid/ask) for spread display.
   // This is intentionally independent from order book aggregation/grouping.
@@ -227,6 +205,49 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     // Fallback to static market price if live price not available or invalid
     return marketPrice ?? 0;
   }, [livePrices, symbol, marketPrice]);
+
+  // Price reference for grouping options — market list price may be unavailable
+  // on the order book screen while live stream prices are present.
+  const groupingReferencePrice = useMemo(() => {
+    if (marketPrice && marketPrice > 0) {
+      return marketPrice;
+    }
+    if (currentPrice > 0) {
+      return currentPrice;
+    }
+
+    const bidStr = topOfBook?.bestBid;
+    const askStr = topOfBook?.bestAsk;
+    if (bidStr && askStr) {
+      const bid = parseFloat(bidStr);
+      const ask = parseFloat(askStr);
+      if (Number.isFinite(bid) && Number.isFinite(ask) && bid > 0 && ask > 0) {
+        return (bid + ask) / 2;
+      }
+    }
+
+    return null;
+  }, [marketPrice, currentPrice, topOfBook]);
+
+  // Calculate dynamic grouping options based on reference price
+  const groupingOptions = useMemo(() => {
+    if (!groupingReferencePrice) return [];
+    return calculateGroupingOptions(groupingReferencePrice);
+  }, [groupingReferencePrice]);
+
+  // Current grouping value (use selected or auto-select default)
+  const currentGrouping = useMemo(() => {
+    if (
+      selectedGrouping !== null &&
+      groupingOptions.includes(selectedGrouping)
+    ) {
+      return selectedGrouping;
+    }
+    if (groupingOptions.length > 0) {
+      return selectDefaultGrouping(groupingOptions);
+    }
+    return null;
+  }, [selectedGrouping, groupingOptions]);
 
   const spreadMetrics = useMemo(() => {
     const bidStr = topOfBook?.bestBid;
@@ -257,9 +278,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   // Calculate aggregation params (nSigFigs + mantissa) based on grouping
   const aggregationParams = useMemo(() => {
-    if (!marketPrice || !currentGrouping) return { nSigFigs: 5 as const };
-    return calculateAggregationParams(currentGrouping, marketPrice);
-  }, [currentGrouping, marketPrice]);
+    if (!groupingReferencePrice || !currentGrouping) {
+      return { nSigFigs: 5 as const };
+    }
+    return calculateAggregationParams(currentGrouping, groupingReferencePrice);
+  }, [currentGrouping, groupingReferencePrice]);
 
   // Subscribe to live order book data with dynamic nSigFigs and mantissa
   // These parameters match Hyperliquid's API for consistent price aggregation
@@ -327,6 +350,25 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     setIsDepthBandSheetVisible(true);
   }, []);
 
+  const groupingSelectButton = useMemo(
+    () => (
+      <View style={styles.groupingSelectButtonAccessory}>
+        <SelectButton
+          testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON}
+          variant={SelectButtonVariant.Primary}
+          placeholder={currentGroupingLabel}
+          value={currentGroupingLabel}
+          onPress={handleDepthBandPress}
+        />
+      </View>
+    ),
+    [
+      currentGroupingLabel,
+      handleDepthBandPress,
+      styles.groupingSelectButtonAccessory,
+    ],
+  );
+
   // Handle grouping selection
   const handleGroupingSelect = useCallback(
     (value: number) => {
@@ -347,6 +389,12 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const handleDepthBandSheetClose = useCallback(() => {
     setIsDepthBandSheetVisible(false);
   }, []);
+
+  useEffect(() => {
+    if (isDepthBandSheetVisible) {
+      depthBandSheetRef.current?.onOpenBottomSheet();
+    }
+  }, [isDepthBandSheetVisible]);
 
   // Handle tooltip press
   const handleTooltipPress = useCallback(
@@ -523,6 +571,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             market={market}
             onBackPress={handleBack}
             currentPrice={currentPrice}
+            endAccessory={groupingSelectButton}
           />
         ) : (
           <HeaderStandard
@@ -555,67 +604,32 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
           market={market}
           onBackPress={handleBack}
           currentPrice={currentPrice}
+          endAccessory={groupingSelectButton}
         />
       )}
 
-      {/* Controls Row - Unit Toggle and Grouping */}
+      {/* Controls Row - Unit Toggle */}
       <View style={styles.controlsRow}>
-        {/* Unit Toggle (BTC/USD) */}
-        <View style={styles.headerUnitToggle}>
-          <TouchableOpacity
-            style={[
-              styles.headerUnitButton,
-              unitDisplay === 'base' && styles.headerUnitButtonActive,
-            ]}
-            onPress={() => handleUnitChange('base')}
+        <SegmentedControl
+          testID={PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE}
+          value={unitDisplay}
+          onChange={(value) => handleUnitChange(value as UnitDisplay)}
+          isFullWidth
+          size={ButtonBaseSize.Sm}
+        >
+          <FilterButton
+            value="base"
             testID={PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_BASE}
           >
-            <Text
-              variant={TextVariant.BodySM}
-              color={
-                unitDisplay === 'base' ? TextColor.Inverse : TextColor.Default
-              }
-            >
-              {displaySymbol}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.headerUnitButton,
-              unitDisplay === 'usd' && styles.headerUnitButtonActive,
-            ]}
-            onPress={() => handleUnitChange('usd')}
+            {displaySymbol}
+          </FilterButton>
+          <FilterButton
+            value="usd"
             testID={PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_USD}
           >
-            <Text
-              variant={TextVariant.BodySM}
-              color={
-                unitDisplay === 'usd' ? TextColor.Inverse : TextColor.Default
-              }
-            >
-              USD
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Price Grouping Dropdown */}
-        <Pressable
-          style={({ pressed }) => [
-            styles.depthBandButton,
-            pressed && styles.depthBandButtonPressed,
-          ]}
-          onPress={handleDepthBandPress}
-          testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON}
-        >
-          <Text variant={TextVariant.BodySM} color={TextColor.Default}>
-            {currentGroupingLabel}
-          </Text>
-          <Icon
-            name={IconName.ArrowDown}
-            size={IconSize.Xs}
-            color={IconColor.Alternative}
-          />
-        </Pressable>
+            USD
+          </FilterButton>
+        </SegmentedControl>
       </View>
 
       {/* Content */}

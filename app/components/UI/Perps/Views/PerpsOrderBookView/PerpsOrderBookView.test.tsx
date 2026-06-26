@@ -229,9 +229,11 @@ jest.mock('../../components/PerpsMarketHeader', () => {
     default: ({
       market,
       onBackPress,
+      endAccessory,
     }: {
       market?: { symbol: string };
       onBackPress?: () => void;
+      endAccessory?: React.ReactNode;
     }) => (
       <View testID="perps-market-header">
         <TouchableOpacity
@@ -242,6 +244,7 @@ jest.mock('../../components/PerpsMarketHeader', () => {
         </TouchableOpacity>
         <Text>Order Book</Text>
         {market && <Text>{market.symbol}</Text>}
+        {endAccessory}
       </View>
     ),
   };
@@ -538,10 +541,15 @@ describe('PerpsOrderBookView', () => {
         state: initialState,
       });
 
+      const baseToggle = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_BASE,
+      );
       const usdToggle = getByTestId(
         PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_USD,
       );
 
+      fireEvent.press(baseToggle);
+      mockTrack.mockClear();
       fireEvent.press(usdToggle);
 
       expect(mockTrack).toHaveBeenCalled();
@@ -1469,7 +1477,7 @@ describe('PerpsOrderBookView', () => {
   });
 
   describe('grouping with no market price', () => {
-    it('returns null grouping when market price is unavailable', () => {
+    it('derives grouping options from live price when market price is unavailable', async () => {
       const { usePerpsMarkets } = jest.requireMock('../../hooks');
       usePerpsMarkets.mockReturnValue({
         markets: [
@@ -1483,13 +1491,22 @@ describe('PerpsOrderBookView', () => {
         error: null,
       });
 
-      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
-        state: initialState,
-      });
+      const { getByTestId, getByText } = renderWithProvider(
+        <PerpsOrderBookView />,
+        {
+          state: initialState,
+        },
+      );
 
-      expect(
-        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
-      ).toBeOnTheScreen();
+      fireEvent.press(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(getByText('1')).toBeOnTheScreen();
+        expect(getByText('10')).toBeOnTheScreen();
+        expect(getByText('1000')).toBeOnTheScreen();
+      });
     });
 
     it('handles invalid market price format', () => {
