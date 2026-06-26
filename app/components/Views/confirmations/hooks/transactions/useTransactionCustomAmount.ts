@@ -78,9 +78,6 @@ export function useTransactionCustomAmount({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
-  ]);
   const tokenAddress = getTokenAddress(transactionMeta);
   const payTokenFiatRate =
     useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
@@ -206,14 +203,13 @@ export function useTransactionCustomAmount({
       // Do NOT set isMaxAmount=true for perps or money-account withdraw. TPC's
       // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw` when
       // isMaxAmount is true: wrong for HyperLiquid (wallet USDC vs typed HL
-      // balance) and wrong for money account (on-chain mUSD only vs mUSD +
-      // vmUSD fiat total). Keeping isMaxAmount false routes the typed
-      // amount through as token.amountRaw.
+      // balance) and wrong for money account withdraw (on-chain mUSD only vs
+      // mUSD + vmUSD fiat total). Keeping isMaxAmount false routes the typed
+      // amount through as token.amountRaw. Money-account DEPOSIT pays with a
+      // wallet token, so token.balanceRaw is correct and isMaxAmount=true is
+      // required for the controller to bridge the user's full balance.
       const shouldSetMax =
-        percentage === 100 &&
-        !isPerpsWithdraw &&
-        !isMoneyAccountWithdraw &&
-        !isMoneyAccountDeposit;
+        percentage === 100 && !isMoneyAccountWithdraw;
 
       if (shouldSetMax) {
         setIsMax(true);
@@ -228,7 +224,6 @@ export function useTransactionCustomAmount({
       isMaxAmount,
       isPerpsWithdraw,
       isMoneyAccountWithdraw,
-      isMoneyAccountDeposit,
       setIsMax,
       setConfirmationMetric,
     ],
