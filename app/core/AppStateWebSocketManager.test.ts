@@ -88,10 +88,11 @@ describe('AppStateWebSocketManager', () => {
     it('serialises rapid background→active→background: no concurrent calls, ends disconnected', async () => {
       // Simulate connect taking time so rapid changes can pile up.
       let resolveConnect!: () => void;
-      mockWebSocketService.connect.mockReturnValue(
-        new Promise<void>((res) => {
-          resolveConnect = res;
-        }),
+      mockWebSocketService.connect.mockImplementation(
+        () =>
+          new Promise<void>((res) => {
+            resolveConnect = res;
+          }),
       );
 
       new AppStateWebSocketManager(mockWebSocketService);
@@ -119,10 +120,11 @@ describe('AppStateWebSocketManager', () => {
 
     it('serialises rapid active→background→active: ends connected, connect called once', async () => {
       let resolveDisconnect!: () => void;
-      mockWebSocketService.disconnect.mockReturnValue(
-        new Promise<void>((res) => {
-          resolveDisconnect = res;
-        }),
+      mockWebSocketService.disconnect.mockImplementation(
+        () =>
+          new Promise<void>((res) => {
+            resolveDisconnect = res;
+          }),
       );
 
       new AppStateWebSocketManager(mockWebSocketService);
