@@ -173,7 +173,7 @@ export const useMoneyAccountCardLinkage =
     });
 
     const hasRequirements =
-      hasMoneyAccountBaseRequirements && isMoneyAccountCardSupported;
+      hasMoneyAccountBaseRequirements && Boolean(moneyAccountCardToken);
 
     const canSubmitDelegation = Boolean(
       hasRequirements &&

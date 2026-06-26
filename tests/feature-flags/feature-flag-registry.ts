@@ -88,7 +88,18 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       enabled: false,
-      minimumVersion: '7.72.0',
+      minimumVersion: '8.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  aiSocialLeaderboardPerpsEnabled: {
+    name: 'aiSocialLeaderboardPerpsEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.0.0',
     },
     status: FeatureFlagStatus.Active,
   },

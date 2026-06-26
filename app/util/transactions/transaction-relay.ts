@@ -31,8 +31,9 @@ export interface RelaySubmitResponse {
 }
 
 export interface RelayWaitResponse {
-  transactionHash?: Hex;
+  errorReason?: string;
   status: string;
+  transactionHash?: Hex;
 }
 
 export enum RelayStatus {
@@ -72,7 +73,7 @@ export async function submitRelayTransaction(
   }
 }
 
-export async function waitForRelayResult(
+export async function waitForRelaySuccess(
   request: RelayWaitRequest,
 ): Promise<RelayWaitResponse> {
   const { chainId, interval, uuid } = request;
@@ -91,6 +92,7 @@ export async function waitForRelayResult(
           try {
             const headers = await getSentinelApiHeadersAsync();
             const relayResult = await pollResult(url, headers);
+
             if (relayResult.status !== RelayStatus.Pending) {
               clearInterval(intervalId);
               resolve(relayResult);
@@ -102,6 +104,12 @@ export async function waitForRelayResult(
         }, interval);
       },
     );
+
+    const { status, errorReason } = waitResult;
+
+    if (status !== RelayStatus.Success) {
+      throw new Error(`Transaction failed - ${status} - ${errorReason}`);
+    }
 
     return waitResult;
   } catch (error) {
@@ -131,11 +139,20 @@ async function pollResult(
     );
   }
 
-  const data = await response.json();
-  const transaction = data?.transactions[0];
-  const { hash: transactionHash, status } = transaction || {};
+  const data = (await response.json()) ?? {};
+  const { transactions } = data || {};
+  const transaction = transactions?.[0] ?? {};
+
+  const {
+    hash: transactionHash,
+    status,
+    errorReason: rawErrorReason,
+  } = transaction;
+
+  const errorReason = rawErrorReason ?? 'Unknown error';
 
   return {
+    errorReason,
     status,
     transactionHash,
   };

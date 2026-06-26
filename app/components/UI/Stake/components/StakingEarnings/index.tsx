@@ -92,7 +92,7 @@ const StakingEarningsContent = ({ asset }: StakingEarningsProps) => {
               {strings('stake.annual_rate')}
             </Text>
             <ButtonIcon
-              size={ButtonIconSizes.Sm}
+              size={ButtonIconSizes.Xs}
               iconColor={IconColor.Muted}
               iconName={IconName.Info}
               accessibilityRole="button"

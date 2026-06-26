@@ -542,8 +542,25 @@ jest.mock('../../app/core/Engine/Engine.ts', () => {
 // Native deterministic version for gating logic
 jest.mock('react-native-device-info', () => ({
   __esModule: true,
-  getVersion: () => '99.0.0',
+  getVersion: jest.fn(() => '99.0.0'),
+  getBuildNumber: jest.fn(() => '999'),
+  getBrand: jest.fn(() => 'Apple'),
+  getApplicationName: jest.fn(() => Promise.resolve('MetaMask')),
 }));
+
+jest.mock(
+  '../../app/util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData',
+  () => ({
+    __esModule: true,
+    default: jest.fn(() => ({
+      platform: 'ios',
+      currentBuildNumber: '999',
+      applicationVersion: '99.0.0',
+      operatingSystemVersion: '17.0',
+      deviceBrand: 'Apple',
+    })),
+  }),
+);
 
 // Mock Animated Easing to avoid importing heavy bezier implementation during tests
 // and to prevent late imports after Jest environment teardown.

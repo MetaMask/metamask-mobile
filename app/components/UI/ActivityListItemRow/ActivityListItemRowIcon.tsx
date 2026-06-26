@@ -6,37 +6,9 @@ import Badge, {
 } from '../../../component-library/components/Badges/Badge';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import imageIcons from '../../../images/image-icons';
 import type { TokenAmount } from '../../../util/activity-adapters';
 import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
-
-function getTokenIconUrl(assetId: string | undefined): string | undefined {
-  if (!assetId) return undefined;
-
-  const formattedAssetId = assetId.startsWith('eip155:')
-    ? assetId.toLowerCase()
-    : assetId;
-
-  return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${formattedAssetId
-    .split(':')
-    .join('/')}.png`;
-}
-
-function getTokenImageSource(
-  token: TokenAmount | undefined,
-): ImageSourcePropType | undefined {
-  const symbol = token?.symbol;
-
-  if (symbol && Object.keys(imageIcons).includes(symbol)) {
-    const localIcon = imageIcons[symbol as keyof typeof imageIcons];
-    if (typeof localIcon !== 'function' && typeof localIcon !== 'string') {
-      return localIcon as ImageSourcePropType;
-    }
-  }
-
-  const iconUrl = getTokenIconUrl(token?.assetId);
-  return iconUrl ? { uri: iconUrl } : undefined;
-}
+import { getTokenImageSource } from './tokenIcon';
 
 function getImageUri(
   source: ImageSourcePropType | undefined,

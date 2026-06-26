@@ -30,7 +30,7 @@ import {
   resolveReceivingPriorityEntry,
 } from '../components/UI/Card/util/redeemDestination';
 import {
-  getVedaTokenConfig,
+  getVedaTokenConfigFromFeatureFlag,
   MONEY_ACCOUNT_DISPLAY_SYMBOL,
   type VedaTokenConfig,
 } from '../components/UI/Card/util/vedaToken';
@@ -168,9 +168,9 @@ export const selectCardHomeDataStatus = createSelector(
 );
 
 export const selectMoneyAccountVedaTokenConfig = createSelector(
-  selectCardHomeData,
-  (data): VedaTokenConfig | null =>
-    getVedaTokenConfig(data?.delegationSettings),
+  selectCardFeatureFlag,
+  (cardFeatureFlag): VedaTokenConfig | null =>
+    getVedaTokenConfigFromFeatureFlag(cardFeatureFlag?.chains),
 );
 
 export const selectCardCountryOfResidence = createSelector(

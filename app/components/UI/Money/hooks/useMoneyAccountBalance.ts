@@ -36,9 +36,29 @@ export const getLiveVedaVaultExchangeRate = async () =>
     .call('MoneyAccountBalanceService:getExchangeRate', { staleTime: 0 })
     .then(({ rate }) => rate);
 
+interface UseMoneyAccountBalanceResult {
+  moneyBalanceQuery: UseQueryResult<MoneyAccountBalanceResponse>;
+  vaultApyQuery: UseQueryResult<NormalizedVaultApyResponse>;
+  isBalanceLoading: boolean;
+  isBalanceFetchError: boolean;
+  isBalanceFetching: boolean;
+  isBalanceUnavailable: boolean;
+  lastKnownTotalFiatFormatted: string | undefined;
+  refetchBalance: () => void;
+  tokenTotal: BigNumber | undefined;
+  totalFiatFormatted: string | undefined;
+  totalFiatRaw: string | undefined;
+  withdrawableFiatFormatted: string | undefined;
+  withdrawableFiatRaw: string | undefined;
+  withdrawableMusd: BigNumber | undefined;
+  apyDecimal: number | undefined;
+  apyPercent: number | undefined;
+  apyPercentFormatted: string | undefined;
+}
+
 const useMoneyAccountBalance = (
   refetchInterval: number = DEFAULT_REFETCH_INTERVAL,
-) => {
+): UseMoneyAccountBalanceResult => {
   const dispatch = useDispatch();
   const { primaryMoneyAccount } = useMoneyAccountInfo();
   const moneyAccountAddress = primaryMoneyAccount?.address;
@@ -94,59 +114,66 @@ const useMoneyAccountBalance = (
     [moneyAccountAddress],
   );
 
-  const { tokenTotal, totalFiat, withdrawableMusd } = useMemo(() => {
-    // Total balance (mUSD + vmUSD) from the service's Multicall3 response.
-    const totalDecimal = moneyBalanceQuery.data?.totalBalance
-      ? new BigNumber(moneyBalanceQuery.data.totalBalance).shiftedBy(
-          -MUSD_DECIMALS,
-        )
-      : new BigNumber(0);
+  const { tokenTotal, totalFiat, withdrawableFiat, withdrawableMusd } =
+    useMemo(() => {
+      // Total balance (mUSD + vmUSD) from the service's Multicall3 response.
+      const totalDecimal = moneyBalanceQuery.data?.totalBalance
+        ? new BigNumber(moneyBalanceQuery.data.totalBalance).shiftedBy(
+            -MUSD_DECIMALS,
+          )
+        : new BigNumber(0);
 
-    // the withdrawable amount.
-    const vmusdDecimal = moneyBalanceQuery.data?.vmusdValueInMusd
-      ? new BigNumber(moneyBalanceQuery.data.vmusdValueInMusd).shiftedBy(
-          -MUSD_DECIMALS,
-        )
-      : new BigNumber(0);
+      // the withdrawable amount.
+      const vmusdDecimal = moneyBalanceQuery.data?.vmusdValueInMusd
+        ? new BigNumber(moneyBalanceQuery.data.vmusdValueInMusd).shiftedBy(
+            -MUSD_DECIMALS,
+          )
+        : new BigNumber(0);
 
-    // Undefined while loading or on error so callers can distinguish from a genuine zero.
-    const computedWithdrawableMusd =
-      isBalanceLoading || isBalanceFetchError ? undefined : vmusdDecimal;
+      // Undefined while loading or on error so callers can distinguish from a genuine zero.
+      const computedWithdrawableMusd =
+        isBalanceLoading || isBalanceFetchError ? undefined : vmusdDecimal;
 
-    const computedTokenTotal =
-      isBalanceLoading || isBalanceFetchError ? undefined : totalDecimal;
-
-    if (isMusdFiatRateMissing) {
-      // Undefined during loading or error so callers can distinguish from a genuine zero.
-      const settledTokenTotal =
+      const computedTokenTotal =
         isBalanceLoading || isBalanceFetchError ? undefined : totalDecimal;
 
+      if (isMusdFiatRateMissing) {
+        // Undefined during loading or error so callers can distinguish from a genuine zero.
+        const settledTokenTotal =
+          isBalanceLoading || isBalanceFetchError ? undefined : totalDecimal;
+
+        return {
+          musdFiat: undefined,
+          musdSHFvdFiat: undefined,
+          tokenTotal: settledTokenTotal,
+          // A zero balance is $0.00 regardless of the missing rate — 0 tokens
+          // convert to 0 fiat without one. Only a non-zero balance is genuinely
+          // unavailable when there's no rate to convert it.
+          totalFiat: settledTokenTotal?.isZero() ? new BigNumber(0) : undefined,
+          withdrawableFiat: computedWithdrawableMusd?.isZero()
+            ? new BigNumber(0)
+            : undefined,
+          withdrawableMusd: computedWithdrawableMusd,
+        };
+      }
+
       return {
-        musdFiat: undefined,
-        musdSHFvdFiat: undefined,
-        tokenTotal: settledTokenTotal,
-        // A zero balance is $0.00 regardless of the missing rate — 0 tokens
-        // convert to 0 fiat without one. Only a non-zero balance is genuinely
-        // unavailable when there's no rate to convert it.
-        totalFiat: settledTokenTotal?.isZero() ? new BigNumber(0) : undefined,
+        tokenTotal: computedTokenTotal,
+        totalFiat: isBalanceFetchError
+          ? undefined
+          : totalDecimal.times(musdFiatRate),
+        withdrawableFiat: isBalanceFetchError
+          ? undefined
+          : vmusdDecimal.times(musdFiatRate),
         withdrawableMusd: computedWithdrawableMusd,
       };
-    }
-
-    return {
-      tokenTotal: computedTokenTotal,
-      totalFiat: isBalanceFetchError
-        ? undefined
-        : totalDecimal.times(musdFiatRate),
-      withdrawableMusd: computedWithdrawableMusd,
-    };
-  }, [
-    isBalanceLoading,
-    isBalanceFetchError,
-    moneyBalanceQuery.data,
-    isMusdFiatRateMissing,
-    musdFiatRate,
-  ]);
+    }, [
+      isBalanceLoading,
+      isBalanceFetchError,
+      moneyBalanceQuery.data,
+      isMusdFiatRateMissing,
+      musdFiatRate,
+    ]);
 
   const totalFiatFormatted =
     !isBalanceFetchError && totalFiat
@@ -155,6 +182,16 @@ const useMoneyAccountBalance = (
 
   const totalFiatRaw =
     !isBalanceFetchError && totalFiat ? totalFiat.toString() : undefined;
+
+  const withdrawableFiatFormatted =
+    !isBalanceFetchError && withdrawableFiat
+      ? moneyFormatFiat(withdrawableFiat, currentCurrency)
+      : undefined;
+
+  const withdrawableFiatRaw =
+    !isBalanceFetchError && withdrawableFiat
+      ? withdrawableFiat.toString()
+      : undefined;
 
   // If the mUSD price is missing for a non-zero balance, refresh the mUSD price.
   useEffect(() => {
@@ -234,7 +271,14 @@ const useMoneyAccountBalance = (
       ? vaultApyOverride
       : (serviceApy ?? (shouldUseFallback ? vaultApyFallback : undefined));
 
-  const apyPercent = apyDecimal !== undefined ? apyDecimal * 100 : undefined;
+  const apyPercent =
+    apyDecimal !== undefined
+      ? new BigNumber(apyDecimal)
+          .multipliedBy(100)
+          .dp(1, BigNumber.ROUND_HALF_UP)
+          .toNumber()
+      : undefined;
+
   const apyPercentFormatted =
     apyPercent !== undefined ? `${apyPercent}%` : undefined;
 
@@ -250,6 +294,8 @@ const useMoneyAccountBalance = (
     tokenTotal,
     totalFiatFormatted,
     totalFiatRaw,
+    withdrawableFiatFormatted,
+    withdrawableFiatRaw,
     withdrawableMusd,
     apyDecimal,
     apyPercent,
