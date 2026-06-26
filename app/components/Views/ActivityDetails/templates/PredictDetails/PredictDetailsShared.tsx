@@ -137,13 +137,15 @@ export function PredictMarketContext({
 }
 
 export function ClaimWinningsBreakdown({
-  amount,
+  totalAmount,
+  marketAmount,
   title,
 }: {
-  amount: string | undefined;
+  totalAmount: string | undefined;
+  marketAmount?: string;
   title?: string;
 }) {
-  if (!amount) {
+  if (!totalAmount) {
     return null;
   }
 
@@ -157,7 +159,7 @@ export function ClaimWinningsBreakdown({
             fontWeight={FontWeight.Medium}
             color={TextColor.SuccessDefault}
           >
-            {amount}
+            {totalAmount}
           </Text>
         }
       />
@@ -183,7 +185,7 @@ export function ClaimWinningsBreakdown({
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
           >
-            {amount}
+            {marketAmount ?? totalAmount}
           </Text>
         </Box>
       ) : null}

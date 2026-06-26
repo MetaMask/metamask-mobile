@@ -85,9 +85,9 @@ describe('PredictDetailsShared', () => {
   });
 
   describe('ClaimWinningsBreakdown', () => {
-    it('renders nothing without an amount', () => {
+    it('renders nothing without a total amount', () => {
       const { queryByText } = renderWithProvider(
-        <ClaimWinningsBreakdown amount={undefined} title="x" />,
+        <ClaimWinningsBreakdown totalAmount={undefined} title="x" />,
       );
       expect(
         queryByText(strings('predict.transactions.total_net_pnl')),
@@ -96,7 +96,7 @@ describe('PredictDetailsShared', () => {
 
     it('renders only the total row when there is no title', () => {
       const { getByText, queryByText } = renderWithProvider(
-        <ClaimWinningsBreakdown amount="+$5.49" />,
+        <ClaimWinningsBreakdown totalAmount="+$5.49" />,
       );
       expect(
         getByText(strings('predict.transactions.total_net_pnl')),
@@ -104,13 +104,18 @@ describe('PredictDetailsShared', () => {
       expect(queryByText('•')).toBeNull();
     });
 
-    it('renders the market payout row when a title is present', () => {
-      const { getByText, getAllByText } = renderWithProvider(
-        <ClaimWinningsBreakdown amount="+$5.49" title="Market X" />,
+    it('renders the total and the distinct per-market payout row', () => {
+      const { getByText } = renderWithProvider(
+        <ClaimWinningsBreakdown
+          totalAmount="+$12.50"
+          marketAmount="+$4.25"
+          title="Market X"
+        />,
       );
+      expect(getByText('+$12.50')).toBeOnTheScreen();
       expect(getByText('•')).toBeOnTheScreen();
       expect(getByText('Market X')).toBeOnTheScreen();
-      expect(getAllByText('+$5.49')).toHaveLength(2);
+      expect(getByText('+$4.25')).toBeOnTheScreen();
     });
   });
 

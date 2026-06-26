@@ -69,8 +69,16 @@ export function PredictProviderActivityDetails({
       : undefined;
   const isClaim = entry.type === 'claimWinnings';
   const heroAmount = isClaim ? amount : undefined;
-  const signedClaimAmount = isClaim
-    ? formatCurrencyValue(entry.amount, { showSign: true })
+
+  const claimTotalAmount = isClaim
+    ? formatCurrencyValue(activity.totalNetPnlUsd ?? entry.amount, {
+        showSign: true,
+      })
+    : undefined;
+  const claimMarketAmount = isClaim
+    ? formatCurrencyValue(activity.netPnlUsd ?? entry.amount, {
+        showSign: true,
+      })
     : undefined;
   const polymarketUrl = getPolymarketActivityUrl(activity);
 
@@ -116,7 +124,8 @@ export function PredictProviderActivityDetails({
       details={
         isClaim ? (
           <ClaimWinningsBreakdown
-            amount={signedClaimAmount}
+            totalAmount={claimTotalAmount}
+            marketAmount={claimMarketAmount}
             title={activity.title}
           />
         ) : isSell && hasNetPnl ? (

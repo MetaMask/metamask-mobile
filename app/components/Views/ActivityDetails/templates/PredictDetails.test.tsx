@@ -193,6 +193,38 @@ describe('PredictDetails', () => {
     expect(getAllByText('+$5.49')).toHaveLength(3);
   });
 
+  it('uses totalNetPnlUsd / netPnlUsd for the claim breakdown rows when provided', () => {
+    const { getByText } = renderWithProvider(
+      <PredictDetails
+        item={predictItem({
+          type: 'predictionClaimWinnings',
+          raw: {
+            type: 'predictActivity',
+            data: {
+              id: 'predict-3b',
+              providerId: 'polymarket',
+              title: 'Han Duck-soo in jail by August 10?',
+              totalNetPnlUsd: 12.5,
+              netPnlUsd: 4.25,
+              entry: {
+                type: 'claimWinnings',
+                timestamp: 1_765_361_640,
+                amount: 5.49,
+              },
+            },
+          },
+        })}
+      />,
+    );
+
+    // Hero shows the gross claimed amount…
+    expect(getByText('+$5.49')).toBeOnTheScreen();
+    // …while the breakdown uses the dedicated P&L fields (total vs per-market),
+    // not the gross amount twice.
+    expect(getByText('+$12.50')).toBeOnTheScreen();
+    expect(getByText('+$4.25')).toBeOnTheScreen();
+  });
+
   it('renders funded account steps and fund-again CTA', () => {
     const { getByText } = renderWithProvider(
       <PredictDetails
