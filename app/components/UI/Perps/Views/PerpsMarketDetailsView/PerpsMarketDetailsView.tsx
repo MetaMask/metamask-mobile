@@ -693,7 +693,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     // Controller applies its own synchronous optimistic update (instant UI
     // feedback via Redux) and reverts internally on remote-write failure;
     // fire-and-forget here.
-    controller.toggleWatchlistMarket(market.symbol);
+    void controller.toggleWatchlistMarket(market.symbol);
 
     // Track watchlist toggle event
     const watchlistCount = controller.getWatchlistMarkets().length;
