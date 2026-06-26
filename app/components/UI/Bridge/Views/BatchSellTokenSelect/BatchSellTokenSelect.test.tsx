@@ -37,6 +37,7 @@ const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
 const mockOnSetRpcTarget = jest.fn();
 const mockOnNonEvmNetworkChange = jest.fn();
+const mockTrackBatchSellTokenPageContinueClicked = jest.fn();
 const mockUseTokensWithBalance = jest.fn();
 let mockDestinationStablecoins: BridgeToken[] = [];
 let mockDestinationStablecoinsByChain: Partial<
@@ -88,6 +89,12 @@ jest.mock('../../../../../core/Engine', () => ({
 
 jest.mock('../../hooks/useTrackBatchSellTokenPageViewed', () => ({
   useTrackBatchSellTokenPageViewed: jest.fn(),
+}));
+
+jest.mock('../../hooks/useTrackBatchSellTokenPageContinueClicked', () => ({
+  useTrackBatchSellTokenPageContinueClicked: jest.fn(
+    () => mockTrackBatchSellTokenPageContinueClicked,
+  ),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -901,6 +908,9 @@ describe('BatchSellTokenSelect', () => {
         destToken: BridgeTokenMetadata[stablecoinAssetId],
       },
     });
+    expect(mockTrackBatchSellTokenPageContinueClicked).toHaveBeenCalledWith([
+      selectedToken,
+    ]);
   });
 
   it('dispatches Batch Sell Redux handoff data for multi-token Continue', () => {
@@ -923,6 +933,10 @@ describe('BatchSellTokenSelect', () => {
     mockDispatch.mockClear();
     fireEvent.press(getByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON));
 
+    expect(mockTrackBatchSellTokenPageContinueClicked).toHaveBeenCalledWith([
+      firstToken,
+      secondToken,
+    ]);
     expect(mockDispatch).toHaveBeenNthCalledWith(1, {
       type: 'bridge/setBatchSellSourceTokens',
       payload: [firstToken, secondToken],

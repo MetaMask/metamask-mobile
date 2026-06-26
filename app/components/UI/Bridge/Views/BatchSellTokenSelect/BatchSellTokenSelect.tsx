@@ -81,6 +81,7 @@ import { normalizeTokenAddress } from '../../utils/tokenUtils';
 import { useBatchSellTokens } from './useBatchSellTokens';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { useTrackBatchSellTokenPageViewed } from '../../hooks/useTrackBatchSellTokenPageViewed';
+import { useTrackBatchSellTokenPageContinueClicked } from '../../hooks/useTrackBatchSellTokenPageContinueClicked';
 import type { BatchSellTokenSelectRouteParams } from './types';
 
 const getTokenKey = (token: BridgeToken) =>
@@ -183,6 +184,10 @@ export function BatchSellTokenSelect() {
     location: batchSellLocation,
     sortedEligibleChains,
   });
+  const trackBatchSellTokenPageContinueClicked =
+    useTrackBatchSellTokenPageContinueClicked({
+      location: batchSellLocation,
+    });
 
   const [selectedChainId, setSelectedChainId] = useState<
     CaipChainId | undefined
@@ -331,8 +336,15 @@ export function BatchSellTokenSelect() {
       return;
     }
 
-    if (selectedTokens.length === 1) {
-      const sourceToken = selectedTokens[0];
+    const orderedSelectedTokens = sortBatchSellTokens(
+      selectedTokens,
+      tokenSortDirection,
+    );
+
+    trackBatchSellTokenPageContinueClicked(orderedSelectedTokens);
+
+    if (orderedSelectedTokens.length === 1) {
+      const sourceToken = orderedSelectedTokens[0];
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.HIGH_RATE_ALERT_MODAL,
         params: {
@@ -345,11 +357,6 @@ export function BatchSellTokenSelect() {
       });
       return;
     }
-
-    const orderedSelectedTokens = sortBatchSellTokens(
-      selectedTokens,
-      tokenSortDirection,
-    );
 
     // Batch Sell picks a source chain in this screen without updating the wallet's
     // active network. Switch now so STX/gas checks and submit use the source chain
@@ -400,6 +407,7 @@ export function BatchSellTokenSelect() {
     onNonEvmNetworkChange,
     onSetRpcTarget,
     selectedTokens,
+    trackBatchSellTokenPageContinueClicked,
     tokenSortDirection,
   ]);
 
