@@ -1236,13 +1236,19 @@ describe('ActivityList', () => {
     render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
     fireEvent.press(screen.getByTestId('row-perps-fill-2'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
+    // Params stay serializable; the row is handed off via the store by key.
+    const call = mockNavigate.mock.calls.find(
+      ([route]) => route === Routes.ACTIVITY_DETAILS,
+    );
+    const params = call?.[1] as
+      | { chainId: string; txIdentifier: string; preloadKey?: string }
+      | undefined;
+    expect(params).toEqual({
       chainId: 'eip155:42161',
       txIdentifier: 'perps-fill-2',
+      preloadKey: expect.any(String),
     });
-    expect(getPreloadedActivityItem('eip155:42161', 'perps-fill-2')).toEqual(
-      perpsItem,
-    );
+    expect(getPreloadedActivityItem(params?.preloadKey)).toEqual(perpsItem);
     expect(mockNavigate).not.toHaveBeenCalledWith(
       'PerpsPositionTransaction',
       expect.anything(),

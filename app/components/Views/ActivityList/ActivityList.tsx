@@ -109,7 +109,7 @@ import {
 } from './helpers/transformations';
 import { normalizeTransaction } from './helpers/adapters';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
-import { setPreloadedActivityItem } from './preloadedActivityItemStore';
+import { stashPreloadedActivityItem } from './preloadedActivityItemStore';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
   PerpsActivitySource,
@@ -770,15 +770,17 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           raw.type === 'localTransaction' &&
           raw.data.primaryTransaction?.type === TransactionType.bridge;
         if (isTransactionsRedesignEnabled && item.hash && !hasDedicatedScreen) {
-          if (
-            raw.type === 'perpsTransaction' ||
-            raw.type === 'predictActivity'
-          ) {
-            setPreloadedActivityItem(item);
-          }
+          // Provider-backed rows (Perps / Predict) can't be re-resolved by hash
+          // outside their source tree, so hand the row off via the transient
+          // store and pass only its key in the (serializable) params.
+          const preloadKey =
+            raw.type === 'perpsTransaction' || raw.type === 'predictActivity'
+              ? stashPreloadedActivityItem(item)
+              : undefined;
           navigation.navigate(Routes.ACTIVITY_DETAILS, {
             chainId: item.chainId,
             txIdentifier: item.hash,
+            ...(preloadKey ? { preloadKey } : {}),
           });
           return;
         }

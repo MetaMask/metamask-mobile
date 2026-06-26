@@ -30,8 +30,11 @@ import { TemplateLoader } from './templates/TemplateLoader';
 const ActivityDetails = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { chainId, txIdentifier } = useParams<ActivityDetailsParams>();
-  const preloadedItem = getPreloadedActivityItem(chainId, txIdentifier);
+  const { chainId, txIdentifier, preloadKey } =
+    useParams<ActivityDetailsParams>();
+  // Provider-backed rows (Perps / Predict) are handed off via a transient store
+  // keyed by `preloadKey`, so route params stay serializable.
+  const preloadedItem = getPreloadedActivityItem(preloadKey);
 
   const item = useActivityDetailsItem(txIdentifier, chainId, preloadedItem);
   const title = item

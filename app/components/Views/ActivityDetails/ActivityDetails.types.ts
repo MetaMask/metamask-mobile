@@ -16,6 +16,12 @@ export interface ActivityDetailsParams {
   chainId: CaipChainId;
   /** Transaction identifier — the transaction hash (lowercased on lookup). */
   txIdentifier?: string;
+  /**
+   * Key into the transient `preloadedActivityItemStore` for provider-backed
+   * rows (Perps / Predict) that can't be re-resolved by hash. Serializable; the
+   * row object itself is held out-of-band in the store.
+   */
+  preloadKey?: string;
 }
 
 /** Props shared by every per-type details template. */

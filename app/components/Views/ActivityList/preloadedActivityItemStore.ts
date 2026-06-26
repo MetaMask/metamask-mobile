@@ -1,35 +1,37 @@
 import type { ActivityListItem } from '../../../util/activity-adapters';
 
 /**
- * Transient, in-memory hand-off for provider-backed Activity rows (Perps /
- * Predict) that can't be re-resolved by hash outside their source/provider tree.
- *
- * The row is stashed here right before navigating to ActivityDetails so that
- * navigation params stay serializable (only `chainId` + `txIdentifier`) — large
- * row objects never enter the navigation state.
- *
- * Intentionally NOT persisted: on a cold start / state restoration the store is
- * empty and the details screen falls back to its normal by-identifier
- * resolution, which is the not-found state for provider-backed rows — the same
- * limitation that motivated the hand-off in the first place.
+ * Transient hand-off for provider-backed Activity rows (Perps / Predict) that
+ * can't be re-resolved by hash. The row is stashed before navigating and only
+ * its unique key rides in the navigation params, so params stay serializable.
+ * A per-navigation key (not chainId+hash) means a later open of the same tx
+ * can't pick up a stale row. Not persisted — a cold start falls back to normal
+ * resolution.
  */
-const keyOf = (chainId?: string, txIdentifier?: string): string =>
-  `${chainId ?? ''}:${txIdentifier?.toLowerCase() ?? ''}`;
 
+// Cap the cache so it can't grow unbounded over a session.
+const MAX_ENTRIES = 10;
+
+let nextKey = 0;
 const preloadedItems = new Map<string, ActivityListItem>();
 
-/** Stash a provider-backed row (keyed by chain + hash) before navigating. */
-export function setPreloadedActivityItem(item: ActivityListItem): void {
-  if (!item.hash) {
-    return;
+/** Stash a row; returns the key to pass as `ActivityDetailsParams.preloadKey`. */
+export function stashPreloadedActivityItem(item: ActivityListItem): string {
+  const key = String((nextKey += 1));
+  if (preloadedItems.size >= MAX_ENTRIES) {
+    // Evict the oldest entry (Map keeps insertion order).
+    const oldest = preloadedItems.keys().next().value;
+    if (oldest !== undefined) {
+      preloadedItems.delete(oldest);
+    }
   }
-  preloadedItems.set(keyOf(item.chainId, item.hash), item);
+  preloadedItems.set(key, item);
+  return key;
 }
 
-/** Retrieve a previously-stashed row for the ActivityDetails screen. */
+/** Get a stashed row by its navigation-param key. */
 export function getPreloadedActivityItem(
-  chainId?: string,
-  txIdentifier?: string,
+  key?: string,
 ): ActivityListItem | undefined {
-  return preloadedItems.get(keyOf(chainId, txIdentifier));
+  return key ? preloadedItems.get(key) : undefined;
 }
