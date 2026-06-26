@@ -348,6 +348,10 @@ export interface PredictActivity {
   title?: string;
   outcome?: string;
   icon?: string;
+  slug?: string;
+  eventSlug?: string;
+  netPnlUsd?: number;
+  totalNetPnlUsd?: number;
 }
 
 export type PredictActivityEntry =

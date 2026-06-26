@@ -252,7 +252,6 @@ describe('multichain/tron', () => {
       });
 
       const result = await tronAdapter.handleRequest({
-        origin: 'channelId',
         connectedAddresses: ['tron:0x2b6653dc:TTestAddress' as CaipAccountId],
         scope: 'tron:728126428' as CaipChainId,
         requestId: 1,
@@ -269,7 +268,6 @@ describe('multichain/tron', () => {
       });
 
       expect(mockedCallTronSnap).toHaveBeenCalledWith({
-        origin: 'channelId',
         connectedAddresses: ['tron:728126428:TTestAddress'],
         scope: 'tron:728126428',
         requestId: 1,
@@ -290,13 +288,12 @@ describe('multichain/tron', () => {
       });
     });
 
-    it('passes the dapp origin to the Snap routing service when provided', async () => {
+    it('does not forward any dapp origin to the Snap routing service', async () => {
       mockedCallTronSnap.mockResolvedValue({
         signature: '0xsig',
       });
 
       await tronAdapter.handleRequest({
-        origin: 'channelId',
         connectedAddresses: ['tron:0x2b6653dc:TTestAddress' as CaipAccountId],
         scope: 'tron:728126428' as CaipChainId,
         requestId: 1,
@@ -309,17 +306,18 @@ describe('multichain/tron', () => {
 
       expect(mockedCallTronSnap).toHaveBeenCalledWith(
         expect.objectContaining({
-          origin: 'channelId',
           connectedAddresses: ['tron:728126428:TTestAddress'],
           scope: 'tron:728126428',
           requestId: 1,
         }),
       );
+      expect(mockedCallTronSnap).toHaveBeenCalledWith(
+        expect.not.objectContaining({ origin: expect.anything() }),
+      );
     });
 
     it('rejects unsupported WalletConnect methods', async () => {
       const args = {
-        origin: 'channelId',
         connectedAddresses: [] as CaipAccountId[],
         scope: 'tron:728126428' as CaipChainId,
         requestId: 1,
