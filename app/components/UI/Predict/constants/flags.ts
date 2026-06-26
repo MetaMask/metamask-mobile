@@ -30,6 +30,7 @@ export const DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG: PredictExtendedSportsMarketsF
     enabled: false,
     minimumVersion: '',
     leagues: [],
+    enabledSportsMarketTypes: [],
   };
 
 export const DEFAULT_MARKET_HIGHLIGHTS_FLAG: PredictMarketHighlightsFlag = {
@@ -45,9 +46,9 @@ export const DEFAULT_HOT_TAB_FLAG: PredictHotTabFlag = {
   minimumVersion: '7.64.0',
 };
 
-export const PREDICT_WORLD_CUP_DEFAULT_SERIES_ID = '11433';
 export const PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG = 'fifa-world-cup';
 export const PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID = '100639';
+export const PREDICT_WORLD_CUP_DEFAULT_WINNER_EVENT_ID = '30615';
 
 export const DEFAULT_PREDICT_WORLD_CUP_FLAG: PredictWorldCupConfig = {
   enabled: false,
@@ -55,8 +56,10 @@ export const DEFAULT_PREDICT_WORLD_CUP_FLAG: PredictWorldCupConfig = {
   showMainFeedBanner: false,
   showMainFeedTab: false,
   showWorldCupScreen: false,
-  seriesId: PREDICT_WORLD_CUP_DEFAULT_SERIES_ID,
+  showHubV2: false,
+  showHubBanner: false,
   tagSlug: PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
   gamesTagId: PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID,
+  winnerEventId: PREDICT_WORLD_CUP_DEFAULT_WINNER_EVENT_ID,
   stages: [],
 };

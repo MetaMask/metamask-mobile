@@ -28,12 +28,14 @@ describe('resolvePredictFeatureFlags', () => {
       feeCollection: DEFAULT_FEE_COLLECTION_FLAG,
       liveSportsLeagues: [],
       extendedSportsMarketsLeagues: [],
+      enabledSportsMarketTypes: [],
       marketHighlightsFlag: DEFAULT_MARKET_HIGHLIGHTS_FLAG,
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
       predictUpDownEnabled: false,
       predictPortfolioEnabled: false,
-      predictHomepageDiscoveryNbaChampionEnabled: true,
+      predictHomeRedesignEnabled: false,
+      predictSportCardLivePricesEnabled: true,
       predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
     });
   });
@@ -93,6 +95,31 @@ describe('resolvePredictFeatureFlags', () => {
       enabled: true,
       minimumVersion: '1.0.0',
       highlights: [{ category: 'sports', markets: ['1', '2'] }],
+    };
+
+    const result = resolvePredictFeatureFlags({
+      remoteFeatureFlags: {
+        predictMarketHighlights: marketHighlights,
+      },
+    });
+
+    expect(result.marketHighlightsFlag).toEqual(marketHighlights);
+  });
+
+  it('passes through series ids on market highlights entries unchanged', () => {
+    mockValidatedVersionGatedFeatureFlag.mockImplementationOnce(() => true);
+
+    const marketHighlights = {
+      enabled: true,
+      minimumVersion: '1.0.0',
+      highlights: [
+        {
+          category: 'crypto',
+          markets: ['direct-1'],
+          series: ['series-1', 'series-2'],
+        },
+        { category: 'sports', series: ['series-3'] },
+      ],
     };
 
     const result = resolvePredictFeatureFlags({
@@ -191,11 +218,11 @@ describe('resolvePredictFeatureFlags', () => {
     expect(result.predictWithAnyTokenEnabled).toBe(false);
   });
 
-  describe('predictHomepageDiscoveryNbaChampionEnabled', () => {
-    it('defaults to true to preserve the NBA champion discovery row', () => {
+  describe('predictSportCardLivePricesEnabled', () => {
+    it('defaults to true so sport cards fetch live prices by default', () => {
       const result = resolvePredictFeatureFlags({});
 
-      expect(result.predictHomepageDiscoveryNbaChampionEnabled).toBe(true);
+      expect(result.predictSportCardLivePricesEnabled).toBe(true);
     });
 
     it('returns false when the remote flag is disabled and version gate passes', () => {
@@ -213,14 +240,14 @@ describe('resolvePredictFeatureFlags', () => {
 
       const result = resolvePredictFeatureFlags({
         remoteFeatureFlags: {
-          predictHomepageDiscoveryNbaChampionEnabled: {
+          predictSportCardLivePrices: {
             enabled: false,
             minimumVersion: '1.0.0',
           },
         },
       });
 
-      expect(result.predictHomepageDiscoveryNbaChampionEnabled).toBe(false);
+      expect(result.predictSportCardLivePricesEnabled).toBe(false);
     });
   });
 
@@ -233,7 +260,7 @@ describe('resolvePredictFeatureFlags', () => {
 
     it('falls back to default disabled config when version gate fails', () => {
       mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (flag && typeof flag === 'object' && 'seriesId' in flag) {
+        if (flag && typeof flag === 'object' && 'tagSlug' in flag) {
           return false;
         }
         return undefined;
@@ -257,7 +284,7 @@ describe('resolvePredictFeatureFlags', () => {
 
     it('parses config with defaults when version gate passes', () => {
       mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
-        if (flag && typeof flag === 'object' && 'seriesId' in flag) {
+        if (flag && typeof flag === 'object' && 'tagSlug' in flag) {
           return true;
         }
         return undefined;
@@ -338,7 +365,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return true;
         }
@@ -364,7 +391,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return false;
         }
@@ -403,7 +430,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return false;
         }
@@ -429,7 +456,7 @@ describe('resolvePredictFeatureFlags', () => {
           typeof flag === 'object' &&
           'minimumVersion' in flag &&
           !('leagues' in flag) &&
-          !('seriesId' in flag)
+          !('tagSlug' in flag)
         ) {
           return true;
         }
@@ -449,6 +476,134 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.predictPortfolioEnabled).toBe(true);
+    });
+  });
+
+  describe('predictHomeRedesignEnabled', () => {
+    it('returns false when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictHomeRedesignEnabled).toBe(false);
+    });
+
+    it('returns true when enabled and version gate passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(true);
+    });
+
+    it('returns false when flag is disabled', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(false);
+    });
+
+    it('returns false when flag is malformed', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            enabled: 'true',
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(false);
+    });
+
+    it('returns false when version gate fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(false);
+    });
+
+    it('unwraps progressive rollout shape', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (
+          flag &&
+          typeof flag === 'object' &&
+          'minimumVersion' in flag &&
+          !('leagues' in flag) &&
+          !('tagSlug' in flag)
+        ) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictHomeRedesign: {
+            name: 'group-a',
+            value: {
+              enabled: true,
+              minimumVersion: '1.0.0',
+            },
+          },
+        },
+      });
+
+      expect(result.predictHomeRedesignEnabled).toBe(true);
     });
   });
 
@@ -568,6 +723,170 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.extendedSportsMarketsLeagues).toEqual([]);
+    });
+  });
+
+  describe('enabledSportsMarketTypes', () => {
+    it('returns empty array when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.enabledSportsMarketTypes).toEqual([]);
+    });
+
+    it('returns supported market types when enabledSportsMarketTypes is missing', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba'],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual([
+        'moneyline',
+        'spreads',
+        'totals',
+        'both_teams_to_score',
+        'soccer_first_to_score',
+        'team_totals',
+        'soccer_team_totals',
+        'basketball_team_to_score_first',
+        'soccer_exact_score',
+      ]);
+    });
+
+    it('returns empty array when enabledSportsMarketTypes is explicit empty array', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba'],
+            enabledSportsMarketTypes: [],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual([]);
+    });
+
+    it('returns empty array when flag is disabled', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            ...DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
+            enabled: false,
+            leagues: ['nba'],
+            enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual([]);
+    });
+
+    it('returns empty array when version check fails', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+            leagues: ['nba'],
+            enabledSportsMarketTypes: ['moneyline', 'spreads', 'totals'],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual([]);
+    });
+
+    it('returns filtered market types when enabled and version check passes', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba'],
+            enabledSportsMarketTypes: [
+              'moneyline',
+              'MONEYLINE',
+              'spreads',
+              'totals',
+              'first_half_moneyline',
+              'points',
+            ],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual([
+        'moneyline',
+        'spreads',
+        'totals',
+      ]);
+    });
+
+    it('applies local override over remote flag', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        Boolean(
+          flag &&
+            typeof flag === 'object' &&
+            'enabled' in flag &&
+            'leagues' in flag &&
+            (flag as { enabled: boolean }).enabled,
+        ),
+      );
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba'],
+            enabledSportsMarketTypes: ['moneyline', 'spreads'],
+          },
+        },
+        localOverrides: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['nba'],
+            enabledSportsMarketTypes: ['totals'],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual(['totals']);
     });
   });
 });

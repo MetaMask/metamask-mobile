@@ -147,12 +147,6 @@ export const selectPredictUpDownEnabledFlag = createSelector(
   (flags) => flags.predictUpDownEnabled,
 );
 
-export const selectPredictHomepageDiscoveryNbaChampionEnabledFlag =
-  createSelector(
-    selectPredictFeatureFlags,
-    (flags) => flags.predictHomepageDiscoveryNbaChampionEnabled,
-  );
-
 export const selectPredictWorldCupConfig = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictWorldCup,
@@ -178,9 +172,36 @@ export const selectPredictWorldCupScreenEnabledFlag = createSelector(
   (config) => config.enabled && config.showWorldCupScreen,
 );
 
+export const selectPredictWorldCupHubV2EnabledFlag = createSelector(
+  selectPredictWorldCupConfig,
+  (config) => config.enabled && config.showWorldCupScreen && config.showHubV2,
+);
+
+// The banner is only mounted inside the V2 hub (`PredictWorldCupHub`), so it
+// must also require `showHubV2`. Without this, enabling `showHubBanner` while
+// `showHubV2` is off would silently render nothing (the V1 hub has no banner).
+export const selectPredictWorldCupHubBannerEnabledFlag = createSelector(
+  selectPredictWorldCupConfig,
+  (config) =>
+    config.enabled &&
+    config.showWorldCupScreen &&
+    config.showHubV2 &&
+    config.showHubBanner,
+);
+
 export const selectPredictPortfolioEnabledFlag = createSelector(
   selectPredictFeatureFlags,
   (flags) => flags.predictPortfolioEnabled,
+);
+
+export const selectPredictHomeRedesignEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictHomeRedesignEnabled,
+);
+
+export const selectPredictSportCardLivePricesEnabledFlag = createSelector(
+  selectPredictFeatureFlags,
+  (flags) => flags.predictSportCardLivePricesEnabled,
 );
 
 export const selectPredictFeaturedCarouselEnabledFlag = createSelector(

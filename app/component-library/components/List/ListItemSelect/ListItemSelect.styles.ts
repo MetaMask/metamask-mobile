@@ -3,6 +3,7 @@ import { StyleSheet, ViewStyle } from 'react-native';
 
 // External dependencies.
 import { Theme } from '../../../../util/theme/models';
+import { getElevatedSurfaceColor } from '../../../../util/theme/themeUtils';
 
 // Internal dependencies.
 import { ListItemSelectStyleSheetVars } from './ListItemSelect.types';
@@ -28,6 +29,7 @@ const styleSheet = (params: {
         position: 'relative',
         opacity: isDisabled ? 0.5 : 1,
         borderRadius: 4,
+        backgroundColor: getElevatedSurfaceColor(theme),
       } as ViewStyle,
       style,
     ) as ViewStyle,

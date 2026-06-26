@@ -13,6 +13,8 @@ import { UseHeaderStandardAnimatedReturn } from './HeaderStandardAnimated.types'
  * Use with HeaderStandardAnimated placed outside the ScrollView as a sibling.
  * Use the returned onScroll with Animated.ScrollView for UI-thread scroll updates (zero lag).
  *
+ * @deprecated Please update your code to use `useHeaderStandardAnimated` from `@metamask/design-system-react-native`.
+ *
  * @returns Object containing scrollY, titleSectionHeightSv, setTitleSectionHeight, and onScroll.
  *
  * @example

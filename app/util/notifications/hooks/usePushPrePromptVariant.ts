@@ -7,6 +7,7 @@ import {
 } from '../../../selectors/onboarding';
 import { selectDataCollectionForMarketingEnabled } from '../../../selectors/engagement';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectAnalyticsEnabled } from '../../../selectors/analyticsController';
 import Logger from '../../Logger';
 import {
   hasPushPrePromptBeenShown,
@@ -31,6 +32,8 @@ interface PushPrePromptEligibility {
   canShowPrePrompt: boolean;
   hasPrePromptBeenShown: boolean;
   hasMarketingConsent: boolean;
+  isMarketingConsentResolutionPending: boolean;
+  isMetaMetricsEnabled: boolean;
   pendingSocialLoginMarketingConsentBackfill: string | null;
 }
 
@@ -38,12 +41,16 @@ const getResolutionKey = ({
   canShowPrePrompt,
   hasPrePromptBeenShown,
   hasMarketingConsent,
+  isMarketingConsentResolutionPending,
+  isMetaMetricsEnabled,
   pendingSocialLoginMarketingConsentBackfill,
 }: PushPrePromptEligibility) =>
   [
     `canShowPrePrompt:${canShowPrePrompt}`,
     `hasPrePromptBeenShown:${hasPrePromptBeenShown}`,
     `hasMarketingConsent:${hasMarketingConsent}`,
+    `isMarketingConsentResolutionPending:${isMarketingConsentResolutionPending}`,
+    `isMetaMetricsEnabled:${isMetaMetricsEnabled}`,
     `pendingSocialLoginMarketingConsentBackfill:${
       pendingSocialLoginMarketingConsentBackfill ?? 'null'
     }`,
@@ -96,7 +103,21 @@ const resolvePrePromptVariant = async (
     };
   }
 
-  if (eligibility.pendingSocialLoginMarketingConsentBackfill) {
+  // The marketing-consent sheet must never appear when MetaMetrics is off —
+  // confirming it would call enableMarketingConsent(), which is a no-op when
+  // metrics is off, so the sheet would achieve nothing. More importantly, we
+  // never want these sheets to be a backdoor to toggling MetaMetrics.
+  if (!eligibility.isMetaMetricsEnabled) {
+    return {
+      nativeOsPermissionEnabled,
+      variant: null,
+    };
+  }
+
+  if (
+    eligibility.isMarketingConsentResolutionPending ||
+    eligibility.pendingSocialLoginMarketingConsentBackfill
+  ) {
     return {
       nativeOsPermissionEnabled,
       variant: null,
@@ -145,9 +166,34 @@ export function usePushPrePromptVariant(): {
   const hasMarketingConsent = useSelector(
     selectDataCollectionForMarketingEnabled,
   );
+  const isMetaMetricsEnabled = Boolean(useSelector(selectAnalyticsEnabled));
   const pendingSocialLoginMarketingConsentBackfill = useSelector(
     selectPendingSocialLoginMarketingConsentBackfill,
   );
+
+  const [startupMarketingConsent, setStartupMarketingConsent] = useState<
+    boolean | null
+  >(() =>
+    pendingSocialLoginMarketingConsentBackfill ? null : hasMarketingConsent,
+  );
+
+  useEffect(() => {
+    if (
+      startupMarketingConsent !== null ||
+      pendingSocialLoginMarketingConsentBackfill
+    ) {
+      return;
+    }
+
+    setStartupMarketingConsent(hasMarketingConsent);
+  }, [
+    hasMarketingConsent,
+    pendingSocialLoginMarketingConsentBackfill,
+    startupMarketingConsent,
+  ]);
+
+  const isMarketingConsentResolutionPending = startupMarketingConsent === null;
+  const startupHasMarketingConsent = startupMarketingConsent === true;
 
   const canShowPrePrompt =
     Boolean(completedOnboarding) &&
@@ -167,13 +213,17 @@ export function usePushPrePromptVariant(): {
     () => ({
       canShowPrePrompt,
       hasPrePromptBeenShown,
-      hasMarketingConsent,
+      hasMarketingConsent: startupHasMarketingConsent,
+      isMarketingConsentResolutionPending,
+      isMetaMetricsEnabled,
       pendingSocialLoginMarketingConsentBackfill,
     }),
     [
       canShowPrePrompt,
       hasPrePromptBeenShown,
-      hasMarketingConsent,
+      isMarketingConsentResolutionPending,
+      isMetaMetricsEnabled,
+      startupHasMarketingConsent,
       pendingSocialLoginMarketingConsentBackfill,
     ],
   );

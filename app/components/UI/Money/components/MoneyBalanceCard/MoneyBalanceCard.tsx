@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef, useEffect } from 'react';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -26,149 +26,174 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../../component-library/hooks';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
-import { selectWalletHomeOnboardingFlowVisible } from '../../../../../selectors/onboarding';
+import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import styleSheet from './MoneyBalanceCard.styles';
 import { MoneyBalanceCardTestIds } from './MoneyBalanceCard.testIds';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
+import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
+import Logger from '../../../../../util/Logger';
+import {
+  SCREEN_NAMES,
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  MONEY_TOOLTIP_NAMES,
+  MONEY_TOOLTIP_TYPES,
+} from '../../constants/moneyEvents';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 
 const MoneyBalanceCard = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const hasSeenMoneyCardRef = useRef(false);
   const { styles } = useStyles(styleSheet, {});
   const {
     totalFiatRaw,
     totalFiatFormatted,
     apyPercent,
-    isAggregatedBalanceLoading,
+    isBalanceLoading,
     isBalanceFetchError,
     isBalanceFetching,
     refetchBalance,
     vaultApyQuery,
   } = useMoneyAccountBalance();
-  const { isMoneyAccountFeatureEnabled, hasMoneyAccount } =
-    useMoneyAccountInfo();
+  const { hasMoneyAccount } = useMoneyAccountInfo();
   const { navigateToMoneyHome } = useMoneyNavigation();
+  const { initiateDeposit } = useMoneyAccountDeposit();
   const hasSeenMoneyOnboarding = useSelector(selectMoneyOnboardingSeen);
+  const isOnboardingEnabled = useSelector(
+    selectMoneyOnboardingStepperAnimationEnabled,
+  );
   const hasOtherPrimaryCtaOnHome = useSelector(
-    selectWalletHomeOnboardingFlowVisible,
+    selectShouldShowWalletHomeOnboardingSteps,
   );
 
-  const isFeatureDisabled = !isMoneyAccountFeatureEnabled;
-  const isNoAccount = isMoneyAccountFeatureEnabled && !hasMoneyAccount;
+  const {
+    trackButtonClicked,
+    trackSurfaceClicked,
+    trackComponentViewed,
+    trackTooltipClicked,
+  } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.WALLET_HOME,
+    component_name: COMPONENT_NAMES.MONEY_BALANCE_CARD,
+  });
+
   const isRetrying =
-    !isFeatureDisabled &&
-    !isNoAccount &&
-    isBalanceFetchError &&
-    isBalanceFetching;
-  const isError =
-    !isFeatureDisabled &&
-    !isNoAccount &&
-    isBalanceFetchError &&
-    !isBalanceFetching;
+    hasMoneyAccount && isBalanceFetchError && isBalanceFetching;
+  const isError = hasMoneyAccount && isBalanceFetchError && !isBalanceFetching;
 
   // Queries succeeded (no error, not loading) but a dependency required to
   // format the balance (e.g. musdFiatRate) is missing.
   const isUnavailable =
-    !isFeatureDisabled &&
-    !isNoAccount &&
+    hasMoneyAccount &&
     !isBalanceFetchError &&
-    !isAggregatedBalanceLoading &&
+    !isBalanceLoading &&
     totalFiatFormatted === undefined;
 
   // Genuinely zero balance — distinct from unavailable.
   const isEmpty =
-    !isFeatureDisabled &&
-    !isNoAccount &&
+    hasMoneyAccount &&
     !isBalanceFetchError &&
     !isUnavailable &&
     totalFiatRaw === '0';
 
-  const isNewUser = isEmpty && !hasSeenMoneyOnboarding;
-
   const balanceText = totalFiatFormatted ?? '';
 
+  const buttonLabelKey = 'money.balance_card.add';
+  const buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
+
   let buttonVariant: ButtonVariant;
-  let buttonLabel: string;
-  let buttonTestId: string;
   let containerTestId: string;
 
-  if (isFeatureDisabled || isNoAccount || isError || isRetrying) {
+  if (!hasMoneyAccount || isError || isRetrying) {
     buttonVariant = ButtonVariant.Secondary;
-    buttonLabel = strings('money.balance_card.add');
-    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.ERROR_CONTAINER;
   } else if (isUnavailable) {
     buttonVariant = ButtonVariant.Secondary;
-    buttonLabel = strings('money.balance_card.add');
-    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.UNAVAILABLE_CONTAINER;
-  } else if (isNewUser) {
-    buttonVariant = hasOtherPrimaryCtaOnHome
-      ? ButtonVariant.Secondary
-      : ButtonVariant.Primary;
-    buttonLabel = strings(
-      hasOtherPrimaryCtaOnHome
-        ? 'homepage.sections.money_empty_state.get_started'
-        : 'homepage.sections.money_empty_state.earn',
-    );
-    buttonTestId = hasOtherPrimaryCtaOnHome
-      ? MoneyBalanceCardTestIds.GET_STARTED_BUTTON
-      : MoneyBalanceCardTestIds.EARN_BUTTON;
-    containerTestId = MoneyBalanceCardTestIds.NEW_USER_CONTAINER;
   } else if (isEmpty) {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    buttonLabel = strings('homepage.sections.money_empty_state.earn');
-    buttonTestId = MoneyBalanceCardTestIds.EARN_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.EMPTY_CONTAINER;
   } else {
     buttonVariant = hasOtherPrimaryCtaOnHome
       ? ButtonVariant.Secondary
       : ButtonVariant.Primary;
-    buttonLabel = strings('money.balance_card.add');
-    buttonTestId = MoneyBalanceCardTestIds.ADD_BUTTON;
     containerTestId = MoneyBalanceCardTestIds.FUNDED_CONTAINER;
   }
 
+  useEffect(() => {
+    if (hasSeenMoneyCardRef.current) {
+      return;
+    }
+    hasSeenMoneyCardRef.current = true;
+    trackComponentViewed();
+  }, [trackComponentViewed]);
+
   const handleCardPress = useCallback(() => {
+    trackSurfaceClicked({
+      redirect_target:
+        hasSeenMoneyOnboarding || !isOnboardingEnabled
+          ? SCREEN_NAMES.MONEY_HOME
+          : SCREEN_NAMES.MONEY_ONBOARDING,
+    });
     navigateToMoneyHome();
-  }, [navigateToMoneyHome]);
+  }, [
+    hasSeenMoneyOnboarding,
+    isOnboardingEnabled,
+    navigateToMoneyHome,
+    trackSurfaceClicked,
+  ]);
 
   const handleAddPress = useCallback(() => {
-    navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-      screen: Routes.MONEY.MODALS.ADD_MONEY_SHEET,
+    if (!hasSeenMoneyOnboarding && isOnboardingEnabled) {
+      trackButtonClicked({
+        button_type: MONEY_BUTTON_TYPES.TEXT,
+        button_intent: MONEY_BUTTON_INTENTS.GO_TO_MONEY_ONBOARDING,
+        label_key: buttonLabelKey,
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
+      navigation.navigate(Routes.MONEY.ONBOARDING);
+      return;
+    }
+
+    // Initiate deposit
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.ADD_MONEY,
+      label_key: buttonLabelKey,
+      redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
     });
-  }, [navigation]);
 
-  const handleGetStartedPress = useCallback(() => {
-    navigateToMoneyHome();
-  }, [navigateToMoneyHome]);
-
-  const handleButtonPress = isNewUser ? handleGetStartedPress : handleAddPress;
+    initiateDeposit().catch((error) =>
+      Logger.error(error as Error, {
+        message: '[MoneyBalanceCard] Failed to initiate deposit',
+      }),
+    );
+  }, [
+    hasSeenMoneyOnboarding,
+    initiateDeposit,
+    isOnboardingEnabled,
+    navigation,
+    trackButtonClicked,
+  ]);
 
   const handleInfoPress = useCallback(() => {
+    trackTooltipClicked({
+      tooltip_name: MONEY_TOOLTIP_NAMES.MONEY_BALANCE,
+      tooltip_type: MONEY_TOOLTIP_TYPES.INFO,
+    });
     navigation.navigate(Routes.MONEY.MODALS.ROOT, {
       screen: Routes.MONEY.MODALS.MONEY_BALANCE_INFO_SHEET,
     });
-  }, [navigation]);
+  }, [navigation, trackTooltipClicked]);
 
   const renderBalanceSlot = () => {
-    if (isFeatureDisabled) {
-      return (
-        <Text
-          variant={TextVariant.BodySm}
-          fontWeight={FontWeight.Medium}
-          color={TextColor.TextAlternative}
-          testID={MoneyBalanceCardTestIds.BALANCE_FEATURE_DISABLED}
-        >
-          {strings('money.balance_feature_disabled')}
-        </Text>
-      );
-    }
-    if (isNoAccount) {
+    if (!hasMoneyAccount) {
       return (
         <Text
           variant={TextVariant.BodySm}
@@ -180,7 +205,7 @@ const MoneyBalanceCard = () => {
         </Text>
       );
     }
-    if (isAggregatedBalanceLoading || isRetrying) {
+    if (isBalanceLoading || isRetrying) {
       return (
         <Skeleton
           height={24}
@@ -313,9 +338,9 @@ const MoneyBalanceCard = () => {
           testID={buttonTestId}
           variant={buttonVariant}
           size={ButtonSize.Md}
-          onPress={handleButtonPress}
+          onPress={handleAddPress}
         >
-          {buttonLabel}
+          {strings(buttonLabelKey)}
         </Button>
       </Box>
     </Pressable>

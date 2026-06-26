@@ -182,8 +182,9 @@ ${buildMoreInfoSection(buildInfo)}
   }
 
   // Add "What's in this RC" section (cherry-picks + changelog)
+  // Pass build number for unique anchor IDs (so Slack can link to correct comment)
   if (whatsInRc.result) {
-    const section = buildWhatsInRcSection(whatsInRc.result);
+    const section = buildWhatsInRcSection(whatsInRc.result, buildInfo.androidBuildNumber);
     if (section) {
       body += `---\n\n`;
       body += section;

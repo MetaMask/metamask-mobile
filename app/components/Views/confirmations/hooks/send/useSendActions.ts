@@ -114,6 +114,12 @@ export const useSendActions = () => {
   const handleCancelPress = useCallback(() => {
     captureSendExit();
 
+    // Exit the whole Send flow (main stack), not just the nested send screen.
+    const parentNavigation = navigation.getParent();
+    if (parentNavigation) {
+      parentNavigation.goBack();
+      return;
+    }
     navigation.goBack();
   }, [captureSendExit, navigation]);
 

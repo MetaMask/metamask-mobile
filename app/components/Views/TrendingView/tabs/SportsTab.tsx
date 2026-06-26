@@ -12,6 +12,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
   FontWeight,
+  SectionDivider,
   TabEmptyState,
   Text,
   TextColor,
@@ -25,15 +26,19 @@ import PredictMarket from '../../../UI/Predict/components/PredictMarket';
 import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 import { strings } from '../../../../../locales/i18n';
 import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
+import { useWorldCupPredictionsFeed } from '../feeds/predictions/useWorldCupPredictionsFeed';
 import {
   useSportsMarketsFeed,
   type UseSportsMarketsFeedResult,
 } from '../feeds/predictions/useSportsMarketsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import PredictionsSkeleton from '../feeds/predictions/PredictionsSkeleton';
-import { navigateToPredictionsList } from '../feeds/predictions/predictionsNavigation';
-import PillRow from '../components/PillRow';
+import {
+  navigateToExplorePredictionsList,
+  navigateToExploreWorldCupPredictions,
+} from '../feeds/predictions/predictionsNavigation';
 import SectionHeader from '../components/SectionHeader';
+import PillRow from '../components/PillRow';
 import type { TabProps } from '../hooks/useExploreRefresh';
 import {
   trackExploreInteracted,
@@ -51,6 +56,7 @@ interface SportsListHeaderProps {
   showSportsPredictions: boolean;
   sportsPredictionsData: PredictMarketType[];
   sportsPredictionsLoading: boolean;
+  showWorldCupPredictions: boolean;
   sportsMarkets: UseSportsMarketsFeedResult;
   showAllSportsSkeleton: boolean;
   showAllSportsEmpty: boolean;
@@ -61,39 +67,49 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
   showSportsPredictions,
   sportsPredictionsData,
   sportsPredictionsLoading,
+  showWorldCupPredictions,
   sportsMarkets,
   showAllSportsSkeleton,
   showAllSportsEmpty,
   navigation,
 }) => (
-  <Box twClassName="pt-3">
-    <PredictionsCarouselSection
-      feed={{
-        data: sportsPredictionsData,
-        isLoading: sportsPredictionsLoading,
-      }}
-      tabName="Sports"
-      sectionName="predictions_sports"
-      title={strings('trending.predictions')}
-      testIdPrefix="predict-sports-market-row-item"
-      idPrefix="sports_predictions"
-      onViewAll={() => navigateToPredictionsList(navigation, 'sports')}
-      isEnabled={showSportsPredictions}
-    />
+  <>
+    <Box twClassName={showSportsPredictions ? 'pb-3' : undefined}>
+      <PredictionsCarouselSection
+        feed={{
+          data: sportsPredictionsData,
+          isLoading: sportsPredictionsLoading,
+        }}
+        tabName="Sports"
+        sectionName="predictions_sports"
+        title={
+          showWorldCupPredictions
+            ? strings('predict.world_cup.predictions_title')
+            : strings('trending.predictions')
+        }
+        testIdPrefix="predict-sports-market-row-item"
+        idPrefix="sports_predictions"
+        onViewAll={() =>
+          showWorldCupPredictions
+            ? navigateToExploreWorldCupPredictions(navigation)
+            : navigateToExplorePredictionsList(navigation, 'sports')
+        }
+        isEnabled={showSportsPredictions}
+      />
+    </Box>
 
     <Box>
+      {showSportsPredictions ? <SectionDivider twClassName="-mx-4" /> : null}
       <SectionHeader
         title={strings('trending.all_sports')}
         testID="section-header-view-all-all_sports"
       />
-      <Box twClassName="mt-2">
-        <PillRow
-          pills={sportsMarkets.pills}
-          activeKey={sportsMarkets.activeKey}
-          onSelect={sportsMarkets.select}
-          testIdPrefix="all-sports"
-        />
-      </Box>
+      <PillRow
+        pills={sportsMarkets.pills}
+        activeKey={sportsMarkets.activeKey}
+        onSelect={sportsMarkets.select}
+        testIdPrefix="all-sports"
+      />
 
       {showAllSportsSkeleton && (
         <Box twClassName="gap-2">
@@ -116,7 +132,7 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
         </Box>
       )}
     </Box>
-  </Box>
+  </>
 );
 
 const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
@@ -125,7 +141,18 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
   const { colors } = useTheme();
 
-  const sportsPredictions = usePredictionsFeed({ variant: 'sports', refresh });
+  const worldCupPredictions = useWorldCupPredictionsFeed({
+    enabled: isPredictEnabled,
+    refresh,
+  });
+  const sportsPredictions = usePredictionsFeed({
+    variant: 'sports',
+    refresh,
+    enabled: !worldCupPredictions.isEnabled,
+  });
+  const displayedSportsPredictions = worldCupPredictions.isEnabled
+    ? worldCupPredictions
+    : sportsPredictions;
   const sportsMarkets = useSportsMarketsFeed({ refresh });
 
   const { active, activeKey } = sportsMarkets;
@@ -166,7 +193,8 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
 
   const showSportsPredictions =
     isPredictEnabled &&
-    (sportsPredictions.isLoading || sportsPredictions.data.length > 0);
+    (displayedSportsPredictions.isLoading ||
+      displayedSportsPredictions.data.length > 0);
   const showAllSportsSkeleton =
     active.isFetching && active.marketData.length === 0;
   const showAllSportsEmpty =
@@ -175,8 +203,9 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const listHeader = (
     <SportsListHeader
       showSportsPredictions={showSportsPredictions}
-      sportsPredictionsData={sportsPredictions.data}
-      sportsPredictionsLoading={sportsPredictions.isLoading}
+      sportsPredictionsData={displayedSportsPredictions.data}
+      sportsPredictionsLoading={displayedSportsPredictions.isLoading}
+      showWorldCupPredictions={worldCupPredictions.isEnabled}
       sportsMarkets={sportsMarkets}
       showAllSportsSkeleton={showAllSportsSkeleton}
       showAllSportsEmpty={showAllSportsEmpty}
@@ -213,7 +242,6 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       <Box twClassName="mb-9" />
     );
 
-  // When loading or empty, data is empty — header renders those states.
   const listData =
     showAllSportsSkeleton || showAllSportsEmpty ? [] : active.marketData;
 
@@ -227,7 +255,7 @@ const SportsTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
       ListFooterComponent={listFooter}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
-      contentContainerStyle={tw.style('px-4')}
+      contentContainerStyle={tw.style('px-4 pt-3 pb-4')}
       testID={`all-sports-list-${activeKey}`}
       refreshControl={
         <RefreshControl

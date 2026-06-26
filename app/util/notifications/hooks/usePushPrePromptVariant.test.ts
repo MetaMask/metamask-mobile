@@ -1,11 +1,17 @@
 import { act, waitFor } from '@testing-library/react-native';
 // eslint-disable-next-line import-x/no-namespace
+import * as AnalyticsControllerSelectors from '../../../selectors/analyticsController';
+// eslint-disable-next-line import-x/no-namespace
 import * as NotificationSelectors from '../../../selectors/notifications';
 // eslint-disable-next-line import-x/no-namespace
 import * as OnboardingSelectors from '../../../selectors/onboarding';
 // eslint-disable-next-line import-x/no-namespace
 import * as SettingsSelectors from '../../../selectors/settings';
-import { setCompletedOnboarding } from '../../../actions/onboarding';
+import {
+  setCompletedOnboarding,
+  setPendingSocialLoginMarketingConsentBackfill,
+} from '../../../actions/onboarding';
+import { setDataCollectionForMarketing } from '../../../actions/security';
 import { PUSH_PRE_PROMPT_SHOWN, TRUE } from '../../../constants/storage';
 import storageWrapper from '../../../store/storage-wrapper';
 import { renderHookWithProvider } from '../../test/renderWithProvider';
@@ -58,10 +64,12 @@ const arrangeSelectors = ({
   completedOnboarding = true,
   isFeatureFlagOn = true,
   isBasicFunctionalityEnabled = true,
+  isMetaMetricsEnabled = true,
 }: {
   completedOnboarding?: boolean;
   isFeatureFlagOn?: boolean;
   isBasicFunctionalityEnabled?: boolean;
+  isMetaMetricsEnabled?: boolean;
 } = {}) => {
   jest
     .spyOn(OnboardingSelectors, 'selectCompletedOnboarding')
@@ -75,6 +83,9 @@ const arrangeSelectors = ({
   jest
     .spyOn(SettingsSelectors, 'selectBasicFunctionalityEnabled')
     .mockReturnValue(isBasicFunctionalityEnabled);
+  jest
+    .spyOn(AnalyticsControllerSelectors, 'selectAnalyticsEnabled')
+    .mockReturnValue(isMetaMetricsEnabled);
 };
 
 const renderUsePushPrePromptVariant = ({
@@ -282,7 +293,7 @@ describe('usePushPrePromptVariant', () => {
     expect(mockResolveNativePushPermissionStatus).not.toHaveBeenCalled();
   });
 
-  it('returns the marketing consent prompt when OS push is enabled and Redux marketing consent is missing', async () => {
+  it('returns the marketing consent prompt when OS push is enabled and Redux marketing consent is not enabled', async () => {
     const { result } = renderUsePushPrePromptVariant();
 
     await waitFor(() => {
@@ -304,6 +315,28 @@ describe('usePushPrePromptVariant', () => {
     expect(result.current.nativeOsPermissionEnabled).toBe(true);
   });
 
+  it('does not show the marketing consent prompt when marketing consent is turned off after startup resolution', async () => {
+    const { result, store } = renderUsePushPrePromptVariant({
+      hasMarketingConsent: true,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+    expect(result.current.nativeOsPermissionEnabled).toBe(true);
+
+    await act(async () => {
+      store.dispatch(setDataCollectionForMarketing(false));
+    });
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+
+    expect(result.current.variant).toBeNull();
+  });
+
   it('defers the marketing consent prompt while social login marketing consent backfill is pending', async () => {
     const { result } = renderUsePushPrePromptVariant({
       pendingSocialLoginMarketingConsentBackfill: 'google',
@@ -315,6 +348,48 @@ describe('usePushPrePromptVariant', () => {
     expect(result.current.variant).toBeNull();
     expect(result.current.nativeOsPermissionEnabled).toBe(true);
     expect(mockResolveNativePushPermissionStatus).toHaveBeenCalledTimes(1);
+  });
+
+  it('returns the marketing consent prompt after social login marketing consent backfill clears without consent', async () => {
+    const { result, store } = renderUsePushPrePromptVariant({
+      pendingSocialLoginMarketingConsentBackfill: 'google',
+    });
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+
+    await act(async () => {
+      store.dispatch(setPendingSocialLoginMarketingConsentBackfill(null));
+    });
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('marketing_consent');
+    });
+    expect(result.current.nativeOsPermissionEnabled).toBe(true);
+  });
+
+  it('does not return the marketing consent prompt after social login marketing consent backfill clears with consent', async () => {
+    const { result, store } = renderUsePushPrePromptVariant({
+      pendingSocialLoginMarketingConsentBackfill: 'google',
+    });
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+
+    await act(async () => {
+      store.dispatch(setDataCollectionForMarketing(true));
+      store.dispatch(setPendingSocialLoginMarketingConsentBackfill(null));
+    });
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+    expect(result.current.nativeOsPermissionEnabled).toBe(true);
   });
 
   it('does not defer the push permission prompt for social login marketing consent backfill', async () => {
@@ -373,6 +448,67 @@ describe('usePushPrePromptVariant', () => {
     });
     expect(result.current.variant).toBeNull();
     expect(result.current.nativeOsPermissionEnabled).toBeNull();
+  });
+
+  it('does not return the marketing consent prompt when MetaMetrics is off', async () => {
+    // OS push is granted, no marketing consent, but MetaMetrics is off —
+    // the marketing-consent sheet must never appear in this state.
+    arrangeSelectors({ isMetaMetricsEnabled: false });
+
+    const { result } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+    expect(result.current.nativeOsPermissionEnabled).toBe(true);
+  });
+
+  it('still returns the push permission prompt when MetaMetrics is off', async () => {
+    // MetaMetrics being off must not block the push-permission sheet.
+    arrangeSelectors({ isMetaMetricsEnabled: false });
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+
+    const { result } = renderUsePushPrePromptVariant();
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
+    expect(result.current.nativeOsPermissionEnabled).toBe(false);
+  });
+
+  it('does not return a prompt when OS push is on, MetaMetrics is off, and marketing consent is already on', async () => {
+    // dc=on gates before the mm check — variant must be null regardless of mm state.
+    arrangeSelectors({ isMetaMetricsEnabled: false });
+    const { result } = renderUsePushPrePromptVariant({
+      hasMarketingConsent: true,
+    });
+
+    await waitFor(() => {
+      expect(result.current.isResolving).toBe(false);
+    });
+    expect(result.current.variant).toBeNull();
+    expect(result.current.nativeOsPermissionEnabled).toBe(true);
+  });
+
+  it('still returns the push permission prompt when MetaMetrics is off and marketing consent is on', async () => {
+    // push=off gates before dc and mm — push_permission must still appear.
+    arrangeSelectors({ isMetaMetricsEnabled: false });
+    mockNativePushPermissionStatus({
+      nativeOsPermissionEnabled: false,
+      nativeOsPermissionPromptable: true,
+    });
+    const { result } = renderUsePushPrePromptVariant({
+      hasMarketingConsent: true,
+    });
+
+    await waitFor(() => {
+      expect(result.current.variant).toBe('push_permission');
+    });
+    expect(result.current.nativeOsPermissionEnabled).toBe(false);
   });
 
   it('marks the prompt as shown without hiding it until dismissed', async () => {

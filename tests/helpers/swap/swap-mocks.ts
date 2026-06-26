@@ -6,6 +6,7 @@ import {
   setupMockRequest,
   setupSSEMockRequest,
 } from '../../api-mocking/helpers/mockHelpers';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers';
 import {
   GET_QUOTE_ETH_USDC_RESPONSE,
@@ -147,6 +148,13 @@ export async function setupSwapSocialAndComplianceMocks(
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
+  await setupRemoteFeatureFlagsMock(mockServer, {
+    stxMigrationBatchStatus: false,
+    stxMigrationCancel: false,
+    stxMigrationGetFees: false,
+    stxMigrationSubmitTransactions: false,
+    swapsSWAPS4543AbtestPostTradeModal: 'control',
+  });
   await setupSpotPricesMock(mockServer);
   await setupSwapSocialAndComplianceMocks(mockServer);
 

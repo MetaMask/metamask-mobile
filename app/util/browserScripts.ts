@@ -16,6 +16,26 @@ const getWindowInformation = `
   ))
 `;
 
+export const DOCUMENT_URL_FOR_URL_BAR = 'DOCUMENT_URL_FOR_URL_BAR';
+
+/**
+ * Posts the current document URL and title back to React Native. Used to sync
+ * the URL bar after back/forward navigation when the WebView navigation event
+ * may not match `window.location`.
+ */
+export const buildDocumentUrlForUrlBarScript = (requestId: string): string =>
+  `(function () {
+    if (!window.ReactNativeWebView) return;
+    window.ReactNativeWebView.postMessage(JSON.stringify({
+      type: ${JSON.stringify(DOCUMENT_URL_FOR_URL_BAR)},
+      payload: {
+        requestId: ${JSON.stringify(requestId)},
+        url: window.location.href,
+        title: document.title,
+      },
+    }));
+  })(); true;`;
+
 export const SPA_urlChangeListener = `(function () {
   var __mmHistory = window.history;
   var __mmPushState = __mmHistory.pushState;

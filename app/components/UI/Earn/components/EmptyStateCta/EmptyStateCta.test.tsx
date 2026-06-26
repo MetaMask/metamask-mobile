@@ -225,14 +225,13 @@ describe('EmptyStateCta', () => {
       trackEvent: mockTrackEvent,
       createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
       enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
+      identify: jest.fn(),
       createDataDeletionTask: jest.fn(),
       checkDataDeleteStatus: jest.fn(),
       getDeleteRegulationCreationDate: jest.fn(),
       getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
       isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
+      getAnalyticsId: jest.fn(),
     });
 
     (

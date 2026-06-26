@@ -1,14 +1,15 @@
 import React from 'react';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { TouchableOpacity, View } from 'react-native';
 import ListItem from '../../../../../component-library/components/List/ListItem';
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import Text, {
   TextColor,
   TextVariant,
@@ -33,7 +34,7 @@ export interface NavigationItem {
    */
   showArrow?: boolean;
   /**
-   * Optional color for the right arrow icon (defaults to IconColor.Alternative)
+   * Optional color for the right arrow icon (defaults to IconColor.IconAlternative)
    */
   arrowColor?: IconColor;
   /**
@@ -66,7 +67,7 @@ const PerpsNavigationCard: React.FC<PerpsNavigationCardProps> = ({ items }) => {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} accessible={false}>
       {items.map((item, index) => {
         const isFirst = index === 0;
         const isLast = index === items.length - 1;
@@ -77,33 +78,36 @@ const PerpsNavigationCard: React.FC<PerpsNavigationCardProps> = ({ items }) => {
         ];
 
         return (
-          <View key={`${item.label}-${index}`} style={itemStyle}>
-            <TouchableOpacity onPress={item.onPress} testID={item.testID}>
-              <ListItem style={styles.listItem}>
-                {item.iconName && (
+          <TouchableOpacity
+            key={`${item.label}-${index}`}
+            onPress={item.onPress}
+            style={itemStyle}
+            testID={item.testID}
+          >
+            <ListItem style={styles.listItem}>
+              {item.iconName && (
+                <Icon
+                  name={item.iconName}
+                  size={IconSize.Md}
+                  color={IconColor.IconDefault}
+                />
+              )}
+              <ListItemColumn widthType={WidthType.Fill}>
+                <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+                  {item.label}
+                </Text>
+              </ListItemColumn>
+              {(item.showArrow ?? true) && (
+                <ListItemColumn widthType={WidthType.Auto}>
                   <Icon
-                    name={item.iconName}
+                    name={IconName.ArrowRight}
                     size={IconSize.Md}
-                    color={IconColor.Default}
+                    color={item.arrowColor ?? IconColor.IconAlternative}
                   />
-                )}
-                <ListItemColumn widthType={WidthType.Fill}>
-                  <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-                    {item.label}
-                  </Text>
                 </ListItemColumn>
-                {(item.showArrow ?? true) && (
-                  <ListItemColumn widthType={WidthType.Auto}>
-                    <Icon
-                      name={IconName.ArrowRight}
-                      size={IconSize.Md}
-                      color={item.arrowColor ?? IconColor.Alternative}
-                    />
-                  </ListItemColumn>
-                )}
-              </ListItem>
-            </TouchableOpacity>
-          </View>
+              )}
+            </ListItem>
+          </TouchableOpacity>
         );
       })}
     </View>

@@ -55,10 +55,11 @@ const MOCK_LEADERBOARD: PerpsTradingCampaignLeaderboardDto = {
   campaignId: CAMPAIGN_ID,
   computedAt: '2024-03-20T12:00:00.000Z',
   entries: [
-    { rank: 1, referralCode: 'ABC123', pnl: 1500, qualified: true },
-    { rank: 2, referralCode: 'DEF456', pnl: 800, qualified: true },
+    { rank: 1, referralCode: 'ABC123', pnl: 1500, volume: 30_000 },
+    { rank: 2, referralCode: 'DEF456', pnl: 800, volume: 28_000 },
   ],
   totalParticipants: 50,
+  minVolumeForEligibility: 25_000,
 };
 
 interface SelectorState {

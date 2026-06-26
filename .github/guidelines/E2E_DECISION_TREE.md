@@ -20,7 +20,7 @@ flowchart TD
     Android & iOS & Both --> LABEL{{PR label: skip-smart-e2e-selection ?}}
     LABEL -->|yes| AllTags[Run all E2E needed]
     LABEL -->|no| AI[🤖 AI selects test suites + confidence score]
-    AI --> CONF{{Confidence >= 80% ?}}
+    AI --> CONF{{Confidence >= 85% ?}}
     CONF -->|yes| SelectedTags[Run selected E2E suites]
     CONF -->|no| AllTagsFallback[Run all E2E needed]
 ```
@@ -45,6 +45,10 @@ Runs only when all of the following are true:
 
 - Label `skip-e2e` can be added to the PR to skip E2E tests (and builds) in case of infra issues.
 - Using this label should be exceptional in case of CI friction and urgencies. Verify new changes and regressions manually before merging.
+
+## (Exceptional) force Appium iOS smoke tests on PRs
+
+Appium iOS smoke tests are skipped on PRs by default (they still run on every `main` push/schedule). To also run them on a PR, add the `run-appium-ios-tests` label. Smart E2E Selection still controls which suites run. CI re-runs automatically when the label is added or removed.
 
 ## E2E flakiness detection in PRs
 

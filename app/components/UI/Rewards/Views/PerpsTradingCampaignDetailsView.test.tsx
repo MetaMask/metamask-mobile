@@ -339,16 +339,22 @@ function buildPerpsCampaign(overrides: Partial<CampaignDto> = {}): CampaignDto {
 }
 
 function toMockLeaderboardPosition(
-  position: { rank: number; neighbors: unknown[] } | null,
+  position: {
+    rank: number;
+    neighbors: unknown[];
+    volume?: number;
+  } | null,
 ): PerpsTradingCampaignLeaderboardPositionDto | null {
   if (!position) {
     return null;
   }
   return {
     rank: position.rank,
+    totalParticipants: 0,
     pnl: 0,
-    notionalVolume: 0,
-    qualified: true,
+    volume: position.volume ?? 10_000,
+    eligible: true,
+    minVolumeForEligibility: 25_000,
     neighbors: position.neighbors as PerpsTradingCampaignLeaderboardEntry[],
     computedAt: '2025-08-15T12:00:00.000Z',
   };
@@ -359,6 +365,7 @@ const defaultLeaderboardHook = {
     campaignId: 'perps-campaign-1',
     entries: [],
     totalParticipants: 0,
+    minVolumeForEligibility: 25_000,
     computedAt: '2025-08-15T12:00:00.000Z',
   },
   isLoading: false,
@@ -382,7 +389,11 @@ function setupHooks(
     isCampaignsLoading?: boolean;
     hasCampaignsError?: boolean;
     participant?: { optedIn: boolean };
-    position?: { rank: number; neighbors: unknown[] } | null;
+    position?: {
+      rank: number;
+      neighbors: unknown[];
+      volume?: number;
+    } | null;
     isPositionLoading?: boolean;
     totalParticipants?: number;
     outcome?: PerpsTradingCampaignParticipantOutcomeDto | null;
@@ -460,7 +471,7 @@ jest.mock('../../../../../locales/i18n', () => ({
     const map: Record<string, string> = {
       'rewards.perps_trading_campaign.title': 'Perps Trading',
       'rewards.perps_trading_campaign.stats_title': 'Stats',
-      'rewards.perps_trading_campaign.prize_pool_title': 'Prize pool',
+      'rewards.campaign_prize_pool.title': 'Prize pool',
       'rewards.perps_trading_campaign.leaderboard_title': 'Leaderboard',
       'rewards.campaigns_view.error_title': 'Error',
       'rewards.campaigns_view.error_description': 'Try again',
@@ -615,14 +626,38 @@ describe('PerpsTradingCampaignDetailsView', () => {
     expect(getByTestId('campaign-how-it-works')).toBeDefined();
   });
 
-  it('shows stats header when user has a leaderboard position', () => {
+  it('shows stats header when user has positive notional volume', () => {
     setupHooks({
       participant: { optedIn: true },
-      position: { rank: 3, neighbors: [] },
+      position: { rank: 3, neighbors: [], volume: 10_000 },
     });
 
     const { getByTestId } = render(<PerpsTradingCampaignDetailsView />);
     expect(getByTestId('perps-campaign-stats-summary-container')).toBeDefined();
+  });
+
+  it('hides stats summary when user has a rank but zero notional volume', () => {
+    setupHooks({
+      participant: { optedIn: true },
+      position: { rank: 3, neighbors: [], volume: 0 },
+    });
+
+    const { queryByTestId } = render(<PerpsTradingCampaignDetailsView />);
+    expect(queryByTestId('perps-campaign-stats-summary-container')).toBeNull();
+  });
+
+  it('hides stats summary when notional volume is not finite', () => {
+    setupHooks({
+      participant: { optedIn: true },
+      position: {
+        rank: 3,
+        neighbors: [],
+        volume: Number.NaN,
+      },
+    });
+
+    const { queryByTestId } = render(<PerpsTradingCampaignDetailsView />);
+    expect(queryByTestId('perps-campaign-stats-summary-container')).toBeNull();
   });
 
   it('navigates to stats when stats header row is pressed and user has a position', () => {

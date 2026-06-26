@@ -6,7 +6,7 @@ import { View } from 'react-native';
 
 // External dependencies.
 import { useStyles } from '../../hooks';
-import Pressable from '../Pressable';
+import Pressable, { PressableVariant } from '../Pressable';
 import ListItem from '../../../component-library/components/List/ListItem/ListItem';
 import Checkbox from '../../components/Checkbox';
 
@@ -46,6 +46,7 @@ const ListItemMultiSelectWithMenuButton: React.FC<
 
   return (
     <Pressable
+      variant={PressableVariant.Highlight}
       testID={ROW_TEST_ID}
       style={styles.container}
       disabled={isDisabled}

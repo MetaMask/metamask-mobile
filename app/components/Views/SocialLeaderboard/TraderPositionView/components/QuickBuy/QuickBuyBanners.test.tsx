@@ -4,81 +4,31 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import QuickBuyBanners from './QuickBuyBanners';
 
 jest.mock('../../../../../../../locales/i18n', () => ({
-  strings: (key: string, params?: Record<string, string>) => {
-    if (!params) return key;
-    return Object.entries(params).reduce(
-      (acc, [k, v]) => acc.replace(`{{${k}}}`, String(v)),
-      `${key}:{{${Object.keys(params).join(',')}}}`,
-    );
-  },
+  strings: (key: string) => key,
 }));
-
-const renderBanners = (
-  overrides: Partial<React.ComponentProps<typeof QuickBuyBanners>> = {},
-) =>
-  renderWithProvider(
-    <QuickBuyBanners
-      isHardwareSolanaBlocked={false}
-      isPriceImpactError={false}
-      isPriceImpactWarning={false}
-      formattedPriceImpact="-"
-      {...overrides}
-    />,
-  );
 
 describe('QuickBuyBanners', () => {
   it('renders nothing when no warnings are active', () => {
-    const { toJSON } = renderBanners();
+    const { toJSON } = renderWithProvider(
+      <QuickBuyBanners isHardwareSolanaBlocked={false} />,
+    );
     expect(toJSON()).toBeNull();
   });
 
   it('renders the hardware-wallet + Solana banner when blocked', () => {
-    renderBanners({ isHardwareSolanaBlocked: true });
+    renderWithProvider(<QuickBuyBanners isHardwareSolanaBlocked />);
     expect(
       screen.getByText('bridge.hardware_wallet_not_supported_solana'),
     ).toBeOnTheScreen();
   });
 
-  it('renders the price-impact error banner with formatted percentage', () => {
-    renderBanners({
-      isPriceImpactError: true,
-      formattedPriceImpact: '30.00%',
-    });
-
+  it('does not render price-impact banners (handled by modal and pill)', () => {
+    renderWithProvider(<QuickBuyBanners isHardwareSolanaBlocked={false} />);
     expect(
-      screen.getByText('bridge.price_impact_error_title'),
-    ).toBeOnTheScreen();
+      screen.queryByText('bridge.price_impact_error_title'),
+    ).not.toBeOnTheScreen();
     expect(
-      screen.getByText(/bridge\.price_impact_error_description.*30\.00%/),
-    ).toBeOnTheScreen();
-  });
-
-  it('renders the price-impact warning banner with formatted percentage', () => {
-    renderBanners({
-      isPriceImpactWarning: true,
-      formattedPriceImpact: '7.50%',
-    });
-
-    expect(
-      screen.getByText('bridge.price_impact_warning_title'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText(/bridge\.price_impact_warning_description.*7\.50%/),
-    ).toBeOnTheScreen();
-  });
-
-  it('stacks multiple banners when several conditions fire', () => {
-    renderBanners({
-      isHardwareSolanaBlocked: true,
-      isPriceImpactWarning: true,
-      formattedPriceImpact: '7.50%',
-    });
-
-    expect(
-      screen.getByText('bridge.hardware_wallet_not_supported_solana'),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByText('bridge.price_impact_warning_title'),
-    ).toBeOnTheScreen();
+      screen.queryByText('bridge.price_impact_warning_title'),
+    ).not.toBeOnTheScreen();
   });
 });

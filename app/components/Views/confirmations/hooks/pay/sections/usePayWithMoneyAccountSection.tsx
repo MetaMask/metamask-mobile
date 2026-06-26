@@ -1,19 +1,21 @@
 import React, { useCallback, useMemo } from 'react';
-import { Image } from 'react-native';
+import { Image, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { TransactionType } from '@metamask/transaction-controller';
 import { PaymentOverride } from '@metamask/transaction-pay-controller';
 import { strings } from '../../../../../../../locales/i18n';
-import Engine from '../../../../../../core/Engine';
+import MoneyIcon from '../../../../../../images/money.png';
 import { RootState } from '../../../../../../reducers';
 import { selectPrimaryMoneyAccount } from '../../../../../../selectors/moneyAccountController';
 import { selectMetaMaskPayFlags } from '../../../../../../selectors/featureFlagController/confirmations';
 import { selectPaymentOverrideByTransactionId } from '../../../../../../selectors/transactionPayController';
 import useMoneyAccountBalance from '../../../../../UI/Money/hooks/useMoneyAccountBalance';
-import { MUSD_TOKEN } from '../../../../../UI/Earn/constants/musd';
 import { useTransactionMetadataRequest } from '../../transactions/useTransactionMetadataRequest';
-import { hasTransactionType } from '../../../utils/transaction';
+import {
+  getTransactionType,
+  isTransactionPayWithdraw,
+} from '../../../utils/transaction';
+import { applyMoneyAccountOverride } from '../../../utils/transaction-pay';
 import {
   PayWithRowConfig,
   PayWithSectionConfig,
@@ -23,20 +25,16 @@ export const PAY_WITH_MONEY_ACCOUNT_SECTION_TEST_ID =
   'pay-with-section-money-account';
 export const PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID = 'pay-with-money-account-row';
 
-const SUPPORTED_TRANSACTION_TYPES = [
-  TransactionType.perpsDeposit,
-  TransactionType.perpsWithdraw,
-  TransactionType.predictDeposit,
-  TransactionType.predictDepositAndOrder,
-  TransactionType.predictWithdraw,
-] as const;
+const styles = StyleSheet.create({
+  moneyIcon: { width: 24, height: 24 },
+});
 
 export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const navigation = useNavigation();
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id ?? '';
   const moneyAccount = useSelector(selectPrimaryMoneyAccount);
-  const { enablePerpsMoneyAccountTransactions } = useSelector(
+  const { enableMoneyAccountTransactions } = useSelector(
     selectMetaMaskPayFlags,
   );
   const { totalFiatFormatted } = useMoneyAccountBalance();
@@ -47,26 +45,26 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
   const isMoneyAccountSelected =
     paymentOverride === PaymentOverride.MoneyAccount;
 
-  const isSupported = hasTransactionType(
-    transactionMeta,
-    SUPPORTED_TRANSACTION_TYPES as unknown as TransactionType[],
+  const transactionType = getTransactionType(transactionMeta);
+  const isEnabled = Boolean(
+    transactionType && enableMoneyAccountTransactions[transactionType],
   );
+
+  const isWithdraw = isTransactionPayWithdraw(transactionMeta);
 
   const handlePress = useCallback(() => {
     if (transactionId) {
-      Engine.context.TransactionPayController.setTransactionConfig(
+      applyMoneyAccountOverride(
         transactionId,
-        (config) => {
-          (config as Record<string, unknown>).paymentOverride =
-            PaymentOverride.MoneyAccount;
-        },
+        moneyAccount?.address,
+        isWithdraw,
       );
     }
     navigation.goBack();
-  }, [navigation, transactionId]);
+  }, [isWithdraw, moneyAccount?.address, navigation, transactionId]);
 
   return useMemo(() => {
-    if (!enablePerpsMoneyAccountTransactions || !isSupported || !moneyAccount) {
+    if (!isEnabled || !moneyAccount) {
       return null;
     }
 
@@ -79,13 +77,12 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
     const row: PayWithRowConfig = {
       id: 'money-account-musd',
       icon: React.createElement(Image, {
-        source: { uri: MUSD_TOKEN.image },
-        style: { width: 24, height: 24 },
+        source: MoneyIcon,
+        style: styles.moneyIcon,
       }),
-      title: MUSD_TOKEN.symbol,
+      title: strings('confirm.pay_with_bottom_sheet.money_account'),
       subtitle,
       isSelected: isMoneyAccountSelected,
-      isLastUsed: false,
       trailingElement: isMoneyAccountSelected ? 'checkmark' : 'none',
       onPress: handlePress,
       testID: PAY_WITH_MONEY_ACCOUNT_ROW_TEST_ID,
@@ -93,15 +90,14 @@ export function usePayWithMoneyAccountSection(): PayWithSectionConfig | null {
 
     return {
       id: 'money-account',
-      title: strings('confirm.pay_with_bottom_sheet.money_account'),
+      title: '',
       testID: PAY_WITH_MONEY_ACCOUNT_SECTION_TEST_ID,
       rows: [row],
     };
   }, [
-    enablePerpsMoneyAccountTransactions,
+    isEnabled,
     handlePress,
     isMoneyAccountSelected,
-    isSupported,
     moneyAccount,
     totalFiatFormatted,
   ]);

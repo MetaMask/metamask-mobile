@@ -1,7 +1,8 @@
 import { Platform, StyleSheet } from 'react-native';
 import { Theme } from '../../../../../../util/theme/models';
 
-const EXTRA_ANDROID_BOTTOM_PADDING = 56;
+const ACCOUNT_SELECTOR_VERTICAL_PADDING = 12;
+const BOTTOM_BLOCK_GAP = 16;
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -19,9 +20,8 @@ const styleSheet = (params: { theme: Theme }) => {
       gap: 14,
     },
 
-    extraBottomPadding: {
-      paddingBottom:
-        Platform.OS === 'android' ? EXTRA_ANDROID_BOTTOM_PADDING : 0,
+    bottomBlock: {
+      paddingBottom: Platform.OS === 'android' ? 16 : 0,
     },
 
     disabledButton: {
@@ -35,6 +35,7 @@ const styleSheet = (params: { theme: Theme }) => {
     separator: {
       borderBottomWidth: 1,
       borderBottomColor: theme.colors.border.muted,
+      marginBottom: ACCOUNT_SELECTOR_VERTICAL_PADDING - BOTTOM_BLOCK_GAP,
     },
   });
 };

@@ -5,7 +5,9 @@ import {
   type OrderType,
   type PerpsMarketData,
   type TPSLTrackingData,
+  type SortDirection,
   type SortOptionId,
+  type MarketTypeFilter,
 } from '@metamask/perps-controller';
 import { PerpsTransaction } from './transactionHistory';
 import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
@@ -85,14 +87,9 @@ export interface PerpsNavigationParamList extends ParamListBase {
     showBalanceActions?: boolean;
     showBottomNav?: boolean;
     showWatchlistOnly?: boolean;
-    defaultMarketTypeFilter?:
-      | 'all'
-      | 'crypto'
-      | 'stocks'
-      | 'commodities'
-      | 'forex'
-      | 'new';
+    defaultMarketTypeFilter?: MarketTypeFilter;
     defaultSortOptionId?: SortOptionId;
+    defaultSortDirection?: SortDirection;
     fromHome?: boolean;
     button_clicked?: string;
     button_location?: string;
@@ -104,6 +101,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
     initialTab?: 'position' | 'orders' | 'info';
     monitoringIntent?: Partial<DataMonitorParams>;
     source?: string;
+    source_section?: string;
     button_clicked?: string;
     button_location?: string;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];

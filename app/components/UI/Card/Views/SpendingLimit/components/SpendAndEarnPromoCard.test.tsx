@@ -1,20 +1,45 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import SpendAndEarnPromoCard from './SpendAndEarnPromoCard';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardFlow,
+  CardScreens,
+} from '../../../util/metrics';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'built-event' }));
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn((_eventName?: unknown) => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string | number>) => {
-    if (key === 'card.card_spending_limit.spend_and_earn_description') {
-      return `Spend with your Money account and earn up to ${params?.apy}% APY on your balance. Also get ${params?.cashback}% mUSD back.`;
-    }
-    if (key === 'card.card_spending_limit.spend_and_earn_description_no_apy') {
-      return `Spend with your Money account and earn APY on your balance. Also get ${params?.cashback}% mUSD back.`;
+    if (key === 'card.card_spending_limit.spend_and_earn_description_apy') {
+      return `${params?.apy}% APY`;
     }
     const map: Record<string, string> = {
-      'card.card_spending_limit.spend_and_earn_title': 'Spend while you earn',
-      'card.card_spending_limit.spend_and_earn_cta': 'Link to Money account',
+      'card.card_spending_limit.spend_and_earn_title': 'Spend and earn',
+      'card.card_spending_limit.spend_and_earn_description_prefix':
+        'Link your balance to your card and get mUSD back on purchases. Plus, earn up to ',
+      'card.card_spending_limit.spend_and_earn_description_suffix':
+        ' (variable) on your balance.',
+      'card.card_spending_limit.spend_and_earn_description_no_apy':
+        'Link your balance to your card and get mUSD back on purchases.',
+      'card.card_spending_limit.spend_and_earn_cta': 'Link card',
       'card.card_spending_limit.use_money_account_cta': 'Use Money account',
     };
     return map[key] ?? key;
@@ -27,41 +52,37 @@ describe('SpendAndEarnPromoCard', () => {
     cashbackPercent: 1,
     onPress: jest.fn(),
   };
+  const analytics = {
+    screen: CardScreens.SPENDING_LIMIT,
+    entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
+    flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('renders the title, full description with APY + cashback, and CTA label', () => {
+  it('renders the title, description with APY highlight, and CTA label', () => {
     render(<SpendAndEarnPromoCard {...defaultProps} />);
 
-    expect(screen.getByText('Spend while you earn')).toBeOnTheScreen();
+    expect(screen.getByText('Spend and earn')).toBeOnTheScreen();
     expect(
       screen.getByText(
-        'Spend with your Money account and earn up to 4% APY on your balance. Also get 1% mUSD back.',
+        /Link your balance to your card and get mUSD back on purchases\. Plus, earn up to 4% APY \(variable\) on your balance\./,
       ),
     ).toBeOnTheScreen();
-    expect(screen.getByText('Link to Money account')).toBeOnTheScreen();
+    expect(screen.getByText('Link card')).toBeOnTheScreen();
   });
 
-  it('drops the explicit APY clause when apyPercent is undefined', () => {
+  it('drops the APY clause when apyPercent is undefined', () => {
     render(<SpendAndEarnPromoCard {...defaultProps} apyPercent={undefined} />);
 
     expect(
       screen.getByText(
-        'Spend with your Money account and earn APY on your balance. Also get 1% mUSD back.',
+        'Link your balance to your card and get mUSD back on purchases.',
       ),
     ).toBeOnTheScreen();
-  });
-
-  it('advertises the 3% Metal cashback rate when cashbackPercent is 3', () => {
-    render(<SpendAndEarnPromoCard {...defaultProps} cashbackPercent={3} />);
-
-    expect(
-      screen.getByText(
-        'Spend with your Money account and earn up to 4% APY on your balance. Also get 3% mUSD back.',
-      ),
-    ).toBeOnTheScreen();
+    expect(screen.queryByText('4% APY')).not.toBeOnTheScreen();
   });
 
   it('invokes onPress when the CTA button is tapped', () => {
@@ -86,5 +107,44 @@ describe('SpendAndEarnPromoCard', () => {
     render(<SpendAndEarnPromoCard {...defaultProps} testID="custom-promo" />);
 
     expect(screen.getByTestId('custom-promo')).toBeOnTheScreen();
+  });
+
+  it('tracks Card Viewed when analytics props are provided', () => {
+    render(<SpendAndEarnPromoCard {...defaultProps} analytics={analytics} />);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_VIEWED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      screen: CardScreens.SPENDING_LIMIT,
+      entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
+      flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+    });
+  });
+
+  it('tracks the Use Money account CTA click before invoking onPress', () => {
+    const onPress = jest.fn();
+
+    render(
+      <SpendAndEarnPromoCard
+        {...defaultProps}
+        onPress={onPress}
+        analytics={analytics}
+      />,
+    );
+    jest.clearAllMocks();
+
+    fireEvent.press(screen.getByTestId('use-money-account-cta'));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      screen: CardScreens.SPENDING_LIMIT,
+      entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
+      flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+      action: CardActions.SPENDING_LIMIT_USE_MONEY_ACCOUNT_BUTTON,
+    });
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,22 +1,13 @@
-import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import Engine from '../../core/Engine';
-import { KeyringSelector } from '@metamask/keyring-controller';
-import { InternalAccount } from '@metamask/keyring-internal-api';
-import {
-  endPerformanceTrace,
-  startPerformanceTrace,
-} from '../../core/redux/slices/performance';
-import { PerformanceEventNames } from '../../core/redux/slices/performance/constants';
-import { store } from '../../store';
-import { getTraceTags } from '../../util/sentry/tags';
 
 import ReduxService from '../../core/redux';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { selectSeedlessOnboardingLoginFlow } from '../../selectors/seedlessOnboardingController';
-import { SecretType } from '@metamask/seedless-onboarding-controller';
+import { EncAccountDataType } from '@metamask/seedless-onboarding-controller';
 import Logger from '../../util/Logger';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import { captureException } from '@sentry/core';
+import { Authentication } from '../../core';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 
 export interface ImportNewSecretRecoveryPhraseOptions {
@@ -69,9 +60,12 @@ export async function importNewSecretRecoveryPhrase(
         name: TraceName.OnboardingAddSrp,
         op: TraceOperation.OnboardingSecurityOp,
       });
+      // Run data type migration before adding new SRP to ensure data consistency.
+      await Authentication.runSeedlessOnboardingMigrations();
+
       await SeedlessOnboardingController.addNewSecretData(
         mnemonic,
-        SecretType.Mnemonic,
+        EncAccountDataType.ImportedSrp,
         {
           keyringId: entropySource,
         },
@@ -141,61 +135,4 @@ export async function importNewSecretRecoveryPhrase(
   }
 
   return { address: newAccount.address, discoveredAccountsCount };
-}
-
-export async function addNewHdAccount(
-  keyringId?: string,
-  name?: string,
-): Promise<InternalAccount> {
-  store.dispatch(
-    startPerformanceTrace({
-      eventName: PerformanceEventNames.AddHdAccount,
-    }),
-  );
-
-  trace({
-    name: TraceName.CreateHdAccount,
-    op: TraceOperation.CreateAccount,
-    tags: getTraceTags(store.getState()),
-  });
-
-  const { KeyringController, AccountsController } = Engine.context;
-  const keyringSelector: KeyringSelector = keyringId
-    ? {
-        id: keyringId,
-      }
-    : {
-        type: ExtendedKeyringTypes.hd,
-      };
-
-  const [addedAccountAddress] = await KeyringController.withKeyring(
-    keyringSelector,
-    async ({ keyring }) => await keyring.addAccounts(1),
-  );
-  Engine.setSelectedAddress(addedAccountAddress);
-
-  if (name) {
-    Engine.setAccountLabel(addedAccountAddress, name);
-  }
-
-  const account = AccountsController.getAccountByAddress(addedAccountAddress);
-
-  // This should always be true. If it's not, we have a bug.
-  // We query the account that was newly created and return it.
-  if (!account) {
-    throw new Error('Account not found after creation');
-  }
-
-  // We consider the account to be created once it got selected and renamed.
-  endTrace({
-    name: TraceName.CreateHdAccount,
-  });
-
-  store.dispatch(
-    endPerformanceTrace({
-      eventName: PerformanceEventNames.AddHdAccount,
-    }),
-  );
-
-  return account;
 }

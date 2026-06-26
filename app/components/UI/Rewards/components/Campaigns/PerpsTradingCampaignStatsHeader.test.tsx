@@ -51,9 +51,11 @@ const TEST_IDS = PERPS_STATS_HEADER_TEST_IDS;
 
 const basePosition: PerpsTradingCampaignLeaderboardPositionDto = {
   rank: 7,
+  totalParticipants: 100,
   pnl: 1500.25,
-  notionalVolume: 30_000,
-  qualified: true,
+  volume: 30_000,
+  eligible: true,
+  minVolumeForEligibility: 25_000,
   neighbors: [],
   computedAt: '2025-01-01T00:00:00.000Z',
 };
@@ -69,7 +71,7 @@ describe('PerpsTradingCampaignStatsHeader', () => {
     ).toBeDefined();
   });
 
-  it('shows padded rank, positive PnL with success color, and qualified icon when qualified', () => {
+  it('shows padded rank, positive PnL with success color, and eligible icon when eligible', () => {
     const { getByTestId, getByText, queryByTestId } = render(
       <PerpsTradingCampaignStatsHeader
         position={basePosition}
@@ -88,17 +90,17 @@ describe('PerpsTradingCampaignStatsHeader', () => {
   it('uses error color and minus sign in display for negative PnL', () => {
     const { getByTestId } = render(
       <PerpsTradingCampaignStatsHeader
-        position={{ ...basePosition, pnl: -100, qualified: true }}
+        position={{ ...basePosition, pnl: -100, eligible: true }}
       />,
     );
     const pnl = getByTestId(TEST_IDS.PNL_VALUE);
     expect(pnl.props.color).toBe(TextColor.ErrorDefault);
   });
 
-  it('shows pending tag and no qualified icon when not qualified', () => {
+  it('shows pending tag and no eligible icon when not eligible', () => {
     const { getByTestId, queryByTestId } = render(
       <PerpsTradingCampaignStatsHeader
-        position={{ ...basePosition, qualified: false }}
+        position={{ ...basePosition, eligible: false }}
       />,
     );
     expect(getByTestId(TEST_IDS.PENDING_TAG)).toBeDefined();
@@ -108,7 +110,7 @@ describe('PerpsTradingCampaignStatsHeader', () => {
   it('hides the pending tag when the campaign is complete', () => {
     const { queryByTestId } = render(
       <PerpsTradingCampaignStatsHeader
-        position={{ ...basePosition, qualified: false }}
+        position={{ ...basePosition, eligible: false }}
         isCampaignComplete
       />,
     );

@@ -8,13 +8,18 @@ import { CommonActions } from '@react-navigation/native';
 import { ConnectQRHardwareSelectorsIDs } from './ConnectQRHardware.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { AccountSelectorSelectorsIDs } from '../../UI/HardwareWallet/AccountSelector/AccountSelector.testIds';
-import { QrKeyring, QrKeyringBridge } from '@metamask/eth-qr-keyring';
+import {
+  QrKeyring as LegacyQrKeyring,
+  QrKeyringBridge,
+} from '@metamask/eth-qr-keyring';
+import { QrKeyring } from '@metamask/eth-qr-keyring/v2';
 import type { Hex } from '@metamask/utils';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+import { KeyringAccount } from '@metamask/keyring-api';
 
 jest.mock('../../../core/Permissions', () => ({
   removeAccountsFromPermissions: jest.fn(),
@@ -196,7 +201,13 @@ const mockQrKeyringBridge: QrKeyringBridge = {
   requestScan: jest.fn(),
 };
 
-const mockQrKeyring = new QrKeyring({ bridge: mockQrKeyringBridge });
+const mockLegacyQrKeyring = new LegacyQrKeyring({
+  bridge: mockQrKeyringBridge,
+});
+const mockQrKeyring = new QrKeyring({
+  legacyKeyring: mockLegacyQrKeyring,
+  entropySource: 'test-entropy-source',
+});
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -217,11 +228,25 @@ jest.mock('../../../core/Engine', () => ({
   context: {
     KeyringController: {
       state: {
-        keyrings: [],
+        // We cannot re-use `mockQrKeyring` since module mocking is ran before variable
+        // declaration.
+        keyrings: [{ type: 'QR Hardware Wallet Device', accounts: [] }],
       },
       getAccounts: jest.fn(),
       getKeyringsByType: jest.fn().mockResolvedValue([]),
-      withKeyring: (_selector: unknown, operation: (args: unknown) => void) =>
+      addNewKeyring: jest.fn(),
+      withController: jest.fn(async (operation) =>
+        operation({
+          keyrings: [
+            {
+              keyring: { type: mockQrKeyring.type },
+              metadata: { id: '1234', name: '' },
+            },
+          ],
+          addNewKeyring: jest.fn(),
+        }),
+      ),
+      withKeyringV2: (_selector: unknown, operation: (args: unknown) => void) =>
         operation({
           keyring: mockQrKeyring,
           metadata: { id: '1234' },
@@ -271,19 +296,21 @@ describe('ConnectQRHardware', () => {
       .spyOn(mockQrKeyring, 'getPreviousPage')
       .mockResolvedValue(mockPage0Accounts);
     jest.spyOn(mockQrKeyring, 'forgetDevice').mockImplementation();
-    jest
-      .spyOn(mockQrKeyring, 'getName')
-      .mockResolvedValue('KeystoneDevice' as never);
-    jest
-      .spyOn(mockQrKeyring, 'getAccounts')
-      .mockReturnValue([
-        '0x4678901234567890123456789012345678901210',
-        '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
-      ] as never);
-    jest.spyOn(mockQrKeyring, 'setAccountToUnlock').mockImplementation();
-    jest
-      .spyOn(mockQrKeyring, 'addAccounts')
-      .mockResolvedValue(['0x4678901234567890123456789012345678901210']);
+    jest.spyOn(mockQrKeyring, 'getName').mockReturnValue('KeystoneDevice');
+    jest.spyOn(mockQrKeyring, 'getMode').mockReturnValue('hd' as never);
+    jest.spyOn(mockQrKeyring, 'getAccounts').mockResolvedValue([
+      {
+        address: '0x4678901234567890123456789012345678901210',
+      } as unknown as KeyringAccount,
+      {
+        address: '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
+      } as unknown as KeyringAccount,
+    ]);
+    jest.spyOn(mockQrKeyring, 'createAccounts').mockResolvedValue([
+      {
+        address: '0x4678901234567890123456789012345678901210',
+      } as unknown as KeyringAccount,
+    ]);
 
     mockAccountTrackerController.syncBalanceWithAddresses.mockImplementation(
       (addresses) =>
@@ -301,7 +328,7 @@ describe('ConnectQRHardware', () => {
     );
   });
 
-  it('does not add header top margin when SafeAreaView handles top inset', async () => {
+  it('adds header top margin for the top inset', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
 
     const { getByTestId } = renderWithProvider(
@@ -316,10 +343,10 @@ describe('ConnectQRHardware', () => {
     const header = getByTestId(ConnectQRHardwareSelectorsIDs.HEADER);
 
     expect(header).toBeOnTheScreen();
-    expect(StyleSheet.flatten(header.props.style).marginTop).toBeUndefined();
+    expect(StyleSheet.flatten(header.props.style).marginTop).toBe(44);
   });
 
-  it('excludes bottom edge from parent SafeAreaView because instruction owns bottom spacing', async () => {
+  it('excludes top and bottom edges from parent SafeAreaView because header and instruction own spacing', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
 
     const { getByTestId } = renderWithProvider(
@@ -335,14 +362,10 @@ describe('ConnectQRHardware', () => {
       ConnectQRHardwareSelectorsIDs.CONTAINER,
     );
 
-    expect(safeAreaContainer.props.edges).toStrictEqual([
-      'top',
-      'left',
-      'right',
-    ]);
+    expect(safeAreaContainer.props.edges).toStrictEqual(['left', 'right']);
   });
 
-  it('excludes bottom edge from parent SafeAreaView when account selector owns bottom spacing', async () => {
+  it('excludes top and bottom edges from parent SafeAreaView when account selector owns bottom spacing', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
 
     const { getByTestId } = renderWithProvider(
@@ -362,7 +385,7 @@ describe('ConnectQRHardware', () => {
 
     expect(
       getByTestId(ConnectQRHardwareSelectorsIDs.CONTAINER).props.edges,
-    ).toStrictEqual(['top', 'left', 'right']);
+    ).toStrictEqual(['left', 'right']);
   });
 
   it('renders first page correctly when user clicks `continue` button', async () => {
@@ -452,7 +475,7 @@ describe('ConnectQRHardware', () => {
 
   it('removes any hardware wallet accounts from existing permissions', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
-    const withKeyringSpy = jest.spyOn(mockKeyringController, 'withKeyring');
+    const withKeyringSpy = jest.spyOn(mockKeyringController, 'withKeyringV2');
 
     const { getByTestId } = renderWithProvider(
       <ConnectQRHardware navigation={mockedNavigate} />,

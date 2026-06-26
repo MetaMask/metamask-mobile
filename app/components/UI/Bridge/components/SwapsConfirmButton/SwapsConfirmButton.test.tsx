@@ -29,7 +29,6 @@ import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 import { SecurityDataType } from '../../types';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError';
-
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
   '../../../../../multichain-accounts/controllers/account-tree-controller',
@@ -79,14 +78,33 @@ jest.mock('../../../../../selectors/bridge', () => ({
   selectSourceWalletAddress: jest.fn(),
 }));
 
+jest.mock('../../../../../hooks', () => ({
+  useABTest: jest.fn(() => ({ variant: { showPostTradeModal: true } })),
+}));
+
 // Mock hasMinimumRequiredVersion so that selectBridgeFeatureFlags does not call
 // compareVersions (which requires a real app version string unavailable in tests).
-jest.mock(
-  '../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
-  () => ({
-    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
-  }),
-);
+jest.mock('../../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+}));
+
+jest.mock('../../../HardwareWallet/Swaps/useHwConnectionMonitoring', () => ({
+  useHwConnectionMonitoring: jest.fn(() => ({
+    isDisconnectedRef: { current: false },
+    resetHandledError: jest.fn(),
+  })),
+}));
+
+jest.mock('../../../HardwareWallet/Swaps/hooks/useHwQrState', () => ({
+  useHwQrState: jest.fn(() => ({
+    isReadingQrSignature: false,
+    setIsReadingQrSignature: jest.fn(),
+    isQrHardwareWallet: false,
+    showInlineQrSigning: false,
+    handleQrSignatureCancel: jest.fn(),
+    pendingScanRequest: undefined,
+  })),
+}));
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -302,7 +320,11 @@ describe('SwapsConfirmButton', () => {
     jest.mocked(useIsInsufficientBalance).mockReturnValue(false);
     jest.mocked(useInsufficientNativeReserveError).mockReturnValue(undefined);
     jest.mocked(useHasSufficientGas).mockReturnValue(true);
-    mockSubmitBridgeTx.mockResolvedValue({ success: true });
+    mockSubmitBridgeTx.mockResolvedValue({
+      id: 'tx-meta-id',
+      hash: '0xabc',
+      status: 'submitted',
+    });
   });
 
   describe('Button Label', () => {
@@ -1097,7 +1119,7 @@ describe('SwapsConfirmButton', () => {
   });
 
   describe('handleContinue', () => {
-    it('submits transaction and navigates to transactions view', async () => {
+    it('submits transaction and opens the post-trade bottom sheet', async () => {
       const { getByTestId } = renderWithProvider(
         <SwapsConfirmButton
           latestSourceBalance={mockLatestSourceBalance}
@@ -1119,7 +1141,12 @@ describe('SwapsConfirmButton', () => {
             quoteResponse: mockActiveQuote,
             location: 'Main View',
           });
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.BRIDGE.MODALS.ROOT,
+            expect.objectContaining({
+              screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+            }),
+          );
         });
       });
     });
@@ -1178,7 +1205,6 @@ describe('SwapsConfirmButton', () => {
             quoteResponse: solanaActiveQuote,
             location: 'Main View',
           });
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
         });
       });
     });
@@ -1208,8 +1234,12 @@ describe('SwapsConfirmButton', () => {
             'Error submitting bridge tx',
             expect.any(Error),
           );
-          // Should still navigate after error (in finally block)
-          expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+          expect(mockNavigate).toHaveBeenCalledWith(
+            Routes.BRIDGE.MODALS.ROOT,
+            expect.objectContaining({
+              screen: Routes.BRIDGE.MODALS.POST_TRADE_MODAL,
+            }),
+          );
         });
       });
 
@@ -1718,7 +1748,6 @@ describe('SwapsConfirmButton', () => {
 
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
       });
     });
 
@@ -1794,10 +1823,6 @@ describe('SwapsConfirmButton', () => {
 
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).not.toHaveBeenCalledWith(
-          Routes.BRIDGE.MODALS.ROOT,
-          expect.anything(),
-        );
       });
     });
 
@@ -1937,10 +1962,6 @@ describe('SwapsConfirmButton', () => {
 
       await waitFor(() => {
         expect(mockSubmitBridgeTx).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).not.toHaveBeenCalledWith(
-          Routes.BRIDGE.MODALS.ROOT,
-          expect.anything(),
-        );
       });
     });
   });

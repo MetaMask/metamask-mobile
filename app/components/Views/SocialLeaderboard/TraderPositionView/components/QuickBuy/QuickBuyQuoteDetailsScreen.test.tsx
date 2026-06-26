@@ -87,11 +87,15 @@ jest.mock('../../../../../../component-library/components/Icons/Icon', () => ({
 const buildContext = (overrides = {}) => ({
   sourceToken: undefined,
   destToken: undefined,
+  activeQuote: { quote: {} },
+  hasValidAmount: true,
   formattedNetworkFee: '$1.23',
   formattedSlippage: '0.5%',
   formattedMinimumReceived: '0.99 ETH',
   formattedMinimumReceivedFiat: '$3,200',
   formattedRate: '1 USDC = 0.0003 ETH',
+  formattedPriceImpact: '-',
+  isPriceImpactError: false,
   quotesLastFetchedAt: Date.now(),
   quoteRefreshRateMs: 30000,
   onClose: jest.fn(),
@@ -169,5 +173,55 @@ describe('QuickBuyQuoteDetailsScreen', () => {
     expect(
       screen.queryByTestId('quick-buy-get-new-quote'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('does not render the price impact row when isPriceImpactError is false', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({ isPriceImpactError: false }),
+    );
+    render(<QuickBuyQuoteDetailsScreen />);
+    expect(
+      screen.queryByText('bridge.price_impact_info_title'),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('renders the price impact row with formatted value when isPriceImpactError is true', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({
+        isPriceImpactError: true,
+        formattedPriceImpact: '25.00%',
+      }),
+    );
+    render(<QuickBuyQuoteDetailsScreen />);
+    expect(
+      screen.getByText('bridge.price_impact_info_title'),
+    ).toBeOnTheScreen();
+    expect(screen.getByText('25.00%')).toBeOnTheScreen();
+  });
+
+  it('shows the "enter an amount" empty state when there is no quote and no committed amount', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({ activeQuote: undefined, hasValidAmount: false }),
+    );
+    render(<QuickBuyQuoteDetailsScreen />);
+    expect(
+      screen.getByText(
+        'social_leaderboard.quick_buy.quote_details_empty_no_amount',
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('quick-buy-rate-row')).not.toBeOnTheScreen();
+  });
+
+  it('shows the "no quote" empty state when an amount is entered but no quote resolves', () => {
+    (useQuickBuyContext as jest.Mock).mockReturnValue(
+      buildContext({ activeQuote: undefined, hasValidAmount: true }),
+    );
+    render(<QuickBuyQuoteDetailsScreen />);
+    expect(
+      screen.getByText(
+        'social_leaderboard.quick_buy.quote_details_empty_no_quote',
+      ),
+    ).toBeOnTheScreen();
+    expect(screen.queryByTestId('quick-buy-rate-row')).not.toBeOnTheScreen();
   });
 });

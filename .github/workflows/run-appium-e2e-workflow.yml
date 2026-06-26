@@ -1,0 +1,392 @@
+# Runs Appium smoke tests for one smoke tag on Android or iOS.
+# Called from run-appium-smoke-tests-{android,ios}.yml (one job per tag/split).
+
+name: Run Appium E2E
+
+on:
+  workflow_call:
+    inputs:
+      test-suite-name:
+        description: 'Name of the test suite (used for artifacts and report paths)'
+        required: true
+        type: string
+      platform:
+        description: 'Platform to test (ios or android)'
+        required: true
+        type: string
+      test_suite_tag:
+        description: 'Smoke tag id to filter tests (e.g. SmokeAccounts matches describe titles)'
+        required: true
+        type: string
+      split_number:
+        description: 'Which shard to run (1-based index)'
+        required: false
+        type: number
+        default: 1
+      total_splits:
+        description: 'Total number of shards for this tag'
+        required: false
+        type: number
+        default: 1
+      test-timeout-minutes:
+        description: 'Timeout in minutes for the Playwright test step'
+        required: false
+        type: number
+        default: 25
+      build_type:
+        description: 'Build type (main or flask)'
+        required: false
+        type: string
+        default: 'main'
+      metamask_environment:
+        description: 'MetaMask environment'
+        required: false
+        type: string
+        default: 'e2e'
+      runner_provider:
+        description: 'Runner provider (namespace or current)'
+        required: false
+        type: string
+        default: 'current'
+
+permissions:
+  contents: read
+  checks: write
+
+jobs:
+  test-appium-mobile:
+    name: ${{ inputs.test-suite-name }}
+    runs-on: >-
+      ${{
+        inputs.runner_provider == 'namespace' &&
+        (inputs.platform == 'ios' && 'namespace-profile-metamask-ios-e2e' ||
+         'namespace-profile-metamask-android-build') ||
+        (inputs.platform == 'ios' &&
+          (startsWith(github.base_ref, 'release/') &&
+            fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe"]') ||
+            fromJSON('["ghcr.io/cirruslabs/macos-runner:tahoe", "low-priority"]'))) ||
+        (startsWith(github.base_ref, 'release/') &&
+          fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg"]') ||
+          fromJSON('["ghcr.io/cirruslabs/ubuntu-runner-amd64:24.04-lg", "low-priority"]'))
+      }}
+
+    steps:
+      - name: Checkout (Namespace)
+        uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
+        if: ${{ inputs.runner_provider == 'namespace' }}
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        if: ${{ inputs.runner_provider != 'namespace' }}
+
+      - name: Setup E2E environment (Android)
+        if: ${{ inputs.platform == 'android' }}
+        uses: ./.github/actions/setup-e2e-env
+        with:
+          platform: android
+          setup-simulator: 'true'
+          android-avd-name: appium_smoke_avd
+          android-api-level: '34'
+          android-tag: default
+          android-abi: x86_64
+          android-device: pixel_5
+          configure-keystores: 'false'
+          install-foundry: 'true'
+          runner_provider: ${{ inputs.runner_provider }}
+
+      - name: Setup E2E environment (iOS)
+        if: ${{ inputs.platform == 'ios' }}
+        uses: ./.github/actions/setup-e2e-env
+        with:
+          platform: ios
+          setup-simulator: 'false'
+          configure-keystores: 'false'
+          install-foundry: 'true'
+          skip-pod-install: 'true'
+          install-applesimutils: 'false'
+          runner_provider: ${{ inputs.runner_provider }}
+
+      - name: Cache ffmpeg (Homebrew)
+        if: ${{ inputs.platform == 'ios' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/mms-ffmpeg
+          key: brew-ffmpeg-${{ runner.os }}-v1
+          restore-keys: |
+            brew-ffmpeg-${{ runner.os }}-
+
+      - name: Install ffmpeg for XCUITest screen recording
+        if: ${{ inputs.platform == 'ios' }}
+        run: bash scripts/e2e/ensure-ffmpeg-ci.sh
+        shell: bash
+
+      - name: Determine Android artifact paths
+        if: ${{ inputs.platform == 'android' }}
+        id: android-artifacts
+        run: |
+          if [[ "${{ inputs.build_type }}" == "flask" ]]; then
+            {
+              echo "apk-target-path=android/app/build/outputs/apk/flask/release"
+              echo "apk-file-name=app-flask-release.apk"
+            } >> "$GITHUB_OUTPUT"
+          else
+            {
+              echo "apk-target-path=android/app/build/outputs/apk/prod/release"
+              echo "apk-file-name=app-prod-release.apk"
+            } >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Download Android build artifacts (Namespace)
+        if: ${{ inputs.platform == 'android' && inputs.runner_provider == 'namespace' }}
+        id: download-android-apk-namespace
+        continue-on-error: true
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: ${{ steps.android-artifacts.outputs.apk-target-path }}
+      - name: Download Android build artifacts (GitHub — build may be on Cirrus)
+        if: >-
+          ${{
+            inputs.platform == 'android' &&
+            inputs.runner_provider == 'namespace' &&
+            steps.download-android-apk-namespace.outcome != 'success'
+          }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: ${{ steps.android-artifacts.outputs.apk-target-path }}
+      - name: Download Android build artifacts (current)
+        if: ${{ inputs.platform == 'android' && inputs.runner_provider != 'namespace' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          path: ${{ steps.android-artifacts.outputs.apk-target-path }}
+
+      - name: Download iOS build artifacts (Namespace)
+        if: ${{ inputs.platform == 'ios' && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/download-artifact@7cbad919e4b0e09f17e9d6311a444ff002992b5b # v2.0.1
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+      - name: Download iOS build artifacts (current)
+        if: ${{ inputs.platform == 'ios' && inputs.runner_provider != 'namespace' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          path: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+
+      - name: Restore iOS bundle executable permissions
+        if: ${{ inputs.platform == 'ios' }}
+        env:
+          APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+        run: |
+          BUNDLE_EXEC=$(/usr/libexec/PlistBuddy -c "Print CFBundleExecutable" "$APP_PATH/Info.plist" 2>/dev/null)
+          if [ -z "$BUNDLE_EXEC" ]; then
+            echo "Could not read CFBundleExecutable from Info.plist"
+            exit 1
+          fi
+
+          ACTUAL_PATH=$(find "$APP_PATH" -maxdepth 1 -iname "$BUNDLE_EXEC" -type f | head -1)
+          if [ -z "$ACTUAL_PATH" ]; then
+            echo "Bundle executable not found: $BUNDLE_EXEC"
+            exit 1
+          fi
+
+          if [ "$(basename "$ACTUAL_PATH")" != "$BUNDLE_EXEC" ]; then
+            mv "$ACTUAL_PATH" "$APP_PATH/${BUNDLE_EXEC}_fix"
+            mv "$APP_PATH/${BUNDLE_EXEC}_fix" "$APP_PATH/$BUNDLE_EXEC"
+          fi
+
+          chmod +x "$APP_PATH/$BUNDLE_EXEC"
+
+          if [ -d "$APP_PATH/Frameworks" ]; then
+            find "$APP_PATH/Frameworks" -type d -name "*.framework" | while IFS= read -r fw; do
+              binary="$fw/$(basename "$fw" .framework)"
+              if [ -f "$binary" ]; then
+                chmod +x "$binary"
+              fi
+            done
+            find "$APP_PATH/Frameworks" -type f -name "*.dylib" -exec chmod +x {} \;
+          fi
+          echo "Restored execute permissions on main binary and all framework binaries"
+        shell: bash
+
+      - name: Resolve XCUITest driver version for WDA cache key
+        if: ${{ inputs.platform == 'ios' }}
+        id: xcuitest-version
+        run: echo "version=$(node scripts/e2e/resolve-xcuitest-driver-version.mjs)" >> "$GITHUB_OUTPUT"
+
+      - name: Get Xcode version for WDA cache key
+        if: ${{ inputs.platform == 'ios' }}
+        id: xcode-version
+        run: echo "version=$(xcodebuild -version 2>/dev/null | head -1 | tr ' ' '-')" >> "$GITHUB_OUTPUT"
+
+      - name: Restore WDA DerivedData cache
+        if: ${{ inputs.platform == 'ios' }}
+        uses: actions/cache@v4
+        with:
+          path: ~/appium-wda
+          key: wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-${{ runner.os }}
+          restore-keys: |
+            wda-derived-data-xcuitest-${{ steps.xcuitest-version.outputs.version }}-${{ steps.xcode-version.outputs.version }}-
+
+      - name: Check if WDA is prebuilt
+        if: ${{ inputs.platform == 'ios' }}
+        id: wda-prebuilt
+        run: |
+          WDA_APP=$(find ~/appium-wda/Build/Products -name 'WebDriverAgentRunner-Runner.app' -type d 2>/dev/null | head -1 || true)
+          XCTESTRUN=$(find ~/appium-wda/Build/Products -name '*.xctestrun' 2>/dev/null | head -1 || true)
+          if [ -n "$WDA_APP" ] && [ -n "$XCTESTRUN" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+            echo "WDA prebuilt artifacts found"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "WDA cache miss — prepare-ios-appium-runner will prebuild after sim boot"
+          fi
+        shell: bash
+
+      - name: Prepare iOS Appium runner
+        if: ${{ inputs.platform == 'ios' }}
+        id: prepare-ios-appium
+        timeout-minutes: 30
+        run: node scripts/e2e/prepare-ios-appium-runner.mjs
+        env:
+          IOS_SIMULATOR_NAME: iPhone 16 Pro
+          IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          IOS_BUNDLE_ID: io.metamask.MetaMask
+          SKIP_WDA_PREBUILD: ${{ steps.wda-prebuilt.outputs.ready == 'true' && 'true' || 'false' }}
+          IOS_SIMULATOR_POST_BOOT_SETTLE_MS: '30000'
+          IOS_APP_WARM_LAUNCH_SETTLE_MS: '15000'
+
+      - name: Resolve Appium test grep pattern
+        id: appium-grep
+        run: echo "pattern=${{ inputs.test_suite_tag }}" >> "$GITHUB_OUTPUT"
+        shell: bash
+
+      - name: Verify Appium runner connectivity (iOS)
+        if: ${{ inputs.platform == 'ios' }}
+        run: yarn tsx scripts/e2e/verify-appium-runner-connectivity.mjs ios
+        env:
+          IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
+
+      - name: Run Appium smoke tests (Android)
+        id: run-tests-android
+        if: ${{ inputs.platform == 'android' }}
+        timeout-minutes: ${{ inputs.test-timeout-minutes }}
+        run: >-
+          yarn playwright test
+          --config tests/playwright.smoke-appium.config.ts
+          --project android-smoke
+          --grep "${{ steps.appium-grep.outputs.pattern }}"
+          --shard=${{ inputs.split_number }}/${{ inputs.total_splits }}
+          --pass-with-no-tests
+        env:
+          APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
+          APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (android)
+          APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-${{ inputs.test-suite-name }}
+          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-${{ inputs.test-suite-name }}
+          PLAYWRIGHT_JSON_OUTPUT_FILE: tests/test-reports/playwright-json/playwright-report.json
+          APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
+          SKIP_APPIUM_STOP: 'true'
+          ANDROID_APK_PATH: ${{ steps.android-artifacts.outputs.apk-target-path }}/${{ steps.android-artifacts.outputs.apk-file-name }}
+          ANDROID_AVD_NAME: appium_smoke_avd
+          ANDROID_APPIUM_USE_PACKAGE_ONLY: 'true'
+          ANDROID_BOOT_TIMEOUT_MS: '300000'
+          ANDROID_EMULATOR_CI_CORES: '8'
+          ANDROID_EMULATOR_POST_BOOT_SETTLE_MS: '30000'
+          ANDROID_EMULATOR_NETWORK_READY_TIMEOUT_MS: '90000'
+          ANDROID_EMULATOR_NETWORK_READY_CONSECUTIVE_PINGS: '3'
+
+      - name: Run Appium smoke tests (iOS)
+        id: run-tests-ios
+        if: ${{ inputs.platform == 'ios' }}
+        timeout-minutes: ${{ inputs.test-timeout-minutes }}
+        run: >-
+          yarn playwright test
+          --config tests/playwright.smoke-appium.config.ts
+          --project ios-smoke
+          --grep "${{ steps.appium-grep.outputs.pattern }}"
+          --shard=${{ inputs.split_number }}/${{ inputs.total_splits }}
+          --pass-with-no-tests
+        env:
+          APPIUM_SMOKE_SUITE_NAME: ${{ inputs.test-suite-name }}
+          APPIUM_SMOKE_JOB_TITLE: Appium ${{ inputs.test-suite-name }} (ios)
+          APPIUM_SMOKE_ARTIFACT_NAME: appium-smoke-report-${{ inputs.test-suite-name }}
+          APPIUM_SMOKE_VIDEOS_ARTIFACT_NAME: appium-smoke-videos-${{ inputs.test-suite-name }}
+          PLAYWRIGHT_JSON_OUTPUT_FILE: tests/test-reports/playwright-json/playwright-report.json
+          APPIUM_RECORD_VIDEO_ON_FAILURE: 'true'
+          SKIP_APPIUM_STOP: 'true'
+          IOS_APP_PATH: artifacts/${{ inputs.build_type }}-${{ inputs.metamask_environment }}-MetaMask.app
+          IOS_SIMULATOR_NAME: iPhone 16 Pro
+          IOS_SIMULATOR_UDID: ${{ steps.prepare-ios-appium.outputs.ios-simulator-udid }}
+          IOS_WDA_PREINSTALLED: ${{ steps.prepare-ios-appium.outputs.ios-wda-preinstalled }}
+          IOS_WDA_BUNDLE_ID: ${{ steps.prepare-ios-appium.outputs.ios-wda-bundle-id }}
+          SKIP_DEVICE_BOOT: 'true'
+          SKIP_APP_REINSTALL: 'true'
+          USE_PREBUILT_WDA: 'true'
+          IOS_SIMULATOR_POST_BOOT_SETTLE_MS: '30000'
+          IOS_PRE_LAUNCH_SETTLE_MS: '1500'
+
+      - name: Upload Playwright HTML report (Namespace)
+        if: ${{ always() && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: appium-smoke-report-${{ inputs.test-suite-name }}
+          path: tests/test-reports/appium-smoke-report/${{ inputs.test-suite-name }}/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload Playwright HTML report (current)
+        if: ${{ always() && inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-smoke-report-${{ inputs.test-suite-name }}
+          path: tests/test-reports/appium-smoke-report/${{ inputs.test-suite-name }}/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload Playwright JSON report (Namespace)
+        # Fixed inner filename (playwright-report.json) for github-tools playwright-test-health-report;
+        # suite/shard identity is in the artifact name prefix playwright-json-report-*.
+        if: ${{ always() && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: playwright-json-report-${{ inputs.test-suite-name }}
+          path: tests/test-reports/playwright-json/playwright-report.json
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload Playwright JSON report (current)
+        if: ${{ always() && inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-json-report-${{ inputs.test-suite-name }}
+          path: tests/test-reports/playwright-json/playwright-report.json
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Upload failure screen recordings (Namespace)
+        if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider == 'namespace' }}
+        uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
+        with:
+          name: appium-smoke-videos-${{ inputs.test-suite-name }}
+          path: tests/test-reports/appium-smoke-videos/${{ inputs.test-suite-name }}/
+          if-no-files-found: ignore
+          retention-days: 7
+      - name: Upload failure screen recordings (current)
+        if: ${{ always() && (steps.run-tests-android.outcome == 'failure' || steps.run-tests-ios.outcome == 'failure') && inputs.runner_provider != 'namespace' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: appium-smoke-videos-${{ inputs.test-suite-name }}
+          path: tests/test-reports/appium-smoke-videos/${{ inputs.test-suite-name }}/
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Publish test results to GitHub Checks
+        if: always()
+        uses: dorny/test-reporter@dc3a92680fcc15842eef52e8c4606ea7ce6bd3f3
+        with:
+          name: Appium ${{ inputs.test-suite-name }} (${{ inputs.platform }})
+          path: tests/test-reports/appium-smoke-junit/${{ inputs.test-suite-name }}.xml
+          reporter: java-junit
+          fail-on-error: false
+          list-suites: all
+          list-tests: failed

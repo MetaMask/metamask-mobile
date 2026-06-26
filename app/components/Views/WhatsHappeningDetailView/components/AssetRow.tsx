@@ -51,7 +51,7 @@ const AssetRow: React.FC<AssetRowProps> = ({
       gap={3}
       twClassName="py-3"
     >
-      <RelatedAssetAvatar name={asset.name} image={image} />
+      <RelatedAssetAvatar name={asset.name || asset.symbol} image={image} />
 
       <Box
         twClassName="flex-1"

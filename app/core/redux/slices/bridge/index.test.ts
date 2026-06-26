@@ -31,10 +31,13 @@ import reducer, {
   selectBatchSellDestToken,
   selectBatchSellDestStablecoins,
   selectBatchSellDestStablecoinsByChain,
+  selectHardwareWalletsSwaps,
+  updateHardwareWalletsSwaps,
   selectBatchSellQuotes,
   selectBatchSellSlippages,
   setBatchSellTokenSlippage,
   setBatchSellTokenSlippages,
+  selectIsNonEvmSourced,
 } from '.';
 import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
 import {
@@ -50,6 +53,11 @@ import {
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
+import {
+  HardwareWalletsSwapsEventType,
+  HardwareWalletsSwapsStatus,
+  initialHardwareWalletsSwapsState,
+} from '../../../../components/UI/HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 
 describe('bridge slice', () => {
@@ -120,7 +128,9 @@ describe('bridge slice', () => {
         tokenSelectorNetworkFilter: undefined,
         visiblePillChainIds: undefined,
         selectedQuoteRequestId: undefined,
+        balanceRefreshKey: 0,
         abTestContext: undefined,
+        hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
         batchSellSourceTokens: [],
         batchSellSourceTokenAmounts: {},
         batchSellDestToken: undefined,
@@ -1072,6 +1082,39 @@ describe('bridge slice', () => {
     });
   });
 
+  describe('selectHardwareWalletsSwaps', () => {
+    it('returns initial hardware wallet swaps state from bridge state', () => {
+      const mockState = {
+        bridge: initialState,
+      } as RootState;
+
+      expect(selectHardwareWalletsSwaps(mockState)).toEqual(
+        initialHardwareWalletsSwapsState,
+      );
+    });
+
+    it('returns updated hardware wallet swaps state after reducer action', () => {
+      const bridgeState = reducer(
+        initialState,
+        updateHardwareWalletsSwaps({
+          type: HardwareWalletsSwapsEventType.Start,
+          payload: { totalSteps: 1 },
+        }),
+      );
+      const mockState = {
+        bridge: bridgeState,
+      } as RootState;
+
+      expect(selectHardwareWalletsSwaps(mockState)).toEqual({
+        ...initialHardwareWalletsSwapsState,
+        status: HardwareWalletsSwapsStatus.Waiting,
+        currentStep: 0,
+        totalSteps: 1,
+        steps: expect.any(Array),
+      });
+    });
+  });
+
   describe('resetBridgeState with selectedQuoteRequestId', () => {
     it('resets selectedQuoteRequestId when bridge state resets', () => {
       const stateWithSelection = {
@@ -1186,6 +1229,56 @@ describe('bridge slice', () => {
       );
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectIsNonEvmSourced', () => {
+    const buildState = (sourceToken: BridgeToken | undefined) => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        sourceToken,
+      };
+      return mockState as unknown as RootState;
+    };
+
+    const tokenOn = (chainId: string): BridgeToken =>
+      ({
+        address: '0xsource',
+        symbol: 'SRC',
+        decimals: 18,
+        image: '',
+        chainId: chainId as BridgeToken['chainId'],
+        name: 'Source',
+      }) as BridgeToken;
+
+    it('returns true for a Solana source token', () => {
+      const state = buildState(
+        tokenOn('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+      );
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns true for a Tron source token', () => {
+      const state = buildState(tokenOn('tron:728126428'));
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns true for a Bitcoin source token', () => {
+      const state = buildState(
+        tokenOn('bip122:000000000019d6689c085ae165831e93'),
+      );
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns false for an EVM source token', () => {
+      const state = buildState(tokenOn('0x1'));
+      expect(selectIsNonEvmSourced(state)).toBe(false);
+    });
+
+    it('returns a falsy value when there is no source token', () => {
+      const state = buildState(undefined);
+      expect(selectIsNonEvmSourced(state)).toBeFalsy();
     });
   });
 });

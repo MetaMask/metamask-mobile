@@ -1,7 +1,7 @@
 /* eslint-disable react/prop-types */
 
 // Third party dependencies.
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useMemo } from 'react';
 
 // Internal dependencies.
 import { ToastRef, ToastContextParams } from './Toast.types';
@@ -21,9 +21,9 @@ export const ToastContextWrapper: React.FC<{ children: React.ReactNode }> = ({
     ToastService.toastRef = toastRef;
   }, [toastRef]);
 
+  const value = useMemo(() => ({ toastRef }), []);
+
   return (
-    <ToastContext.Provider value={{ toastRef }}>
-      {children}
-    </ToastContext.Provider>
+    <ToastContext.Provider value={value}>{children}</ToastContext.Provider>
   );
 };

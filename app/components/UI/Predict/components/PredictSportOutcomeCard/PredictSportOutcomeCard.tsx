@@ -29,7 +29,7 @@ interface PredictSportOutcomeCardProps {
   selectedLine?: number;
   selectedIndex?: number;
   onSelectLine?: (line: number, index: number) => void;
-  buttonLayout?: 'inline' | 'stacked';
+  buttonLayout?: 'inline' | 'inlineNoSeparator' | 'stacked';
   disabled?: boolean;
   testID?: string;
 }

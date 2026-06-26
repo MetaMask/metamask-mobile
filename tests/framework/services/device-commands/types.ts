@@ -1,4 +1,4 @@
-import type { CurrentDeviceDetails } from '../../fixture';
+import type { CurrentDeviceDetails } from '../../fixtures/playwright';
 import type { Logger } from '../../logger';
 
 /**

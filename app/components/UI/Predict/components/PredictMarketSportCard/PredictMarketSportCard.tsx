@@ -1,8 +1,6 @@
 import {
   Box,
-  BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   Button,
   ButtonBaseSize,
   ButtonIcon,
@@ -18,18 +16,17 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { NavigationProp, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity } from 'react-native';
-import I18n from '../../../../../../locales/i18n';
+import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
-import { getIntlDateTimeFormatter } from '../../../../../util/intl';
 import { useTheme } from '../../../../../util/theme';
 import {
   getPrimaryMoneylineOutcomes,
   isDrawCapableLeague,
 } from '../../constants/sports';
 import { PredictEventValues } from '../../constants/eventNames';
-import { getLeagueConfig } from '../../constants/sportLeagueConfigs';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
+import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import { usePredictPreviewSheet } from '../../contexts';
 import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import {
@@ -45,12 +42,10 @@ import {
   PredictNavigationParamList,
 } from '../../types/navigation';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import { parseScore } from '../../utils/gameParser';
-import PredictSportTeamLogo from '../PredictSportTeamLogo/PredictSportTeamLogo';
-import PulsingLiveDot from '../PulsingLiveDot/PulsingLiveDot';
-
-const TEAM_LOGO_SIZE = 32;
-const COMPACT_TEAM_LOGO_SIZE = 28;
+import PredictSportScoreboard from '../PredictSportScoreboard';
+import { isGameEnded } from '../../utils/scoreboard';
+import { isValidPrice } from '../../utils/prices';
+import { selectPredictSportCardLivePricesEnabledFlag } from '../../selectors/featureFlags';
 
 interface PredictMarketSportCardProps {
   market: PredictMarketType;
@@ -62,6 +57,8 @@ interface PredictMarketSportCardProps {
   onCardPress?: () => void;
   /** Called when the user taps a buy button (before betslip opens). */
   onBuyButtonPress?: (marketId: string) => void;
+  predictFeedTab?: string;
+  predictScreen?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -73,26 +70,6 @@ interface SportOutcomeButtonItem {
   teamColor?: string;
   variant: 'home' | 'draw' | 'away';
 }
-
-const formatGameDateTime = (
-  startTime: string,
-): { date: string; time: string } => {
-  const dateObj = new Date(startTime);
-  const dateFormatter = getIntlDateTimeFormatter(I18n.locale, {
-    weekday: 'short',
-    month: 'long',
-    day: 'numeric',
-  });
-  const timeFormatter = getIntlDateTimeFormatter(I18n.locale, {
-    hour: 'numeric',
-    minute: '2-digit',
-  });
-
-  return {
-    date: dateFormatter.format(dateObj),
-    time: timeFormatter.format(dateObj),
-  };
-};
 
 const formatCents = (price: number): string => `${Math.round(price * 100)}¢`;
 
@@ -226,6 +203,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   isCarousel,
   onCardPress,
   onBuyButtonPress,
+  predictFeedTab,
+  predictScreen,
   transactionActiveAbTests,
 }) => {
   const tw = useTailwind();
@@ -235,27 +214,19 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const { openBuySheet } = usePredictPreviewSheet();
   const { executeGuardedAction } = usePredictActionGuard({ navigation });
+  const livePricesEnabled = useSelector(
+    selectPredictSportCardLivePricesEnabledFlag,
+  );
 
-  const game = market.game as PredictMarketGame | undefined;
-  const config = game ? getLeagueConfig(game.league) : undefined;
-  const { gameUpdate } = useLiveGameUpdates(game?.id ?? null);
-
-  const liveData = useMemo(() => {
-    if (!game) {
-      return null;
-    }
-
-    const liveScore = gameUpdate?.score
-      ? parseScore(gameUpdate.score, game.league)
-      : null;
-
-    return {
-      homeScore: liveScore?.home ?? game.score?.home ?? 0,
-      awayScore: liveScore?.away ?? game.score?.away ?? 0,
-      elapsed: gameUpdate?.elapsed ?? game.elapsed,
-      status: gameUpdate?.status ?? game.status,
-    };
-  }, [game, gameUpdate]);
+  const { game } = usePredictGame(market, { live: true });
+  // Mirror the canonical "game over" definition (terminal status, a full-time
+  // period, or a stamped endTime) so buy buttons disappear exactly when the
+  // scoreboard reads "Final" and the market becomes eligible for hiding.
+  const gameEnded = isGameEnded({
+    status: game?.status,
+    period: game?.period,
+    endTime: game?.endTime,
+  });
 
   const buttonItems = useMemo(
     () =>
@@ -272,6 +243,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
       params: {
         marketId: market.id,
         entryPoint: resolvedEntryPoint,
+        ...(predictFeedTab && { predictFeedTab }),
+        ...(predictScreen && { predictScreen }),
         title: market.title,
         image: market.image,
         ...(transactionActiveAbTests?.length && {
@@ -283,6 +256,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     market,
     navigation,
     onCardPress,
+    predictFeedTab,
+    predictScreen,
     resolvedEntryPoint,
     transactionActiveAbTests,
   ]);
@@ -297,6 +272,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
             outcome: item.outcome,
             outcomeToken: item.token,
             entryPoint: resolvedEntryPoint,
+            ...(predictFeedTab && { predictFeedTab }),
+            ...(predictScreen && { predictScreen }),
             ...(transactionActiveAbTests?.length && {
               transactionActiveAbTests,
             }),
@@ -310,36 +287,38 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
       market,
       onBuyButtonPress,
       openBuySheet,
+      predictFeedTab,
+      predictScreen,
       resolvedEntryPoint,
       transactionActiveAbTests,
     ],
   );
 
   const isCompact = Boolean(isCarousel);
-  const teamLogoSize = isCompact ? COMPACT_TEAM_LOGO_SIZE : TEAM_LOGO_SIZE;
 
-  const renderTeamLogo = (team: PredictSportTeam, logoTestID?: string) =>
-    config?.TeamIcon ? (
-      <config.TeamIcon
-        color={team.color}
-        size={teamLogoSize}
-        testID={logoTestID}
-      />
-    ) : (
-      <PredictSportTeamLogo
-        uri={team.logo}
-        size={teamLogoSize}
-        testID={logoTestID}
-      />
-    );
-
-  const isLive = liveData?.status === 'ongoing';
-  const isScheduled = liveData?.status === 'scheduled';
-  const scheduledTime = game ? formatGameDateTime(game.startTime) : null;
   const showBuyButtons =
     market.status === PredictMarketStatus.OPEN &&
-    liveData?.status !== 'ended' &&
+    !gameEnded &&
     buttonItems.length > 0;
+  const tokenIds = useMemo(
+    () => buttonItems.map((item) => item.token.id),
+    [buttonItems],
+  );
+  const { getPrice } = useLiveMarketPrices(tokenIds, {
+    enabled: showBuyButtons && livePricesEnabled,
+  });
+
+  const getDisplayPrice = useCallback(
+    (token: PredictOutcomeToken): number => {
+      if (!livePricesEnabled) {
+        return token.price;
+      }
+
+      const liveBestAsk = getPrice(token.id)?.bestAsk;
+      return isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
+    },
+    [getPrice, livePricesEnabled],
+  );
 
   const getButtonTextColorClass = (item: SportOutcomeButtonItem): string => {
     if (item.teamColor) return 'text-white';
@@ -355,7 +334,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     return colors.background.muted;
   };
 
-  if (!game || !liveData) {
+  if (!game) {
     return null;
   }
 
@@ -395,132 +374,11 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
             {market.title}
           </Text>
 
-          <Box twClassName={isCompact ? 'gap-1' : 'gap-2'}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              twClassName={isCompact ? 'w-full gap-2' : 'w-full gap-3'}
-            >
-              {renderTeamLogo(
-                game.homeTeam,
-                testID ? `${testID}-home-team-logo` : undefined,
-              )}
-
-              {!(isCompact && isScheduled) && (
-                <Text
-                  variant={TextVariant.DisplayMd}
-                  color={TextColor.TextDefault}
-                  fontWeight={FontWeight.Bold}
-                  twClassName={
-                    isScheduled ? 'opacity-0 w-16' : isCompact ? 'w-12' : 'w-16'
-                  }
-                  numberOfLines={1}
-                >
-                  {liveData.homeScore}
-                </Text>
-              )}
-
-              <Box
-                alignItems={BoxAlignItems.Center}
-                justifyContent={BoxJustifyContent.Center}
-                twClassName="flex-1"
-              >
-                {isLive ? (
-                  <>
-                    <Box
-                      flexDirection={BoxFlexDirection.Row}
-                      alignItems={BoxAlignItems.Center}
-                      justifyContent={BoxJustifyContent.Center}
-                      twClassName="gap-0"
-                    >
-                      <PulsingLiveDot />
-                      <Text
-                        variant={TextVariant.BodySm}
-                        fontWeight={FontWeight.Medium}
-                        color={TextColor.SuccessDefault}
-                      >
-                        Live
-                      </Text>
-                    </Box>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                    >
-                      {liveData.elapsed ?? ''}
-                    </Text>
-                  </>
-                ) : scheduledTime ? (
-                  <>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextDefault}
-                      twClassName="text-center"
-                    >
-                      {scheduledTime.date}
-                    </Text>
-                    <Text
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                      twClassName="text-center"
-                    >
-                      {scheduledTime.time}
-                    </Text>
-                  </>
-                ) : null}
-              </Box>
-
-              {!(isCompact && isScheduled) && (
-                <Text
-                  variant={TextVariant.DisplayMd}
-                  color={TextColor.TextDefault}
-                  fontWeight={FontWeight.Bold}
-                  twClassName={
-                    isScheduled
-                      ? 'opacity-0 w-16 text-right'
-                      : isCompact
-                        ? 'w-12 text-right'
-                        : 'w-16 text-right'
-                  }
-                  numberOfLines={1}
-                >
-                  {liveData.awayScore}
-                </Text>
-              )}
-
-              {renderTeamLogo(
-                game.awayTeam,
-                testID ? `${testID}-away-team-logo` : undefined,
-              )}
-            </Box>
-
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              justifyContent={BoxJustifyContent.Between}
-              twClassName="w-full"
-            >
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-                numberOfLines={1}
-                twClassName="flex-1"
-              >
-                {game.homeTeam.name}
-              </Text>
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
-                numberOfLines={1}
-                twClassName="flex-1 text-right"
-              >
-                {game.awayTeam.name}
-              </Text>
-            </Box>
-          </Box>
+          <PredictSportScoreboard
+            game={game}
+            compact={isCompact}
+            testID={testID ? `${testID}-scoreboard` : undefined}
+          />
 
           {showBuyButtons && (
             <Box
@@ -532,7 +390,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                   <Button
                     onPress={() => handleBuy(item)}
                     style={{ backgroundColor: getButtonBackgroundColor(item) }}
-                    twClassName={`${isCompact ? 'p-0' : ''}`}
+                    twClassName={isCompact ? 'p-0' : 'px-1'}
+                    contentWrapperProps={{ twClassName: 'w-full' }}
                     isFullWidth
                     size={isCompact ? ButtonBaseSize.Md : ButtonBaseSize.Lg}
                     testID={
@@ -542,12 +401,16 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                     <Text
                       variant={TextVariant.BodySm}
                       numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
+                      ellipsizeMode="clip"
                       style={tw.style(
-                        'font-medium text-center',
+                        'font-medium text-center flex-1',
                         getButtonTextColorClass(item),
                       )}
                     >
-                      {item.label.toUpperCase()} {formatCents(item.token.price)}
+                      {item.label.toUpperCase()}{' '}
+                      {formatCents(getDisplayPrice(item.token))}
                     </Text>
                   </Button>
                 </Box>

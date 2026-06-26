@@ -7,10 +7,7 @@ import React, {
 } from 'react';
 import { View, Modal, NativeScrollEvent } from 'react-native';
 import { useSelector } from 'react-redux';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -22,10 +19,26 @@ import {
   ButtonVariant,
   ButtonSize,
   TextColor,
+  Box,
+  BoxFlexDirection,
+  HeaderStandardAnimated,
+  IconName,
+  useHeaderStandardAnimated,
+  SensitiveText,
+  SensitiveTextLength,
+  Tag,
+  TagSeverity,
+  Text,
+  TextVariant,
+  TitleHub,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
-import { formatPnl, formatPercentage } from '../../utils/formatUtils';
+import {
+  formatPnl,
+  formatPercentage,
+  formatPerpsBalance,
+} from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   usePerpsHomeData,
@@ -47,7 +60,10 @@ import {
 import {
   selectPerpsFeedbackEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
+  selectPerpsProductsEnabledFlag,
+  selectPerpsTopMoversEnabledFlag,
 } from '../../selectors/featureFlags';
+import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import PerpsMarketBalanceActions from '../../components/PerpsMarketBalanceActions';
 import PerpsCard from '../../components/PerpsCard';
@@ -56,7 +72,12 @@ import PerpsMarketTypeSection from '../../components/PerpsMarketTypeSection';
 import PerpsRecentActivityList from '../../components/PerpsRecentActivityList/PerpsRecentActivityList';
 import PerpsHomeSection from '../../components/PerpsHomeSection';
 import PerpsRowSkeleton from '../../components/PerpsRowSkeleton';
-import PerpsHomeHeader from '../../components/PerpsHomeHeader';
+import { usePerpsProvider } from '../../hooks/usePerpsProvider';
+import {
+  selectPerpsNetwork,
+  selectPerpsWatchlistMarkets,
+} from '../../selectors/perpsController';
+import { PerpsProviderSelectorBadge } from '../../components/PerpsProviderSelector';
 import WhatsHappeningSection from '../../../../UI/WhatsHappening';
 import { WhatsHappeningSource } from '../../../../UI/WhatsHappening/constants';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
@@ -72,7 +93,10 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { PerpsHomeViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsHomeViewSelectorsIDs,
+  PerpsMarketBalanceActionsSelectorsIDs,
+} from '../../Perps.testIds';
 import PerpsCloseAllPositionsView from '../PerpsCloseAllPositionsView/PerpsCloseAllPositionsView';
 import PerpsCancelAllOrdersView from '../PerpsCancelAllOrdersView/PerpsCancelAllOrdersView';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -81,6 +105,8 @@ import PerpsNavigationCard, {
 } from '../../components/PerpsNavigationCard/PerpsNavigationCard';
 import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterruptionBanner';
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
+import PerpsProducts from '../../components/PerpsProducts';
+import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -91,9 +117,9 @@ interface PerpsHomeViewProps {
   /** Forwarded to useDiscoveryScrollManager to sync icon animations with header hide/show. */
   onHeaderHiddenChange?: (hidden: boolean) => void;
   /**
-   * Top padding applied inside the scroll content container — used by HomepageDiscoveryTabs
-   * (Hub Page Discovery Tabs feature flag treatment) so the perps gradient extends up
-   * directly under the discovery tab bar instead of leaving a transparent gap.
+   * Top padding applied inside the scroll content container when embedded in
+   * HomepageDiscoveryTabs — keeps the perps background flush under the discovery
+   * tab bar and adds spacing before the screen title (32px in discovery tabs).
    */
   topInset?: number;
 }
@@ -121,6 +147,10 @@ const PerpsHomeView = ({
   );
   const privacyMode = useSelector(selectPrivacyMode);
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
+  const isProductsEnabled = useSelector(selectPerpsProductsEnabledFlag);
+  const isTopMoversEnabled = useSelector(selectPerpsTopMoversEnabledFlag);
+  // Mirrors PerpsProducts' own visibility check (enabled + has categories).
+  const productCategories = usePerpsCategories();
 
   // Use centralized navigation hook
   const perpsNavigation = usePerpsNavigation();
@@ -175,10 +205,19 @@ const PerpsHomeView = ({
     [handleScroll],
   );
 
+  const {
+    scrollY: headerScrollY,
+    setTitleSectionHeight,
+    titleSectionHeightSv,
+  } = useHeaderStandardAnimated();
+
+  const perpsScreenTitle = strings('perps.title');
+
   const { scrollHandler: perpsScrollHandler, onTabEnter: perpsOnTabEnter } =
     useDiscoveryScrollManager({
       walletHeaderHeight,
       walletHeaderTranslateY,
+      scrollY: hideHeader ? undefined : headerScrollY,
       onScrollEvent: handleScrollEvent,
       onHeaderHiddenChange,
     });
@@ -197,7 +236,13 @@ const PerpsHomeView = ({
   // Get balance state directly from Redux
   const { account: perpsAccount } = usePerpsLiveAccount({ throttleMs: 1000 });
   const totalBalance = perpsAccount?.totalBalance || '0';
-  const isBalanceEmpty = BigNumber(totalBalance).isZero();
+  const spendableBalance = perpsAccount?.spendableBalance || '0';
+  const totalBn = BigNumber(totalBalance);
+  const isBalanceEmpty = !totalBn.isFinite() || totalBn.isZero();
+
+  const network = useSelector(selectPerpsNetwork);
+  const isTestnet = network === 'testnet';
+  const { isMultiProviderEnabled } = usePerpsProvider();
 
   // Calculate P&L for positions subtitle
   const unrealizedPnl = perpsAccount?.unrealizedPnl || '0';
@@ -208,10 +253,12 @@ const PerpsHomeView = ({
     positions,
     orders,
     watchlistMarkets,
+    suggestedWatchlistMarkets,
     perpsMarkets, // Crypto markets (renamed from trendingMarkets)
     commoditiesMarkets, // Commodity markets
     stocksMarkets, // Equity markets only
     forexMarkets,
+    hasMarkets,
     recentActivity,
     sortBy,
     isLoading,
@@ -281,6 +328,71 @@ const PerpsHomeView = ({
   const buttonClicked = route.params?.button_clicked;
   const buttonLocation = route.params?.button_location;
 
+  // Raw watchlist symbols for analytics (unfiltered/uncapped list)
+  const rawWatchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
+
+  // Build the ordered list of visible section names for sections_displayed.
+  // Each condition mirrors the matching section component's own render gating
+  // (content OR loading skeleton), so the array reflects what the user actually
+  // sees and stays consistent with per-section scroll impressions.
+  const sectionsDisplayed = useMemo(() => {
+    const sections: string[] = [PERPS_EVENT_VALUE.SECTION_NAME.BALANCE];
+    // Positions/orders render a skeleton while loading, then self-hide when empty.
+    if (isLoading.positions || positions.length > 0)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS);
+    if (isLoading.orders || orders.length > 0)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS);
+    if (isWhatsHappeningEnabled)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING);
+    // Watchlist shows a skeleton while markets load, then content when it has
+    // watchlist or suggested markets.
+    if (
+      isLoading.markets ||
+      watchlistMarkets.length > 0 ||
+      (suggestedWatchlistMarkets?.length ?? 0) > 0
+    ) {
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST);
+    }
+    // Products self-hides when disabled or when no categories are available.
+    if (isProductsEnabled && productCategories.length > 0)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS);
+    // Top Movers ranks the full unfiltered market set (including HIP-3 and any
+    // market type not bucketed into the home explore slices), so use hasMarkets
+    // rather than a union of the four filtered slices to avoid false negatives.
+    if (isTopMoversEnabled && (isLoading.markets || hasMarkets))
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS);
+    // Explore category lists render a skeleton while markets load, then self-hide
+    // when their own market array is empty.
+    if (isLoading.markets || perpsMarkets.length > 0)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO);
+    if (isLoading.markets || commoditiesMarkets.length > 0)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_COMMODITIES);
+    if (isLoading.markets || stocksMarkets.length > 0)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS);
+    if (isLoading.markets || forexMarkets.length > 0)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX);
+    // Recent activity shows a skeleton while loading, then self-hides when empty.
+    if (isLoading.activity || recentActivity.length > 0)
+      sections.push(PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY);
+    return sections;
+  }, [
+    isLoading,
+    positions,
+    orders,
+    isWhatsHappeningEnabled,
+    watchlistMarkets,
+    suggestedWatchlistMarkets,
+    isProductsEnabled,
+    productCategories,
+    isTopMoversEnabled,
+    hasMarkets,
+    perpsMarkets,
+    commoditiesMarkets,
+    stocksMarkets,
+    forexMarkets,
+    recentActivity,
+  ]);
+
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [!isAnyLoading],
@@ -293,6 +405,9 @@ const PerpsHomeView = ({
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: orders?.length || 0,
       [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
         isServiceInterruptionBannerEnabled,
+      [PERPS_EVENT_PROPERTY.SECTIONS_DISPLAYED]: sectionsDisplayed,
+      [PERPS_EVENT_PROPERTY.WATCHLIST_COUNT]: rawWatchlistSymbols.length,
+      [PERPS_EVENT_PROPERTY.WATCHLIST_MARKETS]: rawWatchlistSymbols,
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),
@@ -330,6 +445,17 @@ const PerpsHomeView = ({
     createEventBuilder,
     transactionActiveAbTests,
   ]);
+
+  const handleWhatsHappeningHeaderPress = useCallback(() => {
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.WHATS_HAPPENING,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+    });
+  }, [track]);
 
   const navigtateToTutorial = useCallback(() => {
     // Track tutorial button click
@@ -477,12 +603,18 @@ const PerpsHomeView = ({
   // Footer: paddingTop(16) + button(48) + paddingBottom(16 + insets.bottom)
   const footerHeight = 80 + insets.bottom;
 
+  const showsFixedFooter =
+    !isBalanceEmpty &&
+    !showCloseAllSheet &&
+    !showCancelAllSheet &&
+    !HOME_SCREEN_CONFIG.ShowHeaderActionButtons;
+
   const bottomSpacerStyle = useMemo(
     () => ({
-      // When footer is visible, add space for it. Otherwise minimal spacing for tab bar.
-      height: isBalanceEmpty ? 16 : footerHeight + 16,
+      // Reserve space for the fixed footer only when it is rendered.
+      height: showsFixedFooter ? footerHeight + 16 : 16,
     }),
-    [isBalanceEmpty, footerHeight],
+    [showsFixedFooter, footerHeight],
   );
 
   // Add safe area inset to footer for Android navigation bar
@@ -491,16 +623,75 @@ const PerpsHomeView = ({
     [styles.fixedFooter, insets.bottom],
   );
 
+  const scrollContentContainerStyle = useMemo(
+    () => [
+      styles.scrollViewContent,
+      hideHeader && topInset > 0 ? { paddingTop: topInset } : null,
+      showsFixedFooter
+        ? { paddingBottom: 0 }
+        : !hideHeader
+          ? { paddingBottom: 16 + insets.bottom }
+          : null,
+    ],
+    [
+      styles.scrollViewContent,
+      topInset,
+      hideHeader,
+      showsFixedFooter,
+      insets.bottom,
+    ],
+  );
+
+  const titleEndAccessory = useMemo(() => {
+    const homeHeadingTestID = PerpsHomeViewSelectorsIDs.HOME_HEADING;
+
+    if (isMultiProviderEnabled) {
+      return (
+        <PerpsProviderSelectorBadge
+          testID={`${homeHeadingTestID}-provider-badge`}
+        />
+      );
+    }
+
+    if (isTestnet) {
+      return (
+        <Tag
+          severity={TagSeverity.Warning}
+          testID={`${homeHeadingTestID}-testnet-badge`}
+        >
+          Testnet
+        </Tag>
+      );
+    }
+
+    return undefined;
+  }, [isMultiProviderEnabled, isTestnet]);
+
   // Always navigate to wallet home to avoid navigation loops (tutorial/onboarding flow)
   const handleBackPress = perpsNavigation.navigateToWallet;
 
   return (
-    <SafeAreaView style={styles.container} edges={hideHeader ? [] : undefined}>
+    <View style={styles.container}>
       {/* Header */}
       {!hideHeader && (
-        <PerpsHomeHeader
+        <HeaderStandardAnimated
+          includesTopInset
+          scrollY={headerScrollY}
+          titleSectionHeight={titleSectionHeightSv}
+          title={perpsScreenTitle}
           onBack={handleBackPress}
-          onSearchToggle={handleSearchToggle}
+          backButtonProps={{
+            accessibilityLabel: 'Back',
+            testID: PerpsHomeViewSelectorsIDs.BACK_HOME_BUTTON,
+          }}
+          endButtonIconProps={[
+            {
+              iconName: IconName.Search,
+              onPress: handleSearchToggle,
+              accessibilityLabel: 'Search',
+              testID: PerpsHomeViewSelectorsIDs.SEARCH_TOGGLE,
+            },
+          ]}
           testID="perps-home"
         />
       )}
@@ -508,90 +699,213 @@ const PerpsHomeView = ({
       {/* Main Content - ScrollView with all carousels */}
       <Reanimated.ScrollView
         style={styles.scrollView}
-        contentContainerStyle={[
-          styles.scrollViewContent,
-          topInset > 0 ? { paddingTop: topInset } : null,
-        ]}
+        contentContainerStyle={scrollContentContainerStyle}
         showsVerticalScrollIndicator={false}
         onScroll={perpsScrollHandler}
         scrollEventThrottle={16}
+        testID={PerpsHomeViewSelectorsIDs.SCROLL_CONTENT}
       >
-        <PerpsHomeHeader
-          segment="title"
-          testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
-        />
+        <Box
+          onLayout={(event) =>
+            setTitleSectionHeight(event.nativeEvent.layout.height)
+          }
+        >
+          <TitleHub
+            testID={PerpsHomeViewSelectorsIDs.HOME_HEADING}
+            title={hideHeader ? undefined : perpsScreenTitle}
+            titleEndAccessory={hideHeader ? undefined : titleEndAccessory}
+            titleProps={
+              hideHeader
+                ? undefined
+                : {
+                    testID: `${PerpsHomeViewSelectorsIDs.HOME_HEADING}-title`,
+                  }
+            }
+            amount={
+              !isBalanceEmpty ? (
+                <SensitiveText
+                  variant={TextVariant.DisplayLg}
+                  color={TextColor.TextDefault}
+                  testID={PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE}
+                  isHidden={privacyMode}
+                  length={SensitiveTextLength.Medium}
+                >
+                  {formatPerpsBalance(totalBalance)}
+                </SensitiveText>
+              ) : undefined
+            }
+            bottomLabel={
+              !isBalanceEmpty ? (
+                <Box flexDirection={BoxFlexDirection.Row}>
+                  <SensitiveText
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                    isHidden={privacyMode}
+                    length={SensitiveTextLength.Short}
+                    testID={
+                      PerpsMarketBalanceActionsSelectorsIDs.AVAILABLE_BALANCE_TEXT
+                    }
+                  >
+                    {formatPerpsBalance(spendableBalance)}
+                  </SensitiveText>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.TextAlternative}
+                  >
+                    {' '}
+                    {strings('perps.available')}
+                  </Text>
+                </Box>
+              ) : undefined
+            }
+            twClassName="px-4 pb-3"
+          />
+        </Box>
 
-        {/* Service Interruption Banner */}
-        <PerpsServiceInterruptionBanner
-          testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
-        />
+        <Box paddingBottom={3}>
+          {/* Service Interruption Banner */}
+          <PerpsServiceInterruptionBanner
+            testID={PerpsHomeViewSelectorsIDs.SERVICE_INTERRUPTION_BANNER}
+          />
 
-        {/* Balance Actions Component */}
-        <PerpsMarketBalanceActions
-          showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
-        />
+          {/* Balance Actions Component */}
+          <PerpsMarketBalanceActions
+            showActionButtons={HOME_SCREEN_CONFIG.ShowHeaderActionButtons}
+            hideBalanceSection
+          />
 
-        {/* Competition Banner */}
-        <PerpsCompetitionBanner
-          testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
-        />
+          {/* Competition Banner */}
+          <PerpsCompetitionBanner
+            testID={PerpsHomeViewSelectorsIDs.COMPETITION_BANNER}
+          />
+        </Box>
 
         {/* Positions Section */}
-        <PerpsHomeSection
-          title={strings('perps.home.positions')}
-          subtitle={privacyMode ? undefined : positionsSubtitle}
-          subtitleColor={positionsSubtitleColor}
-          subtitleSuffix={privacyMode ? undefined : positionsSubtitleSuffix}
-          subtitleTestID={PerpsHomeViewSelectorsIDs.POSITIONS_PNL_VALUE}
-          isLoading={isLoading.positions}
-          isEmpty={positions.length === 0}
-          showWhenEmpty={false}
-          onActionPress={handleCloseAllPress}
-          renderSkeleton={() => <PerpsRowSkeleton count={2} />}
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_EVENT_VALUE.SECTION_NAME.POSITIONS,
+          )}
         >
-          <View style={styles.positionsOrdersContainer}>
-            {positions.map((position, index) => (
-              <PerpsCard
-                key={`${position.symbol}-${index}`}
-                position={position}
-                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-              />
-            ))}
-          </View>
-        </PerpsHomeSection>
+          <PerpsHomeSection
+            title={strings('perps.home.positions')}
+            subtitle={privacyMode ? undefined : positionsSubtitle}
+            subtitleColor={positionsSubtitleColor}
+            subtitleSuffix={privacyMode ? undefined : positionsSubtitleSuffix}
+            subtitleTestID={PerpsHomeViewSelectorsIDs.POSITIONS_PNL_VALUE}
+            isLoading={isLoading.positions}
+            isEmpty={positions.length === 0}
+            showWhenEmpty={false}
+            onActionPress={handleCloseAllPress}
+            renderSkeleton={() => <PerpsRowSkeleton count={2} />}
+          >
+            <View style={styles.positionsOrdersContainer}>
+              {positions.map((position, index) => (
+                <PerpsCard
+                  key={`${position.symbol}-${index}`}
+                  position={position}
+                  source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+                  source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.POSITIONS}
+                  testID={`${PerpsHomeViewSelectorsIDs.POSITION_CARD}-${index}`}
+                />
+              ))}
+            </View>
+          </PerpsHomeSection>
+        </View>
 
         {/* Orders Section */}
-        <PerpsHomeSection
-          title={strings('perps.home.orders')}
-          isLoading={isLoading.orders}
-          isEmpty={orders.length === 0}
-          showWhenEmpty={false}
-          onActionPress={handleCancelAllPress}
-          renderSkeleton={() => <PerpsRowSkeleton count={2} />}
+        <View
+          onLayout={handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS)}
         >
-          <View style={styles.positionsOrdersContainer}>
-            {orders.map((order) => (
-              <PerpsCard
-                key={order.orderId}
-                order={order}
-                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-              />
-            ))}
+          <PerpsHomeSection
+            title={strings('perps.home.orders')}
+            isLoading={isLoading.orders}
+            isEmpty={orders.length === 0}
+            showWhenEmpty={false}
+            onActionPress={handleCancelAllPress}
+            renderSkeleton={() => <PerpsRowSkeleton count={2} />}
+          >
+            <View style={styles.positionsOrdersContainer}>
+              {orders.map((order, index) => (
+                <PerpsCard
+                  key={order.orderId}
+                  order={order}
+                  source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+                  source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.ORDERS}
+                  testID={`${PerpsHomeViewSelectorsIDs.ORDER_CARD}-${index}`}
+                />
+              ))}
+            </View>
+          </PerpsHomeSection>
+        </View>
+
+        {/* What's Happening Section */}
+        {isWhatsHappeningEnabled && (
+          <View
+            onLayout={handleSectionLayout(
+              PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING,
+            )}
+          >
+            <WhatsHappeningSection
+              source={WhatsHappeningSource.Perps}
+              onHeaderPress={handleWhatsHappeningHeaderPress}
+            />
           </View>
-        </PerpsHomeSection>
+        )}
 
         {/* Watchlist Section */}
-        <PerpsWatchlistMarkets
-          markets={watchlistMarkets}
-          isLoading={isLoading.markets}
-          positions={positions}
-          orders={orders}
-          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-          transactionActiveAbTests={transactionActiveAbTests}
-        />
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST,
+          )}
+        >
+          <PerpsWatchlistMarkets
+            markets={watchlistMarkets}
+            suggestedMarkets={suggestedWatchlistMarkets}
+            isLoading={isLoading.markets}
+            positions={positions}
+            orders={orders}
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.WATCHLIST}
+            transactionActiveAbTests={transactionActiveAbTests}
+            onSeeAllPress={
+              watchlistMarkets.length > 0
+                ? () =>
+                    perpsNavigation.navigateToMarketList({
+                      showWatchlistOnly: true,
+                      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+                    })
+                : undefined
+            }
+          />
+        </View>
+
+        {/* Products Section - Category pills grid */}
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS,
+          )}
+        >
+          <PerpsProducts transactionActiveAbTests={transactionActiveAbTests} />
+        </View>
+
+        {/* Top Movers Section */}
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS,
+          )}
+        >
+          <PerpsTopMoversSection
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            transactionActiveAbTests={transactionActiveAbTests}
+          />
+        </View>
 
         {/* Crypto Markets List */}
-        <View onLayout={handleSectionLayout('explore_crypto')}>
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_CRYPTO,
+          )}
+        >
           <PerpsMarketTypeSection
             title={strings('perps.home.crypto')}
             markets={perpsMarkets}
@@ -599,53 +913,70 @@ const PerpsHomeView = ({
             sortBy={sortBy}
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.CRYPTO}
             transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
 
         {/* Commodities Markets List */}
-        <PerpsMarketTypeSection
-          title={strings('perps.home.commodities')}
-          markets={commoditiesMarkets}
-          marketType="commodities"
-          sortBy={sortBy}
-          isLoading={isLoading.markets}
-          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-          transactionActiveAbTests={transactionActiveAbTests}
-        />
-
-        {/* What's Happening Section */}
-        {isWhatsHappeningEnabled && (
-          <View style={styles.whatsHappeningSection}>
-            <WhatsHappeningSection source={WhatsHappeningSource.Perps} />
-          </View>
-        )}
-
-        {/* Stocks Markets List */}
-        <View onLayout={handleSectionLayout('explore_stocks')}>
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_COMMODITIES,
+          )}
+        >
           <PerpsMarketTypeSection
-            title={strings('perps.home.stocks')}
-            markets={stocksMarkets}
-            marketType="stocks"
+            title={strings('perps.home.commodities')}
+            markets={commoditiesMarkets}
+            marketType="commodity"
             sortBy={sortBy}
             isLoading={isLoading.markets}
             source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.COMMODITY}
+            transactionActiveAbTests={transactionActiveAbTests}
+          />
+        </View>
+
+        {/* Stocks Markets List */}
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_STOCKS,
+          )}
+        >
+          <PerpsMarketTypeSection
+            title={strings('perps.home.stocks')}
+            markets={stocksMarkets}
+            marketType="stock"
+            sortBy={sortBy}
+            isLoading={isLoading.markets}
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.STOCK}
             transactionActiveAbTests={transactionActiveAbTests}
           />
         </View>
 
         {/* Forex Markets List */}
-        <PerpsMarketTypeSection
-          title={strings('perps.home.forex')}
-          markets={forexMarkets}
-          marketType="forex"
-          isLoading={isLoading.markets}
-          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
-          transactionActiveAbTests={transactionActiveAbTests}
-        />
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_EVENT_VALUE.SECTION_NAME.EXPLORE_FOREX,
+          )}
+        >
+          <PerpsMarketTypeSection
+            title={strings('perps.home.forex')}
+            markets={forexMarkets}
+            marketType="forex"
+            isLoading={isLoading.markets}
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
+            source_section={PERPS_EVENT_VALUE.SOURCE_SECTION.FOREX}
+            transactionActiveAbTests={transactionActiveAbTests}
+          />
+        </View>
 
         {/* Recent Activity List */}
-        <View onLayout={handleSectionLayout('activity')}>
+        <View
+          onLayout={handleSectionLayout(
+            PERPS_EVENT_VALUE.SECTION_NAME.RECENT_ACTIVITY,
+          )}
+        >
           <PerpsRecentActivityList
             transactions={recentActivity}
             isLoading={isLoading.activity}
@@ -677,37 +1008,30 @@ const PerpsHomeView = ({
       )}
 
       {/* Fixed Footer with Action Buttons - Only show when balance is not empty and no sheets are open */}
-      {!isBalanceEmpty &&
-        !showCloseAllSheet &&
-        !showCancelAllSheet &&
-        !HOME_SCREEN_CONFIG.ShowHeaderActionButtons && (
-          <View style={fixedFooterStyle}>
-            <View style={styles.footerButtonsContainer}>
-              <View style={styles.footerButton}>
-                <Button
-                  variant={ButtonVariant.Secondary}
-                  size={ButtonSize.Lg}
-                  onPress={handleWithdraw}
-                  isFullWidth
-                  testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
-                >
-                  {strings('perps.withdraw')}
-                </Button>
-              </View>
-              <View style={styles.footerButton}>
-                <Button
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSize.Lg}
-                  onPress={handleAddFunds}
-                  isFullWidth
-                  testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
-                >
-                  {strings('perps.add_funds')}
-                </Button>
-              </View>
-            </View>
+      {showsFixedFooter && (
+        <View style={fixedFooterStyle}>
+          <View style={styles.footerButtonsContainer} accessible={false}>
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Lg}
+              onPress={handleWithdraw}
+              style={styles.footerButton}
+              testID={PerpsHomeViewSelectorsIDs.WITHDRAW_BUTTON}
+            >
+              {strings('perps.withdraw')}
+            </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              onPress={handleAddFunds}
+              style={styles.footerButton}
+              testID={PerpsHomeViewSelectorsIDs.ADD_FUNDS_BUTTON}
+            >
+              {strings('perps.add_funds')}
+            </Button>
           </View>
-        )}
+        </View>
+      )}
 
       {/* Eligibility Modal */}
       {isEligibilityModalVisible && (
@@ -737,7 +1061,7 @@ const PerpsHomeView = ({
           </Modal>
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
 

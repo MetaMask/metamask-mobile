@@ -1,24 +1,31 @@
 import { getWindowSize } from './DeviceInfoCache.ts';
-import { CurrentDeviceDetails } from './fixture';
+import { CurrentDeviceDetails } from './fixtures/playwright';
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement } from './PlaywrightAdapter';
 import { boxedStep, getDriver } from './PlaywrightUtilities';
+import {
+  createPlaywrightLogger,
+  debugElementAction,
+} from './playwrightLogger.ts';
+
+const logger = createPlaywrightLogger('PlaywrightGestures');
 
 export interface ScrollOptions {
-  scrollParams?: { direction?: 'up' | 'down' };
+  scrollParams?: { direction?: 'up' | 'down' | 'left' | 'right' };
   from?: { x: number; y: number };
   to?: { x: number; y: number };
   percent?: number;
   scrollableElement?: PlaywrightElement;
   duration?: number;
+  /** WDIO native scrollIntoView limit; default is 10. */
+  maxScrolls?: number;
 }
 
 /**
  * PlaywrightGestures - Gesture helpers for WebdriverIO/Playwright
  *
  * This class provides gesture methods that wrap PlaywrightElement API.
- * Currently these are simple wrappers, but can be enhanced with retries,
- * stability checks, and logging in the future (similar to Detox Gestures).
+ * Currently these are simple wrappers with debug logging (similar to Detox Gestures).
  *
  * @example
  * const elem = await PlaywrightMatchers.getByXPath('...');
@@ -35,6 +42,7 @@ export default class PlaywrightGestures {
    */
   @boxedStep
   static async tap(elem: PlaywrightElement): Promise<void> {
+    await debugElementAction(logger, 'Tapping element', elem);
     await elem.unwrap().click();
   }
 
@@ -76,6 +84,71 @@ export default class PlaywrightGestures {
     }
   }
 
+  private static async isAndroidSession(): Promise<boolean> {
+    const drv = getDriver();
+    const platform = String(
+      (await drv.capabilities)?.platformName ?? '',
+    ).toLowerCase();
+    return platform.includes('android');
+  }
+
+  /**
+   * Android often reports isEnabled=true while the RN control is still disabled.
+   * Uses isEnabled plus native clickable/enabled attributes only — isClickable()
+   * is a Web/DOM API and is not implemented on Appium Android (always fails).
+   */
+  private static async isElementInteractive(
+    elem: PlaywrightElement,
+  ): Promise<boolean> {
+    if (!(await elem.isEnabled())) {
+      return false;
+    }
+
+    if (!(await this.isAndroidSession())) {
+      return true;
+    }
+
+    try {
+      const [clickableAttr, enabledAttr] = await Promise.all([
+        elem.getAttribute('clickable'),
+        elem.getAttribute('enabled'),
+      ]);
+      return clickableAttr !== 'false' && enabledAttr !== 'false';
+    } catch {
+      return true;
+    }
+  }
+
+  /**
+   * Polls until the element stays interactive for consecutive reads.
+   */
+  static async waitUntilInteractive(
+    elem: PlaywrightElement,
+    timeout: number,
+    options?: { requiredStableReads?: number; interval?: number },
+  ): Promise<void> {
+    const interval = options?.interval ?? 250;
+    const requiredStableReads = options?.requiredStableReads ?? 6;
+    const start = Date.now();
+    let consecutiveInteractive = 0;
+
+    while (Date.now() - start < timeout - interval) {
+      if (await this.isElementInteractive(elem)) {
+        consecutiveInteractive += 1;
+        if (consecutiveInteractive >= requiredStableReads) {
+          return;
+        }
+      } else {
+        consecutiveInteractive = 0;
+      }
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+
+    throw new Error(
+      `Element was not interactive for ${requiredStableReads} consecutive checks within ${timeout}ms`,
+    );
+  }
+
   @boxedStep
   static async waitAndTap(
     elem: PlaywrightElement,
@@ -84,23 +157,40 @@ export default class PlaywrightGestures {
       timeout?: number;
       checkForDisplayed?: boolean;
       checkForEnabled?: boolean;
+      /** Stricter Android enabled polling (login unlock, etc.) */
+      waitForInteractive?: boolean;
       checkForStable?: boolean;
+      enabledStableReads?: number;
+      postEnabledSettleMs?: number;
     },
   ): Promise<void> {
     const {
+      timeout = 10000,
       delay = 500,
-      timeout,
       checkForDisplayed = true,
       checkForEnabled = true,
+      waitForInteractive = false,
       checkForStable = false,
+      enabledStableReads = 3,
+      postEnabledSettleMs,
     } = options || {};
 
     if (checkForDisplayed) {
-      await elem.unwrap().waitForDisplayed({ timeout: timeout ?? 10000 });
+      await elem.unwrap().waitForDisplayed({ timeout });
     }
 
     if (checkForEnabled) {
-      await elem.unwrap().waitForEnabled({ timeout: timeout ?? 5000 });
+      if (waitForInteractive) {
+        await this.waitUntilInteractive(elem, timeout, {
+          requiredStableReads: enabledStableReads,
+        });
+        const settleMs = postEnabledSettleMs ?? 0;
+        if (settleMs > 0) {
+          await new Promise((resolve) => setTimeout(resolve, settleMs));
+        }
+      } else {
+        await elem.waitForEnabled({ timeout });
+      }
     }
 
     if (checkForStable) {
@@ -111,6 +201,7 @@ export default class PlaywrightGestures {
       await new Promise((resolve) => setTimeout(resolve, delay));
     }
 
+    await debugElementAction(logger, 'Wait and tap element', elem);
     await elem.unwrap().click();
   }
 
@@ -122,6 +213,7 @@ export default class PlaywrightGestures {
    */
   @boxedStep
   static async typeText(elem: PlaywrightElement, text: string): Promise<void> {
+    await debugElementAction(logger, 'Typing into element', elem);
     await elem.unwrap().addValue(text);
   }
 
@@ -156,6 +248,7 @@ export default class PlaywrightGestures {
       from,
       to,
     } = options || {};
+    logger.debug(`Swiping ${scrollParams.direction ?? 'up'}`);
     await drv.swipe({
       direction: scrollParams.direction,
       duration,
@@ -179,6 +272,7 @@ export default class PlaywrightGestures {
     const x = location.x + size.width / 2;
     const y = location.y + size.height / 2;
 
+    await debugElementAction(logger, 'Long pressing element', elem);
     await elem
       .unwrap()
       .touchAction([
@@ -199,6 +293,7 @@ export default class PlaywrightGestures {
   static async dblTap(elem: PlaywrightElement, intervalMs = 60): Promise<void> {
     const wrapped = elem.unwrap();
 
+    await debugElementAction(logger, 'Double tapping element', elem);
     await wrapped.click();
 
     if (intervalMs > 0) {
@@ -223,7 +318,9 @@ export default class PlaywrightGestures {
       percent,
       scrollableElement,
       duration,
+      maxScrolls = 30,
     } = options || {};
+    await debugElementAction(logger, 'Scrolling element into view', elem);
     await elem.unwrap().scrollIntoView({
       direction: scrollParams.direction,
       from,
@@ -231,6 +328,7 @@ export default class PlaywrightGestures {
       percent,
       scrollableElement: scrollableElement?.unwrap(),
       duration,
+      maxScrolls,
     });
   }
 
@@ -260,6 +358,11 @@ export default class PlaywrightGestures {
     const safeBottom = windowSize.height * 0.85;
 
     if (elementBottom > safeBottom) {
+      await debugElementAction(
+        logger,
+        'Adjusting scroll to clear bottom nav for element',
+        elem,
+      );
       const overshoot = Math.ceil(elementBottom - safeBottom) + 20;
       const midX = Math.floor(windowSize.width / 2);
       const startY = Math.floor(windowSize.height * 0.6);
@@ -310,13 +413,14 @@ export default class PlaywrightGestures {
       throw new Error('Package name or app id is not available');
     }
 
+    logger.debug(`Terminating app: ${bundleId}`);
     while (retries > 0) {
       try {
         await drv.terminateApp(bundleId);
         await new Promise((resolve) => setTimeout(resolve, retryDelay));
         return;
       } catch (error) {
-        console.log('Error terminating app', bundleId);
+        logger.warn(`Error terminating app ${bundleId}:`, error);
         retries--;
       }
     }
@@ -339,6 +443,7 @@ export default class PlaywrightGestures {
     if (!drv) throw new Error('Driver is not available');
 
     if (packageId) {
+      logger.debug(`Activating app: ${packageId}`);
       await drv.activateApp(packageId);
       return;
     }
@@ -347,6 +452,7 @@ export default class PlaywrightGestures {
       currentDeviceDetails?.platform === 'android' &&
       currentDeviceDetails.packageName
     ) {
+      logger.debug(`Activating app: ${currentDeviceDetails.packageName}`);
       await drv.activateApp(currentDeviceDetails.packageName);
       return;
     }
@@ -355,6 +461,7 @@ export default class PlaywrightGestures {
       currentDeviceDetails?.platform === 'ios' &&
       currentDeviceDetails.appId
     ) {
+      logger.debug(`Activating app: ${currentDeviceDetails.appId}`);
       await drv.activateApp(currentDeviceDetails.appId);
       return;
     }
@@ -371,6 +478,7 @@ export default class PlaywrightGestures {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
+    logger.debug(`Backgrounding app for ${seconds}s`);
     await drv.execute('mobile: backgroundApp', { seconds });
   }
 
@@ -378,25 +486,80 @@ export default class PlaywrightGestures {
    * Hide keyboard for both Android and iOS
    * @param keyName - The key to press on iOS keyboard (default: 'Done'). Common values: 'Done', 'Return', 'Search', 'Go', 'Next'
    */
-  static async hideKeyboard(keyName: string = 'Done'): Promise<void> {
+  static async hideKeyboard(): Promise<void> {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
+    logger.debug('Hiding keyboard');
     if (PlatformDetector.isAndroid()) {
       await drv.hideKeyboard();
     } else {
-      // iOS - try pressKey strategy first, fallback to tap outside
+      // iOS — use 'tapOutside' to dismiss the keyboard without pressing a
+      // return key. 'pressKey: Done' would trigger onSubmitEditing on inputs
+      // that have returnKeyType='done', causing unintended form submissions
+      // before the test has a chance to interact with other elements.
       try {
         await drv.executeScript('mobile: hideKeyboard', [
-          {
-            strategy: 'pressKey',
-            key: keyName,
-          },
+          { strategy: 'tapOutside' },
         ]);
       } catch {
-        // Fallback: tap outside the keyboard area (top of screen)
-        await drv.tap({ x: 100, y: 150 });
+        // Keyboard may already be hidden
       }
     }
+  }
+
+  /**
+   * Press a return key on the soft keyboard (e.g. 'Next', 'Done', 'Go').
+   * Use when tapOutside cannot dismiss the keyboard (keyboardDismissMode="none")
+   * or when onSubmitEditing must fire to advance the flow.
+   */
+  @boxedStep
+  static async tapKeyboardReturnKey(keyName: string): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    logger.debug(`Tapping keyboard return key: ${keyName}`);
+
+    if (PlatformDetector.isAndroid()) {
+      try {
+        await drv.execute('mobile: performEditorAction', [
+          { action: keyName.toLowerCase() },
+        ]);
+      } catch {
+        await drv.hideKeyboard();
+      }
+      return;
+    }
+
+    // iOS — tap the keyboard return key directly (separate window from app UI).
+    // e.g. Next: name="Next:" label="next" inside XCUIElementTypeKeyboard
+    const normalized = keyName.toLowerCase();
+    const titleCase = normalized.charAt(0).toUpperCase() + normalized.slice(1);
+
+    // iOS keyboard keys commonly use "Next:" / label "next" — try those first.
+    const locators = [
+      `~${titleCase}:`,
+      `-ios predicate string:type == 'XCUIElementTypeButton' AND name == '${titleCase}:'`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${titleCase}:']`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@label='${normalized}']`,
+      `~${titleCase}`,
+      `~${normalized}`,
+      `-ios predicate string:type == 'XCUIElementTypeButton' AND label == '${normalized}'`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${titleCase}']`,
+      `//XCUIElementTypeKeyboard//XCUIElementTypeButton[@name='${normalized}']`,
+    ];
+
+    for (const locator of locators) {
+      const button = await drv.$(locator);
+      try {
+        await button.waitForDisplayed({ timeout: 5000 });
+        await button.click();
+        return;
+      } catch {
+        // try next locator variant
+      }
+    }
+
+    throw new Error(`Could not find iOS keyboard key "${keyName}"`);
   }
 }

@@ -44,7 +44,6 @@ interface MockBatchSellQuoteData {
   hasPendingQuoteRows: boolean;
   needsNewQuote: boolean;
   networkFee: { formatted: string; formattedFiat: string };
-  networkFeeIsLoading: boolean;
 }
 
 const defaultQuoteData: MockBatchSellQuoteData = {
@@ -78,7 +77,6 @@ const defaultQuoteData: MockBatchSellQuoteData = {
     formatted: '1.20 USDC',
     formattedFiat: '$1.20',
   },
-  networkFeeIsLoading: false,
 };
 let mockBatchSellQuoteData = defaultQuoteData;
 const defaultSelectedTokens: BridgeToken[] = [
@@ -208,6 +206,15 @@ jest.mock('../../hooks/useBatchSellQuoteRequest', () => ({
       return token.balance;
     },
   ),
+  hasValidBatchSellSourceAmounts: jest.fn(
+    (
+      _sourceTokens: BridgeToken[],
+      batchSellSourceTokenAmounts: Record<string, string | undefined>,
+    ) =>
+      Object.values(batchSellSourceTokenAmounts).some(
+        (amount) => amount !== undefined && Number(amount) > 0,
+      ),
+  ),
   useBatchSellQuoteRequest: jest.fn(() => ({
     updateBatchSellQuoteParams: mockUpdateBatchSellQuoteParams,
     getNewQuote: mockGetNewQuote,
@@ -258,9 +265,10 @@ describe('BatchSellReview', () => {
       isSummaryLoading: true,
       hasPendingQuoteRows: true,
     };
-    const { getByTestId } = render(<BatchSellReview />);
+    const { getByTestId, getByText } = render(<BatchSellReview />);
     const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
 
+    expect(getByText('Searching for best quotes')).toBeOnTheScreen();
     expect(
       getByTestId(BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_SKELETON),
     ).toBeOnTheScreen();
@@ -274,6 +282,22 @@ describe('BatchSellReview', () => {
         `${BatchSellReviewSelectorsIDs.TOKEN_AMOUNT_SKELETON}-0x1:0x2222222222222222222222222222222222222222`,
       ),
     ).toBeOnTheScreen();
+    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
+  });
+
+  it('keeps the review CTA disabled while quotes are fetching even when rows have streamed in', () => {
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      isLoading: true,
+      isSummaryLoading: false,
+      hasAnyQuote: true,
+      hasPendingQuoteRows: false,
+    };
+
+    const { getByTestId, getByText } = render(<BatchSellReview />);
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    expect(getByText('Searching for best quotes')).toBeOnTheScreen();
     expect(reviewButton.props.accessibilityState.disabled).toBe(true);
   });
 
@@ -300,11 +324,12 @@ describe('BatchSellReview', () => {
       },
     };
 
-    const { getAllByText, getByTestId, queryByTestId } = render(
+    const { getAllByText, getByTestId, getByText, queryByTestId } = render(
       <BatchSellReview />,
     );
     const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
 
+    expect(getByText('Searching for best quotes')).toBeOnTheScreen();
     expect(getAllByText('$3,456.78').length).toBeGreaterThan(0);
     expect(
       queryByTestId(BatchSellReviewSelectorsIDs.TOTAL_RECEIVED_SKELETON),
@@ -416,10 +441,13 @@ describe('BatchSellReview', () => {
       hasAnyQuote: false,
       hasPendingQuoteRows: false,
     };
-    const { getAllByText, getByTestId } = render(<BatchSellReview />);
+    const { getAllByText, getByTestId, getByText } = render(
+      <BatchSellReview />,
+    );
     const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
 
     expect(getAllByText('No quote available')).toHaveLength(2);
+    expect(getByText('Review')).toBeOnTheScreen();
     expect(reviewButton.props.accessibilityState.disabled).toBe(true);
   });
 
@@ -458,6 +486,25 @@ describe('BatchSellReview', () => {
 
     expect(getByText('Review')).toBeOnTheScreen();
     expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
+  });
+
+  it('disables the review button and clears quotes when all source amounts are zero', () => {
+    mockBatchSellSourceTokenAmounts = {
+      [ethAssetId]: '0',
+      [uniAssetId]: '0',
+    };
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      hasAnyQuote: false,
+    };
+
+    const { getByTestId } = render(<BatchSellReview />);
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
+    expect(mockUpdateBatchSellQuoteParams).not.toHaveBeenCalled();
+    expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
+    expect(mockCancelBatchSellQuoteParams).toHaveBeenCalled();
   });
 
   it('shows UNKNOWN when there is no destination token match', () => {
@@ -536,7 +583,6 @@ describe('BatchSellReview', () => {
     mockBatchSellQuoteData = {
       ...defaultQuoteData,
       needsNewQuote: true,
-      networkFeeIsLoading: true,
       hasPendingQuoteRows: true,
     };
     const { getByTestId, getByText } = render(<BatchSellReview />);

@@ -2,6 +2,7 @@ import {
   Button as DSButton,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, {
@@ -32,9 +33,6 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Icon, {
   IconColor,
   IconName,
@@ -515,7 +513,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Error state
   if (error) {
     return (
-      <SafeAreaView style={styles.container} testID={testID}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+        testID={testID}
+      >
         {market ? (
           <PerpsMarketHeader
             market={market}
@@ -523,20 +525,14 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             currentPrice={currentPrice}
           />
         ) : (
-          <View style={styles.header}>
-            <ButtonIcon
-              iconName={IconName.ArrowLeft}
-              iconColor={IconColor.Default}
-              size={ButtonIconSizes.Md}
-              onPress={handleBack}
-              testID={PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
-            />
-            <View style={styles.headerTitleContainer}>
-              <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-                {strings('perps.order_book.title')}
-              </Text>
-            </View>
-          </View>
+          <HeaderStandard
+            includesTopInset
+            title={strings('perps.order_book.title')}
+            onBack={handleBack}
+            backButtonProps={{
+              testID: PerpsOrderBookViewSelectorsIDs.BACK_BUTTON,
+            }}
+          />
         )}
         <View style={styles.errorContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
@@ -548,7 +544,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   }
 
   return (
-    <SafeAreaView style={styles.container} testID={testID}>
+    <SafeAreaView
+      style={styles.container}
+      edges={['bottom', 'left', 'right']}
+      testID={testID}
+    >
       {/* Market Header */}
       {market && (
         <PerpsMarketHeader
@@ -678,82 +678,74 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
         {/* Action Buttons - Show Modify/Close when position exists, Long/Short otherwise */}
         {existingPosition ? (
-          <View style={styles.actionsContainer}>
-            <View style={styles.actionButtonWrapper}>
-              <DSButton
-                variant={ButtonVariant.Secondary}
-                size={ButtonSizeRNDesignSystem.Lg}
-                isFullWidth
-                onPress={handleModifyPress}
-                testID={PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON}
-              >
-                {strings('perps.market.modify')}
-              </DSButton>
-            </View>
+          <View style={styles.actionsContainer} accessible={false}>
+            <DSButton
+              variant={ButtonVariant.Secondary}
+              size={ButtonSizeRNDesignSystem.Lg}
+              onPress={handleModifyPress}
+              style={styles.actionButtonWrapper}
+              testID={PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON}
+            >
+              {strings('perps.market.modify')}
+            </DSButton>
 
-            <View style={styles.actionButtonWrapper}>
+            <DSButton
+              variant={ButtonVariant.Primary}
+              size={ButtonSizeRNDesignSystem.Lg}
+              onPress={handleClosePosition}
+              style={styles.actionButtonWrapper}
+              testID={PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON}
+            >
+              {parseFloat(existingPosition.size) >= 0
+                ? strings('perps.market.close_long')
+                : strings('perps.market.close_short')}
+            </DSButton>
+          </View>
+        ) : (
+          <View style={styles.actionsContainer} accessible={false}>
+            {buttonColorVariant === 'monochrome' ? (
               <DSButton
                 variant={ButtonVariant.Primary}
                 size={ButtonSizeRNDesignSystem.Lg}
-                isFullWidth
-                onPress={handleClosePosition}
-                testID={PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON}
+                onPress={handleLongPress}
+                style={styles.actionButtonWrapper}
+                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
               >
-                {parseFloat(existingPosition.size) >= 0
-                  ? strings('perps.market.close_long')
-                  : strings('perps.market.close_short')}
+                {strings('perps.market.long')}
               </DSButton>
-            </View>
-          </View>
-        ) : (
-          <View style={styles.actionsContainer}>
-            <View style={styles.actionButtonWrapper}>
-              {buttonColorVariant === 'monochrome' ? (
-                <DSButton
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  isFullWidth
-                  onPress={handleLongPress}
-                  testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
-                >
-                  {strings('perps.market.long')}
-                </DSButton>
-              ) : (
-                <ButtonSemantic
-                  severity={ButtonSemanticSeverity.Success}
-                  onPress={handleLongPress}
-                  isFullWidth
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
-                >
-                  {strings('perps.market.long')}
-                </ButtonSemantic>
-              )}
-            </View>
+            ) : (
+              <ButtonSemantic
+                severity={ButtonSemanticSeverity.Success}
+                onPress={handleLongPress}
+                size={ButtonSizeRNDesignSystem.Lg}
+                style={styles.actionButtonWrapper}
+                testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
+              >
+                {strings('perps.market.long')}
+              </ButtonSemantic>
+            )}
 
-            <View style={styles.actionButtonWrapper}>
-              {buttonColorVariant === 'monochrome' ? (
-                <DSButton
-                  variant={ButtonVariant.Primary}
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  isFullWidth
-                  onPress={handleShortPress}
-                  testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
-                >
-                  {strings('perps.market.short')}
-                </DSButton>
-              ) : (
-                <ButtonSemantic
-                  severity={ButtonSemanticSeverity.Danger}
-                  onPress={handleShortPress}
-                  isFullWidth
-                  size={ButtonSizeRNDesignSystem.Lg}
-                  testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
-                >
-                  {strings('perps.market.short')}
-                </ButtonSemantic>
-              )}
-            </View>
+            {buttonColorVariant === 'monochrome' ? (
+              <DSButton
+                variant={ButtonVariant.Primary}
+                size={ButtonSizeRNDesignSystem.Lg}
+                onPress={handleShortPress}
+                style={styles.actionButtonWrapper}
+                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+              >
+                {strings('perps.market.short')}
+              </DSButton>
+            ) : (
+              <ButtonSemantic
+                severity={ButtonSemanticSeverity.Danger}
+                onPress={handleShortPress}
+                size={ButtonSizeRNDesignSystem.Lg}
+                style={styles.actionButtonWrapper}
+                testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
+              >
+                {strings('perps.market.short')}
+              </ButtonSemantic>
+            )}
           </View>
         )}
       </View>

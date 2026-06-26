@@ -1,4 +1,5 @@
 import { TrendingViewSelectorsIDs as AppTrendingViewSelectorsIDs } from '../../../app/components/Views/TrendingView/TrendingView.testIds';
+import { ExploreSearchScreenSelectorsIDs } from '../../../app/components/Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen.testIds';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
 
 export const TrendingViewSelectorsIDs = {
@@ -7,11 +8,12 @@ export const TrendingViewSelectorsIDs = {
   SEARCH_INPUT: 'explore-view-search-input',
   SEARCH_TEXT_INPUT: 'explore-view-search-text-input',
   SEARCH_CANCEL_BUTTON: 'explore-search-cancel-button',
+  SEARCH_PILL_ALL: ExploreSearchScreenSelectorsIDs.PILL_ALL,
+  SEARCH_PILL_CRYPTOS: ExploreSearchScreenSelectorsIDs.PILL_CRYPTOS,
   TOKEN_ROW_ITEM_PREFIX: 'trending-token-row-item-',
   PERPS_ROW_ITEM_PREFIX: 'perps-market-tile-card-',
   PREDICTIONS_ROW_ITEM_PREFIX: 'predict-market-row-item-',
   SITE_ROW_ITEM_PREFIX: 'site-row-item-',
-  SEARCH_FOOTER_SEARCH_LINK: 'trending-search-footer-search-link',
   NOW_SCROLL_VIEW: AppTrendingViewSelectorsIDs.EXPLORE_NOW_SCROLL_VIEW,
   RWAS_SCROLL_VIEW: AppTrendingViewSelectorsIDs.EXPLORE_RWAS_SCROLL_VIEW,
   CRYPTO_SCROLL_VIEW: AppTrendingViewSelectorsIDs.EXPLORE_CRYPTO_SCROLL_VIEW,

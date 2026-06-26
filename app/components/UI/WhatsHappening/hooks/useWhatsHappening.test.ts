@@ -1,6 +1,9 @@
 import { renderHook, waitFor } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
-import { useWhatsHappening } from './useWhatsHappening';
+import {
+  isWhatsHappeningSectionVisible,
+  useWhatsHappening,
+} from './useWhatsHappening';
 
 const mockFetchMarketOverview = jest.fn();
 
@@ -156,5 +159,101 @@ describe('useWhatsHappening', () => {
     await result.current.refresh();
 
     await waitFor(() => expect(result.current.items).toHaveLength(2));
+  });
+
+  it('returns items and no error when an asset is missing sourceAssetId and name', async () => {
+    const assetWithoutOptionalFields = {
+      symbol: 'ETH',
+      caip19: ['eip155:1/slip44:60'],
+      // sourceAssetId intentionally absent
+      // name intentionally absent
+    };
+    mockFetchMarketOverview.mockResolvedValue({
+      ...mockOverview,
+      trends: [
+        {
+          ...mockTrend,
+          relatedAssets: [assetWithoutOptionalFields],
+        },
+      ],
+    });
+
+    const { result } = renderHook(() => useWhatsHappening());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.items).toHaveLength(1);
+    expect(result.current.error).toBeNull();
+    expect(result.current.items[0].relatedAssets[0].symbol).toBe('ETH');
+    expect(
+      result.current.items[0].relatedAssets[0].sourceAssetId,
+    ).toBeUndefined();
+    expect(result.current.items[0].relatedAssets[0].name).toBeUndefined();
+  });
+
+  it('returns empty items and no error when API returns overview with empty trends', async () => {
+    mockFetchMarketOverview.mockResolvedValue({
+      ...mockOverview,
+      trends: [],
+    });
+
+    const { result } = renderHook(() => useWhatsHappening());
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.items).toHaveLength(0);
+    expect(result.current.error).toBeNull();
+  });
+
+  it('does not fetch when enabled option is false', async () => {
+    const { result } = renderHook(() =>
+      useWhatsHappening(5, { enabled: false }),
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(mockFetchMarketOverview).not.toHaveBeenCalled();
+    expect(result.current.items).toHaveLength(0);
+    expect(result.current.error).toBeNull();
+  });
+});
+
+describe('isWhatsHappeningSectionVisible', () => {
+  it('returns true while loading', () => {
+    expect(
+      isWhatsHappeningSectionVisible({
+        isLoading: true,
+        items: [],
+        error: null,
+      }),
+    ).toBe(true);
+  });
+
+  it('returns true when items are available', () => {
+    expect(
+      isWhatsHappeningSectionVisible({
+        isLoading: false,
+        items: [{ id: 'trend-0' } as never],
+        error: null,
+      }),
+    ).toBe(true);
+  });
+
+  it('returns true when an error is present', () => {
+    expect(
+      isWhatsHappeningSectionVisible({
+        isLoading: false,
+        items: [],
+        error: 'Network error',
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false for an empty loaded feed without error', () => {
+    expect(
+      isWhatsHappeningSectionVisible({
+        isLoading: false,
+        items: [],
+        error: null,
+      }),
+    ).toBe(false);
   });
 });

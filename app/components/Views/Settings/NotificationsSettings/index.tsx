@@ -8,7 +8,6 @@ import { useTheme } from '../../../../util/theme';
 
 import { useStyles } from '../../../../component-library/hooks';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
-import SwitchLoadingModal from '../../../UI/Notification/SwitchLoadingModal';
 import { Props } from './NotificationsSettings.types';
 
 import { selectIsMetamaskNotificationsEnabled } from '../../../../selectors/notifications';
@@ -16,13 +15,11 @@ import { selectSocialLeaderboardEnabled } from '../../../../selectors/featureFla
 
 import Routes from '../../../../constants/navigation/Routes';
 
-import { useSwitchNotificationLoadingText } from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { MainNotificationToggle } from './MainNotificationToggle';
 import styleSheet from './NotificationsSettings.styles';
 import {
   useNotificationStoragePreferences,
-  type NotificationStoragePreferences,
-  type NotificationStoragePreferenceSection,
+  type NotificationPreferenceSection,
 } from './hooks/useNotificationStoragePreferences';
 
 import {
@@ -36,6 +33,7 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
+import { NotificationPreferences } from '@metamask/authenticated-user-storage';
 
 interface NotificationRowProps {
   title: string;
@@ -75,7 +73,7 @@ const NotificationRow = ({
 };
 
 type NotificationPreferenceStatus =
-  NotificationStoragePreferences[NotificationStoragePreferenceSection];
+  NotificationPreferences[NotificationPreferenceSection];
 
 const getStatusText = (prefs?: NotificationPreferenceStatus | null) => {
   const active = [];
@@ -101,11 +99,10 @@ const NotificationsSettings = ({ navigation }: Props) => {
     selectSocialLeaderboardEnabled,
   );
 
-  const loadingText = useSwitchNotificationLoadingText();
   const { preferences } = useNotificationStoragePreferences();
 
   const navigateToSection = (
-    type: NotificationStoragePreferenceSection,
+    type: NotificationPreferenceSection,
     title: string,
     description: string,
   ) => {
@@ -159,6 +156,21 @@ const NotificationsSettings = ({ navigation }: Props) => {
               }
             />
 
+            <NotificationRow
+              title={strings(
+                'app_settings.notifications_opts.agentic_cli_title',
+              )}
+              status={getStatusText(preferences?.agenticCli)}
+              iconName={IconName.Code}
+              onPress={() =>
+                navigateToSection(
+                  'agenticCli',
+                  strings('app_settings.notifications_opts.agentic_cli_title'),
+                  strings('app_settings.notifications_opts.agentic_cli_desc'),
+                )
+              }
+            />
+
             {isSocialLeaderboardEnabled && (
               <NotificationRow
                 title={strings(
@@ -190,10 +202,6 @@ const NotificationsSettings = ({ navigation }: Props) => {
             />
           </>
         )}
-        <SwitchLoadingModal
-          loading={!!loadingText}
-          loadingText={loadingText ?? ''}
-        />
       </ScrollView>
     </SafeAreaView>
   );

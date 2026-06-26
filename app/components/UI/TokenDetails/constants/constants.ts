@@ -22,6 +22,8 @@ export enum TokenDetailsSource {
   ExploreCryptoTrending = 'explore_crypto_trending',
   /** Explore RWAs tab — stocks list */
   ExploreRwasStocks = 'explore_rwas_stocks',
+  /** Explore omni-search result tap */
+  ExploreSearch = 'explore_search',
   /** Trending tokens section on the Swaps / Bridge view */
   TrendingSwaps = 'trending-swaps',
   /** Dedicated homepage trending-tokens section (A/B treatment layout) */
@@ -37,6 +39,7 @@ const EXPLORE_TOKEN_DETAILS_SOURCES = new Set<TokenDetailsSource>([
   TokenDetailsSource.ExploreNowStocks,
   TokenDetailsSource.ExploreCryptoTrending,
   TokenDetailsSource.ExploreRwasStocks,
+  TokenDetailsSource.ExploreSearch,
   TokenDetailsSource.Trending,
 ]);
 
@@ -49,6 +52,18 @@ export const isExploreTokenDetailsSource = (
 ): boolean => Boolean(source && EXPLORE_TOKEN_DETAILS_SOURCES.has(source));
 
 /**
+ * Action types for "Token Details Action Tapped" event
+ */
+export enum TokenDetailsAction {
+  Send = 'send',
+  Receive = 'receive',
+  MoreOpened = 'more_opened',
+  RemoveToken = 'remove_token',
+  ViewOnExplorer = 'view_on_explorer',
+  CopyTokenAddress = 'copy_token_address',
+}
+
+/**
  * Extended route params for Token Details page
  * Includes source tracking for analytics
  */
@@ -58,3 +73,17 @@ export interface TokenDetailsRouteParams extends TokenI {
   /** Carried into swap / perps / predict flows for tx-scoped `active_ab_tests` */
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
+
+/**
+ * Exit actions tracked by TOKEN_DETAILS_CLOSED event.
+ */
+export type TokenDetailsExitAction =
+  | 'back_navigation'
+  | 'cta_clicked'
+  | 'app_backgrounded';
+
+/**
+ * Technical indicators that occupy a sub-pane below the main chart.
+ * Keep in sync with SUB_PANE_INDICATOR_NAMES in chartLogic.js.
+ */
+export const SUB_PANE_INDICATORS = ['MACD', 'RSI'] as const;

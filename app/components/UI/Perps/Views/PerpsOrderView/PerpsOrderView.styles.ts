@@ -15,6 +15,11 @@ const createStyles = (colors: Colors) =>
       paddingBottom: 120, // Space for fixed button
       paddingTop: 0,
     },
+    scrollViewContentKeypad: {
+      flexGrow: 0,
+      paddingBottom: 0,
+      paddingTop: 0,
+    },
     fixedBottomContainer: {
       position: 'absolute',
       bottom: 0,

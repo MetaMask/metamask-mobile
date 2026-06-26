@@ -9,6 +9,7 @@ jest.mock('react-native-gesture-handler', () => {
 });
 
 import PressableGH from './PressableGH';
+import { PressableVariant } from './Pressable.types';
 
 describe('PressableGH', () => {
   it('renders children', () => {
@@ -74,5 +75,23 @@ describe('PressableGH', () => {
 
     expect(ref.current).not.toBeNull();
     expect(typeof ref.current?.measure).toBe('function');
+  });
+
+  it('accepts the variant prop without crashing', () => {
+    expect(() =>
+      render(
+        <PressableGH variant={PressableVariant.Highlight} onPress={jest.fn()}>
+          <Text>x</Text>
+        </PressableGH>,
+      ),
+    ).not.toThrow();
+
+    expect(() =>
+      render(
+        <PressableGH variant={PressableVariant.Default} onPress={jest.fn()}>
+          <Text>x</Text>
+        </PressableGH>,
+      ),
+    ).not.toThrow();
   });
 });

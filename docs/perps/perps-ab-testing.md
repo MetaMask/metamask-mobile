@@ -437,7 +437,7 @@ graph LR
 
 Before testing A/B events locally, ensure:
 
-- [ ] `IS_TEST` is NOT set to `true` in `.js.env` (events won't send if true)
+- [ ] `HAS_TEST_OVERRIDES` is NOT set to `true` in `.js.env` (events won't send if true)
 - [ ] `SEGMENT_WRITE_KEY` is configured for dev environment
 - [ ] User has opted into analytics in the app
 - [ ] Feature flag is enabled (LaunchDarkly or local override)
@@ -541,14 +541,14 @@ Check console logs for:
 
 ### Troubleshooting
 
-| Issue                           | Likely Cause          | Solution                                                                                              |
-| ------------------------------- | --------------------- | ----------------------------------------------------------------------------------------------------- |
-| Events not in console           | `IS_TEST=true`        | Set `IS_TEST=false` in `.js.env`                                                                      |
-| Events not in Segment           | User not opted in     | Enable analytics in app settings                                                                      |
-| No `ab_test_*` property         | Test not enabled      | Check LaunchDarkly flag or `isEnabled` value                                                          |
-| Property in `protocols.omitted` | Not in Segment schema | Add property to segment-schema repo (see [Segment Schema Requirements](#segment-schema-requirements)) |
-| Wrong variant                   | Hardcoded override    | Remove temporary hardcode                                                                             |
-| Delayed events                  | Default flush policy  | Add flush override env vars                                                                           |
+| Issue                           | Likely Cause              | Solution                                                                                              |
+| ------------------------------- | ------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Events not in console           | `HAS_TEST_OVERRIDES=true` | Set `IS_HAS_TEST_OVERRIDESTEST=false` in `.js.env`                                                    |
+| Events not in Segment           | User not opted in         | Enable analytics in app settings                                                                      |
+| No `ab_test_*` property         | Test not enabled          | Check LaunchDarkly flag or `isEnabled` value                                                          |
+| Property in `protocols.omitted` | Not in Segment schema     | Add property to segment-schema repo (see [Segment Schema Requirements](#segment-schema-requirements)) |
+| Wrong variant                   | Hardcoded override        | Remove temporary hardcode                                                                             |
+| Delayed events                  | Default flush policy      | Add flush override env vars                                                                           |
 
 > For more troubleshooting, see [MetaMetrics Debugging Guide](../readme/metametrics-debugging.md).
 

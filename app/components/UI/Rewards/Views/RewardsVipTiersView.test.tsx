@@ -7,6 +7,7 @@ import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipDashboard } from '../hooks/useVipDashboard';
 import type { VipDashboardState } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -16,9 +17,15 @@ import RewardsVipTiersView, {
 
 const mockDispatch = jest.fn();
 const mockGoBack = jest.fn();
+const mockNavigate = jest.fn();
+const mockExitRewardsFlow = jest.fn();
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+}));
+
+jest.mock('../utils', () => ({
+  exitRewardsFlow: (...args: unknown[]) => mockExitRewardsFlow(...args),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -28,6 +35,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       dispatch: mockDispatch,
       goBack: mockGoBack,
+      navigate: mockNavigate,
     }),
   };
 });
@@ -171,6 +179,10 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/featureFlagController/vipProgram', () => ({
+  selectVipProgramEnabled: jest.fn(),
+}));
+
 jest.mock('../../../Views/ErrorBoundary', () => ({
   __esModule: true,
   default: function MockErrorBoundary({
@@ -185,38 +197,39 @@ jest.mock('../../../Views/ErrorBoundary', () => ({
 jest.mock('../hooks/useTrackRewardsPageView', () => jest.fn());
 
 const dashboardWithTiers: VipDashboardState = {
-  program: { id: 'p1', name: 'VIP Pilot' },
+  program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
   period: {
-    start: '2026-04-11T00:00:00.000Z',
-    end: '2026-05-11T23:59:59.999Z',
+    start: '2099-06-01T00:00:00.000Z',
+    end: '2099-06-30T23:59:59.999Z',
   },
-  currentTier: { id: 'gold-fox-3', name: 'Gold Fox 3', tier: 3 },
-  nextTier: { id: 'gold-fox-4', name: 'Gold Fox 4', tier: 4 },
+  computedAt: '2099-06-30T14:52:00.000Z',
+  currentTier: { id: 'mock-tier-alpha-3', name: 'Mock Tier Alpha 3', tier: 3 },
+  nextTier: { id: 'mock-tier-alpha-4', name: 'Mock Tier Alpha 4', tier: 4 },
   progress: {
-    percent: 72,
-    remainingPointsToNextTier: 800_000,
+    percent: 42,
+    remainingPointsToNextTier: 123_456,
     status: 'on_track',
   },
   fees: {
-    revenueShareBps: 150,
-    swapsBps: 15,
-    perpsBps: 4,
-    nextTierRevenueShareBps: 200,
-    nextTierSwapsBps: 12,
-    nextTierPerpsBps: 3,
+    revenueShareBps: 99,
+    swapsBps: 11,
+    perpsBps: 7,
+    nextTierRevenueShareBps: 88,
+    nextTierSwapsBps: 9,
+    nextTierPerpsBps: 6,
   },
   volume: {
-    swapsUsd: 4_100_000,
-    perpsUsd: 2_300_000,
-    points: 24_400_000,
-    pointsFromReferrals: 500_000,
-    referrals: 2,
-    referralsCap: 10,
+    swapsUsd: 1_234_567,
+    perpsUsd: 9_876_543,
+    points: 5_555_555,
+    pointsFromReferrals: 111_111,
+    referrals: 3,
+    referralsCap: 7,
   },
   pointsAllocation: {
-    earned: 24_400_000,
-    threshold: 100_000_000,
-    percent: 24.4,
+    earned: 5_555_555,
+    threshold: 7_777_777,
+    percent: 71.4,
   },
   tiers: [
     {
@@ -225,34 +238,34 @@ const dashboardWithTiers: VipDashboardState = {
       tier: 0,
       pointsRequirement: 0,
       revenueShareBps: 0,
-      swapsBps: 87.5,
+      swapsBps: 42.5,
       perpsBps: 10,
       referralCarryoverBps: 0,
       status: 'completed',
     },
     {
-      id: 'gold-fox-3',
-      name: 'Gold Fox 3',
+      id: 'mock-tier-alpha-3',
+      name: 'Mock Tier Alpha 3',
       tier: 3,
-      pointsRequirement: 750_000,
-      revenueShareBps: 150,
-      swapsBps: 15,
-      perpsBps: 4,
-      referralCarryoverBps: 2000,
+      pointsRequirement: 321_000,
+      revenueShareBps: 99,
+      swapsBps: 11,
+      perpsBps: 7,
+      referralCarryoverBps: 4242,
       status: 'current',
     },
   ],
   localizedText: {
-    periodTitle: 'Mar 31 - Apr 30',
+    periodTitle: 'Jun 1 - Jun 30',
     memberIdTitle: 'Member ID',
     swapsFeeTitle: 'Swaps fee',
     perpsFeeTitle: 'Perps fee',
-    nextTierSwapsFeeDelta: '↓ 12 bps next tier',
-    nextTierPerpsFeeDelta: '↓ 3 bps next tier',
+    nextTierSwapsFeeDelta: '↓ 9 bps next tier',
+    nextTierPerpsFeeDelta: '↓ 6 bps next tier',
     revenueShareTitle: 'Revenue share',
     referralPointsTitle: 'Referral points',
-    nextTierRevenueShareDelta: '↑ 2% next tier',
-    nextTierReferralPointsDelta: '↑ 20% next tier',
+    nextTierRevenueShareDelta: '↑ 1% next tier',
+    nextTierReferralPointsDelta: '↑ 42% next tier',
     topTierDescription: 'Top tier reached',
     statsTitle: 'Volume',
     pointsTitle: 'Points',
@@ -288,6 +301,7 @@ const mockSubscribed = () => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectRewardsSubscriptionId) return 'test-subscription-id';
     if (selector === selectIsCurrentSubscriptionVipEnabled) return true;
+    if (selector === selectVipProgramEnabled) return true;
     return undefined;
   });
 };
@@ -314,7 +328,7 @@ describe('RewardsVipTiersView', () => {
     expect(getByTestId(REWARDS_VIP_TIERS_VIEW_TEST_IDS.ROOT)).toBeOnTheScreen();
     expect(getByTestId(REWARDS_VIP_TIERS_VIEW_TEST_IDS.LIST)).toBeOnTheScreen();
     expect(queryByText('Default')).toBeNull();
-    expect(getByText('Gold Fox 3')).toBeOnTheScreen();
+    expect(getByText('Mock Tier Alpha 3')).toBeOnTheScreen();
     expect(getByText('Tiers')).toBeOnTheScreen();
     expect(mockUseTrackRewardsPageView).toHaveBeenCalledWith({
       page_type: 'vip_tiers',
@@ -354,15 +368,30 @@ describe('RewardsVipTiersView', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectRewardsSubscriptionId) return 'sub';
       if (selector === selectIsCurrentSubscriptionVipEnabled) return false;
+      if (selector === selectVipProgramEnabled) return true;
       return undefined;
     });
 
     const { queryByTestId } = render(<RewardsVipTiersView />);
     expect(queryByTestId(REWARDS_VIP_TIERS_VIEW_TEST_IDS.ROOT)).toBeNull();
     await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.REWARDS_DASHBOARD),
-      );
+      expect(mockExitRewardsFlow).toHaveBeenCalled();
+    });
+  });
+
+  it('exits the rewards flow when the VIP program flag is off, even for a VIP subscription', async () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId)
+        return 'test-subscription-id';
+      if (selector === selectIsCurrentSubscriptionVipEnabled) return true;
+      if (selector === selectVipProgramEnabled) return false;
+      return undefined;
+    });
+
+    const { queryByTestId } = render(<RewardsVipTiersView />);
+    expect(queryByTestId(REWARDS_VIP_TIERS_VIEW_TEST_IDS.ROOT)).toBeNull();
+    await waitFor(() => {
+      expect(mockExitRewardsFlow).toHaveBeenCalled();
     });
   });
 });

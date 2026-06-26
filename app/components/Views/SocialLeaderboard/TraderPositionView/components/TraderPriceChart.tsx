@@ -40,13 +40,13 @@ interface TooltipProps {
 /** Smaller than TRADE_MARKER_RADIUS so the end-dot doesn't look like a trade marker. */
 const END_DOT_DIAMETER = 5;
 /**
- * Trade marker geometry — the inner colored disk is 16x16 with a 4px ring
+ * Trade marker geometry — the inner colored disk is 10x10 with a 2px ring
  * matching the chart background. SVG strokes are centered on the circumference,
- * so we set r = innerRadius + strokeWidth/2 (8 + 2 = 10) to make the ring
+ * so we set r = innerRadius + strokeWidth/2 (5 + 1 = 6) to make the ring
  * sit fully outside the visible inner disk.
  */
-const TRADE_MARKER_INNER_RADIUS = 8;
-const TRADE_MARKER_BORDER_WIDTH = 4;
+const TRADE_MARKER_INNER_RADIUS = 5;
+const TRADE_MARKER_BORDER_WIDTH = 2;
 const TRADE_MARKER_RADIUS =
   TRADE_MARKER_INNER_RADIUS + TRADE_MARKER_BORDER_WIDTH / 2;
 
@@ -58,6 +58,12 @@ interface TraderPriceChartProps {
   /** Trade markers to render as buy/sell dots on the chart line. */
   trades?: readonly Trade[];
   chartHeight?: number;
+  /**
+   * When true, the chart stops capturing touches: the scrub PanResponder is
+   * detached and the touch surface is `pointerEvents="none"` so drags fall
+   * through to the scrolling list behind a pinned-overlay chart.
+   */
+  scrollPassthrough?: boolean;
 }
 
 const TraderPriceChart = ({
@@ -66,6 +72,7 @@ const TraderPriceChart = ({
   onChartIndexChange,
   trades,
   chartHeight = TOKEN_OVERVIEW_CHART_HEIGHT,
+  scrollPassthrough = false,
 }: TraderPriceChartProps) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const emptyDisplayTrackedRef = useRef(false);
@@ -343,7 +350,10 @@ const TraderPriceChart = ({
       <View
         style={styles.chartAreaWrapper}
         testID={chartHasData ? 'price-chart-area' : undefined}
-        {...(chartHasData ? panResponder.current.panHandlers : {})}
+        pointerEvents={scrollPassthrough ? 'none' : 'auto'}
+        {...(chartHasData && !scrollPassthrough
+          ? panResponder.current.panHandlers
+          : {})}
       >
         {chartHasData ? (
           <AreaChart

@@ -72,7 +72,8 @@
     },
     "networkConfigurationsByChainId": {
       "0x1": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://etherscan.io"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0x1",
         "defaultRpcEndpointIndex": 0,
         "name": "Ethereum",
@@ -119,7 +120,8 @@
         ]
       },
       "0x38": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://bscscan.com"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0x38",
         "defaultRpcEndpointIndex": 0,
         "name": "BNB Chain",
@@ -134,7 +136,8 @@
         ]
       },
       "0x89": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://polygonscan.com"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0x89",
         "defaultRpcEndpointIndex": 0,
         "name": "Polygon",
@@ -149,7 +152,8 @@
         ]
       },
       "0xa": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://optimistic.etherscan.io"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xa",
         "defaultRpcEndpointIndex": 0,
         "name": "OP",
@@ -164,7 +168,8 @@
         ]
       },
       "0xa4b1": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://arbiscan.io"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xa4b1",
         "defaultRpcEndpointIndex": 0,
         "name": "Arbitrum",
@@ -179,7 +184,8 @@
         ]
       },
       "0xaa36a7": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://sepolia.etherscan.io"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xaa36a7",
         "defaultRpcEndpointIndex": 0,
         "name": "Sepolia",
@@ -194,7 +200,8 @@
         ]
       },
       "0xe705": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://sepolia.lineascan.build"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xe705",
         "defaultRpcEndpointIndex": 0,
         "name": "Linea Sepolia",
@@ -209,7 +216,8 @@
         ]
       },
       "0xe708": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://lineascan.build"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0xe708",
         "defaultRpcEndpointIndex": 0,
         "name": "Linea",
@@ -224,7 +232,8 @@
         ]
       },
       "0x2105": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://basescan.org"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0x2105",
         "defaultRpcEndpointIndex": 0,
         "name": "Base",
@@ -239,10 +248,11 @@
         ]
       },
       "0x8f": {
-        "blockExplorerUrls": [],
+        "blockExplorerUrls": ["https://monadscan.com"],
+        "defaultBlockExplorerUrlIndex": 0,
         "chainId": "0x8f",
         "defaultRpcEndpointIndex": 0,
-        "name": "Monad Mainnet",
+        "name": "Monad",
         "nativeCurrency": "MON",
         "rpcEndpoints": [
           {
@@ -250,51 +260,6 @@
             "networkClientId": "monad-mainnet",
             "type": "infura",
             "url": "https://monad-mainnet.infura.io/v3/{infuraProjectId}"
-          }
-        ]
-      },
-      "0x10e6": {
-        "blockExplorerUrls": [],
-        "chainId": "0x10e6",
-        "defaultRpcEndpointIndex": 0,
-        "name": "MegaETH Mainnet",
-        "nativeCurrency": "ETH",
-        "rpcEndpoints": [
-          {
-            "failoverUrls": [],
-            "networkClientId": "megaeth-mainnet",
-            "type": "infura",
-            "url": "https://megaeth-mainnet.infura.io/v3/{infuraProjectId}"
-          }
-        ]
-      },
-      "0x144": {
-        "blockExplorerUrls": [],
-        "chainId": "0x144",
-        "defaultRpcEndpointIndex": 0,
-        "name": "ZKsync Era",
-        "nativeCurrency": "ETH",
-        "rpcEndpoints": [
-          {
-            "failoverUrls": [],
-            "networkClientId": "zksync-mainnet",
-            "type": "infura",
-            "url": "https://zksync-mainnet.infura.io/v3/{infuraProjectId}"
-          }
-        ]
-      },
-      "0xa86a": {
-        "blockExplorerUrls": [],
-        "chainId": "0xa86a",
-        "defaultRpcEndpointIndex": 0,
-        "name": "Avalanche Mainnet",
-        "nativeCurrency": "AVAX",
-        "rpcEndpoints": [
-          {
-            "failoverUrls": [],
-            "networkClientId": "avalanche-mainnet",
-            "type": "infura",
-            "url": "https://avalanche-mainnet.infura.io/v3/{infuraProjectId}"
           }
         ]
       }
@@ -492,6 +457,12 @@
         "symbol": "mUSD",
         "type": "erc20"
       },
+      "eip155:5042/erc20:0x3600000000000000000000000000000000000000": {
+        "decimals": 6,
+        "name": "USDC",
+        "symbol": "USDC",
+        "type": "erc20"
+      },
       "eip155:59144/erc20:0xacA92E438df0B2401fF60dA7E4337B687a2435DA": {
         "decimals": 6,
         "name": "MetaMask USD",
@@ -564,6 +535,7 @@
   },
   "SeedlessOnboardingController": {
     "isSeedlessOnboardingUserAuthenticated": false,
+    "migrationVersion": 0,
     "socialBackupsMetadata": []
   },
   "SelectedNetworkController": {
@@ -603,6 +575,7 @@
   },
   "ProfileMetricsController": {
     "initialEnqueueCompleted": false,
+    "proofBackfillEnqueued": false,
     "syncQueue": {}
   },
   "UserStorageController": {
@@ -700,6 +673,7 @@
     "assetExchangeRates": {},
     "batchSellTrades": null,
     "batchSellTradesLoadingStatus": null,
+    "inputPrimaryDenomination": "token_amount",
     "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
     "quoteRequest": [
@@ -714,7 +688,8 @@
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
     "tokenSecurityTypeDestination": null,
-    "tokenWarnings": []
+    "tokenWarnings": [],
+    "inputPrimaryDenomination": "token_amount"
   },
   "BridgeStatusController": {
     "txHistory": {}
@@ -726,7 +701,8 @@
     "cardHomeDataStatus": "idle",
     "isAuthenticated": false,
     "cardholderAccounts": [],
-    "providerData": {}
+    "providerData": {},
+    "moneyAccountCardLinkInProgress": false
   },
   "ClientController": {
     "isUiOpen": false
@@ -814,6 +790,10 @@
     "perpsTradingCampaignLeaderboard": {},
     "perpsTradingCampaignLeaderboardPositions": {},
     "perpsTradingCampaignVolume": {},
+    "predictThePitchLeaderboard": {},
+    "predictThePitchLeaderboardPositions": {},
+    "predictThePitchPositions": {},
+    "predictThePitchPrizePool": {},
     "clientVersionRequirements": null,
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
@@ -822,6 +802,7 @@
     "subscriptionBenefits": {},
     "vipDashboard": {},
     "vipPerpsFees": {},
+    "vipRefereeDashboard": {},
     "subscriptionReferralDetails": {},
     "subscriptions": {},
     "rewardsEnvUrl": null
@@ -850,7 +831,7 @@
     "countries": {
       "data": [],
       "selected": null,
-      "isLoading": false,
+      "isLoading": true,
       "error": null
     },
     "providerAutoSelected": false,
@@ -895,7 +876,15 @@
         }
       }
     },
-    "requests": {},
+    "requests": {
+      "getCountries:[]": {
+        "data": null,
+        "error": null,
+        "lastFetchedAt": 123,
+        "status": "loading",
+        "timestamp": 123
+      }
+    },
     "orders": [],
     "providerAutoSelected": false
   },

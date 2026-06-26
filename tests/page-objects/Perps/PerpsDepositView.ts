@@ -21,7 +21,7 @@ const TIMEOUT = {
 
 class PerpsDepositView {
   // Custom deposit keypad container
-  get keypad(): DetoxElement {
+  get keypad(): EncapsulatedElementType {
     return Matchers.getElementByID('deposit-keyboard');
   }
 
@@ -63,16 +63,28 @@ class PerpsDepositView {
   // Add funds (confirm) button on review screen. Uses testID for reliability:
   // the confirmation screen shows at most one "Add funds" (ConfirmButton);
   // index 1 was failing when no second "Add funds" existed in the hierarchy.
-  get confirmButton(): DetoxElement {
+  get confirmButton(): EncapsulatedElementType {
     return Matchers.getElementByID('confirm-button');
   }
 
-  // Pay with row (open selector)
-  get payWithRow(): DetoxElement {
-    return Matchers.getElementByText('Pay with');
+  get infoRow(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Info'),
+      appium: () =>
+        PlaywrightMatchers.getElementById('info-row', { exact: true }),
+    });
   }
 
-  get usdcOption(): DetoxElement {
+  // Pay with row (open selector)
+  get payWithRow(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText('Pay with'),
+      appium: () =>
+        PlaywrightMatchers.getElementById('pay-with', { exact: true }),
+    });
+  }
+
+  get usdcOption(): EncapsulatedElementType {
     return Matchers.getElementByText('USDC');
   }
 

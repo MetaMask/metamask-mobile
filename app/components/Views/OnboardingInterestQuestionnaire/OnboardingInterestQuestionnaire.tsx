@@ -1,15 +1,17 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   BackHandler,
-  Image,
-  type ImageSourcePropType,
   Platform,
-  Pressable,
   ScrollView,
   StatusBar,
+  type ImageSourcePropType,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRoute, type RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -21,15 +23,16 @@ import {
   TextColor,
   FontWeight,
   BoxFlexDirection,
-  BoxFlexWrap,
+  BoxAlignItems,
 } from '@metamask/design-system-react-native';
-import { InterestSelectionIndicator } from './InterestSelectionIndicator';
+import { InterestOptionCard } from './InterestOptionCard';
 import { strings } from '../../../../locales/i18n';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useSelector } from 'react-redux';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import type { RootStackParamList } from '../../../core/NavigationService/types';
+import Routes from '../../../constants/navigation/Routes';
 import { OnboardingInterestQuestionnaireTestIds } from './OnboardingInterestQuestionnaire.testIds';
 import buyAndSellCryptoImage from '../../../images/buy_and_sell_crypto.png';
 import consolidateWalletsImage from '../../../images/consolidate_wallets.png';
@@ -87,11 +90,18 @@ const INTEREST_OPTION_IMAGES: Record<InterestOptionId, ImageSourcePropType> = {
   connect_apps_sites: connectAppsSitesImage,
 };
 
+const INTEREST_OPTION_ROWS = [
+  INTEREST_OPTIONS.slice(0, 2),
+  INTEREST_OPTIONS.slice(2, 4),
+  INTEREST_OPTIONS.slice(4, 6),
+];
+
 /** 8px gutters between 2-column grid cells (4px padding per column side). */
 const GRID_GUTTER_PX = 4;
 
 const OnboardingInterestQuestionnaire = () => {
   const tw = useTailwind();
+  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<
@@ -111,8 +121,9 @@ const OnboardingInterestQuestionnaire = () => {
     if (hasTrackedView.current) return;
     hasTrackedView.current = true;
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.ONBOARDING_INTEREST_QUESTION_VIEWED)
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_VIEWED)
         .addProperties({
+          question_type: 'interest',
           ...(accountType && { account_type: accountType }),
         })
         .build(),
@@ -153,10 +164,9 @@ const OnboardingInterestQuestionnaire = () => {
     const skipped = selectedInterests.length === 0;
 
     trackEvent(
-      createEventBuilder(
-        MetaMetricsEvents.ONBOARDING_INTEREST_QUESTION_SUBMITTED,
-      )
+      createEventBuilder(MetaMetricsEvents.ONBOARDING_QUESTION_SUBMITTED)
         .addProperties({
+          question_type: 'interest',
           selected_interests: selectedInterests,
           item_count: selectedInterests.length,
           skipped,
@@ -165,8 +175,18 @@ const OnboardingInterestQuestionnaire = () => {
         .build(),
     );
 
-    onComplete();
-  }, [selectedIds, trackEvent, createEventBuilder, accountType, onComplete]);
+    navigation.navigate(Routes.ONBOARDING.CRYPTO_EXPERIENCE_QUESTIONNAIRE, {
+      onComplete,
+      ...(accountType && { accountType }),
+    });
+  }, [
+    selectedIds,
+    trackEvent,
+    createEventBuilder,
+    accountType,
+    onComplete,
+    navigation,
+  ]);
 
   return (
     <SafeAreaView
@@ -199,59 +219,37 @@ const OnboardingInterestQuestionnaire = () => {
         contentContainerStyle={tw.style('px-4 pb-4')}
         showsVerticalScrollIndicator={false}
       >
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          flexWrap={BoxFlexWrap.Wrap}
-          style={tw.style('py-2', { marginHorizontal: -GRID_GUTTER_PX })}
-        >
-          {INTEREST_OPTIONS.map((option) => {
-            const isSelected = selectedIds.has(option.id);
-            return (
-              <Box
-                key={option.id}
-                style={tw.style({
-                  width: '50%',
-                  paddingHorizontal: GRID_GUTTER_PX,
-                  marginBottom: GRID_GUTTER_PX * 2,
-                })}
-              >
-                <Pressable
-                  onPress={() => toggleOption(option.id)}
-                  style={({ pressed }) =>
-                    tw.style(
-                      'relative h-[120px] w-full rounded-xl bg-background-muted',
-                      isSelected
-                        ? 'border border-border-default bg-background-muted-hover'
-                        : 'border border-muted',
-                      pressed && 'opacity-70',
-                    )
-                  }
-                  testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: isSelected }}
+        <Box twClassName="py-2">
+          {INTEREST_OPTION_ROWS.map((rowOptions, rowIndex) => (
+            <Box
+              key={rowOptions.map((option) => option.id).join('-')}
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Stretch}
+              testID={`${OnboardingInterestQuestionnaireTestIds.GRID_ROW_PREFIX}${rowIndex}`}
+              style={tw.style({
+                marginHorizontal: -GRID_GUTTER_PX,
+                marginBottom: GRID_GUTTER_PX * 2,
+              })}
+            >
+              {rowOptions.map((option) => (
+                <Box
+                  key={option.id}
+                  style={tw.style({
+                    width: '50%',
+                    paddingHorizontal: GRID_GUTTER_PX,
+                  })}
                 >
-                  <Box style={tw.style('absolute top-3 right-3')}>
-                    <InterestSelectionIndicator isSelected={isSelected} />
-                  </Box>
-                  <Image
-                    source={INTEREST_OPTION_IMAGES[option.id]}
-                    style={tw.style('absolute top-3 left-3 h-10 w-10')}
-                    resizeMode="contain"
-                    accessibilityElementsHidden
-                    importantForAccessibility="no-hide-descendants"
+                  <InterestOptionCard
+                    labelKey={option.labelKey}
+                    imageSource={INTEREST_OPTION_IMAGES[option.id]}
+                    isSelected={selectedIds.has(option.id)}
+                    onPress={() => toggleOption(option.id)}
+                    testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
                   />
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.TextDefault}
-                    style={tw.style('absolute bottom-3 left-3 right-3')}
-                  >
-                    {strings(option.labelKey)}
-                  </Text>
-                </Pressable>
-              </Box>
-            );
-          })}
+                </Box>
+              ))}
+            </Box>
+          ))}
         </Box>
       </ScrollView>
 

@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
+import { colors as importedColors } from '../../../../../styles/common';
 import { Box } from '../../../Box/Box';
 import Text, {
   TextColor,
@@ -86,6 +87,7 @@ const createStyles = ({
       height: vars.fontSize * 1.25,
       fontSize: vars.fontSize,
       paddingVertical: Platform.OS === 'ios' ? 2 : 1,
+      backgroundColor: importedColors.transparent,
       flex: 1,
       flexShrink: 1,
     },
@@ -106,10 +108,6 @@ const createStyles = ({
       flexDirection: 'row',
       alignItems: 'center',
       gap: 8,
-    },
-    amountTypeToggle: {
-      alignItems: 'center',
-      justifyContent: 'center',
     },
     currencyContainer: {
       flex: 1,
@@ -410,26 +408,29 @@ export const TokenInputArea = forwardRef<
             ) : (
               <>
                 <Box style={styles.currencyContainer}>
-                  <Box style={styles.secondaryValueContainer}>
+                  <TouchableOpacity
+                    style={styles.secondaryValueContainer}
+                    onPress={onAmountTypeTogglePress}
+                    disabled={!onAmountTypeTogglePress}
+                    testID={
+                      onAmountTypeTogglePress
+                        ? amountTypeToggleTestID
+                        : undefined
+                    }
+                  >
                     {shouldShowSecondaryAmount ? (
                       <Text color={TextColor.Alternative}>
                         {secondaryAmountDisplayValue}
                       </Text>
                     ) : null}
                     {onAmountTypeTogglePress ? (
-                      <TouchableOpacity
-                        style={styles.amountTypeToggle}
-                        onPress={onAmountTypeTogglePress}
-                        testID={amountTypeToggleTestID}
-                      >
-                        <Icon
-                          name={IconName.SwapVertical}
-                          size={IconSize.Sm}
-                          color={IconColor.Alternative}
-                        />
-                      </TouchableOpacity>
+                      <Icon
+                        name={IconName.SwapVertical}
+                        size={IconSize.Sm}
+                        color={IconColor.Alternative}
+                      />
                     ) : null}
-                  </Box>
+                  </TouchableOpacity>
                 </Box>
                 <Box
                   flexDirection={

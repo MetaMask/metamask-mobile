@@ -33,6 +33,12 @@ import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
+import {
+  HardwareWalletsSwapsEvent,
+  HardwareWalletsSwapsState,
+  hardwareWalletsSwapsReducer,
+  initialHardwareWalletsSwapsState,
+} from '../../../../components/UI/HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import { analytics } from '../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import { getTokenExchangeRate } from '../../../../components/UI/Bridge/utils/exchange-rates';
@@ -44,7 +50,7 @@ import {
 } from '../../../../selectors/assets/assets-migration';
 import { selectCanSignTransactions } from '../../../../selectors/accountsController';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
-import { hasMinimumRequiredVersion } from './utils/hasMinimumRequiredVersion';
+import { hasMinimumRequiredVersion } from '../../../../util/remoteFeatureFlag';
 import { Bip44TokensForDefaultPairs } from '../../../../components/UI/Bridge/constants/default-swap-dest-tokens';
 import { normalizeTokenAddress } from '../../../../components/UI/Bridge/utils/tokenUtils';
 import { isStockRwaBridgeToken } from '../../../../components/UI/Bridge/utils/isStockRwaBridgeToken';
@@ -95,6 +101,8 @@ export interface BridgeState {
    * When undefined, the recommended quote (best quote) is used.
    */
   selectedQuoteRequestId: string | undefined;
+  balanceRefreshKey: number;
+  hardwareWalletsSwaps: HardwareWalletsSwapsState;
   batchSellSourceTokens: BridgeToken[];
   batchSellSourceTokenAmounts: Partial<
     Record<CaipAssetType, string | undefined>
@@ -124,6 +132,8 @@ export const initialState: BridgeState = {
   tokenSelectorNetworkFilter: undefined,
   visiblePillChainIds: undefined,
   selectedQuoteRequestId: undefined,
+  balanceRefreshKey: 0,
+  hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
 
   // Batch Sell
   batchSellSourceTokens: [],
@@ -194,6 +204,15 @@ const slice = createSlice({
     resetBridgeState: () => ({
       ...initialState,
     }),
+    resetBridgeTokenInputs: (state) => {
+      state.sourceAmount = undefined;
+      state.destAmount = undefined;
+      state.isMaxSourceAmount = false;
+      state.selectedQuoteRequestId = undefined;
+    },
+    incrementBridgeBalanceRefreshKey: (state) => {
+      state.balanceRefreshKey += 1;
+    },
     setSourceToken: (state, action: PayloadAction<BridgeToken | undefined>) => {
       state.sourceToken = normalizeBridgeToken(action.payload);
     },
@@ -262,6 +281,18 @@ const slice = createSlice({
     ) => {
       state.selectedQuoteRequestId = action.payload;
     },
+    updateHardwareWalletsSwaps: (
+      state,
+      action: PayloadAction<HardwareWalletsSwapsEvent>,
+    ) => {
+      state.hardwareWalletsSwaps = hardwareWalletsSwapsReducer(
+        state.hardwareWalletsSwaps,
+        action.payload,
+      );
+    },
+    resetHardwareWalletsSwaps: (state) => {
+      state.hardwareWalletsSwaps = initialHardwareWalletsSwapsState;
+    },
     setBatchSellSourceTokens: (state, action: PayloadAction<BridgeToken[]>) => {
       state.batchSellSourceTokens = action.payload.map(normalizeBridgeToken);
     },
@@ -322,7 +353,9 @@ const slice = createSlice({
         action.meta.arg.chainId === state.sourceToken.chainId &&
         action.meta.arg.tokenAddress === state.sourceToken.address
       ) {
-        state.sourceToken.currencyExchangeRate = action.payload ?? undefined;
+        const rate = action.payload;
+        state.sourceToken.currencyExchangeRate =
+          typeof rate === 'number' ? rate : undefined;
       }
     });
     builder.addCase(setDestTokenExchangeRate.fulfilled, (state, action) => {
@@ -332,7 +365,9 @@ const slice = createSlice({
         action.meta.arg.chainId === state.destToken.chainId &&
         action.meta.arg.tokenAddress === state.destToken.address
       ) {
-        state.destToken.currencyExchangeRate = action.payload ?? undefined;
+        const rate = action.payload;
+        state.destToken.currencyExchangeRate =
+          typeof rate === 'number' ? rate : undefined;
       }
     });
   },
@@ -624,6 +659,11 @@ export const selectSelectedQuoteRequestId = createSelector(
   (bridgeState) => bridgeState.selectedQuoteRequestId,
 );
 
+export const selectBridgeBalanceRefreshKey = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.balanceRefreshKey,
+);
+
 export const selectBatchSellSourceTokens = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.batchSellSourceTokens,
@@ -730,6 +770,11 @@ export const selectIsSolanaSourced = createSelector(
   (sourceToken) => sourceToken?.chainId && isSolanaChainId(sourceToken.chainId),
 );
 
+export const selectIsNonEvmSourced = createSelector(
+  selectSourceToken,
+  (sourceToken) => sourceToken?.chainId && isNonEvmChainId(sourceToken.chainId),
+);
+
 export const selectIsSolanaToNonSolana = createSelector(
   selectSourceToken,
   selectDestToken,
@@ -831,6 +876,11 @@ export const selectIsSubmittingTx = createSelector(
   (bridgeState) => bridgeState.isSubmittingTx,
 );
 
+export const selectHardwareWalletsSwaps = createSelector(
+  selectBridgeState,
+  (bridgeState) => bridgeState.hardwareWalletsSwaps,
+);
+
 export const selectIsSelectingRecipient = createSelector(
   selectBridgeState,
   (bridgeState) => bridgeState.isSelectingRecipient,
@@ -930,6 +980,8 @@ export const {
   setSourceAmountAsMax,
   setDestAmount,
   resetBridgeState,
+  resetBridgeTokenInputs,
+  incrementBridgeBalanceRefreshKey,
   setSourceToken,
   setDestToken,
   setIsDestTokenManuallySet,
@@ -947,6 +999,8 @@ export const {
   setTokenSelectorNetworkFilter,
   setVisiblePillChainIds,
   setSelectedQuoteRequestId,
+  updateHardwareWalletsSwaps,
+  resetHardwareWalletsSwaps,
   setBatchSellSourceTokens,
   setBatchSellSourceTokenAmount,
   setBatchSellSourceTokenAmounts,

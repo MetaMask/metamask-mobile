@@ -38,7 +38,7 @@ import { useSelector } from 'react-redux';
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
-import { BATCH_SELL_ENABLED } from '../../../constants/bridge';
+import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
@@ -119,8 +119,9 @@ function TradeWalletActions() {
   const isHardwareWallet = selectedAddress
     ? Boolean(isHardwareAccount(selectedAddress))
     : false;
+  const isBatchSellEnabled = useSelector(selectBatchSellEnabled);
   const shouldRenderBatchSell =
-    BATCH_SELL_ENABLED && AppConstants.SWAPS.ACTIVE && !isHardwareWallet;
+    isBatchSellEnabled && AppConstants.SWAPS.ACTIVE && !isHardwareWallet;
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
@@ -146,6 +147,16 @@ function TradeWalletActions() {
     sourcePage: 'MainView',
     swapButtonEventLocationOverride: ActionLocation.NAVBAR,
   });
+
+  const dismissRootModalFlow = useCallback(() => {
+    const parentNavigation = navigation.getParent();
+    if (parentNavigation?.canGoBack()) {
+      parentNavigation.goBack();
+      return;
+    }
+
+    navigation.goBack();
+  }, [navigation]);
 
   const handleNavigateBack = useCallback(() => {
     onDismiss?.();
@@ -248,10 +259,20 @@ function TradeWalletActions() {
   const exitingWithNavigateBack = useMemo(
     () =>
       exitingAnimationWithCallback(() => {
-        navigation.goBack();
-        postCallback.current?.();
+        const callback = postCallback.current;
+        postCallback.current = undefined;
+
+        dismissRootModalFlow();
+
+        if (callback) {
+          // Defer navigation until RootModalFlow is fully dismissed so screens
+          // on MainNavigator (e.g. StakeModals) are not opened underneath it.
+          requestAnimationFrame(() => {
+            callback();
+          });
+        }
       }),
-    [exitingAnimationWithCallback, navigation],
+    [dismissRootModalFlow, exitingAnimationWithCallback],
   );
 
   return (
@@ -277,6 +298,8 @@ function TradeWalletActions() {
       {visible && (
         <Animated.View exiting={exitingWithNavigateBack}>
           <MaskedView
+            // iOS: MaskedView otherwise intercepts touches and ActionListItem onPress never fires (Android is unaffected).
+            pointerEvents="box-none"
             maskElement={
               <View style={tw.style('flex-1 bg-transparent px-4')}>
                 <View style={tw.style('flex-1 bg-black')} />

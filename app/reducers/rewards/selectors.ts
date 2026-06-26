@@ -19,6 +19,12 @@ export const selectReferralCount = (state: RootState) =>
 export const selectReferredByCode = (state: RootState) =>
   state.rewards.referredByCode;
 
+export const selectIsVipReferee = (state: RootState) =>
+  state.rewards.isVipReferee;
+
+export const selectReferredByVipCode = (state: RootState) =>
+  state.rewards.referredByVipCode;
+
 export const selectCurrentTier = (state: RootState) =>
   state.rewards.currentTier;
 
@@ -177,6 +183,32 @@ export const selectVipDashboardLoading = (state: RootState): boolean =>
 
 export const selectVipDashboardError = (state: RootState): boolean =>
   state.rewards.vipDashboardError;
+
+export const selectVipRefereeDashboard =
+  (subscriptionId: string | null | undefined) => (state: RootState) =>
+    subscriptionId
+      ? (state.rewards.vipRefereeDashboard?.[subscriptionId] ?? null)
+      : null;
+
+export const selectVipRefereeDashboardLoading = (state: RootState): boolean =>
+  state.rewards.vipRefereeDashboardLoading;
+
+export const selectVipRefereeDashboardError = (state: RootState): boolean =>
+  state.rewards.vipRefereeDashboardError;
+
+export const selectHasAcceptedVipInvite =
+  (subscriptionId: string | null | undefined) =>
+  (state: RootState): boolean =>
+    subscriptionId
+      ? state.rewards.vipSplashAccepted?.[subscriptionId] === true
+      : false;
+
+export const selectHasAcceptedVipRefereeInvite =
+  (subscriptionId: string | null | undefined) =>
+  (state: RootState): boolean =>
+    subscriptionId
+      ? state.rewards.vipRefereeSplashAccepted?.[subscriptionId] === true
+      : false;
 
 // Campaigns selectors
 export const selectCampaigns = (
@@ -377,3 +409,41 @@ export const selectPerpsTradingCampaignVolumeLoading = (state: RootState) =>
 
 export const selectPerpsTradingCampaignVolumeError = (state: RootState) =>
   state.rewards.perpsTradingCampaignVolumeError;
+
+// Predict The Pitch leaderboard selectors
+export const selectPredictThePitchLeaderboard = (state: RootState) =>
+  state.rewards.predictThePitchLeaderboard;
+
+export const selectPredictThePitchLeaderboardLoading = (state: RootState) =>
+  state.rewards.predictThePitchLeaderboardLoading;
+
+export const selectPredictThePitchLeaderboardError = (state: RootState) =>
+  state.rewards.predictThePitchLeaderboardError;
+
+export const selectPredictThePitchLeaderboardPositionById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId
+      ? (state.rewards.predictThePitchLeaderboardPositions[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;
+
+export const selectPredictThePitchPositionsById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId
+      ? (state.rewards.predictThePitchPositions[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;
+
+// Predict The Pitch prize pool selectors
+export const selectPredictThePitchPrizePool = (state: RootState) =>
+  state.rewards.predictThePitchPrizePool;
+
+export const selectPredictThePitchPrizePoolLoading = (state: RootState) =>
+  state.rewards.predictThePitchPrizePoolLoading;
+
+export const selectPredictThePitchPrizePoolError = (state: RootState) =>
+  state.rewards.predictThePitchPrizePoolError;

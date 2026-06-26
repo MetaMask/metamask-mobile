@@ -24,10 +24,9 @@ import PerpsErrorState, {
 } from '../components/PerpsErrorState/PerpsErrorState';
 import PerpsLoadingSkeleton from '../components/PerpsLoadingSkeleton/PerpsLoadingSkeleton';
 import PerpsBadge from '../components/PerpsBadge/PerpsBadge';
+import type { BadgeType } from '../components/PerpsBadge/PerpsBadge.types';
 import PerpsFillTag from '../components/PerpsFillTag/PerpsFillTag';
 import { FillType, type PerpsTransaction } from '../types/transactionHistory';
-
-type BadgeType = 'experimental' | 'equity' | 'commodity' | 'crypto' | 'forex';
 
 const mockOnRetry = jest.fn();
 
@@ -262,7 +261,7 @@ describe('Errors, Recovery & Information Flow', () => {
     // ── PHASE 5: Market badges across asset classes ──────────────────────
     const badgeTypes: BadgeType[] = [
       'experimental',
-      'equity',
+      'stock',
       'commodity',
       'crypto',
       'forex',

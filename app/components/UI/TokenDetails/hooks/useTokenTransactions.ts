@@ -35,7 +35,6 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { TokenI } from '../../Tokens/types';
-import { updateIncomingTransactions } from '../../../../util/transaction-controller';
 import { RootState } from '../../../../reducers';
 ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain';
@@ -548,7 +547,6 @@ export const useTokenTransactions = (
   // Refresh handler
   const onRefresh = useCallback(async () => {
     setTxState((prev) => ({ ...prev, refreshing: true }));
-    await updateIncomingTransactions();
     setTxState((prev) => ({ ...prev, refreshing: false }));
   }, []);
 

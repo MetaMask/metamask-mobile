@@ -10,20 +10,6 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       backgroundColor: colors.background.default,
     },
-    header: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingHorizontal: 16,
-      paddingVertical: 12,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
-    },
-    headerBackButton: {
-      marginRight: 12,
-    },
-    headerTitleContainer: {
-      flex: 1,
-    },
     // Header unit toggle (BTC/USD)
     headerUnitToggle: {
       flexDirection: 'row',

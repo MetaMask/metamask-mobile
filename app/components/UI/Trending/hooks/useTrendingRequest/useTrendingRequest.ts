@@ -9,6 +9,7 @@ import { useStableArray } from '../../../Perps/hooks/useStableArray';
 import { TRENDING_NETWORKS_LIST } from '../../utils/trendingNetworksList';
 import { NetworkToCaipChainId } from '../../../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
+import { filterLowQualityTokens } from '../../utils/filterTrendingTokens';
 
 /**
  * Baseline thresholds for multi-chain requests
@@ -145,6 +146,12 @@ interface FetchOptions {
 export const useTrendingRequest = (
   options: {
     chainIds?: CaipChainId[];
+    /**
+     * When true, removes tokens that lack a meaningful symbol/name or are
+     * flagged as risky (Warning/Spam/Malicious) by the Token API security scan.
+     * Defaults to false. Set to true on surfaces that should hide low-quality tokens.
+     */
+    filterLowQuality?: boolean;
   } & TrendingTokensQueryParams,
 ) => {
   const {
@@ -155,6 +162,7 @@ export const useTrendingRequest = (
     maxVolume24hUsd,
     minMarketCap = 0,
     maxMarketCap,
+    filterLowQuality = false,
   } = options;
 
   // Get user's selected currency from Redux store (default to 'usd' if not set)
@@ -296,8 +304,13 @@ export const useTrendingRequest = (
     };
   }, [isLoading, results.length, error, fetchTrendingTokens]);
 
+  const filteredResults = useMemo(
+    () => (filterLowQuality ? filterLowQualityTokens(results) : results),
+    [filterLowQuality, results],
+  );
+
   return {
-    results,
+    results: filteredResults,
     isLoading,
     error,
     fetch: fetchTrendingTokens,
