@@ -29,6 +29,11 @@ type AndroidIntentExtra = ['s', string, string];
 
 /** Brief pause after force-stopping Android before startActivity (CI emulators). */
 const ANDROID_PRE_LAUNCH_SETTLE_MS = 1500;
+/** Brief pause after terminating iOS before relaunch (mirrors Android pre-launch settle). */
+const IOS_PRE_LAUNCH_SETTLE_MS = Number.parseInt(
+  process.env.IOS_PRE_LAUNCH_SETTLE_MS ?? '1500',
+  10,
+);
 const IOS_PRE_LAUNCH_TERMINATE_RETRY_DELAY_MS = 1000;
 const IOS_PRE_LAUNCH_TERMINATE_MAX_ATTEMPTS = 3;
 /** Let UiAutomator2 stabilize after Expo dev-client deep link before element queries. */
@@ -723,6 +728,11 @@ class PlaywrightUtilities {
 
     logger.debug(`Launching iOS app ${bundleId}`);
     await PlaywrightUtilities.terminateIosAppBeforeLaunch(bundleId);
+    if (IOS_PRE_LAUNCH_SETTLE_MS > 0) {
+      await new Promise((resolve) =>
+        setTimeout(resolve, IOS_PRE_LAUNCH_SETTLE_MS),
+      );
+    }
 
     await drv.execute('mobile: launchApp', {
       bundleId,
