@@ -151,6 +151,17 @@ class TransactionPayConfirmation {
     });
   }
 
+  // "You'll receive" row, shown instead of Total for withdraw flows.
+  get receive(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(ConfirmationRowComponentIDs.RECEIVE),
+      appium: () =>
+        PlaywrightMatchers.getElementById(ConfirmationRowComponentIDs.RECEIVE, {
+          exact: true,
+        }),
+    });
+  }
+
   get transactionFee(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -494,6 +505,21 @@ class TransactionPayConfirmation {
       description: 'Transaction fee row should be visible',
       timeout: 15000,
     });
+  }
+
+  async verifyReceiveVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.receive, {
+      description: "You'll receive row should be visible",
+      timeout: 15000,
+    });
+  }
+
+  async verifyReceive(amount: string): Promise<void> {
+    await this.expectText(
+      this.receive,
+      amount,
+      "You'll receive amount should be correct",
+    );
   }
 }
 
