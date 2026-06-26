@@ -480,8 +480,9 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Prod Play–shaped Android: lint merged prodRelease manifest, then validate the AAB produced above (bundletool).
-      # Skips e2e (no AAB) and Debug dev builds. Mirrors former ci.yml android-play-store-manifest-check without a second bundle.
+      # Android Play Store checks: Gradle lint (all main release builds) + bundletool AAB validation (production only).
+      # The lint + Slack report run for every main release build so RC gets Slack feedback.
+      # bundletool cache is gated on production because non-prod builds don't produce an AAB.
       - name: Cache bundletool (Android Play bundle validation)
         id: bundletool-cache-play-check
         if: >-
@@ -489,7 +490,7 @@ jobs:
           matrix.platform == 'android' &&
           env.CONFIGURATION != 'Debug' &&
           env.METAMASK_BUILD_TYPE == 'main' &&
-          env.METAMASK_ENVIRONMENT != 'e2e'
+          env.METAMASK_ENVIRONMENT == 'production'
         uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/bundletool-all.jar
@@ -500,8 +501,7 @@ jobs:
           success() &&
           matrix.platform == 'android' &&
           env.CONFIGURATION != 'Debug' &&
-          env.METAMASK_BUILD_TYPE == 'main' &&
-          env.METAMASK_ENVIRONMENT != 'e2e'
+          env.METAMASK_BUILD_TYPE == 'main'
         env:
           SENTRY_DISABLE_AUTO_UPLOAD: true
         run: node scripts/android-play-store-check-slack.mjs
@@ -512,8 +512,7 @@ jobs:
           matrix.platform == 'android' &&
           inputs.build_name == 'main-rc' &&
           env.CONFIGURATION != 'Debug' &&
-          env.METAMASK_BUILD_TYPE == 'main' &&
-          env.METAMASK_ENVIRONMENT != 'e2e'
+          env.METAMASK_BUILD_TYPE == 'main'
         uses: actions/upload-artifact@v4
         with:
           name: android-play-store-check-slack
@@ -587,7 +586,11 @@ jobs:
           if-no-files-found: error
 
       - name: Upload Android AAB
-        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug' && steps.rename.outputs.android_aab_path != ''
+        if: >-
+          matrix.platform == 'android' &&
+          env.CONFIGURATION != 'Debug' &&
+          env.METAMASK_ENVIRONMENT == 'production' &&
+          steps.rename.outputs.android_aab_path != ''
         uses: actions/upload-artifact@v4
         with:
           name: android-aab-${{ inputs.build_name }}
