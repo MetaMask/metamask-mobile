@@ -84,14 +84,14 @@ describe('PositionRow', () => {
 
   it('renders a signed positive percent on the bottom-right (no absolute PnL)', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
-    expect(screen.getByText('+182%')).toBeOnTheScreen();
+    expect(screen.getByText('+182.00%')).toBeOnTheScreen();
     expect(screen.queryByText('+$1,059.96 (+182%)')).toBeNull();
     expect(screen.queryByText('+$1,059.96')).toBeNull();
   });
 
   it('colors the percent for a winning position', () => {
     renderWithProvider(<PositionRow position={basePosition} />);
-    const percentColor = colorOf(screen.getByText('+182%'));
+    const percentColor = colorOf(screen.getByText('+182.00%'));
     expect(percentColor).toBeDefined();
   });
 
@@ -103,7 +103,7 @@ describe('PositionRow', () => {
     };
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('-25%')).toBeOnTheScreen();
+    expect(screen.getByText('-25.00%')).toBeOnTheScreen();
     expect(screen.queryByText('-$250.00 (-25%)')).toBeNull();
   });
 
@@ -111,7 +111,7 @@ describe('PositionRow', () => {
     const position = { ...basePosition, pnlValueUsd: -250, pnlPercent: -25 };
 
     renderWithProvider(<PositionRow position={position} />);
-    const percentColor = colorOf(screen.getByText('-25%'));
+    const percentColor = colorOf(screen.getByText('-25.00%'));
     expect(percentColor).toBeDefined();
   });
 
@@ -122,7 +122,7 @@ describe('PositionRow', () => {
     } as unknown as Position;
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('+182%')).toBeOnTheScreen();
+    expect(screen.getByText('+182.00%')).toBeOnTheScreen();
   });
 
   it('renders dash when pnlPercent is null', () => {
@@ -156,7 +156,7 @@ describe('PositionRow', () => {
     };
 
     renderWithProvider(<PositionRow position={position} />);
-    expect(screen.getByText('+0%')).toBeOnTheScreen();
+    expect(screen.getByText('+0.00%')).toBeOnTheScreen();
     expect(screen.queryByText('$0.00 (+0%)')).toBeNull();
   });
 
@@ -254,7 +254,7 @@ describe('PositionRow', () => {
       renderWithProvider(<PositionRow position={closedPosition} />);
 
       // realizedPnl (300) / boughtUsd (1200) * 100 = 25%
-      expect(screen.getByText('+25%')).toBeOnTheScreen();
+      expect(screen.getByText('+25.00%')).toBeOnTheScreen();
     });
 
     it('renders dash for PnL when boughtUsd is zero', () => {
@@ -271,7 +271,7 @@ describe('PositionRow', () => {
       renderWithProvider(<PositionRow position={position} />);
 
       // -300 / 1200 * 100 = -25%
-      expect(screen.getByText('-25%')).toBeOnTheScreen();
+      expect(screen.getByText('-25.00%')).toBeOnTheScreen();
     });
 
     it('uses realized PnL percent even when pnlPercent is 0', () => {
@@ -279,7 +279,7 @@ describe('PositionRow', () => {
 
       renderWithProvider(<PositionRow position={position} />);
 
-      expect(screen.getByText('+25%')).toBeOnTheScreen();
+      expect(screen.getByText('+25.00%')).toBeOnTheScreen();
     });
 
     it('renders break-even realized PnL with +0% percent', () => {
@@ -288,7 +288,7 @@ describe('PositionRow', () => {
       renderWithProvider(<PositionRow position={position} />);
 
       expect(screen.getByText('$0.00')).toBeOnTheScreen();
-      expect(screen.getByText('+0%')).toBeOnTheScreen();
+      expect(screen.getByText('+0.00%')).toBeOnTheScreen();
     });
 
     it('renders realized PnL value when boughtUsd is zero (percent null)', () => {
@@ -400,7 +400,7 @@ describe('PositionRow', () => {
       renderWithProvider(<PositionRow position={closedPerp} isClosed />);
 
       // 300 / 1200 * 100 = 25%
-      expect(screen.getByText('+25%')).toBeOnTheScreen();
+      expect(screen.getByText('+25.00%')).toBeOnTheScreen();
     });
 
     it('renders a colored signed percent for a losing closed perp', () => {
@@ -414,13 +414,13 @@ describe('PositionRow', () => {
 
       renderWithProvider(<PositionRow position={closedPerp} isClosed />);
 
-      expect(screen.getByText('-25%')).toBeOnTheScreen();
+      expect(screen.getByText('-25.00%')).toBeOnTheScreen();
     });
 
     it('renders a signed percent for an open perp', () => {
       renderWithProvider(<PositionRow position={perpPosition} />);
 
-      expect(screen.getByText('+182%')).toBeOnTheScreen();
+      expect(screen.getByText('+182.00%')).toBeOnTheScreen();
     });
   });
 });

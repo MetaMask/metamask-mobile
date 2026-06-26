@@ -86,6 +86,7 @@ import { TransactionDetailLocation } from '../../../core/Analytics/events/transa
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
 import useBlockExplorer from '../../hooks/useBlockExplorer';
 import { selectBridgeHistoryForAccount } from '../../../selectors/bridgeStatusController';
+import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ActivityEmptyState from '../ActivityScreen/components/ActivityEmptyState';
 import { ActivityListSelectorsIDs } from './ActivityList.testIds';
@@ -290,6 +291,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     );
 
     const bridgeHistory = useSelector(selectBridgeHistoryForAccount);
+    const isTransactionsRedesignEnabled = useSelector(
+      selectIsTransactionsRedesignEnabled,
+    );
 
     /** Drop confirmed EVM rows not on a configured chain (guards stale query pages / removed networks). */
     const allConfirmedForConfiguredChains = useMemo<ActivityListItem[]>(() => {
@@ -756,6 +760,24 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         const { raw } = item;
         if (!raw) return;
 
+        // Redesigned details (flag-gated): route resolvable EVM / non-EVM rows
+        // to the new ActivityDetails screen, replacing the legacy detail sheets.
+        // Specialized flows (perps, predict, bridge) keep their dedicated
+        // screens until they get redesigned templates — ActivityDetails only
+        // resolves local/API/non-EVM items, so it can't render those yet.
+        const hasDedicatedScreen =
+          raw.type === 'perpsTransaction' ||
+          raw.type === 'predictActivity' ||
+          (raw.type === 'localTransaction' &&
+            raw.data.primaryTransaction?.type === TransactionType.bridge);
+        if (isTransactionsRedesignEnabled && item.hash && !hasDedicatedScreen) {
+          navigation.navigate(Routes.ACTIVITY_DETAILS, {
+            chainId: item.chainId,
+            txIdentifier: item.hash,
+          });
+          return;
+        }
+
         const pressToken = (activityPressTokenRef.current += 1);
 
         // Perps rows route to the dedicated perps detail screens, mirroring the
@@ -922,6 +944,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       [
         bridgeHistory,
         getBridgeHistoryItemByHash,
+        isTransactionsRedesignEnabled,
         navigation,
         selectedAccountGroupEvmAddress,
         selectedInternalAccount?.address,
