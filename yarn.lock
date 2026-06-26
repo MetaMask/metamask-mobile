@@ -10514,9 +10514,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:@metamask-previews/transaction-pay-controller@23.16.1-preview-1ec310ea7":
-  version: 23.16.1-preview-1ec310ea7
-  resolution: "@metamask-previews/transaction-pay-controller@npm:23.16.1-preview-1ec310ea7"
+"@metamask/transaction-pay-controller@npm:@metamask-previews/transaction-pay-controller@23.17.0-preview-a4e0c04":
+  version: 23.17.0-preview-a4e0c04
+  resolution: "@metamask-previews/transaction-pay-controller@npm:23.17.0-preview-a4e0c04"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10540,7 +10540,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/23fd55acd0903d56669d272351c8bef2bb8ba98b7c8e3cbcda181549accd71a8fdb261a4f6508b5ee8d962e1ab9ccbe56161c6ba70385be12858e0109aa99d09
+  checksum: 10/1b394d1f22c1ae4ed2676abae5e75970d286f9747ecfa2ee43fea8eb304d64856449c94c2adf84b94d0bff2bc02508db3bf463c0f088edd855e7c9e2f0922b9f
   languageName: node
   linkType: hard
 
@@ -35670,7 +35670,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^68.2.0"
-    "@metamask/transaction-pay-controller": "npm:@metamask-previews/transaction-pay-controller@23.16.1-preview-1ec310ea7"
+    "@metamask/transaction-pay-controller": "npm:@metamask-previews/transaction-pay-controller@23.17.0-preview-a4e0c04"
     "@metamask/tron-wallet-snap": "npm:^1.27.0"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^3.0.0"
