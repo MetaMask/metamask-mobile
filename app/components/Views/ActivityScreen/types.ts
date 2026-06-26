@@ -69,6 +69,8 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'marketShort',
     'stopMarketCloseShort',
     'marketCloseShort',
+    'limitShort',
+    'limitCloseShort',
   ]),
   [ActivityTypeFilter.Predictions]: new Set<ActivityKind>([
     'predictionsAddFunds',

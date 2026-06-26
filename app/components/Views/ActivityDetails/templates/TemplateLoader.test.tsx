@@ -25,10 +25,35 @@ jest.mock('../../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: jest.fn(() => ({})),
 }));
 
-// The amount header resolves NFT artwork via redux selectors; stub it so these
-// tests stay focused on template dispatch.
 jest.mock('../../../UI/ActivityListItemRow/useNftActivityImage', () => ({
   useNftActivityImage: () => undefined,
+}));
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => {
+    const actual = jest.requireActual(
+      '../../../../selectors/multichainAccounts/accountTreeController',
+    );
+    return {
+      ...actual,
+      selectSelectedAccountGroupEvmInternalAccount: jest.fn(() => ({
+        address: '0x0000000000000000000000000000000000000001',
+        metadata: { name: 'Account 1' },
+      })),
+    };
+  },
+);
+
+jest.mock('../../../UI/Perps/hooks', () => ({
+  usePerpsBlockExplorerUrl: () => ({
+    getExplorerUrl: () => 'https://app.hyperliquid.xyz/explorer/address/0x1',
+  }),
+  usePerpsOrderFees: () => ({
+    totalFee: 0,
+    protocolFee: 0,
+    metamaskFee: 0,
+  }),
 }));
 
 const sendItem: ActivityListItem = {
@@ -237,14 +262,41 @@ describe('TemplateLoader', () => {
     expect(queryByTestId(ActivityDetailsSelectorsIDs.TOTAL_ROW)).toBeNull();
   });
 
-  it('falls back to DefaultDetails for perps activity', () => {
+  it('renders the PerpsDetails template for perps activity', () => {
     const perpsItem: ActivityListItem = {
       type: 'perpsAddFunds',
       chainId: 'eip155:42161',
       status: 'success',
       timestamp: 1,
       hash: '0xperps',
-      data: {},
+      raw: {
+        type: 'perpsTransaction',
+        data: {
+          id: 'deposit-1',
+          type: 'deposit',
+          category: 'deposit',
+          title: 'Account funded',
+          subtitle: '+$100',
+          timestamp: 1,
+          asset: 'USDC',
+          depositWithdrawal: {
+            amount: '+$100',
+            amountNumber: 100,
+            isPositive: true,
+            asset: 'USDC',
+            txHash: '0xperps',
+            status: 'completed',
+            type: 'deposit',
+          },
+        },
+      },
+      data: {
+        token: {
+          amount: '100',
+          symbol: 'USDC',
+          direction: 'in',
+        },
+      },
     } as ActivityListItem;
     const { getByTestId, queryByTestId } = renderWithProvider(
       <TemplateLoader item={perpsItem} />,
@@ -252,6 +304,9 @@ describe('TemplateLoader', () => {
 
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.STATUS_ROW),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.DO_IT_AGAIN_BUTTON),
     ).toBeOnTheScreen();
     expect(queryByTestId(ActivityDetailsSelectorsIDs.TOTAL_ROW)).toBeNull();
   });

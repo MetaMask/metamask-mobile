@@ -60,6 +60,8 @@ export type ActivityKind =
   | 'marketShort'
   | 'stopMarketCloseShort'
   | 'marketCloseShort'
+  | 'limitShort'
+  | 'limitCloseShort'
   | 'nftMint';
 
 export interface TokenAmount {
@@ -211,7 +213,9 @@ export type ActivityListItem =
       | 'perpsCloseLongTakeProfit'
       | 'marketShort'
       | 'stopMarketCloseShort'
-      | 'marketCloseShort',
+      | 'marketCloseShort'
+      | 'limitShort'
+      | 'limitCloseShort',
       {
         from?: string;
         to?: string;

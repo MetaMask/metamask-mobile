@@ -55,6 +55,8 @@ export function resolveIconType(type: ActivityKind): string {
     case 'marketShort':
     case 'stopMarketCloseShort':
     case 'marketCloseShort':
+    case 'limitShort':
+    case 'limitCloseShort':
       return 'interaction';
   }
 }

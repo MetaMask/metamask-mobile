@@ -6,6 +6,8 @@ import { ClaimMusdBonusDetails } from './ClaimMusdBonusDetails';
 import { ContractInteractionDetails } from './ContractInteractionDetails';
 import { DefaultDetails } from './DefaultDetails';
 import { NftDetails } from './NftDetails';
+import { PerpsDetails } from './PerpsDetails';
+import { PredictDetails } from './PredictDetails';
 import { SendDetails } from './SendDetails';
 import { SwapDetails } from './SwapDetails';
 
@@ -47,6 +49,32 @@ export function TemplateLoader({
       return <ContractInteractionDetails item={item} />;
     case 'claimMusdBonus':
       return <ClaimMusdBonusDetails item={item} />;
+    case 'predictionsAddFunds':
+    case 'predictionsWithdrawFunds':
+    case 'predictionClaimWinnings':
+    case 'predictionCashedOut':
+    case 'predictionPlaced':
+      return <PredictDetails item={item} />;
+    case 'perpsAddFunds':
+    case 'perpsWithdraw':
+    case 'perpsOpenLong':
+    case 'perpsCloseLong':
+    case 'perpsCloseLongLiquidated':
+    case 'perpsCloseLongStopLoss':
+    case 'perpsOpenShort':
+    case 'perpsCloseShort':
+    case 'perpsCloseShortLiquidated':
+    case 'perpsCloseShortStopLoss':
+    case 'perpsPaidFundingFees':
+    case 'perpsReceivedFundingFees':
+    case 'perpsCloseShortTakeProfit':
+    case 'perpsCloseLongTakeProfit':
+    case 'marketShort':
+    case 'stopMarketCloseShort':
+    case 'marketCloseShort':
+    case 'limitShort':
+    case 'limitCloseShort':
+      return <PerpsDetails item={item} />;
     default:
       return <DefaultDetails item={item} />;
   }
