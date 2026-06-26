@@ -9710,6 +9710,8 @@
     "network": "Network",
     "transaction_id": "Transaction ID",
     "network_fee": "Network fee",
+    "bandwidth_fee": "Bandwidth",
+    "energy_fee": "Energy",
     "bridge_fee": "Bridge fee",
     "transaction_fee": "Transaction fee",
     "total_amount": "Total amount",
