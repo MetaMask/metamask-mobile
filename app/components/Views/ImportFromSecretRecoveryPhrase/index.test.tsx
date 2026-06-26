@@ -1248,7 +1248,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
     it('calls navigation.goBack when back is pressed on the password step', async () => {
       const mockGoBack = jest.fn();
-      const Stack = createStackNavigator();
+      const Stack = createNativeStackNavigator();
 
       const { getByTestId } = renderWithProvider(
         <NavigationContainer>
