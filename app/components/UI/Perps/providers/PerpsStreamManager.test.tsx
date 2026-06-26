@@ -1829,6 +1829,71 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  describe('PriceStreamChannel isTradable propagation', () => {
+    let priceCallback: (data: PriceUpdate[]) => void;
+
+    beforeEach(() => {
+      priceCallback = jest.fn();
+      mockSubscribeToPrices.mockImplementation((params) => {
+        priceCallback = params.callback;
+        return jest.fn();
+      });
+    });
+
+    it('propagates isTradable from live price updates', () => {
+      const cb = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: cb,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        priceCallback([
+          {
+            symbol: 'BTC-PERP',
+            price: '50000',
+            timestamp: Date.now(),
+            isTradable: false,
+          },
+        ]);
+      });
+
+      expect(cb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({
+          symbol: 'BTC-PERP',
+          isTradable: false,
+        }),
+      });
+    });
+
+    it('defaults isTradable to true when live update omits the field', () => {
+      const cb = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: cb,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        priceCallback([
+          {
+            symbol: 'BTC-PERP',
+            price: '50000',
+            timestamp: Date.now(),
+          } as PriceUpdate,
+        ]);
+      });
+
+      expect(cb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({
+          symbol: 'BTC-PERP',
+          isTradable: true,
+        }),
+      });
+    });
+  });
+
   it('cleans up all subscriptions on provider unmount', async () => {
     const mockUnsubscribe = jest.fn();
     mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
@@ -1902,6 +1967,38 @@ describe('PerpsStreamManager', () => {
       });
 
       unsubscribe();
+    });
+
+    it('passes useTerminalApi: true to getMarketDataWithPrices', async () => {
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledWith({
+          useTerminalApi: true,
+        });
+      });
+
+      unsubscribe();
+    });
+
+    it('passes useTerminalApi: true to getMarkets during prewarm', async () => {
+      await testStreamManager.prices.prewarm();
+
+      const mockController = (
+        Engine.context as unknown as {
+          PerpsController: Record<string, jest.Mock>;
+        }
+      ).PerpsController;
+      await waitFor(() => {
+        expect(mockController.getMarkets).toHaveBeenCalledWith({
+          useTerminalApi: true,
+        });
+      });
     });
 
     it('uses cached data for subsequent subscriptions within cache duration', async () => {
