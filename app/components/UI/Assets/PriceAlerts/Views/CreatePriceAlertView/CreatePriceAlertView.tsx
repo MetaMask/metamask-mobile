@@ -383,7 +383,7 @@ const CreatePriceAlertView: React.FC = () => {
                       : TextColor.ErrorDefault
                   }
                 >
-                  {`${percentDiff.rounded}%`}
+                  {`${percentDiff.direction === 'above' ? '+' : '-'}${percentDiff.rounded}%`}
                 </Text>
                 {` ${strings(
                   percentDiff.direction === 'above'
@@ -433,7 +433,9 @@ const CreatePriceAlertView: React.FC = () => {
                 testID={`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-${percentage}`}
                 twClassName="flex-1"
               >
-                {strings('price_alerts.quick_percentage', { percentage })}
+                {strings('price_alerts.quick_percentage', {
+                  percentage: percentage > 0 ? `+${percentage}` : percentage,
+                })}
               </Button>
             ))}
           </Box>
