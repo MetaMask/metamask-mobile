@@ -30,6 +30,7 @@ import {
   resolveReceivingPriorityEntry,
 } from '../components/UI/Card/util/redeemDestination';
 import {
+  getVedaTokenConfig,
   getVedaTokenConfigFromFeatureFlag,
   MONEY_ACCOUNT_DISPLAY_SYMBOL,
   type VedaTokenConfig,
@@ -328,27 +329,31 @@ export const selectCardExternalWalletPriority = createSelector(
     data?.externalWalletPriority ?? [],
 );
 
+export const selectCardDelegationSettings = createSelector(
+  selectCardHomeData,
+  (data): DelegationSettingsResponse | null => data?.delegationSettings ?? null,
+);
+
 export const selectCardRedemptionDestinationIsMoneyAccount = createSelector(
   selectCardExternalWalletPriority,
   selectMoneyAccountVedaTokenConfig,
+  selectCardDelegationSettings,
   selectIsCardResidencyBlocked,
   selectPrimaryMoneyAccount,
   (
     priorities,
     vedaConfig,
+    delegationSettings,
     isResidencyBlocked,
     primaryMoneyAccount,
   ): boolean => {
     const top = resolveReceivingPriorityEntry(priorities);
+    const resolvedVedaConfig =
+      vedaConfig ?? getVedaTokenConfig(delegationSettings);
     return top
-      ? isMoneyAccountPriorityEntry(top, vedaConfig)
+      ? isMoneyAccountPriorityEntry(top, resolvedVedaConfig)
       : !isResidencyBlocked && Boolean(primaryMoneyAccount);
   },
-);
-
-export const selectCardDelegationSettings = createSelector(
-  selectCardHomeData,
-  (data): DelegationSettingsResponse | null => data?.delegationSettings ?? null,
 );
 
 export const selectCardDelegationToken = createSelector(
