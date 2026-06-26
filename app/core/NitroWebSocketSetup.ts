@@ -1,17 +1,5 @@
-/**
- * Replaces global.WebSocket with react-native-nitro-websockets (libwebsockets + mbedTLS,
- * no JS-bridge overhead).
- *
- * The adapter is W3C-compatible and supports all call styles used in this codebase:
- * - .onX assignment — app code, @metamask/core-backend, Polymarket
- * - addEventListener / removeEventListener with { once } / { signal } — @metamask/snaps-controllers, @nktkas/rews
- * - dispatchEvent — @nktkas/rews (Perps / Hyperliquid transport)
- *
- * Skipped under E2E (hasTestOverrides): shim.js owns global.WebSocket there and
- * routes production wss:// URLs to local mock servers.
- *
- * https://fetch.margelo.com — "WebSockets"
- */
+// Replaces global.WebSocket with NitroWebSocket (native C++ via libwebsockets).
+// W3C-compatible: supports .onX, addEventListener/removeEventListener ({ once } / { signal }), dispatchEvent.
 import {
   NitroWebSocket,
   type WebSocketMessageEvent as NitroMessageEvent,
@@ -29,9 +17,7 @@ const READY_STATE_MAP: Record<string, number> = {
   CLOSED: 3,
 };
 
-// Plain W3C-shaped event objects — the adapter never does instanceof checks,
-// so consumers (@nktkas/rews dispatches its own CloseEvent) interoperate by
-// reading fields, not by identity.
+// Plain W3C-shaped event objects — no instanceof checks, field-based interop.
 interface WsEvent {
   type: string;
 }
@@ -57,14 +43,6 @@ type EventType = 'open' | 'message' | 'close' | 'error';
 
 type ListenerOptions = boolean | { once?: boolean; signal?: AbortSignal };
 
-/**
- * W3C-compatible adapter over NitroWebSocket.
- *
- * Implements a minimal EventTarget (addEventListener with { once } / { signal },
- * removeEventListener, dispatchEvent) so @nktkas/rews reconnect/timeout paths work.
- * Both .onX and addEventListener listeners are dispatched from a single event loop
- * wired in the constructor, so they compose correctly when mixed.
- */
 class NitroWebSocketAdapter {
   static readonly CONNECTING = 0;
   static readonly OPEN = 1;
@@ -79,7 +57,6 @@ class NitroWebSocketAdapter {
 
   private readonly _ws: NitroWebSocket;
 
-  // Listeners keyed by identity for O(1) dedup and removal; meta tracks { once }.
   private readonly _listeners: Record<
     EventType,
     Map<WsListener, { once: boolean }>
@@ -90,8 +67,7 @@ class NitroWebSocketAdapter {
     error: new Map(),
   };
 
-  // Tracks abort-cleanup handlers keyed by listener so they can be removed from
-  // their AbortSignal when the socket closes (prevents signal holding stale refs).
+  // Keyed abort-cleanup handlers — removed from their signals on socket close.
   private readonly _abortCleanups: Map<WsListener, () => void> = new Map();
 
   // .onX handlers stored separately so they compose with _listeners.
@@ -100,8 +76,6 @@ class NitroWebSocketAdapter {
   private _onclose: WsListener | null = null;
   private _onerror: WsListener | null = null;
 
-  // Accepted but unused — NitroWebSocket always returns ArrayBuffer for binary
-  // frames regardless of this value; stored for read-back consistency.
   binaryType: BinaryType = 'arraybuffer';
 
   constructor(
@@ -118,9 +92,6 @@ class NitroWebSocketAdapter {
     this._ws.onmessage = (e: NitroMessageEvent) => {
       this.dispatchEvent({
         type: 'message',
-        // binaryData holds the ArrayBuffer for binary frames; e.data is the
-        // string-encoded fallback the native layer may set when binaryData is
-        // absent (defensive — not currently observed in practice).
         data: e.isBinary ? (e.binaryData ?? e.data) : e.data,
         origin: '',
       });
@@ -133,8 +104,7 @@ class NitroWebSocketAdapter {
         reason: e.reason,
         wasClean: e.wasClean,
       });
-      // Remove abort handlers from their signals, then clear all maps so
-      // GC can collect listeners and any closures they captured.
+      // Clean up abort handlers and listener maps on close.
       this._abortCleanups.forEach((cleanup) => cleanup());
       this._abortCleanups.clear();
       for (const map of Object.values(this._listeners)) map.clear();
@@ -217,13 +187,11 @@ class NitroWebSocketAdapter {
         ? options.signal
         : undefined;
 
-    if (signal?.aborted) return; // already-aborted signal: never register (DOM semantics)
-    if (map.has(listener)) return; // dedup by identity (matches DOM no-op on repeats)
+    if (signal?.aborted) return;
+    if (map.has(listener)) return;
     map.set(listener, { once });
 
     if (signal) {
-      // Remove listener when the signal aborts — @nktkas/rews relies on this to
-      // tear down its open/message/close/error listeners.
       const abortCleanup = () => {
         map.delete(listener);
         this._abortCleanups.delete(listener);
@@ -239,15 +207,7 @@ class NitroWebSocketAdapter {
     this._listeners[type]?.delete(listener);
   }
 
-  /**
-   * Dispatches to the matching .onX handler and all registered listeners.
-   * Called internally by native callbacks and externally by @nktkas/rews
-   * (synthetic CloseEvent on connect timeout / close-during-connecting).
-   *
-   * W3C semantics: a throwing listener must not prevent remaining listeners
-   * from running. Exceptions are swallowed after being reported to the global
-   * error handler so the event loop stays intact.
-   */
+  // Dispatches to .onX handler + all registered listeners; throwing listeners are isolated.
   dispatchEvent(event: WsAnyEvent): boolean {
     const type = event.type as EventType;
 
@@ -263,7 +223,6 @@ class NitroWebSocketAdapter {
 
     const map = this._listeners[type];
     if (map) {
-      // Snapshot before iterating: a listener may mutate the map during dispatch.
       for (const [listener, meta] of [...map]) {
         if (meta.once) map.delete(listener);
         try {
@@ -275,7 +234,6 @@ class NitroWebSocketAdapter {
       }
     }
 
-    // WebSocket events are not cancelable; always true per W3C spec.
     return true;
   }
 
@@ -295,9 +253,6 @@ class NitroWebSocketAdapter {
   }
 
   send(data: string | ArrayBuffer | ArrayBufferView): void {
-    // ArrayBufferView (e.g. Uint8Array from @metamask/snaps-controllers): copy the
-    // exact byte range into a real ArrayBuffer — sending .buffer directly would
-    // include bytes outside the view's offset/length.
     if (ArrayBuffer.isView(data)) {
       this._ws.send(
         data.buffer.slice(
@@ -315,15 +270,6 @@ class NitroWebSocketAdapter {
   }
 }
 
-/**
- * Installs NitroWebSocketAdapter as global.WebSocket.
- *
- * WebSocket prewarm is intentionally omitted here: BackendWebSocketService always
- * appends ?token=<JWT> to the gateway URL, so a tokenless prewarm URL would never
- * be reused by the real connection and would produce a spurious unauthenticated
- * WS upgrade on every cold start. Prewarm should be registered by the auth layer
- * once a valid token is available.
- */
 export function installProductionNitroWebSocket(): void {
   global.WebSocket = NitroWebSocketAdapter as unknown as typeof WebSocket;
 }

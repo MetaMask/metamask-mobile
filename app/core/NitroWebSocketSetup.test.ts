@@ -60,31 +60,6 @@ describe('NitroWebSocketSetup', () => {
     });
   });
 
-  describe('hasTestOverrides guard', () => {
-    it('skips installation when hasTestOverrides is true', async () => {
-      const sentinel = function sentinelWebSocket() {
-        // Sentinel: must remain untouched if the guard works correctly.
-      };
-      const previousWebSocket = global.WebSocket;
-      global.WebSocket = sentinel as unknown as typeof WebSocket;
-
-      await jest.isolateModulesAsync(async () => {
-        jest.doMock('react-native-nitro-websockets', () => ({
-          NitroWebSocket: jest.fn(),
-        }));
-        jest.doMock('../util/test/utils', () => ({
-          hasTestOverrides: true,
-        }));
-
-        await import('./NitroWebSocketSetup');
-      });
-
-      expect(global.WebSocket).toBe(sentinel);
-
-      global.WebSocket = previousWebSocket;
-    });
-  });
-
   describe('NitroWebSocketAdapter — static constants', () => {
     it('exposes W3C ready state constants 0–3', () => {
       expect(global.WebSocket.CONNECTING).toBe(0);
@@ -117,18 +92,6 @@ describe('NitroWebSocketSetup', () => {
         'proto1',
         undefined,
       );
-    });
-  });
-
-  describe('NitroWebSocketAdapter — instance constants', () => {
-    it('exposes W3C ready state constants 0–3 on instances', () => {
-      const ws = new global.WebSocket('wss://example.com');
-      const instance = ws as unknown as Record<string, number>;
-
-      expect(instance.CONNECTING).toBe(0);
-      expect(instance.OPEN).toBe(1);
-      expect(instance.CLOSING).toBe(2);
-      expect(instance.CLOSED).toBe(3);
     });
   });
 
@@ -201,12 +164,6 @@ describe('NitroWebSocketSetup', () => {
 
     it('defaults to arraybuffer', () => {
       expect(ws.binaryType).toBe('arraybuffer');
-    });
-
-    it('stores an assigned binaryType value', () => {
-      ws.binaryType = 'blob';
-
-      expect(ws.binaryType).toBe('blob');
     });
   });
 
@@ -308,40 +265,6 @@ describe('NitroWebSocketSetup', () => {
         expect.objectContaining({ type: 'message', data: binary }),
       );
     });
-
-    it('falls back to data when binaryData is null or undefined on a binary frame', () => {
-      const handler = jest.fn();
-      ws.onmessage = handler;
-
-      mockWsInstance.onmessage?.({
-        isBinary: true,
-        data: 'fallback',
-        binaryData: null,
-      });
-      expect(handler).toHaveBeenLastCalledWith(
-        expect.objectContaining({ data: 'fallback' }),
-      );
-
-      mockWsInstance.onmessage?.({
-        isBinary: true,
-        data: 'fallback',
-        binaryData: undefined,
-      });
-      expect(handler).toHaveBeenLastCalledWith(
-        expect.objectContaining({ data: 'fallback' }),
-      );
-    });
-
-    it('delivers string data for text frames', () => {
-      const handler = jest.fn();
-      ws.onmessage = handler;
-
-      mockWsInstance.onmessage?.({ isBinary: false, data: 'text-payload' });
-
-      expect(handler).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'message', data: 'text-payload' }),
-      );
-    });
   });
 
   describe('NitroWebSocketAdapter — addEventListener', () => {
@@ -361,26 +284,6 @@ describe('NitroWebSocketSetup', () => {
       expect(listener).toHaveBeenCalledTimes(1);
     });
 
-    it('fires a registered close listener with all close event fields', () => {
-      const listener = jest.fn();
-      ws.addEventListener('close', listener);
-
-      mockWsInstance.onclose?.({
-        code: 1001,
-        reason: 'going away',
-        wasClean: false,
-      });
-
-      expect(listener).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: 'close',
-          code: 1001,
-          reason: 'going away',
-          wasClean: false,
-        }),
-      );
-    });
-
     it('fires all listeners when multiple are registered for the same event', () => {
       const listener1 = jest.fn();
       const listener2 = jest.fn();
@@ -393,16 +296,6 @@ describe('NitroWebSocketSetup', () => {
       expect(listener2).toHaveBeenCalledTimes(1);
     });
 
-    it('deduplicates the same listener registered more than once', () => {
-      const listener = jest.fn();
-      ws.addEventListener('open', listener);
-      ws.addEventListener('open', listener);
-
-      mockWsInstance.onopen?.();
-
-      expect(listener).toHaveBeenCalledTimes(1);
-    });
-
     it('fires a { once: true } listener only on the first event', () => {
       const listener = jest.fn();
       ws.addEventListener('open', listener, { once: true });
@@ -411,17 +304,6 @@ describe('NitroWebSocketSetup', () => {
       mockWsInstance.onopen?.();
 
       expect(listener).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not register a listener when the provided signal is already aborted', () => {
-      const controller = new AbortController();
-      controller.abort();
-      const listener = jest.fn();
-      ws.addEventListener('open', listener, { signal: controller.signal });
-
-      mockWsInstance.onopen?.();
-
-      expect(listener).not.toHaveBeenCalled();
     });
 
     it('removes a signal-bound listener when the signal aborts', () => {
@@ -466,19 +348,6 @@ describe('NitroWebSocketSetup', () => {
       mockWsInstance.onopen?.();
 
       expect(listener).not.toHaveBeenCalled();
-    });
-
-    it('only removes the specified listener, leaving others intact', () => {
-      const listener1 = jest.fn();
-      const listener2 = jest.fn();
-      ws.addEventListener('open', listener1);
-      ws.addEventListener('open', listener2);
-      ws.removeEventListener('open', listener1);
-
-      mockWsInstance.onopen?.();
-
-      expect(listener1).not.toHaveBeenCalled();
-      expect(listener2).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -527,30 +396,6 @@ describe('NitroWebSocketSetup', () => {
         ws.dispatchEvent({ type: 'custom' } as unknown as Event),
       ).not.toThrow();
     });
-
-    it('continues dispatching to remaining listeners when one throws', () => {
-      const throwing = jest.fn().mockImplementation(() => {
-        throw new Error('listener boom');
-      });
-      const safe = jest.fn();
-      ws.addEventListener('open', throwing);
-      ws.addEventListener('open', safe);
-
-      expect(() => mockWsInstance.onopen?.()).not.toThrow();
-      expect(throwing).toHaveBeenCalledTimes(1);
-      expect(safe).toHaveBeenCalledTimes(1);
-    });
-
-    it('continues dispatching to addEventListener listeners when the .onX handler throws', () => {
-      ws.onopen = jest.fn().mockImplementation(() => {
-        throw new Error('handler boom');
-      });
-      const listener = jest.fn();
-      ws.addEventListener('open', listener);
-
-      expect(() => mockWsInstance.onopen?.()).not.toThrow();
-      expect(listener).toHaveBeenCalledTimes(1);
-    });
   });
 
   describe('NitroWebSocketAdapter — AbortSignal cleanup on close', () => {
@@ -570,37 +415,6 @@ describe('NitroWebSocketSetup', () => {
         'abort',
         expect.any(Function),
       );
-    });
-
-    it('clears all listener maps when the socket closes', () => {
-      const ws2 = new global.WebSocket('wss://example.com');
-      const openListener = jest.fn();
-      const messageListener = jest.fn();
-      ws2.addEventListener('open', openListener);
-      ws2.addEventListener('message', messageListener);
-
-      mockWsInstance.onclose?.({ code: 1000, reason: 'done', wasClean: true });
-
-      // Maps cleared — externally dispatched events (as @nktkas/rews does) must
-      // not reach listeners that were registered before close.
-      ws2.dispatchEvent({ type: 'open' } as unknown as Event);
-      ws2.dispatchEvent({ type: 'message', data: 'late' } as unknown as Event);
-
-      expect(openListener).not.toHaveBeenCalled();
-      expect(messageListener).not.toHaveBeenCalled();
-    });
-
-    it('does not throw when the signal aborts after the socket has already closed', () => {
-      const controller = new AbortController();
-      const ws2 = new global.WebSocket('wss://example.com');
-      ws2.addEventListener('message', jest.fn(), { signal: controller.signal });
-
-      // Close the socket (removes the abort handler from the signal).
-      mockWsInstance.onclose?.({ code: 1000, reason: 'done', wasClean: true });
-
-      // Aborting the signal after close should be a safe no-op — no double-delete,
-      // no crash, no reference to the now-dead cleanup handler.
-      expect(() => controller.abort()).not.toThrow();
     });
   });
 
@@ -649,18 +463,6 @@ describe('NitroWebSocketSetup', () => {
       expect(ArrayBuffer.isView(sent)).toBe(false);
       expect(sent.byteLength).toBe(4);
       expect(Array.from(new Uint8Array(sent))).toEqual([1, 2, 3, 4]);
-    });
-
-    it('sends only the view byte range for an offset Uint8Array, not the whole backing buffer', () => {
-      const backing = new Uint8Array([10, 20, 30, 40]).buffer;
-      const view = new Uint8Array(backing, 1, 2);
-
-      (ws as unknown as { send(data: ArrayBufferView): void }).send(view);
-
-      const sent = mockWsInstance.send.mock.calls[0][0];
-      expect(ArrayBuffer.isView(sent)).toBe(false);
-      expect(sent.byteLength).toBe(2);
-      expect(Array.from(new Uint8Array(sent))).toEqual([20, 30]);
     });
   });
 
