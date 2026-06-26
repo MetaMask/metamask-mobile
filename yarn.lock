@@ -10483,17 +10483,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@moonpay/react-native-moonpay-sdk@npm:^1.1.8":
-  version: 1.1.8
-  resolution: "@moonpay/react-native-moonpay-sdk@npm:1.1.8"
-  peerDependencies:
-    react: ">=16"
-    react-native: ">0.60"
-    react-native-webview: "*"
-  checksum: 10/678052c6e78d095615c71afaf3854369e214d26f43404e16d19101be4fb2735a58d9159f2bb803abddd4f8bcb44f9653d48439b39d5cdaebb09e0c9f8037baba
-  languageName: node
-  linkType: hard
-
 "@msgpack/msgpack@npm:3.1.2":
   version: 3.1.2
   resolution: "@msgpack/msgpack@npm:3.1.2"
@@ -35640,7 +35629,6 @@ __metadata:
     "@metamask/tron-wallet-snap": "npm:^1.26.0"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^3.0.0"
-    "@moonpay/react-native-moonpay-sdk": "npm:^1.1.8"
     "@myx-trade/sdk": "npm:^0.1.265"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.32.2"
