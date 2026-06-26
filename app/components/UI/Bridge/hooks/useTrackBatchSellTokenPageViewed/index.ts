@@ -2,7 +2,7 @@ import { useEffect, useRef } from 'react';
 import {
   BatchSellMetricsEventName,
   BatchSellMetricsLocation,
-  FeatureId,
+  formatChainIdToCaip,
 } from '@metamask/bridge-controller';
 
 import Engine from '../../../../../core/Engine';
@@ -28,10 +28,9 @@ export function useTrackBatchSellTokenPageViewed({
     Engine.context.BridgeController.trackUnifiedSwapBridgeEvent(
       BatchSellMetricsEventName.BatchSellTokenPageViewed,
       {
+        chain_id_destination: formatChainIdToCaip(topChainId),
+        chain_id_source: formatChainIdToCaip(topChainId),
         location,
-        feature_id: FeatureId.BATCH_SELL,
-        // @ts-expect-error chain_id is merged from client props in trackUnifiedSwapBridgeEvent
-        chain_id: topChainId,
       },
     );
   }, [location, topChainId]);
