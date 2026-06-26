@@ -35,24 +35,16 @@ describeForPlatforms('ImportNewSecretRecoveryPhrase component views', () => {
   // CV-testable: screen renders
   // -----------------------------------------------------------------------
 
-  it('renders the import SRP screen with a title and import button', async () => {
+  it('renders the import SRP screen with a disabled import button until words are entered', async () => {
     const { findByTestId, findByText } = renderImportNewSRP();
 
     expect(await findByTestId(ImportSRPIDs.SCREEN_TITLE_ID)).toBeOnTheScreen();
-
     expect(
       await findByText(
         strings('import_new_secret_recovery_phrase.import_wallet_title'),
       ),
     ).toBeOnTheScreen();
-  });
-
-  it('renders the import button in a disabled state when no SRP words have been entered', async () => {
-    const { findByTestId } = renderImportNewSRP();
-
-    const importButton = await findByTestId(ImportSRPIDs.IMPORT_BUTTON);
-    // Button is disabled until a valid-length SRP is supplied.
-    expect(importButton).toBeDisabled();
+    expect(await findByTestId(ImportSRPIDs.IMPORT_BUTTON)).toBeDisabled();
   });
 
   it('shows a validation error when an invalid SRP is submitted', async () => {

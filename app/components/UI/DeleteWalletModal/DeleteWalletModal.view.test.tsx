@@ -39,24 +39,15 @@ describeForPlatforms('DeleteWalletModal component views', () => {
     jest.clearAllMocks();
   });
 
-  it('renders the "Forgot your password?" initial state with a Reset Wallet button', async () => {
+  it('shows the forgot-password screen then advances to confirmation when Reset Wallet is pressed', async () => {
     const { findByTestId, findByText } = renderDeleteWalletModal();
 
     expect(
       await findByTestId(ForgotPasswordModalSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-
     expect(
       await findByText(strings('login.forgot_password_desc')),
     ).toBeOnTheScreen();
-
-    expect(
-      await findByTestId(ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
-  it('advances to the "Are you sure?" confirmation screen when Reset Wallet is pressed', async () => {
-    const { findByTestId, findByText } = renderDeleteWalletModal();
 
     const resetButton = await findByTestId(
       ForgotPasswordModalSelectorsIDs.RESET_WALLET_BUTTON,
@@ -99,18 +90,28 @@ describeForPlatforms('DeleteWalletModal component views', () => {
     });
   });
 
-  it('renders the confirmation screen directly when isResetWallet route param is set', async () => {
-    const { findByTestId, findByText } = renderDeleteWalletModal({
-      isResetWallet: true,
-    });
+  it('opens on the confirmation screen when isResetWallet route param is set without a back button', async () => {
+    const { findByTestId, findByText, queryByTestId } = renderDeleteWalletModal(
+      {
+        isResetWallet: true,
+      },
+    );
 
-    // When launched with isResetWallet=true the modal opens on the confirm screen.
     expect(await findByText(strings('login.are_you_sure'))).toBeOnTheScreen();
-
     expect(
       await findByTestId(
         ForgotPasswordModalSelectorsIDs.YES_RESET_WALLET_BUTTON,
       ),
     ).toBeOnTheScreen();
+    expect(
+      await findByTestId(ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(ForgotPasswordModalSelectorsIDs.BACK_BUTTON),
+    ).not.toBeOnTheScreen();
+
+    fireEvent.press(
+      await findByTestId(ForgotPasswordModalSelectorsIDs.CANCEL_BUTTON),
+    );
   });
 });

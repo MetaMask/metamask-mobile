@@ -239,9 +239,17 @@ describeForPlatforms('Contacts component views', () => {
 
     // Delete opens a confirmation action sheet before calling the controller.
     await waitFor(() => {
-      expect(getByTestId('action-sheet-option-0')).toBeOnTheScreen();
+      expect(
+        getByTestId(
+          AddContactViewSelectorsIDs.DELETE_CONFIRM_ACTION_SHEET_OPTION,
+        ),
+      ).toBeOnTheScreen();
     });
-    fireEvent.press(getByTestId('action-sheet-option-0'));
+    fireEvent.press(
+      getByTestId(
+        AddContactViewSelectorsIDs.DELETE_CONFIRM_ACTION_SHEET_OPTION,
+      ),
+    );
 
     await waitFor(() => {
       expect(deleteContactSpy).toHaveBeenCalledWith(
