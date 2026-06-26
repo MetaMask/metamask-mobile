@@ -16,7 +16,6 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import Utilities from '../../framework/Utilities';
 import WalletView from '../../page-objects/wallet/WalletView';
-import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
 import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -108,16 +107,18 @@ describe(SmokePerps('Perps - Withdraw to any token (MetaMask Pay)'), () => {
           description: 'Wallet view visible',
         });
 
-        // Open Perps and tap Withdraw. With the perpsWithdraw post-quote flag
-        // enabled this routes to the new MetaMask Pay confirmation.
+        // Open the Perps home. Do NOT tap into the "Explore crypto" markets
+        // section — its header navigates to the market list, away from the
+        // balance-actions surface that hosts the Withdraw CTA.
         await WalletView.scrollAndTapPerpsSection();
-        await PerpsHomeView.tapExploreCryptoIfVisible();
 
         const withdrawButton = Matchers.getElementByID(
           PerpsMarketBalanceActionsSelectorsIDs.WITHDRAW_BUTTON,
         );
 
-        // Perps balance actions can show a skeleton briefly before the CTA lands.
+        // The Withdraw CTA only mounts once the live Perps account hydrates and
+        // the balance is non-empty (the empty/loading state shows Add funds
+        // only), so allow time for the account stream to land.
         await Utilities.executeWithRetry(
           async () => {
             const isVisible = await Utilities.isElementVisible(
@@ -128,7 +129,7 @@ describe(SmokePerps('Perps - Withdraw to any token (MetaMask Pay)'), () => {
               throw new Error('Perps Withdraw CTA is not visible yet');
             }
           },
-          { interval: 1000, timeout: 20000 },
+          { interval: 1000, timeout: 30000 },
         );
 
         // The first tap can happen while Perps is still settling, so retry until
