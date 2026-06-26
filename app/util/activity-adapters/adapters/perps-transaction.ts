@@ -295,7 +295,20 @@ export function mapPerpsTransaction({
       return null;
     }
 
-    const assetSize = transaction.subtitle?.trim().split(/\s+/)[0];
+    // The perps domain formats the position size into the subtitle as
+    // "<size> <symbol>", so reuse that asset quantity for the row's size leg.
+    // Guard against the subtitle format drifting: only use the leading token
+    // when it parses as a positive number, otherwise omit it (the row shows the
+    // symbol alone) rather than rendering a garbage value. Subtitle-format drift
+    // is also caught by the transformOrdersToTransactions integration test.
+    const [subtitleSize] = transaction.subtitle?.trim().split(/\s+/) ?? [];
+    const parsedSubtitleSize = Number(subtitleSize);
+    const assetSize =
+      subtitleSize &&
+      Number.isFinite(parsedSubtitleSize) &&
+      parsedSubtitleSize > 0
+        ? subtitleSize
+        : undefined;
 
     return {
       type: kind,

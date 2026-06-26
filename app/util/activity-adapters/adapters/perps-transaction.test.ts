@@ -492,6 +492,36 @@ describe('mapPerpsTransaction', () => {
         direction: 'out',
       });
     });
+
+    it('omits the size leg when the subtitle does not start with a number', () => {
+      const result = mapPerpsTransaction({
+        transaction: {
+          ...base,
+          id: 'order-bad-subtitle',
+          subtitle: 'Limit short',
+          asset: 'ETH',
+          title: 'Market short',
+          type: 'order',
+          category: 'limit_order',
+          order: {
+            text: PerpsOrderTransactionStatus.Filled,
+            statusType: PerpsOrderTransactionStatusType.Filled,
+            type: 'market',
+            size: '10',
+            limitPrice: '5',
+            filled: '100%',
+          },
+        },
+        chainId: ARBITRUM,
+      });
+
+      const sourceToken =
+        result && 'sourceToken' in result.data
+          ? result.data.sourceToken
+          : undefined;
+      // No leading numeric token → size omitted (symbol only), not garbage.
+      expect(sourceToken).toEqual({ symbol: 'ETH', direction: 'out' });
+    });
   });
 
   describe('orders (real transformOrdersToTransactions output)', () => {
