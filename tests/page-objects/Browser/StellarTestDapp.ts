@@ -140,15 +140,16 @@ class StellarTestDapp {
   }
 
   async openWalletSelectionModal(): Promise<void> {
-    await this.tapButton(this.connectButtonSelector);
-
-    try {
-      await this.waitForWalletOption();
-    } catch {
-      await this.reloadStellarTestDApp();
-      await this.tapButton(this.connectButtonSelector);
-      await this.waitForWalletOption();
-    }
+    await Utilities.executeWithRetry(
+      async () => {
+        await this.tapButton(this.connectButtonSelector);
+        await this.waitForWalletOption();
+      },
+      {
+        timeout: 30_000,
+        description: 'Open Stellar dapp wallet selection modal',
+      },
+    );
   }
 
   getHeader() {
