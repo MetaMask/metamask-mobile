@@ -2,7 +2,10 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { TextColor as DSTextColor } from '@metamask/design-system-react-native';
 import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  BatchSellMetricsLocation,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import { BridgeToken } from '../../types';
 import { BatchSellTokenSelect } from './BatchSellTokenSelect';
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
@@ -28,6 +31,7 @@ import {
   selectSelectedNonEvmNetworkChainId,
 } from '../../../../../selectors/multichainNetworkController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import Engine from '../../../../../core/Engine';
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
@@ -69,6 +73,17 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      BridgeController: {
+        setLocation: jest.fn(),
+      },
+    },
+  },
 }));
 
 jest.mock('../../hooks/useTrackBatchSellTokenPageViewed', () => ({
@@ -451,6 +466,9 @@ describe('BatchSellTokenSelect', () => {
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'bridge/resetBridgeState',
     });
+    expect(Engine.context.BridgeController.setLocation).toHaveBeenCalledWith(
+      BatchSellMetricsLocation.Unknown,
+    );
 
     mockDispatch.mockClear();
     unmount();

@@ -225,6 +225,10 @@ jest.mock('../../hooks/useBatchSellQuoteData', () => ({
   useBatchSellQuoteData: () => mockBatchSellQuoteData,
 }));
 
+jest.mock('../../hooks/useTrackBatchSellQuotePageViewed', () => ({
+  useTrackBatchSellQuotePageViewed: jest.fn(),
+}));
+
 describe('BatchSellReview', () => {
   beforeEach(() => {
     jest.clearAllMocks();

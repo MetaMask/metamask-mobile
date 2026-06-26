@@ -1,5 +1,11 @@
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { ListRenderItemInfo, Pressable } from 'react-native';
 import { FlatList, ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -33,11 +39,12 @@ import {
   isNonEvmChainId,
   BatchSellMetricsLocation,
 } from '@metamask/bridge-controller';
-import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
+import { CaipAssetType, CaipChainId } from '@metamask/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import {
   resetBridgeState,
   selectBatchSellDestStablecoins,
@@ -166,9 +173,11 @@ export function BatchSellTokenSelect() {
     [sortedEligibleSourceTokens],
   );
   const batchSellLocation =
-    route.params?.batchSellLocation ??
-    // @ts-expect-error Unknown added in upcoming bridge-controller preview
-    BatchSellMetricsLocation.Unknown;
+    route.params?.batchSellLocation ?? BatchSellMetricsLocation.Unknown;
+
+  useLayoutEffect(() => {
+    Engine.context.BridgeController.setLocation(batchSellLocation);
+  }, [batchSellLocation]);
 
   useTrackBatchSellTokenPageViewed({
     location: batchSellLocation,

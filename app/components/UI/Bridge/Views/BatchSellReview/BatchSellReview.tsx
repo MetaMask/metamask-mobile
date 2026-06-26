@@ -53,6 +53,7 @@ import {
   useBatchSellQuoteRequest,
 } from '../../hooks/useBatchSellQuoteRequest';
 import { useBatchSellQuoteData } from '../../hooks/useBatchSellQuoteData';
+import { useTrackBatchSellQuotePageViewed } from '../../hooks/useTrackBatchSellQuotePageViewed';
 
 const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
@@ -169,6 +170,14 @@ export function BatchSellReview() {
       updateBatchSellQuoteParams.cancel();
     };
   }, [hasValidSourceAmounts, updateBatchSellQuoteParams]);
+
+  useTrackBatchSellQuotePageViewed({
+    batchSellSlippages,
+    hasValidSourceAmounts,
+    percentsByTokenKey,
+    selectedDestinationToken,
+    selectedTokens,
+  });
 
   useEffect(
     () => () => {
