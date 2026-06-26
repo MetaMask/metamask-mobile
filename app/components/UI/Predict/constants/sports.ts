@@ -130,6 +130,7 @@ export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
   'moneyline',
   'first_half_moneyline',
   'soccer_halftime_result',
+  'soccer_first_to_score',
   'tennis_first_set_winner',
 ]);
 

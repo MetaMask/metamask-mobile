@@ -87,6 +87,7 @@ const PredictGameDetailsContentComponent: React.FC<
     handleTabPress,
     chips,
     groupMap,
+    resolvedOutcomeGroups,
     activeChipKey,
     handleChipSelect,
     showChips,
@@ -97,10 +98,11 @@ const PredictGameDetailsContentComponent: React.FC<
     outcomeGroups: market.outcomeGroups ?? [],
   });
 
+  const resolvedGroups = resolvedOutcomeGroups ?? [];
   const showStickyHeader = showTabBar || showChips;
-  const hasExtendedOutcomes = tabsEnabled && groupMap.size > 0;
+  const hasOpenExtendedOutcomes = tabsEnabled && groupMap.size > 0;
   const showFooter =
-    !hasExtendedOutcomes || (claimableAmount > 0 && Boolean(onClaimPress));
+    !hasOpenExtendedOutcomes || (claimableAmount > 0 && Boolean(onClaimPress));
   const stickyHeaderIndices = useMemo(
     () => (showStickyHeader ? [CHIPS_STICKY_INDEX] : undefined),
     [showStickyHeader],
@@ -207,6 +209,7 @@ const PredictGameDetailsContentComponent: React.FC<
           activePositions={activePositions}
           claimablePositions={claimablePositions}
           groupMap={groupMap}
+          resolvedOutcomeGroups={resolvedGroups}
           activeChipKey={activeChipKey}
           onBetPress={onBetPress}
         />
