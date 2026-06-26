@@ -701,11 +701,11 @@ const ChoosePassword = () => {
                       >
                         {Platform.OS === 'ios' && getOauth2LoginSuccess()
                           ? strings(
-                              'choose_password.description_social_login_update_ios',
-                            )
+                            'choose_password.description_social_login_update_ios',
+                          )
                           : strings(
-                              'choose_password.description_social_login_update',
-                            )}
+                            'choose_password.description_social_login_update',
+                          )}
                         {Platform.OS === 'android' && (
                           <Text
                             variant={TextVariant.BodyMd}

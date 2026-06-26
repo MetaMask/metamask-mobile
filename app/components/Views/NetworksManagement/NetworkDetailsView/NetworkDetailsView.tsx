@@ -9,7 +9,6 @@ import { ImageSourcePropType, Platform, Pressable } from 'react-native';
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native';
 import {
   KeyboardAwareScrollView,
-  KeyboardProvider,
 } from 'react-native-keyboard-controller';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -260,7 +259,7 @@ const NetworkDetailsView = () => {
 
   const placeholderTextColor = colors.text.muted;
 
-  const content = (
+  return (
     <SafeAreaView
       style={tw.style('flex-1 bg-background-default')}
       edges={['top', 'bottom']}
@@ -270,7 +269,7 @@ const NetworkDetailsView = () => {
         onBack={handleBack}
         endAccessory={
           !formHook.form.addMode &&
-          canDeleteNetwork(formHook.form.chainId ?? '') ? (
+            canDeleteNetwork(formHook.form.chainId ?? '') ? (
             <Pressable
               onPress={handleDelete}
               style={({ pressed }) =>
@@ -435,8 +434,6 @@ const NetworkDetailsView = () => {
       )}
     </SafeAreaView>
   );
-
-  return <KeyboardProvider>{content}</KeyboardProvider>;
 };
 
 export default NetworkDetailsView;
