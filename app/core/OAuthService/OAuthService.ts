@@ -534,28 +534,38 @@ export class OAuthService {
   private getAccessToken = (): string | undefined =>
     Engine.context.SeedlessOnboardingController.state?.accessToken;
 
-  updateMarketingOptInStatus = async (
-    marketingOptIn: boolean,
-  ): Promise<void> => {
+  private getAccessTokenOrThrow = (): string => {
     const accessToken = this.getAccessToken();
 
     if (!accessToken) {
       throw new Error('No access token found. User must be authenticated.');
     }
 
+    return accessToken;
+  };
+
+  private async refreshAccessToken(): Promise<void> {
+    await whenEngineReady();
+    await Engine.context.SeedlessOnboardingController.refreshAuthTokens();
+  }
+
+  updateMarketingOptInStatus = async (
+    marketingOptIn: boolean,
+  ): Promise<void> => {
+    await this.refreshAccessToken();
+
+    const accessToken = this.getAccessTokenOrThrow();
     const requestBody: MarketingOptInRequest = {
       opt_in_status: marketingOptIn,
     };
 
     const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    };
-
     const response = await fetch(url, {
       method: 'POST',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
       body: JSON.stringify(requestBody),
     });
 
@@ -570,21 +580,16 @@ export class OAuthService {
   };
 
   getMarketingOptInStatus = async (): Promise<MarketingOptInResponse> => {
-    const accessToken = this.getAccessToken();
+    await this.refreshAccessToken();
 
-    if (!accessToken) {
-      throw new Error('No access token found. User must be authenticated.');
-    }
-
+    const accessToken = this.getAccessTokenOrThrow();
     const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
-    const headers = {
-      'Content-Type': 'application/json',
-      Authorization: `Bearer ${accessToken}`,
-    };
-
     const response = await fetch(url, {
       method: 'GET',
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
+      },
     });
 
     if (!response.ok) {
