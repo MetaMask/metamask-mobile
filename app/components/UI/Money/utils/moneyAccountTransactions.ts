@@ -436,7 +436,7 @@ const SHARE_DECIMALS_SCALAR = BigInt(1_000_000);
  * reverting with `MinimumAssetsNotMet`.
  */
 export function getSharesForWithdrawal(amount: bigint, rate: bigint): bigint {
-  return (amount * SHARE_DECIMALS_SCALAR + rate - 10n) / rate;
+  return (amount * SHARE_DECIMALS_SCALAR + rate - 1n) / rate;
 }
 
 function buildWithdrawData(
