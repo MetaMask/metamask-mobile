@@ -5,7 +5,9 @@ import { BridgeDetails } from './BridgeDetails';
 import { ClaimMusdBonusDetails } from './ClaimMusdBonusDetails';
 import { ContractInteractionDetails } from './ContractInteractionDetails';
 import { DefaultDetails } from './DefaultDetails';
+import { DepositDetails } from './DepositDetails';
 import { NftDetails } from './NftDetails';
+import { SmartAccountUpgradeDetails } from './SmartAccountUpgradeDetails';
 import { PerpsDetails } from './PerpsDetails';
 import { PredictDetails } from './PredictDetails';
 import { SendDetails } from './SendDetails';
@@ -47,6 +49,12 @@ export function TemplateLoader({
       return <ContractInteractionDetails item={item} />;
     case 'claimMusdBonus':
       return <ClaimMusdBonusDetails item={item} />;
+    case 'deposit':
+    case 'claim':
+    case 'unstake':
+      return <DepositDetails item={item} />;
+    case 'smartAccountUpgrade':
+      return <SmartAccountUpgradeDetails item={item} />;
     case 'predictionsAddFunds':
     case 'predictionsWithdrawFunds':
     case 'predictionClaimWinnings':

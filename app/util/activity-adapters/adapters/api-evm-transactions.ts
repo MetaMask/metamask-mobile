@@ -354,6 +354,7 @@ export function mapApiEvmTransactions({
           receivedTransfer ?? sentTransfer,
           receivedTransfer ? 'in' : 'out',
         ),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -475,6 +476,7 @@ export function mapApiEvmTransactions({
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
         token: getToken(sentTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }

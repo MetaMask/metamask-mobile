@@ -176,6 +176,72 @@ const claimMusdBonusItem: ActivityListItem = {
   },
 } as ActivityListItem;
 
+const depositItem: ActivityListItem = {
+  type: 'deposit',
+  chainId: 'eip155:1',
+  status: 'success',
+  timestamp: 1,
+  hash: '0xdeposit',
+  data: {
+    token: {
+      amount: '1000000',
+      decimals: 6,
+      symbol: 'USDC',
+      direction: 'out',
+    },
+    fees: [
+      { type: 'base', amount: '21000000000000', decimals: 18, symbol: 'ETH' },
+    ],
+  },
+} as ActivityListItem;
+
+const claimItem: ActivityListItem = {
+  type: 'claim',
+  chainId: 'eip155:1',
+  status: 'success',
+  timestamp: 1,
+  hash: '0xclaimstake',
+  data: {
+    token: {
+      amount: '500000',
+      decimals: 6,
+      symbol: 'USDC',
+      direction: 'in',
+    },
+  },
+} as ActivityListItem;
+
+const unstakeItem: ActivityListItem = {
+  type: 'unstake',
+  chainId: 'eip155:1',
+  status: 'success',
+  timestamp: 1,
+  hash: '0xunstake',
+  data: {
+    token: {
+      amount: '1000000000000000000',
+      decimals: 18,
+      symbol: 'ETH',
+      direction: 'in',
+    },
+  },
+} as ActivityListItem;
+
+const smartAccountUpgradeItem: ActivityListItem = {
+  type: 'smartAccountUpgrade',
+  chainId: 'eip155:1',
+  status: 'success',
+  timestamp: 1,
+  hash: '0xupgrade',
+  data: {
+    from: '0x0000000000000000000000000000000000000001',
+    to: '0x0000000000000000000000000000000000000001',
+    fees: [
+      { type: 'base', amount: '21000000000000', decimals: 18, symbol: 'ETH' },
+    ],
+  },
+} as ActivityListItem;
+
 describe('TemplateLoader', () => {
   it('renders nothing when there is no item', () => {
     const { toJSON } = renderWithProvider(<TemplateLoader item={undefined} />);
@@ -268,12 +334,40 @@ describe('TemplateLoader', () => {
     ['nft', nftItem],
     ['contract interaction', contractItem],
     ['claim mUSD bonus', claimMusdBonusItem],
+    ['earn/staking deposit', depositItem],
+    ['earn/staking claim', claimItem],
+    ['earn/staking unstake', unstakeItem],
   ])('renders the %s details template', (_type, item) => {
     const { getByTestId } = renderWithProvider(<TemplateLoader item={item} />);
 
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.STATUS_ROW),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the DepositDetails template with a total row for deposits', () => {
+    const { getByTestId } = renderWithProvider(
+      <TemplateLoader item={depositItem} />,
+    );
+
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.AMOUNT_HEADER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.TOTAL_ROW),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the SmartAccountUpgradeDetails template (fee, no total) for upgrades', () => {
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <TemplateLoader item={smartAccountUpgradeItem} />,
+    );
+
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.STATUS_ROW),
+    ).toBeOnTheScreen();
+    expect(getByTestId(ActivityDetailsSelectorsIDs.FEE_ROW)).toBeOnTheScreen();
+    expect(queryByTestId(ActivityDetailsSelectorsIDs.TOTAL_ROW)).toBeNull();
   });
 
   it('does not render fee or total rows for lending withdrawals with missing amounts', () => {

@@ -43,12 +43,11 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'contractDeployment',
     'smartAccountUpgrade',
     'nftMint',
-  ]),
-  [ActivityTypeFilter.BuySell]: new Set<ActivityKind>([
-    'buy',
-    'sell',
     'deposit',
+    'claim',
+    'unstake',
   ]),
+  [ActivityTypeFilter.BuySell]: new Set<ActivityKind>(['buy', 'sell']),
   [ActivityTypeFilter.Perps]: new Set<ActivityKind>([
     'perpsAddFunds',
     'perpsWithdraw',
@@ -79,7 +78,6 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
   ]),
   [ActivityTypeFilter.MetamaskCard]: new Set<ActivityKind>([]),
   [ActivityTypeFilter.Money]: new Set<ActivityKind>([
-    'claim',
     'claimMusdBonus',
     'lendingDeposit',
     'lendingWithdrawal',

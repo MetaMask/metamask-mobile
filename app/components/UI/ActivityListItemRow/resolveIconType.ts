@@ -17,6 +17,7 @@ export function resolveIconType(type: ActivityKind): string {
     case 'receive':
     case 'buy':
     case 'claim':
+    case 'unstake':
     case 'claimMusdBonus':
     case 'lendingWithdrawal':
     case 'unwrap':

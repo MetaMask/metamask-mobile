@@ -820,6 +820,135 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('maps an EIP-7702 upgrade (authorizationList) to a smart account upgrade activity', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xupgrade',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.batch,
+      txParams: {
+        from,
+        to,
+        authorizationList: [{ address: to }],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'smartAccountUpgrade',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xupgrade',
+      data: { from, to },
+    });
+  });
+
+  it('keeps the action label for a batch that also performs a recognised action', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xupgradedeposit',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.batch,
+      txParams: {
+        from,
+        to,
+        authorizationList: [{ address: to }],
+      },
+      nestedTransactions: [
+        { type: TransactionType.predictDeposit, to, data: '0x' },
+      ],
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(mapLocalTransaction(makeGroup(transaction)).type).toBe(
+      'predictionsAddFunds',
+    );
+  });
+
+  it('maps a staking deposit to a deposit activity with the network fee', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xstakedeposit',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingDeposit,
+      txParams: { from, to },
+      txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(mapLocalTransaction(makeGroup(transaction))).toEqual(
+      expect.objectContaining({
+        type: 'deposit',
+        data: expect.objectContaining({ fees: expect.any(Array) }),
+      }),
+    );
+  });
+
+  it('maps a staking claim to a Claim activity with the native ETH amount from the simulation', () => {
+    const claimedWei = `0x${(10n ** 15n).toString(16)}`;
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xstakeclaim',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingClaim,
+      txParams: { from, to },
+      simulationData: {
+        nativeBalanceChange: {
+          previousBalance: '0x0',
+          newBalance: claimedWei,
+          difference: claimedWei,
+          isDecrease: false,
+        },
+        tokenBalanceChanges: [],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('claim');
+    expect(result.data).toEqual(
+      expect.objectContaining({
+        token: expect.objectContaining({
+          symbol: 'ETH',
+          direction: 'in',
+          amount: claimedWei,
+        }),
+      }),
+    );
+  });
+
+  it('maps a staking unstake to an Unstake activity with the native ETH amount from calldata', () => {
+    const oneEthShares = (10n ** 18n).toString(16).padStart(64, '0');
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xunstake',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingUnstake,
+      txParams: {
+        from,
+        to,
+        value: '0',
+        data: `0x12345678${oneEthShares}${'0'.repeat(64)}`,
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('unstake');
+    expect(result.data).toEqual(
+      expect.objectContaining({
+        token: expect.objectContaining({
+          symbol: 'ETH',
+          direction: 'in',
+          amount: `0x${(10n ** 18n).toString(16)}`,
+        }),
+      }),
+    );
+  });
+
   it('uses a bridge history activity status override', () => {
     const transaction = {
       chainId: mainnet,

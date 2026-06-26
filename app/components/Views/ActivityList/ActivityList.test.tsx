@@ -298,6 +298,7 @@ jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
     title,
   }: {
     item: {
+      type?: string;
       hash?: string;
       status?: string;
       raw?: { type: string; data: { primaryTransaction: { id: string } } };
@@ -309,6 +310,7 @@ jest.mock('../../UI/ActivityListItemRow/ActivityListItemRow', () => ({
     const hash = item.hash ?? 'no-hash';
     return (
       <TouchableOpacity testID={`row-${hash}`} onPress={() => onPress(item)}>
+        <Text testID={`row-kind-${hash}`}>{item.type}</Text>
         <Text>{title ?? item.hash}</Text>
       </TouchableOpacity>
     );
@@ -667,6 +669,60 @@ describe('ActivityList', () => {
         location: 'activity_tab',
         url: 'https://configured.explorer/address/0xevm',
       }),
+    );
+  });
+
+  it('keeps the typed local staking row over the generic confirmed copy', () => {
+    const stakingHash = '0xstake';
+    const localStakingDeposit = {
+      type: 'deposit',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 5,
+      hash: stakingHash,
+      data: { token: { symbol: 'ETH' } },
+      raw: {
+        type: 'localTransaction',
+        data: {
+          primaryTransaction: {
+            chainId: '0x1',
+            hash: stakingHash,
+            id: 'stake-id',
+            txParams: { from: '0xevm', nonce: '0x9' },
+          },
+        },
+      },
+    };
+    // Backend categorises the pooled-staking call as a generic contract call.
+    const confirmedStakingContractCall = {
+      type: 'contractInteraction',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 5,
+      hash: stakingHash,
+      data: { from: '0xevm', to: '0xpool' },
+      raw: {
+        type: 'apiEvmTransaction',
+        data: { chainId: 1, from: '0xevm', hash: stakingHash, nonce: 9 },
+      },
+    };
+    (useLocalActivityItems as jest.Mock).mockReturnValue([localStakingDeposit]);
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [confirmedStakingContractCall] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+
+    render(<ActivityList header={<></>} />);
+
+    // One row for the hash, and it's the typed staking deposit — the generic
+    // confirmed "contractInteraction" copy is deduped away (not the reverse).
+    expect(screen.getAllByTestId(`row-${stakingHash}`)).toHaveLength(1);
+    expect(screen.getByTestId(`row-kind-${stakingHash}`)).toHaveTextContent(
+      'deposit',
     );
   });
 
