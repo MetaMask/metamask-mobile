@@ -16,6 +16,7 @@ interface RedeemTestIds {
   FUNDING_WARNING: string;
   WITHDRAW_BUTTON: string;
   TO_ROW: string;
+  REFUND_INFO_BUTTON?: string;
 }
 
 interface RedeemModeConfig {
@@ -37,6 +38,7 @@ interface RedeemModeConfig {
   moneyAccountRequiredType: CardMessageBoxType;
   moneyAccountOrigin: LinkFlowOrigin;
   analyticsAction: CardActions;
+  showRefundInfo: boolean;
   showFiatBalance: boolean;
 }
 
@@ -58,6 +60,7 @@ export const REDEEM_CONFIG: Record<RedeemableWalletMode, RedeemModeConfig> = {
     moneyAccountRequiredType: CardMessageBoxType.CashbackMoneyAccountRequired,
     moneyAccountOrigin: CASHBACK_MONEY_ACCOUNT_ORIGIN,
     analyticsAction: CardActions.CASHBACK_BUTTON,
+    showRefundInfo: false,
     showFiatBalance: false,
   },
   credit: {
@@ -79,6 +82,7 @@ export const REDEEM_CONFIG: Record<RedeemableWalletMode, RedeemModeConfig> = {
     moneyAccountRequiredType: CardMessageBoxType.CreditMoneyAccountRequired,
     moneyAccountOrigin: CREDIT_MONEY_ACCOUNT_ORIGIN,
     analyticsAction: CardActions.CREDIT_BUTTON,
+    showRefundInfo: true,
     showFiatBalance: true,
   },
 };

@@ -6,7 +6,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
+  strings: jest.fn((key: string, params?: Record<string, string | number>) => {
     const mockStrings: Record<string, string> = {
       'card.card_home.warnings.close_spending_limit.title':
         'Close Spending Limit',
@@ -35,19 +35,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'You need a linked Money Account before redeeming cashback.',
       'card.cashback_screen.money_account_required.confirm_button_label':
         'Set up Money Account',
-      'card.credit_screen.funding_required.title': 'Set up funding',
-      'card.credit_screen.funding_required.description':
-        'You need at least one approved funding source before redeeming your credit.',
-      'card.credit_screen.funding_required.confirm_button_label':
-        'Set up funding',
-      'card.credit_screen.money_account_required.title':
-        'Set up Money Account',
-      'card.credit_screen.money_account_required.description':
-        'You need a linked Money Account before redeeming your credit.',
-      'card.credit_screen.money_account_required.confirm_button_label':
-        'Set up Money Account',
+      'card.credit_banner.title': 'Refund balance: {{amount}}',
+      'card.credit_banner.description':
+        'Spend it or move it to your Money account to keep earning on your balance.',
+      'card.credit_banner.confirm_button_label': 'Move funds',
     };
-    return mockStrings[key] || key;
+    let value = mockStrings[key] || key;
+    if (params) {
+      Object.entries(params).forEach(([name, replacement]) => {
+        value = value.replace(`{{${name}}}`, String(replacement));
+      });
+    }
+    return value;
   }),
 }));
 
@@ -247,9 +246,7 @@ describe('CardMessageBox', () => {
 
       expect(getByText('Set up Money Account')).toBeOnTheScreen();
       expect(
-        getByText(
-          'You need a linked Money Account before redeeming cashback.',
-        ),
+        getByText('You need a linked Money Account before redeeming cashback.'),
       ).toBeOnTheScreen();
     });
 
@@ -266,37 +263,34 @@ describe('CardMessageBox', () => {
     });
   });
 
-  describe('CreditFundingRequired warning', () => {
-    it('renders title and description', () => {
+  describe('CreditAvailable info', () => {
+    it('interpolates the amount into the title and renders the description', () => {
       const { getByText } = renderWithProvider(() => (
         <CardMessageBox
-          messageType={CardMessageBoxType.CreditFundingRequired}
+          messageType={CardMessageBoxType.CreditAvailable}
+          values={{ amount: '$10.86' }}
         />
       ));
 
-      expect(getByText('Set up funding')).toBeOnTheScreen();
+      expect(getByText('Refund balance: $10.86')).toBeOnTheScreen();
       expect(
         getByText(
-          'You need at least one approved funding source before redeeming your credit.',
+          'Spend it or move it to your Money account to keep earning on your balance.',
         ),
       ).toBeOnTheScreen();
     });
-  });
 
-  describe('CreditMoneyAccountRequired warning', () => {
-    it('renders title and description', () => {
-      const { getByText } = renderWithProvider(() => (
+    it('calls onConfirm when the Move funds button is pressed', () => {
+      const { getByTestId } = renderWithProvider(() => (
         <CardMessageBox
-          messageType={CardMessageBoxType.CreditMoneyAccountRequired}
+          messageType={CardMessageBoxType.CreditAvailable}
+          values={{ amount: '$10.86' }}
+          onConfirm={mockOnConfirm}
         />
       ));
 
-      expect(getByText('Set up Money Account')).toBeOnTheScreen();
-      expect(
-        getByText(
-          'You need a linked Money Account before redeeming your credit.',
-        ),
-      ).toBeOnTheScreen();
+      fireEvent.press(getByTestId('confirm-button'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
     });
   });
 

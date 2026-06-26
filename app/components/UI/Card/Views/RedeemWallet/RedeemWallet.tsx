@@ -1,4 +1,5 @@
 import React, { useCallback, useContext, useEffect, useMemo } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -16,7 +17,11 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useCardHeaderHandlers } from '../../hooks/useCardHeaderHandlers';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import Icon, {
+  IconName,
+  IconSize,
+  IconColor,
+} from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import I18n, { strings } from '../../../../../../locales/i18n';
@@ -286,6 +291,13 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
     config,
   ]);
 
+  const handleOpenRefundInfo = useCallback(() => {
+    navigation.navigate(Routes.CARD.MODALS.ID, {
+      screen: Routes.CARD.MODALS.CREDIT_REFUND_TOOLTIP,
+      params: { isMoneyAccount: destination.isMoneyAccountDestination },
+    });
+  }, [navigation, destination.isMoneyAccountDestination]);
+
   const isProcessing = isWithdrawing || monitoringStatus === 'monitoring';
 
   const buttonLabel = useMemo(() => {
@@ -368,6 +380,19 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
             >
               {strings(config.strings.available)}
             </Text>
+            {config.showRefundInfo ? (
+              <TouchableOpacity
+                onPress={handleOpenRefundInfo}
+                testID={testIds.REFUND_INFO_BUTTON}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  color={IconColor.Alternative}
+                />
+              </TouchableOpacity>
+            ) : null}
           </Box>
         </Box>
 

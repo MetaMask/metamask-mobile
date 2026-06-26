@@ -31,6 +31,8 @@ import ForgotPasswordModal from '../components/ForgotPasswordModal/ForgotPasswor
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
 import CreditRedeem from '../Views/CreditRedeem/CreditRedeem';
+import CreditBalanceTooltipSheet from '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet';
+import CreditRefundTooltipSheet from '../components/CreditRefundTooltipSheet/CreditRefundTooltipSheet';
 import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
@@ -149,6 +151,14 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.FORGOT_PASSWORD}
       component={ForgotPasswordModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.CREDIT_BALANCE_TOOLTIP}
+      component={CreditBalanceTooltipSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.CREDIT_REFUND_TOOLTIP}
+      component={CreditRefundTooltipSheet}
     />
   </ModalsStack.Navigator>
 );
