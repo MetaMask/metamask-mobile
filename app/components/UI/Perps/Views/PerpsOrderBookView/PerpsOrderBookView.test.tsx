@@ -11,6 +11,11 @@ import { mockTheme } from '../../../../../util/theme';
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
+const mockUseRoute = jest.fn(() => ({
+  params: {
+    symbol: 'BTC',
+  },
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -22,11 +27,7 @@ jest.mock('@react-navigation/native', () => {
       canGoBack: mockCanGoBack,
       setOptions: jest.fn(),
     }),
-    useRoute: () => ({
-      params: {
-        symbol: 'BTC',
-      },
-    }),
+    useRoute: () => mockUseRoute(),
   };
 });
 
@@ -353,6 +354,23 @@ describe('PerpsOrderBookView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRoute.mockReturnValue({
+      params: {
+        symbol: 'BTC',
+      },
+    });
+    const { usePerpsMarkets } = jest.requireMock('../../hooks');
+    usePerpsMarkets.mockReturnValue({
+      markets: [
+        {
+          symbol: 'BTC',
+          price: '$50,000.00',
+          leverage: 50,
+        },
+      ],
+      isLoading: false,
+      error: null,
+    });
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
     );
@@ -1473,6 +1491,57 @@ describe('PerpsOrderBookView', () => {
       await waitFor(() => {
         expect(queryByTestId(geoBlockTooltipId)).toBeNull();
       });
+    });
+  });
+
+  describe('header when market list entry is missing', () => {
+    it('renders back and grouping controls from route symbol only', () => {
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [],
+        isLoading: true,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('uses route marketData for full header while markets list is loading', () => {
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [],
+        isLoading: true,
+        error: null,
+      });
+
+      mockUseRoute.mockReturnValue({
+        params: {
+          symbol: 'BTC',
+          marketData: {
+            symbol: 'BTC',
+            price: '$50,000.00',
+            maxLeverage: '50x',
+          },
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(getByTestId('perps-market-header')).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 
