@@ -771,9 +771,8 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         // screens until they get redesigned templates — ActivityDetails only
         // resolves local/API/non-EVM/domain items, so it can't render those yet.
         const hasDedicatedScreen =
-          raw.type === 'rampOrder' ||
-          (raw.type === 'localTransaction' &&
-            raw.data.primaryTransaction?.type === TransactionType.bridge);
+          raw.type === 'localTransaction' &&
+          raw.data.primaryTransaction?.type === TransactionType.bridge;
         if (isTransactionsRedesignEnabled && item.hash && !hasDedicatedScreen) {
           // Provider-backed rows (Perps / Predict) can't be re-resolved by hash
           // outside their source tree, so hand the row off via the transient
@@ -822,8 +821,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         }
 
         if (raw.type === 'rampOrder') {
-          navigation.navigate(Routes.RAMP.RAMP_ACTIVITY_DETAILS, {
-            orderId: raw.data.id,
+          navigation.navigate(Routes.ACTIVITY_DETAILS, {
+            chainId: item.chainId,
+            txIdentifier: item.hash,
           });
           return;
         }

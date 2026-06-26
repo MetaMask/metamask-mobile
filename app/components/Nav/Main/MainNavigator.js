@@ -82,7 +82,6 @@ import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
-import RampActivityDetails from '../../UI/Ramp/Views/RampActivityDetails/RampActivityDetails';
 import DepositOrderDetails from '../../UI/Ramp/Views/OrderDetails/DepositOrderDetails/DepositOrderDetails';
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
@@ -304,10 +303,6 @@ const TransactionsHome = () => {
       <NativeStack.Screen
         name={Routes.RAMP.RAMPS_ORDER_DETAILS}
         component={RampsOrderDetails}
-      />
-      <NativeStack.Screen
-        name={Routes.RAMP.RAMP_ACTIVITY_DETAILS}
-        component={RampActivityDetails}
       />
       <NativeStack.Screen
         name={Routes.DEPOSIT.ORDER_DETAILS}

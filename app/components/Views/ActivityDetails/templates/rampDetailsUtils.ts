@@ -1,13 +1,13 @@
-import type { FiatOrder } from '../../../../../reducers/fiatOrders/types';
-import { getIntlDateTimeFormatter } from '../../../../../util/intl';
-import { renderFiat } from '../../../../../util/number/bigint';
+import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
+import { getIntlDateTimeFormatter } from '../../../../util/intl';
+import { renderFiat } from '../../../../util/number/bigint';
 import {
   getRampOrderTransactionHash,
   mapRampOrderStatus,
   mapRampOrderType,
   toRampOrderToken,
-} from '../../../../../util/activity-adapters/adapters/ramp-order-helpers';
-import I18n, { strings } from '../../../../../../locales/i18n';
+} from '../../../../util/activity-adapters/adapters/ramp-order-helpers';
+import I18n, { strings } from '../../../../../locales/i18n';
 
 type RenderFiatCurrencyCode = Parameters<typeof renderFiat>[1];
 
@@ -22,17 +22,6 @@ export function isRampDepositOrder(order: FiatOrder) {
 export function getRampActivityTransactionHash(order: FiatOrder) {
   const kind = mapRampOrderType(order.orderType);
   return kind ? getRampOrderTransactionHash(order, kind) : undefined;
-}
-
-export function getRampActivityTitle(order: FiatOrder) {
-  const symbol = order.cryptocurrency;
-  if (isRampSellOrder(order)) {
-    return `Sold ${symbol}`;
-  }
-  if (isRampDepositOrder(order)) {
-    return `Deposited ${symbol}`;
-  }
-  return `Bought ${symbol}`;
 }
 
 export function getRampActivityHeroAmount(order: FiatOrder) {

@@ -3,6 +3,7 @@ import type { ActivityListItem } from '../../../../util/activity-adapters';
 import { useActivityDetailsItem } from './useActivityDetailsItem';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): mirrors the resolver hook's data sources; route-isolation backlog */
 import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
+import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
@@ -11,12 +12,14 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => ({ transactions: [] })),
 }));
 jest.mock('../../ActivityList/hooks/useLocalActivityItems');
+jest.mock('../../ActivityList/hooks/useRampActivityItems');
 jest.mock('../../ActivityList/useTransactionsQuery');
 jest.mock('../../ActivityList/helpers/transformations', () => ({
   mapNonEvmTransactions: jest.fn(() => []),
 }));
 
 const useLocalActivityItemsMock = jest.mocked(useLocalActivityItems);
+const useRampActivityItemsMock = jest.mocked(useRampActivityItems);
 const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const mapNonEvmTransactionsMock = jest.mocked(mapNonEvmTransactions);
 
@@ -36,12 +39,15 @@ function setSources({
   local = [],
   confirmed = [],
   nonEvm = [],
+  ramp = [],
 }: {
   local?: ActivityListItem[];
   confirmed?: ActivityListItem[];
   nonEvm?: ActivityListItem[];
+  ramp?: ActivityListItem[];
 }) {
   useLocalActivityItemsMock.mockReturnValue(local);
+  useRampActivityItemsMock.mockReturnValue(ramp);
   useTransactionsQueryMock.mockReturnValue({
     data: { pages: [{ data: confirmed }] },
   } as unknown as ReturnType<typeof useTransactionsQuery>);
@@ -116,6 +122,44 @@ describe('useActivityDetailsItem', () => {
       useActivityDetailsItem('0xdup', 'eip155:8453'),
     );
     expect(result.current).toBe(base);
+  });
+
+  it('resolves a Ramp item by hash from fiat orders', () => {
+    const ramp = makeItem({
+      type: 'buy',
+      hash: '0xramp',
+      chainId: 'eip155:59144',
+      raw: {
+        type: 'rampOrder',
+        data: { id: 'ramp-order-id' },
+      },
+    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    setSources({ ramp: [ramp] });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('0xramp', 'eip155:59144'),
+    );
+
+    expect(result.current).toBe(ramp);
+  });
+
+  it('resolves a Ramp item by order id when a transaction hash is available', () => {
+    const ramp = makeItem({
+      type: 'buy',
+      hash: '0xramp',
+      chainId: 'eip155:59144',
+      raw: {
+        type: 'rampOrder',
+        data: { id: 'ramp-order-id' },
+      },
+    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    setSources({ ramp: [ramp] });
+
+    const { result } = renderHook(() =>
+      useActivityDetailsItem('ramp-order-id', 'eip155:59144'),
+    );
+
+    expect(result.current).toBe(ramp);
   });
 
   it('resolves a preloaded domain item by hash without reading provider-backed sources', () => {

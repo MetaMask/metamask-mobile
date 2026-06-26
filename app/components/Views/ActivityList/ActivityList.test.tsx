@@ -728,7 +728,7 @@ describe('ActivityList', () => {
     expect(legacyCalls).toHaveLength(0);
   });
 
-  it('keeps Ramp rows on their dedicated details screen when the transactions redesign flag is on', () => {
+  it('routes Ramp rows to the redesigned ActivityDetails screen when the transactions redesign flag is on', () => {
     selectorValues.isTxRedesign = true;
     (useRampActivityItems as jest.Mock).mockReturnValue([rampItem]);
 
@@ -736,16 +736,10 @@ describe('ActivityList', () => {
 
     fireEvent.press(screen.getByTestId('row-0xramp'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.RAMP.RAMP_ACTIVITY_DETAILS,
-      {
-        orderId: 'ramp-order-id',
-      },
-    );
-    expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.ACTIVITY_DETAILS,
-      expect.objectContaining({ txIdentifier: '0xramp' }),
-    );
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
+      chainId: 'eip155:59144',
+      txIdentifier: '0xramp',
+    });
   });
 
   it('opens only the most-recently-pressed row when decodes resolve out of order', async () => {

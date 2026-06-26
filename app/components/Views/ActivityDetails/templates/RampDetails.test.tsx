@@ -1,28 +1,24 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
 import {
   FIAT_ORDER_PROVIDERS,
   FIAT_ORDER_STATES,
-} from '../../../../../constants/on-ramp';
-import Routes from '../../../../../constants/navigation/Routes';
-import {
-  getOrderById,
-  getProviderName,
-} from '../../../../../reducers/fiatOrders';
-import type { FiatOrder } from '../../../../../reducers/fiatOrders/types';
+} from '../../../../constants/on-ramp';
+import Routes from '../../../../constants/navigation/Routes';
+import { getProviderName } from '../../../../reducers/fiatOrders';
+import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import {
   findBlockExplorerUrlForChain,
   getBlockExplorerTxUrl,
-} from '../../../../../util/networks';
-import { useParams } from '../../../../../util/navigation/navUtils';
-import { useAccountNames } from '../../../../hooks/DisplayName/useAccountNames';
-import RampActivityDetails from './RampActivityDetails';
+} from '../../../../util/networks';
+import { mapRampOrder } from '../../../../util/activity-adapters';
+import { useAccountNames } from '../../../hooks/DisplayName/useAccountNames';
+import { RampDetails, type RampActivityListItem } from './RampDetails';
 
 const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -33,37 +29,22 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../../../reducers/fiatOrders', () => ({
-  getOrderById: jest.fn(),
+jest.mock('../../../../reducers/fiatOrders', () => ({
   getProviderName: jest.fn(),
 }));
 
-jest.mock('../../../../../selectors/networkController', () => ({
+jest.mock('../../../../selectors/networkController', () => ({
   selectNetworkConfigurations: jest.fn(() => ({})),
 }));
 
-jest.mock('../../../../../util/navigation/navUtils', () => ({
-  ...jest.requireActual('../../../../../util/navigation/navUtils'),
-  useParams: jest.fn(),
-}));
-
-jest.mock('../../../../hooks/DisplayName/useAccountNames', () => ({
+jest.mock('../../../hooks/DisplayName/useAccountNames', () => ({
   useAccountNames: jest.fn(),
 }));
 
-jest.mock('../../../../../util/networks', () => ({
-  ...jest.requireActual('../../../../../util/networks'),
+jest.mock('../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../util/networks'),
   findBlockExplorerUrlForChain: jest.fn(),
   getBlockExplorerTxUrl: jest.fn(),
-}));
-
-jest.mock('../../../../hooks/useStyles', () => ({
-  useStyles: () => ({
-    styles: {
-      wrapper: {},
-      container: {},
-    },
-  }),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -76,6 +57,9 @@ jest.mock('@metamask/design-system-react-native', () => {
       ReactActual.createElement(Text, null, name),
     AvatarAccount: ({ address }: { address?: string }) =>
       ReactActual.createElement(Text, null, address),
+    BadgeNetwork: () => ReactActual.createElement(Text, null, 'network'),
+    BadgeWrapper: ({ children }: { children: React.ReactNode }) =>
+      ReactActual.createElement(ReactActual.Fragment, null, children),
   };
 });
 
@@ -97,16 +81,17 @@ const baseOrder: FiatOrder = {
   data: {},
 } as FiatOrder;
 
-function arrange(order: FiatOrder) {
+function makeItem(order: FiatOrder): RampActivityListItem {
+  return mapRampOrder({ order }) as RampActivityListItem;
+}
+
+function arrange() {
   (useNavigation as jest.Mock).mockReturnValue({
     navigate: mockNavigate,
-    goBack: mockGoBack,
   });
-  (useParams as jest.Mock).mockReturnValue({ orderId: order.id });
   (useSelector as unknown as jest.Mock).mockImplementation((selector) =>
     selector({ settings: {} }),
   );
-  (getOrderById as jest.Mock).mockReturnValue(order);
   (getProviderName as jest.Mock).mockReturnValue('Mercuryo');
   (useAccountNames as jest.Mock).mockReturnValue(['Defi account']);
   (findBlockExplorerUrlForChain as jest.Mock).mockReturnValue(
@@ -118,17 +103,17 @@ function arrange(order: FiatOrder) {
   });
 }
 
-describe('RampActivityDetails', () => {
+describe('RampDetails', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    arrange();
   });
 
   it('renders a buy/deposit style details view', () => {
-    arrange(baseOrder);
+    const { getByText, queryByText } = render(
+      <RampDetails item={makeItem(baseOrder)} />,
+    );
 
-    const { getByText, queryByText } = render(<RampActivityDetails />);
-
-    expect(getByText('Bought mUSD')).toBeOnTheScreen();
     expect(getByText('+5.01 mUSD')).toBeOnTheScreen();
     expect(getByText('Confirmed')).toBeOnTheScreen();
     expect(getByText('0d13232233944')).toBeOnTheScreen();
@@ -140,7 +125,7 @@ describe('RampActivityDetails', () => {
   });
 
   it('renders sell-specific destination and received total rows', () => {
-    arrange({
+    const item = makeItem({
       ...baseOrder,
       orderType: OrderOrderTypeEnum.Sell,
       cryptocurrency: 'ETH',
@@ -152,9 +137,8 @@ describe('RampActivityDetails', () => {
       sellTxHash: '0xsellhash',
     });
 
-    const { getByText } = render(<RampActivityDetails />);
+    const { getByText } = render(<RampDetails item={item} />);
 
-    expect(getByText('Sold ETH')).toBeOnTheScreen();
     expect(getByText('-0.085 ETH')).toBeOnTheScreen();
     expect(getByText('Destination')).toBeOnTheScreen();
     expect(getByText('Mercuryo')).toBeOnTheScreen();
@@ -167,9 +151,8 @@ describe('RampActivityDetails', () => {
   });
 
   it('opens the block explorer when the footer button is pressed', () => {
-    arrange(baseOrder);
+    const { getByText } = render(<RampDetails item={makeItem(baseOrder)} />);
 
-    const { getByText } = render(<RampActivityDetails />);
     fireEvent.press(getByText('View on block explorer'));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.WEBVIEW.MAIN, {
