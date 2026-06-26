@@ -28,6 +28,7 @@ import SsnInfoModal from './Views/Modals/SsnInfoModal';
 import StateSelectorModal from './Views/Modals/StateSelectorModal';
 import UnsupportedStateModal from './Views/Modals/UnsupportedStateModal';
 import RampsOrderDetails from './Views/OrderDetails';
+import RampActivityDetails from './Views/RampActivityDetails/RampActivityDetails';
 import LockManagerService from '../../../core/LockManagerService';
 import {
   clearNativeStackNavigatorOptions,
@@ -88,6 +89,10 @@ const MainRoutes = () => (
     <Stack.Screen
       name={Routes.RAMP.RAMPS_ORDER_DETAILS}
       component={RampsOrderDetails}
+    />
+    <Stack.Screen
+      name={Routes.RAMP.RAMP_ACTIVITY_DETAILS}
+      component={RampActivityDetails}
     />
     <Stack.Screen name={Routes.RAMP.HEADLESS_HOST} component={HeadlessHost} />
   </Stack.Navigator>

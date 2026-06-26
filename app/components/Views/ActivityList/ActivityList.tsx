@@ -110,6 +110,7 @@ import {
 import { normalizeTransaction } from './helpers/adapters';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { stashPreloadedActivityItem } from './preloadedActivityItemStore';
+import { useRampActivityItems } from './hooks/useRampActivityItems';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
   PerpsActivitySource,
@@ -226,6 +227,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     // Local EVM transactions mapped through the shared adapter
     const localActivityItems = useLocalActivityItems();
+    const rampActivityItems = useRampActivityItems();
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const [perpsSource, setPerpsSource] = useState<PerpsActivitySourceState>(
@@ -465,6 +467,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         nonEvmItems,
         isPerpsEnabled ? perpsSource.items : [],
         isPredictEnabled ? predictSource.items : [],
+        rampActivityItems,
       );
 
       let filtered = merged;
@@ -491,6 +494,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       perpsSource.items,
       isPredictEnabled,
       predictSource.items,
+      rampActivityItems,
     ]);
     const groupedData = useMemo(() => groupActivityListItems(data), [data]);
 
@@ -767,8 +771,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         // screens until they get redesigned templates — ActivityDetails only
         // resolves local/API/non-EVM/domain items, so it can't render those yet.
         const hasDedicatedScreen =
-          raw.type === 'localTransaction' &&
-          raw.data.primaryTransaction?.type === TransactionType.bridge;
+          raw.type === 'rampOrder' ||
+          (raw.type === 'localTransaction' &&
+            raw.data.primaryTransaction?.type === TransactionType.bridge);
         if (isTransactionsRedesignEnabled && item.hash && !hasDedicatedScreen) {
           // Provider-backed rows (Perps / Predict) can't be re-resolved by hash
           // outside their source tree, so hand the row off via the transient
@@ -812,6 +817,13 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
             screen: Routes.PREDICT.ACTIVITY_DETAIL,
             params: { activity: predictActivityToItem(raw.data) },
+          });
+          return;
+        }
+
+        if (raw.type === 'rampOrder') {
+          navigation.navigate(Routes.RAMP.RAMP_ACTIVITY_DETAILS, {
+            orderId: raw.data.id,
           });
           return;
         }
@@ -866,7 +878,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         ) {
           const bridgeTxHistoryItem =
             bridgeHistory[tx.id] ??
-            (tx.actionId ? bridgeHistory[tx.actionId] : undefined) ??
             Object.values(bridgeHistory).find(
               (itemValue) =>
                 (itemValue as unknown as { originalTransactionId?: string })

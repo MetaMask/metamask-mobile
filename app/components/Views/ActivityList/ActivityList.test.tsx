@@ -14,6 +14,7 @@ import { getPreloadedActivityItem } from './preloadedActivityItemStore';
 import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
+import { useRampActivityItems } from './hooks/useRampActivityItems';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import Engine from '../../../core/Engine';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
@@ -273,6 +274,10 @@ jest.mock('./hooks/useLocalActivityItems', () => ({
   useLocalActivityItems: jest.fn(),
 }));
 
+jest.mock('./hooks/useRampActivityItems', () => ({
+  useRampActivityItems: jest.fn(),
+}));
+
 jest.mock('./useUnifiedTxActions', () => ({
   useUnifiedTxActions: jest.fn(),
 }));
@@ -433,9 +438,10 @@ jest.mock('./helpers/transformations', () => {
       })),
     ),
     mergeTransactionsByTime: jest.fn(
-      (local, confirmed, nonEvm, perps = [], predict = []) => [
+      (local, confirmed, nonEvm, perps = [], predict = [], ramp = []) => [
         ...perps,
         ...predict,
+        ...ramp,
         ...local,
         ...confirmed,
         ...nonEvm,
@@ -588,6 +594,24 @@ const localPendingItem = {
   },
 };
 
+const rampItem = {
+  type: 'buy',
+  chainId: 'eip155:59144',
+  status: 'success',
+  timestamp: 5,
+  hash: '0xramp',
+  data: {
+    from: '0xevm',
+    token: { amount: '5.01', symbol: 'mUSD', direction: 'in' },
+  },
+  raw: {
+    type: 'rampOrder',
+    data: {
+      id: 'ramp-order-id',
+    },
+  },
+};
+
 describe('ActivityList', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -612,6 +636,7 @@ describe('ActivityList', () => {
       refetch: mockRefetch,
     });
     (useLocalActivityItems as jest.Mock).mockReturnValue([localPendingItem]);
+    (useRampActivityItems as jest.Mock).mockReturnValue([]);
     (useUnifiedTxActions as jest.Mock).mockReturnValue({
       cancelIsOpen: false,
       cancelTransaction: jest.fn(),
@@ -701,6 +726,26 @@ describe('ActivityList', () => {
       (call) => call[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
     );
     expect(legacyCalls).toHaveLength(0);
+  });
+
+  it('keeps Ramp rows on their dedicated details screen when the transactions redesign flag is on', () => {
+    selectorValues.isTxRedesign = true;
+    (useRampActivityItems as jest.Mock).mockReturnValue([rampItem]);
+
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-0xramp'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.RAMP.RAMP_ACTIVITY_DETAILS,
+      {
+        orderId: 'ramp-order-id',
+      },
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.ACTIVITY_DETAILS,
+      expect.objectContaining({ txIdentifier: '0xramp' }),
+    );
   });
 
   it('opens only the most-recently-pressed row when decodes resolve out of order', async () => {

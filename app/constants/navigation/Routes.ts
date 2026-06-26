@@ -20,6 +20,7 @@ const Routes = {
     CHECKOUT: 'Checkout',
     ORDER_DETAILS: 'OrderDetails',
     RAMPS_ORDER_DETAILS: 'RampsOrderDetails',
+    RAMP_ACTIVITY_DETAILS: 'RampActivityDetails',
     SEND_TRANSACTION: 'SendTransaction',
     SETTINGS: 'RampSettings',
     ACTIVATION_KEY_FORM: 'RampActivationKeyForm',

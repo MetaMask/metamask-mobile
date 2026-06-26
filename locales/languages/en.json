@@ -5943,6 +5943,7 @@
     "empty_sell_orders_list": "You don't have any sell orders",
     "purchased_currency": "Purchased {{currency}}",
     "sold_currency": "Sold {{currency}}",
+    "date": "Date",
     "order_status_pending": "Pending",
     "order_status_processing": "Processing",
     "order_status_completed": "Completed",
