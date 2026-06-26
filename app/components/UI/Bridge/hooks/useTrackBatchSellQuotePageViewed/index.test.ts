@@ -2,7 +2,6 @@ import { waitFor } from '@testing-library/react-native';
 import {
   BatchSellMetricsEventName,
   BatchSellMetricsLocation,
-  FeatureId,
 } from '@metamask/bridge-controller';
 import { CaipAssetType, Hex } from '@metamask/utils';
 
@@ -11,6 +10,7 @@ import { renderHookWithProvider } from '../../../../../util/test/renderWithProvi
 import type { BridgeToken } from '../../types';
 import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/utils';
 import { useTrackBatchSellQuotePageViewed } from './index';
+import type { BatchSellQuoteTokenDataByAssetId } from '../useBatchSellQuoteData';
 
 const ethAssetId =
   'eip155:1/erc20:0x1111111111111111111111111111111111111111' as CaipAssetType;
@@ -36,9 +36,76 @@ const selectedDestinationToken = {
   decimals: 6,
   symbol: 'USDC',
 };
-let mockBridgeControllerState: { quoteRequest?: { srcChainId?: Hex }[] } = {
-  quoteRequest: [{ srcChainId: '0x1' as Hex }],
-};
+const selectedTokenQuotes = [
+  {
+    quote: {
+      srcAsset: {
+        address: selectedTokens[0].address,
+        symbol: selectedTokens[0].symbol,
+      },
+      srcChainId: 1,
+      destAsset: {
+        address: selectedDestinationToken.address,
+        symbol: selectedDestinationToken.symbol,
+      },
+      destChainId: 1,
+    },
+    sentAmount: {
+      usd: '1000',
+    },
+  },
+  {
+    quote: {
+      srcAsset: {
+        address: selectedTokens[1].address,
+        symbol: selectedTokens[1].symbol,
+      },
+      srcChainId: 1,
+      destAsset: {
+        address: selectedDestinationToken.address,
+        symbol: selectedDestinationToken.symbol,
+      },
+      destChainId: 1,
+    },
+    sentAmount: {
+      usd: '200',
+    },
+  },
+];
+
+function getTokenDataByAssetId(
+  quoteOverrides: Partial<
+    Record<CaipAssetType, (typeof selectedTokenQuotes)[number] | null>
+  > = {
+    [ethAssetId]: selectedTokenQuotes[0],
+    [uniAssetId]: selectedTokenQuotes[1],
+  },
+) {
+  return {
+    [ethAssetId]: {
+      key: ethAssetId,
+      tokenSymbol: 'ETH',
+      slippage: '1%',
+      receivedAmount: '123 USDC',
+      receivedAmountFiat: '$123.45',
+      quote: quoteOverrides[ethAssetId] ?? null,
+      isLoading: false,
+      isHighPriceImpact: false,
+      isQuoteUnavailable: quoteOverrides[ethAssetId] === null,
+    },
+    [uniAssetId]: {
+      key: uniAssetId,
+      tokenSymbol: 'UNI',
+      slippage: `${DEFAULT_BATCH_SELL_SLIPPAGE}%`,
+      receivedAmount: '77 USDC',
+      receivedAmountFiat: '$77.89',
+      quote: quoteOverrides[uniAssetId] ?? null,
+      isLoading: false,
+      isHighPriceImpact: false,
+      isQuoteUnavailable: quoteOverrides[uniAssetId] === null,
+    },
+  } as BatchSellQuoteTokenDataByAssetId;
+}
 
 jest.mock('../../../../../core/Engine', () => ({
   __esModule: true,
@@ -52,10 +119,6 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('../../../../../core/redux/slices/bridge', () => ({
-  selectBridgeControllerState: jest.fn(() => mockBridgeControllerState),
-}));
-
 function getBridgeControllerMock() {
   return Engine.context.BridgeController as jest.Mocked<
     typeof Engine.context.BridgeController
@@ -65,24 +128,17 @@ function getBridgeControllerMock() {
 describe('useTrackBatchSellQuotePageViewed', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockBridgeControllerState = {
-      quoteRequest: [{ srcChainId: '0x1' as Hex }],
-    };
   });
 
-  it('does not track until quote request source chain is available', () => {
-    mockBridgeControllerState = { quoteRequest: [{}] };
-
+  it('does not track until token data has at least one quote', () => {
     renderHookWithProvider(() =>
       useTrackBatchSellQuotePageViewed({
         batchSellSlippages: {},
-        hasValidSourceAmounts: true,
-        percentsByTokenKey: {
-          '0x1:0x1111111111111111111111111111111111111111': 100,
-          '0x1:0x2222222222222222222222222222222222222222': 100,
-        },
-        selectedDestinationToken,
         selectedTokens,
+        tokenData: getTokenDataByAssetId({
+          [ethAssetId]: null,
+          [uniAssetId]: null,
+        }),
       }),
     );
 
@@ -97,13 +153,8 @@ describe('useTrackBatchSellQuotePageViewed', () => {
         batchSellSlippages: {
           [ethAssetId]: '1',
         },
-        hasValidSourceAmounts: true,
-        percentsByTokenKey: {
-          '0x1:0x1111111111111111111111111111111111111111': 100,
-          '0x1:0x2222222222222222222222222222222222222222': 50,
-        },
-        selectedDestinationToken,
         selectedTokens,
+        tokenData: getTokenDataByAssetId(),
       }),
     );
 
@@ -113,12 +164,17 @@ describe('useTrackBatchSellQuotePageViewed', () => {
       ).toHaveBeenCalledWith(
         BatchSellMetricsEventName.BatchSellQuotePageViewed,
         {
+          chain_id_destination: 'eip155:1',
+          chain_id_source: 'eip155:1',
+          destination_token_address:
+            'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+          destination_token_symbol: 'USDC',
           location: BatchSellMetricsLocation.TradeMenu,
-          feature_id: FeatureId.BATCH_SELL,
-          selected_token_address_list: [ethAssetId, uniAssetId],
-          target_token_symbol: 'USDC',
-          slider_percentages: [100, 50],
-          slippage_percentages: [1, Number(DEFAULT_BATCH_SELL_SLIPPAGE)],
+          source_token_addresses: [ethAssetId, uniAssetId],
+          source_token_slippages: [1, Number(DEFAULT_BATCH_SELL_SLIPPAGE)],
+          source_token_symbols: ['ETH', 'UNI'],
+          usd_amount_source_tokens: [1000, 200],
+          usd_amount_source_total: 1200,
         },
       );
     });
@@ -128,5 +184,34 @@ describe('useTrackBatchSellQuotePageViewed', () => {
     expect(
       getBridgeControllerMock().trackUnifiedSwapBridgeEvent,
     ).toHaveBeenCalledTimes(1);
+  });
+
+  it('adds a USD placeholder when a selected token is missing a quote', async () => {
+    renderHookWithProvider(() =>
+      useTrackBatchSellQuotePageViewed({
+        batchSellSlippages: {
+          [ethAssetId]: '1',
+        },
+        selectedTokens,
+        tokenData: getTokenDataByAssetId({
+          [ethAssetId]: selectedTokenQuotes[0],
+          [uniAssetId]: null,
+        }),
+      }),
+    );
+
+    await waitFor(() => {
+      expect(
+        getBridgeControllerMock().trackUnifiedSwapBridgeEvent,
+      ).toHaveBeenCalledWith(
+        BatchSellMetricsEventName.BatchSellQuotePageViewed,
+        expect.objectContaining({
+          source_token_addresses: [ethAssetId, uniAssetId],
+          source_token_symbols: ['ETH', 'UNI'],
+          usd_amount_source_tokens: [1000, 0],
+          usd_amount_source_total: 1000,
+        }),
+      );
+    });
   });
 });

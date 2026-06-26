@@ -173,10 +173,8 @@ export function BatchSellReview() {
 
   useTrackBatchSellQuotePageViewed({
     batchSellSlippages,
-    hasValidSourceAmounts,
-    percentsByTokenKey,
-    selectedDestinationToken,
     selectedTokens,
+    tokenData: batchSellQuoteData.tokenData,
   });
 
   useEffect(

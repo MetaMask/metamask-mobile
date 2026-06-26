@@ -2,7 +2,6 @@ import { waitFor } from '@testing-library/react-native';
 import {
   BatchSellMetricsEventName,
   BatchSellMetricsLocation,
-  FeatureId,
 } from '@metamask/bridge-controller';
 
 import Engine from '../../../../../core/Engine';
@@ -52,7 +51,7 @@ describe('useTrackBatchSellTokenPageViewed', () => {
     ).not.toHaveBeenCalled();
   });
 
-  it('tracks once when the highest-value chain is available', async () => {
+  it('tracks once when source and destination chains are available', async () => {
     const { rerender } = renderHookWithProvider(() =>
       useTrackBatchSellTokenPageViewed({
         location: BatchSellMetricsLocation.Deeplink,
@@ -67,8 +66,8 @@ describe('useTrackBatchSellTokenPageViewed', () => {
         BatchSellMetricsEventName.BatchSellTokenPageViewed,
         {
           location: BatchSellMetricsLocation.Deeplink,
-          feature_id: FeatureId.BATCH_SELL,
-          chain_id: 'eip155:1',
+          chain_id_destination: 'eip155:1',
+          chain_id_source: 'eip155:1',
         },
       );
     });
