@@ -85,7 +85,7 @@ function TokenNotAvailableModal() {
         navigation.navigate(Routes.WALLET.HOME as never);
       } else {
         navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.TOKEN_SELECTION,
+          screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
         });
       }
     });
@@ -148,7 +148,7 @@ function TokenNotAvailableModal() {
           navigation.navigate(Routes.WALLET.HOME as never);
         } else {
           navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-            screen: Routes.RAMP.TOKEN_SELECTION,
+            screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
           });
         }
       }

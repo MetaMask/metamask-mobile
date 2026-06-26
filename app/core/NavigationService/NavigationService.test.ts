@@ -5,13 +5,6 @@ import type {
   ParamListBase,
 } from '@react-navigation/native';
 
-jest.mock('../AgenticService/AgenticService', () => ({
-  __esModule: true,
-  default: {
-    install: jest.fn(),
-  },
-}));
-
 describe('NavigationService', () => {
   let mockNavigation: NavigationContainerRef<ParamListBase>;
   let mockRequestAnimationFrame: jest.SpyInstance;

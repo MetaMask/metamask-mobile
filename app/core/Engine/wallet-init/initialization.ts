@@ -1,32 +1,35 @@
-import { Wallet } from '@metamask/wallet';
-import { Json } from '@metamask/utils';
-import { getKeyringBuilders } from './keyrings';
+import { Wallet, type WalletOptions } from '@metamask/wallet';
 import { RootMessenger } from '../types';
-import { Encryptor, LEGACY_DERIVATION_OPTIONS } from '../../Encryptor';
-import { mobileStorageAdapter } from '../utils/storage-service-utils';
+import { getApprovalControllerInstanceOptions } from './instance-options/approval-controller';
+import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
+import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
+import { getConnectivityControllerInstanceOptions } from './instance-options/connectivity-controller';
+import { getStorageServiceInstanceOptions } from './instance-options/storage-service';
 
+/**
+ * Construct the `@metamask/wallet` `Wallet` for mobile. Each controller's
+ * client-specific options live in its own builder under `./instance-options/`.
+ */
 export function initializeWallet({
   messenger,
   state,
 }: {
   messenger: RootMessenger;
-  state: Record<string, Record<string, Json> | undefined>;
+  state: NonNullable<WalletOptions['state']>;
 }) {
-  const encryptor = new Encryptor({
-    keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
-  });
-
   return new Wallet({
     messenger,
     state,
     instanceOptions: {
-      keyringController: {
-        encryptor,
-        keyringBuilders: getKeyringBuilders(messenger),
-      },
-      storageService: {
-        storage: mobileStorageAdapter,
-      },
+      approvalController: getApprovalControllerInstanceOptions(),
+      keyringController: getKeyringControllerInstanceOptions(messenger),
+      remoteFeatureFlagController:
+        getRemoteFeatureFlagControllerInstanceOptions({
+          messenger,
+          state,
+        }),
+      connectivityController: getConnectivityControllerInstanceOptions(),
+      storageService: getStorageServiceInstanceOptions(),
     },
   });
 }

@@ -8,7 +8,7 @@ import { useQuickBuyContext } from './useQuickBuyContext';
 const QuickBuyAmount: React.FC = () => {
   const {
     amountDisplayMode,
-    usdAmount,
+    fiatAmountLabel,
     target,
     tradeMode,
     hasSourcePrice,
@@ -17,7 +17,7 @@ const QuickBuyAmount: React.FC = () => {
     sourceToken,
     estimatedReceiveAmount,
     destToken,
-    isQuoteLoading,
+    isBlockingQuoteLoad,
     hiddenInputRef,
     handleAmountAreaPress,
     handleAmountChange,
@@ -39,10 +39,10 @@ const QuickBuyAmount: React.FC = () => {
   return (
     <QuickBuyAmountSection
       amountDisplayMode={amountDisplayMode}
-      usdAmount={usdAmount}
+      fiatAmountLabel={fiatAmountLabel}
       destSymbol={cryptoSymbol}
       estimatedReceiveAmount={displayedCryptoAmount}
-      isQuoteLoading={isQuoteLoading}
+      isQuoteLoading={isBlockingQuoteLoad}
       isUnpricedSource={isUnpricedSource}
       sourceCryptoAmount={sourceAmountTokens}
       sourceSymbol={sourceToken?.symbol ?? target.tokenSymbol}

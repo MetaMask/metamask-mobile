@@ -206,6 +206,15 @@ jest.mock('../../hooks/useBatchSellQuoteRequest', () => ({
       return token.balance;
     },
   ),
+  hasValidBatchSellSourceAmounts: jest.fn(
+    (
+      _sourceTokens: BridgeToken[],
+      batchSellSourceTokenAmounts: Record<string, string | undefined>,
+    ) =>
+      Object.values(batchSellSourceTokenAmounts).some(
+        (amount) => amount !== undefined && Number(amount) > 0,
+      ),
+  ),
   useBatchSellQuoteRequest: jest.fn(() => ({
     updateBatchSellQuoteParams: mockUpdateBatchSellQuoteParams,
     getNewQuote: mockGetNewQuote,
@@ -477,6 +486,25 @@ describe('BatchSellReview', () => {
 
     expect(getByText('Review')).toBeOnTheScreen();
     expect(reviewButton.props.accessibilityState.disabled).not.toBe(true);
+  });
+
+  it('disables the review button and clears quotes when all source amounts are zero', () => {
+    mockBatchSellSourceTokenAmounts = {
+      [ethAssetId]: '0',
+      [uniAssetId]: '0',
+    };
+    mockBatchSellQuoteData = {
+      ...defaultQuoteData,
+      hasAnyQuote: false,
+    };
+
+    const { getByTestId } = render(<BatchSellReview />);
+    const reviewButton = getByTestId(BatchSellReviewSelectorsIDs.REVIEW_BUTTON);
+
+    expect(reviewButton.props.accessibilityState.disabled).toBe(true);
+    expect(mockUpdateBatchSellQuoteParams).not.toHaveBeenCalled();
+    expect(Engine.context.BridgeController.resetState).toHaveBeenCalled();
+    expect(mockCancelBatchSellQuoteParams).toHaveBeenCalled();
   });
 
   it('shows UNKNOWN when there is no destination token match', () => {

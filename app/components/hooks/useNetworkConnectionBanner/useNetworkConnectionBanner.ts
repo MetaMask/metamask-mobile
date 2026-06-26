@@ -21,6 +21,7 @@ import {
   getIsMetaMaskInfuraEndpointUrl,
 } from '../../../core/Engine/controllers/network-controller/utils';
 import onlyKeepHost from '../../../util/onlyKeepHost';
+import { getDomain } from '../../../util/url-utils';
 import { INFURA_PROJECT_ID } from '../../../constants/network';
 import {
   ToastContext,
@@ -117,14 +118,18 @@ const useNetworkConnectionBanner = (): {
       const networksMetadata =
         Engine.context.NetworkController.state.networksMetadata;
 
-      let firstUnavailableNetwork: {
+      // Collect every enabled EVM network whose default RPC endpoint is
+      // currently failing (status !== Available). We need the full list to
+      // decide whether to show the banner per the rules below.
+      const failedNetworks: {
         chainId: Hex;
-        status: NetworkConnectionBannerStatus;
         networkName: string;
         rpcUrl: string;
         isInfuraEndpoint: boolean;
         infuraNetworkClientId?: string;
-      } | null = null;
+        domain: string | null;
+      }[] = [];
+      let totalEnabled = 0;
 
       for (const evmEnabledNetworkChainId of evmEnabledNetworksChainIds) {
         try {
@@ -136,89 +141,108 @@ const useNetworkConnectionBanner = (): {
           if (!networkMetadata) {
             continue;
           }
-          const networkStatus = networkMetadata?.status;
 
-          if (networkStatus !== NetworkStatus.Available) {
-            const networkConfig =
-              Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId(
-                networkClientId,
-              );
-
-            if (!networkConfig) {
-              continue;
-            }
-
-            const defaultRpcEndpointIndex =
-              networkConfig.defaultRpcEndpointIndex || 0;
-            const rpcUrl =
-              networkConfig.rpcEndpoints[defaultRpcEndpointIndex]?.url ||
-              networkConfig.rpcEndpoints[0]?.url;
-
-            const isInfuraEndpoint = getIsMetaMaskInfuraEndpointUrl(
-              rpcUrl,
-              infuraProjectId,
+          const networkConfig =
+            Engine.context.NetworkController.getNetworkConfigurationByNetworkClientId(
+              networkClientId,
             );
-
-            // For custom endpoints (non-Infura), check if there's an Infura
-            // endpoint available for this network that we can switch to
-            let infuraNetworkClientId: string | undefined;
-            if (!isInfuraEndpoint) {
-              const infuraEndpoint = networkConfig.rpcEndpoints.find(
-                (endpoint, index) =>
-                  index !== defaultRpcEndpointIndex &&
-                  getIsMetaMaskInfuraEndpointUrl(endpoint.url, infuraProjectId),
-              );
-              // Store the networkClientId of the Infura endpoint
-              infuraNetworkClientId = infuraEndpoint?.networkClientId;
-            }
-
-            firstUnavailableNetwork = {
-              chainId: evmEnabledNetworkChainId,
-              status: timeoutType,
-              networkName: networkConfig.name,
-              rpcUrl,
-              isInfuraEndpoint,
-              infuraNetworkClientId,
-            };
-
-            break; // Only show one banner at a time
+          if (!networkConfig) {
+            continue;
           }
+
+          totalEnabled += 1;
+
+          if (networkMetadata.status === NetworkStatus.Available) {
+            continue;
+          }
+
+          const defaultRpcEndpointIndex =
+            networkConfig.defaultRpcEndpointIndex || 0;
+          const rpcUrl =
+            networkConfig.rpcEndpoints[defaultRpcEndpointIndex]?.url ||
+            networkConfig.rpcEndpoints[0]?.url;
+
+          const isInfuraEndpoint = getIsMetaMaskInfuraEndpointUrl(
+            rpcUrl,
+            infuraProjectId,
+          );
+
+          // For custom endpoints (non-Infura), check if there's an Infura
+          // endpoint available for this network that we can switch to
+          let infuraNetworkClientId: string | undefined;
+          if (!isInfuraEndpoint) {
+            const infuraEndpoint = networkConfig.rpcEndpoints.find(
+              (endpoint, index) =>
+                index !== defaultRpcEndpointIndex &&
+                getIsMetaMaskInfuraEndpointUrl(endpoint.url, infuraProjectId),
+            );
+            infuraNetworkClientId = infuraEndpoint?.networkClientId;
+          }
+
+          failedNetworks.push({
+            chainId: evmEnabledNetworkChainId,
+            networkName: networkConfig.name,
+            rpcUrl,
+            isInfuraEndpoint,
+            infuraNetworkClientId,
+            domain: getDomain(rpcUrl),
+          });
         } catch {
           // TODO: remove this once we update the fixtures on e2e tests
-          // If there is an error, continue to the next network
-          // findNetworkClientIdByChainId and getNetworkConfigurationByNetworkClientId can throw errors
+          // findNetworkClientIdByChainId and getNetworkConfigurationByNetworkClientId can throw
           continue;
         }
       }
 
-      if (firstUnavailableNetwork) {
+      const firstCustomFailed = failedNetworks.find((n) => !n.isInfuraEndpoint);
+      const distinctDomains = new Set(
+        failedNetworks
+          .map((n) => n.domain)
+          .filter((domain): domain is string => domain !== null),
+      ).size;
+      const areAllEnabledNetworksFailed =
+        failedNetworks.length > 0 && failedNetworks.length === totalEnabled;
+
+      // Show the banner if:
+      // - The first failing network is a custom network (users always want to
+      //   be informed about errors with RPC endpoints they've chosen), or
+      // - There are failures across more than one registrable domain (likely
+      //   client-side issue), or
+      // - All enabled networks are failing (escape hatch for single-network
+      //   users so they still get a signal).
+      // A wide single-provider outage on a multi-network setup (e.g. every
+      // *.infura.io network goes down at once) collapses to one domain and
+      // is suppressed unless that user's entire enabled set is on it.
+      const shouldShowBanner = Boolean(
+        firstCustomFailed || distinctDomains > 1 || areAllEnabledNetworksFailed,
+      );
+
+      if (shouldShowBanner) {
+        const selected = firstCustomFailed ?? failedNetworks[0];
         // Show/update banner if:
         // 1. No banner is currently visible, OR
         // 2. Banner is visible but for a different network, OR
         // 3. Banner is visible for the same network but with a different status
-        const shouldShowBanner =
+        const shouldDispatch =
           !currentBannerState.visible ||
-          (currentBannerState.visible &&
-            currentBannerState.chainId !== firstUnavailableNetwork.chainId) ||
-          (currentBannerState.visible &&
-            currentBannerState.chainId === firstUnavailableNetwork.chainId &&
-            currentBannerState.status !== firstUnavailableNetwork.status);
+          currentBannerState.chainId !== selected.chainId ||
+          currentBannerState.status !== timeoutType;
 
-        if (shouldShowBanner) {
+        if (shouldDispatch) {
           dispatch(
             showNetworkConnectionBanner({
-              chainId: firstUnavailableNetwork.chainId,
-              status: firstUnavailableNetwork.status,
-              networkName: firstUnavailableNetwork.networkName,
-              rpcUrl: firstUnavailableNetwork.rpcUrl,
-              isInfuraEndpoint: firstUnavailableNetwork.isInfuraEndpoint,
-              infuraNetworkClientId:
-                firstUnavailableNetwork.infuraNetworkClientId,
+              chainId: selected.chainId,
+              status: timeoutType,
+              networkName: selected.networkName,
+              rpcUrl: selected.rpcUrl,
+              isInfuraEndpoint: selected.isInfuraEndpoint,
+              infuraNetworkClientId: selected.infuraNetworkClientId,
             }),
           );
         }
       } else if (currentBannerState.visible) {
-        // Hide banner if all networks are available
+        // Hide banner: either no networks are failing, or failures are confined
+        // to a single provider and don't warrant the banner.
         dispatch(hideNetworkConnectionBanner());
       }
     };

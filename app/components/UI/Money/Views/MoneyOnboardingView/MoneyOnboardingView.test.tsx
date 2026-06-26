@@ -1,16 +1,24 @@
 import React from 'react';
-import { render, fireEvent, act } from '@testing-library/react-native';
-import MoneyOnboardingView, {
-  MONEY_ONBOARDING_STEP_DURATION_MS,
-} from './MoneyOnboardingView';
-import { RiveOnboardingStepperTestIds } from '../../../RiveOnboardingStepper/RiveOnboardingStepper.testIds';
-import { __clearLastMockedMethods } from '../../../../../__mocks__/rive-react-native';
+import { render } from '@testing-library/react-native';
+import MoneyOnboardingView from './MoneyOnboardingView';
 import Routes from '../../../../../constants/navigation/Routes';
-import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
+import { strings } from '../../../../../../locales/i18n';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import {
+  COMPONENT_NAMES,
+  MONEY_ONBOARDING_STEP_ACTIONS,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
+import { MoneyOnboardingViewTestIds } from './MoneyOnboardingView.testIds';
 
+const mockTrackOnboardingEvent = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
-const mockUseSelector = jest.fn();
+let mockIsUsUnauthenticatedNonCardholder = false;
+
+jest.mock('../../hooks/useMoneyAnalytics', () => ({
+  useMoneyAnalytics: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
@@ -18,7 +26,9 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('react-redux', () => ({
   useDispatch: () => mockDispatch,
-  useSelector: (selector: unknown) => mockUseSelector(selector),
+  useSelector: jest
+    .fn()
+    .mockImplementation(() => mockIsUsUnauthenticatedNonCardholder),
 }));
 
 jest.mock('../../hooks/useMoneyAccountBalance', () => ({
@@ -26,180 +36,271 @@ jest.mock('../../hooks/useMoneyAccountBalance', () => ({
   default: () => ({ apyPercent: 4 }),
 }));
 
-jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+let mockOnStateChanged: (stateMachineName: string, stateName: string) => void;
+let mockTriggerCallbacks: Record<string, () => void> = {};
+const mockSetString = jest.fn();
+const mockSetNumber = jest.fn();
 
-jest.mock('react-native-reanimated', () => {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const Reanimated = require('react-native-reanimated/mock');
-  Reanimated.default.call = jest.fn();
-  return Reanimated;
+jest.mock('rive-react-native', () => {
+  const mockRiveRef = {};
+
+  return {
+    __esModule: true,
+    default: jest.fn(({ onStateChanged, ...props }) => {
+      mockOnStateChanged = onStateChanged;
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const { View } = require('react-native');
+      return <View {...props} />;
+    }),
+    useRive: () => [jest.fn(), mockRiveRef],
+    useRiveString: () => [undefined, mockSetString],
+    useRiveNumber: () => [undefined, mockSetNumber],
+    useRiveTrigger: (_riveRef: unknown, path: string, callback: () => void) => {
+      mockTriggerCallbacks[path] = callback;
+    },
+    AutoBind: (value: boolean) => ({ type: 'autobind', value }),
+    Fit: { Layout: 'layout' },
+  };
 });
-
-jest.mock(
-  '../../../../../animations/money_account_onboarding_animation.riv',
-  () => 1,
-  { virtual: true },
-);
 
 describe('MoneyOnboardingView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    __clearLastMockedMethods();
-    // Stepper animation (Rive) enabled by default; every other selector is irrelevant here.
-    mockUseSelector.mockImplementation(
-      (selector: unknown) =>
-        selector === selectMoneyOnboardingStepperAnimationEnabled,
-    );
+    mockTriggerCallbacks = {};
+    mockIsUsUnauthenticatedNonCardholder = false;
+    (useMoneyAnalytics as jest.Mock).mockReturnValue({
+      trackOnboardingEvent: mockTrackOnboardingEvent,
+    });
   });
 
   describe('Rendering', () => {
-    it('renders the onboarding stepper container', () => {
+    it('renders the Rive animation component', () => {
       const { getByTestId } = render(<MoneyOnboardingView />);
+
       expect(
-        getByTestId(RiveOnboardingStepperTestIds.CONTAINER),
+        getByTestId(MoneyOnboardingViewTestIds.RIVE_ANIMATION),
       ).toBeOnTheScreen();
     });
+  });
 
-    it('renders the progress bar', () => {
-      const { getByTestId } = render(<MoneyOnboardingView />);
-      expect(
-        getByTestId(RiveOnboardingStepperTestIds.PROGRESS_BAR),
-      ).toBeOnTheScreen();
+  describe('Analytics initialization', () => {
+    it('initializes useMoneyAnalytics with onboarding screen and stepper component', () => {
+      render(<MoneyOnboardingView />);
+
+      expect(useMoneyAnalytics).toHaveBeenCalledWith({
+        screen_name: SCREEN_NAMES.MONEY_ONBOARDING,
+        component_name: COMPONENT_NAMES.RIVE_ONBOARDING_STEPPER,
+      });
     });
+  });
 
-    it('renders five progress segments', () => {
-      const { getByTestId } = render(<MoneyOnboardingView />);
-      [0, 1, 2, 3, 4].forEach((index) => {
-        expect(
-          getByTestId(
-            `${RiveOnboardingStepperTestIds.PROGRESS_SEGMENT}-${index}`,
-          ),
-        ).toBeOnTheScreen();
+  describe('State changes (onStateChanged)', () => {
+    it('tracks VIEWED event with step 1 when state changes to UI1', () => {
+      render(<MoneyOnboardingView />);
+
+      mockOnStateChanged('State Machine 1', 'UI1');
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith({
+        step: 1,
+        step_title: expect.any(String),
+        total_steps: 5,
+        step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
       });
     });
 
-    it('renders the Rive animation', () => {
-      const { getByTestId } = render(<MoneyOnboardingView />);
-      expect(
-        getByTestId(RiveOnboardingStepperTestIds.RIVE_ANIMATION),
-      ).toBeOnTheScreen();
+    it('tracks VIEWED event with step 2 when state changes to APY', () => {
+      render(<MoneyOnboardingView />);
+
+      mockOnStateChanged('State Machine 1', 'APY');
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith({
+        step: 2,
+        step_title: expect.any(String),
+        total_steps: 5,
+        step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
     });
 
-    it('renders the footer button', () => {
-      const { getByTestId } = render(<MoneyOnboardingView />);
-      expect(
-        getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON),
-      ).toBeOnTheScreen();
+    it('tracks VIEWED event with step 3 when state changes to Card', () => {
+      render(<MoneyOnboardingView />);
+
+      mockOnStateChanged('State Machine 1', 'Card');
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith({
+        step: 3,
+        step_title: expect.any(String),
+        total_steps: 5,
+        step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
     });
 
-    it('renders the close button', () => {
-      const { getByTestId } = render(<MoneyOnboardingView />);
-      expect(
-        getByTestId(RiveOnboardingStepperTestIds.CLOSE_BUTTON),
-      ).toBeOnTheScreen();
+    it('tracks VIEWED event with step 4 when state changes to Coins', () => {
+      render(<MoneyOnboardingView />);
+
+      mockOnStateChanged('State Machine 1', 'Coins');
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith({
+        step: 4,
+        step_title: expect.any(String),
+        total_steps: 5,
+        step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
+        redirect_target: SCREEN_NAMES.MONEY_ONBOARDING,
+      });
     });
 
-    it('renders the first step title', () => {
-      const { getByText } = render(<MoneyOnboardingView />);
-      expect(getByText('Money accounts are here')).toBeOnTheScreen();
+    it('does not track events for unknown state names', () => {
+      render(<MoneyOnboardingView />);
+
+      mockOnStateChanged('State Machine 1', 'SomeTransitionState');
+
+      expect(mockTrackOnboardingEvent).not.toHaveBeenCalled();
     });
 
-    it('renders the first step body text', () => {
-      const { getByText } = render(<MoneyOnboardingView />);
-      expect(
-        getByText(
-          'Earn up to 4% APY on your balance, available across your entire wallet.',
-        ),
-      ).toBeOnTheScreen();
-    });
+    it('tracks VIEWED event when FinalState fires', () => {
+      render(<MoneyOnboardingView />);
 
-    it('renders the first step footer text', () => {
-      const { getByText } = render(<MoneyOnboardingView />);
-      expect(
-        getByText('APY is variable and not guaranteed.'),
-      ).toBeOnTheScreen();
-    });
-  });
+      mockOnStateChanged('State Machine 1', 'FinalState');
 
-  describe('when the onboarding stepper flag is disabled', () => {
-    beforeEach(() => {
-      mockUseSelector.mockImplementation(() => false);
-    });
-
-    it('does not render the Rive animation', () => {
-      const { queryByTestId } = render(<MoneyOnboardingView />);
-      expect(
-        queryByTestId(RiveOnboardingStepperTestIds.RIVE_ANIMATION),
-      ).toBeNull();
-    });
-
-    it('still renders the onboarding content (container, title, footer button)', () => {
-      const { getByTestId, getByText } = render(<MoneyOnboardingView />);
-      expect(
-        getByTestId(RiveOnboardingStepperTestIds.CONTAINER),
-      ).toBeOnTheScreen();
-      expect(getByText('Money accounts are here')).toBeOnTheScreen();
-      expect(
-        getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('Navigation', () => {
-    it('dispatches setMoneyOnboardingSeen and navigates to Money home when close button is pressed', () => {
-      const { getByTestId } = render(<MoneyOnboardingView />);
-
-      fireEvent.press(getByTestId(RiveOnboardingStepperTestIds.CLOSE_BUTTON));
-
-      expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'SET_MONEY_ONBOARDING_SEEN' }),
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 5,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.VIEWED,
+        }),
       );
+    });
+
+    it('tracks COMPLETED event when FinalState fires', () => {
+      render(<MoneyOnboardingView />);
+
+      mockOnStateChanged('State Machine 1', 'FinalState');
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 5,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.COMPLETED,
+          redirect_target: SCREEN_NAMES.MONEY_HOME,
+        }),
+      );
+    });
+
+    it('navigates to Money home when FinalState fires', () => {
+      render(<MoneyOnboardingView />);
+
+      mockOnStateChanged('State Machine 1', 'FinalState');
+
       expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
         screen: Routes.MONEY.ROOT,
         params: { screen: Routes.MONEY.HOME },
       });
     });
 
-    it('dispatches setMoneyOnboardingSeen and navigates to Money home on completion', () => {
-      jest.useFakeTimers();
-      const { getByTestId } = render(<MoneyOnboardingView />);
-      const footerButton = getByTestId(
-        RiveOnboardingStepperTestIds.FOOTER_BUTTON,
-      );
+    it('dispatches setMoneyOnboardingSeen when FinalState fires', () => {
+      render(<MoneyOnboardingView />);
 
-      // Step 0 -> 1 (button starts enabled at step 0)
-      fireEvent.press(footerButton);
-      act(() => jest.advanceTimersByTime(MONEY_ONBOARDING_STEP_DURATION_MS));
-
-      // Step 1 -> 2
-      fireEvent.press(footerButton);
-      act(() => jest.advanceTimersByTime(MONEY_ONBOARDING_STEP_DURATION_MS));
-
-      // Step 2 -> 3
-      fireEvent.press(footerButton);
-      act(() => jest.advanceTimersByTime(MONEY_ONBOARDING_STEP_DURATION_MS));
-
-      // Step 3 -> 4 (last step, autoComplete timer starts)
-      fireEvent.press(footerButton);
-
-      // Auto-complete timer fires onComplete after durationMs
-      act(() => jest.advanceTimersByTime(MONEY_ONBOARDING_STEP_DURATION_MS));
+      mockOnStateChanged('State Machine 1', 'FinalState');
 
       expect(mockDispatch).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'SET_MONEY_ONBOARDING_SEEN' }),
+        expect.objectContaining({
+          type: 'SET_MONEY_ONBOARDING_SEEN',
+          payload: { seen: true },
+        }),
       );
+    });
+  });
+
+  describe('Close trigger', () => {
+    it('tracks EXITED event at current step when close trigger fires', () => {
+      render(<MoneyOnboardingView />);
+      mockOnStateChanged('State Machine 1', 'APY');
+      jest.clearAllMocks();
+
+      mockTriggerCallbacks.close();
+
+      expect(mockTrackOnboardingEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          step: 2,
+          step_action: MONEY_ONBOARDING_STEP_ACTIONS.EXITED,
+          redirect_target: SCREEN_NAMES.MONEY_HOME,
+        }),
+      );
+    });
+
+    it('navigates to Money home when close trigger fires', () => {
+      render(<MoneyOnboardingView />);
+      mockOnStateChanged('State Machine 1', 'APY');
+      jest.clearAllMocks();
+
+      mockTriggerCallbacks.close();
+
       expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
         screen: Routes.MONEY.ROOT,
         params: { screen: Routes.MONEY.HOME },
       });
-
-      jest.useRealTimers();
     });
 
-    it('does not navigate to Money home when continuing between non-final steps', () => {
-      const { getByTestId } = render(<MoneyOnboardingView />);
-      fireEvent.press(getByTestId(RiveOnboardingStepperTestIds.FOOTER_BUTTON));
-      expect(mockNavigate).not.toHaveBeenCalled();
+    it('dispatches setMoneyOnboardingSeen when close trigger fires', () => {
+      render(<MoneyOnboardingView />);
+
+      mockTriggerCallbacks.close();
+
+      expect(mockDispatch).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: 'SET_MONEY_ONBOARDING_SEEN',
+          payload: { seen: true },
+        }),
+      );
+    });
+  });
+
+  describe('Rive text run initialization', () => {
+    it('sets step3 card_eligible body when user is not US unauthenticated non-cardholder', () => {
+      mockIsUsUnauthenticatedNonCardholder = false;
+
+      render(<MoneyOnboardingView />);
+
+      const expectedStrings = [
+        strings('money.rive_onboarding.step1_title'),
+        strings('money.rive_onboarding.step1_body', { percentage: 4 }),
+        strings('money.rive_onboarding.step1_footer_text'),
+        strings('money.rive_onboarding.step2_title'),
+        strings('money.rive_onboarding.step2_body'),
+        strings('money.rive_onboarding.step2_footer_text'),
+        strings('money.rive_onboarding.step3_title'),
+        strings('money.rive_onboarding.step3_body_card_eligible', {
+          percentage: 3,
+        }),
+        strings('money.rive_onboarding.step3_footer_text'),
+        strings('money.rive_onboarding.step4_title'),
+        strings('money.rive_onboarding.step4_body'),
+        strings('money.rive_onboarding.step4_footer_text'),
+      ];
+
+      expectedStrings.forEach((text) => {
+        expect(mockSetString).toHaveBeenCalledWith(text);
+      });
+
+      expect(mockSetNumber).toHaveBeenCalledWith(300);
+      expect(mockSetNumber).toHaveBeenCalledWith(0);
+    });
+
+    it('sets step3 card_ineligible body when user is US unauthenticated non-cardholder', () => {
+      mockIsUsUnauthenticatedNonCardholder = true;
+
+      render(<MoneyOnboardingView />);
+
+      expect(mockSetString).toHaveBeenCalledWith(
+        strings('money.rive_onboarding.step3_body_card_ineligible', {
+          percentage: 3,
+        }),
+      );
+      expect(mockSetString).not.toHaveBeenCalledWith(
+        strings('money.rive_onboarding.step3_body_card_eligible', {
+          percentage: 3,
+        }),
+      );
     });
   });
 });

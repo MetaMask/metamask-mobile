@@ -35,7 +35,11 @@ import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSou
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 
 export const MAX_LENGTH = 28;
-const DEBOUNCE_DELAY = 500;
+const DEBOUNCE_DELAY = 300;
+
+function formatFiatAmount(value: BigNumber): string {
+  return value.isInteger() ? value.toString(10) : value.toFixed(2);
+}
 
 export function useTransactionCustomAmount({
   currency,
@@ -45,6 +49,9 @@ export function useTransactionCustomAmount({
   const [isInputChanged, setInputChanged] = useState(false);
   const [hasInput, setHasInput] = useState(false);
   const [amountHumanDebounced, setAmountHumanDebounced] = useState('0');
+  const [amountFiatDebounced, setAmountFiatDebounced] = useState(
+    defaultAmount ?? '0',
+  );
   const totals = useTransactionPayTotals();
   const hasSourceAmount = useTransactionPayHasSourceAmount();
   const isPostQuote = useTransactionPayIsPostQuote();
@@ -53,8 +60,9 @@ export function useTransactionCustomAmount({
 
   const debounceSetAmountDelayed = useMemo(
     () =>
-      debounce((value: string) => {
-        setAmountHumanDebounced(value);
+      debounce((humanValue: string, fiatValue: string) => {
+        setAmountHumanDebounced(humanValue);
+        setAmountFiatDebounced(fiatValue);
       }, DEBOUNCE_DELAY),
     [],
   );
@@ -69,6 +77,9 @@ export function useTransactionCustomAmount({
   ]);
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
+  ]);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
   ]);
   const tokenAddress = getTokenAddress(transactionMeta);
   const payTokenFiatRate =
@@ -98,9 +109,12 @@ export function useTransactionCustomAmount({
       targetAmountUsd &&
       targetAmountUsd !== '0'
     ) {
-      return new BigNumber(targetAmountUsd)
-        .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
-        .toString(10);
+      return formatFiatAmount(
+        new BigNumber(targetAmountUsd).decimalPlaces(
+          2,
+          BigNumber.ROUND_HALF_UP,
+        ),
+      );
     }
 
     return amountFiatState;
@@ -113,8 +127,14 @@ export function useTransactionCustomAmount({
   );
 
   useEffect(() => {
-    debounceSetAmountDelayed(amountHuman);
-  }, [amountHuman, debounceSetAmountDelayed]);
+    debounceSetAmountDelayed(amountHuman, amountFiat);
+
+    // Clearing the input should drop pending-amount alerts immediately —
+    // don't make the user wait out the debounce for a stale error to vanish.
+    if (amountFiat === '0' || amountFiat === '') {
+      debounceSetAmountDelayed.flush();
+    }
+  }, [amountHuman, amountFiat, debounceSetAmountDelayed]);
 
   useEffect(() => {
     if (amountHumanDebounced !== '0') {
@@ -170,11 +190,12 @@ export function useTransactionCustomAmount({
         return;
       }
 
-      const newAmount = new BigNumber(percentage)
-        .dividedBy(100)
-        .multipliedBy(balanceUsd)
-        .decimalPlaces(2, BigNumber.ROUND_DOWN)
-        .toString(10);
+      const newAmount = formatFiatAmount(
+        new BigNumber(percentage)
+          .dividedBy(100)
+          .multipliedBy(balanceUsd)
+          .decimalPlaces(2, BigNumber.ROUND_DOWN),
+      );
 
       setConfirmationMetric({
         properties: {
@@ -186,10 +207,13 @@ export function useTransactionCustomAmount({
       // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw` when
       // isMaxAmount is true: wrong for HyperLiquid (wallet USDC vs typed HL
       // balance) and wrong for money account (on-chain mUSD only vs mUSD +
-      // musdSHFvd fiat total). Keeping isMaxAmount false routes the typed
+      // vmUSD fiat total). Keeping isMaxAmount false routes the typed
       // amount through as token.amountRaw.
       const shouldSetMax =
-        percentage === 100 && !isPerpsWithdraw && !isMoneyAccountWithdraw;
+        percentage === 100 &&
+        !isPerpsWithdraw &&
+        !isMoneyAccountWithdraw &&
+        !isMoneyAccountDeposit;
 
       if (shouldSetMax) {
         setIsMax(true);
@@ -204,6 +228,7 @@ export function useTransactionCustomAmount({
       isMaxAmount,
       isPerpsWithdraw,
       isMoneyAccountWithdraw,
+      isMoneyAccountDeposit,
       setIsMax,
       setConfirmationMetric,
     ],
@@ -232,6 +257,7 @@ export function useTransactionCustomAmount({
 
   return {
     amountFiat,
+    amountFiatDebounced,
     amountHuman,
     amountHumanDebounced,
     hasInput,
@@ -281,11 +307,13 @@ function useTokenBalance(tokenUsdRate: number) {
     return withdrawableMusd.multipliedBy(tokenUsdRate).toNumber();
   }
 
+  if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
+    return predictBalanceUsd;
+  }
+
   if (paymentOverride === PaymentOverride.MoneyAccount) {
     return totalFiatRaw ? parseFloat(totalFiatRaw) : 0;
   }
 
-  return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
-    ? predictBalanceUsd
-    : payTokenBalanceUsd;
+  return payTokenBalanceUsd;
 }

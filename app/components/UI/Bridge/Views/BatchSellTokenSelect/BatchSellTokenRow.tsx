@@ -30,6 +30,10 @@ import { strings } from '../../../../../../locales/i18n';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { useTokenPricePercentageChange } from '../../../Tokens/hooks/useTokenPricePercentageChange';
 import { TokenSelectorItem } from '../../components/TokenSelectorItem';
+import {
+  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  TokenSelectorBalanceLayoutVariant,
+} from '../../components/TokenSelectorItem.abTestConfig';
 import { BridgeToken } from '../../types';
 
 const styles = StyleSheet.create({
@@ -201,6 +205,10 @@ export function BatchSellTokenRow({
       </View>
     ) : undefined;
 
+  const pressTargetAccessibilityLabel = `${token.symbol} ${strings(
+    'bridge.batch_sell_checkbox_label',
+  )}`;
+
   return (
     <TokenSelectorItem
       token={token}
@@ -210,7 +218,14 @@ export function BatchSellTokenRow({
       isSelected={isSelected}
       shouldChangeSelectedStyle={false}
       shouldShowNetworkIcon={false}
+      shouldIncludeChildrenInPressTarget
+      pressTargetAccessibilityLabel={pressTargetAccessibilityLabel}
       secondaryRowContent={secondaryRowContent}
+      balanceLayoutConfigOverride={
+        TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
+          TokenSelectorBalanceLayoutVariant.Control
+        ]
+      }
       tokenBalanceTextProps={{
         textVariant: ComponentLibraryTextVariant.BodySMMedium,
         textColor: ComponentLibraryTextColor.Alternative,
@@ -219,10 +234,11 @@ export function BatchSellTokenRow({
     >
       <Checkbox
         isSelected={isSelected}
-        onChange={() => onTokenPress(token)}
-        accessibilityLabel={`${token.symbol} ${strings(
-          'bridge.batch_sell_checkbox_label',
-        )}`}
+        // eslint-disable-next-line no-empty-function
+        onChange={() => {}}
+        pointerEvents="none"
+        importantForAccessibility="no-hide-descendants"
+        accessibilityElementsHidden
       />
     </TokenSelectorItem>
   );

@@ -11,6 +11,9 @@ import { BatchSellFinalReviewModalSelectorsIDs } from './BatchSellFinalReviewMod
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
+const mockOnCloseBottomSheet = jest.fn((callback?: () => void) => {
+  callback?.();
+});
 const mockDispatch = jest.fn();
 const mockUpdateBatchSellQuoteParams = jest.fn();
 const mockGetNewQuote = jest.fn();
@@ -67,6 +70,7 @@ interface MockBatchSellQuoteData {
   isGasless: boolean;
   isBatchSellTradeAvailable: boolean;
   isBatchSellTradesLoading: boolean;
+  isNetworkFeeUnavailable: boolean;
   hasAnyQuote: boolean;
   hasPendingQuoteRows: boolean;
   needsNewQuote: boolean;
@@ -118,6 +122,7 @@ const defaultQuoteData: MockBatchSellQuoteData = {
   isGasless: false,
   isBatchSellTradeAvailable: true,
   isBatchSellTradesLoading: false,
+  isNetworkFeeUnavailable: false,
   hasAnyQuote: true,
   hasPendingQuoteRows: false,
   needsNewQuote: false,
@@ -140,6 +145,34 @@ const defaultQuoteData: MockBatchSellQuoteData = {
 };
 let mockSelectedTokens = defaultSelectedTokens;
 let mockBatchSellQuoteData = defaultQuoteData;
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
+      (
+        {
+          children,
+          testID,
+        }: {
+          children?: React.ReactNode;
+          testID?: string;
+        },
+        ref: React.Ref<{ onCloseBottomSheet: (callback?: () => void) => void }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: mockOnCloseBottomSheet,
+        }));
+
+        return ReactActual.createElement(View, { testID }, children);
+      },
+    ),
+  };
+});
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
@@ -218,11 +251,16 @@ describe('BatchSellFinalReviewModal', () => {
     expect(getByText('Review')).toBeOnTheScreen();
     expect(getByText('You sell')).toBeOnTheScreen();
     expect(getByText('2 tokens')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.YOU_SELL_TOGGLE_BUTTON),
+    );
+
     expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
     expect(getByText('3,456.78 USDC')).toBeOnTheScreen();
     expect(getByText('Total received')).toBeOnTheScreen();
     expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
-    expect(getByText('Minimum received')).toBeOnTheScreen();
+    expect(getByText('Min. received:')).toBeOnTheScreen();
     expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
     expect(getByText('Network fee')).toBeOnTheScreen();
     expect(getByText('1.20 USDC')).toBeOnTheScreen();
@@ -267,6 +305,27 @@ describe('BatchSellFinalReviewModal', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 
+  it('closes the sheet before navigating to activity after submit', async () => {
+    mockOnCloseBottomSheet.mockImplementation((callback?: () => void) => {
+      callback?.();
+    });
+
+    const { getByTestId } = renderModal();
+
+    fireEvent.press(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON),
+    );
+
+    await waitFor(() => {
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    });
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(mockOnCloseBottomSheet.mock.invocationCallOrder[0]).toBeLessThan(
+      mockNavigate.mock.invocationCallOrder[0],
+    );
+  });
+
   it('blocks Sell all while submitting', () => {
     mockIsSubmittingTx = true;
 
@@ -283,33 +342,42 @@ describe('BatchSellFinalReviewModal', () => {
     ).toBe(true);
   });
 
-  it('closes with navigation when the close button is pressed', () => {
+  it('closes the sheet when the close button is pressed', () => {
     const { getByTestId } = renderModal();
 
     fireEvent.press(
       getByTestId(BatchSellFinalReviewModalSelectorsIDs.CLOSE_BUTTON),
     );
 
-    expect(mockGoBack).toHaveBeenCalledTimes(1);
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 
-  it('collapses token rows while keeping received summary rows visible', () => {
-    const { getByTestId, getByText, queryByText } = renderModal();
-
-    fireEvent.press(
-      getByTestId(BatchSellFinalReviewModalSelectorsIDs.YOU_SELL_TOGGLE_BUTTON),
-    );
+  it('starts collapsed and hides token rows while keeping received summary rows visible', () => {
+    const { queryByText, getByText } = renderModal();
 
     expect(queryByText('ETH • 0.5% slippage')).toBeNull();
     expect(queryByText('UNI • 0.5% slippage')).toBeNull();
     expect(getByText('Total received')).toBeOnTheScreen();
     expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
-    expect(getByText('Minimum received')).toBeOnTheScreen();
+    expect(getByText('Min. received:')).toBeOnTheScreen();
     expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
   });
 
-  it('expands token rows after they are collapsed', () => {
+  it('expands token rows when toggle is pressed', () => {
     const { getByTestId, getByText } = renderModal();
+    const toggleButton = getByTestId(
+      BatchSellFinalReviewModalSelectorsIDs.YOU_SELL_TOGGLE_BUTTON,
+    );
+
+    fireEvent.press(toggleButton);
+
+    expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
+    expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
+  });
+
+  it('collapses token rows after they are expanded', () => {
+    const { getByTestId, queryByText, getByText } = renderModal();
     const toggleButton = getByTestId(
       BatchSellFinalReviewModalSelectorsIDs.YOU_SELL_TOGGLE_BUTTON,
     );
@@ -317,13 +385,15 @@ describe('BatchSellFinalReviewModal', () => {
     fireEvent.press(toggleButton);
     fireEvent.press(toggleButton);
 
-    expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
-    expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
+    expect(queryByText('ETH • 0.5% slippage')).toBeNull();
+    expect(queryByText('UNI • 0.5% slippage')).toBeNull();
+    expect(getByText('Total received')).toBeOnTheScreen();
+    expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
   });
 
   it('shows only quoted rows and source tokens', () => {
     mockSelectedTokens = [...defaultSelectedTokens, linkToken];
-    const { getByText, queryByText } = renderModal({
+    const { getByTestId, getByText, queryByText } = renderModal({
       tokenData: {
         ...defaultQuoteData.tokenData,
         [linkAssetId]: {
@@ -340,6 +410,11 @@ describe('BatchSellFinalReviewModal', () => {
     });
 
     expect(getByText('2 tokens')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.YOU_SELL_TOGGLE_BUTTON),
+    );
+
     expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
     expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
     expect(queryByText('LINK • 0.5% slippage')).toBeNull();
@@ -402,6 +477,11 @@ describe('BatchSellFinalReviewModal', () => {
     });
 
     expect(getByText('2 tokens')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.YOU_SELL_TOGGLE_BUTTON),
+    );
+
     expect(getByText('ETH • 0.5% slippage')).toBeOnTheScreen();
     expect(getByText('UNI • 0.5% slippage')).toBeOnTheScreen();
     expect(
@@ -426,6 +506,7 @@ describe('BatchSellFinalReviewModal', () => {
     ).toBeOnTheScreen();
     expect(queryByText('3,456.78 USDC')).toBeNull();
     expect(queryByText('7,638.23 USDC')).toBeNull();
+    expect(queryByText('7,485.47 USDC')).toBeNull();
     expect(
       queryByTestId(
         `${BatchSellFinalReviewModalSelectorsIDs.SOURCE_TOKEN_AVATAR}-${linkAssetId}`,
@@ -470,6 +551,56 @@ describe('BatchSellFinalReviewModal', () => {
       isBatchSellTradeAvailable: false,
     });
 
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+  });
+
+  it('shows insufficient balance when the network fee is unavailable', () => {
+    const { getByTestId, getByText, queryByTestId } = renderModal({
+      isBatchSellTradeAvailable: false,
+      isBatchSellTradesLoading: false,
+      isNetworkFeeUnavailable: true,
+      networkFee: {
+        formatted: '--',
+        formattedFiat: '-',
+      },
+    });
+    const getTextColor = (text: string) =>
+      StyleSheet.flatten(getByText(text).props.style).color;
+
+    expect(
+      queryByTestId(
+        BatchSellFinalReviewModalSelectorsIDs.NETWORK_FEE_VALUES_SKELETON,
+      ),
+    ).toBeNull();
+    expect(getByText('Insufficient balance')).toBeOnTheScreen();
+    expect(getTextColor('Network fee')).toBe(errorTextColor);
+    expect(getTextColor('--')).toBe(errorTextColor);
+    expect(getTextColor('-')).toBe(errorTextColor);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.disabled,
+    ).toBe(true);
+    expect(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
+        .accessibilityState.busy,
+    ).not.toBe(true);
+  });
+
+  it('blocks Sell all when the network fee is unavailable even if trades are available', () => {
+    const { getByTestId, getByText } = renderModal({
+      isBatchSellTradeAvailable: true,
+      isBatchSellTradesLoading: false,
+      isNetworkFeeUnavailable: true,
+      networkFee: {
+        formatted: '--',
+        formattedFiat: '-',
+      },
+    });
+
+    expect(getByText('Insufficient balance')).toBeOnTheScreen();
     expect(
       getByTestId(BatchSellFinalReviewModalSelectorsIDs.SELL_ALL_BUTTON).props
         .accessibilityState.disabled,
@@ -546,9 +677,13 @@ describe('BatchSellFinalReviewModal', () => {
   });
 
   it('updates quote values from live data while mounted', () => {
-    const { getByText, rerender } = renderModal();
+    const { getByTestId, getByText, rerender } = renderModal();
 
     expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
+
+    fireEvent.press(
+      getByTestId(BatchSellFinalReviewModalSelectorsIDs.YOU_SELL_TOGGLE_BUTTON),
+    );
 
     mockBatchSellQuoteData = {
       ...defaultQuoteData,

@@ -250,7 +250,7 @@ const PerpsScreenStack = () => {
       <PerpsConnectionProvider isFullScreen suppressErrorView>
         <PerpsStreamProvider>
           <PerpsStreamBridge />
-          <Stack.Navigator initialRouteName={Routes.PERPS.PERPS_TAB}>
+          <Stack.Navigator initialRouteName={Routes.PERPS.PERPS_HOME}>
             {/* Redirect to wallet perps tab */}
             <Stack.Screen
               name={Routes.PERPS.PERPS_TAB}

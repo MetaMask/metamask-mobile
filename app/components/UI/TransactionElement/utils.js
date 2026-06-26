@@ -25,11 +25,12 @@ import {
   TRANSACTION_TYPES,
   isTransactionIncomplete,
 } from '../../../util/transactions';
-import Engine from '../../../core/Engine';
 import { TransactionType } from '@metamask/transaction-controller';
 import {
+  decodeBatchSellTx,
   decodeBridgeTx,
   decodeSwapsTx,
+  isBridgeTxHistoryItemBridge,
 } from '../Bridge/utils/transaction-history';
 import { calculateTotalGas, renderGwei } from './utils-gas';
 import { getTokenTransferData } from '../../Views/confirmations/utils/transaction-pay';
@@ -1022,22 +1023,29 @@ export default async function decodeTransaction(args) {
   );
   let transactionElement, transactionDetails;
 
-  if (args.bridgeTxHistoryData?.bridgeTxHistoryItem) {
+  const bridgeTxHistoryItem = args.bridgeTxHistoryData?.bridgeTxHistoryItem;
+  if (bridgeTxHistoryItem) {
     // Unified Swaps, reads tx data from BridgeStatusController
-    if (tx.type === TransactionType.swap) {
-      const [transactionElement, transactionDetails] = decodeSwapsTx({
-        ...args,
-        actionKey,
-      });
-      return [transactionElement, transactionDetails];
-    }
-    if (tx.type === TransactionType.bridge) {
+    if (
+      tx.type === TransactionType.bridge ||
+      isBridgeTxHistoryItemBridge(bridgeTxHistoryItem)
+    ) {
       const [transactionElement, transactionDetails] = decodeBridgeTx({
         ...args,
         actionKey,
       });
       return [transactionElement, transactionDetails];
     }
+
+    if (args.bridgeTxHistoryData?.is7702Batch) {
+      return decodeBatchSellTx(args);
+    }
+
+    const [transactionElement, transactionDetails] = decodeSwapsTx({
+      ...args,
+      actionKey,
+    });
+    return [transactionElement, transactionDetails];
   }
 
   if (isTransfer) {

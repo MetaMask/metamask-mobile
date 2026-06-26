@@ -2,6 +2,7 @@ import {
   Button as DSButton,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, {
@@ -32,9 +33,6 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
 import Icon, {
   IconColor,
   IconName,
@@ -515,7 +513,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Error state
   if (error) {
     return (
-      <SafeAreaView style={styles.container} testID={testID}>
+      <SafeAreaView
+        style={styles.container}
+        edges={['bottom', 'left', 'right']}
+        testID={testID}
+      >
         {market ? (
           <PerpsMarketHeader
             market={market}
@@ -523,20 +525,14 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             currentPrice={currentPrice}
           />
         ) : (
-          <View style={styles.header}>
-            <ButtonIcon
-              iconName={IconName.ArrowLeft}
-              iconColor={IconColor.Default}
-              size={ButtonIconSizes.Md}
-              onPress={handleBack}
-              testID={PerpsOrderBookViewSelectorsIDs.BACK_BUTTON}
-            />
-            <View style={styles.headerTitleContainer}>
-              <Text variant={TextVariant.HeadingMD} color={TextColor.Default}>
-                {strings('perps.order_book.title')}
-              </Text>
-            </View>
-          </View>
+          <HeaderStandard
+            includesTopInset
+            title={strings('perps.order_book.title')}
+            onBack={handleBack}
+            backButtonProps={{
+              testID: PerpsOrderBookViewSelectorsIDs.BACK_BUTTON,
+            }}
+          />
         )}
         <View style={styles.errorContainer}>
           <Text variant={TextVariant.BodyMD} color={TextColor.Error}>
@@ -548,7 +544,11 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   }
 
   return (
-    <SafeAreaView style={styles.container} testID={testID}>
+    <SafeAreaView
+      style={styles.container}
+      edges={['bottom', 'left', 'right']}
+      testID={testID}
+    >
       {/* Market Header */}
       {market && (
         <PerpsMarketHeader

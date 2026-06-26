@@ -211,7 +211,6 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
     stages: [],
   })),
   selectPredictWorldCupScreenEnabledFlag: jest.fn(() => false),
-  selectPredictHomepageDiscoveryNbaChampionEnabledFlag: jest.fn(() => false),
 }));
 
 jest.mock('../../UI/Predict/hooks/usePredictWorldCup', () => ({
@@ -245,6 +244,11 @@ jest.mock('@tanstack/react-query', () => {
   const actual = jest.requireActual('@tanstack/react-query');
   return {
     ...actual,
+    useQuery: jest.fn(() => ({
+      data: 510,
+      isLoading: false,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    })),
     useQueryClient: jest.fn(() => ({
       invalidateQueries: jest.fn(() => Promise.resolve()),
     })),
@@ -286,6 +290,7 @@ jest.mock('../../../selectors/deFiPositionsSectionEnabled', () => ({
 
 jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
   selectSocialLeaderboardEnabled: jest.fn(() => false),
+  selectSocialLeaderboardPerpsEnabled: jest.fn(() => true),
 }));
 
 jest.mock('./Sections/TopTraders/hooks', () => ({
@@ -296,6 +301,7 @@ jest.mock('./Sections/TopTraders/hooks', () => ({
     refresh: jest.fn().mockResolvedValue(undefined),
     toggleFollow: jest.fn(),
   })),
+  usePrefetchTraderProfiles: jest.fn(),
 }));
 
 /** Shape of first argument to useHomeViewedEvent (for asserting in tests). */
@@ -343,6 +349,7 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
   selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
+  selectMusdBalanceChainIds: jest.fn(() => []),
 }));
 
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
