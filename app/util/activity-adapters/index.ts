@@ -4,6 +4,7 @@
  * TODO: Replace with shared @metamask/activity-adapters package when published.
  */
 export type {
+  ActivityFee,
   ActivityListItem,
   ActivityKind,
   Status,
