@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import ActivityList, { type ActivityListHandle } from './ActivityList';
 import { ActivityListSelectorsIDs } from './ActivityList.testIds';
+import { getPreloadedActivityItem } from './preloadedActivityItemStore';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
@@ -1213,22 +1214,21 @@ describe('ActivityList', () => {
     });
   });
 
-  it('keeps perps rows on their dedicated screen even when the transactions redesign flag is on', () => {
+  it('routes perps rows to ActivityDetails when the transactions redesign flag is on', () => {
     selectorValues.perpsEnabled = true;
     selectorValues.isTxRedesign = true;
     const perpsTx = { id: 'fill-2', type: 'trade' };
+    const perpsItem = {
+      type: 'perpsOpenLong',
+      chainId: 'eip155:42161',
+      status: 'success',
+      timestamp: 5,
+      raw: { type: 'perpsTransaction', data: perpsTx },
+      hash: 'perps-fill-2',
+      data: { token: { symbol: 'USD' } },
+    };
     mockPerpsSourceState = {
-      items: [
-        {
-          type: 'perpsOpenLong',
-          chainId: 'eip155:42161',
-          status: 'success',
-          timestamp: 5,
-          raw: { type: 'perpsTransaction', data: perpsTx },
-          hash: 'perps-fill-2',
-          data: { token: { symbol: 'USD' } },
-        },
-      ],
+      items: [perpsItem],
       isLoading: false,
       error: null,
     };
@@ -1236,12 +1236,21 @@ describe('ActivityList', () => {
     render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
     fireEvent.press(screen.getByTestId('row-perps-fill-2'));
 
-    // Redesign route must NOT intercept perps rows — they have a dedicated screen.
-    expect(mockNavigate).toHaveBeenCalledWith('PerpsPositionTransaction', {
-      transaction: perpsTx,
+    // Params stay serializable; the row is handed off via the store by key.
+    const call = mockNavigate.mock.calls.find(
+      ([route]) => route === Routes.ACTIVITY_DETAILS,
+    );
+    const params = call?.[1] as
+      | { chainId: string; txIdentifier: string; preloadKey?: string }
+      | undefined;
+    expect(params).toEqual({
+      chainId: 'eip155:42161',
+      txIdentifier: 'perps-fill-2',
+      preloadKey: expect.any(String),
     });
+    expect(getPreloadedActivityItem(params?.preloadKey)).toEqual(perpsItem);
     expect(mockNavigate).not.toHaveBeenCalledWith(
-      Routes.ACTIVITY_DETAILS,
+      'PerpsPositionTransaction',
       expect.anything(),
     );
   });
