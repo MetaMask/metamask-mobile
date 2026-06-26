@@ -326,6 +326,143 @@ describe('Connection', () => {
     });
   });
 
+  describe('eager approval for direct deeplink connections', () => {
+    const inlineRpc = {
+      name: 'metamask-multichain-provider',
+      data: { method: 'wallet_createSession', params: {}, id: 1 },
+    };
+    const sessionRequestWithInlineMessage = {
+      ...mockConnectionRequest.sessionRequest,
+      initialMessage: { type: 'message', payload: inlineRpc },
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any as SessionRequest;
+
+    it('forwards the inline initialMessage to the bridge immediately, in parallel with the handshake', async () => {
+      const connection = await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      await connection.connect(sessionRequestWithInlineMessage);
+
+      // The approval is driven from the inline payload without waiting on the relay.
+      expect(mockBridgeInstance.send).toHaveBeenCalledWith(inlineRpc);
+    });
+
+    it('strips initialMessage before handing the request to the wallet client to avoid a duplicate approval', async () => {
+      const connection = await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      await connection.connect(sessionRequestWithInlineMessage);
+
+      expect(mockWalletClientInstance.connect).toHaveBeenCalledTimes(1);
+      const callArg = (mockWalletClientInstance.connect as jest.Mock).mock
+        .calls[0][0];
+      expect(callArg.sessionRequest.initialMessage).toBeUndefined();
+      expect(callArg.sessionRequest.id).toBe(
+        sessionRequestWithInlineMessage.id,
+      );
+      expect(callArg.sessionRequest.channel).toBe(
+        sessionRequestWithInlineMessage.channel,
+      );
+    });
+
+    it('does not eagerly forward anything for QR flows (no initialMessage)', async () => {
+      const connection = await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      await connection.connect(mockConnectionRequest.sessionRequest);
+
+      expect(mockBridgeInstance.send).not.toHaveBeenCalled();
+      expect(mockWalletClientInstance.connect).toHaveBeenCalledWith({
+        sessionRequest: mockConnectionRequest.sessionRequest,
+      });
+    });
+
+    it('rejects the eagerly-surfaced approval when the handshake fails', async () => {
+      const connection = await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      mockWalletClientInstance.connect = jest
+        .fn()
+        .mockRejectedValue(new Error('handshake failed'));
+      // First read (eager wallet_createSession handling) sees no pre-existing
+      // approvals; the second read (rejectEagerApproval after the handshake
+      // fails) sees the approval we just surfaced and clears it.
+      (Engine.context.ApprovalController.getTotalApprovalCount as jest.Mock)
+        .mockReturnValueOnce(0)
+        .mockReturnValue(1);
+
+      await expect(
+        connection.connect(sessionRequestWithInlineMessage),
+      ).rejects.toThrow('handshake failed');
+
+      expect(NavigationService.navigation?.goBack).toHaveBeenCalledTimes(1);
+      expect(
+        Engine.context.ApprovalController.clearRequests,
+      ).toHaveBeenCalledWith(
+        providerErrors.userRejectedRequest({
+          data: { cause: 'connectionFailed' },
+        }),
+      );
+    });
+
+    it('does not send a response until the handshake has completed', async () => {
+      let resolveHandshake: () => void = () => undefined;
+      mockWalletClientInstance.connect = jest.fn().mockImplementation(
+        () =>
+          new Promise<void>((resolve) => {
+            resolveHandshake = resolve;
+          }),
+      );
+
+      const connection = await Connection.create(
+        mockConnectionInfo,
+        mockKeyManager,
+        RELAY_URL,
+        mockHostApp,
+      );
+
+      // Kick off the connect but leave the handshake pending.
+      const connectPromise = connection.connect(
+        sessionRequestWithInlineMessage,
+      );
+
+      // Approve before the handshake resolves: response must be held back.
+      const responsePayload = {
+        name: 'metamask-multichain-provider',
+        data: { id: 1, result: { sessionScopes: {} } },
+      };
+      onBridgeResponseCallback(responsePayload);
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(mockWalletClientInstance.sendResponse).not.toHaveBeenCalled();
+
+      // Once the handshake resolves, the held response is delivered.
+      resolveHandshake();
+      await connectPromise;
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(mockWalletClientInstance.sendResponse).toHaveBeenCalledWith(
+        responsePayload,
+      );
+    });
+  });
+
   describe('resume', () => {
     it('should call resume on its WalletClient with the connection ID', async () => {
       const connection = await Connection.create(
