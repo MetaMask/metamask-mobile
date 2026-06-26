@@ -6,6 +6,7 @@ import {
   type WebSocketCloseEvent as NitroCloseEvent,
 } from 'react-native-nitro-websockets';
 import { hasTestOverrides } from '../util/test/utils';
+import Logger from '../util/Logger';
 
 type BinaryType = 'arraybuffer' | 'blob';
 
@@ -86,10 +87,12 @@ class NitroWebSocketAdapter {
     this._ws = new NitroWebSocket(url, protocols, headers);
 
     this._ws.onopen = () => {
+      Logger.log(`[NitroWS] connected: ${url}`); // TODO: remove
       this.dispatchEvent({ type: 'open' });
     };
 
     this._ws.onmessage = (e: NitroMessageEvent) => {
+      Logger.log(`[NitroWS] message (${e.isBinary ? 'binary' : 'text'})`); // TODO: remove
       this.dispatchEvent({
         type: 'message',
         data: e.isBinary ? (e.binaryData ?? e.data) : e.data,
@@ -98,6 +101,9 @@ class NitroWebSocketAdapter {
     };
 
     this._ws.onclose = (e: NitroCloseEvent) => {
+      Logger.log(
+        `[NitroWS] closed: code=${e.code} reason="${e.reason}" clean=${e.wasClean}`,
+      ); // TODO: remove
       this.dispatchEvent({
         type: 'close',
         code: e.code,
@@ -111,6 +117,7 @@ class NitroWebSocketAdapter {
     };
 
     this._ws.onerror = (error: string) => {
+      Logger.log(`[NitroWS] error: ${error}`); // TODO: remove
       this.dispatchEvent({ type: 'error', message: error });
     };
   }
