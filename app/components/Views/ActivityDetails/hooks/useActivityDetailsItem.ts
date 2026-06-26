@@ -40,6 +40,24 @@ function buildItemsByHash(
   return byHash;
 }
 
+function buildItemsByIdentifier(
+  items: ActivityListItem[],
+): Map<string, ActivityListItem> {
+  const byIdentifier = buildItemsByHash(items);
+  for (const item of items) {
+    const identifier =
+      item.raw?.type === 'perpsTransaction' ||
+      item.raw?.type === 'predictActivity'
+        ? item.raw.data.id
+        : undefined;
+    const normalizedIdentifier = identifier?.toLowerCase();
+    if (normalizedIdentifier && !byIdentifier.has(normalizedIdentifier)) {
+      byIdentifier.set(normalizedIdentifier, item);
+    }
+  }
+  return byIdentifier;
+}
+
 function filterByChain(
   items: ActivityListItem[],
   chainId: CaipChainId | undefined,
@@ -56,6 +74,7 @@ function filterByChain(
 export function useActivityDetailsItem(
   txIdentifier: string | undefined,
   chainId?: CaipChainId,
+  preloadedItem?: ActivityListItem,
 ): ActivityListItem | undefined {
   const localActivityItems = useLocalActivityItems();
   const { data: evmTransactions } = useTransactionsQuery();
@@ -85,6 +104,13 @@ export function useActivityDetailsItem(
     () => buildItemsByHash(filterByChain(nonEvmItems, chainId)),
     [nonEvmItems, chainId],
   );
+  const preloadedByIdentifier = useMemo(
+    () =>
+      buildItemsByIdentifier(
+        filterByChain(preloadedItem ? [preloadedItem] : [], chainId),
+      ),
+    [preloadedItem, chainId],
+  );
 
   return useMemo(() => {
     const id = txIdentifier?.toLowerCase();
@@ -95,6 +121,11 @@ export function useActivityDetailsItem(
     const localItem = localByHash.get(id);
     const apiItem = apiByHash.get(id);
     const nonEvmItem = nonEvmByHash.get(id);
+    const preloadedResolvedItem = preloadedByIdentifier.get(id);
+
+    if (preloadedResolvedItem) {
+      return preloadedResolvedItem;
+    }
 
     if (localItem) {
       const hasMatchingType = apiItem?.type === localItem.type;
@@ -106,5 +137,11 @@ export function useActivityDetailsItem(
     }
 
     return nonEvmItem ?? apiItem ?? undefined;
-  }, [txIdentifier, localByHash, apiByHash, nonEvmByHash]);
+  }, [
+    txIdentifier,
+    localByHash,
+    apiByHash,
+    nonEvmByHash,
+    preloadedByIdentifier,
+  ]);
 }
