@@ -54,6 +54,7 @@ import {
 } from '../../hooks/useBatchSellQuoteRequest';
 import { useBatchSellQuoteData } from '../../hooks/useBatchSellQuoteData';
 import { useTrackBatchSellQuotePageViewed } from '../../hooks/useTrackBatchSellQuotePageViewed';
+import { useTrackBatchSellQuotePageReviewClicked } from '../../hooks/useTrackBatchSellQuotePageReviewClicked';
 
 const DEFAULT_PERCENT = 100;
 const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
@@ -176,6 +177,12 @@ export function BatchSellReview() {
     selectedTokens,
     tokenData: batchSellQuoteData.tokenData,
   });
+  const trackBatchSellQuotePageReviewClicked =
+    useTrackBatchSellQuotePageReviewClicked({
+      batchSellSlippages,
+      selectedTokens,
+      tokenData: batchSellQuoteData.tokenData,
+    });
 
   useEffect(
     () => () => {
@@ -291,10 +298,12 @@ export function BatchSellReview() {
   );
 
   const handleOpenFinalReview = useCallback(() => {
+    trackBatchSellQuotePageReviewClicked();
+
     navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
       screen: Routes.BRIDGE.MODALS.BATCH_SELL_FINAL_REVIEW_MODAL,
     });
-  }, [navigation]);
+  }, [navigation, trackBatchSellQuotePageReviewClicked]);
 
   const handleSlippagePress = useCallback(
     (token: BridgeToken) => {
