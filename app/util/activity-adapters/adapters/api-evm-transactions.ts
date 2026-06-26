@@ -15,9 +15,8 @@ import {
   getTokenAmountFromTransfer,
   getTokenApprovalAmountFromData,
   isUnlimitedApprovalAmount,
-  isNftTransferType,
-  isNativeTransferType,
   getApiTransactionFees,
+  parseValueTransfers,
   withFallbackTokenAssetId,
   type ValueTransfer,
 } from './helpers';
@@ -66,32 +65,14 @@ export function mapApiEvmTransactions({
     direction: TokenAmount['direction'],
   ) => getTokenAmountFromTransfer(transfer, direction, chainId, environment);
 
-  const sentTransfer = valueTransfers?.find(({ from }) =>
-    environment.equalsIgnoreCase(from, subjectAddress),
-  );
-  const receivedTransfer = valueTransfers?.find(({ to }) =>
-    environment.equalsIgnoreCase(to, subjectAddress),
-  );
-  const sentNftTransfer = valueTransfers?.find(
-    ({ from, transferType }) =>
-      environment.equalsIgnoreCase(from, subjectAddress) &&
-      isNftTransferType(transferType),
-  );
-  const receivedNftTransfer = valueTransfers?.find(
-    ({ to, transferType }) =>
-      environment.equalsIgnoreCase(to, subjectAddress) &&
-      isNftTransferType(transferType),
-  );
-  const sentNativeTransfer = valueTransfers?.find(
-    ({ from, transferType }) =>
-      environment.equalsIgnoreCase(from, subjectAddress) &&
-      isNativeTransferType(transferType),
-  );
-  const receivedNativeTransfer = valueTransfers?.find(
-    ({ to, transferType }) =>
-      environment.equalsIgnoreCase(to, subjectAddress) &&
-      isNativeTransferType(transferType),
-  );
+  const {
+    sentTransfer,
+    receivedTransfer,
+    sentNftTransfer,
+    receivedNftTransfer,
+    sentNativeTransfer,
+    receivedNativeTransfer,
+  } = parseValueTransfers(valueTransfers, subjectAddress, environment);
   const wrappedTokenAddress = environment.wrappedTokenAddresses[hexChainId];
   const isDirectWrappedTokenCall =
     Boolean(wrappedTokenAddress) &&

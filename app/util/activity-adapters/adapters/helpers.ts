@@ -389,6 +389,54 @@ export function getNftPaymentTransfer({
   return undefined;
 }
 
+/**
+ * Resolves the subject's value-transfer legs from an indexed transaction,
+ * mirroring the extension's `parseValueTransfers`. Each leg is the first
+ * transfer (in API order) sent from / received by the subject that matches the
+ * requested asset class.
+ *
+ * @param valueTransfers - Indexed value transfers from the Accounts API.
+ * @param subjectAddress - The account the activity is being built for.
+ * @param environment - Host dependency boundary (address comparison).
+ * @returns The subject's primary sent/received fungible, native, and NFT legs.
+ */
+export function parseValueTransfers(
+  valueTransfers: ValueTransfer[] | undefined,
+  subjectAddress: string,
+  environment: ActivityAdapterEnvironment = mobileActivityAdapterEnvironment,
+): {
+  sentTransfer: ValueTransfer | undefined;
+  receivedTransfer: ValueTransfer | undefined;
+  sentNativeTransfer: ValueTransfer | undefined;
+  receivedNativeTransfer: ValueTransfer | undefined;
+  sentNftTransfer: ValueTransfer | undefined;
+  receivedNftTransfer: ValueTransfer | undefined;
+} {
+  const sent = valueTransfers?.filter(({ from }) =>
+    environment.equalsIgnoreCase(from, subjectAddress),
+  );
+  const received = valueTransfers?.filter(({ to }) =>
+    environment.equalsIgnoreCase(to, subjectAddress),
+  );
+
+  return {
+    sentTransfer: sent?.[0],
+    receivedTransfer: received?.[0],
+    sentNativeTransfer: sent?.find(({ transferType }) =>
+      isNativeTransferType(transferType),
+    ),
+    receivedNativeTransfer: received?.find(({ transferType }) =>
+      isNativeTransferType(transferType),
+    ),
+    sentNftTransfer: sent?.find(({ transferType }) =>
+      isNftTransferType(transferType),
+    ),
+    receivedNftTransfer: received?.find(({ transferType }) =>
+      isNftTransferType(transferType),
+    ),
+  };
+}
+
 export function getTokenAmountFromTransfer(
   transfer: ValueTransfer | undefined,
   direction: TokenAmount['direction'],

@@ -1,10 +1,15 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { getFormattedIpfsUrl, type Nft } from '@metamask/assets-controllers';
+import { formatChainIdToHex } from '@metamask/bridge-controller';
 import type { Hex } from '@metamask/utils';
-import type { ActivityListItem } from '../../../util/activity-adapters';
+import {
+  isNftTransferType,
+  type ActivityListItem,
+} from '../../../util/activity-adapters';
 import type { RootState } from '../../../reducers';
 import { selectNftByIdentity } from '../../../selectors/nftController';
+import { areAddressesEqual } from '../../../util/address';
 import useIpfsGateway from '../../hooks/useIpfsGateway';
 
 const NFT_ACTIVITY_KINDS = new Set<ActivityListItem['type']>([
@@ -28,27 +33,12 @@ interface NftValueTransfer {
   transferType?: string;
 }
 
-function isNftTransferType(transferType?: string): boolean {
-  const normalized = transferType?.toLowerCase();
-  return normalized === 'erc721' || normalized === 'erc1155';
-}
-
-function addressesEqual(a?: string, b?: string): boolean {
-  return Boolean(a && b && a.toLowerCase() === b.toLowerCase());
-}
-
-function caipToHexChainId(chainId: string): Hex | undefined {
-  if (chainId.startsWith('0x')) {
-    return chainId as Hex;
-  }
-
-  const [namespace, reference] = chainId.split(':');
-  if (namespace !== 'eip155' || !reference) {
+function toHexChainId(chainId: string): Hex | undefined {
+  try {
+    return formatChainIdToHex(chainId);
+  } catch {
     return undefined;
   }
-
-  const parsed = Number.parseInt(reference, 10);
-  return Number.isNaN(parsed) ? undefined : (`0x${parsed.toString(16)}` as Hex);
 }
 
 /**
@@ -83,8 +73,8 @@ function getNftIdentity(item: ActivityListItem): NftIdentity | undefined {
     transfers?.find(
       (transfer) =>
         isNftTransferType(transfer.transferType) &&
-        addressesEqual(transfer.from, from) &&
-        addressesEqual(transfer.to, to),
+        areAddressesEqual(transfer.from ?? '', from ?? '') &&
+        areAddressesEqual(transfer.to ?? '', to ?? ''),
     ) ?? transfers?.find(({ transferType }) => isNftTransferType(transferType));
 
   const contractAddress = nftTransfer?.contractAddress;
@@ -133,10 +123,7 @@ export function useNftActivityImage(
 ): string | undefined {
   const ipfsGateway = useIpfsGateway();
   const identity = useMemo(() => getNftIdentity(item), [item]);
-  const hexChainId = useMemo(
-    () => caipToHexChainId(item.chainId),
-    [item.chainId],
-  );
+  const hexChainId = useMemo(() => toHexChainId(item.chainId), [item.chainId]);
 
   const nft = useSelector((state: RootState) =>
     identity && hexChainId
