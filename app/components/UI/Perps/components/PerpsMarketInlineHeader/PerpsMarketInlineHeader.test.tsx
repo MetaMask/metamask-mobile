@@ -1,10 +1,10 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
-import PerpsMarketHeader from './';
+import { PerpsMarketData } from '@metamask/perps-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsMarketHeaderSelectorsIDs } from '../../Perps.testIds';
-import { PerpsMarketData } from '@metamask/perps-controller';
+import { PerpsMarketInlineHeader } from './PerpsMarketInlineHeader';
 
 jest.mock('../../providers/PerpsStreamManager');
 
@@ -24,10 +24,10 @@ const initialState = {
   },
 };
 
-describe('PerpsMarketHeader', () => {
-  it('renders correctly', () => {
+describe('PerpsMarketInlineHeader', () => {
+  it('renders market identity test IDs', () => {
     const { getByTestId } = renderWithProvider(
-      <PerpsMarketHeader
+      <PerpsMarketInlineHeader
         market={mockMarket}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
         currentPrice={45000}
@@ -36,12 +36,18 @@ describe('PerpsMarketHeader', () => {
     );
 
     expect(getByTestId(PerpsMarketHeaderSelectorsIDs.CONTAINER)).toBeTruthy();
+    expect(getByTestId(PerpsMarketHeaderSelectorsIDs.ASSET_ICON)).toBeTruthy();
+    expect(getByTestId(PerpsMarketHeaderSelectorsIDs.ASSET_NAME)).toBeTruthy();
+    expect(getByTestId(PerpsMarketHeaderSelectorsIDs.PRICE)).toBeTruthy();
+    expect(
+      getByTestId(PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE),
+    ).toBeTruthy();
   });
 
   it('handles back button press', () => {
     const onBackPress = jest.fn();
     const { getByTestId } = renderWithProvider(
-      <PerpsMarketHeader
+      <PerpsMarketInlineHeader
         market={mockMarket}
         onBackPress={onBackPress}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
@@ -57,7 +63,7 @@ describe('PerpsMarketHeader', () => {
   it('handles more button press', () => {
     const onMorePress = jest.fn();
     const { getByTestId } = renderWithProvider(
-      <PerpsMarketHeader
+      <PerpsMarketInlineHeader
         market={mockMarket}
         onMorePress={onMorePress}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
@@ -70,14 +76,38 @@ describe('PerpsMarketHeader', () => {
     expect(onMorePress).toHaveBeenCalled();
   });
 
-  it('renders correctly without maxLeverage', () => {
+  it('handles favorite and search button presses', () => {
+    const onFavoritePress = jest.fn();
+    const onCategorySearchPress = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <PerpsMarketInlineHeader
+        market={mockMarket}
+        onFavoritePress={onFavoritePress}
+        onCategorySearchPress={onCategorySearchPress}
+        isFavorite
+        testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
+        currentPrice={45000}
+      />,
+      { state: initialState },
+    );
+
+    fireEvent.press(getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON));
+    fireEvent.press(
+      getByTestId(PerpsMarketHeaderSelectorsIDs.CATEGORY_SEARCH_BUTTON),
+    );
+
+    expect(onFavoritePress).toHaveBeenCalled();
+    expect(onCategorySearchPress).toHaveBeenCalled();
+  });
+
+  it('renders without maxLeverage badge', () => {
     const marketWithoutLeverage = {
       ...mockMarket,
       maxLeverage: undefined,
     };
 
     const { getByTestId, queryByText } = renderWithProvider(
-      <PerpsMarketHeader
+      <PerpsMarketInlineHeader
         market={marketWithoutLeverage as unknown as PerpsMarketData}
         testID={PerpsMarketHeaderSelectorsIDs.CONTAINER}
         currentPrice={45000}
