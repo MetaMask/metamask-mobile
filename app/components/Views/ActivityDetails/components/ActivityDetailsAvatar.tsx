@@ -27,14 +27,11 @@ export function ActivityDetailsAvatar({
   size?: AvatarTokenSize;
   chainId?: string;
   showNetworkBadge?: boolean;
-  /** Explicit image URL (e.g. resolved NFT artwork) overriding the first avatar. */
   iconUrl?: string;
 }) {
   const imageSources = useMemo(
     () =>
       tokens.map((token, index) =>
-        // An explicit iconUrl (resolved NFT artwork) overrides the
-        // token-derived source for the leading avatar.
         index === 0 && iconUrl ? { uri: iconUrl } : getTokenImageSource(token),
       ),
     [tokens, iconUrl],
@@ -45,8 +42,6 @@ export function ActivityDetailsAvatar({
       ? getNetworkImageSource({ chainId })
       : undefined;
 
-  // With no token to derive an avatar from (e.g. a nameless NFT) still show the
-  // explicit artwork when we have it; otherwise render nothing.
   if (tokens.length === 0) {
     if (!iconUrl) {
       return null;

@@ -23,8 +23,6 @@ interface NftIdentity {
   tokenId: string;
 }
 
-// Value transfers carry `tokenId` at runtime but it isn't part of the indexed
-// API response type, so widen it locally.
 interface NftValueTransfer {
   from?: string;
   to?: string;
@@ -42,15 +40,12 @@ function toHexChainId(chainId: string): Hex | undefined {
 }
 
 /**
- * Extracts the NFT contract address + token id for an NFT activity item from
- * the indexed transaction's value transfers (the adapter shape doesn't carry
- * the token id). Returns `undefined` for non-NFT kinds or local/keyring items.
+ * Extracts an NFT activity item's contract address + token id from the indexed
+ * transaction's value transfers (the adapter shape omits the token id).
  *
- * Selects the NFT leg the adapter classified this activity from — matched by the
- * `from`/`to` it recorded on `item.data` — so a transaction with multiple NFT
- * transfers (e.g. an NFT-for-NFT trade) resolves the correct token rather than
- * whichever NFT transfer happens to come first. Falls back to the first NFT
- * transfer when no leg matches.
+ * Matches the transfer leg by the `from`/`to` on `item.data` so multi-NFT
+ * transactions (e.g. an NFT-for-NFT trade) resolve the right token, falling back
+ * to the first NFT transfer. Returns `undefined` for non-NFT or local items.
  *
  * @param item - The activity list item.
  * @returns The NFT identity, or `undefined`.

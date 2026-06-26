@@ -458,18 +458,17 @@ export function getTokenAmountFromTransfer(
     return undefined;
   }
 
-  const assetId = !isNftTransfer
-    ? resolveAssetId(
+  const assetId = isNftTransfer
+    ? undefined
+    : resolveAssetId(
         chainId,
         {
           contractAddress: transfer.contractAddress,
           transferType: transfer.transferType,
         },
         environment,
-      )
-    : undefined;
+      );
 
-  // NFT quantities (typically "1") aren't meaningful to display, so omit them.
   const hasTransferAmount =
     !isNftTransfer && transfer.amount !== null && transfer.amount !== undefined;
 

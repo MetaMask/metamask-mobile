@@ -168,9 +168,7 @@ export type ActivityListItem =
       {
         from?: string;
         to?: string;
-        // The NFT being minted, bought, or sold.
         token?: TokenAmount;
-        // The fungible/native asset paid (buy) or received (sell). Undefined for mints.
         paymentToken?: TokenAmount;
         fees?: ActivityFee[];
       }

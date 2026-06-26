@@ -72,8 +72,7 @@ function ResolvedActivityListItemRow({
     undefined,
     bridgeHistoryItem,
   );
-  // Real NFT artwork (from the NftController) for nftBuy/nftSell/nftMint rows;
-  // undefined for every other kind, leaving the existing avatar untouched.
+
   const nftImageUrl = useNftActivityImage(item);
   const styles = createStyles(colors, typography);
   const isFailed = item.status === 'failed' || item.status === 'cancelled';

@@ -154,42 +154,6 @@ jest.mock('../../../util/address', () => ({
     .safeToChecksumAddress,
 }));
 
-jest.mock('../../../component-library/components/Badges/BadgeWrapper', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(View, null, children);
-});
-
-jest.mock('../../../component-library/components/Badges/Badge', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const Badge = () => ReactActual.createElement(View, null);
-  Badge.displayName = 'Badge';
-  return {
-    __esModule: true,
-    default: Badge,
-    BadgeVariant: { Network: 'Network' },
-  };
-});
-
-jest.mock('../../../component-library/components/Avatars/Avatar', () => ({
-  AvatarSize: { Xs: 'xs', Md: 'md', Sm: 'sm' },
-}));
-
-jest.mock(
-  '../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return ({ name, imageSource }: { name?: string; imageSource?: unknown }) =>
-      ReactActual.createElement(View, {
-        testID: `avatar-token-${name ?? 'unknown'}`,
-        imageSource,
-      });
-  },
-);
-
 jest.mock('../../../component-library/components/Texts/Text', () => ({
   getFontFamily: jest.fn(() => 'Inter'),
   TextVariant: {
@@ -234,12 +198,34 @@ jest.mock('@metamask/design-system-react-native', () => {
   const Icon = ({ testID }: { testID?: string }) =>
     ReactActual.createElement(View, { testID });
 
+  const AvatarToken = ({ name, src }: { name?: string; src?: unknown }) =>
+    ReactActual.createElement(View, {
+      testID: `avatar-token-${name ?? 'unknown'}`,
+      src,
+    });
+
+  const BadgeNetwork = ({ src }: { src?: unknown }) =>
+    ReactActual.createElement(View, { src });
+
+  const BadgeWrapper = ({
+    children,
+    badge,
+  }: {
+    children?: React.ReactNode;
+    badge?: React.ReactNode;
+  }) => ReactActual.createElement(View, null, children, badge);
+
   return {
     Icon,
     IconColor: { IconAlternative: 'icon-alternative' },
     IconName: { Clock: 'Clock' },
     IconSize: { Sm: '16' },
     ListItem,
+    AvatarToken,
+    AvatarTokenSize: { Xs: 'xs', Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
+    BadgeNetwork,
+    BadgeWrapper,
+    BadgeWrapperPosition: { BottomRight: 'BottomRight' },
   };
 });
 

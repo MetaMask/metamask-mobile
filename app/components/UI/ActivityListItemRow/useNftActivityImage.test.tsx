@@ -106,9 +106,6 @@ describe('useNftActivityImage', () => {
   });
 
   it('selects the NFT leg matching the activity, not the first NFT transfer', () => {
-    // NFT-for-NFT style trade: the subject sends one NFT and receives another.
-    // The received leg (matching the nftBuy from/to) must win over the first
-    // (sent) NFT transfer in the list.
     const item = makeNftBuyItem([
       {
         from: '0xbuyer',

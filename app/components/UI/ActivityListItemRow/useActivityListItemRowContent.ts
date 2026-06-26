@@ -696,8 +696,6 @@ function resolveCoreContent(
     }
     case 'nftBuy':
     case 'nftSell': {
-      // The NFT name is folded into the token symbol by the adapter; fall back
-      // to a generic "NFT" label when the collection has no name/symbol.
       const nftName = item.data.token?.symbol ?? 'NFT';
       const labels =
         item.type === 'nftBuy'
@@ -711,8 +709,6 @@ function resolveCoreContent(
           failed: labels.failed,
         }),
         subtitle: protocolSubtitle(item),
-        // Show the fungible/native amount paid (buy) or received (sell), not the
-        // NFT quantity. Mirrors the extension's NFT row.
         primaryToken: item.data.paymentToken,
       };
     }
