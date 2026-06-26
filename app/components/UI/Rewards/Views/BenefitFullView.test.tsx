@@ -137,7 +137,7 @@ describe('BenefitFullView', () => {
     expect(getByText('Claim benefit')).toBeOnTheScreen();
     expect(getByText('Premium Benefit')).toBeOnTheScreen();
     expect(getByText('Long description')).toBeOnTheScreen();
-    expect(getByText('By Pudgy Penguins')).toBeOnTheScreen();
+    expect(getByText('Pudgy Penguins')).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION),
     ).toBeOnTheScreen();
@@ -308,7 +308,7 @@ describe('BenefitFullView', () => {
 
     const { queryByText } = render(<BenefitFullView />);
 
-    expect(queryByText('By Pudgy Penguins')).toBeNull();
+    expect(queryByText('Pudgy Penguins')).toBeNull();
   });
 
   it('renders benefit image from thumbnail', () => {

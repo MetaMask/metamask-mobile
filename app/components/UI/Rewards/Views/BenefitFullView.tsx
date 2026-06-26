@@ -173,7 +173,7 @@ const BenefitFullView = () => {
                     twClassName="max-w-[55%]"
                     numberOfLines={1}
                   >
-                    {`By ${companyName}`}
+                    {companyName}
                   </Text>
                 ) : null}
               </Box>
