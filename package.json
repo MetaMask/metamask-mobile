@@ -215,7 +215,8 @@
     "@metamask/transaction-controller": "68.1.0",
     "@metamask/keyring-controller": "^26.0.0",
     "expo-web-browser@npm:~55.0.16": "patch:expo-web-browser@npm%3A55.0.16#~/.yarn/patches/expo-web-browser-npm-55.0.16-7d42befffd.patch",
-    "@metamask/accounts-controller": "^39.0.2"
+    "@metamask/accounts-controller": "^39.0.2",
+    "@expo/cli@npm:55.0.32": "patch:@expo/cli@npm%3A55.0.32#~/.yarn/patches/@expo-cli-npm-55.0.32-5fb47bae24.patch"
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
