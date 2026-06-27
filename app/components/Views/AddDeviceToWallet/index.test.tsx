@@ -260,19 +260,19 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('QR sync import navigation', () => {
-    it('navigates to import when sync-ready provides import data', async () => {
+    const pendingSecretImports = [
+      {
+        index: 0,
+        value: 'word1 word2 word3',
+        type: 'MNEMONIC' as const,
+        isPrimary: true,
+      },
+    ];
+
+    it('navigates to import when awaiting password with pending secrets', async () => {
       renderComponent({
-        phase: QrSyncPhases.REVIEWING_IMPORT,
-        importPlan: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
-            isPrimary: true,
-          },
-        ],
+        provisioningStatus: 'awaiting_password',
+        pendingSecretImports,
       });
 
       await waitFor(() => {
@@ -286,42 +286,28 @@ describe('AddDeviceToWallet', () => {
       });
     });
 
-    it('does not navigate to import after sync has completed', async () => {
+    it('navigates to import after sync completes while secrets are still pending', async () => {
       renderComponent({
         phase: QrSyncPhases.COMPLETED,
-        importPlan: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
-            isPrimary: true,
-          },
-        ],
+        provisioningStatus: 'awaiting_password',
+        pendingSecretImports,
       });
 
       await waitFor(() => {
-        expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect(mockNavigate).toHaveBeenCalledWith(
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-          expect.anything(),
+          {
+            initialStep: 1,
+            qrSyncImport: true,
+          },
         );
       });
     });
 
-    it('does not navigate to import when sync failed with stale import data', async () => {
+    it('does not navigate to import when sync failed with stale secret data', async () => {
       renderComponent({
         phase: QrSyncPhases.FAILED,
-        importPlan: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
-            isPrimary: true,
-          },
-        ],
+        pendingSecretImports,
         error: {
           code: 'SYNC_FAILED',
           message: 'Sync failed',

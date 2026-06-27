@@ -5,9 +5,11 @@ import type {
 import type { Messenger } from '@metamask/messenger';
 
 import type {
+  QrSyncProvisioningMetadata,
+  QrSyncProvisioningStatus,
+  QrSyncSecretImportEntry,
   QrSyncConnectionStatus,
   QrSyncError,
-  QrSyncImportPlan,
   QrSyncOtpDisplay,
   QrSyncPhase,
 } from './types';
@@ -19,7 +21,11 @@ export const QR_SYNC_CONTROLLER_NAME = 'QrSyncController';
 export type QrSyncControllerState = {
   phase: QrSyncPhase;
   connectionStatus: QrSyncConnectionStatus;
-  importPlan: QrSyncImportPlan | null;
+  /** Ephemeral secrets until password import. Never persisted. */
+  pendingSecretImports: QrSyncSecretImportEntry[] | null;
+  /** Persisted provisioning plan (no secret material). */
+  provisioningMetadata: QrSyncProvisioningMetadata | null;
+  provisioningStatus: QrSyncProvisioningStatus | null;
   otp: QrSyncOtpDisplay | null;
   error: QrSyncError | null;
 };

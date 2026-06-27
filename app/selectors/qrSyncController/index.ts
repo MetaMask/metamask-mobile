@@ -24,16 +24,20 @@ export const selectQrSyncError = createSelector(
 export const selectQrSyncPrimaryMnemonic = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) =>
-    qrSyncState.importPlan?.find(
+    qrSyncState.pendingSecretImports?.find(
       (entry) => entry.type === 'MNEMONIC' && entry.isPrimary,
     )?.value ?? null,
 );
 
-export const selectQrSyncHasImportPlan = createSelector(
+export const selectQrSyncHasPendingSecrets = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) =>
-    qrSyncState.importPlan !== null && qrSyncState.importPlan.length > 0,
+    qrSyncState.pendingSecretImports !== null &&
+    qrSyncState.pendingSecretImports.length > 0,
 );
+
+/** @deprecated Use {@link selectQrSyncHasPendingSecrets}. */
+export const selectQrSyncHasImportPlan = selectQrSyncHasPendingSecrets;
 
 export const selectQrSyncIsBusy = createSelector(
   selectQrSyncPhase,
@@ -55,14 +59,14 @@ export type QrSyncPresentation = 'instructions' | 'device-linked' | 'error';
 /** Maps controller phase to the add-device screen body (OTP uses a separate sheet). */
 export const selectQrSyncPresentation = createSelector(
   selectQrSyncPhase,
-  selectQrSyncHasImportPlan,
-  (phase, hasImportPlan): QrSyncPresentation => {
+  selectQrSyncHasPendingSecrets,
+  (phase, hasPendingSecrets): QrSyncPresentation => {
     switch (phase) {
       case QrSyncPhases.AWAITING_SYNC_READY:
       case QrSyncPhases.REVIEWING_IMPORT:
         return 'device-linked';
       case QrSyncPhases.COMPLETED:
-        return hasImportPlan ? 'device-linked' : 'instructions';
+        return hasPendingSecrets ? 'device-linked' : 'instructions';
       case QrSyncPhases.FAILED:
         return 'error';
       default:
@@ -77,8 +81,9 @@ export const selectQrSyncShouldShowOtpSheet = createSelector(
 );
 
 export const selectQrSyncShouldNavigateToImport = createSelector(
-  selectQrSyncPhase,
-  selectQrSyncHasImportPlan,
-  (phase, hasImportPlan) =>
-    phase === QrSyncPhases.REVIEWING_IMPORT && hasImportPlan,
+  selectQrSyncControllerState,
+  (qrSyncState) =>
+    qrSyncState.provisioningStatus === 'awaiting_password' &&
+    qrSyncState.pendingSecretImports !== null &&
+    qrSyncState.pendingSecretImports.length > 0,
 );
