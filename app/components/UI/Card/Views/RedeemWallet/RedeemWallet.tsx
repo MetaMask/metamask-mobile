@@ -99,7 +99,7 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
   const isWithdrawable = wallet?.isWithdrawable ?? false;
 
   const feePrice = estimation?.price ?? '0';
-  const { roundedFeeNum, netAmount, netAmountNumber, hasInsufficientBalance } =
+  const { roundedFeeNum, expectedToReceiveNumber, hasInsufficientBalance } =
     getCashbackWithdrawalAmounts(balance, feePrice);
 
   const destination = useRedeemDestination({
@@ -258,9 +258,9 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
         })
         .build(),
     );
-    withdraw(netAmount);
+    withdraw(balance);
   }, [
-    netAmount,
+    balance,
     withdraw,
     trackEvent,
     createEventBuilder,
@@ -441,7 +441,11 @@ const RedeemWallet: React.FC<RedeemWalletProps> = ({ mode }) => {
                         style={tw.style('rounded-md')}
                       />
                     ) : (
-                      { text: `${formatAmount(netAmountNumber)} ${currency}` }
+                      {
+                        text: `${formatAmount(
+                          expectedToReceiveNumber,
+                        )} ${currency}`,
+                      }
                     ),
                 }}
               />

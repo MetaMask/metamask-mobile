@@ -428,7 +428,7 @@ describe('Cashback Component', () => {
       expect(screen.getByText('Withdrawal unavailable')).toBeOnTheScreen();
     });
 
-    it('shows unavailable label when net amount floors to zero', () => {
+    it('shows unavailable label when expected receive floors to zero', () => {
       mockHookReturn.wallet = {
         id: 'w1',
         balance: '0.50005',
@@ -672,7 +672,7 @@ describe('Cashback Component', () => {
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
-      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
+      expect(mockWithdraw).toHaveBeenCalledWith('10.00');
     });
   });
 
@@ -708,7 +708,7 @@ describe('Cashback Component', () => {
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
-      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
+      expect(mockWithdraw).toHaveBeenCalledWith('10.00');
     });
 
     it('shows the funding warning and redirects to Spending Limit when no destination is configured', () => {
@@ -740,7 +740,7 @@ describe('Cashback Component', () => {
   });
 
   describe('withdraw action', () => {
-    it('calls withdraw with net amount on button press', () => {
+    it('calls withdraw with full balance on button press', () => {
       mockHookReturn.wallet = {
         id: 'w1',
         balance: '10.00',
@@ -758,7 +758,28 @@ describe('Cashback Component', () => {
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
-      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
+      expect(mockWithdraw).toHaveBeenCalledWith('10.00');
+    });
+
+    it('submits the full cashback balance for dust-sized claims', () => {
+      mockHookReturn.wallet = {
+        id: 'w1',
+        balance: '0.0007',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.0005',
+      };
+
+      render();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).toHaveBeenCalledWith('0.0007');
     });
 
     it('tracks analytics event on withdraw', () => {

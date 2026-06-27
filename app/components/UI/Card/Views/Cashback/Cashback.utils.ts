@@ -1,3 +1,6 @@
+import BigNumber from 'bignumber.js';
+import { safeParseBigNumber } from '../../../../../util/number/bignumber';
+
 const CURRENCY_DISPLAY_MAP: Record<string, string> = {
   musd: 'mUSD',
   usdc: 'USDC',
@@ -6,6 +9,7 @@ const CURRENCY_DISPLAY_MAP: Record<string, string> = {
 
 export const DISPLAY_PRECISION = 4;
 const DISPLAY_SCALE = 10 ** DISPLAY_PRECISION;
+const ZERO = new BigNumber(0);
 
 export const formatCurrency = (raw: string): string =>
   CURRENCY_DISPLAY_MAP[raw.toLowerCase()] ?? raw.toUpperCase();
@@ -18,33 +22,30 @@ export const formatAmount = (value: string | number): string => {
   return formatted;
 };
 
-export const roundFeeUp = (fee: number): number => {
-  if (Number.isNaN(fee) || fee <= 0) {
-    return 0;
+const roundFeeUpToDisplayPrecision = (fee: string | number): BigNumber => {
+  const parsedFee = safeParseBigNumber(fee);
+  if (!parsedFee.isFinite() || parsedFee.lte(0)) {
+    return ZERO;
   }
-  return Math.ceil(fee * DISPLAY_SCALE) / DISPLAY_SCALE;
+  return parsedFee.decimalPlaces(DISPLAY_PRECISION, BigNumber.ROUND_CEIL);
 };
+
+export const roundFeeUp = (fee: string | number): number =>
+  roundFeeUpToDisplayPrecision(fee).toNumber();
 
 export const floorToDisplayPrecision = (value: number): number => {
-  if (Number.isNaN(value) || value <= 0) {
+  const parsedValue = safeParseBigNumber(value);
+  if (!parsedValue.isFinite() || parsedValue.lte(0)) {
     return 0;
   }
-  return Math.floor(value * DISPLAY_SCALE) / DISPLAY_SCALE;
-};
-
-const toCanonicalAmountString = (value: number): string => {
-  const floored = floorToDisplayPrecision(value);
-  if (floored === 0) {
-    return '0';
-  }
-  return floored.toFixed(DISPLAY_PRECISION).replace(/\.?0+$/, '');
+  return parsedValue
+    .decimalPlaces(DISPLAY_PRECISION, BigNumber.ROUND_FLOOR)
+    .toNumber();
 };
 
 export interface CashbackWithdrawalAmounts {
-  roundedFee: string;
   roundedFeeNum: number;
-  netAmount: string;
-  netAmountNumber: number;
+  expectedToReceiveNumber: number;
   hasInsufficientBalance: boolean;
 }
 
@@ -52,21 +53,25 @@ export const getCashbackWithdrawalAmounts = (
   balance: string,
   feePrice: string,
 ): CashbackWithdrawalAmounts => {
-  const balanceNum = parseFloat(balance);
-  const feeNum = parseFloat(feePrice);
-  const safeBalance = Number.isNaN(balanceNum) ? 0 : balanceNum;
-  const roundedFeeNum = roundFeeUp(Number.isNaN(feeNum) ? 0 : feeNum);
-  const netAmountNumber = floorToDisplayPrecision(
-    Math.max(0, safeBalance - roundedFeeNum),
-  );
+  const parsedBalance = safeParseBigNumber(balance);
+  const safeBalance =
+    parsedBalance.isFinite() && parsedBalance.gt(0) ? parsedBalance : ZERO;
+  const roundedFee = roundFeeUpToDisplayPrecision(feePrice);
+  const roundedFeeNum = roundedFee.toNumber();
+  const expectedToReceive = safeBalance.minus(roundedFee);
+  const expectedToReceiveNumber = expectedToReceive.gt(0)
+    ? expectedToReceive
+        .decimalPlaces(DISPLAY_PRECISION, BigNumber.ROUND_FLOOR)
+        .toNumber()
+    : 0;
   const hasInsufficientBalance =
-    safeBalance <= 0 || safeBalance <= roundedFeeNum || netAmountNumber <= 0;
+    safeBalance.lte(0) ||
+    safeBalance.lte(roundedFee) ||
+    expectedToReceiveNumber <= 0;
 
   return {
-    roundedFee: toCanonicalAmountString(roundedFeeNum),
     roundedFeeNum,
-    netAmount: toCanonicalAmountString(netAmountNumber),
-    netAmountNumber,
+    expectedToReceiveNumber,
     hasInsufficientBalance,
   };
 };

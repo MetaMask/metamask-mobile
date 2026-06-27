@@ -110,7 +110,7 @@ jest.mock('../../hooks/useRedeemDestination', () => ({
   default: () => mockDestination,
 }));
 
-const mockHookReturn = {
+const createMockHookReturn = () => ({
   wallet: {
     id: 'w1',
     balance: '10.86',
@@ -143,7 +143,9 @@ const mockHookReturn = {
   monitoringStatus: 'idle' as string,
   monitoringError: null as Error | null,
   resetWithdraw: jest.fn(),
-};
+});
+
+let mockHookReturn = createMockHookReturn();
 
 jest.mock('../../hooks/useRedeemableWallet', () => ({
   __esModule: true,
@@ -158,7 +160,7 @@ jest.mock('../../../../../selectors/accountsController', () => ({
 }));
 
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { fireEvent, screen } from '@testing-library/react-native';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { ToastContext } from '../../../../../component-library/components/Toast';
 import CreditRedeem from './CreditRedeem';
@@ -183,6 +185,7 @@ describe('CreditRedeem', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
+    mockHookReturn = createMockHookReturn();
     mockDestination = defaultDestination();
   });
 
@@ -234,5 +237,27 @@ describe('CreditRedeem', () => {
     expect(screen.getByTestId(CreditRedeemSelectors.TO_ROW)).toHaveTextContent(
       /0x11111/,
     );
+  });
+
+  it('submits the full credit balance for dust-sized claims', () => {
+    mockHookReturn.wallet = {
+      id: 'w1',
+      balance: '0.0007',
+      currency: 'musd',
+      isWithdrawable: true,
+      type: 'credit',
+    };
+    mockHookReturn.estimation = {
+      wei: '1',
+      eth: '0',
+      price: '0.0005',
+      network: 'linea',
+    };
+
+    render();
+
+    fireEvent.press(screen.getByTestId(CreditRedeemSelectors.WITHDRAW_BUTTON));
+
+    expect(mockHookReturn.withdraw).toHaveBeenCalledWith('0.0007');
   });
 });
