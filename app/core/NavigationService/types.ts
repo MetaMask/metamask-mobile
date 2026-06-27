@@ -92,6 +92,7 @@ import type {
   UnstakeParams,
   ClaimParams,
 } from '../../components/UI/Stake/Views/StakeInputView/StakeInputView.types';
+import type { TokenI } from '../../components/UI/Tokens/types';
 
 // Send flow params
 import type {
@@ -206,6 +207,8 @@ import type {
   LendingWithdrawalConfirmationParams,
   LendingMaxWithdrawalModalParams,
 } from '../../components/UI/Earn/Earn.types';
+import type { EarnTokenListViewRouteParams } from '../../components/UI/Earn/components/EarnTokenList';
+import type { EarnMusdConversionEducationViewRouteParams } from '../../components/UI/Earn/Views/EarnMusdConversionEducationView';
 
 // Modal params
 import type {
@@ -732,13 +735,13 @@ export type RootStackParamList = {
   StakeConfirmation: StakeConfirmationParams | undefined;
   Unstake: UnstakeParams | undefined;
   UnstakeConfirmation: UnstakeConfirmationParams | undefined;
-  EarningsHistory: undefined;
+  EarningsHistory: { asset: TokenI };
   Claim: ClaimParams | undefined;
   LearnMore: LearnMoreModalParams | undefined;
   TrxLearnMore: undefined;
   MaxInput: MaxInputModalParams;
   GasImpact: GasImpactModalParams;
-  EarnTokenList: undefined;
+  EarnTokenList: EarnTokenListViewRouteParams | undefined;
 
   // Earn routes
   EarnScreens: EarnScreensParams | undefined;
@@ -746,7 +749,9 @@ export type RootStackParamList = {
   EarnLendingWithdrawalConfirmation:
     | LendingWithdrawalConfirmationParams
     | undefined;
-  EarnMusdConversionEducation: undefined;
+  EarnMusdConversionEducation:
+    | EarnMusdConversionEducationViewRouteParams
+    | undefined;
   EarnModals: NestedNavigationParams | undefined;
   EarnLendingMaxWithdrawalModal: LendingMaxWithdrawalModalParams | undefined;
   EarnLendingLearnMoreModal: undefined;
