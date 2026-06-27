@@ -5,7 +5,7 @@ import SocialLoginErrorSheet from './SocialLoginErrorSheet';
 import SRPErrorScreen from './SRPErrorScreen';
 import { AccountType } from '../../../constants/onboarding';
 
-interface WalletCreationErrorParams {
+export interface WalletCreationErrorParams {
   metricsEnabled: boolean;
   error: Error;
   accountType?: AccountType;
