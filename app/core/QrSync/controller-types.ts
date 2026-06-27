@@ -30,11 +30,28 @@ export type QrSyncControllerState = {
   error: QrSyncError | null;
 };
 
-/** Controller-local actions exposed by the QR sync controller namespace. */
-export type QrSyncControllerActions = ControllerGetStateAction<
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncControllerCompleteSecretImportAction = {
+  type: `${typeof QR_SYNC_CONTROLLER_NAME}:completeSecretImport`;
+  handler: (enrichedMetadata: QrSyncProvisioningMetadata) => void;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncControllerMarkProvisioningFailedAction = {
+  type: `${typeof QR_SYNC_CONTROLLER_NAME}:markProvisioningFailed`;
+  handler: () => void;
+};
+
+export type QrSyncControllerGetStateAction = ControllerGetStateAction<
   typeof QR_SYNC_CONTROLLER_NAME,
   QrSyncControllerState
 >;
+
+/** Controller-local actions exposed by the QR sync controller namespace. */
+export type QrSyncControllerActions =
+  | QrSyncControllerGetStateAction
+  | QrSyncControllerCompleteSecretImportAction
+  | QrSyncControllerMarkProvisioningFailedAction;
 
 /** Controller-local events emitted by the QR sync controller namespace. */
 export type QrSyncControllerEvents = ControllerStateChangeEvent<

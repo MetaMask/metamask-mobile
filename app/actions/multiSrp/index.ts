@@ -12,6 +12,11 @@ import { mnemonicPhraseToBytes } from '@metamask/key-tree';
 
 export interface ImportNewSecretRecoveryPhraseOptions {
   shouldSelectAccount: boolean;
+  /**
+   * When true, skips background account discovery after import.
+   * Used by QR Sync onboarding so Phase C can provision groups explicitly.
+   */
+  skipDiscovery?: boolean;
 }
 
 export interface ImportNewSecretRecoveryPhraseReturnType {
@@ -23,13 +28,14 @@ export async function importNewSecretRecoveryPhrase(
   seed: string,
   options: ImportNewSecretRecoveryPhraseOptions = {
     shouldSelectAccount: true,
+    skipDiscovery: false,
   },
   callback?: (
     options: ImportNewSecretRecoveryPhraseReturnType & { error?: Error },
   ) => Promise<void>,
 ): Promise<ImportNewSecretRecoveryPhraseReturnType> {
   const { KeyringController, MultichainAccountService } = Engine.context;
-  const { shouldSelectAccount } = options;
+  const { shouldSelectAccount, skipDiscovery } = options;
 
   // Convert mnemonic
   const seedLower = seed.toLowerCase();
@@ -100,35 +106,39 @@ export async function importNewSecretRecoveryPhrase(
     }
   }
 
-  // This function will return 0 discovered account immediately, so we have to use
-  // the `callback` instead to get this information.
-  let discoveredAccountsCount: number = 0;
-  // We use an IIFE to be able to use async/await but not block the main thread.
-  (async () => {
-    let capturedError;
-    try {
-      // HACK: Force Snap keyring instantiation.
-      await Engine.getSnapKeyring();
-      // We need to dispatch a full sync here since this is a new SRP
-      await Engine.context.AccountTreeController.syncWithUserStorage();
-      // Then we discover accounts
-      discoveredAccountsCount = await discoverAccounts(entropySource);
-    } catch (error) {
-      capturedError = new Error(
-        `Unable to sync, discover and create accounts: ${error}`,
-      );
-      discoveredAccountsCount = 0;
+  const discoveredAccountsCount = 0;
 
-      captureException(capturedError);
-    } finally {
-      // We trigger the callback with the results, even in case of error (0 discovered accounts)
-      await callback?.({
-        address: newAccount.address,
-        discoveredAccountsCount,
-        error: capturedError,
-      });
-    }
-  })();
+  if (!skipDiscovery) {
+    // This function returns 0 discovered accounts immediately, so callers use
+    // the `callback` to receive the async discovery result.
+    // We use an IIFE to use async/await without blocking the main thread.
+    (async () => {
+      let asyncDiscoveredAccountsCount = 0;
+      let capturedError;
+      try {
+        // HACK: Force Snap keyring instantiation.
+        await Engine.getSnapKeyring();
+        // We need to dispatch a full sync here since this is a new SRP
+        await Engine.context.AccountTreeController.syncWithUserStorage();
+        // Then we discover accounts
+        asyncDiscoveredAccountsCount = await discoverAccounts(entropySource);
+      } catch (error) {
+        capturedError = new Error(
+          `Unable to sync, discover and create accounts: ${error}`,
+        );
+        asyncDiscoveredAccountsCount = 0;
+
+        captureException(capturedError);
+      } finally {
+        // We trigger the callback with the results, even in case of error (0 discovered accounts)
+        await callback?.({
+          address: newAccount.address,
+          discoveredAccountsCount: asyncDiscoveredAccountsCount,
+          error: capturedError,
+        });
+      }
+    })();
+  }
 
   if (shouldSelectAccount) {
     Engine.setSelectedAddress(newAccount.address);

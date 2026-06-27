@@ -11,6 +11,7 @@ import type {
   QrSyncConnectionStatus,
   QrSyncError,
   QrSyncPhase,
+  QrSyncProvisioningMetadata,
   QrSyncServiceEvent,
   QrSyncWireMessage,
 } from './types';
@@ -177,6 +178,37 @@ export class QrSyncController extends BaseController<
     this.notifyPeerAndEndSession(QrSyncActionTypes.SYNC_CANCEL).catch(
       () => undefined,
     );
+  }
+
+  /**
+   * Persists enriched provisioning metadata after all secrets are imported into
+   * the vault. Clears ephemeral secret material from memory.
+   */
+  public completeSecretImport(
+    enrichedMetadata: QrSyncProvisioningMetadata,
+  ): void {
+    if (!enrichedMetadata) {
+      throw new Error(
+        'QrSyncController.completeSecretImport requires enriched metadata',
+      );
+    }
+
+    this.update((state) => {
+      state.pendingSecretImports = null;
+      state.provisioningMetadata = enrichedMetadata;
+      state.provisioningStatus = 'secrets_imported';
+    });
+  }
+
+  /**
+   * Marks onboarding provisioning as failed and clears ephemeral secrets.
+   * Persisted metadata is retained for potential retry (Phase C).
+   */
+  public markProvisioningFailed(): void {
+    this.update((state) => {
+      state.provisioningStatus = 'failed';
+      state.pendingSecretImports = null;
+    });
   }
 
   private attachClient(client: WalletClient, sessionId: string): void {

@@ -574,4 +574,56 @@ describe('QrSyncController', () => {
       });
     });
   });
+
+  describe('provisioning mutations', () => {
+    const enrichedMetadata = {
+      version: 1 as const,
+      entries: [
+        {
+          index: 0,
+          type: 'MNEMONIC' as const,
+          isPrimary: true,
+          entropySource: 'entropy-1',
+        },
+      ],
+    };
+
+    it('clears secrets and sets secrets_imported via completeSecretImport', async () => {
+      const controller = buildController({
+        getIsOnboardingCompleted: () => false,
+      });
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      controller.completeSecretImport(enrichedMetadata);
+
+      expect(controller.state.pendingSecretImports).toBeNull();
+      expect(controller.state.provisioningMetadata).toEqual(enrichedMetadata);
+      expect(controller.state.provisioningStatus).toBe('secrets_imported');
+    });
+
+    it('clears secrets and sets failed via markProvisioningFailed', async () => {
+      const controller = buildController({
+        getIsOnboardingCompleted: () => false,
+      });
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      const metadataBeforeFailure = controller.state.provisioningMetadata;
+
+      controller.markProvisioningFailed();
+
+      expect(controller.state.pendingSecretImports).toBeNull();
+      expect(controller.state.provisioningMetadata).toEqual(
+        metadataBeforeFailure,
+      );
+      expect(controller.state.provisioningStatus).toBe('failed');
+    });
+  });
 });

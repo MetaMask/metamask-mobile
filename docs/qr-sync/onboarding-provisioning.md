@@ -1,50 +1,101 @@
 # QR Sync — New-User Onboarding Provisioning
 
-Implementation reference for importing wallets and accounts from the MetaMask extension via QR Sync during **new-user onboarding**. This document consolidates protocol flow, controller responsibilities, state design, and integration points agreed in design review.
+Implementation reference for importing wallets and accounts from the MetaMask extension via QR Sync during **new-user onboarding**.
 
 **Scope:** New users (`isOnboardingCompleted === false`) who complete Add Device → OTP → password import.
 
-**Out of scope (unchanged):** Login-time discovery (`postLoginAsyncOperations`), Home cloud sync (`useIdentityEffects`), manual SRP import, existing-user QR sync (separate follow-up).
+**Out of scope:** Login-time discovery (`postLoginAsyncOperations`), Home cloud sync (`useIdentityEffects`), manual SRP import, existing-user QR sync (separate follow-up).
+
+---
+
+## How to resume this work
+
+Read this section first if you are picking the task up after time away.
+
+| Question             | Answer                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------- |
+| What is done?        | **Phase A** — wire payload validation, controller state split, navigation to password import |
+| What is next?        | **Phase B** — import remaining secrets after password, enrich metadata                       |
+| Canonical types      | `app/core/QrSync/types.ts` (wire + provisioning + protocol in one file)                      |
+| Canonical validation | `app/core/QrSync/services/qr-sync-validation.ts` → `parseQrSyncSyncReadyMessage`             |
+| Tests to run         | `yarn jest app/core/QrSync`                                                                  |
+
+**Do not re-introduce:** legacy wire format (`{ type, value, metadata }`), `importPlan`, `provisioning-types.ts`, or a separate payload splitter module. Mapping happens inside `parseQrSyncSyncReadyMessage`.
 
 ---
 
 ## Table of contents
 
-1. [Goals and constraints](#goals-and-constraints)
-2. [High-level flow](#high-level-flow)
-3. [Controller state design](#controller-state-design)
-4. [Phase-by-phase behaviour](#phase-by-phase-behaviour)
-5. [External dependencies](#external-dependencies)
-6. [Metadata interface](#metadata-interface)
-7. [Metadata → controller mapping](#metadata--controller-mapping)
-8. [Interface sufficiency review](#interface-sufficiency-review)
-9. [Integration touchpoints (non-QrSync files)](#integration-touchpoints-non-qrsync-files)
-10. [Failure handling and retry](#failure-handling-and-retry)
-11. [Implementation order](#implementation-order)
+1. [Implementation status](#implementation-status)
+2. [Goals and constraints](#goals-and-constraints)
+3. [End-to-end flow](#end-to-end-flow)
+4. [Controller state](#controller-state)
+5. [Types reference](#types-reference)
+6. [Phase A — SYNC_READY (done)](#phase-a--sync_ready-done)
+7. [Phase B — Password submit (next)](#phase-b--password-submit-next)
+8. [Phase C — OnboardingSuccess](#phase-c--onboardingsuccess)
+9. [Phase D — After Home](#phase-d--after-home)
+10. [Metadata → AccountTree mapping](#metadata--accounttree-mapping)
+11. [Failure handling](#failure-handling)
+12. [Implementation checklist](#implementation-checklist)
+13. [Testing plan](#testing-plan)
+14. [Related code](#related-code)
+
+---
+
+## Implementation status
+
+| Phase | Description                                                      | Status                 |
+| ----- | ---------------------------------------------------------------- | ---------------------- |
+| **A** | Parse `SYNC_READY`, store secrets + metadata, navigate to import | **Done**               |
+| **B** | Import remaining secrets at password; enrich metadata            | **Not started**        |
+| **C** | Create groups + apply names/pin/hide on OnboardingSuccess        | **Not started**        |
+| **D** | Post-home cloud sync / unlock discovery                          | Unchanged (no QR work) |
+
+### Phase A deliverables (verified)
+
+- [x] `pendingSecretImports` + `provisioningMetadata` + `provisioningStatus` on `QrSyncController`
+- [x] `parseQrSyncSyncReadyMessage` in `qr-sync-validation.ts`
+- [x] `routeIncomingQrSyncMessage` returns flat `pendingSecretImports` / `provisioningMetadata`
+- [x] Persistence: metadata + status persisted; secrets never persisted
+- [x] Selectors: `selectQrSyncPrimaryMnemonic`, `selectQrSyncShouldNavigateToImport`, etc.
+- [x] `ImportFromSecretRecoveryPhrase` pre-fills primary mnemonic when `qrSyncImport: true`
+- [x] Unit tests: `QrSyncController`, `qr-sync-validation`
+
+### Not built yet (Phase B+)
+
+- [ ] `QrSyncProvisioningService`
+- [ ] `skipDiscovery` option on `importNewSecretRecoveryPhrase`
+- [ ] `ImportFromSecretRecoveryPhrase` calls provisioning after `newWalletAndRestore`
+- [ ] `selectQrSyncNeedsProvisioning` selector
+- [ ] `OnboardingSuccess` branches to `provisionFromMetadata` vs `discoverAccounts`
+- [ ] Controller public APIs to mutate provisioning state from the service
+- [ ] App-launch resume for `provisioningStatus === 'secrets_imported'`
 
 ---
 
 ## Goals and constraints
 
-| Goal                                   | Approach                                                                                           |
-| -------------------------------------- | -------------------------------------------------------------------------------------------------- |
-| Multi-SRP + private-key import         | Use existing `newWalletAndRestore`, `importNewSecretRecoveryPhrase`, `importAccountFromPrivateKey` |
-| Correct names, pin, hide               | Apply via `AccountTreeController` after accounts exist                                             |
-| Explicit account groups from extension | Replace **only** `OnboardingSuccess` `discoverAccounts` with deterministic group creation          |
-| No secret staleness in memory          | Wipe ephemeral secrets after vault import; persist metadata for retry                              |
-| No `@metamask/*` package bumps         | Use APIs already in current mobile dependencies                                                    |
-| Extension export is ground truth       | User selected accounts on extension; skip activity-based discovery at onboarding success           |
+| Goal                                   | Approach                                                                              |
+| -------------------------------------- | ------------------------------------------------------------------------------------- |
+| Multi-SRP + private-key import         | `newWalletAndRestore`, `importNewSecretRecoveryPhrase`, `importAccountFromPrivateKey` |
+| Correct names, pin, hide               | `AccountTreeController` after accounts exist (Phase C)                                |
+| Explicit account groups from extension | Replace **only** OnboardingSuccess `discoverAccounts` with deterministic provisioning |
+| No secret staleness in memory          | Wipe `pendingSecretImports` after Phase B; keep metadata for Phase C                  |
+| No `@metamask/*` package bumps         | Use APIs already in current mobile dependencies                                       |
+| Extension export is ground truth       | Skip activity-based `discoverAccounts` for QR onboarding users                        |
 
-**Constraints:**
+**Hard constraints:**
 
 - Secrets cannot be imported before the vault exists (password step).
-- `newWalletAndRestore` must run first for the primary mnemonic.
-- `importNewSecretRecoveryPhrase` fires background `discoverAccounts` today — QR flow must pass `skipDiscovery: true` to avoid racing provisioning.
-- Group `0` per HD wallet is created automatically by restore/import; provisioning only creates indices `≥ 1` (or non-contiguous indices individually).
+- `newWalletAndRestore` must run first for the **primary** mnemonic (`isPrimary: true`).
+- `importNewSecretRecoveryPhrase` currently fires `discoverAccounts` in the background — QR flow **must** pass `skipDiscovery: true` to avoid racing Phase C.
+- Group `0` per HD wallet is created automatically by restore/import; Phase C only creates indices `≥ 1` (or non-contiguous indices individually).
+- Wire format is **v1 only**: `{ version: 1, deadline, data: [Mnemonic \| PrivateKey, ...] }`.
 
 ---
 
-## High-level flow
+## End-to-end flow
 
 ```mermaid
 sequenceDiagram
@@ -52,400 +103,479 @@ sequenceDiagram
     participant QC as QrSyncController
     participant Import as ImportFromSRP
     participant Auth as Authentication
-    participant MAS as MultichainAccountService
-    participant Success as OnboardingSuccess
     participant Prov as QrSyncProvisioningService
+    participant Success as OnboardingSuccess
+    participant MAS as MultichainAccountService
     participant ATC as AccountTreeController
 
-    Ext->>QC: SYNC_READY (secrets + metadata)
-    QC->>QC: Split, persist metadata, hold secrets in memory
-    QC->>Import: Navigate (qrSyncImport, password step)
-    Import->>Auth: newWalletAndRestore(primary)
-    Auth->>MAS: createMultichainAccountWallet(restore)
+    Ext->>QC: SYNC_READY (v1 payload)
+    Note over QC: Phase A (done)
+    QC->>QC: parse → pendingSecretImports + provisioningMetadata
+    QC->>Import: Navigate (qrSyncImport: true)
+
+    Import->>Auth: newWalletAndRestore(primary mnemonic)
+    Note over Import,Prov: Phase B (next)
     Import->>Prov: importRemainingSecrets()
-    Prov->>Auth: importNewSecretRecoveryPhrase / importAccountFromPrivateKey
-    Prov->>QC: Wipe secrets, status = secrets_imported
+    Prov->>Auth: secondary SRPs / private keys
+    Prov->>QC: enrich metadata, clear secrets, status = secrets_imported
     Import->>Success: Navigate
-    Success->>Prov: provisionFromMetadata() instead of discoverAccounts
-    Prov->>MAS: createMultichainAccountGroups + alignWallet
+
+    Note over Success,ATC: Phase C
+    Success->>Prov: provisionFromMetadata()
+    Prov->>MAS: createMultichainAccountGroups / alignWallet
     Prov->>ATC: set names, pin, hide, selected group
+    Prov->>QC: status = completed, clear metadata
     Success->>Success: Navigate Home (non-blocking)
 ```
 
 ### What existing onboarding already does (QR does not replace)
 
-On password submit, `Authentication.newWalletAndRestore` → `MultichainAccountService.createMultichainAccountWallet({ type: 'restore' })` → `dispatchLogin` → `AccountTreeInitService.initializeAccountTree()` (`AccountsController.updateAccounts`, `AccountTreeController.init`, `MultichainAccountService.init`).
+On password submit, `Authentication.newWalletAndRestore` → `MultichainAccountService.createMultichainAccountWallet({ type: 'restore' })` → `dispatchLogin` → `AccountTreeInitService.initializeAccountTree()`.
 
 That creates the vault, primary HD wallet, and **group 0**. No `discoverAccounts` runs here.
 
 ### What QR replaces
 
-`OnboardingSuccess` `handleOnDone` currently calls `discoverAccounts(keyrings[0])`. For QR users, call `QrSyncProvisioningService.provisionFromMetadata()` instead — for **all** wallets in the persisted metadata plan, not only the primary keyring.
+`OnboardingSuccess` `handleOnDone` currently always calls `discoverAccounts(keyrings[0])`. For QR users with `provisioningStatus === 'secrets_imported'`, call `QrSyncProvisioningService.provisionFromMetadata()` instead — for **all** wallets in the persisted metadata plan.
 
 ---
 
-## Controller state design
-
-Split secrets from durable metadata in `QrSyncController`.
-
-### State fields
+## Controller state
 
 ```typescript
-/** Ephemeral — never persisted */
-pendingSecretImports: QrSyncSecretImportEntry[] | null;
+// app/core/QrSync/controller-types.ts
 
-/** Persisted — no secret material */
-provisioningMetadata: QrSyncProvisioningMetadata | null;
-
-provisioningStatus:
-  | 'idle'
-  | 'awaiting_password'
-  | 'importing_secrets'
-  | 'secrets_imported'
-  | 'applying_metadata'
-  | 'completed'
-  | 'failed';
-
-error: QrSyncError | null;
-// ... existing phase, connectionStatus, otp
+pendingSecretImports: QrSyncSecretImportEntry[] | null;  // never persisted
+provisioningMetadata: QrSyncProvisioningMetadata | null; // persisted
+provisioningStatus: QrSyncProvisioningStatus | null;     // persisted
+// + phase, connectionStatus, otp, error (session lifecycle)
 ```
+
+### `provisioningStatus` values (implemented)
+
+| Value               | Meaning                                                            |
+| ------------------- | ------------------------------------------------------------------ |
+| `null`              | No active provisioning pipeline                                    |
+| `awaiting_password` | Secrets in memory; user must set password (Phase A sets this)      |
+| `secrets_imported`  | Vault + all secrets imported; metadata enriched; ready for Phase C |
+| `completed`         | Phase C finished; metadata cleared                                 |
+| `failed`            | Provisioning failed; set status only (no extra retry UI in scope)  |
+
+We intentionally keep this enum small. Do not add `importing_secrets` / `applying_metadata` unless a product requirement appears.
 
 ### Persistence policy
 
-| Field                              | `persist`          |
-| ---------------------------------- | ------------------ |
-| `pendingSecretImports`             | `false`            |
-| `provisioningMetadata`             | `true`             |
-| `provisioningStatus`               | `true`             |
-| `phase`, `otp`, `connectionStatus` | `false` (existing) |
+| Field                                       | `persist` |
+| ------------------------------------------- | --------- |
+| `pendingSecretImports`                      | `false`   |
+| `provisioningMetadata`                      | `true`    |
+| `provisioningStatus`                        | `true`    |
+| `phase`, `otp`, `connectionStatus`, `error` | `false`   |
 
-After secret import succeeds, enrich mnemonic entries in `provisioningMetadata` with resolved `entropySource` (see [Metadata interface](#metadata-interface)). This is not secret material and enables retry without re-scanning QR.
-
-### Deprecation
-
-Replace monolithic `importPlan` with `pendingSecretImports` + `provisioningMetadata`. Update selectors (`selectQrSyncPrimaryMnemonic`, etc.) accordingly.
+After Phase B, mnemonic entries in `provisioningMetadata` gain `entropySource`; private-key entries gain `accountAddress`. These are not secrets and enable Phase C without re-scanning QR.
 
 ---
 
-## Phase-by-phase behaviour
+## Types reference
 
-### Phase A — `SYNC_READY` (QrSyncController)
+All types live in **`app/core/QrSync/types.ts`**.
 
-1. Validate and normalize wire payload (`qr-sync-validation.ts`).
-2. Split into `pendingSecretImports` and `provisioningMetadata`.
-3. Set `provisioningStatus = 'awaiting_password'`, `phase = reviewing-import`.
-4. Send `SYNC_COMPLETED` to extension (protocol unchanged).
-5. Navigate to `ImportFromSecretRecoveryPhrase` with `qrSyncImport: true` (existing).
-
-### Phase B — Password submit (`ImportFromSecretRecoveryPhrase`)
-
-1. `Authentication.newWalletAndRestore(password, authData, primaryMnemonic, true)` — **unchanged**.
-2. `QrSyncProvisioningService.importRemainingSecrets()`:
-   - For each non-primary mnemonic: `importNewSecretRecoveryPhrase(seed, { shouldSelectAccount: false, skipDiscovery: true })`.
-   - For each private key: `Authentication.importAccountFromPrivateKey(pk, { shouldSelectAccount: false, shouldCreateSocialBackup: false })`.
-3. Resolve `entropySource` per mnemonic entry; write back to `provisioningMetadata.entries[]`.
-4. For each private-key entry, resolve `accountAddress` (or `groupId`) post-import; write back to metadata.
-5. Clear `pendingSecretImports`, set `provisioningStatus = 'secrets_imported'`.
-6. Navigate to `OnboardingSuccess` — **unchanged**.
-
-No account group creation or metadata application in this phase.
-
-### Phase C — `OnboardingSuccess` Done
+### Wire payload (extension → mobile)
 
 ```typescript
-if (selectQrSyncNeedsProvisioning(state)) {
-  void QrSyncProvisioningService.provisionFromMetadata();
-} else {
-  void discoverAccounts(keyrings[0].metadata.id);
-}
-queueMicrotask(() => onDone());
-```
+// Envelope: QrSyncSyncReadyMessage { type: 'sync-ready', version: '1.0.0', data: QrSyncReadyPayload }
 
-`provisionFromMetadata()` (background, non-blocking navigation):
+type QrSyncReadyPayload = {
+  version: 1; // QrSyncSchemaVersion
+  deadline: number;
+  data: QrSyncReadyData[];
+};
 
-1. `await Engine.getSnapKeyring()` (existing pattern).
-2. For each **MNEMONIC** entry in metadata:
-   - Compute `maxGroupIndex` from `groups[]`.
-   - If `maxGroupIndex > 0`: `MultichainAccountService.createMultichainAccountGroups({ entropySource, fromGroupIndex: 1, toGroupIndex: maxGroupIndex })` when indices are contiguous; otherwise `createMultichainAccountGroup` per index (see [Interface sufficiency](#interface-sufficiency-review)).
-   - `MultichainAccountService.alignWallet(entropySource)` for Snap/multichain alignment.
-   - `AccountTreeController.setAccountWalletName(walletId, walletName)`.
-   - Per group: `setAccountGroupName`, `setAccountGroupPinned`, `setAccountGroupHidden`.
-3. For each **PRIVATE_KEY** entry:
-   - Resolve `groupId` from stored `accountAddress` / import order.
-   - `setAccountGroupName(groupId, accountName)` (+ pin/hide if present).
-4. `setSelectedAccountGroup` for first `pinned: true` group across plan, else primary group 0.
-5. Set `provisioningStatus = 'completed'`, clear `provisioningMetadata`.
+// Mnemonic entry — only `mnemonic` is required on wire
+type QrSyncReadyMnemonicData = {
+  type: 'Mnemonic';
+  mnemonic: string;
+  name?: string; // wallet name → AccountTreeWalletMetadata.name
+  groups?: QrSyncAccountGroup[];
+  isPrimary?: boolean;
+};
 
-### Phase D — After Home (unchanged)
+// Private-key entry
+type QrSyncReadyPrivateKeyData = {
+  type: 'PrivateKey';
+  privateKey: string;
+  name: string; // account group name → AccountTreeGroupMetadata.name
+  pinned?: boolean;
+  hidden?: boolean;
+};
 
-- `useIdentityEffects` cloud sync when Backup & Sync enabled.
-- `postLoginAsyncOperations` discovery on **unlock** (not first onboard).
-
----
-
-## External dependencies
-
-### By phase
-
-| Phase | Service / controller            | Package                                | Purpose                                        |
-| ----- | ------------------------------- | -------------------------------------- | ---------------------------------------------- |
-| A     | `WalletClient`, `KeyManager`    | MWP packages                           | Encrypted QR session                           |
-| B     | `Authentication`                | app core                               | Vault restore, PK import                       |
-| B     | `MultichainAccountService`      | `@metamask/multichain-account-service` | `createMultichainAccountWallet`                |
-| B     | `importNewSecretRecoveryPhrase` | `app/actions/multiSrp`                 | Secondary SRP import                           |
-| B     | `AccountTreeInitService`        | app                                    | Tree init via `dispatchLogin`                  |
-| C     | `MultichainAccountService`      | same                                   | `createMultichainAccountGroups`, `alignWallet` |
-| C     | `AccountTreeController`         | `@metamask/account-tree-controller`    | Names, pin, hide, selection                    |
-| C     | `Engine.getSnapKeyring`         | app                                    | Snap init before account ops                   |
-
-### Key APIs (current versions, no bump required)
-
-**MultichainAccountService** (`@metamask/multichain-account-service`):
-
-- `createMultichainAccountWallet({ type: 'restore' | 'import', ... })`
-- `createMultichainAccountGroups({ entropySource, fromGroupIndex?, toGroupIndex })`
-- `createMultichainAccountGroup({ entropySource, groupIndex })`
-- `getMultichainAccountGroup({ entropySource, groupIndex })`
-- `alignWallet(entropySource)`
-
-**AccountTreeController** (`@metamask/account-tree-controller@7.5.3`):
-
-- `setAccountWalletName(walletId, name)`
-- `setAccountGroupName(groupId, name, autoHandleConflict?)`
-- `setAccountGroupPinned(groupId, pinned)`
-- `setAccountGroupHidden(groupId, hidden)`
-- `setSelectedAccountGroup(groupId)`
-
----
-
-## Metadata interface
-
-### Extension wire example
-
-```json
-{
-  "version": 1,
-  "data": [
-    {
-      "type": "Mnemonic",
-      "mnemonic": "test test ... junk",
-      "name": "Wallet 1",
-      "groups": [
-        { "groupIndex": 0, "name": "Account 1", "pinned": true },
-        { "groupIndex": 1, "name": "Account 2" },
-        { "groupIndex": 2, "name": "Savings", "hidden": true }
-      ]
-    },
-    {
-      "type": "PrivateKey",
-      "privateKey": "0xac09...",
-      "name": "Imported Account 1"
-    }
-  ]
-}
-```
-
-### Mobile persisted type (`QrSyncProvisioningMetadata`)
-
-```typescript
-/** Schema version for persisted provisioning metadata */
-export type QrSyncProvisioningMetadataVersion = 1;
-
-export type QrSyncProvisioningGroupMetadata = {
+type QrSyncAccountGroup = {
   groupIndex: number;
+  name: string; // account group name → AccountTreeGroupMetadata.name
+  pinned?: boolean;
+  hidden?: boolean;
+};
+```
+
+### Mobile state shapes
+
+```typescript
+// Ephemeral (memory only)
+type QrSyncSecretImportEntry = {
+  index: number;
+  type: 'MNEMONIC' | 'PRIVATE_KEY';
+  value: string; // base64-decoded secret
+  isPrimary?: boolean; // mnemonics only
+};
+
+// Persisted (no secrets)
+type QrSyncProvisioningMnemonicEntry = {
+  index: number;
+  type: 'MNEMONIC';
+  isPrimary?: boolean;
+  name?: string;
+  groups?: QrSyncAccountGroup[];
+  entropySource?: EntropySourceId; // filled in Phase B
+};
+
+type QrSyncProvisioningPrivateKeyEntry = {
+  index: number;
+  type: 'PRIVATE_KEY';
   name: string;
   pinned?: boolean;
   hidden?: boolean;
+  accountAddress?: string; // filled in Phase B
 };
 
-export type QrSyncProvisioningMnemonicEntry = {
-  /** Matches import order / wire payload index */
-  index: number;
-  type: 'MNEMONIC';
-  isPrimary: boolean;
-  walletName: string;
-  groups: QrSyncProvisioningGroupMetadata[];
-  /**
-   * Filled by mobile after secret import (Phase B).
-   * Maps this entry to MultichainAccountService / AccountTreeController.
-   */
-  entropySource?: EntropySourceId;
-};
-
-export type QrSyncProvisioningPrivateKeyEntry = {
-  index: number;
-  type: 'PRIVATE_KEY';
-  accountName: string;
-  pinned?: boolean;
-  hidden?: boolean;
-  /**
-   * Filled by mobile after secret import (Phase B).
-   * Used to resolve AccountTree groupId.
-   */
-  accountAddress?: string;
-};
-
-export type QrSyncProvisioningEntry =
-  | QrSyncProvisioningMnemonicEntry
-  | QrSyncProvisioningPrivateKeyEntry;
-
-export type QrSyncProvisioningMetadata = {
-  version: QrSyncProvisioningMetadataVersion;
-  receivedAt: number;
+type QrSyncProvisioningMetadata = {
+  version: 1;
   entries: QrSyncProvisioningEntry[];
 };
 ```
 
-### Ephemeral secret type (`QrSyncSecretImportEntry`)
-
-```typescript
-export type QrSyncSecretImportEntry = {
-  index: number;
-  type: 'MNEMONIC' | 'PRIVATE_KEY';
-  value: string;
-  isPrimary: boolean;
-};
-```
-
-Secrets and metadata share `index` for correlation across Phase B enrichment.
+`index` on secrets and metadata entries always matches the wire `data[]` order.
 
 ---
 
-## Metadata → controller mapping
+## Phase A — SYNC_READY (done)
+
+**Trigger:** Extension sends `sync-ready` over encrypted MWP session.
+
+**Flow:**
+
+1. `routeIncomingQrSyncMessage` → `parseQrSyncSyncReadyMessage`
+2. Validate envelope + v1 payload + per-entry wire shape
+3. Map wire → `pendingSecretImports` + `provisioningMetadata` (pass-through `name` / `groups`; no field renaming)
+4. If onboarding not completed: require a primary mnemonic in `pendingSecretImports`
+5. Store state; `provisioningStatus = 'awaiting_password'`; `phase` → `reviewing-import` → `completed`
+6. Send `SYNC_COMPLETED` to extension; tear down session
+7. UI navigates to `ImportFromSecretRecoveryPhrase` with `qrSyncImport: true` (via `selectQrSyncShouldNavigateToImport`)
+
+**Key files:** `QrSyncController.ts`, `qr-sync-message-router.ts`, `qr-sync-validation.ts`, `AddDeviceToWallet/index.tsx`
+
+---
+
+## Phase B — Password submit (next)
+
+**Trigger:** User submits password on `ImportFromSecretRecoveryPhrase` when `route.params.qrSyncImport === true`.
+
+**Goal:** Import every secret from `pendingSecretImports` into the vault, enrich `provisioningMetadata` with runtime IDs, wipe secrets from memory.
+
+**Do not** create account groups or apply display metadata here — that is Phase C.
+
+### Step B1 — `skipDiscovery` on multi-SRP import
+
+**File:** `app/actions/multiSrp/index.ts`
+
+Add to `ImportNewSecretRecoveryPhraseOptions`:
+
+```typescript
+skipDiscovery?: boolean;  // default false; QR sets true
+```
+
+When `skipDiscovery === true`, skip the background IIFE that calls `discoverAccounts(entropySource)` (lines ~107–131 today). Still return `{ address, discoveredAccountsCount: 0 }`.
+
+**Tests:** unit test in `app/actions/multiSrp/index.test.ts` (or existing test file).
+
+### Step B2 — `QrSyncProvisioningService`
+
+**New file:** `app/core/QrSync/services/QrSyncProvisioningService.ts`
+
+Export a small service (class or plain functions) used by UI layers. Reads/writes via `Engine.context.QrSyncController`.
+
+#### `importRemainingSecrets(): Promise<void>`
+
+**Preconditions:**
+
+- `provisioningStatus === 'awaiting_password'`
+- `pendingSecretImports` is non-empty
+- `provisioningMetadata` is non-null
+- Primary mnemonic was already imported by `newWalletAndRestore` (not repeated here)
+
+**Algorithm:**
+
+```
+FOR each entry in pendingSecretImports (in index order):
+  IF type === 'MNEMONIC' AND isPrimary === true:
+    SKIP (already restored)
+  ELSE IF type === 'MNEMONIC':
+  importNewSecretRecoveryPhrase(value, { shouldSelectAccount: false, skipDiscovery: true })
+  resolve entropySource from KeyringController / MultichainAccountService
+  write entropySource → provisioningMetadata.entries[index]
+  ELSE IF type === 'PRIVATE_KEY':
+  Authentication.importAccountFromPrivateKey(value, { shouldSelectAccount: false, shouldCreateSocialBackup: false })
+  resolve accountAddress from import result / AccountsController
+  write accountAddress → provisioningMetadata.entries[index]
+
+pendingSecretImports = null
+provisioningStatus = 'secrets_imported'
+persist enriched provisioningMetadata
+```
+
+**On any failure:**
+
+- `provisioningStatus = 'failed'`
+- Do not leave partial secrets in `pendingSecretImports` if avoidable; document behaviour in tests
+- Re-throw or surface error to ImportFromSRP UI (existing error handling)
+
+#### Entropy source resolution (mnemonic)
+
+After each non-primary mnemonic import, map `index` → `entropySource`:
+
+- Prefer return value from `MultichainAccountService.createMultichainAccountWallet` during import, or
+- Match new keyring in `KeyringController.state.keyrings` by import order / metadata
+
+Persist on `QrSyncProvisioningMnemonicEntry.entropySource`.
+
+#### Account address resolution (private key)
+
+After `importAccountFromPrivateKey`, read the created account address and persist on `QrSyncProvisioningPrivateKeyEntry.accountAddress`.
+
+### Step B3 — Controller provisioning mutations
+
+**File:** `app/core/QrSync/QrSyncController.ts`
+
+Add public methods (or messenger actions) for the service:
+
+| Method                                   | Effect                                                                                                  |
+| ---------------------------------------- | ------------------------------------------------------------------------------------------------------- |
+| `completeSecretImport(enrichedMetadata)` | `pendingSecretImports = null`, `provisioningMetadata = enrichedMetadata`, `status = 'secrets_imported'` |
+| `markProvisioningFailed()`               | `provisioningStatus = 'failed'`, clear `pendingSecretImports`                                           |
+
+The service must not mutate controller state directly.
+
+### Step B4 — Wire ImportFromSRP
+
+**File:** `app/components/Views/ImportFromSecretRecoveryPhrase/index.js`
+
+After successful `newWalletAndRestore` when `isQrSyncImport`:
+
+```javascript
+if (isQrSyncImport) {
+  await QrSyncProvisioningService.importRemainingSecrets();
+}
+// then existing navigation to OnboardingSuccess (unchanged)
+```
+
+Keep existing flow: primary mnemonic still goes through `newWalletAndRestore` with `parsedSeed` from pre-filled phrase (or `selectQrSyncPrimaryMnemonic`).
+
+**Tests:** extend `index.test.tsx` QR sync describe block — mock provisioning service, assert call after restore.
+
+### Phase B acceptance criteria
+
+- [ ] Secondary mnemonics imported with `skipDiscovery: true`
+- [ ] Private keys imported without selecting account
+- [ ] `entropySource` / `accountAddress` written to persisted metadata
+- [ ] `pendingSecretImports` cleared; `provisioningStatus === 'secrets_imported'`
+- [ ] Failure sets `provisioningStatus === 'failed'`
+- [ ] Non-QR import path unchanged
+
+---
+
+## Phase C — OnboardingSuccess
+
+**Trigger:** User taps Done on `OnboardingSuccess` after QR onboarding.
+
+**Goal:** Create explicit account groups from extension metadata and apply names, pin, hide — instead of `discoverAccounts`.
+
+### Step C1 — Selector
+
+**File:** `app/selectors/qrSyncController/index.ts`
+
+```typescript
+export const selectQrSyncNeedsProvisioning = createSelector(
+  selectQrSyncControllerState,
+  (state) =>
+    state.provisioningStatus === 'secrets_imported' &&
+    state.provisioningMetadata !== null,
+);
+```
+
+### Step C2 — `provisionFromMetadata()`
+
+**File:** `app/core/QrSync/services/QrSyncProvisioningService.ts`
+
+**Preconditions:** `provisioningStatus === 'secrets_imported'`, enriched metadata present.
+
+**Algorithm (background, non-blocking navigation):**
+
+```
+await Engine.getSnapKeyring()
+
+FOR each MNEMONIC entry in provisioningMetadata.entries:
+  entropySource = entry.entropySource (required after Phase B)
+  walletId = resolve from AccountTreeController (Entropy wallet where metadata.entropy.id === entropySource)
+
+  FOR each group in entry.groups ?? []:
+    IF groupIndex === 0: SKIP creation (exists from restore/import)
+    ELSE IF indices contiguous: createMultichainAccountGroups({ entropySource, fromGroupIndex, toGroupIndex })
+    ELSE: createMultichainAccountGroup({ entropySource, groupIndex }) per index
+
+  alignWallet(entropySource)
+
+  IF entry.name: setAccountWalletName(walletId, entry.name)
+  FOR each group: setAccountGroupName / setAccountGroupPinned / setAccountGroupHidden on resolved groupId
+
+FOR each PRIVATE_KEY entry:
+  groupId = resolve from entry.accountAddress
+  setAccountGroupName(groupId, entry.name)
+  apply pin/hide if present
+
+setSelectedAccountGroup(first pinned group in plan order, else primary wallet group 0)
+
+provisioningStatus = 'completed'
+provisioningMetadata = null
+```
+
+**On failure:** `provisioningStatus = 'failed'`; keep metadata for potential retry.
+
+### Step C3 — Wire OnboardingSuccess
+
+**File:** `app/components/Views/OnboardingSuccess/index.tsx`
+
+```typescript
+const needsQrProvisioning = useSelector(selectQrSyncNeedsProvisioning);
+
+const handleOnDone = useCallback(() => {
+  // ... existing wallet home onboarding eligibility ...
+
+  if (needsQrProvisioning) {
+    void QrSyncProvisioningService.provisionFromMetadata();
+  } else {
+    void runDiscoverAccounts(); // existing path
+  }
+  queueMicrotask(() => onDone());
+}, [needsQrProvisioning, ...]);
+```
+
+Navigation to Home must remain non-blocking (provisioning runs in background).
+
+### Step C4 — App launch resume (optional follow-up)
+
+If app is killed after Phase B with `secrets_imported`, resume Phase C on next `OnboardingSuccess` visit or at app launch when status is `secrets_imported`. Document exact trigger when implementing.
+
+### Phase C acceptance criteria
+
+- [ ] QR users never call `discoverAccounts` on OnboardingSuccess
+- [ ] Group 0 metadata applied but not re-created
+- [ ] Non-contiguous `groupIndex` values handled
+- [ ] `provisioningStatus === 'completed'` and metadata cleared on success
+- [ ] Failure sets `provisioningStatus === 'failed'`
+
+---
+
+## Phase D — After Home
+
+No QR-specific work. Existing behaviour:
+
+- `useIdentityEffects` cloud sync when Backup & Sync enabled
+- `postLoginAsyncOperations` discovery on **unlock** (not first onboard)
+
+---
+
+## Metadata → AccountTree mapping
+
+Account tree uses **`name`** on both wallet and group metadata (not `walletName` / `accountName` in code).
 
 ### MNEMONIC entries
 
-| Metadata field                  | Consumer                 | API                                                                         |
-| ------------------------------- | ------------------------ | --------------------------------------------------------------------------- |
-| `entropySource` (enriched)      | MultichainAccountService | `createMultichainAccountGroups`, `alignWallet`                              |
-| `groups[].groupIndex`           | MultichainAccountService | `createMultichainAccountGroup` or range via `createMultichainAccountGroups` |
-| `walletName`                    | AccountTreeController    | `setAccountWalletName(walletId, walletName)`                                |
-| `groups[].name`                 | AccountTreeController    | `setAccountGroupName(groupId, name)`                                        |
-| `groups[].pinned`               | AccountTreeController    | `setAccountGroupPinned(groupId, pinned)`                                    |
-| `groups[].hidden`               | AccountTreeController    | `setAccountGroupHidden(groupId, hidden)`                                    |
-| First pinned group (or group 0) | AccountTreeController    | `setSelectedAccountGroup(groupId)`                                          |
+| Metadata field             | Consumer                 | API                                            |
+| -------------------------- | ------------------------ | ---------------------------------------------- |
+| `entropySource` (Phase B)  | MultichainAccountService | `createMultichainAccountGroups`, `alignWallet` |
+| `groups[].groupIndex`      | MultichainAccountService | group creation                                 |
+| `name`                     | AccountTreeController    | `setAccountWalletName(walletId, name)`         |
+| `groups[].name`            | AccountTreeController    | `setAccountGroupName(groupId, name)`           |
+| `groups[].pinned`          | AccountTreeController    | `setAccountGroupPinned`                        |
+| `groups[].hidden`          | AccountTreeController    | `setAccountGroupHidden`                        |
+| First `pinned: true` group | AccountTreeController    | `setSelectedAccountGroup`                      |
 
-**Resolve `walletId`:** `AccountTreeController.getAccountWalletObjects()` → find `type === Entropy` where `metadata.entropy.id === entropySource`.
+**Resolve `walletId`:** `AccountTreeController.getAccountWalletObjects()` → Entropy wallet where `metadata.entropy.id === entropySource`.
 
-**Resolve `groupId`:** Find group under that wallet where `metadata.entropy.groupIndex === groupIndex`. Alternatively: `MultichainAccountService.getMultichainAccountGroup({ entropySource, groupIndex })` then map to tree group id.
+**Resolve `groupId`:** Group under that wallet where `metadata.entropy.groupIndex === groupIndex`.
 
-**Group 0:** Already exists after restore/import — skip creation, only apply metadata.
+**Group 0:** Exists after restore/import — skip creation; only apply metadata.
 
 ### PRIVATE_KEY entries
 
-| Metadata field              | Consumer              | API                                               |
-| --------------------------- | --------------------- | ------------------------------------------------- |
-| `accountAddress` (enriched) | AccountTreeController | Locate `SingleAccount` group containing address   |
-| `accountName`               | AccountTreeController | `setAccountGroupName(groupId, accountName)`       |
-| `pinned` / `hidden`         | AccountTreeController | `setAccountGroupPinned` / `setAccountGroupHidden` |
+| Metadata field             | Consumer              | API                                               |
+| -------------------------- | --------------------- | ------------------------------------------------- |
+| `accountAddress` (Phase B) | AccountTreeController | Locate SingleAccount group                        |
+| `name`                     | AccountTreeController | `setAccountGroupName(groupId, name)`              |
+| `pinned` / `hidden`        | AccountTreeController | `setAccountGroupPinned` / `setAccountGroupHidden` |
 
-Private-key accounts live under `AccountWalletType.Keyring` / `SingleAccount` groups — no `MultichainAccountService` calls.
+### External APIs (no package bump)
 
----
+**MultichainAccountService:** `createMultichainAccountWallet`, `createMultichainAccountGroups`, `createMultichainAccountGroup`, `getMultichainAccountGroup`, `alignWallet`
 
-## Interface sufficiency review
-
-### Verdict
-
-The designed metadata interface is **sufficient** for `MultichainAccountService` and `AccountTreeController`, provided:
-
-1. Phase B **enriches** mnemonic entries with `entropySource` and PK entries with `accountAddress`.
-2. Provisioning uses **per-index** group creation when `groupIndex` values are non-contiguous.
-3. Pin/hide on PK entries are optional fields (extension may omit them).
-
-No dependency updates required.
-
-### Field-by-field coverage
-
-| Controller need                   | Metadata supplies?                                              | Notes                                                              |
-| --------------------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `entropySource` for MAS           | After enrichment                                                | Not in extension wire; derived from KeyringController after import |
-| `fromGroupIndex` / `toGroupIndex` | Derived from `groups[].groupIndex`                              | `min`/`max` of indices; skip `0`                                   |
-| `groupIndex` (single)             | `groups[].groupIndex`                                           | Direct                                                             |
-| `walletId`                        | Derived from `entropySource`                                    | Not stored in metadata                                             |
-| `groupId`                         | Derived from `entropySource` + `groupIndex` or `accountAddress` | Not stored in metadata                                             |
-| Wallet display name               | `walletName`                                                    | Maps to `AccountTreeWalletMetadata.name`                           |
-| Group display name                | `groups[].name` / `accountName`                                 | Maps to `AccountTreeGroupMetadata.name`                            |
-| Pinned                            | `groups[].pinned`                                               | Maps to `AccountTreeGroupMetadata.pinned`                          |
-| Hidden                            | `groups[].hidden`                                               | Maps to `AccountTreeGroupMetadata.hidden`                          |
-| Selected account                  | First `pinned: true`                                            | Policy in provisioning service                                     |
-
-### AccountTreeController metadata alignment
-
-From `@metamask/account-tree-controller`:
-
-- **Wallet:** `AccountTreeWalletMetadata` = `{ name }` (+ `entropy.id` on entropy wallets).
-- **Group:** `AccountTreeGroupMetadata` = `{ name, pinned, hidden, lastSelected }` (+ `entropy.groupIndex` on multichain groups).
-
-The proposed interface covers every **user-writable** tree field exposed by setter APIs. `lastSelected` is local-only and should be set implicitly by `setSelectedAccountGroup`, not from extension.
-
-### MultichainAccountService alignment
-
-MAS does not consume display metadata (names, pin, hide). It only needs:
-
-- `entropySource`
-- `groupIndex` (via range or single create)
-
-Metadata `groups[]` array is the correct input. After `createMultichainAccountGroups`, call `alignWallet(entropySource)` to replace the Snap-alignment portion of `discoverAccounts`.
-
-### Gaps and mitigations
-
-| Gap                                                                      | Severity  | Mitigation                                                                                 |
-| ------------------------------------------------------------------------ | --------- | ------------------------------------------------------------------------------------------ |
-| `entropySource` not in extension payload                                 | Expected  | Enrich in Phase B; persist in metadata                                                     |
-| Non-contiguous `groupIndex` (e.g. 0, 2)                                  | Medium    | Use `createMultichainAccountGroup` per index, not range API                                |
-| PK `groupId` not in payload                                              | Expected  | Enrich with `accountAddress` in Phase B                                                    |
-| Multiple `pinned: true`                                                  | Low       | Document policy: first in plan order wins                                                  |
-| `setAccountGroupName` duplicate names                                    | Low       | Pass `autoHandleConflict: true` or handle errors                                           |
-| Seedless onboarding + QR                                                 | Edge case | Existing `SeedlessOnboardingController` paths in `importNewSecretRecoveryPhrase` still run |
-| Legacy wire `QrSyncSecretMetadata` (`hiddenIndexes`, flat `accountName`) | Migration | Normalizer maps to `groups[]` in splitter                                                  |
-
-### Not required in metadata
-
-| Field                                         | Why omitted                                            |
-| --------------------------------------------- | ------------------------------------------------------ |
-| `walletId` / `groupId`                        | Runtime-derived from entropy + indices                 |
-| Per-chain account addresses                   | Created by MAS providers during group creation + align |
-| `waitForAllProvidersToFinishCreatingAccounts` | Provisioning policy default; not extension data        |
-| Cloud sync flags                              | Out of scope at onboarding success                     |
+**AccountTreeController:** `setAccountWalletName`, `setAccountGroupName`, `setAccountGroupPinned`, `setAccountGroupHidden`, `setSelectedAccountGroup`
 
 ---
 
-## Integration touchpoints (non-QrSync files)
+## Failure handling
 
-| File                                                           | Change                                                                        |
-| -------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| `app/core/QrSync/**`                                           | Controller state, splitter, provisioning service, validation updates          |
-| `app/selectors/qrSyncController/index.ts`                      | `selectQrSyncNeedsProvisioning`, primary mnemonic from `pendingSecretImports` |
-| `app/components/Views/ImportFromSecretRecoveryPhrase/index.js` | Call `importRemainingSecrets` after `newWalletAndRestore` when `qrSyncImport` |
-| `app/components/Views/OnboardingSuccess/index.tsx`             | Branch: provision vs `discoverAccounts`                                       |
-| `app/actions/multiSrp/index.ts`                                | Add `skipDiscovery?: boolean` to options                                      |
-| Tests                                                          | Controller, provisioning service, OnboardingSuccess, ImportFromSRP QR path    |
+| Scenario                               | `provisioningStatus` | Recovery                              |
+| -------------------------------------- | -------------------- | ------------------------------------- |
+| Invalid `SYNC_READY` during onboarding | `failed` (session)   | User re-scans QR                      |
+| User abandons before password          | `awaiting_password`  | Secrets ephemeral; metadata persisted |
+| Phase B secret import fails            | `failed`             | User re-scans QR                      |
+| App kill after Phase B                 | `secrets_imported`   | Resume Phase C on OnboardingSuccess   |
+| Phase C partial failure                | `failed`             | Metadata kept; retry provisioning     |
+| Success                                | `completed`          | Metadata cleared                      |
 
----
-
-## Failure handling and retry
-
-| Scenario                        | `provisioningStatus` | Recovery                                                           |
-| ------------------------------- | -------------------- | ------------------------------------------------------------------ |
-| User abandons before password   | `awaiting_password`  | Session timeout clears ephemeral secrets; metadata TTL cleanup     |
-| Secret import fails             | `failed`             | Show error; user re-scans QR                                       |
-| App kill after secrets imported | `secrets_imported`   | Resume `provisionFromMetadata` on next launch or OnboardingSuccess |
-| Metadata apply partial failure  | `failed`             | Keep `provisioningMetadata`, retry provisioning                    |
-| Success                         | `completed`          | Clear metadata                                                     |
+No retry/TTL UI in scope. On failure, update `provisioningStatus` to `failed` only.
 
 ---
 
-## Implementation order
+## Implementation checklist
 
-1. Types: `QrSyncProvisioningMetadata`, state split, persistence config.
-2. `qr-sync-payload-splitter.ts` on `SYNC_READY`.
-3. `QrSyncProvisioningService.importRemainingSecrets` + Phase B enrichment.
-4. `skipDiscovery` in `importNewSecretRecoveryPhrase`.
-5. `QrSyncProvisioningService.provisionFromMetadata` + OnboardingSuccess gate.
-6. Selectors + ImportFromSRP wiring.
-7. Retry on app launch for `secrets_imported`.
-8. Unit tests per module; integration test for full QR onboarding path.
+Execute in order. Each step should be mergeable with tests before moving on.
+
+| #   | Step                                                                    | Phase | Files                                                       |
+| --- | ----------------------------------------------------------------------- | ----- | ----------------------------------------------------------- |
+| 1   | Add `skipDiscovery` to `importNewSecretRecoveryPhrase`                  | B     | `app/actions/multiSrp/index.ts`, tests                      |
+| 2   | Add controller methods `completeSecretImport`, `markProvisioningFailed` | B     | `QrSyncController.ts`, `QrSyncController.test.ts`           |
+| 3   | Create `QrSyncProvisioningService.importRemainingSecrets`               | B     | `services/QrSyncProvisioningService.ts`, tests              |
+| 4   | Wire ImportFromSRP after `newWalletAndRestore`                          | B     | `ImportFromSecretRecoveryPhrase/index.js`, `index.test.tsx` |
+| 5   | Add `selectQrSyncNeedsProvisioning`                                     | C     | `selectors/qrSyncController/index.ts`, tests                |
+| 6   | Implement `provisionFromMetadata`                                       | C     | `QrSyncProvisioningService.ts`, tests                       |
+| 7   | Branch OnboardingSuccess Done handler                                   | C     | `OnboardingSuccess/index.tsx`, `index.test.tsx`             |
+| 8   | App-launch / resume for `secrets_imported`                              | C     | TBD (engine init or OnboardingSuccess guard)                |
+
+---
+
+## Testing plan
+
+| Area                     | What to test                                                                          |
+| ------------------------ | ------------------------------------------------------------------------------------- |
+| `skipDiscovery`          | `discoverAccounts` not called when flag true                                          |
+| `importRemainingSecrets` | Primary skipped; secondary SRP + PK imported; metadata enriched; secrets cleared      |
+| ImportFromSRP            | Provisioning service invoked only when `qrSyncImport`                                 |
+| `provisionFromMetadata`  | Group creation, name/pin/hide, selection policy                                       |
+| OnboardingSuccess        | QR branch vs default `discoverAccounts`                                               |
+| Controller               | Status transitions: `awaiting_password` → `secrets_imported` → `completed` / `failed` |
+| Regression               | Manual SRP import and non-QR onboarding unchanged                                     |
+
+Run: `yarn jest app/core/QrSync app/actions/multiSrp` (expand as files are added).
 
 ---
 
@@ -453,8 +583,12 @@ Metadata `groups[]` array is the correct input. After `createMultichainAccountGr
 
 | Area                        | Path                                                   |
 | --------------------------- | ------------------------------------------------------ |
+| Types (single file)         | `app/core/QrSync/types.ts`                             |
+| Controller state            | `app/core/QrSync/controller-types.ts`                  |
 | QR Sync controller          | `app/core/QrSync/QrSyncController.ts`                  |
-| Validation                  | `app/core/QrSync/services/qr-sync-validation.ts`       |
+| Validation + parse          | `app/core/QrSync/services/qr-sync-validation.ts`       |
+| Message router              | `app/core/QrSync/services/qr-sync-message-router.ts`   |
+| Selectors                   | `app/selectors/qrSyncController/index.ts`              |
 | Add device UI               | `app/components/Views/AddDeviceToWallet/`              |
 | Onboarding import           | `app/components/Views/ImportFromSecretRecoveryPhrase/` |
 | Onboarding success          | `app/components/Views/OnboardingSuccess/`              |
