@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { FullWindowOverlay } from 'react-native-screens';
 import { registerStepHudCallback } from './AgenticService';
 
 interface Step {
@@ -141,18 +142,24 @@ const AgentStepHudInner = () => {
         ? styles.badgeTextPass
         : styles.badgeTextRunning;
 
+  // FullWindowOverlay (iOS) renders the HUD in a UIWindow above every native
+  // layer — including native-stack modal screens (perps close-position/TPSL,
+  // etc.), which a plain absolute/zIndex View in the JS root cannot reach. On
+  // Android it is a passthrough, so root-level rendering is preserved.
   return (
-    <View style={containerStyle} pointerEvents="none">
-      <Text style={styles.line}>
-        <Text style={[styles.badgeText, badgeTextStyle]}>{badge}</Text>
-        {intent ? `  ${intent}` : ''}
-      </Text>
-      {secondary.map((detail) => (
-        <Text key={detail} style={styles.secondary}>
-          {detail}
+    <FullWindowOverlay>
+      <View style={containerStyle} pointerEvents="none">
+        <Text style={styles.line}>
+          <Text style={[styles.badgeText, badgeTextStyle]}>{badge}</Text>
+          {intent ? `  ${intent}` : ''}
         </Text>
-      ))}
-    </View>
+        {secondary.map((detail) => (
+          <Text key={detail} style={styles.secondary}>
+            {detail}
+          </Text>
+        ))}
+      </View>
+    </FullWindowOverlay>
   );
 };
 
