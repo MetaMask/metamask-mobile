@@ -1,5 +1,5 @@
-import React from 'react';
 import { fireEvent, screen, within } from '@testing-library/react-native';
+import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 import TraderPositionCompactTokenStats from './TraderPositionCompactTokenStats';
@@ -11,7 +11,7 @@ describe('TraderPositionCompactTokenStats', () => {
     renderWithProvider(
       <TraderPositionCompactTokenStats
         symbol="PEPE"
-        pricePercentChange={12.5}
+        pricePercentChange={12.54}
         activeTimePeriodLabel="1M"
         traderName="trader1"
         onTraderPress={onTraderPress}
@@ -27,7 +27,7 @@ describe('TraderPositionCompactTokenStats', () => {
       screen.getByTestId(
         TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_CHANGE,
       ),
-    ).toHaveTextContent('+12.5% 1M · trader1');
+    ).toHaveTextContent('+12.54% 1M · trader1');
     expect(
       within(
         screen.getByTestId(

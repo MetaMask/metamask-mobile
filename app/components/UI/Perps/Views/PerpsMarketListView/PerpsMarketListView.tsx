@@ -179,10 +179,7 @@ const PerpsMarketListView = ({
           PERPS_EVENT_VALUE.BUTTON_LOCATION.MARKET_LIST,
       });
       setMarketTypeFilter(category);
-      // Deactivate the watchlist filter whenever a category badge is activated
-      if (category !== 'all') {
-        setShowFavoritesOnly(false);
-      }
+      setShowFavoritesOnly(false);
     },
     [setMarketTypeFilter, setShowFavoritesOnly, track],
   );

@@ -182,6 +182,7 @@ import { analyticsControllerInit } from './controllers/analytics-controller/anal
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
+import { proofOfOwnershipServiceInit } from './controllers/proof-of-ownership-service-init';
 import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
@@ -392,6 +393,7 @@ export class Engine {
         DelegationController: DelegationControllerInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
+        ProofOfOwnershipService: proofOfOwnershipServiceInit,
         AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
         TransakService: transakServiceInit,
@@ -448,6 +450,8 @@ export class Engine {
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
+    const proofOfOwnershipService =
+      messengerClientsByName.ProofOfOwnershipService;
     const rampsService = messengerClientsByName.RampsService;
     const transakService = messengerClientsByName.TransakService;
     const rampsController = messengerClientsByName.RampsController;
@@ -649,6 +653,7 @@ export class Engine {
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
+      ProofOfOwnershipService: proofOfOwnershipService,
       RampsService: rampsService,
       TransakService: transakService,
       RampsController: rampsController,
@@ -1199,11 +1204,6 @@ export class Engine {
   };
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  getSnapKeyring = async (): Promise<SnapKeyring> => {
-    const { SnapAccountService } = this.context;
-    return await SnapAccountService.getLegacySnapKeyring();
-  };
-
   /**
    * Removes an account from state / storage.
    *
@@ -1678,10 +1678,6 @@ export default {
   },
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  getSnapKeyring: () => {
-    assertEngineExists(instance);
-    return instance.getSnapKeyring();
-  },
   removeAccount: async (address: string) => {
     assertEngineExists(instance);
     return await instance.removeAccount(address);

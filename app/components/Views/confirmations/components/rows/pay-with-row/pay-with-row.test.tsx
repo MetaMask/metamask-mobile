@@ -147,7 +147,7 @@ describe('PayWithRow', () => {
 
     jest.mocked(useTransactionMetadataRequest).mockReturnValue(undefined);
     jest.mocked(useMoneyAccountBalance).mockReturnValue({
-      totalFiatFormatted: undefined,
+      withdrawableFiatFormatted: undefined,
     } as ReturnType<typeof useMoneyAccountBalance>);
 
     isHardwareAccountMock.mockReturnValue(false);

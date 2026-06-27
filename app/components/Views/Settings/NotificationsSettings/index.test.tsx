@@ -94,6 +94,10 @@ jest.mock('./hooks/useNotificationStoragePreferences', () => ({
         pushNotificationsEnabled: false,
         inAppNotificationsEnabled: false,
       },
+      agenticCli: {
+        pushNotificationsEnabled: false,
+        inAppNotificationsEnabled: false,
+      },
       socialAI: {
         pushNotificationsEnabled: false,
         inAppNotificationsEnabled: false,

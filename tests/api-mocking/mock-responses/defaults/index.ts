@@ -66,6 +66,7 @@ export const DEFAULT_MOCKS = {
     ...(STATIC_ASSETS_MOCKS.GET || []),
     ...(NFT_API_MOCKS.GET || []),
     ...(SOCIAL_API_MOCKS.GET || []),
+    ...(PERPS_HYPERLIQUID_MOCKS.GET || []),
     // Chains Network Mock - Provides blockchain network data
     {
       urlEndpoint: 'https://chainid.network/chains.json',
@@ -197,6 +198,17 @@ export const DEFAULT_MOCKS = {
       urlEndpoint: 'https://security-alerts.api.cx.metamask.io/token/scan-bulk',
       responseCode: 200,
       response: [],
+    },
+    // Proof-of-ownership nonce batch — fetched by `ProfileMetricsController`
+    // before each `submitMetrics` call. Returning an empty map causes
+    // `#attachProofs` to fall through to submitting without a proof, which
+    // matches pre-v4 behavior. Override in a test-specific mock to exercise
+    // the proof path.
+    {
+      urlEndpoint:
+        /^https:\/\/authentication\.api\.cx\.metamask\.io\/api\/v2\/nonce\/batch$/,
+      responseCode: 200,
+      response: {},
     },
     ...(DEFAULT_REWARDS_MOCKS.POST || []),
     ...(PERPS_HYPERLIQUID_MOCKS.POST || []),
