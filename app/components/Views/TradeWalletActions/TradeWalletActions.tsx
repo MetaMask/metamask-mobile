@@ -1,6 +1,6 @@
 import MaskedView from '@react-native-masked-view/masked-view';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   BackHandler,
   Platform,
@@ -10,11 +10,14 @@ import {
   useWindowDimensions,
 } from 'react-native';
 import Animated, {
-  FadeInDown,
-  FadeOutDown,
   runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  type WithSpringConfig,
 } from 'react-native-reanimated';
 import Overlay from '../../../component-library/components/Overlay';
+import type { OverlayRef } from '../../../component-library/components/Overlay/Overlay.types';
 import { useParams } from '../../../util/navigation/navUtils';
 import { Box } from '../../UI/Box/Box';
 
@@ -37,7 +40,6 @@ import { useSelector } from 'react-redux';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
-import { AnimationDuration } from '../../../component-library/constants/animation.constants';
 import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
@@ -74,7 +76,15 @@ import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsContro
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const bottomMaskHeight = 35;
-const animationDuration = AnimationDuration.Fast;
+
+/** iOS-like sheet spring: natural deceleration with minimal overshoot on open. */
+const TRADE_WALLET_ACTIONS_SHEET_SPRING_CONFIG = {
+  damping: 28,
+  stiffness: 320,
+  mass: 0.9,
+  overshootClamping: true,
+} as const satisfies WithSpringConfig;
+
 const batchSellIconStyle = {
   transform: [{ rotate: '180deg' }],
 } satisfies ViewStyle;
@@ -95,9 +105,11 @@ function TradeWalletActions() {
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
 
   const postCallback = useRef<(() => void) | undefined>(undefined);
-  const [visible, setIsVisible] = useState(true);
+  const overlayRef = useRef<OverlayRef>(null);
+  const isClosingRef = useRef(false);
   const { width: windowWidth, height: windowHeight } = useWindowDimensions();
   const { height: screenHeight } = useSafeAreaFrame();
+  const sheetOffset = useSharedValue(screenHeight);
   const insets = useSafeAreaInsets();
   const insetsTop = Platform.OS === 'android' ? insets.top : 0;
 
@@ -158,10 +170,52 @@ function TradeWalletActions() {
     navigation.goBack();
   }, [navigation]);
 
+  const finishDismiss = useCallback(() => {
+    const callback = postCallback.current;
+    postCallback.current = undefined;
+
+    dismissRootModalFlow();
+
+    if (callback) {
+      // Defer navigation until RootModalFlow is fully dismissed so screens
+      // on MainNavigator (e.g. StakeModals) are not opened underneath it.
+      requestAnimationFrame(() => {
+        callback();
+      });
+    }
+  }, [dismissRootModalFlow]);
+
+  const dismissSheet = useCallback(() => {
+    if (isClosingRef.current) {
+      return;
+    }
+    isClosingRef.current = true;
+    overlayRef.current?.fadeOut();
+    sheetOffset.value = withSpring(
+      screenHeight,
+      TRADE_WALLET_ACTIONS_SHEET_SPRING_CONFIG,
+      (finished) => {
+        if (finished) {
+          runOnJS(finishDismiss)();
+        }
+      },
+    );
+  }, [finishDismiss, screenHeight, sheetOffset]);
+
   const handleNavigateBack = useCallback(() => {
     onDismiss?.();
-    setIsVisible(false);
-  }, [onDismiss]);
+    dismissSheet();
+  }, [dismissSheet, onDismiss]);
+
+  useEffect(() => {
+    isClosingRef.current = false;
+    sheetOffset.value = screenHeight;
+    sheetOffset.value = withSpring(0, TRADE_WALLET_ACTIONS_SHEET_SPRING_CONFIG);
+  }, [screenHeight, sheetOffset]);
+
+  const sheetAnimatedStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: sheetOffset.value }],
+  }));
 
   const goToSwaps = useCallback(() => {
     postCallback.current = () => {
@@ -248,33 +302,6 @@ function TradeWalletActions() {
     }, [handleNavigateBack]),
   );
 
-  const exitingAnimationWithCallback = useCallback(
-    (callback: () => void) =>
-      FadeOutDown.duration(animationDuration).withCallback(
-        (finished) => finished && runOnJS(callback)(),
-      ),
-    [],
-  );
-
-  const exitingWithNavigateBack = useMemo(
-    () =>
-      exitingAnimationWithCallback(() => {
-        const callback = postCallback.current;
-        postCallback.current = undefined;
-
-        dismissRootModalFlow();
-
-        if (callback) {
-          // Defer navigation until RootModalFlow is fully dismissed so screens
-          // on MainNavigator (e.g. StakeModals) are not opened underneath it.
-          requestAnimationFrame(() => {
-            callback();
-          });
-        }
-      }),
-    [dismissRootModalFlow, exitingAnimationWithCallback],
-  );
-
   return (
     <View style={tw.style('flex-1 justify-end')}>
       <MaskedView
@@ -289,128 +316,111 @@ function TradeWalletActions() {
           />
         }
       >
-        <Overlay
-          onPress={handleNavigateBack}
-          duration={animationDuration}
-        ></Overlay>
+        <Overlay ref={overlayRef} onPress={handleNavigateBack} />
       </MaskedView>
 
-      {visible && (
-        <Animated.View exiting={exitingWithNavigateBack}>
-          <MaskedView
-            // iOS: MaskedView otherwise intercepts touches and ActionListItem onPress never fires (Android is unaffected).
-            pointerEvents="box-none"
-            maskElement={
-              <View style={tw.style('flex-1 bg-transparent px-4')}>
-                <View style={tw.style('flex-1 bg-black')} />
-                <View style={tw.style('flex-row mt-[-1px]')}>
-                  <View style={tw.style('bg-black flex-1 rounded-bl-2xl')} />
-                  <BottomShape
-                    width={buttonLayout.width * 4}
-                    height={bottomMaskHeight}
-                    peakHeight={16}
-                    peakBezierLength={25}
-                    baseBezierLength={55}
-                    fill="black"
-                  />
-                  <View style={tw.style('bg-black flex-1 rounded-br-2xl')} />
-                </View>
+      <Animated.View style={sheetAnimatedStyle}>
+        <MaskedView
+          // iOS: MaskedView otherwise intercepts touches and ActionListItem onPress never fires (Android is unaffected).
+          pointerEvents="box-none"
+          maskElement={
+            <View style={tw.style('flex-1 bg-transparent px-4')}>
+              <View style={tw.style('flex-1 bg-black')} />
+              <View style={tw.style('flex-row mt-[-1px]')}>
+                <View style={tw.style('bg-black flex-1 rounded-bl-2xl')} />
+                <BottomShape
+                  width={buttonLayout.width * 4}
+                  height={bottomMaskHeight}
+                  peakHeight={16}
+                  peakBezierLength={25}
+                  baseBezierLength={55}
+                  fill="black"
+                />
+                <View style={tw.style('bg-black flex-1 rounded-br-2xl')} />
               </View>
-            }
+            </View>
+          }
+        >
+          <Box
+            style={tw.style(
+              `${surfaceClass} p-4 rounded-2xl mx-4`,
+              `pb-[${bottomMaskHeight - 12}px]`,
+              `px-0`,
+            )}
           >
-            <Animated.View
-              entering={FadeInDown.duration(
-                animationDuration,
-              ).withInitialValues({
-                transform: [{ translateY: 50 }],
-              })}
-            >
-              <Box
-                style={tw.style(
-                  `${surfaceClass} p-4 rounded-2xl mx-4`,
-                  `pb-[${bottomMaskHeight - 12}px]`,
-                  `px-0`,
-                )}
-              >
-                {shouldRenderBatchSell && (
-                  <ActionListItem
-                    label={
-                      <View style={tw.style('flex-row items-center gap-2')}>
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          fontWeight={FontWeight.Medium}
-                        >
-                          {strings('asset_overview.batch_sell')}
-                        </Text>
-                        <Tag severity={TagSeverity.Info}>
-                          {strings('asset_overview.batch_sell_new_label')}
-                        </Tag>
-                      </View>
-                    }
-                    description={strings(
-                      'asset_overview.batch_sell_description',
-                    )}
-                    iconName={IconName.Merge}
-                    iconProps={{
-                      style: batchSellIconStyle,
-                    }}
-                    onPress={onBatchSell}
-                    testID={
-                      WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON
-                    }
-                    isDisabled={!isSwapsEnabled}
-                    style={tw.style('bg-transparent')}
-                  />
-                )}
-                {AppConstants.SWAPS.ACTIVE && (
-                  <ActionListItem
-                    label={strings('asset_overview.swap')}
-                    description={strings('asset_overview.swap_description')}
-                    iconName={IconName.SwapVertical}
-                    onPress={goToSwaps}
-                    testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
-                    isDisabled={!isSwapsEnabled}
-                    style={tw.style('bg-transparent')}
-                  />
-                )}
-                {isPerpsEnabled && (
-                  <ActionListItem
-                    label={strings('asset_overview.perps_button')}
-                    description={strings('asset_overview.perps_description')}
-                    iconName={IconName.Candlestick}
-                    onPress={onPerps}
-                    testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
-                    isDisabled={!canSignTransactions}
-                    style={tw.style('bg-transparent')}
-                  />
-                )}
-                {isPredictEnabled && (
-                  <ActionListItem
-                    label={strings('asset_overview.predict_button')}
-                    description={strings('asset_overview.predict_description')}
-                    iconName={IconName.Speedometer}
-                    onPress={onPredict}
-                    testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
-                    isDisabled={!canSignTransactions}
-                    style={tw.style('bg-transparent')}
-                  />
-                )}
-                {isEarnWalletActionEnabled && isEarnEligible && (
-                  <ActionListItem
-                    label={strings('asset_overview.earn_button')}
-                    description={strings('asset_overview.earn_description')}
-                    iconName={IconName.Stake}
-                    onPress={onEarn}
-                    testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
-                    isDisabled={!canSignTransactions}
-                    style={tw.style('bg-transparent')}
-                  />
-                )}
-              </Box>
-            </Animated.View>
-          </MaskedView>
-        </Animated.View>
-      )}
+            {shouldRenderBatchSell && (
+              <ActionListItem
+                label={
+                  <View style={tw.style('flex-row items-center gap-2')}>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Medium}
+                    >
+                      {strings('asset_overview.batch_sell')}
+                    </Text>
+                    <Tag severity={TagSeverity.Info}>
+                      {strings('asset_overview.batch_sell_new_label')}
+                    </Tag>
+                  </View>
+                }
+                description={strings('asset_overview.batch_sell_description')}
+                iconName={IconName.Merge}
+                iconProps={{
+                  style: batchSellIconStyle,
+                }}
+                onPress={onBatchSell}
+                testID={WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON}
+                isDisabled={!isSwapsEnabled}
+                style={tw.style('bg-transparent')}
+              />
+            )}
+            {AppConstants.SWAPS.ACTIVE && (
+              <ActionListItem
+                label={strings('asset_overview.swap')}
+                description={strings('asset_overview.swap_description')}
+                iconName={IconName.SwapVertical}
+                onPress={goToSwaps}
+                testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
+                isDisabled={!isSwapsEnabled}
+                style={tw.style('bg-transparent')}
+              />
+            )}
+            {isPerpsEnabled && (
+              <ActionListItem
+                label={strings('asset_overview.perps_button')}
+                description={strings('asset_overview.perps_description')}
+                iconName={IconName.Candlestick}
+                onPress={onPerps}
+                testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
+                isDisabled={!canSignTransactions}
+                style={tw.style('bg-transparent')}
+              />
+            )}
+            {isPredictEnabled && (
+              <ActionListItem
+                label={strings('asset_overview.predict_button')}
+                description={strings('asset_overview.predict_description')}
+                iconName={IconName.Speedometer}
+                onPress={onPredict}
+                testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
+                isDisabled={!canSignTransactions}
+                style={tw.style('bg-transparent')}
+              />
+            )}
+            {isEarnWalletActionEnabled && isEarnEligible && (
+              <ActionListItem
+                label={strings('asset_overview.earn_button')}
+                description={strings('asset_overview.earn_description')}
+                iconName={IconName.Stake}
+                onPress={onEarn}
+                testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
+                isDisabled={!canSignTransactions}
+                style={tw.style('bg-transparent')}
+              />
+            )}
+          </Box>
+        </MaskedView>
+      </Animated.View>
       <View
         style={tw.style('pointer-events-none', {
           height: screenHeight - buttonLayout.y - insetsTop,
