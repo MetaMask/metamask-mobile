@@ -15,9 +15,12 @@ export const formatCurrency = (raw: string): string =>
   CURRENCY_DISPLAY_MAP[raw.toLowerCase()] ?? raw.toUpperCase();
 
 export const formatAmount = (value: string | number): string => {
-  const num = typeof value === 'string' ? parseFloat(value) : value;
-  if (Number.isNaN(num)) return '0.00';
-  const truncated = Math.floor(num * DISPLAY_SCALE) / DISPLAY_SCALE;
+  const parsedValue = safeParseBigNumber(value);
+  if (!parsedValue.isFinite()) return '0.00';
+  const truncated = parsedValue.decimalPlaces(
+    DISPLAY_PRECISION,
+    BigNumber.ROUND_FLOOR,
+  );
   const formatted = truncated.toFixed(DISPLAY_PRECISION).replace(/0{1,2}$/, '');
   return formatted;
 };

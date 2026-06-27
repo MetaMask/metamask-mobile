@@ -23,6 +23,10 @@ describe('Cashback.utils', () => {
       expect(formatAmount(10.123456)).toBe('10.1234');
     });
 
+    it('formats dust balances without float drift', () => {
+      expect(formatAmount('0.0006')).toBe('0.0006');
+    });
+
     it('returns 0.00 for NaN', () => {
       expect(formatAmount('invalid')).toBe('0.00');
     });
