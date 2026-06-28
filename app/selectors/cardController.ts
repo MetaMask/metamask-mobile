@@ -21,7 +21,7 @@ import { toCardFundingToken } from '../components/UI/Card/util/toCardTokenAllowa
 import { buildDelegationTokenList } from '../components/UI/Card/util/buildTokenList';
 import { isMoneyAccountEntry } from '../components/UI/Card/util/isMoneyAccountEntry';
 import {
-  getVedaTokenConfig,
+  getVedaTokenConfigFromFeatureFlag,
   MONEY_ACCOUNT_DISPLAY_SYMBOL,
   type VedaTokenConfig,
 } from '../components/UI/Card/util/vedaToken';
@@ -159,9 +159,9 @@ export const selectCardHomeDataStatus = createSelector(
 );
 
 export const selectMoneyAccountVedaTokenConfig = createSelector(
-  selectCardHomeData,
-  (data): VedaTokenConfig | null =>
-    getVedaTokenConfig(data?.delegationSettings),
+  selectCardFeatureFlag,
+  (cardFeatureFlag): VedaTokenConfig | null =>
+    getVedaTokenConfigFromFeatureFlag(cardFeatureFlag?.chains),
 );
 
 export const selectCardCountryOfResidence = createSelector(

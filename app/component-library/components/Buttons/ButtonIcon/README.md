@@ -57,6 +57,10 @@ Optional prop for the color of the icon.
 // Applying different sizes
 <ButtonIcon
   iconName={IconName.Bank}
+  size={ButtonIconSizes.Xs}
+/>
+<ButtonIcon
+  iconName={IconName.Bank}
   size={ButtonIconSizes.Sm}
 />
 <ButtonIcon

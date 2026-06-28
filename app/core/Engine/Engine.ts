@@ -1204,11 +1204,6 @@ export class Engine {
   };
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  getSnapKeyring = async (): Promise<SnapKeyring> => {
-    const { SnapAccountService } = this.context;
-    return await SnapAccountService.getLegacySnapKeyring();
-  };
-
   /**
    * Removes an account from state / storage.
    *
@@ -1683,10 +1678,6 @@ export default {
   },
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  getSnapKeyring: () => {
-    assertEngineExists(instance);
-    return instance.getSnapKeyring();
-  },
   removeAccount: async (address: string) => {
     assertEngineExists(instance);
     return await instance.removeAccount(address);

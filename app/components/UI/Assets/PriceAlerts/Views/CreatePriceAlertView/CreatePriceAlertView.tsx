@@ -19,7 +19,7 @@ import {
   useRoute,
   type RouteProp,
 } from '@react-navigation/native';
-import type { StackNavigationProp } from '@react-navigation/stack';
+import type { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
@@ -107,8 +107,7 @@ const viewStyles = StyleSheet.create({
 const CreatePriceAlertView: React.FC = () => {
   const tw = useTailwind();
   const { colors, brandColors } = useTheme();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const navigation = useNavigation<StackNavigationProp<any>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const route =
     useRoute<
       RouteProp<
@@ -378,7 +377,7 @@ const CreatePriceAlertView: React.FC = () => {
                       : TextColor.ErrorDefault
                   }
                 >
-                  {`${percentDiff.rounded}%`}
+                  {`${percentDiff.direction === 'above' ? '+' : '-'}${percentDiff.rounded}%`}
                 </Text>
                 {` ${strings(
                   percentDiff.direction === 'above'
@@ -428,7 +427,9 @@ const CreatePriceAlertView: React.FC = () => {
                 testID={`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-${percentage}`}
                 twClassName="flex-1"
               >
-                {strings('price_alerts.quick_percentage', { percentage })}
+                {strings('price_alerts.quick_percentage', {
+                  percentage: percentage > 0 ? `+${percentage}` : percentage,
+                })}
               </Button>
             ))}
           </Box>

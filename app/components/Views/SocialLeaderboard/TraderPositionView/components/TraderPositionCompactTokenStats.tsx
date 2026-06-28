@@ -1,4 +1,3 @@
-import React from 'react';
 import {
   Box,
   BoxAlignItems,
@@ -8,7 +7,9 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import React from 'react';
 import TraderHeaderIdentity from '../../components/TraderHeaderIdentity';
+import { formatPercent } from '../../utils/formatters';
 import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 
 export interface TraderPositionCompactTokenStatsProps {
@@ -33,7 +34,6 @@ const TraderPositionCompactTokenStats: React.FC<
   onTraderPress,
 }) => {
   const hasChange = pricePercentChange != null;
-  const isPositive = (pricePercentChange ?? 0) >= 0;
 
   return (
     <Box
@@ -61,10 +61,12 @@ const TraderPositionCompactTokenStats: React.FC<
             <Text
               variant={TextVariant.BodySm}
               twClassName={
-                isPositive ? 'text-success-default' : 'text-error-default'
+                pricePercentChange >= 0
+                  ? 'text-success-default'
+                  : 'text-error-default'
               }
             >
-              {`${isPositive ? '+' : ''}${pricePercentChange.toFixed(1)}% `}
+              {`${formatPercent(pricePercentChange)} `}
             </Text>
             <Text
               variant={TextVariant.BodySm}

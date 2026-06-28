@@ -215,24 +215,43 @@ jobs:
           echo "📄 install-state.gz exists: $(test -f .yarn/install-state.gz && echo 'yes' || echo 'no')"
           echo "📁 cache dir exists: $(test -d .yarn/cache && echo 'yes' || echo 'no')"
 
+      # zstd compresses ~24% smaller than gzip and, being multithreaded (-T0),
+      # creates the tarball ~10x faster. This shrinks both this step (on the
+      # critical path) and the download in the consuming build job.
+      - name: Ensure zstd is available
+        if: inputs.upload-artifact && inputs.use-tarball
+        shell: bash
+        run: |
+          if command -v zstd >/dev/null 2>&1; then
+            echo "✅ zstd present: $(zstd --version)"
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            echo "Installing zstd via Homebrew..."
+            brew install zstd
+          else
+            echo "Installing zstd via apt..."
+            sudo apt-get update -qq && sudo apt-get install -y -qq zstd
+          fi
+
       - name: Create tarball (preserves symlinks)
         if: inputs.upload-artifact && inputs.use-tarball
         run: |
-          echo "📦 Creating tarball to preserve symlinks..."
-          tar -czf node-modules-${{ inputs.platform }}.tar.gz \
+          echo "📦 Creating zstd tarball to preserve symlinks..."
+          tar --use-compress-program 'zstd -10 -T0' \
+            -cf node-modules-${{ inputs.platform }}.tar.zst \
             node_modules \
             app/util/termsOfUse/termsOfUseContent.ts \
             app/core/InpageBridgeWeb3.js \
             scripts/inpage-bridge/dist
-          echo "✅ Tarball created: $(du -h node-modules-${{ inputs.platform }}.tar.gz)"
+          echo "✅ Tarball created: $(du -h node-modules-${{ inputs.platform }}.tar.zst)"
 
       - name: Upload node_modules tarball
         if: inputs.upload-artifact && inputs.use-tarball
         uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.set-artifact-name.outputs.artifact-name }}
-          path: node-modules-${{ inputs.platform }}.tar.gz
+          path: node-modules-${{ inputs.platform }}.tar.zst
           retention-days: ${{ inputs.artifact-retention-days }}
+          # Already zstd-compressed; skip the artifact zip's redundant compression.
           compression-level: 0
           if-no-files-found: error
 
