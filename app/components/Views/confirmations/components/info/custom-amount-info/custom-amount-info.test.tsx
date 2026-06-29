@@ -79,6 +79,12 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../hooks/pay/useMoneyNoFeeTokens');
 jest.mock('../../../hooks/pay/sections/usePayWithMoneyAccountSection');
+jest.mock('../../rows/perps-account-picker-row', () => ({
+  PerpsAccountPickerRow: () => null,
+}));
+jest.mock('../../rows/predict-account-picker-row', () => ({
+  PredictAccountPickerRow: () => null,
+}));
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -543,6 +549,34 @@ describe('CustomAmountInfo', () => {
       expect(
         await findByText(
           strings('confirm.deposit_edit_amount_predict_withdraw'),
+        ),
+      ).toBeOnTheScreen();
+    },
+  );
+
+  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
+    'renders "Send" confirm label for %s from Money Account',
+    async (transactionType) => {
+      useRouteMock.mockReturnValue({
+        key: 'mock-route',
+        name: 'MockScreen',
+        params: { payWithOption: 'money_account' },
+      } as never);
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: transactionType,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { getByText, findByText } = render({ transactionType });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(
+        await findByText(
+          strings('confirm.deposit_edit_amount_money_account_send'),
         ),
       ).toBeOnTheScreen();
     },
