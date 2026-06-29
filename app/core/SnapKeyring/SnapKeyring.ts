@@ -35,7 +35,7 @@ export interface SnapKeyringBuilder {
   type: typeof SnapKeyring.type;
 }
 
-class SnapKeyringImpl implements SnapKeyringCallbacks {
+export class SnapKeyringImpl implements SnapKeyringCallbacks {
   readonly #messenger: SnapKeyringBuilderMessenger;
 
   constructor(messenger: SnapKeyringBuilderMessenger) {
@@ -318,12 +318,14 @@ class SnapKeyringImpl implements SnapKeyringCallbacks {
 }
 
 /**
- * Constructs a SnapKeyring builder with specified handlers for managing Snap accounts.
+ * Constructs a (legacy) SnapKeyring builder with specified handlers for managing Snap accounts.
  *
  * @param messenger - The messenger instace.
  * @returns A Snap keyring builder.
  */
-export function snapKeyringBuilder(messenger: SnapKeyringBuilderMessenger) {
+export function legacySnapKeyringBuilder(
+  messenger: SnapKeyringBuilderMessenger,
+) {
   const builder = (() =>
     new SnapKeyring({
       messenger,

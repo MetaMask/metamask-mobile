@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
@@ -13,6 +13,8 @@ import {
 import { strings } from '../../../../locales/i18n';
 import { useParams } from '../../../util/navigation/navUtils';
 import { resolveActivityListItemTitle } from '../../UI/ActivityListItemRow/ActivityListItemRow';
+// eslint-disable-next-line import-x/no-restricted-paths -- transient row hand-off from the activity list; route-isolation backlog
+import { getPreloadedActivityItem } from '../ActivityList/preloadedActivityItemStore';
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import type { ActivityDetailsParams } from './ActivityDetails.types';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
@@ -28,9 +30,26 @@ import { TemplateLoader } from './templates/TemplateLoader';
 const ActivityDetails = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { chainId, txIdentifier } = useParams<ActivityDetailsParams>();
+  const { chainId, txIdentifier, preloadKey } =
+    useParams<ActivityDetailsParams>();
+  // Provider-backed rows (Perps / Predict) are handed off via a transient store
+  // keyed by `preloadKey` (params stay serializable). Capture the row once per
+  // key and hold it, so a later store eviction can't blank a still-mounted
+  // screen on re-render; re-read only when the key changes (the screen is reused
+  // across navigations).
+  const preloadedRef = useRef<{
+    key?: string;
+    item: ReturnType<typeof getPreloadedActivityItem>;
+  }>({ item: undefined });
+  if (preloadedRef.current.key !== preloadKey) {
+    preloadedRef.current = {
+      key: preloadKey,
+      item: getPreloadedActivityItem(preloadKey),
+    };
+  }
+  const preloadedItem = preloadedRef.current.item;
 
-  const item = useActivityDetailsItem(txIdentifier, chainId);
+  const item = useActivityDetailsItem(txIdentifier, chainId, preloadedItem);
   const title = item
     ? resolveActivityListItemTitle(item)
     : strings('activity_details.not_found');

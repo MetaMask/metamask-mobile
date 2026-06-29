@@ -21,15 +21,20 @@ export function ActivityDetailsAvatar({
   size = AvatarTokenSize.Xl,
   chainId,
   showNetworkBadge = false,
+  iconUrl,
 }: {
   tokens: TokenAmount[];
   size?: AvatarTokenSize;
   chainId?: string;
   showNetworkBadge?: boolean;
+  iconUrl?: string;
 }) {
   const imageSources = useMemo(
-    () => tokens.map((token) => getTokenImageSource(token)),
-    [tokens],
+    () =>
+      tokens.map((token, index) =>
+        index === 0 && iconUrl ? { uri: iconUrl } : getTokenImageSource(token),
+      ),
+    [tokens, iconUrl],
   );
 
   const networkImage =
@@ -38,7 +43,21 @@ export function ActivityDetailsAvatar({
       : undefined;
 
   if (tokens.length === 0) {
-    return null;
+    if (!iconUrl) {
+      return null;
+    }
+
+    const imageOnlyAvatar = <AvatarToken src={{ uri: iconUrl }} size={size} />;
+    return networkImage ? (
+      <BadgeWrapper
+        position={BadgeWrapperPosition.BottomRight}
+        badge={<BadgeNetwork src={networkImage} />}
+      >
+        {imageOnlyAvatar}
+      </BadgeWrapper>
+    ) : (
+      imageOnlyAvatar
+    );
   }
 
   const avatar =

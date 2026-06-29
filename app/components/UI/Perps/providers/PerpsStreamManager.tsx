@@ -24,6 +24,7 @@ import {
   type PerpsMarketData,
   findEvmAccount,
 } from '@metamask/perps-controller';
+import { USE_TERMINAL_API } from '../constants/terminalApi';
 import {
   PROVIDER_CONFIG,
   PERPS_DISK_CACHE_MARKETS,
@@ -485,6 +486,31 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   // Override cache to store individual PriceUpdate objects
   protected priceCache = new Map<string, PriceUpdate>();
 
+  /**
+   * Maps a raw price update to the cached PriceUpdate shape, stamping the
+   * receive time and applying backward-compatible defaults.
+   *
+   * Backward-compatible default for `isTradable`: pre-8.3.0 streams don't
+   * emit the field, so treat absence as tradable to avoid breaking existing
+   * market display.
+   */
+  private toPriceUpdate(update: PriceUpdate): PriceUpdate {
+    return {
+      symbol: update.symbol,
+      price: update.price,
+      timestamp: Date.now(),
+      percentChange24h: update.percentChange24h,
+      bestBid: update.bestBid,
+      bestAsk: update.bestAsk,
+      spread: update.spread,
+      markPrice: update.markPrice,
+      funding: update.funding,
+      openInterest: update.openInterest,
+      volume24h: update.volume24h,
+      isTradable: update.isTradable ?? true,
+    };
+  }
+
   protected connect() {
     if (this.wsSubscription) {
       return;
@@ -522,20 +548,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         // Update cache and build price map
         const priceMap: Record<string, PriceUpdate> = {};
         updates.forEach((update) => {
-          // Map the update to PriceUpdate format
-          const priceUpdate: PriceUpdate = {
-            symbol: update.symbol,
-            price: update.price,
-            timestamp: Date.now(),
-            percentChange24h: update.percentChange24h,
-            bestBid: update.bestBid,
-            bestAsk: update.bestAsk,
-            spread: update.spread,
-            markPrice: update.markPrice,
-            funding: update.funding,
-            openInterest: update.openInterest,
-            volume24h: update.volume24h,
-          };
+          const priceUpdate = this.toPriceUpdate(update);
           this.priceCache.set(update.symbol, priceUpdate);
           priceMap[update.symbol] = priceUpdate;
         });
@@ -630,7 +643,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     // Start market fetch in background (non-blocking)
     // We need the symbols to register subscribers, but we can return immediately
     controller
-      .getMarkets()
+      .getMarkets({ useTerminalApi: USE_TERMINAL_API })
       .then((markets) => {
         // If this promise is from a stale cycle, don't set up subscription
         // This prevents leaks when prewarm is called multiple times rapidly
@@ -667,19 +680,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           callback: (updates: PriceUpdate[]) => {
             const priceMap: Record<string, PriceUpdate> = {};
             updates.forEach((update) => {
-              const priceUpdate: PriceUpdate = {
-                symbol: update.symbol,
-                price: update.price,
-                timestamp: Date.now(),
-                percentChange24h: update.percentChange24h,
-                bestBid: update.bestBid,
-                bestAsk: update.bestAsk,
-                spread: update.spread,
-                markPrice: update.markPrice,
-                funding: update.funding,
-                openInterest: update.openInterest,
-                volume24h: update.volume24h,
-              };
+              const priceUpdate = this.toPriceUpdate(update);
               this.priceCache.set(update.symbol, priceUpdate);
               priceMap[update.symbol] = priceUpdate;
             });
@@ -1593,7 +1594,9 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         // is in-flight, we must not tag the returned data with the new network key.
         const preFetchNetworkKey = getProviderNetworkKey(controller.state);
 
-        const data = await controller.getMarketDataWithPrices();
+        const data = await controller.getMarketDataWithPrices({
+          useTerminalApi: USE_TERMINAL_API,
+        });
         const fetchTime = Date.now() - fetchStartTime;
 
         // If provider or network changed during fetch, discard stale data
