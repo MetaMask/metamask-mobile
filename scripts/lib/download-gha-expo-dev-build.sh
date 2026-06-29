@@ -31,7 +31,6 @@ resolve_github_repo() {
 
 require_gh() {
   require_cmd gh "Install with: brew install gh (then run: gh auth login)"
-  require_cmd jq "Install with: brew install jq"
 
   if ! gh auth status &> /dev/null; then
     echo -e "${RED}❌ gh is not authenticated${NC}"
@@ -122,28 +121,28 @@ print_run_summary() {
 print_artifact_summary() {
   local run_id="$1"
   local artifact_name="$2"
-  local artifact_info
+  local artifact_meta
   local expired
   local artifact_size_bytes
   local artifact_size_mb
 
-  artifact_info="$(gh api "repos/${GITHUB_REPO}/actions/runs/${run_id}/artifacts" \
+  artifact_meta="$(gh api "repos/${GITHUB_REPO}/actions/runs/${run_id}/artifacts" \
     --paginate \
-    --jq ".artifacts[] | select(.name==\"${artifact_name}\")" || true)"
+    --jq ".artifacts[] | select(.name==\"${artifact_name}\") | \"\(.expired)|\(.size_in_bytes)\"" 2>/dev/null | head -1 || true)"
 
-  if [[ -z "$artifact_info" ]]; then
+  if [[ -z "$artifact_meta" ]]; then
     echo -e "${RED}❌ Artifact '${artifact_name}' not found in run ${run_id}${NC}" >&2
     return 1
   fi
 
-  expired="$(echo "$artifact_info" | jq -r '.expired')"
+  IFS='|' read -r expired artifact_size_bytes <<< "$artifact_meta"
+
   if [[ "$expired" == "true" ]]; then
     echo -e "${RED}❌ Artifact '${artifact_name}' has expired for run ${run_id}${NC}" >&2
     echo -e "${YELLOW}Re-run the workflow or pass --run <id> for a newer run.${NC}" >&2
     return 1
   fi
 
-  artifact_size_bytes="$(echo "$artifact_info" | jq -r '.size_in_bytes')"
   artifact_size_mb=$((artifact_size_bytes / 1024 / 1024))
   echo -e "${GREEN}✓ Artifact '${artifact_name}' size: ${artifact_size_mb}MB${NC}"
   echo -e "${BLUE}🔗 https://github.com/${GITHUB_REPO}/actions/runs/${run_id}${NC}"

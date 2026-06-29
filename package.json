@@ -40,8 +40,6 @@
     "ramps:debug-dashboard": "bash scripts/money-movement/debug-dashboard/run.sh",
     "install:ios:dev": "./scripts/install-ios-dev-app.sh",
     "install:android:dev": "./scripts/install-android-dev-app.sh",
-    "install:ios:gh": "./scripts/install-ios-dev-app.sh",
-    "install:android:gh": "./scripts/install-android-dev-app.sh",
     "install:ios:runway": "./scripts/install-ios-dev-app.sh",
     "install:android:runway": "./scripts/install-android-dev-app.sh",
     "build:android:main:prod": "./scripts/build.sh android main production",
