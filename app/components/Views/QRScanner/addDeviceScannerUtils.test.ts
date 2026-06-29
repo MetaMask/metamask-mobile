@@ -16,6 +16,10 @@ jest.mock(
   }),
 );
 
+jest.mock('../../../core/QrSync/services/qr-sync-connection-request', () => ({
+  parseQrSyncConnectionRequest: jest.fn(),
+}));
+
 jest.mock('../../../core/SDKConnectV2/utils/parseMwpConnectDeeplink', () => ({
   parseMwpConnectPayload: jest.fn(),
 }));
@@ -26,16 +30,37 @@ const { parseMwpConnectPayload } = jest.requireMock(
   '../../../core/SDKConnectV2/utils/parseMwpConnectDeeplink',
 );
 const mockParseMwpConnectPayload = jest.mocked(parseMwpConnectPayload);
+const { parseQrSyncConnectionRequest } = jest.requireMock(
+  '../../../core/QrSync/services/qr-sync-connection-request',
+);
+const mockParseQrSyncConnectionRequest = jest.mocked(
+  parseQrSyncConnectionRequest,
+);
 
 describe('classifyAddDeviceScanContent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockParseQrSyncConnectionRequest.mockImplementation(() => {
+      throw new Error('not qr sync');
+    });
   });
 
   it('returns invalid for non-MWP content', () => {
     mockIsMwpDeeplink.mockReturnValue(false);
 
     expect(classifyAddDeviceScanContent('hello')).toBe('invalid');
+  });
+
+  it('returns valid for a parseable QR sync deeplink', () => {
+    mockIsMwpDeeplink.mockReturnValue(true);
+    mockTryParse.mockReturnValue(null);
+    mockParseQrSyncConnectionRequest.mockReturnValue({
+      sessionRequest: { id: '07f5927c-1ead-490d-8741-bcbcf022ca6d' },
+    });
+
+    expect(classifyAddDeviceScanContent('metamask://connect/mwp?p=abc')).toBe(
+      'valid',
+    );
   });
 
   it('returns valid for a parseable extension account sync deeplink', () => {

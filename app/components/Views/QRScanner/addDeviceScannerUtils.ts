@@ -1,5 +1,6 @@
 import SDKConnectV2 from '../../../core/SDKConnectV2';
 import { tryParseExtensionAccountSyncConnectionRequest } from '../../../core/ExtensionAccountSync/extensionAccountSyncConnectionRequest';
+import { parseQrSyncConnectionRequest } from '../../../core/QrSync/services/qr-sync-connection-request';
 import { parseMwpConnectPayload } from '../../../core/SDKConnectV2/utils/parseMwpConnectDeeplink';
 
 export enum AddDeviceScannerUiState {
@@ -23,6 +24,13 @@ export function classifyAddDeviceScanContent(
 
   if (tryParseExtensionAccountSyncConnectionRequest(content)) {
     return 'valid';
+  }
+
+  try {
+    parseQrSyncConnectionRequest(content);
+    return 'valid';
+  } catch {
+    // Fall through to expiry / invalid handling below.
   }
 
   try {

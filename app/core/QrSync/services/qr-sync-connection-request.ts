@@ -2,6 +2,7 @@ import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 
 import type { QrSyncConnectionRequest } from '../types';
 import { isUUID } from '../../SDKConnect/utils/isUUID';
+import { extractMwpConnectJsonString } from '../../SDKConnectV2/utils/parseMwpConnectDeeplink';
 
 const HANDSHAKE_CHANNEL_REGEX =
   /^handshake:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -97,6 +98,20 @@ const decodeMaybeBase64Json = (raw: string): string => {
   return raw;
 };
 
+const normalizeQrSyncRawPayload = (rawQrData: string): string => {
+  const trimmed = rawQrData.trim();
+
+  if (trimmed.startsWith('metamask://connect/mwp')) {
+    try {
+      return extractMwpConnectJsonString(trimmed);
+    } catch {
+      // Fall through to the generic decode path below.
+    }
+  }
+
+  return decodeMaybeBase64Json(trimmed);
+};
+
 /**
  * Parses the raw QR scan payload into a validated QR sync connection request.
  *
@@ -112,7 +127,7 @@ export function parseQrSyncConnectionRequest(
   }
 
   let parsed: unknown;
-  const decodedPayload = decodeMaybeBase64Json(rawQrData);
+  const decodedPayload = normalizeQrSyncRawPayload(rawQrData);
 
   try {
     parsed = JSON.parse(decodedPayload);
