@@ -197,6 +197,17 @@ jest.mock('../../app/core/Engine', () => {
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
       },
+      GeolocationController: {
+        state: {
+          location: 'US',
+        },
+        refreshGeolocation: jest.fn().mockResolvedValue('US'),
+      },
+      SeedlessOnboardingController: {
+        state: {
+          accessToken: undefined,
+        },
+      },
       // Notifications: stubbed so notification view + settings flows can call
       // controller methods (enable / disable / toggleFeatureAnnouncements /
       // markMetamaskNotificationsAsRead / fetchAndUpdateMetamaskNotifications
