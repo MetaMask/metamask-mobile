@@ -348,7 +348,7 @@ export const unlockApp = async (
   );
   await LoginView.enterPassword(password);
   await LoginView.tapLoginButton();
-  await waitForWalletHomePlaywright(60_000);
+  await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(60_000));
 };
 
 /**
