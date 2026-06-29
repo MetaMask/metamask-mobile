@@ -8,7 +8,7 @@ import type {
   QrSyncSyncErrorEvent,
   QrSyncSyncReadyEvent,
 } from '../types';
-import { validateAndNormalizeQrSyncSyncReadyMessage } from './qr-sync-validation';
+import { validateAndNormalizeQrSyncReadyMessage } from './qr-sync-validation';
 
 export interface QrSyncRoutedMessageResult {
   handled: boolean;
@@ -59,7 +59,7 @@ export function routeIncomingQrSyncMessage(
 
   switch (message.type) {
     case QrSyncActionTypes.SYNC_READY: {
-      const normalizedResult = validateAndNormalizeQrSyncSyncReadyMessage(
+      const normalizedResult = validateAndNormalizeQrSyncReadyMessage(
         rawMessage,
         currentTimestamp,
       );

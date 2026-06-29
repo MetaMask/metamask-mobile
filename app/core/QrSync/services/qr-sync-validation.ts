@@ -1,5 +1,5 @@
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
-import { base64ToBytes, bytesToString } from '@metamask/utils';
+import { base64ToBytes, bytesToBase64, bytesToString } from '@metamask/utils';
 
 import { isUUID } from '../../SDKConnect/utils/isUUID';
 import { decompressPayloadB64 } from '../../SDKConnectV2/utils/compression-utils';
@@ -135,8 +135,9 @@ export function isQrSyncConnectionRequest(
 
 const decodeMaybeBase64Json = (raw: string): string => {
   try {
-    const decoded = Buffer.from(raw, 'base64').toString('utf-8');
-    if (Buffer.from(decoded, 'utf-8').toString('base64') === raw) {
+    const valueBytes = base64ToBytes(raw);
+    const decoded = bytesToString(valueBytes);
+    if (bytesToBase64(valueBytes) === raw) {
       return decoded;
     }
   } catch {
@@ -415,7 +416,7 @@ export function validateAndNormalizeQrSyncData(
   };
 }
 
-export function validateQrSyncSyncReadyMessage(
+export function validateQrSyncReadyMessage(
   data: unknown,
   currentTimestamp = Date.now(),
 ): QrSyncValidationResult {
@@ -450,7 +451,7 @@ export function validateQrSyncSyncReadyMessage(
   return validateQrSyncData(data.data, currentTimestamp);
 }
 
-export function validateAndNormalizeQrSyncSyncReadyMessage(
+export function validateAndNormalizeQrSyncReadyMessage(
   data: unknown,
   currentTimestamp = Date.now(),
 ): QrSyncNormalizationResult {

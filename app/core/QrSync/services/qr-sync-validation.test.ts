@@ -17,11 +17,11 @@ import {
   parseQrSyncConnectionRequest,
   QR_SYNC_MWP_DEEPLINK_PREFIX,
   validateAndNormalizeQrSyncData,
-  validateAndNormalizeQrSyncSyncReadyMessage,
+  validateAndNormalizeQrSyncReadyMessage,
   validateQrSyncData,
   validateQrSyncDataSemantics,
   validateQrSyncImportPlanForOnboarding,
-  validateQrSyncSyncReadyMessage,
+  validateQrSyncReadyMessage,
 } from './qr-sync-validation';
 
 const VALID_SESSION_ID = '11111111-2222-3333-4444-555555555555';
@@ -671,9 +671,9 @@ describe('qr-sync-validation', () => {
     });
   });
 
-  describe('validateQrSyncSyncReadyMessage', () => {
+  describe('validateQrSyncReadyMessage', () => {
     it('returns valid for a well-formed sync-ready wire message', () => {
-      const result = validateQrSyncSyncReadyMessage(
+      const result = validateQrSyncReadyMessage(
         createSyncReadyMessage(),
         FIXED_NOW,
       );
@@ -682,7 +682,7 @@ describe('qr-sync-validation', () => {
     });
 
     it('returns INVALID_PAYLOAD when envelope type is not sync-ready', () => {
-      const result = validateQrSyncSyncReadyMessage(
+      const result = validateQrSyncReadyMessage(
         {
           type: QrSyncActionTypes.SYNC_OFFER,
           version: QrSyncMessageVersion.V1,
@@ -701,7 +701,7 @@ describe('qr-sync-validation', () => {
     });
 
     it('returns INVALID_PAYLOAD when envelope version is not 1.0.0', () => {
-      const result = validateQrSyncSyncReadyMessage(
+      const result = validateQrSyncReadyMessage(
         {
           type: QrSyncActionTypes.SYNC_READY,
           version: '9.9.9',
@@ -721,7 +721,7 @@ describe('qr-sync-validation', () => {
     });
 
     it('returns INVALID_PAYLOAD when sync-ready data payload is malformed', () => {
-      const result = validateQrSyncSyncReadyMessage(
+      const result = validateQrSyncReadyMessage(
         {
           type: QrSyncActionTypes.SYNC_READY,
           version: QrSyncMessageVersion.V1,
@@ -740,7 +740,7 @@ describe('qr-sync-validation', () => {
     });
   });
 
-  describe('validateAndNormalizeQrSyncSyncReadyMessage', () => {
+  describe('validateAndNormalizeQrSyncReadyMessage', () => {
     it('returns decoded import plan for a valid sync-ready wire message', () => {
       const plaintext = 'mnemonic phrase';
       const message = createSyncReadyMessage({
@@ -749,7 +749,7 @@ describe('qr-sync-validation', () => {
         }),
       });
 
-      const result = validateAndNormalizeQrSyncSyncReadyMessage(
+      const result = validateAndNormalizeQrSyncReadyMessage(
         message,
         FIXED_NOW,
       );
@@ -770,7 +770,7 @@ describe('qr-sync-validation', () => {
     });
 
     it('returns envelope error when message is not a QR sync message', () => {
-      const result = validateAndNormalizeQrSyncSyncReadyMessage(
+      const result = validateAndNormalizeQrSyncReadyMessage(
         { foo: 'bar' },
         FIXED_NOW,
       );
