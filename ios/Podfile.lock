@@ -626,7 +626,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
-  - OpenSSL-Universal (3.6.0000)
+  - OpenSSL-Universal (3.6.2000)
   - Permission-BluetoothPeripheral (3.10.1):
     - RNPermissions
   - PromisesObjC (2.4.0)
@@ -4333,15 +4333,22 @@ DEPENDENCIES:
 
 SPEC REPOS:
   https://github.com/CocoaPods/Specs.git:
+    - BrazeKit
+    - FirebaseCore
+    - OpenSSL-Universal
+    - PromisesObjC
+    - SDWebImage
+    - SocketRocket
+  https://github.com/SumSubstance/Specs.git:
+    - IdensicMobileSDK
+  trunk:
     - Base64
     - BEMCheckBox
     - Branch
-    - BrazeKit
     - BrazeLocation
     - BrazeUI
     - CocoaAsyncSocket
     - Firebase
-    - FirebaseCore
     - FirebaseCoreExtension
     - FirebaseCoreInternal
     - FirebaseInstallations
@@ -4356,16 +4363,12 @@ SPEC REPOS:
     - lottie-ios
     - MultiplatformBleAdapter
     - nanopb
-    - OpenSSL-Universal
-    - PromisesObjC
     - ReachabilitySwift
     - RiveRuntime
-    - SDWebImage
     - SDWebImageAVIFCoder
     - SDWebImageSVGCoder
     - SDWebImageWebPCoder
     - Sentry
-    - SocketRocket
     - VeriffSDK
     - YttriumWrapper
   https://github.com/SumSubstance/Specs.git:
@@ -4776,7 +4779,7 @@ SPEC CHECKSUMS:
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeUtils: 1856148c08a042bbbca306acbe2771db8a9be99b
   NitroModules: ea5dc6c43666f4a75e71e372eaca6d3605856e51
-  OpenSSL-Universal: 9110d21982bb7e8b22a962b6db56a8aa805afde7
+  OpenSSL-Universal: ecee7b138fa75a74ecf00d7ffd248fb584739b9e
   Permission-BluetoothPeripheral: 34ab829f159c6cf400c57bac05f5ba1b0af7a86e
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
