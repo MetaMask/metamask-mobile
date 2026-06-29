@@ -57,9 +57,14 @@ export function TemplateLoader({
       return <DepositDetails item={item} />;
     case 'smartAccountUpgrade':
       return <SmartAccountUpgradeDetails item={item} />;
+    case 'deposit':
+      return isRampActivityListItem(item) ? (
+        <RampDetails item={item} />
+      ) : (
+        <DepositDetails item={item} />
+      );
     case 'buy':
     case 'sell':
-    case 'deposit':
       return isRampActivityListItem(item) ? (
         <RampDetails item={item} />
       ) : (
