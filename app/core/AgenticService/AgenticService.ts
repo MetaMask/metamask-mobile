@@ -1127,6 +1127,10 @@ const AgenticService = {
     navRef: NavigationContainerRef<ParamListBase>,
     deferredNav: NavigationContainerRef<ParamListBase>,
   ) {
+    // Defensive guard against accidental production imports/calls; the bridge
+    // must never assign globals outside development builds.
+    if (!__DEV__) return;
+
     Logger.log('[AgenticService] __AGENTIC__ bridge installed');
 
     globalThis.__AGENTIC__ = {
