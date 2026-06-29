@@ -1477,6 +1477,89 @@ class TopOfBookStreamChannel extends StreamChannel<
   }
 }
 
+/**
+ * Focused single-symbol price channel with fast activeAssetCtx projection.
+ *
+ * Subscribes with `includeMarketData: true` so the controller projects the
+ * fast activeAssetCtx midPx/markPx onto updates for this subscriber (TAT-3334).
+ * Scoped to a single symbol so it never triggers N² WebSocket connections —
+ * one activeAssetCtx subscription is opened and reference-counted per symbol.
+ *
+ * Intended for detail/ticket screens that need sub-2s price refresh. List/
+ * overview screens continue using PriceStreamChannel (includeMarketData: false).
+ */
+class FocusedPriceStreamChannel extends StreamChannel<PriceUpdate | undefined> {
+  private currentSymbol: string | null = null;
+  private cachedPriceUpdate: PriceUpdate | undefined = undefined;
+
+  protected connect() {
+    if (!this.currentSymbol || this.wsSubscription) {
+      return;
+    }
+
+    if (!this.ensureReady()) return;
+
+    DevLogger.log(`FocusedPriceStreamChannel: Subscribing with market data`, {
+      symbol: this.currentSymbol,
+    });
+
+    this.wsSubscription = Engine.context.PerpsController.subscribeToPrices({
+      symbols: [this.currentSymbol],
+      includeMarketData: true,
+      callback: (updates: PriceUpdate[]) => {
+        const update = updates.find((u) => u.symbol === this.currentSymbol);
+        if (update) {
+          this.cachedPriceUpdate = update;
+          this.notifySubscribers(update);
+        }
+      },
+    });
+  }
+
+  protected getCachedData(): PriceUpdate | undefined {
+    return this.cachedPriceUpdate;
+  }
+
+  protected getClearedData(): PriceUpdate | undefined {
+    return undefined;
+  }
+
+  public getSnapshot(): PriceUpdate | undefined | null {
+    return this.cachedPriceUpdate ?? null;
+  }
+
+  public clearCache(): void {
+    this.cachedPriceUpdate = undefined;
+    super.clearCache();
+  }
+
+  public subscribeToSymbol(params: {
+    symbol: string;
+    callback: (update: PriceUpdate | undefined) => void;
+  }): () => void {
+    if (this.currentSymbol && this.currentSymbol !== params.symbol) {
+      DevLogger.log('FocusedPriceStreamChannel: Symbol changed, reconnecting', {
+        currentSymbol: this.currentSymbol,
+        requestedSymbol: params.symbol,
+      });
+      this.disconnect();
+      this.currentSymbol = params.symbol;
+    } else if (!this.currentSymbol) {
+      this.currentSymbol = params.symbol;
+    }
+
+    return this.subscribe({
+      callback: params.callback,
+    });
+  }
+
+  public disconnect() {
+    this.currentSymbol = null;
+    this.cachedPriceUpdate = undefined;
+    super.disconnect();
+  }
+}
+
 // Market data channel for caching market list data
 class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   private lastFetchTime = 0;
@@ -1766,6 +1849,7 @@ export class PerpsStreamManager {
   );
   public readonly oiCaps = new OICapStreamChannel();
   public readonly topOfBook = new TopOfBookStreamChannel();
+  public readonly focusedPrice = new FocusedPriceStreamChannel();
   public readonly candles = new CandleStreamChannel(
     () => PerpsConnectionManager.getConnectionState().isInitialized,
   );
@@ -1859,6 +1943,7 @@ export class PerpsStreamManager {
     this.account.pause();
     this.oiCaps.pause();
     this.topOfBook.pause();
+    this.focusedPrice.pause();
     this.candles.pause();
   }
 
@@ -1874,6 +1959,7 @@ export class PerpsStreamManager {
     this.account.resume();
     this.oiCaps.resume();
     this.topOfBook.resume();
+    this.focusedPrice.resume();
     this.candles.resume();
   }
 
@@ -1892,6 +1978,7 @@ export class PerpsStreamManager {
     this.marketData.reconnect();
     this.oiCaps.reconnect();
     this.topOfBook.reconnect();
+    this.focusedPrice.reconnect();
     this.candles.reconnect();
   }
 }
