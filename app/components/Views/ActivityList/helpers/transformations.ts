@@ -46,12 +46,27 @@ function isIncomingTokenTransfer(
   address: string,
   transaction: V1TransactionByHashResponse,
 ) {
+  const normalizedAddress = address.toLowerCase();
+
   return (
     (transaction.valueTransfers?.some(
-      (transfer) => transfer.to?.toLowerCase() === address,
+      (transfer) =>
+        Boolean(transfer.contractAddress) &&
+        transfer.to?.toLowerCase() === normalizedAddress &&
+        transfer.from?.toLowerCase() !== normalizedAddress,
     ) ??
       false) &&
-    transaction.from?.toLowerCase() !== address
+    transaction.from?.toLowerCase() !== normalizedAddress
+  );
+}
+
+function isNativeValueTransfer(
+  transfer: NonNullable<V1TransactionByHashResponse['valueTransfers']>[number],
+) {
+  const transferType = transfer.transferType?.toLowerCase();
+  return (
+    !transfer.contractAddress &&
+    (transferType === 'native' || transferType === 'normal')
   );
 }
 
@@ -74,7 +89,7 @@ function isIncomingNativeTransfer(
     if (
       !hasIncomingNativeTransfer &&
       transfer.to?.toLowerCase() === normalizedAddress &&
-      !transfer.contractAddress
+      isNativeValueTransfer(transfer)
     ) {
       hasIncomingNativeTransfer = true;
     }
@@ -178,13 +193,22 @@ export function mapNonEvmTransactions(
 }
 
 /**
- * Merges and sorts all three transaction sources into a single ActivityListItem list.
- * API-confirmed EVM items win deduplication by hash over local items.
+ * Merges and sorts all transaction sources into a single ActivityListItem list.
+ * Dedup precedence by hash: perps/predict > API-confirmed EVM > local EVM >
+ * non-EVM (see mergeActivityItems).
  */
 export function mergeTransactionsByTime(
   localItems: ActivityListItem[],
   confirmedEvmItems: ActivityListItem[],
   nonEvmItems: ActivityListItem[],
+  perpsItems: ActivityListItem[] = [],
+  predictItems: ActivityListItem[] = [],
 ): ActivityListItem[] {
-  return mergeActivityItems(localItems, confirmedEvmItems, nonEvmItems);
+  return mergeActivityItems(
+    localItems,
+    confirmedEvmItems,
+    nonEvmItems,
+    perpsItems,
+    predictItems,
+  );
 }

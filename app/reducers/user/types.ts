@@ -25,5 +25,8 @@ export interface UserState {
   musdConversionAssetDetailCtasSeen: Record<string, boolean>;
   moneyOnboardingSeen: boolean;
   tokenOverviewChartType: ChartType;
+  /** Candle interval (e.g. '15m') when technical indicators chart is enabled. */
+  tokenOverviewChartInterval: string;
+  tokenIndicators: string[];
   onboardingStepperProgress: Record<string, number>;
 }

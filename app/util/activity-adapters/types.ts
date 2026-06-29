@@ -7,6 +7,10 @@ import type { Transaction } from '@metamask/keyring-api';
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import type { CaipChainId } from '@metamask/utils';
 import type { TransactionGroup } from './adapters/transaction-group';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { PerpsTransaction } from '../../components/UI/Perps/types/transactionHistory';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { PredictActivity } from '../../components/UI/Predict/types';
 
 export type Status = 'pending' | 'success' | 'failed' | 'cancelled';
 
@@ -59,10 +63,24 @@ export type ActivityKind =
 export interface TokenAmount {
   amount?: string;
   decimals?: number;
+  isUnlimitedApproval?: boolean;
   symbol?: string;
   // CAIP-19 asset id (from adapters)
   assetId?: string;
   direction: 'in' | 'out';
+}
+
+/**
+ * A fee associated with a transaction (e.g. the base network/gas fee). `amount`
+ * is in the smallest unit of `symbol`/`assetId` (typically the native token).
+ * Mirrors metamask-extension `shared/lib/activity/types.ts#ActivityFee`.
+ */
+export interface ActivityFee {
+  type: string;
+  amount?: string;
+  decimals?: number;
+  symbol?: string;
+  assetId?: string;
 }
 
 interface ActivityData<Type extends ActivityKind, Data> {
@@ -76,7 +94,9 @@ interface ActivityData<Type extends ActivityKind, Data> {
   raw?:
     | { type: 'apiEvmTransaction'; data: V1TransactionByHashResponse }
     | { type: 'keyringTransaction'; data: Transaction }
-    | { type: 'localTransaction'; data: TransactionGroup };
+    | { type: 'localTransaction'; data: TransactionGroup }
+    | { type: 'perpsTransaction'; data: PerpsTransaction }
+    | { type: 'predictActivity'; data: PredictActivity };
   data: Data;
 }
 
@@ -87,6 +107,7 @@ export type ActivityListItem =
         from: string;
         to: string;
         token?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<
@@ -99,6 +120,7 @@ export type ActivityListItem =
       {
         sourceToken?: TokenAmount;
         destinationToken?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<
@@ -112,6 +134,7 @@ export type ActivityListItem =
       {
         sourceToken?: TokenAmount;
         destinationToken?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<
@@ -126,12 +149,14 @@ export type ActivityListItem =
       'claimMusdBonus',
       {
         token?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<
       'approveSpendingCap' | 'revokeSpendingCap' | 'increaseSpendingCap',
       {
         token?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<
@@ -140,6 +165,7 @@ export type ActivityListItem =
         from: string;
         to: string;
         token?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<
@@ -148,6 +174,7 @@ export type ActivityListItem =
         from: string;
         to: string;
         token?: TokenAmount;
+        fees?: ActivityFee[];
         methodId?: string;
         transactionCategory?: string;
         transactionProtocol?: string;

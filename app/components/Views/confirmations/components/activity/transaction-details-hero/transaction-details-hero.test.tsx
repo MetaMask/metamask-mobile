@@ -5,6 +5,7 @@ import {
   CHAIN_IDS,
   TransactionMeta,
   TransactionType,
+  CHAIN_IDS,
 } from '@metamask/transaction-controller';
 import { TransactionDetailsHero } from './transaction-details-hero';
 import { merge } from 'lodash';

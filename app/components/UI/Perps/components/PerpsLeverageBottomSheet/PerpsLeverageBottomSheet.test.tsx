@@ -27,24 +27,13 @@ jest.mock('react-native-gesture-handler', () => ({
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
 
-// Mock SkeletonPlaceholder
-jest.mock('react-native-skeleton-placeholder', () => {
+// Mock MMDS Skeleton so loading states are queryable by a stable testID
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const { View } = jest.requireActual('react-native');
-  const MockSkeletonPlaceholder = ({
-    children,
-  }: {
-    children: React.ReactNode;
-  }) => <View testID="skeleton-placeholder">{children}</View>;
-
-  MockSkeletonPlaceholder.Item = (props: {
-    width: number | string;
-    height: number;
-    borderRadius: number;
-  }) => <View testID="skeleton-item" {...props} />;
-
   return {
-    __esModule: true,
-    default: MockSkeletonPlaceholder,
+    Skeleton: (props: { width?: number | string; height?: number }) => (
+      <View testID="skeleton-placeholder" {...props} />
+    ),
   };
 });
 

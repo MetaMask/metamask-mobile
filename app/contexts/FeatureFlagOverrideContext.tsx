@@ -7,7 +7,7 @@ import React, {
 } from 'react';
 import { useSelector } from 'react-redux';
 import {
-  selectRemoteFeatureFlags,
+  selectRemoteFeatureFlagsUnfiltered,
   selectLocalOverrides,
   selectRawFeatureFlags,
 } from '../selectors/featureFlagController';
@@ -42,11 +42,11 @@ interface FeatureFlagOverrideProviderProps {
 export const FeatureFlagOverrideProvider: React.FC<
   FeatureFlagOverrideProviderProps
 > = ({ children }) => {
-  // Get the initial feature flags from Redux
-  const featureFlagsWithOverrides = useSelector(selectRemoteFeatureFlags);
+  const featureFlagsWithOverrides = useSelector(
+    selectRemoteFeatureFlagsUnfiltered,
+  );
   const rawFeatureFlags = useSelector(selectRawFeatureFlags);
 
-  // Get overrides from controller state via Redux
   const overrides = useSelector(selectLocalOverrides);
 
   const setOverride = useCallback((key: string, value: unknown) => {
@@ -70,14 +70,12 @@ export const FeatureFlagOverrideProvider: React.FC<
   );
 
   const featureFlags = useMemo(() => {
-    // Get all unique keys from both raw and overridden flags
     const allKeys = new Set([
       ...Object.keys(rawFeatureFlags || {}),
       ...Object.keys(featureFlagsWithOverrides || {}),
     ]);
     const allFlags: { [key: string]: FeatureFlagInfo } = {};
 
-    // Process all feature flags and return flat list
     Array.from(allKeys).forEach((key: string) => {
       const originalValue = rawFeatureFlags?.[key];
       const currentValue = featureFlagsWithOverrides?.[key];
