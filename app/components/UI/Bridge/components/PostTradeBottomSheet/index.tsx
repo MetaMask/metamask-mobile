@@ -324,11 +324,9 @@ export const PostTradeBottomSheet = () => {
     });
     shouldSkipDismissedTrackingRef.current = true;
 
-    // Resolve a source token that does not match the selected destination on
-    // the same chain. The post-trade suggestion flow bypasses the normal token
-    // picker, so without this guard the previous trade's source token can end
-    // up identical to the selected destination, resulting in a no-quote state.
-    // The clicked suggestion is always kept as the destination.
+    // Resolve a non-conflicting source token; the clicked suggestion is kept
+    // as the destination. Fallbacks: previous source -> native gas -> chain
+    // default -> prior trade's destination.
     let resolvedSourceToken: BridgeToken | undefined = params.sourceToken;
     if (isSameBridgeToken(resolvedSourceToken, selectedDestToken)) {
       const nativeSourceToken = getNativeSourceToken(selectedDestToken.chainId);
@@ -340,9 +338,6 @@ export const PostTradeBottomSheet = () => {
         ) {
           resolvedSourceToken = defaultDestToken;
         } else if (!isSameBridgeToken(params.destToken, selectedDestToken)) {
-          // No configured default for this chain (or it also conflicts); fall
-          // back to the prior trade's destination, which is on the same chain
-          // as the suggestion and a different asset, to avoid an identical pair.
           resolvedSourceToken = params.destToken;
         }
       } else {

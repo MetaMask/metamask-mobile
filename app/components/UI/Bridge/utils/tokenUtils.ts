@@ -207,15 +207,10 @@ export const tokenToIncludeAsset = (
 };
 
 /**
- * Determines whether two bridge tokens reference the same on-chain asset.
- *
- * Compares both the token address (case-insensitively for EVM, after
- * normalizing chain-specific native addresses such as Polygon's 0x…1010 to
- * the zero address) and the chain ID (normalized to CAIP format). Two tokens
- * with the same address on different chains are NOT the same asset, so this
- * returns false for those pairs to preserve cross-chain bridge flows.
- *
- * Returns false when either token is undefined.
+ * Returns true when two bridge tokens reference the same on-chain asset.
+ * Addresses are normalized (e.g. Polygon native 0x…1010 → 0x0) and compared
+ * case-insensitively for EVM; chain IDs are normalized to CAIP format, so
+ * same-address tokens on different chains are NOT considered identical.
  */
 export const isSameBridgeToken = (
   tokenA: BridgeToken | undefined,

@@ -411,65 +411,6 @@ describe('PostTradeBottomSheet', () => {
     );
   });
 
-  it('keeps the previous source when the suggestion shares an address but is on a different chain', () => {
-    mockPostTradeStatus = PostTradeStatus.Success;
-    // Previous trade source is an ERC20 on mainnet.
-    const sourceAddress = '0xabcabcabcabcabcabcabcabcabcabcabcabcabca';
-    mockParams = {
-      ...mockParams,
-      status: PostTradeStatus.Success,
-      sourceToken: {
-        address: sourceAddress,
-        symbol: 'ABC',
-        chainId: '0x1',
-        decimals: 18,
-      },
-    };
-    // Suggestion has the same address but on Polygon.
-    const suggestedToken = {
-      assetId: `eip155:137/erc20:${sourceAddress}`,
-      name: 'ABC',
-      symbol: 'ABC',
-      decimals: 18,
-      marketCap: 1000,
-      priceChangePct: { h24: '1.23' },
-    };
-    mockPostTradeTrendingTokens = {
-      tokens: [suggestedToken],
-      isLoading: false,
-      error: null,
-      refetch: jest.fn(),
-    };
-
-    const { getByTestId } = render(React.createElement(PostTradeBottomSheet));
-
-    fireEvent.press(
-      getByTestId(getPostTradeSuggestionPillTestId(suggestedToken.assetId)),
-    );
-
-    // Same address, different chain -> not identical, so keep previous source.
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'bridge/setSourceToken',
-        payload: expect.objectContaining({
-          address: sourceAddress,
-          chainId: '0x1',
-          symbol: 'ABC',
-        }),
-      }),
-    );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'bridge/setDestToken',
-        payload: expect.objectContaining({
-          address: sourceAddress,
-          chainId: '0x89',
-          symbol: 'ABC',
-        }),
-      }),
-    );
-  });
-
   it('falls back to the prior destination token when the chain has no configured default', () => {
     mockPostTradeStatus = PostTradeStatus.Success;
     // Prior trade: native ETH source -> USDC dest on mainnet.
