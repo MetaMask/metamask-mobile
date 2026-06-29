@@ -59,11 +59,17 @@ describe('DeviceAdded', () => {
   });
 
   describe('rendering', () => {
-    it('renders the device added confirmation text', () => {
-      const { getByText } = renderComponent();
+    it('renders the waiting for extension screen', () => {
+      const { getByText, getByTestId } = renderComponent();
 
+      expect(getByTestId('device-added-loader')).toBeOnTheScreen();
       expect(
-        getByText(strings('app_settings.add_device.device_added')),
+        getByText(strings('app_settings.add_device.waiting_for_extension')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(
+          strings('app_settings.add_device.waiting_for_extension_description'),
+        ),
       ).toBeOnTheScreen();
     });
   });

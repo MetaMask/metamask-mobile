@@ -134,7 +134,7 @@ describe('AddDeviceToWallet', () => {
       const { queryByText } = renderComponent();
 
       expect(
-        queryByText(strings('app_settings.add_device.device_added')),
+        queryByText(strings('app_settings.add_device.waiting_for_extension')),
       ).not.toBeOnTheScreen();
     });
 
@@ -216,12 +216,13 @@ describe('AddDeviceToWallet', () => {
     });
 
     it('shows DeviceAdded while awaiting sync-ready', () => {
-      const { getByText } = renderComponent({
+      const { getByText, getByTestId } = renderComponent({
         phase: QrSyncPhases.AWAITING_SYNC_READY,
       });
 
+      expect(getByTestId('device-added-loader')).toBeOnTheScreen();
       expect(
-        getByText(strings('app_settings.add_device.device_added')),
+        getByText(strings('app_settings.add_device.waiting_for_extension')),
       ).toBeOnTheScreen();
     });
     it('does not render the manual QR input outside dev', () => {

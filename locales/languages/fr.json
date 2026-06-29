@@ -1162,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "Contrats à terme perpétuels non disponibles",
     "title": "Perps",
-    "transfer_to_perps": "Transfert vers Perps",
     "perps_trading": "Trading de contrats à terme perpétuels (perps)",
     "perp_account_balance": "Solde du compte de trading de contrats à terme perpétuels (perps)",
     "manage_balance": "Gérer le solde",
@@ -2343,7 +2342,6 @@
   },
   "predict": {
     "title": "Prédictions MetaMask",
-    "transfer_to_predictions": "Transférer vers Prédictions",
     "select_predict_account": "Sélectionner un compte de prédiction",
     "search_account": "Rechercher un compte",
     "home": {
@@ -7679,8 +7677,7 @@
       "perps_withdraw": "Retirer",
       "predict_deposit": "Ajouter des fonds de prédiction",
       "predict_withdraw": "Retirer",
-      "money_account_add_money": "Ajouter des fonds",
-      "money_account_transfer_money": "Transférez des fonds"
+      "money_account_add_money": "Ajouter des fonds"
     },
     "sub_title": {
       "permit": "Ce site demande l’autorisation de dépenser vos jetons.",

@@ -749,10 +749,7 @@ describe('qr-sync-validation', () => {
         }),
       });
 
-      const result = validateAndNormalizeQrSyncReadyMessage(
-        message,
-        FIXED_NOW,
-      );
+      const result = validateAndNormalizeQrSyncReadyMessage(message, FIXED_NOW);
 
       expect(result).toEqual({
         valid: true,
