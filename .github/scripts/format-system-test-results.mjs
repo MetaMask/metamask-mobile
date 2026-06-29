@@ -20,8 +20,7 @@ function processSuite(suite, results) {
 
       for (const test of spec.tests || []) {
         let status;
-        if (test.status === 'expected') status = 'passed';
-        else if (test.status === 'flaky') status = 'passed';
+        if (test.status === 'expected' || test.status === 'flaky') status = 'passed';
         else if (test.status === 'unexpected') status = 'failed';
         else if (test.status === 'skipped') status = 'skipped';
         else status = test.results?.[test.results.length - 1]?.status || 'unknown';
