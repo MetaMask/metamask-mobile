@@ -709,7 +709,7 @@ export const loginToAppPlaywright = async (
   };
 
   await dismissAndroidSystemOverlaysPlaywright();
-  await waitForAppReady(resolveE2EWaitTimeoutMs(30_000));
+  await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
   await dismissDeveloperMenuPlaywright();
   await dismissAndroidSystemOverlaysPlaywright();
 

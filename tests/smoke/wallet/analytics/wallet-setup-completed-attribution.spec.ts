@@ -4,14 +4,14 @@ import { Mockttp } from 'mockttp';
 import TestHelpers from '../../../helpers';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { SmokeSeedlessOnboarding } from '../../../tags';
+import { SmokeWalletPlatform } from '../../../tags';
 import { onboardingEvents } from '../../../helpers/analytics/helpers';
 import { createOAuthMockttpService } from '../../../api-mocking/seedless-onboarding';
 import { E2EOAuthHelpers } from '../../../module-mocking/oauth';
 import {
   completeAppleNewUserOnboarding,
   completeGoogleNewUserOnboarding,
-} from '../../seedless/utils';
+} from './seedless-onboarding-detox-utils';
 import type { AnalyticsExpectations } from '../../../framework';
 import { E2E_WALLET_SETUP_ATTRIBUTION_FIELDS } from '../../../helpers/analytics/walletSetupAttributionE2eConstants';
 
@@ -35,7 +35,7 @@ function walletSetupCompletedOnlyExpectations(
 }
 
 describe(
-  SmokeSeedlessOnboarding(
+  SmokeWalletPlatform(
     'Wallet Setup Completed includes persisted attribution (Google + Apple)',
   ),
   () => {
