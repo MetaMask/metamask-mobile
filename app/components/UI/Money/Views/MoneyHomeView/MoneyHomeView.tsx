@@ -28,7 +28,9 @@ import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
 import MoneyMetaMaskCard from '../../components/MoneyMetaMaskCard';
 import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
-import MoneyActivityList from '../../components/MoneyActivityList';
+import MoneyActivityList, {
+  MAX_PREVIEW_ITEMS as MONEY_HOME_ACTIVITY_PREVIEW_COUNT,
+} from '../../components/MoneyActivityList';
 import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
@@ -157,9 +159,10 @@ const MoneyHomeView = () => {
   const {
     buckets,
     isLoading: showCardActivityLoading,
+    hasMore: hasMoreActivity,
     moneyAddress,
     mockDataEnabled,
-  } = useMoneyActivityItems();
+  } = useMoneyActivityItems({ ensureCount: MONEY_HOME_ACTIVITY_PREVIEW_COUNT });
   const activityItems = buckets[MoneyActivityFilter.All];
 
   const isCardholder = useSelector(selectIsCardholder);
@@ -694,6 +697,7 @@ const MoneyHomeView = () => {
         <MoneyActivityList
           items={activityItems}
           moneyAddress={moneyAddress}
+          hasMore={hasMoreActivity}
           onViewAllPress={handleViewAllActivityPress}
           onHeaderPress={handleActivityHeaderPress}
           onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}

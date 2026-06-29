@@ -278,6 +278,22 @@ const mockUseMoneyAccountTransactions = jest.mocked(
 );
 const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
 
+const apiActivityResult = (
+  overrides: Partial<ReturnType<typeof useMoneyAccountApiActivity>> = {},
+): ReturnType<typeof useMoneyAccountApiActivity> => ({
+  activity: [],
+  watermark: Number.NEGATIVE_INFINITY,
+  isComplete: true,
+  pageCount: 1,
+  hasMore: false,
+  loadMore: jest.fn(),
+  isLoadingMore: false,
+  isLoading: false,
+  error: false,
+  refetch: jest.fn(),
+  ...overrides,
+});
+
 const CARD_TX: AccountsApiActivity = {
   kind: 'card',
   hash: '0xcard1',
@@ -380,12 +396,7 @@ describe('MoneyHomeView', () => {
     jest.clearAllMocks();
     global.alert = jest.fn();
 
-    mockUseMoneyAccountApiActivity.mockReturnValue({
-      activity: [],
-      isLoading: false,
-      error: false,
-      refetch: jest.fn(),
-    });
+    mockUseMoneyAccountApiActivity.mockReturnValue(apiActivityResult());
 
     mockInitiateDeposit.mockResolvedValue(undefined);
 
@@ -1299,12 +1310,9 @@ describe('MoneyHomeView', () => {
     });
 
     it('renders Accounts-API rows in the activity list', () => {
-      mockUseMoneyAccountApiActivity.mockReturnValue({
-        activity: [CARD_TX],
-        isLoading: false,
-        error: false,
-        refetch: jest.fn(),
-      });
+      mockUseMoneyAccountApiActivity.mockReturnValue(
+        apiActivityResult({ activity: [CARD_TX] }),
+      );
 
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
@@ -1325,12 +1333,9 @@ describe('MoneyHomeView', () => {
         moneyAddress: '0x0000000000000000000000000000000000000001',
         mockDataEnabled: true,
       });
-      mockUseMoneyAccountApiActivity.mockReturnValue({
-        activity: [CARD_TX],
-        isLoading: false,
-        error: false,
-        refetch: jest.fn(),
-      });
+      mockUseMoneyAccountApiActivity.mockReturnValue(
+        apiActivityResult({ activity: [CARD_TX] }),
+      );
 
       const { queryByTestId } = renderWithProvider(<MoneyHomeView />);
 

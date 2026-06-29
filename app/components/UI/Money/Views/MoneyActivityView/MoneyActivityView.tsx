@@ -1,5 +1,10 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { ScrollView, SectionList, StyleSheet } from 'react-native';
+import {
+  ScrollView,
+  ActivityIndicator,
+  SectionList,
+  StyleSheet,
+} from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { type TransactionMeta } from '@metamask/transaction-controller';
@@ -49,6 +54,11 @@ const styles = StyleSheet.create({
     paddingBottom: 12,
   },
 });
+
+// Pull roughly a screenful upfront so the list is scrollable and `onEndReached`
+// fires reliably; further pages then load on scroll. Bounded by
+// `AUTO_FILL_MAX_PAGES` for sparse accounts.
+const INITIAL_FILL_COUNT = 15;
 
 const FILTER_LABEL_KEYS = {
   all: 'money.activity.filter_all',
@@ -138,9 +148,13 @@ const MoneyActivityView = () => {
   const {
     buckets,
     isLoading: showActivityLoading,
+    loadMore,
+    hasMore,
+    isComplete,
+    isLoadingMore,
     moneyAddress,
     mockDataEnabled,
-  } = useMoneyActivityItems();
+  } = useMoneyActivityItems({ ensureCount: INITIAL_FILL_COUNT });
 
   const handleFilterPress = useCallback(
     (
@@ -210,6 +224,23 @@ const MoneyActivityView = () => {
       onPress={mockDataEnabled ? undefined : handleItemPress}
     />
   );
+
+  // Pages are shared across all three tabs (one cursor stream), so reaching the
+  // end of any rendered bucket pulls the next page for all of them.
+  const handleEndReached = useCallback(() => {
+    if (hasMore) {
+      loadMore();
+    }
+  }, [hasMore, loadMore]);
+
+  const listFooter = isLoadingMore ? (
+    <Box
+      paddingVertical={4}
+      testID={MoneyActivityViewTestIds.LOAD_MORE_SPINNER}
+    >
+      <ActivityIndicator color={colors.icon.alternative} />
+    </Box>
+  ) : null;
 
   const isActive = (f: MoneyActivityFilter) => f === filter;
 
@@ -331,7 +362,9 @@ const MoneyActivityView = () => {
         </Button>
       </ScrollView>
 
-      {showActivityLoading ? (
+      {showActivityLoading || (sections.length === 0 && !isComplete) ? (
+        // Keep the skeleton up while the list is empty but more pages may still
+        // arrive — otherwise an in-flight fetch would flash "No activity".
         <MoneyActivityLoading />
       ) : sections.length === 0 ? (
         <Box
@@ -348,11 +381,15 @@ const MoneyActivityView = () => {
         </Box>
       ) : (
         <SectionList
+          testID={MoneyActivityViewTestIds.LIST}
           sections={sections}
           keyExtractor={(item) => item.id}
           renderItem={renderItem}
           renderSectionHeader={renderSectionHeader}
           stickySectionHeadersEnabled={false}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.5}
+          ListFooterComponent={listFooter}
         />
       )}
     </Box>
