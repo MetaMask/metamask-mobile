@@ -98,7 +98,7 @@ class NavigationService {
     this.#navigation = this.#createReactAwareNavigation(navRef);
 
     if (__DEV__) {
-      import('../AgenticService/AgenticService').then(
+      import('../../dev-tools/AgenticService/AgenticService').then(
         ({ default: AgenticService }) => {
           AgenticService.install(navRef, this.#navigation);
         },

@@ -10,7 +10,7 @@ import AgenticService, {
   type FiberNode,
   type ReactDevToolsHook,
 } from './AgenticService';
-import Engine from '../Engine';
+import Engine from '../../core/Engine';
 import { Platform } from 'react-native';
 import type {
   NavigationContainerRef,
@@ -71,7 +71,7 @@ function mockEntropyGroup(
   };
 }
 
-jest.mock('../Engine', () => ({
+jest.mock('../../core/Engine', () => ({
   context: {
     AccountsController: {
       listAccounts: jest.fn(() => []),
@@ -121,7 +121,7 @@ jest.mock('../Engine', () => ({
 // AgenticService imports the Engine *class* (for the disableAutomaticVaultBackup
 // static) separately from the ../Engine facade. Stub it so the test does not
 // pull in the full Engine/RewardsController/SecureKeychain stack.
-jest.mock('../Engine/Engine', () => ({
+jest.mock('../../core/Engine/Engine', () => ({
   Engine: class {
     static disableAutomaticVaultBackup = false;
   },
@@ -144,7 +144,7 @@ jest.mock('../../components/UI/Perps/providers/PerpsStreamManager', () => ({
 }));
 
 // Authentication pulls in the full auth/keychain stack; stub the singleton.
-jest.mock('../Authentication', () => ({
+jest.mock('../../core/Authentication', () => ({
   __esModule: true,
   default: {
     unlockWallet: jest.fn().mockResolvedValue(undefined),
@@ -164,7 +164,7 @@ jest.mock('../../actions/multiSrp', () => ({
 }));
 
 const mockDispatch = jest.fn();
-jest.mock('../redux', () => ({
+jest.mock('../../core/redux', () => ({
   store: { dispatch: (...args: unknown[]) => mockDispatch(...args) },
 }));
 
@@ -224,20 +224,20 @@ jest.mock('../../util/analytics/analytics', () => ({
 jest.mock('../../multichain-accounts/AccountTreeInitService', () => ({
   initializeAccountTree: jest.fn().mockResolvedValue(undefined),
 }));
-jest.mock('../NavigationService', () => ({
+jest.mock('../../core/NavigationService', () => ({
   navigation: { reset: jest.fn() },
 }));
 jest.mock('../../constants/navigation/Routes', () => ({
   ONBOARDING: { HOME_NAV: 'HomeNav' },
 }));
-jest.mock('../SecureKeychain', () => ({
+jest.mock('../../core/SecureKeychain', () => ({
   setGenericPassword: jest.fn().mockResolvedValue(undefined),
 }));
 jest.mock('../../constants/userProperties', () => ({
   __esModule: true,
   default: { DEVICE_AUTHENTICATION: 'device_authentication' },
 }));
-jest.mock('../SDKConnect/utils/DevLogger', () => ({
+jest.mock('../../core/SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
 }));
 
@@ -893,7 +893,9 @@ describe('AgenticService.install', () => {
 
     it('sets metrics opt-in seen before applyWalletFixture unlocks', async () => {
       const StorageWrapper = jest.requireMock('../../store/storage-wrapper');
-      const Authentication = jest.requireMock('../Authentication').default;
+      const Authentication = jest.requireMock(
+        '../../core/Authentication',
+      ).default;
       StorageWrapper.setItem.mockClear();
       Authentication.unlockWallet.mockClear();
       mockIsUnlocked.mockReturnValueOnce(false).mockReturnValue(true);

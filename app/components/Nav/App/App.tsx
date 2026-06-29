@@ -175,7 +175,7 @@ import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
 // dead-code-eliminated from release builds — the dev bridge module is then
 // absent from production, not merely inert.
 const AgentStepHud = __DEV__
-  ? React.lazy(() => import('../../../core/AgenticService/AgentStepHud'))
+  ? React.lazy(() => import('../../../dev-tools/AgenticService/AgentStepHud'))
   : null;
 
 const NativeStack = createNativeStackNavigator();

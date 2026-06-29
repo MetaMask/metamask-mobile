@@ -11,10 +11,10 @@ import {
 } from '@react-navigation/native';
 import { Dimensions, Platform } from 'react-native';
 import Logger from '../../util/Logger';
-import ReduxService from '../redux';
+import ReduxService from '../../core/redux';
 import { persistor } from '../../store';
-import Engine from '../Engine';
-import { Engine as EngineClass } from '../Engine/Engine';
+import Engine from '../../core/Engine';
+import { Engine as EngineClass } from '../../core/Engine/Engine';
 import {
   passwordSet,
   setExistingUser,
@@ -40,14 +40,14 @@ import {
 } from '../../actions/security';
 import { setLockTime } from '../../actions/settings';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
-import NavigationService from '../NavigationService';
+import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
-import SecureKeychain from '../SecureKeychain';
+import SecureKeychain from '../../core/SecureKeychain';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
-import DevLogger from '../SDKConnect/utils/DevLogger';
+import DevLogger from '../../core/SDKConnect/utils/DevLogger';
 import { importNewSecretRecoveryPhrase } from '../../actions/multiSrp';
 import { bufferToHex, privateToAddress } from 'ethereumjs-util';
-import Authentication from '../Authentication';
+import Authentication from '../../core/Authentication';
 import { Wallet as EthersWallet } from 'ethers';
 import PerpsConnectionManager from '../../components/UI/Perps/services/PerpsConnectionManager';
 import { getStreamManagerInstance } from '../../components/UI/Perps/providers/PerpsStreamManager';
