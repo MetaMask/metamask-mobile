@@ -41,6 +41,7 @@ import { partition } from 'lodash';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
+  filterScroll: { flexGrow: 0 },
   filterRow: {
     flexDirection: 'row',
     gap: 8,
@@ -249,6 +250,7 @@ const MoneyActivityView = () => {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
+        style={styles.filterScroll}
         contentContainerStyle={styles.filterRow}
       >
         <Button
