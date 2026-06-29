@@ -238,8 +238,7 @@ export type WebViewToRNMessageType =
   | 'LEGEND_RENDERED'
   | 'CROSSHAIR_MOVE'
   | 'TRADE_MARKER_PRESSED'
-  | 'ERROR'
-  | 'DEBUG';
+  | 'ERROR';
 
 export interface OHLCVPaginationConfig {
   nextCursor: string | null;
@@ -412,8 +411,7 @@ export type WebViewToRNMessage =
   | { type: 'TRADE_MARKER_PRESSED'; payload: TradeMarkerPressedPayload }
   | { type: 'CHART_INTERACTED'; payload: ChartInteractedPayload }
   | { type: 'CHART_TRADINGVIEW_CLICKED'; payload?: { url?: string } }
-  | { type: 'ERROR'; payload: ErrorPayload }
-  | { type: 'DEBUG'; payload: { message: string } };
+  | { type: 'ERROR'; payload: ErrorPayload };
 
 // ============================================
 // Message parsing / runtime narrowing
@@ -443,14 +441,6 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
 
     case 'CHART_LAYOUT_SETTLED':
       return { type };
-
-    case 'DEBUG':
-      return {
-        type,
-        payload: {
-          message: typeof obj.message === 'string' ? obj.message : String(obj),
-        },
-      };
 
     case 'INDICATOR_ADDED':
       if (isIndicatorType(obj.name) && typeof obj.id === 'string') {

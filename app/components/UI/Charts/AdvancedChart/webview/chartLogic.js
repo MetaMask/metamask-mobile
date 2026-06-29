@@ -108,7 +108,7 @@ function sendToReactNative(type, payload) {
  * Posts `CHART_LAYOUT_SETTLED` to React Native so the native skeleton overlay can hide.
  *
  * Uses two nested `requestAnimationFrame` calls so the message runs after the browser has had a
- * chance to apply layout/paint from TradingView’s internal updates (with a `setTimeout` fallback
+ * chance to apply layout/paint from TradingView's internal updates (with a `setTimeout` fallback
  * if rAF is unavailable).
  *
  * Does not apply chart scale or line overlays — callers that need that run
@@ -196,7 +196,7 @@ function clearMmLayoutSettleFallbackTimer() {
 }
 
 /**
- * Performs the “real” layout settle: applies our scale/line overrides, then notifies RN.
+ * Performs the "real" layout settle: applies our scale/line overrides, then notifies RN.
  *
  * - No-ops if `__mmLayoutSettlePending` is false (idempotent / avoids double-fire).
  * - Clears the pending flag and the fallback timer, then runs `applyChartScaleLayout` and line
@@ -1410,7 +1410,92 @@ function hideCustomCrosshairLabels() {
 }
 
 /**
- * X (px from #custom-crosshair-overlay left) of the **left** edge of the main pane’s
+ * Find TV's cursor/overlay canvas (canvas[1] of the largest-area pane pair inside the iframe).
+ * TV renders crosshair lines on this canvas; opacity:0 hides them while keeping touch events
+ * intact (unlike visibility:hidden which blocks interaction).
+ */
+function findTVCursorCanvas() {
+  try {
+    var container = document.getElementById('tv_chart_container');
+    var iframe = container && container.querySelector('iframe');
+    var doc = iframe && iframe.contentDocument;
+    if (!doc) return null;
+    var canvases = doc.querySelectorAll('canvas');
+    var maxArea = 0;
+    var pair = [];
+    for (var i = 0; i < canvases.length; i++) {
+      var area = canvases[i].width * canvases[i].height;
+      if (area > maxArea) {
+        maxArea = area;
+        pair = [canvases[i]];
+      } else if (area === maxArea && maxArea > 0) {
+        pair.push(canvases[i]);
+      }
+    }
+    return pair.length >= 2 ? pair[1] : null;
+  } catch (_) {
+    return null;
+  }
+}
+
+/**
+ * Hide TV's crosshair lines via CSS opacity on the cursor canvas (TV cannot override CSS) and
+ * hide the axis label pills via applyOverrides.
+ */
+function hideTVNativeCrosshair() {
+  var cursorCanvas = findTVCursorCanvas();
+  if (cursorCanvas) {
+    cursorCanvas.style.opacity = '0';
+    window.__mmCursorCanvas = cursorCanvas;
+  }
+  try {
+    window.chartWidget.applyOverrides({
+      'scalesProperties.showPriceScaleCrosshairLabel': false,
+      'scalesProperties.showTimeScaleCrosshairLabel': false,
+    });
+  } catch (_) {}
+}
+
+/**
+ * Restore TV's crosshair canvas and axis label pills. Guarded by __mmCursorCanvas so repeated
+ * crossHairMoved events on the same press are no-ops after the first restore.
+ */
+function restoreTVNativeCrosshair() {
+  if (!window.__mmCursorCanvas) return;
+  window.__mmCursorCanvas.style.opacity = '';
+  window.__mmCursorCanvas = null;
+  try {
+    var useCustom = getLineChrome().useCustomPriceLabels;
+    window.chartWidget.applyOverrides({
+      'scalesProperties.showPriceScaleCrosshairLabel': !useCustom,
+      'scalesProperties.showTimeScaleCrosshairLabel': !useCustom,
+    });
+  } catch (_) {}
+}
+
+/**
+ * Dispatch a synthetic mouseleave to TV's chart element inside the iframe.
+ * Transitions TV from its STICKY crosshair state to INACTIVE, so the next press
+ * fires crossHairMoved immediately at the correct position instead of requiring scrubbing.
+ */
+function dispatchMouseLeaveToTVChart() {
+  try {
+    var container = document.getElementById('tv_chart_container');
+    var iframe = container && container.querySelector('iframe');
+    var doc = iframe && iframe.contentDocument;
+    if (!doc) return;
+    var el = findOuterChartMarkupTable(doc);
+    if (!el) el = doc.body;
+    if (el) {
+      el.dispatchEvent(
+        new MouseEvent('mouseleave', { bubbles: false, cancelable: false }),
+      );
+    }
+  } catch (_) {}
+}
+
+/**
+ * X (px from #custom-crosshair-overlay left) of the **left** edge of the main pane's
  * `.price-axis-container` (smallest `top` = main chart price scale). Same as where the plot
  * ends; scale legend text starts inside this column, not on the plot side.
  */
@@ -1447,9 +1532,9 @@ function getMainPriceAxisLeftRelativeTo(el) {
 
 /**
  * Place crosshair / last-close pills with the **left** edge on the main-chart / price-scale
- * boundary (same X as `getMainPriceAxisLeftRelativeToOverlay`). TradingView’s horizontal
+ * boundary (same X as `getMainPriceAxisLeftRelativeToOverlay`). TradingView's horizontal
  * crosshair line ends there; anchoring the pill here removes the gap vs right-aligning to
- * legend text (narrow pills like “1.00” sat too far right).
+ * legend text (narrow pills like "1.00" sat too far right).
  */
 function positionPricePillAtPlotPriceBoundary(el, overlay, yPx) {
   if (!el) {
@@ -1876,7 +1961,7 @@ function scheduleLineEndDotAfterVisibleRangeChange() {
 
 /**
  * Subscribes to anything that changes the visible price level or time window so both the filled
- * last-close pill and the optional outline “visible edge” pill stay aligned with the chart.
+ * last-close pill and the optional outline "visible edge" pill stay aligned with the chart.
  */
 function subscribeLastCloseLabelUpdates() {
   if (!window.chartWidget) return;
@@ -1944,7 +2029,7 @@ function findOuterChartMarkupTable(doc) {
   return list.length ? list[0] : null;
 }
 
-/** Run fn(document) and fn(iframe.contentDocument) when the chart lives in TV’s same-origin iframe. */
+/** Run fn(document) and fn(iframe.contentDocument) when the chart lives in TV's same-origin iframe. */
 function eachChartDocument(fn) {
   try {
     fn(document);
@@ -3654,8 +3739,8 @@ function findSmallestXWhereTimeGte(ts, maxX, tNorm) {
 }
 
 /**
- * Single source of truth for “would the custom line-end marker appear in the plot before the chrome
- * inset?” — same horizontal rules as {@link getLineEndIconTimeSec} + {@link LINE_END_ICON_TIME_INSET_PX}
+ * Single source of truth for "would the custom line-end marker appear in the plot before the chrome
+ * inset?" — same horizontal rules as {@link getLineEndIconTimeSec} + {@link LINE_END_ICON_TIME_INSET_PX}
  * (inverse of `coordinateToTime` via {@link findSmallestXWhereTimeGte}).
  *
  * @param {object} chart - `widget.activeChart()`
@@ -3715,7 +3800,7 @@ function isCustomLineEndMarkerVisibleInPlot(chart, lastBarTimeSec) {
 }
 
 /**
- * Reads TradingView’s visible time window as **Unix seconds** `{ lo, hi }` (`lo <= hi`).
+ * Reads TradingView's visible time window as **Unix seconds** `{ lo, hi }` (`lo <= hi`).
  * Prefer `getVisibleBarsRange()`; if it is null mid-scroll, fall back to `getVisibleRange()`.
  *
  * @param {object} chart - `widget.activeChart()`
@@ -3760,8 +3845,8 @@ function getVisibleTimeRangeSecFromChart(chart) {
 /**
  * Among bars in `data`, returns the one with the **maximum `time`** that still falls inside the
  * visible range (milliseconds, slack from `getApproxBarDurationSec`). This is
- * the **rightmost historical bar still drawn** in the viewport—the “visible edge” for the outline
- * pill’s close price.
+ * the **rightmost historical bar still drawn** in the viewport—the "visible edge" for the outline
+ * pill's close price.
  *
  * @param {object} chart
  * @param {Array<{ time: number, close: number }>} data - `window.ohlcvData`
@@ -3818,7 +3903,7 @@ function isSeriesTailOffScreenByData(chart, data) {
 }
 
 /**
- * Bar for the outline pill’s price: same as {@link getRightmostOhlcvBarInVisibleTimeRange}, then
+ * Bar for the outline pill's price: same as {@link getRightmostOhlcvBarInVisibleTimeRange}, then
  * if that is null (gaps at scroll limits), retry with looser slack so the pill does not vanish
  * when the tail is still off-screen.
  *
@@ -5093,7 +5178,7 @@ let customDatafeed = {
       let firstRequest = periodParams.firstDataRequest;
 
       /**
-       * Invokes TradingView’s callback, then completes deferred layout settle when this response is
+       * Invokes TradingView's callback, then completes deferred layout settle when this response is
        * the main load for the visible range (`firstDataRequest`), matching `resetData` / new OHLCV.
        */
       function deliverBars(bars, meta) {
@@ -5600,7 +5685,8 @@ function initChart() {
       try {
         window.ohlcvBarVisible = false;
         window.ohlcvBarShownAt = 0;
-        window.ohlcvDismissUntil = 0;
+        window.ohlcvMouseDown = false;
+        window.__mmCursorCanvas = null;
         window.__mmTooltipChartInteractSent = false;
 
         window.chartWidget
@@ -5616,11 +5702,12 @@ function initChart() {
               return;
             }
 
-            if (Date.now() < window.ohlcvDismissUntil) {
+            if (!window.ohlcvMouseDown) {
               hideCustomCrosshairLabels();
               return;
             }
 
+            restoreTVNativeCrosshair();
             updateCustomCrosshairLabels(params);
 
             // Remember the latest crosshair point so a tap/short-press release
@@ -5675,10 +5762,19 @@ function initChart() {
 
         window.chartWidget.subscribe('mouse_down', function () {
           mouseDownTime = Date.now();
-          window.ohlcvDismissUntil = 0;
+          window.ohlcvMouseDown = true;
+          // Pre-hide cursor canvas immediately so TV cannot briefly flash the crosshair
+          // at the previous sticky position before crossHairMoved fires.
+          var cursorCanvas = findTVCursorCanvas();
+          if (cursorCanvas) {
+            cursorCanvas.style.opacity = '0';
+            window.__mmCursorCanvas = cursorCanvas;
+          }
         });
 
         window.chartWidget.subscribe('mouse_up', function () {
+          window.ohlcvMouseDown = false;
+
           // Reverse interaction: a press landing on a trade circle tells RN to
           // scroll the trades list to that trade. Uses the crosshair point
           // captured just before release; consume it so it fires only once.
@@ -5695,21 +5791,16 @@ function initChart() {
           }
 
           if (!window.ohlcvBarVisible) return;
-          let pressDuration = Date.now() - mouseDownTime;
-          if (pressDuration < 400) {
-            // Short tap — only dismiss if bar has been visible long enough
-            // to avoid synthetic click events on long-press release
-            if (Date.now() - window.ohlcvBarShownAt < 500) return;
-            window.ohlcvBarVisible = false;
-            window.ohlcvBarShownAt = 0;
-            window.ohlcvDismissUntil = Date.now() + 800;
-            hideCustomCrosshairLabels();
-            refreshStudyLegendFromExport();
-            setTimeout(function () {
-              window.__mmTooltipChartInteractSent = false;
-              sendToReactNative('CROSSHAIR_MOVE', { data: null });
-            }, 50);
-          }
+          window.ohlcvBarVisible = false;
+          window.ohlcvBarShownAt = 0;
+          hideCustomCrosshairLabels();
+          hideTVNativeCrosshair();
+          dispatchMouseLeaveToTVChart();
+          refreshStudyLegendFromExport();
+          setTimeout(function () {
+            window.__mmTooltipChartInteractSent = false;
+            sendToReactNative('CROSSHAIR_MOVE', { data: null });
+          }, 50);
         });
       } catch (e) {
         // Crosshair subscription not critical

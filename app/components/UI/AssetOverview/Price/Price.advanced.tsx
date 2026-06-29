@@ -44,7 +44,7 @@ import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
 import { getTokenDetailsLegendOverlay } from '../../Charts/AdvancedChart/indicatorColors';
 import { useNavigation } from '@react-navigation/native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, TextColor } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
 import { AppThemeKey } from '../../../../util/theme/models';
@@ -185,6 +185,7 @@ const PriceAdvanced = ({
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
+  const [priceAreaHeight, setPriceAreaHeight] = useState<number | undefined>();
 
   // Define activeIndicators early so it's available in all callbacks
   const [activeIndicators, setActiveIndicators] = useState<Set<string>>(
@@ -789,6 +790,25 @@ const PriceAdvanced = ({
     dynamicComparePrice,
   ]);
 
+  const isCrosshairActive = !!crosshairData && chartType === ChartType.Candles;
+
+  const changePercent = useMemo(() => {
+    if (!isCrosshairActive || displayDiff === null || !dynamicComparePrice)
+      return undefined;
+    const sign = displayDiff >= 0 ? '+' : '';
+    const pct = ((displayDiff / dynamicComparePrice) * 100).toFixed(2);
+    return `${sign}${pct}%`;
+  }, [isCrosshairActive, displayDiff, dynamicComparePrice]);
+
+  const changePercentColor =
+    displayDiff === null
+      ? undefined
+      : displayDiff > 0
+        ? TextColor.SuccessDefault
+        : displayDiff < 0
+          ? TextColor.ErrorDefault
+          : TextColor.TextAlternative;
+
   const { styles, theme } = useStyles(styleSheet);
   const { themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
@@ -958,20 +978,38 @@ const PriceAdvanced = ({
   return (
     <>
       {!isNaN(currentPrice) && (
-        <TokenPriceTitleHub
-          price={displayPrice}
-          displayDiff={displayDiff}
-          comparePrice={dynamicComparePrice}
-          periodLabel={displayDate}
-          currentCurrency={currentCurrency}
-          isLoading={isLoading}
-          isChangeLoading={
-            isTechnicalIndicatorsEnabled ? chartLoading : isLoading
-          }
-          ambientColor={ambientColor}
-          getPriceDiffStyle={getPriceDiffStyle}
-          changeFormat="signedCurrency"
-        />
+        <View
+          onLayout={(e) => {
+            if (!priceAreaHeight) {
+              setPriceAreaHeight(e.nativeEvent.layout.height);
+            }
+          }}
+          style={priceAreaHeight ? { height: priceAreaHeight } : undefined}
+        >
+          {isCrosshairActive && crosshairData ? (
+            <OHLCVBar
+              data={crosshairData}
+              currency={currentCurrency}
+              changePercent={changePercent}
+              changePercentColor={changePercentColor}
+            />
+          ) : (
+            <TokenPriceTitleHub
+              price={displayPrice}
+              displayDiff={displayDiff}
+              comparePrice={dynamicComparePrice}
+              periodLabel={displayDate}
+              currentCurrency={currentCurrency}
+              isLoading={isLoading}
+              isChangeLoading={
+                isTechnicalIndicatorsEnabled ? chartLoading : isLoading
+              }
+              ambientColor={ambientColor}
+              getPriceDiffStyle={getPriceDiffStyle}
+              changeFormat="signedCurrency"
+            />
+          )}
+        </View>
       )}
       {/* Unified skeleton bar when feature flag ON and chart not yet revealed */}
       {isTechnicalIndicatorsEnabled && isInitialChartPending && (
@@ -1001,9 +1039,6 @@ const PriceAdvanced = ({
       <Box
         twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
       >
-        {crosshairData && chartType === ChartType.Candles && (
-          <OHLCVBar data={crosshairData} currency={currentCurrency} />
-        )}
         <View
           testID="advanced-chart-touch-container"
           style={[styles.chartContainer, { height: chartHeight }]}
