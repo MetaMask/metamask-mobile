@@ -150,16 +150,22 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       'amount' in entry && typeof entry.amount === 'number'
         ? entry.amount
         : activity.amountUsd;
-    const hasPrice = 'price' in entry && typeof entry.price === 'number';
+    const hasPrice =
+      'price' in entry &&
+      typeof entry.price === 'number' &&
+      Number.isFinite(entry.price);
     const entrySize =
       'size' in entry &&
       typeof entry.size === 'number' &&
-      Number.isFinite(entry.size)
+      Number.isFinite(entry.size) &&
+      entry.size > 0
         ? entry.size
         : undefined;
+    const priceForTrade =
+      hasPrice && entry.price !== 0 ? entry.price : undefined;
     const tradeAmount =
-      hasPrice && entrySize !== undefined
-        ? entrySize * entry.price
+      priceForTrade !== undefined && entrySize !== undefined
+        ? entrySize * priceForTrade
         : entryAmount;
 
     const predictedAmount = formatCurrencyValue(tradeAmount, {
@@ -175,15 +181,22 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
 
     const sharesCount =
       entrySize ??
-      (hasPrice && entry.price !== 0 ? entryAmount / entry.price : undefined);
+      (priceForTrade !== undefined ? entryAmount / priceForTrade : undefined);
     const formattedShares =
       sharesCount !== undefined ? formatPositionSize(sharesCount) : undefined;
     const bundledFee =
-      hasPrice && entrySize !== undefined
+      priceForTrade !== undefined && entrySize !== undefined
         ? isSell
           ? tradeAmount - entryAmount
           : entryAmount - tradeAmount
         : undefined;
+    if (bundledFee !== undefined && bundledFee < 0) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[PredictActivityDetail] negative bundledFee, suppressing row:',
+        bundledFee,
+      );
+    }
     const formattedBundledFee =
       bundledFee !== undefined && bundledFee > 0
         ? formatCurrencyValue(bundledFee)

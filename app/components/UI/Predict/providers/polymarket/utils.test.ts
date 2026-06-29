@@ -293,6 +293,28 @@ describe('polymarket utils', () => {
     expect(activity.totalNetPnlUsd).toBe(12.5);
   });
 
+  it.each([
+    ['null', null],
+    ['undefined', undefined],
+    ['zero', 0],
+    ['empty string', ''],
+  ])('omits %s trade size instead of coercing it to zero', (_label, size) => {
+    const [activity] = parsePolymarketActivity([
+      createRawActivity({
+        size: size as PolymarketApiActivity['size'],
+        usdcSize: 2.129179,
+        price: 0.18,
+      }),
+    ]);
+
+    expect(activity.entry).toMatchObject({
+      type: 'buy',
+      amount: 2.129179,
+      price: 0.18,
+    });
+    expect(activity.entry).not.toHaveProperty('size');
+  });
+
   it('builds outcome groups only from supported and enabled sports market types', () => {
     const event = createNbaGameEvent([
       createSportsMarket({ id: 'moneyline', sportsMarketType: 'moneyline' }),

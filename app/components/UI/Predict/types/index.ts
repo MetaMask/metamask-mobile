@@ -359,8 +359,7 @@ export type PredictActivityEntry =
   | PredictActivitySell
   | PredictActivityClaimWinnings;
 
-export interface PredictActivityBuy {
-  type: 'buy';
+export interface PredictActivityTrade {
   timestamp: number;
   marketId: string;
   outcomeId: string;
@@ -370,15 +369,12 @@ export interface PredictActivityBuy {
   size?: number;
 }
 
-export interface PredictActivitySell {
+export interface PredictActivityBuy extends PredictActivityTrade {
+  type: 'buy';
+}
+
+export interface PredictActivitySell extends PredictActivityTrade {
   type: 'sell';
-  timestamp: number;
-  marketId: string;
-  outcomeId: string;
-  outcomeTokenId: number;
-  amount: number;
-  price: number;
-  size?: number;
 }
 
 export interface PredictActivityClaimWinnings {
