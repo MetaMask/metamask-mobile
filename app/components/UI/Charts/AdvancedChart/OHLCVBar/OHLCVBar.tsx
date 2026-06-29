@@ -73,7 +73,7 @@ export const OHLCVBar: React.FC<OHLCVBarProps> = ({
       flexDirection={BoxFlexDirection.Row}
       justifyContent={BoxJustifyContent.Between}
       alignItems={BoxAlignItems.Start}
-      twClassName="px-4 pt-4 pb-3 w-[302px]"
+      twClassName="px-4 pt-2.5 pb-2 w-[302px]"
       testID={testID}
     >
       {/* Left column: Open, Close, Volume */}

@@ -185,7 +185,6 @@ const PriceAdvanced = ({
   const [crosshairData, setCrosshairData] = useState<CrosshairData | null>(
     null,
   );
-  const [priceAreaHeight, setPriceAreaHeight] = useState<number | undefined>();
 
   // Define activeIndicators early so it's available in all callbacks
   const [activeIndicators, setActiveIndicators] = useState<Set<string>>(
@@ -977,40 +976,30 @@ const PriceAdvanced = ({
 
   return (
     <>
-      {!isNaN(currentPrice) && (
-        <View
-          onLayout={(e) => {
-            if (!priceAreaHeight) {
-              setPriceAreaHeight(e.nativeEvent.layout.height);
+      {!isNaN(currentPrice) &&
+        (isCrosshairActive && crosshairData ? (
+          <OHLCVBar
+            data={crosshairData}
+            currency={currentCurrency}
+            changePercent={changePercent}
+            changePercentColor={changePercentColor}
+          />
+        ) : (
+          <TokenPriceTitleHub
+            price={displayPrice}
+            displayDiff={displayDiff}
+            comparePrice={dynamicComparePrice}
+            periodLabel={displayDate}
+            currentCurrency={currentCurrency}
+            isLoading={isLoading}
+            isChangeLoading={
+              isTechnicalIndicatorsEnabled ? chartLoading : isLoading
             }
-          }}
-          style={priceAreaHeight ? { height: priceAreaHeight } : undefined}
-        >
-          {isCrosshairActive && crosshairData ? (
-            <OHLCVBar
-              data={crosshairData}
-              currency={currentCurrency}
-              changePercent={changePercent}
-              changePercentColor={changePercentColor}
-            />
-          ) : (
-            <TokenPriceTitleHub
-              price={displayPrice}
-              displayDiff={displayDiff}
-              comparePrice={dynamicComparePrice}
-              periodLabel={displayDate}
-              currentCurrency={currentCurrency}
-              isLoading={isLoading}
-              isChangeLoading={
-                isTechnicalIndicatorsEnabled ? chartLoading : isLoading
-              }
-              ambientColor={ambientColor}
-              getPriceDiffStyle={getPriceDiffStyle}
-              changeFormat="signedCurrency"
-            />
-          )}
-        </View>
-      )}
+            ambientColor={ambientColor}
+            getPriceDiffStyle={getPriceDiffStyle}
+            changeFormat="signedCurrency"
+          />
+        ))}
       {/* Unified skeleton bar when feature flag ON and chart not yet revealed */}
       {isTechnicalIndicatorsEnabled && isInitialChartPending && (
         <View style={styles.intervalBarContainer}>
