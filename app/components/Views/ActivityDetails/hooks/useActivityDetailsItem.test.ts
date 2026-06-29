@@ -1,5 +1,14 @@
 import { renderHook } from '@testing-library/react-hooks';
-import type { ActivityListItem } from '../../../../util/activity-adapters';
+import {
+  mapRampOrder,
+  type ActivityListItem,
+} from '../../../../util/activity-adapters';
+import { OrderOrderTypeEnum } from '@consensys/on-ramp-sdk/dist/API';
+import {
+  FIAT_ORDER_PROVIDERS,
+  FIAT_ORDER_STATES,
+} from '../../../../constants/on-ramp';
+import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import { useActivityDetailsItem } from './useActivityDetailsItem';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): mirrors the resolver hook's data sources; route-isolation backlog */
 import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
@@ -22,6 +31,24 @@ const useLocalActivityItemsMock = jest.mocked(useLocalActivityItems);
 const useRampActivityItemsMock = jest.mocked(useRampActivityItems);
 const useTransactionsQueryMock = jest.mocked(useTransactionsQuery);
 const mapNonEvmTransactionsMock = jest.mocked(mapNonEvmTransactions);
+
+const rampOrder: FiatOrder = {
+  id: 'ramp-order-id',
+  provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+  createdAt: 1,
+  amount: '6.27',
+  fee: '1.26',
+  cryptoAmount: '5.01',
+  currency: 'USD',
+  cryptocurrency: 'mUSD',
+  state: FIAT_ORDER_STATES.COMPLETED,
+  account: '0x1234567890abcdef1234567890abcdef12345678',
+  network: 'eip155:59144',
+  txHash: '0xramp',
+  excludeFromPurchases: false,
+  orderType: OrderOrderTypeEnum.Buy,
+  data: {},
+} as FiatOrder;
 
 function makeItem(
   partial: Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>,
@@ -125,15 +152,7 @@ describe('useActivityDetailsItem', () => {
   });
 
   it('resolves a Ramp item by hash from fiat orders', () => {
-    const ramp = makeItem({
-      type: 'buy',
-      hash: '0xramp',
-      chainId: 'eip155:59144',
-      raw: {
-        type: 'rampOrder',
-        data: { id: 'ramp-order-id' },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    const ramp = mapRampOrder({ order: rampOrder }) as ActivityListItem;
     setSources({ ramp: [ramp] });
 
     const { result } = renderHook(() =>
@@ -144,15 +163,7 @@ describe('useActivityDetailsItem', () => {
   });
 
   it('resolves a Ramp item by order id when a transaction hash is available', () => {
-    const ramp = makeItem({
-      type: 'buy',
-      hash: '0xramp',
-      chainId: 'eip155:59144',
-      raw: {
-        type: 'rampOrder',
-        data: { id: 'ramp-order-id' },
-      },
-    } as Partial<ActivityListItem> & Pick<ActivityListItem, 'type' | 'hash'>);
+    const ramp = mapRampOrder({ order: rampOrder }) as ActivityListItem;
     setSources({ ramp: [ramp] });
 
     const { result } = renderHook(() =>

@@ -40,10 +40,8 @@ import {
   valueOrUnavailable,
 } from './rampDetailsUtils';
 
-export type RampActivityListItem = Extract<
-  ActivityListItem,
-  { type: 'buy' | 'sell' | 'deposit' }
-> & {
+export type RampActivityListItem = ActivityListItem & {
+  type: 'buy' | 'sell' | 'deposit';
   raw: { type: 'rampOrder'; data: FiatOrder };
 };
 
