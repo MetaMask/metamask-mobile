@@ -7303,7 +7303,8 @@
       "pending": "Pending",
       "filter_all": "All",
       "filter_deposits": "Deposits",
-      "filter_sends": "Sends"
+      "filter_sends": "Sends",
+      "filter_purchases": "Purchases"
     },
     "condensed_cards": {
       "how_it_works_title": "How it works",
@@ -7321,6 +7322,7 @@
       "cashback": "mUSD back",
       "card": "Card",
       "purchase": "Purchase",
+      "refund": "Refund",
       "musd_back": "mUSD back",
       "converted": "Converted",
       "depositing": "Depositing",
