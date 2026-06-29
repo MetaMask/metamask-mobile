@@ -78,6 +78,9 @@ export function useTransactionCustomAmount({
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
   ]);
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
   const tokenAddress = getTokenAddress(transactionMeta);
   const payTokenFiatRate =
     useTokenFiatRate(tokenAddress, chainId, currency) ?? 1;
@@ -204,10 +207,13 @@ export function useTransactionCustomAmount({
       // calculatePostQuoteSourceAmounts substitutes `token.balanceRaw` when
       // isMaxAmount is true: wrong for HyperLiquid (wallet USDC vs typed HL
       // balance) and wrong for money account (on-chain mUSD only vs mUSD +
-      // musdSHFvd fiat total). Keeping isMaxAmount false routes the typed
+      // vmUSD fiat total). Keeping isMaxAmount false routes the typed
       // amount through as token.amountRaw.
       const shouldSetMax =
-        percentage === 100 && !isPerpsWithdraw && !isMoneyAccountWithdraw;
+        percentage === 100 &&
+        !isPerpsWithdraw &&
+        !isMoneyAccountWithdraw &&
+        !isMoneyAccountDeposit;
 
       if (shouldSetMax) {
         setIsMax(true);
@@ -222,6 +228,7 @@ export function useTransactionCustomAmount({
       isMaxAmount,
       isPerpsWithdraw,
       isMoneyAccountWithdraw,
+      isMoneyAccountDeposit,
       setIsMax,
       setConfirmationMetric,
     ],
@@ -277,7 +284,7 @@ function useTokenBalance(tokenUsdRate: number) {
     .multipliedBy(tokenUsdRate)
     .toNumber();
 
-  const { withdrawableMusd, totalFiatRaw } = useMoneyAccountBalance();
+  const { withdrawableMusd, withdrawableFiatRaw } = useMoneyAccountBalance();
 
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
@@ -300,11 +307,13 @@ function useTokenBalance(tokenUsdRate: number) {
     return withdrawableMusd.multipliedBy(tokenUsdRate).toNumber();
   }
 
-  if (paymentOverride === PaymentOverride.MoneyAccount) {
-    return totalFiatRaw ? parseFloat(totalFiatRaw) : 0;
+  if (hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])) {
+    return predictBalanceUsd;
   }
 
-  return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
-    ? predictBalanceUsd
-    : payTokenBalanceUsd;
+  if (paymentOverride === PaymentOverride.MoneyAccount) {
+    return withdrawableFiatRaw ? parseFloat(withdrawableFiatRaw) : 0;
+  }
+
+  return payTokenBalanceUsd;
 }

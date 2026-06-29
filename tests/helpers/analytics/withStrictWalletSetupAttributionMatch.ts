@@ -15,6 +15,15 @@ export function withStrictWalletSetupAttributionMatch(
   return {
     ...base,
     events: base.events?.map((ev): AnalyticsEventExpectation => {
+      if (ev.name === onboardingEvents.ANALYTICS_PREFERENCE_SELECTED) {
+        return {
+          ...ev,
+          matchProperties: {
+            ...(ev.matchProperties ?? {}),
+            has_marketing_consent: true,
+          },
+        };
+      }
       if (ev.name !== onboardingEvents.WALLET_SETUP_COMPLETED) {
         return ev;
       }

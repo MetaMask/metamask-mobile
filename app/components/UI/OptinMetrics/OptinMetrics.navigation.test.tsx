@@ -68,19 +68,6 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
-jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  MetaMetricsEvents: jest.requireActual('../../../core/Analytics/MetaMetrics')
-    .MetaMetricsEvents,
-  getInstance: jest.fn(() => ({
-    createDataDeletionTask: jest.fn(),
-    checkDataDeleteStatus: jest.fn(),
-    getDeleteRegulationCreationDate: jest.fn(),
-    getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
-    updateDataRecordingFlag: jest.fn(),
-  })),
-}));
-
 jest.mock(
   '../../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData',
   () => jest.fn().mockReturnValue({}),

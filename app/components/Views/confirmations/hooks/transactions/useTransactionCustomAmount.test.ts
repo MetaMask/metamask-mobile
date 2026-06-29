@@ -159,7 +159,7 @@ describe('useTransactionCustomAmount', () => {
     useParamsMock.mockReturnValue({});
     usePredictBalanceMock.mockReturnValue({ data: 0 } as never);
     useMoneyAccountBalanceMock.mockReturnValue({
-      totalFiatRaw: undefined,
+      withdrawableFiatRaw: undefined,
       tokenTotal: undefined,
     } as ReturnType<typeof useMoneyAccountBalance>);
     useConfirmationMetricEventsMock.mockReturnValue({
@@ -544,6 +544,78 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('8642.46');
     });
 
+    it('uses predict balance for predictWithdraw even when payment override is MoneyAccount', async () => {
+      usePredictBalanceMock.mockReturnValue({ data: 4321.23 } as never);
+      useMoneyAccountBalanceMock.mockReturnValue({
+        withdrawableFiatRaw: '750.50',
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.predictWithdraw,
+          id: transactionIdMock,
+          chainId: '0x1' as Hex,
+          txParams: { from: '0xabc' },
+        } as unknown as Partial<TransactionMeta>,
+        stateOverrides: {
+          engine: {
+            backgroundState: {
+              TransactionPayController: {
+                transactionData: {
+                  [transactionIdMock]: {
+                    paymentOverride: PaymentOverride.MoneyAccount,
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(50);
+      });
+
+      // 4321.23 (predict balance) × 2 (fiat rate) × 0.50 = 4321.23
+      expect(result.current.amountFiat).toBe('4321.23');
+    });
+
+    it('uses full predict balance for predictWithdraw max even when payment override is MoneyAccount', async () => {
+      usePredictBalanceMock.mockReturnValue({ data: 4321.23 } as never);
+      useMoneyAccountBalanceMock.mockReturnValue({
+        withdrawableFiatRaw: '750.50',
+      } as ReturnType<typeof useMoneyAccountBalance>);
+
+      const { result } = runHook({
+        transactionMeta: {
+          type: TransactionType.predictWithdraw,
+          id: transactionIdMock,
+          chainId: '0x1' as Hex,
+          txParams: { from: '0xabc' },
+        } as unknown as Partial<TransactionMeta>,
+        stateOverrides: {
+          engine: {
+            backgroundState: {
+              TransactionPayController: {
+                transactionData: {
+                  [transactionIdMock]: {
+                    paymentOverride: PaymentOverride.MoneyAccount,
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await act(async () => {
+        result.current.updatePendingAmountPercentage(100);
+      });
+
+      // 4321.23 (predict balance) × 2 (fiat rate) = 8642.46
+      expect(result.current.amountFiat).toBe('8642.46');
+    });
+
     it('to percentage of perps available balance', async () => {
       (Engine.context as Record<string, unknown>).PerpsController = {
         state: {
@@ -732,7 +804,7 @@ describe('useTransactionCustomAmount', () => {
     it('does NOT set isMaxAmount=true for money account withdraw when Max is pressed', async () => {
       // Same class of bug as perps: isMaxAmount=true makes TPC use on-chain
       // token.balanceRaw (mUSD only) instead of the typed aggregate (mUSD +
-      // musdSHFvd).
+      // vmUSD).
       useTokenFiatRateMock.mockReturnValue(1);
       useMoneyAccountBalanceMock.mockReturnValue({
         withdrawableMusd: new BigNumber(500),
@@ -840,9 +912,9 @@ describe('useTransactionCustomAmount', () => {
       },
     };
 
-    it('uses totalFiatRaw as balance when payment override is MoneyAccount', async () => {
+    it('uses withdrawableFiatRaw as balance when payment override is MoneyAccount', async () => {
       useMoneyAccountBalanceMock.mockReturnValue({
-        totalFiatRaw: '750.50',
+        withdrawableFiatRaw: '750.50',
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       const { result } = runHook({
@@ -862,9 +934,9 @@ describe('useTransactionCustomAmount', () => {
       expect(result.current.amountFiat).toBe('750.50');
     });
 
-    it('returns 0 when payment override is MoneyAccount but totalFiatRaw is undefined', async () => {
+    it('returns 0 when payment override is MoneyAccount but withdrawableFiatRaw is undefined', async () => {
       useMoneyAccountBalanceMock.mockReturnValue({
-        totalFiatRaw: undefined,
+        withdrawableFiatRaw: undefined,
       } as ReturnType<typeof useMoneyAccountBalance>);
 
       const { result } = runHook({

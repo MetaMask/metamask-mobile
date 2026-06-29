@@ -40,6 +40,7 @@ import {
   KeyringControllerGetStateAction,
   KeyringControllerSignEip7702AuthorizationAction,
   KeyringControllerSignTypedMessageAction,
+  KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
 import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
 import {
@@ -95,9 +96,6 @@ export function getTransactionControllerMessenger(
     ],
     events: [
       'AccountActivityService:transactionUpdated',
-      'AccountActivityService:statusChanged',
-      'AccountsController:selectedAccountChange',
-      'BackendWebSocketService:connectionStateChanged',
       'NetworkController:stateChange',
     ],
     messenger,
@@ -141,6 +139,7 @@ type InitMessengerActions =
 
 type InitMessengerEvents =
   | BridgeStatusControllerEvents
+  | KeyringControllerUnlockEvent
   | TransactionControllerStateChangeEvent
   | TransactionControllerTransactionApprovedEvent
   | TransactionControllerTransactionConfirmedEvent
@@ -202,6 +201,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:updateTransaction',
       'TransactionPayController:getAmountData',
       'TransactionPayController:getDelegationTransaction',
+      'TransactionPayController:getFiatOptions',
       'TransactionPayController:getPaymentOverrideData',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
@@ -234,6 +234,7 @@ export function getTransactionControllerInitMessenger(
     ],
     events: [
       'BridgeStatusController:stateChange',
+      'KeyringController:unlock',
       'TransactionController:stateChange',
       'TransactionController:transactionApproved',
       'TransactionController:transactionConfirmed',

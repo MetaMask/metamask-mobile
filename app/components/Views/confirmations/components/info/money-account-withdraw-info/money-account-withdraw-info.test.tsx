@@ -40,7 +40,7 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-    totalFiatFormatted: '$42.00',
+    withdrawableFiatFormatted: '$42.00',
   })),
 }));
 
@@ -127,12 +127,12 @@ describe('MoneyAccountWithdrawInfo', () => {
     expect(lastCall.hasMax).toBe(true);
   });
 
-  it('renders empty balance when totalFiatFormatted is undefined', () => {
+  it('renders empty balance when withdrawableFiatFormatted is undefined', () => {
     const useMoneyAccountBalance = jest.requireMock(
       '../../../../../UI/Money/hooks/useMoneyAccountBalance',
     ).default;
     useMoneyAccountBalance.mockReturnValueOnce({
-      totalFiatFormatted: undefined,
+      withdrawableFiatFormatted: undefined,
     });
 
     const { getByTestId, getByText } = render(<MoneyAccountWithdrawInfo />);

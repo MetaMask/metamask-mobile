@@ -26,6 +26,10 @@ const env = {
   CHANGED_FILES: process.env.CHANGED_FILES || '',
   RUN_ATTEMPT: Number(process.env.RUN_ATTEMPT || '1'),
   PREVIOUS_RESULTS_PATH: process.env.PREVIOUS_RESULTS_PATH || '',
+  // Path to pre-fetched timings written by the prepare-e2e-timings setup job.
+  // When set, shards use this frozen snapshot instead of fetching live from
+  // qa-stats, ensuring the bin-pack result is identical across all attempts.
+  E2E_TIMINGS_PATH: process.env.E2E_TIMINGS_PATH || '',
 };
 // Example of format of CHANGED_FILES: app/components/Foo.tsx tests/e2e/specs/Bar.js
 
@@ -224,16 +228,33 @@ async function githubRest(url) {
 }
 
 /**
- * Download the `qa-stats` artifact zip from the latest successful QA Stats run
- * on `main`, extract `qa-stats.json`, and return the `e2e_test_times` map.
+ * Return the `e2e_test_times` map used for bin-packing shards.
  *
- * Returns `null` on any failure (no token, no run, no artifact, no entry,
- * network/zip/parse error). All failures degrade gracefully into the
- * alphabetical equal-count fallback.
+ * Source priority:
+ *   1. Frozen timings written by the prepare-e2e-timings setup job
+ *      (E2E_TIMINGS_PATH env var) — stable across all shards and re-runs.
+ *   2. Live fetch from the latest successful qa-stats run on main
+ *      (fallback for runs that predate the setup job).
+ *
+ * Returns `null` on any failure — callers degrade to alphabetical split.
  *
  * @returns {Promise<{ [filePath: string]: { ios?: number, android?: number } } | null>}
  */
 async function fetchE2ETestTimes() {
+  // Use the frozen timings snapshot when available (preferred path).
+  if (env.E2E_TIMINGS_PATH && fs.existsSync(env.E2E_TIMINGS_PATH)) {
+    try {
+      const parsed = JSON.parse(fs.readFileSync(env.E2E_TIMINGS_PATH, 'utf8'));
+      const times = parsed?.e2e_test_times;
+      if (times && typeof times === 'object' && Object.keys(times).length > 0) {
+        console.log(`⏱️  Using frozen timings from ${env.E2E_TIMINGS_PATH} (${Object.keys(times).length} entries)`);
+        return times;
+      }
+    } catch (e) {
+      console.log(`ℹ️  Failed to read frozen timings (${e?.message || e}) — falling back to live fetch`);
+    }
+  }
+
   if (!env.GITHUB_TOKEN) {
     console.log('ℹ️  qa-stats artifact unavailable (no GITHUB_TOKEN) — falling back to alphabetical split');
     return null;

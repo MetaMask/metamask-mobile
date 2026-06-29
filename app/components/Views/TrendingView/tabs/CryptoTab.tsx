@@ -67,6 +67,7 @@ const CryptoPerpsBlock: React.FC<CryptoPerpsBlockProps> = ({
           <PerpsTileRowItem
             item={item}
             testIdPrefix="crypto-tab-perps-market-tile-card"
+            sourceSection="perps_crypto"
             onCardPress={() =>
               trackExploreInteracted({
                 interaction_type: 'section_item_tapped',

@@ -6319,9 +6319,6 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP),
-      ).toBeOnTheScreen();
-      expect(
         screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM),
       ).toBeOnTheScreen();
       expect(
@@ -6339,7 +6336,9 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.queryByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP),
+        screen.queryByTestId(
+          CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM,
+        ),
       ).not.toBeOnTheScreen();
       expect(
         screen.queryByText(strings('money.metamask_card.link_title')),
@@ -6353,7 +6352,7 @@ describe('CardHome Component', () => {
       render();
 
       expect(
-        screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_TOP),
+        screen.getByTestId(CardHomeSelectors.LINK_MONEY_ACCOUNT_DIVIDER_BOTTOM),
       ).toBeOnTheScreen();
     });
 

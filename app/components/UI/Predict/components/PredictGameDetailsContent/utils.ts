@@ -122,6 +122,58 @@ const getButtonVariant = (
   return index === 0 ? 'yes' : 'no';
 };
 
+const isNeutralMoneylineToken = (token: PredictOutcomeToken): boolean => {
+  const label = (token.shortTitle ?? token.title).trim().toLowerCase();
+  return label.startsWith('draw') || label.startsWith('neither');
+};
+
+const getTeamOrder = (
+  token: PredictOutcomeToken,
+  game?: PredictMarketGame,
+): number => {
+  if (!game) return 1;
+
+  const label = (token.shortTitle ?? token.title).trim().toLowerCase();
+  const homeLabels = [
+    game.homeTeam.abbreviation,
+    game.homeTeam.name,
+    game.homeTeam.alias,
+  ]
+    .filter((teamLabel): teamLabel is string => Boolean(teamLabel))
+    .map((teamLabel) => teamLabel.trim().toLowerCase());
+  const awayLabels = [
+    game.awayTeam.abbreviation,
+    game.awayTeam.name,
+    game.awayTeam.alias,
+  ]
+    .filter((teamLabel): teamLabel is string => Boolean(teamLabel))
+    .map((teamLabel) => teamLabel.trim().toLowerCase());
+
+  if (homeLabels.includes(label)) return 0;
+  if (awayLabels.includes(label)) return 2;
+  return 1;
+};
+
+const sortMoneylineTokensForDisplay = (
+  tokens: PredictOutcomeToken[],
+  game?: PredictMarketGame,
+): PredictOutcomeToken[] => {
+  if (tokens.length !== 3) {
+    return tokens;
+  }
+
+  const neutralToken = tokens.find(isNeutralMoneylineToken);
+  if (!neutralToken) {
+    return tokens;
+  }
+
+  const teamTokens = tokens
+    .filter((token) => token !== neutralToken)
+    .sort((a, b) => getTeamOrder(a, game) - getTeamOrder(b, game));
+
+  return [teamTokens[0], neutralToken, teamTokens[1]];
+};
+
 export const buildButtons = (
   outcome: PredictOutcome,
   onBuyPress: BuyHandler,
@@ -129,11 +181,15 @@ export const buildButtons = (
   sportsMarketType?: string,
 ): PredictSportOutcomeButton[] => {
   const moneyline = isMoneylineLikeMarketType(sportsMarketType);
-  return outcome.tokens.map((token, index) => ({
+  const tokens = moneyline
+    ? sortMoneylineTokensForDisplay(outcome.tokens, game)
+    : outcome.tokens;
+
+  return tokens.map((token, index) => ({
     label: token.shortTitle ?? token.title,
     price: Math.round(token.price * 100),
     onPress: () => onBuyPress(outcome, token),
-    variant: getButtonVariant(index, outcome.tokens.length, moneyline),
+    variant: getButtonVariant(index, tokens.length, moneyline),
     teamColor: moneyline
       ? getTeamColor(token.shortTitle ?? token.title, game)
       : undefined,
@@ -158,39 +214,66 @@ export const getDefaultLineIndex = (
   }, 0);
 };
 
-const isDrawOutcome = (outcome: PredictOutcome): boolean =>
-  outcome.groupItemTitle?.toLowerCase().startsWith('draw') ?? false;
+const isNeutralMoneylineLabel = (label?: string): boolean => {
+  const normalizedLabel = label?.trim().toLowerCase() ?? '';
+  return (
+    normalizedLabel.startsWith('draw') || normalizedLabel.startsWith('neither')
+  );
+};
+
+const isNeitherMoneylineLabel = (label?: string): boolean =>
+  label?.trim().toLowerCase().startsWith('neither') ?? false;
+
+const isNeutralMoneylineOutcome = (outcome: PredictOutcome): boolean =>
+  isNeutralMoneylineLabel(outcome.groupItemTitle) ||
+  isNeutralMoneylineLabel(outcome.tokens[0]?.title) ||
+  isNeutralMoneylineLabel(outcome.tokens[0]?.shortTitle);
+
+const isNeitherMoneylineOutcome = (outcome: PredictOutcome): boolean =>
+  isNeitherMoneylineLabel(outcome.groupItemTitle) ||
+  isNeitherMoneylineLabel(outcome.tokens[0]?.title) ||
+  isNeitherMoneylineLabel(outcome.tokens[0]?.shortTitle);
 
 export const sortMoneylineOutcomes = (
   outcomes: PredictOutcome[],
   game?: PredictMarketGame,
 ): PredictOutcome[] => {
   const hasThresholds = outcomes.some((o) => o.groupItemThreshold != null);
-  if (hasThresholds) {
-    return [...outcomes].sort(
-      (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
-    );
+  const orderedOutcomes = hasThresholds
+    ? [...outcomes].sort(
+        (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
+      )
+    : outcomes;
+
+  const neutral = orderedOutcomes.find(isNeutralMoneylineOutcome);
+  const nonNeutral = orderedOutcomes.filter(
+    (o) => !isNeutralMoneylineOutcome(o),
+  );
+  if (!neutral || nonNeutral.length < 2) {
+    return [...orderedOutcomes];
   }
 
-  const draw = outcomes.find(isDrawOutcome);
-  const nonDraw = outcomes.filter((o) => !isDrawOutcome(o));
-  if (!draw || nonDraw.length < 2) {
-    return [...outcomes];
+  if (isNeitherMoneylineOutcome(neutral)) {
+    return [nonNeutral[0], neutral, ...nonNeutral.slice(1)];
+  }
+
+  if (hasThresholds) {
+    return [...orderedOutcomes];
   }
 
   if (game) {
     const homeAbbr = game.homeTeam.abbreviation;
-    const home = nonDraw.find((o) => o.tokens[0]?.shortTitle === homeAbbr);
-    const away = nonDraw.find((o) => o !== home);
+    const home = nonNeutral.find((o) => o.tokens[0]?.shortTitle === homeAbbr);
+    const away = nonNeutral.find((o) => o !== home);
     if (home && away) {
-      return [home, draw, away];
+      return [home, neutral, away];
     }
   }
 
-  const sorted = [...nonDraw].sort((a, b) =>
+  const sorted = [...nonNeutral].sort((a, b) =>
     (a.groupItemTitle ?? '').localeCompare(b.groupItemTitle ?? ''),
   );
-  return [sorted[0], draw, ...sorted.slice(1)];
+  return [sorted[0], neutral, ...sorted.slice(1)];
 };
 
 export const buildMoneylineButtons = (

@@ -2,6 +2,8 @@ import { web, system } from 'detox';
 import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
 import { FrameworkDetector } from './FrameworkDetector.ts';
 import { resolve } from './Selector.ts';
+import PlaywrightMatchers from './PlaywrightMatchers.ts';
+import type { PlaywrightElement } from './PlaywrightAdapter.ts';
 
 /**
  * Utility class for matching (locating) UI elements
@@ -199,5 +201,23 @@ export default class Matchers {
     text: string,
   ): Promise<Detox.IndexableSystemElement> {
     return system.element(by.system.label(text));
+  }
+
+  /**
+   * Get all elements matching an XPath selector (Appium-only).
+   * Returns an empty array when no element matches — use this when the count
+   * itself is meaningful (e.g. asserting a duplicate label appears N times).
+   * Detox has no direct equivalent; matched elements there are addressed via
+   * `.atIndex(N)` on a Detox matcher instead.
+   */
+  static async getAllElementsByXPath(
+    xpath: string,
+  ): Promise<PlaywrightElement[]> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error(
+        'Matchers.getAllElementsByXPath is Appium-only. On Detox, use the matcher returned by getElementByID/getElementByIDAndLabel and address indices via .atIndex(N).',
+      );
+    }
+    return PlaywrightMatchers.getAllElementsByXPath(xpath);
   }
 }

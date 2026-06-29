@@ -34,6 +34,11 @@ jest.mock('../../../../../component-library/hooks', () => ({
   }),
 }));
 
+const mockTrack = jest.fn();
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({ track: mockTrack }),
+}));
+
 const mockAddToWatchlist = jest.fn();
 jest.mock('../../hooks/usePerpsWatchlistActions', () => ({
   usePerpsWatchlistActions: () => ({
@@ -497,6 +502,49 @@ describe('PerpsWatchlistMarkets', () => {
   });
 
   // -------------------------------------------------------------------------
+  // onMarketPress override
+  // -------------------------------------------------------------------------
+
+  describe('onMarketPress prop (navigation override)', () => {
+    it('calls onMarketPress instead of navigation.navigate when a watchlist row is pressed', () => {
+      const onMarketPress = jest.fn();
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          onMarketPress={onMarketPress}
+        />,
+      );
+      fireEvent.press(screen.getByTestId('perps-market-row-BTC'));
+      expect(onMarketPress).toHaveBeenCalledTimes(1);
+      expect(onMarketPress).toHaveBeenCalledWith(mockMarkets[0]);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('calls onMarketPress instead of navigation.navigate when a suggested row is pressed', () => {
+      const onMarketPress = jest.fn();
+      render(
+        <PerpsWatchlistMarkets
+          markets={[]}
+          suggestedMarkets={mockSuggestedMarkets}
+          onMarketPress={onMarketPress}
+        />,
+      );
+      fireEvent.press(screen.getByTestId('perps-market-row-SOL'));
+      expect(onMarketPress).toHaveBeenCalledTimes(1);
+      expect(onMarketPress).toHaveBeenCalledWith(mockSuggestedMarkets[0]);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('falls back to navigation.navigate when onMarketPress is not provided', () => {
+      render(
+        <PerpsWatchlistMarkets markets={mockMarkets} source="perps_home" />,
+      );
+      fireEvent.press(screen.getByTestId('perps-market-row-BTC'));
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  // -------------------------------------------------------------------------
   // onSeeAllPress header behaviour
   // -------------------------------------------------------------------------
 
@@ -511,6 +559,28 @@ describe('PerpsWatchlistMarkets', () => {
       );
       fireEvent.press(screen.getByTestId('perps-watchlist-header'));
       expect(onSeeAllPress).toHaveBeenCalledTimes(1);
+    });
+
+    it('fires PERPS_UI_INTERACTION with button_clicked=watchlist when header is pressed', () => {
+      const { PERPS_EVENT_VALUE: PEV, PERPS_EVENT_PROPERTY: PEP } =
+        jest.requireActual('@metamask/perps-controller');
+
+      render(
+        <PerpsWatchlistMarkets
+          markets={mockMarkets}
+          onSeeAllPress={jest.fn()}
+        />,
+      );
+      fireEvent.press(screen.getByTestId('perps-watchlist-header'));
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          [PEP.INTERACTION_TYPE]: PEV.INTERACTION_TYPE.BUTTON_CLICKED,
+          [PEP.BUTTON_CLICKED]: PEV.BUTTON_CLICKED.WATCHLIST,
+          [PEP.BUTTON_LOCATION]: PEV.BUTTON_LOCATION.PERPS_HOME,
+        }),
+      );
     });
 
     it('does not throw when header is pressed without onSeeAllPress', () => {
@@ -626,6 +696,58 @@ describe('PerpsWatchlistMarkets', () => {
           source: undefined,
         },
       });
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // enableShowMore prop
+  // -------------------------------------------------------------------------
+
+  describe('enableShowMore prop', () => {
+    const fiveMarkets = [
+      makeMarket('BTC', 'Bitcoin'),
+      makeMarket('ETH', 'Ethereum'),
+      makeMarket('SOL', 'Solana'),
+      makeMarket('AVAX', 'Avalanche'),
+      makeMarket('DOT', 'Polkadot'),
+    ];
+
+    it('shows all markets without a "Show more" button when enableShowMore is false', () => {
+      render(
+        <PerpsWatchlistMarkets markets={fiveMarkets} enableShowMore={false} />,
+      );
+      // All five markets visible
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('ETH')).toBeOnTheScreen();
+      expect(screen.getByText('SOL')).toBeOnTheScreen();
+      expect(screen.getByText('AVAX')).toBeOnTheScreen();
+      expect(screen.getByText('DOT')).toBeOnTheScreen();
+      // No show-more toggle
+      expect(screen.queryByText(/Show \d+ more/)).not.toBeOnTheScreen();
+      expect(screen.queryByText('Show less')).not.toBeOnTheScreen();
+    });
+
+    it('still renders suggestions below watchlist rows when enableShowMore is false', () => {
+      render(
+        <PerpsWatchlistMarkets
+          markets={fiveMarkets}
+          suggestedMarkets={mockSuggestedMarkets}
+          enableShowMore={false}
+        />,
+      );
+      // All watchlist rows visible (incl. markets beyond INITIAL_DISPLAY_COUNT)
+      expect(screen.getByText('DOT')).toBeOnTheScreen();
+      // Suggested rows present with add buttons — BNB only exists in suggestions
+      expect(
+        screen.getByTestId('perps-market-row-BNB-add-button'),
+      ).toBeOnTheScreen();
+      // No toggle
+      expect(screen.queryByText(/Show \d+ more/)).not.toBeOnTheScreen();
+    });
+
+    it('defaults to showing show-more toggle when enableShowMore is not specified', () => {
+      render(<PerpsWatchlistMarkets markets={fiveMarkets} />);
+      expect(screen.getByText('Show 2 more')).toBeOnTheScreen();
     });
   });
 

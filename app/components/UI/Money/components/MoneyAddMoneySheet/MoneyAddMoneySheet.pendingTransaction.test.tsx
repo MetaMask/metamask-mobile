@@ -14,9 +14,8 @@ import { updateBgState } from '../../../../../core/redux/slices/engine';
 import { addTransactionBatch } from '../../../../../util/transaction-controller';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMMPayFiatConfig } from '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig';
+import { useRegionHasNativeFiatProvider } from '../../hooks/useRegionHasNativeFiatProvider';
 import { selectHasAnyNonZeroTokenBalance } from '../../../../../selectors/tokenBalancesController';
-import { getRampRoutingDecision } from '../../../../../reducers/fiatOrders';
-import { useHasNativeFiatProvider } from '../../../Ramp/hooks/useHasNativeFiatProvider';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
 const PENDING_TX_ID = 'pending-tx-from-elsewhere';
@@ -151,16 +150,12 @@ jest.mock(
   '../../../../Views/confirmations/hooks/pay/useMMPayFiatConfig',
   () => ({ useMMPayFiatConfig: jest.fn() }),
 );
+jest.mock('../../hooks/useRegionHasNativeFiatProvider', () => ({
+  useRegionHasNativeFiatProvider: jest.fn(),
+}));
 jest.mock('../../../../../selectors/tokenBalancesController', () => ({
   ...jest.requireActual('../../../../../selectors/tokenBalancesController'),
   selectHasAnyNonZeroTokenBalance: jest.fn(),
-}));
-jest.mock('../../../../../reducers/fiatOrders', () => ({
-  ...jest.requireActual('../../../../../reducers/fiatOrders'),
-  getRampRoutingDecision: jest.fn(),
-}));
-jest.mock('../../../Ramp/hooks/useHasNativeFiatProvider', () => ({
-  useHasNativeFiatProvider: jest.fn(),
 }));
 jest.mock('../../hooks/useMoneyAnalytics', () => ({
   useMoneyAnalytics: jest.fn(),
@@ -219,8 +214,7 @@ describe('MoneyAddMoneySheet — Add funds with a pending transaction', () => {
     (selectHasAnyNonZeroTokenBalance as unknown as jest.Mock).mockReturnValue(
       true,
     );
-    (getRampRoutingDecision as jest.Mock).mockReturnValue(null);
-    (useHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
+    (useRegionHasNativeFiatProvider as jest.Mock).mockReturnValue(true);
     (useMoneyAnalytics as jest.Mock).mockReturnValue({
       trackBottomSheetViewed: jest.fn(),
       trackSurfaceClicked: jest.fn(),
