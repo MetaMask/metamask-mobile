@@ -208,7 +208,9 @@ function TradeWalletActions() {
   }, [dismissSheet, onDismiss]);
 
   useEffect(() => {
-    isClosingRef.current = false;
+    if (isClosingRef.current) {
+      return;
+    }
     sheetOffset.value = screenHeight;
     sheetOffset.value = withSpring(0, TRADE_WALLET_ACTIONS_SHEET_SPRING_CONFIG);
   }, [screenHeight, sheetOffset]);
