@@ -26,7 +26,7 @@ jest.mock('../custom-amount-info', () => ({
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) =>
-    ({ 'confirm.title.money_account_transfer_money': 'Send' })[key] ?? key,
+    ({ 'confirm.title.money_account_send': 'Send' })[key] ?? key,
 }));
 
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({

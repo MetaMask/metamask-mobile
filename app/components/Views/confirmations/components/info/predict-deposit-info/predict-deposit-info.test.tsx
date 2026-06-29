@@ -49,7 +49,7 @@ describe('PredictDepositInfo', () => {
     render(<PredictDepositInfo />);
 
     expect(mockUseNavbar).toHaveBeenCalledWith(
-      strings('predict.transfer_to_predictions'),
+      strings('predict.send_to_predictions'),
     );
   });
 

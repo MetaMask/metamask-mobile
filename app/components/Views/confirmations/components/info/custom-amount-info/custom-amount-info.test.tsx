@@ -79,17 +79,11 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../hooks/pay/useMoneyNoFeeTokens');
 jest.mock('../../../hooks/pay/sections/usePayWithMoneyAccountSection');
-jest.mock('../../../hooks/transactions/usePerpsSubAccounts', () => ({
-  usePerpsSubAccounts: jest.fn(() => ({
-    subAccounts: [],
-    selectedSubAccount: undefined,
-  })),
+jest.mock('../../rows/perps-account-picker-row', () => ({
+  PerpsAccountPickerRow: () => null,
 }));
-jest.mock('../../../hooks/transactions/usePredictSubAccounts', () => ({
-  usePredictSubAccounts: jest.fn(() => ({
-    subAccounts: [],
-    selectedSubAccount: undefined,
-  })),
+jest.mock('../../rows/predict-account-picker-row', () => ({
+  PredictAccountPickerRow: () => null,
 }));
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
 
