@@ -38,9 +38,9 @@ export function initializeWallet({
     },
   });
 
-  wallet.init().catch((error) => console.error(error));
-
   setupRpcEndpointMetrics(messenger);
+
+  wallet.init().catch((error) => console.error(error));
 
   return wallet;
 }
