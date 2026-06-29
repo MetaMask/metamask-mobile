@@ -1,5 +1,5 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
-import { SmokeWalletPlatform } from '../../tags.js';
+import { SmokeNetworkAbstractions } from '../../tags.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
@@ -18,7 +18,7 @@ import {
 } from './helpers/network-test-helpers.js';
 
 appiumTest.describe(
-  SmokeWalletPlatform('Homepage Tokens Section - Network Filter'),
+  SmokeNetworkAbstractions('Homepage Tokens Section - Network Filter'),
   () => {
     appiumTest(
       'navigates from homepage tokens section to tokens full view',
