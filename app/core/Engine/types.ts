@@ -769,6 +769,7 @@ export type MessengerClients = {
   ConfigRegistryController: ConfigRegistryController;
   ConfigRegistryApiService: ConfigRegistryApiService;
   ApprovalController: ApprovalController;
+  AssetsContractController: AssetsContractController;
   AssetsController: AssetsController;
   CurrencyRateController: CurrencyRateController;
   GasFeeController: GasFeeController;
