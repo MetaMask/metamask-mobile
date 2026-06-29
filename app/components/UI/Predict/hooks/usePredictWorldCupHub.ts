@@ -67,14 +67,15 @@ export const usePredictWorldCupGamesSections = (
     [config.stages, stageQueryResults],
   );
 
-  // Derived directly from stage data so the dot only appears when a game's
-  // clock is running, not simply because the market is open for trading.
+  // Derived from filtered sections so the dot only fires when a game with a
+  // running clock is actually visible to the user — not on raw API data that
+  // may include stale or invisible markets.
   const isLive = useMemo(
     () =>
-      stageQueryResults.some((result) =>
-        (result.data ?? []).some((market) => market.game?.status === 'ongoing'),
+      sections.some((section) =>
+        section.markets.some((market) => market.game?.status === 'ongoing'),
       ),
-    [stageQueryResults],
+    [sections],
   );
 
   const isFetching = stageQueryResults.some((r) => r.isLoading);

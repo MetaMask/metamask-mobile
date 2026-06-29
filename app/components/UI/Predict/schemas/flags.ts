@@ -73,23 +73,14 @@ export const PredictWorldCupSchema = defaulted(
       boolean(),
       () => DEFAULT_PREDICT_WORLD_CUP_FLAG.showWorldCupScreen,
     ),
-    showHubV2: defaulted(
-      boolean(),
-      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.showHubV2,
-    ),
-    showHubBanner: defaulted(
-      boolean(),
-      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.showHubBanner,
-    ),
+    showHubV2: defaulted(boolean(), () => false),
+    showHubBanner: defaulted(boolean(), () => false),
     tagSlug: defaulted(string(), () => DEFAULT_PREDICT_WORLD_CUP_FLAG.tagSlug),
     gamesTagId: defaulted(
       string(),
       () => DEFAULT_PREDICT_WORLD_CUP_FLAG.gamesTagId,
     ),
-    winnerEventId: defaulted(
-      string(),
-      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.winnerEventId,
-    ),
+    winnerEventId: defaulted(string(), () => ''),
     bannerImage: optional(
       object({
         url: string(),

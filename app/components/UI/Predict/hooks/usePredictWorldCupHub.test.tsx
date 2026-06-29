@@ -246,6 +246,59 @@ describe('usePredictWorldCupGamesSections', () => {
     expect(result.current.isLive).toBe(false);
   });
 
+  it('returns isLive false when the ongoing market is stripped by visibility filters', async () => {
+    const { Wrapper } = createWrapper();
+    const ongoingMarket = createMarket({
+      id: 'stale-ongoing',
+      game: {
+        id: 'game-stale',
+        startTime: '2026-06-29T18:00:00Z',
+        status: 'ongoing',
+        league: 'fifwc',
+        elapsed: "70'",
+        period: '2H',
+        score: null,
+        homeTeam: {
+          id: 't5',
+          name: 'Germany',
+          logo: '',
+          abbreviation: 'GER',
+          color: '',
+        },
+        awayTeam: {
+          id: 't6',
+          name: 'Portugal',
+          logo: '',
+          abbreviation: 'POR',
+          color: '',
+        },
+      },
+    });
+    mockGetMarkets.mockResolvedValue({
+      markets: [ongoingMarket],
+      nextCursor: null,
+    });
+
+    // Simulate the visibility filter stripping the ongoing market (e.g. stale child market).
+    const { getVisiblePredictMarkets } = jest.requireMock(
+      '../utils/marketStaleness',
+    ) as { getVisiblePredictMarkets: jest.Mock };
+    getVisiblePredictMarkets.mockReturnValueOnce([]);
+
+    const { result } = renderHook(
+      () =>
+        usePredictWorldCupGamesSections({
+          ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+          stages: [{ key: 'round_of_16', eventIds: ['evt-stale'] }],
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isFetching).toBe(false));
+
+    expect(result.current.isLive).toBe(false);
+  });
+
   it('returns null error by default', () => {
     const { Wrapper } = createWrapper();
 
