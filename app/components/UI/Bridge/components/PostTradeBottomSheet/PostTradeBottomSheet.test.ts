@@ -344,6 +344,65 @@ describe('PostTradeBottomSheet', () => {
     );
   });
 
+  it('falls back to the chain default token when the suggestion is the native source token', () => {
+    mockPostTradeStatus = PostTradeStatus.Success;
+    // Previous trade source is native ETH on mainnet; the suggestion is native ETH.
+    mockParams = {
+      ...mockParams,
+      status: PostTradeStatus.Success,
+      sourceToken: {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        chainId: '0x1',
+        decimals: 18,
+      },
+    };
+    const suggestedToken = {
+      assetId: 'eip155:1/slip44:60',
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+      marketCap: 1000,
+      priceChangePct: { h24: '1.23' },
+    };
+    mockPostTradeTrendingTokens = {
+      tokens: [suggestedToken],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    };
+
+    const { getByTestId } = render(React.createElement(PostTradeBottomSheet));
+
+    fireEvent.press(
+      getByTestId(getPostTradeSuggestionPillTestId(suggestedToken.assetId)),
+    );
+
+    // Native source still conflicts, so fall back to the configured default
+    // dest token for mainnet (mUSD).
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'bridge/setSourceToken',
+        payload: expect.objectContaining({
+          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          chainId: '0x1',
+          symbol: 'mUSD',
+        }),
+      }),
+    );
+    // Destination is the selected native ETH suggestion.
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'bridge/setDestToken',
+        payload: expect.objectContaining({
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: '0x1',
+          symbol: 'ETH',
+        }),
+      }),
+    );
+  });
+
   it('keeps the previous source when the suggestion shares an address but is on a different chain', () => {
     mockPostTradeStatus = PostTradeStatus.Success;
     // Previous trade source is an ERC20 on mainnet.

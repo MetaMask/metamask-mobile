@@ -2,6 +2,7 @@ import { constants } from 'ethers';
 import {
   getNativeSourceToken,
   getDefaultDestToken,
+  isSameBridgeToken,
   tokenMatchesQuery,
 } from './tokenUtils';
 import { getSecurityWarnings } from './tokenSecurityUtils';
@@ -34,9 +35,13 @@ jest.mock('@metamask/bridge-controller', () => {
   };
 });
 
-jest.mock('../../../../util/address', () => ({
-  safeToChecksumAddress: jest.fn(),
-}));
+jest.mock('../../../../util/address', () => {
+  const actual = jest.requireActual('../../../../util/address');
+  return {
+    ...actual,
+    safeToChecksumAddress: jest.fn(),
+  };
+});
 
 describe('tokenUtils', () => {
   beforeEach(() => {
@@ -306,6 +311,67 @@ describe('tokenUtils', () => {
       expect(tokenMatchesQuery(token, 'wrap')).toBe(true);
       expect(tokenMatchesQuery(token, 'bit')).toBe(true);
       expect(tokenMatchesQuery(token, 'btc')).toBe(true);
+    });
+  });
+
+  describe('isSameBridgeToken', () => {
+    const ethToken: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000000',
+      symbol: 'ETH',
+      decimals: 18,
+      chainId: '0x1',
+    };
+    const usdcToken: BridgeToken = {
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      symbol: 'USDC',
+      decimals: 6,
+      chainId: '0x1',
+    };
+    const usdcPolygonToken: BridgeToken = {
+      address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+      symbol: 'USDC',
+      decimals: 6,
+      chainId: '0x89',
+    };
+
+    it('returns false when the first token is undefined', () => {
+      expect(isSameBridgeToken(undefined, usdcToken)).toBe(false);
+    });
+
+    it('returns false when the second token is undefined', () => {
+      expect(isSameBridgeToken(usdcToken, undefined)).toBe(false);
+    });
+
+    it('returns true for the same address on the same chain', () => {
+      expect(isSameBridgeToken(usdcToken, { ...usdcToken })).toBe(true);
+    });
+
+    it('returns false for different addresses on the same chain', () => {
+      expect(isSameBridgeToken(ethToken, usdcToken)).toBe(false);
+    });
+
+    it('returns false for the same address on a different chain', () => {
+      expect(isSameBridgeToken(usdcToken, usdcPolygonToken)).toBe(false);
+    });
+
+    it('treats EVM addresses case-insensitively', () => {
+      const checksummed: BridgeToken = {
+        address: '0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48',
+        symbol: 'USDC',
+        decimals: 6,
+        chainId: '0x1',
+      };
+      expect(isSameBridgeToken(usdcToken, checksummed)).toBe(true);
+    });
+
+    it('treats hex and CAIP chain IDs as the same chain', () => {
+      const caipChainToken: BridgeToken = {
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        symbol: 'USDC',
+        decimals: 6,
+        chainId: 'eip155:1',
+      };
+      expect(isSameBridgeToken(usdcToken, caipChainToken)).toBe(true);
     });
   });
 });
