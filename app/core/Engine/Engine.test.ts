@@ -19,7 +19,6 @@ import { version as migrationVersion } from '../../store/migrations';
 import { AppState, AppStateStatus } from 'react-native';
 import ReduxService from '../redux';
 import configureStore from '../../util/test/configureStore';
-import { SnapKeyring } from '@metamask/eth-snap-keyring';
 import { isEmpty } from 'lodash';
 import { store } from '../../store';
 import Logger from '../../util/Logger';
@@ -60,6 +59,7 @@ jest.mock('../../store', () => ({
         },
       },
     })),
+    subscribe: jest.fn(),
   },
 }));
 jest.mock('../../selectors/smartTransactionsController', () => ({
@@ -336,31 +336,6 @@ describe('Engine', () => {
     );
   });
 
-  it('getSnapKeyring delegates to SnapAccountService.getLegacySnapKeyring', async () => {
-    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-    const mockSnapKeyring = { type: 'Snap Keyring' } as unknown as SnapKeyring;
-
-    jest
-      .spyOn(engine.context.SnapAccountService, 'getLegacySnapKeyring')
-      .mockResolvedValue(mockSnapKeyring as never);
-
-    const result = await engine.getSnapKeyring();
-
-    expect(result).toEqual(mockSnapKeyring);
-  });
-
-  it('getSnapKeyring propagates errors from SnapAccountService.getLegacySnapKeyring', async () => {
-    const engine = new EngineClass(TEST_ANALYTICS_ID, backgroundState);
-
-    jest
-      .spyOn(engine.context.SnapAccountService, 'getLegacySnapKeyring')
-      .mockRejectedValue(new Error('keyring unavailable'));
-
-    await expect(engine.getSnapKeyring()).rejects.toThrow(
-      'keyring unavailable',
-    );
-  });
-
   describe('RemoteFeatureFlagController startup fetch', () => {
     afterEach(() => {
       // `jest.mock` return values survive `restoreAllMocks()`, so reset the
@@ -463,6 +438,61 @@ describe('Engine', () => {
       expect(logSpy).toHaveBeenCalledWith(
         'Feature flags update failed: ',
         fetchError,
+      );
+    });
+
+    it('clears cached remote flags when basic functionality is disabled at init', () => {
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: { otaUpdatesEnabled: true },
+          rawRemoteFeatureFlags: { otaUpdatesEnabled: true },
+          localOverrides: { testOverride: true },
+          cacheTimestamp: 123,
+        },
+      });
+      const controller = engine.context.RemoteFeatureFlagController;
+
+      expect(controller.state).toEqual(
+        expect.objectContaining({
+          remoteFeatureFlags: {},
+          rawRemoteFeatureFlags: {},
+          localOverrides: { testOverride: true },
+          cacheTimestamp: 0,
+        }),
+      );
+    });
+
+    it('subscribes to basic functionality changes', () => {
+      Engine.init(TEST_ANALYTICS_ID, {});
+
+      expect(store.subscribe).toHaveBeenCalledWith(expect.any(Function));
+    });
+
+    it('syncs controller when basic functionality changes', () => {
+      jest.mocked(store.subscribe).mockClear();
+      const engine = Engine.init(TEST_ANALYTICS_ID, {
+        RemoteFeatureFlagController: {
+          remoteFeatureFlags: { otaUpdatesEnabled: true },
+          rawRemoteFeatureFlags: { otaUpdatesEnabled: true },
+          cacheTimestamp: 123,
+        },
+      });
+      const subscribeCallback = jest.mocked(store.subscribe).mock
+        .calls[0][0] as () => void;
+      const controller = engine.context.RemoteFeatureFlagController;
+      const disableSpy = jest.spyOn(controller, 'disable');
+
+      jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(false);
+      subscribeCallback();
+
+      expect(disableSpy).toHaveBeenCalled();
+      expect(controller.state).toEqual(
+        expect.objectContaining({
+          remoteFeatureFlags: {},
+          rawRemoteFeatureFlags: {},
+          cacheTimestamp: 0,
+        }),
       );
     });
   });

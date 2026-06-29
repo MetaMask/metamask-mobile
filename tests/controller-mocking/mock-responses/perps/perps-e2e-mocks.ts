@@ -1103,6 +1103,7 @@ export class PerpsE2EMockService {
         funding: 0.01,
         openInterest: 50000000,
         volume24h: 1000000,
+        isTradable: true,
       },
       ETH: {
         symbol: 'ETH',
@@ -1116,6 +1117,7 @@ export class PerpsE2EMockService {
         funding: 0.005,
         openInterest: 25000000,
         volume24h: 500000,
+        isTradable: true,
       },
       SOL: {
         symbol: 'SOL',
@@ -1129,6 +1131,7 @@ export class PerpsE2EMockService {
         funding: 0.003,
         openInterest: 12000000,
         volume24h: 300000,
+        isTradable: true,
       },
     };
   }

@@ -45,6 +45,7 @@ import {
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
+import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import Text, {
@@ -59,6 +60,11 @@ import {
   hasTransactionType,
   isTransactionPayWithdraw,
 } from '../../../utils/transaction';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import {
+  ConfirmationParams,
+  PayWithOption,
+} from '../../confirm/confirm-component';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
   Button,
@@ -161,7 +167,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const fiatPayment = useTransactionPayFiatPayment();
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const isFiatAvailable = useIsFiatPaymentAvailable();
-    const hasPaymentOption = hasAvailableTokens || isFiatAvailable;
+    const moneyAccountSection = usePayWithMoneyAccountSection();
+    const hasPaymentOption =
+      hasAvailableTokens || isFiatAvailable || moneyAccountSection !== null;
     const fiatEverSelectedRef = useRef(false);
     if (selectedFiatPaymentMethodId) {
       fiatEverSelectedRef.current = true;
@@ -503,12 +511,16 @@ function useIsResultReady({
 
 function useButtonLabel() {
   const transaction = useTransactionMetadataRequest();
+  const { payWithOption } = useParams<ConfirmationParams>({});
+
+  if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
+    return strings('confirm.deposit_edit_amount_money_account_send');
+  }
 
   if (
     hasTransactionType(transaction, [
       TransactionType.predictWithdraw,
       TransactionType.perpsWithdraw,
-      TransactionType.moneyAccountWithdraw,
     ])
   ) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
@@ -516,6 +528,16 @@ function useButtonLabel() {
 
   if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
     return strings('earn.musd_conversion.confirm');
+  }
+
+  if (
+    payWithOption === PayWithOption.MoneyAccount &&
+    hasTransactionType(transaction, [
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+    ])
+  ) {
+    return strings('confirm.deposit_edit_amount_money_account_send');
   }
 
   return strings('confirm.deposit_edit_amount_done');

@@ -237,7 +237,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     !isBuySheetOpen &&
     !market?.game;
 
-  const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
+  const { closedOutcomes, openOutcomes } = useOpenOutcomes({
     market,
     enabled: shouldRefreshOpenOutcomePrices,
   });
@@ -608,7 +608,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           isMarketLoading={isResolvedMarketLoading}
           market={market}
           openOutcomes={openOutcomes}
-          yesPercentage={yesPercentage}
           onClaimPress={handleClaimPress}
           onBuyPress={handleBuyPress}
           isClaimPending={isClaimPending}

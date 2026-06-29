@@ -11,7 +11,7 @@ const makeToken = (fiat: number, symbol = 'USDC'): AssetType =>
 
 describe('useProjectedEarnings', () => {
   it('returns zeros and empty list when tokens is undefined', () => {
-    const { result } = renderHook(() => useProjectedEarnings(undefined, 4));
+    const { result } = renderHook(() => useProjectedEarnings(undefined, 0.04));
 
     expect(result.current.eligibleTokens).toEqual([]);
     expect(result.current.totalAssetsFiat).toBe(0);
@@ -24,7 +24,7 @@ describe('useProjectedEarnings', () => {
     const negative = makeToken(-50);
 
     const { result } = renderHook(() =>
-      useProjectedEarnings([positive, zero, negative], 4),
+      useProjectedEarnings([positive, zero, negative], 0.04),
     );
 
     expect(result.current.eligibleTokens).toEqual([positive]);
@@ -33,23 +33,23 @@ describe('useProjectedEarnings', () => {
 
   it('sums fiat balances across eligible tokens', () => {
     const { result } = renderHook(() =>
-      useProjectedEarnings([makeToken(150), makeToken(75)], 4),
+      useProjectedEarnings([makeToken(150), makeToken(75)], 0.04),
     );
 
     expect(result.current.totalAssetsFiat).toBe(225);
   });
 
   it('projects earnings using the supplied APY across PROJECTION_YEARS', () => {
-    const apyPercent = 4;
+    const apyDecimal = 0.04;
     const tokens = [makeToken(1000), makeToken(500)];
 
     const { result } = renderHook(() =>
-      useProjectedEarnings(tokens, apyPercent),
+      useProjectedEarnings(tokens, apyDecimal),
     );
 
     const expected =
-      1000 * (apyPercent / 100) * PROJECTION_YEARS +
-      500 * (apyPercent / 100) * PROJECTION_YEARS;
+      1000 * apyDecimal * PROJECTION_YEARS +
+      500 * apyDecimal * PROJECTION_YEARS;
 
     expect(result.current.projectedAmount).toBeCloseTo(expected, 5);
   });
