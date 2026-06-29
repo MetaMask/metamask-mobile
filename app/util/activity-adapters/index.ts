@@ -16,6 +16,7 @@ export { mapKeyringTransaction } from './adapters/keyring-transaction';
 export { mapLocalTransaction } from './adapters/local-transaction';
 export { mapPredictActivity } from './adapters/predict-activity';
 export { mapPerpsTransaction } from './adapters/perps-transaction';
+export { mapRampOrder } from './adapters/ramp-order';
 export {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
