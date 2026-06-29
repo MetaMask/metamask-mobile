@@ -58,4 +58,59 @@ describe('ActivityDetailsMetadata', () => {
     expect(queryByTestId(ActivityDetailsSelectorsIDs.FROM_ROW)).toBeNull();
     expect(queryByTestId(ActivityDetailsSelectorsIDs.TO_ROW)).toBeNull();
   });
+
+  it('renders the Address row without a value when an upgrade has no address', () => {
+    const item = makeItem({
+      type: 'smartAccountUpgrade',
+      data: {},
+    } as Partial<ActivityListItem>);
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <ActivityDetailsMetadata item={item} />,
+    );
+
+    // No address -> the Address row collapses (empty value), but the upgrade
+    // path is taken so neither From/To nor the Account row appear.
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.STATUS_ROW),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(ActivityDetailsSelectorsIDs.ADDRESS_ROW)).toBeNull();
+    expect(queryByTestId(ActivityDetailsSelectorsIDs.FROM_ROW)).toBeNull();
+    expect(queryByTestId(ActivityDetailsSelectorsIDs.ACCOUNT_ROW)).toBeNull();
+  });
+
+  it('shows a single Account row when only one party is known', () => {
+    const item = makeItem({
+      data: { from: '0xfrom' },
+    } as Partial<ActivityListItem>);
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <ActivityDetailsMetadata item={item} />,
+    );
+
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.ACCOUNT_ROW),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(ActivityDetailsSelectorsIDs.FROM_ROW)).toBeNull();
+    expect(queryByTestId(ActivityDetailsSelectorsIDs.TO_ROW)).toBeNull();
+  });
+
+  it('omits the transaction id copy control when there is no hash', () => {
+    const item = makeItem({ hash: '' } as Partial<ActivityListItem>);
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <ActivityDetailsMetadata item={item} />,
+    );
+
+    // No hash -> the transaction id row (and its copy control) collapse.
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.STATUS_ROW),
+    ).toBeOnTheScreen();
+    expect(
+      queryByTestId(ActivityDetailsSelectorsIDs.TRANSACTION_ID_ROW),
+    ).toBeNull();
+    expect(
+      queryByTestId(ActivityDetailsSelectorsIDs.TRANSACTION_ID_COPY),
+    ).toBeNull();
+  });
 });

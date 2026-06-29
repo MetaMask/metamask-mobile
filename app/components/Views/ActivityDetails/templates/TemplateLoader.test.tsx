@@ -56,6 +56,31 @@ jest.mock('../../../UI/Perps/hooks', () => ({
   }),
 }));
 
+const RAMP_DETAILS_STUB_TEST_ID = 'ramp-details-stub';
+jest.mock('./RampDetails', () => {
+  const actual = jest.requireActual('./RampDetails');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    RampDetails: () =>
+      ReactActual.createElement(View, { testID: 'ramp-details-stub' }),
+  };
+});
+
+const rampItem = (type: 'buy' | 'deposit'): ActivityListItem =>
+  ({
+    type,
+    chainId: 'eip155:1',
+    status: 'success',
+    timestamp: 1,
+    hash: '0xramp',
+    raw: { type: 'rampOrder', data: {} },
+    data: {
+      token: { amount: '1', decimals: 18, symbol: 'ETH', direction: 'in' },
+    },
+  }) as unknown as ActivityListItem;
+
 const sendItem: ActivityListItem = {
   type: 'send',
   chainId: 'eip155:1',
@@ -408,6 +433,44 @@ describe('TemplateLoader', () => {
     expect(
       getByTestId(ActivityDetailsSelectorsIDs.TOTAL_ROW),
     ).toBeOnTheScreen();
+  });
+
+  it('routes a ramp deposit to RampDetails (not the staking DepositDetails)', () => {
+    const { getByTestId } = renderWithProvider(
+      <TemplateLoader item={rampItem('deposit')} />,
+    );
+
+    expect(getByTestId(RAMP_DETAILS_STUB_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('routes a ramp buy to RampDetails', () => {
+    const { getByTestId } = renderWithProvider(
+      <TemplateLoader item={rampItem('buy')} />,
+    );
+
+    expect(getByTestId(RAMP_DETAILS_STUB_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('falls back to DefaultDetails for a non-ramp buy (no total row)', () => {
+    const buyItem = {
+      type: 'buy',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1,
+      hash: '0xbuy',
+      data: {
+        token: { amount: '1', decimals: 18, symbol: 'ETH', direction: 'in' },
+      },
+    } as ActivityListItem;
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <TemplateLoader item={buyItem} />,
+    );
+
+    expect(
+      getByTestId(ActivityDetailsSelectorsIDs.AMOUNT_HEADER),
+    ).toBeOnTheScreen();
+    expect(queryByTestId(ActivityDetailsSelectorsIDs.TOTAL_ROW)).toBeNull();
   });
 
   it('renders the SmartAccountUpgradeDetails template (fee, no total) for upgrades', () => {

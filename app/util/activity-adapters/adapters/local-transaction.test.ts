@@ -956,6 +956,73 @@ describe('mapLocalTransaction', () => {
     );
   });
 
+  it('omits the unstake amount when the calldata is missing or too short', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xunstakenodata',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingUnstake,
+      txParams: { from, to, value: '0' },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('unstake');
+    const { token } = result.data as { token?: { amount?: string } };
+    expect(token?.amount).toBeUndefined();
+  });
+
+  it('omits the unstake amount when the shares calldata is not valid hex', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xunstakebadhex',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingUnstake,
+      // 0x + 8-char selector + 64 non-hex chars -> BigInt() throws -> undefined.
+      txParams: { from, to, value: '0', data: `0x12345678${'z'.repeat(64)}` },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('unstake');
+    const { token } = result.data as { token?: { amount?: string } };
+    expect(token?.amount).toBeUndefined();
+  });
+
+  it('omits the claim amount when there is no native balance increase', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xclaimnosim',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingClaim,
+      txParams: { from, to },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('claim');
+    const { token } = result.data as { token?: { amount?: string } };
+    expect(token?.amount).toBeUndefined();
+  });
+
+  it('omits the native token when the chain has no resolvable native symbol', () => {
+    const transaction = {
+      chainId: '0xffffff',
+      hash: '0xstakenosymbol',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingDeposit,
+      txParams: { from, to, value: '0xde0b6b3a7640000' },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(
+      makeGroup(transaction, { nativeAssetSymbol: undefined }),
+    );
+    expect(result.type).toBe('deposit');
+    const { token } = result.data as { token?: unknown };
+    expect(token).toBeUndefined();
+  });
+
   it('uses a bridge history activity status override', () => {
     const transaction = {
       chainId: mainnet,
