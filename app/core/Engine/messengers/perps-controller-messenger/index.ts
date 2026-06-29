@@ -3,8 +3,6 @@ import {
   Messenger,
   MessengerActions,
   MessengerEvents,
-  type ActionConstraint,
-  type EventConstraint,
 } from '@metamask/messenger';
 import { RootMessenger } from '../../types';
 
