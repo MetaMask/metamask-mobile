@@ -1,6 +1,7 @@
 import type { EntropySourceId } from '@metamask/keyring-api';
 import {
   KeyringControllerGetStateAction,
+  KeyringTypes,
   type KeyringControllerState,
 } from '@metamask/keyring-controller';
 import type { Messenger } from '@metamask/messenger';
@@ -239,7 +240,8 @@ export class QrSyncProvisioningService {
   #getPrimaryEntropySourceId(): EntropySourceId {
     const { keyrings } = this.#getKeyringControllerState();
     const primaryHdKeyring = keyrings.find(
-      (keyring) => keyring.type === KeyringType.Hd,
+      (keyring) =>
+        keyring.type === KeyringTypes.hd || keyring.type === KeyringType.Hd,
     );
 
     if (!primaryHdKeyring) {
