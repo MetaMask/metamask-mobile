@@ -400,7 +400,7 @@ describe('mapApiEvmTransactions', () => {
     });
   });
 
-  it('maps an NFT sale with received native value to a Send activity', () => {
+  it('maps an NFT sale with received native value to an nftSell activity', () => {
     const nftRecipientAddress = '0x4f5243ceea96cee1da0fdb89c756d0e999439424';
     const nftBuyerAddress = '0x78c87da124bb36a914ff1c0f2d642f47870c997c';
     const transaction = {
@@ -432,7 +432,7 @@ describe('mapApiEvmTransactions', () => {
     expect(
       withoutRaw(mapApiEvmTransactions({ subjectAddress, transaction })),
     ).toStrictEqual({
-      type: 'send',
+      type: 'nftSell',
       chainId: 'eip155:1',
       status: 'success',
       timestamp: 1771884263000,
@@ -441,15 +441,21 @@ describe('mapApiEvmTransactions', () => {
         from: subjectAddress,
         to: nftRecipientAddress,
         token: {
-          amount: '1',
           direction: 'out',
           symbol: 'BAE',
+        },
+        paymentToken: {
+          amount: '1000000000000000',
+          decimals: 18,
+          direction: 'in',
+          symbol: 'ETH',
+          assetId: toAssetId(NATIVE_TOKEN_ADDRESS, 'eip155:1'),
         },
       },
     });
   });
 
-  it('maps an NFT buy with transfer addresses for the details sheet', () => {
+  it('maps an NFT buy with the native payment as an nftBuy activity', () => {
     const nftSellerAddress = '0x4f5243ceea96cee1da0fdb89c756d0e999439424';
     const transaction = {
       timestamp: '2026-02-23T22:04:23.000Z',
@@ -463,6 +469,7 @@ describe('mapApiEvmTransactions', () => {
           to: subjectAddress,
           amount: 1,
           tokenId: '984',
+          name: 'FLUF World: Scenes and Sounds',
           symbol: 'BAE',
           transferType: 'erc721',
         },
@@ -480,7 +487,7 @@ describe('mapApiEvmTransactions', () => {
     expect(
       withoutRaw(mapApiEvmTransactions({ subjectAddress, transaction })),
     ).toStrictEqual({
-      type: 'buy',
+      type: 'nftBuy',
       chainId: 'eip155:1',
       status: 'success',
       timestamp: 1771884263000,
@@ -488,11 +495,131 @@ describe('mapApiEvmTransactions', () => {
       data: {
         from: nftSellerAddress,
         to: subjectAddress,
+        // The collection name is preferred over the symbol for NFTs.
         token: {
-          amount: '1',
+          direction: 'in',
+          symbol: 'FLUF World: Scenes and Sounds',
+        },
+        paymentToken: {
+          amount: '1000000000000000',
+          decimals: 18,
+          direction: 'out',
+          symbol: 'ETH',
+          assetId: toAssetId(NATIVE_TOKEN_ADDRESS, 'eip155:1'),
+        },
+      },
+    });
+  });
+
+  it('maps an NFT received without payment to a Receive activity', () => {
+    const nftSenderAddress = '0x4f5243ceea96cee1da0fdb89c756d0e999439424';
+    const transaction = {
+      timestamp: '2026-02-23T22:04:23.000Z',
+      chainId: 1,
+      from: nftSenderAddress,
+      to: subjectAddress,
+      transactionCategory: 'TRANSFER',
+      valueTransfers: [
+        {
+          from: nftSenderAddress,
+          to: subjectAddress,
+          amount: 1,
+          tokenId: '984',
+          symbol: 'BAE',
+          transferType: 'erc721',
+        },
+      ],
+    } as unknown as V1TransactionByHashResponse;
+
+    expect(
+      withoutRaw(mapApiEvmTransactions({ subjectAddress, transaction })),
+    ).toStrictEqual({
+      type: 'receive',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1771884263000,
+      hash: undefined,
+      data: {
+        from: nftSenderAddress,
+        to: subjectAddress,
+        token: {
           direction: 'in',
           symbol: 'BAE',
         },
+      },
+    });
+  });
+
+  it('classifies an NFT_EXCHANGE purchase with no detected payment leg as nftBuy', () => {
+    const nftSellerAddress = '0x4f5243ceea96cee1da0fdb89c756d0e999439424';
+    const transaction = {
+      timestamp: '2026-02-23T22:04:23.000Z',
+      chainId: 1,
+      from: subjectAddress,
+      to: nftSellerAddress,
+      transactionCategory: 'NFT_EXCHANGE',
+      valueTransfers: [
+        {
+          from: nftSellerAddress,
+          to: subjectAddress,
+          amount: 1,
+          tokenId: '984',
+          symbol: 'BAE',
+          transferType: 'erc721',
+        },
+      ],
+    } as unknown as V1TransactionByHashResponse;
+
+    expect(
+      withoutRaw(mapApiEvmTransactions({ subjectAddress, transaction })),
+    ).toStrictEqual({
+      type: 'nftBuy',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1771884263000,
+      hash: undefined,
+      data: {
+        from: nftSellerAddress,
+        to: subjectAddress,
+        token: { direction: 'in', symbol: 'BAE' },
+        paymentToken: undefined,
+      },
+    });
+  });
+
+  it('classifies an NFT_EXCHANGE sale with no detected proceeds leg as nftSell', () => {
+    const nftRecipientAddress = '0x4f5243ceea96cee1da0fdb89c756d0e999439424';
+    const transaction = {
+      timestamp: '2026-02-23T22:04:23.000Z',
+      chainId: 1,
+      from: subjectAddress,
+      to: nftRecipientAddress,
+      transactionCategory: 'NFT_EXCHANGE',
+      valueTransfers: [
+        {
+          from: subjectAddress,
+          to: nftRecipientAddress,
+          amount: 1,
+          tokenId: '984',
+          symbol: 'BAE',
+          transferType: 'erc721',
+        },
+      ],
+    } as unknown as V1TransactionByHashResponse;
+
+    expect(
+      withoutRaw(mapApiEvmTransactions({ subjectAddress, transaction })),
+    ).toStrictEqual({
+      type: 'nftSell',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1771884263000,
+      hash: undefined,
+      data: {
+        from: subjectAddress,
+        to: nftRecipientAddress,
+        token: { direction: 'out', symbol: 'BAE' },
+        paymentToken: undefined,
       },
     });
   });

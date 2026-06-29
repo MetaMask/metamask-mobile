@@ -43,7 +43,9 @@ export function TemplateLoader({
     case 'revokeSpendingCap':
     case 'increaseSpendingCap':
       return <ApprovalDetails item={item} />;
+    case 'nftBuy':
     case 'nftMint':
+    case 'nftSell':
       return <NftDetails item={item} />;
     case 'contractInteraction':
       return <ContractInteractionDetails item={item} />;

@@ -34,6 +34,8 @@ export type ActivityKind =
   | 'contractDeployment'
   | 'bridge'
   | 'convert'
+  | 'nftBuy'
+  | 'nftSell'
   | 'smartAccountUpgrade'
   | 'lendingDeposit'
   | 'lendingWithdrawal'
@@ -164,11 +166,12 @@ export type ActivityListItem =
       }
     >
   | ActivityData<
-      'nftMint',
+      'nftBuy' | 'nftMint' | 'nftSell',
       {
-        from: string;
-        to: string;
+        from?: string;
+        to?: string;
         token?: TokenAmount;
+        paymentToken?: TokenAmount;
         fees?: ActivityFee[];
       }
     >

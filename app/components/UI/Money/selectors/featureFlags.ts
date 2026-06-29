@@ -7,10 +7,7 @@ import {
   VersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
-import {
-  getWildcardTokenListFromConfig,
-  WildcardTokenList,
-} from '../../Earn/utils/wildcardTokenList';
+import { WildcardTokenList } from '../../Earn/utils/wildcardTokenList';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import { MONEY_NO_FEE_TOKENS_FALLBACK } from '../utils/depositFaqTokens';
 import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmations/utils/relayFixedSpread';
@@ -108,25 +105,6 @@ export const selectMoneyFirstTimeDepositAnimationEnabledFlag = createSelector(
       process.env.MM_MONEY_FIRST_TIME_DEPOSIT_ANIMATION_ENABLED !== 'false';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
   },
-);
-
-/**
- * Selects the no-fee tokens for Money surfaces from remote config or local fallback.
- * Returns a wildcard map of chain IDs (or "*") to token symbols (or ["*"]) that are
- * eligible for fee-free deposit into the Money account.
- *
- * Remote flag takes precedence over local env var.
- * If both are unavailable, returns {} (no tokens have subsidised fees).
- */
-export const selectMoneyNoFeeTokens = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): WildcardTokenList =>
-    getWildcardTokenListFromConfig(
-      remoteFeatureFlags?.earnMoneyDepositNoFeeTokens,
-      'earnMoneyDepositNoFeeTokens',
-      process.env.MM_MONEY_DEPOSIT_NO_FEE_TOKENS,
-      'MM_MONEY_DEPOSIT_NO_FEE_TOKENS',
-    ),
 );
 
 const FALLBACK_MONEY_DEPOSIT_MIN_BALANCE = 0.01; // 1 cent
