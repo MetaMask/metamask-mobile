@@ -153,7 +153,6 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
-import { networkControllerInit } from './controllers/network-controller-init';
 import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
@@ -173,6 +172,7 @@ import { moneyAccountBalanceServiceInit } from './controllers/money-account-bala
 import { geolocationApiServiceInit } from './controllers/geolocation-api-service-init';
 import { geolocationControllerInit } from './controllers/geolocation-controller';
 import { rewardsDataServiceInit } from './controllers/rewards-data-service-init';
+import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-flag-controller';
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
@@ -181,6 +181,7 @@ import { analyticsControllerInit } from './controllers/analytics-controller/anal
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
 import { profileMetricsServiceInit } from './controllers/profile-metrics-service-init';
+import { proofOfOwnershipServiceInit } from './controllers/proof-of-ownership-service-init';
 import { rampsServiceInit } from './controllers/ramps-controller/ramps-service-init';
 import { rampsControllerInit } from './controllers/ramps-controller/ramps-controller-init';
 import { aiDigestControllerInit } from './controllers/ai-digest-controller-init';
@@ -197,6 +198,7 @@ import { moneyAccountUpgradeControllerInit } from './controllers/money-account-u
 import { initializeWallet } from './wallet-init/initialization';
 import { qrKeyringBridge } from './wallet-init/keyrings';
 import { Wallet } from '@metamask/wallet';
+import { isOnboardingComplete } from './utils/ensureOnboardingComplete';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -310,7 +312,6 @@ export class Engine {
       initFunctions: {
         LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
-        NetworkController: networkControllerInit,
         PermissionController: permissionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
@@ -391,6 +392,7 @@ export class Engine {
         DelegationController: DelegationControllerInit,
         ProfileMetricsController: profileMetricsControllerInit,
         ProfileMetricsService: profileMetricsServiceInit,
+        ProofOfOwnershipService: proofOfOwnershipServiceInit,
         AnalyticsController: analyticsControllerInit,
         RampsService: rampsServiceInit,
         TransakService: transakServiceInit,
@@ -447,6 +449,8 @@ export class Engine {
     const profileMetricsController =
       messengerClientsByName.ProfileMetricsController;
     const profileMetricsService = messengerClientsByName.ProfileMetricsService;
+    const proofOfOwnershipService =
+      messengerClientsByName.ProofOfOwnershipService;
     const rampsService = messengerClientsByName.RampsService;
     const transakService = messengerClientsByName.TransakService;
     const rampsController = messengerClientsByName.RampsController;
@@ -489,7 +493,7 @@ export class Engine {
     const nftController = messengerClientsByName.NftController;
     const nftDetectionController =
       messengerClientsByName.NftDetectionController;
-    const networkController = messengerClientsByName.NetworkController;
+    const networkController = this.#wallet.getInstance('NetworkController');
 
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     const cronjobController = messengerClientsByName.CronjobController;
@@ -547,15 +551,6 @@ export class Engine {
       accountsCount: Object.keys(
         accountsController.state.internalAccounts.accounts,
       ).length,
-    });
-
-    // The wallet constructs ConnectivityController but does not seed its initial
-    // status; do that here (fire-and-forget).
-    connectivityController.init().catch((error) => {
-      Logger.error(
-        error as Error,
-        'ConnectivityController: failed to initialize',
-      );
     });
 
     // Initialize RPC domain validation cache for analytics
@@ -648,6 +643,7 @@ export class Engine {
       DelegationController: delegationController,
       ProfileMetricsController: profileMetricsController,
       ProfileMetricsService: profileMetricsService,
+      ProofOfOwnershipService: proofOfOwnershipService,
       RampsService: rampsService,
       TransakService: transakService,
       RampsController: rampsController,
@@ -835,10 +831,20 @@ export class Engine {
         // Notifies Snaps that the app may be in the background.
         // This is best effort as we cannot guarantee the messages are received in time.
         if (isUnlocked) {
-          return this.controllerMessenger.call(
+          this.controllerMessenger.call(
             'SnapController:setClientActive',
             state === 'active',
           );
+
+          if (state === 'active' && isOnboardingComplete()) {
+            // If the client is active and unlocked, request a periodic update
+            // of the Snaps registry.
+            this.controllerMessenger
+              .call('SnapRegistryController:requestPeriodicUpdate')
+              .catch((error) => {
+                captureException(error);
+              });
+          }
         }
       },
     );
@@ -847,9 +853,37 @@ export class Engine {
     this.configureControllersOnNetworkChange();
     this.handleVaultBackup();
 
+    const clearRemoteFeatureFlags = () => {
+      // @ts-expect-error TS2589 - BaseController.update causes deep type recursion.
+      remoteFeatureFlagController.update(
+        (state: RemoteFeatureFlagControllerState) => ({
+          ...state,
+          remoteFeatureFlags: {},
+          rawRemoteFeatureFlags: {},
+          cacheTimestamp: 0,
+        }),
+      );
+    };
+
+    const syncWithBasicFunctionality = (enabled: boolean) => {
+      if (enabled) {
+        remoteFeatureFlagController.enable();
+        remoteFeatureFlagController
+          .updateRemoteFeatureFlags()
+          .catch((error) => Logger.log('Feature flags update failed: ', error));
+      } else {
+        remoteFeatureFlagController.disable();
+        clearRemoteFeatureFlags();
+      }
+    };
+
     // The wallet constructs RemoteFeatureFlagController but does not trigger the
     // initial fetch; that stays client-side.
-    if (!selectBasicFunctionalityEnabled(store.getState())) {
+    const isBasicFunctionalityEnabled = selectBasicFunctionalityEnabled(
+      store.getState(),
+    );
+    if (!isBasicFunctionalityEnabled) {
+      clearRemoteFeatureFlags();
       Logger.log('Feature flag controller disabled.');
     } else if (isRemoteFeatureFlagOverrideActivated) {
       Logger.log('Remote feature flags override activated.');
@@ -861,6 +895,22 @@ export class Engine {
         })
         .catch((error) => Logger.log('Feature flags update failed: ', error));
     }
+
+    let previousBasicFunctionalityEnabled = isBasicFunctionalityEnabled;
+    store.subscribe(() => {
+      const currentBasicFunctionalityEnabled = selectBasicFunctionalityEnabled(
+        store.getState(),
+      );
+
+      if (
+        currentBasicFunctionalityEnabled === previousBasicFunctionalityEnabled
+      ) {
+        return;
+      }
+
+      previousBasicFunctionalityEnabled = currentBasicFunctionalityEnabled;
+      syncWithBasicFunctionality(currentBasicFunctionalityEnabled);
+    });
 
     Engine.instance = this;
   }
@@ -1154,11 +1204,6 @@ export class Engine {
   };
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  getSnapKeyring = async (): Promise<SnapKeyring> => {
-    const { SnapAccountService } = this.context;
-    return await SnapAccountService.getLegacySnapKeyring();
-  };
-
   /**
    * Removes an account from state / storage.
    *
@@ -1633,10 +1678,6 @@ export default {
   },
 
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-  getSnapKeyring: () => {
-    assertEngineExists(instance);
-    return instance.getSnapKeyring();
-  },
   removeAccount: async (address: string) => {
     assertEngineExists(instance);
     return await instance.removeAccount(address);

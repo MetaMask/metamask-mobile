@@ -8,19 +8,15 @@ import React, {
 } from 'react';
 import { View, Platform } from 'react-native';
 import { useSelector } from 'react-redux';
-import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
-import { addCurrencySymbol } from '../../../../util/number';
 import { toDateFormat } from '../../../../util/date';
-import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import styleSheet from './Price.styles';
 import {
   CHART_DATA_THRESHOLD,
   isTokenOverviewChartInterval,
   TOKEN_OVERVIEW_CHART_HEIGHT as BASE_CHART_HEIGHT,
 } from './tokenOverviewChart.constants';
-import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
@@ -48,16 +44,9 @@ import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
 import { getTokenDetailsLegendOverlay } from '../../Charts/AdvancedChart/indicatorColors';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
+import { Box } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
-import { SUB_PANE_INDICATORS } from '../../TokenDetails/constants/constants';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
@@ -67,6 +56,7 @@ import type {
   TokenPrice,
 } from '../../../../components/hooks/useTokenHistoricalPrices';
 import PriceLegacy from './Price.legacy';
+import { TokenPriceTitleHub } from './TokenPriceTitleHub';
 import {
   endTrace,
   trace,
@@ -601,11 +591,6 @@ const PriceAdvanced = ({
         if (wasActive) {
           next.delete(name);
         } else {
-          if ((SUB_PANE_INDICATORS as readonly string[]).includes(name)) {
-            SUB_PANE_INDICATORS.forEach((i) => {
-              if (i !== name) next.delete(i);
-            });
-          }
           next.add(name);
         }
 
@@ -862,6 +847,16 @@ const PriceAdvanced = ({
     ? toDateFormat(crosshairData.time)
     : dateLabel;
 
+  const getPriceDiffStyle = () => {
+    if (ambientColor) {
+      return { color: ambientColor };
+    }
+    if (isLightMode && displayDiff !== null && displayDiff > 0) {
+      return { color: LIGHT_MODE_SUCCESS_GREEN };
+    }
+    return undefined;
+  };
+
   const shouldFallbackToLegacyRef = useRef(shouldFallbackToLegacy);
   shouldFallbackToLegacyRef.current = shouldFallbackToLegacy;
 
@@ -962,85 +957,22 @@ const PriceAdvanced = ({
 
   return (
     <>
-      <View style={styles.wrapper}>
-        {!isNaN(currentPrice) && (
-          <Text
-            testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
-            variant={TextVariant.DisplayLg}
-          >
-            {isLoading ? (
-              <View style={styles.loadingPrice}>
-                <SkeletonPlaceholder
-                  backgroundColor={theme.colors.background.section}
-                  highlightColor={theme.colors.background.subsection}
-                >
-                  <SkeletonPlaceholder.Item
-                    width={100}
-                    height={40}
-                    borderRadius={6}
-                  />
-                </SkeletonPlaceholder>
-              </View>
-            ) : (
-              formatPriceWithSubscriptNotation(displayPrice, currentCurrency)
-            )}
-          </Text>
-        )}
-        <Text allowFontScaling={false}>
-          {(isTechnicalIndicatorsEnabled ? chartLoading : isLoading) ? (
-            <View testID="loading-price-diff" style={styles.loadingPriceDiff}>
-              <SkeletonPlaceholder
-                backgroundColor={theme.colors.background.section}
-                highlightColor={theme.colors.background.subsection}
-              >
-                <SkeletonPlaceholder.Item
-                  width={150}
-                  height={24}
-                  borderRadius={6}
-                />
-              </SkeletonPlaceholder>
-            </View>
-          ) : displayDiff !== null && dynamicComparePrice !== null ? (
-            <Text
-              testID={TokenOverviewSelectorsIDs.TODAYS_CHANGE}
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={
-                displayDiff > 0
-                  ? TextColor.SuccessDefault
-                  : displayDiff < 0
-                    ? TextColor.ErrorDefault
-                    : TextColor.TextAlternative
-              }
-              style={
-                ambientColor
-                  ? { color: ambientColor }
-                  : isLightMode && displayDiff > 0
-                    ? { color: LIGHT_MODE_SUCCESS_GREEN }
-                    : undefined
-              }
-              allowFontScaling={false}
-            >
-              {displayDiff > 0 ? '+' : ''}
-              {addCurrencySymbol(displayDiff, currentCurrency, true)} (
-              {displayDiff > 0 ? '+' : ''}
-              {displayDiff === 0 || dynamicComparePrice === 0
-                ? '0'
-                : ((displayDiff / dynamicComparePrice) * 100).toFixed(2)}
-              %){' '}
-              <Text
-                testID="price-label"
-                color={TextColor.TextAlternative}
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                allowFontScaling={false}
-              >
-                {displayDate}
-              </Text>
-            </Text>
-          ) : null}
-        </Text>
-      </View>
+      {!isNaN(currentPrice) && (
+        <TokenPriceTitleHub
+          price={displayPrice}
+          displayDiff={displayDiff}
+          comparePrice={dynamicComparePrice}
+          periodLabel={displayDate}
+          currentCurrency={currentCurrency}
+          isLoading={isLoading}
+          isChangeLoading={
+            isTechnicalIndicatorsEnabled ? chartLoading : isLoading
+          }
+          ambientColor={ambientColor}
+          getPriceDiffStyle={getPriceDiffStyle}
+          changeFormat="signedCurrency"
+        />
+      )}
       {/* Unified skeleton bar when feature flag ON and chart not yet revealed */}
       {isTechnicalIndicatorsEnabled && isInitialChartPending && (
         <View style={styles.intervalBarContainer}>
@@ -1100,7 +1032,16 @@ const PriceAdvanced = ({
               chartType={chartType}
               indicators={showChartIndicators ? indicatorsArray : []}
               selectedMAs={showChartIndicators ? selectedMAs : []}
-              lineChrome={advancedChartLineChromePresets.tokenOverview}
+              lineChrome={
+                advancedChartLineChromePresets.tokenOverview.lineChrome
+              }
+              subPaneHeightRatio={
+                advancedChartLineChromePresets.tokenOverview.subPaneHeightRatio
+              }
+              useSubscriptPriceFormat={
+                advancedChartLineChromePresets.tokenOverview
+                  .useSubscriptPriceFormat
+              }
               isLoading={
                 isTechnicalIndicatorsEnabled
                   ? !hasChartBeenRevealed && chartLoading

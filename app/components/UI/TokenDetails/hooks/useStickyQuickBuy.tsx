@@ -7,7 +7,7 @@ import {
   SOCIAL_AI_QUICK_BUY_VARIANTS,
 } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/abTestConfig';
 import AssetDetailsQuickBuy from '../components/AssetDetailsQuickBuy';
-import type { QuickBuySheetSource } from '../../../Views/SocialLeaderboard/analytics';
+import type { QuickBuySheetSource } from '../../../Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/analytics';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 
 interface UseStickyQuickBuyArgs {

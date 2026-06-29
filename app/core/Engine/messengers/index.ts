@@ -67,10 +67,6 @@ import {
 } from './permission-controller-messenger';
 import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
 import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
-import {
-  getNetworkControllerInitMessenger,
-  getNetworkControllerMessenger,
-} from './network-controller-messenger';
 import { getTokenSearchDiscoveryDataControllerMessenger } from './token-search-discovery-data-controller-messenger';
 import { getAssetsContractControllerMessenger } from './assets-contract-controller-messenger';
 import {
@@ -137,6 +133,7 @@ import {
   getProfileMetricsControllerInitMessenger,
 } from './profile-metrics-controller-messenger';
 import { getProfileMetricsServiceMessenger } from './profile-metrics-service-messenger';
+import { getProofOfOwnershipServiceMessenger } from './proof-of-ownership-service-messenger';
 import {
   getAnalyticsControllerInitMessenger,
   getAnalyticsControllerMessenger,
@@ -221,10 +218,6 @@ export const MESSENGER_FACTORIES = {
   GasFeeController: {
     getMessenger: getGasFeeControllerMessenger,
     getInitMessenger: noop,
-  },
-  NetworkController: {
-    getMessenger: getNetworkControllerMessenger,
-    getInitMessenger: getNetworkControllerInitMessenger,
   },
   NftController: {
     getMessenger: getNftControllerMessenger,
@@ -438,6 +431,10 @@ export const MESSENGER_FACTORIES = {
   },
   ProfileMetricsService: {
     getMessenger: getProfileMetricsServiceMessenger,
+    getInitMessenger: noop,
+  },
+  ProofOfOwnershipService: {
+    getMessenger: getProofOfOwnershipServiceMessenger,
     getInitMessenger: noop,
   },
   AnalyticsController: {

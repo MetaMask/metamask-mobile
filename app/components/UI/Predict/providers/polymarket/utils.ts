@@ -30,7 +30,6 @@ import {
 } from '../../utils/gameParser';
 import {
   getNegRiskMoneylineTeamLogo,
-  hasNegRiskMoneylineGroupItem,
   isDrawCapableLeague,
   isMoneylineLikeMarketType,
   resolveNegRiskMoneylineShortTitles,
@@ -758,6 +757,22 @@ const sortOutcomeTokens = (
   return outcomeTokens;
 };
 
+const getNegRiskYesTokenTitle = (
+  market: PolymarketApiMarket,
+): string | undefined => {
+  if (
+    !market.negRisk ||
+    !isMoneylineLikeMarket(market) ||
+    !market.groupItemTitle
+  ) {
+    return undefined;
+  }
+
+  return market.groupItemTitle.toLowerCase().startsWith('draw')
+    ? 'Draw'
+    : market.groupItemTitle;
+};
+
 const parsePolymarketMarketOutcomes = (
   market: PolymarketApiMarket,
   event: PolymarketApiEvent,
@@ -772,7 +787,8 @@ const parsePolymarketMarketOutcomes = (
     ? JSON.parse(market.outcomePrices)
     : [];
 
-  const isNegRiskMoneyline = hasNegRiskMoneylineGroupItem(market);
+  const negRiskYesTitle = getNegRiskYesTokenTitle(market);
+  const isNegRiskMoneyline = negRiskYesTitle !== undefined;
   const negRiskShort = game
     ? resolveNegRiskMoneylineShortTitles(market, game)
     : {};
@@ -783,6 +799,10 @@ const parsePolymarketMarketOutcomes = (
       const isNo = outcomes[index] === 'No';
 
       let shortTitle: string | undefined = shortTitles[index];
+      let title = outcomes[index];
+      if (isNegRiskMoneyline && isYes && negRiskYesTitle) {
+        title = negRiskYesTitle;
+      }
       if (isNegRiskMoneyline && isYes && negRiskShort.yesShort) {
         shortTitle = negRiskShort.yesShort;
       } else if (isNegRiskMoneyline && isNo && negRiskShort.noShort) {
@@ -791,7 +811,7 @@ const parsePolymarketMarketOutcomes = (
 
       return {
         id: tokenId,
-        title: outcomes[index],
+        title,
         ...(shortTitle && { shortTitle }),
         price: parseFloat(outcomePrices[index]),
       };
@@ -1097,6 +1117,16 @@ export const parsePolymarketActivity = (
     const title = String(activity.title ?? 'Market');
     const outcome = activity.outcome ? String(activity.outcome) : undefined;
     const icon = activity.icon as string | undefined;
+    const slug = activity.slug ? String(activity.slug) : undefined;
+    const eventSlug = activity.eventSlug
+      ? String(activity.eventSlug)
+      : undefined;
+    const netPnlUsd =
+      typeof activity.netPnlUsd === 'number' ? activity.netPnlUsd : undefined;
+    const totalNetPnlUsd =
+      typeof activity.totalNetPnlUsd === 'number'
+        ? activity.totalNetPnlUsd
+        : undefined;
 
     const parsedActivity: PredictActivity = {
       id,
@@ -1116,10 +1146,18 @@ export const parsePolymarketActivity = (
       title,
       outcome,
       icon,
+      slug,
+      eventSlug,
+      netPnlUsd,
+      totalNetPnlUsd,
     } as PredictActivity & {
       title?: string;
       outcome?: string;
       icon?: string;
+      slug?: string;
+      eventSlug?: string;
+      netPnlUsd?: number;
+      totalNetPnlUsd?: number;
     };
 
     return parsedActivity;
