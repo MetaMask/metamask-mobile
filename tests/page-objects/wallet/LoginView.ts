@@ -138,7 +138,7 @@ class LoginView {
             timeout: 15000,
             description: 'Login title should be visible',
           },
-        });
+        );
       },
     });
   }
