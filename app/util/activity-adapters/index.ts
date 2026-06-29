@@ -4,14 +4,18 @@
  * TODO: Replace with shared @metamask/activity-adapters package when published.
  */
 export type {
+  ActivityFee,
   ActivityListItem,
   ActivityKind,
   Status,
   TokenAmount,
 } from './types';
 export { mapApiEvmTransactions } from './adapters/api-evm-transactions';
+export { isNftTransferType } from './adapters/helpers';
 export { mapKeyringTransaction } from './adapters/keyring-transaction';
 export { mapLocalTransaction } from './adapters/local-transaction';
+export { mapPredictActivity } from './adapters/predict-activity';
+export { mapPerpsTransaction } from './adapters/perps-transaction';
 export {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
@@ -27,6 +31,10 @@ export {
 } from './fiat';
 export {
   activityMatchesAssetId,
+  formatActivityListDateHeader,
+  getActivityFromTo,
+  getActivityValue,
+  getGroupedActivityListItemKey,
   groupActivityListItems,
   shouldShowPlusSign,
   type GroupedActivityListItem,

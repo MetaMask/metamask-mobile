@@ -2,11 +2,10 @@ import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import TokenSelection from './TokenSelection';
 import { TokenSelectionSelectors } from './TokenSelection.testIds';
-import useSearchTokenResults from '../../Deposit/hooks/useSearchTokenResults';
+import useSearchTokenResults from '../../hooks/useSearchTokenResults';
 import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { MOCK_CRYPTOCURRENCIES } from '../../Deposit/testUtils';
-import { useRampTokens } from '../../hooks/useRampTokens';
+import { MOCK_CRYPTOCURRENCIES } from '../../testUtils';
 import { useRampsController } from '../../hooks/useRampsController';
 import Routes from '../../../../../constants/navigation/Routes';
 
@@ -60,7 +59,7 @@ function renderWithProvider(
   );
 }
 
-jest.mock('../../Deposit/hooks/useSearchTokenResults', () => jest.fn());
+jest.mock('../../hooks/useSearchTokenResults', () => jest.fn());
 
 const mockGoToBuy = jest.fn();
 
@@ -68,16 +67,6 @@ jest.mock('../../hooks/useRampNavigation', () => ({
   useRampNavigation: () => ({
     goToBuy: mockGoToBuy,
   }),
-}));
-
-const mockUseRampsUnifiedV2Enabled = jest.fn();
-jest.mock('../../hooks/useRampsUnifiedV2Enabled', () => ({
-  __esModule: true,
-  default: () => mockUseRampsUnifiedV2Enabled(),
-}));
-
-jest.mock('../../hooks/useRampTokens', () => ({
-  useRampTokens: jest.fn(),
 }));
 
 jest.mock('../../hooks/useRampsController', () => ({
@@ -89,7 +78,7 @@ jest.mock('../../../../hooks/useDebouncedValue', () => ({
 }));
 
 const mockGetNetworkName = jest.fn();
-jest.mock('../../Deposit/hooks/useDepositCryptoCurrencyNetworkName', () => ({
+jest.mock('../../hooks/useDepositCryptoCurrencyNetworkName', () => ({
   useDepositCryptoCurrencyNetworkName: () => mockGetNetworkName,
 }));
 
@@ -120,9 +109,6 @@ jest.mock('../../../../../selectors/networkController', () => ({
 }));
 
 const mockTokens = MOCK_CRYPTOCURRENCIES;
-const mockUseRampTokens = useRampTokens as jest.MockedFunction<
-  typeof useRampTokens
->;
 const mockUseRampsController = useRampsController as jest.MockedFunction<
   typeof useRampsController
 >;
@@ -145,18 +131,8 @@ describe('TokenSelection Component', () => {
       convertToRampsTokens(mockTokens),
     );
     mockGetNetworkName.mockReturnValue('Ethereum Mainnet');
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false); // Default to V1 behavior
 
     const rampsTokens = convertToRampsTokens(mockTokens);
-
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-
-    mockUseRampTokens.mockReturnValue({
-      topTokens: rampsTokens,
-      allTokens: rampsTokens,
-      isLoading: false,
-      error: null,
-    });
 
     mockUseRampsController.mockReturnValue({
       tokens: {
@@ -200,8 +176,7 @@ describe('TokenSelection Component', () => {
     jest.clearAllMocks();
   });
 
-  it('renders token list for legacy flow', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
+  it('renders token list', () => {
     const { getByPlaceholderText } = renderWithProvider(TokenSelection);
 
     expect(
@@ -209,17 +184,7 @@ describe('TokenSelection Component', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders token list for V2 flow', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
-
-    expect(
-      getByPlaceholderText('Search token by name or address'),
-    ).toBeOnTheScreen();
-  });
-
-  it('calls navigation.goBack when header back is pressed (V2 loaded list)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+  it('calls navigation.goBack when header back is pressed ', () => {
     const { getByTestId } = renderWithProvider(TokenSelection);
 
     fireEvent.press(getByTestId('deposit-back-navbar-button'));
@@ -228,8 +193,7 @@ describe('TokenSelection Component', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  it('calls navigation.goBack when header back is pressed while tokens are loading (V2)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+  it('calls navigation.goBack when header back is pressed while tokens are loading', () => {
     mockUseRampsController.mockReturnValue({
       tokens: null,
       selectedToken: null,
@@ -302,22 +266,8 @@ describe('TokenSelection Component', () => {
     });
   });
 
-  it('calls goToBuy and closes modal when token is pressed (V1 flow)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    const { getByTestId } = renderWithProvider(TokenSelection);
-
-    const firstToken = getByTestId(`token-list-item-${mockTokens[0].assetId}`);
-    fireEvent.press(firstToken);
-
-    expect(mockParentGoBack).toHaveBeenCalled();
-    expect(mockGoToBuy).toHaveBeenCalledWith({
-      assetId: mockTokens[0].assetId,
-    });
-  });
-
-  it('sets selected token and navigates directly to AMOUNT_INPUT without closing modal when token is pressed (V2 flow)', () => {
+  it('sets selected token and navigates directly to AMOUNT_INPUT without closing modal when token is pressed ', () => {
     const mockSetSelectedToken = jest.fn();
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
     mockUseRampsController.mockReturnValue({
       ...mockUseRampsController(),
       setSelectedToken: mockSetSelectedToken,
@@ -346,58 +296,7 @@ describe('TokenSelection Component', () => {
     });
   });
 
-  it('displays loading indicator while fetching tokens (legacy)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    mockUseRampTokens.mockReturnValue({
-      topTokens: null,
-      allTokens: null,
-      isLoading: true,
-      error: null,
-    });
-
-    const { getByTestId } = renderWithProvider(TokenSelection);
-
-    expect(
-      getByTestId(TokenSelectionSelectors.LOADING_INDICATOR),
-    ).toBeOnTheScreen();
-  });
-
-  it('displays loading when tokens not yet loaded (legacy, null tokens and no error)', () => {
-    // Null tokens with isLoading:false (decision settling after geo recovery)
-    // must show the spinner, not a "No tokens match" flash.
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    mockUseRampTokens.mockReturnValue({
-      topTokens: null,
-      allTokens: null,
-      isLoading: false,
-      error: null,
-    });
-
-    const { getByTestId } = renderWithProvider(TokenSelection);
-
-    expect(
-      getByTestId(TokenSelectionSelectors.LOADING_INDICATOR),
-    ).toBeOnTheScreen();
-  });
-
-  it('does not show loading for a genuinely empty token list (legacy, empty array and no error)', () => {
-    // A genuinely empty result is [] (not null) and must not spin forever —
-    // guards against gating loading on length instead of null.
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    mockUseRampTokens.mockReturnValue({
-      topTokens: [],
-      allTokens: [],
-      isLoading: false,
-      error: null,
-    });
-
-    const { queryByTestId } = renderWithProvider(TokenSelection);
-
-    expect(queryByTestId(TokenSelectionSelectors.LOADING_INDICATOR)).toBeNull();
-  });
-
-  it('displays loading indicator while fetching tokens (V2 enabled)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+  it('displays loading indicator while fetching tokens', () => {
     mockUseRampsController.mockReturnValue({
       tokens: null,
       selectedToken: null,
@@ -439,8 +338,7 @@ describe('TokenSelection Component', () => {
     ).toBeOnTheScreen();
   });
 
-  it('displays loading when tokens not yet loaded (V2, null tokens and no error)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+  it('displays loading when tokens not yet loaded when tokens are not yet loaded', () => {
     mockUseRampsController.mockReturnValue({
       tokens: null,
       selectedToken: null,
@@ -482,22 +380,7 @@ describe('TokenSelection Component', () => {
     ).toBeOnTheScreen();
   });
 
-  it('displays error message when token fetch fails (legacy)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    mockUseRampTokens.mockReturnValue({
-      topTokens: null,
-      allTokens: null,
-      isLoading: false,
-      error: new Error('Network error'),
-    });
-
-    const { getByText } = renderWithProvider(TokenSelection);
-
-    expect(getByText(/unable to load tokens/i)).toBeOnTheScreen();
-  });
-
-  it('displays error message when token fetch fails (V2 enabled)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+  it('displays error message when token fetch fails', () => {
     mockUseRampsController.mockReturnValue({
       tokens: null,
       selectedToken: null,
@@ -537,29 +420,7 @@ describe('TokenSelection Component', () => {
     expect(getByText(/unable to load tokens/i)).toBeOnTheScreen();
   });
 
-  it('uses topTokens when search string is empty (legacy)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    const topTokens = convertToRampsTokens([mockTokens[0]]);
-    const allTokens = convertToRampsTokens(mockTokens);
-
-    mockUseRampTokens.mockReturnValue({
-      topTokens,
-      allTokens,
-      isLoading: false,
-      error: null,
-    });
-
-    renderWithProvider(TokenSelection);
-
-    expect(useSearchTokenResults).toHaveBeenCalledWith(
-      expect.objectContaining({
-        tokens: topTokens,
-      }),
-    );
-  });
-
-  it('uses topTokens when search string is empty (V2 enabled)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+  it('uses topTokens when search string is empty', () => {
     const topTokens = convertToRampsTokens([mockTokens[0]]);
     const allTokens = convertToRampsTokens(mockTokens);
 
@@ -609,35 +470,7 @@ describe('TokenSelection Component', () => {
     );
   });
 
-  it('uses allTokens when user is searching (legacy)', async () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    const topTokens = convertToRampsTokens([mockTokens[0]]);
-    const allTokens = convertToRampsTokens(mockTokens);
-
-    mockUseRampTokens.mockReturnValue({
-      topTokens,
-      allTokens,
-      isLoading: false,
-      error: null,
-    });
-
-    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
-
-    const searchInput = getByPlaceholderText('Search token by name or address');
-    fireEvent.changeText(searchInput, 'USDC');
-
-    await waitFor(() => {
-      expect(useSearchTokenResults).toHaveBeenCalledWith(
-        expect.objectContaining({
-          tokens: allTokens,
-          searchString: 'USDC',
-        }),
-      );
-    });
-  });
-
-  it('uses allTokens when user is searching (V2 enabled)', async () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+  it('uses allTokens when user is searching', async () => {
     const topTokens = convertToRampsTokens([mockTokens[0]]);
     const allTokens = convertToRampsTokens(mockTokens);
 
@@ -693,33 +526,7 @@ describe('TokenSelection Component', () => {
     });
   });
 
-  it('uses topTokens when search string contains only whitespace (legacy)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(false);
-    const topTokens = convertToRampsTokens([mockTokens[0]]);
-    const allTokens = convertToRampsTokens(mockTokens);
-
-    mockUseRampTokens.mockReturnValue({
-      topTokens,
-      allTokens,
-      isLoading: false,
-      error: null,
-    });
-
-    const { getByPlaceholderText } = renderWithProvider(TokenSelection);
-
-    const searchInput = getByPlaceholderText('Search token by name or address');
-    fireEvent.changeText(searchInput, '   ');
-
-    expect(useSearchTokenResults).toHaveBeenCalledWith(
-      expect.objectContaining({
-        tokens: topTokens,
-        searchString: '   ',
-      }),
-    );
-  });
-
-  it('uses topTokens when search string contains only whitespace (V2 enabled)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
+  it('uses topTokens when search string contains only whitespace', () => {
     const topTokens = convertToRampsTokens([mockTokens[0]]);
     const allTokens = convertToRampsTokens(mockTokens);
 
@@ -773,9 +580,7 @@ describe('TokenSelection Component', () => {
     );
   });
 
-  it('filters tokens to only include those for configured networks (V2 enabled)', () => {
-    mockUseRampsUnifiedV2Enabled.mockReturnValue(true);
-
+  it('filters tokens to only include those for configured networks', () => {
     const allTokensWithUnconfiguredNetwork = convertToRampsTokens([
       ...mockTokens,
       {

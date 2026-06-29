@@ -71,6 +71,7 @@ jest.mock('../../api', () => ({
   fetchAlerts: (...args: unknown[]) => mockFetchAlerts(...args),
   deleteAlert: (...args: unknown[]) => mockDeleteAlert(...args),
   updateAlert: (...args: unknown[]) => mockUpdateAlert(...args),
+  priceAlertsQueryKey: (assetId: string) => ['priceAlerts', assetId],
 }));
 
 const makeAlert = (overrides: Partial<PriceAlert> = {}): PriceAlert => ({
@@ -202,6 +203,21 @@ describe('ManagePriceAlertsView', () => {
       expect(screen.getByText('Reaches $0.0₁₃105')).toBeOnTheScreen();
     });
 
+    it('preserves full precision for sub-cent thresholds', async () => {
+      mockFetchAlerts.mockResolvedValue(
+        makeFetchResponse([
+          makeAlert({ id: 'alert-a', threshold: 0.00181069 }),
+          makeAlert({ id: 'alert-b', threshold: 0.00182069 }),
+        ]),
+      );
+
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      expect(screen.getByText('Reaches $0.00181069')).toBeOnTheScreen();
+      expect(screen.getByText('Reaches $0.00182069')).toBeOnTheScreen();
+    });
+
     it('shows "Recurring" for recurring alerts and "Once" for one-shot alerts', async () => {
       const screen = renderView();
       await waitForLoaded(screen);
@@ -270,6 +286,125 @@ describe('ManagePriceAlertsView', () => {
           existingThresholds: expect.arrayContaining([3000, 1500]),
         }),
       );
+    });
+
+    it('does not pass editingAlert when "Add alert" is pressed', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(ManagePriceAlertsTestIds.ADD_ALERT_BUTTON),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CREATE_PRICE_ALERT,
+        expect.not.objectContaining({ editingAlert: expect.anything() }),
+      );
+    });
+  });
+
+  describe('edit alert', () => {
+    const twoAlerts = [
+      makeAlert({ id: 'alert-1', threshold: 3000, recurring: true }),
+      makeAlert({
+        id: 'alert-2',
+        threshold: 1500,
+        recurring: false,
+        active: false,
+      }),
+    ];
+
+    beforeEach(() => {
+      mockFetchAlerts.mockResolvedValue(makeFetchResponse(twoAlerts));
+    });
+
+    it('navigates to CreatePriceAlert with editingAlert when a row is tapped', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_EDIT_PREFIX}-alert-1`,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CREATE_PRICE_ALERT,
+        expect.objectContaining({
+          editingAlert: expect.objectContaining({ id: 'alert-1' }),
+          fromManage: true,
+        }),
+      );
+    });
+
+    it('passes the correct alert data for the tapped row', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_EDIT_PREFIX}-alert-2`,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CREATE_PRICE_ALERT,
+        expect.objectContaining({
+          editingAlert: expect.objectContaining({
+            id: 'alert-2',
+            threshold: 1500,
+            recurring: false,
+          }),
+        }),
+      );
+    });
+
+    it('passes existingThresholds of all current alerts when editing', async () => {
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_EDIT_PREFIX}-alert-1`,
+        ),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CREATE_PRICE_ALERT,
+        expect.objectContaining({
+          existingThresholds: expect.arrayContaining([3000, 1500]),
+        }),
+      );
+    });
+
+    it('does not navigate when the row tap is disabled during a delete', async () => {
+      let resolveDelete!: (value: unknown) => void;
+      mockDeleteAlert.mockReturnValueOnce(
+        new Promise((r) => {
+          resolveDelete = r;
+        }),
+      );
+
+      const screen = renderView();
+      await waitForLoaded(screen);
+
+      // Trigger delete — row tap is now disabled
+      fireEvent.press(
+        screen.getByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      );
+
+      // The delete button is replaced by a spinner, so the tap target is gone
+      expect(
+        screen.queryByTestId(
+          `${ManagePriceAlertsTestIds.ALERT_DELETE_PREFIX}-alert-1`,
+        ),
+      ).toBeNull();
+
+      await act(async () => {
+        resolveDelete(makeOkResponse(204));
+      });
     });
   });
 

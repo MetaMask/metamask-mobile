@@ -6,11 +6,9 @@ import {
   RampType as AggregatorRampType,
 } from '../Aggregator/types';
 import { createRampNavigationDetails } from '../Aggregator/routes/utils';
-import { createDepositNavigationDetails } from '../Deposit/routes/utils';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
 import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import type { BuyFlowOrigin } from '../Views/BuildQuote/BuildQuote';
-import useRampsUnifiedV2Enabled from './useRampsUnifiedV2Enabled';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { useRampsTokens } from './useRampsTokens';
@@ -25,11 +23,6 @@ import Engine from '../../../../core/Engine';
 import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 
-enum RampMode {
-  AGGREGATOR = 'AGGREGATOR',
-  DEPOSIT = 'DEPOSIT',
-}
-
 /**
  * Hook that returns functions to navigate to ramp flows.
  *
@@ -37,11 +30,9 @@ enum RampMode {
  * - goToBuy: Unified V2 routing gated by RampsController region/eligibility
  * - goToAggregator: deprecated Always navigates to aggregator BUY flow (bypasses smart routing)
  * - goToSell: Always navigates to aggregator SELL flow
- * - goToDeposit: deprecated Always navigates to deposit flow (bypasses smart routing)
  */
 export const useRampNavigation = () => {
   const navigation = useNavigation();
-  const isRampsUnifiedV2Enabled = useRampsUnifiedV2Enabled();
   const geolocationLocation = useSelector(selectGeolocationLocation);
   const rampsServiceDisruptionRegions = useSelector(
     selectRampsServiceDisruptionRegions,
@@ -54,16 +45,24 @@ export const useRampNavigation = () => {
     async (
       intent?: RampIntent,
       options?: {
-        mode?: RampMode;
         overrideUnifiedRouting?: boolean;
         buyFlowOrigin?: BuyFlowOrigin;
       },
     ) => {
-      const { mode = RampMode.AGGREGATOR, overrideUnifiedRouting = false } =
-        options || {};
+      const { overrideUnifiedRouting = false } = options || {};
 
-      const isUnifiedRoutingEnabled =
-        isRampsUnifiedV2Enabled && !overrideUnifiedRouting;
+      const isUnifiedRoutingEnabled = !overrideUnifiedRouting;
+
+      // Resolve the best available geolocation; only the unified path refreshes.
+      let location: string | undefined = geolocationLocation;
+      if (
+        isUnifiedRoutingEnabled &&
+        (!location || location === UNKNOWN_LOCATION)
+      ) {
+        location = await Promise.resolve(
+          Engine.context.GeolocationController?.refreshGeolocation?.(),
+        ).catch(() => undefined);
+      }
 
       // Region service disruption kill-switch — applies to every buy entry point (including
       // the deprecated aggregator/reorder path) and takes precedence over the
@@ -72,7 +71,7 @@ export const useRampNavigation = () => {
         isRampsServiceDisruptionActive(
           rampsServiceDisruptionRegions,
           userRegion,
-          geolocationLocation,
+          location,
         )
       ) {
         navigation.navigate(
@@ -81,20 +80,7 @@ export const useRampNavigation = () => {
         return;
       }
 
-      // Eligibility gate: region + support now come from RampsController
-      // (selectUserRegion / selectCountries) plus GeolocationController,
-      // replacing the legacy smart-routing decision.
       if (isUnifiedRoutingEnabled) {
-        // Prefer the location already in state, only refreshing when unknown.
-        let location: string | undefined = geolocationLocation;
-
-        if (!location || location === UNKNOWN_LOCATION) {
-          location = await Promise.resolve(
-            Engine.context.GeolocationController?.refreshGeolocation?.(),
-          ).catch(() => undefined);
-        }
-
-        // Unknown region: cannot determine eligibility → eligibility-failed.
         if (!location || location === UNKNOWN_LOCATION) {
           navigation.navigate(
             ...createEligibilityFailedModalNavigationDetails(),
@@ -102,31 +88,18 @@ export const useRampNavigation = () => {
           return;
         }
 
-        // Region known but definitively unsupported for buy → unsupported
-        // modal. Non-blocking: we only divert on a definitive negative signal;
-        // if region/countries data is still loading or support is
-        // indeterminate, proceed to TokenSelection/BuildQuote.
         if (isRampRegionDefinitivelyUnsupported(userRegion, countries)) {
           navigation.navigate(...createRampUnsupportedModalNavigationDetails());
           return;
         }
       }
 
-      // V2: If assetId is provided and V2 is enabled, route to BuildQuote
-      if (
-        isRampsUnifiedV2Enabled &&
-        intent?.assetId &&
-        !overrideUnifiedRouting
-      ) {
-        // Resolve to the controller's canonical assetId format (lowercase)
+      if (intent?.assetId && !overrideUnifiedRouting) {
         const controllerAssetId = resolveRampControllerAssetId(
           intent.assetId,
           rampsTokens?.allTokens ?? [],
         );
 
-        // When tokens have loaded, divert unsupported tokens to the
-        // dedicated modal so users see a clear message instead of landing
-        // on BuildQuote with a missing token name.
         if (rampsTokens) {
           const matchedToken = rampsTokens.allTokens.find(
             (tok) => tok.assetId === controllerAssetId,
@@ -143,7 +116,6 @@ export const useRampNavigation = () => {
           setSelectedToken(controllerAssetId);
         } catch {
           // Token may not be in controller's list yet (still loading).
-          // Navigate anyway — BuildQuote will handle the missing token.
         }
         navigation.navigate(
           ...createBuildQuoteNavDetails({
@@ -154,29 +126,18 @@ export const useRampNavigation = () => {
         return;
       }
 
-      // V2: If no assetId and V2 is enabled, route to TokenSelection (matches handleRampUrl deeplink behavior)
-      if (
-        isRampsUnifiedV2Enabled &&
-        !intent?.assetId &&
-        !overrideUnifiedRouting
-      ) {
+      if (!intent?.assetId && !overrideUnifiedRouting) {
         navigation.navigate(...createTokenSelectionNavDetails());
         return;
       }
 
-      // When overriding unified routing or when unified V2 is disabled
-      if (mode === RampMode.DEPOSIT) {
-        navigation.navigate(...createDepositNavigationDetails(intent));
-      } else {
-        navigation.navigate(
-          ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
-        );
-      }
+      navigation.navigate(
+        ...createRampNavigationDetails(AggregatorRampType.BUY, intent),
+      );
     },
     [
       setSelectedToken,
       navigation,
-      isRampsUnifiedV2Enabled,
       userRegion,
       countries,
       rampsTokens,
@@ -191,10 +152,7 @@ export const useRampNavigation = () => {
    */
   const goToAggregator = useCallback(
     (intent?: RampIntent) => {
-      goToBuy(intent, {
-        mode: RampMode.AGGREGATOR,
-        overrideUnifiedRouting: true,
-      });
+      goToBuy(intent, { overrideUnifiedRouting: true });
     },
     [goToBuy],
   );
@@ -208,19 +166,5 @@ export const useRampNavigation = () => {
     [navigation],
   );
 
-  /**
-   * @deprecated Use goToBuy instead. This function always navigates to the deposit flow,
-   * bypassing unified routing. Use goToBuy for smart routing that respects user preferences.
-   */
-  const goToDeposit = useCallback(
-    (intent?: RampIntent) => {
-      goToBuy(intent, {
-        mode: RampMode.DEPOSIT,
-        overrideUnifiedRouting: true,
-      });
-    },
-    [goToBuy],
-  );
-
-  return { goToBuy, goToAggregator, goToSell, goToDeposit };
+  return { goToBuy, goToAggregator, goToSell };
 };
