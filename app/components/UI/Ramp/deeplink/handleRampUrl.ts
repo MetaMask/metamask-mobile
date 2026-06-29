@@ -16,7 +16,10 @@ import {
 } from '../../../../reducers/fiatOrders';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
-import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
+import {
+  createBuildQuoteNavDetails,
+  type BuildQuoteParams,
+} from '../Views/BuildQuote';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
 import { selectTokens } from '../../../../selectors/rampsController';
 import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
@@ -84,9 +87,7 @@ export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
               } catch {
                 // Token may not be in controller's list yet; navigate anyway
               }
-              const buildQuoteParams: Parameters<
-                typeof createBuildQuoteNavDetails
-              >[0] = {
+              const buildQuoteParams: BuildQuoteParams = {
                 assetId: controllerAssetId,
               };
               const amount = parseBuildQuoteAmount(rampIntent.amount);
