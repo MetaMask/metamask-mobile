@@ -588,8 +588,7 @@ function handleSetOHLCVData(payload) {
       let chart = window.chartWidget.activeChart();
       if (previousResolution !== newResolution) {
         window.__mmInHotReloadPreResetPhase = true;
-        var preResetSeq = (window.__mmHotReloadPreResetSeq =
-          (window.__mmHotReloadPreResetSeq || 0) + 1);
+        var preResetSeq = (window.__mmHotReloadPreResetSeq = (window.__mmHotReloadPreResetSeq || 0) + 1);
         chart.setResolution(newResolution, function () {
           if (window.__mmHotReloadPreResetSeq !== preResetSeq) {
             // Stale callback — a newer interval switch has started; don't interfere.
