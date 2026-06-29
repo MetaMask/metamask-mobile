@@ -52,7 +52,7 @@ export const PREDICT_WIMBLEDON_DEFAULT_TAG_SLUG = 'tennis';
 export const PREDICT_WIMBLEDON_DEFAULT_SEARCH = 'Wimbledon';
 
 export const PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS =
-  `active=true&archived=false&closed=false&tag_id=${PREDICT_WIMBLEDON_DEFAULT_GAMES_TAG_ID}` +
+  `active=true&archived=false&closed=false&ended=false&tag_id=${PREDICT_WIMBLEDON_DEFAULT_GAMES_TAG_ID}` +
   `&tag_slug=${PREDICT_WIMBLEDON_DEFAULT_TAG_SLUG}` +
   `&title_search=${PREDICT_WIMBLEDON_DEFAULT_SEARCH}` +
   '&order=volume24hr&ascending=false';

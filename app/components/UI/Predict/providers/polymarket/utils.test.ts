@@ -1059,6 +1059,7 @@ describe('polymarket utils', () => {
       expect(requestedUrl).toContain('tag_id=100639');
       expect(requestedUrl).toContain('tag_slug=tennis');
       expect(requestedUrl).toContain('title_search=Wimbledon');
+      expect(requestedUrl).toContain('ended=false');
       expect(requestedUrl).toContain('order=volume24hr');
       expect(requestedUrl).not.toContain('liquidity_min');
       expect(requestedUrl).not.toContain('volume_min');
