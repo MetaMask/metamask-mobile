@@ -5,6 +5,7 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { Side, type OrderPreview, type PredictOutcome } from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
+import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
 import {
   DEFAULT_CLOB_BASE_URL,
   MATIC_CONTRACTS_V2,
@@ -1063,6 +1064,42 @@ describe('polymarket utils', () => {
         'https://gamma-api.polymarket.com/events/keyset?limit=10&active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr&ascending=false',
       );
       const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).not.toContain('liquidity_min');
+      expect(requestedUrl).not.toContain('volume_min');
+      expect(requestedUrl).not.toContain('offset=');
+    });
+
+    it('uses exact Wimbledon custom query params without normal feed filters', async () => {
+      await fetchEventsFromPolymarketApi({
+        category: 'wimbledon',
+        limit: 20,
+        customQueryParams: 'tag_slug=wimbledon&order=volume24hr',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/events/keyset?limit=20&tag_slug=wimbledon&order=volume24hr',
+      );
+      const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).not.toContain('liquidity_min');
+      expect(requestedUrl).not.toContain('volume_min');
+      expect(requestedUrl).not.toContain('offset=');
+    });
+
+    it('falls back to default Wimbledon query params without normal feed filters', async () => {
+      await fetchEventsFromPolymarketApi({
+        category: 'wimbledon',
+        limit: 10,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://gamma-api.polymarket.com/events/keyset?limit=10&${PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS}`,
+      );
+      const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).toContain('tag_id=100639');
+      expect(requestedUrl).toContain('tag_slug=tennis');
+      expect(requestedUrl).toContain('title_search=Wimbledon');
+      expect(requestedUrl).toContain('ended=false');
+      expect(requestedUrl).toContain('order=volume24hr');
       expect(requestedUrl).not.toContain('liquidity_min');
       expect(requestedUrl).not.toContain('volume_min');
       expect(requestedUrl).not.toContain('offset=');
