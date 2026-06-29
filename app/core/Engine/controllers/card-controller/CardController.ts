@@ -11,6 +11,7 @@ import { getGasFeesSponsoredNetworkEnabled } from '../../../../selectors/feature
 import {
   CARD_CONTROLLER_NAME,
   DEFAULT_CARD_PROVIDER_ID,
+  type CardUnauthenticatedReason,
   type CardControllerMessenger,
   type CardControllerState,
 } from './types';
@@ -86,6 +87,12 @@ const metadata: StateMetadata<CardControllerState> = {
     includeInStateLogs: true,
     usedInUi: true,
   },
+  lastUnauthenticatedReason: {
+    persist: false,
+    includeInDebugSnapshot: true,
+    includeInStateLogs: true,
+    usedInUi: true,
+  },
   cardholderAccounts: {
     persist: true,
     includeInDebugSnapshot: true,
@@ -122,6 +129,7 @@ export const defaultCardControllerState: CardControllerState = {
   selectedCountry: null,
   activeProviderId: DEFAULT_CARD_PROVIDER_ID,
   isAuthenticated: false,
+  lastUnauthenticatedReason: null,
   cardholderAccounts: [],
   providerData: {},
   cardHomeData: null,
@@ -407,9 +415,20 @@ export class CardController extends BaseController<
     return provider;
   }
 
-  private markUnauthenticated(): void {
+  private markUnauthenticated(
+    reason: CardUnauthenticatedReason | null = null,
+  ): void {
     this.update((s) => {
       s.isAuthenticated = false;
+      s.lastUnauthenticatedReason = reason;
+    });
+  }
+
+  clearLastUnauthenticatedReason(): void {
+    if (!this.state.lastUnauthenticatedReason) return;
+
+    this.update((s) => {
+      s.lastUnauthenticatedReason = null;
     });
   }
 
@@ -537,6 +556,7 @@ export class CardController extends BaseController<
       }
       this.update((s) => {
         s.isAuthenticated = true;
+        s.lastUnauthenticatedReason = null;
         s.cardHomeData = null;
         s.cardHomeDataStatus = 'idle';
         (s.providerData as unknown as Record<string, Record<string, string>>)[
@@ -585,13 +605,16 @@ export class CardController extends BaseController<
    * Clears stored tokens, drops in-flight fetches, and resets auth state.
    * Does NOT call the provider's remote logout endpoint.
    */
-  async #clearLocalSession(): Promise<void> {
+  async #clearLocalSession(
+    reason: CardUnauthenticatedReason | null = null,
+  ): Promise<void> {
     const pid = this.state.activeProviderId;
     this.currentSession = null;
     await this.clearTokens();
     this.invalidateFetch();
     this.update((s) => {
       s.isAuthenticated = false;
+      s.lastUnauthenticatedReason = reason;
       s.cardHomeData = null;
       s.cardHomeDataStatus = 'idle';
       if (pid) {
@@ -605,8 +628,10 @@ export class CardController extends BaseController<
   /**
    * Forced logout for an unrecoverable session.
    */
-  async #handleSessionExpired(): Promise<void> {
-    await this.#clearLocalSession();
+  async #handleSessionExpired(
+    reason: CardUnauthenticatedReason | null = null,
+  ): Promise<void> {
+    await this.#clearLocalSession(reason);
     this.#fetchCardHomeDataWithLogging('#handleSessionExpired');
   }
 
@@ -702,7 +727,7 @@ export class CardController extends BaseController<
 
     const tokens = await CardTokenStore.get(pid);
     if (!tokens) {
-      this.markUnauthenticated();
+      this.markUnauthenticated(this.state.lastUnauthenticatedReason);
       return null;
     }
 
@@ -723,7 +748,7 @@ export class CardController extends BaseController<
 
     // expired
     await this.clearTokens();
-    this.markUnauthenticated();
+    this.markUnauthenticated(null);
     return null;
   }
 
@@ -773,7 +798,7 @@ export class CardController extends BaseController<
 
     const tokens = await CardTokenStore.get(pid);
     if (!tokens) {
-      this.markUnauthenticated();
+      this.markUnauthenticated(this.state.lastUnauthenticatedReason);
       return null;
     }
 
@@ -784,7 +809,7 @@ export class CardController extends BaseController<
 
     if (!tokens.refreshToken) {
       // 401 with no refresh token to fall back on — session unrecoverable.
-      await this.#handleSessionExpired();
+      await this.#handleSessionExpired('onboarding_token_revoked');
       return null;
     }
 
@@ -834,6 +859,7 @@ export class CardController extends BaseController<
   #markAuthenticatedWithLocation(pid: string, location: string): void {
     this.update((s) => {
       s.isAuthenticated = true;
+      s.lastUnauthenticatedReason = null;
       (s.providerData as unknown as Record<string, Record<string, string>>)[
         pid
       ] = {
