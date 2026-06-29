@@ -3,6 +3,8 @@ import {
   Messenger,
   MessengerActions,
   MessengerEvents,
+  type ActionConstraint,
+  type EventConstraint,
 } from '@metamask/messenger';
 import { RootMessenger } from '../../types';
 
@@ -32,7 +34,12 @@ export function getPerpsControllerMessenger(
     parent: rootMessenger,
   });
   rootMessenger.delegate({
-    messenger,
+    messenger: messenger as Messenger<
+      'PerpsController',
+      ActionConstraint,
+      EventConstraint,
+      RootMessenger
+    >,
     actions: [
       'GeolocationController:getGeolocation',
       'NetworkController:getState',

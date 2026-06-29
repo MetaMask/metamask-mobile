@@ -23,6 +23,7 @@ import {
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../QRTabSwitcher';
 import DeviceAdded from './DeviceAdded';
+import { ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT } from './showExtensionCancelledErrorSheet';
 
 const MOCK_SCAN_DELAY_MS = 2000;
 
@@ -59,11 +60,19 @@ const AddDeviceToWallet = () => {
   const [deviceAdded, setDeviceAdded] = useState(false);
 
   useEffect(() => {
-    const subscription = DeviceEventEmitter.addListener(
+    const verificationDoneSubscription = DeviceEventEmitter.addListener(
       'addDeviceVerificationDone',
       () => setDeviceAdded(true),
     );
-    return () => subscription.remove();
+    const resetSubscription = DeviceEventEmitter.addListener(
+      ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT,
+      () => setDeviceAdded(false),
+    );
+
+    return () => {
+      verificationDoneSubscription.remove();
+      resetSubscription.remove();
+    };
   }, []);
 
   const showVerificationSheet = useCallback(() => {
