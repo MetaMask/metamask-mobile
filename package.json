@@ -352,7 +352,7 @@
     "@metamask/transaction-pay-controller": "^23.17.1",
     "@metamask/tron-wallet-snap": "^1.28.0",
     "@metamask/utils": "^11.11.0",
-    "@metamask/wallet": "^4.0.0",
+    "@metamask/wallet": "^5.0.0",
     "@myx-trade/sdk": "^0.1.265",
     "@ngraveio/bc-ur": "^1.1.6",
     "@nktkas/hyperliquid": "^0.32.2",
