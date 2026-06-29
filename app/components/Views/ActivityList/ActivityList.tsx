@@ -29,6 +29,7 @@ import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Routes from '../../../constants/navigation/Routes';
 import { RPC } from '../../../constants/network';
+import { FIAT_ORDER_PROVIDERS } from '../../../constants/on-ramp';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
@@ -822,9 +823,19 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
         if (raw.type === 'rampOrder') {
           if (!isTransactionsRedesignEnabled) {
-            navigation.navigate(Routes.RAMP.ORDER_DETAILS, {
-              orderId: raw.data.id,
-            });
+            if (raw.data.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
+              navigation.navigate(Routes.DEPOSIT.ORDER_DETAILS, {
+                orderId: raw.data.id,
+              });
+            } else if (raw.data.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
+              navigation.navigate(Routes.RAMP.RAMPS_ORDER_DETAILS, {
+                orderId: raw.data.id,
+              });
+            } else {
+              navigation.navigate(Routes.RAMP.ORDER_DETAILS, {
+                orderId: raw.data.id,
+              });
+            }
             return;
           }
           navigation.navigate(Routes.ACTIVITY_DETAILS, {

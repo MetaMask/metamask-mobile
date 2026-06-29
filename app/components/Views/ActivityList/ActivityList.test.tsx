@@ -19,6 +19,7 @@ import { useUnifiedTxActions } from './useUnifiedTxActions';
 import Engine from '../../../core/Engine';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import Routes from '../../../constants/navigation/Routes';
+import { FIAT_ORDER_PROVIDERS } from '../../../constants/on-ramp';
 import decodeTransaction from '../../UI/TransactionElement/utils';
 import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
 
@@ -609,6 +610,7 @@ const rampItem = {
     type: 'rampOrder',
     data: {
       id: 'ramp-order-id',
+      provider: FIAT_ORDER_PROVIDERS.AGGREGATOR,
     },
   },
 };
@@ -758,6 +760,58 @@ describe('ActivityList', () => {
       Routes.ACTIVITY_DETAILS,
       expect.anything(),
     );
+  });
+
+  it('routes RAMPS_V2 rows to the V2 Ramp details screen when the transactions redesign flag is off', () => {
+    selectorValues.isTxRedesign = false;
+    (useRampActivityItems as jest.Mock).mockReturnValue([
+      {
+        ...rampItem,
+        hash: '0xramps-v2',
+        raw: {
+          ...rampItem.raw,
+          data: {
+            ...rampItem.raw.data,
+            id: 'ramps-v2-order-id',
+            provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
+          },
+        },
+      },
+    ]);
+
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-0xramps-v2'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.RAMPS_ORDER_DETAILS, {
+      orderId: 'ramps-v2-order-id',
+    });
+  });
+
+  it('routes deposit rows to the deposit details screen when the transactions redesign flag is off', () => {
+    selectorValues.isTxRedesign = false;
+    (useRampActivityItems as jest.Mock).mockReturnValue([
+      {
+        ...rampItem,
+        hash: '0xdeposit',
+        raw: {
+          ...rampItem.raw,
+          data: {
+            ...rampItem.raw.data,
+            id: 'deposit-order-id',
+            provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+          },
+        },
+      },
+    ]);
+
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-0xdeposit'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.DEPOSIT.ORDER_DETAILS, {
+      orderId: 'deposit-order-id',
+    });
   });
 
   it('uses bridge history keyed by actionId for local bridge transaction taps', () => {
@@ -1317,7 +1371,7 @@ describe('ActivityList', () => {
     selectorValues.perpsEnabled = true;
     selectorValues.isTxRedesign = true;
     const perpsTx = { id: 'fill-2', type: 'trade' };
-    const perpsItem = {
+    const perpsRedesignItem = {
       type: 'perpsOpenLong',
       chainId: 'eip155:42161',
       status: 'success',
@@ -1327,7 +1381,7 @@ describe('ActivityList', () => {
       data: { token: { symbol: 'USD' } },
     };
     mockPerpsSourceState = {
-      items: [perpsItem],
+      items: [perpsRedesignItem],
       isLoading: false,
       error: null,
     };
@@ -1347,7 +1401,9 @@ describe('ActivityList', () => {
       txIdentifier: 'perps-fill-2',
       preloadKey: expect.any(String),
     });
-    expect(getPreloadedActivityItem(params?.preloadKey)).toEqual(perpsItem);
+    expect(getPreloadedActivityItem(params?.preloadKey)).toEqual(
+      perpsRedesignItem,
+    );
     expect(mockNavigate).not.toHaveBeenCalledWith(
       'PerpsPositionTransaction',
       expect.anything(),
