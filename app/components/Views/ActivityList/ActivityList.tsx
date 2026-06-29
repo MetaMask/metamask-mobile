@@ -342,7 +342,11 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           .filter(
             (item) =>
               (item.type === 'predictionsAddFunds' ||
-                item.type === 'predictionsWithdrawFunds') &&
+                item.type === 'predictionsWithdrawFunds' ||
+                item.type === 'deposit' ||
+                item.type === 'claim' ||
+                item.type === 'unstake' ||
+                item.type === 'smartAccountUpgrade') &&
               item.raw?.type === 'localTransaction',
           )
           .map((item) =>

@@ -9733,6 +9733,7 @@
     "status": "Status",
     "date": "Date",
     "account": "Account",
+    "address": "Address",
     "from": "From",
     "to": "To",
     "network": "Network",
