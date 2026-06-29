@@ -4186,7 +4186,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('tracks a user_rejected mm_predict_claim failure when signing is cancelled', async () => {
+    it('tracks a cancelled mm_predict_claim transaction when signing is cancelled', async () => {
       await withController(async ({ controller }) => {
         mockPolymarketProvider.getPositions = jest.fn().mockResolvedValue([
           {
@@ -4212,10 +4212,10 @@ describe('PredictController', () => {
         expect(result.status).toBe(PredictClaimStatus.CANCELLED);
         const event = (analytics.trackEvent as jest.Mock).mock.calls
           .map((call) => call[0])
-          .find((arg) => arg?.properties?.status === 'failed');
+          .find((arg) => arg?.properties?.status === 'cancelled');
         expect(event).toBeDefined();
         expect(event.properties.transaction_type).toBe('mm_predict_claim');
-        expect(event.properties.failure_reason).toBe('user_rejected');
+        expect(event.properties.failure_reason).toBeUndefined();
         expect(event.properties.entry_point).toBe('predict_market_details');
       });
     });
@@ -4549,6 +4549,16 @@ describe('PredictController', () => {
           skipInitialGasEstimate: true,
           transactions: mockTransactions,
         });
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+                'mm_predict_transaction_submission' &&
+              arg?.properties?.status === 'succeeded',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.entry_point).toBe('background');
       });
     });
 
@@ -4565,6 +4575,15 @@ describe('PredictController', () => {
         await expect(controller.depositWithConfirmation({})).rejects.toThrow(
           errorMessage,
         );
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.failure_reason).toBe(errorMessage);
       });
     });
 
@@ -4593,6 +4612,25 @@ describe('PredictController', () => {
         await expect(controller.depositWithConfirmation({})).rejects.toThrow(
           errorMessage,
         );
+        const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+                'mm_predict_transaction_submission' &&
+              arg?.properties?.status === 'failed',
+          );
+        const depositEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(submissionEvent).toBeDefined();
+        expect(submissionEvent.properties.failure_reason).toBe(errorMessage);
+        expect(depositEvent).toBeDefined();
+        expect(depositEvent.properties.failure_reason).toBe(errorMessage);
       });
     });
 
@@ -4698,6 +4736,23 @@ describe('PredictController', () => {
         // Then it should return success with NA batchId instead of throwing
         expect(result.success).toBe(true);
         expect(result.response?.batchId).toBe('NA');
+        const cancelledEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .filter((arg) => arg?.properties?.status === 'cancelled');
+        expect(cancelledEvents).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                transaction_type: 'mm_predict_transaction_submission',
+              }),
+            }),
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                transaction_type: 'mm_predict_deposit',
+              }),
+            }),
+          ]),
+        );
       });
     });
 
@@ -6175,7 +6230,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('tracks a failed mm_predict_claim transaction with user_rejected when rejected', () => {
+    it('tracks a cancelled mm_predict_claim transaction when rejected', () => {
       withController(({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
           nestedType: TransactionType.predictClaim,
@@ -6198,9 +6253,10 @@ describe('PredictController', () => {
           transactionMeta,
         } as unknown as { transactionMeta: TransactionMeta });
 
-        const event = findPredictTradeEvent('failed');
+        const event = findPredictTradeEvent('cancelled');
         expect(event).toBeDefined();
-        expect(event.properties.failure_reason).toBe('user_rejected');
+        expect(event.properties.transaction_type).toBe('mm_predict_claim');
+        expect(event.properties.failure_reason).toBeUndefined();
       });
     });
 
@@ -6369,6 +6425,33 @@ describe('PredictController', () => {
             transactionId: 'tx-1',
           }),
         );
+      });
+    });
+
+    it('tracks failed mm_predict_withdraw when withdraw transaction fails', () => {
+      withController(({ messenger }) => {
+        const transactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictWithdraw,
+            status: TransactionStatus.failed,
+          }),
+          error: { message: 'Withdraw reverted' },
+        };
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.failure_reason).toBe('Withdraw reverted');
       });
     });
 
@@ -6544,6 +6627,45 @@ describe('PredictController', () => {
       });
     });
 
+    it('tracks succeeded mm_predict_deposit when pending deposit confirms', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictDeposit,
+            status: TransactionStatus.confirmed,
+            batchId: 'batch-1',
+          }),
+          metamaskPay: {
+            totalFiat: '105',
+            bridgeFeeFiat: '3',
+            networkFeeFiat: '2',
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.pendingDeposits = {
+            [accountAddress]: 'batch-1',
+          };
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+              arg?.properties?.status === 'succeeded',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.entry_point).toBe('background');
+        expect(event.sensitiveProperties.amount_usd).toBe(100);
+      });
+    });
+
     it('clears pending deposit when deposit transaction is rejected', () => {
       withController(({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
@@ -6667,6 +6789,36 @@ describe('PredictController', () => {
         expect(
           controller.state.activeBuyOrders[MOCK_ADDRESS]?.transactionId,
         ).toBeUndefined();
+      });
+    });
+
+    it('tracks cancelled mm_predict_deposit when deposit-and-order is rejected', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDepositAndOrder,
+          status: TransactionStatus.rejected,
+          batchId: 'batch-1',
+        });
+
+        setActiveOrderForTest(controller, {
+          transactionId: 'tx-1',
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+        (analytics.trackEvent as jest.Mock).mockClear();
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        } as { transactionMeta: TransactionMeta });
+
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+              arg?.properties?.status === 'cancelled',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.failure_reason).toBeUndefined();
       });
     });
 
@@ -7314,6 +7466,15 @@ describe('PredictController', () => {
           transactionId: mockBatchId,
           amount: 0,
         });
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+                'mm_predict_transaction_submission' &&
+              arg?.properties?.status === 'succeeded',
+          );
+        expect(event).toBeDefined();
       });
     });
 
@@ -7330,6 +7491,15 @@ describe('PredictController', () => {
         expect(controller.state.lastError).toBe('Provider error');
         expect(controller.state.lastUpdateTimestamp).toBeGreaterThan(0);
         expect(controller.state.withdrawTransaction).toBeNull();
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(event).toBeDefined();
+        expect(event.properties.failure_reason).toBe('Provider error');
       });
     });
 
@@ -7482,6 +7652,23 @@ describe('PredictController', () => {
         expect(controller.state.lastError).toBe(
           'Transaction batch submission failed',
         );
+        const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+                'mm_predict_transaction_submission' &&
+              arg?.properties?.status === 'failed',
+          );
+        const withdrawEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+              arg?.properties?.status === 'failed',
+          );
+        expect(submissionEvent).toBeDefined();
+        expect(withdrawEvent).toBeDefined();
       });
     });
 
@@ -7533,6 +7720,15 @@ describe('PredictController', () => {
 
         expect(result.success).toBe(true);
         expect(result.response).toBe('User cancelled transaction');
+        const event = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type === 'mm_predict_withdraw' &&
+              arg?.properties?.status === 'cancelled',
+          );
+        expect(event).toBeDefined();
+        expect(addTransactionBatch).not.toHaveBeenCalled();
       });
     });
 
@@ -7551,6 +7747,23 @@ describe('PredictController', () => {
 
         expect(result.success).toBe(true);
         expect(result.response).toBe('User cancelled transaction');
+        const cancelledEvents = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .filter((arg) => arg?.properties?.status === 'cancelled');
+        expect(cancelledEvents).toEqual(
+          expect.arrayContaining([
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                transaction_type: 'mm_predict_transaction_submission',
+              }),
+            }),
+            expect.objectContaining({
+              properties: expect.objectContaining({
+                transaction_type: 'mm_predict_withdraw',
+              }),
+            }),
+          ]),
+        );
       });
     });
 
@@ -11079,7 +11292,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('fires swap_failed analytics event when depositAndOrder transaction is rejected', () => {
+    it('fires cancelled analytics event when depositAndOrder transaction is rejected', () => {
       withController(({ controller, messenger }) => {
         const trackSpy = jest.spyOn(controller, 'trackPredictOrderEvent');
 
@@ -11121,8 +11334,7 @@ describe('PredictController', () => {
 
         expect(trackSpy).toHaveBeenCalledWith(
           expect.objectContaining({
-            status: 'swap_failed',
-            failureReason: 'user_rejected',
+            status: 'cancelled',
           }),
         );
       });

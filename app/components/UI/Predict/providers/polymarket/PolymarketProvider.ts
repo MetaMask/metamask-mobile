@@ -9,8 +9,10 @@ import {
 } from '@metamask/transaction-controller';
 import { Hex, numberToHex } from '@metamask/utils';
 import { getAddress, Interface, parseUnits } from 'ethers/lib/utils';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../../util/Logger';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../../util/analytics/analytics';
 import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import {
@@ -18,6 +20,12 @@ import {
   isSmartContractAddress,
 } from '../../../../../util/transactions';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
+import {
+  PredictEventProperties,
+  PredictEventValues,
+  PredictTradeStatus,
+  type PredictTradeStatusValue,
+} from '../../constants/eventNames';
 import { filterSupportedLeagues } from '../../constants/sports';
 import { PREDICT_ACTIVITY_PAGE_SIZE } from '../../constants/transactions';
 import { SERIES_MAX_EVENTS } from '../../utils/series';
@@ -2538,6 +2546,34 @@ export class PolymarketProvider implements PredictProvider {
     });
   }
 
+  private trackDepositWalletCreationMetric({
+    status,
+    failureReason,
+  }: {
+    status: PredictTradeStatusValue;
+    failureReason?: string;
+  }): void {
+    const properties = {
+      [PredictEventProperties.STATUS]: status,
+      [PredictEventProperties.TRANSACTION_TYPE]:
+        PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_WALLET_CREATION,
+      [PredictEventProperties.ENTRY_POINT]:
+        PredictEventValues.ENTRY_POINT.BACKGROUND,
+      ...(status === PredictTradeStatus.FAILED &&
+        failureReason && {
+          [PredictEventProperties.FAILURE_REASON]: failureReason,
+        }),
+    };
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PREDICT_TRADE_TRANSACTION,
+      )
+        .addProperties(properties)
+        .build(),
+    );
+  }
+
   public async prepareDeposit(
     params: PrepareDepositParams,
   ): Promise<PrepareDepositResponse> {
@@ -2919,53 +2955,67 @@ export class PolymarketProvider implements PredictProvider {
     );
 
     if (!depositWalletIsDeployed) {
-      const createResponse = await requestDepositWalletCreate({
-        ownerAddress,
-      });
-      const transactionID =
-        getDepositWalletRelayerTransactionId(createResponse);
+      try {
+        const createResponse = await requestDepositWalletCreate({
+          ownerAddress,
+        });
+        const transactionID =
+          getDepositWalletRelayerTransactionId(createResponse);
 
-      if (!transactionID) {
-        throw new Error(
-          'Polymarket deposit wallet creation response missing transactionID',
-        );
-      }
+        if (!transactionID) {
+          throw new Error(
+            'Polymarket deposit wallet creation response missing transactionID',
+          );
+        }
 
-      DevLogger.log('PolymarketProvider: Waiting for deposit wallet create', {
-        operation: 'deposit_wallet_create',
-        walletType: 'deposit-wallet',
-        transactionID,
-        from: ownerAddress,
-        depositWalletAddress,
-      });
-
-      await waitForDepositWalletTransaction({
-        transactionID,
-        requireCompletion: true,
-      });
-
-      DevLogger.log(
-        'PolymarketProvider: Waiting for deposit wallet relayer registry',
-        {
-          operation: 'deposit_wallet_relayer_registry',
+        DevLogger.log('PolymarketProvider: Waiting for deposit wallet create', {
+          operation: 'deposit_wallet_create',
           walletType: 'deposit-wallet',
+          transactionID,
           from: ownerAddress,
           depositWalletAddress,
-        },
-      );
+        });
 
-      await waitForDepositWalletDeployed({
-        walletAddress: depositWalletAddress,
-      });
-      depositWalletDeploymentConfirmed = true;
+        await waitForDepositWalletTransaction({
+          transactionID,
+          requireCompletion: true,
+        });
 
-      this.#setCachedAccountState(ownerAddress, {
-        address: depositWalletAddress,
-        isDeployed: true,
-        walletType: 'deposit-wallet',
-      });
-      this.setPolymarketAccountCreatedTrait();
-      updatedState = true;
+        DevLogger.log(
+          'PolymarketProvider: Waiting for deposit wallet relayer registry',
+          {
+            operation: 'deposit_wallet_relayer_registry',
+            walletType: 'deposit-wallet',
+            from: ownerAddress,
+            depositWalletAddress,
+          },
+        );
+
+        await waitForDepositWalletDeployed({
+          walletAddress: depositWalletAddress,
+        });
+        depositWalletDeploymentConfirmed = true;
+
+        this.#setCachedAccountState(ownerAddress, {
+          address: depositWalletAddress,
+          isDeployed: true,
+          walletType: 'deposit-wallet',
+        });
+        this.setPolymarketAccountCreatedTrait();
+        updatedState = true;
+        this.trackDepositWalletCreationMetric({
+          status: PredictTradeStatus.SUCCEEDED,
+        });
+      } catch (error) {
+        this.trackDepositWalletCreationMetric({
+          status: PredictTradeStatus.FAILED,
+          failureReason:
+            error instanceof Error
+              ? error.message
+              : PREDICT_ERROR_CODES.UNKNOWN_ERROR,
+        });
+        throw error;
+      }
     }
 
     const preflightPlan = await planDepositWalletPreflight({
