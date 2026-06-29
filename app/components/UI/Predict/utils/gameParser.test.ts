@@ -9,6 +9,7 @@ import {
   mapApiTeamToPredictTeam,
   buildGameData,
   extractNeededTeamsFromEvents,
+  getLeagueTeamOrder,
 } from './gameParser';
 import {
   PolymarketApiEvent,
@@ -49,6 +50,18 @@ const createMockEvent = (
 });
 
 describe('gameParser', () => {
+  describe('getLeagueTeamOrder', () => {
+    it('returns home-away for tennis leagues', () => {
+      expect(getLeagueTeamOrder('atp')).toBe('home-away');
+      expect(getLeagueTeamOrder('wta')).toBe('home-away');
+      expect(getLeagueTeamOrder('itf')).toBe('home-away');
+    });
+
+    it('returns away-home for US sports leagues', () => {
+      expect(getLeagueTeamOrder('nfl')).toBe('away-home');
+    });
+  });
+
   describe('getEventLeague', () => {
     it('returns "nfl" for event with nfl tag, games tag, and valid slug', () => {
       const event = createMockEvent();

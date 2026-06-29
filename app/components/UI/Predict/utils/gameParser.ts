@@ -393,7 +393,9 @@ export function mapApiTeamToPredictTeam(
   };
 }
 
-function getLeagueTeamOrder(league?: PredictSportsLeague): LeagueTeamOrder {
+export function getLeagueTeamOrder(
+  league?: PredictSportsLeague,
+): LeagueTeamOrder {
   if (!league) {
     return 'away-home';
   }
