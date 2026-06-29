@@ -503,6 +503,7 @@ describe('AgenticService.install', () => {
   let mockNavRef: NavigationContainerRef<ParamListBase>;
   let mockDeferredNav: NavigationContainerRef<ParamListBase>;
   let savedHook: ReactDevToolsHook | undefined;
+  let savedDev: boolean | undefined;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -523,6 +524,8 @@ describe('AgenticService.install', () => {
     } as unknown as NavigationContainerRef<ParamListBase>;
 
     savedHook = globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__;
+    savedDev = (globalThis as { __DEV__?: boolean }).__DEV__;
+    (globalThis as { __DEV__?: boolean }).__DEV__ = true;
 
     AgenticService.install(mockNavRef, mockDeferredNav);
   });
@@ -530,6 +533,7 @@ describe('AgenticService.install', () => {
   afterEach(() => {
     globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__ = savedHook;
     globalThis.__AGENTIC__ = undefined;
+    (globalThis as { __DEV__?: boolean }).__DEV__ = savedDev;
   });
 
   it('installs __AGENTIC__ on globalThis', () => {
