@@ -206,6 +206,7 @@ app/core/Engine/messengers/perps-controller-messenger @MetaMask/perps
 app/core/Engine/controllers/compliance/ @MetaMask/perps
 app/core/Engine/messengers/compliance/ @MetaMask/perps
 app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts         @MetaMask/perps
+app/dev-tools/AgenticService/        @MetaMask/perps @MetaMask/mobile-platform
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
 app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps
