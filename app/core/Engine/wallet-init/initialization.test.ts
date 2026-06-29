@@ -1,10 +1,14 @@
 import { Wallet } from '@metamask/wallet';
+import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
 import { initializeWallet } from './initialization';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
-import type { RootMessenger } from '../types';
+import { getNetworkControllerInstanceOptions } from './instance-options/network-controller';
 
-jest.mock('@metamask/wallet', () => ({ Wallet: jest.fn() }));
+const mockWalletInit = jest.fn().mockResolvedValue([]);
+jest.mock('@metamask/wallet', () => ({
+  Wallet: jest.fn().mockImplementation(() => ({ init: mockWalletInit })),
+}));
 jest.mock('./instance-options/approval-controller', () => ({
   getApprovalControllerInstanceOptions: jest.fn(() => 'approval-options'),
 }));
@@ -24,7 +28,7 @@ jest.mock('./instance-options/storage-service', () => ({
 }));
 
 describe('initializeWallet', () => {
-  const messenger = {} as RootMessenger;
+  const messenger = new Messenger({ namespace: MOCK_ANY_NAMESPACE });
   const state = { KeyringController: { vault: 'encrypted-vault-blob' } };
 
   beforeEach(() => {
@@ -43,6 +47,7 @@ describe('initializeWallet', () => {
         remoteFeatureFlagController: 'rffc-options',
         connectivityController: 'connectivity-options',
         storageService: 'storage-options',
+        networkController: getNetworkControllerInstanceOptions(),
       },
     });
   });

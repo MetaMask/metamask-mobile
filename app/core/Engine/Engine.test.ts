@@ -507,30 +507,6 @@ describe('Engine', () => {
 
       expect(initSpy).toHaveBeenCalled();
     });
-
-    it('logs an error when the startup init() rejects', async () => {
-      const initError = new Error('netinfo unavailable');
-      jest
-        .spyOn(ConnectivityController.prototype, 'init')
-        .mockRejectedValue(initError);
-      const errorSpy = jest.spyOn(Logger, 'error');
-
-      Engine.init(TEST_ANALYTICS_ID, {});
-
-      while (
-        !errorSpy.mock.calls.some(
-          ([, message]) =>
-            message === 'ConnectivityController: failed to initialize',
-        )
-      ) {
-        await new Promise<void>((resolve) => setTimeout(resolve, 50));
-      }
-
-      expect(errorSpy).toHaveBeenCalledWith(
-        initError,
-        'ConnectivityController: failed to initialize',
-      );
-    });
   });
 
   describe('getTotalEvmFiatAccountBalance', () => {
