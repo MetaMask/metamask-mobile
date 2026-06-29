@@ -26,7 +26,6 @@ import AlertBanner from '../alert-banner';
 import Info from '../info-root';
 import Title from '../title';
 import { Footer, FooterSkeleton } from '../footer';
-import { getEmptyNavHeader } from '../UI/navbar/navbar';
 import styleSheet from './confirm-component.styles';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
@@ -135,25 +134,23 @@ export const Confirm = ({
   });
 
   useEffect(() => {
+    const options: NativeStackNavigationOptions = {
+      // If not, keep the loading state in place until there is a request that can be rejected.
+      gestureEnabled: Boolean(approvalRequest),
+    };
+
     if (approvalRequest) {
-      navigation.setOptions({
-        gestureEnabled: true,
-        headerShown: Boolean(isFullScreenConfirmation),
-      });
-    } else if (isFullScreenConfirmation) {
-      // Reserve header space during loader to prevent layout jump
-      navigation.setOptions(getEmptyNavHeader());
-    } else {
-      navigation.setOptions({
-        gestureEnabled: false,
-      });
+      options.headerShown = Boolean(isFullScreenConfirmation);
     }
+
+    navigation.setOptions(options);
   }, [approvalRequest, isFullScreenConfirmation, navigation]);
 
   useEffect(() => {
     if (!approvalRequest) {
       const backHandlerSubscription = BackHandler.addEventListener(
         'hardwareBackPress',
+        // Keep users on the loading state until there is an approval request that can be rejected.
         () => true,
       );
 
@@ -163,6 +160,7 @@ export const Confirm = ({
     }
   }, [approvalRequest]);
 
+  // Show spinner if there is no approvalRequest
   if (!approvalRequest) {
     return <Loader />;
   }
