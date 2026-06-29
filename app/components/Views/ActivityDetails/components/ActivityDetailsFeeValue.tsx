@@ -42,7 +42,7 @@ export function ActivityDetailsFeeValue({
         <>
           <ActivityDetailsAvatar
             tokens={[token]}
-            size={AvatarTokenSize.Sm}
+            size={AvatarTokenSize.Xs}
             chainId={chainId}
             showNetworkBadge
           />

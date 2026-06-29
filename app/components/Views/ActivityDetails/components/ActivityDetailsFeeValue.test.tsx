@@ -1,11 +1,12 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { AvatarTokenSize } from '@metamask/design-system-react-native';
 import { ActivityDetailsFeeValue } from './ActivityDetailsFeeValue';
 
 jest.mock('./ActivityDetailsAvatar', () => ({
-  ActivityDetailsAvatar: () => {
+  ActivityDetailsAvatar: ({ size }: { size?: unknown }) => {
     const { View } = jest.requireActual('react-native');
-    return <View testID="fee-avatar" />;
+    return <View testID="fee-avatar" size={size} />;
   },
 }));
 
@@ -52,6 +53,6 @@ describe('ActivityDetailsFeeValue', () => {
 
     expect(getByText('$1.23')).toBeOnTheScreen();
     expect(getByText('ETH')).toBeOnTheScreen();
-    expect(getByTestId('fee-avatar')).toBeOnTheScreen();
+    expect(getByTestId('fee-avatar')).toHaveProp('size', AvatarTokenSize.Xs);
   });
 });

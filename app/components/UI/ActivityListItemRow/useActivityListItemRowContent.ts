@@ -31,11 +31,7 @@ import {
   toMarketRateLookupToken,
 } from '../../../util/activity-adapters';
 import type { MarketRateLookupToken } from '../../../util/activity-adapters/fiat';
-import {
-  addCurrencySymbol,
-  balanceToFiatNumber,
-  renderFiat,
-} from '../../../util/number/bigint';
+import { balanceToFiatNumber, renderFiat } from '../../../util/number/bigint';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { getAssetIconUrl } from '../Perps/utils/marketUtils';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
@@ -851,8 +847,8 @@ function formatTokenQuantity(amount: string): string {
 
   if (absoluteValue < 1) {
     return new Intl.NumberFormat(undefined, {
-      minimumSignificantDigits: 1,
-      maximumSignificantDigits: 4,
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 4,
     }).format(value);
   }
 
@@ -1021,13 +1017,11 @@ function resolveFiatFromUsdAmount({
   conversionRate,
   usdConversionRate,
   currentCurrency,
-  precise = false,
 }: {
   token: TokenAmount | undefined;
   conversionRate: number | null | undefined;
   usdConversionRate: number | null | undefined;
   currentCurrency: string | undefined;
-  precise?: boolean;
 }): string | undefined {
   const humanAmount = token ? getHumanReadableTokenAmount(token) : undefined;
   if (!token || humanAmount === undefined) return undefined;
@@ -1050,26 +1044,13 @@ function resolveFiatFromUsdAmount({
       ? conversionRate / usdConversionRate
       : 1;
 
-  // Funding fees can be sub-cent, so the precise path keeps full precision via
-  // subscript notation (addCurrencySymbol) instead of flooring + rounding to 2dp.
-  const fiat = precise
-    ? addCurrencySymbol(
-        usdAmount * conversionFactor,
-        displayCurrencyCode as Parameters<typeof addCurrencySymbol>[1],
-        true,
-        true,
-      )
-    : renderFiat(
-        conversionRate && usdConversionRate
-          ? balanceToFiatNumber(
-              usdAmount,
-              conversionRate,
-              1 / usdConversionRate,
-            )
-          : usdAmount,
-        displayCurrencyCode as Parameters<typeof renderFiat>[1],
-        2,
-      );
+  const fiat = renderFiat(
+    conversionRate && usdConversionRate
+      ? balanceToFiatNumber(usdAmount, conversionRate, 1 / usdConversionRate)
+      : usdAmount,
+    displayCurrencyCode as Parameters<typeof renderFiat>[1],
+    2,
+  );
 
   return fiat ? applyDisplaySign(fiat, signPrefix) : undefined;
 }
@@ -1133,7 +1114,6 @@ export function useActivityListItemRowContent(
         conversionRate,
         usdConversionRate,
         currentCurrency,
-        precise: isPerpsFunding,
       })
     : undefined;
 

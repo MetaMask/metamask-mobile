@@ -34,7 +34,7 @@ export function ActivityDetailsAccountValue({
   const displayAddress = renderShortAddress(address);
 
   return (
-    <Box twClassName="flex-row items-center justify-end gap-2 shrink">
+    <Box twClassName="flex-row items-center justify-end gap-1 shrink">
       <AvatarAccount
         address={address}
         variant={accountVariant}
