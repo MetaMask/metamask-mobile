@@ -87,6 +87,7 @@ app/selectors/cardController.ts                            @MetaMask/card
 # Confirmation Team
 app/components/Views/confirmations                              @MetaMask/confirmations
 app/components/Views/confirmations/external/staking             @MetaMask/confirmations @MetaMask/earn
+app/components/Views/confirmations/hooks/useIsExternalAppRequest.ts @MetaMask/confirmations @MetaMask/product-safety
 app/core/Analytics/events/confirmations                         @MetaMask/confirmations
 app/core/Engine/controllers/approval-controller                 @MetaMask/confirmations
 app/core/Engine/controllers/gas-fee-controller                  @MetaMask/confirmations
@@ -205,6 +206,7 @@ app/core/Engine/messengers/perps-controller-messenger @MetaMask/perps
 app/core/Engine/controllers/compliance/ @MetaMask/perps
 app/core/Engine/messengers/compliance/ @MetaMask/perps
 app/core/DeeplinkManager/Handlers/handlePerpsUrl.ts         @MetaMask/perps
+app/dev-tools/AgenticService/        @MetaMask/perps @MetaMask/mobile-platform
 **/Perps/**                          @MetaMask/perps
 **/perps/**                          @MetaMask/perps
 app/components/Views/Homepage/Sections/Perpetuals/ @MetaMask/perps
