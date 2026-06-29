@@ -12,6 +12,12 @@ import {
 
 type LeagueTeamOrder = 'away-home' | 'home-away';
 
+const TENNIS_LEAGUES: ReadonlySet<PredictSportsLeague> = new Set([
+  'atp',
+  'wta',
+  'itf',
+]);
+
 interface LeagueSlugConfig {
   pattern: RegExp;
   teamOrder: LeagueTeamOrder;
@@ -403,12 +409,85 @@ export function getLeagueTeamOrder(
   return LEAGUE_SLUG_CONFIGS[league].teamOrder;
 }
 
+const isTennisGame = (league?: PredictSportsLeague): boolean =>
+  Boolean(league && TENNIS_LEAGUES.has(league));
+
+const parseTennisSetSegment = (
+  segment: string,
+): { first: number; second: number } | null => {
+  const match = segment.trim().match(/^(\d+)-(\d+)(?:\(\d+-\d+\))?$/u);
+  if (!match) {
+    return null;
+  }
+
+  const firstScore = parseInt(match[1], 10);
+  const secondScore = parseInt(match[2], 10);
+
+  if (isNaN(firstScore) || isNaN(secondScore)) {
+    return null;
+  }
+
+  return { first: firstScore, second: secondScore };
+};
+
+const isCompletedTennisSet = (
+  firstScore: number,
+  secondScore: number,
+): boolean => {
+  const maxScore = Math.max(firstScore, secondScore);
+  const minScore = Math.min(firstScore, secondScore);
+  const lead = maxScore - minScore;
+
+  return (maxScore >= 6 && lead >= 2) || (maxScore === 7 && minScore >= 5);
+};
+
+const parseTennisSetsWonScore = (
+  scoreString: string,
+): PredictGameScore | null => {
+  const setSegments = scoreString
+    .split(',')
+    .map((segment) => parseTennisSetSegment(segment))
+    .filter(
+      (segment): segment is { first: number; second: number } =>
+        segment !== null,
+    );
+
+  if (setSegments.length === 0) {
+    return null;
+  }
+
+  let firstSetsWon = 0;
+  let secondSetsWon = 0;
+
+  setSegments.forEach(({ first, second }) => {
+    if (!isCompletedTennisSet(first, second)) {
+      return;
+    }
+
+    if (first > second) {
+      firstSetsWon += 1;
+    } else if (second > first) {
+      secondSetsWon += 1;
+    }
+  });
+
+  return {
+    away: secondSetsWon,
+    home: firstSetsWon,
+    raw: scoreString,
+  };
+};
+
 export function parseScore(
   scoreString?: string,
   league?: PredictSportsLeague,
 ): PredictGameScore | null {
   if (!scoreString || scoreString === '0-0') {
     return null;
+  }
+
+  if (isTennisGame(league)) {
+    return parseTennisSetsWonScore(scoreString);
   }
 
   const parts = scoreString.split('-');
@@ -453,7 +532,7 @@ export function buildGameData(
     return null;
   }
 
-  return {
+  const gameData = {
     id: String(event.gameId),
     startTime:
       event.startTime ?? event.endDate ?? `${parsedSlug.dateString}T00:00:00Z`,
@@ -466,6 +545,8 @@ export function buildGameData(
     homeTeam,
     awayTeam,
   };
+
+  return gameData;
 }
 
 /**

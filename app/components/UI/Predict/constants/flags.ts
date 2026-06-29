@@ -57,11 +57,11 @@ export const PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS =
   `&title_search=${PREDICT_WIMBLEDON_DEFAULT_SEARCH}` +
   '&order=volume24hr&ascending=false';
 
-export const DEFAULT_WIMBLEDON_TAB_FLAG: PredictWimbledonTabFlag = {
+export const DEFAULT_WIMBLEDON_TAB_FLAG = {
   enabled: false,
   queryParams: PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
   minimumVersion: '',
-};
+} satisfies PredictWimbledonTabFlag;
 
 export const PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG = 'fifa-world-cup';
 export const PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID = '100639';
