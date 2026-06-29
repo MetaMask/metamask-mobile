@@ -8,6 +8,7 @@ import { DefaultDetails } from './DefaultDetails';
 import { NftDetails } from './NftDetails';
 import { PerpsDetails } from './PerpsDetails';
 import { PredictDetails } from './PredictDetails';
+import { isRampActivityListItem, RampDetails } from './RampDetails';
 import { SendDetails } from './SendDetails';
 import { SwapDetails } from './SwapDetails';
 
@@ -49,6 +50,14 @@ export function TemplateLoader({
       return <ContractInteractionDetails item={item} />;
     case 'claimMusdBonus':
       return <ClaimMusdBonusDetails item={item} />;
+    case 'buy':
+    case 'sell':
+    case 'deposit':
+      return isRampActivityListItem(item) ? (
+        <RampDetails item={item} />
+      ) : (
+        <DefaultDetails item={item} />
+      );
     case 'predictionsAddFunds':
     case 'predictionsWithdrawFunds':
     case 'predictionClaimWinnings':
