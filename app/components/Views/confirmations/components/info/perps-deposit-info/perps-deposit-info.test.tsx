@@ -41,7 +41,7 @@ describe('PerpsDepositInfo', () => {
     );
   });
 
-  it('sets navbar title to "Transfer to Perps" when payWithOption is MoneyAccount', () => {
+  it('sets navbar title to "Send to Perps" when payWithOption is MoneyAccount', () => {
     mockUseParams.mockReturnValue({
       payWithOption: PayWithOption.MoneyAccount,
     });

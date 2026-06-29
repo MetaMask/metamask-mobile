@@ -1162,7 +1162,7 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
-    "transfer_to_perps": "Transfer to Perps",
+    "transfer_to_perps": "Send to Perps",
     "perps_trading": "Perps trading",
     "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage balance",
@@ -2359,7 +2359,7 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
-    "transfer_to_predictions": "Transfer to Predictions",
+    "transfer_to_predictions": "Send to Predictions",
     "select_predict_account": "Select predict account",
     "search_account": "Search an account",
     "home": {
@@ -7716,7 +7716,7 @@
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
       "money_account_add_money": "Add funds",
-      "money_account_transfer_money": "Transfer funds"
+      "money_account_transfer_money": "Send"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
