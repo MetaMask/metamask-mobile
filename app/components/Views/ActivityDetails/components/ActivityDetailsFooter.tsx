@@ -14,16 +14,47 @@ import {
 } from '../hooks/useActivityBlockExplorer';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 
-function useOpenExplorer() {
+function useOpenWebview() {
   const navigation = useNavigation();
   return useCallback(
-    (link: ActivityExplorerLink) => {
+    ({ title, url }: { title?: string; url: string }) => {
       navigation.navigate(Routes.WEBVIEW.MAIN, {
         screen: Routes.WEBVIEW.SIMPLE,
-        params: { url: link.url, title: link.title },
+        params: { url, title },
       });
     },
     [navigation],
+  );
+}
+
+/** Secondary CTA that opens an arbitrary URL in the in-app webview. */
+export function ActivityDetailsWebviewButton({
+  label,
+  testID,
+  title,
+  url,
+}: {
+  label: string;
+  testID?: string;
+  title?: string;
+  url: string | undefined;
+}) {
+  const openWebview = useOpenWebview();
+
+  if (!url) {
+    return null;
+  }
+
+  return (
+    <Button
+      variant={ButtonVariant.Secondary}
+      size={ButtonSize.Lg}
+      twClassName="w-full"
+      onPress={() => openWebview({ title, url })}
+      testID={testID}
+    >
+      {label}
+    </Button>
   );
 }
 
@@ -36,7 +67,7 @@ export function ActivityDetailsBlockExplorerButton({
   hash: string | undefined;
 }) {
   const link = useActivityBlockExplorer(chainId, hash);
-  const openExplorer = useOpenExplorer();
+  const openWebview = useOpenWebview();
 
   if (!link) {
     return null;
@@ -47,7 +78,7 @@ export function ActivityDetailsBlockExplorerButton({
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Lg}
       twClassName="w-full"
-      onPress={() => openExplorer(link)}
+      onPress={() => openWebview(link)}
       testID={ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}
     >
       {strings('activity_details.view_on_block_explorer')}
@@ -73,7 +104,7 @@ export function ActivityDetailsBridgeExplorerButtons({
 }) {
   const sourceLink = useActivityBlockExplorer(sourceChainId, sourceHash);
   const destLink = useActivityBlockExplorer(destChainId, destHash);
-  const openExplorer = useOpenExplorer();
+  const openWebview = useOpenWebview();
 
   const isCrossChain =
     Boolean(destLink) &&
@@ -91,7 +122,7 @@ export function ActivityDetailsBridgeExplorerButtons({
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
         twClassName="w-full"
-        onPress={() => openExplorer(link)}
+        onPress={() => openWebview(link)}
         testID={ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}
       >
         {strings('activity_details.view_on_block_explorer')}
@@ -106,7 +137,7 @@ export function ActivityDetailsBridgeExplorerButtons({
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
           twClassName="w-full"
-          onPress={() => openExplorer(sourceLink)}
+          onPress={() => openWebview(sourceLink)}
           testID={`${ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}-source`}
         >
           {strings('activity_details.view_on_block_explorer')}
@@ -117,7 +148,7 @@ export function ActivityDetailsBridgeExplorerButtons({
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
           twClassName="w-full"
-          onPress={() => openExplorer(destLink)}
+          onPress={() => openWebview(destLink)}
           testID={`${ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}-dest`}
         >
           {strings('activity_details.view_on_block_explorer')}

@@ -275,13 +275,53 @@ function queueTryCompleteLayoutSettleAfterData() {
  * skeleton while the canvas is still empty or mid-transition (flicker).
  *
  * **Completion paths:**
- * 1. `getBars` invokes `onResult` with `periodParams.firstDataRequest === true` for this reload →
- *    `queueTryCompleteLayoutSettleAfterData`.
- * 2. `finishDeferredGetBars` (history pagination) calls the pending `onResult` → same queue.
- * 3. `LAYOUT_SETTLE_DATA_FALLBACK_MS` elapses without (1)/(2) → force complete (same-resolution edge).
+ * 1. Post-`resetData` `getBars` with `firstDataRequest` and pending → `queueTryCompleteLayoutSettleAfterData`.
+ * 2. Post-`resetData`, `queueLayoutSettleAfterChartDataLoaded` waits for TV `onDataLoaded`.
+ * 3. `finishDeferredGetBars` (history pagination) calls the pending `onResult` → same queue as (1).
+ * 4. `LAYOUT_SETTLE_DATA_FALLBACK_MS` elapses without (1)–(3) → force complete.
  *
  * **Errors:** Use `abortDeferredLayoutSettleAndNotify` so RN never stays stuck with the skeleton on.
  */
+/** Pre-`resetData` `getBars` during `setResolution` — deliver empty/noData, not real bars. */
+function isHotReloadPreResetGetBars(firstDataRequest) {
+  return !!firstDataRequest && window.__mmInHotReloadPreResetPhase;
+}
+
+function resetDatafeedCacheBeforeHotReload() {
+  if (!window.chartWidget) {
+    return;
+  }
+  try {
+    if (typeof window.chartWidget.resetCache === 'function') {
+      window.chartWidget.resetCache();
+    }
+  } catch (e) {}
+}
+
+/**
+ * Waits for TradingView `onDataLoaded` after `resetData` before queuing layout settle.
+ * Falls back to `LAYOUT_SETTLE_DATA_FALLBACK_MS` if the event never fires.
+ */
+function queueLayoutSettleAfterChartDataLoaded(chart) {
+  if (!window.__mmLayoutSettlePending || !chart) {
+    return;
+  }
+  var capturedGeneration = window.ohlcvGeneration;
+  try {
+    var sub = chart.onDataLoaded();
+    sub.subscribe(null, function onLoaded() {
+      sub.unsubscribe(null, onLoaded);
+      if (capturedGeneration !== window.ohlcvGeneration) {
+        return;
+      }
+      if (!window.__mmLayoutSettlePending) {
+        return;
+      }
+      queueTryCompleteLayoutSettleAfterData();
+    });
+  } catch (e) {}
+}
+
 function beginDeferredLayoutSettleAfterOhlcvReload() {
   clearMmLayoutSettleFallbackTimer();
   window.__mmLayoutSettlePending = true;
@@ -300,6 +340,7 @@ function beginDeferredLayoutSettleAfterOhlcvReload() {
 function abortDeferredLayoutSettleAndNotify() {
   window.__mmLayoutSettlePending = false;
   clearMmLayoutSettleFallbackTimer();
+  window.__mmInHotReloadPreResetPhase = false;
   scheduleChartLayoutSettledNotify();
 }
 
@@ -694,30 +735,44 @@ function handleSetOHLCVData(payload) {
     try {
       let chart = window.chartWidget.activeChart();
       if (previousResolution !== newResolution) {
+        window.__mmInHotReloadPreResetPhase = true;
+        var preResetSeq = (window.__mmHotReloadPreResetSeq =
+          (window.__mmHotReloadPreResetSeq || 0) + 1);
         chart.setResolution(newResolution, function () {
+          if (window.__mmHotReloadPreResetSeq !== preResetSeq) {
+            // Stale callback — a newer interval switch has started; don't interfere.
+            return;
+          }
+          // Pre-reset window is over — post-reset getBars must pass through.
+          window.__mmInHotReloadPreResetPhase = false;
           try {
+            // Flush the noData:true TV cached from the pre-reset getBars so that
+            // resetData() below forces a fresh getBars with real bars.
+            resetDatafeedCacheBeforeHotReload();
+            beginDeferredLayoutSettleAfterOhlcvReload();
             chart.resetData();
             // resetData() drops the trade-marker shapes; clear our tracking and
             // re-schedule a draw, otherwise placeTradeMarkers skips the redraw
             // (its id set still matches) and the circles stay gone.
             clearTradeMarkers();
-            beginDeferredLayoutSettleAfterOhlcvReload();
             scheduleVisibleRangeAfterDataLoad(chart);
+            queueLayoutSettleAfterChartDataLoaded(chart);
             scheduleTradeMarkerRefresh();
           } catch (eR) {
             abortDeferredLayoutSettleAndNotify();
-            return;
           }
         });
       } else {
         try {
+          resetDatafeedCacheBeforeHotReload();
+          beginDeferredLayoutSettleAfterOhlcvReload();
           chart.resetData();
           // resetData() drops the trade-marker shapes; clear our tracking and
           // re-schedule a draw, otherwise placeTradeMarkers skips the redraw
           // (its id set still matches) and the circles stay gone.
           clearTradeMarkers();
-          beginDeferredLayoutSettleAfterOhlcvReload();
           scheduleVisibleRangeAfterDataLoad(chart);
+          queueLayoutSettleAfterChartDataLoaded(chart);
           scheduleTradeMarkerRefresh();
         } catch (e) {
           abortDeferredLayoutSettleAndNotify();
@@ -5373,8 +5428,19 @@ let customDatafeed = {
        * the main load for the visible range (`firstDataRequest`), matching `resetData` / new OHLCV.
        */
       function deliverBars(bars, meta) {
+        var firstDataRequest = !!periodParams.firstDataRequest;
+        if (isHotReloadPreResetGetBars(firstDataRequest)) {
+          // Must invoke onResult or setResolution never completes (UI freeze).
+          // Empty/noData avoids poisoning the viewport with pre-reset bars.
+          onResult([], { noData: true });
+          return;
+        }
+
+        var pending = !!window.__mmLayoutSettlePending;
+        var path1Eligible = pending && firstDataRequest;
+
         onResult(bars, meta);
-        if (window.__mmLayoutSettlePending && periodParams.firstDataRequest) {
+        if (path1Eligible) {
           queueTryCompleteLayoutSettleAfterData();
         }
       }

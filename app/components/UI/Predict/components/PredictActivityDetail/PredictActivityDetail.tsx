@@ -357,9 +357,9 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
           </React.Fragment>
         ))}
         {activity?.type === PredictActivityType.BUY ||
-          activity?.type === PredictActivityType.SELL}{' '}
-        (
-        <Box twClassName="w-full border-t border-muted mt-3" />)
+        activity?.type === PredictActivityType.SELL ? (
+          <Box twClassName="w-full border-t border-muted mt-3" />
+        ) : null}
       </Box>
     );
   };

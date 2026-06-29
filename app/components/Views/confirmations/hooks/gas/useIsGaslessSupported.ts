@@ -9,11 +9,11 @@ import { useGaslessSupportedSmartTransactions } from './useGaslessSupportedSmart
  * Hook to determine if gasless transactions are supported for the current confirmation context.
  *
  * Gasless support can be enabled in two ways:
- * - Via 7702: Supported when the current account is upgraded, the chain supports atomic batch, relay is available, and the transaction is not a contract deployment.
- * - Via Smart Transactions: Supported when smart transactions are enabled and sendBundle is supported for the chain.
+ * - Via Smart Transactions (sendBundle): Supported when smart transactions are enabled and sendBundle is supported for the chain. Works for all account types including hardware wallets, since only standard EIP-1559 signing is required.
+ * - Via 7702 relay: Supported when the current account is upgraded, the chain supports atomic batch, relay is available, and the transaction is not a contract deployment. Hardware wallets are excluded from this path because they cannot sign EIP-7702 authorization lists.
  *
  * @returns An object containing:
- * - `isSupported`: `true` if gasless transactions are supported via either 7702 or smart transactions with sendBundle.
+ * - `isSupported`: `true` if gasless transactions are supported via either sendBundle or 7702.
  * - `isSmartTransaction`: `true` if smart transactions are enabled for the current chain.
  * - `pending`: `true` if the support check is still in progress.
  */
@@ -40,20 +40,21 @@ export function useIsGaslessSupported() {
       return isRelaySupported(chainId as Hex);
     }, [chainId, shouldCheck7702Eligibility]);
 
-  const is7702Supported = Boolean(
-    relaySupportsChain &&
-      // contract deployments can't be delegated
-      txParams?.to !== undefined,
-  );
-
   const fromAddress = txParams?.from;
   const isHardwareWallet = Boolean(
     fromAddress && isHardwareAccount(fromAddress),
   );
 
-  const isSupported =
+  const is7702Supported = Boolean(
     !isHardwareWallet &&
-    Boolean(isSmartTransactionAndBundleSupported || is7702Supported);
+      relaySupportsChain &&
+      // contract deployments can't be delegated
+      txParams?.to !== undefined,
+  );
+
+  const isSupported = Boolean(
+    isSmartTransactionAndBundleSupported || is7702Supported,
+  );
 
   const isPending =
     smartTransactionPending || (shouldCheck7702Eligibility && relayPending);

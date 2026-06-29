@@ -631,6 +631,25 @@ describe('ChoosePassword', () => {
       mockNewWalletAndKeychain.mockRestore();
     });
 
+    it('calls exportSeedPhrase after SRP wallet creation', async () => {
+      const mockExportSeedPhrase = Engine.context.KeyringController
+        .exportSeedPhrase as jest.Mock;
+      jest
+        .spyOn(Authentication, 'newWalletAndKeychain')
+        .mockResolvedValue(undefined);
+
+      mockRoute.params = { ...mockRoute.params, [PREVIOUS_SCREEN]: ONBOARDING };
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      const password = 'StrongPassword123!@#';
+      await fillAndSubmitForm(component, password);
+
+      await waitFor(() => {
+        expect(mockExportSeedPhrase).toHaveBeenCalledWith({ password });
+      });
+    });
+
     it('navigates to WalletCreationError screen when the device passcode is not set', async () => {
       jest.spyOn(Device, 'isIos').mockReturnValue(false);
       const passcodeError = new Error('Passcode not set.');

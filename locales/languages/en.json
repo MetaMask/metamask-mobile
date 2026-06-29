@@ -1162,7 +1162,7 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
-    "transfer_to_perps": "Transfer to Perps",
+    "send_to_perps": "Send to Perps",
     "perps_trading": "Perps trading",
     "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage balance",
@@ -2220,10 +2220,25 @@
       "funding": {
         "date": "Date",
         "fee": "Fee",
+        "funding_fee": "Funding fee",
         "rate": "Rate"
       },
       "view_on_explorer": "View on block explorer",
       "trade_again": "Trade again",
+      "fund_again": "Fund again",
+      "try_again": "Try again",
+      "steps": {
+        "title_completed": "Steps ({{completed}} completed)",
+        "title_pending": "Steps ({{completed}} completed, {{pending}} pending)",
+        "title_failed": "Steps ({{completed}} completed, {{failed}} failed)",
+        "approve_funds": "Approve funds",
+        "bridge_funds": "Bridge funds",
+        "receive_usdc": "Receive USDC on Arbitrum",
+        "add_funds": "Add funds",
+        "initiate_withdrawal": "Initiate withdrawal",
+        "process_withdrawal": "Process withdrawal",
+        "receive_funds": "Receive funds"
+      },
       "activity": {
         "deposit_title": "Deposit",
         "withdrawal_title": "Withdrawal",
@@ -2344,7 +2359,7 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
-    "transfer_to_predictions": "Transfer to Predictions",
+    "send_to_predictions": "Send to Predictions",
     "select_predict_account": "Select predict account",
     "search_account": "Search an account",
     "home": {
@@ -2652,9 +2667,21 @@
       "price_per_share": "Price per share",
       "price_impact": "Price impact",
       "net_pnl": "Net P&L",
-      "total_net_pnl": "Total net P&L",
+      "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "Market net P&L",
       "activity_details": "Activity details",
+      "you_predicted": "You predicted",
+      "view_on_polymarket": "View on Polymarket",
+      "place_another_prediction": "Place another prediction",
+      "fund_again": "Fund again",
+      "try_again": "Try again",
+      "steps": {
+        "title_completed": "Steps ({{completed}} completed)",
+        "title_pending": "Steps ({{completed}} completed, {{pending}} pending)",
+        "title_failed": "Steps ({{completed}} completed, {{failed}} failed)",
+        "bridge_funds": "Bridge from ETH to USDC.e",
+        "add_funds": "Add funds"
+      },
       "today": "Today",
       "yesterday": "Yesterday"
     },
@@ -4009,7 +4036,11 @@
       "enter_code_on_extension": "Enter code on extension",
       "enter_code_on_extension_desc": "For security, enter the verification code below on your MetaMask extension.",
       "done": "Done",
-      "device_added": "Device added"
+      "waiting_for_extension": "Waiting for extension...",
+      "waiting_for_extension_description": "Finish choosing accounts on your computer to continue.",
+      "extension_cancelled_title": "Import cancelled",
+      "extension_cancelled_description": "The account import was cancelled/failed. Try again.",
+      "extension_cancelled_button": "Try again"
     }
   },
   "aes_crypto_test_form": {
@@ -4170,7 +4201,11 @@
     "set_price_alert": "Set price alert",
     "update_price_alert": "Update price alert",
     "save_success": "Price alert for {{ticker}} saved successfully.",
+    "save_error": "Failed to save price alert. Please try again.",
     "delete_success": "Price alert deleted.",
+    "delete_error": "Failed to delete price alert. Please try again.",
+    "toggle_error": "Failed to update price alert. Please try again.",
+    "fetch_error": "Failed to load price alerts. Please try again.",
     "duplicate_threshold": "An alert at this price already exists.",
     "manage_title": "Price alerts",
     "add_alert": "Add alert",
@@ -4576,7 +4611,7 @@
     "submitted": "Submitted",
     "queued": "Queued",
     "failed": "Failed",
-    "cancelled": "Cancelled",
+    "canceled": "Canceled",
     "signed": "Pending",
     "unconfirmed": "Pending",
     "tokenContractAddressWarning_1": "This address is a ",
@@ -4799,6 +4834,8 @@
     "activity_market_short": "Market short",
     "activity_stop_market_close_short": "Stop market—close short",
     "activity_market_close_short": "Market—close short",
+    "activity_limit_short": "Limit short",
+    "activity_limit_close_short": "Limit—close short",
     "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
@@ -7683,7 +7720,7 @@
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
       "money_account_add_money": "Add funds",
-      "money_account_transfer_money": "Transfer funds"
+      "money_account_send": "Send"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -9681,6 +9718,8 @@
     "network": "Network",
     "transaction_id": "Transaction ID",
     "network_fee": "Network fee",
+    "bandwidth_fee": "Bandwidth",
+    "energy_fee": "Energy",
     "bridge_fee": "Bridge fee",
     "transaction_fee": "Transaction fee",
     "total_amount": "Total amount",

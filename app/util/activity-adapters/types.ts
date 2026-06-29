@@ -33,6 +33,8 @@ export type ActivityKind =
   | 'contractDeployment'
   | 'bridge'
   | 'convert'
+  | 'nftBuy'
+  | 'nftSell'
   | 'smartAccountUpgrade'
   | 'lendingDeposit'
   | 'lendingWithdrawal'
@@ -58,6 +60,8 @@ export type ActivityKind =
   | 'marketShort'
   | 'stopMarketCloseShort'
   | 'marketCloseShort'
+  | 'limitShort'
+  | 'limitCloseShort'
   | 'nftMint';
 
 export interface TokenAmount {
@@ -160,11 +164,12 @@ export type ActivityListItem =
       }
     >
   | ActivityData<
-      'nftMint',
+      'nftBuy' | 'nftMint' | 'nftSell',
       {
-        from: string;
-        to: string;
+        from?: string;
+        to?: string;
         token?: TokenAmount;
+        paymentToken?: TokenAmount;
         fees?: ActivityFee[];
       }
     >
@@ -206,7 +211,9 @@ export type ActivityListItem =
       | 'perpsCloseLongTakeProfit'
       | 'marketShort'
       | 'stopMarketCloseShort'
-      | 'marketCloseShort',
+      | 'marketCloseShort'
+      | 'limitShort'
+      | 'limitCloseShort',
       {
         from?: string;
         to?: string;
