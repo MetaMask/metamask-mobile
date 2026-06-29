@@ -20,6 +20,7 @@ import Engine from '../../../core/Engine';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import Routes from '../../../constants/navigation/Routes';
 import decodeTransaction from '../../UI/TransactionElement/utils';
+import { handleUnifiedSwapsTxHistoryItemClick } from '../../UI/Bridge/utils/transaction-history';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -537,7 +538,7 @@ const mockRefetch = jest.fn(() => Promise.resolve());
 const selectorValues = {
   bridgeHistory: {
     solanaBridge: { status: { srcChain: { txHash: 'solanaBridge' } } },
-  },
+  } as Record<string, unknown>,
   currentCurrency: 'usd',
   enabledEvm: ['0x1'],
   enabledNonEvm: [] as string[],
@@ -740,6 +741,62 @@ describe('ActivityList', () => {
       chainId: 'eip155:59144',
       txIdentifier: '0xramp',
     });
+  });
+
+  it('does not route Ramp rows to ActivityDetails when the transactions redesign flag is off', () => {
+    selectorValues.isTxRedesign = false;
+    (useRampActivityItems as jest.Mock).mockReturnValue([rampItem]);
+
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-0xramp'));
+
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.ACTIVITY_DETAILS,
+      expect.anything(),
+    );
+  });
+
+  it('uses bridge history keyed by actionId for local bridge transaction taps', () => {
+    const bridgeHistoryItem = { id: 'bridge-history-item' };
+    selectorValues.bridgeHistory = {
+      bridgeAction: bridgeHistoryItem,
+    };
+    (useLocalActivityItems as jest.Mock).mockReturnValue([
+      {
+        ...localPendingItem,
+        type: 'bridge',
+        hash: '0xbridge',
+        raw: {
+          type: 'localTransaction',
+          data: {
+            primaryTransaction: {
+              chainId: '0x1',
+              hash: '0xbridge',
+              id: 'bridge-tx-id',
+              // Older persisted bridge history can be keyed only by actionId.
+              actionId: 'bridgeAction',
+              type: 'bridge',
+              txParams: { from: '0xevm', nonce: '0x8' },
+            },
+          },
+        },
+      },
+    ]);
+
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-0xbridge'));
+
+    expect(handleUnifiedSwapsTxHistoryItemClick).toHaveBeenCalledWith(
+      expect.objectContaining({
+        bridgeTxHistoryItem: bridgeHistoryItem,
+        evmTxMeta: expect.objectContaining({
+          id: 'bridge-tx-id',
+          actionId: 'bridgeAction',
+        }),
+      }),
+    );
   });
 
   it('opens only the most-recently-pressed row when decodes resolve out of order', async () => {

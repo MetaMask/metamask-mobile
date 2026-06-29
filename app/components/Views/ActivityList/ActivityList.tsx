@@ -821,6 +821,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         }
 
         if (raw.type === 'rampOrder') {
+          if (!isTransactionsRedesignEnabled) {
+            return;
+          }
           navigation.navigate(Routes.ACTIVITY_DETAILS, {
             chainId: item.chainId,
             txIdentifier: item.hash,
@@ -878,6 +881,8 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         ) {
           const bridgeTxHistoryItem =
             bridgeHistory[tx.id] ??
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- Older persisted bridge history can still be keyed by actionId.
+            (tx.actionId ? bridgeHistory[tx.actionId] : undefined) ??
             Object.values(bridgeHistory).find(
               (itemValue) =>
                 (itemValue as unknown as { originalTransactionId?: string })

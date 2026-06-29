@@ -45,7 +45,7 @@ export type RampActivityListItem = ActivityListItem & {
   raw: { type: 'rampOrder'; data: FiatOrder };
 };
 
-function RampDetailsHero({ order }: { order: FiatOrder }) {
+function RampDetailsHero({ order }: Readonly<{ order: FiatOrder }>) {
   const token = getRampActivityHeroToken(order);
 
   return (
@@ -74,7 +74,7 @@ function RampDetailsHero({ order }: { order: FiatOrder }) {
   );
 }
 
-function RampTransactionIdValue({ hash }: { hash?: string }) {
+function RampTransactionIdValue({ hash }: Readonly<{ hash?: string }>) {
   if (!hash) {
     return <Text>{strings('transactions.tx_details_not_available')}</Text>;
   }
@@ -103,11 +103,11 @@ function RampDetailsMetadata({
   providerName,
   transactionHash,
 }: {
-  chainId: string;
-  formattedDate: string;
-  order: FiatOrder;
-  providerName: string;
-  transactionHash?: string;
+  readonly chainId: string;
+  readonly formattedDate: string;
+  readonly order: FiatOrder;
+  readonly providerName: string;
+  readonly transactionHash?: string;
 }) {
   const isSell = isRampSellOrder(order);
 
@@ -160,10 +160,10 @@ function RampDetailsAmounts({
   totalReceived,
   transactionFee,
 }: {
-  fiatValue?: string;
-  order: FiatOrder;
-  totalReceived?: string;
-  transactionFee?: string;
+  readonly fiatValue?: string;
+  readonly order: FiatOrder;
+  readonly totalReceived?: string;
+  readonly transactionFee?: string;
 }) {
   if (isRampSellOrder(order)) {
     return (
@@ -204,7 +204,9 @@ export function isRampActivityListItem(
   return item.raw?.type === 'rampOrder';
 }
 
-export function RampDetails({ item }: { item: RampActivityListItem }) {
+export function RampDetails({
+  item,
+}: Readonly<{ item: RampActivityListItem }>) {
   const order = item.raw.data;
   const transactionHash = getRampActivityTransactionHash(order);
   const chainId = getRampActivityExplorerChainId(order.network);
