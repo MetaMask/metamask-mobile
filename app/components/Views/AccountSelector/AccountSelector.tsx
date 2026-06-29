@@ -147,18 +147,13 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   // Tracing for the account list: start at layout flush, end after paint (useEffect).
   useLayoutEffect(() => {
     if (!isAccountSelector) {
-      return undefined;
+      return;
     }
     trace({
       name: TraceName.ShowAccountList,
       op: TraceOperation.AccountUi,
       tags: getTraceTags(store.getState()),
     });
-    return () => {
-      endTrace({
-        name: TraceName.ShowAccountList,
-      });
-    };
   }, [isAccountSelector]);
 
   useEffect(() => {
