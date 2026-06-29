@@ -60,6 +60,11 @@ import {
   hasTransactionType,
   isTransactionPayWithdraw,
 } from '../../../utils/transaction';
+import { useParams } from '../../../../../../util/navigation/navUtils';
+import {
+  ConfirmationParams,
+  PayWithOption,
+} from '../../confirm/confirm-component';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import {
   Button,
@@ -506,12 +511,16 @@ function useIsResultReady({
 
 function useButtonLabel() {
   const transaction = useTransactionMetadataRequest();
+  const { payWithOption } = useParams<ConfirmationParams>({});
+
+  if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
+    return strings('confirm.deposit_edit_amount_money_account_send');
+  }
 
   if (
     hasTransactionType(transaction, [
       TransactionType.predictWithdraw,
       TransactionType.perpsWithdraw,
-      TransactionType.moneyAccountWithdraw,
     ])
   ) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
@@ -519,6 +528,16 @@ function useButtonLabel() {
 
   if (hasTransactionType(transaction, [TransactionType.musdConversion])) {
     return strings('earn.musd_conversion.confirm');
+  }
+
+  if (
+    payWithOption === PayWithOption.MoneyAccount &&
+    hasTransactionType(transaction, [
+      TransactionType.perpsDeposit,
+      TransactionType.predictDeposit,
+    ])
+  ) {
+    return strings('confirm.deposit_edit_amount_money_account_send');
   }
 
   return strings('confirm.deposit_edit_amount_done');

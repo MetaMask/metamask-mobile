@@ -9,6 +9,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import ActivityList, { type ActivityListHandle } from './ActivityList';
 import { ActivityListSelectorsIDs } from './ActivityList.testIds';
+import { getPreloadedActivityItem } from './preloadedActivityItemStore';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ActivityTypeFilter } from '../ActivityScreen/types';
 import { useTransactionsQuery } from './useTransactionsQuery';
@@ -94,6 +95,10 @@ jest.mock('../../UI/TransactionElement/utils', () => ({
 
 jest.mock('../../../selectors/bridgeStatusController', () => ({
   selectBridgeHistoryForAccount: jest.fn((state) => state.bridgeHistory),
+}));
+
+jest.mock('../../../selectors/featureFlagController/activityRedesign', () => ({
+  selectIsTransactionsRedesignEnabled: jest.fn((state) => state.isTxRedesign),
 }));
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -543,6 +548,7 @@ const selectorValues = {
   related: new Map(),
   selectedAccount: { address: '0xselected' },
   selectedGroupAccounts: [{ address: '0xevm', type: 'eip155:eoa' }],
+  isTxRedesign: false,
 };
 
 const confirmedItem = {
@@ -595,6 +601,7 @@ describe('ActivityList', () => {
     selectorValues.selectedGroupAccounts = [
       { address: '0xevm', type: 'eip155:eoa' },
     ];
+    selectorValues.isTxRedesign = false;
     (useNavigation as jest.Mock).mockReturnValue({ navigate: mockNavigate });
     (useTransactionsQuery as jest.Mock).mockReturnValue({
       data: { pages: [{ data: [confirmedItem] }] },
@@ -677,6 +684,23 @@ describe('ActivityList', () => {
         }),
       ),
     );
+  });
+
+  it('navigates to the redesigned ActivityDetails screen when the transactions redesign flag is on', () => {
+    selectorValues.isTxRedesign = true;
+    render(<ActivityList header={<></>} />);
+
+    fireEvent.press(screen.getByTestId('row-0xconfirmed'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.ACTIVITY_DETAILS, {
+      chainId: 'eip155:1',
+      txIdentifier: '0xconfirmed',
+    });
+    // Must not also open the legacy sheet.
+    const legacyCalls = mockNavigate.mock.calls.filter(
+      (call) => call[1]?.screen === Routes.SHEET.TRANSACTION_DETAILS,
+    );
+    expect(legacyCalls).toHaveLength(0);
   });
 
   it('opens only the most-recently-pressed row when decodes resolve out of order', async () => {
@@ -1188,6 +1212,47 @@ describe('ActivityList', () => {
     expect(mockNavigate).toHaveBeenCalledWith('PerpsPositionTransaction', {
       transaction: perpsTx,
     });
+  });
+
+  it('routes perps rows to ActivityDetails when the transactions redesign flag is on', () => {
+    selectorValues.perpsEnabled = true;
+    selectorValues.isTxRedesign = true;
+    const perpsTx = { id: 'fill-2', type: 'trade' };
+    const perpsItem = {
+      type: 'perpsOpenLong',
+      chainId: 'eip155:42161',
+      status: 'success',
+      timestamp: 5,
+      raw: { type: 'perpsTransaction', data: perpsTx },
+      hash: 'perps-fill-2',
+      data: { token: { symbol: 'USD' } },
+    };
+    mockPerpsSourceState = {
+      items: [perpsItem],
+      isLoading: false,
+      error: null,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Perps} />);
+    fireEvent.press(screen.getByTestId('row-perps-fill-2'));
+
+    // Params stay serializable; the row is handed off via the store by key.
+    const call = mockNavigate.mock.calls.find(
+      ([route]) => route === Routes.ACTIVITY_DETAILS,
+    );
+    const params = call?.[1] as
+      | { chainId: string; txIdentifier: string; preloadKey?: string }
+      | undefined;
+    expect(params).toEqual({
+      chainId: 'eip155:42161',
+      txIdentifier: 'perps-fill-2',
+      preloadKey: expect.any(String),
+    });
+    expect(getPreloadedActivityItem(params?.preloadKey)).toEqual(perpsItem);
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      'PerpsPositionTransaction',
+      expect.anything(),
+    );
   });
 
   it('navigates a perps funding row to the funding transaction detail screen', () => {

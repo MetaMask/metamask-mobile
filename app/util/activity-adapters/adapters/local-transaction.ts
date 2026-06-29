@@ -24,6 +24,7 @@ import {
 } from './constants';
 import {
   getKnownTokenMetadata,
+  getLocalTransactionFees,
   getLocalTransactionStatus,
   getTokenApprovalAmountFromData,
   isUnlimitedApprovalAmount,
@@ -58,6 +59,14 @@ export function mapLocalTransaction(
   // Localhost (0x539) regardless of how the user configured the network.
   const nativeSymbol =
     transactionGroup.nativeAssetSymbol ?? nativeAsset?.symbol;
+
+  // Base network (gas) fee in the chain's native token, derived from the tx
+  // receipt. Spread into `data` for types that surface fees in the UI.
+  const fees = getLocalTransactionFees(
+    transactionGroup,
+    nativeAsset,
+    nativeSymbol,
+  );
 
   const getNativeToken = (
     transaction: TransactionGroup['initialTransaction'],
@@ -249,6 +258,7 @@ export function mapLocalTransaction(
                 direction: 'in',
                 contractAddress: wrappedTokenAddress,
               }),
+              ...(fees ? { fees } : {}),
             },
           };
         }
@@ -289,6 +299,7 @@ export function mapLocalTransaction(
             nativeToken && unwrapAmount
               ? { ...nativeToken, amount: unwrapAmount }
               : nativeToken,
+          ...(fees ? { fees } : {}),
         },
       };
     }
@@ -394,6 +405,7 @@ export function mapLocalTransaction(
           from,
           to,
           token: getNativeToken(initialTransaction, 'out'),
+          ...(fees ? { fees } : {}),
         },
       };
     }
@@ -426,6 +438,7 @@ export function mapLocalTransaction(
             direction: 'out',
             contractAddress: initialTransaction.txParams.to,
           }),
+          ...(fees ? { fees } : {}),
         },
       };
     }
@@ -449,6 +462,7 @@ export function mapLocalTransaction(
                   initialTransaction.transferInformation.contractAddress,
               })
             : getNativeToken(initialTransaction, 'in'),
+          ...(fees ? { fees } : {}),
         },
       };
     }
@@ -487,6 +501,7 @@ export function mapLocalTransaction(
         data: {
           sourceToken,
           destinationToken,
+          ...(fees ? { fees } : {}),
         },
       };
     }
@@ -506,6 +521,7 @@ export function mapLocalTransaction(
         data: {
           sourceToken: enrichedSourceToken,
           destinationToken: enrichedDestinationToken,
+          ...(fees ? { fees } : {}),
         },
       };
     }
@@ -534,6 +550,7 @@ export function mapLocalTransaction(
             direction: 'in',
             contractAddress: initialTransaction.txParams.to,
           }),
+          ...(fees ? { fees } : {}),
         },
       };
     }
@@ -552,6 +569,7 @@ export function mapLocalTransaction(
         raw: { type: 'localTransaction', data: transactionGroup },
         data: {
           token: getApprovalToken(),
+          ...(fees ? { fees } : {}),
         },
       };
     }
@@ -566,6 +584,7 @@ export function mapLocalTransaction(
         raw: { type: 'localTransaction', data: transactionGroup },
         data: {
           token: getApprovalToken(),
+          ...(fees ? { fees } : {}),
         },
       };
     }
@@ -584,6 +603,7 @@ export function mapLocalTransaction(
             direction: 'out',
             contractAddress: initialTransaction.txParams.to,
           }),
+          ...(fees ? { fees } : {}),
         },
       };
 
@@ -632,6 +652,7 @@ export function mapLocalTransaction(
                 },
               }
             : {}),
+          ...(fees ? { fees } : {}),
         },
       };
     }
@@ -667,6 +688,7 @@ export function mapLocalTransaction(
               direction: 'out',
               contractAddress: suppliedTokenBalanceChange.address,
             }),
+            ...(fees ? { fees } : {}),
           },
         };
       }
@@ -703,6 +725,7 @@ export function mapLocalTransaction(
           raw: { type: 'localTransaction', data: transactionGroup },
           data: {
             destinationToken,
+            ...(fees ? { fees } : {}),
           },
         };
       }
@@ -745,6 +768,7 @@ export function mapLocalTransaction(
                       direction: 'in',
                       contractAddress: wrappedTokenAddress,
                     }),
+                    ...(fees ? { fees } : {}),
                   },
                 };
               }
@@ -785,6 +809,7 @@ export function mapLocalTransaction(
                   nativeToken && unwrapAmount
                     ? { ...nativeToken, amount: unwrapAmount }
                     : nativeToken,
+                ...(fees ? { fees } : {}),
               },
             };
           }
@@ -820,6 +845,7 @@ export function mapLocalTransaction(
           ...(token ? { token } : {}),
           methodId,
           transactionType: initialTransaction.type,
+          ...(fees ? { fees } : {}),
         },
       };
     }

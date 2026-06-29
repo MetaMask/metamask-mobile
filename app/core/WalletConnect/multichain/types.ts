@@ -71,10 +71,6 @@ export type RpcResponse<
  * Fixed context fields every adapter receives alongside the request.
  */
 interface AdapterRequestContext {
-  /**
-   * URL-like dapp origin used by Snaps for confirmation UI.
-   */
-  origin: string;
   connectedAddresses: CaipAccountId[];
   scope: CaipChainId;
   requestId: number;

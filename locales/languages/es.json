@@ -103,7 +103,7 @@
       "title": "Fondos insuficientes"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Agrega menos o usa otro método de pago."
     },
     "insufficient_pay_token_native": {
       "message": "No hay suficientes {{ticker}} para cubrir las tarifas. Usa un token en otra red o añade más {{ticker}} para continuar.",
@@ -1094,6 +1094,7 @@
       "twitter_link": "Ver en X (Twitter)",
       "sort": {
         "value": "Valor",
+        "top_trades": "Top Trades",
         "pnl_percent": "P&L %",
         "recent": "Recientes"
       }
@@ -1102,7 +1103,6 @@
       "market_cap": "Capitalización bursátil",
       "price": "Precio",
       "position": "Posición",
-      "trades": "Operaciones",
       "buy": "Comprar",
       "trade": "Operar",
       "unsupported_market": "Mercado no compatible",
@@ -1133,6 +1133,8 @@
       "price_impact": "Impacto sobre el precio",
       "est_points": "Puntos estimados",
       "no_quotes": "No hay cotizaciones disponibles para este token",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Cargando…",
       "unavailable": "Canje no disponible",
       "unsupported_chain": "Esta cadena aún no es compatible con Quick Buy",
@@ -1160,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps no está disponible",
     "title": "Perps",
-    "transfer_to_perps": "Transferir a Perps",
     "perps_trading": "Trading con contratos perpetuos",
     "perp_account_balance": "Saldo de contratos perpetuos",
     "manage_balance": "Administrar saldo",
@@ -2341,7 +2342,6 @@
   },
   "predict": {
     "title": "Predicciones de MetaMask",
-    "transfer_to_predictions": "Transferir a Predicciones",
     "select_predict_account": "Selecciona una cuenta de predicción",
     "search_account": "Buscar una cuenta",
     "home": {
@@ -2368,11 +2368,15 @@
       "predictions_title": "Predicciones de la Copa Mundial",
       "banner_title": "Copa del Mundo 2026",
       "banner_description": "Opera cada partido, cada momento.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "Todas",
         "props": "Apuestas especiales",
-        "live": "En vivo"
+        "live": "En vivo",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Fase de grupos",
         "round_of_32": "Dieciseisavos de final",
@@ -3540,6 +3544,8 @@
       "wallet_activity_desc": "Compras, ventas, transferencias, intercambios y recompensas",
       "perps_title": "Actividad de trading",
       "perps_desc": "Cambios en posiciones de futuros perpetuos, liquidaciones, tasas de financiación y actualizaciones de margen",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "Señales de trading",
       "social_ai_desc": "Actualizaciones de traders y activos que sigues, además de noticias de mercado seleccionadas",
       "marketing_title": "Actualizaciones y recompensas",
@@ -6029,6 +6035,11 @@
       "description": "La compra de criptomonedas no está disponible en tu región debido a limitaciones con los proveedores de pagos locales o restricciones regulatorias.",
       "got_it": "Entendido"
     },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "Entendido"
+    },
     "region": {
       "buy_crypto_tokens": "Comprar tokens de criptomonedas",
       "sell_crypto_tokens": "Vender tokens de criptomonedas",
@@ -7666,8 +7677,7 @@
       "perps_withdraw": "Retirar",
       "predict_deposit": "Añadir fondos de Predicciones",
       "predict_withdraw": "Retirar",
-      "money_account_add_money": "Agregar fondos",
-      "money_account_transfer_money": "Transfiere fondos"
+      "money_account_add_money": "Agregar fondos"
     },
     "sub_title": {
       "permit": "Este sitio necesita permiso para gastar sus tokens.",
@@ -7949,9 +7959,13 @@
       "rejected": "Rechazado",
       "reconnect": "Reconectar",
       "done": "Hecho",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "Escanea el siguiente código QR",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "Paso {{current}} de {{total}}: escanea el código QR que aparece en tu billetera",
-      "scanner_last_step_text": "Último paso: escanea el código QR que aparece en tu billetera"
+      "scanner_last_step_text": "Último paso: escanea el código QR que aparece en tu billetera",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "Impacto sobre el precio",
     "price_impact_info_description": "Así es como tu operación modifica el precio de mercado de un token. Depende del volumen de la operación, la liquidez disponible y las tarifas del proveedor. MetaMask no controla el impacto en el precio.",
@@ -9526,8 +9540,8 @@
     },
     "earn_rewards": {
       "title": "Gana recompensas",
-      "musd_title": "Bono de hasta el 3 % en monedas estables",
-      "musd_subtitle": "Calcula tu bono en mUSD",
+      "musd_title": "Bono de hasta el {{percentage}} % en mUSD",
+      "musd_subtitle": "Ya llegaron las cuentas Finanzas",
       "card_title": "Hasta un 3 % de cashback en tus gastos",
       "card_subtitle": "Obtén tu tarjeta MetaMask ahora",
       "card_subtitle_cardholder": "Accede a los beneficios de tu tarjeta MetaMask"
@@ -9601,17 +9615,6 @@
       "predict_withdraw": "Retiro",
       "money_account_deposit": "Depositar en cuenta Finanzas",
       "money_account_withdraw": "Transferir desde cuenta Finanzas",
-      "money_account_sent": "{{symbol}} enviado",
-      "money_account_received": "Recibido",
-      "deposited_musd": "mUSD depositados",
-      "depositing_musd": "Depositando mUSD",
-      "deposit_failed": "Depósito fallido",
-      "sent": "Enviado",
-      "sending_musd": "Enviando mUSD",
-      "send_failed": "Error al enviar",
-      "converted_to_musd": "Convertidas a mUSD",
-      "converting_to_musd": "Convirtiendo a mUSD",
-      "conversion_failed": "Conversión fallida",
       "default": "Detalles de la transacción"
     },
     "label": {
@@ -9660,6 +9663,24 @@
       "fiat_purchase": "Comprar {{token}} con {{paymentMethod}}"
     },
     "perps_deposit_solution": "Ya tienes {{fiat}} de USDC en Arbitrum. Vuelve a intentar realizar tu depósito."
+  },
+  "activity_details": {
+    "status": "Estado",
+    "date": "Fecha",
+    "account": "Cuenta",
+    "from": "De",
+    "to": "Para",
+    "network": "Red",
+    "transaction_id": "ID de transacción",
+    "network_fee": "Tarifa de red",
+    "bridge_fee": "Tarifa de puente",
+    "transaction_fee": "Tarifa de transacción",
+    "total_amount": "Importe total",
+    "you_sent": "Enviaste",
+    "you_received": "Recibiste",
+    "view_on_block_explorer": "Ver en el explorador de bloques",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

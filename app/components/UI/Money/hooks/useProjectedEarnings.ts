@@ -14,9 +14,9 @@ interface ProjectedEarnings {
 
 export function useProjectedEarnings(
   tokens: AssetType[] | undefined,
-  apyPercent: number | undefined,
+  apyDecimal: number | undefined,
 ): ProjectedEarnings {
-  const safeApyPercent = apyPercent ?? 0;
+  const safeApyDecimal = apyDecimal ?? 0;
 
   const eligibleTokens = useMemo(
     () => (tokens ?? []).filter((token) => tokenFiatValue(token) > 0),
@@ -35,12 +35,12 @@ export function useProjectedEarnings(
           sum +
           calculateProjectedEarnings(
             tokenFiatValue(token),
-            safeApyPercent,
+            safeApyDecimal,
             PROJECTION_YEARS,
           ),
         0,
       ),
-    [eligibleTokens, safeApyPercent],
+    [eligibleTokens, safeApyDecimal],
   );
 
   return { eligibleTokens, totalAssetsFiat, projectedAmount };
