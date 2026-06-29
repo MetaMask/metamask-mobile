@@ -43,9 +43,23 @@ export interface ChartFeaturesConfig {
 }
 
 /**
+ * Visual overrides applied via TradingView's `applyOverrides`. Set by the
+ * consumer's `visualOverrides` prop on the RN side. Empty/undefined keys
+ * fall through to TradingView defaults.
+ */
+export interface VisualOverridesConfigInline {
+  gridLineColor?: string;
+  hidePaneSeparator?: boolean;
+  currentPriceLineColor?: string;
+  volumeUpColor?: string;
+  volumeDownColor?: string;
+}
+
+/**
  * Shape of window.CONFIG as inlined by AdvancedChartTemplate before this IIFE
  * runs. Phase 1 reads `libraryUrl`, `theme`, `features`, `indicatorColors`.
- * Future phases add more keys as they port from the legacy chartLogic.js.
+ * Phase 2 adds `visualOverrides`. Future phases add more keys as they port
+ * from the legacy chartLogic.js.
  */
 export interface ChartConfig {
   libraryUrl: string;
@@ -53,6 +67,7 @@ export interface ChartConfig {
   features?: ChartFeaturesConfig;
   indicatorColors?: IndicatorColors;
   useSubscriptPriceFormat?: boolean;
+  visualOverrides?: VisualOverridesConfigInline;
 }
 
 /**
@@ -74,19 +89,37 @@ export interface TVChartingLibraryWidget {
   remove(): void;
 }
 
+export interface TVSubscription<TArgs extends unknown[] = []> {
+  subscribe(scope: unknown, cb: (...args: TArgs) => void): void;
+  unsubscribe(scope: unknown, cb: (...args: TArgs) => void): void;
+}
+
+export interface TVTimeScale {
+  setRightOffset(offset: number): void;
+  barSpacingChanged(): TVSubscription;
+}
+
+export interface TVCrosshairParams {
+  price?: number;
+  time?: number;
+  offsetX?: number;
+  offsetY?: number;
+}
+
 export interface TVActiveChart {
-  getTimeScale(): {
-    setRightOffset(offset: number): void;
-    barSpacingChanged(): { subscribe(scope: unknown, cb: () => void): void };
-  };
-  onVisibleRangeChanged(): {
-    subscribe(scope: unknown, cb: () => void): void;
-  };
-  crossHairMoved(): {
-    subscribe(scope: unknown, cb: (params: unknown) => void): void;
-  };
+  setChartType(type: ChartType): void;
+  setResolution(resolution: TVResolution, callback: () => void): void;
+  resetData(): void;
+  setVisibleRange(
+    range: { from: number; to: number },
+    options?: { percentRightMargin?: number },
+  ): void;
+  getTimeScale(): TVTimeScale;
+  onDataLoaded(): TVSubscription;
+  onVisibleRangeChanged(): TVSubscription;
+  crossHairMoved(): TVSubscription<[TVCrosshairParams]>;
   selection(): {
-    onChanged(): { subscribe(scope: unknown, cb: () => void): void };
+    onChanged(): TVSubscription;
     clear(): void;
   };
 }
@@ -94,6 +127,104 @@ export interface TVActiveChart {
 export type TVWidgetConstructor = new (
   options: Record<string, unknown>,
 ) => TVChartingLibraryWidget;
+
+/** OHLCV bar in milliseconds (matches the SetOHLCVDataPayload in RN). */
+export interface OHLCVBar {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume?: number;
+}
+
+/** TradingView-shaped bar payload returned from datafeed.getBars / subscribeBars. */
+export interface TVBar {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume?: number;
+}
+
+export interface OHLCVPaginationConfig {
+  nextCursor: string | null;
+  hasMore: boolean;
+  assetId: string | null;
+  vsCurrency: string | null;
+}
+
+/** Chart type integers used by TradingView's setChartType / currentChartType. */
+export const enum ChartType {
+  Candles = 1,
+  Line = 2,
+}
+
+/** Subset of TV's `LibrarySymbolInfo` we actually return from resolveSymbol. */
+export interface SymbolInfo {
+  name: string;
+  ticker: string;
+  description: string;
+  type: string;
+  session: string;
+  timezone: string;
+  exchange: string;
+  minmov: number;
+  pricescale: number;
+  variable_tick_size: string;
+  has_intraday: boolean;
+  has_daily: boolean;
+  has_weekly_and_monthly: boolean;
+  supported_resolutions: string[];
+  volume_precision: number;
+  data_status: 'streaming' | 'endofday' | 'pulsed' | 'delayed_streaming';
+}
+
+export interface PeriodParams {
+  from: number;
+  to: number;
+  countBack: number;
+  firstDataRequest: boolean;
+}
+
+export type GetBarsCallback = (
+  bars: TVBar[],
+  meta?: { noData?: boolean; nextTime?: number },
+) => void;
+
+export type GetBarsErrorCallback = (reason: string) => void;
+
+export type RealtimeTickCallback = (tick: TVBar) => void;
+
+export interface TVDatafeed {
+  onReady(callback: (config: Record<string, unknown>) => void): void;
+  searchSymbols(
+    userInput: string,
+    exchange: string,
+    symbolType: string,
+    onResult: (result: unknown[]) => void,
+  ): void;
+  resolveSymbol(
+    symbolName: string,
+    onResolve: (info: SymbolInfo) => void,
+    onError: (reason: string) => void,
+  ): void;
+  getBars(
+    symbolInfo: SymbolInfo,
+    resolution: TVResolution,
+    periodParams: PeriodParams,
+    onResult: GetBarsCallback,
+    onError: GetBarsErrorCallback,
+  ): void;
+  subscribeBars(
+    symbolInfo: SymbolInfo,
+    resolution: TVResolution,
+    onTick: RealtimeTickCallback,
+    listenerGuid: string,
+  ): void;
+  unsubscribeBars(listenerGuid: string): void;
+}
 
 declare global {
   interface Window {

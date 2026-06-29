@@ -7,26 +7,57 @@
 // slice, and so on; the convention is "core state goes here, feature-local
 // state goes in features/<feature>/state.ts or overlays/<feature>/state.ts".
 
-import type { ChartTheme, TVChartingLibraryWidget } from './types';
+import type {
+  ChartTheme,
+  ChartType,
+  OHLCVBar,
+  OHLCVPaginationConfig,
+  RealtimeTickCallback,
+  TVChartingLibraryWidget,
+} from './types';
 
 interface CoreState {
   widget: TVChartingLibraryWidget | null;
   isChartReady: boolean;
   currentSymbol: string;
   currentResolution: string;
+  currentChartType: ChartType;
   theme: ChartTheme | null;
   libraryLoaded: boolean;
   libraryError: string | null;
+  ohlcvData: OHLCVBar[];
+  /** Bumped on every SET_OHLCV_DATA; stale async resolutions discard via this token. */
+  ohlcvGeneration: number;
+  ohlcvPagination: OHLCVPaginationConfig;
+  /** Visible-range bounds (ms) for the next setVisibleRange after reset; null = use TV default. */
+  visibleFromMs: number | null;
+  visibleToMs: number | null;
+  /** TradingView subscribeBars listenerGuid → tick callback (forwarded by REALTIME_UPDATE). */
+  realtimeCallbacks: Record<string, RealtimeTickCallback>;
 }
+
+const emptyPagination = (): OHLCVPaginationConfig => ({
+  nextCursor: null,
+  hasMore: false,
+  assetId: null,
+  vsCurrency: null,
+});
 
 const state: CoreState = {
   widget: null,
   isChartReady: false,
   currentSymbol: 'ASSET',
   currentResolution: '5',
+  currentChartType: 2,
   theme: null,
   libraryLoaded: false,
   libraryError: null,
+  ohlcvData: [],
+  ohlcvGeneration: 0,
+  ohlcvPagination: emptyPagination(),
+  visibleFromMs: null,
+  visibleToMs: null,
+  realtimeCallbacks: {},
 };
 
 // ----- Widget lifecycle ---------------------------------------------------
@@ -93,6 +124,95 @@ export function setLibraryError(error: string | null): void {
   state.libraryError = error;
 }
 
+// ----- Chart type --------------------------------------------------------
+
+export function getCurrentChartType(): ChartType {
+  return state.currentChartType;
+}
+
+export function setCurrentChartType(type: ChartType): void {
+  state.currentChartType = type;
+}
+
+// ----- OHLCV data --------------------------------------------------------
+
+export function getOhlcvData(): OHLCVBar[] {
+  return state.ohlcvData;
+}
+
+export function setOhlcvData(data: OHLCVBar[]): void {
+  state.ohlcvData = data;
+}
+
+export function appendOrReplaceLastBar(bar: OHLCVBar): void {
+  const data = state.ohlcvData;
+  if (data.length > 0 && data[data.length - 1].time === bar.time) {
+    data[data.length - 1] = bar;
+  } else {
+    data.push(bar);
+  }
+}
+
+export function prependOhlcvBars(bars: OHLCVBar[]): void {
+  state.ohlcvData = bars.concat(state.ohlcvData);
+}
+
+export function getOhlcvGeneration(): number {
+  return state.ohlcvGeneration;
+}
+
+export function bumpOhlcvGeneration(): number {
+  state.ohlcvGeneration += 1;
+  return state.ohlcvGeneration;
+}
+
+export function getOhlcvPagination(): OHLCVPaginationConfig {
+  return state.ohlcvPagination;
+}
+
+export function setOhlcvPagination(pagination: OHLCVPaginationConfig): void {
+  state.ohlcvPagination = pagination;
+}
+
+export function clearOhlcvPagination(): void {
+  state.ohlcvPagination = emptyPagination();
+}
+
+// ----- Visible range ------------------------------------------------------
+
+export function getVisibleFromMs(): number | null {
+  return state.visibleFromMs;
+}
+
+export function setVisibleFromMs(ms: number | null): void {
+  state.visibleFromMs = ms;
+}
+
+export function getVisibleToMs(): number | null {
+  return state.visibleToMs;
+}
+
+export function setVisibleToMs(ms: number | null): void {
+  state.visibleToMs = ms;
+}
+
+// ----- Realtime tick subscribers ------------------------------------------
+
+export function registerRealtimeCallback(
+  listenerGuid: string,
+  cb: RealtimeTickCallback,
+): void {
+  state.realtimeCallbacks[listenerGuid] = cb;
+}
+
+export function unregisterRealtimeCallback(listenerGuid: string): void {
+  delete state.realtimeCallbacks[listenerGuid];
+}
+
+export function getRealtimeCallbacks(): Record<string, RealtimeTickCallback> {
+  return state.realtimeCallbacks;
+}
+
 /**
  * Resets state to defaults — useful for unit tests. NOT for runtime use; the
  * WebView is created fresh per mount (the RN side recreates the HTML when
@@ -103,7 +223,14 @@ export function __resetStateForTests(): void {
   state.isChartReady = false;
   state.currentSymbol = 'ASSET';
   state.currentResolution = '5';
+  state.currentChartType = 2;
   state.theme = null;
   state.libraryLoaded = false;
   state.libraryError = null;
+  state.ohlcvData = [];
+  state.ohlcvGeneration = 0;
+  state.ohlcvPagination = emptyPagination();
+  state.visibleFromMs = null;
+  state.visibleToMs = null;
+  state.realtimeCallbacks = {};
 }

@@ -1,22 +1,37 @@
 // Entry orchestration. Called once from src/index.ts when the IIFE evaluates
 // inside the WebView.
 //
-// Responsibilities (Phase 1):
+// Responsibilities (Phase 1 + 2):
 // 1. Read window.CONFIG (must be inlined by AdvancedChartTemplate before this
 //    script runs).
 // 2. Seed core state with the symbol / resolution / theme from CONFIG.
 // 3. Wire the RN→WV bridge to the message dispatcher.
-// 4. Register Phase 1 message handlers (SET_THEME_COLORS).
-// 5. Begin loading the TradingView library so it's ready when Phase 2's
-//    ohlcvIngestion module calls createChartWidget.
-//
-// Phase 2 will add the data plumbing here (ohlcv module registers SET_OHLCV_DATA
-// and triggers widget creation once the library + initial data are both ready).
+// 4. Register Phase 1 + 2 message handlers:
+//      SET_THEME_COLORS (Phase 1), SET_OHLCV_DATA, REALTIME_UPDATE,
+//      SET_CHART_TYPE (Phase 2).
+// 5. Begin loading the TradingView library so it's ready when the first
+//    SET_OHLCV_DATA arrives.
+// 6. On first SET_OHLCV_DATA: createChartWidget with the default datafeed,
+//    apply visual overrides, attach crosshair + visible-range listeners.
 
-import { onFromRN, reportErrorToRN, postToRN } from './bridge';
+import { onFromRN, postToRN, reportErrorToRN } from './bridge';
 import { loadTradingViewLibrary } from './loadLibrary';
-import { initThemeFromConfig, applyThemeColors } from '../widget/theme';
 import { dispatchInboundMessage, registerHandler } from '../messages/handler';
+import { applyThemeColors, initThemeFromConfig } from '../widget/theme';
+import { customDatafeed } from '../widget/datafeed';
+import {
+  handleRealtimeUpdate,
+  handleSetOHLCVData,
+  onFirstOhlcvData,
+} from '../widget/ohlcvIngestion';
+import { handleSetChartType } from '../widget/chartType';
+import { applyVisualOverrides } from '../widget/visualOverrides';
+import {
+  createChartWidget,
+  scheduleChartLayoutSettledNotify,
+} from '../widget/initChart';
+import { attachCrosshairListener } from '../interaction/crosshair';
+import { attachVisibleRangeListeners } from '../interaction/visibleRange';
 import type { ChartConfig } from './types';
 
 function readConfig(): ChartConfig {
@@ -31,9 +46,9 @@ function readConfig(): ChartConfig {
 }
 
 /**
- * Phase 1 bootstrap. Returns the resolved CONFIG so callers (and tests) can
- * inspect what booted. Idempotent in the sense that the inbound listener is
- * a single subscription — the WebView is not expected to bootstrap twice.
+ * Phase 1 + 2 bootstrap. Returns the resolved CONFIG so callers (and tests)
+ * can inspect what booted. Idempotent on its inbound subscription — the
+ * WebView is not expected to bootstrap twice.
  */
 export function bootstrap(): ChartConfig {
   const config = readConfig();
@@ -43,20 +58,51 @@ export function bootstrap(): ChartConfig {
   registerHandler('SET_THEME_COLORS', (payload) => {
     applyThemeColors(payload);
   });
+  registerHandler('SET_OHLCV_DATA', (payload) => {
+    handleSetOHLCVData(payload);
+  });
+  registerHandler('REALTIME_UPDATE', (payload) => {
+    handleRealtimeUpdate(payload);
+  });
+  registerHandler('SET_CHART_TYPE', (payload) => {
+    handleSetChartType(payload);
+  });
 
   onFromRN((message) => {
     dispatchInboundMessage(message);
   });
 
-  // Kick off TV library load — fire-and-forget. Phase 2's ohlcvIngestion
-  // awaits readiness before constructing the widget. Errors are already
-  // surfaced via reportErrorToRN inside loadTradingViewLibrary.
+  // Library load is fire-and-forget; the first-data handler awaits readiness
+  // again before constructing the widget, so this is purely a head-start.
   loadTradingViewLibrary(config.libraryUrl).catch((error) => {
     reportErrorToRN(error);
   });
 
+  onFirstOhlcvData(() => {
+    loadTradingViewLibrary(config.libraryUrl)
+      .then(() => {
+        createChartWidget(config, {
+          datafeed: customDatafeed,
+          onReady: (widget) => {
+            try {
+              applyVisualOverrides(config.visualOverrides);
+              const chart = widget.activeChart();
+              attachCrosshairListener(chart);
+              attachVisibleRangeListeners(chart);
+              scheduleChartLayoutSettledNotify();
+            } catch (error) {
+              reportErrorToRN(error);
+            }
+          },
+        });
+      })
+      .catch((error) => {
+        reportErrorToRN(error);
+      });
+  });
+
   // DEBUG signal so RN can confirm the modular bundle reached bootstrap.
-  // Removed in Phase 7 once the feature flag is gone.
+  // Removed in Phase 7 once the legacy bundle is gone.
   postToRN('DEBUG', { message: 'modular-bootstrap-ready' });
 
   return config;

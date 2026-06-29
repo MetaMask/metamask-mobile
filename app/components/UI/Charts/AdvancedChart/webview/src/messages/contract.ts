@@ -18,10 +18,19 @@
 //
 // Phase 4 deletes SET_LINE_CHROME alongside the custom-chrome implementation.
 
-import type { ChartTheme } from '../core/types';
+import type {
+  ChartTheme,
+  ChartType,
+  OHLCVBar,
+  OHLCVPaginationConfig,
+} from '../core/types';
 
 /** Inbound — React Native → WebView IIFE. */
-export type InboundMessage = SetThemeColorsMessage;
+export type InboundMessage =
+  | SetThemeColorsMessage
+  | SetOHLCVDataMessage
+  | RealtimeUpdateMessage
+  | SetChartTypeMessage;
 
 export interface SetThemeColorsMessage {
   type: 'SET_THEME_COLORS';
@@ -35,6 +44,33 @@ export interface SetThemeColorsPayload {
   currentPriceColor?: string;
 }
 
+export interface SetOHLCVDataMessage {
+  type: 'SET_OHLCV_DATA';
+  payload: SetOHLCVDataPayload;
+}
+
+export interface SetOHLCVDataPayload {
+  data: OHLCVBar[];
+  pagination?: OHLCVPaginationConfig;
+  /** Visible-range start (ms) so the WebView can call setVisibleRange after reset. */
+  visibleFromMs?: number;
+  /** Visible-range end (ms) anchored to the last candle. */
+  visibleToMs?: number;
+  /** Optional symbol/vsCurrency for downstream pagination strategies. */
+  symbol?: string;
+  vsCurrency?: string;
+}
+
+export interface RealtimeUpdateMessage {
+  type: 'REALTIME_UPDATE';
+  payload: { bar: OHLCVBar };
+}
+
+export interface SetChartTypeMessage {
+  type: 'SET_CHART_TYPE';
+  payload: { type: ChartType };
+}
+
 export type InboundMessageType = InboundMessage['type'];
 
 /** Outbound — WebView IIFE → React Native. */
@@ -42,6 +78,8 @@ export type OutboundMessageType =
   | 'CHART_READY'
   | 'CHART_LAYOUT_SETTLED'
   | 'CHART_TRADINGVIEW_CLICKED'
+  | 'CROSSHAIR_MOVE'
+  | 'CHART_INTERACTED'
   | 'ERROR'
   | 'DEBUG';
 
@@ -67,10 +105,23 @@ export interface DebugPayload {
   [extra: string]: unknown;
 }
 
+export interface CrosshairMovePayload {
+  /** OHLC of the bar nearest the crosshair; null when the crosshair dismisses. */
+  bar: OHLCVBar | null;
+}
+
+export type ChartInteractionType = 'zoom' | 'pan' | 'tooltip';
+
+export interface ChartInteractedPayload {
+  interaction_type: ChartInteractionType;
+}
+
 export interface OutboundPayloads {
   CHART_READY: ChartReadyPayload;
   CHART_LAYOUT_SETTLED: ChartLayoutSettledPayload;
   CHART_TRADINGVIEW_CLICKED: ChartTradingViewClickedPayload;
+  CROSSHAIR_MOVE: CrosshairMovePayload;
+  CHART_INTERACTED: ChartInteractedPayload;
   ERROR: ErrorPayload;
   DEBUG: DebugPayload;
 }

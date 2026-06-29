@@ -114,14 +114,27 @@ function onFromRN(handler) {
 // is explicit. Future phases extend this with the OHLCV slice, the indicator
 // slice, and so on; the convention is "core state goes here, feature-local
 // state goes in features/<feature>/state.ts or overlays/<feature>/state.ts".
+const emptyPagination = () => ({
+    nextCursor: null,
+    hasMore: false,
+    assetId: null,
+    vsCurrency: null,
+});
 const state = {
     widget: null,
     isChartReady: false,
     currentSymbol: 'ASSET',
     currentResolution: '5',
+    currentChartType: 2,
     theme: null,
     libraryLoaded: false,
     libraryError: null,
+    ohlcvData: [],
+    ohlcvGeneration: 0,
+    ohlcvPagination: emptyPagination(),
+    visibleFromMs: null,
+    visibleToMs: null,
+    realtimeCallbacks: {},
 };
 // ----- Widget lifecycle ---------------------------------------------------
 function getWidget() {
@@ -169,6 +182,71 @@ function getLibraryError() {
 function setLibraryError(error) {
     state.libraryError = error;
 }
+// ----- Chart type --------------------------------------------------------
+function getCurrentChartType() {
+    return state.currentChartType;
+}
+function setCurrentChartType(type) {
+    state.currentChartType = type;
+}
+// ----- OHLCV data --------------------------------------------------------
+function getOhlcvData() {
+    return state.ohlcvData;
+}
+function setOhlcvData(data) {
+    state.ohlcvData = data;
+}
+function appendOrReplaceLastBar(bar) {
+    const data = state.ohlcvData;
+    if (data.length > 0 && data[data.length - 1].time === bar.time) {
+        data[data.length - 1] = bar;
+    }
+    else {
+        data.push(bar);
+    }
+}
+function prependOhlcvBars(bars) {
+    state.ohlcvData = bars.concat(state.ohlcvData);
+}
+function getOhlcvGeneration() {
+    return state.ohlcvGeneration;
+}
+function state_bumpOhlcvGeneration() {
+    state.ohlcvGeneration += 1;
+    return state.ohlcvGeneration;
+}
+function getOhlcvPagination() {
+    return state.ohlcvPagination;
+}
+function setOhlcvPagination(pagination) {
+    state.ohlcvPagination = pagination;
+}
+function clearOhlcvPagination() {
+    state.ohlcvPagination = emptyPagination();
+}
+// ----- Visible range ------------------------------------------------------
+function getVisibleFromMs() {
+    return state.visibleFromMs;
+}
+function setVisibleFromMs(ms) {
+    state.visibleFromMs = ms;
+}
+function getVisibleToMs() {
+    return state.visibleToMs;
+}
+function setVisibleToMs(ms) {
+    state.visibleToMs = ms;
+}
+// ----- Realtime tick subscribers ------------------------------------------
+function registerRealtimeCallback(listenerGuid, cb) {
+    state.realtimeCallbacks[listenerGuid] = cb;
+}
+function unregisterRealtimeCallback(listenerGuid) {
+    delete state.realtimeCallbacks[listenerGuid];
+}
+function getRealtimeCallbacks() {
+    return state.realtimeCallbacks;
+}
 /**
  * Resets state to defaults — useful for unit tests. NOT for runtime use; the
  * WebView is created fresh per mount (the RN side recreates the HTML when
@@ -179,9 +257,16 @@ function __resetStateForTests() {
     state.isChartReady = false;
     state.currentSymbol = 'ASSET';
     state.currentResolution = '5';
+    state.currentChartType = 2;
     state.theme = null;
     state.libraryLoaded = false;
     state.libraryError = null;
+    state.ohlcvData = [];
+    state.ohlcvGeneration = 0;
+    state.ohlcvPagination = emptyPagination();
+    state.visibleFromMs = null;
+    state.visibleToMs = null;
+    state.realtimeCallbacks = {};
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/loadLibrary.ts
@@ -197,7 +282,7 @@ const CHARTING_LIBRARY_FILE = 'charting_library.js';
  * Loads the TradingView library script. Subsequent calls resolve immediately
  * if the library is already loaded; rejected if a previous load failed.
  */
-function loadTradingViewLibrary(libraryUrl) {
+function loadLibrary_loadTradingViewLibrary(libraryUrl) {
     if (isLibraryLoaded()) {
         return Promise.resolve();
     }
@@ -222,6 +307,49 @@ function loadTradingViewLibrary(libraryUrl) {
         };
         document.head.appendChild(script);
     });
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/messages/handler.ts
+// Inbound message dispatcher. Modules register typed handlers for the message
+// types they own; the dispatcher routes incoming messages by \`type\`.
+//
+// Mirrors legacy chartLogic.js \`handleMessage\` (lines ~341-401) but inverts
+// control: instead of a hard-coded switch, modules subscribe via
+// registerHandler. This lets Phase 2/3/5/6 add message types without editing
+// this file.
+//
+// Phase 1 routes SET_THEME_COLORS via widget/theme.ts.
+
+const handlers = new Map();
+/**
+ * Register a handler for a single inbound message type. Subsequent calls
+ * with the same type replace the previous handler (intentional — there's
+ * one owner per message type by convention).
+ */
+function registerHandler(type, handler) {
+    handlers.set(type, handler);
+}
+/**
+ * Dispatches an incoming message to the registered handler. Unknown types
+ * are silently dropped — future phases will add their handlers; the
+ * dispatcher doesn't need to know what's coming.
+ *
+ * Errors inside a handler are forwarded to RN via ERROR.
+ */
+function dispatchInboundMessage(message) {
+    const handler = handlers.get(message.type);
+    if (!handler)
+        return;
+    try {
+        handler(message.payload);
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+/** Test-only: clear all registered handlers. */
+function __resetHandlersForTests() {
+    handlers.clear();
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/theme.ts
@@ -381,64 +509,1129 @@ function __resetThemeForTests() {
     listeners.clear();
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/messages/handler.ts
-// Inbound message dispatcher. Modules register typed handlers for the message
-// types they own; the dispatcher routes incoming messages by \`type\`.
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/pagination/priceApi.ts
+// Default OHLCV paginator — fetches older bars from the MetaMask Price API.
 //
-// Mirrors legacy chartLogic.js \`handleMessage\` (lines ~341-401) but inverts
-// control: instead of a hard-coded switch, modules subscribe via
-// registerHandler. This lets Phase 2/3/5/6 add message types without editing
-// this file.
+// Used by widget/datafeed.ts when state.ohlcvPagination has a cursor. Phase 6
+// adds pagination/rnBacked.ts as an alternative strategy (consumer-supplied
+// fetchOlderBars callback for Perps' RN-backed candle source).
 //
-// Phase 1 routes SET_THEME_COLORS via widget/theme.ts.
+// Ported from chartLogic.js \`fetchOlderBars\` (lines ~4991-5072), trimmed of
+// the layout-settle pending machinery and trade-marker refresh hook (those
+// belong to later phases / are gone after Phase 4).
 
-const handlers = new Map();
+
+const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
 /**
- * Register a handler for a single inbound message type. Subsequent calls
- * with the same type replace the previous handler (intentional — there's
- * one owner per message type by convention).
+ * Fetches the next page from the Price API and merges new bars into state.
+ * Resolves with the slice strictly older than \`oldestAtDefer\` (TV's getBars
+ * wants only bars before its current visible window). Returns \`noData: true\`
+ * when the cursor is exhausted or the response yields no older bars.
+ *
+ * Aborts with \`noData: true\` when ohlcvGeneration changes mid-flight (a newer
+ * SET_OHLCV_DATA has invalidated this fetch).
  */
-function registerHandler(type, handler) {
-    handlers.set(type, handler);
+async function fetchOlderBarsFromPriceApi(request) {
+    const pag = getOhlcvPagination();
+    if (!pag.nextCursor || !pag.hasMore || !pag.assetId) {
+        return { olderBars: [], noData: true };
+    }
+    const generation = getOhlcvGeneration();
+    const params = [];
+    params.push(\`nextCursor=\${encodeURIComponent(pag.nextCursor)}\`);
+    if (pag.vsCurrency) {
+        params.push(\`vsCurrency=\${encodeURIComponent(pag.vsCurrency)}\`);
+    }
+    const url = \`\${OHLCV_BASE_URL}/\${pag.assetId}?\${params.join('&')}\`;
+    let response;
+    try {
+        response = await fetch(url);
+    }
+    catch (error) {
+        if (generation !== getOhlcvGeneration()) {
+            return { olderBars: [], noData: true };
+        }
+        reportErrorToRN(error);
+        return { olderBars: [], noData: true };
+    }
+    if (!response.ok) {
+        if (generation !== getOhlcvGeneration()) {
+            return { olderBars: [], noData: true };
+        }
+        reportErrorToRN(new Error(\`OHLCV API error: \${response.status}\`));
+        return { olderBars: [], noData: true };
+    }
+    let parsed;
+    try {
+        parsed = (await response.json());
+    }
+    catch (error) {
+        reportErrorToRN(error);
+        return { olderBars: [], noData: true };
+    }
+    if (generation !== getOhlcvGeneration()) {
+        return { olderBars: [], noData: true };
+    }
+    if (!parsed || !Array.isArray(parsed.data)) {
+        reportErrorToRN(new Error('OHLCV API response: invalid payload'));
+        return { olderBars: [], noData: true };
+    }
+    const newBars = parsed.data.map((c) => ({
+        time: c.timestamp,
+        open: c.open,
+        high: c.high,
+        low: c.low,
+        close: c.close,
+        volume: c.volume,
+    }));
+    setOhlcvPagination({
+        ...pag,
+        nextCursor: parsed.nextCursor ?? null,
+        hasMore: !!parsed.hasNext,
+    });
+    if (newBars.length > 0) {
+        prependOhlcvBars(newBars);
+    }
+    const olderBars = newBars.filter((b) => b.time < request.oldestAtDefer);
+    return { olderBars, noData: olderBars.length === 0 };
 }
 /**
- * Dispatches an incoming message to the registered handler. Unknown types
- * are silently dropped — future phases will add their handlers; the
- * dispatcher doesn't need to know what's coming.
- *
- * Errors inside a handler are forwarded to RN via ERROR.
+ * Test-only helper: invalidates any in-flight fetches by bumping the generation.
  */
-function dispatchInboundMessage(message) {
-    const handler = handlers.get(message.type);
-    if (!handler)
+function invalidateInFlightFetches() {
+    bumpOhlcvGeneration();
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/datafeed.ts
+// TradingView UDF datafeed object passed into the widget constructor.
+//
+// Ported from chartLogic.js \`customDatafeed\` (lines ~5074-5203) and its
+// helpers \`filterBarsForRange\` (~4944), \`fetchOlderBars\` (~4991).
+// Phase 2 wires the default Price API paginator; Phase 6 swaps in
+// pagination/rnBacked.ts when consumers opt into the custom strategy.
+
+
+
+const SUPPORTED_RESOLUTIONS = [
+    '1',
+    '3',
+    '5',
+    '15',
+    '30',
+    '60',
+    '120',
+    '240',
+    '480',
+    '720',
+    '1D',
+    '3D',
+    '1W',
+    '1M',
+];
+const VARIABLE_TICK_SIZE = [
+    '0.0000000001',
+    '0.000001',
+    '0.00000001',
+    '0.0001',
+    '0.000001',
+    '0.01',
+    '0.0001',
+    '1',
+    '0.01',
+    '10000',
+    '0.1',
+].join(' ');
+/** Strips internal fields from an OHLCVBar to the shape TV expects. */
+function toTVBar(bar) {
+    return {
+        time: bar.time,
+        open: bar.open,
+        high: bar.high,
+        low: bar.low,
+        close: bar.close,
+        volume: bar.volume,
+    };
+}
+/**
+ * Filters the in-memory OHLCV array to the requested time window.
+ * Mirrors legacy \`filterBarsForRange\`: returns bars in [fromMs, toMs); if
+ * fewer than countBack bars match, falls back to the last countBack bars
+ * before toMs.
+ */
+function filterBarsForRange(fromMs, toMs, countBack) {
+    const all = getOhlcvData();
+    const inRange = [];
+    for (const bar of all) {
+        if (bar.time >= fromMs && bar.time < toMs) {
+            inRange.push(toTVBar(bar));
+        }
+    }
+    if (inRange.length >= countBack) {
+        return inRange;
+    }
+    const beforeTo = all.filter((b) => b.time < toMs);
+    const startIdx = Math.max(0, beforeTo.length - countBack);
+    return beforeTo.slice(startIdx).map(toTVBar);
+}
+const customDatafeed = {
+    onReady(callback) {
+        setTimeout(() => {
+            callback({
+                supported_resolutions: SUPPORTED_RESOLUTIONS,
+                supports_marks: false,
+                supports_timescale_marks: false,
+                supports_time: true,
+            });
+        }, 0);
+    },
+    searchSymbols(_userInput, _exchange, _symbolType, onResult) {
+        onResult([]);
+    },
+    resolveSymbol(symbolName, onResolve, _onError) {
+        const info = {
+            name: symbolName,
+            ticker: symbolName,
+            description: symbolName,
+            type: 'crypto',
+            session: '24x7',
+            timezone: 'Etc/UTC',
+            exchange: '',
+            minmov: 1,
+            pricescale: 100,
+            variable_tick_size: VARIABLE_TICK_SIZE,
+            has_intraday: true,
+            has_daily: true,
+            has_weekly_and_monthly: true,
+            supported_resolutions: SUPPORTED_RESOLUTIONS,
+            volume_precision: 0,
+            data_status: 'endofday',
+        };
+        setTimeout(() => onResolve(info), 0);
+    },
+    getBars(_symbolInfo, _resolution, periodParams, onResult, onError) {
+        try {
+            const fromMs = periodParams.from * 1000;
+            const toMs = periodParams.to * 1000;
+            const { countBack, firstDataRequest } = periodParams;
+            const bars = filterBarsForRange(fromMs, toMs, countBack);
+            if (bars.length > 0) {
+                onResult(bars, { noData: false });
+                return;
+            }
+            const all = getOhlcvData();
+            if (firstDataRequest || all.length === 0) {
+                onResult([], { noData: true });
+                return;
+            }
+            // Page older bars from the default Price API paginator. Phase 6 will
+            // route this through a consumer-supplied strategy when pagination.mode
+            // === 'custom'.
+            const oldestAtDefer = all[0].time;
+            fetchOlderBarsFromPriceApi({ oldestAtDefer })
+                .then(({ olderBars, noData }) => {
+                onResult(olderBars, { noData });
+            })
+                .catch((error) => {
+                reportErrorToRN(error);
+                onResult([], { noData: true });
+            });
+        }
+        catch (error) {
+            onError(error instanceof Error ? error.message : String(error ?? 'Unknown'));
+        }
+    },
+    subscribeBars(_symbolInfo, _resolution, onTick, listenerGuid) {
+        registerRealtimeCallback(listenerGuid, onTick);
+    },
+    unsubscribeBars(listenerGuid) {
+        unregisterRealtimeCallback(listenerGuid);
+    },
+};
+/**
+ * Forward a realtime tick to every TradingView subscribeBars listener.
+ * Called from widget/ohlcvIngestion.ts on REALTIME_UPDATE.
+ */
+function forwardRealtimeTick(tick) {
+    const callbacks = getRealtimeCallbacks();
+    for (const guid of Object.keys(callbacks)) {
+        try {
+            callbacks[guid](tick);
+        }
+        catch (error) {
+            reportErrorToRN(error);
+        }
+    }
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/resolution.ts
+// Maps OHLCV bar intervals (milliseconds) to TradingView resolution strings.
+//
+// Ported verbatim from chartLogic.js INTERVAL_MS_TO_TV + detectResolution
+// (lines ~463-505). Phase 2 consumes this from widget/ohlcvIngestion.ts.
+/** OHLCV bar interval in milliseconds → TradingView resolution code. */
+const INTERVAL_MS_TO_TV = {
+    60000: '1',
+    180000: '3',
+    300000: '5',
+    900000: '15',
+    1800000: '30',
+    3600000: '60',
+    7200000: '120',
+    14400000: '240',
+    28800000: '480',
+    43200000: '720',
+    86400000: '1D',
+    259200000: '3D',
+    604800000: '1W',
+    2592000000: '1M',
+};
+const DEFAULT_RESOLUTION = '5';
+/**
+ * Picks the closest matching TV resolution for an OHLCV bar series.
+ * Uses the median diff over the first few bars so a single gap doesn't skew
+ * the result (matches legacy chartLogic.js detectResolution semantics).
+ */
+function detectResolution(data) {
+    if (data.length < 2) {
+        return DEFAULT_RESOLUTION;
+    }
+    const sampleCount = Math.min(data.length - 1, 10);
+    const diffs = [];
+    for (let i = 0; i < sampleCount; i++) {
+        diffs.push(data[i + 1].time - data[i].time);
+    }
+    diffs.sort((a, b) => a - b);
+    const median = diffs[Math.floor(diffs.length / 2)];
+    let best = DEFAULT_RESOLUTION;
+    let bestDist = Infinity;
+    for (const key of Object.keys(INTERVAL_MS_TO_TV)) {
+        const intervalMs = Number(key);
+        const distance = Math.abs(intervalMs - median);
+        if (distance < bestDist) {
+            bestDist = distance;
+            best = INTERVAL_MS_TO_TV[intervalMs];
+        }
+    }
+    return best;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/timeUtils.ts
+// Time normalization helpers used across modules.
+//
+// Ported from chartLogic.js: normalizeChartUnixSec (line ~3564),
+// chartRawTimeToUnixMs (line ~3573), getApproxBarDurationSec (line ~3587).
+// Phase 2's widget/ohlcvIngestion.ts and pagination/priceApi.ts consume
+// these.
+/**
+ * Convert a timestamp to unix seconds, accepting either ms or seconds.
+ * Values ≥ 1e12 are treated as milliseconds (~Sep 2001 in seconds; safe
+ * threshold). Returns null for non-finite input.
+ */
+function normalizeChartUnixSec(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+        return null;
+    }
+    return n >= 1e12 ? Math.floor(n / 1000) : Math.floor(n);
+}
+/**
+ * Convert a raw TradingView timestamp to unix milliseconds. Unlike
+ * normalizeChartUnixSec, keeps sub-second precision when the input is already
+ * in seconds (multiplies by 1000 instead of flooring).
+ */
+function chartRawTimeToUnixMs(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+        return null;
+    }
+    if (n >= 1e12) {
+        return n;
+    }
+    return n * 1000;
+}
+const DEFAULT_BAR_DURATION_SEC = 300;
+const MIN_BAR_DURATION_SEC = 60;
+/**
+ * Approximates the bar duration (seconds) for a series of OHLCV bars by
+ * measuring the gap between the last two points. Used for visible-range
+ * alignment and end-icon insets.
+ *
+ * Returns a sensible default when the series is too short.
+ */
+function getApproxBarDurationSec(bars) {
+    if (!bars || bars.length < 2) {
+        return DEFAULT_BAR_DURATION_SEC;
+    }
+    const lastMs = Math.abs(bars[bars.length - 1].time - bars[bars.length - 2].time);
+    return Math.max(MIN_BAR_DURATION_SEC, Math.round(lastMs / 1000));
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/ohlcvIngestion.ts
+// SET_OHLCV_DATA and REALTIME_UPDATE inbound handlers.
+//
+// Ported from chartLogic.js: handleSetOHLCVData (~line 507) and
+// handleRealtimeUpdate (~line 658).
+//
+// Phase 2 simplifications vs legacy:
+// - No \`__mmLayoutSettlePending\` / \`beginDeferredLayoutSettleAfterOhlcvReload\`
+//   plumbing — CHART_LAYOUT_SETTLED is emitted on chart ready and on each
+//   data load directly.
+// - No chrome-related branches (\`refreshLineChartOverlays\`, line-end-dot,
+//   custom dashed price line) — those features are deleted in Phase 4.
+// - No trade-marker / indicator-state clear paths — Phase 5 / Phase 3 own
+//   those overlays and they hook into their own message types, not into
+//   SET_OHLCV_DATA's reset path.
+
+
+
+
+
+let firstDataCallback = null;
+let firstDataDelivered = false;
+/**
+ * Registers the callback invoked the first time SET_OHLCV_DATA arrives.
+ * Bootstrap wires this to widget creation (loads the TV library if needed,
+ * then calls createChartWidget).
+ */
+function onFirstOhlcvData(cb) {
+    firstDataCallback = cb;
+}
+function handleSetOHLCVData(payload) {
+    if (!payload || !payload.data || payload.data.length === 0) {
         return;
+    }
+    setOhlcvData(payload.data);
+    state_bumpOhlcvGeneration();
+    if (payload.pagination) {
+        setOhlcvPagination({
+            nextCursor: payload.pagination.nextCursor ?? null,
+            hasMore: !!payload.pagination.hasMore,
+            assetId: payload.pagination.assetId ?? null,
+            vsCurrency: payload.pagination.vsCurrency ?? null,
+        });
+    }
+    else {
+        clearOhlcvPagination();
+    }
+    setVisibleFromMs(payload.visibleFromMs ?? null);
+    setVisibleToMs(payload.visibleToMs ?? null);
+    const newResolution = detectResolution(payload.data);
+    const previousResolution = getCurrentResolution();
+    setCurrentResolution(newResolution);
+    const widget = getWidget();
+    if (widget && isChartReady()) {
+        try {
+            const chart = widget.activeChart();
+            if (previousResolution !== newResolution) {
+                chart.setResolution(newResolution, () => {
+                    try {
+                        chart.resetData();
+                        applyVisibleRange(chart);
+                        emitLayoutSettled();
+                    }
+                    catch (error) {
+                        reportErrorToRN(error);
+                    }
+                });
+            }
+            else {
+                chart.resetData();
+                applyVisibleRange(chart);
+                emitLayoutSettled();
+            }
+        }
+        catch (error) {
+            reportErrorToRN(error);
+        }
+        return;
+    }
+    if (!widget && firstDataCallback && !firstDataDelivered) {
+        firstDataDelivered = true;
+        try {
+            firstDataCallback();
+        }
+        catch (error) {
+            firstDataDelivered = false;
+            reportErrorToRN(error);
+        }
+    }
+}
+function handleRealtimeUpdate(payload) {
+    if (!payload || !payload.bar)
+        return;
+    const bar = payload.bar;
+    appendOrReplaceLastBar(bar);
+    forwardRealtimeTick({
+        time: bar.time,
+        open: bar.open,
+        high: bar.high,
+        low: bar.low,
+        close: bar.close,
+        volume: bar.volume,
+    });
+}
+function applyVisibleRange(chart) {
+    const fromMs = getVisibleFromMs();
+    if (fromMs == null) {
+        try {
+            chart.getTimeScale().setRightOffset(2);
+        }
+        catch (error) {
+            reportErrorToRN(error);
+        }
+        return;
+    }
+    const capturedGeneration = getOhlcvGeneration();
+    const subscription = chart.onDataLoaded();
+    const onLoaded = () => {
+        subscription.unsubscribe(null, onLoaded);
+        if (capturedGeneration !== getOhlcvGeneration()) {
+            return;
+        }
+        const data = getOhlcvData();
+        const lastBar = data[data.length - 1];
+        const toSec = lastBar
+            ? Math.ceil(lastBar.time / 1000)
+            : Math.ceil(Date.now() / 1000);
+        const barPadSec = getApproxBarDurationSec(data) * 2;
+        try {
+            chart.setVisibleRange({ from: Math.floor(fromMs / 1000), to: toSec + barPadSec }, { percentRightMargin: 0 });
+        }
+        catch (error) {
+            reportErrorToRN(error);
+        }
+    };
+    subscription.subscribe(null, onLoaded);
+}
+function emitLayoutSettled() {
+    const send = () => {
+        if (getWidget() && isChartReady()) {
+            postToRN('CHART_LAYOUT_SETTLED', {});
+        }
+    };
     try {
-        handler(message.payload);
+        requestAnimationFrame(() => {
+            requestAnimationFrame(send);
+        });
+    }
+    catch {
+        setTimeout(send, 48);
+    }
+}
+/** Test-only: clear the first-data trigger and the delivery flag. */
+function __resetOhlcvIngestionForTests() {
+    firstDataCallback = null;
+    firstDataDelivered = false;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/chartType.ts
+// SET_CHART_TYPE handler — switches between candle (1) and line (2) types.
+//
+// Ported from chartLogic.js handleSetChartType (~line 2457), stripped of:
+// - custom-chrome cleanup (removeAllLastPriceHorizontalOverlays,
+//   ensureNoLineChartEndIcons) — deleted in Phase 4
+// - chart-interaction analytics suppress — Phase 2's interaction module
+//   owns its own debouncing
+// - per-type series style re-application — superseded by Phase 1's
+//   widget/theme module, which re-applies series colors when needed
+
+
+function handleSetChartType(payload) {
+    const widget = getWidget();
+    if (!widget) {
+        // Widget not built yet; persist the desired type so initChart picks it up.
+        setCurrentChartType(payload.type);
+        return;
+    }
+    setCurrentChartType(payload.type);
+    if (!isChartReady()) {
+        return;
+    }
+    try {
+        widget.activeChart().setChartType(payload.type);
     }
     catch (error) {
         reportErrorToRN(error);
     }
 }
-/** Test-only: clear all registered handlers. */
-function __resetHandlersForTests() {
-    handlers.clear();
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/visualOverrides.ts
+// Visual override application — grid colour, pane separator, current-price
+// line colour. Driven from CONFIG.visualOverrides (set by the consumer's
+// \`visualOverrides\` prop on the RN side).
+//
+// New module in Phase 2 — there was no single legacy equivalent; the legacy
+// code spread these overrides across init + theme + series style branches.
+// Centralising here lets Perps (Phase 6) feed surface-specific overrides via
+// the same path.
+
+
+/**
+ * Builds the TradingView override object from a VisualOverridesConfig.
+ * Returned shape is suitable for passing into TradingView's \`applyOverrides\`.
+ */
+function buildVisualOverrides(config) {
+    if (!config)
+        return {};
+    const overrides = {};
+    if (config.gridLineColor != null) {
+        overrides['paneProperties.vertGridProperties.color'] = config.gridLineColor;
+        overrides['paneProperties.horzGridProperties.color'] = config.gridLineColor;
+    }
+    if (config.hidePaneSeparator) {
+        overrides['paneProperties.separatorColor'] = 'rgba(0,0,0,0)';
+    }
+    if (config.currentPriceLineColor != null) {
+        overrides['mainSeriesProperties.priceLineColor'] =
+            config.currentPriceLineColor;
+    }
+    return overrides;
+}
+/**
+ * Apply visual overrides to a live widget. Safe to call before chart-ready —
+ * TradingView queues overrides internally. Errors are forwarded to RN.
+ */
+function applyVisualOverrides(config) {
+    const widget = getWidget();
+    if (!widget)
+        return;
+    const overrides = buildVisualOverrides(config);
+    if (Object.keys(overrides).length === 0)
+        return;
+    try {
+        widget.applyOverrides(overrides);
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/tvDomHelpers.ts
+// Pure DOM traversal helpers for TradingView's same-origin iframe layout.
+//
+// Ported from chartLogic.js: findOuterChartMarkupTable (~line 1977) and
+// eachChartDocument (~line 2003). Used by externalLinkBridge and (in later
+// phases) by indicator legend overlay layout calculations.
+/**
+ * Find the outermost \`.chart-markup-table\` element in a document — the
+ * container that wraps the price + time axes. Skips inner panes and axis
+ * containers so consumers can reason about chart bounds.
+ */
+function findOuterChartMarkupTable(doc) {
+    if (!doc) {
+        return null;
+    }
+    const list = doc.querySelectorAll('.chart-markup-table');
+    for (const el of Array.from(list)) {
+        const className = el.className ? String(el.className) : '';
+        if (el.classList.contains('pane'))
+            continue;
+        if (className.indexOf('price-axis-container') !== -1)
+            continue;
+        if (className.indexOf('time-axis') !== -1)
+            continue;
+        return el;
+    }
+    return list.length ? list[0] : null;
+}
+/**
+ * Run \`fn(document)\` and \`fn(iframe.contentDocument)\` for the TradingView
+ * same-origin iframe. TradingView's chart can mount in either the host doc
+ * or a same-origin iframe depending on \`iframe_loading_same_origin\`; helpers
+ * that traverse DOM should hit both.
+ */
+function eachChartDocument(fn) {
+    try {
+        fn(document);
+    }
+    catch {
+        // Continue to the iframe document.
+    }
+    try {
+        const container = document.getElementById('tv_chart_container');
+        const iframe = container?.querySelector('iframe');
+        if (iframe && iframe.contentDocument) {
+            fn(iframe.contentDocument);
+        }
+    }
+    catch {
+        // No-op — iframe access can fail for cross-origin or detached frames.
+    }
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/externalLinkBridge.ts
+// Intercepts in-iframe TradingView link clicks and forwards them to React
+// Native via CHART_TRADINGVIEW_CLICKED, so the user opens links in the
+// system browser instead of letting the iframe navigate.
+//
+// Ported from chartLogic.js: TV_EXTERNAL_BRIDGE_DEBOUNCE_MS,
+// isTradingViewExternalHostname, isTradingViewExternalHref,
+// installTradingViewExternalOpenBridge (lines ~2016-2122).
+
+
+const TV_EXTERNAL_BRIDGE_DEBOUNCE_MS = 600;
+// Module-local debounce timestamp; replaces window.__mmLastTvExternalBridgeAt.
+let lastBridgeAt = 0;
+function isTradingViewExternalHostname(hostname) {
+    if (!hostname)
+        return false;
+    const h = String(hostname).toLowerCase();
+    return (h === 'tradingview.com' ||
+        h === 'www.tradingview.com' ||
+        /\\.tradingview\\.com$/.test(h));
+}
+function isTradingViewExternalHref(href) {
+    if (!href)
+        return false;
+    try {
+        const base = window.location?.href ?? 'https://localhost/';
+        const u = new URL(href, base);
+        return isTradingViewExternalHostname(u.hostname);
+    }
+    catch {
+        return false;
+    }
+}
+function sendTradingViewClicked(url) {
+    postToRN('CHART_TRADINGVIEW_CLICKED', url ? { url } : {});
+}
+function handleTradingViewLinkCapture(ev) {
+    const target = ev.target;
+    if (!target || typeof target.closest !== 'function')
+        return;
+    const anchor = target.closest('a');
+    if (!anchor || !anchor.href || !isTradingViewExternalHref(anchor.href)) {
+        return;
+    }
+    const now = Date.now();
+    if (now - lastBridgeAt < TV_EXTERNAL_BRIDGE_DEBOUNCE_MS)
+        return;
+    lastBridgeAt = now;
+    try {
+        ev.preventDefault();
+        ev.stopPropagation();
+    }
+    catch {
+        // preventDefault on a passive listener throws; safe to ignore.
+    }
+    sendTradingViewClicked(anchor.href);
+}
+function patchWindowOpen(win) {
+    if (!win || !win.open || win.__mmTvOpenPatched)
+        return;
+    win.__mmTvOpenPatched = true;
+    const origOpen = win.open.bind(win);
+    win.open = function patchedOpen(url, target, features) {
+        if (url != null && url !== '' && isTradingViewExternalHref(String(url))) {
+            const now = Date.now();
+            if (now - lastBridgeAt < TV_EXTERNAL_BRIDGE_DEBOUNCE_MS) {
+                return null;
+            }
+            lastBridgeAt = now;
+            sendTradingViewClicked(String(url));
+            return null;
+        }
+        return origOpen(url, target, features);
+    };
+}
+function applyAllOnce() {
+    patchWindowOpen(window);
+    eachChartDocument((doc) => {
+        try {
+            patchWindowOpen(doc.defaultView);
+        }
+        catch {
+            // defaultView access can fail in detached iframes.
+        }
+        const flagged = doc;
+        if (doc && doc.addEventListener && !flagged.__mmTvLinkCaptureInstalled) {
+            flagged.__mmTvLinkCaptureInstalled = true;
+            doc.addEventListener('click', handleTradingViewLinkCapture, true);
+        }
+    });
+}
+/**
+ * Installs the bridge. Safe to call multiple times — each document is
+ * tagged with __mmTvLinkCaptureInstalled to avoid duplicate listeners.
+ *
+ * Reapplies on the iframe \`load\` event and after 200ms / 800ms / 2000ms
+ * because TradingView creates the iframe asynchronously and may swap its
+ * contentDocument; we don't have a reliable single signal for "fully loaded".
+ */
+function installTradingViewExternalOpenBridge() {
+    applyAllOnce();
+    try {
+        const container = document.getElementById('tv_chart_container');
+        const iframe = container?.querySelector('iframe');
+        if (iframe) {
+            iframe.addEventListener('load', applyAllOnce);
+        }
+    }
+    catch {
+        // No-op — container/iframe may not exist yet on early calls.
+    }
+    setTimeout(applyAllOnce, 200);
+    setTimeout(applyAllOnce, 800);
+    setTimeout(applyAllOnce, 2000);
+}
+/** Test-only: reset module state between tests. */
+function __resetExternalLinkBridgeForTests() {
+    lastBridgeAt = 0;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/initChart.ts
+// TradingView widget creation and onChartReady orchestration.
+//
+// Ported from chartLogic.js initChart() / onChartReady (lines ~5242-5601),
+// stripped of:
+//   - chrome-related branches (useCustomLabels / useCustomDashed) — Phase 4
+//   - data-dependent gating (\`window.ohlcvData.length === 0\`) — Phase 2 calls
+//     this function only once data is in
+//   - custom crosshair listener + chart-interaction analytics — Phase 2
+//     (interaction/) will own this
+//   - line-end overlays / last-price overlays / legend overlay refresh —
+//     Phase 4 deletes the first two; Phase 3 owns the legend
+//
+// Phase 1's job is the constructor call + onChartReady hook + library load
+// orchestration. Phase 2 wires the datafeed.
+
+
+
+
+
+/**
+ * Generates a 19-shade palette from a base hex color, light→base→dark.
+ * Used for TradingView \`custom_themes.dark.color{1,3}\`. Ported verbatim
+ * from chartLogic.js \`generatePaletteShades\` (~line 999).
+ */
+function generatePaletteShades(hex) {
+    const r = parseInt(hex.slice(1, 3), 16);
+    const g = parseInt(hex.slice(3, 5), 16);
+    const b = parseInt(hex.slice(5, 7), 16);
+    const shades = [];
+    for (let i = 0; i < 19; i++) {
+        const t = i / 18;
+        let sr;
+        let sg;
+        let sb;
+        if (t < 0.5) {
+            const f = 1 - t * 2;
+            sr = Math.round(r + (255 - r) * f);
+            sg = Math.round(g + (255 - g) * f);
+            sb = Math.round(b + (255 - b) * f);
+        }
+        else {
+            const f2 = (t - 0.5) * 2;
+            sr = Math.round(r * (1 - f2));
+            sg = Math.round(g * (1 - f2));
+            sb = Math.round(b * (1 - f2));
+        }
+        shades.push('#' + ((1 << 24) + (sr << 16) + (sg << 8) + sb).toString(16).slice(1));
+    }
+    return shades;
+}
+/**
+ * Shared TV widget defaults, minus disabled_features (computed from
+ * CONFIG.features at call time). Mirrors legacy enabled_features list.
+ */
+const DEFAULT_ENABLED_FEATURES = [
+    'study_templates',
+    'iframe_loading_same_origin',
+    'always_show_legend_values_on_mobile',
+];
+function resolveDisabledFeatures(features) {
+    const list = (features.disabledFeatures ?? []).slice();
+    if (!features.enableDrawingTools) {
+        list.push('left_toolbar');
+        list.push('context_menus');
+    }
+    list.push('use_localstorage_for_settings');
+    return list;
+}
+function buildWidgetOverrides(theme) {
+    return {
+        'paneProperties.background': theme.backgroundColor,
+        'paneProperties.backgroundType': 'solid',
+        'paneProperties.vertGridProperties.color': 'transparent',
+        'paneProperties.horzGridProperties.color': 'transparent',
+        'scalesProperties.lineColor': theme.backgroundColor,
+        'timeScale.borderColor': theme.backgroundColor,
+        'scalesProperties.fontSize': 12,
+        'scalesProperties.showStudyLastValue': false,
+        'scalesProperties.showSeriesLastValue': true,
+        'scalesProperties.showSymbolLabels': false,
+        'scalesProperties.showRightScale': true,
+        'scalesProperties.showLeftScale': false,
+        'scalesProperties.showPriceScaleCrosshairLabel': true,
+        'scalesProperties.showTimeScaleCrosshairLabel': true,
+        'paneProperties.legendProperties.showSeriesTitle': false,
+        'paneProperties.legendProperties.showSeriesOHLC': false,
+        'paneProperties.legendProperties.showBarChange': false,
+        'paneProperties.legendProperties.showVolume': false,
+        'paneProperties.legendProperties.showBackground': false,
+        'paneProperties.legendProperties.showStudyTitles': false,
+        'paneProperties.legendProperties.showStudyArguments': false,
+        'paneProperties.legendProperties.showStudyValues': false,
+        'mainSeriesProperties.showPriceLine': true,
+        ...getCandleStyleOverrides(theme),
+        ...getSeriesColorOverrides(getThemeLineColor(theme), getThemeLastPriceLineColor(theme)),
+        ...getBuiltInScaleLabelOverrides(theme),
+    };
+}
+/**
+ * Builds the TradingView widget. Returns the widget; the caller is expected
+ * to store it via setWidget(). Emits CHART_READY + CHART_LAYOUT_SETTLED to
+ * RN when the widget reports onChartReady.
+ */
+function createChartWidget(config, options) {
+    const TradingView = window.TradingView;
+    if (!TradingView) {
+        throw new Error('TradingView library not loaded');
+    }
+    const theme = getTheme();
+    if (!theme) {
+        throw new Error('Theme not initialised — call initThemeFromConfig first');
+    }
+    const features = config.features ?? {};
+    const disabledFeatures = resolveDisabledFeatures(features);
+    const widget = new TradingView.widget({
+        symbol: getCurrentSymbol(),
+        interval: getCurrentResolution(),
+        timeframe: options.timeframe,
+        container: 'tv_chart_container',
+        datafeed: options.datafeed,
+        library_path: config.libraryUrl,
+        locale: 'en',
+        custom_formatters: options.customFormatters,
+        timezone: options.timezone ?? 'Etc/UTC',
+        fullscreen: false,
+        autosize: true,
+        theme: 'Dark',
+        disabled_features: disabledFeatures,
+        enabled_features: [...DEFAULT_ENABLED_FEATURES],
+        custom_themes: {
+            dark: {
+                color1: generatePaletteShades(theme.successColor),
+                color3: generatePaletteShades(theme.errorColor),
+            },
+        },
+        overrides: buildWidgetOverrides(theme),
+        loading_screen: {
+            backgroundColor: theme.backgroundColor,
+            foregroundColor: theme.successColor,
+        },
+    });
+    setWidget(widget);
+    widget.onChartReady(() => {
+        setChartReady(true);
+        hideLoadingOverlay();
+        installTradingViewExternalOpenBridge();
+        postToRN('CHART_READY', {});
+        scheduleChartLayoutSettledNotify();
+        if (options.onReady) {
+            try {
+                options.onReady(widget);
+            }
+            catch (error) {
+                reportErrorToRN(error);
+            }
+        }
+    });
+    return widget;
+}
+function hideLoadingOverlay() {
+    try {
+        const el = document.getElementById('loading-overlay');
+        el?.classList.add('hidden');
+    }
+    catch {
+        // Loading overlay may be absent in non-template contexts (e.g. tests).
+    }
+}
+/**
+ * Posts CHART_LAYOUT_SETTLED after two rAF ticks so RN's skeleton overlay
+ * can hide once TradingView has actually laid out. Mirrors legacy
+ * scheduleChartLayoutSettledNotify (~line 118).
+ */
+function scheduleChartLayoutSettledNotify() {
+    const send = () => {
+        if (getWidget()) {
+            postToRN('CHART_LAYOUT_SETTLED', {});
+        }
+    };
+    try {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(send);
+        });
+    }
+    catch {
+        setTimeout(send, 48);
+    }
+}
+/**
+ * Ensures library is loaded, then awaits caller-provided pre-widget setup.
+ * Phase 2's ohlcvIngestion calls this once SET_OHLCV_DATA arrives.
+ */
+async function ensureLibraryLoaded(libraryUrl) {
+    await loadTradingViewLibrary(libraryUrl);
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/interaction/crosshair.ts
+// Crosshair → CROSSHAIR_MOVE message bridge.
+//
+// Subscribes to TradingView's crossHairMoved() and posts the nearest OHLCV
+// bar to RN. RN side's parseWebViewMessage routes this to onCrosshairMove.
+//
+// Ported from chartLogic.js (~line 5672) but simplified:
+// - No custom DOM crosshair-label drawing (Phase 4 deleted that)
+// - No tooltip-CHART_INTERACTED side channel (visibleRange.ts owns analytics)
+// - No marker hit-test bookkeeping (Phase 5's overlays/tradeMarkers owns it)
+
+
+function nearestBar(timeSec, data) {
+    if (data.length === 0)
+        return null;
+    const targetMs = timeSec * 1000;
+    let best = null;
+    let bestDiff = Infinity;
+    for (const bar of data) {
+        const diff = Math.abs(bar.time - targetMs);
+        if (diff < bestDiff) {
+            bestDiff = diff;
+            best = bar;
+        }
+    }
+    return best;
+}
+/**
+ * Subscribes the chart's crosshair-move event. Each tick posts CROSSHAIR_MOVE
+ * with the nearest OHLCV bar, or null when the crosshair dismisses.
+ */
+function attachCrosshairListener(chart) {
+    try {
+        const subscription = chart.crossHairMoved();
+        subscription.subscribe(null, (params) => {
+            if (!params ||
+                params.price === undefined ||
+                params.time === undefined) {
+                postToRN('CROSSHAIR_MOVE', { bar: null });
+                return;
+            }
+            const bar = nearestBar(params.time, getOhlcvData());
+            postToRN('CROSSHAIR_MOVE', { bar });
+        });
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/interaction/visibleRange.ts
+// Visible-range / bar-spacing → CHART_INTERACTED analytics.
+//
+// Subscribes to TradingView's barSpacingChanged (zoom) and
+// onVisibleRangeChanged (pan), debouncing each by 450ms and skipping pan
+// events that fire within 500ms of a zoom (the same finger gesture often
+// triggers both).
+//
+// Ported from chartLogic.js zoom/pan debounce code in onChartReady
+// (~lines 5587-5661), trimmed of the legacy \`__mmSuppressChartInteractUntil\`
+// suppression (which gated analytics during OHLCV reloads — we emit
+// CHART_LAYOUT_SETTLED on each reload directly, so analytics can ignore
+// that gate).
+
+
+const DEBOUNCE_MS = 450;
+const PAN_SKIP_AFTER_ZOOM_MS = 500;
+const debounce = {
+    zoomTimer: null,
+    panTimer: null,
+    zoomLastFiredAt: 0,
+};
+function fireZoom() {
+    if (!getWidget() || !isChartReady())
+        return;
+    postToRN('CHART_INTERACTED', { interaction_type: 'zoom' });
+    debounce.zoomLastFiredAt = Date.now();
+}
+function firePan() {
+    if (!getWidget() || !isChartReady())
+        return;
+    if (Date.now() - debounce.zoomLastFiredAt < PAN_SKIP_AFTER_ZOOM_MS) {
+        return;
+    }
+    postToRN('CHART_INTERACTED', { interaction_type: 'pan' });
+}
+function scheduleZoom() {
+    if (debounce.zoomTimer)
+        clearTimeout(debounce.zoomTimer);
+    debounce.zoomTimer = setTimeout(() => {
+        debounce.zoomTimer = null;
+        fireZoom();
+    }, DEBOUNCE_MS);
+}
+function schedulePan() {
+    if (Date.now() - debounce.zoomLastFiredAt < PAN_SKIP_AFTER_ZOOM_MS)
+        return;
+    if (debounce.panTimer)
+        clearTimeout(debounce.panTimer);
+    debounce.panTimer = setTimeout(() => {
+        debounce.panTimer = null;
+        firePan();
+    }, DEBOUNCE_MS);
+}
+/**
+ * Subscribes zoom (barSpacingChanged) and pan (onVisibleRangeChanged) to the
+ * debounced CHART_INTERACTED emitters. Safe to call once per chart-ready.
+ */
+function attachVisibleRangeListeners(chart) {
+    try {
+        chart.getTimeScale().barSpacingChanged().subscribe(null, scheduleZoom);
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+    try {
+        chart.onVisibleRangeChanged().subscribe(null, schedulePan);
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+/** Test-only: reset the debounce state between cases. */
+function __resetVisibleRangeForTests() {
+    if (debounce.zoomTimer)
+        clearTimeout(debounce.zoomTimer);
+    if (debounce.panTimer)
+        clearTimeout(debounce.panTimer);
+    debounce.zoomTimer = null;
+    debounce.panTimer = null;
+    debounce.zoomLastFiredAt = 0;
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/bootstrap.ts
 // Entry orchestration. Called once from src/index.ts when the IIFE evaluates
 // inside the WebView.
 //
-// Responsibilities (Phase 1):
+// Responsibilities (Phase 1 + 2):
 // 1. Read window.CONFIG (must be inlined by AdvancedChartTemplate before this
 //    script runs).
 // 2. Seed core state with the symbol / resolution / theme from CONFIG.
 // 3. Wire the RN→WV bridge to the message dispatcher.
-// 4. Register Phase 1 message handlers (SET_THEME_COLORS).
-// 5. Begin loading the TradingView library so it's ready when Phase 2's
-//    ohlcvIngestion module calls createChartWidget.
-//
-// Phase 2 will add the data plumbing here (ohlcv module registers SET_OHLCV_DATA
-// and triggers widget creation once the library + initial data are both ready).
+// 4. Register Phase 1 + 2 message handlers:
+//      SET_THEME_COLORS (Phase 1), SET_OHLCV_DATA, REALTIME_UPDATE,
+//      SET_CHART_TYPE (Phase 2).
+// 5. Begin loading the TradingView library so it's ready when the first
+//    SET_OHLCV_DATA arrives.
+// 6. On first SET_OHLCV_DATA: createChartWidget with the default datafeed,
+//    apply visual overrides, attach crosshair + visible-range listeners.
+
+
+
+
+
+
+
 
 
 
@@ -452,9 +1645,9 @@ function readConfig() {
     return config;
 }
 /**
- * Phase 1 bootstrap. Returns the resolved CONFIG so callers (and tests) can
- * inspect what booted. Idempotent in the sense that the inbound listener is
- * a single subscription — the WebView is not expected to bootstrap twice.
+ * Phase 1 + 2 bootstrap. Returns the resolved CONFIG so callers (and tests)
+ * can inspect what booted. Idempotent on its inbound subscription — the
+ * WebView is not expected to bootstrap twice.
  */
 function bootstrap() {
     const config = readConfig();
@@ -462,17 +1655,48 @@ function bootstrap() {
     registerHandler('SET_THEME_COLORS', (payload) => {
         applyThemeColors(payload);
     });
+    registerHandler('SET_OHLCV_DATA', (payload) => {
+        handleSetOHLCVData(payload);
+    });
+    registerHandler('REALTIME_UPDATE', (payload) => {
+        handleRealtimeUpdate(payload);
+    });
+    registerHandler('SET_CHART_TYPE', (payload) => {
+        handleSetChartType(payload);
+    });
     onFromRN((message) => {
         dispatchInboundMessage(message);
     });
-    // Kick off TV library load — fire-and-forget. Phase 2's ohlcvIngestion
-    // awaits readiness before constructing the widget. Errors are already
-    // surfaced via reportErrorToRN inside loadTradingViewLibrary.
-    loadTradingViewLibrary(config.libraryUrl).catch((error) => {
+    // Library load is fire-and-forget; the first-data handler awaits readiness
+    // again before constructing the widget, so this is purely a head-start.
+    loadLibrary_loadTradingViewLibrary(config.libraryUrl).catch((error) => {
         reportErrorToRN(error);
     });
+    onFirstOhlcvData(() => {
+        loadLibrary_loadTradingViewLibrary(config.libraryUrl)
+            .then(() => {
+            createChartWidget(config, {
+                datafeed: customDatafeed,
+                onReady: (widget) => {
+                    try {
+                        applyVisualOverrides(config.visualOverrides);
+                        const chart = widget.activeChart();
+                        attachCrosshairListener(chart);
+                        attachVisibleRangeListeners(chart);
+                        scheduleChartLayoutSettledNotify();
+                    }
+                    catch (error) {
+                        reportErrorToRN(error);
+                    }
+                },
+            });
+        })
+            .catch((error) => {
+            reportErrorToRN(error);
+        });
+    });
     // DEBUG signal so RN can confirm the modular bundle reached bootstrap.
-    // Removed in Phase 7 once the feature flag is gone.
+    // Removed in Phase 7 once the legacy bundle is gone.
     postToRN('DEBUG', { message: 'modular-bootstrap-ready' });
     return config;
 }
