@@ -16,6 +16,7 @@ import { ActivityListItemRowLayout } from './ActivityListItemRowLayout';
 import { PendingActivityListItemRow } from './PendingActivityListItemRow';
 import { resolveIconType } from './resolveIconType';
 import { useActivityListItemRowContent } from './useActivityListItemRowContent';
+import { useNftActivityImage } from './useNftActivityImage';
 import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
 import type { ActivityKind } from '../../../util/activity-adapters';
 
@@ -71,6 +72,8 @@ function ResolvedActivityListItemRow({
     undefined,
     bridgeHistoryItem,
   );
+
+  const nftImageUrl = useNftActivityImage(item);
   const styles = createStyles(colors, typography);
   const isFailed = item.status === 'failed' || item.status === 'cancelled';
   const icon = getTransactionIcon(
@@ -95,7 +98,7 @@ function ResolvedActivityListItemRow({
         <ActivityListItemRowIcon
           fallbackIcon={icon}
           networkImageSource={networkImageSource}
-          iconUrl={content.avatarIconUrl}
+          iconUrl={content.avatarIconUrl ?? nftImageUrl}
           styles={styles}
           tokens={content.avatarTokens}
         />

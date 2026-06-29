@@ -1162,7 +1162,7 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
-    "transfer_to_perps": "Transfer to Perps",
+    "send_to_perps": "Send to Perps",
     "perps_trading": "Perps trading",
     "perp_account_balance": "Perp account balance",
     "manage_balance": "Manage balance",
@@ -2359,7 +2359,7 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
-    "transfer_to_predictions": "Transfer to Predictions",
+    "send_to_predictions": "Send to Predictions",
     "select_predict_account": "Select predict account",
     "search_account": "Search an account",
     "home": {
@@ -4036,7 +4036,11 @@
       "enter_code_on_extension": "Enter code on extension",
       "enter_code_on_extension_desc": "For security, enter the verification code below on your MetaMask extension.",
       "done": "Done",
-      "device_added": "Device added"
+      "waiting_for_extension": "Waiting for extension...",
+      "waiting_for_extension_description": "Finish choosing accounts on your computer to continue.",
+      "extension_cancelled_title": "Import cancelled",
+      "extension_cancelled_description": "The account import was cancelled/failed. Try again.",
+      "extension_cancelled_button": "Try again"
     }
   },
   "aes_crypto_test_form": {
@@ -4197,7 +4201,11 @@
     "set_price_alert": "Set price alert",
     "update_price_alert": "Update price alert",
     "save_success": "Price alert for {{ticker}} saved successfully.",
+    "save_error": "Failed to save price alert. Please try again.",
     "delete_success": "Price alert deleted.",
+    "delete_error": "Failed to delete price alert. Please try again.",
+    "toggle_error": "Failed to update price alert. Please try again.",
+    "fetch_error": "Failed to load price alerts. Please try again.",
     "duplicate_threshold": "An alert at this price already exists.",
     "manage_title": "Price alerts",
     "add_alert": "Add alert",
@@ -7198,6 +7206,13 @@
       "link_card_sheet_description_suffix": " (variable).",
       "link_card_sheet_description_no_apy": "Link your card so you can spend your Money balance and earn mUSD back on purchases.",
       "link_card_sheet_cta": "Link card",
+      "unlink_card_sheet_title_no_funding_source": "Unlink Money account?",
+      "unlink_card_sheet_title_with_funding_source": "Are you sure?",
+      "unlink_card_sheet_description_no_funding_source": "You'll stop earning on purchases. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.",
+      "unlink_card_sheet_description_with_funding_source": "You'll stop earning on purchases. Future card spend will be funded by {{fundingSource}}. Reconnect your Money account anytime.",
+      "unlink_card_sheet_another_money_account": "another Money account",
+      "unlink_card_sheet_keep_linked": "Keep linked",
+      "unlink_card_sheet_unlink_account": "Unlink account",
       "manage_card": "Manage",
       "avail_balance": "Avail. balance",
       "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
@@ -7712,7 +7727,7 @@
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
       "money_account_add_money": "Add funds",
-      "money_account_transfer_money": "Transfer funds"
+      "money_account_send": "Send"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -8674,6 +8689,7 @@
     "card_home": {
       "title": "Card",
       "authentication_error": "Your session has expired. Please log in again.",
+      "onboarding_token_revoked": "We couldn't continue your Card session. Please log in again.",
       "available_balance": "Available balance",
       "error_title": "Can't fetch data",
       "error_description": "It seems that there is an issue preventing you from viewing the content on this page. Please check your connection or try refreshing the page.",
@@ -8760,6 +8776,8 @@
         "manage_spending_limit": "Manage limit",
         "manage_spending_limit_description_restricted": "Limited spending is on",
         "manage_spending_limit_description_full": "Full access is on",
+        "unlink_money_account": "Unlink Money account",
+        "unlink_money_account_description": "Change your Card funding source",
         "travel_title": "MetaMask Travel",
         "travel_description": "Book hotels with up to 70% discounts",
         "card_tos_title": "Terms and conditions",

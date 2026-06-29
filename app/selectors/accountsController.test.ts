@@ -766,6 +766,24 @@ describe('selectInternalEvmAccounts', () => {
 
     expect(result).toHaveLength(4);
   });
+
+  it('returns the same reference when EVM accounts are unchanged', () => {
+    const mockAccountsController =
+      MOCK_GENERATED_ACCOUNTS_CONTROLLER_REVERSED();
+    const state = {
+      engine: {
+        backgroundState: {
+          KeyringController: MOCK_KEYRING_CONTROLLER,
+          AccountsController: mockAccountsController,
+        },
+      },
+    } as RootState;
+
+    const result1 = selectInternalEvmAccounts(state);
+    const result2 = selectInternalEvmAccounts(state);
+
+    expect(result1).toBe(result2);
+  });
 });
 
 describe('selectEvmAddress', () => {
