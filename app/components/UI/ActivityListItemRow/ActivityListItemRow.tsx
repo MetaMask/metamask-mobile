@@ -99,6 +99,7 @@ function ResolvedActivityListItemRow({
           fallbackIcon={icon}
           networkImageSource={networkImageSource}
           iconUrl={content.avatarIconUrl ?? nftImageUrl}
+          perpsMarketSymbol={content.perpsMarketSymbol}
           styles={styles}
           tokens={content.avatarTokens}
         />
