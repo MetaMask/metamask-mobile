@@ -39,7 +39,7 @@ function getStatusDisplay(status: Status): StatusDisplay {
       };
     case 'cancelled':
       return {
-        label: strings('transaction.cancelled'),
+        label: strings('transaction.canceled'),
         textColor: TextColor.ErrorDefault,
         iconColor: IconColor.ErrorDefault,
         iconName: IconName.Close,
@@ -64,7 +64,12 @@ export function ActivityDetailsStatus({ status }: { status: Status }) {
       twClassName="flex-row items-center gap-1"
       testID={ActivityDetailsSelectorsIDs.STATUS_PILL}
     >
-      <Icon name={iconName} size={IconSize.Sm} color={iconColor} />
+      <Icon
+        name={iconName}
+        size={IconSize.Sm}
+        color={iconColor}
+        testID={`${ActivityDetailsSelectorsIDs.STATUS_PILL}-icon`}
+      />
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}

@@ -109,6 +109,7 @@ import {
 } from './helpers/transformations';
 import { normalizeTransaction } from './helpers/adapters';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
+import { stashPreloadedActivityItem } from './preloadedActivityItemStore';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
   PerpsActivitySource,
@@ -762,18 +763,24 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
         // Redesigned details (flag-gated): route resolvable EVM / non-EVM rows
         // to the new ActivityDetails screen, replacing the legacy detail sheets.
-        // Specialized flows (perps, predict, bridge) keep their dedicated
+        // Specialized flows (bridge) keep their dedicated
         // screens until they get redesigned templates — ActivityDetails only
-        // resolves local/API/non-EVM items, so it can't render those yet.
+        // resolves local/API/non-EVM/domain items, so it can't render those yet.
         const hasDedicatedScreen =
-          raw.type === 'perpsTransaction' ||
-          raw.type === 'predictActivity' ||
-          (raw.type === 'localTransaction' &&
-            raw.data.primaryTransaction?.type === TransactionType.bridge);
+          raw.type === 'localTransaction' &&
+          raw.data.primaryTransaction?.type === TransactionType.bridge;
         if (isTransactionsRedesignEnabled && item.hash && !hasDedicatedScreen) {
+          // Provider-backed rows (Perps / Predict) can't be re-resolved by hash
+          // outside their source tree, so hand the row off via the transient
+          // store and pass only its key in the (serializable) params.
+          const preloadKey =
+            raw.type === 'perpsTransaction' || raw.type === 'predictActivity'
+              ? stashPreloadedActivityItem(item)
+              : undefined;
           navigation.navigate(Routes.ACTIVITY_DETAILS, {
             chainId: item.chainId,
             txIdentifier: item.hash,
+            ...(preloadKey ? { preloadKey } : {}),
           });
           return;
         }

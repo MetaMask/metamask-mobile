@@ -1,7 +1,5 @@
 import React from 'react';
-import KeyValueRow, {
-  TooltipSizes,
-} from '../../../../../../component-library/components-temp/KeyValueRow';
+import KeyValueRow from '../../../../../../component-library/components-temp/KeyValueRow';
 import Card from '../../../../../../component-library/components/Cards/Card';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './UnstakeTimeCard.styles';
@@ -23,7 +21,6 @@ const UnstakingTimeCard = () => {
           tooltip: {
             title: strings('tooltip_modal.unstaking_time.title'),
             content: strings('tooltip_modal.unstaking_time.tooltip'),
-            size: TooltipSizes.Sm,
             onPress: () =>
               trackEvent(
                 createTooltipOpenedEvent(
