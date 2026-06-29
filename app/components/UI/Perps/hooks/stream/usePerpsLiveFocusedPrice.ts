@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { type PriceUpdate } from '@metamask/perps-controller';
 
@@ -56,11 +56,27 @@ export function usePerpsLiveFocusedPrice(
     undefined,
   );
 
+  // Track the symbol that produced the current cached value so we can clear
+  // stale data only when the symbol changes, not on every effect re-run
+  // (stream is a singleton in production but tests may return a new object
+  // reference each render, which would otherwise trigger spurious resets).
+  const activeSymbolRef = useRef<string | null>(null);
+
   useEffect(() => {
     if (!symbol || !enabled) {
+      activeSymbolRef.current = null;
       setPriceUpdate(undefined);
       return;
     }
+
+    // Clear stale data only when switching to a different symbol
+    if (
+      activeSymbolRef.current !== null &&
+      activeSymbolRef.current !== symbol
+    ) {
+      setPriceUpdate(undefined);
+    }
+    activeSymbolRef.current = symbol;
 
     const unsubscribe = stream.focusedPrice.subscribeToSymbol({
       symbol,
