@@ -49,7 +49,7 @@ describe('TransactionDetailsFeeSection', () => {
         type: TransactionType.musdConversion,
         metamaskPay: {
           networkFeeFiat: '0',
-          bridgeFeeFiat: '2.00',
+          bridgeFeeFiat: '0',
         },
       } as unknown as TransactionMeta,
     });
@@ -80,6 +80,45 @@ describe('TransactionDetailsFeeSection', () => {
       getByText(strings('transaction_details.label.transaction_fees')),
     ).toBeDefined();
     expect(getByText(strings('transactions.paid_by_metamask'))).toBeDefined();
+  });
+
+  it('renders single "Transaction fee" row for moneyAccountWithdraw when sponsored', () => {
+    useIsMoneyAccountContextMock.mockReturnValue(true);
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        type: TransactionType.moneyAccountWithdraw,
+        metamaskPay: {
+          networkFeeFiat: '0',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText } = render();
+
+    expect(getByText(strings('transactions.paid_by_metamask'))).toBeDefined();
+  });
+
+  it('renders both fee rows individually when gas is sponsored but a bridge fee is charged', () => {
+    useIsMoneyAccountContextMock.mockReturnValue(true);
+    useTransactionDetailsMock.mockReturnValue({
+      transactionMeta: {
+        type: TransactionType.musdConversion,
+        metamaskPay: {
+          networkFeeFiat: '0',
+          bridgeFeeFiat: '0.89',
+        },
+      } as unknown as TransactionMeta,
+    });
+
+    const { getByText, queryByText } = render();
+
+    expect(
+      getByText(strings('transaction_details.label.network_fee')),
+    ).toBeDefined();
+    expect(
+      getByText(strings('transaction_details.label.bridge_fee')),
+    ).toBeDefined();
+    expect(queryByText(strings('transactions.paid_by_metamask'))).toBeNull();
   });
 
   it('renders both fee rows when not sponsored', () => {

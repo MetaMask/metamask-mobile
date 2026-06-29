@@ -1,3 +1,4 @@
+import type { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -11,7 +12,9 @@ import {
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 
-export const useTrackSwapPageViewed = () => {
+export const useTrackSwapPageViewed = (
+  location: MetaMetricsSwapsEventSource,
+) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -30,6 +33,7 @@ export const useTrackSwapPageViewed = () => {
         token_symbol_destination: destToken?.symbol,
         token_address_source: sourceToken.address,
         token_address_destination: destToken?.address,
+        location,
       };
       trackEvent(
         createEventBuilder(MetaMetricsEvents.SWAP_PAGE_VIEWED)
@@ -44,5 +48,5 @@ export const useTrackSwapPageViewed = () => {
           .build(),
       );
     }
-  }, [sourceToken, destToken, trackEvent, createEventBuilder]);
+  }, [sourceToken, destToken, location, trackEvent, createEventBuilder]);
 };

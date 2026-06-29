@@ -28,6 +28,8 @@ export const QrSyncPhases = {
   AWAITING_SYNC_READY: 'awaiting-sync-ready',
   /** Import payload received; navigate to onboarding import. */
   REVIEWING_IMPORT: 'reviewing-import',
+  /** Extension explicitly cancelled the in-progress sync session. */
+  PEER_CANCELLED: 'peer-cancelled',
   COMPLETED: 'completed',
   FAILED: 'failed',
 } as const;

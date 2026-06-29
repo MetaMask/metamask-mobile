@@ -418,6 +418,9 @@ import {
   ProfileMetricsService,
   ProfileMetricsServiceActions,
   ProfileMetricsServiceEvents,
+  ProofOfOwnershipService,
+  ProofOfOwnershipServiceActions,
+  ProofOfOwnershipServiceEvents,
 } from '@metamask/profile-metrics-controller';
 
 type NftDetectionControllerActions = ControllerGetStateAction<
@@ -608,6 +611,7 @@ export type GlobalActions =
   | NftDetectionControllerActions
   | ProfileMetricsControllerActions
   | ProfileMetricsServiceActions
+  | ProofOfOwnershipServiceActions
   | RampsControllerActions
   | RampsServiceActions
   | AiDigestControllerActions
@@ -697,6 +701,7 @@ export type GlobalEvents =
   | NftDetectionControllerEvents
   | ProfileMetricsControllerEvents
   | ProfileMetricsServiceEvents
+  | ProofOfOwnershipServiceEvents
   | RampsControllerEvents
   | RampsServiceEvents
   | AiDigestControllerEvents
@@ -833,6 +838,7 @@ export type MessengerClients = {
   DelegationController: DelegationController;
   ProfileMetricsController: ProfileMetricsController;
   ProfileMetricsService: ProfileMetricsService;
+  ProofOfOwnershipService: ProofOfOwnershipService;
   RampsService: RampsService;
   AiDigestController: AiDigestController;
   SocialController: SocialController;
@@ -963,7 +969,6 @@ export type MessengerClientsToInitialize =
   | 'AddressBookController'
   | 'AssetsContractController'
   | 'AssetsController'
-  | 'ConnectivityController'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
   | 'AuthenticationController'
   | 'CronjobController'
@@ -996,7 +1001,6 @@ export type MessengerClientsToInitialize =
   | 'LoggingController'
   | 'NetworkController'
   | 'AccountTreeController'
-  | 'AccountsController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
   | 'GasFeeController'
@@ -1006,7 +1010,6 @@ export type MessengerClientsToInitialize =
   | 'NftController'
   | 'NftDetectionController'
   | 'PhishingController'
-  | 'RemoteFeatureFlagController'
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'
@@ -1037,6 +1040,7 @@ export type MessengerClientsToInitialize =
   | 'SelectedNetworkController'
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
+  | 'ProofOfOwnershipService'
   | 'AnalyticsController'
   | 'AiDigestController'
   | 'SocialService'
@@ -1199,10 +1203,19 @@ export interface InitMessengerClientsFunctionRequest {
 }
 
 /**
+ * Map of only the messenger clients that `initMessengerClients` constructs.
+ * Wallet-owned controllers (e.g. `AccountsController`) are intentionally absent;
+ * resolve those via `wallet.getInstance(...)`, not this map.
+ */
+export type InitializedMessengerClientsByName = {
+  [Name in MessengerClientsToInitialize]: MessengerClientsByName[Name];
+};
+
+/**
  * Function to initialize the messenger clients in the engine.
  */
 export type InitMessengerClientsFunction = (
   request: InitMessengerClientsFunctionRequest,
 ) => {
-  messengerClientsByName: MessengerClientsByName;
+  messengerClientsByName: InitializedMessengerClientsByName;
 };

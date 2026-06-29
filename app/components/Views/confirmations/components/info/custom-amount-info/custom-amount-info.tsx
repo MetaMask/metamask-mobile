@@ -1,4 +1,11 @@
-import React, { ReactNode, memo, useCallback, useRef, useState } from 'react';
+import React, {
+  ReactNode,
+  memo,
+  useCallback,
+  useContext,
+  useRef,
+  useState,
+} from 'react';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
@@ -38,6 +45,7 @@ import {
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../../../hooks/pay/useTransactionPayHasSourceAmount';
+import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
 import { useTransactionPayMetrics } from '../../../hooks/pay/useTransactionPayMetrics';
 import { useTransactionPayAvailableTokens } from '../../../hooks/pay/useTransactionPayAvailableTokens';
 import Text, {
@@ -64,7 +72,9 @@ import { useAccountNoFundsAlert } from '../../../hooks/alerts/useAccountNoFundsA
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import EngineService from '../../../../../../core/EngineService';
 import Engine from '../../../../../../core/Engine';
-import Logger from '../../../../../../util/Logger';
+import { getAmountUpdateErrorToastOptions } from '../../../../../../util/confirmation/transactions';
+import { ToastContext } from '../../../../../../component-library/components/Toast';
+import { prefixError } from '../../../../../../util/transactions/error-prefix';
 import { ConfirmationFooterSelectorIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
@@ -76,6 +86,8 @@ import { useTransactionAccountOverride } from '../../../hooks/transactions/useTr
 import { CustomAmountInfoTestIds } from './custom-amount-info.testIds';
 import { useConfirmationContext } from '../../../context/confirmation-context';
 import { useFiatFunnelMetricsAdapter } from '../../../../../UI/Ramp/hooks/useFiatFunnelMetricsAdapter';
+
+const AMOUNT_UPDATE_ERROR_PREFIX = 'MetaMask Pay: Amount Update: ';
 
 export interface CustomAmountInfoProps {
   autoSelectFiatPayment?: boolean;
@@ -150,7 +162,9 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const fiatPayment = useTransactionPayFiatPayment();
     const selectedFiatPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
     const isFiatAvailable = useIsFiatPaymentAvailable();
-    const hasPaymentOption = hasAvailableTokens || isFiatAvailable;
+    const moneyAccountSection = usePayWithMoneyAccountSection();
+    const hasPaymentOption =
+      hasAvailableTokens || isFiatAvailable || moneyAccountSection !== null;
     const fiatEverSelectedRef = useRef(false);
     if (selectedFiatPaymentMethodId) {
       fiatEverSelectedRef.current = true;
@@ -160,6 +174,8 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const transactionId = transactionMeta?.id;
     const accountOverride = useTransactionAccountOverride();
     const isWithdraw = isTransactionPayWithdraw(transactionMeta);
+
+    const { toastRef } = useContext(ToastContext);
 
     const isResultReady = useIsResultReady({ isKeyboardVisible });
     const quotes = useTransactionPayQuotes();
@@ -197,6 +213,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
 
     const handleDone = useCallback(async () => {
       try {
+        await updateTokenAmount();
         if (selectedFiatPaymentMethodId && transactionId) {
           Engine.context.TransactionPayController.updateFiatPayment({
             transactionId,
@@ -204,34 +221,28 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               fp.amountFiat = amountFiat;
             },
           });
-
-          // Fiat deposits need nested calldata (approve + deposit) populated
-          // with approximate amounts now so the transaction is valid at submit
-          // time. Core will re-encode with exact amounts after settlement.
-          if (isMoneyAccountDeposit) {
-            await updateTokenAmount();
-          }
-        } else {
-          await updateTokenAmount();
         }
         // Amount committed (pre-quote) funnel event; only fires once the amount
         // has been successfully applied above (no-op for non-money flows).
         trackAmountCommitted();
       } catch (error) {
-        Logger.error(
-          error as Error,
-          'Failed to apply custom amount on Done press',
+        const prefixed = prefixError(error, AMOUNT_UPDATE_ERROR_PREFIX);
+        toastRef?.current?.showToast(
+          getAmountUpdateErrorToastOptions(prefixed, () =>
+            toastRef?.current?.closeToast(),
+          ),
         );
-      } finally {
-        EngineService.flushState();
-        setIsKeyboardVisible(false);
-        onAmountSubmit?.();
+        // Keep keyboard visible so the user can retry; do not advance the flow.
+        return;
       }
+      EngineService.flushState();
+      setIsKeyboardVisible(false);
+      onAmountSubmit?.();
     }, [
       amountFiat,
-      isMoneyAccountDeposit,
       onAmountSubmit,
       selectedFiatPaymentMethodId,
+      toastRef,
       trackAmountCommitted,
       transactionId,
       updateTokenAmount,
@@ -496,11 +507,14 @@ function useIsResultReady({
 function useButtonLabel() {
   const transaction = useTransactionMetadataRequest();
 
+  if (hasTransactionType(transaction, [TransactionType.moneyAccountWithdraw])) {
+    return strings('confirm.deposit_edit_amount_money_account_send');
+  }
+
   if (
     hasTransactionType(transaction, [
       TransactionType.predictWithdraw,
       TransactionType.perpsWithdraw,
-      TransactionType.moneyAccountWithdraw,
     ])
   ) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');

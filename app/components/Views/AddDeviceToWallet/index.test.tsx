@@ -12,6 +12,8 @@ const mockCreateQRScannerNavDetails = jest.fn(
   (params: unknown) => ['QRTabSwitcher', params] as [string, unknown],
 );
 
+const mockSelectQrSyncPresentation = jest.fn(() => 'instructions');
+
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
@@ -40,16 +42,18 @@ jest.mock('../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../selectors/qrSyncController', () => ({
-  selectQrSyncPresentation: jest.fn(() => 'instructions'),
+  selectQrSyncPresentation: () => mockSelectQrSyncPresentation(),
+  selectQrSyncPhase: jest.fn(() => 'awaiting-sync-ready'),
+  selectQrSyncIsSessionActive: jest.fn(() => true),
   selectQrSyncShouldShowOtpSheet: jest.fn(() => false),
   selectQrSyncIsBusy: jest.fn(() => false),
-  selectQrSyncIsSessionActive: jest.fn(() => false),
   selectQrSyncError: jest.fn(() => null),
 }));
 
 describe('AddDeviceToWallet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockSelectQrSyncPresentation.mockReturnValue('instructions');
     mockHandleScannedQrPayload.mockResolvedValue(undefined);
   });
 
@@ -61,6 +65,16 @@ describe('AddDeviceToWallet', () => {
     ).toBeOnTheScreen();
     expect(
       getByText(strings('app_settings.add_device.scan_qr_code_button')),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders the waiting screen when sync presentation is device-linked', () => {
+    mockSelectQrSyncPresentation.mockReturnValue('device-linked');
+
+    const { getByText } = renderWithProvider(<AddDeviceToWallet />);
+
+    expect(
+      getByText(strings('app_settings.add_device.waiting_for_extension')),
     ).toBeOnTheScreen();
   });
 

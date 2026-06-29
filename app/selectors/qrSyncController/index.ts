@@ -42,7 +42,8 @@ export const selectQrSyncIsSessionActive = createSelector(
   (phase) =>
     phase !== QrSyncPhases.IDLE &&
     phase !== QrSyncPhases.COMPLETED &&
-    phase !== QrSyncPhases.FAILED,
+    phase !== QrSyncPhases.FAILED &&
+    phase !== QrSyncPhases.PEER_CANCELLED,
 );
 
 export type QrSyncPresentation = 'instructions' | 'device-linked' | 'error';
@@ -54,6 +55,7 @@ export const selectQrSyncPresentation = createSelector(
     switch (phase) {
       case QrSyncPhases.AWAITING_SYNC_READY:
       case QrSyncPhases.REVIEWING_IMPORT:
+      case QrSyncPhases.PEER_CANCELLED:
         return 'device-linked';
       case QrSyncPhases.FAILED:
         return 'error';

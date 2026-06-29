@@ -149,6 +149,15 @@ export class QrSyncController extends BaseController<
     );
   }
 
+  /** Clears peer-cancelled state after the user dismisses the error sheet. */
+  public acknowledgePeerCancellation(): void {
+    if (this.state.phase !== QrSyncPhases.PEER_CANCELLED) {
+      return;
+    }
+
+    this.clearControllerState();
+  }
+
   /** Attaches a runtime QR sync session helper to this controller. */
   public attachSession(session: QrSyncSession): void {
     if (this.session !== null) {
@@ -227,7 +236,13 @@ export class QrSyncController extends BaseController<
         break;
       }
       case QrSyncActionTypes.SYNC_CANCEL: {
-        this.clearControllerState();
+        this.update((state) => {
+          state.phase = QrSyncPhases.PEER_CANCELLED;
+          state.connectionStatus = 'disconnected';
+          state.otp = null;
+          state.error = null;
+          state.importPlan = null;
+        });
         this.destroySession().catch(() => undefined);
         break;
       }
