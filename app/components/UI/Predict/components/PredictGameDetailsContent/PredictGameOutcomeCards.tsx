@@ -17,6 +17,21 @@ import {
   sortMoneylineOutcomes,
 } from './utils';
 
+const getSimpleOutcomeCardTitle = (
+  outcome: PredictOutcomeGroup['outcomes'][number],
+): string => {
+  const fallbackTitle = formatOutcomeCardTitle(outcome);
+
+  if (
+    !outcome.sportsMarketType ||
+    !isMoneylineLikeMarketType(outcome.sportsMarketType)
+  ) {
+    return fallbackTitle;
+  }
+
+  return getSportsMarketTypeLabel(outcome.sportsMarketType, fallbackTitle);
+};
+
 const SimpleOutcomeCard = memo(
   ({
     outcome,
@@ -289,7 +304,7 @@ export const OutcomesContent = memo(
           <SimpleOutcomeCard
             key={outcome.id}
             outcome={outcome}
-            title={formatOutcomeCardTitle(outcome)}
+            title={getSimpleOutcomeCardTitle(outcome)}
             onBuyPress={onBuyPress}
             game={game}
             sportsMarketType={outcome.sportsMarketType}

@@ -455,6 +455,38 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards[0].lines).toBeUndefined();
     });
 
+    it('renders top-level single moneyline outcome with moneyline title', () => {
+      const groups = [
+        createGroup({
+          key: 'game_lines',
+          outcomes: [
+            createOutcome({
+              id: 'ml-single',
+              title: 'Wimbledon ATP: Player A vs Player B',
+              groupItemTitle: 'Wimbledon ATP: Player A vs Player B',
+              sportsMarketType: 'moneyline',
+            }),
+          ],
+        }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards).toHaveLength(1);
+      expect(mockCapturedCards[0].title).toBe('Moneyline');
+      expect(mockCapturedCards[0].buttons).toEqual([
+        expect.objectContaining({ label: 'TA', price: 65 }),
+        expect.objectContaining({ label: 'TB', price: 35 }),
+      ]);
+    });
+
     it('renders LineOutcomeCard for subgroup with multiple outcomes', () => {
       const subgroups: PredictOutcomeGroup[] = [
         createGroup({
