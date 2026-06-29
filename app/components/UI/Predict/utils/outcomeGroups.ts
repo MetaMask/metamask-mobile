@@ -57,9 +57,7 @@ const splitOutcomeGroupByStatus = (
     .filter((subgroup): subgroup is PredictOutcomeGroup => Boolean(subgroup));
 
   if (group.outcomes.length === 0 && !group.subgroups?.length) {
-    return {
-      openOutcomeGroup: group,
-    };
+    return {};
   }
 
   const hasOpenContent = openOutcomes.length > 0 || openSubgroups.length > 0;

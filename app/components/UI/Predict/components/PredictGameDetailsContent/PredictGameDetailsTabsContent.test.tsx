@@ -134,6 +134,9 @@ const createMockMarket = (
 const mockActivePositions = [{ id: 'pos-1' }] as PredictPosition[];
 
 const emptyGroupMap = new Map();
+const outcomeGroupMap = new Map([
+  ['game_lines', { key: 'game_lines', outcomes: createMockMarket().outcomes }],
+]);
 
 const positionsTabs: { label: string; key: PredictMarketDetailsTabKey }[] = [
   { label: 'Positions', key: 'positions' },
@@ -258,8 +261,8 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
-          groupMap={emptyGroupMap}
-          activeChipKey=""
+          groupMap={outcomeGroupMap}
+          activeChipKey="game_lines"
           onBetPress={mockOnBetPress}
         />,
       );
@@ -281,8 +284,8 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
-          groupMap={emptyGroupMap}
-          activeChipKey=""
+          groupMap={outcomeGroupMap}
+          activeChipKey="game_lines"
           onBetPress={mockOnBetPress}
         />,
       );
@@ -304,8 +307,8 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
-          groupMap={emptyGroupMap}
-          activeChipKey=""
+          groupMap={outcomeGroupMap}
+          activeChipKey="game_lines"
           onBetPress={mockOnBetPress}
         />,
       );
@@ -327,8 +330,8 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
-          groupMap={emptyGroupMap}
-          activeChipKey=""
+          groupMap={outcomeGroupMap}
+          activeChipKey="game_lines"
           onBetPress={mockOnBetPress}
         />,
       );
@@ -368,8 +371,8 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar={false}
           activePositions={[]}
           claimablePositions={[]}
-          groupMap={emptyGroupMap}
-          activeChipKey=""
+          groupMap={outcomeGroupMap}
+          activeChipKey="game_lines"
           onBetPress={mockOnBetPress}
         />,
       );
@@ -378,6 +381,28 @@ describe('PredictGameDetailsTabs', () => {
         getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT)
           .props.accessibilityHint,
       ).toBe('gameStatus:ended');
+    });
+
+    it('renders nothing when no extended outcome content exists', () => {
+      const market = createMockMarket();
+
+      const { toJSON } = render(
+        <PredictGameDetailsTabsContent
+          market={market}
+          activeTab={0}
+          tabs={[]}
+          enabled
+          showTabBar={false}
+          activePositions={[]}
+          claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          resolvedOutcomeGroups={[]}
+          activeChipKey=""
+          onBetPress={mockOnBetPress}
+        />,
+      );
+
+      expect(toJSON()).toBeNull();
     });
   });
 
@@ -452,8 +477,8 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar
           activePositions={mockActivePositions}
           claimablePositions={[]}
-          groupMap={emptyGroupMap}
-          activeChipKey=""
+          groupMap={outcomeGroupMap}
+          activeChipKey="game_lines"
           onBetPress={mockOnBetPress}
         />,
       );
@@ -482,8 +507,8 @@ describe('PredictGameDetailsTabs', () => {
           showTabBar
           activePositions={mockActivePositions}
           claimablePositions={[]}
-          groupMap={emptyGroupMap}
-          activeChipKey=""
+          groupMap={outcomeGroupMap}
+          activeChipKey="game_lines"
           onBetPress={mockOnBetPress}
         />,
       );
