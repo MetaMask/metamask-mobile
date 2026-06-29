@@ -10,6 +10,7 @@ import {
 } from '@metamask/assets-controllers';
 import { MOCK_ANY_NAMESPACE, MockAnyNamespace } from '@metamask/messenger';
 import { selectAssetsAccountApiBalancesEnabled } from '../../../selectors/featureFlagController/assetsAccountApiBalances';
+import { selectIsAssetsUnifyStateEnabled } from '../../../selectors/featureFlagController/assetsUnifyState';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
 
 jest.mock('@metamask/assets-controllers');
@@ -20,6 +21,10 @@ jest.mock(
     selectAssetsAccountApiBalancesEnabled: jest.fn().mockReturnValue([]),
   }),
 );
+
+jest.mock('../../../selectors/featureFlagController/assetsUnifyState', () => ({
+  selectIsAssetsUnifyStateEnabled: jest.fn().mockReturnValue(false),
+}));
 
 jest.mock('../../../selectors/settings', () => ({
   selectBasicFunctionalityEnabled: jest.fn().mockReturnValue(true),
@@ -57,7 +62,7 @@ describe('accountTrackerControllerInit', () => {
     jest.clearAllMocks();
   });
 
-  it('passes the proper arguments to the controller including isHomepageSectionsV1Enabled', () => {
+  it('passes the proper arguments to the controller including deprecation checks', () => {
     accountTrackerControllerInit(getInitRequestMock());
 
     const controllerMock = jest.mocked(AccountTrackerController);
@@ -67,6 +72,7 @@ describe('accountTrackerControllerInit', () => {
         getStakedBalanceForChain: expect.any(Function),
         accountsApiChainIds: expect.any(Function),
         allowExternalServices: expect.any(Function),
+        isDeprecated: expect.any(Function),
         isHomepageSectionsV1Enabled: expect.any(Function),
       }),
     );
@@ -112,5 +118,19 @@ describe('accountTrackerControllerInit', () => {
 
     expect(allowExternalServices()).toBe(false);
     expect(selectBasicFunctionalityEnabled).toHaveBeenCalled();
+  });
+
+  it('reads deprecation state from assets-unify-state flag', () => {
+    accountTrackerControllerInit(getInitRequestMock());
+
+    const controllerMock = jest.mocked(AccountTrackerController);
+    const { isDeprecated } = controllerMock.mock.calls[0][0] as {
+      isDeprecated: () => boolean;
+    };
+
+    jest.mocked(selectIsAssetsUnifyStateEnabled).mockReturnValue(true);
+
+    expect(isDeprecated()).toBe(true);
+    expect(selectIsAssetsUnifyStateEnabled).toHaveBeenCalled();
   });
 });
