@@ -129,6 +129,15 @@ function getAdvancedChartVisibilityTraceRequest(
   };
 }
 
+const getChangePercentColor = (
+  displayDiff: number | null,
+): TextColor | undefined => {
+  if (displayDiff === null) return undefined;
+  if (displayDiff > 0) return TextColor.SuccessDefault;
+  if (displayDiff < 0) return TextColor.ErrorDefault;
+  return TextColor.TextAlternative;
+};
+
 export interface PriceAdvancedProps {
   asset: TokenI;
   currentPrice: number;
@@ -799,14 +808,7 @@ const PriceAdvanced = ({
     return `${sign}${pct}%`;
   }, [isCrosshairActive, displayDiff, dynamicComparePrice]);
 
-  const changePercentColor =
-    displayDiff === null
-      ? undefined
-      : displayDiff > 0
-        ? TextColor.SuccessDefault
-        : displayDiff < 0
-          ? TextColor.ErrorDefault
-          : TextColor.TextAlternative;
+  const changePercentColor = getChangePercentColor(displayDiff);
 
   const { styles, theme } = useStyles(styleSheet);
   const { themeAppearance } = useTheme();
@@ -976,7 +978,7 @@ const PriceAdvanced = ({
 
   return (
     <>
-      {!isNaN(currentPrice) &&
+      {!Number.isNaN(currentPrice) &&
         (isCrosshairActive && crosshairData ? (
           <OHLCVBar
             data={crosshairData}
