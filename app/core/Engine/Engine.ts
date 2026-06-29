@@ -199,6 +199,7 @@ import { moneyAccountUpgradeControllerInit } from './controllers/money-account-u
 import { initializeWallet } from './wallet-init/initialization';
 import { qrKeyringBridge } from './wallet-init/keyrings';
 import { Wallet } from '@metamask/wallet';
+import { isOnboardingComplete } from './utils/ensureOnboardingComplete';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -840,7 +841,7 @@ export class Engine {
 
         // Notifies Snaps that the app may be in the background.
         // This is best effort as we cannot guarantee the messages are received in time.
-        if (isUnlocked) {
+        if (isUnlocked && isOnboardingComplete()) {
           this.controllerMessenger.call(
             'SnapController:setClientActive',
             state === 'active',
