@@ -1,5 +1,5 @@
 // Third party dependencies.
-import React, { useCallback } from 'react';
+import React, { useCallback, useMemo } from 'react';
 import { View, TouchableOpacity } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { useSelector, shallowEqual } from 'react-redux';
@@ -12,10 +12,9 @@ import {
 } from '@metamask/utils';
 
 // external dependencies
-import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { isDefaultAccountName } from '../../../../../util/ENSUtils';
-import { areAddressesEqual, formatAddress } from '../../../../../util/address';
+import { formatAddress } from '../../../../../util/address';
 import { useStyles } from '../../../../../component-library/hooks';
 import AvatarGroup from '../../../../../component-library/components/Avatars/AvatarGroup';
 import { EnsByAccountAddress, Account } from '../../../../hooks/useAccounts';
@@ -65,6 +64,14 @@ const AccountsConnectedList = ({
 
   const { styles } = useStyles(styleSheet, { itemHeight: MAX_HEIGHT });
   const accountAvatarType = useSelector(selectAvatarAccountType, shallowEqual);
+
+  const accountByAddress = useMemo(() => {
+    const map = new Map<string, Account>();
+    for (const account of accounts) {
+      map.set(account.address.toLowerCase(), account);
+    }
+    return map;
+  }, [accounts]);
 
   const getFilteredNetworkAvatars = useCallback(
     (accountScopes: CaipChainId[] = []) => {
@@ -131,22 +138,17 @@ const AccountsConnectedList = ({
     ({ item }: { item: CaipAccountId }) => {
       const { address } = parseCaipAccountId(item);
       const shortAddress = formatAddress(address, 'short');
-      const accountMetadata =
-        Engine.context.AccountsController.getAccountByAddress(address);
-      const account = accounts.find((accountData: Account) =>
-        areAddressesEqual(accountData.address, address),
-      );
+      const account = accountByAddress.get(address.toLowerCase());
       const avatarProps = {
         variant: AvatarVariant.Account as const,
         type: accountAvatarType,
         accountAddress: address,
       };
-      const accountMetadataName = accountMetadata?.metadata.name;
       const ensName = ensByAccountAddress[address];
       const accountName =
-        isDefaultAccountName(accountMetadataName) && ensName
+        isDefaultAccountName(account?.name) && ensName
           ? ensName
-          : accountMetadataName;
+          : account?.name;
 
       return (
         <Cell
@@ -165,7 +167,7 @@ const AccountsConnectedList = ({
     [
       styles.accountListItem,
       ensByAccountAddress,
-      accounts,
+      accountByAddress,
       renderRightAccessory,
       accountAvatarType,
     ],
@@ -179,6 +181,11 @@ const AccountsConnectedList = ({
           data={selectedAddresses}
           renderItem={renderAccountItem}
           scrollEnabled={selectedAddresses.length > 1}
+          getItemLayout={(_data, index) => ({
+            length: ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT,
+            offset: ACCOUNTS_CONNECTED_LIST_ITEM_HEIGHT * index,
+            index,
+          })}
         />
       </View>
       <TouchableOpacity
