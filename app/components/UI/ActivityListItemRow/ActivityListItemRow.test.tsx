@@ -261,6 +261,27 @@ jest.mock('../Money/components/PendingSpinner/PendingSpinner', () => {
     ReactActual.createElement(View, { testID });
 });
 
+jest.mock('../Perps/components/PerpsTokenLogo', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockPerpsTokenLogo({
+    recyclingKey,
+    size,
+    symbol,
+  }: {
+    recyclingKey?: string;
+    size?: number;
+    symbol?: string;
+  }) {
+    return ReactActual.createElement(View, {
+      testID: `perps-token-logo-${symbol}`,
+      recyclingKey,
+      size,
+      symbol,
+    });
+  };
+});
+
 jest.mock('../../Views/confirmations/utils/transaction', () => ({
   hasGasFeeTokenSelected: jest.fn(() => false),
 }));
@@ -577,6 +598,52 @@ describe('ActivityListItemRow — row content', () => {
     expect(queryByTestId('activity-secondary-amount-0xlong')).toBeNull();
   });
 
+  it('uses PerpsTokenLogo for market avatars', () => {
+    const openLong = {
+      type: 'perpsOpenLong',
+      chainId: 'eip155:42161',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xicon',
+      data: {
+        token: { amount: '4000', symbol: 'USD', direction: 'out' },
+        sourceToken: { amount: '2.01', symbol: 'BTC', direction: 'in' },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={openLong} index={0} />,
+    );
+
+    const logo = getByTestId('perps-token-logo-BTC');
+    expect(logo.props.recyclingKey).toBe('BTC');
+    expect(logo.props.symbol).toBe('BTC');
+    expect(logo.props.size).toBe(32);
+  });
+
+  it('passes k-prefixed perps market symbols to PerpsTokenLogo', () => {
+    const openLong = {
+      type: 'perpsOpenLong',
+      chainId: 'eip155:42161',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xkpepe',
+      data: {
+        token: { amount: '10', symbol: 'USD', direction: 'out' },
+        sourceToken: { amount: '1000', symbol: 'kPEPE', direction: 'in' },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={openLong} index={0} />,
+    );
+
+    const logo = getByTestId('perps-token-logo-kPEPE');
+    expect(logo.props.recyclingKey).toBe('kPEPE');
+    expect(logo.props.symbol).toBe('kPEPE');
+    expect(logo.props.size).toBe(32);
+  });
+
   it('gives liquidation, stop-loss, and neutral close titles distinct colors', () => {
     const { StyleSheet } = jest.requireActual('react-native');
     const makePerpsClose = (
@@ -667,9 +734,12 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('activity-subtitle-0xfunding').props.children).toBe(
       'BTC',
     );
+    // Sub-cent funding fee keeps precision in currency format (not $0.00).
     const primary = getByTestId('activity-primary-amount-0xfunding').props
       .children as string;
-    expect(primary).toBe('-$0');
+    expect(primary.startsWith('-')).toBe(true);
+    expect(primary).toContain('$');
+    expect(primary).toContain('0.0006');
   });
 
   it('renders predict funds rows with balance subtitle, fiat primary, and token secondary', () => {
@@ -769,7 +839,7 @@ describe('ActivityListItemRow — row content', () => {
     expect(primary).toContain('$');
   });
 
-  it('renders very small funding fees without subscript notation', () => {
+  it('renders very small funding fees in subscript notation', () => {
     const funding = {
       type: 'perpsPaidFundingFees',
       chainId: 'eip155:42161',
@@ -786,9 +856,12 @@ describe('ActivityListItemRow — row content', () => {
       <ActivityListItemRow item={funding} index={0} />,
     );
 
+    // 0.00005 → subscript notation "$0.0₄5" (4 leading zeros).
     const primary = getByTestId('activity-primary-amount-0xtiny').props
       .children as string;
-    expect(primary).toBe('-$0');
+    expect(primary).toContain('₄');
+    expect(primary).toContain('$');
+    expect(primary.startsWith('-')).toBe(true);
   });
 
   it('renders spending cap rows with token subtitle and no empty amount', () => {
@@ -1087,7 +1160,7 @@ describe('ActivityListItemRow — row content', () => {
       'Bought FLUF World: Scenes and Sounds',
     );
     expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
-      '-0.0001 ETH',
+      '-0.00008999 ETH',
     );
   });
 
@@ -1140,25 +1213,6 @@ describe('ActivityListItemRow — row content', () => {
     expect(primaryAmount.props.children).toBe('-0.1235 ETH');
     expect(primaryAmount.props.numberOfLines).toBe(1);
     expect(primaryAmount.props.ellipsizeMode).toBe('tail');
-  });
-
-  it('caps leading-zero crypto decimals in token amounts', () => {
-    const item = makeItem({
-      type: 'receive',
-      status: 'success',
-      token: {
-        amount: '0.0007456',
-        symbol: 'ETH',
-        direction: 'in',
-      },
-    });
-    const { getByTestId } = render(
-      <ActivityListItemRow item={item} index={0} />,
-    );
-
-    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
-      '+0.0007 ETH',
-    );
   });
 
   it('compacts large token amounts before rendering', () => {

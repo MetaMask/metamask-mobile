@@ -1,14 +1,10 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { AvatarTokenSize } from '@metamask/design-system-react-native';
+import {
+  AvatarToken,
+  AvatarTokenSize,
+} from '@metamask/design-system-react-native';
 import { ActivityDetailsFeeValue } from './ActivityDetailsFeeValue';
-
-jest.mock('./ActivityDetailsAvatar', () => ({
-  ActivityDetailsAvatar: ({ size }: { size?: unknown }) => {
-    const { View } = jest.requireActual('react-native');
-    return <View testID="fee-avatar" size={size} />;
-  },
-}));
 
 describe('ActivityDetailsFeeValue', () => {
   it('renders nothing when there is no value', () => {
@@ -33,11 +29,11 @@ describe('ActivityDetailsFeeValue', () => {
     );
 
     expect(getByText('$1.23')).toBeOnTheScreen();
-    expect(queryByTestId('fee-avatar')).toBeNull();
+    expect(queryByTestId('fee-token-avatar')).toBeNull();
   });
 
-  it('renders token symbol and avatar when fee has a symbol', () => {
-    const { getByText, getByTestId } = render(
+  it('renders token symbol with a 16px token avatar and rounded network badge', () => {
+    const { getByText, getByTestId, UNSAFE_getByType } = render(
       <ActivityDetailsFeeValue
         chainId="eip155:1"
         fee={{
@@ -53,6 +49,7 @@ describe('ActivityDetailsFeeValue', () => {
 
     expect(getByText('$1.23')).toBeOnTheScreen();
     expect(getByText('ETH')).toBeOnTheScreen();
-    expect(getByTestId('fee-avatar')).toHaveProp('size', AvatarTokenSize.Xs);
+    expect(UNSAFE_getByType(AvatarToken).props.size).toBe(AvatarTokenSize.Xs);
+    expect(getByTestId('fee-network-badge')).toBeOnTheScreen();
   });
 });
