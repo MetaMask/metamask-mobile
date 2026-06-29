@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
+import type { PriceUpdate } from '@metamask/perps-controller';
 import { mockTheme } from '../../../../../util/theme';
 
 // Mock navigation
@@ -126,7 +127,10 @@ jest.mock('../../hooks/stream/usePerpsLivePrices', () => ({
 
 // Mock usePerpsLiveFocusedPrice — returns undefined by default so the view
 // falls back to the allMids baseline from usePerpsLivePrices (TAT-3334)
-const mockUsePerpsLiveFocusedPrice = jest.fn(() => undefined);
+const mockUsePerpsLiveFocusedPrice = jest.fn<
+  PriceUpdate | undefined,
+  [unknown]
+>(() => undefined);
 
 jest.mock('../../hooks/stream/usePerpsLiveFocusedPrice', () => ({
   usePerpsLiveFocusedPrice: (params: unknown) =>
@@ -1226,6 +1230,7 @@ describe('PerpsOrderBookView', () => {
         price: '52000',
         markPrice: '52010',
         timestamp: Date.now(),
+        isTradable: true,
       });
 
       const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {

@@ -18,7 +18,8 @@ describe('usePerpsLiveFocusedPrice', () => {
     price: '50000',
     markPrice: '50050',
     percentChange24h: '2.5',
-    timestamp: Date.now(),
+    timestamp: 123,
+    isTradable: true,
   };
 
   beforeEach(() => {
