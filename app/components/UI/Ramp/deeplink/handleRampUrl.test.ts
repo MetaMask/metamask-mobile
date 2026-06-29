@@ -286,5 +286,25 @@ describe('handleRampUrl', () => {
         { assetId: 'eip155:1/slip44:60', amount: 275 },
       );
     });
+
+    it.each(['0', '-50', 'abc', ''])(
+      'omits amount from BuildQuote when V2 enabled and amount is invalid (%s)',
+      (invalidAmount) => {
+        mockGetRampRoutingDecision.mockReturnValue(null);
+        mockResolveRampControllerAssetId.mockReturnValue('eip155:1/slip44:60');
+        mockSelectTokens.mockReturnValue({
+          data: { allTokens: [{ assetId: 'eip155:1/slip44:60' }] },
+        });
+
+        handleRampUrl({
+          rampPath: `?chainId=1&amount=${invalidAmount}`,
+          rampType: RampType.BUY,
+        });
+
+        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+          assetId: 'eip155:1/slip44:60',
+        });
+      },
+    );
   });
 });

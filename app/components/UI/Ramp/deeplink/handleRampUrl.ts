@@ -35,7 +35,9 @@ function parseBuildQuoteAmount(amount?: string): number | undefined {
   }
 
   const parsedAmount = Number(normalizedAmount);
-  return Number.isFinite(parsedAmount) ? parsedAmount : undefined;
+  return Number.isFinite(parsedAmount) && parsedAmount > 0
+    ? parsedAmount
+    : undefined;
 }
 
 export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
