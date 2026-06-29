@@ -1,5 +1,5 @@
 import { resolvePredictFeedDefaultFilter } from '../../../../constants/feedConfig';
-import type { PredictMarketListParams , PredictMarket } from '../../../../types';
+import type { PredictMarketListParams, PredictMarket } from '../../../../types';
 import { usePredictMarketList } from '../../../../hooks/usePredictMarketList';
 
 /**
@@ -22,7 +22,7 @@ const TRENDING_PARAMS: PredictMarketListParams =
   };
 
 export interface UsePredictTrendingSectionResult {
-  /** Trending markets ready for the vertical list. */
+  /** Trending markets ready for the vertical list, capped to {@link TRENDING_DISPLAY_LIMIT}. */
   markets: PredictMarket[];
   /** Initial load with nothing to show yet (render skeletons). */
   isLoading: boolean;
@@ -48,5 +48,9 @@ export const usePredictTrendingSection =
 
     const showEmptyState = !isLoading && (!!error || markets.length === 0);
 
-    return { markets, isLoading, showEmptyState };
+    return {
+      markets: markets.slice(0, TRENDING_DISPLAY_LIMIT),
+      isLoading,
+      showEmptyState,
+    };
   };

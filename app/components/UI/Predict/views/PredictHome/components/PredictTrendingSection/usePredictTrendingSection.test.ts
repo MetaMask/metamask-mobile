@@ -83,6 +83,17 @@ describe('usePredictTrendingSection', () => {
     expect(result.current.markets).toHaveLength(0);
   });
 
+  it('caps returned markets to TRENDING_DISPLAY_LIMIT even when the cache holds more', () => {
+    const markets = Array.from({ length: 12 }, (_, i) =>
+      createMarket(`m-${i}`),
+    );
+    setMarketList({ markets });
+
+    const { result } = renderHook(() => usePredictTrendingSection());
+
+    expect(result.current.markets).toHaveLength(TRENDING_DISPLAY_LIMIT);
+  });
+
   it('shows empty state when the fetch returns an error', () => {
     setMarketList({
       markets: [],
