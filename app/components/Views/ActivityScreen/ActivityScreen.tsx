@@ -1,9 +1,8 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { LayoutChangeEvent } from 'react-native';
-import Animated, {
+import {
   runOnJS,
   useAnimatedReaction,
-  useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -146,14 +145,9 @@ const ActivityScreen = () => {
     },
   );
 
-  const pinnedFilterStyle = useAnimatedStyle(() => {
-    const section = titleSectionHeight.value;
-    return { opacity: section > 0 && scrollY.value >= section ? 1 : 0 };
-  });
-
   const activityListHeader = useMemo(
     () => (
-      <>
+      <Box twClassName="px-4">
         <Box onLayout={handleTitleLayout}>
           <Box twClassName="pb-4">
             <Text variant={TextVariant.HeadingLg}>
@@ -184,7 +178,7 @@ const ActivityScreen = () => {
             onTypePress={handleOpenTypeSheet}
           />
         </Box>
-      </>
+      </Box>
     ),
     [
       handleClearSearch,
@@ -232,28 +226,28 @@ const ActivityScreen = () => {
               networkFilter={effectiveNetworkFilter}
             />
 
-            <Animated.View
-              pointerEvents={isFilterBarPinned ? 'auto' : 'none'}
-              accessibilityElementsHidden={!isFilterBarPinned}
-              importantForAccessibility={
-                isFilterBarPinned ? 'auto' : 'no-hide-descendants'
-              }
-              style={[
-                tw.style('absolute top-0 left-0 right-0 px-4 bg-default'),
-                pinnedFilterStyle,
-              ]}
-            >
-              <AssetListControlBar
-                networkLabel={networkFilterLabel}
-                isNetworkFilterActive={isNetworkFilterActive}
-                isNetworkFilterDisabled={isNetworkFilterDisabled}
-                onNetworkPress={handleOpenNetworkSheet}
-                typeLabel={typeFilterLabel}
-                isTypeFilterActive={isTypeFilterActive}
-                onTypePress={handleOpenTypeSheet}
-                suppressTestIDs
-              />
-            </Animated.View>
+            {isFilterBarPinned ? (
+              <Box twClassName="absolute top-0 left-0 right-0 px-4 bg-default">
+                <Box twClassName="pb-4">
+                  <TextFieldSearch
+                    value={searchQuery}
+                    onChangeText={setSearchQuery}
+                    placeholder={strings('activity_view.search_placeholder')}
+                    onPressClearButton={handleClearSearch}
+                  />
+                </Box>
+                <AssetListControlBar
+                  networkLabel={networkFilterLabel}
+                  isNetworkFilterActive={isNetworkFilterActive}
+                  isNetworkFilterDisabled={isNetworkFilterDisabled}
+                  onNetworkPress={handleOpenNetworkSheet}
+                  typeLabel={typeFilterLabel}
+                  isTypeFilterActive={isTypeFilterActive}
+                  onTypePress={handleOpenTypeSheet}
+                  suppressTestIDs
+                />
+              </Box>
+            ) : null}
           </Box>
         </Box>
 
