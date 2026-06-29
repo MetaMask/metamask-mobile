@@ -82,10 +82,13 @@ export interface TVTimeRange {
   to: number;
 }
 
+export type TVWidgetEvent = 'mouse_down' | 'mouse_up';
+
 export interface TVChartingLibraryWidget {
   onChartReady(cb: () => void): void;
   activeChart(): TVActiveChart;
   applyOverrides(overrides: Record<string, unknown>): void;
+  subscribe(event: TVWidgetEvent, handler: () => void): void;
   remove(): void;
 }
 
@@ -106,6 +109,11 @@ export interface TVCrosshairParams {
   offsetY?: number;
 }
 
+export interface TVMainSeries {
+  /** Re-attaches the main series to the right price scale. */
+  detachToRight(): void;
+}
+
 export interface TVActiveChart {
   setChartType(type: ChartType): void;
   setResolution(resolution: TVResolution, callback: () => void): void;
@@ -115,6 +123,7 @@ export interface TVActiveChart {
     options?: { percentRightMargin?: number },
   ): void;
   getTimeScale(): TVTimeScale;
+  getSeries(): TVMainSeries;
   onDataLoaded(): TVSubscription;
   onVisibleRangeChanged(): TVSubscription;
   crossHairMoved(): TVSubscription<[TVCrosshairParams]>;

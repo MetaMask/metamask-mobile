@@ -105,9 +105,23 @@ export interface DebugPayload {
   [extra: string]: unknown;
 }
 
+/**
+ * Crosshair OHLC data forwarded from the WebView when the user scrubs over
+ * the chart. Shape matches `CrosshairData` in AdvancedChart.types.ts so the
+ * RN-side parseWebViewMessage decodes our messages without translation.
+ */
+export interface CrosshairData {
+  time: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  volume?: number;
+}
+
 export interface CrosshairMovePayload {
   /** OHLC of the bar nearest the crosshair; null when the crosshair dismisses. */
-  bar: OHLCVBar | null;
+  data: CrosshairData | null;
 }
 
 export type ChartInteractionType = 'zoom' | 'pan' | 'tooltip';

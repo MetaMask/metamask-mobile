@@ -30,8 +30,12 @@ import {
   createChartWidget,
   scheduleChartLayoutSettledNotify,
 } from '../widget/initChart';
-import { attachCrosshairListener } from '../interaction/crosshair';
+import {
+  attachCrosshairListener,
+  attachTapDismiss,
+} from '../interaction/crosshair';
 import { attachVisibleRangeListeners } from '../interaction/visibleRange';
+import { applyScaleLayout } from '../widget/scaleLayout';
 import type { ChartConfig } from './types';
 
 function readConfig(): ChartConfig {
@@ -85,9 +89,11 @@ export function bootstrap(): ChartConfig {
           datafeed: customDatafeed,
           onReady: (widget) => {
             try {
+              applyScaleLayout();
               applyVisualOverrides(config.visualOverrides);
               const chart = widget.activeChart();
               attachCrosshairListener(chart);
+              attachTapDismiss(widget);
               attachVisibleRangeListeners(chart);
               scheduleChartLayoutSettledNotify();
             } catch (error) {

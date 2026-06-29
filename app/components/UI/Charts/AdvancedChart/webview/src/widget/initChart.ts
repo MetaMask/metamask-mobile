@@ -116,6 +116,11 @@ function buildWidgetOverrides(theme: ChartTheme): Record<string, unknown> {
     'paneProperties.legendProperties.showStudyArguments': false,
     'paneProperties.legendProperties.showStudyValues': false,
     'mainSeriesProperties.showPriceLine': true,
+    // Pane margins keep candle (high/low fit) and line (close-only fit) charts
+    // visually consistent. Without them, line auto-fits tighter and looks
+    // zoomed in vs the candle chart for the same OHLCV.
+    'paneProperties.topMargin': 12,
+    'paneProperties.bottomMargin': 8,
     ...getCandleStyleOverrides(theme),
     ...getSeriesColorOverrides(
       getThemeLineColor(theme),

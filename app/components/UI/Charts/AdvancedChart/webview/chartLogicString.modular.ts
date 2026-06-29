@@ -1024,16 +1024,95 @@ function __resetOhlcvIngestionForTests() {
     firstDataDelivered = false;
 }
 
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/types.ts
+// Shared types for the AdvancedChart WebView modules.
+//
+// These types are local to the WebView bundle. Cross-bridge payload shapes that
+// must match the RN side live in messages/contract.ts and mirror the unions in
+// app/components/UI/Charts/AdvancedChart/AdvancedChart.types.ts.
+/** Chart type integers used by TradingView's setChartType / currentChartType. */
+var ChartType;
+(function (ChartType) {
+    ChartType[ChartType["Candles"] = 1] = "Candles";
+    ChartType[ChartType["Line"] = 2] = "Line";
+})(ChartType || (ChartType = {}));
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/scaleLayout.ts
+// Centralised price-scale + pane-layout overrides.
+//
+// Ported from chartLogic.js \`applyChartScaleLayout\` (~line 1270). Applied on
+// every chart-type switch and once on chart-ready so candle and line charts
+// share the same visible Y range. Without paneProperties.topMargin /
+// bottomMargin, TV auto-fits the line series tighter than the candle series
+// (close-only vs high/low) and the line chart looks zoomed in.
+//
+// Phase 2 simplifications vs legacy:
+// - Drops chrome-related toggles (showSeriesLastValue/CrosshairLabel
+//   conditionals — TV built-in always on now)
+// - Drops DOM overflow unclip / hide-price-scale-buttons (no chrome to hide)
+
+
+const PANE_TOP_MARGIN = 12;
+const PANE_BOTTOM_MARGIN = 8;
+function buildScaleLayoutOverrides() {
+    const theme = getTheme();
+    return {
+        'scalesProperties.showRightScale': true,
+        'scalesProperties.showLeftScale': false,
+        'scalesProperties.showSeriesLastValue': true,
+        'scalesProperties.showStudyLastValue': false,
+        'scalesProperties.showSymbolLabels': false,
+        'scalesProperties.showPriceScaleCrosshairLabel': true,
+        'scalesProperties.showTimeScaleCrosshairLabel': true,
+        'mainSeriesProperties.showPriceLine': true,
+        'paneProperties.topMargin': PANE_TOP_MARGIN,
+        'paneProperties.bottomMargin': PANE_BOTTOM_MARGIN,
+        ...(theme?.backgroundColor
+            ? {
+                'timeScale.borderColor': theme.backgroundColor,
+                'scalesProperties.lineColor': theme.backgroundColor,
+            }
+            : {}),
+        ...(theme?.borderColor
+            ? { 'paneProperties.separatorColor': theme.borderColor }
+            : {}),
+    };
+}
+/**
+ * Apply the scale-layout overrides plus re-attach the main series to the
+ * right price scale. Safe to call multiple times. Errors are forwarded to RN.
+ */
+function applyScaleLayout(_type) {
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    try {
+        widget.applyOverrides(buildScaleLayoutOverrides());
+    }
+    catch (error) {
+        reportErrorToRN(error);
+        return;
+    }
+    syncMainSeriesToRightScale(widget);
+}
+function syncMainSeriesToRightScale(widget) {
+    try {
+        widget.activeChart().getSeries().detachToRight();
+    }
+    catch {
+        // detachToRight can fail mid-teardown; safe to ignore.
+    }
+}
+
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/chartType.ts
 // SET_CHART_TYPE handler — switches between candle (1) and line (2) types.
 //
-// Ported from chartLogic.js handleSetChartType (~line 2457), stripped of:
-// - custom-chrome cleanup (removeAllLastPriceHorizontalOverlays,
-//   ensureNoLineChartEndIcons) — deleted in Phase 4
-// - chart-interaction analytics suppress — Phase 2's interaction module
-//   owns its own debouncing
-// - per-type series style re-application — superseded by Phase 1's
-//   widget/theme module, which re-applies series colors when needed
+// Ported from chartLogic.js handleSetChartType (~line 2457). After
+// setChartType, the legacy code calls applyChartScaleLayout to re-apply
+// pane margins + right-scale binding; without it the line chart auto-fits
+// to close-only and looks "zoomed in" vs the candle chart's high/low range.
+
+
 
 
 function handleSetChartType(payload) {
@@ -1049,11 +1128,17 @@ function handleSetChartType(payload) {
     }
     try {
         widget.activeChart().setChartType(payload.type);
+        applyScaleLayout(payload.type);
+        // TradingView may rebind scales asynchronously after a type switch; the
+        // legacy code re-applies on the next animation frame for the line chart.
+        // Doing it for both types is safe.
+        requestAnimationFrame(() => applyScaleLayout(payload.type));
     }
     catch (error) {
         reportErrorToRN(error);
     }
 }
+
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/visualOverrides.ts
 // Visual override application — grid colour, pane separator, current-price
@@ -1373,6 +1458,11 @@ function buildWidgetOverrides(theme) {
         'paneProperties.legendProperties.showStudyArguments': false,
         'paneProperties.legendProperties.showStudyValues': false,
         'mainSeriesProperties.showPriceLine': true,
+        // Pane margins keep candle (high/low fit) and line (close-only fit) charts
+        // visually consistent. Without them, line auto-fits tighter and looks
+        // zoomed in vs the candle chart for the same OHLCV.
+        'paneProperties.topMargin': 12,
+        'paneProperties.bottomMargin': 8,
         ...getCandleStyleOverrides(theme),
         ...getSeriesColorOverrides(getThemeLineColor(theme), getThemeLastPriceLineColor(theme)),
         ...getBuiltInScaleLabelOverrides(theme),
@@ -1477,17 +1567,33 @@ async function ensureLibraryLoaded(libraryUrl) {
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/interaction/crosshair.ts
-// Crosshair → CROSSHAIR_MOVE message bridge.
+// Crosshair → CROSSHAIR_MOVE message bridge + short-tap dismiss.
 //
 // Subscribes to TradingView's crossHairMoved() and posts the nearest OHLCV
-// bar to RN. RN side's parseWebViewMessage routes this to onCrosshairMove.
+// bar to RN. RN side's parseWebViewMessage routes this to onCrosshairMove,
+// and AdvancedChart.tsx's OHLCVBar component reads \`payload.data\`.
+//
+// Also subscribes to mouse_down / mouse_up so a short tap (< 400ms) after a
+// visible crosshair session dismisses the OHLCV bar — matches legacy
+// chartLogic.js (~lines 5742-5779). Without this the OHLCV bar lingers
+// forever after a long-press shows it.
 //
 // Ported from chartLogic.js (~line 5672) but simplified:
 // - No custom DOM crosshair-label drawing (Phase 4 deleted that)
-// - No tooltip-CHART_INTERACTED side channel (visibleRange.ts owns analytics)
 // - No marker hit-test bookkeeping (Phase 5's overlays/tradeMarkers owns it)
 
 
+const session = {
+    visible: false,
+    shownAt: 0,
+    dismissUntil: 0,
+    tooltipInteractSent: false,
+    mouseDownAt: 0,
+};
+const SHORT_TAP_MS = 400;
+const SYNTHETIC_CLICK_GUARD_MS = 500;
+const DISMISS_WINDOW_MS = 800;
+const DISMISS_RN_DELAY_MS = 50;
 function nearestBar(timeSec, data) {
     if (data.length === 0)
         return null;
@@ -1503,27 +1609,94 @@ function nearestBar(timeSec, data) {
     }
     return best;
 }
+function toCrosshairData(bar) {
+    if (!bar)
+        return null;
+    return {
+        time: bar.time,
+        open: bar.open,
+        high: bar.high,
+        low: bar.low,
+        close: bar.close,
+        volume: bar.volume,
+    };
+}
 /**
  * Subscribes the chart's crosshair-move event. Each tick posts CROSSHAIR_MOVE
- * with the nearest OHLCV bar, or null when the crosshair dismisses.
+ * with the nearest OHLCV bar shaped as CrosshairData, or null when the
+ * crosshair dismisses or when we're inside the post-tap dismiss window.
  */
 function attachCrosshairListener(chart) {
     try {
         const subscription = chart.crossHairMoved();
         subscription.subscribe(null, (params) => {
-            if (!params ||
-                params.price === undefined ||
-                params.time === undefined) {
-                postToRN('CROSSHAIR_MOVE', { bar: null });
+            if (!params || params.price === undefined || params.time === undefined) {
+                postToRN('CROSSHAIR_MOVE', { data: null });
+                return;
+            }
+            if (Date.now() < session.dismissUntil) {
+                postToRN('CROSSHAIR_MOVE', { data: null });
                 return;
             }
             const bar = nearestBar(params.time, getOhlcvData());
-            postToRN('CROSSHAIR_MOVE', { bar });
+            if (!session.visible) {
+                session.shownAt = Date.now();
+            }
+            session.visible = true;
+            if (bar && !session.tooltipInteractSent) {
+                postToRN('CHART_INTERACTED', { interaction_type: 'tooltip' });
+                session.tooltipInteractSent = true;
+            }
+            postToRN('CROSSHAIR_MOVE', { data: toCrosshairData(bar) });
         });
     }
     catch (error) {
         reportErrorToRN(error);
     }
+}
+/**
+ * Subscribes mouse_down / mouse_up so a short tap after a long-press-shown
+ * crosshair dismisses the OHLCV bar on the RN side. TV's built-in crosshair
+ * line will stay on the chart (no TV API for programmatic dismiss); only the
+ * RN-side OHLCV bar reads \`CROSSHAIR_MOVE { data: null }\` to hide itself.
+ */
+function attachTapDismiss(widget) {
+    try {
+        widget.subscribe('mouse_down', () => {
+            session.mouseDownAt = Date.now();
+            session.dismissUntil = 0;
+        });
+        widget.subscribe('mouse_up', () => {
+            if (!session.visible)
+                return;
+            const pressDuration = Date.now() - session.mouseDownAt;
+            if (pressDuration >= SHORT_TAP_MS)
+                return;
+            // Avoid dismissing the bar in response to the synthetic mouse-up that
+            // fires when a long-press finally releases — only dismiss if the bar
+            // has been visible long enough to be a deliberate "second tap".
+            if (Date.now() - session.shownAt < SYNTHETIC_CLICK_GUARD_MS)
+                return;
+            session.visible = false;
+            session.shownAt = 0;
+            session.dismissUntil = Date.now() + DISMISS_WINDOW_MS;
+            setTimeout(() => {
+                session.tooltipInteractSent = false;
+                postToRN('CROSSHAIR_MOVE', { data: null });
+            }, DISMISS_RN_DELAY_MS);
+        });
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+/** Test-only: reset the module-local crosshair session state. */
+function __resetCrosshairForTests() {
+    session.visible = false;
+    session.shownAt = 0;
+    session.dismissUntil = 0;
+    session.tooltipInteractSent = false;
+    session.mouseDownAt = 0;
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/interaction/visibleRange.ts
@@ -1636,6 +1809,7 @@ function __resetVisibleRangeForTests() {
 
 
 
+
 function readConfig() {
     const config = window.CONFIG;
     if (!config) {
@@ -1679,9 +1853,11 @@ function bootstrap() {
                 datafeed: customDatafeed,
                 onReady: (widget) => {
                     try {
+                        applyScaleLayout();
                         applyVisualOverrides(config.visualOverrides);
                         const chart = widget.activeChart();
                         attachCrosshairListener(chart);
+                        attachTapDismiss(widget);
                         attachVisibleRangeListeners(chart);
                         scheduleChartLayoutSettledNotify();
                     }

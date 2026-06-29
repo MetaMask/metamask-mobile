@@ -1,16 +1,15 @@
 // SET_CHART_TYPE handler — switches between candle (1) and line (2) types.
 //
-// Ported from chartLogic.js handleSetChartType (~line 2457), stripped of:
-// - custom-chrome cleanup (removeAllLastPriceHorizontalOverlays,
-//   ensureNoLineChartEndIcons) — deleted in Phase 4
-// - chart-interaction analytics suppress — Phase 2's interaction module
-//   owns its own debouncing
-// - per-type series style re-application — superseded by Phase 1's
-//   widget/theme module, which re-applies series colors when needed
+// Ported from chartLogic.js handleSetChartType (~line 2457). After
+// setChartType, the legacy code calls applyChartScaleLayout to re-apply
+// pane margins + right-scale binding; without it the line chart auto-fits
+// to close-only and looks "zoomed in" vs the candle chart's high/low range.
 
 import { reportErrorToRN } from '../core/bridge';
 import { getWidget, isChartReady, setCurrentChartType } from '../core/state';
+import { ChartType } from '../core/types';
 import type { SetChartTypeMessage } from '../messages/contract';
+import { applyScaleLayout } from './scaleLayout';
 
 export function handleSetChartType(
   payload: SetChartTypeMessage['payload'],
@@ -30,7 +29,14 @@ export function handleSetChartType(
 
   try {
     widget.activeChart().setChartType(payload.type);
+    applyScaleLayout(payload.type);
+    // TradingView may rebind scales asynchronously after a type switch; the
+    // legacy code re-applies on the next animation frame for the line chart.
+    // Doing it for both types is safe.
+    requestAnimationFrame(() => applyScaleLayout(payload.type));
   } catch (error) {
     reportErrorToRN(error);
   }
 }
+
+export { ChartType };
