@@ -430,8 +430,8 @@ describe('PerpsTabView', () => {
       render(<PerpsTabView />);
 
       // Confirm the explore state is rendered (market data should be visible)
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
-      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('Ethereum')).toBeOnTheScreen();
+      expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
     });
 
     it('should render Start a new trade CTA when positions exist', () => {
@@ -651,7 +651,7 @@ describe('PerpsTabView', () => {
 
       // Assert - Component should render explore state with market data
       expect(screen.toJSON()).toBeTruthy();
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
+      expect(screen.getByText('Ethereum')).toBeOnTheScreen();
     });
   });
 
@@ -735,8 +735,8 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
-      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('Ethereum')).toBeOnTheScreen();
+      expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
     });
   });
 });
