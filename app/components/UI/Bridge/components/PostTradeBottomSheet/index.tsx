@@ -332,13 +332,13 @@ export const PostTradeBottomSheet = () => {
     let resolvedSourceToken: BridgeToken | undefined = params.sourceToken;
     if (isSameBridgeToken(resolvedSourceToken, selectedDestToken)) {
       const nativeSourceToken = getNativeSourceToken(selectedDestToken.chainId);
-      if (!isSameBridgeToken(nativeSourceToken, selectedDestToken)) {
-        resolvedSourceToken = nativeSourceToken;
-      } else {
+      if (isSameBridgeToken(nativeSourceToken, selectedDestToken)) {
         const defaultDestToken = getDefaultDestToken(selectedDestToken.chainId);
         if (!isSameBridgeToken(defaultDestToken, selectedDestToken)) {
           resolvedSourceToken = defaultDestToken;
         }
+      } else {
+        resolvedSourceToken = nativeSourceToken;
       }
     }
 
