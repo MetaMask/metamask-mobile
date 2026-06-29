@@ -22,15 +22,43 @@ interface OHLCVBarProps {
   testID?: string;
 }
 
-const LEFT_COLUMN = [
-  { labelKey: 'perps.chart.ohlc.open', valueKey: 'open' as const },
-  { labelKey: 'perps.chart.ohlc.close', valueKey: 'close' as const },
-] as const;
+interface LabelValueRow {
+  label: string;
+  value: string;
+  valueColor?: TextColor;
+}
 
-const RIGHT_COLUMN = [
-  { labelKey: 'perps.chart.ohlc.low', valueKey: 'low' as const },
-  { labelKey: 'perps.chart.ohlc.high', valueKey: 'high' as const },
-] as const;
+const LabelValue: React.FC<LabelValueRow> = ({ label, value, valueColor }) => (
+  <Box
+    flexDirection={BoxFlexDirection.Row}
+    alignItems={BoxAlignItems.Center}
+    twClassName="gap-2"
+  >
+    <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+      {label}
+    </Text>
+    <Text
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
+      color={valueColor ?? TextColor.TextDefault}
+      numberOfLines={1}
+    >
+      {value}
+    </Text>
+  </Box>
+);
+
+const Column: React.FC<{ rows: LabelValueRow[] }> = ({ rows }) => (
+  <Box
+    flexDirection={BoxFlexDirection.Column}
+    alignItems={BoxAlignItems.Start}
+    twClassName="gap-2.5"
+  >
+    {rows.map((row) => (
+      <LabelValue key={row.label} {...row} />
+    ))}
+  </Box>
+);
 
 export const OHLCVBar: React.FC<OHLCVBarProps> = ({
   data,
@@ -39,34 +67,53 @@ export const OHLCVBar: React.FC<OHLCVBarProps> = ({
   changePercentColor,
   testID,
 }) => {
-  const formatted = useMemo(() => {
-    const subscriptOpts = { maxDigitsAfterSubscript: 1 };
-    const prices = {
-      open: formatPriceWithSubscriptNotation(
-        data.open,
-        currency,
-        subscriptOpts,
-      ),
-      close: formatPriceWithSubscriptNotation(
-        data.close,
-        currency,
-        subscriptOpts,
-      ),
-      high: formatPriceWithSubscriptNotation(
-        data.high,
-        currency,
-        subscriptOpts,
-      ),
-      low: formatPriceWithSubscriptNotation(data.low, currency, subscriptOpts),
-    };
-    const volume =
+  const { leftRows, rightRows } = useMemo(() => {
+    const fmt = (n: number) =>
+      formatPriceWithSubscriptNotation(n, currency, {
+        maxDigitsAfterSubscript: 1,
+      });
+
+    const volumeText =
       data.volume === undefined
         ? null
         : Number(data.volume) === 0
           ? '—'
           : formatOhlcvVolumeDisplay(data.volume, currency);
-    return { prices, volume };
-  }, [data.open, data.close, data.high, data.low, data.volume, currency]);
+
+    const left: LabelValueRow[] = [
+      { label: strings('perps.chart.ohlc.open'), value: fmt(data.open) },
+      { label: strings('perps.chart.ohlc.close'), value: fmt(data.close) },
+    ];
+    if (volumeText !== null) {
+      left.push({
+        label: strings('perps.chart.ohlc.volume'),
+        value: volumeText,
+      });
+    }
+
+    const right: LabelValueRow[] = [
+      { label: strings('perps.chart.ohlc.low'), value: fmt(data.low) },
+      { label: strings('perps.chart.ohlc.high'), value: fmt(data.high) },
+    ];
+    if (changePercent !== undefined) {
+      right.push({
+        label: strings('perps.chart.ohlc.change'),
+        value: changePercent,
+        valueColor: changePercentColor,
+      });
+    }
+
+    return { leftRows: left, rightRows: right };
+  }, [
+    data.open,
+    data.close,
+    data.high,
+    data.low,
+    data.volume,
+    currency,
+    changePercent,
+    changePercentColor,
+  ]);
 
   return (
     <Box
@@ -76,111 +123,8 @@ export const OHLCVBar: React.FC<OHLCVBarProps> = ({
       twClassName="px-4 pt-2.5 pb-2 w-[302px]"
       testID={testID}
     >
-      {/* Left column: Open, Close, Volume */}
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        alignItems={BoxAlignItems.Start}
-        twClassName="gap-2.5"
-      >
-        {LEFT_COLUMN.map(({ labelKey, valueKey }) => (
-          <Box
-            key={valueKey}
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
-          >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings(labelKey)}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-            >
-              {formatted.prices[valueKey]}
-            </Text>
-          </Box>
-        ))}
-        {formatted.volume !== null && (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
-          >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('perps.chart.ohlc.volume')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-            >
-              {formatted.volume}
-            </Text>
-          </Box>
-        )}
-      </Box>
-
-      {/* Right column: Low, High, Change */}
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        alignItems={BoxAlignItems.Start}
-        twClassName="gap-2.5"
-      >
-        {RIGHT_COLUMN.map(({ labelKey, valueKey }) => (
-          <Box
-            key={valueKey}
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
-          >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings(labelKey)}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-              numberOfLines={1}
-            >
-              {formatted.prices[valueKey]}
-            </Text>
-          </Box>
-        ))}
-        {changePercent !== undefined && (
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
-          >
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('perps.chart.ohlc.change')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Medium}
-              color={changePercentColor ?? TextColor.TextDefault}
-              numberOfLines={1}
-            >
-              {changePercent}
-            </Text>
-          </Box>
-        )}
-      </Box>
+      <Column rows={leftRows} />
+      <Column rows={rightRows} />
     </Box>
   );
 };
