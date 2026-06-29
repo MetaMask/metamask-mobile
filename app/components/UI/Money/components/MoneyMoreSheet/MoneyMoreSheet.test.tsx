@@ -136,6 +136,7 @@ describe('MoneyMoreSheet', () => {
       params: {
         newTabUrl: AppConstants.URLS.MONEY_LANDING,
         timestamp: expect.any(Number),
+        fromMoney: true,
       },
     });
   });

@@ -17,6 +17,7 @@ describe('openInAppBrowser', () => {
       params: {
         newTabUrl: 'https://example.com',
         timestamp: expect.any(Number),
+        fromMoney: true,
       },
     });
   });
