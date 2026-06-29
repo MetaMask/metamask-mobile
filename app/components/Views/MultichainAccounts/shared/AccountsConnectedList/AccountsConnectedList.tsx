@@ -15,7 +15,7 @@ import {
 import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { isDefaultAccountName } from '../../../../../util/ENSUtils';
-import { formatAddress, isEthAddress } from '../../../../../util/address';
+import { formatAddress } from '../../../../../util/address';
 import { useStyles } from '../../../../../component-library/hooks';
 import AvatarGroup from '../../../../../component-library/components/Avatars/AvatarGroup';
 import { EnsByAccountAddress, Account } from '../../../../hooks/useAccounts';
@@ -69,10 +69,7 @@ const AccountsConnectedList = ({
   const accountByAddress = useMemo(() => {
     const map = new Map<string, Account>();
     for (const account of accounts) {
-      const key = isEthAddress(account.address)
-        ? account.address.toLowerCase()
-        : account.address;
-      map.set(key, account);
+      map.set(account.address, account);
     }
     return map;
   }, [accounts]);
@@ -142,8 +139,7 @@ const AccountsConnectedList = ({
     ({ item }: { item: CaipAccountId }) => {
       const { address } = parseCaipAccountId(item);
       const shortAddress = formatAddress(address, 'short');
-      const lookupKey = isEthAddress(address) ? address.toLowerCase() : address;
-      const account = accountByAddress.get(lookupKey);
+      const account = accountByAddress.get(address);
       const avatarProps = {
         variant: AvatarVariant.Account as const,
         type: accountAvatarType,
