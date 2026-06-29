@@ -6,7 +6,7 @@ on:
     types: [created]
 
 jobs:
-  get-token:
+  merge-pr:
     # Only run if the comment is on a PR and the comment body matches exactly "Merge my PR"
     if: >-
       github.event.issue.pull_request &&
@@ -18,8 +18,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-    outputs:
-      token: ${{ steps.get-token.outputs.token }}
     steps:
       - name: Get token
         id: get-token
@@ -31,13 +29,11 @@ jobs:
             contents: write
             members: read
 
-  merge-pr:
-    needs: get-token
-    uses: MetaMask/github-tools/.github/workflows/merge-approved-pr.yml@v1
-    with:
-      pr-number: ${{ github.event.issue.number }}
-      # Merge PRs from stable-main-X.Y.Z into main
-      required-base-branch: 'main'
-      head-branch-pattern: '^stable-main-[0-9]+\.[0-9]+\.[0-9]+$'
-    secrets:
-      github-token: ${{ needs.get-token.outputs.token }}
+      - name: Merge approved PR
+        uses: MetaMask/github-tools/.github/actions/merge-approved-pr@v1
+        with:
+          pr-number: ${{ github.event.issue.number }}
+          # Merge PRs from stable-main-X.Y.Z into main
+          required-base-branch: 'main'
+          head-branch-pattern: '^stable-main-[0-9]+\.[0-9]+\.[0-9]+$'
+          github-token: ${{ steps.get-token.outputs.token }}
