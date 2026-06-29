@@ -36,6 +36,7 @@ import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredi
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 
 const mockAddTokens = jest.fn().mockResolvedValue(undefined);
+const mockRenderNoFeeTag = jest.fn(() => null);
 const mockFindNetworkClientIdByChainId = jest
   .fn()
   .mockReturnValue('network-client-1');
@@ -52,6 +53,14 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../hooks/pay/usePayWithNoFeeToken', () => ({
+  usePayWithNoFeeToken: () => ({
+    noFeeToken: undefined,
+    isNoFeeToken: () => false,
+    renderNoFeeTag: mockRenderNoFeeTag,
+    renderNoFeeTagForToken: () => null,
+  }),
+}));
 jest.mock('../../../hooks/pay/useTransactionPayToken');
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw');
@@ -430,6 +439,28 @@ describe('PayWithModal', () => {
 
       expect(withdrawFilterFn).toHaveBeenCalledWith(expect.any(Array));
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
+    });
+
+    it('does not render no-fee tags for withdrawal transactions', async () => {
+      const withdrawToken = {
+        accountType: EthAccountType.Eoa,
+        address: '0xWithdrawToken',
+        balance: '1',
+        balanceInSelectedCurrency: '$1.00',
+        chainId: CHAIN_ID_1_MOCK,
+        decimals: 6,
+        name: 'Withdraw Token',
+        standard: TokenStandard.ERC20,
+        symbol: 'WITHDRAW',
+      } as AssetType;
+      useWithdrawTokenFilterMock.mockReturnValue(
+        jest.fn(() => [withdrawToken]),
+      );
+
+      const { findByText } = render();
+
+      expect(await findByText('Withdraw Token')).toBeOnTheScreen();
+      expect(mockRenderNoFeeTag).not.toHaveBeenCalled();
     });
 
     it('awaits addTokens before calling setPayToken for zero-balance withdraw token', async () => {

@@ -211,7 +211,6 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
     stages: [],
   })),
   selectPredictWorldCupScreenEnabledFlag: jest.fn(() => false),
-  selectPredictHomepageDiscoveryNbaChampionEnabledFlag: jest.fn(() => false),
 }));
 
 jest.mock('../../UI/Predict/hooks/usePredictWorldCup', () => ({
@@ -245,6 +244,11 @@ jest.mock('@tanstack/react-query', () => {
   const actual = jest.requireActual('@tanstack/react-query');
   return {
     ...actual,
+    useQuery: jest.fn(() => ({
+      data: 510,
+      isLoading: false,
+      refetch: jest.fn().mockResolvedValue(undefined),
+    })),
     useQueryClient: jest.fn(() => ({
       invalidateQueries: jest.fn(() => Promise.resolve()),
     })),
@@ -296,6 +300,7 @@ jest.mock('./Sections/TopTraders/hooks', () => ({
     refresh: jest.fn().mockResolvedValue(undefined),
     toggleFollow: jest.fn(),
   })),
+  usePrefetchTraderProfiles: jest.fn(),
 }));
 
 /** Shape of first argument to useHomeViewedEvent (for asserting in tests). */

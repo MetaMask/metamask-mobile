@@ -186,6 +186,7 @@ export const closeOnboardingModals = async (
  * @param {string} [options.seedPhrase] - The secret recovery phrase to import the wallet. Defaults to a valid account's seed phrase.
  * @param {string} [options.password] - The password to set for the wallet. Defaults to a valid account's password.
  * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics. Defaults to true.
+ * @param {boolean} [options.optInToMarketing=false] - Whether to opt in to marketing consent at Opt-in Metrics.
  * @param {boolean} [options.fromResetWallet=false] - Whether the import is from a reset wallet flow. Defaults to false.
  * @returns {Promise<void>} Resolves when the wallet import process is complete.
  */
@@ -193,11 +194,13 @@ export const importWalletWithRecoveryPhrase = async ({
   seedPhrase,
   password,
   optInToMetrics = true,
+  optInToMarketing = false,
   fromResetWallet = false,
 }: {
   seedPhrase?: string;
   password?: string;
   optInToMetrics?: boolean;
+  optInToMarketing?: boolean;
   fromResetWallet?: boolean;
 }): Promise<void> => {
   // tap on import seed phrase button
@@ -235,6 +238,10 @@ export const importWalletWithRecoveryPhrase = async ({
     });
     if (!optInToMetrics) {
       await MetaMetricsOptInView.tapMetricsCheckbox();
+    }
+
+    if (optInToMarketing && optInToMetrics) {
+      await MetaMetricsOptInView.tapMarketingCheckbox();
     }
 
     await MetaMetricsOptInView.tapAgreeButton();
@@ -314,10 +321,15 @@ export const dismissProtectYourWalletModal = async (): Promise<void> => {
  * @async
  * @param {Object} [options={}] - Configuration options for wallet creation.
  * @param {boolean} [options.optInToMetrics=true] - Whether to opt in to MetaMetrics analytics.
+ * @param {boolean} [options.optInToMarketing=false] - Whether to opt in to marketing consent at Opt-in Metrics.
  * @returns {Promise<void>} Resolves when the wallet creation flow is complete.
  */
 export const CreateNewWallet = async ({
   optInToMetrics = true,
+  optInToMarketing = false,
+}: {
+  optInToMetrics?: boolean;
+  optInToMarketing?: boolean;
 } = {}): Promise<void> => {
   //'should create new wallet'
   await OnboardingView.tapCreateWallet();
@@ -349,6 +361,10 @@ export const CreateNewWallet = async ({
   });
   if (!optInToMetrics) {
     await MetaMetricsOptInView.tapMetricsCheckbox();
+  }
+
+  if (optInToMarketing && optInToMetrics) {
+    await MetaMetricsOptInView.tapMarketingCheckbox();
   }
 
   await MetaMetricsOptInView.tapAgreeButton();
@@ -522,6 +538,40 @@ export const loginToAppPlaywright = async (
   await PlaywrightUtilities.wait(5000);
   await dismissPushNotificationExistingUserSheet();
   await dismissExperienceEnhancerModal();
+};
+
+/**
+ * Logs in (Appium), waits for the wallet, and opens the account list bottom sheet.
+ */
+export const loginAndOpenAccountList = async (
+  options: {
+    scenarioType?: string;
+    dismissModals?: boolean;
+    walletTimeout?: number;
+    accountListDescription?: string;
+  } = {},
+): Promise<void> => {
+  const {
+    walletTimeout = 15_000,
+    accountListDescription = 'Account list should be visible',
+    ...loginOptions
+  } = options;
+
+  await loginToAppPlaywright(loginOptions);
+
+  await Assertions.expectElementToBeVisible(WalletView.container, {
+    description: 'Wallet should be visible after login',
+    timeout: walletTimeout,
+  });
+
+  await WalletView.tapIdenticon();
+
+  await Assertions.expectElementToBeVisible(
+    AccountListBottomSheet.accountList,
+    {
+      description: accountListDescription,
+    },
+  );
 };
 
 /**

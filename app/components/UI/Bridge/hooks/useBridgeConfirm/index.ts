@@ -7,13 +7,17 @@ import {
   selectSourceToken,
   incrementBridgeBalanceRefreshKey,
   resetBridgeTokenInputs,
+  resetHardwareWalletsSwaps,
   setIsSubmittingTx,
+  updateHardwareWalletsSwaps,
 } from '../../../../../core/redux/slices/bridge';
 import Routes from '../../../../../constants/navigation/Routes';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
+import { isHardwareAccount } from '../../../../../util/address';
+import { buildStartPayload } from '../../../HardwareWallet/Swaps/HardwareWalletsSwaps.state';
 import {
   type PostTradeBottomSheetParams,
   PostTradeStatus,
@@ -24,6 +28,7 @@ import {
   POST_TRADE_MODAL_VARIANTS,
 } from '../../components/PostTradeBottomSheet/abTestConfig';
 import Engine from '../../../../../core/Engine';
+import { withPostTradeNotificationSuppression } from '../../utils/postTradeNotifications';
 
 interface Params {
   activeQuote: ReturnType<typeof useBridgeQuoteData>['activeQuote'] | null;
@@ -40,6 +45,9 @@ export const useBridgeConfirm = ({
   const navigation = useNavigation();
   const { submitBridgeTx } = useSubmitBridgeTx();
   const walletAddress = useSelector(selectSourceWalletAddress);
+  const isHardwareWalletAccount = walletAddress
+    ? Boolean(isHardwareAccount(walletAddress))
+    : false;
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -51,6 +59,27 @@ export const useBridgeConfirm = ({
 
   const handleConfirm = async () => {
     if (!activeQuote || !walletAddress) {
+      return;
+    }
+
+    if (isHardwareWalletAccount) {
+      dispatch(setIsSubmittingTx(true));
+      try {
+        dispatch(resetHardwareWalletsSwaps());
+        dispatch(updateHardwareWalletsSwaps(buildStartPayload(activeQuote)));
+        navigation.navigate(Routes.BRIDGE.ROOT, {
+          screen: Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+          params: {
+            submissionParams: {
+              quoteResponse: activeQuote,
+              location,
+              transactionActiveAbTests,
+            },
+          },
+        });
+      } finally {
+        dispatch(setIsSubmittingTx(false));
+      }
       return;
     }
 
@@ -68,11 +97,15 @@ export const useBridgeConfirm = ({
     try {
       dispatch(setIsSubmittingTx(true));
 
-      const submittedTransaction = await submitBridgeTx({
-        quoteResponse: activeQuote,
-        location,
-        transactionActiveAbTests,
-      });
+      const submitTransaction = () =>
+        submitBridgeTx({
+          quoteResponse: activeQuote,
+          location,
+          transactionActiveAbTests,
+        });
+      const submittedTransaction = isPostTradeModalEnabled
+        ? await withPostTradeNotificationSuppression(submitTransaction)
+        : await submitTransaction();
       const transactionHash =
         submittedTransaction &&
         'hash' in submittedTransaction &&

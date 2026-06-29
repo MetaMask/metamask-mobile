@@ -33,6 +33,8 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import { Box } from '../../../Box/Box';
 import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import Name from '../../../Name/Name';
@@ -51,6 +53,7 @@ import {
 import { useTransactionDetails } from '../../../../Views/confirmations/hooks/activity/useTransactionDetails';
 import useNetworkInfo from '../../../../Views/confirmations/hooks/useNetworkInfo';
 import { usePayFiatFormatter } from '../../../../Views/confirmations/hooks/pay/usePayFiatFormatter';
+import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
 import { getTokenTransferData } from '../../../../Views/confirmations/utils/transaction-pay';
 import { parseStandardTokenTransactionData } from '../../../../Views/confirmations/utils/transaction';
 import { useAccountNames } from '../../../../hooks/DisplayName/useAccountNames';
@@ -77,11 +80,25 @@ function useRecipient(): Hex | undefined {
   }, [transactionMeta]);
 }
 
-export function MoneySentDetails() {
+interface MoneySentDetailsProps {
+  /**
+   * Closes the host bottom sheet and runs `navigate` once it has finished
+   * dismissing. Navigating while the sheet's transparent modal is still
+   * presented pushes the WebView behind it and strands the overlay, so the
+   * explorer link must defer navigation until after the sheet is gone.
+   */
+  onCloseSheet: (navigate: () => void) => void;
+}
+
+export function MoneySentDetails({ onCloseSheet }: MoneySentDetailsProps) {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { transactionMeta } = useTransactionDetails();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
+  const blockExplorerLinkEnabled = useSelector(
+    selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
+  );
 
   const chainId = transactionMeta.chainId as Hex;
   const from = transactionMeta.txParams?.from;
@@ -118,11 +135,26 @@ export function MoneySentDetails() {
     if (!url) {
       return;
     }
-    navigation.navigate(Routes.WEBVIEW.MAIN, {
-      screen: Routes.WEBVIEW.SIMPLE,
-      params: { url, title },
+    trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+      location: 'money_transaction_details',
+      text: strings('transaction_details.view_on_block_explorer'),
+      url,
     });
-  }, [chainId, navigation, networkConfigurations, transactionMeta]);
+    onCloseSheet(() => {
+      navigation.navigate(Routes.WEBVIEW.MAIN, {
+        screen: Routes.WEBVIEW.SIMPLE,
+        params: { url, title },
+      });
+    });
+  }, [
+    chainId,
+    createEventBuilder,
+    navigation,
+    networkConfigurations,
+    onCloseSheet,
+    trackEvent,
+    transactionMeta,
+  ]);
 
   return (
     <ScrollView>
@@ -230,14 +262,16 @@ export function MoneySentDetails() {
           </TransactionDetailsRow>
         ) : null}
 
-        <Button
-          variant={ButtonVariants.Secondary}
-          size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          style={styles.button}
-          label={strings('transaction_details.view_on_block_explorer')}
-          onPress={handleViewOnExplorer}
-        />
+        {blockExplorerLinkEnabled && (
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={ButtonSize.Lg}
+            width={ButtonWidthTypes.Full}
+            style={styles.button}
+            label={strings('transaction_details.view_on_block_explorer')}
+            onPress={handleViewOnExplorer}
+          />
+        )}
       </Box>
     </ScrollView>
   );

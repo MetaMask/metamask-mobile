@@ -45,7 +45,7 @@ describe('useMoneyPredictDeposit', () => {
       navigateToConfirmation: mockNavigateToConfirmation,
     });
     (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
-      enableMoneyHomePagePredictTransaction: false,
+      enableMoneyAccountTransactions: {},
     });
   });
 
@@ -58,7 +58,7 @@ describe('useMoneyPredictDeposit', () => {
 
   it('returns isEnabled true when flag is enabled', () => {
     (selectMetaMaskPayFlags as unknown as jest.Mock).mockReturnValue({
-      enableMoneyHomePagePredictTransaction: true,
+      enableMoneyAccountTransactions: { predictDeposit: true },
     });
 
     const { result } = render();

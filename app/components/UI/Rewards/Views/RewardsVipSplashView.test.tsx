@@ -7,7 +7,8 @@ import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
-import { VIP_SPLASH_SCREEN_TEST_IDS } from '../components/Vip/VipSplashScreen';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { VIP_SPLASH_SCREEN_TEST_IDS } from '../components/Vip/VipSplashScreenLayout';
 import { useVipDashboard } from '../hooks/useVipDashboard';
 import RewardsVipSplashView from './RewardsVipSplashView';
 
@@ -16,6 +17,7 @@ const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockSubscriptionId = 'test-subscription-id';
 let mockIsVipEnabled = true;
+let mockIsVipProgramEnabled = true;
 let mockCanGoBack = true;
 let mockVipSplashAccepted: Record<string, boolean> = {};
 
@@ -117,6 +119,10 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/featureFlagController/vipProgram', () => ({
+  selectVipProgramEnabled: jest.fn(),
+}));
+
 jest.mock('../../../Views/ErrorBoundary', () => ({
   __esModule: true,
   default: ({ children }: { children: React.ReactNode }) => children,
@@ -141,6 +147,7 @@ describe('RewardsVipSplashView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsVipEnabled = true;
+    mockIsVipProgramEnabled = true;
     mockCanGoBack = true;
     mockVipSplashAccepted = {};
     mockUseVipDashboard.mockReturnValue({
@@ -154,6 +161,9 @@ describe('RewardsVipSplashView', () => {
       if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
       if (selector === selectIsCurrentSubscriptionVipEnabled) {
         return mockIsVipEnabled;
+      }
+      if (selector === selectVipProgramEnabled) {
+        return mockIsVipProgramEnabled;
       }
 
       return (
@@ -226,6 +236,17 @@ describe('RewardsVipSplashView', () => {
 
   it('replaces with dashboard when the user cannot view VIP', () => {
     mockIsVipEnabled = false;
+
+    const { queryByTestId } = render(<RewardsVipSplashView />);
+
+    expect(queryByTestId(VIP_SPLASH_SCREEN_TEST_IDS.CONTAINER)).toBeNull();
+    expect(mockNavigateDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.REWARDS_DASHBOARD),
+    );
+  });
+
+  it('replaces with dashboard when the VIP program flag is off, even if the subscription is VIP', () => {
+    mockIsVipProgramEnabled = false;
 
     const { queryByTestId } = render(<RewardsVipSplashView />);
 

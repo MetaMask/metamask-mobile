@@ -55,7 +55,6 @@ import {
 import { useMusdConversionEligibility } from '../../Earn/hooks/useMusdConversionEligibility';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
-import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import {
   MarketInsightsEntryCard,
@@ -164,6 +163,7 @@ export interface AssetOverviewContentProps {
   comparePrice: number;
   prices: TokenPrice[];
   isLoading: boolean;
+  hasInsufficientCoverage?: boolean;
 
   timePeriod: TimePeriod;
   setTimePeriod: (period: TimePeriod) => void;
@@ -234,6 +234,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   comparePrice,
   prices,
   isLoading,
+  hasInsufficientCoverage,
   timePeriod,
   setTimePeriod,
   chartNavigationButtons,
@@ -752,6 +753,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             currentPrice={currentPrice}
             comparePrice={comparePrice}
             isLoading={isLoading}
+            hasInsufficientCoverage={hasInsufficientCoverage}
             onPriceDirectionChange={onPriceDirectionChange}
             useAmbientColor={useAmbientColor}
           />

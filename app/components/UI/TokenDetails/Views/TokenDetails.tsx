@@ -1,7 +1,7 @@
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Theme } from '@metamask/design-tokens';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
-import { isCaipAssetType, type CaipAssetType } from '@metamask/utils';
+import { isCaipAssetType, type CaipAssetType, type Hex } from '@metamask/utils';
 import {
   useFocusEffect,
   useNavigation,
@@ -14,15 +14,20 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
+import {
+  ActivityIndicator,
+  AppState,
+  Platform,
+  Share,
+  StyleSheet,
+  View,
+} from 'react-native';
 import { useSelector } from 'react-redux';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
 import { RootState } from '../../../../reducers';
-import { selectSocialAiAssetDetailsQuickBuyEnabled } from '../../../../selectors/featureFlagController/socialAiAssetDetailsQuickBuy';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
-import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import { LIGHT_MODE_SUCCESS_GREEN, useTheme } from '../../../../util/theme';
 import { AppThemeKey } from '../../../../util/theme/models';
 import { TraceName, endTrace } from '../../../../util/trace';
@@ -40,7 +45,7 @@ import {
   AMBIENT_PRICE_COLOR_AB_KEY,
   AMBIENT_PRICE_COLOR_VARIANTS,
 } from '../components/abTestConfig';
-import AssetDetailsQuickBuy from '../components/AssetDetailsQuickBuy';
+import { useStickyQuickBuy } from '../hooks/useStickyQuickBuy';
 import AssetOverviewContent from '../components/AssetOverviewContent';
 import { TokenDetailsInlineHeader } from '../components/TokenDetailsInlineHeader';
 import TokenDetailsStickyFooter from '../components/TokenDetailsStickyFooter';
@@ -54,6 +59,10 @@ import { useTokenBalance } from '../hooks/useTokenBalance';
 import { useTokenPrice } from '../hooks/useTokenPrice';
 import { useTokenSecurityData } from '../hooks/useTokenSecurityData';
 import { useTokenTransactions } from '../hooks/useTokenTransactions';
+import Routes from '../../../../constants/navigation/Routes';
+import { selectPriceAlertsEnabled } from '../../../../selectors/featureFlagController/priceAlerts';
+import { useIsPriceAlertsChainSupported } from '../../Assets/PriceAlerts/hooks/useIsPriceAlertsChainSupported';
+import { usePriceInUsd } from '../../Assets/PriceAlerts/hooks/usePriceInUsd';
 
 const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
@@ -159,18 +168,13 @@ const TokenDetails: React.FC<{
   const { themeAppearance } = useTheme();
   const isLightMode = themeAppearance === AppThemeKey.light;
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [isInsightsDisclaimerVisible, setIsInsightsDisclaimerVisible] =
     useState(false);
-  const [isQuickBuyVisible, setIsQuickBuyVisible] = useState(false);
-
-  const handleQuickBuyPress = useCallback(() => {
-    playImpact(ImpactMoment.PrimaryCTA);
-    setIsQuickBuyVisible(true);
-  }, []);
-
-  const handleQuickBuyClose = useCallback(() => {
-    setIsQuickBuyVisible(false);
-  }, []);
+  const { onQuickBuyPress, quickBuySheet } = useStickyQuickBuy({
+    token,
+    source: 'asset_details',
+  });
   const { variant: ambientColorVariant } = useABTest(
     AMBIENT_PRICE_COLOR_AB_KEY,
     AMBIENT_PRICE_COLOR_VARIANTS,
@@ -189,6 +193,42 @@ const TokenDetails: React.FC<{
       return null;
     }
   }, [token.address, token.chainId]);
+
+  const isPriceAlertsFeatureEnabled = useSelector(selectPriceAlertsEnabled);
+
+  const handleShare = useCallback(() => {
+    if (!caip19AssetId) {
+      return;
+    }
+
+    const url = `https://link.metamask.io/asset?assetId=${encodeURIComponent(caip19AssetId)}`;
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.TOKEN_DETAILS_SHARED)
+        .addProperties({
+          chain_id: token.chainId,
+          token_symbol: token.symbol,
+          token_address: token.address,
+        })
+        .build(),
+    );
+
+    // Share only the deep link. iOS renders `url` as a rich link preview;
+    // Android needs the link in `message`.
+    Share.share(Platform.OS === 'ios' ? { url } : { message: url });
+  }, [
+    caip19AssetId,
+    createEventBuilder,
+    token.address,
+    token.chainId,
+    token.symbol,
+    trackEvent,
+  ]);
+
+  const isPriceAlertsChainSupported = useIsPriceAlertsChainSupported(
+    caip19AssetId,
+    { enabled: isPriceAlertsFeatureEnabled },
+  );
 
   const {
     securityData,
@@ -209,9 +249,6 @@ const TokenDetails: React.FC<{
   const networkName = networkConfigurationByChainId?.name;
 
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
-  const isQuickBuyEnabled = useSelector(
-    selectSocialAiAssetDetailsQuickBuyEnabled,
-  );
 
   const {
     currentPrice,
@@ -223,7 +260,13 @@ const TokenDetails: React.FC<{
     timePeriod,
     setTimePeriod,
     chartNavigationButtons,
+    hasInsufficientCoverage,
   } = useTokenPrice({ token });
+
+  const currentPriceUsd = usePriceInUsd(
+    isPriceAlertsFeatureEnabled ? (token.chainId as Hex) : null,
+    currentPrice,
+  );
 
   const [chartPricePositive, setChartPricePositive] = useState<boolean | null>(
     null,
@@ -274,6 +317,19 @@ const TokenDetails: React.FC<{
     await onSend();
   }, [onSend, onCtaClicked]);
 
+  const handlePriceAlertPress = useCallback(() => {
+    if (!caip19AssetId) {
+      return;
+    }
+    navigation.navigate(Routes.MANAGE_PRICE_ALERTS, {
+      symbol: token.symbol,
+      ticker: token.ticker,
+      currentPrice: currentPriceUsd ?? 0,
+      currentCurrency: 'usd',
+      assetId: caip19AssetId,
+    });
+  }, [navigation, token.symbol, token.ticker, currentPriceUsd, caip19AssetId]);
+
   const {
     transactions,
     submittedTxs,
@@ -303,6 +359,7 @@ const TokenDetails: React.FC<{
         comparePrice={comparePrice}
         prices={prices}
         isLoading={isLoading}
+        hasInsufficientCoverage={hasInsufficientCoverage}
         timePeriod={timePeriod}
         setTimePeriod={setTimePeriod}
         chartNavigationButtons={chartNavigationButtons}
@@ -348,6 +405,15 @@ const TokenDetails: React.FC<{
     <View style={styles.wrapper}>
       <TokenDetailsInlineHeader
         onBackPress={() => navigation.goBack()}
+        onSharePress={handleShare}
+        onPriceAlertPress={
+          isPriceAlertsFeatureEnabled &&
+          isPriceAlertsChainSupported &&
+          (currentPriceUsd ?? 0) > 0 &&
+          caip19AssetId
+            ? handlePriceAlertPress
+            : undefined
+        }
         iconColor={ambientIconColor}
         useAmbientColor={useAmbientColor}
       />
@@ -398,7 +464,7 @@ const TokenDetails: React.FC<{
           useAmbientColor={useAmbientColor}
           onSwapPress={onCtaClicked}
           onBuyPress={onCtaClicked}
-          onQuickBuyPress={isQuickBuyEnabled ? handleQuickBuyPress : undefined}
+          onQuickBuyPress={onQuickBuyPress}
           quickBuyTestID={TokenOverviewSelectorsIDs.QUICK_BUY_BUTTON}
         />
       )}
@@ -407,13 +473,7 @@ const TokenDetails: React.FC<{
           onClose={() => setIsInsightsDisclaimerVisible(false)}
         />
       )}
-      {isQuickBuyEnabled && (
-        <AssetDetailsQuickBuy
-          isVisible={isQuickBuyVisible}
-          token={token}
-          onClose={handleQuickBuyClose}
-        />
-      )}
+      {quickBuySheet}
     </View>
   );
 };
