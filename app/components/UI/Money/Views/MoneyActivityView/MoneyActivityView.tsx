@@ -333,10 +333,7 @@ const MoneyActivityView = () => {
         <MoneyActivityLoading />
       ) : sections.length === 0 ? (
         <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 px-6 pb-8"
+          twClassName="flex-1 items-center justify-center px-6 pb-32"
           testID={MoneyActivityViewTestIds.EMPTY_LIST}
         >
           <Text
