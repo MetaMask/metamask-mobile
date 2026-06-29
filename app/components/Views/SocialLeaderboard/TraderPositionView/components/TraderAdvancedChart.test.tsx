@@ -243,9 +243,9 @@ describe('TraderAdvancedChart', () => {
     );
   });
 
-  it('passes ALL trades as markers and requests a viewport centered on their dates', () => {
+  it('passes ALL trades as markers and frames a trade older than the loaded page when more history can be paginated', () => {
     const bars = makeBars(20); // window: 1_700_000_000_000 .. +19*60_000
-    setOHLCV(bars);
+    setOHLCV(bars, { hasMore: true, nextCursor: 'next' });
     const oldTradeTime = bars[0].time - 60_000_000;
 
     const trades: Trade[] = [
@@ -279,14 +279,17 @@ describe('TraderAdvancedChart', () => {
       '0xinside',
       '0xoutside',
     ]);
-    // The initial viewport is centered on the trade range even before older
-    // candles are loaded; the WebView datafeed paginates them in.
-    const center = (bars[5].time + oldTradeTime) / 2;
-    expect(lastCall.visibleFromMs).toBe(center - DAY_MS / 2);
-    expect(lastCall.visibleToMs).toBe(center + DAY_MS / 2);
+    // The viewport frames the first→last trade (with padding). Because more
+    // history can be paginated, `from` is allowed below the loaded page so the
+    // WebView datafeed pages the older trade in; `to` clamps to the last loaded
+    // candle so there is no blank gap past the available data.
+    const span = bars[5].time - oldTradeTime;
+    const pad = Math.max(span, DAY_MS * 0.5) * 0.2;
+    expect(lastCall.visibleFromMs).toBe(oldTradeTime - pad);
+    expect(lastCall.visibleToMs).toBe(bars[bars.length - 1].time);
   });
 
-  it('centers the initial viewport on the midpoint of all loaded trades', () => {
+  it('frames the first→last loaded trade with padding instead of a fixed period-wide window', () => {
     const bars = makeDailyBars(12);
     setOHLCV(bars);
 
@@ -323,10 +326,48 @@ describe('TraderAdvancedChart', () => {
       visibleFromMs: number;
       visibleToMs: number;
     };
-    const center = (firstTradeTime + lastTradeTime) / 2;
+    // Window is sized to the trades + padding (not the full 1W `durationMs`),
+    // so a short position fills the screen without a blank gap.
+    const span = lastTradeTime - firstTradeTime;
+    const pad = Math.max(span, 7 * DAY_MS * 0.5) * 0.2;
+    expect(lastCall.visibleFromMs).toBe(firstTradeTime - pad);
+    expect(lastCall.visibleToMs).toBe(lastTradeTime + pad);
+  });
 
-    expect(lastCall.visibleFromMs).toBe(center - (7 * DAY_MS) / 2);
-    expect(lastCall.visibleToMs).toBe(center + (7 * DAY_MS) / 2);
+  it('clamps the viewport to the oldest loaded candle when no older history can be paginated (no blank gap)', () => {
+    const bars = makeDailyBars(12);
+    // hasMore: false — the asset has no more history to page in.
+    setOHLCV(bars, { hasMore: false, nextCursor: null });
+
+    // A trade at the very first loaded candle: padding would push the framed
+    // `from` before the data, which previously left a blank gap on the left.
+    const tradeTime = bars[0].time;
+    const trades: Trade[] = [
+      {
+        intent: 'enter',
+        direction: 'buy',
+        tokenAmount: 1,
+        usdCost: 100,
+        timestamp: tradeTime / 1000,
+        transactionHash: '0xopen',
+      },
+    ];
+
+    render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        activeTimePeriod="1W"
+        trades={trades}
+      />,
+    );
+
+    const lastCall = mockAdvancedChart.mock.calls.at(-1)?.[0] as {
+      visibleFromMs: number;
+      visibleToMs: number;
+    };
+    // No blank gap: the viewport starts no earlier than the oldest loaded bar.
+    expect(lastCall.visibleFromMs).toBe(bars[0].time);
+    expect(lastCall.visibleFromMs).toBeGreaterThanOrEqual(bars[0].time);
   });
 
   it('falls back to the legacy chart when OHLCV coverage is below threshold', () => {

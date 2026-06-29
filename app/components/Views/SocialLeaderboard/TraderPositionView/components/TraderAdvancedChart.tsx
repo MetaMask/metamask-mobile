@@ -486,8 +486,16 @@ const TraderAdvancedChart = ({
     let to: number;
 
     if (allTradeTimeRange) {
-      from = allTradeTimeRange.center - config.durationMs / 2;
-      to = allTradeTimeRange.center + config.durationMs / 2;
+      // Frame the first→last trade so the position fills the screen, padded so
+      // the outer markers aren't flush against the edges. A single/clustered
+      // trade has ~no span, so the pad floors to a fraction of the period for
+      // context. We deliberately do NOT widen to a fixed `durationMs` window
+      // centered on the trades: when the asset has fewer candles than the
+      // period's nominal span, that left a large blank gap at the oldest edge.
+      const { min: minT, max: maxT } = allTradeTimeRange;
+      const pad = Math.max(maxT - minT, config.durationMs * 0.5) * 0.2;
+      from = minT - pad;
+      to = maxT + pad;
     } else if (framingMarkers.length) {
       const times = framingMarkers.map((m) => m.time);
       const minT = Math.min(...times);
@@ -506,9 +514,18 @@ const TraderAdvancedChart = ({
       from = lastBarTime - config.durationMs;
     }
 
+    // Clamp to the loaded candle range so the viewport never extends past the
+    // available data into a blank gap ("fill the screen ... if the data is
+    // available"). `from` is allowed below the loaded range only while older
+    // candles can still be paginated in, so a position older than the first
+    // page is still framed once the WebView datafeed pages it into view.
+    const canPaginateOlder = !isPerp && Boolean(ohlcvPagination?.hasMore);
     return {
-      visibleFromMs: allTradeTimeRange ? from : Math.max(from, firstBarTime),
-      visibleToMs: to,
+      visibleFromMs:
+        allTradeTimeRange && canPaginateOlder
+          ? from
+          : Math.max(from, firstBarTime),
+      visibleToMs: Math.min(to, lastBarTime),
     };
   }, [
     lastBarTime,
@@ -516,6 +533,8 @@ const TraderAdvancedChart = ({
     allTradeTimeRange,
     framingMarkers,
     config.durationMs,
+    isPerp,
+    ohlcvPagination,
   ]);
 
   // Reference price for crosshair % change: the first bar inside the window.
