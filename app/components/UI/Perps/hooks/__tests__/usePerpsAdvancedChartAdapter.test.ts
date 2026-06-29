@@ -280,8 +280,13 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
       { time: 4000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
       { time: 8000, open: 100, high: 110, low: 90, close: 105, volume: 500 },
     ]);
+    const fourHourIntervalMs = INTERVAL_MS[CandlePeriod.FourHours];
+    if (fourHourIntervalMs === undefined) {
+      throw new Error('Expected 4h interval duration to be defined');
+    }
+
     expect(result.current.visibleToMs).toBe(8000);
-    expect(result.current.visibleFromMs).toBe(8000 - INTERVAL_MS['4h'] * 45);
+    expect(result.current.visibleFromMs).toBe(8000 - fourHourIntervalMs * 45);
   });
 
   it('clears isLoading when the subscription reports an error', () => {
