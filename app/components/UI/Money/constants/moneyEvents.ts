@@ -79,6 +79,7 @@ export enum COMPONENT_NAMES {
   MONEY_ACTIVITY_FILTER_ALL = 'money_activity_filter_all',
   MONEY_ACTIVITY_FILTER_DEPOSITS = 'money_activity_filter_deposits',
   MONEY_ACTIVITY_FILTER_TRANSFERS = 'money_activity_filter_transfers',
+  MONEY_ACTIVITY_FILTER_PURCHASES = 'money_activity_filter_purchases',
 
   // — Condensed Info Cards —
   MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS = 'money_condensed_info_cards_how_it_works',
