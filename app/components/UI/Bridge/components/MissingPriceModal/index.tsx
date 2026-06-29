@@ -58,7 +58,13 @@ export const MissingPriceModal = () => {
 
   const handleProceed = useCallback(async () => {
     setLoading(true);
-    await confirmBridge();
+    if (sheetRef.current?.onCloseBottomSheet) {
+      sheetRef.current.onCloseBottomSheet(async () => {
+        await confirmBridge();
+      });
+    } else {
+      await confirmBridge();
+    }
   }, [confirmBridge]);
 
   return (

@@ -150,7 +150,13 @@ export const TokenWarningModal = () => {
     }
 
     setLoading(true);
-    await confirmBridge();
+    if (sheetRef.current?.onCloseBottomSheet) {
+      sheetRef.current.onCloseBottomSheet(async () => {
+        await confirmBridge();
+      });
+    } else {
+      await confirmBridge();
+    }
   }, [
     activeQuote,
     bridgeFeatureFlags,
