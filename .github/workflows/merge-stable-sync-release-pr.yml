@@ -52,9 +52,31 @@ jobs:
             core.setOutput('base_branch', base);
             core.info(`Validated stable sync → release merge: ${head} -> ${base}`);
 
+  get-token:
+    name: Get OIDC token for merge
+    needs: prepare-stable-sync-release-merge
+    if: needs.prepare-stable-sync-release-merge.outputs.should_merge == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    outputs:
+      token: ${{ steps.get-token.outputs.token }}
+    steps:
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            pull_requests: write
+            contents: write
+            members: read
+
   merge-pr:
     name: Merge with merge commit (via github-tools)
-    needs: prepare-stable-sync-release-merge
+    needs:
+      - prepare-stable-sync-release-merge
+      - get-token
     if: needs.prepare-stable-sync-release-merge.outputs.should_merge == 'true'
     uses: MetaMask/github-tools/.github/workflows/merge-approved-pr.yml@v1
     with:
@@ -63,4 +85,4 @@ jobs:
       head-branch-pattern: '^stable-sync-'
       merge-method: merge
     secrets:
-      github-token: ${{ secrets.METAMASK_MOBILE_BRANCH_SYNC_TOKEN }}
+      github-token: ${{ needs.get-token.outputs.token }}
