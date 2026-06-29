@@ -41,11 +41,11 @@ export function ActivityDetailsAccountValue({
         size={AvatarBaseSize.Sm}
       />
       {accountName ? (
-        <Box twClassName="flex-row items-center justify-end shrink">
+        <Box twClassName="flex-row items-center shrink">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="shrink text-right"
+            twClassName="shrink"
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -69,7 +69,7 @@ export function ActivityDetailsAccountValue({
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          twClassName="shrink text-right"
+          twClassName="shrink"
           numberOfLines={1}
           ellipsizeMode="middle"
         >

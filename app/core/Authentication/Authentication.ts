@@ -978,7 +978,7 @@ class AuthenticationService {
       }
 
       const seedPhrase = await KeyringController.exportSeedPhrase(
-        password,
+        { password },
         keyringId,
       );
 
@@ -1827,7 +1827,7 @@ class AuthenticationService {
     const { KeyringController } = Engine.context;
     await this.reauthenticate(password);
     const rawSeedPhrase = await KeyringController.exportSeedPhrase(
-      password,
+      { password },
       keyringId,
     );
     const seedPhrase = uint8ArrayToMnemonic(rawSeedPhrase, wordlist);
@@ -1848,7 +1848,10 @@ class AuthenticationService {
   ): Promise<string> => {
     const { KeyringController } = Engine.context;
     await this.reauthenticate(password);
-    const privateKey = await KeyringController.exportAccount(password, address);
+    const privateKey = await KeyringController.exportAccount(
+      { password },
+      address,
+    );
     return privateKey;
   };
 }

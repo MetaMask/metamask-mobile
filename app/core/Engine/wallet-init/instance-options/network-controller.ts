@@ -1,39 +1,18 @@
-import { MessengerClientInitFunction } from '../types';
-import {
-  NetworkController,
-  type NetworkControllerMessenger,
-} from '@metamask/network-controller';
-import { NetworkControllerInitMessenger } from '../messengers/network-controller-messenger';
-import { getFailoverUrlsForInfuraNetwork } from '../../../util/networks/customNetworks';
-import { INFURA_PROJECT_ID } from '../../../constants/network';
+import { WalletOptions } from '@metamask/wallet';
+import { INFURA_PROJECT_ID } from '../../../../constants/network';
+import { getFailoverUrlsForInfuraNetwork } from '../../../../util/networks/customNetworks';
+import { ChainId, toHex } from '@metamask/controller-utils';
+import { RootMessenger } from '../../types';
+import { Hex } from '@metamask/utils';
 import {
   onRpcEndpointDegraded,
   onRpcEndpointUnavailable,
-} from './network-controller/messenger-action-handlers';
-import { Hex } from '@metamask/utils';
-import { buildAndTrackEvent } from '../utils/analytics';
-import { ChainId, toHex } from '@metamask/controller-utils';
+} from '../../controllers/network-controller/messenger-action-handlers';
+import { buildAndTrackEvent } from '../../utils';
 
-const NON_EMPTY = 'NON_EMPTY';
-
-/**
- * Initialize the network controller.
- *
- * @param request - The request object.
- * @param request.controllerMessenger - The messenger to use for the controller.
- * @returns The initialized controller.
- */
-export const networkControllerInit: MessengerClientInitFunction<
-  NetworkController,
-  NetworkControllerMessenger,
-  NetworkControllerInitMessenger
-> = ({ controllerMessenger, initMessenger, persistedState, analyticsId }) => {
-  const infuraProjectId = INFURA_PROJECT_ID || NON_EMPTY;
-
-  const controller = new NetworkController({
-    infuraProjectId,
-    state: persistedState.NetworkController,
-    messenger: controllerMessenger,
+export function getNetworkControllerInstanceOptions(): WalletOptions['instanceOptions']['networkController'] {
+  return {
+    infuraProjectId: INFURA_PROJECT_ID as string,
     failoverUrls: {
       [ChainId.mainnet]: getFailoverUrlsForInfuraNetwork('ethereum-mainnet'),
       [ChainId['linea-mainnet']]:
@@ -56,9 +35,11 @@ export const networkControllerInit: MessengerClientInitFunction<
       [toHex(999)]: getFailoverUrlsForInfuraNetwork('hyperevm-mainnet'),
       [toHex(5042)]: getFailoverUrlsForInfuraNetwork('arc-mainnet'),
     },
-  });
+  };
+}
 
-  initMessenger.subscribe(
+export function setupRpcEndpointMetrics(messenger: RootMessenger) {
+  messenger.subscribe(
     'NetworkController:rpcEndpointUnavailable',
     async ({
       chainId,
@@ -72,17 +53,18 @@ export const networkControllerInit: MessengerClientInitFunction<
       onRpcEndpointUnavailable({
         chainId,
         endpointUrl,
-        infuraProjectId,
+        infuraProjectId: INFURA_PROJECT_ID as string,
         error,
         trackEvent: ({ event, properties }) => {
-          buildAndTrackEvent(initMessenger, event, properties);
+          buildAndTrackEvent(messenger, event, properties);
         },
-        metaMetricsId: analyticsId ?? '',
+        metaMetricsId: messenger.call('AnalyticsController:getState')
+          .analyticsId,
       });
     },
   );
 
-  initMessenger.subscribe(
+  messenger.subscribe(
     'NetworkController:rpcEndpointDegraded',
     async ({
       chainId,
@@ -99,22 +81,17 @@ export const networkControllerInit: MessengerClientInitFunction<
         duration,
         endpointUrl,
         error,
-        infuraProjectId,
+        infuraProjectId: INFURA_PROJECT_ID as string,
         retryReason,
         rpcMethodName,
         traceId,
         trackEvent: ({ event, properties }) => {
-          buildAndTrackEvent(initMessenger, event, properties);
+          buildAndTrackEvent(messenger, event, properties);
         },
-        metaMetricsId: analyticsId ?? '',
+        metaMetricsId: messenger.call('AnalyticsController:getState')
+          .analyticsId,
         type,
       });
     },
   );
-
-  controller.init();
-
-  return {
-    controller,
-  };
-};
+}
