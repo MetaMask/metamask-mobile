@@ -46,6 +46,7 @@ import LoginView from '../page-objects/wallet/LoginView';
 import { getPasswordForScenario } from '../framework/utils/TestConstants';
 import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
 import PlaywrightUtilities, {
+  getDriver,
   withImplicitWait,
 } from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
@@ -154,6 +155,87 @@ export const waitForWalletHomePlaywright = async (
   throw new Error(
     `Wallet home not ready within ${timeout}ms (iOS wallet readiness indicators not satisfied)`,
   );
+};
+
+/**
+ * Opens the account list when nested navigation (e.g. AddressList / AccountDetails)
+ * may have hidden the tab bar or wallet chrome. Backs out until wallet home or
+ * the list is reachable, then taps the identicon if needed.
+ */
+export const ensureAccountListOpenPlaywright = async (
+  timeout: number = resolveE2EWaitTimeoutMs(30_000),
+): Promise<void> => {
+  const deadline = Date.now() + timeout;
+
+  while (Date.now() < deadline) {
+    try {
+      await Assertions.expectElementToBeVisible(
+        AccountListBottomSheet.accountList,
+        { timeout: 1_500, description: 'Account list' },
+      );
+      return;
+    } catch {
+      // list not visible yet
+    }
+
+    if (PlatformDetector.isAndroid() || (await isWalletHomeReadyOnIOS())) {
+      await WalletView.tapIdenticon();
+      await Assertions.expectElementToBeVisible(
+        AccountListBottomSheet.accountList,
+        {
+          timeout: resolveE2EWaitTimeoutMs(10_000),
+          description: 'Account list should open from wallet home',
+        },
+      );
+      return;
+    }
+
+    try {
+      await getDriver().back();
+    } catch {
+      // ignore transient back failures
+    }
+    await sleep(300);
+  }
+
+  throw new Error(`Account list not open within ${timeout}ms`);
+};
+
+/**
+ * Returns to wallet home from nested account flows (AddressList, AccountDetails,
+ * or an account-list overlay that hides wallet chrome).
+ */
+export const dismissToWalletHomePlaywright = async (
+  timeout: number = resolveE2EWaitTimeoutMs(60_000),
+): Promise<void> => {
+  const deadline = Date.now() + timeout;
+
+  while (Date.now() < deadline) {
+    if (PlatformDetector.isAndroid() || (await isWalletHomeReadyOnIOS())) {
+      return;
+    }
+
+    try {
+      await Assertions.expectElementToBeVisible(
+        AccountListBottomSheet.accountList,
+        { timeout: 1_500, description: 'Account list overlay' },
+      );
+      await getDriver().back();
+      await sleep(500);
+      continue;
+    } catch {
+      // not showing account list
+    }
+
+    try {
+      await getDriver().back();
+    } catch {
+      // ignore transient back failures
+    }
+    await sleep(300);
+  }
+
+  throw new Error(`Wallet home not reached within ${timeout}ms`);
 };
 
 const validAccount = Accounts.getValidAccount();
@@ -683,10 +765,7 @@ export const loginAndOpenAccountList = async (
 
   await loginToAppPlaywright(loginOptions);
 
-  await Assertions.expectElementToBeVisible(WalletView.container, {
-    description: 'Wallet should be visible after login',
-    timeout: walletTimeout,
-  });
+  await waitForWalletHomePlaywright(walletTimeout);
 
   await WalletView.tapIdenticon();
 
@@ -855,21 +934,64 @@ export const resolvePredictGtmOnboardingModalEnabled = async (
  * @function dismisspredictionsModalPlaywright
  * @returns {Promise<void>} Resolves when the predictions modal is dismissed.
  */
-export const dismisspredictionsModalPlaywright = async (
-  maxRetries = 2,
-): Promise<void> => {
+const tryDismissPredictionsModalPlaywright = async (
+  timeout = 3000,
+): Promise<boolean> => {
   try {
     const btn = await asPlaywrightElement(PredictModalView.notNowButton);
     await PlaywrightGestures.waitAndTap(btn, {
-      timeout: 3000,
+      timeout,
       checkForDisplayed: true,
       checkForEnabled: true,
     });
     await btn.unwrap().waitForDisplayed({ reverse: true, timeout: 3000 });
-    return;
+    return true;
   } catch {
+    return false;
+  }
+};
+
+export const dismisspredictionsModalPlaywright = async (
+  maxRetries = 2,
+): Promise<void> => {
+  const dismissed = await tryDismissPredictionsModalPlaywright();
+  if (!dismissed) {
     logger.error(`Predict modal not dismissed after ${maxRetries} attempts`);
   }
+};
+
+const startPredictionsModalWatcher = (intervalMs = 1000): (() => void) => {
+  let stopped = false;
+  let inFlight = false;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const tick = async () => {
+    if (stopped || inFlight) {
+      if (!stopped) {
+        timeoutId = setTimeout(tick, intervalMs);
+      }
+      return;
+    }
+
+    inFlight = true;
+    try {
+      await tryDismissPredictionsModalPlaywright(1000);
+    } finally {
+      inFlight = false;
+      if (!stopped) {
+        timeoutId = setTimeout(tick, intervalMs);
+      }
+    }
+  };
+
+  timeoutId = setTimeout(tick, 0);
+
+  return () => {
+    stopped = true;
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  };
 };
 
 /**
@@ -930,9 +1052,14 @@ export const onboardingFlowImportSRPPlaywright = async (
     'predictGtmOnboardingModalEnabled',
     predictGtmOnboardingModalEnabled,
   );
-  await dismisspredictionsModalPlaywright();
 
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(WalletView.container),
-  );
+  const stopPredictionsModalWatcher = startPredictionsModalWatcher();
+  try {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      await asPlaywrightElement(WalletView.container),
+    );
+    await tryDismissPredictionsModalPlaywright();
+  } finally {
+    stopPredictionsModalWatcher();
+  }
 };

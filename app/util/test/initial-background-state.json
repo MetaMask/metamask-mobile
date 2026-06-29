@@ -687,8 +687,10 @@
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
+    "inputPrimaryDenomination": "token_amount",
     "tokenSecurityTypeDestination": null,
-    "tokenWarnings": []
+    "tokenWarnings": [],
+    "inputPrimaryDenomination": "token_amount"
   },
   "BridgeStatusController": {
     "txHistory": {}
@@ -701,7 +703,8 @@
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {},
-    "moneyAccountCardLinkInProgress": false
+    "moneyAccountCardLinkInProgress": false,
+    "lastUnauthenticatedReason": null
   },
   "ClientController": {
     "isUiOpen": false

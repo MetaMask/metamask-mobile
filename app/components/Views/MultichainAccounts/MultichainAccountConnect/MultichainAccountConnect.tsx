@@ -244,11 +244,13 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     [networkConfigurations],
   );
 
-  const nonTestNetworkCaipChainIds = nonTestNetworkConfigurations.map(
-    ({ caipChainId }) => caipChainId,
+  const nonTestNetworkCaipChainIds = useMemo(
+    () => nonTestNetworkConfigurations.map(({ caipChainId }) => caipChainId),
+    [nonTestNetworkConfigurations],
   );
-  const testNetworkCaipChainIds = testNetworkConfigurations.map(
-    ({ caipChainId }) => caipChainId,
+  const testNetworkCaipChainIds = useMemo(
+    () => testNetworkConfigurations.map(({ caipChainId }) => caipChainId),
+    [testNetworkConfigurations],
   );
 
   const alreadyConnectedCaipChainIds = useMemo(

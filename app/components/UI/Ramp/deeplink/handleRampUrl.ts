@@ -18,6 +18,9 @@ import {
 import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { isRampRegionDefinitivelyUnsupported } from '../utils/rampRegionEligibility';
+import { isRampsServiceDisruptionActive } from '../utils/rampsServiceDisruption';
+import { createRampsServiceDisruptionModalNavigationDetails } from '../components/RampsServiceDisruptionModal/RampsServiceDisruptionModal';
+import { selectRampsServiceDisruptionRegions } from '../../../../selectors/featureFlagController/rampsServiceDisruption';
 import { resolveRampControllerAssetId } from '../utils/resolveRampControllerAssetId';
 import Engine from '../../../../core/Engine';
 
@@ -40,6 +43,21 @@ async function navigateUnifiedV2Buy(
     ).catch(() => undefined);
     // Geo refresh may hydrate RampsController; re-read store before eligibility.
     state = ReduxService.store.getState();
+  }
+
+  // Region service disruption kill-switch — takes precedence over the eligibility/unsupported
+  // gating below so a service disruption region is surfaced even when geolocation is unknown.
+  if (
+    isRampsServiceDisruptionActive(
+      selectRampsServiceDisruptionRegions(state),
+      selectUserRegion(state),
+      location,
+    )
+  ) {
+    NavigationService.navigation.navigate(
+      ...createRampsServiceDisruptionModalNavigationDetails(),
+    );
+    return;
   }
 
   if (!location || location === UNKNOWN_LOCATION) {

@@ -31,7 +31,11 @@ class TabBarComponent {
   }
 
   get tabBarWalletButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
+    return resolve({
+      detoxTestID: TabBarSelectorIDs.WALLET,
+      androidAppiumTestID: TabBarSelectorIDs.WALLET,
+      iosAppiumTestID: TabBarSelectorIDs.WALLET,
+    });
   }
 
   get tabBarActionButton(): EncapsulatedElementType {
@@ -72,9 +76,13 @@ class TabBarComponent {
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.homeButton, { timeout: 2000 });
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          timeout: 500,
-        });
+        if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
+        } else {
+          await Assertions.expectElementToBeVisible(WalletView.container, {
+            timeout: 500,
+          });
+        }
       },
       {
         maxRetries: 15,
@@ -144,9 +152,13 @@ class TabBarComponent {
     await Utilities.executeWithRetry(
       async () => {
         await Gestures.waitAndTap(this.tabBarWalletButton, { timeout: 2000 });
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          timeout: 500,
-        });
+        if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+          await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(20_000));
+        } else {
+          await Assertions.expectElementToBeVisible(WalletView.container, {
+            timeout: 500,
+          });
+        }
         await Gestures.waitAndTap(WalletView.hamburgerMenuButton);
         await Assertions.expectElementToBeVisible(AccountMenu.container, {
           timeout: 500,
