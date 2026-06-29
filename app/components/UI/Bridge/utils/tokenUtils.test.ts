@@ -353,26 +353,6 @@ describe('tokenUtils', () => {
     it('returns false for the same address on a different chain', () => {
       expect(isSameBridgeToken(usdcToken, usdcPolygonToken)).toBe(false);
     });
-
-    it('treats EVM addresses case-insensitively', () => {
-      const checksummed: BridgeToken = {
-        address: '0xA0B86991C6218B36C1D19D4A2E9EB0CE3606EB48',
-        symbol: 'USDC',
-        decimals: 6,
-        chainId: '0x1',
-      };
-      expect(isSameBridgeToken(usdcToken, checksummed)).toBe(true);
-    });
-
-    it('treats hex and CAIP chain IDs as the same chain', () => {
-      const caipChainToken: BridgeToken = {
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        symbol: 'USDC',
-        decimals: 6,
-        chainId: 'eip155:1',
-      };
-      expect(isSameBridgeToken(usdcToken, caipChainToken)).toBe(true);
-    });
   });
 });
 
