@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { SectionList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { type TransactionMeta } from '@metamask/transaction-controller';
 import {
   Box,
@@ -56,8 +57,18 @@ interface ActivitySection {
   isPending?: boolean;
 }
 
-/** True for an in-flight on-chain row. Card spends are never pending. */
+const SETTLED_RAMP_ORDER_STATUSES = new Set<RampsOrderStatus>([
+  RampsOrderStatus.Completed,
+  RampsOrderStatus.Failed,
+  RampsOrderStatus.Cancelled,
+  RampsOrderStatus.IdExpired,
+]);
+
+/** True for an in-flight row. Card spends are never pending. */
 function isPendingItem(item: MoneyActivityItem): boolean {
+  if (item.kind === 'rampOrder') {
+    return !SETTLED_RAMP_ORDER_STATUSES.has(item.order.status);
+  }
   return (
     item.kind === 'onchain' && getMoneyActivityStatus(item.tx) === 'pending'
   );

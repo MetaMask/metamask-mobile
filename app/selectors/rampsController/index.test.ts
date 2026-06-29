@@ -17,6 +17,7 @@ import {
   selectPaymentMethods,
   selectRampsControllerState,
   selectRampsOrders,
+  selectRampsOrdersForAddress,
   selectRampsOrdersForSelectedAccountGroup,
   selectTransak,
 } from './index';
@@ -438,6 +439,49 @@ describe('RampsController Selectors', () => {
       );
 
       expect(selectRampsOrdersForSelectedAccountGroup(state)).toEqual([]);
+    });
+  });
+
+  describe('selectRampsOrdersForAddress', () => {
+    const walletAddrLower = '0x2990079bcdee240329a520d2444386fc119da21a';
+
+    it('keeps orders whose walletAddress matches the explicit address', () => {
+      const mockOrders = [
+        {
+          providerOrderId: 'order-match',
+          walletAddress: '0x2990079BCDEE240329A520D2444386FC119DA21A',
+          status: 'COMPLETED',
+          createdAt: 1000,
+        },
+        {
+          providerOrderId: 'order-other',
+          walletAddress: '0x0000000000000000000000000000000000000001',
+          status: 'COMPLETED',
+          createdAt: 2000,
+        },
+      ];
+      const state = createMockState({
+        orders: mockOrders,
+      } as never);
+
+      expect(selectRampsOrdersForAddress(state, walletAddrLower)).toEqual([
+        mockOrders[0],
+      ]);
+    });
+
+    it('returns empty array when the explicit address is missing', () => {
+      const state = createMockState({
+        orders: [
+          {
+            providerOrderId: 'order-match',
+            walletAddress: walletAddrLower,
+            status: 'COMPLETED',
+            createdAt: 1000,
+          },
+        ],
+      } as never);
+
+      expect(selectRampsOrdersForAddress(state, undefined)).toEqual([]);
     });
   });
 

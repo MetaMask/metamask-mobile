@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
 import { useMoneyAccountApiActivity } from '../../hooks/useMoneyAccountApiActivity';
@@ -87,6 +88,21 @@ jest.mock(
       default: ({ activity }: { activity: { hash: string } }) => (
         <RNPressable testID={`activity-mock-api-${activity.hash}`}>
           <Text>{activity.hash}</Text>
+        </RNPressable>
+      ),
+    };
+  },
+);
+
+jest.mock(
+  '../../components/RampOrderActivityItem/RampOrderActivityItem',
+  () => {
+    const { Text, Pressable: RNPressable } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ order }: { order: { providerOrderId: string } }) => (
+        <RNPressable testID={`activity-mock-ramp-${order.providerOrderId}`}>
+          <Text>{order.providerOrderId}</Text>
         </RNPressable>
       ),
     };
@@ -243,6 +259,49 @@ describe('MoneyActivityView', () => {
     ).toBeOnTheScreen();
   });
 
+  it('renders pending ramp orders in the Pending section', () => {
+    const moneyAddress = '0x0000000000000000000000000000000000000001';
+    mockUseMoneyAccountTransactions.mockReturnValue({
+      allTransactions: [],
+      deposits: [],
+      transfers: [],
+      submittedTransactions: [],
+      moneyAddress,
+      mockDataEnabled: false,
+    });
+
+    const { getByTestId } = renderWithProvider(<MoneyActivityView />, {
+      state: {
+        engine: {
+          backgroundState: {
+            RampsController: {
+              orders: [
+                {
+                  providerOrderId: 'transak-pending-order-1',
+                  walletAddress: moneyAddress,
+                  status: RampsOrderStatus.Pending,
+                  createdAt: 1782241698969,
+                  cryptoAmount: '4.96',
+                  fiatAmount: 6.14,
+                  fiatCurrency: { symbol: 'USD' },
+                  cryptoCurrency: { symbol: 'MUSD' },
+                  orderType: 'BUY',
+                },
+              ],
+            },
+          },
+        },
+      },
+    });
+
+    expect(
+      getByTestId(MoneyActivityViewTestIds.PENDING_HEADER),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId('activity-mock-ramp-transak-pending-order-1'),
+    ).toBeOnTheScreen();
+  });
+
   it('omits the Pending section when nothing is in flight', () => {
     mockUseMoneyAccountTransactions.mockReturnValue({
       allTransactions: MOCK_DEPOSITS.filter(
@@ -300,6 +359,48 @@ describe('MoneyActivityView', () => {
     expect(
       getByTestId(MoneyActivityViewTestIds.EMPTY_LIST_MESSAGE),
     ).toBeOnTheScreen();
+  });
+
+  it('renders a Money-address ramp order when transaction sources are empty', () => {
+    const moneyAddress = '0x0000000000000000000000000000000000000001';
+    mockUseMoneyAccountTransactions.mockReturnValue({
+      allTransactions: [],
+      deposits: [],
+      transfers: [],
+      submittedTransactions: [],
+      moneyAddress,
+      mockDataEnabled: false,
+    });
+
+    const { getByTestId, queryByTestId } = renderWithProvider(
+      <MoneyActivityView />,
+      {
+        state: {
+          engine: {
+            backgroundState: {
+              RampsController: {
+                orders: [
+                  {
+                    providerOrderId: 'transak-order-1',
+                    walletAddress: moneyAddress,
+                    status: RampsOrderStatus.Completed,
+                    createdAt: 1782241698969,
+                    cryptoAmount: '4.96',
+                    fiatAmount: 6.14,
+                    fiatCurrency: { symbol: 'USD' },
+                    cryptoCurrency: { symbol: 'MUSD' },
+                    orderType: 'BUY',
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(getByTestId('activity-mock-ramp-transak-order-1')).toBeOnTheScreen();
+    expect(queryByTestId(MoneyActivityViewTestIds.EMPTY_LIST)).toBeNull();
   });
 
   it('pressing a row navigates to the transaction details sheet when mockDataEnabled is false', () => {

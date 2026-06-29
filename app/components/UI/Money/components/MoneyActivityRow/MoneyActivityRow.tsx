@@ -3,6 +3,7 @@ import type { MoneyActivityItem } from '../../types/moneyActivity';
 import MoneyActivityItemView from '../MoneyActivityItem/MoneyActivityItem';
 import AccountsApiActivityItem from '../AccountsApiActivityItem/AccountsApiActivityItem';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import RampOrderActivityItem from '../RampOrderActivityItem/RampOrderActivityItem';
 
 export interface MoneyActivityRowProps {
   item: MoneyActivityItem;
@@ -25,6 +26,9 @@ const MoneyActivityRow = ({
         showNetworkBadge={showNetworkBadge}
       />
     );
+  }
+  if (item.kind === 'rampOrder') {
+    return <RampOrderActivityItem order={item.order} />;
   }
   return (
     <MoneyActivityItemView

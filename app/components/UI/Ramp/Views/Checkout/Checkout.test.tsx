@@ -75,6 +75,9 @@ jest.mock('uuid', () => ({
 let capturedOnNavigationStateChange:
   | ((state: { url: string; loading?: boolean }) => void)
   | undefined;
+let capturedOnShouldStartLoadWithRequest:
+  | ((req: { url: string }) => boolean)
+  | undefined;
 
 jest.mock('@metamask/react-native-webview', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- jest mock factory
@@ -104,6 +107,7 @@ jest.mock('@metamask/react-native-webview', () => {
       testID?: string;
     }) => {
       capturedOnNavigationStateChange = onNavigationStateChange;
+      capturedOnShouldStartLoadWithRequest = onShouldStartLoadWithRequest;
       return (
         <View testID={testID ?? 'checkout-webview'}>
           <Button
@@ -275,6 +279,8 @@ describe('Checkout', () => {
         setOptions: mockHeadlessEntrySetOptions,
       }),
     }));
+    capturedOnNavigationStateChange = undefined;
+    capturedOnShouldStartLoadWithRequest = undefined;
   });
 
   describe('handleNavigationStateChange (callback flow)', () => {
@@ -639,11 +645,131 @@ describe('Checkout', () => {
       const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
 
       fireEvent.press(getByTestId('trigger-should-start-load'));
+      const result = capturedOnShouldStartLoadWithRequest?.({
+        url: 'https://provider.example.com/next-hop',
+      });
 
+      expect(result).toBe(true);
       expect(shouldStartLoadWithRequest).toHaveBeenCalledWith(
         'https://provider.example.com/next-hop',
         Logger,
       );
+    });
+
+    it('blocks callback URL loads and forwards them to the custom navigation handler', () => {
+      const { shouldStartLoadWithRequest } = jest.requireMock(
+        '../../../../../util/browser',
+      ) as { shouldStartLoadWithRequest: jest.Mock };
+      const callbackUrl = `${callbackBaseUrl}?orderId=123`;
+      const mockCallback = jest.fn();
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Transak',
+        onNavigationStateChange: mockCallback,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      let result: boolean | undefined;
+      act(() => {
+        result = capturedOnShouldStartLoadWithRequest?.({
+          url: callbackUrl,
+        });
+      });
+
+      expect(result).toBe(false);
+      expect(mockCallback).toHaveBeenCalledWith({ url: callbackUrl });
+      expect(getByTestId('checkout-callback-loading')).toBeOnTheScreen();
+      expect(queryByTestId('checkout-webview')).toBeNull();
+      expect(shouldStartLoadWithRequest).not.toHaveBeenCalled();
+    });
+
+    it('does not replace the WebView for custom callback URLs without an orderId', () => {
+      const { shouldStartLoadWithRequest } = jest.requireMock(
+        '../../../../../util/browser',
+      ) as { shouldStartLoadWithRequest: jest.Mock };
+      const callbackUrl = `${callbackBaseUrl}?status=cancelled`;
+      const mockCallback = jest.fn();
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Transak',
+        onNavigationStateChange: mockCallback,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      let result: boolean | undefined;
+      act(() => {
+        result = capturedOnShouldStartLoadWithRequest?.({
+          url: callbackUrl,
+        });
+      });
+
+      expect(result).toBe(false);
+      expect(mockCallback).toHaveBeenCalledWith({ url: callbackUrl });
+      expect(getByTestId('checkout-webview')).toBeOnTheScreen();
+      expect(queryByTestId('checkout-callback-loading')).toBeNull();
+      expect(shouldStartLoadWithRequest).not.toHaveBeenCalled();
+    });
+
+    it('blocks callback URL loads and handles callback flow params directly', async () => {
+      const { shouldStartLoadWithRequest } = jest.requireMock(
+        '../../../../../util/browser',
+      ) as { shouldStartLoadWithRequest: jest.Mock };
+      const callbackUrl = `${callbackBaseUrl}?orderId=123`;
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+        providerCode: 'moonpay',
+        walletAddress: '0xabc',
+        cryptocurrency: 'ETH',
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <Checkout />,
+        {},
+        true,
+        false,
+      );
+
+      let result: boolean | undefined;
+      act(() => {
+        result = capturedOnShouldStartLoadWithRequest?.({
+          url: callbackUrl,
+        });
+      });
+
+      expect(result).toBe(false);
+      expect(getByTestId('checkout-callback-loading')).toBeOnTheScreen();
+      expect(queryByTestId('checkout-webview')).toBeNull();
+      await waitFor(() => {
+        expect(mockNavigation.reset).toHaveBeenCalledWith({
+          index: 0,
+          routes: [
+            {
+              name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+              params: {
+                callbackUrl,
+                providerCode: 'moonpay',
+                walletAddress: '0xabc',
+                showCloseButton: true,
+                cryptocurrency: 'ETH',
+              },
+            },
+          ],
+        });
+      });
+      expect(shouldStartLoadWithRequest).not.toHaveBeenCalled();
     });
   });
 

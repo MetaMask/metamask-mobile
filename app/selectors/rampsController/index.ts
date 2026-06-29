@@ -130,6 +130,35 @@ export const selectRampsOrdersForSelectedAccountGroup = createDeepEqualSelector(
 );
 
 /**
+ * V2 on-ramp orders whose `walletAddress` matches an explicit address.
+ * Use this for UI scoped to a non-selected account, such as the primary Money
+ * account when the selected wallet group is an HD account group.
+ */
+export const selectRampsOrdersForAddress = createDeepEqualSelector(
+  [
+    selectRampsOrders,
+    (_state: RootState, walletAddress?: string) => walletAddress,
+  ],
+  (orders, walletAddress): RampsOrder[] => {
+    if (!walletAddress) {
+      return [];
+    }
+    return orders.filter((order) => {
+      const orderWalletAddress = order.walletAddress;
+      if (!orderWalletAddress) {
+        return false;
+      }
+      return areAddressesEqual(orderWalletAddress, walletAddress);
+    });
+  },
+  {
+    devModeChecks: {
+      identityFunctionCheck: 'never',
+    },
+  },
+);
+
+/**
  * Selects whether the current provider was auto-selected by the system
  * (soft selection) rather than chosen by the user or derived from order history.
  */
