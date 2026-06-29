@@ -209,6 +209,45 @@ describe('OnboardingSuccessComponent', () => {
     expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
   });
 
+  it('includes persisted attribution on Onboarding Completed for seedless flow', () => {
+    jest
+      .mocked(selectOnboardingAccountType)
+      .mockReturnValue(AccountType.MetamaskGoogle);
+    jest
+      .mocked(selectWalletSetupCompletedAttributionAnalyticsProps)
+      .mockReturnValue({
+        utm_source: 'email',
+        utm_campaign: 'spring',
+        attribution_id: 'aid-1',
+      });
+
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING}
+      />,
+    );
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    expect(mockTrackOnboarding).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Onboarding Completed',
+        properties: expect.objectContaining({
+          wallet_setup_type: 'new',
+          new_wallet: true,
+          account_type: 'metamask',
+          implementation_type: 'native',
+          onboarding_type: 'social_login',
+          utm_source: 'email',
+          utm_campaign: 'spring',
+          attribution_id: 'aid-1',
+        }),
+      }),
+      expect.any(Function),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
+  });
+
   it('logs when discoverAccounts rejects and still invokes onDone', async () => {
     const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
       // Do nothing
