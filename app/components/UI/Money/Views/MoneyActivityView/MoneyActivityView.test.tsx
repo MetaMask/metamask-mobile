@@ -162,12 +162,22 @@ const REFUND_TX: AccountsApiActivity = {
   receivedFrom: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
 };
 const REFUND_ROW_TEST_ID = `activity-mock-api-${REFUND_TX.hash}`;
+const mockLoadMore = jest.fn();
 
 function mockApiActivity(
   overrides: Partial<ReturnType<typeof useMoneyAccountApiActivity>> = {},
 ) {
   mockUseMoneyAccountApiActivity.mockReturnValue({
     activity: [],
+    watermark: Number.NEGATIVE_INFINITY,
+    isComplete: true,
+    // At the auto-fill page budget by default so the view's `ensureCount`
+    // floor stays inert in tests that aren't exercising it; tests that want
+    // auto-fill drop this to 0/1.
+    pageCount: 3,
+    hasMore: false,
+    loadMore: mockLoadMore,
+    isLoadingMore: false,
     isLoading: false,
     error: false,
     refetch: jest.fn(),
@@ -422,6 +432,104 @@ describe('MoneyActivityView', () => {
     const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
 
     expect(queryByTestId(CARD_ROW_TEST_ID)).toBeNull();
+  });
+
+  describe('infinite scroll', () => {
+    it('fetches the next page when the list end is reached and more remain', () => {
+      mockApiActivity({
+        activity: [CARD_TX],
+        hasMore: true,
+        isComplete: false,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+      fireEvent(getByTestId(MoneyActivityViewTestIds.LIST), 'onEndReached');
+
+      expect(mockLoadMore).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not fetch on end-reached once the activity is exhausted', () => {
+      mockApiActivity({
+        activity: [CARD_TX],
+        hasMore: false,
+        isComplete: true,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+      fireEvent(getByTestId(MoneyActivityViewTestIds.LIST), 'onEndReached');
+
+      expect(mockLoadMore).not.toHaveBeenCalled();
+    });
+
+    it('shows a footer spinner while a follow-up page is loading', () => {
+      mockApiActivity({
+        activity: [CARD_TX],
+        hasMore: true,
+        isComplete: false,
+        isLoadingMore: true,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      expect(
+        getByTestId(MoneyActivityViewTestIds.LOAD_MORE_SPINNER),
+      ).toBeOnTheScreen();
+    });
+
+    it('hides the footer spinner when no follow-up page is loading', () => {
+      mockApiActivity({ activity: [CARD_TX] });
+
+      const { queryByTestId } = renderWithProvider(<MoneyActivityView />);
+
+      expect(
+        queryByTestId(MoneyActivityViewTestIds.LOAD_MORE_SPINNER),
+      ).toBeNull();
+    });
+  });
+
+  describe('empty vs. still-loading', () => {
+    const noLocalTransactions = () =>
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
+      });
+
+    it('keeps the skeleton (not the empty message) while no rows yet and pages remain', () => {
+      noLocalTransactions();
+      mockApiActivity({
+        activity: [],
+        hasMore: true,
+        isComplete: false,
+        pageCount: 0,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyActivityView />,
+      );
+
+      expect(
+        getByTestId(MoneyActivityLoadingTestIds.CONTAINER),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(MoneyActivityViewTestIds.EMPTY_LIST)).toBeNull();
+    });
+
+    it('shows the empty message only once the activity is exhausted', () => {
+      noLocalTransactions();
+      mockApiActivity({ activity: [], hasMore: false, isComplete: true });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyActivityView />,
+      );
+
+      expect(getByTestId(MoneyActivityViewTestIds.EMPTY_LIST)).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyActivityLoadingTestIds.CONTAINER),
+      ).toBeNull();
+    });
   });
 
   describe('analytics', () => {

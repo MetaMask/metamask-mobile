@@ -1,11 +1,23 @@
+import { renderHook } from '@testing-library/react-native';
 import type { TransactionMeta } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import {
   mergeMoneyActivity,
   buildMoneyActivityBuckets,
+  useMoneyActivityItems,
 } from './useMoneyActivityItems';
 import { MoneyActivityFilter } from '../constants/mockActivityData';
 import type { AccountsApiActivity } from '../types/moneyActivity';
+import { useMoneyAccountTransactions } from './useMoneyAccountTransactions';
+import { useMoneyAccountApiActivity } from './useMoneyAccountApiActivity';
+
+jest.mock('./useMoneyAccountTransactions');
+jest.mock('./useMoneyAccountApiActivity');
+
+const mockUseMoneyAccountTransactions = jest.mocked(
+  useMoneyAccountTransactions,
+);
+const mockUseMoneyAccountApiActivity = jest.mocked(useMoneyAccountApiActivity);
 
 const onchainTx = (id: string, time: number, hash?: Hex): TransactionMeta =>
   ({ id, time, hash }) as TransactionMeta;
@@ -139,5 +151,227 @@ describe('buildMoneyActivityBuckets', () => {
     const buckets = buildMoneyActivityBuckets(onchain, [card, cashback]);
     const times = buckets[MoneyActivityFilter.All].map((i) => i.time);
     expect(times).toEqual([...times].sort((a, b) => b - a));
+  });
+
+  it('withholds rows older than the watermark from every bucket', () => {
+    // Watermark at 100: the on-chain rows (50/40/30) are below it and may have
+    // un-fetched API rows above them, so they must not render yet.
+    const buckets = buildMoneyActivityBuckets(onchain, [card, cashback], 100);
+
+    expect(buckets[MoneyActivityFilter.All].map((i) => i.id)).toEqual([
+      '0xback',
+      '0xcard',
+    ]);
+    expect(buckets[MoneyActivityFilter.Deposits].map((i) => i.id)).toEqual([
+      '0xback',
+    ]);
+    expect(buckets[MoneyActivityFilter.Transfers].map((i) => i.id)).toEqual([
+      '0xcard',
+    ]);
+  });
+
+  it('keeps boundary rows at exactly the watermark', () => {
+    const buckets = buildMoneyActivityBuckets(onchain, [card, cashback], 200);
+    // The card row sits exactly on the watermark (200) and is inclusive.
+    expect(buckets[MoneyActivityFilter.All].map((i) => i.id)).toEqual([
+      '0xback',
+      '0xcard',
+    ]);
+  });
+
+  it('shows everything when the watermark is -Infinity (fully loaded)', () => {
+    const buckets = buildMoneyActivityBuckets(
+      onchain,
+      [card, cashback],
+      Number.NEGATIVE_INFINITY,
+    );
+    expect(buckets[MoneyActivityFilter.All]).toHaveLength(3);
+  });
+});
+
+describe('useMoneyActivityItems', () => {
+  const txResult = (
+    overrides: Partial<ReturnType<typeof useMoneyAccountTransactions>> = {},
+  ) =>
+    ({
+      allTransactions: [],
+      deposits: [],
+      transfers: [],
+      submittedTransactions: [],
+      moneyAddress: '0xmoney',
+      mockDataEnabled: false,
+      ...overrides,
+    }) as ReturnType<typeof useMoneyAccountTransactions>;
+
+  const apiResult = (
+    overrides: Partial<ReturnType<typeof useMoneyAccountApiActivity>> = {},
+  ) =>
+    ({
+      activity: [],
+      watermark: Number.NEGATIVE_INFINITY,
+      isComplete: true,
+      pageCount: 1,
+      hasMore: false,
+      loadMore: jest.fn(),
+      isLoadingMore: false,
+      isLoading: false,
+      error: false,
+      refetch: jest.fn(),
+      ...overrides,
+    }) as ReturnType<typeof useMoneyAccountApiActivity>;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockUseMoneyAccountTransactions.mockReturnValue(txResult());
+    mockUseMoneyAccountApiActivity.mockReturnValue(apiResult());
+  });
+
+  it('gates buckets by the watermark from the API hook', () => {
+    mockUseMoneyAccountTransactions.mockReturnValue(
+      txResult({ allTransactions: [onchainTx('old', 50)] }),
+    );
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({
+        activity: [cardTx('0xnew' as Hex, 200)],
+        watermark: 100,
+        isComplete: false,
+        hasMore: true,
+      }),
+    );
+
+    const { result } = renderHook(() => useMoneyActivityItems());
+
+    // The old on-chain row (50) is below the watermark and withheld.
+    expect(
+      result.current.buckets[MoneyActivityFilter.All].map((i) => i.id),
+    ).toEqual(['0xnew']);
+    expect(result.current.hasMore).toBe(true);
+  });
+
+  it('fetches more pages until the All bucket reaches ensureCount', () => {
+    const loadMore = jest.fn();
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({
+        activity: [cardTx('0xa' as Hex, 200)],
+        watermark: Number.NEGATIVE_INFINITY,
+        isComplete: false,
+        hasMore: true,
+        loadMore,
+      }),
+    );
+
+    renderHook(() => useMoneyActivityItems({ ensureCount: 5 }));
+
+    // Only one safe row but five wanted and more pages remain → fetch more.
+    expect(loadMore).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not over-fetch once the All bucket already meets ensureCount', () => {
+    const loadMore = jest.fn();
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({
+        activity: [
+          cardTx('0xa' as Hex, 205),
+          cardTx('0xb' as Hex, 204),
+          cardTx('0xc' as Hex, 203),
+        ],
+        isComplete: false,
+        hasMore: true,
+        loadMore,
+      }),
+    );
+
+    renderHook(() => useMoneyActivityItems({ ensureCount: 2 }));
+
+    expect(loadMore).not.toHaveBeenCalled();
+  });
+
+  it('stops auto-filling after the page budget once at least one row is present', () => {
+    const loadMore = jest.fn();
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({
+        activity: [cardTx('0xa' as Hex, 200)],
+        isComplete: false,
+        hasMore: true,
+        pageCount: 3, // AUTO_FILL_MAX_PAGES — budget exhausted
+        loadMore,
+      }),
+    );
+
+    renderHook(() => useMoneyActivityItems({ ensureCount: 5 }));
+
+    // One row on screen and the budget is spent → wait for user-driven scroll.
+    expect(loadMore).not.toHaveBeenCalled();
+  });
+
+  it('keeps fetching past the page budget while the list is still empty', () => {
+    const loadMore = jest.fn();
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({
+        activity: [],
+        isComplete: false,
+        hasMore: true,
+        pageCount: 9, // well past the budget, but nothing on screen yet
+        loadMore,
+      }),
+    );
+
+    renderHook(() => useMoneyActivityItems({ ensureCount: 5 }));
+
+    expect(loadMore).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes through isComplete and reports complete in mock mode', () => {
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({ isComplete: false, hasMore: true }),
+    );
+    const { result: live } = renderHook(() => useMoneyActivityItems());
+    expect(live.current.isComplete).toBe(false);
+
+    mockUseMoneyAccountTransactions.mockReturnValue(
+      txResult({ mockDataEnabled: true }),
+    );
+    const { result: mock } = renderHook(() => useMoneyActivityItems());
+    expect(mock.current.isComplete).toBe(true);
+  });
+
+  it('never auto-fetches while a page is already in flight', () => {
+    const loadMore = jest.fn();
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({
+        hasMore: true,
+        isLoadingMore: true,
+        isComplete: false,
+        loadMore,
+      }),
+    );
+
+    renderHook(() => useMoneyActivityItems({ ensureCount: 5 }));
+
+    expect(loadMore).not.toHaveBeenCalled();
+  });
+
+  it('treats mock mode as exhaustive: no watermark gating, no pagination', () => {
+    const loadMore = jest.fn();
+    mockUseMoneyAccountTransactions.mockReturnValue(
+      txResult({ mockDataEnabled: true }),
+    );
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({
+        watermark: 100,
+        hasMore: true,
+        isComplete: false,
+        loadMore,
+      }),
+    );
+
+    const { result } = renderHook(() =>
+      useMoneyActivityItems({ ensureCount: 5 }),
+    );
+
+    expect(result.current.mockDataEnabled).toBe(true);
+    expect(result.current.hasMore).toBe(false);
+    expect(result.current.isLoadingMore).toBe(false);
+    expect(loadMore).not.toHaveBeenCalled();
   });
 });

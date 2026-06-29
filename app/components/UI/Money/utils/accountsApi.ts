@@ -143,6 +143,33 @@ function parseSettlement(
 }
 
 /**
+ * Oldest raw (pre-filter) settlement time across the fetched Accounts-API
+ * pages, in epoch ms. This is the pagination *watermark*: because pages are
+ * fetched newest-first, every API row newer than this has been seen, but older
+ * ones may still live in un-fetched pages. Merged activity older than the
+ * watermark is therefore incomplete and must be withheld until more pages load.
+ *
+ * Computed from the raw rows (not the parsed card/cashback subset) because a
+ * discarded row still advances how far back we've looked. Returns
+ * `Number.POSITIVE_INFINITY` when no rows have been fetched yet, so nothing
+ * passes the `time >= watermark` gate until the first page arrives.
+ */
+export function oldestRawActivityTime(
+  responses: readonly { data?: { timestamp: string }[] }[],
+): number {
+  let oldest = Number.POSITIVE_INFINITY;
+  for (const response of responses) {
+    for (const row of response.data ?? []) {
+      const time = new Date(row.timestamp).getTime();
+      if (!Number.isNaN(time) && time < oldest) {
+        oldest = time;
+      }
+    }
+  }
+  return oldest;
+}
+
+/**
  * Parse the latest Accounts-API page into Money activity rows.
  **/
 export function parseAccountsApiActivity(
