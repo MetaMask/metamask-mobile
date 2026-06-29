@@ -328,7 +328,17 @@ export type PredictOutcomeToken = {
   id: string;
   title: string;
   shortTitle?: string;
+  /**
+   * Mid price = implied probability / quoted odds. Use this for "% chance" and
+   * odds display so it matches the chart and Polymarket.
+   */
   price: number;
+  /**
+   * Best ask = the price to actually buy this token. Optional; populated by
+   * hooks that fetch live/REST prices (e.g. useOpenOutcomes). Falls back to
+   * `price` when absent. Use this for BUY CTAs, never for the odds %.
+   */
+  buyPrice?: number;
 };
 
 export interface PredictActivity {
@@ -338,6 +348,10 @@ export interface PredictActivity {
   title?: string;
   outcome?: string;
   icon?: string;
+  slug?: string;
+  eventSlug?: string;
+  netPnlUsd?: number;
+  totalNetPnlUsd?: number;
 }
 
 export type PredictActivityEntry =

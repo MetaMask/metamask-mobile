@@ -17,7 +17,7 @@ import { PredictNavigationParamList } from '../types/navigation';
 import PredictAddFundsModal from '../views/PredictAddFundsModal/PredictAddFundsModal';
 import PredictPositionsView from '../views/PredictPositionsView';
 import PredictMarketListRoute from './PredictMarketListRoute';
-import PredictWorldCup from '../views/PredictWorldCup';
+import PredictWorldCupRoute from './PredictWorldCupRoute';
 import PredictFeedView from '../views/PredictFeedView';
 import PredictGTMModal from '../components/PredictGTMModal';
 import { useSelector } from 'react-redux';
@@ -96,7 +96,7 @@ const PredictScreenStack = () => {
 
         <Stack.Screen
           name={Routes.PREDICT.WORLD_CUP}
-          component={PredictWorldCup}
+          component={PredictWorldCupRoute}
         />
 
         <Stack.Screen name={Routes.PREDICT.FEED} component={PredictFeedView} />

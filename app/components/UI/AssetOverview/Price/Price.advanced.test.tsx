@@ -313,6 +313,12 @@ describe('PriceAdvanced', () => {
     ).toBeOnTheScreen();
   });
 
+  it('does not render token name in price header', () => {
+    const { queryByText } = render(<PriceAdvanced {...baseProps} />);
+
+    expect(queryByText('Test Token')).toBeNull();
+  });
+
   it('shows loading skeletons when isLoading is true', () => {
     const { getByTestId } = render(<PriceAdvanced {...baseProps} isLoading />);
     expect(getByTestId('loading-price-diff')).toBeOnTheScreen();

@@ -33,14 +33,14 @@ export function MoneyAccountWithdrawInfo() {
 }
 
 function MoneyAccountWithdrawBalance() {
-  const { totalFiatFormatted } = useMoneyAccountBalance();
+  const { withdrawableFiatFormatted } = useMoneyAccountBalance();
 
   return (
     <Box alignItems={AlignItems.center} testID="money-account-withdraw-balance">
       <Text
         variant={TextVariant.BodyMDMedium}
         color={TextColor.Alternative}
-      >{`${strings('confirm.available_balance')}${totalFiatFormatted ?? ''}`}</Text>
+      >{`${strings('confirm.available_balance')}${withdrawableFiatFormatted ?? ''}`}</Text>
     </Box>
   );
 }
