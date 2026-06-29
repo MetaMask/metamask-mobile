@@ -1,40 +1,88 @@
-/*
- * Branded onboarding surface colors live on a fixed purple gradient that is not
- * theme-background-aware, so they are intentionally hardcoded rather than mapped
- * to theme tokens. See `SocialLeaderboardOnboarding.styles.ts`.
- */
-/* eslint-disable @metamask/design-tokens/color-no-hex */
-
 /**
- * Artboard names for the Social Leaderboard onboarding Rive animation.
+ * Rive binding contract for the Social Leaderboard onboarding animation
+ * (`app/animations/onboarding_nux_v1.riv`).
  *
- * The motion team delivers the `.riv` file(s) separately. Until then each slide
- * renders a static placeholder in its animation slot; wiring the real Rive
- * source + artboard names later is a localized change (see
- * `SocialLeaderboardOnboarding.tsx`). Mirrors `PERPS_RIVE_ARTBOARD_NAMES`.
+ * The motion team ships a single text-baked artboard: Rive renders all visuals,
+ * copy, trader cards and buttons, and owns step navigation via its state
+ * machine. React Native's role is the "hybrid" half — it pushes localized
+ * strings + live trader data in through these data bindings and observes the
+ * state-machine triggers to run the follow / notification / analytics /
+ * persistence logic. Mirrors the Money onboarding pattern
+ * (`MoneyOnboardingView`).
+ *
+ * Update these names if the Rive file's artboard, state machine, bindings or
+ * triggers change.
  */
-export enum SOCIAL_LEADERBOARD_ONBOARDING_ARTBOARD_NAMES {
-  TRADE = '01_Trade',
-  FOLLOW = '02_Follow',
-  NOTIFY = '03_Notify',
-}
+export const RIVE_ARTBOARD_NAME = 'Money_Account';
+export const RIVE_STATE_MACHINE_NAME = 'State Machine 1';
 
-/** Figma background: linear-gradient(180deg, #3D065F 0%, #8F44E4 100%) */
-export const ONBOARDING_GRADIENT_COLORS = ['#3D065F', '#8F44E4'] as const;
-
-/** Fixed surface colors for the branded gradient (not theme text tokens). */
-export const ONBOARDING_COLORS = {
-  onBrandText: '#FFFFFF',
-  onBrandTextMuted: 'rgba(255, 255, 255, 0.75)',
-  progressInactive: 'rgba(255, 255, 255, 0.25)',
-  progressActive: '#FFFFFF',
-  secondaryButtonBackground: 'rgba(255, 255, 255, 0.12)',
-  animationSlot: 'rgba(255, 255, 255, 0.08)',
-  cardBackground: 'rgba(0, 0, 0, 0.35)',
-  cardBorder: 'rgba(255, 255, 255, 0.12)',
+/** Numeric data-binding inputs pushed into the artboard. */
+export const RIVE_NUMBER_BINDINGS = {
+  TRANSITION_SPEED: 'transitionSpeed',
+  COIN_SEQ: 'coinSeq',
+  CARD_SEQ: 'cardSeq',
 } as const;
 
-/** Number of top traders surfaced on the "Follow the best" slide. */
+/** Transition duration (ms) handed to the state machine. */
+export const RIVE_TRANSITION_SPEED = 300;
+
+/**
+ * State-machine triggers. Rive owns navigation: these triggers advance the
+ * artboard's own steps, so RN must only *observe* them (via `useRiveTrigger`)
+ * to run side effects — never intercept, or a button tap would no-op the
+ * animation's transition.
+ */
+export const RIVE_TRIGGERS = {
+  CLOSE: 'close',
+  NEXT: 'next',
+  GOT_IT: 'gotIt',
+  ALLOW_NOTIFICATIONS: 'allowNotifications',
+  FOLLOW_TOP_TRADERS: 'followTopTraders',
+  MAYBE_LATER: 'maybeLater',
+} as const;
+
+export type OnboardingSlideId = 'trade' | 'follow' | 'notify';
+
+/**
+ * Authored slot order inside the `.riv` (1-based): step 1 = Trade,
+ * step 2 = Notify, step 3 = Follow. The state machine plays
+ * Trade -> Notify -> Follow, so this is the order RN reports for analytics and
+ * pushes copy into. Reorder here (and re-author the Rive file) if the UX order
+ * changes.
+ */
+export const RIVE_STEP_SLOTS: readonly OnboardingSlideId[] = [
+  'trade',
+  'notify',
+  'follow',
+];
+
+type StepTextField = 'title' | 'content' | 'primaryButton' | 'secondaryButton';
+
+/** Builds a `stepText{n}/{field}` binding path for the given 1-based slot. */
+export const riveStepTextBinding = (
+  slot: number,
+  field: StepTextField,
+): string => `stepText${slot}/${field}`;
+
+type TraderField = 'name' | 'period' | 'profitAmount' | 'profitPercent';
+
+/** Builds a `traderTop{rank}/{field}` binding path for the given 1-based rank. */
+export const riveTraderBinding = (rank: number, field: TraderField): string =>
+  `traderTop${rank}/${field}`;
+
+/** Window label shown on each trader card (leaderboard data is 7-day). */
+export const RIVE_TRADER_PERIOD = '7D';
+
+/**
+ * Optional map of Rive state-machine state names -> step index, used by
+ * `onStateChanged` for per-step analytics and terminal-state detection once the
+ * motion team confirms the authored state names. Until then it stays empty and
+ * step tracking is driven by the trigger callbacks (which are deterministic).
+ * Instrument `onStateChanged` in dev to discover the names, then fill this in.
+ */
+export const RIVE_STATE_TO_STEP_INDEX: Record<string, number> = {};
+
+/** Number of top traders surfaced on the "Follow the best" step. */
 export const ONBOARDING_TOP_TRADERS_LIMIT = 3;
 
 /**
@@ -44,8 +92,3 @@ export const ONBOARDING_TOP_TRADERS_LIMIT = 3;
  */
 export const isSocialLeaderboardOnboardingSkipSeen =
   process.env.MM_SOCIAL_LEADERBOARD_ONBOARDING_SKIP_SEEN === 'true';
-
-export type OnboardingSlideId = 'trade' | 'follow' | 'notify';
-
-/** Which variant of the final ("Never miss a move") slide to render. */
-export type NotifySlideVariant = 'followed' | 'default';

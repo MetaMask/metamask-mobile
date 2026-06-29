@@ -1,4 +1,4 @@
-import { act, fireEvent, screen } from '@testing-library/react-native';
+import { act, screen } from '@testing-library/react-native';
 import React from 'react';
 import { StackActions } from '@react-navigation/native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -10,18 +10,11 @@ import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/stora
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import SocialLeaderboardOnboarding from './SocialLeaderboardOnboarding';
 import { SocialLeaderboardOnboardingSelectorsIDs } from './SocialLeaderboardOnboarding.testIds';
+import { RIVE_TRANSITION_SPEED, RIVE_TRIGGERS } from './constants';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
-
-jest.mock('react-native-linear-gradient', () => {
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: View,
-  };
-});
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -35,38 +28,44 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Render only the active page so footer logic per slide is exercised.
-jest.mock('@tommasini/react-native-scrollable-tab-view', () => {
-  const MockReact = jest.requireActual('react');
+// Local Rive mock: render a plain View, capture onStateChanged/onError and the
+// per-trigger callbacks so tests can drive the state machine directly.
+let mockOnStateChanged:
+  | ((stateMachineName: string, stateName: string) => void)
+  | undefined;
+let mockOnError:
+  | ((error: { message: string; type: string }) => void)
+  | undefined;
+const mockTriggerCallbacks: Record<string, () => void | Promise<void>> = {};
+const mockSetString = jest.fn();
+const mockSetNumber = jest.fn();
+
+jest.mock('rive-react-native', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: MockReact.forwardRef(
-      (
-        {
-          children,
-          onChangeTab,
-          initialPage,
-        }: {
-          children: React.ReactNode;
-          onChangeTab?: (obj: { i: number }) => void;
-          initialPage?: number;
-        },
-        ref: React.Ref<{ goToPage: (page: number) => void }>,
-      ) => {
-        const [currentPage, setCurrentPage] = MockReact.useState(
-          initialPage || 0,
-        );
-        MockReact.useImperativeHandle(ref, () => ({
-          goToPage: (page: number) => {
-            setCurrentPage(page);
-            onChangeTab?.({ i: page });
-          },
-        }));
-        const childrenArray = MockReact.Children.toArray(children);
-        return <View>{childrenArray[currentPage]}</View>;
-      },
-    ),
+    default: (props: {
+      testID?: string;
+      onStateChanged?: (sm: string, state: string) => void;
+      onError?: (error: { message: string; type: string }) => void;
+    }) => {
+      mockOnStateChanged = props.onStateChanged;
+      mockOnError = props.onError;
+      return <View testID={props.testID} />;
+    },
+    useRive: () => [jest.fn(), {}],
+    useRiveString: () => [undefined, mockSetString],
+    useRiveNumber: () => [undefined, mockSetNumber],
+    useRiveTrigger: (
+      _riveRef: unknown,
+      path: string,
+      callback: () => void | Promise<void>,
+    ) => {
+      mockTriggerCallbacks[path] = callback;
+    },
+    AutoBind: (value: boolean) => ({ type: 'autobind', value }),
+    Fit: { Cover: 'cover', Layout: 'layout' },
+    Alignment: { Center: 'center' },
   };
 });
 
@@ -138,9 +137,20 @@ const makeTrader = (overrides: Partial<TopTrader> = {}): TopTrader => ({
   ...overrides,
 });
 
+const fireTrigger = async (path: string) => {
+  await act(async () => {
+    await mockTriggerCallbacks[path]?.();
+  });
+};
+
 describe('SocialLeaderboardOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOnStateChanged = undefined;
+    mockOnError = undefined;
+    Object.keys(mockTriggerCallbacks).forEach(
+      (key) => delete mockTriggerCallbacks[key],
+    );
     mockTraders = [
       makeTrader({ id: 'a', username: 'dutchiono', pnlValue: 456900 }),
       makeTrader({ id: 'b', username: 'raggedand', pnlValue: 324660, rank: 2 }),
@@ -155,17 +165,13 @@ describe('SocialLeaderboardOnboarding', () => {
   const renderComponent = () =>
     renderWithProvider(<SocialLeaderboardOnboarding />, {});
 
-  const goToFollowSlide = () => {
-    fireEvent.press(
-      screen.getByTestId(SocialLeaderboardOnboardingSelectorsIDs.NEXT_BUTTON),
-    );
-  };
-
-  it('renders the first slide with a Next button and tracks screen viewed', () => {
+  it('renders the Rive animation and tracks the first slide on mount', () => {
     renderComponent();
 
     expect(
-      screen.getByTestId(SocialLeaderboardOnboardingSelectorsIDs.NEXT_BUTTON),
+      screen.getByTestId(
+        SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION,
+      ),
     ).toBeOnTheScreen();
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
@@ -173,170 +179,133 @@ describe('SocialLeaderboardOnboarding', () => {
     );
   });
 
-  it('advances to the follow slide and renders top-three trader cards', () => {
+  it('pushes config and localized copy into the Rive bindings on load', () => {
     renderComponent();
-    goToFollowSlide();
 
-    expect(
-      screen.getByTestId(
-        SocialLeaderboardOnboardingSelectorsIDs.FOLLOW_TOP_THREE_BUTTON,
-      ),
-    ).toBeOnTheScreen();
-    expect(screen.getByText('dutchiono')).toBeOnTheScreen();
-    expect(screen.getByText('raggedand')).toBeOnTheScreen();
-    expect(screen.getByText('aparjey')).toBeOnTheScreen();
+    expect(mockSetNumber).toHaveBeenCalledWith(RIVE_TRANSITION_SPEED);
+    expect(mockSetString).toHaveBeenCalled();
   });
 
-  it('follows the not-yet-followed top traders and advances to the final slide', async () => {
+  it('tracks the notify slide when the next trigger fires', async () => {
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.NEXT);
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
+      expect.objectContaining({ screen: 'notify', source: 'nux' }),
+    );
+  });
+
+  it('enables notifications and advances to the follow slide on allowNotifications', async () => {
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
+
+    expect(mockRequestPushPermission).toHaveBeenCalled();
+    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_NOTIFICATIONS_ENABLED,
+      expect.objectContaining({ source: 'nux' }),
+    );
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
+      expect.objectContaining({ screen: 'follow', source: 'nux' }),
+    );
+    // Notify is not terminal, so the flow has not completed yet.
+    expect(mockDispatch).not.toHaveBeenCalled();
+  });
+
+  it('does not request permission when notifications are already enabled', async () => {
+    mockIsNotificationsEnabled = true;
+    mockIsPushEnabled = true;
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
+
+    expect(mockRequestPushPermission).not.toHaveBeenCalled();
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_NOTIFICATIONS_ENABLED,
+      expect.anything(),
+    );
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
+      expect.objectContaining({ screen: 'follow', source: 'nux' }),
+    );
+  });
+
+  it('advances to the follow slide without notifications on gotIt', async () => {
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
+
+    expect(mockRequestPushPermission).not.toHaveBeenCalled();
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
+      expect.objectContaining({ screen: 'follow', source: 'nux' }),
+    );
+  });
+
+  it('follows the not-yet-followed top traders and completes on followTopTraders', async () => {
     mockTraders[1] = makeTrader({
       id: 'b',
       username: 'raggedand',
       isFollowing: true,
     });
+    const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
     renderComponent();
-    goToFollowSlide();
 
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(
-          SocialLeaderboardOnboardingSelectorsIDs.FOLLOW_TOP_THREE_BUTTON,
-        ),
-      );
-    });
+    await fireTrigger(RIVE_TRIGGERS.FOLLOW_TOP_TRADERS);
 
-    // Only the two non-following traders are toggled.
     expect(mockToggleFollow).toHaveBeenCalledTimes(2);
     expect(mockToggleFollow).toHaveBeenCalledWith(
       'a',
       expect.objectContaining({ source: 'nux' }),
     );
     expect(mockToggleFollow).not.toHaveBeenCalledWith('b', expect.anything());
-    expect(
-      screen.getByTestId(SocialLeaderboardOnboardingSelectorsIDs.GOT_IT_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
-  it('skips following when Maybe later is pressed', () => {
-    renderComponent();
-    goToFollowSlide();
-
-    fireEvent.press(
-      screen.getByTestId(
-        SocialLeaderboardOnboardingSelectorsIDs.MAYBE_LATER_BUTTON,
-      ),
-    );
-
-    expect(mockToggleFollow).not.toHaveBeenCalled();
-    expect(
-      screen.getByTestId(SocialLeaderboardOnboardingSelectorsIDs.GOT_IT_BUTTON),
-    ).toBeOnTheScreen();
-  });
-
-  it('disables Follow the top three while traders are loading', () => {
-    mockIsLoading = true;
-    mockTraders = [];
-    renderComponent();
-    goToFollowSlide();
-
-    expect(
-      screen.getByTestId(
-        SocialLeaderboardOnboardingSelectorsIDs.FOLLOW_TOP_THREE_BUTTON,
-      ),
-    ).toBeDisabled();
-  });
-
-  it('shows the Allow notifications CTA when notifications are disabled', () => {
-    renderComponent();
-    goToFollowSlide();
-    fireEvent.press(
-      screen.getByTestId(
-        SocialLeaderboardOnboardingSelectorsIDs.MAYBE_LATER_BUTTON,
-      ),
-    );
-
-    expect(
-      screen.getByTestId(
-        SocialLeaderboardOnboardingSelectorsIDs.ALLOW_NOTIFICATIONS_BUTTON,
-      ),
-    ).toBeOnTheScreen();
-  });
-
-  it('hides the Allow notifications CTA when notifications are already enabled', () => {
-    mockIsNotificationsEnabled = true;
-    mockIsPushEnabled = true;
-    renderComponent();
-    goToFollowSlide();
-    fireEvent.press(
-      screen.getByTestId(
-        SocialLeaderboardOnboardingSelectorsIDs.MAYBE_LATER_BUTTON,
-      ),
-    );
-
-    expect(
-      screen.queryByTestId(
-        SocialLeaderboardOnboardingSelectorsIDs.ALLOW_NOTIFICATIONS_BUTTON,
-      ),
-    ).toBeNull();
-  });
-
-  it('enables notifications in background and exits to the leaderboard', async () => {
-    renderComponent();
-    goToFollowSlide();
-    fireEvent.press(
-      screen.getByTestId(
-        SocialLeaderboardOnboardingSelectorsIDs.MAYBE_LATER_BUTTON,
-      ),
-    );
-
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(
-          SocialLeaderboardOnboardingSelectorsIDs.ALLOW_NOTIFICATIONS_BUTTON,
-        ),
-      );
-    });
-
-    expect(mockRequestPushPermission).toHaveBeenCalled();
-    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
-    );
-  });
-
-  it('marks onboarding seen and replaces with the leaderboard on Got it', () => {
-    const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
-    renderComponent();
-    goToFollowSlide();
-    fireEvent.press(
-      screen.getByTestId(
-        SocialLeaderboardOnboardingSelectorsIDs.MAYBE_LATER_BUTTON,
-      ),
-    );
-    fireEvent.press(
-      screen.getByTestId(SocialLeaderboardOnboardingSelectorsIDs.GOT_IT_BUTTON),
-    );
-
     expect(setItemSpy).toHaveBeenCalledWith(
       SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
       'true',
       { emitEvent: false },
     );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
-    );
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
       expect.objectContaining({ source: 'nux' }),
     );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+    );
   });
 
-  it('dismisses to wallet and marks seen when the close button is pressed', () => {
+  it('skips following and completes on maybeLater', async () => {
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
+
+    expect(mockToggleFollow).not.toHaveBeenCalled();
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
+      expect.objectContaining({ source: 'nux' }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+    );
+  });
+
+  it('completes only once even if a terminal trigger fires twice', async () => {
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
+    await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
+
+    expect(mockDispatch).toHaveBeenCalledTimes(1);
+  });
+
+  it('dismisses to wallet and marks seen on the close trigger', async () => {
     const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
     renderComponent();
 
-    fireEvent.press(
-      screen.getByTestId(SocialLeaderboardOnboardingSelectorsIDs.CLOSE_BUTTON),
-    );
+    await fireTrigger(RIVE_TRIGGERS.CLOSE);
 
     expect(setItemSpy).toHaveBeenCalledWith(
       SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
@@ -347,6 +316,40 @@ describe('SocialLeaderboardOnboarding', () => {
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_DISMISSED,
       expect.objectContaining({ source: 'nux', screen: 'trade' }),
+    );
+  });
+
+  it('reports the current slide in the dismissed event', async () => {
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.NEXT);
+    await fireTrigger(RIVE_TRIGGERS.CLOSE);
+
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_DISMISSED,
+      expect.objectContaining({ source: 'nux', screen: 'notify' }),
+    );
+  });
+
+  it('marks seen and exits to the leaderboard on a Rive error without tracking completion', () => {
+    const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+    renderComponent();
+
+    act(() => {
+      mockOnError?.({ message: 'boom', type: 'Malformed' });
+    });
+
+    expect(setItemSpy).toHaveBeenCalledWith(
+      SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
+      'true',
+      { emitEvent: false },
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+    );
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
+      expect.anything(),
     );
   });
 });
