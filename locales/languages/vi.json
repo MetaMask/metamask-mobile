@@ -2348,7 +2348,7 @@
     "search_account": "Tìm kiếm tài khoản",
     "home": {
       "live_now_title": "Đang diễn ra",
-      "categories_title": "Danh mục",
+      "categories_placeholder": "Danh mục",
       "trending_placeholder": "Xu hướng"
     },
     "homepage_discovery": {

@@ -2348,7 +2348,7 @@
     "search_account": "Cari akun",
     "home": {
       "live_now_title": "Sedang live",
-      "categories_title": "Kategori",
+      "categories_placeholder": "Kategori",
       "trending_placeholder": "Sedang tren"
     },
     "homepage_discovery": {

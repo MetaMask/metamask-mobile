@@ -2348,7 +2348,7 @@
     "search_account": "Поиск счета",
     "home": {
       "live_now_title": "Уже активно",
-      "categories_title": "Категории",
+      "categories_placeholder": "Категории",
       "trending_placeholder": "Популярное"
     },
     "homepage_discovery": {

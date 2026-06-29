@@ -2348,7 +2348,7 @@
     "search_account": "계정 검색",
     "home": {
       "live_now_title": "지금 진행 중",
-      "categories_title": "카테고리",
+      "categories_placeholder": "카테고리",
       "trending_placeholder": "인기"
     },
     "homepage_discovery": {

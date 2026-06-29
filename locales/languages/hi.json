@@ -2348,7 +2348,7 @@
     "search_account": "किसी अकाउंट को ढूंढें",
     "home": {
       "live_now_title": "अब लाइव है",
-      "categories_title": "कैटेगरीज़",
+      "categories_placeholder": "कैटेगरीज़",
       "trending_placeholder": "ट्रेंडिंग"
     },
     "homepage_discovery": {

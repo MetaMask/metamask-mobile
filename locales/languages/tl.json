@@ -2348,7 +2348,7 @@
     "search_account": "Pumili ng isang account",
     "home": {
       "live_now_title": "Live ngayon",
-      "categories_title": "Mga Kategorya",
+      "categories_placeholder": "Mga Kategorya",
       "trending_placeholder": "Nagte-trend"
     },
     "homepage_discovery": {

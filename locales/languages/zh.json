@@ -2348,7 +2348,7 @@
     "search_account": "搜索账户",
     "home": {
       "live_now_title": "现已上线",
-      "categories_title": "类别",
+      "categories_placeholder": "类别",
       "trending_placeholder": "趋势"
     },
     "homepage_discovery": {
