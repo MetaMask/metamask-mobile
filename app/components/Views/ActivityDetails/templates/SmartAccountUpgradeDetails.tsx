@@ -1,4 +1,5 @@
 import React from 'react';
+import { truncate } from 'lodash';
 import { useSelector } from 'react-redux';
 import {
   AvatarAccount,
@@ -14,6 +15,8 @@ import { getAvatarAccountVariant } from '../../../../component-library/component
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 import { renderShortAddress } from '../../../../util/address';
 import { ActivityDetailsStandardTemplate } from './ActivityDetailsStandardTemplate';
+
+const MAX_HERO_NAME_LENGTH = 20;
 
 function SmartAccountUpgradeHero({
   address,
@@ -33,6 +36,14 @@ function SmartAccountUpgradeHero({
     },
   ])?.[0];
 
+  const displayName = accountName
+    ? truncate(accountName, {
+        length: MAX_HERO_NAME_LENGTH,
+        separator: ' ',
+        omission: '…',
+      })
+    : renderShortAddress(address);
+
   return (
     <Box twClassName="flex-row items-center gap-3">
       {address ? (
@@ -45,10 +56,10 @@ function SmartAccountUpgradeHero({
       <Text
         variant={TextVariant.DisplayMd}
         twClassName="shrink"
-        numberOfLines={2}
+        numberOfLines={1}
         ellipsizeMode="tail"
       >
-        {accountName ?? renderShortAddress(address)}
+        {displayName}
       </Text>
     </Box>
   );

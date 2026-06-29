@@ -820,7 +820,7 @@ describe('mapLocalTransaction', () => {
     });
   });
 
-  it('maps an EIP-7702 upgrade (authorizationList) to a smart account upgrade activity', () => {
+  it('maps an EIP-7702 upgrade (authorizationList) to a smart account upgrade activity with the gas shown as a native amount', () => {
     const transaction = {
       chainId: mainnet,
       hash: '0xupgrade',
@@ -832,18 +832,25 @@ describe('mapLocalTransaction', () => {
         to,
         authorizationList: [{ address: to }],
       },
+      txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
     } as unknown as Partial<TransactionMeta>;
 
-    expect(
-      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
-    ).toStrictEqual({
-      type: 'smartAccountUpgrade',
-      chainId: 'eip155:1',
-      status: 'success',
-      timestamp: 1716367781000,
-      hash: '0xupgrade',
-      data: { from, to },
-    });
+    const result = withoutRaw(mapLocalTransaction(makeGroup(transaction)));
+    expect(result.type).toBe('smartAccountUpgrade');
+    // Renders like any other tx: native-asset avatar + the gas paid as the
+    // (negative) row amount.
+    expect(result.data).toEqual(
+      expect.objectContaining({
+        from,
+        to,
+        token: expect.objectContaining({
+          direction: 'out',
+          symbol: 'ETH',
+          amount: expect.any(String),
+        }),
+        fees: expect.any(Array),
+      }),
+    );
   });
 
   it('keeps the action label for a batch that also performs a recognised action', () => {

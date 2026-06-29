@@ -87,7 +87,7 @@ export function mapLocalTransaction(
     };
   };
 
-  const getStakingNativeToken = (
+  const getNativeTokenWithAmount = (
     direction: TokenAmount['direction'],
     amount?: string,
   ) => {
@@ -439,6 +439,9 @@ export function mapLocalTransaction(
     if (!initialTransaction.txParams.authorizationList?.length) {
       return undefined;
     }
+    // No asset moves in an upgrade — the only ETH movement is gas, so the row
+    // shows the gas paid as a native-asset amount (rendered like any other tx).
+    const gasAmount = fees?.find((fee) => fee.type === 'base')?.amount;
     return {
       type: 'smartAccountUpgrade',
       chainId,
@@ -449,6 +452,7 @@ export function mapLocalTransaction(
       data: {
         from,
         to,
+        token: getNativeTokenWithAmount('out', gasAmount),
         ...(fees ? { fees } : {}),
       },
     };
@@ -683,7 +687,7 @@ export function mapLocalTransaction(
         hash,
         raw: { type: 'localTransaction', data: transactionGroup },
         data: {
-          token: getStakingNativeToken(
+          token: getNativeTokenWithAmount(
             'out',
             initialTransaction.txParams.value,
           ),
@@ -700,7 +704,7 @@ export function mapLocalTransaction(
         hash,
         raw: { type: 'localTransaction', data: transactionGroup },
         data: {
-          token: getStakingNativeToken('in', getClaimAmount()),
+          token: getNativeTokenWithAmount('in', getClaimAmount()),
           ...(fees ? { fees } : {}),
         },
       };
@@ -714,7 +718,7 @@ export function mapLocalTransaction(
         hash,
         raw: { type: 'localTransaction', data: transactionGroup },
         data: {
-          token: getStakingNativeToken('in', getUnstakeAmount()),
+          token: getNativeTokenWithAmount('in', getUnstakeAmount()),
           ...(fees ? { fees } : {}),
         },
       };
