@@ -12,9 +12,10 @@ import {
 } from '@metamask/utils';
 
 // external dependencies
+import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import { isDefaultAccountName } from '../../../../../util/ENSUtils';
-import { formatAddress } from '../../../../../util/address';
+import { formatAddress, isEthAddress } from '../../../../../util/address';
 import { useStyles } from '../../../../../component-library/hooks';
 import AvatarGroup from '../../../../../component-library/components/Avatars/AvatarGroup';
 import { EnsByAccountAddress, Account } from '../../../../hooks/useAccounts';
@@ -68,7 +69,10 @@ const AccountsConnectedList = ({
   const accountByAddress = useMemo(() => {
     const map = new Map<string, Account>();
     for (const account of accounts) {
-      map.set(account.address.toLowerCase(), account);
+      const key = isEthAddress(account.address)
+        ? account.address.toLowerCase()
+        : account.address;
+      map.set(key, account);
     }
     return map;
   }, [accounts]);
@@ -138,17 +142,20 @@ const AccountsConnectedList = ({
     ({ item }: { item: CaipAccountId }) => {
       const { address } = parseCaipAccountId(item);
       const shortAddress = formatAddress(address, 'short');
-      const account = accountByAddress.get(address.toLowerCase());
+      const lookupKey = isEthAddress(address) ? address.toLowerCase() : address;
+      const account = accountByAddress.get(lookupKey);
       const avatarProps = {
         variant: AvatarVariant.Account as const,
         type: accountAvatarType,
         accountAddress: address,
       };
       const ensName = ensByAccountAddress[address];
+      const resolvedName =
+        account?.name ??
+        Engine.context.AccountsController.getAccountByAddress(address)?.metadata
+          .name;
       const accountName =
-        isDefaultAccountName(account?.name) && ensName
-          ? ensName
-          : account?.name;
+        isDefaultAccountName(resolvedName) && ensName ? ensName : resolvedName;
 
       return (
         <Cell
