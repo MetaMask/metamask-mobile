@@ -41,7 +41,6 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
-import AgentStepHud from '../../../core/AgenticService/AgentStepHud';
 import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
@@ -171,6 +170,13 @@ import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDeta
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 import { AccessRestrictedProvider } from '../../UI/Compliance';
 import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
+
+// Lazy + __DEV__-gated so the static import chain into AgenticService is
+// dead-code-eliminated from release builds — the dev bridge module is then
+// absent from production, not merely inert.
+const AgentStepHud = __DEV__
+  ? React.lazy(() => import('../../../core/AgenticService/AgentStepHud'))
+  : null;
 
 const NativeStack = createNativeStackNavigator();
 
@@ -1364,7 +1370,11 @@ const App: React.FC = () => {
         <AppFlow />
         <Toast ref={toastRef} />
         <PerpsWebSocketHealthToast />
-        {__DEV__ && <AgentStepHud />}
+        {__DEV__ && AgentStepHud && (
+          <React.Suspense fallback={null}>
+            <AgentStepHud />
+          </React.Suspense>
+        )}
         <ControllerEventToastBridge registrations={toastRegistrations} />
         <ProfilerManager />
       </WebSocketHealthToastProvider>
