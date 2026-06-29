@@ -174,7 +174,7 @@
     }
   },
   "resolutions": {
-    "@metamask/perps-controller": "^9.0.0",
+    "@metamask/perps-controller": "@metamask-previews/perps-controller@9.0.0-preview-e12e4a38f",
     "@metamask/network-controller": "33.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
@@ -317,7 +317,7 @@
     "@metamask/network-enablement-controller": "^5.3.0",
     "@metamask/notification-services-controller": "^24.2.0",
     "@metamask/permission-controller": "^13.1.1",
-    "@metamask/perps-controller": "^9.0.0",
+    "@metamask/perps-controller": "@metamask-previews/perps-controller@9.0.0-preview-e12e4a38f",
     "@metamask/phishing-controller": "^17.2.0",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^23.0.0",
