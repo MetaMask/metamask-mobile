@@ -74,7 +74,6 @@ import {
 } from '../../UI/Bridge/utils/transaction-history';
 import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
-import ListItem from '../../Base/ListItem';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import MultichainTransactionsFooter from '../MultichainTransactionsView/MultichainTransactionsFooter';
 import { getAddressUrl } from '../../../core/Multichain/utils';
@@ -95,7 +94,6 @@ import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { type ActivityListItem } from './types';
 import {
-  formatActivityListDateHeader,
   getActivityFromTo,
   getActivityValue,
   getGroupedActivityListItemKey,
@@ -133,6 +131,7 @@ import {
   ActivityListItemRow,
   resolveActivityListItemTitle,
 } from '../../UI/ActivityListItemRow/ActivityListItemRow';
+import ActivityListDateHeader from '../../UI/ActivityListItemRow/ActivityListDateHeader';
 
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
@@ -1135,18 +1134,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     }) => {
       if (groupedItem.type === 'pending-header') {
         return (
-          <ListItem.Date style={styles.dateHeader}>
-            {strings('transaction.pending')}
-          </ListItem.Date>
+          <ActivityListDateHeader label={strings('transaction.pending')} />
         );
       }
 
       if (groupedItem.type === 'date-header') {
-        return (
-          <ListItem.Date style={styles.dateHeader}>
-            {formatActivityListDateHeader(groupedItem.date)}
-          </ListItem.Date>
-        );
+        return <ActivityListDateHeader timestamp={groupedItem.date} />;
       }
 
       const { item } = groupedItem;
