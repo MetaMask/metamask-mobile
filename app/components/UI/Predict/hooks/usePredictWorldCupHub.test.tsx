@@ -139,7 +139,7 @@ describe('usePredictWorldCupGamesSections', () => {
     expect(result.current.sections[1].key).toBe('semifinals');
   });
 
-  it('exposes live status from availability', () => {
+  it('returns isLive false when no stages are configured', () => {
     const { Wrapper } = createWrapper();
 
     const { result } = renderHook(
@@ -150,6 +150,98 @@ describe('usePredictWorldCupGamesSections', () => {
         }),
       { wrapper: Wrapper },
     );
+
+    expect(result.current.isLive).toBe(false);
+  });
+
+  it('returns isLive true when any stage market has game.status ongoing', async () => {
+    const { Wrapper } = createWrapper();
+    const liveMarket = createMarket({
+      id: 'live-match',
+      game: {
+        id: 'game-1',
+        startTime: '2026-06-29T18:00:00Z',
+        status: 'ongoing',
+        league: 'fifwc',
+        elapsed: "45'",
+        period: '1H',
+        score: null,
+        homeTeam: {
+          id: 't1',
+          name: 'France',
+          logo: '',
+          abbreviation: 'FRA',
+          color: '',
+        },
+        awayTeam: {
+          id: 't2',
+          name: 'England',
+          logo: '',
+          abbreviation: 'ENG',
+          color: '',
+        },
+      },
+    });
+    mockGetMarkets.mockResolvedValue({
+      markets: [liveMarket],
+      nextCursor: null,
+    });
+
+    const { result } = renderHook(
+      () =>
+        usePredictWorldCupGamesSections({
+          ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+          stages: [{ key: 'round_of_16', eventIds: ['evt-live'] }],
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isLive).toBe(true));
+  });
+
+  it('returns isLive false when stage markets exist but none have game.status ongoing', async () => {
+    const { Wrapper } = createWrapper();
+    const scheduledMarket = createMarket({
+      id: 'scheduled-match',
+      game: {
+        id: 'game-2',
+        startTime: '2026-06-30T18:00:00Z',
+        status: 'scheduled',
+        league: 'fifwc',
+        elapsed: null,
+        period: null,
+        score: null,
+        homeTeam: {
+          id: 't3',
+          name: 'Spain',
+          logo: '',
+          abbreviation: 'ESP',
+          color: '',
+        },
+        awayTeam: {
+          id: 't4',
+          name: 'Brazil',
+          logo: '',
+          abbreviation: 'BRA',
+          color: '',
+        },
+      },
+    });
+    mockGetMarkets.mockResolvedValue({
+      markets: [scheduledMarket],
+      nextCursor: null,
+    });
+
+    const { result } = renderHook(
+      () =>
+        usePredictWorldCupGamesSections({
+          ...DEFAULT_PREDICT_WORLD_CUP_FLAG,
+          stages: [{ key: 'quarterfinals', eventIds: ['evt-sched'] }],
+        }),
+      { wrapper: Wrapper },
+    );
+
+    await waitFor(() => expect(result.current.isFetching).toBe(false));
 
     expect(result.current.isLive).toBe(false);
   });

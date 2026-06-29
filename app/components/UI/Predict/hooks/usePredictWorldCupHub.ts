@@ -47,14 +47,6 @@ export const usePredictWorldCupGamesSections = (
     })),
   });
 
-  // Only the live availability flag is consumed here, so query it directly
-  // instead of pulling in the full availability fan-out (live + props +
-  // per-stage) from usePredictWorldCupAvailability.
-  const { data: isLive, refetch: refetchLiveAvailability } = useQuery({
-    ...predictQueries.worldCup.options.availability.live(config),
-    enabled,
-  });
-
   const sections = useMemo<PredictWorldCupStageSection[]>(
     () =>
       config.stages
@@ -75,24 +67,29 @@ export const usePredictWorldCupGamesSections = (
     [config.stages, stageQueryResults],
   );
 
+  // Derived directly from stage data so the dot only appears when a game's
+  // clock is running, not simply because the market is open for trading.
+  const isLive = useMemo(
+    () =>
+      stageQueryResults.some((result) =>
+        (result.data ?? []).some((market) => market.game?.status === 'ongoing'),
+      ),
+    [stageQueryResults],
+  );
+
   const isFetching = stageQueryResults.some((r) => r.isLoading);
 
-  // Only stage (content) query failures should surface as an offline/error
-  // state. The live-availability query just powers the Games tab live dot, so
-  // its failure must not hide the normal empty state when stages return no
-  // markets.
+  // Only stage (content) query failures surface as an offline/error state so
+  // completed stages disappear cleanly without an error banner.
   const error = stageQueryResults.find((r) => r.error)?.error?.message ?? null;
 
   const refetch = useCallback(async () => {
-    await Promise.all([
-      ...stageQueryResults.map((r) => r.refetch()),
-      refetchLiveAvailability(),
-    ]);
-  }, [stageQueryResults, refetchLiveAvailability]);
+    await Promise.all(stageQueryResults.map((r) => r.refetch()));
+  }, [stageQueryResults]);
 
   return {
     sections,
-    isLive: isLive ?? false,
+    isLive,
     isFetching,
     error,
     refetch,
