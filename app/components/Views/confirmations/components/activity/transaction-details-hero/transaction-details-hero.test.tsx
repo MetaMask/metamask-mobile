@@ -2,7 +2,6 @@ import React from 'react';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
 import {
-  CHAIN_IDS,
   TransactionMeta,
   TransactionType,
   CHAIN_IDS,

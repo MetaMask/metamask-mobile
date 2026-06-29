@@ -98,9 +98,6 @@ const mockSelectShouldShowWalletHomeOnboardingSteps = jest.mocked(
 const mockSelectMoneyOnboardingStepperAnimationEnabled = jest.mocked(
   selectMoneyOnboardingStepperAnimationEnabled,
 );
-const mockSelectMoneyOnboardingStepperAnimationEnabled = jest.mocked(
-  selectMoneyOnboardingStepperAnimationEnabled,
-);
 const mockUseMoneyNavigation = jest.mocked(useMoneyNavigation);
 const mockUseMoneyAccountDeposit = jest.mocked(useMoneyAccountDeposit);
 
