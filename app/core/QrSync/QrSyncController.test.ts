@@ -9,6 +9,7 @@ import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
   QrSyncPhases,
+  QrSyncSecretTypes,
 } from './constants';
 import {
   QR_SYNC_CONTROLLER_NAME,
@@ -20,7 +21,7 @@ import {
 } from './QrSyncController';
 import { createQrSyncWalletClient } from './services/create-qr-sync-wallet-client';
 import { QR_SYNC_MWP_DEEPLINK_PREFIX } from './services/qr-sync-validation';
-import type { QrSyncMessage, QrSyncReadyPayload } from './types';
+import type { QrSyncSyncReadyMessage } from './types';
 
 jest.mock('./services/create-qr-sync-wallet-client');
 
@@ -59,41 +60,35 @@ const createSessionRequest = (
 
 const createSyncReadyWireMessage = (
   options: { privateKeyOnly?: boolean } = {},
-): QrSyncMessage<QrSyncReadyPayload> => {
+): QrSyncSyncReadyMessage => {
   if (options.privateKeyOnly) {
     return {
       type: QrSyncActionTypes.SYNC_READY,
       version: QrSyncMessageVersion.V1,
-      data: {
-        version: 1,
-        deadline: Date.now() + 60_000,
-        data: [
-          {
-            type: 'PrivateKey',
-            privateKey: encodeSecret('0xabc'),
-            name: 'Imported Account 1',
-          },
-        ],
-      },
+      deadline: Date.now() + 60_000,
+      data: [
+        {
+          type: QrSyncSecretTypes.PRIVATE_KEY,
+          privateKey: encodeSecret('0xabc'),
+          name: 'Imported Account 1',
+        },
+      ],
     };
   }
 
   return {
     type: QrSyncActionTypes.SYNC_READY,
     version: QrSyncMessageVersion.V1,
-    data: {
-      version: 1,
-      deadline: Date.now() + 60_000,
-      data: [
-        {
-          type: 'Mnemonic',
-          mnemonic: encodeSecret('word1 word2 word3'),
-          name: 'Wallet 1',
-          isPrimary: true,
-          groups: [{ groupIndex: 0, name: 'Account 1' }],
-        },
-      ],
-    },
+    deadline: Date.now() + 60_000,
+    data: [
+      {
+        type: QrSyncSecretTypes.MNEMONIC,
+        mnemonic: encodeSecret('word1 word2 word3'),
+        name: 'Wallet 1',
+        isPrimary: true,
+        groups: [{ groupIndex: 0, name: 'Account 1' }],
+      },
+    ],
   };
 };
 
@@ -398,16 +393,16 @@ describe('QrSyncController', () => {
         {
           index: 0,
           value: 'word1 word2 word3',
-          type: 'MNEMONIC',
+          type: QrSyncSecretTypes.MNEMONIC,
           isPrimary: true,
         },
       ]);
       expect(controller.state.provisioningMetadata).toEqual({
-        version: 1,
+        version: QrSyncMessageVersion.V1,
         entries: [
           {
             index: 0,
-            type: 'MNEMONIC',
+            type: QrSyncSecretTypes.MNEMONIC,
             isPrimary: true,
             name: 'Wallet 1',
             groups: [{ groupIndex: 0, name: 'Account 1' }],
@@ -474,7 +469,7 @@ describe('QrSyncController', () => {
         {
           index: 0,
           value: '0xabc',
-          type: 'PRIVATE_KEY',
+          type: QrSyncSecretTypes.PRIVATE_KEY,
         },
       ]);
       expect(controller.state.provisioningStatus).toBe('awaiting_password');
@@ -577,11 +572,11 @@ describe('QrSyncController', () => {
 
   describe('provisioning mutations', () => {
     const enrichedMetadata = {
-      version: 1 as const,
+      version: QrSyncMessageVersion.V1 as const,
       entries: [
         {
           index: 0,
-          type: 'MNEMONIC' as const,
+          type: QrSyncSecretTypes.MNEMONIC,
           isPrimary: true,
           entropySource: 'entropy-1',
         },

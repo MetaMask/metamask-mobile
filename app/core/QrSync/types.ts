@@ -5,16 +5,12 @@ import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
   QrSyncPhases,
+  QrSyncSecretTypes,
 } from './constants';
 
-/** Mobile secret / provisioning entry kinds. */
-export type SyncDataType = 'MNEMONIC' | 'PRIVATE_KEY';
-
-/**
- * Shared schema version for extension sync-ready payloads and persisted
- * provisioning metadata.
- */
-export type QrSyncSchemaVersion = 1;
+/** Secret entry kinds (`sync-ready` wire payload and mobile controller state). */
+export type QrSyncSecretType =
+  (typeof QrSyncSecretTypes)[keyof typeof QrSyncSecretTypes];
 
 // --- Session lifecycle and protocol ---
 
@@ -90,10 +86,12 @@ export type QrSyncSyncOfferMessage = QrSyncMessage<QrSyncOffer> & {
 };
 
 /** Wire message sent by extension with decrypted import payload data. */
-export type QrSyncSyncReadyMessage = QrSyncMessage<QrSyncReadyPayload> & {
+export interface QrSyncSyncReadyMessage {
   type: typeof QrSyncActionTypes.SYNC_READY;
-  data: QrSyncReadyPayload;
-};
+  version: QrSyncMessageVersion;
+  deadline: number;
+  data: QrSyncReadyData[];
+}
 
 /** Wire message that marks successful completion of the QR sync flow. */
 export type QrSyncSyncCompletedMessage = QrSyncMessage & {
@@ -202,7 +200,7 @@ export type QrSyncAccountGroup = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type QrSyncReadyMnemonicData = {
-  type: 'Mnemonic';
+  type: typeof QrSyncSecretTypes.MNEMONIC;
   mnemonic: string;
   name?: string;
   groups?: QrSyncAccountGroup[];
@@ -211,7 +209,7 @@ export type QrSyncReadyMnemonicData = {
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type QrSyncReadyPrivateKeyData = {
-  type: 'PrivateKey';
+  type: typeof QrSyncSecretTypes.PRIVATE_KEY;
   privateKey: string;
   name: string;
 } & QrSyncPinHideFlags;
@@ -220,16 +218,9 @@ export type QrSyncReadyData =
   | QrSyncReadyMnemonicData
   | QrSyncReadyPrivateKeyData;
 
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncReadyPayload = {
-  version: QrSyncSchemaVersion;
-  deadline: number;
-  data: QrSyncReadyData[];
-};
-
 /** Ephemeral secret material held until password import. Never persisted. */
 export type QrSyncSecretImportEntry = QrSyncIndexedEntry & {
-  type: SyncDataType;
+  type: QrSyncSecretType;
   value: string;
   /** Whether the SRP (Mnemonic) secret is the primary secret for the wallet. */
   isPrimary?: boolean;
@@ -237,7 +228,7 @@ export type QrSyncSecretImportEntry = QrSyncIndexedEntry & {
 
 /** Persisted mnemonic provisioning entry (no secret material). */
 export type QrSyncProvisioningMnemonicEntry = QrSyncIndexedEntry & {
-  type: Extract<SyncDataType, 'MNEMONIC'>;
+  type: typeof QrSyncSecretTypes.MNEMONIC;
   isPrimary?: boolean;
   name?: string;
   groups?: QrSyncAccountGroup[];
@@ -247,7 +238,7 @@ export type QrSyncProvisioningMnemonicEntry = QrSyncIndexedEntry & {
 
 /** Persisted private-key provisioning entry (no secret material). */
 export type QrSyncProvisioningPrivateKeyEntry = QrSyncIndexedEntry & {
-  type: Extract<SyncDataType, 'PRIVATE_KEY'>;
+  type: typeof QrSyncSecretTypes.PRIVATE_KEY;
   name: string;
   /** Set after vault import; used to resolve the account-tree group. */
   accountAddress?: string;
@@ -260,7 +251,7 @@ export type QrSyncProvisioningEntry =
 /** Persisted provisioning plan (no secret material). */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type QrSyncProvisioningMetadata = {
-  version: QrSyncSchemaVersion;
+  version: QrSyncMessageVersion;
   entries: QrSyncProvisioningEntry[];
 };
 

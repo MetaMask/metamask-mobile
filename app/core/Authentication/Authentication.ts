@@ -580,6 +580,24 @@ class AuthenticationService {
   };
 
   /**
+   * Imports remaining QR sync secrets when onboarding provisioning awaits password.
+   * Keeps multi-secret orchestration in core rather than onboarding UI screens.
+   */
+  importQrSyncRemainingSecretsIfNeeded = async (): Promise<void> => {
+    const { QrSyncController, QrSyncProvisioningService } = Engine.context;
+
+    if (QrSyncController.state.provisioningStatus !== 'awaiting_password') {
+      return;
+    }
+
+    if (!QrSyncProvisioningService) {
+      throw new Error('QR sync provisioning service is unavailable');
+    }
+
+    await QrSyncProvisioningService.importRemainingSecrets();
+  };
+
+  /**
    * This method is used when a user is creating a new wallet in onboarding flow or resetting their password
    * @param password - password provided by user
    * @param authData - type of authentication required to fetch password from keychain
@@ -594,6 +612,7 @@ class AuthenticationService {
   ): Promise<void> => {
     try {
       await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
+      await this.importQrSyncRemainingSecretsIfNeeded();
       await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);

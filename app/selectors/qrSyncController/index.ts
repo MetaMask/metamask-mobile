@@ -1,6 +1,6 @@
 import { createSelector } from 'reselect';
 import type { RootState } from '../../reducers';
-import { QrSyncPhases } from '../../core/QrSync/constants';
+import { QrSyncPhases, QrSyncSecretTypes } from '../../core/QrSync/constants';
 import type { QrSyncControllerState } from '../../core/QrSync/controller-types';
 
 const selectQrSyncControllerState = (state: RootState): QrSyncControllerState =>
@@ -25,7 +25,7 @@ export const selectQrSyncPrimaryMnemonic = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) =>
     qrSyncState.pendingSecretImports?.find(
-      (entry) => entry.type === 'MNEMONIC' && entry.isPrimary,
+      (entry) => entry.type === QrSyncSecretTypes.MNEMONIC && entry.isPrimary,
     )?.value ?? null,
 );
 
@@ -35,9 +35,6 @@ export const selectQrSyncHasPendingSecrets = createSelector(
     qrSyncState.pendingSecretImports !== null &&
     qrSyncState.pendingSecretImports.length > 0,
 );
-
-/** @deprecated Use {@link selectQrSyncHasPendingSecrets}. */
-export const selectQrSyncHasImportPlan = selectQrSyncHasPendingSecrets;
 
 export const selectQrSyncIsBusy = createSelector(
   selectQrSyncPhase,

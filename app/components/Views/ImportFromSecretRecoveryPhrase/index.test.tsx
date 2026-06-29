@@ -31,6 +31,8 @@ import {
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
+import { QrSyncSecretTypes } from '../../../core/QrSync/constants';
+
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
   const keyboard = {
     dismiss: jest.fn(),
@@ -1214,7 +1216,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
               {
                 index: 0,
                 value: qrSyncMnemonic,
-                type: 'MNEMONIC',
+                type: QrSyncSecretTypes.MNEMONIC,
                 isPrimary: true,
               },
             ],

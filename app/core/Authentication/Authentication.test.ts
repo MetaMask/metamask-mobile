@@ -210,6 +210,16 @@ jest.mock('../Engine', () => ({
       createMultichainAccountWallet: jest.fn(),
       removeMultichainAccountWallet: jest.fn(),
     },
+
+    QrSyncController: {
+      state: {
+        provisioningStatus: null,
+      },
+    },
+
+    QrSyncProvisioningService: {
+      importRemainingSecrets: jest.fn().mockResolvedValue(undefined),
+    },
   },
 }));
 
@@ -1404,6 +1414,32 @@ describe('Authentication', () => {
         );
         expect(restoreMockDispatch).toHaveBeenCalledWith(setExistingUser(true));
         expect(restoreMockDispatch).toHaveBeenCalledWith(logIn());
+      });
+
+      it('imports remaining QR sync secrets when provisioning awaits password', async () => {
+        const Engine = jest.requireMock('../Engine');
+        Engine.context.QrSyncController.state.provisioningStatus =
+          'awaiting_password';
+
+        await Authentication.importQrSyncRemainingSecretsIfNeeded();
+
+        expect(
+          Engine.context.QrSyncProvisioningService.importRemainingSecrets,
+        ).toHaveBeenCalledTimes(1);
+
+        Engine.context.QrSyncController.state.provisioningStatus = null;
+      });
+
+      it('skips QR sync secret import when provisioning is not awaiting password', async () => {
+        const Engine = jest.requireMock('../Engine');
+        Engine.context.QrSyncController.state.provisioningStatus = null;
+        Engine.context.QrSyncProvisioningService.importRemainingSecrets.mockClear();
+
+        await Authentication.importQrSyncRemainingSecretsIfNeeded();
+
+        expect(
+          Engine.context.QrSyncProvisioningService.importRemainingSecrets,
+        ).not.toHaveBeenCalled();
       });
 
       it('resyncs accounts after login', async () => {

@@ -7,6 +7,7 @@ import type { EntropySourceId } from '@metamask/keyring-api';
 
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
 import { Authentication } from '../..';
+import { QrSyncSecretTypes, QrSyncMessageVersion } from '../constants';
 import { defaultQrSyncControllerState } from '../QrSyncController';
 import type { QrSyncControllerState } from '../controller-types';
 import type {
@@ -43,24 +44,24 @@ const SECONDARY_ADDRESS = '0x2222222222222222222222222222222222222222';
 const PRIVATE_KEY_ADDRESS = '0x3333333333333333333333333333333333333333';
 
 const createProvisioningMetadata = (): QrSyncProvisioningMetadata => ({
-  version: 1,
+  version: QrSyncMessageVersion.V1,
   entries: [
     {
       index: 0,
-      type: 'MNEMONIC',
+      type: QrSyncSecretTypes.MNEMONIC,
       isPrimary: true,
       name: 'Primary Wallet',
       groups: [{ groupIndex: 0, name: 'Account 1' }],
     },
     {
       index: 1,
-      type: 'MNEMONIC',
+      type: QrSyncSecretTypes.MNEMONIC,
       name: 'Secondary Wallet',
       groups: [{ groupIndex: 0, name: 'Account 2' }],
     },
     {
       index: 2,
-      type: 'PRIVATE_KEY',
+      type: QrSyncSecretTypes.PRIVATE_KEY,
       name: 'Imported PK',
     },
   ],
@@ -69,18 +70,18 @@ const createProvisioningMetadata = (): QrSyncProvisioningMetadata => ({
 const createPendingSecrets = (): QrSyncSecretImportEntry[] => [
   {
     index: 0,
-    type: 'MNEMONIC',
+    type: QrSyncSecretTypes.MNEMONIC,
     value: 'primary mnemonic phrase',
     isPrimary: true,
   },
   {
     index: 1,
-    type: 'MNEMONIC',
+    type: QrSyncSecretTypes.MNEMONIC,
     value: 'secondary mnemonic phrase',
   },
   {
     index: 2,
-    type: 'PRIVATE_KEY',
+    type: QrSyncSecretTypes.PRIVATE_KEY,
     value: '0xabc123',
   },
 ];
@@ -200,21 +201,21 @@ describe('QrSyncProvisioningService', () => {
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'QrSyncController:completeSecretImport',
         {
-          version: 1,
+          version: QrSyncMessageVersion.V1,
           entries: [
             expect.objectContaining({
               index: 0,
-              type: 'MNEMONIC',
+              type: QrSyncSecretTypes.MNEMONIC,
               entropySource: PRIMARY_ENTROPY_SOURCE,
             }),
             expect.objectContaining({
               index: 1,
-              type: 'MNEMONIC',
+              type: QrSyncSecretTypes.MNEMONIC,
               entropySource: SECONDARY_ENTROPY_SOURCE,
             }),
             expect.objectContaining({
               index: 2,
-              type: 'PRIVATE_KEY',
+              type: QrSyncSecretTypes.PRIVATE_KEY,
               accountAddress: PRIVATE_KEY_ADDRESS,
             }),
           ],
@@ -231,17 +232,17 @@ describe('QrSyncProvisioningService', () => {
           pendingSecretImports: [
             {
               index: 0,
-              type: 'MNEMONIC',
+              type: QrSyncSecretTypes.MNEMONIC,
               value: 'primary mnemonic phrase',
               isPrimary: true,
             },
           ],
           provisioningMetadata: {
-            version: 1,
+            version: QrSyncMessageVersion.V1,
             entries: [
               {
                 index: 0,
-                type: 'MNEMONIC',
+                type: QrSyncSecretTypes.MNEMONIC,
                 isPrimary: true,
                 name: 'Primary Wallet',
               },
@@ -258,7 +259,7 @@ describe('QrSyncProvisioningService', () => {
       expect(mockMessenger.call).toHaveBeenCalledWith(
         'QrSyncController:completeSecretImport',
         {
-          version: 1,
+          version: QrSyncMessageVersion.V1,
           entries: [
             expect.objectContaining({
               index: 0,

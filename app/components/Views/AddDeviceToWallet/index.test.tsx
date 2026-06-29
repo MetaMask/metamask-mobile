@@ -3,7 +3,10 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import { QrSyncPhases } from '../../../core/QrSync/constants';
+import {
+  QrSyncPhases,
+  QrSyncSecretTypes,
+} from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
 
@@ -264,7 +267,7 @@ describe('AddDeviceToWallet', () => {
       {
         index: 0,
         value: 'word1 word2 word3',
-        type: 'MNEMONIC' as const,
+        type: QrSyncSecretTypes.MNEMONIC,
         isPrimary: true,
       },
     ];

@@ -1,8 +1,12 @@
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
 import { deflate } from 'pako';
 
-import { QrSyncActionTypes, QrSyncMessageVersion } from '../constants';
-import type { QrSyncMessage, QrSyncReadyPayload } from '../types';
+import {
+  QrSyncActionTypes,
+  QrSyncMessageVersion,
+  QrSyncSecretTypes,
+} from '../constants';
+import type { QrSyncReadyData, QrSyncSyncReadyMessage } from '../types';
 import {
   isQrSyncMwpDeeplink,
   isQrSyncSessionRequest,
@@ -52,29 +56,23 @@ const createSessionRequest = (
   ...overrides,
 });
 
-const createWireImportPayload = (
-  overrides: Partial<QrSyncReadyPayload> = {},
-): QrSyncReadyPayload => ({
-  version: 1,
-  deadline: FUTURE_DEADLINE,
-  data: [
-    {
-      type: 'Mnemonic',
-      mnemonic: encodeSecret('word1 word2 word3'),
-      name: 'Wallet 1',
-      isPrimary: true,
-      groups: [{ groupIndex: 0, name: 'Account 1' }],
-    },
-  ],
-  ...overrides,
-});
+const defaultSyncReadyImportData = (): QrSyncReadyData[] => [
+  {
+    type: QrSyncSecretTypes.MNEMONIC,
+    mnemonic: encodeSecret('word1 word2 word3'),
+    name: 'Wallet 1',
+    isPrimary: true,
+    groups: [{ groupIndex: 0, name: 'Account 1' }],
+  },
+];
 
 const createSyncReadyMessage = (
-  overrides: Partial<QrSyncMessage<QrSyncReadyPayload>> = {},
-): QrSyncMessage<QrSyncReadyPayload> => ({
+  overrides: Partial<QrSyncSyncReadyMessage> = {},
+): QrSyncSyncReadyMessage => ({
   type: QrSyncActionTypes.SYNC_READY,
   version: QrSyncMessageVersion.V1,
-  data: createWireImportPayload(),
+  deadline: FUTURE_DEADLINE,
+  data: defaultSyncReadyImportData(),
   ...overrides,
 });
 
@@ -221,26 +219,24 @@ describe('qr-sync-validation', () => {
     it('maps mnemonic and private-key entries to secrets and provisioning metadata', () => {
       const plaintext = 'word1 word2 word3';
       const message = createSyncReadyMessage({
-        data: createWireImportPayload({
-          data: [
-            {
-              type: 'Mnemonic',
-              mnemonic: encodeSecret(plaintext),
-              name: 'Wallet 1',
-              isPrimary: true,
-              groups: [
-                { groupIndex: 0, name: 'Account 1', pinned: true },
-                { groupIndex: 1, name: 'Account 2' },
-                { groupIndex: 2, name: 'Savings', hidden: true },
-              ],
-            },
-            {
-              type: 'PrivateKey',
-              privateKey: encodeSecret('0xabc'),
-              name: 'Imported Account 1',
-            },
-          ],
-        }),
+        data: [
+          {
+            type: QrSyncSecretTypes.MNEMONIC,
+            mnemonic: encodeSecret(plaintext),
+            name: 'Wallet 1',
+            isPrimary: true,
+            groups: [
+              { groupIndex: 0, name: 'Account 1', pinned: true },
+              { groupIndex: 1, name: 'Account 2' },
+              { groupIndex: 2, name: 'Savings', hidden: true },
+            ],
+          },
+          {
+            type: QrSyncSecretTypes.PRIVATE_KEY,
+            privateKey: encodeSecret('0xabc'),
+            name: 'Imported Account 1',
+          },
+        ],
       });
 
       const result = parseQrSyncSyncReadyMessage(message, FIXED_NOW);
@@ -250,22 +246,22 @@ describe('qr-sync-validation', () => {
         pendingSecretImports: [
           {
             index: 0,
-            type: 'MNEMONIC',
+            type: QrSyncSecretTypes.MNEMONIC,
             value: plaintext,
             isPrimary: true,
           },
           {
             index: 1,
-            type: 'PRIVATE_KEY',
+            type: QrSyncSecretTypes.PRIVATE_KEY,
             value: '0xabc',
           },
         ],
         provisioningMetadata: {
-          version: 1,
+          version: QrSyncMessageVersion.V1,
           entries: [
             {
               index: 0,
-              type: 'MNEMONIC',
+              type: QrSyncSecretTypes.MNEMONIC,
               isPrimary: true,
               name: 'Wallet 1',
               groups: [
@@ -276,7 +272,7 @@ describe('qr-sync-validation', () => {
             },
             {
               index: 1,
-              type: 'PRIVATE_KEY',
+              type: QrSyncSecretTypes.PRIVATE_KEY,
               name: 'Imported Account 1',
             },
           ],
@@ -286,22 +282,20 @@ describe('qr-sync-validation', () => {
 
     it('treats omitted isPrimary as false on mnemonic entries', () => {
       const message = createSyncReadyMessage({
-        data: createWireImportPayload({
-          data: [
-            {
-              type: 'Mnemonic',
-              mnemonic: 'word1 word2 word3',
-              name: 'Wallet 1',
-              groups: [{ groupIndex: 0, name: 'Account 1' }],
-            },
-            {
-              type: 'Mnemonic',
-              mnemonic: 'other seed phrase',
-              name: 'Wallet 2',
-              groups: [{ groupIndex: 0, name: 'Account 1' }],
-            },
-          ],
-        }),
+        data: [
+          {
+            type: QrSyncSecretTypes.MNEMONIC,
+            mnemonic: 'word1 word2 word3',
+            name: 'Wallet 1',
+            groups: [{ groupIndex: 0, name: 'Account 1' }],
+          },
+          {
+            type: QrSyncSecretTypes.MNEMONIC,
+            mnemonic: 'other seed phrase',
+            name: 'Wallet 2',
+            groups: [{ groupIndex: 0, name: 'Account 1' }],
+          },
+        ],
       });
 
       const result = parseQrSyncSyncReadyMessage(message, FIXED_NOW);
@@ -325,9 +319,7 @@ describe('qr-sync-validation', () => {
 
     it('returns SESSION_EXPIRED when deadline is not after current time', () => {
       const result = parseQrSyncSyncReadyMessage(
-        createSyncReadyMessage({
-          data: createWireImportPayload({ deadline: FIXED_NOW }),
-        }),
+        createSyncReadyMessage({ deadline: FIXED_NOW }),
         FIXED_NOW,
       );
 
@@ -343,24 +335,22 @@ describe('qr-sync-validation', () => {
     it('returns INVALID_PAYLOAD when more than one mnemonic is marked primary', () => {
       const result = parseQrSyncSyncReadyMessage(
         createSyncReadyMessage({
-          data: createWireImportPayload({
-            data: [
-              {
-                type: 'Mnemonic',
-                mnemonic: encodeSecret('word1 word2 word3'),
-                name: 'Wallet 1',
-                isPrimary: true,
-                groups: [{ groupIndex: 0, name: 'Account 1' }],
-              },
-              {
-                type: 'Mnemonic',
-                mnemonic: encodeSecret('other seed phrase'),
-                name: 'Wallet 2',
-                isPrimary: true,
-                groups: [{ groupIndex: 0, name: 'Account 1' }],
-              },
-            ],
-          }),
+          data: [
+            {
+              type: QrSyncSecretTypes.MNEMONIC,
+              mnemonic: encodeSecret('word1 word2 word3'),
+              name: 'Wallet 1',
+              isPrimary: true,
+              groups: [{ groupIndex: 0, name: 'Account 1' }],
+            },
+            {
+              type: QrSyncSecretTypes.MNEMONIC,
+              mnemonic: encodeSecret('other seed phrase'),
+              name: 'Wallet 2',
+              isPrimary: true,
+              groups: [{ groupIndex: 0, name: 'Account 1' }],
+            },
+          ],
         }),
         FIXED_NOW,
       );
@@ -379,7 +369,8 @@ describe('qr-sync-validation', () => {
         {
           type: QrSyncActionTypes.SYNC_OFFER,
           version: QrSyncMessageVersion.V1,
-          data: createWireImportPayload(),
+          deadline: FUTURE_DEADLINE,
+          data: defaultSyncReadyImportData(),
         },
         FIXED_NOW,
       );
@@ -398,11 +389,8 @@ describe('qr-sync-validation', () => {
         {
           type: QrSyncActionTypes.SYNC_READY,
           version: QrSyncMessageVersion.V1,
-          data: {
-            version: 1,
-            deadline: FUTURE_DEADLINE,
-            data: [],
-          },
+          deadline: FUTURE_DEADLINE,
+          data: [],
         },
         FIXED_NOW,
       );
@@ -419,16 +407,14 @@ describe('qr-sync-validation', () => {
     it('returns INVALID_PAYLOAD when an import entry has an unsupported type', () => {
       const result = parseQrSyncSyncReadyMessage(
         createSyncReadyMessage({
-          data: createWireImportPayload({
-            data: [
-              {
-                type: 'SeedPhrase',
-                mnemonic: encodeSecret('word1 word2 word3'),
-                name: 'Wallet 1',
-                groups: [{ groupIndex: 0, name: 'Account 1' }],
-              } as unknown as QrSyncReadyPayload['data'][number],
-            ],
-          }),
+          data: [
+            {
+              type: 'SeedPhrase',
+              mnemonic: encodeSecret('word1 word2 word3'),
+              name: 'Wallet 1',
+              groups: [{ groupIndex: 0, name: 'Account 1' }],
+            } as unknown as QrSyncReadyData,
+          ],
         }),
         FIXED_NOW,
       );
@@ -445,14 +431,12 @@ describe('qr-sync-validation', () => {
     it('accepts mnemonic entries with omitted name, groups, and isPrimary', () => {
       const plaintext = 'word1 word2 word3';
       const message = createSyncReadyMessage({
-        data: createWireImportPayload({
-          data: [
-            {
-              type: 'Mnemonic',
-              mnemonic: encodeSecret(plaintext),
-            },
-          ],
-        }),
+        data: [
+          {
+            type: QrSyncSecretTypes.MNEMONIC,
+            mnemonic: encodeSecret(plaintext),
+          },
+        ],
       });
 
       const result = parseQrSyncSyncReadyMessage(message, FIXED_NOW);
@@ -462,17 +446,17 @@ describe('qr-sync-validation', () => {
         pendingSecretImports: [
           {
             index: 0,
-            type: 'MNEMONIC',
+            type: QrSyncSecretTypes.MNEMONIC,
             value: plaintext,
             isPrimary: false,
           },
         ],
         provisioningMetadata: {
-          version: 1,
+          version: QrSyncMessageVersion.V1,
           entries: [
             {
               index: 0,
-              type: 'MNEMONIC',
+              type: QrSyncSecretTypes.MNEMONIC,
               isPrimary: false,
             },
           ],
@@ -483,15 +467,13 @@ describe('qr-sync-validation', () => {
     it('returns INVALID_PAYLOAD when a mnemonic entry has an empty name', () => {
       const result = parseQrSyncSyncReadyMessage(
         createSyncReadyMessage({
-          data: createWireImportPayload({
-            data: [
-              {
-                type: 'Mnemonic',
-                mnemonic: encodeSecret('word1 word2 word3'),
-                name: '',
-              },
-            ],
-          }),
+          data: [
+            {
+              type: QrSyncSecretTypes.MNEMONIC,
+              mnemonic: encodeSecret('word1 word2 word3'),
+              name: '',
+            },
+          ],
         }),
         FIXED_NOW,
       );
@@ -508,15 +490,13 @@ describe('qr-sync-validation', () => {
     it('returns INVALID_PAYLOAD when groups contains a malformed account group', () => {
       const result = parseQrSyncSyncReadyMessage(
         createSyncReadyMessage({
-          data: createWireImportPayload({
-            data: [
-              {
-                type: 'Mnemonic',
-                mnemonic: encodeSecret('word1 word2 word3'),
-                groups: [{ groupIndex: 0, name: '' }],
-              },
-            ],
-          }),
+          data: [
+            {
+              type: QrSyncSecretTypes.MNEMONIC,
+              mnemonic: encodeSecret('word1 word2 word3'),
+              groups: [{ groupIndex: 0, name: '' }],
+            },
+          ],
         }),
         FIXED_NOW,
       );
@@ -533,15 +513,13 @@ describe('qr-sync-validation', () => {
     it('returns INVALID_PAYLOAD when a private-key entry omits name', () => {
       const result = parseQrSyncSyncReadyMessage(
         createSyncReadyMessage({
-          data: createWireImportPayload({
-            data: [
-              {
-                type: 'PrivateKey',
-                privateKey: encodeSecret('0xabc'),
-                name: '',
-              },
-            ],
-          }),
+          data: [
+            {
+              type: QrSyncSecretTypes.PRIVATE_KEY,
+              privateKey: encodeSecret('0xabc'),
+              name: '',
+            },
+          ],
         }),
         FIXED_NOW,
       );
@@ -574,7 +552,7 @@ describe('qr-sync-validation', () => {
       {
         index: 0,
         value: 'word1 word2 word3',
-        type: 'MNEMONIC' as const,
+        type: QrSyncSecretTypes.MNEMONIC,
         isPrimary: true,
       },
     ];

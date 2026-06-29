@@ -14,6 +14,7 @@ import type {
   QrSyncControllerMarkProvisioningFailedAction,
   QrSyncControllerState,
 } from '../controller-types';
+import { QrSyncSecretTypes } from '../constants';
 import type {
   QrSyncProvisioningEntry,
   QrSyncProvisioningMetadata,
@@ -91,7 +92,7 @@ function setMnemonicEntropySource(
   entropySource: EntropySourceId,
 ): QrSyncProvisioningEntry[] {
   return entries.map((entry) => {
-    if (entry.index !== index || entry.type !== 'MNEMONIC') {
+    if (entry.index !== index || entry.type !== QrSyncSecretTypes.MNEMONIC) {
       return entry;
     }
 
@@ -108,7 +109,7 @@ function setPrivateKeyAccountAddress(
   accountAddress: string,
 ): QrSyncProvisioningEntry[] {
   return entries.map((entry) => {
-    if (entry.index !== index || entry.type !== 'PRIVATE_KEY') {
+    if (entry.index !== index || entry.type !== QrSyncSecretTypes.PRIVATE_KEY) {
       return entry;
     }
 
@@ -161,7 +162,10 @@ export class QrSyncProvisioningService {
 
     try {
       for (const secretEntry of sortedSecrets) {
-        if (secretEntry.type === 'MNEMONIC' && secretEntry.isPrimary) {
+        if (
+          secretEntry.type === QrSyncSecretTypes.MNEMONIC &&
+          secretEntry.isPrimary
+        ) {
           enrichedMetadata = {
             ...enrichedMetadata,
             entries: setMnemonicEntropySource(
@@ -173,7 +177,7 @@ export class QrSyncProvisioningService {
           continue;
         }
 
-        if (secretEntry.type === 'MNEMONIC') {
+        if (secretEntry.type === QrSyncSecretTypes.MNEMONIC) {
           const { address } = await importNewSecretRecoveryPhrase(
             secretEntry.value,
             { shouldSelectAccount: false, skipDiscovery: true },

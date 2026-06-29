@@ -1,8 +1,7 @@
-import { QrSyncPhases } from '../../core/QrSync/constants';
+import { QrSyncPhases, QrSyncSecretTypes } from '../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../core/QrSync/QrSyncController';
 import type { RootState } from '../../reducers';
 import {
-  selectQrSyncHasImportPlan,
   selectQrSyncPresentation,
   selectQrSyncShouldNavigateToImport,
 } from './index';
@@ -26,29 +25,10 @@ describe('qrSyncController selectors', () => {
     {
       index: 0,
       value: 'word1 word2 word3',
-      type: 'MNEMONIC' as const,
+      type: QrSyncSecretTypes.MNEMONIC,
       isPrimary: true,
     },
   ];
-
-  describe('selectQrSyncHasImportPlan', () => {
-    it('returns true when pending secrets exist', () => {
-      const state = buildState({
-        pendingSecretImports,
-      });
-
-      expect(selectQrSyncHasImportPlan(state)).toBe(true);
-    });
-
-    it('returns false when pending secrets are null or empty', () => {
-      expect(
-        selectQrSyncHasImportPlan(buildState({ pendingSecretImports: null })),
-      ).toBe(false);
-      expect(
-        selectQrSyncHasImportPlan(buildState({ pendingSecretImports: [] })),
-      ).toBe(false);
-    });
-  });
 
   describe('selectQrSyncShouldNavigateToImport', () => {
     it('returns true when awaiting password with pending secrets', () => {
