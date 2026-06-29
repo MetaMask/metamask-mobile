@@ -603,6 +603,33 @@ describe('CardController — auth methods', () => {
     });
   });
 
+  describe('clearLastUnauthenticatedReason', () => {
+    it('clears the stored reason when one is set', () => {
+      const provider = buildMockProvider();
+      const controller = buildController(provider, {
+        lastUnauthenticatedReason: 'onboarding_token_revoked',
+      });
+
+      controller.clearLastUnauthenticatedReason();
+
+      expect(controller.state.lastUnauthenticatedReason).toBeNull();
+    });
+
+    it('is a no-op when no reason is set', () => {
+      const provider = buildMockProvider();
+      const controller = buildController(provider);
+      const updateSpy = jest.spyOn(
+        controller as unknown as { update: () => void },
+        'update',
+      );
+
+      controller.clearLastUnauthenticatedReason();
+
+      expect(controller.state.lastUnauthenticatedReason).toBeNull();
+      expect(updateSpy).not.toHaveBeenCalled();
+    });
+  });
+
   describe('resetAll', () => {
     function buildMultiProviderController(
       stateOverrides: Partial<typeof defaultCardControllerState> = {},
