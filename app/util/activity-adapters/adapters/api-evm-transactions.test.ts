@@ -145,6 +145,41 @@ describe('mapApiEvmTransactions', () => {
     });
   });
 
+  it('falls back to the contract-address asset id for an approval of an unlisted token', () => {
+    const unlistedToken = '0x1111111111111111111111111111111111111111';
+    const transaction = {
+      hash: '0xunlistedapprove',
+      timestamp: '2026-05-27T13:20:27.000Z',
+      chainId: 8453,
+      accountId: `eip155:8453:${subjectAddress}`,
+      methodId: approveFunctionSignature,
+      input: buildApproveData(baseRecipientAddress, 100000000n),
+      value: '0',
+      to: unlistedToken,
+      from: subjectAddress,
+      isError: false,
+      valueTransfers: [],
+      logs: [],
+      transactionProtocol: 'ERC_20',
+      transactionCategory: 'APPROVE',
+      transactionType: 'ERC_20_APPROVE',
+    } as unknown as V1TransactionByHashResponse;
+
+    const item = mapApiEvmTransactions({ subjectAddress, transaction });
+
+    expect(item.type).toBe('approveSpendingCap');
+    if (item.type !== 'approveSpendingCap') {
+      throw new Error(`Expected approveSpendingCap item, got ${item.type}`);
+    }
+    // No symbol/decimals (not in any known list) — but the contract address is
+    // surfaced as an asset id so the UI can resolve metadata + show the avatar.
+    expect(item.data.token).toStrictEqual({
+      direction: 'out',
+      assetId: toAssetId(unlistedToken, 'eip155:8453'),
+      amount: '100000000',
+    });
+  });
+
   it('adds API gas fees to approval activities', () => {
     const transaction = {
       hash: '0xapprovefee',

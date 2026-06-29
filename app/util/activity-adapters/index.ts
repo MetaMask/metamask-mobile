@@ -11,7 +11,10 @@ export type {
   TokenAmount,
 } from './types';
 export { mapApiEvmTransactions } from './adapters/api-evm-transactions';
-export { isNftTransferType } from './adapters/helpers';
+export {
+  isNftTransferType,
+  isUnlimitedApprovalAmount,
+} from './adapters/helpers';
 export { mapKeyringTransaction } from './adapters/keyring-transaction';
 export { mapLocalTransaction } from './adapters/local-transaction';
 export { mapPredictActivity } from './adapters/predict-activity';
