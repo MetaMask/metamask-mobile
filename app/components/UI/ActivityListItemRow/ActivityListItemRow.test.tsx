@@ -667,12 +667,9 @@ describe('ActivityListItemRow — row content', () => {
     expect(getByTestId('activity-subtitle-0xfunding').props.children).toBe(
       'BTC',
     );
-    // Sub-cent funding fee keeps precision in currency format (not $0.00).
     const primary = getByTestId('activity-primary-amount-0xfunding').props
       .children as string;
-    expect(primary.startsWith('-')).toBe(true);
-    expect(primary).toContain('$');
-    expect(primary).toContain('0.0006');
+    expect(primary).toBe('-$0');
   });
 
   it('renders predict funds rows with balance subtitle, fiat primary, and token secondary', () => {
@@ -772,7 +769,7 @@ describe('ActivityListItemRow — row content', () => {
     expect(primary).toContain('$');
   });
 
-  it('renders very small funding fees in subscript notation', () => {
+  it('renders very small funding fees without subscript notation', () => {
     const funding = {
       type: 'perpsPaidFundingFees',
       chainId: 'eip155:42161',
@@ -789,12 +786,9 @@ describe('ActivityListItemRow — row content', () => {
       <ActivityListItemRow item={funding} index={0} />,
     );
 
-    // 0.00005 → subscript notation "$0.0₄5" (4 leading zeros).
     const primary = getByTestId('activity-primary-amount-0xtiny').props
       .children as string;
-    expect(primary).toContain('₄');
-    expect(primary).toContain('$');
-    expect(primary.startsWith('-')).toBe(true);
+    expect(primary).toBe('-$0');
   });
 
   it('renders spending cap rows with token subtitle and no empty amount', () => {
@@ -1093,7 +1087,7 @@ describe('ActivityListItemRow — row content', () => {
       'Bought FLUF World: Scenes and Sounds',
     );
     expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
-      '-0.00008999 ETH',
+      '-0.0001 ETH',
     );
   });
 
@@ -1146,6 +1140,25 @@ describe('ActivityListItemRow — row content', () => {
     expect(primaryAmount.props.children).toBe('-0.1235 ETH');
     expect(primaryAmount.props.numberOfLines).toBe(1);
     expect(primaryAmount.props.ellipsizeMode).toBe('tail');
+  });
+
+  it('caps leading-zero crypto decimals in token amounts', () => {
+    const item = makeItem({
+      type: 'receive',
+      status: 'success',
+      token: {
+        amount: '0.0007456',
+        symbol: 'ETH',
+        direction: 'in',
+      },
+    });
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+0.0007 ETH',
+    );
   });
 
   it('compacts large token amounts before rendering', () => {
