@@ -2520,10 +2520,10 @@ describe('PerpsStreamManager', () => {
 
       // Assert - DevLogger should log the discard
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'PerpsStreamManager: Provider/network changed during fetch, discarding data',
+        'PerpsStreamManager: Provider/network/flag changed during fetch, discarding data',
         expect.objectContaining({
-          fetchedFor: 'providerA:mainnet',
-          current: 'providerB:mainnet',
+          fetchedFor: 'providerA:mainnet:terminal',
+          current: 'providerB:mainnet:terminal',
         }),
       );
 

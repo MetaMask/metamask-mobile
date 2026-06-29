@@ -1497,20 +1497,25 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       return;
     }
 
-    // Get current provider ID + network as a composite key.
-    // Network changes (testnet toggle) must also invalidate the market cache.
+    // Get current provider ID + network + terminal flag as a composite key.
+    // Network changes (testnet toggle) and terminal backend flag changes must
+    // also invalidate the market cache so a HyperLiquid-sourced response is
+    // never served after the flag flips to Terminal (and vice-versa).
     const controller = Engine.context.PerpsController;
     const currentProviderId =
       controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
-    const currentNetworkKey = buildProviderCacheKey(
+    const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
+      store.getState(),
+    );
+    const currentNetworkKey = `${buildProviderCacheKey(
       currentProviderId,
       controller.state?.isTestnet ?? false,
-    );
+    )}:${terminalEnabled ? 'terminal' : 'direct'}`;
 
-    // Invalidate cache if provider OR network changed
+    // Invalidate cache if provider, network, OR terminal flag changed
     if (this.cachedProviderId && this.cachedProviderId !== currentNetworkKey) {
       DevLogger.log(
-        'PerpsStreamManager: Provider/network changed, invalidating cache',
+        'PerpsStreamManager: Provider/network/flag changed, invalidating cache',
         {
           from: this.cachedProviderId,
           to: currentNetworkKey,
@@ -1564,9 +1569,16 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       try {
         const controller = Engine.context.PerpsController;
 
+        // Read terminal flag once at the start of this fetch cycle.
+        const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
+          store.getState(),
+        );
+        const terminalSuffix = terminalEnabled ? 'terminal' : 'direct';
+
         // One-time read of controller-level preloaded cache (REST snapshot).
         // This avoids an HTTP round-trip when the controller already has fresh data.
-        const controllerNetworkKey = getProviderNetworkKey(controller.state);
+        // Include terminal flag in the key so a flag flip forces a fresh fetch.
+        const controllerNetworkKey = `${getProviderNetworkKey(controller.state)}:${terminalSuffix}`;
         const cachedForProvider =
           controller.getCachedMarketDataForActiveProvider?.();
         if (
@@ -1592,23 +1604,24 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
           'PerpsStreamManager: Fetching fresh market data from API',
         );
 
-        // Snapshot provider + network BEFORE the async call to avoid race conditions.
-        // If the user switches providers or toggles testnet while getMarketDataWithPrices()
-        // is in-flight, we must not tag the returned data with the new network key.
-        const preFetchNetworkKey = getProviderNetworkKey(controller.state);
+        // Snapshot provider + network + flag BEFORE the async call to avoid race conditions.
+        // If the user switches providers, toggles testnet, or the terminal flag flips while
+        // getMarketDataWithPrices() is in-flight, we must not cache data under the new key.
+        const preFetchNetworkKey = `${getProviderNetworkKey(controller.state)}:${terminalSuffix}`;
 
         const data = await controller.getMarketDataWithPrices({
-          useTerminalApi: selectPerpsTerminalBackendEnabledFlag(
-            store.getState(),
-          ),
+          useTerminalApi: terminalEnabled,
         });
         const fetchTime = Date.now() - fetchStartTime;
 
-        // If provider or network changed during fetch, discard stale data
-        const postFetchNetworkKey = getProviderNetworkKey(controller.state);
+        // If provider, network, or terminal flag changed during fetch, discard stale data
+        const postTerminalEnabled = selectPerpsTerminalBackendEnabledFlag(
+          store.getState(),
+        );
+        const postFetchNetworkKey = `${getProviderNetworkKey(controller.state)}:${postTerminalEnabled ? 'terminal' : 'direct'}`;
         if (preFetchNetworkKey !== postFetchNetworkKey) {
           DevLogger.log(
-            'PerpsStreamManager: Provider/network changed during fetch, discarding data',
+            'PerpsStreamManager: Provider/network/flag changed during fetch, discarding data',
             {
               fetchedFor: preFetchNetworkKey,
               current: postFetchNetworkKey,
