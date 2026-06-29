@@ -209,10 +209,11 @@ export const tokenToIncludeAsset = (
 /**
  * Determines whether two bridge tokens reference the same on-chain asset.
  *
- * Compares both the token address (case-insensitively for EVM) and the
- * chain ID (normalized to CAIP format). Two tokens with the same address on
- * different chains are NOT the same asset, so this returns false for those
- * pairs to preserve cross-chain bridge flows.
+ * Compares both the token address (case-insensitively for EVM, after
+ * normalizing chain-specific native addresses such as Polygon's 0x…1010 to
+ * the zero address) and the chain ID (normalized to CAIP format). Two tokens
+ * with the same address on different chains are NOT the same asset, so this
+ * returns false for those pairs to preserve cross-chain bridge flows.
  *
  * Returns false when either token is undefined.
  */
@@ -224,7 +225,12 @@ export const isSameBridgeToken = (
     return false;
   }
 
-  if (!areAddressesEqual(tokenA.address, tokenB.address)) {
+  if (
+    !areAddressesEqual(
+      normalizeTokenAddress(tokenA.address, tokenA.chainId),
+      normalizeTokenAddress(tokenB.address, tokenB.chainId),
+    )
+  ) {
     return false;
   }
 
