@@ -22,8 +22,8 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
-import Engine from '../../../core/Engine';
 import { requestStellarChangeTrustOptAdd } from '../../../util/stellar/stellar-snap-client-requests';
+import { refreshStellarAccountAssets } from '../../../util/stellar/refresh-stellar-account-assets';
 import { StellarClassicTrustlineErrorBanner } from './StellarClassicTrustlineErrorBanner';
 
 export const StellarClassicTrustlineActivateCardTestIds = {
@@ -37,6 +37,7 @@ export interface StellarClassicTrustlineActivateCardProps {
   chainId: CaipChainId;
   assetId: CaipAssetType;
   symbol: string;
+  onTrustlineChanged?: () => void;
 }
 
 export const StellarClassicTrustlineActivateCard = ({
@@ -45,6 +46,7 @@ export const StellarClassicTrustlineActivateCard = ({
   chainId,
   assetId,
   symbol,
+  onTrustlineChanged,
 }: StellarClassicTrustlineActivateCardProps) => {
   const [isAddingTrustline, setIsAddingTrustline] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -67,9 +69,13 @@ export const StellarClassicTrustlineActivateCard = ({
         return;
       }
 
-      await Engine.context.MultichainBalancesController.updateBalance(
-        account.id,
-      );
+      await refreshStellarAccountAssets({
+        account,
+        chainId,
+        assetId,
+        trustlineAction: 'add',
+      });
+      onTrustlineChanged?.();
     } catch (error: unknown) {
       const errorCode = (error as { code?: number })?.code;
       const isUserRejection =
@@ -80,7 +86,7 @@ export const StellarClassicTrustlineActivateCard = ({
     } finally {
       setIsAddingTrustline(false);
     }
-  }, [account.id, assetId, chainId]);
+  }, [account, assetId, chainId, onTrustlineChanged]);
 
   if (!visible) {
     return null;

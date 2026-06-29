@@ -61,7 +61,17 @@ export function useStellarTrustlineDisplay(
 
     const balances = selectMultichainBalances(state);
     const balance = balances?.[account.id]?.[assetId as CaipAssetId];
+
     return balance?.extra as StellarBalanceExtra | undefined;
+  });
+
+  const liveBalance = useSelector((state: RootState) => {
+    if (!account || !assetId || !isCaipAssetType(assetId)) {
+      return undefined;
+    }
+
+    const balances = selectMultichainBalances(state);
+    return balances?.[account.id]?.[assetId as CaipAssetId]?.amount;
   });
 
   return useMemo(() => {
@@ -79,7 +89,7 @@ export function useStellarTrustlineDisplay(
         assetId,
         isNative: token.isNative,
         extra: balanceExtra,
-        balance: token.balance,
+        balance: liveBalance ?? token.balance,
       });
 
     const hasStellarClassicTrustlineToRemove =
@@ -109,6 +119,6 @@ export function useStellarTrustlineDisplay(
       showStellarNativeBalanceSection:
         Boolean(token.isNative) && stellarNativeBaseReserve !== undefined,
     };
-  }, [account, assetId, balanceExtra, chainId, token]);
+  }, [account, assetId, balanceExtra, chainId, liveBalance, token]);
 }
 ///: END:ONLY_INCLUDE_IF

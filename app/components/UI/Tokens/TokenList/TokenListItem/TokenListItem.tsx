@@ -781,7 +781,7 @@ export const TokenListItem = React.memo(
                     color={TextColor.TextAlternative}
                     twClassName="uppercase"
                   >
-                    {strings('account_creation.headers.stellar')}
+                    {strings('stellarTrustlineInactive')}
                   </Text>
                 ) : (
                   ///: END:ONLY_INCLUDE_IF

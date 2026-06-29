@@ -11,4 +11,7 @@ export const isStellarNativeToken = (
   token: TokenI,
 ): token is StellarNativeToken =>
   Boolean(token.isNative) && String(token.chainId).startsWith('stellar:');
+
+export const getStellarNativeDisplayName = (token: TokenI): string =>
+  token.symbol || 'XLM';
 ///: END:ONLY_INCLUDE_IF

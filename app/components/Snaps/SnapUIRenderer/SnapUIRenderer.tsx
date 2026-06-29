@@ -1,7 +1,7 @@
 import React, { memo, useMemo, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { isEqual } from 'lodash';
-import { getMemoizedInterface } from '../../../selectors/snaps/interfaceController';
+import { getInterface } from '../../../selectors/snaps/interfaceController';
 import { SnapInterfaceContextProvider } from '../SnapInterfaceContext';
 import { mapToTemplate } from './utils';
 import TemplateRenderer from '../../UI/TemplateRenderer';
@@ -44,7 +44,7 @@ const SnapUIRendererComponent = ({
   const theme = useTheme();
 
   const interfaceState = useSelector(
-    (state: RootState) => getMemoizedInterface(state, interfaceId),
+    (state: RootState) => getInterface(state, interfaceId),
     (oldState, newState) =>
       isEqual(oldState?.content ?? null, newState?.content ?? null),
   );

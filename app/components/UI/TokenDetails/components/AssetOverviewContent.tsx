@@ -26,6 +26,7 @@ import {
   TokenPrice,
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
+import { selectAsset } from '../../../../selectors/assets/assets-list';
 import { usePerpsActions } from '../hooks/usePerpsActions';
 import {
   PERPS_EVENT_PROPERTY,
@@ -109,7 +110,10 @@ import { StellarClassicTrustlineActivateCard } from '../../Stellar/StellarClassi
 import { StellarNativeBalanceSection } from '../../Stellar/StellarNativeBalanceSection';
 import { StellarTrustlineInactiveBadge } from '../../Stellar/StellarTrustlineInactiveBadge';
 import { useStellarTrustlineDisplay } from '../../Stellar/hooks/useStellarTrustlineDisplay';
-import { isStellarNativeToken } from '../utils/isStellarNativeToken';
+import {
+  getStellarNativeDisplayName,
+  isStellarNativeToken,
+} from '../utils/isStellarNativeToken';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
@@ -222,6 +226,9 @@ export interface AssetOverviewContentProps {
 
   // Exit action tracking
   onExitAction?: () => void;
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  onTrustlineChanged?: () => void;
+  ///: END:ONLY_INCLUDE_IF
   /** Resolved price direction from the chart; true = positive, false = negative, null = not yet resolved. */
   isPricePositive?: boolean | null;
 }
@@ -267,12 +274,26 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   onPriceDirectionChange,
   useAmbientColor,
   onExitAction,
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  onTrustlineChanged,
+  ///: END:ONLY_INCLUDE_IF
   isPricePositive,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
   const { isTokenTradingOpen, isStockToken } = useRWAToken();
+
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  const liveStellarToken = useSelector((state: RootState) =>
+    selectAsset(state, {
+      address: token.address,
+      chainId: token.chainId as string,
+      isStaked: token.isStaked || false,
+    }),
+  );
+  const stellarDisplayToken = liveStellarToken ?? token;
+  ///: END:ONLY_INCLUDE_IF
 
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasBalanceValue = Boolean(balance) && balance !== '0';
@@ -290,7 +311,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     showStellarInactiveAssetHeader,
     showStellarNativeBalanceSection,
     stellarNativeBaseReserve,
-  } = useStellarTrustlineDisplay(token);
+  } = useStellarTrustlineDisplay(stellarDisplayToken);
   ///: END:ONLY_INCLUDE_IF
 
   const {
@@ -686,6 +707,23 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             )}
 
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+            showStellarClassicTrustlineActivate &&
+            stellarAccount &&
+            token.chainId ? (
+              <StellarClassicTrustlineActivateCard
+                visible
+                account={stellarAccount}
+                chainId={token.chainId as CaipChainId}
+                assetId={stellarDisplayToken.address as CaipAssetType}
+                symbol={stellarDisplayToken.symbol}
+                onTrustlineChanged={onTrustlineChanged}
+              />
+            ) : null
+            ///: END:ONLY_INCLUDE_IF
+          }
+
           {/* Token icon + name row */}
           <Box
             flexDirection={BoxFlexDirection.Row}
@@ -719,7 +757,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                     color={TextColor.TextDefault}
                     numberOfLines={1}
                   >
-                    {token.name || token.symbol}
+                    {
+                      ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+                      stellarNativeToken != null
+                        ? getStellarNativeDisplayName(stellarNativeToken)
+                        : ///: END:ONLY_INCLUDE_IF
+                          token.name || token.symbol
+                    }
                   </Text>
                 </Box>
                 {securityData?.resultType === 'Verified' &&
@@ -752,7 +796,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   ///: END:ONLY_INCLUDE_IF
                 }
               </Box>
-              {token.name ? (
+              {token.name &&
+              ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+              !isStellarNativeToken(token) &&
+              ///: END:ONLY_INCLUDE_IF
+              true ? (
                 <Box
                   flexDirection={BoxFlexDirection.Row}
                   alignItems={BoxAlignItems.Center}
@@ -812,6 +860,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             isLoading={isButtonsLoading}
             resetNavigationLockRef={resetNavigationLockRef}
             onActionTapped={trackActionTapped}
+            ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+            onTrustlineChanged={onTrustlineChanged}
+            ///: END:ONLY_INCLUDE_IF
           />
           {shouldShowMarketInsights ? (
             <View style={styles.marketInsightsWrapper}>
@@ -830,21 +881,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               )}
             </View>
           ) : null}
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-            showStellarClassicTrustlineActivate &&
-            stellarAccount &&
-            token.chainId ? (
-              <StellarClassicTrustlineActivateCard
-                visible
-                account={stellarAccount}
-                chainId={token.chainId as CaipChainId}
-                assetId={token.address as CaipAssetType}
-                symbol={token.symbol}
-              />
-            ) : null
-            ///: END:ONLY_INCLUDE_IF
-          }
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             tronNativeToken && <TronEnergyBandwidthDetail />

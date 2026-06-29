@@ -46,6 +46,7 @@ import { selectTokenSortConfig } from '../preferencesController';
 import { selectHideZeroBalanceTokens } from '../settings';
 import { selectAllTokens } from '../tokensController';
 import { createDeepEqualSelector } from '../util';
+import { shouldRetainZeroBalanceNonNativeAsset } from '../../util/assets/zero-balance-asset-visibility';
 import {
   getAccountTrackerControllerAccountsByChainId,
   getCurrencyRateControllerCurrencyRates,
@@ -60,6 +61,7 @@ import {
   getTokensControllerAllIgnoredTokens,
   getTokensControllerAllTokens,
 } from './assets-migration';
+import { getAssetsBalance, getCustomAssets } from './assets-controller';
 
 /**
  * Structured map of Tron special assets for efficient access.
@@ -342,6 +344,32 @@ export const selectEnabledNetworks = createDeepEqualSelector(
  * @param enabledNetworksSelector - Selector that returns the list of enabled network IDs to filter by. Defaults to selectEnabledNetworks.
  * @returns Memoized selector returning sorted asset keys for the selected account group.
  */
+function shouldIncludeAssetWhenHideZeroBalance(
+  asset: Asset,
+  hideZeroBalance: boolean,
+  customAssets: ReturnType<typeof getCustomAssets>,
+  assetsBalance: ReturnType<typeof getAssetsBalance>,
+): boolean {
+  if (isTronSpecialAsset(asset.chainId, asset.symbol)) {
+    return false;
+  }
+
+  if (
+    !hideZeroBalance ||
+    asset.isNative ||
+    parseFloat(asset.balance ?? '0') !== 0
+  ) {
+    return true;
+  }
+
+  return shouldRetainZeroBalanceNonNativeAsset({
+    accountId: asset.accountId,
+    assetId: asset.assetId,
+    customAssets,
+    assetsBalance,
+  });
+}
+
 export const createSelectSortedAssetsBySelectedAccountGroup = (
   enabledNetworksSelector = selectEnabledNetworks,
 ) =>
@@ -352,6 +380,8 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
       selectTokenSortConfig,
       selectStakedAssets,
       selectHideZeroBalanceTokens,
+      getCustomAssets,
+      getAssetsBalance,
     ],
     (
       bip44Assets,
@@ -359,21 +389,22 @@ export const createSelectSortedAssetsBySelectedAccountGroup = (
       tokenSortConfig,
       stakedAssets,
       hideZeroBalance,
+      customAssets,
+      assetsBalance,
     ) => {
       const filteredAssets = Object.entries(bip44Assets)
         .filter(([networkId]) => enabledNetworks.includes(networkId))
         .flatMap(([_, chainAssets]) =>
-          chainAssets.filter((asset) => {
-            if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
-            if (
-              hideZeroBalance &&
-              !asset.isNative &&
-              parseFloat(asset.balance ?? '0') === 0
-            )
-              return false;
-            return true;
-          }),
+          chainAssets.filter((asset) =>
+            shouldIncludeAssetWhenHideZeroBalance(
+              asset,
+              hideZeroBalance,
+              customAssets,
+              assetsBalance,
+            ),
+          ),
         );
+
       return mergeStakedSortAndDedupeAssets(
         filteredAssets,
         stakedAssets,
@@ -511,18 +542,29 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
       (_state: RootState, chainIds: string[]) => chainIds,
       selectStakedAssets,
       selectHideZeroBalanceTokens,
+      getCustomAssets,
+      getAssetsBalance,
     ],
-    (bip44Assets, chainIds, stakedAssets, hideZeroBalance) => {
+    (
+      bip44Assets,
+      chainIds,
+      stakedAssets,
+      hideZeroBalance,
+      customAssets,
+      assetsBalance,
+    ) => {
       const allowedIds = buildAllowedNetworkIdSet(chainIds);
       const filteredAssets = Object.entries(bip44Assets)
         .filter(([networkId]) => allowedIds.has(networkId))
         .flatMap(([_, chainAssets]) =>
-          chainAssets.filter((asset) => {
-            if (isTronSpecialAsset(asset.chainId, asset.symbol)) return false;
-            if (hideZeroBalance && parseFloat(asset.balance ?? '0') === 0)
-              return false;
-            return true;
-          }),
+          chainAssets.filter((asset) =>
+            shouldIncludeAssetWhenHideZeroBalance(
+              asset,
+              hideZeroBalance,
+              customAssets,
+              assetsBalance,
+            ),
+          ),
         );
       return mergeStakedSortAndDedupeAssets(
         filteredAssets,

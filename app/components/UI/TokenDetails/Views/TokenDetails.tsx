@@ -16,6 +16,8 @@ import React, {
 } from 'react';
 import { ActivityIndicator, AppState, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
+import type { Transaction } from '@metamask/keyring-api';
+import type { FlashListRef } from '@shopify/flash-list';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { TransactionDetailLocation } from '../../../../core/Analytics/events/transactions';
 import { useABTest } from '../../../../hooks/useABTest';
@@ -305,6 +307,35 @@ const TokenDetails: React.FC<{
     submittedTxs.length > 0 ||
     confirmedTxs.length > 0;
 
+  const multichainListRef = useRef<FlashListRef<Transaction> | null>(null);
+  const activityScrollOffsetRef = useRef(0);
+
+  const scrollToTokenActivity = useCallback(() => {
+    setTimeout(() => {
+      const list = multichainListRef.current;
+      if (!list) {
+        return;
+      }
+
+      if (transactions.length > 0) {
+        try {
+          list.scrollToIndex({ index: 0, animated: true });
+        } catch {
+          list.scrollToOffset({
+            offset: activityScrollOffsetRef.current,
+            animated: true,
+          });
+        }
+        return;
+      }
+
+      list.scrollToOffset({
+        offset: activityScrollOffsetRef.current,
+        animated: true,
+      });
+    }, 150);
+  }, [transactions.length]);
+
   const renderHeader = () => (
     <>
       <AssetOverviewContent
@@ -337,6 +368,9 @@ const TokenDetails: React.FC<{
         useAmbientColor={useAmbientColor}
         onExitAction={onCtaClicked}
         isPricePositive={chartPricePositive}
+        ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+        onTrustlineChanged={scrollToTokenActivity}
+        ///: END:ONLY_INCLUDE_IF
         ///: BEGIN:ONLY_INCLUDE_IF(tron)
         stakedTrxAsset={stakedTrxAsset}
         inLockPeriodBalance={inLockPeriodBalance}
@@ -344,12 +378,18 @@ const TokenDetails: React.FC<{
         ///: END:ONLY_INCLUDE_IF
       />
       {(txLoading || hasTransactions) && (
-        <ActivityHeader
-          asset={{
-            ...token,
-            hasBalanceError: token.hasBalanceError ?? false,
+        <View
+          onLayout={(event) => {
+            activityScrollOffsetRef.current = event.nativeEvent.layout.y;
           }}
-        />
+        >
+          <ActivityHeader
+            asset={{
+              ...token,
+              hasBalanceError: token.hasBalanceError ?? false,
+            }}
+          />
+        </View>
       )}
     </>
   );
@@ -384,6 +424,7 @@ const TokenDetails: React.FC<{
           enableRefresh
           showDisclaimer
           location={TransactionDetailLocation.AssetDetails}
+          listRef={multichainListRef}
         />
       ) : (
         <Transactions

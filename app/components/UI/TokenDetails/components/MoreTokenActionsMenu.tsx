@@ -40,6 +40,7 @@ import { errorCodes } from '@metamask/rpc-errors';
 import { StellarClassicTrustlineErrorBanner } from '../../Stellar/StellarClassicTrustlineErrorBanner';
 import { useStellarTrustlineDisplay } from '../../Stellar/hooks/useStellarTrustlineDisplay';
 import { requestStellarChangeTrustOptDelete } from '../../../../util/stellar/stellar-snap-client-requests';
+import { refreshStellarAccountAssets } from '../../../../util/stellar/refresh-stellar-account-assets';
 ///: END:ONLY_INCLUDE_IF
 
 export interface MoreTokenActionsMenuParams {
@@ -51,6 +52,9 @@ export interface MoreTokenActionsMenuParams {
   onBuy: () => void;
   onReceive?: () => void;
   onActionTapped?: (action: TokenDetailsAction) => void;
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  onTrustlineChanged?: () => void;
+  ///: END:ONLY_INCLUDE_IF
 }
 
 type MoreTokenActionsMenuRouteProp = RouteProp<
@@ -83,6 +87,9 @@ const MoreTokenActionsMenu = () => {
     onBuy,
     onReceive,
     onActionTapped,
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+    onTrustlineChanged,
+    ///: END:ONLY_INCLUDE_IF
   } = route.params;
 
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -97,8 +104,16 @@ const MoreTokenActionsMenu = () => {
   const { handleHideToken } = useAssetVisibility(asset);
 
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  const liveAsset =
+    useSelector((state: RootState) =>
+      selectAsset(state, {
+        address: asset.address,
+        chainId: asset.chainId as string,
+        isStaked: asset.isStaked || false,
+      }),
+    ) ?? asset;
   const { account: stellarAccount, hasStellarClassicTrustlineToRemove } =
-    useStellarTrustlineDisplay(asset);
+    useStellarTrustlineDisplay(liveAsset);
   const [trustlineRemoveErrorMessage, setTrustlineRemoveErrorMessage] =
     useState<string | null>(null);
   const [isRemovingStellarTrustline, setIsRemovingStellarTrustline] =
@@ -263,10 +278,14 @@ const MoreTokenActionsMenu = () => {
         assetId: asset.address as CaipAssetType,
         scope: asset.chainId as CaipChainId,
       });
-      await Engine.context.MultichainBalancesController.updateBalance(
-        stellarAccount.id,
-      );
+      await refreshStellarAccountAssets({
+        account: stellarAccount,
+        chainId: asset.chainId as CaipChainId,
+        assetId: asset.address as CaipAssetType,
+        trustlineAction: 'remove',
+      });
       sheetRef.current?.onCloseBottomSheet();
+      onTrustlineChanged?.();
     } catch (error: unknown) {
       const errorCode = (error as { code?: number })?.code;
       const isUserRejection =
@@ -294,6 +313,7 @@ const MoreTokenActionsMenu = () => {
     asset.chainId,
     asset.symbol,
     hasStellarClassicTrustlineToRemove,
+    onTrustlineChanged,
     stellarAccount,
   ]);
   ///: END:ONLY_INCLUDE_IF
