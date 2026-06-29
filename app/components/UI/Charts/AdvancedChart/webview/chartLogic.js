@@ -299,6 +299,23 @@ function resetDatafeedCacheBeforeHotReload() {
   } catch (e) {}
 }
 
+function resetMainPriceScaleAutoScale(chart) {
+  try {
+    if (!chart || typeof chart.getPanes !== 'function') {
+      return;
+    }
+    let panes = chart.getPanes();
+    let mainPane = panes && panes[0];
+    if (!mainPane || typeof mainPane.getMainSourcePriceScale !== 'function') {
+      return;
+    }
+    let priceScale = mainPane.getMainSourcePriceScale();
+    if (priceScale && typeof priceScale.setAutoScale === 'function') {
+      priceScale.setAutoScale(true);
+    }
+  } catch (e) {}
+}
+
 /**
  * Waits for TradingView `onDataLoaded` after `resetData` before queuing layout settle.
  * Falls back to `LAYOUT_SETTLE_DATA_FALLBACK_MS` if the event never fires.
@@ -623,6 +640,7 @@ function handleSetOHLCVData(payload) {
             resetDatafeedCacheBeforeHotReload();
             beginDeferredLayoutSettleAfterOhlcvReload();
             chart.resetData();
+            resetMainPriceScaleAutoScale(chart);
             // resetData()/setResolution drop Drawing API shapes; clear our tracking and
             // re-schedule a draw, otherwise placeTradeMarkers skips the redraw
             // (its id set still matches) and the circles stay gone.
@@ -639,6 +657,7 @@ function handleSetOHLCVData(payload) {
           resetDatafeedCacheBeforeHotReload();
           beginDeferredLayoutSettleAfterOhlcvReload();
           chart.resetData();
+          resetMainPriceScaleAutoScale(chart);
           // resetData() drops the trade-marker shapes; clear our tracking and
           // re-schedule a draw, otherwise placeTradeMarkers skips the redraw
           // (its id set still matches) and the circles stay gone.

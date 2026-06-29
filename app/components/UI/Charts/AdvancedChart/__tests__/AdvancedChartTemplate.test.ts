@@ -100,4 +100,14 @@ describe('createAdvancedChartTemplate', () => {
     );
     expect(html).toContain('existingTimes.add(bar.time);');
   });
+
+  it('resets the main price scale autoscale after OHLCV reloads', () => {
+    const html = createAdvancedChartTemplate(mockTheme);
+
+    expect(html).toContain('function resetMainPriceScaleAutoScale(chart)');
+    expect(html).toContain('priceScale.setAutoScale(true);');
+    expect(html).toMatch(
+      /chart\.resetData\(\);\s+resetMainPriceScaleAutoScale\(chart\);/,
+    );
+  });
 });
