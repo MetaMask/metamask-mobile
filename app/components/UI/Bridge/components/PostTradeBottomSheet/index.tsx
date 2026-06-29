@@ -334,8 +334,16 @@ export const PostTradeBottomSheet = () => {
       const nativeSourceToken = getNativeSourceToken(selectedDestToken.chainId);
       if (isSameBridgeToken(nativeSourceToken, selectedDestToken)) {
         const defaultDestToken = getDefaultDestToken(selectedDestToken.chainId);
-        if (!isSameBridgeToken(defaultDestToken, selectedDestToken)) {
+        if (
+          defaultDestToken &&
+          !isSameBridgeToken(defaultDestToken, selectedDestToken)
+        ) {
           resolvedSourceToken = defaultDestToken;
+        } else if (!isSameBridgeToken(params.destToken, selectedDestToken)) {
+          // No configured default for this chain (or it also conflicts); fall
+          // back to the prior trade's destination, which is on the same chain
+          // as the suggestion and a different asset, to avoid an identical pair.
+          resolvedSourceToken = params.destToken;
         }
       } else {
         resolvedSourceToken = nativeSourceToken;

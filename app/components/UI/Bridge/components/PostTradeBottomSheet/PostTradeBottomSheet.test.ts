@@ -7,6 +7,7 @@ import {
   PostTradeBottomSheetTestIds,
 } from './PostTradeBottomSheet.testIds';
 import { PostTradeStatus } from './PostTradeBottomSheet.types';
+import { getDefaultDestToken } from '../../utils/tokenUtils';
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
@@ -81,6 +82,13 @@ jest.mock('./usePostTradeTxStatus', () => ({
 jest.mock('./usePostTradeTrendingTokens', () => ({
   usePostTradeTrendingTokens: () => mockPostTradeTrendingTokens,
 }));
+jest.mock('../../utils/tokenUtils', () => {
+  const actual = jest.requireActual('../../utils/tokenUtils');
+  return {
+    ...actual,
+    getDefaultDestToken: jest.fn(actual.getDefaultDestToken),
+  };
+});
 
 beforeEach(() => {
   jest.clearAllMocks();
@@ -457,6 +465,73 @@ describe('PostTradeBottomSheet', () => {
           address: sourceAddress,
           chainId: '0x89',
           symbol: 'ABC',
+        }),
+      }),
+    );
+  });
+
+  it('falls back to the prior destination token when the chain has no configured default', () => {
+    mockPostTradeStatus = PostTradeStatus.Success;
+    // Prior trade: native ETH source -> USDC dest on mainnet.
+    mockParams = {
+      ...mockParams,
+      status: PostTradeStatus.Success,
+      sourceToken: {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'ETH',
+        chainId: '0x1',
+        decimals: 18,
+      },
+      destToken: {
+        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+        symbol: 'USDC',
+        chainId: '0x1',
+        decimals: 6,
+      },
+    };
+    // Suggestion is native ETH, which conflicts with the prior source and the
+    // native fallback. Simulate a chain with no configured default token.
+    const suggestedToken = {
+      assetId: 'eip155:1/slip44:60',
+      name: 'Ethereum',
+      symbol: 'ETH',
+      decimals: 18,
+      marketCap: 1000,
+      priceChangePct: { h24: '1.23' },
+    };
+    mockPostTradeTrendingTokens = {
+      tokens: [suggestedToken],
+      isLoading: false,
+      error: null,
+      refetch: jest.fn(),
+    };
+    (getDefaultDestToken as jest.Mock).mockReturnValue(undefined);
+
+    const { getByTestId } = render(React.createElement(PostTradeBottomSheet));
+
+    fireEvent.press(
+      getByTestId(getPostTradeSuggestionPillTestId(suggestedToken.assetId)),
+    );
+
+    // No configured default -> fall back to the prior trade's dest (USDC),
+    // avoiding an identical source/destination pair.
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'bridge/setSourceToken',
+        payload: expect.objectContaining({
+          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          chainId: '0x1',
+          symbol: 'USDC',
+        }),
+      }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type: 'bridge/setDestToken',
+        payload: expect.objectContaining({
+          address: '0x0000000000000000000000000000000000000000',
+          chainId: '0x1',
+          symbol: 'ETH',
         }),
       }),
     );
