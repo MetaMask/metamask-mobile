@@ -3239,12 +3239,6 @@ window.__focusTimeAnimGen = 0;
 const FOCUS_TIME_ANIM_MS = 600;
 /** Fallback visible span (in bar durations) when no current range is readable. */
 const FOCUS_TIME_FALLBACK_BARS = 60;
-/**
- * Fraction of the visible span treated as an inset on each edge. A target time
- * inside the inset window is "already comfortably visible" → the chart doesn't
- * move (it only pulses). Keeps re-taps and taps on nearby trades from re-centering.
- */
-const FOCUS_TIME_VISIBLE_INSET = 0.08;
 
 function focusTimeEaseInOutCubic(t) {
   // ease-in-out quart: a gentler, more gradual acceleration/deceleration than
@@ -3272,31 +3266,30 @@ function handleFocusTime(payload) {
 
   const centerSec = payload.timeMs / 1000;
 
-  // Current visible range (seconds) — used for the start of the animation and to
-  // preserve the zoom when no explicit span is requested.
+  // Current visible range (seconds) — used to detect a trade that is already on
+  // screen and to seed the slide animation / preserve the zoom. Prefer the robust
+  // reader (loaded-bars range with a logical-range fallback): a bare
+  // getVisibleRange() can momentarily report a stale or empty range right after a
+  // programmatic reframe, which would make an on-screen trade look off-screen and
+  // wrongly re-center it.
   let curFrom = null;
   let curTo = null;
-  try {
-    const vr = chart.getVisibleRange();
-    if (vr) {
-      const f = normalizeChartUnixSec(vr.from);
-      const t = normalizeChartUnixSec(vr.to);
-      if (f !== null && t !== null && t > f) {
-        curFrom = f;
-        curTo = t;
-      }
-    }
-  } catch (e2) {}
+  const visibleRange = getVisibleTimeRangeSecFromChart(chart);
+  if (visibleRange && visibleRange.hi > visibleRange.lo) {
+    curFrom = visibleRange.lo;
+    curTo = visibleRange.hi;
+  }
 
-  // Already comfortably within the visible window → leave the chart exactly where
-  // it is (no scroll, no zoom); the caller pulses the marker separately. This is
-  // what makes re-tapping the same trade — or tapping a nearby one that's already
-  // on screen — only pulse instead of re-centering.
+  // Already visible → leave the chart exactly where it is (no scroll, no zoom);
+  // the caller pulses the marker separately. The WHOLE visible window counts as
+  // "visible" (plus a one-bar tolerance for a marker sitting on the very edge), so
+  // tapping any on-screen trade only pulses instead of re-centering — not just
+  // re-taps and trades near the middle.
   if (curFrom !== null && curTo !== null) {
-    const visibleInset = (curTo - curFrom) * FOCUS_TIME_VISIBLE_INSET;
+    const edgeToleranceSec = getApproxBarDurationSec();
     if (
-      centerSec >= curFrom + visibleInset &&
-      centerSec <= curTo - visibleInset
+      centerSec >= curFrom - edgeToleranceSec &&
+      centerSec <= curTo + edgeToleranceSec
     ) {
       return;
     }
