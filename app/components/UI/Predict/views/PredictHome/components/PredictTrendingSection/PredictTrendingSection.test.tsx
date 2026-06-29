@@ -71,13 +71,13 @@ const setSection = (
   overrides: Partial<{
     markets: PredictMarket[];
     isLoading: boolean;
-    isUnavailable: boolean;
+    showEmptyState: boolean;
   }> = {},
 ) => {
   mockUsePredictTrendingSection.mockReturnValue({
     markets: [],
     isLoading: false,
-    isUnavailable: false,
+    showEmptyState: false,
     ...overrides,
   });
 };
@@ -120,7 +120,7 @@ describe('PredictTrendingSection', () => {
   });
 
   it('shows the unable-to-load message when unavailable (never disappears)', () => {
-    setSection({ markets: [], isUnavailable: true });
+    setSection({ markets: [], showEmptyState: true });
 
     const { getByTestId, getByText } = renderSection();
 

@@ -2348,9 +2348,7 @@
     "search_account": "Поиск счета",
     "home": {
       "live_now_title": "Уже активно",
-      "categories_placeholder": "Категории",
-      "trending_title": "Популярное",
-      "trending_unable_to_load": "Unable to load markets, please try again"
+      "categories_placeholder": "Категории"
     },
     "homepage_discovery": {
       "btc_title": "Цена BTC: {{price}}",

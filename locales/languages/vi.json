@@ -2348,9 +2348,7 @@
     "search_account": "Tìm kiếm tài khoản",
     "home": {
       "live_now_title": "Đang diễn ra",
-      "categories_placeholder": "Danh mục",
-      "trending_title": "Xu hướng",
-      "trending_unable_to_load": "Unable to load markets, please try again"
+      "categories_placeholder": "Danh mục"
     },
     "homepage_discovery": {
       "btc_title": "Giá BTC: {{price}}",

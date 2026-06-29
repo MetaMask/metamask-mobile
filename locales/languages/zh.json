@@ -2348,9 +2348,7 @@
     "search_account": "搜索账户",
     "home": {
       "live_now_title": "现已上线",
-      "categories_placeholder": "类别",
-      "trending_title": "趋势",
-      "trending_unable_to_load": "Unable to load markets, please try again"
+      "categories_placeholder": "类别"
     },
     "homepage_discovery": {
       "btc_title": "BTC 价格：{{price}}",

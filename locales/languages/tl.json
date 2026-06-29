@@ -2348,9 +2348,7 @@
     "search_account": "Pumili ng isang account",
     "home": {
       "live_now_title": "Live ngayon",
-      "categories_placeholder": "Mga Kategorya",
-      "trending_title": "Nagte-trend",
-      "trending_unable_to_load": "Unable to load markets, please try again"
+      "categories_placeholder": "Mga Kategorya"
     },
     "homepage_discovery": {
       "btc_title": "Presyo ng BTC: {{price}}",

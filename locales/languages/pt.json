@@ -2348,9 +2348,7 @@
     "search_account": "Pesquisar uma conta",
     "home": {
       "live_now_title": "Ao vivo agora",
-      "categories_placeholder": "Categorias",
-      "trending_title": "Tendência",
-      "trending_unable_to_load": "Unable to load markets, please try again"
+      "categories_placeholder": "Categorias"
     },
     "homepage_discovery": {
       "btc_title": "Preço do BTC: {{price}}",

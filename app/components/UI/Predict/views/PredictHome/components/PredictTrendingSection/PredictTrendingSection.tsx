@@ -38,7 +38,7 @@ const PredictTrendingSection: React.FC<PredictTrendingSectionProps> = ({
 }) => {
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
-  const { markets, isLoading, isUnavailable } = usePredictTrendingSection();
+  const { markets, isLoading, showEmptyState } = usePredictTrendingSection();
 
   const handleSeeAll = useCallback(() => {
     navigation.navigate(Routes.PREDICT.ROOT, {
@@ -70,7 +70,7 @@ const PredictTrendingSection: React.FC<PredictTrendingSectionProps> = ({
             />
           ))}
         </Box>
-      ) : isUnavailable ? (
+      ) : showEmptyState ? (
         <Box
           testID={PREDICT_TRENDING_SECTION_TEST_IDS.ERROR_STATE}
           twClassName="items-center justify-center rounded-xl bg-muted py-8 px-4"

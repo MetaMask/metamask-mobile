@@ -2348,9 +2348,7 @@
     "search_account": "किसी अकाउंट को ढूंढें",
     "home": {
       "live_now_title": "अब लाइव है",
-      "categories_placeholder": "कैटेगरीज़",
-      "trending_title": "ट्रेंडिंग",
-      "trending_unable_to_load": "Unable to load markets, please try again"
+      "categories_placeholder": "कैटेगरीज़"
     },
     "homepage_discovery": {
       "btc_title": "BTC प्राइस: {{price}}",

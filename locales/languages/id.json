@@ -2348,9 +2348,7 @@
     "search_account": "Cari akun",
     "home": {
       "live_now_title": "Sedang live",
-      "categories_placeholder": "Kategori",
-      "trending_title": "Sedang tren",
-      "trending_unable_to_load": "Unable to load markets, please try again"
+      "categories_placeholder": "Kategori"
     },
     "homepage_discovery": {
       "btc_title": "Harga BTC: {{price}}",

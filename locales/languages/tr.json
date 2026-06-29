@@ -2348,9 +2348,7 @@
     "search_account": "Bir hesabı ara",
     "home": {
       "live_now_title": "Şimdi canlı",
-      "categories_placeholder": "Kategoriler",
-      "trending_title": "Trend",
-      "trending_unable_to_load": "Unable to load markets, please try again"
+      "categories_placeholder": "Kategoriler"
     },
     "homepage_discovery": {
       "btc_title": "BTC Fiyatı: {{price}}",

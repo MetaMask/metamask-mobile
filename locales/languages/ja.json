@@ -2348,9 +2348,7 @@
     "search_account": "アカウントの検索",
     "home": {
       "live_now_title": "現在進行中",
-      "categories_placeholder": "カテゴリー",
-      "trending_title": "人気上昇中",
-      "trending_unable_to_load": "Unable to load markets, please try again"
+      "categories_placeholder": "カテゴリー"
     },
     "homepage_discovery": {
       "btc_title": "BTCの価格: {{price}}",

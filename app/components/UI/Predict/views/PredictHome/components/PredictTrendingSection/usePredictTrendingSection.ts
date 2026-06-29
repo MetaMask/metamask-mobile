@@ -1,12 +1,6 @@
-import { useMemo } from 'react';
+import { resolvePredictFeedDefaultFilter } from '../../../../constants/feedConfig';
+import type { PredictMarketListParams , PredictMarket } from '../../../../types';
 import { usePredictMarketList } from '../../../../hooks/usePredictMarketList';
-import type { PredictMarket } from '../../../../types';
-
-/**
- * Over-fetch trending markets so the home section has headroom above its
- * display cap. Matches the ticket's suggested v1 params (`limit: 20`).
- */
-export const TRENDING_FETCH_LIMIT = 20;
 
 /**
  * Max trending cards shown on the home section. The epic caps the home feed's
@@ -15,43 +9,44 @@ export const TRENDING_FETCH_LIMIT = 20;
  */
 export const TRENDING_DISPLAY_LIMIT = 5;
 
+/**
+ * Query params derived from the feed registry so the home section and the
+ * full "See all" feed share the same React Query cache key.
+ * Falls back to hardcoded params if the registry entry is missing.
+ */
+const TRENDING_PARAMS: PredictMarketListParams =
+  resolvePredictFeedDefaultFilter('trending')?.params ?? {
+    order: 'volume24hr',
+    status: 'open',
+    limit: TRENDING_DISPLAY_LIMIT,
+  };
+
 export interface UsePredictTrendingSectionResult {
-  /** Trending markets ready for the vertical list (already display-capped). */
+  /** Trending markets ready for the vertical list. */
   markets: PredictMarket[];
   /** Initial load with nothing to show yet (render skeletons). */
   isLoading: boolean;
   /**
-   * No data after load. Unlike the other home sections, Trending does NOT hide
-   * here — it is the feed's fallback anchor, so the section shows an "Unable to
-   * load" message instead. `usePredictMarketList` swallows provider errors
-   * (returns `[]`), so the empty and error cases collapse into this one flag.
+   * True when load is complete and there is nothing to display (empty result
+   * or fetch error). Unlike other home sections, Trending does NOT hide in
+   * this state — it is the feed's fallback anchor, so the section renders an
+   * "Unable to load" message instead.
    */
-  isUnavailable: boolean;
+  showEmptyState: boolean;
 }
 
 /**
  * Data source for the Predict home "Trending" section (PRED-834).
  *
- * Pulls markets via the generic `usePredictMarketList` ordered by 24h volume
- * (`order: 'volume24hr'`, `status: 'open'`) and caps the result to
- * {@link TRENDING_DISPLAY_LIMIT} client-side. Section-specific curation lives
- * here rather than in the generic hook (consistent with the other home
- * sections).
+ * Pulls markets via the generic `usePredictMarketList` using params sourced
+ * from `feedConfig` so the home section and the "See all" feed share the same
+ * React Query cache entry.
  */
 export const usePredictTrendingSection =
   (): UsePredictTrendingSectionResult => {
-    const { markets, isLoading } = usePredictMarketList({
-      order: 'volume24hr',
-      status: 'open',
-      limit: TRENDING_FETCH_LIMIT,
-    });
+    const { markets, isLoading, error } = usePredictMarketList(TRENDING_PARAMS);
 
-    const displayedMarkets = useMemo(
-      () => markets.slice(0, TRENDING_DISPLAY_LIMIT),
-      [markets],
-    );
+    const showEmptyState = !isLoading && (!!error || markets.length === 0);
 
-    const isUnavailable = !isLoading && displayedMarkets.length === 0;
-
-    return { markets: displayedMarkets, isLoading, isUnavailable };
+    return { markets, isLoading, showEmptyState };
   };

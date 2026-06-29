@@ -4,7 +4,6 @@ import type { PredictMarket } from '../../../../types';
 import {
   usePredictTrendingSection,
   TRENDING_DISPLAY_LIMIT,
-  TRENDING_FETCH_LIMIT,
 } from './usePredictTrendingSection';
 
 jest.mock('../../../../hooks/usePredictMarketList');
@@ -43,56 +42,57 @@ describe('usePredictTrendingSection', () => {
     jest.clearAllMocks();
   });
 
-  it('queries markets ordered by 24h volume with the v1 params', () => {
+  it('queries markets with params sourced from the feed registry (order, status, limit)', () => {
     renderHook(() => usePredictTrendingSection());
 
-    expect(mockUsePredictMarketList).toHaveBeenCalledWith({
-      order: 'volume24hr',
-      status: 'open',
-      limit: TRENDING_FETCH_LIMIT,
-    });
+    expect(mockUsePredictMarketList).toHaveBeenCalledWith(
+      expect.objectContaining({
+        order: 'volume24hr',
+        status: 'open',
+        limit: TRENDING_DISPLAY_LIMIT,
+      }),
+    );
   });
 
-  it('caps the displayed markets to the display limit', () => {
-    const markets = Array.from({ length: TRENDING_FETCH_LIMIT }, (_, index) =>
-      createMarket(`m-${index}`),
-    );
+  it('returns the markets from usePredictMarketList directly', () => {
+    const markets = [createMarket('a'), createMarket('b')];
     setMarketList({ markets });
 
     const { result } = renderHook(() => usePredictTrendingSection());
 
-    expect(result.current.markets).toHaveLength(TRENDING_DISPLAY_LIMIT);
-    expect(result.current.markets[0].id).toBe('m-0');
-    expect(result.current.markets[TRENDING_DISPLAY_LIMIT - 1].id).toBe(
-      `m-${TRENDING_DISPLAY_LIMIT - 1}`,
-    );
-  });
-
-  it('returns all markets when fewer than the display limit', () => {
-    setMarketList({ markets: [createMarket('a'), createMarket('b')] });
-
-    const { result } = renderHook(() => usePredictTrendingSection());
-
     expect(result.current.markets).toHaveLength(2);
-    expect(result.current.isUnavailable).toBe(false);
+    expect(result.current.showEmptyState).toBe(false);
   });
 
-  it('passes through the loading state and is not unavailable while loading', () => {
+  it('passes through the loading state and does not show empty state while loading', () => {
     setMarketList({ markets: [], isLoading: true });
 
     const { result } = renderHook(() => usePredictTrendingSection());
 
     expect(result.current.isLoading).toBe(true);
-    expect(result.current.isUnavailable).toBe(false);
+    expect(result.current.showEmptyState).toBe(false);
   });
 
-  it('is unavailable when no markets are returned after load', () => {
+  it('shows empty state when no markets are returned after load', () => {
     setMarketList({ markets: [], isLoading: false });
 
     const { result } = renderHook(() => usePredictTrendingSection());
 
     expect(result.current.isLoading).toBe(false);
-    expect(result.current.isUnavailable).toBe(true);
+    expect(result.current.showEmptyState).toBe(true);
     expect(result.current.markets).toHaveLength(0);
+  });
+
+  it('shows empty state when the fetch returns an error', () => {
+    setMarketList({
+      markets: [],
+      isLoading: false,
+      error: new Error('network'),
+    });
+
+    const { result } = renderHook(() => usePredictTrendingSection());
+
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.showEmptyState).toBe(true);
   });
 });
