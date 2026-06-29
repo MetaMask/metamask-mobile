@@ -29,6 +29,7 @@ import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Routes from '../../../constants/navigation/Routes';
 import { RPC } from '../../../constants/network';
+import { FIAT_ORDER_PROVIDERS } from '../../../constants/on-ramp';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
@@ -108,6 +109,7 @@ import {
 import { normalizeTransaction } from './helpers/adapters';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { stashPreloadedActivityItem } from './preloadedActivityItemStore';
+import { useRampActivityItems } from './hooks/useRampActivityItems';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
   PerpsActivitySource,
@@ -225,6 +227,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     // Local EVM transactions mapped through the shared adapter
     const localActivityItems = useLocalActivityItems();
+    const rampActivityItems = useRampActivityItems();
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const [perpsSource, setPerpsSource] = useState<PerpsActivitySourceState>(
@@ -464,6 +467,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         nonEvmItems,
         isPerpsEnabled ? perpsSource.items : [],
         isPredictEnabled ? predictSource.items : [],
+        rampActivityItems,
       );
 
       let filtered = merged;
@@ -490,6 +494,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       perpsSource.items,
       isPredictEnabled,
       predictSource.items,
+      rampActivityItems,
     ]);
     const groupedData = useMemo(() => groupActivityListItems(data), [data]);
 
@@ -815,6 +820,30 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           return;
         }
 
+        if (raw.type === 'rampOrder') {
+          if (!isTransactionsRedesignEnabled) {
+            if (raw.data.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
+              navigation.navigate(Routes.DEPOSIT.ORDER_DETAILS, {
+                orderId: raw.data.id,
+              });
+            } else if (raw.data.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
+              navigation.navigate(Routes.RAMP.RAMPS_ORDER_DETAILS, {
+                orderId: raw.data.id,
+              });
+            } else {
+              navigation.navigate(Routes.RAMP.ORDER_DETAILS, {
+                orderId: raw.data.id,
+              });
+            }
+            return;
+          }
+          navigation.navigate(Routes.ACTIVITY_DETAILS, {
+            chainId: item.chainId,
+            txIdentifier: item.hash ?? raw.data.id,
+          });
+          return;
+        }
+
         const itemBridgeHistoryItem = getBridgeHistoryItemByHash(item.hash);
         const actionKey = resolveActivityListItemTitle(
           item,
@@ -865,6 +894,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         ) {
           const bridgeTxHistoryItem =
             bridgeHistory[tx.id] ??
+            // eslint-disable-next-line @typescript-eslint/no-deprecated -- Older persisted bridge history can still be keyed by actionId.
             (tx.actionId ? bridgeHistory[tx.actionId] : undefined) ??
             Object.values(bridgeHistory).find(
               (itemValue) =>
