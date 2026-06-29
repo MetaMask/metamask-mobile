@@ -956,7 +956,6 @@ export type MessengerClientsToInitialize =
   | 'SamplePetnamesController'
   ///: END:ONLY_INCLUDE_IF
   | 'AccountTrackerController'
-  | 'AddressBookController'
   | 'AssetsContractController'
   | 'AssetsController'
   ///: BEGIN:ONLY_INCLUDE_IF(snaps)
