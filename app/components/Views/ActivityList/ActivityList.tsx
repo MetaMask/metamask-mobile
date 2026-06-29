@@ -822,11 +822,14 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
         if (raw.type === 'rampOrder') {
           if (!isTransactionsRedesignEnabled) {
+            navigation.navigate(Routes.RAMP.ORDER_DETAILS, {
+              orderId: raw.data.id,
+            });
             return;
           }
           navigation.navigate(Routes.ACTIVITY_DETAILS, {
             chainId: item.chainId,
-            txIdentifier: item.hash,
+            txIdentifier: item.hash ?? raw.data.id,
           });
           return;
         }

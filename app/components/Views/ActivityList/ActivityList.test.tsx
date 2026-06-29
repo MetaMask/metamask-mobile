@@ -743,7 +743,7 @@ describe('ActivityList', () => {
     });
   });
 
-  it('does not route Ramp rows to ActivityDetails when the transactions redesign flag is off', () => {
+  it('routes Ramp rows to the legacy Ramp details screen when the transactions redesign flag is off', () => {
     selectorValues.isTxRedesign = false;
     (useRampActivityItems as jest.Mock).mockReturnValue([rampItem]);
 
@@ -751,6 +751,9 @@ describe('ActivityList', () => {
 
     fireEvent.press(screen.getByTestId('row-0xramp'));
 
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.RAMP.ORDER_DETAILS, {
+      orderId: 'ramp-order-id',
+    });
     expect(mockNavigate).not.toHaveBeenCalledWith(
       Routes.ACTIVITY_DETAILS,
       expect.anything(),
