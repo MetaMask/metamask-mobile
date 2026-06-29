@@ -294,187 +294,107 @@ describe('PostTradeBottomSheet', () => {
     );
   });
 
-  it('falls back to the native source token when the suggestion matches the previous source on the same chain', () => {
+  const USDC = {
+    address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    symbol: 'USDC',
+    chainId: '0x1',
+    decimals: 6,
+  };
+  const ETH = {
+    address: '0x0000000000000000000000000000000000000000',
+    symbol: 'ETH',
+    chainId: '0x1',
+    decimals: 18,
+  };
+  const MUSD = {
+    address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+    symbol: 'mUSD',
+    chainId: '0x1',
+    decimals: 6,
+  };
+  const suggestion = (
+    assetId: string,
+    name: string,
+    symbol: string,
+    decimals: number,
+  ) => ({
+    assetId,
+    name,
+    symbol,
+    decimals,
+    marketCap: 1000,
+    priceChangePct: { h24: '1.23' },
+  });
+  const USDC_SUGGESTION = suggestion(
+    'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+    'USD Coin',
+    'USDC',
+    6,
+  );
+  const ETH_SUGGESTION = suggestion(
+    'eip155:1/slip44:60',
+    'Ethereum',
+    'ETH',
+    18,
+  );
+
+  // Sets up a successful post-trade modal with the given suggestion and source
+  // token override, then presses the suggestion pill.
+  const pressSuggestion = (
+    suggested: typeof USDC_SUGGESTION,
+    sourceToken: typeof USDC,
+    destToken?: typeof USDC,
+  ) => {
     mockPostTradeStatus = PostTradeStatus.Success;
-    // Previous trade source is USDC on mainnet; the suggestion is the same USDC.
     mockParams = {
       ...mockParams,
       status: PostTradeStatus.Success,
-      sourceToken: {
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        symbol: 'USDC',
-        chainId: '0x1',
-        decimals: 6,
-      },
-    };
-    const suggestedToken = {
-      assetId: 'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-      name: 'USD Coin',
-      symbol: 'USDC',
-      decimals: 6,
-      marketCap: 1000,
-      priceChangePct: { h24: '1.23' },
+      sourceToken,
+      ...(destToken ? { destToken } : {}),
     };
     mockPostTradeTrendingTokens = {
-      tokens: [suggestedToken],
+      tokens: [suggested],
       isLoading: false,
       error: null,
       refetch: jest.fn(),
     };
-
     const { getByTestId } = render(React.createElement(PostTradeBottomSheet));
-
     fireEvent.press(
-      getByTestId(getPostTradeSuggestionPillTestId(suggestedToken.assetId)),
+      getByTestId(getPostTradeSuggestionPillTestId(suggested.assetId)),
+    );
+  };
+
+  const expectDispatchedToken = (
+    type: string,
+    token: { address: string; chainId: string; symbol: string },
+  ) =>
+    expect(mockDispatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        type,
+        payload: expect.objectContaining({
+          address: token.address,
+          chainId: token.chainId,
+          symbol: token.symbol,
+        }),
+      }),
     );
 
-    // Source should fall back to the native ETH token, not the conflicting USDC.
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'bridge/setSourceToken',
-        payload: expect.objectContaining({
-          address: '0x0000000000000000000000000000000000000000',
-          chainId: '0x1',
-          symbol: 'ETH',
-        }),
-      }),
-    );
-    // Destination is the selected suggestion.
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'bridge/setDestToken',
-        payload: expect.objectContaining({
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          chainId: '0x1',
-          symbol: 'USDC',
-        }),
-      }),
-    );
+  it('falls back to the native source token when the suggestion matches the previous source on the same chain', () => {
+    pressSuggestion(USDC_SUGGESTION, USDC);
+    expectDispatchedToken('bridge/setSourceToken', ETH);
+    expectDispatchedToken('bridge/setDestToken', USDC);
   });
 
   it('falls back to the chain default token when the suggestion is the native source token', () => {
-    mockPostTradeStatus = PostTradeStatus.Success;
-    // Previous trade source is native ETH on mainnet; the suggestion is native ETH.
-    mockParams = {
-      ...mockParams,
-      status: PostTradeStatus.Success,
-      sourceToken: {
-        address: '0x0000000000000000000000000000000000000000',
-        symbol: 'ETH',
-        chainId: '0x1',
-        decimals: 18,
-      },
-    };
-    const suggestedToken = {
-      assetId: 'eip155:1/slip44:60',
-      name: 'Ethereum',
-      symbol: 'ETH',
-      decimals: 18,
-      marketCap: 1000,
-      priceChangePct: { h24: '1.23' },
-    };
-    mockPostTradeTrendingTokens = {
-      tokens: [suggestedToken],
-      isLoading: false,
-      error: null,
-      refetch: jest.fn(),
-    };
-
-    const { getByTestId } = render(React.createElement(PostTradeBottomSheet));
-
-    fireEvent.press(
-      getByTestId(getPostTradeSuggestionPillTestId(suggestedToken.assetId)),
-    );
-
-    // Native source still conflicts, so fall back to the configured default
-    // dest token for mainnet (mUSD).
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'bridge/setSourceToken',
-        payload: expect.objectContaining({
-          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-          chainId: '0x1',
-          symbol: 'mUSD',
-        }),
-      }),
-    );
-    // Destination is the selected native ETH suggestion.
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'bridge/setDestToken',
-        payload: expect.objectContaining({
-          address: '0x0000000000000000000000000000000000000000',
-          chainId: '0x1',
-          symbol: 'ETH',
-        }),
-      }),
-    );
+    pressSuggestion(ETH_SUGGESTION, ETH);
+    expectDispatchedToken('bridge/setSourceToken', MUSD);
+    expectDispatchedToken('bridge/setDestToken', ETH);
   });
 
   it('falls back to the prior destination token when the chain has no configured default', () => {
-    mockPostTradeStatus = PostTradeStatus.Success;
-    // Prior trade: native ETH source -> USDC dest on mainnet.
-    mockParams = {
-      ...mockParams,
-      status: PostTradeStatus.Success,
-      sourceToken: {
-        address: '0x0000000000000000000000000000000000000000',
-        symbol: 'ETH',
-        chainId: '0x1',
-        decimals: 18,
-      },
-      destToken: {
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        symbol: 'USDC',
-        chainId: '0x1',
-        decimals: 6,
-      },
-    };
-    // Suggestion is native ETH, which conflicts with the prior source and the
-    // native fallback. Simulate a chain with no configured default token.
-    const suggestedToken = {
-      assetId: 'eip155:1/slip44:60',
-      name: 'Ethereum',
-      symbol: 'ETH',
-      decimals: 18,
-      marketCap: 1000,
-      priceChangePct: { h24: '1.23' },
-    };
-    mockPostTradeTrendingTokens = {
-      tokens: [suggestedToken],
-      isLoading: false,
-      error: null,
-      refetch: jest.fn(),
-    };
     (getDefaultDestToken as jest.Mock).mockReturnValue(undefined);
-
-    const { getByTestId } = render(React.createElement(PostTradeBottomSheet));
-
-    fireEvent.press(
-      getByTestId(getPostTradeSuggestionPillTestId(suggestedToken.assetId)),
-    );
-
-    // No configured default -> fall back to the prior trade's dest (USDC),
-    // avoiding an identical source/destination pair.
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'bridge/setSourceToken',
-        payload: expect.objectContaining({
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-          chainId: '0x1',
-          symbol: 'USDC',
-        }),
-      }),
-    );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      expect.objectContaining({
-        type: 'bridge/setDestToken',
-        payload: expect.objectContaining({
-          address: '0x0000000000000000000000000000000000000000',
-          chainId: '0x1',
-          symbol: 'ETH',
-        }),
-      }),
-    );
+    pressSuggestion(ETH_SUGGESTION, ETH, USDC);
+    expectDispatchedToken('bridge/setSourceToken', USDC);
+    expectDispatchedToken('bridge/setDestToken', ETH);
   });
 });
