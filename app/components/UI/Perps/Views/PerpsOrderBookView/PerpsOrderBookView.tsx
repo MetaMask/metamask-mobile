@@ -272,7 +272,10 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   }, [currentGrouping, marketPrice]);
 
   // Subscribe to live order book data with dynamic nSigFigs and mantissa
-  // These parameters match Hyperliquid's API for consistent price aggregation
+  // These parameters match Hyperliquid's API for consistent price aggregation.
+  // `fast: true` opts into Hyperliquid's fast stream (5 levels @ ~0.5s) for a
+  // snappier book on this focused screen (TAT-3333). Note: this caps depth at
+  // 5 levels per side regardless of MAX_ORDER_BOOK_LEVELS.
   const {
     orderBook: rawOrderBook,
     isLoading,
@@ -283,6 +286,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     nSigFigs: aggregationParams.nSigFigs,
     mantissa: aggregationParams.mantissa,
     throttleMs: 100,
+    fast: true,
   });
 
   // Process order book data

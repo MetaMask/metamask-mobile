@@ -1177,6 +1177,16 @@ describe('PerpsOrderBookView', () => {
       );
     });
 
+    it('subscribes to live order book with fast: true (TAT-3333)', () => {
+      renderWithProvider(<PerpsOrderBookView />, { state: initialState });
+
+      expect(mockUsePerpsLiveOrderBook).toHaveBeenCalledWith(
+        expect.objectContaining({
+          fast: true,
+        }),
+      );
+    });
+
     it('subscribes to live order book with correct throttleMs', () => {
       renderWithProvider(<PerpsOrderBookView />, { state: initialState });
 
