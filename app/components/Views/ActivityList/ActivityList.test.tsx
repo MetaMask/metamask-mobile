@@ -754,6 +754,61 @@ describe('ActivityList', () => {
     );
   });
 
+  it('keeps the typed local smart-account-upgrade row over the generic confirmed copy', () => {
+    const upgradeHash = '0xupgrade';
+    const localUpgrade = {
+      type: 'smartAccountUpgrade',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 6,
+      hash: upgradeHash,
+      data: { from: '0xevm', to: '0xevm' },
+      raw: {
+        type: 'localTransaction',
+        data: {
+          primaryTransaction: {
+            chainId: '0x1',
+            hash: upgradeHash,
+            id: 'upgrade-id',
+            txParams: { from: '0xevm', nonce: '0xa' },
+          },
+        },
+      },
+    };
+    // Backend can't recognise a 7702 upgrade — the confirmed copy is a generic
+    // contract call with the same hash.
+    const confirmedUpgradeContractCall = {
+      type: 'contractInteraction',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 6,
+      hash: upgradeHash,
+      data: { from: '0xevm', to: '0xevm' },
+      raw: {
+        type: 'apiEvmTransaction',
+        data: { chainId: 1, from: '0xevm', hash: upgradeHash, nonce: 10 },
+      },
+    };
+    (useLocalActivityItems as jest.Mock).mockReturnValue([localUpgrade]);
+    (useTransactionsQuery as jest.Mock).mockReturnValue({
+      data: { pages: [{ data: [confirmedUpgradeContractCall] }] },
+      fetchNextPage: mockFetchNextPage,
+      hasNextPage: false,
+      isFetchingNextPage: false,
+      isInitialLoading: false,
+      refetch: mockRefetch,
+    });
+
+    render(<ActivityList header={<></>} />);
+
+    // The typed "smartAccountUpgrade" row wins; the generic confirmed copy is
+    // deduped away (it must not regress to "Smart contract interaction").
+    expect(screen.getAllByTestId(`row-${upgradeHash}`)).toHaveLength(1);
+    expect(screen.getByTestId(`row-kind-${upgradeHash}`)).toHaveTextContent(
+      'smartAccountUpgrade',
+    );
+  });
+
   it('navigates to transaction details when a confirmed row is pressed', async () => {
     render(<ActivityList header={<></>} />);
 
