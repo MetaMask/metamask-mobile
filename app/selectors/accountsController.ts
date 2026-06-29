@@ -80,7 +80,7 @@ export const selectInternalAccounts = createDeepEqualSelector(
   },
 );
 
-export const selectInternalEvmAccounts = createSelector(
+export const selectInternalEvmAccounts = createDeepEqualSelector(
   selectInternalAccounts,
   (accounts) => accounts.filter((account) => isEvmAccountType(account.type)),
 );

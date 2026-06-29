@@ -14,6 +14,11 @@ export const TrendingViewSelectorsIDs = {
   ALL_NETWORKS_BUTTON: 'all-networks-button',
   CLOSE_BUTTON: 'close-button',
   TRENDING_TOKENS_HEADER_SEARCH_TOGGLE: 'trending-tokens-header-search-toggle',
+  EXPLORE_SEARCH_CANCEL_BUTTON: 'explore-search-cancel-button',
+  SECTION_HEADER_VIEW_ALL_STOCKS: 'section-header-view-all-stocks',
+  SECTION_HEADER_VIEW_ALL_SITES: 'section-header-view-all-sites',
+  RWA_TOKENS_HEADER: 'rwa-tokens-header',
+  RWA_TOKENS_HEADER_BACK_BUTTON: 'rwa-tokens-header-back-button',
 } as const;
 
 export type TrendingViewSelectorsIDsType = typeof TrendingViewSelectorsIDs;
