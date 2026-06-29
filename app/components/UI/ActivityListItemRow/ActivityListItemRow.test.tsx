@@ -261,6 +261,27 @@ jest.mock('../Money/components/PendingSpinner/PendingSpinner', () => {
     ReactActual.createElement(View, { testID });
 });
 
+jest.mock('../Perps/components/PerpsTokenLogo', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockPerpsTokenLogo({
+    recyclingKey,
+    size,
+    symbol,
+  }: {
+    recyclingKey?: string;
+    size?: number;
+    symbol?: string;
+  }) {
+    return ReactActual.createElement(View, {
+      testID: `perps-token-logo-${symbol}`,
+      recyclingKey,
+      size,
+      symbol,
+    });
+  };
+});
+
 jest.mock('../../Views/confirmations/utils/transaction', () => ({
   hasGasFeeTokenSelected: jest.fn(() => false),
 }));
@@ -575,6 +596,52 @@ describe('ActivityListItemRow — row content', () => {
     expect(primary).toContain('$');
     // No secondary amount on trades — the position size is the subtitle.
     expect(queryByTestId('activity-secondary-amount-0xlong')).toBeNull();
+  });
+
+  it('uses PerpsTokenLogo for market avatars', () => {
+    const openLong = {
+      type: 'perpsOpenLong',
+      chainId: 'eip155:42161',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xicon',
+      data: {
+        token: { amount: '4000', symbol: 'USD', direction: 'out' },
+        sourceToken: { amount: '2.01', symbol: 'BTC', direction: 'in' },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={openLong} index={0} />,
+    );
+
+    const logo = getByTestId('perps-token-logo-BTC');
+    expect(logo.props.recyclingKey).toBe('BTC');
+    expect(logo.props.symbol).toBe('BTC');
+    expect(logo.props.size).toBe(32);
+  });
+
+  it('passes k-prefixed perps market symbols to PerpsTokenLogo', () => {
+    const openLong = {
+      type: 'perpsOpenLong',
+      chainId: 'eip155:42161',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xkpepe',
+      data: {
+        token: { amount: '10', symbol: 'USD', direction: 'out' },
+        sourceToken: { amount: '1000', symbol: 'kPEPE', direction: 'in' },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={openLong} index={0} />,
+    );
+
+    const logo = getByTestId('perps-token-logo-kPEPE');
+    expect(logo.props.recyclingKey).toBe('kPEPE');
+    expect(logo.props.symbol).toBe('kPEPE');
+    expect(logo.props.size).toBe(32);
   });
 
   it('gives liquidation, stop-loss, and neutral close titles distinct colors', () => {

@@ -1396,6 +1396,31 @@ describe('useMoneyAccountCardLinkage', () => {
       });
     });
 
+    it('fails closed when revoking but the current primary Money Account is not delegated', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: false }));
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '0',
+        });
+      });
+
+      expect(returned).toBe(false);
+      expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+        entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+        reason: CardLinkingFailureReason.PRECONDITION_FAILED,
+        is_revoke: true,
+      });
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast.mock.calls[0][0]).toMatchObject({
+        labelOptions: [{ label: 'Something went wrong unlinking your card' }],
+      });
+    });
+
     it('still submits the delegation when already delegated (Manage Limit update / revoke path)', async () => {
       applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
       const { result } = renderLinkageHook();
