@@ -45,10 +45,8 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'nftBuy',
     'nftMint',
     'nftSell',
-  ]),
-  [ActivityTypeFilter.BuySell]: new Set<ActivityKind>([
-    'buy',
-    'sell',
+    // Earn/Staking (ETH pooled staking deposit / claim / unstake). Lumped under
+    // Transactions for now — they have no dedicated bucket yet.
     'deposit',
     'claim',
     'unstake',
