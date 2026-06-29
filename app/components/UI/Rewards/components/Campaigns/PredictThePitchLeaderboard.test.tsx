@@ -97,6 +97,53 @@ describe('PredictThePitchLeaderboard', () => {
     expect(getByTestId(`${TEST_IDS.ENTRY_ROW}-100`)).toBeDefined();
   });
 
+  it('shows pending tag on current user row when not eligible', () => {
+    const { getByTestId } = render(
+      <PredictThePitchLeaderboard
+        entries={[
+          createEntry({ rank: 1, referralCode: 'OTHER' }),
+          createEntry({ rank: 2, referralCode: 'ME' }),
+        ]}
+        isLoading={false}
+        hasError={false}
+        currentUserReferralCode="ME"
+        isCurrentUserEligible={false}
+      />,
+    );
+
+    expect(getByTestId(TEST_IDS.PENDING_TAG)).toBeDefined();
+  });
+
+  it('does not show pending tag when current user is eligible', () => {
+    const { queryByTestId } = render(
+      <PredictThePitchLeaderboard
+        entries={[
+          createEntry({ rank: 1, referralCode: 'OTHER' }),
+          createEntry({ rank: 2, referralCode: 'ME' }),
+        ]}
+        isLoading={false}
+        hasError={false}
+        currentUserReferralCode="ME"
+        isCurrentUserEligible
+      />,
+    );
+
+    expect(queryByTestId(TEST_IDS.PENDING_TAG)).toBeNull();
+  });
+
+  it('does not show pending tag when isCurrentUserEligible is not provided', () => {
+    const { queryByTestId } = render(
+      <PredictThePitchLeaderboard
+        entries={[createEntry({ rank: 1, referralCode: 'ME' })]}
+        isLoading={false}
+        hasError={false}
+        currentUserReferralCode="ME"
+      />,
+    );
+
+    expect(queryByTestId(TEST_IDS.PENDING_TAG)).toBeNull();
+  });
+
   it('renders loading and error states', () => {
     const { getByTestId, rerender } = render(
       <PredictThePitchLeaderboard entries={[]} isLoading hasError={false} />,

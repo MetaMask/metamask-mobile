@@ -30,7 +30,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { CommonActions } from '@react-navigation/native';
@@ -123,7 +123,7 @@ const ManualBackupStep2 = ({
         }
       }
       trackOnboarding(
-        MetricsEventBuilder.createEventBuilder(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.WALLET_SECURITY_PHRASE_CONFIRMED,
         ).build(),
         saveOnboardingEvent,
@@ -383,7 +383,7 @@ const ManualBackupStep2 = ({
     const isSuccess = validateWords();
     if (isSuccess) {
       trackOnboarding(
-        MetricsEventBuilder.createEventBuilder(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.WALLET_SECURITY_COMPLETED,
         ).build(),
         saveOnboardingEvent,

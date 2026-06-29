@@ -48,6 +48,8 @@ import TagColored, {
 } from '../../../../../component-library/components-temp/TagColored';
 // import { renderShortAddress } from '../../../../../util/address';
 import { isHardwareAccount } from '../../../../../util/address';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { trackBlockExplorerLinkClicked } from '../../../../../util/analytics/externalLinkTracking';
 import { isTransactionMarkedAsGasFeeSponsored } from '../../../../Views/confirmations/utils/transaction';
 
 const styles = StyleSheet.create({
@@ -184,6 +186,7 @@ export const BridgeTransactionDetails = (
   props: BridgeTransactionDetailsProps,
 ) => {
   const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const evmTxMeta = props.route.params.evmTxMeta;
   const multiChainTx = props.route.params.multiChainTx;
@@ -450,6 +453,13 @@ export const BridgeTransactionDetails = (
             onPress={() => {
               // For swaps, go directly to block explorer web view
               if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
+                trackBlockExplorerLinkClicked(trackEvent, createEventBuilder, {
+                  location: 'bridge_transaction_details',
+                  text: strings(
+                    'bridge_transaction_details.view_on_block_explorer',
+                  ),
+                  url: swapSrcExplorerData.explorerTxUrl,
+                });
                 navigation.navigate(Routes.WEBVIEW.MAIN, {
                   screen: Routes.WEBVIEW.SIMPLE,
                   params: {

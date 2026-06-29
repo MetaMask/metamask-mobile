@@ -118,6 +118,27 @@ export const getPredictFeedSelector = {
   marketList: (category: string) => `predict-market-list-${category}`,
 };
 
+// ========================================
+// PREDICT FEED VIEW (GENERIC, CONFIG-DRIVEN) SELECTORS
+// ========================================
+
+export const PredictFeedViewSelectorsIDs = {
+  CONTAINER: 'predict-feed-view-container',
+  HEADER: 'predict-feed-view-header',
+  TABS: 'predict-feed-view-tabs',
+  FILTERS: 'predict-feed-view-filters',
+  MARKET_LIST: 'predict-feed-view-market-list',
+  EMPTY_STATE: 'predict-feed-view-empty-state',
+  ERROR_STATE: 'predict-feed-view-error-state',
+} as const;
+
+export const getPredictFeedViewSelector = {
+  marketCard: (index: number) => `predict-feed-view-market-card-${index}`,
+  skeleton: (index: number) => `predict-feed-view-skeleton-${index}`,
+  skeletonFooter: (index: number) =>
+    `predict-feed-view-skeleton-footer-${index}`,
+};
+
 // PredictFeed unit test mock selectors (used by PredictFeed.test.tsx mocks)
 export const PredictFeedMockSelectorsIDs = {
   PAGER_VIEW: 'pager-view-mock',

@@ -28,6 +28,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
+import useMountEffect from '../../hooks/useMountEffect';
+import { COMPONENT_NAMES, SCREEN_NAMES } from '../../constants/moneyEvents';
+import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
 const localStyles = StyleSheet.create({
   safeArea: { flex: 1 },
@@ -122,6 +125,13 @@ const MoneyHowItWorksView = () => {
   const { colors: themeColors } = useTheme();
   const { apyPercent } = useMoneyAccountBalance();
   const percentage = apyPercent ?? FALLBACK_APY;
+
+  const { trackScreenViewed } = useMoneyAnalytics({
+    screen_name: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
+  });
+
+  useMountEffect(trackScreenViewed);
+
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);

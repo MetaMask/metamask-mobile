@@ -1,27 +1,28 @@
 import { WalletActionsBottomSheetSelectorsIDs } from '../../../app/components/Views/WalletActions/WalletActionsBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { EncapsulatedElementType } from '../../framework';
 
 class FundActionMenu {
-  get depositButton(): DetoxElement {
+  get depositButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.DEPOSIT_BUTTON,
     );
   }
 
-  get buyButton(): DetoxElement {
+  get buyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.BUY_BUTTON,
     );
   }
 
-  get unifiedBuyButton(): DetoxElement {
+  get unifiedBuyButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.BUY_UNIFIED_BUTTON,
     );
   }
 
-  get sellButton(): DetoxElement {
+  get sellButton(): EncapsulatedElementType {
     return Matchers.getElementByID(
       WalletActionsBottomSheetSelectorsIDs.SELL_BUTTON,
     );

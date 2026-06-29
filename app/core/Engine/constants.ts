@@ -16,6 +16,7 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'AccountActivityService',
   'OHLCVService',
   'MultichainAccountService',
+  'SnapAccountService',
   'GeolocationApiService',
   'ProfileMetricsService',
   'RampsService',

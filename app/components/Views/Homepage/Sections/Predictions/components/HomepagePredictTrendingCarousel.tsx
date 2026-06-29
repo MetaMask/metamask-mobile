@@ -1,8 +1,11 @@
 import React, { useCallback } from 'react';
 import { ScrollView } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
-import SectionHeader from '../../../../../../component-library/components-temp/SectionHeader';
+import {
+  Box,
+  SectionDivider,
+  SectionHeader,
+} from '@metamask/design-system-react-native';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../../Wallet/WalletView.testIds';
 import type { PredictMarket } from '../../../../../UI/Predict/types';
@@ -44,16 +47,18 @@ const HomepagePredictTrendingCarousel = ({
   }, [onViewAll, transactionActiveAbTests]);
 
   return (
-    <Box gap={3}>
+    <>
+      <SectionDivider />
       <SectionHeader
         title={title}
+        isInteractive
         onPress={handleViewAll}
         testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(headerTestIdKey)}
       />
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={tw.style('px-4 gap-3 py-3')}
+        contentContainerStyle={tw.style('px-4 gap-3')}
       >
         {isLoadingMarkets ? (
           CAROUSEL_SKELETON_KEYS.map((key) => (
@@ -75,7 +80,7 @@ const HomepagePredictTrendingCarousel = ({
           </>
         )}
       </ScrollView>
-    </Box>
+    </>
   );
 };
 

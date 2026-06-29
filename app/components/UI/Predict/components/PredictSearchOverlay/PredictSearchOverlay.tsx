@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -19,6 +19,7 @@ import PredictMarket from '../PredictMarket';
 import PredictMarketSkeleton from '../PredictMarketSkeleton';
 import PredictOffline from '../PredictOffline';
 import { strings } from '../../../../../../locales/i18n';
+import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import HeaderSearch, {
   HeaderSearchVariant,
@@ -36,6 +37,10 @@ export interface PredictSearchOverlayProps {
   onSearchChange: (query: string) => void;
   onClose: () => void;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  /** Active feed tab when search was opened (omitted on the tab-less home). */
+  predictFeedTab?: string;
+  /** How the user entered the surface where search was opened. */
+  entryPoint?: string;
 }
 
 const SEARCH_DEBOUNCE_MS = 200;
@@ -53,6 +58,8 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   onSearchChange,
   onClose,
   transactionActiveAbTests,
+  predictFeedTab,
+  entryPoint,
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -66,17 +73,72 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
   const refine = upDownEnabled ? deduplicateSeriesMarkets : undefined;
 
-  const { marketData, isFetching, error, refetch } = usePredictSearchMarketData(
-    {
+  const { marketData, totalResults, isFetching, error, refetch } =
+    usePredictSearchMarketData({
       q: debouncedSearchQuery,
       pageSize: 20,
       refine,
       enabled: isVisible,
-    },
-  );
+    });
 
   const isSearchLoading = isDebouncing || isFetching;
   const hasSearchQuery = debouncedSearchQuery.trim().length > 0;
+
+  // Fire `queried` once per resolved (non-empty) query — i.e. after debounce
+  // settles and the fetch completes without error. The ref guards against
+  // re-firing for the same query when `marketData` re-renders, but clearing the
+  // live input resets the guard immediately so the same term can be tracked if
+  // the user searches again without closing the overlay.
+  const lastTrackedQueryRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      lastTrackedQueryRef.current = null;
+    }
+  }, [searchQuery]);
+
+  useEffect(() => {
+    if (!isVisible) {
+      lastTrackedQueryRef.current = null;
+      return;
+    }
+    const q = debouncedSearchQuery.trim();
+    if (!q || isSearchLoading || error || lastTrackedQueryRef.current === q) {
+      return;
+    }
+    lastTrackedQueryRef.current = q;
+    Engine.context.PredictController.trackSearchInteracted({
+      interactionType: PredictEventValues.SEARCH_INTERACTION.QUERIED,
+      predictFeedTab,
+      entryPoint,
+      searchQuery: q,
+      // Report the server's total match count, not the visible page length.
+      // `marketData` is capped at `pageSize` and post-dedup, so it undercounts
+      // any query matching more results than the first page holds.
+      resultsCount: totalResults,
+    });
+  }, [
+    isVisible,
+    debouncedSearchQuery,
+    isSearchLoading,
+    error,
+    totalResults,
+    predictFeedTab,
+    entryPoint,
+  ]);
+
+  const handleResultPress = useCallback(
+    (market: PredictMarketType) => {
+      Engine.context.PredictController.trackSearchInteracted({
+        interactionType: PredictEventValues.SEARCH_INTERACTION.RESULT_CLICKED,
+        predictFeedTab,
+        entryPoint,
+        searchQuery: debouncedSearchQuery.trim(),
+        marketId: market.id,
+        marketTitle: market.title,
+      });
+    },
+    [predictFeedTab, entryPoint, debouncedSearchQuery],
+  );
 
   const renderItem = useCallback(
     (info: { item: PredictMarketType; index: number }) => (
@@ -84,10 +146,12 @@ const PredictSearchOverlay: React.FC<PredictSearchOverlayProps> = ({
         market={info.item}
         entryPoint={PredictEventValues.ENTRY_POINT.SEARCH}
         testID={getPredictSearchSelector.resultCard(info.index)}
+        predictFeedTab={predictFeedTab}
         transactionActiveAbTests={transactionActiveAbTests}
+        onCardPress={() => handleResultPress(info.item)}
       />
     ),
-    [transactionActiveAbTests],
+    [predictFeedTab, transactionActiveAbTests, handleResultPress],
   );
 
   const keyExtractor = useCallback((item: PredictMarketType) => item.id, []);

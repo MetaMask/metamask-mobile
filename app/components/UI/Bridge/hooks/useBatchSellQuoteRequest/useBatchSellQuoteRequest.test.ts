@@ -1,6 +1,8 @@
 import { act } from '@testing-library/react-native';
 import { CaipAssetType, Hex } from '@metamask/utils';
 
+import { FeatureId } from '@metamask/bridge-controller';
+
 import Engine from '../../../../../core/Engine';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { createBridgeTestState } from '../../testUtils';
@@ -212,6 +214,7 @@ describe('useBatchSellQuoteRequest', () => {
           token_symbol_destination: 'USDC',
           token_security_type_destination: null,
           usd_amount_source: 1500,
+          feature_id: FeatureId.BATCH_SELL,
         }),
       }),
     ]);
@@ -293,6 +296,7 @@ describe('useBatchSellQuoteRequest', () => {
         token_symbol_destination: 'USDC',
         token_security_type_destination: null,
         usd_amount_source: 1500,
+        feature_id: FeatureId.BATCH_SELL,
       }),
     );
     expect(
@@ -304,6 +308,7 @@ describe('useBatchSellQuoteRequest', () => {
         token_symbol_destination: 'USDC',
         token_security_type_destination: null,
         usd_amount_source: 250,
+        feature_id: FeatureId.BATCH_SELL,
       }),
     );
   });

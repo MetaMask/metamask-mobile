@@ -15,7 +15,7 @@ import UnifiedGestures from '../../framework/UnifiedGestures';
 import { PlaywrightGestures } from '../../framework';
 
 class MetaMetricsOptIn {
-  get container(): DetoxElement {
+  get container(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MetaMetricsOptInSelectorsIDs.METAMETRICS_OPT_IN_CONTAINER_ID,
     );
@@ -37,7 +37,7 @@ class MetaMetricsOptIn {
     });
   }
 
-  get optInMetricsContent(): DetoxElement {
+  get optInMetricsContent(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
     );
@@ -59,7 +59,7 @@ class MetaMetricsOptIn {
     });
   }
 
-  get metricsCheckbox(): DetoxElement {
+  get metricsCheckbox(): EncapsulatedElementType {
     return Matchers.getElementByID(
       MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_METRICS_CHECKBOX,
     );
