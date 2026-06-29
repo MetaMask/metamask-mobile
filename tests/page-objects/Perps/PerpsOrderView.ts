@@ -10,7 +10,6 @@ import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
-  PerpsMarketDetailsViewSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import {
   asDetoxElement,
@@ -113,11 +112,11 @@ class PerpsOrderView {
   async tapTakeProfitButton() {
     await Gestures.scrollToElement(
       this.takeProfitButton,
-      Matchers.scrollContainer(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      Matchers.scrollContainer(PerpsOrderViewSelectorsIDs.SCROLL_VIEW),
       {
         direction: 'down',
         scrollAmount: 250,
-        elemDescription: 'Scroll Perps market details to TP/SL row',
+        elemDescription: 'Scroll Perps order view to TP/SL row',
       },
     );
     await Gestures.waitAndTap(this.takeProfitButton, {
@@ -238,22 +237,6 @@ class PerpsOrderView {
     return Matchers.getElementByID(testId);
   }
 
-  private getTpslPriceInput(
-    inputTestId:
-      | typeof PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT
-      | typeof PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
-  ): EncapsulatedElementType {
-    return Matchers.getElementByID(inputTestId);
-  }
-
-  private get tpslSetButton(): EncapsulatedElementType {
-    return Matchers.getElementByID(PerpsTPSLViewSelectorsIDs.SET_BUTTON);
-  }
-
-  private get tpslAutoCloseTitle(): EncapsulatedElementType {
-    return Matchers.getElementByText('Auto close');
-  }
-
   // Required for next test
   async setAmountUSD(amount: string): Promise<void> {
     await encapsulatedAction({
@@ -371,21 +354,51 @@ class PerpsOrderView {
       | typeof PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
     focusInputElemDescription: string,
   ): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.tpslAutoCloseTitle, {
-      description: 'TPSL Auto close screen visible',
-      timeout: 15000,
-    });
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByText('Auto close'),
+      {
+        description: 'TPSL Auto close screen visible',
+        timeout: 15000,
+      },
+    );
 
-    const input = this.getTpslPriceInput(inputTestId);
+    const input = Matchers.getElementByID(inputTestId);
 
-    await UnifiedGestures.waitAndTap(input, {
-      description: focusInputElemDescription,
-      checkForDisplayed: true,
-      checkForEnabled: false,
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        await UnifiedGestures.waitAndTap(input, {
+          description: focusInputElemDescription,
+          checkForDisplayed: true,
+          checkForEnabled: false,
+        });
+        await Assertions.expectElementToBeVisible(
+          this.getTpslKeypadKey(price[0] ?? '2'),
+          {
+            description: 'TPSL keypad visible',
+            timeout: 5000,
+          },
+        );
+      },
+      {
+        timeout: 20000,
+        interval: 1000,
+        description: 'Open TPSL keypad',
+        elemDescription: focusInputElemDescription,
+      },
+    );
 
     for (const ch of price) {
-      await UnifiedGestures.waitAndTap(this.getTpslKeypadKey(ch), {
+      const keypadKey = this.getTpslKeypadKey(ch);
+
+      if (!(await Utilities.isElementVisible(keypadKey, 1500))) {
+        await UnifiedGestures.waitAndTap(input, {
+          description: `${focusInputElemDescription} (refocus keypad)`,
+          checkForDisplayed: true,
+          checkForEnabled: false,
+        });
+      }
+
+      await UnifiedGestures.waitAndTap(keypadKey, {
         description: `TPSL keypad key ${ch}`,
         checkForDisplayed: true,
         checkForEnabled: false,
@@ -397,11 +410,14 @@ class PerpsOrderView {
       checkForDisplayed: true,
       checkForEnabled: false,
     });
-    await UnifiedGestures.waitAndTap(this.tpslSetButton, {
-      description: 'Confirm TP/SL (Set)',
-      checkForDisplayed: true,
-      checkForEnabled: true,
-    });
+    await UnifiedGestures.waitAndTap(
+      Matchers.getElementByID(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
+      {
+        description: 'Confirm TP/SL (Set)',
+        checkForDisplayed: true,
+        checkForEnabled: true,
+      },
+    );
   }
 
   /**

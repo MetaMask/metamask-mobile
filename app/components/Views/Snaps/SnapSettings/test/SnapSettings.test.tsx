@@ -203,21 +203,27 @@ const mockSnap = {
   ],
 };
 
+jest.mock('../../../../../core/SnapKeyring/utils/getAccountsBySnapId', () => {
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  const { MOCK_ADDRESS_1, MOCK_ADDRESS_2 } = jest.requireActual(
+    '../../../../../util/test/accountsControllerTestUtils',
+  );
+  return {
+    getAccountsBySnapId: jest
+      .fn()
+      .mockResolvedValue([
+        MOCK_ADDRESS_1.toLowerCase(),
+        MOCK_ADDRESS_2.toLowerCase(),
+      ]),
+  };
+});
+
 jest.mock('../../../../../core/Engine', () => {
   // eslint-disable-next-line @typescript-eslint/no-shadow
   const { MOCK_ADDRESS_1, MOCK_ADDRESS_2 } = jest.requireActual(
     '../../../../../util/test/accountsControllerTestUtils',
   );
   return {
-    getSnapKeyring: jest.fn().mockReturnValue({
-      type: 'Snap Keyring',
-      getAccountsBySnapId: jest
-        .fn()
-        .mockReturnValue([
-          MOCK_ADDRESS_1.toLowerCase(),
-          MOCK_ADDRESS_2.toLowerCase(),
-        ]),
-    }),
     removeAccount: jest.fn(),
     context: {
       KeyringController: {

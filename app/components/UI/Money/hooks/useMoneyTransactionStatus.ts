@@ -233,7 +233,7 @@ export const useMoneyTransactionStatus = () => {
       if (!reserveToastKey(transactionMeta.id, CONFIRMED_KEY)) return;
 
       if (isSend) {
-        const fiat = Number(transactionMeta.metamaskPay?.totalFiat);
+        const fiat = Number(transactionMeta.metamaskPay?.targetFiat);
         const amountFiat =
           !Number.isNaN(fiat) && fiat > 0
             ? moneyFormatFiat(

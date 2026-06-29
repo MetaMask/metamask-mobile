@@ -31,6 +31,7 @@
   },
   "AnalyticsController": {
     "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
+    "consentDecisionMade": false,
     "optedIn": false
   },
   "GatorPermissionsController": {
@@ -575,6 +576,7 @@
   },
   "ProfileMetricsController": {
     "initialEnqueueCompleted": false,
+    "proofBackfillEnqueued": false,
     "syncQueue": {}
   },
   "UserStorageController": {
@@ -672,6 +674,7 @@
     "assetExchangeRates": {},
     "batchSellTrades": null,
     "batchSellTradesLoadingStatus": null,
+    "inputPrimaryDenomination": "token_amount",
     "minimumBalanceForRentExemptionInLamports": "0",
     "quoteFetchError": null,
     "quoteRequest": [
@@ -685,8 +688,10 @@
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
     "quoteStreamComplete": null,
+    "inputPrimaryDenomination": "token_amount",
     "tokenSecurityTypeDestination": null,
-    "tokenWarnings": []
+    "tokenWarnings": [],
+    "inputPrimaryDenomination": "token_amount"
   },
   "BridgeStatusController": {
     "txHistory": {}
@@ -699,7 +704,8 @@
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {},
-    "moneyAccountCardLinkInProgress": false
+    "moneyAccountCardLinkInProgress": false,
+    "lastUnauthenticatedReason": null
   },
   "ClientController": {
     "isUiOpen": false
