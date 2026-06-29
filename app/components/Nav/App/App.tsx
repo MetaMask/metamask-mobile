@@ -33,11 +33,15 @@ import { getVersion } from 'react-native-device-info';
 import { Authentication } from '../../../core/';
 import { colors as importedColors } from '../../../styles/common';
 import Routes from '../../../constants/navigation/Routes';
-import { clearNativeStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
+import {
+  clearNativeStackNavigatorOptions,
+  slideFromRightNativeOptions,
+} from '../../../constants/navigation/clearStackNavigatorOptions';
 import ModalConfirmation from '../../../component-library/components/Modals/ModalConfirmation';
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
+import AgentStepHud from '../../../dev-tools/AgenticService/AgentStepHud';
 import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
@@ -104,7 +108,6 @@ import OnboardingSecuritySettings from '../../Views/OnboardingSuccess/Onboarding
 import BasicFunctionalityModal from '../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
 import PermittedNetworksInfoSheet from '../../Views/AccountPermissions/PermittedNetworksInfoSheet/PermittedNetworksInfoSheet';
 import NFTAutoDetectionModal from '../../../../app/components/Views/NFTAutoDetectionModal/NFTAutoDetectionModal';
-import WhatsNewModal from '../../UI/WhatsNewModal';
 import NftOptions from '../../../components/Views/NftOptions';
 import ShowTokenIdSheet from '../../../components/Views/ShowTokenIdSheet';
 import OriginSpamModal from '../../Views/OriginSpamModal/OriginSpamModal';
@@ -119,8 +122,11 @@ import { endTrace, TraceName } from '../../../util/trace';
 import { selectExistingUser } from '../../../reducers/user/selectors';
 import { useTheme } from '../../../util/theme';
 import { Confirm } from '../../Views/confirmations/components/confirm';
+import { HardwareWalletsSwaps } from '../../UI/HardwareWallet/Swaps/HardwareWalletsSwaps';
+import { HwQrScanner } from '../../UI/HardwareWallet/Swaps/HwQrScanner';
 import ImportNewSecretRecoveryPhrase from '../../Views/ImportNewSecretRecoveryPhrase';
 import { SelectSRPBottomSheet } from '../../Views/SelectSRP/SelectSRPBottomSheet';
+import VerificationCodeBottomSheet from '../../Views/AddDeviceToWallet/VerificationCodeBottomSheet';
 import AccountStatus from '../../Views/AccountStatus';
 import OnboardingSheet from '../../Views/OnboardingSheet';
 import SeedphraseModal from '../../UI/SeedphraseModal';
@@ -129,6 +135,7 @@ import SuccessErrorSheet from '../../Views/SuccessErrorSheet';
 import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBackupAndSyncModal/ConfirmTurnOnBackupAndSyncModal';
 import EligibilityFailedModal from '../../UI/Ramp/components/EligibilityFailedModal';
 import RampUnsupportedModal from '../../UI/Ramp/components/RampUnsupportedModal';
+import RampsServiceDisruptionModal from '../../UI/Ramp/components/RampsServiceDisruptionModal';
 import RampsBootstrap from '../../UI/Ramp/RampsBootstrap';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
@@ -163,6 +170,7 @@ import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDet
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
 import { AccessRestrictedProvider } from '../../UI/Compliance';
+import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
 
 const NativeStack = createNativeStackNavigator();
 
@@ -170,11 +178,25 @@ const accountSelectorTransitionOptions: NativeStackNavigationOptions = {
   animation: 'slide_from_right',
 };
 
+const tradeWalletActionsRootModalOptions: NativeStackNavigationOptions = {
+  presentation: 'containedTransparentModal',
+  animation: 'none',
+  contentStyle: { backgroundColor: importedColors.transparent },
+  gestureEnabled: false,
+};
+
 const isAccountSelectorRootModalRoute = (params: object | undefined) =>
   Boolean(
     params &&
       'screen' in params &&
       params.screen === Routes.SHEET.ACCOUNT_SELECTOR,
+  );
+
+const isTradeWalletActionsRootModalRoute = (params: object | undefined) =>
+  Boolean(
+    params &&
+      'screen' in params &&
+      params.screen === Routes.MODAL.TRADE_WALLET_ACTIONS,
   );
 
 // Type helper for screen components that use v5 pattern of requiring route props
@@ -295,6 +317,11 @@ const OnboardingNav = () => {
       <NativeStack.Screen
         name={Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE}
         component={ImportFromSecretRecoveryPhrase}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+        component={AddDeviceToWallet}
         options={{ headerShown: false }}
       />
       <NativeStack.Screen
@@ -493,6 +520,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       component={RampUnsupportedModal}
     />
     <NativeStack.Screen
+      name={Routes.SHEET.RAMPS_SERVICE_DISRUPTION_MODAL}
+      component={RampsServiceDisruptionModal}
+    />
+    <NativeStack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
       options={accountSelectorTransitionOptions}
@@ -599,6 +630,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
       />
     }
     <NativeStack.Screen
+      name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
+      component={VerificationCodeBottomSheet}
+    />
+    <NativeStack.Screen
       name={Routes.MODAL.SRP_REVEAL_QUIZ}
       component={SRPQuiz}
       initialParams={{ ...props.route.params }}
@@ -622,10 +657,6 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <NativeStack.Screen
       name={Routes.MODAL.NFT_AUTO_DETECTION_MODAL}
       component={NFTAutoDetectionModal}
-    />
-    <NativeStack.Screen
-      name={Routes.MODAL.WHATS_NEW}
-      component={WhatsNewModal}
     />
     {isNetworkUiRedesignEnabled() ? (
       <NativeStack.Screen
@@ -1035,11 +1066,19 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.MODAL.ROOT_MODAL_FLOW}
         component={RootModalFlow as ScreenComponent}
-        options={({ route }) =>
-          isAccountSelectorRootModalRoute(route.params)
-            ? accountSelectorTransitionOptions
-            : {}
-        }
+        options={({ route }) => {
+          if (isAccountSelectorRootModalRoute(route.params)) {
+            return accountSelectorTransitionOptions;
+          }
+          if (isTradeWalletActionsRootModalRoute(route.params)) {
+            return tradeWalletActionsRootModalOptions;
+          }
+          return {
+            presentation: 'transparentModal',
+            animation: 'none',
+            contentStyle: { backgroundColor: importedColors.transparent },
+          };
+        }}
       />
       <NativeStack.Screen
         name={Routes.IMPORT_PRIVATE_KEY_VIEW}
@@ -1067,6 +1106,11 @@ const AppFlow = () => {
       <NativeStack.Screen
         name={Routes.HW.CONNECT}
         component={ConnectHardwareWalletFlow}
+      />
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}
+        component={AddDeviceToWallet}
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ACCOUNT_DETAILS}
@@ -1099,7 +1143,8 @@ const AppFlow = () => {
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
         component={MultichainAddressList}
         options={{
-          animation: 'slide_from_right',
+          ...slideFromRightNativeOptions,
+          presentation: 'card',
           contentStyle: { backgroundColor: colors.background.default },
         }}
       />
@@ -1172,6 +1217,22 @@ const AppFlow = () => {
           contentStyle: { backgroundColor: importedColors.transparent },
         }}
         component={Confirm}
+      />
+
+      {/* HW signing progress — 2nd registration (1st is in Bridge/routes.tsx)
+          so the send origin can reach it in the main modal stack. Same route
+          constant + same component; `flow` route param selects send vs bridge
+          behavior. React Navigation resolves within the active stack, so
+          `goBack()` from send lands on send confirm; bridge is unaffected. */}
+      <NativeStack.Screen
+        name={Routes.BRIDGE.HARDWARE_WALLETS_SWAPS}
+        component={HardwareWalletsSwaps}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
+        name={Routes.BRIDGE.HW_QR_SCANNER}
+        component={HwQrScanner}
+        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.CONFIRMATION_SWITCH_ACCOUNT_TYPE}
@@ -1303,6 +1364,7 @@ const App: React.FC = () => {
         <AppFlow />
         <Toast ref={toastRef} />
         <PerpsWebSocketHealthToast />
+        {__DEV__ && <AgentStepHud />}
         <ControllerEventToastBridge registrations={toastRegistrations} />
         <ProfilerManager />
       </WebSocketHealthToastProvider>
