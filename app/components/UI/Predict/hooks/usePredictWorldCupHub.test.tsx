@@ -26,7 +26,7 @@ jest.mock('../utils/feed', () => ({
 }));
 
 jest.mock('../utils/marketStaleness', () => ({
-  getVisiblePredictMarkets: (markets: PredictMarket[]) => markets,
+  getVisiblePredictMarkets: jest.fn((markets: PredictMarket[]) => markets),
 }));
 
 const createMarket = (overrides: Partial<PredictMarket> = {}): PredictMarket =>
@@ -279,11 +279,13 @@ describe('usePredictWorldCupGamesSections', () => {
       nextCursor: null,
     });
 
-    // Simulate the visibility filter stripping the ongoing market (e.g. stale child market).
+    // Simulate the visibility filter stripping the ongoing market for all
+    // renders of this test (mockReturnValueOnce would be consumed on the
+    // initial render before query data arrives).
     const { getVisiblePredictMarkets } = jest.requireMock(
       '../utils/marketStaleness',
     ) as { getVisiblePredictMarkets: jest.Mock };
-    getVisiblePredictMarkets.mockReturnValueOnce([]);
+    getVisiblePredictMarkets.mockReturnValue([]);
 
     const { result } = renderHook(
       () =>
@@ -297,6 +299,11 @@ describe('usePredictWorldCupGamesSections', () => {
     await waitFor(() => expect(result.current.isFetching).toBe(false));
 
     expect(result.current.isLive).toBe(false);
+
+    // Restore pass-through so subsequent tests are unaffected.
+    getVisiblePredictMarkets.mockImplementation(
+      (markets: PredictMarket[]) => markets,
+    );
   });
 
   it('returns null error by default', () => {
