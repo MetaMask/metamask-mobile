@@ -1154,7 +1154,7 @@ describe('MoneyHomeView', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.POTENTIAL_EARNINGS);
   });
 
-  it('opens the Money landing URL when learn more is pressed in unfunded state', () => {
+  it('opens the Money landing URL in the in-app browser when learn more is pressed in unfunded state', () => {
     const mockOpenURL = jest
       .spyOn(Linking, 'openURL')
       .mockResolvedValue(undefined);
@@ -1184,8 +1184,14 @@ describe('MoneyHomeView', () => {
 
     fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
 
-    expect(mockOpenURL).toHaveBeenCalledTimes(1);
-    expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MONEY_LANDING);
+    expect(mockOpenURL).not.toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+      screen: Routes.BROWSER.VIEW,
+      params: {
+        newTabUrl: AppConstants.URLS.MONEY_LANDING,
+        timestamp: expect.any(Number),
+      },
+    });
     mockOpenURL.mockRestore();
   });
 
@@ -1370,7 +1376,7 @@ describe('MoneyHomeView', () => {
       mockOpenURL.mockRestore();
     });
 
-    it('opens the Money landing URL when the condensed What you get card is pressed', () => {
+    it('opens the Money landing URL in the in-app browser when the condensed What you get card is pressed', () => {
       const mockOpenURL = jest
         .spyOn(Linking, 'openURL')
         .mockResolvedValue(undefined);
@@ -1381,7 +1387,16 @@ describe('MoneyHomeView', () => {
         getByTestId(MoneyCondensedInfoCardsTestIds.WHAT_YOU_GET_CARD),
       );
 
-      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MONEY_LANDING);
+      expect(mockOpenURL).not.toHaveBeenCalledWith(
+        AppConstants.URLS.MONEY_LANDING,
+      );
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: AppConstants.URLS.MONEY_LANDING,
+          timestamp: expect.any(Number),
+        },
+      });
       mockOpenURL.mockRestore();
     });
 
@@ -1725,7 +1740,7 @@ describe('MoneyHomeView', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.HOW_IT_WORKS);
     });
 
-    it('opens the Money landing URL when Learn more is pressed', () => {
+    it('opens the Money landing URL in the in-app browser when Learn more is pressed', () => {
       const mockOpenURL = jest
         .spyOn(Linking, 'openURL')
         .mockResolvedValue(undefined);
@@ -1733,7 +1748,14 @@ describe('MoneyHomeView', () => {
 
       fireEvent.press(getByTestId(MoneyWhatYouGetTestIds.LEARN_MORE_BUTTON));
 
-      expect(mockOpenURL).toHaveBeenCalledWith(AppConstants.URLS.MONEY_LANDING);
+      expect(mockOpenURL).not.toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.BROWSER.HOME, {
+        screen: Routes.BROWSER.VIEW,
+        params: {
+          newTabUrl: AppConstants.URLS.MONEY_LANDING,
+          timestamp: expect.any(Number),
+        },
+      });
       mockOpenURL.mockRestore();
     });
   });
