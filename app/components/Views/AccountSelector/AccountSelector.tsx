@@ -144,16 +144,24 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     }
   }, [dispatch, reloadAccounts]);
 
-  // Tracing for the account list: start at layout flush, end after paint (useEffect).
+  // Tracing for the account list: start at layout flush, end after paint (the
+  // `useEffect` below). The `useLayoutEffect` cleanup is a leak-safety fallback
+  // that ends the span if the sheet unmounts before the passive effect runs;
+  // `endTrace` is idempotent, so the normal path only records one span.
   useLayoutEffect(() => {
     if (!isAccountSelector) {
-      return;
+      return undefined;
     }
     trace({
       name: TraceName.ShowAccountList,
       op: TraceOperation.AccountUi,
       tags: getTraceTags(store.getState()),
     });
+    return () => {
+      endTrace({
+        name: TraceName.ShowAccountList,
+      });
+    };
   }, [isAccountSelector]);
 
   useEffect(() => {
