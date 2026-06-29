@@ -9,8 +9,15 @@ import {
 import { throttle } from 'lodash';
 import { AppThemeKey, Theme } from './models';
 import { useSelector } from 'react-redux';
-import { lightTheme, darkTheme, brandColor } from '@metamask/design-tokens';
+import {
+  lightTheme,
+  resolveDarkTheme,
+  brandColor,
+} from '@metamask/design-tokens';
 import Device from '../device';
+import { isPureBlackEnabled } from './themeUtils';
+
+const resolvedDarkTheme = resolveDarkTheme(isPureBlackEnabled);
 
 /**
  * Darker success green used in light mode for better contrast on charts,
@@ -156,9 +163,9 @@ export const useAppTheme = (): Theme => {
         setLightStatusBar();
         break;
       } else if (osThemeName === AppThemeKey.dark) {
-        colors = darkTheme.colors;
-        typography = darkTheme.typography;
-        shadows = darkTheme.shadows;
+        colors = resolvedDarkTheme.colors;
+        typography = resolvedDarkTheme.typography;
+        shadows = resolvedDarkTheme.shadows;
         setDarkStatusBar();
         break;
       } else {
@@ -176,9 +183,9 @@ export const useAppTheme = (): Theme => {
       setLightStatusBar();
       break;
     case AppThemeKey.dark:
-      colors = darkTheme.colors;
-      typography = darkTheme.typography;
-      shadows = darkTheme.shadows;
+      colors = resolvedDarkTheme.colors;
+      typography = resolvedDarkTheme.typography;
+      shadows = resolvedDarkTheme.shadows;
       setDarkStatusBar();
       break;
     default:
