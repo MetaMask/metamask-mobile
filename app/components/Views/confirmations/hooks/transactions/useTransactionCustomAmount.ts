@@ -284,7 +284,7 @@ function useTokenBalance(tokenUsdRate: number) {
     .multipliedBy(tokenUsdRate)
     .toNumber();
 
-  const { withdrawableMusd, totalFiatRaw } = useMoneyAccountBalance();
+  const { withdrawableMusd, withdrawableFiatRaw } = useMoneyAccountBalance();
 
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
@@ -312,7 +312,7 @@ function useTokenBalance(tokenUsdRate: number) {
   }
 
   if (paymentOverride === PaymentOverride.MoneyAccount) {
-    return totalFiatRaw ? parseFloat(totalFiatRaw) : 0;
+    return withdrawableFiatRaw ? parseFloat(withdrawableFiatRaw) : 0;
   }
 
   return payTokenBalanceUsd;

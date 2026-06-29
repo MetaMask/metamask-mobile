@@ -1,11 +1,5 @@
 import React, { memo, useCallback, useRef, useState } from 'react';
-import {
-  Keyboard,
-  Platform,
-  ScrollView,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { Keyboard, ScrollView, TouchableOpacity, View } from 'react-native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -90,14 +84,6 @@ const PerpsTPSLView: React.FC = () => {
   const takeProfitPercentageRef = useRef<React.ElementRef<typeof Input>>(null);
   const stopLossPriceRef = useRef<React.ElementRef<typeof Input>>(null);
   const stopLossPercentageRef = useRef<React.ElementRef<typeof Input>>(null);
-
-  // Guard: when we programmatically dismiss the native keyboard on iOS,
-  // the TextInput fires onBlur. We store the *specific* input being
-  // dismissed so that only that field's blur is suppressed — other
-  // fields' genuine blurs (e.g. the previously-focused price field when
-  // the user taps the % field) are still delivered to the hook and clear
-  // their focus state correctly.
-  const programmaticDismissInputRef = useRef<string | null>(null);
 
   // Subscribe to real-time price only when we have an asset
   // Use throttle for TP/SL screen to reduce re-renders
@@ -296,23 +282,11 @@ const PerpsTPSLView: React.FC = () => {
     (inputType: string) => {
       setFocusedInput(inputType);
 
-      // showSoftInputOnFocus is Android-only; on iOS the native keyboard
-      // still appears when a TextInput is focused. Dismiss it so that only
-      // the custom keypad is visible and content stays within the viewport.
-      //
-      // We track the specific inputType being dismissed so that only this
-      // field's resulting onBlur is suppressed. Blurs from other fields
-      // (e.g. the previously-focused price field) are not suppressed and
-      // correctly update the hook's focus state.
-      if (Platform.OS === 'ios') {
-        programmaticDismissInputRef.current = inputType;
-        requestAnimationFrame(() => {
-          Keyboard.dismiss();
-          setTimeout(() => {
-            programmaticDismissInputRef.current = null;
-          }, 150);
-        });
-      }
+      // The system keyboard is suppressed via showSoftInputOnFocus={false} on
+      // each Input, which the native iOS implementation honors by swapping in
+      // an empty inputView. The custom keypad is the only keyboard shown and
+      // the native caret stays focused and blinking — no Keyboard.dismiss()
+      // workaround needed.
 
       // Auto-scroll to keep input visible when keypad is active
       if (scrollViewRef.current) {
@@ -360,17 +334,10 @@ const PerpsTPSLView: React.FC = () => {
     ],
   );
 
-  // inputType identifies which field is blurring so we can:
-  // 1. Suppress only the programmatic blur of that specific field (not
-  //    genuinely-blurring fields whose hook blur must run to clear focus state).
-  // 2. Only hide the keypad when the active/focused field is the one blurring
-  //    (prevents hiding the keypad when the user moves focus to another field).
+  // Only hide the keypad when the active/focused field is the one blurring
+  // (prevents hiding the keypad when the user moves focus to another field).
   const handleInputBlur = useCallback(
     (inputType: string) => {
-      // Suppress only the programmatic blur triggered by Keyboard.dismiss()
-      // for this exact input. Other fields' genuine blurs are not suppressed.
-      if (programmaticDismissInputRef.current === inputType) return;
-
       if (inputType === 'takeProfitPrice') {
         handleTakeProfitPriceBlur();
       } else if (inputType === 'takeProfitPercentage') {
@@ -678,14 +645,7 @@ const PerpsTPSLView: React.FC = () => {
                   onFocus={() => {
                     handleInputFocus('takeProfitPrice');
                   }}
-                  onBlur={() => {
-                    if (
-                      programmaticDismissInputRef.current !== 'takeProfitPrice'
-                    ) {
-                      handleTakeProfitPriceBlur();
-                    }
-                    handleInputBlur('takeProfitPrice');
-                  }}
+                  onBlur={() => handleInputBlur('takeProfitPrice')}
                   selectionColor={colors.primary.default}
                   cursorColor={colors.primary.default}
                 />
@@ -716,15 +676,7 @@ const PerpsTPSLView: React.FC = () => {
                   onFocus={() => {
                     handleInputFocus('takeProfitPercentage');
                   }}
-                  onBlur={() => {
-                    if (
-                      programmaticDismissInputRef.current !==
-                      'takeProfitPercentage'
-                    ) {
-                      handleTakeProfitPercentageBlur();
-                    }
-                    handleInputBlur('takeProfitPercentage');
-                  }}
+                  onBlur={() => handleInputBlur('takeProfitPercentage')}
                   selectionColor={colors.primary.default}
                   cursorColor={colors.primary.default}
                 />
@@ -868,14 +820,7 @@ const PerpsTPSLView: React.FC = () => {
                   onFocus={() => {
                     handleInputFocus('stopLossPrice');
                   }}
-                  onBlur={() => {
-                    if (
-                      programmaticDismissInputRef.current !== 'stopLossPrice'
-                    ) {
-                      handleStopLossPriceBlur();
-                    }
-                    handleInputBlur('stopLossPrice');
-                  }}
+                  onBlur={() => handleInputBlur('stopLossPrice')}
                   selectionColor={colors.primary.default}
                   cursorColor={colors.primary.default}
                 />
@@ -906,15 +851,7 @@ const PerpsTPSLView: React.FC = () => {
                   onFocus={() => {
                     handleInputFocus('stopLossPercentage');
                   }}
-                  onBlur={() => {
-                    if (
-                      programmaticDismissInputRef.current !==
-                      'stopLossPercentage'
-                    ) {
-                      handleStopLossPercentageBlur();
-                    }
-                    handleInputBlur('stopLossPercentage');
-                  }}
+                  onBlur={() => handleInputBlur('stopLossPercentage')}
                   selectionColor={colors.primary.default}
                   cursorColor={colors.primary.default}
                 />

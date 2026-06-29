@@ -6,6 +6,7 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   getPerpsRelatedMarketsSelector,
   PerpsMarketDetailsViewSelectorsIDs,
+  PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsRelatedMarketsSelectorsIDs,
 } from '../../Perps.testIds';
@@ -36,9 +37,8 @@ jest.mock('react-native-modal', () => {
     ) : null;
 });
 
-// Mock @consensys/native-ramps-sdk to provide missing enum
-jest.mock('@consensys/native-ramps-sdk', () => ({
-  ...jest.requireActual('@consensys/native-ramps-sdk'),
+jest.mock('../../../Ramp/types/legacyDeposit', () => ({
+  ...jest.requireActual('../../../Ramp/types/legacyDeposit'),
   DepositPaymentMethodDuration: {
     instant: 'instant',
     oneToTwoDays: 'oneToTwoDays',
@@ -341,10 +341,15 @@ jest.mock('../../hooks/stream/usePerpsLiveFills', () => ({
 
 // Mock Engine for REST fallback tests
 const mockGetOrderFills = jest.fn();
+const mockToggleWatchlistMarket = jest.fn();
+const mockGetWatchlistMarkets = jest.fn(() => [] as string[]);
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       getOrderFills: (...args: unknown[]) => mockGetOrderFills(...args),
+      toggleWatchlistMarket: (...args: unknown[]) =>
+        mockToggleWatchlistMarket(...args),
+      getWatchlistMarkets: () => mockGetWatchlistMarkets(),
     },
   },
 }));
@@ -881,6 +886,23 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
     ).toBeOnTheScreen();
+  });
+
+  it('toggles the watchlist via the controller when the favorite button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    fireEvent.press(getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON));
+
+    // The component fires the controller's own optimistic-update/revert toggle
+    // (fire-and-forget) rather than maintaining a separate local optimistic copy.
+    expect(mockToggleWatchlistMarket).toHaveBeenCalledWith('BTC');
   });
 
   it('renders statistics items', () => {

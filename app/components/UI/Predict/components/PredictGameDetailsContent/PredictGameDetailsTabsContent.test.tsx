@@ -381,6 +381,64 @@ describe('PredictGameDetailsTabs', () => {
     });
   });
 
+  describe('enabled, with positions and no extended outcomes (no tab bar)', () => {
+    it.each<[string, PredictPosition[], PredictPosition[]]>([
+      ['active', mockActivePositions, []],
+      ['claimable', [], mockActivePositions],
+    ])(
+      'renders PredictPicks instead of outcomes content when only %s positions exist',
+      (_positionType, activePositions, claimablePositions) => {
+        const market = createMockMarket();
+
+        const { getByTestId, queryByTestId } = render(
+          <PredictGameDetailsTabsContent
+            market={market}
+            activeTab={0}
+            tabs={[{ label: 'Positions', key: 'positions' }]}
+            enabled
+            showTabBar={false}
+            activePositions={activePositions}
+            claimablePositions={claimablePositions}
+            groupMap={emptyGroupMap}
+            activeChipKey=""
+            onBetPress={mockOnBetPress}
+          />,
+        );
+
+        const picks = getByTestId(
+          PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_PICK,
+        );
+
+        expect(picks).toBeOnTheScreen();
+        expect(picks.props.accessibilityHint).toBe('marketId:test-market-id');
+        expect(
+          queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT),
+        ).not.toBeOnTheScreen();
+      },
+    );
+
+    it('renders the "Your picks" title', () => {
+      const market = createMockMarket();
+
+      const { getByText } = render(
+        <PredictGameDetailsTabsContent
+          market={market}
+          activeTab={0}
+          tabs={[{ label: 'Positions', key: 'positions' }]}
+          enabled
+          showTabBar={false}
+          activePositions={mockActivePositions}
+          claimablePositions={[]}
+          groupMap={emptyGroupMap}
+          activeChipKey=""
+          onBetPress={mockOnBetPress}
+        />,
+      );
+
+      expect(getByText('predict.market_details.your_picks')).toBeOnTheScreen();
+    });
+  });
+
   describe('enabled, with positions (tab bar)', () => {
     it('renders PredictPicks when active tab key is positions', () => {
       const market = createMockMarket();

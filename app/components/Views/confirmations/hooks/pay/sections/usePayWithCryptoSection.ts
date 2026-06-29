@@ -126,7 +126,17 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     TransactionType.predictDeposit,
   ]);
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
-  const shouldShowNoFeeTokens = !isWithdraw;
+  const isMoneyWithdraw = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountWithdraw,
+  ]);
+  const isMoneyDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+  // No-fee tokens only apply to Money Account flows (not perps/predict). The
+  // dedicated no-fee suggestion row is deposit-only; per-row tags also show on
+  // Money withdrawals, where the picker token is what you receive.
+  const shouldShowNoFeeTokens = isMoneyDeposit;
+  const showNoFeeRowTags = isMoneyDeposit || isMoneyWithdraw;
 
   const handleOtherAssetsPress = useCallback(() => {
     clearPaymentOverride();
@@ -250,7 +260,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         isSelected: isPreferredTokenSelected,
         tagRenderers: [
           () =>
-            shouldShowNoFeeTokens
+            showNoFeeRowTags
               ? renderNoFeeTagForToken(preferredAddress, preferredChainId, {
                   testID: `${PAY_WITH_CRYPTO_PREFERRED_TOKEN_ROW_TEST_ID}-no-fee-tag`,
                 })
@@ -291,7 +301,7 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
         isSelected: true,
         tagRenderers: [
           () =>
-            shouldShowNoFeeTokens
+            showNoFeeRowTags
               ? renderNoFeeTagForToken(selectedAddress, selectedChainId, {
                   testID: `${PAY_WITH_CRYPTO_SELECTED_TOKEN_ROW_TEST_ID}-no-fee-tag`,
                 })
@@ -402,5 +412,6 @@ export function usePayWithCryptoSection(): PayWithSectionConfig | null {
     selectedTokenBalance,
     selectedTokenDisplay,
     shouldShowNoFeeTokens,
+    showNoFeeRowTags,
   ]);
 }

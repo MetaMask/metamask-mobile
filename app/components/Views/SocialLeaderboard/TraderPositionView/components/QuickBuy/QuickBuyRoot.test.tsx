@@ -14,7 +14,7 @@ import { positionToQuickBuyTarget } from './types';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import type { Position } from '@metamask/social-controllers';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
-import { SocialLeaderboardEventProperties } from '../../../analytics';
+import { QuickBuyEventProperties } from './analytics';
 
 jest.mock('./hooks/useQuickBuyController', () => ({
   useQuickBuyController: jest.fn(),
@@ -205,6 +205,7 @@ const buildHookResult = (
   sortedQuotes: [],
   selectedQuoteRequestId: undefined,
   setSelectedQuoteRequestId: jest.fn(),
+  handleSelectQuote: jest.fn(),
   quotesLastFetchedAt: null,
   refreshCount: 0,
   quoteRefreshRateMs: 30000,
@@ -314,9 +315,9 @@ describe('QuickBuyRoot', () => {
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED,
       expect.objectContaining({
-        [SocialLeaderboardEventProperties.ASSET_NAME]: 'PEPE',
-        [SocialLeaderboardEventProperties.SOURCE]: 'market_insights',
-        [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]: 'buy',
+        [QuickBuyEventProperties.ASSET_NAME]: 'PEPE',
+        [QuickBuyEventProperties.SOURCE]: 'market_insights',
+        [QuickBuyEventProperties.TRADER_TRADE_TYPE]: 'buy',
       }),
     );
   });
@@ -360,10 +361,10 @@ describe('QuickBuyRoot', () => {
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_QUICK_BUY_SHEET_VIEWED,
       {
-        [SocialLeaderboardEventProperties.ASSET_NAME]: 'PEPE',
-        [SocialLeaderboardEventProperties.MARKET_CAP]: 1_500_000,
-        [SocialLeaderboardEventProperties.SOURCE]: 'profile_position',
-        [SocialLeaderboardEventProperties.TRADER_TRADE_TYPE]: 'sell',
+        [QuickBuyEventProperties.ASSET_NAME]: 'PEPE',
+        [QuickBuyEventProperties.MARKET_CAP]: 1_500_000,
+        [QuickBuyEventProperties.SOURCE]: 'profile_position',
+        [QuickBuyEventProperties.TRADER_TRADE_TYPE]: 'sell',
       },
     );
   });
