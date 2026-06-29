@@ -6,14 +6,22 @@ import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDi
 import { moneyFormatFiat } from './moneyFormatFiat';
 import { MONEY_ACCOUNT_DISPLAY_SYMBOL } from '../../Card/util/vedaToken';
 
+const KIND_LABEL_KEY: Record<AccountsApiActivity['kind'], string> = {
+  card: 'money.transaction.purchase',
+  cashback: 'money.transaction.musd_back',
+  refund: 'money.transaction.refund',
+};
+
 export function accountsApiActivityDisplayInfo(
   activity: AccountsApiActivity,
   opts: { currentCurrency: string; usdToCurrentCurrencyRate?: number },
 ): MoneyTransactionDisplayInfo {
   const { currentCurrency, usdToCurrentCurrencyRate } = opts;
 
-  const isIncoming = activity.kind === 'cashback';
+  const isIncoming = activity.kind === 'cashback' || activity.kind === 'refund';
   const sign = isIncoming ? '+' : '-';
+
+  const labelKey = KIND_LABEL_KEY[activity.kind];
 
   const usdValue = new BigNumber(activity.amount).dividedBy(
     new BigNumber(10).pow(activity.token.decimals),
@@ -28,9 +36,7 @@ export function accountsApiActivityDisplayInfo(
 
   return {
     description: strings('money.transaction.card'),
-    label: strings(
-      isIncoming ? 'money.transaction.musd_back' : 'money.transaction.purchase',
-    ),
+    label: strings(labelKey),
     primaryAmount,
     fiatAmount,
     isIncoming,

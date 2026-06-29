@@ -2040,7 +2040,8 @@
         "high": "High",
         "low": "Low",
         "close": "Close",
-        "volume": "Volume"
+        "volume": "Volume",
+        "change": "Change"
       }
     },
     "cancel": "Cancel",
@@ -7315,7 +7316,8 @@
       "pending": "Pending",
       "filter_all": "All",
       "filter_deposits": "Deposits",
-      "filter_sends": "Sends"
+      "filter_sends": "Sends",
+      "filter_purchases": "Purchases"
     },
     "condensed_cards": {
       "how_it_works_title": "How it works",
@@ -7333,6 +7335,7 @@
       "cashback": "mUSD back",
       "card": "Card",
       "purchase": "Purchase",
+      "refund": "Refund",
       "musd_back": "mUSD back",
       "converted": "Converted",
       "depositing": "Depositing",
@@ -7350,6 +7353,7 @@
       "cashback_title": "mUSD back",
       "you_spent": "You spent",
       "you_earned": "You earned",
+      "you_were_refunded": "You were refunded",
       "completed": "Completed",
       "paid_to": "Paid to",
       "received_from": "Received from",
