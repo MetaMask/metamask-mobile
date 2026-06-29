@@ -126,6 +126,19 @@ const getPlayerGoalSubject = (outcome: PredictOutcome): string => {
   return player || raw.split(':')[0].trim() || outcome.id;
 };
 
+const getPlayerGoalSubgroupKey = (player: string): string => {
+  const normalizedPlayer = player
+    .trim()
+    .normalize('NFKD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase();
+  const slug =
+    normalizedPlayer.replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') ||
+    'unknown-player';
+
+  return `${SOCCER_PLAYER_GOALS_MARKET_TYPE}-${slug}`;
+};
+
 const buildSoccerPlayerGoalsSubgroups = (
   outcomes: PredictOutcome[],
 ): PredictOutcomeGroup[] => {
@@ -159,8 +172,8 @@ const buildSoccerPlayerGoalsSubgroups = (
       return a[0].localeCompare(b[0]);
     })
     .slice(0, MAX_PLAYER_GOAL_SUBGROUPS)
-    .map(([player, playerOutcomes], index) => ({
-      key: `${SOCCER_PLAYER_GOALS_MARKET_TYPE}-${index}`,
+    .map(([player, playerOutcomes]) => ({
+      key: getPlayerGoalSubgroupKey(player),
       title: player,
       outcomes: sortLineOutcomesForDisplay(
         playerOutcomes,

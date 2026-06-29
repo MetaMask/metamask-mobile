@@ -422,7 +422,7 @@ describe('polymarket utils', () => {
         outcomes: [],
         subgroups: [
           expect.objectContaining({
-            key: 'soccer_player_goals-0',
+            key: 'soccer_player_goals-player-a',
             title: 'Player A',
             outcomes: [
               expect.objectContaining({ id: 'player-a-1' }),
@@ -430,7 +430,7 @@ describe('polymarket utils', () => {
             ],
           }),
           expect.objectContaining({
-            key: 'soccer_player_goals-1',
+            key: 'soccer_player_goals-player-b',
             title: 'Player B',
             outcomes: [expect.objectContaining({ id: 'player-b-1' })],
           }),

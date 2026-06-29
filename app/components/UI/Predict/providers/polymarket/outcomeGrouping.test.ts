@@ -338,7 +338,7 @@ describe('outcomeGrouping', () => {
       );
     });
 
-    it('splits soccer player goals into one subgroup per player and limits to top five', () => {
+    it('splits soccer player goals into one subgroup per player', () => {
       const groups = buildOutcomeGroups([
         createGroupingOutcome(
           'player-a-1',
@@ -393,20 +393,25 @@ describe('outcomeGrouping', () => {
 
       expect(groups).toHaveLength(1);
       expect(groups[0].key).toBe('goals');
-      expect(groups[0].subgroups).toEqual([
+      expect(groups[0].subgroups).toHaveLength(6);
+      expect(groups[0].subgroups?.map((subgroup) => subgroup.title)).toEqual([
+        'Player A',
+        'Player B',
+        'Player C',
+        'Player D',
+        'Player E',
+        'Player F',
+      ]);
+      expect(groups[0].subgroups?.[0]).toEqual(
         expect.objectContaining({
-          key: 'soccer_player_goals-0',
+          key: 'soccer_player_goals-player-a',
           title: 'Player A',
           outcomes: [
             expect.objectContaining({ id: 'player-a-1' }),
             expect.objectContaining({ id: 'player-a-2' }),
           ],
         }),
-        expect.objectContaining({ title: 'Player B' }),
-        expect.objectContaining({ title: 'Player C' }),
-        expect.objectContaining({ title: 'Player D' }),
-        expect.objectContaining({ title: 'Player E' }),
-      ]);
+      );
     });
   });
 });
