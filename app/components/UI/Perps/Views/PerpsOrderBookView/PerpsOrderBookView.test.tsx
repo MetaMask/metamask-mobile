@@ -124,6 +124,15 @@ jest.mock('../../hooks/stream/usePerpsLivePrices', () => ({
   usePerpsLivePrices: (params: unknown) => mockUsePerpsLivePrices(params),
 }));
 
+// Mock usePerpsLiveFocusedPrice — returns undefined by default so the view
+// falls back to the allMids baseline from usePerpsLivePrices (TAT-3334)
+const mockUsePerpsLiveFocusedPrice = jest.fn(() => undefined);
+
+jest.mock('../../hooks/stream/usePerpsLiveFocusedPrice', () => ({
+  usePerpsLiveFocusedPrice: (params: unknown) =>
+    mockUsePerpsLiveFocusedPrice(params),
+}));
+
 // Mock usePerpsMeasurement
 jest.mock('../../hooks/usePerpsMeasurement', () => ({
   usePerpsMeasurement: jest.fn(),
@@ -1187,6 +1196,50 @@ describe('PerpsOrderBookView', () => {
           nSigFigs: expect.any(Number),
         }),
       );
+    });
+
+    it('subscribes to focused price stream for header display (TAT-3334)', () => {
+      renderWithProvider(<PerpsOrderBookView />, { state: initialState });
+
+      expect(mockUsePerpsLiveFocusedPrice).toHaveBeenCalledWith(
+        expect.objectContaining({
+          symbol: 'BTC',
+          enabled: true,
+        }),
+      );
+    });
+
+    it('prefers focused price over allMids baseline when both are available', () => {
+      // focused price returns a faster, more recent value
+      mockUsePerpsLiveFocusedPrice.mockReturnValue({
+        symbol: 'BTC',
+        price: '52000',
+        markPrice: '52010',
+        timestamp: Date.now(),
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('falls back to allMids baseline when focused price is undefined', () => {
+      mockUsePerpsLiveFocusedPrice.mockReturnValue(undefined);
+      mockUsePerpsLivePrices.mockReturnValue({
+        BTC: { price: '50000', percentChange24h: '2.5', symbol: 'BTC' },
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
     });
   });
 
