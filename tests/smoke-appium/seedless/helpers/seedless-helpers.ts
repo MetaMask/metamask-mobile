@@ -12,6 +12,7 @@ import {
   withImplicitWait,
 } from '../../../framework/PlaywrightUtilities.js';
 import { ChoosePasswordSelectorsIDs } from '../../../../app/components/Views/ChoosePassword/ChoosePassword.testIds.js';
+import { OnboardingSelectorIDs } from '../../../../app/components/Views/Onboarding/Onboarding.testIds.js';
 import { createOAuthMockttpService } from '../../../api-mocking/seedless-onboarding/index.js';
 import { E2EOAuthHelpers } from '../../../module-mocking/oauth/index.js';
 import { resolveE2EWaitTimeoutMs } from '../../../framework/Constants.js';
@@ -48,6 +49,58 @@ const IOS_CREATE_PASSWORD_INDICATOR_IDS = [
 ] as const;
 
 const CREATE_PASSWORD_POLL_INTERVAL_MS = 250;
+
+const IOS_ONBOARDING_INDICATOR_IDS = [
+  OnboardingSelectorIDs.CONTAINER_ID,
+  OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+  OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+  OnboardingSelectorIDs.SCREEN_TITLE,
+] as const;
+
+const isOnboardingIndicatorVisible = async (
+  testId: string,
+): Promise<boolean> => {
+  try {
+    return await withImplicitWait(500, async () => {
+      const el = await PlaywrightMatchers.getElementById(testId, {
+        exact: true,
+      });
+      return await el.isVisible();
+    });
+  } catch {
+    return false;
+  }
+};
+
+/**
+ * Waits for the onboarding screen after cold launch.
+ * On iOS the container can exist while child CTAs are the reliable signal.
+ */
+const waitForOnboardingScreenPlaywright = async (
+  timeout: number = resolveE2EWaitTimeoutMs(60_000),
+): Promise<void> => {
+  if (PlatformDetector.isAndroid()) {
+    await Assertions.expectElementToBeVisible(OnboardingView.container, {
+      description: 'Onboarding screen should be visible',
+      timeout,
+    });
+    return;
+  }
+
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    for (const testId of IOS_ONBOARDING_INDICATOR_IDS) {
+      if (await isOnboardingIndicatorVisible(testId)) {
+        return;
+      }
+    }
+    await sleep(CREATE_PASSWORD_POLL_INTERVAL_MS);
+  }
+
+  throw new Error(
+    `Onboarding screen not ready within ${timeout}ms (iOS onboarding indicators not satisfied)`,
+  );
+};
 
 const isCreatePasswordIndicatorVisible = async (
   testId: string,
@@ -140,9 +193,7 @@ export async function setupAppleExistingUserOAuthMock(
 export const completeSocialLoginOnboarding = async (
   provider: 'google' | 'apple',
 ): Promise<void> => {
-  await Assertions.expectElementToBeVisible(OnboardingView.container, {
-    description: 'Onboarding screen should be visible',
-  });
+  await waitForOnboardingScreenPlaywright(resolveE2EWaitTimeoutMs(60_000));
 
   await OnboardingView.tapCreateWallet();
 
