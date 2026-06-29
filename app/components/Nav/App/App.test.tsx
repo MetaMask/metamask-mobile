@@ -564,37 +564,33 @@ describe('App', () => {
       });
     }, 30000);
 
-    it(
-      'renders the multichain account share address screen when navigated to',
-      async () => {
-        jest.useRealTimers();
-        try {
-          const routeState = {
-            index: 0,
-            routes: [
-              {
-                name: Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+    it('renders the multichain account share address screen when navigated to', async () => {
+      jest.useRealTimers();
+      try {
+        const routeState = {
+          index: 0,
+          routes: [
+            {
+              name: Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
+              params: {
+                screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS,
                 params: {
-                  screen: Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SHARE_ADDRESS,
-                  params: {
-                    account: mockAccount,
-                  },
+                  account: mockAccount,
                 },
               },
-            ],
-          };
+            },
+          ],
+        };
 
-          const { getByText } = renderAppWithRouteState(routeState);
+        const { getByText } = renderAppWithRouteState(routeState);
 
-          await waitFor(() => {
-            expect(getByText('Share address')).toBeOnTheScreen();
-          });
-        } finally {
-          jest.useFakeTimers();
-        }
-      },
-      30000,
-    );
+        await waitFor(() => {
+          expect(getByText('Share address')).toBeOnTheScreen();
+        });
+      } finally {
+        jest.useFakeTimers();
+      }
+    }, 30000);
   });
 
   describe('route registration', () => {
