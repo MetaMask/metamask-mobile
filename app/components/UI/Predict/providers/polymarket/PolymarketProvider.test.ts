@@ -820,6 +820,64 @@ describe('PolymarketProvider', () => {
     ).rejects.toThrow('Failed to fetch Polymarket activity');
   });
 
+  it('returns cached account state before the cache TTL expires', async () => {
+    // Arrange
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    const provider = createProvider();
+
+    // Act
+    const firstAccountState = await provider.getAccountState({
+      ownerAddress: signer.address,
+    });
+    const secondAccountState = await provider.getAccountState({
+      ownerAddress: signer.address,
+    });
+
+    // Assert
+    expect(firstAccountState).toEqual(secondAccountState);
+    expect(mockIsSmartContractAddress).toHaveBeenCalledTimes(2);
+  });
+
+  it('refreshes account state after the cache TTL expires', async () => {
+    // Arrange
+    jest.useFakeTimers();
+    jest.setSystemTime(new Date(1_000));
+    mockIsSmartContractAddress
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(false)
+      .mockResolvedValueOnce(true);
+    const provider = createProvider();
+
+    try {
+      // Act
+      const firstAccountState = await provider.getAccountState({
+        ownerAddress: signer.address,
+      });
+      jest.setSystemTime(new Date(31_001));
+      const secondAccountState = await provider.getAccountState({
+        ownerAddress: signer.address,
+      });
+
+      // Assert
+      expect(firstAccountState).toEqual({
+        address: depositWalletAddress,
+        isDeployed: false,
+        walletType: 'deposit-wallet',
+      });
+      expect(secondAccountState).toEqual({
+        address: depositWalletAddress,
+        isDeployed: true,
+        walletType: 'deposit-wallet',
+      });
+      expect(mockIsSmartContractAddress).toHaveBeenCalledTimes(4);
+    } finally {
+      jest.useRealTimers();
+    }
+  });
+
   describe('getActivity', () => {
     const rawActivity = [
       {

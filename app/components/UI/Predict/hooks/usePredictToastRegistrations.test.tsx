@@ -210,7 +210,32 @@ describe('usePredictToastRegistrations', () => {
       );
       expect(mockInvalidateQueries).toHaveBeenCalledWith(
         expect.objectContaining({
+          queryKey: ['predict', 'accountState'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
           queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
+    });
+
+    it('invalidates account state on confirmed deposit-and-order status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'depositAndOrder',
+          status: 'confirmed',
+          amount: 102,
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'accountState'],
         }),
       );
     });

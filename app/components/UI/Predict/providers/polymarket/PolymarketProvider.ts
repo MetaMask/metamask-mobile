@@ -279,6 +279,13 @@ const isTransientPriceHistoryError = (error: Error): boolean =>
     error.message,
   );
 
+const ACCOUNT_STATE_CACHE_TTL_MS = 30_000;
+
+interface CachedAccountState {
+  accountState: AccountState;
+  expiresAt: number;
+}
+
 export class PolymarketProvider implements PredictProvider {
   readonly providerId = POLYMARKET_PROVIDER_ID;
   readonly name = 'Polymarket';
@@ -286,7 +293,7 @@ export class PolymarketProvider implements PredictProvider {
   readonly #getFeatureFlags: () => PredictFeatureFlags;
 
   #apiKeysByProtocolAddress: Map<string, ApiKeyCreds> = new Map();
-  #accountStateByAddress: Map<string, AccountState> = new Map();
+  #accountStateByAddress: Map<string, CachedAccountState> = new Map();
   #safeAddressesWithZeroLegacyUsdceBalance = new Set<string>();
   #lastBuyOrderTimestampByAddress: Map<string, number> = new Map();
   #buyOrderInProgressByAddress: Map<string, boolean> = new Map();
@@ -310,9 +317,19 @@ export class PolymarketProvider implements PredictProvider {
   }
 
   #getCachedAccountState(ownerAddress: string): AccountState | undefined {
-    return this.#accountStateByAddress.get(
-      this.#getAccountStateCacheKey(ownerAddress),
-    );
+    const cacheKey = this.#getAccountStateCacheKey(ownerAddress);
+    const cachedAccountState = this.#accountStateByAddress.get(cacheKey);
+
+    if (!cachedAccountState) {
+      return undefined;
+    }
+
+    if (cachedAccountState.expiresAt <= Date.now()) {
+      this.#accountStateByAddress.delete(cacheKey);
+      return undefined;
+    }
+
+    return cachedAccountState.accountState;
   }
 
   #setCachedAccountState(
@@ -321,7 +338,10 @@ export class PolymarketProvider implements PredictProvider {
   ): void {
     this.#accountStateByAddress.set(
       this.#getAccountStateCacheKey(ownerAddress),
-      accountState,
+      {
+        accountState,
+        expiresAt: Date.now() + ACCOUNT_STATE_CACHE_TTL_MS,
+      },
     );
   }
 

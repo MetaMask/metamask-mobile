@@ -8630,7 +8630,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('sets validUntil to 5 seconds in future for BUY orders', async () => {
+    it('sets validUntil to 1 minute in future for BUY orders', async () => {
       const preview = createMockOrderPreview({ side: Side.BUY });
       const mockResult = {
         success: true as const,
@@ -8656,7 +8656,7 @@ describe('PredictController', () => {
             controller.state.balances[
               '0x1234567890123456789012345678901234567890'
             ];
-          expect(updatedBalance.validUntil).toBe(now + 5000);
+          expect(updatedBalance.validUntil).toBe(now + 60_000);
         },
         {
           state: {
@@ -8706,7 +8706,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('sets validUntil to 5 seconds in future for SELL orders', async () => {
+    it('sets validUntil to 1 minute in future for SELL orders', async () => {
       const preview = createMockOrderPreview({ side: Side.SELL });
       const mockResult = {
         success: true as const,
@@ -8732,7 +8732,7 @@ describe('PredictController', () => {
             controller.state.balances[
               '0x1234567890123456789012345678901234567890'
             ];
-          expect(updatedBalance.validUntil).toBe(now + 5000);
+          expect(updatedBalance.validUntil).toBe(now + 60_000);
         },
         {
           state: {

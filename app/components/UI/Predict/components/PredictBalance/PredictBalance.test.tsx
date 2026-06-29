@@ -37,6 +37,7 @@ jest.mock('@react-navigation/native', () => ({
 
 // Mock usePredictBalance hook
 const mockUsePredictBalance = jest.fn();
+const mockRefetchBalance = jest.fn();
 jest.mock('../../hooks/usePredictBalance', () => ({
   usePredictBalance: (options?: unknown) => mockUsePredictBalance(options),
 }));
@@ -132,8 +133,12 @@ describe('PredictBalance', () => {
     // Default mock implementations
     mockUsePredictBalance.mockReturnValue({
       data: 100,
+      isError: false,
       isLoading: false,
+      isRefetching: false,
+      refetch: mockRefetchBalance,
     });
+    mockRefetchBalance.mockResolvedValue(undefined);
 
     mockUsePredictDeposit.mockReturnValue({
       deposit: jest.fn(),
@@ -309,6 +314,60 @@ describe('PredictBalance', () => {
       // Assert
       expect(queryByText('$24.66')).toBeNull();
       expect(getByText('•••••••••')).toBeOnTheScreen();
+    });
+  });
+
+  describe('when unavailable', () => {
+    it('displays retryable error when balance fetch fails', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: undefined,
+        isError: true,
+        isLoading: false,
+        isRefetching: false,
+        refetch: mockRefetchBalance,
+      });
+
+      // Act
+      const { getByTestId, queryByText } = renderWithProvider(
+        <PredictBalance />,
+        {
+          state: initialState,
+        },
+      );
+      fireEvent.press(getByTestId(PREDICT_BALANCE_TEST_IDS.ERROR_RETRY_BUTTON));
+
+      // Assert
+      expect(
+        getByTestId(PREDICT_BALANCE_TEST_IDS.ERROR_STATE),
+      ).toBeOnTheScreen();
+      expect(queryByText(/\$0/)).not.toBeOnTheScreen();
+      expect(mockRefetchBalance).toHaveBeenCalledTimes(1);
+    });
+
+    it('displays retryable error when balance data is undefined', () => {
+      // Arrange
+      mockUsePredictBalance.mockReturnValue({
+        data: undefined,
+        isError: false,
+        isLoading: false,
+        isRefetching: false,
+        refetch: mockRefetchBalance,
+      });
+
+      // Act
+      const { getByTestId, queryByText } = renderWithProvider(
+        <PredictBalance />,
+        {
+          state: initialState,
+        },
+      );
+
+      // Assert
+      expect(
+        getByTestId(PREDICT_BALANCE_TEST_IDS.ERROR_STATE),
+      ).toBeOnTheScreen();
+      expect(queryByText(/\$0/)).not.toBeOnTheScreen();
     });
   });
 
@@ -844,19 +903,29 @@ describe('PredictBalance', () => {
       expect(queryByText(strings('wallet.predict'))).toBeNull();
     });
 
-    it('handles undefined balance gracefully', () => {
+    it('shows retryable error for undefined balance data', () => {
       // Arrange
       mockUsePredictBalance.mockReturnValue({
         data: undefined,
+        isError: false,
         isLoading: false,
+        isRefetching: false,
+        refetch: mockRefetchBalance,
       });
 
-      // Act & Assert - should not crash
-      const { getByText } = renderWithProvider(<PredictBalance />, {
-        state: initialState,
-      });
+      // Act
+      const { getByTestId, queryByText } = renderWithProvider(
+        <PredictBalance />,
+        {
+          state: initialState,
+        },
+      );
 
-      expect(getByText(/\$0/)).toBeOnTheScreen();
+      // Assert
+      expect(
+        getByTestId(PREDICT_BALANCE_TEST_IDS.ERROR_STATE),
+      ).toBeOnTheScreen();
+      expect(queryByText(/\$0/)).not.toBeOnTheScreen();
     });
   });
 });

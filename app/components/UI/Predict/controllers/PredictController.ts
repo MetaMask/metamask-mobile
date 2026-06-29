@@ -436,6 +436,7 @@ const ERC20_TRANSFER_FUNCTION_SELECTOR = '0xa9059cbb';
  */
 const HIGHLIGHT_SERIES_PAST_WINDOW_MS = 60 * 60 * 1000;
 const HIGHLIGHT_SERIES_FUTURE_WINDOW_MS = 7 * 24 * 60 * 60 * 1000;
+const OPTIMISTIC_BALANCE_TTL_MS = 60_000;
 
 /**
  * PredictController - Protocol-agnostic prediction markets trading controller
@@ -1590,8 +1591,7 @@ export class PredictController extends BaseController<
           this.update((state) => {
             state.balances[signer.address] = {
               balance: cachedBalance - (realAmountUsd + totalFee),
-              // valid for 5 seconds (since it takes some time to reflect balance on-chain)
-              validUntil: Date.now() + 5000,
+              validUntil: Date.now() + OPTIMISTIC_BALANCE_TTL_MS,
             };
           });
         } else {
@@ -1602,8 +1602,7 @@ export class PredictController extends BaseController<
           this.update((state) => {
             state.balances[signer.address] = {
               balance: cachedBalance + realAmountUsd,
-              // valid for 5 seconds (since it takes some time to reflect balance on-chain)
-              validUntil: Date.now() + 5000,
+              validUntil: Date.now() + OPTIMISTIC_BALANCE_TTL_MS,
             };
           });
         }

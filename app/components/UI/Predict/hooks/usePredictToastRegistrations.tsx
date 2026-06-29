@@ -163,6 +163,12 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
           queryKey: predictQueries.unrealizedPnL.keys.all(),
         });
 
+        if (type === 'deposit' || type === 'depositAndOrder') {
+          queryClient.invalidateQueries({
+            queryKey: predictQueries.accountState.keys.all(),
+          });
+        }
+
         // Deposit/Withdraw should not invalidate positions/activity
         if (type === 'claim' || type === 'order') {
           queryClient.invalidateQueries({

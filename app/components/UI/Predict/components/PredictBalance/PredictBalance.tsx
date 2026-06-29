@@ -4,6 +4,7 @@ import {
   BoxJustifyContent,
   Spinner,
   Text,
+  TextVariant,
   TitleHub,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -69,7 +70,13 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
   const queryClient = useQueryClient();
-  const { data: balance = 0, isLoading } = usePredictBalance();
+  const {
+    data: balance,
+    isError: isBalanceError,
+    isLoading,
+    isRefetching: isBalanceRefetching,
+    refetch: refetchBalance,
+  } = usePredictBalance();
   const { deposit, isDepositPending } = usePredictDeposit();
   const { withdraw } = usePredictWithdraw();
   const { executeGuardedAction } = usePredictActionGuard({
@@ -77,7 +84,9 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
   });
 
   const isAddingFunds = isDepositPending;
-  const hasBalance = balance > 0;
+  const isBalanceUnavailable =
+    !isLoading && (isBalanceError || balance === undefined);
+  const hasBalance = balance !== undefined && balance > 0;
   const { data: accountState } = usePredictAccountState({
     enabled: hasBalance,
   });
@@ -159,6 +168,10 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
     withdraw,
   ]);
 
+  const handleRetryBalance = useCallback(() => {
+    refetchBalance().catch(() => undefined);
+  }, [refetchBalance]);
+
   if (isLoading) {
     return (
       <Box twClassName="px-4 gap-3" testID={PREDICT_BALANCE_TEST_IDS.SKELETON}>
@@ -179,6 +192,48 @@ const PredictBalance: React.FC<PredictBalanceProps> = ({
             width="50%"
             height={40}
             style={tw.style('rounded-xl flex-1')}
+          />
+        </Box>
+      </Box>
+    );
+  }
+
+  if (isBalanceUnavailable) {
+    return (
+      <Box
+        testID={PREDICT_BALANCE_TEST_IDS.CARD}
+        onLayout={(layoutEvent) => {
+          const { height } = layoutEvent.nativeEvent.layout;
+          onLayout?.(height);
+        }}
+      >
+        <Box twClassName="px-4 gap-3">
+          {!hideTitle && (
+            <Text variant={TextVariant.HeadingMd}>
+              {strings('wallet.predict')}
+            </Text>
+          )}
+          <Box
+            testID={PREDICT_BALANCE_TEST_IDS.ERROR_STATE}
+            twClassName="gap-2"
+          >
+            <Text variant={TextVariant.BodyLg}>
+              {strings('predict.balance.error_title')}
+            </Text>
+            <Text variant={TextVariant.BodyMd}>
+              {strings('predict.balance.error_description')}
+            </Text>
+          </Box>
+          <Button
+            variant={ButtonVariants.Secondary}
+            size={actionButtonSize}
+            style={tw.style('self-start', predictPortfolioEnabled && 'h-12')}
+            labelTextVariant={actionButtonLabelTextVariant}
+            label={strings('predict.balance.try_again')}
+            onPress={handleRetryBalance}
+            loading={isBalanceRefetching}
+            isDisabled={isBalanceRefetching}
+            testID={PREDICT_BALANCE_TEST_IDS.ERROR_RETRY_BUTTON}
           />
         </Box>
       </Box>

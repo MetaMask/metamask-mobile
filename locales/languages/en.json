@@ -2604,6 +2604,11 @@
     "claim_amount_text": "Claim ${{amount}}",
     "claim_winnings_text": "Claim winnings",
     "claiming_text": "Claiming...",
+    "balance": {
+      "error_title": "Balance unavailable",
+      "error_description": "We couldn't load your Predictions balance. Your funds are safe. Check your connection and try again.",
+      "try_again": "Try again"
+    },
     "unrealized_pnl_label": "Unrealized P&L",
     "unrealized_pnl_value": "{{amount}} ({{percent}})",
     "unrealized_pnl_error": "Unable to load",
