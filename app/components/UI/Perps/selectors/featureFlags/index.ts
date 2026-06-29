@@ -364,6 +364,23 @@ export const selectPerpsWatchlistEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for Terminal Backend feature flag.
+ * Controls whether market-data calls route through the MetaMask Terminal API
+ * (with HyperLiquid fallback) or go directly to HyperLiquid.
+ *
+ * @returns boolean - true if Terminal API should be used, false otherwise
+ */
+export const selectPerpsTerminalBackendEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsTerminalBackendEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for default pay token when no perps balance feature flag.
  * When enabled: preselect allowlist token with highest balance in Pay row when user has no perps balance,
  * and show "Add funds" CTA on market details when no token can be preselected.

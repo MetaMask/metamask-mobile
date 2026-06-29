@@ -30,6 +30,11 @@ jest.mock('./usePerpsNetworkManagement', () => ({
   }),
 }));
 
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn().mockReturnValue(true),
+}));
+
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {

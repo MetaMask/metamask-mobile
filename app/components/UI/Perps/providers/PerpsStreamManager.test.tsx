@@ -27,6 +27,12 @@ jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');
 jest.mock('../services/PerpsConnectionManager');
+jest.mock('../../../../store', () => ({
+  store: { getState: jest.fn(() => ({})) },
+}));
+jest.mock('../selectors/featureFlags', () => ({
+  selectPerpsTerminalBackendEnabledFlag: jest.fn(() => true),
+}));
 jest.mock('../../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {

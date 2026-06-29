@@ -24,7 +24,8 @@ import {
   type PerpsMarketData,
   findEvmAccount,
 } from '@metamask/perps-controller';
-import { USE_TERMINAL_API } from '../constants/terminalApi';
+import { store } from '../../../../store';
+import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import {
   PROVIDER_CONFIG,
   PERPS_DISK_CACHE_MARKETS,
@@ -643,7 +644,9 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     // Start market fetch in background (non-blocking)
     // We need the symbols to register subscribers, but we can return immediately
     controller
-      .getMarkets({ useTerminalApi: USE_TERMINAL_API })
+      .getMarkets({
+        useTerminalApi: selectPerpsTerminalBackendEnabledFlag(store.getState()),
+      })
       .then((markets) => {
         // If this promise is from a stale cycle, don't set up subscription
         // This prevents leaks when prewarm is called multiple times rapidly
@@ -1595,7 +1598,9 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         const preFetchNetworkKey = getProviderNetworkKey(controller.state);
 
         const data = await controller.getMarketDataWithPrices({
-          useTerminalApi: USE_TERMINAL_API,
+          useTerminalApi: selectPerpsTerminalBackendEnabledFlag(
+            store.getState(),
+          ),
         });
         const fetchTime = Date.now() - fetchStartTime;
 
