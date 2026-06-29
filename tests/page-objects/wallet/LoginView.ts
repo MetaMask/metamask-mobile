@@ -107,24 +107,15 @@ class LoginView {
         });
       },
       appium: async () => {
-        await Utilities.executeWithRetry(
-          async () =>
-            await UnifiedGestures.waitAndTap(this.loginButton, {
-              description: 'Login Button',
-              checkForDisplayed: true,
-              checkForEnabled: true,
-              waitForInteractive: true,
-              timeout: 12_000,
-              enabledStableReads: 3,
-              postEnabledSettleMs: 500,
-            }),
-          {
-            timeout: 45_000,
-            interval: 1_500,
-            description: 'Tap login button',
-            elemDescription: 'Login Button',
-          },
-        );
+        await UnifiedGestures.waitAndTap(this.loginButton, {
+          description: 'Login Button',
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          waitForInteractive: true,
+          timeout: 20_000,
+          enabledStableReads: 4,
+          postEnabledSettleMs: 1500,
+        });
       },
     });
   }
