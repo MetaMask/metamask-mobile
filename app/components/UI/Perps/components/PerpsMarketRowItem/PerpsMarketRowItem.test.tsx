@@ -210,12 +210,12 @@ describe('PerpsMarketRowItem', () => {
       const longSymbolMarket = {
         ...mockMarketData,
         symbol: 'VERYLONGSYMBOLNAME',
-        name: 'VERYLONGSYMBOLNAME',
+        name: 'Very Long Asset Name Token',
       };
 
       render(<PerpsMarketRowItem market={longSymbolMarket} />);
 
-      expect(screen.getByText('VERYLONGSYMBOLNAME')).toBeOnTheScreen();
+      expect(screen.getByText('Very Long Asset Name Token')).toBeOnTheScreen();
       expect(
         screen.getByTestId(
           getPerpsMarketRowItemSelector.rowItem('VERYLONGSYMBOLNAME'),
@@ -227,14 +227,14 @@ describe('PerpsMarketRowItem', () => {
       const specialCharMarket = {
         ...mockMarketData,
         symbol: 'BTC/USD',
-        name: 'BTC/USD',
+        name: 'Bitcoin / USD',
         change24h: '+$1,000',
         change24hPercent: '+2.50%',
       };
 
       render(<PerpsMarketRowItem market={specialCharMarket} />);
 
-      expect(screen.getByText('BTC/USD')).toBeOnTheScreen();
+      expect(screen.getByText('Bitcoin / USD')).toBeOnTheScreen();
       expect(screen.getByText('+2.50%')).toBeOnTheScreen();
     });
 
@@ -242,7 +242,7 @@ describe('PerpsMarketRowItem', () => {
       const unicodeMarket = {
         ...mockMarketData,
         symbol: 'BTC€',
-        name: 'BTC€',
+        name: 'Bitcoin Euro',
         price: '€45,000',
         change24h: '+€2,000',
         change24hPercent: '+4.65%',
@@ -250,7 +250,7 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={unicodeMarket} />);
 
-      expect(screen.getByText('BTC€')).toBeOnTheScreen();
+      expect(screen.getByText('Bitcoin Euro')).toBeOnTheScreen();
       expect(screen.getByText('€45,000')).toBeOnTheScreen();
     });
   });
