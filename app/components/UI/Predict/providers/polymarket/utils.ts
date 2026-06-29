@@ -1178,7 +1178,6 @@ export interface FetchEventsResult {
 const EXACT_QUERY_PARAM_CATEGORIES: readonly PredictCategory[] = [
   'hot',
   'world-cup',
-  'wimbledon',
 ];
 
 const appendCustomQueryParams = (
@@ -1237,7 +1236,7 @@ export const fetchEventsFromPolymarketApi = async (
   } else if (category === 'wimbledon') {
     queryParamsEvents = appendCustomQueryParams(
       queryParams,
-      PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+      customQueryParams ?? PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
     );
   } else {
     queryParams.set('active', 'true');

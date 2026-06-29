@@ -70,5 +70,5 @@ export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
 }
 
 export interface PredictWimbledonTabFlag extends VersionGatedFeatureFlag {
-  queryParams: string; // Raw query params WITHOUT leading &: "tag_id=100639&tag_slug=tennis&order=volume24hr"
+  queryParams?: string; // Raw query params WITHOUT leading &: "tag_id=100639&tag_slug=tennis&order=volume24hr"
 }
