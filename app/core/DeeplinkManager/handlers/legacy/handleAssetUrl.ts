@@ -12,6 +12,7 @@ import { TokenI } from '../../../../components/UI/Tokens/types';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../NavigationService';
 import Logger from '../../../../util/Logger';
+import { TokenDetailsSource } from '../../../../components/UI/TokenDetails/constants/constants';
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
@@ -75,14 +76,27 @@ const buildAssetNavigationParams = async ({
   }
 };
 
-const handleTokenDetailsNavigation = (token?: TokenI | null) => {
+const handleTokenDetailsNavigation = (
+  token?: TokenI | null,
+  source?: TokenDetailsSource,
+) => {
   if (!token) {
     NavigationService.navigation.navigate(Routes.WALLET.HOME);
     return;
   }
 
-  NavigationService.navigation.navigate('Asset', token);
+  NavigationService.navigation.navigate('Asset', { ...token, source });
 };
+
+/**
+ * Resolve the optional `source` query param into a known TokenDetailsSource.
+ * Whitelisting against the enum prevents an arbitrary deeplink from injecting
+ * unexpected values into analytics.
+ */
+const parseSource = (value: string | null): TokenDetailsSource | undefined =>
+  value && (Object.values(TokenDetailsSource) as string[]).includes(value)
+    ? (value as TokenDetailsSource)
+    : undefined;
 
 /**
  * Asset deeplink handler
@@ -118,12 +132,13 @@ export const handleAssetUrl = async ({ assetPath }: HandleAssetUrlParams) => {
     }
 
     const assetId = assetParam as CaipAssetType;
+    const source = parseSource(urlParams.get('source'));
 
     const assetParams = await buildAssetNavigationParams({
       assetId,
     }).catch(() => null);
 
-    handleTokenDetailsNavigation(assetParams);
+    handleTokenDetailsNavigation(assetParams, source);
   } catch (error) {
     Logger.log('[handleAssetUrl] Failed to handle asset deeplink:', error);
     handleTokenDetailsNavigation(null);
