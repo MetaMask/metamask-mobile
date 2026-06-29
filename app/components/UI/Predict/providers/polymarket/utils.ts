@@ -1110,6 +1110,14 @@ export const parsePolymarketActivity = (
 
     const price = Number(activity.price ?? 0);
     const amount = Number(activity.usdcSize ?? 0);
+    const rawSize =
+      activity.size === undefined || activity.size === null
+        ? undefined
+        : Number(activity.size);
+    const size =
+      rawSize !== undefined && Number.isFinite(rawSize) && rawSize > 0
+        ? rawSize
+        : undefined;
 
     const outcomeId = String(activity.conditionId ?? '');
     const marketId = String(activity.conditionId ?? '');
@@ -1142,6 +1150,7 @@ export const parsePolymarketActivity = (
               outcomeTokenId,
               amount,
               price,
+              ...(size !== undefined && { size }),
             },
       title,
       outcome,
