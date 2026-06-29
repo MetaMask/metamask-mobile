@@ -5,7 +5,10 @@ import {
   fetchHyperliquidHistoricalPrices,
   type HyperliquidCandleInterval,
 } from '../utils/hyperliquidPrices';
-import { useTraderPositionData } from './useTraderPositionData';
+import {
+  getRecommendedTradeSpanPeriod,
+  useTraderPositionData,
+} from './useTraderPositionData';
 
 // useSelector calls the selector with no state; the mocked selectors below return
 // fixed values, so the hook reads `{}` market data and `usd` currency.
@@ -62,6 +65,152 @@ const perpPosition = {
   tokenAddress: '0x0000000000000000000000000000000000000000',
   trades: [],
 } as unknown as Position;
+
+const spotPosition = {
+  chain: 'ethereum',
+  tokenSymbol: 'ETH',
+  tokenAddress: '0x0000000000000000000000000000000000000001',
+  trades: [],
+} as unknown as Position;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+const tradeAt = (timestamp: number) => ({
+  timestamp,
+});
+
+describe('getRecommendedTradeSpanPeriod', () => {
+  const start = 1_700_000_000_000;
+
+  it('selects 1W for trades spanning three days', () => {
+    expect(
+      getRecommendedTradeSpanPeriod([
+        tradeAt(start),
+        tradeAt(start + 3 * DAY_MS),
+      ]),
+    ).toBe('1W');
+  });
+
+  it('selects 1M for trades spanning three weeks', () => {
+    expect(
+      getRecommendedTradeSpanPeriod([
+        tradeAt(start),
+        tradeAt(start + 21 * DAY_MS),
+      ]),
+    ).toBe('1M');
+  });
+
+  it('selects All for trades spanning more than one month', () => {
+    expect(
+      getRecommendedTradeSpanPeriod([
+        tradeAt(start),
+        tradeAt(start + 45 * DAY_MS),
+      ]),
+    ).toBe('All');
+  });
+});
+
+describe('useTraderPositionData — default chart period', () => {
+  it('defaults to the period recommended by the full trade span', () => {
+    const position = {
+      ...spotPosition,
+      trades: [
+        tradeAt(1_700_000_000_000),
+        tradeAt(1_700_000_000_000 + 3 * DAY_MS),
+      ],
+    } as unknown as Position;
+    const { result } = renderHook(
+      (initialPosition: Position) => useTraderPositionData(initialPosition),
+      {
+        initialProps: position,
+      },
+    );
+
+    expect(result.current.activeTimePeriod).toBe('1W');
+  });
+
+  it('widens to the first cached period whose prices cover the trade date', async () => {
+    const tradeTime = 1_700_000_000_000;
+    const recentPrices: TokenPrice[] = [
+      [String(tradeTime + 30 * DAY_MS), 100],
+      [String(tradeTime + 30 * DAY_MS + 60_000), 101],
+    ];
+    const coveringPrices: TokenPrice[] = [
+      [String(tradeTime - DAY_MS), 100],
+      [String(tradeTime + DAY_MS), 101],
+    ];
+    const position = {
+      ...perpPosition,
+      trades: [tradeAt(tradeTime)],
+    } as unknown as Position;
+
+    mockFetchHyperliquid.mockImplementation(({ interval }) =>
+      Promise.resolve(interval === '1h' ? coveringPrices : recentPrices),
+    );
+
+    const { result } = renderHook(
+      (initialPosition: Position) => useTraderPositionData(initialPosition),
+      {
+        initialProps: position,
+      },
+    );
+
+    await waitFor(() => expect(result.current.activeTimePeriod).toBe('1W'));
+  });
+
+  it('updates the automatic default when fuller trade data arrives before manual selection', () => {
+    const { result, rerender } = renderHook(
+      (position: Position) => useTraderPositionData(position),
+      {
+        initialProps: {
+          ...spotPosition,
+          trades: [tradeAt(1_700_000_000_000)],
+        } as unknown as Position,
+      },
+    );
+
+    expect(result.current.activeTimePeriod).toBe('1H');
+
+    rerender({
+      ...spotPosition,
+      trades: [
+        tradeAt(1_700_000_000_000),
+        tradeAt(1_700_000_000_000 + 21 * DAY_MS),
+      ],
+    } as unknown as Position);
+
+    expect(result.current.activeTimePeriod).toBe('1M');
+  });
+
+  it('does not override a user-selected period on same-position refresh', () => {
+    const { result, rerender } = renderHook(
+      (position: Position) => useTraderPositionData(position),
+      {
+        initialProps: {
+          ...spotPosition,
+          trades: [
+            tradeAt(1_700_000_000_000),
+            tradeAt(1_700_000_000_000 + 3 * DAY_MS),
+          ],
+        } as unknown as Position,
+      },
+    );
+
+    act(() => {
+      result.current.setActiveTimePeriod('1D');
+    });
+
+    rerender({
+      ...spotPosition,
+      trades: [
+        tradeAt(1_700_000_000_000),
+        tradeAt(1_700_000_000_000 + 21 * DAY_MS),
+      ],
+    } as unknown as Position);
+
+    expect(result.current.activeTimePeriod).toBe('1D');
+  });
+});
 
 describe('useTraderPositionData — perp candle pre-fetch', () => {
   beforeEach(() => {

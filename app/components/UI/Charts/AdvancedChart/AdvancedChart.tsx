@@ -378,6 +378,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     const visibleToMsRef = useRef<number | undefined>(visibleToMs);
     visibleToMsRef.current = visibleToMs;
+    const prevVisibleFromMsSentRef = useRef<number | undefined>(undefined);
+    const prevVisibleToMsSentRef = useRef<number | undefined>(undefined);
 
     const sendOHLCVData = useCallback(
       (data: OHLCVBar[]) => {
@@ -390,6 +392,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             visibleToMs: visibleToMsRef.current,
           },
         });
+        prevVisibleFromMsSentRef.current = visibleFromMsRef.current;
+        prevVisibleToMsSentRef.current = visibleToMsRef.current;
       },
       [postMessage],
     );
@@ -649,6 +653,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }
 
       const prevData = prevOhlcvDataRef.current;
+      const visibleRangeChanged =
+        visibleFromMsRef.current !== prevVisibleFromMsSentRef.current ||
+        visibleToMsRef.current !== prevVisibleToMsSentRef.current;
 
       if (
         ohlcvSeriesKey !== undefined &&
@@ -666,6 +673,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         prevData.length === 0 ||
         Math.abs(ohlcvData.length - prevData.length) > 1
       ) {
+        beginFullOhlcvLayoutSettle();
+        sendOHLCVData(ohlcvData);
+        prevOhlcvDataRef.current = ohlcvData;
+        if (ohlcvSeriesKey !== undefined) {
+          prevOhlcvSeriesKeyRef.current = ohlcvSeriesKey;
+        }
+        return;
+      }
+
+      if (visibleRangeChanged) {
         beginFullOhlcvLayoutSettle();
         sendOHLCVData(ohlcvData);
         prevOhlcvDataRef.current = ohlcvData;
@@ -701,6 +718,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       ohlcvData,
       ohlcvSeriesKey,
       webViewLoaded,
+      visibleFromMs,
+      visibleToMs,
       sendOHLCVData,
       postMessage,
       beginFullOhlcvLayoutSettle,

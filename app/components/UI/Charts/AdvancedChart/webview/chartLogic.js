@@ -52,6 +52,15 @@ window.ohlcvGeneration = 0;
 window.visibleFromMs = null;
 /** Visible-range end (ms) from RN; anchors the timeframe `to` to the last candle instead of Date.now(). */
 window.visibleToMs = null;
+/**
+ * True while a viewport-centering pagination loop is running. Cold init applies the
+ * centered range twice (on `dataReady` and again after a 350ms settle); this guard
+ * stops the second pass from starting a concurrent `paginateOlderBarsUntil` against
+ * the same cursor (which would double-fetch and duplicate bars). Reset on each new
+ * series in `handleSetOHLCVData` so an aborted (superseded-generation) loop never
+ * strands the flag.
+ */
+window.__mmCenteringInFlight = false;
 // Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
 window.currentChartType = 2;
 window.lineLastPriceShapeId = null;
@@ -294,6 +303,160 @@ function abortDeferredLayoutSettleAndNotify() {
   scheduleChartLayoutSettledNotify();
 }
 
+/**
+ * How long (ms) to keep re-asserting the centered visible range after applying it.
+ * A one-shot `setVisibleRange` issued during the post-load settle is overridden by
+ * TradingView's default "scroll to latest" positioning, so we re-apply every frame
+ * for this window — this is what the animated `handleFocusTime` (which sticks) does
+ * implicitly, and a single auto-center call did not. Sits within the post-load
+ * `suppressChartUserInteraction` window so it never fights a real user gesture.
+ */
+const CENTER_VISIBLE_RANGE_HOLD_MS = 700;
+/** Bumped on each hold so a newer center / new series cancels an in-flight hold. */
+window.__mmCenterHoldGen = 0;
+
+/**
+ * Re-asserts `setVisibleRange({from, to})` every animation frame for
+ * {@link CENTER_VISIBLE_RANGE_HOLD_MS}, defeating TradingView's post-load
+ * scroll-to-latest that clobbers a single call. Generation- and series-guarded so a
+ * newer center or a fresh series stops it; no-ops once the widget is torn down.
+ */
+function holdCenteredVisibleRange(chart, fromSec, toSec) {
+  window.__mmCenterHoldGen = (window.__mmCenterHoldGen || 0) + 1;
+  const gen = window.__mmCenterHoldGen;
+  const dataGen = window.ohlcvGeneration;
+  const startTs = Date.now();
+  // Re-asserting the range emits visible-range changes; keep them out of the
+  // pan/zoom analytics, matching handleFocusTime's programmatic slide.
+  suppressChartUserInteraction(CENTER_VISIBLE_RANGE_HOLD_MS + 200);
+
+  function apply() {
+    if (gen !== window.__mmCenterHoldGen) return;
+    if (dataGen !== window.ohlcvGeneration) return;
+    if (!window.chartWidget || !window.isChartReady) return;
+    try {
+      // No options object: passing { percentRightMargin: 0 } makes TradingView
+      // anchor to the latest candle and ignore an older from/to, so a historical
+      // frame (an old position's trades) snaps back to "today". This matches the
+      // working handleFocusTime call, which slides to old trades without issue.
+      chart.setVisibleRange({ from: fromSec, to: toSec });
+    } catch (e) {}
+    if (Date.now() - startTs < CENTER_VISIBLE_RANGE_HOLD_MS) {
+      try {
+        requestAnimationFrame(apply);
+      } catch (e) {
+        setTimeout(apply, 16);
+      }
+    }
+  }
+
+  apply();
+}
+
+/**
+ * Frames a trade-centered visible range, FIRST paginating older candles into
+ * `window.ohlcvData` when `fromMs` predates the loaded page.
+ *
+ * Two failure modes are handled together:
+ * 1. `setVisibleRange` cannot frame a range whose candles aren't loaded —
+ *    TradingView snaps the viewport back to the latest candle. Paginating the
+ *    target candles into `window.ohlcvData` first lets the `setVisibleRange`'s
+ *    `getBars` answer from the in-WebView cache. (The markers can still draw via
+ *    draw-on-pan as candles trickle in, which is why the circle appeared while the
+ *    chart stayed on "today".)
+ * 2. A single `setVisibleRange` during the post-load settle is overridden by
+ *    TradingView's scroll-to-latest, so we re-assert it for a short window (see
+ *    {@link holdCenteredVisibleRange}).
+ *
+ * Refreshes trade markers once the range is applied so the circles land in view.
+ */
+function applyCenteredVisibleRange(chart, fromMs, toMs) {
+  if (!chart || typeof chart.setVisibleRange !== 'function') return;
+  if (fromMs == null) return;
+
+  function apply() {
+    window.__mmCenteringInFlight = false;
+    let fromSec = Math.floor(fromMs / 1000);
+    let toSec = Math.ceil((toMs != null ? toMs : Date.now()) / 1000);
+    let barPadSec = getApproxBarDurationSec() * 2;
+    let targetToSec = toSec + barPadSec;
+
+    // A frame ending at/after the latest loaded bar is the trailing window (Token
+    // Details): TradingView's scroll-to-latest doesn't fight it, so a single
+    // setVisibleRange is enough and we keep the original behavior. A frame ending
+    // well BEFORE the latest bar is a historical position (an old trade range) that
+    // scroll-to-latest WILL clobber, so re-assert it across the settle window.
+    let lastBar = window.ohlcvData[window.ohlcvData.length - 1];
+    let lastBarSec = lastBar ? Math.floor(lastBar.time / 1000) : null;
+    let isHistoricalFrame = lastBarSec != null && toSec < lastBarSec;
+
+    if (isHistoricalFrame) {
+      holdCenteredVisibleRange(chart, fromSec, targetToSec);
+    } else {
+      try {
+        chart.setVisibleRange(
+          { from: fromSec, to: targetToSec },
+          { percentRightMargin: 0 },
+        );
+      } catch (e) {}
+    }
+    scheduleTradeMarkerRefresh();
+  }
+
+  let oldest = window.ohlcvData[0] ? window.ohlcvData[0].time : null;
+  let needsOlderHistory =
+    oldest != null &&
+    fromMs < oldest &&
+    window.ohlcvPagination &&
+    window.ohlcvPagination.nextCursor &&
+    window.ohlcvPagination.hasMore;
+
+  if (needsOlderHistory) {
+    // A loop is already paginating toward this range (cold init's second pass) —
+    // let it finish and apply, rather than racing the same cursor.
+    if (window.__mmCenteringInFlight) return;
+    window.__mmCenteringInFlight = true;
+    paginateOlderBarsUntil(fromMs, apply);
+  } else {
+    apply();
+  }
+}
+
+function applyVisibleRangeFromWindow(chart) {
+  if (!chart || typeof chart.setVisibleRange !== 'function') return;
+
+  if (window.visibleFromMs == null) {
+    try {
+      chart.getTimeScale().setRightOffset(2);
+    } catch (e) {}
+    return;
+  }
+
+  applyCenteredVisibleRange(chart, window.visibleFromMs, window.visibleToMs);
+}
+
+function scheduleVisibleRangeFromWindowAfterDataLoad(chart) {
+  function run() {
+    applyVisibleRangeFromWindow(chart);
+    scheduleTradeMarkerRefresh();
+  }
+
+  try {
+    if (chart && typeof chart.dataReady === 'function') {
+      chart.dataReady(run);
+    } else {
+      setTimeout(run, 0);
+    }
+  } catch (e) {
+    setTimeout(run, 0);
+  }
+
+  // Cold init can report chart ready before drawings can anchor to bars. A
+  // delayed second pass mirrors the interval-switch reset path and fixes the
+  // initial marker/range race without waiting for the user to change periods.
+  setTimeout(run, 350);
+}
+
 // ============================================
 // Message Handler
 // ============================================
@@ -473,6 +636,10 @@ function handleSetOHLCVData(payload) {
   window.ohlcvData = payload.data;
   bumpLineChartOhlcvEpoch();
   window.ohlcvGeneration++;
+  // A new series supersedes any in-flight centering pagination (its generation
+  // guard will abort it without running the apply that clears this flag), so reset
+  // here to keep the next centering pass unblocked.
+  window.__mmCenteringInFlight = false;
 
   if (payload.pagination) {
     window.ohlcvPagination = {
@@ -513,20 +680,10 @@ function handleSetOHLCVData(payload) {
       if (capturedGeneration !== window.ohlcvGeneration) {
         return;
       }
-      let fromSec = Math.floor(visibleFromMs / 1000);
-      let lastBar = window.ohlcvData[window.ohlcvData.length - 1];
-      let toSec = lastBar
-        ? Math.ceil(lastBar.time / 1000)
-        : Math.ceil(Date.now() / 1000);
-      let barPadSec = getApproxBarDurationSec() * 2;
-      try {
-        chart.setVisibleRange(
-          { from: fromSec, to: toSec + barPadSec },
-          { percentRightMargin: 0 },
-        );
-      } catch (e) {
-        // setVisibleRange can fail if chart is mid-teardown
-      }
+      // Paginate the trade-date candles in before framing them — the reset page
+      // only holds recent candles, so a direct setVisibleRange to an older range
+      // would otherwise snap back to the latest candle (see applyCenteredVisibleRange).
+      applyCenteredVisibleRange(chart, visibleFromMs, visibleToMs);
     });
   }
 
@@ -2666,6 +2823,7 @@ function handleSetTradeMarkers(payload) {
   }
 
   placeTradeMarkers();
+  scheduleTradeMarkerRefresh();
 }
 
 /**
@@ -5016,6 +5174,124 @@ function fetchOlderBars(pending) {
     });
 }
 
+/**
+ * Paginates older OHLCV pages into `window.ohlcvData` until the oldest loaded bar
+ * is at or before `targetFromMs`, pagination is exhausted, or the 50-page cap is
+ * reached, then invokes `onDone`. Page fetches abort silently (without calling
+ * `onDone`) if `window.ohlcvGeneration` advances mid-flight — a newer series has
+ * superseded this one.
+ *
+ * Shared by the datafeed getBars path ({@link fetchOlderBarsUntilRange}) and the
+ * viewport-centering path ({@link applyCenteredVisibleRange}).
+ */
+function paginateOlderBarsUntil(targetFromMs, onDone) {
+  let gen = window.ohlcvGeneration;
+  let remainingPages = 50;
+
+  function finish() {
+    if (gen !== window.ohlcvGeneration) {
+      return;
+    }
+    onDone();
+  }
+
+  function step() {
+    if (gen !== window.ohlcvGeneration) {
+      return;
+    }
+
+    let oldest = window.ohlcvData[0] ? window.ohlcvData[0].time : null;
+    if (targetFromMs == null || (oldest != null && oldest <= targetFromMs)) {
+      finish();
+      return;
+    }
+
+    let pag = window.ohlcvPagination;
+    if (
+      remainingPages <= 0 ||
+      !pag.nextCursor ||
+      !pag.hasMore ||
+      !pag.assetId
+    ) {
+      finish();
+      return;
+    }
+    remainingPages -= 1;
+
+    let url = OHLCV_BASE_URL + '/' + pag.assetId;
+    let queryParams = [];
+    queryParams.push('nextCursor=' + encodeURIComponent(pag.nextCursor));
+    if (pag.vsCurrency) {
+      queryParams.push('vsCurrency=' + encodeURIComponent(pag.vsCurrency));
+    }
+    url = url + '?' + queryParams.join('&');
+
+    fetch(url)
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error('OHLCV API error: ' + response.status);
+        }
+        return response.json();
+      })
+      .then(function (result) {
+        if (gen !== window.ohlcvGeneration) {
+          return;
+        }
+
+        if (!result || !Array.isArray(result.data)) {
+          throw new Error('OHLCV API response: invalid payload');
+        }
+
+        let newBars = [];
+        for (let i = 0; i < result.data.length; i++) {
+          let c = result.data[i];
+          newBars.push({
+            time: c.timestamp,
+            open: c.open,
+            high: c.high,
+            low: c.low,
+            close: c.close,
+            volume: c.volume,
+          });
+        }
+
+        window.ohlcvPagination.nextCursor = result.nextCursor || null;
+        window.ohlcvPagination.hasMore = !!result.hasNext;
+
+        if (newBars.length > 0) {
+          window.ohlcvData = newBars.concat(window.ohlcvData);
+          step();
+          return;
+        }
+
+        finish();
+      })
+      .catch(function () {
+        finish();
+      });
+  }
+
+  step();
+}
+
+/**
+ * TradingView can ask for an initial visible window older than the first page RN
+ * supplied (Social Trading positions centered on an old trade). On first
+ * request, paginate backwards until the requested range is covered, then answer
+ * from the expanded in-WebView candle cache.
+ */
+function fetchOlderBarsUntilRange(pending) {
+  paginateOlderBarsUntil(pending.fromMs, function () {
+    let bars = filterBarsForRange(
+      pending.fromMs,
+      pending.toMs,
+      pending.countBack,
+    );
+    pending.onResult(bars, { noData: bars.length === 0 });
+    scheduleTradeMarkerRefresh();
+  });
+}
+
 let customDatafeed = {
   onReady: function (callback) {
     setTimeout(function () {
@@ -5110,12 +5386,28 @@ let customDatafeed = {
         return;
       }
 
+      let oldestTs = window.ohlcvData[0]?.time;
+      if (
+        firstRequest &&
+        oldestTs != null &&
+        fromMs < oldestTs &&
+        window.ohlcvPagination &&
+        window.ohlcvPagination.nextCursor &&
+        window.ohlcvPagination.hasMore
+      ) {
+        fetchOlderBarsUntilRange({
+          fromMs: fromMs,
+          toMs: toMs,
+          countBack: countBack,
+          onResult: deliverBars,
+        });
+        return;
+      }
+
       if (firstRequest || window.ohlcvData.length === 0) {
         deliverBars([], { noData: true });
         return;
       }
-
-      let oldestTs = window.ohlcvData[0].time;
 
       fetchOlderBars({
         onResult: onResult,
@@ -5462,6 +5754,12 @@ function initChart() {
         ensureNoLineChartEndIcons();
         createLastPriceLine();
       }
+
+      try {
+        scheduleVisibleRangeFromWindowAfterDataLoad(
+          window.chartWidget.activeChart(),
+        );
+      } catch (e) {}
 
       // Prevent series selection (blue dots) by clearing any selection immediately
       try {
