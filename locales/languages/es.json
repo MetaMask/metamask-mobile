@@ -2348,7 +2348,7 @@
     "search_account": "Buscar una cuenta",
     "home": {
       "live_now_title": "En vivo ahora",
-      "categories_placeholder": "Categorías",
+      "categories_title": "Categorías",
       "trending_placeholder": "Tendencias"
     },
     "homepage_discovery": {

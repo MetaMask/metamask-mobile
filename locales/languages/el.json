@@ -2348,7 +2348,7 @@
     "search_account": "Αναζήτηση λογαριασμού",
     "home": {
       "live_now_title": "Ζωντανά τώρα",
-      "categories_placeholder": "Κατηγορίες",
+      "categories_title": "Κατηγορίες",
       "trending_placeholder": "Δημοφιλή"
     },
     "homepage_discovery": {

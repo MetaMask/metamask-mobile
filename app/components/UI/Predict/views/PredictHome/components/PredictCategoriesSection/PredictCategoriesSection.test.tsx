@@ -68,15 +68,24 @@ describe('PredictCategoriesSection', () => {
   });
 
   it('renders the three categories in Figma order (politics, sports, crypto)', () => {
-    expect(PREDICT_HOME_CATEGORIES.map((category) => category.id)).toEqual([
-      'politics',
-      'sports',
-      'crypto',
-    ]);
+    const { getAllByTestId } = renderSection();
+
+    const tiles = getAllByTestId(
+      new RegExp(`^${PREDICT_CATEGORIES_SECTION_TEST_IDS.TILE_PREFIX}-`),
+    );
+
+    expect(
+      tiles.map((tile) =>
+        tile.props.testID.replace(
+          `${PREDICT_CATEGORIES_SECTION_TEST_IDS.TILE_PREFIX}-`,
+          '',
+        ),
+      ),
+    ).toEqual(['politics', 'sports', 'crypto']);
   });
 
   it.each(PREDICT_HOME_CATEGORIES)(
-    'navigates to the $feedId feed when the $id tile is pressed',
+    'pressing the $id tile navigates to its feed and tracks the analytics event',
     (category) => {
       const { getByTestId } = renderSection();
 
@@ -89,23 +98,10 @@ describe('PredictCategoriesSection', () => {
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.FEED,
         params: {
-          feedId: category.feedId,
+          feedId: category.id,
           entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
         },
       });
-    },
-  );
-
-  it.each(PREDICT_HOME_CATEGORIES)(
-    'tracks the category click with category_name "$id" when the tile is pressed',
-    (category) => {
-      const { getByTestId } = renderSection();
-
-      fireEvent.press(
-        getByTestId(
-          `${PREDICT_CATEGORIES_SECTION_TEST_IDS.TILE_PREFIX}-${category.id}`,
-        ),
-      );
 
       expect(mockTrackCategoryClicked).toHaveBeenCalledWith({
         categoryName: category.id,

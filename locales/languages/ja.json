@@ -2348,7 +2348,7 @@
     "search_account": "アカウントの検索",
     "home": {
       "live_now_title": "現在進行中",
-      "categories_placeholder": "カテゴリー",
+      "categories_title": "カテゴリー",
       "trending_placeholder": "人気上昇中"
     },
     "homepage_discovery": {

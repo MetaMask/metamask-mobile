@@ -10,7 +10,6 @@ import {
 import {
   default as Icon,
   IconColor,
-  IconName as LocalIconName,
   IconSize,
 } from '../../../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -56,7 +55,7 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
       navigation.navigate(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.FEED,
         params: {
-          feedId: category.feedId,
+          feedId: category.id,
           entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
         },
       });
@@ -84,7 +83,7 @@ const PredictCategoriesSection: React.FC<PredictCategoriesSectionProps> = ({
           >
             <Box twClassName="items-center justify-center gap-2 rounded-xl bg-muted py-4 px-2">
               <Icon
-                name={category.iconName as LocalIconName}
+                name={category.iconName}
                 size={IconSize.Lg}
                 color={IconColor.Default}
               />

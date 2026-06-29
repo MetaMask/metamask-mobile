@@ -2348,7 +2348,7 @@
     "search_account": "Bir hesabı ara",
     "home": {
       "live_now_title": "Şimdi canlı",
-      "categories_placeholder": "Kategoriler",
+      "categories_title": "Kategoriler",
       "trending_placeholder": "Trend"
     },
     "homepage_discovery": {
