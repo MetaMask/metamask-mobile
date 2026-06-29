@@ -2346,8 +2346,7 @@
     "search_account": "Cari akun",
     "home": {
       "live_now_title": "Sedang live",
-      "categories_placeholder": "Kategori",
-      "trending_placeholder": "Sedang tren"
+      "categories_placeholder": "Kategori"
     },
     "homepage_discovery": {
       "btc_title": "Harga BTC: {{price}}",
