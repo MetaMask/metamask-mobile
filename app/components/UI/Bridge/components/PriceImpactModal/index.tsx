@@ -61,9 +61,7 @@ export const PriceImpactModal = () => {
   const handleProceed = useCallback(async () => {
     setLoading(true);
     if (sheetRef.current?.onCloseBottomSheet) {
-      sheetRef.current.onCloseBottomSheet(async () => {
-        await confirmBridge();
-      });
+      sheetRef.current.onCloseBottomSheet(confirmBridge);
     } else {
       await confirmBridge();
     }
