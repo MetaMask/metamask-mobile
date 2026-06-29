@@ -849,9 +849,11 @@ export class Engine {
           if (state === 'active') {
             // If the client is active and unlocked, request a periodic update
             // of the Snaps registry.
-            this.controllerMessenger.call(
-              'SnapRegistryController:requestPeriodicUpdate',
-            );
+            this.controllerMessenger
+              .call('SnapRegistryController:requestPeriodicUpdate')
+              .catch((error) => {
+                captureException(error);
+              });
           }
         }
       },
