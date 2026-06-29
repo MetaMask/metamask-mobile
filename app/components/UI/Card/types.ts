@@ -39,6 +39,7 @@ export enum CardMessageBoxType {
   CardProvisioning = 'card_provisioning',
   AuthPrompt = 'auth_prompt',
   CashbackFundingRequired = 'cashback_funding_required',
+  CashbackMoneyAccountRequired = 'cashback_money_account_required',
 }
 
 export type CardUserPhase =
@@ -605,4 +606,5 @@ export interface CashbackWithdrawEstimationResponse {
   wei: string;
   eth: string;
   price: string;
+  network: string;
 }

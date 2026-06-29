@@ -13,6 +13,10 @@ import {
   ActionPosition,
 } from '../../../../../util/analytics/actionButtonTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  ARC_HEX_CHAIN_ID,
+  ARC_USDC_ERC20_ADDRESS,
+} from '../../../../../enablement/assets/arc';
 
 // Mock dependencies
 const mockNavigate = jest.fn();
@@ -423,7 +427,7 @@ describe('useSwapBridgeNavigation', () => {
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(0);
   });
 
-  it('resets isDestTokenManuallySet flag when navigating to swaps', () => {
+  it('resets isDestTokenManuallySet flag when navigating to swaps without an explicit dest token', () => {
     const { result } = renderHookWithProvider(
       () =>
         useSwapBridgeNavigation({
@@ -437,6 +441,31 @@ describe('useSwapBridgeNavigation', () => {
 
     expect(mockSetIsDestTokenManuallySet).toHaveBeenCalledWith(false);
     expect(mockFetchPopularTokens).toHaveBeenCalledTimes(1);
+  });
+
+  it('sets isDestTokenManuallySet when an explicit dest token is provided', () => {
+    const destOverride: BridgeToken = {
+      address: '0x0000000000000000000000000000000000000005',
+      symbol: 'DEST_OVERRIDE',
+      name: 'Dest Override Token',
+      decimals: 18,
+      chainId: mockChainId,
+    };
+
+    const { result } = renderHookWithProvider(
+      () =>
+        useSwapBridgeNavigation({
+          location: mockLocation,
+          sourcePage: mockSourcePage,
+          sourceToken: mockSourceToken,
+        }),
+      { state: initialState },
+    );
+
+    result.current.goToSwaps(undefined, destOverride);
+
+    expect(mockSetIsDestTokenManuallySet).toHaveBeenCalledWith(true);
+    expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
   });
 
   it('uses home page filter network when no token is provided', () => {
@@ -692,6 +721,45 @@ describe('useSwapBridgeNavigation', () => {
         },
       });
       expect(mockSetDestToken).toHaveBeenCalledWith(destOverride);
+    });
+
+    it('lets sourceTokenOverride be overridden by NATIVE_SWAP_TOKEN_OVERRIDE_PER_CHAIN when applicable (Arc)', () => {
+      const sourceOverride: BridgeToken = {
+        address: '0x0000000000000000000000000000000000000000',
+        symbol: 'SRC_OVERRIDE',
+        name: 'Source Override Token',
+        decimals: 18,
+        chainId: ARC_HEX_CHAIN_ID,
+      };
+
+      const { result } = renderHookWithProvider(
+        () =>
+          useSwapBridgeNavigation({
+            location: mockLocation,
+            sourcePage: mockSourcePage,
+            sourceToken: mockSourceToken,
+          }),
+        { state: initialState },
+      );
+
+      result.current.goToSwaps(sourceOverride);
+
+      expect(mockNavigate).toHaveBeenCalledWith('Bridge', {
+        screen: 'BridgeView',
+        params: {
+          // Overridden because native on Arc
+          sourceToken: {
+            symbol: 'USDC',
+            name: 'USDC',
+            address: ARC_USDC_ERC20_ADDRESS,
+            chainId: ARC_HEX_CHAIN_ID,
+            decimals: 6,
+          },
+          sourcePage: mockSourcePage,
+          bridgeViewMode: BridgeViewMode.Unified,
+          location: 'Main View',
+        },
+      });
     });
 
     it('falls back to native token when default dest same as source', () => {

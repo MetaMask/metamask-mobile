@@ -14,6 +14,14 @@ jest.mock('./hooks/useChainDisplayInfos', () => ({
   useChainDisplayInfos: jest.fn(),
 }));
 
+jest.mock('./components/QuickBuyTokenSecurityBadge', () => {
+  const ReactMock = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: () => ReactMock.createElement(ReactMock.Fragment),
+  };
+});
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));

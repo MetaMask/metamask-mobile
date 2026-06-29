@@ -14,7 +14,7 @@ import {
 } from './FeatureFlagOverrideContext';
 import { FeatureFlagType, getFeatureFlagType } from '../util/feature-flags';
 import {
-  selectRemoteFeatureFlags,
+  selectRemoteFeatureFlagsUnfiltered,
   selectLocalOverrides,
   selectRawFeatureFlags,
 } from '../selectors/featureFlagController';
@@ -43,7 +43,7 @@ jest.mock('../core/Engine', () => ({
 }));
 
 jest.mock('../selectors/featureFlagController', () => ({
-  selectRemoteFeatureFlags: jest.fn(),
+  selectRemoteFeatureFlagsUnfiltered: jest.fn(),
   selectLocalOverrides: jest.fn(),
   selectRawFeatureFlags: jest.fn(),
 }));
@@ -118,17 +118,14 @@ describe('FeatureFlagOverrideContext', () => {
   });
 
   /**
-   * Helper to setup useSelector mock for the three selectors
+   * Helper to setup useSelector mock for the selectors
    */
   const setupSelectorMocks = (rawFlags: Record<string, unknown>) => {
     currentRawFlags = rawFlags;
     currentOverrides = {};
 
-    // We need to identify which selector is being used
-    // by comparing the selector function directly
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectRemoteFeatureFlags) {
-        // Return raw flags merged with overrides
+      if (selector === selectRemoteFeatureFlagsUnfiltered) {
         return { ...currentRawFlags, ...currentOverrides };
       }
       if (selector === selectLocalOverrides) {

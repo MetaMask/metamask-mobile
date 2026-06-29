@@ -112,6 +112,7 @@ export const PredictEventValues = {
     HOMEPAGE_FEATURED_CAROUSEL: 'homepage_featured_carousel',
     HOMEPAGE_FEATURED_LIST: 'homepage_featured_list',
     MAIN_TRADE_BUTTON: 'main_trade_button',
+    HOMESCREEN_PILL: 'homescreen_pill',
     REWARDS: 'rewards',
     GTM_MODAL: 'gtm_modal',
     BACKGROUND: 'background',
@@ -127,6 +128,13 @@ export const PredictEventValues = {
     MM_PREDICT_DEPOSIT: 'mm_predict_deposit',
     MM_PREDICT_WITHDRAW: 'mm_predict_withdraw',
     MM_PREDICT_CLAIM: 'mm_predict_claim',
+  },
+  CLAIM_FAILURE_REASON: {
+    PENDING_RESOLUTION: 'pending_resolution',
+    INSUFFICIENT_GAS: 'insufficient_gas',
+    NETWORK_ERROR: 'network_error',
+    USER_REJECTED: 'user_rejected',
+    UNKNOWN: 'unknown',
   },
   MARKET_TYPE: {
     BINARY: 'binary',
@@ -167,6 +175,7 @@ export const PredictEventValues = {
   },
   BANNER_TYPE: {
     WORLD_CUP: 'world_cup',
+    PREDICT_THE_PITCH: 'predict_the_pitch',
   },
   SEARCH_INTERACTION: {
     OPENED: 'opened',

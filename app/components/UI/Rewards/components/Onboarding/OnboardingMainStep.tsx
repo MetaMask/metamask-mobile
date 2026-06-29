@@ -1,6 +1,10 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Image, ActivityIndicator } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import {
+  StackActions,
+  useNavigation,
+  useFocusEffect,
+} from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -43,6 +47,8 @@ import storageWrapper from '../../../../../store/storage-wrapper';
 import OnboardingStepComponent from './OnboardingStep';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsLegalDisclaimer from './RewardsLegalDisclaimer';
+import RewardsVipReferralTag from '../RewardsVipReferralTag/RewardsVipReferralTag';
+import { selectVipProgramEnabled } from '../../../../../selectors/featureFlagController/vipProgram';
 
 const OnboardingMainStep: React.FC = () => {
   const tw = useTailwind();
@@ -61,6 +67,7 @@ const OnboardingMainStep: React.FC = () => {
   const candidateSubscriptionId = useSelector(selectCandidateSubscriptionId);
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const onboardingReferralCode = useSelector(selectOnboardingReferralCode);
+  const isVipProgramEnabled = useSelector(selectVipProgramEnabled);
 
   // Opt-in hook
   const { optin, optinError, optinLoading } = useOptin();
@@ -72,6 +79,7 @@ const OnboardingMainStep: React.FC = () => {
     isValidating: isValidatingReferralCode,
     isValid: referralCodeIsValid,
     isUnknownError: isUnknownErrorReferralCode,
+    isVipReferralCode,
   } = useValidateReferralCode(
     onboardingReferralCode
       ? onboardingReferralCode.trim().toUpperCase()
@@ -227,12 +235,16 @@ const OnboardingMainStep: React.FC = () => {
     });
   }, [optin, canContinue, referralCode, isPrefilledReferral]);
 
-  // Auto-redirect + analytics tracking
+  // Post-opt-in: replace onboarding with dashboard so back does not return here.
+  // RewardsHome registers both screens in the same stack; dashboard screen options
+  // provide the slide transition.
   useFocusEffect(
     useCallback(() => {
       if (subscriptionId) {
-        navigation.navigate(Routes.REWARDS_DASHBOARD);
-      } else if (!hasTrackedOnboardingStart.current) {
+        navigation.dispatch(StackActions.replace(Routes.REWARDS_DASHBOARD));
+        return;
+      }
+      if (!hasTrackedOnboardingStart.current) {
         trackEvent(
           createEventBuilder(
             MetaMetricsEvents.REWARDS_ONBOARDING_STARTED,
@@ -273,6 +285,13 @@ const OnboardingMainStep: React.FC = () => {
       return <ActivityIndicator />;
     }
     if (referralCodeIsValid) {
+      // A VIP referral code shows the gold VIP tag instead of the success
+      // checkmark — never both. Gated on the VIP program flag so a stale
+      // `isVipReferralCode` (validated before the flag was turned off) can't
+      // leak the pill onto onboarding.
+      if (isVipProgramEnabled && isVipReferralCode) {
+        return <RewardsVipReferralTag />;
+      }
       return (
         <Icon
           name={IconName.Confirmation}

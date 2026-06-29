@@ -12,7 +12,7 @@ This guide covers both verifying that events are working correctly and debugging
 Before diving into detailed debugging, verify these basics:
 
 - [ ] Is analytics enabled? (check `HAS_TEST_OVERRIDES` environment variable is NOT set to `true`)
-- [ ] Is the user opted into analytics? (`isEnabled()` from `useMetrics` hook)
+- [ ] Is the user opted into analytics? (`isEnabled()` from `useAnalytics` hook)
 - [ ] Are you using the correct event builder pattern?
 - [ ] Are events being flushed? (automatic every 30s or 20 events, or custom interval via env vars)
 - [ ] Are you in the correct environment? (development vs production)

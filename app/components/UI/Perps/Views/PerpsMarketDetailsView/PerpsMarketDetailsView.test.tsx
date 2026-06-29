@@ -4,14 +4,19 @@ import PerpsMarketDetailsView from './';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
+  getPerpsRelatedMarketsSelector,
   PerpsMarketDetailsViewSelectorsIDs,
+  PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
+  PerpsRelatedMarketsSelectorsIDs,
 } from '../../Perps.testIds';
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { Linking } from 'react-native';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
+import { selectPerpsRelatedMarketsEnabledFlag } from '../../selectors/featureFlags';
+import type { PerpsMarketData } from '@metamask/perps-controller';
 
 jest.mock('react-native-modal', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -32,9 +37,8 @@ jest.mock('react-native-modal', () => {
     ) : null;
 });
 
-// Mock @consensys/native-ramps-sdk to provide missing enum
-jest.mock('@consensys/native-ramps-sdk', () => ({
-  ...jest.requireActual('@consensys/native-ramps-sdk'),
+jest.mock('../../../Ramp/types/legacyDeposit', () => ({
+  ...jest.requireActual('../../../Ramp/types/legacyDeposit'),
   DepositPaymentMethodDuration: {
     instant: 'instant',
     oneToTwoDays: 'oneToTwoDays',
@@ -137,6 +141,13 @@ jest.mock('../../hooks/usePerpsMarketFills', () => ({
   })),
 }));
 
+jest.mock(
+  '../../../../Views/Homepage/Sections/Perpetuals/hooks/useHomepageSparklines',
+  () => ({
+    useHomepageSparklines: () => ({ sparklines: {} }),
+  }),
+);
+
 // Navigation mock functions
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -155,15 +166,7 @@ const mockIsNotificationsFeatureEnabled = jest.fn();
 
 // Mock route params that can be modified during tests
 const mockRouteParams: {
-  market?: {
-    symbol: string;
-    name: string;
-    price: string;
-    change24h: string;
-    change24hPercent: string;
-    volume: string;
-    maxLeverage: string;
-  };
+  market?: PerpsMarketData;
   monitoringIntent?: {
     asset: string;
     monitor: 'orders' | 'positions' | 'both';
@@ -338,10 +341,15 @@ jest.mock('../../hooks/stream/usePerpsLiveFills', () => ({
 
 // Mock Engine for REST fallback tests
 const mockGetOrderFills = jest.fn();
+const mockToggleWatchlistMarket = jest.fn();
+const mockGetWatchlistMarkets = jest.fn(() => [] as string[]);
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
       getOrderFills: (...args: unknown[]) => mockGetOrderFills(...args),
+      toggleWatchlistMarket: (...args: unknown[]) =>
+        mockToggleWatchlistMarket(...args),
+      getWatchlistMarkets: () => mockGetWatchlistMarkets(),
     },
   },
 }));
@@ -822,6 +830,9 @@ describe('PerpsMarketDetailsView', () => {
       if (selector === mockSelectPerpsEligibility) {
         return true;
       }
+      if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+        return false;
+      }
       return undefined;
     });
 
@@ -875,6 +886,23 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
     ).toBeOnTheScreen();
+  });
+
+  it('toggles the watchlist via the controller when the favorite button is pressed', () => {
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    fireEvent.press(getByTestId(PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON));
+
+    // The component fires the controller's own optimistic-update/revert toggle
+    // (fire-and-forget) rather than maintaining a separate local optimistic copy.
+    expect(mockToggleWatchlistMarket).toHaveBeenCalledWith('BTC');
   });
 
   it('renders statistics items', () => {
@@ -932,6 +960,72 @@ describe('PerpsMarketDetailsView', () => {
     ).toBeOnTheScreen();
     expect(
       getByTestId(PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON),
+    ).toBeOnTheScreen();
+  });
+
+  it('renders related markets rail when flag is enabled and market has category', () => {
+    const { useSelector } = jest.requireMock('react-redux');
+    const mockSelectPerpsEligibility = jest.requireMock(
+      '../../selectors/perpsController',
+    ).selectPerpsEligibility;
+    useSelector.mockImplementation((selector: unknown) => {
+      if (selector === mockSelectPerpsEligibility) {
+        return true;
+      }
+      if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+        return true;
+      }
+      return undefined;
+    });
+    const aaplMarket: PerpsMarketData = {
+      symbol: 'xyz:AAPL',
+      name: 'AAPL',
+      price: '$6.00',
+      change24h: '+$0.10',
+      change24hPercent: '+1.00%',
+      volume: '$1M',
+      maxLeverage: '20x',
+      marketType: 'stock',
+      isHip3: true,
+    };
+    mockRouteParams.market = aaplMarket;
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [
+        {
+          ...aaplMarket,
+          volumeNumber: 1000000,
+        },
+        {
+          symbol: 'xyz:MSFT',
+          name: 'MSFT',
+          price: '$0.50',
+          change24h: '+$0.01',
+          change24hPercent: '+2.00%',
+          volume: '$2M',
+          maxLeverage: '10x',
+          marketType: 'stock',
+          isHip3: true,
+          volumeNumber: 2000000,
+        },
+      ],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <PerpsConnectionProvider>
+        <PerpsMarketDetailsView />
+      </PerpsConnectionProvider>,
+      {
+        state: initialState,
+      },
+    );
+
+    expect(getByTestId(PerpsRelatedMarketsSelectorsIDs.RAIL)).toBeOnTheScreen();
+    expect(
+      getByTestId(getPerpsRelatedMarketsSelector.tile('xyz:MSFT')),
     ).toBeOnTheScreen();
   });
 
@@ -2601,7 +2695,7 @@ describe('PerpsMarketDetailsView', () => {
   });
 
   describe('Category search shortcut', () => {
-    it('navigates to market list with crypto category when search button is pressed', () => {
+    it('navigates to market list without filters when search button is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
@@ -2618,7 +2712,6 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(mockNavigateToMarketList).toHaveBeenCalledWith({
         source: 'magnifying_glass',
-        defaultMarketTypeFilter: 'crypto',
       });
     });
   });

@@ -26,6 +26,7 @@ import Engine from '../../../../core/Engine';
 import { HOME_SCREEN_CONFIG } from '../constants/perpsConfig';
 import { selectPerpsWatchlistMarkets } from '../selectors/perpsController';
 import { usePerpsConnection } from './usePerpsConnection';
+import { getSuggestedWatchlistMarkets } from '../utils/marketUtils';
 
 interface UsePerpsHomeDataParams {
   positionsLimit?: number;
@@ -39,11 +40,19 @@ interface UsePerpsHomeDataReturn {
   positions: Position[];
   orders: Order[];
   watchlistMarkets: PerpsMarketData[];
+  /** Top 5 markets by 24h volume, used as suggestions when watchlist is empty */
+  suggestedWatchlistMarkets: PerpsMarketData[];
   perpsMarkets: PerpsMarketData[]; // Crypto markets (renamed from trending)
   stocksMarkets: PerpsMarketData[]; // Equity markets
   commoditiesMarkets: PerpsMarketData[]; // Commodity markets
   stocksAndCommoditiesMarkets: PerpsMarketData[]; // Combined stocks & commodities markets
   forexMarkets: PerpsMarketData[]; // Forex markets
+  /**
+   * True when the raw (unfiltered) market list is non-empty. Reflects the
+   * full set that PerpsTopMoversSection ranks, including HIP-3 and any market
+   * type not bucketed into the home-screen explore slices.
+   */
+  hasMarkets: boolean;
   recentActivity: PerpsTransaction[];
   sortBy: SortField;
   isLoading: {
@@ -162,6 +171,13 @@ export const usePerpsHomeData = ({
   const watchlistMarkets = useMemo(
     () =>
       allMarkets.filter((market) => watchlistSymbols.includes(market.symbol)),
+    [allMarkets, watchlistSymbols],
+  );
+
+  // Top markets by volume — shown as suggestions below the watchlist.
+  // Excludes already-watchlisted markets so the list shrinks as items are added.
+  const suggestedWatchlistMarkets = useMemo(
+    () => getSuggestedWatchlistMarkets(allMarkets, watchlistSymbols),
     [allMarkets, watchlistSymbols],
   );
 
@@ -374,11 +390,13 @@ export const usePerpsHomeData = ({
     positions: limitedPositions,
     orders: limitedOrders,
     watchlistMarkets: limitedWatchlistMarkets,
+    suggestedWatchlistMarkets,
     perpsMarkets: searchedPerpsMarkets, // Crypto markets (renamed from trendingMarkets)
     stocksMarkets: searchedStocksMarkets,
     commoditiesMarkets: searchedCommoditiesMarkets,
     stocksAndCommoditiesMarkets: searchedStocksAndCommoditiesMarkets,
     forexMarkets: searchedForexMarkets,
+    hasMarkets: allMarkets.length > 0,
     recentActivity: limitedActivity,
     sortBy,
     // Hooks handle reconnection internally: clearCache() sends null →
