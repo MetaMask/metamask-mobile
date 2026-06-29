@@ -12,25 +12,10 @@ import {
   formatOutcomeCardTitle,
   getDefaultLineIndex,
   getFallbackSportsMarketTypeLabel,
+  getMoneylineButtonEntries,
   getSportsMarketTypeLabel,
   getTranslatedSportsMarketTypeLabel,
-  sortMoneylineOutcomes,
 } from './utils';
-
-const getSimpleOutcomeCardTitle = (
-  outcome: PredictOutcomeGroup['outcomes'][number],
-): string => {
-  const fallbackTitle = formatOutcomeCardTitle(outcome);
-
-  if (
-    !outcome.sportsMarketType ||
-    !isMoneylineLikeMarketType(outcome.sportsMarketType)
-  ) {
-    return fallbackTitle;
-  }
-
-  return getSportsMarketTypeLabel(outcome.sportsMarketType, fallbackTitle);
-};
 
 const SimpleOutcomeCard = memo(
   ({
@@ -155,8 +140,8 @@ const MoneylineCard = memo(
     );
     const tokenIds = useMemo(
       () =>
-        sortMoneylineOutcomes(outcomes, game)
-          .map((outcome) => outcome.tokens[0]?.id)
+        getMoneylineButtonEntries(outcomes, game)
+          .map(({ token }) => token.id)
           .filter((id): id is string => Boolean(id)),
       [outcomes, game],
     );
@@ -208,10 +193,7 @@ const SubgroupCards = memo(
       );
     const testID = `${groupKey}-${subgroup.key}-${index}`;
 
-    if (
-      isMoneylineLikeMarketType(subgroup.key) &&
-      subgroup.outcomes.length > 1
-    ) {
+    if (isMoneylineLikeMarketType(subgroup.key)) {
       return (
         <MoneylineCard
           outcomes={subgroup.outcomes}
@@ -279,11 +261,7 @@ export const OutcomesContent = memo(
     }
 
     const firstType = group.outcomes[0]?.sportsMarketType;
-    if (
-      firstType &&
-      isMoneylineLikeMarketType(firstType) &&
-      group.outcomes.length > 1
-    ) {
+    if (firstType && isMoneylineLikeMarketType(firstType)) {
       return (
         <MoneylineCard
           outcomes={group.outcomes}
@@ -304,7 +282,7 @@ export const OutcomesContent = memo(
           <SimpleOutcomeCard
             key={outcome.id}
             outcome={outcome}
-            title={getSimpleOutcomeCardTitle(outcome)}
+            title={formatOutcomeCardTitle(outcome)}
             onBuyPress={onBuyPress}
             game={game}
             sportsMarketType={outcome.sportsMarketType}
