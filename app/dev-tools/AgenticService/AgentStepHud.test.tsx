@@ -1,32 +1,6 @@
 import React from 'react';
 import { render, act } from '@testing-library/react-native';
-import AgentStepHud from './AgentStepHud';
-import { registerStepHudCallback } from './AgenticService';
-
-jest.mock('./AgenticService', () => ({
-  registerStepHudCallback: jest.fn(),
-}));
-
-const mockRegister = jest.mocked(registerStepHudCallback);
-
-type StepCallback = (
-  step: {
-    id: string;
-    intent: string;
-    status?: string;
-    progress?: { current?: number; total?: number };
-    detail?: string;
-    error?: string;
-  } | null,
-) => void;
-
-function getLatestCallback(): StepCallback {
-  const calls = mockRegister.mock.calls;
-  for (let i = calls.length - 1; i >= 0; i--) {
-    if (typeof calls[i][0] === 'function') return calls[i][0] as StepCallback;
-  }
-  throw new Error('No callback registered');
-}
+import AgentStepHud, { emitStepHud } from './AgentStepHud';
 
 describe('AgentStepHud', () => {
   const originalDev = (globalThis as unknown as { __DEV__: boolean }).__DEV__;
@@ -46,22 +20,29 @@ describe('AgentStepHud', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('registers callback on mount and deregisters on unmount', () => {
-    const { unmount } = render(<AgentStepHud />);
+  it('stops rendering steps after unmount', () => {
+    const { unmount, queryByText } = render(<AgentStepHud />);
 
-    expect(mockRegister).toHaveBeenCalledWith(expect.any(Function));
+    act(() => {
+      emitStepHud({ id: 'step-1', intent: 'before unmount' });
+    });
+    expect(queryByText(/before unmount/)).toBeOnTheScreen();
 
     unmount();
 
-    expect(mockRegister).toHaveBeenCalledWith(null);
+    // Sink is deregistered on unmount, so a late emit is a harmless no-op.
+    expect(() =>
+      act(() => {
+        emitStepHud({ id: 'step-2', intent: 'after unmount' });
+      }),
+    ).not.toThrow();
   });
 
-  it('displays status, progress, and intent when callback fires', () => {
+  it('displays status, progress, and intent when a step is emitted', () => {
     const { getByText } = render(<AgentStepHud />);
-    const callback = getLatestCallback();
 
     act(() => {
-      callback({
+      emitStepHud({
         id: 'validate/open-market',
         status: 'running',
         progress: { current: 2, total: 10 },
@@ -75,10 +56,9 @@ describe('AgentStepHud', () => {
 
   it('renders failed status in red instead of success green', () => {
     const { getByText } = render(<AgentStepHud />);
-    const callback = getLatestCallback();
 
     act(() => {
-      callback({
+      emitStepHud({
         id: 'validate/close',
         status: 'fail',
         intent: 'Close failed',
@@ -90,10 +70,9 @@ describe('AgentStepHud', () => {
 
   it('shows one intent line and hides node metadata', () => {
     const { getAllByText, queryByText } = render(<AgentStepHud />);
-    const callback = getLatestCallback();
 
     act(() => {
-      callback({
+      emitStepHud({
         id: 'run 1/2',
         intent: 'Prepare clean state',
       });
@@ -105,10 +84,9 @@ describe('AgentStepHud', () => {
 
   it('shows error and explicit detail lines only', () => {
     const { getByText } = render(<AgentStepHud />);
-    const callback = getLatestCallback();
 
     act(() => {
-      callback({
+      emitStepHud({
         id: 'fail 1/2',
         intent: 'Complete the validation checkpoint',
         detail: 'Prepare scenario',
@@ -123,16 +101,15 @@ describe('AgentStepHud', () => {
     ).toBeOnTheScreen();
   });
 
-  it('hides overlay when callback fires with null', () => {
+  it('hides overlay when a null step is emitted', () => {
     const { toJSON } = render(<AgentStepHud />);
-    const callback = getLatestCallback();
 
     act(() => {
-      callback({ id: 'step-1', intent: 'test' });
+      emitStepHud({ id: 'step-1', intent: 'test' });
     });
 
     act(() => {
-      callback(null);
+      emitStepHud(null);
     });
 
     expect(toJSON()).toBeNull();

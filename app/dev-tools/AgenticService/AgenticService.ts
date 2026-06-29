@@ -40,7 +40,6 @@ import {
 } from '../../actions/security';
 import { setLockTime } from '../../actions/settings';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
-import NavigationService from '../../core/NavigationService';
 import Routes from '../../constants/navigation/Routes';
 import SecureKeychain from '../../core/SecureKeychain';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
@@ -48,6 +47,7 @@ import DevLogger from '../../core/SDKConnect/utils/DevLogger';
 import { importNewSecretRecoveryPhrase } from '../../actions/multiSrp';
 import { bufferToHex, privateToAddress } from 'ethereumjs-util';
 import Authentication from '../../core/Authentication';
+import { emitStepHud } from './AgentStepHud';
 import { Wallet as EthersWallet } from 'ethers';
 import PerpsConnectionManager from '../../components/UI/Perps/services/PerpsConnectionManager';
 import { getStreamManagerInstance } from '../../components/UI/Perps/providers/PerpsStreamManager';
@@ -1095,15 +1095,6 @@ function getRowValue(
   return rowTexts.find((text) => text !== label && matcher.test(text)) ?? null;
 }
 
-// ─── Step HUD callback registry ─────────────────────────────────────────────
-
-type StepHudCallback = ((step: AgenticHudStep | null) => void) | null;
-let _stepHudCallback: StepHudCallback = null;
-
-export function registerStepHudCallback(fn: StepHudCallback) {
-  _stepHudCallback = fn;
-}
-
 // ─── AgenticService ─────────────────────────────────────────────────────────
 
 /**
@@ -1345,10 +1336,10 @@ const AgenticService = {
         return { switched: true, ...toAccountSummary(target) };
       },
       showStep: (step: AgenticHudStep) => {
-        _stepHudCallback?.(step);
+        emitStepHud(step);
       },
       hideStep: () => {
-        _stepHudCallback?.(null);
+        emitStepHud(null);
       },
       refreshPerpsStreams: async () => {
         await PerpsConnectionManager.ensureConnected({

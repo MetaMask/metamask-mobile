@@ -2,7 +2,6 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { FullWindowOverlay } from 'react-native-screens';
-import { registerStepHudCallback } from './AgenticService';
 
 interface Step {
   id: string;
@@ -13,6 +12,20 @@ interface Step {
   error?: string;
   nodeId?: string;
   debug?: { nodeId?: string; proofTarget?: unknown };
+}
+
+// Step bus. The HUD owns the registry so nothing outside this leaf module needs
+// to import AgenticService — keeping the bridge off the static import graph, so
+// it is dead-code-eliminated from release builds. AgenticService emits through
+// `emitStepHud`; the mounted HUD registers its setState as the sink.
+let stepSink: ((step: Step | null) => void) | null = null;
+
+export function emitStepHud(step: Step | null) {
+  stepSink?.(step);
+}
+
+function registerStepHudCallback(sink: ((step: Step | null) => void) | null) {
+  stepSink = sink;
 }
 
 function statusForStep(step: Step) {

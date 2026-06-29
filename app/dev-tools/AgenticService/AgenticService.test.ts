@@ -4,13 +4,13 @@ import AgenticService, {
   walkFiberRoots,
   tryScroll,
   toAccountSummary,
-  registerStepHudCallback,
   getFixtureMnemonicCount,
   getFixtureAccountNames,
   type FiberNode,
   type ReactDevToolsHook,
 } from './AgenticService';
 import Engine from '../../core/Engine';
+import { emitStepHud } from './AgentStepHud';
 import { Platform } from 'react-native';
 import type {
   NavigationContainerRef,
@@ -70,6 +70,12 @@ function mockEntropyGroup(
     },
   };
 }
+
+jest.mock('./AgentStepHud', () => ({
+  __esModule: true,
+  default: () => null,
+  emitStepHud: jest.fn(),
+}));
 
 jest.mock('../../core/Engine', () => ({
   context: {
@@ -620,14 +626,9 @@ describe('AgenticService.install', () => {
   });
 
   describe('showStep / hideStep', () => {
-    afterEach(() => {
-      registerStepHudCallback(null);
-    });
+    const mockEmit = jest.mocked(emitStepHud);
 
-    it('showStep calls registered HUD callback with step data', () => {
-      const callback = jest.fn();
-      registerStepHudCallback(callback);
-
+    it('showStep emits step data to the HUD bus', () => {
       bridge().showStep({
         id: 'run 1/2',
         status: 'running',
@@ -635,7 +636,7 @@ describe('AgenticService.install', () => {
         progress: { current: 1, total: 2 },
       });
 
-      expect(callback).toHaveBeenCalledWith({
+      expect(mockEmit).toHaveBeenCalledWith({
         id: 'run 1/2',
         status: 'running',
         intent: 'Navigate to market',
@@ -643,18 +644,10 @@ describe('AgenticService.install', () => {
       });
     });
 
-    it('hideStep calls registered HUD callback with null', () => {
-      const callback = jest.fn();
-      registerStepHudCallback(callback);
-
+    it('hideStep emits null to the HUD bus', () => {
       bridge().hideStep();
 
-      expect(callback).toHaveBeenCalledWith(null);
-    });
-
-    it('showStep is a no-op when no callback is registered', () => {
-      registerStepHudCallback(null);
-      expect(() => bridge().showStep({ id: 'x', intent: 'y' })).not.toThrow();
+      expect(mockEmit).toHaveBeenCalledWith(null);
     });
   });
 
