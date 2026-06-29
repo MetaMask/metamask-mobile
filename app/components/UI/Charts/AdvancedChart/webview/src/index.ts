@@ -1,8 +1,18 @@
 // AdvancedChart WebView IIFE entry point.
 //
-// Populated in Phase 1 (core + widget + messages). Phase 0 only proves the
-// Webpack pipeline produces a valid IIFE that the build script can stringify
-// and inline into AdvancedChartTemplate.ts.
+// Evaluated at runtime inside the WebView after AdvancedChartTemplate has
+// inlined window.CONFIG via a preceding <script> block. Calls bootstrap()
+// to seed state, wire the RN bridge, register Phase 1 handlers, and begin
+// loading the TradingView library.
 //
-// See: /Users/sahar/.claude/plans/if-i-provide-a-radiant-crayon.md
-export {};
+// Future phases register their handlers / overlays / features inside their
+// own modules; this file stays a thin entry point.
+
+import { bootstrap } from './core/bootstrap';
+import { reportErrorToRN } from './core/bridge';
+
+try {
+  bootstrap();
+} catch (error) {
+  reportErrorToRN(error);
+}
