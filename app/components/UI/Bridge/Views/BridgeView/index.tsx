@@ -86,7 +86,10 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import { isHardwareAccount } from '../../../../../util/address';
+import {
+  areAddressesEqual,
+  isHardwareAccount,
+} from '../../../../../util/address';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
@@ -110,7 +113,10 @@ import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/inde
 import BridgeTrendingTokensSection from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import type { RootState } from '../../../../../reducers';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
 import { getQuoteStreamReasonString } from './BridgeView.utils';
@@ -144,6 +150,18 @@ const getHeaderTitle = (bridgeViewMode?: BridgeViewMode) => {
 
   return `${strings('swaps.title')}/${strings('bridge.title')}`;
 };
+
+const areBridgeTokensEqual = (
+  firstToken?: BridgeToken,
+  secondToken?: BridgeToken,
+) =>
+  Boolean(
+    firstToken &&
+      secondToken &&
+      areAddressesEqual(firstToken.address, secondToken.address) &&
+      formatChainIdToCaip(firstToken.chainId) ===
+        formatChainIdToCaip(secondToken.chainId),
+  );
 
 interface BridgeViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -199,7 +217,20 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     ? destTokenSecurityData
     : undefined;
   const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
-  const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
+  const initialSourceToken = route.params?.sourceToken;
+  const initialSourceAmount = route.params?.sourceAmount;
+  const initialDestToken = route.params?.destToken;
+  const shouldUseInitialSourceToken =
+    initialSourceToken &&
+    !areBridgeTokensEqual(sourceToken, initialSourceToken);
+  const displaySourceToken = shouldUseInitialSourceToken
+    ? initialSourceToken
+    : sourceToken;
+  const displaySourceAmount = shouldUseInitialSourceToken
+    ? initialSourceAmount
+    : (sourceAmount ?? initialSourceAmount);
+  const displayDestToken = destToken ?? initialDestToken;
+  const isDestNetworkEnabled = useIsNetworkEnabled(displayDestToken?.chainId);
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
       dispatch(setSourceAmount(value));
@@ -208,8 +239,8 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   );
   const sourceAmountInput = useSourceAmountInput({
     isFiatToggleEnabled,
-    sourceAmount,
-    sourceToken,
+    sourceAmount: displaySourceAmount,
+    sourceToken: displaySourceToken,
     onSourceAmountChange: handleSourceAmountChange,
   });
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
@@ -233,10 +264,6 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   // Update isGasIncluded7702Supported state
   useIsGasIncluded7702Supported(sourceToken?.chainId);
 
-  const initialSourceToken = route.params?.sourceToken;
-  const initialSourceAmount = route.params?.sourceAmount;
-  const initialDestToken = route.params?.destToken;
-  const displayDestToken = destToken ?? initialDestToken;
   useInitialSourceToken(initialSourceToken, initialSourceAmount);
   useInitialDestToken(initialSourceToken, initialDestToken);
 
@@ -330,13 +357,14 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
   // Check if quote is sponsored: both tokens must be on the same chain and that chain must be sponsored
   const isQuoteSponsored = useMemo(() => {
-    if (!sourceToken?.chainId || !displayDestToken?.chainId) return false;
+    if (!displaySourceToken?.chainId || !displayDestToken?.chainId)
+      return false;
     // Both tokens must be on the same chain
-    if (sourceToken.chainId !== displayDestToken.chainId) return false;
+    if (displaySourceToken.chainId !== displayDestToken.chainId) return false;
     // Check if the chain is sponsored
-    return isGasFeesSponsoredNetworkEnabled(sourceToken.chainId as Hex);
+    return isGasFeesSponsoredNetworkEnabled(displaySourceToken.chainId as Hex);
   }, [
-    sourceToken?.chainId,
+    displaySourceToken?.chainId,
     displayDestToken?.chainId,
     isGasFeesSponsoredNetworkEnabled,
   ]);
@@ -506,12 +534,12 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                     ref={inputRef}
                     amount={sourceAmountInput.amount}
                     selection={sourceAmountInput.selection}
-                    token={sourceToken}
+                    token={displaySourceToken}
                     tokenBalance={latestSourceBalance?.displayBalance}
                     networkImageSource={
-                      sourceToken?.chainId
+                      displaySourceToken?.chainId
                         ? getNetworkImageSource({
-                            chainId: sourceToken?.chainId,
+                            chainId: displaySourceToken.chainId,
                           })
                         : undefined
                     }
@@ -543,7 +571,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                   disabled={
                     !destChainId ||
                     !displayDestToken ||
-                    !sourceToken ||
+                    !displaySourceToken ||
                     !isDestNetworkEnabled
                   }
                 />
@@ -815,33 +843,39 @@ const DeferredBridgeViewPlaceholder = ({
             showsVerticalScrollIndicator={false}
           >
             <Box style={styles.inputsContainer}>
-              <TokenInputArea
-                amount={sourceAmount}
-                token={sourceToken}
-                networkImageSource={
-                  sourceToken
-                    ? getNetworkImageSource({ chainId: sourceToken.chainId })
-                    : undefined
-                }
-                testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
-                tokenType={TokenInputAreaType.Source}
-                isSourceToken
-                shouldFetchExchangeRate={false}
-              />
-              <FLipQuoteButton onPress={() => undefined} disabled />
-              <TokenInputArea
-                token={destToken}
-                networkImageSource={
-                  destToken
-                    ? getNetworkImageSource({ chainId: destToken.chainId })
-                    : undefined
-                }
-                testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
-                tokenType={TokenInputAreaType.Destination}
-                isLoading
-                style={styles.destTokenArea}
-                shouldFetchExchangeRate={false}
-              />
+              <Box style={styles.inputCardsWrapper}>
+                <Box style={styles.tokenCard}>
+                  <TokenInputArea
+                    amount={sourceAmount}
+                    token={sourceToken}
+                    networkImageSource={
+                      sourceToken
+                        ? getNetworkImageSource({ chainId: sourceToken.chainId })
+                        : undefined
+                    }
+                    testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
+                    tokenType={TokenInputAreaType.Source}
+                    isSourceToken
+                    shouldFetchExchangeRate={false}
+                  />
+                </Box>
+                <FLipQuoteButton onPress={() => undefined} disabled />
+                <Box style={styles.tokenCard}>
+                  <TokenInputArea
+                    token={destToken}
+                    networkImageSource={
+                      destToken
+                        ? getNetworkImageSource({ chainId: destToken.chainId })
+                        : undefined
+                    }
+                    testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
+                    tokenType={TokenInputAreaType.Destination}
+                    isLoading
+                    style={styles.destTokenArea}
+                    shouldFetchExchangeRate={false}
+                  />
+                </Box>
+              </Box>
             </Box>
             <Box style={styles.loadingContainer}>
               <QuoteDetailsCardSkeleton />

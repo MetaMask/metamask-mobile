@@ -416,9 +416,11 @@ describe('BridgeView', () => {
       .spyOn(InteractionManager, 'runAfterInteractions')
       .mockImplementation((callback) => {
         runDeferredBridgeContent = callback as () => void;
-        return { cancel: jest.fn() } as ReturnType<
-          typeof InteractionManager.runAfterInteractions
-        >;
+        return {
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        };
       });
     mockRoute.params = {
       sourcePage: 'ActivityDetails',
@@ -437,12 +439,27 @@ describe('BridgeView', () => {
       sourceAmount: '1.23',
     } as BridgeRouteParams;
 
-    const { getByText, getByTestId } = renderScreen(
+    const staleReduxState = {
+      ...mockState,
+      bridge: {
+        ...mockState.bridge,
+        sourceAmount: '9',
+        sourceToken: {
+          address: '0x0000000000000000000000000000000000000009',
+          chainId: '0x1' as Hex,
+          decimals: 18,
+          symbol: 'OLD',
+        },
+        destToken: undefined,
+      },
+    };
+
+    const { getByText, getByTestId, queryByText } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
       },
-      { state: mockState },
+      { state: staleReduxState },
     );
 
     expect(getByText('ETH')).toBeTruthy();
@@ -455,6 +472,9 @@ describe('BridgeView', () => {
       runDeferredBridgeContent?.();
     });
 
+    expect(getByText('ETH')).toBeTruthy();
+    expect(queryByText('OLD')).toBeNull();
+    expect(getByTestId('source-token-area-input').props.value).toBe('1.23');
     expect(
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeTruthy();
