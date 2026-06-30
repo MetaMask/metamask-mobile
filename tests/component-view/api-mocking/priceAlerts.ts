@@ -9,7 +9,7 @@
  */
 
 // eslint-disable-next-line import-x/no-extraneous-dependencies
-import nock from 'nock';
+import nock, { type Scope } from 'nock';
 import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
 import type { PriceAlert } from '../../../app/components/UI/Assets/PriceAlerts/constants';
 
@@ -52,7 +52,8 @@ export const mockCreatedAlert: PriceAlert = {
  * Sets up nock interceptors for the Price Alerts API.
  * Call in beforeEach of price-alerts view tests.
  *
- * Intercepts GET /v1/alerts and POST /v1/alerts.
+ * Intercepts GET /v1/alerts only. Use {@link setupPriceAlertsPostMock} in
+ * tests that also need to intercept POST /v1/alerts.
  *
  * @param alerts - The alerts to return from GET /v1/alerts. Defaults to mockPriceAlertsData.
  */
@@ -67,11 +68,18 @@ export function setupPriceAlertsApiMock(
     .query(true)
     .reply(200, alerts)
     .persist();
+}
 
-  nock(PRICE_ALERTS_ORIGIN)
+/**
+ * Registers a one-shot POST /v1/alerts nock interceptor.
+ * Call this inside the individual test that exercises alert creation,
+ * after {@link setupPriceAlertsApiMock} has already been called in beforeEach.
+ * Returns the nock scope so callers can assert `scope.isDone()`.
+ */
+export function setupPriceAlertsPostMock(): Scope {
+  return nock(PRICE_ALERTS_ORIGIN)
     .post(ALERTS_PATH)
-    .reply(201, mockCreatedAlert)
-    .persist();
+    .reply(201, mockCreatedAlert);
 }
 
 /**

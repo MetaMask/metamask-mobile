@@ -2,10 +2,11 @@ import '../../../../../../../tests/component-view/mocks';
 import { renderCreatePriceAlertViewWithRoutes } from '../../../../../../../tests/component-view/renderers/priceAlerts';
 import {
   setupPriceAlertsApiMock,
+  setupPriceAlertsPostMock,
   clearPriceAlertsApiMocks,
 } from '../../../../../../../tests/component-view/api-mocking/priceAlerts';
 import { describeForPlatforms } from '../../../../../../../tests/component-view/platform';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { CreatePriceAlertTestIds, type PriceAlert } from '../../constants';
 
 beforeEach(() => {
@@ -47,6 +48,7 @@ describeForPlatforms('CreatePriceAlertView', () => {
   });
 
   it('enables the Set button after keypad input and completes POST via nock', async () => {
+    const scope = setupPriceAlertsPostMock();
     const { getByTestId } = renderCreatePriceAlertViewWithRoutes();
 
     fireEvent.press(getByTestId('keypad-key-1'));
@@ -54,15 +56,15 @@ describeForPlatforms('CreatePriceAlertView', () => {
       getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
     ).not.toBeDisabled();
 
-    fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
-
-    // Wait for isSubmitting to clear — proves the nock POST interceptor was hit
-    // and the response was handled without error.
-    await waitFor(() => {
-      expect(
-        getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON),
-      ).not.toBeDisabled();
+    // act() flushes TanStack Query's mutation lifecycle (scheduling, fetch,
+    // state updates) across async boundaries that fireEvent alone does not drain.
+    await act(async () => {
+      fireEvent.press(getByTestId(CreatePriceAlertTestIds.SET_ALERT_BUTTON));
     });
+
+    // scope.isDone() is true only when the one-shot POST interceptor was consumed,
+    // proving the real createAlert HTTP call was made and received a 201 response.
+    await waitFor(() => expect(scope.isDone()).toBe(true));
   });
 
   it('opens in edit mode with pre-filled threshold when editingAlert is passed', async () => {
