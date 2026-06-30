@@ -31,16 +31,20 @@ export function derivePercentChange(
 ): number | undefined {
   if (!prices.length) return undefined;
 
-  const endPrice = prices[prices.length - 1][1];
+  const endPrice = prices.at(-1)?.[1];
+  if (endPrice == null) return undefined;
+
   let startPrice: number;
 
   if (period === '1H') {
     const oneHourAgo = nowMs - 60 * 60 * 1000;
-    const closest = prices.reduce((best, pt) =>
-      Math.abs(Number(pt[0]) - oneHourAgo) <
-      Math.abs(Number(best[0]) - oneHourAgo)
-        ? pt
-        : best,
+    const closest = prices.reduce(
+      (best, pt) =>
+        Math.abs(Number(pt[0]) - oneHourAgo) <
+        Math.abs(Number(best[0]) - oneHourAgo)
+          ? pt
+          : best,
+      prices[0],
     );
     startPrice = closest[1];
   } else {

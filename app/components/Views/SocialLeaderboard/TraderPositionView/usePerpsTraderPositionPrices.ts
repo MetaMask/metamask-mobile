@@ -7,7 +7,7 @@ import {
   resolveHyperliquidCandleLimit,
   type HyperliquidCandleInterval,
 } from '../utils/hyperliquidPrices';
-import { TIME_PERIODS, type TimePeriod } from './traderPositionData.shared';
+import { TIME_PERIODS, type TimePeriod } from './traderPositionData';
 
 /**
  * Hyperliquid candle interval + baseline candle count per chart period. The base
@@ -28,6 +28,86 @@ const PERP_PERIOD_TO_CANDLES: Record<
   '1M': { interval: '4h', baseLimit: 180 },
   All: { interval: '1d', baseLimit: 1095 },
 };
+
+interface PerpCacheState {
+  key: string;
+  prices: Partial<Record<TimePeriod, TokenPrice[]>>;
+  limits: Partial<Record<TimePeriod, number>>;
+}
+
+function mergePerpPeriodIntoCache(
+  prev: PerpCacheState,
+  perpKey: string,
+  period: TimePeriod,
+  prices: TokenPrice[],
+  limit: number,
+): PerpCacheState {
+  const samePos = prev.key === perpKey;
+  if (samePos && prev.prices[period]?.length && !prices.length) {
+    return prev;
+  }
+  return {
+    key: perpKey,
+    prices: samePos
+      ? { ...prev.prices, [period]: prices }
+      : { [period]: prices },
+    limits: samePos ? { ...prev.limits, [period]: limit } : { [period]: limit },
+  };
+}
+
+function isPerpPeriodCached(
+  cached: PerpCacheState,
+  perpKey: string,
+  period: TimePeriod,
+  limit: number,
+): boolean {
+  return (
+    cached.key === perpKey &&
+    Boolean(cached.prices[period]?.length) &&
+    (cached.limits[period] ?? 0) >= limit
+  );
+}
+
+async function fetchPerpPeriodCandles({
+  period,
+  perpSymbol,
+  perpKey,
+  earliestTradeMs,
+  nowMs,
+  cached,
+}: {
+  period: TimePeriod;
+  perpSymbol: string;
+  perpKey: string;
+  earliestTradeMs: number | undefined;
+  nowMs: number;
+  cached: PerpCacheState;
+}): Promise<{
+  period: TimePeriod;
+  prices: TokenPrice[];
+  limit: number;
+} | null> {
+  const { interval, baseLimit } = PERP_PERIOD_TO_CANDLES[period];
+  const limit = resolveHyperliquidCandleLimit({
+    interval,
+    baseLimit,
+    earliestTradeMs,
+    nowMs,
+  });
+
+  if (isPerpPeriodCached(cached, perpKey, period, limit)) {
+    return null;
+  }
+
+  const prices = await fetchHyperliquidHistoricalPrices({
+    symbol: perpSymbol,
+    interval,
+    limit,
+    nowMs,
+  });
+
+  return { period, prices, limit };
+}
 
 export interface PerpsTraderPositionPricesParams {
   positionParam: Position | undefined;
@@ -64,11 +144,11 @@ export function usePerpsTraderPositionPrices(
     [isPerp, positionParam],
   );
 
-  const [perpCache, setPerpCache] = useState<{
-    key: string;
-    prices: Partial<Record<TimePeriod, TokenPrice[]>>;
-    limits: Partial<Record<TimePeriod, number>>;
-  }>({ key: '', prices: {}, limits: {} });
+  const [perpCache, setPerpCache] = useState<PerpCacheState>({
+    key: '',
+    prices: {},
+    limits: {},
+  });
   const [isLoading, setIsLoading] = useState(true);
 
   const perpCacheRef = useRef(perpCache);
@@ -81,48 +161,33 @@ export function usePerpsTraderPositionPrices(
     const nowMs = Date.now();
     const { tokenSymbol: perpSymbol } = positionParam;
 
-    TIME_PERIODS.forEach((period) => {
-      const { interval, baseLimit } = PERP_PERIOD_TO_CANDLES[period];
-      const limit = resolveHyperliquidCandleLimit({
-        interval,
-        baseLimit,
-        earliestTradeMs,
-        nowMs,
-      });
-
-      const cached = perpCacheRef.current;
-      if (
-        cached.key === perpKey &&
-        cached.prices[period]?.length &&
-        (cached.limits[period] ?? 0) >= limit
-      ) {
-        return;
-      }
-
-      fetchHyperliquidHistoricalPrices({
-        symbol: perpSymbol,
-        interval,
-        limit,
-        nowMs,
-      }).then((prices) => {
+    const prefetchAllPeriods = async () => {
+      for (const period of TIME_PERIODS) {
         if (cancelled) return;
-        setPerpCache((prev) => {
-          const samePos = prev.key === perpKey;
-          if (samePos && prev.prices[period]?.length && !prices.length) {
-            return prev;
-          }
-          return {
-            key: perpKey,
-            prices: samePos
-              ? { ...prev.prices, [period]: prices }
-              : { [period]: prices },
-            limits: samePos
-              ? { ...prev.limits, [period]: limit }
-              : { [period]: limit },
-          };
+
+        const result = await fetchPerpPeriodCandles({
+          period,
+          perpSymbol,
+          perpKey,
+          earliestTradeMs,
+          nowMs,
+          cached: perpCacheRef.current,
         });
-      });
-    });
+        if (cancelled || !result) continue;
+
+        setPerpCache((prev) =>
+          mergePerpPeriodIntoCache(
+            prev,
+            perpKey,
+            result.period,
+            result.prices,
+            result.limit,
+          ),
+        );
+      }
+    };
+
+    void prefetchAllPeriods();
 
     return () => {
       cancelled = true;

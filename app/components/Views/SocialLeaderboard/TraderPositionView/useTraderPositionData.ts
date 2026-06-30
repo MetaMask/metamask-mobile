@@ -12,7 +12,7 @@ import {
   PERIOD_DURATION_MS,
   TIME_PERIODS,
   type TimePeriod,
-} from './traderPositionData.shared';
+} from './traderPositionData';
 
 export type { TimePeriod };
 export { TIME_PERIODS };
@@ -120,8 +120,9 @@ export function useTraderPositionData(
       prices = lastHour.length >= 5 ? lastHour : prices;
     }
 
+    const lastPrice = prices.at(-1)?.[1];
     const diff =
-      prices.length < 2 ? 0 : prices[prices.length - 1][1] - prices[0][1];
+      prices.length < 2 || lastPrice == null ? 0 : lastPrice - prices[0][1];
 
     return {
       historicalPrices: prices,
@@ -138,7 +139,7 @@ export function useTraderPositionData(
       resolvedPrices['1M'] ??
       resolvedPrices.All;
     if (!source?.length) return undefined;
-    return source[source.length - 1][1];
+    return source.at(-1)?.[1];
   }, [resolvedPrices]);
 
   const symbol = getPerpsDisplaySymbol(

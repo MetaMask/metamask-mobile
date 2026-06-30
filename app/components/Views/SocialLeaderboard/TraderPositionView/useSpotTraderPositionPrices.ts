@@ -9,7 +9,7 @@ import { caipChainIdToHex } from '../../../UI/Rewards/utils/formatUtils';
 import { selectTokenMarketData } from '../../../../selectors/tokenRatesController';
 import { selectCurrentCurrency } from '../../../../selectors/currencyRateController';
 import Logger from '../../../../util/Logger';
-import { PERIOD_TO_API, type TimePeriod } from './traderPositionData.shared';
+import { PERIOD_TO_API, type TimePeriod } from './traderPositionData';
 
 export interface SpotTraderPositionPricesParams {
   positionParam: Position | undefined;
