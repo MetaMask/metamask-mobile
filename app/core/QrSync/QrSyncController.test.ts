@@ -230,7 +230,7 @@ describe('QrSyncController', () => {
 
       await expect(
         controller.handleScannedQrPayload('not-a-deeplink'),
-      ).rejects.toThrow('QR sync scan payload is not valid JSON.');
+      ).rejects.toThrow('QR sync scan payload is not a valid MWP deeplink.');
 
       expect(mockCreateQrSyncWalletClient).not.toHaveBeenCalled();
       expect(controller.state.phase).toBe(QrSyncPhases.IDLE);

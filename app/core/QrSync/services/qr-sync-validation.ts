@@ -1,8 +1,7 @@
 import type { SessionRequest } from '@metamask/mobile-wallet-protocol-core';
-import { base64ToBytes, bytesToBase64, bytesToString } from '@metamask/utils';
+import { base64ToBytes, bytesToString } from '@metamask/utils';
 
 import { isUUID } from '../../SDKConnect/utils/isUUID';
-import { decompressPayloadB64 } from '../../SDKConnectV2/utils/compression-utils';
 import { QrSyncActionTypes, QrSyncMessageVersion } from '../constants';
 import {
   QrSyncConnectionRequest,
@@ -133,55 +132,32 @@ export function isQrSyncConnectionRequest(
   return isQrSyncSessionRequest(data.sessionRequest);
 }
 
-const decodeMaybeBase64Json = (raw: string): string => {
-  try {
-    const valueBytes = base64ToBytes(raw);
-    const decoded = bytesToString(valueBytes);
-    if (bytesToBase64(valueBytes) === raw) {
-      return decoded;
-    }
-  } catch {
-    // Fall through and return the raw string below.
+const parseQrSyncScanPayloadJson = (rawQrData: string): unknown => {
+  if (!rawQrData || typeof rawQrData !== 'string') {
+    throw new Error('QR sync scan payload must be a non-empty string.');
   }
 
-  return raw;
-};
+  const isQrSyncMwpDeeplink =
+    typeof rawQrData === 'string' &&
+    rawQrData.startsWith(QR_SYNC_MWP_DEEPLINK_PREFIX);
+  if (!isQrSyncMwpDeeplink) {
+    throw new Error('QR sync scan payload is not a valid MWP deeplink.');
+  }
 
-/** Returns true when the scanned value is an MWP connect deeplink. */
-export function isQrSyncMwpDeeplink(data: unknown): data is string {
-  return (
-    typeof data === 'string' && data.startsWith(QR_SYNC_MWP_DEEPLINK_PREFIX)
-  );
-}
-
-const extractMwpDeeplinkPayload = (deeplink: string): string => {
-  const parsedUrl = new URL(deeplink);
+  const parsedUrl = new URL(rawQrData);
   const payload = parsedUrl.searchParams.get('p');
 
   if (!payload) {
     throw new Error('QR sync deeplink is missing the p parameter.');
   }
 
-  const compressionFlag = parsedUrl.searchParams.get('c');
-  const rawPayload =
-    compressionFlag === '1' ? decompressPayloadB64(payload) : payload;
-
-  return decodeMaybeBase64Json(rawPayload);
-};
-
-const parseQrSyncScanPayloadJson = (rawQrData: string): unknown => {
-  if (!rawQrData || typeof rawQrData !== 'string') {
-    throw new Error('QR sync scan payload must be a non-empty string.');
-  }
-
-  const jsonString = isQrSyncMwpDeeplink(rawQrData)
-    ? extractMwpDeeplinkPayload(rawQrData)
-    : decodeMaybeBase64Json(rawQrData);
-
   try {
-    return JSON.parse(jsonString);
+    const decodedPayload = decodeURIComponent(payload);
+    const payloadBytes = base64ToBytes(decodedPayload);
+    const payloadString = bytesToString(payloadBytes);
+    return JSON.parse(payloadString);
   } catch {
-    throw new Error('QR sync scan payload is not valid JSON.');
+    throw new Error('Invalid session request payload.');
   }
 };
 
