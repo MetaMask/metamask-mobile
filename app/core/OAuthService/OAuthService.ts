@@ -531,30 +531,22 @@ export class OAuthService {
     });
   };
 
-  private getAccessToken = (): string | undefined =>
-    Engine.context.SeedlessOnboardingController.state?.accessToken;
-
-  private readonly getAccessTokenOrThrow = (): string => {
-    const accessToken = this.getAccessToken();
+  private async getValidAccessToken(): Promise<string> {
+    await whenEngineReady();
+    const accessToken =
+      await Engine.context.SeedlessOnboardingController.getAccessToken();
 
     if (!accessToken) {
       throw new Error('No access token found. User must be authenticated.');
     }
 
     return accessToken;
-  };
-
-  private async refreshAccessToken(): Promise<void> {
-    await whenEngineReady();
-    await Engine.context.SeedlessOnboardingController.refreshAuthTokens();
   }
 
   updateMarketingOptInStatus = async (
     marketingOptIn: boolean,
   ): Promise<void> => {
-    await this.refreshAccessToken();
-
-    const accessToken = this.getAccessTokenOrThrow();
+    const accessToken = await this.getValidAccessToken();
     const requestBody: MarketingOptInRequest = {
       opt_in_status: marketingOptIn,
     };
@@ -580,9 +572,7 @@ export class OAuthService {
   };
 
   getMarketingOptInStatus = async (): Promise<MarketingOptInResponse> => {
-    await this.refreshAccessToken();
-
-    const accessToken = this.getAccessTokenOrThrow();
+    const accessToken = await this.getValidAccessToken();
     const url = `${this.config.authServerUrl}${AUTH_SERVER_MARKETING_OPT_IN_PATH}`;
     const response = await fetch(url, {
       method: 'GET',
