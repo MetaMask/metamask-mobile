@@ -34,10 +34,9 @@ import {
 } from '../../../core/Delegation/delegation';
 import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import {
-  RelayStatus,
   RelaySubmitRequest,
   submitRelayTransaction,
-  waitForRelayResult,
+  waitForRelaySuccess,
 } from '../transaction-relay';
 import { NetworkClientId } from '@metamask/network-controller';
 import { isE2ETest } from '../util';
@@ -247,15 +246,11 @@ export class Delegation7702PublishHook {
 
     const { uuid } = await submitRelayTransaction(relayRequest);
 
-    const { transactionHash, status } = await waitForRelayResult({
+    const { transactionHash } = await waitForRelaySuccess({
       chainId,
       uuid,
       interval: POLLING_INTERVAL_MS,
     });
-
-    if (status !== RelayStatus.Success) {
-      throw new Error(`Transaction relay error - ${status}`);
-    }
 
     // Mark 7702 relay transaction as intent complete so PendingTransactionTracker
     // skips dropped checks

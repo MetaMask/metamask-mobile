@@ -1162,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "Hindi available ang mga perp",
     "title": "Perps",
-    "transfer_to_perps": "Ilipat sa Perps",
     "perps_trading": "Perps trading",
     "perp_account_balance": "Balanse ng Perp account",
     "manage_balance": "Pamahalaan ang balanse",
@@ -2343,13 +2342,11 @@
   },
   "predict": {
     "title": "Mga Predisksyon ng MetaMask",
-    "transfer_to_predictions": "Ilipat sa mga Prediction",
     "select_predict_account": "Pumili ng predict account",
     "search_account": "Pumili ng isang account",
     "home": {
       "live_now_title": "Live ngayon",
-      "categories_placeholder": "Mga Kategorya",
-      "trending_placeholder": "Nagte-trend"
+      "categories_placeholder": "Mga Kategorya"
     },
     "homepage_discovery": {
       "btc_title": "Presyo ng BTC: {{price}}",
@@ -7679,8 +7676,7 @@
       "perps_withdraw": "Mag-withdraw",
       "predict_deposit": "Magdagdag ng mga pondo para sa Prediksyon",
       "predict_withdraw": "Mag-withdraw",
-      "money_account_add_money": "Magdagdag ng pondo",
-      "money_account_transfer_money": "Ilipat ang mga pondo"
+      "money_account_add_money": "Magdagdag ng pondo"
     },
     "sub_title": {
       "permit": "Kailangan ng site na ito ng pahintulot para gastusin ang mga token mo.",

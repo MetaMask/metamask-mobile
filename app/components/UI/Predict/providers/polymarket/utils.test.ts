@@ -5,6 +5,7 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { Side, type OrderPreview, type PredictOutcome } from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
+import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
 import {
   DEFAULT_CLOB_BASE_URL,
   MATIC_CONTRACTS_V2,
@@ -250,6 +251,69 @@ describe('polymarket utils', () => {
     ]);
 
     expect(parsedActivity[0].id).not.toBe(parsedActivity[1].id);
+  });
+
+  it('preserves trade size from activity rows', () => {
+    const rawActivity = createRawActivity({
+      price: 0.18,
+      size: 11.11111,
+      usdcSize: 2.129179,
+    });
+
+    const [parsedActivity] = parsePolymarketActivity([rawActivity]);
+
+    expect(parsedActivity.entry).toMatchObject({
+      type: 'buy',
+      amount: 2.129179,
+      price: 0.18,
+      size: 11.11111,
+    });
+  });
+
+  it('preserves market slugs from activity rows when present', () => {
+    const [activity] = parsePolymarketActivity([
+      createRawActivity({
+        slug: 'will-it-rain-tomorrow',
+        eventSlug: 'weather-markets',
+      }),
+    ]);
+
+    expect(activity.slug).toBe('will-it-rain-tomorrow');
+    expect(activity.eventSlug).toBe('weather-markets');
+  });
+
+  it('preserves P&L fields from activity rows when present', () => {
+    const [activity] = parsePolymarketActivity([
+      createRawActivity({
+        netPnlUsd: -2.5,
+        totalNetPnlUsd: 12.5,
+      }),
+    ]);
+
+    expect(activity.netPnlUsd).toBe(-2.5);
+    expect(activity.totalNetPnlUsd).toBe(12.5);
+  });
+
+  it.each([
+    ['null', null],
+    ['undefined', undefined],
+    ['zero', 0],
+    ['empty string', ''],
+  ])('omits %s trade size instead of coercing it to zero', (_label, size) => {
+    const [activity] = parsePolymarketActivity([
+      createRawActivity({
+        size: size as PolymarketApiActivity['size'],
+        usdcSize: 2.129179,
+        price: 0.18,
+      }),
+    ]);
+
+    expect(activity.entry).toMatchObject({
+      type: 'buy',
+      amount: 2.129179,
+      price: 0.18,
+    });
+    expect(activity.entry).not.toHaveProperty('size');
   });
 
   it('builds outcome groups only from supported and enabled sports market types', () => {
@@ -1000,6 +1064,42 @@ describe('polymarket utils', () => {
         'https://gamma-api.polymarket.com/events/keyset?limit=10&active=true&archived=false&closed=false&tag_slug=fifa-world-cup&order=volume24hr&ascending=false',
       );
       const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).not.toContain('liquidity_min');
+      expect(requestedUrl).not.toContain('volume_min');
+      expect(requestedUrl).not.toContain('offset=');
+    });
+
+    it('uses exact Wimbledon custom query params without normal feed filters', async () => {
+      await fetchEventsFromPolymarketApi({
+        category: 'wimbledon',
+        limit: 20,
+        customQueryParams: 'tag_slug=wimbledon&order=volume24hr',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/events/keyset?limit=20&tag_slug=wimbledon&order=volume24hr',
+      );
+      const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).not.toContain('liquidity_min');
+      expect(requestedUrl).not.toContain('volume_min');
+      expect(requestedUrl).not.toContain('offset=');
+    });
+
+    it('falls back to default Wimbledon query params without normal feed filters', async () => {
+      await fetchEventsFromPolymarketApi({
+        category: 'wimbledon',
+        limit: 10,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://gamma-api.polymarket.com/events/keyset?limit=10&${PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS}`,
+      );
+      const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).toContain('tag_id=100639');
+      expect(requestedUrl).toContain('tag_slug=tennis');
+      expect(requestedUrl).toContain('title_search=Wimbledon');
+      expect(requestedUrl).toContain('ended=false');
+      expect(requestedUrl).toContain('order=volume24hr');
       expect(requestedUrl).not.toContain('liquidity_min');
       expect(requestedUrl).not.toContain('volume_min');
       expect(requestedUrl).not.toContain('offset=');

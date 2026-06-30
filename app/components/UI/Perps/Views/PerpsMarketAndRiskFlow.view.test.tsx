@@ -167,12 +167,12 @@ describe('Market Browsing & Risk Awareness Flow', () => {
       >,
       { market: ethMarket, onPress: mockOnPress },
     );
-    expect(await screen.findByText('ETH')).toBeOnTheScreen();
+    expect(await screen.findByText('Ethereum')).toBeOnTheScreen();
     expect(screen.getByText('$2,000')).toBeOnTheScreen();
     expect(screen.getByText('+2.5%')).toBeOnTheScreen();
 
     // Trader taps the market row
-    fireEvent.press(screen.getByText('ETH'));
+    fireEvent.press(screen.getByText('Ethereum'));
     expect(mockOnPress).toHaveBeenCalledTimes(1);
 
     // Trader sees BTC market row with negative change
@@ -185,7 +185,7 @@ describe('Market Browsing & Risk Awareness Flow', () => {
       >,
       { market: btcMarket },
     );
-    expect(await screen.findByText('BTC')).toBeOnTheScreen();
+    expect(await screen.findByText('Bitcoin')).toBeOnTheScreen();
     expect(screen.getByText('$50,000')).toBeOnTheScreen();
     expect(screen.getByText('-1.0%')).toBeOnTheScreen();
 

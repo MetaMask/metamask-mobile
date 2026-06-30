@@ -1162,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "Hợp đồng vĩnh cửu không khả dụng",
     "title": "Vĩnh cửu",
-    "transfer_to_perps": "Chuyển sang Hợp đồng vĩnh cửu",
     "perps_trading": "Giao dịch hợp đồng vĩnh cửu",
     "perp_account_balance": "Số dư tài khoản hợp đồng vĩnh cửu",
     "manage_balance": "Quản lý số dư",
@@ -2343,13 +2342,11 @@
   },
   "predict": {
     "title": "MetaMask Dự đoán",
-    "transfer_to_predictions": "Chuyển sang Dự đoán",
     "select_predict_account": "Chọn tài khoản dự đoán",
     "search_account": "Tìm kiếm tài khoản",
     "home": {
       "live_now_title": "Đang diễn ra",
-      "categories_placeholder": "Danh mục",
-      "trending_placeholder": "Xu hướng"
+      "categories_placeholder": "Danh mục"
     },
     "homepage_discovery": {
       "btc_title": "Giá BTC: {{price}}",
@@ -7679,8 +7676,7 @@
       "perps_withdraw": "Rút tiền",
       "predict_deposit": "Nạp tiền Dự đoán",
       "predict_withdraw": "Rút tiền",
-      "money_account_add_money": "Nạp tiền",
-      "money_account_transfer_money": "Chuyển tiền"
+      "money_account_add_money": "Nạp tiền"
     },
     "sub_title": {
       "permit": "Trang web này muốn được cấp quyền chi tiêu token của bạn.",
