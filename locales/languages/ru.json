@@ -103,7 +103,7 @@
       "title": "Недостаточно средств"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Добавьте меньше или используйте другой способ оплату."
     },
     "insufficient_pay_token_native": {
       "message": "Недостаточно {{ticker}} для покрытия комиссий. Используйте токен в другой сети или добавьте больше {{ticker}}, чтобы продолжить.",
@@ -1094,6 +1094,7 @@
       "twitter_link": "Смотреть в X (Twitter)",
       "sort": {
         "value": "Значение",
+        "top_trades": "Top Trades",
         "pnl_percent": "П/У %",
         "recent": "Недавние"
       }
@@ -1132,6 +1133,8 @@
       "price_impact": "Влияние на цену",
       "est_points": "Прим. баллов",
       "no_quotes": "Нет доступных котировок для этого токена",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Загрузка...",
       "unavailable": "Обмен недоступен",
       "unsupported_chain": "Этот блокчейн еще не поддерживается для быстрой покупки",
@@ -1159,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "Перпы недоступны",
     "title": "Перпы",
-    "transfer_to_perps": "Перевести в перпы",
     "perps_trading": "Торговля бессрочными фьючерсами",
     "perp_account_balance": "Баланс счета бессрочных фьючерсов",
     "manage_balance": "Управление балансом",
@@ -2340,7 +2342,6 @@
   },
   "predict": {
     "title": "Прогнозы MetaMask",
-    "transfer_to_predictions": "Перевести в Прогнозы",
     "select_predict_account": "Выберите счет для прогнозов",
     "search_account": "Поиск счета",
     "home": {
@@ -2367,11 +2368,15 @@
       "predictions_title": "Прогнозы на Чемпионат мира",
       "banner_title": "Чемпионат мира 2026 г.",
       "banner_description": "Торгуйте каждым матчем, каждым моментом.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "Все",
         "props": "Проп-ставки",
-        "live": "Идет сейчас"
+        "live": "Идет сейчас",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Групповой этап",
         "round_of_32": "1/16 финала",
@@ -3539,6 +3544,8 @@
       "wallet_activity_desc": "Покупки, продажи, переводы, свопы и награды",
       "perps_title": "Торговая активность",
       "perps_desc": "Изменения позиций бессрочных контрактов, ликвидации, ставки финансирования и обновления маржи",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "Торговые сигналы",
       "social_ai_desc": "Обновления от трейдеров и активов, за которыми вы следите, а также подобранные новости рынка",
       "marketing_title": "Обновления и награды",
@@ -6028,6 +6035,11 @@
       "description": "Покупка криптовалюты недоступна в вашем регионе из-за ограничений местных платежных систем или нормативных требований.",
       "got_it": "Понятно"
     },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "Понятно"
+    },
     "region": {
       "buy_crypto_tokens": "Купить криптотокены",
       "sell_crypto_tokens": "Продать криптотокены",
@@ -7665,8 +7677,7 @@
       "perps_withdraw": "Вывести средства",
       "predict_deposit": "Внести средства для прогнозирования",
       "predict_withdraw": "Вывести средства",
-      "money_account_add_money": "Внести средства",
-      "money_account_transfer_money": "Перевести средства"
+      "money_account_add_money": "Внести средства"
     },
     "sub_title": {
       "permit": "Этот сайт запрашивает разрешение на трату ваших токенов.",
@@ -7948,9 +7959,13 @@
       "rejected": "Неудачно",
       "reconnect": "Переподключить",
       "done": "Готово",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "Отсканировать следующий QR-код",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "Шаг {{current}} из {{total}}: отсканируйте QR-код, отображаемый на вашем кошельке",
-      "scanner_last_step_text": "Последний шаг: отсканируйте QR-код, отображаемый на вашем кошельке"
+      "scanner_last_step_text": "Последний шаг: отсканируйте QR-код, отображаемый на вашем кошельке",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "Влияние на цену",
     "price_impact_info_description": "Вот как ваша сделка влияет на рыночную цену токена. Это зависит от размера сделки, доступной ликвидности и комиссий поставщика. MetaMask не контролирует влияние на цену.",
@@ -9525,8 +9540,8 @@
     },
     "earn_rewards": {
       "title": "Заработать вознаграждения",
-      "musd_title": "Бонус до 3% на стейблкойны",
-      "musd_subtitle": "Рассчитайте свой бонус в mUSD",
+      "musd_title": "Бонус до {{percentage}}% на mUSD",
+      "musd_subtitle": "Денежные счета уже здесь",
       "card_title": "Кешбэк до 3% за покупки",
       "card_subtitle": "Получите свою карту MetaMask прямо сейчас",
       "card_subtitle_cardholder": "Воспользуйтесь преимуществами своей карты MetaMask"
@@ -9600,17 +9615,6 @@
       "predict_withdraw": "Вывод средств",
       "money_account_deposit": "Пополнение счета Money",
       "money_account_withdraw": "Перевод со счета Money",
-      "money_account_sent": "Отправлено {{symbol}}",
-      "money_account_received": "Получено",
-      "deposited_musd": "Внесенные mUSD",
-      "depositing_musd": "Внесение mUSD",
-      "deposit_failed": "Ошибка депозита",
-      "sent": "Отправлено",
-      "sending_musd": "Отправка mUSD",
-      "send_failed": "Не удалось отправить",
-      "converted_to_musd": "Конвертировано в mUSD",
-      "converting_to_musd": "Конвертация в mUSD",
-      "conversion_failed": "Ошибка конвертации",
       "default": "Сведения о транзакции"
     },
     "label": {
@@ -9659,6 +9663,24 @@
       "fiat_purchase": "Купить {{token}} с помощью {{paymentMethod}}"
     },
     "perps_deposit_solution": "Теперь у вас есть {{fiat}} USDC на Arbitrum. Попробуйте снова внести депозит."
+  },
+  "activity_details": {
+    "status": "Статус",
+    "date": "Дата",
+    "account": "Счет",
+    "from": "Из",
+    "to": "Место назначения",
+    "network": "Сеть",
+    "transaction_id": "ID транзакции",
+    "network_fee": "Комиссия сети",
+    "bridge_fee": "Комиссия моста",
+    "transaction_fee": "Комиссия за транзакцию",
+    "total_amount": "Общая сумма",
+    "you_sent": "Вы отправили",
+    "you_received": "Вы получили",
+    "view_on_block_explorer": "Просмотр в обозревателе блоков",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

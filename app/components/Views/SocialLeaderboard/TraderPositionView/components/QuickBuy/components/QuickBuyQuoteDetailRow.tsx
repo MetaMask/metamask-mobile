@@ -14,13 +14,11 @@ import {
 } from '@metamask/design-system-react-native';
 import {
   KeyValueRowStubs,
-  TooltipSizes,
   KeyValueRowSectionAlignments,
 } from '../../../../../../../component-library/components-temp/KeyValueRow';
 import { IconName as IconNameLegacy } from '../../../../../../../component-library/components/Icons/Icon';
 
 const bridgeInfoTooltip = {
-  size: TooltipSizes.Sm,
   iconName: IconNameLegacy.Info,
 } as const;
 

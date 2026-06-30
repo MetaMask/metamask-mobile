@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -21,7 +21,7 @@ import {
 } from '../../../selectors/qrSyncController';
 
 const VerificationCodeBottomSheet = () => {
-  const bottomSheetRef = React.useRef<BottomSheetRef>(null);
+  const bottomSheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
   const phase = useSelector(selectQrSyncPhase);
   const otp = useSelector(selectQrSyncOtp) ?? '';

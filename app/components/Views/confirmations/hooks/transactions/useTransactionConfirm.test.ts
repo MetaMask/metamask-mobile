@@ -31,6 +31,7 @@ import { isHardwareAccount } from '../../../../../util/address';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { PayWithOption } from '../../components/confirm/confirm-component';
 import { useFiatConfirm } from '../pay/useFiatConfirm';
+import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHwSend';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -51,6 +52,9 @@ jest.mock('../../../../UI/Earn/hooks/useMusdConfirmNavigation');
 jest.mock('../../../../../util/address');
 jest.mock('../pay/useFiatConfirm');
 jest.mock('../../../../../util/navigation/navUtils');
+jest.mock('../../../../UI/HardwareWallet/Swaps/useHandleHwSend', () => ({
+  useHandleHwSend: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -61,6 +65,28 @@ jest.mock('@react-navigation/native', () => ({
 }));
 
 const CHAIN_ID_MOCK = '0x123';
+
+// ---------- Top-level mocks (referenced by beforeEach and tests) ----------
+
+const useApprovalRequestMock = jest.mocked(useApprovalRequest);
+const onApprovalConfirm = jest.fn();
+const useFullScreenConfirmationMock = jest.mocked(useFullScreenConfirmation);
+const useNetworkEnablementMock = jest.mocked(useNetworkEnablement);
+const useSelectedGasFeeTokenMock = jest.mocked(useSelectedGasFeeToken);
+const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
+const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
+const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
+const useGaslessSupportedSmartTransactionsMock = jest.mocked(
+  useGaslessSupportedSmartTransactions,
+);
+const useTransactionMetadataRequestMock = jest.mocked(
+  useTransactionMetadataRequest,
+);
+const useMusdConfirmNavigationMock = jest.mocked(useMusdConfirmNavigation);
+const isHardwareAccountMock = jest.mocked(isHardwareAccount);
+const useHandleHwSendMock = jest.mocked(useHandleHwSend);
+const onFiatConfirmMock = jest.fn();
+const useParamsMock = jest.mocked(useParams);
 
 function renderHook() {
   return renderHookWithProvider(() => useTransactionConfirm(), {
@@ -73,29 +99,90 @@ function renderHook() {
   });
 }
 
+// ---------- Hardware-wallet send helpers (shared by the HW-send branch tests) ----------
+
+const gasFeeToken = (
+  overrides: {
+    tokenAddress?: string;
+  } = {},
+) =>
+  ({
+    tokenAddress: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+    symbol: 'USDC',
+    transferTransaction: {
+      data: '0xabc',
+      to: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+      value: '0x0',
+    },
+    gas: '0x5208',
+    maxFeePerGas: '0x1',
+    maxPriorityFeePerGas: '0x2',
+    ...overrides,
+  }) as unknown as ReturnType<typeof useSelectedGasFeeToken>;
+
+// Shared mock-config factory for the HW-send cases. Returns the spy the
+// SUT invokes as `handleHwSend`. `fires` controls whether the HW branch
+// short-circuits the normal confirm path (defaults to true — these cases
+// exercise the HW-send routing). The displayContext/totalSteps logic now
+// lives inside useHandleHwSend (mocked), so these tests assert the
+// SUT assembles and forwards the prepared metadata correctly.
+function setupHwSend(
+  opts: {
+    isHardware?: boolean;
+    type?: TransactionType;
+    txParamsOverride?: Record<string, unknown>;
+    gasFeeToken?: unknown;
+    stxSupported?: boolean;
+    fires?: boolean;
+  } = {},
+) {
+  const shouldDeferSpy = jest.fn(
+    (_transactionMetadata: TransactionMeta) => opts.fires ?? true,
+  );
+  const deferSpy = jest.fn();
+  useHandleHwSendMock.mockReturnValue({
+    shouldDefer: shouldDeferSpy,
+    defer: deferSpy,
+  });
+  isHardwareAccountMock.mockReturnValue(opts.isHardware ?? true);
+  useSelectedGasFeeTokenMock.mockReturnValue(
+    (opts.gasFeeToken ?? undefined) as unknown as ReturnType<
+      typeof useSelectedGasFeeToken
+    >,
+  );
+  if (opts.stxSupported !== undefined) {
+    useGaslessSupportedSmartTransactionsMock.mockReturnValue({
+      isSupported: opts.stxSupported,
+      isSmartTransaction: opts.stxSupported,
+      pending: false,
+    });
+  }
+  useTransactionMetadataRequestMock.mockReturnValue({
+    id: transactionIdMock,
+    chainId: CHAIN_ID_MOCK,
+    origin: ORIGIN_METAMASK,
+    type: opts.type ?? TransactionType.simpleSend,
+    txParams: {
+      from: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266',
+      to: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+      value: '0x64',
+      ...opts.txParamsOverride,
+    },
+  } as unknown as TransactionMeta);
+  return deferSpy;
+}
+
+// Wraps setupHwSend + renderHook + act(onConfirm); returns the spy.
+async function renderAndConfirm(opts: Parameters<typeof setupHwSend>[0] = {}) {
+  const spy = setupHwSend(opts);
+  const { result } = renderHook();
+  await act(async () => {
+    await result.current.onConfirm();
+  });
+  return spy;
+}
+
 describe('useTransactionConfirm', () => {
-  const useApprovalRequestMock = jest.mocked(useApprovalRequest);
-  const onApprovalConfirm = jest.fn();
-  const useFullScreenConfirmationMock = jest.mocked(useFullScreenConfirmation);
-  const useNetworkEnablementMock = jest.mocked(useNetworkEnablement);
-  const useSelectedGasFeeTokenMock = jest.mocked(useSelectedGasFeeToken);
-  const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
-  const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
-  const useIsGaslessSupportedMock = jest.mocked(useIsGaslessSupported);
-  const useGaslessSupportedSmartTransactionsMock = jest.mocked(
-    useGaslessSupportedSmartTransactions,
-  );
-
-  const useTransactionMetadataRequestMock = jest.mocked(
-    useTransactionMetadataRequest,
-  );
-
-  const useMusdConfirmNavigationMock = jest.mocked(useMusdConfirmNavigation);
-  const isHardwareAccountMock = jest.mocked(isHardwareAccount);
-
-  const onFiatConfirmMock = jest.fn();
-  const useParamsMock = jest.mocked(useParams);
-
   beforeEach(() => {
     jest.resetAllMocks();
 
@@ -108,6 +195,11 @@ describe('useTransactionConfirm', () => {
     });
 
     isHardwareAccountMock.mockReturnValue(false);
+
+    useHandleHwSendMock.mockReturnValue({
+      shouldDefer: jest.fn(() => false),
+      defer: jest.fn(),
+    });
 
     useMusdConfirmNavigationMock.mockReturnValue({
       navigateOnConfirm: mockMusdNavigateOnConfirm,
@@ -203,7 +295,7 @@ describe('useTransactionConfirm', () => {
     useTransactionMetadataRequestMock.mockReturnValue({
       id: transactionIdMock,
       chainId: CHAIN_ID_MOCK,
-      txParams: { from: '0xhw' },
+      txParams: { from: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' },
     } as unknown as TransactionMeta);
 
     const { result } = renderHook();
@@ -665,6 +757,34 @@ describe('useTransactionConfirm', () => {
         }),
       });
     });
+
+    it('adds batchTransactions for hardware wallets when smart transaction is enabled', async () => {
+      isHardwareAccountMock.mockReturnValue(true);
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_MOCK,
+        txParams: { from: '0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266' },
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalledWith(expect.anything(), {
+        txMeta: expect.objectContaining({
+          batchTransactions: [
+            expect.objectContaining({ data: '0xabc', to: '0xdef' }),
+          ],
+          txParams: expect.objectContaining({
+            gas: '0x5208',
+            maxFeePerGas: '0x1',
+            maxPriorityFeePerGas: '0x2',
+          }),
+        }),
+      });
+    });
   });
 
   describe('handleGasless7702', () => {
@@ -811,6 +931,143 @@ describe('useTransactionConfirm', () => {
 
       expect(onFiatConfirmMock).not.toHaveBeenCalled();
       expect(onApprovalConfirm).toHaveBeenCalled();
+    });
+  });
+
+  describe('hardware wallet send branch', () => {
+    it('plain native send: routes through handleHwSend with prepared metadata and skips approval confirm', async () => {
+      const spy = await renderAndConfirm();
+
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: TransactionType.simpleSend,
+          txParams: expect.objectContaining({
+            to: '0x70997970C51812dc3A010C7d01b50e0d17dc79C8',
+          }),
+        }),
+      );
+      expect(onApprovalConfirm).not.toHaveBeenCalled();
+    });
+
+    it('ERC-20 send (tokenMethodTransfer): routes through handleHwSend', async () => {
+      // The decoded amount + symbol now live inside useHandleHwSend; here we
+      // assert the branch fires for ERC-20 transfers and the prepared
+      // metadata is forwarded.
+      const spy = await renderAndConfirm({
+        type: TransactionType.tokenMethodTransfer,
+        txParamsOverride: {
+          to: '0x15d34AAf54267DB7D7c367839Aaf71A00a2C6A65',
+          value: '0x0',
+          data: '0xa9059cbb0000000000000000000000000recipient0000000000000000000000000000000000000000000000000000000000000000000000003b',
+        },
+      });
+
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: TransactionType.tokenMethodTransfer,
+          txParams: expect.objectContaining({
+            to: '0x15d34AAf54267DB7D7c367839Aaf71A00a2C6A65',
+          }),
+        }),
+      );
+      expect(onApprovalConfirm).not.toHaveBeenCalled();
+    });
+
+    it('sendbundle send (STX + gas token): handleHwSend receives prepared metadata carrying batchTransactions + gas overrides', async () => {
+      const spy = await renderAndConfirm({
+        stxSupported: true,
+        gasFeeToken: gasFeeToken(),
+      });
+
+      // preparedTxMeta carries the gas-token's gas overrides (from
+      // handleSmartTransaction) + the appended batchTransactions.
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          batchTransactions: [
+            expect.objectContaining({
+              to: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+            }),
+          ],
+          txParams: expect.objectContaining({
+            gas: '0x5208',
+            maxFeePerGas: '0x1',
+            maxPriorityFeePerGas: '0x2',
+          }),
+        }),
+      );
+      expect(onApprovalConfirm).not.toHaveBeenCalled();
+    });
+
+    it('non-HW send: handleHwSend does not fire, approval confirm runs', async () => {
+      await renderAndConfirm({
+        fires: false,
+        isHardware: false,
+        txParamsOverride: {
+          from: '0x976EA74026E726554dB657fA54763abd0C3a0aa9',
+        },
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+        expect.anything(),
+      );
+    });
+
+    it('HW non-send type (contractInteraction): handleHwSend declines, approval confirm runs', async () => {
+      // The simpleSend/tokenMethodTransfer type guard now lives inside
+      // useHandleHwSend (mocked to decline here); we assert the SUT falls
+      // through to the normal confirm path.
+      await renderAndConfirm({
+        fires: false,
+        type: TransactionType.contractInteraction,
+        txParamsOverride: {
+          to: '0x15d34AAf54267DB7D7c367839Aaf71A00a2C6A65',
+          value: '0x0',
+        },
+      });
+
+      expect(onApprovalConfirm).toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.BRIDGE.HARDWARE_WALLETS_SWAPS,
+        expect.anything(),
+      );
+    });
+
+    it('gas token selected but STX NOT supported: prepared metadata passed to handleHwSend has no batchTransactions', async () => {
+      // Guards that handleSmartTransaction only populates batchTransactions
+      // when isGaslessSupportedSTX; a gas token without STX must NOT append a
+      // batch. (The totalSteps decision now lives inside useHandleHwSend.)
+      const spy = await renderAndConfirm({
+        stxSupported: false,
+        gasFeeToken: gasFeeToken(),
+      });
+
+      expect(spy).toHaveBeenCalled();
+      const prepared = spy.mock.calls[0]?.[0] as TransactionMeta | undefined;
+      expect(prepared?.batchTransactions).toBeUndefined();
+    });
+
+    it('STX with transferTransaction but no tokenAddress: prepared metadata still carries batchTransactions', async () => {
+      // Guards that handleSmartTransaction appends the transferTransaction to
+      // batchTransactions regardless of tokenAddress. (The totalSteps=1 guard
+      // when gasTokenAddress is missing now lives inside useHandleHwSend.)
+      const spy = await renderAndConfirm({
+        stxSupported: true,
+        // transferTransaction present (so handleSmartTransaction appends to
+        // batchTransactions) but tokenAddress undefined.
+        gasFeeToken: gasFeeToken({ tokenAddress: undefined }),
+      });
+
+      expect(spy).toHaveBeenCalledWith(
+        expect.objectContaining({
+          batchTransactions: [
+            expect.objectContaining({
+              to: '0x90F79bf6EB2c4f870365E785982E1f101E93b906',
+            }),
+          ],
+        }),
+      );
     });
   });
 });

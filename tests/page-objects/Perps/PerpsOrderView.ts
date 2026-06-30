@@ -10,7 +10,6 @@ import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
-  PerpsMarketDetailsViewSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import {
   asDetoxElement,
@@ -113,11 +112,11 @@ class PerpsOrderView {
   async tapTakeProfitButton() {
     await Gestures.scrollToElement(
       this.takeProfitButton,
-      Matchers.scrollContainer(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      Matchers.scrollContainer(PerpsOrderViewSelectorsIDs.SCROLL_VIEW),
       {
         direction: 'down',
         scrollAmount: 250,
-        elemDescription: 'Scroll Perps market details to TP/SL row',
+        elemDescription: 'Scroll Perps order view to TP/SL row',
       },
     );
     await Gestures.waitAndTap(this.takeProfitButton, {
