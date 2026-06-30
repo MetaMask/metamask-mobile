@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import type { Position } from '@metamask/social-controllers';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
@@ -43,6 +43,122 @@ const PERIOD_DURATION_MS: Record<TimePeriod, number> = {
   '1M': 30 * 24 * 60 * 60 * 1000,
   All: 3 * 365 * 24 * 60 * 60 * 1000,
 };
+
+const normalizeTradeTimestampMs = (timestamp: number): number =>
+  timestamp > 0 && timestamp < 1e12 ? timestamp * 1000 : timestamp;
+
+const PERIODS_BY_SPAN: readonly TimePeriod[] = ['1H', '1D', '1W', '1M', 'All'];
+
+function hasPeriodPrices(
+  pricesByPeriod: Partial<Record<TimePeriod, TokenPrice[]>>,
+  period: TimePeriod,
+): boolean {
+  return Object.prototype.hasOwnProperty.call(pricesByPeriod, period);
+}
+
+function getTradeTimestampRange(
+  trades: readonly { timestamp: number }[] | undefined,
+): { min: number; max: number } | null {
+  if (!trades?.length) return null;
+
+  let min = Infinity;
+  let max = -Infinity;
+
+  for (const trade of trades) {
+    const timestamp = normalizeTradeTimestampMs(trade.timestamp);
+    if (!Number.isFinite(timestamp)) continue;
+    min = Math.min(min, timestamp);
+    max = Math.max(max, timestamp);
+  }
+
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+
+  return { min, max };
+}
+
+function getPriceTimestampRange(prices: TokenPrice[]): {
+  min: number;
+  max: number;
+} | null {
+  if (!prices.length) return null;
+
+  let min = Infinity;
+  let max = -Infinity;
+
+  for (const [timestamp] of prices) {
+    const timestampMs = Number(timestamp);
+    if (!Number.isFinite(timestampMs)) continue;
+    min = Math.min(min, timestampMs);
+    max = Math.max(max, timestampMs);
+  }
+
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+
+  return { min, max };
+}
+
+function pricesCoverTrades(
+  prices: TokenPrice[] | undefined,
+  tradeRange: { min: number; max: number },
+): boolean {
+  const priceRange = prices ? getPriceTimestampRange(prices) : null;
+  return Boolean(
+    priceRange &&
+      tradeRange.min >= priceRange.min &&
+      tradeRange.max <= priceRange.max,
+  );
+}
+
+function getFirstLoadedPeriodCoveringTrades(
+  trades: readonly { timestamp: number }[] | undefined,
+  pricesByPeriod: Partial<Record<TimePeriod, TokenPrice[]>>,
+  minimumPeriod: TimePeriod,
+): TimePeriod | null {
+  const tradeRange = getTradeTimestampRange(trades);
+  if (!tradeRange) return minimumPeriod;
+
+  const startIndex = PERIODS_BY_SPAN.indexOf(minimumPeriod);
+  if (startIndex < 0) return null;
+
+  for (const period of PERIODS_BY_SPAN.slice(startIndex)) {
+    if (!hasPeriodPrices(pricesByPeriod, period)) {
+      return null;
+    }
+    if (pricesCoverTrades(pricesByPeriod[period], tradeRange)) {
+      return period;
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Selects the smallest period that can contain the span between the first and
+ * last trade. This keeps a three-day position on 1W, a three-week position on
+ * 1M, and only falls back to All for spans wider than a month.
+ */
+export function getRecommendedTradeSpanPeriod(
+  trades: readonly { timestamp: number }[] | undefined,
+): TimePeriod {
+  const tradeRange = getTradeTimestampRange(trades);
+  if (!tradeRange) return '1M';
+
+  const spanMs = Math.max(0, tradeRange.max - tradeRange.min);
+  return (
+    PERIODS_BY_SPAN.find((period) => spanMs <= PERIOD_DURATION_MS[period]) ??
+    'All'
+  );
+}
+
+function getPositionPeriodIdentity(position: Position | undefined): string {
+  if (!position) return '';
+  return [
+    position.chain,
+    position.tokenAddress,
+    position.tokenSymbol,
+    isPerpPosition(position) ? 'perp' : 'spot',
+  ].join('|');
+}
 
 /**
  * Hyperliquid candle interval + baseline candle count per chart period. The base
@@ -127,7 +243,9 @@ export interface TraderPositionData {
 
   // Time period
   activeTimePeriod: TimePeriod;
+  isTimePeriodAutoSelected: boolean;
   setActiveTimePeriod: (period: TimePeriod) => void;
+  setAutomaticTimePeriod: (period: TimePeriod) => void;
   timePeriods: readonly TimePeriod[];
 }
 
@@ -143,7 +261,45 @@ export function useTraderPositionData(
    */
   isClosedOverride?: boolean,
 ): TraderPositionData {
-  const [activeTimePeriod, setActiveTimePeriod] = useState<TimePeriod>('1M');
+  const positionPeriodIdentity = useMemo(
+    () => getPositionPeriodIdentity(positionParam),
+    [positionParam],
+  );
+  const recommendedTradeSpanPeriod = useMemo(
+    () => getRecommendedTradeSpanPeriod(positionParam?.trades),
+    [positionParam?.trades],
+  );
+  const userSelectedTimePeriodRef = useRef(false);
+  const [isTimePeriodAutoSelected, setIsTimePeriodAutoSelected] =
+    useState(true);
+  const lastPositionPeriodIdentityRef = useRef(positionPeriodIdentity);
+  const [activeTimePeriod, setActiveTimePeriodState] = useState<TimePeriod>(
+    () => recommendedTradeSpanPeriod,
+  );
+
+  useEffect(() => {
+    if (!positionPeriodIdentity) return;
+
+    if (lastPositionPeriodIdentityRef.current !== positionPeriodIdentity) {
+      lastPositionPeriodIdentityRef.current = positionPeriodIdentity;
+      userSelectedTimePeriodRef.current = false;
+      setIsTimePeriodAutoSelected(true);
+    }
+
+    if (!userSelectedTimePeriodRef.current) {
+      setActiveTimePeriodState(recommendedTradeSpanPeriod);
+    }
+  }, [positionPeriodIdentity, recommendedTradeSpanPeriod]);
+
+  const setActiveTimePeriod = useCallback((period: TimePeriod) => {
+    userSelectedTimePeriodRef.current = true;
+    setIsTimePeriodAutoSelected(false);
+    setActiveTimePeriodState(period);
+  }, []);
+
+  const setAutomaticTimePeriod = useCallback((period: TimePeriod) => {
+    setActiveTimePeriodState(period);
+  }, []);
 
   const caipChainId = useMemo(
     () => (positionParam ? chainNameToId(positionParam.chain) : undefined),
@@ -433,6 +589,25 @@ export function useTraderPositionData(
     [isPerp, perpCache, perpKey, allPrices],
   );
 
+  useEffect(() => {
+    if (userSelectedTimePeriodRef.current) return;
+
+    const coveredPeriod = getFirstLoadedPeriodCoveringTrades(
+      positionParam?.trades,
+      resolvedPrices,
+      recommendedTradeSpanPeriod,
+    );
+
+    if (coveredPeriod && coveredPeriod !== activeTimePeriod) {
+      setActiveTimePeriodState(coveredPeriod);
+    }
+  }, [
+    activeTimePeriod,
+    positionParam?.trades,
+    recommendedTradeSpanPeriod,
+    resolvedPrices,
+  ]);
+
   // Resolve with fallbacks (single useMemo + one Date.now() per recompute so 1H
   // slice and derivePercentChange share the same clock; deps omit "now" so
   // window updates when price data or period changes, not on every parent render).
@@ -547,7 +722,9 @@ export function useTraderPositionData(
     allTrades,
     chartTrades,
     activeTimePeriod,
-    setActiveTimePeriod: setActiveTimePeriod as (period: TimePeriod) => void,
+    isTimePeriodAutoSelected,
+    setActiveTimePeriod,
+    setAutomaticTimePeriod,
     timePeriods: TIME_PERIODS,
   };
 }
