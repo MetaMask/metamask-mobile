@@ -4,9 +4,8 @@ import { render, screen } from '@testing-library/react-native';
 import ExploreSectionList from './ExploreSectionList';
 
 jest.mock('@metamask/design-system-react-native', () => {
-  const React = require('react');
-  const { View } = require('react-native');
   const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     ...actual,
     Box: ({
