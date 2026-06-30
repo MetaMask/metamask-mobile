@@ -7,7 +7,7 @@ import {
 import {
   Box,
   BoxBorderColor,
-  SectionHeader as MMDSSectionHeader,
+  SectionHeader,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { FlashList, type ListRenderItem } from '@shopify/flash-list';
@@ -143,7 +143,7 @@ const PredictLiveNowSection: React.FC<PredictLiveNowSectionProps> = ({
   return (
     <Box testID={testID} twClassName="my-2">
       {/* "See all" navigates to the generic PredictFeedView (feedId 'live'). */}
-      <MMDSSectionHeader
+      <SectionHeader
         testID={PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER}
         title={strings('predict.home.live_now_title')}
         isInteractive

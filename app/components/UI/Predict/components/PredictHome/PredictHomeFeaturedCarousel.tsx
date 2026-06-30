@@ -1,9 +1,6 @@
 import React, { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  SectionHeader as MMDSSectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
 import type { ListRenderItem } from '@shopify/flash-list';
 import HorizontalCarousel from '../../../../Views/TrendingView/components/HorizontalCarousel';
 import { usePredictionsFeed } from '../../../../Views/TrendingView/feeds/predictions/usePredictionsFeed';
@@ -47,7 +44,7 @@ const PredictHomeFeaturedCarousel: React.FC<
 
   return (
     <Box testID={testID}>
-      <MMDSSectionHeader
+      <SectionHeader
         testID={PREDICT_HOME_FEATURED_CAROUSEL_TEST_IDS.HEADER}
         title={strings('predict.category.trending')}
         isInteractive

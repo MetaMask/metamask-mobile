@@ -16,7 +16,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  SectionHeader as MMDSSectionHeader,
+  SectionHeader,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import ExploreSectionHeader from '../../Views/TrendingView/components/SectionHeader';
@@ -160,7 +160,7 @@ const WhatsHappeningSection = forwardRef<
       sectionName={sectionName}
     />
   ) : (
-    <MMDSSectionHeader
+    <SectionHeader
       title={title}
       isInteractive
       onPress={handleViewAll}

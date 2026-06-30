@@ -10,7 +10,7 @@ import {
   IconName,
   IconSize,
   IconColor,
-  SectionHeader as MMDSSectionHeader,
+  SectionHeader,
 } from '@metamask/design-system-react-native';
 import {
   type MarketTypeFilter,
@@ -161,7 +161,7 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
 
   return (
     <View style={styles.container} testID={TEST_ID}>
-      <MMDSSectionHeader title={strings('perps.home.products')} />
+      <SectionHeader title={strings('perps.home.products')} />
 
       <ScrollView
         horizontal

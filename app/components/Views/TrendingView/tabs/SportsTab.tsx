@@ -13,7 +13,7 @@ import {
   BoxJustifyContent,
   FontWeight,
   SectionDivider,
-  SectionHeader as MMDSSectionHeader,
+  SectionHeader,
   TabEmptyState,
   Text,
   TextColor,
@@ -100,7 +100,7 @@ const SportsListHeader: React.FC<SportsListHeaderProps> = ({
 
     <Box>
       {showSportsPredictions ? <SectionDivider /> : null}
-      <MMDSSectionHeader
+      <SectionHeader
         title={strings('trending.all_sports')}
         testID="section-header-view-all-all_sports"
       />
