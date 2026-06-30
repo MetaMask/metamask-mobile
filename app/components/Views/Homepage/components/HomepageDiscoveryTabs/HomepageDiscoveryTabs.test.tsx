@@ -76,7 +76,7 @@ jest.mock('../../../../UI/Perps/Views/PerpsHomeView/PerpsHomeView', () => {
     tabEnterCallbackRef,
     ...props
   }: {
-    tabEnterCallbackRef?: React.MutableRefObject<(() => void) | null>;
+    tabEnterCallbackRef?: React.RefObject<(() => void) | null>;
   }) {
     mockPerpsHomeViewProps.current = props;
     if (tabEnterCallbackRef) tabEnterCallbackRef.current = jest.fn();

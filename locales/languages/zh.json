@@ -2346,8 +2346,7 @@
     "search_account": "搜索账户",
     "home": {
       "live_now_title": "现已上线",
-      "categories_placeholder": "类别",
-      "trending_placeholder": "趋势"
+      "categories_placeholder": "类别"
     },
     "homepage_discovery": {
       "btc_title": "BTC 价格：{{price}}",
