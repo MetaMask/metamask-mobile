@@ -162,6 +162,13 @@ class TransactionPayConfirmation {
     });
   }
 
+  // "Available balance: $X" row (PerpsWithdrawBalance) on the Perps withdraw
+  // confirmation. The row has no testID, so it is matched by text; iOS matches
+  // by.text against the whole string, so the pattern spans the trailing amount.
+  get availableBalance(): EncapsulatedElementType {
+    return Matchers.getElementByText(/Available balance: \$[0-9,.]+/u);
+  }
+
   get transactionFee(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -510,6 +517,13 @@ class TransactionPayConfirmation {
   async verifyReceiveVisible(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.receive, {
       description: "You'll receive row should be visible",
+      timeout: 15000,
+    });
+  }
+
+  async verifyAvailableBalanceVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.availableBalance, {
+      description: 'Available Perps balance row should be visible',
       timeout: 15000,
     });
   }
