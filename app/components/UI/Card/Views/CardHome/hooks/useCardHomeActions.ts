@@ -1,6 +1,7 @@
 import { useCallback, useContext } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import { useTheme } from '../../../../../../util/theme';
@@ -14,7 +15,7 @@ import {
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { CardActions } from '../../../util/metrics';
+import { CardActions, CardEntryPoint } from '../../../util/metrics';
 import { DEPOSIT_SUPPORTED_TOKENS, cardNetworkInfos } from '../../../constants';
 import { withBiometricAuth } from '../../../util/withBiometricAuth';
 import { createAddFundsModalNavigationDetails } from '../../../components/AddFundsBottomSheet/AddFundsBottomSheet';
@@ -44,7 +45,7 @@ export function useCardHomeActions({
   isFrozen,
   cardTermsAndConditionsUrl,
 }: UseCardHomeActionsParams) {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const theme = useTheme();
@@ -390,6 +391,24 @@ export function useCardHomeActions({
     }
   }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
 
+  const unlinkMoneyAccountAction = useCallback(
+    (fundingSource?: string) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+          .addProperties({ action: CardActions.UNLINK_MONEY_ACCOUNT_BUTTON })
+          .build(),
+      );
+      navigation.navigate(Routes.CARD.MODALS.ID, {
+        screen: Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT,
+        params: {
+          fundingSource,
+          entrypoint: CardEntryPoint.CARD_HOME_UNLINK_MONEY_ACCOUNT,
+        },
+      });
+    },
+    [navigation, trackEvent, createEventBuilder],
+  );
+
   const logoutAction = useCallback(() => {
     Alert.alert(
       strings('card.card_home.logout_confirmation_title'),
@@ -465,6 +484,7 @@ export function useCardHomeActions({
     changeAssetAction,
     enableCardAction,
     manageSpendingLimitAction,
+    unlinkMoneyAccountAction,
     logoutAction,
     orderMetalCardAction,
     cashbackAction,

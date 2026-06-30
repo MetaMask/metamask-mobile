@@ -36,8 +36,11 @@ export interface PredictWorldCupConfig extends VersionGatedFeatureFlag {
   showMainFeedBanner: boolean;
   showMainFeedTab: boolean;
   showWorldCupScreen: boolean;
+  showHubV2: boolean;
+  showHubBanner: boolean;
   tagSlug: string;
   gamesTagId: string;
+  winnerEventId: string;
   bannerImage?: {
     url: string;
     width: number;
@@ -56,6 +59,7 @@ export interface PredictFeatureFlags {
   predictWithAnyTokenEnabled: boolean;
   predictUpDownEnabled: boolean;
   predictWorldCup: PredictWorldCupConfig;
+  predictWimbledonTab: PredictWimbledonTabFlag;
   predictPortfolioEnabled: boolean;
   predictHomeRedesignEnabled: boolean;
   predictSportCardLivePricesEnabled: boolean;
@@ -63,4 +67,8 @@ export interface PredictFeatureFlags {
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {
   queryParams?: string; // Raw query params WITHOUT leading &: "tag_id=149&tag_id=100995&order=volume24hr"
+}
+
+export interface PredictWimbledonTabFlag extends VersionGatedFeatureFlag {
+  queryParams?: string; // Raw query params WITHOUT leading &: "tag_id=100639&tag_slug=tennis&order=volume24hr"
 }

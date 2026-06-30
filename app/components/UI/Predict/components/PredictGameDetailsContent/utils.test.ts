@@ -26,6 +26,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.sports_market_types.basketball_odd_even': 'Odd/Even Score',
       'predict.sports_market_types.basketball_team_to_score_first':
         'Team to Score First',
+      'predict.sports_market_types.soccer_first_to_score':
+        'First Team to Score',
       'predict.sports_market_types.tennis_set_totals': 'Total Sets',
       'predict.sports_market_types.tennis_set_handicap': 'Set Handicap',
       'predict.sports_market_types.tennis_match_totals': 'Total Games',
@@ -271,6 +273,33 @@ describe('PredictGameDetailsContent utils', () => {
       expect(threeButtons[1].variant).toBe('draw');
     });
 
+    it('assigns three-way moneyline variants for soccer first to score', () => {
+      const buttons = buildButtons(
+        createOutcome({
+          sportsMarketType: 'soccer_first_to_score',
+          tokens: [
+            createToken({ id: 'team-b', shortTitle: 'TB' }),
+            createToken({ id: 'team-a', shortTitle: 'TA' }),
+            createToken({ id: 'neither', shortTitle: 'NEITHER' }),
+          ],
+        }),
+        mockOnBuyPress,
+        mockGame,
+        'soccer_first_to_score',
+      );
+
+      expect(buttons.map((button) => button.label)).toEqual([
+        'TA',
+        'NEITHER',
+        'TB',
+      ]);
+      expect(buttons.map((button) => button.variant)).toEqual([
+        'yes',
+        'draw',
+        'no',
+      ]);
+    });
+
     it('assigns draw variant and no team colors for non-moneyline types', () => {
       const buttons = buildButtons(
         createOutcome({
@@ -435,6 +464,48 @@ describe('PredictGameDetailsContent utils', () => {
         'TX',
         'Draw',
         'TY',
+      ]);
+    });
+
+    it('places neither second while preserving team order for first-to-score markets', () => {
+      const outcomes = [
+        createOutcome({
+          id: 'first-score-portugal',
+          groupItemTitle: 'Portugal',
+          groupItemThreshold: 0,
+          tokens: [createToken({ shortTitle: 'PRT', price: 0.83 })],
+        }),
+        createOutcome({
+          id: 'first-score-uzbekistan',
+          groupItemTitle: 'Uzbekistan',
+          groupItemThreshold: 1,
+          tokens: [createToken({ shortTitle: 'UZB', price: 0.13 })],
+        }),
+        createOutcome({
+          id: 'first-score-neither',
+          groupItemTitle: 'No team scores',
+          groupItemThreshold: 2,
+          tokens: [
+            createToken({
+              title: 'Neither',
+              shortTitle: 'NEITHER',
+              price: 0.03,
+            }),
+          ],
+        }),
+      ];
+
+      const buttons = buildMoneylineButtons(outcomes, mockOnBuyPress, mockGame);
+
+      expect(buttons.map((button) => button.label)).toEqual([
+        'PRT',
+        'NEITHER',
+        'UZB',
+      ]);
+      expect(buttons.map((button) => button.variant)).toEqual([
+        'yes',
+        'draw',
+        'no',
       ]);
     });
 

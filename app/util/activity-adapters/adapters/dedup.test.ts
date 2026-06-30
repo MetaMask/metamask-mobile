@@ -67,4 +67,14 @@ describe('mergeActivityItems', () => {
       perpsFill,
     ]);
   });
+
+  it('lets ramp items win over confirmed and local copies of the same hash', () => {
+    const localCopy = makeItem('localTransaction', 1, '0XRAMP');
+    const confirmedCopy = makeItem('apiEvmTransaction', 2, '0xramp');
+    const rampCopy = makeItem('rampOrder', 3, '0xRamp');
+
+    expect(
+      mergeActivityItems([localCopy], [confirmedCopy], [], [], [], [rampCopy]),
+    ).toEqual([rampCopy]);
+  });
 });
