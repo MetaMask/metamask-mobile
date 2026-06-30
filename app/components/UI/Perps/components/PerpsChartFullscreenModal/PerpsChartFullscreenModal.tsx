@@ -282,6 +282,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
                 height={Math.max(chartHeight - ohlcvHeight, 100)}
                 tpslLines={tpslLines}
                 positionSize={positionSize}
+                surface="full_screen_chart"
                 onCrosshairDataChange={setOhlcData}
                 onError={handleAdvancedChartError}
                 onSkeletonHidden={trackFullscreenChartScreenViewed}
