@@ -6,6 +6,7 @@ import {
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
+import { DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES } from '../constants/sports';
 import { resolvePredictFeatureFlags } from './resolvePredictFeatureFlags';
 
 jest.mock('../../../../util/remoteFeatureFlag', () => ({
@@ -30,7 +31,7 @@ describe('resolvePredictFeatureFlags', () => {
       liveSportsLeagues: [],
       extendedSportsMarketsLeagues: [],
       enabledSportsMarketTypes: [],
-      nonRegTimeSportsMarketTypes: ['soccer_team_to_advance'],
+      nonRegTimeSportsMarketTypes: DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
       marketHighlightsFlag: DEFAULT_MARKET_HIGHLIGHTS_FLAG,
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
@@ -1005,9 +1006,9 @@ describe('resolvePredictFeatureFlags', () => {
     it('returns the default full-tie market type when flag is missing', () => {
       const result = resolvePredictFeatureFlags({});
 
-      expect(result.nonRegTimeSportsMarketTypes).toEqual([
-        'soccer_team_to_advance',
-      ]);
+      expect(result.nonRegTimeSportsMarketTypes).toEqual(
+        DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
+      );
     });
 
     it('uses the default full-tie market type when the optional remote field is missing', () => {
@@ -1029,9 +1030,9 @@ describe('resolvePredictFeatureFlags', () => {
         },
       });
 
-      expect(result.nonRegTimeSportsMarketTypes).toEqual([
-        'soccer_team_to_advance',
-      ]);
+      expect(result.nonRegTimeSportsMarketTypes).toEqual(
+        DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
+      );
     });
 
     it('replaces the default list when the optional remote field is present', () => {
@@ -1079,9 +1080,9 @@ describe('resolvePredictFeatureFlags', () => {
         },
       });
 
-      expect(result.nonRegTimeSportsMarketTypes).toEqual([
-        'soccer_team_to_advance',
-      ]);
+      expect(result.nonRegTimeSportsMarketTypes).toEqual(
+        DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
+      );
     });
   });
 });
