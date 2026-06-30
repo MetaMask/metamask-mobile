@@ -167,6 +167,12 @@
       "prettier --write"
     ]
   },
+  "previewBuilds": {
+    "@metamask/bridge-controller": {
+      "type": "non-breaking",
+      "previewVersion": "77.1.0-preview-4621eb3"
+    }
+  },
   "resolutions": {
     "@metamask/perps-controller": "^9.0.0",
     "@metamask/network-controller": "33.0.0",
