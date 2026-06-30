@@ -7905,9 +7905,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:@metamask-previews/assets-controller@9.1.0-preview-bd7b53f49":
-  version: 9.1.0-preview-bd7b53f49
-  resolution: "@metamask-previews/assets-controller@npm:9.1.0-preview-bd7b53f49"
+"@metamask/assets-controller@npm:^10.0.0":
+  version: 10.0.0
+  resolution: "@metamask/assets-controller@npm:10.0.0"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@ethersproject/abi": "npm:^5.7.0"
@@ -7918,7 +7918,7 @@ __metadata:
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/client-controller": "npm:^1.0.1"
     "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/core-backend": "npm:^6.3.3"
+    "@metamask/core-backend": "npm:^6.4.0"
     "@metamask/keyring-api": "npm:^23.3.0"
     "@metamask/keyring-controller": "npm:^27.1.0"
     "@metamask/keyring-internal-api": "npm:^11.0.1"
@@ -7938,7 +7938,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     lodash: "npm:^4.17.21"
     p-limit: "npm:^3.1.0"
-  checksum: 10/f147dce8e2c39407ad944b6f857714cc4e97dcecaec7f1fa73552927121d939573c691a9848ce795702de405d4ffff270e8edd92f0aec21c0e4afff0057c015e
+  checksum: 10/6f8fc1801934cf166118838748252030c69985371fa19adfce2bbb947020aa57edf8bb996bc665f6186d969bd5035c68bb504c851807f71073f9310d672f6db7
   languageName: node
   linkType: hard
 
@@ -8328,7 +8328,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/controller-utils@npm:^12.0.0, @metamask/controller-utils@npm:^12.1.0, @metamask/controller-utils@npm:^12.1.1, @metamask/controller-utils@npm:^12.2.0, @metamask/controller-utils@npm:^12.3.0":
+"@metamask/controller-utils@npm:^12.0.0, @metamask/controller-utils@npm:^12.1.0, @metamask/controller-utils@npm:^12.2.0, @metamask/controller-utils@npm:^12.3.0":
   version: 12.3.0
   resolution: "@metamask/controller-utils@npm:12.3.0"
   dependencies:
@@ -8350,20 +8350,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/core-backend@npm:^6.3.0, @metamask/core-backend@npm:^6.3.3":
-  version: 6.3.3
-  resolution: "@metamask/core-backend@npm:6.3.3"
+"@metamask/core-backend@npm:^6.3.3, @metamask/core-backend@npm:^6.4.0":
+  version: 6.4.0
+  resolution: "@metamask/core-backend@npm:6.4.0"
   dependencies:
-    "@metamask/accounts-controller": "npm:^39.0.1"
-    "@metamask/controller-utils": "npm:^12.1.1"
-    "@metamask/keyring-controller": "npm:^27.0.0"
+    "@metamask/accounts-controller": "npm:^39.0.3"
+    "@metamask/controller-utils": "npm:^12.3.0"
+    "@metamask/keyring-controller": "npm:^27.1.0"
     "@metamask/messenger": "npm:^1.2.0"
-    "@metamask/profile-sync-controller": "npm:^28.1.1"
-    "@metamask/utils": "npm:^11.9.0"
+    "@metamask/profile-sync-controller": "npm:^28.2.0"
+    "@metamask/utils": "npm:^11.11.0"
     "@tanstack/query-core": "npm:^5.62.16"
     async-mutex: "npm:^0.5.0"
     uuid: "npm:^8.3.2"
-  checksum: 10/be94b9131e1babea048a60f058c345d42ea8423fc3a7121013be4713f7d6298a2b9e3d2c454d0a8ddfd21216f3520bf517556b9d7b5b16600f700bf7cb5d98b6
+  checksum: 10/feb5a81ea45cd68fbc5a745dabb92670df543abcc2e473925a5af161858e475dba2a17a4b193ef70f02564a3fedd953a811e15fa45e19d2bd63f29bc6829de54
   languageName: node
   linkType: hard
 
@@ -9611,7 +9611,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-sync-controller@npm:^28.1.1, @metamask/profile-sync-controller@npm:^28.2.0":
+"@metamask/profile-sync-controller@npm:^28.2.0":
   version: 28.2.0
   resolution: "@metamask/profile-sync-controller@npm:28.2.0"
   dependencies:
@@ -35420,7 +35420,7 @@ __metadata:
     "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^9.0.0"
-    "@metamask/assets-controller": "npm:@metamask-previews/assets-controller@9.1.0-preview-bd7b53f49"
+    "@metamask/assets-controller": "npm:^10.0.0"
     "@metamask/assets-controllers": "npm:^109.2.1"
     "@metamask/authenticated-user-storage": "npm:^2.1.0"
     "@metamask/auto-changelog": "npm:^5.3.0"
@@ -35438,7 +35438,7 @@ __metadata:
     "@metamask/compliance-controller": "npm:2.1.0"
     "@metamask/connectivity-controller": "npm:^0.2.0"
     "@metamask/controller-utils": "npm:^12.3.0"
-    "@metamask/core-backend": "npm:^6.3.0"
+    "@metamask/core-backend": "npm:^6.4.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
     "@metamask/design-system-react-native": "npm:^0.30.1"
