@@ -13,6 +13,7 @@ import type {
   OHLCVBar,
   OHLCVPaginationConfig,
   RealtimeTickCallback,
+  StudyId,
   TVChartingLibraryWidget,
 } from './types';
 
@@ -34,6 +35,17 @@ interface CoreState {
   visibleToMs: number | null;
   /** TradingView subscribeBars listenerGuid → tick callback (forwarded by REALTIME_UPDATE). */
   realtimeCallbacks: Record<string, RealtimeTickCallback>;
+  /** Curated indicators (MACD, RSI, BOL, MA200) keyed by indicator name → studyId. */
+  activeStudies: Map<string, StudyId>;
+  /** MA visibility-driven studies (MA5/10/20/50/200) keyed by name → studyId. */
+  maStudies: Map<string, StudyId>;
+  /** Insertion order used to render legend pills consistently across renders. */
+  legendStudyOrder: Map<string, StudyId>;
+  volumeStudyId: StudyId | null;
+  /** null when no volume; tracks overlay vs sub-pane for toggle continuity. */
+  volumeIsOverlay: boolean | null;
+  /** Effective ratio in (0, 1] for sub-pane height; null = TV default. */
+  subPaneHeightRatio: number | null;
 }
 
 const emptyPagination = (): OHLCVPaginationConfig => ({
@@ -58,6 +70,12 @@ const state: CoreState = {
   visibleFromMs: null,
   visibleToMs: null,
   realtimeCallbacks: {},
+  activeStudies: new Map(),
+  maStudies: new Map(),
+  legendStudyOrder: new Map(),
+  volumeStudyId: null,
+  volumeIsOverlay: null,
+  subPaneHeightRatio: null,
 };
 
 // ----- Widget lifecycle ---------------------------------------------------
@@ -213,6 +231,75 @@ export function getRealtimeCallbacks(): Record<string, RealtimeTickCallback> {
   return state.realtimeCallbacks;
 }
 
+// ----- Indicator studies --------------------------------------------------
+
+export function getActiveStudies(): Map<string, StudyId> {
+  return state.activeStudies;
+}
+
+export function getMaStudies(): Map<string, StudyId> {
+  return state.maStudies;
+}
+
+export function getLegendStudyOrder(): Map<string, StudyId> {
+  return state.legendStudyOrder;
+}
+
+export function registerStudy(
+  bucket: 'active' | 'ma',
+  name: string,
+  studyId: StudyId,
+): void {
+  if (bucket === 'active') {
+    state.activeStudies.set(name, studyId);
+  } else {
+    state.maStudies.set(name, studyId);
+  }
+  state.legendStudyOrder.set(name, studyId);
+}
+
+export function unregisterStudy(name: string): StudyId | undefined {
+  const fromActive = state.activeStudies.get(name);
+  const fromMA = state.maStudies.get(name);
+  state.activeStudies.delete(name);
+  state.maStudies.delete(name);
+  state.legendStudyOrder.delete(name);
+  return fromActive ?? fromMA;
+}
+
+// ----- Volume study -------------------------------------------------------
+
+export function getVolumeStudyId(): StudyId | null {
+  return state.volumeStudyId;
+}
+
+export function setVolumeStudyId(id: StudyId | null): void {
+  state.volumeStudyId = id;
+  if (id) {
+    state.legendStudyOrder.set('Volume', id);
+  } else {
+    state.legendStudyOrder.delete('Volume');
+  }
+}
+
+export function getVolumeIsOverlay(): boolean | null {
+  return state.volumeIsOverlay;
+}
+
+export function setVolumeIsOverlay(isOverlay: boolean | null): void {
+  state.volumeIsOverlay = isOverlay;
+}
+
+// ----- Sub-pane height ratio ----------------------------------------------
+
+export function getSubPaneHeightRatio(): number | null {
+  return state.subPaneHeightRatio;
+}
+
+export function setSubPaneHeightRatio(ratio: number | null): void {
+  state.subPaneHeightRatio = ratio;
+}
+
 /**
  * Resets state to defaults — useful for unit tests. NOT for runtime use; the
  * WebView is created fresh per mount (the RN side recreates the HTML when
@@ -233,4 +320,10 @@ export function __resetStateForTests(): void {
   state.visibleFromMs = null;
   state.visibleToMs = null;
   state.realtimeCallbacks = {};
+  state.activeStudies = new Map();
+  state.maStudies = new Map();
+  state.legendStudyOrder = new Map();
+  state.volumeStudyId = null;
+  state.volumeIsOverlay = null;
+  state.subPaneHeightRatio = null;
 }

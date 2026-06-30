@@ -21,6 +21,7 @@
 import type {
   ChartTheme,
   ChartType,
+  IndicatorName,
   OHLCVBar,
   OHLCVPaginationConfig,
 } from '../core/types';
@@ -30,7 +31,12 @@ export type InboundMessage =
   | SetThemeColorsMessage
   | SetOHLCVDataMessage
   | RealtimeUpdateMessage
-  | SetChartTypeMessage;
+  | SetChartTypeMessage
+  | AddIndicatorMessage
+  | RemoveIndicatorMessage
+  | SetMAVisibilityMessage
+  | ToggleVolumeMessage
+  | SetSubPaneLayoutMessage;
 
 export interface SetThemeColorsMessage {
   type: 'SET_THEME_COLORS';
@@ -71,6 +77,31 @@ export interface SetChartTypeMessage {
   payload: { type: ChartType };
 }
 
+export interface AddIndicatorMessage {
+  type: 'ADD_INDICATOR';
+  payload: { name: string; inputs?: Record<string, unknown> };
+}
+
+export interface RemoveIndicatorMessage {
+  type: 'REMOVE_INDICATOR';
+  payload: { name: string };
+}
+
+export interface SetMAVisibilityMessage {
+  type: 'SET_MA_VISIBILITY';
+  payload: { visible: string[] };
+}
+
+export interface ToggleVolumeMessage {
+  type: 'TOGGLE_VOLUME';
+  payload: { visible: boolean; volumeOverlay?: boolean };
+}
+
+export interface SetSubPaneLayoutMessage {
+  type: 'SET_SUB_PANE_LAYOUT';
+  payload: { heightRatio: number | null };
+}
+
 export type InboundMessageType = InboundMessage['type'];
 
 /** Outbound — WebView IIFE → React Native. */
@@ -80,6 +111,9 @@ export type OutboundMessageType =
   | 'CHART_TRADINGVIEW_CLICKED'
   | 'CROSSHAIR_MOVE'
   | 'CHART_INTERACTED'
+  | 'INDICATOR_ADDED'
+  | 'INDICATOR_REMOVED'
+  | 'LEGEND_RENDERED'
   | 'ERROR'
   | 'DEBUG';
 
@@ -130,15 +164,32 @@ export interface ChartInteractedPayload {
   interaction_type: ChartInteractionType;
 }
 
+export interface IndicatorAddedPayload {
+  name: string;
+  id: string;
+}
+
+export interface IndicatorRemovedPayload {
+  name: string;
+}
+
+export type LegendRenderedPayload = Record<string, never>;
+
 export interface OutboundPayloads {
   CHART_READY: ChartReadyPayload;
   CHART_LAYOUT_SETTLED: ChartLayoutSettledPayload;
   CHART_TRADINGVIEW_CLICKED: ChartTradingViewClickedPayload;
   CROSSHAIR_MOVE: CrosshairMovePayload;
   CHART_INTERACTED: ChartInteractedPayload;
+  INDICATOR_ADDED: IndicatorAddedPayload;
+  INDICATOR_REMOVED: IndicatorRemovedPayload;
+  LEGEND_RENDERED: LegendRenderedPayload;
   ERROR: ErrorPayload;
   DEBUG: DebugPayload;
 }
+
+/** Re-export for callers writing Phase 3 handlers. */
+export type { IndicatorName };
 
 /** Helper for messages/handler.ts — narrows InboundMessage by type tag. */
 export type InboundMessageOf<T extends InboundMessageType> = Extract<

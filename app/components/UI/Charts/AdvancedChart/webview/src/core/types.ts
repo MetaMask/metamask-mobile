@@ -43,6 +43,33 @@ export interface ChartFeaturesConfig {
 }
 
 /**
+ * Indicator names this chart understands. Phase 3 supports the built-in
+ * curated set used by Token Details — MACD, RSI, BOL, MA200, plus the
+ * five MA-visibility variants (MA5/10/20/50/200). Other names fall through
+ * to TradingView's generic createStudy.
+ */
+export type IndicatorName =
+  | 'MACD'
+  | 'RSI'
+  | 'BOL'
+  | 'MA200'
+  | 'MA5'
+  | 'MA10'
+  | 'MA20'
+  | 'MA50';
+
+/**
+ * Optional consumer-supplied legend overlay config inlined as
+ * window.CONFIG.legendOverlay. When `enabled` is true the WebView builds a
+ * DOM legend overlay above the chart container.
+ */
+export interface LegendOverlayConfig {
+  enabled?: boolean;
+  /** Optional per-indicator override map; falls back to built-in presets. */
+  config?: Record<string, unknown>;
+}
+
+/**
  * Visual overrides applied via TradingView's `applyOverrides`. Set by the
  * consumer's `visualOverrides` prop on the RN side. Empty/undefined keys
  * fall through to TradingView defaults.
@@ -68,6 +95,9 @@ export interface ChartConfig {
   indicatorColors?: IndicatorColors;
   useSubscriptPriceFormat?: boolean;
   visualOverrides?: VisualOverridesConfigInline;
+  legendOverlay?: LegendOverlayConfig;
+  /** Optional sub-pane height ratio in (0, 1] for RSI/MACD sub-panes. */
+  subPaneHeightRatio?: number;
 }
 
 /**
@@ -114,6 +144,29 @@ export interface TVMainSeries {
   detachToRight(): void;
 }
 
+export type StudyId = string;
+
+export interface TVStudy {
+  onDataLoaded(): TVSubscription;
+}
+
+export interface TVExportSchemaField {
+  type: string;
+  sourceId?: StudyId;
+  plotTitle?: string;
+}
+
+export interface TVExportData {
+  schema: TVExportSchemaField[];
+  data: number[][];
+  displayedData?: string[][];
+}
+
+export interface TVExportDataOptions {
+  includeSeries?: boolean;
+  includedStudies?: StudyId[];
+}
+
 export interface TVActiveChart {
   setChartType(type: ChartType): void;
   setResolution(resolution: TVResolution, callback: () => void): void;
@@ -131,6 +184,19 @@ export interface TVActiveChart {
     onChanged(): TVSubscription;
     clear(): void;
   };
+  createStudy(
+    name: string,
+    forceOverlay: boolean,
+    lock: boolean,
+    inputs: Record<string, unknown>,
+    overrides: Record<string, unknown>,
+    options?: { priceScale?: string },
+  ): Promise<StudyId>;
+  removeEntity(id: StudyId): void;
+  getStudyById(id: StudyId): TVStudy | null;
+  getAllPanesHeight(): number[];
+  setAllPanesHeight(heights: number[]): void;
+  exportData(options: TVExportDataOptions): Promise<TVExportData>;
 }
 
 export type TVWidgetConstructor = new (

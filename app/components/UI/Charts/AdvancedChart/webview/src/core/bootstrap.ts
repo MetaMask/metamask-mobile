@@ -36,6 +36,15 @@ import {
 } from '../interaction/crosshair';
 import { attachVisibleRangeListeners } from '../interaction/visibleRange';
 import { applyScaleLayout } from '../widget/scaleLayout';
+import {
+  handleAddIndicator,
+  handleRemoveIndicator,
+  handleSetMAVisibility,
+} from '../features/indicators';
+import { handleSetSubPaneLayout } from '../features/indicators/subPane';
+import { setupLegendOverlay } from '../features/indicators/legend';
+import { handleToggleVolume } from '../features/volume';
+import { getVisibleFromMs, setSubPaneHeightRatio } from './state';
 import type { ChartConfig } from './types';
 
 function readConfig(): ChartConfig {
@@ -58,6 +67,9 @@ export function bootstrap(): ChartConfig {
   const config = readConfig();
 
   initThemeFromConfig(config.theme);
+  if (typeof config.subPaneHeightRatio === 'number') {
+    setSubPaneHeightRatio(config.subPaneHeightRatio);
+  }
 
   registerHandler('SET_THEME_COLORS', (payload) => {
     applyThemeColors(payload);
@@ -70,6 +82,21 @@ export function bootstrap(): ChartConfig {
   });
   registerHandler('SET_CHART_TYPE', (payload) => {
     handleSetChartType(payload);
+  });
+  registerHandler('ADD_INDICATOR', (payload) => {
+    handleAddIndicator(payload, config);
+  });
+  registerHandler('REMOVE_INDICATOR', (payload) => {
+    handleRemoveIndicator(payload);
+  });
+  registerHandler('SET_MA_VISIBILITY', (payload) => {
+    handleSetMAVisibility(payload, config);
+  });
+  registerHandler('TOGGLE_VOLUME', (payload) => {
+    handleToggleVolume(payload);
+  });
+  registerHandler('SET_SUB_PANE_LAYOUT', (payload) => {
+    handleSetSubPaneLayout(payload);
   });
 
   onFromRN((message) => {
@@ -91,7 +118,18 @@ export function bootstrap(): ChartConfig {
             try {
               applyScaleLayout();
               applyVisualOverrides(config.visualOverrides);
+              setupLegendOverlay(config.legendOverlay, config.indicatorColors);
               const chart = widget.activeChart();
+              // Match legacy onChartReady: when no explicit visible range
+              // was passed, pin a 2-bar gap on the right. TV's default is
+              // wider, leaving the chart visibly offset left.
+              if (getVisibleFromMs() == null) {
+                try {
+                  chart.getTimeScale().setRightOffset(2);
+                } catch (rightOffsetError) {
+                  reportErrorToRN(rightOffsetError);
+                }
+              }
               attachCrosshairListener(chart);
               attachTapDismiss(widget);
               attachVisibleRangeListeners(chart);
