@@ -12,31 +12,20 @@ jest.mock('../../../../../component-library/hooks', () => ({
   })),
 }));
 
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
+jest.mock('@metamask/design-system-react-native', () => {
   const { createElement } = jest.requireActual('react');
-  const { Text } = jest.requireActual('react-native');
+  const { Text, View } = jest.requireActual('react-native');
 
   return {
     __esModule: true,
-    default: ({ name }: { name: string }) => createElement(Text, null, name),
+    Box: ({ children, style }: { children: React.ReactNode; style?: object }) =>
+      createElement(View, { style }, children),
+    Icon: ({ name }: { name: string }) => createElement(Text, null, name),
+    IconColor: { IconDefault: 'IconDefault' },
     IconName: { Arrow2Down: 'Arrow2Down' },
+    IconSize: { Lg: '24' },
   };
 });
-
-jest.mock(
-  '../../../../../component-library/components/Buttons/ButtonIcon/ButtonIcon.constants',
-  () => ({
-    DEFAULT_BUTTONICON_ICONCOLOR: 'Default',
-    ICONSIZE_BY_BUTTONICONSIZE: { Lg: 'Lg' },
-  }),
-);
-
-jest.mock(
-  '../../../../../component-library/components/Buttons/ButtonIcon',
-  () => ({
-    ButtonIconSizes: { Lg: 'Lg' },
-  }),
-);
 
 describe('FLipQuoteButton', () => {
   it('calls onPress when enabled', () => {

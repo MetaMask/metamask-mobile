@@ -24,7 +24,8 @@ export const createStyles = (params: { theme: Theme }) => {
     tokenCard: {
       backgroundColor: theme.colors.background.alternative,
       borderRadius: 16,
-      padding: 12,
+      paddingHorizontal: 12,
+      paddingVertical: 12,
     },
     buttonContainer: {
       width: '100%',

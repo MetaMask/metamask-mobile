@@ -22,6 +22,21 @@ export const createStyles = (params: { theme: Theme; vars: StyleVars }) => {
     },
     arrowCircle: {
       position: 'relative',
+      zIndex: 1,
+      elevation: 1,
+    },
+    cutoutWing: {
+      position: 'absolute',
+      top: 1.5,
+    },
+    leftCutoutWing: {
+      right: '50%',
+      marginRight: 10,
+    },
+    rightCutoutWing: {
+      left: '50%',
+      marginLeft: 10,
+      transform: [{ scaleX: -1 }],
     },
     button: {
       alignItems: 'center',
