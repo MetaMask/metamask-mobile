@@ -9745,11 +9745,16 @@
     "energy_fee": "Energy",
     "bridge_fee": "Bridge fee",
     "transaction_fee": "Transaction fee",
+    "unknown_token": "Unknown",
     "total_amount": "Total amount",
     "you_sent": "You sent",
     "you_received": "You received",
     "view_on_block_explorer": "View on block explorer",
-    "do_it_again": "Do it again",
+    "swap_again": "Swap again",
+    "bridge_again": "Bridge again",
+    "convert_again": "Convert again",
+    "wrap_again": "Wrap again",
+    "unwrap_again": "Unwrap again",
     "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {

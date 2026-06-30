@@ -149,8 +149,8 @@ const ActivityScreen = () => {
 
   const activityListHeader = useMemo(
     () => (
-      <Box twClassName="px-4">
-        <Box onLayout={handleTitleLayout}>
+      <Box>
+        <Box twClassName="px-4" onLayout={handleTitleLayout}>
           <Box twClassName="pb-4">
             <Text variant={TextVariant.HeadingLg}>
               {strings('activity_view.title')}
@@ -170,17 +170,15 @@ const ActivityScreen = () => {
           */}
         </Box>
 
-        <Box>
-          <AssetListControlBar
-            networkLabel={networkFilterLabel}
-            isNetworkFilterActive={isNetworkFilterActive}
-            isNetworkFilterDisabled={isNetworkFilterDisabled}
-            onNetworkPress={handleOpenNetworkSheet}
-            typeLabel={typeFilterLabel}
-            isTypeFilterActive={isTypeFilterActive}
-            onTypePress={handleOpenTypeSheet}
-          />
-        </Box>
+        <AssetListControlBar
+          networkLabel={networkFilterLabel}
+          isNetworkFilterActive={isNetworkFilterActive}
+          isNetworkFilterDisabled={isNetworkFilterDisabled}
+          onNetworkPress={handleOpenNetworkSheet}
+          typeLabel={typeFilterLabel}
+          isTypeFilterActive={isTypeFilterActive}
+          onTypePress={handleOpenTypeSheet}
+        />
       </Box>
     ),
     [
@@ -228,7 +226,7 @@ const ActivityScreen = () => {
             />
 
             {isFilterBarPinned ? (
-              <Box twClassName="absolute top-0 left-0 right-0 px-4 bg-default">
+              <Box twClassName="absolute top-0 left-0 right-0 bg-default">
                 {/* TODO(activity-redesign): restore the search input with the unified list + filtering.
                 <Box twClassName="pb-4">
                   <TextFieldSearch
