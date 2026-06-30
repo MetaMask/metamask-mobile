@@ -72,8 +72,10 @@ import {
   deriveCardState,
 } from '../../../Card/util/metrics';
 
+import { TraceName } from '../../../../../util/trace';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { useMoneyHomePerformance } from '../../hooks/useMoneyHomePerformance';
 import useMountEffect from '../../hooks/useMountEffect';
 import {
   COMPONENT_NAMES,
@@ -222,6 +224,26 @@ const MoneyHomeView = () => {
     new BigNumber(totalFiatRaw).abs().gte(DUST_THRESHOLD);
   const isFunded = hasSpendableBalance || activityItems.length > 0;
   const isEmptyState = hasBalanceValue && !isFunded;
+
+  // Report time-to-content separately for the balance and the activity list, so
+  // their load times can be compared, plus a combined "fully usable" span.
+  const balanceReady = !isBalanceLoading;
+  const activityReady = !showCardActivityLoading;
+  const moneyHomePerformanceSegments = useMemo(
+    () => [
+      { name: TraceName.MoneyHomeBalanceTimeToContent, ready: balanceReady },
+      { name: TraceName.MoneyHomeActivityTimeToContent, ready: activityReady },
+      {
+        name: TraceName.MoneyHomeTimeToContent,
+        ready: balanceReady && activityReady,
+      },
+    ],
+    [balanceReady, activityReady],
+  );
+  useMoneyHomePerformance({
+    segments: moneyHomePerformanceSegments,
+    isEmpty: !isFunded,
+  });
 
   const formattedZero = useMemo(() => moneyFormatUsd(new BigNumber(0)), []);
 

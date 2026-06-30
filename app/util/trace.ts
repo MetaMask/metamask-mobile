@@ -228,6 +228,10 @@ export enum TraceName {
   // Homepage Section Performance
   HomepageSectionTimeToContent = 'Homepage Section Time To Content',
   HomepageSectionDataFetch = 'Homepage Section Data Fetch',
+  // Money Home Performance
+  MoneyHomeTimeToContent = 'Money Home Time To Content',
+  MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',
+  MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
 }
 
 export enum TraceOperation {
@@ -285,6 +289,8 @@ export enum TraceOperation {
   MarketInsightsViewportTracking = 'market_insights.viewport_tracking',
   // Homepage Section Performance
   HomepageSectionPerformance = 'homepage.section.performance',
+  // Money Home Performance
+  MoneyHomePerformance = 'money.home.performance',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */
