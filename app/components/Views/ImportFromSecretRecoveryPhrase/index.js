@@ -64,6 +64,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
+import Engine from '../../../core/Engine';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passcodeType } from '../../../util/authentication';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
@@ -429,6 +430,10 @@ const ImportFromSecretRecoveryPhrase = ({
           parsedSeed,
           true,
         );
+
+        if (isQrSyncImport) {
+          Engine.context.QrSyncController.resetState();
+        }
 
         setBiometryType(authData.availableBiometryType);
         setLoading(false);

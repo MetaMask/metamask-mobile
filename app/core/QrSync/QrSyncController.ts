@@ -10,6 +10,7 @@ import {
 import type {
   QrSyncConnectionStatus,
   QrSyncError,
+  QrSyncErrorCode,
   QrSyncPhase,
   QrSyncServiceEvent,
   QrSyncWireMessage,
@@ -127,13 +128,14 @@ export class QrSyncController extends BaseController<
    * wallet-side MWP session, attaches it, and starts the connection handshake.
    */
   public async handleScannedQrPayload(scannedQrData: string): Promise<void> {
+    const connectionRequest = parseQrSyncConnectionRequest(scannedQrData);
+
     // Destroy any existing session before starting a new one.
     await this.destroySession();
     this.clearControllerState();
     this.transitionTo(QrSyncPhases.INITIALIZING);
 
     try {
-      const connectionRequest = parseQrSyncConnectionRequest(scannedQrData);
       const { sessionRequest } = connectionRequest;
 
       const { sessionId, client } = await createQrSyncWalletClient({
@@ -147,8 +149,17 @@ export class QrSyncController extends BaseController<
       await client.connect({ sessionRequest });
       await this.sendSyncOffer();
     } catch (error) {
-      this.terminateWithError(this.toQrSyncError(error));
+      this.terminateWithError(this.toQrSyncError(error, 'CHANNEL_INIT_FAILED'));
     }
+  }
+
+  /**
+   * Resets serialized controller state and tears down any active session.
+   * Clears secret material such as `importPlan` from memory.
+   */
+  public resetState(): void {
+    this.destroySession().catch(() => undefined);
+    this.clearControllerState();
   }
 
   /**
@@ -209,39 +220,39 @@ export class QrSyncController extends BaseController<
   };
 
   private readonly handleClientMessage = (message: unknown): void => {
-    const routedMessage = routeIncomingQrSyncMessage(message);
+    try {
+      const routedMessage = routeIncomingQrSyncMessage(message);
 
-    if (!routedMessage) {
-      return;
-    }
-
-    if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
-      const importPlanValidation = validateQrSyncImportPlanForOnboarding(
-        routedMessage.importPlan,
-        this.getIsOnboardingCompleted(),
-      );
-
-      if (!importPlanValidation.valid) {
-        this.terminateWithError(importPlanValidation.error);
+      if (!routedMessage) {
         return;
       }
 
-      if (!this.client) {
-        throw this.toQrSyncError(new Error('Wallet client not found'));
-      }
-    }
+      if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
+        const importPlanValidation = validateQrSyncImportPlanForOnboarding(
+          routedMessage.importPlan,
+          this.getIsOnboardingCompleted(),
+        );
 
-    this.handleSessionServiceEvent(routedMessage.event);
-
-    if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
-      const { importPlan } = routedMessage;
-      if (importPlan) {
-        this.update((state) => {
-          state.importPlan = importPlan;
-        });
+        if (!importPlanValidation.valid) {
+          this.terminateWithError(importPlanValidation.error);
+          return;
+        }
       }
 
-      this.sendSyncCompleted().catch(() => undefined);
+      this.handleSessionServiceEvent(routedMessage.event);
+
+      if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
+        const { importPlan } = routedMessage;
+        if (importPlan) {
+          this.update((state) => {
+            state.importPlan = importPlan;
+          });
+        }
+
+        this.sendSyncCompleted().catch(() => undefined);
+      }
+    } catch (error) {
+      this.terminateWithError(this.toQrSyncError(error, 'SYNC_FAILED'));
     }
   };
 
@@ -326,7 +337,12 @@ export class QrSyncController extends BaseController<
 
   private async sendMessage(message: QrSyncWireMessage): Promise<void> {
     if (!this.client) {
-      throw this.toQrSyncError(new Error('Wallet client not found'));
+      return this.terminateWithError(
+        this.toQrSyncError(
+          new Error('No connected session found'),
+          'CHANNEL_DISCONNECTED',
+        ),
+      );
     }
 
     await this.client.sendResponse(message);
@@ -447,11 +463,14 @@ export class QrSyncController extends BaseController<
     };
   }
 
-  private toQrSyncError(error: unknown): QrSyncError {
+  private toQrSyncError(
+    error: unknown,
+    code: QrSyncErrorCode = 'INVALID_PAYLOAD',
+  ): QrSyncError {
     const message = error instanceof Error ? error.message : String(error);
 
     return {
-      code: 'INVALID_PAYLOAD',
+      code,
       message,
     };
   }

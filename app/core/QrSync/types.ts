@@ -44,20 +44,25 @@ export interface QrSyncOffer {
   isOnboardingCompleted: boolean;
 }
 
-/** Stable error codes shared across QR sync validation and runtime errors. */
+/**
+ * Stable error codes shared across QR sync validation and runtime errors.
+ *
+ * - `CHANNEL_INIT_FAILED` — wallet client creation, connect, or handshake setup failed
+ * - `CHANNEL_DISCONNECTED` — MWP session lost or unavailable while in progress
+ * - `INVALID_PAYLOAD` — scan payload, wire message, or import data failed validation
+ * - `UNSUPPORTED_VERSION` — peer message uses an unsupported protocol version
+ * - `SESSION_EXPIRED` — scanned session request or sync-ready deadline has expired
+ * - `SYNC_REJECTED` — extension explicitly rejected the sync (peer-originated)
+ * - `SYNC_FAILED` — unexpected runtime or wallet-client failure during an active session
+ */
 export type QrSyncErrorCode =
   | 'CHANNEL_INIT_FAILED'
   | 'CHANNEL_DISCONNECTED'
   | 'INVALID_PAYLOAD'
   | 'UNSUPPORTED_VERSION'
   | 'SESSION_EXPIRED'
-  | 'OTP_INVALID'
-  | 'OTP_EXPIRED'
-  | 'IMPORT_FAILED'
-  | 'USER_CANCELLED'
   | 'SYNC_REJECTED'
-  | 'SYNC_FAILED'
-  | 'UNKNOWN';
+  | 'SYNC_FAILED';
 
 /** Structured QR sync error surfaced to services and UI bridges. */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions

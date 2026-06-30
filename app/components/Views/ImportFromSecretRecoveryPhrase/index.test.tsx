@@ -33,6 +33,19 @@ import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import { QrSyncImportPlan } from '../../../core/QrSync/types';
 
+const mockQrSyncResetState = jest.fn();
+
+jest.mock('../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      QrSyncController: {
+        resetState: () => mockQrSyncResetState(),
+      },
+    },
+  },
+}));
+
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
   const keyboard = {
     dismiss: jest.fn(),
@@ -1297,6 +1310,44 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(
         queryByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
       ).toBeNull();
+    });
+
+    it('clears QR sync secrets after a successful vault import', async () => {
+      jest
+        .spyOn(Authentication, 'componentAuthenticationType')
+        .mockResolvedValueOnce({
+          currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
+          availableBiometryType: BIOMETRY_TYPE.FACE_ID,
+        });
+      jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
+
+      const { getByTestId } = renderScreen(
+        ImportFromSecretRecoveryPhrase,
+        { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
+        { state: qrSyncImportState },
+        { qrSyncImport: true },
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.changeText(
+        getByTestId(ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID),
+        'StrongPass123!',
+      );
+      fireEvent.changeText(
+        getByTestId(ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID),
+        'StrongPass123!',
+      );
+      fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID));
+      fireEvent.press(getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID));
+
+      await waitFor(() => {
+        expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
+      });
     });
   });
 
