@@ -77,7 +77,9 @@ describe('createAdvancedChartTemplate', () => {
     expect(html).toContain(
       'window.pendingOlderBarsCallbacks.delete(payload.requestId)',
     );
-    expect(html).toContain('window.pendingOlderBarsCallbacks.set(requestId, {');
+    expect(html).toContain(
+      'globalThis.pendingOlderBarsCallbacks.set(requestId, {',
+    );
   });
 
   it('resolves RN-backed pending older-bar callbacks before discarding them', () => {
@@ -108,6 +110,16 @@ describe('createAdvancedChartTemplate', () => {
     expect(html).toContain("case 'FETCH_OLDER_BARS_RESPONSE':");
     expect(html).toContain('payload.noData');
     expect(html).toContain('pending.onResult([], { noData: true });');
+  });
+
+  it('uses monotonic RN-backed older-bar request ids without Math.random', () => {
+    const html = createAdvancedChartTemplate(mockTheme);
+
+    expect(html).toContain('globalThis.olderBarsRequestSeq += 1;');
+    expect(html).toContain(
+      "const requestId = 'obr-' + gen + '-' + globalThis.olderBarsRequestSeq;",
+    );
+    expect(html).not.toContain('Math.random');
   });
 
   it('resets the main price scale autoscale after OHLCV reloads', () => {

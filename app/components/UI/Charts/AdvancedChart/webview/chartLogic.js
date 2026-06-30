@@ -1,4 +1,5 @@
 /* istanbul ignore file -- Browser-only TradingView script covered via AdvancedChartTemplate tests. */
+/* global globalThis */
 /**
  * TradingView Chart WebView Logic
  *
@@ -55,6 +56,8 @@ window.ohlcvPagination = {
 window.rnBackedPagination = { enabled: false };
 /** Pending getBars callbacks waiting for a FETCH_OLDER_BARS_RESPONSE from RN. */
 window.pendingOlderBarsCallbacks = new Map();
+/** Monotonic request id suffix for RN-backed older-bars requests. */
+globalThis.olderBarsRequestSeq = 0;
 /** Bumped on each `SET_OHLCV_DATA` so in-flight fetches from a previous series are discarded. */
 window.ohlcvGeneration = 0;
 /** Visible-range start (ms) from RN; used to clip bars on first load so the chart auto-fits correctly. */
@@ -285,16 +288,16 @@ function queueTryCompleteLayoutSettleAfterData() {
  */
 /** Pre-`resetData` `getBars` during `setResolution` — deliver empty/noData, not real bars. */
 function isHotReloadPreResetGetBars(firstDataRequest) {
-  return !!firstDataRequest && window.__mmInHotReloadPreResetPhase;
+  return !!firstDataRequest && globalThis.__mmInHotReloadPreResetPhase;
 }
 
 function resetDatafeedCacheBeforeHotReload() {
-  if (!window.chartWidget) {
+  if (!globalThis.chartWidget) {
     return;
   }
   try {
-    if (typeof window.chartWidget.resetCache === 'function') {
-      window.chartWidget.resetCache();
+    if (typeof globalThis.chartWidget.resetCache === 'function') {
+      globalThis.chartWidget.resetCache();
     }
   } catch (e) {}
 }
@@ -304,13 +307,13 @@ function resetMainPriceScaleAutoScale(chart) {
     if (!chart || typeof chart.getPanes !== 'function') {
       return;
     }
-    let panes = chart.getPanes();
-    let mainPane = panes && panes[0];
+    const panes = chart.getPanes();
+    const mainPane = panes?.[0];
     if (!mainPane || typeof mainPane.getMainSourcePriceScale !== 'function') {
       return;
     }
-    let priceScale = mainPane.getMainSourcePriceScale();
-    if (priceScale && typeof priceScale.setAutoScale === 'function') {
+    const priceScale = mainPane.getMainSourcePriceScale();
+    if (typeof priceScale?.setAutoScale === 'function') {
       priceScale.setAutoScale(true);
     }
   } catch (e) {}
@@ -1194,17 +1197,17 @@ function applySeriesColors() {
 }
 
 function getCurrentPriceVisualColor() {
-  var theme = (window.CONFIG && window.CONFIG.theme) || {};
+  const theme = globalThis.CONFIG?.theme || {};
   return theme.currentPriceColor || theme.lineColor || theme.successColor;
 }
 
 function getVolumeSuccessColor() {
-  var theme = (window.CONFIG && window.CONFIG.theme) || {};
+  const theme = globalThis.CONFIG?.theme || {};
   return theme.volumeSuccessColor || theme.successColor;
 }
 
 function getVolumeErrorColor() {
-  var theme = (window.CONFIG && window.CONFIG.theme) || {};
+  const theme = globalThis.CONFIG?.theme || {};
   return theme.volumeErrorColor || theme.errorColor;
 }
 
@@ -5406,12 +5409,12 @@ let customDatafeed = {
           onResult: onResult,
           oldestAtDefer: oldestTs,
         });
-      } else if (window.rnBackedPagination.enabled) {
+      } else if (globalThis.rnBackedPagination.enabled) {
         // RN-backed path: send a request to RN and store the pending callback.
-        var requestId =
-          'obr-' + Date.now() + '-' + Math.random().toString(36).slice(2);
-        var gen = window.ohlcvGeneration;
-        window.pendingOlderBarsCallbacks.set(requestId, {
+        const gen = globalThis.ohlcvGeneration;
+        globalThis.olderBarsRequestSeq += 1;
+        const requestId = 'obr-' + gen + '-' + globalThis.olderBarsRequestSeq;
+        globalThis.pendingOlderBarsCallbacks.set(requestId, {
           onResult: onResult,
           oldestAtDefer: oldestTs,
           gen: gen,
@@ -5419,7 +5422,7 @@ let customDatafeed = {
         sendToReactNative('FETCH_OLDER_BARS_REQUEST', {
           requestId: requestId,
           seriesGeneration: gen,
-          symbol: window.currentSymbol || symbolInfo.name,
+          symbol: globalThis.currentSymbol || symbolInfo.name,
           resolution: resolution,
           fromSec: periodParams.from,
           toSec: periodParams.to,
