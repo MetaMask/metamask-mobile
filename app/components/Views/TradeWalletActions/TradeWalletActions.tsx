@@ -4,17 +4,23 @@ import React, { useCallback, useMemo, useRef, useState } from 'react';
 import {
   BackHandler,
   Platform,
+  Pressable,
   StyleSheet,
   View,
   type ViewStyle,
   useWindowDimensions,
 } from 'react-native';
 import Animated, {
+  Easing,
   FadeInDown,
   FadeOutDown,
   runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from 'react-native-reanimated';
 import Overlay from '../../../component-library/components/Overlay';
+import { useTheme } from '../../../util/theme';
 import { useParams } from '../../../util/navigation/navUtils';
 import { Box } from '../../UI/Box/Box';
 
@@ -28,7 +34,10 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useElevatedSurface } from '../../../util/theme/themeUtils';
+import {
+  getElevatedSurfaceColor,
+  useElevatedSurface,
+} from '../../../util/theme/themeUtils';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -75,6 +84,15 @@ import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
 const bottomMaskHeight = 35;
 const animationDuration = AnimationDuration.Fast;
+
+// OverlayWithHole's fill is hardcoded opaque black. When rendered directly
+// (Android backdrop, see below) instead of as a MaskedView mask, the desired
+// translucent dim has to come from fading a wrapping View to this color's own
+// alpha rather than to 1 (which would render fully opaque black).
+const getHexAlpha = (hexColor: string): number => {
+  const match = /^#[0-9A-Fa-f]{6}([0-9A-Fa-f]{2})$/.exec(hexColor.trim());
+  return match ? parseInt(match[1], 16) / 255 : 1;
+};
 const batchSellIconStyle = {
   transform: [{ rotate: '180deg' }],
 } satisfies ViewStyle;
@@ -103,6 +121,26 @@ function TradeWalletActions() {
 
   const tw = useTailwind();
   const surfaceClass = useElevatedSurface();
+  const theme = useTheme();
+  const { colors } = theme;
+
+  // Android only: mirrors the fade timing the shared Overlay component
+  // provides (opacity 0 -> target, linear), applied directly here since the
+  // Android backdrop below skips MaskedView (and therefore Overlay, which
+  // depends on being masked) entirely. The target is the overlay color's own
+  // alpha, not 1 -- OverlayWithHole's fill is opaque black, so fading to 1
+  // would render fully opaque black instead of the intended translucent dim.
+  const backdropOpacity = useSharedValue(0);
+  const backdropAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: backdropOpacity.value,
+  }));
+  if (Platform.OS === 'android') {
+    backdropOpacity.value = withTiming(getHexAlpha(colors.overlay.default), {
+      duration: animationDuration,
+      easing: Easing.linear,
+    });
+  }
+
   const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
@@ -275,140 +313,218 @@ function TradeWalletActions() {
     [dismissRootModalFlow, exitingAnimationWithCallback],
   );
 
+  const elevatedSurfaceColor = getElevatedSurfaceColor(theme);
+
+  // Android skips the slide/fade-in entirely (see sheetContent below) -- no
+  // entering animation needed there.
+  const sheetEntering =
+    Platform.OS === 'android'
+      ? undefined
+      : FadeInDown.duration(animationDuration).withInitialValues({
+          transform: [{ translateY: 50 }],
+        });
+
+  const sheetMaskElement = (
+    <View style={tw.style('flex-1 bg-transparent px-4')}>
+      <View style={tw.style('flex-1 bg-black')} />
+      <View style={tw.style('flex-row mt-[-1px]')}>
+        <View style={tw.style('bg-black flex-1 rounded-bl-2xl')} />
+        <BottomShape
+          width={buttonLayout.width * 4}
+          height={bottomMaskHeight}
+          peakHeight={16}
+          peakBezierLength={25}
+          baseBezierLength={55}
+          fill="black"
+        />
+        <View style={tw.style('bg-black flex-1 rounded-br-2xl')} />
+      </View>
+    </View>
+  );
+
+  const actionList = (
+    <>
+      {shouldRenderBatchSell && (
+        <ActionListItem
+          label={
+            <View style={tw.style('flex-row items-center gap-2')}>
+              <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+                {strings('asset_overview.batch_sell')}
+              </Text>
+              <Tag severity={TagSeverity.Info}>
+                {strings('asset_overview.batch_sell_new_label')}
+              </Tag>
+            </View>
+          }
+          description={strings('asset_overview.batch_sell_description')}
+          iconName={IconName.Merge}
+          iconProps={{
+            style: batchSellIconStyle,
+          }}
+          onPress={onBatchSell}
+          testID={WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON}
+          isDisabled={!isSwapsEnabled}
+          style={tw.style('bg-transparent')}
+        />
+      )}
+      {AppConstants.SWAPS.ACTIVE && (
+        <ActionListItem
+          label={strings('asset_overview.swap')}
+          description={strings('asset_overview.swap_description')}
+          iconName={IconName.SwapVertical}
+          onPress={goToSwaps}
+          testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
+          isDisabled={!isSwapsEnabled}
+          style={tw.style('bg-transparent')}
+        />
+      )}
+      {isPerpsEnabled && (
+        <ActionListItem
+          label={strings('asset_overview.perps_button')}
+          description={strings('asset_overview.perps_description')}
+          iconName={IconName.Candlestick}
+          onPress={onPerps}
+          testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
+          isDisabled={!canSignTransactions}
+          style={tw.style('bg-transparent')}
+        />
+      )}
+      {isPredictEnabled && (
+        <ActionListItem
+          label={strings('asset_overview.predict_button')}
+          description={strings('asset_overview.predict_description')}
+          iconName={IconName.Speedometer}
+          onPress={onPredict}
+          testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
+          isDisabled={!canSignTransactions}
+          style={tw.style('bg-transparent')}
+        />
+      )}
+      {isEarnWalletActionEnabled && isEarnEligible && (
+        <ActionListItem
+          label={strings('asset_overview.earn_button')}
+          description={strings('asset_overview.earn_description')}
+          iconName={IconName.Stake}
+          onPress={onEarn}
+          testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
+          isDisabled={!canSignTransactions}
+          style={tw.style('bg-transparent')}
+        />
+      )}
+    </>
+  );
+
+  // Android: the card + button-notch shape is built from real Views instead
+  // of a MaskedView mask (see backdrop comment above for why). Unlike a mask
+  // -- which can erase pixels of the box underneath it to reveal the button
+  // -- a plain View painted on top can only ever add pixels, never remove
+  // the solid background already painted beneath it. So the notch row is a
+  // genuine sibling stacked *below* the content box (not overlapping it):
+  // the box's own background simply doesn't extend into that area, leaving
+  // real transparency for the notch to reveal the button through.
+  // This does make the card slightly taller than the masked/iOS version, but
+  // that's safe: the outer container is `justify-end` with a fixed-height
+  // spacer below the card (see the bottom of this component), so the card's
+  // *bottom* edge -- where the notch lives -- stays pinned to the button's
+  // position regardless of the card's total height; extra height only
+  // pushes the action list further up.
+  const sheetContent = (
+    <Animated.View entering={sheetEntering}>
+      {Platform.OS === 'android' ? (
+        <View style={tw.style('px-4')}>
+          <View style={tw.style(`${surfaceClass} p-4 rounded-t-2xl px-0`)}>
+            {actionList}
+          </View>
+          <View
+            style={tw.style('flex-row mt-[-1px]', { height: bottomMaskHeight })}
+          >
+            <View style={tw.style(`${surfaceClass} flex-1 rounded-bl-2xl`)} />
+            <BottomShape
+              width={buttonLayout.width * 4}
+              height={bottomMaskHeight}
+              peakHeight={16}
+              peakBezierLength={25}
+              baseBezierLength={55}
+              fill={elevatedSurfaceColor}
+            />
+            <View style={tw.style(`${surfaceClass} flex-1 rounded-br-2xl`)} />
+          </View>
+        </View>
+      ) : (
+        <Box
+          style={tw.style(
+            `${surfaceClass} p-4 rounded-2xl mx-4`,
+            `pb-[${bottomMaskHeight - 12}px]`,
+            'px-0',
+          )}
+        >
+          {actionList}
+        </Box>
+      )}
+    </Animated.View>
+  );
+
   return (
     <View style={tw.style('flex-1 justify-end')}>
-      <MaskedView
-        style={{ ...StyleSheet.absoluteFillObject }}
-        maskElement={
-          <OverlayWithHole
-            width={windowWidth}
-            height={windowHeight + insetsTop}
-            circleSize={buttonLayout.width - 1}
-            circleX={buttonLayout.x + buttonLayout.width / 2}
-            circleY={buttonLayout.y + buttonLayout.height / 2 + insetsTop}
-          />
-        }
-      >
-        <Overlay
-          onPress={handleNavigateBack}
-          duration={animationDuration}
-        ></Overlay>
-      </MaskedView>
+      {/*
+       * Android skips MaskedView for the backdrop: it routes through an opaque,
+       * black-cleared offscreen layer that flashes for a frame on mount and
+       * unmount (visible since the native-stack swap remounts the sheet on a
+       * fresh fragment each open/close). OverlayWithHole is reused unmodified
+       * (solid black + hole) but rendered directly and faded via opacity
+       * instead of used as a MaskedView mask, so there's no compositing buffer
+       * to flash. The translucent dim is approximated as black-at-opacity
+       * rather than the exact `colors.overlay.default` token (a near-black
+       * navy), which is visually indistinguishable once dimmed.
+       * iOS keeps the original MaskedView + Overlay (no flash there).
+       */}
+      {Platform.OS === 'android' ? (
+        <Animated.View
+          style={[StyleSheet.absoluteFillObject, backdropAnimatedStyle]}
+        >
+          <Pressable
+            style={StyleSheet.absoluteFillObject}
+            onPress={handleNavigateBack}
+          >
+            <OverlayWithHole
+              width={windowWidth}
+              height={windowHeight + insetsTop}
+              circleSize={buttonLayout.width - 1}
+              circleX={buttonLayout.x + buttonLayout.width / 2}
+              circleY={buttonLayout.y + buttonLayout.height / 2 + insetsTop}
+            />
+          </Pressable>
+        </Animated.View>
+      ) : (
+        <MaskedView
+          style={{ ...StyleSheet.absoluteFillObject }}
+          maskElement={
+            <OverlayWithHole
+              width={windowWidth}
+              height={windowHeight + insetsTop}
+              circleSize={buttonLayout.width - 1}
+              circleX={buttonLayout.x + buttonLayout.width / 2}
+              circleY={buttonLayout.y + buttonLayout.height / 2 + insetsTop}
+            />
+          }
+        >
+          <Overlay onPress={handleNavigateBack} duration={animationDuration} />
+        </MaskedView>
+      )}
 
       {visible && (
         <Animated.View exiting={exitingWithNavigateBack}>
-          <MaskedView
-            // iOS: MaskedView otherwise intercepts touches and ActionListItem onPress never fires (Android is unaffected).
-            pointerEvents="box-none"
-            maskElement={
-              <View style={tw.style('flex-1 bg-transparent px-4')}>
-                <View style={tw.style('flex-1 bg-black')} />
-                <View style={tw.style('flex-row mt-[-1px]')}>
-                  <View style={tw.style('bg-black flex-1 rounded-bl-2xl')} />
-                  <BottomShape
-                    width={buttonLayout.width * 4}
-                    height={bottomMaskHeight}
-                    peakHeight={16}
-                    peakBezierLength={25}
-                    baseBezierLength={55}
-                    fill="black"
-                  />
-                  <View style={tw.style('bg-black flex-1 rounded-br-2xl')} />
-                </View>
-              </View>
-            }
-          >
-            <Animated.View
-              entering={FadeInDown.duration(
-                animationDuration,
-              ).withInitialValues({
-                transform: [{ translateY: 50 }],
-              })}
+          {Platform.OS === 'android' ? (
+            sheetContent
+          ) : (
+            <MaskedView
+              // iOS: MaskedView otherwise intercepts touches and ActionListItem onPress never fires (Android is unaffected).
+              pointerEvents="box-none"
+              maskElement={sheetMaskElement}
             >
-              <Box
-                style={tw.style(
-                  `${surfaceClass} p-4 rounded-2xl mx-4`,
-                  `pb-[${bottomMaskHeight - 12}px]`,
-                  `px-0`,
-                )}
-              >
-                {shouldRenderBatchSell && (
-                  <ActionListItem
-                    label={
-                      <View style={tw.style('flex-row items-center gap-2')}>
-                        <Text
-                          variant={TextVariant.BodyMd}
-                          fontWeight={FontWeight.Medium}
-                        >
-                          {strings('asset_overview.batch_sell')}
-                        </Text>
-                        <Tag severity={TagSeverity.Info}>
-                          {strings('asset_overview.batch_sell_new_label')}
-                        </Tag>
-                      </View>
-                    }
-                    description={strings(
-                      'asset_overview.batch_sell_description',
-                    )}
-                    iconName={IconName.Merge}
-                    iconProps={{
-                      style: batchSellIconStyle,
-                    }}
-                    onPress={onBatchSell}
-                    testID={
-                      WalletActionsBottomSheetSelectorsIDs.BATCH_SELL_BUTTON
-                    }
-                    isDisabled={!isSwapsEnabled}
-                    style={tw.style('bg-transparent')}
-                  />
-                )}
-                {AppConstants.SWAPS.ACTIVE && (
-                  <ActionListItem
-                    label={strings('asset_overview.swap')}
-                    description={strings('asset_overview.swap_description')}
-                    iconName={IconName.SwapVertical}
-                    onPress={goToSwaps}
-                    testID={WalletActionsBottomSheetSelectorsIDs.SWAP_BUTTON}
-                    isDisabled={!isSwapsEnabled}
-                    style={tw.style('bg-transparent')}
-                  />
-                )}
-                {isPerpsEnabled && (
-                  <ActionListItem
-                    label={strings('asset_overview.perps_button')}
-                    description={strings('asset_overview.perps_description')}
-                    iconName={IconName.Candlestick}
-                    onPress={onPerps}
-                    testID={WalletActionsBottomSheetSelectorsIDs.PERPS_BUTTON}
-                    isDisabled={!canSignTransactions}
-                    style={tw.style('bg-transparent')}
-                  />
-                )}
-                {isPredictEnabled && (
-                  <ActionListItem
-                    label={strings('asset_overview.predict_button')}
-                    description={strings('asset_overview.predict_description')}
-                    iconName={IconName.Speedometer}
-                    onPress={onPredict}
-                    testID={WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON}
-                    isDisabled={!canSignTransactions}
-                    style={tw.style('bg-transparent')}
-                  />
-                )}
-                {isEarnWalletActionEnabled && isEarnEligible && (
-                  <ActionListItem
-                    label={strings('asset_overview.earn_button')}
-                    description={strings('asset_overview.earn_description')}
-                    iconName={IconName.Stake}
-                    onPress={onEarn}
-                    testID={WalletActionsBottomSheetSelectorsIDs.EARN_BUTTON}
-                    isDisabled={!canSignTransactions}
-                    style={tw.style('bg-transparent')}
-                  />
-                )}
-              </Box>
-            </Animated.View>
-          </MaskedView>
+              {sheetContent}
+            </MaskedView>
+          )}
         </Animated.View>
       )}
       <View
