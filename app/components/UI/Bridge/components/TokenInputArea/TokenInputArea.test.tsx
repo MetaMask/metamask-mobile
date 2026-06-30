@@ -1034,6 +1034,31 @@ describe('TokenInputArea', () => {
       );
     });
 
+    it('normalizes Polygon native token address before passing CAIP asset ID to TokenButton', () => {
+      const polygonNativeToken: BridgeToken = {
+        address: POLYGON_NATIVE_TOKEN,
+        symbol: 'POL',
+        decimals: 18,
+        chainId: CHAIN_IDS.POLYGON as `0x${string}`,
+      };
+
+      const { getByTestId } = renderScreen(
+        () => (
+          <TokenInputArea
+            testID="token-input"
+            tokenType={TokenInputAreaType.Source}
+            token={polygonNativeToken}
+          />
+        ),
+        { name: 'TokenInputArea' },
+        { state: initialState },
+      );
+
+      expect(getByTestId('token-button').props.securityBadgeAssetId).toBe(
+        'eip155:137/slip44:966',
+      );
+    });
+
     it('shows "Swap from" button when no token and isSourceToken is true', () => {
       // Act
       const { getByText } = renderScreen(

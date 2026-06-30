@@ -44,7 +44,10 @@ import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { isCaipAssetType, parseCaipAssetType } from '@metamask/utils';
 import { renderShortAddress } from '../../../../../util/address';
 import { FlexDirection } from '../../../Box/box.types';
-import { isNativeAddress } from '@metamask/bridge-controller';
+import {
+  formatAddressToAssetId,
+  isNativeAddress,
+} from '@metamask/bridge-controller';
 import { Theme } from '../../../../../util/theme/models';
 import { useTokenAddress } from '../../hooks/useTokenAddress';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
@@ -53,7 +56,7 @@ import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLo
 import { useFormattedBalanceWithThreshold } from '../../hooks/useFormattedBalanceWithThreshold';
 import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
 import { formatSecondaryTokenAmount } from '../../utils/sourceAmountInputMode';
-import { tokenToIncludeAsset } from '../../utils/tokenUtils';
+import { normalizeTokenAddress } from '../../utils/tokenUtils';
 
 export const MAX_INPUT_LENGTH = 36;
 
@@ -303,7 +306,13 @@ export const TokenInputArea = forwardRef<
       tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
 
     const tokenSecurityBadgeAssetId = useMemo(
-      () => (token ? tokenToIncludeAsset(token)?.assetId : undefined),
+      () =>
+        token
+          ? formatAddressToAssetId(
+              normalizeTokenAddress(token.address, token.chainId),
+              token.chainId,
+            )
+          : undefined,
       [token],
     );
 
