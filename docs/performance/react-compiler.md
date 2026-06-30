@@ -41,17 +41,6 @@
    ```
 4. **Verify** — optimized components show a `Memo ✨` badge in React DevTools.
 
-## Scanning compiler blockers
-
-Re-run the TMCU-866 epic file list (or any path) and print per-file failure reasons:
-
-```bash
-yarn scan:react-compiler
-yarn scan:react-compiler -- app/components/UI/Carousel
-```
-
-Exits non-zero when any scanned file still has CompileError/CompileSkip entries. Full details are appended to `react-compiler.log` (git-ignored).
-
 ## What it does / doesn't do
 
 - **Does:** auto-memoize good code; reduce cascading re-renders.
