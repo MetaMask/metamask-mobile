@@ -6,6 +6,7 @@ import {
   PERPS_ACTIVITY_FILTER_ORDER,
   PerpsActivityFilter,
   getPerpsSubFilterKinds,
+  resolveInitialActivityTypeFilter,
 } from './types';
 
 describe('Perps sub-filter buckets', () => {
@@ -83,5 +84,53 @@ describe('getPerpsSubFilterKinds', () => {
         'trades' as unknown as PerpsActivityFilter,
       ),
     ).toBeUndefined();
+  });
+});
+
+describe('resolveInitialActivityTypeFilter', () => {
+  it('defaults to Transactions when there are no params', () => {
+    expect(resolveInitialActivityTypeFilter(undefined)).toBe(
+      ActivityTypeFilter.Transactions,
+    );
+    expect(resolveInitialActivityTypeFilter({})).toBe(
+      ActivityTypeFilter.Transactions,
+    );
+  });
+
+  it('honors an explicit, selectable initialTypeFilter', () => {
+    expect(
+      resolveInitialActivityTypeFilter({
+        initialTypeFilter: ActivityTypeFilter.Predictions,
+      }),
+    ).toBe(ActivityTypeFilter.Predictions);
+  });
+
+  it('ignores a non-selectable initialTypeFilter (e.g. All) and falls back', () => {
+    expect(
+      resolveInitialActivityTypeFilter({
+        initialTypeFilter: ActivityTypeFilter.All,
+      }),
+    ).toBe(ActivityTypeFilter.Transactions);
+  });
+
+  it('maps the legacy redirectToPerpsTransactions hint to Perps', () => {
+    expect(
+      resolveInitialActivityTypeFilter({ redirectToPerpsTransactions: true }),
+    ).toBe(ActivityTypeFilter.Perps);
+  });
+
+  it('maps the legacy redirectToOrders hint to Buy/Sell', () => {
+    expect(resolveInitialActivityTypeFilter({ redirectToOrders: true })).toBe(
+      ActivityTypeFilter.BuySell,
+    );
+  });
+
+  it('prefers an explicit initialTypeFilter over legacy redirect hints', () => {
+    expect(
+      resolveInitialActivityTypeFilter({
+        initialTypeFilter: ActivityTypeFilter.Money,
+        redirectToPerpsTransactions: true,
+      }),
+    ).toBe(ActivityTypeFilter.Money);
   });
 });

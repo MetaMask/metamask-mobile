@@ -51,6 +51,32 @@ describeForPlatforms('ActivityScreen', () => {
     });
   });
 
+  it('pre-selects the Type filter from the initialTypeFilter route param', async () => {
+    const { getAllByText } = renderActivityScreenView({
+      params: { initialTypeFilter: ActivityTypeFilter.Perps },
+    });
+
+    // The Perps chip label renders (in-list chip + its pinned copy) without any
+    // user interaction, proving the route param drove the initial filter.
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Perps)).length,
+      ).toBeGreaterThan(0);
+    });
+  });
+
+  it('maps the legacy redirectToPerpsTransactions param to the Perps filter', async () => {
+    const { getAllByText } = renderActivityScreenView({
+      params: { redirectToPerpsTransactions: true },
+    });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Perps)).length,
+      ).toBeGreaterThan(0);
+    });
+  });
+
   it('updates the selected network filter through the real network sheet', async () => {
     const { getByTestId, getAllByText, findByText } = renderActivityScreenView({
       overrides: activityLineaNetworkOverride,

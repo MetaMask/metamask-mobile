@@ -180,3 +180,37 @@ export function getPerpsSubFilterKinds(
   }
   return PERPS_ACTIVITY_FILTER_KINDS[filter];
 }
+
+/** Route params the redesigned Activity screen reads to become context-aware. */
+export interface ActivityScreenParams {
+  /**
+   * Pre-selects the Type filter when navigating into Activity from a context
+   * (e.g. Perps → Perps, Predict → Predictions).
+   */
+  initialTypeFilter?: ActivityTypeFilter;
+  /** Legacy redirect hints, mapped to a Type filter for back-compat. */
+  redirectToPerpsTransactions?: boolean;
+  redirectToOrders?: boolean;
+}
+
+/**
+ * Resolves the initial Type filter for the Activity screen from its route
+ * params: an explicit, selectable `initialTypeFilter` wins; otherwise the
+ * legacy redirect hints map to a bucket (Perps / Buy-Sell); otherwise the
+ * default Transactions filter.
+ */
+export function resolveInitialActivityTypeFilter(
+  params: ActivityScreenParams | undefined,
+): ActivityTypeFilter {
+  const explicit = params?.initialTypeFilter;
+  if (explicit && ACTIVITY_TYPE_FILTER_ORDER.includes(explicit)) {
+    return explicit;
+  }
+  if (params?.redirectToPerpsTransactions) {
+    return ActivityTypeFilter.Perps;
+  }
+  if (params?.redirectToOrders) {
+    return ActivityTypeFilter.BuySell;
+  }
+  return ActivityTypeFilter.Transactions;
+}

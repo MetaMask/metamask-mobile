@@ -36,8 +36,11 @@ import {
   ActivityTypeFilter,
   PerpsActivityFilter,
   getPerpsSubFilterKinds,
+  resolveInitialActivityTypeFilter,
+  type ActivityScreenParams,
 } from './types';
 import { useNetworkFilterOptions } from './hooks/useNetworkFilterOptions';
+import { useParams } from '../../../util/navigation/navUtils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -59,8 +62,9 @@ const ActivityScreen = () => {
   // const [searchQuery, setSearchQuery] = useState('');
   // TODO: restore `ActivityTypeFilter.All` as the default once data-source
   // unification lands. See `ACTIVITY_TYPE_FILTER_ORDER` in ./types.ts.
-  const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(
-    ActivityTypeFilter.Transactions,
+  const params = useParams<ActivityScreenParams>();
+  const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(() =>
+    resolveInitialActivityTypeFilter(params),
   );
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(

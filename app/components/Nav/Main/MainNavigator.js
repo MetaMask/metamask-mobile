@@ -223,6 +223,11 @@ const AssetStackFlow = (props) => (
       component={TransactionDetails}
     />
     <NativeStack.Screen
+      name={Routes.ACTIVITY_DETAILS}
+      component={ActivityDetails}
+      options={{ headerShown: false }}
+    />
+    <NativeStack.Screen
       name={Routes.CREATE_PRICE_ALERT}
       component={CreatePriceAlertView}
     />
@@ -400,6 +405,11 @@ const BrowserFlow = (props) => {
         component={TokenDetails}
         initialParams={props.route.params}
         options={{ presentation: 'modal' }}
+      />
+      <NativeStack.Screen
+        name={Routes.ACTIVITY_DETAILS}
+        component={ActivityDetails}
+        options={{ headerShown: false }}
       />
     </NativeStack.Navigator>
   );

@@ -109,7 +109,7 @@ import {
 } from './helpers/transformations';
 import { normalizeTransaction } from './helpers/adapters';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
-import { stashPreloadedActivityItem } from './preloadedActivityItemStore';
+import { getActivityDetailsRoute } from './getActivityDetailsRoute';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
@@ -786,28 +786,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         const { raw } = item;
         if (!raw) return;
 
-        // Redesigned details (flag-gated): route resolvable EVM / non-EVM rows
-        // to the new ActivityDetails screen, replacing the legacy detail sheets.
-        // Specialized flows (bridge) keep their dedicated
-        // screens until they get redesigned templates — ActivityDetails only
-        // resolves local/API/non-EVM/domain items, so it can't render those yet.
-        const hasDedicatedScreen =
-          raw.type === 'localTransaction' &&
-          raw.data.primaryTransaction?.type === TransactionType.bridge;
-        if (isTransactionsRedesignEnabled && item.hash && !hasDedicatedScreen) {
-          // Provider-backed rows (Perps / Predict) can't be re-resolved by hash
-          // outside their source tree, so hand the row off via the transient
-          // store and pass only its key in the (serializable) params.
-          const preloadKey =
-            raw.type === 'perpsTransaction' || raw.type === 'predictActivity'
-              ? stashPreloadedActivityItem(item)
-              : undefined;
-          navigation.navigate(Routes.ACTIVITY_DETAILS, {
-            chainId: item.chainId,
-            txIdentifier: item.hash,
-            ...(preloadKey ? { preloadKey } : {}),
-          });
-          return;
+        if (isTransactionsRedesignEnabled) {
+          const detailsRoute = getActivityDetailsRoute(item);
+          if (detailsRoute) {
+            navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+            return;
+          }
         }
 
         const pressToken = (activityPressTokenRef.current += 1);
