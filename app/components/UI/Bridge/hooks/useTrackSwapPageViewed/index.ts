@@ -12,8 +12,11 @@ import {
   selectSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 
+const trackedPageViewRouteKeys = new Set<string>();
+
 export const useTrackSwapPageViewed = (
   location: MetaMetricsSwapsEventSource,
+  routeKey?: string,
 ) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const sourceToken = useSelector(selectSourceToken);
@@ -22,10 +25,16 @@ export const useTrackSwapPageViewed = (
   const hasTrackedPageView = useRef(false);
 
   useEffect(() => {
-    const shouldTrackPageView = sourceToken && !hasTrackedPageView.current;
+    const hasTrackedRouteKey =
+      routeKey && trackedPageViewRouteKeys.has(routeKey);
+    const shouldTrackPageView =
+      sourceToken && !hasTrackedPageView.current && !hasTrackedRouteKey;
 
     if (shouldTrackPageView) {
       hasTrackedPageView.current = true;
+      if (routeKey) {
+        trackedPageViewRouteKeys.add(routeKey);
+      }
       const pageViewedProperties = {
         chain_id_source: getDecimalChainId(sourceToken.chainId),
         chain_id_destination: getDecimalChainId(destToken?.chainId),
@@ -48,5 +57,12 @@ export const useTrackSwapPageViewed = (
           .build(),
       );
     }
-  }, [sourceToken, destToken, location, trackEvent, createEventBuilder]);
+  }, [
+    sourceToken,
+    destToken,
+    location,
+    routeKey,
+    trackEvent,
+    createEventBuilder,
+  ]);
 };
