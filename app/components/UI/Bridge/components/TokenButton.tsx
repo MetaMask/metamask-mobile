@@ -54,15 +54,15 @@ const createStyles = (params: StylesParams) => {
       justifyContent: 'flex-end' as const,
       gap: 12,
       backgroundColor: theme.colors.background.muted,
-      borderRadius: 100,
+      borderRadius: 60,
       paddingLeft: 8,
       paddingVertical: 8,
-      paddingRight: 11,
+      paddingRight: 12,
       ...shadows.size.xs,
     },
     tokenSymbol: {
       color: theme.colors.text.default,
-      fontSize: theme.typography.sHeadingLG.fontSize,
+      fontSize: theme.typography.sHeadingMD.fontSize,
       fontWeight: 500,
     },
     tokenSymbolRow: {
@@ -110,7 +110,7 @@ export const TokenButton: React.FC<TokenProps> = ({
       </BadgeWrapper>
 
       <View style={styles.tokenSymbolRow}>
-        <Text style={styles.tokenSymbol} variant={TextVariant.HeadingLG}>
+        <Text style={styles.tokenSymbol} variant={TextVariant.HeadingMD}>
           {symbol}
         </Text>
         {shouldShowSecurityBadge && securityBadgeAssetId ? (
