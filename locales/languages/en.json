@@ -2510,6 +2510,8 @@
       "soccer_halftime_result": "Halftime Result",
       "soccer_first_to_score": "First Team to Score",
       "soccer_team_to_advance": "Team to Advance",
+      "soccer_extra_time": "Extra Time?",
+      "soccer_penalty_shootout": "Penalty Shootout?",
       "total_corners": "Corners",
       "tennis_set_totals": "Total Sets",
       "tennis_set_handicap": "Set Handicap",
