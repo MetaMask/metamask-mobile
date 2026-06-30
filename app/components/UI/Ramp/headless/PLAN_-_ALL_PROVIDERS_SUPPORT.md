@@ -4,43 +4,39 @@
 
 This is a companion to [PLAN.md](./PLAN.md) (the original Headless Buy plan) and follows its style.
 
-## Phases checklist
+## Milestones checklist
 
-Phases 1 to 8 are capability work, built behind the still-closed native-only gate and exercised only via the dev playground plus unit/integration tests. Phase 9 is the only production-widening phase, flag-gated, landing last.
+Milestones 0 to 2 are capability work, built behind the still-closed native-only gate and exercised only via the dev playground plus unit/integration tests. Milestone 3 is the only production-widening milestone, flag-gated, landing last. Milestone 4+ is deferred follow-up.
 
-- [ ] **Phase 1** - All-provider quoting capability (gated, NOT activated)
-- [ ] **Phase 2** - Quote selection / recommendation util (mobile-side first; core extraction DEFERRED)
-- [ ] **Phase 3** - WebView + external-browser headless support (pulled early)
-- [ ] **Phase 4** - Native and non-native routing alignment
-- [ ] **Phase 5** - MM Pay (`TransactionPayController`) integration (dormant behind the gate)
-- [ ] **Phase 6** - Typed error handling
-- [ ] **Phase 7** - Analytics parity
-- [ ] **Phase 8** - DRY cleanup (UB2 UI becomes "dumb") (DEFERRED until after Phase 9)
-- [ ] **Phase 9** - Activation / rollout (flag-gated gate-flip)
+- [ ] **Milestone 0** - Must-fix preconditions (no production behavior change)
+- [ ] **Milestone 1** - All-provider quoting capability (built but gated OFF)
+- [ ] **Milestone 2** - Headless checkout for non-native providers (makes widening safe)
+- [ ] **Milestone 3** - Activation behind a required scoped flag
+- [ ] **Milestone 4+** - Deferred (broad typed errors, analytics parity, TPC multi-provider wiring, DRY cleanup)
 
-Pre-phase: a terminal-callback contract fix (see Must-fix preconditions) must land before typed errors expand.
+Milestone 0 is a precondition for everything else: the terminal-callback contract fix (see Must-fix preconditions) and the OTP typed-code fix must land before typed errors expand or before any consumer relies on terminal outcomes.
 
 ---
 
 ## Scope (confirmed: full cross-repo)
 
-Enabling all providers spans three layers, and this plan documents all three as coordinated phases:
+Enabling all providers spans three layers, and this plan documents all three as coordinated milestones:
 
-- **`@metamask/core` - `TransactionPayController`** (the MM Pay fiat quote path). `getRampsQuote` calls `RampsController:getQuotes` with `autoSelectProvider: true` + `restrictToKnownOrNativeProviders: true` and takes only `quotes.success?.[0]` (source: `packages/transaction-pay-controller/src/strategy/fiat/utils.ts`, around lines 61 to 78). This is the native-only gate's quote-side enforcement.
-- **`@metamask/ramps-controller`** - eventual home for the PURE quote filter/sort/recommend helper and pure callback parsing/status helpers, but only once 2+ consumers justify extraction. The selection / recommendation util starts mobile-side (see Phase 2, DEFERRED), since the order-history rung cannot be reused from core and there is one real consumer today.
-- **`metamask-mobile`** - relax the native-only availability gate (`useIsFiatPaymentAvailable`, lines 19 to 23; `useHasNativeFiatProvider`, lines 23 to 26); make `useContinueWithQuote`'s external-browser branch headless-aware; typed errors; analytics; DRY; and own all navigation/session and redirect/deeplink policy.
+- **`@metamask/core` - `TransactionPayController`** (the MM Pay fiat quote path). `getRampsQuote` calls `RampsController:getQuotes` with `autoSelectProvider: true` (line ~113) + `restrictToKnownOrNativeProviders: true` (line ~116) and takes only `quotes.success?.[0]` (line ~124) (source: `packages/transaction-pay-controller/src/strategy/fiat/utils.ts`, the `getRampsQuote` function around lines 95 to 131 on `origin/main`). This is the native-only gate's quote-side enforcement.
+- **`@metamask/ramps-controller`** - eventual home for the PURE quote filter/sort/recommend helper and pure callback parsing/status helpers, but only once 2+ consumers justify extraction. The selection / recommendation util starts mobile-side (see Milestone 1.2), since the order-history rung cannot be reused from core and there is one real consumer today.
+- **`metamask-mobile`** - relax the native-only availability gate (`app/components/Views/confirmations/hooks/pay/useIsFiatPaymentAvailable.ts`, lines 19 to 23; `app/components/UI/Ramp/hooks/useHasNativeFiatProvider.ts`, lines 23 to 26); make `useContinueWithQuote`'s external-browser branch headless-aware; typed errors; analytics; DRY; and own all navigation/session and redirect/deeplink policy.
 
 ---
 
 ## Sequencing and safety: capability vs activation
 
-**Risk:** removing the native-only gate early would route live MM Pay / HeadlessBuy users to aggregator / external-browser quotes before the logic to handle them (Phases 3, 4, 6, 7) exists, landing them in the broken external-browser branch (silent BuildQuote reset, no terminal callback). That is the "user backed out vs provider broke" confusion we must avoid.
+**Risk:** removing the native-only gate early would route live MM Pay / HeadlessBuy users to aggregator / external-browser quotes before the logic to handle them (Milestone 2, and the typed-error / analytics follow-ups) exists, landing them in the broken external-browser branch (silent BuildQuote reset, no terminal callback). That is the "user backed out vs provider broke" confusion we must avoid.
 
 **Rule:** the native-only gate stays CLOSED for production the entire time we build capability. We never widen what real users get until the supporting logic is in and verified.
 
-- **Capability phases (1 to 8)** add all-provider quoting, selection, external-browser headless support, typed errors, and analytics, but are exercised only via the dev playground and unit/integration tests. The live MM Pay path keeps `restrictToKnownOrNativeProviders: true`, and `useHasNativeFiatProvider` keeps gating.
-- **Activation phase (9, flag-gated)** is the only phase that widens production. It flips `getRampsQuote` and relaxes the mobile gate, behind the existing MM Pay fiat feature flags, and lands last, after Phases 3, 4, 6, 7 are proven.
-- Within the capability phases, land external-browser headless support (Phase 3) and typed errors (Phase 6) before any wiring that could surface non-native quotes to a consumer.
+- **Capability milestones (0 to 2)** add all-provider quoting, selection, external-browser headless support, and the headless deeplink path, but are exercised only via the dev playground and unit/integration tests. The live MM Pay path keeps `restrictToKnownOrNativeProviders: true`, and `useHasNativeFiatProvider` keeps gating.
+- **Activation milestone (3, flag-gated)** is the only milestone that widens production. It flips `getRampsQuote` and relaxes the mobile gate, behind a distinct scoped flag, and lands last, after Milestone 2 is proven.
+- Within the capability milestones, land external-browser headless support and the headless deeplink path (Milestone 2) before any wiring that could surface non-native quotes to a consumer.
 
 ---
 
@@ -59,15 +55,15 @@ Inherited from [PLAN.md](./PLAN.md), with one addition:
 
 ## Must-fix preconditions (before expanding errors)
 
-**Terminal-callback contract bug.** `failSession` fires `onError(...)` then `closeSession({ reason: 'unknown' })`, which fires `onClose(...)` (`app/components/UI/Ramp/headless/sessionRegistry.ts`, lines 235 to 263). MM Pay's `onClose` currently clears the error set by `onError`, so the error is lost.
+**Terminal-callback contract bug.** `failSession` fires `onError(...)` then `closeSession({ reason: 'unknown' })`, which fires `onClose(...)` (`app/components/UI/Ramp/headless/sessionRegistry.ts`, lines 235 to 264). MM Pay's `onClose` currently clears the error set by `onError` (`app/components/Views/confirmations/hooks/pay/useFiatConfirm.ts`, the `onClose` handler at lines 129 to 132 calls `setHeadlessBuyError(undefined)`), so the error is lost.
 
 **Decision (chosen contract):** `onError` is terminal on its own. `failSession` fires `onError` and then ends the session WITHOUT a trailing `onClose`. A session ends in exactly one of `onOrderCreated`, `onError`, or `onClose`, with no pairing. This keeps "provider broke" (`onError`) cleanly separable from "user/consumer exited" (`onClose`).
 
 Implementation: `failSession` stops calling `closeSession`; it sets the terminal status (`failed`) and removes the session from the registry directly, without invoking `onClose`. `onClose` remains the terminal event only for `user_dismissed` / `consumer_cancelled` / `completed` paths.
 
-Caveat to confirm with MM Pay before building Phase 6: if MM Pay relies on a single cleanup hook regardless of outcome, we instead carry the `HeadlessBuyError` on the close info and fire one `onClose({ reason: 'errored', error })` after `onError`. Default is the no-trailing-`onClose` contract above unless MM Pay asks for the cleanup variant.
+Caveat to confirm with MM Pay before building broad typed errors: if MM Pay relies on a single cleanup hook regardless of outcome, we instead carry the `HeadlessBuyError` on the close info and fire one `onClose({ reason: 'errored', error })` after `onError`. Default is the no-trailing-`onClose` contract above unless MM Pay asks for the cleanup variant.
 
-This is a precondition for Phase 6, not an afterthought.
+This is a precondition for the typed-error work (Milestone 4), not an afterthought, and is implemented as Milestone 0.1.
 
 ---
 
@@ -81,7 +77,7 @@ This is a precondition for Phase 6, not an afterthought.
 
 ## Concerns addressed
 
-A direct answer to each open question that motivated this plan. Findings are UB2-vs-Headless; decisions feed the phases below.
+A direct answer to each open question that motivated this plan. Findings are UB2-vs-Headless; decisions feed the milestones below.
 
 ### Getting multiple quotes; partial vs full failure
 
@@ -113,15 +109,15 @@ Native KYC is fully in-app (NativeFlow screens plus Transak APIs: email, OTP, Ba
 
 ### In-app WebView providers vs external-browser providers
 
-The decision lives in `getWidgetRedirectConfig` (`app/components/UI/Ramp/utils/buildQuoteWithRedirectUrl.ts`, lines 35 to 65): custom actions and `buyWidget.browser === 'IN_APP_OS_BROWSER'` go to an external browser with a deeplink redirect; otherwise an in-app `Checkout` WebView with a callback-base redirect. In-app success is detected via `getOrderFromCallback` on the callback URL; external success returns via iOS `InAppBrowser.openAuth` result or an Android deeplink (`handleRampReturnUrl`).
+The decision lives in `getWidgetRedirectConfig` / `getAggregatorRedirectConfig` (`app/components/UI/Ramp/utils/buildQuoteWithRedirectUrl.ts`, the redirect-config helpers around lines 35 to 71): custom actions and `buyWidget.browser === 'IN_APP_OS_BROWSER'` go to an external browser with a deeplink redirect; otherwise an in-app `Checkout` WebView with a callback-base redirect. This is the reason the gate removal must be LAST: external-vs-in-app is decided per-quote AFTER `getBuyWidgetData`, so you cannot limit quote-widening to only in-app-WebView providers at the quote layer (see "Conflicts resolved"). In-app success is detected via `getOrderFromCallback` on the callback URL; external success returns via iOS `InAppBrowser.openAuth` result or an Android deeplink (`handleRampReturnUrl`).
 
 ### Load failure handling and notifying MM Pay
 
-In-app `Checkout` handles `onHttpError` (terminal failure routes to `failHeadlessCheckout`, which fires `RAMPS_ORDER_FAILED` and `failSession`). The external-browser path has no load-failure handling and no headless notification today. Decision: route external-browser open / load / cancel / bail outcomes through `failSession` (technical) or `closeSession` (user exit), so MM Pay always receives a terminal callback. See the named observability policy in Phase 3.
+In-app `Checkout` handles `onHttpError` (terminal failure routes to `failHeadlessCheckout`, which fires `RAMPS_ORDER_FAILED` and `failSession`). The external-browser path has no load-failure handling and no headless notification today. Decision: route external-browser open / load / cancel / bail outcomes through `failSession` (technical) or `closeSession` (user exit), so MM Pay always receives a terminal callback. See the observability policy in Milestone 2.
 
 ### Analytics abandon vs failed
 
-Abandon is tracked via `RAMPS_CHECKOUT_CLOSED.close_source` plus the headless `onClose` reason. Failure is tracked via terminal `RampsController:orderStatusChanged` (`RAMPS_TRANSACTION_FAILED`) and in-flow headless `RAMPS_ORDER_FAILED`. External-browser abandon is currently untracked (Phase 7).
+Abandon is tracked via `RAMPS_CHECKOUT_CLOSED.close_source` plus the headless `onClose` reason. Failure is tracked via terminal `RampsController:orderStatusChanged` (`RAMPS_TRANSACTION_FAILED`) and in-flow headless `RAMPS_ORDER_FAILED`. External-browser abandon is currently untracked (Milestone 5).
 
 ### Gaps in the external-browser branch of `useContinueWithQuote`
 
@@ -133,7 +129,7 @@ Missing wallet / providerCode, null or bailed order (`isBailedOrderStatus`), `ge
 
 ### DRY: logic to move out of UB2 UI
 
-Quote selection / recommendation, min/max validation, callback parsing/status, and bailed-status checks are pure and should be shared. Redirect / browser-mode decision and deeplink-scheme construction are platform policy and stay mobile-side. See Phase 8 for the precise core-vs-mobile split.
+Quote selection / recommendation, min/max validation, callback parsing/status, and bailed-status checks are pure and should be shared. Redirect / browser-mode decision and deeplink-scheme construction are platform policy and stay mobile-side. See Milestone 7 for the precise core-vs-mobile split.
 
 ---
 
@@ -157,25 +153,47 @@ flowchart LR
 
 ---
 
-## Phase 1 - All-provider quoting capability (gated, NOT activated)
+## Conflicts resolved
 
-Build the capability without widening production. `RampsController.getQuotes` already supports all-provider quoting by omitting the gating flags (auto-selection internals are already on core main and published), so no new controller work is required. Mobile: confirm `useHeadlessBuy.getQuotes` can pass no restriction and supports multi-provider `providerIds`, exercised in the dev playground only. Preserve `QuotesResponse`.
+Three reconciliations that shaped this milestone ordering; capturing them so we do not re-litigate during implementation:
 
-Candidate selection operates over `success[]` only, with `isCustomAction` entries filtered out. Custom actions are OUT of scope for this effort (see the "Getting multiple quotes" concern): there is no union candidate model. Full failure is "no usable non-customAction `success[]` entry", which maps to `NO_QUOTES`. Filtering custom actions out of headless candidate selection is what keeps removing `restrictToKnownOrNativeProviders` from surfacing an unhandled custom-action path.
-
-Do not touch the live MM Pay path here: `getRampsQuote` keeps `autoSelectProvider` / `restrictToKnownOrNativeProviders`, and `useHasNativeFiatProvider` keeps gating until Phase 9.
-
-Tests: multi-provider request returns multiple non-customAction candidates; partial failure keeps usable candidates plus `error[]`; `isCustomAction` `success[]` entries are filtered out of candidate selection; full failure (no usable non-customAction `success[]` entry) maps to `NO_QUOTES`; playground renders all non-custom providers.
+- **Gate removal is LAST.** You cannot limit quote-widening to only in-app-WebView providers at the quote layer, because external-vs-in-app is decided PER-QUOTE by `buyWidget.browser === 'IN_APP_OS_BROWSER'` only AFTER `getBuyWidgetData` runs at continuation (`getWidgetRedirectConfig` / `getAggregatorRedirectConfig` in `app/components/UI/Ramp/utils/buildQuoteWithRedirectUrl.ts`). So the quote layer cannot pre-filter to "safe" providers; the only safe ordering is to make external-browser checkout headless-aware first (Milestone 2), then widen quoting in production (Milestone 3).
+- **The recommendation ladder is mobile-side.** The order-history preference rung is `#private` in `RampsController` and only runs in the single-provider auto-select branch, so it cannot be reused from core. The selection util is built mobile-side first (Milestone 1.2); extraction to `@metamask/ramps-controller` waits for a second consumer (Milestone 6).
+- **A distinct scoped flag is required.** The existing `MetaMaskPayFiatFlags` cannot scope provider-widening (`enabledTransactionTypes: []` kills all fiat), so activation needs a new scoped flag whose "off" state falls back to native-only, not "no fiat" (Milestone 3.1).
 
 ---
 
-## Phase 2 - Shared quote selection / recommendation helper (DEFERRED: build as a mobile-side util first)
+## Milestone 0 - Must-fix preconditions (no production behavior change)
 
-**Scope: DEFERRED.** Do NOT extract a shared helper into `@metamask/ramps-controller` up front. Build it as a mobile-side util first. There is a single real consumer today (headless / MM Pay), and the order-history rung cannot be pulled from core (see below), so a cross-repo extraction now buys publish / version coupling cost (core must publish, then mobile must bump) with no second consumer to justify it. Extract to `@metamask/ramps-controller` only once there are 2+ confirmed consumers.
+Goal: fix the two correctness bugs that any downstream typed-error / terminal-callback work depends on. Neither changes production behavior for today's native-only flow.
 
-Build the reliability-then-price recommendation among the non-customAction `success[]` entries (custom actions are filtered out; see Phase 1).
+### M0.1 - Make `failSession` terminal
 
-**The previously-used-provider rung must be re-derived mobile-side; it cannot be reused from core.** `#getPreferredProviderIdsFromOrders` / `#resolveProviderIdsForQuote` are `#private` and run only in the single-provider auto-select branch (`else if (autoSelectProvider || restrictToKnownOrNativeProviders)`, `node_modules/@metamask/ramps-controller/dist/RampsController.mjs`, lines 1003 to 1024). In the all-provider path (gating flags omitted) `getQuotes` takes the `else` branch and quotes `state.providers.data` (line 1026), so that order-history rung is NOT invoked and cannot be reused by a pure / mobile helper. The mobile util derives the preferred-provider list from order history itself and supplies it as an explicit input.
+`onError` fires, the session is removed, and there is NO trailing `onClose`. See the Must-fix preconditions section for the full contract. `failSession` (`app/components/UI/Ramp/headless/sessionRegistry.ts`, lines 235 to 264) currently calls `closeSession({ reason: 'unknown' }, { terminalStatus: 'failed' })` after `onError`, and the MM Pay consumer (`app/components/Views/confirmations/hooks/pay/useFiatConfirm.ts`, lines 123 to 132) clears the error in its `onClose` handler. Fix: `failSession` sets the terminal status and removes the session directly, without invoking `onClose`.
+
+Tests: `failSession` fires exactly one `onError` and no `onClose`; the session is removed from the registry; the MM Pay consumer retains the error after a failure.
+
+### M0.2 - OTP typed-code fix
+
+Stop force-mapping `nativeFlowError` to `AUTH_FAILED`. `HeadlessHost.tsx` (the `nativeFlowError` effect at lines 136 to 147) hard-codes `code: 'AUTH_FAILED'` and the `'AUTH_FAILED'` fallback for any `nativeFlowError` string. The OTP path (`OtpCode`) hands back a bare `nativeFlowError` string, so a post-auth `LIMIT_EXCEEDED` / `KYC_REQUIRED` is mislabeled as `AUTH_FAILED`. (Direct `LimitExceededError` is already mapped correctly by `toHeadlessBuyError` via the `error.name` check.) Fix: thread a typed code (not a string) through the native route-back param so post-auth failures keep their real code.
+
+Tests: a post-auth limit failure surfaces `LIMIT_EXCEEDED`, not `AUTH_FAILED`; a genuine auth failure still surfaces `AUTH_FAILED`.
+
+---
+
+## Milestone 1 - All-provider quoting capability (built but gated OFF)
+
+Goal: build everything needed to request, filter, and recommend multi-provider quotes, plus the core widening, but DO NOT activate any of it in production. The live MM Pay path keeps both gating flags; `useHasNativeFiatProvider` keeps gating. Exercised only via the dev playground and unit/integration tests.
+
+### M1.1 - Filter `isCustomAction` out of headless candidate selection
+
+`RampsController.getQuotes` already supports all-provider quoting by omitting the gating flags (auto-selection internals are already on core main and published), so no new controller logic is required for the request itself. Mobile: confirm `useHeadlessBuy.getQuotes` can pass no restriction and supports multi-provider `providerIds`. Candidate selection operates over `success[]` only, with `isCustomAction` entries filtered out (`isCustomAction`, `app/components/UI/Ramp/types/index.ts`, lines 43 to 45). Custom actions are OUT of scope (see the "Getting multiple quotes" concern): there is no union candidate model. Full failure is "no usable non-customAction `success[]` entry", which maps to `NO_QUOTES`. Filtering custom actions out is what keeps removing `restrictToKnownOrNativeProviders` from surfacing an unhandled custom-action path.
+
+Tests: multi-provider request returns multiple non-customAction candidates; partial failure keeps usable candidates plus `error[]`; `isCustomAction` `success[]` entries are filtered out of candidate selection; full failure (no usable non-customAction `success[]` entry) maps to `NO_QUOTES`; playground renders all non-custom providers.
+
+### M1.2 - Build a mobile-side `recommendQuotes` util
+
+Build the selection / recommendation ladder as a PURE mobile-side util. Do NOT extract a shared helper into `@metamask/ramps-controller` up front: there is a single real consumer today (headless / MM Pay), and the order-history rung cannot be pulled from core (`#getPreferredProviderIdsFromOrders` / `#resolveProviderIdsForQuote` are `#private` and run only in the single-provider auto-select branch, `node_modules/@metamask/ramps-controller/dist/RampsController.mjs`, lines 1003 to 1024; the all-provider path takes the `else` branch and quotes `state.providers.data`, line 1026). The previously-used-provider rung must be re-derived mobile-side and supplied as an explicit input. Extract to core only once 2+ confirmed consumers justify it (Milestone 6).
 
 The util must be PURE, with explicit inputs (it cannot read controller-private order history or mobile Redux). Proposed signature:
 
@@ -196,93 +214,109 @@ Defined behavior the util must specify:
 
 Tests: ladder order with and without `preferredProviderIds`; missing `sorted` entries; price fallback; `isCustomAction` entries excluded; deterministic output for UB2 and MM Pay callers.
 
+### M1.3 - Core `getRampsQuote` widening (built but NOT activated)
+
+Build the core widening but leave it gated behind the Milestone 3 flag; do not flip it here. In `getRampsQuote` (`packages/transaction-pay-controller/src/strategy/fiat/utils.ts`, lines 95 to 131), the production call passes `autoSelectProvider: true` (line ~113) and `restrictToKnownOrNativeProviders: true` (line ~116) and takes `quotes.success?.[0]` (line ~124). True all-provider quoting requires dropping BOTH flags so `getQuotes` falls back to `state.providers.data` (`node_modules/@metamask/ramps-controller/dist/RampsController.mjs`, line 1026). Dropping ONLY the restriction is not enough: `#resolveProviderIdsForQuote` returns a SINGLE provider id even when `restrictToKnownOrNative` is false, so the auto-select branch still yields one provider. So the widened path must drop both flags and switch the pick from `success?.[0]` to the Milestone 1.2 selection logic.
+
+- **Catalog hydration (must verify).** Falling back to `state.providers.data` presumes the controller provider catalog is hydrated in the `TransactionPayController` context. TPC currently relies on auto-select, not on `state.providers.data`, so verify catalog hydration in the TPC context or pass an explicit `providers` list; otherwise all-provider quoting could return zero providers.
+
+Tests: the widened selector (off the production flag) picks the recommended successful quote and ignores provider-level failures when another quote succeeds; the dormant path is proven by tests while production stays native-only.
+
 ---
 
-## Phase 3 - WebView + external-browser headless support (pulled early)
+## Milestone 2 - Headless checkout for non-native providers (makes widening safe)
 
-Make `continueWidget` fully headless-aware: thread `ctx.headlessSessionId` into the external-browser branch so it routes to `onOrderCreated` / `closeSession` / `failSession` instead of `navigateAfterExternalBrowser` to BuildQuote / OrderDetails (`useContinueWithQuote.ts`, lines 289 to 335; `rampsNavigation.ts`, lines 50 to 75).
+Goal: make the non-native checkout paths (in-app WebView and external browser) emit terminal headless callbacks, so that widening quoting in Milestone 3 cannot strand a user in a callback-less branch. This is the milestone that must land before any production widening.
+
+### M2.1 - Make `continueWidget`'s external-browser branch headless-aware
+
+Thread `ctx.headlessSessionId` into the external-browser branch (`app/components/UI/Ramp/hooks/useContinueWithQuote.ts`, lines 289 to 335) so it routes to `onOrderCreated` / `onClose` / `failSession` instead of `navigateAfterExternalBrowser` to BuildQuote / OrderDetails (`app/components/UI/Ramp/utils/rampsNavigation.ts`, lines 50 to 75):
+
+- iOS `InAppBrowser.openAuth` success: today the success path calls `navigateAfterExternalBrowser({ returnDestination: 'order', callbackUrl, ... })` (lines 325 to 330), landing on `RAMPS_ORDER_DETAILS` with no headless path. Headless: resolve `openAuth` success into `onOrderCreated`.
+- Cancel: `onClose({ reason: 'user_dismissed' })`.
+- Error / open-rejection: `failSession`.
 
 **Redirect URL: name one source of truth.** Today `getQuotes` accepts a `redirectUrl` override, but `HeadlessHost` does not pass `HeadlessBuyParams.redirectUrl` into `useContinueWithQuote`, and `continueWidget` recomputes the redirect URL via the mobile redirect-policy util. Decision: the mobile redirect-policy util (`getWidgetRedirectConfig` / `getAggregatorRedirectConfig`) is the source of truth at checkout continuation. `HeadlessBuyParams.redirectUrl` is an optional override that must be threaded from the session onto `ContinueWithQuoteContext` and honored by `continueWidget` when present; when absent, the policy util computes it. The quote-fetch `redirectUrl` and the continuation `redirectUrl` must resolve from this same rule so they cannot diverge.
 
 Observability is only partial; document the three cases explicitly:
 
-- **iOS `InAppBrowser.openAuth`**: returns success / cancel / error synchronously, but is NOT headless-aware today and iOS external success is NOT "already handled". The success path currently calls `navigateAfterExternalBrowser({ returnDestination: 'order', callbackUrl, ... })` (`app/components/UI/Ramp/hooks/useContinueWithQuote.ts`, lines 325 to 330), landing on `RAMPS_ORDER_DETAILS` with no headless path. Phase 3 must explicitly resolve `openAuth` success into the headless `onOrderCreated` callback; cancel fires `onClose({ reason: 'user_dismissed' })`; error fires `failSession`.
+- **iOS `InAppBrowser.openAuth`**: returns success / cancel / error synchronously, but is NOT headless-aware today and iOS external success is NOT "already handled". Must be resolved into the headless callbacks above.
 - **`Linking.openURL` (Android / no InAppBrowser)**: we can only catch the OPEN failure (promise rejection, which fires `failSession`). We cannot observe provider page load.
-- **Android / system browser**: provider-side load failure is unknowable. Success arrives via deeplink return. Abandonment is inferred by a named policy (below), not guaranteed.
+- **Android / system browser**: provider-side load failure is unknowable. Success arrives via deeplink return. Abandonment is inferred by the existing dismissal machinery (below), not guaranteed.
 
-### Android foreground-without-callback policy (reuse the EXISTING dismissal machinery)
+Tests: each branch routes to the correct terminal callback; iOS `openAuth` success fires `onOrderCreated`; cancel fires `onClose({ reason: 'user_dismissed' })`; open-rejection fires `failSession`.
 
-This policy must be defined in terms of the dismissal mechanisms `HeadlessHost` already wires, NOT as a parallel new grace timer, so there are not two competing dismissal paths (`app/components/UI/Ramp/Views/HeadlessHost/HeadlessHost.tsx`, lines 86 to 99):
+### M2.2 - Give `handleRampReturnUrl.ts` a headless path
 
-- `useHeadlessSessionDismissal(headlessSessionId)`.
-- `useHeadlessSessionFocusDismissal(headlessSessionId, isFocused, ...)`, which on re-focus schedules the dismissal via `setTimeout(..., 0)` (`app/components/UI/Ramp/headless/useHeadlessSessionFocusDismissal.ts`, line 51) and bails if the session is already gone or the focus / session id changed.
-- A `beforeRemove` navigation listener that closes the session as `user_dismissed` on back-out (lines 91 to 99).
+Today `handleRampReturnUrl` only parses `orderId` and navigates to `RAMPS_ORDER_DETAILS`. The redirect URL is `metamask://on-ramp/providers/${providerCode}` (`app/components/UI/Ramp/utils/buildQuoteWithRedirectUrl.ts`, the `getProviderDeeplinkRedirectUrl` helper around lines 27 to 28), so the deeplink DOES carry the provider code in its path. It does NOT carry the wallet address, chainId, or session id.
 
-Policy: when the external browser hands control back and the app re-focuses `HeadlessHost` with the session still `continued` and no deeplink callback observed, the EXISTING focus-dismissal path is what fires `onClose({ reason: 'user_dismissed' })`. There is no second grace timer. The only Phase 3 / Phase 4 addition is to ensure a real deeplink callback can pre-empt this existing path (see the deeplink reconciliation in Phase 4 and the slow-deeplink risk below): a deeplink-success must terminate the session before, or take precedence over, focus-dismissal. It does NOT emit `onError`, and the consumer's `cancel()` and the registry's stale-session GC remain as backstops.
+Concrete design:
 
-The remaining product / MM Pay decision is whether the existing zero-delay focus dismissal needs a deliberate grace delay to avoid racing a slow-but-successful deeplink; record the chosen behavior before implementation.
+1. At external-browser launch (Milestone 2.1), record a pending external-order correlation in the session registry: `{ sessionId, walletAddress, chainId }`. The provider code is recoverable from the deeplink path, so it need not be stored. The session registry already holds the single active session, so the active session id is the correlation key; do not rely on the deeplink to carry it.
+2. On deeplink return, `handleRampReturnUrl` first checks for an active headless session. If one exists and is `continued`, it takes the headless path: resolve the order via the shared callback resolver using the `providerCode` parsed from the deeplink path plus `walletAddress` from the correlation record (plus any `orderId` from the deeplink query), then fire `onOrderCreated` and end the session. No active headless session means today's behavior (navigate to `RAMPS_ORDER_DETAILS`).
+3. Build on the just-landed cached / internal order-id resolution (mobile #32372 `app/components/UI/Ramp/hooks/useRampsOrders.ts`, core #9159) rather than re-deriving order lookup.
 
-Tests: each of the three cases routes to the correct terminal callback; a deeplink-success callback pre-empts the existing focus-dismissal so a slow-but-successful return is not closed as `user_dismissed`.
+Core-vs-mobile split: core may own only the pure parsing/status helpers (parse callback URL, classify bailed/terminal status). The correlation record, deeplink routing, and the focus-dismissal pre-emption stay mobile-side.
 
----
+Tests: shared callback resolver returns identical results for `Checkout` and `OrderDetails`; a deeplink return with a live `continued` session fires `onOrderCreated`; a no-order deeplink with no live session falls back to `RAMPS_ORDER_DETAILS`; native loop unchanged (regression).
 
-## Phase 4 - Native and non-native routing alignment
+### M2.3 - E1/E2/E3 reconciliation (money-losing if skipped)
 
-Unify callback order resolution shared by `Checkout` and `OrderDetails` (`getOrderFromCallback`, `isBailedOrderStatus`); give the Android deeplink return (`app/components/UI/Ramp/deeplink/handleRampReturnUrl.ts`) a headless path; keep the native Transak auth/KYC loop unchanged via the existing `useTransakRouting` base-route param.
+Three hazards must be reconciled, all reusing the EXISTING dismissal machinery `HeadlessHost` already wires (`app/components/UI/Ramp/Views/HeadlessHost/HeadlessHost.tsx`, lines 86 to 99: `useHeadlessSessionDismissal`, `useHeadlessSessionFocusDismissal`, and the `beforeRemove` listener), NOT a parallel new grace timer, so there are not two competing dismissal paths.
 
-**Android deeplink correlation (concrete design).** Today `handleRampReturnUrl` only parses `orderId` and navigates to `RAMPS_ORDER_DETAILS`. The redirect URL is `metamask://on-ramp/providers/${providerCode}` (`app/components/UI/Ramp/utils/buildQuoteWithRedirectUrl.ts`, lines 27 to 28), so the deeplink DOES carry the provider code in its path. It does NOT carry the wallet address, chainId, or session id. The return must map back to the active headless session without racing the Phase 3 focus-dismissal:
+- **E1 - iOS `openAuth` success resolves into the headless callback.** The iOS success path must terminate via `onOrderCreated` (covered by Milestone 2.1), never silently land on `RAMPS_ORDER_DETAILS`.
+- **E2 - A SUCCESS deeplink must WIN even if the session was already dismissed or GC'd.** Because MM Pay's two-step intent transaction is gated on `onOrderCreated` (`app/components/Views/confirmations/hooks/pay/useFiatConfirm.ts`, lines 112 to 122), a real fiat order can complete (the user paid) while the intent leg never fires if the focus-dismissal, the `beforeRemove` listener, or the 1-hour stale GC (`STALE_SESSION_TTL_MS`, `app/components/UI/Ramp/headless/sessionRegistry.ts`, line 110) terminated the session first. Reconciliation rule: a success deeplink must still complete the order through the consumer's `onOrderCreated` (re-opening or directly completing the dismissed session) rather than being silently dropped to `RAMPS_ORDER_DETAILS`. Only a deeplink with no order / no recoverable success and no live session falls back to `RAMPS_ORDER_DETAILS` so the order is still recoverable manually.
+- **E3 - Pre-empt the existing zero-delay focus-dismissal timer, do not add a parallel grace timer.** On re-focus, `useHeadlessSessionFocusDismissal` schedules dismissal via `setTimeout(..., 0)` (`app/components/UI/Ramp/headless/useHeadlessSessionFocusDismissal.ts`, line 51) and bails if the session is already gone or the focus / session id changed. The only addition is to ensure a real deeplink callback can PRE-EMPT this existing path: a deeplink-success must terminate the session before, or take precedence over, focus-dismissal. It does NOT emit `onError`, and the consumer's `cancel()` and the registry's stale-session GC remain as backstops. The remaining product / MM Pay decision is whether the existing zero-delay focus dismissal needs a deliberate grace delay to avoid racing a slow-but-successful deeplink; record the chosen behavior before implementation.
 
-1. At external-browser launch (Phase 3), record a pending external-order correlation in the session registry: `{ headlessSessionId, walletAddress, chainId }`. The provider code is recoverable from the deeplink path, so it need not be stored. The session registry already holds the single active session, so the active session id is the correlation key; do not rely on the deeplink to carry it.
-2. On deeplink return, `handleRampReturnUrl` first checks for an active headless session. If one exists and is `continued`, it takes the headless path: it PRE-EMPTS the existing focus-dismissal (correlation wins over the abandonment heuristic), resolves the order via the shared callback resolver using the `providerCode` parsed from the deeplink path plus `walletAddress` from the correlation record (plus any `orderId` from the deeplink query), then fires `onOrderCreated` and ends the session. No active headless session means today's behavior (navigate to `RAMPS_ORDER_DETAILS`).
-3. Slow-deeplink reconciliation (not just an ambiguity guard): because only one headless session is active at a time, there is no multi-session matching. A SUCCESS deeplink must WIN even if the session was already dismissed or GC'd (see the slow-deeplink money-losing risk below): it must still complete the order through the consumer's `onOrderCreated` (re-opening or directly completing the dismissed session), not be silently dropped to `RAMPS_ORDER_DETAILS`. Only a deeplink with no order / no recoverable success and no live session falls back to the non-headless `RAMPS_ORDER_DETAILS` path so the order is still recoverable manually.
-
-**Slow-deeplink money-losing risk (must reconcile).** If the existing focus-dismissal, the `beforeRemove` listener, or the 1-hour stale GC (`STALE_SESSION_TTL_MS`, `app/components/UI/Ramp/headless/sessionRegistry.ts`, line 110) terminates the session BEFORE a slow-but-successful deeplink returns, the session closes as `user_dismissed`, the deeplink falls back to `RAMPS_ORDER_DETAILS`, and the consumer never gets `onOrderCreated`. Because MM Pay's two-step intent transaction is gated on `onOrderCreated` (`app/components/Views/confirmations/hooks/pay/useFiatConfirm.ts`, lines 112 to 122), a real fiat order completes (the user paid) but the intent leg never fires. Reconciliation rule: a success deeplink must WIN even if the session was already dismissed, re-opening or directly completing the order via `onOrderCreated` rather than being silently dropped.
-
-Core-vs-mobile split for the unification: core may own only the pure parsing/status helpers (parse callback URL, classify bailed/terminal status). The correlation record, deeplink routing, and the focus-dismissal pre-emption stay mobile-side. Build on the just-landed cached / internal order-id matching (mobile #32372 `useRampsOrders.ts`, core #9159) rather than re-deriving order lookup.
-
-Tests: shared callback resolver returns identical results for `Checkout` and `OrderDetails`; Android deeplink return with a live session fires `onOrderCreated` and pre-empts focus-dismissal; a success deeplink arriving AFTER the session was dismissed still completes via `onOrderCreated` and is not dropped to `RAMPS_ORDER_DETAILS`; a no-order deeplink with no live session falls back to `RAMPS_ORDER_DETAILS`; native loop unchanged (regression).
+Tests: iOS `openAuth` success completes via `onOrderCreated` (E1); a success deeplink arriving AFTER the session was dismissed still completes via `onOrderCreated` and is not dropped to `RAMPS_ORDER_DETAILS` (E2); a deeplink-success pre-empts the existing focus-dismissal so a slow-but-successful return is not closed as `user_dismissed` (E3).
 
 ---
 
-## Phase 5 - MM Pay (`TransactionPayController`) integration (dormant behind the gate)
+## Milestone 3 - Activation behind a required scoped flag
 
-Wire core to consume multi-provider quotes via the Phase 2 selection util instead of `success[0]`, but keep this path dormant behind the still-closed native-only gate (the gate relaxation itself is Phase 9). Keep the MM Pay terminal-callback contract. Per Phase 2, that util starts mobile-side; core consumes it (or its extracted equivalent) only once 2+ consumers justify extraction.
+Goal: the only production-widening milestone. Lands last, after Milestone 2 is proven. Flip the gate behind a distinct scoped flag for staged rollout.
 
-To prevent the dormant path from rotting, tests must exercise the new core selector directly (selecting the recommended successful quote, ignoring provider-level failures when another quote succeeds) without production activation.
+### M3.1 - Add a distinct scoped flag / config bit
 
-Upstream coordination: sequence against the in-flight `transaction-pay-controller` fiat second-leg hardening (core #9267 locked-keyring / CHOMP race guard, #9279 preserve isExternalSign when no quotes, #9250 / #9216 EIP-7702 / relay). That two-step fiat-to-intent flow depends on the terminal-callback contract fixed in the Must-fix section, so Phase 5 lands after the Must-fix and after those changes are merged and published.
+**A distinct scoped flag is REQUIRED; the existing flag cannot scope provider-widening.** The required kill switch is "keep native-only working, disable only non-native widening", NOT "disable the whole fiat path". The existing `MetaMaskPayFiatFlags` only carries `enabledTransactionTypes` and `maxDelayMinutesForPaymentMethods` (`app/selectors/featureFlagController/confirmations/index.ts`, lines 87 to 90); there is NO native-vs-all-providers bit, and setting `enabledTransactionTypes: []` disables ALL fiat. So a distinct scoped flag / config bit (e.g. `allProvidersEnabled` / a non-native provider scope) is REQUIRED so that "off" falls back to native-only rather than killing fiat entirely. Roll out incrementally via that scoped flag; no new product flag beyond it unless product asks.
 
-Tests: core selector picks the recommended quote and ignores partial failures; dormant path proven by tests while production stays native-only.
+### M3.2 - Flip the two gates and activate Milestone 1.3 behind the flag
+
+Lands after Milestone 2 is proven. Behind the scoped flag from Milestone 3.1:
+
+- Mobile: relax the native-only availability gate (`app/components/Views/confirmations/hooks/pay/useIsFiatPaymentAvailable.ts`, lines 19 to 23; `app/components/UI/Ramp/hooks/useHasNativeFiatProvider.ts`, lines 23 to 26).
+- Core: activate the Milestone 1.3 widening in `getRampsQuote` (drop both flags, switch the pick to the selection util), gated on the same scoped rollout.
+
+Tests: with the scoped flag on, non-native quotes reach the consumer and complete via headless callbacks; with it off, behavior is identical to today's native-only (native fiat still available).
 
 ---
 
-## Phase 6 - Typed error handling
+## Milestone 4+ - Deferred follow-up
 
-Depends on the Must-fix terminal-callback contract. Then:
+These are intentionally deferred. They are not required to ship all-provider support behind the Milestone 3 flag, and several refactor working code with regression risk.
+
+### M4 - Broad typed errors
+
+Depends on Milestone 0.1 (terminal-callback contract). The Milestone 0.2 OTP typed-code fix is already in scope at Milestone 0. Then, on demand:
 
 - Emit `NO_QUOTES` and `QUOTE_FAILED` for technical / quote failures (widget-URL, load, callback-parse, order-lookup, external-open failures).
-- Route user exits to `onClose` per the callback-routing rule (`user_dismissed` for in-flow user closes, `consumer_cancelled` for programmatic cancel). Do not emit `USER_CANCELLED` for in-flow exits. An empty callback query is a user-exit, not a typed error: `Checkout.tsx` (lines 386 to 393) already treats it as `closeSession({ reason: 'user_dismissed' })`, so it is excluded from the typed-error list and surfaces via `onClose`.
-- Carry typed native route errors; do not stringify all post-auth failures into `AUTH_FAILED`. Direct `LimitExceededError` is already mapped correctly by `toHeadlessBuyError` (the `error.name` check). The actual bug is the OTP path: `OtpCode` hands back a bare `nativeFlowError` string and `HeadlessHost.tsx` (lines 139 to 147) forces it to `AUTH_FAILED`, so a post-auth `LIMIT_EXCEEDED` / `KYC_REQUIRED` is mislabeled. Fix by threading a typed code (not a string) through the native route-back param. This OTP typed-code fix is confirmed real and in scope now.
-- Export reality check (must-do, not assume): on core `origin/main`, `@metamask/ramps-controller`'s `index.ts` exports `getTransakApiMessage`, `isTransakPhoneRegisteredError`, and `RAMPS_ERROR_CODES` / `RampsErrorCode`, but it does NOT export `TRANSAK_ERROR_CODES` / `TransakErrorCode` (they exist in `transakErrorCodes.ts` but are unexported). So Phase 6 must either (a) add a core sub-task to export `TRANSAK_ERROR_CODES` / `TransakErrorCode` from the package, or (b) depend only on the already-exported helpers (`getTransakApiMessage`, `isTransakPhoneRegisteredError`) plus `RAMPS_ERROR_CODES`. Do not import `TRANSAK_ERROR_CODES` from mobile until (a) lands. Verify the export against `origin/main` / the published package, NOT against the local checkout: the local core at `/Users/saustrie/github/repos/core/packages/ramps-controller` is STALE (it lacks the Transak error helpers present in the published artifact), so the published package / `origin/main` is the source of truth for the Transak error exports.
-- Scope the taxonomy. The terminal-callback contract must-fix (Must-fix section) and the OTP typed-code fix above are both confirmed real and in scope now. The broader typed-code taxonomy (e.g. `KYC_REQUIRED` and other granular provider codes) is implement-on-demand: add a code when a consumer actually needs to branch on it, not up front.
+- Route user exits to `onClose` per the callback-routing rule (`user_dismissed` for in-flow user closes, `consumer_cancelled` for programmatic cancel). Do not emit `USER_CANCELLED` for in-flow exits. An empty callback query is a user-exit, not a typed error: `Checkout.tsx` (lines 386 to 393) already treats it as `closeSession({ reason: 'user_dismissed' })`.
+- Export reality check (must-do, not assume): on core `origin/main`, `@metamask/ramps-controller`'s `index.ts` exports `getTransakApiMessage`, `isTransakPhoneRegisteredError`, and `RAMPS_ERROR_CODES` / `RampsErrorCode`, but it does NOT export `TRANSAK_ERROR_CODES` / `TransakErrorCode` (they exist in `packages/ramps-controller/src/transakErrorCodes.ts` but are unexported). So a consumer that must branch on `TRANSAK_ERROR_CODES` / `TransakErrorCode` first needs a core sub-task to export them from the package; otherwise depend only on the already-exported helpers (`getTransakApiMessage`, `isTransakPhoneRegisteredError`) plus `RAMPS_ERROR_CODES`. Do not import `TRANSAK_ERROR_CODES` from mobile until that export lands. Re-verify against `origin/main` / the published package before relying on it.
+- Scope the taxonomy. The broader typed-code taxonomy (e.g. `KYC_REQUIRED` and other granular provider codes) is implement-on-demand: add a code when a consumer actually needs to branch on it, not up front.
 
-Tests: each technical failure maps to its typed code; user exits never emit error codes; a post-auth limit failure surfaces `LIMIT_EXCEEDED`, not `AUTH_FAILED`.
-
----
-
-## Phase 7 - Analytics parity
+### M5 - Analytics parity for external-browser providers
 
 Bring external-browser providers to parity: `RAMPS_CHECKOUT_CLOSED` (abandon), `RAMPS_ORDER_FAILED` (in-flow), provider cancellation, HTTP / load failures, and terminal `RampsController:orderStatusChanged` (failed / cancelled), all tagged `ramp_type: 'HEADLESS'` plus `ramp_surface`.
 
-Tests: external-browser abandon and failure emit the expected events with headless tags; terminal failed / cancelled events fire once.
+### M6 - Wire TPC to consume multi-provider quotes
 
----
+Wire core (`TransactionPayController`) to consume multi-provider quotes via the Milestone 1.2 selection logic instead of `success[0]`, and keep the MM Pay terminal-callback contract. This depends ONLY on the Milestone 0.1 terminal-callback contract; there is no upstream wait, because the `transaction-pay-controller` fiat second-leg hardening PRs are merged and published (see Upstream context). Extract a shared helper into `@metamask/ramps-controller` only once there are 2+ confirmed consumers to justify the cross-repo publish / version coupling cost.
 
-## Phase 8 - DRY cleanup (UB2 UI becomes "dumb") (DEFERRED until AFTER Phase 9 activation)
+### M7 - DRY cleanup (UB2 UI becomes "dumb")
 
-**Scope: DEFERRED until AFTER Phase 9 activation.** This refactors working UB2 code (regression risk) with no production benefit before all-providers ships. Do it once activation has landed and is stable, not before.
+Deferred until AFTER Milestone 3 activation is stable. This refactors working UB2 code (regression risk) with no production benefit before all-providers ships.
 
-- **Move to core (`@metamask/ramps-controller`), pure only:** quote selection / recommendation ladder (Phase 2, once 2+ consumers justify extraction); pure callback parsing and status classification (Phase 4); bailed-status checks; min/max amount validation as a pure `validateBuyAmount()`.
+- **Move to core (`@metamask/ramps-controller`), pure only:** quote selection / recommendation ladder (once 2+ consumers justify extraction); pure callback parsing and status classification; bailed-status checks; min/max amount validation as a pure `validateBuyAmount()`.
 - **Keep in shared mobile Ramp utils:** platform redirect policy and deeplink-scheme construction (`app/components/UI/Ramp/utils/buildQuoteWithRedirectUrl.ts`); all navigation / session behavior. Core must not learn mobile deeplink schemes. The only exception: if the controller API is extended to accept redirect / browser options as inputs, the browser-mode decision can move down; otherwise it stays mobile-side.
 - Refactor BuildQuote / ProviderSelection into dumb consumers of the shared helpers.
 
@@ -290,24 +324,10 @@ Tests: UB2 regression proves ordering, recommended selection, WebView retry, and
 
 ---
 
-## Phase 9 - Activation / rollout (the only production-widening phase)
-
-Lands last, after Phases 3, 4, 6, 7 are proven. Flip the gate behind a scoped MM Pay fiat rollout flag for staged rollout:
-
-- Core: true all-provider quoting requires omitting BOTH `autoSelectProvider` and `providers` so `getQuotes` falls back to `state.providers.data` (`node_modules/@metamask/ramps-controller/dist/RampsController.mjs`, line 1026). Dropping ONLY `restrictToKnownOrNativeProviders` while keeping `autoSelectProvider: true` is NOT enough: `#resolveProviderIdsForQuote` returns a SINGLE provider id even when `restrictToKnownOrNative` is false, so the auto-select branch still yields one provider. So `getRampsQuote` must drop both flags (not just the restriction) and switch the pick to the Phase 2 selection util (`packages/transaction-pay-controller/src/strategy/fiat/utils.ts`, lines 61 to 78).
-  - **Catalog hydration (must verify).** Falling back to `state.providers.data` presumes the controller provider catalog is hydrated in the `TransactionPayController` context. TPC currently relies on auto-select, not on `state.providers.data`, so Phase 9 must verify catalog hydration in the TPC context or pass an explicit `providers` list; otherwise all-provider quoting could return zero providers.
-- Mobile: relax the native-only availability gate (`useIsFiatPaymentAvailable` / `useHasNativeFiatProvider`).
-
-**A distinct scoped flag is REQUIRED; the existing flag cannot scope provider-widening.** The required kill switch is "keep native-only working, disable only non-native widening", NOT "disable the whole fiat path". The existing `MetaMaskPayFiatFlags` only carries `enabledTransactionTypes` and `maxDelayMinutesForPaymentMethods` (`app/selectors/featureFlagController/confirmations/index.ts`, lines 87 to 90); there is NO native-vs-all-providers bit, and setting `enabledTransactionTypes: []` disables ALL fiat. So a distinct scoped flag / config bit (e.g. `allProvidersEnabled` / a non-native provider scope) is REQUIRED so that "off" falls back to native-only rather than killing fiat entirely. Roll out incrementally via that scoped flag; no new product flag beyond it unless product asks. This kill-switch validation is confirmed-correct and stays.
-
-Tests: with the scoped flag on, non-native quotes reach the consumer and complete via headless callbacks; with it off, behavior is identical to today's native-only (native fiat still available).
-
----
-
 ## Test plan (consolidated)
 
 - ramps-controller / core: all-provider quote requests, partial failures, all-provider failures, and shared recommendation order.
-- Transaction Pay: selecting the recommended successful ramps quote and ignoring provider-level failures when another quote succeeds; dormant-path coverage before activation.
+- Transaction Pay: the widened selector picking the recommended successful ramps quote and ignoring provider-level failures when another quote succeeds; dormant-path coverage before activation.
 - Mobile hooks: `useHeadlessBuy`, `useContinueWithQuote`, `HeadlessHost`, `Checkout`, and external-browser deeplink return.
 - UB2 regression: quote ordering, recommended quote selection, WebView retry behavior, and order-details routing unchanged.
 - Analytics: `RAMPS_CHECKOUT_CLOSED`, `RAMPS_ORDER_FAILED`, provider cancellation, checkout HTTP / load failures, and order terminal failed / cancelled events.
@@ -318,10 +338,10 @@ Tests: with the scoped flag on, non-native quotes reach the consumer and complet
 
 Time-sensitive references that informed sequencing; verify before relying on them.
 
-- Auto-selection internals are already on core main and published (`#resolveProviderIdsForQuote`, `autoSelectProvider` / `preferredProviderIds` / `restrictToKnownOrNativeProviders`), so Phase 1 adds no new controller logic.
-- Transak error helpers are exported (core #9135): `getTransakApiMessage` and `isTransakPhoneRegisteredError` (plus `RAMPS_ERROR_CODES`). Note: `TRANSAK_ERROR_CODES` / `TransakErrorCode` exist in `transakErrorCodes.ts` but are NOT re-exported from `index.ts`; Phase 6 must add that export before depending on it from mobile. Verify against `origin/main` / the published package, not the local checkout: the local core at `/Users/saustrie/github/repos/core/packages/ramps-controller` is STALE and lacks the Transak error helpers present in the published artifact.
-- Order-id resolution refinements: mobile #32372 (resolve order details by cached order id) and core #9159 (compare internal order ids) inform Phase 4.
-- In-flight MM Pay fiat second-leg hardening (core #9267, #9279, #9250, #9216) is coordinated by Phase 5.
+- Auto-selection internals are already on core main and published (`#resolveProviderIdsForQuote`, `autoSelectProvider` / `preferredProviderIds` / `restrictToKnownOrNativeProviders`), so Milestone 1 adds no new controller logic.
+- Transak error helpers are exported (core #9135): `getTransakApiMessage` and `isTransakPhoneRegisteredError` (plus `RAMPS_ERROR_CODES` / `RampsErrorCode`), confirmed on `origin/main`. Note: `TRANSAK_ERROR_CODES` / `TransakErrorCode` exist in `packages/ramps-controller/src/transakErrorCodes.ts` but are NOT re-exported from `index.ts` on `main`; the typed-error export sub-task (Milestone 4) must add that export before depending on it from mobile.
+- Order-id resolution refinements: mobile #32372 (resolve order details by cached order id) and core #9159 (compare internal order ids) inform Milestone 2.2.
+- The MM Pay fiat second-leg hardening PRs (core #9267 locked-keyring / CHOMP race guard, #9279 preserve isExternalSign when no quotes, #9250 / #9216 EIP-7702 / relay, plus #9159 and #9135) are MERGED and published (core ~release 1082.0.0). There is no upstream wait: the MM Pay integration (Milestone 6) now depends only on the Milestone 0.1 terminal-callback contract, not on an in-flight upstream sequence.
 - A stale-branch caveat: the core branch `headless-buy-ramps-auto-selection` is unmerged and far behind main, yet main already carries equivalent auto-selection logic; verify it is not redundant before building on it.
 
 ---
@@ -330,16 +350,16 @@ Time-sensitive references that informed sequencing; verify before relying on the
 
 Assumptions:
 
-- Ship behind a flag whose "off" state keeps native-only working (not one that disables the whole fiat path). A distinct scoped flag / config bit is REQUIRED: the existing `MetaMaskPayFiatFlags` cannot scope provider-widening (it only has `enabledTransactionTypes` / `maxDelayMinutesForPaymentMethods`, and `enabledTransactionTypes: []` kills all fiat), so a non-native provider-scope flag must be added (validated in Phase 9). No new product flag beyond the kill switch unless product asks.
+- Ship behind a flag whose "off" state keeps native-only working (not one that disables the whole fiat path). A distinct scoped flag / config bit is REQUIRED: the existing `MetaMaskPayFiatFlags` cannot scope provider-widening (it only has `enabledTransactionTypes` / `maxDelayMinutesForPaymentMethods`, and `enabledTransactionTypes: []` kills all fiat), so a non-native provider-scope flag must be added (Milestone 3.1). No new product flag beyond the kill switch unless product asks.
 - Headless consumers still receive only terminal callbacks: `onOrderCreated`, `onError`, `onClose`.
-- System-browser external checkout cannot be observed synchronously; rely on deeplink return for success, `Linking.openURL` rejection for open failure, and the named Android foreground policy for cancellation.
+- System-browser external checkout cannot be observed synchronously; rely on deeplink return for success, `Linking.openURL` rejection for open failure, and the existing focus-dismissal machinery for inferred cancellation.
 - Provider quote failures are logged and surfaced as partial errors, becoming terminal only when every provider fails or no quote can be selected.
 
 Risks:
 
-- Cross-repo sequencing (core publish before mobile bump).
+- Cross-repo sequencing (core publish before mobile bump) for the eventual core extraction.
 - Android foreground-without-callback heuristic reliability (built on the existing focus-dismissal) and whether it needs a deliberate grace delay.
-- Slow-but-successful deeplink returning AFTER the session was dismissed (focus-dismissal / `beforeRemove` / 1-hour stale GC): the fiat order completes but `onOrderCreated` never fires and MM Pay's gated two-step intent leg never runs, losing money unless the success-deeplink-wins reconciliation rule (Phase 4) is implemented.
+- Slow-but-successful deeplink returning AFTER the session was dismissed (focus-dismissal / `beforeRemove` / 1-hour stale GC): the fiat order completes but `onOrderCreated` never fires and MM Pay's gated two-step intent leg never runs, losing money unless the success-deeplink-wins reconciliation rule (Milestone 2.3, E2) is implemented.
 - Migrating pure helpers into core without dragging platform policy along (and the cross-repo publish / version coupling cost of doing it before a second consumer exists).
 
 ---
