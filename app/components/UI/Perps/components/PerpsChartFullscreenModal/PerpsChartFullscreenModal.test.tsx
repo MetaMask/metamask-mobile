@@ -14,11 +14,15 @@ import {
   type CandleData,
 } from '@metamask/perps-controller';
 import type { OhlcData, TPSLLines } from '../TradingViewChart/TradingViewChart';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PerpsChartFullscreenModalSelectorsIDs,
   PerpsOHLCVBarSelectorsIDs,
 } from '../../Perps.testIds';
-import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import {
+  PERPS_CHART_EVENT_PROPERTY,
+  PERPS_CHART_EVENT_VALUE,
+} from '../../utils/analytics/chartInstrumentation';
 
 jest.mock('expo-screen-orientation');
 jest.mock('../../../../../util/Logger');
@@ -367,6 +371,53 @@ describe('PerpsChartFullscreenModal', () => {
         expect(mockOnClose).toHaveBeenCalled();
       });
     });
+
+    it('tracks warning chart errors with chart context', async () => {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
+      const ComponentErrorBoundary = require('../../../ComponentErrorBoundary');
+      const mockOnError = jest.fn();
+
+      ComponentErrorBoundary.mockImplementationOnce(
+        ({
+          onError,
+          children,
+        }: {
+          onError: () => void;
+          children: React.ReactNode;
+        }) => {
+          mockOnError.mockImplementation(onError);
+          return children;
+        },
+      );
+
+      render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          isAdvancedChartEnabled
+          symbol="BTC"
+        />,
+      );
+
+      await act(async () => {
+        mockOnError();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_ERROR,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+    });
   });
 
   describe('Interval Selection', () => {
@@ -503,6 +554,7 @@ describe('PerpsChartFullscreenModal', () => {
           tpslLines: mockTpslLines,
           positionSize: '0.5',
           szDecimals: 2,
+          surface: 'full_screen_chart',
           fallbackCandleData: mockCandleData,
         }),
       );
@@ -560,11 +612,15 @@ describe('PerpsChartFullscreenModal', () => {
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-        {
+        expect.objectContaining({
           [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
             PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
           [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
-        },
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
       );
     });
 
@@ -594,15 +650,23 @@ describe('PerpsChartFullscreenModal', () => {
           [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
             PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
           [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
         }),
       );
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-        {
+        expect.objectContaining({
           [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
             PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
           [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
-        },
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
       );
       expect(mockOnClose).not.toHaveBeenCalled();
     });

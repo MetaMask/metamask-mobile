@@ -136,6 +136,10 @@ import {
   PERPS_BUTTON_COLOR_AB_TEST_KEY,
 } from '../../abTestConfig';
 import {
+  PERPS_CHART_EVENT_PROPERTY,
+  PERPS_CHART_EVENT_VALUE,
+} from '../../utils/analytics/chartInstrumentation';
+import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
   PRICE_RANGES_UNIVERSAL,
@@ -215,7 +219,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       ? 'trending'
       : undefined);
   const chartLibrary =
-    route.params?.chartLibrary ?? PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
+    route.params?.chartLibrary ??
+    PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
@@ -414,8 +419,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         : PERPS_EVENT_VALUE.DIRECTION.SHORT,
     [PERPS_EVENT_PROPERTY.SOURCE]:
       source ?? PERPS_EVENT_VALUE.SOURCE.PERP_ASSET_SCREEN,
-    [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
-    [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
+    [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
+    [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+      PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
     [PERPS_EVENT_PROPERTY.OPEN_POSITION]: currentMarketPosition ? 1 : 0,
     [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
       isServiceInterruptionBannerEnabled,

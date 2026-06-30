@@ -286,6 +286,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
                 tpslLines={tpslLines}
                 positionSize={positionSize}
                 szDecimals={szDecimals}
+                surface="full_screen_chart"
                 onCrosshairDataChange={setOhlcData}
                 onError={handleAdvancedChartError}
                 onSkeletonHidden={trackFullscreenChartScreenViewed}

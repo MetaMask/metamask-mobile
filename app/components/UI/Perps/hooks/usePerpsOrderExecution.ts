@@ -34,6 +34,11 @@ import {
   PERPS_CUF_STREAM_CONFIRM_RACE_MS,
 } from '../constants/perpsCufTags';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
+import { PERPS_CHART_EVENT_PROPERTY } from '../utils/analytics/chartInstrumentation';
+
+interface PerpsChartTrackingData {
+  chartLibrary?: string;
+}
 
 interface UsePerpsOrderExecutionParams {
   /** Called when the order has been successfully submitted to the exchange. */
@@ -193,7 +198,9 @@ export function usePerpsOrderExecution(
             'usePerpsOrderExecution: Order placed successfully',
             result,
           );
-          const chartLibrary = orderParams.trackingData?.chartLibrary;
+          const chartLibrary = (
+            orderParams.trackingData as PerpsChartTrackingData | undefined
+          )?.chartLibrary;
 
           // Check if order was partially filled
           const orderSize = Number.parseFloat(orderParams.size.toString());
@@ -224,7 +231,8 @@ export function usePerpsOrderExecution(
                 orderParams.trackingData.source;
             }
             if (chartLibrary) {
-              partialProps[PERPS_EVENT_PROPERTY.CHART_LIBRARY] = chartLibrary;
+              partialProps[PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY] =
+                chartLibrary;
             }
             if (orderParams.trackingData?.tradeWithToken === true) {
               if (orderParams.trackingData.mmPayTokenSelected != null) {
@@ -376,9 +384,12 @@ export function usePerpsOrderExecution(
             failedProps[PERPS_EVENT_PROPERTY.SOURCE] =
               orderParams.trackingData.source;
           }
-          const chartLibrary = orderParams.trackingData?.chartLibrary;
+          const chartLibrary = (
+            orderParams.trackingData as PerpsChartTrackingData | undefined
+          )?.chartLibrary;
           if (chartLibrary) {
-            failedProps[PERPS_EVENT_PROPERTY.CHART_LIBRARY] = chartLibrary;
+            failedProps[PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY] =
+              chartLibrary;
           }
           if (orderParams.trackingData?.tradeWithToken === true) {
             if (orderParams.trackingData.mmPayTokenSelected != null) {
@@ -453,9 +464,12 @@ export function usePerpsOrderExecution(
           exceptionProps[PERPS_EVENT_PROPERTY.SOURCE] =
             orderParams.trackingData.source;
         }
-        const chartLibrary = orderParams.trackingData?.chartLibrary;
+        const chartLibrary = (
+          orderParams.trackingData as PerpsChartTrackingData | undefined
+        )?.chartLibrary;
         if (chartLibrary) {
-          exceptionProps[PERPS_EVENT_PROPERTY.CHART_LIBRARY] = chartLibrary;
+          exceptionProps[PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY] =
+            chartLibrary;
         }
         if (orderParams.trackingData?.tradeWithToken === true) {
           if (orderParams.trackingData.mmPayTokenSelected != null) {

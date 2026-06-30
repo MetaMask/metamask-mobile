@@ -35,6 +35,7 @@ import TradingViewChart, {
   type TPSLLines,
 } from '../TradingViewChart/TradingViewChart';
 import { getPerpsVolumeColors } from '../../utils/chartColors';
+import { PERPS_CHART_EVENT_VALUE } from '../../utils/analytics/chartInstrumentation';
 import performance from 'react-native-performance';
 
 export interface PerpsAdvancedChartProps {
@@ -51,6 +52,8 @@ export interface PerpsAdvancedChartProps {
   onLatestPriceChange?: (price: number | undefined) => void;
   onError?: (error: string) => void;
   onSkeletonHidden?: (payload?: ChartRangeSettlePayload) => void;
+  /** Identifies which Perps chart surface is being measured. */
+  surface?: PerpsChartSurface;
   /** Fallback candle data for the Lightweight chart if AdvancedChart fails this mount. */
   fallbackCandleData: CandleData | null;
   /** Fallback fetch-more-history for the Lightweight chart fallback. */
@@ -122,10 +125,12 @@ export function getPerpsPositionLineColors(colors: Colors): PositionLineColors {
 }
 
 type PerpsChartTransitionType = 'initial_load' | 'interval_change';
+type PerpsChartSurface = 'market_detail' | 'full_screen_chart';
 
 function getPerpsChartVisibilityTrace(
   previousSeriesKey: string | null,
   nextSeriesKey: string,
+  surface: PerpsChartSurface,
 ): {
   name: TraceName;
   op: TraceOperation;
@@ -133,8 +138,11 @@ function getPerpsChartVisibilityTrace(
 } {
   if (previousSeriesKey === null) {
     return {
-      name: TraceName.PerpsAdvancedChartInitialVisible,
-      op: TraceOperation.PerpsAdvancedChart,
+      name:
+        surface === 'full_screen_chart'
+          ? TraceName.PerpsChartFullscreenOpen
+          : TraceName.PerpsChartFirstCandle,
+      op: TraceOperation.PerpsChart,
       transition: 'initial_load',
     };
   }
@@ -148,8 +156,11 @@ function getPerpsChartVisibilityTrace(
     };
   }
   return {
-    name: TraceName.PerpsAdvancedChartInitialVisible,
-    op: TraceOperation.PerpsAdvancedChart,
+    name:
+      surface === 'full_screen_chart'
+        ? TraceName.PerpsChartFullscreenOpen
+        : TraceName.PerpsChartFirstCandle,
+    op: TraceOperation.PerpsChart,
     transition: 'initial_load',
   };
 }
@@ -173,6 +184,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
   onLatestPriceChange,
   onError,
   onSkeletonHidden,
+  surface = 'market_detail',
   fallbackCandleData,
   fallbackFetchMoreHistory,
   paginationDuration,
@@ -311,6 +323,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
     const { name, op, transition } = getPerpsChartVisibilityTrace(
       previousSeriesKey,
       ohlcvSeriesKey,
+      surface,
     );
 
     visibilityTraceStartedRef.current = ohlcvSeriesKey;
@@ -325,9 +338,14 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       name,
       op,
       id: ohlcvSeriesKey,
-      data: { symbol, interval: interval as string, surface: 'market_detail' },
+      data: {
+        symbol,
+        interval: interval as string,
+        surface,
+        chart_library: PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+      },
     });
-  }, [ohlcvSeriesKey, symbol, interval]);
+  }, [ohlcvSeriesKey, symbol, interval, surface]);
 
   useEffect(
     () => () => {
@@ -354,9 +372,11 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
         const data: Record<string, TraceValue> = {
           symbol,
           interval: interval as string,
-          surface: 'market_detail',
+          surface,
+          chart_library: PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
           transition: open.transition,
-          totalVisibleMs,
+          chart_load_latency_ms: totalVisibleMs,
+          first_candle_rendered: ohlcvData.length > 0,
           ...(payload
             ? Object.fromEntries(
                 Object.entries(payload).filter(
@@ -373,7 +393,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       }
       onSkeletonHidden?.(payload);
     },
-    [symbol, interval, onSkeletonHidden],
+    [symbol, interval, surface, ohlcvData.length, onSkeletonHidden],
   );
 
   // ---- Error fallback ----
@@ -387,6 +407,10 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
           name: open.traceName,
           id: open.seriesKey,
           data: {
+            symbol,
+            interval: interval as string,
+            surface,
+            chart_library: PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
             fallbackToLightweight: true,
             errorMessage: error.slice(0, 200),
           },
@@ -395,7 +419,7 @@ const PerpsAdvancedChart: React.FC<PerpsAdvancedChartProps> = ({
       }
       onError?.(error);
     },
-    [onError],
+    [symbol, interval, surface, onError],
   );
 
   if (hasFailed) {
