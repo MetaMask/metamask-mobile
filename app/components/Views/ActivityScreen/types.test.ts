@@ -5,7 +5,7 @@ import {
   PERPS_ACTIVITY_FILTER_KINDS,
   PERPS_ACTIVITY_FILTER_ORDER,
   PerpsActivityFilter,
-  perpsActivityKindMatchesFilter,
+  getPerpsSubFilterKinds,
 } from './types';
 
 describe('Perps sub-filter buckets', () => {
@@ -19,7 +19,7 @@ describe('Perps sub-filter buckets', () => {
     ]);
   });
 
-  it('covers exactly the top-level Perps bucket (no missing/extra kinds)', () => {
+  it('derives the top-level Perps bucket from the union of the sub-buckets', () => {
     const union = new Set<ActivityKind>();
     for (const filter of PERPS_ACTIVITY_FILTER_ORDER) {
       for (const kind of PERPS_ACTIVITY_FILTER_KINDS[filter]) {
@@ -29,7 +29,7 @@ describe('Perps sub-filter buckets', () => {
 
     const perpsBucket = ACTIVITY_TYPE_FILTER_KINDS[ActivityTypeFilter.Perps];
     expect(perpsBucket).not.toBeNull();
-    expect([...union].sort()).toEqual([...(perpsBucket ?? [])].sort());
+    expect([...(perpsBucket ?? [])].sort()).toEqual([...union].sort());
   });
 
   it('assigns each Perps kind to exactly one sub-filter (disjoint buckets)', () => {
@@ -43,54 +43,45 @@ describe('Perps sub-filter buckets', () => {
   });
 
   it('groups withdrawals with deposits under Deposits', () => {
+    const deposits = PERPS_ACTIVITY_FILTER_KINDS[PerpsActivityFilter.Deposits];
+    expect(deposits.has('perpsWithdraw')).toBe(true);
+    expect(deposits.has('perpsAddFunds')).toBe(true);
+  });
+
+  it('keeps trade fills, orders, and fundings in distinct buckets', () => {
     expect(
-      perpsActivityKindMatchesFilter(
-        'perpsWithdraw',
-        PerpsActivityFilter.Deposits,
+      PERPS_ACTIVITY_FILTER_KINDS[PerpsActivityFilter.Trades].has(
+        'perpsOpenLong',
       ),
     ).toBe(true);
     expect(
-      perpsActivityKindMatchesFilter(
-        'perpsAddFunds',
-        PerpsActivityFilter.Deposits,
+      PERPS_ACTIVITY_FILTER_KINDS[PerpsActivityFilter.Order].has('limitShort'),
+    ).toBe(true);
+    expect(
+      PERPS_ACTIVITY_FILTER_KINDS[PerpsActivityFilter.Fundings].has(
+        'perpsPaidFundingFees',
       ),
     ).toBe(true);
   });
+});
 
-  it('matches trade fills under Trades and not other buckets', () => {
-    expect(
-      perpsActivityKindMatchesFilter(
-        'perpsOpenLong',
-        PerpsActivityFilter.Trades,
-      ),
-    ).toBe(true);
-    expect(
-      perpsActivityKindMatchesFilter(
-        'perpsOpenLong',
-        PerpsActivityFilter.Order,
-      ),
-    ).toBe(false);
+describe('getPerpsSubFilterKinds', () => {
+  it('returns the bucket set for a known filter', () => {
+    expect(getPerpsSubFilterKinds(PerpsActivityFilter.Deposits)).toBe(
+      PERPS_ACTIVITY_FILTER_KINDS[PerpsActivityFilter.Deposits],
+    );
   });
 
-  it('returns false (no crash) for an unknown/stale bucket value', () => {
+  it('returns undefined when no filter is provided', () => {
+    expect(getPerpsSubFilterKinds(undefined)).toBeUndefined();
+  });
+
+  it('returns undefined for an unknown/stale value instead of throwing', () => {
     expect(
-      perpsActivityKindMatchesFilter(
-        'perpsOpenLong',
+      getPerpsSubFilterKinds(
         // Simulate a stale persisted/hot-reloaded value not in the map.
         'trades' as unknown as PerpsActivityFilter,
       ),
-    ).toBe(false);
-  });
-
-  it('matches order entries under Order and funding fees under Fundings', () => {
-    expect(
-      perpsActivityKindMatchesFilter('limitShort', PerpsActivityFilter.Order),
-    ).toBe(true);
-    expect(
-      perpsActivityKindMatchesFilter(
-        'perpsPaidFundingFees',
-        PerpsActivityFilter.Fundings,
-      ),
-    ).toBe(true);
+    ).toBeUndefined();
   });
 });

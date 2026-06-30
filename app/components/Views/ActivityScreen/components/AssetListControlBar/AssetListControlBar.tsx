@@ -6,19 +6,27 @@ import {
   ButtonBaseSize,
   IconName,
 } from '@metamask/design-system-react-native';
-import { ActivityScreenSelectorsIDs } from '../../ActivityScreen.testIds';
+
+/**
+ * Describes a single filter chip: its label, press handler, and the testID to
+ * apply (suppressed by the bar when rendered in the pinned copy).
+ */
+export interface FilterChipDescriptor {
+  label: string;
+  onPress: () => void;
+  testID: string;
+}
 
 export interface AssetListControlBarProps {
-  typeLabel: string;
-  onTypePress: () => void;
-  /** Network chip — shown unless the Type filter replaces it (Perps/Predictions). */
-  showNetworkFilter: boolean;
-  networkLabel: string;
-  onNetworkPress: () => void;
-  /** Perps sub-filter chip — rendered in the network chip's place when Type = Perps. */
-  showPerpsFilter: boolean;
-  perpsLabel: string;
-  onPerpsPress: () => void;
+  /** The Type filter chip — always rendered first. */
+  typeChip: FilterChipDescriptor;
+  /**
+   * The secondary chip rendered after the Type chip: the network filter, the
+   * Perps sub-filter, or `null`/`undefined` to render nothing (e.g. for
+   * Predictions). One slot, so adding a new secondary filter is a parent-side
+   * concern only.
+   */
+  secondaryChip?: FilterChipDescriptor | null;
   suppressTestIDs?: boolean;
 }
 
@@ -27,8 +35,6 @@ export interface AssetListControlBarProps {
  * the extension's `AssetListControlBar` pattern. Pure presentational: the
  * parent screen owns filter state, label resolution, and sheet rendering.
  *
- * The Type chip is always rendered first; the secondary slot shows either the
- * Network chip or the Perps sub-filter chip (or nothing, e.g. for Predictions).
  * Chips use the default design-system select-button styling (plain label +
  * dropdown chevron, no leading icon, no accent colour).
  *
@@ -36,17 +42,22 @@ export interface AssetListControlBarProps {
  * since the underlying `component-library` `BottomSheet` does not portal.
  */
 const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
-  typeLabel,
-  onTypePress,
-  showNetworkFilter,
-  networkLabel,
-  onNetworkPress,
-  showPerpsFilter,
-  perpsLabel,
-  onPerpsPress,
+  typeChip,
+  secondaryChip,
   suppressTestIDs = false,
 }) => {
   const tw = useTailwind();
+
+  const renderChip = (chip: FilterChipDescriptor) => (
+    <ButtonBase
+      size={ButtonBaseSize.Md}
+      endIconName={IconName.ArrowDown}
+      onPress={chip.onPress}
+      testID={suppressTestIDs ? undefined : chip.testID}
+    >
+      {chip.label}
+    </ButtonBase>
+  );
 
   return (
     <ScrollView
@@ -54,48 +65,8 @@ const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={tw.style('flex-row gap-2 px-4 pb-4')}
     >
-      <ButtonBase
-        size={ButtonBaseSize.Md}
-        endIconName={IconName.ArrowDown}
-        onPress={onTypePress}
-        testID={
-          suppressTestIDs
-            ? undefined
-            : ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP
-        }
-      >
-        {typeLabel}
-      </ButtonBase>
-
-      {showNetworkFilter ? (
-        <ButtonBase
-          size={ButtonBaseSize.Md}
-          endIconName={IconName.ArrowDown}
-          onPress={onNetworkPress}
-          testID={
-            suppressTestIDs
-              ? undefined
-              : ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP
-          }
-        >
-          {networkLabel}
-        </ButtonBase>
-      ) : null}
-
-      {showPerpsFilter ? (
-        <ButtonBase
-          size={ButtonBaseSize.Md}
-          endIconName={IconName.ArrowDown}
-          onPress={onPerpsPress}
-          testID={
-            suppressTestIDs
-              ? undefined
-              : ActivityScreenSelectorsIDs.PERPS_FILTER_CHIP
-          }
-        >
-          {perpsLabel}
-        </ButtonBase>
-      ) : null}
+      {renderChip(typeChip)}
+      {secondaryChip ? renderChip(secondaryChip) : null}
     </ScrollView>
   );
 };

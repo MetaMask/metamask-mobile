@@ -32,7 +32,11 @@ import ActivityList, {
 } from '../ActivityList';
 import { TrendingTokenNetworkBottomSheet } from '../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenNetworkBottomSheet';
 import type { CaipChainId } from '@metamask/utils';
-import { ActivityTypeFilter, PerpsActivityFilter } from './types';
+import {
+  ActivityTypeFilter,
+  PerpsActivityFilter,
+  getPerpsSubFilterKinds,
+} from './types';
 import { useNetworkFilterOptions } from './hooks/useNetworkFilterOptions';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
@@ -85,6 +89,9 @@ const ActivityScreen = () => {
 
   const handleSelectTypeFilter = useCallback((filter: ActivityTypeFilter) => {
     setTypeFilter(filter);
+    if (filter !== ActivityTypeFilter.Perps) {
+      setPerpsFilter(PerpsActivityFilter.Trades);
+    }
   }, []);
 
   const typeFilterLabel = strings(ACTIVITY_TYPE_FILTER_LABEL_KEY[typeFilter]);
@@ -138,6 +145,44 @@ const ActivityScreen = () => {
     setPerpsFilter(filter);
   }, []);
 
+  const typeChip = useMemo(
+    () => ({
+      label: typeFilterLabel,
+      onPress: handleOpenTypeSheet,
+      testID: ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP,
+    }),
+    [typeFilterLabel, handleOpenTypeSheet],
+  );
+
+  const secondaryChip = useMemo(() => {
+    if (showPerpsFilter) {
+      return {
+        label: perpsFilterLabel,
+        onPress: handleOpenPerpsSheet,
+        testID: ActivityScreenSelectorsIDs.PERPS_FILTER_CHIP,
+      };
+    }
+    if (showNetworkFilter) {
+      return {
+        label: networkFilterLabel,
+        onPress: handleOpenNetworkSheet,
+        testID: ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP,
+      };
+    }
+    return null;
+  }, [
+    showPerpsFilter,
+    showNetworkFilter,
+    perpsFilterLabel,
+    networkFilterLabel,
+    handleOpenPerpsSheet,
+    handleOpenNetworkSheet,
+  ]);
+
+  const subFilterKinds = showPerpsFilter
+    ? getPerpsSubFilterKinds(perpsFilter)
+    : undefined;
+
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();
@@ -188,28 +233,12 @@ const ActivityScreen = () => {
         </Box>
 
         <AssetListControlBar
-          typeLabel={typeFilterLabel}
-          onTypePress={handleOpenTypeSheet}
-          showNetworkFilter={showNetworkFilter}
-          networkLabel={networkFilterLabel}
-          onNetworkPress={handleOpenNetworkSheet}
-          showPerpsFilter={showPerpsFilter}
-          perpsLabel={perpsFilterLabel}
-          onPerpsPress={handleOpenPerpsSheet}
+          typeChip={typeChip}
+          secondaryChip={secondaryChip}
         />
       </Box>
     ),
-    [
-      handleOpenNetworkSheet,
-      handleOpenPerpsSheet,
-      handleOpenTypeSheet,
-      handleTitleLayout,
-      networkFilterLabel,
-      perpsFilterLabel,
-      showNetworkFilter,
-      showPerpsFilter,
-      typeFilterLabel,
-    ],
+    [handleTitleLayout, typeChip, secondaryChip],
   );
 
   return (
@@ -242,7 +271,7 @@ const ActivityScreen = () => {
               scrollY={scrollY}
               typeFilter={typeFilter}
               networkFilter={effectiveNetworkFilter}
-              perpsFilter={showPerpsFilter ? perpsFilter : undefined}
+              subFilterKinds={subFilterKinds}
             />
 
             {isFilterBarPinned ? (
@@ -258,14 +287,8 @@ const ActivityScreen = () => {
                 </Box>
                 */}
                 <AssetListControlBar
-                  typeLabel={typeFilterLabel}
-                  onTypePress={handleOpenTypeSheet}
-                  showNetworkFilter={showNetworkFilter}
-                  networkLabel={networkFilterLabel}
-                  onNetworkPress={handleOpenNetworkSheet}
-                  showPerpsFilter={showPerpsFilter}
-                  perpsLabel={perpsFilterLabel}
-                  onPerpsPress={handleOpenPerpsSheet}
+                  typeChip={typeChip}
+                  secondaryChip={secondaryChip}
                   suppressTestIDs
                 />
               </Box>

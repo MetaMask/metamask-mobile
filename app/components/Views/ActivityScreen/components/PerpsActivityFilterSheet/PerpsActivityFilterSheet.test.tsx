@@ -1,149 +1,76 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import PerpsActivityFilterSheet, {
   PERPS_ACTIVITY_FILTER_LABEL_KEY,
 } from './PerpsActivityFilterSheet';
 import { ActivityScreenSelectorsIDs } from '../../ActivityScreen.testIds';
 import { PERPS_ACTIVITY_FILTER_ORDER, PerpsActivityFilter } from '../../types';
+import { strings } from '../../../../../../locales/i18n';
 
-// Capture the latest BottomSheet ref's close call so we can assert the sheet
-// closes itself after a selection.
-const mockOnCloseBottomSheet = jest.fn();
-
-jest.mock('@metamask/design-system-react-native', () => {
-  const ReactNative = jest.requireActual('react-native');
-  const React = jest.requireActual('react');
-
-  return {
-    IconColor: { IconDefault: 'IconDefault' },
-    IconName: { Check: 'Check' },
-    IconSize: { Md: 'Md' },
-    TextVariant: { BodyMd: 'BodyMd' },
-    Box: ({
-      children,
-      testID,
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-    }) => <ReactNative.View testID={testID}>{children}</ReactNative.View>,
-    Text: ({ children }: { children?: React.ReactNode }) => (
-      <ReactNative.Text>{children}</ReactNative.Text>
-    ),
-    Icon: ({ name, testID }: { name?: string; testID?: string }) => (
-      <ReactNative.View testID={testID ?? `icon-${name}`} />
-    ),
-    BottomSheet: React.forwardRef(
-      (
-        {
-          children,
-          onClose,
-          testID,
-        }: {
-          children?: React.ReactNode;
-          onClose?: () => void;
-          testID?: string;
-        },
-        ref: React.Ref<{ onCloseBottomSheet: () => void }>,
-      ) => {
-        React.useImperativeHandle(ref, () => ({
-          onCloseBottomSheet: mockOnCloseBottomSheet,
-        }));
-        return (
-          <ReactNative.View testID={testID}>
-            {children}
-            <ReactNative.TouchableOpacity
-              testID="mock-bottom-sheet-close"
-              onPress={onClose}
-            />
-          </ReactNative.View>
-        );
-      },
-    ),
-    BottomSheetHeader: ({ children }: { children?: React.ReactNode }) => (
-      <ReactNative.View testID="mock-bottom-sheet-header">
-        <ReactNative.Text>{children}</ReactNative.Text>
-      </ReactNative.View>
-    ),
-  };
-});
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: (..._args: unknown[]) => ({}),
-  }),
+// The generic sheet behaviour is covered by FilterOptionSheet.test.tsx; here we
+// only assert the wrapper wires the right options, labels, and testIDs.
+const mockFilterOptionSheet = jest.fn();
+jest.mock('../FilterOptionSheet', () => ({
+  FilterOptionSheet: (props: Record<string, unknown>) => {
+    mockFilterOptionSheet(props);
+    return null;
+  },
 }));
 
-const renderSheet = (
-  overrides: Partial<
-    React.ComponentProps<typeof PerpsActivityFilterSheet>
-  > = {},
-) =>
-  render(
-    <PerpsActivityFilterSheet
-      selected={PerpsActivityFilter.Trades}
-      onSelect={jest.fn()}
-      onClose={jest.fn()}
-      {...overrides}
-    />,
-  );
-
-const optionTestId = (filter: PerpsActivityFilter) =>
-  `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${filter}`;
-
 describe('PerpsActivityFilterSheet', () => {
-  beforeEach(() => {
-    mockOnCloseBottomSheet.mockClear();
-  });
+  beforeEach(() => mockFilterOptionSheet.mockClear());
 
-  it('renders the sheet container with the expected testID', () => {
-    renderSheet();
-    expect(
-      screen.getByTestId(ActivityScreenSelectorsIDs.PERPS_FILTER_SHEET),
-    ).toBeOnTheScreen();
-  });
+  const lastProps = () =>
+    mockFilterOptionSheet.mock.calls[
+      mockFilterOptionSheet.mock.calls.length - 1
+    ][0] as {
+      title: string;
+      options: PerpsActivityFilter[];
+      selected: PerpsActivityFilter;
+      getLabel: (f: PerpsActivityFilter) => string;
+      sheetTestID: string;
+      getOptionTestID: (f: PerpsActivityFilter) => string;
+      onSelect: (f: PerpsActivityFilter) => void;
+      onClose: () => void;
+    };
 
-  it('renders one row per filter in PERPS_ACTIVITY_FILTER_ORDER', () => {
-    renderSheet();
-    for (const filter of PERPS_ACTIVITY_FILTER_ORDER) {
-      expect(screen.getByTestId(optionTestId(filter))).toBeOnTheScreen();
-    }
-  });
-
-  it('shows a check icon only on the selected row', () => {
-    renderSheet({ selected: PerpsActivityFilter.Deposits });
-
-    const selectedRow = screen.getByTestId(
-      optionTestId(PerpsActivityFilter.Deposits),
-    );
-    expect(selectedRow).toHaveProp('accessibilityState', { selected: true });
-
-    const unselectedRow = screen.getByTestId(
-      optionTestId(PerpsActivityFilter.Trades),
-    );
-    expect(unselectedRow).toHaveProp('accessibilityState', { selected: false });
-  });
-
-  it('calls onSelect, closes the sheet, and forwards onClose so the parent can re-open it', () => {
+  it('passes the perps-filter order, selection, and sheet testID through', () => {
     const onSelect = jest.fn();
     const onClose = jest.fn();
-    renderSheet({ onSelect, onClose });
-
-    fireEvent.press(
-      screen.getByTestId(optionTestId(PerpsActivityFilter.Order)),
+    render(
+      <PerpsActivityFilterSheet
+        selected={PerpsActivityFilter.Deposits}
+        onSelect={onSelect}
+        onClose={onClose}
+      />,
     );
 
-    expect(onSelect).toHaveBeenCalledWith(PerpsActivityFilter.Order);
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(onClose);
+    const props = lastProps();
+    expect(props.options).toBe(PERPS_ACTIVITY_FILTER_ORDER);
+    expect(props.selected).toBe(PerpsActivityFilter.Deposits);
+    expect(props.sheetTestID).toBe(
+      ActivityScreenSelectorsIDs.PERPS_FILTER_SHEET,
+    );
+    expect(props.onSelect).toBe(onSelect);
+    expect(props.onClose).toBe(onClose);
   });
 
-  it('invokes onClose when the sheet dispatches its close event', () => {
-    const onClose = jest.fn();
-    renderSheet({ onClose });
+  it('resolves labels and option testIDs from the perps-filter maps', () => {
+    render(
+      <PerpsActivityFilterSheet
+        selected={PerpsActivityFilter.Trades}
+        onSelect={jest.fn()}
+        onClose={jest.fn()}
+      />,
+    );
 
-    fireEvent.press(screen.getByTestId('mock-bottom-sheet-close'));
-
-    expect(onClose).toHaveBeenCalledTimes(1);
+    const props = lastProps();
+    expect(props.getLabel(PerpsActivityFilter.Order)).toBe(
+      strings(PERPS_ACTIVITY_FILTER_LABEL_KEY[PerpsActivityFilter.Order]),
+    );
+    expect(props.getOptionTestID(PerpsActivityFilter.Order)).toBe(
+      `${ActivityScreenSelectorsIDs.PERPS_FILTER_OPTION_PREFIX}${PerpsActivityFilter.Order}`,
+    );
   });
 
   it('exports an i18n label key for every filter', () => {

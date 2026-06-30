@@ -99,6 +99,7 @@ import {
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  type ActivityKind,
   type GroupedActivityListItem,
 } from '../../../util/activity-adapters';
 import {
@@ -127,8 +128,6 @@ import { predictActivityToItem } from '../../UI/Predict/utils/predictActivityToI
 import {
   ActivityTypeFilter,
   activityKindMatchesTypeFilter,
-  type PerpsActivityFilter,
-  perpsActivityKindMatchesFilter,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../ActivityScreen/types';
 import {
@@ -180,7 +179,7 @@ interface ActivityListProps {
   scrollY?: SharedValue<number>;
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
-  perpsFilter?: PerpsActivityFilter;
+  subFilterKinds?: ReadonlySet<ActivityKind>;
 }
 
 export interface ActivityListHandle {
@@ -197,7 +196,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       scrollY,
       typeFilter,
       networkFilter,
-      perpsFilter,
+      subFilterKinds,
     },
     ref,
   ) => {
@@ -494,14 +493,8 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           activityKindMatchesTypeFilter(item.type, typeFilter),
         );
       }
-      // Within the Perps bucket, narrow to the selected sub-filter.
-      if (
-        typeFilter === ActivityTypeFilter.Perps &&
-        perpsFilter !== undefined
-      ) {
-        filtered = filtered.filter((item) =>
-          perpsActivityKindMatchesFilter(item.type, perpsFilter),
-        );
+      if (subFilterKinds) {
+        filtered = filtered.filter((item) => subFilterKinds.has(item.type));
       }
       if (networkFilter && networkFilter.length > 0) {
         const allowedChains = new Set(
@@ -516,7 +509,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     }, [
       unifiedTransactionSource,
       typeFilter,
-      perpsFilter,
+      subFilterKinds,
       networkFilter,
       isPerpsEnabled,
       perpsSource.items,
