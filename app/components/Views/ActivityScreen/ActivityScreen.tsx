@@ -6,7 +6,7 @@ import {
   useSharedValue,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -33,10 +33,16 @@ import { ActivityTypeFilter } from './types';
 import { useNetworkFilterOptions } from './hooks/useNetworkFilterOptions';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
+import { useParams } from '../../../util/navigation/navUtils';
+
+interface ActivityScreenParams {
+  redirectToPerpsTransactions?: boolean;
+}
 
 const ActivityScreen = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const params = useParams<ActivityScreenParams>();
 
   const scrollY = useSharedValue(0);
   const titleSectionHeight = useSharedValue(0);
@@ -52,8 +58,10 @@ const ActivityScreen = () => {
   // const [searchQuery, setSearchQuery] = useState('');
   // TODO: restore `ActivityTypeFilter.All` as the default once data-source
   // unification lands. See `ACTIVITY_TYPE_FILTER_ORDER` in ./types.ts.
-  const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(
-    ActivityTypeFilter.Transactions,
+  const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(() =>
+    params.redirectToPerpsTransactions
+      ? ActivityTypeFilter.Perps
+      : ActivityTypeFilter.Transactions,
   );
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
@@ -120,6 +128,17 @@ const ActivityScreen = () => {
   const handleSelectNetwork = useCallback((chainIds: CaipChainId[] | null) => {
     setNetworkFilter(chainIds);
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (!params.redirectToPerpsTransactions) {
+        return;
+      }
+
+      setTypeFilter(ActivityTypeFilter.Perps);
+      navigation.setParams({ redirectToPerpsTransactions: false });
+    }, [navigation, params.redirectToPerpsTransactions]),
+  );
 
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {

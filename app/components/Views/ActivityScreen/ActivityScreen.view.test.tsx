@@ -45,6 +45,22 @@ describeForPlatforms('ActivityScreen', () => {
     });
   });
 
+  it('starts with the Perps type filter when opened from Perps', async () => {
+    const { getAllByText, getByTestId } = renderActivityScreenView({
+      initialParams: {
+        redirectToPerpsTransactions: true,
+        showBackButton: true,
+      },
+    });
+
+    expect(
+      getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Perps)).length,
+    ).toBeGreaterThan(0);
+    expect(
+      getByTestId(ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP),
+    ).toBeDisabled();
+  });
+
   it('updates the selected network filter through the real network sheet', async () => {
     const { getByTestId, getAllByText, findByText } = renderActivityScreenView({
       overrides: activityLineaNetworkOverride,
