@@ -333,6 +333,17 @@ describe('useTransactionCustomAmount', () => {
 
       expect(result.current.amountFiat).toBe('30000');
     });
+
+    it('does not cap input when the payment method has no maximum', async () => {
+      mockFiatBuyLimit(null as unknown as undefined);
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmount('30000');
+      });
+
+      expect(result.current.amountFiat).toBe('30000');
+    });
   });
 
   it('updateTokenAmount delegates to updateTransactionPayAmount with the human amount', async () => {

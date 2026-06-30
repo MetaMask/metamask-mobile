@@ -195,7 +195,7 @@ export function useTransactionCustomAmount({
 
       if (
         isFiatBuyLimited &&
-        fiatMaxAmount !== undefined &&
+        fiatMaxAmount != null &&
         Number(newAmount) > fiatMaxAmount
       ) {
         return;
