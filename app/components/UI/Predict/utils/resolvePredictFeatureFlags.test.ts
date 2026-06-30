@@ -30,6 +30,7 @@ describe('resolvePredictFeatureFlags', () => {
       liveSportsLeagues: [],
       extendedSportsMarketsLeagues: [],
       enabledSportsMarketTypes: [],
+      nonRegTimeSportsMarketTypes: ['soccer_team_to_advance'],
       marketHighlightsFlag: DEFAULT_MARKET_HIGHLIGHTS_FLAG,
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
@@ -839,6 +840,7 @@ describe('resolvePredictFeatureFlags', () => {
         'soccer_team_totals',
         'basketball_team_to_score_first',
         'soccer_exact_score',
+        'soccer_team_to_advance',
       ]);
     });
 
@@ -965,6 +967,90 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.enabledSportsMarketTypes).toEqual(['totals']);
+    });
+  });
+
+  describe('nonRegTimeSportsMarketTypes', () => {
+    it('returns the default full-tie market type when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.nonRegTimeSportsMarketTypes).toEqual([
+        'soccer_team_to_advance',
+      ]);
+    });
+
+    it('uses the default full-tie market type when the optional remote field is missing', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['ucl'],
+            enabledSportsMarketTypes: ['moneyline'],
+          },
+        },
+      });
+
+      expect(result.nonRegTimeSportsMarketTypes).toEqual([
+        'soccer_team_to_advance',
+      ]);
+    });
+
+    it('replaces the default list when the optional remote field is present', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['ucl'],
+            nonRegTimeSportsMarketTypes: [
+              'moneyline',
+              'MONEYLINE',
+              'unsupported_market',
+            ],
+          },
+        },
+      });
+
+      expect(result.nonRegTimeSportsMarketTypes).toEqual(['moneyline']);
+    });
+
+    it('falls back to the default list when the flag fails the version gate', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+            leagues: ['ucl'],
+            nonRegTimeSportsMarketTypes: ['moneyline'],
+          },
+        },
+      });
+
+      expect(result.nonRegTimeSportsMarketTypes).toEqual([
+        'soccer_team_to_advance',
+      ]);
     });
   });
 });
