@@ -244,6 +244,8 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const [destRouteFallbackToken, setDestRouteFallbackToken] = useState<
     BridgeToken | undefined
   >(initialDestToken);
+  const previousInitialDestTokenRef = useRef(initialDestToken);
+  const destRouteFallbackInitialReduxTokenRef = useRef(destToken);
 
   useEffect(() => {
     setSourceRouteFallback({
@@ -253,8 +255,14 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   }, [initialSourceToken, initialSourceAmount]);
 
   useEffect(() => {
+    if (previousInitialDestTokenRef.current === initialDestToken) {
+      return;
+    }
+
+    previousInitialDestTokenRef.current = initialDestToken;
+    destRouteFallbackInitialReduxTokenRef.current = destToken;
     setDestRouteFallbackToken(initialDestToken);
-  }, [initialDestToken]);
+  }, [destToken, initialDestToken]);
 
   useEffect(() => {
     if (!sourceRouteFallback.token) {
@@ -275,10 +283,23 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   }, [sourceAmount, sourceRouteFallback, sourceToken]);
 
   useEffect(() => {
-    if (
-      destRouteFallbackToken &&
-      areBridgeTokensEqual(destToken, destRouteFallbackToken)
-    ) {
+    if (!destRouteFallbackToken) {
+      return;
+    }
+
+    if (areBridgeTokensEqual(destToken, destRouteFallbackToken)) {
+      setDestRouteFallbackToken(undefined);
+      return;
+    }
+
+    const hasReduxDestChangedAfterRouteFallback =
+      destToken &&
+      !areBridgeTokensEqual(
+        destToken,
+        destRouteFallbackInitialReduxTokenRef.current,
+      );
+
+    if (hasReduxDestChangedAfterRouteFallback) {
       setDestRouteFallbackToken(undefined);
     }
   }, [destRouteFallbackToken, destToken]);
@@ -294,7 +315,17 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const displaySourceAmount = shouldUseInitialSourceAmount
     ? sourceRouteFallback.amount
     : sourceAmount;
-  const displayDestToken = destToken ?? destRouteFallbackToken;
+  const hasReduxDestChangedAfterRouteFallback = Boolean(
+    destRouteFallbackToken &&
+      destToken &&
+      !areBridgeTokensEqual(
+        destToken,
+        destRouteFallbackInitialReduxTokenRef.current,
+      ),
+  );
+  const displayDestToken = hasReduxDestChangedAfterRouteFallback
+    ? destToken
+    : (destRouteFallbackToken ?? destToken);
   const areDisplayedTokensSyncedWithRedux =
     areDisplayedBridgeTokensSyncedWithRedux({
       sourceToken,
@@ -994,6 +1025,7 @@ const BridgeView = () => {
       return;
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-deprecated -- Keeps Activity Details navigation smooth by waiting for transition interactions.
     const interactionHandle = InteractionManager.runAfterInteractions(() => {
       setShouldRenderContent(true);
     });

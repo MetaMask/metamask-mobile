@@ -450,7 +450,12 @@ describe('BridgeView', () => {
           decimals: 18,
           symbol: 'OLD',
         },
-        destToken: undefined,
+        destToken: {
+          address: '0x0000000000000000000000000000000000000008',
+          chainId: '0x1' as Hex,
+          decimals: 18,
+          symbol: 'OLD_DEST',
+        },
       },
     };
 
@@ -474,6 +479,7 @@ describe('BridgeView', () => {
 
     expect(getByText('ETH')).toBeTruthy();
     expect(queryByText('OLD')).toBeNull();
+    expect(queryByText('OLD_DEST')).toBeNull();
     expect(getByTestId('source-token-area-input').props.value).toBe('1.23');
     expect(
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
