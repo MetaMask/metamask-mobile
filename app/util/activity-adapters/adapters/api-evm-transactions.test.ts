@@ -762,6 +762,81 @@ describe('mapApiEvmTransactions', () => {
     });
   });
 
+  it('includes the network fee on a CLAIM activity', () => {
+    const transaction = {
+      hash: '0xclaimfee0000000000000000000000000000000000000000000000000000001',
+      timestamp: '2026-05-12T13:37:47.000Z',
+      chainId: 1,
+      from: subjectAddress,
+      to: metamaskBonusContract,
+      transactionCategory: 'CLAIM',
+      gasUsed: 21000,
+      effectiveGasPrice: 1000000000,
+      valueTransfers: [
+        {
+          from: metamaskBonusContract,
+          to: subjectAddress,
+          amount: '1000000',
+          decimal: 6,
+          symbol: 'USDC',
+          transferType: 'normal',
+        },
+      ],
+    } as unknown as V1TransactionByHashResponse;
+
+    const item = mapApiEvmTransactions({ subjectAddress, transaction });
+    expect(item.type).toBe('claim');
+    if (item.type !== 'claim') {
+      throw new Error(`Expected claim item, got ${item.type}`);
+    }
+    expect(item.data.fees).toStrictEqual([
+      expect.objectContaining({
+        type: 'base',
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+      }),
+    ]);
+  });
+
+  it('includes the network fee on a DEPOSIT activity', () => {
+    const stakingContractAddress = '0x00000000219ab540356cbb839cbe05303d7705fa';
+    const transaction = {
+      hash: '0xdepositfee000000000000000000000000000000000000000000000000000001',
+      timestamp: '2026-05-12T13:37:47.000Z',
+      chainId: 1,
+      from: subjectAddress,
+      to: stakingContractAddress,
+      transactionCategory: 'DEPOSIT',
+      gasUsed: 21000,
+      effectiveGasPrice: 1000000000,
+      valueTransfers: [
+        {
+          from: subjectAddress,
+          to: stakingContractAddress,
+          amount: '1000000000000000000',
+          decimal: 18,
+          symbol: 'ETH',
+          transferType: 'normal',
+        },
+      ],
+    } as unknown as V1TransactionByHashResponse;
+
+    const item = mapApiEvmTransactions({ subjectAddress, transaction });
+    expect(item.type).toBe('deposit');
+    if (item.type !== 'deposit') {
+      throw new Error(`Expected deposit item, got ${item.type}`);
+    }
+    expect(item.data.fees).toStrictEqual([
+      expect.objectContaining({
+        type: 'base',
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+      }),
+    ]);
+  });
+
   it('maps a MetaMask mUSD bonus claim to a Claim mUSD bonus activity', () => {
     const transaction = {
       hash: '0x875ded271a40278391fca5d71892231afd0cb9592f31bdf3b7c949906cb982c4',

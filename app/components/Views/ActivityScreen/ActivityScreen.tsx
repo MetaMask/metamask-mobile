@@ -12,7 +12,7 @@ import {
   Box,
   HeaderStandardAnimated,
   Text,
-  TextFieldSearch,
+  // TextFieldSearch, // TODO(activity-redesign): restore with the unified list + filtering
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
@@ -48,7 +48,8 @@ const ActivityScreen = () => {
     [titleSectionHeight],
   );
 
-  const [searchQuery, setSearchQuery] = useState('');
+  // TODO(activity-redesign): restore the search input with the unified list + filtering.
+  // const [searchQuery, setSearchQuery] = useState('');
   // TODO: restore `ActivityTypeFilter.All` as the default once data-source
   // unification lands. See `ACTIVITY_TYPE_FILTER_ORDER` in ./types.ts.
   const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(
@@ -62,9 +63,10 @@ const ActivityScreen = () => {
 
   const networkOptions = useNetworkFilterOptions();
 
-  const handleClearSearch = useCallback(() => {
-    setSearchQuery('');
-  }, []);
+  // TODO(activity-redesign): restore with the search input.
+  // const handleClearSearch = useCallback(() => {
+  //   setSearchQuery('');
+  // }, []);
 
   const handleOpenTypeSheet = useCallback(() => {
     setIsTypeSheetOpen(true);
@@ -155,8 +157,8 @@ const ActivityScreen = () => {
             </Text>
           </Box>
 
+          {/* TODO(activity-redesign): restore the search input with the unified list + filtering.
           <Box twClassName="pb-4">
-            {/* No functionality yet, just a placeholder for the search input */}
             <TextFieldSearch
               value={searchQuery}
               onChangeText={setSearchQuery}
@@ -165,6 +167,7 @@ const ActivityScreen = () => {
               testID={ActivityScreenSelectorsIDs.SEARCH_INPUT}
             />
           </Box>
+          */}
         </Box>
 
         <Box>
@@ -181,7 +184,6 @@ const ActivityScreen = () => {
       </Box>
     ),
     [
-      handleClearSearch,
       handleOpenNetworkSheet,
       handleOpenTypeSheet,
       handleTitleLayout,
@@ -189,7 +191,6 @@ const ActivityScreen = () => {
       isNetworkFilterDisabled,
       isTypeFilterActive,
       networkFilterLabel,
-      searchQuery,
       typeFilterLabel,
     ],
   );
@@ -228,6 +229,7 @@ const ActivityScreen = () => {
 
             {isFilterBarPinned ? (
               <Box twClassName="absolute top-0 left-0 right-0 px-4 bg-default">
+                {/* TODO(activity-redesign): restore the search input with the unified list + filtering.
                 <Box twClassName="pb-4">
                   <TextFieldSearch
                     value={searchQuery}
@@ -236,6 +238,7 @@ const ActivityScreen = () => {
                     onPressClearButton={handleClearSearch}
                   />
                 </Box>
+                */}
                 <AssetListControlBar
                   networkLabel={networkFilterLabel}
                   isNetworkFilterActive={isNetworkFilterActive}
