@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text } from 'react-native';
+import { Text } from '@metamask/design-system-react-native';
 import { fireEvent } from '@testing-library/react-native';
 import { PerpsMarketData } from '@metamask/perps-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
