@@ -182,14 +182,16 @@ describe(SmokeMultiChainAPI('MMConnect Multichain (in-app browser)'), () => {
           await device.enableSynchronization();
         }
 
-        // Wallet-side revoke: open the dapp's connection bar → Manage
-        // permissions → Disconnect all accounts and networks → Confirm.
+        // Wallet-side revoke: open the dapp's connection bar → Disconnect all
+        // accounts and networks → Confirm. The connected-accounts summary
+        // bottom sheet surfaces "Disconnect all"
+        // (DISCONNECT_ALL_ACCOUNTS_NETWORKS) directly, so there is no
+        // intermediate "Manage permissions" step.
         // Counterpart of the dapp-initiated `wallet_revokeSession` exercised
         // by the personal_sign spec; the multichain provider should observe
         // `wallet_sessionChanged` with empty sessionScopes and tear the
         // scopes section down without the dapp tapping Disconnect.
         await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await ConnectedAccountsModal.tapManagePermissionsButton();
         await ConnectedAccountsModal.tapDisconnectAllAccountsAndNetworksButton();
         await ConnectedAccountsModal.tapConfirmDisconnectNetworksButton();
 
