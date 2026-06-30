@@ -140,8 +140,7 @@ describe('handleAssetUrl', () => {
           properties: expect.objectContaining({
             token_symbol: 'TEST',
             alert_type: 'threshold',
-            price_at_trigger: 1234.5,
-            asset_type: 'token',
+            price_at_trigger: '1234.5',
             time_to_open: 10,
           }),
         }),
@@ -150,7 +149,7 @@ describe('handleAssetUrl', () => {
       nowSpy.mockRestore();
     });
 
-    it('derives asset_type "native" and defaults alert_type for native assets', async () => {
+    it('sends null for alert_type and price_at_trigger when absent from the URL', async () => {
       const { mockTrackEvent } = arrangeMocks();
 
       await handleAssetUrl({
@@ -162,13 +161,19 @@ describe('handleAssetUrl', () => {
         expect.objectContaining({
           name: EVENT_NAME.PRICE_ALERT_NOTIFICATION_OPENED,
           properties: expect.objectContaining({
-            asset_type: 'native',
-            alert_type: 'threshold',
-            price_at_trigger: undefined,
-            time_to_open: undefined,
+            token_symbol: 'TEST',
+            alert_type: null,
+            price_at_trigger: null,
           }),
         }),
       );
+
+      // time_to_open is undefined when triggered_at is absent and is stripped
+      // by filterUndefinedValues — verify the key is not present.
+      const received = mockTrackEvent.mock.calls[0][0] as {
+        properties: Record<string, unknown>;
+      };
+      expect(received.properties).not.toHaveProperty('time_to_open');
     });
 
     it('does not track the event for other navigation sources', async () => {
