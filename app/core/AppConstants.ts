@@ -117,6 +117,8 @@ export default {
     TRAVEL_URL: 'https://travel.metamask.io/access',
     CARD_TOS_URL:
       'https://www.baanxuk.com/docs/CL-Platform-Terms-of-Use-2026.pdf',
+    CARD_FEES_URL:
+      'https://support.metamask.io/manage-crypto/metamask-card/limits-and-fees/',
     PASSWORD_RESET_PATH: '/account/password/request',
     LOGIN_PATH: '/account/login',
   },

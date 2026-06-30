@@ -4,6 +4,7 @@ import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
 import { resolvePredictFeatureFlags } from './resolvePredictFeatureFlags';
 
@@ -37,6 +38,7 @@ describe('resolvePredictFeatureFlags', () => {
       predictHomeRedesignEnabled: false,
       predictSportCardLivePricesEnabled: true,
       predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+      predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
     });
   });
 
@@ -348,6 +350,81 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
+    });
+  });
+
+  describe('predictWimbledonTab', () => {
+    it('returns default disabled flag when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictWimbledonTab).toEqual(DEFAULT_WIMBLEDON_TAB_FLAG);
+    });
+
+    it('uses default query params when enabled flag omits query params', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        Boolean(
+          flag &&
+            typeof flag === 'object' &&
+            'enabled' in flag &&
+            (flag as { enabled: boolean }).enabled,
+        ),
+      );
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictWimbledon: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictWimbledonTab).toEqual({
+        ...DEFAULT_WIMBLEDON_TAB_FLAG,
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+    });
+
+    it('uses remote query params when provided', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        Boolean(
+          flag &&
+            typeof flag === 'object' &&
+            'enabled' in flag &&
+            (flag as { enabled: boolean }).enabled,
+        ),
+      );
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictWimbledon: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            queryParams: 'tag_slug=wimbledon&order=volume24hr',
+          },
+        },
+      });
+
+      expect(result.predictWimbledonTab).toEqual({
+        enabled: true,
+        minimumVersion: '1.0.0',
+        queryParams: 'tag_slug=wimbledon&order=volume24hr',
+      });
+    });
+
+    it('falls back to default when schema parsing fails', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictWimbledon: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            queryParams: 12345,
+          },
+        },
+      });
+
+      expect(result.predictWimbledonTab).toEqual(DEFAULT_WIMBLEDON_TAB_FLAG);
     });
   });
 
@@ -757,6 +834,7 @@ describe('resolvePredictFeatureFlags', () => {
         'totals',
         'both_teams_to_score',
         'soccer_first_to_score',
+        'soccer_team_to_advance',
         'team_totals',
         'soccer_team_totals',
         'basketball_team_to_score_first',

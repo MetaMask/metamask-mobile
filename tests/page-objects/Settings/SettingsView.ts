@@ -1,5 +1,6 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
@@ -60,7 +61,7 @@ class SettingsView {
   }
 
   get alertButton(): EncapsulatedElementType {
-    return device.getPlatform() === 'android'
+    return PlatformDetector.isAndroid()
       ? Matchers.getElementByText(CommonSelectorsText.YES_ALERT_BUTTON)
       : Matchers.getElementByLabel(CommonSelectorsText.YES_ALERT_BUTTON);
   }
@@ -155,8 +156,11 @@ class SettingsView {
   }
 
   async tapYesAlertButton(): Promise<void> {
-    await Gestures.tap(this.alertButton, {
+    await Gestures.waitAndTap(this.alertButton, {
       elemDescription: 'Settings - Alert Yes Button',
+      timeout: 30_000,
+      delay: 0,
+      checkEnabled: false,
     });
   }
 

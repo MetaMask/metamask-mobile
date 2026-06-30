@@ -243,7 +243,7 @@ describe('PredictDetails', () => {
       />,
     );
 
-    expect(getByText('+1000 USDC')).toBeOnTheScreen();
+    expect(getByText('+1,000 USDC')).toBeOnTheScreen();
     expect(getByText('Steps (2 completed)')).toBeOnTheScreen();
     expect(getByText('Bridge from ETH to USDC.e')).toBeOnTheScreen();
     expect(getByText('Add funds')).toBeOnTheScreen();

@@ -16,6 +16,12 @@ const I18N_PREFIX = 'predict.sports_market_types';
 const MISSING_TRANSLATION_PREFIX = '[missing';
 const loggedMissingTranslationKeys = new Set<string>();
 const O_U_PLAYER_PATTERN = /^(.+?):\s+\w+ O\/U/;
+const FIFA_WORLD_CUP_LEAGUE = 'fifwc';
+
+const WORLD_CUP_MARKET_TYPE_LABEL_KEYS: Record<string, string> = {
+  moneyline: 'predict.world_cup.market_info.regulation_time_winner.title',
+  soccer_team_to_advance: 'predict.world_cup.market_info.team_to_advance.title',
+};
 
 export type BuyHandler = (
   outcome: PredictOutcome,
@@ -66,6 +72,26 @@ export const getSportsMarketTypeLabel = (
   getTranslatedSportsMarketTypeLabel(type) ??
   fallbackTitle ??
   toTitleCase(type);
+
+const getWorldCupSportsMarketTypeLabel = (
+  type?: string,
+  game?: PredictMarketGame,
+): string | undefined => {
+  if (!type || game?.league !== FIFA_WORLD_CUP_LEAGUE) {
+    return undefined;
+  }
+
+  const key = WORLD_CUP_MARKET_TYPE_LABEL_KEYS[type.toLowerCase()];
+  return key ? strings(key) : undefined;
+};
+
+export const getSportsMarketTypeLabelForGame = (
+  type: string,
+  fallbackTitle?: string,
+  game?: PredictMarketGame,
+): string =>
+  getWorldCupSportsMarketTypeLabel(type, game) ??
+  getSportsMarketTypeLabel(type, fallbackTitle);
 
 export const getFallbackSportsMarketTypeLabel = (
   type: string,
@@ -276,27 +302,46 @@ export const sortMoneylineOutcomes = (
   return [sorted[0], neutral, ...sorted.slice(1)];
 };
 
+export const getMoneylineButtonEntries = (
+  outcomes: PredictOutcome[],
+  game?: PredictMarketGame,
+): { outcome: PredictOutcome; token: PredictOutcomeToken }[] => {
+  const sortedWithTokens = sortMoneylineOutcomes(outcomes, game).filter(
+    (outcome) => outcome.tokens.length > 0,
+  );
+
+  if (sortedWithTokens.length === 1) {
+    const [outcome] = sortedWithTokens;
+    return sortMoneylineTokensForDisplay(outcome.tokens, game).map((token) => ({
+      outcome,
+      token,
+    }));
+  }
+
+  return sortedWithTokens.flatMap((outcome) => {
+    const token = outcome.tokens[0];
+    return token ? [{ outcome, token }] : [];
+  });
+};
+
 export const buildMoneylineButtons = (
   outcomes: PredictOutcome[],
   onBuyPress: BuyHandler,
   game?: PredictMarketGame,
   getPrice?: LivePriceGetter,
 ): PredictSportOutcomeButton[] => {
-  const sortedWithTokens = sortMoneylineOutcomes(outcomes, game).filter(
-    (outcome) => outcome.tokens[0] !== undefined,
-  );
+  const buttonEntries = getMoneylineButtonEntries(outcomes, game);
 
-  return sortedWithTokens.map((outcome, i) => {
-    const yesToken = outcome.tokens[0];
-    const liveBestAsk = getPrice?.(yesToken.id)?.bestAsk;
-    const price = isValidPrice(liveBestAsk) ? liveBestAsk : yesToken.price;
+  return buttonEntries.map(({ outcome, token }, i) => {
+    const liveBestAsk = getPrice?.(token.id)?.bestAsk;
+    const price = isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
 
     return {
-      label: yesToken.shortTitle ?? yesToken.title,
+      label: token.shortTitle ?? token.title,
       price: Math.round(price * 100),
-      onPress: () => onBuyPress(outcome, yesToken),
-      variant: getButtonVariant(i, sortedWithTokens.length, true),
-      teamColor: getTeamColor(yesToken.shortTitle ?? yesToken.title, game),
+      onPress: () => onBuyPress(outcome, token),
+      variant: getButtonVariant(i, buttonEntries.length, true),
+      teamColor: getTeamColor(token.shortTitle ?? token.title, game),
     };
   });
 };
