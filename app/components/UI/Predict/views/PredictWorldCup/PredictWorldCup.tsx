@@ -5,9 +5,14 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { Pressable, RefreshControl, ScrollView } from 'react-native';
+import {
+  type LayoutChangeEvent,
+  Pressable,
+  RefreshControl,
+  ScrollView,
+} from 'react-native';
 import { FlashList } from '@shopify/flash-list';
 import {
   Theme,
@@ -15,7 +20,6 @@ import {
   useTailwind,
   useTheme as useDesignSystemTheme,
 } from '@metamask/design-system-twrnc-preset';
-import { v4 as uuidv4 } from 'uuid';
 import {
   Box,
   HeaderStandard,
@@ -24,7 +28,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
 import {
   selectPredictWorldCupConfig,
@@ -43,6 +46,7 @@ import {
 import {
   usePredictWorldCupAvailableTabs,
   usePredictWorldCupMarkets,
+  usePredictWorldCupFeedSession,
   type PredictWorldCupAvailableTab,
 } from '../../hooks';
 import PredictMarket from '../../components/PredictMarket';
@@ -81,6 +85,7 @@ interface WorldCupTabButtonProps {
   tab: PredictWorldCupAvailableTab;
   isActive: boolean;
   onPress: () => void;
+  onLayout: (event: LayoutChangeEvent) => void;
 }
 
 const WorldCupLiveTabLabelContent = ({ label }: { label: string }) => {
@@ -125,12 +130,14 @@ const WorldCupTabButton = ({
   tab,
   isActive,
   onPress,
+  onLayout,
 }: WorldCupTabButtonProps) => {
   const tw = useTailwind();
 
   return (
     <Pressable
       onPress={onPress}
+      onLayout={onLayout}
       style={tw.style(
         'min-w-[51px] flex-row items-center justify-center gap-2 rounded-xl bg-muted p-2',
         isActive && 'bg-icon-default',
@@ -282,15 +289,14 @@ const WorldCupTabContent = ({
 
 const PredictWorldCup: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
-  const hasTrackedInitialFeedViewed = useRef(false);
-  const feedSessionId = useMemo(() => uuidv4(), []);
-  const feedSessionStartTime = useMemo(() => Date.now(), []);
-  const feedPageViewCount = useRef(0);
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictWorldCup'>>();
   const config = useSelector(selectPredictWorldCupConfig);
   const isScreenEnabled = useSelector(selectPredictWorldCupScreenEnabledFlag);
+
+  const entryPoint = (route.params?.entryPoint ??
+    PredictEventValues.ENTRY_POINT.PREDICT_FEED) as PredictEntryPoint;
+  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   const {
     tabs,
@@ -311,14 +317,29 @@ const PredictWorldCup: React.FC = () => {
     [availability, config, route.params?.initialTab],
   );
 
-  const [activeTab, setActiveTab] = useState<PredictWorldCupTabKey>(initialTab);
-  const entryPoint = (route.params?.entryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED) as PredictEntryPoint;
-  const transactionActiveAbTests = route.params?.transactionActiveAbTests;
+  const {
+    activeTab,
+    tabsScrollViewRef,
+    feedSessionId,
+    feedSessionStartTime,
+    getPageViewCount,
+    handleTabLayout,
+    handleTabPress,
+    navigateToMarketList,
+    handleBack,
+  } = usePredictWorldCupFeedSession<PredictWorldCupTabKey>({
+    initialTab,
+    entryPoint,
+    routeEntryPoint: route.params?.entryPoint as PredictEntryPoint | undefined,
+    transactionActiveAbTests,
+  });
+
+  const hasTrackedInitialFeedViewed = useRef(false);
 
   useEffect(() => {
-    setActiveTab(initialTab);
-  }, [initialTab]);
+    if (isScreenEnabled) return;
+    navigateToMarketList();
+  }, [isScreenEnabled, navigateToMarketList]);
 
   useEffect(() => {
     if (
@@ -334,7 +355,7 @@ const PredictWorldCup: React.FC = () => {
       sessionId: feedSessionId,
       feedTab: initialTab,
       predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
-      numPagesViewed: feedPageViewCount.current,
+      numPagesViewed: getPageViewCount(),
       sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
       entryPoint,
       isSessionEnd: false,
@@ -344,61 +365,12 @@ const PredictWorldCup: React.FC = () => {
     entryPoint,
     feedSessionId,
     feedSessionStartTime,
+    getPageViewCount,
     initialTab,
     isAvailabilityFetching,
     isAvailabilityLoading,
     isScreenEnabled,
   ]);
-
-  useEffect(() => {
-    if (isScreenEnabled) {
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MARKET_LIST, {
-      entryPoint: route.params?.entryPoint,
-      ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
-    });
-  }, [
-    isScreenEnabled,
-    navigation,
-    route.params?.entryPoint,
-    transactionActiveAbTests,
-  ]);
-
-  const handleBack = useCallback(() => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-
-    navigation.navigate(Routes.PREDICT.MARKET_LIST, {
-      entryPoint: route.params?.entryPoint,
-      ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
-    });
-  }, [navigation, route.params?.entryPoint, transactionActiveAbTests]);
-
-  const handleTabPress = useCallback(
-    (tabKey: PredictWorldCupTabKey) => {
-      if (tabKey === activeTab) {
-        return;
-      }
-
-      feedPageViewCount.current += 1;
-
-      Engine.context.PredictController.trackFeedViewed({
-        sessionId: feedSessionId,
-        feedTab: tabKey,
-        predictScreen: PredictEventValues.PREDICT_SCREEN.WORLD_CUP,
-        numPagesViewed: feedPageViewCount.current,
-        sessionTime: Math.round((Date.now() - feedSessionStartTime) / 1000),
-        entryPoint,
-        isSessionEnd: false,
-      });
-      setActiveTab(tabKey);
-    },
-    [activeTab, entryPoint, feedSessionId, feedSessionStartTime],
-  );
 
   if (!isScreenEnabled) {
     return null;
@@ -418,6 +390,7 @@ const PredictWorldCup: React.FC = () => {
 
       <Box twClassName="flex-1">
         <ScrollView
+          ref={tabsScrollViewRef}
           horizontal
           showsHorizontalScrollIndicator={false}
           style={tw.style('grow-0')}
@@ -430,6 +403,7 @@ const PredictWorldCup: React.FC = () => {
               tab={tab}
               isActive={activeTab === tab.key}
               onPress={() => handleTabPress(tab.key)}
+              onLayout={(event) => handleTabLayout(tab.key, event)}
             />
           ))}
         </ScrollView>

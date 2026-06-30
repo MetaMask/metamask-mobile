@@ -306,6 +306,7 @@ describe('PerpsStreamManager', () => {
             bestAsk: '50100',
             spread: '200',
             markPrice: '50050',
+            isTradable: true,
           },
         ];
         params.callback(cachedData);
@@ -336,6 +337,7 @@ describe('PerpsStreamManager', () => {
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
+          isTradable: true,
         },
       });
     });
@@ -371,6 +373,7 @@ describe('PerpsStreamManager', () => {
           price: '50000',
           percentChange24h: '5',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -387,6 +390,7 @@ describe('PerpsStreamManager', () => {
           price: '50100',
           percentChange24h: '5.1',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -414,6 +418,7 @@ describe('PerpsStreamManager', () => {
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
+          isTradable: true,
         },
       });
     });
@@ -449,6 +454,7 @@ describe('PerpsStreamManager', () => {
           price: '50000',
           percentChange24h: '5',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -465,6 +471,7 @@ describe('PerpsStreamManager', () => {
           price: '50100',
           percentChange24h: '5.1',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
       controllerCallback?.([
@@ -473,6 +480,7 @@ describe('PerpsStreamManager', () => {
           price: '50200',
           percentChange24h: '5.2',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
       controllerCallback?.([
@@ -481,6 +489,7 @@ describe('PerpsStreamManager', () => {
           price: '50300',
           percentChange24h: '5.3',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -509,6 +518,7 @@ describe('PerpsStreamManager', () => {
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
+          isTradable: true,
         },
       });
     });
@@ -571,6 +581,7 @@ describe('PerpsStreamManager', () => {
           price: '3000',
           timestamp: Date.now(),
           percentChange24h: '2',
+          isTradable: true,
         },
       ]);
     });
@@ -586,6 +597,7 @@ describe('PerpsStreamManager', () => {
           price: '3010',
           timestamp: Date.now(),
           percentChange24h: '2.1',
+          isTradable: true,
         },
       ]);
     });
@@ -601,6 +613,7 @@ describe('PerpsStreamManager', () => {
           price: '3020',
           timestamp: Date.now(),
           percentChange24h: '2.2',
+          isTradable: true,
         },
       ]);
     });
@@ -641,6 +654,7 @@ describe('PerpsStreamManager', () => {
           price: '50000',
           timestamp: Date.now(),
           percentChange24h: '5',
+          isTradable: true,
         },
       ]);
     });
@@ -657,6 +671,7 @@ describe('PerpsStreamManager', () => {
           price: '50100',
           timestamp: Date.now(),
           percentChange24h: '5.1',
+          isTradable: true,
         },
       ]);
     });
@@ -739,6 +754,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     // Send first update from WebSocket
@@ -787,6 +803,7 @@ describe('PerpsStreamManager', () => {
             price: '50000',
             timestamp: Date.now(),
             percentChange24h: '5',
+            isTradable: true,
           },
         ]);
       });
@@ -1395,6 +1412,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     // Send first update - should be immediate
@@ -1411,6 +1429,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50100',
       timestamp: Date.now() + 10,
+      isTradable: true,
     };
 
     const thirdUpdate: PriceUpdate = {
@@ -1418,6 +1437,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50200',
       timestamp: Date.now() + 20,
+      isTradable: true,
     };
 
     // Send rapid subsequent updates
@@ -1499,6 +1519,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     // Send update
@@ -1588,6 +1609,291 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  describe('PriceStreamChannel symbol-scoped dispatch', () => {
+    let priceCallback: (data: PriceUpdate[]) => void;
+
+    beforeEach(() => {
+      priceCallback = jest.fn();
+      mockSubscribeToPrices.mockImplementation((params) => {
+        priceCallback = params.callback;
+        return jest.fn();
+      });
+    });
+
+    const makePrice = (symbol: string, price: string): PriceUpdate => ({
+      symbol,
+      price,
+      timestamp: Date.now(),
+      isTradable: true,
+    });
+
+    it('dispatches a single-symbol tick only to subscribers registered for that symbol', () => {
+      const btcCb = jest.fn();
+      const ethCb = jest.fn();
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: btcCb,
+        throttleMs: 0,
+      });
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['ETH-PERP'],
+        callback: ethCb,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        priceCallback([makePrice('BTC-PERP', '50000')]);
+      });
+
+      expect(btcCb).toHaveBeenCalledTimes(1);
+      expect(btcCb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({
+          symbol: 'BTC-PERP',
+          price: '50000',
+        }),
+      });
+      // ETH subscriber must NOT be touched by a BTC-only tick
+      expect(ethCb).not.toHaveBeenCalled();
+
+      act(() => {
+        priceCallback([makePrice('ETH-PERP', '3000')]);
+      });
+
+      expect(ethCb).toHaveBeenCalledTimes(1);
+      expect(ethCb).toHaveBeenCalledWith({
+        'ETH-PERP': expect.objectContaining({
+          symbol: 'ETH-PERP',
+          price: '3000',
+        }),
+      });
+      // BTC subscriber unaffected by the ETH tick
+      expect(btcCb).toHaveBeenCalledTimes(1);
+    });
+
+    it('preserves first-update and throttle semantics for scoped dispatch', () => {
+      const cb = jest.fn();
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: cb,
+        throttleMs: 100,
+      });
+
+      // First update is delivered immediately (first-update semantics)
+      act(() => {
+        priceCallback([makePrice('BTC-PERP', '100')]);
+      });
+      expect(cb).toHaveBeenCalledTimes(1);
+
+      // Rapid subsequent updates are throttled (not delivered immediately)
+      act(() => {
+        priceCallback([makePrice('BTC-PERP', '101')]);
+        priceCallback([makePrice('BTC-PERP', '102')]);
+      });
+      expect(cb).toHaveBeenCalledTimes(1);
+
+      // After the throttle window the latest pending update is delivered once
+      act(() => {
+        jest.advanceTimersByTime(100);
+      });
+      expect(cb).toHaveBeenCalledTimes(2);
+      expect(cb.mock.calls[1][0]['BTC-PERP']).toMatchObject({ price: '102' });
+    });
+
+    it('delivers correct filtered slices to overlapping multi-symbol subscribers', () => {
+      const aCb = jest.fn(); // subscribes to BTC + ETH
+      const bCb = jest.fn(); // subscribes to ETH only
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP', 'ETH-PERP'],
+        callback: aCb,
+        throttleMs: 0,
+      });
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['ETH-PERP'],
+        callback: bCb,
+        throttleMs: 0,
+      });
+
+      // A tick for the shared symbol notifies both with their ETH slice
+      act(() => {
+        priceCallback([makePrice('ETH-PERP', '3000')]);
+      });
+      expect(aCb).toHaveBeenCalledWith({
+        'ETH-PERP': expect.objectContaining({ price: '3000' }),
+      });
+      expect(bCb).toHaveBeenCalledWith({
+        'ETH-PERP': expect.objectContaining({ price: '3000' }),
+      });
+
+      // A BTC-only tick reaches A (registered for BTC) but not B
+      aCb.mockClear();
+      bCb.mockClear();
+      act(() => {
+        priceCallback([makePrice('BTC-PERP', '50000')]);
+      });
+      expect(aCb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({ price: '50000' }),
+      });
+      expect(bCb).not.toHaveBeenCalled();
+
+      // A tick carrying both symbols yields the full slice for A and ETH for B
+      aCb.mockClear();
+      bCb.mockClear();
+      act(() => {
+        priceCallback([
+          makePrice('BTC-PERP', '51000'),
+          makePrice('ETH-PERP', '3100'),
+        ]);
+      });
+      expect(aCb).toHaveBeenCalledTimes(1);
+      expect(aCb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({ price: '51000' }),
+        'ETH-PERP': expect.objectContaining({ price: '3100' }),
+      });
+      expect(bCb).toHaveBeenCalledTimes(1);
+      expect(bCb).toHaveBeenCalledWith({
+        'ETH-PERP': expect.objectContaining({ price: '3100' }),
+      });
+    });
+
+    it('stops dispatching to a subscriber after it unsubscribes (index cleanup)', () => {
+      const btcCb = jest.fn();
+      const ethCb = jest.fn();
+
+      const unsubBtc = testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: btcCb,
+        throttleMs: 0,
+      });
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['ETH-PERP'],
+        callback: ethCb,
+        throttleMs: 0,
+      });
+
+      unsubBtc();
+
+      act(() => {
+        priceCallback([makePrice('BTC-PERP', '50000')]);
+      });
+
+      expect(btcCb).not.toHaveBeenCalled();
+      expect(ethCb).not.toHaveBeenCalled();
+    });
+
+    it('keeps symbol-scoped dispatch and clearCache semantics after an account switch', () => {
+      const btcCb = jest.fn();
+      const ethCb = jest.fn();
+
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: btcCb,
+        throttleMs: 0,
+      });
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['ETH-PERP'],
+        callback: ethCb,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        priceCallback([makePrice('BTC-PERP', '50000')]);
+      });
+      expect(btcCb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({ price: '50000' }),
+      });
+
+      btcCb.mockClear();
+      ethCb.mockClear();
+
+      // Account switch clears caches and notifies every subscriber with cleared data
+      act(() => {
+        testStreamManager.prices.clearCache();
+      });
+      expect(btcCb).toHaveBeenCalledWith({});
+      expect(ethCb).toHaveBeenCalledWith({});
+
+      btcCb.mockClear();
+      ethCb.mockClear();
+
+      // After the switch, the symbol index still scopes dispatch correctly
+      act(() => {
+        priceCallback([makePrice('BTC-PERP', '60000')]);
+      });
+      expect(btcCb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({ price: '60000' }),
+      });
+      expect(ethCb).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('PriceStreamChannel isTradable propagation', () => {
+    let priceCallback: (data: PriceUpdate[]) => void;
+
+    beforeEach(() => {
+      priceCallback = jest.fn();
+      mockSubscribeToPrices.mockImplementation((params) => {
+        priceCallback = params.callback;
+        return jest.fn();
+      });
+    });
+
+    it('propagates isTradable from live price updates', () => {
+      const cb = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: cb,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        priceCallback([
+          {
+            symbol: 'BTC-PERP',
+            price: '50000',
+            timestamp: Date.now(),
+            isTradable: false,
+          },
+        ]);
+      });
+
+      expect(cb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({
+          symbol: 'BTC-PERP',
+          isTradable: false,
+        }),
+      });
+    });
+
+    it('defaults isTradable to true when live update omits the field', () => {
+      const cb = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: cb,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        priceCallback([
+          {
+            symbol: 'BTC-PERP',
+            price: '50000',
+            timestamp: Date.now(),
+          } as PriceUpdate,
+        ]);
+      });
+
+      expect(cb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({
+          symbol: 'BTC-PERP',
+          isTradable: true,
+        }),
+      });
+    });
+  });
+
   it('cleans up all subscriptions on provider unmount', async () => {
     const mockUnsubscribe = jest.fn();
     mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
@@ -1661,6 +1967,38 @@ describe('PerpsStreamManager', () => {
       });
 
       unsubscribe();
+    });
+
+    it('passes useTerminalApi: true to getMarketDataWithPrices', async () => {
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledWith({
+          useTerminalApi: true,
+        });
+      });
+
+      unsubscribe();
+    });
+
+    it('passes useTerminalApi: true to getMarkets during prewarm', async () => {
+      await testStreamManager.prices.prewarm();
+
+      const mockController = (
+        Engine.context as unknown as {
+          PerpsController: Record<string, jest.Mock>;
+        }
+      ).PerpsController;
+      await waitFor(() => {
+        expect(mockController.getMarkets).toHaveBeenCalledWith({
+          useTerminalApi: true,
+        });
+      });
     });
 
     it('uses cached data for subsequent subscriptions within cache duration', async () => {

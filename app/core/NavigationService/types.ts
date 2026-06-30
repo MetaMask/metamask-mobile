@@ -3,6 +3,7 @@ import type {
   NavigationProp,
   NavigationState,
 } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import type { Position } from '@metamask/social-controllers';
 
 // ============================================================================
@@ -19,6 +20,7 @@ import type { BrowserParams } from '../../components/Views/Browser/Browser.types
 // Bridge params
 import type { BridgeRouteParams } from '../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeTokenSelectorRouteParams } from '../../components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
+import type { HardwareWalletsSwapsRouteParams } from '../../components/UI/HardwareWallet/Swaps/flowStrategy';
 import type { BatchSellNetworkFeeInfoModalParams } from '../../components/UI/Bridge/components/BatchSellNetworkFeeInfoModal/BatchSellNetworkFeeInfoModal.types';
 import type { BatchSellMinimumReceivedInfoModalParams } from '../../components/UI/Bridge/components/BatchSellMinimumReceivedInfoModal/BatchSellMinimumReceivedInfoModal.types';
 import type {
@@ -66,12 +68,11 @@ import type {
   RampBuySellParams,
   RampOrderDetailsParams,
   RampAggregatorBuildQuoteParams,
-  DepositBuildQuoteParams,
   SimpleRampBuildQuoteParams,
   WebviewModalParams,
   KycWebviewModalParams,
 } from '../../components/UI/Ramp/Aggregator/types/navigation';
-import type { DepositNavigationParams } from '../../components/UI/Ramp/Deposit/types/navigationParams';
+import type { DepositNavigationParams } from '../../components/UI/Ramp/types/depositNavigationParams';
 
 // Transactions params
 import type {
@@ -246,6 +247,13 @@ type TraderPositionViewParams =
       /** Analytics entry-point that opened the position view. Narrowed at the
        * receiver into the QuickBuy / FollowTradingToken source enums. */
       source?: string;
+      /** Whether the tapped position came from the closed list. Authoritative
+       * closed/open signal (more reliable than re-deriving from fields). */
+      isClosed?: boolean;
+      /** Notification subtype forwarded from the social-trader-position
+       * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
+       * destination screen's analytics event for click attribution. */
+      notificationSubtype?: string;
     }
   | {
       /** Deep-link path: triggers useTraderPosition to fetch by UUID. */
@@ -260,6 +268,12 @@ type TraderPositionViewParams =
       /** Analytics entry-point that opened the position view. Narrowed at the
        * receiver into the QuickBuy / FollowTradingToken source enums. */
       source?: string;
+      /** Deep links have no list context; resolved heuristically downstream. */
+      isClosed?: never;
+      /** Notification subtype forwarded from the social-trader-position
+       * deeplink (e.g. `follow_newtrade_perp_long`). Attached to the
+       * destination screen's analytics event for click attribution. */
+      notificationSubtype?: string;
     };
 
 /**
@@ -285,11 +299,11 @@ export interface RootStackParamList extends ParamListBase {
   /**
    * BuildQuote route is shared between:
    * - Ramp Aggregator: uses RampAggregatorBuildQuoteParams (showBack, assetId, amount, currency)
-   * - Deposit: uses DepositBuildQuoteParams (shouldRouteImmediately)
+   * - Unified buy (Ramp): uses SimpleRampBuildQuoteParams
    */
   BuildQuote:
     | RampAggregatorBuildQuoteParams
-    | DepositBuildQuoteParams
+    | SimpleRampBuildQuoteParams
     | undefined;
   BuildQuoteHasStarted: undefined;
   Quotes: undefined;
@@ -357,6 +371,7 @@ export interface RootStackParamList extends ParamListBase {
   TransactionsView: TransactionsViewParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
   RewardsView: undefined;
+  RewardsFlow: NestedNavigationParams | undefined;
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
@@ -377,7 +392,6 @@ export interface RootStackParamList extends ParamListBase {
   RootModalFlow: RootModalFlowParams | NestedNavigationParams | undefined;
   ModalConfirmation: ModalConfirmationParams | undefined;
   ModalMandatory: ModalMandatoryParams | undefined;
-  WhatsNewModal: undefined;
   TurnOffRememberMeModal: undefined;
   UpdateNeededModal: undefined;
   SRPRevealQuiz: SRPRevealQuizParams | undefined;
@@ -552,9 +566,13 @@ export interface RootStackParamList extends ParamListBase {
     | BatchSellMinimumReceivedInfoModalParams
     | undefined;
   BridgeTransactionDetails: BridgeTransactionDetailsParams | undefined;
+  HardwareWalletsSwaps: HardwareWalletsSwapsRouteParams | undefined;
 
-  // Perps routes - use PerpsNavigationParamList for type-safe perps navigation
-  Perps: PerpsNavigationParamList['Perps'];
+  // Perps routes - use PerpsNavigationParamList for type-safe perps navigation.
+  // The `Perps` root is a nested stack navigator, so it also accepts the
+  // `{ screen, params }` form for cross-stack navigation (e.g. from the social
+  // leaderboard into PerpsMarketDetails).
+  Perps: NestedNavigationParams | PerpsNavigationParamList['Perps'];
   PerpsTradingView: PerpsNavigationParamList['PerpsTradingView'];
   PerpsWithdraw: PerpsNavigationParamList['PerpsWithdraw'];
   PerpsPositions: PerpsNavigationParamList['PerpsPositions'];
@@ -750,6 +768,18 @@ declare global {
  */
 export type AppNavigationProp = Omit<
   NavigationProp<ReactNavigation.RootParamList>,
+  'getState'
+> & {
+  getState(): NavigationState<ReactNavigation.RootParamList> | undefined;
+};
+
+/**
+ * Use when calling stack-only APIs (`replace`, `push`, `pop`, `popToTop`).
+ * Mirrors {@link AppNavigationProp}'s `getState()` override, which accounts for
+ * `getState()` potentially returning undefined when the navigator is not mounted.
+ */
+export type AppStackNavigationProp = Omit<
+  NativeStackNavigationProp<ReactNavigation.RootParamList>,
   'getState'
 > & {
   getState(): NavigationState<ReactNavigation.RootParamList> | undefined;

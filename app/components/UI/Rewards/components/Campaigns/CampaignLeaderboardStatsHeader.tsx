@@ -89,12 +89,12 @@ const CampaignLeaderboardStatsHeader: React.FC<
         </Box>
 
         {isLoading ? (
-          <>
+          <Box twClassName="gap-2 mt-2 mb-1">
             <Skeleton style={tw.style('h-9 w-28 rounded')} />
             {showSubtextRow && (
-              <Skeleton style={tw.style('mt-1 h-4 w-full max-w-xs rounded')} />
+              <Skeleton style={tw.style('h-4 w-full max-w-xs rounded')} />
             )}
-          </>
+          </Box>
         ) : (
           <>
             <Text

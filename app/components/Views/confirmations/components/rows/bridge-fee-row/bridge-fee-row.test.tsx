@@ -15,7 +15,9 @@ import {
 } from '@metamask/transaction-pay-controller';
 import {
   useIsTransactionPayLoading,
+  useTransactionPayFiatPayment,
   useTransactionPayQuotes,
+  useTransactionPaySourceAmounts,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
 import { useIsPaidByMetaMask } from '../../../hooks/pay/useIsPaidByMetaMask';
@@ -32,7 +34,9 @@ jest.mock('../../../hooks/metrics/useConfirmationAlertMetrics', () => ({
   }),
 }));
 
-function render(options: { type?: TransactionType } = {}) {
+function render(
+  options: { type?: TransactionType; isGasFeeSponsored?: boolean } = {},
+) {
   const state = merge(
     {},
     simpleSendTransactionControllerMock,
@@ -40,10 +44,16 @@ function render(options: { type?: TransactionType } = {}) {
     otherControllersMock,
   );
 
-  (
+  const tx = (
     state.engine.backgroundState
       .TransactionController as TransactionControllerState
-  ).transactions[0].type = options.type ?? TransactionType.perpsDeposit;
+  ).transactions[0];
+
+  tx.type = options.type ?? TransactionType.perpsDeposit;
+
+  if (options.isGasFeeSponsored !== undefined) {
+    tx.isGasFeeSponsored = options.isGasFeeSponsored;
+  }
 
   return renderWithProvider(<BridgeFeeRow />, { state });
 }
@@ -51,10 +61,16 @@ function render(options: { type?: TransactionType } = {}) {
 describe('BridgeFeeRow', () => {
   const useTransactionTotalsMock = jest.mocked(useTransactionPayTotals);
   const useTransactionPayQuotesMock = jest.mocked(useTransactionPayQuotes);
+  const useTransactionPaySourceAmountsMock = jest.mocked(
+    useTransactionPaySourceAmounts,
+  );
   const useIsTransactionPayLoadingMock = jest.mocked(
     useIsTransactionPayLoading,
   );
   const useIsPaidByMetaMaskMock = jest.mocked(useIsPaidByMetaMask);
+  const useTransactionPayFiatPaymentMock = jest.mocked(
+    useTransactionPayFiatPayment,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -74,7 +90,11 @@ describe('BridgeFeeRow', () => {
       {} as TransactionPayQuote<Json>,
     ]);
 
+    useTransactionPaySourceAmountsMock.mockReturnValue([]);
+
     useIsPaidByMetaMaskMock.mockReturnValue(false);
+
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
   });
 
   it('renders transaction fee', async () => {
@@ -190,6 +210,21 @@ describe('BridgeFeeRow', () => {
     });
 
     expect(getByText('$0.50')).toBeOnTheScreen();
+  });
+
+  it('renders $0 fee when transaction is gas fee sponsored', () => {
+    const { getByText } = render({ isGasFeeSponsored: true });
+    expect(getByText('$0')).toBeOnTheScreen();
+  });
+
+  it('renders fee from totals when gas fee sponsored and fiat payment selected', () => {
+    useTransactionPayFiatPaymentMock.mockReturnValue({
+      selectedPaymentMethodId: 'pm-123',
+    } as never);
+
+    const { getByText } = render({ isGasFeeSponsored: true });
+
+    expect(getByText('$1.23')).toBeOnTheScreen();
   });
 
   describe('paid by MetaMask', () => {

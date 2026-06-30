@@ -5,7 +5,7 @@ import { CustomAmountInfo } from '../custom-amount-info';
 import { ARBITRUM_USDC, PERPS_CURRENCY } from '../../../constants/perps';
 import { useAddToken } from '../../../hooks/tokens/useAddToken';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { useMoneyAccountPaymentOverride } from '../../../hooks/pay/useMoneyAccountPaymentOverride';
+import { useDefaultPaySelectedSection } from '../../../hooks/pay/useDefaultPaySelectedSection';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import {
   ConfirmationParams,
@@ -16,11 +16,11 @@ export function PerpsDepositInfo() {
   const { payWithOption } = useParams<ConfirmationParams>({});
   const title =
     payWithOption === PayWithOption.MoneyAccount
-      ? strings('perps.transfer_to_perps')
+      ? strings('perps.send_to_perps')
       : strings('confirm.title.perps_deposit');
 
   useNavbar(title);
-  useMoneyAccountPaymentOverride();
+  useDefaultPaySelectedSection();
 
   useAddToken({
     chainId: CHAIN_IDS.ARBITRUM,

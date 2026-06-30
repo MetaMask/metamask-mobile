@@ -231,6 +231,18 @@ describe('handlePredictUrl', () => {
       });
     });
 
+    it('navigates to market list with Wimbledon tab parameter', async () => {
+      await handlePredictUrl({ predictPath: '?tab=wimbledon' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+        screen: Routes.PREDICT.MARKET_LIST,
+        params: {
+          entryPoint: 'deeplink',
+          tab: 'wimbledon',
+        },
+      });
+    });
+
     it('normalizes uppercase tab parameter to lowercase', async () => {
       await handlePredictUrl({ predictPath: '?tab=CRYPTO' });
 
@@ -388,6 +400,9 @@ describe('handlePredictUrl', () => {
     it('navigates to the generic feed for a known feed id', async () => {
       await handlePredictUrl({ predictPath: '?feed=sports' });
 
+      // Guard against regressions where FEED is opened imperatively and then
+      // overwritten by a second MARKET_LIST navigation.
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
         screen: Routes.PREDICT.FEED,
         params: {

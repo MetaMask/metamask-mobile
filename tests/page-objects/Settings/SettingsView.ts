@@ -1,12 +1,12 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import {
   SettingsViewSelectorsIDs,
   SettingsViewSelectorsText,
 } from '../../../app/components/Views/Settings/SettingsView.testIds';
 import { CommonSelectorsText } from '../../../app/util/Common.testIds';
 import { EncapsulatedElementType } from '../../framework';
-import UnifiedGestures from '../../framework/UnifiedGestures';
 
 class SettingsView {
   get title(): EncapsulatedElementType {
@@ -61,7 +61,7 @@ class SettingsView {
   }
 
   get alertButton(): EncapsulatedElementType {
-    return device.getPlatform() === 'android'
+    return PlatformDetector.isAndroid()
       ? Matchers.getElementByText(CommonSelectorsText.YES_ALERT_BUTTON)
       : Matchers.getElementByLabel(CommonSelectorsText.YES_ALERT_BUTTON);
   }
@@ -119,8 +119,8 @@ class SettingsView {
   }
 
   async tapSecurityAndPrivacy(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.securityAndPrivacyButton, {
-      description: 'Settings - Security and Privacy Button',
+    await Gestures.waitAndTap(this.securityAndPrivacyButton, {
+      elemDescription: 'Settings - Security and Privacy Button',
     });
   }
 
@@ -156,8 +156,11 @@ class SettingsView {
   }
 
   async tapYesAlertButton(): Promise<void> {
-    await Gestures.tap(this.alertButton, {
+    await Gestures.waitAndTap(this.alertButton, {
       elemDescription: 'Settings - Alert Yes Button',
+      timeout: 30_000,
+      delay: 0,
+      checkEnabled: false,
     });
   }
 

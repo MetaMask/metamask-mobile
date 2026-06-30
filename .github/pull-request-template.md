@@ -19,7 +19,10 @@ markdown and must NOT be removed or edited without updating the validator regist
   type=manual-testing Section must have real testing steps or an explicit N/A.
   type=screenshot     Section must have evidence (image/URL) or an explicit N/A.
   type=checklist      Section must have all checkboxes consciously checked.
-  required=true|false Whether a missing/invalid section blocks the PR check.
+  required=true|false Whether a missing/invalid section runs the validator at all.
+  blocking=true|false Whether a failure of this check fails the CI workflow.
+                      Default: false — failures are shown as warnings in the sticky
+                      comment but do not block the PR.
 
 Sections without a directive are checked for structural presence only.
 -->
@@ -36,7 +39,7 @@ Write a short description of the changes included in this pull request, also inc
 
 ## **Changelog**
 
-<!-- mms-check: type=changelog required=true -->
+<!-- mms-check: type=changelog required=true blocking=true -->
 
 <!--
 If this PR is not End-User-Facing and should not show up in the CHANGELOG, you can choose to either:

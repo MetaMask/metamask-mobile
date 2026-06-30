@@ -38,9 +38,18 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
-  const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
+  const { View, TouchableOpacity, Text, TextInput } =
+    jest.requireActual('react-native');
   return {
     Box: View,
+    Input: ({
+      isStateStylesDisabled: _isStateStylesDisabled,
+      twClassName: _twClassName,
+      ...props
+    }: {
+      isStateStylesDisabled?: boolean;
+      twClassName?: string;
+    }) => <TextInput {...props} />,
     BoxFlexDirection: { Row: 'row' },
     BoxAlignItems: { Center: 'center' },
     BoxFlexWrap: { Wrap: 'wrap' },

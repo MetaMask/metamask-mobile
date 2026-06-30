@@ -7,14 +7,12 @@ import { TokenSearchDiscoveryDataControllerMessenger } from '@metamask/assets-co
 import { RootMessenger } from '../types';
 
 export function getTokenSearchDiscoveryDataControllerMessenger(
-  rootMessenger: RootMessenger,
-): TokenSearchDiscoveryDataControllerMessenger {
-  const messenger = new Messenger<
-    'TokenSearchDiscoveryDataController',
+  rootMessenger: RootMessenger<
     MessengerActions<TokenSearchDiscoveryDataControllerMessenger>,
-    MessengerEvents<TokenSearchDiscoveryDataControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<TokenSearchDiscoveryDataControllerMessenger>
+  >,
+): TokenSearchDiscoveryDataControllerMessenger {
+  const messenger: TokenSearchDiscoveryDataControllerMessenger = new Messenger({
     namespace: 'TokenSearchDiscoveryDataController',
     parent: rootMessenger,
   });

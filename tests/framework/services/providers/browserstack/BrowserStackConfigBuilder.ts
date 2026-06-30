@@ -33,7 +33,7 @@ export class BrowserStackConfigBuilder {
     const appBsUrl = this.project.use.app?.buildPath;
     const device = this.project.use.device as BrowserStackConfig;
     const isLocal = process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true';
-    const geoLocation = process.env.BROWSERSTACK_GEO_LOCATION || 'ES';
+    const geoLocation = process.env.BROWSERSTACK_GEO_LOCATION || 'SE';
 
     if (!appBsUrl) {
       throw new Error('BrowserStack app URL (buildPath) is required');

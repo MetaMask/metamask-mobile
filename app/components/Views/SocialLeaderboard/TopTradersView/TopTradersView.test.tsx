@@ -1,5 +1,6 @@
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
+import { FlatList } from 'react-native';
 import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -23,9 +24,18 @@ const mockHasNotificationPreferences = jest.fn(() => true);
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
+  // Real React Navigation returns a stable `navigation` reference across
+  // renders. Mirror that here (lazily, to respect const TDZ at mock-init time)
+  // so hooks depending on `navigation` stay referentially stable.
+  let navigation: { goBack: jest.Mock; navigate: jest.Mock } | undefined;
   return {
     ...actual,
-    useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
+    useNavigation: () => {
+      if (!navigation) {
+        navigation = { goBack: mockGoBack, navigate: mockNavigate };
+      }
+      return navigation;
+    },
     useRoute: () => ({ params: {} }),
   };
 });
@@ -36,7 +46,7 @@ const fixtureTraders: TopTrader[] = [
     address: '0x0000000000000000000000000000000000000001',
     rank: 1,
     overallRank: 1,
-    username: 'sniperliquid.hl',
+    username: 'alpha.eth',
     avatarUri: 'https://example.com/avatar1.png',
     percentageChange: 43,
     pnlValue: 963146.8,
@@ -48,7 +58,7 @@ const fixtureTraders: TopTrader[] = [
     address: '0x0000000000000000000000000000000000000002',
     rank: 2,
     overallRank: 2,
-    username: 'nervousdegen',
+    username: 'beta.eth',
     avatarUri: 'https://example.com/avatar2.png',
     percentageChange: 359,
     pnlValue: 474751.45,
@@ -60,7 +70,7 @@ const fixtureTraders: TopTrader[] = [
     address: '0x0000000000000000000000000000000000000003',
     rank: 3,
     overallRank: 3,
-    username: 'baznocap',
+    username: 'gamma.eth',
     avatarUri: 'https://example.com/avatar3.png',
     percentageChange: 617,
     pnlValue: 374735.16,
@@ -69,7 +79,11 @@ const fixtureTraders: TopTrader[] = [
   },
 ];
 
-type ChainKey = 'all' | 'base' | 'solana' | 'ethereum';
+type TabKey = 'all' | 'tokens' | 'perps';
+interface UseTopTradersHookOptions {
+  chains?: string[];
+  enabled?: boolean;
+}
 
 const buildResult = (
   overrides: Partial<UseTopTradersResult> = {},
@@ -83,52 +97,73 @@ const buildResult = (
   ...overrides,
 });
 
-// Each chain tab now drives its own query, so the hook is mocked to return a
-// distinct result per chain.
-const mockResultsByChain: Record<ChainKey, UseTopTradersResult> = {
+const mockResultsByTab: Record<TabKey, UseTopTradersResult> = {
   all: buildResult(),
-  base: buildResult(),
-  solana: buildResult(),
-  ethereum: buildResult(),
+  tokens: buildResult(),
+  perps: buildResult(),
 };
 
-const setChainResult = (
-  chain: ChainKey,
-  overrides: Partial<UseTopTradersResult>,
-) => {
-  mockResultsByChain[chain] = buildResult(overrides);
+const setTabResult = (tab: TabKey, overrides: Partial<UseTopTradersResult>) => {
+  mockResultsByTab[tab] = buildResult(overrides);
 };
 
-const resetChainResults = () => {
-  (Object.keys(mockResultsByChain) as ChainKey[]).forEach((key) => {
-    mockResultsByChain[key] = buildResult();
+const resetTabResults = () => {
+  (Object.keys(mockResultsByTab) as TabKey[]).forEach((key) => {
+    mockResultsByTab[key] = buildResult();
   });
 };
 
-// The "All" tab now explicitly passes the spot chains (Base/Solana/Ethereum)
-// to exclude hyperliquid; a chain tab passes exactly one chain. Distinguish
-// by length so the mock returns the matching fixture.
+const resolveTabKey = (chains?: string[]): TabKey => {
+  if (!chains) return 'all';
+  if (chains.length === 1 && chains[0] === 'hyperliquid') return 'perps';
+  return chains.includes('hyperliquid') ? 'all' : 'tokens';
+};
+
 const mockUseTopTradersHook = jest.fn(
-  (options?: { chains?: string[] }): UseTopTradersResult => {
-    const chains = options?.chains;
-    const chain: ChainKey =
-      !chains || chains.length > 1 ? 'all' : (chains[0] as ChainKey);
-    return mockResultsByChain[chain];
-  },
+  (options?: UseTopTradersHookOptions): UseTopTradersResult =>
+    mockResultsByTab[resolveTabKey(options?.chains)],
 );
 
 const mockSelectSocialLeaderboardEnabled = jest.fn((): boolean => true);
+const mockSelectSocialLeaderboardPerpsEnabled = jest.fn((): boolean => true);
 jest.mock(
   '../../../../selectors/featureFlagController/socialLeaderboard',
   () => ({
     selectSocialLeaderboardEnabled: () => mockSelectSocialLeaderboardEnabled(),
+    selectSocialLeaderboardPerpsEnabled: () =>
+      mockSelectSocialLeaderboardPerpsEnabled(),
   }),
 );
 
 jest.mock('../../Homepage/Sections/TopTraders/hooks', () => ({
-  useTopTraders: (options?: { chains?: string[] }) =>
+  useTopTraders: (options?: UseTopTradersHookOptions) =>
     mockUseTopTradersHook(options),
 }));
+
+const expectLatestQueryEnabledStates = (expected: Record<TabKey, boolean>) => {
+  const latestCalls = mockUseTopTradersHook.mock.calls.slice(-3);
+
+  expect(latestCalls).toEqual([
+    [
+      expect.objectContaining({
+        chains: ['base', 'solana', 'ethereum', 'hyperliquid'],
+        enabled: expected.all,
+      }),
+    ],
+    [
+      expect.objectContaining({
+        chains: ['base', 'solana', 'ethereum'],
+        enabled: expected.tokens,
+      }),
+    ],
+    [
+      expect.objectContaining({
+        chains: ['hyperliquid'],
+        enabled: expected.perps,
+      }),
+    ],
+  ]);
+};
 
 jest.mock(
   '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences',
@@ -152,16 +187,13 @@ jest.mock('../analytics', () => {
 describe('TopTradersView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    resetChainResults();
+    resetTabResults();
     mockUseTopTradersHook.mockImplementation(
-      (options?: { chains?: string[] }) => {
-        const chains = options?.chains;
-        const chain: ChainKey =
-          !chains || chains.length > 1 ? 'all' : (chains[0] as ChainKey);
-        return mockResultsByChain[chain];
-      },
+      (options?: UseTopTradersHookOptions) =>
+        mockResultsByTab[resolveTabKey(options?.chains)],
     );
     mockSelectSocialLeaderboardEnabled.mockReturnValue(true);
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockHasNotificationPreferences.mockReturnValue(true);
   });
 
@@ -172,9 +204,50 @@ describe('TopTradersView', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders the Top Traders title', () => {
+  it('renders the Top Traders title in the scrollable title section', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('Top Traders')).toBeOnTheScreen();
+
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TITLE),
+    ).toHaveTextContent('Weekly Top Traders');
+  });
+
+  it('connects the scrollable title section to the compact header', () => {
+    renderWithProvider(<TopTradersView />);
+
+    act(() => {
+      fireEvent(
+        screen.getByTestId(TopTradersViewSelectorsIDs.TITLE_SECTION_WRAPPER),
+        'layout',
+        {
+          nativeEvent: { layout: { height: 64 } },
+        },
+      );
+    });
+
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.HEADER_TITLE),
+    ).toHaveTextContent('Weekly Top Traders');
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST).props.onScroll,
+    ).toEqual(expect.any(Function));
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST).props
+        .scrollEventThrottle,
+    ).toBe(16);
+  });
+
+  it('renders a pinned filter bar without duplicate filter test IDs', () => {
+    renderWithProvider(<TopTradersView />);
+
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.PINNED_FILTER_BAR, {
+        includeHiddenElements: true,
+      }),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getAllByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_ALL),
+    ).toHaveLength(1);
   });
 
   it('calls goBack when the back button is pressed', () => {
@@ -226,14 +299,14 @@ describe('TopTradersView', () => {
     });
   });
 
-  it('renders the rank for the top trader', () => {
+  it('renders a podium medal for the top trader', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('1')).toBeOnTheScreen();
+    expect(screen.getByTestId('rank-medal-1')).toBeOnTheScreen();
   });
 
-  it('renders the ROI for the first trader', () => {
+  it('renders the full PnL for the first trader', () => {
     renderWithProvider(<TopTradersView />);
-    expect(screen.getByText('+43.0%')).toBeOnTheScreen();
+    expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
   });
 
   it('calls toggleFollow with analytics context when Follow button is pressed', () => {
@@ -261,9 +334,7 @@ describe('TopTradersView', () => {
     expect(typeof refreshControl.props.refreshing).toBe('boolean');
   });
 
-  it('invalidates all four tab queries when the scroll view is pulled down', async () => {
-    // Each chain's result wraps the shared mockRefresh — pull-to-refresh
-    // should call it once per tab (4 total).
+  it('refreshes only the All query before secondary tabs are visited', async () => {
     mockRefresh.mockResolvedValue(undefined);
     renderWithProvider(<TopTradersView />);
     const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
@@ -272,7 +343,38 @@ describe('TopTradersView', () => {
       await list.props.refreshControl.props.onRefresh();
     });
 
-    expect(mockRefresh).toHaveBeenCalledTimes(4);
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('refreshes visited tab queries when the scroll view is pulled down', async () => {
+    mockRefresh.mockResolvedValue(undefined);
+    renderWithProvider(<TopTradersView />);
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
+    );
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
+    );
+    const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+
+    await act(async () => {
+      await list.props.refreshControl.props.onRefresh();
+    });
+
+    expect(mockRefresh).toHaveBeenCalledTimes(3);
+  });
+
+  it('invalidates only the spot-backed all query when perps are disabled', async () => {
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+    mockRefresh.mockResolvedValue(undefined);
+    renderWithProvider(<TopTradersView />);
+    const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+
+    await act(async () => {
+      await list.props.refreshControl.props.onRefresh();
+    });
+
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
   });
 
   it('logs an error when refresh fails', async () => {
@@ -306,42 +408,101 @@ describe('TopTradersView', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('renders all four chain filter pills', () => {
+  it('renders the three asset-class filter pills', () => {
     renderWithProvider(<TopTradersView />);
     expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ALL),
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_ALL),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
     ).toBeOnTheScreen();
     expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_SOLANA),
-    ).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ETHEREUM),
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
     ).toBeOnTheScreen();
   });
 
-  it('fires a separate query per chain on mount (parallel prefetch)', () => {
+  it('renders only the All filter pill when perps are disabled', () => {
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
     renderWithProvider(<TopTradersView />);
 
-    const chainsArgs = mockUseTopTradersHook.mock.calls.map(
-      ([opts]) => opts?.chains,
+    expect(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_ALL),
+    ).toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
+    ).not.toBeOnTheScreen();
+    expect(
+      screen.queryByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
+    ).not.toBeOnTheScreen();
+  });
+
+  it('enables only the All query on mount', () => {
+    renderWithProvider(<TopTradersView />);
+
+    expectLatestQueryEnabledStates({
+      all: true,
+      tokens: false,
+      perps: false,
+    });
+  });
+
+  it('enables the Tokens query after the Tokens pill is tapped', () => {
+    renderWithProvider(<TopTradersView />);
+
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
     );
-    // "All" tab explicitly requests the spot chains so hyperliquid (perps)
-    // doesn't dominate the rankings; chain tabs each request their own chain.
-    expect(chainsArgs).toEqual(
-      expect.arrayContaining([
-        ['base', 'solana', 'ethereum'],
-        ['base'],
-        ['solana'],
-        ['ethereum'],
-      ]),
+
+    expectLatestQueryEnabledStates({
+      all: true,
+      tokens: true,
+      perps: false,
+    });
+  });
+
+  it('enables the Perps query after the Perps pill is tapped', () => {
+    renderWithProvider(<TopTradersView />);
+
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
+    );
+
+    expectLatestQueryEnabledStates({
+      all: true,
+      tokens: false,
+      perps: true,
+    });
+  });
+
+  it('uses the spot-only chains for the All tab when perps are disabled', () => {
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+    renderWithProvider(<TopTradersView />);
+
+    expect(mockUseTopTradersHook).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        chains: ['base', 'solana', 'ethereum'],
+        enabled: true,
+      }),
+    );
+    expect(mockUseTopTradersHook).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        chains: ['base', 'solana', 'ethereum'],
+        enabled: false,
+      }),
+    );
+    expect(mockUseTopTradersHook).toHaveBeenNthCalledWith(
+      3,
+      expect.objectContaining({
+        chains: ['hyperliquid'],
+        enabled: false,
+      }),
     );
   });
 
-  it('renders the active tab’s traders when a chain pill is tapped (no client-side filter)', () => {
-    setChainResult('base', {
+  it('renders the Tokens tab’s traders when the Tokens pill is tapped', () => {
+    setTabResult('tokens', {
       traders: [
         { ...fixtureTraders[0], rank: 1 },
         { ...fixtureTraders[2], rank: 2 },
@@ -350,24 +511,38 @@ describe('TopTradersView', () => {
     renderWithProvider(<TopTradersView />);
 
     fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
     );
 
-    expect(screen.getByText('sniperliquid.hl')).toBeOnTheScreen();
-    expect(screen.getByText('baznocap')).toBeOnTheScreen();
-    expect(screen.queryByText('nervousdegen')).not.toBeOnTheScreen();
+    expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
+    expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
+    expect(screen.queryByText('beta.eth')).not.toBeOnTheScreen();
+  });
+
+  it('shows the Perps tab’s (hyperliquid) traders when selected', () => {
+    setTabResult('perps', {
+      traders: [{ ...fixtureTraders[2], rank: 1 }],
+    });
+    renderWithProvider(<TopTradersView />);
+
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
+    );
+
+    expect(screen.getByText('gamma.eth')).toBeOnTheScreen();
+    expect(screen.queryByText('beta.eth')).not.toBeOnTheScreen();
   });
 
   it('uses the per-tab rank when navigating to a profile', () => {
-    setChainResult('base', {
+    setTabResult('tokens', {
       traders: [{ ...fixtureTraders[0], rank: 2 }],
     });
     renderWithProvider(<TopTradersView />);
 
     fireEvent.press(
-      screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
     );
-    fireEvent.press(screen.getByText('sniperliquid.hl'));
+    fireEvent.press(screen.getByText('alpha.eth'));
 
     expect(mockNavigate).toHaveBeenCalledWith(
       'TraderProfileView',
@@ -379,12 +554,60 @@ describe('TopTradersView', () => {
   });
 
   it('renders skeletons during initial load when no traders are cached', () => {
-    setChainResult('all', { isLoading: true, traders: [] });
+    setTabResult('all', { isLoading: true, traders: [] });
     renderWithProvider(<TopTradersView />);
     expect(
-      screen.queryByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_ALL),
+      screen.queryByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_ALL),
     ).toBeOnTheScreen();
-    expect(screen.queryByText('sniperliquid.hl')).not.toBeOnTheScreen();
+    expect(screen.queryByText('alpha.eth')).not.toBeOnTheScreen();
+  });
+
+  describe('performance', () => {
+    it('limits the initial trader row render batch during screen mount', () => {
+      const { UNSAFE_getByType } = renderWithProvider(<TopTradersView />);
+
+      const listProps = UNSAFE_getByType(FlatList).props;
+
+      expect(listProps.initialNumToRender).toBe(6);
+      expect(listProps.maxToRenderPerBatch).toBe(6);
+    });
+
+    it('keeps a stable renderItem reference across a parent re-render with unchanged trader props', async () => {
+      // An inline `renderItem` closure would be re-created on every render,
+      // defeating the `React.memo` on `TraderRow`. The memoized `renderTraderRow`
+      // must keep a stable identity when nothing it depends on changes.
+      //
+      // Pull-to-refresh sets `refreshing` to true, forcing a parent re-render
+      // while the trader data (and every renderItem dependency) stays unchanged.
+      // Fake timers hold the view in that refreshing state so the re-render's
+      // renderItem can be compared against the initial one.
+      jest.useFakeTimers();
+      mockRefresh.mockResolvedValue(undefined);
+      const { UNSAFE_getByType } = renderWithProvider(<TopTradersView />);
+
+      const renderItemBefore = UNSAFE_getByType(FlatList).props.renderItem;
+
+      let refreshPromise: Promise<void> | undefined;
+      act(() => {
+        refreshPromise = screen
+          .getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST)
+          .props.refreshControl.props.onRefresh();
+      });
+
+      const renderItemDuringRefresh =
+        UNSAFE_getByType(FlatList).props.renderItem;
+
+      expect(typeof renderItemBefore).toBe('function');
+      expect(renderItemDuringRefresh).toBe(renderItemBefore);
+
+      // Drain the artificial min-duration timer and let refresh settle so no
+      // state update leaks outside `act`.
+      await act(async () => {
+        jest.runOnlyPendingTimers();
+        await refreshPromise;
+      });
+      jest.useRealTimers();
+    });
   });
 
   describe('analytics', () => {
@@ -402,12 +625,12 @@ describe('TopTradersView', () => {
     it('fires Trader Leaderboard Chain Filter Changed when a pill is selected', () => {
       renderWithProvider(<TopTradersView />);
       fireEvent.press(
-        screen.getByTestId(TopTradersViewSelectorsIDs.CHAIN_FILTER_BASE),
+        screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
       );
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_CHAIN_FILTER_CHANGED,
         expect.objectContaining({
-          chain_filter: 'base',
+          chain_filter: 'tokens',
           previous_chain_filter: 'all',
         }),
       );
@@ -415,7 +638,7 @@ describe('TopTradersView', () => {
 
     it('fires Trader Leaderboard Trader Clicked with rank and chain filter on row press', () => {
       renderWithProvider(<TopTradersView />);
-      fireEvent.press(screen.getByText('sniperliquid.hl'));
+      fireEvent.press(screen.getByText('alpha.eth'));
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.SOCIAL_TRADER_LEADERBOARD_TRADER_CLICKED,
         expect.objectContaining({

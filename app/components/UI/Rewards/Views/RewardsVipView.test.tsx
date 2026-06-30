@@ -8,6 +8,7 @@ import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants';
 import useTrackRewardsPageView from '../hooks/useTrackRewardsPageView';
 import { useVipDashboard } from '../hooks/useVipDashboard';
@@ -15,6 +16,7 @@ import type { VipDashboardState } from '../../../../core/Engine/controllers/rewa
 import RewardsVipView, { REWARDS_VIP_VIEW_TEST_IDS } from './RewardsVipView';
 import { VIP_TIER_PROGRESS_CARD_TEST_IDS } from '../components/Vip/VipTierProgressCard';
 import { VIP_VOLUME_SECTION_TEST_IDS } from '../components/Vip/VipVolumeSection';
+import { VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS } from '../components/Vip/VipSwapsVolumeInfoSheet';
 import { VIP_POINTS_SECTION_TEST_IDS } from '../components/Vip/VipPointsSection';
 import { VIP_FEE_TILE_TEST_IDS } from '../components/Vip/VipFeeTile';
 
@@ -22,11 +24,16 @@ const mockDispatch = jest.fn();
 const mockReduxDispatch = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockExitRewardsFlow = jest.fn();
 let mockVipSplashAccepted: Record<string, boolean> = {};
 
 jest.mock('react-redux', () => ({
   useDispatch: jest.fn(() => mockReduxDispatch),
   useSelector: jest.fn(),
+}));
+
+jest.mock('../utils', () => ({
+  exitRewardsFlow: (...args: unknown[]) => mockExitRewardsFlow(...args),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -111,7 +118,23 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     FontWeight: { Medium: 'medium', Bold: 'bold' },
     Icon: passthrough,
+    ButtonIcon: ({
+      onPress,
+      testID,
+      accessibilityLabel,
+    }: {
+      onPress?: () => void;
+      testID?: string;
+      accessibilityLabel?: string;
+    }) =>
+      ReactActual.createElement(Pressable, {
+        testID,
+        accessibilityLabel,
+        onPress,
+      }),
+    ButtonIconSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
     IconColor: {
+      IconDefault: 'default',
       IconAlternative: 'alt',
       SuccessDefault: 'success',
       WarningDefault: 'warning',
@@ -120,11 +143,20 @@ jest.mock('@metamask/design-system-react-native', () => {
       ArrowDown: 'ArrowDown',
       ArrowRight: 'ArrowRight',
       ArrowUp: 'ArrowUp',
+      Close: 'Close',
+      Info: 'Info',
       MetamaskFoxOutline: 'MetamaskFoxOutline',
       TrendUp: 'TrendUp',
       UserCircleAdd: 'UserCircleAdd',
     },
-    IconSize: { Sm: 'sm', Md: 'md', Lg: 'lg' },
+    IconSize: { Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
+    BottomSheet: ({
+      children,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => ReactActual.createElement(View, { testID }, children),
     Skeleton,
   };
 });
@@ -176,6 +208,10 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.vip.error_title': 'Error title',
       'rewards.vip.error_description': 'Error description',
       'rewards.vip.retry_button': 'Retry',
+      'rewards.vip.swaps_volume_info_label': 'Swaps volume information',
+      'rewards.vip.swaps_volume_info_title': 'Swaps volume',
+      'rewards.vip.swaps_volume_info_description':
+        'Your swaps volume updates once per day, so recent swaps may take up to 24 hours to appear here.',
     };
     return translations[key] ?? key;
   }),
@@ -184,6 +220,10 @@ jest.mock('../../../../../locales/i18n', () => ({
 jest.mock('../../../../selectors/rewards', () => ({
   selectIsCurrentSubscriptionVipEnabled: jest.fn(),
   selectRewardsSubscriptionId: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/featureFlagController/vipProgram', () => ({
+  selectVipProgramEnabled: jest.fn(),
 }));
 
 jest.mock('../../../Views/ErrorBoundary', () => ({
@@ -237,6 +277,7 @@ const defaultDashboard: VipDashboardState = {
     start: '2099-06-01T00:00:00.000Z',
     end: '2099-06-30T23:59:59.999Z',
   },
+  computedAt: '2099-06-30T14:52:00.000Z',
   currentTier: { id: 'mock-tier-alpha-3', name: 'Mock Tier Alpha 3', tier: 3 },
   nextTier: { id: 'mock-tier-alpha-4', name: 'Mock Tier Alpha 4', tier: 4 },
   progress: {
@@ -346,6 +387,7 @@ const mockSubscribed = () => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectRewardsSubscriptionId) return 'test-subscription-id';
     if (selector === selectIsCurrentSubscriptionVipEnabled) return true;
+    if (selector === selectVipProgramEnabled) return true;
     return (
       selector as (state: ReturnType<typeof getRewardsSelectorState>) => unknown
     )(getRewardsSelectorState());
@@ -406,6 +448,36 @@ describe('RewardsVipView', () => {
       page_type: 'vip',
       enabled: true,
     });
+  });
+
+  it('renders the "Last updated" row when computedAt is present', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: defaultDashboard,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByTestId } = render(<RewardsVipView />);
+
+    expect(
+      getByTestId(REWARDS_VIP_VIEW_TEST_IDS.LAST_UPDATED),
+    ).toBeOnTheScreen();
+  });
+
+  it('does not render the "Last updated" row when computedAt is null', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: { ...defaultDashboard, computedAt: null },
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { queryByTestId } = render(<RewardsVipView />);
+
+    expect(queryByTestId(REWARDS_VIP_VIEW_TEST_IDS.LAST_UPDATED)).toBeNull();
   });
 
   it('renders skeleton placeholders while loading without dashboard data', () => {
@@ -495,6 +567,29 @@ describe('RewardsVipView', () => {
     expect(
       getByTestId(VIP_POINTS_SECTION_TEST_IDS.CONTAINER),
     ).toBeOnTheScreen();
+  });
+
+  it('renders the swaps volume help icon and opens the daily-refresh info sheet on press', () => {
+    mockUseVipDashboard.mockReturnValue({
+      dashboard: defaultDashboard,
+      isLoading: false,
+      hasError: false,
+      hasAttemptedFetch: true,
+      fetchVipDashboard: mockFetch,
+    });
+
+    const { getByTestId, queryByTestId } = render(<RewardsVipView />);
+
+    // The info sheet is not mounted until the help icon is pressed.
+    expect(
+      queryByTestId(VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS.SHEET),
+    ).toBeNull();
+
+    fireEvent.press(getByTestId(VIP_VOLUME_SECTION_TEST_IDS.SWAPS_INFO));
+
+    const sheet = getByTestId(VIP_SWAPS_VOLUME_INFO_SHEET_TEST_IDS.SHEET);
+    expect(sheet).toHaveTextContent(/Swaps volume/);
+    expect(sheet).toHaveTextContent(/updates once per day/);
   });
 
   it('renders an up arrow when next-tier revenue share equals current revenue share', () => {
@@ -667,6 +762,9 @@ describe('RewardsVipView', () => {
       if (selector === selectIsCurrentSubscriptionVipEnabled) {
         return false;
       }
+      if (selector === selectVipProgramEnabled) {
+        return true;
+      }
       return undefined;
     });
 
@@ -678,9 +776,33 @@ describe('RewardsVipView', () => {
       enabled: false,
     });
     await waitFor(() => {
-      expect(mockDispatch).toHaveBeenCalledWith(
-        StackActions.replace(Routes.REWARDS_DASHBOARD),
-      );
+      expect(mockExitRewardsFlow).toHaveBeenCalled();
+    });
+  });
+
+  it('exits the rewards flow when the VIP program flag is off, even for a VIP subscription', async () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectRewardsSubscriptionId) {
+        return 'test-subscription-id';
+      }
+      if (selector === selectIsCurrentSubscriptionVipEnabled) {
+        return true;
+      }
+      if (selector === selectVipProgramEnabled) {
+        return false;
+      }
+      return undefined;
+    });
+
+    const { queryByTestId } = render(<RewardsVipView />);
+
+    expect(queryByTestId(REWARDS_VIEW_SELECTORS.VIP_VIEW)).toBeNull();
+    expect(mockUseTrackRewardsPageView).toHaveBeenCalledWith({
+      page_type: 'vip',
+      enabled: false,
+    });
+    await waitFor(() => {
+      expect(mockExitRewardsFlow).toHaveBeenCalled();
     });
   });
 });

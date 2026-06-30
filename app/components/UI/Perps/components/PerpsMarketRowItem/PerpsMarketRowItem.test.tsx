@@ -18,6 +18,20 @@ jest.mock('../PerpsTokenLogo', () => {
   };
 });
 
+jest.mock('../../../../../component-library/hooks', () => ({
+  useStyles: () => ({
+    styles: {
+      addButton: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        alignItems: 'center',
+        justifyContent: 'center',
+      },
+    },
+  }),
+}));
+
 jest.mock('../../hooks/stream', () => ({
   usePerpsLivePrices: jest.fn(() => ({})), // Return empty object - no live prices in tests
 }));
@@ -52,7 +66,7 @@ describe('PerpsMarketRowItem', () => {
     it('renders all market data correctly', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
       expect(screen.getByText('50x')).toBeOnTheScreen();
       expect(screen.getByText('$52,000')).toBeOnTheScreen();
       expect(screen.getByText('+4.00%')).toBeOnTheScreen();
@@ -128,10 +142,21 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={ethMarket} />);
 
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
+      expect(screen.getByText('Ethereum')).toBeOnTheScreen();
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
       ).toBeOnTheScreen();
+    });
+
+    it('falls back to the ticker when name is missing', () => {
+      const noNameMarket = {
+        ...mockMarketData,
+        name: '',
+      };
+
+      render(<PerpsMarketRowItem market={noNameMarket} />);
+
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
     });
 
     it('handles different leverage values', () => {
@@ -185,11 +210,12 @@ describe('PerpsMarketRowItem', () => {
       const longSymbolMarket = {
         ...mockMarketData,
         symbol: 'VERYLONGSYMBOLNAME',
+        name: 'Very Long Asset Name Token',
       };
 
       render(<PerpsMarketRowItem market={longSymbolMarket} />);
 
-      expect(screen.getByText('VERYLONGSYMBOLNAME')).toBeOnTheScreen();
+      expect(screen.getByText('Very Long Asset Name Token')).toBeOnTheScreen();
       expect(
         screen.getByTestId(
           getPerpsMarketRowItemSelector.rowItem('VERYLONGSYMBOLNAME'),
@@ -201,13 +227,14 @@ describe('PerpsMarketRowItem', () => {
       const specialCharMarket = {
         ...mockMarketData,
         symbol: 'BTC/USD',
+        name: 'Bitcoin / USD',
         change24h: '+$1,000',
         change24hPercent: '+2.50%',
       };
 
       render(<PerpsMarketRowItem market={specialCharMarket} />);
 
-      expect(screen.getByText('BTC/USD')).toBeOnTheScreen();
+      expect(screen.getByText('Bitcoin / USD')).toBeOnTheScreen();
       expect(screen.getByText('+2.50%')).toBeOnTheScreen();
     });
 
@@ -215,6 +242,7 @@ describe('PerpsMarketRowItem', () => {
       const unicodeMarket = {
         ...mockMarketData,
         symbol: 'BTC€',
+        name: 'Bitcoin Euro',
         price: '€45,000',
         change24h: '+€2,000',
         change24hPercent: '+4.65%',
@@ -222,7 +250,7 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={unicodeMarket} />);
 
-      expect(screen.getByText('BTC€')).toBeOnTheScreen();
+      expect(screen.getByText('Bitcoin Euro')).toBeOnTheScreen();
       expect(screen.getByText('€45,000')).toBeOnTheScreen();
     });
   });
@@ -518,7 +546,7 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={positiveMarket} />);
 
       // Verify the component renders without error
-      expect(screen.getByText(positiveMarket.symbol)).toBeOnTheScreen();
+      expect(screen.getByText(positiveMarket.name)).toBeOnTheScreen();
     });
 
     it('shows negative change', () => {
@@ -531,7 +559,7 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={negativeMarket} />);
 
       // Verify the component renders without error
-      expect(screen.getByText(negativeMarket.symbol)).toBeOnTheScreen();
+      expect(screen.getByText(negativeMarket.name)).toBeOnTheScreen();
     });
 
     it('handles zero change correctly', () => {
@@ -544,7 +572,7 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={zeroChangeMarket} />);
 
       // Verify the component renders without error
-      expect(screen.getByText(zeroChangeMarket.symbol)).toBeOnTheScreen();
+      expect(screen.getByText(zeroChangeMarket.name)).toBeOnTheScreen();
     });
   });
 
@@ -805,30 +833,65 @@ describe('PerpsMarketRowItem', () => {
       expect(mockOnPress).toHaveBeenCalledTimes(1);
       expect(mockOnPress.mock.calls[0][0].fundingRate).toBe(0.0005);
     });
+  });
 
-    it('handles funding rate update when live data funding is undefined', () => {
-      const marketWithFundingRate: PerpsMarketData = {
-        ...mockMarketData,
-        fundingRate: 0.0005, // Initial: 0.05%
-      };
+  describe('Add to Watchlist Button', () => {
+    it('does not render an add button when onAddPress is not provided', () => {
+      render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      // Mock live data without funding rate
-      mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '52000.00',
-          // funding is undefined
-        },
-      });
+      expect(
+        screen.queryByTestId(getPerpsMarketRowItemSelector.addButton('BTC')),
+      ).toBeNull();
+    });
 
+    it('renders a trailing add button when onAddPress is provided', () => {
+      const mockOnAddPress = jest.fn();
       render(
         <PerpsMarketRowItem
-          market={marketWithFundingRate}
-          displayMetric="fundingRate"
+          market={mockMarketData}
+          onAddPress={mockOnAddPress}
         />,
       );
 
-      // Should keep the original funding rate when live data doesn't have funding
-      expect(screen.getByText('0.0500% Funding')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.addButton('BTC')),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onAddPress with current market data when the add button is pressed', () => {
+      const mockOnAddPress = jest.fn();
+      render(
+        <PerpsMarketRowItem
+          market={mockMarketData}
+          onAddPress={mockOnAddPress}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(getPerpsMarketRowItemSelector.addButton('BTC')),
+      );
+
+      expect(mockOnAddPress).toHaveBeenCalledTimes(1);
+      expect(mockOnAddPress.mock.calls[0][0].symbol).toBe('BTC');
+    });
+
+    it('pressing the add button does not trigger onPress', () => {
+      const mockOnPress = jest.fn();
+      const mockOnAddPress = jest.fn();
+      render(
+        <PerpsMarketRowItem
+          market={mockMarketData}
+          onPress={mockOnPress}
+          onAddPress={mockOnAddPress}
+        />,
+      );
+
+      fireEvent.press(
+        screen.getByTestId(getPerpsMarketRowItemSelector.addButton('BTC')),
+      );
+
+      expect(mockOnAddPress).toHaveBeenCalledTimes(1);
+      expect(mockOnPress).not.toHaveBeenCalled();
     });
   });
 });
