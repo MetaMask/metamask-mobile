@@ -24,6 +24,7 @@
     "format:check:changed": "git diff --name-only --diff-filter=ACM HEAD~1 | { grep -E '\\.(js|ts|tsx|json)$' || true; } | xargs --no-run-if-empty prettier --check",
     "coverage:analyze": "node scripts/coverage-analysis.js",
     "coverage:files": "node scripts/coverage-analysis.js --files",
+    "scan:react-compiler": "node scripts/scan-react-compiler-blockers.js",
     "setup": "yarn clean && node scripts/setup.mjs",
     "skills": "metamask-skills sync",
     "postinstall": "yarn skills:postinstall",
