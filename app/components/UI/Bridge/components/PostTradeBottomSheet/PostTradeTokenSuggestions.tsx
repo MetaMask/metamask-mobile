@@ -123,7 +123,10 @@ export const PostTradeTokenSuggestions = ({
   }
 
   return (
-    <Box testID={PostTradeBottomSheetTestIds.SUGGESTIONS_SECTION}>
+    <Box
+      twClassName="pb-4"
+      testID={PostTradeBottomSheetTestIds.SUGGESTIONS_SECTION}
+    >
       <SectionHeader
         title={strings('bridge.post_trade_modal.what_to_swap_next')}
       />

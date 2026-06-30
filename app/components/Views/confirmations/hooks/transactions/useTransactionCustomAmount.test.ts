@@ -37,7 +37,12 @@ import {
 } from '@metamask/transaction-pay-controller';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
 import Engine from '../../../../../core/Engine';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
 
+jest.mock('../../../../UI/Money/hooks/useMoneyAccount', () => ({
+  ...jest.requireActual('../../../../UI/Money/hooks/useMoneyAccount'),
+  getMoneyAccountDepositIntent: jest.fn(),
+}));
 jest.mock('../tokens/useTokenFiatRates');
 jest.mock('../pay/useUpdateTransactionPayAmount');
 jest.mock('../pay/useTransactionPayToken');
@@ -880,6 +885,129 @@ describe('useTransactionCustomAmount', () => {
       const config = { isMaxAmount: true };
       setTransactionConfigMock.mock.calls[0][1](config);
       expect(config.isMaxAmount).toBe(false);
+    });
+  });
+
+  describe('addMusd intent auto-fill', () => {
+    const addMusdTransactionMeta = {
+      type: TransactionType.moneyAccountDeposit,
+      batchId: '0xtestbatchid' as Hex,
+    };
+
+    beforeEach(() => {
+      jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('addMusd');
+    });
+
+    it('auto-fills with 100% of balance when intent is addMusd', async () => {
+      const { result } = runHook({
+        transactionMeta: addMusdTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('1234.56');
+    });
+
+    it('does not auto-fill when intent is not addMusd', async () => {
+      jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('convert');
+
+      const { result } = runHook({
+        transactionMeta: addMusdTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('0');
+    });
+
+    it('does not auto-fill when balance is zero', async () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '0',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook({
+        transactionMeta: addMusdTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('0');
+    });
+
+    it('only auto-fills once even if balance changes', async () => {
+      const { result, rerender } = runHook({
+        transactionMeta: addMusdTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('1234.56');
+
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '9999',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      await act(async () => {
+        rerender({});
+        jest.runAllTimers();
+      });
+
+      expect(result.current.amountFiat).toBe('1234.56');
+    });
+
+    it('returns isPrefillPending true while balance is not yet available', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          address: TOKEN_ADDRESS_MOCK,
+          balanceUsd: '0',
+          chainId: '0x1' as Hex,
+        } as TransactionPaymentToken,
+      } as ReturnType<typeof useTransactionPayToken>);
+
+      const { result } = runHook({
+        transactionMeta: addMusdTransactionMeta,
+      });
+
+      expect(result.current.isPrefillPending).toBe(true);
+    });
+
+    it('returns isPrefillPending false after balance loads and prefill completes', async () => {
+      const { result } = runHook({
+        transactionMeta: addMusdTransactionMeta,
+      });
+
+      await act(async () => {
+        jest.runAllTimers();
+      });
+
+      expect(result.current.isPrefillPending).toBe(false);
+      expect(result.current.amountFiat).toBe('1234.56');
+    });
+
+    it('returns isPrefillPending false for non-addMusd deposits', () => {
+      jest.mocked(getMoneyAccountDepositIntent).mockReturnValue('convert');
+
+      const { result } = runHook({
+        transactionMeta: addMusdTransactionMeta,
+      });
+
+      expect(result.current.isPrefillPending).toBe(false);
     });
   });
 
