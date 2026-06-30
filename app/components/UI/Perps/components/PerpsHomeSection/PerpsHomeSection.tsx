@@ -96,11 +96,39 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
 
   const showAction = onActionPress && !isLoading && !isEmpty;
 
+  const subtitleContent =
+    subtitle && subtitleSuffix ? (
+      <HomepageSectionUnrealizedPnlRow
+        label={subtitleSuffix}
+        valueText={subtitle}
+        valueColor={subtitleColor}
+        paddingHorizontal={0}
+        valueTestID={subtitleTestID}
+        labelTestID={subtitleTestID ? `${subtitleTestID}-suffix` : undefined}
+      />
+    ) : subtitle ? (
+      <Text
+        variant={TextVariant.BodyMd}
+        color={subtitleColor}
+        fontWeight={FontWeight.Medium}
+        testID={subtitleTestID}
+      >
+        {subtitle}
+      </Text>
+    ) : null;
+
   return (
     <Box testID={testID}>
       <SectionHeader
         title={title}
-        twClassName={showAction ? 'pb-1 justify-between pr-3' : 'pb-1'}
+        twClassName={
+          showAction && !subtitleContent ? 'justify-between pr-3' : undefined
+        }
+        titleWrapperProps={
+          showAction && subtitleContent
+            ? { twClassName: 'w-full flex-1' }
+            : undefined
+        }
         endAccessory={
           showAction ? (
             <ButtonIcon
@@ -112,29 +140,9 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
             />
           ) : undefined
         }
-      />
-      {/* TODO: place this into SectionHeader children when available */}
-      {subtitle && subtitleSuffix ? (
-        <HomepageSectionUnrealizedPnlRow
-          label={subtitleSuffix}
-          valueText={subtitle}
-          valueColor={subtitleColor}
-          paddingHorizontal={4}
-          valueTestID={subtitleTestID}
-          labelTestID={subtitleTestID ? `${subtitleTestID}-suffix` : undefined}
-        />
-      ) : subtitle ? (
-        <Box paddingHorizontal={4}>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={subtitleColor}
-            fontWeight={FontWeight.Medium}
-            testID={subtitleTestID}
-          >
-            {subtitle}
-          </Text>
-        </Box>
-      ) : null}
+      >
+        {subtitleContent}
+      </SectionHeader>
       {isLoading ? renderSkeleton() : children}
     </Box>
   );
