@@ -140,7 +140,7 @@ describe('handleAssetUrl', () => {
           properties: expect.objectContaining({
             token_symbol: 'TEST',
             alert_type: 'threshold',
-            price_at_trigger: '1234.5',
+            price_at_trigger: 1234.5,
             time_to_open: 10,
           }),
         }),

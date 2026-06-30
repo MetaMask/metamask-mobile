@@ -145,7 +145,10 @@ const trackPriceAlertNotificationOpened = (
           asset_id: urlParams.get('assetId'),
           token_symbol: token?.symbol,
           alert_type: urlParams.get('alert_type'),
-          price_at_trigger: urlParams.get('price_at_trigger'),
+          price_at_trigger:
+            urlParams.get('price_at_trigger') != null
+              ? parseFloat(urlParams.get('price_at_trigger') as string)
+              : null,
           time_to_open: parseTimeToOpenSeconds(urlParams.get('triggered_at')),
         })
         .build(),
