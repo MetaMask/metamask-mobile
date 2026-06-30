@@ -586,13 +586,13 @@ export const getMultiChainBalancesControllerBalances = createDeepEqualSelector(
 
         const rawBalanceRow = balance as {
           amount: string;
-          extra?: Record<string, unknown>;
+          accountAssetInfo?: Record<string, unknown>;
         };
         const selectorBalanceRow = {
           amount: balance.amount,
           unit: metadata.symbol,
-          ...(rawBalanceRow.extra !== undefined
-            ? { extra: rawBalanceRow.extra }
+          ...(rawBalanceRow.accountAssetInfo !== undefined
+            ? { accountAssetInfo: rawBalanceRow.accountAssetInfo }
             : {}),
         };
 

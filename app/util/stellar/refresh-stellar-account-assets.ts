@@ -32,15 +32,6 @@ export async function refreshStellarAccountAssets({
     if (trustlineAction === 'remove') {
       AssetsController.invalidateAccountAssetExtras(account.id, [assetId]);
     }
-
-    try {
-      await AssetsController.refreshAccountAssetInfo(account.id, [assetId]);
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'refreshStellarAccountAssets: refreshAccountAssetInfo failed',
-      );
-    }
   }
 
   try {

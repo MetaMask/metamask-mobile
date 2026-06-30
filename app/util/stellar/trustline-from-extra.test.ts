@@ -31,7 +31,7 @@ describe('isStellarClassicTrustlineInactiveForDisplay', () => {
       isStellarClassicTrustlineInactiveForDisplay({
         chainId: 'stellar:pubnet',
         assetId: classicUsdc,
-        extra: { limit: '0' },
+        accountAssetInfo: { limit: '0' },
       }),
     ).toBe(true);
   });

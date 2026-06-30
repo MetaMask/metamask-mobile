@@ -62,7 +62,7 @@ export function useStellarTrustlineDisplay(
     const balances = selectMultichainBalances(state);
     const balance = balances?.[account.id]?.[assetId as CaipAssetId];
 
-    return balance?.extra as StellarBalanceExtra | undefined;
+    return balance?.accountAssetInfo as StellarBalanceExtra | undefined;
   });
 
   const liveBalance = useSelector((state: RootState) => {
@@ -88,7 +88,7 @@ export function useStellarTrustlineDisplay(
         chainId,
         assetId,
         isNative: token.isNative,
-        extra: balanceExtra,
+        accountAssetInfo: balanceExtra,
         balance: liveBalance ?? token.balance,
       });
 
@@ -98,7 +98,7 @@ export function useStellarTrustlineDisplay(
         chainId,
         assetId,
         isNative: token.isNative,
-        extra: balanceExtra,
+        accountAssetInfo: balanceExtra,
       });
 
     const stellarNativeBaseReserve = token.isNative

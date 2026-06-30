@@ -13,17 +13,19 @@ function hasStellarClassicTrustlineLimit(
   if (
     !balanceRow ||
     typeof balanceRow !== 'object' ||
-    !('extra' in balanceRow)
+    !('accountAssetInfo' in balanceRow)
   ) {
     return false;
   }
 
-  const { extra } = balanceRow as { extra?: { limit?: string } };
-  if (!extra || typeof extra.limit !== 'string') {
+  const { accountAssetInfo } = balanceRow as {
+    accountAssetInfo?: { limit?: string };
+  };
+  if (!accountAssetInfo || typeof accountAssetInfo.limit !== 'string') {
     return false;
   }
 
-  const parsedLimit = Number.parseFloat(extra.limit);
+  const parsedLimit = Number.parseFloat(accountAssetInfo.limit);
   return !Number.isNaN(parsedLimit) && parsedLimit > 0;
 }
 

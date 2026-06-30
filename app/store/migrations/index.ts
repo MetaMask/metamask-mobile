@@ -144,7 +144,6 @@ import migration140 from './140';
 import migration141 from './141';
 import migration142 from './142';
 import migration143 from './143';
-import migration144 from './144';
 
 // Add migrations above this line
 import { ControllerStorage } from '../persistConfig';

@@ -49,10 +49,10 @@ export function isStellarClassicTrustlineInactiveForDisplay(options: {
   chainId: CaipChainId | string;
   assetId?: CaipAssetType | string;
   isNative?: boolean;
-  extra?: StellarBalanceExtra;
+  accountAssetInfo?: StellarBalanceExtra;
   balance?: string;
 }): boolean {
-  const { chainId, assetId, isNative, extra, balance } = options;
+  const { chainId, assetId, isNative, accountAssetInfo, balance } = options;
 
   if (isNative || !assetId || !isStellarChainId(chainId)) {
     return false;
@@ -62,8 +62,8 @@ export function isStellarClassicTrustlineInactiveForDisplay(options: {
     return false;
   }
 
-  if (extra !== undefined) {
-    return isStellarTrustlineInactiveFromExtra(extra);
+  if (accountAssetInfo !== undefined) {
+    return isStellarTrustlineInactiveFromExtra(accountAssetInfo);
   }
 
   if (balance !== undefined) {
