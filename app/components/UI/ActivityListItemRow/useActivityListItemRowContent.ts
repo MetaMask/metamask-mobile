@@ -587,6 +587,7 @@ function resolveCoreContent(
     case 'buy':
     case 'sell':
     case 'claim':
+    case 'unstake':
     case 'deposit': {
       const token = item.data.token;
       const symbol = token?.symbol;
@@ -602,11 +603,17 @@ function resolveCoreContent(
                   pending: 'Claiming',
                   failed: 'Claim failed',
                 }
-              : {
-                  success: 'Deposited',
-                  pending: 'Depositing',
-                  failed: 'Deposit failed',
-                };
+              : item.type === 'unstake'
+                ? {
+                    success: 'Unstaked',
+                    pending: 'Unstaking',
+                    failed: 'Unstake failed',
+                  }
+                : {
+                    success: 'Deposited',
+                    pending: 'Depositing',
+                    failed: 'Deposit failed',
+                  };
 
       return {
         title: statusTitle(item, {

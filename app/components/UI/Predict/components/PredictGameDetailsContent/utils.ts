@@ -276,27 +276,46 @@ export const sortMoneylineOutcomes = (
   return [sorted[0], neutral, ...sorted.slice(1)];
 };
 
+export const getMoneylineButtonEntries = (
+  outcomes: PredictOutcome[],
+  game?: PredictMarketGame,
+): { outcome: PredictOutcome; token: PredictOutcomeToken }[] => {
+  const sortedWithTokens = sortMoneylineOutcomes(outcomes, game).filter(
+    (outcome) => outcome.tokens.length > 0,
+  );
+
+  if (sortedWithTokens.length === 1) {
+    const [outcome] = sortedWithTokens;
+    return sortMoneylineTokensForDisplay(outcome.tokens, game).map((token) => ({
+      outcome,
+      token,
+    }));
+  }
+
+  return sortedWithTokens.flatMap((outcome) => {
+    const token = outcome.tokens[0];
+    return token ? [{ outcome, token }] : [];
+  });
+};
+
 export const buildMoneylineButtons = (
   outcomes: PredictOutcome[],
   onBuyPress: BuyHandler,
   game?: PredictMarketGame,
   getPrice?: LivePriceGetter,
 ): PredictSportOutcomeButton[] => {
-  const sortedWithTokens = sortMoneylineOutcomes(outcomes, game).filter(
-    (outcome) => outcome.tokens[0] !== undefined,
-  );
+  const buttonEntries = getMoneylineButtonEntries(outcomes, game);
 
-  return sortedWithTokens.map((outcome, i) => {
-    const yesToken = outcome.tokens[0];
-    const liveBestAsk = getPrice?.(yesToken.id)?.bestAsk;
-    const price = isValidPrice(liveBestAsk) ? liveBestAsk : yesToken.price;
+  return buttonEntries.map(({ outcome, token }, i) => {
+    const liveBestAsk = getPrice?.(token.id)?.bestAsk;
+    const price = isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
 
     return {
-      label: yesToken.shortTitle ?? yesToken.title,
+      label: token.shortTitle ?? token.title,
       price: Math.round(price * 100),
-      onPress: () => onBuyPress(outcome, yesToken),
-      variant: getButtonVariant(i, sortedWithTokens.length, true),
-      teamColor: getTeamColor(yesToken.shortTitle ?? yesToken.title, game),
+      onPress: () => onBuyPress(outcome, token),
+      variant: getButtonVariant(i, buttonEntries.length, true),
+      teamColor: getTeamColor(token.shortTitle ?? token.title, game),
     };
   });
 };
