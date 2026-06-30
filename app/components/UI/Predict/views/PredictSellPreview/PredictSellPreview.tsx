@@ -12,13 +12,7 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PredictCashOutSelectorsIDs } from '../../Predict.testIds';
@@ -56,10 +50,9 @@ import {
 import {
   getPredictExchangeFee,
   getPredictSellNetProceeds,
-  roundUpToCents,
+  roundDownToCents,
 } from '../../utils/orders';
 import { SLIPPAGE_SELL } from '../../providers/polymarket/constants';
-import type { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
@@ -194,7 +187,6 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
   }, [dispatch, result, isSheetMode, onClose]);
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
-  const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
 
   const handleFeesInfoPress = useCallback(
     () => setIsFeeBreakdownVisible(true),
@@ -204,6 +196,13 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     () => setIsFeeBreakdownVisible(false),
     [],
   );
+
+  // Close the fee breakdown sheet if the preview refreshes to null while it is open
+  useEffect(() => {
+    if (!preview && isFeeBreakdownVisible) {
+      setIsFeeBreakdownVisible(false);
+    }
+  }, [preview, isFeeBreakdownVisible]);
 
   // Use preview data if available, fallback to position data on error or when preview is unavailable
   const currentValue = preview
@@ -216,13 +215,10 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
   const exchangeFee = getPredictExchangeFee(preview?.fees);
   const total = preview
     ? getPredictSellNetProceeds(preview)
-    : roundUpToCents(currentValue);
+    : roundDownToCents(currentValue);
 
-  // Recalculate PnL based on preview data
-  const cashPnl = useMemo(
-    () => currentValue - initialValue,
-    [currentValue, initialValue],
-  );
+  // Recalculate PnL based on net proceeds so it reflects what the user actually receives after fees
+  const cashPnl = useMemo(() => total - initialValue, [total, initialValue]);
 
   const percentPnl = useMemo(
     () => (initialValue > 0 ? (cashPnl / initialValue) * 100 : 0),
@@ -470,6 +466,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
               )}
             </Box>
           )}
+          {/* rewardsFeeAmountUsd intentionally omitted: sell orders do not earn rewards points */}
           <PredictFeeSummary
             disabled={!preview}
             loading={isPreviewLoading}
@@ -486,7 +483,6 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
       </View>
       {isFeeBreakdownVisible && (
         <PredictFeeBreakdownSheet
-          ref={feeBreakdownSheetRef}
           providerFee={exchangeFee}
           metamaskFee={metamaskFee}
           sharePrice={currentPrice}

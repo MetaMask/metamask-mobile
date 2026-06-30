@@ -344,12 +344,14 @@ describe('PredictSellPreview', () => {
       expect(screen.getByText('$60')).toBeOnTheScreen();
     });
 
-    it('shows P&L percentage calculated from position data', () => {
+    it('shows P&L percentage calculated from net proceeds after fees', () => {
       renderWithProvider(<PredictSellPreview />, {
         state: initialState,
       });
 
-      expect(screen.getByText('+$10 (20%)')).toBeOnTheScreen();
+      // net = minAmountReceived(60) - metamaskFee(1.8) - exchangeFee(0.6) = $57.60
+      // cashPnl = 57.60 - initialValue(50) = 7.60, percentPnl = 15.2%
+      expect(screen.getByText('+$7.60 (15.2%)')).toBeOnTheScreen();
     });
 
     it('shows negative P&L when minAmountReceived is less than initial value', () => {
@@ -598,7 +600,8 @@ describe('PredictSellPreview', () => {
       });
 
       expect(screen.getByText('$60')).toBeOnTheScreen();
-      expect(screen.getByText('+$10 (20%)')).toBeOnTheScreen();
+      // net proceeds = 60 - 1.8 - 0.6 = $57.60; cashPnl = 57.60 - 50 = $7.60 (15.2%)
+      expect(screen.getByText('+$7.60 (15.2%)')).toBeOnTheScreen();
     });
 
     it('hides position icon row in sheet mode', () => {
@@ -677,6 +680,33 @@ describe('PredictSellPreview', () => {
 
       expect(
         screen.queryByText(strings('predict.fee_summary.total')),
+      ).not.toBeOnTheScreen();
+    });
+
+    it('closes Price details sheet when preview refreshes to null', async () => {
+      const { rerender } = renderWithProvider(<PredictSellPreview />, {
+        state: initialState,
+      });
+
+      const totalRow = screen.getByText(strings('predict.fee_summary.total'));
+
+      await act(async () => {
+        fireEvent.press(totalRow);
+      });
+
+      expect(
+        screen.getByText(strings('predict.fee_summary.price_details')),
+      ).toBeOnTheScreen();
+
+      mockPreview = null;
+      mockIsCalculating = true;
+
+      await act(async () => {
+        rerender(<PredictSellPreview />);
+      });
+
+      expect(
+        screen.queryByText(strings('predict.fee_summary.price_details')),
       ).not.toBeOnTheScreen();
     });
 

@@ -34,6 +34,16 @@ export function roundUpToCents(amount: number): number {
   return Math.ceil(amountInCents - CENT_ROUNDING_TOLERANCE) / CENTS_PER_UNIT;
 }
 
+export function roundDownToCents(amount: number): number {
+  if (!Number.isFinite(amount)) {
+    return 0;
+  }
+
+  const amountInCents = amount * CENTS_PER_UNIT;
+
+  return Math.floor(amountInCents + CENT_ROUNDING_TOLERANCE) / CENTS_PER_UNIT;
+}
+
 export function roundToFiveDecimals(amount: number): number {
   if (!Number.isFinite(amount) || amount <= 0) {
     return 0;
@@ -57,10 +67,10 @@ export function getPredictSellNetProceeds(
     return 0;
   }
   const fees = preview.fees;
-  return roundUpToCents(
+  return roundDownToCents(
     preview.minAmountReceived -
       (fees?.metamaskFee ?? 0) -
-      (fees?.providerFee ?? 0),
+      getPredictExchangeFee(fees),
   );
 }
 
