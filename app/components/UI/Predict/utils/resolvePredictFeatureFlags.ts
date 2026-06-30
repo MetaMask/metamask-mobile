@@ -3,6 +3,7 @@ import {
   validatedVersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import {
+  DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
   DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
@@ -10,10 +11,7 @@ import {
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
-import {
-  DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
-  filterSupportedLeagues,
-} from '../constants/sports';
+import { filterSupportedLeagues } from '../constants/sports';
 import {
   normalizeEnabledSportsMarketTypes,
   normalizeSportsMarketTypes,
