@@ -147,6 +147,7 @@ export const PerpsMarketListViewSelectorsIDs = {
   LIST_HEADER: 'perps-market-list-header',
   MARKET_LIST: 'perps-market-list',
   SORT_FILTERS: 'perps-market-list-sort-filters',
+  MARKET_COUNT: 'perps-market-list-market-count',
   WATCHLIST_TOGGLE: 'perps-market-list-watchlist-toggle',
   /** Star badge in the category row that filters to watchlisted markets */
   WATCHLIST_FILTER_BADGE: 'perps-market-list-sort-filters-categories-watchlist',
