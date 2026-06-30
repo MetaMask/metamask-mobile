@@ -23,7 +23,7 @@ import {
   BRIDGE_TOKEN_SELECTOR_VERIFIED_BADGE_AB_KEY,
   BRIDGE_TOKEN_SELECTOR_VERIFIED_BADGE_VARIANTS,
 } from './TokenButton.abTestConfig';
-import TokenListSecurityBadge from '../../Tokens/components/TokenListSecurityBadge/TokenListSecurityBadge';
+import SwapsTokenSecurityBadge from './SwapsTokenSecurityBadge';
 
 interface TokenProps {
   symbol?: string;
@@ -114,7 +114,7 @@ export const TokenButton: React.FC<TokenProps> = ({
           {symbol}
         </Text>
         {shouldShowSecurityBadge && securityBadgeAssetId ? (
-          <TokenListSecurityBadge caipAssetId={securityBadgeAssetId} />
+          <SwapsTokenSecurityBadge caipAssetId={securityBadgeAssetId} />
         ) : null}
       </View>
     </TouchableOpacity>

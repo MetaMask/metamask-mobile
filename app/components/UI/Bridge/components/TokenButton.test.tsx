@@ -59,23 +59,20 @@ jest.mock('../../../Base/TokenIcon', () => ({
   },
 }));
 
-jest.mock(
-  '../../Tokens/components/TokenListSecurityBadge/TokenListSecurityBadge',
-  () => {
-    const { createElement } = jest.requireActual('react');
-    const { Text } = jest.requireActual('react-native');
+jest.mock('./SwapsTokenSecurityBadge', () => {
+  const { createElement } = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
 
-    return {
-      __esModule: true,
-      default: ({ caipAssetId }: { caipAssetId: string }) =>
-        createElement(
-          Text,
-          { testID: 'token-list-security-badge' },
-          caipAssetId,
-        ),
-    };
-  },
-);
+  return {
+    __esModule: true,
+    default: ({ caipAssetId }: { caipAssetId: string }) =>
+      createElement(
+        Text,
+        { testID: 'swaps-token-security-badge' },
+        caipAssetId,
+      ),
+  };
+});
 
 jest.mock('@metamask/utils', () => {
   const actual = jest.requireActual('@metamask/utils');
@@ -117,7 +114,7 @@ describe('TokenButton', () => {
       />,
     );
 
-    expect(queryByTestId('token-list-security-badge')).toBeNull();
+    expect(queryByTestId('swaps-token-security-badge')).toBeNull();
   });
 
   it('shows security badge in treatment variant when asset id is available', () => {
@@ -135,7 +132,7 @@ describe('TokenButton', () => {
       />,
     );
 
-    expect(getByTestId('token-list-security-badge')).toBeOnTheScreen();
+    expect(getByTestId('swaps-token-security-badge')).toBeOnTheScreen();
   });
 
   it('hides security badge in treatment variant when asset id is unavailable', () => {
@@ -149,6 +146,6 @@ describe('TokenButton', () => {
       <TokenButton symbol="ETH" iconUrl="https://example.com/eth" />,
     );
 
-    expect(queryByTestId('token-list-security-badge')).toBeNull();
+    expect(queryByTestId('swaps-token-security-badge')).toBeNull();
   });
 });
