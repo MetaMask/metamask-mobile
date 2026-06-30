@@ -132,7 +132,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
   const { gate } = useComplianceGate(selectedAddress ?? '');
 
-  // Prefer enriched market list data; fall back to route params while loading.
+  // Get market data for the header
   const { markets } = usePerpsMarkets();
   const market = useMemo(() => {
     if (!symbol) {
@@ -345,7 +345,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         <SelectButton
           testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON}
           variant={SelectButtonVariant.Primary}
-          size={SelectButtonSize.Md}
+          size={SelectButtonSize.Lg}
           placeholder={currentGroupingLabel}
           value={currentGroupingLabel}
           onPress={handleDepthBandPress}
