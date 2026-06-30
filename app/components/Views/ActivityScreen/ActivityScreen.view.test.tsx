@@ -13,6 +13,10 @@ import { strings } from '../../../../locales/i18n';
 import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import { ACTIVITY_TYPE_FILTER_LABEL_KEY } from './components/ActivityTypeFilterSheet';
 import { ActivityTypeFilter } from './types';
+import {
+  clearPendingActivityTypeFilter,
+  setPendingActivityTypeFilter,
+} from '../../../util/activityRedirectFilter';
 
 const optionTestId = (filter: ActivityTypeFilter) =>
   `${ActivityScreenSelectorsIDs.TYPE_FILTER_OPTION_PREFIX}${filter}`;
@@ -23,6 +27,10 @@ const selectedTypeFilterLabel = (filter: ActivityTypeFilter) =>
   });
 
 describeForPlatforms('ActivityScreen', () => {
+  afterEach(() => {
+    clearPendingActivityTypeFilter();
+  });
+
   it('updates the selected type filter through the real screen controls', async () => {
     const { getByTestId, getAllByText, findByTestId } =
       renderActivityScreenView();
@@ -54,6 +62,36 @@ describeForPlatforms('ActivityScreen', () => {
       expect(
         getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Predictions))
           .length,
+      ).toBeGreaterThan(0);
+    });
+  });
+
+  it('clears a pending type filter after applying it', async () => {
+    setPendingActivityTypeFilter(ActivityTypeFilter.Predictions);
+
+    const firstRender = renderActivityScreenView({
+      initialParams: { initialTypeFilter: ActivityTypeFilter.Money },
+    });
+
+    await waitFor(() => {
+      expect(
+        firstRender.getAllByText(
+          selectedTypeFilterLabel(ActivityTypeFilter.Predictions),
+        ).length,
+      ).toBeGreaterThan(0);
+    });
+
+    firstRender.unmount();
+
+    const secondRender = renderActivityScreenView({
+      initialParams: { initialTypeFilter: ActivityTypeFilter.Money },
+    });
+
+    await waitFor(() => {
+      expect(
+        secondRender.getAllByText(
+          selectedTypeFilterLabel(ActivityTypeFilter.Money),
+        ).length,
       ).toBeGreaterThan(0);
     });
   });

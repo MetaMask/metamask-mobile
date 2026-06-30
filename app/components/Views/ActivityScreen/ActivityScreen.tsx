@@ -85,11 +85,20 @@ const ActivityScreen = () => {
   const [isNetworkSheetOpen, setIsNetworkSheetOpen] = useState(false);
 
   const networkOptions = useNetworkFilterOptions();
+  const suppressedInitialTypeFilterRef = useRef<ActivityTypeFilter | undefined>(
+    undefined,
+  );
 
   const applyInitialTypeFilter = useCallback(() => {
     const pendingTypeFilter = getPendingActivityTypeFilter();
     if (pendingTypeFilter) {
+      suppressedInitialTypeFilterRef.current = isActivityTypeFilter(
+        initialTypeFilter,
+      )
+        ? initialTypeFilter
+        : undefined;
       setTypeFilter(pendingTypeFilter);
+      clearPendingActivityTypeFilter();
       return;
     }
 
@@ -97,6 +106,11 @@ const ActivityScreen = () => {
       return;
     }
 
+    if (initialTypeFilter === suppressedInitialTypeFilterRef.current) {
+      return;
+    }
+
+    suppressedInitialTypeFilterRef.current = undefined;
     setTypeFilter(initialTypeFilter);
   }, [initialTypeFilter]);
 
