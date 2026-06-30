@@ -2,7 +2,7 @@ import { EVENT_NAME } from '../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../util/analytics/abTestAnalytics.types';
 
 export const BRIDGE_TOKEN_SELECTOR_VERIFIED_BADGE_AB_KEY =
-  'swapsSWAPS4635AbtestVerified';
+  'swapsSWAPS4635AbtestVerified2';
 
 export enum BridgeTokenSelectorVerifiedBadgeVariant {
   Control = 'control',
