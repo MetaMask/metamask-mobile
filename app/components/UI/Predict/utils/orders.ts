@@ -50,6 +50,20 @@ export function getPredictExchangeFee(fees?: PredictFees): number {
   return (fees?.providerFee ?? 0) + getPredictMarketFee(fees);
 }
 
+export function getPredictSellNetProceeds(
+  preview?: OrderPreview | null,
+): number {
+  if (!preview) {
+    return 0;
+  }
+  const fees = preview.fees;
+  return roundUpToCents(
+    preview.minAmountReceived -
+      (fees?.metamaskFee ?? 0) -
+      (fees?.providerFee ?? 0),
+  );
+}
+
 export function getPredictBuyAllInCost(preview?: OrderPreview | null): number {
   if (!preview) {
     return 0;

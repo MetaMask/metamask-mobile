@@ -2332,6 +2332,11 @@ export const previewOrder = async (
     amount: dollarAmount,
     decimals: roundConfig.amount,
   });
+  const serviceFees = await calculateFees({
+    feeCollection,
+    marketId,
+    userBetAmount: takerAmount,
+  });
   return {
     marketId,
     outcomeId,
@@ -2347,6 +2352,6 @@ export const previewOrder = async (
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
     feeRateBps,
-    // no fees for sell orders
+    fees: serviceFees,
   };
 };
