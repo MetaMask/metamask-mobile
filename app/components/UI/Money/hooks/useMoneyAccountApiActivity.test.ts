@@ -290,6 +290,29 @@ describe('useMoneyAccountApiActivity', () => {
     expect(result.current.activity).toEqual([]);
   });
 
+  it('treats a failed fetch as a terminal (complete) state so rows are not withheld', () => {
+    // `retry: false` means an errored query never recovers and `hasNextPage`
+    // stays `undefined`. Reporting it complete with a `-Infinity` watermark lets
+    // the consumer stop gating local rows and drop its skeleton.
+    mockQueryResult({ isError: true });
+
+    const { result } = renderHook(() => useMoneyAccountApiActivity());
+
+    expect(result.current.isComplete).toBe(true);
+    expect(result.current.watermark).toBe(Number.NEGATIVE_INFINITY);
+    expect(result.current.hasMore).toBe(false);
+  });
+
+  it('treats a disabled query (no money account) as a terminal (complete) state', () => {
+    setupSelectors({ account: undefined });
+
+    const { result } = renderHook(() => useMoneyAccountApiActivity());
+
+    expect(result.current.isComplete).toBe(true);
+    expect(result.current.watermark).toBe(Number.NEGATIVE_INFINITY);
+    expect(result.current.hasMore).toBe(false);
+  });
+
   it('exposes refetch from the query', () => {
     const refetch = jest.fn();
     mockQueryResult({ refetch });

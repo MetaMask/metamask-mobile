@@ -67,6 +67,7 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   );
   const rawAddress = primaryMoneyAccount?.address;
   const moneyAddress = rawAddress ? toChecksumHexAddress(rawAddress) : '';
+  const enabled = moneyAddress !== '';
 
   // Reuse the client's query key (cursor-free) so all pages share one cache
   // entry and the home preview and full list don't refetch each other's pages.
@@ -86,10 +87,13 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
       }),
     getNextPageParam: (lastPage: V1AccountTransactionsResponse) =>
       lastPage.pageInfo?.hasNextPage ? lastPage.pageInfo.cursor : undefined,
-    enabled: moneyAddress !== '',
+    enabled,
     staleTime: 5 * MINUTE,
     retry: false,
-  } as unknown as UseInfiniteQueryOptions<V1AccountTransactionsResponse, Error>);
+  } as unknown as UseInfiniteQueryOptions<
+    V1AccountTransactionsResponse,
+    Error
+  >);
 
   const pages = query.data?.pages ?? EMPTY_PAGES;
 
@@ -108,9 +112,17 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     [pages, moneyAddress, cashbackMultisendContracts],
   );
 
-  // `hasNextPage` is `undefined` before the first fetch resolves, so compare
-  // explicitly: complete only once we've learned there is no next page.
-  const isComplete = query.hasNextPage === false;
+  // "Complete" means no further pages will arrive, so the merged list can be
+  // shown in full and the watermark can stop gating. That's true in three
+  // terminal states:
+  //   - the query is disabled (no money account) — nothing will ever be fetched;
+  //   - the fetch errored (`retry: false`, so it won't recover on its own);
+  //   - we've paged to the end (`hasNextPage === false`).
+  // `hasNextPage` is `undefined` both before the first fetch resolves and while
+  // disabled, so it can't be relied on alone — without the `!enabled`/`isError`
+  // arms a disabled or errored query would withhold every row (watermark stuck
+  // at `+Infinity`) and strand the view on a permanent skeleton.
+  const isComplete = !enabled || query.isError || query.hasNextPage === false;
   const watermark = useMemo(
     () =>
       isComplete ? Number.NEGATIVE_INFINITY : oldestRawActivityTime(pages),
