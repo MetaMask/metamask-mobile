@@ -26,7 +26,19 @@ jobs:
     needs: is-fork-pull-request
     # Early exit if this is a fork, since later steps are skipped for forks
     if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
+    permissions:
+      id-token: write
+      contents: read
     steps:
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            metadata: read
+            contents: write
+            pull_requests: write
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: React to the comment
@@ -39,7 +51,7 @@ jobs:
             -f content='+1'
         env:
           COMMENT_ID: ${{ github.event.comment.id }}
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_WRITE_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
           REPO: ${{ github.repository }}
 
   prepare:
@@ -118,12 +130,25 @@ jobs:
       - is-fork-pull-request
       - update-attributions
     if: ${{ needs.is-fork-pull-request.outputs.IS_FORK == 'false' }}
+    permissions:
+      id-token: write
+      contents: read
+      pull-requests: read
     steps:
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            metadata: read
+            contents: write
+            pull_requests: write
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          # Use PAT to ensure that the commit later can trigger status check workflows
-          token: ${{ secrets.ACTIONS_WRITE_TOKEN }}
+          # Use installation token to ensure that the commit later can trigger status check workflows
+          token: ${{ steps.get-token.outputs.token }}
       - name: Checkout pull request
         run: gh pr checkout "${PR_NUMBER}"
         env:
@@ -164,7 +189,7 @@ jobs:
           fi
         env:
           HAS_CHANGES: ${{ steps.attributions-changes.outputs.HAS_CHANGES }}
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_WRITE_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
           PR_NUMBER: ${{ github.event.issue.number }}
 
   check-status:
@@ -189,7 +214,19 @@ jobs:
     needs:
       - is-fork-pull-request
       - check-status
+    permissions:
+      id-token: write
+      contents: read
     steps:
+      - name: Get token
+        id: get-token
+        uses: MetaMask/github-tools/.github/actions/get-token@v1
+        with:
+          token-exchange-url: ${{ vars.TOKEN_EXCHANGE_URL }}
+          permissions: |
+            metadata: read
+            contents: write
+            pull_requests: write
       - uses: actions/checkout@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
@@ -200,6 +237,6 @@ jobs:
             gh pr comment "${PR_NUMBER}" --body "Attributions update failed. You can [review the logs or retry the attributions update here](${ACTION_RUN_URL})"
           fi
         env:
-          GITHUB_TOKEN: ${{ secrets.ACTIONS_WRITE_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.get-token.outputs.token }}
           PR_NUMBER: ${{ github.event.issue.number }}
           ACTION_RUN_URL: '${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}'

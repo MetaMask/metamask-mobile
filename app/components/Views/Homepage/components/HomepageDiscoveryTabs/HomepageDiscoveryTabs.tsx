@@ -3,6 +3,7 @@ import React, {
   useCallback,
   useEffect,
   useImperativeHandle,
+  useMemo,
   useRef,
 } from 'react';
 import {
@@ -195,13 +196,13 @@ const HomepageDiscoveryTabs = forwardRef<
 
     // Triggered directly from the scroll worklet via onHeaderHiddenChange —
     // fires in the same frame as the hide/show decision, not based on position.
-    // eslint-disable-next-line react-compiler/react-compiler -- mutating a Reanimated SharedValue is the documented pattern; it does not affect React render
     const animateIcons = useCallback(
       (hidden: boolean) => {
         const toValue = hidden ? 1 : 0;
         const duration = hidden ? 300 : 250;
 
         // UI-thread layout animation via Reanimated.
+        // eslint-disable-next-line react-compiler/react-compiler -- mutating a Reanimated SharedValue is the documented pattern; it does not affect React render
         iconCollapseProgress.value = withTiming(toValue, {
           duration,
           easing: Easing.out(Easing.cubic),
@@ -343,10 +344,17 @@ const HomepageDiscoveryTabs = forwardRef<
       ],
     );
 
+    const tabIconAnimationContextValue = useMemo(
+      () => ({ iconCollapseProgress }),
+      [iconCollapseProgress],
+    );
+
     return (
       <PerpsConnectionProvider suppressErrorView>
         <PerpsStreamProvider>
-          <TabIconAnimationContext.Provider value={{ iconCollapseProgress }}>
+          <TabIconAnimationContext.Provider
+            value={tabIconAnimationContextValue}
+          >
             <View style={styles.flex}>
               <TabsIconList
                 ref={tabsRef}

@@ -37,7 +37,6 @@ import {
   renderFiat,
 } from '../../../util/number/bigint';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { getAssetIconUrl } from '../Perps/utils/marketUtils';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 
@@ -257,7 +256,7 @@ function statusTitle(
   if (item.status === 'failed')
     return titles.failed ?? strings('transaction.failed');
   if (item.status === 'cancelled') {
-    return titles.cancelled ?? strings('transaction.cancelled');
+    return titles.cancelled ?? strings('transaction.canceled');
   }
   return titles.success;
 }
@@ -299,6 +298,8 @@ const ACTIVITY_FALLBACK_TITLE_RESOLVERS: Partial<
   stopMarketCloseShort: () =>
     strings('transactions.activity_stop_market_close_short'),
   marketCloseShort: () => strings('transactions.activity_market_close_short'),
+  limitShort: () => strings('transactions.activity_limit_short'),
+  limitCloseShort: () => strings('transactions.activity_limit_close_short'),
 };
 
 // Domain (perps/predict) rows have no bespoke failed copy, so mark a
@@ -313,7 +314,7 @@ function withDomainStatusSuffix(
     return `${title}—${strings('transaction.failed')}`;
   }
   if (status === 'cancelled') {
-    return `${title}—${strings('transaction.cancelled')}`;
+    return `${title}—${strings('transaction.canceled')}`;
   }
   return title;
 }
@@ -690,6 +691,24 @@ function resolveCoreContent(
         primaryToken,
         secondaryToken:
           primaryToken === destinationToken ? sourceToken : destinationToken,
+      };
+    }
+    case 'nftBuy':
+    case 'nftSell': {
+      const nftName = item.data.token?.symbol ?? 'NFT';
+      const labels =
+        item.type === 'nftBuy'
+          ? { success: 'Bought', pending: 'Buying', failed: 'Buy failed' }
+          : { success: 'Sold', pending: 'Selling', failed: 'Sale failed' };
+
+      return {
+        title: statusTitle(item, {
+          success: withOptionalSymbol(labels.success, nftName),
+          pending: withOptionalSymbol(labels.pending, nftName),
+          failed: labels.failed,
+        }),
+        subtitle: protocolSubtitle(item),
+        primaryToken: item.data.paymentToken,
       };
     }
     case 'nftMint':
@@ -1157,16 +1176,15 @@ export function useActivityListItemRowContent(
       ? item.data.sourceToken?.symbol
       : undefined
     : undefined;
-  const avatarIconUrl = perpsMarketSymbol
-    ? getAssetIconUrl(perpsMarketSymbol)
-    : isPredictTradeKind(item.type)
-      ? getPredictActivity(item)?.icon
-      : undefined;
+  const predictIconUrl = isPredictTradeKind(item.type)
+    ? getPredictActivity(item)?.icon
+    : undefined;
 
   return {
     ...content,
     avatarTokens: resolveAvatarTokens(item, bridgeHistoryItem),
-    avatarIconUrl,
+    avatarIconUrl: predictIconUrl,
+    perpsMarketSymbol,
     primaryToken,
     secondaryToken,
     primaryAmount,

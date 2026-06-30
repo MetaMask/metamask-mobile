@@ -327,19 +327,15 @@ class AccountListBottomSheet {
         });
       },
       appium: async () => {
-        const accountCells =
-          await this.getAccountElementsByAccountNameV2(accountName);
-        if (accountCells.length === 0) {
-          throw new Error(`No account row found for "${accountName}"`);
-        }
-
-        const accountEl = exactMatch
-          ? accountCells[0]
-          : accountCells[accountCells.length - 1];
-        await PlaywrightGestures.scrollIntoView(accountEl, {
-          scrollParams: { direction: 'down' },
-          maxScrolls: 10,
-        });
+        const escapedAccountName = accountName.replace(/'/g, "\\'");
+        const accountEl = PlatformDetector.isAndroid()
+          ? await PlaywrightMatchers.getElementByXPath(
+              exactMatch
+                ? `//*[@name='${escapedAccountName}' or @label='${escapedAccountName}' or @text='${escapedAccountName}' or @content-desc='${escapedAccountName}']/ancestor::*[@clickable='true'][1]`
+                : `//*[contains(@name,'${escapedAccountName}') or contains(@label,'${escapedAccountName}') or contains(@text,'${escapedAccountName}') or contains(@content-desc,'${escapedAccountName}')]/ancestor::*[@clickable='true'][1]`,
+            )
+          : await PlaywrightMatchers.getElementByText(accountName, exactMatch);
+        await PlaywrightGestures.scrollIntoView(accountEl);
         await PlaywrightGestures.waitAndTap(accountEl);
       },
     });

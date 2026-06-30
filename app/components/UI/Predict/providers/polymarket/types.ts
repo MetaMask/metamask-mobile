@@ -144,6 +144,10 @@ export interface PolymarketApiActivity {
   title: string;
   outcome?: 'Yes' | 'No' | '';
   icon: string;
+  slug?: string;
+  eventSlug?: string;
+  netPnlUsd?: number;
+  totalNetPnlUsd?: number;
 }
 
 export interface PolymarketApiEventsKeysetResponse {
