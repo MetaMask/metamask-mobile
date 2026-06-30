@@ -1,6 +1,9 @@
 import React, { ReactNode } from 'react';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
   Text,
   TextColor,
   TextVariant,
@@ -96,6 +99,32 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
 
   const showAction = onActionPress && !isLoading && !isEmpty;
 
+  const actionButton = showAction ? (
+    <ButtonIcon
+      iconName={IconName.MoreHorizontal}
+      iconProps={{ color: IconColor.IconAlternative }}
+      size={ButtonIconSize.Md}
+      onPress={onActionPress}
+      testID={PerpsHomeSectionTestIds.ACTION_BUTTON}
+    />
+  ) : null;
+
+  const sectionTitle = showAction ? (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="w-full"
+    >
+      <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+        {title}
+      </Text>
+      {actionButton}
+    </Box>
+  ) : (
+    title
+  );
+
   const subtitleContent =
     subtitle && subtitleSuffix ? (
       <HomepageSectionUnrealizedPnlRow
@@ -120,26 +149,8 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
   return (
     <Box testID={testID}>
       <SectionHeader
-        title={title}
-        twClassName={
-          showAction && !subtitleContent ? 'justify-between pr-3' : undefined
-        }
-        titleWrapperProps={
-          showAction && subtitleContent
-            ? { twClassName: 'w-full flex-1' }
-            : undefined
-        }
-        endAccessory={
-          showAction ? (
-            <ButtonIcon
-              iconName={IconName.MoreHorizontal}
-              iconProps={{ color: IconColor.IconAlternative }}
-              size={ButtonIconSize.Md}
-              onPress={onActionPress}
-              testID={PerpsHomeSectionTestIds.ACTION_BUTTON}
-            />
-          ) : undefined
-        }
+        title={sectionTitle}
+        titleWrapperProps={showAction ? { twClassName: 'w-full' } : undefined}
       >
         {subtitleContent}
       </SectionHeader>
