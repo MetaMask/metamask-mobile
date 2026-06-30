@@ -1,3 +1,6 @@
+import { PredictGameStatus, PredictPriceHistoryInterval } from '../../types';
+import type { ChartTimeframe } from './PredictGameChart.types';
+
 export const CHART_HEIGHT = 200;
 export const TIMEFRAME_SELECTOR_RESERVED_HEIGHT = 56;
 export const CHART_WITH_TIMEFRAME_SELECTOR_HEIGHT =
@@ -14,6 +17,47 @@ export const LABEL_OFFSET_X = 20;
 export const RIGHT_LABEL_OFFSET = 20;
 export const LABEL_TEXT_OFFSET_Y = 8;
 export const VALUE_TEXT_OFFSET_Y = 16;
+export const TIMEFRAME_TO_INTERVAL: Record<
+  Exclude<ChartTimeframe, 'live'>,
+  PredictPriceHistoryInterval
+> = {
+  '1h': PredictPriceHistoryInterval.ONE_HOUR,
+  '6h': PredictPriceHistoryInterval.SIX_HOUR,
+  '1d': PredictPriceHistoryInterval.ONE_DAY,
+  max: PredictPriceHistoryInterval.MAX,
+};
+export const FIDELITY_BY_TIMEFRAME: Record<ChartTimeframe, number> = {
+  live: 1,
+  '1h': 1,
+  '6h': 5,
+  '1d': 15,
+  max: 60,
+};
+export const ENDED_GAME_FIDELITY = 2;
+
+export const getMinuteTimestamp = (timestamp: number): number =>
+  Math.floor(timestamp / 60000) * 60000;
+
+export const toMilliseconds = (timestamp: number): number =>
+  timestamp < 10_000_000_000 ? timestamp * 1000 : timestamp;
+
+export const toUnixSeconds = (isoString: string): number =>
+  Math.floor(new Date(isoString).getTime() / 1000);
+
+export const getDefaultTimeframe = (
+  gameStatus: PredictGameStatus | undefined,
+): ChartTimeframe => {
+  switch (gameStatus) {
+    case 'ongoing':
+      return 'live';
+    case 'scheduled':
+      return '6h';
+    case 'ended':
+      return 'max';
+    default:
+      return '6h';
+  }
+};
 /**
  * Smallest vertical center a label may occupy. A label renders its small text
  * label above the value at `labelY - LABEL_TEXT_OFFSET_Y`, and that text ascends

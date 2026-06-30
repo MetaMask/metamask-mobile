@@ -5,7 +5,7 @@ import React, {
   useCallback,
   useRef,
 } from 'react';
-import { PredictGameStatus, PredictPriceHistoryInterval } from '../../types';
+import { PredictPriceHistoryInterval } from '../../types';
 import { usePredictPriceHistory } from '../../hooks/usePredictPriceHistory';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { usePredictGame } from '../../hooks/usePredictGame';
@@ -13,6 +13,7 @@ import {
   getPrimaryMoneylineOutcomes,
   isDrawCapableLeague,
 } from '../../constants/sports';
+import { getLeagueTeamOrder } from '../../utils/gameParser';
 import { useTheme } from '../../../../../util/theme';
 import PredictGameChartContent from './PredictGameChartContent';
 import {
@@ -22,50 +23,15 @@ import {
   ChartTimeframe,
   GameChartSeriesConfig,
 } from './PredictGameChart.types';
-
-const TIMEFRAME_TO_INTERVAL: Record<
-  Exclude<ChartTimeframe, 'live'>,
-  PredictPriceHistoryInterval
-> = {
-  '1h': PredictPriceHistoryInterval.ONE_HOUR,
-  '6h': PredictPriceHistoryInterval.SIX_HOUR,
-  '1d': PredictPriceHistoryInterval.ONE_DAY,
-  max: PredictPriceHistoryInterval.MAX,
-};
-
-const FIDELITY_BY_TIMEFRAME: Record<ChartTimeframe, number> = {
-  live: 1,
-  '1h': 1,
-  '6h': 5,
-  '1d': 15,
-  max: 60,
-};
-
-const ENDED_GAME_FIDELITY = 2;
-
-const getMinuteTimestamp = (timestamp: number): number =>
-  Math.floor(timestamp / 60000) * 60000;
-
-const toMilliseconds = (timestamp: number): number =>
-  timestamp < 10_000_000_000 ? timestamp * 1000 : timestamp;
-
-const toUnixSeconds = (isoString: string): number =>
-  Math.floor(new Date(isoString).getTime() / 1000);
-
-const getDefaultTimeframe = (
-  gameStatus: PredictGameStatus | undefined,
-): ChartTimeframe => {
-  switch (gameStatus) {
-    case 'ongoing':
-      return 'live';
-    case 'scheduled':
-      return '6h';
-    case 'ended':
-      return 'max';
-    default:
-      return '6h';
-  }
-};
+import {
+  ENDED_GAME_FIDELITY,
+  FIDELITY_BY_TIMEFRAME,
+  getDefaultTimeframe,
+  getMinuteTimestamp,
+  TIMEFRAME_TO_INTERVAL,
+  toMilliseconds,
+  toUnixSeconds,
+} from './PredictGameChart.constants';
 
 const PredictGameChart: React.FC<PredictGameChartProps> = ({
   market,
@@ -107,10 +73,15 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
         { label: game.awayTeam.abbreviation, color: game.awayTeam.color },
       ];
     }
-    return [
-      { label: game.awayTeam.abbreviation, color: game.awayTeam.color },
-      { label: game.homeTeam.abbreviation, color: game.homeTeam.color },
-    ];
+    const orderedTeams =
+      getLeagueTeamOrder(game.league) === 'home-away'
+        ? [game.homeTeam, game.awayTeam]
+        : [game.awayTeam, game.homeTeam];
+
+    return orderedTeams.map((team) => ({
+      label: team.abbreviation,
+      color: team.color,
+    }));
   }, [game, moneylineOutcomes.length, colors.icon.muted]);
 
   const [timeframe, setTimeframe] = useState<ChartTimeframe>(() =>
