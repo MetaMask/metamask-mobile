@@ -44,4 +44,41 @@ describe('TraderPositionCompactTokenStats', () => {
 
     expect(onTraderPress).toHaveBeenCalledTimes(1);
   });
+
+  it('renders perp leverage and direction badges beside the compact token symbol', () => {
+    renderWithProvider(
+      <TraderPositionCompactTokenStats
+        symbol="BTC"
+        pricePercentChange={-4.69}
+        activeTimePeriodLabel="1W"
+        traderName="trader1"
+        perpDirection="short"
+        perpLeverage={3}
+        onTraderPress={jest.fn()}
+      />,
+    );
+
+    expect(
+      within(
+        screen.getByTestId(
+          TraderPositionViewSelectorsIDs.HEADER_COMPACT_PERP_BADGES,
+        ),
+      ).getByText('3x'),
+    ).toBeOnTheScreen();
+    expect(
+      within(
+        screen.getByTestId(
+          TraderPositionViewSelectorsIDs.HEADER_COMPACT_PERP_BADGES,
+        ),
+      ).getByText('SHORT'),
+    ).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(TraderPositionViewSelectorsIDs.COMPACT_TOKEN_STATS),
+    ).toHaveTextContent('BTC3xSHORT-4.69% 1W · trader1');
+    expect(
+      screen.getByTestId(
+        TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_CHANGE,
+      ),
+    ).toHaveTextContent('-4.69% 1W · trader1');
+  });
 });
