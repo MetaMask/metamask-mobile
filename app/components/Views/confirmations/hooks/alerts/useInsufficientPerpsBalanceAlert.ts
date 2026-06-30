@@ -42,8 +42,6 @@ export function useInsufficientPerpsBalanceAlert({
     TransactionType.perpsWithdraw,
   ]);
 
-  const isPendingInput = pendingAmount !== undefined;
-
   const isInsufficient = useMemo(() => {
     if (!isPerpsWithdraw) return false;
 
@@ -55,11 +53,9 @@ export function useInsufficientPerpsBalanceAlert({
       return true;
     }
 
-    // On the confirmation screen (not while typing), check if fees
-    // exceed the withdraw amount — user would receive nothing.
-    // Skipped during input because totals may be stale.
+    // Check if fees exceed the withdraw amount — user would receive nothing.
+    // Runs during both input and confirmation so the user gets early feedback.
     if (
-      !isPendingInput &&
       hasQuotes &&
       totals?.fees &&
       new BigNumber(amountHuman).isGreaterThan(0)
@@ -75,14 +71,7 @@ export function useInsufficientPerpsBalanceAlert({
     }
 
     return false;
-  }, [
-    amountHuman,
-    hasQuotes,
-    isPendingInput,
-    isPerpsWithdraw,
-    withdrawableBalance,
-    totals,
-  ]);
+  }, [amountHuman, hasQuotes, isPerpsWithdraw, withdrawableBalance, totals]);
 
   return useMemo(() => {
     if (!isInsufficient) {

@@ -11,10 +11,20 @@ import {
 import { useTokenAmount } from '../useTokenAmount';
 import { renderHookWithProvider } from '../../../../../util/test/renderWithProvider';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
+import {
+  useTransactionPayQuotes,
+  useTransactionPayTotals,
+} from '../pay/useTransactionPayData';
+import {
+  TransactionPayQuote,
+  TransactionPayTotals,
+} from '@metamask/transaction-pay-controller';
+import { Json } from '@metamask/utils';
 
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
+jest.mock('../pay/useTransactionPayData');
 
 function runHook({ pendingAmount }: { pendingAmount?: string } = {}) {
   return renderHookWithProvider(() =>
@@ -25,6 +35,7 @@ function runHook({ pendingAmount }: { pendingAmount?: string } = {}) {
 describe('useInsufficientPredictBalanceAlert', () => {
   const useTokenAmountMock = jest.mocked(useTokenAmount);
   const usePredictBalanceMock = jest.mocked(usePredictBalance);
+  const useTransactionPayTotalsMock = jest.mocked(useTransactionPayTotals);
 
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
@@ -42,6 +53,8 @@ describe('useInsufficientPredictBalanceAlert', () => {
 
     useTokenAmountMock.mockReturnValue({} as ReturnType<typeof useTokenAmount>);
     usePredictBalanceMock.mockReturnValue({ data: 1233.99 } as never);
+    useTransactionPayTotalsMock.mockReturnValue(undefined);
+    jest.mocked(useTransactionPayQuotes).mockReturnValue(undefined);
   });
 
   it('returns alert if predict balance less than pending amount', () => {
@@ -103,6 +116,73 @@ describe('useInsufficientPredictBalanceAlert', () => {
     useTokenAmountMock.mockReturnValue({ amountPrecise: '1234' } as ReturnType<
       typeof useTokenAmount
     >);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns alert when fees exceed withdraw amount on confirmation screen', () => {
+    useTokenAmountMock.mockReturnValue({
+      amountPrecise: '10',
+    } as ReturnType<typeof useTokenAmount>);
+
+    jest
+      .mocked(useTransactionPayQuotes)
+      .mockReturnValue([{} as TransactionPayQuote<Json>]);
+
+    useTransactionPayTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '5' },
+        sourceNetwork: { estimate: { usd: '3' } },
+        targetNetwork: { usd: '4' },
+        metaMask: { usd: '1' },
+      },
+    } as unknown as TransactionPayTotals);
+
+    const { result } = runHook();
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].key).toBe(AlertKeys.InsufficientPredictBalance);
+  });
+
+  it('returns alert during pending input when fees exceed amount', () => {
+    jest
+      .mocked(useTransactionPayQuotes)
+      .mockReturnValue([{} as TransactionPayQuote<Json>]);
+
+    useTransactionPayTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '100' },
+        sourceNetwork: { estimate: { usd: '0' } },
+        targetNetwork: { usd: '0' },
+        metaMask: { usd: '0' },
+      },
+    } as unknown as TransactionPayTotals);
+
+    const { result } = runHook({ pendingAmount: '10' });
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].key).toBe(AlertKeys.InsufficientPredictBalance);
+  });
+
+  it('returns no alert when fees are less than amount', () => {
+    useTokenAmountMock.mockReturnValue({
+      amountPrecise: '40',
+    } as ReturnType<typeof useTokenAmount>);
+
+    jest
+      .mocked(useTransactionPayQuotes)
+      .mockReturnValue([{} as TransactionPayQuote<Json>]);
+
+    useTransactionPayTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '0.05' },
+        sourceNetwork: { estimate: { usd: '0' } },
+        targetNetwork: { usd: '0' },
+        metaMask: { usd: '0.003' },
+      },
+    } as unknown as TransactionPayTotals);
 
     const { result } = runHook();
 

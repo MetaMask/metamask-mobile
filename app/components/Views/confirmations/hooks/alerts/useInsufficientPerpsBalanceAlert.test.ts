@@ -175,7 +175,7 @@ describe('useInsufficientPerpsBalanceAlert', () => {
     expect(result.current[0].key).toBe(AlertKeys.InsufficientPerpsBalance);
   });
 
-  it('does not trigger fee check during pending input even when fees exceed amount', () => {
+  it('triggers fee check during pending input when fees exceed amount', () => {
     jest
       .mocked(useTransactionPayQuotes)
       .mockReturnValue([{} as TransactionPayQuote<Json>]);
@@ -191,7 +191,8 @@ describe('useInsufficientPerpsBalanceAlert', () => {
 
     const { result } = runHook({ pendingAmount: '10' });
 
-    expect(result.current).toStrictEqual([]);
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].key).toBe(AlertKeys.InsufficientPerpsBalance);
   });
 
   it('returns no alert on confirmation screen when fees are less than amount', () => {
