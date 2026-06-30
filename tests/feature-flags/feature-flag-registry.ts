@@ -298,7 +298,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     inProd: true,
     productionDefault: {
       versions: {
-        '8.1.0': {
+        '8.2.0': {
           enabled: true,
         },
       },
