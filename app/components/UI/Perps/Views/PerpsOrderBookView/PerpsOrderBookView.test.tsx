@@ -6,16 +6,28 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 import { mockTheme } from '../../../../../util/theme';
+import type { OrderBookRouteParams } from './PerpsOrderBookView.types';
+import type { PerpsMarketData } from '@metamask/perps-controller';
 
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
-const mockUseRoute = jest.fn(() => ({
+const mockUseRoute = jest.fn<{ params: OrderBookRouteParams }, []>(() => ({
   params: {
     symbol: 'BTC',
   },
 }));
+
+const mockRouteMarketData: PerpsMarketData = {
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  maxLeverage: '50x',
+  price: '$50,000.00',
+  change24h: '$0',
+  change24hPercent: '0%',
+  volume: '$1M',
+};
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -1526,11 +1538,7 @@ describe('PerpsOrderBookView', () => {
       mockUseRoute.mockReturnValue({
         params: {
           symbol: 'BTC',
-          marketData: {
-            symbol: 'BTC',
-            price: '$50,000.00',
-            maxLeverage: '50x',
-          },
+          marketData: mockRouteMarketData,
         },
       });
 
