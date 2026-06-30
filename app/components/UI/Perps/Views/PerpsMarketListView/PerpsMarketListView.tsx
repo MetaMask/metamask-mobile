@@ -6,7 +6,14 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { View, Animated, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Animated,
+  ScrollView,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  Platform,
+} from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
@@ -584,8 +591,14 @@ const PerpsMarketListView = ({
         />
       )}
 
-      {/* Market List - Single list with JavaScript filtering */}
-      <View style={styles.listContainerWithTabBar}>{renderMarketList()}</View>
+      {/* Market List - wrapped in KeyboardAvoidingView so empty-state CTAs
+          remain visible and tappable when the search keyboard is open */}
+      <KeyboardAvoidingView
+        style={styles.listContainerWithTabBar}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        {renderMarketList()}
+      </KeyboardAvoidingView>
 
       {/* Sort Field Bottom Sheet */}
       <PerpsMarketSortFieldBottomSheet
