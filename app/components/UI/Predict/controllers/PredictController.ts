@@ -37,7 +37,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
-import { Interface } from 'ethers/lib/utils';
+import { formatUnits, Interface } from 'ethers/lib/utils';
 import performance from 'react-native-performance';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
@@ -3122,7 +3122,9 @@ export class PredictController extends BaseController<
       return undefined;
     }
 
-    return Number(payoutRaw) / 10 ** COLLATERAL_TOKEN_DECIMALS;
+    return parseFloat(
+      formatUnits(payoutRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
+    );
   }
 
   private getClaimAmountFromSimulation(
@@ -3154,11 +3156,19 @@ export class PredictController extends BaseController<
       }
 
       try {
-        const difference =
-          Number(BigInt(change.difference)) / 10 ** COLLATERAL_TOKEN_DECIMALS;
+        const difference = parseFloat(
+          formatUnits(change.difference, COLLATERAL_TOKEN_DECIMALS),
+        );
         hasRelevantTokenChange = true;
         return sum + difference;
-      } catch (_error) {
+      } catch (error) {
+        DevLogger.log(
+          'PredictController: Failed to parse claim simulation difference',
+          {
+            difference: change.difference,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+        );
         return sum;
       }
     }, 0);

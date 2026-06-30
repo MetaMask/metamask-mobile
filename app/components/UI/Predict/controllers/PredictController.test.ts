@@ -6049,6 +6049,68 @@ describe('PredictController', () => {
       });
     });
 
+    it('logs malformed claim simulation differences and falls back for approved claims', () => {
+      withController(({ controller, messenger }) => {
+        const transactionStatusChangedHandler = jest.fn();
+        const claimablePositions = [
+          createMockPosition({
+            id: 'position-1',
+            status: PredictPositionStatus.WON,
+            currentValue: 100,
+            cashPnl: 25,
+          }),
+        ];
+        const transactionMeta: TransactionMeta = {
+          ...createPredictTransactionMeta({
+            nestedType: TransactionType.predictClaim,
+            status: TransactionStatus.approved,
+          }),
+          simulationData: {
+            tokenBalanceChanges: [
+              {
+                address: MATIC_CONTRACTS_V2.collateral,
+                standard: 'erc20',
+                difference: '45.5',
+                isDecrease: false,
+              },
+            ],
+          },
+        };
+
+        controller.updateStateForTesting((state) => {
+          state.claimablePositions = {
+            [accountAddress]: claimablePositions,
+          };
+        });
+
+        (DevLogger.log as jest.Mock).mockClear();
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          transactionStatusChangedHandler,
+        );
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta,
+        });
+
+        expect(DevLogger.log).toHaveBeenCalledWith(
+          'PredictController: Failed to parse claim simulation difference',
+          expect.objectContaining({
+            difference: '45.5',
+          }),
+        );
+        expect(transactionStatusChangedHandler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'claim',
+            status: 'approved',
+            senderAddress: accountAddress,
+            transactionId: 'tx-1',
+            amount: 100,
+          }),
+        );
+      });
+    });
+
     it('publishes zero amount for confirmed claim when payout redemption is zero', () => {
       withController(({ controller, messenger }) => {
         const transactionStatusChangedHandler = jest.fn();
