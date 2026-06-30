@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useSelector } from 'react-redux';
 import type { Position } from '@metamask/social-controllers';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
-import type { Hex } from '@metamask/utils';
+import type { CaipChainId, Hex } from '@metamask/utils';
 import { handleFetch } from '@metamask/controller-utils';
 import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
 import { caipChainIdToHex } from '../../../UI/Rewards/utils/formatUtils';
@@ -13,7 +13,7 @@ import { PERIOD_TO_API, type TimePeriod } from './traderPositionData.shared';
 
 export interface SpotTraderPositionPricesParams {
   positionParam: Position | undefined;
-  caipChainId: string | undefined;
+  caipChainId: CaipChainId | undefined;
 }
 
 export interface SpotTraderPositionPricesOptions {
