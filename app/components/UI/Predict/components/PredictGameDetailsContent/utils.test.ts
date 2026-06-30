@@ -302,6 +302,51 @@ describe('PredictGameDetailsContent utils', () => {
       expect(buttons[1].teamColor).toBeUndefined();
     });
 
+    it('assigns yes/no variants for both teams to score (binary Yes/No market)', () => {
+      const outcome = createOutcome({
+        sportsMarketType: 'both_teams_to_score',
+        tokens: [
+          createToken({
+            id: 'yes',
+            title: 'Yes',
+            shortTitle: 'Yes',
+            price: 0.6,
+          }),
+          createToken({ id: 'no', title: 'No', shortTitle: 'No', price: 0.4 }),
+        ],
+      });
+
+      const buttons = buildButtons(
+        outcome,
+        mockOnBuyPress,
+        mockGame,
+        'both_teams_to_score',
+      );
+
+      expect(buttons.map((button) => button.variant)).toEqual(['yes', 'no']);
+      expect(buttons[0].teamColor).toBeUndefined();
+      expect(buttons[1].teamColor).toBeUndefined();
+    });
+
+    it('keeps draw variants for a binary non-moneyline market without Yes/No tokens', () => {
+      const outcome = createOutcome({
+        sportsMarketType: 'both_teams_to_score',
+        tokens: [
+          createToken({ id: 'team-a', title: 'TA', shortTitle: 'TA' }),
+          createToken({ id: 'team-b', title: 'TB', shortTitle: 'TB' }),
+        ],
+      });
+
+      const buttons = buildButtons(
+        outcome,
+        mockOnBuyPress,
+        mockGame,
+        'both_teams_to_score',
+      );
+
+      expect(buttons.map((button) => button.variant)).toEqual(['draw', 'draw']);
+    });
+
     it('assigns three-way moneyline variants for soccer first to score', () => {
       const buttons = buildButtons(
         createOutcome({

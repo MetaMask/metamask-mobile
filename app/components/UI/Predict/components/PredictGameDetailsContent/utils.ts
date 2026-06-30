@@ -140,11 +140,13 @@ const isBinaryYesNoTokens = (tokens: PredictOutcomeToken[]): boolean =>
   tokens.length === 2 &&
   tokens.every((token) => isYesNoLabel(getTokenLabel(token)));
 
+// Caller must guarantee the label is "Yes"/"No" (see isBinaryYesNoTokens);
+// any other value falls back to the "no" variant.
 const getYesNoVariant = (label: string): PredictBetButtonVariant =>
   label.trim().toLowerCase() === 'yes' ? 'yes' : 'no';
 
 const isNeutralMoneylineToken = (token: PredictOutcomeToken): boolean => {
-  const label = (token.shortTitle ?? token.title).trim().toLowerCase();
+  const label = getTokenLabel(token).trim().toLowerCase();
   return label.startsWith('draw') || label.startsWith('neither');
 };
 
@@ -154,7 +156,7 @@ const getTeamOrder = (
 ): number => {
   if (!game) return 1;
 
-  const label = (token.shortTitle ?? token.title).trim().toLowerCase();
+  const label = getTokenLabel(token).trim().toLowerCase();
   const homeLabels = [
     game.homeTeam.abbreviation,
     game.homeTeam.name,
@@ -335,12 +337,13 @@ export const buildMoneylineButtons = (
     const liveBestAsk = getPrice?.(token.id)?.bestAsk;
     const price = isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
 
+    const label = getTokenLabel(token);
     return {
-      label: token.shortTitle ?? token.title,
+      label,
       price: Math.round(price * 100),
       onPress: () => onBuyPress(outcome, token),
       variant: getButtonVariant(i, buttonEntries.length, true),
-      teamColor: getTeamColor(token.shortTitle ?? token.title, game),
+      teamColor: getTeamColor(label, game),
     };
   });
 };
