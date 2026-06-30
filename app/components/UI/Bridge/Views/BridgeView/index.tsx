@@ -23,6 +23,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   getBridgeTokenSecurityConfig,
@@ -49,8 +51,6 @@ import {
   selectBridgeBalanceRefreshKey,
 } from '../../../../../core/redux/slices/bridge';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
-import Text from '../../../../../component-library/components/Texts/Text';
-import { TextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { IconName as CLIconName } from '../../../../../component-library/components/Icons/Icon';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import {
@@ -583,7 +583,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                           <Text
                             testID={BridgeViewSelectorsIDs.NO_QUOTES_BANNER}
                             accessibilityLabel={quoteStreamErrorMessage}
-                            variant={TextVariant.BodySM}
+                            variant={TextVariant.BodySm}
                           >
                             {quoteStreamErrorMessage}
                           </Text>
