@@ -124,6 +124,8 @@ export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set([
   'totals',
   'both_teams_to_score',
   'soccer_first_to_score',
+  'soccer_extra_time',
+  'soccer_penalty_shootout',
   'team_totals',
   'soccer_team_totals',
   'basketball_team_to_score_first',
@@ -150,6 +152,9 @@ export const GROUP_ORDER: string[] = [
 export const DEFAULT_GROUP_KEY = 'game_lines';
 
 export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
+  soccer_team_to_advance: -3,
+  soccer_extra_time: -2,
+  soccer_penalty_shootout: -1,
   moneyline: 0,
   tennis_first_set_winner: 0,
   spreads: 1,

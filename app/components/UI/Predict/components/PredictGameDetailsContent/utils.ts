@@ -122,6 +122,27 @@ const getButtonVariant = (
   return index === 0 ? 'yes' : 'no';
 };
 
+const getTokenLabel = (token: PredictOutcomeToken): string =>
+  token.shortTitle ?? token.title;
+
+const isYesNoLabel = (label: string): boolean => {
+  const normalized = label.trim().toLowerCase();
+  return normalized === 'yes' || normalized === 'no';
+};
+
+/**
+ * Plain binary markets (e.g. Extra Time?, Penalty Shootout?) have exactly two
+ * Yes/No tokens and are not team-based, so they should render Yes (yes) and No
+ * (no) buttons rather than the neutral "draw" styling used for other
+ * non-moneyline outcomes.
+ */
+const isBinaryYesNoTokens = (tokens: PredictOutcomeToken[]): boolean =>
+  tokens.length === 2 &&
+  tokens.every((token) => isYesNoLabel(getTokenLabel(token)));
+
+const getYesNoVariant = (label: string): PredictBetButtonVariant =>
+  label.trim().toLowerCase() === 'yes' ? 'yes' : 'no';
+
 const isNeutralMoneylineToken = (token: PredictOutcomeToken): boolean => {
   const label = (token.shortTitle ?? token.title).trim().toLowerCase();
   return label.startsWith('draw') || label.startsWith('neither');
@@ -184,16 +205,20 @@ export const buildButtons = (
   const tokens = moneyline
     ? sortMoneylineTokensForDisplay(outcome.tokens, game)
     : outcome.tokens;
+  const binaryYesNo = !moneyline && isBinaryYesNoTokens(tokens);
 
-  return tokens.map((token, index) => ({
-    label: token.shortTitle ?? token.title,
-    price: Math.round(token.price * 100),
-    onPress: () => onBuyPress(outcome, token),
-    variant: getButtonVariant(index, tokens.length, moneyline),
-    teamColor: moneyline
-      ? getTeamColor(token.shortTitle ?? token.title, game)
-      : undefined,
-  }));
+  return tokens.map((token, index) => {
+    const label = getTokenLabel(token);
+    return {
+      label,
+      price: Math.round(token.price * 100),
+      onPress: () => onBuyPress(outcome, token),
+      variant: binaryYesNo
+        ? getYesNoVariant(label)
+        : getButtonVariant(index, tokens.length, moneyline),
+      teamColor: moneyline ? getTeamColor(label, game) : undefined,
+    };
+  });
 };
 
 export const buildSubtitle = (outcome: PredictOutcome): string =>

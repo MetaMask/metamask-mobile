@@ -273,6 +273,35 @@ describe('PredictGameDetailsContent utils', () => {
       expect(threeButtons[1].variant).toBe('draw');
     });
 
+    it('assigns yes/no variants for binary Yes/No markets without team colors', () => {
+      const outcome = createOutcome({
+        sportsMarketType: 'soccer_extra_time',
+        tokens: [
+          createToken({
+            id: 'yes',
+            title: 'Yes',
+            shortTitle: 'Yes',
+            price: 0.17,
+          }),
+          createToken({ id: 'no', title: 'No', shortTitle: 'No', price: 0.83 }),
+        ],
+      });
+
+      const buttons = buildButtons(
+        outcome,
+        mockOnBuyPress,
+        mockGame,
+        'soccer_extra_time',
+      );
+
+      expect(buttons.map((button) => button.label)).toEqual(['Yes', 'No']);
+      expect(buttons.map((button) => button.variant)).toEqual(['yes', 'no']);
+      expect(buttons[0].price).toBe(17);
+      expect(buttons[1].price).toBe(83);
+      expect(buttons[0].teamColor).toBeUndefined();
+      expect(buttons[1].teamColor).toBeUndefined();
+    });
+
     it('assigns three-way moneyline variants for soccer first to score', () => {
       const buttons = buildButtons(
         createOutcome({

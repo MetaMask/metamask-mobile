@@ -834,10 +834,42 @@ describe('resolvePredictFeatureFlags', () => {
         'totals',
         'both_teams_to_score',
         'soccer_first_to_score',
+        'soccer_extra_time',
+        'soccer_penalty_shootout',
         'team_totals',
         'soccer_team_totals',
         'basketball_team_to_score_first',
         'soccer_exact_score',
+      ]);
+    });
+
+    it('keeps the new full-tie-outcome market types when enabled', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['fifwc'],
+            enabledSportsMarketTypes: [
+              'moneyline',
+              'soccer_extra_time',
+              'soccer_penalty_shootout',
+            ],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual([
+        'moneyline',
+        'soccer_extra_time',
+        'soccer_penalty_shootout',
       ]);
     });
 
