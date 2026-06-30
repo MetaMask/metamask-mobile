@@ -171,7 +171,9 @@ const TraderPositionView = () => {
     isPnlPositive,
     allTrades,
     activeTimePeriod,
+    isTimePeriodAutoSelected,
     setActiveTimePeriod,
+    setAutomaticTimePeriod,
     timePeriods,
   } = positionData;
 
@@ -385,7 +387,7 @@ const TraderPositionView = () => {
   const [focusRequest, setFocusRequest] = useState<TradeFocusRequest>();
   const handleRequestFocusTimePeriod = useCallback(
     (timePeriod: TimePeriod) => {
-      setActiveTimePeriod(timePeriod);
+      setAutomaticTimePeriod(timePeriod);
       setFocusRequest((current) =>
         current
           ? {
@@ -396,7 +398,7 @@ const TraderPositionView = () => {
           : current,
       );
     },
-    [setActiveTimePeriod],
+    [setAutomaticTimePeriod],
   );
 
   const handleTradePress = useCallback(
@@ -742,6 +744,7 @@ const TraderPositionView = () => {
                   assetId={chartAssetId}
                   isPerp={isPerp}
                   activeTimePeriod={activeTimePeriod}
+                  shouldAutoRequestTimePeriod={isTimePeriodAutoSelected}
                   onScrubPercentChange={setScrubPercent}
                   focusRequest={focusRequest}
                   onRequestTimePeriod={handleRequestFocusTimePeriod}
