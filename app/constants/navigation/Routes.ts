@@ -567,6 +567,7 @@ const Routes = {
     CONFIRM: 'AgenticCliDashboardConfirmation',
   },
   KYC_DEMO: 'KYCDemo',
+  MOONPAY_DEMO: 'MoonpayDemo',
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
   CREATE_PRICE_ALERT: 'CreatePriceAlert',
   MANAGE_PRICE_ALERTS: 'ManagePriceAlerts',

@@ -4371,6 +4371,8 @@ SPEC REPOS:
     - Sentry
     - VeriffSDK
     - YttriumWrapper
+  https://github.com/SumSubstance/Specs.git:
+    - IdensicMobileSDK
 
 EXTERNAL SOURCES:
   boost:
