@@ -371,7 +371,6 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectPredictFeeCollectionFlag: jest.fn(
     () => mockSelectPredictFeeCollectionFlag,
   ),
-  selectNonRegTimeSportsMarketTypes: jest.fn(() => ['soccer_team_to_advance']),
 }));
 
 jest.mock('../../../../Base/TabBar', () => {

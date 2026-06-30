@@ -129,7 +129,6 @@ export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set([
   'soccer_team_totals',
   'basketball_team_to_score_first',
   'soccer_exact_score',
-  'soccer_team_to_advance',
 ]);
 
 export const GROUP_ORDER: string[] = [

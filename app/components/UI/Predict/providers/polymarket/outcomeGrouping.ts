@@ -129,17 +129,15 @@ const buildSubgroupsForType = (
   ];
 };
 
-export const normalizeSportsMarketTypes = (value: unknown): string[] => {
-  const rawTypes = Array.isArray(value) ? value : [];
+export const normalizeEnabledSportsMarketTypes = (value: unknown): string[] => {
+  const rawTypes = Array.isArray(value)
+    ? value
+    : [...SUPPORTED_SPORTS_MARKET_TYPES];
+
   return [
     ...new Set(rawTypes.map((type) => String(type).toLowerCase())),
   ].filter((type) => SUPPORTED_SPORTS_MARKET_TYPES.has(type));
 };
-
-export const normalizeEnabledSportsMarketTypes = (value: unknown): string[] =>
-  normalizeSportsMarketTypes(
-    Array.isArray(value) ? value : [...SUPPORTED_SPORTS_MARKET_TYPES],
-  );
 
 export const filterGroupableOutcomes = (
   outcomes: PredictOutcome[],

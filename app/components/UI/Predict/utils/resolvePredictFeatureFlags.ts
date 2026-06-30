@@ -3,7 +3,6 @@ import {
   validatedVersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import {
-  DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
   DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG,
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_LIVE_SPORTS_FLAG,
@@ -12,10 +11,7 @@ import {
   DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
 import { filterSupportedLeagues } from '../constants/sports';
-import {
-  normalizeEnabledSportsMarketTypes,
-  normalizeSportsMarketTypes,
-} from '../providers/polymarket/outcomeGrouping';
+import { normalizeEnabledSportsMarketTypes } from '../providers/polymarket/outcomeGrouping';
 import {
   parse,
   PredictFeeCollectionSchema,
@@ -103,16 +99,6 @@ export function resolvePredictFeatureFlags(
         extendedSportsFlag.enabledSportsMarketTypes,
       )
     : [];
-  const hasNonRegTimeSportsMarketTypes = Object.prototype.hasOwnProperty.call(
-    extendedSportsFlag,
-    'nonRegTimeSportsMarketTypes',
-  );
-  const nonRegTimeSportsMarketTypes =
-    extendedSportsMarketsEnabled && hasNonRegTimeSportsMarketTypes
-      ? normalizeSportsMarketTypes(
-          extendedSportsFlag.nonRegTimeSportsMarketTypes,
-        )
-      : normalizeSportsMarketTypes(DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES);
   const fakOrdersEnabled = resolveVersionGatedBooleanFlag(
     flags.predictFakOrders,
   );
@@ -160,7 +146,6 @@ export function resolvePredictFeatureFlags(
     liveSportsLeagues,
     extendedSportsMarketsLeagues,
     enabledSportsMarketTypes,
-    nonRegTimeSportsMarketTypes,
     marketHighlightsFlag,
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,

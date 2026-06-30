@@ -13,13 +13,15 @@ import type {
 } from '../../types';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { OutcomesContent } from './PredictGameOutcomeCards';
-import { WORLD_CUP_LEAGUE } from '../../constants/sports';
 import PredictMarketOutcomeResolved from '../PredictMarketOutcomeResolved';
 import PredictResolvedOutcomesDropdown from '../PredictResolvedOutcomesDropdown';
 import { usePricedOutcomeGroup } from './usePricedOutcomeGroup';
 import { getOutcomeGroupLabel } from '../../utils/outcomeGroupLabel';
 import { countOutcomeGroupOutcomes } from '../../utils/outcomeGroups';
-import { getSportsMarketTypeLabelForGame } from './utils';
+import {
+  getSportsMarketTypeLabel,
+  getSportsMarketTypeLabelForGame,
+} from './utils';
 
 export { getSportsMarketTypeLabel } from './utils';
 
@@ -29,8 +31,6 @@ export interface OutcomesTabProps {
   game?: PredictMarketGame;
   activeChipKey: string;
   onBuyPress: (outcome: PredictOutcome, token: PredictOutcomeToken) => void;
-  nonRegTimeSportsMarketTypes?: string[];
-  onRegTimeInfoPress?: () => void;
 }
 
 const ResolvedOutcomeGroup = memo(
@@ -127,12 +127,9 @@ const PredictGameOutcomesTab = memo(
     game,
     activeChipKey,
     onBuyPress,
-    nonRegTimeSportsMarketTypes = [],
-    onRegTimeInfoPress,
   }: OutcomesTabProps) => {
     const selectedGroup = groupMap.get(activeChipKey);
     const pricedGroup = usePricedOutcomeGroup(selectedGroup);
-    const showRegTimeTag = game?.league === WORLD_CUP_LEAGUE;
 
     return (
       <Box testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.OUTCOMES_CONTENT}>
@@ -142,9 +139,6 @@ const PredictGameOutcomesTab = memo(
               group={pricedGroup}
               onBuyPress={onBuyPress}
               game={game}
-              showRegTimeTag={showRegTimeTag}
-              nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
-              onRegTimeInfoPress={onRegTimeInfoPress}
             />
           </Box>
         )}

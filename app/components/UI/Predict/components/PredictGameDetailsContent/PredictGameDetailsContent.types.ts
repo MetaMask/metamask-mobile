@@ -10,5 +10,4 @@ export interface PredictGameDetailsContentProps {
   claimableAmount?: number;
   isLoading?: boolean;
   isClaimPending?: boolean;
-  nonRegTimeSportsMarketTypes?: string[];
 }

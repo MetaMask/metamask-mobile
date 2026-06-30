@@ -49,7 +49,6 @@ import { isCryptoUpDown } from '../../utils/cryptoUpDown';
 import {
   selectPredictUpDownEnabledFlag,
   selectPredictFeeCollectionFlag,
-  selectNonRegTimeSportsMarketTypes,
 } from '../../selectors/featureFlags';
 import PredictMarketDetailsStatus from './components/PredictMarketDetailsStatus';
 import PredictMarketDetailsHeader from './components/PredictMarketDetailsHeader';
@@ -82,9 +81,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
-  const nonRegTimeSportsMarketTypes = useSelector(
-    selectNonRegTimeSportsMarketTypes,
-  );
   const {
     marketId,
     series,
@@ -492,7 +488,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         )}
         isLoading={isClaimablePositionsLoading}
         isClaimPending={isClaimPending}
-        nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
       />
     );
   }

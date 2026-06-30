@@ -29,7 +29,6 @@ import PredictShareButton from '../PredictShareButton/PredictShareButton';
 import PredictSportScoreboard from '../PredictSportScoreboard';
 import PredictMarketDetailsTabBar from '../../views/PredictMarketDetails/components/PredictMarketDetailsTabBar';
 import PredictGameDetailsTabsContent from './PredictGameDetailsTabsContent';
-import PredictRegTimeInfoSheet from './PredictRegTimeInfoSheet';
 import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
 import { usePredictGame } from '../../hooks/usePredictGame';
 import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.types';
@@ -51,7 +50,6 @@ const PredictGameDetailsContentComponent: React.FC<
   claimableAmount = 0,
   isLoading = false,
   isClaimPending = false,
-  nonRegTimeSportsMarketTypes = [],
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
@@ -59,26 +57,13 @@ const PredictGameDetailsContentComponent: React.FC<
 
   const { sheetRef, isVisible, handleSheetClosed, getRefHandlers } =
     usePredictBottomSheet();
-  const {
-    sheetRef: regTimeSheetRef,
-    isVisible: isRegTimeSheetVisible,
-    handleSheetClosed: handleRegTimeSheetClosed,
-    getRefHandlers: getRegTimeRefHandlers,
-  } = usePredictBottomSheet();
 
   const sheetHandlers = useMemo(() => getRefHandlers(), [getRefHandlers]);
-  const regTimeSheetHandlers = useMemo(
-    () => getRegTimeRefHandlers(),
-    [getRegTimeRefHandlers],
-  );
   const { game } = usePredictGame(market, { live: true });
 
   const handleInfoPress = useCallback(() => {
     sheetHandlers.onOpenBottomSheet();
   }, [sheetHandlers]);
-  const handleRegTimeInfoPress = useCallback(() => {
-    regTimeSheetHandlers.onOpenBottomSheet();
-  }, [regTimeSheetHandlers]);
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
 
@@ -227,8 +212,6 @@ const PredictGameDetailsContentComponent: React.FC<
           resolvedOutcomeGroups={resolvedGroups}
           activeChipKey={activeChipKey}
           onBetPress={onBetPress}
-          nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
-          onRegTimeInfoPress={handleRegTimeInfoPress}
         />
       </ScrollView>
 
@@ -250,12 +233,6 @@ const PredictGameDetailsContentComponent: React.FC<
           ref={sheetRef}
           description={market.description ?? ''}
           onClose={handleSheetClosed}
-        />
-      )}
-      {isRegTimeSheetVisible && (
-        <PredictRegTimeInfoSheet
-          ref={regTimeSheetRef}
-          onClose={handleRegTimeSheetClosed}
         />
       )}
     </SafeAreaView>
