@@ -1,20 +1,23 @@
 import React, { useEffect } from 'react';
 import { Appearance, StatusBar } from 'react-native';
 import { useSelector } from 'react-redux';
-import { brandColor, darkTheme } from '@metamask/design-tokens';
+import { brandColor, resolveDarkTheme } from '@metamask/design-tokens';
 import {
   ThemeProvider as DesignSystemThemeProvider,
   Theme as DesignSystemTheme,
 } from '@metamask/design-system-twrnc-preset';
 import { ThemeContext } from '../../../../../util/theme';
 import { AppThemeKey, Theme } from '../../../../../util/theme/models';
+import { isPureBlackEnabled } from '../../../../../util/theme/themeUtils';
 import Device from '../../../../../util/device';
 
+const resolvedDarkTheme = resolveDarkTheme(isPureBlackEnabled);
+
 const forcedDarkTheme: Theme = {
-  colors: darkTheme.colors,
+  colors: resolvedDarkTheme.colors,
   themeAppearance: AppThemeKey.dark,
-  typography: darkTheme.typography,
-  shadows: darkTheme.shadows,
+  typography: resolvedDarkTheme.typography,
+  shadows: resolvedDarkTheme.shadows,
   brandColors: brandColor,
 };
 
@@ -54,7 +57,10 @@ const ForcedDarkThemeProvider: React.FC<ForcedDarkThemeProviderProps> = ({
 
   return (
     <ThemeContext.Provider value={forcedDarkTheme}>
-      <DesignSystemThemeProvider theme={DesignSystemTheme.Dark}>
+      <DesignSystemThemeProvider
+        theme={DesignSystemTheme.Dark}
+        isPureBlack={isPureBlackEnabled}
+      >
         {children}
       </DesignSystemThemeProvider>
     </ThemeContext.Provider>
