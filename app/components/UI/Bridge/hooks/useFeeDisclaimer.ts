@@ -70,7 +70,7 @@ export const useFeeDisclaimer = ({
 
   const infoText = useMemo(() => {
     if (isDiscounted) {
-      return strings('bridge.fee_reduced');
+      return;
     }
 
     if (hasFee) {
