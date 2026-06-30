@@ -205,8 +205,9 @@ const ImportNewSecretRecoveryPhrase = () => {
         variant: ToastVariants.Icon,
         labelOptions: [
           {
-            label: `${strings('import_new_secret_recovery_phrase.success_1')} ${hdKeyrings.length + 1
-              } ${strings('import_new_secret_recovery_phrase.success_2')}`,
+            label: `${strings('import_new_secret_recovery_phrase.success_1')} ${
+              hdKeyrings.length + 1
+            } ${strings('import_new_secret_recovery_phrase.success_2')}`,
           },
         ],
         iconName: ComponentIconName.Check,

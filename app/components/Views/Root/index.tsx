@@ -116,7 +116,9 @@ const Root = ({ foxCode }: RootProps) => {
                           <UIMessengerProvider value={uiMessenger}>
                             <ToastContextWrapper>
                               <HardwareWalletProvider>
-                                <ReducedMotionConfig mode={ReduceMotion.Never} />
+                                <ReducedMotionConfig
+                                  mode={ReduceMotion.Never}
+                                />
                                 <App />
                               </HardwareWalletProvider>
                             </ToastContextWrapper>
