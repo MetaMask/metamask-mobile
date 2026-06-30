@@ -31,6 +31,8 @@ import { isPerpsPredictMoneyDeposit } from '../../Money/utils/moneyTransactionGu
 import { resolveWithdrawTokenInfo } from '../../../Views/confirmations/utils/withdraw-token-resolution';
 import { selectPredictBottomSheetEnabledFlag } from '../selectors/featureFlags';
 import { shouldSuppressLegacyOrderFailureToast } from '../contexts/PredictPreviewSheetContext';
+import { ActivityTypeFilter } from '../../../../util/activityFilters';
+import { setPendingActivityTypeFilter } from '../../../../util/activityRedirectFilter';
 
 const showPendingToast = ({
   showToast,
@@ -147,6 +149,24 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
   const selectedAddress = getEvmAccountFromSelectedAccountGroup()?.address;
   const normalizedSelectedAddress = selectedAddress?.toLowerCase() ?? '';
+
+  const navigateToPredictDepositActivity = useCallback(
+    (transactionId?: string) => {
+      setPendingActivityTypeFilter(ActivityTypeFilter.Predictions);
+      navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+        initialTypeFilter: ActivityTypeFilter.Predictions,
+      });
+      if (transactionId) {
+        setTimeout(() => {
+          navigation.navigate(Routes.TRANSACTION_DETAILS, {
+            transactionId,
+          });
+        }, 100);
+      }
+    },
+    [navigation],
+  );
+
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
       const { type, status, senderAddress, transactionId, amount, marketId } =
@@ -192,14 +212,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             }),
             trackLabel: strings('predict.deposit.track'),
             onTrack: () => {
-              navigation.navigate(Routes.TRANSACTIONS_VIEW);
-              if (transactionId) {
-                setTimeout(() => {
-                  navigation.navigate(Routes.TRANSACTION_DETAILS, {
-                    transactionId,
-                  });
-                }, 100);
-              }
+              navigateToPredictDepositActivity(transactionId);
             },
           });
           return;
@@ -400,7 +413,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       bottomSheetEnabled,
       claim,
       deposit,
-      navigation,
+      navigateToPredictDepositActivity,
       normalizedSelectedAddress,
       queryClient,
       theme.colors.accent04.normal,

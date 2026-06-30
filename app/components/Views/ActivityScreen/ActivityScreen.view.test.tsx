@@ -45,6 +45,19 @@ describeForPlatforms('ActivityScreen', () => {
     });
   });
 
+  it('uses the initial type filter from route params', async () => {
+    const { getAllByText } = renderActivityScreenView({
+      initialParams: { initialTypeFilter: ActivityTypeFilter.Predictions },
+    });
+
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Predictions))
+          .length,
+      ).toBeGreaterThan(0);
+    });
+  });
+
   it('updates the selected network filter through the real network sheet', async () => {
     const { getByTestId, getAllByText, findByText } = renderActivityScreenView({
       overrides: activityLineaNetworkOverride,

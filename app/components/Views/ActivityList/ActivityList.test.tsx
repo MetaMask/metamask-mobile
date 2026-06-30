@@ -10,8 +10,7 @@ import { useSelector } from 'react-redux';
 import ActivityList, { type ActivityListHandle } from './ActivityList';
 import { ActivityListSelectorsIDs } from './ActivityList.testIds';
 import { getPreloadedActivityItem } from './preloadedActivityItemStore';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { ActivityTypeFilter } from '../ActivityScreen/types';
+import { ActivityTypeFilter } from '../../../util/activityFilters';
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
@@ -1587,6 +1586,54 @@ describe('ActivityList', () => {
           outcome: 'Yes',
         }),
       },
+    });
+  });
+
+  it('routes predict rows to ActivityDetails when the transactions redesign flag is on', () => {
+    selectorValues.predictEnabled = true;
+    selectorValues.isTxRedesign = true;
+    const predictActivity = {
+      id: 'p2',
+      providerId: 'polymarket',
+      title: 'Will Spain win the 2026 FIFA World Cup?',
+      outcome: 'Yes',
+      entry: { type: 'buy', timestamp: 1_700_000_000, amount: 3, price: 0.42 },
+    };
+    const predictRedesignItem = {
+      type: 'predictionPlaced',
+      chainId: 'eip155:137',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      raw: { type: 'predictActivity', data: predictActivity },
+      hash: 'predict-2',
+      data: { token: { symbol: 'USDC' } },
+    };
+    mockPredictSourceState = {
+      items: [predictRedesignItem],
+      isLoading: false,
+      error: null,
+    };
+
+    render(<ActivityList typeFilter={ActivityTypeFilter.Predictions} />);
+    fireEvent.press(screen.getByTestId('row-predict-2'));
+
+    const call = mockNavigate.mock.calls.find(
+      ([route]) => route === Routes.ACTIVITY_DETAILS,
+    );
+    const params = call?.[1] as
+      | { chainId: string; txIdentifier: string; preloadKey?: string }
+      | undefined;
+    expect(params).toEqual({
+      chainId: 'eip155:137',
+      txIdentifier: 'predict-2',
+      preloadKey: expect.any(String),
+    });
+    expect(getPreloadedActivityItem(params?.preloadKey)).toEqual(
+      predictRedesignItem,
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith('PredictModals', {
+      screen: 'PredictActivityDetail',
+      params: expect.anything(),
     });
   });
 
