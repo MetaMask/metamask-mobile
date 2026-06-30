@@ -151,7 +151,7 @@ const getHeaderTitle = (bridgeViewMode?: BridgeViewMode) => {
   return `${strings('swaps.title')}/${strings('bridge.title')}`;
 };
 
-const areBridgeTokensEqual = (
+export const areBridgeTokensEqual = (
   firstToken?: BridgeToken,
   secondToken?: BridgeToken,
 ) =>
@@ -162,6 +162,20 @@ const areBridgeTokensEqual = (
       formatChainIdToCaip(firstToken.chainId) ===
         formatChainIdToCaip(secondToken.chainId),
   );
+
+export const areDisplayedBridgeTokensSyncedWithRedux = ({
+  sourceToken,
+  destToken,
+  displaySourceToken,
+  displayDestToken,
+}: {
+  sourceToken?: BridgeToken;
+  destToken?: BridgeToken;
+  displaySourceToken?: BridgeToken;
+  displayDestToken?: BridgeToken;
+}) =>
+  areBridgeTokensEqual(sourceToken, displaySourceToken) &&
+  areBridgeTokensEqual(destToken, displayDestToken);
 
 interface BridgeViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -223,13 +237,24 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const shouldUseInitialSourceToken =
     initialSourceToken &&
     !areBridgeTokensEqual(sourceToken, initialSourceToken);
+  const shouldUseInitialDestToken =
+    initialDestToken && !areBridgeTokensEqual(destToken, initialDestToken);
   const displaySourceToken = shouldUseInitialSourceToken
     ? initialSourceToken
     : sourceToken;
   const displaySourceAmount = shouldUseInitialSourceToken
     ? initialSourceAmount
     : (sourceAmount ?? initialSourceAmount);
-  const displayDestToken = destToken ?? initialDestToken;
+  const displayDestToken = shouldUseInitialDestToken
+    ? initialDestToken
+    : destToken;
+  const areDisplayedTokensSyncedWithRedux =
+    areDisplayedBridgeTokensSyncedWithRedux({
+      sourceToken,
+      destToken,
+      displaySourceToken,
+      displayDestToken,
+    });
   const isDestNetworkEnabled = useIsNetworkEnabled(displayDestToken?.chainId);
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
@@ -572,6 +597,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                     !destChainId ||
                     !displayDestToken ||
                     !displaySourceToken ||
+                    !areDisplayedTokensSyncedWithRedux ||
                     !isDestNetworkEnabled
                   }
                 />

@@ -10,7 +10,7 @@ import {
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
-import BridgeView from '.';
+import BridgeView, { areDisplayedBridgeTokensSyncedWithRedux } from '.';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
 import { BridgeToken, BridgeViewMode, SecurityDataType } from '../../types';
@@ -479,6 +479,51 @@ describe('BridgeView', () => {
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeTruthy();
     runAfterInteractionsSpy.mockRestore();
+  });
+
+  it('keeps flip disabled while displayed route tokens are not synced to Redux tokens', () => {
+    const reduxSourceToken = {
+      address: '0x0000000000000000000000000000000000000009',
+      chainId: '0x1' as Hex,
+      decimals: 18,
+      symbol: 'OLD',
+    };
+    const reduxDestToken = {
+      address: '0x0000000000000000000000000000000000000008',
+      chainId: '0x1' as Hex,
+      decimals: 18,
+      symbol: 'OLD_DEST',
+    };
+    const displaySourceToken = {
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0x1' as Hex,
+      decimals: 18,
+      symbol: 'ETH',
+    };
+    const displayDestToken = {
+      address: token2Address,
+      chainId: '0x1' as Hex,
+      decimals: 18,
+      symbol: 'TOKEN2',
+    };
+
+    expect(
+      areDisplayedBridgeTokensSyncedWithRedux({
+        sourceToken: reduxSourceToken,
+        destToken: reduxDestToken,
+        displaySourceToken,
+        displayDestToken,
+      }),
+    ).toBe(false);
+
+    expect(
+      areDisplayedBridgeTokensSyncedWithRedux({
+        sourceToken: displaySourceToken,
+        destToken: displayDestToken,
+        displaySourceToken,
+        displayDestToken,
+      }),
+    ).toBe(true);
   });
 
   it('scrolls to top and clears the route param when requested on focus', () => {
