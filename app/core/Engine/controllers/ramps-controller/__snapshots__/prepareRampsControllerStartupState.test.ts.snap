@@ -1,0 +1,138 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`prepareRampsControllerStartupState discards persisted countries while keeping other persisted fields 1`] = `
+{
+  "countries": {
+    "data": [],
+    "error": null,
+    "isLoading": false,
+    "selected": null,
+  },
+  "nativeProviders": {
+    "transak": {
+      "buyQuote": {
+        "data": null,
+        "error": null,
+        "isLoading": false,
+        "selected": null,
+      },
+      "isAuthenticated": false,
+      "kycRequirement": {
+        "data": null,
+        "error": null,
+        "isLoading": false,
+        "selected": null,
+      },
+      "userDetails": {
+        "data": null,
+        "error": null,
+        "isLoading": false,
+        "selected": null,
+      },
+    },
+  },
+  "orders": [],
+  "paymentMethods": {
+    "data": [],
+    "error": null,
+    "isLoading": false,
+    "selected": null,
+  },
+  "providerAutoSelected": false,
+  "providers": {
+    "data": [],
+    "error": null,
+    "isLoading": false,
+    "selected": null,
+  },
+  "requests": {},
+  "tokens": {
+    "data": null,
+    "error": null,
+    "isLoading": false,
+    "selected": null,
+  },
+  "userRegion": {
+    "country": {
+      "currency": "USD",
+      "defaultAmount": 100,
+      "flag": "🇺🇸",
+      "id": "/regions/us",
+      "isoCode": "US",
+      "name": "United States",
+      "phone": {
+        "placeholder": "201 555 0123",
+        "prefix": "+1",
+        "template": "XXX XXX XXXX",
+      },
+      "quickAmounts": [
+        100,
+        250,
+        500,
+      ],
+      "supported": {
+        "buy": true,
+        "sell": true,
+      },
+    },
+    "regionCode": "us",
+    "state": null,
+  },
+}
+`;
+
+exports[`prepareRampsControllerStartupState matches snapshot when no persisted state is provided 1`] = `
+{
+  "countries": {
+    "data": [],
+    "error": null,
+    "isLoading": false,
+    "selected": null,
+  },
+  "nativeProviders": {
+    "transak": {
+      "buyQuote": {
+        "data": null,
+        "error": null,
+        "isLoading": false,
+        "selected": null,
+      },
+      "isAuthenticated": false,
+      "kycRequirement": {
+        "data": null,
+        "error": null,
+        "isLoading": false,
+        "selected": null,
+      },
+      "userDetails": {
+        "data": null,
+        "error": null,
+        "isLoading": false,
+        "selected": null,
+      },
+    },
+  },
+  "orders": [],
+  "paymentMethods": {
+    "data": [],
+    "error": null,
+    "isLoading": false,
+    "selected": null,
+  },
+  "providerAutoSelected": false,
+  "providers": {
+    "data": [],
+    "error": null,
+    "isLoading": false,
+    "selected": null,
+  },
+  "requests": {},
+  "tokens": {
+    "data": null,
+    "error": null,
+    "isLoading": false,
+    "selected": null,
+  },
+  "userRegion": null,
+}
+`;

@@ -131,7 +131,23 @@ describe('ramps controller init', () => {
       ...defaultState,
       userRegion: createMockUserRegion('us-ca'),
       countries: {
-        data: [],
+        data: [
+          {
+            isoCode: 'US',
+            id: '/regions/us',
+            flag: '🇺🇸',
+            name: 'United States',
+            phone: {
+              prefix: '+1',
+              placeholder: '201 555 0123',
+              template: 'XXX XXX XXXX',
+            },
+            currency: 'USD',
+            supported: { buy: true, sell: true },
+            defaultAmount: 100,
+            quickAmounts: [100, 250, 500],
+          },
+        ],
         selected: null,
         isLoading: false,
         error: null,
@@ -192,14 +208,15 @@ describe('ramps controller init', () => {
     const rampsControllerState =
       rampsControllerClassMock.mock.calls[0][0].state;
 
-    expect(rampsControllerState).toStrictEqual(initialRampsControllerState);
+    expect(rampsControllerState).toMatchSnapshot();
   });
 
-  it('calls init at startup', async () => {
+  it('calls init with forceRefresh at startup', async () => {
     rampsControllerInit(initRequestMock);
 
     await waitFor(() => {
       expect(mockInit).toHaveBeenCalledTimes(1);
+      expect(mockInit).toHaveBeenCalledWith({ forceRefresh: true });
     });
   });
 
