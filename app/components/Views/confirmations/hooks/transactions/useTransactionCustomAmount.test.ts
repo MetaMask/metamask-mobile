@@ -891,7 +891,7 @@ describe('useTransactionCustomAmount', () => {
   describe('addMusd intent auto-fill', () => {
     const addMusdTransactionMeta = {
       type: TransactionType.moneyAccountDeposit,
-      batchId: '0xtest-batch-id',
+      batchId: '0xtestbatchid' as Hex,
     };
 
     beforeEach(() => {
