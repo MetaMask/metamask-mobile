@@ -34,6 +34,10 @@ export const DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG: PredictExtendedSportsMarketsF
     enabledSportsMarketTypes: [],
   };
 
+export const DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES = [
+  'soccer_team_to_advance',
+];
+
 export const DEFAULT_MARKET_HIGHLIGHTS_FLAG: PredictMarketHighlightsFlag = {
   enabled: false,
   highlights: [],

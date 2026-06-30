@@ -3,6 +3,7 @@ import { POLYMARKET_PROVIDER_ID } from './constants';
 import {
   buildOutcomeGroups,
   normalizeEnabledSportsMarketTypes,
+  normalizeSportsMarketTypes,
 } from './outcomeGrouping';
 
 function createGroupingOutcome(
@@ -44,6 +45,7 @@ describe('outcomeGrouping', () => {
         'soccer_team_totals',
         'basketball_team_to_score_first',
         'soccer_exact_score',
+        'soccer_team_to_advance',
       ]);
     });
 
@@ -62,6 +64,23 @@ describe('outcomeGrouping', () => {
           'points',
         ]),
       ).toEqual(['moneyline', 'spreads', 'totals']);
+    });
+  });
+
+  describe('normalizeSportsMarketTypes', () => {
+    it('returns an empty list for non-array values', () => {
+      expect(normalizeSportsMarketTypes(undefined)).toEqual([]);
+      expect(normalizeSportsMarketTypes('moneyline')).toEqual([]);
+    });
+
+    it('filters unsupported types and deduplicates case-insensitively', () => {
+      expect(
+        normalizeSportsMarketTypes([
+          'soccer_team_to_advance',
+          'SOCCER_TEAM_TO_ADVANCE',
+          'unsupported_market',
+        ]),
+      ).toEqual(['soccer_team_to_advance']);
     });
   });
 
