@@ -566,7 +566,7 @@ describe('PerpsChartFullscreenModal', () => {
       );
     });
 
-    it('tracks error and closes modal when advanced chart reports an error', () => {
+    it('tracks error and keeps modal open when advanced chart reports an error', () => {
       render(
         <PerpsChartFullscreenModal
           {...defaultProps}
@@ -594,7 +594,15 @@ describe('PerpsChartFullscreenModal', () => {
           [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
         }),
       );
-      expect(mockOnClose).toHaveBeenCalled();
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        {
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        },
+      );
+      expect(mockOnClose).not.toHaveBeenCalled();
     });
   });
 

@@ -146,9 +146,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
     onClose();
   }, [onClose]);
 
-  // Handle chart errors by closing modal
-  // Orientation is automatically restored by the hook
-  const handleChartError = useCallback(() => {
+  const trackChartError = useCallback(() => {
     track(MetaMetricsEvents.PERPS_ERROR, {
       [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
       [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
@@ -157,8 +155,19 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
         PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
       ...(symbol ? { [PERPS_EVENT_PROPERTY.ASSET]: symbol } : {}),
     });
+  }, [symbol, track]);
+
+  // Handle boundary-level chart errors by closing the modal.
+  // Orientation is automatically restored by the hook.
+  const handleChartError = useCallback(() => {
+    trackChartError();
     onClose();
-  }, [onClose, symbol, track]);
+  }, [onClose, trackChartError]);
+
+  const handleAdvancedChartError = useCallback(() => {
+    trackChartError();
+    trackFullscreenChartScreenViewed();
+  }, [trackChartError, trackFullscreenChartScreenViewed]);
 
   return (
     <Modal
@@ -261,10 +270,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
                 tpslLines={tpslLines}
                 positionSize={positionSize}
                 onCrosshairDataChange={setOhlcData}
-                onError={() => {
-                  handleChartError();
-                  trackFullscreenChartScreenViewed();
-                }}
+                onError={handleAdvancedChartError}
                 onSkeletonHidden={trackFullscreenChartScreenViewed}
                 fallbackCandleData={candleData ?? null}
               />
