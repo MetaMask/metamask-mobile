@@ -120,16 +120,18 @@ jest.mock('../../hooks/usePerpsCategories', () => ({
   usePerpsCategories: jest.fn(() => []),
 }));
 
-const mockUsePerpsTopMovers = jest.fn(() => ({
-  data: [],
-  isLoading: false,
-}));
 jest.mock('../../hooks/usePerpsTopMovers', () => ({
-  usePerpsTopMovers: (...args: unknown[]) => mockUsePerpsTopMovers(...args),
+  usePerpsTopMovers: jest.fn(() => ({
+    data: [],
+    isLoading: false,
+  })),
   isPerpsTopMoversSectionVisible: jest.requireActual(
     '../../hooks/usePerpsTopMovers',
   ).isPerpsTopMoversSectionVisible,
 }));
+
+const mockUsePerpsTopMovers = jest.requireMock('../../hooks/usePerpsTopMovers')
+  .usePerpsTopMovers as jest.Mock;
 
 // Mock direct import of usePerpsHomeActions (component imports it directly now)
 jest.mock('../../hooks/usePerpsHomeActions', () => ({
