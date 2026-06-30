@@ -13,7 +13,7 @@ import {
   getDefaultLineIndex,
   getFallbackSportsMarketTypeLabel,
   getMoneylineButtonEntries,
-  getSportsMarketTypeLabel,
+  getSportsMarketTypeLabelForGame,
   getTranslatedSportsMarketTypeLabel,
 } from './utils';
 
@@ -185,12 +185,17 @@ const SubgroupCards = memo(
     const firstOutcomeTitle = subgroup.outcomes[0]
       ? formatOutcomeCardTitle(subgroup.outcomes[0])
       : undefined;
-    const title =
+    const fallbackTitle =
       subgroup.title ??
       getFallbackSportsMarketTypeLabel(
         subgroup.key,
         translatedTitle ?? firstOutcomeTitle,
       );
+    const title = getSportsMarketTypeLabelForGame(
+      subgroup.key,
+      fallbackTitle,
+      game,
+    );
     const testID = `${groupKey}-${subgroup.key}-${index}`;
 
     if (isMoneylineLikeMarketType(subgroup.key)) {
@@ -267,9 +272,10 @@ export const OutcomesContent = memo(
           outcomes={group.outcomes}
           onBuyPress={onBuyPress}
           game={game}
-          title={getSportsMarketTypeLabel(
+          title={getSportsMarketTypeLabelForGame(
             firstType,
             formatOutcomeCardTitle(group.outcomes[0]),
+            game,
           )}
           testID={`${group.key}-moneyline`}
         />

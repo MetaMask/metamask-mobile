@@ -37,6 +37,7 @@ describe('outcomeGrouping', () => {
         'totals',
         'both_teams_to_score',
         'soccer_first_to_score',
+        'soccer_team_to_advance',
         'team_totals',
         'soccer_team_totals',
         'basketball_team_to_score_first',
@@ -63,6 +64,29 @@ describe('outcomeGrouping', () => {
   });
 
   describe('buildOutcomeGroups', () => {
+    it('orders team to advance before moneyline in game lines', () => {
+      const outcomes = [
+        createGroupingOutcome('moneyline', 'moneyline'),
+        createGroupingOutcome('team-to-advance', 'soccer_team_to_advance'),
+        createGroupingOutcome('spread', 'spreads', -1.5),
+        createGroupingOutcome('total', 'totals', 2.5),
+      ];
+
+      const groups = buildOutcomeGroups(outcomes);
+
+      expect(groups).toHaveLength(1);
+      expect(groups[0]).toMatchObject({
+        key: 'game_lines',
+        outcomes: [],
+      });
+      expect(groups[0].subgroups?.map((group) => group.key)).toEqual([
+        'soccer_team_to_advance',
+        'moneyline',
+        'spreads',
+        'totals',
+      ]);
+    });
+
     it('groups tennis first set markets separately from game lines', () => {
       const groups = buildOutcomeGroups([
         createGroupingOutcome('moneyline', 'moneyline'),
