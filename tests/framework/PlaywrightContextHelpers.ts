@@ -147,4 +147,14 @@ export default class PlaywrightContextHelpers {
     await this.switchToNativeContext();
     await actionFn();
   }
+
+  /** Scroll the active dapp WebView to the top (e.g. after navigation lands mid-page). */
+  static async scrollWebViewToTop(dappUrl: string): Promise<void> {
+    await this.withWebAction(async () => {
+      await getDriver().execute(() => {
+        window.scrollTo(0, 0);
+      });
+    }, dappUrl);
+    await this.switchToNativeContext();
+  }
 }

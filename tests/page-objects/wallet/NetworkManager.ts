@@ -218,6 +218,10 @@ class NetworkManager {
    * Open the network manager
    */
   async openNetworkManager(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.openNetworkManagerButton, {
+      elemDescription: 'Network filter button (Tokens Full View)',
+      timeout: 10000,
+    });
     await Gestures.waitAndTap(this.openNetworkManagerButton, {
       elemDescription: 'Open Network Manager Button',
     });
@@ -275,7 +279,15 @@ class NetworkManager {
    * Check if the network manager is currently visible
    */
   async isNetworkManagerVisible(): Promise<boolean> {
-    return Utilities.isElementVisible(this.networkManagerBottomSheet, 1000);
+    const popularTabVisible = await Utilities.isElementVisible(
+      this.popularNetworksTab,
+      1000,
+    );
+    if (popularTabVisible) {
+      return true;
+    }
+
+    return Utilities.isElementVisible(this.customNetworksTab, 1000);
   }
 
   /**
@@ -405,13 +417,22 @@ class NetworkManager {
   }
 
   /**
-   * Wait for network manager to be fully loaded
+   * Wait for network manager to be fully loaded.
+   * Asserts on sheet content (tabs) rather than the bottom sheet wrapper — the
+   * wrapper testID is not always exposed in the iOS accessibility tree when open.
    */
   async waitForNetworkManagerToLoad() {
-    await Assertions.expectElementToBeVisible(this.networkManagerBottomSheet, {
-      elemDescription: 'Network Manager Bottom Sheet',
-      timeout: 10000,
-    });
+    try {
+      await Assertions.expectElementToBeVisible(this.popularNetworksTab, {
+        elemDescription: 'Popular Networks Tab (network manager open)',
+        timeout: 10000,
+      });
+    } catch {
+      await Assertions.expectElementToBeVisible(this.customNetworksTab, {
+        elemDescription: 'Custom Networks Tab (network manager open)',
+        timeout: 10000,
+      });
+    }
     // Wait for bottom sheet animation to complete
     // eslint-disable-next-line no-restricted-syntax
     await TestHelpers.delay(1000); // Allow for bottom sheet slide-up animation
