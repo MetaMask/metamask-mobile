@@ -676,7 +676,7 @@ const PerpsTPSLView: React.FC = () => {
               <View
                 style={[
                   styles.inputContainer,
-                  !isValid && takeProfitError && styles.inputError,
+                  takeProfitError && styles.inputError,
                 ]}
               >
                 <Text
@@ -714,7 +714,7 @@ const PerpsTPSLView: React.FC = () => {
               <View
                 style={[
                   styles.inputContainer,
-                  !isValid && takeProfitError && styles.inputError,
+                  takeProfitError && styles.inputError,
                 ]}
               >
                 <TouchableOpacity
@@ -808,7 +808,7 @@ const PerpsTPSLView: React.FC = () => {
               )}
 
             {/* Error message */}
-            {!isValid && Boolean(takeProfitError) && (
+            {Boolean(takeProfitError) && (
               <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
                 {takeProfitError}
               </Text>
@@ -872,7 +872,8 @@ const PerpsTPSLView: React.FC = () => {
               <View
                 style={[
                   styles.inputContainer,
-                  !isValid && stopLossError && styles.inputError,
+                  (stopLossError || stopLossLiquidationError) &&
+                    styles.inputError,
                 ]}
               >
                 <Text
@@ -910,7 +911,8 @@ const PerpsTPSLView: React.FC = () => {
               <View
                 style={[
                   styles.inputContainer,
-                  !isValid && stopLossError && styles.inputError,
+                  (stopLossError || stopLossLiquidationError) &&
+                    styles.inputError,
                 ]}
               >
                 <TouchableOpacity
@@ -994,7 +996,7 @@ const PerpsTPSLView: React.FC = () => {
             )}
 
             {/* Error message */}
-            {!isValid && Boolean(stopLossError || stopLossLiquidationError) && (
+            {Boolean(stopLossError || stopLossLiquidationError) && (
               <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
                 {stopLossError || stopLossLiquidationError}
               </Text>

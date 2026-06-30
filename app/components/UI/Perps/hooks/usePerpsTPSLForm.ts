@@ -966,6 +966,13 @@ export function usePerpsTPSLForm(
     const nextSign = flipSign(takeProfitSign);
     setTakeProfitSign(nextSign);
 
+    // Only recompute the trigger when RoE % is the active input. If the user
+    // typed a price directly, keep it and let sign-aware validation re-run so
+    // errors are not cleared until the constraint actually passes.
+    if (!tpUsingPercentage) {
+      return;
+    }
+
     const magnitude = Number.parseFloat(takeProfitPercentage);
     if (takeProfitPercentage && !Number.isNaN(magnitude) && leverage) {
       setTpSourceOfTruth('percentage');
@@ -989,6 +996,7 @@ export function usePerpsTPSLForm(
   }, [
     takeProfitSign,
     takeProfitPercentage,
+    tpUsingPercentage,
     leverage,
     currentPrice,
     actualDirection,
@@ -998,6 +1006,13 @@ export function usePerpsTPSLForm(
   const handleStopLossSignToggle = useCallback(() => {
     const nextSign = flipSign(stopLossSign);
     setStopLossSign(nextSign);
+
+    // Only recompute the trigger when RoE % is the active input. If the user
+    // typed a price directly, keep it and let sign-aware validation re-run so
+    // errors are not cleared until the constraint actually passes.
+    if (!slUsingPercentage) {
+      return;
+    }
 
     const magnitude = Number.parseFloat(stopLossPercentage);
     if (stopLossPercentage && !Number.isNaN(magnitude) && leverage) {
@@ -1022,6 +1037,7 @@ export function usePerpsTPSLForm(
   }, [
     stopLossSign,
     stopLossPercentage,
+    slUsingPercentage,
     leverage,
     currentPrice,
     actualDirection,

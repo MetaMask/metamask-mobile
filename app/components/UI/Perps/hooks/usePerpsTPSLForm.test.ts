@@ -1673,6 +1673,44 @@ describe('usePerpsTPSLForm', () => {
       expect(result.current.formState.takeProfitPercentage).toBe('25');
     });
 
+    it('keeps take profit validation error when toggling sign on a manually entered price', () => {
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('45000');
+      });
+
+      expect(result.current.validation.takeProfitError).toContain('above');
+
+      act(() => {
+        result.current.buttons.handleTakeProfitSignToggle();
+      });
+
+      expect(result.current.formState.takeProfitPrice).toBe('45000');
+      expect(result.current.validation.takeProfitError).toBe('');
+    });
+
+    it('shows take profit validation error after toggling sign when price is invalid for the new sign', () => {
+      const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
+        wrapper: createWrapper(),
+      });
+
+      act(() => {
+        result.current.handlers.handleTakeProfitPriceChange('50001');
+      });
+
+      expect(result.current.validation.takeProfitError).toBe('');
+
+      act(() => {
+        result.current.buttons.handleTakeProfitSignToggle();
+      });
+
+      expect(result.current.formState.takeProfitPrice).toBe('50001');
+      expect(result.current.validation.takeProfitError).toContain('below');
+    });
+
     it('applies a negative sign to the take profit trigger price (AC6)', () => {
       // Arrange - long position; toggle TP badge to -
       const { result } = renderHook(() => usePerpsTPSLForm(defaultParams), {
