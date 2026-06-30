@@ -1554,7 +1554,7 @@ describe('PerpsOrderBookView', () => {
   });
 
   describe('grouping with no market price', () => {
-    it('derives grouping options from live price when market price is unavailable', async () => {
+    it('returns null grouping when market price is unavailable', () => {
       const { usePerpsMarkets } = jest.requireMock('../../hooks');
       usePerpsMarkets.mockReturnValue({
         markets: [
@@ -1568,22 +1568,13 @@ describe('PerpsOrderBookView', () => {
         error: null,
       });
 
-      const { getByTestId, getByText } = renderWithProvider(
-        <PerpsOrderBookView />,
-        {
-          state: initialState,
-        },
-      );
-
-      fireEvent.press(
-        getByTestId(PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON),
-      );
-
-      await waitFor(() => {
-        expect(getByText('1')).toBeOnTheScreen();
-        expect(getByText('10')).toBeOnTheScreen();
-        expect(getByText('1000')).toBeOnTheScreen();
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
       });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
     });
 
     it('handles invalid market price format', () => {

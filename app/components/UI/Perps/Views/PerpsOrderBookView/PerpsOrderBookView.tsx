@@ -1,7 +1,7 @@
 import {
-  Button as DSButton,
+  Button,
   ButtonVariant,
-  ButtonSize as ButtonSizeRNDesignSystem,
+  ButtonSize,
   ButtonBaseSize,
   ButtonIcon,
   ButtonIconSize,
@@ -11,6 +11,7 @@ import {
   SegmentedControl,
   SelectButton,
   SelectButtonVariant,
+  SelectButtonSize,
 } from '@metamask/design-system-react-native';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, {
@@ -187,11 +188,32 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
   // Get market price for grouping calculations (available immediately from markets data)
   // market.price is formatted like '$90,000.00' so we need to parse it
   const marketPrice = useMemo(() => {
-    if (market?.price == null || market.price === '') return null;
-    const cleaned = String(market.price).replace(/[$,]/g, '');
+    if (!market?.price) return null;
+    // Remove $ and commas, then parse
+    const cleaned = market.price.replace(/[$,]/g, '');
     const parsed = parseFloat(cleaned);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+    return isNaN(parsed) ? null : parsed;
   }, [market]);
+
+  // Calculate dynamic grouping options based on market price
+  const groupingOptions = useMemo(() => {
+    if (!marketPrice) return [];
+    return calculateGroupingOptions(marketPrice);
+  }, [marketPrice]);
+
+  // Current grouping value (use selected or auto-select default)
+  const currentGrouping = useMemo(() => {
+    if (
+      selectedGrouping !== null &&
+      groupingOptions.includes(selectedGrouping)
+    ) {
+      return selectedGrouping;
+    }
+    if (groupingOptions.length > 0) {
+      return selectDefaultGrouping(groupingOptions);
+    }
+    return null;
+  }, [selectedGrouping, groupingOptions]);
 
   // Subscribe to top-of-book (best bid/ask) for spread display.
   // This is intentionally independent from order book aggregation/grouping.
@@ -217,49 +239,6 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
     // Fallback to static market price if live price not available or invalid
     return marketPrice ?? 0;
   }, [livePrices, symbol, marketPrice]);
-
-  // Price reference for grouping options — market list price may be unavailable
-  // on the order book screen while live stream prices are present.
-  const groupingReferencePrice = useMemo(() => {
-    if (marketPrice && marketPrice > 0) {
-      return marketPrice;
-    }
-    if (currentPrice > 0) {
-      return currentPrice;
-    }
-
-    const bidStr = topOfBook?.bestBid;
-    const askStr = topOfBook?.bestAsk;
-    if (bidStr && askStr) {
-      const bid = parseFloat(bidStr);
-      const ask = parseFloat(askStr);
-      if (Number.isFinite(bid) && Number.isFinite(ask) && bid > 0 && ask > 0) {
-        return (bid + ask) / 2;
-      }
-    }
-
-    return null;
-  }, [marketPrice, currentPrice, topOfBook]);
-
-  // Calculate dynamic grouping options based on reference price
-  const groupingOptions = useMemo(() => {
-    if (!groupingReferencePrice) return [];
-    return calculateGroupingOptions(groupingReferencePrice);
-  }, [groupingReferencePrice]);
-
-  // Current grouping value (use selected or auto-select default)
-  const currentGrouping = useMemo(() => {
-    if (
-      selectedGrouping !== null &&
-      groupingOptions.includes(selectedGrouping)
-    ) {
-      return selectedGrouping;
-    }
-    if (groupingOptions.length > 0) {
-      return selectDefaultGrouping(groupingOptions);
-    }
-    return null;
-  }, [selectedGrouping, groupingOptions]);
 
   const spreadMetrics = useMemo(() => {
     const bidStr = topOfBook?.bestBid;
@@ -290,11 +269,9 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   // Calculate aggregation params (nSigFigs + mantissa) based on grouping
   const aggregationParams = useMemo(() => {
-    if (!groupingReferencePrice || !currentGrouping) {
-      return { nSigFigs: 5 as const };
-    }
-    return calculateAggregationParams(currentGrouping, groupingReferencePrice);
-  }, [currentGrouping, groupingReferencePrice]);
+    if (!marketPrice || !currentGrouping) return { nSigFigs: 5 as const };
+    return calculateAggregationParams(currentGrouping, marketPrice);
+  }, [currentGrouping, marketPrice]);
 
   // Subscribe to live order book data with dynamic nSigFigs and mantissa
   // These parameters match Hyperliquid's API for consistent price aggregation
@@ -368,6 +345,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         <SelectButton
           testID={PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON}
           variant={SelectButtonVariant.Primary}
+          size={SelectButtonSize.Md}
           placeholder={currentGroupingLabel}
           value={currentGroupingLabel}
           onPress={handleDepthBandPress}
@@ -741,19 +719,19 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
         {/* Action Buttons - Show Modify/Close when position exists, Long/Short otherwise */}
         {existingPosition ? (
           <View style={styles.actionsContainer} accessible={false}>
-            <DSButton
+            <Button
               variant={ButtonVariant.Secondary}
-              size={ButtonSizeRNDesignSystem.Lg}
+              size={ButtonSize.Lg}
               onPress={handleModifyPress}
               style={styles.actionButtonWrapper}
               testID={PerpsOrderBookViewSelectorsIDs.MODIFY_BUTTON}
             >
               {strings('perps.market.modify')}
-            </DSButton>
+            </Button>
 
-            <DSButton
+            <Button
               variant={ButtonVariant.Primary}
-              size={ButtonSizeRNDesignSystem.Lg}
+              size={ButtonSize.Lg}
               onPress={handleClosePosition}
               style={styles.actionButtonWrapper}
               testID={PerpsOrderBookViewSelectorsIDs.CLOSE_BUTTON}
@@ -761,25 +739,25 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
               {parseFloat(existingPosition.size) >= 0
                 ? strings('perps.market.close_long')
                 : strings('perps.market.close_short')}
-            </DSButton>
+            </Button>
           </View>
         ) : (
           <View style={styles.actionsContainer} accessible={false}>
             {buttonColorVariant === 'monochrome' ? (
-              <DSButton
+              <Button
                 variant={ButtonVariant.Primary}
-                size={ButtonSizeRNDesignSystem.Lg}
+                size={ButtonSize.Lg}
                 onPress={handleLongPress}
                 style={styles.actionButtonWrapper}
                 testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
               >
                 {strings('perps.market.long')}
-              </DSButton>
+              </Button>
             ) : (
               <ButtonSemantic
                 severity={ButtonSemanticSeverity.Success}
                 onPress={handleLongPress}
-                size={ButtonSizeRNDesignSystem.Lg}
+                size={ButtonSize.Lg}
                 style={styles.actionButtonWrapper}
                 testID={PerpsOrderBookViewSelectorsIDs.LONG_BUTTON}
               >
@@ -788,20 +766,20 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
             )}
 
             {buttonColorVariant === 'monochrome' ? (
-              <DSButton
+              <Button
                 variant={ButtonVariant.Primary}
-                size={ButtonSizeRNDesignSystem.Lg}
+                size={ButtonSize.Lg}
                 onPress={handleShortPress}
                 style={styles.actionButtonWrapper}
                 testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
               >
                 {strings('perps.market.short')}
-              </DSButton>
+              </Button>
             ) : (
               <ButtonSemantic
                 severity={ButtonSemanticSeverity.Danger}
                 onPress={handleShortPress}
-                size={ButtonSizeRNDesignSystem.Lg}
+                size={ButtonSize.Lg}
                 style={styles.actionButtonWrapper}
                 testID={PerpsOrderBookViewSelectorsIDs.SHORT_BUTTON}
               >
