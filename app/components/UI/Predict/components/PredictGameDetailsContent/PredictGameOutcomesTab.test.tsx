@@ -42,7 +42,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
         '1st Set Total Games',
       'predict.sports_market_types.tennis_first_set_winner': '1st Set Winner',
       'predict.sports_market_types.tennis_completed_match': 'Completed Match',
-      'predict.sports_market_types.soccer_team_to_advance': 'Team to Advance',
     };
     if (key.startsWith('predict.sports_market_types.basketball_')) {
       return translations[key] ?? `[missing "${key}" translation]`;
