@@ -533,7 +533,7 @@ generateAndroidBinary() {
 		if [ "$METAMASK_ENVIRONMENT" = "e2e" ] && [ "${IS_BROWSERSTACK_BUILD:-false}" != "true" ] ; then
 			# CI uses x86_64 emulators only; local macOS (Apple Silicon) also needs arm64-v8a
 			if [ "${CI:-false}" = "true" ] ; then
-				reactNativeArchitecturesArg="-PreactNativeArchitectures=arm64-v8a"
+				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64"
 			else
 				reactNativeArchitecturesArg="-PreactNativeArchitectures=x86_64,arm64-v8a"
 			fi
@@ -550,10 +550,9 @@ generateAndroidBinary() {
 	echo "Generating Android binary for ($flavor) flavor with ($configuration) configuration"
 	./gradlew "${gradleInitScriptArg[@]}" $assembleApkTask $assembleTestApkTask $testBuildTypeArg $reactNativeArchitecturesArg $gradleLoggingFlags $exUpdatesArgs
 
-	# Only build the AAB for production (Play Store distribution).
-	# All non-prod environments (rc, beta, exp, test, e2e, dev) skip the AAB to
-	# save CI time — they are distributed via APK or BrowserStack, not Play Store.
-	if [ "$configuration" = "Release" ] && [ "$METAMASK_ENVIRONMENT" = "production" ] ; then
+	# Skip AAB bundle for E2E environments - AAB cannot be installed on emulators
+	# and is only needed for Play Store distribution
+	if [ "$configuration" = "Release" ] && [ "$METAMASK_ENVIRONMENT" != "e2e" ] ; then
 		# Generate AAB bundle
 		bundleConfiguration="bundle${flavor}Release"
 		echo "Generating AAB bundle for ($flavor) flavor with ($configuration) configuration"
