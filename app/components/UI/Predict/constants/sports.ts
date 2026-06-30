@@ -63,6 +63,8 @@ export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
   'itf',
 ];
 
+export const WORLD_CUP_LEAGUE: PredictSportsLeague = 'fifwc';
+
 export const filterSupportedLeagues = (
   leagues: string[],
 ): PredictSportsLeague[] =>
