@@ -152,9 +152,6 @@ export const GROUP_ORDER: string[] = [
 export const DEFAULT_GROUP_KEY = 'game_lines';
 
 export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
-  soccer_team_to_advance: -3,
-  soccer_extra_time: -2,
-  soccer_penalty_shootout: -1,
   moneyline: 0,
   tennis_first_set_winner: 0,
   spreads: 1,
@@ -164,4 +161,9 @@ export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
   tennis_first_set_totals: 2,
   tennis_match_totals: 3,
   tennis_completed_match: 4,
+  // Full-tie-outcome markets render at the bottom of Game Lines, after the
+  // regulation-time markets above.
+  soccer_team_to_advance: 5,
+  soccer_extra_time: 6,
+  soccer_penalty_shootout: 7,
 };

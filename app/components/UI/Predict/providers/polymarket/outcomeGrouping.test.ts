@@ -65,7 +65,7 @@ describe('outcomeGrouping', () => {
   });
 
   describe('buildOutcomeGroups', () => {
-    it('groups full-tie-outcome markets in game lines ahead of moneyline', () => {
+    it('groups full-tie-outcome markets in game lines below moneyline', () => {
       const groups = buildOutcomeGroups([
         createGroupingOutcome('moneyline', 'moneyline'),
         createGroupingOutcome('extra-time', 'soccer_extra_time'),
@@ -75,10 +75,10 @@ describe('outcomeGrouping', () => {
 
       expect(groups.map((group) => group.key)).toEqual(['game_lines']);
       expect(groups[0].subgroups?.map((group) => group.key)).toEqual([
+        'moneyline',
         'soccer_team_to_advance',
         'soccer_extra_time',
         'soccer_penalty_shootout',
-        'moneyline',
       ]);
     });
 
