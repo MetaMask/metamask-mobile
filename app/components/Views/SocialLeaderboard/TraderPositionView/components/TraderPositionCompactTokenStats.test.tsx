@@ -5,7 +5,7 @@ import { TraderPositionViewSelectorsIDs } from '../TraderPositionView.testIds';
 import TraderPositionCompactTokenStats from './TraderPositionCompactTokenStats';
 
 describe('TraderPositionCompactTokenStats', () => {
-  it('renders the token symbol and a single subtitle row with change and trader', () => {
+  it('renders trader on the first row and token change on the second', () => {
     const onTraderPress = jest.fn();
 
     renderWithProvider(
@@ -27,7 +27,7 @@ describe('TraderPositionCompactTokenStats', () => {
       screen.getByTestId(
         TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_CHANGE,
       ),
-    ).toHaveTextContent('+12.54% 1M · trader1');
+    ).toHaveTextContent('PEPE+12.54%1M');
     expect(
       within(
         screen.getByTestId(
@@ -45,7 +45,7 @@ describe('TraderPositionCompactTokenStats', () => {
     expect(onTraderPress).toHaveBeenCalledTimes(1);
   });
 
-  it('renders perp leverage and direction badges beside the compact token symbol', () => {
+  it('renders perp leverage and direction badges beside the trader on the first row', () => {
     renderWithProvider(
       <TraderPositionCompactTokenStats
         symbol="BTC"
@@ -74,11 +74,11 @@ describe('TraderPositionCompactTokenStats', () => {
     ).toBeOnTheScreen();
     expect(
       screen.getByTestId(TraderPositionViewSelectorsIDs.COMPACT_TOKEN_STATS),
-    ).toHaveTextContent('BTC3xSHORT-4.69% 1W · trader1');
+    ).toHaveTextContent('trader13xSHORTBTC-4.69%1W');
     expect(
       screen.getByTestId(
         TraderPositionViewSelectorsIDs.HEADER_COMPACT_TOKEN_CHANGE,
       ),
-    ).toHaveTextContent('-4.69% 1W · trader1');
+    ).toHaveTextContent('BTC-4.69%1W');
   });
 });
