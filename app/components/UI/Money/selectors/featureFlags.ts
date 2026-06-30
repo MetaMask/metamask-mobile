@@ -9,7 +9,10 @@ import {
 import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
 import { WildcardTokenList } from '../../Earn/utils/wildcardTokenList';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
-import { MONEY_NO_FEE_TOKENS_FALLBACK } from '../utils/depositFaqTokens';
+import {
+  MONEY_NO_FEE_TOKENS_FALLBACK,
+  ensureMonadMusdListed,
+} from '../utils/depositFaqTokens';
 import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmations/utils/relayFixedSpread';
 import { parseNonNegativeFinite } from '../utils/number';
 import { MoneyVaultApyRemoteConfig } from './featureFlags.types';
@@ -170,8 +173,8 @@ const normalizeTokenSymbol = (tokenAlias: string): string => {
  *
  * Filters routes where the destination is Monad mUSD, then maps each input
  * (chainId, tokenAlias) to a display symbol, emitting a WildcardTokenList
- * (hex chainId → [SYMBOL, ...]) compatible with formatNoFeeTokenBullets and
- * formatBaseStablecoins in depositFaqTokens.ts.
+ * (hex chainId → [SYMBOL, ...]) compatible with formatNoFeeTokenBullets in
+ * depositFaqTokens.ts.
  *
  * Falls back to MONEY_NO_FEE_TOKENS_FALLBACK when the flag is absent or
  * structurally invalid, preserving current FAQ behaviour.
@@ -211,9 +214,10 @@ export const selectMoneyNoFeeDepositTokens = createSelector(
       }
     }
 
-    return Object.keys(catalog).length > 0
-      ? catalog
-      : MONEY_NO_FEE_TOKENS_FALLBACK;
+    const result =
+      Object.keys(catalog).length > 0 ? catalog : MONEY_NO_FEE_TOKENS_FALLBACK;
+
+    return ensureMonadMusdListed(result);
   },
 );
 

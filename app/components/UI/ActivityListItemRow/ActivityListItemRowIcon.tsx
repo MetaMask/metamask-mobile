@@ -10,6 +10,7 @@ import {
 import type { TokenAmount } from '../../../util/activity-adapters';
 import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
 import { getTokenImageSource } from './tokenIcon';
+import PerpsTokenLogo from '../Perps/components/PerpsTokenLogo';
 
 function getImageUri(
   source: ImageSourcePropType | undefined,
@@ -24,11 +25,13 @@ function getImageUri(
 function TokenAvatar({
   fallbackIcon,
   iconUrl,
+  perpsMarketSymbol,
   styles,
   tokens,
 }: {
   fallbackIcon: ImageSourcePropType;
   iconUrl?: string;
+  perpsMarketSymbol?: string;
   styles: ActivityListItemRowStyles;
   tokens: TokenAmount[];
 }) {
@@ -50,6 +53,16 @@ function TokenAvatar({
       }
     });
   }, [tokenImageSources]);
+
+  if (perpsMarketSymbol) {
+    return (
+      <PerpsTokenLogo
+        symbol={perpsMarketSymbol}
+        size={32}
+        recyclingKey={perpsMarketSymbol}
+      />
+    );
+  }
 
   if (tokens.length === 0) {
     if (iconUrl) {
@@ -99,6 +112,7 @@ export function ActivityListItemRowIcon({
   fallbackIcon,
   iconUrl,
   networkImageSource,
+  perpsMarketSymbol,
   styles,
   tokens,
 }: {
@@ -111,6 +125,7 @@ export function ActivityListItemRowIcon({
    * avatar renders without it.
    */
   networkImageSource?: ImageSourcePropType;
+  perpsMarketSymbol?: string;
   styles: ActivityListItemRowStyles;
   tokens: TokenAmount[];
 }) {
@@ -125,6 +140,7 @@ export function ActivityListItemRowIcon({
     <TokenAvatar
       fallbackIcon={fallbackIcon}
       iconUrl={iconUrl}
+      perpsMarketSymbol={perpsMarketSymbol}
       styles={styles}
       tokens={tokens}
     />

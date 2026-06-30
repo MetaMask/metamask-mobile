@@ -1162,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "Τα Perps δεν είναι διαθέσιμα",
     "title": "Συμβ.αορ.",
-    "transfer_to_perps": "Μεταφορά στα Perps",
     "perps_trading": "Συναλλαγές με συμβόλαια αορίστου διάρκειας",
     "perp_account_balance": "Υπόλοιπο λογαριασμού συμβολαίων αορίστου διάρκειας",
     "manage_balance": "Διαχείριση υπολοίπου",
@@ -2343,13 +2342,11 @@
   },
   "predict": {
     "title": "Προβλέψεις στο MetaMask",
-    "transfer_to_predictions": "Μεταφορά στις Προβλέψεις",
     "select_predict_account": "Επιλέξτε λογαριασμό προβλέψεων",
     "search_account": "Αναζήτηση λογαριασμού",
     "home": {
       "live_now_title": "Ζωντανά τώρα",
-      "categories_placeholder": "Κατηγορίες",
-      "trending_placeholder": "Δημοφιλή"
+      "categories_placeholder": "Κατηγορίες"
     },
     "homepage_discovery": {
       "btc_title": "Τιμή BTC: {{price}}",
@@ -7679,8 +7676,7 @@
       "perps_withdraw": "Ανάληψη",
       "predict_deposit": "Προσθήκη κεφαλαίων για Προβλέψεις",
       "predict_withdraw": "Ανάληψη",
-      "money_account_add_money": "Προσθήκη κεφαλαίων",
-      "money_account_transfer_money": "Μεταφορά κεφαλαίων"
+      "money_account_add_money": "Προσθήκη κεφαλαίων"
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",
