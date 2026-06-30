@@ -299,6 +299,54 @@ describe('AdvancedChart', () => {
     );
   });
 
+  it('responds with noData when FETCH_OLDER_BARS_REQUEST handler rejects', async () => {
+    const request = {
+      requestId: 'older-rejected',
+      seriesGeneration: 4,
+      symbol: 'BTC',
+      resolution: '60',
+      fromSec: 1000,
+      toSec: 2000,
+      countBack: 50,
+      oldestLoadedTimeMs: 1_700_000_000_000,
+    };
+    const onFetchOlderBarsRequest = jest
+      .fn()
+      .mockRejectedValue(new Error('history failed'));
+    const { getByTestId } = render(
+      <AdvancedChart
+        ohlcvData={MOCK_BARS}
+        onFetchOlderBarsRequest={onFetchOlderBarsRequest}
+      />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: 'FETCH_OLDER_BARS_REQUEST',
+            payload: request,
+          }),
+        },
+      });
+    });
+    await flushMicrotasks();
+
+    expect(onFetchOlderBarsRequest).toHaveBeenCalledWith(request);
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'FETCH_OLDER_BARS_RESPONSE',
+        payload: {
+          requestId: request.requestId,
+          seriesGeneration: request.seriesGeneration,
+          bars: [],
+          noData: true,
+        },
+      }),
+    );
+  });
+
   it('responds with noData when FETCH_OLDER_BARS_REQUEST has no RN handler', () => {
     const request = {
       requestId: 'older-without-handler',

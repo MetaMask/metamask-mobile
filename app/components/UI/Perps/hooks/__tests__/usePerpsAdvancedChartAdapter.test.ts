@@ -12,6 +12,7 @@ import {
   PREWARM_CANDLE_PERIODS,
   usePerpsAdvancedChartAdapter,
 } from '../usePerpsAdvancedChartAdapter';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 jest.mock('../../providers/PerpsStreamManager', () => ({
   usePerpsStream: jest.fn(),
@@ -203,6 +204,40 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
         TimeDuration.OneWeek,
       );
     });
+  });
+
+  it('skips prewarming when the stream does not expose prewarmCandles', () => {
+    (usePerpsStream as jest.Mock).mockReturnValue({
+      candles: {
+        subscribe: mockSubscribe,
+        fetchHistoricalCandles: mockFetchHistoricalCandles,
+      },
+    });
+
+    renderAdapter();
+
+    expect(mockPrewarmCandles).not.toHaveBeenCalled();
+  });
+
+  it('logs prewarm failures without blocking the subscription', async () => {
+    mockPrewarmCandles
+      .mockRejectedValueOnce(new Error('prewarm down'))
+      .mockResolvedValue(undefined);
+
+    renderAdapter();
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(mockSubscribe).toHaveBeenCalledTimes(1);
+    expect(DevLogger.log).toHaveBeenCalledWith(
+      'usePerpsAdvancedChartAdapter: prewarm failed',
+      expect.objectContaining({
+        symbol: SYMBOL,
+        interval: PREWARM_CANDLE_PERIODS[0],
+        error: 'prewarm down',
+      }),
+    );
   });
 
   it('clears isLoading on the first delivery even when the frame is empty (regression: no hang)', () => {
@@ -505,6 +540,21 @@ describe('usePerpsAdvancedChartAdapter loading lifecycle', () => {
       seriesGeneration: 1,
       bars: [],
       noData: true,
+    });
+  });
+
+  it('returns noData with error text when historical fetch resolves before candle data arrives', async () => {
+    const { result } = renderAdapter();
+
+    const response =
+      await result.current.handleFetchOlderBarsRequest(fetchOlderRequest());
+
+    expect(response).toEqual({
+      requestId: 'older-1',
+      seriesGeneration: 1,
+      bars: [],
+      noData: true,
+      error: 'Error: no candle data after fetch',
     });
   });
 

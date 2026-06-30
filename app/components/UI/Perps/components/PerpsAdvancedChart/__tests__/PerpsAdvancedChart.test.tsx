@@ -382,6 +382,68 @@ describe('PerpsAdvancedChart', () => {
     );
   });
 
+  it('starts a new initial trace when the symbol changes without an interval change', () => {
+    const { rerender } = renderChart();
+
+    mockUsePerpsAdvancedChartAdapter.mockReturnValue({
+      ...mockAdapterResult,
+      ohlcvSeriesKey: 'ETH|1h',
+    });
+
+    rerender(
+      <PerpsAdvancedChart
+        symbol="ETH"
+        interval={CandlePeriod.OneHour}
+        visibleCandleCount={100}
+        height={240}
+        fallbackCandleData={null}
+      />,
+    );
+
+    expect(trace).toHaveBeenLastCalledWith(
+      expect.objectContaining({
+        name: 'Perps Advanced Chart Initial Visible',
+        op: 'perps.advanced_chart',
+        id: 'ETH|1h',
+      }),
+    );
+  });
+
+  it('includes only primitive layout settle values in visibility trace data', () => {
+    const onSkeletonHidden = jest.fn();
+    renderChart({ onSkeletonHidden });
+    const notifySkeletonHidden = advancedChartProps().onSkeletonHidden as (
+      payload: unknown,
+    ) => void;
+
+    act(() => {
+      notifySkeletonHidden({
+        dataLoadMode: 'initial',
+        durationMs: 123,
+        usedFallbackTimer: false,
+        // Non-primitive values are intentionally filtered before ending the trace.
+        debug: { ignored: true },
+      });
+    });
+
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          dataLoadMode: 'initial',
+          durationMs: 123,
+          usedFallbackTimer: false,
+        }),
+      }),
+    );
+    expect(endTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.not.objectContaining({
+          debug: expect.anything(),
+        }),
+      }),
+    );
+  });
+
   it('ends the active visibility trace when unmounted before the skeleton hides', () => {
     const { unmount } = renderChart();
 

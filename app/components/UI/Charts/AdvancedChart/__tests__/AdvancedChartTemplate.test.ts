@@ -101,6 +101,15 @@ describe('createAdvancedChartTemplate', () => {
     expect(html).toContain('existingTimes.add(bar.time);');
   });
 
+  it('posts RN-backed older-bar requests and accepts noData responses', () => {
+    const html = createAdvancedChartTemplate(mockTheme);
+
+    expect(html).toContain("sendToReactNative('FETCH_OLDER_BARS_REQUEST',");
+    expect(html).toContain("case 'FETCH_OLDER_BARS_RESPONSE':");
+    expect(html).toContain('payload.noData');
+    expect(html).toContain('pending.onResult([], { noData: true });');
+  });
+
   it('resets the main price scale autoscale after OHLCV reloads', () => {
     const html = createAdvancedChartTemplate(mockTheme);
 
