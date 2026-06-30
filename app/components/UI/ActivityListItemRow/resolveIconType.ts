@@ -19,6 +19,7 @@ export function resolveIconType(type: ActivityKind): string {
     case 'buy':
     case 'nftBuy':
     case 'claim':
+    case 'unstake':
     case 'claimMusdBonus':
     case 'lendingWithdrawal':
     case 'unwrap':

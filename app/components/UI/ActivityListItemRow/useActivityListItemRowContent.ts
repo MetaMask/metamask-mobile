@@ -37,7 +37,6 @@ import {
   renderFiat,
 } from '../../../util/number/bigint';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { getAssetIconUrl } from '../Perps/utils/marketUtils';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { ActivityListItemRowContent } from './ActivityListItemRow.types';
 
@@ -588,6 +587,7 @@ function resolveCoreContent(
     case 'buy':
     case 'sell':
     case 'claim':
+    case 'unstake':
     case 'deposit': {
       const token = item.data.token;
       const symbol = token?.symbol;
@@ -603,11 +603,17 @@ function resolveCoreContent(
                   pending: 'Claiming',
                   failed: 'Claim failed',
                 }
-              : {
-                  success: 'Deposited',
-                  pending: 'Depositing',
-                  failed: 'Deposit failed',
-                };
+              : item.type === 'unstake'
+                ? {
+                    success: 'Unstaked',
+                    pending: 'Unstaking',
+                    failed: 'Unstake failed',
+                  }
+                : {
+                    success: 'Deposited',
+                    pending: 'Depositing',
+                    failed: 'Deposit failed',
+                  };
 
       return {
         title: statusTitle(item, {
@@ -1177,16 +1183,15 @@ export function useActivityListItemRowContent(
       ? item.data.sourceToken?.symbol
       : undefined
     : undefined;
-  const avatarIconUrl = perpsMarketSymbol
-    ? getAssetIconUrl(perpsMarketSymbol)
-    : isPredictTradeKind(item.type)
-      ? getPredictActivity(item)?.icon
-      : undefined;
+  const predictIconUrl = isPredictTradeKind(item.type)
+    ? getPredictActivity(item)?.icon
+    : undefined;
 
   return {
     ...content,
     avatarTokens: resolveAvatarTokens(item, bridgeHistoryItem),
-    avatarIconUrl,
+    avatarIconUrl: predictIconUrl,
+    perpsMarketSymbol,
     primaryToken,
     secondaryToken,
     primaryAmount,

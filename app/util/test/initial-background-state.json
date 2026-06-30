@@ -31,6 +31,7 @@
   },
   "AnalyticsController": {
     "analyticsId": "59710bcf-06cc-4247-9386-12425e7fc905",
+    "consentDecisionMade": false,
     "optedIn": false
   },
   "GatorPermissionsController": {
@@ -703,7 +704,8 @@
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {},
-    "moneyAccountCardLinkInProgress": false
+    "moneyAccountCardLinkInProgress": false,
+    "lastUnauthenticatedReason": null
   },
   "ClientController": {
     "isUiOpen": false

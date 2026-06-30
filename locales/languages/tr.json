@@ -2346,8 +2346,7 @@
     "search_account": "Bir hesabı ara",
     "home": {
       "live_now_title": "Şimdi canlı",
-      "categories_placeholder": "Kategoriler",
-      "trending_placeholder": "Trend"
+      "categories_placeholder": "Kategoriler"
     },
     "homepage_discovery": {
       "btc_title": "BTC Fiyatı: {{price}}",

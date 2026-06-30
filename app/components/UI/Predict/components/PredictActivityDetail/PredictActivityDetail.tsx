@@ -150,12 +150,28 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       'amount' in entry && typeof entry.amount === 'number'
         ? entry.amount
         : activity.amountUsd;
+    const hasPrice =
+      'price' in entry &&
+      typeof entry.price === 'number' &&
+      Number.isFinite(entry.price);
+    const entrySize =
+      'size' in entry &&
+      typeof entry.size === 'number' &&
+      Number.isFinite(entry.size) &&
+      entry.size > 0
+        ? entry.size
+        : undefined;
+    const priceForTrade =
+      hasPrice && entry.price !== 0 ? entry.price : undefined;
+    const tradeAmount =
+      priceForTrade !== undefined && entrySize !== undefined
+        ? entrySize * priceForTrade
+        : entryAmount;
 
-    const predictedAmount = formatCurrencyValue(entryAmount, {
+    const predictedAmount = formatCurrencyValue(tradeAmount, {
       showSign: isSell,
     });
 
-    const hasPrice = 'price' in entry && typeof entry.price === 'number';
     const pricePerShare = hasPrice
       ? formatPrice(entry.price, {
           minimumDecimals: entry.price >= 1 ? 2 : 4,
@@ -164,9 +180,27 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       : undefined;
 
     const sharesCount =
-      hasPrice && entry.price !== 0 ? entryAmount / entry.price : undefined;
+      entrySize ??
+      (priceForTrade !== undefined ? entryAmount / priceForTrade : undefined);
     const formattedShares =
       sharesCount !== undefined ? formatPositionSize(sharesCount) : undefined;
+    const bundledFee =
+      priceForTrade !== undefined && entrySize !== undefined
+        ? isSell
+          ? tradeAmount - entryAmount
+          : entryAmount - tradeAmount
+        : undefined;
+    if (bundledFee !== undefined && bundledFee < 0) {
+      // eslint-disable-next-line no-console
+      console.warn(
+        '[PredictActivityDetail] negative bundledFee, suppressing row:',
+        bundledFee,
+      );
+    }
+    const formattedBundledFee =
+      bundledFee !== undefined && bundledFee > 0
+        ? formatCurrencyValue(bundledFee)
+        : undefined;
 
     const priceImpact =
       activity.priceImpactPercentage !== undefined
@@ -210,6 +244,14 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
         transactionRows.push({
           label: strings('predict.transactions.predicted_amount'),
           value: predictedAmount,
+          isMonetary: true,
+        });
+      }
+
+      if (formattedBundledFee) {
+        transactionRows.push({
+          label: strings('predict.fee_summary.fees'),
+          value: formattedBundledFee,
           isMonetary: true,
         });
       }
