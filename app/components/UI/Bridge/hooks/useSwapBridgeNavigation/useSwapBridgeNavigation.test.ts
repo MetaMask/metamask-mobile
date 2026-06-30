@@ -152,6 +152,7 @@ describe('useSwapBridgeNavigation', () => {
     decimals: 18,
     chainId: mockChainId,
     image: '',
+    isVerified: true,
   };
 
   const mockSourceToken: BridgeToken = {
@@ -216,6 +217,7 @@ describe('useSwapBridgeNavigation', () => {
       decimals: 18,
       chainId: mockChainId,
       image: '',
+      isVerified: true,
     });
   });
 
@@ -241,6 +243,7 @@ describe('useSwapBridgeNavigation', () => {
           image: '',
           decimals: mockNativeAsset.decimals,
           chainId: mockChainId,
+          isVerified: true,
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
@@ -365,6 +368,7 @@ describe('useSwapBridgeNavigation', () => {
           image: '',
           decimals: 18,
           chainId: '0x1',
+          isVerified: true,
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
@@ -510,6 +514,7 @@ describe('useSwapBridgeNavigation', () => {
           image: '',
           decimals: 18,
           chainId: '0x89', // Should be converted to hex format
+          isVerified: true,
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
@@ -557,6 +562,7 @@ describe('useSwapBridgeNavigation', () => {
           image: '',
           decimals: 18,
           chainId: '0x1', // Should use mainnet fallback
+          isVerified: true,
         },
         sourcePage: mockSourcePage,
         bridgeViewMode: BridgeViewMode.Unified,
@@ -900,6 +906,7 @@ describe('useSwapBridgeNavigation', () => {
             image: '',
             decimals: 9,
             chainId: SolScope.Mainnet,
+            isVerified: true,
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
@@ -952,6 +959,7 @@ describe('useSwapBridgeNavigation', () => {
             image: '',
             decimals: 9,
             chainId: SolScope.Mainnet, // Should keep CAIP format for Solana
+            isVerified: true,
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
@@ -1006,6 +1014,7 @@ describe('useSwapBridgeNavigation', () => {
             image: '',
             decimals: 8,
             chainId: BtcScope.Mainnet,
+            isVerified: true,
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
@@ -1062,6 +1071,7 @@ describe('useSwapBridgeNavigation', () => {
             image: '',
             decimals: 9,
             chainId: SolScope.Mainnet,
+            isVerified: true,
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
@@ -1116,6 +1126,7 @@ describe('useSwapBridgeNavigation', () => {
             image: '',
             decimals: 18,
             chainId: mockChainId,
+            isVerified: true,
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,
@@ -1172,6 +1183,7 @@ describe('useSwapBridgeNavigation', () => {
             image: '',
             decimals: 9,
             chainId: SolScope.Mainnet,
+            isVerified: true,
           },
           sourcePage: mockSourcePage,
           bridgeViewMode: BridgeViewMode.Unified,

@@ -54,6 +54,7 @@ describe('tokenUtils', () => {
         image: '',
         decimals: 18,
         chainId: '0x1',
+        isVerified: true,
       });
     });
 
@@ -69,6 +70,7 @@ describe('tokenUtils', () => {
         image: '',
         decimals: 9,
         chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        isVerified: true,
       });
     });
 
@@ -93,6 +95,7 @@ describe('tokenUtils', () => {
         image: 'https://example.com/eth-icon.png',
         decimals: 18,
         chainId: '0x1',
+        isVerified: true,
       });
     });
 
@@ -114,6 +117,7 @@ describe('tokenUtils', () => {
         image: '',
         decimals: 18,
         chainId: '0x1',
+        isVerified: true,
       });
     });
   });

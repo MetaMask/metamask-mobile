@@ -1079,6 +1079,32 @@ describe('useTokenAtomicActions - useHandleOnSwap securityData adaptation', () =
     );
   });
 
+  it('marks bridge token as verified when token security data is verified', () => {
+    const verifiedToken = {
+      ...defaultToken,
+      balance: '1',
+      securityData: buildTrendingSecurityData({
+        resultType: SecurityDataType.Verified,
+      }),
+    } as TokenI;
+
+    const { result } = renderHook(() =>
+      useHandleOnSwap({ token: verifiedToken }),
+    );
+
+    result.current();
+
+    expect(mockGoToSwaps).toHaveBeenCalledWith(
+      expect.objectContaining({
+        address: defaultToken.address,
+        isVerified: true,
+      }),
+      undefined,
+      undefined,
+      true,
+    );
+  });
+
   it('passes securityData as undefined when the token has no security data', () => {
     const tokenWithBalance = {
       ...defaultToken,
