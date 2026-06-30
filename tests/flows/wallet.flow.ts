@@ -659,25 +659,46 @@ export const loginToApp = async (password?: string): Promise<void> => {
 export const dismissPushNotificationExistingUserSheet =
   async (): Promise<void> => {
     try {
-      await withImplicitWait(500, async () => {
-        const btn = await asPlaywrightElement(
+      const sheetTitle = await asPlaywrightElement(
+        encapsulated({
+          detox: () =>
+            Matchers.getElementByID(ExistingUserSheetSelectorsIDs.TITLE),
+          appium: () =>
+            PlaywrightMatchers.getElementByText('Never miss a move', true),
+        }),
+      );
+      await PlaywrightAssertions.expectElementToBeVisible(sheetTitle, {
+        timeout: 5_000,
+        description: 'Push notification existing user sheet',
+      });
+
+      try {
+        const notNowById = await asPlaywrightElement(
           encapsulated({
             detox: () =>
               Matchers.getElementByID(
-                ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
+                ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW,
               ),
             appium: () =>
               PlaywrightMatchers.getElementById(
-                ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
+                ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW,
                 { exact: true },
               ),
           }),
         );
-        if (await btn.unwrap().isDisplayed()) {
-          await PlaywrightGestures.waitAndTap(btn, { timeout: 5_000 });
-          logger.debug('Dismissed push notification existing user sheet');
-        }
+        await PlaywrightGestures.waitAndTap(notNowById, { timeout: 5_000 });
+      } catch {
+        const notNowByText = await asPlaywrightElement(
+          PlaywrightMatchers.getElementByText('Not now', true),
+        );
+        await PlaywrightGestures.waitAndTap(notNowByText, { timeout: 5_000 });
+      }
+
+      await PlaywrightAssertions.expectElementToNotBeVisible(sheetTitle, {
+        timeout: 10_000,
+        description: 'Push notification existing user sheet should close',
       });
+      logger.debug('Dismissed push notification existing user sheet');
     } catch {
       // Sheet not present — no-op
     }
@@ -710,29 +731,39 @@ export const loginToAppPlaywright = async (
 
   await dismissAndroidSystemOverlaysPlaywright();
   await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
-  await dismissDeveloperMenuPlaywright();
-  await dismissAndroidSystemOverlaysPlaywright();
 
+  // Fast path: already on wallet home (e.g. session persisted across tests).
   try {
-    await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(3_000));
+    await waitForWalletHomePlaywright(2_000);
     await dismissPostLoginModals();
     return;
   } catch {
     // Login screen expected — continue below.
   }
 
+  // Dev menu overlays wallet/explore, not the login screen. Probing it while
+  // login is visible wastes ~20s on absent Continue/xmark/Close elements.
+  const onLoginScreen = await Utilities.isElementVisible(
+    LoginView.container,
+    1500,
+  );
+  if (!onLoginScreen) {
+    await dismissDeveloperMenuPlaywright();
+    await dismissAndroidSystemOverlaysPlaywright();
+  }
+
   await PlaywrightAssertions.expectElementToBeVisible(
     asPlaywrightElement(LoginView.container),
     {
       description: 'Login view container',
-      timeout: resolveE2EWaitTimeoutMs(30_000),
+      timeout: 5_000,
     },
   );
   await PlaywrightAssertions.expectElementToBeVisible(
     asPlaywrightElement(LoginView.passwordInput),
     {
       description: 'Login password input',
-      timeout: resolveE2EWaitTimeoutMs(10_000),
+      timeout: 3_000,
     },
   );
 
@@ -741,9 +772,8 @@ export const loginToAppPlaywright = async (
   await LoginView.enterPassword(password ?? '');
   await LoginView.tapLoginButton();
 
-  await dismissPostLoginModals();
-
   await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
+  await dismissPostLoginModals();
 };
 
 /**

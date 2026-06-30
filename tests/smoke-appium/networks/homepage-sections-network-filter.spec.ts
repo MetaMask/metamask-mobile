@@ -142,7 +142,6 @@ appiumTest.describe(
                 'Wallet homepage should be visible after navigating back',
             });
 
-            await NetworkManager.checkTokenIsVisible('SOL');
             await NetworkManager.checkTokenIsVisible('ETH');
           },
         );

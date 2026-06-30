@@ -19,6 +19,8 @@ const logger = createLogger({
   name: 'GeneralFlow',
 });
 
+const DEV_MENU_PROBE_TIMEOUT_MS = 800;
+
 /**
  * Dismisses development build screens.
  * Handles 'Development servers' and 'Developer menu' screens.
@@ -119,12 +121,12 @@ const closeDeveloperMenuPlaywright = async (): Promise<void> => {
       exact: true,
     });
     await PlaywrightAssertions.expectElementToBeVisible(closeButton, {
-      timeout: 2000,
+      timeout: DEV_MENU_PROBE_TIMEOUT_MS,
       description: 'Dev Menu Close Button should be visible',
     });
     await PlaywrightGestures.waitAndTap(closeButton);
     await PlaywrightAssertions.expectElementToNotBeVisible(closeButton, {
-      timeout: 5000,
+      timeout: 2000,
       description: 'Dev Menu Close Button should not be visible',
     });
     return;
@@ -141,12 +143,12 @@ const closeDeveloperMenuPlaywright = async (): Promise<void> => {
   try {
     const closeButton = await PlaywrightMatchers.getElementByText('Close');
     await PlaywrightAssertions.expectElementToBeVisible(closeButton, {
-      timeout: 2000,
+      timeout: DEV_MENU_PROBE_TIMEOUT_MS,
       description: 'Dev Menu Close Button should be visible',
     });
     await PlaywrightGestures.waitAndTap(closeButton);
     await PlaywrightAssertions.expectElementToNotBeVisible(closeButton, {
-      timeout: 5000,
+      timeout: 2000,
       description: 'Dev Menu Close Button should not be visible',
     });
     return;
@@ -166,7 +168,7 @@ const dismissDeveloperMenuOnboardingPlaywright = async (): Promise<void> => {
     const continueButton =
       await PlaywrightMatchers.getElementByText('Continue');
     await PlaywrightAssertions.expectElementToBeVisible(continueButton, {
-      timeout: 5000,
+      timeout: DEV_MENU_PROBE_TIMEOUT_MS,
       description: 'Dev Menu Continue Button should be visible',
     });
 
@@ -256,10 +258,10 @@ export const waitForAppReady = async (
         description: 'Login view should be stable',
         timeout: 3000,
       });
-      await sleep(1500);
+      await sleep(500);
       await Assertions.expectElementToBeVisible(LoginView.container, {
         description: 'Login view should remain visible',
-        timeout: 2000,
+        timeout: 1500,
       });
       logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
       return;

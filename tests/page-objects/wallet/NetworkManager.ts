@@ -17,6 +17,7 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import WalletView from './WalletView';
+import TokensFullView from './HomeSections';
 
 class NetworkManager {
   /**
@@ -239,9 +240,10 @@ class NetworkManager {
         });
       },
       appium: async () => {
-        await WalletView.tapOnTokensSection();
+        await WalletView.tapOnNewTokensSection();
       },
     });
+    await TokensFullView.waitForVisible();
   }
 
   /**
