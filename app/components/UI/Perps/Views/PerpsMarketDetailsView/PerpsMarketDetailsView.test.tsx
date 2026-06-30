@@ -21,12 +21,15 @@ import {
 } from '../../selectors/featureFlags';
 import {
   CandlePeriod,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
   TimeDuration,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 
 const mockPerpsAdvancedChartMount = jest.fn();
 const mockPerpsAdvancedChartUnmount = jest.fn();
+const mockTradingViewResetToDefault = jest.fn();
 
 jest.mock('react-native-modal', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -60,6 +63,23 @@ jest.mock('../../components/PerpsAdvancedChart/PerpsAdvancedChart', () => {
       }, []);
       return <View testID="mock-perps-advanced-chart" {...(props as object)} />;
     },
+  };
+});
+
+jest.mock('../../components/TradingViewChart', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  return {
+    __esModule: true,
+    default: ReactActual.forwardRef((props: object, ref: unknown) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        resetToDefault: mockTradingViewResetToDefault,
+        zoomToLatestCandle: jest.fn(),
+      }));
+
+      return <View {...props} />;
+    }),
   };
 });
 
@@ -1467,6 +1487,27 @@ describe('PerpsMarketDetailsView', () => {
       // so no manual refresh is needed - data updates automatically
     });
 
+    it('resets the TradingView chart when RefreshControl is pulled and advanced charts are disabled', async () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+      const scrollView = getByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+      );
+      const refreshControl = scrollView.props.refreshControl;
+
+      await act(async () => {
+        await refreshControl.props.onRefresh();
+      });
+
+      expect(mockTradingViewResetToDefault).toHaveBeenCalled();
+    });
+
     it('remounts the advanced chart when RefreshControl is pulled and advanced charts are enabled', async () => {
       const { useSelector } = jest.requireMock('react-redux');
       const mockSelectPerpsEligibility = jest.requireMock(
@@ -1604,6 +1645,116 @@ describe('PerpsMarketDetailsView', () => {
       await waitFor(() => {
         expect(getAllByText('$47,000').length).toBeGreaterThan(0);
       });
+    });
+
+    it('logs and tracks advanced chart errors from market details', () => {
+      const mockTrack = jest.fn();
+      const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
+        jest.requireMock('../../hooks/usePerpsEventTracking');
+      mockUsePerpsEventTrackingFn.mockImplementation(() => ({
+        track: mockTrack,
+      }));
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      getByTestId('mock-perps-advanced-chart').props.onError(
+        'Advanced chart unavailable',
+      );
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        new Error('Advanced chart unavailable'),
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            feature: expect.any(String),
+          }),
+        }),
+      );
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_ERROR,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: 'Advanced chart unavailable',
+          [PERPS_EVENT_PROPERTY.SCREEN_NAME]:
+            PERPS_EVENT_VALUE.SCREEN_NAME.PERPS_MARKET_DETAILS,
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        }),
+      );
+    });
+
+    it('uses error object and fallback messages for advanced chart errors', () => {
+      const mockTrack = jest.fn();
+      const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
+        jest.requireMock('../../hooks/usePerpsEventTracking');
+      mockUsePerpsEventTrackingFn.mockImplementation(() => ({
+        track: mockTrack,
+      }));
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+      const onError = getByTestId('mock-perps-advanced-chart').props.onError;
+
+      onError(new Error('Advanced chart object error'));
+      onError();
+
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        new Error('Advanced chart object error'),
+        expect.any(Object),
+      );
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_ERROR,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+            'Chart rendering error in market details view',
+        }),
+      );
     });
 
     it('refreshes candle data when position tab is active', async () => {
