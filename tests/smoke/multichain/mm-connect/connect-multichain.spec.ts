@@ -9,7 +9,7 @@
  * browser rather than an external Chrome/Safari instance. The dapp talks to
  * MetaMask via the in-app bridge, so `wallet_createSession`,
  * `wallet_invokeMethod`, and `wallet_revokeSession` route directly to the
- * standard `ConnectBottomSheet` / `SigningBottomSheet` confirmations.
+ * standard `ConnectBottomSheet` / redesigned confirmation footer.
  *
  * Scope: a single Ethereum mainnet (eip155:1) session — that is the default
  * scope pre-selected by the dapp's DynamicInputs UI. Coverage status and
@@ -22,7 +22,7 @@ import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import MMConnectBrowserPlaygroundDapp from '../../../page-objects/Browser/MMConnectBrowserPlaygroundDapp';
 import ConnectBottomSheet from '../../../page-objects/Browser/ConnectBottomSheet';
-import SigningBottomSheet from '../../../page-objects/Browser/SigningBottomSheet';
+import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
 import Browser from '../../../page-objects/Browser/BrowserView';
 import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal';
 
@@ -78,7 +78,9 @@ describe(SmokeMultiChainAPI('MMConnect Multichain (in-app browser)'), () => {
           await MMConnectBrowserPlaygroundDapp.invokeScopeCardMethod(
             ETHEREUM_MAINNET_SCOPE,
           );
-          await SigningBottomSheet.tapSignButton();
+          // personal_sign uses the redesigned confirmation surface, so confirm
+          // via the shared footer rather than the legacy signing bottom sheet.
+          await FooterActions.tapConfirmButton();
           await MMConnectBrowserPlaygroundDapp.assertScopeCardResultContains(
             ETHEREUM_MAINNET_SCOPE,
             'personal_sign',

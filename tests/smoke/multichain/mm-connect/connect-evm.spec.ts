@@ -8,8 +8,8 @@
  * which drive the dapp from an external Chrome/Safari browser over Appium —
  * this spec runs the dapp inside MetaMask's own WebView (BrowserTab) using
  * Detox. The dapp talks to MetaMask via the in-app `window.ethereum` bridge,
- * so EIP-1193 calls route directly to the standard `ConnectBottomSheet`,
- * `SigningBottomSheet`, and redesigned transaction confirmation surfaces.
+ * so EIP-1193 calls route directly to the standard `ConnectBottomSheet` and the
+ * redesigned signature / transaction confirmation surfaces (shared footer).
  *
  * Coverage status vs. the extension spec is tracked in `./README.md`. The
  * Wagmi connector variant is intentionally deferred — its dapp interactions
@@ -22,7 +22,6 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { DEFAULT_ANVIL_PORT } from '../../../seeder/anvil-manager';
 import MMConnectBrowserPlaygroundDapp from '../../../page-objects/Browser/MMConnectBrowserPlaygroundDapp';
 import ConnectBottomSheet from '../../../page-objects/Browser/ConnectBottomSheet';
-import SigningBottomSheet from '../../../page-objects/Browser/SigningBottomSheet';
 import ConfirmationUITypes from '../../../page-objects/Browser/Confirmations/ConfirmationUITypes';
 import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
 import Assertions from '../../../framework/Assertions';
@@ -65,7 +64,7 @@ describe(SmokeMultiChainAPI('MMConnect Legacy EVM (in-app browser)'), () => {
         // the tab bar layout (Explore tab sits inside the bottom safe area).
         await MMConnectBrowserPlaygroundDapp.setupAndNavigateToTestDapp();
 
-        // BrowserTab + WebView + ConnectBottomSheet + SigningBottomSheet
+        // BrowserTab + WebView + ConnectBottomSheet + confirmation footer
         // keep the main run loop busy enough that Detox's idle sync can
         // mis-report "app is busy". The Solana wallet-standard spec hits the
         // same pattern; mirror its workaround here.
@@ -80,9 +79,10 @@ describe(SmokeMultiChainAPI('MMConnect Legacy EVM (in-app browser)'), () => {
           await MMConnectBrowserPlaygroundDapp.assertLegacyEvmCardVisible();
 
           // 3. Signing request: personal_sign → confirm → verify the dapp
-          //    received a 0x... signature.
+          //    received a 0x... signature. personal_sign uses the redesigned
+          //    confirmation surface, so confirm via the shared footer.
           await MMConnectBrowserPlaygroundDapp.tapLegacyPersonalSign();
-          await SigningBottomSheet.tapSignButton();
+          await FooterActions.tapConfirmButton();
           await MMConnectBrowserPlaygroundDapp.assertLegacyEvmResponseContains(
             '0x',
           );
@@ -127,7 +127,7 @@ describe(SmokeMultiChainAPI('MMConnect Legacy EVM (in-app browser)'), () => {
           // The session is still usable: `personal_sign` works end-to-end
           // without the dapp asking us to connect again.
           await MMConnectBrowserPlaygroundDapp.tapLegacyPersonalSign();
-          await SigningBottomSheet.tapSignButton();
+          await FooterActions.tapConfirmButton();
           await MMConnectBrowserPlaygroundDapp.assertLegacyEvmResponseContains(
             '0x',
           );
