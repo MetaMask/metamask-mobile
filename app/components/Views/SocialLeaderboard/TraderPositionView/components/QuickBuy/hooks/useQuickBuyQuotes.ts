@@ -40,6 +40,10 @@ import { useSocialLeaderboardAnalytics } from '../../../../analytics';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
 import { getQuoteRefreshRate } from '../../../../../../UI/Bridge/utils/quoteUtils';
 import { getQuickBuyFeatureId } from '../utils/getQuickBuyFeatureId';
+import {
+  isQuoteStreamingEnabled,
+  streamQuickBuyQuotes,
+} from '../utils/streamQuickBuyQuotes';
 
 export type QuickBuyQuote = QuoteResponse & L1GasFees & NonEvmFees;
 
@@ -74,6 +78,13 @@ interface UseQuickBuyQuotesParams {
    * quote fetch fires immediately instead of waiting out the typing debounce.
    */
   immediateFetchToken?: number;
+  /**
+   * When true, suspends the periodic auto-refresh so the displayed quotes (and
+   * the recommended/active quote) stay frozen — e.g. while a trade is being
+   * submitted. In-flight fetches are unaffected; only the next scheduled
+   * refresh is held off.
+   */
+  pauseAutoRefresh?: boolean;
 }
 
 export interface UseQuickBuyQuotesResult {
@@ -176,6 +187,7 @@ export function useQuickBuyQuotes({
   analyticsContext,
   selectedQuoteRequestId,
   immediateFetchToken,
+  pauseAutoRefresh,
 }: UseQuickBuyQuotesParams): UseQuickBuyQuotesResult {
   const slippage = useSelector(selectSlippage);
   const destAddress = useSelector(selectDestAddress);
@@ -186,8 +198,20 @@ export function useQuickBuyQuotes({
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const { track } = useSocialLeaderboardAnalytics();
 
+  // Stream quotes (surfacing each provider as it replies) only when the client
+  // is gated on for SSE — otherwise fall back to the one-shot fetch.
+  const shouldStream = useMemo(
+    () => isQuoteStreamingEnabled(bridgeFeatureFlags),
+    [bridgeFeatureFlags],
+  );
+
   const [rawQuotes, setRawQuotes] = useState<QuickBuyQuote[]>([]);
   const [isQuoteLoading, setIsQuoteLoading] = useState(false);
+  // Network activity tracker, distinct from `isQuoteLoading`: a stream flips
+  // `isQuoteLoading` false on its first quote (so the UI shows it immediately)
+  // while the connection stays open for slower providers. The auto-refresh
+  // scheduler keys off this so it never starts a new fetch mid-stream.
+  const [isFetchInFlight, setIsFetchInFlight] = useState(false);
   const [quoteFetchError, setQuoteFetchError] = useState<string | null>(null);
   const [isNoQuotesAvailable, setIsNoQuotesAvailable] = useState(false);
   const [quotesLastFetchedAt, setQuotesLastFetchedAt] = useState<number | null>(
@@ -230,6 +254,7 @@ export function useQuickBuyQuotes({
   const resetQuotesIdle = useCallback(() => {
     setRawQuotes([]);
     setIsQuoteLoading(false);
+    setIsFetchInFlight(false);
     setIsNoQuotesAvailable(false);
     setQuoteFetchError(null);
     setQuotesLastFetchedAt(null);
@@ -281,11 +306,14 @@ export function useQuickBuyQuotes({
     abortControllerRef.current = controller;
 
     setIsQuoteLoading(true);
+    setIsFetchInFlight(true);
     setQuoteFetchError(null);
 
     const requestedAt = Date.now();
     setQuotesLastAttemptAt(requestedAt);
     requestStartedAtRef.current = requestedAt;
+
+    const featureId = getQuickBuyFeatureId(analyticsContext?.source);
 
     // Shared by REQUESTED + RECEIVED. Null when analytics context is incomplete
     // — both events guard on this single value instead of duplicating the check.
@@ -319,23 +347,72 @@ export function useQuickBuyQuotes({
     };
 
     try {
-      const result = await Engine.context.BridgeController.fetchQuotes(
-        params,
-        getQuickBuyFeatureId(analyticsContext?.source),
-        controller.signal,
-      );
+      if (shouldStream) {
+        // Surface each provider's quote as it streams in. Previous quotes stay
+        // visible until the first quote of this stream arrives (which replaces
+        // them), so a refresh never flashes an empty list.
+        const accumulated: QuickBuyQuote[] = [];
+        let hasReceivedQuote = false;
 
-      if (controller.signal.aborted) {
-        return;
+        await streamQuickBuyQuotes(params, featureId, controller.signal, {
+          onQuote: (quote) => {
+            if (controller.signal.aborted) {
+              return;
+            }
+            const existingIndex = accumulated.findIndex(
+              (q) => q.quote.requestId === quote.quote.requestId,
+            );
+            if (existingIndex >= 0) {
+              accumulated[existingIndex] = quote;
+            } else {
+              accumulated.push(quote);
+            }
+            // First quote of the stream: stop blocking the UI and drop the
+            // previous stream's quotes by swapping in the fresh accumulator.
+            if (!hasReceivedQuote) {
+              hasReceivedQuote = true;
+              setIsQuoteLoading(false);
+            }
+            setRawQuotes([...accumulated]);
+          },
+        });
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        settledRequestParamsKeyRef.current = fetchedRequestParamsKey;
+        // An empty stream means no provider quoted: clear any previous quotes
+        // we were still showing.
+        if (accumulated.length === 0) {
+          setRawQuotes([]);
+        }
+        setIsNoQuotesAvailable(accumulated.length === 0);
+        setIsQuoteLoading(false);
+        setIsFetchInFlight(false);
+        setQuotesLastFetchedAt(Date.now());
+        setRefreshCount((prev) => prev + 1);
+        fireReceived(accumulated.length);
+      } else {
+        const result = await Engine.context.BridgeController.fetchQuotes(
+          params,
+          featureId,
+          controller.signal,
+        );
+
+        if (controller.signal.aborted) {
+          return;
+        }
+
+        settledRequestParamsKeyRef.current = fetchedRequestParamsKey;
+        setRawQuotes(result);
+        setIsNoQuotesAvailable(result.length === 0);
+        setIsQuoteLoading(false);
+        setIsFetchInFlight(false);
+        setQuotesLastFetchedAt(Date.now());
+        setRefreshCount((prev) => prev + 1);
+        fireReceived(result.length);
       }
-
-      settledRequestParamsKeyRef.current = fetchedRequestParamsKey;
-      setRawQuotes(result);
-      setIsNoQuotesAvailable(result.length === 0);
-      setIsQuoteLoading(false);
-      setQuotesLastFetchedAt(Date.now());
-      setRefreshCount((prev) => prev + 1);
-      fireReceived(result.length);
     } catch (error) {
       if (controller.signal.aborted) {
         return;
@@ -361,6 +438,7 @@ export function useQuickBuyQuotes({
       setRawQuotes([]);
       setIsNoQuotesAvailable(false);
       setIsQuoteLoading(false);
+      setIsFetchInFlight(false);
       fireReceived(0);
     }
   }, [
@@ -372,6 +450,7 @@ export function useQuickBuyQuotes({
     destAddress,
     gasIncluded,
     gasIncluded7702,
+    shouldStream,
     resetQuotesIdle,
     analyticsContext,
     track,
@@ -407,8 +486,17 @@ export function useQuickBuyQuotes({
   // Auto-refresh quotes on a fixed interval indefinitely.
   // `refreshCount` starts at 0 and increments on each successful fetch, so
   // after the initial fetch (count=1) this effect schedules the next one.
+  // Guarded on `isFetchInFlight` (not `isQuoteLoading`) so a streaming fetch —
+  // which clears `isQuoteLoading` on its first quote while still open — is never
+  // interrupted by a refresh mid-stream. `pauseAutoRefresh` freezes the cycle
+  // entirely (e.g. during trade submission).
   useEffect(() => {
-    if (!quotesLastAttemptAt || refreshCount === 0 || isQuoteLoading) {
+    if (
+      !quotesLastAttemptAt ||
+      refreshCount === 0 ||
+      isFetchInFlight ||
+      pauseAutoRefresh
+    ) {
       return;
     }
 
@@ -424,7 +512,8 @@ export function useQuickBuyQuotes({
     quotesLastAttemptAt,
     refreshCount,
     quoteRefreshRateMs,
-    isQuoteLoading,
+    isFetchInFlight,
+    pauseAutoRefresh,
     fetchQuotes,
   ]);
 

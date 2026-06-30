@@ -683,6 +683,10 @@ export function useQuickBuyController(
     analyticsContext: quotesAnalyticsContext,
     selectedQuoteRequestId,
     immediateFetchToken,
+    // Freeze the displayed/active quote while a trade is being submitted so a
+    // streamed or refreshed quote can't change the amount out from under the
+    // in-flight submission.
+    pauseAutoRefresh: isSubmittingTx,
   });
 
   // Reset manual quote selection whenever the user changes amount, token, or slippage.
