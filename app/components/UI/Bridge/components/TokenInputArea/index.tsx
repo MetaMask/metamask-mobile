@@ -334,7 +334,7 @@ export const TokenInputArea = forwardRef<
 
     return (
       <Box style={style}>
-        <Box style={styles.content} gap={4}>
+        <Box style={styles.content} gap={2}>
           <Box style={styles.row}>
             <Box style={styles.amountContainer} onLayout={onContainerLayout}>
               {isLoading ? (
