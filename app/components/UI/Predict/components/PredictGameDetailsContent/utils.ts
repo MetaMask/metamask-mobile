@@ -16,6 +16,27 @@ const I18N_PREFIX = 'predict.sports_market_types';
 const MISSING_TRANSLATION_PREFIX = '[missing';
 const loggedMissingTranslationKeys = new Set<string>();
 const O_U_PLAYER_PATTERN = /^(.+?):\s+\w+ O\/U/;
+const FIFA_WORLD_CUP_LEAGUE = 'fifwc';
+
+const WORLD_CUP_MARKET_INFO_KEYS: Record<
+  string,
+  { title: string; description: string }
+> = {
+  moneyline: {
+    title: 'predict.world_cup.market_info.regulation_time_winner.title',
+    description:
+      'predict.world_cup.market_info.regulation_time_winner.description',
+  },
+  soccer_team_to_advance: {
+    title: 'predict.world_cup.market_info.team_to_advance.title',
+    description: 'predict.world_cup.market_info.team_to_advance.description',
+  },
+};
+
+export interface PredictGameMarketInfo {
+  title: string;
+  description: string;
+}
 
 export type BuyHandler = (
   outcome: PredictOutcome,
@@ -66,6 +87,33 @@ export const getSportsMarketTypeLabel = (
   getTranslatedSportsMarketTypeLabel(type) ??
   fallbackTitle ??
   toTitleCase(type);
+
+export const getWorldCupMarketInfo = (
+  type?: string,
+  game?: PredictMarketGame,
+): PredictGameMarketInfo | undefined => {
+  if (!type || game?.league !== FIFA_WORLD_CUP_LEAGUE) {
+    return undefined;
+  }
+
+  const keys = WORLD_CUP_MARKET_INFO_KEYS[type.toLowerCase()];
+  if (!keys) {
+    return undefined;
+  }
+
+  return {
+    title: strings(keys.title),
+    description: strings(keys.description),
+  };
+};
+
+export const getSportsMarketTypeLabelForGame = (
+  type: string,
+  fallbackTitle?: string,
+  game?: PredictMarketGame,
+): string =>
+  getWorldCupMarketInfo(type, game)?.title ??
+  getSportsMarketTypeLabel(type, fallbackTitle);
 
 export const getFallbackSportsMarketTypeLabel = (
   type: string,

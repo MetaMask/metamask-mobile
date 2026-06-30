@@ -148,6 +148,25 @@ describe('PredictSportOutcomeCard', () => {
       expect(screen.getByTestId('custom-card')).toBeOnTheScreen();
     });
 
+    it('renders title info button when title info is provided', () => {
+      const onPress = jest.fn();
+      const props = createDefaultProps({
+        titleInfo: {
+          accessibilityLabel: 'Open market info',
+          onPress,
+        },
+      });
+
+      renderWithProvider(<PredictSportOutcomeCard {...props} />);
+      fireEvent.press(
+        screen.getByTestId(
+          PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.TITLE_INFO_BUTTON,
+        ),
+      );
+
+      expect(onPress).toHaveBeenCalledTimes(1);
+    });
+
     it('assigns indexed testIDs to each button', () => {
       const props = createDefaultProps();
 

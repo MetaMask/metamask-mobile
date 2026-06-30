@@ -2417,6 +2417,16 @@
         "group_j": "Group J",
         "group_k": "Group K",
         "group_l": "Group L"
+      },
+      "market_info": {
+        "regulation_time_winner": {
+          "title": "Regulation time winner",
+          "description": "90 minutes plus stoppage time."
+        },
+        "team_to_advance": {
+          "title": "Team to advance",
+          "description": "Final result, including extra time and penalties."
+        }
       }
     },
     "prediction_markets": "Prediction markets",

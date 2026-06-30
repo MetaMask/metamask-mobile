@@ -12,7 +12,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import React, { memo, useCallback, useMemo } from 'react';
+import React, { memo, useCallback, useMemo, useState } from 'react';
 import { Pressable, RefreshControl, ScrollView } from 'react-native';
 import {
   SafeAreaView,
@@ -35,6 +35,8 @@ import { PredictGameDetailsContentProps } from './PredictGameDetailsContent.type
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
+import PredictGameMarketInfoSheet from './PredictGameMarketInfoSheet';
+import type { PredictGameMarketInfo } from './utils';
 
 const CHIPS_STICKY_INDEX = 2;
 
@@ -55,15 +57,45 @@ const PredictGameDetailsContentComponent: React.FC<
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();
 
-  const { sheetRef, isVisible, handleSheetClosed, getRefHandlers } =
-    usePredictBottomSheet();
+  const {
+    sheetRef: aboutSheetRef,
+    isVisible: isAboutSheetVisible,
+    handleSheetClosed: handleAboutSheetClosed,
+    getRefHandlers: getAboutSheetRefHandlers,
+  } = usePredictBottomSheet();
+  const [selectedMarketInfo, setSelectedMarketInfo] = useState<
+    PredictGameMarketInfo | undefined
+  >(undefined);
+  const handleMarketInfoSheetDismiss = useCallback(() => {
+    setSelectedMarketInfo(undefined);
+  }, []);
+  const {
+    sheetRef: marketInfoSheetRef,
+    isVisible: isMarketInfoSheetVisible,
+    handleSheetClosed: handleMarketInfoSheetClosed,
+    getRefHandlers: getMarketInfoSheetRefHandlers,
+  } = usePredictBottomSheet({ onDismiss: handleMarketInfoSheetDismiss });
 
-  const sheetHandlers = useMemo(() => getRefHandlers(), [getRefHandlers]);
+  const aboutSheetHandlers = useMemo(
+    () => getAboutSheetRefHandlers(),
+    [getAboutSheetRefHandlers],
+  );
+  const marketInfoSheetHandlers = useMemo(
+    () => getMarketInfoSheetRefHandlers(),
+    [getMarketInfoSheetRefHandlers],
+  );
   const { game } = usePredictGame(market, { live: true });
 
   const handleInfoPress = useCallback(() => {
-    sheetHandlers.onOpenBottomSheet();
-  }, [sheetHandlers]);
+    aboutSheetHandlers.onOpenBottomSheet();
+  }, [aboutSheetHandlers]);
+  const handleMarketInfoPress = useCallback(
+    (info: PredictGameMarketInfo) => {
+      setSelectedMarketInfo(info);
+      marketInfoSheetHandlers.onOpenBottomSheet();
+    },
+    [marketInfoSheetHandlers],
+  );
 
   const outcome = useMemo(() => market.outcomes[0], [market.outcomes]);
 
@@ -212,6 +244,7 @@ const PredictGameDetailsContentComponent: React.FC<
           resolvedOutcomeGroups={resolvedGroups}
           activeChipKey={activeChipKey}
           onBetPress={onBetPress}
+          onMarketInfoPress={handleMarketInfoPress}
         />
       </ScrollView>
 
@@ -228,13 +261,21 @@ const PredictGameDetailsContentComponent: React.FC<
         />
       )}
 
-      {isVisible && (
+      {isAboutSheetVisible && (
         <PredictGameAboutSheet
-          ref={sheetRef}
+          ref={aboutSheetRef}
           description={market.description ?? ''}
-          onClose={handleSheetClosed}
+          onClose={handleAboutSheetClosed}
         />
       )}
+      {isMarketInfoSheetVisible && selectedMarketInfo ? (
+        <PredictGameMarketInfoSheet
+          ref={marketInfoSheetRef}
+          title={selectedMarketInfo.title}
+          description={selectedMarketInfo.description}
+          onClose={handleMarketInfoSheetClosed}
+        />
+      ) : null}
     </SafeAreaView>
   );
 };

@@ -3,6 +3,7 @@ import type { PredictMarketGame, PredictOutcomeGroup } from '../../types';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
 import { isMoneylineLikeMarketType } from '../../constants/sports';
 import PredictSportOutcomeCard from '../PredictSportOutcomeCard';
+import type { PredictSportOutcomeCardTitleInfo } from '../PredictSportOutcomeCard/PredictSportOutcomeCard';
 import {
   buildButtons,
   buildMoneylineButtons,
@@ -13,8 +14,10 @@ import {
   getDefaultLineIndex,
   getFallbackSportsMarketTypeLabel,
   getMoneylineButtonEntries,
-  getSportsMarketTypeLabel,
+  getSportsMarketTypeLabelForGame,
   getTranslatedSportsMarketTypeLabel,
+  getWorldCupMarketInfo,
+  type PredictGameMarketInfo,
 } from './utils';
 
 const SimpleOutcomeCard = memo(
@@ -126,12 +129,14 @@ const MoneylineCard = memo(
     onBuyPress,
     game,
     title,
+    titleInfo,
     testID,
   }: {
     outcomes: PredictOutcomeGroup['outcomes'];
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     title: string;
+    titleInfo?: PredictSportOutcomeCardTitleInfo;
     testID: string;
   }) => {
     const subtitle = useMemo(
@@ -157,6 +162,7 @@ const MoneylineCard = memo(
         subtitle={subtitle}
         buttons={buttons}
         buttonLayout="inlineNoSeparator"
+        titleInfo={titleInfo}
         testID={testID}
       />
     );
@@ -172,12 +178,14 @@ const SubgroupCards = memo(
     game,
     groupKey,
     index,
+    onMarketInfoPress,
   }: {
     subgroup: PredictOutcomeGroup;
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
     groupKey: string;
     index: number;
+    onMarketInfoPress: (info: PredictGameMarketInfo) => void;
   }) => {
     const translatedTitle = subgroup.title
       ? undefined
@@ -185,13 +193,27 @@ const SubgroupCards = memo(
     const firstOutcomeTitle = subgroup.outcomes[0]
       ? formatOutcomeCardTitle(subgroup.outcomes[0])
       : undefined;
+    const marketInfo = getWorldCupMarketInfo(subgroup.key, game);
     const title =
+      marketInfo?.title ??
       subgroup.title ??
       getFallbackSportsMarketTypeLabel(
         subgroup.key,
         translatedTitle ?? firstOutcomeTitle,
       );
     const testID = `${groupKey}-${subgroup.key}-${index}`;
+    const handleInfoPress = useCallback(() => {
+      if (marketInfo) {
+        onMarketInfoPress(marketInfo);
+      }
+    }, [marketInfo, onMarketInfoPress]);
+    const titleInfo = marketInfo
+      ? {
+          accessibilityLabel: marketInfo.title,
+          onPress: handleInfoPress,
+          testID: `${testID}-info`,
+        }
+      : undefined;
 
     if (isMoneylineLikeMarketType(subgroup.key)) {
       return (
@@ -200,6 +222,7 @@ const SubgroupCards = memo(
           onBuyPress={onBuyPress}
           game={game}
           title={title}
+          titleInfo={titleInfo}
           testID={testID}
         />
       );
@@ -238,10 +261,12 @@ export const OutcomesContent = memo(
     group,
     onBuyPress,
     game,
+    onMarketInfoPress = () => undefined,
   }: {
     group: PredictOutcomeGroup;
     onBuyPress: BuyHandler;
     game?: PredictMarketGame;
+    onMarketInfoPress?: (info: PredictGameMarketInfo) => void;
   }) => {
     if (group.subgroups && group.subgroups.length > 0) {
       return (
@@ -254,6 +279,7 @@ export const OutcomesContent = memo(
               game={game}
               groupKey={group.key}
               index={index}
+              onMarketInfoPress={onMarketInfoPress}
             />
           ))}
         </>
@@ -262,15 +288,26 @@ export const OutcomesContent = memo(
 
     const firstType = group.outcomes[0]?.sportsMarketType;
     if (firstType && isMoneylineLikeMarketType(firstType)) {
+      const marketInfo = getWorldCupMarketInfo(firstType, game);
+      const titleInfo = marketInfo
+        ? {
+            accessibilityLabel: marketInfo.title,
+            onPress: () => onMarketInfoPress(marketInfo),
+            testID: `${group.key}-moneyline-info`,
+          }
+        : undefined;
+
       return (
         <MoneylineCard
           outcomes={group.outcomes}
           onBuyPress={onBuyPress}
           game={game}
-          title={getSportsMarketTypeLabel(
+          title={getSportsMarketTypeLabelForGame(
             firstType,
             formatOutcomeCardTitle(group.outcomes[0]),
+            game,
           )}
+          titleInfo={titleInfo}
           testID={`${group.key}-moneyline`}
         />
       );

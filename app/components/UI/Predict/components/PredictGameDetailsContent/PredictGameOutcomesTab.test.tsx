@@ -8,7 +8,10 @@ import type {
   PredictOutcomeGroup,
   PredictOutcomeToken,
 } from '../../types';
-import type { PredictSportOutcomeButton } from '../PredictSportOutcomeCard';
+import type {
+  PredictSportOutcomeButton,
+  PredictSportOutcomeCardTitleInfo,
+} from '../PredictSportOutcomeCard';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 
@@ -23,6 +26,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.sports_market_types.basketball_odd_even': 'Odd/Even Score',
       'predict.sports_market_types.basketball_team_to_score_first':
         'Team to Score First',
+      'predict.sports_market_types.soccer_team_to_advance': 'Team to Advance',
+      'predict.world_cup.market_info.regulation_time_winner.title':
+        'Regulation time winner',
+      'predict.world_cup.market_info.regulation_time_winner.description':
+        '90 minutes plus stoppage time.',
+      'predict.world_cup.market_info.team_to_advance.title': 'Team to advance',
+      'predict.world_cup.market_info.team_to_advance.description':
+        'Final result, including extra time and penalties.',
       'predict.sports_market_types.tennis_set_totals': 'Total Sets',
       'predict.sports_market_types.tennis_set_handicap': 'Set Handicap',
       'predict.sports_market_types.tennis_match_totals': 'Total Games',
@@ -76,7 +87,32 @@ jest.mock('../../hooks/usePredictPrices', () => ({
   })),
 }));
 
+jest.mock('./PredictGameMarketInfoSheet', () => {
+  const React = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  const MockPredictGameMarketInfoSheet = React.forwardRef(
+    (
+      props: {
+        title: string;
+        description: string;
+      },
+      _ref: unknown,
+    ) => (
+      <View testID="predict-game-market-info-sheet">
+        <Text>{props.title}</Text>
+        <Text>{props.description}</Text>
+      </View>
+    ),
+  );
+  MockPredictGameMarketInfoSheet.displayName = 'MockPredictGameMarketInfoSheet';
+  return {
+    __esModule: true,
+    default: MockPredictGameMarketInfoSheet,
+  };
+});
+
 const mockOnBuyPress = jest.fn();
+const mockOnMarketInfoPress = jest.fn();
 
 interface CapturedCard {
   title: string;
@@ -91,6 +127,10 @@ interface CapturedCard {
   lines?: number[];
   selectedLine?: number;
   selectedIndex?: number;
+  titleInfo?: {
+    accessibilityLabel: string;
+    testID?: string;
+  };
   testID?: string;
 }
 
@@ -105,6 +145,7 @@ interface MockCardProps {
   selectedLine?: number;
   selectedIndex?: number;
   onSelectLine?: (line: number, index: number) => void;
+  titleInfo?: PredictSportOutcomeCardTitleInfo;
   testID?: string;
 }
 
@@ -125,12 +166,25 @@ jest.mock('../PredictSportOutcomeCard', () => {
       lines: props.lines,
       selectedLine: props.selectedLine,
       selectedIndex: props.selectedIndex,
+      titleInfo: props.titleInfo
+        ? {
+            accessibilityLabel: props.titleInfo.accessibilityLabel,
+            testID: props.titleInfo.testID,
+          }
+        : undefined,
       testID: props.testID,
     });
     return (
       <View testID={props.testID}>
         <Text testID={`${props.testID}-title`}>{props.title}</Text>
         <Text testID={`${props.testID}-subtitle`}>{props.subtitle}</Text>
+        {props.titleInfo ? (
+          <View
+            testID={props.titleInfo.testID}
+            accessibilityLabel={props.titleInfo.accessibilityLabel}
+            onTouchEnd={props.titleInfo.onPress}
+          />
+        ) : null}
         {props.buttons.map((button, index) => (
           <View
             key={`${button.label}-${index}`}
@@ -236,6 +290,10 @@ const mockGame: PredictMarketGame = {
   period: null,
   score: null,
 };
+const mockWorldCupGame: PredictMarketGame = {
+  ...mockGame,
+  league: 'fifwc',
+};
 
 describe('PredictGameOutcomesTab', () => {
   beforeEach(() => {
@@ -246,6 +304,7 @@ describe('PredictGameOutcomesTab', () => {
     mockGetLivePrice.mockReturnValue(undefined);
     mockGetPrices.mockResolvedValue(emptyPriceResponse);
     mockCapturedCards = [];
+    mockOnMarketInfoPress.mockClear();
   });
 
   describe('group selection', () => {
@@ -377,6 +436,43 @@ describe('PredictGameOutcomesTab', () => {
         queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN),
       ).toBeNull();
     });
+
+    it('renders World Cup-specific resolved moneyline subgroup label', () => {
+      const resolvedGroups = [
+        createGroup({
+          key: 'game_lines',
+          outcomes: [],
+          subgroups: [
+            createGroup({
+              key: 'moneyline',
+              outcomes: [
+                createOutcome({
+                  id: 'resolved-moneyline',
+                  groupItemTitle: 'Team A',
+                  status: 'resolved',
+                }),
+              ],
+            }),
+          ],
+        }),
+      ];
+
+      const { getByTestId, getByText } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap([])}
+          resolvedOutcomeGroups={resolvedGroups}
+          game={mockWorldCupGame}
+          activeChipKey=""
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN),
+      );
+
+      expect(getByText('Regulation time winner')).toBeOnTheScreen();
+    });
   });
 
   describe('flat outcomes (no subgroups)', () => {
@@ -455,6 +551,91 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards[0].lines).toBeUndefined();
     });
 
+    it('renders World Cup moneyline and team-to-advance subgroups with info buttons', () => {
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'soccer_team_to_advance',
+          outcomes: [
+            createOutcome({
+              id: 'team-to-advance',
+              sportsMarketType: 'soccer_team_to_advance',
+            }),
+          ],
+        }),
+        createGroup({
+          key: 'moneyline',
+          outcomes: [createOutcome({ id: 'moneyline' })],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      const { getByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockWorldCupGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+          onMarketInfoPress={mockOnMarketInfoPress}
+        />,
+      );
+
+      expect(mockCapturedCards.map((card) => card.title)).toEqual([
+        'Team to advance',
+        'Regulation time winner',
+      ]);
+      expect(mockCapturedCards[0].titleInfo?.accessibilityLabel).toBe(
+        'Team to advance',
+      );
+      expect(mockCapturedCards[1].titleInfo?.accessibilityLabel).toBe(
+        'Regulation time winner',
+      );
+
+      fireEvent(
+        getByTestId('game_lines-soccer_team_to_advance-0-info'),
+        'touchEnd',
+      );
+
+      expect(mockOnMarketInfoPress).toHaveBeenCalledWith({
+        title: 'Team to advance',
+        description: 'Final result, including extra time and penalties.',
+      });
+
+      fireEvent(getByTestId('game_lines-moneyline-1-info'), 'touchEnd');
+
+      expect(mockOnMarketInfoPress).toHaveBeenCalledWith({
+        title: 'Regulation time winner',
+        description: '90 minutes plus stoppage time.',
+      });
+      expect(mockOnMarketInfoPress).toHaveBeenCalledTimes(2);
+    });
+
+    it('keeps default moneyline title without info button for non-World-Cup games', () => {
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'moneyline',
+          outcomes: [createOutcome({ id: 'moneyline' })],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      const { queryByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].title).toBe('Moneyline');
+      expect(mockCapturedCards[0].titleInfo).toBeUndefined();
+      expect(queryByTestId('game_lines-moneyline-0-info')).toBeNull();
+    });
+
     it('renders top-level single moneyline outcome with moneyline title', () => {
       const groups = [
         createGroup({
@@ -485,6 +666,35 @@ describe('PredictGameOutcomesTab', () => {
         expect.objectContaining({ label: 'TA', price: 65 }),
         expect.objectContaining({ label: 'TB', price: 35 }),
       ]);
+    });
+
+    it('renders top-level World Cup moneyline outcome with regulation time winner title', () => {
+      const groups = [
+        createGroup({
+          key: 'game_lines',
+          outcomes: [
+            createOutcome({
+              id: 'ml-single',
+              sportsMarketType: 'moneyline',
+            }),
+          ],
+        }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockWorldCupGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards).toHaveLength(1);
+      expect(mockCapturedCards[0].title).toBe('Regulation time winner');
+      expect(mockCapturedCards[0].titleInfo?.accessibilityLabel).toBe(
+        'Regulation time winner',
+      );
     });
 
     it('renders LineOutcomeCard for subgroup with multiple outcomes', () => {

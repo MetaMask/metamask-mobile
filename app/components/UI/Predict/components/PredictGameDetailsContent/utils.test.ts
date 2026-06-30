@@ -12,6 +12,8 @@ import {
   buildSubtitle,
   formatOutcomeCardTitle,
   getSportsMarketTypeLabel,
+  getSportsMarketTypeLabelForGame,
+  getWorldCupMarketInfo,
   sortMoneylineOutcomes,
 } from './utils';
 
@@ -28,6 +30,13 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Team to Score First',
       'predict.sports_market_types.soccer_first_to_score':
         'First Team to Score',
+      'predict.world_cup.market_info.regulation_time_winner.title':
+        'Regulation time winner',
+      'predict.world_cup.market_info.regulation_time_winner.description':
+        '90 minutes plus stoppage time.',
+      'predict.world_cup.market_info.team_to_advance.title': 'Team to advance',
+      'predict.world_cup.market_info.team_to_advance.description':
+        'Final result, including extra time and penalties.',
       'predict.sports_market_types.tennis_set_totals': 'Total Sets',
       'predict.sports_market_types.tennis_set_handicap': 'Set Handicap',
       'predict.sports_market_types.tennis_match_totals': 'Total Games',
@@ -114,6 +123,10 @@ const mockGame: PredictMarketGame = {
 };
 
 const mockOnBuyPress = jest.fn();
+const mockWorldCupGame: PredictMarketGame = {
+  ...mockGame,
+  league: 'fifwc',
+};
 
 describe('PredictGameDetailsContent utils', () => {
   beforeEach(() => {
@@ -165,6 +178,63 @@ describe('PredictGameDetailsContent utils', () => {
         expect.objectContaining({ message }),
         { message, context: { key, type } },
       );
+    });
+  });
+
+  describe('getWorldCupMarketInfo', () => {
+    it('returns regulation time winner info for World Cup moneyline', () => {
+      const result = getWorldCupMarketInfo('moneyline', mockWorldCupGame);
+
+      expect(result).toEqual({
+        title: 'Regulation time winner',
+        description: '90 minutes plus stoppage time.',
+      });
+    });
+
+    it('returns team to advance info for World Cup team-to-advance markets', () => {
+      const result = getWorldCupMarketInfo(
+        'soccer_team_to_advance',
+        mockWorldCupGame,
+      );
+
+      expect(result).toEqual({
+        title: 'Team to advance',
+        description: 'Final result, including extra time and penalties.',
+      });
+    });
+
+    it('returns undefined for non-World-Cup moneyline markets', () => {
+      const result = getWorldCupMarketInfo('moneyline', mockGame);
+
+      expect(result).toBeUndefined();
+    });
+
+    it('returns undefined for World Cup market types without info copy', () => {
+      const result = getWorldCupMarketInfo('spreads', mockWorldCupGame);
+
+      expect(result).toBeUndefined();
+    });
+  });
+
+  describe('getSportsMarketTypeLabelForGame', () => {
+    it('returns World Cup-specific label for moneyline', () => {
+      const result = getSportsMarketTypeLabelForGame(
+        'moneyline',
+        undefined,
+        mockWorldCupGame,
+      );
+
+      expect(result).toBe('Regulation time winner');
+    });
+
+    it('returns default sports market label for non-World-Cup moneyline', () => {
+      const result = getSportsMarketTypeLabelForGame(
+        'moneyline',
+        undefined,
+        mockGame,
+      );
+
+      expect(result).toBe('Moneyline');
     });
   });
 
