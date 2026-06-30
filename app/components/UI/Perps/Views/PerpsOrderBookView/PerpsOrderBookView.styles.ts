@@ -10,30 +10,14 @@ const styleSheet = (params: { theme: Theme }) => {
       flex: 1,
       backgroundColor: colors.background.default,
     },
-    // Header unit toggle (BTC/USD)
-    headerUnitToggle: {
-      flexDirection: 'row',
+    groupingSelectButtonAccessory: {
       marginRight: 8,
-      borderRadius: 16,
-      borderWidth: 1,
-      borderColor: colors.border.default,
-      overflow: 'hidden',
-    },
-    headerUnitButton: {
-      paddingHorizontal: 10,
-      paddingVertical: 4,
-    },
-    headerUnitButtonActive: {
-      backgroundColor: colors.primary.default,
+      alignSelf: 'center',
+      justifyContent: 'center',
     },
     controlsRow: {
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
       paddingHorizontal: 16,
-      paddingVertical: 8,
-      borderBottomWidth: 1,
-      borderBottomColor: colors.border.muted,
+      paddingVertical: 12,
     },
     scrollView: {
       flex: 1,
@@ -97,19 +81,6 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     midPriceText: {
       marginHorizontal: 8,
-    },
-    // Depth band dropdown button
-    depthBandButton: {
-      paddingHorizontal: 12,
-      paddingVertical: 8,
-      borderRadius: 8,
-      backgroundColor: colors.background.muted,
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
-    },
-    depthBandButtonPressed: {
-      opacity: 0.7,
     },
     // Bottom sheet content
     depthBandSheetContent: {

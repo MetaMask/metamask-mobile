@@ -2,7 +2,10 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { TextColor as DSTextColor } from '@metamask/design-system-react-native';
 import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import {
+  BatchSellMetricsLocation,
+  formatChainIdToCaip,
+} from '@metamask/bridge-controller';
 import { BridgeToken } from '../../types';
 import { BatchSellTokenSelect } from './BatchSellTokenSelect';
 import { BatchSellTokenSelectSelectorsIDs } from './BatchSellTokenSelect.testIds';
@@ -28,11 +31,13 @@ import {
   selectSelectedNonEvmNetworkChainId,
 } from '../../../../../selectors/multichainNetworkController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
+import Engine from '../../../../../core/Engine';
 
 const mockDispatch = jest.fn();
 const mockNavigate = jest.fn();
 const mockOnSetRpcTarget = jest.fn();
 const mockOnNonEvmNetworkChange = jest.fn();
+const mockTrackBatchSellTokenPageContinueClicked = jest.fn();
 const mockUseTokensWithBalance = jest.fn();
 let mockDestinationStablecoins: BridgeToken[] = [];
 let mockDestinationStablecoinsByChain: Partial<
@@ -57,6 +62,9 @@ jest.mock('@react-navigation/native', () => ({
     goBack: jest.fn(),
     setOptions: jest.fn(),
   }),
+  useRoute: () => ({
+    params: {},
+  }),
 }));
 
 jest.mock('react-redux', () => ({
@@ -66,6 +74,27 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
+}));
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      BridgeController: {
+        setLocation: jest.fn(),
+      },
+    },
+  },
+}));
+
+jest.mock('../../hooks/useTrackBatchSellTokenPageViewed', () => ({
+  useTrackBatchSellTokenPageViewed: jest.fn(),
+}));
+
+jest.mock('../../hooks/useTrackBatchSellTokenPageContinueClicked', () => ({
+  useTrackBatchSellTokenPageContinueClicked: jest.fn(
+    () => mockTrackBatchSellTokenPageContinueClicked,
+  ),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -444,6 +473,9 @@ describe('BatchSellTokenSelect', () => {
     expect(mockDispatch).toHaveBeenCalledWith({
       type: 'bridge/resetBridgeState',
     });
+    expect(Engine.context.BridgeController.setLocation).toHaveBeenCalledWith(
+      BatchSellMetricsLocation.Unknown,
+    );
 
     mockDispatch.mockClear();
     unmount();
@@ -876,6 +908,9 @@ describe('BatchSellTokenSelect', () => {
         destToken: BridgeTokenMetadata[stablecoinAssetId],
       },
     });
+    expect(mockTrackBatchSellTokenPageContinueClicked).toHaveBeenCalledWith([
+      selectedToken,
+    ]);
   });
 
   it('dispatches Batch Sell Redux handoff data for multi-token Continue', () => {
@@ -898,6 +933,10 @@ describe('BatchSellTokenSelect', () => {
     mockDispatch.mockClear();
     fireEvent.press(getByTestId(BatchSellTokenSelectSelectorsIDs.NEXT_BUTTON));
 
+    expect(mockTrackBatchSellTokenPageContinueClicked).toHaveBeenCalledWith([
+      firstToken,
+      secondToken,
+    ]);
     expect(mockDispatch).toHaveBeenNthCalledWith(1, {
       type: 'bridge/setBatchSellSourceTokens',
       payload: [firstToken, secondToken],

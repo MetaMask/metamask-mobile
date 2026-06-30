@@ -2418,6 +2418,14 @@
         "group_j": "Group J",
         "group_k": "Group K",
         "group_l": "Group L"
+      },
+      "market_info": {
+        "regulation_time_winner": {
+          "title": "Regulation time winner"
+        },
+        "team_to_advance": {
+          "title": "Team to advance"
+        }
       }
     },
     "prediction_markets": "Prediction markets",
@@ -2529,6 +2537,9 @@
       "soccer_exact_score": "Exact Score",
       "soccer_halftime_result": "Halftime Result",
       "soccer_first_to_score": "First Team to Score",
+      "soccer_team_to_advance": "Team to Advance",
+      "soccer_extra_time": "Extra Time?",
+      "soccer_penalty_shootout": "Penalty Shootout?",
       "total_corners": "Corners",
       "tennis_set_totals": "Total Sets",
       "tennis_set_handicap": "Set Handicap",
@@ -9745,11 +9756,16 @@
     "energy_fee": "Energy",
     "bridge_fee": "Bridge fee",
     "transaction_fee": "Transaction fee",
+    "unknown_token": "Unknown",
     "total_amount": "Total amount",
     "you_sent": "You sent",
     "you_received": "You received",
     "view_on_block_explorer": "View on block explorer",
-    "do_it_again": "Do it again",
+    "swap_again": "Swap again",
+    "bridge_again": "Bridge again",
+    "convert_again": "Convert again",
+    "wrap_again": "Wrap again",
+    "unwrap_again": "Unwrap again",
     "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
