@@ -154,42 +154,6 @@ jest.mock('../../../util/address', () => ({
     .safeToChecksumAddress,
 }));
 
-jest.mock('../../../component-library/components/Badges/BadgeWrapper', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return ({ children }: { children: React.ReactNode }) =>
-    ReactActual.createElement(View, null, children);
-});
-
-jest.mock('../../../component-library/components/Badges/Badge', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  const Badge = () => ReactActual.createElement(View, null);
-  Badge.displayName = 'Badge';
-  return {
-    __esModule: true,
-    default: Badge,
-    BadgeVariant: { Network: 'Network' },
-  };
-});
-
-jest.mock('../../../component-library/components/Avatars/Avatar', () => ({
-  AvatarSize: { Xs: 'xs', Md: 'md', Sm: 'sm' },
-}));
-
-jest.mock(
-  '../../../component-library/components/Avatars/Avatar/variants/AvatarToken',
-  () => {
-    const ReactActual = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    return ({ name, imageSource }: { name?: string; imageSource?: unknown }) =>
-      ReactActual.createElement(View, {
-        testID: `avatar-token-${name ?? 'unknown'}`,
-        imageSource,
-      });
-  },
-);
-
 jest.mock('../../../component-library/components/Texts/Text', () => ({
   getFontFamily: jest.fn(() => 'Inter'),
   TextVariant: {
@@ -234,12 +198,34 @@ jest.mock('@metamask/design-system-react-native', () => {
   const Icon = ({ testID }: { testID?: string }) =>
     ReactActual.createElement(View, { testID });
 
+  const AvatarToken = ({ name, src }: { name?: string; src?: unknown }) =>
+    ReactActual.createElement(View, {
+      testID: `avatar-token-${name ?? 'unknown'}`,
+      src,
+    });
+
+  const BadgeNetwork = ({ src }: { src?: unknown }) =>
+    ReactActual.createElement(View, { src });
+
+  const BadgeWrapper = ({
+    children,
+    badge,
+  }: {
+    children?: React.ReactNode;
+    badge?: React.ReactNode;
+  }) => ReactActual.createElement(View, null, children, badge);
+
   return {
     Icon,
     IconColor: { IconAlternative: 'icon-alternative' },
     IconName: { Clock: 'Clock' },
     IconSize: { Sm: '16' },
     ListItem,
+    AvatarToken,
+    AvatarTokenSize: { Xs: 'xs', Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
+    BadgeNetwork,
+    BadgeWrapper,
+    BadgeWrapperPosition: { BottomRight: 'BottomRight' },
   };
 });
 
@@ -273,6 +259,27 @@ jest.mock('../Money/components/PendingSpinner/PendingSpinner', () => {
   const { View } = jest.requireActual('react-native');
   return ({ testID }: { testID?: string }) =>
     ReactActual.createElement(View, { testID });
+});
+
+jest.mock('../Perps/components/PerpsTokenLogo', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return function MockPerpsTokenLogo({
+    recyclingKey,
+    size,
+    symbol,
+  }: {
+    recyclingKey?: string;
+    size?: number;
+    symbol?: string;
+  }) {
+    return ReactActual.createElement(View, {
+      testID: `perps-token-logo-${symbol}`,
+      recyclingKey,
+      size,
+      symbol,
+    });
+  };
 });
 
 jest.mock('../../Views/confirmations/utils/transaction', () => ({
@@ -589,6 +596,52 @@ describe('ActivityListItemRow — row content', () => {
     expect(primary).toContain('$');
     // No secondary amount on trades — the position size is the subtitle.
     expect(queryByTestId('activity-secondary-amount-0xlong')).toBeNull();
+  });
+
+  it('uses PerpsTokenLogo for market avatars', () => {
+    const openLong = {
+      type: 'perpsOpenLong',
+      chainId: 'eip155:42161',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xicon',
+      data: {
+        token: { amount: '4000', symbol: 'USD', direction: 'out' },
+        sourceToken: { amount: '2.01', symbol: 'BTC', direction: 'in' },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={openLong} index={0} />,
+    );
+
+    const logo = getByTestId('perps-token-logo-BTC');
+    expect(logo.props.recyclingKey).toBe('BTC');
+    expect(logo.props.symbol).toBe('BTC');
+    expect(logo.props.size).toBe(32);
+  });
+
+  it('passes k-prefixed perps market symbols to PerpsTokenLogo', () => {
+    const openLong = {
+      type: 'perpsOpenLong',
+      chainId: 'eip155:42161',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xkpepe',
+      data: {
+        token: { amount: '10', symbol: 'USD', direction: 'out' },
+        sourceToken: { amount: '1000', symbol: 'kPEPE', direction: 'in' },
+      },
+    } as unknown as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={openLong} index={0} />,
+    );
+
+    const logo = getByTestId('perps-token-logo-kPEPE');
+    expect(logo.props.recyclingKey).toBe('kPEPE');
+    expect(logo.props.symbol).toBe('kPEPE');
+    expect(logo.props.size).toBe(32);
   });
 
   it('gives liquidation, stop-loss, and neutral close titles distinct colors', () => {
@@ -1059,10 +1112,9 @@ describe('ActivityListItemRow — row content', () => {
 
   it('renders nameless NFT buys as Bought NFT without a primary amount', () => {
     const item = makeItem({
-      type: 'buy',
+      type: 'nftBuy',
       status: 'success',
       token: {
-        amount: '1',
         direction: 'in',
       },
     });
@@ -1074,6 +1126,73 @@ describe('ActivityListItemRow — row content', () => {
       'Bought NFT',
     );
     expect(queryByTestId('activity-primary-amount-0xabc')).toBeNull();
+  });
+
+  it('renders a named NFT buy with the collection name and the amount paid', () => {
+    const item: ActivityListItem = {
+      type: 'nftBuy',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xabc',
+      data: {
+        from: '0xseller',
+        to: '0xbuyer',
+        token: {
+          direction: 'in',
+          symbol: 'FLUF World: Scenes and Sounds',
+        },
+        paymentToken: {
+          amount: '89990000000000',
+          decimals: 18,
+          direction: 'out',
+          symbol: 'ETH',
+          assetId: 'eip155:1/slip44:60',
+        },
+      },
+    } as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe(
+      'Bought FLUF World: Scenes and Sounds',
+    );
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '-0.00008999 ETH',
+    );
+  });
+
+  it('renders a named NFT sale with the collection name and the amount received', () => {
+    const item: ActivityListItem = {
+      type: 'nftSell',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1_700_000_000_000,
+      hash: '0xabc',
+      data: {
+        from: '0xseller',
+        to: '0xrecipient',
+        token: { direction: 'out', symbol: 'BAE' },
+        paymentToken: {
+          amount: '1000000000000000',
+          decimals: 18,
+          direction: 'in',
+          symbol: 'ETH',
+          assetId: 'eip155:1/slip44:60',
+        },
+      },
+    } as ActivityListItem;
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-title-0xabc').props.children).toBe('Sold BAE');
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '+0.001 ETH',
+    );
   });
 
   it('shortens long crypto decimals in token amounts', () => {
@@ -1319,6 +1438,7 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'claim',
   'claimMusdBonus',
   'deposit',
+  'unstake',
   'convert',
   'wrap',
   'unwrap',
@@ -1327,7 +1447,9 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'increaseSpendingCap',
   'lendingDeposit',
   'lendingWithdrawal',
+  'nftBuy',
   'nftMint',
+  'nftSell',
   'contractInteraction',
   'contractDeployment',
   'smartAccountUpgrade',
@@ -1353,6 +1475,8 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'marketShort',
   'stopMarketCloseShort',
   'marketCloseShort',
+  'limitShort',
+  'limitCloseShort',
 ];
 
 const EXPECTED_TITLES = {
@@ -1366,6 +1490,7 @@ const EXPECTED_TITLES = {
   claim: 'Claimed',
   claimMusdBonus: strings('transactions.activity_claim_musd_bonus'),
   deposit: 'Deposited',
+  unstake: 'Unstaked',
   convert: 'Converted',
   wrap: strings('transactions.activity_wrap'),
   unwrap: strings('transactions.activity_unwrap'),
@@ -1374,7 +1499,9 @@ const EXPECTED_TITLES = {
   increaseSpendingCap: 'Increased spending cap',
   lendingDeposit: strings('transactions.tx_review_lending_deposit'),
   lendingWithdrawal: strings('transactions.tx_review_lending_withdraw'),
+  nftBuy: 'Bought NFT',
   nftMint: strings('transactions.activity_nft_mint'),
+  nftSell: 'Sold NFT',
   contractInteraction: strings('transactions.smart_contract_interaction'),
   contractDeployment: strings('transactions.tx_review_contract_deployment'),
   smartAccountUpgrade: 'Smart account upgraded',
@@ -1422,6 +1549,8 @@ const EXPECTED_TITLES = {
     'transactions.activity_stop_market_close_short',
   ),
   marketCloseShort: strings('transactions.activity_market_close_short'),
+  limitShort: strings('transactions.activity_limit_short'),
+  limitCloseShort: strings('transactions.activity_limit_close_short'),
 } satisfies Record<ActivityListItem['type'], string>;
 
 describe('ActivityListItemRow — title display for all ActivityKind values', () => {

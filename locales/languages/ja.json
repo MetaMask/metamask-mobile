@@ -1162,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "パーペチュアルは利用できません",
     "title": "パーペチュアル",
-    "transfer_to_perps": "パーペチュアルへの送金",
     "perps_trading": "パーペチュアル取引",
     "perp_account_balance": "パーペチュアルアカウント残高",
     "manage_balance": "残高の管理",
@@ -2343,13 +2342,11 @@
   },
   "predict": {
     "title": "MetaMask 予測",
-    "transfer_to_predictions": "予測への送金",
     "select_predict_account": "予測アカウントの選択",
     "search_account": "アカウントの検索",
     "home": {
       "live_now_title": "現在進行中",
-      "categories_placeholder": "カテゴリー",
-      "trending_placeholder": "人気上昇中"
+      "categories_placeholder": "カテゴリー"
     },
     "homepage_discovery": {
       "btc_title": "BTCの価格: {{price}}",
@@ -7679,8 +7676,7 @@
       "perps_withdraw": "出金",
       "predict_deposit": "予測資金を追加",
       "predict_withdraw": "出金",
-      "money_account_add_money": "資金を追加",
-      "money_account_transfer_money": "送金"
+      "money_account_add_money": "資金を追加"
     },
     "sub_title": {
       "permit": "このサイトがトークンの使用許可を求めています。",
