@@ -2346,8 +2346,7 @@
     "search_account": "계정 검색",
     "home": {
       "live_now_title": "지금 진행 중",
-      "categories_placeholder": "카테고리",
-      "trending_placeholder": "인기"
+      "categories_placeholder": "카테고리"
     },
     "homepage_discovery": {
       "btc_title": "BTC 가격: {{price}}",
