@@ -2346,8 +2346,7 @@
     "search_account": "Buscar una cuenta",
     "home": {
       "live_now_title": "En vivo ahora",
-      "categories_placeholder": "Categorías",
-      "trending_placeholder": "Tendencias"
+      "categories_placeholder": "Categorías"
     },
     "homepage_discovery": {
       "btc_title": "Precio de BTC: {{price}}",
