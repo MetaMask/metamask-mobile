@@ -76,9 +76,20 @@ const perpPosition = {
 } as unknown as Position;
 
 describe('useTraderPositionData — facade', () => {
+  const originalFetch = global.fetch;
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockFetchHyperliquid.mockResolvedValue([]);
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ prices: [[1_700_000_000, 1.5]] }),
+    }) as jest.Mock;
+  });
+
+  afterEach(() => {
+    global.fetch = originalFetch;
   });
 
   it('marks perp positions with isPerp true', () => {
