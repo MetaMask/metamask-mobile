@@ -10,7 +10,8 @@ import {
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
-import BridgeView, { areDisplayedBridgeTokensSyncedWithRedux } from '.';
+import BridgeView from '.';
+import { areDisplayedBridgeTokensSyncedWithRedux } from './BridgeView.utils';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
 import { BridgeToken, BridgeViewMode, SecurityDataType } from '../../types';

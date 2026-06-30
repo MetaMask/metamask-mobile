@@ -59,7 +59,7 @@ import {
 } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import { BridgeToken, BridgeViewMode, SecurityDataType } from '../../types';
+import { SecurityDataType } from '../../types';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
@@ -86,10 +86,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
-import {
-  areAddressesEqual,
-  isHardwareAccount,
-} from '../../../../../util/address';
+import { isHardwareAccount } from '../../../../../util/address';
 import { endTrace, TraceName } from '../../../../../util/trace.ts';
 import { useInitialSlippage } from '../../hooks/useInitialSlippage/index.ts';
 import { useHasSufficientGas } from '../../hooks/useHasSufficientGas/index.ts';
@@ -113,13 +110,10 @@ import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/inde
 import BridgeTrendingTokensSection from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import type { RootState } from '../../../../../reducers';
-import {
-  formatChainIdToCaip,
-  MetaMetricsSwapsEventSource,
-} from '@metamask/bridge-controller';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
-import { getQuoteStreamReasonString } from './BridgeView.utils';
+import { getHeaderTitle, getQuoteStreamReasonString } from './BridgeView.utils';
 import { hasMissingPriceData } from '../../utils/hasMissingPriceData';
 import { useSourceAmountInput } from '../../hooks/useSourceAmountInput';
 import { useInsufficientNativeReserveError } from '../../hooks/useInsufficientNativeReserveError/index.ts';
@@ -132,50 +126,11 @@ import {
   hidePostTradeNotificationSurface,
   showPostTradeNotificationSurface,
 } from '../../utils/postTradeNotifications';
+import { DeferredBridgeViewPlaceholder } from './DeferredBridgeViewPlaceholder';
+import { useBridgeViewRouteFallbacks } from './useBridgeViewRouteFallbacks';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 const ACTIVITY_DETAILS_SOURCE_PAGE = 'ActivityDetails';
-
-const getHeaderTitle = (bridgeViewMode?: BridgeViewMode) => {
-  if (bridgeViewMode === BridgeViewMode.Bridge) {
-    return strings('bridge.title');
-  }
-
-  if (
-    bridgeViewMode === BridgeViewMode.Swap ||
-    bridgeViewMode === BridgeViewMode.Unified
-  ) {
-    return strings('swaps.title');
-  }
-
-  return `${strings('swaps.title')}/${strings('bridge.title')}`;
-};
-
-export const areBridgeTokensEqual = (
-  firstToken?: BridgeToken,
-  secondToken?: BridgeToken,
-) =>
-  Boolean(
-    firstToken &&
-      secondToken &&
-      areAddressesEqual(firstToken.address, secondToken.address) &&
-      formatChainIdToCaip(firstToken.chainId) ===
-        formatChainIdToCaip(secondToken.chainId),
-  );
-
-export const areDisplayedBridgeTokensSyncedWithRedux = ({
-  sourceToken,
-  destToken,
-  displaySourceToken,
-  displayDestToken,
-}: {
-  sourceToken?: BridgeToken;
-  destToken?: BridgeToken;
-  displaySourceToken?: BridgeToken;
-  displayDestToken?: BridgeToken;
-}) =>
-  areBridgeTokensEqual(sourceToken, displaySourceToken) &&
-  areBridgeTokensEqual(destToken, displayDestToken);
 
 interface BridgeViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -234,105 +189,19 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
   const initialDestToken = route.params?.destToken;
-  const [sourceRouteFallback, setSourceRouteFallback] = useState<{
-    token?: BridgeToken;
-    amount?: string;
-  }>(() => ({
-    token: initialSourceToken,
-    amount: initialSourceAmount,
-  }));
-  const [destRouteFallbackToken, setDestRouteFallbackToken] = useState<
-    BridgeToken | undefined
-  >(initialDestToken);
-  const previousInitialDestTokenRef = useRef(initialDestToken);
-  const destRouteFallbackInitialReduxTokenRef = useRef(destToken);
-
-  useEffect(() => {
-    setSourceRouteFallback({
-      token: initialSourceToken,
-      amount: initialSourceAmount,
-    });
-  }, [initialSourceToken, initialSourceAmount]);
-
-  useEffect(() => {
-    if (previousInitialDestTokenRef.current === initialDestToken) {
-      return;
-    }
-
-    previousInitialDestTokenRef.current = initialDestToken;
-    destRouteFallbackInitialReduxTokenRef.current = destToken;
-    setDestRouteFallbackToken(initialDestToken);
-  }, [destToken, initialDestToken]);
-
-  useEffect(() => {
-    if (!sourceRouteFallback.token) {
-      return;
-    }
-
-    const hasSyncedInitialSourceToken = areBridgeTokensEqual(
-      sourceToken,
-      sourceRouteFallback.token,
-    );
-    const hasSyncedInitialSourceAmount =
-      !sourceRouteFallback.amount ||
-      sourceAmount === sourceRouteFallback.amount;
-
-    if (hasSyncedInitialSourceToken && hasSyncedInitialSourceAmount) {
-      setSourceRouteFallback({});
-    }
-  }, [sourceAmount, sourceRouteFallback, sourceToken]);
-
-  useEffect(() => {
-    if (!destRouteFallbackToken) {
-      return;
-    }
-
-    if (areBridgeTokensEqual(destToken, destRouteFallbackToken)) {
-      setDestRouteFallbackToken(undefined);
-      return;
-    }
-
-    const hasReduxDestChangedAfterRouteFallback =
-      destToken &&
-      !areBridgeTokensEqual(
-        destToken,
-        destRouteFallbackInitialReduxTokenRef.current,
-      );
-
-    if (hasReduxDestChangedAfterRouteFallback) {
-      setDestRouteFallbackToken(undefined);
-    }
-  }, [destRouteFallbackToken, destToken]);
-
-  const shouldUseInitialSourceToken =
-    sourceRouteFallback.token &&
-    !areBridgeTokensEqual(sourceToken, sourceRouteFallback.token);
-  const shouldUseInitialSourceAmount =
-    sourceRouteFallback.amount && sourceAmount !== sourceRouteFallback.amount;
-  const displaySourceToken = shouldUseInitialSourceToken
-    ? sourceRouteFallback.token
-    : sourceToken;
-  const displaySourceAmount = shouldUseInitialSourceAmount
-    ? sourceRouteFallback.amount
-    : sourceAmount;
-  const hasReduxDestChangedAfterRouteFallback = Boolean(
-    destRouteFallbackToken &&
-      destToken &&
-      !areBridgeTokensEqual(
-        destToken,
-        destRouteFallbackInitialReduxTokenRef.current,
-      ),
-  );
-  const displayDestToken = hasReduxDestChangedAfterRouteFallback
-    ? destToken
-    : (destRouteFallbackToken ?? destToken);
-  const areDisplayedTokensSyncedWithRedux =
-    areDisplayedBridgeTokensSyncedWithRedux({
-      sourceToken,
-      destToken,
-      displaySourceToken,
-      displayDestToken,
-    });
+  const {
+    displaySourceToken,
+    displaySourceAmount,
+    displayDestToken,
+    areDisplayedTokensSyncedWithRedux,
+  } = useBridgeViewRouteFallbacks({
+    sourceToken,
+    destToken,
+    sourceAmount,
+    initialSourceToken,
+    initialSourceAmount,
+    initialDestToken,
+  });
   const isDestNetworkEnabled = useIsNetworkEnabled(displayDestToken?.chainId);
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
@@ -908,83 +777,6 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
               />
             )}
           </SwapsKeypad>
-        </Box>
-      </ScreenView>
-    </SafeAreaView>
-  );
-};
-
-const DeferredBridgeViewPlaceholder = ({
-  bridgeViewMode,
-  sourceToken,
-  destToken,
-  sourceAmount,
-}: {
-  bridgeViewMode?: BridgeViewMode;
-  sourceToken?: BridgeToken;
-  destToken?: BridgeToken;
-  sourceAmount?: string;
-}) => {
-  const { styles } = useStyles(createStyles);
-  const navigation = useNavigation();
-
-  return (
-    <SafeAreaView
-      style={styles.screenWrapper}
-      edges={['bottom', 'left', 'right']}
-    >
-      <HeaderStandard
-        title={getHeaderTitle(bridgeViewMode)}
-        onBack={() => navigation.goBack()}
-        includesTopInset
-      />
-      <ScreenView safeAreaEdges={[]} contentContainerStyle={styles.screen}>
-        <Box style={styles.content}>
-          <ScrollView
-            testID={BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL}
-            style={styles.scrollView}
-            contentContainerStyle={styles.scrollViewContent}
-            showsVerticalScrollIndicator={false}
-          >
-            <Box style={styles.inputsContainer}>
-              <Box style={styles.inputCardsWrapper}>
-                <Box style={styles.tokenCard}>
-                  <TokenInputArea
-                    amount={sourceAmount}
-                    token={sourceToken}
-                    networkImageSource={
-                      sourceToken
-                        ? getNetworkImageSource({ chainId: sourceToken.chainId })
-                        : undefined
-                    }
-                    testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
-                    tokenType={TokenInputAreaType.Source}
-                    isSourceToken
-                    shouldFetchExchangeRate={false}
-                  />
-                </Box>
-                <FLipQuoteButton onPress={() => undefined} disabled />
-                <Box style={styles.tokenCard}>
-                  <TokenInputArea
-                    token={destToken}
-                    networkImageSource={
-                      destToken
-                        ? getNetworkImageSource({ chainId: destToken.chainId })
-                        : undefined
-                    }
-                    testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
-                    tokenType={TokenInputAreaType.Destination}
-                    isLoading
-                    style={styles.destTokenArea}
-                    shouldFetchExchangeRate={false}
-                  />
-                </Box>
-              </Box>
-            </Box>
-            <Box style={styles.loadingContainer}>
-              <QuoteDetailsCardSkeleton />
-            </Box>
-          </ScrollView>
         </Box>
       </ScreenView>
     </SafeAreaView>
