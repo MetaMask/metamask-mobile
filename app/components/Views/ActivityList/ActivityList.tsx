@@ -127,6 +127,8 @@ import { predictActivityToItem } from '../../UI/Predict/utils/predictActivityToI
 import {
   ActivityTypeFilter,
   activityKindMatchesTypeFilter,
+  type PerpsActivityFilter,
+  perpsActivityKindMatchesFilter,
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../ActivityScreen/types';
 import {
@@ -178,6 +180,7 @@ interface ActivityListProps {
   scrollY?: SharedValue<number>;
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
+  perpsFilter?: PerpsActivityFilter;
 }
 
 export interface ActivityListHandle {
@@ -186,7 +189,18 @@ export interface ActivityListHandle {
 }
 
 const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
-  ({ header, chainId, location, scrollY, typeFilter, networkFilter }, ref) => {
+  (
+    {
+      header,
+      chainId,
+      location,
+      scrollY,
+      typeFilter,
+      networkFilter,
+      perpsFilter,
+    },
+    ref,
+  ) => {
     const navigation = useNavigation();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const { colors } = useTheme();
@@ -480,6 +494,15 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           activityKindMatchesTypeFilter(item.type, typeFilter),
         );
       }
+      // Within the Perps bucket, narrow to the selected sub-filter.
+      if (
+        typeFilter === ActivityTypeFilter.Perps &&
+        perpsFilter !== undefined
+      ) {
+        filtered = filtered.filter((item) =>
+          perpsActivityKindMatchesFilter(item.type, perpsFilter),
+        );
+      }
       if (networkFilter && networkFilter.length > 0) {
         const allowedChains = new Set(
           networkFilter.map((caipChainId) => caipChainId.toLowerCase()),
@@ -493,6 +516,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     }, [
       unifiedTransactionSource,
       typeFilter,
+      perpsFilter,
       networkFilter,
       isPerpsEnabled,
       perpsSource.items,

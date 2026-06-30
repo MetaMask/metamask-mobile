@@ -3093,6 +3093,13 @@
       "metamask_card": "Card",
       "money": "Money"
     },
+    "perps_filter": {
+      "title": "Perps",
+      "trades": "Trades",
+      "order": "Order",
+      "fundings": "Fundings",
+      "deposits": "Deposits"
+    },
     "empty_state": {
       "default_funded": {
         "description": "Nothing to see yet. Swap your first token today.",

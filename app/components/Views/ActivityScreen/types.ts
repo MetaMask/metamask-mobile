@@ -111,3 +111,76 @@ export function activityKindMatchesTypeFilter(
   }
   return allowed.has(kind);
 }
+
+/**
+ * Secondary "Perps" filter buckets, shown in place of the network selector when
+ * the top-level Type filter is `Perps`. Each maps to a subset of the Perps
+ * `ActivityKind`s, derived from the perps source `transaction.type`
+ * (trade / order / funding / deposit|withdrawal) — see `perps-transaction.ts`.
+ */
+// String values mirror metamask-extension's `PerpsTransactionFilter`
+// (`trade | order | funding | deposit`) for cross-platform parity. Display
+// labels intentionally follow the mobile ticket (Trades / Order / Fundings /
+// Deposits) — see PERPS_ACTIVITY_FILTER_LABEL_KEY.
+export enum PerpsActivityFilter {
+  Trades = 'trade',
+  Order = 'order',
+  Fundings = 'funding',
+  Deposits = 'deposit',
+}
+
+/**
+ * Bucket → kinds mapping for the Perps sub-filter. The union of all buckets
+ * equals `ACTIVITY_TYPE_FILTER_KINDS[Perps]` (asserted in tests) so every Perps
+ * row is reachable from exactly one sub-filter. Withdrawals are grouped under
+ * `Deposits` (funds movements) per product.
+ */
+export const PERPS_ACTIVITY_FILTER_KINDS: Record<
+  PerpsActivityFilter,
+  ReadonlySet<ActivityKind>
+> = {
+  [PerpsActivityFilter.Trades]: new Set<ActivityKind>([
+    'perpsOpenLong',
+    'perpsCloseLong',
+    'perpsCloseLongLiquidated',
+    'perpsCloseLongStopLoss',
+    'perpsCloseLongTakeProfit',
+    'perpsOpenShort',
+    'perpsCloseShort',
+    'perpsCloseShortLiquidated',
+    'perpsCloseShortStopLoss',
+    'perpsCloseShortTakeProfit',
+  ]),
+  [PerpsActivityFilter.Order]: new Set<ActivityKind>([
+    'marketShort',
+    'marketCloseShort',
+    'limitShort',
+    'limitCloseShort',
+    'stopMarketCloseShort',
+  ]),
+  [PerpsActivityFilter.Fundings]: new Set<ActivityKind>([
+    'perpsPaidFundingFees',
+    'perpsReceivedFundingFees',
+  ]),
+  [PerpsActivityFilter.Deposits]: new Set<ActivityKind>([
+    'perpsAddFunds',
+    'perpsWithdraw',
+  ]),
+};
+
+// `Trades` is the default selection (per design).
+export const PERPS_ACTIVITY_FILTER_ORDER: PerpsActivityFilter[] = [
+  PerpsActivityFilter.Trades,
+  PerpsActivityFilter.Order,
+  PerpsActivityFilter.Fundings,
+  PerpsActivityFilter.Deposits,
+];
+
+export function perpsActivityKindMatchesFilter(
+  kind: ActivityKind,
+  filter: PerpsActivityFilter,
+): boolean {
+  // Guard against an unknown bucket (e.g. a stale persisted/hot-reloaded value)
+  // so a bad filter degrades to "no match" instead of crashing render.
+  return PERPS_ACTIVITY_FILTER_KINDS[filter]?.has(kind) ?? false;
+}

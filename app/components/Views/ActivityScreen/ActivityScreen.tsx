@@ -21,6 +21,9 @@ import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import ActivityTypeFilterSheet, {
   ACTIVITY_TYPE_FILTER_LABEL_KEY,
 } from './components/ActivityTypeFilterSheet';
+import PerpsActivityFilterSheet, {
+  PERPS_ACTIVITY_FILTER_LABEL_KEY,
+} from './components/PerpsActivityFilterSheet';
 import AssetListControlBar from './components/AssetListControlBar';
 import ActivityList, {
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -29,7 +32,7 @@ import ActivityList, {
 } from '../ActivityList';
 import { TrendingTokenNetworkBottomSheet } from '../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenNetworkBottomSheet';
 import type { CaipChainId } from '@metamask/utils';
-import { ActivityTypeFilter } from './types';
+import { ActivityTypeFilter, PerpsActivityFilter } from './types';
 import { useNetworkFilterOptions } from './hooks/useNetworkFilterOptions';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
@@ -60,6 +63,10 @@ const ActivityScreen = () => {
     null,
   );
   const [isNetworkSheetOpen, setIsNetworkSheetOpen] = useState(false);
+  const [perpsFilter, setPerpsFilter] = useState<PerpsActivityFilter>(
+    PerpsActivityFilter.Trades,
+  );
+  const [isPerpsSheetOpen, setIsPerpsSheetOpen] = useState(false);
 
   const networkOptions = useNetworkFilterOptions();
 
@@ -80,20 +87,16 @@ const ActivityScreen = () => {
     setTypeFilter(filter);
   }, []);
 
-  const isTypeFilterActive = typeFilter !== ActivityTypeFilter.All;
-  const typeFilterLabel = isTypeFilterActive
-    ? strings('activity_view.filter_types_selected', {
-        label: strings(ACTIVITY_TYPE_FILTER_LABEL_KEY[typeFilter]),
-      })
-    : strings('activity_view.filter_all_types');
+  const typeFilterLabel = strings(ACTIVITY_TYPE_FILTER_LABEL_KEY[typeFilter]);
 
-  const isNetworkFilterDisabled =
-    typeFilter === ActivityTypeFilter.Perps ||
-    typeFilter === ActivityTypeFilter.Predictions;
+  const showPerpsFilter = typeFilter === ActivityTypeFilter.Perps;
+  const showNetworkFilter =
+    typeFilter !== ActivityTypeFilter.Perps &&
+    typeFilter !== ActivityTypeFilter.Predictions;
 
   const effectiveNetworkFilter = useMemo<CaipChainId[] | null>(
-    () => (isNetworkFilterDisabled ? null : networkFilter),
-    [isNetworkFilterDisabled, networkFilter],
+    () => (showNetworkFilter ? networkFilter : null),
+    [showNetworkFilter, networkFilter],
   );
 
   const isNetworkFilterActive =
@@ -104,10 +107,12 @@ const ActivityScreen = () => {
     : undefined;
   const networkFilterLabel =
     isNetworkFilterActive && selectedNetworkName
-      ? strings('activity_view.filter_network_selected', {
-          label: selectedNetworkName,
-        })
+      ? selectedNetworkName
       : strings('activity_view.filter_all_networks');
+
+  const perpsFilterLabel = strings(
+    PERPS_ACTIVITY_FILTER_LABEL_KEY[perpsFilter],
+  );
 
   const handleOpenNetworkSheet = useCallback(() => {
     setIsNetworkSheetOpen(true);
@@ -119,6 +124,18 @@ const ActivityScreen = () => {
 
   const handleSelectNetwork = useCallback((chainIds: CaipChainId[] | null) => {
     setNetworkFilter(chainIds);
+  }, []);
+
+  const handleOpenPerpsSheet = useCallback(() => {
+    setIsPerpsSheetOpen(true);
+  }, []);
+
+  const handleClosePerpsSheet = useCallback(() => {
+    setIsPerpsSheetOpen(false);
+  }, []);
+
+  const handleSelectPerpsFilter = useCallback((filter: PerpsActivityFilter) => {
+    setPerpsFilter(filter);
   }, []);
 
   const handleBackPress = useCallback(() => {
@@ -171,24 +188,26 @@ const ActivityScreen = () => {
         </Box>
 
         <AssetListControlBar
-          networkLabel={networkFilterLabel}
-          isNetworkFilterActive={isNetworkFilterActive}
-          isNetworkFilterDisabled={isNetworkFilterDisabled}
-          onNetworkPress={handleOpenNetworkSheet}
           typeLabel={typeFilterLabel}
-          isTypeFilterActive={isTypeFilterActive}
           onTypePress={handleOpenTypeSheet}
+          showNetworkFilter={showNetworkFilter}
+          networkLabel={networkFilterLabel}
+          onNetworkPress={handleOpenNetworkSheet}
+          showPerpsFilter={showPerpsFilter}
+          perpsLabel={perpsFilterLabel}
+          onPerpsPress={handleOpenPerpsSheet}
         />
       </Box>
     ),
     [
       handleOpenNetworkSheet,
+      handleOpenPerpsSheet,
       handleOpenTypeSheet,
       handleTitleLayout,
-      isNetworkFilterActive,
-      isNetworkFilterDisabled,
-      isTypeFilterActive,
       networkFilterLabel,
+      perpsFilterLabel,
+      showNetworkFilter,
+      showPerpsFilter,
       typeFilterLabel,
     ],
   );
@@ -223,6 +242,7 @@ const ActivityScreen = () => {
               scrollY={scrollY}
               typeFilter={typeFilter}
               networkFilter={effectiveNetworkFilter}
+              perpsFilter={showPerpsFilter ? perpsFilter : undefined}
             />
 
             {isFilterBarPinned ? (
@@ -238,13 +258,14 @@ const ActivityScreen = () => {
                 </Box>
                 */}
                 <AssetListControlBar
-                  networkLabel={networkFilterLabel}
-                  isNetworkFilterActive={isNetworkFilterActive}
-                  isNetworkFilterDisabled={isNetworkFilterDisabled}
-                  onNetworkPress={handleOpenNetworkSheet}
                   typeLabel={typeFilterLabel}
-                  isTypeFilterActive={isTypeFilterActive}
                   onTypePress={handleOpenTypeSheet}
+                  showNetworkFilter={showNetworkFilter}
+                  networkLabel={networkFilterLabel}
+                  onNetworkPress={handleOpenNetworkSheet}
+                  showPerpsFilter={showPerpsFilter}
+                  perpsLabel={perpsFilterLabel}
+                  onPerpsPress={handleOpenPerpsSheet}
                   suppressTestIDs
                 />
               </Box>
@@ -257,6 +278,14 @@ const ActivityScreen = () => {
             selected={typeFilter}
             onSelect={handleSelectTypeFilter}
             onClose={handleCloseTypeSheet}
+          />
+        ) : null}
+
+        {isPerpsSheetOpen ? (
+          <PerpsActivityFilterSheet
+            selected={perpsFilter}
+            onSelect={handleSelectPerpsFilter}
+            onClose={handleClosePerpsSheet}
           />
         ) : null}
 
