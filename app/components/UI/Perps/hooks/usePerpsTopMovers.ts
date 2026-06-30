@@ -20,6 +20,13 @@ export interface UsePerpsTopMoversResult {
   isLoading: boolean;
 }
 
+/** Mirrors PerpsTopMoversSection render gating (skeleton while loading, hide when empty). */
+export const isPerpsTopMoversSectionVisible = ({
+  isLoading,
+  data,
+}: Pick<UsePerpsTopMoversResult, 'isLoading' | 'data'>): boolean =>
+  isLoading || data.length > 0;
+
 /**
  * Returns the top-moving perps markets (gainers or losers) sorted by
  * 24-hour price-change percentage.

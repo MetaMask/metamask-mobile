@@ -120,6 +120,17 @@ jest.mock('../../hooks/usePerpsCategories', () => ({
   usePerpsCategories: jest.fn(() => []),
 }));
 
+const mockUsePerpsTopMovers = jest.fn(() => ({
+  data: [],
+  isLoading: false,
+}));
+jest.mock('../../hooks/usePerpsTopMovers', () => ({
+  usePerpsTopMovers: (...args: unknown[]) => mockUsePerpsTopMovers(...args),
+  isPerpsTopMoversSectionVisible: jest.requireActual(
+    '../../hooks/usePerpsTopMovers',
+  ).isPerpsTopMoversSectionVisible,
+}));
+
 // Mock direct import of usePerpsHomeActions (component imports it directly now)
 jest.mock('../../hooks/usePerpsHomeActions', () => ({
   usePerpsHomeActions: jest.fn(() => ({
@@ -491,6 +502,10 @@ describe('PerpsHomeView', () => {
     mockNavigateToMarketList.mockClear();
     mockRouteParams = { source: 'main_action_button' };
     mockUsePerpsHomeData.mockReturnValue(mockDefaultData);
+    mockUsePerpsTopMovers.mockReturnValue({
+      data: [],
+      isLoading: false,
+    });
     mockUsePerpsLiveAccount.mockReturnValue({
       account: {
         totalBalance: '0',
@@ -1203,10 +1218,48 @@ describe('PerpsHomeView', () => {
       expect(properties?.sections_displayed).not.toContain('products');
     });
 
-    it('includes top_movers when enabled and markets exist', () => {
+    it('includes top_movers when enabled and top movers feed has data', () => {
       mockUseSelector.mockImplementation(
         (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
       );
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [{ symbol: 'BTC' }],
+        isLoading: false,
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('top_movers');
+    });
+
+    it('includes top_movers when enabled and top movers feed is loading', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
+      );
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [],
+        isLoading: true,
+      });
+
+      render(<PerpsHomeView />);
+
+      const properties = getBaseEventProperties(
+        mockUsePerpsEventTracking.mock.calls,
+      );
+      expect(properties?.sections_displayed).toContain('top_movers');
+    });
+
+    it('excludes top_movers when enabled but top movers feed is empty and loaded', () => {
+      mockUseSelector.mockImplementation(
+        (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
+      );
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [],
+        isLoading: false,
+      });
       mockUsePerpsHomeData.mockReturnValue({
         ...mockDefaultData,
         hasMarkets: true,
@@ -1218,36 +1271,17 @@ describe('PerpsHomeView', () => {
       const properties = getBaseEventProperties(
         mockUsePerpsEventTracking.mock.calls,
       );
-      expect(properties?.sections_displayed).toContain('top_movers');
+      expect(properties?.sections_displayed).not.toContain('top_movers');
     });
 
-    it('includes top_movers when enabled and only HIP-3 markets exist (explore slices empty)', () => {
+    it('excludes top_movers when enabled but top movers feed is empty', () => {
       mockUseSelector.mockImplementation(
         (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
       );
-      // Simulate: all four home explore slices are empty, but a HIP-3 market
-      // (e.g. an unclassified type) appears in the full market set.
-      mockUsePerpsHomeData.mockReturnValue({
-        ...mockDefaultData,
-        hasMarkets: true,
-        perpsMarkets: [],
-        commoditiesMarkets: [],
-        stocksMarkets: [],
-        forexMarkets: [],
+      mockUsePerpsTopMovers.mockReturnValue({
+        data: [],
+        isLoading: false,
       });
-
-      render(<PerpsHomeView />);
-
-      const properties = getBaseEventProperties(
-        mockUsePerpsEventTracking.mock.calls,
-      );
-      expect(properties?.sections_displayed).toContain('top_movers');
-    });
-
-    it('excludes top_movers when enabled but no markets exist', () => {
-      mockUseSelector.mockImplementation(
-        (selector: unknown) => selector === selectPerpsTopMoversEnabledFlag,
-      );
       mockUsePerpsHomeData.mockReturnValue({ ...mockDefaultData });
 
       render(<PerpsHomeView />);

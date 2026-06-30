@@ -1,6 +1,9 @@
 import { renderHook } from '@testing-library/react-native';
 import { type PriceUpdate } from '@metamask/perps-controller';
-import { usePerpsTopMovers } from './usePerpsTopMovers';
+import {
+  isPerpsTopMoversSectionVisible,
+  usePerpsTopMovers,
+} from './usePerpsTopMovers';
 import {
   usePerpsMarkets,
   type PerpsMarketDataWithVolumeNumber,
@@ -327,5 +330,28 @@ describe('usePerpsTopMovers', () => {
         expect.objectContaining({ throttleMs: 3000 }),
       );
     });
+  });
+});
+
+describe('isPerpsTopMoversSectionVisible', () => {
+  it('returns true while loading', () => {
+    expect(isPerpsTopMoversSectionVisible({ isLoading: true, data: [] })).toBe(
+      true,
+    );
+  });
+
+  it('returns true when market data is available', () => {
+    expect(
+      isPerpsTopMoversSectionVisible({
+        isLoading: false,
+        data: [buildMarket('BTC', '1.0')],
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false for an empty loaded feed', () => {
+    expect(isPerpsTopMoversSectionVisible({ isLoading: false, data: [] })).toBe(
+      false,
+    );
   });
 });

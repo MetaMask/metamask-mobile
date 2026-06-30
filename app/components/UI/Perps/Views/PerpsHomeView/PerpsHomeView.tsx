@@ -115,6 +115,10 @@ import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterru
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
+import {
+  isPerpsTopMoversSectionVisible,
+  usePerpsTopMovers,
+} from '../../hooks/usePerpsTopMovers';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -159,6 +163,13 @@ const PerpsHomeView = ({
   const isTopMoversEnabled = useSelector(selectPerpsTopMoversEnabledFlag);
   // Mirrors PerpsProducts' own visibility check (enabled + has categories).
   const productCategories = usePerpsCategories();
+  const topMoversFeed = usePerpsTopMovers({ direction: 'desc' });
+  const isTopMoversVisible =
+    isTopMoversEnabled &&
+    isPerpsTopMoversSectionVisible({
+      isLoading: topMoversFeed.isLoading,
+      data: topMoversFeed.data,
+    });
   const whatsHappeningFeed = useWhatsHappening(MAX_ITEMS_DISPLAYED);
   const isWhatsHappeningVisible =
     isWhatsHappeningEnabled &&
@@ -274,7 +285,6 @@ const PerpsHomeView = ({
     commoditiesMarkets, // Commodity markets
     stocksMarkets, // Equity markets only
     forexMarkets,
-    hasMarkets,
     recentActivity,
     sortBy,
     isLoading,
@@ -372,10 +382,9 @@ const PerpsHomeView = ({
     // Products self-hides when disabled or when no categories are available.
     if (isProductsEnabled && productCategories.length > 0)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.PRODUCTS);
-    // Top Movers ranks the full unfiltered market set (including HIP-3 and any
-    // market type not bucketed into the home explore slices), so use hasMarkets
-    // rather than a union of the four filtered slices to avoid false negatives.
-    if (isTopMoversEnabled && (isLoading.markets || hasMarkets))
+    // Top Movers self-hides when its feed finishes empty; mirror that here so
+    // PerpsHomeSectionList does not render an orphan divider.
+    if (isTopMoversVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS);
     // Explore category lists render a skeleton while markets load, then self-hide
     // when their own market array is empty.
@@ -400,8 +409,7 @@ const PerpsHomeView = ({
     suggestedWatchlistMarkets,
     isProductsEnabled,
     productCategories,
-    isTopMoversEnabled,
-    hasMarkets,
+    isTopMoversVisible,
     perpsMarkets,
     commoditiesMarkets,
     stocksMarkets,
@@ -710,7 +718,7 @@ const PerpsHomeView = ({
       },
       {
         key: 'top-movers',
-        visible: isTopMoversEnabled && (isLoading.markets || hasMarkets),
+        visible: isTopMoversVisible,
         onLayout: handleSectionLayout(
           PERPS_EVENT_VALUE.SECTION_NAME.TOP_MOVERS,
         ),
@@ -830,8 +838,7 @@ const PerpsHomeView = ({
       transactionActiveAbTests,
       isProductsEnabled,
       productCategories.length,
-      isTopMoversEnabled,
-      hasMarkets,
+      isTopMoversVisible,
       perpsMarkets,
       commoditiesMarkets,
       stocksMarkets,

@@ -15,8 +15,8 @@ jest.mock('@metamask/design-system-twrnc-preset', () => {
 jest.mock('../../../../util/theme', () => ({
   useTheme: () => ({
     colors: {
-      icon: { default: '#000' },
-      primary: { default: '#00f' },
+      icon: { default: 'black' },
+      primary: { default: 'blue' },
     },
   }),
 }));
@@ -35,7 +35,8 @@ describe('ExploreScroll', () => {
 
     const scrollView = UNSAFE_getByType(ScrollView);
     const tw = useTailwind();
-    const styleCalls = tw.style.mock.calls.map((call: string[]) =>
+    const styleMock = tw.style as unknown as jest.Mock;
+    const styleCalls = styleMock.mock.calls.map((call: string[]) =>
       call.join(' '),
     );
 

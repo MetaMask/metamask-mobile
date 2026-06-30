@@ -15,7 +15,10 @@ import {
 import { PillScrollList } from '../../../Trending/components/PillScrollList';
 import { SectionPillsSkeleton } from '../../../Trending/components/SectionPillsSkeleton';
 import { PerpsPillItem } from '../PerpsPillItem';
-import { usePerpsTopMovers } from '../../hooks/usePerpsTopMovers';
+import {
+  isPerpsTopMoversSectionVisible,
+  usePerpsTopMovers,
+} from '../../hooks/usePerpsTopMovers';
 import { usePerpsNavigation } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { selectPerpsTopMoversEnabledFlag } from '../../selectors/featureFlags';
@@ -83,7 +86,7 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
     );
   };
 
-  if (!isLoading && data.length === 0) {
+  if (!isPerpsTopMoversSectionVisible({ isLoading, data })) {
     return null;
   }
 
