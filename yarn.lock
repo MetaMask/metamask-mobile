@@ -8497,15 +8497,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.30.1":
-  version: 0.30.1
-  resolution: "@metamask/design-system-react-native@npm:0.30.1"
+"@metamask/design-system-react-native@npm:^0.31.0":
+  version: 0.31.0
+  resolution: "@metamask/design-system-react-native@npm:0.31.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.23.0"
+    "@metamask/design-system-shared": "npm:^0.25.0"
     fast-text-encoding: "npm:^1.0.6"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
-    "@metamask/design-system-twrnc-preset": ^0.5.0
+    "@metamask/design-system-twrnc-preset": ^0.6.0
     "@metamask/design-tokens": ^8.2.0
     "@metamask/utils": ^11.11.0
     lodash: ^4.17.21
@@ -8514,37 +8514,37 @@ __metadata:
     react-native-gesture-handler: ">=2.25.0"
     react-native-reanimated: ">=3.17.0"
     react-native-safe-area-context: ">=5.0.0"
-  checksum: 10/a54e29f08ff36f2622d3d819b3933ab4ffdd7f5ece2b90c25f0491518858c1308e52ee4509d22eea7ea870c68c1726b4e4ba0868ad94e1d87e78a9fcabfc2c5e
+  checksum: 10/bbdc6bd1491b29888489154a692adcc147e468efeed5ee9025e2c1e4368e3e8dfd5880dec7dd25a5503ec75c2b81f535ba75925fe0ce1917fc899f0d9f9e3513
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.23.0":
-  version: 0.23.0
-  resolution: "@metamask/design-system-shared@npm:0.23.0"
+"@metamask/design-system-shared@npm:^0.25.0":
+  version: 0.25.0
+  resolution: "@metamask/design-system-shared@npm:0.25.0"
   dependencies:
     "@metamask/utils": "npm:^11.11.0"
   peerDependencies:
     react: ^17.0.0 || ^18.0.0 || ^19.0.0
-  checksum: 10/ca57804206f6219ef81809020b08f807f7400f1d526df8fcaa22dc3f5c2ad901c289ae4773e596e883b2f6af4a1e520f459f7b0f6ae00e8f3c3421b4ff6edfe1
+  checksum: 10/a425ff0c865089601dc3ec2d5af5ade1845efc5f2d1f4a29b96b69cddfd0bdf36df0de67e7f6e534718009ad76897b76606c64eb3db98efd84a1799d144fd50b
   languageName: node
   linkType: hard
 
-"@metamask/design-system-twrnc-preset@npm:^0.5.0":
-  version: 0.5.0
-  resolution: "@metamask/design-system-twrnc-preset@npm:0.5.0"
+"@metamask/design-system-twrnc-preset@npm:^0.6.0":
+  version: 0.6.0
+  resolution: "@metamask/design-system-twrnc-preset@npm:0.6.0"
   dependencies:
     twrnc: "npm:^4.5.1"
   peerDependencies:
     "@metamask/design-tokens": ^8.0.0
     react: ">=18.2.0"
-  checksum: 10/fd2257cf55ee0603db98a0a737b5b1f730ca28ec52aa8f75f6aaa5b884bd7f18b913d98211e680c3a6f2a8f91dc01fe1c4e5525333b1430158cf13c832a289e2
+  checksum: 10/fbce66fce6349088dd18c47de2ff13dccd6b4f7efa3a7ce4addf9ea50d8545eb5e9474b9913acd7c423f876755bacf3ee99557ffb0a7b6e19784e1dd8d82ad0d
   languageName: node
   linkType: hard
 
-"@metamask/design-tokens@npm:^8.5.0":
-  version: 8.5.0
-  resolution: "@metamask/design-tokens@npm:8.5.0"
-  checksum: 10/55374e1d9a0866f6062a1f0191b0a7d7bdb2efaa703eb870204bd123dcdb9958058ddd1bfa06cc39f9be06bdc662414a7ca59b0fe2c0099433988e156652535f
+"@metamask/design-tokens@npm:^8.6.0":
+  version: 8.6.0
+  resolution: "@metamask/design-tokens@npm:8.6.0"
+  checksum: 10/9eca298b84338d24c3748d32b4f0e0e5fb1ec12091e459a1b1f4ae0fff187ee1588c5cbeb2865bdbdc1c61e877f0e09a771781feadb3deb984561ba10fc44b47
   languageName: node
   linkType: hard
 
@@ -35469,9 +35469,9 @@ __metadata:
     "@metamask/core-backend": "npm:^6.3.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^1.0.0"
-    "@metamask/design-system-react-native": "npm:^0.30.1"
-    "@metamask/design-system-twrnc-preset": "npm:^0.5.0"
-    "@metamask/design-tokens": "npm:^8.5.0"
+    "@metamask/design-system-react-native": "npm:^0.31.0"
+    "@metamask/design-system-twrnc-preset": "npm:^0.6.0"
+    "@metamask/design-tokens": "npm:^8.6.0"
     "@metamask/earn-controller": "npm:^12.1.0"
     "@metamask/eip-5792-middleware": "npm:^3.0.4"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"

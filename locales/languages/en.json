@@ -2365,8 +2365,10 @@
     "search_account": "Search an account",
     "home": {
       "live_now_title": "Live now",
-      "categories_placeholder": "Categories",
-      "trending_placeholder": "Trending"
+      "categories_title": "Categories",
+      "popular_today_placeholder": "Popular today",
+      "trending_title": "Trending",
+      "trending_unable_to_load": "Unable to load markets, please try again"
     },
     "homepage_discovery": {
       "btc_title": "BTC Price: {{price}}",
@@ -2572,7 +2574,8 @@
       "sports": "Sports",
       "crypto": "Crypto",
       "politics": "Politics",
-      "hot": "Hot"
+      "hot": "Hot",
+      "wimbledon": "Wimbledon"
     },
     "feed": {
       "live": "Live",
@@ -9732,6 +9735,7 @@
     "status": "Status",
     "date": "Date",
     "account": "Account",
+    "address": "Address",
     "from": "From",
     "to": "To",
     "network": "Network",

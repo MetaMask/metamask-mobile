@@ -5,12 +5,15 @@ import {
   encapsulatedAction,
   PlaywrightGestures,
 } from '../framework';
+import Utilities from '../framework/Utilities';
 import PlaywrightMatchers from '../framework/PlaywrightMatchers';
 import { PerpsOrderViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.testIds';
+import PerpsHomeView from '../page-objects/Perps/PerpsHomeView';
 import PerpsMarketDetailsView from '../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsMarketListView from '../page-objects/Perps/PerpsMarketListView';
 import PerpsOnboarding from '../page-objects/Perps/PerpsOnboarding';
 import PerpsOrderView from '../page-objects/Perps/PerpsOrderView';
+import TransactionPayConfirmation from '../page-objects/Confirmation/TransactionPayConfirmation';
 import WalletView from '../page-objects/wallet/WalletView';
 
 const PERPS_GTM_MODAL_FALLBACK_WAIT_MS = 10_000;
@@ -225,6 +228,34 @@ export const navigateToPerpsOrderEntry = async (
 ): Promise<void> => {
   await WalletView.scrollAndTapPerpsSection();
   await PerpsMarketListView.selectMarketAndTapOrderSide(symbol, direction);
+};
+
+/**
+ * Opens Perps from the wallet home and taps the Withdraw CTA, retrying until the
+ * MetaMask Pay custom-amount confirmation is reached. The first tap can land
+ * while Perps is still settling; reaching this confirmation (instead of the
+ * legacy PerpsWithdrawView) is what proves the withdraw-to-any-token flow.
+ *
+ * Requires the `confirmations_pay_post_quote` → `perpsWithdraw` flag enabled.
+ */
+export const openPerpsWithdrawPayConfirmation = async (): Promise<void> => {
+  await WalletView.scrollAndTapPerpsSection();
+  await PerpsHomeView.waitForWithdrawButton();
+
+  await Utilities.executeWithRetry(
+    async () => {
+      await PerpsHomeView.tapWithdrawButton();
+      await Assertions.expectElementToBeVisible(
+        TransactionPayConfirmation.keyboardContainer,
+        {
+          description:
+            'MetaMask Pay withdraw confirmation reached after tapping Withdraw',
+          timeout: 5000,
+        },
+      );
+    },
+    { interval: 1000, timeout: 30000 },
+  );
 };
 
 /**
