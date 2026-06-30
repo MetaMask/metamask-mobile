@@ -234,20 +234,67 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
   const initialDestToken = route.params?.destToken;
+  const [sourceRouteFallback, setSourceRouteFallback] = useState<{
+    token?: BridgeToken;
+    amount?: string;
+  }>(() => ({
+    token: initialSourceToken,
+    amount: initialSourceAmount,
+  }));
+  const [destRouteFallbackToken, setDestRouteFallbackToken] = useState<
+    BridgeToken | undefined
+  >(initialDestToken);
+
+  useEffect(() => {
+    setSourceRouteFallback({
+      token: initialSourceToken,
+      amount: initialSourceAmount,
+    });
+  }, [initialSourceToken, initialSourceAmount]);
+
+  useEffect(() => {
+    setDestRouteFallbackToken(initialDestToken);
+  }, [initialDestToken]);
+
+  useEffect(() => {
+    if (!sourceRouteFallback.token) {
+      return;
+    }
+
+    const hasSyncedInitialSourceToken = areBridgeTokensEqual(
+      sourceToken,
+      sourceRouteFallback.token,
+    );
+    const hasSyncedInitialSourceAmount =
+      !sourceRouteFallback.amount ||
+      sourceAmount === sourceRouteFallback.amount;
+
+    if (hasSyncedInitialSourceToken && hasSyncedInitialSourceAmount) {
+      setSourceRouteFallback({});
+    }
+  }, [sourceAmount, sourceRouteFallback, sourceToken]);
+
+  useEffect(() => {
+    if (
+      destRouteFallbackToken &&
+      areBridgeTokensEqual(destToken, destRouteFallbackToken)
+    ) {
+      setDestRouteFallbackToken(undefined);
+    }
+  }, [destRouteFallbackToken, destToken]);
+
   const shouldUseInitialSourceToken =
-    initialSourceToken &&
-    !areBridgeTokensEqual(sourceToken, initialSourceToken);
-  const shouldUseInitialDestToken =
-    initialDestToken && !areBridgeTokensEqual(destToken, initialDestToken);
+    sourceRouteFallback.token &&
+    !areBridgeTokensEqual(sourceToken, sourceRouteFallback.token);
+  const shouldUseInitialSourceAmount =
+    sourceRouteFallback.amount && sourceAmount !== sourceRouteFallback.amount;
   const displaySourceToken = shouldUseInitialSourceToken
-    ? initialSourceToken
+    ? sourceRouteFallback.token
     : sourceToken;
-  const displaySourceAmount = shouldUseInitialSourceToken
-    ? initialSourceAmount
-    : (sourceAmount ?? initialSourceAmount);
-  const displayDestToken = shouldUseInitialDestToken
-    ? initialDestToken
-    : destToken;
+  const displaySourceAmount = shouldUseInitialSourceAmount
+    ? sourceRouteFallback.amount
+    : sourceAmount;
+  const displayDestToken = destToken ?? destRouteFallbackToken;
   const areDisplayedTokensSyncedWithRedux =
     areDisplayedBridgeTokensSyncedWithRedux({
       sourceToken,

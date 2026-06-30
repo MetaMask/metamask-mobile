@@ -1662,6 +1662,43 @@ describe('BridgeView', () => {
       expect(getByText('USDT')).toBeTruthy();
     });
 
+    it('does not let route destToken override a later Redux destination selection', async () => {
+      mockRoute.params.destToken = mockDeepLinkDestToken;
+      const manualDestToken = {
+        address: '0x0000000000000000000000000000000000000007',
+        chainId: '0x1' as Hex,
+        decimals: 18,
+        symbol: 'MANUAL',
+      };
+
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          destToken: undefined,
+        },
+      };
+
+      const { getByText, queryByText, store } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      expect(getByText('USDT')).toBeTruthy();
+
+      act(() => {
+        store.dispatch(setDestToken(manualDestToken));
+      });
+
+      await waitFor(() => {
+        expect(getByText('MANUAL')).toBeTruthy();
+      });
+      expect(queryByText('USDT')).toBeNull();
+    });
+
     it('uses sourceAmount from route params when provided', () => {
       // Need to provide a source token for the amount to be set
       mockRoute.params.sourceToken = {
