@@ -534,7 +534,7 @@ export class OAuthService {
   private getAccessToken = (): string | undefined =>
     Engine.context.SeedlessOnboardingController.state?.accessToken;
 
-  private getAccessTokenOrThrow = (): string => {
+  private readonly getAccessTokenOrThrow = (): string => {
     const accessToken = this.getAccessToken();
 
     if (!accessToken) {
