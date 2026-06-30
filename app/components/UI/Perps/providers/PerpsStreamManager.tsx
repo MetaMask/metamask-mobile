@@ -1579,8 +1579,20 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         // This avoids an HTTP round-trip when the controller already has fresh data.
         // Include terminal flag in the key so a flag flip forces a fresh fetch.
         const controllerNetworkKey = `${getProviderNetworkKey(controller.state)}:${terminalSuffix}`;
-        const cachedForProvider =
-          controller.getCachedMarketDataForActiveProvider?.();
+
+        // The controller's preload cache (cachedMarketDataByProvider) is keyed only
+        // by provider/network and is ALWAYS sourced from the direct provider — its
+        // background preload calls getMarketDataWithPrices() without useTerminalApi,
+        // so it never contains Terminal-API data. It is therefore only safe to adopt
+        // when the Terminal backend is disabled. Adopting it while Terminal is enabled
+        // (e.g. after a flag flip, or on startup if preload ran before the remote flag
+        // settled) would serve direct HyperLiquid data and cache it as Terminal data
+        // (or the reverse). When the source can't be guaranteed to match, skip the
+        // preloaded cache and fetch fresh market data below.
+        const controllerCacheSourceMatches = !terminalEnabled;
+        const cachedForProvider = controllerCacheSourceMatches
+          ? controller.getCachedMarketDataForActiveProvider?.()
+          : undefined;
         if (
           cachedForProvider &&
           cachedForProvider.length > 0 &&
@@ -1701,7 +1713,18 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       return cached;
     }
 
-    // Fallback: read per-provider cache via helper
+    // Fallback: read per-provider cache via helper. The controller's preload cache
+    // is always direct-sourced (its preload never passes useTerminalApi), so only
+    // serve it synchronously when the Terminal backend is disabled — otherwise we'd
+    // surface direct HyperLiquid data while in Terminal mode. When Terminal is
+    // enabled, return null so callers wait for a source-correct fetch instead.
+    const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
+      store.getState(),
+    );
+    if (terminalEnabled) {
+      return null;
+    }
+
     const controller = Engine.context.PerpsController;
     const fromController =
       controller.getCachedMarketDataForActiveProvider?.() ?? null;

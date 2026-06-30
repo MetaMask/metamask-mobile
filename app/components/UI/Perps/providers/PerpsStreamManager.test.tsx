@@ -17,6 +17,7 @@ import {
   type AccountState,
 } from '@metamask/perps-controller';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import {
   PERPS_DISK_CACHE_MARKETS,
@@ -50,6 +51,8 @@ const mockPerpsConnectionManager = PerpsConnectionManager as jest.Mocked<
   typeof PerpsConnectionManager
 >;
 const mockStorageWrapper = StorageWrapper as jest.Mocked<typeof StorageWrapper>;
+const mockSelectPerpsTerminalBackendEnabledFlag =
+  selectPerpsTerminalBackendEnabledFlag as unknown as jest.Mock;
 
 // Test component that uses the stream hook
 const TestPriceComponent = ({
@@ -88,6 +91,9 @@ describe('PerpsStreamManager', () => {
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useFakeTimers();
+
+    // Restore the default Terminal flag state (enabled) after any per-test override.
+    mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
 
     // Create a fresh stream manager for each test
     testStreamManager = new PerpsStreamManager();
@@ -2233,6 +2239,10 @@ describe('PerpsStreamManager', () => {
     it('uses controller preloaded cache when fresh', async () => {
       const callback = jest.fn();
 
+      // Controller preload cache is always direct-sourced, so it is only adopted
+      // when the Terminal backend is disabled.
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(false);
+
       // Set up controller with fresh cached market data via per-provider helper
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
@@ -2283,6 +2293,10 @@ describe('PerpsStreamManager', () => {
       const callback = jest.fn((data: PerpsMarketData[]) => {
         callTimings.push({ data, callIndex: callTimings.length });
       });
+
+      // Controller preload cache is always direct-sourced, so it is only served
+      // synchronously when the Terminal backend is disabled.
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(false);
 
       // Set up controller with fresh cached market data via per-provider helper
       (
@@ -2357,6 +2371,60 @@ describe('PerpsStreamManager', () => {
       await waitFor(() => {
         expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
       });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      unsubscribe();
+
+      // Reset state for other tests
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest.fn().mockReturnValue(null);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        cachedMarketDataByProvider: {},
+      };
+    });
+
+    it('does not adopt controller preloaded cache when Terminal backend is enabled', async () => {
+      const callback = jest.fn();
+
+      // Terminal enabled: the controller's direct-sourced preload cache must not be
+      // served/cached as Terminal data — a fresh source-correct fetch must happen.
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
+
+      const getCachedMock = jest.fn().mockReturnValue(mockMarketData);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = getCachedMock;
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        cachedMarketDataByProvider: {},
+        activeProvider: 'hyperliquid',
+      };
+
+      const streamManager = new PerpsStreamManager();
+
+      const unsubscribe = streamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // getCachedData() must not synchronously serve the direct controller cache
+      // while in Terminal mode.
+      expect(callback).not.toHaveBeenCalled();
+
+      // fetchMarketData() must skip the controller cache and fetch fresh Terminal data.
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
+      });
+      expect(mockGetMarketDataWithPrices).toHaveBeenCalledWith(
+        expect.objectContaining({ useTerminalApi: true }),
+      );
 
       await waitFor(() => {
         expect(callback).toHaveBeenCalledWith(mockMarketData);
