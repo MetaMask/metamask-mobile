@@ -219,6 +219,12 @@
     "@metamask/accounts-controller": "^39.0.3",
     "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch"
   },
+  "previewBuilds": {
+    "@metamask/perps-controller": {
+      "type": "non-breaking",
+      "previewVersion": "9.0.0-preview-c1aa224d7"
+    }
+  },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
     "@config-plugins/detox": "^9.0.0",
