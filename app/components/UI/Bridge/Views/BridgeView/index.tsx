@@ -49,6 +49,8 @@ import {
   selectBridgeBalanceRefreshKey,
 } from '../../../../../core/redux/slices/bridge';
 import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
+import Text from '../../../../../component-library/components/Texts/Text';
+import { TextVariant } from '../../../../../component-library/components/Texts/Text/Text.types';
 import { IconName as CLIconName } from '../../../../../component-library/components/Icons/Icon';
 import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import {
@@ -564,6 +566,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                       backgroundColor: colors.error.muted,
                       paddingLeft: 8,
                     };
+                    const quoteStreamErrorMessage = getQuoteStreamReasonString(
+                      quoteStreamComplete?.reason,
+                    );
                     return (
                       <BannerBase
                         style={quoteStreamErrorBannerStyle}
@@ -574,9 +579,15 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                             size={IconSize.Lg}
                           />
                         }
-                        description={getQuoteStreamReasonString(
-                          quoteStreamComplete?.reason,
-                        )}
+                        description={
+                          <Text
+                            testID={BridgeViewSelectorsIDs.NO_QUOTES_BANNER}
+                            accessibilityLabel={quoteStreamErrorMessage}
+                            variant={TextVariant.BodySM}
+                          >
+                            {quoteStreamErrorMessage}
+                          </Text>
+                        }
                       />
                     );
                   })()
