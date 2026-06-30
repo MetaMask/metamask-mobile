@@ -59,6 +59,29 @@ jest.mock('../../../Base/TokenIcon', () => ({
   },
 }));
 
+jest.mock(
+  '../../Tokens/components/TokenListSecurityBadge/TokenListSecurityBadge',
+  () => {
+    const { createElement } = jest.requireActual('react');
+    const { Text } = jest.requireActual('react-native');
+
+    return {
+      __esModule: true,
+      default: ({ caipAssetId }: { caipAssetId: string }) =>
+        createElement(
+          Text,
+          { testID: 'token-list-security-badge' },
+          caipAssetId,
+        ),
+    };
+  },
+);
+
+jest.mock('@metamask/utils', () => {
+  const actual = jest.requireActual('@metamask/utils');
+  return actual;
+});
+
 jest.mock('@metamask/design-system-react-native', () => {
   const { createElement } = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
@@ -66,7 +89,7 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     Icon: ({ testID, name }: { testID?: string; name: string }) =>
       createElement(Text, { testID }, name),
-    IconColor: { InfoDefault: 'InfoDefault' },
+    IconColor: { PrimaryDefault: 'PrimaryDefault' },
     IconName: { VerifiedFilled: 'VerifiedFilled' },
     IconSize: { Sm: 'Sm' },
   };
@@ -79,7 +102,7 @@ describe('TokenButton', () => {
     jest.clearAllMocks();
   });
 
-  it('hides verified badge in control variant', () => {
+  it('hides security badge in control variant', () => {
     mockUseABTest.mockReturnValue({
       variant: { showVerifiedBadge: false },
       variantName: 'control',
@@ -87,13 +110,17 @@ describe('TokenButton', () => {
     });
 
     const { queryByTestId } = render(
-      <TokenButton symbol="ETH" isVerified iconUrl="https://example.com/eth" />,
+      <TokenButton
+        symbol="ETH"
+        iconUrl="https://example.com/eth"
+        securityBadgeAssetId="eip155:1/slip44:60"
+      />,
     );
 
-    expect(queryByTestId('token-verified-icon-ETH')).toBeNull();
+    expect(queryByTestId('token-list-security-badge')).toBeNull();
   });
 
-  it('shows verified badge in treatment variant for verified tokens', () => {
+  it('shows security badge in treatment variant when asset id is available', () => {
     mockUseABTest.mockReturnValue({
       variant: { showVerifiedBadge: true },
       variantName: 'treatment',
@@ -101,13 +128,17 @@ describe('TokenButton', () => {
     });
 
     const { getByTestId } = render(
-      <TokenButton symbol="ETH" isVerified iconUrl="https://example.com/eth" />,
+      <TokenButton
+        symbol="ETH"
+        iconUrl="https://example.com/eth"
+        securityBadgeAssetId="eip155:1/slip44:60"
+      />,
     );
 
-    expect(getByTestId('token-verified-icon-ETH')).toBeOnTheScreen();
+    expect(getByTestId('token-list-security-badge')).toBeOnTheScreen();
   });
 
-  it('hides verified badge in treatment variant for unverified tokens', () => {
+  it('hides security badge in treatment variant when asset id is unavailable', () => {
     mockUseABTest.mockReturnValue({
       variant: { showVerifiedBadge: true },
       variantName: 'treatment',
@@ -118,6 +149,6 @@ describe('TokenButton', () => {
       <TokenButton symbol="ETH" iconUrl="https://example.com/eth" />,
     );
 
-    expect(queryByTestId('token-verified-icon-ETH')).toBeNull();
+    expect(queryByTestId('token-list-security-badge')).toBeNull();
   });
 });

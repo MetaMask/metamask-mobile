@@ -53,6 +53,7 @@ import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLo
 import { useFormattedBalanceWithThreshold } from '../../hooks/useFormattedBalanceWithThreshold';
 import { useDisplayCurrencyValue } from '../../hooks/useDisplayCurrencyValue';
 import { formatSecondaryTokenAmount } from '../../utils/sourceAmountInputMode';
+import { tokenToIncludeAsset } from '../../utils/tokenUtils';
 
 export const MAX_INPUT_LENGTH = 36;
 
@@ -301,6 +302,11 @@ export const TokenInputArea = forwardRef<
     const formattedAddress =
       tokenAddress && !isNativeAsset ? formatAddress(tokenAddress) : undefined;
 
+    const tokenSecurityBadgeAssetId = useMemo(
+      () => (token ? tokenToIncludeAsset(token)?.assetId : undefined),
+      [token],
+    );
+
     const subtitle =
       tokenType === TokenInputAreaType.Source
         ? formattedBalance
@@ -387,7 +393,7 @@ export const TokenInputArea = forwardRef<
                 networkName={networkName}
                 testID={testID}
                 onPress={onTokenPress}
-                isVerified={token?.isVerified}
+                securityBadgeAssetId={tokenSecurityBadgeAssetId}
               />
             ) : (
               <Button

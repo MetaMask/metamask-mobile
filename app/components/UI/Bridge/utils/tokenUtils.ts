@@ -92,7 +92,6 @@ export const getNativeSourceToken = (
     image: 'iconUrl' in nativeAsset ? nativeAsset.iconUrl || '' : '',
     decimals: nativeAsset.decimals,
     chainId: formattedChainId,
-    isVerified: true,
   };
 
   return nativeSourceTokenFormatted;

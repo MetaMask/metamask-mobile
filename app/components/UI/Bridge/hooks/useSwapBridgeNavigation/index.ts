@@ -251,7 +251,6 @@ export const useSwapBridgeNavigation = ({
               chainId: isNonEvmChainId(effectiveSourceChainId)
                 ? effectiveSourceChainId
                 : formatChainIdToHex(effectiveSourceChainId), // Use hex format for balance fetching compatibility, unless it's a Solana chain
-              isVerified: true,
             }
           : undefined;
 
