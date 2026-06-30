@@ -7,6 +7,10 @@ import {
   useQuickBuyQuotes,
   QUICK_BUY_QUOTE_DEBOUNCE_MS,
 } from './hooks/useQuickBuyQuotes';
+import {
+  isQuoteStreamingEnabled,
+  streamQuickBuyQuotes,
+} from './utils/streamQuickBuyQuotes';
 import type { BridgeToken } from '../../../../../UI/Bridge/types';
 import {
   selectDestAddress,
@@ -66,6 +70,11 @@ jest.mock('../../../../../../selectors/bridge', () => ({
   selectSourceWalletAddress: jest.fn(),
 }));
 
+jest.mock('./utils/streamQuickBuyQuotes', () => ({
+  isQuoteStreamingEnabled: jest.fn(() => false),
+  streamQuickBuyQuotes: jest.fn(),
+}));
+
 const mockTrack = jest.fn();
 jest.mock('../../../analytics', () => {
   const actual = jest.requireActual('../../../analytics');
@@ -89,6 +98,8 @@ jest.mock('@metamask/bridge-controller', () => {
 const fetchQuotesMock = Engine.context.BridgeController
   .fetchQuotes as jest.Mock;
 const useSelectorMock = useSelector as jest.Mock;
+const isQuoteStreamingEnabledMock = isQuoteStreamingEnabled as jest.Mock;
+const streamQuickBuyQuotesMock = streamQuickBuyQuotes as jest.Mock;
 
 const createSourceToken = (overrides: Partial<BridgeToken> = {}): BridgeToken =>
   ({
@@ -186,6 +197,8 @@ describe('useQuickBuyQuotes', () => {
     jest.useFakeTimers();
     jest.clearAllMocks();
     setupSelectors();
+    // Default to the one-shot path; the streaming suite opts in explicitly.
+    isQuoteStreamingEnabledMock.mockReturnValue(false);
     mockSelectBridgeQuotesBase.mockReturnValue({
       sortedQuotes: [],
       recommendedQuote: null,
@@ -747,5 +760,177 @@ describe('useQuickBuyQuotes', () => {
     rerender({});
 
     expect(result.current.isQuoteRequestStale).toBe(true);
+  });
+
+  describe('streaming path', () => {
+    const streamedQuote = (requestId: string) => {
+      const quote = createFetchedQuote();
+      quote.quote.requestId = requestId;
+      return quote;
+    };
+
+    interface StreamHandlers { onQuote: (quote: unknown) => void }
+
+    beforeEach(() => {
+      isQuoteStreamingEnabledMock.mockReturnValue(true);
+      // Pass the injected quotes straight through so sortedQuotes reflects the
+      // accumulated stream and the first quote becomes the recommended one.
+      mockSelectBridgeQuotesBase.mockImplementation(
+        (controllerFields: { quotes: unknown[] }) => ({
+          sortedQuotes: controllerFields.quotes,
+          recommendedQuote: controllerFields.quotes[0] ?? null,
+        }),
+      );
+    });
+
+    it('accumulates streamed quotes and never calls the one-shot fetch', async () => {
+      streamQuickBuyQuotesMock.mockImplementation(
+        async (
+          _params: unknown,
+          _featureId: unknown,
+          _signal: unknown,
+          { onQuote }: StreamHandlers,
+        ) => {
+          onQuote(streamedQuote('r1'));
+          onQuote(streamedQuote('r2'));
+        },
+      );
+
+      const { result } = renderHook(() =>
+        useQuickBuyQuotes(
+          quotesParams({
+            sourceToken: createSourceToken(),
+            destToken: createDestToken(),
+            sourceTokenAmount: '0.001',
+          }),
+        ),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+      });
+
+      await waitFor(() => expect(result.current.sortedQuotes).toHaveLength(2));
+      expect(fetchQuotesMock).not.toHaveBeenCalled();
+      expect(streamQuickBuyQuotesMock).toHaveBeenCalledTimes(1);
+      expect(result.current.isQuoteLoading).toBe(false);
+      expect(result.current.isNoQuotesAvailable).toBe(false);
+      expect(result.current.refreshCount).toBe(1);
+    });
+
+    it('dedupes streamed quotes by requestId', async () => {
+      streamQuickBuyQuotesMock.mockImplementation(
+        async (
+          _params: unknown,
+          _featureId: unknown,
+          _signal: unknown,
+          { onQuote }: StreamHandlers,
+        ) => {
+          onQuote(streamedQuote('dup'));
+          onQuote(streamedQuote('dup'));
+        },
+      );
+
+      const { result } = renderHook(() =>
+        useQuickBuyQuotes(
+          quotesParams({
+            sourceToken: createSourceToken(),
+            destToken: createDestToken(),
+            sourceTokenAmount: '0.001',
+          }),
+        ),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+      });
+
+      await waitFor(() => expect(result.current.sortedQuotes).toHaveLength(1));
+    });
+
+    it('flags isNoQuotesAvailable when the stream ends with no quotes', async () => {
+      streamQuickBuyQuotesMock.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() =>
+        useQuickBuyQuotes(
+          quotesParams({
+            sourceToken: createSourceToken(),
+            destToken: createDestToken(),
+            sourceTokenAmount: '0.001',
+          }),
+        ),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+      });
+
+      await waitFor(() =>
+        expect(result.current.isNoQuotesAvailable).toBe(true),
+      );
+      expect(result.current.isQuoteLoading).toBe(false);
+    });
+
+    it('captures stream errors in quoteFetchError', async () => {
+      streamQuickBuyQuotesMock.mockRejectedValue(new Error('stream boom'));
+
+      const { result } = renderHook(() =>
+        useQuickBuyQuotes(
+          quotesParams({
+            sourceToken: createSourceToken(),
+            destToken: createDestToken(),
+            sourceTokenAmount: '0.001',
+          }),
+        ),
+      );
+
+      await act(async () => {
+        jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+      });
+
+      await waitFor(() =>
+        expect(result.current.quoteFetchError).toBe('stream boom'),
+      );
+      expect(result.current.isQuoteLoading).toBe(false);
+    });
+
+    it('suspends auto-refresh while pauseAutoRefresh is true', async () => {
+      streamQuickBuyQuotesMock.mockImplementation(
+        async (
+          _params: unknown,
+          _featureId: unknown,
+          _signal: unknown,
+          { onQuote }: StreamHandlers,
+        ) => {
+          onQuote(streamedQuote('r1'));
+        },
+      );
+
+      // Stable params object: inline factories would create new token /
+      // analyticsContext references each render, recreating fetchQuotes and
+      // re-firing the reactive (non-refresh) fetch — which would mask the pause.
+      const stableParams = quotesParams({
+        sourceToken: createSourceToken(),
+        destToken: createDestToken(),
+        sourceTokenAmount: '0.001',
+        pauseAutoRefresh: true,
+      });
+      const { result } = renderHook(() => useQuickBuyQuotes(stableParams));
+
+      await act(async () => {
+        jest.advanceTimersByTime(QUICK_BUY_QUOTE_DEBOUNCE_MS);
+      });
+      await waitFor(() => expect(result.current.refreshCount).toBe(1));
+
+      const callsAfterInitial = streamQuickBuyQuotesMock.mock.calls.length;
+      await act(async () => {
+        jest.advanceTimersByTime(result.current.quoteRefreshRateMs * 2);
+        await Promise.resolve();
+      });
+
+      expect(streamQuickBuyQuotesMock.mock.calls.length).toBe(
+        callsAfterInitial,
+      );
+    });
   });
 });
