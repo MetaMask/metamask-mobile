@@ -134,13 +134,9 @@ const ACTIVITY_DETAILS_SOURCE_PAGE = 'ActivityDetails';
 
 interface BridgeViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
-  routeKey?: string;
 }
 
-const BridgeViewContent = ({
-  latestSourceBalance,
-  routeKey,
-}: BridgeViewContentProps) => {
+const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const [isNearBottom, setIsNearBottom] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
@@ -399,7 +395,7 @@ const BridgeViewContent = ({
 
   const headerTitle = getHeaderTitle(bridgeViewMode);
 
-  useTrackSwapPageViewed(location, routeKey);
+  useTrackSwapPageViewed(location);
 
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
@@ -787,7 +783,7 @@ const BridgeViewContent = ({
   );
 };
 
-const BridgeViewReadyContent = ({ routeKey }: { routeKey?: string }) => {
+const BridgeViewReadyContent = () => {
   const sourceToken = useSelector(selectSourceToken);
   const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
   const latestSourceBalance = useLatestBalance({
@@ -802,10 +798,7 @@ const BridgeViewReadyContent = ({ routeKey }: { routeKey?: string }) => {
     <BridgeQuoteDataProvider
       latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
     >
-      <BridgeViewContent
-        latestSourceBalance={latestSourceBalance}
-        routeKey={routeKey}
-      />
+      <BridgeViewContent latestSourceBalance={latestSourceBalance} />
     </BridgeQuoteDataProvider>
   );
 };
@@ -845,7 +838,7 @@ const BridgeView = () => {
     );
   }
 
-  return <BridgeViewReadyContent routeKey={route.key} />;
+  return <BridgeViewReadyContent />;
 };
 
 export default BridgeView;

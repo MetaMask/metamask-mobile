@@ -125,25 +125,4 @@ describe('useTrackSwapPageViewed', () => {
 
     expect(mockTrackEvent).toHaveBeenCalledTimes(2);
   });
-
-  it('tracks at most once for the same route key across hook remounts', () => {
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectSourceToken) {
-        return sourceToken;
-      }
-      if (selector === selectDestToken) {
-        return destToken;
-      }
-      return undefined;
-    });
-
-    const routeKey = 'bridge-route-key';
-    const firstRender = renderHook(() =>
-      useTrackSwapPageViewed(mockLocation, routeKey),
-    );
-    firstRender.unmount();
-    renderHook(() => useTrackSwapPageViewed(mockLocation, routeKey));
-
-    expect(mockTrackEvent).toHaveBeenCalledTimes(2);
-  });
 });
