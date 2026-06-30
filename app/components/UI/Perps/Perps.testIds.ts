@@ -143,6 +143,10 @@ export const PerpsMarketListViewSelectorsIDs = {
   SEARCH_CLEAR_BUTTON: 'perps-market-list-search-bar-clear',
   SEARCH_BAR: 'perps-market-list-search-bar',
   NO_RESULTS: 'perps-market-list-no-results',
+  /** CTA button shown in the empty state (clear search or clear filter) */
+  EMPTY_STATE_CTA: 'perps-market-list-empty-state-cta',
+  /** Empty state shown when a category filter yields no results (no active search) */
+  NO_RESULTS_FILTER: 'perps-market-list-no-results-filter',
   SKELETON_ROW: 'perps-market-list-skeleton-row',
   LIST_HEADER: 'perps-market-list-header',
   MARKET_LIST: 'perps-market-list',
