@@ -245,7 +245,7 @@ export const useMoneyTransactionStatus = () => {
 
       if (isSend) {
         const amountFiat = formatMetamaskPayFiat(
-          transactionMeta.metamaskPay?.totalFiat,
+          transactionMeta.metamaskPay?.targetFiat,
         );
         const family = perpsPredictServiceFamily(transactionMeta);
         const destination = strings(
