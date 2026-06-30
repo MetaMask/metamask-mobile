@@ -25,14 +25,16 @@ jest.mock('@sentry/react-native', () => ({
   captureException: jest.fn(),
 }));
 
-function buildRemoteFeatureFlagControllerMock(bridgeQuoteStatusManager?: {
-  enabled?: boolean;
-}) {
+function buildRemoteFeatureFlagControllerMock(
+  bridgeQuoteStatusManager?: { enabled?: boolean },
+  localOverrides: Record<string, unknown> = {},
+) {
   return {
     state: {
       remoteFeatureFlags: {
         bridgeQuoteStatusManager,
       },
+      localOverrides,
     },
   };
 }
@@ -61,6 +63,7 @@ function buildInitRequestMock(
   initRequestProperties: Record<string, unknown> = {},
   options: {
     bridgeQuoteStatusManager?: { enabled?: boolean };
+    localOverrides?: Record<string, unknown>;
   } = {},
 ): jest.Mocked<MessengerClientInitRequest<BridgeStatusControllerMessenger>> {
   const baseControllerMessenger = new ExtendedMessenger<MockAnyNamespace>({
@@ -83,7 +86,10 @@ function buildInitRequestMock(
   if (!initRequestProperties.getMessengerClient) {
     const mockTransactionController = buildTransactionControllerMock();
     const mockRemoteFeatureFlagController =
-      buildRemoteFeatureFlagControllerMock(options.bridgeQuoteStatusManager);
+      buildRemoteFeatureFlagControllerMock(
+        options.bridgeQuoteStatusManager,
+        options.localOverrides,
+      );
 
     requestMock.getMessengerClient = jest
       .fn()
@@ -356,12 +362,13 @@ describe('BridgeStatusController Init', () => {
   });
 
   describe('isQuoteStatusManagerEnabled', () => {
-    function getIsQuoteStatusManagerEnabled(bridgeQuoteStatusManager?: {
-      enabled?: boolean;
-    }) {
+    function getIsQuoteStatusManagerEnabled(
+      bridgeQuoteStatusManager?: { enabled?: boolean },
+      localOverrides?: Record<string, unknown>,
+    ) {
       const requestMock = buildInitRequestMock(
         {},
-        { bridgeQuoteStatusManager },
+        { bridgeQuoteStatusManager, localOverrides },
       );
       bridgeStatusControllerInit(requestMock);
       const constructorOptions =
@@ -389,6 +396,24 @@ describe('BridgeStatusController Init', () => {
 
     it('returns false when the remote feature flag is not set', () => {
       const isQuoteStatusManagerEnabled = getIsQuoteStatusManagerEnabled();
+
+      expect(isQuoteStatusManagerEnabled?.()).toBe(false);
+    });
+
+    it('returns true when a local override enables the feature flag', () => {
+      const isQuoteStatusManagerEnabled = getIsQuoteStatusManagerEnabled(
+        { enabled: false },
+        { bridgeQuoteStatusManager: { enabled: true } },
+      );
+
+      expect(isQuoteStatusManagerEnabled?.()).toBe(true);
+    });
+
+    it('returns false when a local override disables the feature flag', () => {
+      const isQuoteStatusManagerEnabled = getIsQuoteStatusManagerEnabled(
+        { enabled: true },
+        { bridgeQuoteStatusManager: { enabled: false } },
+      );
 
       expect(isQuoteStatusManagerEnabled?.()).toBe(false);
     });

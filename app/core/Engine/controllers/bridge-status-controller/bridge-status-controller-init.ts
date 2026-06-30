@@ -58,11 +58,15 @@ export const bridgeStatusControllerInit: MessengerClientInitFunction<
         }
       },
       isQuoteStatusManagerEnabled: () => {
-        const { remoteFeatureFlags } = remoteFeatureFlagController.state;
-        const bridgeQuoteStatusManager =
-          remoteFeatureFlags.bridgeQuoteStatusManager as
-            | BridgeQuoteStatusManagerFeatureFlag
-            | undefined;
+        const { remoteFeatureFlags, localOverrides } =
+          remoteFeatureFlagController.state;
+        const flags = {
+          ...remoteFeatureFlags,
+          ...(localOverrides ?? {}),
+        };
+        const bridgeQuoteStatusManager = flags.bridgeQuoteStatusManager as
+          | BridgeQuoteStatusManagerFeatureFlag
+          | undefined;
         return bridgeQuoteStatusManager?.enabled === true;
       },
     });
