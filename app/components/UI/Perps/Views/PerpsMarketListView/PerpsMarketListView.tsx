@@ -6,7 +6,7 @@ import {
   IconName,
   IconSize,
 } from '@metamask/design-system-react-native';
-import { View, Animated, ScrollView } from 'react-native';
+import { View, Animated, ScrollView, TouchableOpacity } from 'react-native';
 import { useStyles } from '../../../../../component-library/hooks';
 import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch/TextFieldSearch';
 import { strings } from '../../../../../../locales/i18n';
@@ -393,8 +393,56 @@ const PerpsMarketListView = ({
       );
     }
 
-    // Empty search results - show when user has typed and no markets match
-    if (searchQuery.trim() && filteredMarkets.length === 0) {
+    const hasSearchQuery = searchQuery.trim().length > 0;
+    const hasActiveFilter = marketTypeFilter !== 'all';
+
+    // Filter-priority: both search and category filter active, no results.
+    // Show a filter-aware description and a "Clear filter" CTA so the user
+    // can widen results without losing their search term.
+    if (hasSearchQuery && hasActiveFilter && filteredMarkets.length === 0) {
+      return (
+        <View
+          style={styles.emptyStateContainer}
+          testID={PerpsMarketListViewSelectorsIDs.NO_RESULTS}
+        >
+          <Icon
+            name={IconName.Search}
+            size={IconSize.Xl}
+            color={IconColor.IconMuted}
+            style={styles.emptyStateIcon}
+          />
+          <Text
+            variant={TextVariant.HeadingSM}
+            color={TextColor.Default}
+            style={styles.emptyStateTitle}
+          >
+            {strings('perps.no_markets_found')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.emptyStateDescription}
+          >
+            {strings('perps.no_markets_search_description', {
+              searchQuery: searchQuery.trim(),
+            })}
+          </Text>
+          <TouchableOpacity
+            style={styles.emptyStateCta}
+            onPress={() => setMarketTypeFilter('all')}
+            testID={PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA}
+            accessibilityRole="button"
+          >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+              {strings('perps.clear_filter')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    // Search-only: search active, no category filter, no results.
+    if (hasSearchQuery && filteredMarkets.length === 0) {
       return (
         <View
           style={styles.emptyStateContainer}
@@ -418,10 +466,59 @@ const PerpsMarketListView = ({
             color={TextColor.Alternative}
             style={styles.emptyStateDescription}
           >
-            {searchQuery.trim()
-              ? strings('perps.no_tokens_found_description', { searchQuery })
-              : strings('perps.search_by_token_symbol')}
+            {strings('perps.no_tokens_found_description', { searchQuery })}
           </Text>
+          <TouchableOpacity
+            style={styles.emptyStateCta}
+            onPress={() => setSearchQuery('')}
+            testID={PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA}
+            accessibilityRole="button"
+          >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+              {strings('perps.clear_search')}
+            </Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    // Filter-only: category filter active, no search term, no results.
+    if (hasActiveFilter && filteredMarkets.length === 0) {
+      return (
+        <View
+          style={styles.emptyStateContainer}
+          testID={PerpsMarketListViewSelectorsIDs.NO_RESULTS_FILTER}
+        >
+          <Icon
+            name={IconName.Search}
+            size={IconSize.Xl}
+            color={IconColor.IconMuted}
+            style={styles.emptyStateIcon}
+          />
+          <Text
+            variant={TextVariant.HeadingSM}
+            color={TextColor.Default}
+            style={styles.emptyStateTitle}
+          >
+            {strings('perps.no_markets_found')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Alternative}
+            style={styles.emptyStateDescription}
+          >
+            {strings('perps.no_markets_found_description')}
+          </Text>
+          <TouchableOpacity
+            style={styles.emptyStateCta}
+            onPress={() => setMarketTypeFilter('all')}
+            testID={PerpsMarketListViewSelectorsIDs.EMPTY_STATE_CTA}
+            accessibilityRole="button"
+          >
+            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+              {strings('perps.clear_filter')}
+            </Text>
+          </TouchableOpacity>
         </View>
       );
     }
