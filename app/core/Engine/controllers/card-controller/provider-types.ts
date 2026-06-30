@@ -38,6 +38,11 @@ export class CardProviderError extends Error {
   }
 }
 
+export function isCardAuthTokenError(error: unknown): boolean {
+  const statusCode = (error as { statusCode?: unknown }).statusCode;
+  return error instanceof Error && (statusCode === 401 || statusCode === 403);
+}
+
 export class CardLinkageInProgressError extends Error {
   constructor(
     message = 'A Money Account to Card linkage is already in progress',
@@ -179,6 +184,8 @@ export interface CardAccountStatus {
   provisioningEligible: boolean;
   holderName: string | null;
   shippingAddress: CardShippingAddress | null;
+  countryOfResidence: string | null;
+  usState: string | null;
 }
 
 // -- Alerts & Actions --
@@ -251,17 +258,6 @@ export interface DelegationChallengeResponse {
   expiresAt: string;
 }
 
-export interface CardFundingOption {
-  symbol: string;
-  asset: CardFundingAsset | null;
-}
-
-export interface CardFundingConfig {
-  maxLimit: string;
-  fundingOptions: CardFundingOption[];
-  supportedChains: CaipChainId[];
-}
-
 // -- Cashback --
 
 export interface CashbackWalletResponse {
@@ -276,6 +272,7 @@ export interface CashbackWithdrawEstimationResponse {
   wei: string;
   eth: string;
   price: string;
+  network: string;
 }
 
 export interface CashbackWithdrawParams {
@@ -346,7 +343,6 @@ export interface ICardProvider {
   refreshTokens(tokens: CardAuthTokens): Promise<CardAuthTokens>;
   validateTokens(tokens: CardAuthTokens): AuthTokenValidity;
   logout(tokens: CardAuthTokens): Promise<void>;
-
   getCardHomeData(
     address: string,
     tokens: CardAuthTokens,
@@ -369,7 +365,6 @@ export interface ICardProvider {
     allAssets: CardFundingAsset[],
     tokens: CardAuthTokens,
   ): Promise<void>;
-  getFundingConfig?(tokens: CardAuthTokens): Promise<CardFundingConfig>;
   fetchDelegationChallenge?(
     params: { network: string; address: string; faucet?: boolean },
     tokens: CardAuthTokens,

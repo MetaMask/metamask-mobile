@@ -102,6 +102,7 @@ export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
   first_half_spreads: 'first_half',
   first_half_totals: 'first_half',
   team_totals: 'team_totals',
+  soccer_team_totals: 'team_totals',
   anytime_touchdowns: 'touchdowns',
   first_touchdowns: 'touchdowns',
   rushing_yards: 'rushing',
@@ -116,6 +117,18 @@ export const SPORTS_MARKET_TYPE_TO_GROUP: Record<string, string> = {
   tennis_first_set_winner: 'first_set',
   tennis_first_set_totals: 'first_set',
 };
+
+export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set([
+  'moneyline',
+  'spreads',
+  'totals',
+  'both_teams_to_score',
+  'soccer_first_to_score',
+  'team_totals',
+  'soccer_team_totals',
+  'basketball_team_to_score_first',
+  'soccer_exact_score',
+]);
 
 export const GROUP_ORDER: string[] = [
   'game_lines',
@@ -141,6 +154,7 @@ export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
   tennis_first_set_winner: 0,
   spreads: 1,
   totals: 2,
+  soccer_first_to_score: 4,
   tennis_set_totals: 2,
   tennis_first_set_totals: 2,
   tennis_match_totals: 3,

@@ -153,7 +153,8 @@ export type PredictCategory =
   | 'crypto'
   | 'politics'
   | 'hot'
-  | 'world-cup';
+  | 'world-cup'
+  | 'wimbledon';
 
 // Sports league types
 export type PredictSportsLeague =
@@ -298,6 +299,7 @@ export type PredictOutcomeGroup = {
   key: string;
   outcomes: PredictOutcome[];
   subgroups?: PredictOutcomeGroup[];
+  title?: string;
 };
 
 export type PredictOutcome = {
@@ -327,7 +329,17 @@ export type PredictOutcomeToken = {
   id: string;
   title: string;
   shortTitle?: string;
+  /**
+   * Mid price = implied probability / quoted odds. Use this for "% chance" and
+   * odds display so it matches the chart and Polymarket.
+   */
   price: number;
+  /**
+   * Best ask = the price to actually buy this token. Optional; populated by
+   * hooks that fetch live/REST prices (e.g. useOpenOutcomes). Falls back to
+   * `price` when absent. Use this for BUY CTAs, never for the odds %.
+   */
+  buyPrice?: number;
 };
 
 export interface PredictActivity {
@@ -337,6 +349,10 @@ export interface PredictActivity {
   title?: string;
   outcome?: string;
   icon?: string;
+  slug?: string;
+  eventSlug?: string;
+  netPnlUsd?: number;
+  totalNetPnlUsd?: number;
 }
 
 export type PredictActivityEntry =
@@ -344,24 +360,22 @@ export type PredictActivityEntry =
   | PredictActivitySell
   | PredictActivityClaimWinnings;
 
-export interface PredictActivityBuy {
-  type: 'buy';
+export interface PredictActivityTrade {
   timestamp: number;
   marketId: string;
   outcomeId: string;
   outcomeTokenId: number;
   amount: number;
   price: number;
+  size?: number;
 }
 
-export interface PredictActivitySell {
+export interface PredictActivityBuy extends PredictActivityTrade {
+  type: 'buy';
+}
+
+export interface PredictActivitySell extends PredictActivityTrade {
   type: 'sell';
-  timestamp: number;
-  marketId: string;
-  outcomeId: string;
-  outcomeTokenId: number;
-  amount: number;
-  price: number;
 }
 
 export interface PredictActivityClaimWinnings {
@@ -507,8 +521,38 @@ export type PredictBalance = {
   validUntil: number;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
-export interface ClaimParams {}
+export interface PredictTradeAnalyticsProperties {
+  marketId?: string;
+  marketTitle?: string;
+  marketCategory?: string;
+  marketTags?: string[];
+  actionType?: string;
+  entryPoint?: string;
+  predictFeedTab?: string;
+  predictScreen?: string;
+  predictComponent?: string;
+  transactionType?: string;
+  sharePrice?: number;
+  liquidity?: number;
+  volume?: number;
+  openPositionsCount?: number;
+  claimablePositionsCount?: number;
+  hasClaimableWinnings?: boolean;
+  portfolioModuleEnabled?: boolean;
+  marketType?: string;
+  outcome?: string;
+  marketSlug?: string;
+  gameId?: string;
+  gameStartTime?: string;
+  gameLeague?: string;
+  gameStatus?: string;
+  gamePeriod?: string | null;
+  gameClock?: string | null;
+}
+
+export interface ClaimParams {
+  analyticsProperties?: PredictTradeAnalyticsProperties;
+}
 
 export interface GetMarketPriceResponse {
   price: number;
@@ -696,34 +740,7 @@ export interface PlaceOrderParams {
   address?: string;
   transactionId?: string;
   activeAbTests?: TransactionActiveAbTestEntry[];
-  analyticsProperties?: {
-    marketId?: string;
-    marketTitle?: string;
-    marketCategory?: string;
-    marketTags?: string[];
-    actionType?: string;
-    entryPoint?: string;
-    predictFeedTab?: string;
-    predictScreen?: string;
-    predictComponent?: string;
-    transactionType?: string;
-    sharePrice?: number;
-    liquidity?: number;
-    volume?: number;
-    openPositionsCount?: number;
-    claimablePositionsCount?: number;
-    hasClaimableWinnings?: boolean;
-    portfolioModuleEnabled?: boolean;
-    marketType?: string;
-    outcome?: string;
-    marketSlug?: string;
-    gameId?: string;
-    gameStartTime?: string;
-    gameLeague?: string;
-    gameStatus?: string;
-    gamePeriod?: string | null;
-    gameClock?: string | null;
-  };
+  analyticsProperties?: PredictTradeAnalyticsProperties;
 }
 
 export interface PreviewOrderParams {

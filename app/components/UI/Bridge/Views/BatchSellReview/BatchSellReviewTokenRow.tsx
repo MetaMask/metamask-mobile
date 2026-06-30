@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -66,15 +66,28 @@ export function BatchSellReviewTokenRow({
   isRemoveTokenDisabled = false,
 }: BatchSellReviewTokenRowProps) {
   const tw = useTailwind();
+  // Live slider percent for immediate subtitle updates while dragging. The parent
+  // `percent` prop is only committed on drag end (Redux + debounced quote fetch).
+  const [displayPercent, setDisplayPercent] = useState(percent);
+
+  useEffect(() => {
+    setDisplayPercent(percent);
+  }, [percent]);
+
   const balanceText = useMemo(
-    () => getTokenBalanceText(token, percent),
-    [percent, token],
+    () => getTokenBalanceText(token, displayPercent),
+    [displayPercent, token],
   );
   const shouldShowHighPriceImpactTag =
     !isLoading && !isQuoteUnavailable && isHighPriceImpact;
 
-  const handlePercentChange = useCallback(
+  const handleSliderValueChange = useCallback((nextPercent: number) => {
+    setDisplayPercent(nextPercent);
+  }, []);
+
+  const handleSliderDragEnd = useCallback(
     (nextPercent: number) => {
+      setDisplayPercent(nextPercent);
       onPercentChange(tokenKey, nextPercent);
     },
     [onPercentChange, tokenKey],
@@ -210,8 +223,9 @@ export function BatchSellReviewTokenRow({
         </Box>
       </Box>
       <BatchSellPercentageSlider
-        value={percent}
-        onValueChange={handlePercentChange}
+        value={displayPercent}
+        onValueChange={handleSliderValueChange}
+        onDragEnd={handleSliderDragEnd}
         testID={`${BatchSellReviewSelectorsIDs.TOKEN_SLIDER}-${tokenKey}`}
       />
     </Box>

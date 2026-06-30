@@ -23,6 +23,7 @@ import useMoneyAccountBalance from '../../../../UI/Money/hooks/useMoneyAccountBa
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
 import { usePayTokenAccountBalance } from '../pay/usePayTokenAccountBalance';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 export function useInsufficientPayTokenBalanceAlert({
   pendingAmountUsd,
@@ -59,12 +60,12 @@ export function useInsufficientPayTokenBalanceAlert({
   );
   const isMoneyPaymentOverride =
     paymentOverride === PaymentOverride.MoneyAccount;
-  const { totalFiatRaw } = useMoneyAccountBalance();
+  const { withdrawableFiatRaw } = useMoneyAccountBalance();
   const { balanceUsd: accountBalanceUsd, balanceRaw: accountBalanceRaw } =
     usePayTokenAccountBalance();
 
   const balanceUsd = isMoneyPaymentOverride
-    ? (totalFiatRaw ?? '0')
+    ? (withdrawableFiatRaw ?? '0')
     : accountBalanceUsd;
   const balanceRaw = accountBalanceRaw;
 
@@ -143,6 +144,20 @@ export function useInsufficientPayTokenBalanceAlert({
     ],
   );
 
+  // For money account payments, both the deposit amount and fees are drawn
+  // from the same money account balance. The input-only check above may pass
+  // while the total (input + fees) still exceeds the available balance.
+  // Only checked once quotes have resolved (not during pending keyboard input).
+  const isInsufficientForMoneyAccountTotal = useMemo(
+    () =>
+      isMoneyPaymentOverride &&
+      !isPostQuote &&
+      !isPendingAlert &&
+      totals?.total?.usd !== undefined &&
+      new BigNumber(totals.total.usd).isGreaterThan(balanceUsd ?? '0'),
+    [balanceUsd, isMoneyPaymentOverride, isPendingAlert, isPostQuote, totals],
+  );
+
   // For post-quote flows, we still need to check if the user has enough native
   // token to pay for gas on the source network (e.g., POL for Polygon)
   // In post-quote (withdrawal) flows payToken may be unset when the user keeps
@@ -152,6 +167,7 @@ export function useInsufficientPayTokenBalanceAlert({
   // payToken is absent as long as we're in a post-quote flow.
   const isInsufficientForSourceNetwork = useMemo(
     () =>
+      sourceChainId !== CHAIN_IDS.MONAD &&
       !isMoneyPaymentOverride &&
       (payToken || isPostQuote) &&
       !isPayTokenNative &&
@@ -159,6 +175,7 @@ export function useInsufficientPayTokenBalanceAlert({
       !isSourceGasFeeToken &&
       totalSourceNetworkFeeRaw.isGreaterThan(nativeToken?.balanceRaw ?? '0'),
     [
+      sourceChainId,
       isMoneyPaymentOverride,
       isPayTokenNative,
       isPendingAlert,
@@ -193,6 +210,19 @@ export function useInsufficientPayTokenBalanceAlert({
       ];
     }
 
+    if (isInsufficientForMoneyAccountTotal) {
+      return [
+        {
+          ...baseAlert,
+          key: AlertKeys.InsufficientPayTokenBalance,
+          title: strings('alert_system.insufficient_pay_token_balance.message'),
+          message: strings(
+            'alert_system.insufficient_pay_method_balance.message',
+          ),
+        },
+      ];
+    }
+
     if (isInsufficientForFees) {
       return [
         {
@@ -200,7 +230,7 @@ export function useInsufficientPayTokenBalanceAlert({
           key: AlertKeys.InsufficientPayTokenFees,
           title: strings('alert_system.insufficient_pay_token_balance.message'),
           message: strings(
-            'alert_system.insufficient_pay_token_balance_fees_no_target.message',
+            'alert_system.insufficient_pay_method_balance.message',
           ),
         },
       ];
@@ -225,6 +255,7 @@ export function useInsufficientPayTokenBalanceAlert({
     return [];
   }, [
     isInsufficientForInput,
+    isInsufficientForMoneyAccountTotal,
     isInsufficientForFees,
     isInsufficientForSourceNetwork,
     isPostQuote,

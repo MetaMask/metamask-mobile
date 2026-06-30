@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
 import React from 'react';
 import {
   BottomSheet,
@@ -18,8 +18,7 @@ import { BatchSellMinimumReceivedInfoModalParams } from './BatchSellMinimumRecei
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export function BatchSellMinimumReceivedInfoModal() {
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppStackNavigationProp>();
   const { sourceModal } = useParams<BatchSellMinimumReceivedInfoModalParams>();
   const handleBack = sourceModal
     ? () => navigation.replace(sourceModal.screen, sourceModal.params)

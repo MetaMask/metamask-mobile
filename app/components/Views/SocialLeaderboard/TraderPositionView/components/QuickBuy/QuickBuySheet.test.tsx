@@ -28,6 +28,16 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
+const mockTrack = jest.fn();
+
+jest.mock('../../../analytics', () => {
+  const actual = jest.requireActual('../../../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
+
 // Captures the onOpenDialog callback registered by QuickBuyRootInner.
 // Call storedOnOpenCallback() inside act() after render to simulate the sheet
 // finishing its open animation and make isContentReady become true.
@@ -187,9 +197,10 @@ const buildHookResult = (
   setIsSourcePickerOpen: jest.fn(),
   setSelectedSourceToken: jest.fn(),
   currentCurrency: 'USD',
-  usdAmount: '',
+  fiatAmount: '',
+  fiatAmountLabel: '$0.00',
   sliderPercent: 0,
-  maxSpendUsd: 0,
+  maxSpendFiat: 0,
   formattedExchangeRate: undefined,
   metamaskFeePercent: 0,
   estimatedReceiveAmount: undefined,
@@ -202,7 +213,7 @@ const buildHookResult = (
   formattedMinimumReceivedFiat: undefined,
   formattedPriceImpact: '-',
   formattedRate: undefined,
-  totalAmountUsd: '$0',
+  totalAmountFiat: '$0',
   isQuoteLoading: false,
   isBlockingQuoteLoad: false,
   isSubmittingTx: false,
@@ -210,6 +221,7 @@ const buildHookResult = (
   sortedQuotes: [],
   selectedQuoteRequestId: undefined,
   setSelectedQuoteRequestId: jest.fn(),
+  handleSelectQuote: jest.fn(),
   quotesLastFetchedAt: null,
   refreshCount: 0,
   quoteRefreshRateMs: 30000,

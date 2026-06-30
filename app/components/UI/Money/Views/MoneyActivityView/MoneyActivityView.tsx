@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { SectionList, StyleSheet } from 'react-native';
+import { ScrollView, SectionList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { type TransactionMeta } from '@metamask/transaction-controller';
@@ -23,11 +23,10 @@ import I18n, { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import MoneyActivityRow from '../../components/MoneyActivityRow/MoneyActivityRow';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
-import { useMoneyAccountTransactions } from '../../hooks/useMoneyAccountTransactions';
-import { useMoneyAccountCardTransactions } from '../../hooks/useMoneyAccountCardTransactions';
-import { mergeMoneyActivity } from '../../hooks/useMoneyActivityItems';
-import { onchainItem, type MoneyActivityItem } from '../../types/moneyActivity';
+import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
+import { type MoneyActivityItem } from '../../types/moneyActivity';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
+import { getMoneyActivityStatus } from '../../utils/classifyMoneyActivity';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 import useMountEffect from '../../hooks/useMountEffect';
@@ -38,20 +37,38 @@ import {
   SCREEN_NAMES,
 } from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { partition } from 'lodash';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
+  filterScroll: { flexGrow: 0 },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
 });
 
 const FILTER_LABEL_KEYS = {
   all: 'money.activity.filter_all',
   deposits: 'money.activity.filter_deposits',
-  transfers: 'money.activity.filter_transfers',
+  transfers: 'money.activity.filter_sends',
+  purchases: 'money.activity.filter_purchases',
 } as const;
 
-interface DateSection {
+interface ActivitySection {
   title: string;
   data: MoneyActivityItem[];
+  /** Marks the in-flight bucket so its header renders distinctly from dates. */
+  isPending?: boolean;
+}
+
+/** True for an in-flight on-chain row. Card spends are never pending. */
+function isPendingItem(item: MoneyActivityItem): boolean {
+  return (
+    item.kind === 'onchain' && getMoneyActivityStatus(item.tx) === 'pending'
+  );
 }
 
 function dateKeyUtc(time: number): string {
@@ -61,7 +78,7 @@ function dateKeyUtc(time: number): string {
 function groupByDate(
   items: MoneyActivityItem[],
   locale: string,
-): DateSection[] {
+): ActivitySection[] {
   const groups = new Map<string, MoneyActivityItem[]>();
   for (const item of items) {
     const key = dateKeyUtc(item.time);
@@ -74,7 +91,7 @@ function groupByDate(
   }
   return Array.from(groups.entries()).map(([dateKey, data]) => ({
     title: new Date(`${dateKey}T00:00:00.000Z`).toLocaleDateString(locale, {
-      month: 'long',
+      month: 'short',
       day: 'numeric',
       year: 'numeric',
     }),
@@ -82,12 +99,35 @@ function groupByDate(
   }));
 }
 
+/**
+ * Builds the list sections: a single "Pending" bucket (in-flight rows) on top,
+ * followed by the confirmed/failed rows grouped by date.
+ */
+function buildSections(
+  items: MoneyActivityItem[],
+  locale: string,
+): ActivitySection[] {
+  const [pending, settled] = partition(items, isPendingItem);
+
+  const dateSections = groupByDate(settled, locale);
+  if (pending.length === 0) {
+    return dateSections;
+  }
+  return [
+    {
+      title: strings('money.activity.pending'),
+      data: pending,
+      isPending: true,
+    },
+    ...dateSections,
+  ];
+}
+
 const MoneyActivityView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
   const [filter, setFilter] = useState(MoneyActivityFilter.All);
-
   const { trackScreenViewed, trackActivitySurfaceClicked, trackButtonClicked } =
     useMoneyAnalytics({
       screen_name: SCREEN_NAMES.MONEY_ACTIVITY,
@@ -96,37 +136,11 @@ const MoneyActivityView = () => {
   useMountEffect(trackScreenViewed);
 
   const {
-    allTransactions,
-    deposits,
-    transfers,
+    buckets,
+    isLoading: showActivityLoading,
     moneyAddress,
     mockDataEnabled,
-  } = useMoneyAccountTransactions();
-  const { cardTransactions, isLoading: isCardActivityLoading } =
-    useMoneyAccountCardTransactions();
-
-  // Mock mode shows curated demo data only — never merge real card spends (or
-  // their loading state) into it.
-  const showCardActivityLoading = isCardActivityLoading && !mockDataEnabled;
-
-  // Card spends are outgoing, so they belong with transfers (and in "All").
-  const allItems = useMemo(
-    () =>
-      mergeMoneyActivity(
-        allTransactions,
-        mockDataEnabled ? [] : cardTransactions,
-      ),
-    [allTransactions, cardTransactions, mockDataEnabled],
-  );
-  const depositItems = useMemo(
-    () => deposits.map(onchainItem).sort((a, b) => b.time - a.time),
-    [deposits],
-  );
-  const transferItems = useMemo(
-    () =>
-      mergeMoneyActivity(transfers, mockDataEnabled ? [] : cardTransactions),
-    [transfers, cardTransactions, mockDataEnabled],
-  );
+  } = useMoneyActivityItems();
 
   const handleFilterPress = useCallback(
     (
@@ -158,36 +172,31 @@ const MoneyActivityView = () => {
         component_name: COMPONENT_NAMES.MONEY_ACTIVITY_LIST_ITEM,
       });
 
-      navigation.navigate(Routes.MONEY.MODALS.ROOT, {
-        screen: Routes.MONEY.MODALS.TRANSACTION_DETAILS_SHEET,
-        params: { transactionId: transaction.id },
+      navigation.navigate(Routes.MONEY.TRANSACTION_DETAILS, {
+        transactionId: transaction.id,
       });
     },
     [navigation, trackActivitySurfaceClicked],
   );
 
-  const filtered = useMemo(() => {
-    if (filter === MoneyActivityFilter.All) {
-      return allItems;
-    }
-    if (filter === MoneyActivityFilter.Deposits) {
-      return depositItems;
-    }
-    return transferItems;
-  }, [filter, allItems, depositItems, transferItems]);
+  const filtered = buckets[filter];
 
   const sections = useMemo(
-    () => groupByDate(filtered, I18n.locale),
+    () => buildSections(filtered, I18n.locale),
     [filtered],
   );
 
-  const renderSectionHeader = ({ section }: { section: DateSection }) => (
+  const renderSectionHeader = ({ section }: { section: ActivitySection }) => (
     <Box twClassName="px-4 pt-2 pb-1 bg-default">
       <Text
         variant={TextVariant.BodyMd}
         fontWeight={FontWeight.Medium}
         color={TextColor.TextAlternative}
-        testID={MoneyActivityViewTestIds.DATE_HEADER}
+        testID={
+          section.isPending
+            ? MoneyActivityViewTestIds.PENDING_HEADER
+            : MoneyActivityViewTestIds.DATE_HEADER
+        }
       >
         {section.title}
       </Text>
@@ -238,11 +247,11 @@ const MoneyActivityView = () => {
         </Text>
       </Box>
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        gap={2}
-        paddingHorizontal={4}
-        paddingBottom={3}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterScroll}
+        contentContainerStyle={styles.filterRow}
       >
         <Button
           variant={
@@ -251,7 +260,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
+          twClassName="px-3"
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.All,
@@ -270,7 +279,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
+          twClassName="px-3"
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.Deposits,
@@ -289,7 +298,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
+          twClassName="px-3"
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.Transfers,
@@ -301,16 +310,32 @@ const MoneyActivityView = () => {
         >
           {strings(FILTER_LABEL_KEYS.transfers)}
         </Button>
-      </Box>
+        <Button
+          variant={
+            isActive(MoneyActivityFilter.Purchases)
+              ? ButtonVariant.Primary
+              : ButtonVariant.Secondary
+          }
+          size={ButtonSize.Md}
+          twClassName="px-3"
+          onPress={() =>
+            handleFilterPress(
+              MoneyActivityFilter.Purchases,
+              FILTER_LABEL_KEYS.purchases,
+              COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_PURCHASES,
+            )
+          }
+          testID={MoneyActivityViewTestIds.FILTER_PURCHASES}
+        >
+          {strings(FILTER_LABEL_KEYS.purchases)}
+        </Button>
+      </ScrollView>
 
-      {showCardActivityLoading ? (
+      {showActivityLoading ? (
         <MoneyActivityLoading />
       ) : sections.length === 0 ? (
         <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 px-6 pb-8"
+          twClassName="flex-1 items-center justify-center px-6 pb-32"
           testID={MoneyActivityViewTestIds.EMPTY_LIST}
         >
           <Text

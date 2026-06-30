@@ -45,7 +45,7 @@ const QuickBuyRateTag: React.FC<QuickBuyRateTagProps> = ({
       alignItems={BoxAlignItems.Center}
       gap={1}
     >
-      <Text variant={TextVariant.BodySm} color={textColor}>
+      <Text variant={TextVariant.BodyXs} color={textColor}>
         {displayLabel}
       </Text>
       <Icon name={IconName.ArrowRight} size={IconSize.Sm} color={iconColor} />

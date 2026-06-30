@@ -2,6 +2,7 @@ import { renderHook, act } from '@testing-library/react-native';
 import { useLedgerConfirm } from './useLedgerConfirm';
 
 const mockEnsureDeviceReady = jest.fn();
+const mockSetPendingOperationAddress = jest.fn();
 const mockShowAwaitingConfirmation = jest.fn();
 const mockHideAwaitingConfirmation = jest.fn();
 const mockShowHardwareWalletError = jest.fn();
@@ -10,6 +11,7 @@ const mockIsUserCancellation = jest.fn().mockReturnValue(false);
 jest.mock('../../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
     ensureDeviceReady: mockEnsureDeviceReady,
+    setPendingOperationAddress: mockSetPendingOperationAddress,
     showAwaitingConfirmation: mockShowAwaitingConfirmation,
     hideAwaitingConfirmation: mockHideAwaitingConfirmation,
     showHardwareWalletError: mockShowHardwareWalletError,
@@ -48,7 +50,15 @@ describe('useLedgerConfirm', () => {
       await result.current.onConfirm();
     });
 
-    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('device-123', undefined);
+    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('device-123');
+    expect(mockSetPendingOperationAddress).toHaveBeenNthCalledWith(
+      1,
+      defaultOptions.fromAddress,
+    );
+    expect(
+      mockSetPendingOperationAddress.mock.invocationCallOrder[0],
+    ).toBeLessThan(mockEnsureDeviceReady.mock.invocationCallOrder[0]);
+    expect(mockSetPendingOperationAddress).toHaveBeenLastCalledWith(null);
     expect(mockGetDeviceIdForAddress).toHaveBeenCalledWith(
       defaultOptions.fromAddress,
     );

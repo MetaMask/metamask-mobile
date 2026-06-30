@@ -8,11 +8,14 @@ import {
   DEFAULT_LIVE_SPORTS_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
 import { filterSupportedLeagues } from '../constants/sports';
+import { normalizeEnabledSportsMarketTypes } from '../providers/polymarket/outcomeGrouping';
 import {
   parse,
   PredictFeeCollectionSchema,
+  PredictWimbledonTabSchema,
   PredictWorldCupSchema,
 } from '../schemas';
 import {
@@ -20,6 +23,7 @@ import {
   PredictFeatureFlags,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
+  PredictWimbledonTabFlag,
 } from '../types/flags';
 import { unwrapRemoteFeatureFlag } from './flags';
 
@@ -85,10 +89,15 @@ export function resolvePredictFeatureFlags(
     unwrapRemoteFeatureFlag<PredictExtendedSportsMarketsFlag>(
       flags.predictExtendedSportsMarkets,
     ) ?? DEFAULT_EXTENDED_SPORTS_MARKETS_FLAG;
-  const extendedSportsMarketsLeagues = validatedVersionGatedFeatureFlag(
-    extendedSportsFlag,
-  )
+  const extendedSportsMarketsEnabled =
+    validatedVersionGatedFeatureFlag(extendedSportsFlag);
+  const extendedSportsMarketsLeagues = extendedSportsMarketsEnabled
     ? filterSupportedLeagues(extendedSportsFlag.leagues ?? [])
+    : [];
+  const enabledSportsMarketTypes = extendedSportsMarketsEnabled
+    ? normalizeEnabledSportsMarketTypes(
+        extendedSportsFlag.enabledSportsMarketTypes,
+      )
     : [];
   const fakOrdersEnabled = resolveVersionGatedBooleanFlag(
     flags.predictFakOrders,
@@ -105,11 +114,10 @@ export function resolvePredictFeatureFlags(
   const predictHomeRedesignEnabled = resolveVersionGatedBooleanFlag(
     flags.predictHomeRedesign,
   );
-  const predictHomepageDiscoveryNbaChampionEnabled =
-    resolveVersionGatedBooleanFlag(
-      flags.predictHomepageDiscoveryNbaChampionEnabled,
-      true,
-    );
+  const predictSportCardLivePricesEnabled = resolveVersionGatedBooleanFlag(
+    flags.predictSportCardLivePrices,
+    true,
+  );
   const parsedPredictWorldCup = parse(
     unwrapRemoteFeatureFlag<PredictFeatureFlags['predictWorldCup']>(
       flags.predictWorldCup,
@@ -122,18 +130,30 @@ export function resolvePredictFeatureFlags(
   )
     ? parsedPredictWorldCup
     : DEFAULT_PREDICT_WORLD_CUP_FLAG;
+  const parsedPredictWimbledonTab = parse(
+    unwrapRemoteFeatureFlag<PredictWimbledonTabFlag>(flags.predictWimbledon),
+    PredictWimbledonTabSchema,
+    DEFAULT_WIMBLEDON_TAB_FLAG,
+  );
+  const predictWimbledonTab = validatedVersionGatedFeatureFlag(
+    parsedPredictWimbledonTab,
+  )
+    ? parsedPredictWimbledonTab
+    : DEFAULT_WIMBLEDON_TAB_FLAG;
 
   return {
     feeCollection,
     liveSportsLeagues,
     extendedSportsMarketsLeagues,
+    enabledSportsMarketTypes,
     marketHighlightsFlag,
     fakOrdersEnabled,
     predictWithAnyTokenEnabled,
     predictUpDownEnabled,
     predictPortfolioEnabled,
     predictHomeRedesignEnabled,
-    predictHomepageDiscoveryNbaChampionEnabled,
+    predictSportCardLivePricesEnabled,
     predictWorldCup,
+    predictWimbledonTab,
   };
 }

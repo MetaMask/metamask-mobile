@@ -10,6 +10,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import Routes from '../../../constants/navigation/Routes';
 import AccountActions from './AccountActions';
+import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import { AccountActionsBottomSheetSelectorsIDs } from './AccountActionsBottomSheet.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
@@ -27,6 +28,10 @@ import * as Networks7702 from '../confirmations/hooks/7702/useEIP7702Networks';
 // eslint-disable-next-line import-x/no-namespace
 import * as AddressUtils from '../../../util/address';
 import { RPC } from '../../../constants/network';
+jest.mock('../../../util/analytics/externalLinkTracking', () => ({
+  ...jest.requireActual('../../../util/analytics/externalLinkTracking'),
+  trackBlockExplorerLinkClicked: jest.fn(),
+}));
 
 jest.mock('../confirmations/hooks/7702/useEIP7702Networks', () => ({
   useEIP7702Networks: jest
@@ -384,6 +389,14 @@ describe('AccountActions', () => {
         title: 'Etherscan (Multichain)',
       },
     });
+    expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
+      expect.any(Function),
+      expect.any(Function),
+      expect.objectContaining({
+        location: 'account_actions',
+        url: expect.stringContaining('etherscan.io'),
+      }),
+    );
   });
 
   it('navigates to webview with custom RPC explorer when View on Block Explorer is clicked', () => {

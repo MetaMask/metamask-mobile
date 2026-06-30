@@ -348,12 +348,13 @@ export function usePerpsTPSLForm(
       // Set price as source of truth when user is actively typing
       setTpSourceOfTruth('price');
 
-      // Update RoE percentage based on price only if percentage field is not focused
-      // and we have valid base prices for calculation
+      // Update RoE percentage based on price whenever the user types a trigger
+      // price. The price field is the active source of truth here, so we do not
+      // gate on tpPercentInputFocused — a stale true value must not silently
+      // block the auto-fill (mirrors the same reasoning in handleTakeProfitPercentageChange).
       if (
         sanitized &&
         leverage &&
-        !tpPercentInputFocused &&
         ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
       ) {
         const roePercent = calculateRoEForPrice(sanitized, true, !!position, {
@@ -376,7 +377,6 @@ export function usePerpsTPSLForm(
       actualDirection,
       leverage,
       entryPrice,
-      tpPercentInputFocused,
       takeProfitPrice,
       position,
     ],
@@ -396,12 +396,14 @@ export function usePerpsTPSLForm(
       // Set percentage as source of truth when user is actively typing
       setTpSourceOfTruth('percentage');
 
-      // Update price based on RoE percentage only if price field is not focused
+      // Always compute the trigger price when the user is typing a percentage.
+      // The percentage field is the active source of truth here, so we do not
+      // gate on tpPriceInputFocused — a stale true value (e.g. due to iOS
+      // focus/blur ordering) must not silently block the auto-fill.
       if (
         finalValue &&
         !Number.isNaN(Number.parseFloat(finalValue.replace(' ', ''))) &&
-        leverage &&
-        !tpPriceInputFocused
+        leverage
       ) {
         const roeValue = Number.parseFloat(finalValue.replace(' ', ''));
         const price = calculatePriceForRoE(roeValue, true, {
@@ -423,14 +425,7 @@ export function usePerpsTPSLForm(
       }
       setTpUsingPercentage(true); // User is using RoE percentage-based calculation
     },
-    [
-      currentPrice,
-      actualDirection,
-      leverage,
-      entryPrice,
-      tpPriceInputFocused,
-      takeProfitPercentage,
-    ],
+    [currentPrice, actualDirection, leverage, entryPrice, takeProfitPercentage],
   );
 
   const handleStopLossPriceChange = useCallback(
@@ -461,12 +456,13 @@ export function usePerpsTPSLForm(
       // Set price as source of truth when user is actively typing
       setSlSourceOfTruth('price');
 
-      // Update RoE percentage based on price only if percentage field is not focused
-      // and we have valid base prices for calculation
+      // Update RoE percentage based on price whenever the user types a trigger
+      // price. The price field is the active source of truth here, so we do not
+      // gate on slPercentInputFocused — a stale true value must not silently
+      // block the auto-fill (mirrors the same reasoning in handleStopLossPercentageChange).
       if (
         sanitized &&
         leverage &&
-        !slPercentInputFocused &&
         ((entryPrice && entryPrice > 0) || (currentPrice && currentPrice > 0))
       ) {
         const roePercent = calculateRoEForPrice(sanitized, false, !!position, {
@@ -490,7 +486,6 @@ export function usePerpsTPSLForm(
       actualDirection,
       leverage,
       entryPrice,
-      slPercentInputFocused,
       stopLossPrice,
       position,
     ],
@@ -510,12 +505,14 @@ export function usePerpsTPSLForm(
       // Set percentage as source of truth when user is actively typing
       setSlSourceOfTruth('percentage');
 
-      // Update price based on RoE percentage only if price field is not focused
+      // Always compute the trigger price when the user is typing a percentage.
+      // The percentage field is the active source of truth here, so we do not
+      // gate on slPriceInputFocused — a stale true value (e.g. due to iOS
+      // focus/blur ordering) must not silently block the auto-fill.
       if (
         finalValue &&
         !Number.isNaN(Number.parseFloat(finalValue.replace(' ', ''))) &&
-        leverage &&
-        !slPriceInputFocused
+        leverage
       ) {
         const roeValue = Number.parseFloat(finalValue.replace(' ', ''));
         const price = calculatePriceForRoE(roeValue, false, {
@@ -537,14 +534,7 @@ export function usePerpsTPSLForm(
       }
       setSlUsingPercentage(true); // User is using RoE percentage-based calculation
     },
-    [
-      currentPrice,
-      actualDirection,
-      leverage,
-      entryPrice,
-      slPriceInputFocused,
-      stopLossPercentage,
-    ],
+    [currentPrice, actualDirection, leverage, entryPrice, stopLossPercentage],
   );
 
   // Focus/blur event handlers to manage source of truth and prevent input interference

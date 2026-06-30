@@ -136,6 +136,20 @@ export const useConfirmActions = () => {
     }
 
     if (isQrAccount) {
+      // MM-native sends (simpleSend / tokenMethodTransfer) defer to the
+      // HardwareWalletsSwaps step-progress screen instead of routing
+      // through onQrConfirm, which calls executeHardwareWalletOperation
+      // and shows an awaiting-confirmation bottom sheet that gets
+      // orphaned when deferHwSend navigates away immediately after.
+      if (
+        isTransactionReq &&
+        transactionMetadata &&
+        (transactionMetadata.type === TransactionType.simpleSend ||
+          transactionMetadata.type === TransactionType.tokenMethodTransfer)
+      ) {
+        await onTransactionConfirm();
+        return;
+      }
       await onQrConfirm();
       return;
     }
@@ -165,6 +179,7 @@ export const useConfirmActions = () => {
     executeApproval,
     onLedgerConfirm,
     onQrConfirm,
+    transactionMetadata,
   ]);
 
   return { onConfirm, onReject };
