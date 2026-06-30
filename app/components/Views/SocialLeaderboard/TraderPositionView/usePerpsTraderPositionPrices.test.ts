@@ -70,6 +70,37 @@ describe('usePerpsTraderPositionPrices', () => {
     }
   });
 
+  it('clears loading when the active period resolves without waiting on earlier periods', async () => {
+    const oneMonthPrices: TokenPrice[] = [
+      ['1', 100],
+      ['2', 101],
+    ];
+    let resolveSlowPeriods: () => void = () => undefined;
+    const slowPeriodsPromise = new Promise<TokenPrice[]>((resolve) => {
+      resolveSlowPeriods = () => resolve([]);
+    });
+
+    mockFetchHyperliquid.mockImplementation(({ interval }) => {
+      if (interval === '4h') {
+        return Promise.resolve(oneMonthPrices);
+      }
+      if (interval === '1m' || interval === '15m' || interval === '1h') {
+        return slowPeriodsPromise;
+      }
+      return Promise.resolve([]);
+    });
+
+    const { result } = renderPerpPrices();
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+    expect(mockFetchHyperliquid).toHaveBeenCalledTimes(5);
+
+    resolveSlowPeriods();
+    await act(async () => {
+      await Promise.resolve();
+    });
+  });
+
   it('does not refetch already-loaded periods when positionParam gets a new reference', async () => {
     const goodPrices: TokenPrice[] = [
       ['1', 100],

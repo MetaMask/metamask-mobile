@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type Dispatch,
+  type SetStateAction,
+} from 'react';
 import type { Position } from '@metamask/social-controllers';
 import type { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import { isPerpPosition } from '../utils/perp';
@@ -109,6 +116,55 @@ async function fetchPerpPeriodCandles({
   return { period, prices, limit };
 }
 
+function applyPerpPeriodFetchResult(
+  setPerpCache: Dispatch<SetStateAction<PerpCacheState>>,
+  perpKey: string,
+  result: { period: TimePeriod; prices: TokenPrice[]; limit: number },
+) {
+  setPerpCache((prev) =>
+    mergePerpPeriodIntoCache(
+      prev,
+      perpKey,
+      result.period,
+      result.prices,
+      result.limit,
+    ),
+  );
+}
+
+/** Fires every period at once so the active interval can resolve without waiting on earlier ones. */
+function prefetchPerpPeriodsInParallel({
+  perpSymbol,
+  perpKey,
+  earliestTradeMs,
+  nowMs,
+  getCached,
+  setPerpCache,
+  isCancelled,
+}: {
+  perpSymbol: string;
+  perpKey: string;
+  earliestTradeMs: number | undefined;
+  nowMs: number;
+  getCached: () => PerpCacheState;
+  setPerpCache: Dispatch<SetStateAction<PerpCacheState>>;
+  isCancelled: () => boolean;
+}) {
+  for (const period of TIME_PERIODS) {
+    fetchPerpPeriodCandles({
+      period,
+      perpSymbol,
+      perpKey,
+      earliestTradeMs,
+      nowMs,
+      cached: getCached(),
+    }).then((result) => {
+      if (isCancelled() || !result) return;
+      applyPerpPeriodFetchResult(setPerpCache, perpKey, result);
+    });
+  }
+}
+
 export interface PerpsTraderPositionPricesParams {
   positionParam: Position | undefined;
   activeTimePeriod: TimePeriod;
@@ -161,33 +217,15 @@ export function usePerpsTraderPositionPrices(
     const nowMs = Date.now();
     const { tokenSymbol: perpSymbol } = positionParam;
 
-    const prefetchAllPeriods = async () => {
-      for (const period of TIME_PERIODS) {
-        if (cancelled) return;
-
-        const result = await fetchPerpPeriodCandles({
-          period,
-          perpSymbol,
-          perpKey,
-          earliestTradeMs,
-          nowMs,
-          cached: perpCacheRef.current,
-        });
-        if (cancelled || !result) continue;
-
-        setPerpCache((prev) =>
-          mergePerpPeriodIntoCache(
-            prev,
-            perpKey,
-            result.period,
-            result.prices,
-            result.limit,
-          ),
-        );
-      }
-    };
-
-    void prefetchAllPeriods();
+    prefetchPerpPeriodsInParallel({
+      perpSymbol,
+      perpKey,
+      earliestTradeMs,
+      nowMs,
+      getCached: () => perpCacheRef.current,
+      setPerpCache,
+      isCancelled: () => cancelled,
+    });
 
     return () => {
       cancelled = true;
