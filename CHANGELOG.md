@@ -9,14 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.0.1]
 
+### Added
+
+- Added a Wimbledon tab to Predict and fixed sports home/away ordering consistency in scoreboards. (#32546)
+
 ### Fixed
 
 - Replaced faulty money first time deposit animation and removed parallax effect. (#32535)
 - Fixed a bug where the World Cup Games tab showed a green live indicator even when no matches were in progress. (#32542)
-
-### Added
-
-- Added a Wimbledon tab to Predict and fixed sports home/away ordering consistency in scoreboards. (#32546)
 
 ## [8.0.0]
 
