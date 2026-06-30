@@ -120,7 +120,7 @@ export const TokenButton: React.FC<TokenProps> = ({
           <Icon
             testID={`token-verified-icon-${symbol}`}
             name={IconName.VerifiedFilled}
-            size={IconSize.Sm}
+            size={IconSize.Md}
             color={IconColor.InfoDefault}
           />
         ) : null}
