@@ -34,6 +34,7 @@ import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
 import { Button } from '@metamask/design-system-react-native';
 import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
+import { InteractionManager } from 'react-native';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -407,6 +408,57 @@ describe('BridgeView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeTruthy();
+  });
+
+  it('shows prefilled form shell and defers heavy bridge content when entered from ActivityDetails', () => {
+    let runDeferredBridgeContent: (() => void) | undefined;
+    const runAfterInteractionsSpy = jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((callback) => {
+        runDeferredBridgeContent = callback as () => void;
+        return { cancel: jest.fn() } as ReturnType<
+          typeof InteractionManager.runAfterInteractions
+        >;
+      });
+    mockRoute.params = {
+      sourcePage: 'ActivityDetails',
+      sourceToken: {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1' as Hex,
+        decimals: 18,
+        symbol: 'ETH',
+      },
+      destToken: {
+        address: token2Address,
+        chainId: '0x1' as Hex,
+        decimals: 18,
+        symbol: 'TOKEN2',
+      },
+      sourceAmount: '1.23',
+    } as BridgeRouteParams;
+
+    const { getByText, getByTestId } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: mockState },
+    );
+
+    expect(getByText('ETH')).toBeTruthy();
+    expect(getByText('TOKEN2')).toBeTruthy();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.QUOTE_DETAILS_SKELETON),
+    ).toBeTruthy();
+
+    act(() => {
+      runDeferredBridgeContent?.();
+    });
+
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
+    ).toBeTruthy();
+    runAfterInteractionsSpy.mockRestore();
   });
 
   it('scrolls to top and clears the route param when requested on focus', () => {
@@ -1525,15 +1577,23 @@ describe('BridgeView', () => {
     it('uses destToken from route params when provided', () => {
       mockRoute.params.destToken = mockDeepLinkDestToken;
 
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          destToken: undefined,
+        },
+      };
+
       const { getByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: mockState },
+        { state: testState },
       );
 
-      // Should display the deep link dest token symbol
+      // Should display the route-param dest token before Redux destToken is set.
       expect(getByText('USDT')).toBeTruthy();
     });
 

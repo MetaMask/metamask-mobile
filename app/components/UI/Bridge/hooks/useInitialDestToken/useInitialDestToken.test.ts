@@ -9,6 +9,7 @@ import { selectChainId } from '../../../../../selectors/networkController';
 import {
   selectBridgeViewMode,
   setDestToken,
+  setIsDestTokenManuallySet,
 } from '../../../../../core/redux/slices/bridge';
 
 // Mock dependencies
@@ -23,6 +24,7 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     ...actual,
     default: actual.default,
     setDestToken: jest.fn(actual.setDestToken),
+    setIsDestTokenManuallySet: jest.fn(actual.setIsDestTokenManuallySet),
     selectBridgeViewMode: jest.fn().mockReturnValue('Bridge'),
     selectBip44DefaultPair: jest.fn(actual.selectBip44DefaultPair),
   };
@@ -112,6 +114,28 @@ describe('useInitialDestToken', () => {
       expect(setDestToken).toHaveBeenCalledWith(
         getSwapDestToken(SolScope.Mainnet),
       );
+    });
+  });
+
+  it('should set explicit initial dest token as manually selected', async () => {
+    const mockDestToken: BridgeToken = {
+      address: '0xabc',
+      symbol: 'DEST',
+      decimals: 6,
+      name: 'Destination Token',
+      chainId: SolScope.Mainnet,
+    };
+
+    renderHookWithProvider(
+      () => useInitialDestToken(mockSourceToken, mockDestToken),
+      {
+        state: initialState,
+      },
+    );
+
+    await waitFor(() => {
+      expect(setDestToken).toHaveBeenCalledWith(mockDestToken);
+      expect(setIsDestTokenManuallySet).toHaveBeenCalledWith(true);
     });
   });
 

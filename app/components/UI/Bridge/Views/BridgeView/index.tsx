@@ -59,7 +59,7 @@ import {
 } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import { BridgeViewMode, SecurityDataType } from '../../types';
+import { BridgeToken, BridgeViewMode, SecurityDataType } from '../../types';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
@@ -77,6 +77,7 @@ import { selectSelectedNetworkClientId } from '../../../../../selectors/networkC
 import { useIsNetworkEnabled } from '../../hooks/useIsNetworkEnabled';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import {
+  InteractionManager,
   Pressable,
   ScrollView,
   type NativeSyntheticEvent,
@@ -127,6 +128,22 @@ import {
 } from '../../utils/postTradeNotifications';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
+const ACTIVITY_DETAILS_SOURCE_PAGE = 'ActivityDetails';
+
+const getHeaderTitle = (bridgeViewMode?: BridgeViewMode) => {
+  if (bridgeViewMode === BridgeViewMode.Bridge) {
+    return strings('bridge.title');
+  }
+
+  if (
+    bridgeViewMode === BridgeViewMode.Swap ||
+    bridgeViewMode === BridgeViewMode.Unified
+  ) {
+    return strings('swaps.title');
+  }
+
+  return `${strings('swaps.title')}/${strings('bridge.title')}`;
+};
 
 interface BridgeViewContentProps {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -219,6 +236,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
   const initialDestToken = route.params?.destToken;
+  const displayDestToken = destToken ?? initialDestToken;
   useInitialSourceToken(initialSourceToken, initialSourceAmount);
   useInitialDestToken(initialSourceToken, initialDestToken);
 
@@ -312,14 +330,14 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
 
   // Check if quote is sponsored: both tokens must be on the same chain and that chain must be sponsored
   const isQuoteSponsored = useMemo(() => {
-    if (!sourceToken?.chainId || !destToken?.chainId) return false;
+    if (!sourceToken?.chainId || !displayDestToken?.chainId) return false;
     // Both tokens must be on the same chain
-    if (sourceToken.chainId !== destToken.chainId) return false;
+    if (sourceToken.chainId !== displayDestToken.chainId) return false;
     // Check if the chain is sponsored
     return isGasFeesSponsoredNetworkEnabled(sourceToken.chainId as Hex);
   }, [
     sourceToken?.chainId,
-    destToken?.chainId,
+    displayDestToken?.chainId,
     isGasFeesSponsoredNetworkEnabled,
   ]);
 
@@ -375,17 +393,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     [dispatch],
   );
 
-  let headerTitle: string;
-  if (bridgeViewMode === BridgeViewMode.Bridge) {
-    headerTitle = strings('bridge.title');
-  } else if (
-    bridgeViewMode === BridgeViewMode.Swap ||
-    bridgeViewMode === BridgeViewMode.Unified
-  ) {
-    headerTitle = strings('swaps.title');
-  } else {
-    headerTitle = `${strings('swaps.title')}/${strings('bridge.title')}`;
-  }
+  const headerTitle = getHeaderTitle(bridgeViewMode);
 
   useTrackSwapPageViewed(location);
 
@@ -534,7 +542,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                   onPress={handleFlipTokensPress}
                   disabled={
                     !destChainId ||
-                    !destToken ||
+                    !displayDestToken ||
                     !sourceToken ||
                     !isDestNetworkEnabled
                   }
@@ -542,10 +550,12 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                 <Box style={styles.tokenCard}>
                   <TokenInputArea
                     amount={destTokenAmount}
-                    token={destToken}
+                    token={displayDestToken}
                     networkImageSource={
-                      destToken
-                        ? getNetworkImageSource({ chainId: destToken?.chainId })
+                      displayDestToken
+                        ? getNetworkImageSource({
+                            chainId: displayDestToken.chainId,
+                          })
                         : undefined
                     }
                     testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
@@ -556,6 +566,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                     style={styles.destTokenArea}
                     isQuoteSponsored={isQuoteSponsored}
                     showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
+                    shouldFetchExchangeRate={Boolean(destTokenAmount)}
                   />
                 </Box>
               </Box>
@@ -771,7 +782,78 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   );
 };
 
-const BridgeView = () => {
+const DeferredBridgeViewPlaceholder = ({
+  bridgeViewMode,
+  sourceToken,
+  destToken,
+  sourceAmount,
+}: {
+  bridgeViewMode?: BridgeViewMode;
+  sourceToken?: BridgeToken;
+  destToken?: BridgeToken;
+  sourceAmount?: string;
+}) => {
+  const { styles } = useStyles(createStyles);
+  const navigation = useNavigation();
+
+  return (
+    <SafeAreaView
+      style={styles.screenWrapper}
+      edges={['bottom', 'left', 'right']}
+    >
+      <HeaderStandard
+        title={getHeaderTitle(bridgeViewMode)}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
+      <ScreenView safeAreaEdges={[]} contentContainerStyle={styles.screen}>
+        <Box style={styles.content}>
+          <ScrollView
+            testID={BridgeViewSelectorsIDs.BRIDGE_VIEW_SCROLL}
+            style={styles.scrollView}
+            contentContainerStyle={styles.scrollViewContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <Box style={styles.inputsContainer}>
+              <TokenInputArea
+                amount={sourceAmount}
+                token={sourceToken}
+                networkImageSource={
+                  sourceToken
+                    ? getNetworkImageSource({ chainId: sourceToken.chainId })
+                    : undefined
+                }
+                testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
+                tokenType={TokenInputAreaType.Source}
+                isSourceToken
+                shouldFetchExchangeRate={false}
+              />
+              <FLipQuoteButton onPress={() => undefined} disabled />
+              <TokenInputArea
+                token={destToken}
+                networkImageSource={
+                  destToken
+                    ? getNetworkImageSource({ chainId: destToken.chainId })
+                    : undefined
+                }
+                testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
+                tokenType={TokenInputAreaType.Destination}
+                isLoading
+                style={styles.destTokenArea}
+                shouldFetchExchangeRate={false}
+              />
+            </Box>
+            <Box style={styles.loadingContainer}>
+              <QuoteDetailsCardSkeleton />
+            </Box>
+          </ScrollView>
+        </Box>
+      </ScreenView>
+    </SafeAreaView>
+  );
+};
+
+const BridgeViewReadyContent = () => {
   const sourceToken = useSelector(selectSourceToken);
   const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
   const latestSourceBalance = useLatestBalance({
@@ -789,6 +871,43 @@ const BridgeView = () => {
       <BridgeViewContent latestSourceBalance={latestSourceBalance} />
     </BridgeQuoteDataProvider>
   );
+};
+
+const BridgeView = () => {
+  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
+  const shouldDeferInitialContent =
+    route.params?.sourcePage === ACTIVITY_DETAILS_SOURCE_PAGE;
+  const [shouldRenderContent, setShouldRenderContent] = useState(
+    !shouldDeferInitialContent,
+  );
+
+  useEffect(() => {
+    if (!shouldDeferInitialContent) {
+      setShouldRenderContent(true);
+      return;
+    }
+
+    const interactionHandle = InteractionManager.runAfterInteractions(() => {
+      setShouldRenderContent(true);
+    });
+
+    return () => {
+      interactionHandle.cancel();
+    };
+  }, [shouldDeferInitialContent]);
+
+  if (!shouldRenderContent) {
+    return (
+      <DeferredBridgeViewPlaceholder
+        bridgeViewMode={route.params?.bridgeViewMode}
+        sourceToken={route.params?.sourceToken}
+        destToken={route.params?.destToken}
+        sourceAmount={route.params?.sourceAmount}
+      />
+    );
+  }
+
+  return <BridgeViewReadyContent />;
 };
 
 export default BridgeView;

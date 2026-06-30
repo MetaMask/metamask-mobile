@@ -51,6 +51,10 @@ jest.mock('../../hooks/useDisplayCurrencyValue', () => ({
   useDisplayCurrencyValue: jest.fn(() => '$100.00'),
 }));
 
+jest.mock('../../hooks/useBridgeExchangeRates', () => ({
+  useBridgeExchangeRates: jest.fn(),
+}));
+
 jest.mock('../../hooks/useInsufficientBalance', () => jest.fn(() => false));
 
 jest.mock('../TokenButton', () => {
@@ -96,6 +100,10 @@ const mockUseDisplayCurrencyValue =
   useDisplayCurrencyValue as jest.MockedFunction<
     typeof useDisplayCurrencyValue
   >;
+
+import { useBridgeExchangeRates } from '../../hooks/useBridgeExchangeRates';
+const mockUseBridgeExchangeRates =
+  useBridgeExchangeRates as jest.MockedFunction<typeof useBridgeExchangeRates>;
 
 const mockOnTokenPress = jest.fn();
 const mockOnFocus = jest.fn();
@@ -202,6 +210,67 @@ describe('TokenInputArea', () => {
 
     const input = getByTestId('token-input-input');
     expect(input.props.selection).toEqual({ start: 0, end: 0 });
+  });
+
+  it('fetches exchange rates by default', () => {
+    const mockToken: BridgeToken = {
+      address: '0x1234567890123456789012345678901234567890',
+      symbol: 'TEST',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
+
+    renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Source}
+          token={mockToken}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
+      },
+      { state: initialState },
+    );
+
+    expect(mockUseBridgeExchangeRates).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token: mockToken,
+        enabled: true,
+      }),
+    );
+  });
+
+  it('can skip exchange-rate fetches for destination tokens', () => {
+    const mockToken: BridgeToken = {
+      address: '0x1234567890123456789012345678901234567890',
+      symbol: 'TEST',
+      decimals: 18,
+      chainId: '0x1' as `0x${string}`,
+    };
+
+    renderScreen(
+      () => (
+        <TokenInputArea
+          testID="token-input"
+          tokenType={TokenInputAreaType.Destination}
+          token={mockToken}
+          shouldFetchExchangeRate={false}
+        />
+      ),
+      {
+        name: 'TokenInputArea',
+      },
+      { state: initialState },
+    );
+
+    expect(mockUseBridgeExchangeRates).toHaveBeenCalledWith(
+      expect.objectContaining({
+        token: mockToken,
+        enabled: false,
+      }),
+    );
   });
 
   it('displays max button for source token with balance and calls onMaxPress when clicked', () => {

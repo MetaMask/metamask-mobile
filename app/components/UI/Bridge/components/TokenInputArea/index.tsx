@@ -173,6 +173,7 @@ interface TokenInputAreaProps {
   onAmountTypeTogglePress?: () => void;
   amountTypeToggleTestID?: string;
   showFiatAmountAsPrimary?: boolean;
+  shouldFetchExchangeRate?: boolean;
 }
 
 export const TokenInputArea = forwardRef<
@@ -206,6 +207,7 @@ export const TokenInputArea = forwardRef<
       onAmountTypeTogglePress,
       amountTypeToggleTestID,
       showFiatAmountAsPrimary = false,
+      shouldFetchExchangeRate = true,
     },
     ref,
   ) => {
@@ -219,6 +221,7 @@ export const TokenInputArea = forwardRef<
         tokenType === TokenInputAreaType.Source
           ? setSourceTokenExchangeRate
           : setDestTokenExchangeRate,
+      enabled: shouldFetchExchangeRate,
     });
 
     const inputRef = useRef<TextInput>(null);
