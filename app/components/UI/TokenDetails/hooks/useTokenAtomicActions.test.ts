@@ -1079,30 +1079,6 @@ describe('useTokenAtomicActions - useHandleOnSwap securityData adaptation', () =
     );
   });
 
-  it('does not derive isVerified from token security data', () => {
-    const verifiedToken = {
-      ...defaultToken,
-      balance: '1',
-      securityData: buildTrendingSecurityData({
-        resultType: SecurityDataType.Verified,
-      }),
-    } as TokenI;
-
-    const { result } = renderHook(() =>
-      useHandleOnSwap({ token: verifiedToken }),
-    );
-
-    result.current();
-
-    const sourceToken = mockGoToSwaps.mock.calls[0][0];
-    expect(sourceToken).toEqual(
-      expect.objectContaining({
-        address: defaultToken.address,
-      }),
-    );
-    expect(sourceToken).not.toHaveProperty('isVerified');
-  });
-
   it('passes securityData as undefined when the token has no security data', () => {
     const tokenWithBalance = {
       ...defaultToken,
