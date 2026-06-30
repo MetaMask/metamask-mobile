@@ -113,7 +113,7 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
           ) : undefined
         }
       />
-      // TODO: place this into SectionHeader's children when available
+      {/* TODO: place this into SectionHeader children when available */}
       {subtitle && subtitleSuffix ? (
         <HomepageSectionUnrealizedPnlRow
           label={subtitleSuffix}

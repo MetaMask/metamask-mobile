@@ -518,6 +518,11 @@ describe('PerpsHomeView', () => {
       },
       isInitialLoading: false,
     });
+    (useDiscoveryScrollManager as jest.Mock).mockReturnValue({
+      scrollHandler: mockPerpsScrollHandler,
+      onTabEnter: mockPerpsOnTabEnter,
+      headerHidden: false,
+    });
   });
 
   it('renders without crashing', () => {
@@ -997,7 +1002,7 @@ describe('PerpsHomeView', () => {
         (() => void) | null
       >;
       const newOnTabEnter = jest.fn();
-      (useDiscoveryScrollManager as jest.Mock).mockReturnValueOnce({
+      (useDiscoveryScrollManager as jest.Mock).mockReturnValue({
         scrollHandler: mockPerpsScrollHandler,
         onTabEnter: newOnTabEnter,
         headerHidden: false,
