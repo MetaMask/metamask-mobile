@@ -6,10 +6,7 @@ export const styleSheet = (params: { theme: Theme }) => {
 
   return StyleSheet.create({
     container: {
-      paddingTop: 32,
       paddingBottom: 24,
-      borderTopWidth: 1,
-      borderTopColor: theme.colors.border.muted,
     },
     scrollContainer: {
       marginTop: 12,

@@ -772,10 +772,13 @@ describe('PerpsHomeView', () => {
   });
 
   it('renders main sections', () => {
-    // Arrange & Act
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      isLoading: { ...mockDefaultData.isLoading, activity: true },
+    });
+
     const { UNSAFE_getByType } = render(<PerpsHomeView />);
 
-    // Assert
     expect(UNSAFE_getByType('PerpsMarketBalanceActions' as never)).toBeTruthy();
     expect(UNSAFE_getByType('PerpsRecentActivityList' as never)).toBeTruthy();
   });
@@ -805,18 +808,16 @@ describe('PerpsHomeView', () => {
     expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
   });
 
-  it('renders watchlist component with empty markets array', () => {
-    // Arrange
+  it('does not render watchlist when markets and suggestions are empty', () => {
     mockUsePerpsHomeData.mockReturnValue({
       ...mockDefaultData,
       watchlistMarkets: [],
+      suggestedWatchlistMarkets: [],
     });
 
-    // Act
-    const { UNSAFE_getByType } = render(<PerpsHomeView />);
+    const { UNSAFE_queryByType } = render(<PerpsHomeView />);
 
-    // Assert - Component is rendered, it handles empty state internally
-    expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
+    expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeNull();
   });
 
   describe('Feedback Feature', () => {

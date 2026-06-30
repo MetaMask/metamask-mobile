@@ -5,7 +5,6 @@ import {
   TextColor,
   TextVariant,
   FontWeight,
-  SectionDivider,
   SectionHeader,
   ButtonIcon,
   ButtonIconSize,
@@ -99,7 +98,6 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
 
   return (
     <Box testID={testID}>
-      <SectionDivider />
       <SectionHeader
         title={title}
         twClassName={showAction ? 'pb-1 justify-between pr-3' : 'pb-1'}
@@ -115,6 +113,7 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
           ) : undefined
         }
       />
+      // TODO: place this into SectionHeader's children when available
       {subtitle && subtitleSuffix ? (
         <HomepageSectionUnrealizedPnlRow
           label={subtitleSuffix}

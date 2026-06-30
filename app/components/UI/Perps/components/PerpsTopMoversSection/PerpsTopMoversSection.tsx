@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import {
   Box,
   FilterButton,
-  SectionDivider,
   SectionHeader,
   SegmentedControl,
 } from '@metamask/design-system-react-native';
@@ -93,7 +92,6 @@ const PerpsTopMoversSectionInner: React.FC<PerpsTopMoversSectionProps> = ({
       paddingBottom={3}
       testID={PerpsHomeViewSelectorsIDs.TOP_MOVERS_SECTION}
     >
-      <SectionDivider />
       <SectionHeader
         title={strings('perps.home.top_movers')}
         isInteractive
