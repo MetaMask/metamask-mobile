@@ -41,7 +41,7 @@ import {
   completedOrdersFromFiatOrders,
   completedOrdersFromRampsOrders,
 } from '../../Ramp/utils/determinePreferredProvider';
-import { BridgeToken, SecurityDataType } from '../../Bridge/types';
+import { BridgeToken } from '../../Bridge/types';
 import { adaptTokenSecurityData } from '../../Bridge/utils/tokenSecurityUtils';
 import { getSwapDestToken } from '../../Bridge/utils/getSwapDestToken';
 import { selectAssetsBySelectedAccountGroup } from '../../../../selectors/assets/assets-list';
@@ -166,7 +166,6 @@ const toCurrentTokenAsBridgeToken = (token: TokenI): BridgeToken => ({
   name: token.name,
   image: token.image,
   securityData: adaptTokenSecurityData(token.securityData),
-  isVerified: token.securityData?.resultType === SecurityDataType.Verified,
   rwaData: token.rwaData,
 });
 

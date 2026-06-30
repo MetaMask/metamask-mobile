@@ -1079,7 +1079,7 @@ describe('useTokenAtomicActions - useHandleOnSwap securityData adaptation', () =
     );
   });
 
-  it('marks bridge token as verified when token security data is verified', () => {
+  it('does not derive isVerified from token security data', () => {
     const verifiedToken = {
       ...defaultToken,
       balance: '1',
@@ -1094,15 +1094,13 @@ describe('useTokenAtomicActions - useHandleOnSwap securityData adaptation', () =
 
     result.current();
 
-    expect(mockGoToSwaps).toHaveBeenCalledWith(
+    const sourceToken = mockGoToSwaps.mock.calls[0][0];
+    expect(sourceToken).toEqual(
       expect.objectContaining({
         address: defaultToken.address,
-        isVerified: true,
       }),
-      undefined,
-      undefined,
-      true,
     );
+    expect(sourceToken).not.toHaveProperty('isVerified');
   });
 
   it('passes securityData as undefined when the token has no security data', () => {
