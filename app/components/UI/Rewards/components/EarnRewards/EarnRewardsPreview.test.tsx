@@ -2,14 +2,9 @@ import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import EarnRewardsPreview from './EarnRewardsPreview';
-import Routes from '../../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
-
-const mockNavigate = jest.fn();
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ navigate: mockNavigate }),
-}));
+import useMoneyAccountBalance from '../../../Money/hooks/useMoneyAccountBalance';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -22,6 +17,10 @@ jest.mock('../../../../../core/DeeplinkManager', () => ({
 const mockHandleDeeplink = handleDeeplink as jest.MockedFunction<
   typeof handleDeeplink
 >;
+
+jest.mock('../../../Money/hooks/useMoneyAccountBalance', () => jest.fn());
+const mockUseMoneyAccountBalance =
+  useMoneyAccountBalance as jest.MockedFunction<typeof useMoneyAccountBalance>;
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -39,17 +38,24 @@ jest.mock('../../../../../util/theme', () => ({
 }));
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: (key: string) => {
+  strings: (key: string, params?: Record<string, string | number>) => {
     const map: Record<string, string> = {
       'rewards.earn_rewards.title': 'Earn rewards',
-      'rewards.earn_rewards.musd_title': 'Up to 3% bonus on stables',
-      'rewards.earn_rewards.musd_subtitle': 'Calculate your mUSD bonus',
+      'rewards.earn_rewards.musd_title': 'Up to {{percentage}}% bonus on mUSD',
+      'rewards.earn_rewards.musd_subtitle': 'Money accounts are here',
       'rewards.earn_rewards.card_title': 'Up to 3% back on spend',
       'rewards.earn_rewards.card_subtitle': 'Get your MetaMask Card now',
       'rewards.earn_rewards.card_subtitle_cardholder':
         'Access your MetaMask Card benefits',
     };
-    return map[key] || key;
+    const value = map[key] || key;
+    return params
+      ? Object.entries(params).reduce(
+          (text, [paramKey, paramValue]) =>
+            text.replace(`{{${paramKey}}}`, String(paramValue)),
+          value,
+        )
+      : value;
   },
 }));
 
@@ -70,12 +76,14 @@ import {
   selectIsCardholder,
   selectIsCardAuthenticated,
 } from '../../../../../selectors/cardController';
+import { selectMoneyEnableMoneyAccountFlag } from '../../../Money/selectors/featureFlags';
 
 interface SetupOptions {
   geoLocation?: string;
   geoStatus?: 'idle' | 'loading' | 'complete';
   isCardholder?: boolean;
   isAuthenticatedCard?: boolean;
+  isMoneyAccountEnabled?: boolean;
 }
 
 const setupSelectors = ({
@@ -83,11 +91,14 @@ const setupSelectors = ({
   geoStatus = 'complete',
   isCardholder = false,
   isAuthenticatedCard = false,
+  isMoneyAccountEnabled = true,
 }: SetupOptions = {}) => {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectGeolocationLocation)
       return geoLocation === undefined ? undefined : geoLocation;
     if (selector === selectGeolocationStatus) return geoStatus;
+    if (selector === selectMoneyEnableMoneyAccountFlag)
+      return isMoneyAccountEnabled;
     if (selector === selectIsCardholder) return isCardholder;
     if (selector === selectIsCardAuthenticated) return isAuthenticatedCard;
     return undefined;
@@ -97,6 +108,9 @@ const setupSelectors = ({
 describe('EarnRewardsPreview', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseMoneyAccountBalance.mockReturnValue({
+      apyPercent: 3.8,
+    } as ReturnType<typeof useMoneyAccountBalance>);
   });
 
   describe('section title', () => {
@@ -186,6 +200,20 @@ describe('EarnRewardsPreview', () => {
       ).toBeOnTheScreen();
     });
 
+    it('hides only the mUSD card when Money account feature flag is disabled, keeps Card card visible', () => {
+      setupSelectors({ geoLocation: 'US', isMoneyAccountEnabled: false });
+      const { queryByTestId } = render(<EarnRewardsPreview />);
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
+      ).toBeNull();
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
+      ).toBeOnTheScreen();
+    });
+
     it('shows mUSD card when geoLocation is UNKNOWN (treated as non-UK)', () => {
       setupSelectors({ geoLocation: 'UNKNOWN' });
       const { getByTestId } = render(<EarnRewardsPreview />);
@@ -197,8 +225,17 @@ describe('EarnRewardsPreview', () => {
     it('renders correct text for mUSD card', () => {
       setupSelectors({ geoLocation: 'US' });
       const { getByText } = render(<EarnRewardsPreview />);
-      expect(getByText('Up to 3% bonus on stables')).toBeOnTheScreen();
-      expect(getByText('Calculate your mUSD bonus')).toBeOnTheScreen();
+      expect(getByText('Up to 3.8% bonus on mUSD')).toBeOnTheScreen();
+      expect(getByText('Money accounts are here')).toBeOnTheScreen();
+    });
+
+    it('falls back to 3% in the mUSD card title when APY is unavailable', () => {
+      mockUseMoneyAccountBalance.mockReturnValue({
+        apyPercent: undefined,
+      } as ReturnType<typeof useMoneyAccountBalance>);
+      setupSelectors({ geoLocation: 'US' });
+      const { getByText } = render(<EarnRewardsPreview />);
+      expect(getByText('Up to 3% bonus on mUSD')).toBeOnTheScreen();
     });
 
     it('renders correct text for MetaMask card', () => {
@@ -259,26 +296,25 @@ describe('EarnRewardsPreview', () => {
   });
 
   describe('navigation', () => {
-    it('navigates to mUSD calculator view when mUSD card is pressed', () => {
+    it('opens Money deeplink when mUSD card is pressed', () => {
       setupSelectors({ geoLocation: 'US' });
       const { getByTestId } = render(<EarnRewardsPreview />);
       fireEvent.press(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       );
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_FLOW, {
-        screen: Routes.REWARDS_MUSD_CALCULATOR_VIEW,
-        params: undefined,
+      expect(mockHandleDeeplink).toHaveBeenCalledWith({
+        uri: 'metamask://money',
       });
     });
 
-    it('triggers card-onboarding deeplink when card card is pressed', () => {
+    it('triggers card-home deeplink when card card is pressed', () => {
       setupSelectors({ geoLocation: 'US' });
       const { getByTestId } = render(<EarnRewardsPreview />);
       fireEvent.press(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
       );
       expect(mockHandleDeeplink).toHaveBeenCalledWith({
-        uri: 'metamask://card-onboarding',
+        uri: 'metamask://card-home',
       });
     });
   });

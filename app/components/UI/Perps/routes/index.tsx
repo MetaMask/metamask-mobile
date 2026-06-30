@@ -52,6 +52,7 @@ import {
   clearNativeStackNavigatorOptions,
   transparentModalScreenOptions,
 } from '../../../../constants/navigation/clearStackNavigatorOptions';
+import { getEmptyNavHeader } from '../../../Views/confirmations/components/UI/navbar/navbar';
 
 const Stack = createNativeStackNavigator<PerpsNavigationParamList>();
 const ModalStack = createNativeStackNavigator();
@@ -67,9 +68,8 @@ export function getRedesignedConfirmationsHeaderOptions({
 }: PerpsNavigationParamList['RedesignedConfirmations'] = {}): NativeStackNavigationOptions {
   if (showPerpsHeader) {
     return {
+      ...getEmptyNavHeader(),
       headerBackVisible: false,
-      headerShown: true,
-      title: '',
     };
   }
   return {
@@ -250,7 +250,7 @@ const PerpsScreenStack = () => {
       <PerpsConnectionProvider isFullScreen suppressErrorView>
         <PerpsStreamProvider>
           <PerpsStreamBridge />
-          <Stack.Navigator initialRouteName={Routes.PERPS.PERPS_TAB}>
+          <Stack.Navigator initialRouteName={Routes.PERPS.PERPS_HOME}>
             {/* Redirect to wallet perps tab */}
             <Stack.Screen
               name={Routes.PERPS.PERPS_TAB}

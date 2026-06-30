@@ -204,9 +204,9 @@ describe('usePerpsTrading', () => {
 
       const response = await result.current.getMarkets();
 
-      expect(Engine.context.PerpsController.getMarkets).toHaveBeenCalledWith(
-        undefined,
-      );
+      expect(Engine.context.PerpsController.getMarkets).toHaveBeenCalledWith({
+        useTerminalApi: true,
+      });
       expect(response).toEqual(mockMarkets);
     });
 
@@ -229,9 +229,10 @@ describe('usePerpsTrading', () => {
       const params = { symbols: ['BTC'] };
       const response = await result.current.getMarkets(params);
 
-      expect(Engine.context.PerpsController.getMarkets).toHaveBeenCalledWith(
-        params,
-      );
+      expect(Engine.context.PerpsController.getMarkets).toHaveBeenCalledWith({
+        useTerminalApi: true,
+        ...params,
+      });
       expect(response).toEqual(mockMarkets);
     });
   });

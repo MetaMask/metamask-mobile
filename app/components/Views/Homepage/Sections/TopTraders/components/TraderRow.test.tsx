@@ -1,6 +1,7 @@
 import { fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { StyleSheet } from 'react-native';
+import { Image } from 'expo-image';
 import type { ReactTestInstance } from 'react-test-renderer';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import type { TopTrader } from '../types';
@@ -11,7 +12,7 @@ const baseTrader: TopTrader = {
   address: '0x0000000000000000000000000000000000000001',
   rank: 1,
   overallRank: 1,
-  username: 'sniperliquid',
+  username: 'alpha.eth',
   avatarUri: 'https://example.com/avatar.png',
   percentageChange: 43,
   pnlValue: 963146.8,
@@ -27,14 +28,38 @@ describe('TraderRow', () => {
     jest.clearAllMocks();
   });
 
-  it('renders rank, username, ROI, and PnL', () => {
+  it('renders username and the full (non-abbreviated) PnL', () => {
     renderWithProvider(
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
-    expect(screen.getByText('1')).toBeOnTheScreen();
-    expect(screen.getByText('sniperliquid')).toBeOnTheScreen();
-    expect(screen.getByText('+43.0%')).toBeOnTheScreen();
-    expect(screen.getByText('+$963K')).toBeOnTheScreen();
+    expect(screen.getByText('alpha.eth')).toBeOnTheScreen();
+    expect(screen.getByText('+$963,146.80')).toBeOnTheScreen();
+  });
+
+  it('does not render the abbreviated PnL, ROI %, or timeframe suffix', () => {
+    renderWithProvider(
+      <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+    );
+    expect(screen.queryByText('+$963.1K')).toBeNull();
+    expect(screen.queryByText('+43.0%')).toBeNull();
+    expect(screen.queryByText(/30D/)).toBeNull();
+    expect(screen.queryByText(/7D/)).toBeNull();
+  });
+
+  it('renders a podium medal for ranks 1-3', () => {
+    renderWithProvider(
+      <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+    );
+    expect(screen.getByTestId('rank-medal-1')).toBeOnTheScreen();
+  });
+
+  it('does not render a podium medal for ranks outside 1-3', () => {
+    const offPodium = { ...baseTrader, rank: 4 };
+    renderWithProvider(
+      <TraderRow trader={offPodium} onFollowPress={mockOnFollowPress} />,
+    );
+    expect(screen.queryByTestId('rank-medal-4')).toBeNull();
+    expect(screen.queryByTestId('rank-medal-1')).toBeNull();
   });
 
   it('renders avatar image when avatarUri is present', () => {
@@ -42,6 +67,16 @@ describe('TraderRow', () => {
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
     expect(screen.getByTestId('trader-row-trader-1')).toBeOnTheScreen();
+  });
+
+  it('caches the avatar with expo-image and a per-row recyclingKey so fast FlatList scrolling does not re-fetch avatars on cell reuse', () => {
+    renderWithProvider(
+      <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+    );
+
+    const image = screen.UNSAFE_getByType(Image);
+    expect(image.props.cachePolicy).toBe('memory-disk');
+    expect(image.props.recyclingKey).toBe(baseTrader.id);
   });
 
   it('renders Maskicon fallback when avatarUri is absent', () => {
@@ -83,12 +118,8 @@ describe('TraderRow', () => {
         onTraderPress={mockOnTraderPress}
       />,
     );
-    fireEvent.press(screen.getByText('sniperliquid'));
-    expect(mockOnTraderPress).toHaveBeenCalledWith(
-      'trader-1',
-      'sniperliquid',
-      1,
-    );
+    fireEvent.press(screen.getByText('alpha.eth'));
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 1);
   });
 
   it('forwards trader.overallRank (not the filtered rank) to onTraderPress so the profile podium gates on true top-3 traders', () => {
@@ -105,24 +136,20 @@ describe('TraderRow', () => {
       />,
     );
 
-    fireEvent.press(screen.getByText('sniperliquid'));
+    fireEvent.press(screen.getByText('alpha.eth'));
 
-    expect(mockOnTraderPress).toHaveBeenCalledWith(
-      'trader-1',
-      'sniperliquid',
-      50,
-    );
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 50);
   });
 
   it('does not fire onTraderPress when the prop is undefined', () => {
     renderWithProvider(
       <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
     );
-    fireEvent.press(screen.getByText('sniperliquid'));
+    fireEvent.press(screen.getByText('alpha.eth'));
     expect(mockOnTraderPress).not.toHaveBeenCalled();
   });
 
-  it('displays negative ROI and PnL values', () => {
+  it('displays negative PnL values with a leading minus', () => {
     const negativeTrader: TopTrader = {
       ...baseTrader,
       percentageChange: -15.3,
@@ -131,8 +158,7 @@ describe('TraderRow', () => {
     renderWithProvider(
       <TraderRow trader={negativeTrader} onFollowPress={mockOnFollowPress} />,
     );
-    expect(screen.getByText('-15.3%')).toBeOnTheScreen();
-    expect(screen.getByText('-$500')).toBeOnTheScreen();
+    expect(screen.getByText('-$500.00')).toBeOnTheScreen();
   });
 
   it('uses custom testID when provided', () => {
@@ -146,7 +172,7 @@ describe('TraderRow', () => {
     expect(screen.getByTestId('custom-test-id')).toBeOnTheScreen();
   });
 
-  describe('layout stability (prevents Follow/Following toggle shift)', () => {
+  describe('layout stability', () => {
     const findAncestor = (
       start: ReactTestInstance | null,
       predicate: (node: ReactTestInstance) => boolean,
@@ -159,13 +185,6 @@ describe('TraderRow', () => {
       return null;
     };
 
-    const resolveMinWidth = (node: ReactTestInstance): number | undefined => {
-      const flat = StyleSheet.flatten(node.props.style) as
-        | { minWidth?: number }
-        | undefined;
-      return flat?.minWidth;
-    };
-
     const resolveAlignSelf = (node: ReactTestInstance): string | undefined => {
       const flat = StyleSheet.flatten(node.props.style) as
         | { alignSelf?: string }
@@ -173,26 +192,75 @@ describe('TraderRow', () => {
       return flat?.alignSelf;
     };
 
+    const resolveHeight = (node: ReactTestInstance): number | undefined => {
+      const flat = StyleSheet.flatten(node.props.style);
+      if (Array.isArray(flat)) {
+        for (const entry of flat) {
+          if (entry && typeof entry === 'object' && 'height' in entry) {
+            return (entry as { height?: number }).height;
+          }
+        }
+        return undefined;
+      }
+      return (flat as { height?: number } | undefined)?.height;
+    };
+
+    const resolveMinWidth = (node: ReactTestInstance): number | undefined => {
+      const flat = StyleSheet.flatten(node.props.style) as
+        | { minWidth?: number }
+        | undefined;
+      return flat?.minWidth;
+    };
+
     it('renders the stats line with numberOfLines=1 so it does not wrap when the button grows', () => {
       const trader: TopTrader = {
         ...baseTrader,
-        percentageChange: 28233,
         pnlValue: 407000,
       };
       renderWithProvider(
         <TraderRow trader={trader} onFollowPress={mockOnFollowPress} />,
       );
 
-      const roiSegment = screen.getByText('+28233.0%');
+      const pnlSegment = screen.getByText('+$407,000.00');
       const statsText = findAncestor(
-        roiSegment,
+        pnlSegment,
         (node) => node.props?.numberOfLines === 1,
       );
 
       expect(statsText).not.toBeNull();
     });
 
-    it('renders the Follow button with a minimum width', () => {
+    it('uses ButtonSize.Sm (32px height from the design system)', () => {
+      renderWithProvider(
+        <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+      );
+
+      const followLabel = screen.getByText('Follow');
+      const buttonWithHeight = findAncestor(
+        followLabel,
+        (node) => resolveHeight(node) === 32,
+      );
+
+      expect(buttonWithHeight).not.toBeNull();
+    });
+
+    it('applies 8px horizontal padding to match the Following state visually', () => {
+      renderWithProvider(
+        <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
+      );
+
+      const followLabel = screen.getByText('Follow');
+      const buttonWithPadding = findAncestor(followLabel, (node) => {
+        const flat = StyleSheet.flatten(node.props.style) as
+          | { paddingLeft?: number; paddingRight?: number }
+          | undefined;
+        return flat?.paddingLeft === 8 && flat?.paddingRight === 8;
+      });
+
+      expect(buttonWithPadding).not.toBeNull();
+    });
+
+    it('sets min-width 60px on the Follow button so the label is not clipped', () => {
       renderWithProvider(
         <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
       );
@@ -200,29 +268,28 @@ describe('TraderRow', () => {
       const followLabel = screen.getByText('Follow');
       const buttonWithMinWidth = findAncestor(
         followLabel,
-        (node) => resolveMinWidth(node) !== undefined,
+        (node) => resolveMinWidth(node) === 60,
       );
 
       expect(buttonWithMinWidth).not.toBeNull();
-      expect(resolveMinWidth(buttonWithMinWidth as ReactTestInstance)).toBe(96);
     });
 
-    it('renders the rank on a single line so the trailing dot does not wrap for double-digit ranks', () => {
-      const doubleDigitTrader: TopTrader = {
-        ...baseTrader,
-        rank: 20,
-        overallRank: 20,
-      };
+    it('uses the same min-width on the Following button so the longer label can grow naturally', () => {
+      const followingTrader: TopTrader = { ...baseTrader, isFollowing: true };
       renderWithProvider(
         <TraderRow
-          trader={doubleDigitTrader}
+          trader={followingTrader}
           onFollowPress={mockOnFollowPress}
         />,
       );
 
-      const rankText = screen.getByText('20');
+      const followingLabel = screen.getByText('Following');
+      const buttonWithMinWidth = findAncestor(
+        followingLabel,
+        (node) => resolveMinWidth(node) === 60,
+      );
 
-      expect(rankText.props.numberOfLines).toBe(1);
+      expect(buttonWithMinWidth).not.toBeNull();
     });
 
     it('vertically centers the Follow button so it sits in the middle of the row (overrides ButtonBase self-start default)', () => {
@@ -237,38 +304,6 @@ describe('TraderRow', () => {
       );
 
       expect(buttonWithAlignSelf).not.toBeNull();
-    });
-
-    it('keeps the same minimum width when toggling between Follow and Following', () => {
-      const { rerender } = renderWithProvider(
-        <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
-      );
-
-      const followLabel = screen.getByText('Follow');
-      const followButton = findAncestor(
-        followLabel,
-        (node) => resolveMinWidth(node) !== undefined,
-      );
-      const followMinWidth = resolveMinWidth(followButton as ReactTestInstance);
-
-      rerender(
-        <TraderRow
-          trader={{ ...baseTrader, isFollowing: true }}
-          onFollowPress={mockOnFollowPress}
-        />,
-      );
-
-      const followingLabel = screen.getByText('Following');
-      const followingButton = findAncestor(
-        followingLabel,
-        (node) => resolveMinWidth(node) !== undefined,
-      );
-      const followingMinWidth = resolveMinWidth(
-        followingButton as ReactTestInstance,
-      );
-
-      expect(followMinWidth).toBeDefined();
-      expect(followingMinWidth).toBe(followMinWidth);
     });
   });
 });

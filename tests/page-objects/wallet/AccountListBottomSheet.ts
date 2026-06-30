@@ -25,6 +25,7 @@ import {
   encapsulatedAction,
   LogLevel,
   PlaywrightGestures,
+  Utilities,
 } from '../../framework';
 
 const logger = createLogger({
@@ -70,17 +71,15 @@ class AccountListBottomSheet {
 
   /** Add wallet/account button - wdio tapOnAddWalletButton uses 'account-list-add-account-button' */
   get addAccountButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
-          { exact: true },
-        ),
-    });
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+    );
+  }
+
+  get addWalletButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(
+      AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
+    );
   }
 
   get addEthereumAccountButton(): EncapsulatedElementType {
@@ -221,6 +220,12 @@ class AccountListBottomSheet {
     });
   }
 
+  async tapAddWalletButton(): Promise<void> {
+    await UnifiedGestures.waitAndTap(this.addWalletButton, {
+      description: 'Add Wallet button',
+    });
+  }
+
   async tapBackButton(): Promise<void> {
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Account list header back button',
@@ -322,10 +327,14 @@ class AccountListBottomSheet {
         });
       },
       appium: async () => {
-        const accountEl = await PlaywrightMatchers.getElementByText(
-          accountName,
-          exactMatch,
-        );
+        const escapedAccountName = accountName.replace(/'/g, "\\'");
+        const accountEl = PlatformDetector.isAndroid()
+          ? await PlaywrightMatchers.getElementByXPath(
+              exactMatch
+                ? `//*[@name='${escapedAccountName}' or @label='${escapedAccountName}' or @text='${escapedAccountName}' or @content-desc='${escapedAccountName}']/ancestor::*[@clickable='true'][1]`
+                : `//*[contains(@name,'${escapedAccountName}') or contains(@label,'${escapedAccountName}') or contains(@text,'${escapedAccountName}') or contains(@content-desc,'${escapedAccountName}')]/ancestor::*[@clickable='true'][1]`,
+            )
+          : await PlaywrightMatchers.getElementByText(accountName, exactMatch);
         await PlaywrightGestures.scrollIntoView(accountEl);
         await PlaywrightGestures.waitAndTap(accountEl);
       },
@@ -378,6 +387,97 @@ class AccountListBottomSheet {
       elemDescription: `V2 ellipsis menu button for account at index ${accountIndex}`,
       delay: shouldWait ? 1500 : 0,
     });
+  }
+
+  /**
+   * Tap the ellipsis menu for the account row matching `accountName` (Appium).
+   * Prefer this over index when the list mixes HD and snap accounts.
+   */
+  async tapAccountEllipsisForAccountNameV2(accountName: string): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      throw new Error(
+        'tapAccountEllipsisForAccountNameV2 is Appium-only. On Detox, use tapAccountEllipsisButtonV2 with a known index.',
+      );
+    }
+
+    const accountCells =
+      await this.getAccountElementsByAccountNameV2(accountName);
+    if (accountCells.length === 0) {
+      throw new Error(`No account row found for "${accountName}"`);
+    }
+
+    await PlaywrightGestures.scrollIntoView(
+      accountCells[accountCells.length - 1],
+    );
+
+    const addressXpath = PlatformDetector.isAndroid()
+      ? `//*[@resource-id='${AccountCellIds.ADDRESS}']`
+      : `//*[@name='${AccountCellIds.ADDRESS}']`;
+    const addressElements = await Matchers.getAllElementsByXPath(addressXpath);
+
+    let menuIndex = -1;
+    for (let i = 0; i < addressElements.length; i++) {
+      const text = (await addressElements[i].textContent()).trim();
+      if (text === accountName) {
+        menuIndex = i;
+      }
+    }
+
+    if (menuIndex < 0) {
+      throw new Error(
+        `Could not resolve ellipsis menu index for account "${accountName}"`,
+      );
+    }
+
+    await this.tapAccountEllipsisButtonV2(menuIndex);
+  }
+
+  async expectAccountVisibleByNameV2(
+    accountName: string,
+    options: { description?: string; timeout?: number } = {},
+  ): Promise<void> {
+    const timeout = options.timeout ?? 15_000;
+    const description =
+      options.description ?? `${accountName} should be visible in account list`;
+
+    if (!FrameworkDetector.isAppium()) {
+      await Assertions.expectElementToBeVisible(
+        this.getAccountElementByAccountNameV2(accountName),
+        { description, timeout },
+      );
+      return;
+    }
+
+    await Utilities.executeWithRetry(
+      async () => {
+        const cells = await this.getAccountElementsByAccountNameV2(accountName);
+        if (cells.length === 0) {
+          return false;
+        }
+
+        const cell = cells[0];
+        for (const direction of ['down', 'up'] as const) {
+          try {
+            await PlaywrightGestures.scrollIntoView(cell, {
+              scrollParams: { direction },
+              maxScrolls: 10,
+            });
+            if (await cell.isVisible()) {
+              return true;
+            }
+          } catch {
+            // try the other scroll direction
+          }
+        }
+
+        return await cell.isVisible();
+      },
+      {
+        description,
+        timeout,
+        interval: 500,
+      },
+    );
   }
 
   /**

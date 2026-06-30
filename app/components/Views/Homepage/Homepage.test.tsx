@@ -211,7 +211,6 @@ jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
     stages: [],
   })),
   selectPredictWorldCupScreenEnabledFlag: jest.fn(() => false),
-  selectPredictHomepageDiscoveryNbaChampionEnabledFlag: jest.fn(() => false),
 }));
 
 jest.mock('../../UI/Predict/hooks/usePredictWorldCup', () => ({
@@ -291,6 +290,7 @@ jest.mock('../../../selectors/deFiPositionsSectionEnabled', () => ({
 
 jest.mock('../../../selectors/featureFlagController/socialLeaderboard', () => ({
   selectSocialLeaderboardEnabled: jest.fn(() => false),
+  selectSocialLeaderboardPerpsEnabled: jest.fn(() => true),
 }));
 
 jest.mock('./Sections/TopTraders/hooks', () => ({
@@ -301,6 +301,7 @@ jest.mock('./Sections/TopTraders/hooks', () => ({
     refresh: jest.fn().mockResolvedValue(undefined),
     toggleFollow: jest.fn(),
   })),
+  usePrefetchTraderProfiles: jest.fn(),
 }));
 
 /** Shape of first argument to useHomeViewedEvent (for asserting in tests). */

@@ -6,6 +6,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
 import { useOnboardingStep, STEPPER_IDS } from '../../hooks/useOnboardingStep';
+import { isPositiveNumber } from '../../utils/number';
 import StepperCard, {
   type StepperCardStep,
 } from '../../../../../component-library/components-temp/StepperCard';
@@ -48,7 +49,8 @@ const MoneyOnboardingCard = () => {
   });
 
   const { initiateDeposit } = useMoneyAccountDeposit();
-  const { tokenTotal, isAggregatedBalanceLoading } = useMoneyAccountBalance();
+  const { tokenTotal, isBalanceLoading, apyPercent } = useMoneyAccountBalance();
+  const showApy = isPositiveNumber(apyPercent);
   const { trackOnboardingEvent } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOME,
     component_name: COMPONENT_NAMES.MONEY_ONBOARDING_CARD,
@@ -57,14 +59,16 @@ const MoneyOnboardingCard = () => {
   const {
     startLinkFlow,
     isCardAuthenticated,
+    isCardVerified,
     isCardLinkedToMoneyAccount,
     isLinking,
+    isResidencyBlocked,
   } = useMoneyAccountCardLinkage();
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
 
   const isMoneyAccountFunded = Boolean(
-    !isAggregatedBalanceLoading && tokenTotal?.isGreaterThan(0),
+    !isBalanceLoading && tokenTotal?.isGreaterThan(0),
   );
   const isCardAnalyticsReady =
     cardHomeDataStatus === 'success' || cardHomeDataStatus === 'error';
@@ -75,8 +79,12 @@ const MoneyOnboardingCard = () => {
     isCardLinkedToMoneyAccount,
   });
 
+  const isCardStepBlocked = isResidencyBlocked && !isCardLinkedToMoneyAccount;
+
   const shouldShowLinkCardAction =
-    isCardholder || (isCardAuthenticated && !isCardLinkedToMoneyAccount);
+    !isCardStepBlocked &&
+    (isCardholder ||
+      (isCardAuthenticated && isCardVerified && !isCardLinkedToMoneyAccount));
 
   const handleRedirectToCryptoDeposit = useCallback(async () => {
     await initiateDeposit().catch(() => undefined);
@@ -171,7 +179,9 @@ const MoneyOnboardingCard = () => {
     // - step 1 is complete right now (immediately advance funded users).
     const canEvaluateStep2 = currentStep >= 1 || isStep1Complete;
     const isStep2Complete =
-      canEvaluateStep2 && isCardAuthenticated && isCardLinkedToMoneyAccount;
+      canEvaluateStep2 &&
+      ((isCardAuthenticated && isCardLinkedToMoneyAccount) ||
+        isCardStepBlocked);
 
     if (isStep2Complete) return 2;
     if (isStep1Complete) return 1;
@@ -181,6 +191,7 @@ const MoneyOnboardingCard = () => {
     isMoneyAccountFunded,
     isCardAuthenticated,
     isCardLinkedToMoneyAccount,
+    isCardStepBlocked,
   ]);
 
   // Prevent a flash of earlier steps by rendering the computed step immediately,
@@ -198,7 +209,7 @@ const MoneyOnboardingCard = () => {
   useEffect(() => {
     if (
       hasTrackedCardStepViewRef.current ||
-      isAggregatedBalanceLoading ||
+      isBalanceLoading ||
       !isCardAnalyticsReady ||
       !isOnboardingCardVisible ||
       !isVisibleAfterAutoSkip ||
@@ -221,7 +232,7 @@ const MoneyOnboardingCard = () => {
     trackEvent,
     createEventBuilder,
     effectiveCurrentStep,
-    isAggregatedBalanceLoading,
+    isBalanceLoading,
     isCardAnalyticsReady,
     isOnboardingCardVisible,
     isVisibleAfterAutoSkip,
@@ -231,7 +242,9 @@ const MoneyOnboardingCard = () => {
   const handleStep1CtaPressed = useCallback(() => {
     trackOnboardingEvent({
       step: currentStep + 1, // Use 1-based index for event tracking to match total_steps count.
-      step_title: strings('money.onboarding.step_1.title', { locale: 'en' }),
+      step_title: strings('money.onboarding.step_1.title_no_apy', {
+        locale: 'en',
+      }),
       total_steps: MONEY_ONBOARDING_TOTAL_STEPS,
       step_action: MONEY_ONBOARDING_STEP_ACTIONS.DEPOSIT_INITIATED,
       redirect_target: SCREEN_NAMES.MONEY_DEPOSIT,
@@ -244,8 +257,12 @@ const MoneyOnboardingCard = () => {
     if (!isOnboardingCardVisible || !isVisibleAfterAutoSkip) return [];
 
     const step1: StepperCardStep = {
-      title: strings('money.onboarding.step_1.title'),
-      description: strings('money.onboarding.step_1.description'),
+      title: showApy
+        ? strings('money.onboarding.step_1.title', { apy: apyPercent })
+        : strings('money.onboarding.step_1.title_no_apy'),
+      description: showApy
+        ? strings('money.onboarding.step_1.description', { apy: apyPercent })
+        : strings('money.onboarding.step_1.description_no_apy'),
       primaryCta: {
         text: strings('money.onboarding.step_1.cta'),
         onPress: handleStep1CtaPressed,
@@ -321,6 +338,8 @@ const MoneyOnboardingCard = () => {
   }, [
     isOnboardingCardVisible,
     isVisibleAfterAutoSkip,
+    showApy,
+    apyPercent,
     handleStep1CtaPressed,
     shouldShowLinkCardAction,
     isLinking,
@@ -328,16 +347,12 @@ const MoneyOnboardingCard = () => {
     handleSkipPress,
   ]);
 
-  if (
-    isAggregatedBalanceLoading ||
-    !isOnboardingCardVisible ||
-    !isVisibleAfterAutoSkip
-  ) {
+  if (isBalanceLoading || !isOnboardingCardVisible || !isVisibleAfterAutoSkip) {
     return null;
   }
 
   return (
-    <Box twClassName="pb-7 mx-4 mt-3">
+    <Box twClassName="mx-4 mt-2">
       <StepperCard
         steps={steps}
         currentStep={effectiveCurrentStep}

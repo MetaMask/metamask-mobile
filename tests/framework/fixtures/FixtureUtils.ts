@@ -256,6 +256,16 @@ export async function startResourceWithRetry(
   resource: Resource,
   maxRetries: number = 3,
 ): Promise<number> {
+  const isRetryableAnvilForkError = (errorMessage: string): boolean =>
+    resourceType === ResourceType.ANVIL &&
+    [
+      'failed to create genesis',
+      'failed to get account for',
+      'failed to get fork block number',
+      'http error 401',
+      'error code -32603',
+    ].some((signature) => errorMessage.includes(signature));
+
   let attempt = 0;
   let lastError: Error | undefined;
 
@@ -298,6 +308,18 @@ export async function startResourceWithRetry(
         logger.debug(
           `Port ${failedPort} conflict for ${resourceType}, retrying with new random port (${attempt}/${maxRetries})`,
         );
+        continue;
+      }
+
+      // Anvil forks can fail transiently when upstream RPC returns temporary
+      // errors during genesis/account fetch. Retrying usually recovers.
+      if (attempt < maxRetries && isRetryableAnvilForkError(errorMessage)) {
+        attempt++;
+        const retryDelayMs = 2000;
+        logger.debug(
+          `Transient fork startup error for ${resourceType}, retrying (${attempt}/${maxRetries}) after ${retryDelayMs}ms: ${errorMessage}`,
+        );
+        await new Promise((resolve) => setTimeout(resolve, retryDelayMs));
         continue;
       }
 

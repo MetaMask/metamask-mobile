@@ -105,6 +105,9 @@ def common_target_logic
     :privacy_file_aggregation_enabled => podfile_properties['apple.privacyManifestAggregationEnabled'] != 'false',
     :hermes_enabled => true
   )
+
+  # NitroFetch (Swift) requires React-RCTNetwork to export module maps
+  pod 'React-RCTNetwork', :path => "#{config[:reactNativePath]}/Libraries/Network", :modular_headers => true
 end
 
 target 'MetaMask' do

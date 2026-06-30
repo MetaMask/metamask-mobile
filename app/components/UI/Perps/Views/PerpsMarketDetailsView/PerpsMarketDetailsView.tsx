@@ -1,11 +1,9 @@
 import {
-  Box,
   Button as DSButton,
   ButtonSemantic,
   ButtonSemanticSeverity,
   ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
-  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -22,16 +20,13 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Linking, RefreshControl, View } from 'react-native';
-import Animated from 'react-native-reanimated';
+import { Linking, RefreshControl, ScrollView, View } from 'react-native';
 import {
   CandlePeriod,
   TimeDuration,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
-  getPerpsDisplaySymbol,
-  getMarketTypeFilter,
   type Position,
   type PerpsMarketData,
   type TPSLTrackingData,
@@ -41,6 +36,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/settings';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
+import useHeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated';
 import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import Engine from '../../../../../core/Engine';
@@ -58,18 +54,12 @@ import PerpsCompactOrderRow from '../../components/PerpsCompactOrderRow';
 import PerpsFlipPositionConfirmSheet from '../../components/PerpsFlipPositionConfirmSheet';
 import {
   PerpsMarketDetailsViewSelectorsIDs,
-  PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsTutorialSelectorsIDs,
   PerpsCompactOrderRowSelectorsIDs,
 } from '../../Perps.testIds';
-import HeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated';
-import useHeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated';
-import TitleSubpage from '../../../../../component-library/components-temp/TitleSubpage';
-import LivePriceHeader from '../../components/LivePriceDisplay/LivePriceHeader';
-import PerpsLeverage from '../../components/PerpsLeverage/PerpsLeverage';
+import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
-import PerpsTokenLogo from '../../components/PerpsTokenLogo';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
 import PerpsMarketTradesList from '../../components/PerpsMarketTradesList';
 import PerpsNavigationCard, {
@@ -159,6 +149,7 @@ interface MarketDetailsRouteParams {
   monitoringIntent?: Partial<DataMonitorParams>;
   isNavigationFromOrderSuccess?: boolean;
   source?: string;
+  source_section?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
 
@@ -201,6 +192,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     market: routeMarket,
     monitoringIntent,
     source,
+    source_section,
     transactionActiveAbTests,
   } = route.params || {};
   const { track } = usePerpsEventTracking();
@@ -252,6 +244,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // This prevents stale closure issues where the captured position is outdated
   // Initialized to null, will be updated via useEffect when existingPosition is available
   const currentPositionRef = useRef<Position | null>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const isEligible = useSelector(selectPerpsEligibility);
 
@@ -279,33 +272,22 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     () => createSelectIsWatchlistMarket(market?.symbol || ''),
     [market?.symbol],
   );
-  const isWatchlistFromRedux = useSelector(selectIsWatchlist);
-
-  // Optimistic local state for instant UI feedback
-  const [optimisticWatchlist, setOptimisticWatchlist] = useState<
-    boolean | null
-  >(null);
-  const isWatchlist = optimisticWatchlist ?? isWatchlistFromRedux;
-
-  // Reset optimistic state when market changes
-  useEffect(() => {
-    setOptimisticWatchlist(null);
-  }, [market?.symbol]);
+  // Source of truth for the favorite icon. The controller applies its own
+  // synchronous optimistic update (so the icon flips on the same tick the toggle
+  // fires) and reverts internally on remote-write failure, so no separate
+  // component-level optimistic copy is needed — a second copy could disagree with
+  // Redux if the controller's optimistic-then-revert collapsed before a reconcile.
+  const isWatchlist = useSelector(selectIsWatchlist);
 
   // Keep current market symbol ref in sync for staleness checks in async callbacks
   useEffect(() => {
     currentMarketSymbolRef.current = market?.symbol;
   }, [market?.symbol]);
 
-  // Clear optimistic state once Redux has caught up
+  // Auto-scroll to top when navigating to a different market (e.g. related markets)
   useEffect(() => {
-    if (
-      optimisticWatchlist !== null &&
-      optimisticWatchlist === isWatchlistFromRedux
-    ) {
-      setOptimisticWatchlist(null);
-    }
-  }, [isWatchlistFromRedux, optimisticWatchlist]);
+    scrollViewRef.current?.scrollTo({ y: 0, animated: false });
+  }, [market?.symbol]);
 
   const {
     scrollY: scrollYShared,
@@ -613,6 +595,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
       [PERPS_EVENT_PROPERTY.SOURCE]:
         source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+      ...(source_section && {
+        [PERPS_EVENT_PROPERTY.SOURCE_SECTION]: source_section,
+      }),
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: existingPosition ? 1 : 0,
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: openOrders.length,
       market_insights_displayed:
@@ -705,11 +690,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       return;
     }
 
-    // Optimistic update - instant UI feedback
-    const newWatchlistState = isAdding;
-    setOptimisticWatchlist(newWatchlistState);
-
-    // Actual state update
+    // Controller applies its own synchronous optimistic update (instant UI
+    // feedback via Redux) and reverts internally on remote-write failure;
+    // fire-and-forget here.
     controller.toggleWatchlistMarket(market.symbol);
 
     // Track watchlist toggle event
@@ -718,7 +701,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.FAVORITE_TOGGLED,
-      [PERPS_EVENT_PROPERTY.ACTION_TYPE]: newWatchlistState
+      [PERPS_EVENT_PROPERTY.ACTION_TYPE]: isAdding
         ? PERPS_EVENT_VALUE.ACTION_TYPE.FAVORITE_MARKET
         : PERPS_EVENT_VALUE.ACTION_TYPE.UNFAVORITE_MARKET,
       [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
@@ -730,22 +713,18 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const handleCategorySearchPress = useCallback(() => {
     if (!market) return;
 
-    const resolvedCategory = getMarketTypeFilter(market);
-
     track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
       [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
         PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
       [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
         PERPS_EVENT_VALUE.BUTTON_CLICKED.MAGNIFYING_GLASS,
       [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
-        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERP_MARKET_DETAILS,
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS,
       [PERPS_EVENT_PROPERTY.ASSET]: market.symbol,
-      [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: resolvedCategory,
     });
 
     navigateToMarketList({
       source: PERPS_EVENT_VALUE.SOURCE.MAGNIFYING_GLASS,
-      defaultMarketTypeFilter: resolvedCategory,
     });
   }, [market, track, navigateToMarketList]);
 
@@ -1269,97 +1248,35 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     Boolean(market?.symbol) &&
     (Boolean(perpsInsightsReport) || isPerpsInsightsLoading);
 
-  const displayTitle = `${getPerpsDisplaySymbol(market.symbol)}-USD`;
-
   return (
     <SafeAreaView
       style={styles.mainContainer}
+      edges={['bottom', 'left', 'right']}
       testID={PerpsMarketDetailsViewSelectorsIDs.CONTAINER}
     >
-      <HeaderStandardAnimated
-        scrollY={scrollYShared}
-        titleSectionHeight={titleSectionHeightSv}
-        title={displayTitle}
-        subtitle={
-          <LivePriceHeader
-            symbol={market.symbol}
-            currentPrice={chartCurrentPrice}
-            testIDPrice={PerpsMarketHeaderSelectorsIDs.PRICE}
-            testIDChange={PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE}
-            throttleMs={1000}
-          />
-        }
-        onBack={handleBackPress}
-        backButtonProps={{
-          onPress: handleBackPress,
-          testID: PerpsMarketHeaderSelectorsIDs.BACK_BUTTON,
-        }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Expand,
-            onPress: handleFullscreenChartOpen,
-            testID: `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
-          },
-          {
-            iconName: isWatchlist ? IconName.StarFilled : IconName.Star,
-            onPress: handleWatchlistPress,
-            testID: PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
-          },
-          {
-            iconName: IconName.Search,
-            onPress: handleCategorySearchPress,
-            testID: PerpsMarketHeaderSelectorsIDs.CATEGORY_SEARCH_BUTTON,
-            accessibilityLabel: strings('perps.market_details.category_search'),
-          },
-        ]}
+      <PerpsMarketInlineHeader
+        market={market}
+        currentPrice={chartCurrentPrice}
+        onBackPress={handleBackPress}
+        onFullscreenPress={handleFullscreenChartOpen}
+        onFavoritePress={handleWatchlistPress}
+        onCategorySearchPress={handleCategorySearchPress}
+        isFavorite={isWatchlist}
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
+        fullscreenButtonTestID={`${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`}
       />
 
       <View style={styles.scrollableContentContainer}>
-        <Animated.ScrollView
+        <ScrollView
+          ref={scrollViewRef}
           style={styles.mainContentScrollView}
           contentContainerStyle={styles.scrollViewContent}
           showsVerticalScrollIndicator={false}
-          onScroll={onScroll}
-          scrollEventThrottle={16}
           testID={PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW}
           refreshControl={
             <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
           }
         >
-          <Box
-            testID={PerpsMarketDetailsViewSelectorsIDs.TITLE_SECTION_WRAPPER}
-            onLayout={(e) => setTitleSectionHeight(e.nativeEvent.layout.height)}
-          >
-            <TitleSubpage
-              startAccessory={
-                <PerpsTokenLogo symbol={market.symbol} size={40} />
-              }
-              title={displayTitle}
-              titleAccessory={
-                market.maxLeverage ? (
-                  <Box twClassName="ml-1">
-                    <PerpsLeverage maxLeverage={market.maxLeverage} />
-                  </Box>
-                ) : undefined
-              }
-              bottomAccessory={
-                <LivePriceHeader
-                  symbol={market.symbol}
-                  currentPrice={chartCurrentPrice}
-                  testIDPrice={
-                    PerpsMarketHeaderSelectorsIDs.PRICE_TITLE_SECTION
-                  }
-                  testIDChange={
-                    PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE_TITLE_SECTION
-                  }
-                  throttleMs={1000}
-                />
-              }
-              twClassName="px-4 pt-1 pb-3"
-            />
-          </Box>
-
           {/* TradingView Chart Section */}
           <View style={[styles.section, styles.chartSection]}>
             <ComponentErrorBoundary
@@ -1556,7 +1473,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               </Text>
             </Text>
           </View>
-        </Animated.ScrollView>
+        </ScrollView>
       </View>
 
       {/* Fixed Actions Footer */}
