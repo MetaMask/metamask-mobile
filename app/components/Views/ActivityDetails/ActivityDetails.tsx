@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { ScrollView } from 'react-native';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -12,12 +13,22 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { useParams } from '../../../util/navigation/navUtils';
+import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { isHardwareAccount } from '../../../util/address';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import { selectTransactionMetadataById } from '../../../selectors/transactionController';
+import type { RootState } from '../../../reducers';
 import { resolveActivityListItemTitle } from '../../UI/ActivityListItemRow/ActivityListItemRow';
-// eslint-disable-next-line import-x/no-restricted-paths -- transient row hand-off from the activity list; route-isolation backlog
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuses the confirmations speed-up/cancel modal; route-isolation backlog
+import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
+/* eslint-disable import-x/no-restricted-paths -- transient row hand-off + shared pending-action logic from the activity list; route-isolation backlog */
 import { getPreloadedActivityItem } from '../ActivityList/preloadedActivityItemStore';
+import { useUnifiedTxActions } from '../ActivityList/useUnifiedTxActions';
+/* eslint-enable import-x/no-restricted-paths */
 import { ActivityDetailsSelectorsIDs } from './ActivityDetails.testIds';
 import type { ActivityDetailsParams } from './ActivityDetails.types';
 import { useActivityDetailsItem } from './hooks/useActivityDetailsItem';
+import { ActivityDetailsPendingBanner } from './components/ActivityDetailsPendingBanner';
 import { TemplateLoader } from './templates/TemplateLoader';
 
 /**
@@ -54,6 +65,41 @@ const ActivityDetails = () => {
     ? resolveActivityListItemTitle(item)
     : strings('activity_details.not_found');
 
+  // Pending speed-up / cancel: resolve the live local `TransactionMeta` for the
+  // resolved item so the banner reflects current status/gas. Only local EVM
+  // items carry a `TransactionMeta`; API / non-EVM items have none (no banner).
+  const localTxId =
+    item?.raw?.type === 'localTransaction'
+      ? item.raw.data.primaryTransaction?.id
+      : undefined;
+  const pendingTx = useSelector((state: RootState) =>
+    localTxId ? selectTransactionMetadataById(state, localTxId) : undefined,
+  );
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const isLedgerAccount = isHardwareAccount(selectedAddress ?? '', [
+    ExtendedKeyringTypes.ledger,
+  ]);
+  const isQRHardwareAccount = isHardwareAccount(selectedAddress ?? '', [
+    ExtendedKeyringTypes.qr,
+  ]);
+
+  const {
+    speedUpIsOpen,
+    cancelIsOpen,
+    confirmDisabled,
+    existingTx,
+    onSpeedUpAction,
+    onCancelAction,
+    onSpeedUpCancelCompleted,
+    speedUpTransaction,
+    cancelTransaction,
+    signQRTransaction,
+    signLedgerTransaction,
+    cancelUnsignedQRTransaction,
+  } = useUnifiedTxActions();
+
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -80,6 +126,18 @@ const ActivityDetails = () => {
             style={tw.style('flex-1')}
             contentContainerStyle={tw.style('grow p-4')}
           >
+            {pendingTx ? (
+              <ActivityDetailsPendingBanner
+                tx={pendingTx}
+                isQRHardwareAccount={isQRHardwareAccount}
+                isLedgerAccount={isLedgerAccount}
+                onSpeedUpAction={onSpeedUpAction}
+                onCancelAction={onCancelAction}
+                signQRTransaction={signQRTransaction}
+                signLedgerTransaction={signLedgerTransaction}
+                cancelUnsignedQRTransaction={cancelUnsignedQRTransaction}
+              />
+            ) : null}
             <TemplateLoader item={item} />
           </ScrollView>
         ) : (
@@ -93,6 +151,15 @@ const ActivityDetails = () => {
             </Text>
           </Box>
         )}
+
+        <CancelSpeedupModal
+          isVisible={speedUpIsOpen || cancelIsOpen}
+          isCancel={cancelIsOpen}
+          tx={existingTx}
+          onConfirm={cancelIsOpen ? cancelTransaction : speedUpTransaction}
+          onClose={onSpeedUpCancelCompleted}
+          confirmDisabled={confirmDisabled}
+        />
       </Box>
     </SafeAreaView>
   );
