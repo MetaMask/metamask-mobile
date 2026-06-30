@@ -124,6 +124,7 @@ export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set([
   'totals',
   'both_teams_to_score',
   'soccer_first_to_score',
+  'soccer_team_to_advance',
   'soccer_extra_time',
   'soccer_penalty_shootout',
   'team_totals',
@@ -152,6 +153,7 @@ export const GROUP_ORDER: string[] = [
 export const DEFAULT_GROUP_KEY = 'game_lines';
 
 export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
+  soccer_team_to_advance: -1,
   moneyline: 0,
   tennis_first_set_winner: 0,
   spreads: 1,
@@ -162,9 +164,7 @@ export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
   tennis_match_totals: 3,
   tennis_completed_match: 4,
   // These soccer progression markets render at the bottom of Game Lines, after
-  // the regulation-time markets above. `soccer_team_to_advance` is added ahead
-  // of PRED-1062 and stays inert until it is added to SUPPORTED_SPORTS_MARKET_TYPES.
-  soccer_team_to_advance: 5,
+  // the regulation-time markets above.
   soccer_extra_time: 6,
   soccer_penalty_shootout: 7,
 };

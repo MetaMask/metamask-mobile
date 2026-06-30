@@ -834,6 +834,7 @@ describe('resolvePredictFeatureFlags', () => {
         'totals',
         'both_teams_to_score',
         'soccer_first_to_score',
+        'soccer_team_to_advance',
         'soccer_extra_time',
         'soccer_penalty_shootout',
         'team_totals',

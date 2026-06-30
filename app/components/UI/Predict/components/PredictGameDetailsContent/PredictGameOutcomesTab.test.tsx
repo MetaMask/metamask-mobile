@@ -23,6 +23,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'predict.sports_market_types.basketball_odd_even': 'Odd/Even Score',
       'predict.sports_market_types.basketball_team_to_score_first':
         'Team to Score First',
+      'predict.sports_market_types.soccer_team_to_advance': 'Team to Advance',
+      'predict.world_cup.market_info.regulation_time_winner.title':
+        'Regulation time winner',
+      'predict.world_cup.market_info.team_to_advance.title': 'Team to advance',
       'predict.sports_market_types.tennis_set_totals': 'Total Sets',
       'predict.sports_market_types.tennis_set_handicap': 'Set Handicap',
       'predict.sports_market_types.tennis_match_totals': 'Total Games',
@@ -236,6 +240,10 @@ const mockGame: PredictMarketGame = {
   period: null,
   score: null,
 };
+const mockWorldCupGame: PredictMarketGame = {
+  ...mockGame,
+  league: 'fifwc',
+};
 
 describe('PredictGameOutcomesTab', () => {
   beforeEach(() => {
@@ -377,6 +385,43 @@ describe('PredictGameOutcomesTab', () => {
         queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN),
       ).toBeNull();
     });
+
+    it('renders World Cup-specific resolved moneyline subgroup label', () => {
+      const resolvedGroups = [
+        createGroup({
+          key: 'game_lines',
+          outcomes: [],
+          subgroups: [
+            createGroup({
+              key: 'moneyline',
+              outcomes: [
+                createOutcome({
+                  id: 'resolved-moneyline',
+                  groupItemTitle: 'Team A',
+                  status: 'resolved',
+                }),
+              ],
+            }),
+          ],
+        }),
+      ];
+
+      const { getByTestId, getByText } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap([])}
+          resolvedOutcomeGroups={resolvedGroups}
+          game={mockWorldCupGame}
+          activeChipKey=""
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN),
+      );
+
+      expect(getByText('Regulation time winner')).toBeOnTheScreen();
+    });
   });
 
   describe('flat outcomes (no subgroups)', () => {
@@ -455,6 +500,64 @@ describe('PredictGameOutcomesTab', () => {
       expect(mockCapturedCards[0].lines).toBeUndefined();
     });
 
+    it('renders World Cup moneyline and team-to-advance subgroup labels', () => {
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'soccer_team_to_advance',
+          outcomes: [
+            createOutcome({
+              id: 'team-to-advance',
+              sportsMarketType: 'soccer_team_to_advance',
+            }),
+          ],
+        }),
+        createGroup({
+          key: 'moneyline',
+          outcomes: [createOutcome({ id: 'moneyline' })],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockWorldCupGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards.map((card) => card.title)).toEqual([
+        'Team to advance',
+        'Regulation time winner',
+      ]);
+    });
+
+    it('keeps default moneyline title for non-World-Cup games', () => {
+      const subgroups: PredictOutcomeGroup[] = [
+        createGroup({
+          key: 'moneyline',
+          outcomes: [createOutcome({ id: 'moneyline' })],
+        }),
+      ];
+      const groups = [
+        createGroup({ key: 'game_lines', outcomes: [], subgroups }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards[0].title).toBe('Moneyline');
+    });
+
     it('renders top-level single moneyline outcome with moneyline title', () => {
       const groups = [
         createGroup({
@@ -485,6 +588,32 @@ describe('PredictGameOutcomesTab', () => {
         expect.objectContaining({ label: 'TA', price: 65 }),
         expect.objectContaining({ label: 'TB', price: 35 }),
       ]);
+    });
+
+    it('renders top-level World Cup moneyline outcome with regulation time winner title', () => {
+      const groups = [
+        createGroup({
+          key: 'game_lines',
+          outcomes: [
+            createOutcome({
+              id: 'ml-single',
+              sportsMarketType: 'moneyline',
+            }),
+          ],
+        }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockWorldCupGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      expect(mockCapturedCards).toHaveLength(1);
+      expect(mockCapturedCards[0].title).toBe('Regulation time winner');
     });
 
     it('renders LineOutcomeCard for subgroup with multiple outcomes', () => {

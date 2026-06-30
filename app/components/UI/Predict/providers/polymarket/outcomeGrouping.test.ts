@@ -37,6 +37,7 @@ describe('outcomeGrouping', () => {
         'totals',
         'both_teams_to_score',
         'soccer_first_to_score',
+        'soccer_team_to_advance',
         'soccer_extra_time',
         'soccer_penalty_shootout',
         'team_totals',
@@ -75,10 +76,33 @@ describe('outcomeGrouping', () => {
 
       expect(groups.map((group) => group.key)).toEqual(['game_lines']);
       expect(groups[0].subgroups?.map((group) => group.key)).toEqual([
-        'moneyline',
         'soccer_team_to_advance',
+        'moneyline',
         'soccer_extra_time',
         'soccer_penalty_shootout',
+      ]);
+    });
+
+    it('orders team to advance before moneyline in game lines', () => {
+      const outcomes = [
+        createGroupingOutcome('moneyline', 'moneyline'),
+        createGroupingOutcome('team-to-advance', 'soccer_team_to_advance'),
+        createGroupingOutcome('spread', 'spreads', -1.5),
+        createGroupingOutcome('total', 'totals', 2.5),
+      ];
+
+      const groups = buildOutcomeGroups(outcomes);
+
+      expect(groups).toHaveLength(1);
+      expect(groups[0]).toMatchObject({
+        key: 'game_lines',
+        outcomes: [],
+      });
+      expect(groups[0].subgroups?.map((group) => group.key)).toEqual([
+        'soccer_team_to_advance',
+        'moneyline',
+        'spreads',
+        'totals',
       ]);
     });
 

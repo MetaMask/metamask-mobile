@@ -12,6 +12,7 @@ import {
   buildSubtitle,
   formatOutcomeCardTitle,
   getSportsMarketTypeLabel,
+  getSportsMarketTypeLabelForGame,
   sortMoneylineOutcomes,
 } from './utils';
 
@@ -28,6 +29,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Team to Score First',
       'predict.sports_market_types.soccer_first_to_score':
         'First Team to Score',
+      'predict.world_cup.market_info.regulation_time_winner.title':
+        'Regulation time winner',
+      'predict.world_cup.market_info.team_to_advance.title': 'Team to advance',
       'predict.sports_market_types.tennis_set_totals': 'Total Sets',
       'predict.sports_market_types.tennis_set_handicap': 'Set Handicap',
       'predict.sports_market_types.tennis_match_totals': 'Total Games',
@@ -114,6 +118,10 @@ const mockGame: PredictMarketGame = {
 };
 
 const mockOnBuyPress = jest.fn();
+const mockWorldCupGame: PredictMarketGame = {
+  ...mockGame,
+  league: 'fifwc',
+};
 
 describe('PredictGameDetailsContent utils', () => {
   beforeEach(() => {
@@ -165,6 +173,38 @@ describe('PredictGameDetailsContent utils', () => {
         expect.objectContaining({ message }),
         { message, context: { key, type } },
       );
+    });
+  });
+
+  describe('getSportsMarketTypeLabelForGame', () => {
+    it('returns World Cup-specific label for moneyline', () => {
+      const result = getSportsMarketTypeLabelForGame(
+        'moneyline',
+        undefined,
+        mockWorldCupGame,
+      );
+
+      expect(result).toBe('Regulation time winner');
+    });
+
+    it('returns World Cup-specific label for team-to-advance markets', () => {
+      const result = getSportsMarketTypeLabelForGame(
+        'soccer_team_to_advance',
+        undefined,
+        mockWorldCupGame,
+      );
+
+      expect(result).toBe('Team to advance');
+    });
+
+    it('returns default sports market label for non-World-Cup moneyline', () => {
+      const result = getSportsMarketTypeLabelForGame(
+        'moneyline',
+        undefined,
+        mockGame,
+      );
+
+      expect(result).toBe('Moneyline');
     });
   });
 
