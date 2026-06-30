@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import { QrSyncPhases } from '../../../core/QrSync/constants';
@@ -21,7 +21,7 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   const ReactActual = jest.requireActual('react');
-  const { View, Text: RNText, Pressable } = jest.requireActual('react-native');
+  const { View, Text: RNText } = jest.requireActual('react-native');
 
   const MockBottomSheet = ({ children }: { children: React.ReactNode }) =>
     ReactActual.createElement(
@@ -30,21 +30,10 @@ jest.mock('@metamask/design-system-react-native', () => {
       children,
     );
 
-  const MockBottomSheetHeader = ({
-    children,
-    onClose,
-  }: {
-    children: React.ReactNode;
-    onClose?: () => void;
-  }) =>
+  const MockBottomSheetHeader = ({ children }: { children: React.ReactNode }) =>
     ReactActual.createElement(
       View,
       { testID: 'verification-bottom-sheet-header' },
-      ReactActual.createElement(
-        Pressable,
-        { testID: 'verification-code-close-button', onPress: onClose },
-        ReactActual.createElement(RNText, {}, 'close'),
-      ),
       ReactActual.createElement(RNText, {}, children),
     );
 
@@ -102,34 +91,6 @@ describe('VerificationCodeBottomSheet', () => {
       const { getByText } = renderComponent();
 
       expect(getByText('123456')).toBeOnTheScreen();
-    });
-
-    it('renders the done button', () => {
-      const { getByText } = renderComponent();
-
-      expect(
-        getByText(strings('app_settings.add_device.done')),
-      ).toBeOnTheScreen();
-    });
-  });
-
-  describe('done button', () => {
-    it('calls navigation.goBack when done button is pressed', () => {
-      const { getByText } = renderComponent();
-
-      fireEvent.press(getByText(strings('app_settings.add_device.done')));
-
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('close button', () => {
-    it('calls navigation.goBack when close button is pressed', () => {
-      const { getByTestId } = renderComponent();
-
-      fireEvent.press(getByTestId('verification-code-close-button'));
-
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
   });
 

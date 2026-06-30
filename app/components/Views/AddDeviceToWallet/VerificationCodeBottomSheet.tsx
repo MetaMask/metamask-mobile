@@ -10,7 +10,6 @@ import {
   TextVariant,
   TextColor,
   FontWeight,
-  Button,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
@@ -38,7 +37,7 @@ const VerificationCodeBottomSheet = () => {
 
   return (
     <BottomSheet ref={bottomSheetRef} goBack={closeSheet}>
-      <BottomSheetHeader onClose={closeSheet}>
+      <BottomSheetHeader>
         {strings('app_settings.add_device.enter_code_on_extension')}
       </BottomSheetHeader>
       <Box alignItems={BoxAlignItems.Center} twClassName="px-4 pb-6">
@@ -57,9 +56,6 @@ const VerificationCodeBottomSheet = () => {
         >
           {otp}
         </Text>
-        <Button twClassName="w-full" onPress={closeSheet}>
-          {strings('app_settings.add_device.done')}
-        </Button>
       </Box>
     </BottomSheet>
   );
