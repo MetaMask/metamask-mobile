@@ -2365,7 +2365,8 @@
     "search_account": "Search an account",
     "home": {
       "live_now_title": "Live now",
-      "categories_placeholder": "Categories",
+      "categories_title": "Categories",
+      "popular_today_placeholder": "Popular today",
       "trending_title": "Trending",
       "trending_unable_to_load": "Unable to load markets, please try again"
     },
