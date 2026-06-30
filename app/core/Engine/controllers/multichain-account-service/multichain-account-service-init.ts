@@ -58,7 +58,7 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
           createAccounts: {
             ...snapAccountProviderConfig.createAccounts,
             batched: true,
-            timeoutMs: 10000,
+            timeoutMs: 30000,
           },
         }),
       ),

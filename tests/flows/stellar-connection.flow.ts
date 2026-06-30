@@ -42,18 +42,20 @@ export const connectStellarTestDapp = async (
 
   await Utilities.executeWithRetry(
     async () => {
-      await Assertions.expectElementToBeVisible(
+      await Assertions.expectElementToBeVisible(ConnectBottomSheet.container, {
+        description: 'Connect sheet should be visible',
+        timeout: 5000,
+      });
+      await Utilities.waitForElementToBeEnabled(
         ConnectBottomSheet.connectButton,
-        {
-          description: 'Connect button should be visible before tapping',
-          timeout: 5000,
-        },
+        5000,
+        500,
       );
     },
     {
       timeout: 30_000,
       interval: 2_000,
-      description: 'Wait for Stellar connect sheet to be ready',
+      description: 'Wait for enabled Stellar connect button',
     },
   );
   await ConnectBottomSheet.tapConnectButton();
