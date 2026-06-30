@@ -7,15 +7,29 @@ import {
   unlockAsync,
   OrientationLock,
 } from 'expo-screen-orientation';
-import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
+import {
+  CandlePeriod,
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type CandleData,
+} from '@metamask/perps-controller';
 import type { OhlcData, TPSLLines } from '../TradingViewChart/TradingViewChart';
 import {
   PerpsChartFullscreenModalSelectorsIDs,
   PerpsOHLCVBarSelectorsIDs,
 } from '../../Perps.testIds';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 jest.mock('expo-screen-orientation');
 jest.mock('../../../../../util/Logger');
+
+const mockTrack = jest.fn();
+
+jest.mock('../../hooks/usePerpsEventTracking', () => ({
+  usePerpsEventTracking: () => ({
+    track: mockTrack,
+  }),
+}));
 
 const mockLockAsync = lockAsync as jest.MockedFunction<typeof lockAsync>;
 const mockUnlockAsync = unlockAsync as jest.MockedFunction<typeof unlockAsync>;
@@ -210,6 +224,7 @@ describe('PerpsChartFullscreenModal', () => {
     jest.clearAllMocks();
     mockLockAsync.mockResolvedValue();
     mockUnlockAsync.mockResolvedValue();
+    mockTrack.mockClear();
   });
 
   afterEach(() => {
@@ -523,6 +538,63 @@ describe('PerpsChartFullscreenModal', () => {
       fireEvent.press(getByTestId('perps-advanced-chart'));
 
       expect(getByTestId('ohlcv-bar')).toBeDefined();
+    });
+
+    it('tracks screen view when advanced chart skeleton hides', () => {
+      render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          isAdvancedChartEnabled
+          symbol="BTC"
+        />,
+      );
+
+      const latestAdvancedChartProps =
+        mockPerpsAdvancedChart.mock.calls[
+          mockPerpsAdvancedChart.mock.calls.length - 1
+        ][0];
+      latestAdvancedChartProps.onSkeletonHidden();
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        {
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        },
+      );
+    });
+
+    it('tracks error and closes modal when advanced chart reports an error', () => {
+      render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          isAdvancedChartEnabled
+          symbol="BTC"
+        />,
+      );
+
+      const latestAdvancedChartProps =
+        mockPerpsAdvancedChart.mock.calls[
+          mockPerpsAdvancedChart.mock.calls.length - 1
+        ][0];
+      latestAdvancedChartProps.onError();
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_ERROR,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+            'Chart rendering error in fullscreen chart modal',
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+        }),
+      );
+      expect(mockOnClose).toHaveBeenCalled();
     });
   });
 

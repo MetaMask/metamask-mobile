@@ -2867,6 +2867,82 @@ describe('PerpsMarketDetailsView', () => {
         expect(getByTestId('fullscreen-chart')).toBeOnTheScreen();
       });
     });
+
+    it('passes advanced chart props into fullscreen modal when advanced charts are enabled', async () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition: {
+          symbol: 'BTC',
+          size: '0.5',
+          entryPrice: '44000',
+          positionValue: '22000',
+          unrealizedPnl: '1000',
+          marginUsed: '2200',
+          leverage: { value: 10, type: 'isolated' },
+          liquidationPrice: '40000',
+          maxLeverage: 40,
+          returnOnEquity: '0.1',
+          cumulativeFunding: {
+            allTime: '0',
+            sinceOpen: '0',
+            sinceChange: '0',
+          },
+        },
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const { getByTestId, getAllByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        {
+          state: initialState,
+        },
+      );
+
+      fireEvent.press(
+        getByTestId(
+          `${PerpsMarketDetailsViewSelectorsIDs.HEADER}-fullscreen-button`,
+        ),
+      );
+
+      await waitFor(() => {
+        expect(getAllByTestId('mock-perps-advanced-chart').length).toBe(2);
+      });
+      const fullscreenChart = getAllByTestId('mock-perps-advanced-chart').find(
+        (chart) => chart.props.paginationDuration === undefined,
+      );
+
+      expect(fullscreenChart?.props).toEqual(
+        expect.objectContaining({
+          symbol: 'BTC',
+          visibleCandleCount: 30,
+          positionSize: '0.5',
+          fallbackCandleData: expect.objectContaining({
+            symbol: 'BTC',
+          }),
+        }),
+      );
+    });
   });
 
   describe('Category search shortcut', () => {

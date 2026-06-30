@@ -1339,6 +1339,72 @@ describe('CandleStreamChannel', () => {
         endTime: 1700000300000,
       });
     });
+
+    it('emits refreshed merged candles after subscribing with stale cache', async () => {
+      let capturedCallback: ((data: CandleData) => void) | undefined;
+      mockSubscribeToCandles.mockImplementation(({ callback }) => {
+        capturedCallback = callback;
+        return jest.fn();
+      });
+
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        duration: TimeDuration.OneWeek,
+        callback: jest.fn(),
+      });
+      flushConnectDebounce();
+      capturedCallback?.({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        candles: [
+          {
+            time: 1700000000000,
+            open: '50000',
+            high: '51000',
+            low: '49000',
+            close: '50500',
+            volume: '100',
+          },
+        ],
+      });
+
+      jest.setSystemTime(new Date(1700000300000));
+      const refreshedSubscriber = jest.fn();
+      mockFetchHistoricalCandles.mockResolvedValue({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        candles: [
+          {
+            time: 1700000240000,
+            open: '50600',
+            high: '51200',
+            low: '50500',
+            close: '51100',
+            volume: '90',
+          },
+        ],
+      });
+      channel.subscribe({
+        symbol: 'BTC',
+        interval: CandlePeriod.OneMinute,
+        duration: TimeDuration.OneWeek,
+        callback: refreshedSubscriber,
+      });
+
+      expect(refreshedSubscriber).not.toHaveBeenCalled();
+      await Promise.resolve();
+      await Promise.resolve();
+
+      expect(refreshedSubscriber).toHaveBeenCalledWith(
+        expect.objectContaining({
+          candles: [
+            expect.objectContaining({ time: 1700000000000 }),
+            expect.objectContaining({ time: 1700000240000 }),
+          ],
+        }),
+      );
+    });
   });
 
   describe('Initial Fetch Duration', () => {
