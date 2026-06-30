@@ -277,7 +277,7 @@ const CreatePriceAlertView: React.FC = () => {
             .addProperties({
               asset_id: assetId,
               token_symbol: symbol,
-              alert_type: PriceAlertAnalytics.TYPE_THRESHOLD,
+              alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
               prev_state: {
                 active: editingAlert.active,
                 threshold: editingAlert.threshold,
@@ -298,7 +298,7 @@ const CreatePriceAlertView: React.FC = () => {
             .addProperties({
               asset_id: assetId,
               token_symbol: symbol,
-              alert_type: PriceAlertAnalytics.TYPE_THRESHOLD,
+              alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
               alert_value: targetPrice,
               alert_occurrence: toAlertOccurrence(isRecurring),
             })

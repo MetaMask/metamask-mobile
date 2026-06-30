@@ -193,7 +193,7 @@ const ManagePriceAlertsView: React.FC = () => {
             .addProperties({
               asset_id: assetId,
               token_symbol: symbol,
-              alert_type: PriceAlertAnalytics.TYPE_THRESHOLD,
+              alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
               alert_value: deleted?.threshold,
             })
             .build(),
@@ -272,7 +272,7 @@ const ManagePriceAlertsView: React.FC = () => {
               .addProperties({
                 asset_id: assetId,
                 token_symbol: symbol,
-                alert_type: PriceAlertAnalytics.TYPE_THRESHOLD,
+                alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
                 prev_state: {
                   active: toggled.active,
                   threshold: toggled.threshold,

@@ -101,13 +101,6 @@ const parseSource = (value: string | null): TokenDetailsSource | undefined =>
     ? (value as TokenDetailsSource)
     : undefined;
 
-/** Parse a numeric query param, returning undefined for missing/invalid values. */
-const parseNumericParam = (value: string | null): number | undefined => {
-  if (!value) return undefined;
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : undefined;
-};
-
 /**
  * Derive `time_to_open` (seconds) from a `triggered_at` query param. Accepts an
  * epoch in seconds or milliseconds, or an ISO-8601 string. Returns undefined
@@ -149,14 +142,10 @@ const trackPriceAlertNotificationOpened = (
         MetaMetricsEvents.PRICE_ALERT_NOTIFICATION_OPENED,
       )
         .addProperties({
+          asset_id: urlParams.get('assetId'),
           token_symbol: token?.symbol,
-          alert_type: urlParams.get('alert_type') ?? 'threshold',
-          price_at_trigger: parseNumericParam(
-            urlParams.get('price_at_trigger'),
-          ),
-          asset_type:
-            urlParams.get('asset_type') ??
-            (token ? (token.isNative ? 'native' : 'token') : undefined),
+          alert_type: urlParams.get('alert_type'),
+          price_at_trigger: urlParams.get('price_at_trigger'),
           time_to_open: parseTimeToOpenSeconds(urlParams.get('triggered_at')),
         })
         .build(),

@@ -37,26 +37,20 @@ export const PRICE_ALERT_QUICK_PERCENTAGES = [-10, -5, 5, 10] as const;
  * views, the notification deeplink handler, and their tests.
  */
 export const PriceAlertAnalytics = {
-  /** `alert_type` — the feature currently only supports threshold alerts. */
-  TYPE_THRESHOLD: 'threshold',
-  /** `alert_occurrence` / nested `occurrence` when the alert repeats. */
-  OCCURRENCE_RECURRING: 'recurring',
-  /** `alert_occurrence` / nested `occurrence` when the alert fires once. */
-  OCCURRENCE_NOT_RECURRING: 'not_recurring',
+  TYPE: {
+    THRESHOLD: 'threshold',
+  },
+  OCCURRENCE: {
+    RECURRING: 'recurring',
+    NOT_RECURRING: 'not_recurring',
+  },
 } as const;
-
-/** Shape of the `prev_state` / `new_state` objects on Price Alert Updated. */
-export interface PriceAlertState {
-  active: boolean;
-  threshold: number;
-  occurrence: string;
-}
 
 /** Maps the `recurring` flag to its analytics `occurrence` string. */
 export const toAlertOccurrence = (recurring: boolean): string =>
   recurring
-    ? PriceAlertAnalytics.OCCURRENCE_RECURRING
-    : PriceAlertAnalytics.OCCURRENCE_NOT_RECURRING;
+    ? PriceAlertAnalytics.OCCURRENCE.RECURRING
+    : PriceAlertAnalytics.OCCURRENCE.NOT_RECURRING;
 
 export const CURRENCY_SYMBOLS: Record<string, string> = {
   usd: '$',
