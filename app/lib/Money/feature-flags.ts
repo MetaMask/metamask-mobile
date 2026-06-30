@@ -13,8 +13,5 @@ import {
 export function isMoneyAccountEnabled(
   remoteFeatureFlags: Record<string, unknown> | undefined,
 ): boolean {
-  const remoteFlag =
-    remoteFeatureFlags?.moneyEnableMoneyAccount as VersionGatedFeatureFlag;
-
-  return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  return true;
 }
