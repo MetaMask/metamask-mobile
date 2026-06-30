@@ -16,7 +16,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Replaced faulty money first time deposit animation and removed parallax effect. (#32535)
-- Fixed a bug where the World Cup Games tab showed a green live indicator even when no matches were in progress. (#32542)
 
 ## [8.0.0]
 
