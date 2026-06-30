@@ -2420,12 +2420,10 @@
       },
       "market_info": {
         "regulation_time_winner": {
-          "title": "Regulation time winner",
-          "description": "90 minutes plus stoppage time."
+          "title": "Regulation time winner"
         },
         "team_to_advance": {
-          "title": "Team to advance",
-          "description": "Final result, including extra time and penalties."
+          "title": "Team to advance"
         }
       }
     },

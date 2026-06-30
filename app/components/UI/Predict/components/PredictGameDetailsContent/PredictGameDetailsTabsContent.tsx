@@ -13,7 +13,6 @@ import { usePredictGame } from '../../hooks/usePredictGame';
 import PredictPicks from '../PredictPicks/PredictPicks';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import PredictGameOutcomesTab from './PredictGameOutcomesTab';
-import type { PredictGameMarketInfo } from './utils';
 
 interface PredictGameDetailsTabsContentProps {
   market: PredictMarket;
@@ -27,7 +26,6 @@ interface PredictGameDetailsTabsContentProps {
   resolvedOutcomeGroups?: PredictOutcomeGroup[];
   activeChipKey: string;
   onBetPress: (token: PredictOutcomeToken) => void;
-  onMarketInfoPress?: (info: PredictGameMarketInfo) => void;
 }
 
 const PredictGameDetailsTabsContent = memo(
@@ -43,7 +41,6 @@ const PredictGameDetailsTabsContent = memo(
     resolvedOutcomeGroups = [],
     activeChipKey,
     onBetPress,
-    onMarketInfoPress,
   }: PredictGameDetailsTabsContentProps) => {
     const { game } = usePredictGame(market, { live: false });
     const handleBuyPress = useCallback(
@@ -102,7 +99,6 @@ const PredictGameDetailsTabsContent = memo(
           game={game}
           activeChipKey={activeChipKey}
           onBuyPress={handleBuyPress}
-          onMarketInfoPress={onMarketInfoPress}
         />
       );
     }
@@ -131,7 +127,6 @@ const PredictGameDetailsTabsContent = memo(
             game={game}
             activeChipKey={activeChipKey}
             onBuyPress={handleBuyPress}
-            onMarketInfoPress={onMarketInfoPress}
           />
         )}
       </>

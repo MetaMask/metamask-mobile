@@ -7,10 +7,6 @@ import {
   TextColor,
   TextVariant,
   FontWeight,
-  ButtonIcon,
-  ButtonIconSize,
-  IconColor,
-  IconName,
 } from '@metamask/design-system-react-native';
 import PredictBetButton from '../PredictActionButtons/PredictBetButton';
 import type { PredictBetButtonVariant } from '../PredictActionButtons/PredictActionButtons.types';
@@ -25,12 +21,6 @@ export interface PredictSportOutcomeButton {
   teamColor?: string;
 }
 
-export interface PredictSportOutcomeCardTitleInfo {
-  onPress: () => void;
-  accessibilityLabel: string;
-  testID?: string;
-}
-
 interface PredictSportOutcomeCardProps {
   title: string;
   subtitle?: string;
@@ -41,7 +31,6 @@ interface PredictSportOutcomeCardProps {
   onSelectLine?: (line: number, index: number) => void;
   buttonLayout?: 'inline' | 'inlineNoSeparator' | 'stacked';
   disabled?: boolean;
-  titleInfo?: PredictSportOutcomeCardTitleInfo;
   testID?: string;
 }
 
@@ -55,7 +44,6 @@ const PredictSportOutcomeCard: React.FC<PredictSportOutcomeCardProps> = ({
   onSelectLine,
   buttonLayout = 'inline',
   disabled = false,
-  titleInfo,
   testID = PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.CONTAINER,
 }) => {
   const showLineSelector =
@@ -72,32 +60,14 @@ const PredictSportOutcomeCard: React.FC<PredictSportOutcomeCardProps> = ({
         twClassName="justify-between mb-3"
       >
         <Box twClassName="flex-1">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
+          <Text
+            testID={PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.TITLE}
+            variant={TextVariant.BodyMd}
+            fontWeight={FontWeight.Medium}
+            color={TextColor.TextDefault}
           >
-            <Text
-              testID={PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.TITLE}
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-            >
-              {title}
-            </Text>
-            {titleInfo ? (
-              <ButtonIcon
-                size={ButtonIconSize.Sm}
-                iconProps={{ color: IconColor.IconAlternative }}
-                iconName={IconName.Info}
-                onPress={titleInfo.onPress}
-                accessibilityLabel={titleInfo.accessibilityLabel}
-                testID={
-                  titleInfo.testID ??
-                  PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.TITLE_INFO_BUTTON
-                }
-              />
-            ) : null}
-          </Box>
+            {title}
+          </Text>
           {subtitle ? (
             <Text
               testID={PREDICT_SPORT_OUTCOME_CARD_TEST_IDS.SUBTITLE}

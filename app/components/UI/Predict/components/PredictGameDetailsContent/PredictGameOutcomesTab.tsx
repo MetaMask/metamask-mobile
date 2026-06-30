@@ -21,7 +21,6 @@ import { countOutcomeGroupOutcomes } from '../../utils/outcomeGroups';
 import {
   getSportsMarketTypeLabel,
   getSportsMarketTypeLabelForGame,
-  type PredictGameMarketInfo,
 } from './utils';
 
 export { getSportsMarketTypeLabel } from './utils';
@@ -32,7 +31,6 @@ export interface OutcomesTabProps {
   game?: PredictMarketGame;
   activeChipKey: string;
   onBuyPress: (outcome: PredictOutcome, token: PredictOutcomeToken) => void;
-  onMarketInfoPress?: (info: PredictGameMarketInfo) => void;
 }
 
 const ResolvedOutcomeGroup = memo(
@@ -129,7 +127,6 @@ const PredictGameOutcomesTab = memo(
     game,
     activeChipKey,
     onBuyPress,
-    onMarketInfoPress,
   }: OutcomesTabProps) => {
     const selectedGroup = groupMap.get(activeChipKey);
     const pricedGroup = usePricedOutcomeGroup(selectedGroup);
@@ -142,7 +139,6 @@ const PredictGameOutcomesTab = memo(
               group={pricedGroup}
               onBuyPress={onBuyPress}
               game={game}
-              onMarketInfoPress={onMarketInfoPress}
             />
           </Box>
         )}

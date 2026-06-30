@@ -18,25 +18,10 @@ const loggedMissingTranslationKeys = new Set<string>();
 const O_U_PLAYER_PATTERN = /^(.+?):\s+\w+ O\/U/;
 const FIFA_WORLD_CUP_LEAGUE = 'fifwc';
 
-const WORLD_CUP_MARKET_INFO_KEYS: Record<
-  string,
-  { title: string; description: string }
-> = {
-  moneyline: {
-    title: 'predict.world_cup.market_info.regulation_time_winner.title',
-    description:
-      'predict.world_cup.market_info.regulation_time_winner.description',
-  },
-  soccer_team_to_advance: {
-    title: 'predict.world_cup.market_info.team_to_advance.title',
-    description: 'predict.world_cup.market_info.team_to_advance.description',
-  },
+const WORLD_CUP_MARKET_TYPE_LABEL_KEYS: Record<string, string> = {
+  moneyline: 'predict.world_cup.market_info.regulation_time_winner.title',
+  soccer_team_to_advance: 'predict.world_cup.market_info.team_to_advance.title',
 };
-
-export interface PredictGameMarketInfo {
-  title: string;
-  description: string;
-}
 
 export type BuyHandler = (
   outcome: PredictOutcome,
@@ -88,23 +73,16 @@ export const getSportsMarketTypeLabel = (
   fallbackTitle ??
   toTitleCase(type);
 
-export const getWorldCupMarketInfo = (
+const getWorldCupSportsMarketTypeLabel = (
   type?: string,
   game?: PredictMarketGame,
-): PredictGameMarketInfo | undefined => {
+): string | undefined => {
   if (!type || game?.league !== FIFA_WORLD_CUP_LEAGUE) {
     return undefined;
   }
 
-  const keys = WORLD_CUP_MARKET_INFO_KEYS[type.toLowerCase()];
-  if (!keys) {
-    return undefined;
-  }
-
-  return {
-    title: strings(keys.title),
-    description: strings(keys.description),
-  };
+  const key = WORLD_CUP_MARKET_TYPE_LABEL_KEYS[type.toLowerCase()];
+  return key ? strings(key) : undefined;
 };
 
 export const getSportsMarketTypeLabelForGame = (
@@ -112,7 +90,7 @@ export const getSportsMarketTypeLabelForGame = (
   fallbackTitle?: string,
   game?: PredictMarketGame,
 ): string =>
-  getWorldCupMarketInfo(type, game)?.title ??
+  getWorldCupSportsMarketTypeLabel(type, game) ??
   getSportsMarketTypeLabel(type, fallbackTitle);
 
 export const getFallbackSportsMarketTypeLabel = (
