@@ -572,6 +572,8 @@
     "@metamask/browser-passworder": "^5.0.0",
     "@metamask/browser-playground": "0.3.0",
     "@metamask/build-utils": "^3.0.0",
+    "@metamask/client-mcp-core": "portal:/Users/pnarayanaswamy/client-mcp-core",
+    "@metamask/device-mcp": "^0.2.0",
     "@metamask/eslint-config-typescript": "^13.0.0",
     "@metamask/eslint-plugin-design-tokens": "^1.0.0",
     "@metamask/foundryup": "1.0.0",
