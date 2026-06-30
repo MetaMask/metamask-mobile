@@ -412,6 +412,9 @@ import {
   ProfileMetricsService,
   ProfileMetricsServiceActions,
   ProfileMetricsServiceEvents,
+  ProofOfOwnershipService,
+  ProofOfOwnershipServiceActions,
+  ProofOfOwnershipServiceEvents,
 } from '@metamask/profile-metrics-controller';
 
 type NftDetectionControllerActions = ControllerGetStateAction<
@@ -601,6 +604,7 @@ export type GlobalActions =
   | NftDetectionControllerActions
   | ProfileMetricsControllerActions
   | ProfileMetricsServiceActions
+  | ProofOfOwnershipServiceActions
   | RampsControllerActions
   | RampsServiceActions
   | AiDigestControllerActions
@@ -689,6 +693,7 @@ export type GlobalEvents =
   | NftDetectionControllerEvents
   | ProfileMetricsControllerEvents
   | ProfileMetricsServiceEvents
+  | ProofOfOwnershipServiceEvents
   | RampsControllerEvents
   | RampsServiceEvents
   | AiDigestControllerEvents
@@ -824,6 +829,7 @@ export type MessengerClients = {
   DelegationController: DelegationController;
   ProfileMetricsController: ProfileMetricsController;
   ProfileMetricsService: ProfileMetricsService;
+  ProofOfOwnershipService: ProofOfOwnershipService;
   RampsService: RampsService;
   AiDigestController: AiDigestController;
   SocialController: SocialController;
@@ -983,7 +989,6 @@ export type MessengerClientsToInitialize =
   | 'MoneyAccountController'
   | 'MoneyAccountBalanceService'
   | 'LoggingController'
-  | 'NetworkController'
   | 'AccountTreeController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
@@ -1023,6 +1028,7 @@ export type MessengerClientsToInitialize =
   | 'SelectedNetworkController'
   | 'ProfileMetricsController'
   | 'ProfileMetricsService'
+  | 'ProofOfOwnershipService'
   | 'AnalyticsController'
   | 'AiDigestController'
   | 'SocialService'

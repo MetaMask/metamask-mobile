@@ -7,15 +7,16 @@ import {
   VersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
-import {
-  getWildcardTokenListFromConfig,
-  WildcardTokenList,
-} from '../../Earn/utils/wildcardTokenList';
+import { WildcardTokenList } from '../../Earn/utils/wildcardTokenList';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
-import { MONEY_NO_FEE_TOKENS_FALLBACK } from '../utils/depositFaqTokens';
+import {
+  MONEY_NO_FEE_TOKENS_FALLBACK,
+  ensureMonadMusdListed,
+} from '../utils/depositFaqTokens';
 import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmations/utils/relayFixedSpread';
 import { parseNonNegativeFinite } from '../utils/number';
 import { MoneyVaultApyRemoteConfig } from './featureFlags.types';
+import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
 
 /**
  * Selects whether the Money activity detail view is enabled.
@@ -45,6 +46,26 @@ export const selectMoneyEnableActivityDetailsBlockexplorerLinkFlag =
       remoteFeatureFlags?.moneyEnableActivityDetailsBlockexplorerLink as unknown as VersionGatedFeatureFlag;
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   });
+
+/**
+ * Baanx card-cashback multisend contract addresses used to classify unlabeled
+ * Accounts API rows as cashback. Remote flag takes precedence; falls back to
+ * the built-in default list when absent or invalid.
+ */
+export const selectMoneyCardActivityCashbackMultisendContracts = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string[] => {
+    const remote =
+      remoteFeatureFlags?.moneyCardActivityCashbackMultisendContracts;
+    if (
+      Array.isArray(remote) &&
+      remote.every((item): item is string => typeof item === 'string')
+    ) {
+      return remote;
+    }
+    return [...DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS];
+  },
+);
 
 /** Temporary flag: remote value is a boolean only. */
 export const selectMoneyActivityMockDataEnabledFlag = createSelector(
@@ -87,25 +108,6 @@ export const selectMoneyFirstTimeDepositAnimationEnabledFlag = createSelector(
       process.env.MM_MONEY_FIRST_TIME_DEPOSIT_ANIMATION_ENABLED !== 'false';
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
   },
-);
-
-/**
- * Selects the no-fee tokens for Money surfaces from remote config or local fallback.
- * Returns a wildcard map of chain IDs (or "*") to token symbols (or ["*"]) that are
- * eligible for fee-free deposit into the Money account.
- *
- * Remote flag takes precedence over local env var.
- * If both are unavailable, returns {} (no tokens have subsidised fees).
- */
-export const selectMoneyNoFeeTokens = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): WildcardTokenList =>
-    getWildcardTokenListFromConfig(
-      remoteFeatureFlags?.earnMoneyDepositNoFeeTokens,
-      'earnMoneyDepositNoFeeTokens',
-      process.env.MM_MONEY_DEPOSIT_NO_FEE_TOKENS,
-      'MM_MONEY_DEPOSIT_NO_FEE_TOKENS',
-    ),
 );
 
 const FALLBACK_MONEY_DEPOSIT_MIN_BALANCE = 0.01; // 1 cent
@@ -171,8 +173,8 @@ const normalizeTokenSymbol = (tokenAlias: string): string => {
  *
  * Filters routes where the destination is Monad mUSD, then maps each input
  * (chainId, tokenAlias) to a display symbol, emitting a WildcardTokenList
- * (hex chainId → [SYMBOL, ...]) compatible with formatNoFeeTokenBullets and
- * formatBaseStablecoins in depositFaqTokens.ts.
+ * (hex chainId → [SYMBOL, ...]) compatible with formatNoFeeTokenBullets in
+ * depositFaqTokens.ts.
  *
  * Falls back to MONEY_NO_FEE_TOKENS_FALLBACK when the flag is absent or
  * structurally invalid, preserving current FAQ behaviour.
@@ -212,9 +214,10 @@ export const selectMoneyNoFeeDepositTokens = createSelector(
       }
     }
 
-    return Object.keys(catalog).length > 0
-      ? catalog
-      : MONEY_NO_FEE_TOKENS_FALLBACK;
+    const result =
+      Object.keys(catalog).length > 0 ? catalog : MONEY_NO_FEE_TOKENS_FALLBACK;
+
+    return ensureMonadMusdListed(result);
   },
 );
 

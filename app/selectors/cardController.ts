@@ -3,6 +3,7 @@ import { parseCaipAccountId, isCaipAccountId } from '@metamask/utils';
 import { RootState } from '../reducers';
 import {
   DEFAULT_CARD_PROVIDER_ID,
+  type CardUnauthenticatedReason,
   type CardControllerState,
   type CardHomeDataStatus,
 } from '../core/Engine/controllers/card-controller/types';
@@ -21,7 +22,7 @@ import { toCardFundingToken } from '../components/UI/Card/util/toCardTokenAllowa
 import { buildDelegationTokenList } from '../components/UI/Card/util/buildTokenList';
 import { isMoneyAccountEntry } from '../components/UI/Card/util/isMoneyAccountEntry';
 import {
-  getVedaTokenConfig,
+  getVedaTokenConfigFromFeatureFlag,
   MONEY_ACCOUNT_DISPLAY_SYMBOL,
   type VedaTokenConfig,
 } from '../components/UI/Card/util/vedaToken';
@@ -86,6 +87,14 @@ export const selectIsCardAuthenticated = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
     cardState?.isAuthenticated ?? false,
+);
+
+export const selectCardLastUnauthenticatedReason = createSelector(
+  selectCardControllerState,
+  (
+    cardState: CardControllerState | undefined,
+  ): CardUnauthenticatedReason | null =>
+    cardState?.lastUnauthenticatedReason ?? null,
 );
 
 export const selectIsMoneyAccountCardLinkInProgress = createSelector(
@@ -159,9 +168,9 @@ export const selectCardHomeDataStatus = createSelector(
 );
 
 export const selectMoneyAccountVedaTokenConfig = createSelector(
-  selectCardHomeData,
-  (data): VedaTokenConfig | null =>
-    getVedaTokenConfig(data?.delegationSettings),
+  selectCardFeatureFlag,
+  (cardFeatureFlag): VedaTokenConfig | null =>
+    getVedaTokenConfigFromFeatureFlag(cardFeatureFlag?.chains),
 );
 
 export const selectCardCountryOfResidence = createSelector(

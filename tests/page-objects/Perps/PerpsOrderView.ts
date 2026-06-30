@@ -10,7 +10,6 @@ import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
-  PerpsMarketDetailsViewSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import {
   asDetoxElement,
@@ -113,11 +112,11 @@ class PerpsOrderView {
   async tapTakeProfitButton() {
     await Gestures.scrollToElement(
       this.takeProfitButton,
-      Matchers.scrollContainer(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      Matchers.scrollContainer(PerpsOrderViewSelectorsIDs.SCROLL_VIEW),
       {
         direction: 'down',
         scrollAmount: 250,
-        elemDescription: 'Scroll Perps market details to TP/SL row',
+        elemDescription: 'Scroll Perps order view to TP/SL row',
       },
     );
     await Gestures.waitAndTap(this.takeProfitButton, {
@@ -390,12 +389,12 @@ class PerpsOrderView {
           this.getTpslKeypadKey(firstKey),
           {
             description: `TPSL keypad key ${firstKey} should be visible`,
-            timeout: 3000,
+            timeout: 5000,
           },
         );
       },
       {
-        timeout: 15000,
+        timeout: 20000,
         interval: 1000,
         description: 'Focus TPSL input and wait for keypad',
         elemDescription: focusInputElemDescription,
@@ -403,21 +402,21 @@ class PerpsOrderView {
     );
 
     for (const ch of price) {
-      await Utilities.executeWithRetry(
-        async () => {
-          await UnifiedGestures.waitAndTap(this.getTpslKeypadKey(ch), {
-            description: `TPSL keypad key ${ch}`,
-            checkForDisplayed: true,
-            checkForEnabled: false,
-          });
-        },
-        {
-          timeout: 12000,
-          interval: 500,
-          description: `Tap TPSL keypad key ${ch}`,
-          elemDescription: `TPSL keypad key ${ch}`,
-        },
-      );
+      const keypadKey = this.getTpslKeypadKey(ch);
+
+      if (!(await Utilities.isElementVisible(keypadKey, 1500))) {
+        await UnifiedGestures.waitAndTap(input, {
+          description: `${focusInputElemDescription} (refocus keypad)`,
+          checkForDisplayed: true,
+          checkForEnabled: false,
+        });
+      }
+
+      await UnifiedGestures.waitAndTap(keypadKey, {
+        description: `TPSL keypad key ${ch}`,
+        checkForDisplayed: true,
+        checkForEnabled: false,
+      });
     }
 
     await UnifiedGestures.waitAndTap(this.getTpslDoneButton(), {

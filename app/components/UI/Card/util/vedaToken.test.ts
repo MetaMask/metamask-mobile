@@ -2,6 +2,7 @@ import type { CaipChainId } from '@metamask/utils';
 import type { DelegationSettingsResponse } from '../types';
 import {
   getVedaTokenConfig,
+  getVedaTokenConfigFromFeatureFlag,
   isVedaToken,
   isMoneyAccountCardTokenAllowlisted,
   MONEY_ACCOUNT_DELEGATION_NETWORK,
@@ -103,6 +104,111 @@ describe('getVedaTokenConfig', () => {
   it('matches network case-insensitively', () => {
     const config = getVedaTokenConfig(makeSettings({ network: 'Monad' }));
     expect(config?.address).toBe(VEDA_ADDRESS);
+  });
+});
+
+describe('getVedaTokenConfigFromFeatureFlag', () => {
+  it('returns null when chains is null/undefined', () => {
+    expect(getVedaTokenConfigFromFeatureFlag(null)).toBeNull();
+    expect(getVedaTokenConfigFromFeatureFlag(undefined)).toBeNull();
+  });
+
+  it('returns null when no veda token is allowlisted', () => {
+    expect(
+      getVedaTokenConfigFromFeatureFlag({
+        'eip155:143': {
+          tokens: [{ symbol: 'USDC', address: USDC_ADDRESS, decimals: 6 }],
+        },
+      }),
+    ).toBeNull();
+  });
+
+  it('returns null when the veda token is disabled', () => {
+    expect(
+      getVedaTokenConfigFromFeatureFlag({
+        'eip155:143': {
+          tokens: [
+            {
+              symbol: 'veda',
+              address: VEDA_ADDRESS,
+              decimals: 6,
+              enabled: false,
+            },
+          ],
+        },
+      }),
+    ).toBeNull();
+  });
+
+  it('returns null when the veda token has no address', () => {
+    expect(
+      getVedaTokenConfigFromFeatureFlag({
+        'eip155:143': {
+          tokens: [{ symbol: 'veda', address: '', decimals: 6 }],
+        },
+      }),
+    ).toBeNull();
+  });
+
+  it('builds a config (without delegationContract) from the veda token', () => {
+    expect(
+      getVedaTokenConfigFromFeatureFlag({
+        'eip155:143': {
+          tokens: [
+            { symbol: 'USDC', address: USDC_ADDRESS, decimals: 6 },
+            { symbol: 'VEDA', address: VEDA_ADDRESS, decimals: 6 },
+          ],
+        },
+      }),
+    ).toEqual({
+      caipChainId: 'eip155:143',
+      address: VEDA_ADDRESS,
+      decimals: 6,
+    });
+  });
+
+  it('treats a token with enabled omitted as enabled', () => {
+    const config = getVedaTokenConfigFromFeatureFlag({
+      'eip155:143': {
+        tokens: [{ symbol: 'veda', address: VEDA_ADDRESS, decimals: 6 }],
+      },
+    });
+    expect(config?.address).toBe(VEDA_ADDRESS);
+  });
+
+  it('defaults decimals to 6 when missing', () => {
+    const config = getVedaTokenConfigFromFeatureFlag({
+      'eip155:143': {
+        tokens: [{ symbol: 'veda', address: VEDA_ADDRESS }],
+      },
+    });
+    expect(config?.decimals).toBe(6);
+  });
+
+  it('ignores veda tokens on non-Monad chains', () => {
+    expect(
+      getVedaTokenConfigFromFeatureFlag({
+        'eip155:59144': {
+          tokens: [{ symbol: 'veda', address: VEDA_ADDRESS, decimals: 6 }],
+        },
+      }),
+    ).toBeNull();
+  });
+
+  it('resolves the Monad veda row when veda is listed on multiple chains', () => {
+    const config = getVedaTokenConfigFromFeatureFlag({
+      'eip155:59144': {
+        tokens: [{ symbol: 'veda', address: USDC_ADDRESS, decimals: 6 }],
+      },
+      'eip155:143': {
+        tokens: [{ symbol: 'veda', address: VEDA_ADDRESS, decimals: 6 }],
+      },
+    });
+    expect(config).toEqual({
+      caipChainId: 'eip155:143',
+      address: VEDA_ADDRESS,
+      decimals: 6,
+    });
   });
 });
 
