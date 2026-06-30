@@ -23,6 +23,8 @@ import {
   GameChartSeriesConfig,
 } from './PredictGameChart.types';
 
+import { getLiveMidPrice } from '../../utils/prices';
+
 const TIMEFRAME_TO_INTERVAL: Record<
   Exclude<ChartTimeframe, 'live'>,
   PredictPriceHistoryInterval
@@ -229,8 +231,9 @@ const PredictGameChart: React.FC<PredictGameChartProps> = ({
         const existingData = [...series.data];
         const lastPoint = existingData[existingData.length - 1];
 
-        const newValue = priceUpdate
-          ? Number((priceUpdate.bestAsk * 100).toFixed(2))
+        const liveMidPrice = getLiveMidPrice(priceUpdate);
+        const newValue = liveMidPrice
+          ? Number((liveMidPrice * 100).toFixed(2))
           : (lastPoint?.value ?? 50);
 
         const newPoint: GameChartDataPoint = {
