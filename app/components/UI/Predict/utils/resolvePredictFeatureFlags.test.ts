@@ -840,7 +840,6 @@ describe('resolvePredictFeatureFlags', () => {
         'soccer_team_totals',
         'basketball_team_to_score_first',
         'soccer_exact_score',
-        'soccer_team_to_advance',
       ]);
     });
 
