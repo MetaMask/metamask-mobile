@@ -2081,7 +2081,8 @@
       "products": "Products",
       "top_movers": "Top movers",
       "gainers": "Gainers",
-      "losers": "Losers"
+      "losers": "Losers",
+      "recently_added": "Recently added"
     },
     "learn_more": {
       "title": "Learn about Perps",

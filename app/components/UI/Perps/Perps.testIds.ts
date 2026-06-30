@@ -263,6 +263,9 @@ export const PerpsHomeViewSelectorsIDs = {
   TOP_MOVERS_GAINERS_PILL: 'perps-home-top-movers-gainers',
   TOP_MOVERS_LOSERS_PILL: 'perps-home-top-movers-losers',
   TOP_MOVERS_LIST: 'perps-home-top-movers-list',
+  RECENTLY_ADDED_SECTION: 'perps-home-recently-added-section',
+  RECENTLY_ADDED_HEADER: 'perps-home-recently-added-header',
+  RECENTLY_ADDED_SCROLL: 'perps-home-recently-added-scroll',
   // TabBar mock items (for testing)
   TAB_BAR_WALLET: 'tab-bar-item-wallet',
   TAB_BAR_BROWSER: 'tab-bar-item-browser',
