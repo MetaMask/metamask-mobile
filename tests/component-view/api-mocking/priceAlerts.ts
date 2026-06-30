@@ -37,9 +37,22 @@ export const mockPriceAlertsData: PriceAlert[] = [
   },
 ];
 
+/** Fixture for the alert returned by POST /v1/alerts in tests. */
+export const mockCreatedAlert: PriceAlert = {
+  id: 'alert-new',
+  userId: 'user-1',
+  asset: 'eip155:1/slip44:60',
+  threshold: 1300,
+  recurring: true,
+  active: true,
+  createdAt: '2025-06-01T00:00:00.000Z',
+};
+
 /**
  * Sets up nock interceptors for the Price Alerts API.
  * Call in beforeEach of price-alerts view tests.
+ *
+ * Intercepts GET /v1/alerts and POST /v1/alerts.
  *
  * @param alerts - The alerts to return from GET /v1/alerts. Defaults to mockPriceAlertsData.
  */
@@ -53,6 +66,11 @@ export function setupPriceAlertsApiMock(
     .get(ALERTS_PATH)
     .query(true)
     .reply(200, alerts)
+    .persist();
+
+  nock(PRICE_ALERTS_ORIGIN)
+    .post(ALERTS_PATH)
+    .reply(201, mockCreatedAlert)
     .persist();
 }
 
