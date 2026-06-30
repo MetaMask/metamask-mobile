@@ -65,6 +65,32 @@ describeForPlatforms('ActivityScreen', () => {
     });
   });
 
+  it('does not clobber a manual filter change after consuming the route param', async () => {
+    const { getByTestId, getAllByText, findByTestId } =
+      renderActivityScreenView({
+        params: { initialTypeFilter: ActivityTypeFilter.Perps },
+      });
+
+    // Starts on Perps (from the param).
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Perps)).length,
+      ).toBeGreaterThan(0);
+    });
+
+    // User manually switches to Money.
+    fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
+    fireEvent.press(await findByTestId(optionTestId(ActivityTypeFilter.Money)));
+
+    // The re-apply effect is keyed on the param value (which didn't change), so
+    // the manual selection sticks instead of snapping back to Perps.
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Money)).length,
+      ).toBeGreaterThan(0);
+    });
+  });
+
   it('maps the legacy redirectToPerpsTransactions param to the Perps filter', async () => {
     const { getAllByText } = renderActivityScreenView({
       params: { redirectToPerpsTransactions: true },

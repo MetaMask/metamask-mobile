@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { LayoutChangeEvent } from 'react-native';
 import {
   runOnJS,
@@ -62,7 +68,15 @@ const ActivityScreen = () => {
   // const [searchQuery, setSearchQuery] = useState('');
   // TODO: restore `ActivityTypeFilter.All` as the default once data-source
   // unification lands. See `ACTIVITY_TYPE_FILTER_ORDER` in ./types.ts.
+  // Context-aware: the initial filter comes from route params. The initializer
+  // covers a fresh mount (no first-paint flash); the effect below re-applies
+  // when the (persistent) Activity tab is re-entered with new params.
   const params = useParams<ActivityScreenParams>();
+  const {
+    initialTypeFilter: initialTypeFilterParam,
+    redirectToPerpsTransactions: redirectToPerpsParam,
+    redirectToOrders: redirectToOrdersParam,
+  } = params;
   const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(() =>
     resolveInitialActivityTypeFilter(params),
   );
@@ -97,6 +111,34 @@ const ActivityScreen = () => {
       setPerpsFilter(PerpsActivityFilter.Trades);
     }
   }, []);
+
+  useEffect(() => {
+    if (
+      initialTypeFilterParam === undefined &&
+      !redirectToPerpsParam &&
+      !redirectToOrdersParam
+    ) {
+      return;
+    }
+    handleSelectTypeFilter(
+      resolveInitialActivityTypeFilter({
+        initialTypeFilter: initialTypeFilterParam,
+        redirectToPerpsTransactions: redirectToPerpsParam,
+        redirectToOrders: redirectToOrdersParam,
+      }),
+    );
+    navigation.setParams({
+      initialTypeFilter: undefined,
+      redirectToPerpsTransactions: undefined,
+      redirectToOrders: undefined,
+    });
+  }, [
+    initialTypeFilterParam,
+    redirectToPerpsParam,
+    redirectToOrdersParam,
+    handleSelectTypeFilter,
+    navigation,
+  ]);
 
   const typeFilterLabel = strings(ACTIVITY_TYPE_FILTER_LABEL_KEY[typeFilter]);
 
