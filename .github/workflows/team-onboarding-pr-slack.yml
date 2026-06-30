@@ -1,214 +1,39 @@
 ##############################################################################################
-#
-# Team Onboarding PR Slack Bot
-#
-# Posts a Slack thread in #metamask-onboarding-mobile-internal when a team-onboarding PR
-# is ready for review, then replies on the thread for CI updates, reviews, and bot comments.
-#
-# Required secret: SLACK_BOT_TOKEN (bot needs chat:write, reactions:write, channels:read)
-# Optional repo variable: TEAM_ONBOARDING_SLACK_CHANNEL (default: metamask-onboarding-mobile-internal)
-#
+# Team Onboarding PR Slack Bot — posts threads in #metamask-onboarding-mobile-internal for
+# team-onboarding PRs. Requires SLACK_BOT_TOKEN with chat:write, reactions:write, channels:read.
 ##############################################################################################
 name: Team Onboarding PR Slack Bot
 
 on:
   pull_request:
-    types:
-      - opened
-      - ready_for_review
-      - labeled
-      - closed
+    types: [opened, ready_for_review, labeled, closed]
   pull_request_review:
-    types:
-      - submitted
+    types: [submitted]
   pull_request_review_comment:
-    types:
-      - created
+    types: [created]
   issue_comment:
-    types:
-      - created
+    types: [created]
   workflow_run:
-    workflows:
-      - ci
-    types:
-      - completed
+    workflows: [ci]
+    types: [completed]
 
 permissions:
   contents: read
   pull-requests: write
 
 jobs:
-  create-thread:
-    name: Create Slack thread
-    if: >-
-      ${{
-        github.event_name == 'pull_request' &&
-        !github.event.pull_request.head.repo.fork &&
-        !github.event.pull_request.draft &&
-        (
-          github.event.action == 'ready_for_review' ||
-          (github.event.action == 'opened' && !github.event.pull_request.draft) ||
-          (github.event.action == 'labeled' && github.event.label.name == 'team-onboarding')
-        )
-      }}
+  notify:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-
       - uses: actions/setup-node@v6
         with:
           node-version-file: '.nvmrc'
           cache: yarn
-
-      - name: Install dependencies
-        run: yarn install --immutable
-
+      - run: yarn install --immutable
       - name: Notify Slack
         continue-on-error: true
         env:
-          ACTION: create-thread
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          TEAM_ONBOARDING_SLACK_CHANNEL: ${{ vars.TEAM_ONBOARDING_SLACK_CHANNEL }}
-        run: node ./.github/scripts/team-onboarding-pr-slack.mjs
-
-  ci-status:
-    name: Notify CI status
-    if: >-
-      ${{
-        github.event_name == 'workflow_run' &&
-        github.event.workflow_run.event == 'pull_request'
-      }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-
-      - name: Install dependencies
-        run: yarn install --immutable
-
-      - name: Notify Slack
-        continue-on-error: true
-        env:
-          ACTION: ci-status
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          TEAM_ONBOARDING_SLACK_CHANNEL: ${{ vars.TEAM_ONBOARDING_SLACK_CHANNEL }}
-        run: node ./.github/scripts/team-onboarding-pr-slack.mjs
-
-  review-comment:
-    name: Notify review comment
-    if: >-
-      ${{
-        github.event_name == 'pull_request_review' &&
-        !github.event.pull_request.head.repo.fork
-      }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-
-      - name: Install dependencies
-        run: yarn install --immutable
-
-      - name: Notify Slack
-        continue-on-error: true
-        env:
-          ACTION: review-comment
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          TEAM_ONBOARDING_SLACK_CHANNEL: ${{ vars.TEAM_ONBOARDING_SLACK_CHANNEL }}
-        run: node ./.github/scripts/team-onboarding-pr-slack.mjs
-
-  inline-review-comment:
-    name: Notify inline review comment
-    if: >-
-      ${{
-        github.event_name == 'pull_request_review_comment' &&
-        !github.event.pull_request.head.repo.fork
-      }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-
-      - name: Install dependencies
-        run: yarn install --immutable
-
-      - name: Notify Slack
-        continue-on-error: true
-        env:
-          ACTION: inline-review-comment
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          TEAM_ONBOARDING_SLACK_CHANNEL: ${{ vars.TEAM_ONBOARDING_SLACK_CHANNEL }}
-        run: node ./.github/scripts/team-onboarding-pr-slack.mjs
-
-  issue-comment:
-    name: Notify PR issue comment
-    if: >-
-      ${{
-        github.event_name == 'issue_comment' &&
-        github.event.issue.pull_request
-      }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-
-      - name: Install dependencies
-        run: yarn install --immutable
-
-      - name: Notify Slack
-        continue-on-error: true
-        env:
-          ACTION: issue-comment
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          TEAM_ONBOARDING_SLACK_CHANNEL: ${{ vars.TEAM_ONBOARDING_SLACK_CHANNEL }}
-        run: node ./.github/scripts/team-onboarding-pr-slack.mjs
-
-  merged:
-    name: React on merge
-    if: >-
-      ${{
-        github.event_name == 'pull_request' &&
-        github.event.action == 'closed' &&
-        github.event.pull_request.merged &&
-        !github.event.pull_request.head.repo.fork
-      }}
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version-file: '.nvmrc'
-          cache: yarn
-
-      - name: Install dependencies
-        run: yarn install --immutable
-
-      - name: Notify Slack
-        continue-on-error: true
-        env:
-          ACTION: merged
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           TEAM_ONBOARDING_SLACK_CHANNEL: ${{ vars.TEAM_ONBOARDING_SLACK_CHANNEL }}
