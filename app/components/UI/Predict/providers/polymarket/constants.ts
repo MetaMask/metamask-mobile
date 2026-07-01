@@ -125,6 +125,8 @@ export const SUPPORTED_SPORTS_MARKET_TYPES: ReadonlySet<string> = new Set([
   'both_teams_to_score',
   'soccer_first_to_score',
   'soccer_team_to_advance',
+  'soccer_extra_time',
+  'soccer_penalty_shootout',
   'team_totals',
   'soccer_team_totals',
   'basketball_team_to_score_first',
@@ -161,4 +163,8 @@ export const SPORTS_MARKET_TYPE_PRIORITIES: Record<string, number> = {
   tennis_first_set_totals: 2,
   tennis_match_totals: 3,
   tennis_completed_match: 4,
+  // These soccer progression markets render at the bottom of Game Lines, after
+  // the regulation-time markets above.
+  soccer_extra_time: 6,
+  soccer_penalty_shootout: 7,
 };
