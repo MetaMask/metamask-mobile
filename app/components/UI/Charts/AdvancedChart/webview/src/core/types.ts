@@ -112,13 +112,14 @@ export interface TVTimeRange {
   to: number;
 }
 
-export type TVWidgetEvent = 'mouse_down' | 'mouse_up';
+export type TVWidgetEvent = 'mouse_down' | 'mouse_up' | 'panes_height_changed';
 
 export interface TVChartingLibraryWidget {
   onChartReady(cb: () => void): void;
   activeChart(): TVActiveChart;
   applyOverrides(overrides: Record<string, unknown>): void;
   subscribe(event: TVWidgetEvent, handler: () => void): void;
+  resize(): void;
   remove(): void;
 }
 

@@ -828,56 +828,94 @@ function forwardRealtimeTick(tick) {
     }
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/resolution.ts
-// Maps OHLCV bar intervals (milliseconds) to TradingView resolution strings.
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/priceFormatter.ts
+// Price formatting for TradingView's \`custom_formatters.priceFormatterFactory\`.
 //
-// Ported verbatim from chartLogic.js INTERVAL_MS_TO_TV + detectResolution
-// (lines ~463-505). Phase 2 consumes this from widget/ohlcvIngestion.ts.
-/** OHLCV bar interval in milliseconds → TradingView resolution code. */
-const INTERVAL_MS_TO_TV = {
-    60000: '1',
-    180000: '3',
-    300000: '5',
-    900000: '15',
-    1800000: '30',
-    3600000: '60',
-    7200000: '120',
-    14400000: '240',
-    28800000: '480',
-    43200000: '720',
-    86400000: '1D',
-    259200000: '3D',
-    604800000: '1W',
-    2592000000: '1M',
-};
-const DEFAULT_RESOLUTION = '5';
+// Ported from chartLogic.js: SUBSCRIPT_DIGITS_CROSSHAIR / toSubscriptDigitsCrosshair
+// (~line 1328), formatSubscriptNotationCrosshair (~1350), formatCrosshairPrice
+// (~1373), advancedChartPriceFormatterFactory (~1397).
+//
+// This is a TV widget option, not a message handler — the factory returns a
+// { format(price) } object that TV uses to render the price scale + last-value
+// pill. Without it, TV falls back to a plain \`x.xx\` format that ignores our
+// \`useSubscriptPriceFormat\` config.
+const SUBSCRIPT_DIGITS = [
+    '₀',
+    '₁',
+    '₂',
+    '₃',
+    '₄',
+    '₅',
+    '₆',
+    '₇',
+    '₈',
+    '₉',
+];
+function toSubscriptDigits(n) {
+    return String(n)
+        .split('')
+        .map((digit) => SUBSCRIPT_DIGITS[parseInt(digit, 10)] ?? digit)
+        .join('');
+}
 /**
- * Picks the closest matching TV resolution for an OHLCV bar series.
- * Uses the median diff over the first few bars so a single gap doesn't skew
- * the result (matches legacy chartLogic.js detectResolution semantics).
+ * For values strictly between 0 and 0.0001, produces the compact
+ * \`0.0₆12345\` notation. Returns \`null\` when the value doesn't qualify so
+ * callers can fall through to Intl formatting.
  */
-function detectResolution(data) {
-    if (data.length < 2) {
-        return DEFAULT_RESOLUTION;
+function formatSubscriptNotation(abs) {
+    if (!(abs > 0 && abs < 0.0001))
+        return null;
+    const priceStr = abs.toFixed(20);
+    const match = priceStr.match(/^0\\.0*([1-9]\\d*)/);
+    if (!match)
+        return null;
+    const leadingZeros = priceStr.indexOf(match[1]) - 2;
+    if (leadingZeros < 4)
+        return null;
+    const sig = match[1];
+    const significantDigits = sig.slice(0, 4).replace(/0{1,4}$/, '') || sig.slice(0, 2);
+    return \`0.0\${toSubscriptDigits(leadingZeros)}\${significantDigits}\`;
+}
+/**
+ * Formats a price for the TV built-in price scale + crosshair label. Zero-
+ * safe. Numbers below 0.0001 use subscript notation; others use Intl decimal.
+ */
+function formatCrosshairPrice(price) {
+    if (price === undefined || price === null || isNaN(Number(price))) {
+        return '';
     }
-    const sampleCount = Math.min(data.length - 1, 10);
-    const diffs = [];
-    for (let i = 0; i < sampleCount; i++) {
-        diffs.push(data[i + 1].time - data[i].time);
+    const p = Number(price);
+    if (p === 0)
+        return '0.00';
+    const abs = Math.abs(p);
+    const sub = formatSubscriptNotation(abs);
+    if (sub) {
+        return p < 0 ? \`-\${sub}\` : sub;
     }
-    diffs.sort((a, b) => a - b);
-    const median = diffs[Math.floor(diffs.length / 2)];
-    let best = DEFAULT_RESOLUTION;
-    let bestDist = Infinity;
-    for (const key of Object.keys(INTERVAL_MS_TO_TV)) {
-        const intervalMs = Number(key);
-        const distance = Math.abs(intervalMs - median);
-        if (distance < bestDist) {
-            bestDist = distance;
-            best = INTERVAL_MS_TO_TV[intervalMs];
-        }
+    return new Intl.NumberFormat('en-US', {
+        style: 'decimal',
+        minimumFractionDigits: 2,
+        maximumFractionDigits: abs >= 1 ? 2 : 4,
+    }).format(p);
+}
+/**
+ * TradingView \`custom_formatters.priceFormatterFactory\`. Returns null (letting
+ * TV fall back to its default) when subscript formatting is disabled or when
+ * the symbol is a volume series. Otherwise returns a formatter that routes
+ * through \`formatCrosshairPrice\`.
+ */
+function advancedChartPriceFormatterFactory(symbolInfo, _minTick) {
+    if (symbolInfo === null || symbolInfo.format === 'volume') {
+        return null;
     }
-    return best;
+    if (!window.CONFIG?.useSubscriptPriceFormat) {
+        return null;
+    }
+    return {
+        format(price) {
+            return formatCrosshairPrice(price);
+        },
+    };
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/timeUtils.ts
@@ -929,6 +967,58 @@ function getApproxBarDurationSec(bars) {
     }
     const lastMs = Math.abs(bars[bars.length - 1].time - bars[bars.length - 2].time);
     return Math.max(MIN_BAR_DURATION_SEC, Math.round(lastMs / 1000));
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/resolution.ts
+// Maps OHLCV bar intervals (milliseconds) to TradingView resolution strings.
+//
+// Ported verbatim from chartLogic.js INTERVAL_MS_TO_TV + detectResolution
+// (lines ~463-505). Phase 2 consumes this from widget/ohlcvIngestion.ts.
+/** OHLCV bar interval in milliseconds → TradingView resolution code. */
+const INTERVAL_MS_TO_TV = {
+    60000: '1',
+    180000: '3',
+    300000: '5',
+    900000: '15',
+    1800000: '30',
+    3600000: '60',
+    7200000: '120',
+    14400000: '240',
+    28800000: '480',
+    43200000: '720',
+    86400000: '1D',
+    259200000: '3D',
+    604800000: '1W',
+    2592000000: '1M',
+};
+const DEFAULT_RESOLUTION = '5';
+/**
+ * Picks the closest matching TV resolution for an OHLCV bar series.
+ * Uses the median diff over the first few bars so a single gap doesn't skew
+ * the result (matches legacy chartLogic.js detectResolution semantics).
+ */
+function detectResolution(data) {
+    if (data.length < 2) {
+        return DEFAULT_RESOLUTION;
+    }
+    const sampleCount = Math.min(data.length - 1, 10);
+    const diffs = [];
+    for (let i = 0; i < sampleCount; i++) {
+        diffs.push(data[i + 1].time - data[i].time);
+    }
+    diffs.sort((a, b) => a - b);
+    const median = diffs[Math.floor(diffs.length / 2)];
+    let best = DEFAULT_RESOLUTION;
+    let bestDist = Infinity;
+    for (const key of Object.keys(INTERVAL_MS_TO_TV)) {
+        const intervalMs = Number(key);
+        const distance = Math.abs(intervalMs - median);
+        if (distance < bestDist) {
+            bestDist = distance;
+            best = INTERVAL_MS_TO_TV[intervalMs];
+        }
+    }
+    return best;
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/ohlcvIngestion.ts
@@ -1256,6 +1346,136 @@ function applyVisualOverrides(config) {
     }
 }
 
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/timezone.ts
+// User-timezone resolution for TradingView's \`timezone\` widget option.
+//
+// Ported from chartLogic.js (~line 5299-5417). TradingView only accepts a
+// fixed set of IANA timezone IDs. \`Intl.DateTimeFormat().resolvedOptions()\`
+// on device returns the canonical zone; we map a small set of legacy
+// aliases and fall back to Etc/UTC when the zone isn't in TV's list.
+/** IANA identifiers TradingView's Advanced Charts library accepts. */
+const TV_SUPPORTED_TIMEZONES = [
+    'Etc/UTC',
+    'Africa/Cairo',
+    'Africa/Casablanca',
+    'Africa/Johannesburg',
+    'Africa/Lagos',
+    'Africa/Nairobi',
+    'Africa/Tunis',
+    'America/Anchorage',
+    'America/Argentina/Buenos_Aires',
+    'America/Bogota',
+    'America/Caracas',
+    'America/Chicago',
+    'America/El_Salvador',
+    'America/Halifax',
+    'America/Juneau',
+    'America/Lima',
+    'America/Los_Angeles',
+    'America/Mexico_City',
+    'America/New_York',
+    'America/Phoenix',
+    'America/Santiago',
+    'America/Sao_Paulo',
+    'America/Toronto',
+    'America/Vancouver',
+    'Asia/Astana',
+    'Asia/Ashkhabad',
+    'Asia/Bahrain',
+    'Asia/Bangkok',
+    'Asia/Chongqing',
+    'Asia/Colombo',
+    'Asia/Dhaka',
+    'Asia/Dubai',
+    'Asia/Ho_Chi_Minh',
+    'Asia/Hong_Kong',
+    'Asia/Jakarta',
+    'Asia/Jerusalem',
+    'Asia/Karachi',
+    'Asia/Kabul',
+    'Asia/Kathmandu',
+    'Asia/Kolkata',
+    'Asia/Kuala_Lumpur',
+    'Asia/Kuwait',
+    'Asia/Manila',
+    'Asia/Muscat',
+    'Asia/Nicosia',
+    'Asia/Qatar',
+    'Asia/Riyadh',
+    'Asia/Seoul',
+    'Asia/Shanghai',
+    'Asia/Singapore',
+    'Asia/Taipei',
+    'Asia/Tehran',
+    'Asia/Tel_Aviv',
+    'Asia/Tokyo',
+    'Asia/Yangon',
+    'Atlantic/Azores',
+    'Atlantic/Reykjavik',
+    'Australia/Adelaide',
+    'Australia/Brisbane',
+    'Australia/Perth',
+    'Australia/Sydney',
+    'Europe/Amsterdam',
+    'Europe/Athens',
+    'Europe/Belgrade',
+    'Europe/Berlin',
+    'Europe/Bratislava',
+    'Europe/Brussels',
+    'Europe/Bucharest',
+    'Europe/Budapest',
+    'Europe/Copenhagen',
+    'Europe/Dublin',
+    'Europe/Helsinki',
+    'Europe/Istanbul',
+    'Europe/Lisbon',
+    'Europe/London',
+    'Europe/Luxembourg',
+    'Europe/Madrid',
+    'Europe/Malta',
+    'Europe/Moscow',
+    'Europe/Oslo',
+    'Europe/Paris',
+    'Europe/Riga',
+    'Europe/Rome',
+    'Europe/Stockholm',
+    'Europe/Tallinn',
+    'Europe/Vienna',
+    'Europe/Vilnius',
+    'Europe/Warsaw',
+    'Europe/Zurich',
+    'Pacific/Auckland',
+    'Pacific/Chatham',
+    'Pacific/Fakaofo',
+    'Pacific/Honolulu',
+    'Pacific/Norfolk',
+    'US/Mountain',
+];
+/**
+ * Intl canonical names → TradingView legacy aliases. Intl returns
+ * \`America/Denver\` but TradingView expects \`US/Mountain\`. Add here as
+ * new devices report unmapped canonicals.
+ */
+const CANONICAL_TO_TV = {
+    'America/Denver': 'US/Mountain',
+    'Asia/Ashgabat': 'Asia/Ashkhabad',
+    'Asia/Almaty': 'Asia/Astana',
+};
+/**
+ * Resolves the device timezone to a TV-supported IANA identifier. Falls back
+ * to \`Etc/UTC\` when Intl fails or the resolved zone isn't in TV's list.
+ */
+function resolveUserTimezone() {
+    try {
+        const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'Etc/UTC';
+        const mapped = CANONICAL_TO_TV[tz] ?? tz;
+        return TV_SUPPORTED_TIMEZONES.includes(mapped) ? mapped : 'Etc/UTC';
+    }
+    catch {
+        return 'Etc/UTC';
+    }
+}
+
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/tvDomHelpers.ts
 // Pure DOM traversal helpers for TradingView's same-origin iframe layout.
 //
@@ -1449,6 +1669,7 @@ function __resetExternalLinkBridgeForTests() {
 
 
 
+
 /**
  * Generates a 19-shade palette from a base hex color, light→base→dark.
  * Used for TradingView \`custom_themes.dark.color{1,3}\`. Ported verbatim
@@ -1558,7 +1779,7 @@ function createChartWidget(config, options) {
         library_path: config.libraryUrl,
         locale: 'en',
         custom_formatters: options.customFormatters,
-        timezone: options.timezone ?? 'Etc/UTC',
+        timezone: options.timezone ?? resolveUserTimezone(),
         fullscreen: false,
         autosize: true,
         theme: 'Dark',
@@ -1885,6 +2106,23 @@ function setupLegendOverlay(config, colors) {
     createOverlayElement();
     injectHideLegendButtonsCSS();
 }
+/**
+ * Subscribes to the widget's \`panes_height_changed\` event so the overlay
+ * max-width is recomputed whenever a pane resize (e.g. after adding MACD
+ * or RSI) shifts the price-axis boundary.
+ */
+function attachLegendResizeListener(widget) {
+    try {
+        widget.subscribe('panes_height_changed', () => {
+            const el = document.getElementById(OVERLAY_ID);
+            if (el)
+                updateLegendOverlayLayout();
+        });
+    }
+    catch {
+        // TV may throw if subscribe isn't ready; safe to ignore.
+    }
+}
 function createOverlayElement() {
     const existing = document.getElementById(OVERLAY_ID);
     if (existing)
@@ -2178,7 +2416,10 @@ function refreshStudyLegendFromExport() {
         startTimeout(gen);
     const chart = widget.activeChart();
     chart
-        .exportData({ includeSeries: false, includedStudies: studyIds })
+        .exportData({
+        includeSeries: false,
+        includedStudies: studyIds,
+    })
         .then((data) => {
         if (gen !== exportGeneration)
             return;
@@ -2299,6 +2540,36 @@ function __resetLegendForTests() {
     clearTimer();
     legendOverlayEnabled = false;
     indicatorColors = undefined;
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/resize.ts
+// Re-runs the widget's own resize after study operations so overlay lines
+// re-align with the price scale. Ported from chartLogic.js
+// \`scheduleChartWidgetResize\` (~line 162). Two rAFs + a 120ms timeout mirror
+// the legacy staggered sequence — TradingView doesn't always align on the
+// first tick after createStudy resolves.
+
+function scheduleChartWidgetResize() {
+    const run = () => {
+        const widget = getWidget();
+        if (!widget)
+            return;
+        try {
+            widget.resize();
+        }
+        catch {
+            // TV can throw if the widget is mid-teardown; safe to ignore.
+        }
+    };
+    try {
+        requestAnimationFrame(() => {
+            requestAnimationFrame(run);
+        });
+    }
+    catch {
+        setTimeout(run, 0);
+    }
+    setTimeout(run, 120);
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/studies.ts
@@ -2516,6 +2787,7 @@ function handleSetSubPaneLayout(payload) {
 
 
 
+
 function isOwnStringKey(key) {
     return (typeof key === 'string' &&
         key !== '__proto__' &&
@@ -2550,6 +2822,7 @@ function handleAddIndicator(payload, config) {
             applySubPaneHeightRatio(chart);
         }
         subscribeStudyDataLoaded(chart, studyId);
+        scheduleChartWidgetResize();
         notifyIndicatorAdded(name, studyId);
     })
         .catch((error) => {
@@ -2647,6 +2920,7 @@ function addMAVariants(chart, visible, config) {
     if (promises.length > 0) {
         Promise.all(promises).then(() => {
             scheduleLegendRefresh();
+            scheduleChartWidgetResize();
         });
     }
 }
@@ -2737,7 +3011,9 @@ function handleToggleVolume(payload) {
         return;
     }
     const existing = getVolumeStudyId();
-    if (existing && getVolumeIsOverlay() !== null && getVolumeIsOverlay() !== useOverlay) {
+    if (existing &&
+        getVolumeIsOverlay() !== null &&
+        getVolumeIsOverlay() !== useOverlay) {
         try {
             widget.activeChart().removeEntity(existing);
         }
@@ -2785,6 +3061,27 @@ function handleToggleVolume(payload) {
 
 
 
+
+
+/**
+ * When RN passes an explicit visible-range start (e.g. a specific period like
+ * 1D/1W/1M), build a \`{ type: 'time-range', from, to }\` timeframe so the
+ * initial view snaps to that window instead of defaulting to \`Date.now()\`.
+ * Padded by 2 bar durations so the last bar isn't glued to the right edge.
+ * Ported from chartLogic.js initChart's \`tfOption\` computation (~line 5284).
+ */
+function buildInitialTimeframe() {
+    const visibleFromMs = getVisibleFromMs();
+    if (visibleFromMs == null)
+        return undefined;
+    const visibleToMs = getVisibleToMs() ?? Date.now();
+    const initBarPadSec = getApproxBarDurationSec(getOhlcvData()) * 2;
+    return {
+        type: 'time-range',
+        from: Math.floor(visibleFromMs / 1000),
+        to: Math.ceil(visibleToMs / 1000) + initBarPadSec,
+    };
+}
 function readConfig() {
     const config = window.CONFIG;
     if (!config) {
@@ -2844,6 +3141,10 @@ function bootstrap() {
             .then(() => {
             createChartWidget(config, {
                 datafeed: customDatafeed,
+                customFormatters: {
+                    priceFormatterFactory: advancedChartPriceFormatterFactory,
+                },
+                timeframe: buildInitialTimeframe(),
                 onReady: (widget) => {
                     try {
                         applyScaleLayout();
@@ -2864,6 +3165,7 @@ function bootstrap() {
                         attachCrosshairListener(chart);
                         attachTapDismiss(widget);
                         attachVisibleRangeListeners(chart);
+                        attachLegendResizeListener(widget);
                         scheduleChartLayoutSettledNotify();
                     }
                     catch (error) {

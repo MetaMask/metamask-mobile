@@ -23,6 +23,7 @@ import {
   getCurrentResolution,
   getTheme,
 } from '../core/state';
+import { resolveUserTimezone } from '../core/timezone';
 import type {
   ChartConfig,
   ChartFeaturesConfig,
@@ -140,7 +141,7 @@ export interface CreateChartWidgetOptions {
   timeframe?: { type: 'time-range'; from: number; to: number };
   /** Custom formatters object (e.g. priceFormatterFactory). Phase 2 supplies. */
   customFormatters?: Record<string, unknown>;
-  /** Resolved TV timezone string. Phase 1 picks `Etc/UTC` if unset. */
+  /** Resolved TV timezone string. Defaults to the device's IANA zone via `resolveUserTimezone()`. */
   timezone?: string;
   /** Callback fired exactly once when the widget is ready. */
   onReady?: (widget: TVChartingLibraryWidget) => void;
@@ -176,7 +177,7 @@ export function createChartWidget(
     library_path: config.libraryUrl,
     locale: 'en',
     custom_formatters: options.customFormatters,
-    timezone: options.timezone ?? 'Etc/UTC',
+    timezone: options.timezone ?? resolveUserTimezone(),
     fullscreen: false,
     autosize: true,
     theme: 'Dark',

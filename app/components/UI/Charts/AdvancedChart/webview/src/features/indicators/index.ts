@@ -22,6 +22,7 @@ import type {
   SetMAVisibilityMessage,
 } from '../../messages/contract';
 import { scheduleLegendRefresh, subscribeStudyDataLoaded } from './legend';
+import { scheduleChartWidgetResize } from './resize';
 import { applySubPaneHeightRatio, hasActiveSubPaneIndicators } from './subPane';
 import {
   createIndicatorStudy,
@@ -73,6 +74,7 @@ export function handleAddIndicator(
         applySubPaneHeightRatio(chart);
       }
       subscribeStudyDataLoaded(chart, studyId);
+      scheduleChartWidgetResize();
       notifyIndicatorAdded(name, studyId);
     })
     .catch((error) => {
@@ -180,6 +182,7 @@ function addMAVariants(
   if (promises.length > 0) {
     Promise.all(promises).then(() => {
       scheduleLegendRefresh();
+      scheduleChartWidgetResize();
     });
   }
 }

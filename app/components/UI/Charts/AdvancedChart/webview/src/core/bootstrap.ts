@@ -19,6 +19,8 @@ import { loadTradingViewLibrary } from './loadLibrary';
 import { dispatchInboundMessage, registerHandler } from '../messages/handler';
 import { applyThemeColors, initThemeFromConfig } from '../widget/theme';
 import { customDatafeed } from '../widget/datafeed';
+import { advancedChartPriceFormatterFactory } from '../widget/priceFormatter';
+import { getApproxBarDurationSec } from './timeUtils';
 import {
   handleRealtimeUpdate,
   handleSetOHLCVData,
@@ -42,10 +44,39 @@ import {
   handleSetMAVisibility,
 } from '../features/indicators';
 import { handleSetSubPaneLayout } from '../features/indicators/subPane';
-import { setupLegendOverlay } from '../features/indicators/legend';
+import {
+  attachLegendResizeListener,
+  setupLegendOverlay,
+} from '../features/indicators/legend';
 import { handleToggleVolume } from '../features/volume';
-import { getVisibleFromMs, setSubPaneHeightRatio } from './state';
+import {
+  getOhlcvData,
+  getVisibleFromMs,
+  getVisibleToMs,
+  setSubPaneHeightRatio,
+} from './state';
 import type { ChartConfig } from './types';
+
+/**
+ * When RN passes an explicit visible-range start (e.g. a specific period like
+ * 1D/1W/1M), build a `{ type: 'time-range', from, to }` timeframe so the
+ * initial view snaps to that window instead of defaulting to `Date.now()`.
+ * Padded by 2 bar durations so the last bar isn't glued to the right edge.
+ * Ported from chartLogic.js initChart's `tfOption` computation (~line 5284).
+ */
+function buildInitialTimeframe():
+  | { type: 'time-range'; from: number; to: number }
+  | undefined {
+  const visibleFromMs = getVisibleFromMs();
+  if (visibleFromMs == null) return undefined;
+  const visibleToMs = getVisibleToMs() ?? Date.now();
+  const initBarPadSec = getApproxBarDurationSec(getOhlcvData()) * 2;
+  return {
+    type: 'time-range',
+    from: Math.floor(visibleFromMs / 1000),
+    to: Math.ceil(visibleToMs / 1000) + initBarPadSec,
+  };
+}
 
 function readConfig(): ChartConfig {
   const config = window.CONFIG;
@@ -114,6 +145,10 @@ export function bootstrap(): ChartConfig {
       .then(() => {
         createChartWidget(config, {
           datafeed: customDatafeed,
+          customFormatters: {
+            priceFormatterFactory: advancedChartPriceFormatterFactory,
+          },
+          timeframe: buildInitialTimeframe(),
           onReady: (widget) => {
             try {
               applyScaleLayout();
@@ -133,6 +168,7 @@ export function bootstrap(): ChartConfig {
               attachCrosshairListener(chart);
               attachTapDismiss(widget);
               attachVisibleRangeListeners(chart);
+              attachLegendResizeListener(widget);
               scheduleChartLayoutSettledNotify();
             } catch (error) {
               reportErrorToRN(error);

@@ -58,6 +58,24 @@ export function setupLegendOverlay(
   injectHideLegendButtonsCSS();
 }
 
+/**
+ * Subscribes to the widget's `panes_height_changed` event so the overlay
+ * max-width is recomputed whenever a pane resize (e.g. after adding MACD
+ * or RSI) shifts the price-axis boundary.
+ */
+export function attachLegendResizeListener(widget: {
+  subscribe(event: 'panes_height_changed', handler: () => void): void;
+}): void {
+  try {
+    widget.subscribe('panes_height_changed', () => {
+      const el = document.getElementById(OVERLAY_ID);
+      if (el) updateLegendOverlayLayout();
+    });
+  } catch {
+    // TV may throw if subscribe isn't ready; safe to ignore.
+  }
+}
+
 function createOverlayElement(): void {
   const existing = document.getElementById(OVERLAY_ID);
   if (existing) existing.parentNode?.removeChild(existing);
