@@ -60,6 +60,8 @@ describe('useActivityDetailsDoItAgain', () => {
         }),
       }),
     );
+    // "Swap again" opens with an empty amount (no reused source amount).
+    expect(mockNavigate.mock.calls[0][1].params.sourceAmount).toBeUndefined();
   });
 
   it('hydrates a token from the user holdings (icon + balance) when it is held', () => {

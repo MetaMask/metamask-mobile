@@ -10,10 +10,7 @@ import { areAddressesEqual } from '../../../../util/address';
 import { type BridgeToken, BridgeViewMode } from '../../../UI/Bridge/types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuses the Bridge token-balance list to hydrate "swap again"; route-isolation backlog
 import { useTokensWithBalance } from '../../../UI/Bridge/hooks/useTokensWithBalance';
-import {
-  getHumanReadableTokenAmount,
-  type TokenAmount,
-} from '../../../../util/activity-adapters';
+import type { TokenAmount } from '../../../../util/activity-adapters';
 import { toBridgeToken } from './activityDetailsDoItAgainUtils';
 
 const ACTIVITY_DETAILS_SOURCE_PAGE = 'ActivityDetails';
@@ -58,10 +55,6 @@ export function useActivityDetailsDoItAgain({
     () => toBridgeToken(destinationToken, fallbackCaipChainId),
     [destinationToken, fallbackCaipChainId],
   );
-  const sourceAmount = useMemo(
-    () => (sourceToken ? getHumanReadableTokenAmount(sourceToken) : undefined),
-    [sourceToken],
-  );
   const sourceChainId = sourceBridgeToken?.chainId;
   const destinationChainId = destinationBridgeToken?.chainId;
   const bridgeViewMode =
@@ -104,7 +97,8 @@ export function useActivityDetailsDoItAgain({
         bridgeViewMode,
         sourceToken: hydratedSourceToken,
         destToken: hydratedDestinationToken,
-        sourceAmount,
+        // No sourceAmount: "swap again" opens with an empty amount so the user
+        // enters a fresh value instead of reusing the original swap's amount.
         location: MetaMetricsSwapsEventSource.MainView,
         scrollToTopOnNav: true,
       },
@@ -113,7 +107,6 @@ export function useActivityDetailsDoItAgain({
     bridgeViewMode,
     hydratedDestinationToken,
     navigation,
-    sourceAmount,
     hydratedSourceToken,
   ]);
 }
