@@ -18,6 +18,12 @@ import Engine from '../../../core/Engine';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
 import Routes from '../../../constants/navigation/Routes';
 import decodeTransaction from '../../UI/TransactionElement/utils';
+import InAppBrowser from 'react-native-inappbrowser-reborn';
+
+jest.mock('react-native-inappbrowser-reborn', () => ({
+  isAvailable: jest.fn(),
+  open: jest.fn(),
+}));
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -628,6 +634,8 @@ describe('ActivityList', () => {
     (useSelector as unknown as jest.Mock).mockImplementation((selector) =>
       selector(selectorValues),
     );
+    (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(true);
+    (InAppBrowser.open as jest.Mock).mockResolvedValue(undefined);
   });
 
   it('renders local pending and confirmed rows, refreshes, paginates, and opens the EVM explorer', async () => {
@@ -652,13 +660,12 @@ describe('ActivityList', () => {
     expect(mockFetchNextPage).toHaveBeenCalledTimes(1);
 
     fireEvent.press(screen.getByTestId('evm-footer'));
-    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-      params: {
-        title: 'Configured Explorer',
-        url: 'https://configured.explorer/address/0xevm',
-      },
-      screen: 'SimpleWebview',
-    });
+    await waitFor(() =>
+      expect(InAppBrowser.open).toHaveBeenCalledWith(
+        'https://configured.explorer/address/0xevm',
+      ),
+    );
+    expect(mockNavigate).not.toHaveBeenCalledWith('Webview', expect.anything());
     expect(jest.mocked(trackBlockExplorerLinkClicked)).toHaveBeenCalledWith(
       expect.any(Function),
       expect.any(Function),
@@ -1315,7 +1322,7 @@ describe('ActivityList', () => {
     });
   });
 
-  it('renders non-EVM bridge rows and footer when only non-EVM chains are enabled', () => {
+  it('renders non-EVM bridge rows and footer when only non-EVM chains are enabled', async () => {
     selectorValues.enabledEvm = [];
     selectorValues.enabledNonEvm = ['solana:mainnet'];
     selectorValues.nonEvmState = {
@@ -1338,9 +1345,28 @@ describe('ActivityList', () => {
 
     expect(screen.getByTestId('bridge-solanaBridge')).toBeOnTheScreen();
     fireEvent.press(screen.getByTestId('non-evm-footer'));
-    expect(mockNavigate).toHaveBeenCalledWith('Webview', {
-      params: { url: 'https://solana.explorer/address/sol' },
-      screen: 'SimpleWebview',
-    });
+    await waitFor(() =>
+      expect(InAppBrowser.open).toHaveBeenCalledWith(
+        'https://solana.explorer/address/sol',
+      ),
+    );
+  });
+
+  it('falls back to SimpleWebview when InAppBrowser is unavailable', async () => {
+    (InAppBrowser.isAvailable as jest.Mock).mockResolvedValue(false);
+
+    render(<ActivityList header={<></>} />);
+    fireEvent.press(screen.getByTestId('evm-footer'));
+
+    await waitFor(() =>
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        params: {
+          title: 'Configured Explorer',
+          url: 'https://configured.explorer/address/0xevm',
+        },
+        screen: 'SimpleWebview',
+      }),
+    );
+    expect(InAppBrowser.open).not.toHaveBeenCalled();
   });
 });

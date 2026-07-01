@@ -61,6 +61,7 @@ import {
 } from '../../../util/networks';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { trackBlockExplorerLinkClicked } from '../../../util/analytics/externalLinkTracking';
+import { openUrlWithInAppBrowser } from '../../../util/browser/openUrlWithInAppBrowser';
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import { useStyles } from '../../hooks/useStyles';
@@ -569,10 +570,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         url,
       });
 
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: { url, title },
-      });
+      void openUrlWithInAppBrowser(url, navigation, title);
     }, [
       navigation,
       blockExplorerUrl,
@@ -620,10 +618,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         text: getBlockExplorerTrackingText(nonEvmExplorerUrl),
         url: nonEvmExplorerUrl,
       });
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: { url: nonEvmExplorerUrl },
-      });
+      void openUrlWithInAppBrowser(nonEvmExplorerUrl, navigation);
     }, [navigation, nonEvmExplorerUrl, trackEvent, createEventBuilder]);
 
     const perpsRelevantForFilter =
