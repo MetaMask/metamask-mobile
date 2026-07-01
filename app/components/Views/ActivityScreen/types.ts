@@ -42,13 +42,16 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'contractInteraction',
     'contractDeployment',
     'smartAccountUpgrade',
+    'nftBuy',
     'nftMint',
-  ]),
-  [ActivityTypeFilter.BuySell]: new Set<ActivityKind>([
-    'buy',
-    'sell',
+    'nftSell',
+    // Earn/Staking (ETH pooled staking deposit / claim / unstake). Lumped under
+    // Transactions for now — they have no dedicated bucket yet.
     'deposit',
+    'claim',
+    'unstake',
   ]),
+  [ActivityTypeFilter.BuySell]: new Set<ActivityKind>(['buy', 'sell']),
   [ActivityTypeFilter.Perps]: new Set<ActivityKind>([
     'perpsAddFunds',
     'perpsWithdraw',
@@ -67,6 +70,8 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
     'marketShort',
     'stopMarketCloseShort',
     'marketCloseShort',
+    'limitShort',
+    'limitCloseShort',
   ]),
   [ActivityTypeFilter.Predictions]: new Set<ActivityKind>([
     'predictionsAddFunds',
@@ -77,7 +82,6 @@ export const ACTIVITY_TYPE_FILTER_KINDS: Record<
   ]),
   [ActivityTypeFilter.MetamaskCard]: new Set<ActivityKind>([]),
   [ActivityTypeFilter.Money]: new Set<ActivityKind>([
-    'claim',
     'claimMusdBonus',
     'lendingDeposit',
     'lendingWithdrawal',

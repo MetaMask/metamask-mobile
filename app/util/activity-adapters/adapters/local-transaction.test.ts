@@ -26,6 +26,7 @@ const buildApproveData = (spender: string, amount: bigint) =>
   `${approveFunctionSignature}${spender
     .replace('0x', '')
     .padStart(64, '0')}${amount.toString(16).padStart(64, '0')}`;
+const maxUint256 = 2n ** 256n - 1n;
 
 const withoutRaw = (item: ReturnType<typeof mapLocalTransaction>) => {
   const activity = { ...item };
@@ -215,6 +216,139 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  const encodeTransfer = (toAddress: string, amount: bigint) =>
+    `0xa9059cbb${toAddress.slice(2).toLowerCase().padStart(64, '0')}${amount
+      .toString(16)
+      .padStart(64, '0')}`;
+
+  it('maps a predict deposit batch to predictionsAddFunds with the collateral token', () => {
+    const tokenContractAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+    const depositRecipient = '0x5f11a17142a1a5146998078ab26c8574490e841c';
+    const transaction = {
+      chainId: mainnet,
+      id: 'predict-deposit-id',
+      hash: '0xpredictdeposit',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.batch,
+      txParams: { from, to: from },
+      nestedTransactions: [
+        {
+          type: TransactionType.predictDeposit,
+          to: tokenContractAddress,
+          data: encodeTransfer(depositRecipient, 4000000000n),
+        },
+      ],
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'predictionsAddFunds',
+      chainId: 'eip155:1',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xpredictdeposit',
+      data: {
+        token: {
+          amount: '4000000000',
+          assetId: toAssetId(tokenContractAddress, 'eip155:1'),
+          decimals: 6,
+          direction: 'in',
+          symbol: 'USDC',
+        },
+      },
+    });
+  });
+
+  it('maps a predictDepositAndOrder nested batch to predictionsAddFunds', () => {
+    const tokenContractAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+    const transaction = {
+      chainId: mainnet,
+      id: 'predict-deposit-order-id',
+      hash: '0xpredictdepositorder',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.batch,
+      txParams: { from, to: from },
+      nestedTransactions: [
+        {
+          type: TransactionType.predictDepositAndOrder,
+          to: tokenContractAddress,
+          data: encodeTransfer(from, 1500000n),
+        },
+        { type: TransactionType.contractInteraction, to: from, data: '0x' },
+      ],
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = withoutRaw(mapLocalTransaction(makeGroup(transaction)));
+    expect(result.type).toBe('predictionsAddFunds');
+    expect('token' in result.data ? result.data.token : undefined).toEqual({
+      amount: '1500000',
+      assetId: toAssetId(tokenContractAddress, 'eip155:1'),
+      decimals: 6,
+      direction: 'in',
+      symbol: 'USDC',
+    });
+  });
+
+  it('maps a predict withdraw batch to predictionsWithdrawFunds (out direction)', () => {
+    const tokenContractAddress = '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48';
+    const transaction = {
+      chainId: mainnet,
+      id: 'predict-withdraw-id',
+      hash: '0xpredictwithdraw',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.batch,
+      txParams: { from, to: from },
+      nestedTransactions: [
+        {
+          type: TransactionType.predictWithdraw,
+          to: tokenContractAddress,
+          data: encodeTransfer(from, 4000000000n),
+        },
+      ],
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = withoutRaw(mapLocalTransaction(makeGroup(transaction)));
+    expect(result.type).toBe('predictionsWithdrawFunds');
+    expect(
+      'token' in result.data ? result.data.token?.direction : undefined,
+    ).toBe('out');
+    expect('token' in result.data ? result.data.token?.amount : undefined).toBe(
+      '4000000000',
+    );
+  });
+
+  it('falls back to USDC/6 when the collateral token metadata is unknown', () => {
+    // Polymarket collateral (USDC.e on Polygon) is not in the known-token lists.
+    const usdcePolygon = '0xc011a7e12a19f7b1f670d46f03b03f3342e82dfb';
+    const transaction = {
+      chainId: '0x89',
+      id: 'predict-deposit-polygon-id',
+      hash: '0xpredictdepositpolygon',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.batch,
+      txParams: { from, to: from },
+      nestedTransactions: [
+        {
+          type: TransactionType.predictDeposit,
+          to: usdcePolygon,
+          data: encodeTransfer(from, 1000000n),
+        },
+      ],
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = withoutRaw(mapLocalTransaction(makeGroup(transaction)));
+    expect(result.type).toBe('predictionsAddFunds');
+    const token = 'token' in result.data ? result.data.token : undefined;
+    expect(token?.symbol).toBe('USDC');
+    expect(token?.decimals).toBe(6);
+    expect(token?.amount).toBe('1000000');
+  });
+
   it('leaves unknown token transfer symbols blank', () => {
     const tokenContractAddress = '0x1111111111111111111111111111111111111111';
     const transaction = {
@@ -341,6 +475,88 @@ describe('mapLocalTransaction', () => {
           assetId: toAssetId(baseUsdc, 'eip155:8453'),
           decimals: 6,
           direction: 'out',
+          symbol: 'USDC',
+        },
+      },
+    });
+  });
+
+  it('adds receipt-derived network fees to local approval activities', () => {
+    const transaction = {
+      chainId: base,
+      id: 'approve-fee-id',
+      hash: '0xapprovefee',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      transferInformation: {
+        contractAddress: baseUsdc,
+        decimals: 6,
+        symbol: 'USDC',
+      },
+      type: TransactionType.tokenMethodApprove,
+      txParams: {
+        from,
+        to: baseUsdc,
+        data: buildApproveData(to, 100000000n),
+      },
+      txReceipt: {
+        gasUsed: '0x5208',
+        effectiveGasPrice: '0x3b9aca00',
+      },
+    } as Partial<TransactionMeta>;
+
+    const item = mapLocalTransaction(makeGroup(transaction));
+
+    expect(item.type).toBe('approveSpendingCap');
+    if (item.type !== 'approveSpendingCap') {
+      throw new Error(`Expected approveSpendingCap item, got ${item.type}`);
+    }
+
+    expect(item.data.fees).toStrictEqual([
+      expect.objectContaining({
+        type: 'base',
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+      }),
+    ]);
+  });
+
+  it('marks unlimited approval amounts from transaction calldata', () => {
+    const transaction = {
+      chainId: base,
+      id: 'approve-id',
+      hash: '0xapprove',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      transferInformation: {
+        contractAddress: baseUsdc,
+        decimals: 6,
+        symbol: 'USDC',
+      },
+      type: TransactionType.tokenMethodApprove,
+      txParams: {
+        from,
+        to: baseUsdc,
+        data: buildApproveData(to, maxUint256),
+      },
+    } as Partial<TransactionMeta>;
+
+    expect(
+      withoutRaw(mapLocalTransaction(makeGroup(transaction))),
+    ).toStrictEqual({
+      type: 'approveSpendingCap',
+      chainId: 'eip155:8453',
+      status: 'success',
+      timestamp: 1716367781000,
+      hash: '0xapprove',
+      data: {
+        token: {
+          amount: maxUint256.toString(),
+          assetId: toAssetId(baseUsdc, 'eip155:8453'),
+          decimals: 6,
+          direction: 'out',
+          isUnlimitedApproval: true,
           symbol: 'USDC',
         },
       },
@@ -604,6 +820,209 @@ describe('mapLocalTransaction', () => {
     });
   });
 
+  it('maps an EIP-7702 upgrade (authorizationList) to a smart account upgrade activity with the gas shown as a native amount', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xupgrade',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.batch,
+      txParams: {
+        from,
+        to,
+        authorizationList: [{ address: to }],
+      },
+      txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = withoutRaw(mapLocalTransaction(makeGroup(transaction)));
+    expect(result.type).toBe('smartAccountUpgrade');
+    // Renders like any other tx: native-asset avatar + the gas paid as the
+    // (negative) row amount.
+    expect(result.data).toEqual(
+      expect.objectContaining({
+        from,
+        to,
+        token: expect.objectContaining({
+          direction: 'out',
+          symbol: 'ETH',
+          amount: expect.any(String),
+        }),
+        fees: expect.any(Array),
+      }),
+    );
+  });
+
+  it('keeps the action label for a batch that also performs a recognised action', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xupgradedeposit',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.batch,
+      txParams: {
+        from,
+        to,
+        authorizationList: [{ address: to }],
+      },
+      nestedTransactions: [
+        { type: TransactionType.predictDeposit, to, data: '0x' },
+      ],
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(mapLocalTransaction(makeGroup(transaction)).type).toBe(
+      'predictionsAddFunds',
+    );
+  });
+
+  it('maps a staking deposit to a deposit activity with the network fee', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xstakedeposit',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingDeposit,
+      txParams: { from, to },
+      txReceipt: { gasUsed: '0x5208', effectiveGasPrice: '0x3b9aca00' },
+    } as unknown as Partial<TransactionMeta>;
+
+    expect(mapLocalTransaction(makeGroup(transaction))).toEqual(
+      expect.objectContaining({
+        type: 'deposit',
+        data: expect.objectContaining({ fees: expect.any(Array) }),
+      }),
+    );
+  });
+
+  it('maps a staking claim to a Claim activity with the native ETH amount from the simulation', () => {
+    const claimedWei = `0x${(10n ** 15n).toString(16)}`;
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xstakeclaim',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingClaim,
+      txParams: { from, to },
+      simulationData: {
+        nativeBalanceChange: {
+          previousBalance: '0x0',
+          newBalance: claimedWei,
+          difference: claimedWei,
+          isDecrease: false,
+        },
+        tokenBalanceChanges: [],
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('claim');
+    expect(result.data).toEqual(
+      expect.objectContaining({
+        token: expect.objectContaining({
+          symbol: 'ETH',
+          direction: 'in',
+          amount: claimedWei,
+        }),
+      }),
+    );
+  });
+
+  it('maps a staking unstake to an Unstake activity with the native ETH amount from calldata', () => {
+    const oneEthShares = (10n ** 18n).toString(16).padStart(64, '0');
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xunstake',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingUnstake,
+      txParams: {
+        from,
+        to,
+        value: '0',
+        data: `0x12345678${oneEthShares}${'0'.repeat(64)}`,
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('unstake');
+    expect(result.data).toEqual(
+      expect.objectContaining({
+        token: expect.objectContaining({
+          symbol: 'ETH',
+          direction: 'in',
+          amount: `0x${(10n ** 18n).toString(16)}`,
+        }),
+      }),
+    );
+  });
+
+  it('omits the unstake amount when the calldata is missing or too short', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xunstakenodata',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingUnstake,
+      txParams: { from, to, value: '0' },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('unstake');
+    const { token } = result.data as { token?: { amount?: string } };
+    expect(token?.amount).toBeUndefined();
+  });
+
+  it('omits the unstake amount when the shares calldata is not valid hex', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xunstakebadhex',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingUnstake,
+      // 0x + 8-char selector + 64 non-hex chars -> BigInt() throws -> undefined.
+      txParams: { from, to, value: '0', data: `0x12345678${'z'.repeat(64)}` },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('unstake');
+    const { token } = result.data as { token?: { amount?: string } };
+    expect(token?.amount).toBeUndefined();
+  });
+
+  it('omits the claim amount when there is no native balance increase', () => {
+    const transaction = {
+      chainId: mainnet,
+      hash: '0xclaimnosim',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingClaim,
+      txParams: { from, to },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(makeGroup(transaction));
+    expect(result.type).toBe('claim');
+    const { token } = result.data as { token?: { amount?: string } };
+    expect(token?.amount).toBeUndefined();
+  });
+
+  it('omits the native token when the chain has no resolvable native symbol', () => {
+    const transaction = {
+      chainId: '0xffffff',
+      hash: '0xstakenosymbol',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      type: TransactionType.stakingDeposit,
+      txParams: { from, to, value: '0xde0b6b3a7640000' },
+    } as unknown as Partial<TransactionMeta>;
+
+    const result = mapLocalTransaction(
+      makeGroup(transaction, { nativeAssetSymbol: undefined }),
+    );
+    expect(result.type).toBe('deposit');
+    const { token } = result.data as { token?: unknown };
+    expect(token).toBeUndefined();
+  });
+
   it('uses a bridge history activity status override', () => {
     const transaction = {
       chainId: mainnet,
@@ -667,6 +1086,46 @@ describe('mapLocalTransaction', () => {
         },
       },
     });
+  });
+
+  it('adds receipt-derived network fees to local swap activities', () => {
+    const transaction = {
+      chainId: base,
+      id: 'swap-fee-id',
+      hash: '0xswapfee',
+      status: TransactionStatus.confirmed,
+      time: 1716367781000,
+      swapMetaData: {
+        token_from: 'ETH',
+        token_to: 'USDC',
+      },
+      type: TransactionType.swap,
+      txParams: {
+        from,
+        to: '0x9dda6ef3d919c9bc8885d5560999a3640431e8e6',
+        value: '0x246139ca8000',
+      },
+      txReceipt: {
+        gasUsed: '0x5208',
+        effectiveGasPrice: '0x3b9aca00',
+      },
+    } as unknown as Partial<TransactionMeta>;
+
+    const item = mapLocalTransaction(makeGroup(transaction));
+
+    expect(item.type).toBe('swap');
+    if (item.type !== 'swap') {
+      throw new Error(`Expected swap item, got ${item.type}`);
+    }
+
+    expect(item.data.fees).toStrictEqual([
+      expect.objectContaining({
+        type: 'base',
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+      }),
+    ]);
   });
 
   it('maps a WETH9 deposit contract interaction to a Wrap activity', () => {

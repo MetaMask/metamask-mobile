@@ -186,6 +186,35 @@ export const navigateToRewardsRoute = (
   navigation.navigate(Routes.REWARDS_FLOW, { screen, params });
 };
 
+type RewardsFlowExitNavigation = Pick<
+  NavigationProp<ReactNavigation.RootParamList>,
+  'navigate' | 'goBack' | 'canGoBack'
+>;
+
+/**
+ * Leaves the pushed `REWARDS_FLOW` stack and returns the user to the Rewards
+ * dashboard in the tab.
+ *
+ * VIP screens previously used `StackActions.replace(Routes.REWARDS_DASHBOARD)`,
+ * but the dashboard lives in the Rewards tab — not inside `RewardsNavigator` —
+ * so that replace could not be handled. Popping the flow (or falling back to the
+ * Rewards tab) keeps navigation consistent with the native-stack migration.
+ *
+ * @param navigation - The navigation object from `useNavigation()`.
+ */
+export const exitRewardsFlow = (
+  navigation: RewardsFlowExitNavigation,
+): void => {
+  if (navigation.canGoBack()) {
+    navigation.goBack();
+    return;
+  }
+
+  navigation.navigate(Routes.HOME_TABS, {
+    screen: Routes.REWARDS_VIEW,
+  });
+};
+
 // Referral URL builder
 export const REFERRAL_LINK_PATH = 'link.metamask.io/rewards?referral=';
 export const REFERRAL_BASE_URL = `https://${REFERRAL_LINK_PATH}`;

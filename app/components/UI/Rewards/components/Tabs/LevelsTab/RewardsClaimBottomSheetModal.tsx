@@ -33,6 +33,7 @@ import BottomSheet, {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { REWARDS_VIEW_SELECTORS } from '../../../Views/RewardsView.constants';
 import { Linking, TouchableOpacity } from 'react-native';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { formatUrl } from '../../../utils/formatUtils';
 import TextField from '../../../../../../component-library/components/Form/TextField';
 import useRewardsToast from '../../../hooks/useRewardsToast';
@@ -310,20 +311,38 @@ const RewardsClaimBottomSheetModal = ({
     return null;
   };
 
+  const renderContent = () => (
+    <Box
+      flexDirection={BoxFlexDirection.Column}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Center}
+      twClassName="p-4"
+    >
+      {renderTitle()}
+      {renderDescription()}
+      {renderInput()}
+      {renderError()}
+      {renderActions()}
+    </Box>
+  );
+
   return (
-    <BottomSheet ref={sheetRef} testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL}>
-      <Box
-        flexDirection={BoxFlexDirection.Column}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        twClassName="p-4"
-      >
-        {renderTitle()}
-        {renderDescription()}
-        {renderInput()}
-        {renderError()}
-        {renderActions()}
-      </Box>
+    <BottomSheet
+      ref={sheetRef}
+      testID={REWARDS_VIEW_SELECTORS.CLAIM_MODAL}
+      keyboardAvoidingViewEnabled={!showInput}
+    >
+      {showInput ? (
+        <KeyboardAwareScrollView
+          keyboardShouldPersistTaps="handled"
+          enableOnAndroid
+          extraScrollHeight={20}
+        >
+          {renderContent()}
+        </KeyboardAwareScrollView>
+      ) : (
+        renderContent()
+      )}
     </BottomSheet>
   );
 };

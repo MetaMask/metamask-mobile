@@ -89,6 +89,9 @@ export const initialStateActivity = () =>
           GasFeeController: {
             gasFeeEstimates: {},
           },
+          MoneyAccountController: {
+            moneyAccounts: {},
+          },
           NetworkEnablementController: {
             enabledNetworkMap: {
               eip155: {},
@@ -120,6 +123,33 @@ export const initialStateActivity = () =>
       },
     } as unknown as DeepPartial<RootState>);
 
+export const activityLineaNetworkOverride = {
+  engine: {
+    backgroundState: {
+      NetworkController: {
+        networkConfigurationsByChainId: {
+          '0xe708': {
+            chainId: '0xe708',
+            rpcEndpoints: [
+              {
+                networkClientId: 'linea-mainnet',
+                url: 'https://linea-mainnet.infura.io/v3/{infuraProjectId}',
+                type: 'infura',
+                name: 'Linea default RPC',
+              },
+            ],
+            defaultRpcEndpointIndex: 0,
+            blockExplorerUrls: ['https://lineascan.build'],
+            defaultBlockExplorerUrlIndex: 0,
+            name: 'Linea',
+            nativeCurrency: 'ETH',
+          },
+        },
+      },
+    },
+  },
+} as unknown as DeepPartial<RootState>;
+
 export const initialStateActivityWithLocalTransactions = (
   transactions: TransactionMeta[],
 ) =>
@@ -141,3 +171,18 @@ export const initialStateActivityWithRedesignEnabled = () =>
   initialStateActivity().withRemoteFeatureFlags({
     tmcuActivityRedesignEnabled: true,
   });
+
+/** State for ActivityList tests that load EVM history from the accounts API. */
+export const initialStateActivityWithAccountsApi = () =>
+  initialStateActivity().withOverrides({
+    engine: {
+      backgroundState: {
+        NetworkEnablementController: {
+          enabledNetworkMap: enabledMainnetNetworkMap,
+        },
+        PreferencesController: {
+          privacyMode: false,
+        },
+      },
+    },
+  } as unknown as DeepPartial<RootState>);
