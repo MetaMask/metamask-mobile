@@ -13,10 +13,10 @@ import {
   Text,
   TextVariant,
   type BottomSheetRef,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { OtherBottomSheetTestIds } from './OtherBottomSheet.testIds';
-import { useTheme } from '../../../../util/theme';
 
 interface OtherBottomSheetProps {
   initialValue?: string;
@@ -30,7 +30,6 @@ const OtherBottomSheet = ({
   onDone,
 }: OtherBottomSheetProps) => {
   const tw = useTailwind();
-  const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [draftValue, setDraftValue] = useState(initialValue);
 
@@ -39,17 +38,12 @@ const OtherBottomSheet = ({
   }, [onClose]);
 
   const trimmedDraftValue = draftValue.trim();
-  const canSubmit = trimmedDraftValue.length > 0;
 
   const handleDone = useCallback(() => {
-    if (!canSubmit) {
-      return;
-    }
-
     bottomSheetRef.current?.onCloseBottomSheet(() => {
       onDone(trimmedDraftValue);
     });
-  }, [canSubmit, onDone, trimmedDraftValue]);
+  }, [onDone, trimmedDraftValue]);
 
   return (
     <BottomSheet
@@ -64,7 +58,7 @@ const OtherBottomSheet = ({
           testID: `${OtherBottomSheetTestIds.BOTTOM_SHEET}-close-button`,
         }}
       >
-        <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Medium}>
+        <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {strings('onboarding_interest_questionnaire.option_other')}
         </Text>
       </BottomSheetHeader>
@@ -85,19 +79,17 @@ const OtherBottomSheet = ({
           placeholder={strings(
             'onboarding_interest_questionnaire.other_placeholder',
           )}
-          placeholderTextColor={colors.text.muted}
+          placeholderTextColor={TextColor.TextAlternative}
           style={tw.style(
-            'min-h-[120px] rounded-xl border border-muted bg-muted px-4 py-4 text-body-md text-default',
+            'min-h-[120px] rounded-xl border border-default bg-background-muted px-4 py-3 text-body-md text-default',
           )}
           testID={OtherBottomSheetTestIds.TEXT_INPUT}
         />
-
         <Box twClassName="mt-4">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            isDisabled={!canSubmit}
             onPress={handleDone}
             testID={OtherBottomSheetTestIds.DONE_BUTTON}
           >

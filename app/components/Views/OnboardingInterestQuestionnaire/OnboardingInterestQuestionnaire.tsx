@@ -60,36 +60,44 @@ type InterestOptionId =
 interface InterestOption {
   id: InterestOptionId;
   labelKey: string;
+  emoji?: string;
 }
 
 const INTEREST_OPTIONS: InterestOption[] = [
   {
     id: 'swap_tokens',
     labelKey: 'onboarding_interest_questionnaire.option_swap_tokens',
+    emoji: '🔄',
   },
   {
     id: 'trade_perpetuals',
     labelKey: 'onboarding_interest_questionnaire.option_trade_perpetuals',
+    emoji: '📈',
   },
   {
     id: 'prediction_markets',
     labelKey: 'onboarding_interest_questionnaire.option_prediction_markets',
+    emoji: '🔮',
   },
   {
     id: 'send_receive_crypto',
     labelKey: 'onboarding_interest_questionnaire.option_send_receive_crypto',
+    emoji: '📥',
   },
   {
     id: 'earn_and_spend',
     labelKey: 'onboarding_interest_questionnaire.option_earn_and_spend',
+    emoji: '💰',
   },
   {
     id: 'use_other_crypto_apps',
     labelKey: 'onboarding_interest_questionnaire.option_use_other_crypto_apps',
+    emoji: '🌐',
   },
   {
     id: 'other',
     labelKey: 'onboarding_interest_questionnaire.option_other',
+    emoji: '📝',
   },
 ];
 
@@ -183,10 +191,15 @@ const OnboardingInterestQuestionnaire = () => {
   }, []);
 
   const handleOtherDone = useCallback((value: string) => {
-    setOtherText(value);
+    const isEmpty = value.length === 0;
+    setOtherText(isEmpty ? '' : value);
     setSelectedIds((prev) => {
       const next = new Set(prev);
-      next.add('other');
+      if (isEmpty) {
+        next.delete('other');
+      } else {
+        next.add('other');
+      }
       return next;
     });
     setIsOtherBottomSheetVisible(false);
@@ -251,7 +264,7 @@ const OnboardingInterestQuestionnaire = () => {
         twClassName="mb-2"
         endAccessory={
           <Text
-            variant={TextVariant.BodyMd}
+            variant={TextVariant.BodyLg}
             fontWeight={FontWeight.Medium}
             color={TextColor.TextDefault}
             onPress={onSkip}
@@ -262,7 +275,7 @@ const OnboardingInterestQuestionnaire = () => {
         }
       />
 
-      <Box twClassName="mx-4 mb-4">
+      <Box twClassName="mx-4 mb-4 flex flex-col gap-y-2">
         <Text
           variant={TextVariant.DisplayMd}
           color={TextColor.TextDefault}
@@ -270,63 +283,41 @@ const OnboardingInterestQuestionnaire = () => {
         >
           {strings('onboarding_interest_questionnaire.title')}
         </Text>
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="mt-2"
-        >
+        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           {strings('onboarding_interest_questionnaire.description')}
         </Text>
       </Box>
 
       <ScrollView
         style={tw.style('flex-1')}
-        contentContainerStyle={tw.style('px-4 pb-4')}
+        contentContainerStyle={tw.style('px-4 pb-4 flex-col gap-y-4')}
         showsVerticalScrollIndicator={false}
       >
         {INTEREST_OPTIONS.map((option) => {
           const isSelected = selectedIds.has(option.id);
           const isOtherOption = option.id === 'other';
-          const optionIcon = INTEREST_OPTION_ICONS[option.id];
           return (
             <TouchableOpacity
               key={option.id}
               onPress={() => handleOptionPress(option.id)}
               style={tw.style(
-                'flex-row items-center rounded-full px-4 py-3 mb-3',
+                'flex-row items-center rounded-full px-6 py-4 border',
                 isSelected
-                  ? 'border-2 border-default'
-                  : 'border border-border-muted',
+                  ? 'border-default bg-background-muted'
+                  : 'border-border-muted',
               )}
               testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
               accessibilityRole="checkbox"
               accessibilityState={{ checked: isSelected }}
             >
-              {INTEREST_OPTION_IMAGES[option.id] ? (
-                <Image
-                  source={INTEREST_OPTION_IMAGES[option.id]}
-                  style={tw.style('h-8 w-8')}
-                  resizeMode="contain"
-                  accessibilityElementsHidden
-                  importantForAccessibility="no-hide-descendants"
-                />
-              ) : optionIcon ? (
-                <Box
-                  alignItems={BoxAlignItems.Center}
-                  justifyContent={BoxJustifyContent.Center}
-                  twClassName="h-8 w-8 rounded-full bg-muted"
-                  testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_ICON_PREFIX}${option.id}`}
-                >
-                  <Icon
-                    name={optionIcon}
-                    size={IconSize.Md}
-                    color={IconColor.IconDefault}
-                  />
-                </Box>
-              ) : (
-                <Box twClassName="h-8 w-8" />
-              )}
-              <Box twClassName="flex-1 ml-3">
+              <Text
+                variant={TextVariant.HeadingMd}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.TextDefault}
+              >
+                {option.emoji}
+              </Text>
+              <Box twClassName="flex-1 flex-row items-center gap-x-2 ml-3">
                 <Text
                   variant={TextVariant.BodyMd}
                   fontWeight={FontWeight.Medium}
@@ -334,12 +325,14 @@ const OnboardingInterestQuestionnaire = () => {
                 >
                   {strings(option.labelKey)}
                 </Text>
-                {isOtherOption && otherText ? (
+                {isOtherOption && otherText?.length > 0 ? (
                   <Text
                     variant={TextVariant.BodySm}
                     color={TextColor.TextAlternative}
-                    twClassName="mt-1"
                     testID={OnboardingInterestQuestionnaireTestIds.OTHER_TEXT}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                    twClassName="flex-shrink"
                   >
                     {otherText}
                   </Text>

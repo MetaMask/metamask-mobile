@@ -25,7 +25,7 @@ export const InterestSelectionIndicator = ({
       <Box
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        style={tw.style('h-5 w-5 rounded-full bg-icon-default')}
+        style={tw.style('h-[22px] w-[22px] rounded-full bg-icon-default')}
         testID={InterestSelectionIndicatorTestIds.CONTAINER}
       >
         <Icon
@@ -41,7 +41,7 @@ export const InterestSelectionIndicator = ({
     <Icon
       testID={InterestSelectionIndicatorTestIds.CONTAINER}
       name={IconName.Add}
-      size={IconSize.Md}
+      size={IconSize.Lg}
       color={IconColor.IconDefault}
     />
   );
