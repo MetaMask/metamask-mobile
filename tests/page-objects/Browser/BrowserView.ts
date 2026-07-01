@@ -14,10 +14,12 @@ import {
 import {
   EncapsulatedElementType,
   encapsulated,
- asPlaywrightElement } from '../../framework/EncapsulatedElement';
+  asPlaywrightElement,
+} from '../../framework/EncapsulatedElement';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
 import { Assertions, Gestures, Matchers, Utilities } from '../../framework';
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
@@ -175,14 +177,20 @@ class Browser {
         });
       },
       appium: async () => {
-        // iOS Appium cannot focus the hidden TextInput; tap the URL bar center.
-        const urlBar = await asPlaywrightElement(this.addressBar);
-        const location = await urlBar.unwrap().getLocation();
-        const size = await urlBar.unwrap().getSize();
-        await getDriver().execute('mobile: tap', {
-          x: Math.floor(location.x + size.width * 0.5),
-          y: Math.floor(location.y + size.height / 2),
-        });
+        if (PlatformDetector.isIOS()) {
+          // iOS XCUITest cannot focus the hidden TextInput; tap the URL bar center.
+          const urlBar = await asPlaywrightElement(this.addressBar);
+          const location = await urlBar.unwrap().getLocation();
+          const size = await urlBar.unwrap().getSize();
+          await getDriver().execute('mobile: tap', {
+            x: Math.floor(location.x + size.width * 0.5),
+            y: Math.floor(location.y + size.height / 2),
+          });
+        } else {
+          await Gestures.waitAndTap(this.urlInputBoxID, {
+            elemDescription: 'URL input box',
+          });
+        }
         await Assertions.expectElementToBeVisible(this.cancelUrlInputButton, {
           elemDescription: 'Cancel button (URL bar focused)',
           timeout: 10000,
