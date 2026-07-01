@@ -19,7 +19,7 @@ export function ActivityDetailsNetworkValue({
   const networkImage = getNetworkImageSource({ chainId });
 
   return (
-    <Box twClassName="flex-row items-center gap-2 shrink">
+    <Box twClassName="flex-row items-center gap-1 shrink">
       {networkImage ? (
         <AvatarNetwork
           name={name}

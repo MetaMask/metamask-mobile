@@ -24,4 +24,16 @@ export const advancedChartLineChromePresets = {
     subPaneHeightRatio: 0.2,
     useSubscriptPriceFormat: true,
   },
+  /**
+   * Perps: use TradingView-native price scale labels and keep current/entry/TP/SL/liquidation
+   * guides in the explicit Perps position-line overlay payload.
+   */
+  perps: {
+    lineChrome: {
+      useCustomLineEndMarker: false,
+      useCustomDashedLastPriceLine: false,
+      useCustomPriceLabels: false,
+      hideTimeScale: false,
+    },
+  },
 } as const satisfies Record<string, AdvancedChartConsumerPreset>;
