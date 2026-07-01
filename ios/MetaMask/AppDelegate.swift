@@ -175,9 +175,12 @@ extension AppDelegate: BrazeDelegate {
   // the Braze RN bridge JS event and once from the system URL handler).
   //
   // Universal links (Branch domains) are forwarded to Branch for proper routing.
-  // All other URLs are suppressed here; they are handled exclusively through
-  // the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE.
+  // Notification URLs are suppressed here; they are handled exclusively through
+  // the JS PUSH_NOTIFICATION_EVENT, tagged with ORIGIN_BRAZE. Other Braze UI
+  // surfaces are allowed through Braze so their CTAs can open app links.
   func braze(_ braze: Braze, shouldOpenURL context: Braze.URLContext) -> Bool {
+    let scheme = context.url.scheme ?? ""
+
     if let host = context.url.host,
        host.contains("app.link") ||
        host.contains("test-app.link") ||
@@ -186,6 +189,14 @@ extension AppDelegate: BrazeDelegate {
       Branch.getInstance().handleDeepLink(context.url)
       return false
     }
-    return false
+
+    switch context.channel {
+    case .inAppMessage, .contentCard, .banner:
+      return scheme == "metamask"
+    case .notification:
+      return false
+    @unknown default:
+      return false
+    }
   }
 }
