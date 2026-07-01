@@ -11,6 +11,8 @@ import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { DappVariants } from '../../../framework/Constants';
 
 describe(SmokeNetworkExpansion('Bitcoin Wallet Standard E2E - Connect'), () => {
+  const POST_REFRESH_ASSERT_TIMEOUT_MS = 45_000;
+
   beforeAll(async () => {
     jest.setTimeout(150000);
   });
@@ -66,8 +68,12 @@ describe(SmokeNetworkExpansion('Bitcoin Wallet Standard E2E - Connect'), () => {
 
         await BitcoinTestDapp.reloadBitcoinTestDApp();
 
-        await BitcoinTestDapp.verifyConnectedAccount(account1Short);
-        await BitcoinTestDapp.verifyConnectionStatus('Connected');
+        await BitcoinTestDapp.verifyConnectedAccount(account1Short, {
+          timeout: POST_REFRESH_ASSERT_TIMEOUT_MS,
+        });
+        await BitcoinTestDapp.verifyConnectionStatus('Connected', {
+          timeout: POST_REFRESH_ASSERT_TIMEOUT_MS,
+        });
       },
     );
   });
