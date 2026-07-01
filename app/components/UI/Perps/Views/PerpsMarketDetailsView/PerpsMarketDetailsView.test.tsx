@@ -26,7 +26,10 @@ import {
   TimeDuration,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-import { PERPS_CHART_EVENT_VALUE } from '../../utils/analytics/chartInstrumentation';
+import {
+  PERPS_CHART_EVENT_PROPERTY,
+  PERPS_CHART_EVENT_VALUE,
+} from '../../utils/analytics/chartInstrumentation';
 
 const mockPerpsAdvancedChartMount = jest.fn();
 const mockPerpsAdvancedChartUnmount = jest.fn();
@@ -1955,8 +1958,39 @@ describe('PerpsMarketDetailsView', () => {
           [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
             PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
           [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
         }),
       );
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+
+      mockTrack.mockClear();
+      await act(async () => {
+        getByTestId('mock-perps-advanced-chart').props.onError(
+          'Advanced chart unavailable again',
+        );
+      });
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+        }),
+      );
+
       await act(async () => {
         fireEvent.press(
           getByTestId(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
@@ -1969,7 +2003,7 @@ describe('PerpsMarketDetailsView', () => {
       );
     });
 
-    it('uses error object and fallback messages for advanced chart errors', () => {
+    it('uses error object and fallback messages for advanced chart errors', async () => {
       const mockTrack = jest.fn();
       const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
         jest.requireMock('../../hooks/usePerpsEventTracking');
@@ -2003,8 +2037,10 @@ describe('PerpsMarketDetailsView', () => {
       );
       const onError = getByTestId('mock-perps-advanced-chart').props.onError;
 
-      onError(new Error('Advanced chart object error'));
-      onError();
+      await act(async () => {
+        onError(new Error('Advanced chart object error'));
+        onError();
+      });
 
       expect(mockLoggerError).toHaveBeenCalledWith(
         new Error('Advanced chart object error'),

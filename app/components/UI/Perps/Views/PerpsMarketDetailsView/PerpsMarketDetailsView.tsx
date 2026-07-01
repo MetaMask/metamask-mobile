@@ -285,8 +285,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
     configuredChartLibrary,
   );
+  const trackedFallbackScreenViewLibrariesRef = useRef<Set<string>>(new Set());
   useEffect(() => {
     setEffectiveChartLibrary(configuredChartLibrary);
+    trackedFallbackScreenViewLibrariesRef.current = new Set();
   }, [configuredChartLibrary, market?.symbol]);
   const chartAnalyticsProperties = useMemo(
     () => getPerpsChartAnalyticsPropertiesForLibrary(effectiveChartLibrary),
@@ -653,6 +655,43 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     },
   });
 
+  const marketDetailsScreenViewedProperties = useMemo(
+    () => ({
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
+      [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
+      [PERPS_EVENT_PROPERTY.SOURCE]:
+        source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
+      ...chartAnalyticsProperties,
+      ...(source_section && {
+        [PERPS_EVENT_PROPERTY.SOURCE_SECTION]: source_section,
+      }),
+      [PERPS_EVENT_PROPERTY.OPEN_POSITION]: existingPosition ? 1 : 0,
+      [PERPS_EVENT_PROPERTY.OPEN_ORDER]: openOrders.length,
+      market_insights_displayed:
+        isPerpsInsightsEnabled && Boolean(perpsInsightsReport),
+      [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
+        isServiceInterruptionBannerEnabled,
+      // A/B Test context (TAT-1937) - for baseline exposure tracking
+      ...(isButtonColorTestEnabled && {
+        [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
+      }),
+    }),
+    [
+      market?.symbol,
+      source,
+      chartAnalyticsProperties,
+      source_section,
+      existingPosition,
+      openOrders.length,
+      isPerpsInsightsEnabled,
+      perpsInsightsReport,
+      isServiceInterruptionBannerEnabled,
+      isButtonColorTestEnabled,
+      buttonColorVariant,
+    ],
+  );
+
   // Track asset screen viewed event - declarative (main's event name)
   // Waits for market insights to finish loading so market_insights_displayed
   // reflects the actual display state rather than a loading-time snapshot.
@@ -673,23 +712,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         !perpsInsightsReport ||
         perpsInsightsAssetId === market?.symbol,
     ],
-    properties: {
-      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-        PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
-      [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
-      [PERPS_EVENT_PROPERTY.SOURCE]:
-        source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
-      ...chartAnalyticsProperties,
-      ...(source_section && {
-        [PERPS_EVENT_PROPERTY.SOURCE_SECTION]: source_section,
-      }),
-      [PERPS_EVENT_PROPERTY.OPEN_POSITION]: existingPosition ? 1 : 0,
-      [PERPS_EVENT_PROPERTY.OPEN_ORDER]: openOrders.length,
-      market_insights_displayed:
-        isPerpsInsightsEnabled && Boolean(perpsInsightsReport),
-      [PERPS_EVENT_PROPERTY.OUTAGE_BANNER_SHOWN]:
-        isServiceInterruptionBannerEnabled,
-    },
+    properties: marketDetailsScreenViewedProperties,
   });
 
   const handleCandlePeriodChange = useCallback(
@@ -1290,9 +1313,32 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         setEffectiveChartLibrary(
           PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
         );
+        const fallbackScreenViewKey = `${market?.symbol || ''}:${
+          PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT
+        }`;
+        if (
+          !trackedFallbackScreenViewLibrariesRef.current.has(
+            fallbackScreenViewKey,
+          )
+        ) {
+          trackedFallbackScreenViewLibrariesRef.current.add(
+            fallbackScreenViewKey,
+          );
+          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+            ...marketDetailsScreenViewedProperties,
+            ...getPerpsChartAnalyticsPropertiesForLibrary(
+              PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+            ),
+          });
+        }
       }
     },
-    [isAdvancedChartEnabled, market?.symbol, track],
+    [
+      isAdvancedChartEnabled,
+      market?.symbol,
+      marketDetailsScreenViewedProperties,
+      track,
+    ],
   );
 
   // Determine market hours content key based on current status - recalculated on each render to stay current
