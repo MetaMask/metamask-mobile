@@ -86,6 +86,7 @@ const mockDisplayData: MultichainTransactionDisplayData = {
   title: 'Send ETH',
   isRedeposit: false,
   shouldShowAmountOrUnit: true,
+  isUnlimitedApproval: false,
   from: {
     address: '0xabc123def456abc123def456abc123def456abc1',
     amount: '0.5',
@@ -167,6 +168,28 @@ describe('MultichainTransactionDetailsSheet', () => {
     });
     const { queryByText } = renderSheet();
     expect(queryByText('Amount')).toBeNull();
+  });
+
+  it('renders "Unlimited" in the amount row for unlimited token approvals', () => {
+    mockUseRoute.mockReturnValue({
+      params: {
+        displayData: {
+          ...mockDisplayData,
+          isUnlimitedApproval: true,
+          to: {
+            ...mockDisplayData.to,
+            amount: '115792089237316200000000000000000',
+            unit: 'USDT',
+          },
+        },
+        transaction: mockTransaction,
+      },
+    });
+
+    const { getByText, queryByText } = renderSheet();
+
+    expect(getByText('Unlimited USDT')).toBeOnTheScreen();
+    expect(queryByText('115792089237316200000000000000000 USDT')).toBeNull();
   });
 
   it('renders the network fee row', () => {

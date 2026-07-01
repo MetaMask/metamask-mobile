@@ -7,11 +7,17 @@
  */
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import { KnownCaipNamespace, toCaipChainId } from '@metamask/utils';
+import { isValidHexAddress } from '@metamask/controller-utils';
 import type { ActivityListItem, Status, TokenAmount } from '../types';
 import { supplyMethodIds } from './constants';
 import {
+  getNftPaymentTransfer,
   getTokenMetadataFromKnownToken,
   getTokenAmountFromTransfer,
+  getTokenApprovalAmountFromData,
+  isUnlimitedApprovalAmount,
+  getApiTransactionFees,
+  parseValueTransfers,
   withFallbackTokenAssetId,
   type ValueTransfer,
 } from './helpers';
@@ -19,6 +25,19 @@ import {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
 } from './environment';
+
+function getTransactionCalldata(
+  transaction: V1TransactionByHashResponse,
+): string | undefined {
+  const maybeTransaction = transaction as unknown as Record<string, unknown>;
+  const data =
+    maybeTransaction.input ??
+    maybeTransaction.data ??
+    maybeTransaction.txData ??
+    maybeTransaction.transactionData;
+
+  return typeof data === 'string' && data.length > 10 ? data : undefined;
+}
 
 // Converts indexed API transactions into the shared activity item shape
 export function mapApiEvmTransactions({
@@ -37,31 +56,39 @@ export function mapApiEvmTransactions({
     KnownCaipNamespace.Eip155,
     transaction.chainId.toString(),
   );
+  const hexChainId = `0x${transaction.chainId.toString(16)}`;
+  const fees = getApiTransactionFees(
+    transaction,
+    environment.getNativeAssetForChainId(hexChainId),
+  );
   const getToken = (
     transfer: ValueTransfer | undefined,
     direction: TokenAmount['direction'],
   ) => getTokenAmountFromTransfer(transfer, direction, chainId, environment);
 
-  const sentTransfer = valueTransfers?.find(({ from }) =>
-    environment.equalsIgnoreCase(from, subjectAddress),
-  );
-  const receivedTransfer = valueTransfers?.find(({ to }) =>
-    environment.equalsIgnoreCase(to, subjectAddress),
-  );
-  const sentNftTransfer = valueTransfers?.find(
-    ({ from, transferType }) =>
+  const {
+    sentTransfer,
+    receivedTransfer,
+    sentNftTransfer,
+    receivedNftTransfer,
+    sentNativeTransfer,
+    receivedNativeTransfer,
+  } = parseValueTransfers(valueTransfers, subjectAddress, environment);
+  const wrappedTokenAddress = environment.wrappedTokenAddresses[hexChainId];
+  const isDirectWrappedTokenCall =
+    Boolean(wrappedTokenAddress) &&
+    environment.equalsIgnoreCase(transaction.to, wrappedTokenAddress);
+  const sentWrappedTokenTransfer = valueTransfers?.find(
+    ({ contractAddress, from }) =>
       environment.equalsIgnoreCase(from, subjectAddress) &&
-      (transferType === 'erc721' || transferType === 'erc1155'),
+      Boolean(wrappedTokenAddress) &&
+      environment.equalsIgnoreCase(contractAddress, wrappedTokenAddress),
   );
-  const receivedNftTransfer = valueTransfers?.find(
-    ({ to, transferType }) =>
+  const receivedWrappedTokenTransfer = valueTransfers?.find(
+    ({ contractAddress, to }) =>
       environment.equalsIgnoreCase(to, subjectAddress) &&
-      (transferType === 'erc721' || transferType === 'erc1155'),
-  );
-  const sentNativeTransfer = valueTransfers?.find(
-    ({ from, transferType }) =>
-      environment.equalsIgnoreCase(from, subjectAddress) &&
-      transferType === 'normal',
+      Boolean(wrappedTokenAddress) &&
+      environment.equalsIgnoreCase(contractAddress, wrappedTokenAddress),
   );
   const hasNativeTransferWithoutMethod =
     transactionCategory === 'CONTRACT_CALL' &&
@@ -70,6 +97,46 @@ export function mapApiEvmTransactions({
   const hasSupplyMethodId =
     transaction.methodId && supplyMethodIds.has(transaction.methodId);
 
+  if (
+    isDirectWrappedTokenCall &&
+    sentNativeTransfer &&
+    receivedWrappedTokenTransfer
+  ) {
+    return {
+      type: 'wrap',
+      chainId,
+      status,
+      timestamp,
+      hash,
+      raw: { type: 'apiEvmTransaction', data: transaction },
+      data: {
+        sourceToken: getToken(sentNativeTransfer, 'out'),
+        destinationToken: getToken(receivedWrappedTokenTransfer, 'in'),
+        ...(fees ? { fees } : {}),
+      },
+    };
+  }
+
+  if (
+    isDirectWrappedTokenCall &&
+    sentWrappedTokenTransfer &&
+    receivedNativeTransfer
+  ) {
+    return {
+      type: 'unwrap',
+      chainId,
+      status,
+      timestamp,
+      hash,
+      raw: { type: 'apiEvmTransaction', data: transaction },
+      data: {
+        sourceToken: getToken(sentWrappedTokenTransfer, 'out'),
+        destinationToken: getToken(receivedNativeTransfer, 'in'),
+        ...(fees ? { fees } : {}),
+      },
+    };
+  }
+
   if (transactionCategory === 'SWAP' || transactionCategory === 'EXCHANGE') {
     if (!receivedTransfer?.symbol) {
       return {
@@ -77,10 +144,10 @@ export function mapApiEvmTransactions({
         chainId,
         status,
         timestamp,
+        hash,
         raw: { type: 'apiEvmTransaction', data: transaction },
         data: {
           sourceToken: getToken(sentTransfer, 'out'),
-          hash,
         },
       };
     }
@@ -90,11 +157,12 @@ export function mapApiEvmTransactions({
       chainId,
       status,
       timestamp,
+      hash,
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
         sourceToken: getToken(sentTransfer, 'out'),
         destinationToken: getToken(receivedTransfer, 'in'),
-        hash,
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -103,27 +171,67 @@ export function mapApiEvmTransactions({
     // TODO: Categorize REVOKE in the backend
     const approveTransfer = sentTransfer ?? receivedTransfer;
     const approveDirection = receivedTransfer && !sentTransfer ? 'in' : 'out';
+    const valueTransferContractAddress = valueTransfers?.find(
+      ({ contractAddress, transferType }) =>
+        contractAddress &&
+        transferType !== 'normal' &&
+        transferType !== 'internal',
+    )?.contractAddress;
+    const approveContractAddress =
+      (transaction.to &&
+      isValidHexAddress(transaction.to, { allowNonPrefixed: false })
+        ? transaction.to
+        : undefined) ??
+      (valueTransferContractAddress &&
+      isValidHexAddress(valueTransferContractAddress, {
+        allowNonPrefixed: false,
+      })
+        ? valueTransferContractAddress
+        : undefined);
+    const fallbackApproveAssetId = approveContractAddress
+      ? environment.toAssetId(approveContractAddress, chainId)
+      : undefined;
     const approveToken =
       getToken(approveTransfer, approveDirection) ??
       getTokenMetadataFromKnownToken(
-        transaction.to,
+        approveContractAddress,
         approveDirection,
         chainId,
         environment,
-      );
+      ) ??
+      (fallbackApproveAssetId
+        ? { direction: approveDirection, assetId: fallbackApproveAssetId }
+        : undefined);
+    const approveAmount = getTokenApprovalAmountFromData(
+      getTransactionCalldata(transaction),
+      environment,
+    );
+    const token =
+      approveToken && approveAmount
+        ? {
+            ...approveToken,
+            amount: approveAmount,
+            ...(isUnlimitedApprovalAmount(approveAmount, approveToken.decimals)
+              ? { isUnlimitedApproval: true }
+              : {}),
+          }
+        : approveToken;
 
     return {
       type: 'approveSpendingCap',
       chainId,
       status,
       timestamp,
+      hash,
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
-        hash,
-        token: approveToken,
+        token,
+        ...(fees ? { fees } : {}),
       },
     };
   }
+
+  const isNftExchange = transactionCategory === 'NFT_EXCHANGE';
 
   // TODO: Categorize NFT in the backend, sometimes TRANSFER or CONTRACT_CALL
   if (sentNftTransfer || receivedNftTransfer) {
@@ -134,26 +242,41 @@ export function mapApiEvmTransactions({
           chainId,
           status,
           timestamp,
+          hash,
           raw: { type: 'apiEvmTransaction', data: transaction },
           data: {
-            hash,
             from: receivedNftTransfer.from,
             to: receivedNftTransfer.to,
             token: getToken(receivedNftTransfer, 'in'),
+            ...(fees ? { fees } : {}),
           },
         };
       }
 
-      if (sentNativeTransfer) {
+      const purchasePaymentTransfer = getNftPaymentTransfer({
+        side: 'buy',
+        sentTransfer,
+        sentNativeTransfer,
+        nftCounterparty: receivedNftTransfer.from,
+        subjectAddress,
+        environment,
+      });
+
+      // API category, or an outgoing payment to the seller / in native value.
+      if (isNftExchange || purchasePaymentTransfer) {
         return {
-          type: 'buy',
+          type: 'nftBuy',
           chainId,
           status,
           timestamp,
+          hash,
           raw: { type: 'apiEvmTransaction', data: transaction },
           data: {
-            hash,
+            from: receivedNftTransfer.from,
+            to: receivedNftTransfer.to,
             token: getToken(receivedNftTransfer, 'in'),
+            paymentToken: getToken(purchasePaymentTransfer, 'out'),
+            ...(fees ? { fees } : {}),
           },
         };
       }
@@ -163,9 +286,9 @@ export function mapApiEvmTransactions({
         chainId,
         status,
         timestamp,
+        hash,
         raw: { type: 'apiEvmTransaction', data: transaction },
         data: {
-          hash,
           from: receivedNftTransfer.from,
           to: receivedNftTransfer.to,
           token: getToken(receivedNftTransfer, 'in'),
@@ -174,14 +297,42 @@ export function mapApiEvmTransactions({
     }
 
     if (sentNftTransfer) {
+      const saleProceedsTransfer = getNftPaymentTransfer({
+        side: 'sell',
+        receivedTransfer,
+        nftCounterparty: sentNftTransfer.to,
+        transactionFrom: transaction.from,
+        subjectAddress,
+        environment,
+      });
+
+      // API category, or an incoming payment from the buyer.
+      if (isNftExchange || saleProceedsTransfer) {
+        return {
+          type: 'nftSell',
+          chainId,
+          status,
+          timestamp,
+          hash,
+          raw: { type: 'apiEvmTransaction', data: transaction },
+          data: {
+            from: sentNftTransfer.from,
+            to: sentNftTransfer.to,
+            token: getToken(sentNftTransfer, 'out'),
+            paymentToken: getToken(saleProceedsTransfer, 'in'),
+            ...(fees ? { fees } : {}),
+          },
+        };
+      }
+
       return {
         type: 'send',
         chainId,
         status,
         timestamp,
+        hash,
         raw: { type: 'apiEvmTransaction', data: transaction },
         data: {
-          hash,
           from: sentNftTransfer.from,
           to: sentNftTransfer.to,
           token: getToken(sentNftTransfer, 'out'),
@@ -196,7 +347,7 @@ export function mapApiEvmTransactions({
     hasNativeTransferWithoutMethod
   ) {
     const isReceive =
-      Boolean(receivedTransfer) ||
+      Boolean(receivedTransfer && !sentTransfer) ||
       (environment.equalsIgnoreCase(transaction.to, subjectAddress) &&
         !environment.equalsIgnoreCase(transaction.from, subjectAddress));
 
@@ -207,6 +358,7 @@ export function mapApiEvmTransactions({
       chainId,
       status,
       timestamp,
+      hash,
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
         from: transfer?.from ?? transaction.from,
@@ -218,7 +370,6 @@ export function mapApiEvmTransactions({
           chainId,
           environment,
         ),
-        hash,
       },
     };
   }
@@ -229,10 +380,11 @@ export function mapApiEvmTransactions({
       chainId,
       status,
       timestamp,
+      hash,
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
-        hash,
         token: getToken(receivedTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -243,13 +395,14 @@ export function mapApiEvmTransactions({
       chainId,
       status,
       timestamp,
+      hash,
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
-        hash,
         token: getToken(
           receivedTransfer ?? sentTransfer,
           receivedTransfer ? 'in' : 'out',
         ),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -260,11 +413,12 @@ export function mapApiEvmTransactions({
       chainId,
       status,
       timestamp,
+      hash,
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
-        hash,
         sourceToken: getToken(sentTransfer, 'out'),
         destinationToken: getToken(receivedTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -275,10 +429,11 @@ export function mapApiEvmTransactions({
       chainId,
       status,
       timestamp,
+      hash,
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
-        hash,
         sourceToken: getToken(sentTransfer, 'out'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -290,11 +445,12 @@ export function mapApiEvmTransactions({
       chainId,
       status,
       timestamp,
+      hash,
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
-        hash,
         sourceToken: getToken(sentTransfer, 'out'),
         destinationToken: getToken(receivedTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -311,11 +467,12 @@ export function mapApiEvmTransactions({
       chainId,
       status,
       timestamp,
+      hash,
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
         sourceToken: getToken(sentTransfer, 'out'),
         destinationToken: getToken(receivedTransfer, 'in'),
-        hash,
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -331,11 +488,12 @@ export function mapApiEvmTransactions({
       chainId,
       status,
       timestamp,
+      hash,
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
-        hash,
         sourceToken: getToken(sentTransfer, 'out'),
         destinationToken: getToken(receivedTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -346,11 +504,12 @@ export function mapApiEvmTransactions({
       chainId,
       status,
       timestamp,
+      hash,
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
-        hash,
         sourceToken: getToken(sentTransfer, 'out'),
         destinationToken: getToken(receivedTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -361,28 +520,42 @@ export function mapApiEvmTransactions({
       chainId,
       status,
       timestamp,
+      hash,
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
-        hash,
         token: getToken(sentTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }
+
+  const contractInteractionTransfer = sentTransfer ?? receivedTransfer;
+  const contractInteractionToken = getToken(
+    contractInteractionTransfer,
+    sentTransfer ? 'out' : 'in',
+  );
+  const contractInteractionTokenWithAmount = contractInteractionToken?.amount
+    ? contractInteractionToken
+    : undefined;
 
   return {
     type: 'contractInteraction',
     chainId,
     status,
     timestamp,
+    hash,
     raw: { type: 'apiEvmTransaction', data: transaction },
     data: {
-      hash,
       methodId: transaction.methodId,
       from: transaction.from,
       to: transaction.to,
       transactionCategory,
       transactionProtocol: transaction.transactionProtocol,
       transactionType: transaction.transactionType,
+      ...(contractInteractionTokenWithAmount
+        ? { token: contractInteractionTokenWithAmount }
+        : {}),
+      ...(fees ? { fees } : {}),
     },
   };
 }

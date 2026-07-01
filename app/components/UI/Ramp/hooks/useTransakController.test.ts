@@ -10,7 +10,7 @@ const mockGetProviderToken = jest.fn();
 const mockStoreProviderToken = jest.fn();
 const mockResetProviderToken = jest.fn();
 
-jest.mock('../Deposit/utils/ProviderTokenVault', () => ({
+jest.mock('../utils/ProviderTokenVault', () => ({
   getProviderToken: (...args: unknown[]) => mockGetProviderToken(...args),
   storeProviderToken: (...args: unknown[]) => mockStoreProviderToken(...args),
   resetProviderToken: (...args: unknown[]) => mockResetProviderToken(...args),

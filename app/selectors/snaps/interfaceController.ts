@@ -7,6 +7,7 @@ import { RootState } from '../../reducers';
  * @param state - Redux state object.
  * @returns the Snap interfaces.
  */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const getInterfaces = (state: RootState) =>
   state?.engine?.backgroundState?.SnapInterfaceController.interfaces;
 
@@ -21,9 +22,25 @@ const selectInterfaceId = (_state: RootState, interfaceId: string) =>
   interfaceId;
 
 /**
+ * Get a memoized version of the Snap interfaces.
+ */
+export const getMemoizedInterfaces = createDeepEqualSelector(
+  getInterfaces,
+  (interfaces) => interfaces,
+);
+
+/**
  * Get a Snap Interface with a given ID.
  */
 export const getInterface = createDeepEqualSelector(
-  [getInterfaces, selectInterfaceId],
-  (interfaces, id) => interfaces?.[id],
+  [getMemoizedInterfaces, selectInterfaceId],
+  (interfaces, id) => interfaces[id],
+);
+
+/**
+ * Get a memoized version of a Snap interface with a given ID
+ */
+export const getMemoizedInterface = createDeepEqualSelector(
+  getInterface,
+  (snapInterface) => snapInterface,
 );

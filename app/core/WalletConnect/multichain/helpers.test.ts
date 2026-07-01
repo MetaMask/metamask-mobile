@@ -332,7 +332,6 @@ describe('handleRequestByAdapter', () => {
     mockedGetAdapter.mockReturnValue(fakeAdapter);
 
     const args = {
-      channelId: 'channel',
       connectedAddresses: ['tron:0x2b6653dc:TAddr' as CaipAccountId],
       scope: 'tron:0x2b6653dc' as CaipChainId,
       requestId: 1,
@@ -352,7 +351,6 @@ describe('handleRequestByAdapter', () => {
 
     await expect(
       handleRequestByAdapter({
-        channelId: 'channel',
         connectedAddresses: [],
         scope: 'tron:0x2b6653dc',
         requestId: 1,

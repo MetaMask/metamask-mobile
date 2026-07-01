@@ -109,6 +109,7 @@ import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/inde
 import BridgeTrendingTokensSection from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import type { RootState } from '../../../../../reducers';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
 import { getQuoteStreamReasonString } from './BridgeView.utils';
@@ -197,7 +198,8 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const { resetToTokenMode, syncFiatAmountToTokenAmount } = sourceAmountInput;
 
   /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
-  const location = route.params?.location;
+  const location =
+    route.params?.location ?? MetaMetricsSwapsEventSource.MainView;
   const transactionActiveAbTests = route.params?.transactionActiveAbTests;
 
   // inputRef is used to programmatically blur the input field after a delay
@@ -385,7 +387,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     headerTitle = `${strings('swaps.title')}/${strings('bridge.title')}`;
   }
 
-  useTrackSwapPageViewed();
+  useTrackSwapPageViewed(location);
 
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
@@ -490,67 +492,73 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
             onScroll={isSwapsTrendingTokensEnabled ? handleScroll : undefined}
           >
             <Box style={styles.inputsContainer}>
-              <TokenInputArea
-                ref={inputRef}
-                amount={sourceAmountInput.amount}
-                selection={sourceAmountInput.selection}
-                token={sourceToken}
-                tokenBalance={latestSourceBalance?.displayBalance}
-                networkImageSource={
-                  sourceToken?.chainId
-                    ? getNetworkImageSource({
-                        chainId: sourceToken?.chainId,
-                      })
-                    : undefined
-                }
-                testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
-                tokenType={TokenInputAreaType.Source}
-                onInputPress={() => keypadRef.current?.open()}
-                onFocus={sourceAmountInput.handleFocus}
-                onSelectionChange={sourceAmountInput.handleSelectionChange}
-                onTokenPress={handleSourceTokenPress}
-                onMaxPress={handleSourceMaxPress}
-                latestAtomicBalance={latestSourceBalance?.atomicBalance}
-                isSourceToken
-                isQuoteSponsored={isQuoteSponsored}
-                inputPrefix={sourceAmountInput.inputPrefix}
-                secondaryValue={sourceAmountInput.secondaryValue}
-                balanceCheckAmount={sourceAmountInput.balanceCheckAmount}
-                onAmountTypeTogglePress={
-                  sourceAmountInput.canToggle
-                    ? sourceAmountInput.handleToggle
-                    : undefined
-                }
-                amountTypeToggleTestID={
-                  BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE
-                }
-              />
-              <FLipQuoteButton
-                onPress={handleFlipTokensPress}
-                disabled={
-                  !destChainId ||
-                  !destToken ||
-                  !sourceToken ||
-                  !isDestNetworkEnabled
-                }
-              />
-              <TokenInputArea
-                amount={destTokenAmount}
-                token={destToken}
-                networkImageSource={
-                  destToken
-                    ? getNetworkImageSource({ chainId: destToken?.chainId })
-                    : undefined
-                }
-                testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
-                tokenType={TokenInputAreaType.Destination}
-                onInputPress={() => keypadRef.current?.close()}
-                onTokenPress={handleDestTokenPress}
-                isLoading={!destTokenAmount && isLoading}
-                style={styles.destTokenArea}
-                isQuoteSponsored={isQuoteSponsored}
-                showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
-              />
+              <Box style={styles.inputCardsWrapper}>
+                <Box style={styles.tokenCard}>
+                  <TokenInputArea
+                    ref={inputRef}
+                    amount={sourceAmountInput.amount}
+                    selection={sourceAmountInput.selection}
+                    token={sourceToken}
+                    tokenBalance={latestSourceBalance?.displayBalance}
+                    networkImageSource={
+                      sourceToken?.chainId
+                        ? getNetworkImageSource({
+                            chainId: sourceToken?.chainId,
+                          })
+                        : undefined
+                    }
+                    testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
+                    tokenType={TokenInputAreaType.Source}
+                    onInputPress={() => keypadRef.current?.open()}
+                    onFocus={sourceAmountInput.handleFocus}
+                    onSelectionChange={sourceAmountInput.handleSelectionChange}
+                    onTokenPress={handleSourceTokenPress}
+                    onMaxPress={handleSourceMaxPress}
+                    latestAtomicBalance={latestSourceBalance?.atomicBalance}
+                    isSourceToken
+                    isQuoteSponsored={isQuoteSponsored}
+                    inputPrefix={sourceAmountInput.inputPrefix}
+                    secondaryValue={sourceAmountInput.secondaryValue}
+                    balanceCheckAmount={sourceAmountInput.balanceCheckAmount}
+                    onAmountTypeTogglePress={
+                      sourceAmountInput.canToggle
+                        ? sourceAmountInput.handleToggle
+                        : undefined
+                    }
+                    amountTypeToggleTestID={
+                      BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE
+                    }
+                  />
+                </Box>
+                <FLipQuoteButton
+                  onPress={handleFlipTokensPress}
+                  disabled={
+                    !destChainId ||
+                    !destToken ||
+                    !sourceToken ||
+                    !isDestNetworkEnabled
+                  }
+                />
+                <Box style={styles.tokenCard}>
+                  <TokenInputArea
+                    amount={destTokenAmount}
+                    token={destToken}
+                    networkImageSource={
+                      destToken
+                        ? getNetworkImageSource({ chainId: destToken?.chainId })
+                        : undefined
+                    }
+                    testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
+                    tokenType={TokenInputAreaType.Destination}
+                    onInputPress={() => keypadRef.current?.close()}
+                    onTokenPress={handleDestTokenPress}
+                    isLoading={!destTokenAmount && isLoading}
+                    style={styles.destTokenArea}
+                    isQuoteSponsored={isQuoteSponsored}
+                    showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
+                  />
+                </Box>
+              </Box>
             </Box>
 
             <Box gap={3} twClassName="mx-4">

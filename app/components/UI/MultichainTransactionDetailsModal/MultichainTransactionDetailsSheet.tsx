@@ -78,8 +78,15 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
   const { typography } = useTheme();
 
   const { displayData, transaction } = route.params;
-  const { title, from, to, baseFee, priorityFee, shouldShowAmountOrUnit } =
-    displayData;
+  const {
+    title,
+    from,
+    to,
+    baseFee,
+    priorityFee,
+    shouldShowAmountOrUnit,
+    isUnlimitedApproval,
+  } = displayData;
   const { id, timestamp, chain, status } = transaction;
 
   const handleClose = useCallback(() => {
@@ -200,7 +207,9 @@ const MultichainTransactionDetailsSheet: React.FC = () => {
           to &&
           renderDetailRow(
             TransactionDetailRow.Amount,
-            `${to.amount} ${to.unit}`,
+            isUnlimitedApproval
+              ? `${strings('confirm.unlimited')} ${to.unit}`
+              : `${to.amount} ${to.unit}`,
           )}
         {baseFee &&
           renderDetailRow(

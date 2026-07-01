@@ -1,10 +1,14 @@
 import type { Position } from '@metamask/social-controllers';
 
-export type OpenSortKey = 'value' | 'pnl';
+export type OpenSortKey = 'value' | 'pnl' | 'recent';
 export type ClosedSortKey = 'value' | 'pnl' | 'recent';
 export type SortKey = OpenSortKey | ClosedSortKey;
 
-export const OPEN_SORT_CYCLE: readonly OpenSortKey[] = ['value', 'pnl'];
+export const OPEN_SORT_CYCLE: readonly OpenSortKey[] = [
+  'value',
+  'pnl',
+  'recent',
+];
 export const CLOSED_SORT_CYCLE: readonly ClosedSortKey[] = [
   'value',
   'pnl',

@@ -5,7 +5,7 @@ import { selectAccountsWithNativeBalanceByChainId } from '../../../../selectors/
 import { BridgeViewMode } from '../../../../components/UI/Bridge/types';
 import { BridgeRouteParams } from '../../../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
-import { WalletClientType } from '../../../SnapKeyring/MultichainWalletSnapClient';
+import { WalletClientType } from '../../../SnapKeyring/types';
 import {
   BtcScope,
   SolScope,
@@ -56,18 +56,6 @@ export function handleCreateAccountUrl({ path }: { path: string }) {
   );
 
   const hasAccountsInScope = Object.keys(accountsBalanceInScope).length > 0;
-
-  if (!hasAccountsInScope) {
-    // if there are no accounts in the scope, show the modal to create an account
-    NavigationService.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.ADD_ACCOUNT,
-      params: {
-        clientType: getClientType(chainId),
-        scope: chainId,
-      },
-    });
-    return;
-  }
 
   const accountIdWithNativeBalanceGreaterThanZero = Object.keys(
     accountsBalanceInScope,

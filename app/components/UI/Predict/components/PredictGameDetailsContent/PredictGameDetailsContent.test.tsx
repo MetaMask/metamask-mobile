@@ -4,6 +4,7 @@ import { render, fireEvent, act } from '@testing-library/react-native';
 import PredictGameDetailsContent from './PredictGameDetailsContent';
 import { PredictMarket, PredictMarketStatus } from '../../types';
 import { useGameDetailsTabs } from '../../hooks/useGameDetailsTabs';
+import { usePredictGame } from '../../hooks/usePredictGame';
 
 import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const mockGoBack = jest.fn();
@@ -105,6 +106,11 @@ jest.mock('../PredictSportScoreboard', () => {
   };
 });
 
+jest.mock('../../hooks/usePredictGame');
+const mockUsePredictGame = usePredictGame as jest.MockedFunction<
+  typeof usePredictGame
+>;
+
 jest.mock('../PredictGameChart', () => {
   const { View } = jest.requireActual('react-native');
   return function MockPredictGameChart({
@@ -120,6 +126,38 @@ jest.mock('../PredictGameChart', () => {
         accessibilityHint={`marketId:${market?.id ?? 'undefined'}`}
       />
     );
+  };
+});
+
+jest.mock('./PredictGameDetailsTabsContent', () => {
+  const { Pressable, Text, View } = jest.requireActual('react-native');
+  const { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS: IDS } = jest.requireActual(
+    './PredictGameDetailsContent.testIds',
+  );
+  return {
+    __esModule: true,
+    default: function MockPredictGameDetailsTabsContent({
+      market,
+      onRegTimeInfoPress,
+    }: {
+      market?: { id: string };
+      onRegTimeInfoPress?: () => void;
+    }) {
+      return (
+        <View testID="mock-game-details-tabs-content">
+          <View
+            testID={IDS.GAME_PICK}
+            accessibilityHint={`marketId:${market?.id ?? 'undefined'}`}
+          />
+          <Pressable
+            testID="mock-reg-time-info-button"
+            onPress={onRegTimeInfoPress}
+          >
+            <Text>Reg Time Info</Text>
+          </Pressable>
+        </View>
+      );
+    },
   };
 });
 
@@ -141,10 +179,9 @@ jest.mock('../PredictPicks/PredictPicks', () => {
   };
 });
 
-const mockGetRefHandlers = jest.fn(() => ({
-  onOpenBottomSheet: jest.fn(),
-  onCloseBottomSheet: jest.fn(),
-}));
+const mockAboutSheetOpen = jest.fn();
+const mockRegTimeSheetOpen = jest.fn();
+const mockGetRefHandlers = jest.fn();
 
 jest.mock('../../hooks/usePredictBottomSheet', () => ({
   usePredictBottomSheet: () => ({
@@ -270,6 +307,21 @@ describe('PredictGameDetailsContent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetRefHandlers.mockReset();
+    mockGetRefHandlers
+      .mockReturnValueOnce({
+        onOpenBottomSheet: mockAboutSheetOpen,
+        onCloseBottomSheet: jest.fn(),
+      })
+      .mockReturnValueOnce({
+        onOpenBottomSheet: mockRegTimeSheetOpen,
+        onCloseBottomSheet: jest.fn(),
+      });
+    mockUsePredictGame.mockImplementation((market) => ({
+      game: market?.game,
+      isConnected: false,
+      lastUpdateTime: null,
+    }));
     (useGameDetailsTabs as jest.Mock).mockReturnValue({
       enabled: false,
       showTabBar: false,
@@ -437,6 +489,25 @@ describe('PredictGameDetailsContent', () => {
       expect(infoButton).toBeOnTheScreen();
     });
 
+    it('opens the root Reg Time sheet from the outcomes content trigger', () => {
+      const market = createMockMarket();
+
+      const { getByTestId } = render(
+        <PredictGameDetailsContent
+          market={market}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          refreshing={false}
+        />,
+      );
+
+      fireEvent.press(getByTestId('mock-reg-time-info-button'));
+
+      expect(mockRegTimeSheetOpen).toHaveBeenCalledTimes(1);
+      expect(mockAboutSheetOpen).not.toHaveBeenCalled();
+    });
+
     it('hides the prediction footer when extended sports markets are enabled', () => {
       (useGameDetailsTabs as jest.Mock).mockReturnValue({
         enabled: true,
@@ -465,6 +536,46 @@ describe('PredictGameDetailsContent', () => {
       );
 
       expect(queryByTestId('predict-game-details-footer')).toBeNull();
+    });
+
+    it('keeps the prediction footer when only resolved extended markets exist', () => {
+      (useGameDetailsTabs as jest.Mock).mockReturnValue({
+        enabled: true,
+        showTabBar: false,
+        tabs: [{ label: 'Outcomes', key: 'outcomes' }],
+        activeTab: 0,
+        handleTabPress: jest.fn(),
+        chips: [],
+        groupMap: new Map(),
+        resolvedOutcomeGroups: [
+          {
+            key: 'game_lines',
+            outcomes: [
+              {
+                id: 'resolved-outcome',
+                status: 'closed',
+                tokens: [],
+              },
+            ],
+          },
+        ],
+        activeChipKey: '',
+        handleChipSelect: jest.fn(),
+        showChips: false,
+      });
+      const market = createMockMarket();
+
+      const { getByTestId } = render(
+        <PredictGameDetailsContent
+          market={market}
+          onBack={mockOnBack}
+          onRefresh={mockOnRefresh}
+          onBetPress={mockOnBetPress}
+          refreshing={false}
+        />,
+      );
+
+      expect(getByTestId('predict-game-details-footer')).toBeOnTheScreen();
     });
 
     it('keeps the footer for claimable winnings when extended sports markets are enabled', () => {

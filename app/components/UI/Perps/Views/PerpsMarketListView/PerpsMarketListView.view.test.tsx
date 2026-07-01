@@ -20,6 +20,7 @@ const cryptoMarket: PerpsMarketData = {
   change24h: '$0',
   change24hPercent: '0%',
   volume: '$1M',
+  openInterest: '$500K',
 };
 
 /** Commodity market (HIP-3): counted in marketCounts.commodities so "Commodities" badge appears */
@@ -31,6 +32,7 @@ const commodityMarket: PerpsMarketData = {
   change24h: '$0',
   change24hPercent: '0%',
   volume: '$500K',
+  openInterest: '$250K',
   marketType: 'commodity',
   isHip3: true,
 };
@@ -64,14 +66,14 @@ describe('PerpsMarketListView', () => {
 
       fireEvent.press(cryptoBadge);
       await waitFor(() => {
-        expect(screen.getByText('BTC')).toBeOnTheScreen();
-        expect(screen.queryByText('XAU')).not.toBeOnTheScreen();
+        expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
+        expect(screen.queryByText('Gold')).not.toBeOnTheScreen();
       });
 
       fireEvent.press(commoditiesBadge);
       await waitFor(() => {
-        expect(screen.getByText('XAU')).toBeOnTheScreen();
-        expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
+        expect(screen.getByText('Gold')).toBeOnTheScreen();
+        expect(screen.queryByText('Bitcoin')).not.toBeOnTheScreen();
       });
     });
 
@@ -89,8 +91,8 @@ describe('PerpsMarketListView', () => {
         expect(
           screen.getByText(strings('perps.no_tokens_found')),
         ).toBeOnTheScreen();
-        expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
-        expect(screen.queryByText('XAU')).not.toBeOnTheScreen();
+        expect(screen.queryByText('Bitcoin')).not.toBeOnTheScreen();
+        expect(screen.queryByText('Gold')).not.toBeOnTheScreen();
       });
     });
 

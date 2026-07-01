@@ -56,7 +56,6 @@ import {
 import { useMusdConversionEligibility } from '../../Earn/hooks/useMusdConversionEligibility';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
-import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import {
   MarketInsightsEntryCard,
@@ -78,28 +77,16 @@ import {
   type TokenDetailsRouteParams,
 } from '../constants/constants';
 import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
-import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
+import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 import {
   Box,
   BoxFlexDirection,
-  BoxAlignItems,
-  Icon,
-  IconSize,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { SecurityBanner } from './SecurityBanner';
-import Badge, {
-  BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../component-library/components/Badges/BadgeWrapper';
-import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
-import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 import TronAssetOverviewSection from './TronAssetOverviewSection';
@@ -119,7 +106,6 @@ import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButt
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
-import StockBadge from '../../shared/StockBadge/StockBadge';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   endTrace,
@@ -282,7 +268,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
-  const { isTokenTradingOpen, isStockToken } = useRWAToken();
+  const { isTokenTradingOpen } = useRWAToken();
 
   ///: BEGIN:ONLY_INCLUDE_IF(stellar)
   const liveStellarToken = useSelector((state: RootState) =>
@@ -428,64 +414,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     isMusdConversionFlowEnabled &&
     isMusdGeoEligible;
 
-  const securityConfig = useMemo(
-    () => getResultTypeConfig(securityData?.resultType),
-    [securityData?.resultType],
-  );
-
-  const handleSecurityBadgePress = useCallback(() => {
-    if (
-      !securityData?.resultType ||
-      securityData.resultType === 'Benign' ||
-      !securityConfig.icon ||
-      !securityConfig.iconColor ||
-      !securityConfig.sheetTitle ||
-      !securityConfig.getSheetDescription
-    ) {
-      return;
-    }
-
-    // For Verified tokens, use badge icon (VerifiedFilled) instead of tag icon (SecurityTick)
-    const isVerified = securityData.resultType === 'Verified';
-    const displayIcon =
-      isVerified && securityConfig.badge
-        ? securityConfig.badge.icon
-        : securityConfig.icon;
-    const displayIconColor =
-      isVerified && securityConfig.badge
-        ? securityConfig.badge.iconColor
-        : securityConfig.iconColor;
-
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
-      params: {
-        icon: displayIcon,
-        iconColor: displayIconColor,
-        title: securityConfig.sheetTitle,
-        description: securityConfig.getSheetDescription(
-          token.symbol || token.name,
-        ),
-        source: 'badge',
-        severity: securityData.resultType,
-        tokenAddress: token.address,
-        tokenSymbol: token.symbol || token.name,
-        chainId: token.chainId,
-        features: securityData.features,
-      },
-    });
-  }, [
-    securityData,
-    securityConfig,
-    token.symbol,
-    token.name,
-    token.address,
-    token.chainId,
-    navigation,
-  ]);
-
-  const networkBadgeSource = token.chainId
-    ? NetworkBadgeSource(token.chainId as Hex)
-    : undefined;
+  const { securityConfig, handleSecurityBadgePress } =
+    useTokenSecurityBadgePress(token, securityData);
 
   const marketInsightsCaip19Id = useMemo(() => {
     if (!isMarketInsightsEnabled) {
@@ -761,9 +691,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                       ///: BEGIN:ONLY_INCLUDE_IF(stellar)
                       stellarNativeToken != null
                         ? getStellarNativeDisplayName(stellarNativeToken)
-                        :
-                      ///: END:ONLY_INCLUDE_IF
-                      token.name || token.symbol
+                        : ///: END:ONLY_INCLUDE_IF
+                          token.name || token.symbol
                     }
                   </Text>
                 </Box>

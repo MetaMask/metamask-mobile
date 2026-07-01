@@ -22,6 +22,9 @@ import { usePredictionsFeed } from '../feeds/predictions/usePredictionsFeed';
 import PredictionsCarouselSection from '../feeds/predictions/PredictionsCarouselSection';
 import { navigateToExplorePredictionsList } from '../feeds/predictions/predictionsNavigation';
 import ExploreScroll from '../components/ExploreScroll';
+import ExploreSectionList, {
+  type ExploreSectionItem,
+} from '../components/ExploreSectionList';
 import type { PillToggleCardListTab } from '../components/PillToggleCardList';
 import type { TabProps } from '../hooks/useExploreRefresh';
 
@@ -79,7 +82,11 @@ const MacroPerpsBlock: React.FC<MacroPerpsBlockProps> = ({
   );
 };
 
-const MacroTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
+const MacroTabContent: React.FC<TabProps> = ({
+  refresh,
+  refreshing,
+  onRefresh,
+}) => {
   const appNavigation = useNavigation<AppNavigationProp>();
   const perpsNavigation =
     useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -87,34 +94,73 @@ const MacroTab: React.FC<TabProps> = ({ refresh, refreshing, onRefresh }) => {
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
   const politics = usePredictionsFeed({ variant: 'politics', refresh });
+  const macroPerps = usePerpsFeed({ variant: 'macro', refresh });
 
-  return (
-    <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
-      <PredictionsCarouselSection
-        feed={politics}
-        tabName="Macro"
-        sectionName="predictions_politics"
-        title={strings('trending.predictions')}
-        testIdPrefix="predict-rwa-politics-market-row-item"
-        idPrefix="politics_predictions"
-        onViewAll={() =>
-          navigateToExplorePredictionsList(appNavigation, 'politics')
-        }
-        isEnabled={isPredictEnabled}
-      />
+  const showPredictions =
+    isPredictEnabled && (politics.isLoading || politics.data.length > 0);
+  const showPerps =
+    isPerpsEnabled && (macroPerps.isLoading || macroPerps.data.length > 0);
 
-      {isPerpsEnabled && (
-        <PerpsSectionProvider>
+  const sections = useMemo((): ExploreSectionItem[] => {
+    const items: ExploreSectionItem[] = [];
+
+    if (showPredictions) {
+      items.push({
+        key: 'predictions',
+        content: (
+          <PredictionsCarouselSection
+            feed={politics}
+            tabName="Macro"
+            sectionName="predictions_politics"
+            title={strings('trending.predictions')}
+            testIdPrefix="predict-rwa-politics-market-row-item"
+            idPrefix="politics_predictions"
+            onViewAll={() =>
+              navigateToExplorePredictionsList(appNavigation, 'politics')
+            }
+            isEnabled={isPredictEnabled}
+          />
+        ),
+      });
+    }
+
+    if (showPerps) {
+      items.push({
+        key: 'perps',
+        isVerticalList: true,
+        content: (
           <MacroPerpsBlock
             refresh={refresh}
             onViewAll={(filter, sortOptionId) =>
               navigateToPerpsMarketList(perpsNavigation, filter, sortOptionId)
             }
           />
-        </PerpsSectionProvider>
-      )}
+        ),
+      });
+    }
+
+    return items;
+  }, [
+    showPredictions,
+    showPerps,
+    politics,
+    isPredictEnabled,
+    appNavigation,
+    refresh,
+    perpsNavigation,
+  ]);
+
+  return (
+    <ExploreScroll refreshing={refreshing} onRefresh={onRefresh}>
+      <ExploreSectionList sections={sections} />
     </ExploreScroll>
   );
 };
+
+const MacroTab: React.FC<TabProps> = (props) => (
+  <PerpsSectionProvider>
+    <MacroTabContent {...props} />
+  </PerpsSectionProvider>
+);
 
 export default MacroTab;

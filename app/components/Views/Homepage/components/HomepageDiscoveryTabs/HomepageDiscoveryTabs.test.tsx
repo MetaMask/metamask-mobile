@@ -8,8 +8,13 @@ import type {
 import HomepageDiscoveryTabs from './HomepageDiscoveryTabs';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { HomeTabNames } from '../../hooks/useTabViewedEvent';
+import {
+  TabIconAnimationContext,
+  type TabIconAnimationContextValue,
+} from '../../../../../component-library/components-temp/Tabs/TabsIconTab/TabsIconAnimationContext';
 
 const mockTrackTabViewed = jest.fn();
+const mockIconCollapseProgress = { value: 0 };
 jest.mock('../../hooks/useTabViewedEvent', () => ({
   __esModule: true,
   HomeTabNames: {
@@ -23,6 +28,7 @@ jest.mock('../../hooks/useTabViewedEvent', () => ({
 jest.mock('react-native-reanimated', () => {
   const Reanimated = jest.requireActual('react-native-reanimated/mock');
   Reanimated.default.ScrollView = jest.requireActual('react-native').ScrollView;
+  Reanimated.useSharedValue = jest.fn(() => mockIconCollapseProgress);
   return Reanimated;
 });
 
@@ -70,7 +76,7 @@ jest.mock('../../../../UI/Perps/Views/PerpsHomeView/PerpsHomeView', () => {
     tabEnterCallbackRef,
     ...props
   }: {
-    tabEnterCallbackRef?: React.MutableRefObject<(() => void) | null>;
+    tabEnterCallbackRef?: React.RefObject<(() => void) | null>;
   }) {
     mockPerpsHomeViewProps.current = props;
     if (tabEnterCallbackRef) tabEnterCallbackRef.current = jest.fn();
@@ -139,6 +145,16 @@ const pressTab = async (label: string) => {
 const renderComponent = (props = {}) =>
   render(<HomepageDiscoveryTabs {...props} />);
 
+const ContextValueObserver = ({
+  onValue,
+}: {
+  onValue: (value: TabIconAnimationContextValue) => void;
+}) => {
+  const value = React.useContext(TabIconAnimationContext);
+  onValue(value);
+  return null;
+};
+
 describe('HomepageDiscoveryTabs', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -163,6 +179,34 @@ describe('HomepageDiscoveryTabs', () => {
     it('shows Portfolio content on initial mount', () => {
       renderComponent();
       expect(screen.getByTestId('homepage')).toBeOnTheScreen();
+    });
+
+    it('keeps TabIconAnimationContext value stable across unrelated rerenders', () => {
+      const observedValues: TabIconAnimationContextValue[] = [];
+      const portfolioHeader = (
+        <ContextValueObserver
+          onValue={(value) => {
+            observedValues.push(value);
+          }}
+        />
+      );
+      const { rerender } = render(
+        <HomepageDiscoveryTabs
+          portfolioHeader={portfolioHeader}
+          walletHeaderOffset={0}
+        />,
+      );
+      const initialValue = observedValues[observedValues.length - 1];
+
+      rerender(
+        <HomepageDiscoveryTabs
+          portfolioHeader={portfolioHeader}
+          walletHeaderOffset={100}
+        />,
+      );
+      const rerenderedValue = observedValues[observedValues.length - 1];
+
+      expect(rerenderedValue).toBe(initialValue);
     });
   });
 

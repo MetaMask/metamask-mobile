@@ -430,6 +430,7 @@ export const NETWORK_CHAIN_ID: {
   readonly CHILIZ: '0x15b38';
   readonly STABLE_MAINNET: '0x3dc';
   readonly ARC: '0x13b2';
+  readonly KONET_MAINNET: '0x4341';
 } & typeof CHAIN_IDS = {
   FLARE_MAINNET: '0xe',
   SONGBIRD_TESTNET: '0x13',
@@ -477,6 +478,7 @@ export const NETWORK_CHAIN_ID: {
   CHILIZ: '0x15b38',
   STABLE_MAINNET: '0x3dc',
   ARC: '0x13b2',
+  KONET_MAINNET: '0x4341',
   ...CHAIN_IDS,
 };
 
@@ -531,4 +533,5 @@ export const CustomNetworkImgMapping: Record<Hex, string> = {
   [NETWORK_CHAIN_ID.MANTLE]: require('../../images/mantle.png'),
   [NETWORK_CHAIN_ID.SCROLL]: require('../../images/scroll-mainnet-logo.png'),
   [NETWORK_CHAIN_ID.ARC]: require('../../images/arc-network-logo.png'),
+  [NETWORK_CHAIN_ID.KONET_MAINNET]: require('../../images/konet.png'),
 };

@@ -1197,7 +1197,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               }),
             vipTier: vipTier ?? undefined,
             vipDiscount: feeResults.feeDiscountPercentage,
-          },
+          } as OrderParams['trackingData'],
         };
 
         showToast(
@@ -1429,6 +1429,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       />
       <ScrollView
         style={styles.scrollView}
+        testID={PerpsOrderViewSelectorsIDs.SCROLL_VIEW}
         contentContainerStyle={
           isInputFocused
             ? styles.scrollViewContentKeypad
