@@ -152,6 +152,29 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
   const selectedAddress = getEvmAccountFromSelectedAccountGroup()?.address;
   const normalizedSelectedAddress = selectedAddress?.toLowerCase() ?? '';
+  const navigateToDepositTransaction = useCallback(
+    (transactionId?: string) => {
+      navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: {
+          initialTypeFilter: ActivityTypeFilter.Predictions,
+        },
+      });
+
+      if (transactionId) {
+        setTimeout(() => {
+          navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+            screen: Routes.TRANSACTION_DETAILS,
+            params: {
+              transactionId,
+            },
+          });
+        }, 100);
+      }
+    },
+    [navigation],
+  );
+
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
       const { type, status, senderAddress, transactionId, amount, marketId } =
@@ -196,18 +219,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
               minutes: 1,
             }),
             trackLabel: strings('predict.deposit.track'),
-            onTrack: () => {
-              navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-                initialTypeFilter: ActivityTypeFilter.Predictions,
-              });
-              if (transactionId) {
-                setTimeout(() => {
-                  navigation.navigate(Routes.TRANSACTION_DETAILS, {
-                    transactionId,
-                  });
-                }, 100);
-              }
-            },
+            onTrack: () => navigateToDepositTransaction(transactionId),
           });
           return;
         }
@@ -414,7 +426,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       bottomSheetEnabled,
       claim,
       deposit,
-      navigation,
+      navigateToDepositTransaction,
       normalizedSelectedAddress,
       queryClient,
       theme.colors.accent04.normal,

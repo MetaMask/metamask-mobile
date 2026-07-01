@@ -183,9 +183,17 @@ describe('usePredictToastRegistrations', () => {
       onTrack();
       jest.advanceTimersByTime(100);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
-        transactionId: 'tx-1',
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: {
+          initialTypeFilter: 'predictions',
+        },
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTION_DETAILS,
+        params: {
+          transactionId: 'tx-1',
+        },
       });
     });
 
