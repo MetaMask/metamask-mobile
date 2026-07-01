@@ -20,6 +20,7 @@ import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
 import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 import type { RootState } from '../../../../../reducers';
 import { useTransactionAccountOverride } from '../transactions/useTransactionAccountOverride';
+import { useTransactionPayCurrency } from '../pay/useTransactionPayCurrency';
 
 export interface EnrichTokenRequest {
   chainId: Hex;
@@ -71,7 +72,9 @@ export function useAccountTokens({
       accountOverride !== undefined ? (accountAssets ?? {}) : globalAssets,
     [accountOverride, accountAssets, globalAssets],
   );
-  const fiatCurrency = useSelector(selectCurrentCurrency);
+  const preferredCurrency = useSelector(selectCurrentCurrency);
+  const payCurrency = useTransactionPayCurrency();
+  const fiatCurrency = payCurrency ?? preferredCurrency;
 
   const assetIds = useMemo(
     () =>
