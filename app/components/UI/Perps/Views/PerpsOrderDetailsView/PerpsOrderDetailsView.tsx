@@ -298,12 +298,12 @@ const PerpsOrderDetailsView: React.FC = () => {
     {
       key: 'size',
       label: strings('perps.order_details.size'),
-      value: `${formatPositionSize(parseFloat(order.size))} ${displaySymbol}`,
+      value: `${formatPositionSize(Number.parseFloat(order.size))} ${displaySymbol}`,
     },
     {
       key: 'original-size',
       label: strings('perps.order_details.original_size'),
-      value: `${formatPositionSize(parseFloat(order.originalSize))} ${
+      value: `${formatPositionSize(Number.parseFloat(order.originalSize))} ${
         displaySymbol
       }`,
     },
