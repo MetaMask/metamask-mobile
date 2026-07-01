@@ -2,6 +2,7 @@ import { playImpact, ImpactMoment } from '../../util/haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
+import ReactQueryService from '../../core/ReactQueryService';
 import { reportSocialServiceFailure } from '../../util/social/socialServiceTelemetry';
 import { selectFollowingProfileIds } from '../../selectors/socialController';
 import {
@@ -99,6 +100,9 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
             : 'SocialController:unfollowTrader',
           opts,
         );
+        await ReactQueryService.queryClient.invalidateQueries({
+          queryKey: ['SocialService:fetchFollowing'],
+        });
         if (analyticsContext) {
           track(MetaMetricsEvents.SOCIAL_TRADER_FOLLOW_INTERACTION, {
             [SocialLeaderboardEventProperties.ACTION]: nextValue
