@@ -6,6 +6,7 @@ import { RootState } from '../../reducers';
 import type { CardSliceState } from '../../core/redux/slices/card';
 import { version, migrations } from '../migrations';
 import Logger from '../../util/Logger';
+import { reportStorageWriteError } from '../../util/storage/diskSpaceError';
 import Device from '../../util/device';
 import { UserState } from '../../reducers/user';
 import { debounce } from 'lodash';
@@ -53,8 +54,10 @@ const createStorage = (enableAsyncStorageFallback = false) => ({
     try {
       return await FilesystemStorage.setItem(key, value, Device.isIos());
     } catch (error) {
-      Logger.error(error as Error, {
+      reportStorageWriteError(error as Error, {
         message: `Failed to set item for ${key}`,
+        key,
+        source: 'persist_storage',
       });
     }
   },
@@ -226,7 +229,10 @@ const persistConfig = {
   timeout: TIMEOUT,
   throttle: STORAGE_THROTTLE_DELAY,
   writeFailHandler: (error: Error) =>
-    Logger.error(error, { message: 'Error persisting data' }),
+    reportStorageWriteError(error, {
+      message: 'Error persisting data',
+      source: 'redux_persist',
+    }),
 };
 
 export default persistConfig;
