@@ -30,6 +30,7 @@ const baseTransaction: Transaction = {
   ],
   to: [],
   fees: [],
+  events: [],
 };
 
 describe('useMultichainTransactionDisplay', () => {
