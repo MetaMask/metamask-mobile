@@ -6,37 +6,9 @@ import Badge, {
 } from '../../../component-library/components/Badges/Badge';
 import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
 import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import imageIcons from '../../../images/image-icons';
 import type { TokenAmount } from '../../../util/activity-adapters';
 import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
-
-function getTokenIconUrl(assetId: string | undefined): string | undefined {
-  if (!assetId) return undefined;
-
-  const formattedAssetId = assetId.startsWith('eip155:')
-    ? assetId.toLowerCase()
-    : assetId;
-
-  return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${formattedAssetId
-    .split(':')
-    .join('/')}.png`;
-}
-
-function getTokenImageSource(
-  token: TokenAmount | undefined,
-): ImageSourcePropType | undefined {
-  const symbol = token?.symbol;
-
-  if (symbol && Object.keys(imageIcons).includes(symbol)) {
-    const localIcon = imageIcons[symbol as keyof typeof imageIcons];
-    if (typeof localIcon !== 'function' && typeof localIcon !== 'string') {
-      return localIcon as ImageSourcePropType;
-    }
-  }
-
-  const iconUrl = getTokenIconUrl(token?.assetId);
-  return iconUrl ? { uri: iconUrl } : undefined;
-}
+import { getTokenImageSource } from './tokenIcon';
 
 function getImageUri(
   source: ImageSourcePropType | undefined,
@@ -50,16 +22,23 @@ function getImageUri(
 
 function TokenAvatar({
   fallbackIcon,
+  iconUrl,
   styles,
   tokens,
 }: {
   fallbackIcon: ImageSourcePropType;
+  iconUrl?: string;
   styles: ActivityListItemRowStyles;
   tokens: TokenAmount[];
 }) {
   const tokenImageSources = useMemo(
-    () => tokens.map((token) => getTokenImageSource(token)),
-    [tokens],
+    () =>
+      tokens.map((token, index) =>
+        // An explicit iconUrl (HyperLiquid market icon) overrides the
+        // token-derived source for the single-avatar case.
+        index === 0 && iconUrl ? { uri: iconUrl } : getTokenImageSource(token),
+      ),
+    [tokens, iconUrl],
   );
 
   useEffect(() => {
@@ -117,12 +96,20 @@ function TokenAvatar({
 
 export function ActivityListItemRowIcon({
   fallbackIcon,
+  iconUrl,
   networkImageSource,
   styles,
   tokens,
 }: {
   fallbackIcon: ImageSourcePropType;
-  networkImageSource: ImageSourcePropType;
+  /** Explicit avatar image URL (e.g. HyperLiquid market icon) for the single-avatar case. */
+  iconUrl?: string;
+  /**
+   * Network badge source. Omitted for single-network domains (perps =
+   * Arbitrum, predict = Polygon) where the badge adds no information, so the
+   * avatar renders without it.
+   */
+  networkImageSource?: ImageSourcePropType;
   styles: ActivityListItemRowStyles;
   tokens: TokenAmount[];
 }) {
@@ -132,6 +119,19 @@ export function ActivityListItemRowIcon({
       Image.prefetch(uri);
     }
   }, [networkImageSource]);
+
+  const avatar = (
+    <TokenAvatar
+      fallbackIcon={fallbackIcon}
+      iconUrl={iconUrl}
+      styles={styles}
+      tokens={tokens}
+    />
+  );
+
+  if (!networkImageSource) {
+    return avatar;
+  }
 
   return (
     <BadgeWrapper
@@ -145,11 +145,7 @@ export function ActivityListItemRowIcon({
         />
       }
     >
-      <TokenAvatar
-        fallbackIcon={fallbackIcon}
-        styles={styles}
-        tokens={tokens}
-      />
+      {avatar}
     </BadgeWrapper>
   );
 }

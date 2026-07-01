@@ -1,11 +1,17 @@
 import Gestures from './Gestures.ts';
 import PlaywrightGestures from './PlaywrightGestures.ts';
+import Matchers from './Matchers.ts';
 import { PlaywrightElement } from './PlaywrightAdapter.ts';
 import {
   EncapsulatedElementType,
   asDetoxElement,
   asPlaywrightElement,
 } from './EncapsulatedElement.ts';
+import type { ScrollContainer } from './types.ts';
+import { getDriver } from './PlaywrightUtilities.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
+
+export type { ScrollContainer, ScrollViewMatcher } from './types.ts';
 
 /**
  * Unified options for gesture methods.
@@ -53,10 +59,6 @@ export interface UnifiedGestureOptions {
  * or an array of elements (Appium selects by array index).
  */
 export type TapAtIndexElement = EncapsulatedElementType | PlaywrightElement[];
-export type ScrollViewMatcher = Promise<Detox.NativeMatcher>;
-
-/** Detox scroll container: matcher promise, or testID resolved inside UnifiedGestures. */
-export type ScrollContainer = ScrollViewMatcher | string;
 
 /**
  * Strategy interface for framework-agnostic gesture execution.
@@ -354,6 +356,36 @@ export class DetoxGestureStrategy implements GestureStrategy {
  */
 export class AppiumGestureStrategy implements GestureStrategy {
   /**
+   * Detox scroll direction is inverted relative to Appium scrollIntoView swipe
+   * direction for vertical scrolling (scroll down → swipe up).
+   */
+  private static toScrollIntoViewDirection(
+    direction?: UnifiedGestureOptions['direction'],
+  ): 'up' | 'down' | 'left' | 'right' {
+    if (direction === 'down') {
+      return 'up';
+    }
+    if (direction === 'up') {
+      return 'down';
+    }
+    return direction ?? 'up';
+  }
+
+  private static async resolveScrollableElement(
+    scrollView?: ScrollContainer,
+  ): Promise<PlaywrightElement | undefined> {
+    if (scrollView === undefined || scrollView instanceof Promise) {
+      return undefined;
+    }
+
+    if (typeof scrollView === 'string') {
+      return asPlaywrightElement(Matchers.getElementByID(scrollView));
+    }
+
+    return undefined;
+  }
+
+  /**
    * Tap an element
    * @param elem - The element to tap
    * @returns A promise that resolves when the tap is complete
@@ -436,10 +468,77 @@ export class AppiumGestureStrategy implements GestureStrategy {
   async swipe(
     elem: EncapsulatedElementType,
     direction: 'up' | 'down' | 'left' | 'right',
+    opts?: UnifiedGestureOptions,
   ): Promise<void> {
-    const el = await asPlaywrightElement(elem);
-    await PlaywrightGestures.swipe({
-      scrollParams: { direction: direction as 'up' | 'down' },
+    const percent = opts?.percentage ?? 0.75;
+
+    if (direction === 'left' || direction === 'right') {
+      await PlaywrightGestures.swipe({
+        scrollParams: { direction },
+        percent,
+      });
+      return;
+    }
+
+    await this.scrollWithinContainer(elem, direction, percent);
+  }
+
+  private async scrollWithinContainer(
+    scrollView: EncapsulatedElementType,
+    swipeDirection: 'up' | 'down' | 'left' | 'right',
+    percent = 0.6,
+  ): Promise<void> {
+    // XCUITest does not implement `mobile: scrollGesture` (Android-only).
+    if (PlatformDetector.isIOS()) {
+      const container = await asPlaywrightElement(scrollView);
+      const location = await container.unwrap().getLocation();
+      const size = await container.unwrap().getSize();
+      const centerX = Math.floor(location.x + size.width / 2);
+      const travel = Math.floor(
+        size.height * Math.min(Math.max(percent, 0.1), 0.9),
+      );
+
+      if (swipeDirection === 'up' || swipeDirection === 'down') {
+        const fromY =
+          swipeDirection === 'up'
+            ? location.y + Math.floor(size.height * 0.8)
+            : location.y + Math.floor(size.height * 0.2);
+        const toY = swipeDirection === 'up' ? fromY - travel : fromY + travel;
+
+        await PlaywrightGestures.swipe({
+          scrollParams: { direction: swipeDirection },
+          percent,
+          duration: 600,
+          from: { x: centerX, y: fromY },
+          to: { x: centerX, y: toY },
+        });
+        return;
+      }
+
+      await PlaywrightGestures.swipe({
+        scrollParams: { direction: swipeDirection },
+        percent,
+        duration: 600,
+      });
+      return;
+    }
+
+    const drv = getDriver();
+    if (!drv) {
+      throw new Error('Driver is not available');
+    }
+
+    const container = await asPlaywrightElement(scrollView);
+    const location = await container.unwrap().getLocation();
+    const size = await container.unwrap().getSize();
+
+    await drv.execute('mobile: scrollGesture', {
+      left: location.x,
+      top: location.y,
+      width: size.width,
+      height: size.height,
+      direction: swipeDirection,
+      percent,
     });
   }
 
@@ -451,12 +550,20 @@ export class AppiumGestureStrategy implements GestureStrategy {
    */
   async scrollToElement(
     target: EncapsulatedElementType,
-    _scrollView?: ScrollContainer,
+    scrollView?: ScrollContainer,
     opts?: UnifiedGestureOptions,
   ): Promise<void> {
     const el = await asPlaywrightElement(target);
+    const scrollableElement =
+      await AppiumGestureStrategy.resolveScrollableElement(scrollView);
+
     await PlaywrightGestures.scrollIntoView(el, {
-      scrollParams: { direction: opts?.direction ?? 'down' },
+      scrollParams: {
+        direction: AppiumGestureStrategy.toScrollIntoViewDirection(
+          opts?.direction,
+        ),
+      },
+      scrollableElement,
     });
   }
 

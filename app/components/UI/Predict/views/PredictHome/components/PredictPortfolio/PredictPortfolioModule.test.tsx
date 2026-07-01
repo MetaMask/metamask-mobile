@@ -361,7 +361,7 @@ describe('PredictPortfolioModule', () => {
     );
   });
 
-  it('uses the claim flow from the shared portfolio model', () => {
+  it('passes portfolio analytics context to the shared claim flow', () => {
     mockUsePredictPortfolio.mockReturnValue(
       createPortfolio({
         claimableAmount: 46.35,
@@ -375,11 +375,14 @@ describe('PredictPortfolioModule', () => {
       screen.getByTestId(PREDICT_PORTFOLIO_TEST_IDS.CLAIM_BUTTON),
     );
 
-    expect(mockClaim).toHaveBeenCalled();
-    expectPortfolioTransactionInitiated(
-      PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_CLAIM,
-      PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
-      { hasClaimableWinnings: true },
+    // Claim telemetry is centralized in usePredictClaim, so the module no
+    // longer fires trackPortfolioTransactionInitiated for claim - it forwards
+    // the entry-point context to claim() instead.
+    expect(mockClaim).toHaveBeenCalledWith(
+      expectedPortfolioContext({
+        hasClaimableWinnings: true,
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
+      }),
     );
   });
 
