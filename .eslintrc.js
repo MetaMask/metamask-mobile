@@ -200,11 +200,6 @@ module.exports = {
           'interface',
         ],
         '@typescript-eslint/no-explicit-any': 'error',
-        // Surface JSDoc @deprecated annotations at every use-site (warn for now;
-        // ratchet to 'error' once the BN.js → BigInt migration is complete).
-        // Pairs with the `import-x/no-restricted-paths` fence on
-        // `app/util/number/index.js` in the app import-fence override below.
-        '@typescript-eslint/no-deprecated': 'warn',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
         '@typescript-eslint/no-shadow': [
