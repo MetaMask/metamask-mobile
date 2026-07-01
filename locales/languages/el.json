@@ -103,7 +103,7 @@
       "title": "Ανεπαρκές ποσό"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Προσθέστε λιγότερα χρήματα ή χρησιμοποιήστε διαφορετικό τρόπο πληρωμής."
     },
     "insufficient_pay_token_native": {
       "message": "Δεν υπάρχουν αρκετά {{ticker}} για την κάλυψη των τελών. Χρησιμοποιήστε token σε άλλο δίκτυο ή προσθέστε περισσότερα {{ticker}} για να συνεχίσετε.",
@@ -1094,6 +1094,7 @@
       "twitter_link": "Προβολή στο X (Twitter)",
       "sort": {
         "value": "Αξία",
+        "top_trades": "Top Trades",
         "pnl_percent": "Κ&Ζ %",
         "recent": "Πρόσφατα"
       }
@@ -1102,7 +1103,6 @@
       "market_cap": "Κεφαλαιοποίηση αγοράς",
       "price": "Τιμή",
       "position": "Θέση",
-      "trades": "Συναλλαγές",
       "buy": "Αγορά",
       "trade": "Συναλλαγές",
       "unsupported_market": "Μη υποστηριζόμενη αγορά",
@@ -1133,6 +1133,8 @@
       "price_impact": "Αντίκτυπος στην τιμή",
       "est_points": "Εκτ. πόντοι",
       "no_quotes": "Δεν υπάρχουν διαθέσιμες προσφορές για αυτό το token",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Φόρτωση...",
       "unavailable": "Η ανταλλαγή δεν είναι διαθέσιμη",
       "unsupported_chain": "Αυτή η αλυσίδα δεν υποστηρίζει ακόμη την Γρήγορη Αγορά",
@@ -1160,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "Τα Perps δεν είναι διαθέσιμα",
     "title": "Συμβ.αορ.",
-    "transfer_to_perps": "Μεταφορά στα Perps",
     "perps_trading": "Συναλλαγές με συμβόλαια αορίστου διάρκειας",
     "perp_account_balance": "Υπόλοιπο λογαριασμού συμβολαίων αορίστου διάρκειας",
     "manage_balance": "Διαχείριση υπολοίπου",
@@ -2341,13 +2342,11 @@
   },
   "predict": {
     "title": "Προβλέψεις στο MetaMask",
-    "transfer_to_predictions": "Μεταφορά στις Προβλέψεις",
     "select_predict_account": "Επιλέξτε λογαριασμό προβλέψεων",
     "search_account": "Αναζήτηση λογαριασμού",
     "home": {
       "live_now_title": "Ζωντανά τώρα",
-      "categories_placeholder": "Κατηγορίες",
-      "trending_placeholder": "Δημοφιλή"
+      "categories_placeholder": "Κατηγορίες"
     },
     "homepage_discovery": {
       "btc_title": "Τιμή BTC: {{price}}",
@@ -2368,11 +2367,15 @@
       "predictions_title": "Προβλέψεις για το Παγκόσμιο Κύπελλο",
       "banner_title": "Παγκόσμιο Κύπελλο 2026",
       "banner_description": "Στοιχηματίστε σε κάθε αγώνα, κάθε στιγμή.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "Όλα",
         "props": "Props",
-        "live": "Ζωντανά"
+        "live": "Ζωντανά",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Φάση ομίλων",
         "round_of_32": "Φάση των 32",
@@ -3540,6 +3543,8 @@
       "wallet_activity_desc": "Αγορές, πωλήσεις, μεταφορές, ανταλλαγές και ανταμοιβές",
       "perps_title": "Δραστηριότητα συναλλαγών",
       "perps_desc": "Αλλαγές σε θέσεις perps, ρευστοποιήσεις, ποσοστά χρηματοδότησης και ενημερώσεις περιθωρίου",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "Ενδείξεις συναλλαγών",
       "social_ai_desc": "Ενημερώσεις από traders και περιουσιακά στοιχεία που ακολουθείτε, καθώς και επιλεγμένες ειδήσεις της αγοράς",
       "marketing_title": "Ενημερώσεις και ανταμοιβές",
@@ -6029,6 +6034,11 @@
       "description": "Η αγορά κρυπτονομισμάτων δεν είναι διαθέσιμη στην περιοχή σας λόγω περιορισμών από τοπικούς παρόχους πληρωμών ή κανονιστικών ρυθμίσεων.",
       "got_it": "Κατανοητό"
     },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "Κατανοητό"
+    },
     "region": {
       "buy_crypto_tokens": "Αγορά κρυπτονομισμάτων (tokens)",
       "sell_crypto_tokens": "Αγορά κρυπτονομισμάτων (tokens)",
@@ -7666,8 +7676,7 @@
       "perps_withdraw": "Ανάληψη",
       "predict_deposit": "Προσθήκη κεφαλαίων για Προβλέψεις",
       "predict_withdraw": "Ανάληψη",
-      "money_account_add_money": "Προσθήκη κεφαλαίων",
-      "money_account_transfer_money": "Μεταφορά κεφαλαίων"
+      "money_account_add_money": "Προσθήκη κεφαλαίων"
     },
     "sub_title": {
       "permit": "Αυτός ο ιστότοπος θέλει άδεια για να δαπανήσει τα tokens σας.",
@@ -7949,9 +7958,13 @@
       "rejected": "Απορρίφθηκε",
       "reconnect": "Επανασύνδεση",
       "done": "Τέλος",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "Σαρώστε τον επόμενο κωδικό QR",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "Βήμα {{current}} από {{total}}: Σαρώστε τον κωδικό QR που εμφανίζεται στο πορτοφόλι σας",
-      "scanner_last_step_text": "Τελευταίο βήμα: Σαρώστε τον κωδικό QR που εμφανίζεται στο πορτοφόλι σας"
+      "scanner_last_step_text": "Τελευταίο βήμα: Σαρώστε τον κωδικό QR που εμφανίζεται στο πορτοφόλι σας",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "Αντίκτυπος στην τιμή",
     "price_impact_info_description": "Έτσι επηρεάζει η συναλλαγή σας την τιμή αγοράς ενός token. Εξαρτάται από το μέγεθος της συναλλαγής, τη διαθέσιμη ρευστότητα και τις χρεώσεις των παρόχων. Το MetaMask δεν ελέγχει την επίδραση στην τιμή.",
@@ -9526,8 +9539,8 @@
     },
     "earn_rewards": {
       "title": "Κερδίστε ανταμοιβές",
-      "musd_title": "Έως 3% μπόνους σε stables",
-      "musd_subtitle": "Υπολογίστε το μπόνους σας σε mUSD",
+      "musd_title": "Έως {{percentage}}% μπόνους σε mUSD",
+      "musd_subtitle": "Οι καταθετικοί λογαριασμοί είναι εδώ",
       "card_title": "Έως 3% επιστροφή σε κάθε αγορά",
       "card_subtitle": "Αποκτήστε τώρα την MetaMask Card",
       "card_subtitle_cardholder": "Δείτε τα προνόμια της MetaMask Card"
@@ -9601,17 +9614,6 @@
       "predict_withdraw": "Ανάληψη",
       "money_account_deposit": "Κατάθεση στον λογαριασμό χρημάτων",
       "money_account_withdraw": "Μεταφορά από τον λογαριασμό χρημάτων",
-      "money_account_sent": "Εστάλη {{symbol}}",
-      "money_account_received": "Ελήφθη",
-      "deposited_musd": "Κατατέθηκαν σε mUSD",
-      "depositing_musd": "Κατάθεση σε mUSD",
-      "deposit_failed": "Η κατάθεση απέτυχε",
-      "sent": "Εστάλη",
-      "sending_musd": "Αποστολή mUSD",
-      "send_failed": "Η αποστολή απέτυχε",
-      "converted_to_musd": "Έγινε μετατροπή σε mUSD",
-      "converting_to_musd": "Μετατροπή σε mUSD",
-      "conversion_failed": "Η μετατροπή απέτυχε",
       "default": "Λεπτομέρειες συναλλαγής"
     },
     "label": {
@@ -9660,6 +9662,24 @@
       "fiat_purchase": "Αγορά {{token}} με {{paymentMethod}}"
     },
     "perps_deposit_solution": "Έχετε πλέον {{fiat}} σε USDC στο Arbitrum. Δοκιμάστε ξανά να κάνετε κατάθεση."
+  },
+  "activity_details": {
+    "status": "Κατάσταση",
+    "date": "Ημερομηνία",
+    "account": "Λογαριασμός",
+    "from": "Από",
+    "to": "Προς",
+    "network": "Δίκτυο",
+    "transaction_id": "Αναγνωριστικό συναλλαγής",
+    "network_fee": "Τέλη δικτύου",
+    "bridge_fee": "Τέλη διασύνδεσης",
+    "transaction_fee": "Τέλος συναλλαγής",
+    "total_amount": "Συνολικό ποσό",
+    "you_sent": "Στείλατε",
+    "you_received": "Έχετε λάβει",
+    "view_on_block_explorer": "Προβολή στον εξερευνητή ομάδας καταχωρίσεων",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

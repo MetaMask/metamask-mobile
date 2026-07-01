@@ -448,6 +448,14 @@ describe('useMoneyAccountCardLinkage', () => {
       expect(result.current.canLink).toBe(false);
     });
 
+    it('reports hasMoneyAccountRequirements=false when VEDA is allowlisted in cardFeature but missing from DelegationSettings', () => {
+      mockResolveMoneyAccountCardToken.mockReturnValue(null);
+      const { result } = renderLinkageHook();
+      expect(result.current.moneyAccountCardToken).toBeNull();
+      expect(result.current.hasMoneyAccountRequirements).toBe(false);
+      expect(result.current.canLink).toBe(false);
+    });
+
     it('reports canLink=false when the Money Account is already delegated for card (re-link suppressed)', () => {
       applySelectorMocks(buildSelectors({ isAlreadyDelegated: true }));
       const { result } = renderLinkageHook();
@@ -1385,6 +1393,31 @@ describe('useMoneyAccountCardLinkage', () => {
         entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
         reason: CardLinkingFailureReason.RESIDENCY_BLOCKED,
         is_revoke: false,
+      });
+    });
+
+    it('fails closed when revoking but the current primary Money Account is not delegated', async () => {
+      applySelectorMocks(buildSelectors({ isAlreadyDelegated: false }));
+      const { result } = renderLinkageHook();
+
+      let returned: boolean | undefined;
+      await act(async () => {
+        returned = await result.current.confirmLinkInBackground({
+          delegationAmountHuman: '0',
+        });
+      });
+
+      expect(returned).toBe(false);
+      expect(mockLinkMoneyAccountCard).not.toHaveBeenCalled();
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+        entrypoint: CardEntryPoint.MONEY_LINK_CARD_SHEET,
+        reason: CardLinkingFailureReason.PRECONDITION_FAILED,
+        is_revoke: true,
+      });
+      expect(mockShowToast).toHaveBeenCalledTimes(1);
+      expect(mockShowToast.mock.calls[0][0]).toMatchObject({
+        labelOptions: [{ label: 'Something went wrong unlinking your card' }],
       });
     });
 

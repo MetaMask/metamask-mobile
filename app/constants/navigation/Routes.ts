@@ -104,6 +104,9 @@ const Routes = {
   QR_SCANNER: 'QRScanner',
   TRANSACTIONS_VIEW: 'TransactionsView',
   TRANSACTION_DETAILS: 'TransactionDetails',
+  // Redesigned activity details screen (gated by selectIsTransactionsRedesignEnabled).
+  // Distinct from TRANSACTION_DETAILS, which is the confirmations team's screen.
+  ACTIVITY_DETAILS: 'ActivityDetails',
   REWARDS_VIEW: 'RewardsView',
   REWARDS_FLOW: 'RewardsFlow',
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
@@ -478,8 +481,8 @@ const Routes = {
       MONEY_BALANCE_INFO_SHEET: 'MoneyBalanceInfoSheet',
       LINK_CARD_SHEET: 'MoneyLinkCardSheet',
       EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
-      TRANSACTION_DETAILS_SHEET: 'MoneyTransactionDetailsSheet',
       GEO_BLOCK_SHEET: 'MoneyGeoBlockSheet',
+      DEEPLINK_MODAL: 'MoneyDeeplinkModal',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {
@@ -557,6 +560,7 @@ const Routes = {
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
       WAITLIST_FORM: 'CardWaitlistFormModal',
       FORGOT_PASSWORD: 'CardForgotPasswordModal',
+      UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
     },
   },
   SEND: {
@@ -580,6 +584,6 @@ const Routes = {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
   },
-};
+} as const;
 
 export default Routes;

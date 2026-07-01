@@ -171,3 +171,18 @@ export const initialStateActivityWithRedesignEnabled = () =>
   initialStateActivity().withRemoteFeatureFlags({
     tmcuActivityRedesignEnabled: true,
   });
+
+/** State for ActivityList tests that load EVM history from the accounts API. */
+export const initialStateActivityWithAccountsApi = () =>
+  initialStateActivity().withOverrides({
+    engine: {
+      backgroundState: {
+        NetworkEnablementController: {
+          enabledNetworkMap: enabledMainnetNetworkMap,
+        },
+        PreferencesController: {
+          privacyMode: false,
+        },
+      },
+    },
+  } as unknown as DeepPartial<RootState>);

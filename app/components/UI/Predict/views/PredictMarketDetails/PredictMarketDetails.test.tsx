@@ -64,8 +64,8 @@ jest.mock('../../hooks/usePredictActiveOrder', () => ({
   }),
 }));
 
-jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: () => ({
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: () => ({
     Navigator: ({ children }: { children: React.ReactNode }) => children,
     Screen: ({ children }: { children: React.ReactNode }) => children,
   }),
@@ -371,6 +371,7 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectPredictFeeCollectionFlag: jest.fn(
     () => mockSelectPredictFeeCollectionFlag,
   ),
+  selectNonRegTimeSportsMarketTypes: jest.fn(() => ['soccer_team_to_advance']),
 }));
 
 jest.mock('../../../../Base/TabBar', () => {

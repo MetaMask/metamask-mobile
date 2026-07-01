@@ -103,7 +103,7 @@
       "title": "Không đủ tiền"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Nạp ít hơn hoặc sử dụng phương thức thanh toán khác."
     },
     "insufficient_pay_token_native": {
       "message": "Không đủ {{ticker}} để chi trả phí. Hãy sử dụng token trên mạng khác hoặc nạp thêm {{ticker}} để tiếp tục.",
@@ -1094,6 +1094,7 @@
       "twitter_link": "Xem trên X (Twitter)",
       "sort": {
         "value": "Giá trị",
+        "top_trades": "Top Trades",
         "pnl_percent": "Lãi/Lỗ %",
         "recent": "Gần đây"
       }
@@ -1102,7 +1103,6 @@
       "market_cap": "Vốn hóa thị trường",
       "price": "Giá",
       "position": "Vị thế",
-      "trades": "Giao dịch",
       "buy": "Mua",
       "trade": "Giao dịch",
       "unsupported_market": "Thị trường không được hỗ trợ",
@@ -1133,6 +1133,8 @@
       "price_impact": "Mức tác động giá",
       "est_points": "Điểm ước tính",
       "no_quotes": "Không có báo giá nào cho token này",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Đang tải...",
       "unavailable": "Hoán đổi không khả dụng",
       "unsupported_chain": "Chuỗi này chưa được hỗ trợ tính năng Mua Nhanh",
@@ -1160,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "Hợp đồng vĩnh cửu không khả dụng",
     "title": "Vĩnh cửu",
-    "transfer_to_perps": "Chuyển sang Hợp đồng vĩnh cửu",
     "perps_trading": "Giao dịch hợp đồng vĩnh cửu",
     "perp_account_balance": "Số dư tài khoản hợp đồng vĩnh cửu",
     "manage_balance": "Quản lý số dư",
@@ -2341,13 +2342,11 @@
   },
   "predict": {
     "title": "MetaMask Dự đoán",
-    "transfer_to_predictions": "Chuyển sang Dự đoán",
     "select_predict_account": "Chọn tài khoản dự đoán",
     "search_account": "Tìm kiếm tài khoản",
     "home": {
       "live_now_title": "Đang diễn ra",
-      "categories_placeholder": "Danh mục",
-      "trending_placeholder": "Xu hướng"
+      "categories_placeholder": "Danh mục"
     },
     "homepage_discovery": {
       "btc_title": "Giá BTC: {{price}}",
@@ -2368,11 +2367,15 @@
       "predictions_title": "Dự đoán World Cup",
       "banner_title": "Giải vô địch bóng đá thế giới 2026",
       "banner_description": "Giao dịch mọi trận đấu, mọi khoảnh khắc.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "Tất cả",
         "props": "Kèo phụ",
-        "live": "Đang diễn ra"
+        "live": "Đang diễn ra",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Vòng bảng",
         "round_of_32": "Vòng 32 đội",
@@ -3540,6 +3543,8 @@
       "wallet_activity_desc": "Mua, bán, chuyển tiền, hoán đổi và phần thưởng",
       "perps_title": "Hoạt động giao dịch",
       "perps_desc": "Thay đổi vị thế hợp đồng vĩnh cửu, thanh lý, tỷ lệ tài trợ và cập nhật ký quỹ",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "Tín hiệu giao dịch",
       "social_ai_desc": "Cập nhật từ các nhà giao dịch và tài sản mà bạn theo dõi, cùng với tin tức thị trường được tuyển chọn",
       "marketing_title": "Cập nhật và Phần thưởng",
@@ -6029,6 +6034,11 @@
       "description": "Mua tiền mã hóa không khả dụng ở khu vực của bạn do hạn chế từ nhà cung cấp dịch vụ thanh toán địa phương hoặc quy định pháp lý.",
       "got_it": "Tôi đã hiểu"
     },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "Tôi đã hiểu"
+    },
     "region": {
       "buy_crypto_tokens": "Mua token tiền mã hóa",
       "sell_crypto_tokens": "Bán token tiền mã hóa",
@@ -7666,8 +7676,7 @@
       "perps_withdraw": "Rút tiền",
       "predict_deposit": "Nạp tiền Dự đoán",
       "predict_withdraw": "Rút tiền",
-      "money_account_add_money": "Nạp tiền",
-      "money_account_transfer_money": "Chuyển tiền"
+      "money_account_add_money": "Nạp tiền"
     },
     "sub_title": {
       "permit": "Trang web này muốn được cấp quyền chi tiêu token của bạn.",
@@ -7949,9 +7958,13 @@
       "rejected": "Bị từ chối",
       "reconnect": "Kết nối lại",
       "done": "Hoàn tất",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "Quét mã QR tiếp theo",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "Bước {{current}}/{{total}}: Quét mã QR hiển thị trên ví của bạn",
-      "scanner_last_step_text": "Bước cuối cùng: Quét mã QR hiển thị trên ví của bạn"
+      "scanner_last_step_text": "Bước cuối cùng: Quét mã QR hiển thị trên ví của bạn",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "Mức tác động giá",
     "price_impact_info_description": "Đây là cách giao dịch của bạn làm thay đổi giá thị trường của một token. Điều này phụ thuộc vào quy mô giao dịch, thanh khoản hiện có và phí nhà cung cấp. MetaMask không kiểm soát tác động giá.",
@@ -9526,8 +9539,8 @@
     },
     "earn_rewards": {
       "title": "Nhận phần thưởng",
-      "musd_title": "Thưởng lên đến 3% cho đồng ổn định",
-      "musd_subtitle": "Tính toán thưởng mUSD của bạn",
+      "musd_title": "Thưởng lên đến {{percentage}}% cho mUSD",
+      "musd_subtitle": "Tài khoản Tài chính đã ra mắt",
       "card_title": "Hoàn tiền lên đến 3% cho chi tiêu",
       "card_subtitle": "Nhận MetaMask Card của bạn ngay",
       "card_subtitle_cardholder": "Truy cập các quyền lợi MetaMask Card của bạn"
@@ -9601,17 +9614,6 @@
       "predict_withdraw": "Rút tiền",
       "money_account_deposit": "Nạp tiền vào Tài khoản Tài chính",
       "money_account_withdraw": "Chuyển tiền từ Tài khoản Tài chính",
-      "money_account_sent": "Đã gửi {{symbol}}",
-      "money_account_received": "Đã nhận",
-      "deposited_musd": "Đã nạp mUSD",
-      "depositing_musd": "Đang nạp mUSD",
-      "deposit_failed": "Nạp tiền thất bại",
-      "sent": "Đã gửi",
-      "sending_musd": "Đang gửi mUSD",
-      "send_failed": "Gửi thất bại",
-      "converted_to_musd": "Đã chuyển đổi sang mUSD",
-      "converting_to_musd": "Đang chuyển đổi sang mUSD",
-      "conversion_failed": "Chuyển đổi thất bại",
       "default": "Chi tiết giao dịch"
     },
     "label": {
@@ -9660,6 +9662,24 @@
       "fiat_purchase": "Mua {{token}} bằng {{paymentMethod}}"
     },
     "perps_deposit_solution": "Bạn hiện có {{fiat}} USDC trên Arbitrum. Hãy thử nạp tiền lại."
+  },
+  "activity_details": {
+    "status": "Trạng thái",
+    "date": "Ngày",
+    "account": "Tài khoản",
+    "from": "Từ",
+    "to": "Đến",
+    "network": "Mạng",
+    "transaction_id": "ID giao dịch",
+    "network_fee": "Phí mạng",
+    "bridge_fee": "Phí cầu nối",
+    "transaction_fee": "Phí giao dịch",
+    "total_amount": "Tổng số tiền",
+    "you_sent": "Bạn đã gửi",
+    "you_received": "Bạn đã nhận được",
+    "view_on_block_explorer": "Xem trên trình khám phá khối",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

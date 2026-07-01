@@ -194,8 +194,8 @@ export function mapNonEvmTransactions(
 
 /**
  * Merges and sorts all transaction sources into a single ActivityListItem list.
- * Dedup precedence by hash: perps/predict > API-confirmed EVM > local EVM >
- * non-EVM (see mergeActivityItems).
+ * Dedup precedence by hash: perps/predict/ramp > API-confirmed EVM > local EVM
+ * > non-EVM (see mergeActivityItems).
  */
 export function mergeTransactionsByTime(
   localItems: ActivityListItem[],
@@ -203,6 +203,7 @@ export function mergeTransactionsByTime(
   nonEvmItems: ActivityListItem[],
   perpsItems: ActivityListItem[] = [],
   predictItems: ActivityListItem[] = [],
+  rampItems: ActivityListItem[] = [],
 ): ActivityListItem[] {
   return mergeActivityItems(
     localItems,
@@ -210,5 +211,6 @@ export function mergeTransactionsByTime(
     nonEvmItems,
     perpsItems,
     predictItems,
+    rampItems,
   );
 }

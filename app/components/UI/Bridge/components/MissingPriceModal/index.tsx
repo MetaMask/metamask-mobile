@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -32,8 +32,7 @@ export interface MissingPriceModalParams {
 }
 
 export const MissingPriceModal = () => {
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [loading, setLoading] = useState(false);
   const { location } = useParams<MissingPriceModalParams>();
@@ -59,7 +58,11 @@ export const MissingPriceModal = () => {
 
   const handleProceed = useCallback(async () => {
     setLoading(true);
-    await confirmBridge();
+    if (sheetRef.current?.onCloseBottomSheet) {
+      sheetRef.current.onCloseBottomSheet(confirmBridge);
+    } else {
+      await confirmBridge();
+    }
   }, [confirmBridge]);
 
   return (

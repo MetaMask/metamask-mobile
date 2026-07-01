@@ -173,7 +173,7 @@ export const useMoneyAccountCardLinkage =
     });
 
     const hasRequirements =
-      hasMoneyAccountBaseRequirements && isMoneyAccountCardSupported;
+      hasMoneyAccountBaseRequirements && Boolean(moneyAccountCardToken);
 
     const canSubmitDelegation = Boolean(
       hasRequirements &&
@@ -496,11 +496,14 @@ export const useMoneyAccountCardLinkage =
         const isRevoke =
           options?.delegationAmountHuman !== undefined &&
           parseFloat(options.delegationAmountHuman) === 0;
-        const isBlockedByResidency = isResidencyBlocked && !isAlreadyDelegated;
+        const isRevokeWithoutOwnedDelegation = isRevoke && !isAlreadyDelegated;
+        const isBlockedByResidency =
+          !isRevoke && isResidencyBlocked && !isAlreadyDelegated;
 
         if (
           !canSubmitDelegation ||
           !primaryMoneyAccount?.address ||
+          isRevokeWithoutOwnedDelegation ||
           isBlockedByResidency
         ) {
           trackMoneyAccountLinkingEvent(

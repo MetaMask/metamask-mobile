@@ -38,6 +38,7 @@ import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
 import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
+import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
@@ -119,6 +120,7 @@ const MoneyHomeView = () => {
     lastKnownTotalFiatFormatted,
     refetchBalance,
     apyPercent,
+    apyDecimal,
   } = useMoneyAccountBalance();
 
   const refreshMusdFiatRate = useRefreshMusdFiatRate();
@@ -220,32 +222,32 @@ const MoneyHomeView = () => {
   );
 
   const monthlyEarnings = useMemo(() => {
-    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    if (!totalFiatRaw || !apyDecimal) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
     const earnings = calculateProjectedEarnings(
       balance.toNumber(),
-      apyPercent,
+      apyDecimal,
       1 / 12,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
     const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
     return formatted === formattedZero ? formatted : `+${formatted}`;
-  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
+  }, [totalFiatRaw, apyDecimal, currentCurrency, formattedZero]);
 
   const yearlyEarnings = useMemo(() => {
-    if (!totalFiatRaw || !apyPercent) return formattedZero;
+    if (!totalFiatRaw || !apyDecimal) return formattedZero;
     const balance = new BigNumber(totalFiatRaw);
     if (balance.isZero() || balance.isNaN()) return formattedZero;
     const earnings = calculateProjectedEarnings(
       balance.toNumber(),
-      apyPercent,
+      apyDecimal,
       1,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
     const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
     return formatted === formattedZero ? formatted : `+${formatted}`;
-  }, [totalFiatRaw, apyPercent, currentCurrency, formattedZero]);
+  }, [totalFiatRaw, apyDecimal, currentCurrency, formattedZero]);
 
   const handleMenuPress = useCallback(() => {
     trackButtonClicked({
@@ -532,10 +534,8 @@ const MoneyHomeView = () => {
       redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    Linking.openURL(AppConstants.URLS.MONEY_LANDING).catch((error: Error) => {
-      Logger.error(error, '[MoneyHomeView] Failed to open Money landing page');
-    });
-  }, [trackSurfaceClicked]);
+    openInAppBrowser(navigation, AppConstants.URLS.MONEY_LANDING);
+  }, [navigation, trackSurfaceClicked]);
 
   const handleLearnMorePress = useCallback(() => {
     trackButtonClicked({
@@ -546,10 +546,8 @@ const MoneyHomeView = () => {
       redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    Linking.openURL(AppConstants.URLS.MONEY_LANDING).catch((error: Error) => {
-      Logger.error(error, '[MoneyHomeView] Failed to open Money landing page');
-    });
-  }, [trackButtonClicked]);
+    openInAppBrowser(navigation, AppConstants.URLS.MONEY_LANDING);
+  }, [navigation, trackButtonClicked]);
 
   const handleHowItWorksPress = useCallback(
     ({ componentName }: { componentName: COMPONENT_NAMES }) => {
@@ -709,7 +707,7 @@ const MoneyHomeView = () => {
       node: (
         <MoneyPotentialEarnings
           tokens={depositTokens}
-          apy={apyPercent}
+          apyDecimal={apyDecimal}
           isNoFeeToken={isNoFeeToken}
           onTokenCardPress={handleTokenCardPress}
           onTokenButtonPress={handleTokenButtonPress}
