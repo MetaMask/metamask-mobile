@@ -4,6 +4,8 @@ import {
   Messenger,
   MessengerActions,
   MessengerEvents,
+  type ActionConstraint,
+  type EventConstraint,
 } from '@metamask/messenger';
 
 /**
@@ -32,6 +34,12 @@ export function getPerpsControllerMessenger(
     parent: rootExtendedMessenger,
   });
   rootExtendedMessenger.delegate({
+    messenger: messenger as Messenger<
+      'PerpsController',
+      ActionConstraint,
+      EventConstraint,
+      RootMessenger
+    >,
     actions: [
       'GeolocationController:getGeolocation',
       'NetworkController:getState',
@@ -50,7 +58,6 @@ export function getPerpsControllerMessenger(
       'AccountsController:selectedAccountChange',
       'AccountTreeController:selectedAccountGroupChange',
     ],
-    messenger,
   });
   return messenger;
 }

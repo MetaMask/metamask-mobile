@@ -239,6 +239,7 @@ describe('NetworkMultiSelector', () => {
       n.caipChainId.startsWith('bip122:'),
     ),
     tronNetworks: [],
+    stellarNetworks: [],
     selectedEvmAccount: networks.some((n) =>
       n.caipChainId.startsWith('eip155:'),
     )
@@ -251,11 +252,13 @@ describe('NetworkMultiSelector', () => {
       : null,
     selectedBitcoinAccount: null,
     selectedTronAccount: null,
+    selectedStellarAccount: null,
     areAllNetworksSelectedCombined: areAllSelected,
     areAllEvmNetworksSelected: false,
     areAllSolanaNetworksSelected: false,
     areAllBitcoinNetworksSelected: false,
     areAllTronNetworksSelected: false,
+    areAllStellarNetworksSelected: false,
   });
 
   const setupMockSelectors = (
@@ -379,11 +382,14 @@ describe('NetworkMultiSelector', () => {
       selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
       selectedBitcoinAccount: { id: 'bitcoin-account' } as InternalAccount,
       selectedTronAccount: { id: 'tron-account' } as InternalAccount,
+      stellarNetworks: mockNetworks,
+      selectedStellarAccount: { id: 'stellar-account' } as InternalAccount,
       areAllNetworksSelectedCombined: false,
       areAllEvmNetworksSelected: false,
       areAllSolanaNetworksSelected: false,
       areAllBitcoinNetworksSelected: false,
       areAllTronNetworksSelected: false,
+      areAllStellarNetworksSelected: false,
     });
 
     mockUseSelector.mockImplementation((selector) => {
@@ -781,6 +787,9 @@ describe('NetworkMultiSelector', () => {
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
         selectedTronAccount: null,
+        stellarNetworks: [],
+        selectedStellarAccount: null,
+        areAllStellarNetworksSelected: false,
       });
 
       // Setup selector mock
@@ -858,6 +867,9 @@ describe('NetworkMultiSelector', () => {
         selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
         selectedBitcoinAccount: null,
         selectedTronAccount: null,
+        stellarNetworks: [],
+        selectedStellarAccount: null,
+        areAllStellarNetworksSelected: false,
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
         areAllNetworksSelectedCombined: true,
@@ -944,6 +956,9 @@ describe('NetworkMultiSelector', () => {
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
         selectedTronAccount: null,
+        stellarNetworks: [],
+        selectedStellarAccount: null,
+        areAllStellarNetworksSelected: false,
       });
 
       mockUseSelector.mockImplementation((selector) => {
@@ -1017,6 +1032,9 @@ describe('NetworkMultiSelector', () => {
         areAllSolanaNetworksSelected: false,
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
+        stellarNetworks: [],
+        selectedStellarAccount: null,
+        areAllStellarNetworksSelected: false,
       });
 
       mockUseSelector.mockImplementation((selector) => {

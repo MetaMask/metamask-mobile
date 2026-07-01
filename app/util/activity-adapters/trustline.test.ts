@@ -21,6 +21,7 @@ const baseTransaction: Transaction = {
   from: [],
   to: [],
   fees: [],
+  events: [],
 };
 
 describe('trustline activity helpers', () => {

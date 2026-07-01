@@ -62,20 +62,24 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
   };
   ///: END:ONLY_INCLUDE_IF
 
+  const providerConfigs = {
+    [SOL_ACCOUNT_PROVIDER_NAME]: solanaSnapAccountProviderConfig,
+    /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
+    [BTC_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
+    /// END:ONLY_INCLUDE_IF
+    /// BEGIN:ONLY_INCLUDE_IF(tron)
+    [TRX_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
+    /// END:ONLY_INCLUDE_IF
+    /// BEGIN:ONLY_INCLUDE_IF(stellar)
+    [XLM_ACCOUNT_PROVIDER_NAME]: stellarSnapAccountProviderConfig,
+    /// END:ONLY_INCLUDE_IF
+  };
+
   const controller = new MultichainAccountService({
     messenger: controllerMessenger,
-    providerConfigs: {
-      [SOL_ACCOUNT_PROVIDER_NAME]: solanaSnapAccountProviderConfig,
-      /// BEGIN:ONLY_INCLUDE_IF(bitcoin)
-      [BTC_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
-      /// END:ONLY_INCLUDE_IF
-      /// BEGIN:ONLY_INCLUDE_IF(tron)
-      [TRX_ACCOUNT_PROVIDER_NAME]: snapAccountProviderConfig,
-      /// END:ONLY_INCLUDE_IF
-      /// BEGIN:ONLY_INCLUDE_IF(stellar)
-      [XLM_ACCOUNT_PROVIDER_NAME]: stellarSnapAccountProviderConfig,
-      /// END:ONLY_INCLUDE_IF
-    },
+    providerConfigs: providerConfigs as ConstructorParameters<
+      typeof MultichainAccountService
+    >[0]['providerConfigs'],
   });
 
   return { controller, memStateKey: null, persistedStateKey: null };

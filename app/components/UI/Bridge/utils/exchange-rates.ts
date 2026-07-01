@@ -321,7 +321,7 @@ export const fetchTokenExchangeRates = async (
         tokenAddresses: checksumAddresses as Hex[],
         chainId: formatChainIdToHex(chainId),
         includeMarketData: true,
-      });
+      } as Parameters<typeof fetchTokenContractExchangeRates>[0]);
       return marketData;
     }
 

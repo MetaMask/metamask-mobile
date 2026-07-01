@@ -246,7 +246,7 @@ export const useTokenTransactions = (
         txs,
         assetAddress,
         assetSymbol,
-        isNativeAsset,
+        Boolean(isNativeAsset),
       );
 
       let filteredTransactions: Transaction[];

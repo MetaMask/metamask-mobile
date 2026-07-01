@@ -15,7 +15,7 @@ const selectHasStellarAccount = createSelector(
   selectInternalAccountsById,
   (accounts) =>
     Object.values(accounts).some((account) =>
-      account.scopes.some((scope) =>
+      (account.scopes ?? []).some((scope) =>
         Object.values(XlmScope).includes(scope as XlmScope),
       ),
     ),

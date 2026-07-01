@@ -27,6 +27,7 @@ import {
 } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
 import { selectAsset } from '../../../../selectors/assets/assets-list';
+import type { RootState } from '../../../../reducers';
 import { usePerpsActions } from '../hooks/usePerpsActions';
 import {
   PERPS_EVENT_PROPERTY,
@@ -758,6 +759,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                     numberOfLines={1}
                   >
                     {
+                      // prettier-ignore
                       ///: BEGIN:ONLY_INCLUDE_IF(stellar)
                       stellarNativeToken != null
                         ? getStellarNativeDisplayName(stellarNativeToken)
