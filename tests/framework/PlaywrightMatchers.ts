@@ -80,7 +80,7 @@ export default class PlaywrightMatchers {
       if (options.index !== undefined) {
         const elements = await drv.$$(locator);
         return this.wrapElementAtIndex(
-          elements,
+          elements as unknown as ChainablePromiseElement[],
           options.index,
           `resource id pattern ${elementId.source}`,
         );

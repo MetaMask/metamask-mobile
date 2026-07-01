@@ -99,7 +99,7 @@ export async function executeMobileDeepLink(url: string): Promise<void> {
     const caps = drv.capabilities as WebdriverIO.Capabilities & {
       'appium:appPackage'?: string;
     };
-    const pkg = (caps['appium:appPackage'] ?? caps.appPackage)?.trim();
+    const pkg = caps['appium:appPackage']?.trim();
     if (!pkg) {
       throw new Error(
         'Android mobile: deepLink requires appium:appPackage in session capabilities.',
