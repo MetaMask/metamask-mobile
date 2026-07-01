@@ -115,6 +115,13 @@ class NavigationService {
   }
 
   /**
+   * Checks whether the navigation container is mounted and ready to receive actions.
+   */
+  static isReady(): boolean {
+    return Boolean(this.#navigation?.isReady?.());
+  }
+
+  /**
    * Resets the navigation reference. Only for testing purposes.
    * @internal
    */
