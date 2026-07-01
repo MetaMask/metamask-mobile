@@ -185,6 +185,7 @@ describe('Aggregator Quotes screen', () => {
         links: [],
         logos: { light: '', dark: '', height: 24, width: 90 },
         features: {} as never,
+        environmentType: '' as never,
       },
       amountOut: 37.5,
     });
