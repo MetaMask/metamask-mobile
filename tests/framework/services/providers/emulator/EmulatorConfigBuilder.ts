@@ -58,11 +58,8 @@ export class EmulatorConfigBuilder {
       process.env.USE_PREBUILT_WDA === 'true' &&
       !usePreinstalledWda;
 
-    // WebdriverIO HTTP timeout per request (connectionRetryTimeout). iOS session
-    // creation can take minutes (WDA build/launch); Android emulator sessions
-    // start in seconds. Android previously inherited the 12 min iOS cold-WDA
-    // default, so a hung Chromedriver/WebView command blocked the whole test.
-    const androidTimeout = 90_000;
+    const androidAdbExecTimeoutMs = 120_000;
+    const androidTimeout = androidAdbExecTimeoutMs + 30_000;
     const iosTimeout = usePreinstalledWda
       ? 3 * 60 * 1000
       : usePrebuiltWda
@@ -86,9 +83,7 @@ export class EmulatorConfigBuilder {
           ? {
               'appium:appPackage': this.project.use.app?.packageName,
               'appium:appActivity': this.project.use.app?.launchableActivity,
-              // Release E2E launches with many intent extras; default 20s adbExecTimeout
-              // is too low on CI after a prior test (see appium-accounts-android-smoke).
-              'appium:adbExecTimeout': 120_000,
+              'appium:adbExecTimeout': androidAdbExecTimeoutMs,
               // Fail Chromedriver attach faster than the default when WebView is stuck.
               'appium:androidWebviewConnectTimeout': 60_000,
             }

@@ -12,6 +12,10 @@ const logger = createPlaywrightLogger('PlaywrightContextHelpers');
 
 type DetailedContext = IosDetailedContext | AndroidDetailedContext;
 
+type AndroidContextWithPage = AndroidDetailedContext & {
+  webviewPageId?: string;
+};
+
 const NATIVE_APP = 'NATIVE_APP';
 const LAVAMOAT_PATTERN = /LavaMoat|ShadowRoot|scuttling/i;
 
@@ -41,6 +45,7 @@ export default class PlaywrightContextHelpers {
         `switchContext for ${dappUrl}`,
       );
       await this.warmWebViewContext();
+      await this.switchToMatchingWebviewWindow(dappUrl);
       logger.debug(`Switched to webview context for URL: ${dappUrl}`);
       return;
     } catch (err) {
@@ -71,6 +76,7 @@ export default class PlaywrightContextHelpers {
         ).catch(() => false);
         if (switched) {
           await this.warmWebViewContext();
+          await this.switchToMatchingWebviewWindow(dappUrl);
           logger.debug(`Switched to webview context: ${selected.id}`);
           return;
         }
@@ -136,6 +142,36 @@ export default class PlaywrightContextHelpers {
     } catch (error) {
       logger.debug(
         'WebView warm-up failed (non-fatal):',
+        this.getErrorMessage(error).slice(0, 200),
+      );
+    }
+  }
+
+  private static async switchToMatchingWebviewWindow(
+    dappUrl: string,
+  ): Promise<void> {
+    if (!(await PlatformDetector.isAndroid())) {
+      return;
+    }
+
+    const webviews = await this.getDetailedWebviews();
+    const match = webviews.find((ctx) => ctx.url?.includes(dappUrl));
+    const pageId = (match as AndroidContextWithPage | undefined)?.webviewPageId;
+
+    if (!pageId) {
+      return;
+    }
+
+    try {
+      await withTimeout(
+        getDriver().switchToWindow(pageId),
+        this.WEBVIEW_SWITCH_TIMEOUT_MS,
+        `switchToWindow(${pageId})`,
+      );
+      logger.debug(`Switched to WebView window ${pageId} for ${dappUrl}`);
+    } catch (error) {
+      logger.debug(
+        'WebView window switch failed (non-fatal):',
         this.getErrorMessage(error).slice(0, 200),
       );
     }

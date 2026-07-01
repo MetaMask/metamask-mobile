@@ -25,6 +25,14 @@ import { RetryOptions, EncapsulatedElementType } from '../../framework';
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import PlaywrightWebMatchers from '../../framework/PlaywrightWebMatchers';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
+import {
+  assertAndroidTestSnapsClientStatus,
+  assertAndroidTestSnapsJson,
+  assertAndroidTestSnapsTextContains,
+  fillAndroidTestSnapsInput,
+  tapAndroidTestSnapsButton,
+} from '../../helpers/android-test-snaps-native.helpers';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
@@ -98,7 +106,17 @@ class TestSnaps {
     return Matchers.getIdentifier('snap-ui-renderer__scrollview');
   }
 
+  private async usesAndroidNativeTestSnapsBridge(): Promise<boolean> {
+    return FrameworkDetector.isAppium() && (await PlatformDetector.isAndroid());
+  }
+
   private async withWebView(action: () => Promise<void>): Promise<void> {
+    if (await this.usesAndroidNativeTestSnapsBridge()) {
+      await PlaywrightContextHelpers.switchToNativeContext();
+      await action();
+      return;
+    }
+
     if (FrameworkDetector.isAppium()) {
       await PlaywrightWebMatchers.withWebViewAction(TEST_SNAPS_URL, action);
     } else {
@@ -128,6 +146,11 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
+    if (await this.usesAndroidNativeTestSnapsBridge()) {
+      await assertAndroidTestSnapsTextContains(expectedMessage, options);
+      return;
+    }
+
     await this.withWebView(async () => {
       const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS[selector],
@@ -162,6 +185,11 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
+    if (await this.usesAndroidNativeTestSnapsBridge()) {
+      await assertAndroidTestSnapsJson(expectedJson, options);
+      return;
+    }
+
     await this.withWebView(async () => {
       const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS[selector],
@@ -296,6 +324,17 @@ class TestSnaps {
       interval: 100,
     },
   ) {
+    if (await this.usesAndroidNativeTestSnapsBridge()) {
+      await assertAndroidTestSnapsClientStatus(
+        {
+          clientVersion: expectedClientVersion,
+          ...expectedStatus,
+        },
+        options,
+      );
+      return;
+    }
+
     await this.withWebView(async () => {
       const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS.clientStatusResultSpan,
@@ -326,6 +365,14 @@ class TestSnaps {
   }
 
   async navigateToTestSnap(): Promise<void> {
+    if (
+      FrameworkDetector.isAppium() &&
+      (await PlatformDetector.isAndroid()) &&
+      process.env.CI === 'true'
+    ) {
+      await Browser.closeAllBrowserTabsIfOpen();
+    }
+
     await Browser.tapUrlInputBox();
     await Browser.navigateToURL(TEST_SNAPS_URL);
     await waitForTestSnapsToLoad();
@@ -334,6 +381,11 @@ class TestSnaps {
   async tapButton(
     buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
   ): Promise<void> {
+    if (await this.usesAndroidNativeTestSnapsBridge()) {
+      await tapAndroidTestSnapsButton(buttonLocator);
+      return;
+    }
+
     const tap = async () => {
       const webElement = await this.getTestSnapsWebElement(
         TestSnapViewSelectorWebIDS[buttonLocator],
@@ -546,6 +598,11 @@ class TestSnaps {
     locator: keyof typeof TestSnapInputSelectorWebIDS,
     message: string,
   ) {
+    if (await this.usesAndroidNativeTestSnapsBridge()) {
+      await fillAndroidTestSnapsInput(locator, message);
+      return;
+    }
+
     await this.withWebView(async () => {
       const webElement = await this.getTestSnapsWebElement(
         TestSnapInputSelectorWebIDS[locator],
