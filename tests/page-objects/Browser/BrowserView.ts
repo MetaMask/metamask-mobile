@@ -404,6 +404,10 @@ class Browser {
         await urlInput.clear();
         await urlInput.fill(url);
         await PlaywrightGestures.tapKeyboardReturnKey('Go');
+        // Allow WebView navigation to start before dismissing the URL editor.
+        if (PlatformDetector.isAndroid()) {
+          await TestHelpers.delay(2000);
+        }
         if (!options.skipUrlEditorDismissal) {
           if (
             await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)

@@ -16,6 +16,13 @@ const NATIVE_APP = 'NATIVE_APP';
 const LAVAMOAT_PATTERN = /LavaMoat|ShadowRoot|scuttling/i;
 const LOCALHOST_HOST_PATTERN =
   /^(localhost|127\.0\.0\.1|10\.0\.2\.2|bs-local\.com)$/i;
+const CONTEXT_SWITCH_TIMEOUT_MS = 15_000;
+
+type AndroidContextWithPages = AndroidDetailedContext & {
+  webviewName?: string;
+  webview?: string;
+  pages?: { url?: string }[];
+};
 
 export default class PlaywrightContextHelpers {
   private static readonly WEBVIEW_TIMEOUT_MS = 30_000;
@@ -78,10 +85,31 @@ export default class PlaywrightContextHelpers {
     const contexts: (Context | DetailedContext)[] =
       await getDriver().getContexts({ returnDetailedContexts: true });
 
-    return contexts.filter((ctx): ctx is DetailedContext => {
-      if (typeof ctx === 'string') return false;
-      return ctx.id !== NATIVE_APP;
-    });
+    return contexts
+      .filter((ctx): ctx is DetailedContext => {
+        if (typeof ctx === 'string') return false;
+        return ctx.id !== NATIVE_APP;
+      })
+      .map((ctx) => this.normalizeContext(ctx));
+  }
+
+  /** Android Chromedriver often omits top-level url; resolve from pages[].url. */
+  private static normalizeContext(ctx: DetailedContext): DetailedContext {
+    const android = ctx as AndroidContextWithPages;
+    const id = ctx.id ?? android.webviewName ?? android.webview ?? ctx.id;
+    if (ctx.url) {
+      return id && id !== ctx.id ? { ...ctx, id } : ctx;
+    }
+
+    const pageUrl = android.pages
+      ?.map((page) => page.url)
+      .find((url) => url && !/^about:blank/i.test(url));
+
+    if (!pageUrl && !id) {
+      return ctx;
+    }
+
+    return { ...ctx, id: id ?? ctx.id, url: pageUrl ?? ctx.url };
   }
 
   private static isLocalhostHost(host: string): boolean {
@@ -166,7 +194,20 @@ export default class PlaywrightContextHelpers {
     contextId: string,
   ): Promise<boolean> {
     try {
-      await getDriver().switchContext(contextId);
+      await Promise.race([
+        getDriver().switchContext(contextId),
+        new Promise<never>((_, reject) => {
+          setTimeout(
+            () =>
+              reject(
+                new Error(
+                  `switchContext("${contextId}") timed out after ${CONTEXT_SWITCH_TIMEOUT_MS}ms`,
+                ),
+              ),
+            CONTEXT_SWITCH_TIMEOUT_MS,
+          );
+        }),
+      ]);
       return true;
     } catch (err) {
       const message = this.getErrorMessage(err);
