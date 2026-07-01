@@ -38,6 +38,7 @@ import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaym
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
+import { useEnsurePayTokenFiatRate } from '../../../hooks/tokens/useEnsurePayTokenFiatRate';
 
 interface PayWithModalParams {
   /**
@@ -85,6 +86,7 @@ export function PayWithModal() {
     isPredictContext,
     isPredictContext ? resetSelectedPaymentToken : undefined,
   );
+  const ensurePayTokenFiatRate = useEnsurePayTokenFiatRate();
 
   const isMoneyAccount = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
@@ -183,6 +185,14 @@ export function PayWithModal() {
           } catch {
             // Network not configured — skip
           }
+
+          // Adding the token only populates metadata, not its price. The pay
+          // controller also needs a fiat rate to resolve the token, so fetch
+          // it before selecting to avoid a "Payment token not found" error.
+          await ensurePayTokenFiatRate({
+            address: token.address as Hex,
+            chainId: token.chainId as Hex,
+          });
         }
 
         setPayToken({
@@ -196,6 +206,7 @@ export function PayWithModal() {
     [
       close,
       dismissOnSelectCount,
+      ensurePayTokenFiatRate,
       isPredictContext,
       isWithdraw,
       navigation,
