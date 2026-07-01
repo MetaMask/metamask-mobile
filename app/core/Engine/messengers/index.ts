@@ -67,10 +67,6 @@ import {
 } from './permission-controller-messenger';
 import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
 import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
-import {
-  getNetworkControllerInitMessenger,
-  getNetworkControllerMessenger,
-} from './network-controller-messenger';
 import { getTokenSearchDiscoveryDataControllerMessenger } from './token-search-discovery-data-controller-messenger';
 import { getAssetsContractControllerMessenger } from './assets-contract-controller-messenger';
 import {
@@ -232,10 +228,6 @@ export const MESSENGER_FACTORIES = {
   GasFeeController: {
     getMessenger: getGasFeeControllerMessenger,
     getInitMessenger: noop,
-  },
-  NetworkController: {
-    getMessenger: getNetworkControllerMessenger,
-    getInitMessenger: getNetworkControllerInitMessenger,
   },
   NftController: {
     getMessenger: getNftControllerMessenger,

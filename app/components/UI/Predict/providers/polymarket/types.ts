@@ -135,6 +135,7 @@ export interface PolymarketApiEvent {
 export interface PolymarketApiActivity {
   type: 'TRADE' | 'REDEEM';
   side: 'BUY' | 'SELL' | '';
+  size?: number | string | null;
   price: number;
   usdcSize: number;
   timestamp: number;

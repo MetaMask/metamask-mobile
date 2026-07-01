@@ -29,6 +29,16 @@ const cashback: AccountsApiActivity = {
   receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0' as Hex,
 };
 
+const refund: AccountsApiActivity = {
+  kind: 'refund',
+  hash: '0xf00' as Hex,
+  time: 1780574031000,
+  chainId: '0x8f',
+  token,
+  amount: '10000000', // 10.00
+  receivedFrom: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e' as Hex,
+};
+
 describe('accountsApiActivityDisplayInfo', () => {
   it('renders a card spend as an outgoing row (negative, Card icon)', () => {
     const info = accountsApiActivityDisplayInfo(card, {
@@ -56,6 +66,20 @@ describe('accountsApiActivityDisplayInfo', () => {
     expect(info.label).toBe('mUSD back');
     expect(info.description).toBe('Card');
     expect(info.primaryAmount).toBe('+0.30 mUSD');
+    expect(info.fiatAmount.startsWith('+')).toBe(true);
+  });
+
+  it('renders a refund as an incoming row (positive, Card icon)', () => {
+    const info = accountsApiActivityDisplayInfo(refund, {
+      currentCurrency: 'usd',
+      usdToCurrentCurrencyRate: 1,
+    });
+
+    expect(info.isIncoming).toBe(true);
+    expect(info.icon).toBe(IconName.Card);
+    expect(info.label).toBe('Refund');
+    expect(info.description).toBe('Card');
+    expect(info.primaryAmount).toBe('+10.00 mUSD');
     expect(info.fiatAmount.startsWith('+')).toBe(true);
   });
 

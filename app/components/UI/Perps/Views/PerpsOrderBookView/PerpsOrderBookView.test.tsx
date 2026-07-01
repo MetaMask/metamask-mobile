@@ -6,11 +6,28 @@ import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { PerpsOrderBookViewSelectorsIDs } from '../../Perps.testIds';
 import type { OrderBookData } from '../../hooks/stream/usePerpsLiveOrderBook';
 import { mockTheme } from '../../../../../util/theme';
+import type { OrderBookRouteParams } from './PerpsOrderBookView.types';
+import type { PerpsMarketData } from '@metamask/perps-controller';
 
 // Mock navigation
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 const mockCanGoBack = jest.fn();
+const mockUseRoute = jest.fn<{ params: OrderBookRouteParams }, []>(() => ({
+  params: {
+    symbol: 'BTC',
+  },
+}));
+
+const mockRouteMarketData: PerpsMarketData = {
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  maxLeverage: '50x',
+  price: '$50,000.00',
+  change24h: '$0',
+  change24hPercent: '0%',
+  volume: '$1M',
+};
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -22,11 +39,7 @@ jest.mock('@react-navigation/native', () => {
       canGoBack: mockCanGoBack,
       setOptions: jest.fn(),
     }),
-    useRoute: () => ({
-      params: {
-        symbol: 'BTC',
-      },
-    }),
+    useRoute: () => mockUseRoute(),
   };
 });
 
@@ -229,9 +242,11 @@ jest.mock('../../components/PerpsMarketHeader', () => {
     default: ({
       market,
       onBackPress,
+      endAccessory,
     }: {
       market?: { symbol: string };
       onBackPress?: () => void;
+      endAccessory?: React.ReactNode;
     }) => (
       <View testID="perps-market-header">
         <TouchableOpacity
@@ -242,6 +257,7 @@ jest.mock('../../components/PerpsMarketHeader', () => {
         </TouchableOpacity>
         <Text>Order Book</Text>
         {market && <Text>{market.symbol}</Text>}
+        {endAccessory}
       </View>
     ),
   };
@@ -350,6 +366,23 @@ describe('PerpsOrderBookView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseRoute.mockReturnValue({
+      params: {
+        symbol: 'BTC',
+      },
+    });
+    const { usePerpsMarkets } = jest.requireMock('../../hooks');
+    usePerpsMarkets.mockReturnValue({
+      markets: [
+        {
+          symbol: 'BTC',
+          price: '$50,000.00',
+          leverage: 50,
+        },
+      ],
+      isLoading: false,
+      error: null,
+    });
     mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
       action(),
     );
@@ -538,10 +571,15 @@ describe('PerpsOrderBookView', () => {
         state: initialState,
       });
 
+      const baseToggle = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_BASE,
+      );
       const usdToggle = getByTestId(
         PerpsOrderBookViewSelectorsIDs.UNIT_TOGGLE_USD,
       );
 
+      fireEvent.press(baseToggle);
+      mockTrack.mockClear();
       fireEvent.press(usdToggle);
 
       expect(mockTrack).toHaveBeenCalled();
@@ -1465,6 +1503,53 @@ describe('PerpsOrderBookView', () => {
       await waitFor(() => {
         expect(queryByTestId(geoBlockTooltipId)).toBeNull();
       });
+    });
+  });
+
+  describe('header when market list entry is missing', () => {
+    it('renders back and grouping controls from route symbol only', () => {
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [],
+        isLoading: true,
+        error: null,
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.BACK_BUTTON),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('uses route marketData for full header while markets list is loading', () => {
+      const { usePerpsMarkets } = jest.requireMock('../../hooks');
+      usePerpsMarkets.mockReturnValue({
+        markets: [],
+        isLoading: true,
+        error: null,
+      });
+
+      mockUseRoute.mockReturnValue({
+        params: {
+          symbol: 'BTC',
+          marketData: mockRouteMarketData,
+        },
+      });
+
+      const { getByTestId } = renderWithProvider(<PerpsOrderBookView />, {
+        state: initialState,
+      });
+
+      expect(getByTestId('perps-market-header')).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 

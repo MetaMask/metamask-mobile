@@ -1007,7 +1007,6 @@ export type MessengerClientsToInitialize =
   | 'MoneyAccountController'
   | 'MoneyAccountBalanceService'
   | 'LoggingController'
-  | 'NetworkController'
   | 'AccountTreeController'
   | 'CurrencyRateController'
   | 'DeFiPositionsController'
