@@ -151,17 +151,26 @@ export const selectMoneyVaultApyRemoteConfig = createSelector(
 );
 
 /**
+ * Aave-wrapped token aliases present in the confirmations_relay_fixed_spread
+ * flag. Each maps to a mixed-case display symbol ("aUSDC", not "AUSDC").
+ * Extend this set when new aave tokens are added to the flag — do not rely on
+ * a regex heuristic, as other tokens starting with "a" (e.g. ATOM, AVAX) would
+ * be incorrectly cased.
+ */
+const AAVE_TOKEN_ALIASES = new Set(['ausdc', 'ausdt', 'adai', 'ausdcn']);
+
+/**
  * Converts a raw token alias (e.g. "eth_usdc", "eth_ausdc", "musd") to its
  * display symbol:
  * - Strip the chain prefix ("eth_usdc" → "usdc")
- * - aave-style tokens (leading 'a' followed by a letter): "ausdc" → "aUSDC"
- * - all others: full uppercase ("usdc" → "USDC")
+ * - Known aave tokens (see AAVE_TOKEN_ALIASES): "ausdc" → "aUSDC"
+ * - All others: full uppercase ("usdc" → "USDC")
  */
 const normalizeTokenSymbol = (tokenAlias: string): string => {
   const underscoreIdx = tokenAlias.indexOf('_');
   const raw =
     underscoreIdx >= 0 ? tokenAlias.slice(underscoreIdx + 1) : tokenAlias;
-  if (/^a[a-z]/i.test(raw)) {
+  if (AAVE_TOKEN_ALIASES.has(raw.toLowerCase())) {
     return 'a' + raw.slice(1).toUpperCase();
   }
   return raw.toUpperCase();

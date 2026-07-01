@@ -7,7 +7,9 @@
  */
 
 // eslint-disable-next-line import-x/no-default-export
-export default `/**
+export default `/* istanbul ignore file -- Browser-only TradingView script covered via AdvancedChartTemplate tests. */
+/* global globalThis */
+/**
  * TradingView Chart WebView Logic
  *
  * Generic charting logic for TradingView Advanced Charts.
@@ -55,6 +57,16 @@ window.ohlcvPagination = {
   assetId: null,
   vsCurrency: null,
 };
+/**
+ * RN-backed pagination: when enabled, getBars sends FETCH_OLDER_BARS_REQUEST to RN
+ * instead of fetching the Price API directly. Used when the data source is only
+ * accessible from RN (e.g. Perps candle channel via PerpsController).
+ */
+window.rnBackedPagination = { enabled: false };
+/** Pending getBars callbacks waiting for a FETCH_OLDER_BARS_RESPONSE from RN. */
+window.pendingOlderBarsCallbacks = new Map();
+/** Monotonic request id suffix for RN-backed older-bars requests. */
+globalThis.olderBarsRequestSeq = 0;
 /** Bumped on each \`SET_OHLCV_DATA\` so in-flight fetches from a previous series are discarded. */
 window.ohlcvGeneration = 0;
 /** Visible-range start (ms) from RN; used to clip bars on first load so the chart auto-fits correctly. */
@@ -83,6 +95,7 @@ window.__slbCenteringInFlight = false;
 // Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
 window.currentChartType = 2;
 window.lineLastPriceShapeId = null;
+window.hasExplicitCurrentPriceLine = false;
 /** Bumped when \`ohlcvData\` is replaced or last bar changes; visible-range dot refresh ignores stale timers. */
 window.lineChartOhlcvEpoch = 0;
 
@@ -303,16 +316,33 @@ function queueTryCompleteLayoutSettleAfterData() {
  */
 /** Pre-\`resetData\` \`getBars\` during \`setResolution\` — deliver empty/noData, not real bars. */
 function isHotReloadPreResetGetBars(firstDataRequest) {
-  return !!firstDataRequest && window.__mmInHotReloadPreResetPhase;
+  return !!firstDataRequest && globalThis.__mmInHotReloadPreResetPhase;
 }
 
 function resetDatafeedCacheBeforeHotReload() {
-  if (!window.chartWidget) {
+  if (!globalThis.chartWidget) {
     return;
   }
   try {
-    if (typeof window.chartWidget.resetCache === 'function') {
-      window.chartWidget.resetCache();
+    if (typeof globalThis.chartWidget.resetCache === 'function') {
+      globalThis.chartWidget.resetCache();
+    }
+  } catch (e) {}
+}
+
+function resetMainPriceScaleAutoScale(chart) {
+  try {
+    if (!chart || typeof chart.getPanes !== 'function') {
+      return;
+    }
+    const panes = chart.getPanes();
+    const mainPane = panes?.[0];
+    if (!mainPane || typeof mainPane.getMainSourcePriceScale !== 'function') {
+      return;
+    }
+    const priceScale = mainPane.getMainSourcePriceScale();
+    if (typeof priceScale?.setAutoScale === 'function') {
+      priceScale.setAutoScale(true);
     }
   } catch (e) {}
 }
@@ -525,7 +555,16 @@ function handleMessage(event) {
     let message =
       typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
 
-    if (!window.isChartReady && message.type !== 'SET_OHLCV_DATA') {
+    // SET_OHLCV_DATA bootstraps the chart, and FETCH_OLDER_BARS_RESPONSE resolves a
+    // datafeed getBars() callback — both can legitimately arrive before \`onChartReady\`
+    // (TradingView calls getBars during initial load). Queuing the older-bars response
+    // would deadlock: onChartReady drains the queue, but it cannot fire until the pending
+    // getBars callback this response carries is resolved.
+    if (
+      !window.isChartReady &&
+      message.type !== 'SET_OHLCV_DATA' &&
+      message.type !== 'FETCH_OLDER_BARS_RESPONSE'
+    ) {
       window.pendingMessages.push(message);
       return;
     }
@@ -572,6 +611,9 @@ function handleMessage(event) {
         break;
       case 'SET_THEME_COLORS':
         handleSetThemeColors(message.payload);
+        break;
+      case 'FETCH_OLDER_BARS_RESPONSE':
+        handleFetchOlderBarsResponse(message.payload);
         break;
     }
   } catch (error) {
@@ -723,6 +765,13 @@ function handleSetOHLCVData(payload) {
     };
   }
 
+  window.rnBackedPagination = payload.rnBackedPagination
+    ? { enabled: !!payload.rnBackedPagination.enabled }
+    : { enabled: false };
+
+  // Resolve pending older-bar callbacks from the previous series before clearing.
+  resolveAllPendingOlderBarsNoData();
+
   let visibleFromMs =
     payload.visibleFromMs != null ? payload.visibleFromMs : null;
   window.visibleFromMs = visibleFromMs;
@@ -795,7 +844,8 @@ function handleSetOHLCVData(payload) {
             resetDatafeedCacheBeforeHotReload();
             beginDeferredLayoutSettleAfterOhlcvReload();
             chart.resetData();
-            // resetData() drops the trade-marker shapes; clear our tracking and
+            resetMainPriceScaleAutoScale(chart);
+            // resetData()/setResolution drop Drawing API shapes; clear our tracking and
             // re-schedule a draw, otherwise placeTradeMarkers skips the redraw
             // (its id set still matches) and the circles stay gone.
             clearTradeMarkers();
@@ -811,6 +861,7 @@ function handleSetOHLCVData(payload) {
           resetDatafeedCacheBeforeHotReload();
           beginDeferredLayoutSettleAfterOhlcvReload();
           chart.resetData();
+          resetMainPriceScaleAutoScale(chart);
           // resetData() drops the trade-marker shapes; clear our tracking and
           // re-schedule a draw, otherwise placeTradeMarkers skips the redraw
           // (its id set still matches) and the circles stay gone.
@@ -1346,6 +1397,21 @@ function applySeriesColors() {
   applySeriesStyleProperties(lineColor);
 }
 
+function getCurrentPriceVisualColor() {
+  const theme = globalThis.CONFIG?.theme || {};
+  return theme.currentPriceColor || theme.lineColor || theme.successColor;
+}
+
+function getVolumeSuccessColor() {
+  const theme = globalThis.CONFIG?.theme || {};
+  return theme.volumeSuccessColor || theme.successColor;
+}
+
+function getVolumeErrorColor() {
+  const theme = globalThis.CONFIG?.theme || {};
+  return theme.volumeErrorColor || theme.errorColor;
+}
+
 /**
  * Hot-swap theme colors (line, success/up, error/down) without rebuilding the
  * WebView. Uses TradingView's documented runtime APIs in one pass:
@@ -1364,6 +1430,12 @@ function handleSetThemeColors(payload) {
   if (payload.errorColor != null) theme.errorColor = payload.errorColor;
   if (payload.currentPriceColor != null) {
     theme.currentPriceColor = payload.currentPriceColor;
+  }
+  if (payload.volumeSuccessColor != null) {
+    theme.volumeSuccessColor = payload.volumeSuccessColor;
+  }
+  if (payload.volumeErrorColor != null) {
+    theme.volumeErrorColor = payload.volumeErrorColor;
   }
 
   if (!window.chartWidget || !window.isChartReady) return;
@@ -1395,8 +1467,8 @@ function handleSetThemeColors(payload) {
   if (window.volumeStudyId) {
     try {
       chart.getStudyById(window.volumeStudyId).applyOverrides({
-        'volume.color.0': theme.errorColor,
-        'volume.color.1': theme.successColor,
+        'volume.color.0': getVolumeErrorColor(),
+        'volume.color.1': getVolumeSuccessColor(),
       });
     } catch (e) {}
   }
@@ -1404,7 +1476,7 @@ function handleSetThemeColors(payload) {
   // Update custom DOM pill colors
   let elLast = document.getElementById('last-close-price-label');
   if (elLast) {
-    elLast.style.background = lineColor;
+    elLast.style.background = lastPriceLineColor;
   }
 
   // Update Drawing API shapes in-place via setProperties (synchronous, no
@@ -1478,6 +1550,11 @@ function applyChartScaleLayout(type) {
   let useCustomDashed = lc.useCustomDashedLastPriceLine;
   /** Match pane background so time/price scale rules disappear; labels use textColor above. */
   let axisLineColor = theme.backgroundColor || '#131416';
+  let separatorColor =
+    window.CONFIG.features && window.CONFIG.features.hidePaneSeparator
+      ? theme.backgroundColor || '#131416'
+      : theme.borderColor;
+  let gridLineColor = theme.gridLineColor || 'transparent';
 
   try {
     window.chartWidget.applyOverrides(
@@ -1490,10 +1567,15 @@ function applyChartScaleLayout(type) {
           'scalesProperties.showSymbolLabels': false,
           'scalesProperties.showPriceScaleCrosshairLabel': !useCustomLabels,
           'scalesProperties.showTimeScaleCrosshairLabel': !useCustomLabels,
-          'mainSeriesProperties.showPriceLine': !useCustomDashed,
+          'paneProperties.vertGridProperties.color': gridLineColor,
+          'paneProperties.horzGridProperties.color': gridLineColor,
+          'mainSeriesProperties.showPriceLine':
+            !useCustomDashed && !window.hasExplicitCurrentPriceLine,
+          'mainSeriesProperties.priceLineColor':
+            getThemeLastPriceLineColor(theme),
           'timeScale.borderColor': axisLineColor,
           'scalesProperties.lineColor': axisLineColor,
-          'paneProperties.separatorColor': theme.borderColor,
+          'paneProperties.separatorColor': separatorColor,
           'paneProperties.topMargin': 12,
           'paneProperties.bottomMargin': 8,
         },
@@ -1926,13 +2008,14 @@ function updateVisibleEdgeOutlinePriceLabel() {
   const theme = (w.CONFIG && w.CONFIG.theme) || {};
   const upColor = theme.successColor || '#0C9F76';
   const lineColor = getThemeLineColor(theme) || upColor;
+  const currentPriceColor = getThemeLastPriceLineColor(theme) || lineColor;
   const downColor = theme.errorColor || '#E06470';
-  let outlineColor = ct === 2 ? lineColor : upColor;
+  let outlineColor = currentPriceColor;
   if (ct === 1) {
     const o = Number(edgeBar.open);
     const c = Number(edgeBar.close);
-    if (isFinite(o) && isFinite(c) && c < o) {
-      outlineColor = downColor;
+    if (!theme.currentPriceColor) {
+      outlineColor = isFinite(o) && isFinite(c) && c < o ? downColor : upColor;
     }
   }
   elOut.style.borderColor = outlineColor;
@@ -2072,6 +2155,7 @@ function updateLastClosePriceLabel() {
     return;
   }
   el.textContent = formatCrosshairPrice(labelPrice);
+  el.style.background = getCurrentPriceVisualColor();
   el.style.display = 'flex';
   let overlay = document.getElementById('custom-crosshair-overlay');
   positionPricePillAtPlotPriceBoundary(el, overlay, y);
@@ -2745,50 +2829,100 @@ function handleSetPositionLines(payload) {
   clearPositionLines();
 
   // null or missing position means "clear only"
-  if (!payload || !payload.position) return;
+  if (!payload || !payload.position) {
+    window.hasExplicitCurrentPriceLine = false;
+    try {
+      window.chartWidget.applyOverrides({
+        'mainSeriesProperties.showPriceLine':
+          !getLineChrome().useCustomDashedLastPriceLine,
+      });
+    } catch (e) {}
+    return;
+  }
 
   let position = payload.position;
+  window.hasExplicitCurrentPriceLine = !!position.currentPrice;
   let theme = window.CONFIG.theme;
+  try {
+    window.chartWidget.applyOverrides({
+      'mainSeriesProperties.showPriceLine':
+        !getLineChrome().useCustomDashedLastPriceLine &&
+        !window.hasExplicitCurrentPriceLine,
+    });
+  } catch (e) {}
+  // Position lines are consumer-specific (currently Perps only); the consumer
+  // supplies colors via the payload. Fall back to theme-derived defaults.
+  let colors = payload.positionLineColors || {};
+  let currentPriceColor =
+    colors.currentPrice || getThemeLastPriceLineColor(theme);
+  let entryColor = colors.entry || '#858585';
+  let takeProfitColor = colors.takeProfit || theme.successColor;
+  let stopLossColor = colors.stopLoss || '#858585';
+  let liquidationColor = colors.liquidation || theme.errorColor;
 
   try {
     let chart = window.chartWidget.activeChart();
     let lines = [];
 
+    if (position.currentPrice) {
+      lines.push({
+        price: position.currentPrice,
+        color: currentPriceColor,
+        lineStyle: 2,
+        lineWidth: 1,
+        showLabel: false,
+        showPrice: false,
+        horzLabelsAlign: 'right',
+      });
+    }
     if (position.entryPrice) {
       lines.push({
         price: position.entryPrice,
         text: 'Entry',
-        color: '#858585',
+        color: entryColor,
         lineStyle: 2,
+        lineWidth: 1,
+        showLabel: true,
+        showPrice: true,
+        horzLabelsAlign: 'left',
       });
     }
     if (position.takeProfitPrice) {
       lines.push({
         price: position.takeProfitPrice,
         text: 'TP',
-        color: theme.successColor,
+        color: takeProfitColor,
         lineStyle: 2,
+        lineWidth: 1,
+        showLabel: true,
+        showPrice: true,
+        horzLabelsAlign: 'left',
       });
     }
     if (position.stopLossPrice) {
       lines.push({
         price: position.stopLossPrice,
         text: 'SL',
-        color: '#858585',
+        color: stopLossColor,
         lineStyle: 2,
+        lineWidth: 1,
+        showLabel: true,
+        showPrice: true,
+        horzLabelsAlign: 'left',
       });
     }
     if (position.liquidationPrice) {
       lines.push({
         price: position.liquidationPrice,
         text: 'Liq',
-        color: theme.errorColor,
+        color: liquidationColor,
         lineStyle: 2,
+        lineWidth: 1,
+        showLabel: true,
+        showPrice: true,
+        horzLabelsAlign: 'left',
       });
     }
-    // TODO: currentPrice is defined in PositionLines but not yet rendered here.
-    // Add a line for position.currentPrice (e.g. a solid line showing live mark
-    // price) when the Perps integration is ready.
 
     for (let i = 0; i < lines.length; i++) {
       (function (line) {
@@ -2805,12 +2939,12 @@ function handleSetPositionLines(payload) {
               overrides: {
                 linecolor: line.color,
                 linestyle: line.lineStyle,
-                linewidth: 1,
-                showLabel: true,
+                linewidth: line.lineWidth,
+                showLabel: line.showLabel,
                 textcolor: line.color,
                 fontsize: 11,
-                horzLabelsAlign: 'right',
-                showPrice: true,
+                horzLabelsAlign: line.horzLabelsAlign,
+                showPrice: line.showPrice,
               },
             },
           )
@@ -5052,12 +5186,12 @@ function createVolumeStudy(useOverlay) {
 
   try {
     const chart = window.chartWidget.activeChart();
-    const t = window.CONFIG.theme;
     const overrides = {
       showLegendValues: false,
+      'volume ma.display': 0,
+      'volume.color.0': getVolumeErrorColor(),
+      'volume.color.1': getVolumeSuccessColor(),
       'volume.transparency': useOverlay ? 70 : 0,
-      'volume.color.0': t.errorColor,
-      'volume.color.1': t.successColor,
     };
     const promise = useOverlay
       ? chart.createStudy('Volume', true, false, {}, overrides, {
@@ -5205,6 +5339,92 @@ function filterBarsForRange(fromMs, toMs, countBack) {
   }
 
   return barsInRange;
+}
+
+function resolvePendingOlderBarsNoData(pending) {
+  if (!pending || typeof pending.onResult !== 'function') {
+    return;
+  }
+  try {
+    pending.onResult([], { noData: true });
+  } catch (e) {}
+  if (window.__mmLayoutSettlePending) {
+    queueTryCompleteLayoutSettleAfterData();
+  }
+}
+
+function resolveAllPendingOlderBarsNoData() {
+  if (
+    !window.pendingOlderBarsCallbacks ||
+    typeof window.pendingOlderBarsCallbacks.forEach !== 'function'
+  ) {
+    window.pendingOlderBarsCallbacks = new Map();
+    return;
+  }
+  window.pendingOlderBarsCallbacks.forEach(function (pending) {
+    resolvePendingOlderBarsNoData(pending);
+  });
+  window.pendingOlderBarsCallbacks = new Map();
+}
+
+/**
+ * Handles FETCH_OLDER_BARS_RESPONSE from RN.
+ * Merges returned bars into window.ohlcvData and resolves the pending getBars callback.
+ */
+function handleFetchOlderBarsResponse(payload) {
+  if (!payload || typeof payload.requestId !== 'string') {
+    return;
+  }
+  var pending = window.pendingOlderBarsCallbacks.get(payload.requestId);
+  if (!pending) {
+    return; // already resolved or timed out
+  }
+  window.pendingOlderBarsCallbacks.delete(payload.requestId);
+
+  // Discard stale response if series changed since request was sent.
+  if (
+    payload.seriesGeneration !== pending.gen ||
+    payload.seriesGeneration !== window.ohlcvGeneration
+  ) {
+    resolvePendingOlderBarsNoData(pending);
+    return;
+  }
+
+  if (
+    payload.error ||
+    payload.noData ||
+    !Array.isArray(payload.bars) ||
+    payload.bars.length === 0
+  ) {
+    pending.onResult([], { noData: true });
+    if (window.__mmLayoutSettlePending) {
+      queueTryCompleteLayoutSettleAfterData();
+    }
+    return;
+  }
+
+  var existingTimes = new Set();
+  for (var j = 0; j < window.ohlcvData.length; j++) {
+    existingTimes.add(window.ohlcvData[j].time);
+  }
+
+  var olderBars = [];
+  for (var i = 0; i < payload.bars.length; i++) {
+    var bar = payload.bars[i];
+    if (bar.time < pending.oldestAtDefer && !existingTimes.has(bar.time)) {
+      existingTimes.add(bar.time);
+      olderBars.push(bar);
+    }
+  }
+
+  if (olderBars.length > 0) {
+    window.ohlcvData = olderBars.concat(window.ohlcvData);
+  }
+
+  pending.onResult(olderBars, { noData: olderBars.length === 0 });
+  if (window.__mmLayoutSettlePending) {
+    queueTryCompleteLayoutSettleAfterData();
+  }
 }
 
 let OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
@@ -5547,10 +5767,40 @@ let customDatafeed = {
         return;
       }
 
-      fetchOlderBars({
-        onResult: onResult,
-        oldestAtDefer: oldestTs,
-      });
+      // \`oldestTs\` is declared above (before the SLB back-fill block); reuse it
+      // here instead of re-declaring so the two pagination paths coexist.
+      if (window.ohlcvPagination.assetId) {
+        // Token details path: WebView fetches older pages from Price API directly.
+        fetchOlderBars({
+          onResult: onResult,
+          oldestAtDefer: oldestTs,
+        });
+      } else if (globalThis.rnBackedPagination.enabled) {
+        // RN-backed path (Perps): send a request to RN and store the pending callback.
+        const gen = globalThis.ohlcvGeneration;
+        globalThis.olderBarsRequestSeq += 1;
+        const requestId = 'obr-' + gen + '-' + globalThis.olderBarsRequestSeq;
+        globalThis.pendingOlderBarsCallbacks.set(requestId, {
+          onResult: onResult,
+          oldestAtDefer: oldestTs,
+          gen: gen,
+        });
+        sendToReactNative('FETCH_OLDER_BARS_REQUEST', {
+          requestId: requestId,
+          seriesGeneration: gen,
+          symbol: globalThis.currentSymbol || symbolInfo.name,
+          resolution: resolution,
+          fromSec: periodParams.from,
+          toSec: periodParams.to,
+          countBack: periodParams.countBack,
+          oldestLoadedTimeMs: oldestTs,
+        });
+      } else {
+        onResult([], { noData: true });
+        if (window.__mmLayoutSettlePending) {
+          queueTryCompleteLayoutSettleAfterData();
+        }
+      }
     } catch (error) {
       abortDeferredLayoutSettleAndNotify();
       onError(error && error.message ? error.message : String(error));
@@ -5818,8 +6068,11 @@ function initChart() {
         {
           'paneProperties.background': theme.backgroundColor,
           'paneProperties.backgroundType': 'solid',
-          'paneProperties.vertGridProperties.color': 'transparent',
-          'paneProperties.horzGridProperties.color': 'transparent',
+          'paneProperties.vertGridProperties.color':
+            theme.gridLineColor || 'transparent',
+          'paneProperties.horzGridProperties.color':
+            theme.gridLineColor || 'transparent',
+          'scalesProperties.textColor': theme.textColor,
           'scalesProperties.lineColor': theme.backgroundColor || '#131416', // done to hide the axis line
           'timeScale.borderColor': theme.backgroundColor || '#131416', // done to hide the axis line
           'scalesProperties.fontSize': 12,
@@ -5838,7 +6091,10 @@ function initChart() {
           'paneProperties.legendProperties.showStudyTitles': false,
           'paneProperties.legendProperties.showStudyArguments': false,
           'paneProperties.legendProperties.showStudyValues': false,
-          'mainSeriesProperties.showPriceLine': !initCustomDashed,
+          'mainSeriesProperties.showPriceLine':
+            !initCustomDashed && !window.hasExplicitCurrentPriceLine,
+          'mainSeriesProperties.priceLineColor':
+            getThemeLastPriceLineColor(theme),
 
           'mainSeriesProperties.candleStyle.upColor': theme.successColor,
           'mainSeriesProperties.candleStyle.downColor': theme.errorColor,

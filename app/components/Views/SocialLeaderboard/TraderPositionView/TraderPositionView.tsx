@@ -75,7 +75,7 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { chainNameToId } from '../utils/chainMapping';
-import { isPerpPosition } from '../utils/perp';
+import { getPerpPositionDirection, isPerpPosition } from '../utils/perp';
 import PerpsTradeButton from './components/PerpsTradeButton';
 import {
   getPerpsDisplaySymbol,
@@ -349,6 +349,10 @@ const TraderPositionView = () => {
   // page. A minimal { symbol, name } market is enough — PerpsMarketDetailsView
   // enriches it from usePerpsMarkets (same pattern as PerpsPositionTransactionView).
   const isPerp = displayPosition ? isPerpPosition(displayPosition) : false;
+  const perpDirection =
+    isPerp && displayPosition
+      ? getPerpPositionDirection(displayPosition)
+      : null;
 
   // CAIP-19 asset id for the spot chart. Resolves only for non-perp positions on
   // a supported chain; when undefined the chart section uses the legacy SVG
@@ -639,6 +643,8 @@ const TraderPositionView = () => {
           symbol={symbol}
           pricePercentChange={displayPercentChange}
           activeTimePeriodLabel={activeTimePeriod}
+          perpDirection={perpDirection}
+          perpLeverage={displayPosition?.perpLeverage}
           onBack={handleBack}
           onTraderPress={handleTraderPress}
         />
