@@ -18,7 +18,7 @@ import { getNetworkImageSource } from '../../../../util/networks';
 import { getTokenImageSource } from '../../../UI/ActivityListItemRow/tokenIcon';
 
 const FEE_NETWORK_BADGE_SIZE = 12;
-const FEE_NETWORK_BADGE_RADIUS = 3;
+const FEE_NETWORK_BADGE_RADIUS = 4;
 
 const styles = StyleSheet.create({
   networkBadge: {
@@ -71,7 +71,7 @@ export function ActivityDetailsFeeValue({
             badge={
               networkImageSource ? (
                 <Box
-                  twClassName="overflow-hidden border rounded-full border-background-default bg-default"
+                  twClassName="overflow-hidden border border-background-default bg-default"
                   style={styles.networkBadge}
                   testID="fee-network-badge"
                 >
