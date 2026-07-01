@@ -195,9 +195,7 @@ class Browser {
 
     await executeMobileDeepLink(deeplink);
     const isAndroidCi =
-      FrameworkDetector.isAppium() &&
-      PlatformDetector.isAndroid() &&
-      process.env.CI === 'true';
+      PlatformDetector.isAndroidAppium() && process.env.CI === 'true';
     await sleep(isAndroidCi ? 8_000 : 3_000);
   }
 

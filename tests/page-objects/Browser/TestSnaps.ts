@@ -32,7 +32,7 @@ import {
   assertAndroidTestSnapsTextContains,
   fillAndroidTestSnapsInput,
   tapAndroidTestSnapsButton,
-} from '../../helpers/android-test-snaps-native.helpers';
+} from '../../smoke-appium/snaps/helpers/android-test-snaps-native.helpers';
 import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
@@ -106,12 +106,8 @@ class TestSnaps {
     return Matchers.getIdentifier('snap-ui-renderer__scrollview');
   }
 
-  private async usesAndroidNativeTestSnapsBridge(): Promise<boolean> {
-    return FrameworkDetector.isAppium() && (await PlatformDetector.isAndroid());
-  }
-
   private async withWebView(action: () => Promise<void>): Promise<void> {
-    if (await this.usesAndroidNativeTestSnapsBridge()) {
+    if (PlatformDetector.isAndroidAppium()) {
       await PlaywrightContextHelpers.switchToNativeContext();
       await action();
       return;
@@ -146,8 +142,12 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    if (await this.usesAndroidNativeTestSnapsBridge()) {
-      await assertAndroidTestSnapsTextContains(expectedMessage, options);
+    if (PlatformDetector.isAndroidAppium()) {
+      await assertAndroidTestSnapsTextContains(
+        selector,
+        expectedMessage,
+        options,
+      );
       return;
     }
 
@@ -185,8 +185,8 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    if (await this.usesAndroidNativeTestSnapsBridge()) {
-      await assertAndroidTestSnapsJson(expectedJson, options);
+    if (PlatformDetector.isAndroidAppium()) {
+      await assertAndroidTestSnapsJson(selector, expectedJson, options);
       return;
     }
 
@@ -324,7 +324,7 @@ class TestSnaps {
       interval: 100,
     },
   ) {
-    if (await this.usesAndroidNativeTestSnapsBridge()) {
+    if (PlatformDetector.isAndroidAppium()) {
       await assertAndroidTestSnapsClientStatus(
         {
           clientVersion: expectedClientVersion,
@@ -365,11 +365,7 @@ class TestSnaps {
   }
 
   async navigateToTestSnap(): Promise<void> {
-    if (
-      FrameworkDetector.isAppium() &&
-      (await PlatformDetector.isAndroid()) &&
-      process.env.CI === 'true'
-    ) {
+    if (PlatformDetector.isAndroidAppium()) {
       await Browser.closeAllBrowserTabsIfOpen();
     }
 
@@ -381,7 +377,7 @@ class TestSnaps {
   async tapButton(
     buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
   ): Promise<void> {
-    if (await this.usesAndroidNativeTestSnapsBridge()) {
+    if (PlatformDetector.isAndroidAppium()) {
       await tapAndroidTestSnapsButton(buttonLocator);
       return;
     }
@@ -561,7 +557,7 @@ class TestSnaps {
   ): Promise<void> {
     await Assertions.expectTextDisplayed('Confirmation Dialog', options);
 
-    if (FrameworkDetector.isAppium() && (await PlatformDetector.isIOS())) {
+    if (PlatformDetector.isIOSAppium()) {
       // Inline SnapUILink renders as Text on iOS; testIDs are not exposed to XCUITest.
       await Assertions.expectTextDisplayed('link', options);
       return;
@@ -598,7 +594,7 @@ class TestSnaps {
     locator: keyof typeof TestSnapInputSelectorWebIDS,
     message: string,
   ) {
-    if (await this.usesAndroidNativeTestSnapsBridge()) {
+    if (PlatformDetector.isAndroidAppium()) {
       await fillAndroidTestSnapsInput(locator, message);
       return;
     }

@@ -8,10 +8,10 @@ import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/B
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import TrendingView from '../page-objects/Trending/TrendingView';
 import { FrameworkDetector } from '../framework/FrameworkDetector';
+import { PlatformDetector } from '../framework/PlatformLocator';
 import PlaywrightWebMatchers from '../framework/PlaywrightWebMatchers';
 import PlaywrightContextHelpers from '../framework/PlaywrightContextHelpers';
-import { PlatformDetector } from '../framework/PlatformLocator';
-import { waitForAndroidTestSnapsNativeLoad } from '../helpers/android-test-snaps-native.helpers';
+import { waitForAndroidTestSnapsNativeLoad } from '../smoke-appium/snaps/helpers/android-test-snaps-native.helpers';
 import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
 
 /**
@@ -65,12 +65,12 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      if (FrameworkDetector.isAppium()) {
-        if (await PlatformDetector.isAndroid()) {
-          await waitForAndroidTestSnapsNativeLoad();
-          return;
-        }
+      if (PlatformDetector.isAndroidAppium()) {
+        await waitForAndroidTestSnapsNativeLoad();
+        return;
+      }
 
+      if (FrameworkDetector.isAppium()) {
         await Assertions.expectElementToBeVisible(
           Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID),
           {
