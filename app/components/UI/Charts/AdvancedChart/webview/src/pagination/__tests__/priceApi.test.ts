@@ -72,7 +72,9 @@ describe('pagination/priceApi', () => {
 
     const result = await fetchOlderBarsFromPriceApi({ oldestAtDefer: 100 });
 
-    expect((globalThis as { fetch?: jest.Mock }).fetch).toHaveBeenCalledWith(
+    expect(
+      (globalThis as unknown as { fetch?: jest.Mock }).fetch,
+    ).toHaveBeenCalledWith(
       `${OHLCV_BASE_URL}/eip155:1/slip44:60?nextCursor=abc%3D&vsCurrency=usd`,
     );
     expect(result.olderBars).toHaveLength(2);
@@ -254,8 +256,9 @@ describe('pagination/priceApi', () => {
 
     await fetchOlderBarsFromPriceApi({ oldestAtDefer: 100 });
 
-    const calledUrl = ((globalThis as { fetch?: jest.Mock }).fetch as jest.Mock)
-      .mock.calls[0][0] as string;
+    const calledUrl = (
+      (globalThis as unknown as { fetch?: jest.Mock }).fetch as jest.Mock
+    ).mock.calls[0][0] as string;
     expect(calledUrl).toBe(
       `${OHLCV_BASE_URL}/eip155:1/slip44:60?nextCursor=abc`,
     );

@@ -74,9 +74,12 @@ describe('core/bridge', () => {
       listeners = { window: [], document: [] };
       jest
         .spyOn(window, 'addEventListener')
-        .mockImplementation((type: string, listener: EventListener) => {
-          if (type === 'message') listeners.window.push(listener);
-        });
+        .mockImplementation(
+          (type: string, listener: EventListenerOrEventListenerObject) => {
+            if (type === 'message')
+              listeners.window.push(listener as EventListener);
+          },
+        );
       jest
         .spyOn(document, 'addEventListener')
         .mockImplementation(
