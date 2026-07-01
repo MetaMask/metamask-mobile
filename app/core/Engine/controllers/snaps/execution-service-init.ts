@@ -6,7 +6,11 @@ import {
 import { Duplex } from 'stream';
 import { MessengerClientInitFunction } from '../../types';
 import { WebViewExecutionService } from '@metamask/snaps-controllers/react-native';
-import { createWebView, removeWebView } from '../../../../lib/snaps';
+import {
+  createWebView,
+  removeWebView,
+  prewarmSnapsWebView,
+} from '../../../../lib/snaps';
 import Logger from '../../../../util/Logger';
 import { SnapBridge } from '../../../Snaps';
 import getRpcMethodMiddleware from '../../../RPCMethods/RPCMethodMiddleware';
@@ -60,13 +64,20 @@ export const executionServiceInit: MessengerClientInitFunction<
     bridge.setupProviderConnection();
   };
 
+  const controller = new WebViewExecutionService({
+    messenger: controllerMessenger,
+    // @ts-expect-error The stream type doesn't match because of a version mismatch.
+    setupSnapProvider,
+    createWebView,
+    removeWebView,
+  });
+
+  // Pre-boot a spare execution WebView so the SES lockdown + ~900 KB env
+  // bootstrap happens off the critical path, before the first Snap RPC.
+  // No-op if the SnapsExecutionWebView host is not mounted yet.
+  prewarmSnapsWebView?.();
+
   return {
-    controller: new WebViewExecutionService({
-      messenger: controllerMessenger,
-      // @ts-expect-error The stream type doesn't match because of a version mismatch.
-      setupSnapProvider,
-      createWebView,
-      removeWebView,
-    }),
+    controller,
   };
 };
