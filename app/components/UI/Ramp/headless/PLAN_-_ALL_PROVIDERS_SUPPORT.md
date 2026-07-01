@@ -15,7 +15,7 @@ Companion to [PLAN.md](./PLAN.md) (the original Headless Buy plan).
 
 - [ ] **P1.M0** - `failSession`-terminal must-fix
 - [ ] **P1.M1** - In-app-only quoting capability (in-app filter, reliability-then-price selection in `RampsController`, WebView fail-safe, per-provider smoke check, analytics tagging, limits decision)
-- [ ] **P1.M2** - Activation behind a multi-value scoped flag (`off | in-app | all`), MM Pay passing allowed `providerIds`
+- [ ] **P1.M2** - Activation behind a multi-value scoped flag (`off | in-app | all`)
 
 **Phase 2 - External-browser + custom-action providers (Coinbase, PayPal, etc.):**
 
@@ -42,7 +42,7 @@ In-app vs external is knowable at the quote layer (before `getBuyWidgetData`), s
 Context for the phasing decisions:
 
 - The earlier "native-only for v0, disable aggregators" decision was time-boxed to the Money Account launch. Money Account has launched, so enabling in-app aggregators is in scope.
-- Provider gating happens at the distribution layer (MM Pay passes allowed `providerIds`). Core also applies the in-app filter as defense-in-depth.
+- Provider gating happens in the shared `RampsController` selection (the in-app filter plus `getSmartSelectedQuote`) that `getRampsQuote` consumes; the scoped flag is the distribution-layer control. MM Pay itself forwards no `providerIds` today (see the P1.M2 gate-composition note), so gating is not relied on there.
 - Smart selection lives in `RampsController` (the deferred `getSmartSelectedQuote`), consumed by both `transaction-pay-controller` and the mobile headless path, so selection is not forked between core and a separate mobile `recommendQuotes` util.
 - PayPal and Robinhood are "checkout outside of MetaMask" (Phase 2). MoonPay and Revolut are top in-app providers in Phase 1 scope.
 
@@ -77,7 +77,7 @@ These facts make the in-app filter and the phase split possible.
 - **Custom actions ride inside `success[]`**, flagged by `quote.isCustomAction` (reads `quote.quote.isCustomAction`, `app/components/UI/Ramp/types/index.ts:43-45`). The separate `customActions[]` array is empty in UB2 usage. UB2 already excludes `isCustomAction` entries from provider/payment matching (`app/components/UI/Ramp/Views/Modals/ProviderSelectionModal/ProviderSelection.tsx:262-274`). Phase 1 filters them out the same way; Phase 2 brings them into scope.
 - **Partial vs full failure** is computed over non-customAction `success[]` entries. Full failure (no usable entry) maps to `NO_QUOTES`; it is NOT `success.length === 0 && customActions.length === 0`.
 - **In-app vs external is decided at the quote layer.** `getAggregatorRedirectConfig` reads `quote.quote?.buyWidget?.browser` and `isCustomAction` off the quote (`app/components/UI/Ramp/utils/buildQuoteWithRedirectUrl.ts:35-71`) and is called at `useContinueWithQuote.ts:249`, before `getBuyWidgetData` at `:257`. Custom actions and `buyWidget.browser === 'IN_APP_OS_BROWSER'` go to an external browser with a deeplink redirect; otherwise an in-app `Checkout` WebView with a callback-base redirect. So Phase 1 can pre-filter to in-app: keep a quote only if `!isCustomAction(quote)` AND `quote.quote?.buyWidget?.browser !== 'IN_APP_OS_BROWSER'`.
-- **`buyWidget.browser` is optional.** Mobile still fetches the widget URL via the deprecated `buyURL` + `getBuyWidgetData` path, and an aggregator quote missing `buyWidget.browser` would be classified in-app. So Phase 1 safety comes from THREE layers together: MM Pay passes allowed `providerIds`, the in-app filter, and the mandatory in-app `Checkout` WebView fail-safe.
+- **`buyWidget.browser` is optional.** Mobile still fetches the widget URL via the deprecated `buyURL` + `getBuyWidgetData` path, and an aggregator quote missing `buyWidget.browser` would be classified in-app. So Phase 1 safety comes from TWO layers together: (1) the multi-value scoped flag (`off | in-app | all`), and (2) the in-app filter plus selection in the shared `RampsController` selection (`getSmartSelectedQuote`) that `getRampsQuote` consumes, backed by the mandatory in-app `Checkout` WebView fail-safe.
 
 ### Selection (ordering like UB2)
 
@@ -165,7 +165,7 @@ Tests: multi-provider request returns multiple non-customAction in-app candidate
 
 - **Add one scoped flag whose `off` state falls back to native-only**, not "no fiat". The existing `MetaMaskPayFiatFlags` cannot scope provider-widening (`enabledTransactionTypes: []` kills all fiat; `app/selectors/featureFlagController/confirmations/index.ts:87-90`).
 - **Make it multi-value (`off | in-app | all`), not a boolean.** Phase 1 ships `in-app` (filter on); Phase 2 widening is a controlled flag flip to `all`, not a deploy-time behavior change.
-- **Gate composition.** The flag is the kill switch / scope; within that, MM Pay passes the allowed `providerIds` (per-feature allowlist) and the shared selection applies the in-app filter as defense-in-depth. Complementary, not redundant.
+- **Gate composition.** The flag is the kill switch / scope; within that, the shared `RampsController` selection applies the in-app filter plus `getSmartSelectedQuote` (which `getRampsQuote` consumes) as the quote-side enforcement. Note: MM Pay CAN pass `providerIds` but does not today (leftover artifact; consumers have no provider preferences). `getRampsQuote` calls `RampsController:getQuotes` with `autoSelectProvider: true` + `restrictToKnownOrNativeProviders: true` and forwards no `providers` / `providerIds`; the headless `getQuotes` facade CAN take `providerIds`, but MM Pay calls `startHeadlessBuy` (whose `HeadlessBuyParams` has no `providerIds`), so it never reaches that facade. Turning `providerIds` into a real gate would need net-new plumbing: either `getRampsQuote` forwards a `providers` allowlist, or MM Pay routes through the headless `getQuotes`.
 - **Relax the mobile gates behind the flag.** `useHasNativeFiatProvider` (`:23-26`) and `useIsFiatPaymentAvailable` (`:19-23`), then activate the widened + filtered quote path.
 
 Tests: with the flag `in-app`, in-app non-native quotes reach the consumer and complete via the in-app `Checkout` WebView callbacks, and external/custom quotes are filtered out; with the flag `off`, behavior is identical to today's native-only.
@@ -238,7 +238,7 @@ Tests: ladder order with and without preferred provider ids; deterministic outpu
 
 - Emit `NO_QUOTES` and `QUOTE_FAILED` for technical / quote failures (widget-URL, load, callback-parse, order-lookup, external-open). Depends on the P1.M0 terminal-callback contract.
 - Route user exits to `onClose` per the callback-routing rule. Do not emit `USER_CANCELLED` for in-flow exits. An empty callback query is a user-exit: `Checkout.tsx:386-393` already treats it as `closeSession({ reason: 'user_dismissed' })`.
-- Bring external-browser providers to analytics parity: `RAMPS_CHECKOUT_CLOSED` (abandon), `RAMPS_ORDER_FAILED` (in-flow), provider cancellation, HTTP / load failures, and terminal `RampsController:orderStatusChanged` (failed / cancelled), tagged `ramp_type: 'HEADLESS'` plus `ramp_surface`.
+- Bring external-browser providers to analytics parity: `RAMPS_CHECKOUT_CLOSED` (abandon), `RAMPS_ORDER_FAILED` (in-flow), provider cancellation, and HTTP / load failures, tagged `ramp_type: 'HEADLESS'` plus `ramp_surface`. Note: today MM Pay / TPC detects an order's terminal state by POLLING `RampsController:getOrder` (in `transaction-pay-controller` `strategy/fiat/fiat-submit.ts`), NOT via a `RampsController:orderStatusChanged` subscription. The headless session ends at `onOrderCreated` (order CREATED); the order's terminal state is observed afterward by that TPC polling. So hanging Phase 2 analytics off `orderStatusChanged` would be NEW subscription work, not existing behavior.
 - **Export reality check.** On core `origin/main`, `@metamask/ramps-controller`'s `index.ts` exports `getTransakApiMessage`, `isTransakPhoneRegisteredError`, and `RAMPS_ERROR_CODES` / `RampsErrorCode`, but NOT `TRANSAK_ERROR_CODES` / `TransakErrorCode` (they exist in `packages/ramps-controller/src/transakErrorCodes.ts` but are unexported). A consumer that must branch on those first needs a core sub-task to export them; otherwise depend only on the already-exported helpers plus `RAMPS_ERROR_CODES`. Re-verify against `origin/main` before relying on it.
 - **Scope the taxonomy.** Granular provider codes (e.g. `KYC_REQUIRED`) are implement-on-demand: add a code when a consumer actually needs to branch on it.
 
