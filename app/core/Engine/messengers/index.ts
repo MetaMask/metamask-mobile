@@ -144,6 +144,7 @@ import { getSocialControllerMessenger } from './social-controller-messenger';
 import { getAuthenticatedUserStorageServiceMessenger } from './authenticated-user-storage-service-messenger';
 import { getCardControllerMessenger } from './card-controller-messenger';
 import { getClientControllerMessenger } from './client-controller-messenger';
+import { getQrSyncControllerMessenger } from './qr-sync-controller-messenger';
 import { getComplianceServiceMessenger } from './compliance/compliance-service-messenger';
 import { getComplianceControllerMessenger } from './compliance/compliance-controller-messenger';
 import {
@@ -463,6 +464,10 @@ export const MESSENGER_FACTORIES = {
   },
   CardController: {
     getMessenger: getCardControllerMessenger,
+    getInitMessenger: noop,
+  },
+  QrSyncController: {
+    getMessenger: getQrSyncControllerMessenger,
     getInitMessenger: noop,
   },
   ClientController: {
