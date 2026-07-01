@@ -7,8 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		04FDA40C4DC41D727F40EA2E /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0CC9CAF63E101FCCCFB3A2DA /* Foundation.framework */; };
 		09D9851F119C43FBB54ED59C /* Geist-MediumItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 6E7939D848B5467AA6602966 /* Geist-MediumItalic.otf */; };
 		124C1456DB6348928E0536A8 /* Geist-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4BFDB3B860044F1A9CF3CFEB /* Geist-Medium.otf */; };
+		13582479C566BD285F51BD3B /* RCTWidgetBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = F0A97EC7DFBB2AC04CFDD9D4 /* RCTWidgetBridge.m */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153C1A742217BCDC0088EFE0 /* JavaScriptCore.framework */; };
 		153F84CA2319B8FD00C19B63 /* Branch.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 153F84C92319B8DB00C19B63 /* Branch.framework */; };
@@ -17,6 +19,8 @@
 		15AD28A921B7CFD9005DEB23 /* release.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD86021B76461006B7C35 /* release.xcconfig */; };
 		15AD28AA21B7CFDC005DEB23 /* debug.xcconfig in Resources */ = {isa = PBXBuildFile; fileRef = 15FDD82721B7642B006B7C35 /* debug.xcconfig */; };
 		15D158ED210BD912006982B5 /* Metamask.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 15D158EC210BD8C8006982B5 /* Metamask.ttf */; };
+		1BEF6468EE08554329953AA4 /* WidgetEntryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BF6C91176041256B164F80C3 /* WidgetEntryView.swift */; };
+		1C737B03D72FE37A3F25BE28 /* RCTWidgetBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB051F5251AFCDD864322822 /* RCTWidgetBridge.swift */; };
 		2EF2825B2B0FF86900D7B4B1 /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
 		2EF2825C2B0FF86900D7B4B1 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
 		2EF2825E2B0FF86900D7B4B1 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
@@ -41,8 +45,10 @@
 		3466654F43654D36B5D478CA /* config.json in Resources */ = {isa = PBXBuildFile; fileRef = 2679C48F8CD642C68116DD24 /* config.json */; };
 		3F123FD0EA9146FEBC864879 /* MMSans-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 4A64F1985EEA45C0B027E517 /* MMSans-Medium.otf */; };
 		49D8E62C506F4A63889EEC7F /* branch.json in Resources */ = {isa = PBXBuildFile; fileRef = FE3C9A2458A1416290DEDAD4 /* branch.json */; };
+		5D4059070420398B2A53C03C /* Provider.swift in Sources */ = {isa = PBXBuildFile; fileRef = A0D6B5AE7B9C6EE92E0B8E12 /* Provider.swift */; };
 		650F2B9D24DC5FF200C3B9C4 /* libRCTAesForked.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 650F2B9C24DC5FEC00C3B9C4 /* libRCTAesForked.a */; };
 		654378B0243E2ADC00571B9C /* File.swift in Sources */ = {isa = PBXBuildFile; fileRef = 654378AF243E2ADC00571B9C /* File.swift */; };
+		7D9276EE8440FE594FBBBCAF /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EA7141BDE59B992AD7479C6A /* Assets.xcassets */; };
 		8C3986ED969040AEBC7A3856 /* MMPoly-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F10E7EBF946A4F6D8E229143 /* MMPoly-Regular.otf */; };
 		8DE564ACA9934796B5E7B1EB /* MMSans-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = F3C919D8F42C47389FF643E7 /* MMSans-Regular.otf */; };
 		9D9E53F67A884FDEBE9A4D3C /* Geist-RegularItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = 978781C44CFB4434873EDB69 /* Geist-RegularItalic.otf */; };
@@ -50,15 +56,18 @@
 		A1F5C74197AA4BB4B2F9C001 /* Geist-SemiBold.otf in Resources */ = {isa = PBXBuildFile; fileRef = A1F5C74197AA4BB4B2F9C011 /* Geist-SemiBold.otf */; };
 		A1F5C74197AA4BB4B2F9C002 /* Geist-SemiBoldItalic.otf in Resources */ = {isa = PBXBuildFile; fileRef = A1F5C74197AA4BB4B2F9C012 /* Geist-SemiBoldItalic.otf */; };
 		A9AB7F6A09E06325C0A71FA4 /* libPods-MetaMask-Flask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9F02EB68A6ACEF113F4693A8 /* libPods-MetaMask-Flask.a */; };
+		A9E5867B741FE780D723508B /* MetaMaskWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 488DC986F6886363CE76C752 /* MetaMaskWidget.swift */; };
 		AA11BB22CC33DD44EE55FF66 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */; };
 		AA11BB22CC33DD44EE55FF68 /* SplashScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */; };
 		B0EF7FA927BD16EA00D48B4E /* ThemeColors.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */; };
 		BAB8A7C7328F48B6AC38DCE9 /* Geist-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = B848D40B87744D32949BDC25 /* Geist-Regular.otf */; };
+		C439C4934954AF37BA47E40F /* MetaMaskWidget.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 1686FEEC950C1F6CB44D831F /* MetaMaskWidget.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		C7B6D2EC4EBB469F9E0658BE /* MMSans-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = D3350113F0764105B1E60002 /* MMSans-Bold.otf */; };
 		C8424AE52CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		C8424AE62CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */; };
 		CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */ = {isa = PBXBuildFile; fileRef = CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */; };
 		CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */ = {isa = PBXBuildFile; fileRef = CF98DA9B28D9FEB700096782 /* RCTScreenshotDetect.m */; };
+		E17443F7C22491B3E0D20AA3 /* WidgetToken.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4B91BF58276E83B9268B7B7F /* WidgetToken.swift */; };
 		E4B580722E32F462008165E1 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = E4B580712E32F462008165E1 /* Expo.plist */; };
 		E4B580742E32F462008165E1 /* Expo.plist in Resources */ = {isa = PBXBuildFile; fileRef = E4B580712E32F462008165E1 /* Expo.plist */; };
 		E4B580762E33A001008165E1 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = E4B580752E33A001008165E1 /* AppDelegate.swift */; };
@@ -66,6 +75,7 @@
 		E83DB5522BBDF2AA00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
 		E83DB5542BBDF2AF00536063 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */; };
 		ED2E8FE6D71BE9319F3B27D3 /* libPods-MetaMask.a in Frameworks */ = {isa = PBXBuildFile; fileRef = D2632307C64595BE1B8ABEAF /* libPods-MetaMask.a */; };
+		F042E7F5D2CF32E2BE06805B /* TokenRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F94DDFA1E4E55884FD5B1112 /* TokenRowView.swift */; };
 		F0B2A3E101000001000000A1 /* BrazeHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0B2A3E101000001000000A0 /* BrazeHelper.mm */; };
 		F0B2A3E101000001000000A2 /* BrazeHelper.mm in Sources */ = {isa = PBXBuildFile; fileRef = F0B2A3E101000001000000A0 /* BrazeHelper.mm */; };
 		F23972D16903249A8EC120BD /* ExpoModulesProvider.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8EB256CB3A1A7A1D942A95F6 /* ExpoModulesProvider.swift */; };
@@ -93,6 +103,13 @@
 			proxyType = 1;
 			remoteGlobalIDString = E298D0511C73D1B800589D22;
 			remoteInfo = Branch;
+		};
+		64F487485007307041D0962A /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 83CBB9F71A601CBA00E9B192 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = F6C7731AF804057659B0BFE8;
+			remoteInfo = MetaMaskWidget;
 		};
 		650F2B9B24DC5FEC00C3B9C4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -126,12 +143,24 @@
 			name = "Embed Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AF44A4481D793DD3C9181FD5 /* Embed App Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				C439C4934954AF37BA47E40F /* MetaMaskWidget.appex in Embed App Extensions */,
+			);
+			name = "Embed App Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
 		008F07F21AC5B25A0029DE68 /* main.jsbundle */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; path = main.jsbundle; sourceTree = "<group>"; };
 		00E356F11AD99517003FC87E /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		00E356F21AD99517003FC87E /* MetaMaskTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MetaMaskTests.m; sourceTree = "<group>"; };
+		0CC9CAF63E101FCCCFB3A2DA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS18.0.sdk/System/Library/Frameworks/Foundation.framework; sourceTree = DEVELOPER_DIR; };
 		13B07F961A680F5B00A75B9A /* MetaMask.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MetaMask.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		13B07FB51A68108700A75B9A /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; name = Images.xcassets; path = MetaMask/Images.xcassets; sourceTree = "<group>"; };
 		13B07FB61A68108700A75B9A /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; name = Info.plist; path = MetaMask/Info.plist; sourceTree = "<group>"; };
@@ -143,6 +172,7 @@
 		15D158EC210BD8C8006982B5 /* Metamask.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; name = Metamask.ttf; path = ../app/fonts/Metamask.ttf; sourceTree = "<group>"; };
 		15FDD82721B7642B006B7C35 /* debug.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = debug.xcconfig; sourceTree = "<group>"; };
 		15FDD86021B76461006B7C35 /* release.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = release.xcconfig; sourceTree = "<group>"; };
+		1686FEEC950C1F6CB44D831F /* MetaMaskWidget.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = MetaMaskWidget.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		178440FE3F1C4F4180D14622 /* libTcpSockets.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libTcpSockets.a; sourceTree = "<group>"; };
 		1C516951C09F43CB97129B66 /* Octicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Octicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Octicons.ttf"; sourceTree = "<group>"; };
 		2679C48F8CD642C68116DD24 /* config.json */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = config.json; path = ../app/fonts/config.json; sourceTree = "<group>"; };
@@ -155,8 +185,10 @@
 		42C239E9FAA64BD9A34B8D8A /* MaterialCommunityIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialCommunityIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialCommunityIcons.ttf"; sourceTree = "<group>"; };
 		42C6DDE3B80F47AFA9C9D4F5 /* Foundation.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Foundation.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Foundation.ttf"; sourceTree = "<group>"; };
 		4444176409EB42CB93AB03C5 /* SimpleLineIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = SimpleLineIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/SimpleLineIcons.ttf"; sourceTree = "<group>"; };
+		488DC986F6886363CE76C752 /* MetaMaskWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = MetaMaskWidget.swift; sourceTree = "<group>"; };
 		4A2D27104599412CA00C35EF /* Ionicons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Ionicons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Ionicons.ttf"; sourceTree = "<group>"; };
 		4A64F1985EEA45C0B027E517 /* MMSans-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "MMSans-Medium.otf"; path = "../app/fonts/MMSans-Medium.otf"; sourceTree = "<group>"; };
+		4B91BF58276E83B9268B7B7F /* WidgetToken.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetToken.swift; sourceTree = "<group>"; };
 		4BFDB3B860044F1A9CF3CFEB /* Geist-Medium.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-Medium.otf"; path = "../app/fonts/Geist-Medium.otf"; sourceTree = "<group>"; };
 		4C81CC9BCD86AC7F96BA8CAD /* Pods-MetaMask.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask/Pods-MetaMask.debug.xcconfig"; sourceTree = "<group>"; };
 		57C103F40F394637B5A886FC /* FontAwesome5_Brands.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Brands.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Brands.ttf"; sourceTree = "<group>"; };
@@ -173,6 +205,7 @@
 		91B348F39D8AD3220320E89D /* Pods-MetaMask-Flask.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-Flask.debug.xcconfig"; path = "Target Support Files/Pods-MetaMask-Flask/Pods-MetaMask-Flask.debug.xcconfig"; sourceTree = "<group>"; };
 		978781C44CFB4434873EDB69 /* Geist-RegularItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-RegularItalic.otf"; path = "../app/fonts/Geist-RegularItalic.otf"; sourceTree = "<group>"; };
 		9F02EB68A6ACEF113F4693A8 /* libPods-MetaMask-Flask.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask-Flask.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		A0D6B5AE7B9C6EE92E0B8E12 /* Provider.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = Provider.swift; sourceTree = "<group>"; };
 		A1F5C74197AA4BB4B2F9C011 /* Geist-SemiBold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-SemiBold.otf"; path = "../app/fonts/Geist-SemiBold.otf"; sourceTree = "<group>"; };
 		A1F5C74197AA4BB4B2F9C012 /* Geist-SemiBoldItalic.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-SemiBoldItalic.otf"; path = "../app/fonts/Geist-SemiBoldItalic.otf"; sourceTree = "<group>"; };
 		A498EA4CD2F8488DB666B94C /* Entypo.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Entypo.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Entypo.ttf"; sourceTree = "<group>"; };
@@ -180,8 +213,11 @@
 		AA11BB22CC33DD44EE55FF67 /* SplashScreen.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = SplashScreen.storyboard; path = MetaMask/SplashScreen.storyboard; sourceTree = "<group>"; };
 		AA9EDF17249955C7005D89EE /* MetaMaskDebug.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; name = MetaMaskDebug.entitlements; path = MetaMask/MetaMaskDebug.entitlements; sourceTree = "<group>"; };
 		B0EF7FA827BD16EA00D48B4E /* ThemeColors.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = ThemeColors.xcassets; sourceTree = "<group>"; };
+		B83E00FC381E86EF587D1B3C /* MetaMaskWidget.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = MetaMaskWidget.entitlements; sourceTree = "<group>"; };
 		B848D40B87744D32949BDC25 /* Geist-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Geist-Regular.otf"; path = "../app/fonts/Geist-Regular.otf"; sourceTree = "<group>"; };
+		BB051F5251AFCDD864322822 /* RCTWidgetBridge.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RCTWidgetBridge.swift; sourceTree = "<group>"; };
 		BF485CDA047B4D52852B87F5 /* EvilIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = EvilIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/EvilIcons.ttf"; sourceTree = "<group>"; };
+		BF6C91176041256B164F80C3 /* WidgetEntryView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = WidgetEntryView.swift; sourceTree = "<group>"; };
 		C8424AE32CCC01F900F0BEB7 /* GoogleService-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		CF9895752A3B48F700B4C9B5 /* RCTMinimizer.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = RCTMinimizer.h; path = MetaMask/NativeModules/RCTMinimizer/RCTMinimizer.h; sourceTree = "<group>"; };
 		CF9895762A3B49BE00B4C9B5 /* RCTMinimizer.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = RCTMinimizer.m; path = MetaMask/NativeModules/RCTMinimizer/RCTMinimizer.m; sourceTree = "<group>"; };
@@ -190,16 +226,20 @@
 		D0CBAE789660472DB719C765 /* libLottie.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libLottie.a; sourceTree = "<group>"; };
 		D2632307C64595BE1B8ABEAF /* libPods-MetaMask.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-MetaMask.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3350113F0764105B1E60002 /* MMSans-Bold.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "MMSans-Bold.otf"; path = "../app/fonts/MMSans-Bold.otf"; sourceTree = "<group>"; };
+		D34F59A693B1BA8545701DFA /* Info.plist */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		E4B580712E32F462008165E1 /* Expo.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Expo.plist; sourceTree = "<group>"; };
 		E4B580752E33A001008165E1 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetaMask/AppDelegate.swift; sourceTree = "<group>"; };
 		E83DB5392BBDB14700536063 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; name = PrivacyInfo.xcprivacy; path = MetaMask/PrivacyInfo.xcprivacy; sourceTree = SOURCE_ROOT; };
 		E9629905BA1940ADA4189921 /* Feather.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = Feather.ttf; path = "../node_modules/react-native-vector-icons/Fonts/Feather.ttf"; sourceTree = "<group>"; };
+		EA7141BDE59B992AD7479C6A /* Assets.xcassets */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EBC2B6371CD846D28B9FAADF /* FontAwesome5_Regular.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = FontAwesome5_Regular.ttf; path = "../node_modules/react-native-vector-icons/Fonts/FontAwesome5_Regular.ttf"; sourceTree = "<group>"; };
+		F0A97EC7DFBB2AC04CFDD9D4 /* RCTWidgetBridge.m */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.c.objc; path = RCTWidgetBridge.m; sourceTree = "<group>"; };
 		F0B2A3E101000001000000A0 /* BrazeHelper.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = MetaMask/BrazeHelper.mm; sourceTree = "<group>"; };
 		F10E7EBF946A4F6D8E229143 /* MMPoly-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "MMPoly-Regular.otf"; path = "../app/fonts/MMPoly-Regular.otf"; sourceTree = "<group>"; };
 		F1CCBB0591B4D16C1710A05D /* Pods-MetaMask-Flask.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-MetaMask-Flask.release.xcconfig"; path = "Target Support Files/Pods-MetaMask-Flask/Pods-MetaMask-Flask.release.xcconfig"; sourceTree = "<group>"; };
 		F3C919D8F42C47389FF643E7 /* MMSans-Regular.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "MMSans-Regular.otf"; path = "../app/fonts/MMSans-Regular.otf"; sourceTree = "<group>"; };
 		F562CA6B28AA4A67AA29B61C /* MaterialIcons.ttf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = MaterialIcons.ttf; path = "../node_modules/react-native-vector-icons/Fonts/MaterialIcons.ttf"; sourceTree = "<group>"; };
+		F94DDFA1E4E55884FD5B1112 /* TokenRowView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TokenRowView.swift; sourceTree = "<group>"; };
 		F961A36A28105CF9007442B5 /* LinkPresentation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = LinkPresentation.framework; path = System/Library/Frameworks/LinkPresentation.framework; sourceTree = SDKROOT; };
 		F9DFF7AC557B46B6BEFAA1C1 /* libRNShakeEvent.a */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = archive.ar; path = libRNShakeEvent.a; sourceTree = "<group>"; };
 		FE3C9A2458A1416290DEDAD4 /* branch.json */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = branch.json; path = ../branch.json; sourceTree = "<group>"; };
@@ -215,6 +255,14 @@
 				153C1ABB2217BCDC0088EFE0 /* JavaScriptCore.framework in Frameworks */,
 				153F84CA2319B8FD00C19B63 /* Branch.framework in Frameworks */,
 				ED2E8FE6D71BE9319F3B27D3 /* libPods-MetaMask.a in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		2C1937D1EE640D2CD9641A4D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				04FDA40C4DC41D727F40EA2E /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -256,6 +304,14 @@
 				8EB256CB3A1A7A1D942A95F6 /* ExpoModulesProvider.swift */,
 			);
 			name = "MetaMask-Flask";
+			sourceTree = "<group>";
+		};
+		125DD66BB0A3FD368D83FCEF /* iOS */ = {
+			isa = PBXGroup;
+			children = (
+				0CC9CAF63E101FCCCFB3A2DA /* Foundation.framework */,
+			);
+			name = iOS;
 			sourceTree = "<group>";
 		};
 		13B07FAE1A68108700A75B9A /* MetaMask */ = {
@@ -303,6 +359,7 @@
 			children = (
 				CF9895742A3B48DC00B4C9B5 /* RCTMinimizer */,
 				CF98DA9228D9FE5000096782 /* RCTScreenshotDetect */,
+				BE9E2AE6E4A6ED49F1AA31A3 /* RCTWidgetBridge */,
 			);
 			name = NativeModules;
 			sourceTree = "<group>";
@@ -323,6 +380,7 @@
 				2D16E6891FA4F8E400B85C8A /* libReact.a */,
 				D2632307C64595BE1B8ABEAF /* libPods-MetaMask.a */,
 				9F02EB68A6ACEF113F4693A8 /* libPods-MetaMask-Flask.a */,
+				125DD66BB0A3FD368D83FCEF /* iOS */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -333,6 +391,22 @@
 				2EF283362B17EC7900D7B4B1 /* Light-Swift-Untar.swift */,
 			);
 			path = "Light-Swift-Untar-V2";
+			sourceTree = "<group>";
+		};
+		32E91E13723DA8FC8963C831 /* MetaMaskWidget */ = {
+			isa = PBXGroup;
+			children = (
+				488DC986F6886363CE76C752 /* MetaMaskWidget.swift */,
+				A0D6B5AE7B9C6EE92E0B8E12 /* Provider.swift */,
+				4B91BF58276E83B9268B7B7F /* WidgetToken.swift */,
+				F94DDFA1E4E55884FD5B1112 /* TokenRowView.swift */,
+				BF6C91176041256B164F80C3 /* WidgetEntryView.swift */,
+				EA7141BDE59B992AD7479C6A /* Assets.xcassets */,
+				D34F59A693B1BA8545701DFA /* Info.plist */,
+				B83E00FC381E86EF587D1B3C /* MetaMaskWidget.entitlements */,
+			);
+			name = MetaMaskWidget;
+			path = MetaMaskWidget;
 			sourceTree = "<group>";
 		};
 		4A27949D046C4516B9653BBB /* Resources */ = {
@@ -406,6 +480,7 @@
 				AA342D524556DBBE26F5997C /* Pods */,
 				654378AE243E2ADB00571B9C /* MetaMask-Bridging-Header.h */,
 				B1017F312FF6E8B14E7F30EB /* ExpoModulesProviders */,
+				32E91E13723DA8FC8963C831 /* MetaMaskWidget */,
 			);
 			indentWidth = 2;
 			sourceTree = "<group>";
@@ -417,6 +492,7 @@
 			children = (
 				13B07F961A680F5B00A75B9A /* MetaMask.app */,
 				2EF282922B0FF86900D7B4B1 /* MetaMask-Flask.app */,
+				1686FEEC950C1F6CB44D831F /* MetaMaskWidget.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -440,6 +516,16 @@
 			);
 			name = ExpoModulesProviders;
 			sourceTree = "<group>";
+		};
+		BE9E2AE6E4A6ED49F1AA31A3 /* RCTWidgetBridge */ = {
+			isa = PBXGroup;
+			children = (
+				BB051F5251AFCDD864322822 /* RCTWidgetBridge.swift */,
+				F0A97EC7DFBB2AC04CFDD9D4 /* RCTWidgetBridge.m */,
+			);
+			name = RCTWidgetBridge;
+			path = MetaMask/NativeModules/RCTWidgetBridge;
+			sourceTree = SOURCE_ROOT;
 		};
 		CF9895742A3B48DC00B4C9B5 /* RCTMinimizer */ = {
 			isa = PBXGroup;
@@ -473,6 +559,7 @@
 				13B07F8C1A680F5B00A75B9A /* Frameworks */,
 				13B07F8E1A680F5B00A75B9A /* Resources */,
 				15ACCA0022655C3A0063978B /* Embed Frameworks */,
+				AF44A4481D793DD3C9181FD5 /* Embed App Extensions */,
 				00DD1BFF1BD5951E006B06BC /* Bundle JS Code & Upload Sentry Files */,
 				1315792FDF9ED5C1277541D0 /* [CP] Embed Pods Frameworks */,
 				FFED9AB1AACD0DA25EAA971D /* [CP] Copy Pods Resources */,
@@ -483,6 +570,7 @@
 			);
 			dependencies = (
 				153F84CD2319B8FD00C19B63 /* PBXTargetDependency */,
+				C6B5EFED7BB0833AA2F59652 /* PBXTargetDependency */,
 			);
 			name = MetaMask;
 			productName = "Hello World";
@@ -515,6 +603,23 @@
 			productName = "Hello World";
 			productReference = 2EF282922B0FF86900D7B4B1 /* MetaMask-Flask.app */;
 			productType = "com.apple.product-type.application";
+		};
+		F6C7731AF804057659B0BFE8 /* MetaMaskWidget */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 153E903DA34B268D6D86A589 /* Build configuration list for PBXNativeTarget "MetaMaskWidget" */;
+			buildPhases = (
+				9E86661E6BAFC830494C9912 /* Sources */,
+				2C1937D1EE640D2CD9641A4D /* Frameworks */,
+				572563AF6D4EEB449D6190BD /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = MetaMaskWidget;
+			productName = MetaMaskWidget;
+			productReference = 1686FEEC950C1F6CB44D831F /* MetaMaskWidget.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -564,6 +669,7 @@
 			targets = (
 				13B07F861A680F5B00A75B9A /* MetaMask */,
 				2EF282522B0FF86900D7B4B1 /* MetaMask-Flask */,
+				F6C7731AF804057659B0BFE8 /* MetaMaskWidget */,
 			);
 		};
 /* End PBXProject section */
@@ -630,6 +736,14 @@
 				AA11BB22CC33DD44EE55FF68 /* SplashScreen.storyboard in Resources */,
 				2EF2827D2B0FF86900D7B4B1 /* branch.json in Resources */,
 				C8424AE52CCC01F900F0BEB7 /* GoogleService-Info.plist in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		572563AF6D4EEB449D6190BD /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				7D9276EE8440FE594FBBBCAF /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -944,6 +1058,8 @@
 				CF98DA9C28D9FEB700096782 /* RCTScreenshotDetect.m in Sources */,
 				CF9895772A3B49BE00B4C9B5 /* RCTMinimizer.m in Sources */,
 				A1987088D4835E5FCCABC418 /* ExpoModulesProvider.swift in Sources */,
+				1C737B03D72FE37A3F25BE28 /* RCTWidgetBridge.swift in Sources */,
+				13582479C566BD285F51BD3B /* RCTWidgetBridge.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -963,6 +1079,18 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		9E86661E6BAFC830494C9912 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				A9E5867B741FE780D723508B /* MetaMaskWidget.swift in Sources */,
+				5D4059070420398B2A53C03C /* Provider.swift in Sources */,
+				E17443F7C22491B3E0D20AA3 /* WidgetToken.swift in Sources */,
+				F042E7F5D2CF32E2BE06805B /* TokenRowView.swift in Sources */,
+				1BEF6468EE08554329953AA4 /* WidgetEntryView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
@@ -975,6 +1103,11 @@
 			isa = PBXTargetDependency;
 			name = Branch;
 			targetProxy = 2EF282562B0FF86900D7B4B1 /* PBXContainerItemProxy */;
+		};
+		C6B5EFED7BB0833AA2F59652 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = F6C7731AF804057659B0BFE8 /* MetaMaskWidget */;
+			targetProxy = 64F487485007307041D0962A /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1246,6 +1379,37 @@
 			};
 			name = Release;
 		};
+		466F3554B8DA4B4A2020CCFD /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = MetaMaskWidget/MetaMaskWidget.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 4823;
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MetaMaskWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 8.1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_RELEASE";
+				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.MetaMaskWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = NO;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
 		83CBBA201A601CBA00E9B192 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			baseConfigurationReference = 15FDD82721B7642B006B7C35 /* debug.xcconfig */;
@@ -1344,6 +1508,37 @@
 			};
 			name = Release;
 		};
+		FD2A9819E53BEC866B83C12B /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = NO;
+				CLANG_ENABLE_OBJC_WEAK = NO;
+				CODE_SIGN_ENTITLEMENTS = MetaMaskWidget/MetaMaskWidget.entitlements;
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "Apple Development";
+				CODE_SIGN_STYLE = Manual;
+				CURRENT_PROJECT_VERSION = 4823;
+				DEVELOPMENT_TEAM = 48XVW22RCG;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = MetaMaskWidget/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 15.1;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 8.1.0;
+				OTHER_SWIFT_FLAGS = "$(inherited) -D EXPO_CONFIGURATION_DEBUG";
+				PRODUCT_BUNDLE_IDENTIFIER = io.metamask.MetaMask.MetaMaskWidget;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SKIP_INSTALL = NO;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1355,6 +1550,15 @@
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
+		};
+		153E903DA34B268D6D86A589 /* Build configuration list for PBXNativeTarget "MetaMaskWidget" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				466F3554B8DA4B4A2020CCFD /* Release */,
+				FD2A9819E53BEC866B83C12B /* Debug */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		2EF2828F2B0FF86900D7B4B1 /* Build configuration list for PBXNativeTarget "MetaMask-Flask" */ = {
 			isa = XCConfigurationList;
