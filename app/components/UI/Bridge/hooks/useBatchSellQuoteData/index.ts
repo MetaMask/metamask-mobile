@@ -37,6 +37,10 @@ const UNKNOWN_DESTINATION_TOKEN_SYMBOL = 'UNKNOWN';
 const QUOTE_DETAILS_PLACEHOLDER_AMOUNT = '--';
 const BATCH_SELL_TRADES_REQUEST_KEY_SEPARATOR = '|';
 
+type BatchSellRecommendedQuote = NonNullable<
+  ReturnType<typeof selectBatchSellQuotes>['recommendedQuotes'][number]
+>;
+
 export interface BatchSellQuoteTokenData {
   key: string;
   tokenSymbol: string;
@@ -44,6 +48,7 @@ export interface BatchSellQuoteTokenData {
   receivedAmount: string;
   receivedAmountFiat: string;
   priceImpact?: string;
+  quote: BatchSellRecommendedQuote | null;
   isLoading: boolean;
   isHighPriceImpact: boolean;
   isQuoteUnavailable: boolean;
@@ -52,9 +57,6 @@ export interface BatchSellQuoteTokenData {
 export type BatchSellQuoteTokenDataByAssetId = Record<
   CaipAssetType,
   BatchSellQuoteTokenData
->;
-type BatchSellRecommendedQuote = NonNullable<
-  ReturnType<typeof selectBatchSellQuotes>['recommendedQuotes'][number]
 >;
 type BatchSellRecommendedQuotes = ReturnType<
   typeof selectBatchSellQuotes
@@ -391,6 +393,9 @@ export function useBatchSellQuoteData({
   const totalNetworkFeeAmount = canDisplayAggregatedQuoteData
     ? totalNetworkFee?.amount
     : undefined;
+  const totalNetworkFeeUsd = canDisplayAggregatedQuoteData
+    ? totalNetworkFee?.usd
+    : undefined;
   const totalNetworkFeeValueInCurrency = canDisplayAggregatedQuoteData
     ? totalNetworkFee?.valueInCurrency
     : undefined;
@@ -422,6 +427,7 @@ export function useBatchSellQuoteData({
   };
   const networkFeeData = {
     amount: totalNetworkFeeAmount,
+    usd: totalNetworkFeeUsd,
     valueInCurrency: totalNetworkFeeValueInCurrency,
     asset: totalNetworkFee?.asset,
     formatted: formatTokenAmountWithSymbol(
@@ -498,6 +504,7 @@ export function useBatchSellQuoteData({
               currency: currentCurrency,
             }),
             priceImpact,
+            quote: recommendedQuote ?? null,
             isHighPriceImpact:
               priceImpact !== undefined &&
               Number.isFinite(parsedPriceImpact) &&
