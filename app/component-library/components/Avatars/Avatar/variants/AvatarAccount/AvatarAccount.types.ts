@@ -7,6 +7,11 @@ import { AvatarBaseProps } from '../../foundation/AvatarBase';
 export enum AvatarAccountType {
   JazzIcon = 'JazzIcon',
   Blockies = 'Blockies',
+  /**
+   * @deprecated Use `Maskicon` from `@metamask/design-system-react-native` instead.
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/temp-components/Maskicon/README.md | MMDS README}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#maskicon-temp-component | Migration Guide}
+   */
   Maskicon = 'Maskicon', // Referred to as Polycons to users
 }
 
