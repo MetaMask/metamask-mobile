@@ -1,3 +1,9 @@
+/**
+ * @deprecated Prefer `Blockies` from `@metamask/design-system-react-native` instead of
+ * generating PNG data URIs with `toDataUrl` directly.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/temp-components/Blockies/README.md}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#blockies-temp-component}
+ */
 (function (global, factory) {
   exports && typeof exports === 'object' && typeof module !== 'undefined'
     ? factory(exports)
