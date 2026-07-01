@@ -1,5 +1,6 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
-import { ActivityIndicator, ScrollView, View } from 'react-native';
+/* eslint-disable no-console */
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { ActivityIndicator, Image, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -45,9 +46,11 @@ import {
 } from './OnboardingFundWallet.components';
 import { navigateFromOnboardingToBuyFlow } from './navigateFromOnboardingToBuyFlow';
 import { navigateFromOnboardingToReceiveFlow } from './navigateFromOnboardingToReceiveFlow';
+import MoreWaysToFundBottomSheet from './MoreWaysToFundBottomSheet';
 import { useRampsController } from '../../UI/Ramp/hooks/useRampsController';
 import { useRampsProviders } from '../../UI/Ramp/hooks/useRampsProviders';
 import { providerSupportsAsset } from '../../UI/Ramp/utils/providerSupportsAsset';
+import { MUSD_PLACEHOLDER } from '../../UI/Ramp/Deposit/constants/constants';
 
 const OnboardingFundWallet = () => {
   const tw = useTailwind();
@@ -84,40 +87,78 @@ const OnboardingFundWallet = () => {
     tokensLoading,
     selectedToken,
     setSelectedToken,
+    userRegion,
   } = useRampsController();
 
-  // The unified flow only loads payment methods once a token -> provider
-  // cascade has run (token-less, the query stays "idle" forever). On a token-
-  // less onboarding screen, seed a sensible default token so that cascade can
-  // start here too; the user can still change it in the Buy flow.
-  const defaultAssetId =
-    tokens?.topTokens?.[0]?.assetId ?? tokens?.allTokens?.[0]?.assetId;
-
-  useEffect(() => {
-    if (!selectedToken && defaultAssetId) {
-      setSelectedToken(defaultAssetId);
-    }
-  }, [selectedToken, defaultAssetId, setSelectedToken]);
-
-  // Mirror BuildQuote: once a token is selected but no provider is (e.g. a
-  // first-time user in a region without Transak), pick the first provider that
-  // supports the token so the payment-methods query becomes enabled.
-  const effectiveAssetId = selectedToken?.assetId;
-  const supportingProvider = useMemo(
-    () =>
-      effectiveAssetId
-        ? (providers ?? []).find((candidate) =>
-            providerSupportsAsset(candidate, effectiveAssetId),
-          )
-        : undefined,
-    [providers, effectiveAssetId],
+  // Seed a default token + provider so the payment-methods query can fire.
+  // Priority: mUSD if a provider supports it, else the first topToken that
+  // any provider supports. This guarantees the token→provider→paymentMethods
+  // cascade always resolves for the user's region.
+  const allAvailableTokens = useMemo(
+    () => [...(tokens?.topTokens ?? []), ...(tokens?.allTokens ?? [])],
+    [tokens],
   );
 
-  useEffect(() => {
-    if (!selectedProvider && supportingProvider) {
-      setSelectedProvider(supportingProvider, { autoSelected: true });
+  const { defaultToken, defaultProvider } = useMemo(() => {
+    if (allAvailableTokens.length === 0 || !providers?.length) {
+      return { defaultToken: undefined, defaultProvider: undefined };
     }
-  }, [selectedProvider, supportingProvider, setSelectedProvider]);
+
+    const musdAssetId = MUSD_PLACEHOLDER.assetId.toLowerCase();
+    const musdToken = allAvailableTokens.find(
+      (t) => t.assetId.toLowerCase() === musdAssetId,
+    );
+
+    // Try mUSD first with a supporting provider
+    if (musdToken) {
+      const provider = providers.find((p) =>
+        providerSupportsAsset(p, musdToken.assetId),
+      );
+      if (provider) {
+        return { defaultToken: musdToken, defaultProvider: provider };
+      }
+    }
+
+    // Fallback: first topToken that any provider supports
+    for (const token of tokens?.topTokens ?? []) {
+      const provider = providers.find((p) =>
+        providerSupportsAsset(p, token.assetId),
+      );
+      if (provider) {
+        return { defaultToken: token, defaultProvider: provider };
+      }
+    }
+
+    // Last resort: first token from allTokens
+    for (const token of tokens?.allTokens ?? []) {
+      const provider = providers.find((p) =>
+        providerSupportsAsset(p, token.assetId),
+      );
+      if (provider) {
+        return { defaultToken: token, defaultProvider: provider };
+      }
+    }
+
+    return { defaultToken: undefined, defaultProvider: undefined };
+  }, [allAvailableTokens, providers, tokens]);
+
+  useEffect(() => {
+    if (selectedToken || !defaultToken) return;
+
+    try {
+      setSelectedToken(defaultToken.assetId);
+    } catch (e) {
+      Logger.log('OnboardingFundWallet: failed to seed default token', e);
+    }
+  }, [selectedToken, defaultToken, setSelectedToken]);
+
+  useEffect(() => {
+    if (!selectedProvider && defaultProvider) {
+      setSelectedProvider(defaultProvider, { autoSelected: true });
+    }
+  }, [selectedProvider, defaultProvider, setSelectedProvider]);
+
+  const effectiveAssetId = selectedToken?.assetId;
 
   // Surface only bank/card methods in the top section; wallets and other
   // provider-specific methods live in the unified flow / curated "More ways".
@@ -140,8 +181,8 @@ const OnboardingFundWallet = () => {
   const isSeedingSelection =
     providersLoading ||
     tokensLoading ||
-    (!selectedToken && Boolean(defaultAssetId)) ||
-    (!selectedProvider && Boolean(supportingProvider));
+    !selectedToken ||
+    (!selectedProvider && Boolean(defaultProvider));
 
   const isQueryRunning =
     paymentMethodsLoading ||
@@ -163,6 +204,85 @@ const OnboardingFundWallet = () => {
       );
     }
   }, [paymentMethodsError]);
+
+  // TODO: Remove — temporary debug logging for demo
+  useEffect(() => {
+    console.log('[FundWallet] --- state snapshot ---');
+    console.log(
+      '[FundWallet] userRegion:',
+      userRegion?.regionCode,
+      userRegion?.country?.currency,
+    );
+    console.log(
+      '[FundWallet] topTokens:',
+      tokens?.topTokens?.slice(0, 5)?.map((t) => t.symbol),
+    );
+    console.log('[FundWallet] allTokens count:', tokens?.allTokens?.length);
+    console.log(
+      '[FundWallet] selectedToken:',
+      selectedToken?.symbol,
+      selectedToken?.assetId,
+    );
+    console.log(
+      '[FundWallet] selectedProvider:',
+      selectedProvider?.id,
+      selectedProvider?.name,
+    );
+    console.log(
+      '[FundWallet] defaultToken:',
+      defaultToken?.symbol,
+      defaultToken?.assetId,
+    );
+    console.log(
+      '[FundWallet] defaultProvider:',
+      defaultProvider?.id,
+      defaultProvider?.name,
+    );
+    console.log(
+      '[FundWallet] providers:',
+      providers?.map((p) => ({
+        id: p.id,
+        name: p.name,
+        supportsMusd: p.supportedCryptoCurrencies?.[effectiveAssetId ?? ''],
+        supportedCryptoCount: Object.keys(p.supportedCryptoCurrencies ?? {})
+          .length,
+        supportedPayments: Object.keys(p.supportedPaymentMethods ?? {}),
+      })),
+    );
+    console.log('[FundWallet] paymentMethodsStatus:', paymentMethodsStatus);
+    console.log('[FundWallet] paymentMethodsLoading:', paymentMethodsLoading);
+    console.log('[FundWallet] paymentMethodsError:', paymentMethodsError);
+    console.log(
+      '[FundWallet] paymentMethods:',
+      paymentMethods?.map((pm) => ({
+        id: pm.id,
+        name: pm.name,
+        type: pm.paymentType,
+      })),
+    );
+    console.log(
+      '[FundWallet] bankAndCard:',
+      bankAndCard?.map((pm) => ({
+        id: pm.id,
+        name: pm.name,
+        type: pm.paymentType,
+      })),
+    );
+  }, [
+    userRegion,
+    tokens,
+    selectedToken,
+    selectedProvider,
+    defaultToken,
+    defaultProvider,
+    providers,
+    effectiveAssetId,
+    paymentMethodsStatus,
+    paymentMethodsLoading,
+    paymentMethodsError,
+    paymentMethods,
+    bankAndCard,
+  ]);
 
   const hasTrackedView = React.useRef(false);
   useEffect(() => {
@@ -193,6 +313,8 @@ const OnboardingFundWallet = () => {
     },
     [trackEvent, createEventBuilder, accountType],
   );
+
+  const [isMoreWaysSheetVisible, setIsMoreWaysSheetVisible] = useState(false);
 
   const onBack = useCallback(() => {
     navigation.goBack();
@@ -230,6 +352,11 @@ const OnboardingFundWallet = () => {
   // pre-selection so the user can still pick a method there.
   const handleMoreWaysPress = useCallback(
     (entry: MoreWaysToFundEntry) => {
+      if (entry.id === 'more_payment_methods') {
+        setIsMoreWaysSheetVisible(true);
+        return;
+      }
+
       trackSubmitted(entry.id);
 
       const selection = resolveMoreWaysSelection(entry, {
@@ -271,6 +398,19 @@ const OnboardingFundWallet = () => {
       groupId: selectedAccountGroup.id,
     });
   }, [trackSubmitted, navigation, selectedAccountGroup?.id]);
+
+  const handleMoreWaysSheetClose = useCallback(() => {
+    setIsMoreWaysSheetVisible(false);
+  }, []);
+
+  const handleMoreWaysSheetSelect = useCallback(
+    (id: string) => {
+      trackSubmitted(id);
+      setIsMoreWaysSheetVisible(false);
+      navigateFromOnboardingToBuyFlow(navigation);
+    },
+    [trackSubmitted, navigation],
+  );
 
   return (
     <View
@@ -400,17 +540,32 @@ const OnboardingFundWallet = () => {
                   description={strings(entry.descriptionKey)}
                   onPress={() => handleMoreWaysPress(entry)}
                   icon={
-                    <Icon
-                      name={entry.icon}
-                      size={IconSize.Md}
-                      color={IconColor.IconAlternative}
-                    />
+                    entry.image ? (
+                      <Image
+                        source={entry.image}
+                        style={tw.style('h-6 w-6')}
+                        resizeMode="contain"
+                      />
+                    ) : (
+                      <Icon
+                        name={entry.icon ?? IconName.Card}
+                        size={IconSize.Md}
+                        color={IconColor.IconAlternative}
+                      />
+                    )
                   }
                 />
               ))}
             </Box>
           </Box>
         </ScrollView>
+
+        {isMoreWaysSheetVisible ? (
+          <MoreWaysToFundBottomSheet
+            onClose={handleMoreWaysSheetClose}
+            onSelect={handleMoreWaysSheetSelect}
+          />
+        ) : null}
       </SafeAreaView>
     </View>
   );

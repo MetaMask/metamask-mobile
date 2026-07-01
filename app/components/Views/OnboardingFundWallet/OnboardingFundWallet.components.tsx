@@ -81,7 +81,7 @@ export const OptionRow = ({
       </Box>
       <Icon
         name={IconName.ArrowRight}
-        size={IconSize.Sm}
+        size={IconSize.Lg}
         color={IconColor.IconAlternative}
       />
     </TouchableOpacity>
@@ -103,7 +103,7 @@ export const RampsPaymentMethodIcon = ({
     <PaymentMethodIcon
       paymentMethodType={paymentMethod.paymentType as PaymentType}
       size={20}
-      color={colors.icon.default}
+      color={colors.icon.alternative}
     />
   );
 };

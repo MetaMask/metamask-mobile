@@ -1,6 +1,9 @@
 import { IconName } from '@metamask/design-system-react-native';
+import type { ImageSourcePropType } from 'react-native';
 import { PaymentType } from '@consensys/on-ramp-sdk';
 import type { PaymentMethod, Provider } from '@metamask/ramps-controller';
+import paypalPayImage from '../../../images/paypal_pay.png';
+// import morePaymentMethodsImage from '../../../images/more_pay.png';
 
 export const RECEIVE_EXTERNAL_OPTION_ID = 'receive_external';
 
@@ -38,7 +41,8 @@ export interface MoreWaysToFundEntry {
   id: string;
   labelKey: string;
   descriptionKey: string;
-  icon: IconName;
+  icon?: IconName;
+  image?: ImageSourcePropType;
   /**
    * Payment type matched against the unified RampsController payment-method
    * list. When the active provider offers it the method is pre-selected so the
@@ -58,23 +62,15 @@ export const MORE_WAYS_TO_FUND_ENTRIES: MoreWaysToFundEntry[] = [
     id: 'paypal',
     labelKey: 'onboarding_fund_wallet.option_paypal',
     descriptionKey: 'onboarding_fund_wallet.option_paypal_description',
-    icon: IconName.Card,
+    image: paypalPayImage,
     providerIdMatch: 'paypal',
   },
   {
-    id: 'google_pay',
-    labelKey: 'onboarding_fund_wallet.option_google_pay',
-    descriptionKey: 'onboarding_fund_wallet.option_google_pay_description',
-    icon: IconName.Card,
-    paymentTypeMatch: PaymentType.GooglePay,
-  },
-  {
-    id: 'revolut',
-    labelKey: 'onboarding_fund_wallet.option_revolut',
-    descriptionKey: 'onboarding_fund_wallet.option_revolut_description',
-    icon: IconName.Card,
-    paymentTypeMatch: PaymentType.RevPay,
-    providerIdMatch: 'revolut',
+    id: 'more_payment_methods',
+    labelKey: 'onboarding_fund_wallet.option_more_payment_methods',
+    descriptionKey:
+      'onboarding_fund_wallet.option_more_payment_methods_description',
+    icon: IconName.AttachMoney,
   },
 ];
 
