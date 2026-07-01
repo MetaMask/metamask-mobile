@@ -156,6 +156,15 @@ jest.mock('../../../util/device', () => ({
   isMediumDevice: jest.fn(),
 }));
 
+const mockGetShouldShowQuestionnaire = jest.fn().mockResolvedValue(false);
+jest.mock(
+  '../../../hooks/useOnboardingInterestQuestionnaireEligibility',
+  () => ({
+    useOnboardingInterestQuestionnaireEligibility: () =>
+      mockGetShouldShowQuestionnaire,
+  }),
+);
+
 const mockAuthenticateAsync = jest.fn().mockResolvedValue({ success: true });
 jest.mock('expo-local-authentication', () => ({
   authenticateAsync: (...args: unknown[]) => mockAuthenticateAsync(...args),

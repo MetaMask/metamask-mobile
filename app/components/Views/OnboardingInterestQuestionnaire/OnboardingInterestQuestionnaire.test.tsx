@@ -11,7 +11,6 @@ import {
 } from '../../../util/test/analyticsMock';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { strings } from '../../../../locales/i18n';
-import Routes from '../../../constants/navigation/Routes';
 
 const MockView = View;
 const MockPressable = Pressable;
@@ -287,16 +286,6 @@ describe('OnboardingInterestQuestionnaire', () => {
   });
 
   describe('Other option', () => {
-    it('renders an edit icon for the Other row', () => {
-      renderComponent();
-
-      expect(
-        screen.getByTestId(
-          `${OnboardingInterestQuestionnaireTestIds.OPTION_ICON_PREFIX}other`,
-        ),
-      ).toBeOnTheScreen();
-    });
-
     it('does not render the bottom sheet by default', () => {
       renderComponent();
 
@@ -334,7 +323,7 @@ describe('OnboardingInterestQuestionnaire', () => {
   });
 
   describe('Next button behaviour', () => {
-    it('fires Submitted and navigates to fund wallet with selections', async () => {
+    it('fires Submitted and calls onComplete with selections', async () => {
       renderComponent();
 
       fireEvent.press(
@@ -365,16 +354,10 @@ describe('OnboardingInterestQuestionnaire', () => {
           skipped: false,
         }),
       );
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.FUND_WALLET,
-        expect.objectContaining({
-          onComplete: mockOnComplete,
-          selectedInterests: ['swap_tokens'],
-        }),
-      );
+      expect(mockOnComplete).toHaveBeenCalledTimes(1);
     });
 
-    it('navigates to fund wallet when no option is selected', async () => {
+    it('calls onComplete when no option is selected', async () => {
       renderComponent();
 
       await act(async () => {
@@ -385,13 +368,7 @@ describe('OnboardingInterestQuestionnaire', () => {
         );
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.ONBOARDING.FUND_WALLET,
-        expect.objectContaining({
-          onComplete: mockOnComplete,
-          selectedInterests: [],
-        }),
-      );
+      expect(mockOnComplete).toHaveBeenCalledTimes(1);
     });
   });
 

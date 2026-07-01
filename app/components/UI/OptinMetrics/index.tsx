@@ -59,7 +59,7 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import type { RootState } from '../../../reducers';
-import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
+import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 import Logger from '../../../util/Logger';
 import { clearAttribution } from '../../../core/redux/slices/attribution';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
@@ -155,6 +155,8 @@ const OptinMetrics = () => {
 
     const onContinue = route?.params?.onContinue as (() => void) | undefined;
     if (onContinue) {
+      // eslint-disable-next-line no-console
+      console.log('onContinue');
       return onContinue();
     }
 
@@ -235,6 +237,7 @@ const OptinMetrics = () => {
     if (isBasicUsageChecked) {
       try {
         shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
+        // shouldShowInterestQuestionnaire = true;
       } catch (error) {
         Logger.error(
           error instanceof Error ? error : new Error(String(error)),
@@ -245,22 +248,26 @@ const OptinMetrics = () => {
 
     if (isBasicUsageChecked && shouldShowInterestQuestionnaire) {
       navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
-        onComplete: continueNavigation,
+        onComplete: () => {
+          navigation.reset({
+            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+          });
+        },
         ...(accountType && { accountType }),
       });
     } else {
       continueNavigation();
     }
   }, [
-    isBasicUsageChecked,
-    isMarketingChecked,
-    events,
     metrics,
+    isBasicUsageChecked,
     dispatch,
-    continueNavigation,
+    isMarketingChecked,
     accountType,
+    events,
     getShouldShowQuestionnaire,
     navigation,
+    continueNavigation,
   ]);
 
   /**
@@ -379,6 +386,12 @@ const OptinMetrics = () => {
     [tw],
   );
 
+  const goToDefaultSettings = () => {
+    navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
+      screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
+    });
+  };
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={rootStyle}>
       <ScrollView
@@ -474,6 +487,7 @@ const OptinMetrics = () => {
                 </Text>
               </Text>
             </Pressable>
+
             <Pressable
               style={({ pressed }) =>
                 tw.style(
@@ -527,6 +541,20 @@ const OptinMetrics = () => {
                 {strings('privacy_policy.checkbox')}
               </Text>
             </Pressable>
+
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('privacy_policy.settings')}{' '}
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.PrimaryDefault}
+                onPress={goToDefaultSettings}
+              >
+                {strings('privacy_policy.settings_link')}
+              </Text>
+            </Text>
           </Box>
         </Box>
       </ScrollView>

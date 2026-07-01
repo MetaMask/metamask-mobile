@@ -104,6 +104,8 @@ import generateDeviceAnalyticsMetaData, {
 import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { selectGeolocationLocation } from '../../../selectors/geolocationController';
 import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
+import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 
 interface KeyringState {
   type: string;
@@ -163,6 +165,10 @@ const ChoosePassword = () => {
   // Flag to know if password in keyring was set or not
   const keyringControllerPasswordSet = useRef(false);
   const foxRiveLoaderRef = useRef<FoxRiveLoaderAnimationRef>(null);
+
+  const reduxAccountType = useSelector(selectOnboardingAccountType);
+  const getShouldShowQuestionnaire =
+    useOnboardingInterestQuestionnaireEligibility();
 
   const getOauth2LoginSuccess = useCallback(
     () => route.params?.oauthLoginSuccess,
@@ -398,6 +404,23 @@ const ChoosePassword = () => {
     [password, recreateVault, dispatch],
   );
 
+  const onContinueNavigation = useCallback(() => {
+    navigation.reset({
+      index: 0,
+      routes: [
+        {
+          name: Routes.ONBOARDING.SUCCESS_FLOW,
+          params: {
+            screen: Routes.ONBOARDING.SUCCESS,
+            params: {
+              successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+            },
+          },
+        },
+      ],
+    });
+  }, [navigation]);
+
   const handlePostWalletCreation = useCallback(
     async (authType: AuthData, marketingOptInChecked: boolean) => {
       dispatch(passwordSetAction());
@@ -446,20 +469,27 @@ const ChoosePassword = () => {
           Logger.error(analyticsError as Error);
         }
 
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: Routes.ONBOARDING.SUCCESS_FLOW,
-              params: {
-                screen: Routes.ONBOARDING.SUCCESS,
-                params: {
-                  successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-                },
-              },
-            },
-          ],
-        });
+        // Check if interest questionnaire should be shown
+        let shouldShowInterestQuestionnaire = false;
+        try {
+          shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
+          // shouldShowInterestQuestionnaire = true;
+        } catch (error) {
+          Logger.error(
+            error instanceof Error ? error : new Error(String(error)),
+            'OptinMetrics: interest questionnaire eligibility check failed',
+          );
+        }
+
+        if (shouldShowInterestQuestionnaire) {
+          const accountType = reduxAccountType;
+          navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
+            onComplete: onContinueNavigation,
+            ...(accountType && { accountType }),
+          });
+        } else {
+          onContinueNavigation();
+        }
       } else {
         const seedPhrase = await tryExportSeedPhrase(password);
         (
@@ -475,9 +505,12 @@ const ChoosePassword = () => {
     },
     [
       dispatch,
-      metrics,
-      navigation,
       route.params?.provider,
+      metrics,
+      getShouldShowQuestionnaire,
+      reduxAccountType,
+      navigation,
+      onContinueNavigation,
       tryExportSeedPhrase,
       password,
     ],

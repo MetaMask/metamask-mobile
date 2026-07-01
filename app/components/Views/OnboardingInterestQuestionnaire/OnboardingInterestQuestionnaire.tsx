@@ -221,12 +221,7 @@ const OnboardingInterestQuestionnaire = () => {
         .build(),
     );
 
-    navigation.navigate(Routes.ONBOARDING.FUND_WALLET, {
-      onComplete,
-      ...(accountType && { accountType }),
-      selectedInterests,
-      ...(otherText && { otherText }),
-    });
+    onComplete();
   }, [
     selectedIds,
     otherText,
@@ -234,7 +229,6 @@ const OnboardingInterestQuestionnaire = () => {
     createEventBuilder,
     accountType,
     onComplete,
-    navigation,
   ]);
 
   const onSkip = useCallback(() => {
@@ -270,7 +264,7 @@ const OnboardingInterestQuestionnaire = () => {
             onPress={onSkip}
             testID={OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON}
           >
-            {strings('onboarding_fund_wallet.skip')}
+            {strings('onboarding_interest_questionnaire.skip')}
           </Text>
         }
       />

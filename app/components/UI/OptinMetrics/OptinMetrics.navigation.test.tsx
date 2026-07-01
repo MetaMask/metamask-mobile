@@ -47,7 +47,7 @@ jest.mock('react-redux', () => {
 
 const mockGetShouldShow = jest.fn();
 jest.mock(
-  '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility',
+  '../../../hooks/useOnboardingInterestQuestionnaireEligibility',
   () => ({
     useOnboardingInterestQuestionnaireEligibility: () => mockGetShouldShow,
   }),
@@ -305,6 +305,39 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
             accountType: 'imported',
           }),
         );
+      });
+    });
+
+    it('onComplete callback resets navigation to HOME_NAV', async () => {
+      mockGetShouldShow.mockResolvedValue(true);
+
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({
+            onComplete: expect.any(Function),
+          }),
+        );
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+      );
+      const onComplete = navCall?.[1]?.onComplete;
+
+      mockReset.mockClear();
+      onComplete();
+
+      expect(mockReset).toHaveBeenCalledWith({
+        routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
       });
     });
   });
