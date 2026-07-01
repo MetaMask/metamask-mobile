@@ -73,6 +73,12 @@ function reportErrorToRN(error) {
  */
 function onFromRN(handler) {
     const dispatch = (event) => {
+        // RN WebView inline HTML: native bridge messages arrive with an empty
+        // or "null" origin. Reject messages from real web origins.
+        const origin = event.origin;
+        if (origin && origin !== 'null' && !origin.startsWith('file:')) {
+            return;
+        }
         let parsed;
         try {
             parsed =
