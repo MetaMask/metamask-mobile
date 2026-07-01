@@ -8,8 +8,9 @@ import React, {
 import { ActivityIndicator } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 import { CaipChainId } from '@metamask/utils';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import type { AccountGroupId } from '@metamask/account-api';
 
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import TokenNetworkFilterBar from '../../components/TokenNetworkFilterBar';
@@ -40,6 +41,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
+import { selectInternalAccountListSpreadByScopesByGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectModal/SelectToken.testIds';
 import { TokenSelectionSelectors } from './TokenSelection.testIds';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
@@ -49,6 +51,11 @@ export const createTokenSelectionNavDetails = createNavigationDetails(
   Routes.RAMP.TOKEN_SELECTION,
 );
 
+interface TokenSelectionRouteParams {
+  receiveMode?: boolean;
+  groupId?: AccountGroupId;
+}
+
 function TokenSelection() {
   const listRef = useRef<FlatList>(null);
   const [searchString, setSearchString] = useState('');
@@ -57,7 +64,15 @@ function TokenSelection() {
   );
   const theme = useTheme();
   const navigation = useNavigation();
+  const route = useRoute();
   const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
+
+  const { receiveMode, groupId } =
+    (route.params as TokenSelectionRouteParams) ?? {};
+
+  const getAddressesByGroupId = useSelector(
+    selectInternalAccountListSpreadByScopesByGroupId,
+  );
 
   const {
     tokens: controllerTokens,
@@ -125,11 +140,17 @@ function TokenSelection() {
     networksByCaipChainId,
   ]);
 
-  // Use topTokens for initial display, allTokens when searching
+  // Use topTokens for initial display, allTokens when searching.
+  // In receive mode, only show EVM tokens since the EOA address is
+  // reusable across all EVM chains.
   const supportedTokens = useMemo(() => {
     const tokensToUse = searchString.trim() ? allTokens : topTokens;
-    return tokensToUse || [];
-  }, [searchString, allTokens, topTokens]);
+    const tokens = tokensToUse || [];
+    if (receiveMode) {
+      return tokens.filter((t) => t.chainId?.startsWith('eip155:'));
+    }
+    return tokens;
+  }, [searchString, allTokens, topTokens, receiveMode]);
 
   const searchTokenResults = useSearchTokenResults({
     tokens: supportedTokens as RampsToken[],
@@ -208,6 +229,35 @@ function TokenSelection() {
             .build(),
         );
       }
+      // Receive mode: push the receive QR screen onto OnboardingRootNav,
+      // keeping TokenSelection in the stack so "back" returns here.
+      // Only EVM tokens are shown in receive mode, so the EOA address is
+      // reusable across all chains.
+      if (receiveMode && selectedToken && groupId) {
+        const chainId = selectedToken.chainId as string;
+        const addressItems = getAddressesByGroupId(groupId);
+
+        const addressItem =
+          addressItems.find((item) => item.scope === chainId) ??
+          addressItems.find((item) =>
+            (item.scope as string).startsWith('eip155:'),
+          );
+
+        const address = addressItem?.account?.address ?? '';
+        if (!address) return;
+
+        const networkName = addressItem?.networkName ?? getNetworkName(chainId);
+
+        const rootNav = navigation.getParent()?.getParent();
+        rootNav?.navigate(Routes.ONBOARDING.RECEIVE_QR, {
+          tokenSymbol: selectedToken.symbol,
+          networkName,
+          chainId,
+          address,
+        });
+        return;
+      }
+
       // V1 flow: close the modal before navigating to Deposit/Aggregator
       // V2 flow: set selected token on controller and navigate within the same stack
       if (isV2UnifiedEnabled) {
@@ -225,6 +275,9 @@ function TokenSelection() {
       getNetworkName,
       detectedGeolocation,
       isV2UnifiedEnabled,
+      receiveMode,
+      groupId,
+      getAddressesByGroupId,
       navigation,
       goToBuy,
       setSelectedToken,

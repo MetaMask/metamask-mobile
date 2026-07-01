@@ -1,8 +1,6 @@
 import type { AccountGroupId } from '@metamask/account-api';
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
-import { AddressListViewedSource } from '../../../util/analytics/addressListViewedTracking';
-import { strings } from '../../../../locales/i18n';
 import { navigateFromOnboardingToReceiveFlow } from './navigateFromOnboardingToReceiveFlow';
 
 describe('navigateFromOnboardingToReceiveFlow', () => {
@@ -27,18 +25,17 @@ describe('navigateFromOnboardingToReceiveFlow', () => {
     jest.clearAllMocks();
   });
 
-  it('pushes the wallet address list onto the onboarding root stack', () => {
+  it('navigates to token selection in receive mode', () => {
     navigateFromOnboardingToReceiveFlow(mockNavigation, {
       groupId: mockGroupId,
     });
 
     expect(mockGetParent).toHaveBeenCalledTimes(1);
     expect(mockParentNavigate).toHaveBeenCalledWith(
-      Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST,
+      Routes.RAMP.TOKEN_SELECTION,
       {
+        receiveMode: true,
         groupId: mockGroupId,
-        title: strings('multichain_accounts.address_list.receiving_address'),
-        source: AddressListViewedSource.RECEIVE_BUTTON,
       },
     );
   });

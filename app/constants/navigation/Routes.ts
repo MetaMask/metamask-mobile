@@ -205,6 +205,7 @@ const Routes = {
     ONBOARDING_OAUTH_REHYDRATE: 'OnboardingOAuthRehydrate',
     REHYDRATE: 'Rehydrate',
     WALLET_CREATION_ERROR: 'WalletCreationError',
+    RECEIVE_QR: 'OnboardingReceiveQR',
     INTEREST_QUESTIONNAIRE: 'OnboardingInterestQuestionnaire',
     FUND_WALLET: 'OnboardingFundWallet',
     CRYPTO_EXPERIENCE_QUESTIONNAIRE: 'OnboardingCryptoExperienceQuestionnaire',

@@ -21,6 +21,7 @@ import Main from '../Main';
 import OptinMetrics from '../../UI/OptinMetrics';
 import OnboardingInterestQuestionnaire from '../../Views/OnboardingInterestQuestionnaire';
 import OnboardingFundWallet from '../../Views/OnboardingFundWallet';
+import OnboardingReceiveQR from '../../Views/OnboardingFundWallet/OnboardingReceiveQR';
 import OnboardingCryptoExperienceQuestionnaire from '../../Views/OnboardingCryptoExperienceQuestionnaire/OnboardingCryptoExperienceQuestionnaire';
 import TokenListRoutes from '../../UI/Ramp/routes';
 import DepositRoutes from '../../UI/Ramp/Deposit/routes';
@@ -410,6 +411,10 @@ const OnboardingRootNav = () => {
       <NativeStack.Screen
         name={Routes.MULTICHAIN_ACCOUNTS.ADDRESS_LIST}
         component={OnboardingMultichainAddressList}
+      />
+      <NativeStack.Screen
+        name={Routes.ONBOARDING.RECEIVE_QR}
+        component={OnboardingReceiveQR}
       />
       <NativeStack.Screen
         name={Routes.QR_TAB_SWITCHER}

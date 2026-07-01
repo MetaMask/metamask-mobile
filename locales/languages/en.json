@@ -3222,7 +3222,8 @@
     "more_ways_section_regional": "Regional",
     "more_ways_option_instant_limit": "Instant • $10,000 limit",
     "payment_methods_error": "Unable to load payment methods. Tap to retry.",
-    "payment_methods_unavailable_region": "Card & bank funding isn't available in your region yet."
+    "payment_methods_unavailable_region": "Card & bank funding isn't available in your region yet.",
+    "done": "Done"
   },
   "onboarding_crypto_experience_questionnaire": {
     "title": "What's your experience with crypto?",
