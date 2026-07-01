@@ -44,7 +44,7 @@ import IntervalBar from '../../Charts/AdvancedChart/IntervalBar';
 import { createMAPickerNavDetails } from '../../Charts/AdvancedChart/MAPickerSheet';
 import { getTokenDetailsLegendOverlay } from '../../Charts/AdvancedChart/indicatorColors';
 import { useNavigation } from '@react-navigation/native';
-import { Box } from '@metamask/design-system-react-native';
+import { Box, TextColor } from '@metamask/design-system-react-native';
 import { useTheme, LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import { AMBIENT_NEGATIVE_COLOR } from '../../TokenDetails/components/abTestConfig';
 import { AppThemeKey } from '../../../../util/theme/models';
@@ -128,6 +128,15 @@ function getAdvancedChartVisibilityTraceRequest(
     op: TraceOperation.TokenOverviewAdvancedChart,
   };
 }
+
+const getChangePercentColor = (
+  displayDiff: number | null,
+): TextColor | undefined => {
+  if (displayDiff === null) return undefined;
+  if (displayDiff > 0) return TextColor.SuccessDefault;
+  if (displayDiff < 0) return TextColor.ErrorDefault;
+  return TextColor.TextAlternative;
+};
 
 export interface PriceAdvancedProps {
   asset: TokenI;
@@ -400,13 +409,10 @@ const PriceAdvanced = ({
     [assetId, effectiveTimePeriod, effectiveInterval, currentCurrency],
   );
 
-  /** Stable WebView key for interval hot-reload (technical-indicators path only). */
-  const webViewInstanceKey = useMemo(
-    () =>
-      isTechnicalIndicatorsEnabled
-        ? `${assetId}|${currentCurrency}`
-        : undefined,
-    [isTechnicalIndicatorsEnabled, assetId, currentCurrency],
+  /** Stable per-asset session key — time-range switches must not reset chart init state. */
+  const chartWebViewSessionKey = useMemo(
+    () => `${assetId}|${currentCurrency}`,
+    [assetId, currentCurrency],
   );
 
   const assetIdRef = useRef(assetId);
@@ -488,14 +494,10 @@ const PriceAdvanced = ({
     activeVisibilityTraceRef.current = null;
   }, []);
 
-  const chartSessionResetKey = isTechnicalIndicatorsEnabled
-    ? webViewInstanceKey
-    : ohlcvSeriesKey;
-
   useEffect(() => {
     setChartInitFailed(null);
     setHasChartBeenRevealed(false);
-  }, [chartSessionResetKey]);
+  }, [chartWebViewSessionKey]);
 
   const {
     ohlcvData,
@@ -625,10 +627,9 @@ const PriceAdvanced = ({
   /** OHLCV or WebView init still in flight — mirrors TimeRangeSelector `isChartLoading`. */
   const isAdvancedChartUiPending = chartLoading || chartInitFailed === null;
 
-  /** Technical-indicators path: first visit only; interval refresh keeps chart/bars visible. */
-  const isInitialChartPending = isTechnicalIndicatorsEnabled
-    ? !hasChartBeenRevealed && isAdvancedChartUiPending
-    : isAdvancedChartUiPending;
+  /** First visit only; time-range / interval refresh keeps selector and bars visible. */
+  const isInitialChartPending =
+    !hasChartBeenRevealed && isAdvancedChartUiPending;
 
   /**
    * Only show technical indicators UI when we're certain the advanced chart is being used.
@@ -788,6 +789,18 @@ const PriceAdvanced = ({
     currentPrice,
     dynamicComparePrice,
   ]);
+
+  const isCrosshairActive = !!crosshairData && chartType === ChartType.Candles;
+
+  const changePercent = useMemo(() => {
+    if (!isCrosshairActive || displayDiff === null || !dynamicComparePrice)
+      return undefined;
+    const sign = displayDiff >= 0 ? '+' : '';
+    const pct = ((displayDiff / dynamicComparePrice) * 100).toFixed(2);
+    return `${sign}${pct}%`;
+  }, [isCrosshairActive, displayDiff, dynamicComparePrice]);
+
+  const changePercentColor = getChangePercentColor(displayDiff);
 
   const { styles, theme } = useStyles(styleSheet);
   const { themeAppearance } = useTheme();
@@ -957,22 +970,30 @@ const PriceAdvanced = ({
 
   return (
     <>
-      {!isNaN(currentPrice) && (
-        <TokenPriceTitleHub
-          price={displayPrice}
-          displayDiff={displayDiff}
-          comparePrice={dynamicComparePrice}
-          periodLabel={displayDate}
-          currentCurrency={currentCurrency}
-          isLoading={isLoading}
-          isChangeLoading={
-            isTechnicalIndicatorsEnabled ? chartLoading : isLoading
-          }
-          ambientColor={ambientColor}
-          getPriceDiffStyle={getPriceDiffStyle}
-          changeFormat="signedCurrency"
-        />
-      )}
+      {!Number.isNaN(currentPrice) &&
+        (isCrosshairActive && crosshairData ? (
+          <OHLCVBar
+            data={crosshairData}
+            currency={currentCurrency}
+            changePercent={changePercent}
+            changePercentColor={changePercentColor}
+          />
+        ) : (
+          <TokenPriceTitleHub
+            price={displayPrice}
+            displayDiff={displayDiff}
+            comparePrice={dynamicComparePrice}
+            periodLabel={displayDate}
+            currentCurrency={currentCurrency}
+            isLoading={isLoading}
+            isChangeLoading={
+              isTechnicalIndicatorsEnabled ? chartLoading : isLoading
+            }
+            ambientColor={ambientColor}
+            getPriceDiffStyle={getPriceDiffStyle}
+            changeFormat="signedCurrency"
+          />
+        ))}
       {/* Unified skeleton bar when feature flag ON and chart not yet revealed */}
       {isTechnicalIndicatorsEnabled && isInitialChartPending && (
         <View style={styles.intervalBarContainer}>
@@ -1001,9 +1022,6 @@ const PriceAdvanced = ({
       <Box
         twClassName={isTechnicalIndicatorsEnabled ? 'w-full' : 'mt-3 w-full'}
       >
-        {crosshairData && chartType === ChartType.Candles && (
-          <OHLCVBar data={crosshairData} currency={currentCurrency} />
-        )}
         <View
           testID="advanced-chart-touch-container"
           style={[styles.chartContainer, { height: chartHeight }]}
@@ -1018,7 +1036,9 @@ const PriceAdvanced = ({
               ohlcvData={ohlcvData}
               ohlcvSeriesKey={ohlcvSeriesKey}
               webViewInstanceKey={
-                isTechnicalIndicatorsEnabled ? webViewInstanceKey : undefined
+                isTechnicalIndicatorsEnabled
+                  ? chartWebViewSessionKey
+                  : undefined
               }
               realtimeBar={realtimeBar}
               height={chartHeight}
