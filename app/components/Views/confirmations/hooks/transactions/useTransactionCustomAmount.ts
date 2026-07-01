@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useTokenFiatRate } from '../tokens/useTokenFiatRates';
 import { BigNumber } from 'bignumber.js';
 import { useTransactionMetadataRequest } from './useTransactionMetadataRequest';
@@ -33,6 +33,7 @@ import { RootState } from '../../../../../reducers';
 import { selectPaymentOverrideByTransactionId } from '../../../../../selectors/transactionPayController';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
+import { getMoneyAccountDepositIntent } from '../../../../UI/Money/hooks/useMoneyAccount';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 300;
@@ -44,6 +45,16 @@ function formatFiatAmount(value: BigNumber): string {
 export function useTransactionCustomAmount({
   currency,
 }: { currency?: string } = {}) {
+  const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
+  const { chainId, id: transactionId } = transactionMeta;
+
+  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+  ]);
+  const isAddMusdFlow =
+    isMoneyAccountDeposit &&
+    getMoneyAccountDepositIntent(transactionMeta?.batchId) === 'addMusd';
+
   const { amount: defaultAmount } = useParams<{ amount?: string }>();
   const [amountFiatState, setAmountFiat] = useState(defaultAmount ?? '0');
   const [isInputChanged, setInputChanged] = useState(false);
@@ -57,6 +68,8 @@ export function useTransactionCustomAmount({
   const isPostQuote = useTransactionPayIsPostQuote();
   const { setConfirmationMetric } = useConfirmationMetricEvents();
   const [isTokenAmountUpdated, setIsTokenAmountUpdated] = useState(false);
+  const [isPrefillPending, setIsPrefillPending] = useState(isAddMusdFlow);
+  const hasPrefilled = useRef(false);
 
   const debounceSetAmountDelayed = useMemo(
     () =>
@@ -67,9 +80,6 @@ export function useTransactionCustomAmount({
     [],
   );
 
-  const transactionMeta = useTransactionMetadataRequest() as TransactionMeta;
-  const { chainId, id: transactionId } = transactionMeta;
-
   const isMaxAmount = useTransactionPayIsMaxAmount();
   const isWithdraw = isTransactionPayWithdraw(transactionMeta);
   const isPerpsWithdraw = hasTransactionType(transactionMeta, [
@@ -77,9 +87,6 @@ export function useTransactionCustomAmount({
   ]);
   const isMoneyAccountWithdraw = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountWithdraw,
-  ]);
-  const isMoneyAccountDeposit = hasTransactionType(transactionMeta, [
-    TransactionType.moneyAccountDeposit,
   ]);
   const tokenAddress = getTokenAddress(transactionMeta);
   const payTokenFiatRate =
@@ -234,6 +241,19 @@ export function useTransactionCustomAmount({
     ],
   );
 
+  useEffect(() => {
+    if (
+      isAddMusdFlow &&
+      balanceUsd &&
+      balanceUsd > 0 &&
+      !hasPrefilled.current
+    ) {
+      hasPrefilled.current = true;
+      updatePendingAmountPercentage(100);
+      setIsPrefillPending(false);
+    }
+  }, [isAddMusdFlow, balanceUsd, updatePendingAmountPercentage]);
+
   const updateTokenAmount = useCallback(async () => {
     await updateTransactionPayAmount(amountHuman);
     setIsTokenAmountUpdated(true);
@@ -262,6 +282,7 @@ export function useTransactionCustomAmount({
     amountHumanDebounced,
     hasInput,
     isInputChanged,
+    isPrefillPending,
     updatePendingAmount,
     updatePendingAmountPercentage,
     updateTokenAmount,
@@ -284,7 +305,7 @@ function useTokenBalance(tokenUsdRate: number) {
     .multipliedBy(tokenUsdRate)
     .toNumber();
 
-  const { withdrawableMusd, totalFiatRaw } = useMoneyAccountBalance();
+  const { withdrawableMusd, withdrawableFiatRaw } = useMoneyAccountBalance();
 
   const paymentOverride = useSelector((state: RootState) =>
     selectPaymentOverrideByTransactionId(state, transactionId),
@@ -312,7 +333,7 @@ function useTokenBalance(tokenUsdRate: number) {
   }
 
   if (paymentOverride === PaymentOverride.MoneyAccount) {
-    return totalFiatRaw ? parseFloat(totalFiatRaw) : 0;
+    return withdrawableFiatRaw ? parseFloat(withdrawableFiatRaw) : 0;
   }
 
   return payTokenBalanceUsd;

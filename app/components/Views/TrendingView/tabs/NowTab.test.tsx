@@ -714,7 +714,11 @@ describe('NowTab — Crypto Movers', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
-      { initialTimeOption: '1h' },
+      {
+        initialTimeOption: '1h',
+        entryPoint: 'crypto_movers',
+        quickBuySource: 'explore_now',
+      },
     );
   });
 

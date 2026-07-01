@@ -12,6 +12,8 @@ import { HexSchema } from './common';
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_WIMBLEDON_TAB_FLAG,
+  PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
 } from '../constants/flags';
 
 export const PredictFeeCollectionSchema = defaulted(
@@ -73,10 +75,22 @@ export const PredictWorldCupSchema = defaulted(
       boolean(),
       () => DEFAULT_PREDICT_WORLD_CUP_FLAG.showWorldCupScreen,
     ),
+    showHubV2: defaulted(
+      boolean(),
+      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.showHubV2,
+    ),
+    showHubBanner: defaulted(
+      boolean(),
+      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.showHubBanner,
+    ),
     tagSlug: defaulted(string(), () => DEFAULT_PREDICT_WORLD_CUP_FLAG.tagSlug),
     gamesTagId: defaulted(
       string(),
       () => DEFAULT_PREDICT_WORLD_CUP_FLAG.gamesTagId,
+    ),
+    winnerEventId: defaulted(
+      string(),
+      () => DEFAULT_PREDICT_WORLD_CUP_FLAG.winnerEventId,
     ),
     bannerImage: optional(
       object({
@@ -88,4 +102,19 @@ export const PredictWorldCupSchema = defaulted(
     stages: defaulted(array(PredictWorldCupStageSchema), () => []),
   }),
   () => DEFAULT_PREDICT_WORLD_CUP_FLAG,
+);
+
+export const PredictWimbledonTabSchema = defaulted(
+  type({
+    enabled: defaulted(boolean(), () => DEFAULT_WIMBLEDON_TAB_FLAG.enabled),
+    minimumVersion: defaulted(
+      string(),
+      () => DEFAULT_WIMBLEDON_TAB_FLAG.minimumVersion,
+    ),
+    queryParams: defaulted(
+      string(),
+      () => PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+    ),
+  }),
+  () => DEFAULT_WIMBLEDON_TAB_FLAG,
 );

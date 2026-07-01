@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useEffect } from 'react';
-import { ScrollView, View } from 'react-native';
+import { Image, ScrollView, StyleSheet, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import {
   useNavigation,
@@ -12,13 +12,13 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+
 import AvatarNetwork from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { Box } from '../../../Box/Box';
 import { AlignItems, FlexDirection } from '../../../Box/box.types';
 import { useStyles } from '../../../../hooks/useStyles';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
-import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+
 import {
   selectCurrencyRates,
   selectCurrentCurrency,
@@ -33,10 +33,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { TransactionDetailDivider } from '../../../../Views/confirmations/components/activity/transaction-detail-divider/transaction-detail-divider';
 import { TransactionDetailsRow } from '../../../../Views/confirmations/components/activity/transaction-details-row/transaction-details-row';
-import {
-  TokenIcon,
-  TokenIconVariant,
-} from '../../../../Views/confirmations/components/token-icon';
 import useNetworkInfo from '../../../../Views/confirmations/hooks/useNetworkInfo';
 import Name from '../../../Name/Name';
 import { NameType } from '../../../Name/Name.types';
@@ -51,6 +47,26 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import MoneyIcon from '../../../../../images/money.png';
+
+const HERO_COPY_KEY: Record<AccountsApiActivity['kind'], string> = {
+  card: 'money.api_activity_details.you_spent',
+  cashback: 'money.api_activity_details.you_earned',
+  refund: 'money.api_activity_details.you_were_refunded',
+};
+
+const iconStyles = StyleSheet.create({
+  moneyIconWrapper: {
+    width: 24,
+    height: 24,
+    borderRadius: 6,
+    overflow: 'hidden' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  },
+  moneyIcon: { width: 32, height: 32 },
+  heroMoneyIcon: { width: 32, height: 32, borderRadius: 16 },
+});
 
 /**
  * Full-screen details for an Accounts-API activity (a card spend or musdback).
@@ -89,7 +105,6 @@ function MoneyApiActivityDetailsContent({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
   const currentCurrency = useSelector(selectCurrentCurrency);
   const currencyRates = useSelector(selectCurrencyRates);
   const blockExplorerLinkEnabled = useSelector(
@@ -147,36 +162,27 @@ function MoneyApiActivityDetailsContent({
   return (
     <View style={styles.wrapper}>
       <HeaderStandard
-        title={strings(
-          isCard
-            ? 'money.api_activity_details.card_title'
-            : 'money.api_activity_details.cashback_title',
-        )}
+        title={display.label}
         onBack={handleBack}
         backButtonProps={{ testID: 'card-transaction-details-back-button' }}
         includesTopInset
       />
       <ScrollView>
         <Box style={styles.container} gap={12}>
-          {/* Hero: "You spent" / "You earned" */}
+          {/* Hero: "You spent" / "You earned" / "You were refunded" */}
           <Box gap={4}>
             <Text color={TextColor.Alternative}>
-              {strings(
-                isCard
-                  ? 'money.api_activity_details.you_spent'
-                  : 'money.api_activity_details.you_earned',
-              )}
+              {strings(HERO_COPY_KEY[activity.kind])}
             </Text>
             <Box
               flexDirection={FlexDirection.Row}
               alignItems={AlignItems.center}
               gap={12}
             >
-              <TokenIcon
-                chainId={activity.chainId}
-                address={activity.token.address}
-                symbol={activity.token.symbol}
-                variant={TokenIconVariant.Hero}
+              <Image
+                source={MoneyIcon}
+                style={iconStyles.heroMoneyIcon}
+                testID="money-account-hero-icon"
               />
               <Text
                 variant={TextVariant.DisplayMD}
@@ -226,23 +232,23 @@ function MoneyApiActivityDetailsContent({
             </TransactionDetailsRow>
           ) : null}
 
-          {/* Counterparty. Card spends are framed as leaving the money account
-              ("To: Money account"); musdback shows the actual sender. */}
+          {/* Card spends show the source account only; merchant is not surfaced yet. */}
           {isCard ? (
             <TransactionDetailsRow
-              label={strings('transaction_details.label.to')}
+              label={strings('transaction_details.label.from')}
             >
               <Box
                 flexDirection={FlexDirection.Row}
                 alignItems={AlignItems.center}
                 gap={6}
               >
-                <AvatarAccount
-                  accountAddress={
-                    primaryMoneyAccount?.address ?? activity.paidTo
-                  }
-                  size={AvatarSize.Sm}
-                />
+                <View style={iconStyles.moneyIconWrapper}>
+                  <Image
+                    source={MoneyIcon}
+                    style={iconStyles.moneyIcon}
+                    testID="money-account-icon"
+                  />
+                </View>
                 <Text>
                   {strings('transaction_details.label.money_account')}
                 </Text>

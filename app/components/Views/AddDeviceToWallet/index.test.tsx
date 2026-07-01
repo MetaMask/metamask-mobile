@@ -1,21 +1,29 @@
 import React from 'react';
-import { act, fireEvent } from '@testing-library/react-native';
 import { DeviceEventEmitter } from 'react-native';
+import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import AddDeviceToWallet from './index';
-import Routes from '../../../constants/navigation/Routes';
 import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
+import AddDeviceToWallet from './index';
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn(() => ({})),
+  }),
+}));
+
+jest.mock(
+  '../../../images/add_wallet_to_device.png',
+  () => 'add_wallet_to_device_image',
+);
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
-const mockCreateQRScannerNavDetails = jest.fn(
-  (params: unknown) => ['QRTabSwitcher', params] as [string, unknown],
-);
 
 jest.mock('@react-navigation/native', () => {
-  const actual = jest.requireActual('@react-navigation/native');
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
-    ...actual,
+    ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
@@ -23,76 +31,205 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+const mockCreateQRScannerNavDetails = jest.fn(
+  (_options: Record<string, unknown>) => [
+    'QRTabSwitcher',
+    { initialScreen: 'Scanner', disableTabber: true },
+  ],
+);
+
 jest.mock('../QRTabSwitcher', () => ({
-  QRTabSwitcherScreens: { Scanner: 0 },
-  createQRScannerNavDetails: (params: unknown) =>
-    mockCreateQRScannerNavDetails(params),
+  createQRScannerNavDetails: (
+    ...args: Parameters<typeof mockCreateQRScannerNavDetails>
+  ) => mockCreateQRScannerNavDetails(...args),
+  QRTabSwitcherScreens: { Scanner: 'Scanner' },
 }));
+
+const renderComponent = () => renderWithProvider(<AddDeviceToWallet />);
 
 describe('AddDeviceToWallet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.useFakeTimers();
   });
 
-  it('renders add device instructions and scan button', () => {
-    const { getByText } = renderWithProvider(<AddDeviceToWallet />);
-
-    expect(
-      getByText(strings('app_settings.add_device.add_device_to_wallet')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('app_settings.add_device.scan_qr_code_button')),
-    ).toBeOnTheScreen();
+  afterEach(() => {
+    jest.runOnlyPendingTimers();
+    jest.useRealTimers();
   });
 
-  it('opens add-device QR scanner with MWP deeplink handler', () => {
-    const { getByText } = renderWithProvider(<AddDeviceToWallet />);
+  describe('initial render', () => {
+    it('renders the page heading', () => {
+      const { getByText } = renderComponent();
 
-    fireEvent.press(
-      getByText(strings('app_settings.add_device.scan_qr_code_button')),
-    );
-
-    expect(mockCreateQRScannerNavDetails).toHaveBeenCalledWith(
-      expect.objectContaining({
-        origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-        onMwpDeeplinkScanned: expect.any(Function),
-      }),
-    );
-    expect(mockNavigate).toHaveBeenCalled();
-  });
-
-  it('navigates to verification sheet after valid MWP deeplink scan', () => {
-    const { getByText } = renderWithProvider(<AddDeviceToWallet />);
-
-    fireEvent.press(
-      getByText(strings('app_settings.add_device.scan_qr_code_button')),
-    );
-
-    const scannerParams = mockCreateQRScannerNavDetails.mock.calls[0][0] as {
-      onMwpDeeplinkScanned: (url: string) => void;
-    };
-
-    scannerParams.onMwpDeeplinkScanned('metamask://connect/mwp?p=abc');
-
-    expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      expect.objectContaining({
-        screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
-        params: { verificationCode: '469192' },
-      }),
-    );
-  });
-
-  it('shows device added screen after verification completes', () => {
-    const { getByText } = renderWithProvider(<AddDeviceToWallet />);
-
-    act(() => {
-      DeviceEventEmitter.emit('addDeviceVerificationDone');
+      expect(
+        getByText(strings('app_settings.add_device.add_device_to_wallet')),
+      ).toBeOnTheScreen();
     });
 
-    expect(
-      getByText(strings('app_settings.add_device.device_added')),
-    ).toBeOnTheScreen();
+    it('renders the scan QR code button', () => {
+      const { getByText } = renderComponent();
+
+      expect(
+        getByText(strings('app_settings.add_device.scan_qr_code_button')),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders instruction point 1', () => {
+      const { getByText } = renderComponent();
+
+      expect(
+        getByText(strings('app_settings.add_device.points.one')),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders instruction points 3 and 4', () => {
+      const { getByText } = renderComponent();
+
+      expect(
+        getByText(strings('app_settings.add_device.points.three')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.add_device.points.four')),
+      ).toBeOnTheScreen();
+    });
+
+    it('renders point 2 bold text fragments', () => {
+      const { getByText } = renderComponent();
+
+      expect(
+        getByText(strings('app_settings.add_device.points.two_bold_one')),
+      ).toBeOnTheScreen();
+      expect(
+        getByText(strings('app_settings.add_device.points.two_bold_two')),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render DeviceAdded screen on initial load', () => {
+      const { queryByText } = renderComponent();
+
+      expect(
+        queryByText(strings('app_settings.add_device.waiting_for_extension')),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
+  describe('back navigation', () => {
+    it('calls navigation.goBack when back button is pressed', () => {
+      const { getByTestId } = renderComponent();
+
+      fireEvent.press(getByTestId('add-device-to-wallet-back-button'));
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('QR scanner', () => {
+    it('opens the QR scanner when scan button is pressed', () => {
+      const { getByText } = renderComponent();
+
+      fireEvent.press(
+        getByText(strings('app_settings.add_device.scan_qr_code_button')),
+      );
+
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('calls createQRScannerNavDetails with MWP deeplink handler', () => {
+      const { getByText } = renderComponent();
+
+      fireEvent.press(
+        getByText(strings('app_settings.add_device.scan_qr_code_button')),
+      );
+
+      expect(mockCreateQRScannerNavDetails).toHaveBeenCalledWith(
+        expect.objectContaining({
+          initialScreen: 'Scanner',
+          disableTabber: true,
+          onScanSuccess: expect.any(Function),
+          onMwpDeeplinkScanned: expect.any(Function),
+          origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+        }),
+      );
+    });
+
+    it('navigates to verification sheet after valid MWP deeplink scan', () => {
+      const { getByText } = renderComponent();
+
+      fireEvent.press(
+        getByText(strings('app_settings.add_device.scan_qr_code_button')),
+      );
+
+      const scannerParams = mockCreateQRScannerNavDetails.mock.calls[0][0] as {
+        onMwpDeeplinkScanned: (url: string) => void;
+      };
+
+      scannerParams.onMwpDeeplinkScanned('metamask://connect/mwp?p=abc');
+
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
+          params: { verificationCode: '469192' },
+        }),
+      );
+    });
+  });
+
+  describe('DeviceEventEmitter', () => {
+    it('switches to DeviceAdded screen when addDeviceVerificationDone event fires', async () => {
+      const { queryByText } = renderComponent();
+
+      await act(async () => {
+        DeviceEventEmitter.emit('addDeviceVerificationDone');
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByText(strings('app_settings.add_device.add_device_to_wallet')),
+        ).not.toBeOnTheScreen();
+        expect(
+          queryByText(strings('app_settings.add_device.waiting_for_extension')),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('returns to the instructions screen when addDeviceResetToInstructions event fires', async () => {
+      const { queryByText } = renderComponent();
+
+      await act(async () => {
+        DeviceEventEmitter.emit('addDeviceVerificationDone');
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByText(strings('app_settings.add_device.add_device_to_wallet')),
+        ).not.toBeOnTheScreen();
+      });
+
+      await act(async () => {
+        DeviceEventEmitter.emit('addDeviceResetToInstructions');
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByText(strings('app_settings.add_device.add_device_to_wallet')),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('removes the event listeners on unmount', () => {
+      const removeSpy = jest.fn();
+      jest.spyOn(DeviceEventEmitter, 'addListener').mockReturnValue({
+        remove: removeSpy,
+      } as unknown as ReturnType<typeof DeviceEventEmitter.addListener>);
+
+      const { unmount } = renderComponent();
+
+      unmount();
+
+      expect(removeSpy).toHaveBeenCalledTimes(2);
+    });
   });
 });

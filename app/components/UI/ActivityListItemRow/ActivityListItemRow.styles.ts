@@ -20,8 +20,8 @@ export const createStyles = (
       minHeight: 64,
       width: '100%',
       justifyContent: 'center',
-      paddingLeft: 0,
-      paddingRight: 0,
+      paddingLeft: 16,
+      paddingRight: 16,
       paddingTop: 8,
       paddingBottom: 8,
     },
@@ -69,11 +69,14 @@ export const createStyles = (
     listItemTitleFailed: {
       color: colors.error.default,
     } as TextStyle,
+    listItemTitleWarning: {
+      color: colors.warning.default,
+    } as TextStyle,
     subtitleText: {
       ...typography.sBodySM,
       fontFamily: getFontFamily(TextVariant.BodySM),
       lineHeight: 16,
-      marginTop: 0,
+      marginTop: 4,
       color: colors.text.alternative,
     } as TextStyle,
     listItemAmounts: {
@@ -97,6 +100,8 @@ export const createStyles = (
       fontFamily: getFontFamily(TextVariant.BodySM),
       color: colors.text.alternative,
       lineHeight: 16,
+      // Match the title/subtitle gap so the two amount lines aren't cramped.
+      marginTop: 4,
       textAlign: 'right',
     } as TextStyle,
     titleRow: {
@@ -104,7 +109,10 @@ export const createStyles = (
       alignItems: 'center',
     },
     titleSpinner: {
+      height: 18,
+      justifyContent: 'center',
       marginLeft: 6,
+      transform: [{ translateY: -2 }],
     },
     statusRow: {
       flexDirection: 'row',
@@ -117,7 +125,10 @@ export const createStyles = (
       marginTop: 0,
     },
     subtitleLeadingIcon: {
+      height: 16,
+      justifyContent: 'center',
       marginRight: 4,
+      transform: [{ translateY: -1 }],
     },
     statusText: {
       marginTop: 0,

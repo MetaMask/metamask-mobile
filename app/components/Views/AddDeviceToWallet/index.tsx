@@ -24,6 +24,7 @@ import {
 } from '../QRTabSwitcher';
 /* eslint-enable import-x/no-restricted-paths */
 import DeviceAdded from './DeviceAdded';
+import { ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT } from './showExtensionCancelledErrorSheet';
 
 /** Temporary mock OTP for bottom-sheet UI testing until QrSyncController is integrated. */
 const ADD_DEVICE_MOCK_VERIFICATION_CODE = '469192';
@@ -62,11 +63,19 @@ const AddDeviceToWallet = () => {
   const [deviceAdded, setDeviceAdded] = useState(false);
 
   useEffect(() => {
-    const subscription = DeviceEventEmitter.addListener(
+    const verificationDoneSubscription = DeviceEventEmitter.addListener(
       'addDeviceVerificationDone',
       () => setDeviceAdded(true),
     );
-    return () => subscription.remove();
+    const resetSubscription = DeviceEventEmitter.addListener(
+      ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT,
+      () => setDeviceAdded(false),
+    );
+
+    return () => {
+      verificationDoneSubscription.remove();
+      resetSubscription.remove();
+    };
   }, []);
 
   const handleMwpDeeplinkScanned = useCallback(
@@ -99,7 +108,10 @@ const AddDeviceToWallet = () => {
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
-      <HeaderCompactStandard onBack={() => navigation.goBack()} />
+      <HeaderCompactStandard
+        onBack={() => navigation.goBack()}
+        backButtonProps={{ testID: 'add-device-to-wallet-back-button' }}
+      />
       <Box twClassName="flex-1 gap-5 px-4 py-4">
         <Image
           source={addDeviceToWalletImage}

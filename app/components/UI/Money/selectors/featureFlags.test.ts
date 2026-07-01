@@ -6,14 +6,15 @@ import {
   selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   selectMoneyEnableMoneyAccountFlag,
   selectMoneyHubEnabledFlag,
-  selectMoneyNoFeeTokens,
   selectMoneyDepositMinBalance,
   selectMoneyAccountGeoBlockedCountries,
   DEFAULT_MONEY_ACCOUNT_BLOCKED_COUNTRIES,
+  selectMoneyCardActivityCashbackMultisendContracts,
   selectMoneyNoFeeDepositTokens,
   selectMoneyFirstTimeDepositAnimationEnabledFlag,
   selectMoneyVaultApyRemoteConfig,
 } from './featureFlags';
+import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {},
@@ -267,80 +268,6 @@ describe('selectMoneyHubEnabledFlag', () => {
   });
 });
 
-describe('selectMoneyNoFeeTokens', () => {
-  const originalEnv = process.env;
-  let consoleWarnSpy: jest.SpyInstance;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    process.env = { ...originalEnv };
-    consoleWarnSpy = jest
-      .spyOn(console, 'warn')
-      .mockImplementation(() => undefined);
-  });
-
-  afterEach(() => {
-    process.env = originalEnv;
-    consoleWarnSpy.mockRestore();
-  });
-
-  it('returns remote wildcard map object when valid', () => {
-    const state = createState({
-      earnMoneyDepositNoFeeTokens: { '*': ['USDC', 'USDT'] },
-    });
-
-    const result = selectMoneyNoFeeTokens(state as never);
-
-    expect(result).toEqual({ '*': ['USDC', 'USDT'] });
-  });
-
-  it('parses remote value from JSON string', () => {
-    const state = createState({
-      earnMoneyDepositNoFeeTokens: '{"0x1":["USDC"]}',
-    });
-
-    const result = selectMoneyNoFeeTokens(state as never);
-
-    expect(result).toEqual({ '0x1': ['USDC'] });
-  });
-
-  it('logs console.warn and falls back to env when remote value is structurally invalid', () => {
-    process.env.MM_MONEY_DEPOSIT_NO_FEE_TOKENS = JSON.stringify({
-      '0x1': ['USDC'],
-    });
-    const state = createState({
-      earnMoneyDepositNoFeeTokens: { '0x1': 'not-an-array' },
-    });
-
-    const result = selectMoneyNoFeeTokens(state as never);
-
-    expect(consoleWarnSpy).toHaveBeenCalledWith(
-      expect.stringContaining('produced invalid structure'),
-    );
-    expect(result).toEqual({ '0x1': ['USDC'] });
-  });
-
-  it('parses env var JSON as fallback when remote is absent', () => {
-    process.env.MM_MONEY_DEPOSIT_NO_FEE_TOKENS = JSON.stringify({
-      '*': ['USDC'],
-    });
-    const state = createState({});
-
-    const result = selectMoneyNoFeeTokens(state as never);
-
-    expect(result).toEqual({ '*': ['USDC'] });
-  });
-
-  it('returns empty object when both remote and env are absent', () => {
-    delete process.env.MM_MONEY_DEPOSIT_NO_FEE_TOKENS;
-    const state = createState({});
-
-    const result = selectMoneyNoFeeTokens(state as never);
-
-    expect(result).toEqual({});
-  });
-});
-
 describe('selectMoneyDepositMinBalance', () => {
   const originalEnv = process.env;
 
@@ -416,6 +343,50 @@ describe('selectMoneyDepositMinBalance', () => {
     const result = selectMoneyDepositMinBalance(state as never);
 
     expect(result).toBe(0.01);
+  });
+});
+
+describe('selectMoneyCardActivityCashbackMultisendContracts', () => {
+  it('returns the remote contract list when valid', () => {
+    const contracts = [
+      '0x9dd23A4a0845f10d65D293776B792af1131c7B30',
+      '0x00000000000000000000000000000000000000aa',
+    ];
+    const state = createState({
+      moneyCardActivityCashbackMultisendContracts: contracts,
+    });
+
+    const result = selectMoneyCardActivityCashbackMultisendContracts(
+      state as never,
+    );
+
+    expect(result).toEqual(contracts);
+  });
+
+  it('falls back to the default contract list when remote flag is absent', () => {
+    const state = createState({});
+
+    const result = selectMoneyCardActivityCashbackMultisendContracts(
+      state as never,
+    );
+
+    expect(result).toEqual([
+      ...DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS,
+    ]);
+  });
+
+  it('falls back to the default contract list when remote flag is invalid', () => {
+    const state = createState({
+      moneyCardActivityCashbackMultisendContracts: ['not-an-address', 123],
+    });
+
+    const result = selectMoneyCardActivityCashbackMultisendContracts(
+      state as never,
+    );
+
+    expect(result).toEqual([
+      ...DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS,
+    ]);
   });
 });
 
@@ -856,7 +827,17 @@ describe('selectMoneyNoFeeDepositTokens', () => {
       expect.arrayContaining(['USDC', 'aUSDC', 'aUSDT', 'USDT']),
     );
     expect(result['0xe708']).toEqual(['MUSD']);
-    expect(result['0x8f']).toEqual(['USDC']);
+    expect(result['0x8f']).toEqual(['USDC', 'MUSD']);
+  });
+
+  it('lists Monad mUSD even though no route emits a Monad mUSD -> Monad mUSD deposit', () => {
+    const state = createState({
+      confirmations_relay_fixed_spread: MOCK_RELAY_FLAG,
+    });
+
+    const result = selectMoneyNoFeeDepositTokens(state as never);
+
+    expect(result['0x8f']).toContain('MUSD');
   });
 
   it('deduplicates symbols within a chain', () => {
