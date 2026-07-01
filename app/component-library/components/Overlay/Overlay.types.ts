@@ -21,3 +21,13 @@ export interface OverlayProps extends TouchableOpacityProps {
  * Style sheet Overlay parameters.
  */
 export type OverlayStyleSheetVars = Pick<OverlayProps, 'style' | 'color'>;
+
+/**
+ * Ref handle for imperative control of overlay fade animations.
+ */
+export interface OverlayRef {
+  /** Fade the overlay in. */
+  fadeIn: () => void;
+  /** Fade the overlay out with an optional callback after animation completes. */
+  fadeOut: (callback?: () => void) => void;
+}
