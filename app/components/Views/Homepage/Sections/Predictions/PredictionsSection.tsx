@@ -44,7 +44,10 @@ import { useUnrealizedPnL } from '../../../../UI/Predict/hooks/useUnrealizedPnL'
 import { getPredictHomepageUnrealizedPnlRowState } from './utils/getPredictHomepageUnrealizedPnlRowState';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { PredictEventProperties } from '../../../../UI/Predict/constants/eventNames';
+import {
+  PredictEventProperties,
+  PredictEventValues,
+} from '../../../../UI/Predict/constants/eventNames';
 import {
   PredictPositionsEmptyStateVariant,
   type PredictEmptyStateCtaName,
@@ -236,7 +239,9 @@ const usePredictPositionsSectionData = (homepageQueriesEnabled: boolean) => {
     });
 
   const handleClaim = useCallback(async () => {
-    await claim();
+    await claim({
+      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+    });
   }, [claim]);
 
   const hasPositions = positions.length > 0;

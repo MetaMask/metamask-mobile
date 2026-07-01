@@ -7,14 +7,13 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import {
   Button,
-  ButtonVariant,
   ButtonSize,
-} from '@metamask/design-system-react-native';
-import Icon, {
+  ButtonVariant,
+  Icon,
+  IconColor,
   IconName,
   IconSize,
-  IconColor,
-} from '../../../../../component-library/components/Icons/Icon';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { PerpsStopLossPromptSelectorsIDs } from '../../Perps.testIds';
 import {
@@ -199,7 +198,7 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
                 <Icon
                   name={IconName.Check}
                   size={IconSize.Sm}
-                  color={IconColor.Inverse}
+                  color={IconColor.PrimaryInverse}
                   testID={PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON}
                 />
               ) : (

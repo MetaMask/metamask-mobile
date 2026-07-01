@@ -1,4 +1,4 @@
-import type { RampSurface } from '../../../../components/UI/Ramp/Deposit/types/analytics';
+import type { RampSurface } from '../../../../components/UI/Ramp/types/depositAnalytics';
 import { extractOrderCode } from '../../../../components/UI/Ramp/utils/extractOrderCode';
 
 /**

@@ -12,13 +12,93 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import type { TransactionGroup } from './transaction-group';
-import type { Status, TokenAmount } from '../types';
+import type { ActivityFee, Status, TokenAmount } from '../types';
 import {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
+  type ActivityTokenMetadata,
 } from './environment';
 
+const NATIVE_FEE_DECIMALS = 18;
+
+/**
+ * Computes the network (gas) fee in wei as a decimal string from a gas amount
+ * and gas price (both accepted as hex or decimal). Mirrors the extension's
+ * `toNetworkFeeAmount`.
+ */
+export function getNetworkFeeAmount(
+  gasUsed: string | undefined,
+  gasPrice: string | undefined,
+): string | undefined {
+  if (gasUsed === undefined || gasPrice === undefined) {
+    return undefined;
+  }
+  try {
+    return String(BigInt(gasUsed) * BigInt(gasPrice));
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Builds the base network fee (in the chain's native token) for a local
+ * transaction from its receipt (`gasUsed × effectiveGasPrice`), falling back to
+ * `txParams.gasPrice` while pending. Mirrors the extension's
+ * `getLocalTransactionFees` + `buildBaseNetworkFee`.
+ */
+export function getLocalTransactionFees(
+  transactionGroup: Pick<TransactionGroup, 'primaryTransaction'>,
+  nativeAsset: ActivityTokenMetadata | undefined,
+  nativeSymbol: string | undefined,
+): ActivityFee[] | undefined {
+  const { primaryTransaction } = transactionGroup;
+  const amount = getNetworkFeeAmount(
+    primaryTransaction.txReceipt?.gasUsed,
+    primaryTransaction.txReceipt?.effectiveGasPrice ??
+      primaryTransaction.txParams?.gasPrice,
+  );
+
+  if (!amount) {
+    return undefined;
+  }
+
+  return [
+    {
+      type: 'base',
+      amount,
+      decimals: nativeAsset?.decimals ?? NATIVE_FEE_DECIMALS,
+      ...(nativeSymbol ? { symbol: nativeSymbol } : {}),
+      ...(nativeAsset?.assetId ? { assetId: nativeAsset.assetId } : {}),
+    },
+  ];
+}
+
+export function getApiTransactionFees(
+  transaction: V1TransactionByHashResponse,
+  nativeAsset: ActivityTokenMetadata | undefined,
+): ActivityFee[] | undefined {
+  const amount = getNetworkFeeAmount(
+    transaction.gasUsed?.toString(),
+    transaction.effectiveGasPrice?.toString(),
+  );
+
+  if (!amount) {
+    return undefined;
+  }
+
+  return [
+    {
+      type: 'base',
+      amount,
+      decimals: nativeAsset?.decimals ?? NATIVE_FEE_DECIMALS,
+      ...(nativeAsset?.symbol ? { symbol: nativeAsset.symbol } : {}),
+      ...(nativeAsset?.assetId ? { assetId: nativeAsset.assetId } : {}),
+    },
+  ];
+}
+
 const MAINNET_HEX_CHAIN_ID = '0x1';
+const TOKEN_VALUE_UNLIMITED_THRESHOLD = 10 ** 15;
 
 export type ValueTransfer = NonNullable<
   V1TransactionByHashResponse['valueTransfers']
@@ -80,6 +160,19 @@ export function getTokenApprovalAmountFromData(
 
   return stringifyParsedTokenAmount(
     args._value ?? args.value ?? args.amount ?? args[1],
+  );
+}
+
+export function isUnlimitedApprovalAmount(
+  amount: string | undefined,
+  decimals = 0,
+): boolean {
+  if (!amount) {
+    return false;
+  }
+
+  return (
+    Number.parseFloat(amount) / 10 ** decimals > TOKEN_VALUE_UNLIMITED_THRESHOLD
   );
 }
 
