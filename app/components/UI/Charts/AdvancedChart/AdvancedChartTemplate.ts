@@ -285,7 +285,7 @@ export const createAdvancedChartTemplate = (
          * Visible-edge outline pill: same pill metrics as .crosshair-label + .crosshair-price-label
          * as the filled last-close label, but transparent fill + success border and success (green)
          * text for readability on the chart background. Shown only when the series tail is off-screen
-         * and lineChrome.useCustomPriceLabels is true (chartLogic.js).
+         * and lineChrome.useCustomPriceLabels is true.
          */
         #custom-series-last-value-label {
             z-index: 55;
@@ -300,7 +300,7 @@ export const createAdvancedChartTemplate = (
             z-index: 60;
         }
         /*
-         * Study legend pills (chartLogic.js): semi-transparent background via color-mix.
+         * Study legend pills: semi-transparent background via color-mix.
          */
         .legend-pill {
             display: inline-flex;

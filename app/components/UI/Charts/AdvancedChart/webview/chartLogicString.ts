@@ -4482,8 +4482,6 @@ function bootstrap() {
             reportErrorToRN(error);
         });
     });
-    // DEBUG signal so RN can confirm the modular bundle reached bootstrap.
-    // Removed in Phase 7 once the legacy bundle is gone.
     postToRN('DEBUG', { message: 'modular-bootstrap-ready' });
     return config;
 }

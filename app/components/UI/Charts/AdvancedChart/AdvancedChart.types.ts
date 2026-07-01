@@ -22,8 +22,8 @@ export interface OHLCVBar {
 
 /**
  * Any TradingView study name is accepted. The three presets ('MACD', 'RSI',
- * 'MA200') get built-in parameter defaults in chartLogic.js; all other strings
- * are forwarded to `createStudy` as-is with optional `inputs` from the payload.
+ * 'MA200') get built-in parameter defaults in webview/src/features/indicators/studies.ts;
+ * all other strings are forwarded to `createStudy` as-is with optional `inputs` from the payload.
  */
 export type IndicatorType = string;
 
