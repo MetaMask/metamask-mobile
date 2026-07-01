@@ -81,6 +81,7 @@ import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress'
 import {
   Box,
   BoxFlexDirection,
+  BoxAlignItems,
   FontWeight,
   Text,
   TextColor,
@@ -653,104 +654,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             ) : null
             ///: END:ONLY_INCLUDE_IF
           }
-
-          {/* Token icon + name row */}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-4 py-2 pl-4 pr-[16px]"
-          >
-            <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={
-                networkBadgeSource ? (
-                  <Badge
-                    variant={BadgeVariant.Network}
-                    imageSource={networkBadgeSource}
-                    size={AvatarSize.Xs}
-                  />
-                ) : undefined
-              }
-            >
-              <AssetLogo asset={token} />
-            </BadgeWrapper>
-
-            <Box twClassName="min-w-0 flex-1">
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="max-w-full min-w-0 gap-1.5 self-stretch"
-              >
-                <Box twClassName="min-w-0 shrink grow-0">
-                  <Text
-                    variant={TextVariant.HeadingMd}
-                    color={TextColor.TextDefault}
-                    numberOfLines={1}
-                  >
-                    {
-                      ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-                      stellarNativeToken != null
-                        ? getStellarNativeDisplayName(stellarNativeToken)
-                        : ///: END:ONLY_INCLUDE_IF
-                          token.name || token.symbol
-                    }
-                  </Text>
-                </Box>
-                {securityData?.resultType === 'Verified' &&
-                  securityConfig.badge && (
-                    <Box twClassName="shrink-0 pb-[2px]">
-                      <TouchableOpacity
-                        onPress={handleSecurityBadgePress}
-                        testID="security-badge-verified"
-                      >
-                        <Icon
-                          name={securityConfig.badge.icon}
-                          size={IconSize.Md}
-                          color={securityConfig.badge.iconColor}
-                        />
-                      </TouchableOpacity>
-                    </Box>
-                  )}
-                {!token.name && isStockToken(token as BridgeToken) && (
-                  <Box twClassName="shrink-0">
-                    <StockBadge token={token as BridgeToken} />
-                  </Box>
-                )}
-                {
-                  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-                  showStellarInactiveAssetHeader ? (
-                    <Box twClassName="shrink-0">
-                      <StellarTrustlineInactiveBadge />
-                    </Box>
-                  ) : null
-                  ///: END:ONLY_INCLUDE_IF
-                }
-              </Box>
-              {token.name &&
-              ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-              !isStellarNativeToken(token) &&
-              ///: END:ONLY_INCLUDE_IF
-              true ? (
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  twClassName="gap-1"
-                >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                    fontWeight={FontWeight.Medium}
-                    numberOfLines={1}
-                  >
-                    {token.ticker || token.symbol}
-                  </Text>
-                  {isStockToken(token as BridgeToken) && (
-                    <StockBadge token={token as BridgeToken} />
-                  )}
-                </Box>
-              ) : null}
-            </Box>
-          </Box>
 
           <Price
             asset={token}

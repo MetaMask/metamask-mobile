@@ -175,7 +175,6 @@ const MultichainTransactionsView = ({
   );
 
   const url = getAddressUrl(address ?? '', chainId as CaipChainId);
-
   const footer = (
     <MultichainTransactionsFooter
       url={url}
