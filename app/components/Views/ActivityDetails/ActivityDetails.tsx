@@ -142,14 +142,22 @@ const ActivityDetails = () => {
           </Box>
         )}
 
-        <CancelSpeedupModal
-          isVisible={speedUpIsOpen || cancelIsOpen}
-          isCancel={cancelIsOpen}
-          tx={existingTx}
-          onConfirm={cancelIsOpen ? cancelTransaction : speedUpTransaction}
-          onClose={onSpeedUpCancelCompleted}
-          confirmDisabled={confirmDisabled}
-        />
+        {/*
+          The confirmation sheet is driven entirely by the hook's own state
+          (`existingTx` + open flags set together in `onSpeedUp/CancelAction`),
+          not by the banner's `pendingTx`. Gate on `existingTx` so the modal
+          only mounts once an action has been triggered.
+        */}
+        {existingTx ? (
+          <CancelSpeedupModal
+            isVisible={speedUpIsOpen || cancelIsOpen}
+            isCancel={cancelIsOpen}
+            tx={existingTx}
+            onConfirm={cancelIsOpen ? cancelTransaction : speedUpTransaction}
+            onClose={onSpeedUpCancelCompleted}
+            confirmDisabled={confirmDisabled}
+          />
+        ) : null}
       </Box>
     </SafeAreaView>
   );

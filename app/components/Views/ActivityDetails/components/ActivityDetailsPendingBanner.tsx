@@ -16,11 +16,10 @@ import {
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
 import PendingSpinner from '../../../UI/Money/components/PendingSpinner/PendingSpinner';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared pending-action gate with the activity list row; route-isolation backlog
 import {
   getPendingTxActionVisibility,
   hasAnyPendingTxAction,
-} from '../../../UI/ActivityListItemRow/pendingTxActions';
+} from '../../../UI/Transactions/pendingTxActions';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 
 export interface ActivityDetailsPendingBannerProps {
@@ -30,7 +29,7 @@ export interface ActivityDetailsPendingBannerProps {
   onSpeedUpAction: (open: boolean, tx?: TransactionMeta) => void;
   onCancelAction: (open: boolean, tx?: TransactionMeta) => void;
   signQRTransaction: (tx: TransactionMeta) => void;
-  signLedgerTransaction: (tx: { id: string }) => void;
+  signLedgerTransaction: (tx: Pick<TransactionMeta, 'id'>) => void;
   cancelUnsignedQRTransaction: (tx: TransactionMeta) => void;
 }
 

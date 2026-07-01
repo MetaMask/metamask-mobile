@@ -100,13 +100,13 @@ export function useUnifiedTxActions() {
   const [speedUpTxId, setSpeedUpTxId] = useState<Maybe<string>>(null);
   const [cancelTxId, setCancelTxId] = useState<Maybe<string>>(null);
 
-  const isLedgerAccount = isHardwareAccount(selectedAddress ?? '', [
-    ExtendedKeyringTypes.ledger,
-  ]);
+  const isLedgerAccount = Boolean(
+    isHardwareAccount(selectedAddress ?? '', [ExtendedKeyringTypes.ledger]),
+  );
 
-  const isQRHardwareAccount = isHardwareAccount(selectedAddress ?? '', [
-    ExtendedKeyringTypes.qr,
-  ]);
+  const isQRHardwareAccount = Boolean(
+    isHardwareAccount(selectedAddress ?? '', [ExtendedKeyringTypes.qr]),
+  );
 
   const showTransactionUpdateErrorToast = useCallback(
     (error: unknown) => {

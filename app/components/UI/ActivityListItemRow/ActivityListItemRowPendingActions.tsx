@@ -10,7 +10,7 @@ import { View } from 'react-native';
 import { type TransactionMeta } from '@metamask/transaction-controller';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../StyledButton';
-import { getPendingTxActionVisibility } from './pendingTxActions';
+import { getPendingTxActionVisibility } from '../Transactions/pendingTxActions';
 import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
 
 export interface ActivityListItemRowPendingActionsProps {
@@ -21,7 +21,7 @@ export interface ActivityListItemRowPendingActionsProps {
   onSpeedUpAction: (open: boolean, tx?: TransactionMeta) => void;
   onCancelAction: (open: boolean, tx?: TransactionMeta) => void;
   signQRTransaction: (tx: TransactionMeta) => void;
-  signLedgerTransaction: (tx: { id: string }) => void;
+  signLedgerTransaction: (tx: Pick<TransactionMeta, 'id'>) => void;
   cancelUnsignedQRTransaction: (tx: TransactionMeta) => void;
 }
 
