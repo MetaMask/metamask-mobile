@@ -73,6 +73,7 @@ const ActivityScreen = () => {
     initialTypeFilter: initialTypeFilterParam,
     redirectToPerpsTransactions: redirectToPerpsParam,
     redirectToOrders: redirectToOrdersParam,
+    initialPerpsFilter: initialPerpsFilterParam,
   } = params;
   const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(() =>
     resolveInitialActivityTypeFilter(params),
@@ -83,7 +84,7 @@ const ActivityScreen = () => {
   );
   const [isNetworkSheetOpen, setIsNetworkSheetOpen] = useState(false);
   const [perpsFilter, setPerpsFilter] = useState<PerpsActivityFilter>(
-    PerpsActivityFilter.Trades,
+    () => initialPerpsFilterParam ?? PerpsActivityFilter.Trades,
   );
   const [isPerpsSheetOpen, setIsPerpsSheetOpen] = useState(false);
 
@@ -113,26 +114,34 @@ const ActivityScreen = () => {
     if (
       initialTypeFilterParam === undefined &&
       !redirectToPerpsParam &&
-      !redirectToOrdersParam
+      !redirectToOrdersParam &&
+      initialPerpsFilterParam === undefined
     ) {
       return;
     }
-    handleSelectTypeFilter(
-      resolveInitialActivityTypeFilter({
-        initialTypeFilter: initialTypeFilterParam,
-        redirectToPerpsTransactions: redirectToPerpsParam,
-        redirectToOrders: redirectToOrdersParam,
-      }),
-    );
+    const resolvedTypeFilter = resolveInitialActivityTypeFilter({
+      initialTypeFilter: initialTypeFilterParam,
+      redirectToPerpsTransactions: redirectToPerpsParam,
+      redirectToOrders: redirectToOrdersParam,
+    });
+    handleSelectTypeFilter(resolvedTypeFilter);
+    if (
+      initialPerpsFilterParam !== undefined &&
+      resolvedTypeFilter === ActivityTypeFilter.Perps
+    ) {
+      setPerpsFilter(initialPerpsFilterParam);
+    }
     navigation.setParams({
       initialTypeFilter: undefined,
       redirectToPerpsTransactions: undefined,
       redirectToOrders: undefined,
+      initialPerpsFilter: undefined,
     });
   }, [
     initialTypeFilterParam,
     redirectToPerpsParam,
     redirectToOrdersParam,
+    initialPerpsFilterParam,
     handleSelectTypeFilter,
     navigation,
   ]);

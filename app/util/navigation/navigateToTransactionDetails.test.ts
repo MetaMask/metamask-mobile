@@ -1,6 +1,9 @@
 import Routes from '../../constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
-import { ActivityTypeFilter } from '../../components/Views/ActivityScreen/types';
+import {
+  ActivityTypeFilter,
+  PerpsActivityFilter,
+} from '../../components/Views/ActivityScreen/types';
 import { navigateToTransactionDetails } from './navigateToTransactionDetails';
 
 const createNavigation = () => ({ navigate: jest.fn() });
@@ -35,7 +38,32 @@ describe('navigateToTransactionDetails', () => {
     expect(navigation.navigate).toHaveBeenNthCalledWith(
       1,
       Routes.TRANSACTIONS_VIEW,
-      { initialTypeFilter: ActivityTypeFilter.Predictions },
+      {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: { initialTypeFilter: ActivityTypeFilter.Predictions },
+      },
+    );
+  });
+
+  it('includes the perps sub-filter when initialPerpsFilter is given', () => {
+    const navigation = createNavigation();
+
+    navigateToTransactionDetails(navigation, {
+      transactionId: '0xabc',
+      initialTypeFilter: ActivityTypeFilter.Perps,
+      initialPerpsFilter: PerpsActivityFilter.Deposits,
+    });
+
+    expect(navigation.navigate).toHaveBeenNthCalledWith(
+      1,
+      Routes.TRANSACTIONS_VIEW,
+      {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: {
+          initialTypeFilter: ActivityTypeFilter.Perps,
+          initialPerpsFilter: PerpsActivityFilter.Deposits,
+        },
+      },
     );
   });
 

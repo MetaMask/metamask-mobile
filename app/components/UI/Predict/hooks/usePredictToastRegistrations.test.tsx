@@ -185,7 +185,8 @@ describe('usePredictToastRegistrations', () => {
       onTrack();
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
-        initialTypeFilter: ActivityTypeFilter.Predictions,
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: { initialTypeFilter: ActivityTypeFilter.Predictions },
       });
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
         transactionId: 'tx-1',

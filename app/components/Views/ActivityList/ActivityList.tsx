@@ -1109,7 +1109,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         return;
       }
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
-    }, [typeFilter, networkFilter]);
+    }, [typeFilter, networkFilter, subFilterKinds]);
 
     const runAutoScroll = useCallback(() => {
       handleScroll();

@@ -65,6 +65,26 @@ describeForPlatforms('ActivityScreen', () => {
     });
   });
 
+  it('pre-selects the Perps sub-filter from the initialPerpsFilter route param', async () => {
+    const { getAllByText } = renderActivityScreenView({
+      params: {
+        initialTypeFilter: ActivityTypeFilter.Perps,
+        initialPerpsFilter: PerpsActivityFilter.Deposits,
+      },
+    });
+
+    // Both the Perps type chip and the Deposits sub-filter chip render without
+    // any user interaction, proving the route params drove the initial filters.
+    await waitFor(() => {
+      expect(
+        getAllByText(selectedTypeFilterLabel(ActivityTypeFilter.Perps)).length,
+      ).toBeGreaterThan(0);
+      expect(
+        getAllByText(perpsFilterLabel(PerpsActivityFilter.Deposits)).length,
+      ).toBeGreaterThan(0);
+    });
+  });
+
   it('does not clobber a manual filter change after consuming the route param', async () => {
     const { getByTestId, getAllByText, findByTestId } =
       renderActivityScreenView({

@@ -24,6 +24,11 @@ import {
 } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
 import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
+import {
+  ActivityTypeFilter,
+  PerpsActivityFilter,
+} from '../../../Views/ActivityScreen/types';
 import { capitalize } from '../../../../util/general';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import {
@@ -305,9 +310,16 @@ const usePerpsToasts = (): {
         toastRef?.current?.closeToast();
         navigation.navigate(Routes.PERPS.ROOT);
       },
-      goToActivity: (transactionId: string) => {
+      goToActivity: (
+        transactionId: string,
+        perpsFilter?: PerpsActivityFilter,
+      ) => {
         toastRef?.current?.closeToast();
-        navigateToTransactionDetails(navigation, { transactionId });
+        navigateToTransactionDetails(navigation, {
+          transactionId,
+          initialTypeFilter: ActivityTypeFilter.Perps,
+          ...(perpsFilter ? { initialPerpsFilter: perpsFilter } : {}),
+        });
       },
       goToPnlHeroCard: (position: Position, marketPrice?: string) => {
         toastRef?.current?.closeToast();
@@ -336,7 +348,11 @@ const usePerpsToasts = (): {
         transactionId: string,
       ): ToastOptions['closeButtonOptions'] => ({
         label: strings('perps.deposit.track'),
-        onPress: () => navigationHandlers.goToActivity(transactionId),
+        onPress: () =>
+          navigationHandlers.goToActivity(
+            transactionId,
+            PerpsActivityFilter.Deposits,
+          ),
         variant: ButtonVariants.Link,
       }),
     }),

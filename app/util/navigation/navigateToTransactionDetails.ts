@@ -1,6 +1,9 @@
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import Routes from '../../constants/navigation/Routes';
-import type { ActivityTypeFilter } from '../../components/Views/ActivityScreen/types';
+import type {
+  ActivityTypeFilter,
+  PerpsActivityFilter,
+} from '../../components/Views/ActivityScreen/types';
 
 interface NavigateToTransactionDetailsOptions {
   /** Transaction id/hash to open. When omitted, only the activity list opens. */
@@ -10,6 +13,7 @@ interface NavigateToTransactionDetailsOptions {
    * shown behind the details — and returned to on "back" — is already filtered.
    */
   initialTypeFilter?: ActivityTypeFilter;
+  initialPerpsFilter?: PerpsActivityFilter;
 }
 
 /**
@@ -28,10 +32,17 @@ export function navigateToTransactionDetails(
   {
     transactionId,
     initialTypeFilter,
+    initialPerpsFilter,
   }: NavigateToTransactionDetailsOptions = {},
 ): void {
   if (initialTypeFilter) {
-    navigation.navigate(Routes.TRANSACTIONS_VIEW, { initialTypeFilter });
+    navigation.navigate(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: {
+        initialTypeFilter,
+        ...(initialPerpsFilter ? { initialPerpsFilter } : {}),
+      },
+    });
   } else {
     navigation.navigate(Routes.TRANSACTIONS_VIEW);
   }
