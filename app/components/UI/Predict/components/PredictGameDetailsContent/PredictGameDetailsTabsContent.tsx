@@ -25,6 +25,8 @@ interface PredictGameDetailsTabsContentProps {
   groupMap: Map<string, PredictOutcomeGroup>;
   activeChipKey: string;
   onBetPress: (token: PredictOutcomeToken) => void;
+  nonRegTimeSportsMarketTypes?: string[];
+  onRegTimeInfoPress?: () => void;
 }
 
 const PredictGameDetailsTabsContent = memo(
@@ -39,6 +41,8 @@ const PredictGameDetailsTabsContent = memo(
     groupMap,
     activeChipKey,
     onBetPress,
+    nonRegTimeSportsMarketTypes = [],
+    onRegTimeInfoPress,
   }: PredictGameDetailsTabsContentProps) => {
     const { game } = usePredictGame(market, { live: false });
     const handleBuyPress = useCallback(
@@ -77,6 +81,8 @@ const PredictGameDetailsTabsContent = memo(
           game={game}
           activeChipKey={activeChipKey}
           onBuyPress={handleBuyPress}
+          nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
+          onRegTimeInfoPress={onRegTimeInfoPress}
         />
       );
     }
@@ -104,6 +110,8 @@ const PredictGameDetailsTabsContent = memo(
             game={game}
             activeChipKey={activeChipKey}
             onBuyPress={handleBuyPress}
+            nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
+            onRegTimeInfoPress={onRegTimeInfoPress}
           />
         )}
       </>
