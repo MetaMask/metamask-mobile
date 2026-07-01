@@ -7,6 +7,25 @@ import SnapBridge from './SnapBridge';
 import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
 import { setupMultiplex } from '../../util/streams';
 import Engine from '../Engine/Engine';
+import { createMultichainApiMethodMiddleware } from '../RPCMethods/utils';
+import { getSessionCapabilities } from '../RPCMethods/getSessionCapabilities';
+
+jest.mock('../RPCMethods/getSessionCapabilities', () => ({
+  buildGetCapabilitiesHooks: jest.fn(() => ({})),
+  getSessionCapabilities: jest.fn(),
+}));
+
+// Wrap the real createMultichainApiMethodMiddleware so we can inspect the
+// getCapabilities hook SnapBridge wires up, while keeping actual behaviour.
+jest.mock('../RPCMethods/utils', () => {
+  const actual = jest.requireActual('../RPCMethods/utils');
+  return {
+    ...actual,
+    createMultichainApiMethodMiddleware: jest.fn(
+      actual.createMultichainApiMethodMiddleware,
+    ),
+  };
+});
 
 jest.mock('../Engine/Engine', () => ({
   ...jest.requireActual('../Engine/Engine'),
@@ -261,5 +280,21 @@ describe('SnapBridge', () => {
         subject: { origin: snapId },
       },
     );
+  });
+
+  it('wires getSessionCapabilities into the multichain getCapabilities hook', () => {
+    const mockedCreateMultichainApiMethodMiddleware = jest.mocked(
+      createMultichainApiMethodMiddleware,
+    );
+    createBridge();
+
+    expect(mockedCreateMultichainApiMethodMiddleware).toHaveBeenCalled();
+    const options =
+      mockedCreateMultichainApiMethodMiddleware.mock.calls.at(-1)?.[0];
+    const address = '0x1234567890123456789012345678901234567890';
+
+    options?.getCapabilities?.({ address });
+
+    expect(getSessionCapabilities).toHaveBeenCalledWith(address);
   });
 });

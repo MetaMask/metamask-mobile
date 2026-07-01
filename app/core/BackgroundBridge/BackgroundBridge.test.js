@@ -6,7 +6,10 @@ import AppConstants from '../../core/AppConstants';
 import {
   Caip25CaveatType,
   KnownSessionProperties,
+  getSessionProperties,
 } from '@metamask/chain-agnostic-permission';
+import { createMultichainApiMethodMiddleware } from '../RPCMethods/utils';
+import Logger from '../../util/Logger';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import {
   EthAccountType,
@@ -117,6 +120,29 @@ jest.mock('../RPCMethods/getSessionCapabilities', () => ({
     '0x1': { atomic: { status: 'supported' } },
   })),
 }));
+
+// Wrap the real createMultichainApiMethodMiddleware so we can inspect the
+// options object (and its getCapabilities hook) that BackgroundBridge wires up,
+// while preserving the actual middleware behaviour for every other test.
+jest.mock('../RPCMethods/utils', () => {
+  const actual = jest.requireActual('../RPCMethods/utils');
+  return {
+    ...actual,
+    createMultichainApiMethodMiddleware: jest.fn(
+      actual.createMultichainApiMethodMiddleware,
+    ),
+  };
+});
+
+// Wrap the real getSessionProperties so individual tests can force it to throw
+// and exercise the scopes-only fallback path in notifyCaipAuthorizationChange.
+jest.mock('@metamask/chain-agnostic-permission', () => {
+  const actual = jest.requireActual('@metamask/chain-agnostic-permission');
+  return {
+    ...actual,
+    getSessionProperties: jest.fn(actual.getSessionProperties),
+  };
+});
 
 jest.mock('@metamask/eth-query', () => () => ({
   sendAsync: jest.fn().mockResolvedValue(1),
@@ -1938,6 +1964,193 @@ describe('BackgroundBridge', () => {
         emitted[0].params.sessionProperties.eip155Capabilities,
       )[0];
       expect(emittedKey.toLowerCase()).toBe(addr2.toLowerCase());
+    });
+
+    it('returns early without hydrating or emitting when multichainEngine is null', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      bridge.multichainEngine = null;
+
+      const authorization = {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': {
+            accounts: ['eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571'],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+
+      await expect(
+        bridge.notifyCaipAuthorizationChange(authorization),
+      ).resolves.toBeUndefined();
+
+      expect(getSessionProperties).not.toHaveBeenCalled();
+    });
+
+    it('drops the emit when multichainEngine is torn down while hydrating', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const emit = jest.fn();
+      bridge.multichainEngine = { emit };
+
+      let resolveHydration;
+      getSessionProperties.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveHydration = resolve;
+          }),
+      );
+
+      const authorization = {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': {
+            accounts: ['eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571'],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+
+      const pending = bridge.notifyCaipAuthorizationChange(authorization);
+
+      for (let i = 0; i < 5; i++) {
+        await Promise.resolve();
+      }
+      expect(resolveHydration).toBeDefined();
+
+      // Tear down the bridge while hydration is still in-flight.
+      bridge.multichainEngine = null;
+      resolveHydration({ eip155Capabilities: {} });
+      await pending;
+
+      expect(emit).not.toHaveBeenCalled();
+    });
+
+    it('emits sessionScopes only (no sessionProperties) when getSessionProperties throws', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      bridge.multichainEngine = { emit: jest.fn() };
+
+      const loggerSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+      getSessionProperties.mockRejectedValueOnce(
+        new Error('session properties boom'),
+      );
+
+      const authorization = {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': {
+            accounts: ['eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571'],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+
+      await bridge.notifyCaipAuthorizationChange(authorization);
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.stringContaining('failed to compute session properties'),
+      );
+      expect(bridge.multichainEngine.emit).toHaveBeenCalledTimes(1);
+      const [, payload] = bridge.multichainEngine.emit.mock.calls[0];
+      expect(payload.method).toBe('wallet_sessionChanged');
+      expect(payload.params.sessionScopes).toEqual(expect.any(Object));
+      expect(payload.params.sessionProperties).toBeUndefined();
+
+      loggerSpy.mockRestore();
+    });
+  });
+
+  describe('getCapabilities session hook wiring', () => {
+    it('wires getSessionCapabilities into the multichain getCapabilities hook', () => {
+      const url = 'https://www.mock.io';
+      setupBackgroundBridge(url);
+
+      expect(createMultichainApiMethodMiddleware).toHaveBeenCalled();
+      const options = createMultichainApiMethodMiddleware.mock.calls.at(-1)[0];
+      const address = '0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571';
+
+      options.getCapabilities({ address });
+
+      expect(getSessionCapabilities).toHaveBeenCalledWith(address);
+    });
+  });
+
+  describe('notifyCaipAuthorizationChange rejection logging', () => {
+    const flushMicrotasks = async () => {
+      for (let i = 0; i < 10; i++) {
+        await Promise.resolve();
+      }
+    };
+
+    it('logs when notifyCaipAuthorizationChange rejects in handleCaipSessionScopeChanges', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+
+      const err = new Error('notify failed');
+      jest
+        .spyOn(bridge, 'notifyCaipAuthorizationChange')
+        .mockRejectedValueOnce(err);
+      const loggerSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      const authorization = {
+        requiredScopes: {},
+        optionalScopes: {},
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+
+      await bridge.handleCaipSessionScopeChanges(authorization, authorization);
+      await flushMicrotasks();
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        err,
+        expect.stringContaining('failed to notify CAIP authorization change'),
+      );
+
+      loggerSpy.mockRestore();
+    });
+
+    it('logs when notifyCaipAuthorizationChange rejects in handleSessionChangedFromSelectedAccountGroupChanges', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+
+      PermissionController.getCaveat.mockReturnValueOnce({
+        type: Caip25CaveatType,
+        value: {
+          requiredScopes: {},
+          optionalScopes: {},
+          isMultichainOrigin: true,
+          sessionProperties: {},
+        },
+      });
+
+      const err = new Error('notify failed');
+      jest
+        .spyOn(bridge, 'notifyCaipAuthorizationChange')
+        .mockRejectedValueOnce(err);
+      const loggerSpy = jest
+        .spyOn(Logger, 'error')
+        .mockImplementation(() => undefined);
+
+      bridge.handleSessionChangedFromSelectedAccountGroupChanges();
+      await flushMicrotasks();
+
+      expect(loggerSpy).toHaveBeenCalledWith(
+        err,
+        expect.stringContaining('failed to notify CAIP authorization change'),
+      );
+
+      loggerSpy.mockRestore();
     });
   });
 });
