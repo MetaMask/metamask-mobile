@@ -24,7 +24,6 @@ export const SectionHeader = ({ title }: { title: string }) => (
   <Text
     variant={TextVariant.BodySm}
     color={TextColor.TextAlternative}
-    fontWeight={FontWeight.Medium}
     twClassName="uppercase mb-1"
   >
     {title}

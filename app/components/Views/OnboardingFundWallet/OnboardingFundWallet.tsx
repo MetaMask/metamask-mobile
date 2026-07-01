@@ -12,6 +12,7 @@ import {
   BoxFlexDirection,
   FontWeight,
   Icon,
+  IconColor,
   IconName,
   IconSize,
   Text,
@@ -288,7 +289,7 @@ const OnboardingFundWallet = () => {
           }}
           endAccessory={
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodyLg}
               fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
               onPress={onSkip}
@@ -299,7 +300,7 @@ const OnboardingFundWallet = () => {
           }
         />
 
-        <Box twClassName="mx-4 mb-4">
+        <Box twClassName="mx-4 mb-6">
           <Text
             variant={TextVariant.DisplayMd}
             color={TextColor.TextDefault}
@@ -376,7 +377,11 @@ const OnboardingFundWallet = () => {
                 )}
                 onPress={handleReceivePress}
                 icon={
-                  <Icon name={IconName.SwapHorizontal} size={IconSize.Md} />
+                  <Icon
+                    name={IconName.SwapHorizontal}
+                    size={IconSize.Md}
+                    color={IconColor.IconAlternative}
+                  />
                 }
               />
             </Box>
@@ -394,7 +399,13 @@ const OnboardingFundWallet = () => {
                   label={strings(entry.labelKey)}
                   description={strings(entry.descriptionKey)}
                   onPress={() => handleMoreWaysPress(entry)}
-                  icon={<Icon name={entry.icon} size={IconSize.Md} />}
+                  icon={
+                    <Icon
+                      name={entry.icon}
+                      size={IconSize.Md}
+                      color={IconColor.IconAlternative}
+                    />
+                  }
                 />
               ))}
             </Box>
