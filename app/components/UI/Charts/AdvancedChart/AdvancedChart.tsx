@@ -23,10 +23,10 @@ import {
   ChartType,
   DEFAULT_DISABLED_FEATURES,
   parseWebViewMessage,
-  resolveCurrentPriceColor,
   type AdvancedChartProps,
   type AdvancedChartRef,
   type IndicatorType,
+  resolveCurrentPriceColor,
   type OHLCVBar,
   type OHLCVPaginationConfig,
   type RNToWebViewMessage,
@@ -173,11 +173,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const themeColorsSentRef = useRef(false);
 
     const htmlContent = useMemo(() => {
-      // Snapshot current prop values at the moment the template is created.
-      // This must happen inside useMemo (not in a separate effect) so the refs
-      // reflect what is actually baked, preventing a stale-color race where a
-      // simultaneous non-color dep change causes the SET_THEME_COLORS effect to
-      // see "colors already match" and skip a needed hot-swap.
+      // Snapshot current color-override prop values at the moment the template
+      // is created so the SET_THEME_COLORS effect can skip a redundant send on
+      // mount. Must happen inside useMemo (not a post-render effect) to avoid
+      // a stale-color race when multiple deps change in the same render cycle.
       initialLineColorRef.current = lineColorOverride;
       initialSuccessColorRef.current = successColorOverride;
       initialErrorColorRef.current = errorColorOverride;
@@ -812,8 +811,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     // Gates on webViewLoaded (not chartReady) so messages sent during chart
     // init get queued in pendingMessages and drained inside onChartReady —
     // before the first overlay paint — eliminating stale-color flashes.
-    // Skips only the very first invocation (mount) when all color overrides still match
-    // the HTML template; all subsequent changes always send.
+    // Skips only the very first invocation (mount) when all color overrides
+    // still match the HTML template; all subsequent changes always send.
     useEffect(() => {
       if (!webViewLoaded) return;
       if (!themeColorsSentRef.current) {
@@ -824,7 +823,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           successColorOverride,
           themeSuccessDefault: theme.colors.success.default,
         });
-        // First run after webViewLoaded: skip only if colors still match template
         const colorsMatch =
           lineColorOverride === initialLineColorRef.current &&
           successColorOverride === initialSuccessColorRef.current &&

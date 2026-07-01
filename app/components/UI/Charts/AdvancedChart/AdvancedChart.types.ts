@@ -273,9 +273,9 @@ export interface SetThemeColorsPayload {
 export interface ChartLabelStyleOverrides {
   /** Crosshair price/time pill background (default: `background.section`). */
   crosshairBackgroundColor?: string;
-  /** Crosshair pill text for custom DOM labels only. TV built-ins share `axisTextColor`. */
+  /** Crosshair pill text color (default: `text.default`). */
   crosshairTextColor?: string;
-  /** Last-value scale pill + native price line (default: `currentPriceLineColorOverride` → line color). */
+  /** Last-value scale pill (default: `currentPriceLineColorOverride` → line color). */
   lastValuePillColor?: string;
   /** Price/time scale tick labels (`scalesProperties.textColor`; default: `text.muted`). */
   axisTextColor?: string;
