@@ -15,16 +15,20 @@ import { useActivityNetworkName } from '../hooks/useActivityNetworkName';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { ActivityDetailsAccountValue } from './ActivityDetailsAccountValue';
 import { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
+import { ActivityDetailsTransactionId } from './ActivityDetailsTransactionId';
 
 /**
- * The type-agnostic metadata block: status, date, account (or from/to), network
- * row. From/To/Account rows carry an account avatar and the network row carries
- * its network badge.
+ * The type-agnostic metadata block: status, date, account (or from/to, or a
+ * single Address row for self-referential txns like a smart-account upgrade),
+ * network, and a copyable transaction id.
  */
 export function ActivityDetailsMetadata({ item }: { item: ActivityListItem }) {
   const { from, to } = getActivityFromTo(item);
   const networkName = useActivityNetworkName(item.chainId);
-  const showFromTo = Boolean(from && to);
+  // A smart-account upgrade is self-referential (from === to === the account),
+  // so a From/To pair is redundant — show a single Address row instead.
+  const showAddressOnly = item.type === 'smartAccountUpgrade';
+  const showFromTo = !showAddressOnly && Boolean(from && to);
   const accountAddress = from || to;
 
   return (
@@ -41,7 +45,15 @@ export function ActivityDetailsMetadata({ item }: { item: ActivityListItem }) {
         testID={ActivityDetailsSelectorsIDs.DATE_ROW}
       />
 
-      {showFromTo ? (
+      {showAddressOnly ? (
+        <ActivityDetailRow
+          label={strings('activity_details.address')}
+          value={
+            accountAddress ? renderShortAddress(accountAddress) : undefined
+          }
+          testID={ActivityDetailsSelectorsIDs.ADDRESS_ROW}
+        />
+      ) : showFromTo ? (
         <>
           <ActivityDetailRow
             label={strings('activity_details.from')}
@@ -92,7 +104,11 @@ export function ActivityDetailsMetadata({ item }: { item: ActivityListItem }) {
 
       <ActivityDetailRow
         label={strings('activity_details.transaction_id')}
-        value={item.hash ? renderShortAddress(item.hash) : undefined}
+        value={
+          item.hash ? (
+            <ActivityDetailsTransactionId hash={item.hash} />
+          ) : undefined
+        }
         testID={ActivityDetailsSelectorsIDs.TRANSACTION_ID_ROW}
       />
     </ActivityDetailSection>

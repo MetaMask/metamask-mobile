@@ -1,14 +1,20 @@
 import React, { useEffect, useMemo } from 'react';
 import { Image, ImageSourcePropType, View } from 'react-native';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
+  AvatarToken,
+  AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  type IconName,
+} from '@metamask/design-system-react-native';
 import type { TokenAmount } from '../../../util/activity-adapters';
 import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
 import { getTokenImageSource } from './tokenIcon';
+import PerpsTokenLogo from '../Perps/components/PerpsTokenLogo';
 
 function getImageUri(
   source: ImageSourcePropType | undefined,
@@ -21,13 +27,17 @@ function getImageUri(
 }
 
 function TokenAvatar({
-  fallbackIcon,
+  fallbackIconName,
+  isFailed,
   iconUrl,
+  perpsMarketSymbol,
   styles,
   tokens,
 }: {
-  fallbackIcon: ImageSourcePropType;
+  fallbackIconName: IconName;
+  isFailed: boolean;
   iconUrl?: string;
+  perpsMarketSymbol?: string;
   styles: ActivityListItemRowStyles;
   tokens: TokenAmount[];
 }) {
@@ -50,9 +60,28 @@ function TokenAvatar({
     });
   }, [tokenImageSources]);
 
-  if (tokens.length === 0) {
+  if (perpsMarketSymbol) {
     return (
-      <Image source={fallbackIcon} style={styles.icon} resizeMode="stretch" />
+      <PerpsTokenLogo
+        symbol={perpsMarketSymbol}
+        size={32}
+        recyclingKey={perpsMarketSymbol}
+      />
+    );
+  }
+
+  if (tokens.length === 0) {
+    if (iconUrl) {
+      return <AvatarToken src={{ uri: iconUrl }} size={AvatarTokenSize.Md} />;
+    }
+    return (
+      <AvatarIcon
+        iconName={fallbackIconName}
+        severity={
+          isFailed ? AvatarIconSeverity.Danger : AvatarIconSeverity.Neutral
+        }
+        size={AvatarIconSize.Md}
+      />
     );
   }
 
@@ -61,9 +90,8 @@ function TokenAvatar({
     return (
       <AvatarToken
         name={token.symbol}
-        imageSource={tokenImageSources[0]}
-        size={AvatarSize.Md}
-        isIpfsGatewayCheckBypassed
+        src={tokenImageSources[0]}
+        size={AvatarTokenSize.Md}
       />
     );
   }
@@ -75,17 +103,15 @@ function TokenAvatar({
       <View style={styles.tokenIconStackBack}>
         <AvatarToken
           name={sourceToken.symbol}
-          imageSource={tokenImageSources[0]}
-          size={AvatarSize.Md}
-          isIpfsGatewayCheckBypassed
+          src={tokenImageSources[0]}
+          size={AvatarTokenSize.Md}
         />
       </View>
       <View style={styles.tokenIconStackFront}>
         <AvatarToken
           name={destinationToken.symbol}
-          imageSource={tokenImageSources[1]}
-          size={AvatarSize.Md}
-          isIpfsGatewayCheckBypassed
+          src={tokenImageSources[1]}
+          size={AvatarTokenSize.Md}
           style={styles.tokenIconStackFrontImage}
         />
       </View>
@@ -95,13 +121,18 @@ function TokenAvatar({
 }
 
 export function ActivityListItemRowIcon({
-  fallbackIcon,
+  fallbackIconName,
+  isFailed = false,
   iconUrl,
   networkImageSource,
+  perpsMarketSymbol,
   styles,
   tokens,
 }: {
-  fallbackIcon: ImageSourcePropType;
+  /** Design-system arrow icon shown when the row has no token avatar. */
+  fallbackIconName: IconName;
+  /** Renders the fallback icon in the danger (failed) severity. */
+  isFailed?: boolean;
   /** Explicit avatar image URL (e.g. HyperLiquid market icon) for the single-avatar case. */
   iconUrl?: string;
   /**
@@ -110,6 +141,7 @@ export function ActivityListItemRowIcon({
    * avatar renders without it.
    */
   networkImageSource?: ImageSourcePropType;
+  perpsMarketSymbol?: string;
   styles: ActivityListItemRowStyles;
   tokens: TokenAmount[];
 }) {
@@ -122,8 +154,10 @@ export function ActivityListItemRowIcon({
 
   const avatar = (
     <TokenAvatar
-      fallbackIcon={fallbackIcon}
+      fallbackIconName={fallbackIconName}
+      isFailed={isFailed}
       iconUrl={iconUrl}
+      perpsMarketSymbol={perpsMarketSymbol}
       styles={styles}
       tokens={tokens}
     />
@@ -135,13 +169,15 @@ export function ActivityListItemRowIcon({
 
   return (
     <BadgeWrapper
-      badgePosition={{ bottom: -4, right: -4 }}
-      badgeElement={
-        <Badge
-          variant={BadgeVariant.Network}
-          imageSource={networkImageSource}
-          isScaled={false}
-          size={AvatarSize.Xs}
+      position={BadgeWrapperPosition.BottomRight}
+      badge={
+        <BadgeNetwork
+          twClassName="rounded-md"
+          src={
+            networkImageSource as React.ComponentProps<
+              typeof BadgeNetwork
+            >['src']
+          }
         />
       }
     >
