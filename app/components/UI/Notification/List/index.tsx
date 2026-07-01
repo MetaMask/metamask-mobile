@@ -36,6 +36,24 @@ export const TEST_IDS = {
   loadingContainer: 'notification-list-loading',
 };
 
+type MenuItemState = ReturnType<
+  (typeof NotificationComponentState)[keyof typeof NotificationComponentState]['createMenuItem']
+>;
+
+export function applyNotificationTemplate(
+  item: MenuItemState,
+  template: { title?: string; body?: string } | undefined,
+): MenuItemState {
+  if (!item || !template) return item;
+  return {
+    ...item,
+    ...(template.title && { title: template.title }),
+    ...(template.body && {
+      description: { start: template.body },
+    }),
+  };
+}
+
 interface NotificationsListProps {
   navigation: NavigationProp<ParamListBase>;
   allNotifications: INotification[];
@@ -138,7 +156,11 @@ export function NotificationsListItem(props: NotificationsListItemProps) {
         ? NotificationComponentState[props.notification.type]
         : undefined;
 
-    return notificationState?.createMenuItem(props.notification);
+    const item = notificationState?.createMenuItem(props.notification);
+    const notificationWithTemplate = props.notification as INotification & {
+      template?: { title?: string; body?: string };
+    };
+    return applyNotificationTemplate(item, notificationWithTemplate.template);
   }, [props.notification]);
 
   const handlePress = useCallback(() => {
