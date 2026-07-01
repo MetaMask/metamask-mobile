@@ -1,11 +1,17 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import {
+  asPlaywrightElement,
   encapsulated,
+  encapsulatedAction,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+
+const SHEET_READY_TIMEOUT_MS = 30_000;
 
 const AddAccountBottomSheetSelectorsIDs = {
   IMPORT_ACCOUNT_BUTTON: 'add-account-import-account',
@@ -34,6 +40,54 @@ class AddAccountBottomSheet {
           AddAccountBottomSheetSelectorsIDs.IMPORT_SRP_BUTTON,
           { exact: true },
         ),
+    });
+  }
+
+  async waitForImportSrpOption(
+    options: { description?: string; timeout?: number } = {},
+  ): Promise<void> {
+    const timeout = options.timeout ?? SHEET_READY_TIMEOUT_MS;
+    const description =
+      options.description ??
+      'Import SRP option should be visible in add account sheet';
+
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(this.importSrpButton, {
+          description,
+          timeout,
+        });
+      },
+      appium: async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(this.importSrpButton),
+          { description, timeout },
+        );
+      },
+    });
+  }
+
+  async waitForImportAccountOption(
+    options: { description?: string; timeout?: number } = {},
+  ): Promise<void> {
+    const timeout = options.timeout ?? SHEET_READY_TIMEOUT_MS;
+    const description =
+      options.description ??
+      'Import account option should be visible in add account sheet';
+
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(this.importAccountButton, {
+          description,
+          timeout,
+        });
+      },
+      appium: async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(this.importAccountButton),
+          { description, timeout },
+        );
+      },
     });
   }
 

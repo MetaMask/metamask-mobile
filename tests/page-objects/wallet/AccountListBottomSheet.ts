@@ -27,6 +27,9 @@ import {
   PlaywrightGestures,
   Utilities,
 } from '../../framework';
+import AddAccountBottomSheet from './AddAccountBottomSheet';
+
+const ADD_ACCOUNT_SHEET_TIMEOUT_MS = 30_000;
 
 const logger = createLogger({
   name: 'AccountListBottomSheet',
@@ -235,6 +238,28 @@ class AccountListBottomSheet {
       waitForInteractive: true,
       enabledStableReads: 3,
       postEnabledSettleMs: 250,
+    });
+  }
+
+  async openAddAccountSheet(): Promise<void> {
+    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+      await this.waitForAccountSyncToComplete();
+    }
+
+    await this.tapAddAccountButton();
+    await AddAccountBottomSheet.waitForImportSrpOption({
+      timeout: ADD_ACCOUNT_SHEET_TIMEOUT_MS,
+    });
+  }
+
+  async openAddWalletSheet(): Promise<void> {
+    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+      await this.waitForAccountSyncToComplete();
+    }
+
+    await this.tapAddWalletButton();
+    await AddAccountBottomSheet.waitForImportAccountOption({
+      timeout: ADD_ACCOUNT_SHEET_TIMEOUT_MS,
     });
   }
 
