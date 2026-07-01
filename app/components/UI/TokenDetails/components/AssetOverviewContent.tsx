@@ -759,11 +759,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                     numberOfLines={1}
                   >
                     {
+                      // prettier-ignore
                       ///: BEGIN:ONLY_INCLUDE_IF(stellar)
                       stellarNativeToken != null
                         ? getStellarNativeDisplayName(stellarNativeToken)
-                        : ///: END:ONLY_INCLUDE_IF
-                          token.name || token.symbol
+                        :
+                      ///: END:ONLY_INCLUDE_IF
+                      token.name || token.symbol
                     }
                   </Text>
                 </Box>
