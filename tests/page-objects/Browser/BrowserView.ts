@@ -187,8 +187,9 @@ class Browser {
             y: Math.floor(location.y + size.height / 2),
           });
         } else {
-          await Gestures.waitAndTap(this.urlInputBoxID, {
-            elemDescription: 'URL input box',
+          // Android hides browser-modal-url-input until focused; tap the visible container.
+          await Gestures.waitAndTap(this.addressBar, {
+            elemDescription: 'URL bar container',
           });
         }
         await Assertions.expectElementToBeVisible(this.cancelUrlInputButton, {
