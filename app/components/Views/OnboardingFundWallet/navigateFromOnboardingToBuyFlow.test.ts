@@ -24,11 +24,17 @@ describe('navigateFromOnboardingToBuyFlow', () => {
     jest.clearAllMocks();
   });
 
-  it('navigates to OnboardingRootNav and pushes TOKEN_SELECTION', () => {
+  it('navigates to OnboardingRootNav and skips straight to the amount input screen', () => {
     navigateFromOnboardingToBuyFlow(mockNavigation);
 
     expect(mockParentNavigate).toHaveBeenCalledWith(
       Routes.RAMP.TOKEN_SELECTION,
+      {
+        screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
+        params: {
+          screen: Routes.RAMP.AMOUNT_INPUT,
+        },
+      },
     );
   });
 

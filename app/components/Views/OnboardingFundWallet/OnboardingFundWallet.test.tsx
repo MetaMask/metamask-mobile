@@ -15,6 +15,8 @@ import { strings } from '../../../../locales/i18n';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectSelectedAccountGroup } from '../../../selectors/multichainAccounts/accountTreeController';
 import { useSelector } from 'react-redux';
+import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../../UI/Earn/constants/musd';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
 
@@ -34,6 +36,12 @@ const MOCK_SUPPORTING_PROVIDER = {
   name: 'Some Provider',
   supportedCryptoCurrencies: { [MOCK_TOKEN.assetId]: true },
 } as unknown as Provider;
+
+const MOCK_MUSD_TOKEN = {
+  assetId: MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MAINNET],
+  chainId: 'eip155:1',
+  symbol: 'mUSD',
+};
 
 jest.mock('../../UI/Ramp/hooks/useRampsController', () => ({
   __esModule: true,
@@ -69,28 +77,9 @@ const MOCK_WALLET = {
   delay: [0, 0],
 } as unknown as PaymentMethod;
 
-const MOCK_GOOGLE_PAY = {
-  id: '/payments/google-pay',
-  name: 'Google Pay',
-  paymentType: PaymentType.GooglePay,
-  delay: [0, 0],
-} as unknown as PaymentMethod;
-
-const MOCK_REVOLUT_PAY = {
-  id: '/payments/rev-pay',
-  name: 'Revolut Pay',
-  paymentType: PaymentType.RevPay,
-  delay: [0, 0],
-} as unknown as PaymentMethod;
-
 const MOCK_PAYPAL_PROVIDER = {
   id: '/providers/paypal',
   name: 'PayPal',
-} as unknown as Provider;
-
-const MOCK_REVOLUT_PROVIDER = {
-  id: '/providers/revolut',
-  name: 'Revolut',
 } as unknown as Provider;
 
 const mockNavigateFromOnboardingToBuyFlow = jest.fn();
@@ -350,6 +339,7 @@ describe('OnboardingFundWallet', () => {
         selectedToken: null,
         selectedProvider: null,
         tokens: { topTokens: [{ assetId: MOCK_TOKEN.assetId }] },
+        providers: [MOCK_SUPPORTING_PROVIDER],
       });
 
       renderComponent();
@@ -358,6 +348,59 @@ describe('OnboardingFundWallet', () => {
       expect(
         screen.getByTestId(OnboardingFundWalletTestIds.PAYMENT_METHODS_LOADER),
       ).toBeOnTheScreen();
+    });
+
+    it('skips mUSD as the default token when no provider in the region supports it, falling back to a token that does', () => {
+      // mUSD is present in the token list (e.g. curated/allTokens), but no
+      // provider in this region can actually sell it — only MOCK_TOKEN (ETH)
+      // is supported. The default seeding must not get stuck on mUSD.
+      setControllerState({
+        paymentMethods: [],
+        paymentMethodsStatus: 'idle',
+        selectedToken: null,
+        selectedProvider: null,
+        tokens: {
+          topTokens: [MOCK_TOKEN],
+          allTokens: [MOCK_MUSD_TOKEN, MOCK_TOKEN],
+        },
+        providers: [MOCK_SUPPORTING_PROVIDER],
+      });
+
+      renderComponent();
+
+      expect(mockSetSelectedToken).toHaveBeenCalledWith(MOCK_TOKEN.assetId);
+      expect(mockSetSelectedToken).not.toHaveBeenCalledWith(
+        MOCK_MUSD_TOKEN.assetId,
+      );
+      expect(
+        screen.getByTestId(OnboardingFundWalletTestIds.PAYMENT_METHODS_LOADER),
+      ).toBeOnTheScreen();
+    });
+
+    it('prefers mUSD as the default token when a provider in the region does support it', () => {
+      const mockMusdProvider = {
+        id: '/providers/musd-provider',
+        name: 'mUSD Provider',
+        supportedCryptoCurrencies: { [MOCK_MUSD_TOKEN.assetId]: true },
+      } as unknown as Provider;
+
+      setControllerState({
+        paymentMethods: [],
+        paymentMethodsStatus: 'idle',
+        selectedToken: null,
+        selectedProvider: null,
+        tokens: {
+          topTokens: [MOCK_TOKEN],
+          allTokens: [MOCK_MUSD_TOKEN, MOCK_TOKEN],
+        },
+        providers: [mockMusdProvider],
+      });
+
+      renderComponent();
+
+      expect(mockSetSelectedToken).toHaveBeenCalledWith(
+        MOCK_MUSD_TOKEN.assetId,
+      );
     });
 
     it('renders an error message when payment methods fail to load', () => {
@@ -572,7 +615,7 @@ describe('OnboardingFundWallet', () => {
   });
 
   describe('more ways to fund', () => {
-    it('always renders the curated more-ways entries (PayPal, Google Pay, Revolut)', () => {
+    it('always renders the curated more-ways entries (PayPal, more payment methods)', () => {
       renderComponent();
 
       expect(
@@ -585,12 +628,7 @@ describe('OnboardingFundWallet', () => {
       ).toBeOnTheScreen();
       expect(
         screen.getByTestId(
-          `${OnboardingFundWalletTestIds.OPTION_PREFIX}google_pay`,
-        ),
-      ).toBeOnTheScreen();
-      expect(
-        screen.getByTestId(
-          `${OnboardingFundWalletTestIds.OPTION_PREFIX}revolut`,
+          `${OnboardingFundWalletTestIds.OPTION_PREFIX}more_payment_methods`,
         ),
       ).toBeOnTheScreen();
     });
@@ -649,69 +687,62 @@ describe('OnboardingFundWallet', () => {
       );
     });
 
-    it('pre-selects the Google Pay method when it is in the payment list', async () => {
-      setControllerState({
-        paymentMethods: [MOCK_APPLE_PAY, MOCK_GOOGLE_PAY],
-      });
+    it('opens the "more ways to fund" bottom sheet when more_payment_methods is pressed', async () => {
       renderComponent();
+
+      expect(
+        screen.queryByTestId('more-ways-option-google_pay'),
+      ).not.toBeOnTheScreen();
 
       await act(async () => {
         fireEvent.press(
           screen.getByTestId(
-            `${OnboardingFundWalletTestIds.OPTION_PREFIX}google_pay`,
+            `${OnboardingFundWalletTestIds.OPTION_PREFIX}more_payment_methods`,
           ),
         );
       });
 
-      expect(mockSetSelectedPaymentMethod).toHaveBeenCalledWith(
-        MOCK_GOOGLE_PAY,
-      );
-      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
-      expect(mockNavigateFromOnboardingToBuyFlow).toHaveBeenCalled();
+      expect(
+        screen.getByTestId('more-ways-option-google_pay'),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId('more-ways-option-revolut_pay'),
+      ).toBeOnTheScreen();
+      expect(mockNavigateFromOnboardingToBuyFlow).not.toHaveBeenCalled();
     });
 
-    it('prefers the Revolut payment method over the provider match when available', async () => {
-      setControllerState({
-        paymentMethods: [MOCK_APPLE_PAY, MOCK_REVOLUT_PAY],
-        providers: [MOCK_REVOLUT_PROVIDER],
-      });
+    it('tracks the selection, closes the sheet and opens the buy flow when a bottom sheet entry is selected', async () => {
       renderComponent();
 
       await act(async () => {
         fireEvent.press(
           screen.getByTestId(
-            `${OnboardingFundWalletTestIds.OPTION_PREFIX}revolut`,
+            `${OnboardingFundWalletTestIds.OPTION_PREFIX}more_payment_methods`,
           ),
         );
       });
-
-      expect(mockSetSelectedPaymentMethod).toHaveBeenCalledWith(
-        MOCK_REVOLUT_PAY,
-      );
-      expect(mockSetSelectedProvider).not.toHaveBeenCalled();
-      expect(mockNavigateFromOnboardingToBuyFlow).toHaveBeenCalled();
-    });
-
-    it('falls back to the Revolut provider when no rev-pay method is present', async () => {
-      setControllerState({
-        paymentMethods: [MOCK_APPLE_PAY],
-        providers: [MOCK_REVOLUT_PROVIDER],
-      });
-      renderComponent();
 
       await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(
-            `${OnboardingFundWalletTestIds.OPTION_PREFIX}revolut`,
-          ),
-        );
+        fireEvent.press(screen.getByTestId('more-ways-option-google_pay'));
       });
 
-      expect(mockSetSelectedProvider).toHaveBeenCalledWith(
-        MOCK_REVOLUT_PROVIDER,
+      const builderInstance = mockCreateEventBuilder.mock.results[1]?.value;
+      expect(builderInstance.addProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          question_type: 'fund_wallet',
+          selected_fund_method: 'google_pay',
+          skipped: false,
+        }),
       );
-      expect(mockSetSelectedPaymentMethod).not.toHaveBeenCalled();
-      expect(mockNavigateFromOnboardingToBuyFlow).toHaveBeenCalled();
+      expect(
+        screen.queryByTestId('more-ways-option-google_pay'),
+      ).not.toBeOnTheScreen();
+      expect(mockNavigateFromOnboardingToBuyFlow).toHaveBeenCalledWith(
+        expect.objectContaining({
+          goBack: expect.any(Function),
+          navigate: expect.any(Function),
+        }),
+      );
     });
   });
 });

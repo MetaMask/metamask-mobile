@@ -1,6 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import TokenListRoutes from './routes';
@@ -295,12 +296,22 @@ const initialState = {
   },
 };
 
+// TokenListRoutes reads its own route params via useRoute(), which requires
+// it to be mounted as a screen (matching how it's registered on
+// OnboardingRootNav in App.tsx) rather than rendered directly.
+const TestStack = createNativeStackNavigator();
+
 const renderWithProviders = () => {
   const store = mockStore(initialState);
   return render(
     <Provider store={store}>
       <NavigationContainer>
-        <TokenListRoutes />
+        <TestStack.Navigator screenOptions={{ headerShown: false }}>
+          <TestStack.Screen
+            name={Routes.RAMP.TOKEN_SELECTION}
+            component={TokenListRoutes}
+          />
+        </TestStack.Navigator>
       </NavigationContainer>
     </Provider>,
   );

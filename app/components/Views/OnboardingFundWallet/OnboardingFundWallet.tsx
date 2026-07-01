@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -88,13 +87,11 @@ const OnboardingFundWallet = () => {
     tokensLoading,
     selectedToken,
     setSelectedToken,
-    userRegion,
   } = useRampsController();
 
-  // Seed a default token + provider so the payment-methods query can fire.
-  // Priority: mUSD if a provider supports it, else the first topToken that
-  // any provider supports. This guarantees the token→provider→paymentMethods
-  // cascade always resolves for the user's region.
+  // Seed a default token so the token→provider→paymentMethods cascade can
+  // start. Priority: mUSD (Monad first, then Ethereum mainnet), else the
+  // first topToken, else the first token from the full list.
   const allAvailableTokens = useMemo(
     () => [...(tokens?.topTokens ?? []), ...(tokens?.allTokens ?? [])],
     [tokens],
@@ -110,60 +107,54 @@ const OnboardingFundWallet = () => {
     [],
   );
 
-  const { defaultToken, defaultProvider } = useMemo(() => {
-    if (allAvailableTokens.length === 0 || !providers?.length) {
-      return { defaultToken: undefined, defaultProvider: undefined };
+  const defaultToken = useMemo(() => {
+    const firstToken = tokens?.topTokens?.[0] ?? tokens?.allTokens?.[0];
+
+    // Until providers have loaded we can't tell which token is actually
+    // purchasable in this region, so seed eagerly (mUSD first) and let the
+    // supportingProvider effect below pick up a provider once it arrives.
+    if (!providers?.length) {
+      for (const candidateId of musdCandidateAssetIds) {
+        const musdToken = allAvailableTokens.find(
+          (t) => t.assetId.toLowerCase() === candidateId,
+        );
+        if (musdToken) return musdToken;
+      }
+      return firstToken;
     }
 
-    // Try mUSD on Monad first, then Ethereum mainnet
+    // Only prefer mUSD if some provider in this region actually supports it
+    // (most third-party providers don't) — otherwise fall back to a token
+    // that has real provider support so the payment-methods list resolves.
     for (const candidateId of musdCandidateAssetIds) {
       const musdToken = allAvailableTokens.find(
         (t) => t.assetId.toLowerCase() === candidateId,
       );
-      console.log(
-        '[FundWallet] mUSD candidate:',
-        candidateId,
-        'found:',
-        musdToken?.symbol,
-        musdToken?.assetId,
-      );
-      if (musdToken) {
-        const provider = providers.find((p) =>
-          providerSupportsAsset(p, musdToken.assetId),
-        );
-        console.log(
-          '[FundWallet] mUSD provider match:',
-          provider?.id,
-          provider?.name,
-        );
-        if (provider) {
-          return { defaultToken: musdToken, defaultProvider: provider };
-        }
+      if (
+        musdToken &&
+        providers.some((p) => providerSupportsAsset(p, musdToken.assetId))
+      ) {
+        return musdToken;
       }
     }
 
-    // Fallback: first topToken that any provider supports
     for (const token of tokens?.topTokens ?? []) {
-      const provider = providers.find((p) =>
-        providerSupportsAsset(p, token.assetId),
-      );
-      if (provider) {
-        return { defaultToken: token, defaultProvider: provider };
+      if (providers.some((p) => providerSupportsAsset(p, token.assetId))) {
+        return token;
       }
     }
 
-    // Last resort: first token from allTokens
     for (const token of tokens?.allTokens ?? []) {
-      const provider = providers.find((p) =>
-        providerSupportsAsset(p, token.assetId),
-      );
-      if (provider) {
-        return { defaultToken: token, defaultProvider: provider };
+      if (providers.some((p) => providerSupportsAsset(p, token.assetId))) {
+        return token;
       }
     }
 
-    return { defaultToken: undefined, defaultProvider: undefined };
-  }, [allAvailableTokens, providers, tokens, musdCandidateAssetIds]);
+    // Nothing has provider support — fall back to the first token so the
+    // selection isn't left empty; the unavailable message will correctly
+    // show since no provider can back it.
+    return firstToken;
+  }, [allAvailableTokens, tokens, musdCandidateAssetIds, providers]);
 
   useEffect(() => {
     if (selectedToken || !defaultToken) return;
@@ -175,13 +166,25 @@ const OnboardingFundWallet = () => {
     }
   }, [selectedToken, defaultToken, setSelectedToken]);
 
-  useEffect(() => {
-    if (!selectedProvider && defaultProvider) {
-      setSelectedProvider(defaultProvider, { autoSelected: true });
-    }
-  }, [selectedProvider, defaultProvider, setSelectedProvider]);
-
+  // Mirror BuildQuote: once a token is selected but no provider is (e.g. a
+  // first-time user in a region without Transak), pick the first provider
+  // that supports the token so the payment-methods query becomes enabled.
   const effectiveAssetId = selectedToken?.assetId;
+  const supportingProvider = useMemo(
+    () =>
+      effectiveAssetId
+        ? (providers ?? []).find((candidate) =>
+            providerSupportsAsset(candidate, effectiveAssetId),
+          )
+        : undefined,
+    [providers, effectiveAssetId],
+  );
+
+  useEffect(() => {
+    if (!selectedProvider && supportingProvider) {
+      setSelectedProvider(supportingProvider, { autoSelected: true });
+    }
+  }, [selectedProvider, supportingProvider, setSelectedProvider]);
 
   // Surface only bank/card methods in the top section; wallets and other
   // provider-specific methods live in the unified flow / curated "More ways".
@@ -204,8 +207,8 @@ const OnboardingFundWallet = () => {
   const isSeedingSelection =
     providersLoading ||
     tokensLoading ||
-    !selectedToken ||
-    (!selectedProvider && Boolean(defaultProvider));
+    (!selectedToken && Boolean(defaultToken)) ||
+    (!selectedProvider && Boolean(supportingProvider));
 
   const isQueryRunning =
     paymentMethodsLoading ||
@@ -227,85 +230,6 @@ const OnboardingFundWallet = () => {
       );
     }
   }, [paymentMethodsError]);
-
-  // TODO: Remove — temporary debug logging for demo
-  useEffect(() => {
-    console.log('[FundWallet] --- state snapshot ---');
-    console.log(
-      '[FundWallet] userRegion:',
-      userRegion?.regionCode,
-      userRegion?.country?.currency,
-    );
-    console.log(
-      '[FundWallet] topTokens:',
-      tokens?.topTokens?.slice(0, 5)?.map((t) => t.symbol),
-    );
-    console.log('[FundWallet] allTokens count:', tokens?.allTokens?.length);
-    console.log(
-      '[FundWallet] selectedToken:',
-      selectedToken?.symbol,
-      selectedToken?.assetId,
-    );
-    console.log(
-      '[FundWallet] selectedProvider:',
-      selectedProvider?.id,
-      selectedProvider?.name,
-    );
-    console.log(
-      '[FundWallet] defaultToken:',
-      defaultToken?.symbol,
-      defaultToken?.assetId,
-    );
-    console.log(
-      '[FundWallet] defaultProvider:',
-      defaultProvider?.id,
-      defaultProvider?.name,
-    );
-    console.log(
-      '[FundWallet] providers:',
-      providers?.map((p) => ({
-        id: p.id,
-        name: p.name,
-        supportsMusd: p.supportedCryptoCurrencies?.[effectiveAssetId ?? ''],
-        supportedCryptoCount: Object.keys(p.supportedCryptoCurrencies ?? {})
-          .length,
-        supportedPayments: Object.keys(p.supportedPaymentMethods ?? {}),
-      })),
-    );
-    console.log('[FundWallet] paymentMethodsStatus:', paymentMethodsStatus);
-    console.log('[FundWallet] paymentMethodsLoading:', paymentMethodsLoading);
-    console.log('[FundWallet] paymentMethodsError:', paymentMethodsError);
-    console.log(
-      '[FundWallet] paymentMethods:',
-      paymentMethods?.map((pm) => ({
-        id: pm.id,
-        name: pm.name,
-        type: pm.paymentType,
-      })),
-    );
-    console.log(
-      '[FundWallet] bankAndCard:',
-      bankAndCard?.map((pm) => ({
-        id: pm.id,
-        name: pm.name,
-        type: pm.paymentType,
-      })),
-    );
-  }, [
-    userRegion,
-    tokens,
-    selectedToken,
-    selectedProvider,
-    defaultToken,
-    defaultProvider,
-    providers,
-    effectiveAssetId,
-    paymentMethodsStatus,
-    paymentMethodsLoading,
-    paymentMethodsError,
-    paymentMethods,
-    bankAndCard,
-  ]);
 
   const hasTrackedView = React.useRef(false);
   useEffect(() => {
