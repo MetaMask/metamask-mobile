@@ -57,7 +57,9 @@ export const DeferredBridgeViewPlaceholder = ({
                     token={sourceToken}
                     networkImageSource={
                       sourceToken
-                        ? getNetworkImageSource({ chainId: sourceToken.chainId })
+                        ? getNetworkImageSource({
+                            chainId: sourceToken.chainId,
+                          })
                         : undefined
                     }
                     testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
