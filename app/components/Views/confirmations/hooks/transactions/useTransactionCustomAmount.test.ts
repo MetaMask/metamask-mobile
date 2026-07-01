@@ -28,7 +28,10 @@ import {
   useTransactionPayTotals,
   useTransactionPayIsMaxAmount,
   useTransactionPayIsPostQuote,
+  useTransactionPayFiatPayment,
 } from '../pay/useTransactionPayData';
+import { useMMPayFiatConfig } from '../pay/useMMPayFiatConfig';
+import { useRampsBuyLimits } from '../../../../UI/Ramp/hooks/useRampsBuyLimits';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import {
   PaymentOverride,
@@ -48,6 +51,8 @@ jest.mock('../pay/useUpdateTransactionPayAmount');
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../pay/useTransactionPayHasSourceAmount');
+jest.mock('../pay/useMMPayFiatConfig');
+jest.mock('../../../../UI/Ramp/hooks/useRampsBuyLimits');
 jest.mock('../useTokenAmount');
 jest.mock('../../../../../util/navigation/navUtils');
 jest.mock('../../../../UI/Predict/hooks/usePredictBalance');
@@ -137,6 +142,11 @@ describe('useTransactionCustomAmount', () => {
   const useConfirmationMetricEventsMock = jest.mocked(
     useConfirmationMetricEvents,
   );
+  const useTransactionPayFiatPaymentMock = jest.mocked(
+    useTransactionPayFiatPayment,
+  );
+  const useMMPayFiatConfigMock = jest.mocked(useMMPayFiatConfig);
+  const useRampsBuyLimitsMock = jest.mocked(useRampsBuyLimits);
 
   const updateTransactionPayAmountMock: ReturnType<
     typeof useUpdateTransactionPayAmount
@@ -174,6 +184,14 @@ describe('useTransactionCustomAmount', () => {
     useTransactionPayIsMaxAmountMock.mockReturnValue(false);
     useTransactionPayIsPostQuoteMock.mockReturnValue(false);
     useTransactionPayHasSourceAmountMock.mockReturnValue(true);
+    useTransactionPayFiatPaymentMock.mockReturnValue(undefined);
+    useMMPayFiatConfigMock.mockReturnValue({
+      enabledTransactionTypes: [],
+    } as unknown as ReturnType<typeof useMMPayFiatConfig>);
+    useRampsBuyLimitsMock.mockReturnValue({
+      amountLimitError: null,
+      currency: 'usd',
+    } as ReturnType<typeof useRampsBuyLimits>);
   });
 
   it('returns pending amount provided by updatePendingAmount', async () => {
@@ -266,6 +284,66 @@ describe('useTransactionCustomAmount', () => {
     });
 
     expect(result.current.amountFiat).toBe('1'.repeat(27));
+  });
+
+  describe('fiat payment maximum purchase limit', () => {
+    function mockFiatBuyLimit(maxAmount?: number) {
+      useMMPayFiatConfigMock.mockReturnValue({
+        enabledTransactionTypes: [TransactionType.simpleSend],
+      } as unknown as ReturnType<typeof useMMPayFiatConfig>);
+      useTransactionPayFiatPaymentMock.mockReturnValue({
+        selectedPaymentMethodId: '/payments/apple-pay',
+      } as ReturnType<typeof useTransactionPayFiatPayment>);
+      useRampsBuyLimitsMock.mockReturnValue({
+        maxAmount,
+        amountLimitError: null,
+        currency: 'usd',
+      } as ReturnType<typeof useRampsBuyLimits>);
+    }
+
+    it('ignores input that exceeds the fiat maximum purchase', async () => {
+      mockFiatBuyLimit(3000);
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmount('3000');
+        result.current.updatePendingAmount('30000');
+      });
+
+      expect(result.current.amountFiat).toBe('3000');
+    });
+
+    it('allows input equal to the fiat maximum purchase', async () => {
+      mockFiatBuyLimit(3000);
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmount('3000');
+      });
+
+      expect(result.current.amountFiat).toBe('3000');
+    });
+
+    it('does not cap input when no fiat payment method is selected', async () => {
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmount('30000');
+      });
+
+      expect(result.current.amountFiat).toBe('30000');
+    });
+
+    it('does not cap input when the payment method has no maximum', async () => {
+      mockFiatBuyLimit(null as unknown as undefined);
+      const { result } = runHook();
+
+      await act(async () => {
+        result.current.updatePendingAmount('30000');
+      });
+
+      expect(result.current.amountFiat).toBe('30000');
+    });
   });
 
   it('updateTokenAmount delegates to updateTransactionPayAmount with the human amount', async () => {
