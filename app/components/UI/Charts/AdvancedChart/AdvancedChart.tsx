@@ -27,6 +27,7 @@ import {
   resolveCurrentPriceColor,
   type AdvancedChartProps,
   type AdvancedChartRef,
+  type FetchOlderBarsResponse,
   type IndicatorType,
   type OHLCVBar,
   type OHLCVPaginationConfig,
@@ -82,13 +83,18 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       height = DEFAULT_CHART_HEIGHT,
       realtimeBar,
       ohlcvPagination,
+      rnBackedPagination,
+      onFetchOlderBarsRequest,
       indicators = [],
       selectedMAs = [],
       positionLines,
       tradeMarkers,
+      positionLineColors,
       chartType,
       showVolume = false,
       volumeOverlay = false,
+      hidePaneSeparator = false,
+      gridLineColorOverride,
       enableDrawingTools = false,
       disabledFeatures = DEFAULT_DISABLED_FEATURES,
       onChartReady,
@@ -113,6 +119,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       currentPriceLineColorOverride,
       labelStyleOverrides,
       scrollPassthrough = false,
+      volumeSuccessColorOverride,
+      volumeErrorColorOverride,
     },
     ref,
   ) => {
@@ -146,6 +154,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const webViewLoadedRef = useRef(false);
     const prevPositionLinesRef = useRef(positionLines);
     const prevTradeMarkersRef = useRef(tradeMarkers);
+    const prevPositionLineColorsRef = useRef(positionLineColors);
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
     const prevOhlcvSeriesKeyRef = useRef<string | undefined>(undefined);
@@ -172,6 +181,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         themeSuccessDefault: theme.colors.success.default,
       }),
     );
+    const initialVolumeSuccessColorRef = useRef(volumeSuccessColorOverride);
+    const initialVolumeErrorColorRef = useRef(volumeErrorColorOverride);
     const themeColorsSentRef = useRef(false);
 
     const htmlContent = useMemo(() => {
@@ -190,17 +201,23 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         successColorOverride,
         themeSuccessDefault: theme.colors.success.default,
       });
+      initialVolumeSuccessColorRef.current = volumeSuccessColorOverride;
+      initialVolumeErrorColorRef.current = volumeErrorColorOverride;
       return createAdvancedChartTemplate(theme, {
         enableDrawingTools,
         disabledFeatures,
         lineChrome,
         useSubscriptPriceFormat,
+        hidePaneSeparator,
+        gridLineColorOverride,
         lineColorOverride,
         successColorOverride,
         errorColorOverride,
         currentPriceLineColorOverride,
         labelStyleOverrides,
         legendOverlay,
+        volumeSuccessColorOverride,
+        volumeErrorColorOverride,
       });
       // lineColorOverride/successColorOverride/errorColorOverride/currentPriceLineColorOverride
       // intentionally excluded — color changes hot-swap via SET_THEME_COLORS without
@@ -213,6 +230,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineChrome,
       useSubscriptPriceFormat,
       labelStyleOverrides,
+      hidePaneSeparator,
+      gridLineColorOverride,
       legendOverlay,
     ]);
 
@@ -230,6 +249,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
       prevTradeMarkersRef.current = undefined;
+      prevPositionLineColorsRef.current = undefined;
       prevChartTypeRef.current = undefined;
       prevOhlcvDataRef.current = [];
       prevOhlcvSeriesKeyRef.current = undefined;
@@ -304,6 +324,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setAppliedIndicatorCount(0);
       setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
+      prevPositionLineColorsRef.current = undefined;
       prevChartTypeRef.current = undefined;
     }, [clearLayoutSettleTimeout, clearIndicatorsSyncFallback]);
 
@@ -373,6 +394,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     );
     paginationRef.current = ohlcvPagination;
 
+    const rnBackedPaginationRef = useRef<{ enabled: boolean } | undefined>(
+      rnBackedPagination,
+    );
+    rnBackedPaginationRef.current = rnBackedPagination;
+
+    const onFetchOlderBarsRequestRef = useRef<
+      AdvancedChartProps['onFetchOlderBarsRequest']
+    >(onFetchOlderBarsRequest);
+    onFetchOlderBarsRequestRef.current = onFetchOlderBarsRequest;
+
     const visibleFromMsRef = useRef<number | undefined>(visibleFromMs);
     visibleFromMsRef.current = visibleFromMs;
 
@@ -386,6 +417,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           payload: {
             data,
             pagination: paginationRef.current,
+            rnBackedPagination: rnBackedPaginationRef.current,
             visibleFromMs: visibleFromMsRef.current,
             visibleToMs: visibleToMsRef.current,
           },
@@ -475,6 +507,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             setLegendRendered(false);
             prevPositionLinesRef.current = undefined;
             prevTradeMarkersRef.current = undefined;
+            prevPositionLineColorsRef.current = undefined;
             prevChartTypeRef.current = undefined;
             clearLayoutSettleTimeout();
             setLayoutSettling(false);
@@ -539,6 +572,38 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             }
             break;
 
+          case 'FETCH_OLDER_BARS_REQUEST': {
+            const handler = onFetchOlderBarsRequestRef.current;
+            const req = message.payload;
+            const respond = (response: FetchOlderBarsResponse) => {
+              postMessage({
+                type: 'FETCH_OLDER_BARS_RESPONSE',
+                payload: response,
+              });
+            };
+            if (!handler) {
+              respond({
+                requestId: req.requestId,
+                seriesGeneration: req.seriesGeneration,
+                bars: [],
+                noData: true,
+                error: 'missing_onFetchOlderBarsRequest',
+              });
+              break;
+            }
+            handler(req)
+              .then(respond)
+              .catch(() =>
+                respond({
+                  requestId: req.requestId,
+                  seriesGeneration: req.seriesGeneration,
+                  bars: [],
+                  noData: true,
+                }),
+              );
+            break;
+          }
+
           default:
             break;
         }
@@ -556,6 +621,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         onTradeMarkerPress,
         onChartInteracted,
         handleTradingViewOpen,
+        postMessage,
       ],
     );
 
@@ -610,6 +676,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           activeIndicatorsRef.current.clear();
           prevPositionLinesRef.current = undefined;
           prevTradeMarkersRef.current = undefined;
+          prevPositionLineColorsRef.current = undefined;
           prevChartTypeRef.current = undefined;
           prevOhlcvDataRef.current = [];
           prevOhlcvSeriesKeyRef.current = undefined;
@@ -765,14 +832,23 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     // Sync positionLines prop
     useEffect(() => {
       if (chartReadyCount === 0) return;
-      if (positionLines === prevPositionLinesRef.current) return;
+      if (
+        positionLines === prevPositionLinesRef.current &&
+        positionLineColors === prevPositionLineColorsRef.current
+      ) {
+        return;
+      }
       prevPositionLinesRef.current = positionLines;
+      prevPositionLineColorsRef.current = positionLineColors;
 
       postMessage({
         type: 'SET_POSITION_LINES',
-        payload: { position: positionLines ?? null },
+        payload: {
+          position: positionLines ?? null,
+          positionLineColors,
+        },
       });
-    }, [positionLines, chartReadyCount, postMessage]);
+    }, [positionLines, positionLineColors, chartReadyCount, postMessage]);
 
     // Sync tradeMarkers prop (open/close circles). Compares by reference, so
     // parents should memoize the array; a new reference re-renders all markers.
@@ -842,9 +918,17 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           lineColorOverride === initialLineColorRef.current &&
           successColorOverride === initialSuccessColorRef.current &&
           errorColorOverride === initialErrorColorRef.current &&
-          effectiveCurrentPriceColor === initialCurrentPriceColorRef.current;
+          effectiveCurrentPriceColor === initialCurrentPriceColorRef.current &&
+          volumeSuccessColorOverride === initialVolumeSuccessColorRef.current &&
+          volumeErrorColorOverride === initialVolumeErrorColorRef.current;
         themeColorsSentRef.current = true;
-        if (colorsMatch) return;
+        if (
+          colorsMatch &&
+          currentPriceLineColorOverride === undefined &&
+          volumeSuccessColorOverride === undefined &&
+          volumeErrorColorOverride === undefined
+        )
+          return;
       }
       const effectiveSuccessColor =
         successColorOverride ?? theme.colors.success.default;
@@ -858,6 +942,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         successColorOverride,
         themeSuccessDefault: theme.colors.success.default,
       });
+      const effectiveVolumeSuccessColor =
+        volumeSuccessColorOverride ?? effectiveSuccessColor;
+      const effectiveVolumeErrorColor =
+        volumeErrorColorOverride ?? effectiveErrorColor;
       postMessage({
         type: 'SET_THEME_COLORS',
         payload: {
@@ -865,6 +953,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           successColor: effectiveSuccessColor,
           errorColor: effectiveErrorColor,
           currentPriceColor: effectiveCurrentPriceColor,
+          volumeSuccessColor: effectiveVolumeSuccessColor,
+          volumeErrorColor: effectiveVolumeErrorColor,
         },
       });
     }, [
@@ -873,6 +963,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       errorColorOverride,
       currentPriceLineColorOverride,
       labelStyleOverrides?.lastValuePillColor,
+      volumeSuccessColorOverride,
+      volumeErrorColorOverride,
       webViewLoaded,
       postMessage,
       theme.colors.success.default,
