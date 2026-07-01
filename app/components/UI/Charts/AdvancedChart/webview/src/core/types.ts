@@ -23,6 +23,9 @@ export interface ChartTheme {
   errorColor: string;
   primaryColor: string;
   currentPriceColor: string;
+  volumeSuccessColor?: string;
+  volumeErrorColor?: string;
+  gridLineColor?: string;
 }
 
 /**
@@ -40,6 +43,7 @@ export interface IndicatorColors {
 export interface ChartFeaturesConfig {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
+  hidePaneSeparator?: boolean;
 }
 
 /**
@@ -178,6 +182,7 @@ export interface TVPriceScale {
   getVisiblePriceRange(): { from: number; to: number } | null;
   isInverted?(): boolean;
   getMode?(): number;
+  setAutoScale?(enabled: boolean): void;
 }
 
 export interface TVPane {
@@ -189,6 +194,7 @@ export type StudyId = string;
 
 export interface TVStudy {
   onDataLoaded(): TVSubscription;
+  applyOverrides?(overrides: Record<string, unknown>): void;
 }
 
 export interface TVExportSchemaField {

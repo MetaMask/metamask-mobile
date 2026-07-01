@@ -48,11 +48,16 @@ import {
   attachLegendResizeListener,
   setupLegendOverlay,
 } from '../features/indicators/legend';
-import { handleToggleVolume } from '../features/volume';
+import {
+  handleToggleVolume,
+  registerVolumeThemeSync,
+} from '../features/volume';
 import { registerTradeMarkerOverlay } from '../overlays/tradeMarkers';
 import { registerTradeMarkerPulseHandler } from '../overlays/tradeMarkers/animation';
 import { attachMarkerHitTest } from '../overlays/tradeMarkers/markerHitTest';
 import { registerFocusTimeOverlay } from '../overlays/focusTime';
+import { registerPositionLinesOverlay } from '../overlays/positionLines';
+import { registerRnBackedPaginationHandler } from '../pagination/rnBacked';
 import {
   getOhlcvData,
   getVisibleFromMs,
@@ -137,6 +142,9 @@ export function bootstrap(): ChartConfig {
   registerTradeMarkerOverlay();
   registerTradeMarkerPulseHandler();
   registerFocusTimeOverlay();
+  registerPositionLinesOverlay();
+  registerRnBackedPaginationHandler();
+  registerVolumeThemeSync();
 
   onFromRN((message) => {
     dispatchInboundMessage(message);

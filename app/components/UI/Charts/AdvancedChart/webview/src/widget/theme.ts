@@ -50,6 +50,28 @@ export function getThemeLastPriceLineColor(theme: ChartTheme): string {
 }
 
 /**
+ * Returns the visual color for the current-price line/pill. Falls back
+ * through currentPriceColor → lineColor → successColor.
+ */
+export function getCurrentPriceVisualColor(theme: ChartTheme): string {
+  return theme.currentPriceColor || theme.lineColor || theme.successColor;
+}
+
+/**
+ * Volume up-bar color. Falls back to the candle success color.
+ */
+export function getVolumeSuccessColor(theme: ChartTheme): string {
+  return theme.volumeSuccessColor || theme.successColor;
+}
+
+/**
+ * Volume down-bar color. Falls back to the candle error color.
+ */
+export function getVolumeErrorColor(theme: ChartTheme): string {
+  return theme.volumeErrorColor || theme.errorColor;
+}
+
+/**
  * Returns the TradingView main-series style overrides for a given line color.
  */
 export function getSeriesColorOverrides(
@@ -139,6 +161,12 @@ export function applyThemeColors(payload: SetThemeColorsPayload): void {
     ...(payload.errorColor != null && { errorColor: payload.errorColor }),
     ...(payload.currentPriceColor != null && {
       currentPriceColor: payload.currentPriceColor,
+    }),
+    ...(payload.volumeSuccessColor != null && {
+      volumeSuccessColor: payload.volumeSuccessColor,
+    }),
+    ...(payload.volumeErrorColor != null && {
+      volumeErrorColor: payload.volumeErrorColor,
     }),
   };
   setTheme(updated);

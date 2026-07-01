@@ -46,6 +46,10 @@ interface CoreState {
   volumeIsOverlay: boolean | null;
   /** Effective ratio in (0, 1] for sub-pane height; null = TV default. */
   subPaneHeightRatio: number | null;
+  /** When enabled, getBars sends FETCH_OLDER_BARS_REQUEST to RN instead of Price API. */
+  rnBackedPagination: { enabled: boolean };
+  /** True when position lines include a currentPrice line; hides TV's native price line. */
+  hasExplicitCurrentPriceLine: boolean;
 }
 
 const emptyPagination = (): OHLCVPaginationConfig => ({
@@ -76,6 +80,8 @@ const state: CoreState = {
   volumeStudyId: null,
   volumeIsOverlay: null,
   subPaneHeightRatio: null,
+  rnBackedPagination: { enabled: false },
+  hasExplicitCurrentPriceLine: false,
 };
 
 // ----- Widget lifecycle ---------------------------------------------------
@@ -300,6 +306,26 @@ export function setSubPaneHeightRatio(ratio: number | null): void {
   state.subPaneHeightRatio = ratio;
 }
 
+// ----- RN-backed pagination --------------------------------------------------
+
+export function getRnBackedPagination(): { enabled: boolean } {
+  return state.rnBackedPagination;
+}
+
+export function setRnBackedPagination(config: { enabled: boolean }): void {
+  state.rnBackedPagination = config;
+}
+
+// ----- Explicit current price line -------------------------------------------
+
+export function getHasExplicitCurrentPriceLine(): boolean {
+  return state.hasExplicitCurrentPriceLine;
+}
+
+export function setHasExplicitCurrentPriceLine(has: boolean): void {
+  state.hasExplicitCurrentPriceLine = has;
+}
+
 /**
  * Resets state to defaults — useful for unit tests. NOT for runtime use; the
  * WebView is created fresh per mount (the RN side recreates the HTML when
@@ -326,4 +352,6 @@ export function __resetStateForTests(): void {
   state.volumeStudyId = null;
   state.volumeIsOverlay = null;
   state.subPaneHeightRatio = null;
+  state.rnBackedPagination = { enabled: false };
+  state.hasExplicitCurrentPriceLine = false;
 }

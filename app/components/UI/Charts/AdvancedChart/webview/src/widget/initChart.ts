@@ -22,6 +22,7 @@ import {
   getCurrentSymbol,
   getCurrentResolution,
   getTheme,
+  getHasExplicitCurrentPriceLine,
 } from '../core/state';
 import { resolveUserTimezone } from '../core/timezone';
 import type {
@@ -93,12 +94,14 @@ function resolveDisabledFeatures(features: ChartFeaturesConfig): string[] {
 }
 
 function buildWidgetOverrides(theme: ChartTheme): Record<string, unknown> {
+  const gridLineColor = theme.gridLineColor || 'transparent';
   return {
     'paneProperties.background': theme.backgroundColor,
     'paneProperties.backgroundType': 'solid',
-    'paneProperties.vertGridProperties.color': 'transparent',
-    'paneProperties.horzGridProperties.color': 'transparent',
+    'paneProperties.vertGridProperties.color': gridLineColor,
+    'paneProperties.horzGridProperties.color': gridLineColor,
     'scalesProperties.lineColor': theme.backgroundColor,
+    'scalesProperties.textColor': theme.textColor,
     'timeScale.borderColor': theme.backgroundColor,
     'scalesProperties.fontSize': 12,
     'scalesProperties.showStudyLastValue': false,
@@ -116,7 +119,8 @@ function buildWidgetOverrides(theme: ChartTheme): Record<string, unknown> {
     'paneProperties.legendProperties.showStudyTitles': false,
     'paneProperties.legendProperties.showStudyArguments': false,
     'paneProperties.legendProperties.showStudyValues': false,
-    'mainSeriesProperties.showPriceLine': true,
+    'mainSeriesProperties.showPriceLine': !getHasExplicitCurrentPriceLine(),
+    'mainSeriesProperties.priceLineColor': getThemeLastPriceLineColor(theme),
     // Pane margins keep candle (high/low fit) and line (close-only fit) charts
     // visually consistent. Without them, line auto-fits tighter and looks
     // zoomed in vs the candle chart for the same OHLCV.

@@ -37,9 +37,11 @@ export type InboundMessage =
   | SetMAVisibilityMessage
   | ToggleVolumeMessage
   | SetSubPaneLayoutMessage
+  | SetPositionLinesMessage
   | SetTradeMarkersMessage
   | PulseTradeMarkerMessage
-  | FocusTimeMessage;
+  | FocusTimeMessage
+  | FetchOlderBarsResponseMessage;
 
 export interface SetThemeColorsMessage {
   type: 'SET_THEME_COLORS';
@@ -51,6 +53,8 @@ export interface SetThemeColorsPayload {
   successColor?: string;
   errorColor?: string;
   currentPriceColor?: string;
+  volumeSuccessColor?: string;
+  volumeErrorColor?: string;
 }
 
 export interface SetOHLCVDataMessage {
@@ -61,6 +65,8 @@ export interface SetOHLCVDataMessage {
 export interface SetOHLCVDataPayload {
   data: OHLCVBar[];
   pagination?: OHLCVPaginationConfig;
+  /** When enabled, getBars sends FETCH_OLDER_BARS_REQUEST to RN instead of fetching Price API. */
+  rnBackedPagination?: { enabled: boolean };
   /** Visible-range start (ms) so the WebView can call setVisibleRange after reset. */
   visibleFromMs?: number;
   /** Visible-range end (ms) anchored to the last candle. */
@@ -146,6 +152,63 @@ export interface FocusTimePayload {
   animate?: boolean;
 }
 
+// ----- Position Lines (Perps) ------------------------------------------------
+
+export type PositionSide = 'long' | 'short';
+
+export interface PositionLines {
+  side: PositionSide;
+  entryPrice?: number;
+  currentPrice?: number;
+  takeProfitPrice?: number;
+  stopLossPrice?: number;
+  liquidationPrice?: number;
+}
+
+export interface PositionLineColors {
+  currentPrice?: string;
+  entry: string;
+  takeProfit: string;
+  stopLoss: string;
+  liquidation: string;
+}
+
+export interface SetPositionLinesMessage {
+  type: 'SET_POSITION_LINES';
+  payload: SetPositionLinesPayload;
+}
+
+export interface SetPositionLinesPayload {
+  position: PositionLines | null;
+  positionLineColors?: PositionLineColors;
+}
+
+// ----- RN-Backed Pagination (Perps) ------------------------------------------
+
+export interface FetchOlderBarsResponseMessage {
+  type: 'FETCH_OLDER_BARS_RESPONSE';
+  payload: FetchOlderBarsResponsePayload;
+}
+
+export interface FetchOlderBarsResponsePayload {
+  requestId: string;
+  seriesGeneration: number;
+  bars: OHLCVBar[];
+  noData?: boolean;
+  error?: string;
+}
+
+export interface FetchOlderBarsRequestPayload {
+  requestId: string;
+  seriesGeneration: number;
+  symbol: string;
+  resolution: string;
+  fromSec: number;
+  toSec: number;
+  countBack?: number;
+  oldestLoadedTimeMs: number;
+}
+
 export type InboundMessageType = InboundMessage['type'];
 
 /** Outbound — WebView IIFE → React Native. */
@@ -159,6 +222,7 @@ export type OutboundMessageType =
   | 'INDICATOR_REMOVED'
   | 'LEGEND_RENDERED'
   | 'TRADE_MARKER_PRESSED'
+  | 'FETCH_OLDER_BARS_REQUEST'
   | 'ERROR'
   | 'DEBUG';
 
@@ -234,6 +298,7 @@ export interface OutboundPayloads {
   INDICATOR_REMOVED: IndicatorRemovedPayload;
   LEGEND_RENDERED: LegendRenderedPayload;
   TRADE_MARKER_PRESSED: TradeMarkerPressedPayload;
+  FETCH_OLDER_BARS_REQUEST: FetchOlderBarsRequestPayload;
   ERROR: ErrorPayload;
   DEBUG: DebugPayload;
 }

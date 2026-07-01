@@ -30,11 +30,13 @@ import {
   setCurrentResolution,
   setOhlcvData,
   setOhlcvPagination,
+  setRnBackedPagination,
   setVisibleFromMs,
   setVisibleToMs,
 } from '../core/state';
 import type { TVActiveChart } from '../core/types';
 import { forwardRealtimeTick } from './datafeed';
+import { resolveAllPendingOlderBarsNoData } from '../pagination/rnBacked';
 import type {
   RealtimeUpdateMessage,
   SetOHLCVDataPayload,
@@ -59,8 +61,14 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
     return;
   }
 
+  resolveAllPendingOlderBarsNoData();
+
   setOhlcvData(payload.data);
   bumpOhlcvGeneration();
+
+  if (payload.rnBackedPagination) {
+    setRnBackedPagination(payload.rnBackedPagination);
+  }
 
   if (payload.pagination) {
     setOhlcvPagination({
@@ -88,6 +96,7 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
         chart.setResolution(newResolution, () => {
           try {
             chart.resetData();
+            resetMainPriceScaleAutoScale(chart);
             notifyDataLifecycle('ohlcvReset');
             applyVisibleRange(chart);
             emitLayoutSettled();
@@ -97,6 +106,7 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
         });
       } else {
         chart.resetData();
+        resetMainPriceScaleAutoScale(chart);
         notifyDataLifecycle('ohlcvReset');
         applyVisibleRange(chart);
         emitLayoutSettled();
@@ -184,6 +194,23 @@ function emitLayoutSettled(): void {
     });
   } catch {
     setTimeout(send, 48);
+  }
+}
+
+function resetMainPriceScaleAutoScale(chart: TVActiveChart): void {
+  try {
+    if (typeof chart.getPanes !== 'function') return;
+    const panes = chart.getPanes?.();
+    const mainPane = panes?.[0];
+    if (!mainPane || typeof mainPane.getMainSourcePriceScale !== 'function') {
+      return;
+    }
+    const priceScale = mainPane.getMainSourcePriceScale();
+    if (typeof priceScale?.setAutoScale === 'function') {
+      priceScale.setAutoScale(true);
+    }
+  } catch {
+    // Best-effort; failures are non-critical
   }
 }
 

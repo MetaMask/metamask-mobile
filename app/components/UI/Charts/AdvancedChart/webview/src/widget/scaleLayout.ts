@@ -12,14 +12,27 @@
 // - Drops DOM overflow unclip / hide-price-scale-buttons (no chrome to hide)
 
 import { reportErrorToRN } from '../core/bridge';
-import { getTheme, getWidget, isChartReady } from '../core/state';
+import {
+  getTheme,
+  getWidget,
+  isChartReady,
+  getHasExplicitCurrentPriceLine,
+} from '../core/state';
 import type { ChartType, TVChartingLibraryWidget } from '../core/types';
+import { getThemeLastPriceLineColor } from './theme';
 
 const PANE_TOP_MARGIN = 12;
 const PANE_BOTTOM_MARGIN = 8;
 
 function buildScaleLayoutOverrides(): Record<string, unknown> {
   const theme = getTheme();
+  if (!theme) return {};
+  const gridLineColor = theme.gridLineColor || 'transparent';
+  const hidePaneSeparator = window.CONFIG?.features?.hidePaneSeparator === true;
+  const separatorColor = hidePaneSeparator
+    ? theme.backgroundColor
+    : theme.borderColor;
+
   return {
     'scalesProperties.showRightScale': true,
     'scalesProperties.showLeftScale': false,
@@ -28,7 +41,9 @@ function buildScaleLayoutOverrides(): Record<string, unknown> {
     'scalesProperties.showSymbolLabels': false,
     'scalesProperties.showPriceScaleCrosshairLabel': true,
     'scalesProperties.showTimeScaleCrosshairLabel': true,
-    'mainSeriesProperties.showPriceLine': true,
+    'mainSeriesProperties.showPriceLine': !getHasExplicitCurrentPriceLine(),
+    'paneProperties.vertGridProperties.color': gridLineColor,
+    'paneProperties.horzGridProperties.color': gridLineColor,
     'paneProperties.topMargin': PANE_TOP_MARGIN,
     'paneProperties.bottomMargin': PANE_BOTTOM_MARGIN,
     ...(theme?.backgroundColor
@@ -37,8 +52,14 @@ function buildScaleLayoutOverrides(): Record<string, unknown> {
           'scalesProperties.lineColor': theme.backgroundColor,
         }
       : {}),
-    ...(theme?.borderColor
-      ? { 'paneProperties.separatorColor': theme.borderColor }
+    ...(separatorColor
+      ? { 'paneProperties.separatorColor': separatorColor }
+      : {}),
+    ...(theme
+      ? {
+          'mainSeriesProperties.priceLineColor':
+            getThemeLastPriceLineColor(theme),
+        }
       : {}),
   };
 }

@@ -8,7 +8,9 @@
 import { reportErrorToRN } from '../core/bridge';
 import {
   getOhlcvData,
+  getOhlcvPagination,
   getRealtimeCallbacks,
+  getRnBackedPagination,
   registerRealtimeCallback,
   unregisterRealtimeCallback,
 } from '../core/state';
@@ -24,6 +26,7 @@ import type {
   TVResolution,
 } from '../core/types';
 import { fetchOlderBarsFromPriceApi } from '../pagination/priceApi';
+import { requestOlderBarsFromRN } from '../pagination/rnBacked';
 
 const SUPPORTED_RESOLUTIONS: TVResolution[] = [
   '1',
@@ -135,7 +138,7 @@ export const customDatafeed: TVDatafeed = {
 
   getBars(
     _symbolInfo: SymbolInfo,
-    _resolution: TVResolution,
+    resolution: TVResolution,
     periodParams: PeriodParams,
     onResult: GetBarsCallback,
     onError: GetBarsErrorCallback,
@@ -157,18 +160,29 @@ export const customDatafeed: TVDatafeed = {
         return;
       }
 
-      // Page older bars from the default Price API paginator. Phase 6 will
-      // route this through a consumer-supplied strategy when pagination.mode
-      // === 'custom'.
       const oldestAtDefer = all[0].time;
-      fetchOlderBarsFromPriceApi({ oldestAtDefer })
-        .then(({ olderBars, noData }) => {
-          onResult(olderBars, { noData });
-        })
-        .catch((error) => {
-          reportErrorToRN(error);
-          onResult([], { noData: true });
+      const pag = getOhlcvPagination();
+
+      if (pag.assetId) {
+        fetchOlderBarsFromPriceApi({ oldestAtDefer })
+          .then(({ olderBars, noData }) => {
+            onResult(olderBars, { noData });
+          })
+          .catch((error) => {
+            reportErrorToRN(error);
+            onResult([], { noData: true });
+          });
+      } else if (getRnBackedPagination().enabled) {
+        requestOlderBarsFromRN({
+          resolution,
+          fromSec: periodParams.from,
+          toSec: periodParams.to,
+          countBack: periodParams.countBack,
+          onResult,
         });
+      } else {
+        onResult([], { noData: true });
+      }
     } catch (error) {
       onError(
         error instanceof Error ? error.message : String(error ?? 'Unknown'),

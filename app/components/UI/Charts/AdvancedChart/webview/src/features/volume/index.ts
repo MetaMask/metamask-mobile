@@ -16,7 +16,12 @@ import {
 } from '../../core/state';
 import { scheduleLegendRefresh } from '../indicators/legend';
 import type { ToggleVolumeMessage } from '../../messages/contract';
-import type { TVActiveChart } from '../../core/types';
+import type { ChartTheme, TVActiveChart } from '../../core/types';
+import {
+  getVolumeErrorColor,
+  getVolumeSuccessColor,
+  subscribeTheme,
+} from '../../widget/theme';
 
 const MIN_VOLUME_PX = 56;
 const MIN_MAIN_PX = 72;
@@ -24,11 +29,19 @@ const VOLUME_RATIO = 0.22;
 
 function buildVolumeOverrides(useOverlay: boolean): Record<string, unknown> {
   const theme = getTheme();
+  if (!theme) {
+    return {
+      showLegendValues: false,
+      'volume ma.display': 0,
+      'volume.transparency': useOverlay ? 70 : 0,
+    };
+  }
   return {
     showLegendValues: false,
+    'volume ma.display': 0,
     'volume.transparency': useOverlay ? 70 : 0,
-    'volume.color.0': theme?.errorColor,
-    'volume.color.1': theme?.successColor,
+    'volume.color.0': getVolumeErrorColor(theme),
+    'volume.color.1': getVolumeSuccessColor(theme),
   };
 }
 
@@ -115,4 +128,26 @@ export function handleToggleVolume(
   if (!getVolumeStudyId()) {
     createVolumeStudy(useOverlay);
   }
+}
+
+function recolorVolumeStudy(theme: ChartTheme): void {
+  const studyId = getVolumeStudyId();
+  if (!studyId) return;
+  const widget = getWidget();
+  if (!widget || !isChartReady()) return;
+  try {
+    const study = widget.activeChart().getStudyById(studyId);
+    if (study && typeof study.applyOverrides === 'function') {
+      study.applyOverrides({
+        'volume.color.0': getVolumeErrorColor(theme),
+        'volume.color.1': getVolumeSuccessColor(theme),
+      });
+    }
+  } catch (error) {
+    reportErrorToRN(error);
+  }
+}
+
+export function registerVolumeThemeSync(): void {
+  subscribeTheme(recolorVolumeStudy);
 }
