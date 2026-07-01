@@ -15,6 +15,7 @@ import {
   TrxAccountType,
   TrxScope,
 } from '@metamask/keyring-api';
+import { getSessionCapabilities } from '../RPCMethods/getSessionCapabilities';
 
 jest.mock('../Engine', () => ({
   init: jest.fn(),
@@ -1840,6 +1841,90 @@ describe('BackgroundBridge', () => {
       expect(Object.values(eip155Capabilities)[0]).toStrictEqual({
         '0x1': { atomic: { status: 'supported' } },
       });
+    });
+
+    it('still emits sessionScopes when capability hydration fails', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      bridge.multichainEngine = { emit: jest.fn() };
+
+      getSessionCapabilities.mockImplementationOnce(() =>
+        Promise.reject(new Error('capabilities boom')),
+      );
+
+      const authorization = {
+        requiredScopes: {},
+        optionalScopes: {
+          'eip155:1': {
+            accounts: ['eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571'],
+          },
+        },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      };
+
+      await bridge.notifyCaipAuthorizationChange(authorization);
+
+      expect(bridge.multichainEngine.emit).toHaveBeenCalledTimes(1);
+      const [, payload] = bridge.multichainEngine.emit.mock.calls[0];
+      expect(payload.method).toBe('wallet_sessionChanged');
+      expect(payload.params.sessionScopes).toEqual(expect.any(Object));
+      // getSessionProperties swallows the per-address capability error, so the
+      // address is omitted from eip155Capabilities; the event is not dropped.
+      expect(payload.params.sessionProperties.eip155Capabilities).toStrictEqual(
+        {},
+      );
+    });
+
+    it('serializes emits so notifications preserve call order when hydration resolves out of order', async () => {
+      const url = 'https://www.mock.io';
+      const bridge = setupBackgroundBridge(url);
+      const emitted = [];
+      bridge.multichainEngine = {
+        emit: jest.fn((_event, payload) => emitted.push(payload)),
+      };
+
+      const addr1 = '0x1111111111111111111111111111111111111111';
+      const addr2 = '0x2222222222222222222222222222222222222222';
+      const makeAuth = (addr) => ({
+        requiredScopes: {},
+        optionalScopes: { 'eip155:1': { accounts: [`eip155:1:${addr}`] } },
+        isMultichainOrigin: true,
+        sessionProperties: {},
+      });
+
+      // First notification's capability hydration resolves only after the
+      // second's would have; without serialization the second would emit first.
+      let resolveFirst;
+      getSessionCapabilities.mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveFirst = resolve;
+          }),
+      );
+
+      const p1 = bridge.notifyCaipAuthorizationChange(makeAuth(addr1));
+      const p2 = bridge.notifyCaipAuthorizationChange(makeAuth(addr2));
+
+      // Flush microtasks so the first queued task starts and registers its
+      // pending hydration (which captures `resolveFirst`).
+      for (let i = 0; i < 5; i++) {
+        await Promise.resolve();
+      }
+      expect(resolveFirst).toBeDefined();
+      resolveFirst({ '0x1': { atomic: { status: 'supported' } } });
+
+      await Promise.all([p1, p2]);
+
+      expect(emitted).toHaveLength(2);
+      const firstKey = Object.keys(
+        emitted[0].params.sessionProperties.eip155Capabilities,
+      )[0];
+      const secondKey = Object.keys(
+        emitted[1].params.sessionProperties.eip155Capabilities,
+      )[0];
+      expect(firstKey.toLowerCase()).toBe(addr1.toLowerCase());
+      expect(secondKey.toLowerCase()).toBe(addr2.toLowerCase());
     });
   });
 });
