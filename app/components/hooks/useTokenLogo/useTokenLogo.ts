@@ -1,6 +1,10 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { ImageStyle, ViewStyle } from 'react-native';
 import { useTheme } from '../../../util/theme';
+
+// Stable default so omitting the bg sets doesn't create a fresh Set each render
+// (which would bust the background/style memoization below).
+const EMPTY_SET = new Set<string>();
 
 export interface UseTokenLogoConfig {
   symbol: string;
@@ -35,8 +39,8 @@ export interface UseTokenLogoReturn {
 export const useTokenLogo = ({
   symbol,
   size = 44,
-  assetsRequiringLightBg = new Set<string>(),
-  assetsRequiringDarkBg = new Set<string>(),
+  assetsRequiringLightBg = EMPTY_SET,
+  assetsRequiringDarkBg = EMPTY_SET,
 }: UseTokenLogoConfig): UseTokenLogoReturn => {
   const { colors, themeAppearance } = useTheme();
   const [isLoading, setIsLoading] = useState(false);
@@ -108,19 +112,21 @@ export const useTokenLogo = ({
     [size, colors.text.default],
   );
 
-  const handleLoadStart = () => {
+  // Stable handler identities so memoized children (e.g. <Image>) don't
+  // re-render from new onLoadStart/onLoadEnd/onError props each render.
+  const handleLoadStart = useCallback(() => {
     setIsLoading(true);
     setHasError(false);
-  };
+  }, []);
 
-  const handleLoadEnd = () => {
+  const handleLoadEnd = useCallback(() => {
     setIsLoading(false);
-  };
+  }, []);
 
-  const handleError = () => {
+  const handleError = useCallback(() => {
     setIsLoading(false);
     setHasError(true);
-  };
+  }, []);
 
   return {
     isLoading,
