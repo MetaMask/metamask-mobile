@@ -1,5 +1,7 @@
 import axios from 'axios';
 import { Platform } from 'react-native';
+import FilesystemStorage from 'redux-persist-filesystem-storage';
+import Device from '../device';
 import { getFixturesServerPortInApp } from './utils';
 
 const FETCH_TIMEOUT = 40000; // Timeout in milliseconds
@@ -102,19 +104,37 @@ class ReadOnlyNetworkStore {
 
     try {
       for (const url of urls) {
+        let response;
         try {
-          const response = await fetchWithTimeout(url);
-          if (response.status === 200) {
-            this._state = response.data?.state;
-            this._asyncState = response.data?.asyncState;
-            // eslint-disable-next-line no-console
-            console.debug(`Successfully loaded fixture state from ${url}`);
-            return;
-          }
+          response = await fetchWithTimeout(url);
         } catch (error) {
           // eslint-disable-next-line no-console
           console.debug(`Error loading network state from ${url}: '${error}'`);
           // Continue to next URL if this one failed
+          continue;
+        }
+        if (response.status === 200) {
+          this._state = response.data?.state;
+          this._asyncState = response.data?.asyncState;
+          // Write any filesystemStorage entries so StorageService can read them
+          // (e.g. snap source code migrated out of SnapController state by migration 119)
+          const filesystemStorage = response.data?.filesystemStorage;
+          if (filesystemStorage) {
+            try {
+              await Promise.all(
+                Object.entries(filesystemStorage).map(([key, value]) =>
+                  FilesystemStorage.setItem(key, value, Device.isIos()),
+                ),
+              );
+            } catch (fsError) {
+              throw new Error(
+                `Failed to write filesystemStorage fixture entries: ${fsError}`,
+              );
+            }
+          }
+          // eslint-disable-next-line no-console
+          console.debug(`Successfully loaded fixture state from ${url}`);
+          return;
         }
       }
     } catch (error) {
