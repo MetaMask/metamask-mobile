@@ -833,5 +833,11 @@
       }
     },
     "version": "v0.3.0"
+  },
+  "previewBuilds": {
+    "@metamask/ramps-controller": {
+      "type": "non-breaking",
+      "previewVersion": "15.0.0-preview-1bd5239bf"
+    }
   }
 }
