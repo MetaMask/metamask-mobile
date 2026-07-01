@@ -343,6 +343,12 @@ import type {
   CardControllerActions,
   CardControllerEvents,
 } from './controllers/card-controller/types';
+import { QrSyncController } from '../QrSync/QrSyncController';
+import type {
+  QrSyncControllerState,
+  QrSyncControllerActions,
+  QrSyncControllerEvents,
+} from '../QrSync/controller-types';
 import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
@@ -592,6 +598,7 @@ export type GlobalActions =
   | PerpsControllerActions
   | PredictControllerActions
   | CardControllerActions
+  | QrSyncControllerActions
   | ClientControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
@@ -683,6 +690,7 @@ export type GlobalEvents =
   | PerpsControllerEvents
   | PredictControllerEvents
   | CardControllerEvents
+  | QrSyncControllerEvents
   | ClientControllerEvents
   | RewardsControllerEvents
   | AppMetadataControllerEvents
@@ -821,6 +829,7 @@ export type MessengerClients = {
   PerpsController: PerpsController;
   PredictController: PredictController;
   CardController: CardController;
+  QrSyncController: QrSyncController;
   ClientController: ClientController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
@@ -911,6 +920,7 @@ export type EngineState = {
   PerpsController: PerpsControllerState;
   PredictController: PredictControllerState;
   CardController: CardControllerState;
+  QrSyncController: QrSyncControllerState;
   ClientController: ClientControllerState;
   RewardsController: RewardsControllerState;
   SeedlessOnboardingController: SeedlessOnboardingControllerState;
@@ -1013,6 +1023,7 @@ export type MessengerClientsToInitialize =
   | 'PerpsController'
   | 'PredictController'
   | 'CardController'
+  | 'QrSyncController'
   | 'ClientController'
   | 'PreferencesController'
   | 'BridgeController'
