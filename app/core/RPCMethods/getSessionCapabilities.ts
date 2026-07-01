@@ -1,6 +1,9 @@
-import { getCapabilities } from '@metamask/eip-5792-middleware';
+import {
+  getCapabilities,
+  type EIP5792Messenger,
+} from '@metamask/eip-5792-middleware';
 import { ALLOWED_BRIDGE_CHAIN_IDS } from '@metamask/bridge-controller';
-import type { Hex, Json } from '@metamask/utils';
+import type { Hex } from '@metamask/utils';
 
 import Engine from '../Engine';
 import { store } from '../../store';
@@ -43,7 +46,7 @@ export function buildGetCapabilitiesHooks() {
       );
     },
     isAuxiliaryFundsSupported: (chainId: Hex) =>
-      ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId),
+      (ALLOWED_BRIDGE_CHAIN_IDS as readonly Hex[]).includes(chainId),
   };
 }
 
@@ -58,10 +61,10 @@ export function buildGetCapabilitiesHooks() {
  */
 export function getSessionCapabilities(
   address: string,
-): Promise<Record<Hex, Record<string, Json>>> {
+): ReturnType<typeof getCapabilities> {
   return getCapabilities(
     buildGetCapabilitiesHooks(),
-    Engine.controllerMessenger,
+    Engine.controllerMessenger as unknown as EIP5792Messenger,
     address as Hex,
     undefined,
   );
