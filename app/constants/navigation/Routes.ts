@@ -562,6 +562,7 @@ const Routes = {
       FORGOT_PASSWORD: 'CardForgotPasswordModal',
       CREDIT_BALANCE_TOOLTIP: 'CardCreditBalanceTooltipModal',
       CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',
+      UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
     },
   },
   SEND: {

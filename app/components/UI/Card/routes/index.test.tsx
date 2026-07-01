@@ -33,15 +33,18 @@ jest.mock('@react-navigation/native-stack', () => {
       Screen: ({
         name,
         options,
+        component: Component,
       }: {
         name: string;
         options?: {
           headerShown?: boolean;
         };
+        component?: React.ComponentType;
       }) => (
         <View testID={`screen-${name}`}>
           <Text>{name}</Text>
           {options?.headerShown === false && <Text>no-header</Text>}
+          {name === 'CardModals' && Component ? <Component /> : null}
         </View>
       ),
     }),
@@ -126,6 +129,11 @@ jest.mock('../components/ViewPinBottomSheet', () => {
   return () => <View testID="view-pin-bottom-sheet" />;
 });
 
+jest.mock('../components/MoneyUnlinkCardSheet', () => {
+  const { View } = require('react-native');
+  return () => <View testID="money-unlink-card-sheet" />;
+});
+
 jest.mock('../Views/OrderCompleted/OrderCompleted', () => {
   const { View } = require('react-native');
   return () => <View testID="order-completed" />;
@@ -187,6 +195,10 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       VIEW_PIN: 'ViewPin',
       CREDIT_BALANCE_TOOLTIP: 'CreditBalanceTooltip',
       CREDIT_REFUND_TOOLTIP: 'CreditRefundTooltip',
+      SPENDING_LIMIT_OPTIONS: 'SpendingLimitOptions',
+      WAITLIST_FORM: 'WaitlistForm',
+      FORGOT_PASSWORD: 'ForgotPassword',
+      UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
     },
   },
 }));
@@ -218,9 +230,9 @@ describe('CardRoutes', () => {
 
   describe('CardRoutes component', () => {
     it('renders successfully', () => {
-      const { getByTestId } = renderWithProviders(<CardRoutes />);
+      const { getAllByTestId } = renderWithProviders(<CardRoutes />);
 
-      expect(getByTestId('stack-navigator')).toBeTruthy();
+      expect(getAllByTestId('stack-navigator').length).toBeGreaterThan(0);
     });
 
     it('renders nested stack navigators', () => {
@@ -239,6 +251,12 @@ describe('CardRoutes', () => {
       const { getByTestId } = renderWithProviders(<CardRoutes />);
 
       expect(getByTestId('screen-CardModals')).toBeTruthy();
+    });
+
+    it('includes unlink Money account modal screen', () => {
+      const { getByTestId } = renderWithProviders(<CardRoutes />);
+
+      expect(getByTestId('screen-CardUnlinkMoneyAccountSheet')).toBeTruthy();
     });
   });
 
@@ -266,9 +284,9 @@ describe('CardRoutes', () => {
 
   describe('Navigator configuration', () => {
     it('renders with header hidden configuration', () => {
-      const { getByText } = renderWithProviders(<CardRoutes />);
+      const { getAllByText } = renderWithProviders(<CardRoutes />);
 
-      expect(getByText('headerShown: false')).toBeTruthy();
+      expect(getAllByText('headerShown: false').length).toBeGreaterThan(0);
     });
   });
 });

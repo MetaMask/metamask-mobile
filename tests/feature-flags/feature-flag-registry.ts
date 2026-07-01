@@ -3258,19 +3258,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  earnMoneyDepositNoFeeTokens: {
-    name: 'earnMoneyDepositNoFeeTokens',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      '0x2105': ['USDC'],
-      '0x38': ['USDC', 'USDT'],
-      '0xa4b1': ['USDC'],
-      '0x1': ['USDC', 'USDT', 'DAI', 'aUSDC', 'aUSDT', 'aDAI'],
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   earnMoneyFirstTimeDepositAnimationEnabled: {
     name: 'earnMoneyFirstTimeDepositAnimationEnabled',
     type: FeatureFlagType.Remote,
@@ -5408,17 +5395,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         name: 'treatment',
       },
     ],
-    status: FeatureFlagStatus.Active,
-  },
-
-  moneyHomeScreenEnabled: {
-    name: 'moneyHomeScreenEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '0.0.0',
-      enabled: false,
-    },
     status: FeatureFlagStatus.Active,
   },
 

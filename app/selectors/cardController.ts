@@ -7,6 +7,7 @@ import {
 import { RootState } from '../reducers';
 import {
   DEFAULT_CARD_PROVIDER_ID,
+  type CardUnauthenticatedReason,
   type CardControllerState,
   type CardHomeDataStatus,
 } from '../core/Engine/controllers/card-controller/types';
@@ -96,6 +97,14 @@ export const selectIsCardAuthenticated = createSelector(
   selectCardControllerState,
   (cardState: CardControllerState | undefined) =>
     cardState?.isAuthenticated ?? false,
+);
+
+export const selectCardLastUnauthenticatedReason = createSelector(
+  selectCardControllerState,
+  (
+    cardState: CardControllerState | undefined,
+  ): CardUnauthenticatedReason | null =>
+    cardState?.lastUnauthenticatedReason ?? null,
 );
 
 export const selectIsMoneyAccountCardLinkInProgress = createSelector(

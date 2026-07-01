@@ -24,6 +24,7 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import {
+  CommonActions,
   StackActions,
   useFocusEffect,
   useNavigation,
@@ -37,10 +38,14 @@ import Engine from '../../../../../core/Engine';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import {
   selectIsCardAuthenticated,
+  selectCardLastUnauthenticatedReason,
   selectCardUserLocation,
   selectCardHomeDataStatus,
   selectCardRedemptionDestinationIsMoneyAccount,
+  selectMoneyAccountVedaTokenConfig,
 } from '../../../../../selectors/cardController';
+import { selectPrimaryMoneyAccount } from '../../../../../selectors/moneyAccountController';
+import { isMoneyAccountEntry } from '../../util/isMoneyAccountEntry';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
 import {
   getCardSupportEmail,
@@ -96,7 +101,12 @@ const CardHome = () => {
   const { data, isLoading, isError, refetch, primaryToken } = useCardHomeData();
   const capabilities = useCardCapabilities();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const lastUnauthenticatedReason = useSelector(
+    selectCardLastUnauthenticatedReason,
+  );
   const userLocation = useSelector(selectCardUserLocation);
+  const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
+  const vedaConfig = useSelector(selectMoneyAccountVedaTokenConfig);
   const { data: registrationSettings } = useRegistrationSettings();
   const privacyMode = useSelector(selectPrivacyMode);
   const isMetalCardCheckoutEnabled = useSelector(
@@ -206,10 +216,43 @@ const CardHome = () => {
   useEffect(() => {
     const wasAuth = wasAuthenticated.current;
     wasAuthenticated.current = isAuthenticated;
-    if (wasAuth && !isAuthenticated) {
+    if (
+      wasAuth &&
+      !isAuthenticated &&
+      lastUnauthenticatedReason !== 'onboarding_token_revoked'
+    ) {
       navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
     }
-  }, [isAuthenticated, navigation]);
+  }, [isAuthenticated, lastUnauthenticatedReason, navigation]);
+
+  const hasHandledOnboardingTokenRevocation = useRef(false);
+  useEffect(() => {
+    if (
+      lastUnauthenticatedReason !== 'onboarding_token_revoked' ||
+      hasHandledOnboardingTokenRevocation.current
+    ) {
+      return;
+    }
+
+    hasHandledOnboardingTokenRevocation.current = true;
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [
+        {
+          label: strings('card.card_home.onboarding_token_revoked'),
+        },
+      ],
+      hasNoTimeout: false,
+      iconName: IconName.Warning,
+    });
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: Routes.CARD.AUTHENTICATION }],
+      }),
+    );
+    Engine.context.CardController.clearLastUnauthenticatedReason();
+  }, [lastUnauthenticatedReason, navigation, toastRef]);
 
   // --- Deeplink toast ---
   const hasShownDeeplinkToast = useRef(false);
@@ -334,6 +377,60 @@ const CardHome = () => {
     data?.primaryFundingAsset?.status === FundingAssetStatus.Active;
 
   const hasPriorityTokenBalance = (primaryToken?.rawTokenBalance ?? 0) > 0;
+
+  const canUnlinkMoneyAccount = useMemo(() => {
+    if (!primaryToken?.isMoneyAccountEntry) return false;
+
+    const tokenMoneyAccountAddress = primaryToken.walletAddress;
+    const activeMoneyAccountAddress = primaryMoneyAccount?.address;
+    return Boolean(
+      tokenMoneyAccountAddress &&
+        activeMoneyAccountAddress &&
+        tokenMoneyAccountAddress.toLowerCase() ===
+          activeMoneyAccountAddress.toLowerCase(),
+    );
+  }, [
+    primaryMoneyAccount?.address,
+    primaryToken?.isMoneyAccountEntry,
+    primaryToken?.walletAddress,
+  ]);
+
+  const fallbackFundingSourceSymbol = useMemo(() => {
+    if (!canUnlinkMoneyAccount) return undefined;
+
+    const primary = data?.primaryFundingAsset;
+    const fallback = data?.fundingAssets.find((asset) => {
+      const isDelegated =
+        asset.status === FundingAssetStatus.Active ||
+        asset.status === FundingAssetStatus.Limited;
+      if (!isDelegated) return false;
+
+      return (
+        asset.address !== primary?.address ||
+        asset.chainId !== primary?.chainId ||
+        asset.walletAddress !== primary?.walletAddress
+      );
+    });
+
+    if (!fallback) return undefined;
+
+    return isMoneyAccountEntry(
+      {
+        address: fallback.address,
+        stagingTokenAddress: fallback.stagingTokenAddress,
+        caipChainId: fallback.chainId,
+        symbol: fallback.symbol,
+      },
+      vedaConfig,
+    )
+      ? strings('money.metamask_card.unlink_card_sheet_another_money_account')
+      : fallback.symbol;
+  }, [
+    canUnlinkMoneyAccount,
+    data?.fundingAssets,
+    data?.primaryFundingAsset,
+    vedaConfig,
+  ]);
 
   const headerHandlers = useCardHeaderHandlers('back');
 
@@ -573,6 +670,10 @@ const CardHome = () => {
           onViewPin={actions.viewPinAction}
           onToggleFreeze={actions.handleToggleFreeze}
           onManageSpendingLimit={actions.manageSpendingLimitAction}
+          showUnlinkMoneyAccount={canUnlinkMoneyAccount}
+          onUnlinkMoneyAccount={() =>
+            actions.unlinkMoneyAccountAction(fallbackFundingSourceSymbol)
+          }
           onOrderMetalCard={actions.orderMetalCardAction}
           onChangeAsset={actions.changeAssetAction}
           hasPriorityTokenBalance={hasPriorityTokenBalance}

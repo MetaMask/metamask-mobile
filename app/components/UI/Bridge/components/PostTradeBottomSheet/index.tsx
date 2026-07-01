@@ -44,11 +44,17 @@ import {
   PostTradeBottomSheetParams,
   PostTradeStatus,
 } from './PostTradeBottomSheet.types';
+import type { BridgeToken } from '../../types';
 import styleSheet from './PostTradeBottomSheet.styles';
 import { usePostTradeTxStatus } from './usePostTradeTxStatus';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { PostTradeTokenSuggestions } from './PostTradeTokenSuggestions';
-import { convertApiTokenToBridgeToken } from '../../utils/tokenUtils';
+import {
+  convertApiTokenToBridgeToken,
+  getDefaultDestToken,
+  getNativeSourceToken,
+  isSameBridgeToken,
+} from '../../utils/tokenUtils';
 import { getTrendingTokenImageUrl } from '../../../Trending/utils/getTrendingTokenImageUrl';
 import { PostTradeBottomSheetTestIds } from './PostTradeBottomSheet.testIds';
 import {
@@ -318,8 +324,29 @@ export const PostTradeBottomSheet = () => {
     });
     shouldSkipDismissedTrackingRef.current = true;
 
-    if (params.sourceToken) {
-      dispatch(setSourceToken(params.sourceToken));
+    // Resolve a non-conflicting source token; the clicked suggestion is kept
+    // as the destination. Fallbacks: previous source -> native gas -> chain
+    // default -> prior trade's destination.
+    let resolvedSourceToken: BridgeToken | undefined = params.sourceToken;
+    if (isSameBridgeToken(resolvedSourceToken, selectedDestToken)) {
+      const nativeSourceToken = getNativeSourceToken(selectedDestToken.chainId);
+      if (isSameBridgeToken(nativeSourceToken, selectedDestToken)) {
+        const defaultDestToken = getDefaultDestToken(selectedDestToken.chainId);
+        if (
+          defaultDestToken &&
+          !isSameBridgeToken(defaultDestToken, selectedDestToken)
+        ) {
+          resolvedSourceToken = defaultDestToken;
+        } else if (!isSameBridgeToken(params.destToken, selectedDestToken)) {
+          resolvedSourceToken = params.destToken;
+        }
+      } else {
+        resolvedSourceToken = nativeSourceToken;
+      }
+    }
+
+    if (resolvedSourceToken) {
+      dispatch(setSourceToken(resolvedSourceToken));
     }
     dispatch(setDestToken(selectedDestToken));
     dispatch(setIsDestTokenManuallySet(true));

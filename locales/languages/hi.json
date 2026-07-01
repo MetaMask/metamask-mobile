@@ -1162,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "पर्प्स उपलब्ध नहीं है",
     "title": "पर्प्स",
-    "transfer_to_perps": "पर्प्स तक ट्रांसफर करें",
     "perps_trading": "पर्प्स ट्रेडिंग",
     "perp_account_balance": "पर्प अकाउंट बैलेंस",
     "manage_balance": "बैलेंस प्रबंधित करें",
@@ -2343,13 +2342,11 @@
   },
   "predict": {
     "title": "MetaMask प्रिडिक्शन्स",
-    "transfer_to_predictions": "प्रेडिक्शन्स तक ट्रांसफर करें",
     "select_predict_account": "प्रेडिक्ट अकाउंट चुनें",
     "search_account": "किसी अकाउंट को ढूंढें",
     "home": {
       "live_now_title": "अब लाइव है",
-      "categories_placeholder": "कैटेगरीज़",
-      "trending_placeholder": "ट्रेंडिंग"
+      "categories_placeholder": "कैटेगरीज़"
     },
     "homepage_discovery": {
       "btc_title": "BTC प्राइस: {{price}}",
@@ -7679,8 +7676,7 @@
       "perps_withdraw": "निकालें",
       "predict_deposit": "प्रिडिक्शन फ़ंड जोड़ें",
       "predict_withdraw": "निकालें",
-      "money_account_add_money": "फंड जोड़ें",
-      "money_account_transfer_money": "पैसा ट्रांसफर करें"
+      "money_account_add_money": "फंड जोड़ें"
     },
     "sub_title": {
       "permit": "यह साइट आपके टोकन खर्च करने की अनुमति चाहती है।",
