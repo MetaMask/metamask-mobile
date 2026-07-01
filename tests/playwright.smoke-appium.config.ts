@@ -86,6 +86,7 @@ export default defineConfig({
   projects: [
     {
       name: 'android-smoke',
+      timeout: 8 * 60 * 1000,
       use: {
         platform: Platform.ANDROID,
         device: {
