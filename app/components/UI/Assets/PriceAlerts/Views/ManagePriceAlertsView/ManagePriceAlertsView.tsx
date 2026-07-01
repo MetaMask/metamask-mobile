@@ -49,6 +49,8 @@ import {
   ManagePriceAlertsTestIds,
   PriceAlert,
   PriceAlertRouteParams,
+  PriceAlertAnalytics,
+  toAlertOccurrence,
 } from '../../constants';
 import {
   fetchAlerts,
@@ -56,6 +58,8 @@ import {
   updateAlert,
   priceAlertsQueryKey,
 } from '../../api';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 const styles = StyleSheet.create({
   switchDisabled: { opacity: 0.5 },
@@ -76,6 +80,7 @@ const ManagePriceAlertsView: React.FC = () => {
     >();
   const { symbol, ticker, currentPrice, currentCurrency, assetId } =
     route.params;
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const hasResolvedInitialFetch = useRef(false);
   const [deletingIds, setDeletingIds] = useState<ReadonlySet<string>>(
@@ -181,6 +186,19 @@ const ManagePriceAlertsView: React.FC = () => {
         const response = await deleteAlert(id);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
+        // "Price Alert Deleted" — measures alert churn.
+        const deleted = previous.find((a) => a.id === id);
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_DELETED)
+            .addProperties({
+              asset_id: assetId,
+              token_symbol: symbol,
+              alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
+              alert_value: deleted?.threshold,
+            })
+            .build(),
+        );
+
         const next = previous.filter((a) => a.id !== id);
         queryClient.setQueryData(queryKey, next);
         toastRef?.current?.showToast({
@@ -217,7 +235,16 @@ const ManagePriceAlertsView: React.FC = () => {
         });
       }
     },
-    [navigation, assetId, queryClient, toastRef, colors],
+    [
+      navigation,
+      assetId,
+      queryClient,
+      toastRef,
+      colors,
+      symbol,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const handleToggleAlert = useCallback(
@@ -228,6 +255,7 @@ const ManagePriceAlertsView: React.FC = () => {
 
       const queryKey = priceAlertsQueryKey(assetId);
       const previous = queryClient.getQueryData<PriceAlert[]>(queryKey) ?? [];
+      const toggled = previous.find((a) => a.id === id);
       queryClient.setQueryData(
         queryKey,
         previous.map((a) => (a.id === id ? { ...a, active: newValue } : a)),
@@ -236,6 +264,25 @@ const ManagePriceAlertsView: React.FC = () => {
       try {
         const response = await updateAlert(id, { active: newValue });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        // "Price Alert Updated" — enable/disable behavior.
+        if (toggled) {
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.PRICE_ALERT_UPDATED)
+              .addProperties({
+                asset_id: assetId,
+                token_symbol: symbol,
+                alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
+                prev_active: toggled.active,
+                prev_alert_value: toggled.threshold,
+                prev_alert_occurrence: toAlertOccurrence(toggled.recurring),
+                new_active: newValue,
+                new_alert_value: toggled.threshold,
+                new_alert_occurrence: toAlertOccurrence(toggled.recurring),
+              })
+              .build(),
+          );
+        }
       } catch {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -257,7 +304,15 @@ const ManagePriceAlertsView: React.FC = () => {
         });
       }
     },
-    [assetId, queryClient, toastRef, colors],
+    [
+      assetId,
+      queryClient,
+      toastRef,
+      colors,
+      symbol,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const renderItem = ({ item }: { item: PriceAlert }) => {

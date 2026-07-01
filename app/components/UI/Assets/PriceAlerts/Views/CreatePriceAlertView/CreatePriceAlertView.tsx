@@ -52,9 +52,13 @@ import {
   CURRENCY_SYMBOLS,
   PRICE_ALERT_QUICK_PERCENTAGES,
   PriceAlert,
+  PriceAlertAnalytics,
+  toAlertOccurrence,
 } from '../../constants';
 import { priceAlertsQueryKey, useSubmitPriceAlert } from '../../api';
 import { trimTrailingZeros } from '../../../../Bridge/utils/trimTrailingZeros';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 const KEYPAD_EMPTY = '0';
 const MIN_KEYPAD_DECIMALS = 2;
@@ -126,8 +130,31 @@ const CreatePriceAlertView: React.FC = () => {
     editingAlert,
   } = route.params;
 
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
   const isEditing = Boolean(editingAlert);
   const displayTicker = ticker || symbol;
+
+  // "Price Alert Creation Initiated" — fired once when the user lands on the
+  // Create screen for a *new* alert (not when editing an existing one).
+  // `has_existing_alert` is derived from the thresholds Manage passes through;
+  // when the screen is reached directly (no prior alerts) the list is absent.
+  useEffect(() => {
+    if (isEditing) {
+      return;
+    }
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INITIATED)
+        .addProperties({
+          asset_id: assetId,
+          token_symbol: symbol,
+          has_existing_alert: (existingThresholds?.length ?? 0) > 0,
+        })
+        .build(),
+    );
+    // Intentionally fire once on mount; route params are stable for the screen.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const [targetAmount, setTargetAmount] = useState(
     editingAlert ? toKeypadString(editingAlert.threshold) : KEYPAD_EMPTY,
   );
@@ -244,6 +271,35 @@ const CreatePriceAlertView: React.FC = () => {
                 : a,
             ),
         );
+        // "Price Alert Updated" — threshold and/or occurrence edited.
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_UPDATED)
+            .addProperties({
+              asset_id: assetId,
+              token_symbol: symbol,
+              alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
+              prev_active: editingAlert.active,
+              prev_alert_value: editingAlert.threshold,
+              prev_alert_occurrence: toAlertOccurrence(editingAlert.recurring),
+              new_active: editingAlert.active,
+              new_alert_value: targetPrice,
+              new_alert_occurrence: toAlertOccurrence(isRecurring),
+            })
+            .build(),
+        );
+      } else {
+        // "Price Alert Created" — a new alert was saved.
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATED)
+            .addProperties({
+              asset_id: assetId,
+              token_symbol: symbol,
+              alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
+              alert_value: targetPrice,
+              alert_occurrence: toAlertOccurrence(isRecurring),
+            })
+            .build(),
+        );
       }
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
@@ -287,6 +343,9 @@ const CreatePriceAlertView: React.FC = () => {
     toastRef,
     colors,
     displayTicker,
+    symbol,
+    trackEvent,
+    createEventBuilder,
   ]);
 
   const handleKeypadChange = useCallback(({ value }: KeypadChangeData) => {

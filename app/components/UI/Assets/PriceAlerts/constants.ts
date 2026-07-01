@@ -31,6 +31,27 @@ export interface PriceAlert {
 
 export const PRICE_ALERT_QUICK_PERCENTAGES = [-10, -5, 5, 10] as const;
 
+/**
+ * Literal values emitted as analytics properties for price-alert events.
+ * Centralised so event payloads stay consistent across the Create/Manage
+ * views, the notification deeplink handler, and their tests.
+ */
+export const PriceAlertAnalytics = {
+  TYPE: {
+    THRESHOLD: 'threshold',
+  },
+  OCCURRENCE: {
+    RECURRING: 'recurring',
+    NOT_RECURRING: 'not_recurring',
+  },
+} as const;
+
+/** Maps the `recurring` flag to its analytics `occurrence` string. */
+export const toAlertOccurrence = (recurring: boolean): string =>
+  recurring
+    ? PriceAlertAnalytics.OCCURRENCE.RECURRING
+    : PriceAlertAnalytics.OCCURRENCE.NOT_RECURRING;
+
 export const CURRENCY_SYMBOLS: Record<string, string> = {
   usd: '$',
   eur: '€',
