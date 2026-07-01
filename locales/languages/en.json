@@ -702,6 +702,7 @@
     "paste": "Paste",
     "no_assets_available": "No assets available to send",
     "clear": "Clear",
+    "scan_qr_code": "Scan QR code",
     "to": "To",
     "enter_address_to_send_to": "Enter address to send to",
     "accounts": "Accounts",
@@ -2324,7 +2325,8 @@
       "referral_code_text": "Use my referral code to earn extra rewards."
     },
     "market_details": {
-      "category_search": "Browse related markets"
+      "category_search": "Browse related markets",
+      "fullscreen_chart": "Fullscreen chart"
     }
   },
   "market_insights": {
@@ -2418,6 +2420,14 @@
         "group_j": "Group J",
         "group_k": "Group K",
         "group_l": "Group L"
+      },
+      "market_info": {
+        "regulation_time_winner": {
+          "title": "Regulation time winner"
+        },
+        "team_to_advance": {
+          "title": "Team to advance"
+        }
       }
     },
     "prediction_markets": "Prediction markets",
@@ -2528,7 +2538,10 @@
       "soccer_anytime_goalscorer": "Goalscorers",
       "soccer_exact_score": "Exact Score",
       "soccer_halftime_result": "Halftime Result",
+      "soccer_team_to_advance": "Team to Advance",
       "soccer_first_to_score": "First Team to Score",
+      "soccer_extra_time": "Extra Time?",
+      "soccer_penalty_shootout": "Penalty Shootout?",
       "total_corners": "Corners",
       "tennis_set_totals": "Total Sets",
       "tennis_set_handicap": "Set Handicap",
@@ -2818,6 +2831,12 @@
       "make_your_prediction": "Make your prediction",
       "volume_display": "${{volume}} Vol",
       "read_terms": "Read the full contract terms and conditions"
+    },
+    "reg_time_info": {
+      "tag": "Reg time",
+      "accessibility_label": "Regulation time market information",
+      "title": "Regulation time",
+      "description": "This market refers to the outcome during the 90 minutes of regular play plus stoppage time. It excludes extra time and penalties."
     },
     "sports": {
       "halftime": "Halftime",
@@ -7411,6 +7430,17 @@
       "title": "Money account unavailable",
       "description": "Money account isn't available in your location due to local restrictions or sanctions.",
       "button": "Got it"
+    },
+    "deeplink_modal": {
+      "button": "Got it",
+      "money_account_disabled": {
+        "title": "Money account is temporarily unavailable",
+        "description": "We're working on it. Money Account will be back up shortly — check back soon."
+      },
+      "excluded_from_gradual_rollout": {
+        "title": "Money Account is on its way",
+        "description": "We're rolling out Money Account gradually to ensure everything works smoothly. Check back soon."
+      }
     }
   },
   "stake": {
@@ -9745,11 +9775,19 @@
     "energy_fee": "Energy",
     "bridge_fee": "Bridge fee",
     "transaction_fee": "Transaction fee",
+    "unknown_token": "Unknown",
     "total_amount": "Total amount",
     "you_sent": "You sent",
     "you_received": "You received",
     "view_on_block_explorer": "View on block explorer",
-    "do_it_again": "Do it again",
+    "swap_again": "Swap again",
+    "bridge_again": "Bridge again",
+    "convert_again": "Convert again",
+    "wrap_again": "Wrap again",
+    "unwrap_again": "Unwrap again",
+    "transaction_pending": "Transaction pending",
+    "likely_to_confirm_in": "Likely to confirm in",
+    "confirm_time_estimate": "< 30 sec",
     "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {

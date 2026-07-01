@@ -1000,6 +1000,26 @@ describe('PriceAdvanced', () => {
       expect(timeRangeSelector.props.accessibilityState?.busy).toBe(false);
     });
 
+    it('keeps TimeRangeSelector visible after time range change when technical indicators FF is OFF', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
+      expect(
+        getByTestId('mock-time-range-selector').props.accessibilityState?.busy,
+      ).toBe(false);
+
+      act(() => {
+        fireEvent.press(getByTestId('select-1W'));
+      });
+
+      expect(
+        getByTestId('mock-time-range-selector').props.accessibilityState?.busy,
+      ).toBe(false);
+    });
+
     it('keeps interval and indicator bars hidden until advanced chart is revealed', () => {
       mockSelectTechnicalIndicatorsEnabled.mockReturnValue(true);
       (mockUseSelector as jest.Mock).mockImplementation((selector: unknown) => {
