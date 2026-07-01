@@ -559,6 +559,7 @@ const Routes = {
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
       WAITLIST_FORM: 'CardWaitlistFormModal',
       FORGOT_PASSWORD: 'CardForgotPasswordModal',
+      UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
     },
   },
   SEND: {
@@ -582,6 +583,6 @@ const Routes = {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
   },
-};
+} as const;
 
 export default Routes;
