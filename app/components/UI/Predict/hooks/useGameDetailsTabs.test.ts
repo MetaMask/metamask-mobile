@@ -131,6 +131,19 @@ describe('useGameDetailsTabs', () => {
       mockUseSelector.mockReturnValue(['nba']);
     });
 
+    it('does not include Outcomes tab when only empty groups exist', () => {
+      const { result } = renderHook(() =>
+        useGameDetailsTabs({
+          ...defaultParams,
+          outcomeGroups: [createGroup('game_lines')],
+        }),
+      );
+
+      expect(result.current.tabs).toEqual([]);
+      expect(result.current.groupMap.size).toBe(0);
+      expect(result.current.chips).toEqual([]);
+    });
+
     it('includes only Outcomes tab when no positions exist', () => {
       const { result } = renderHook(() =>
         useGameDetailsTabs({
@@ -495,7 +508,7 @@ describe('useGameDetailsTabs', () => {
     });
 
     it('returns true when enabled with chips and outcomes visible', () => {
-      const groups = [createGroup('game_lines')];
+      const groups = [createOpenGroup('game_lines')];
 
       const { result } = renderHook(() =>
         useGameDetailsTabs({ ...defaultParams, outcomeGroups: groups }),
@@ -512,7 +525,7 @@ describe('useGameDetailsTabs', () => {
 
     it('returns false when disabled', () => {
       mockUseSelector.mockReturnValue([]);
-      const groups = [createGroup('game_lines')];
+      const groups = [createOpenGroup('game_lines')];
 
       const { result } = renderHook(() =>
         useGameDetailsTabs({ ...defaultParams, outcomeGroups: groups }),

@@ -56,6 +56,8 @@ const PredictGameDetailsTabsContent = memo(
 
     const hasPositions =
       activePositions.length > 0 || claimablePositions.length > 0;
+    const hasOutcomeContent =
+      groupMap.size > 0 || resolvedOutcomeGroups.length > 0;
 
     if (!enabled) {
       if (!hasPositions) {
@@ -96,6 +98,10 @@ const PredictGameDetailsTabsContent = memo(
         );
       }
 
+      if (!hasOutcomeContent) {
+        return null;
+      }
+
       return (
         <PredictGameOutcomesTab
           groupMap={groupMap}
@@ -126,7 +132,7 @@ const PredictGameDetailsTabsContent = memo(
             />
           </Box>
         )}
-        {currentKey === 'outcomes' && (
+        {currentKey === 'outcomes' && hasOutcomeContent && (
           <PredictGameOutcomesTab
             groupMap={groupMap}
             resolvedOutcomeGroups={resolvedOutcomeGroups}
