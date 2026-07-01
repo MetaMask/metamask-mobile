@@ -697,7 +697,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // reflects the actual display state rather than a loading-time snapshot.
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    resetKey: market?.symbol,
+    resetKey: `${market?.symbol || ''}:${configuredChartLibrary}`,
     conditions: [
       !!market,
       !!marketStats,
@@ -752,6 +752,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Reset chart view to default position
       if (isAdvancedChartEnabled) {
         setEffectiveChartLibrary(configuredChartLibrary);
+        trackedFallbackScreenViewLibrariesRef.current = new Set();
         setAdvancedChartResetKey((key) => key + 1);
       } else {
         chartRef.current?.resetToDefault();
@@ -1324,6 +1325,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           trackedFallbackScreenViewLibrariesRef.current.add(
             fallbackScreenViewKey,
           );
+          // `track` intentionally emits the paired Asset Viewed event with the
+          // same fallback chart attribution.
           track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
             ...marketDetailsScreenViewedProperties,
             ...getPerpsChartAnalyticsPropertiesForLibrary(
@@ -1881,6 +1884,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         symbol={market?.symbol}
         positionSize={existingPosition?.size}
         szDecimals={marketData?.szDecimals}
+        initialChartLibrary={chartLibrary}
       />
 
       {/* Market Insights Disclaimer Bottom Sheet */}

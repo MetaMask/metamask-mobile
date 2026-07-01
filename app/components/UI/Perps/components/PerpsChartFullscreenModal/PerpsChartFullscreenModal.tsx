@@ -59,6 +59,8 @@ export interface PerpsChartFullscreenModalProps {
   positionSize?: string;
   /** Hyperliquid size decimals; forwarded so fullscreen advanced chart matches market precision. */
   szDecimals?: number | null;
+  /** Effective chart library from the parent surface, used for initial attribution. */
+  initialChartLibrary?: string;
 }
 
 const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
@@ -73,6 +75,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   symbol,
   positionSize,
   szDecimals,
+  initialChartLibrary,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const insets = useSafeAreaInsets();
@@ -90,8 +93,10 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   const [ohlcvHeight, setOhlcvHeight] = useState<number>(0);
   const { track } = usePerpsEventTracking();
   const configuredChartLibrary = useMemo(
-    () => getPerpsChartLibrary(Boolean(isAdvancedChartEnabled)),
-    [isAdvancedChartEnabled],
+    () =>
+      initialChartLibrary ??
+      getPerpsChartLibrary(Boolean(isAdvancedChartEnabled)),
+    [initialChartLibrary, isAdvancedChartEnabled],
   );
   const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
     configuredChartLibrary,
@@ -119,7 +124,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
     if (!isVisible) return;
 
     trackedScreenViewLibrariesRef.current = new Set();
-  }, [isAdvancedChartEnabled, isVisible, symbol]);
+  }, [configuredChartLibrary, isVisible, symbol]);
 
   const trackFullscreenChartScreenViewed = useCallback(
     (chartLibrary?: string) => {
