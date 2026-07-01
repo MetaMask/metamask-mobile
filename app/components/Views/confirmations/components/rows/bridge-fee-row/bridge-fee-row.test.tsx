@@ -352,6 +352,62 @@ describe('BridgeFeeRow', () => {
     });
   });
 
+  describe('on-ramp fee breakout', () => {
+    const totalsWithOnRampFee = {
+      fees: {
+        provider: { usd: '1.00' },
+        providerFiat: { usd: '0.70' },
+        sourceNetwork: { estimate: { usd: '0.20' } },
+        targetNetwork: { usd: '0.03' },
+        metaMask: { usd: '0', fiat: '0' },
+      },
+    } as TransactionPayTotals;
+
+    it('shows a separate on-ramp fee row and reduced provider fee when providerFiat is present', async () => {
+      useTransactionTotalsMock.mockReturnValue(totalsWithOnRampFee);
+
+      const { getByTestId, getByText } = render({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      // On-ramp leg broken out; provider line shows the relay remainder
+      // (provider 1.00 - providerFiat 0.70 = 0.30). Line items still sum to the
+      // unchanged row total.
+      expect(getByText('On-ramp fee')).toBeOnTheScreen();
+      expect(getByText('$0.70')).toBeOnTheScreen();
+      expect(getByText('$0.30')).toBeOnTheScreen();
+    });
+
+    it('keeps the row total unchanged when breaking out the on-ramp fee', () => {
+      useTransactionTotalsMock.mockReturnValue(totalsWithOnRampFee);
+
+      const { getByText } = render({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      // 1.00 provider + 0.23 network + 0 metaMask = 1.23
+      expect(getByText('$1.23')).toBeOnTheScreen();
+    });
+
+    it('does not render an on-ramp fee row when providerFiat is absent', async () => {
+      const { getByTestId, getByText, queryByText } = render({
+        type: TransactionType.moneyAccountDeposit,
+      });
+
+      await act(async () => {
+        fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+      });
+
+      expect(queryByText('On-ramp fee')).toBeNull();
+      // Provider fee shows the full provider total when nothing is broken out.
+      expect(getByText('$1')).toBeOnTheScreen();
+    });
+  });
+
   describe('tooltip messages', () => {
     it.each([
       [TransactionType.predictDeposit],
