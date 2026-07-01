@@ -63,4 +63,8 @@ export enum WalletClientType {
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   Tron = 'tron',
   ///: END:ONLY_INCLUDE_IF
+
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  Stellar = 'stellar',
+  ///: END:ONLY_INCLUDE_IF
 }

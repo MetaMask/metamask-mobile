@@ -8,17 +8,15 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import SettingsView from '../../page-objects/Settings/SettingsView';
 import SnapSettingsView from '../../page-objects/Settings/SnapSettingsView';
 import { Assertions } from '../../framework';
-import BrowserView from '../../page-objects/Browser/BrowserView';
 import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
 import WalletView from '../../page-objects/wallet/WalletView';
 
 /**
- * Navigate from the browser to Snap Settings.
- * With disableSynchronization the tab bar may not be immediately available
- * after closing the browser, so we navigate step-by-step with explicit waits.
+ * Navigate to Snap Settings from browser or wallet.
+ * Prefer the tab bar over `browser-tab-close-button` — the close control is
+ * unmounted while the URL editor is focused and is absent when not on Browser.
  */
 async function navigateFromBrowserToSnapSettings() {
-  await BrowserView.tapCloseBrowserButton();
   await TabBarComponent.tapWallet();
   await WalletView.tapHamburgerMenu();
   await Assertions.expectElementToBeVisible(AccountMenu.container, {

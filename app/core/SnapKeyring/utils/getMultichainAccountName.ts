@@ -1,4 +1,11 @@
-import { BtcScope, SolScope, TrxScope } from '@metamask/keyring-api';
+import {
+  BtcScope,
+  SolScope,
+  TrxScope,
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  XlmScope,
+  ///: END:ONLY_INCLUDE_IF
+} from '@metamask/keyring-api';
 import { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../locales/i18n';
 import { WalletClientType } from '../types';
@@ -64,25 +71,35 @@ export function getMultichainAccountName(
       break;
     }
     case WalletClientType.Tron: {
-      switch (scope) {
-        case TrxScope.Mainnet:
-          accountNameToUse = `${strings(
-            'accounts.labels.tron_account_name',
-          )} ${accountNumber}`;
-          break;
-        case TrxScope.Nile:
-          accountNameToUse = `${strings(
-            'accounts.labels.tron_nile_account_name',
-          )} ${accountNumber}`;
-          break;
-        case TrxScope.Shasta:
-          accountNameToUse = `${strings(
-            'accounts.labels.tron_shasta_account_name',
-          )} ${accountNumber}`;
-          break;
+      if (scope === TrxScope.Mainnet) {
+        accountNameToUse = `${strings(
+          'accounts.labels.tron_account_name',
+        )} ${accountNumber}`;
+      } else if (scope === TrxScope.Nile) {
+        accountNameToUse = `${strings(
+          'accounts.labels.tron_nile_account_name',
+        )} ${accountNumber}`;
+      } else if (scope === TrxScope.Shasta) {
+        accountNameToUse = `${strings(
+          'accounts.labels.tron_shasta_account_name',
+        )} ${accountNumber}`;
       }
       break;
     }
+    ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+    case WalletClientType.Stellar: {
+      if (scope === XlmScope.Testnet) {
+        accountNameToUse = `${strings(
+          'accounts.labels.stellar_testnet_account_name',
+        )} ${accountNumber}`;
+      } else {
+        accountNameToUse = `${strings(
+          'accounts.labels.stellar_account_name',
+        )} ${accountNumber}`;
+      }
+      break;
+    }
+    ///: END:ONLY_INCLUDE_IF
     default:
       break;
   }
