@@ -127,6 +127,7 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOICap } from '../../hooks/usePerpsOICap';
 import { usePerpsSavePendingConfig } from '../../hooks/usePerpsSavePendingConfig';
 import {
+  selectPerpsAdvancedChartEnabledFlag,
   selectPerpsButtonColorTestVariant,
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsTradeWithAnyTokenEnabledFlag,
@@ -136,6 +137,7 @@ import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import {
   PERPS_CHART_EVENT_PROPERTY,
   PERPS_CHART_EVENT_VALUE,
+  getPerpsChartLibrary,
 } from '../../utils/analytics/chartInstrumentation';
 import {
   formatPerpsFiat,
@@ -216,9 +218,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     (TrendingFeedSessionManager.getInstance().isFromTrending
       ? 'trending'
       : undefined);
+  const isAdvancedChartEnabled = useSelector(
+    selectPerpsAdvancedChartEnabledFlag,
+  );
   const chartLibrary =
-    route.params?.chartLibrary ??
-    PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
+    route.params?.chartLibrary ?? getPerpsChartLibrary(isAdvancedChartEnabled);
   const fromTokenDetails = route.params?.fromTokenDetails ?? false;
   const { colors } = useTheme();
   const insets = useSafeAreaInsets();

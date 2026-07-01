@@ -18,6 +18,7 @@ import {
   PERPS_CHART_EVENT_PROPERTY,
   PERPS_CHART_EVENT_VALUE,
   getPerpsChartAnalyticsProperties,
+  getPerpsChartAnalyticsPropertiesForLibrary,
   getPerpsChartLibrary,
 } from './chartInstrumentation';
 
@@ -38,6 +39,19 @@ describe('chartInstrumentation', () => {
     expect(getPerpsChartAnalyticsProperties(true)).toStrictEqual({
       [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
         PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+      [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+        PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+    });
+  });
+
+  it('returns reusable chart analytics properties for the actual rendered library', () => {
+    expect(
+      getPerpsChartAnalyticsPropertiesForLibrary(
+        PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      ),
+    ).toStrictEqual({
+      [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+        PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
       [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
         PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
     });

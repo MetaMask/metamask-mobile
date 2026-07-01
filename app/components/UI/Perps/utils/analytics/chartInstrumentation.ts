@@ -28,12 +28,17 @@ export const getPerpsChartLibrary = (isAdvancedChartEnabled: boolean) =>
     ? PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED
     : PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
 
-export const getPerpsChartAnalyticsProperties = (
-  isAdvancedChartEnabled: boolean,
+export const getPerpsChartAnalyticsPropertiesForLibrary = (
+  chartLibrary: string,
 ) => ({
-  [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]: getPerpsChartLibrary(
-    isAdvancedChartEnabled,
-  ),
+  [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
   [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
     PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
 });
+
+export const getPerpsChartAnalyticsProperties = (
+  isAdvancedChartEnabled: boolean,
+) =>
+  getPerpsChartAnalyticsPropertiesForLibrary(
+    getPerpsChartLibrary(isAdvancedChartEnabled),
+  );

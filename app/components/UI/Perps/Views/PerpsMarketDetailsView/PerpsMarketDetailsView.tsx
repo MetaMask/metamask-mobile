@@ -136,7 +136,9 @@ import { BUTTON_COLOR_TEST } from '../../utils/abTesting/tests';
 import { usePerpsABTest } from '../../utils/abTesting/usePerpsABTest';
 import {
   getPerpsChartAnalyticsProperties,
+  getPerpsChartAnalyticsPropertiesForLibrary,
   getPerpsChartLibrary,
+  PERPS_CHART_EVENT_VALUE,
 } from '../../utils/analytics/chartInstrumentation';
 import { getMarketHoursStatus } from '../../utils/marketHours';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
@@ -263,13 +265,23 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const isAdvancedChartEnabled = useSelector(
     selectPerpsAdvancedChartEnabledFlag,
   );
-  const chartAnalyticsProperties = useMemo(
-    () => getPerpsChartAnalyticsProperties(isAdvancedChartEnabled),
-    [isAdvancedChartEnabled],
-  );
-  const chartLibrary = useMemo(
+  const configuredChartLibrary = useMemo(
     () => getPerpsChartLibrary(isAdvancedChartEnabled),
     [isAdvancedChartEnabled],
+  );
+  const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
+    configuredChartLibrary,
+  );
+  useEffect(() => {
+    setEffectiveChartLibrary(configuredChartLibrary);
+  }, [configuredChartLibrary, market?.symbol]);
+  const chartAnalyticsProperties = useMemo(
+    () => getPerpsChartAnalyticsPropertiesForLibrary(effectiveChartLibrary),
+    [effectiveChartLibrary],
+  );
+  const chartLibrary = useMemo(
+    () => effectiveChartLibrary,
+    [effectiveChartLibrary],
   );
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
@@ -679,6 +691,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
       // Reset chart view to default position
       if (isAdvancedChartEnabled) {
+        setEffectiveChartLibrary(configuredChartLibrary);
         setAdvancedChartResetKey((key) => key + 1);
       } else {
         chartRef.current?.resetToDefault();
@@ -694,7 +707,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [isAdvancedChartEnabled]);
+  }, [configuredChartLibrary, isAdvancedChartEnabled]);
 
   // Check if notifications feature is enabled once
   const isNotificationsEnabled = isNotificationsFeatureEnabled();
@@ -1225,6 +1238,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       Logger.error(new Error(errorMessage), {
         tags: { feature: PERPS_CONSTANTS.FeatureName },
       });
+      const errorChartAnalyticsProperties = getPerpsChartAnalyticsProperties(
+        isAdvancedChartEnabled,
+      );
       track(MetaMetricsEvents.PERPS_ERROR, {
         [PERPS_EVENT_PROPERTY.ERROR_TYPE]: PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
         [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: errorMessage,
@@ -1233,10 +1249,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
           PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
         [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol || '',
-        ...chartAnalyticsProperties,
+        ...errorChartAnalyticsProperties,
       });
+      if (isAdvancedChartEnabled) {
+        setEffectiveChartLibrary(
+          PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+        );
+      }
     },
-    [chartAnalyticsProperties, market?.symbol, track],
+    [isAdvancedChartEnabled, market?.symbol, track],
   );
 
   // Determine market hours content key based on current status - recalculated on each render to stay current
