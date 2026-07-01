@@ -683,10 +683,11 @@ export function useQuickBuyController(
     analyticsContext: quotesAnalyticsContext,
     selectedQuoteRequestId,
     immediateFetchToken,
-    // Freeze the displayed/active quote while a trade is being submitted so a
-    // streamed or refreshed quote can't change the amount out from under the
-    // in-flight submission.
-    pauseAutoRefresh: isSubmittingTx,
+    // Freeze auto-refresh while the user has a quote manually selected. Every
+    // fetch returns quotes with new requestIds, so an auto-refresh would drop
+    // the selection (see the reset effect below) and snap the active quote back
+    // to the recommended one out from under the user.
+    pauseAutoRefresh: selectedQuoteRequestId !== undefined,
   });
 
   // Reset manual quote selection whenever the user changes amount, token, or slippage.

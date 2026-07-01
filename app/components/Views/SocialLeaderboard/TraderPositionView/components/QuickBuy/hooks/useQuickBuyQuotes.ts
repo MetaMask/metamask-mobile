@@ -20,6 +20,7 @@ import { areAddressesEqual } from '../../../../../../../util/address';
 import { calcTokenValue } from '../../../../../../../util/transactions';
 import { analytics } from '../../../../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../../../../selectors/featureFlagController';
+import { selectSocialAIQuickBuyStreamQuotesEnabled } from '../../../../../../../selectors/featureFlagController/socialLeaderboard';
 import {
   selectBridgeFeatureFlags,
   selectDestAddress,
@@ -80,9 +81,10 @@ interface UseQuickBuyQuotesParams {
   immediateFetchToken?: number;
   /**
    * When true, suspends the periodic auto-refresh so the displayed quotes (and
-   * the recommended/active quote) stay frozen — e.g. while a trade is being
-   * submitted. In-flight fetches are unaffected; only the next scheduled
-   * refresh is held off.
+   * the recommended/active quote) stay frozen — e.g. while the user has a quote
+   * manually selected, since each refresh returns new requestIds that would
+   * otherwise drop their selection. In-flight fetches are unaffected; only the
+   * next scheduled refresh is held off.
    */
   pauseAutoRefresh?: boolean;
 }
@@ -196,13 +198,18 @@ export function useQuickBuyQuotes({
     selectGasIncludedQuoteParams,
   );
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const isStreamQuotesFlagEnabled = useSelector(
+    selectSocialAIQuickBuyStreamQuotesEnabled,
+  );
   const { track } = useSocialLeaderboardAnalytics();
 
-  // Stream quotes (surfacing each provider as it replies) only when the client
-  // is gated on for SSE — otherwise fall back to the one-shot fetch.
+  // Stream quotes (surfacing each provider as it replies) only when the
+  // QuickBuy-specific `socialAIQuickBuyStreamQuotes` flag is on AND the client is
+  // gated on for bridge SSE — otherwise fall back to the one-shot fetch.
   const shouldStream = useMemo(
-    () => isQuoteStreamingEnabled(bridgeFeatureFlags),
-    [bridgeFeatureFlags],
+    () =>
+      isStreamQuotesFlagEnabled && isQuoteStreamingEnabled(bridgeFeatureFlags),
+    [isStreamQuotesFlagEnabled, bridgeFeatureFlags],
   );
 
   const [rawQuotes, setRawQuotes] = useState<QuickBuyQuote[]>([]);
@@ -489,7 +496,7 @@ export function useQuickBuyQuotes({
   // Guarded on `isFetchInFlight` (not `isQuoteLoading`) so a streaming fetch —
   // which clears `isQuoteLoading` on its first quote while still open — is never
   // interrupted by a refresh mid-stream. `pauseAutoRefresh` freezes the cycle
-  // entirely (e.g. during trade submission).
+  // entirely (e.g. while the user has a quote manually selected).
   useEffect(() => {
     if (
       !quotesLastAttemptAt ||
