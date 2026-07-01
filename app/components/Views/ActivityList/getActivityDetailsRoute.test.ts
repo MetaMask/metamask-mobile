@@ -1,10 +1,7 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import type { ActivityListItem } from '../../../util/activity-adapters';
 import { getActivityDetailsRoute } from './getActivityDetailsRoute';
-import {
-  getPreloadedActivityItem,
-  stashPreloadedActivityItem,
-} from './preloadedActivityItemStore';
+import { getPreloadedActivityItem } from './preloadedActivityItemStore';
 
 const baseItem = (
   overrides: Partial<ActivityListItem> = {},
@@ -30,6 +27,36 @@ describe('getActivityDetailsRoute', () => {
 
   it('returns null when the row has no hash (e.g. a pending local tx)', () => {
     expect(getActivityDetailsRoute(baseItem({ hash: undefined }))).toBeNull();
+  });
+
+  it('routes a pending EVM local tx to ActivityDetails (its pending banner wires speed-up/cancel)', () => {
+    const pendingItem = baseItem({
+      status: 'pending',
+      raw: {
+        type: 'localTransaction',
+        data: { primaryTransaction: { type: 'simpleSend' } },
+      },
+    } as unknown as Partial<ActivityListItem>);
+
+    expect(getActivityDetailsRoute(pendingItem)).toEqual({
+      chainId: 'eip155:1',
+      txIdentifier: '0xabc',
+    });
+  });
+
+  it('routes a confirmed local tx to ActivityDetails', () => {
+    const confirmedItem = baseItem({
+      status: 'success',
+      raw: {
+        type: 'localTransaction',
+        data: { primaryTransaction: { type: 'simpleSend' } },
+      },
+    } as unknown as Partial<ActivityListItem>);
+
+    expect(getActivityDetailsRoute(confirmedItem)).toEqual({
+      chainId: 'eip155:1',
+      txIdentifier: '0xabc',
+    });
   });
 
   it('returns null for a bridge local transaction (keeps its dedicated screen)', () => {
@@ -72,10 +99,5 @@ describe('getActivityDetailsRoute', () => {
 
     expect(route?.preloadKey).toBeDefined();
     expect(getPreloadedActivityItem(route?.preloadKey)).toBe(predictItem);
-  });
-
-  it('imports the store it relies on (smoke)', () => {
-    // Guards the import path used by the helper.
-    expect(typeof stashPreloadedActivityItem).toBe('function');
   });
 });

@@ -17,15 +17,13 @@ function hasDedicatedDetailScreen(item: ActivityListItem): boolean {
 }
 
 /**
- * Resolves the params for navigating a row to the redesigned `ActivityDetails`
- * screen, or `null` when the row can't be shown there yet — it has no hash
- * (e.g. a pending local tx), or it has a dedicated screen (bridge). Callers
- * navigate with the returned params and fall back to their legacy detail flow
- * when this returns `null`.
+ * Route params for opening a row in the redesigned `ActivityDetails` screen, or
+ * `null` when it can't be shown there (no hash, or a bridge tx with its own
+ * screen) — callers then fall back to their legacy detail flow. Shared so the
+ * Activity list and per-asset lists route identically.
  *
- * Shared by the Activity list and the per-asset activity lists so every entry
- * point makes the same routing decision (incl. stashing provider-backed rows
- * — Perps / Predict — that can't be re-resolved by hash).
+ * Side effect: stashes provider-backed rows (Perps/Predict) into
+ * `preloadedActivityItemStore`, so call it only when about to navigate.
  */
 export function getActivityDetailsRoute(
   item: ActivityListItem,

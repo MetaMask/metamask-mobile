@@ -123,7 +123,7 @@ describe('FilterOptionSheet', () => {
     );
   });
 
-  it('calls onSelect, closes the sheet, and forwards onClose so the parent can re-open it', () => {
+  it('calls onSelect and closes the sheet without a post-callback (avoids double onClose)', () => {
     const onSelect = jest.fn();
     const onClose = jest.fn();
     renderSheet({ onSelect, onClose });
@@ -132,7 +132,7 @@ describe('FilterOptionSheet', () => {
 
     expect(onSelect).toHaveBeenCalledWith('gamma');
     expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(onClose);
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledWith();
   });
 
   it('invokes onClose when the sheet dispatches its close event', () => {

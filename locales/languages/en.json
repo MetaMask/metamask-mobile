@@ -3124,6 +3124,9 @@
         "description": "Your first perps trade could be your best.",
         "action": "Browse markets"
       },
+      "perps_sub_filter": {
+        "description": "No activity for this filter. Try a different Perps filter."
+      },
       "transactions_funded": {
         "description": "Swap your first token today.",
         "action": "Swap tokens"

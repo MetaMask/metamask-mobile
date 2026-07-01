@@ -23,6 +23,7 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast/Toast.types';
 import Routes from '../../../../constants/navigation/Routes';
+import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
 import { capitalize } from '../../../../util/general';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import {
@@ -306,15 +307,7 @@ const usePerpsToasts = (): {
       },
       goToActivity: (transactionId: string) => {
         toastRef?.current?.closeToast();
-        // Navigate to the Transactions tab first
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
-
-        // Then use a timeout to navigate to the specific transaction details
-        setTimeout(() => {
-          navigation.navigate(Routes.TRANSACTION_DETAILS, {
-            transactionId,
-          });
-        }, 100);
+        navigateToTransactionDetails(navigation, { transactionId });
       },
       goToPnlHeroCard: (position: Position, marketPrice?: string) => {
         toastRef?.current?.closeToast();
