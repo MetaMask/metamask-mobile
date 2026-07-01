@@ -23,6 +23,7 @@ import {
   RAMPS_SDK_LIMITS,
 } from '../../../../../../../tests/component-view/presets/ramps';
 import { MULTICHAIN_TEST_ACCOUNTS } from '../../../../../../../tests/component-view/presets/multichainAccounts';
+import Routes from '../../../../../../constants/navigation/Routes';
 
 const ETH_MAINNET_ASSET_ID = 'eip155:1/slip44:60';
 
@@ -239,6 +240,242 @@ describe('Aggregator BuildQuote', () => {
         ).not.toBeOnTheScreen();
       });
       expect(await findByText('You want to sell')).toBeOnTheScreen();
+    });
+
+    it('shows insufficient balance error when sell amount exceeds ETH balance', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+      });
+      const {
+        findByText,
+        getByText,
+        queryByText,
+        findByTestId,
+        findByRole,
+        getByTestId,
+      } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+
+      // France fixture has 100 ETH. Enter amount exceeding it.
+      await enterSellAmountViaKeypad(
+        { findByRole, findByTestId, getByTestId },
+        '101',
+        'ETH',
+      );
+
+      // Wait for the insufficient balance error to appear — amountBNMinimalUnit
+      // recomputation is async after keypad state updates propagate.
+      expect(
+        await findByTestId(
+          BuildQuoteSelectors.INSUFFICIENT_BALANCE_ERROR,
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('navigates to Quotes screen when "Get quotes" is pressed with a valid sell amount', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+        includeQuotesRoute: true,
+      });
+      const {
+        findByText,
+        findByRole,
+        getByText,
+        queryByText,
+        findByTestId,
+        getByTestId,
+      } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+
+      // Wait for all SDK data to load (fiat, payment, limits)
+      await findByText('EUR');
+      await findByText('Apple Pay');
+
+      await enterSellAmountViaKeypad(
+        { findByRole, findByTestId, getByTestId },
+        '50',
+        'ETH',
+      );
+
+      // Wait for "Get quotes" button to become enabled (isFetching=false)
+      const getQuotesButton = await findByRole('button', {
+        name: 'Get quotes',
+      });
+      await waitFor(() => {
+        expect(getQuotesButton).not.toBeDisabled();
+      });
+
+      fireEvent.press(getQuotesButton);
+
+      await findByTestId(`route-${Routes.RAMP.QUOTES}`, {}, { timeout: 5000 });
+    });
+
+    it('changes fiat currency from EUR to USD in sell mode', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+      });
+      const { findByText, getByText, queryByText } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+
+      expect(await findByText('EUR')).toBeOnTheScreen();
+
+      fireEvent.press(await findByText('EUR'));
+      fireEvent.press(await findByText('US Dollar'));
+
+      await waitFor(() => {
+        expect(queryByText('EUR')).not.toBeOnTheScreen();
+      });
+      expect(await findByText('USD')).toBeOnTheScreen();
+    });
+
+    it('changes region from France to Spain in sell mode', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+      });
+      const { findByText, getByText, queryByText, getByTestId } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+
+      expect(await findByText(RAMPS_FRANCE_REGION.emoji)).toBeOnTheScreen();
+
+      fireEvent.press(getByTestId(BuildQuoteSelectors.REGION_DROPDOWN));
+      fireEvent.press(await findByText('Spain'));
+
+      await waitFor(() => {
+        expect(queryByText(RAMPS_FRANCE_REGION.emoji)).not.toBeOnTheScreen();
+      });
+      expect(await findByText('🇪🇸')).toBeOnTheScreen();
+    });
+
+    it('fills 50% of balance via quick percentage pill for mUSD', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+      });
+      const {
+        findByText,
+        getByText,
+        queryByText,
+        findByTestId,
+        queryByTestId,
+        getAllByText,
+      } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+
+      // Switch to mUSD — quick amounts only show for ERC-20 tokens
+      // (native ETH requires gas estimation for maxSellAmount)
+      await selectTokenViaSearch(
+        { findByText, findByTestId, queryByTestId, getAllByText },
+        'mUSD',
+        'mUSD',
+      );
+
+      // Open keypad so quick amounts are visible
+      fireEvent.press(await findByTestId(BuildQuoteSelectors.AMOUNT_INPUT));
+
+      fireEvent.press(await findByText('50%'));
+
+      // After pressing 50%, the amount should no longer be "0 mUSD"
+      await waitFor(() => {
+        expect(queryByText('0 mUSD')).not.toBeOnTheScreen();
+      });
+    });
+
+    it('resets sell amount to zero when switching token', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+      });
+      const {
+        findByText,
+        getByText,
+        queryByText,
+        findByRole,
+        findByTestId,
+        queryByTestId,
+        getByTestId,
+        getAllByText,
+      } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+
+      // Enter 60 ETH
+      await enterSellAmountViaKeypad(
+        { findByRole, findByTestId, getByTestId },
+        '60',
+        'ETH',
+      );
+
+      // Switch to mUSD
+      await selectTokenViaSearch(
+        { findByText, findByTestId, queryByTestId, getAllByText },
+        'mUSD',
+        'mUSD',
+      );
+
+      // Amount should reset to 0
+      expect(await findByText('0 mUSD')).toBeOnTheScreen();
+    });
+
+    it('changes payment method via "Send cash to" selector in sell mode', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+      });
+      const { findByText, getByText, queryByText } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+
+      // Sell mode shows "Send cash to" label (not "Update payment method")
+      fireEvent.press(await findByText('Apple Pay'));
+      fireEvent.press(await findByText('SEPA Bank Transfer'));
+
+      await waitFor(() => {
+        expect(queryByText('Apple Pay')).not.toBeOnTheScreen();
+      });
+      expect(await findByText('SEPA Bank Transfer')).toBeOnTheScreen();
+    });
+
+    it('shows min limit error when sell amount is below minimum', async () => {
+      const renderApi = renderBuildQuoteWithRoutes({
+        rampType: RampType.SELL,
+        useFranceSellFixture: true,
+      });
+      const {
+        findByText,
+        getByText,
+        queryByText,
+        findByRole,
+        findByTestId,
+        getByTestId,
+      } = renderApi;
+
+      await waitForBuildQuoteReady({ getByText, queryByText });
+
+      // SDK limits minAmount is 10. Enter 5 which is below.
+      await enterSellAmountViaKeypad(
+        { findByRole, findByTestId, getByTestId },
+        '5',
+        'ETH',
+      );
+
+      expect(
+        await findByTestId(
+          BuildQuoteSelectors.MIN_LIMIT_ERROR,
+          {},
+          { timeout: 5000 },
+        ),
+      ).toBeOnTheScreen();
     });
   });
 
