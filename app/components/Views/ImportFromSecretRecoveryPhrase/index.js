@@ -442,7 +442,10 @@ const ImportFromSecretRecoveryPhrase = ({
             {
               name: Routes.ONBOARDING.SUCCESS_FLOW,
               params: {
-                successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+                screen: Routes.ONBOARDING.SUCCESS,
+                params: {
+                  successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
+                },
               },
             },
           ],
