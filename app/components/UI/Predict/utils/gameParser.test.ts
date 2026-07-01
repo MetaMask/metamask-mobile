@@ -9,6 +9,7 @@ import {
   mapApiTeamToPredictTeam,
   buildGameData,
   extractNeededTeamsFromEvents,
+  getLeagueTeamOrder,
 } from './gameParser';
 import {
   PolymarketApiEvent,
@@ -49,6 +50,18 @@ const createMockEvent = (
 });
 
 describe('gameParser', () => {
+  describe('getLeagueTeamOrder', () => {
+    it('returns home-away for tennis leagues', () => {
+      expect(getLeagueTeamOrder('atp')).toBe('home-away');
+      expect(getLeagueTeamOrder('wta')).toBe('home-away');
+      expect(getLeagueTeamOrder('itf')).toBe('home-away');
+    });
+
+    it('returns away-home for US sports leagues', () => {
+      expect(getLeagueTeamOrder('nfl')).toBe('away-home');
+    });
+  });
+
   describe('getEventLeague', () => {
     it('returns "nfl" for event with nfl tag, games tag, and valid slug', () => {
       const event = createMockEvent();
@@ -567,6 +580,61 @@ describe('gameParser', () => {
       expect(result?.awayTeam).toEqual(awayTeam);
     });
 
+    it('builds ATP game scores from completed sets won', () => {
+      const homeTeam: PredictSportTeam = {
+        id: 'team-home',
+        name: 'Yibing Wu',
+        logo: 'https://example.com/wu.png',
+        abbreviation: 'wu',
+        color: TEST_HEX_COLORS.PURE_RED,
+        alias: 'Y. Wu',
+      };
+
+      const awayTeam: PredictSportTeam = {
+        id: 'team-away',
+        name: 'Novak Djokovic',
+        logo: 'https://example.com/djokovic.png',
+        abbreviation: 'djokovi',
+        color: TEST_HEX_COLORS.PURE_BLUE,
+        alias: 'N. Djokovic',
+      };
+
+      const atpTeamLookup = (
+        league: PredictSportsLeague,
+        abbr: string,
+      ): PredictSportTeam | undefined => {
+        if (league !== 'atp') return undefined;
+        const teams: Record<string, PredictSportTeam> = {
+          wu: homeTeam,
+          djokovi: awayTeam,
+        };
+        return teams[abbr.toLowerCase()];
+      };
+
+      const event = createMockEvent({
+        gameId: 'game-atp-123',
+        slug: 'atp-wu-djokovi-2026-06-29',
+        title: 'Yibing Wu vs Novak Djokovic',
+        tags: [
+          { id: '1', label: 'ATP', slug: 'atp' },
+          { id: '2', label: 'Games', slug: 'games' },
+        ],
+        score: '4-6, 7-5, 4-6, 3-2',
+        period: 'S4',
+        live: true,
+      });
+
+      const result = buildGameData(event, 'atp', atpTeamLookup);
+
+      expect(result?.score).toEqual({
+        away: 2,
+        home: 1,
+        raw: '4-6, 7-5, 4-6, 3-2',
+      });
+      expect(result?.homeTeam).toEqual(homeTeam);
+      expect(result?.awayTeam).toEqual(awayTeam);
+    });
+
     it('returns null when gameId is missing', () => {
       const event = createMockEvent({ gameId: undefined });
 
@@ -695,6 +763,46 @@ describe('gameParser', () => {
       const result = parseScore('42-35');
 
       expect(result).toEqual({ away: 42, home: 35, raw: '42-35' });
+    });
+
+    it('parses ATP scores as completed sets won', () => {
+      const result = parseScore('4-6, 7-5, 4-6, 3-2', 'atp');
+
+      expect(result).toEqual({
+        away: 2,
+        home: 1,
+        raw: '4-6, 7-5, 4-6, 3-2',
+      });
+    });
+
+    it('ignores incomplete ATP sets when counting sets won', () => {
+      const result = parseScore('6-4, 2-3', 'atp');
+
+      expect(result).toEqual({
+        away: 0,
+        home: 1,
+        raw: '6-4, 2-3',
+      });
+    });
+
+    it('parses WTA scores as completed sets won', () => {
+      const result = parseScore('6-3, 4-6, 2-1', 'wta');
+
+      expect(result).toEqual({
+        away: 1,
+        home: 1,
+        raw: '6-3, 4-6, 2-1',
+      });
+    });
+
+    it('counts completed ATP tiebreak sets toward sets won', () => {
+      const result = parseScore('7-6(7-4), 3-6, 3-5', 'atp');
+
+      expect(result).toEqual({
+        away: 1,
+        home: 1,
+        raw: '7-6(7-4), 3-6, 3-5',
+      });
     });
   });
 
