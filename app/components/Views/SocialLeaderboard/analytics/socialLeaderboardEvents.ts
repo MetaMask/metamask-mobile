@@ -17,6 +17,7 @@ export const SocialLeaderboardEventProperties = {
   IS_OPEN: 'is_open',
   NOTIFICATION_TYPE: 'notification_type',
   NOTIFICATION_SUBTYPE: 'notification_subtype',
+  NOTIFICATION_TEMPLATE_VARIANT: 'notification_template_variant',
   PREVIOUS_CHAIN_FILTER: 'previous_chain_filter',
   SOURCE: 'source',
   TAB: 'tab',
