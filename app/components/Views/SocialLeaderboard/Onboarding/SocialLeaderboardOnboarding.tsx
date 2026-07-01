@@ -206,7 +206,11 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     [isPerpsEnabled],
   );
 
-  const { traders, toggleFollow } = useTopTraders({
+  const {
+    traders,
+    toggleFollow,
+    isLoading: isLoadingTraders,
+  } = useTopTraders({
     limit: ONBOARDING_TOP_TRADERS_LIMIT,
     chains,
   });
@@ -330,7 +334,22 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   // the live HTTPS URL; missing/placeholder avatars fall back to the bundled
   // per-slot placeholder (the legacy runtime can only consume image
   // URLs/bundled files, not the address-derived Maskicon used elsewhere).
-  const referencedAssets = useMemo<FilesHandledMapping>(() => {
+  //
+  // CRITICAL: the native runtime calls `reloadView()` (full artboard + state
+  // machine teardown/recreate) every time the `referencedAssets` prop identity
+  // changes. If we let it swap from placeholders to live URLs when the
+  // leaderboard loads — or churn as `traders` is rebuilt on follow/refetch — the
+  // Rive view reloads mid-flight while our data-binding writes hit a
+  // half-initialized view, which crashes the app. So `referencedAssets` is
+  // computed ONCE from the first settled trader data and then frozen for the
+  // artboard's lifetime, and the artboard is only mounted after it is ready.
+  const [referencedAssets, setReferencedAssets] =
+    useState<FilesHandledMapping | null>(null);
+
+  useEffect(() => {
+    if (referencedAssets || isLoadingTraders) {
+      return;
+    }
     const mapping: FilesHandledMapping = {};
     RIVE_AVATAR_ASSET_KEYS.forEach((assetKey, index) => {
       const uri = topTraders[index]?.avatarUri;
@@ -338,8 +357,12 @@ const SocialLeaderboardOnboarding: React.FC = () => {
         ? { source: { uri } }
         : { source: RIVE_AVATAR_PLACEHOLDERS[index] };
     });
-    return mapping;
-  }, [topTraders]);
+    setReferencedAssets(mapping);
+  }, [referencedAssets, isLoadingTraders, topTraders]);
+
+  // `AutoBind(true)` builds a fresh object each call; memoize it so the Rive
+  // `dataBinding` prop keeps a stable identity and isn't reconfigured per render.
+  const dataBinding = useMemo(() => AutoBind(true), []);
 
   // Push static config once the Rive runtime is ready, and signal readiness.
   useEffect(() => {
@@ -534,19 +557,23 @@ const SocialLeaderboardOnboarding: React.FC = () => {
           profitAmount={card.profitAmount}
         />
       ))}
-      <Rive
-        ref={ref}
-        source={SocialLeaderboardNuxAnimation}
-        artboardName={RIVE_ARTBOARD_NAME}
-        stateMachineName={RIVE_STATE_MACHINE_NAME}
-        dataBinding={AutoBind(true)}
-        referencedAssets={referencedAssets}
-        fit={Fit.Cover}
-        alignment={Alignment.Center}
-        onError={handleError}
-        style={StyleSheet.absoluteFillObject}
-        testID={SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION}
-      />
+      {/* Mount only once `referencedAssets` is resolved and frozen, so the prop
+          never changes afterwards (a change triggers a native `reloadView()`). */}
+      {referencedAssets && (
+        <Rive
+          ref={ref}
+          source={SocialLeaderboardNuxAnimation}
+          artboardName={RIVE_ARTBOARD_NAME}
+          stateMachineName={RIVE_STATE_MACHINE_NAME}
+          dataBinding={dataBinding}
+          referencedAssets={referencedAssets}
+          fit={Fit.Cover}
+          alignment={Alignment.Center}
+          onError={handleError}
+          style={StyleSheet.absoluteFillObject}
+          testID={SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION}
+        />
+      )}
       {/* Title + description overlay. */}
       <View
         style={[styles.textOverlay, { top: insets.top + 24 }]}
