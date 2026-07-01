@@ -867,6 +867,9 @@ describe('NetworkMultiSelector', () => {
         selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
         selectedBitcoinAccount: null,
         selectedTronAccount: null,
+        stellarNetworks: [],
+        selectedStellarAccount: null,
+        areAllStellarNetworksSelected: false,
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
         areAllNetworksSelectedCombined: true,
@@ -1029,6 +1032,9 @@ describe('NetworkMultiSelector', () => {
         areAllSolanaNetworksSelected: false,
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
+        stellarNetworks: [],
+        selectedStellarAccount: null,
+        areAllStellarNetworksSelected: false,
       });
 
       mockUseSelector.mockImplementation((selector) => {
