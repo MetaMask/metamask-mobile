@@ -702,6 +702,7 @@
     "paste": "Paste",
     "no_assets_available": "No assets available to send",
     "clear": "Clear",
+    "scan_qr_code": "Scan QR code",
     "to": "To",
     "enter_address_to_send_to": "Enter address to send to",
     "accounts": "Accounts",
@@ -7429,6 +7430,17 @@
       "title": "Money account unavailable",
       "description": "Money account isn't available in your location due to local restrictions or sanctions.",
       "button": "Got it"
+    },
+    "deeplink_modal": {
+      "button": "Got it",
+      "money_account_disabled": {
+        "title": "Money account is temporarily unavailable",
+        "description": "We're working on it. Money Account will be back up shortly — check back soon."
+      },
+      "excluded_from_gradual_rollout": {
+        "title": "Money Account is on its way",
+        "description": "We're rolling out Money Account gradually to ensure everything works smoothly. Check back soon."
+      }
     }
   },
   "stake": {
