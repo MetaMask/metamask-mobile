@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { LayoutChangeEvent } from 'react-native';
 import {
   runOnJS,
@@ -6,7 +12,7 @@ import {
   useSharedValue,
 } from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -29,14 +35,24 @@ import ActivityList, {
 } from '../ActivityList';
 import { TrendingTokenNetworkBottomSheet } from '../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenNetworkBottomSheet';
 import type { CaipChainId } from '@metamask/utils';
-import { ActivityTypeFilter } from './types';
+import {
+  ActivityTypeFilter,
+  type ActivityScreenParams,
+  isActivityTypeFilter,
+} from './types';
 import { useNetworkFilterOptions } from './hooks/useNetworkFilterOptions';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
+import { useParams } from '../../../util/navigation/navUtils';
+import {
+  clearPendingActivityTypeFilter,
+  getPendingActivityTypeFilter,
+} from '../../../util/activityRedirectFilter';
 
 const ActivityScreen = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
+  const { initialTypeFilter } = useParams<ActivityScreenParams>();
 
   const scrollY = useSharedValue(0);
   const titleSectionHeight = useSharedValue(0);
@@ -52,9 +68,16 @@ const ActivityScreen = () => {
   // const [searchQuery, setSearchQuery] = useState('');
   // TODO: restore `ActivityTypeFilter.All` as the default once data-source
   // unification lands. See `ACTIVITY_TYPE_FILTER_ORDER` in ./types.ts.
-  const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(
-    ActivityTypeFilter.Transactions,
-  );
+  const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(() => {
+    const pendingTypeFilter = getPendingActivityTypeFilter();
+    if (pendingTypeFilter) {
+      return pendingTypeFilter;
+    }
+
+    return isActivityTypeFilter(initialTypeFilter)
+      ? initialTypeFilter
+      : ActivityTypeFilter.Transactions;
+  });
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
     null,
@@ -62,6 +85,38 @@ const ActivityScreen = () => {
   const [isNetworkSheetOpen, setIsNetworkSheetOpen] = useState(false);
 
   const networkOptions = useNetworkFilterOptions();
+  const suppressedInitialTypeFilterRef = useRef<ActivityTypeFilter | undefined>(
+    undefined,
+  );
+
+  const applyInitialTypeFilter = useCallback(() => {
+    const pendingTypeFilter = getPendingActivityTypeFilter();
+    if (pendingTypeFilter) {
+      suppressedInitialTypeFilterRef.current = isActivityTypeFilter(
+        initialTypeFilter,
+      )
+        ? initialTypeFilter
+        : undefined;
+      setTypeFilter(pendingTypeFilter);
+      clearPendingActivityTypeFilter();
+      return;
+    }
+
+    if (!isActivityTypeFilter(initialTypeFilter)) {
+      return;
+    }
+
+    if (initialTypeFilter === suppressedInitialTypeFilterRef.current) {
+      return;
+    }
+
+    suppressedInitialTypeFilterRef.current = undefined;
+    setTypeFilter(initialTypeFilter);
+  }, [initialTypeFilter]);
+
+  useEffect(applyInitialTypeFilter, [applyInitialTypeFilter]);
+
+  useFocusEffect(applyInitialTypeFilter);
 
   // TODO(activity-redesign): restore with the search input.
   // const handleClearSearch = useCallback(() => {
@@ -77,6 +132,7 @@ const ActivityScreen = () => {
   }, []);
 
   const handleSelectTypeFilter = useCallback((filter: ActivityTypeFilter) => {
+    clearPendingActivityTypeFilter();
     setTypeFilter(filter);
   }, []);
 

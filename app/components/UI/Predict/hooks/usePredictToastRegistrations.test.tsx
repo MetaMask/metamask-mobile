@@ -2,6 +2,7 @@ import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import { act, renderHook } from '@testing-library/react-hooks';
 
 import Routes from '../../../../constants/navigation/Routes';
+import { ActivityTypeFilter } from '../../../../util/activityFilters';
 
 import { usePredictToastRegistrations } from './usePredictToastRegistrations';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
@@ -183,7 +184,9 @@ describe('usePredictToastRegistrations', () => {
       onTrack();
       jest.advanceTimersByTime(100);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
+        initialTypeFilter: ActivityTypeFilter.Predictions,
+      });
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
         transactionId: 'tx-1',
       });

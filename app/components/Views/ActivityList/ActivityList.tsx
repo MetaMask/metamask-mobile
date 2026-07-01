@@ -127,8 +127,7 @@ import { predictActivityToItem } from '../../UI/Predict/utils/predictActivityToI
 import {
   ActivityTypeFilter,
   activityKindMatchesTypeFilter,
-  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-} from '../ActivityScreen/types';
+} from '../../../util/activityFilters';
 import {
   ActivityListItemRow,
   resolveActivityListItemTitle,
