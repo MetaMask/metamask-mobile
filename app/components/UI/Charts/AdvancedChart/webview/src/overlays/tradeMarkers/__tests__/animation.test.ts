@@ -113,4 +113,95 @@ describe('handlePulseTradeMarker', () => {
     // Property calls continued after the second pulse — first's loop was cancelled.
     expect(fillRec.properties.length).toBeGreaterThan(countAfterFirst);
   });
+
+  it('no-ops when payload id is null', () => {
+    const { widget } = makeWidgetWithShapes({});
+    setWidget(widget);
+    setChartReady(true);
+    expect(() =>
+      handlePulseTradeMarker({ id: null as unknown as string }),
+    ).not.toThrow();
+  });
+
+  it('no-ops when both fill and ring are null', () => {
+    const { widget } = makeWidgetWithShapes({});
+    setWidget(widget);
+    setChartReady(true);
+    getShapesByMarkerId().set('a', { fill: null, ring: null });
+    expect(() => handlePulseTradeMarker({ id: 'a' })).not.toThrow();
+  });
+
+  it('no-ops when shape lookup returns null for both', () => {
+    const { widget } = makeWidgetWithShapes({
+      'fill-a': null,
+      'ring-a': null,
+    });
+    setWidget(widget);
+    setChartReady(true);
+    getShapesByMarkerId().set('a', { fill: 'fill-a', ring: 'ring-a' });
+    expect(() => handlePulseTradeMarker({ id: 'a' })).not.toThrow();
+  });
+
+  it('reports error when widget.activeChart() throws', () => {
+    const bridge = { postMessage: jest.fn() };
+    (
+      window as unknown as { ReactNativeWebView: typeof bridge }
+    ).ReactNativeWebView = bridge;
+    const widget = {
+      activeChart: () => {
+        throw new Error('disposed');
+      },
+    } as unknown as TVChartingLibraryWidget;
+    setWidget(widget);
+    setChartReady(true);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+
+    handlePulseTradeMarker({ id: 'a' });
+    expect(bridge.postMessage).toHaveBeenCalledWith(
+      expect.stringContaining('"type":"ERROR"'),
+    );
+  });
+
+  it('falls back to setTimeout when rAF throws during animation', () => {
+    const { shape: fill, record: fillRec } = makeShape('fill-a');
+    const { widget } = makeWidgetWithShapes({ 'fill-a': fill });
+    setWidget(widget);
+    setChartReady(true);
+    getShapesByMarkerId().set('a', { fill: 'fill-a', ring: null });
+
+    jest.restoreAllMocks();
+    jest.useFakeTimers();
+    let count = 0;
+    jest
+      .spyOn(window, 'requestAnimationFrame')
+      .mockImplementation((cb: FrameRequestCallback) => {
+        count += 1;
+        if (count > 2) throw new Error('rAF unavailable');
+        setTimeout(() => cb(Date.now()), 16);
+        return 0;
+      });
+
+    handlePulseTradeMarker({ id: 'a' });
+    jest.advanceTimersByTime(1500);
+    expect(fillRec.properties.length).toBeGreaterThan(0);
+  });
+
+  it('falls back to applySize when initial rAF throws', () => {
+    const { shape: fill, record: fillRec } = makeShape('fill-a');
+    const { widget } = makeWidgetWithShapes({ 'fill-a': fill });
+    setWidget(widget);
+    setChartReady(true);
+    getShapesByMarkerId().set('a', { fill: 'fill-a', ring: null });
+
+    jest.restoreAllMocks();
+    jest.useFakeTimers();
+    jest.spyOn(window, 'requestAnimationFrame').mockImplementation(() => {
+      throw new Error('rAF unavailable');
+    });
+
+    handlePulseTradeMarker({ id: 'a' });
+    // Fallback resets to base size
+    expect(fillRec.properties.length).toBeGreaterThan(0);
+    expect(fillRec.properties[0].size).toBe(10);
+  });
 });

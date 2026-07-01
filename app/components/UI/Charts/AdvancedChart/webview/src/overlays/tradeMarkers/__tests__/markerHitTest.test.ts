@@ -127,6 +127,189 @@ describe('findTradeMarkerIdNearPoint', () => {
   });
 });
 
+describe('findTradeMarkerIdNearPoint — edge cases', () => {
+  beforeEach(() => {
+    __resetStateForTests();
+    __resetTradeMarkerStateForTests();
+    __resetMarkerHitTestForTests();
+    setOhlcvData(sampleBars);
+  });
+
+  it('returns null when widget is not ready', () => {
+    expect(findTradeMarkerIdNearPoint(2, 0)).toBeNull();
+  });
+
+  it('returns null when timeSec is NaN', () => {
+    setWidget(makeWidget(makeChart(300)));
+    setChartReady(true);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    expect(findTradeMarkerIdNearPoint(NaN, 0)).toBeNull();
+  });
+
+  it('returns null when chart.activeChart() throws', () => {
+    const widget = {
+      activeChart: () => {
+        throw new Error('disposed');
+      },
+    } as unknown as TVChartingLibraryWidget;
+    setWidget(widget);
+    setChartReady(true);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    expect(findTradeMarkerIdNearPoint(2, 0)).toBeNull();
+  });
+
+  it('returns null when getTimeScale().width() is 0', () => {
+    const chart = makeChart(0);
+    setWidget(makeWidget(chart));
+    setChartReady(true);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    expect(findTradeMarkerIdNearPoint(2, 0)).toBeNull();
+  });
+
+  it('falls back to getVisibleRange when getVisibleBarsRange is absent', () => {
+    const chart = {
+      getVisibleRange: () => ({ from: 1, to: 3 }),
+      getTimeScale: () => ({ width: () => 300 }),
+    } as unknown as TVActiveChart;
+    setWidget(makeWidget(chart));
+    setChartReady(true);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    expect(findTradeMarkerIdNearPoint(2, undefined)).toBe('a');
+  });
+
+  it('returns null when neither getVisibleBarsRange nor getVisibleRange are available', () => {
+    const chart = {
+      getTimeScale: () => ({ width: () => 300 }),
+    } as unknown as TVActiveChart;
+    setWidget(makeWidget(chart));
+    setChartReady(true);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    expect(findTradeMarkerIdNearPoint(2, 0)).toBeNull();
+  });
+
+  it('uses priceToY for Y-distance when offsetY is provided and panes exist', () => {
+    const chart = {
+      getVisibleBarsRange: () => ({ from: 1, to: 3 }),
+      getTimeScale: () => ({ width: () => 300 }),
+      getPanes: () => [
+        {
+          getMainSourcePriceScale: () => ({
+            getVisiblePriceRange: () => ({ from: 0, to: 100 }),
+            isInverted: () => false,
+            getMode: () => 0,
+          }),
+          getHeight: () => 400,
+        },
+      ],
+    } as unknown as TVActiveChart;
+    setWidget(makeWidget(chart));
+    setChartReady(true);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    // Marker snaps to bar at time 2_000, close=20
+    // priceToY: hi=100, lo=0, price=20, h=400 → y = (100-20)/100 * 400 = 320
+    // offsetY=320 → dyPx=0, dxPx=0 → dist=0 → within radius
+    expect(findTradeMarkerIdNearPoint(2, 320)).toBe('a');
+  });
+
+  it('handles log scale mode in priceToY', () => {
+    const chart = {
+      getVisibleBarsRange: () => ({ from: 1, to: 3 }),
+      getTimeScale: () => ({ width: () => 300 }),
+      getPanes: () => [
+        {
+          getMainSourcePriceScale: () => ({
+            getVisiblePriceRange: () => ({ from: 10, to: 1000 }),
+            isInverted: () => false,
+            getMode: () => 1,
+          }),
+          getHeight: () => 400,
+        },
+      ],
+    } as unknown as TVActiveChart;
+    setWidget(makeWidget(chart));
+    setChartReady(true);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    // Log mode with valid prices → should compute Y without error
+    expect(findTradeMarkerIdNearPoint(2, 200)).not.toBeUndefined();
+  });
+
+  it('handles inverted price scale', () => {
+    const chart = {
+      getVisibleBarsRange: () => ({ from: 1, to: 3 }),
+      getTimeScale: () => ({ width: () => 300 }),
+      getPanes: () => [
+        {
+          getMainSourcePriceScale: () => ({
+            getVisiblePriceRange: () => ({ from: 0, to: 100 }),
+            isInverted: () => true,
+            getMode: () => 0,
+          }),
+          getHeight: () => 400,
+        },
+      ],
+    } as unknown as TVActiveChart;
+    setWidget(makeWidget(chart));
+    setChartReady(true);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    // Inverted: y = (price-lo)/(hi-lo)*h = (20-0)/(100-0)*400 = 80
+    expect(findTradeMarkerIdNearPoint(2, 80)).toBe('a');
+  });
+
+  it('returns null when getPanes returns empty array', () => {
+    const chart = {
+      getVisibleBarsRange: () => ({ from: 1, to: 3 }),
+      getTimeScale: () => ({ width: () => 300 }),
+      getPanes: () => [],
+    } as unknown as TVActiveChart;
+    setWidget(makeWidget(chart));
+    setChartReady(true);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    // priceToY returns null → dyPx=0 → only X distance matters
+    // dxPx=0 → within radius
+    expect(findTradeMarkerIdNearPoint(2, 9999)).toBe('a');
+  });
+
+  it('skips markers with invalid time', () => {
+    const chart = makeChart(300);
+    setWidget(makeWidget(chart));
+    setChartReady(true);
+    setMarkers([{ id: 'a', time: NaN, intent: 'entry' }]);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    expect(findTradeMarkerIdNearPoint(2, 0)).toBeNull();
+  });
+
+  it('uses marker.price when snap returns null price', () => {
+    const chart = {
+      getVisibleBarsRange: () => ({ from: 1, to: 3 }),
+      getTimeScale: () => ({ width: () => 300 }),
+      getPanes: () => [
+        {
+          getMainSourcePriceScale: () => ({
+            getVisiblePriceRange: () => ({ from: 0, to: 100 }),
+            isInverted: () => false,
+            getMode: () => 0,
+          }),
+          getHeight: () => 400,
+        },
+      ],
+    } as unknown as TVActiveChart;
+    setWidget(makeWidget(chart));
+    setChartReady(true);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'entry', price: 50 }]);
+    getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    expect(findTradeMarkerIdNearPoint(2, 200)).toBe('a');
+  });
+});
+
 describe('attachMarkerHitTest', () => {
   beforeEach(() => {
     __resetStateForTests();
@@ -208,5 +391,59 @@ describe('attachMarkerHitTest', () => {
     (widget as unknown as { __fire: (e: string) => void }).__fire('mouse_up');
     (widget as unknown as { __fire: (e: string) => void }).__fire('mouse_up');
     expect(bridge.postMessage).toHaveBeenCalledTimes(1);
+  });
+
+  it('ignores crosshair events with missing price or time', () => {
+    installBridge();
+    const chart = makeChart(300);
+    const widget = makeWidget(chart);
+    setWidget(widget);
+    setChartReady(true);
+
+    attachMarkerHitTest(widget, chart);
+    const cb = (
+      globalThis as unknown as {
+        __crosshairCb: ((params: TVCrosshairParams) => void) | null;
+      }
+    ).__crosshairCb;
+
+    cb?.({ time: undefined, price: undefined } as unknown as TVCrosshairParams);
+    (widget as unknown as { __fire: (e: string) => void }).__fire('mouse_up');
+    // No marker pressed — tap point was never recorded
+  });
+
+  it('reports error when crossHairMoved subscription throws', () => {
+    const bridge = installBridge();
+    const chart = {
+      crossHairMoved: () => {
+        throw new Error('subscription fail');
+      },
+    } as unknown as TVActiveChart;
+    const widget = makeWidget(chart);
+    setWidget(widget);
+    setChartReady(true);
+
+    attachMarkerHitTest(widget, chart);
+    expect(bridge.postMessage).toHaveBeenCalledWith(
+      expect.stringContaining('"type":"ERROR"'),
+    );
+  });
+
+  it('reports error when widget.subscribe throws', () => {
+    const bridge = installBridge();
+    const chart = makeChart(300);
+    const widget = {
+      activeChart: () => chart,
+      subscribe: () => {
+        throw new Error('subscribe fail');
+      },
+    } as unknown as TVChartingLibraryWidget;
+    setWidget(widget);
+    setChartReady(true);
+
+    attachMarkerHitTest(widget, chart);
+    expect(bridge.postMessage).toHaveBeenCalledWith(
+      expect.stringContaining('"type":"ERROR"'),
+    );
   });
 });

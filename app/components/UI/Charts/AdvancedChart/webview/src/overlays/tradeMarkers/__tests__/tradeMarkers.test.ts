@@ -342,4 +342,78 @@ describe('registerTradeMarkerOverlay lifecycle hooks', () => {
     __resetStateForTests();
     expect(() => clearTradeMarkers()).not.toThrow();
   });
+
+  it('placeTradeMarkers no-ops when theme is null', () => {
+    const stub = makeStubChart();
+    installWidget(stub.chart);
+    setOhlcvData(sampleBars);
+    setTheme(null as unknown as ChartTheme);
+    handleSetTradeMarkers({ markers: [entryMarker('a', 2_000)] });
+    stub.flushDataReady();
+    expect(stub.createShapeCalls).toHaveLength(0);
+  });
+
+  it('placeTradeMarkers falls back to paint() when dataReady is not a function', async () => {
+    const createShapeCalls: CreateShapeCall[] = [];
+    const chart = {
+      createShape: (
+        point: { time?: number; price?: number },
+        options: Record<string, unknown>,
+      ) =>
+        new Promise<string>((resolve) => {
+          createShapeCalls.push({ point, options, resolveWith: resolve });
+        }),
+      removeEntity: jest.fn(),
+    } as unknown as TVActiveChart;
+    installWidget(chart);
+    setOhlcvData(sampleBars);
+
+    handleSetTradeMarkers({ markers: [entryMarker('a', 2_000)] });
+    // No dataReady → paint() called directly
+    expect(createShapeCalls.length).toBeGreaterThan(0);
+  });
+
+  it('reports error when widget.activeChart() throws in placeTradeMarkers', () => {
+    const bridge = { postMessage: jest.fn() };
+    (
+      window as unknown as { ReactNativeWebView: typeof bridge }
+    ).ReactNativeWebView = bridge;
+    const widget = {
+      activeChart: () => {
+        throw new Error('disposed');
+      },
+    } as unknown as TVChartingLibraryWidget;
+    setWidget(widget);
+    setChartReady(true);
+    setOhlcvData(sampleBars);
+
+    handleSetTradeMarkers({ markers: [entryMarker('a', 2_000)] });
+    expect(bridge.postMessage).toHaveBeenCalledWith(
+      expect.stringContaining('"type":"ERROR"'),
+    );
+  });
+
+  it('clearTradeMarkers swallows removeEntity errors', () => {
+    const chart = {
+      removeEntity: () => {
+        throw new Error('already removed');
+      },
+    } as unknown as TVActiveChart;
+    installWidget(chart);
+    getShapeIds().push('dead-shape');
+
+    expect(() => clearTradeMarkers()).not.toThrow();
+    expect(getShapeIds()).toHaveLength(0);
+  });
+
+  it('snapMarkerToNearestBar returns null for non-finite close', () => {
+    const bars: OHLCVBar[] = [
+      { time: 1_000, open: 1, high: 1, low: 1, close: NaN },
+    ];
+    expect(snapMarkerToNearestBar(bars, 1_000)).toBeNull();
+  });
+
+  it('snapMarkerToNearestBar returns null for non-finite tMs', () => {
+    expect(snapMarkerToNearestBar(sampleBars, Infinity)).toBeNull();
+  });
 });
