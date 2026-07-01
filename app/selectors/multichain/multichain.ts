@@ -354,6 +354,14 @@ export const selectAccountTokensAcrossChainsUnified = createDeepEqualSelector(
         if (isTronSpecialAsset(String(token.chainId), token.symbol)) {
           continue;
         }
+        // Skip Tron-chain tokens whose symbol is empty — these are assets whose
+        // metadata has not yet resolved. isTronSpecialAsset() returns false for
+        // them because `!symbol` short-circuits to false, letting them escape
+        // the filter above. Without this guard they would be treated as
+        // canonical TRX tokens and produce duplicate blank rows in the Earn list.
+        if (String(token.chainId).startsWith('tron:') && !token.symbol) {
+          continue;
+        }
         // We just need tron mainnet, at least for now
         if (
           String(token.chainId).startsWith('tron:') &&
