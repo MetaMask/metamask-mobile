@@ -5,6 +5,8 @@ import {
   getDefaultRampsControllerState,
 } from '@metamask/ramps-controller';
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
+import { store } from '../../../../store';
+import { getEffectiveProviderScope } from '../../../../components/UI/Ramp/utils/providerScope';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
 
@@ -36,6 +38,10 @@ export const rampsControllerInit: MessengerClientInitFunction<
   const controller = new RampsController({
     messenger: controllerMessenger,
     state: rampsControllerState,
+    // Read per quote call so the dev/RC provider-scope toggle takes effect at
+    // runtime. Production is hard-forced to `off` (native-only) inside
+    // `getEffectiveProviderScope`.
+    getProviderScope: () => getEffectiveProviderScope(store.getState()),
   });
 
   let orderSubscriptionsRegistered = false;
