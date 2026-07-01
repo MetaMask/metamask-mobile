@@ -130,6 +130,7 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [isAnimating, setIsAnimating] = useState(false);
   const [isDismissingLastCard, setIsDismissingLastCard] = useState(false);
+  const [emptyCardId] = useState(() => `empty-card-${Date.now()}`);
 
   // Current card animations (exit)
   const [currentCardOpacity] = useState(() => new Animated.Value(1));
@@ -215,12 +216,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     const hasNonDismissedSlides = slides.some(
       (s) => !dismissedBanners.includes(s.id),
     );
+    // Read isDismissingLastCard here but omit from memo deps so setting the flag
+    // does not regenerate emptyCardId mid-transition (Bugbot PR #32611).
     const shouldAddEmpty = hasNonDismissedSlides || isDismissingLastCard;
 
     // Add empty card only if there are non-dismissed slides or during dismissal animation
     if (shouldAddEmpty && slides.length > 0) {
       const emptyCard: CarouselSlide = {
-        id: `empty-card-${Date.now()}`,
+        id: emptyCardId,
         title: '',
         description: '',
         navigation: {
@@ -234,13 +237,14 @@ const CarouselComponent: FC<CarouselProps> = ({ style, onEmptyState }) => {
     }
 
     return slides;
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- omit isDismissingLastCard; see shouldAddEmpty
   }, [
     applyLocalNavigation,
     isZeroBalance,
     priorityContentfulSlides,
     regularContentfulSlides,
     dismissedBanners,
-    isDismissingLastCard,
+    emptyCardId,
   ]);
 
   const visibleSlides = useMemo(() => {
