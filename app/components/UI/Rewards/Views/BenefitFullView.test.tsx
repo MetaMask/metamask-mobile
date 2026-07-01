@@ -10,6 +10,7 @@ import {
   createMockEventBuilder,
   createMockUseAnalyticsHook,
 } from '../../../../util/test/analyticsMock';
+import { SubscriptionBenefitDto } from '../../../../core/Engine/controllers/rewards-controller/types.ts';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -28,7 +29,7 @@ const mockStrings = jest.fn((key: string) => {
   return translations[key] || key;
 });
 
-const mockBenefit = {
+const mockBenefit: SubscriptionBenefitDto = {
   id: 1,
   longTitle: 'Premium Benefit',
   shortDescription: 'Short description',
@@ -38,6 +39,7 @@ const mockBenefit = {
   validTo: '2026-12-31T23:59:59Z',
   url: 'https://benefits.example.com/claim',
   actionDate: '2026-12-30T00:00:00Z',
+  companyName: 'Pudgy Penguins',
   chain: 'ethereum',
   type: { id: 7, name: 'Partner' },
 };
@@ -135,6 +137,7 @@ describe('BenefitFullView', () => {
     expect(getByText('Claim benefit')).toBeOnTheScreen();
     expect(getByText('Premium Benefit')).toBeOnTheScreen();
     expect(getByText('Long description')).toBeOnTheScreen();
+    expect(getByText('Pudgy Penguins')).toBeOnTheScreen();
     expect(
       getByTestId(REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION),
     ).toBeOnTheScreen();
@@ -295,6 +298,17 @@ describe('BenefitFullView', () => {
 
     expect(mockFormatDateRemaining).not.toHaveBeenCalled();
     expect(queryByText('1mo 3d')).toBeNull();
+  });
+
+  it('does not render company label when companyName is null', () => {
+    mockRouteBenefit = {
+      ...mockBenefit,
+      companyName: null,
+    };
+
+    const { queryByText } = render(<BenefitFullView />);
+
+    expect(queryByText('Pudgy Penguins')).toBeNull();
   });
 
   it('renders benefit image from thumbnail', () => {
