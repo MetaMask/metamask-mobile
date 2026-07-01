@@ -28,7 +28,9 @@ import MoneyHowItWorks from '../../components/MoneyHowItWorks';
 import MoneyPotentialEarnings from '../../components/MoneyPotentialEarnings';
 import MoneyMetaMaskCard from '../../components/MoneyMetaMaskCard';
 import MoneyWhatYouGet from '../../components/MoneyWhatYouGet';
-import MoneyActivityList from '../../components/MoneyActivityList';
+import MoneyActivityList, {
+  MAX_PREVIEW_ITEMS as MONEY_HOME_ACTIVITY_PREVIEW_COUNT,
+} from '../../components/MoneyActivityList';
 import MoneyFooter from '../../components/MoneyFooter';
 import Routes from '../../../../../constants/navigation/Routes';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
@@ -71,8 +73,10 @@ import {
   deriveCardState,
 } from '../../../Card/util/metrics';
 
+import { TraceName } from '../../../../../util/trace';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
+import { useMoneyHomePerformance } from '../../hooks/useMoneyHomePerformance';
 import useMountEffect from '../../hooks/useMountEffect';
 import {
   COMPONENT_NAMES,
@@ -153,9 +157,10 @@ const MoneyHomeView = () => {
   const {
     buckets,
     isLoading: showCardActivityLoading,
+    hasMore: hasMoreActivity,
     moneyAddress,
     mockDataEnabled,
-  } = useMoneyActivityItems();
+  } = useMoneyActivityItems({ ensureCount: MONEY_HOME_ACTIVITY_PREVIEW_COUNT });
   const activityItems = buckets[MoneyActivityFilter.All];
 
   const isCardholder = useSelector(selectIsCardholder);
@@ -215,6 +220,26 @@ const MoneyHomeView = () => {
     new BigNumber(totalFiatRaw).abs().gte(DUST_THRESHOLD);
   const isFunded = hasSpendableBalance || activityItems.length > 0;
   const isEmptyState = hasBalanceValue && !isFunded;
+
+  // Report time-to-content separately for the balance and the activity list, so
+  // their load times can be compared, plus a combined "fully usable" span.
+  const balanceReady = !isBalanceLoading;
+  const activityReady = !showCardActivityLoading;
+  const moneyHomePerformanceSegments = useMemo(
+    () => [
+      { name: TraceName.MoneyHomeBalanceTimeToContent, ready: balanceReady },
+      { name: TraceName.MoneyHomeActivityTimeToContent, ready: activityReady },
+      {
+        name: TraceName.MoneyHomeTimeToContent,
+        ready: balanceReady && activityReady,
+      },
+    ],
+    [balanceReady, activityReady],
+  );
+  useMoneyHomePerformance({
+    segments: moneyHomePerformanceSegments,
+    isEmpty: !isFunded,
+  });
 
   const formattedZero = useMemo(
     () => moneyFormatFiat(new BigNumber(0), currentCurrency),
@@ -693,6 +718,7 @@ const MoneyHomeView = () => {
         <MoneyActivityList
           items={activityItems}
           moneyAddress={moneyAddress}
+          hasMore={hasMoreActivity}
           onViewAllPress={handleViewAllActivityPress}
           onHeaderPress={handleActivityHeaderPress}
           onItemPress={mockDataEnabled ? undefined : handleActivityItemPress}

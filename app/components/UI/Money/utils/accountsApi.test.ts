@@ -1,4 +1,4 @@
-import { parseAccountsApiActivity } from './accountsApi';
+import { oldestRawActivityTime, parseAccountsApiActivity } from './accountsApi';
 
 const MONEY_ADDRESS = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
 const SETTLEMENT_ADDRESS = '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e';
@@ -475,4 +475,37 @@ describe('parseAccountsApiActivity', () => {
       expect(result).toEqual([]);
     },
   );
+});
+
+describe('oldestRawActivityTime', () => {
+  const page = (...timestamps: string[]) => ({
+    data: timestamps.map((timestamp) => ({ timestamp })),
+  });
+
+  it('returns +Infinity when no pages have been fetched', () => {
+    expect(oldestRawActivityTime([])).toBe(Number.POSITIVE_INFINITY);
+  });
+
+  it('returns +Infinity when fetched pages carry no rows', () => {
+    expect(oldestRawActivityTime([{ data: [] }, {}])).toBe(
+      Number.POSITIVE_INFINITY,
+    );
+  });
+
+  it('returns the oldest raw timestamp across every page', () => {
+    const oldest = '2026-06-01T00:00:00.000Z';
+    const result = oldestRawActivityTime([
+      page('2026-06-04T00:00:00.000Z', '2026-06-03T00:00:00.000Z'),
+      page(oldest, '2026-06-02T00:00:00.000Z'),
+    ]);
+
+    expect(result).toBe(new Date(oldest).getTime());
+  });
+
+  it('ignores rows with an unparseable timestamp', () => {
+    const valid = '2026-06-02T00:00:00.000Z';
+    const result = oldestRawActivityTime([page('not-a-date', valid)]);
+
+    expect(result).toBe(new Date(valid).getTime());
+  });
 });

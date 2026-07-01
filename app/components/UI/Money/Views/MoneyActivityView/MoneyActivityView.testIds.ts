@@ -10,4 +10,6 @@ export const MoneyActivityViewTestIds = {
   PENDING_HEADER: 'money-activity-view-pending-header',
   EMPTY_LIST: 'money-activity-view-empty-list',
   EMPTY_LIST_MESSAGE: 'money-activity-view-empty-list-message',
+  LOAD_MORE_SPINNER: 'money-activity-view-load-more-spinner',
+  LIST: 'money-activity-view-list',
 };
