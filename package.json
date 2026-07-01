@@ -168,7 +168,6 @@
     ]
   },
   "resolutions": {
-    "@metamask/perps-controller": "^9.0.0",
     "@metamask/network-controller": "33.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
@@ -218,12 +217,6 @@
     "@metamask/keyring-controller": "^27.1.0",
     "@metamask/accounts-controller": "^39.0.3",
     "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch"
-  },
-  "previewBuilds": {
-    "@metamask/perps-controller": {
-      "type": "non-breaking",
-      "previewVersion": "9.0.0-preview-c1aa224d7"
-    }
   },
   "dependencies": {
     "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
@@ -317,7 +310,7 @@
     "@metamask/network-enablement-controller": "^5.3.0",
     "@metamask/notification-services-controller": "^24.2.0",
     "@metamask/permission-controller": "^13.1.1",
-    "@metamask/perps-controller": "^9.0.0",
+    "@metamask/perps-controller": "^9.1.0",
     "@metamask/phishing-controller": "^17.2.0",
     "@metamask/post-message-stream": "^10.0.0",
     "@metamask/preferences-controller": "^23.0.0",
