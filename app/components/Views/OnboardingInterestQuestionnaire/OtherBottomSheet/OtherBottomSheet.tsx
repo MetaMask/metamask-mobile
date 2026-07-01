@@ -13,8 +13,8 @@ import {
   Text,
   TextVariant,
   type BottomSheetRef,
-  TextColor,
 } from '@metamask/design-system-react-native';
+import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
 import { OtherBottomSheetTestIds } from './OtherBottomSheet.testIds';
 
@@ -30,6 +30,7 @@ const OtherBottomSheet = ({
   onDone,
 }: OtherBottomSheetProps) => {
   const tw = useTailwind();
+  const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const [draftValue, setDraftValue] = useState(initialValue);
 
@@ -79,7 +80,7 @@ const OtherBottomSheet = ({
           placeholder={strings(
             'onboarding_interest_questionnaire.other_placeholder',
           )}
-          placeholderTextColor={TextColor.TextAlternative}
+          placeholderTextColor={colors.text.alternative}
           style={tw.style(
             'min-h-[120px] rounded-xl border border-default bg-background-muted px-4 py-3 text-body-md text-default',
           )}
