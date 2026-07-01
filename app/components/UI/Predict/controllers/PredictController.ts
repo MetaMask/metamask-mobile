@@ -37,6 +37,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
+import { formatUnits, Interface } from 'ethers/lib/utils';
 import performance from 'react-native-performance';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
@@ -60,8 +61,10 @@ import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import {
+  COLLATERAL_TOKEN_DECIMALS,
   MATIC_CONTRACTS_V2,
   POLYMARKET_PROVIDER_ID,
+  USDC_E_ADDRESS,
 } from '../providers/polymarket/constants';
 import { Signer } from '../providers/types';
 
@@ -308,6 +311,25 @@ export type PredictTransactionStatusChangedPayload =
 export type PredictControllerEvents =
   | ControllerStateChangeEvent<'PredictController', PredictControllerState>
   | PredictControllerTransactionStatusChangedEvent;
+
+interface TransactionReceiptLog {
+  address?: string;
+  data?: string;
+  topics?: string | string[];
+}
+
+interface ClaimAmountFromSimulationOptions {
+  treatMissingRelevantTokenChangesAsZero?: boolean;
+}
+
+const PAYOUT_REDEMPTION_INTERFACE = new Interface([
+  'event PayoutRedemption(address indexed redeemer, address indexed collateralToken, bytes32 indexed parentCollectionId, bytes32 conditionId, uint256[] indexSets, uint256 payout)',
+]);
+
+const PREDICT_CLAIM_COLLATERAL_ADDRESSES = new Set([
+  MATIC_CONTRACTS_V2.collateral.toLowerCase(),
+  USDC_E_ADDRESS.toLowerCase(),
+]);
 
 /**
  * The action which can be used to retrieve the state of the PredictController.
@@ -3062,6 +3084,134 @@ export class PredictController extends BaseController<
     );
   }
 
+  private getClaimAmountFromReceipt(
+    logs: TransactionReceiptLog[] | undefined,
+  ): number | undefined {
+    if (!logs?.length) {
+      return undefined;
+    }
+
+    let payoutRaw = 0n;
+    let hasPayoutRedemption = false;
+
+    for (const log of logs) {
+      if (
+        log.address?.toLowerCase() !==
+        MATIC_CONTRACTS_V2.conditionalTokens.toLowerCase()
+      ) {
+        continue;
+      }
+
+      const topics = this.normalizeLogTopics(log.topics);
+      if (!topics || !log.data) {
+        continue;
+      }
+
+      try {
+        const parsedLog = PAYOUT_REDEMPTION_INTERFACE.parseLog({
+          topics,
+          data: log.data,
+        });
+        const payout = parsedLog.args.payout?.toString();
+
+        if (payout === undefined) {
+          continue;
+        }
+
+        payoutRaw += BigInt(payout);
+        hasPayoutRedemption = true;
+      } catch (_error) {
+        continue;
+      }
+    }
+
+    if (!hasPayoutRedemption) {
+      return undefined;
+    }
+
+    return parseFloat(
+      formatUnits(payoutRaw.toString(), COLLATERAL_TOKEN_DECIMALS),
+    );
+  }
+
+  private getClaimAmountFromSimulation(
+    transactionMeta: TransactionMeta,
+    {
+      treatMissingRelevantTokenChangesAsZero = false,
+    }: ClaimAmountFromSimulationOptions = {},
+  ): number | undefined {
+    const tokenBalanceChanges =
+      transactionMeta.simulationData?.tokenBalanceChanges;
+
+    if (!tokenBalanceChanges) {
+      return undefined;
+    }
+
+    let hasRelevantTokenChange = false;
+
+    const claimAmount = tokenBalanceChanges.reduce((sum, change) => {
+      const address = change.address?.toLowerCase();
+
+      if (
+        change.isDecrease ||
+        change.standard !== 'erc20' ||
+        !address ||
+        !PREDICT_CLAIM_COLLATERAL_ADDRESSES.has(address) ||
+        typeof change.difference !== 'string'
+      ) {
+        return sum;
+      }
+
+      try {
+        const difference = parseFloat(
+          formatUnits(change.difference, COLLATERAL_TOKEN_DECIMALS),
+        );
+        hasRelevantTokenChange = true;
+        return sum + difference;
+      } catch (error) {
+        DevLogger.log(
+          'PredictController: Failed to parse claim simulation difference',
+          {
+            difference: change.difference,
+            error: error instanceof Error ? error.message : 'Unknown error',
+          },
+        );
+        return sum;
+      }
+    }, 0);
+
+    if (hasRelevantTokenChange) {
+      return claimAmount;
+    }
+
+    return treatMissingRelevantTokenChangesAsZero ? 0 : undefined;
+  }
+
+  private getActualClaimAmount(
+    transactionMeta: TransactionMeta,
+    options?: ClaimAmountFromSimulationOptions,
+  ): number | undefined {
+    const receiptAmount = this.getClaimAmountFromReceipt(
+      transactionMeta.txReceipt?.logs as TransactionReceiptLog[] | undefined,
+    );
+
+    if (receiptAmount !== undefined) {
+      return receiptAmount;
+    }
+
+    return this.getClaimAmountFromSimulation(transactionMeta, options);
+  }
+
+  private normalizeLogTopics(
+    topics: string | string[] | undefined,
+  ): string[] | undefined {
+    if (!topics) {
+      return undefined;
+    }
+
+    return Array.isArray(topics) ? topics : undefined;
+  }
+
   private getTransactionAmount({
     type,
     status,
@@ -3091,7 +3241,15 @@ export class PredictController extends BaseController<
     }
 
     if (type === 'claim') {
-      return this.getClaimAmountByAddress(address);
+      const actualClaimAmount = this.getActualClaimAmount(transactionMeta, {
+        treatMissingRelevantTokenChangesAsZero: status === 'confirmed',
+      });
+
+      if (status === 'confirmed') {
+        return actualClaimAmount ?? 0;
+      }
+
+      return actualClaimAmount ?? this.getClaimAmountByAddress(address);
     }
 
     if (type === 'withdraw' && status === 'confirmed') {
