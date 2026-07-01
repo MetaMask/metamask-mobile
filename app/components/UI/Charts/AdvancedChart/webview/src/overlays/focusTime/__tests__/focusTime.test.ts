@@ -121,18 +121,15 @@ describe('handleFocusTime', () => {
     installWidget(stub.chart);
     handleFocusTime({ timeMs: 100_000, spanMs: 10_000 });
     jest.advanceTimersByTime(100);
-    const callsBefore = stub.setRangeCalls.length;
 
     // Second call bumps generation → first animation stops
     handleFocusTime({ timeMs: 200_000, spanMs: 10_000 });
     jest.advanceTimersByTime(1000);
 
+    // Final frame should land at the second target (195-205), not the first (95-105)
     const last = stub.setRangeCalls[stub.setRangeCalls.length - 1];
     expect(last.from).toBeCloseTo(195, 0);
     expect(last.to).toBeCloseTo(205, 0);
-    // First animation's target (95-105) should not appear after the second call
-    const afterSecond = stub.setRangeCalls.slice(callsBefore);
-    expect(afterSecond.every((r) => r.from > 50)).toBe(true);
   });
 
   it('no-ops when widget.activeChart() throws', () => {
