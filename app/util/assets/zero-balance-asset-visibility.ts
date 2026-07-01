@@ -4,29 +4,29 @@ function isStellarClassicAssetId(assetId: string): boolean {
   return assetId.startsWith('stellar:') && assetId.includes('/asset:');
 }
 
-function hasStellarClassicTrustlineLimit(
+function getStellarClassicTrustlineLimit(
   accountId: string,
   assetId: string,
   assetsBalance: AssetsControllerState['assetsBalance'],
-): boolean {
+): number | undefined {
   const balanceRow = assetsBalance[accountId]?.[assetId];
   if (
     !balanceRow ||
     typeof balanceRow !== 'object' ||
     !('accountAssetInfo' in balanceRow)
   ) {
-    return false;
+    return undefined;
   }
 
   const { accountAssetInfo } = balanceRow as {
     accountAssetInfo?: { limit?: string };
   };
   if (!accountAssetInfo || typeof accountAssetInfo.limit !== 'string') {
-    return false;
+    return undefined;
   }
 
   const parsedLimit = Number.parseFloat(accountAssetInfo.limit);
-  return !Number.isNaN(parsedLimit) && parsedLimit > 0;
+  return Number.isNaN(parsedLimit) ? undefined : parsedLimit;
 }
 
 /**
@@ -46,14 +46,21 @@ export function shouldRetainZeroBalanceNonNativeAsset(options: {
     return false;
   }
 
-  if (customAssets[accountId]?.includes(assetId)) {
-    return true;
+  if (isStellarClassicAssetId(assetId)) {
+    const limit = getStellarClassicTrustlineLimit(
+      accountId,
+      assetId,
+      assetsBalance,
+    );
+    // A known limit reflects current trustline status and overrides custom
+    // import status: a closed/deactivated trustline must hide the asset even
+    // if it was previously imported.
+    if (limit !== undefined) {
+      return limit > 0;
+    }
   }
 
-  if (
-    isStellarClassicAssetId(assetId) &&
-    hasStellarClassicTrustlineLimit(accountId, assetId, assetsBalance)
-  ) {
+  if (customAssets[accountId]?.includes(assetId)) {
     return true;
   }
 

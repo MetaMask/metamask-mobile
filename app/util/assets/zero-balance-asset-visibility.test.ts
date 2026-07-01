@@ -40,12 +40,37 @@ describe('shouldRetainZeroBalanceNonNativeAsset', () => {
           [ACCOUNT_ID]: {
             [USDC_ASSET_ID]: {
               amount: '0',
-              extra: { limit: '922337203685.4775807', authorized: true },
+              accountAssetInfo: {
+                limit: '922337203685.4775807',
+                authorized: true,
+              },
             },
           },
         },
       }),
     ).toBe(true);
+  });
+
+  it('hides Stellar classic assets once the trustline is deactivated, even if previously imported', () => {
+    const customAssets: AssetsControllerState['customAssets'] = {
+      [ACCOUNT_ID]: [USDC_ASSET_ID],
+    };
+
+    expect(
+      shouldRetainZeroBalanceNonNativeAsset({
+        accountId: ACCOUNT_ID,
+        assetId: USDC_ASSET_ID,
+        customAssets,
+        assetsBalance: {
+          [ACCOUNT_ID]: {
+            [USDC_ASSET_ID]: {
+              amount: '0',
+              accountAssetInfo: { limit: '0', authorized: false },
+            },
+          },
+        },
+      }),
+    ).toBe(false);
   });
 
   it('does not retain unrelated zero-balance tokens', () => {
