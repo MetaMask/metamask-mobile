@@ -23,7 +23,6 @@ import {
   ChartType,
   DEFAULT_DISABLED_FEATURES,
   parseWebViewMessage,
-  resolveLineChromeOptions,
   resolveCurrentPriceColor,
   type AdvancedChartProps,
   type AdvancedChartRef,
@@ -101,7 +100,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onChartInteracted,
       onChartTradingViewClicked,
       isLoading = false,
-      lineChrome,
       subPaneHeightRatio,
       useSubscriptPriceFormat,
       visibleFromMs,
@@ -193,7 +191,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       return createAdvancedChartTemplate(theme, {
         enableDrawingTools,
         disabledFeatures,
-        lineChrome,
         useSubscriptPriceFormat,
         lineColorOverride,
         successColorOverride,
@@ -210,7 +207,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       theme,
       enableDrawingTools,
       disabledFeatures,
-      lineChrome,
       useSubscriptPriceFormat,
       labelStyleOverrides,
       legendOverlay,
@@ -803,15 +799,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         payload: { visible: showVolume, volumeOverlay },
       });
     }, [showVolume, volumeOverlay, chartReadyCount, postMessage]);
-
-    // Line / chart chrome: always send resolved payload after CHART_READY (matches inline CONFIG).
-    useEffect(() => {
-      if (chartReadyCount === 0) return;
-      postMessage({
-        type: 'SET_LINE_CHROME',
-        payload: resolveLineChromeOptions(lineChrome),
-      });
-    }, [lineChrome, chartReadyCount, postMessage]);
 
     useEffect(() => {
       if (chartReadyCount === 0) return;

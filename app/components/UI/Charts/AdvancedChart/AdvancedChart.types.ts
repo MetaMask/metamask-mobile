@@ -142,60 +142,6 @@ export type ChartType = (typeof ChartType)[keyof typeof ChartType];
 // Message protocol: React Native <-> WebView
 // ============================================
 
-/**
- * Line / chart chrome for the TradingView WebView.
- *
- * Omitted props resolve via {@link DEFAULT_LINE_CHROME} (built-in-first). When a `useCustom*`
- * flag is **false**, TradingView built-ins apply where relevant (`showSeriesLastValue`,
- * `showPriceLine`, scale crosshair labels). When **true**, MetaMask uses custom drawings/DOM
- * instead and disables the TV equivalent to avoid duplicates.
- */
-export interface LineChromeOptions {
-  /** When true, hide the time-axis row (line chart only). */
-  hideTimeScale?: boolean;
-  /** When true, draw the line-end marker via the Drawing API (line chart only). */
-  useCustomLineEndMarker?: boolean;
-  /** When true, draw the dashed last-price guide with `horizontal_line` shapes (candles + line). */
-  useCustomDashedLastPriceLine?: boolean;
-  /**
-   * When true, custom DOM for last-close pill, visible-edge outline pill, and crosshair price/time
-   * labels. When false, TV scale last value and crosshair labels are enabled.
-   */
-  useCustomPriceLabels?: boolean;
-}
-
-/** Default `lineChrome` when props omit fields; merged by `resolveLineChromeOptions`. */
-export const DEFAULT_LINE_CHROME = {
-  hideTimeScale: false,
-  useCustomLineEndMarker: false,
-  useCustomDashedLastPriceLine: false,
-  useCustomPriceLabels: false,
-} as const;
-
-export type ResolvedLineChromeOptions = {
-  [K in keyof typeof DEFAULT_LINE_CHROME]: boolean;
-};
-
-/**
- * Fills omitted `lineChrome` fields with `DEFAULT_LINE_CHROME`. Used for inline CONFIG and for
- * `SET_LINE_CHROME` payloads (always the full resolved object).
- */
-export function resolveLineChromeOptions(
-  partial?: LineChromeOptions | null,
-): ResolvedLineChromeOptions {
-  return {
-    hideTimeScale: partial?.hideTimeScale ?? DEFAULT_LINE_CHROME.hideTimeScale,
-    useCustomLineEndMarker:
-      partial?.useCustomLineEndMarker ??
-      DEFAULT_LINE_CHROME.useCustomLineEndMarker,
-    useCustomDashedLastPriceLine:
-      partial?.useCustomDashedLastPriceLine ??
-      DEFAULT_LINE_CHROME.useCustomDashedLastPriceLine,
-    useCustomPriceLabels:
-      partial?.useCustomPriceLabels ?? DEFAULT_LINE_CHROME.useCustomPriceLabels,
-  };
-}
-
 /** Matches template + `SET_THEME_COLORS` resolution for `theme.currentPriceColor`. */
 export function resolveCurrentPriceColor(options: {
   lastValuePillColor?: string;
@@ -219,7 +165,6 @@ export type RNToWebViewMessageType =
   | 'ADD_INDICATOR'
   | 'REMOVE_INDICATOR'
   | 'SET_CHART_TYPE'
-  | 'SET_LINE_CHROME'
   | 'SET_SUB_PANE_LAYOUT'
   | 'SET_POSITION_LINES'
   | 'SET_TRADE_MARKERS'
@@ -300,8 +245,6 @@ export interface ToggleVolumePayload {
   volumeOverlay?: boolean;
 }
 
-export type SetLineChromePayload = ResolvedLineChromeOptions;
-
 /**
  * When `heightRatio` is a number in (0, 1], RSI/MACD sub-panes use that fraction of total
  * chart height each (via `setAllPanesHeight`). When `null` or omitted, TradingView default
@@ -362,7 +305,6 @@ export type RNToWebViewMessage =
   | { type: 'ADD_INDICATOR'; payload: AddIndicatorPayload }
   | { type: 'REMOVE_INDICATOR'; payload: RemoveIndicatorPayload }
   | { type: 'SET_CHART_TYPE'; payload: SetChartTypePayload }
-  | { type: 'SET_LINE_CHROME'; payload: SetLineChromePayload }
   | { type: 'SET_SUB_PANE_LAYOUT'; payload: SetSubPaneLayoutPayload }
   | { type: 'SET_POSITION_LINES'; payload: SetPositionLinesPayload }
   | { type: 'SET_TRADE_MARKERS'; payload: SetTradeMarkersPayload }
@@ -591,13 +533,6 @@ export interface AdvancedChartProps {
    * TradingView capabilities like header_widget, timeframes_toolbar, etc.
    */
   disabledFeatures?: string[];
-
-  /**
-   * Line / chart chrome: time axis, custom line-end marker, dashed last-price drawing, custom
-   * price/crosshair labels vs TV built-ins. Omitted fields use `DEFAULT_LINE_CHROME`. After
-   * `CHART_READY`, RN sends `SET_LINE_CHROME` with `resolveLineChromeOptions(lineChrome)`.
-   */
-  lineChrome?: LineChromeOptions;
 
   /**
    * Fraction of total chart height for each RSI/MACD sub-pane (0–1). Omit or pass `null` for

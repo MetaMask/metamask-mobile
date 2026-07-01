@@ -2,9 +2,7 @@ import { AppThemeKey, type Theme } from '../../../../util/theme/models';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import {
   type ChartLabelStyleOverrides,
-  type LineChromeOptions,
   type LegendOverlayConfig,
-  resolveLineChromeOptions,
   resolveCurrentPriceColor,
 } from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
@@ -56,7 +54,6 @@ const getChartSuccessColor = (theme: Theme): string =>
 interface ChartFeatures {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
-  lineChrome?: LineChromeOptions;
   useSubscriptPriceFormat?: boolean;
   lineColorOverride?: string;
   successColorOverride?: string;
@@ -71,7 +68,6 @@ const createConfigScript = (
   theme: Theme,
   features: ChartFeatures,
 ): string => {
-  const lc = resolveLineChromeOptions(features.lineChrome);
   const successColor =
     features.successColorOverride ?? getChartSuccessColor(theme);
   const lineColor = features.lineColorOverride ?? successColor;
@@ -118,12 +114,6 @@ window.CONFIG = {
   features: {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},
     disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])}
-  },
-  lineChrome: {
-    hideTimeScale: ${lc.hideTimeScale ? 'true' : 'false'},
-    useCustomLineEndMarker: ${lc.useCustomLineEndMarker ? 'true' : 'false'},
-    useCustomDashedLastPriceLine: ${lc.useCustomDashedLastPriceLine ? 'true' : 'false'},
-    useCustomPriceLabels: ${lc.useCustomPriceLabels ? 'true' : 'false'}
   },
   legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
   useSubscriptPriceFormat: ${features.useSubscriptPriceFormat ? 'true' : 'false'},

@@ -1,7 +1,4 @@
-import type { LineChromeOptions } from './AdvancedChart.types';
-
 interface AdvancedChartConsumerPreset {
-  lineChrome: LineChromeOptions;
   /** Omit on AdvancedChart for TradingView default sub-pane sizing. */
   subPaneHeightRatio?: number;
   /** TV built-in scale + last-value pill subscript notation (see `useSubscriptPriceFormat`). */
@@ -9,18 +6,12 @@ interface AdvancedChartConsumerPreset {
 }
 
 /**
- * Per-consumer {@link AdvancedChart} presets. `lineChrome` partials merge with
- * `DEFAULT_LINE_CHROME` via `resolveLineChromeOptions`.
+ * Per-consumer {@link AdvancedChart} presets. `lineChrome` was removed in
+ * Phase 4b now that the modular WebView bundle uses TradingView's built-in
+ * chrome exclusively (no custom pill / dashed-line / end-dot options).
  */
 export const advancedChartLineChromePresets = {
   tokenOverview: {
-    lineChrome: {
-      useCustomLineEndMarker: false,
-      useCustomDashedLastPriceLine: false,
-      useCustomPriceLabels: false,
-      hideTimeScale: false,
-    },
-    // Other consumers can omit this prop for TradingView default sub-pane sizing.
     subPaneHeightRatio: 0.2,
     useSubscriptPriceFormat: true,
   },
