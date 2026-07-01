@@ -76,6 +76,7 @@ export const PerpsMarketInlineHeader = ({
         testID:
           fullscreenButtonTestID ??
           `${testID ?? 'perps-market-header'}-fullscreen-button`,
+        accessibilityLabel: strings('perps.market_details.fullscreen_chart'),
       });
     }
 

@@ -149,6 +149,7 @@ describe('MainNavigator Route Constants', () => {
     expect(Routes.MONEY.MODALS.MONEY_BALANCE_INFO_SHEET).toBeDefined();
     expect(Routes.MONEY.MODALS.LINK_CARD_SHEET).toBeDefined();
     expect(Routes.MONEY.MODALS.EARN_CRYPTO_INFO_SHEET).toBeDefined();
+    expect(Routes.MONEY.MODALS.DEEPLINK_MODAL).toBeDefined();
   });
 });
 
