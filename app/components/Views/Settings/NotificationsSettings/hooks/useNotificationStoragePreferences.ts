@@ -166,6 +166,7 @@ export const useNotificationStoragePreferences =
         try {
           await persistWrite;
           lastConfirmedPreferencesRef.current = nextPreferences;
+          finishWrite();
         } catch (err) {
           Logger.error(
             err as Error,
@@ -177,9 +178,8 @@ export const useNotificationStoragePreferences =
               lastConfirmedPreferencesRef.current ?? previousSnapshot,
             );
           }
-          throw err;
-        } finally {
           finishWrite();
+          throw err;
         }
       },
       [beginWrite, data, finishWrite, getCachedPreferences, queryClient],
