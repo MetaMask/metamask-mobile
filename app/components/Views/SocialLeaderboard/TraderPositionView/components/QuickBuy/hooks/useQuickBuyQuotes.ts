@@ -224,8 +224,15 @@ export function useQuickBuyQuotes({
   const [quotesLastFetchedAt, setQuotesLastFetchedAt] = useState<number | null>(
     null,
   );
-  /** Start time of the most recent fetch attempt (success or failure). */
-  const [quotesLastAttemptAt, setQuotesLastAttemptAt] = useState<number | null>(
+  /**
+   * Settle time (ms) of the most recent fetch — set when it finishes, whether it
+   * succeeded or errored (but not when aborted). The auto-refresh scheduler
+   * anchors on this so the next fetch fires a full `quoteRefreshRateMs` after
+   * quotes settle, keeping it in sync with the countdown (which anchors on
+   * `quotesLastFetchedAt`, the success settle). For a stream this is the close
+   * time, so each cycle spans the stream duration plus `quoteRefreshRateMs`.
+   */
+  const [quotesLastSettledAt, setQuotesLastSettledAt] = useState<number | null>(
     null,
   );
   const [refreshCount, setRefreshCount] = useState(0);
@@ -265,7 +272,7 @@ export function useQuickBuyQuotes({
     setIsNoQuotesAvailable(false);
     setQuoteFetchError(null);
     setQuotesLastFetchedAt(null);
-    setQuotesLastAttemptAt(null);
+    setQuotesLastSettledAt(null);
     setRefreshCount(0);
     settledRequestParamsKeyRef.current = null;
   }, []);
@@ -317,7 +324,6 @@ export function useQuickBuyQuotes({
     setQuoteFetchError(null);
 
     const requestedAt = Date.now();
-    setQuotesLastAttemptAt(requestedAt);
     requestStartedAtRef.current = requestedAt;
 
     const featureId = getQuickBuyFeatureId(analyticsContext?.source);
@@ -394,10 +400,12 @@ export function useQuickBuyQuotes({
         if (accumulated.length === 0) {
           setRawQuotes([]);
         }
+        const settledAt = Date.now();
         setIsNoQuotesAvailable(accumulated.length === 0);
         setIsQuoteLoading(false);
         setIsFetchInFlight(false);
-        setQuotesLastFetchedAt(Date.now());
+        setQuotesLastFetchedAt(settledAt);
+        setQuotesLastSettledAt(settledAt);
         setRefreshCount((prev) => prev + 1);
         fireReceived(accumulated.length);
       } else {
@@ -413,10 +421,12 @@ export function useQuickBuyQuotes({
 
         settledRequestParamsKeyRef.current = fetchedRequestParamsKey;
         setRawQuotes(result);
+        const settledAt = Date.now();
         setIsNoQuotesAvailable(result.length === 0);
         setIsQuoteLoading(false);
         setIsFetchInFlight(false);
-        setQuotesLastFetchedAt(Date.now());
+        setQuotesLastFetchedAt(settledAt);
+        setQuotesLastSettledAt(settledAt);
         setRefreshCount((prev) => prev + 1);
         fireReceived(result.length);
       }
@@ -446,6 +456,10 @@ export function useQuickBuyQuotes({
       setIsNoQuotesAvailable(false);
       setIsQuoteLoading(false);
       setIsFetchInFlight(false);
+      // Record the settle so the auto-refresh loop still re-arms after a
+      // failure, but leave `quotesLastFetchedAt` untouched — there are no fresh
+      // quotes for the countdown to anchor on.
+      setQuotesLastSettledAt(Date.now());
       fireReceived(0);
     }
   }, [
@@ -493,13 +507,17 @@ export function useQuickBuyQuotes({
   // Auto-refresh quotes on a fixed interval indefinitely.
   // `refreshCount` starts at 0 and increments on each successful fetch, so
   // after the initial fetch (count=1) this effect schedules the next one.
-  // Guarded on `isFetchInFlight` (not `isQuoteLoading`) so a streaming fetch —
-  // which clears `isQuoteLoading` on its first quote while still open — is never
-  // interrupted by a refresh mid-stream. `pauseAutoRefresh` freezes the cycle
-  // entirely (e.g. while the user has a quote manually selected).
+  // Anchored on `quotesLastSettledAt` (the fetch/stream close), not the attempt
+  // start, so the next fetch fires a full `quoteRefreshRateMs` after quotes
+  // settle — matching the countdown, which anchors on the same settle. For a
+  // stream this means each cycle spans the stream duration plus the refresh
+  // rate. Guarded on `isFetchInFlight` (not `isQuoteLoading`) so a streaming
+  // fetch — which clears `isQuoteLoading` on its first quote while still open —
+  // is never interrupted by a refresh mid-stream. `pauseAutoRefresh` freezes the
+  // cycle entirely (e.g. while the user has a quote manually selected).
   useEffect(() => {
     if (
-      !quotesLastAttemptAt ||
+      !quotesLastSettledAt ||
       refreshCount === 0 ||
       isFetchInFlight ||
       pauseAutoRefresh
@@ -507,7 +525,7 @@ export function useQuickBuyQuotes({
       return;
     }
 
-    const elapsed = Date.now() - quotesLastAttemptAt;
+    const elapsed = Date.now() - quotesLastSettledAt;
     const delay = Math.max(0, quoteRefreshRateMs - elapsed);
 
     const timer = setTimeout(() => {
@@ -516,7 +534,7 @@ export function useQuickBuyQuotes({
 
     return () => clearTimeout(timer);
   }, [
-    quotesLastAttemptAt,
+    quotesLastSettledAt,
     refreshCount,
     quoteRefreshRateMs,
     isFetchInFlight,
