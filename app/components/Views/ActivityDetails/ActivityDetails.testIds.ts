@@ -23,5 +23,6 @@ export const ActivityDetailsSelectorsIDs = {
   PENDING_SPEED_UP_BUTTON: 'activity-details-pending-speed-up-button',
   PENDING_CANCEL_BUTTON: 'activity-details-pending-cancel-button',
   PENDING_QR_SIGN_BUTTON: 'activity-details-pending-qr-sign-button',
+  PENDING_QR_CANCEL_BUTTON: 'activity-details-pending-qr-cancel-button',
   PENDING_LEDGER_SIGN_BUTTON: 'activity-details-pending-ledger-sign-button',
 } as const;

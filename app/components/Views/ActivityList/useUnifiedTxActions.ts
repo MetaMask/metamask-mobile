@@ -452,6 +452,8 @@ export function useUnifiedTxActions() {
     existingTx,
     speedUpTxId,
     cancelTxId,
+    isLedgerAccount,
+    isQRHardwareAccount,
     onSpeedUpAction,
     onCancelAction,
     onSpeedUpCancelCompleted,

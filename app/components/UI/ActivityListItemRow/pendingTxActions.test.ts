@@ -82,11 +82,14 @@ describe('getPendingTxActionVisibility', () => {
     });
   });
 
-  it('hides everything for a confirmed tx', () => {
-    const v = getPendingTxActionVisibility(
-      { ...baseTx, status: 'confirmed' } as TransactionMeta,
-      noHardware,
-    );
-    expect(hasAnyPendingTxAction(v)).toBe(false);
-  });
+  it.each(['unapproved', 'signed', 'confirmed', 'failed', 'dropped'])(
+    'hides all actions for a non-actionable status: %s',
+    (status) => {
+      const v = getPendingTxActionVisibility(
+        { ...baseTx, status } as unknown as TransactionMeta,
+        { isQRHardwareAccount: true, isLedgerAccount: false },
+      );
+      expect(hasAnyPendingTxAction(v)).toBe(false);
+    },
+  );
 });

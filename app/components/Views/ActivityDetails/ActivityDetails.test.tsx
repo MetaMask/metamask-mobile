@@ -47,6 +47,8 @@ jest.mock('../ActivityList/useUnifiedTxActions', () => ({
     cancelIsOpen: false,
     confirmDisabled: false,
     existingTx: null,
+    isLedgerAccount: false,
+    isQRHardwareAccount: false,
     onSpeedUpAction: jest.fn(),
     onCancelAction: jest.fn(),
     onSpeedUpCancelCompleted: jest.fn(),

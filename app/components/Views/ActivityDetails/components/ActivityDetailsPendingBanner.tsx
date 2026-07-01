@@ -118,7 +118,7 @@ export function ActivityDetailsPendingBanner({
             isDanger
             twClassName="flex-1"
             onPress={() => cancelUnsignedQRTransaction(tx)}
-            testID={ActivityDetailsSelectorsIDs.PENDING_CANCEL_BUTTON}
+            testID={ActivityDetailsSelectorsIDs.PENDING_QR_CANCEL_BUTTON}
           >
             {strings('transaction.cancel')}
           </Button>

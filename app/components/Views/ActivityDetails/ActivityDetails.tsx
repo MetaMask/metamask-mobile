@@ -13,9 +13,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { useParams } from '../../../util/navigation/navUtils';
-import ExtendedKeyringTypes from '../../../constants/keyringTypes';
-import { isHardwareAccount } from '../../../util/address';
-import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { selectTransactionMetadataById } from '../../../selectors/transactionController';
 import type { RootState } from '../../../reducers';
 import { resolveActivityListItemTitle } from '../../UI/ActivityListItemRow/ActivityListItemRow';
@@ -75,21 +72,14 @@ const ActivityDetails = () => {
   const pendingTx = useSelector((state: RootState) =>
     localTxId ? selectTransactionMetadataById(state, localTxId) : undefined,
   );
-  const selectedAddress = useSelector(
-    selectSelectedInternalAccountFormattedAddress,
-  );
-  const isLedgerAccount = isHardwareAccount(selectedAddress ?? '', [
-    ExtendedKeyringTypes.ledger,
-  ]);
-  const isQRHardwareAccount = isHardwareAccount(selectedAddress ?? '', [
-    ExtendedKeyringTypes.qr,
-  ]);
 
   const {
     speedUpIsOpen,
     cancelIsOpen,
     confirmDisabled,
     existingTx,
+    isLedgerAccount,
+    isQRHardwareAccount,
     onSpeedUpAction,
     onCancelAction,
     onSpeedUpCancelCompleted,

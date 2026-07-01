@@ -69,6 +69,37 @@ describe('ActivityDetailsPendingBanner', () => {
     ).toBeNull();
   });
 
+  it('renders the QR sign + QR cancel actions for an approved QR-hardware tx', () => {
+    const h = handlers();
+    const approvedTx = {
+      ...submittedTx,
+      status: 'approved',
+    } as TransactionMeta;
+    const { getByTestId, queryByTestId } = render(
+      <ActivityDetailsPendingBanner
+        tx={approvedTx}
+        isQRHardwareAccount
+        isLedgerAccount={false}
+        {...h}
+      />,
+    );
+
+    // Normal speed-up/cancel is not shown for a QR-hardware approved tx.
+    expect(
+      queryByTestId(ActivityDetailsSelectorsIDs.PENDING_SPEED_UP_BUTTON),
+    ).toBeNull();
+
+    fireEvent.press(
+      getByTestId(ActivityDetailsSelectorsIDs.PENDING_QR_SIGN_BUTTON),
+    );
+    expect(h.signQRTransaction).toHaveBeenCalledWith(approvedTx);
+
+    fireEvent.press(
+      getByTestId(ActivityDetailsSelectorsIDs.PENDING_QR_CANCEL_BUTTON),
+    );
+    expect(h.cancelUnsignedQRTransaction).toHaveBeenCalledWith(approvedTx);
+  });
+
   it('renders the Ledger sign action for an approved Ledger tx', () => {
     const h = handlers();
     const { getByTestId, queryByTestId } = render(
