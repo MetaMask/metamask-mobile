@@ -624,7 +624,7 @@ describe('PerpsChartFullscreenModal', () => {
       );
     });
 
-    it('tracks error and keeps modal open when advanced chart reports an error', () => {
+    it('tracks error and keeps modal open when advanced chart reports an error', async () => {
       render(
         <PerpsChartFullscreenModal
           {...defaultProps}
@@ -638,7 +638,9 @@ describe('PerpsChartFullscreenModal', () => {
         mockPerpsAdvancedChart.mock.calls[
           mockPerpsAdvancedChart.mock.calls.length - 1
         ][0];
-      latestAdvancedChartProps.onError();
+      await act(async () => {
+        latestAdvancedChartProps.onError();
+      });
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_ERROR,
@@ -663,7 +665,7 @@ describe('PerpsChartFullscreenModal', () => {
             PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
           [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
           [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
-            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
           [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
             PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
         }),

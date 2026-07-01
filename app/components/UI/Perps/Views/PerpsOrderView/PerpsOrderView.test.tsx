@@ -512,11 +512,19 @@ jest.mock(
   }),
 );
 
+let mockPerpsAdvancedChartEnabled = false;
+
 // Mock Redux selectors and dispatch (PerpsOrderView dispatches resetTransaction on unmount)
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useDispatch: jest.fn(() => jest.fn()),
   useSelector: jest.fn((selector) => {
+    if (
+      selector.toString().includes('selectPerpsAdvancedChartEnabledFlag') ||
+      selector.toString().includes('perpsAdvancedChart')
+    ) {
+      return mockPerpsAdvancedChartEnabled;
+    }
     if (selector.toString().includes('selectTokenList')) {
       return {};
     }
@@ -919,6 +927,7 @@ global.requestAnimationFrame = jest.fn((cb) => {
 describe('PerpsOrderView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockPerpsAdvancedChartEnabled = false;
 
     jest.mocked(useAnalytics).mockReturnValue({
       trackEvent: mockTrackEvent,
