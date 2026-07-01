@@ -264,6 +264,8 @@ jest.mock('../../components/PerpsMarketHeader', () => {
 });
 
 // Mock MMDS BottomSheet only — requires SafeAreaProvider/reanimated in Jest.
+const mockBottomSheetRefState = { refAvailable: true };
+
 jest.mock('@metamask/design-system-react-native', () => {
   const { View } = jest.requireActual('react-native');
   const ReactMock = jest.requireActual('react');
@@ -279,17 +281,23 @@ jest.mock('@metamask/design-system-react-native', () => {
       ref: React.Ref<{
         onOpenBottomSheet: (callback?: () => void) => void;
         onCloseBottomSheet: (callback?: () => void) => void;
-      }>,
+      } | null>,
     ) => {
-      ReactMock.useImperativeHandle(ref, () => ({
-        onOpenBottomSheet: (callback?: () => void) => {
-          callback?.();
-        },
-        onCloseBottomSheet: (callback?: () => void) => {
-          props.onClose?.();
-          callback?.();
-        },
-      }));
+      ReactMock.useImperativeHandle(ref, () => {
+        if (!mockBottomSheetRefState.refAvailable) {
+          return null;
+        }
+
+        return {
+          onOpenBottomSheet: (callback?: () => void) => {
+            callback?.();
+          },
+          onCloseBottomSheet: (callback?: () => void) => {
+            props.onClose?.();
+            callback?.();
+          },
+        };
+      });
 
       return <View testID={props.testID}>{props.children}</View>;
     },
@@ -363,6 +371,7 @@ describe('PerpsOrderBookView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBottomSheetRefState.refAvailable = true;
     mockUseRoute.mockReturnValue({
       params: {
         symbol: 'BTC',
@@ -668,6 +677,36 @@ describe('PerpsOrderBookView', () => {
 
       fireEvent.press(option);
 
+      expect(mockTrack).toHaveBeenCalled();
+    });
+
+    it('applies grouping immediately when bottom sheet ref is unavailable', async () => {
+      mockBottomSheetRefState.refAvailable = false;
+
+      const { getByTestId, queryByText } = renderWithProvider(
+        <PerpsOrderBookView />,
+        { state: initialState },
+      );
+
+      fireEvent.press(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-1`),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        getByTestId(`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-1`),
+      );
+
+      await waitFor(() => {
+        expect(queryByText('Depth Band')).toBeNull();
+      });
+
+      expect(mockSaveGrouping).toHaveBeenCalledWith(1);
       expect(mockTrack).toHaveBeenCalled();
     });
 
