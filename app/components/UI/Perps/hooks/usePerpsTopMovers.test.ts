@@ -214,6 +214,28 @@ describe('usePerpsTopMovers', () => {
     });
   });
 
+  describe('enabled flag', () => {
+    it('returns empty data and skips live price subscriptions when disabled', () => {
+      mockUsePerpsMarkets.mockReturnValue({
+        markets: [buildMarket('BTC', '1.0'), buildMarket('ETH', '2.0')],
+        isLoading: true,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsTopMovers({ direction: 'desc', enabled: false }),
+      );
+
+      expect(result.current.data).toEqual([]);
+      expect(result.current.isLoading).toBe(false);
+      expect(mockUsePerpsLivePrices).toHaveBeenCalledWith(
+        expect.objectContaining({ symbols: [] }),
+      );
+    });
+  });
+
   describe('live price merge', () => {
     it('replaces change24hPercent with the live value when available', () => {
       mockUsePerpsMarkets.mockReturnValue({

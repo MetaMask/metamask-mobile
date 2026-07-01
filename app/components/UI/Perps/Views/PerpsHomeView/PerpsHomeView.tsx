@@ -62,6 +62,7 @@ import {
   selectPerpsServiceInterruptionBannerEnabledFlag,
   selectPerpsProductsEnabledFlag,
   selectPerpsTopMoversEnabledFlag,
+  selectPerpsWatchlistEnabledFlag,
 } from '../../selectors/featureFlags';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
@@ -161,9 +162,13 @@ const PerpsHomeView = ({
   const isWhatsHappeningEnabled = useSelector(selectWhatsHappeningEnabled);
   const isProductsEnabled = useSelector(selectPerpsProductsEnabledFlag);
   const isTopMoversEnabled = useSelector(selectPerpsTopMoversEnabledFlag);
+  const isWatchlistEnabled = useSelector(selectPerpsWatchlistEnabledFlag);
   // Mirrors PerpsProducts' own visibility check (enabled + has categories).
   const productCategories = usePerpsCategories();
-  const topMoversFeed = usePerpsTopMovers({ direction: 'desc' });
+  const topMoversFeed = usePerpsTopMovers({
+    direction: 'desc',
+    enabled: isTopMoversEnabled,
+  });
   const isTopMoversVisible =
     isTopMoversEnabled &&
     isPerpsTopMoversSectionVisible({
@@ -290,6 +295,13 @@ const PerpsHomeView = ({
     isLoading,
   } = usePerpsHomeData({});
 
+  // Mirrors PerpsWatchlistMarkets V1/V2 gating: suggestions only count toward
+  // section visibility when the redesigned watchlist flag is on.
+  const isWatchlistVisible =
+    isLoading.markets ||
+    watchlistMarkets.length > 0 ||
+    (isWatchlistEnabled && (suggestedWatchlistMarkets?.length ?? 0) > 0);
+
   // Calculate positions subtitle with P&L
   const hasPositions = positions.length > 0;
   const { positionsSubtitle, positionsSubtitleColor, positionsSubtitleSuffix } =
@@ -370,13 +382,7 @@ const PerpsHomeView = ({
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.ORDERS);
     if (isWhatsHappeningVisible)
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WHATS_HAPPENING);
-    // Watchlist shows a skeleton while markets load, then content when it has
-    // watchlist or suggested markets.
-    if (
-      isLoading.markets ||
-      watchlistMarkets.length > 0 ||
-      (suggestedWatchlistMarkets?.length ?? 0) > 0
-    ) {
+    if (isWatchlistVisible) {
       sections.push(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST);
     }
     // Products self-hides when disabled or when no categories are available.
@@ -405,8 +411,7 @@ const PerpsHomeView = ({
     positions,
     orders,
     isWhatsHappeningVisible,
-    watchlistMarkets,
-    suggestedWatchlistMarkets,
+    isWatchlistVisible,
     isProductsEnabled,
     productCategories,
     isTopMoversVisible,
@@ -684,10 +689,7 @@ const PerpsHomeView = ({
       },
       {
         key: 'watchlist',
-        visible:
-          isLoading.markets ||
-          watchlistMarkets.length > 0 ||
-          (suggestedWatchlistMarkets?.length ?? 0) > 0,
+        visible: isWatchlistVisible,
         onLayout: handleSectionLayout(PERPS_EVENT_VALUE.SECTION_NAME.WATCHLIST),
         content: (
           <PerpsWatchlistMarkets
@@ -832,6 +834,7 @@ const PerpsHomeView = ({
       isWhatsHappeningVisible,
       whatsHappeningFeed,
       handleWhatsHappeningHeaderPress,
+      isWatchlistVisible,
       watchlistMarkets,
       suggestedWatchlistMarkets,
       handleWatchlistSeeAllPress,

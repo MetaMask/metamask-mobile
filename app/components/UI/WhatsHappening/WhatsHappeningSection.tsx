@@ -224,10 +224,10 @@ const WhatsHappeningSection = forwardRef<
   }
 
   return (
-    <View style={styles.sectionGap}>
+    <Box paddingBottom={3} style={styles.sectionGap}>
       {header}
       {carouselContent}
-    </View>
+    </Box>
   );
 });
 

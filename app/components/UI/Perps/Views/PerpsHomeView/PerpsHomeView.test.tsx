@@ -6,6 +6,7 @@ import {
   selectPerpsFeedbackEnabledFlag,
   selectPerpsProductsEnabledFlag,
   selectPerpsTopMoversEnabledFlag,
+  selectPerpsWatchlistEnabledFlag,
 } from '../../selectors/featureFlags';
 import { usePerpsCategories } from '../../hooks/usePerpsCategories';
 import { selectWhatsHappeningEnabled } from '../../../../../selectors/featureFlagController/whatsHappening';
@@ -840,6 +841,66 @@ describe('PerpsHomeView', () => {
     const { UNSAFE_queryByType } = render(<PerpsHomeView />);
 
     expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeNull();
+  });
+
+  it('does not render watchlist when only suggested markets exist and redesign flag is off', () => {
+    mockUseSelector.mockReturnValue(false);
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      watchlistMarkets: [],
+      suggestedWatchlistMarkets: [
+        {
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          price: '$50000',
+          change24h: '+$1250',
+          change24hPercent: '+2.5%',
+          volume: '$1.2B',
+          volumeNumber: 1200000000,
+          maxLeverage: '50',
+        },
+      ],
+    });
+
+    const { UNSAFE_queryByType } = render(<PerpsHomeView />);
+
+    expect(UNSAFE_queryByType('PerpsWatchlistMarkets' as never)).toBeNull();
+  });
+
+  it('renders watchlist when only suggested markets exist and redesign flag is on', () => {
+    mockUseSelector.mockImplementation(
+      (selector: unknown) => selector === selectPerpsWatchlistEnabledFlag,
+    );
+    mockUsePerpsHomeData.mockReturnValue({
+      ...mockDefaultData,
+      watchlistMarkets: [],
+      suggestedWatchlistMarkets: [
+        {
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          price: '$50000',
+          change24h: '+$1250',
+          change24hPercent: '+2.5%',
+          volume: '$1.2B',
+          volumeNumber: 1200000000,
+          maxLeverage: '50',
+        },
+      ],
+    });
+
+    const { UNSAFE_getByType } = render(<PerpsHomeView />);
+
+    expect(UNSAFE_getByType('PerpsWatchlistMarkets' as never)).toBeTruthy();
+  });
+
+  it('passes enabled: false to usePerpsTopMovers when top movers flag is off', () => {
+    mockUseSelector.mockReturnValue(false);
+
+    render(<PerpsHomeView />);
+
+    expect(mockUsePerpsTopMovers).toHaveBeenCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
   });
 
   describe('Feedback Feature', () => {
