@@ -19,6 +19,7 @@ import { ACCOUNT_ACTIVITY_WS } from '../websocket/constants.ts';
 import { execSync } from 'child_process';
 import type { CurrentDeviceDetails } from './fixtures/playwright';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
+import { PlatformDetector } from './PlatformLocator.ts';
 
 const logger = createPlaywrightLogger('PlaywrightUtilities');
 
@@ -78,6 +79,36 @@ export function getDriver(): WebdriverIO.Browser {
   const drv = globalThis.driver;
   if (!drv) throw new Error('driver is not available');
   return drv;
+}
+
+interface AppiumDeepLinkArgs {
+  url: string;
+  package?: string;
+}
+
+/**
+ * Opens a deep link via Appium `mobile: deepLink`.
+ * On Android, scopes the intent to the active app package so the system
+ * "Open with" chooser is not shown (see launchAppAndroidForDebugBuild).
+ */
+export async function executeMobileDeepLink(url: string): Promise<void> {
+  const drv = getDriver();
+  const args: AppiumDeepLinkArgs = { url };
+
+  if (PlatformDetector.isAndroid()) {
+    const caps = drv.capabilities as WebdriverIO.Capabilities & {
+      'appium:appPackage'?: string;
+    };
+    const pkg = (caps['appium:appPackage'] ?? caps.appPackage)?.trim();
+    if (!pkg) {
+      throw new Error(
+        'Android mobile: deepLink requires appium:appPackage in session capabilities.',
+      );
+    }
+    args.package = pkg;
+  }
+
+  await drv.execute('mobile: deepLink', args);
 }
 
 /**
@@ -627,10 +658,7 @@ class PlaywrightUtilities {
     });
 
     logger.debug(`Opening Android debug deep link in ${pkg}: ${deepLinkUrl}`);
-    await drv.execute('mobile: deepLink', {
-      url: deepLinkUrl,
-      package: pkg,
-    });
+    await executeMobileDeepLink(deepLinkUrl);
     await new Promise((resolve) =>
       setTimeout(resolve, ANDROID_POST_DEEPLINK_SETTLE_MS),
     );
@@ -651,7 +679,7 @@ class PlaywrightUtilities {
       this.getDevLauncherPackagerUrl('ios'),
     );
     logger.debug(`Opening iOS debug deep link: ${deepLinkUrl}`);
-    await getDriver().execute('mobile: deepLink', { url: deepLinkUrl });
+    await executeMobileDeepLink(deepLinkUrl);
   }
 
   /**

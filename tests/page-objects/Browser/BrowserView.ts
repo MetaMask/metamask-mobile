@@ -21,7 +21,7 @@ import { setActiveBrowserUrl } from '../../framework/ActiveBrowserUrl';
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { PlatformDetector } from '../../framework/PlatformLocator';
-import { getDriver } from '../../framework/PlaywrightUtilities';
+import { executeMobileDeepLink } from '../../framework/PlaywrightUtilities';
 import { sleep } from '../../framework/Utilities';
 
 interface TransactionParams {
@@ -191,13 +191,10 @@ class Browser {
    * Reliable on Appium where the URL TextInput is often not exposed.
    */
   private async navigateToUrlViaDeeplink(url: string): Promise<void> {
-    const drv = getDriver();
-    if (!drv) throw new Error('Driver is not available');
-
     const hostAndPath = url.replace(/^https?:\/\//, '');
     const deeplink = `dapp://${hostAndPath}`;
 
-    await drv.execute('mobile: deepLink', { url: deeplink });
+    await executeMobileDeepLink(deeplink);
     await sleep(3_000);
   }
 
