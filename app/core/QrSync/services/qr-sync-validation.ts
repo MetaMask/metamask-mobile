@@ -82,7 +82,7 @@ export function isQrSyncSessionRequest(data: unknown): data is SessionRequest {
   }
 
   try {
-    const decoded = Buffer.from(sessionRequest.publicKeyB64, 'base64');
+    const decoded = base64ToBytes(sessionRequest.publicKeyB64);
     if (decoded.length !== 33) {
       return false;
     }
