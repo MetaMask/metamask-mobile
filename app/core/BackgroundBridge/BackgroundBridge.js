@@ -64,6 +64,7 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
   getPermittedAccountsForScopes,
+  getSessionProperties,
   getSessionScopes,
   KnownSessionProperties,
 } from '@metamask/chain-agnostic-permission';
@@ -77,6 +78,10 @@ import {
   getRemovedAuthorization,
 } from '../../util/permissions';
 import { createEip5792Middleware } from '../RPCMethods/createEip5792Middleware';
+import {
+  buildGetCapabilitiesHooks,
+  getSessionCapabilities,
+} from '../RPCMethods/getSessionCapabilities';
 import { createOriginThrottlingMiddleware } from '../RPCMethods/OriginThrottlingMiddleware';
 import { getAuthorizedScopes } from '../../selectors/permissions';
 import {
@@ -91,8 +96,6 @@ import { parseCaipAccountId } from '@metamask/utils';
 import { toFormattedAddress, areAddressesEqual } from '../../util/address';
 import { isSameOrigin } from '../../util/url';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import { isRelaySupported } from '../../util/transactions/transaction-relay';
-import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
 import { AccountTreeController } from '@metamask/account-tree-controller';
 import { createTrustSignalsMiddleware } from '../RPCMethods/TrustSignalsMiddleware';
 import createDupeReqFilterStream from './createDupeReqFilterStream';
@@ -787,6 +790,7 @@ export class BackgroundBridge extends EventEmitter {
         ),
         sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
         trackSessionCreatedEvent: () => undefined,
+        getCapabilities: ({ address }) => getSessionCapabilities(address),
       }),
     );
 
@@ -916,38 +920,7 @@ export class BackgroundBridge extends EventEmitter {
       getCallsStatus: getCallsStatus.bind(null, Engine.controllerMessenger),
       getCapabilities: getCapabilities.bind(
         null,
-        {
-          getDismissSmartAccountSuggestionEnabled: () =>
-            Engine.context.PreferencesController.state
-              .dismissSmartAccountSuggestionEnabled,
-          getIsSmartTransaction: (chainId) =>
-            selectSmartTransactionsEnabled(store.getState(), chainId),
-          isAtomicBatchSupported:
-            Engine.context.TransactionController.isAtomicBatchSupported.bind(
-              Engine.context.TransactionController,
-            ),
-          isRelaySupported,
-          getSendBundleSupportedChains: async (chainIds) => {
-            const isAtomicBatchSupportedResult =
-              await Engine.context.TransactionController.isAtomicBatchSupported(
-                {
-                  address:
-                    Engine.context.AccountsController.getSelectedAccount()
-                      .address,
-                  chainIds,
-                },
-              );
-            return isAtomicBatchSupportedResult.reduce(
-              (acc, { chainId, isSupported }) => ({
-                ...acc,
-                [chainId]: isSupported,
-              }),
-              {},
-            );
-          },
-          isAuxiliaryFundsSupported: (chainId) =>
-            ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId),
-        },
+        buildGetCapabilitiesHooks(),
         Engine.controllerMessenger,
       ),
     });
@@ -1094,7 +1067,12 @@ export class BackgroundBridge extends EventEmitter {
         });
       }
     });
-    this.notifyCaipAuthorizationChange(changedAuthorization);
+    this.notifyCaipAuthorizationChange(changedAuthorization).catch((err) => {
+      Logger.error(
+        err,
+        'BackgroundBridge: failed to notify CAIP authorization change',
+      );
+    });
   };
 
   handleSolanaAccountChangedFromScopeChanges = (
@@ -1227,7 +1205,12 @@ export class BackgroundBridge extends EventEmitter {
         Caip25CaveatType,
       );
       if (caip25Caveat) {
-        this.notifyCaipAuthorizationChange(caip25Caveat.value);
+        this.notifyCaipAuthorizationChange(caip25Caveat.value).catch((err) => {
+          Logger.error(
+            err,
+            'BackgroundBridge: failed to notify CAIP authorization change',
+          );
+        });
       }
     } catch (err) {
       if (err instanceof PermissionDoesNotExistError) {
@@ -1451,18 +1434,27 @@ export class BackgroundBridge extends EventEmitter {
   /**
    * Causes the Multichain RPC engine to emit a sessionChanged notification event with the given payload.
    * @param {object} newAuthorization - The new CAIP-25 authorization.
+   * @returns {Promise<void>} Resolves once the notification has been emitted.
    */
-  notifyCaipAuthorizationChange(newAuthorization) {
+  async notifyCaipAuthorizationChange(newAuthorization) {
     if (this.multichainEngine) {
       const sessionScopes = getSessionScopes(newAuthorization, {
         getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
         sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
       });
 
+      // Hydrate sessionProperties (including eip155Capabilities) so dapp-side
+      // caches stay fresh and can resolve wallet_getCapabilities locally without
+      // an extra round-trip to the wallet.
+      const sessionProperties = await getSessionProperties(newAuthorization, {
+        getCapabilities: ({ address }) => getSessionCapabilities(address),
+      });
+
       this.multichainEngine.emit('notification', {
         method: 'wallet_sessionChanged',
         params: {
           sessionScopes,
+          sessionProperties,
         },
       });
     }

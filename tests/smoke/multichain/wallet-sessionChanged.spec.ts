@@ -67,6 +67,18 @@ describe(SmokeMultiChainAPI('wallet_sessionChanged'), () => {
           'true',
         );
 
+        // Verify eip155 capabilities are published in sessionProperties so
+        // dapp-side caches can resolve wallet_getCapabilities locally.
+        const eip155Capabilities =
+          parsedEvent.params?.sessionProperties?.eip155Capabilities;
+        await Assertions.checkIfValueIsDefined(eip155Capabilities);
+        await Assertions.checkIfTextMatches(
+          typeof eip155Capabilities === 'object' && eip155Capabilities !== null
+            ? 'true'
+            : 'false',
+          'true',
+        );
+
         console.log(
           '✅ wallet_sessionChanged test passed - event triggered correctly',
         );

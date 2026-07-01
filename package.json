@@ -2,6 +2,16 @@
   "name": "metamask",
   "version": "8.2.0",
   "private": true,
+  "previewBuilds": {
+    "@metamask/multichain-api-middleware": {
+      "type": "non-breaking",
+      "previewVersion": "3.1.5-preview-43e6d6596"
+    },
+    "@metamask/chain-agnostic-permission": {
+      "type": "non-breaking",
+      "previewVersion": "1.6.2-preview-43e6d6596"
+    }
+  },
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
     "anvil": "node_modules/.bin/anvil",

@@ -110,6 +110,13 @@ jest.mock('../Permissions', () => ({
   getPermittedAccounts: jest.fn(),
 }));
 
+jest.mock('../RPCMethods/getSessionCapabilities', () => ({
+  buildGetCapabilitiesHooks: jest.fn(() => ({})),
+  getSessionCapabilities: jest.fn(async () => ({
+    '0x1': { atomic: { status: 'supported' } },
+  })),
+}));
+
 jest.mock('@metamask/eth-query', () => () => ({
   sendAsync: jest.fn().mockResolvedValue(1),
 }));
@@ -1804,7 +1811,7 @@ describe('BackgroundBridge', () => {
   });
 
   describe('notifyCaipAuthorizationChange', () => {
-    it('emits a wallet_sessionChanged notification with session scopes', () => {
+    it('emits a wallet_sessionChanged notification with session scopes and eip155 capabilities', async () => {
       const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       bridge.multichainEngine = { emit: jest.fn() };
@@ -1820,17 +1827,19 @@ describe('BackgroundBridge', () => {
         sessionProperties: {},
       };
 
-      bridge.notifyCaipAuthorizationChange(authorization);
+      await bridge.notifyCaipAuthorizationChange(authorization);
 
-      expect(bridge.multichainEngine.emit).toHaveBeenCalledWith(
-        'notification',
-        expect.objectContaining({
-          method: 'wallet_sessionChanged',
-          params: expect.objectContaining({
-            sessionScopes: expect.any(Object),
-          }),
-        }),
-      );
+      expect(bridge.multichainEngine.emit).toHaveBeenCalledTimes(1);
+      const [event, payload] = bridge.multichainEngine.emit.mock.calls[0];
+      expect(event).toBe('notification');
+      expect(payload.method).toBe('wallet_sessionChanged');
+      expect(payload.params.sessionScopes).toEqual(expect.any(Object));
+
+      const { eip155Capabilities } = payload.params.sessionProperties;
+      expect(Object.keys(eip155Capabilities)).toHaveLength(1);
+      expect(Object.values(eip155Capabilities)[0]).toStrictEqual({
+        '0x1': { atomic: { status: 'supported' } },
+      });
     });
   });
 });

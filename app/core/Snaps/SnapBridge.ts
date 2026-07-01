@@ -51,6 +51,7 @@ import {
 import { MultichainRoutingService } from '@metamask/snaps-controllers';
 import { asLegacyMiddleware } from '@metamask/json-rpc-engine/v2';
 import { sortMultichainAccountsByLastSelected } from '../Permissions';
+import { getSessionCapabilities } from '../RPCMethods/getSessionCapabilities';
 
 /**
  * Type definition for the GetRPCMethodMiddleware function.
@@ -307,6 +308,8 @@ export default class SnapBridge {
         ),
         sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
         trackSessionCreatedEvent: () => undefined,
+        getCapabilities: ({ address }: { address: string }) =>
+          getSessionCapabilities(address),
       }),
     );
 
