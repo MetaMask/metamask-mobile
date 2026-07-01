@@ -485,4 +485,88 @@ describe('useBalanceChanges', () => {
     });
     expect(changes[1].amount).toEqual(new BigNumber('0.002'));
   });
+
+  describe('referential stability', () => {
+    const tokenChange = {
+      ...dummyBalanceChange,
+      difference: DIFFERENCE_1_MOCK,
+      isDecrease: true,
+      address: ERC20_TOKEN_ADDRESS_1_MOCK,
+      standard: SimulationTokenStandard.erc20,
+    };
+
+    it('returns a stable value reference across re-renders with identical inputs', async () => {
+      const simulationData: SimulationData = {
+        nativeBalanceChange: undefined,
+        tokenBalanceChanges: [tokenChange],
+      };
+      const { result, rerender } = renderHook(
+        (props: Parameters<typeof useBalanceChanges>[0]) =>
+          useBalanceChanges(props),
+        {
+          initialProps: {
+            chainId: CHAIN_ID_MOCK,
+            simulationData,
+            networkClientId: NETWORK_CLIENT_ID_MOCK,
+          },
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.pending).toBe(false);
+      });
+
+      const firstValue = result.current.value;
+
+      // Re-render with the exact same inputs.
+      rerender({
+        chainId: CHAIN_ID_MOCK,
+        simulationData,
+        networkClientId: NETWORK_CLIENT_ID_MOCK,
+      });
+
+      expect(result.current.value).toBe(firstValue);
+    });
+
+    it('does not re-fetch token decimals when the address set is unchanged by content', async () => {
+      const { result, rerender } = renderHook(
+        (props: Parameters<typeof useBalanceChanges>[0]) =>
+          useBalanceChanges(props),
+        {
+          initialProps: {
+            chainId: CHAIN_ID_MOCK,
+            simulationData: {
+              nativeBalanceChange: undefined,
+              tokenBalanceChanges: [tokenChange],
+            } as SimulationData,
+            networkClientId: NETWORK_CLIENT_ID_MOCK,
+          },
+        },
+      );
+
+      await waitFor(() => {
+        expect(result.current.pending).toBe(false);
+      });
+
+      const decimalsCalls = mockGetTokenDetails.mock.calls.length;
+      const rateCalls = mockFetchTokenContractExchangeRates.mock.calls.length;
+
+      // New simulationData object resolving to the same ERC20 address set; the
+      // stabilized join key should prevent the async decimals/rate fetches
+      // (which all depend on it) from re-running.
+      rerender({
+        chainId: CHAIN_ID_MOCK,
+        simulationData: {
+          nativeBalanceChange: undefined,
+          tokenBalanceChanges: [{ ...tokenChange }],
+        } as SimulationData,
+        networkClientId: NETWORK_CLIENT_ID_MOCK,
+      });
+
+      expect(mockGetTokenDetails.mock.calls.length).toBe(decimalsCalls);
+      expect(mockFetchTokenContractExchangeRates.mock.calls.length).toBe(
+        rateCalls,
+      );
+    });
+  });
 });
