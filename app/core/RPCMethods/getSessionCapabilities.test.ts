@@ -1,6 +1,8 @@
 import { getCapabilities } from '@metamask/eip-5792-middleware';
+import { getPermittedEthChainIds } from '@metamask/chain-agnostic-permission';
 import {
   buildGetCapabilitiesHooks,
+  getPermittedEip155ChainIds,
   getSessionCapabilities,
 } from './getSessionCapabilities';
 import Engine from '../Engine';
@@ -10,6 +12,12 @@ import { isRelaySupported } from '../../util/transactions/transaction-relay';
 
 jest.mock('@metamask/eip-5792-middleware', () => ({
   getCapabilities: jest.fn(),
+}));
+
+jest.mock('@metamask/chain-agnostic-permission', () => ({
+  Caip25CaveatType: 'authorizedScopes',
+  Caip25EndowmentPermissionName: 'endowment:caip25',
+  getPermittedEthChainIds: jest.fn(),
 }));
 
 jest.mock('@metamask/bridge-controller', () => ({
@@ -45,6 +53,9 @@ jest.mock('../Engine', () => ({
       getSelectedAccount: jest.fn(() => ({
         address: '0x1234567890123456789012345678901234567890',
       })),
+    },
+    PermissionController: {
+      getCaveat: jest.fn(),
     },
   },
 }));
@@ -197,6 +208,53 @@ describe('getSessionCapabilities', () => {
         address: targetAddress,
         chainIds: ['0x1'],
       });
+    });
+
+    it('forwards chainIds to the eip-5792 getCapabilities', () => {
+      mockGetCapabilities.mockReturnValue({} as never);
+
+      getSessionCapabilities(SELECTED_ADDRESS, ['0x1', '0xa']);
+
+      const [, , address, chainIds] = mockGetCapabilities.mock.calls[0];
+      expect(address).toBe(SELECTED_ADDRESS);
+      expect(chainIds).toStrictEqual(['0x1', '0xa']);
+    });
+  });
+
+  describe('getPermittedEip155ChainIds', () => {
+    it('returns the permitted eip155 chain ids from the CAIP-25 caveat', () => {
+      const caveatValue = { requiredScopes: {}, optionalScopes: {} };
+      jest
+        .mocked(Engine.context.PermissionController.getCaveat)
+        .mockReturnValue({
+          type: 'authorizedScopes',
+          value: caveatValue,
+        } as never);
+      jest.mocked(getPermittedEthChainIds).mockReturnValue(['0x1', '0x2105']);
+
+      const result = getPermittedEip155ChainIds('https://dapp.example');
+
+      expect(
+        Engine.context.PermissionController.getCaveat,
+      ).toHaveBeenCalledWith(
+        'https://dapp.example',
+        'endowment:caip25',
+        'authorizedScopes',
+      );
+      expect(getPermittedEthChainIds).toHaveBeenCalledWith(caveatValue);
+      expect(result).toStrictEqual(['0x1', '0x2105']);
+    });
+
+    it('returns undefined when the caveat lookup throws', () => {
+      jest
+        .mocked(Engine.context.PermissionController.getCaveat)
+        .mockImplementation(() => {
+          throw new Error('permission does not exist');
+        });
+
+      expect(
+        getPermittedEip155ChainIds('https://dapp.example'),
+      ).toBeUndefined();
     });
   });
 });

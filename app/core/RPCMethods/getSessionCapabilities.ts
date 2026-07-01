@@ -2,6 +2,12 @@ import {
   getCapabilities,
   type EIP5792Messenger,
 } from '@metamask/eip-5792-middleware';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+  getPermittedEthChainIds,
+  type Caip25CaveatValue,
+} from '@metamask/chain-agnostic-permission';
 import { ALLOWED_BRIDGE_CHAIN_IDS } from '@metamask/bridge-controller';
 import type { Hex } from '@metamask/utils';
 
@@ -59,21 +65,51 @@ export function buildGetCapabilitiesHooks(targetAddress?: Hex) {
 }
 
 /**
- * Computes EIP-5792 capabilities for a single address across all configured
- * chains. Matches the multichain session `getCapabilities` hook signature so it
- * can hydrate `sessionProperties.eip155Capabilities` on `wallet_createSession`,
+ * Computes EIP-5792 capabilities for a single address. Matches the multichain
+ * session `getCapabilities` hook signature so it can hydrate
+ * `sessionProperties.eip155Capabilities` on `wallet_createSession`,
  * `wallet_getSession`, and `wallet_sessionChanged`.
  *
  * @param address - The EVM address to compute capabilities for.
+ * @param chainIds - Chains to compute capabilities for; `undefined` (or empty)
+ * means all configured chains. Session hydration passes the session's
+ * permitted eip155 chains so we neither fan out RPC calls to, nor disclose,
+ * networks the dapp was not granted. Intentional divergence: a direct
+ * `wallet_getCapabilities` answered by the wallet still covers all configured
+ * chains.
  * @returns Per-chain capabilities keyed by chain ID.
  */
 export function getSessionCapabilities(
   address: string,
+  chainIds?: Hex[],
 ): ReturnType<typeof getCapabilities> {
   return getCapabilities(
     buildGetCapabilitiesHooks(address as Hex),
     Engine.controllerMessenger as unknown as EIP5792Messenger,
     address as Hex,
-    undefined,
+    chainIds,
   );
+}
+
+/**
+ * Resolves the eip155 chain IDs permitted by an origin's CAIP-25 caveat, for
+ * scoping session capability hydration. Must be called at hook-call time (not
+ * at middleware build time): `wallet_createSession` grants the permission
+ * before hydrating session properties, so the fresh caveat is visible here.
+ *
+ * @param origin - The origin (or channelId / snapId) holding the permission.
+ * @returns The permitted chain IDs, or `undefined` (= all configured chains,
+ * the pre-scoping behavior) when the caveat is missing or the lookup fails.
+ */
+export function getPermittedEip155ChainIds(origin: string): Hex[] | undefined {
+  try {
+    const caveat = Engine.context.PermissionController.getCaveat(
+      origin,
+      Caip25EndowmentPermissionName,
+      Caip25CaveatType,
+    );
+    return getPermittedEthChainIds(caveat.value as Caip25CaveatValue);
+  } catch {
+    return undefined;
+  }
 }
