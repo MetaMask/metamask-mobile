@@ -141,4 +141,144 @@ describe('pagination/priceApi', () => {
     expect(result.olderBars).toHaveLength(1);
     expect(result.olderBars[0].time).toBe(50);
   });
+
+  it('reports HTTP non-ok response to RN and returns noData', async () => {
+    const bridge = installRNBridge();
+    setOhlcvPagination({
+      nextCursor: 'abc',
+      hasMore: true,
+      assetId: 'a',
+      vsCurrency: 'usd',
+    });
+    (globalThis as { fetch?: typeof fetch }).fetch = jest
+      .fn()
+      .mockResolvedValue({
+        ok: false,
+        status: 429,
+        json: () => Promise.resolve({}),
+      } as unknown as Response) as unknown as typeof fetch;
+
+    const result = await fetchOlderBarsFromPriceApi({ oldestAtDefer: 100 });
+
+    expect(result).toEqual({ olderBars: [], noData: true });
+    expect(bridge.postMessage).toHaveBeenCalledWith(
+      expect.stringContaining('"message":"OHLCV API error: 429"'),
+    );
+  });
+
+  it('returns noData silently when generation is stale on HTTP error', async () => {
+    const bridge = installRNBridge();
+    setOhlcvPagination({
+      nextCursor: 'abc',
+      hasMore: true,
+      assetId: 'a',
+      vsCurrency: 'usd',
+    });
+    (globalThis as { fetch?: typeof fetch }).fetch = jest
+      .fn()
+      .mockImplementation(() => {
+        bumpOhlcvGeneration();
+        return Promise.resolve({
+          ok: false,
+          status: 500,
+          json: () => Promise.resolve({}),
+        } as unknown as Response);
+      }) as unknown as typeof fetch;
+
+    const result = await fetchOlderBarsFromPriceApi({ oldestAtDefer: 100 });
+
+    expect(result).toEqual({ olderBars: [], noData: true });
+    // Should NOT report error because generation changed
+    expect(bridge.postMessage).not.toHaveBeenCalled();
+  });
+
+  it('reports JSON parse failure to RN and returns noData', async () => {
+    const bridge = installRNBridge();
+    setOhlcvPagination({
+      nextCursor: 'abc',
+      hasMore: true,
+      assetId: 'a',
+      vsCurrency: 'usd',
+    });
+    (globalThis as { fetch?: typeof fetch }).fetch = jest
+      .fn()
+      .mockResolvedValue({
+        ok: true,
+        json: () => Promise.reject(new Error('Unexpected token')),
+      } as unknown as Response) as unknown as typeof fetch;
+
+    const result = await fetchOlderBarsFromPriceApi({ oldestAtDefer: 100 });
+
+    expect(result).toEqual({ olderBars: [], noData: true });
+    expect(bridge.postMessage).toHaveBeenCalledWith(
+      expect.stringContaining('"message":"Unexpected token"'),
+    );
+  });
+
+  it('reports invalid payload when data is not an array', async () => {
+    const bridge = installRNBridge();
+    setOhlcvPagination({
+      nextCursor: 'abc',
+      hasMore: true,
+      assetId: 'a',
+      vsCurrency: 'usd',
+    });
+    (globalThis as { fetch?: typeof fetch }).fetch = mockFetchOk({
+      data: 'not-an-array',
+      nextCursor: null,
+      hasNext: false,
+    }) as unknown as typeof fetch;
+
+    const result = await fetchOlderBarsFromPriceApi({ oldestAtDefer: 100 });
+
+    expect(result).toEqual({ olderBars: [], noData: true });
+    expect(bridge.postMessage).toHaveBeenCalledWith(
+      expect.stringContaining(
+        '"message":"OHLCV API response: invalid payload"',
+      ),
+    );
+  });
+
+  it('omits vsCurrency param from URL when vsCurrency is null', async () => {
+    setOhlcvPagination({
+      nextCursor: 'abc',
+      hasMore: true,
+      assetId: 'eip155:1/slip44:60',
+      vsCurrency: null,
+    });
+    (globalThis as { fetch?: typeof fetch }).fetch = mockFetchOk({
+      data: [],
+      nextCursor: null,
+      hasNext: false,
+    }) as unknown as typeof fetch;
+
+    await fetchOlderBarsFromPriceApi({ oldestAtDefer: 100 });
+
+    const calledUrl = ((globalThis as { fetch?: jest.Mock }).fetch as jest.Mock)
+      .mock.calls[0][0] as string;
+    expect(calledUrl).toBe(
+      `${OHLCV_BASE_URL}/eip155:1/slip44:60?nextCursor=abc`,
+    );
+    expect(calledUrl).not.toContain('vsCurrency');
+  });
+
+  it('does not prepend or notify when response yields zero bars', async () => {
+    setOhlcvPagination({
+      nextCursor: 'abc',
+      hasMore: true,
+      assetId: 'a',
+      vsCurrency: 'usd',
+    });
+    (globalThis as { fetch?: typeof fetch }).fetch = mockFetchOk({
+      data: [],
+      nextCursor: null,
+      hasNext: false,
+    }) as unknown as typeof fetch;
+
+    const result = await fetchOlderBarsFromPriceApi({ oldestAtDefer: 100 });
+
+    expect(result).toEqual({ olderBars: [], noData: true });
+    // State should remain empty — prependOhlcvBars was never called
+    expect(getOhlcvData()).toHaveLength(0);
+  });
 });
