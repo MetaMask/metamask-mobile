@@ -19,7 +19,7 @@ import { BOTTOM_SHEET_NAMES } from '../../constants/moneyEvents';
 import useMountEffect from '../../hooks/useMountEffect';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
-import { AppStackNavigationProp } from '../../../../../core/NavigationService/types';
+import { AppNavigationProp } from '../../../../../core/NavigationService/types';
 
 interface MoneyDeeplinkModalParams {
   title?: string;
@@ -27,7 +27,7 @@ interface MoneyDeeplinkModalParams {
 }
 
 const MoneyDeeplinkModal = () => {
-  const navigation = useNavigation<AppStackNavigationProp>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const route =
     useRoute<RouteProp<{ params: MoneyDeeplinkModalParams }, 'params'>>();
