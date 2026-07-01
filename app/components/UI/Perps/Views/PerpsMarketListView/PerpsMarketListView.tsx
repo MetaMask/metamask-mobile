@@ -392,6 +392,7 @@ const PerpsMarketListView = ({
         <ScrollView
           style={styles.watchlistScrollContainer}
           contentContainerStyle={listContentContainerStyle}
+          showsVerticalScrollIndicator={false}
         >
           <PerpsWatchlistMarkets
             markets={visibleWatchlistMarkets}
