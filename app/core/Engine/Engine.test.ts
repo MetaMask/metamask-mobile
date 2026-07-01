@@ -1376,18 +1376,13 @@ describe('Engine', () => {
 
     const publishBalanceUpdated = (
       engine: ReturnType<typeof Engine.init>,
-      payload: {
-        address: string;
-        chain: string;
-        updates: unknown[];
-      },
-    ) => {
+      payload: { address: string; chain: string; updates: unknown[] },
+    ) =>
       (
         engine.controllerMessenger as {
           publish: (event: string, data: unknown) => void;
         }
       ).publish('AccountActivityService:balanceUpdated', payload);
-    };
 
     const makeStoreMock = (assetsUnifyEnabled: boolean) => ({
       onboarding: { completedOnboarding: true },
