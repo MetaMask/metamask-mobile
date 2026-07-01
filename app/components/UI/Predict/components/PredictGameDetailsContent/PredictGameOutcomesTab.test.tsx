@@ -263,11 +263,6 @@ const mockWorldCupGame: PredictMarketGame = {
   league: 'fifwc',
 };
 
-const mockWorldCupGame: PredictMarketGame = {
-  ...mockGame,
-  league: 'fifwc',
-};
-
 describe('PredictGameOutcomesTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
