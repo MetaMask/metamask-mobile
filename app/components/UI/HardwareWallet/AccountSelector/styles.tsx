@@ -36,9 +36,6 @@ export const createStyle = (colors: any) =>
       paddingHorizontal: 10,
       paddingVertical: 5,
     },
-    checkBox: {
-      backgroundColor: colors.background.default,
-    },
     number: {
       ...fontStyles.normal,
       color: colors.text.default,
