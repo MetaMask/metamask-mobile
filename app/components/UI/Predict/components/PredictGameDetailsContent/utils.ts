@@ -16,6 +16,12 @@ const I18N_PREFIX = 'predict.sports_market_types';
 const MISSING_TRANSLATION_PREFIX = '[missing';
 const loggedMissingTranslationKeys = new Set<string>();
 const O_U_PLAYER_PATTERN = /^(.+?):\s+\w+ O\/U/;
+const FIFA_WORLD_CUP_LEAGUE = 'fifwc';
+
+const WORLD_CUP_MARKET_TYPE_LABEL_KEYS: Record<string, string> = {
+  moneyline: 'predict.world_cup.market_info.regulation_time_winner.title',
+  soccer_team_to_advance: 'predict.world_cup.market_info.team_to_advance.title',
+};
 
 export type BuyHandler = (
   outcome: PredictOutcome,
@@ -66,6 +72,26 @@ export const getSportsMarketTypeLabel = (
   getTranslatedSportsMarketTypeLabel(type) ??
   fallbackTitle ??
   toTitleCase(type);
+
+const getWorldCupSportsMarketTypeLabel = (
+  type?: string,
+  game?: PredictMarketGame,
+): string | undefined => {
+  if (!type || game?.league !== FIFA_WORLD_CUP_LEAGUE) {
+    return undefined;
+  }
+
+  const key = WORLD_CUP_MARKET_TYPE_LABEL_KEYS[type.toLowerCase()];
+  return key ? strings(key) : undefined;
+};
+
+export const getSportsMarketTypeLabelForGame = (
+  type: string,
+  fallbackTitle?: string,
+  game?: PredictMarketGame,
+): string =>
+  getWorldCupSportsMarketTypeLabel(type, game) ??
+  getSportsMarketTypeLabel(type, fallbackTitle);
 
 export const getFallbackSportsMarketTypeLabel = (
   type: string,
@@ -122,8 +148,31 @@ const getButtonVariant = (
   return index === 0 ? 'yes' : 'no';
 };
 
+const getTokenLabel = (token: PredictOutcomeToken): string =>
+  token.shortTitle ?? token.title;
+
+const isYesNoLabel = (label: string): boolean => {
+  const normalized = label.trim().toLowerCase();
+  return normalized === 'yes' || normalized === 'no';
+};
+
+/**
+ * Plain binary markets (e.g. Extra Time?, Penalty Shootout?) have exactly two
+ * Yes/No tokens and are not team-based, so they should render Yes (yes) and No
+ * (no) buttons rather than the neutral "draw" styling used for other
+ * non-moneyline outcomes.
+ */
+const isBinaryYesNoTokens = (tokens: PredictOutcomeToken[]): boolean =>
+  tokens.length === 2 &&
+  tokens.every((token) => isYesNoLabel(getTokenLabel(token)));
+
+// Caller must guarantee the label is "Yes"/"No" (see isBinaryYesNoTokens);
+// any other value falls back to the "no" variant.
+const getYesNoVariant = (label: string): PredictBetButtonVariant =>
+  label.trim().toLowerCase() === 'yes' ? 'yes' : 'no';
+
 const isNeutralMoneylineToken = (token: PredictOutcomeToken): boolean => {
-  const label = (token.shortTitle ?? token.title).trim().toLowerCase();
+  const label = getTokenLabel(token).trim().toLowerCase();
   return label.startsWith('draw') || label.startsWith('neither');
 };
 
@@ -133,7 +182,7 @@ const getTeamOrder = (
 ): number => {
   if (!game) return 1;
 
-  const label = (token.shortTitle ?? token.title).trim().toLowerCase();
+  const label = getTokenLabel(token).trim().toLowerCase();
   const homeLabels = [
     game.homeTeam.abbreviation,
     game.homeTeam.name,
@@ -184,16 +233,20 @@ export const buildButtons = (
   const tokens = moneyline
     ? sortMoneylineTokensForDisplay(outcome.tokens, game)
     : outcome.tokens;
+  const binaryYesNo = !moneyline && isBinaryYesNoTokens(tokens);
 
-  return tokens.map((token, index) => ({
-    label: token.shortTitle ?? token.title,
-    price: Math.round(token.price * 100),
-    onPress: () => onBuyPress(outcome, token),
-    variant: getButtonVariant(index, tokens.length, moneyline),
-    teamColor: moneyline
-      ? getTeamColor(token.shortTitle ?? token.title, game)
-      : undefined,
-  }));
+  return tokens.map((token, index) => {
+    const label = getTokenLabel(token);
+    return {
+      label,
+      price: Math.round(token.price * 100),
+      onPress: () => onBuyPress(outcome, token),
+      variant: binaryYesNo
+        ? getYesNoVariant(label)
+        : getButtonVariant(index, tokens.length, moneyline),
+      teamColor: moneyline ? getTeamColor(label, game) : undefined,
+    };
+  });
 };
 
 export const buildSubtitle = (outcome: PredictOutcome): string =>
@@ -310,12 +363,13 @@ export const buildMoneylineButtons = (
     const liveBestAsk = getPrice?.(token.id)?.bestAsk;
     const price = isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
 
+    const label = getTokenLabel(token);
     return {
-      label: token.shortTitle ?? token.title,
+      label,
       price: Math.round(price * 100),
       onPress: () => onBuyPress(outcome, token),
       variant: getButtonVariant(i, buttonEntries.length, true),
-      teamColor: getTeamColor(token.shortTitle ?? token.title, game),
+      teamColor: getTeamColor(label, game),
     };
   });
 };
