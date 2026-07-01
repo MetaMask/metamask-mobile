@@ -672,6 +672,91 @@ describe('PerpsChartFullscreenModal', () => {
       );
       expect(mockOnClose).not.toHaveBeenCalled();
     });
+
+    it('tracks lightweight fallback view after advanced screen view was already tracked', async () => {
+      render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          isAdvancedChartEnabled
+          symbol="BTC"
+        />,
+      );
+
+      const latestAdvancedChartProps =
+        mockPerpsAdvancedChart.mock.calls[
+          mockPerpsAdvancedChart.mock.calls.length - 1
+        ][0];
+      latestAdvancedChartProps.onSkeletonHidden();
+
+      await act(async () => {
+        latestAdvancedChartProps.onError();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+    });
+
+    it('does not reset fallback chart attribution after an interval change', async () => {
+      const { rerender } = render(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          isAdvancedChartEnabled
+          symbol="BTC"
+        />,
+      );
+
+      const latestAdvancedChartProps =
+        mockPerpsAdvancedChart.mock.calls[
+          mockPerpsAdvancedChart.mock.calls.length - 1
+        ][0];
+
+      await act(async () => {
+        latestAdvancedChartProps.onError();
+      });
+      mockTrack.mockClear();
+
+      rerender(
+        <PerpsChartFullscreenModal
+          {...defaultProps}
+          isVisible
+          isAdvancedChartEnabled
+          selectedInterval={CandlePeriod.FifteenMinutes}
+          symbol="BTC"
+        />,
+      );
+
+      const latestAfterIntervalChangeProps =
+        mockPerpsAdvancedChart.mock.calls[
+          mockPerpsAdvancedChart.mock.calls.length - 1
+        ][0];
+      latestAfterIntervalChangeProps.onSkeletonHidden();
+
+      expect(mockTrack).not.toHaveBeenCalled();
+    });
   });
 
   describe('OHLCV Bar', () => {

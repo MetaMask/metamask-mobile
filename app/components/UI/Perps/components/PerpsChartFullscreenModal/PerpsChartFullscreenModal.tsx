@@ -79,7 +79,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   const chartRef = React.useRef<TradingViewChartRef>(null);
   const previousIntervalRef = useRef<CandlePeriod | null>(null);
   const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
-  const hasTrackedScreenViewRef = useRef(false);
+  const trackedScreenViewLibrariesRef = useRef<Set<string>>(new Set());
   // Initialize with screen height to avoid flash of incorrect size
   const [chartHeight, setChartHeight] = useState<number>(
     Dimensions.get('window').height *
@@ -98,7 +98,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   );
   useEffect(() => {
     setEffectiveChartLibrary(configuredChartLibrary);
-  }, [configuredChartLibrary, isVisible, selectedInterval, symbol]);
+  }, [configuredChartLibrary, isVisible, symbol]);
   const chartAnalyticsProperties = useMemo(
     () => getPerpsChartAnalyticsPropertiesForLibrary(effectiveChartLibrary),
     [effectiveChartLibrary],
@@ -118,14 +118,25 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   useEffect(() => {
     if (!isVisible) return;
 
-    hasTrackedScreenViewRef.current = false;
-  }, [isAdvancedChartEnabled, isVisible, selectedInterval, symbol]);
+    trackedScreenViewLibrariesRef.current = new Set();
+  }, [isAdvancedChartEnabled, isVisible, symbol]);
 
   const trackFullscreenChartScreenViewed = useCallback(
     (chartLibrary?: string) => {
-      if (!isVisible || !symbol || hasTrackedScreenViewRef.current) return;
+      if (!isVisible || !symbol) return;
 
-      hasTrackedScreenViewRef.current = true;
+      const trackedChartLibrary = chartLibrary ?? effectiveChartLibrary;
+      if (
+        trackedScreenViewLibrariesRef.current.has(
+          `${symbol}:${trackedChartLibrary}`,
+        )
+      ) {
+        return;
+      }
+
+      trackedScreenViewLibrariesRef.current.add(
+        `${symbol}:${trackedChartLibrary}`,
+      );
       const screenViewChartAnalyticsProperties = chartLibrary
         ? getPerpsChartAnalyticsPropertiesForLibrary(chartLibrary)
         : chartAnalyticsProperties;
@@ -136,7 +147,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
         ...screenViewChartAnalyticsProperties,
       });
     },
-    [chartAnalyticsProperties, isVisible, symbol, track],
+    [chartAnalyticsProperties, effectiveChartLibrary, isVisible, symbol, track],
   );
 
   useEffect(() => {
