@@ -2,11 +2,11 @@ import type { MessengerClientInitFunction } from '../../types';
 import {
   RampsController,
   RampsControllerMessenger,
-  getDefaultRampsControllerState,
 } from '@metamask/ramps-controller';
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
+import { prepareRampsControllerStartupState } from './prepareRampsControllerStartupState';
 
 /**
  * Opt-in for the Ramps WebSocket debug dashboard (`RAMPS_DEBUG_DASHBOARD=true` in `.js.env`).
@@ -30,8 +30,9 @@ export const rampsControllerInit: MessengerClientInitFunction<
   RampsControllerMessenger,
   RampsControllerInitMessenger
 > = ({ controllerMessenger, persistedState, initMessenger }) => {
-  const rampsControllerState =
-    persistedState.RampsController ?? getDefaultRampsControllerState();
+  const rampsControllerState = prepareRampsControllerStartupState(
+    persistedState.RampsController,
+  );
 
   const controller = new RampsController({
     messenger: controllerMessenger,
@@ -58,7 +59,7 @@ export const rampsControllerInit: MessengerClientInitFunction<
   const startRampsController = (): void => {
     registerOrderSubscriptions();
     controller
-      .init()
+      .init({ forceRefresh: true })
       .then(() => {
         controller.startOrderPolling();
       })
