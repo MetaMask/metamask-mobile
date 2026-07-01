@@ -98,6 +98,10 @@ const config = {
     '^@metamask/perps-controller/(.*)$':
       '<rootDir>/node_modules/@metamask/perps-controller/dist/$1.cjs',
     '^@nktkas/hyperliquid(/.*)?$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
+    // The perps-controller preview build was compiled with a local file:// path
+    // to the hyperliquid SDK source instead of the npm package reference.
+    // Redirect it to the same mock so Jest can resolve the module.
+    '^file://.*hyperliquid.*$': '<rootDir>/app/__mocks__/hyperliquidMock.js',
     '^@myx-trade/sdk(/.*)?$': '<rootDir>/app/__mocks__/@myx-trade/sdk.js',
     '^expo-auth-session(/.*)?$': '<rootDir>/app/__mocks__/expo-auth-session.js',
     '^expo-apple-authentication(/.*)?$':

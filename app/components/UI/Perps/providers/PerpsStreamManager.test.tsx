@@ -3334,6 +3334,7 @@ describe('PerpsStreamManager', () => {
       'account',
       'oiCaps',
       'topOfBook',
+      'focusedPrice',
       'candles',
     ] as const;
 
@@ -3433,6 +3434,115 @@ describe('PerpsStreamManager', () => {
       priceCallback([{ symbol: 'BTC', bestBid: '50000', bestAsk: '50001' }]);
 
       testStreamManager.topOfBook.clearCache();
+
+      expect(callback).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('FocusedPriceStreamChannel', () => {
+    it('subscribes with includeMarketData: true', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledWith({
+        symbols: ['BTC'],
+        includeMarketData: true,
+        callback: expect.any(Function),
+      });
+    });
+
+    it('delivers a PriceUpdate for the subscribed symbol', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+      priceCallback([
+        { symbol: 'BTC', price: '50000', markPrice: '50050' },
+        { symbol: 'ETH', price: '3000', markPrice: '3010' },
+      ]);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+      expect(callback).toHaveBeenCalledWith({
+        symbol: 'BTC',
+        price: '50000',
+        markPrice: '50050',
+      });
+    });
+
+    it('does not notify for unrelated symbols', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+      priceCallback([{ symbol: 'ETH', price: '3000', markPrice: '3010' }]);
+
+      expect(callback).not.toHaveBeenCalled();
+    });
+
+    it('does not subscribe when symbol is empty', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: '',
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).not.toHaveBeenCalled();
+    });
+
+    it('reconnects when a different symbol is requested', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+
+      // Simulate a new subscriber requesting a different symbol
+      const mockUnsubscribeBtc = mockSubscribeToPrices.mock.results[0].value;
+      if (typeof mockUnsubscribeBtc === 'function') {
+        // The channel should have stored this; force-invoke via subscribeToSymbol
+      }
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'ETH',
+        callback,
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith(
+        expect.objectContaining({ symbols: ['ETH'] }),
+      );
+    });
+
+    it('clears cache and notifies subscribers with undefined on clearCache', () => {
+      const callback = jest.fn();
+
+      testStreamManager.focusedPrice.subscribeToSymbol({
+        symbol: 'BTC',
+        callback,
+      });
+
+      const priceCallback = mockSubscribeToPrices.mock.calls[0][0].callback;
+      priceCallback([{ symbol: 'BTC', price: '50000', markPrice: '50050' }]);
+
+      expect(callback).toHaveBeenCalledTimes(1);
+
+      testStreamManager.focusedPrice.clearCache();
 
       expect(callback).toHaveBeenCalledWith(undefined);
     });
@@ -3983,6 +4093,10 @@ describe('PerpsStreamManager', () => {
         testStreamManager.topOfBook,
         'disconnect',
       );
+      const focusedPriceDisconnect = jest.spyOn(
+        testStreamManager.focusedPrice,
+        'disconnect',
+      );
       const candlesDisconnect = jest.spyOn(
         testStreamManager.candles,
         'disconnect',
@@ -4000,6 +4114,7 @@ describe('PerpsStreamManager', () => {
       expect(marketDataDisconnect).toHaveBeenCalledTimes(1);
       expect(oiCapsDisconnect).toHaveBeenCalledTimes(1);
       expect(topOfBookDisconnect).toHaveBeenCalledTimes(1);
+      expect(focusedPriceDisconnect).toHaveBeenCalledTimes(1);
       expect(candlesDisconnect).toHaveBeenCalledTimes(1);
 
       // Cleanup
@@ -4011,6 +4126,7 @@ describe('PerpsStreamManager', () => {
       marketDataDisconnect.mockRestore();
       oiCapsDisconnect.mockRestore();
       topOfBookDisconnect.mockRestore();
+      focusedPriceDisconnect.mockRestore();
       candlesDisconnect.mockRestore();
     });
 

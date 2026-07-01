@@ -133,6 +133,18 @@ module.exports = function (baseConfig) {
           ) {
             return { type: 'empty' };
           }
+          // The perps-controller preview build was compiled with a local file:// path
+          // to the hyperliquid SDK source instead of the npm package reference.
+          // Redirect to the installed @nktkas/hyperliquid package.
+          if (
+            moduleName.startsWith('file://') &&
+            moduleName.includes('hyperliquid')
+          ) {
+            return {
+              filePath: require.resolve('@nktkas/hyperliquid'),
+              type: 'sourceFile',
+            };
+          }
           // @ledgerhq packages use exports field subpath mapping (e.g. ./signers/index -> ./lib/signers/index.js)
           // which doesn't work with unstable_enablePackageExports: false — manually replicate the lib/ mapping
           // Affected: domain-service, evm-tools, devices, cryptoassets-evm-signatures
