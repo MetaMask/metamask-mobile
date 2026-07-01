@@ -207,6 +207,19 @@ export const PopularList = [
       imageSource: require('../../images/arc-network-logo.png'),
     },
   },
+  {
+    chainId: toHex('127001'),
+    nickname: 'Gravity',
+    rpcUrl: 'https://mainnet-rpc.gravity.xyz',
+    failoverRpcUrls: [],
+    ticker: 'G',
+    warning: true,
+    rpcPrefs: {
+      blockExplorerUrl: 'https://mainnet-explorer.gravity.xyz',
+      imageUrl: 'GRAVITY',
+      imageSource: require('../../images/gravity.png'),
+    },
+  },
 ];
 
 /**
