@@ -21,6 +21,12 @@ export const STATIC_ASSETS_MOCKS: MockEventsObject = {
       responseCode: 200,
       response: '',
     },
+    {
+      urlEndpoint:
+        /^https:\/\/static\.cx\.metamask\.io\/api\/v1\/tokenIcons\/\d+\/0x[a-fA-F0-9]+\.png$/,
+      responseCode: 200,
+      response: '',
+    },
   ],
   GET: [
     {
