@@ -28,7 +28,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
-import { clearOnboardingEvents } from '../../../actions/onboarding';
+import {
+  clearOnboardingEvents,
+  setWalletHomeOnboardingStepsEligible,
+} from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -59,10 +62,13 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import type { RootState } from '../../../reducers';
-import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
+import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 import Logger from '../../../util/Logger';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
+import Engine from '../../../core/Engine/Engine';
+import { discoverAccounts } from '../../../multichain-accounts/discovery';
+import { shouldMarkWalletHomeOnboardingStepsEligible } from '../../../util/onboarding/walletHomeOnboardingStepsEligibility';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -152,6 +158,20 @@ const OptinMetrics = () => {
   const continueNavigation = useCallback(async () => {
     await markMetricsOptInUISeen();
 
+    const successFlow = route?.params?.successFlow;
+    if (shouldMarkWalletHomeOnboardingStepsEligible(successFlow)) {
+      dispatch(
+        setWalletHomeOnboardingStepsEligible(true, {
+          skipInitialBalanceWait: true,
+        }),
+      );
+      discoverAccounts(
+        Engine.context.KeyringController.state.keyrings[0].metadata.id,
+      ).catch((error) => {
+        Logger.error(error as Error, 'OptinMetrics: discoverAccounts failed');
+      });
+    }
+
     const onContinue = route?.params?.onContinue as (() => void) | undefined;
     if (onContinue) {
       return onContinue();
@@ -160,7 +180,7 @@ const OptinMetrics = () => {
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
     });
-  }, [navigation, route?.params]);
+  }, [dispatch, navigation, route?.params]);
 
   /**
    * Callback on press confirm
@@ -249,15 +269,15 @@ const OptinMetrics = () => {
       continueNavigation();
     }
   }, [
-    isBasicUsageChecked,
-    isMarketingChecked,
-    events,
     metrics,
+    isBasicUsageChecked,
     dispatch,
-    continueNavigation,
+    isMarketingChecked,
     accountType,
+    events,
     getShouldShowQuestionnaire,
     navigation,
+    continueNavigation,
   ]);
 
   /**
@@ -376,6 +396,12 @@ const OptinMetrics = () => {
     [tw],
   );
 
+  const goToDefaultSettings = () => {
+    navigation.navigate(Routes.ONBOARDING.SUCCESS_FLOW, {
+      screen: Routes.ONBOARDING.DEFAULT_SETTINGS,
+    });
+  };
+
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={rootStyle}>
       <ScrollView
@@ -471,6 +497,7 @@ const OptinMetrics = () => {
                 </Text>
               </Text>
             </Pressable>
+
             <Pressable
               style={({ pressed }) =>
                 tw.style(
@@ -524,6 +551,20 @@ const OptinMetrics = () => {
                 {strings('privacy_policy.checkbox')}
               </Text>
             </Pressable>
+
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('privacy_policy.settings')}{' '}
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.PrimaryDefault}
+                onPress={goToDefaultSettings}
+              >
+                {strings('privacy_policy.settings_link')}
+              </Text>
+            </Text>
           </Box>
         </Box>
       </ScrollView>
