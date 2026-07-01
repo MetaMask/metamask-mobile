@@ -3,7 +3,7 @@
 Take Headless Buy (and its MM Pay / Money Account consumer) from native-only to all-provider support in two shippable phases:
 
 - **Phase 1** widens quoting to in-app WebView providers only, filtered at the quote layer, behind one scoped flag set to `in-app`. It needs none of the Phase 2 checkout work because external and custom-action quotes are filtered out.
-- **Phase 2** makes the external-browser and custom-action checkout paths headless-aware, then widens the SAME flag to `all`.
+- **Phase 2** makes the external-browser and custom-action checkout paths headless-aware, then widens the same flag to `all`.
 
 Native-only is never broken: the flag's `off` state falls back to native-only.
 
@@ -11,7 +11,7 @@ Companion to [PLAN.md](./PLAN.md) (the original Headless Buy plan).
 
 ## Phases checklist
 
-**Phase 1 - Quick-win MVP (in-app WebView providers only):**
+**Phase 1 - MVP (in-app WebView providers only):**
 
 - [ ] **P1.M0** - `failSession`-terminal must-fix
 - [ ] **P1.M1** - In-app-only quoting capability (in-app filter, reliability-then-price selection in `RampsController`, WebView fail-safe, per-provider smoke check, analytics tagging, limits decision)
@@ -37,7 +37,7 @@ P1.M0 is a precondition for everything else: the terminal-callback contract fix 
 
 ## Background
 
-In-app vs external is knowable at the quote layer (before `getBuyWidgetData`), so widening can be staged by provider class rather than deferred wholesale. The risk being avoided: widening live quoting to providers whose checkout is not headless-aware would land users in the broken external-browser branch (silent BuildQuote reset, no terminal callback), making "user backed out" indistinguishable from "provider broke".
+In-app vs external is knowable at the quote layer (before `getBuyWidgetData`), so widening can be staged by provider class rather than deferred wholesale. The risk this avoids: widening live quoting to providers whose checkout is not headless-aware would land users in the broken external-browser branch (silent BuildQuote reset, no terminal callback), making "user backed out" indistinguishable from "provider broke".
 
 Context for the phasing decisions:
 
@@ -75,9 +75,9 @@ These facts make the in-app filter and the phase split possible.
 
 - **One `getQuotes` call, no client fan-out.** `RampsController.getQuotes()` returns `{ success[], sorted[], error[], customActions[] }`; multi-provider parallelism is server-side. A single provider failing is non-terminal (lands in `error[]`); other providers stay in `success[]`. Only HTTP / validation / malformed-shape failures reject the promise.
 - **Custom actions ride inside `success[]`**, flagged by `quote.isCustomAction` (reads `quote.quote.isCustomAction`, `app/components/UI/Ramp/types/index.ts:43-45`). The separate `customActions[]` array is empty in UB2 usage. UB2 already excludes `isCustomAction` entries from provider/payment matching (`app/components/UI/Ramp/Views/Modals/ProviderSelectionModal/ProviderSelection.tsx:262-274`). Phase 1 filters them out the same way; Phase 2 brings them into scope.
-- **Partial vs full failure** is computed over non-customAction `success[]` entries. Full failure (no usable entry) maps to `NO_QUOTES`; it is NOT `success.length === 0 && customActions.length === 0`.
+- **Partial vs full failure** is computed over non-customAction `success[]` entries. Full failure (no usable entry) maps to `NO_QUOTES`; it is not `success.length === 0 && customActions.length === 0`.
 - **In-app vs external is decided at the quote layer.** `getAggregatorRedirectConfig` reads `quote.quote?.buyWidget?.browser` and `isCustomAction` off the quote (`app/components/UI/Ramp/utils/buildQuoteWithRedirectUrl.ts:35-71`) and is called at `useContinueWithQuote.ts:249`, before `getBuyWidgetData` at `:257`. Custom actions and `buyWidget.browser === 'IN_APP_OS_BROWSER'` go to an external browser with a deeplink redirect; otherwise an in-app `Checkout` WebView with a callback-base redirect. So Phase 1 can pre-filter to in-app: keep a quote only if `!isCustomAction(quote)` AND `quote.quote?.buyWidget?.browser !== 'IN_APP_OS_BROWSER'`.
-- **`buyWidget.browser` is optional.** Mobile still fetches the widget URL via the deprecated `buyURL` + `getBuyWidgetData` path, and an aggregator quote missing `buyWidget.browser` would be classified in-app. So Phase 1 safety comes from TWO layers together: (1) the multi-value scoped flag (`off | in-app | all`), and (2) the in-app filter plus selection in the shared `RampsController` selection (`getSmartSelectedQuote`) that `getRampsQuote` consumes, backed by the mandatory in-app `Checkout` WebView fail-safe.
+- **`buyWidget.browser` is optional.** Mobile still fetches the widget URL via the deprecated `buyURL` + `getBuyWidgetData` path, and an aggregator quote missing `buyWidget.browser` would be classified in-app. So Phase 1 safety comes from two layers together: (1) the multi-value scoped flag (`off | in-app | all`), and (2) the in-app filter and selection in the shared `RampsController` (`getSmartSelectedQuote`) that `getRampsQuote` consumes, backed by the mandatory in-app `Checkout` WebView fail-safe.
 
 ### Selection (ordering like UB2)
 
@@ -138,7 +138,7 @@ In Phase 1 only the `native` and `in-app widget` branches are reachable for prod
 
 ---
 
-## Phase 1 - Quick-win MVP: in-app WebView providers only
+## Phase 1 - MVP: in-app WebView providers only
 
 Ships to production behind one scoped flag set to `in-app`; external-browser and custom-action providers are filtered out.
 
@@ -155,7 +155,7 @@ Tests: `failSession` fires exactly one `onError` and no `onClose`; the session i
 - **Selection.** Reliability-then-price off `sorted[]`; the order-history rung is cut from Phase 1 (added back in P2.M6).
 - **Selection ownership.** Put the in-app filter plus reliability-then-price selection in `RampsController` (`getSmartSelectedQuote`), consumed by both `transaction-pay-controller` `getRampsQuote` and the mobile headless path.
 - **WebView fail-safe.** A quote omitting `buyWidget.browser` is classified in-app and routes to the in-app `Checkout` WebView, so the real safety net is the WebView's terminal-failure path: confirm `Checkout`'s `onHttpError` / load-failure routes through `failHeadlessCheckout` -> `failSession` (`app/components/UI/Ramp/Views/Checkout/Checkout.tsx` ~241) for the newly-enabled in-app providers, producing a clean terminal `onError` rather than a stranded session.
-- **Per-provider WebView smoke check.** The SET of providers hitting the in-app `Checkout` WebView is new. Add a smoke check per newly-enabled in-app provider, including `getQuoteBuyUserAgent` custom-user-agent needs (`app/components/UI/Ramp/types/index.ts` ~81-87).
+- **Per-provider WebView smoke check.** The set of providers hitting the in-app `Checkout` WebView is new. Add a smoke check per newly-enabled in-app provider, including `getQuoteBuyUserAgent` custom-user-agent needs (`app/components/UI/Ramp/types/index.ts` ~81-87).
 - **Analytics tagging.** Confirm the existing `RAMPS_CHECKOUT_CLOSED` / `RAMPS_ORDER_FAILED` instrumentation in `Checkout.tsx` already tags `ramp_type: 'HEADLESS'` for the new providers (full external-browser parity stays Phase 2).
 - **Min/max limits decision.** `useRampsBuyLimits` reads limits from the native preferred provider and breaks once non-native providers are in scope (`app/components/UI/Ramp/hooks/useRampsBuyLimits.ts` ~15-20, 42-50). For MM Pay the amount is deposit-driven, so decide explicitly: enforce per-provider limits up front, or accept provider-side mid-checkout rejection and ensure that rejection is a clean terminal callback (ties to the fail-safe).
 
@@ -174,13 +174,13 @@ Tests: with the flag `in-app`, in-app non-native quotes reach the consumer and c
 
 ## Phase 2 - External-browser and custom-action providers (Coinbase, PayPal, etc.)
 
-Makes the external/custom checkout paths headless-aware, then widens the SAME flag to `all`.
+Makes the external/custom checkout paths headless-aware, then widens the same flag to `all`.
 
 ### P2.M1 - Make `continueWidget`'s external-browser branch headless-aware
 
 Thread `ctx.headlessSessionId` into the external-browser branch (`app/components/UI/Ramp/hooks/useContinueWithQuote.ts:289-335`) so it routes to terminal callbacks instead of `navigateAfterExternalBrowser` to BuildQuote / OrderDetails (`app/components/UI/Ramp/utils/rampsNavigation.ts:50-75`):
 
-- iOS `InAppBrowser.openAuth` success (today calls `navigateAfterExternalBrowser({ returnDestination: 'order', ... })`, lines 325-330): resolve into `onOrderCreated`. This is NOT headless-aware today; iOS external success is not "already handled".
+- iOS `InAppBrowser.openAuth` success (today calls `navigateAfterExternalBrowser({ returnDestination: 'order', ... })`, lines 325-330): resolve into `onOrderCreated`. This is not headless-aware today; iOS external success is not "already handled".
 - Cancel: `onClose({ reason: 'user_dismissed' })`.
 - Error / open-rejection: `failSession`.
 
@@ -238,9 +238,9 @@ Tests: ladder order with and without preferred provider ids; deterministic outpu
 
 - Emit `NO_QUOTES` and `QUOTE_FAILED` for technical / quote failures (widget-URL, load, callback-parse, order-lookup, external-open). Depends on the P1.M0 terminal-callback contract.
 - Route user exits to `onClose` per the callback-routing rule. Do not emit `USER_CANCELLED` for in-flow exits. An empty callback query is a user-exit: `Checkout.tsx:386-393` already treats it as `closeSession({ reason: 'user_dismissed' })`.
-- Bring external-browser providers to analytics parity: `RAMPS_CHECKOUT_CLOSED` (abandon), `RAMPS_ORDER_FAILED` (in-flow), provider cancellation, and HTTP / load failures, tagged `ramp_type: 'HEADLESS'` plus `ramp_surface`. Note: today MM Pay / TPC detects an order's terminal state by POLLING `RampsController:getOrder` (in `transaction-pay-controller` `strategy/fiat/fiat-submit.ts`), NOT via a `RampsController:orderStatusChanged` subscription. The headless session ends at `onOrderCreated` (order CREATED); the order's terminal state is observed afterward by that TPC polling. So hanging Phase 2 analytics off `orderStatusChanged` would be NEW subscription work, not existing behavior.
-- **Export reality check.** On core `origin/main`, `@metamask/ramps-controller`'s `index.ts` exports `getTransakApiMessage`, `isTransakPhoneRegisteredError`, and `RAMPS_ERROR_CODES` / `RampsErrorCode`, but NOT `TRANSAK_ERROR_CODES` / `TransakErrorCode` (they exist in `packages/ramps-controller/src/transakErrorCodes.ts` but are unexported). A consumer that must branch on those first needs a core sub-task to export them; otherwise depend only on the already-exported helpers plus `RAMPS_ERROR_CODES`. Re-verify against `origin/main` before relying on it.
-- **Scope the taxonomy.** Granular provider codes (e.g. `KYC_REQUIRED`) are implement-on-demand: add a code when a consumer actually needs to branch on it.
+- Bring external-browser providers to analytics parity: `RAMPS_CHECKOUT_CLOSED` (abandon), `RAMPS_ORDER_FAILED` (in-flow), provider cancellation, and HTTP / load failures, tagged `ramp_type: 'HEADLESS'` plus `ramp_surface`. Note: today MM Pay / TPC detects an order's terminal state by polling `RampsController:getOrder` (in `transaction-pay-controller` `strategy/fiat/fiat-submit.ts`), not via a `RampsController:orderStatusChanged` subscription. The headless session ends at `onOrderCreated` (order created); the order's terminal state is observed afterward by that TPC polling. So hanging Phase 2 analytics off `orderStatusChanged` would be new subscription work, not existing behavior.
+- **Export reality check.** On core `origin/main`, `@metamask/ramps-controller`'s `index.ts` exports `getTransakApiMessage`, `isTransakPhoneRegisteredError`, and `RAMPS_ERROR_CODES` / `RampsErrorCode`, but not `TRANSAK_ERROR_CODES` / `TransakErrorCode` (they exist in `packages/ramps-controller/src/transakErrorCodes.ts` but are unexported). A consumer that must branch on those first needs a core sub-task to export them; otherwise depend only on the already-exported helpers plus `RAMPS_ERROR_CODES`. Re-verify against `origin/main` before relying on it.
+- **Scope the taxonomy.** Granular provider codes (e.g. `KYC_REQUIRED`) are implement-on-demand: add a code when a consumer needs to branch on it.
 
 ---
 
