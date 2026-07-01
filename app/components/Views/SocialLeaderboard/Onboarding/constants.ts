@@ -1,6 +1,5 @@
 /**
  * Rive binding contract for the Social Leaderboard onboarding animation
- * (`app/animations/onboarding_nux_v4.riv`).
  *
  * The motion team ships a single text-baked artboard: Rive renders all visuals,
  * copy, trader cards and buttons, and owns step navigation via its state
@@ -24,13 +23,13 @@ export const RIVE_NUMBER_BINDINGS = {
 /**
  * Boolean data-binding inputs pushed into the artboard.
  *
- * `ALLOW_NOTIFICATIONS` gates the Notify step's button — true shows "Allow
- * notifications" (still need to prompt), false shows "Got it" (already enabled).
+ * `ALLOW_NOTIFICATIONS` gates the Notify step's button — `true` shows "Allow
+ * notifications" (still need to prompt), `false` shows "Got it". Only the
+ * follow-path Notify slide (step 3) while a prompt is still needed pushes
+ * `true`; the maybe-later variant (step 3.1) and the already-enabled case push
+ * `false`.
  * `IS_READY` signals that RN has pushed the initial copy/data so the artboard
  * can proceed.
- *
- * TODO(preview): confirm `allowNotificationsBoolean` polarity in-app (true =
- * show the "Allow notifications" button).
  */
 export const RIVE_BOOLEAN_BINDINGS = {
   ALLOW_NOTIFICATIONS: 'allowNotificationsBoolean',
@@ -51,6 +50,11 @@ export const RIVE_TRANSITION_SPEED = 300;
  * can't be mapped reliably). `next`/`back`/`followTopTraders`/`maybeLater` move
  * `stepIndex`; `gotIt`/`allowNotifications` complete the flow — but only from the
  * Notify step, so a mis-wired earlier button can never boot the user out early.
+ *
+ * NOTE: `next`/`back` are fired both by the on-slide buttons AND by the
+ * artboard's left/right tap-zones, from whichever slide is showing. So their
+ * handlers must advance relative to the current step (never hardcode a target)
+ * or the RN overlay copy desyncs from the slide Rive actually renders.
  */
 export const RIVE_TRIGGERS = {
   CLOSE: 'close',

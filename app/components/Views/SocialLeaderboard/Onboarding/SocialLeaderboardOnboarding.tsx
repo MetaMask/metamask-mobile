@@ -69,7 +69,7 @@ import {
 } from './constants';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-const SocialLeaderboardNuxAnimation = require('../../../../animations/onboarding_nux_v4.riv');
+const SocialLeaderboardNuxAnimation = require('../../../../animations/onboarding_nux_v5.riv');
 
 const ONBOARDING_SOURCE = 'nux';
 
@@ -167,7 +167,7 @@ const markOnboardingSeen = () => {
  * Social Leaderboard onboarding shown once on app start (Rive + RN hybrid,
  * modeled on `MoneyOnboardingView`).
  *
- * The `onboarding_nux_v4.riv` artboard renders the visuals — background, trader
+ * The rive animation renders the visuals — background, trader
  * cards, buttons — and owns step navigation through its state machine. React
  * Native is the "hybrid" half. It renders each step's title + description as an
  * overlay (v4 no longer bakes copy into the Rive), pushes button labels + live
@@ -289,15 +289,25 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     [],
   );
 
-  // Localized button labels per authored `stepText{slot}` (1-based). Slots 3 and
-  // 4 are both the Notify slide; the visible button ("Allow notifications" vs
-  // "Got it") is toggled inside the Rive by `allowNotificationsBoolean`.
+  // Localized button labels per authored `stepText{slot}` (1-based).
+  //
+  // Slots 3 and 4 are both the Notify slide. Slot 3 is the follow-path variant:
+  // it keeps the "Allow notifications" / "Got it" pair (the `allowNotifications`
+  // trigger enables notifications). Slot 4 is the maybe-later variant (3.1),
+  // which must ALWAYS read "Got it" — the Rive doesn't swap its button here via
+  // `allowNotificationsBoolean`, so we pin both labels to "Got it" to guarantee
+  // it regardless of which button that slide renders.
   const stepButtons = useMemo<{ slot: number; buttons: StepButtons }[]>(() => {
+    const gotIt = strings('social_leaderboard.onboarding.got_it');
     const notifyButtons: StepButtons = {
       primaryButton: strings(
         'social_leaderboard.onboarding.allow_notifications',
       ),
-      secondaryButton: strings('social_leaderboard.onboarding.got_it'),
+      secondaryButton: gotIt,
+    };
+    const gotItButtons: StepButtons = {
+      primaryButton: gotIt,
+      secondaryButton: gotIt,
     };
     return [
       {
@@ -317,7 +327,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
         },
       },
       { slot: 3, buttons: notifyButtons },
-      { slot: 4, buttons: notifyButtons },
+      { slot: 4, buttons: gotItButtons },
     ];
   }, []);
 
@@ -378,12 +388,22 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     setIsReady(true);
   }, [riveRef, setTransitionSpeed, setIsReady]);
 
-  // Tell the Notify step which button to show: "Allow notifications" while we
-  // still need to prompt, "Got it" once notifications are already enabled.
+  // Toggle the Notify step's button. `allowNotificationsBoolean` follows its
+  // name: `true` shows "Allow notifications", `false` shows "Got it". Show
+  // "Allow notifications" ONLY on the follow-path Notify slide (step 3) while a
+  // prompt is still needed; the maybe-later variant (step 3.1) and the
+  // already-enabled case show "Got it".
   useEffect(() => {
     if (!riveRef) return;
-    setAllowNotificationsBoolean(shouldPromptNotifications);
-  }, [riveRef, shouldPromptNotifications, setAllowNotificationsBoolean]);
+    const showAllowNotifications =
+      shouldPromptNotifications && stepIndex === NOTIFY_STEP_INDEX;
+    setAllowNotificationsBoolean(showAllowNotifications);
+  }, [
+    riveRef,
+    shouldPromptNotifications,
+    stepIndex,
+    setAllowNotificationsBoolean,
+  ]);
 
   // Track SCREEN_VIEWED whenever the reported slide changes. Runs on mount
   // (Trade) and whenever `stepIndex` moves to a new slide; the two Notify steps
@@ -430,10 +450,24 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     navigation.goBack();
   }, [navigation, track]);
 
-  // Trade step: advance to Follow. Rive runs its own transition; RN only tracks
-  // the step so the overlay copy and analytics stay in sync.
+  // Forward navigation. The "Next" button (Trade slide) AND the artboard's
+  // forward tap-zone (right margin) both fire `next`, from whichever slide is
+  // showing — so RN must advance relative to the current step, not hardcode it,
+  // or the overlay copy/button toggle desync from the slide Rive actually shows.
+  //
+  // Trade -> Follow. A forward tap on Follow is a skip (the user didn't press
+  // "Follow the top three"), so it lands on the maybe-later Notify variant (3.1,
+  // "Got it") and arms the completion latch exactly like "Maybe later".
   const handleNext = useCallback(() => {
-    setStep(1);
+    const current = stepIndexRef.current;
+    if (current === 0) {
+      setStep(1);
+      return;
+    }
+    if (current === 1) {
+      setStep(3);
+      swallowNextCompletionRef.current = true;
+    }
   }, [setStep]);
 
   // Step back one slide (Notify -> Follow, Follow -> Trade).
@@ -466,19 +500,13 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     swallowNextCompletionRef.current = true;
   }, [setStep]);
 
-  // Notify step (terminal): enable notifications, then complete the flow.
-  //
-  // Two guards prevent a premature exit:
-  // 1. Must be on the Notify step, so an earlier button that (mis)fires this
-  //    trigger can't navigate the user out early.
-  // 2. Must be the *visible* button's trigger. The Notify step shows exactly one
-  //    of "Allow notifications" / "Got it" (toggled by `allowNotificationsBoolean`),
-  //    and the state machine pulses the hidden variant's trigger when the Notify
-  //    slide animates in (notably the "3.1" / maybe-later variant) — honoring it
-  //    would boot the user to the leaderboard the instant the slide appears.
+  // "Allow notifications" (terminal): enable notifications, then complete. This
+  // button only exists on the follow-path Notify slide (step 3) while prompting
+  // is needed, so it is honored exactly there — never on step 3.1, and never
+  // before the Notify step (an earlier mis-fired trigger can't boot the user).
   const handleAllowNotifications = useCallback(async () => {
     if (
-      stepIndexRef.current < NOTIFY_STEP_INDEX ||
+      stepIndexRef.current !== NOTIFY_STEP_INDEX ||
       !shouldPromptNotifications
     ) {
       return;
@@ -504,11 +532,12 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     goToLeaderboard,
   ]);
 
-  // Notify step (terminal): notifications already enabled, just complete. Same
-  // guards as `handleAllowNotifications` — "Got it" is only the visible button
-  // when we no longer need to prompt.
+  // "Got it" (terminal): complete without enabling notifications. It is present
+  // on every Notify slide — step 3.1 (maybe later) and step 3 (above the "Allow
+  // notifications" button, or on its own once notifications are enabled) — so it
+  // completes on any Notify step.
   const handleGotIt = useCallback(() => {
-    if (stepIndexRef.current < NOTIFY_STEP_INDEX || shouldPromptNotifications) {
+    if (stepIndexRef.current < NOTIFY_STEP_INDEX) {
       return;
     }
     if (swallowNextCompletionRef.current) {
@@ -516,7 +545,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       return;
     }
     goToLeaderboard();
-  }, [shouldPromptNotifications, goToLeaderboard]);
+  }, [goToLeaderboard]);
 
   // Rive owns navigation; RN observes the triggers to track the current step and
   // run each button's side effect. Completion is gated on the Notify step above.
