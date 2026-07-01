@@ -7,7 +7,7 @@ import type {
 import type { PredictBetButtonVariant } from '../PredictActionButtons/PredictActionButtons.types';
 import type { PredictSportOutcomeButton } from '../PredictSportOutcomeCard';
 import { formatVolume } from '../../utils/format';
-import { isValidPrice } from '../../utils/prices';
+import { getLiveMidPrice, isValidPrice } from '../../utils/prices';
 import { isMoneylineLikeMarketType } from '../../constants/sports';
 import { strings } from '../../../../../../locales/i18n';
 import Logger from '../../../../../util/Logger';
@@ -360,8 +360,8 @@ export const buildMoneylineButtons = (
   const buttonEntries = getMoneylineButtonEntries(outcomes, game);
 
   return buttonEntries.map(({ outcome, token }, i) => {
-    const liveBestAsk = getPrice?.(token.id)?.bestAsk;
-    const price = isValidPrice(liveBestAsk) ? liveBestAsk : token.price;
+    const liveMidPrice = getLiveMidPrice(getPrice?.(token.id));
+    const price = isValidPrice(liveMidPrice) ? liveMidPrice : token.price;
 
     const label = getTokenLabel(token);
     return {
