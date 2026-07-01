@@ -117,11 +117,11 @@ export function cleanupAdbReverse(port: number): void {
 // Candidate paths for the playground release APK, checked in priority order:
 // 1. Explicitly set via RN_PLAYGROUND_APK_PATH env var
 // 2. Downloaded by tests/scripts/fetch-rn-playground-apk.sh
-// 3. Locally built in sibling connect-monorepo
+// 3. Locally built in sibling metamask-connect
 const PLAYGROUND_APK_CANDIDATES = [
   process.env.RN_PLAYGROUND_APK_PATH,
   './tmp/rn-playground.apk',
-  '../connect-monorepo/playground/react-native-playground/android/app/build/outputs/apk/release/app-release.apk',
+  '../metamask-connect/playground/react-native-playground/android/app/build/outputs/apk/release/app-release.apk',
 ].filter(Boolean) as string[];
 
 /**
@@ -142,9 +142,9 @@ function resolvePlaygroundApkPath(): string {
       ).join('\n') +
       '\n\nTo fix this, either:\n' +
       '  1. Run: ./tests/scripts/fetch-rn-playground-apk.sh\n' +
-      '     (downloads the latest APK from connect-monorepo GitHub Releases)\n' +
+      '     (downloads the latest APK from metamask-connect GitHub Releases)\n' +
       '  2. Build locally:\n' +
-      '     cd connect-monorepo && yarn install && yarn build\n' +
+      '     cd metamask-connect && yarn install && yarn build\n' +
       '     cd playground/react-native-playground && npx expo prebuild --platform android\n' +
       '     cd android && ./gradlew assembleRelease\n' +
       '  3. Set RN_PLAYGROUND_APK_PATH to the APK location\n\n' +
