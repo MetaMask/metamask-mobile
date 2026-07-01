@@ -89,8 +89,6 @@ interface AppiumDeepLinkArgs {
 type AndroidSessionCapabilities = WebdriverIO.Capabilities & {
   'appium:appPackage'?: string;
   appPackage?: string;
-  platformName?: string;
-  'appium:platformName'?: string;
 };
 
 function getAndroidSessionPackage(
@@ -98,27 +96,6 @@ function getAndroidSessionPackage(
 ): string | undefined {
   const caps = drv.capabilities as AndroidSessionCapabilities;
   return (caps['appium:appPackage'] ?? caps.appPackage)?.trim();
-}
-
-function isAndroidSession(drv: WebdriverIO.Browser): boolean {
-  try {
-    if (PlatformDetector.isAndroid()) {
-      return true;
-    }
-    if (PlatformDetector.isIOS()) {
-      return false;
-    }
-  } catch {
-    // DeviceInfoCache may be unset in unit tests; fall back to session caps.
-  }
-
-  const caps = drv.capabilities as AndroidSessionCapabilities;
-  const platform = (
-    caps.platformName ??
-    caps['appium:platformName'] ??
-    ''
-  ).toLowerCase();
-  return platform.includes('android');
 }
 
 /**
@@ -136,7 +113,7 @@ export async function executeMobileDeepLink(
   const explicitPackage = options.package?.trim();
   if (explicitPackage) {
     args.package = explicitPackage;
-  } else if (isAndroidSession(drv)) {
+  } else if (PlatformDetector.isAndroid()) {
     const pkg = getAndroidSessionPackage(drv);
     if (!pkg) {
       throw new Error(
