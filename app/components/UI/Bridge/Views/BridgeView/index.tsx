@@ -582,7 +582,6 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                         description={
                           <Text
                             testID={BridgeViewSelectorsIDs.NO_QUOTES_BANNER}
-                            accessibilityLabel={quoteStreamErrorMessage}
                             variant={TextVariant.BodySm}
                           >
                             {quoteStreamErrorMessage}
