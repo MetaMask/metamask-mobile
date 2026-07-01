@@ -5,10 +5,13 @@ import {
   __resetThemeForTests,
   applyThemeColors,
   getCandleStyleOverrides,
+  getCurrentPriceVisualColor,
   getSeriesColorOverrides,
   getBuiltInScaleLabelOverrides,
   getThemeLastPriceLineColor,
   getThemeLineColor,
+  getVolumeErrorColor,
+  getVolumeSuccessColor,
   initThemeFromConfig,
   subscribeTheme,
 } from '../theme';
@@ -87,6 +90,36 @@ describe('widget/theme color helpers', () => {
   });
 });
 
+describe('volume + current-price color helpers', () => {
+  it('getCurrentPriceVisualColor falls through currentPriceColor → lineColor → successColor', () => {
+    expect(getCurrentPriceVisualColor(baseTheme)).toBe('rgb(34,34,0)');
+    expect(
+      getCurrentPriceVisualColor({ ...baseTheme, currentPriceColor: '' }),
+    ).toBe('rgb(171,205,239)');
+    expect(
+      getCurrentPriceVisualColor({
+        ...baseTheme,
+        currentPriceColor: '',
+        lineColor: '',
+      }),
+    ).toBe('rgb(0,255,0)');
+  });
+
+  it('getVolumeSuccessColor falls back to successColor', () => {
+    expect(getVolumeSuccessColor(baseTheme)).toBe('rgb(0,255,0)');
+    expect(
+      getVolumeSuccessColor({ ...baseTheme, volumeSuccessColor: 'rgb(1,2,3)' }),
+    ).toBe('rgb(1,2,3)');
+  });
+
+  it('getVolumeErrorColor falls back to errorColor', () => {
+    expect(getVolumeErrorColor(baseTheme)).toBe('rgb(255,0,0)');
+    expect(
+      getVolumeErrorColor({ ...baseTheme, volumeErrorColor: 'rgb(4,5,6)' }),
+    ).toBe('rgb(4,5,6)');
+  });
+});
+
 describe('initThemeFromConfig + applyThemeColors', () => {
   beforeEach(() => {
     __resetStateForTests();
@@ -138,6 +171,47 @@ describe('initThemeFromConfig + applyThemeColors', () => {
 
   it('is a no-op when state.theme is not initialised', () => {
     expect(() => applyThemeColors({ lineColor: 'rgb(1,2,3)' })).not.toThrow();
+  });
+
+  it('merges volumeSuccessColor and volumeErrorColor into theme state', () => {
+    initThemeFromConfig(baseTheme);
+    applyThemeColors({
+      volumeSuccessColor: 'rgb(10,20,30)',
+      volumeErrorColor: 'rgb(40,50,60)',
+    });
+    expect(getTheme()?.volumeSuccessColor).toBe('rgb(10,20,30)');
+    expect(getTheme()?.volumeErrorColor).toBe('rgb(40,50,60)');
+  });
+
+  it('reports subscriber errors to RN without stopping other subscribers', () => {
+    initThemeFromConfig(baseTheme);
+    const bridge = { postMessage: jest.fn() };
+    (
+      window as unknown as { ReactNativeWebView: typeof bridge }
+    ).ReactNativeWebView = bridge;
+
+    const bad = jest.fn(() => {
+      throw new Error('subscriber fail');
+    });
+    const good = jest.fn();
+    subscribeTheme(bad);
+    subscribeTheme(good);
+
+    applyThemeColors({ lineColor: 'rgb(9,9,9)' });
+
+    expect(good).toHaveBeenCalledTimes(1);
+    expect(bridge.postMessage).toHaveBeenCalledWith(
+      expect.stringContaining('"message":"subscriber fail"'),
+    );
+  });
+
+  it('unsubscribe returned by subscribeTheme removes the listener', () => {
+    initThemeFromConfig(baseTheme);
+    const listener = jest.fn();
+    const unsub = subscribeTheme(listener);
+    unsub();
+    applyThemeColors({ lineColor: 'rgb(7,7,7)' });
+    expect(listener).not.toHaveBeenCalled();
   });
 
   it('reports widget.applyOverrides errors to RN', () => {

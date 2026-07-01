@@ -11,12 +11,16 @@ import {
   getRealtimeCallbacks,
   setOhlcvData,
   setOhlcvPagination,
+  setRnBackedPagination,
 } from '../../core/state';
 import { fetchOlderBarsFromPriceApi } from '../../pagination/priceApi';
 
 jest.mock('../../pagination/priceApi', () => ({
   fetchOlderBarsFromPriceApi: jest.fn(),
   OHLCV_BASE_URL: 'https://price.api.cx.metamask.io/v3/ohlcv-chart',
+}));
+jest.mock('../../pagination/rnBacked', () => ({
+  requestOlderBarsFromRN: jest.fn(),
 }));
 import type { PeriodParams, SymbolInfo, TVResolution } from '../../core/types';
 
@@ -150,6 +154,69 @@ describe('customDatafeed', () => {
     );
   });
 
+  it('getBars delegates to RN-backed pagination when enabled', () => {
+    const { requestOlderBarsFromRN } = jest.requireMock(
+      '../../pagination/rnBacked',
+    ) as { requestOlderBarsFromRN: jest.Mock };
+    setOhlcvData([{ time: 200_000, open: 1, high: 1, low: 1, close: 1 }]);
+    setRnBackedPagination({ enabled: true });
+
+    const onResult = jest.fn();
+    customDatafeed.getBars(
+      stubSymbolInfo,
+      '5' as TVResolution,
+      periodParams({ from: 0, to: 100, firstDataRequest: false }),
+      onResult,
+      jest.fn(),
+    );
+    expect(requestOlderBarsFromRN).toHaveBeenCalledWith(
+      expect.objectContaining({ resolution: '5' }),
+    );
+  });
+
+  it('getBars returns noData when neither pagination source is available', () => {
+    setOhlcvData([{ time: 200_000, open: 1, high: 1, low: 1, close: 1 }]);
+    const onResult = jest.fn();
+    customDatafeed.getBars(
+      stubSymbolInfo,
+      '5' as TVResolution,
+      periodParams({ from: 0, to: 100, firstDataRequest: false }),
+      onResult,
+      jest.fn(),
+    );
+    expect(onResult).toHaveBeenCalledWith([], { noData: true });
+  });
+
+  it('getBars calls onError when an exception is thrown', () => {
+    setOhlcvData([{ time: 200_000, open: 1, high: 1, low: 1, close: 1 }]);
+    jest.mocked(fetchOlderBarsFromPriceApi).mockImplementation(() => {
+      throw new Error('fetch exploded');
+    });
+    setOhlcvPagination({
+      nextCursor: 'abc',
+      hasMore: true,
+      assetId: 'a',
+      vsCurrency: 'usd',
+    });
+
+    const onResult = jest.fn();
+    const onError = jest.fn();
+    customDatafeed.getBars(
+      stubSymbolInfo,
+      '5' as TVResolution,
+      periodParams({ from: 0, to: 100, firstDataRequest: false }),
+      onResult,
+      onError,
+    );
+    expect(onError).toHaveBeenCalledWith('fetch exploded');
+  });
+
+  it('searchSymbols returns empty array', () => {
+    const onResult = jest.fn();
+    customDatafeed.searchSymbols('test', '', 'crypto', onResult);
+    expect(onResult).toHaveBeenCalledWith([]);
+  });
+
   it('subscribeBars / unsubscribeBars manage the realtime callback map', () => {
     const onTick = jest.fn();
     customDatafeed.subscribeBars(
@@ -166,6 +233,34 @@ describe('customDatafeed', () => {
 
 describe('forwardRealtimeTick', () => {
   beforeEach(() => __resetStateForTests());
+
+  it('reports errors from listeners to RN without stopping others', () => {
+    const bridge = { postMessage: jest.fn() };
+    (
+      window as unknown as { ReactNativeWebView: typeof bridge }
+    ).ReactNativeWebView = bridge;
+    const bad = jest.fn(() => {
+      throw new Error('tick fail');
+    });
+    const good = jest.fn();
+    customDatafeed.subscribeBars(
+      stubSymbolInfo,
+      '5' as TVResolution,
+      bad,
+      'g1',
+    );
+    customDatafeed.subscribeBars(
+      stubSymbolInfo,
+      '5' as TVResolution,
+      good,
+      'g2',
+    );
+    forwardRealtimeTick({ time: 1, open: 1, high: 1, low: 1, close: 1 });
+    expect(good).toHaveBeenCalled();
+    expect(bridge.postMessage).toHaveBeenCalledWith(
+      expect.stringContaining('"type":"ERROR"'),
+    );
+  });
 
   it('invokes every registered listener with the tick', () => {
     const a = jest.fn();
