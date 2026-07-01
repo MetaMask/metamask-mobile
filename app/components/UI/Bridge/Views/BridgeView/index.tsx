@@ -132,11 +132,7 @@ import { useBridgeViewRouteFallbacks } from './useBridgeViewRouteFallbacks';
 const SCROLL_NEAR_BOTTOM_PX = 160;
 const ACTIVITY_DETAILS_SOURCE_PAGE = 'ActivityDetails';
 
-interface BridgeViewContentProps {
-  latestSourceBalance: ReturnType<typeof useLatestBalance>;
-}
-
-const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
+const BridgeViewContent = () => {
   const [isNearBottom, setIsNearBottom] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
@@ -181,10 +177,6 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
-  const destTokenSecurityData = destToken?.securityData;
-  const tokenWarning = isNegativeSecurityType(destTokenSecurityData?.type)
-    ? destTokenSecurityData
-    : undefined;
   const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
@@ -202,6 +194,18 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     initialSourceAmount,
     initialDestToken,
   });
+  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
+  const latestSourceBalance = useLatestBalance({
+    address: displaySourceToken?.address,
+    decimals: displaySourceToken?.decimals,
+    chainId: displaySourceToken?.chainId,
+    balance: displaySourceToken?.balance,
+    refreshKey: balanceRefreshKey,
+  });
+  const destTokenSecurityData = displayDestToken?.securityData;
+  const tokenWarning = isNegativeSecurityType(destTokenSecurityData?.type)
+    ? destTokenSecurityData
+    : undefined;
   const isDestNetworkEnabled = useIsNetworkEnabled(displayDestToken?.chainId);
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
@@ -228,13 +232,13 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const inputRef = useRef<TokenInputAreaRef>(null);
 
   // Fetch STX liveness for the source chain
-  useRefreshSmartTransactionsLiveness(sourceToken?.chainId);
+  useRefreshSmartTransactionsLiveness(displaySourceToken?.chainId);
 
   // Update isGasIncludedSTXSendBundleSupported state based on source chain capabilities
-  useIsGasIncludedSTXSendBundleSupported(sourceToken?.chainId);
+  useIsGasIncludedSTXSendBundleSupported(displaySourceToken?.chainId);
 
   // Update isGasIncluded7702Supported state
-  useIsGasIncluded7702Supported(sourceToken?.chainId);
+  useIsGasIncluded7702Supported(displaySourceToken?.chainId);
 
   useInitialSourceToken(initialSourceToken, initialSourceAmount);
   useInitialDestToken(initialSourceToken, initialDestToken);
@@ -285,23 +289,47 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   });
 
   const {
-    activeQuote,
-    isLoading,
-    destTokenAmount,
-    isNoQuotesAvailable,
-    blockaidError,
-    quoteFetchError,
-    shouldShowPriceImpactWarning,
-    needsNewQuote,
+    activeQuote: rawActiveQuote,
+    isLoading: rawIsLoading,
+    destTokenAmount: rawDestTokenAmount,
+    isNoQuotesAvailable: rawIsNoQuotesAvailable,
+    blockaidError: rawBlockaidError,
+    quoteFetchError: rawQuoteFetchError,
+    shouldShowPriceImpactWarning: rawShouldShowPriceImpactWarning,
+    needsNewQuote: rawNeedsNewQuote,
   } = useBridgeQuoteDataContext();
+  const activeQuote = areDisplayedTokensSyncedWithRedux
+    ? rawActiveQuote
+    : undefined;
+  const isLoading = areDisplayedTokensSyncedWithRedux && rawIsLoading;
+  const destTokenAmount = areDisplayedTokensSyncedWithRedux
+    ? rawDestTokenAmount
+    : undefined;
+  const isNoQuotesAvailable =
+    areDisplayedTokensSyncedWithRedux && rawIsNoQuotesAvailable;
+  const blockaidError = areDisplayedTokensSyncedWithRedux
+    ? rawBlockaidError
+    : null;
+  const quoteFetchError = areDisplayedTokensSyncedWithRedux
+    ? rawQuoteFetchError
+    : null;
+  const shouldShowPriceImpactWarning =
+    areDisplayedTokensSyncedWithRedux && rawShouldShowPriceImpactWarning;
+  const needsNewQuote = areDisplayedTokensSyncedWithRedux && rawNeedsNewQuote;
+  const displayQuoteStreamComplete = areDisplayedTokensSyncedWithRedux
+    ? quoteStreamComplete
+    : undefined;
 
   const isValidSourceAmount =
-    sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
+    displaySourceAmount !== undefined &&
+    displaySourceAmount !== '.' &&
+    displaySourceToken?.decimals;
 
   const hasValidBridgeInputs =
+    areDisplayedTokensSyncedWithRedux &&
     isValidSourceAmount &&
-    !!sourceToken &&
-    !!destToken &&
+    !!displaySourceToken &&
+    !!displayDestToken &&
     // Prevent quote fetching when destination address is not set
     // Destination address is only needed for EVM <> Non-EVM bridges, or Non-EVM <> Non-EVM bridges (when different)
     (!hasDestinationPicker || (hasDestinationPicker && Boolean(destAddress)));
@@ -310,14 +338,14 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
   const hasInsufficientGas = !isNetworkFeeUnavailable && !hasSufficientGas;
   const hasInsufficientBalance = useIsInsufficientBalance({
-    amount: sourceAmount,
-    token: sourceToken,
+    amount: displaySourceAmount,
+    token: displaySourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
   });
 
   const insufficientNativeReserveError = useInsufficientNativeReserveError({
-    amount: sourceAmount,
-    token: sourceToken,
+    amount: displaySourceAmount,
+    token: displaySourceToken,
     latestAtomicBalance: latestSourceBalance?.atomicBalance,
     walletAddress,
     activeQuote,
@@ -346,6 +374,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   );
 
   const isSubmitDisabled =
+    !areDisplayedTokensSyncedWithRedux ||
     (isLoading && !activeQuote) ||
     hasInsufficientBalance ||
     hasInsufficientNativeReserveError ||
@@ -367,9 +396,10 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
     isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
   });
 
-  const isZeroState = !sourceAmount || !(Number(sourceAmount) > 0);
+  const isZeroState =
+    !displaySourceAmount || !(Number(displaySourceAmount) > 0);
 
-  const ticker = sourceToken?.symbol;
+  const ticker = displaySourceToken?.symbol;
 
   // Update quote parameters when relevant state changes
   useEffect(() => {
@@ -574,7 +604,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
             </Box>
 
             <Box gap={3} twClassName="mx-4">
-              {quoteStreamComplete?.reason || quoteFetchError
+              {displayQuoteStreamComplete?.reason || quoteFetchError
                 ? (() => {
                     const quoteStreamErrorBannerStyle = {
                       borderLeftWidth: 4,
@@ -593,7 +623,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                           />
                         }
                         description={getQuoteStreamReasonString(
-                          quoteStreamComplete?.reason,
+                          displayQuoteStreamComplete?.reason,
                         )}
                       />
                     );
@@ -642,13 +672,13 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                               ? strings(
                                   'bridge.token_warning_malicious_banner',
                                   {
-                                    token: destToken?.symbol,
+                                    token: displayDestToken?.symbol,
                                   },
                                 )
                               : strings(
                                   'bridge.token_warning_suspicious_banner',
                                   {
-                                    token: destToken?.symbol,
+                                    token: displayDestToken?.symbol,
                                   },
                                 )
                           }
@@ -747,11 +777,13 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
             </Box>
           </ScrollView>
 
-          <BridgeViewFooter
-            location={location}
-            latestSourceBalance={latestSourceBalance}
-            transactionActiveAbTests={transactionActiveAbTests}
-          />
+          {areDisplayedTokensSyncedWithRedux ? (
+            <BridgeViewFooter
+              location={location}
+              latestSourceBalance={latestSourceBalance}
+              transactionActiveAbTests={transactionActiveAbTests}
+            />
+          ) : null}
 
           <SwapsKeypad
             ref={keypadRef}
@@ -760,7 +792,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
             currency={sourceAmountInput.keypadCurrency}
             decimals={sourceAmountInput.keypadDecimals}
           >
-            {sourceAmount && sourceAmount !== '0' ? (
+            {areDisplayedTokensSyncedWithRedux &&
+            displaySourceAmount &&
+            displaySourceAmount !== '0' ? (
               <SwapsConfirmButton
                 location={location}
                 latestSourceBalance={latestSourceBalance}
@@ -769,7 +803,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
               />
             ) : (
               <GaslessQuickPickOptions
-                token={sourceToken}
+                token={displaySourceToken}
                 tokenBalance={latestSourceBalance?.displayBalance}
                 onMaxPress={handleSourceMaxPress}
                 isQuoteSponsored={isQuoteSponsored}
@@ -783,25 +817,11 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   );
 };
 
-const BridgeViewReadyContent = () => {
-  const sourceToken = useSelector(selectSourceToken);
-  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const latestSourceBalance = useLatestBalance({
-    address: sourceToken?.address,
-    decimals: sourceToken?.decimals,
-    chainId: sourceToken?.chainId,
-    balance: sourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
-
-  return (
-    <BridgeQuoteDataProvider
-      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
-    >
-      <BridgeViewContent latestSourceBalance={latestSourceBalance} />
-    </BridgeQuoteDataProvider>
-  );
-};
+const BridgeViewReadyContent = () => (
+  <BridgeQuoteDataProvider>
+    <BridgeViewContent />
+  </BridgeQuoteDataProvider>
+);
 
 const BridgeView = () => {
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();

@@ -460,7 +460,7 @@ describe('BridgeView', () => {
       },
     };
 
-    const { getByText, getByTestId, queryByText } = renderScreen(
+    const { getByText, getByTestId, queryByTestId, queryByText } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
@@ -485,6 +485,11 @@ describe('BridgeView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeTruthy();
+    expect(queryByTestId('quote-details-card')).toBeNull();
+    expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+    expect(
+      queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+    ).toBeNull();
     runAfterInteractionsSpy.mockRestore();
   });
 
