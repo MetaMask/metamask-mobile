@@ -109,7 +109,7 @@ describe('AddDeviceToWallet', () => {
       const { queryByText } = renderComponent();
 
       expect(
-        queryByText(strings('app_settings.add_device.device_added')),
+        queryByText(strings('app_settings.add_device.waiting_for_extension')),
       ).not.toBeOnTheScreen();
     });
   });
@@ -228,9 +228,33 @@ describe('AddDeviceToWallet', () => {
       });
     });
 
-    it('removes the event listener on unmount', () => {
+    it('returns to the instructions screen when addDeviceResetToInstructions event fires', async () => {
+      const { queryByText } = renderComponent();
+
+      await act(async () => {
+        DeviceEventEmitter.emit('addDeviceVerificationDone');
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByText(strings('app_settings.add_device.add_device_to_wallet')),
+        ).not.toBeOnTheScreen();
+      });
+
+      await act(async () => {
+        DeviceEventEmitter.emit('addDeviceResetToInstructions');
+      });
+
+      await waitFor(() => {
+        expect(
+          queryByText(strings('app_settings.add_device.add_device_to_wallet')),
+        ).toBeOnTheScreen();
+      });
+    });
+
+    it('removes the event listeners on unmount', () => {
       const removeSpy = jest.fn();
-      jest.spyOn(DeviceEventEmitter, 'addListener').mockReturnValueOnce({
+      jest.spyOn(DeviceEventEmitter, 'addListener').mockReturnValue({
         remove: removeSpy,
       } as unknown as ReturnType<typeof DeviceEventEmitter.addListener>);
 
@@ -238,7 +262,7 @@ describe('AddDeviceToWallet', () => {
 
       unmount();
 
-      expect(removeSpy).toHaveBeenCalledTimes(1);
+      expect(removeSpy).toHaveBeenCalledTimes(2);
     });
   });
 });
