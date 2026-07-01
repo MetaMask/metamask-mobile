@@ -383,6 +383,11 @@
     );
   }
 
+  /**
+   * @deprecated Use `Blockies` from `@metamask/design-system-react-native` instead.
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Blockies/README.md | MMDS README}
+   * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#blockies-temp-component | Migration Guide}
+   */
   function toDataUrl(address) {
     const cache = Blockies.cache[address];
     if (address && cache) {

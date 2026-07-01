@@ -3,6 +3,7 @@ import { TouchableOpacity, StyleSheet } from 'react-native';
 import {
   BadgeWrapper,
   BadgeWrapperPosition,
+  Blockies,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -28,7 +29,6 @@ import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { AvatarAccountType } from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount/AvatarAccount.types';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import TrendingTokenLogo from '../../../Trending/components/TrendingTokenLogo';
 import type {
@@ -52,7 +52,6 @@ import {
 } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import { VerticalAlignment } from '../../../../../component-library/components/List/ListItem';
-import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { selectIconSeedAddressByAccountGroupId } from '../../../../../selectors/multichainAccounts/accounts';
 import RewardsNoPositionsImage from '../../../../../images/rewards/rewards-no-positions.svg';
 import type { InternalAccount } from '@metamask/keyring-internal-api/dist/types.d.cts';
@@ -111,10 +110,10 @@ export const AccountGroupSelectRow: React.FC<AccountGroupSelectRowProps> = ({
       onPress={onPress}
       verticalAlignment={VerticalAlignment.Center}
     >
-      <AvatarAccount
-        accountAddress={evmAddress}
-        type={AvatarAccountType.Blockies}
-        size={AvatarSize.Md}
+      <Blockies
+        address={evmAddress}
+        size={Number(AvatarSize.Md)}
+        style={{ borderRadius: 8 }}
       />
       <Box twClassName="flex-1 min-w-0">
         <Text
