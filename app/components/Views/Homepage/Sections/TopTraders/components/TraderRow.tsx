@@ -126,7 +126,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
         }
         size={ButtonSize.Md}
         onPress={() => onFollowPress(trader.id)}
-        twClassName="self-center min-w-[96px]"
+        twClassName="self-center"
       >
         {trader.isFollowing
           ? strings('social_leaderboard.following')
