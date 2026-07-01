@@ -1876,7 +1876,7 @@ describe('BackgroundBridge', () => {
       );
     });
 
-    it('serializes emits so notifications preserve call order when hydration resolves out of order', async () => {
+    it('drops a superseded emit (latest-wins) when an earlier call hydrates after a later one', async () => {
       const url = 'https://www.mock.io';
       const bridge = setupBackgroundBridge(url);
       const emitted = [];
@@ -1893,38 +1893,51 @@ describe('BackgroundBridge', () => {
         sessionProperties: {},
       });
 
-      // First notification's capability hydration resolves only after the
-      // second's would have; without serialization the second would emit first.
-      let resolveFirst;
-      getSessionCapabilities.mockImplementationOnce(
-        () =>
-          new Promise((resolve) => {
-            resolveFirst = resolve;
-          }),
-      );
+      // Hold both calls' capability hydration open so we control resolution
+      // order. Call A (addr1) is started first, then superseded by call B
+      // (addr2). We resolve B first (it emits), then resolve A (should be
+      // dropped because it was superseded by the newer generation).
+      let resolveA;
+      let resolveB;
+      getSessionCapabilities
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveA = resolve;
+            }),
+        )
+        .mockImplementationOnce(
+          () =>
+            new Promise((resolve) => {
+              resolveB = resolve;
+            }),
+        );
 
-      const p1 = bridge.notifyCaipAuthorizationChange(makeAuth(addr1));
-      const p2 = bridge.notifyCaipAuthorizationChange(makeAuth(addr2));
+      const pA = bridge.notifyCaipAuthorizationChange(makeAuth(addr1));
+      const pB = bridge.notifyCaipAuthorizationChange(makeAuth(addr2));
 
-      // Flush microtasks so the first queued task starts and registers its
-      // pending hydration (which captures `resolveFirst`).
+      // Flush microtasks so both calls have started hydration and captured
+      // their resolvers. Use a fixed iteration count (not a mutable-flag loop
+      // condition) to avoid the no-unmodified-loop-condition eslint rule.
       for (let i = 0; i < 5; i++) {
         await Promise.resolve();
       }
-      expect(resolveFirst).toBeDefined();
-      resolveFirst({ '0x1': { atomic: { status: 'supported' } } });
+      expect(resolveA).toBeDefined();
+      expect(resolveB).toBeDefined();
 
-      await Promise.all([p1, p2]);
+      // The later call (B) resolves and emits.
+      resolveB({ '0x2': { atomic: { status: 'supported' } } });
+      await pB;
 
-      expect(emitted).toHaveLength(2);
-      const firstKey = Object.keys(
+      // The earlier call (A) resolves after being superseded; it must not emit.
+      resolveA({ '0x1': { atomic: { status: 'supported' } } });
+      await pA;
+
+      expect(emitted).toHaveLength(1);
+      const emittedKey = Object.keys(
         emitted[0].params.sessionProperties.eip155Capabilities,
       )[0];
-      const secondKey = Object.keys(
-        emitted[1].params.sessionProperties.eip155Capabilities,
-      )[0];
-      expect(firstKey.toLowerCase()).toBe(addr1.toLowerCase());
-      expect(secondKey.toLowerCase()).toBe(addr2.toLowerCase());
+      expect(emittedKey.toLowerCase()).toBe(addr2.toLowerCase());
     });
   });
 });

@@ -154,6 +154,9 @@ export class BackgroundBridge extends EventEmitter {
 
     this.engine = null;
     this.multichainEngine = null;
+    // Monotonic counter used to drop superseded wallet_sessionChanged emits
+    // (latest-wins). See notifyCaipAuthorizationChange.
+    this.sessionChangedGeneration = 0;
     this.multichainSubscriptionManager = null;
     this.multichainMiddlewareManager = null;
 
@@ -1435,62 +1438,61 @@ export class BackgroundBridge extends EventEmitter {
    * Causes the Multichain RPC engine to emit a sessionChanged notification event with the given payload.
    *
    * Emitting is async (capability hydration hits controllers/network), so
-   * notifications are serialized per bridge instance to preserve call order —
-   * otherwise a slower earlier notification could emit after a newer one and
-   * push stale session data to the dapp.
+   * overlapping calls could otherwise resolve out of order and push stale
+   * session data to the dapp. Rather than serialize (which head-of-line blocks
+   * a fresh update behind a slow earlier one), we use a monotonic generation
+   * counter and drop superseded emits (latest-wins). This is safe because
+   * wallet_sessionChanged carries a full session snapshot, not a delta.
    *
    * @param {object} newAuthorization - The new CAIP-25 authorization.
-   * @returns {Promise<void>} Resolves once the notification has been emitted.
+   * @returns {Promise<void>} Resolves once the notification has been emitted (or skipped).
    */
-  notifyCaipAuthorizationChange(newAuthorization) {
+  async notifyCaipAuthorizationChange(newAuthorization) {
     if (!this.multichainEngine) {
-      return Promise.resolve();
+      return;
     }
 
-    this.sessionChangedQueue = (this.sessionChangedQueue ?? Promise.resolve())
-      .then(async () => {
-        if (!this.multichainEngine) {
-          return;
-        }
+    // Capture this call's generation synchronously, before any await, so a
+    // later call that starts while we're hydrating supersedes this one.
+    const generation = ++this.sessionChangedGeneration;
 
-        const sessionScopes = getSessionScopes(newAuthorization, {
-          getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
-          sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
-        });
+    const sessionScopes = getSessionScopes(newAuthorization, {
+      getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+      sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
+    });
 
-        // Hydrate sessionProperties (including eip155Capabilities) so dapp-side
-        // caches stay fresh and can resolve wallet_getCapabilities locally
-        // without an extra round-trip to the wallet. A failure here must not
-        // drop the sessionScopes update, so fall back to emitting scopes only.
-        let sessionProperties;
-        try {
-          sessionProperties = await getSessionProperties(newAuthorization, {
-            getCapabilities: ({ address }) => getSessionCapabilities(address),
-          });
-        } catch (err) {
-          Logger.error(
-            err,
-            'BackgroundBridge: failed to compute session properties for wallet_sessionChanged',
-          );
-        }
-
-        this.multichainEngine.emit('notification', {
-          method: 'wallet_sessionChanged',
-          params: {
-            sessionScopes,
-            ...(sessionProperties ? { sessionProperties } : {}),
-          },
-        });
-      })
-      .catch((err) => {
-        // Keep the queue alive for subsequent notifications.
-        Logger.error(
-          err,
-          'BackgroundBridge: failed to emit wallet_sessionChanged',
-        );
+    // Hydrate sessionProperties (including eip155Capabilities) so dapp-side
+    // caches stay fresh and can resolve wallet_getCapabilities locally
+    // without an extra round-trip to the wallet. A failure here must not
+    // drop the sessionScopes update, so fall back to emitting scopes only.
+    let sessionProperties;
+    try {
+      sessionProperties = await getSessionProperties(newAuthorization, {
+        getCapabilities: ({ address }) => getSessionCapabilities(address),
       });
+    } catch (err) {
+      Logger.error(
+        err,
+        'BackgroundBridge: failed to compute session properties for wallet_sessionChanged',
+      );
+    }
 
-    return this.sessionChangedQueue;
+    // Drop this emit if a newer notification superseded it while we were
+    // hydrating, or if the bridge was torn down in the meantime.
+    if (
+      generation !== this.sessionChangedGeneration ||
+      !this.multichainEngine
+    ) {
+      return;
+    }
+
+    this.multichainEngine.emit('notification', {
+      method: 'wallet_sessionChanged',
+      params: {
+        sessionScopes,
+        ...(sessionProperties ? { sessionProperties } : {}),
+      },
+    });
   }
 
   /**
