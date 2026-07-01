@@ -81,6 +81,9 @@ import { Alert, Platform } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
+import { QrSyncSecretTypes } from '../QrSync/constants';
+import type { QrSyncProvisioningEntryEnrichment } from '../QrSync/controller-types';
+import { toFormattedAddress } from '../../util/address';
 import { AuthCapabilities, ReauthenticateErrorType } from './types';
 import {
   isEnrolledAsync,
@@ -169,11 +172,6 @@ class AuthenticationService {
     OAuthService.resetOauthState();
   }
 
-  /**
-   * This method gets the primary entropy source ID. It assumes it's always being defined, which means, vault
-   * creation must have been executed beforehand.
-   * @returns Primary entropy source ID (similar to keyring ID).
-   */
   private getPrimaryEntropySourceId(): EntropySourceId {
     return Engine.context.KeyringController.state.keyrings[0].metadata.id;
   }
@@ -217,7 +215,7 @@ class AuthenticationService {
     password: string,
     seed: string,
     clearEngine: boolean,
-  ): Promise<void> => {
+  ): Promise<EntropySourceId> => {
     // Restore vault with user entered password
     if (clearEngine) await Engine.resetState();
 
@@ -225,14 +223,148 @@ class AuthenticationService {
 
     const mnemonic = mnemonicPhraseToBytes(seed);
 
-    await MultichainAccountService.createMultichainAccountWallet({
-      type: 'restore',
-      password,
-      mnemonic,
-    });
+    const wallet = await MultichainAccountService.createMultichainAccountWallet(
+      {
+        type: 'restore',
+        password,
+        mnemonic,
+      },
+    );
 
     password = this.wipeSensitiveData();
     seed = this.wipeSensitiveData();
+
+    return wallet.entropySource;
+  };
+
+  private importRemainingMnemonicToVault = async (
+    mnemonic: string,
+    syncSeedlessBackupMetadata: boolean,
+  ): Promise<EntropySourceId> => {
+    if (syncSeedlessBackupMetadata) {
+      return this.importSeedlessMnemonicToVault(mnemonic);
+    }
+
+    return this.importMnemonicToVault(mnemonic);
+  };
+
+  private importRemainingSecretsToVault = async ({
+    secrets,
+    syncSeedlessBackupMetadata = false,
+  }: {
+    secrets: {
+      type: SecretType.Mnemonic | SecretType.PrivateKey;
+      data: string;
+      metadataIndex?: number;
+      isQrSync?: boolean;
+    }[];
+    /** When true, remaining mnemonics also update seedless backup metadata (rehydrate path). */
+    syncSeedlessBackupMetadata?: boolean;
+  }): Promise<void> => {
+    for (const item of secrets) {
+      try {
+        if (item.type === SecretType.PrivateKey) {
+          const accountAddress = await this.importAccountFromPrivateKey(
+            item.data,
+            {
+              shouldCreateSocialBackup: false,
+              shouldSelectAccount: false,
+            },
+          );
+
+          if (
+            accountAddress &&
+            item.isQrSync &&
+            item.metadataIndex !== undefined
+          ) {
+            Engine.context.QrSyncController.enrichProvisioningEntry(
+              item.metadataIndex,
+              {
+                accountAddress,
+              },
+            );
+          }
+        } else if (item.type === SecretType.Mnemonic) {
+          const entropySource = await this.importRemainingMnemonicToVault(
+            item.data,
+            syncSeedlessBackupMetadata,
+          );
+
+          if (item.isQrSync && item.metadataIndex !== undefined) {
+            Engine.context.QrSyncController.enrichProvisioningEntry(
+              item.metadataIndex,
+              {
+                entropySource,
+              },
+            );
+          }
+        } else {
+          Logger.error(
+            new Error('Authentication: Unknown remaining secret type'),
+            item.type,
+          );
+        }
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'Error in Authentication.importRemainingSecretsToVault',
+        );
+      }
+    }
+  };
+
+  /**
+   * Imports QR sync remaining secrets after primary restore. Vault imports mirror
+   * seedless rehydrate; metadata enrichment updates QrSyncController directly.
+   */
+  private importRemainingSecrets = async (
+    primaryEntropySource: EntropySourceId,
+    isQrSync = false,
+  ): Promise<void> => {
+    if (!isQrSync) {
+      return;
+    }
+
+    const { QrSyncController } = Engine.context;
+    const { pendingSecretImports } = QrSyncController.state;
+    if (!pendingSecretImports) {
+      return;
+    }
+
+    const primarySecret = pendingSecretImports.find(
+      (secret) =>
+        secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary,
+    );
+
+    if (primarySecret) {
+      Engine.context.QrSyncController.enrichProvisioningEntry(
+        primarySecret.index,
+        {
+          entropySource: primaryEntropySource,
+        },
+      );
+    }
+
+    const remainingSecrets = [...pendingSecretImports].filter(
+      (secret) =>
+        !(secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary),
+    );
+
+    await this.importRemainingSecretsToVault({
+      secrets: remainingSecrets.map((secret) => ({
+        type:
+          secret.type === QrSyncSecretTypes.MNEMONIC
+            ? SecretType.Mnemonic
+            : SecretType.PrivateKey,
+        data: secret.value,
+        metadataIndex: secret.index,
+        isQrSync,
+      })),
+    });
+
+    if (isQrSync) {
+      Engine.context.QrSyncController.finalizeSecretImport();
+    }
   };
 
   private retryAccountDiscovery = async (discovery: () => Promise<void>) => {
@@ -585,15 +717,29 @@ class AuthenticationService {
    * @param authData - type of authentication required to fetch password from keychain
    * @param parsedSeed - provides the parsed SRP
    * @param clearEngine - this boolean clears the engine data on new wallet
+   * @param isQrSync - this boolean indicates if the wallet is being created for QR sync
    */
   newWalletAndRestore = async (
     password: string,
     authData: AuthData,
     parsedSeed: string,
     clearEngine: boolean,
+    isQrSync: boolean = false,
   ): Promise<void> => {
     try {
-      await this.newWalletVaultAndRestore(password, parsedSeed, clearEngine);
+      const primaryEntropySource = await this.newWalletVaultAndRestore(
+        password,
+        parsedSeed,
+        clearEngine,
+      );
+
+      if (isQrSync) {
+        Engine.context.QrSyncController.enrichProvisioningEntry(0, {
+          entropySource: primaryEntropySource,
+        });
+      }
+
+      await this.importRemainingSecrets(primaryEntropySource, isQrSync);
       await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
@@ -1109,21 +1255,8 @@ class AuthenticationService {
     }
   };
 
-  importSeedlessMnemonicToVault = async (
-    seed: string,
-  ): Promise<EntropySourceId> => {
-    const isSeedlessOnboardingFlow =
-      Engine.context.SeedlessOnboardingController.state.vault != null;
-
-    if (!isSeedlessOnboardingFlow) {
-      throw new Error('Not in seedless onboarding flow');
-    }
-    const {
-      KeyringController,
-      SeedlessOnboardingController,
-      MultichainAccountService,
-    } = Engine.context;
-
+  importMnemonicToVault = async (seed: string): Promise<EntropySourceId> => {
+    const { KeyringController, MultichainAccountService } = Engine.context;
     const mnemonic = mnemonicPhraseToBytes(seed);
 
     const wallet = await MultichainAccountService.createMultichainAccountWallet(
@@ -1134,10 +1267,28 @@ class AuthenticationService {
     );
     const entropySource = wallet.entropySource;
 
-    const [newAccount] = await KeyringController.withKeyringV2(
+    await KeyringController.withKeyringV2(
       { id: entropySource },
       async ({ keyring }) => keyring.getAccounts(),
     );
+
+    return entropySource;
+  };
+
+  importSeedlessMnemonicToVault = async (
+    seed: string,
+  ): Promise<EntropySourceId> => {
+    const isSeedlessOnboardingFlow =
+      Engine.context.SeedlessOnboardingController.state.vault != null;
+
+    if (!isSeedlessOnboardingFlow) {
+      throw new Error('Not in seedless onboarding flow');
+    }
+
+    const { SeedlessOnboardingController, MultichainAccountService } =
+      Engine.context;
+    const mnemonic = mnemonicPhraseToBytes(seed);
+    const entropySource = await this.importMnemonicToVault(seed);
 
     // if social backup is requested, add the seed phrase backup
     try {
@@ -1192,13 +1343,13 @@ class AuthenticationService {
       shouldCreateSocialBackup: true,
       shouldSelectAccount: true,
     },
-  ): Promise<boolean> => {
+  ): Promise<string | undefined> => {
     const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated({
       skipCache: true,
       captureSentryError: true,
     });
     if (isPasswordOutdated) {
-      return false;
+      return;
     }
 
     trace({
@@ -1240,7 +1391,7 @@ class AuthenticationService {
     endTrace({
       name: TraceName.ImportEvmAccount,
     });
-    return true;
+    return toFormattedAddress(importedAccountAddress);
   };
 
   rehydrateSeedPhrase = async (password: string): Promise<void> => {
@@ -1295,35 +1446,17 @@ class AuthenticationService {
         const seedPhrase = uint8ArrayToMnemonic(firstSeedPhrase.data, wordlist);
 
         await this.newWalletVaultAndRestore(password, seedPhrase, false);
-        // add in more srps
         if (restOfSeedPhrases.length > 0) {
-          for (const item of restOfSeedPhrases) {
-            try {
-              // add new private key
-              if (item.type === SecretType.PrivateKey) {
-                await this.importAccountFromPrivateKey(bytesToHex(item.data), {
-                  shouldCreateSocialBackup: false,
-                  shouldSelectAccount: false,
-                });
-              } else if (item.type === SecretType.Mnemonic) {
-                const mnemonic = uint8ArrayToMnemonic(item.data, wordlist);
-                await this.importSeedlessMnemonicToVault(mnemonic);
-              } else {
-                Logger.error(
-                  new Error(
-                    'SeedlessOnboardingController : Unknown secret type',
-                  ),
-                  item.type,
-                );
-              }
-            } catch (error) {
-              // catch error to prevent unable to login
-              Logger.error(
-                error as Error,
-                'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
-              );
-            }
-          }
+          await this.importRemainingSecretsToVault({
+            secrets: restOfSeedPhrases.map((item) => ({
+              type: item.type,
+              data:
+                item.type === SecretType.PrivateKey
+                  ? bytesToHex(item.data)
+                  : uint8ArrayToMnemonic(item.data, wordlist),
+            })),
+            syncSeedlessBackupMetadata: true,
+          });
         }
         await this.syncKeyringEncryptionKey();
 

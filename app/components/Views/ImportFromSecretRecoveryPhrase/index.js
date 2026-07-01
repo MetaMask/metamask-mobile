@@ -429,6 +429,7 @@ const ImportFromSecretRecoveryPhrase = ({
           authData,
           parsedSeed,
           true,
+          isQrSyncImport,
         );
 
         if (isQrSyncImport) {

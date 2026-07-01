@@ -6,24 +6,27 @@ import {
   QR_SYNC_CONTROLLER_NAME,
   type QrSyncControllerMessenger,
   type QrSyncControllerState,
+  type QrSyncProvisioningEntryEnrichment,
 } from './controller-types';
 import type {
   QrSyncConnectionStatus,
   QrSyncError,
   QrSyncErrorCode,
   QrSyncPhase,
+  QrSyncProvisioningMetadata,
   QrSyncServiceEvent,
   QrSyncWireMessage,
 } from './types';
 import { createQrSyncWalletClient } from './services/create-qr-sync-wallet-client';
 import {
   parseQrSyncConnectionRequest,
-  validateQrSyncImportPlanForOnboarding,
+  validateQrSyncSecretImportsForOnboarding,
 } from './services/qr-sync-validation';
 import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
   QrSyncPhases,
+  QrSyncSecretTypes,
   RELAY_URL,
 } from './constants';
 import { routeIncomingQrSyncMessage } from './services/qr-sync-message-router';
@@ -53,28 +56,42 @@ const metadata: StateMetadata<QrSyncControllerState> = {
     includeInStateLogs: true,
     usedInUi: true,
   },
-  importPlan: {
+  pendingSecretImports: {
     persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
     usedInUi: true,
+  },
+  provisioningMetadata: {
+    persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
+  },
+  provisioningStatus: {
+    persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: false,
   },
 };
 
 export const defaultQrSyncControllerState: QrSyncControllerState = {
   phase: QrSyncPhases.IDLE,
   connectionStatus: 'disconnected',
+  pendingSecretImports: null,
+  provisioningMetadata: null,
+  provisioningStatus: null,
   otp: null,
   error: null,
-  importPlan: null,
 };
 
 /**
  * Controller that owns serialized QR sync state and coordinates runtime helpers.
  *
  * Runtime-only objects such as `WalletClient` are intentionally kept out of
- * controller state. `importPlan` holds secret material and is excluded from
- * debug snapshots and state logs.
+ * controller state. `pendingSecretImports` holds secret material and is excluded
+ * from debug snapshots, state logs, and persistence.
  */
 export class QrSyncController extends BaseController<
   typeof QR_SYNC_CONTROLLER_NAME,
@@ -176,6 +193,149 @@ export class QrSyncController extends BaseController<
     );
   }
 
+  /**
+   * Merges vault-derived runtime IDs into a persisted provisioning metadata entry.
+   */
+  public enrichProvisioningEntry(
+    index: number,
+    enrichment: QrSyncProvisioningEntryEnrichment,
+  ): void {
+    const { provisioningMetadata, provisioningStatus, pendingSecretImports } =
+      this.state;
+
+    if (
+      provisioningStatus !== 'awaiting_password' ||
+      !pendingSecretImports?.length
+    ) {
+      return;
+    }
+
+    if (!provisioningMetadata) {
+      throw new Error('QR sync enrichment requires provisioning metadata');
+    }
+
+    const entryIndex = provisioningMetadata.entries.findIndex(
+      (entry) => entry.index === index,
+    );
+
+    if (entryIndex === -1) {
+      throw new Error(`QR sync metadata has no entry at index ${index}`);
+    }
+
+    const entry = provisioningMetadata.entries[entryIndex];
+
+    if ('entropySource' in enrichment) {
+      if (entry.type !== QrSyncSecretTypes.MNEMONIC) {
+        throw new Error(`QR sync metadata entry ${index} is not a mnemonic`);
+      }
+
+      this.update((state) => {
+        if (!state.provisioningMetadata) {
+          return;
+        }
+
+        const entries = state.provisioningMetadata.entries.map(
+          (metadataEntry, metadataIndex) =>
+            metadataIndex === entryIndex &&
+            metadataEntry.type === QrSyncSecretTypes.MNEMONIC
+              ? {
+                  ...metadataEntry,
+                  entropySource: enrichment.entropySource,
+                }
+              : metadataEntry,
+        );
+
+        state.provisioningMetadata = {
+          ...state.provisioningMetadata,
+          entries,
+        };
+      });
+      return;
+    }
+
+    if (entry.type !== QrSyncSecretTypes.PRIVATE_KEY) {
+      throw new Error(`QR sync metadata entry ${index} is not a private key`);
+    }
+
+    this.update((state) => {
+      if (!state.provisioningMetadata) {
+        return;
+      }
+
+      const entries = state.provisioningMetadata.entries.map(
+        (metadataEntry, metadataIndex) =>
+          metadataIndex === entryIndex &&
+          metadataEntry.type === QrSyncSecretTypes.PRIVATE_KEY
+            ? {
+                ...metadataEntry,
+                accountAddress: enrichment.accountAddress,
+              }
+            : metadataEntry,
+      );
+
+      state.provisioningMetadata = {
+        ...state.provisioningMetadata,
+        entries,
+      };
+    });
+  }
+
+  /**
+   * Clears ephemeral secrets and marks Phase B complete. Persisted metadata is
+   * left as-is (possibly partially enriched).
+   */
+  public finalizeSecretImport(): void {
+    if (!this.state.provisioningMetadata) {
+      throw new Error('QR sync finalize requires provisioning metadata');
+    }
+
+    this.update((state) => {
+      state.pendingSecretImports = null;
+      state.provisioningStatus = 'secrets_imported';
+    });
+  }
+
+  /**
+   * Persists enriched provisioning metadata after all secrets are imported into
+   * the vault. Clears ephemeral secret material from memory.
+   */
+  public completeSecretImport(
+    enrichedMetadata: QrSyncProvisioningMetadata,
+  ): void {
+    if (!enrichedMetadata) {
+      throw new Error(
+        'QrSyncController.completeSecretImport requires enriched metadata',
+      );
+    }
+
+    this.update((state) => {
+      state.pendingSecretImports = null;
+      state.provisioningMetadata = enrichedMetadata;
+      state.provisioningStatus = 'secrets_imported';
+    });
+  }
+
+  /**
+   * Marks onboarding provisioning as failed and clears ephemeral secrets.
+   * Persisted metadata is retained for potential retry (Phase C).
+   */
+  public markProvisioningFailed(): void {
+    this.update((state) => {
+      state.provisioningStatus = 'failed';
+      state.pendingSecretImports = null;
+    });
+  }
+
+  /**
+   * Marks metadata provisioning complete and clears persisted metadata.
+   */
+  public completeProvisioning(): void {
+    this.update(() => ({
+      ...defaultQrSyncControllerState,
+      provisioningStatus: 'completed',
+    }));
+  }
+
   private attachClient(client: WalletClient, sessionId: string): void {
     if (this.client !== null) {
       throw new Error(
@@ -228,24 +388,34 @@ export class QrSyncController extends BaseController<
       }
 
       if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
-        const importPlanValidation = validateQrSyncImportPlanForOnboarding(
-          routedMessage.importPlan,
-          this.getIsOnboardingCompleted(),
-        );
+        const isOnboardingCompleted = this.getIsOnboardingCompleted();
+        if (!isOnboardingCompleted) {
+          // If onboarding is not completed, we need to validate that the pending secret imports include a primary mnemonic.
+          const secretImportValidation =
+            validateQrSyncSecretImportsForOnboarding(
+              routedMessage.pendingSecretImports,
+            );
 
-        if (!importPlanValidation.valid) {
-          this.terminateWithError(importPlanValidation.error);
-          return;
+          if (!secretImportValidation.valid) {
+            this.terminateWithError(secretImportValidation.error);
+            return;
+          }
+        }
+
+        if (!this.client) {
+          throw this.toQrSyncError(new Error('Wallet client not found'));
         }
       }
 
       this.handleSessionServiceEvent(routedMessage.event);
 
       if (routedMessage.event.type === QrSyncActionTypes.SYNC_READY) {
-        const { importPlan } = routedMessage;
-        if (importPlan) {
+        const { pendingSecretImports, provisioningMetadata } = routedMessage;
+        if (pendingSecretImports && provisioningMetadata) {
           this.update((state) => {
-            state.importPlan = importPlan;
+            state.pendingSecretImports = pendingSecretImports;
+            state.provisioningMetadata = provisioningMetadata;
+            state.provisioningStatus = 'awaiting_password';
           });
         }
 
@@ -447,13 +617,7 @@ export class QrSyncController extends BaseController<
   }
 
   private clearControllerState(): void {
-    this.update((state) => {
-      state.phase = defaultQrSyncControllerState.phase;
-      state.connectionStatus = defaultQrSyncControllerState.connectionStatus;
-      state.otp = null;
-      state.error = null;
-      state.importPlan = null;
-    });
+    this.update(() => defaultQrSyncControllerState);
   }
 
   private toClientSyncError(error: Error): QrSyncError {

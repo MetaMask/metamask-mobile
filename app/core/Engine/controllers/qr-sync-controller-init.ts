@@ -38,5 +38,26 @@ export const qrSyncControllerInit: MessengerClientInitFunction<
     getIsOnboardingCompleted: () => selectCompletedOnboarding(store.getState()),
   });
 
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:enrichProvisioningEntry',
+    controller.enrichProvisioningEntry.bind(controller),
+  );
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:finalizeSecretImport',
+    controller.finalizeSecretImport.bind(controller),
+  );
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:completeSecretImport',
+    controller.completeSecretImport.bind(controller),
+  );
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:markProvisioningFailed',
+    controller.markProvisioningFailed.bind(controller),
+  );
+  controllerMessenger.registerActionHandler(
+    'QrSyncController:completeProvisioning',
+    controller.completeProvisioning.bind(controller),
+  );
+
   return { controller };
 };

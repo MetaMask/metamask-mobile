@@ -31,7 +31,7 @@ import {
 } from '../../../util/trace';
 import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
-import { QrSyncImportPlan } from '../../../core/QrSync/types';
+import { QrSyncSecretTypes } from '../../../core/QrSync/constants';
 
 const mockQrSyncResetState = jest.fn();
 
@@ -1225,16 +1225,14 @@ describe('ImportFromSecretRecoveryPhrase', () => {
         backgroundState: {
           QrSyncController: {
             ...defaultQrSyncControllerState,
-            importPlan: [
+            pendingSecretImports: [
               {
                 index: 0,
                 value: qrSyncMnemonic,
-                type: 'MNEMONIC',
-                accountName: null,
-                hiddenIndexes: [],
+                type: QrSyncSecretTypes.MNEMONIC,
                 isPrimary: true,
               },
-            ] as QrSyncImportPlan,
+            ],
           },
         },
       },
@@ -1312,14 +1310,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       ).toBeNull();
     });
 
-    it('clears QR sync secrets after a successful vault import', async () => {
+    it('preserves QR sync provisioning state after a successful vault import', async () => {
       jest
         .spyOn(Authentication, 'componentAuthenticationType')
         .mockResolvedValueOnce({
           currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
           availableBiometryType: BIOMETRY_TYPE.FACE_ID,
         });
-      jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
+      const newWalletAndRestoreSpy = jest
+        .spyOn(Authentication, 'newWalletAndRestore')
+        .mockResolvedValueOnce();
 
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
@@ -1346,7 +1346,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID));
 
       await waitFor(() => {
-        expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
+        expect(newWalletAndRestoreSpy).toHaveBeenCalledTimes(1);
       });
     });
   });

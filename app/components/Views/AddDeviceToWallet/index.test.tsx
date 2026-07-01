@@ -3,7 +3,10 @@ import { fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-import { QrSyncPhases } from '../../../core/QrSync/constants';
+import {
+  QrSyncPhases,
+  QrSyncSecretTypes,
+} from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
 
@@ -225,6 +228,7 @@ describe('AddDeviceToWallet', () => {
         getByText(strings('app_settings.add_device.waiting_for_extension')),
       ).toBeOnTheScreen();
     });
+  
     it('does not render the manual QR input outside dev', () => {
       const globalWithDev = global as unknown as { __DEV__: boolean };
       const originalDev = globalWithDev.__DEV__;
@@ -261,19 +265,44 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('QR sync import navigation', () => {
-    it('navigates to import when sync-ready provides import data', async () => {
+    const pendingSecretImports = [
+      {
+        index: 0,
+        value: 'word1 word2 word3',
+        type: QrSyncSecretTypes.MNEMONIC,
+        isPrimary: true,
+      },
+    ];
+
+    it('navigates to import when awaiting password with pending secrets', async () => {
       renderComponent({
-        phase: QrSyncPhases.REVIEWING_IMPORT,
-        importPlan: [
+        provisioningStatus: 'awaiting_password',
+        pendingSecretImports,
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
           {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
-            isPrimary: true,
+            initialStep: 1,
+            qrSyncImport: true,
           },
-        ],
+        );
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+          {
+            initialStep: 1,
+            qrSyncImport: true,
+          },
+        );
+      });
+    });
+
+    it('navigates to import after sync completes while secrets are still pending', async () => {
+      renderComponent({
+        phase: QrSyncPhases.COMPLETED,
+        provisioningStatus: 'awaiting_password',
+        pendingSecretImports,
       });
 
       await waitFor(() => {
@@ -287,42 +316,10 @@ describe('AddDeviceToWallet', () => {
       });
     });
 
-    it('does not navigate to import after sync has completed', async () => {
-      renderComponent({
-        phase: QrSyncPhases.COMPLETED,
-        importPlan: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
-            isPrimary: true,
-          },
-        ],
-      });
-
-      await waitFor(() => {
-        expect(mockNavigate).not.toHaveBeenCalledWith(
-          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
-          expect.anything(),
-        );
-      });
-    });
-
-    it('does not navigate to import when sync failed with stale import data', async () => {
+    it('does not navigate to import when sync failed with stale secret data', async () => {
       renderComponent({
         phase: QrSyncPhases.FAILED,
-        importPlan: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
-            isPrimary: true,
-          },
-        ],
+        pendingSecretImports,
         error: {
           code: 'SYNC_FAILED',
           message: 'Sync failed',
@@ -330,6 +327,10 @@ describe('AddDeviceToWallet', () => {
       });
 
       await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+          expect.anything(),
+        );
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
           expect.anything(),

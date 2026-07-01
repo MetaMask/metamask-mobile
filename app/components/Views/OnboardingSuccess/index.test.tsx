@@ -21,6 +21,7 @@ import {
   SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
   setWalletHomeOnboardingStepsEligible,
 } from '../../../actions/onboarding';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
@@ -58,6 +59,9 @@ jest.mock('../../../core/Engine/Engine', () => ({
           },
         ],
       },
+    },
+    QrSyncProvisioningService: {
+      provisionFromMetadata: jest.fn().mockResolvedValue(undefined),
     },
     NetworkController: {
       addNetwork: jest.fn().mockResolvedValue(undefined),
@@ -122,6 +126,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockDispatch = jest.fn();
+const mockUseSelector = jest.mocked(useSelector);
+const mockProvisionFromMetadata = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -131,6 +137,15 @@ jest.mock('react-redux', () => ({
 describe('OnboardingSuccessComponent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectQrSyncNeedsProvisioning) {
+        return false;
+      }
+
+      return undefined;
+    });
+    Engine.context.QrSyncProvisioningService.provisionFromMetadata =
+      mockProvisionFromMetadata;
     jest
       .mocked(selectOnboardingAccountType)
       .mockReturnValue(AccountType.Imported);
@@ -201,6 +216,7 @@ describe('OnboardingSuccessComponent', () => {
       expect.any(Function),
     );
     expect(mockDiscoverAccounts).toHaveBeenCalled();
+    expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(
       setWalletHomeOnboardingStepsEligible(true, {
         skipInitialBalanceWait: true,
@@ -246,6 +262,122 @@ describe('OnboardingSuccessComponent', () => {
       expect.any(Function),
     );
     expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
+  });
+
+  it('calls provisionFromMetadata instead of discoverAccounts for QR sync users', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectQrSyncNeedsProvisioning) {
+        return true;
+      }
+
+      return undefined;
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+    expect(mockDiscoverAccounts).not.toHaveBeenCalled();
+  });
+
+  it('logs when provisionFromMetadata rejects and still invokes onDone', async () => {
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
+      // Do nothing
+    });
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectQrSyncNeedsProvisioning) {
+        return true;
+      }
+
+      return undefined;
+    });
+    mockProvisionFromMetadata.mockRejectedValueOnce(
+      new Error('provisioning failed'),
+    );
+    const onDone = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={onDone}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    await waitFor(() => {
+      expect(onDone).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.any(Error),
+        'OnboardingSuccess: provisionFromMetadata failed',
+      );
+    });
+    loggerSpy.mockRestore();
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
+  });
+
+  it('calls provisionFromMetadata instead of discoverAccounts for QR sync users', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectQrSyncNeedsProvisioning) {
+        return true;
+      }
+
+      return undefined;
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+    expect(mockDiscoverAccounts).not.toHaveBeenCalled();
+  });
+
+  it('logs when provisionFromMetadata rejects and still invokes onDone', async () => {
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
+      // Do nothing
+    });
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectQrSyncNeedsProvisioning) {
+        return true;
+      }
+
+      return undefined;
+    });
+    mockProvisionFromMetadata.mockRejectedValueOnce(
+      new Error('provisioning failed'),
+    );
+    const onDone = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={onDone}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    await waitFor(() => {
+      expect(onDone).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.any(Error),
+        'OnboardingSuccess: provisionFromMetadata failed',
+      );
+    });
+    loggerSpy.mockRestore();
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
   });
 
   it('logs when discoverAccounts rejects and still invokes onDone', async () => {

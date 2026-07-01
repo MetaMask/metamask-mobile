@@ -350,6 +350,10 @@ import type {
   QrSyncControllerEvents,
 } from '../QrSync/controller-types';
 import {
+  QrSyncProvisioningService,
+  type QrSyncProvisioningServiceActions,
+} from '../QrSync/services/qr-sync-provisioning-service';
+import {
   SeedlessOnboardingController,
   SeedlessOnboardingControllerState,
   SeedlessOnboardingControllerEvents,
@@ -495,6 +499,7 @@ type RequiredControllers = Omit<
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
+  | 'QrSyncProvisioningService'
   | 'StorageService'
   | 'ComplianceService'
   | 'ChompApiService'
@@ -508,6 +513,7 @@ type OptionalControllers = Pick<
   | 'GeolocationApiService'
   | 'MultichainRoutingService'
   | 'RewardsDataService'
+  | 'QrSyncProvisioningService'
   | 'StorageService'
   | 'ComplianceService'
   | 'ChompApiService'
@@ -599,6 +605,7 @@ export type GlobalActions =
   | PredictControllerActions
   | CardControllerActions
   | QrSyncControllerActions
+  | QrSyncProvisioningServiceActions
   | ClientControllerActions
   | RewardsControllerActions
   | RewardsDataServiceActions
@@ -830,6 +837,7 @@ export type MessengerClients = {
   PredictController: PredictController;
   CardController: CardController;
   QrSyncController: QrSyncController;
+  QrSyncProvisioningService: QrSyncProvisioningService;
   ClientController: ClientController;
   RewardsController: RewardsController;
   RewardsDataService: RewardsDataService;
@@ -1024,6 +1032,7 @@ export type MessengerClientsToInitialize =
   | 'PredictController'
   | 'CardController'
   | 'QrSyncController'
+  | 'QrSyncProvisioningService'
   | 'ClientController'
   | 'PreferencesController'
   | 'BridgeController'

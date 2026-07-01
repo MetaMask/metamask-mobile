@@ -31,6 +31,7 @@ import { clearAttribution } from '../../../core/redux/slices/attribution';
 import Engine from '../../../core/Engine/Engine';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
 import Logger from '../../../util/Logger';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
 import {
   Box,
   BoxAlignItems,
@@ -77,6 +78,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
   const walletSetupAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
+  const needsQrProvisioning = useSelector(selectQrSyncNeedsProvisioning);
 
   const tw = useTailwind();
 
@@ -117,18 +119,47 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       );
     }
 
+    const runDiscoverAccounts = async () => {
+      try {
+        await discoverAccounts(
+          Engine.context.KeyringController.state.keyrings[0].metadata.id,
+        );
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'OnboardingSuccess: discoverAccounts failed',
+        );
+      }
+    };
+
+    const runQrProvisioning = async () => {
+      const { QrSyncProvisioningService } = Engine.context;
+
+      if (!QrSyncProvisioningService) {
+        Logger.error(
+          new Error('QR sync provisioning service is unavailable'),
+          'OnboardingSuccess: provisionFromMetadata failed',
+        );
+        return;
+      }
+
+      try {
+        await QrSyncProvisioningService.provisionFromMetadata();
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'OnboardingSuccess: provisionFromMetadata failed',
+        );
+      }
+    };
+
     dispatch(clearAttribution());
 
-    Promise.resolve(
-      discoverAccounts(
-        Engine.context.KeyringController.state.keyrings[0].metadata.id,
-      ),
-    ).catch((error: unknown) => {
-      Logger.error(
-        error as Error,
-        'OnboardingSuccess: discoverAccounts failed',
-      );
-    });
+    if (needsQrProvisioning) {
+      void runQrProvisioning();
+    } else {
+      void runDiscoverAccounts();
+    }
     queueMicrotask(() => {
       onDone();
     });
@@ -136,6 +167,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
     accountType,
     dispatch,
     isBasicFunctionalityEnabled,
+    needsQrProvisioning,
     onDone,
     successFlow,
     walletSetupAttributionProps,
