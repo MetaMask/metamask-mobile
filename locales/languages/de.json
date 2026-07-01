@@ -3529,6 +3529,7 @@
     "enable_push_notifications": "Push-Benachrichtigungen aktivieren",
     "allow_notifications_desc": "Bestimmen Sie, worüber Sie benachrichtigt werden und wie.",
     "notifications_opts": {
+      "all_title": "Alle",
       "preferences_title": "Einstellungen",
       "push_recommended": "Push",
       "in_app": "In-App",
