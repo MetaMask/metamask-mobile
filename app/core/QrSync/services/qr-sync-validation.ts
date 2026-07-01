@@ -101,7 +101,7 @@ export function isQrSyncSessionRequest(data: unknown): data is SessionRequest {
   if (
     !sessionRequest.mode ||
     typeof sessionRequest.mode !== 'string' ||
-    !['trusted', 'untrusted'].includes(sessionRequest.mode)
+    sessionRequest.mode !== 'untrusted'
   ) {
     return false;
   }
