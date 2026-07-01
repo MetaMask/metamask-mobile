@@ -183,11 +183,15 @@ const MultichainAccountSelectorList = ({
       return items;
     }
 
+    const showWalletHeaders = walletSections.length > 1;
+
     filteredWalletSections.forEach((section) => {
-      items.push({
-        type: 'header',
-        data: { title: section.title, walletName: section.walletName },
-      });
+      if (showWalletHeaders) {
+        items.push({
+          type: 'header',
+          data: { title: section.title, walletName: section.walletName },
+        });
+      }
 
       section.data.forEach((accountGroup) => {
         items.push({
@@ -209,6 +213,7 @@ const MultichainAccountSelectorList = ({
     isExternalAddressValid,
     shouldShowExternalAccount,
     trimmedSearchText,
+    walletSections.length,
   ]);
 
   // Track if we've done the initial scroll to selected item
