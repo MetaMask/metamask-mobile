@@ -50,7 +50,8 @@ import MoreWaysToFundBottomSheet from './MoreWaysToFundBottomSheet';
 import { useRampsController } from '../../UI/Ramp/hooks/useRampsController';
 import { useRampsProviders } from '../../UI/Ramp/hooks/useRampsProviders';
 import { providerSupportsAsset } from '../../UI/Ramp/utils/providerSupportsAsset';
-import { MUSD_PLACEHOLDER } from '../../UI/Ramp/Deposit/constants/constants';
+import { MUSD_TOKEN_ASSET_ID_BY_CHAIN } from '../../UI/Earn/constants/musd';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const OnboardingFundWallet = () => {
   const tw = useTailwind();
@@ -99,23 +100,45 @@ const OnboardingFundWallet = () => {
     [tokens],
   );
 
+  // mUSD asset IDs to try, Monad first then Ethereum mainnet.
+  const musdCandidateAssetIds = useMemo(
+    () =>
+      [
+        MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MONAD],
+        MUSD_TOKEN_ASSET_ID_BY_CHAIN[CHAIN_IDS.MAINNET],
+      ].map((id) => id.toLowerCase()),
+    [],
+  );
+
   const { defaultToken, defaultProvider } = useMemo(() => {
     if (allAvailableTokens.length === 0 || !providers?.length) {
       return { defaultToken: undefined, defaultProvider: undefined };
     }
 
-    const musdAssetId = MUSD_PLACEHOLDER.assetId.toLowerCase();
-    const musdToken = allAvailableTokens.find(
-      (t) => t.assetId.toLowerCase() === musdAssetId,
-    );
-
-    // Try mUSD first with a supporting provider
-    if (musdToken) {
-      const provider = providers.find((p) =>
-        providerSupportsAsset(p, musdToken.assetId),
+    // Try mUSD on Monad first, then Ethereum mainnet
+    for (const candidateId of musdCandidateAssetIds) {
+      const musdToken = allAvailableTokens.find(
+        (t) => t.assetId.toLowerCase() === candidateId,
       );
-      if (provider) {
-        return { defaultToken: musdToken, defaultProvider: provider };
+      console.log(
+        '[FundWallet] mUSD candidate:',
+        candidateId,
+        'found:',
+        musdToken?.symbol,
+        musdToken?.assetId,
+      );
+      if (musdToken) {
+        const provider = providers.find((p) =>
+          providerSupportsAsset(p, musdToken.assetId),
+        );
+        console.log(
+          '[FundWallet] mUSD provider match:',
+          provider?.id,
+          provider?.name,
+        );
+        if (provider) {
+          return { defaultToken: musdToken, defaultProvider: provider };
+        }
       }
     }
 
@@ -140,7 +163,7 @@ const OnboardingFundWallet = () => {
     }
 
     return { defaultToken: undefined, defaultProvider: undefined };
-  }, [allAvailableTokens, providers, tokens]);
+  }, [allAvailableTokens, providers, tokens, musdCandidateAssetIds]);
 
   useEffect(() => {
     if (selectedToken || !defaultToken) return;
