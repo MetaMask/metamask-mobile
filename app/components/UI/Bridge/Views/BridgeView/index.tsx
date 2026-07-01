@@ -59,7 +59,7 @@ import {
 } from '@react-navigation/native';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import { SecurityDataType } from '../../types';
+import { BridgeToken, SecurityDataType } from '../../types';
 import Engine from '../../../../../core/Engine';
 import Routes from '../../../../../constants/navigation/Routes';
 import QuoteDetailsCard from '../../components/QuoteDetailsCard';
@@ -132,7 +132,27 @@ import { useBridgeViewRouteFallbacks } from './useBridgeViewRouteFallbacks';
 const SCROLL_NEAR_BOTTOM_PX = 160;
 const ACTIVITY_DETAILS_SOURCE_PAGE = 'ActivityDetails';
 
-const BridgeViewContent = () => {
+interface BridgeViewContentProps {
+  sourceAmount?: string;
+  sourceToken?: BridgeToken;
+  destToken?: BridgeToken;
+  displaySourceToken?: BridgeToken;
+  displaySourceAmount?: string;
+  displayDestToken?: BridgeToken;
+  areDisplayedTokensSyncedWithRedux: boolean;
+  latestSourceBalance: ReturnType<typeof useLatestBalance>;
+}
+
+const BridgeViewContent = ({
+  sourceAmount,
+  sourceToken,
+  destToken,
+  displaySourceToken,
+  displaySourceAmount,
+  displayDestToken,
+  areDisplayedTokensSyncedWithRedux,
+  latestSourceBalance,
+}: BridgeViewContentProps) => {
   const [isNearBottom, setIsNearBottom] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
@@ -159,9 +179,6 @@ const BridgeViewContent = () => {
   const selectedNetworkClientId = useSelector(selectSelectedNetworkClientId);
   useGasFeeEstimates(selectedNetworkClientId);
 
-  const sourceAmount = useSelector(selectSourceAmount);
-  const sourceToken = useSelector(selectSourceToken);
-  const destToken = useSelector(selectDestToken);
   const destChainId = useSelector(selectSelectedDestChainId);
   const destAddress = useSelector(selectDestAddress);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
@@ -181,27 +198,6 @@ const BridgeViewContent = () => {
   const initialSourceToken = route.params?.sourceToken;
   const initialSourceAmount = route.params?.sourceAmount;
   const initialDestToken = route.params?.destToken;
-  const {
-    displaySourceToken,
-    displaySourceAmount,
-    displayDestToken,
-    areDisplayedTokensSyncedWithRedux,
-  } = useBridgeViewRouteFallbacks({
-    sourceToken,
-    destToken,
-    sourceAmount,
-    initialSourceToken,
-    initialSourceAmount,
-    initialDestToken,
-  });
-  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
-  const latestSourceBalance = useLatestBalance({
-    address: displaySourceToken?.address,
-    decimals: displaySourceToken?.decimals,
-    chainId: displaySourceToken?.chainId,
-    balance: displaySourceToken?.balance,
-    refreshKey: balanceRefreshKey,
-  });
   const destTokenSecurityData = displayDestToken?.securityData;
   const tokenWarning = isNegativeSecurityType(destTokenSecurityData?.type)
     ? destTokenSecurityData
@@ -817,11 +813,53 @@ const BridgeViewContent = () => {
   );
 };
 
-const BridgeViewReadyContent = () => (
-  <BridgeQuoteDataProvider>
-    <BridgeViewContent />
-  </BridgeQuoteDataProvider>
-);
+const BridgeViewReadyContent = () => {
+  const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
+  const sourceAmount = useSelector(selectSourceAmount);
+  const sourceToken = useSelector(selectSourceToken);
+  const destToken = useSelector(selectDestToken);
+  const initialSourceToken = route.params?.sourceToken;
+  const initialSourceAmount = route.params?.sourceAmount;
+  const initialDestToken = route.params?.destToken;
+  const {
+    displaySourceToken,
+    displaySourceAmount,
+    displayDestToken,
+    areDisplayedTokensSyncedWithRedux,
+  } = useBridgeViewRouteFallbacks({
+    sourceToken,
+    destToken,
+    sourceAmount,
+    initialSourceToken,
+    initialSourceAmount,
+    initialDestToken,
+  });
+  const balanceRefreshKey = useSelector(selectBridgeBalanceRefreshKey);
+  const latestSourceBalance = useLatestBalance({
+    address: displaySourceToken?.address,
+    decimals: displaySourceToken?.decimals,
+    chainId: displaySourceToken?.chainId,
+    balance: displaySourceToken?.balance,
+    refreshKey: balanceRefreshKey,
+  });
+
+  return (
+    <BridgeQuoteDataProvider
+      latestSourceAtomicBalance={latestSourceBalance?.atomicBalance}
+    >
+      <BridgeViewContent
+        sourceAmount={sourceAmount}
+        sourceToken={sourceToken}
+        destToken={destToken}
+        displaySourceToken={displaySourceToken}
+        displaySourceAmount={displaySourceAmount}
+        displayDestToken={displayDestToken}
+        areDisplayedTokensSyncedWithRedux={areDisplayedTokensSyncedWithRedux}
+        latestSourceBalance={latestSourceBalance}
+      />
+    </BridgeQuoteDataProvider>
+  );
+};
 
 const BridgeView = () => {
   const route = useRoute<RouteProp<{ params: BridgeRouteParams }, 'params'>>();
