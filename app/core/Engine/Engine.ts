@@ -153,7 +153,6 @@ import { subjectMetadataControllerInit } from './controllers/subject-metadata-co
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
 import { preferencesControllerInit } from './controllers/preferences-controller-init';
-import { networkControllerInit } from './controllers/network-controller-init';
 import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
@@ -199,6 +198,7 @@ import { moneyAccountUpgradeControllerInit } from './controllers/money-account-u
 import { initializeWallet } from './wallet-init/initialization';
 import { qrKeyringBridge } from './wallet-init/keyrings';
 import { Wallet } from '@metamask/wallet';
+import { isOnboardingComplete } from './utils/ensureOnboardingComplete';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -312,7 +312,6 @@ export class Engine {
       initFunctions: {
         LoggingController: loggingControllerInit,
         PreferencesController: preferencesControllerInit,
-        NetworkController: networkControllerInit,
         PermissionController: permissionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
@@ -494,7 +493,7 @@ export class Engine {
     const nftController = messengerClientsByName.NftController;
     const nftDetectionController =
       messengerClientsByName.NftDetectionController;
-    const networkController = messengerClientsByName.NetworkController;
+    const networkController = this.#wallet.getInstance('NetworkController');
 
     ///: BEGIN:ONLY_INCLUDE_IF(snaps)
     const cronjobController = messengerClientsByName.CronjobController;
@@ -552,15 +551,6 @@ export class Engine {
       accountsCount: Object.keys(
         accountsController.state.internalAccounts.accounts,
       ).length,
-    });
-
-    // The wallet constructs ConnectivityController but does not seed its initial
-    // status; do that here (fire-and-forget).
-    connectivityController.init().catch((error) => {
-      Logger.error(
-        error as Error,
-        'ConnectivityController: failed to initialize',
-      );
     });
 
     // Initialize RPC domain validation cache for analytics
@@ -841,10 +831,20 @@ export class Engine {
         // Notifies Snaps that the app may be in the background.
         // This is best effort as we cannot guarantee the messages are received in time.
         if (isUnlocked) {
-          return this.controllerMessenger.call(
+          this.controllerMessenger.call(
             'SnapController:setClientActive',
             state === 'active',
           );
+
+          if (state === 'active' && isOnboardingComplete()) {
+            // If the client is active and unlocked, request a periodic update
+            // of the Snaps registry.
+            this.controllerMessenger
+              .call('SnapRegistryController:requestPeriodicUpdate')
+              .catch((error) => {
+                captureException(error);
+              });
+          }
         }
       },
     );

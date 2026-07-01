@@ -1162,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "무기한 선물을 사용할 수 없습니다",
     "title": "무기한 선물",
-    "transfer_to_perps": "무기한 선물 계정으로 전송",
     "perps_trading": "무기한 선물 거래",
     "perp_account_balance": "무기한 선물 계정 잔액",
     "manage_balance": "잔액 관리",
@@ -2343,13 +2342,11 @@
   },
   "predict": {
     "title": "MetaMask 예측",
-    "transfer_to_predictions": "예측 계정으로 전송",
     "select_predict_account": "예측 계정 선택",
     "search_account": "계정 검색",
     "home": {
       "live_now_title": "지금 진행 중",
-      "categories_placeholder": "카테고리",
-      "trending_placeholder": "인기"
+      "categories_placeholder": "카테고리"
     },
     "homepage_discovery": {
       "btc_title": "BTC 가격: {{price}}",
@@ -7679,8 +7676,7 @@
       "perps_withdraw": "출금",
       "predict_deposit": "예측 자금 추가",
       "predict_withdraw": "출금",
-      "money_account_add_money": "자금 추가",
-      "money_account_transfer_money": "자금 전송"
+      "money_account_add_money": "자금 추가"
     },
     "sub_title": {
       "permit": "이 사이트에서 토큰 사용 권한을 요청합니다.",

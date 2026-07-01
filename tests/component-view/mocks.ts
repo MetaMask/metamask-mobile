@@ -338,6 +338,7 @@ jest.mock('../../app/core/Engine', () => {
         resetState: jest.fn(),
         stopAllPolling: jest.fn(),
         setLocation: jest.fn(),
+        setInputPrimaryDenomination: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
       },
       PredictController: {
@@ -375,6 +376,7 @@ jest.mock('../../app/core/Engine', () => {
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
         trackBannerAction: jest.fn(),
+        trackCategoryClicked: jest.fn(),
         trackMarketDetailsOpened: jest.fn(),
         trackGeoBlockTriggered: jest.fn(),
         trackActivityViewed: jest.fn(),

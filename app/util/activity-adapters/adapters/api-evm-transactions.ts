@@ -7,6 +7,7 @@
  */
 import type { V1TransactionByHashResponse } from '@metamask/core-backend';
 import { KnownCaipNamespace, toCaipChainId } from '@metamask/utils';
+import { isValidHexAddress } from '@metamask/controller-utils';
 import type { ActivityListItem, Status, TokenAmount } from '../types';
 import { supplyMethodIds } from './constants';
 import {
@@ -170,14 +171,37 @@ export function mapApiEvmTransactions({
     // TODO: Categorize REVOKE in the backend
     const approveTransfer = sentTransfer ?? receivedTransfer;
     const approveDirection = receivedTransfer && !sentTransfer ? 'in' : 'out';
+    const valueTransferContractAddress = valueTransfers?.find(
+      ({ contractAddress, transferType }) =>
+        contractAddress &&
+        transferType !== 'normal' &&
+        transferType !== 'internal',
+    )?.contractAddress;
+    const approveContractAddress =
+      (transaction.to &&
+      isValidHexAddress(transaction.to, { allowNonPrefixed: false })
+        ? transaction.to
+        : undefined) ??
+      (valueTransferContractAddress &&
+      isValidHexAddress(valueTransferContractAddress, {
+        allowNonPrefixed: false,
+      })
+        ? valueTransferContractAddress
+        : undefined);
+    const fallbackApproveAssetId = approveContractAddress
+      ? environment.toAssetId(approveContractAddress, chainId)
+      : undefined;
     const approveToken =
       getToken(approveTransfer, approveDirection) ??
       getTokenMetadataFromKnownToken(
-        transaction.to,
+        approveContractAddress,
         approveDirection,
         chainId,
         environment,
-      );
+      ) ??
+      (fallbackApproveAssetId
+        ? { direction: approveDirection, assetId: fallbackApproveAssetId }
+        : undefined);
     const approveAmount = getTokenApprovalAmountFromData(
       getTransactionCalldata(transaction),
       environment,
@@ -378,6 +402,7 @@ export function mapApiEvmTransactions({
           receivedTransfer ?? sentTransfer,
           receivedTransfer ? 'in' : 'out',
         ),
+        ...(fees ? { fees } : {}),
       },
     };
   }
@@ -499,6 +524,7 @@ export function mapApiEvmTransactions({
       raw: { type: 'apiEvmTransaction', data: transaction },
       data: {
         token: getToken(sentTransfer, 'in'),
+        ...(fees ? { fees } : {}),
       },
     };
   }

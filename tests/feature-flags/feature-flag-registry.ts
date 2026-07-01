@@ -78,7 +78,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'addDeviceSyncEnabled',
     type: FeatureFlagType.Remote,
     inProd: false,
-    productionDefault: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.6.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -3849,6 +3852,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsAdvancedChartEnabledV2: {
+    name: 'perpsAdvancedChartEnabledV2',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.81.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   perpsPayWithAnyTokenAllowlistAssets: {
     name: 'perpsPayWithAnyTokenAllowlistAssets',
     type: FeatureFlagType.Remote,
@@ -4762,6 +4776,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsTerminalBackendEnabled: {
+    name: 'perpsTerminalBackendEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   swapsSWAPS4242AbtestTokenSelectorBalanceLayout: {
     name: 'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
     type: FeatureFlagType.Remote,
@@ -5446,6 +5471,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
 
   swapsSWAPS4543AbtestPostTradeModal: {
     name: 'swapsSWAPS4543AbtestPostTradeModal',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: [],
+    status: FeatureFlagStatus.Active,
+  },
+
+  swapsSWAPS4635AbtestVerified2: {
+    name: 'swapsSWAPS4635AbtestVerified2',
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: [],
