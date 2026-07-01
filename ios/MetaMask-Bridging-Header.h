@@ -3,7 +3,6 @@
 //
 
 #import <React/RCTBridgeModule.h>
-#import <Expo/Expo.h>
 #import <NitroFetch/NitroAutoPrefetcher.h>
 
 // Thin C wrappers around BrazeReactBridge / BrazeReactUtils.
