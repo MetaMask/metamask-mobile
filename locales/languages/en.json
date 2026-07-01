@@ -794,6 +794,11 @@
       "search_by_country": "Search by country",
       "no_regions_found": "No regions match \"{{searchString}}\""
     },
+    "phone_country_modal": {
+      "select_phone_country": "Select phone country",
+      "search_by_country": "Search by country",
+      "no_countries_found": "No countries match \"{{searchString}}\""
+    },
     "state_modal": {
       "select_a_state": "Select a state",
       "search_by_state": "Search by state",
