@@ -12,6 +12,7 @@
 // that gate).
 
 import { postToRN, reportErrorToRN } from '../core/bridge';
+import { notifyDataLifecycle } from '../core/dataLifecycle';
 import { getWidget, isChartReady } from '../core/state';
 import type { TVActiveChart } from '../core/types';
 
@@ -72,7 +73,12 @@ export function attachVisibleRangeListeners(chart: TVActiveChart): void {
     reportErrorToRN(error);
   }
   try {
-    chart.onVisibleRangeChanged().subscribe(null, schedulePan);
+    chart.onVisibleRangeChanged().subscribe(null, () => {
+      // Notify overlays (trade markers etc.) immediately so panned-in
+      // shapes get re-placed without waiting on the analytics debounce.
+      notifyDataLifecycle('visibleRangeChanged');
+      schedulePan();
+    });
   } catch (error) {
     reportErrorToRN(error);
   }

@@ -11,8 +11,8 @@
 //   Phase 3 — ADD_INDICATOR, REMOVE_INDICATOR, SET_MA_VISIBILITY,
 //             TOGGLE_VOLUME, SET_SUB_PANE_LAYOUT, INDICATOR_ADDED,
 //             INDICATOR_REMOVED, LEGEND_RENDERED
-//   Phase 5 — SET_TRADE_MARKERS, PULSE_TRADE_MARKER, FOCUS_TIME,
-//             TRADE_MARKER_PRESSED
+//   Phase 5 — SET_TRADE_MARKERS, PULSE_TRADE_MARKER, FOCUS_TIME (inbound),
+//             TRADE_MARKER_PRESSED (outbound)
 //   Phase 6 — SET_POSITION_LINES, FETCH_OLDER_BARS_REQUEST,
 //             FETCH_OLDER_BARS_RESPONSE
 //
@@ -36,7 +36,10 @@ export type InboundMessage =
   | RemoveIndicatorMessage
   | SetMAVisibilityMessage
   | ToggleVolumeMessage
-  | SetSubPaneLayoutMessage;
+  | SetSubPaneLayoutMessage
+  | SetTradeMarkersMessage
+  | PulseTradeMarkerMessage
+  | FocusTimeMessage;
 
 export interface SetThemeColorsMessage {
   type: 'SET_THEME_COLORS';
@@ -102,6 +105,47 @@ export interface SetSubPaneLayoutMessage {
   payload: { heightRatio: number | null };
 }
 
+/**
+ * A single trade marker anchored to a candle in `time` (unix ms). `intent`
+ * selects the theme color (successColor for 'entry', errorColor for 'exit');
+ * `price` is a fallback anchor when the candle is outside the loaded range.
+ * Mirrors the shape RN sends in `TradeMarker` from AdvancedChart.types.ts.
+ */
+export interface TradeMarker {
+  id: string | number;
+  time: number;
+  intent: 'entry' | 'exit';
+  price?: number;
+}
+
+export interface SetTradeMarkersMessage {
+  type: 'SET_TRADE_MARKERS';
+  payload: SetTradeMarkersPayload;
+}
+
+export interface SetTradeMarkersPayload {
+  /** Full marker set; RN sends every trade, not just the visible window. */
+  markers: TradeMarker[] | null;
+}
+
+export interface PulseTradeMarkerMessage {
+  type: 'PULSE_TRADE_MARKER';
+  payload: { id: string | number };
+}
+
+export interface FocusTimeMessage {
+  type: 'FOCUS_TIME';
+  payload: FocusTimePayload;
+}
+
+export interface FocusTimePayload {
+  timeMs: number;
+  /** Optional explicit visible span (ms); omitted → preserve current zoom. */
+  spanMs?: number;
+  /** false disables the slide animation (jump instead). Default true. */
+  animate?: boolean;
+}
+
 export type InboundMessageType = InboundMessage['type'];
 
 /** Outbound — WebView IIFE → React Native. */
@@ -114,6 +158,7 @@ export type OutboundMessageType =
   | 'INDICATOR_ADDED'
   | 'INDICATOR_REMOVED'
   | 'LEGEND_RENDERED'
+  | 'TRADE_MARKER_PRESSED'
   | 'ERROR'
   | 'DEBUG';
 
@@ -175,6 +220,10 @@ export interface IndicatorRemovedPayload {
 
 export type LegendRenderedPayload = Record<string, never>;
 
+export interface TradeMarkerPressedPayload {
+  id: string;
+}
+
 export interface OutboundPayloads {
   CHART_READY: ChartReadyPayload;
   CHART_LAYOUT_SETTLED: ChartLayoutSettledPayload;
@@ -184,6 +233,7 @@ export interface OutboundPayloads {
   INDICATOR_ADDED: IndicatorAddedPayload;
   INDICATOR_REMOVED: IndicatorRemovedPayload;
   LEGEND_RENDERED: LegendRenderedPayload;
+  TRADE_MARKER_PRESSED: TradeMarkerPressedPayload;
   ERROR: ErrorPayload;
   DEBUG: DebugPayload;
 }

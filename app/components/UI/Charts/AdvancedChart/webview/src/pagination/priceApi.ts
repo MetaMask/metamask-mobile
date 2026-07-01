@@ -9,6 +9,7 @@
 // belong to later phases / are gone after Phase 4).
 
 import { reportErrorToRN } from '../core/bridge';
+import { notifyDataLifecycle } from '../core/dataLifecycle';
 import {
   bumpOhlcvGeneration,
   getOhlcvGeneration,
@@ -126,6 +127,7 @@ export async function fetchOlderBarsFromPriceApi(
 
   if (newBars.length > 0) {
     prependOhlcvBars(newBars);
+    notifyDataLifecycle('ohlcvPrepended');
   }
 
   const olderBars = newBars.filter((b) => b.time < request.oldestAtDefer);

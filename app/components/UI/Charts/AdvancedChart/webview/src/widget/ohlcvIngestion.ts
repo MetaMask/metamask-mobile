@@ -14,6 +14,7 @@
 //   SET_OHLCV_DATA's reset path.
 
 import { postToRN, reportErrorToRN } from '../core/bridge';
+import { notifyDataLifecycle } from '../core/dataLifecycle';
 import { detectResolution } from '../core/resolution';
 import { getApproxBarDurationSec } from '../core/timeUtils';
 import {
@@ -87,6 +88,7 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
         chart.setResolution(newResolution, () => {
           try {
             chart.resetData();
+            notifyDataLifecycle('ohlcvReset');
             applyVisibleRange(chart);
             emitLayoutSettled();
           } catch (error) {
@@ -95,6 +97,7 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
         });
       } else {
         chart.resetData();
+        notifyDataLifecycle('ohlcvReset');
         applyVisibleRange(chart);
         emitLayoutSettled();
       }

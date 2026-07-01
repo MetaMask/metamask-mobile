@@ -49,6 +49,10 @@ import {
   setupLegendOverlay,
 } from '../features/indicators/legend';
 import { handleToggleVolume } from '../features/volume';
+import { registerTradeMarkerOverlay } from '../overlays/tradeMarkers';
+import { registerTradeMarkerPulseHandler } from '../overlays/tradeMarkers/animation';
+import { attachMarkerHitTest } from '../overlays/tradeMarkers/markerHitTest';
+import { registerFocusTimeOverlay } from '../overlays/focusTime';
 import {
   getOhlcvData,
   getVisibleFromMs,
@@ -130,6 +134,10 @@ export function bootstrap(): ChartConfig {
     handleSetSubPaneLayout(payload);
   });
 
+  registerTradeMarkerOverlay();
+  registerTradeMarkerPulseHandler();
+  registerFocusTimeOverlay();
+
   onFromRN((message) => {
     dispatchInboundMessage(message);
   });
@@ -167,6 +175,7 @@ export function bootstrap(): ChartConfig {
               }
               attachCrosshairListener(chart);
               attachTapDismiss(widget);
+              attachMarkerHitTest(widget, chart);
               attachVisibleRangeListeners(chart);
               attachLegendResizeListener(widget);
               scheduleChartLayoutSettledNotify();

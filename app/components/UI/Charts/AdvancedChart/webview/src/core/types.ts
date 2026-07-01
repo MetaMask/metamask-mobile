@@ -131,6 +131,7 @@ export interface TVSubscription<TArgs extends unknown[] = []> {
 export interface TVTimeScale {
   setRightOffset(offset: number): void;
   barSpacingChanged(): TVSubscription;
+  width?(): number;
 }
 
 export interface TVCrosshairParams {
@@ -143,6 +144,45 @@ export interface TVCrosshairParams {
 export interface TVMainSeries {
   /** Re-attaches the main series to the right price scale. */
   detachToRight(): void;
+}
+
+/** Entity id returned by TradingView's `createShape`. */
+export type TVShapeId = string;
+
+/**
+ * Runtime handle to a drawing shape (icon, horizontal_line, etc.).
+ * Only the members we call are typed.
+ */
+export interface TVShape {
+  setProperties(properties: Record<string, unknown>): void;
+}
+
+export interface TVShapePoint {
+  time?: number;
+  price?: number;
+}
+
+export interface TVShapeCreateOptions {
+  shape: string;
+  icon?: number;
+  lock?: boolean;
+  overrides?: Record<string, unknown>;
+  disableSelection?: boolean;
+  disableSave?: boolean;
+  disableUndo?: boolean;
+  showInObjectsTree?: boolean;
+  zOrder?: 'top' | 'bottom';
+}
+
+export interface TVPriceScale {
+  getVisiblePriceRange(): { from: number; to: number } | null;
+  isInverted?(): boolean;
+  getMode?(): number;
+}
+
+export interface TVPane {
+  getMainSourcePriceScale(): TVPriceScale | null;
+  getHeight(): number;
 }
 
 export type StudyId = string;
@@ -193,11 +233,20 @@ export interface TVActiveChart {
     overrides: Record<string, unknown>,
     options?: { priceScale?: string },
   ): Promise<StudyId>;
-  removeEntity(id: StudyId): void;
+  createShape(
+    point: TVShapePoint,
+    options: TVShapeCreateOptions,
+  ): Promise<TVShapeId>;
+  removeEntity(id: StudyId | TVShapeId): void;
   getStudyById(id: StudyId): TVStudy | null;
+  getShapeById?(id: TVShapeId): TVShape | null;
   getAllPanesHeight(): number[];
   setAllPanesHeight(heights: number[]): void;
   exportData(options: TVExportDataOptions): Promise<TVExportData>;
+  getVisibleRange?(): { from: number; to: number } | null;
+  getVisibleBarsRange?(): { from: number; to: number } | null;
+  getPanes?(): TVPane[];
+  dataReady?(callback: () => void): void;
 }
 
 export type TVWidgetConstructor = new (
