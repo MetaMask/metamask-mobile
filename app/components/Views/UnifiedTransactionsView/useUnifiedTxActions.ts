@@ -26,6 +26,7 @@ import {
   getGasValuesForReplacement,
   getMediumGasPriceHex,
   normalizeReplacementGasFeeParams,
+  type ReplacementGasFeeValues,
 } from '../../../util/confirmation/gas';
 import {
   getPreviousGasFromController,
@@ -81,13 +82,20 @@ export const SpeedUpCancelModalState = {
 export type SpeedUpCancelModalState =
   (typeof SpeedUpCancelModalState)[keyof typeof SpeedUpCancelModalState];
 
-function gasValuesUseEip1559(
-  gasValues: GasPriceValue | FeeMarketEIP1559Values | undefined,
-): boolean {
-  if (gasValues == null) {
-    return false;
-  }
+function isEip1559GasValues(
+  gasValues: GasPriceValue | FeeMarketEIP1559Values,
+): gasValues is FeeMarketEIP1559Values {
   return 'maxFeePerGas' in gasValues;
+}
+
+function buildReplacementTxParams(
+  type: LedgerReplacementTxTypes,
+  gasValues: GasPriceValue | FeeMarketEIP1559Values,
+): ReplacementTxParams {
+  if (isEip1559GasValues(gasValues)) {
+    return { type, eip1559GasFee: gasValues };
+  }
+  return { type, legacyGasFee: gasValues };
 }
 
 export function useUnifiedTxActions() {
@@ -306,7 +314,7 @@ export function useUnifiedTxActions() {
       return;
     }
 
-    let gasValues: GasPriceValue | FeeMarketEIP1559Values;
+    let gasValues: ReplacementGasFeeValues;
     try {
       const rawGasValues = getParamsToSend(params);
       gasValues = getGasValuesForReplacement(
@@ -319,16 +327,13 @@ export function useUnifiedTxActions() {
       return;
     }
 
-    const isEip1559 = gasValuesUseEip1559(gasValues);
-    const speedUpReplacementParams: ReplacementTxParams = isEip1559
-      ? {
-          type: LedgerReplacementTxTypes.SPEED_UP,
-          eip1559GasFee: gasValues,
-        }
-      : {
-          type: LedgerReplacementTxTypes.SPEED_UP,
-          legacyGasFee: gasValues,
-        };
+    const speedUpReplacementParams: ReplacementTxParams =
+      gasValues == null
+        ? { type: LedgerReplacementTxTypes.SPEED_UP }
+        : buildReplacementTxParams(
+            LedgerReplacementTxTypes.SPEED_UP,
+            gasValues,
+          );
 
     try {
       if (isLedgerAccount) {
@@ -371,7 +376,7 @@ export function useUnifiedTxActions() {
       return;
     }
 
-    let gasValues: GasPriceValue | FeeMarketEIP1559Values;
+    let gasValues: ReplacementGasFeeValues;
     try {
       const rawGasValues = getParamsToSend(params);
       gasValues = getGasValuesForReplacement(
@@ -384,16 +389,10 @@ export function useUnifiedTxActions() {
       return;
     }
 
-    const isEip1559 = gasValuesUseEip1559(gasValues);
-    const cancelReplacementParams: ReplacementTxParams = isEip1559
-      ? {
-          type: LedgerReplacementTxTypes.CANCEL,
-          eip1559GasFee: gasValues,
-        }
-      : {
-          type: LedgerReplacementTxTypes.CANCEL,
-          legacyGasFee: gasValues,
-        };
+    const cancelReplacementParams: ReplacementTxParams =
+      gasValues == null
+        ? { type: LedgerReplacementTxTypes.CANCEL }
+        : buildReplacementTxParams(LedgerReplacementTxTypes.CANCEL, gasValues);
 
     try {
       if (isLedgerAccount) {

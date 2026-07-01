@@ -1,5 +1,5 @@
 import { renderHook, act } from '@testing-library/react-native';
-import { RefObject } from 'react';
+import { RefObject, MutableRefObject } from 'react';
 import { FlashListRef } from '@shopify/flash-list';
 import { useTransactionAutoScroll } from './useTransactionAutoScroll';
 import Logger from '../../../util/Logger';
@@ -571,7 +571,9 @@ describe('useTransactionAutoScroll', () => {
       );
 
       rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }] });
-      listRef.current = null;
+      (
+        listRef as MutableRefObject<FlashListRef<{ id: string }> | null>
+      ).current = null;
 
       act(() => {
         jest.advanceTimersByTime(150);
