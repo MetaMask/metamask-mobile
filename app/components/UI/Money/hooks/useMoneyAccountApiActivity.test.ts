@@ -32,8 +32,6 @@ jest.mock('../../../../selectors/moneyAccountController', () => ({
 }));
 jest.mock('../utils/accountsApi', () => ({
   parseAccountsApiActivity: jest.fn(),
-  // Real watermark math is exercised in accountsApi.test.ts; here we forward to
-  // a lightweight stand-in so the hook's gating wiring is what's under test.
   oldestRawActivityTime: jest.fn(
     (responses: { data?: { timestamp: string }[] }[]) => {
       const times = responses.flatMap((r) =>

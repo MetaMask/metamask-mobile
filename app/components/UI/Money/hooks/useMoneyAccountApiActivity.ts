@@ -20,9 +20,9 @@ import {
 export interface UseMoneyAccountApiActivityResult {
   activity: AccountsApiActivity[];
   /**
-   * Pagination watermark (epoch ms). Merged activity older than this may have
-   * un-fetched API rows that belong above it, so it must be withheld until more
-   * pages load. `Number.NEGATIVE_INFINITY` once every page has been fetched.
+   * Pagination watermark in epoch ms. Merged activity older than this may have
+   * un-fetched API rows that belong above it, so we withhold until more
+   * pages load. Once all data has been fetched we set this to `Number.NEGATIVE_INFINITY`
    */
   watermark: number;
   /** True once the last page has been fetched — the activity list is exhaustive. */
@@ -54,11 +54,10 @@ const ACCOUNT_ACTIVITY_QUERY_OPTIONS = {
  * client/auth path as the unified activity list). Both kinds arrive in one
  * response — `parseAccountsApiActivity` splits them by type.
  *
- * Pages are fetched lazily (cursor-based) rather than upfront: the first page
+ * Pages are fetched as we need them: the first page
  * backs the home preview, and `loadMore` pulls the rest as the full list is
  * scrolled. The `watermark` tells the consumer how far down the merged list is
- * complete and safe to display. React Query handles caching, dedup and
- * stale-while-revalidate refetching.
+ * complete and safe to display.
  */
 export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   const primaryMoneyAccount = useSelector(selectPrimaryMoneyAccount);
@@ -97,7 +96,6 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
 
   const pages = query.data?.pages ?? EMPTY_PAGES;
 
-  // Parse at the boundary: the cache holds raw pages, the view gets activity.
   const activity = useMemo(
     () =>
       pages.length === 0
@@ -113,15 +111,10 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
   );
 
   // "Complete" means no further pages will arrive, so the merged list can be
-  // shown in full and the watermark can stop gating. That's true in three
-  // terminal states:
+  // shown in full. This happens if:
   //   - the query is disabled (no money account) — nothing will ever be fetched;
   //   - the fetch errored (`retry: false`, so it won't recover on its own);
   //   - we've paged to the end (`hasNextPage === false`).
-  // `hasNextPage` is `undefined` both before the first fetch resolves and while
-  // disabled, so it can't be relied on alone — without the `!enabled`/`isError`
-  // arms a disabled or errored query would withhold every row (watermark stuck
-  // at `+Infinity`) and strand the view on a permanent skeleton.
   const isComplete = !enabled || query.isError || query.hasNextPage === false;
   const watermark = useMemo(
     () =>

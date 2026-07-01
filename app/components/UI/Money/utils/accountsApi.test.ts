@@ -1,7 +1,4 @@
-import {
-  oldestRawActivityTime,
-  parseAccountsApiActivity,
-} from './accountsApi';
+import { oldestRawActivityTime, parseAccountsApiActivity } from './accountsApi';
 
 const MONEY_ADDRESS = '0xbF4bC559f929cE3994Ba12D71d564737357bC8C2';
 const SETTLEMENT_ADDRESS = '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e';

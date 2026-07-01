@@ -7,24 +7,15 @@ import {
   TraceOperation,
 } from '../../../../util/trace';
 
-/** One independently-measured part of the Money home load. */
 export interface MoneyHomeSegment {
-  /** Distinct Sentry span name for this part of the screen. */
   name: TraceName;
-  /**
-   * True once this part has finished loading and is visible to the user (real
-   * values, not skeletons).
-   */
   ready: boolean;
 }
 
 interface UseMoneyHomePerformanceConfig {
   /**
-   * The parts of the screen to measure. Every segment's span starts at the same
-   * mount instant, so their durations are directly comparable (e.g. balance vs
-   * activity list), and a combined "fully usable" segment is just one whose
-   * `ready` ANDs the others.
-   */
+   * The parts of the screen to measure.
+   **/
   segments: MoneyHomeSegment[];
   /**
    * True when the account has nothing meaningful to show (no spendable balance
@@ -42,21 +33,12 @@ interface SegmentTrace {
  * Time-to-content telemetry for the Money home screen. Starts one
  * {@link TraceOperation.MoneyHomePerformance} span per {@link MoneyHomeSegment}
  * on mount and ends each when its `ready` flag flips true, reporting the
- * duration via the shared trace/endTrace (Sentry) integration.
- *
- * Mirrors the homepage `useSectionPerformance` pattern, scoped to Money so it
- * reports under its own span names rather than masquerading as a homepage
- * section. Any segment still in flight when the screen unmounts ends with
- * `success: false` so abandoned loads are distinguishable from completed ones.
- *
- * The segment set is assumed stable across renders (fixed names); only the
- * `ready` flags change.
+ * duration via the shared Sentry integration.
  */
 export function useMoneyHomePerformance({
   segments,
   isEmpty,
 }: UseMoneyHomePerformanceConfig): void {
-  // Per-span bookkeeping keyed by trace name, created once on mount.
   const tracesRef = useRef<Map<TraceName, SegmentTrace>>(new Map());
 
   // Start every segment's span on mount; end any still in flight on unmount.
