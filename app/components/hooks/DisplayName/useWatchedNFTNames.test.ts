@@ -99,4 +99,23 @@ describe('useWatchedNFTNames', () => {
 
     expect(current[0]).toBe(KNOWN_NFT_NAME_MOCK);
   });
+
+  it('returns a stable reference across re-renders with identical inputs', () => {
+    const requests = [
+      {
+        type: NameType.EthereumAddress,
+        value: KNOWN_NFT_ADDRESS_CHECKSUMMED,
+        variation: CHAIN_IDS.MAINNET,
+      },
+    ];
+    const { result, rerender } = renderHookWithProvider(
+      () => useWatchedNFTNames(requests),
+      { state: STATE_MOCK },
+    );
+    const first = result.current;
+
+    rerender({});
+
+    expect(result.current).toBe(first);
+  });
 });
