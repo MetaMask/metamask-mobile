@@ -302,27 +302,37 @@ const CaipAccountSelectorList = ({
     ],
   );
 
+  const getItemLayout = useCallback(
+    (_data: ArrayLike<Account> | null | undefined, index: number) => {
+      const account = accounts[index];
+      const itemHeight = account?.type !== KeyringTypes.hd ? 102 : 78;
+      return { length: itemHeight, offset: account?.yOffset ?? 0, index };
+    },
+    [accounts],
+  );
+
   const onContentSizeChanged = useCallback(() => {
     // Handle auto scroll to account
     if (!accounts.length || !isAutoScrollEnabled) return;
     if (accountsLengthRef.current !== accounts.length) {
-      let selectedAccount: Account | undefined;
+      let selectedIndex = -1;
 
       if (selectedAddresses.length) {
-        const selectedAddress = selectedAddresses[0];
-        selectedAccount = accounts.find(
-          (acc) => acc.caipAccountId === selectedAddress,
+        selectedIndex = accounts.findIndex(
+          (acc) => acc.caipAccountId === selectedAddresses[0],
         );
       }
       // Fall back to the account with isSelected flag if no override or match found
-      if (!selectedAccount) {
-        selectedAccount = accounts.find((acc) => acc.isSelected);
+      if (selectedIndex === -1) {
+        selectedIndex = accounts.findIndex((acc) => acc.isSelected);
       }
 
-      accountListRef?.current?.scrollToOffset({
-        offset: selectedAccount?.yOffset,
-        animated: false,
-      });
+      if (selectedIndex >= 0) {
+        accountListRef?.current?.scrollToIndex({
+          index: selectedIndex,
+          animated: false,
+        });
+      }
 
       accountsLengthRef.current = accounts.length;
     }
@@ -335,8 +345,8 @@ const CaipAccountSelectorList = ({
       data={accounts}
       keyExtractor={getKeyExtractor}
       renderItem={renderAccountItem}
-      // Increasing number of items at initial render fixes scroll issue.
-      initialNumToRender={999}
+      getItemLayout={getItemLayout}
+      initialNumToRender={10}
       testID={ACCOUNT_SELECTOR_LIST_TESTID}
       {...props}
     />
