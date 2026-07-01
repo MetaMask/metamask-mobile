@@ -64,6 +64,8 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
   getPermittedAccountsForScopes,
+  getPermittedEthChainIds,
+  getSessionProperties,
   getSessionScopes,
   KnownSessionProperties,
 } from '@metamask/chain-agnostic-permission';
@@ -77,6 +79,11 @@ import {
   getRemovedAuthorization,
 } from '../../util/permissions';
 import { createEip5792Middleware } from '../RPCMethods/createEip5792Middleware';
+import {
+  buildGetCapabilitiesHooks,
+  getPermittedEip155ChainIds,
+  getSessionCapabilities,
+} from '../RPCMethods/getSessionCapabilities';
 import { createOriginThrottlingMiddleware } from '../RPCMethods/OriginThrottlingMiddleware';
 import { getAuthorizedScopes } from '../../selectors/permissions';
 import {
@@ -91,8 +98,6 @@ import { parseCaipAccountId } from '@metamask/utils';
 import { toFormattedAddress, areAddressesEqual } from '../../util/address';
 import { isSameOrigin } from '../../util/url';
 import PPOMUtil from '../../lib/ppom/ppom-util';
-import { isRelaySupported } from '../../util/transactions/transaction-relay';
-import { selectSmartTransactionsEnabled } from '../../selectors/smartTransactionsController';
 import { AccountTreeController } from '@metamask/account-tree-controller';
 import { createTrustSignalsMiddleware } from '../RPCMethods/TrustSignalsMiddleware';
 import createDupeReqFilterStream from './createDupeReqFilterStream';
@@ -151,6 +156,9 @@ export class BackgroundBridge extends EventEmitter {
 
     this.engine = null;
     this.multichainEngine = null;
+    // Monotonic counter used to drop superseded wallet_sessionChanged emits
+    // (latest-wins). See notifyCaipAuthorizationChange.
+    this.sessionChangedGeneration = 0;
     this.multichainSubscriptionManager = null;
     this.multichainMiddlewareManager = null;
 
@@ -787,6 +795,14 @@ export class BackgroundBridge extends EventEmitter {
         ),
         sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
         trackSessionCreatedEvent: () => undefined,
+        // Resolve the caveat at call time: wallet_createSession grants the
+        // permission before hydrating session properties, so the fresh
+        // caveat is visible here.
+        getCapabilities: ({ address }) =>
+          getSessionCapabilities(
+            address,
+            getPermittedEip155ChainIds(this.channelIdOrOrigin),
+          ),
       }),
     );
 
@@ -916,38 +932,7 @@ export class BackgroundBridge extends EventEmitter {
       getCallsStatus: getCallsStatus.bind(null, Engine.controllerMessenger),
       getCapabilities: getCapabilities.bind(
         null,
-        {
-          getDismissSmartAccountSuggestionEnabled: () =>
-            Engine.context.PreferencesController.state
-              .dismissSmartAccountSuggestionEnabled,
-          getIsSmartTransaction: (chainId) =>
-            selectSmartTransactionsEnabled(store.getState(), chainId),
-          isAtomicBatchSupported:
-            Engine.context.TransactionController.isAtomicBatchSupported.bind(
-              Engine.context.TransactionController,
-            ),
-          isRelaySupported,
-          getSendBundleSupportedChains: async (chainIds) => {
-            const isAtomicBatchSupportedResult =
-              await Engine.context.TransactionController.isAtomicBatchSupported(
-                {
-                  address:
-                    Engine.context.AccountsController.getSelectedAccount()
-                      .address,
-                  chainIds,
-                },
-              );
-            return isAtomicBatchSupportedResult.reduce(
-              (acc, { chainId, isSupported }) => ({
-                ...acc,
-                [chainId]: isSupported,
-              }),
-              {},
-            );
-          },
-          isAuxiliaryFundsSupported: (chainId) =>
-            ALLOWED_BRIDGE_CHAIN_IDS.includes(chainId),
-        },
+        buildGetCapabilitiesHooks(),
         Engine.controllerMessenger,
       ),
     });
@@ -1094,7 +1079,12 @@ export class BackgroundBridge extends EventEmitter {
         });
       }
     });
-    this.notifyCaipAuthorizationChange(changedAuthorization);
+    this.notifyCaipAuthorizationChange(changedAuthorization).catch((err) => {
+      Logger.error(
+        err,
+        'BackgroundBridge: failed to notify CAIP authorization change',
+      );
+    });
   };
 
   handleSolanaAccountChangedFromScopeChanges = (
@@ -1227,7 +1217,12 @@ export class BackgroundBridge extends EventEmitter {
         Caip25CaveatType,
       );
       if (caip25Caveat) {
-        this.notifyCaipAuthorizationChange(caip25Caveat.value);
+        this.notifyCaipAuthorizationChange(caip25Caveat.value).catch((err) => {
+          Logger.error(
+            err,
+            'BackgroundBridge: failed to notify CAIP authorization change',
+          );
+        });
       }
     } catch (err) {
       if (err instanceof PermissionDoesNotExistError) {
@@ -1450,22 +1445,69 @@ export class BackgroundBridge extends EventEmitter {
 
   /**
    * Causes the Multichain RPC engine to emit a sessionChanged notification event with the given payload.
+   *
+   * Emitting is async (capability hydration hits controllers/network), so
+   * overlapping calls could otherwise resolve out of order and push stale
+   * session data to the dapp. Rather than serialize (which head-of-line blocks
+   * a fresh update behind a slow earlier one), we use a monotonic generation
+   * counter and drop superseded emits (latest-wins). This is safe because
+   * wallet_sessionChanged carries a full session snapshot, not a delta.
+   *
    * @param {object} newAuthorization - The new CAIP-25 authorization.
+   * @returns {Promise<void>} Resolves once the notification has been emitted (or skipped).
    */
-  notifyCaipAuthorizationChange(newAuthorization) {
-    if (this.multichainEngine) {
-      const sessionScopes = getSessionScopes(newAuthorization, {
-        getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
-        sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
-      });
-
-      this.multichainEngine.emit('notification', {
-        method: 'wallet_sessionChanged',
-        params: {
-          sessionScopes,
-        },
-      });
+  async notifyCaipAuthorizationChange(newAuthorization) {
+    if (!this.multichainEngine) {
+      return;
     }
+
+    // Capture this call's generation synchronously, before any await, so a
+    // later call that starts while we're hydrating supersedes this one.
+    const generation = ++this.sessionChangedGeneration;
+
+    const sessionScopes = getSessionScopes(newAuthorization, {
+      getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
+      sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
+    });
+
+    // Hydrate sessionProperties (including eip155Capabilities) so dapp-side
+    // caches stay fresh and can resolve wallet_getCapabilities locally
+    // without an extra round-trip to the wallet. A failure here must not
+    // drop the sessionScopes update, so fall back to emitting scopes only.
+    let sessionProperties;
+    try {
+      // Scope hydration to the authorization's own permitted eip155 chains:
+      // avoids fanning out capability RPCs to (and disclosing) networks the
+      // dapp was not granted. Derived from newAuthorization directly since
+      // the updated caveat may not be persisted yet.
+      const permittedChainIds = getPermittedEthChainIds(newAuthorization);
+      sessionProperties = await getSessionProperties(newAuthorization, {
+        getCapabilities: ({ address }) =>
+          getSessionCapabilities(address, permittedChainIds),
+      });
+    } catch (err) {
+      Logger.error(
+        err,
+        'BackgroundBridge: failed to compute session properties for wallet_sessionChanged',
+      );
+    }
+
+    // Drop this emit if a newer notification superseded it while we were
+    // hydrating, or if the bridge was torn down in the meantime.
+    if (
+      generation !== this.sessionChangedGeneration ||
+      !this.multichainEngine
+    ) {
+      return;
+    }
+
+    this.multichainEngine.emit('notification', {
+      method: 'wallet_sessionChanged',
+      params: {
+        sessionScopes,
+        ...(sessionProperties ? { sessionProperties } : {}),
+      },
+    });
   }
 
   /**
