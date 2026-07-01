@@ -8,7 +8,6 @@ import {
 } from '../constants';
 import type { QrSyncReadyData, QrSyncSyncReadyMessage } from '../types';
 import {
-  isQrSyncMwpDeeplink,
   isQrSyncSessionRequest,
   parseQrSyncConnectionRequest,
   parseQrSyncSyncReadyMessage,
@@ -29,21 +28,8 @@ const encodeSecret = (plaintext: string): string =>
 const encodeBase64Json = (value: unknown): string =>
   Buffer.from(JSON.stringify(value), 'utf-8').toString('base64');
 
-const compressAndEncode = (data: string): string => {
-  const compressed = deflate(new TextEncoder().encode(data));
-  return Buffer.from(compressed).toString('base64');
-};
-
-const createMwpDeeplink = (
-  payload: string,
-  options: { compressed?: boolean } = {},
-): string => {
-  const query = options.compressed
-    ? `p=${encodeURIComponent(payload)}&c=1`
-    : `p=${encodeURIComponent(payload)}`;
-
-  return `${QR_SYNC_MWP_DEEPLINK_PREFIX}?${query}`;
-};
+const createMwpDeeplink = (payload: string): string =>
+  `${QR_SYNC_MWP_DEEPLINK_PREFIX}?p=${encodeURIComponent(payload)}`;
 
 const createSessionRequest = (
   overrides: Partial<SessionRequest> = {},
@@ -51,7 +37,7 @@ const createSessionRequest = (
   id: VALID_SESSION_ID,
   publicKeyB64: VALID_PUBLIC_KEY_B64,
   channel: VALID_CHANNEL,
-  mode: 'trusted',
+  mode: 'untrusted',
   expiresAt: Date.now() + 600_000,
   ...overrides,
 });
@@ -77,46 +63,10 @@ const createSyncReadyMessage = (
 });
 
 describe('qr-sync-validation', () => {
-  describe('isQrSyncMwpDeeplink', () => {
-    it('returns true for metamask://connect/mwp deeplinks', () => {
-      const deeplink = createMwpDeeplink('payload');
-
-      const result = isQrSyncMwpDeeplink(deeplink);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false for non-deeplink strings', () => {
-      expect(isQrSyncMwpDeeplink('{"sessionRequest":{}}')).toBe(false);
-      expect(isQrSyncMwpDeeplink('metamask://other')).toBe(false);
-    });
-  });
-
   describe('parseQrSyncConnectionRequest', () => {
     it('parses metamask://connect/mwp deeplinks with base64 p parameter', () => {
       const sessionRequest = createSessionRequest();
       const deeplink = createMwpDeeplink(encodeBase64Json(sessionRequest));
-
-      const result = parseQrSyncConnectionRequest(deeplink);
-
-      expect(result).toEqual({ sessionRequest });
-    });
-
-    it('parses metamask://connect/mwp deeplinks with plain JSON p parameter', () => {
-      const sessionRequest = createSessionRequest();
-      const deeplink = createMwpDeeplink(JSON.stringify(sessionRequest));
-
-      const result = parseQrSyncConnectionRequest(deeplink);
-
-      expect(result).toEqual({ sessionRequest });
-    });
-
-    it('parses metamask://connect/mwp deeplinks with compressed p parameter', () => {
-      const sessionRequest = createSessionRequest();
-      const deeplink = createMwpDeeplink(
-        compressAndEncode(encodeBase64Json(sessionRequest)),
-        { compressed: true },
-      );
 
       const result = parseQrSyncConnectionRequest(deeplink);
 
@@ -137,17 +87,25 @@ describe('qr-sync-validation', () => {
       );
     });
 
-    it('throws when raw QR data is not an MWP deeplink', () => {
-      expect(() => parseQrSyncConnectionRequest('not-json')).toThrow(
+    it('throws when raw QR data is not a valid MWP deeplink', () => {
+      expect(() => parseQrSyncConnectionRequest('not-a-deeplink')).toThrow(
         'QR sync scan payload is not a valid MWP deeplink.',
       );
     });
 
-    it('throws when JSON does not contain a session request', () => {
-      const deeplink = createMwpDeeplink(encodeBase64Json({ foo: 'bar' }));
+    it('throws when raw QR data is not JSON', () => {
+      const notJsonDeeplink = createMwpDeeplink('not-json');
+      expect(() => parseQrSyncConnectionRequest(notJsonDeeplink)).toThrow(
+        'Invalid session request payload.',
+      );
+    });
 
-      expect(() => parseQrSyncConnectionRequest(deeplink)).toThrow(
-        'QR sync scan payload does not contain a valid session request.',
+    it('throws when JSON does not contain a session request', () => {
+      const rawQrData = JSON.stringify({ foo: 'bar' });
+      const invalidJsonDeeplink = createMwpDeeplink(rawQrData);
+
+      expect(() => parseQrSyncConnectionRequest(invalidJsonDeeplink)).toThrow(
+        'Invalid session request payload.',
       );
     });
   });

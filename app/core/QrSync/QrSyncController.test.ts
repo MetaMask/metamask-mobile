@@ -239,18 +239,16 @@ describe('QrSyncController', () => {
       expect(controller.state.connectionStatus).toBe('connected');
     });
 
-    it('enters failed phase with INVALID_PAYLOAD when the scan payload cannot be parsed', async () => {
+    it('throws when the scan payload cannot be parsed', async () => {
       const controller = buildController();
 
-      await controller.handleScannedQrPayload('not-a-deeplink');
-      await flushPromises();
+      await expect(
+        controller.handleScannedQrPayload('not-a-deeplink'),
+      ).rejects.toThrow('QR sync scan payload is not a valid MWP deeplink.');
 
       expect(mockCreateQrSyncWalletClient).not.toHaveBeenCalled();
-      expect(controller.state.phase).toBe(QrSyncPhases.FAILED);
-      expect(controller.state.error).toEqual({
-        code: 'INVALID_PAYLOAD',
-        message: 'QR sync scan payload is not a valid MWP deeplink.',
-      });
+      expect(controller.state.phase).toBe(QrSyncPhases.IDLE);
+      expect(controller.state.error).toBeNull();
     });
 
     it('enters failed phase when wallet client creation throws', async () => {
@@ -265,7 +263,7 @@ describe('QrSyncController', () => {
 
       expect(controller.state.phase).toBe(QrSyncPhases.FAILED);
       expect(controller.state.error).toEqual({
-        code: 'INVALID_PAYLOAD',
+        code: 'CHANNEL_INIT_FAILED',
         message: 'Relay unavailable',
       });
     });
@@ -549,6 +547,50 @@ describe('QrSyncController', () => {
 
       expect(controller.state.phase).toBe(QrSyncPhases.COMPLETED);
       expect(controller.state.error).toBeNull();
+    });
+
+    it('enters failed phase when onboarding validation throws unexpectedly', async () => {
+      let throwOnOnboardingCheck = false;
+      const controller = buildController({
+        getIsOnboardingCompleted: () => {
+          if (throwOnOnboardingCheck) {
+            throw new Error('Onboarding state unavailable');
+          }
+          return false;
+        },
+      });
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+
+      throwOnOnboardingCheck = true;
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      expect(controller.state.phase).toBe(QrSyncPhases.FAILED);
+      expect(controller.state.error).toEqual({
+        code: 'SYNC_FAILED',
+        message: 'Onboarding state unavailable',
+      });
+    });
+
+    it('resetState clears import plan and returns to idle', async () => {
+      const controller = buildController();
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      expect(controller.state.pendingSecretImports).not.toBeNull();
+      expect(controller.state.provisioningMetadata).not.toBeNull();
+
+      controller.resetState();
+      await flushPromises();
+
+      expect(controller.state).toEqual(defaultQrSyncControllerState);
+      expect(walletClient.client.disconnect).toHaveBeenCalled();
     });
 
     it('marks the connection errored and failed when the wallet client emits error', async () => {
