@@ -180,13 +180,13 @@ class PerpsView {
     // Android may land mid-scroll after back navigation; scroll the order into view first
     if (PlatformDetector.isAndroid()) {
       const orderElement = Matchers.getElementByText(orderLabel);
-      const scrollView = await Matchers.getIdentifier(
+      const scrollView = Matchers.getIdentifier(
         PerpsHomeViewSelectorsIDs.SCROLL_CONTENT,
       );
       await Gestures.scrollToElement(orderElement, scrollView, {
         direction: 'up',
         scrollAmount: 150,
-        description: `scrollToElement(up) for ${orderLabel} on Perps portfolio`,
+        elemDescription: `scrollToElement(up) for ${orderLabel} on Perps portfolio`,
       });
     }
     await Utilities.executeWithRetry(
