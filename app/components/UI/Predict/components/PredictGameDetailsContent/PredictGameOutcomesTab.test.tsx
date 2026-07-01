@@ -12,6 +12,14 @@ import type { PredictSportOutcomeButton } from '../PredictSportOutcomeCard';
 import { PREDICT_GAME_DETAILS_CONTENT_TEST_IDS } from './PredictGameDetailsContent.testIds';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
 
+jest.mock('./PredictRegTimeInfoSheet', () => {
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: jest.fn(() => <View testID="predict-reg-time-info-sheet" />),
+  };
+});
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
@@ -74,6 +82,12 @@ jest.mock('../../hooks/useLiveMarketPrices', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePredictPrices', () => ({
+  usePredictPrices: jest.fn(() => ({
+    prices: { providerId: '', results: [] },
+  })),
+}));
+
 const mockOnBuyPress = jest.fn();
 
 interface CapturedCard {
@@ -89,6 +103,7 @@ interface CapturedCard {
   lines?: number[];
   selectedLine?: number;
   selectedIndex?: number;
+  showRegTimeTag?: boolean;
   testID?: string;
 }
 
@@ -102,6 +117,8 @@ interface MockCardProps {
   lines?: number[];
   selectedLine?: number;
   selectedIndex?: number;
+  showRegTimeTag?: boolean;
+  onPressRegTimeInfo?: () => void;
   onSelectLine?: (line: number, index: number) => void;
   testID?: string;
 }
@@ -123,12 +140,19 @@ jest.mock('../PredictSportOutcomeCard', () => {
       lines: props.lines,
       selectedLine: props.selectedLine,
       selectedIndex: props.selectedIndex,
+      showRegTimeTag: props.showRegTimeTag,
       testID: props.testID,
     });
     return (
       <View testID={props.testID}>
         <Text testID={`${props.testID}-title`}>{props.title}</Text>
         <Text testID={`${props.testID}-subtitle`}>{props.subtitle}</Text>
+        {props.showRegTimeTag ? (
+          <View
+            testID={`${props.testID}-reg-time-info`}
+            onTouchEnd={props.onPressRegTimeInfo}
+          />
+        ) : null}
         {props.buttons.map((button, index) => (
           <View
             key={`${button.label}-${index}`}
@@ -239,6 +263,11 @@ const mockWorldCupGame: PredictMarketGame = {
   league: 'fifwc',
 };
 
+const mockWorldCupGame: PredictMarketGame = {
+  ...mockGame,
+  league: 'fifwc',
+};
+
 describe('PredictGameOutcomesTab', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -307,6 +336,98 @@ describe('PredictGameOutcomesTab', () => {
 
       expect(getByTestId('points-outcome-0')).toBeOnTheScreen();
       expect(getByTestId('points-outcome-1')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Reg Time tag', () => {
+    it('shows the Reg Time tag for regulation-time market types', () => {
+      const groups = [
+        createGroup({
+          key: 'game_lines',
+          outcomes: [createOutcome({ sportsMarketType: 'moneyline' })],
+        }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockWorldCupGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+          nonRegTimeSportsMarketTypes={['soccer_team_to_advance']}
+        />,
+      );
+
+      expect(mockCapturedCards[0].showRegTimeTag).toBe(true);
+    });
+
+    it('hides the Reg Time tag for non-World-Cup games', () => {
+      const groups = [
+        createGroup({
+          key: 'game_lines',
+          outcomes: [createOutcome({ sportsMarketType: 'moneyline' })],
+        }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+          nonRegTimeSportsMarketTypes={['soccer_team_to_advance']}
+        />,
+      );
+
+      expect(mockCapturedCards[0].showRegTimeTag).toBe(false);
+    });
+
+    it('hides the Reg Time tag for excluded full-tie market types', () => {
+      const groups = [
+        createGroup({
+          key: 'game_lines',
+          outcomes: [
+            createOutcome({ sportsMarketType: 'soccer_team_to_advance' }),
+          ],
+        }),
+      ];
+
+      render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockWorldCupGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+          nonRegTimeSportsMarketTypes={['soccer_team_to_advance']}
+        />,
+      );
+
+      expect(mockCapturedCards[0].showRegTimeTag).toBe(false);
+    });
+
+    it('calls onRegTimeInfoPress when the tag is pressed', () => {
+      const groups = [
+        createGroup({
+          key: 'game_lines',
+          outcomes: [createOutcome({ sportsMarketType: 'moneyline' })],
+        }),
+      ];
+      const mockOnRegTimeInfoPress = jest.fn();
+
+      const { getByTestId } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap(groups)}
+          game={mockWorldCupGame}
+          activeChipKey="game_lines"
+          onBuyPress={mockOnBuyPress}
+          nonRegTimeSportsMarketTypes={['soccer_team_to_advance']}
+          onRegTimeInfoPress={mockOnRegTimeInfoPress}
+        />,
+      );
+
+      fireEvent(getByTestId('game_lines-moneyline-reg-time-info'), 'touchEnd');
+
+      expect(mockOnRegTimeInfoPress).toHaveBeenCalledTimes(1);
     });
   });
 
