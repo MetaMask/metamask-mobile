@@ -67,6 +67,7 @@ import ARC_NATIVE from './arc-native-token-logo.png';
 /// BEGIN:ONLY_INCLUDE_IF(tron)
 import TRON from './tron-logo.png';
 /// END:ONLY_INCLUDE_IF
+import WAN_LOGO from './wanchain.png';
 
 export default {
   PALM,
@@ -138,6 +139,7 @@ export default {
   RBTC: ROOTSTOCK,
   tRBTC: ROOTSTOCK,
   CHZ,
+  WAN: WAN_LOGO,
   STABLE,
   USDT0: STABLE_NATIVE,
   MANTLE,
