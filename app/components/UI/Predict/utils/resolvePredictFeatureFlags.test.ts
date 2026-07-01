@@ -834,6 +834,7 @@ describe('resolvePredictFeatureFlags', () => {
         'totals',
         'both_teams_to_score',
         'soccer_first_to_score',
+        'soccer_team_to_advance',
         'team_totals',
         'soccer_team_totals',
         'basketball_team_to_score_first',
