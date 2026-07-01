@@ -30,10 +30,6 @@ const assertStellarAccountVisibleInList = async (): Promise<void> => {
   );
 };
 
-/**
- * postLoginAsyncOperations runs multichain discovery/alignment asynchronously.
- * Prefer this path — same end state as BTC/Solana on login.
- */
 const waitForStellarAccountViaLoginDiscovery = async (): Promise<boolean> => {
   try {
     await Utilities.executeWithRetry(
