@@ -1,13 +1,23 @@
-import React, { useCallback, useEffect, useMemo, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { StyleSheet, Text, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Rive, {
   Alignment,
   AutoBind,
   Fit,
+  FilesHandledMapping,
   RNRiveError,
+  RNRiveErrorType,
   useRive,
+  useRiveBoolean,
   useRiveNumber,
   useRiveString,
   useRiveTrigger,
@@ -30,34 +40,119 @@ import { usePushPermissionNotificationSetup } from '../../../../util/notificatio
 
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useTopTraders } from '../../Homepage/Sections/TopTraders/hooks';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { hasRealAvatar } from '../../Homepage/Sections/TopTraders/utils/avatarFallback';
 import { ALL_CHAINS, SPOT_CHAINS } from '../../shared/top-traders-constants';
 
 import {
   SocialLeaderboardEventProperties,
   useSocialLeaderboardAnalytics,
 } from '../analytics';
-import { formatPercent, formatSignedAbbreviatedUsd } from '../utils/formatters';
+import { formatSignedFullUsdNoDecimals } from '../utils/formatters';
 import createStyles from './SocialLeaderboardOnboarding.styles';
 import { SocialLeaderboardOnboardingSelectorsIDs } from './SocialLeaderboardOnboarding.testIds';
 import {
+  NOTIFY_STEP_INDEX,
   ONBOARDING_TOP_TRADERS_LIMIT,
   RIVE_ARTBOARD_NAME,
+  RIVE_AVATAR_ASSET_KEYS,
+  RIVE_AVATAR_PLACEHOLDERS,
+  RIVE_BOOLEAN_BINDINGS,
   RIVE_NUMBER_BINDINGS,
   RIVE_STATE_MACHINE_NAME,
-  RIVE_STATE_TO_STEP_INDEX,
-  RIVE_STEP_SLOTS,
-  RIVE_TRADER_PERIOD,
   RIVE_TRANSITION_SPEED,
   RIVE_TRIGGERS,
+  SLIDE_BY_STEP_INDEX,
   isSocialLeaderboardOnboardingSkipSeen,
   riveStepTextBinding,
   riveTraderBinding,
 } from './constants';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-const SocialLeaderboardNuxAnimation = require('../../../../animations/onboarding_nux_v1.riv');
+const SocialLeaderboardNuxAnimation = require('../../../../animations/onboarding_nux_v4.riv');
 
 const ONBOARDING_SOURCE = 'nux';
+
+/**
+ * Rive errors that mean the artboard cannot render at all — only these fall back
+ * to the leaderboard. Everything else (a missing data binding, text run, or an
+ * unused/failed referenced asset) is logged but must NOT boot the user out of
+ * the onboarding, or one bad avatar URL / renamed binding would skip the whole
+ * flow.
+ */
+const FATAL_RIVE_ERROR_TYPES: ReadonlySet<RNRiveErrorType> = new Set([
+  RNRiveErrorType.FileNotFound,
+  RNRiveErrorType.MalformedFile,
+  RNRiveErrorType.UnsupportedRuntimeVersion,
+  RNRiveErrorType.IncorrectRiveFileUrl,
+  RNRiveErrorType.IncorrectArtboardName,
+  RNRiveErrorType.IncorrectStateMachineName,
+]);
+
+/** Rive runtime handle returned by `useRive` (null until the runtime is ready). */
+type RiveInstance = ReturnType<typeof useRive>[1];
+
+interface StepButtons {
+  primaryButton: string;
+  secondaryButton: string;
+}
+
+/**
+ * Binds one slide's localized button labels into its `stepText{slot}/*Button`
+ * Rive properties. Extracted as a component so the `useRiveString` hooks stay
+ * top-level (rules-of-hooks) while the parent renders one per slide.
+ *
+ * NOTE: the v4 ("hybrid") artboard no longer carries `title`/`content` text —
+ * those are rendered by React Native (see the overlay below) — so only the
+ * button labels are pushed here.
+ */
+const RiveStepButtonsBinding: React.FC<{
+  riveRef: RiveInstance;
+  slot: number;
+  buttons: StepButtons;
+}> = ({ riveRef, slot, buttons }) => {
+  const [, setPrimary] = useRiveString(
+    riveRef,
+    riveStepTextBinding(slot, 'primaryButton'),
+  );
+  const [, setSecondary] = useRiveString(
+    riveRef,
+    riveStepTextBinding(slot, 'secondaryButton'),
+  );
+
+  useEffect(() => {
+    if (!riveRef) return;
+    setPrimary(buttons.primaryButton);
+    setSecondary(buttons.secondaryButton);
+  }, [riveRef, buttons, setPrimary, setSecondary]);
+
+  return null;
+};
+
+/**
+ * Binds one trader card's live text (`traderTop{rank}/name` + `/profitAmount`)
+ * into the Rive artboard. Avatars are handled separately via `referencedAssets`.
+ */
+const RiveTraderCardBinding: React.FC<{
+  riveRef: RiveInstance;
+  rank: number;
+  name?: string;
+  profitAmount?: string;
+}> = ({ riveRef, rank, name, profitAmount }) => {
+  const [, setName] = useRiveString(riveRef, riveTraderBinding(rank, 'name'));
+  const [, setProfitAmount] = useRiveString(
+    riveRef,
+    riveTraderBinding(rank, 'profitAmount'),
+  );
+
+  useEffect(() => {
+    if (!riveRef || !name) return;
+    setName(name);
+    setProfitAmount(profitAmount ?? '');
+  }, [riveRef, name, profitAmount, setName, setProfitAmount]);
+
+  return null;
+};
 
 const markOnboardingSeen = () => {
   if (isSocialLeaderboardOnboardingSkipSeen) {
@@ -72,22 +167,26 @@ const markOnboardingSeen = () => {
  * Social Leaderboard onboarding shown once on app start (Rive + RN hybrid,
  * modeled on `MoneyOnboardingView`).
  *
- * A single text-baked Rive artboard (`onboarding_nux_v1.riv`) renders every
- * visual — copy, trader cards, buttons — and owns step navigation through its
- * state machine. This component is the React Native half: it pushes localized
- * strings and live top-trader data in through data bindings, observes the
- * state-machine triggers (`next` / `allowNotifications` / `gotIt` /
- * `followTopTraders` / `maybeLater` / `close`) to run the follow, notification,
- * analytics and persistence logic, and routes the user out to the leaderboard
- * when the flow completes.
+ * The `onboarding_nux_v4.riv` artboard renders the visuals — background, trader
+ * cards, buttons — and owns step navigation through its state machine. React
+ * Native is the "hybrid" half. It renders each step's title + description as an
+ * overlay (v4 no longer bakes copy into the Rive), pushes button labels + live
+ * top-trader data (usernames/PnL via data bindings, avatars via
+ * `referencedAssets`) into the artboard, observes the state-machine triggers to
+ * run the follow / notification / analytics / persistence logic and to track the
+ * current step, and routes the user out to the leaderboard when the flow
+ * completes.
  *
- * Authored step order is Trade -> Notify -> Follow (see `RIVE_STEP_SLOTS`); the
- * Follow step is terminal, so following (or skipping) the top traders completes
- * the flow.
+ * Step order (Figma) is Trade -> Follow -> Notify. The authored Rive state
+ * names are opaque (`init`/`scenario1`/`first`…), so the current step is tracked
+ * from the triggers, not `onStateChanged`. Completion (`allowNotifications` /
+ * `gotIt`) is gated on being on the Notify step, so a mis-wired earlier button
+ * can never navigate the user out early.
  */
 const SocialLeaderboardOnboarding: React.FC = () => {
   const navigation = useNavigation();
   const styles = useMemo(() => createStyles(), []);
+  const insets = useSafeAreaInsets();
   const { track } = useSocialLeaderboardAnalytics();
 
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
@@ -119,235 +218,157 @@ const SocialLeaderboardOnboarding: React.FC = () => {
 
   const [ref, riveRef] = useRive();
 
-  // Current authored slot (index into RIVE_STEP_SLOTS). Used for the DISMISSED
-  // screen property and to avoid re-tracking a slide already reported.
-  const currentSlotRef = useRef(0);
+  // Current step (index into SLIDE_BY_STEP_INDEX): 0 Trade, 1 Follow, 2 Notify
+  // (post-follow), 3 Notify ("3.1" / maybe-later variant). Driven by the Rive
+  // triggers since the authored state names are opaque. `stepIndex` renders the
+  // overlay copy; `stepIndexRef` gates completion inside memoized callbacks.
+  const [stepIndex, setStepIndex] = useState(0);
+  const stepIndexRef = useRef(0);
+  const setStep = useCallback((next: number) => {
+    stepIndexRef.current = next;
+    setStepIndex(next);
+  }, []);
+
   const hasCompletedRef = useRef(false);
-
-  // --- Rive data-binding setters (Rive renders these; RN pushes the values) ---
-  const [, setStep1Title] = useRiveString(
-    riveRef,
-    riveStepTextBinding(1, 'title'),
-  );
-  const [, setStep1Content] = useRiveString(
-    riveRef,
-    riveStepTextBinding(1, 'content'),
-  );
-  const [, setStep1Primary] = useRiveString(
-    riveRef,
-    riveStepTextBinding(1, 'primaryButton'),
-  );
-  const [, setStep1Secondary] = useRiveString(
-    riveRef,
-    riveStepTextBinding(1, 'secondaryButton'),
-  );
-
-  const [, setStep2Title] = useRiveString(
-    riveRef,
-    riveStepTextBinding(2, 'title'),
-  );
-  const [, setStep2Content] = useRiveString(
-    riveRef,
-    riveStepTextBinding(2, 'content'),
-  );
-  const [, setStep2Primary] = useRiveString(
-    riveRef,
-    riveStepTextBinding(2, 'primaryButton'),
-  );
-  const [, setStep2Secondary] = useRiveString(
-    riveRef,
-    riveStepTextBinding(2, 'secondaryButton'),
-  );
-
-  const [, setStep3Title] = useRiveString(
-    riveRef,
-    riveStepTextBinding(3, 'title'),
-  );
-  const [, setStep3Content] = useRiveString(
-    riveRef,
-    riveStepTextBinding(3, 'content'),
-  );
-  const [, setStep3Primary] = useRiveString(
-    riveRef,
-    riveStepTextBinding(3, 'primaryButton'),
-  );
-  const [, setStep3Secondary] = useRiveString(
-    riveRef,
-    riveStepTextBinding(3, 'secondaryButton'),
-  );
-
-  const [, setTrader1Name] = useRiveString(
-    riveRef,
-    riveTraderBinding(1, 'name'),
-  );
-  const [, setTrader1Period] = useRiveString(
-    riveRef,
-    riveTraderBinding(1, 'period'),
-  );
-  const [, setTrader1ProfitAmount] = useRiveString(
-    riveRef,
-    riveTraderBinding(1, 'profitAmount'),
-  );
-  const [, setTrader1ProfitPercent] = useRiveString(
-    riveRef,
-    riveTraderBinding(1, 'profitPercent'),
-  );
-
-  const [, setTrader2Name] = useRiveString(
-    riveRef,
-    riveTraderBinding(2, 'name'),
-  );
-  const [, setTrader2Period] = useRiveString(
-    riveRef,
-    riveTraderBinding(2, 'period'),
-  );
-  const [, setTrader2ProfitAmount] = useRiveString(
-    riveRef,
-    riveTraderBinding(2, 'profitAmount'),
-  );
-  const [, setTrader2ProfitPercent] = useRiveString(
-    riveRef,
-    riveTraderBinding(2, 'profitPercent'),
-  );
-
-  const [, setTrader3Name] = useRiveString(
-    riveRef,
-    riveTraderBinding(3, 'name'),
-  );
-  const [, setTrader3Period] = useRiveString(
-    riveRef,
-    riveTraderBinding(3, 'period'),
-  );
-  const [, setTrader3ProfitAmount] = useRiveString(
-    riveRef,
-    riveTraderBinding(3, 'profitAmount'),
-  );
-  const [, setTrader3ProfitPercent] = useRiveString(
-    riveRef,
-    riveTraderBinding(3, 'profitPercent'),
-  );
+  const lastTrackedSlideRef = useRef<string | null>(null);
 
   const [, setTransitionSpeed] = useRiveNumber(
     riveRef,
     RIVE_NUMBER_BINDINGS.TRANSITION_SPEED,
   );
-  const [, setCoinSeq] = useRiveNumber(riveRef, RIVE_NUMBER_BINDINGS.COIN_SEQ);
-  const [, setCardSeq] = useRiveNumber(riveRef, RIVE_NUMBER_BINDINGS.CARD_SEQ);
-
-  // Push static config + localized copy once the Rive runtime is ready.
-  useEffect(() => {
-    if (!riveRef) return;
-
-    setTransitionSpeed(RIVE_TRANSITION_SPEED);
-    setCoinSeq(0);
-    setCardSeq(0);
-
-    // Slot 1: "Trade like a pro".
-    setStep1Title(strings('social_leaderboard.onboarding.slide_trade.title'));
-    setStep1Content(
-      strings('social_leaderboard.onboarding.slide_trade.description'),
-    );
-    setStep1Primary(strings('social_leaderboard.onboarding.next'));
-    setStep1Secondary('');
-
-    // Slot 2: "Never miss a move".
-    setStep2Title(strings('social_leaderboard.onboarding.slide_notify.title'));
-    setStep2Content(
-      strings('social_leaderboard.onboarding.slide_notify.description_default'),
-    );
-    setStep2Primary(
-      strings('social_leaderboard.onboarding.allow_notifications'),
-    );
-    setStep2Secondary(strings('social_leaderboard.onboarding.got_it'));
-
-    // Slot 3: "Follow the best".
-    setStep3Title(strings('social_leaderboard.onboarding.slide_follow.title'));
-    setStep3Content(
-      strings('social_leaderboard.onboarding.slide_follow.description'),
-    );
-    setStep3Primary(strings('social_leaderboard.onboarding.follow_top_three'));
-    setStep3Secondary(strings('social_leaderboard.onboarding.maybe_later'));
-  }, [
+  const [, setAllowNotificationsBoolean] = useRiveBoolean(
     riveRef,
-    setTransitionSpeed,
-    setCoinSeq,
-    setCardSeq,
-    setStep1Title,
-    setStep1Content,
-    setStep1Primary,
-    setStep1Secondary,
-    setStep2Title,
-    setStep2Content,
-    setStep2Primary,
-    setStep2Secondary,
-    setStep3Title,
-    setStep3Content,
-    setStep3Primary,
-    setStep3Secondary,
-  ]);
-
-  // Push live top-trader data into the Rive cards whenever it loads/changes.
-  useEffect(() => {
-    if (!riveRef) return;
-
-    const [trader1, trader2, trader3] = topTraders;
-
-    if (trader1) {
-      setTrader1Name(trader1.username);
-      setTrader1Period(RIVE_TRADER_PERIOD);
-      setTrader1ProfitAmount(formatSignedAbbreviatedUsd(trader1.pnlValue));
-      setTrader1ProfitPercent(
-        formatPercent(trader1.percentageChange, { decimals: 1 }),
-      );
-    }
-    if (trader2) {
-      setTrader2Name(trader2.username);
-      setTrader2Period(RIVE_TRADER_PERIOD);
-      setTrader2ProfitAmount(formatSignedAbbreviatedUsd(trader2.pnlValue));
-      setTrader2ProfitPercent(
-        formatPercent(trader2.percentageChange, { decimals: 1 }),
-      );
-    }
-    if (trader3) {
-      setTrader3Name(trader3.username);
-      setTrader3Period(RIVE_TRADER_PERIOD);
-      setTrader3ProfitAmount(formatSignedAbbreviatedUsd(trader3.pnlValue));
-      setTrader3ProfitPercent(
-        formatPercent(trader3.percentageChange, { decimals: 1 }),
-      );
-    }
-  }, [
+    RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS,
+  );
+  const [, setIsReady] = useRiveBoolean(
     riveRef,
-    topTraders,
-    setTrader1Name,
-    setTrader1Period,
-    setTrader1ProfitAmount,
-    setTrader1ProfitPercent,
-    setTrader2Name,
-    setTrader2Period,
-    setTrader2ProfitAmount,
-    setTrader2ProfitPercent,
-    setTrader3Name,
-    setTrader3Period,
-    setTrader3ProfitAmount,
-    setTrader3ProfitPercent,
-  ]);
-
-  const trackScreenViewed = useCallback(
-    (slotIndex: number) => {
-      currentSlotRef.current = slotIndex;
-      track(MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED, {
-        [SocialLeaderboardEventProperties.SOURCE]: ONBOARDING_SOURCE,
-        [SocialLeaderboardEventProperties.SCREEN]: RIVE_STEP_SLOTS[slotIndex],
-      });
-    },
-    [track],
+    RIVE_BOOLEAN_BINDINGS.IS_READY,
   );
 
-  // Track the first (Trade) slide on mount.
+  // Localized title + description rendered by RN per step (v4 no longer bakes
+  // these into the Rive). Index matches SLIDE_BY_STEP_INDEX; slots 2 and 3 share
+  // the Notify title but differ in description (post-follow vs "maybe later").
+  const stepText = useMemo(
+    () => [
+      {
+        title: strings('social_leaderboard.onboarding.slide_trade.title'),
+        description: strings(
+          'social_leaderboard.onboarding.slide_trade.description',
+        ),
+      },
+      {
+        title: strings('social_leaderboard.onboarding.slide_follow.title'),
+        description: strings(
+          'social_leaderboard.onboarding.slide_follow.description',
+        ),
+      },
+      {
+        title: strings('social_leaderboard.onboarding.slide_notify.title'),
+        description: strings(
+          'social_leaderboard.onboarding.slide_notify.description_followed',
+        ),
+      },
+      {
+        title: strings('social_leaderboard.onboarding.slide_notify.title'),
+        description: strings(
+          'social_leaderboard.onboarding.slide_notify.description_default',
+        ),
+      },
+    ],
+    [],
+  );
+
+  // Localized button labels per authored `stepText{slot}` (1-based). Slots 3 and
+  // 4 are both the Notify slide; the visible button ("Allow notifications" vs
+  // "Got it") is toggled inside the Rive by `allowNotificationsBoolean`.
+  const stepButtons = useMemo<{ slot: number; buttons: StepButtons }[]>(() => {
+    const notifyButtons: StepButtons = {
+      primaryButton: strings(
+        'social_leaderboard.onboarding.allow_notifications',
+      ),
+      secondaryButton: strings('social_leaderboard.onboarding.got_it'),
+    };
+    return [
+      {
+        slot: 1,
+        buttons: {
+          primaryButton: strings('social_leaderboard.onboarding.next'),
+          secondaryButton: '',
+        },
+      },
+      {
+        slot: 2,
+        buttons: {
+          primaryButton: strings(
+            'social_leaderboard.onboarding.follow_top_three',
+          ),
+          secondaryButton: strings('social_leaderboard.onboarding.maybe_later'),
+        },
+      },
+      { slot: 3, buttons: notifyButtons },
+      { slot: 4, buttons: notifyButtons },
+    ];
+  }, []);
+
+  // Live trader card text (avatars handled separately via referencedAssets).
+  const traderCards = useMemo(
+    () =>
+      Array.from({ length: ONBOARDING_TOP_TRADERS_LIMIT }, (_, index) => {
+        const trader = topTraders[index];
+        return {
+          rank: index + 1,
+          name: trader?.username,
+          profitAmount: trader
+            ? formatSignedFullUsdNoDecimals(trader.pnlValue)
+            : undefined,
+        };
+      }),
+    [topTraders],
+  );
+
+  // Dynamic avatars streamed into the Rive card slots. Real profile images use
+  // the live HTTPS URL; missing/placeholder avatars fall back to the bundled
+  // per-slot placeholder (the legacy runtime can only consume image
+  // URLs/bundled files, not the address-derived Maskicon used elsewhere).
+  const referencedAssets = useMemo<FilesHandledMapping>(() => {
+    const mapping: FilesHandledMapping = {};
+    RIVE_AVATAR_ASSET_KEYS.forEach((assetKey, index) => {
+      const uri = topTraders[index]?.avatarUri;
+      mapping[assetKey] = hasRealAvatar(uri)
+        ? { source: { uri } }
+        : { source: RIVE_AVATAR_PLACEHOLDERS[index] };
+    });
+    return mapping;
+  }, [topTraders]);
+
+  // Push static config once the Rive runtime is ready, and signal readiness.
   useEffect(() => {
-    trackScreenViewed(0);
-  }, [trackScreenViewed]);
+    if (!riveRef) return;
+    setTransitionSpeed(RIVE_TRANSITION_SPEED);
+    setIsReady(true);
+  }, [riveRef, setTransitionSpeed, setIsReady]);
+
+  // Tell the Notify step which button to show: "Allow notifications" while we
+  // still need to prompt, "Got it" once notifications are already enabled.
+  useEffect(() => {
+    if (!riveRef) return;
+    setAllowNotificationsBoolean(shouldPromptNotifications);
+  }, [riveRef, shouldPromptNotifications, setAllowNotificationsBoolean]);
+
+  // Track SCREEN_VIEWED whenever the reported slide changes. Runs on mount
+  // (Trade) and whenever `stepIndex` moves to a new slide; the two Notify steps
+  // share the `notify` screen, so 2 -> 3 does not double-count.
+  useEffect(() => {
+    const slide = SLIDE_BY_STEP_INDEX[stepIndex];
+    if (lastTrackedSlideRef.current === slide) {
+      return;
+    }
+    lastTrackedSlideRef.current = slide;
+    track(MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED, {
+      [SocialLeaderboardEventProperties.SOURCE]: ONBOARDING_SOURCE,
+      [SocialLeaderboardEventProperties.SCREEN]: slide,
+    });
+  }, [stepIndex, track]);
 
   const exitToLeaderboard = useCallback(() => {
     navigation.dispatch(
@@ -374,44 +395,26 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     track(MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_DISMISSED, {
       [SocialLeaderboardEventProperties.SOURCE]: ONBOARDING_SOURCE,
       [SocialLeaderboardEventProperties.SCREEN]:
-        RIVE_STEP_SLOTS[currentSlotRef.current],
+        SLIDE_BY_STEP_INDEX[stepIndexRef.current],
     });
     navigation.goBack();
   }, [navigation, track]);
 
-  // Trade -> Notify.
+  // Trade step: advance to Follow. Rive runs its own transition; RN only tracks
+  // the step so the overlay copy and analytics stay in sync.
   const handleNext = useCallback(() => {
-    trackScreenViewed(1);
-  }, [trackScreenViewed]);
+    setStep(1);
+  }, [setStep]);
 
-  // Notify -> Follow, enabling notifications first.
-  const handleAllowNotifications = useCallback(async () => {
-    if (shouldPromptNotifications) {
-      const granted = await requestPushPermission();
-      enableNotificationsInBackground(granted);
-      track(
-        MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_NOTIFICATIONS_ENABLED,
-        {
-          [SocialLeaderboardEventProperties.SOURCE]: ONBOARDING_SOURCE,
-        },
-      );
-    }
-    trackScreenViewed(2);
-  }, [
-    shouldPromptNotifications,
-    requestPushPermission,
-    enableNotificationsInBackground,
-    track,
-    trackScreenViewed,
-  ]);
+  // Step back one slide (Notify -> Follow, Follow -> Trade).
+  const handleBack = useCallback(() => {
+    setStep(stepIndexRef.current >= NOTIFY_STEP_INDEX ? 1 : 0);
+  }, [setStep]);
 
-  // Notify -> Follow, skipping notifications.
-  const handleGotIt = useCallback(() => {
-    trackScreenViewed(2);
-  }, [trackScreenViewed]);
-
-  // Follow step (terminal): follow the not-yet-followed top traders, then exit.
+  // Follow step (not terminal): advance to the post-follow Notify copy, then
+  // follow the not-yet-followed top traders.
   const handleFollowTopThree = useCallback(async () => {
+    setStep(2);
     await Promise.all(
       topTraders
         .filter((trader) => !trader.isFollowing)
@@ -424,56 +427,79 @@ const SocialLeaderboardOnboarding: React.FC = () => {
           }),
         ),
     );
-    goToLeaderboard();
-  }, [topTraders, toggleFollow, goToLeaderboard]);
+  }, [topTraders, toggleFollow, setStep]);
 
-  // Follow step (terminal): skip following and exit.
+  // Follow step (not terminal): advance to the "maybe later" Notify copy variant.
   const handleMaybeLater = useCallback(() => {
+    setStep(3);
+  }, [setStep]);
+
+  // Notify step (terminal): enable notifications, then complete the flow. Gated
+  // on being on the Notify step so an earlier button that (mis)fires this
+  // trigger can't navigate the user out early.
+  const handleAllowNotifications = useCallback(async () => {
+    if (stepIndexRef.current < NOTIFY_STEP_INDEX) {
+      return;
+    }
+    if (shouldPromptNotifications) {
+      const granted = await requestPushPermission();
+      enableNotificationsInBackground(granted);
+      track(
+        MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_NOTIFICATIONS_ENABLED,
+        {
+          [SocialLeaderboardEventProperties.SOURCE]: ONBOARDING_SOURCE,
+        },
+      );
+    }
+    goToLeaderboard();
+  }, [
+    shouldPromptNotifications,
+    requestPushPermission,
+    enableNotificationsInBackground,
+    track,
+    goToLeaderboard,
+  ]);
+
+  // Notify step (terminal): notifications already enabled, just complete. Same
+  // Notify-step gate as `handleAllowNotifications`.
+  const handleGotIt = useCallback(() => {
+    if (stepIndexRef.current < NOTIFY_STEP_INDEX) {
+      return;
+    }
     goToLeaderboard();
   }, [goToLeaderboard]);
 
+  // Rive owns navigation; RN observes the triggers to track the current step and
+  // run each button's side effect. Completion is gated on the Notify step above.
   useRiveTrigger(riveRef, RIVE_TRIGGERS.CLOSE, handleClose);
   useRiveTrigger(riveRef, RIVE_TRIGGERS.NEXT, handleNext);
-  useRiveTrigger(
-    riveRef,
-    RIVE_TRIGGERS.ALLOW_NOTIFICATIONS,
-    handleAllowNotifications,
-  );
-  useRiveTrigger(riveRef, RIVE_TRIGGERS.GOT_IT, handleGotIt);
+  useRiveTrigger(riveRef, RIVE_TRIGGERS.BACK, handleBack);
   useRiveTrigger(
     riveRef,
     RIVE_TRIGGERS.FOLLOW_TOP_TRADERS,
     handleFollowTopThree,
   );
   useRiveTrigger(riveRef, RIVE_TRIGGERS.MAYBE_LATER, handleMaybeLater);
-
-  // Rive owns navigation; we only track the current slot for DISMISSED accuracy.
-  // Until the motion team confirms the authored state names (`RIVE_STATE_TO_STEP_INDEX`),
-  // unmapped states are logged in dev so they can be filled in. Per-step
-  // analytics and completion are driven by the trigger callbacks above.
-  const handleStateChanged = useCallback(
-    (_stateMachineName: string, stateName: string) => {
-      const stepIndex = RIVE_STATE_TO_STEP_INDEX[stateName];
-      if (stepIndex !== undefined) {
-        currentSlotRef.current = stepIndex;
-        return;
-      }
-      if (__DEV__) {
-        Logger.log(
-          `SocialLeaderboardOnboarding: unmapped Rive state "${stateName}"`,
-        );
-      }
-    },
-    [],
+  useRiveTrigger(
+    riveRef,
+    RIVE_TRIGGERS.ALLOW_NOTIFICATIONS,
+    handleAllowNotifications,
   );
+  useRiveTrigger(riveRef, RIVE_TRIGGERS.GOT_IT, handleGotIt);
 
   const handleError = useCallback(
     (riveError: RNRiveError) => {
-      Logger.error(
-        new Error(
-          `SocialLeaderboardOnboarding: Rive error: ${riveError.message} - ${riveError.type}`,
-        ),
-      );
+      const description = `SocialLeaderboardOnboarding: Rive error: ${riveError.message} - ${riveError.type}`;
+
+      // Non-fatal (missing binding/text run, unused or failed referenced asset):
+      // log and keep the onboarding on screen so a single mismatch doesn't skip
+      // the flow.
+      if (!FATAL_RIVE_ERROR_TYPES.has(riveError.type)) {
+        Logger.log(description);
+        return;
+      }
+
+      Logger.error(new Error(description));
       if (hasCompletedRef.current) {
         return;
       }
@@ -484,29 +510,61 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     [exitToLeaderboard],
   );
 
+  const currentText = stepText[stepIndex] ?? stepText[0];
+
   return (
     <View
       style={styles.container}
       testID={SocialLeaderboardOnboardingSelectorsIDs.CONTAINER}
     >
+      {stepButtons.map(({ slot, buttons }) => (
+        <RiveStepButtonsBinding
+          key={slot}
+          riveRef={riveRef}
+          slot={slot}
+          buttons={buttons}
+        />
+      ))}
+      {traderCards.map((card) => (
+        <RiveTraderCardBinding
+          key={card.rank}
+          riveRef={riveRef}
+          rank={card.rank}
+          name={card.name}
+          profitAmount={card.profitAmount}
+        />
+      ))}
       <Rive
         ref={ref}
         source={SocialLeaderboardNuxAnimation}
         artboardName={RIVE_ARTBOARD_NAME}
         stateMachineName={RIVE_STATE_MACHINE_NAME}
         dataBinding={AutoBind(true)}
-        // The artboard is authored at a fixed phone aspect ratio with baked text
-        // runs, so it is rendered as-designed (uniform scale, edge-to-edge).
-        // `Fit.Layout` reflows at the wrong density and overflows the text runs,
-        // so `Fit.Cover` is used (matching the motion team's reference). No
-        // `layoutScaleFactor` — that only applies to `Fit.Layout`.
+        referencedAssets={referencedAssets}
         fit={Fit.Cover}
         alignment={Alignment.Center}
-        onStateChanged={handleStateChanged}
         onError={handleError}
         style={StyleSheet.absoluteFillObject}
         testID={SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION}
       />
+      {/* Title + description overlay. */}
+      <View
+        style={[styles.textOverlay, { top: insets.top + 24 }]}
+        pointerEvents="none"
+      >
+        <Text
+          style={styles.title}
+          testID={SocialLeaderboardOnboardingSelectorsIDs.STEP_TITLE}
+        >
+          {currentText.title}
+        </Text>
+        <Text
+          style={styles.description}
+          testID={SocialLeaderboardOnboardingSelectorsIDs.STEP_DESCRIPTION}
+        >
+          {currentText.description}
+        </Text>
+      </View>
     </View>
   );
 };

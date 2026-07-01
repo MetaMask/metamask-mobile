@@ -10,7 +10,15 @@ import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/stora
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import SocialLeaderboardOnboarding from './SocialLeaderboardOnboarding';
 import { SocialLeaderboardOnboardingSelectorsIDs } from './SocialLeaderboardOnboarding.testIds';
-import { RIVE_TRANSITION_SPEED, RIVE_TRIGGERS } from './constants';
+import {
+  RIVE_AVATAR_ASSET_KEYS,
+  RIVE_AVATAR_PLACEHOLDERS,
+  RIVE_BOOLEAN_BINDINGS,
+  RIVE_TRANSITION_SPEED,
+  RIVE_TRIGGERS,
+  riveStepTextBinding,
+  riveTraderBinding,
+} from './constants';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -28,16 +36,18 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Local Rive mock: render a plain View, capture onStateChanged/onError and the
-// per-trigger callbacks so tests can drive the state machine directly.
-let mockOnStateChanged:
-  | ((stateMachineName: string, stateName: string) => void)
-  | undefined;
+// Local Rive mock: render a plain View, capture onError, referencedAssets and
+// the per-trigger callbacks so tests can drive the state machine directly, and
+// record every string/boolean binding push keyed by path.
 let mockOnError:
   | ((error: { message: string; type: string }) => void)
   | undefined;
+let mockReferencedAssets:
+  | Record<string, { source: { uri: string } | number }>
+  | undefined;
 const mockTriggerCallbacks: Record<string, () => void | Promise<void>> = {};
-const mockSetString = jest.fn();
+const mockStringCalls: { path: string; value: string }[] = [];
+const mockBooleanCalls: { path: string; value: boolean }[] = [];
 const mockSetNumber = jest.fn();
 
 jest.mock('rive-react-native', () => {
@@ -46,16 +56,27 @@ jest.mock('rive-react-native', () => {
     __esModule: true,
     default: (props: {
       testID?: string;
-      onStateChanged?: (sm: string, state: string) => void;
       onError?: (error: { message: string; type: string }) => void;
+      referencedAssets?: Record<string, { source: { uri: string } | number }>;
     }) => {
-      mockOnStateChanged = props.onStateChanged;
       mockOnError = props.onError;
+      mockReferencedAssets = props.referencedAssets;
       return <View testID={props.testID} />;
     },
     useRive: () => [jest.fn(), {}],
-    useRiveString: () => [undefined, mockSetString],
+    useRiveString: (_riveRef: unknown, path: string) => [
+      undefined,
+      (value: string) => {
+        mockStringCalls.push({ path, value });
+      },
+    ],
     useRiveNumber: () => [undefined, mockSetNumber],
+    useRiveBoolean: (_riveRef: unknown, path: string) => [
+      undefined,
+      (value: boolean) => {
+        mockBooleanCalls.push({ path, value });
+      },
+    ],
     useRiveTrigger: (
       _riveRef: unknown,
       path: string,
@@ -66,6 +87,19 @@ jest.mock('rive-react-native', () => {
     AutoBind: (value: boolean) => ({ type: 'autobind', value }),
     Fit: { Cover: 'cover', Layout: 'layout' },
     Alignment: { Center: 'center' },
+    RNRiveErrorType: {
+      FileNotFound: 'FileNotFound',
+      UnsupportedRuntimeVersion: 'UnsupportedRuntimeVersion',
+      IncorrectRiveFileUrl: 'IncorrectRiveFileUrl',
+      IncorrectAnimationName: 'IncorrectAnimationName',
+      MalformedFile: 'MalformedFile',
+      IncorrectArtboardName: 'IncorrectArtboardName',
+      IncorrectStateMachineName: 'IncorrectStateMachineName',
+      IncorrectStateMachineInput: 'IncorrectStateMachineInput',
+      TextRunNotFoundError: 'TextRunNotFoundError',
+      DataBindingError: 'DataBindingError',
+      UnusedReferencedAssetError: 'UnusedReferencedAssetError',
+    },
   };
 });
 
@@ -143,11 +177,27 @@ const fireTrigger = async (path: string) => {
   });
 };
 
+// Advance to the terminal Notify step the way the Rive would: Trade -> Follow
+// (`next`) -> Notify (`followTopTraders`). Completion triggers are gated on this
+// step, so tests must reach it before firing `gotIt`/`allowNotifications`.
+const advanceToNotifyStep = async () => {
+  await fireTrigger(RIVE_TRIGGERS.NEXT);
+  await fireTrigger(RIVE_TRIGGERS.FOLLOW_TOP_TRADERS);
+};
+
+const getLastStringValue = (path: string) =>
+  mockStringCalls.filter((call) => call.path === path).pop()?.value;
+
+const getLastBooleanValue = (path: string) =>
+  mockBooleanCalls.filter((call) => call.path === path).pop()?.value;
+
 describe('SocialLeaderboardOnboarding', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockOnStateChanged = undefined;
     mockOnError = undefined;
+    mockReferencedAssets = undefined;
+    mockStringCalls.length = 0;
+    mockBooleanCalls.length = 0;
     Object.keys(mockTriggerCallbacks).forEach(
       (key) => delete mockTriggerCallbacks[key],
     );
@@ -179,80 +229,205 @@ describe('SocialLeaderboardOnboarding', () => {
     );
   });
 
-  it('pushes config and localized copy into the Rive bindings on load', () => {
+  it('pushes config, readiness and button labels into the Rive bindings on load', () => {
     renderComponent();
 
     expect(mockSetNumber).toHaveBeenCalledWith(RIVE_TRANSITION_SPEED);
-    expect(mockSetString).toHaveBeenCalled();
+    expect(getLastBooleanValue(RIVE_BOOLEAN_BINDINGS.IS_READY)).toBe(true);
+
+    // Button labels are still Rive-owned across stepText slots 1..4 (v4 removed
+    // the title/content text runs — those are rendered by RN, see below).
+    expect(getLastStringValue(riveStepTextBinding(1, 'primaryButton'))).toBe(
+      'Next',
+    );
+    expect(getLastStringValue(riveStepTextBinding(2, 'primaryButton'))).toBe(
+      'Follow the top three',
+    );
+    expect(getLastStringValue(riveStepTextBinding(2, 'secondaryButton'))).toBe(
+      'Maybe later',
+    );
+    expect(getLastStringValue(riveStepTextBinding(3, 'primaryButton'))).toBe(
+      'Allow notifications',
+    );
+    expect(getLastStringValue(riveStepTextBinding(3, 'secondaryButton'))).toBe(
+      'Got it',
+    );
   });
 
-  it('tracks the notify slide when the next trigger fires', async () => {
+  it('renders the current step title/description in React Native and advances with next', async () => {
+    renderComponent();
+
+    expect(
+      screen.getByTestId(SocialLeaderboardOnboardingSelectorsIDs.STEP_TITLE),
+    ).toHaveTextContent('Trade like a pro');
+    expect(
+      screen.getByTestId(
+        SocialLeaderboardOnboardingSelectorsIDs.STEP_DESCRIPTION,
+      ),
+    ).toHaveTextContent(
+      'Track in real time when they swap or trade perps, tokens, and real-world assets.',
+    );
+
+    await fireTrigger(RIVE_TRIGGERS.NEXT);
+
+    expect(
+      screen.getByTestId(SocialLeaderboardOnboardingSelectorsIDs.STEP_TITLE),
+    ).toHaveTextContent('Follow the best');
+    expect(
+      screen.getByTestId(
+        SocialLeaderboardOnboardingSelectorsIDs.STEP_DESCRIPTION,
+      ),
+    ).toHaveTextContent(
+      'Tap to follow the top three traders who are up big this week.',
+    );
+  });
+
+  it('shows the "maybe later" Notify description variant after maybe later', async () => {
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.NEXT);
+    await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
+
+    expect(
+      screen.getByTestId(SocialLeaderboardOnboardingSelectorsIDs.STEP_TITLE),
+    ).toHaveTextContent('Never miss a move');
+    expect(
+      screen.getByTestId(
+        SocialLeaderboardOnboardingSelectorsIDs.STEP_DESCRIPTION,
+      ),
+    ).toHaveTextContent(
+      "When you're ready, follow a trader to get notified the moment they make a move.",
+    );
+  });
+
+  it('shows the Allow-notifications button when notifications need prompting', () => {
+    renderComponent();
+
+    expect(getLastBooleanValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
+      true,
+    );
+  });
+
+  it('shows the Got-it button when notifications are already enabled', () => {
+    mockIsNotificationsEnabled = true;
+    mockIsPushEnabled = true;
+    renderComponent();
+
+    expect(getLastBooleanValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
+      false,
+    );
+  });
+
+  it('pushes live trader name and full (non-abbreviated) PnL into the cards', () => {
+    renderComponent();
+
+    expect(getLastStringValue(riveTraderBinding(1, 'name'))).toBe('dutchiono');
+    expect(getLastStringValue(riveTraderBinding(1, 'profitAmount'))).toBe(
+      '+$456,900',
+    );
+    expect(getLastStringValue(riveTraderBinding(2, 'name'))).toBe('raggedand');
+    expect(getLastStringValue(riveTraderBinding(2, 'profitAmount'))).toBe(
+      '+$324,660',
+    );
+    expect(getLastStringValue(riveTraderBinding(3, 'profitAmount'))).toBe(
+      '+$120,364',
+    );
+  });
+
+  it('streams live avatar URLs into the referenced asset slots when available', () => {
+    mockTraders = [
+      makeTrader({ id: 'a', avatarUri: 'https://img.example/a.png' }),
+      makeTrader({ id: 'b', avatarUri: 'https://img.example/b.png', rank: 2 }),
+      makeTrader({ id: 'c', avatarUri: 'https://img.example/c.png', rank: 3 }),
+    ];
+    renderComponent();
+
+    expect(mockReferencedAssets?.[RIVE_AVATAR_ASSET_KEYS[0]]).toEqual({
+      source: { uri: 'https://img.example/a.png' },
+    });
+    expect(mockReferencedAssets?.[RIVE_AVATAR_ASSET_KEYS[2]]).toEqual({
+      source: { uri: 'https://img.example/c.png' },
+    });
+  });
+
+  it('falls back to the bundled placeholder avatar when a trader has no real image', () => {
+    mockTraders = [
+      makeTrader({ id: 'a', avatarUri: undefined }),
+      makeTrader({
+        id: 'b',
+        rank: 2,
+        avatarUri:
+          'https://daylight-images.s3.us-east-1.amazonaws.com/ens-fallback.png',
+      }),
+    ];
+    renderComponent();
+
+    expect(mockReferencedAssets?.[RIVE_AVATAR_ASSET_KEYS[0]]).toEqual({
+      source: RIVE_AVATAR_PLACEHOLDERS[0],
+    });
+    // Known shared ENS placeholder also falls through to the bundled asset.
+    expect(mockReferencedAssets?.[RIVE_AVATAR_ASSET_KEYS[1]]).toEqual({
+      source: RIVE_AVATAR_PLACEHOLDERS[1],
+    });
+    // Missing trader slot still gets a placeholder.
+    expect(mockReferencedAssets?.[RIVE_AVATAR_ASSET_KEYS[2]]).toEqual({
+      source: RIVE_AVATAR_PLACEHOLDERS[2],
+    });
+  });
+
+  it('tracks the follow slide when next advances the flow', async () => {
     renderComponent();
 
     await fireTrigger(RIVE_TRIGGERS.NEXT);
 
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
+      expect.objectContaining({ screen: 'follow', source: 'nux' }),
+    );
+  });
+
+  it('tracks the notify slide once across both step-3 variants', async () => {
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.NEXT);
+    await fireTrigger(RIVE_TRIGGERS.FOLLOW_TOP_TRADERS);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
+      expect.objectContaining({ screen: 'notify', source: 'nux' }),
+    );
+
+    mockTrack.mockClear();
+    // Going back to Follow then into the "3.1" variant reports notify again, but
+    // consecutive same-slide steps must never double-count.
+    await fireTrigger(RIVE_TRIGGERS.BACK);
+    mockTrack.mockClear();
+    await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
+    expect(mockTrack).toHaveBeenCalledTimes(1);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
       expect.objectContaining({ screen: 'notify', source: 'nux' }),
     );
   });
 
-  it('enables notifications and advances to the follow slide on allowNotifications', async () => {
+  it('does not re-track a slide that is already the current one', async () => {
     renderComponent();
+    mockTrack.mockClear();
 
-    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
+    // `back` on the first slide keeps the already-current trade slide.
+    await fireTrigger(RIVE_TRIGGERS.BACK);
 
-    expect(mockRequestPushPermission).toHaveBeenCalled();
-    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
-    expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_NOTIFICATIONS_ENABLED,
-      expect.objectContaining({ source: 'nux' }),
-    );
-    expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
-      expect.objectContaining({ screen: 'follow', source: 'nux' }),
-    );
-    // Notify is not terminal, so the flow has not completed yet.
-    expect(mockDispatch).not.toHaveBeenCalled();
-  });
-
-  it('does not request permission when notifications are already enabled', async () => {
-    mockIsNotificationsEnabled = true;
-    mockIsPushEnabled = true;
-    renderComponent();
-
-    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
-
-    expect(mockRequestPushPermission).not.toHaveBeenCalled();
     expect(mockTrack).not.toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_NOTIFICATIONS_ENABLED,
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
       expect.anything(),
     );
-    expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
-      expect.objectContaining({ screen: 'follow', source: 'nux' }),
-    );
   });
 
-  it('advances to the follow slide without notifications on gotIt', async () => {
-    renderComponent();
-
-    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
-
-    expect(mockRequestPushPermission).not.toHaveBeenCalled();
-    expect(mockTrack).toHaveBeenCalledWith(
-      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_SCREEN_VIEWED,
-      expect.objectContaining({ screen: 'follow', source: 'nux' }),
-    );
-  });
-
-  it('follows the not-yet-followed top traders and completes on followTopTraders', async () => {
+  it('follows the not-yet-followed top traders on followTopTraders without completing', async () => {
     mockTraders[1] = makeTrader({
       id: 'b',
       username: 'raggedand',
       isFollowing: true,
     });
-    const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
     renderComponent();
 
     await fireTrigger(RIVE_TRIGGERS.FOLLOW_TOP_TRADERS);
@@ -263,6 +438,45 @@ describe('SocialLeaderboardOnboarding', () => {
       expect.objectContaining({ source: 'nux' }),
     );
     expect(mockToggleFollow).not.toHaveBeenCalledWith('b', expect.anything());
+    // Follow is not terminal: the flow continues to the Notify step.
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
+      expect.anything(),
+    );
+  });
+
+  it('does not navigate when a terminal trigger fires before the Notify step', async () => {
+    renderComponent();
+
+    // Simulate a mis-wired earlier button firing the completion triggers while
+    // still on Trade / Follow — the flow must stay put (the reported bug).
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
+    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
+    await fireTrigger(RIVE_TRIGGERS.NEXT);
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
+
+    expect(mockRequestPushPermission).not.toHaveBeenCalled();
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
+      expect.anything(),
+    );
+  });
+
+  it('enables notifications and completes on allowNotifications', async () => {
+    const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
+    renderComponent();
+
+    await advanceToNotifyStep();
+    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
+
+    expect(mockRequestPushPermission).toHaveBeenCalled();
+    expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true);
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_NOTIFICATIONS_ENABLED,
+      expect.objectContaining({ source: 'nux' }),
+    );
     expect(setItemSpy).toHaveBeenCalledWith(
       SOCIAL_LEADERBOARD_ONBOARDING_SHOWN,
       'true',
@@ -277,12 +491,15 @@ describe('SocialLeaderboardOnboarding', () => {
     );
   });
 
-  it('skips following and completes on maybeLater', async () => {
+  it('completes on gotIt without requesting notification permission', async () => {
+    mockIsNotificationsEnabled = true;
+    mockIsPushEnabled = true;
     renderComponent();
 
-    await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
+    await advanceToNotifyStep();
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
 
-    expect(mockToggleFollow).not.toHaveBeenCalled();
+    expect(mockRequestPushPermission).not.toHaveBeenCalled();
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
       expect.objectContaining({ source: 'nux' }),
@@ -295,8 +512,9 @@ describe('SocialLeaderboardOnboarding', () => {
   it('completes only once even if a terminal trigger fires twice', async () => {
     renderComponent();
 
-    await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
-    await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
+    await advanceToNotifyStep();
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
 
     expect(mockDispatch).toHaveBeenCalledTimes(1);
   });
@@ -327,16 +545,16 @@ describe('SocialLeaderboardOnboarding', () => {
 
     expect(mockTrack).toHaveBeenCalledWith(
       MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_DISMISSED,
-      expect.objectContaining({ source: 'nux', screen: 'notify' }),
+      expect.objectContaining({ source: 'nux', screen: 'follow' }),
     );
   });
 
-  it('marks seen and exits to the leaderboard on a Rive error without tracking completion', () => {
+  it('marks seen and exits to the leaderboard on a fatal Rive error without tracking completion', () => {
     const setItemSpy = jest.spyOn(StorageWrapper, 'setItem');
     renderComponent();
 
     act(() => {
-      mockOnError?.({ message: 'boom', type: 'Malformed' });
+      mockOnError?.({ message: 'boom', type: 'MalformedFile' });
     });
 
     expect(setItemSpy).toHaveBeenCalledWith(
@@ -351,5 +569,23 @@ describe('SocialLeaderboardOnboarding', () => {
       MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
       expect.anything(),
     );
+  });
+
+  it('stays on the onboarding for a non-fatal Rive error (missing binding / asset)', () => {
+    renderComponent();
+
+    act(() => {
+      mockOnError?.({ message: 'no such property', type: 'DataBindingError' });
+    });
+    act(() => {
+      mockOnError?.({
+        message: 'unused avatar',
+        type: 'UnusedReferencedAssetError',
+      });
+    });
+
+    // A missing binding or unused referenced asset must not boot the user out.
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockGoBack).not.toHaveBeenCalled();
   });
 });

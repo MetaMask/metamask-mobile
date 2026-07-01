@@ -1,14 +1,14 @@
 /**
  * Rive binding contract for the Social Leaderboard onboarding animation
- * (`app/animations/onboarding_nux_v1.riv`).
+ * (`app/animations/onboarding_nux_v4.riv`).
  *
  * The motion team ships a single text-baked artboard: Rive renders all visuals,
  * copy, trader cards and buttons, and owns step navigation via its state
  * machine. React Native's role is the "hybrid" half — it pushes localized
- * strings + live trader data in through these data bindings and observes the
- * state-machine triggers to run the follow / notification / analytics /
- * persistence logic. Mirrors the Money onboarding pattern
- * (`MoneyOnboardingView`).
+ * strings + live trader data in through these data bindings, streams the top-3
+ * avatars in via `referencedAssets`, and observes the state-machine triggers to
+ * run the follow / notification / analytics / persistence logic. Mirrors the
+ * Money onboarding pattern (`MoneyOnboardingView`).
  *
  * Update these names if the Rive file's artboard, state machine, bindings or
  * triggers change.
@@ -19,8 +19,22 @@ export const RIVE_STATE_MACHINE_NAME = 'State Machine 1';
 /** Numeric data-binding inputs pushed into the artboard. */
 export const RIVE_NUMBER_BINDINGS = {
   TRANSITION_SPEED: 'transitionSpeed',
-  COIN_SEQ: 'coinSeq',
-  CARD_SEQ: 'cardSeq',
+} as const;
+
+/**
+ * Boolean data-binding inputs pushed into the artboard.
+ *
+ * `ALLOW_NOTIFICATIONS` gates the Notify step's button — true shows "Allow
+ * notifications" (still need to prompt), false shows "Got it" (already enabled).
+ * `IS_READY` signals that RN has pushed the initial copy/data so the artboard
+ * can proceed.
+ *
+ * TODO(preview): confirm `allowNotificationsBoolean` polarity in-app (true =
+ * show the "Allow notifications" button).
+ */
+export const RIVE_BOOLEAN_BINDINGS = {
+  ALLOW_NOTIFICATIONS: 'allowNotificationsBoolean',
+  IS_READY: 'isReady',
 } as const;
 
 /** Transition duration (ms) handed to the state machine. */
@@ -31,10 +45,17 @@ export const RIVE_TRANSITION_SPEED = 300;
  * artboard's own steps, so RN must only *observe* them (via `useRiveTrigger`)
  * to run side effects — never intercept, or a button tap would no-op the
  * animation's transition.
+ *
+ * RN also uses these triggers to track the current step (the authored state
+ * names — `init` / `scenario1` / `first` … — are opaque, so `onStateChanged`
+ * can't be mapped reliably). `next`/`back`/`followTopTraders`/`maybeLater` move
+ * `stepIndex`; `gotIt`/`allowNotifications` complete the flow — but only from the
+ * Notify step, so a mis-wired earlier button can never boot the user out early.
  */
 export const RIVE_TRIGGERS = {
   CLOSE: 'close',
   NEXT: 'next',
+  BACK: 'back',
   GOT_IT: 'gotIt',
   ALLOW_NOTIFICATIONS: 'allowNotifications',
   FOLLOW_TOP_TRADERS: 'followTopTraders',
@@ -44,17 +65,25 @@ export const RIVE_TRIGGERS = {
 export type OnboardingSlideId = 'trade' | 'follow' | 'notify';
 
 /**
- * Authored slot order inside the `.riv` (1-based): step 1 = Trade,
- * step 2 = Notify, step 3 = Follow. The state machine plays
- * Trade -> Notify -> Follow, so this is the order RN reports for analytics and
- * pushes copy into. Reorder here (and re-author the Rive file) if the UX order
- * changes.
+ * Analytics slide reported for each RN `stepIndex`:
+ * - 0 Trade  (step 1)
+ * - 1 Follow (step 2)
+ * - 2 Notify (step 3 — reached via "Follow the top three")
+ * - 3 Notify (step 3.1 — reached via "Maybe later"; same `notify` screen)
+ *
+ * The Notify step is terminal: "Allow notifications"/"Got it" complete the flow.
+ * Step 2's "Follow the top three"/"Maybe later" only advance to Notify, so they
+ * are NOT terminal.
  */
-export const RIVE_STEP_SLOTS: readonly OnboardingSlideId[] = [
+export const SLIDE_BY_STEP_INDEX: readonly OnboardingSlideId[] = [
   'trade',
-  'notify',
   'follow',
+  'notify',
+  'notify',
 ];
+
+/** RN `stepIndex` of the (terminal) Notify step and its "3.1" copy variant. */
+export const NOTIFY_STEP_INDEX = 2;
 
 type StepTextField = 'title' | 'content' | 'primaryButton' | 'secondaryButton';
 
@@ -64,23 +93,41 @@ export const riveStepTextBinding = (
   field: StepTextField,
 ): string => `stepText${slot}/${field}`;
 
-type TraderField = 'name' | 'period' | 'profitAmount' | 'profitPercent';
+type TraderField = 'name' | 'profitAmount';
 
 /** Builds a `traderTop{rank}/{field}` binding path for the given 1-based rank. */
 export const riveTraderBinding = (rank: number, field: TraderField): string =>
   `traderTop${rank}/${field}`;
 
-/** Window label shown on each trader card (leaderboard data is 7-day). */
-export const RIVE_TRADER_PERIOD = '7D';
+/**
+ * Referenced-asset keys for the trader avatars (marked "Referenced", not
+ * "Embedded", in the Rive editor). Order matches the top-3 trader ranks. RN
+ * fills these slots at runtime with dynamic HTTPS avatar URLs (or a bundled
+ * placeholder) via the `<Rive referencedAssets={...} />` prop.
+ */
+export const RIVE_AVATAR_ASSET_KEYS = [
+  'leaderboard_card_1_avatar',
+  'leaderboard_card_2_avatar',
+  'leaderboard_card_3_avatar',
+] as const;
 
 /**
- * Optional map of Rive state-machine state names -> step index, used by
- * `onStateChanged` for per-step analytics and terminal-state detection once the
- * motion team confirms the authored state names. Until then it stays empty and
- * step tracking is driven by the trigger callbacks (which are deterministic).
- * Instrument `onStateChanged` in dev to discover the names, then fill this in.
+ * Motion-team placeholder avatars, one per card slot. Used when a trader has no
+ * real profile image (`hasRealAvatar` is false) — the legacy Rive runtime can
+ * only consume image URLs/bundled files, not the address-derived Maskicon used
+ * elsewhere in the app.
+ *
+ * TODO(future): replace with a rasterized Maskicon per address if we ever need
+ * the Rive cards to match the rest of the follow-trading surfaces.
  */
-export const RIVE_STATE_TO_STEP_INDEX: Record<string, number> = {};
+export const RIVE_AVATAR_PLACEHOLDERS: readonly number[] = [
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+  require('../../../../images/leaderboard_card_1_avatar-6249125.png'),
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+  require('../../../../images/leaderboard_card_2_avatar-6249126.png'),
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+  require('../../../../images/leaderboard_card_3_avatar-6249127.png'),
+];
 
 /** Number of top traders surfaced on the "Follow the best" step. */
 export const ONBOARDING_TOP_TRADERS_LIMIT = 3;
