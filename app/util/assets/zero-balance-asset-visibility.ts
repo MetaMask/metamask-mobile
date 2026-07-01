@@ -1,4 +1,5 @@
 import type { AssetsControllerState } from '@metamask/assets-controller';
+import type { CaipAssetId } from '@metamask/utils';
 
 function isStellarClassicAssetId(assetId: string): boolean {
   return assetId.startsWith('stellar:') && assetId.includes('/asset:');
@@ -44,7 +45,7 @@ export function shouldRetainZeroBalanceNonNativeAsset(options: {
     return false;
   }
 
-  if (customAssets[accountId]?.includes(assetId)) {
+  if (customAssets[accountId]?.includes(assetId as CaipAssetId)) {
     return true;
   }
 

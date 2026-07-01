@@ -4,6 +4,8 @@ import {
   Messenger,
   MessengerActions,
   MessengerEvents,
+  type ActionConstraint,
+  type EventConstraint,
 } from '@metamask/messenger';
 
 /**
@@ -31,7 +33,14 @@ export function getPerpsControllerMessenger(
     namespace: 'PerpsController',
     parent: rootExtendedMessenger,
   });
+  // See rewards-controller-messenger for TS2590 rationale.
   rootExtendedMessenger.delegate({
+    messenger: messenger as Messenger<
+      'PerpsController',
+      ActionConstraint,
+      EventConstraint,
+      RootMessenger
+    >,
     actions: [
       'GeolocationController:getGeolocation',
       'NetworkController:getState',
@@ -50,7 +59,6 @@ export function getPerpsControllerMessenger(
       'AccountsController:selectedAccountChange',
       'AccountTreeController:selectedAccountGroupChange',
     ],
-    messenger,
   });
   return messenger;
 }

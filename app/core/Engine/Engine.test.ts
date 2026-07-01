@@ -1369,6 +1369,26 @@ describe('Engine', () => {
       'stellar:pubnet/asset:USDC-GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN';
     const STELLAR_NATIVE_ASSET_ID = 'stellar:pubnet/slip44:148';
 
+    const stellarMockAccount = {
+      ...createMockInternalAccount(STELLAR_ADDRESS, 'Stellar Account 1'),
+      id: STELLAR_ACCOUNT_ID,
+    };
+
+    const publishBalanceUpdated = (
+      engine: ReturnType<typeof Engine.init>,
+      payload: {
+        address: string;
+        chain: string;
+        updates: unknown[];
+      },
+    ) => {
+      (
+        engine.controllerMessenger as {
+          publish: (event: string, data: unknown) => void;
+        }
+      ).publish('AccountActivityService:balanceUpdated', payload);
+    };
+
     const makeStoreMock = (assetsUnifyEnabled: boolean) => ({
       onboarding: { completedOnboarding: true },
       engine: {
@@ -1396,9 +1416,7 @@ describe('Engine', () => {
 
       jest
         .spyOn(engine.context.AccountsController, 'getAccountByAddress')
-        .mockReturnValue({ id: STELLAR_ACCOUNT_ID } as unknown as {
-          id: string;
-        });
+        .mockReturnValue(stellarMockAccount as never);
 
       // Seed assetsBalance with one classic asset so the hook can find it
       Object.defineProperty(engine.context.AssetsController, 'state', {
@@ -1417,24 +1435,21 @@ describe('Engine', () => {
         .spyOn(engine.context.AssetsController, 'refreshAccountAssetInfo')
         .mockResolvedValue(undefined);
 
-      engine.controllerMessenger.publish(
-        'AccountActivityService:balanceUpdated',
-        {
-          address: STELLAR_ADDRESS,
-          chain: 'stellar:pubnet',
-          updates: [
-            {
-              asset: {
-                type: STELLAR_NATIVE_ASSET_ID,
-                unit: 'XLM',
-                decimals: 7,
-              },
-              postBalance: { amount: '9900000' },
-              transfers: [],
+      publishBalanceUpdated(engine, {
+        address: STELLAR_ADDRESS,
+        chain: 'stellar:pubnet',
+        updates: [
+          {
+            asset: {
+              type: STELLAR_NATIVE_ASSET_ID,
+              unit: 'XLM',
+              decimals: 7,
             },
-          ],
-        },
-      );
+            postBalance: { amount: '9900000' },
+            transfers: [],
+          },
+        ],
+      });
 
       // refreshAccountAssetInfo is async; wait for next tick
       await Promise.resolve();
@@ -1451,22 +1466,17 @@ describe('Engine', () => {
 
       jest
         .spyOn(engine.context.AccountsController, 'getAccountByAddress')
-        .mockReturnValue({ id: STELLAR_ACCOUNT_ID } as unknown as {
-          id: string;
-        });
+        .mockReturnValue(stellarMockAccount as never);
 
       const refreshSpy = jest
         .spyOn(engine.context.AssetsController, 'refreshAccountAssetInfo')
         .mockResolvedValue(undefined);
 
-      engine.controllerMessenger.publish(
-        'AccountActivityService:balanceUpdated',
-        {
-          address: STELLAR_ADDRESS,
-          chain: 'stellar:pubnet',
-          updates: [],
-        },
-      );
+      publishBalanceUpdated(engine, {
+        address: STELLAR_ADDRESS,
+        chain: 'stellar:pubnet',
+        updates: [],
+      });
 
       await Promise.resolve();
 
@@ -1480,9 +1490,10 @@ describe('Engine', () => {
 
       jest
         .spyOn(engine.context.AccountsController, 'getAccountByAddress')
-        .mockReturnValue({ id: 'some-evm-account' } as unknown as {
-          id: string;
-        });
+        .mockReturnValue({
+          ...createMockInternalAccount('0xabc', 'EVM Account'),
+          id: 'some-evm-account',
+        } as never);
 
       Object.defineProperty(engine.context.AssetsController, 'state', {
         get: () => ({ assetsBalance: {} }),
@@ -1493,14 +1504,11 @@ describe('Engine', () => {
         .spyOn(engine.context.AssetsController, 'refreshAccountAssetInfo')
         .mockResolvedValue(undefined);
 
-      engine.controllerMessenger.publish(
-        'AccountActivityService:balanceUpdated',
-        {
-          address: '0xabc',
-          chain: 'eip155:1',
-          updates: [],
-        },
-      );
+      publishBalanceUpdated(engine, {
+        address: '0xabc',
+        chain: 'eip155:1',
+        updates: [],
+      });
 
       await Promise.resolve();
 
@@ -1514,9 +1522,7 @@ describe('Engine', () => {
 
       jest
         .spyOn(engine.context.AccountsController, 'getAccountByAddress')
-        .mockReturnValue({ id: STELLAR_ACCOUNT_ID } as unknown as {
-          id: string;
-        });
+        .mockReturnValue(stellarMockAccount as never);
 
       Object.defineProperty(engine.context.AssetsController, 'state', {
         get: () => ({
@@ -1534,14 +1540,11 @@ describe('Engine', () => {
         .mockRejectedValue(new Error('enrichment failed'));
 
       expect(() => {
-        engine.controllerMessenger.publish(
-          'AccountActivityService:balanceUpdated',
-          {
-            address: STELLAR_ADDRESS,
-            chain: 'stellar:pubnet',
-            updates: [],
-          },
-        );
+        publishBalanceUpdated(engine, {
+          address: STELLAR_ADDRESS,
+          chain: 'stellar:pubnet',
+          updates: [],
+        });
       }).not.toThrow();
 
       // No unhandled rejection should bubble up

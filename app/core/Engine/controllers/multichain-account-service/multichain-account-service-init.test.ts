@@ -116,9 +116,14 @@ describe('MultichainAccountServiceInit', () => {
     const { providerConfigs } = callArgs;
 
     expect(providerConfigs).toBeDefined();
-    expect(
-      providerConfigs?.[XLM_ACCOUNT_PROVIDER_NAME]?.createAccounts,
-    ).toMatchObject({
+    const stellarProviderConfig = (
+      providerConfigs as Record<
+        string,
+        { createAccounts?: { batched?: boolean; timeoutMs?: number } }
+      >
+    )?.[XLM_ACCOUNT_PROVIDER_NAME]?.createAccounts;
+
+    expect(stellarProviderConfig).toMatchObject({
       batched: true,
       timeoutMs: 10000,
     });
