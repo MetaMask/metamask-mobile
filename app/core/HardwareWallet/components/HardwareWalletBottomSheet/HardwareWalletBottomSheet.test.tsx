@@ -7,6 +7,11 @@ jest.mock('../../../../util/theme', () => ({
   }),
 }));
 
+const MOCK_ELEVATED_SURFACE_COLOR = 'mock-elevated-surface-color';
+jest.mock('../../../../util/theme/themeUtils', () => ({
+  getElevatedSurfaceColor: jest.fn(() => MOCK_ELEVATED_SURFACE_COLOR),
+}));
+
 // Mutable state objects for tests to manipulate
 const mockConnectionState: Record<string, unknown> = { status: 'disconnected' };
 const mockDeviceSelection = {
@@ -75,17 +80,23 @@ jest.mock(
             children,
             testID,
             onClose,
+            style,
           }: {
             children: React.ReactNode;
             testID?: string;
             onClose?: () => void;
+            style?: unknown;
           },
           _ref: React.Ref<unknown>,
         ) => {
           // Test double: capture BottomSheet onClose for assertions (not production UI).
           // eslint-disable-next-line react-compiler/react-compiler -- intentional mock side effect
           mockLastBottomSheetOnCloseRef.current = onClose;
-          return <View testID={testID}>{children}</View>;
+          return (
+            <View testID={testID} style={style as undefined}>
+              {children}
+            </View>
+          );
         },
       ),
     };
@@ -265,6 +276,19 @@ describe('HardwareWalletBottomSheet', () => {
       expect(
         getByTestId(HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('styling', () => {
+    it('uses the elevated surface color for the sheet background', () => {
+      mockConnectionState.status = ConnectionStatus.Scanning;
+      const { getByTestId } = render(
+        <HardwareWalletBottomSheet {...createDefaultProps()} />,
+      );
+
+      expect(getByTestId(HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID)).toHaveStyle({
+        backgroundColor: MOCK_ELEVATED_SURFACE_COLOR,
+      });
     });
   });
 
