@@ -6,9 +6,9 @@ import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import {
   asPlaywrightElement,
   encapsulated,
-  encapsulatedAction,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 const SHEET_READY_TIMEOUT_MS = 30_000;
