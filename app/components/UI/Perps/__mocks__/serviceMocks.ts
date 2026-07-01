@@ -144,6 +144,10 @@ export const createMockPerpsControllerState = (
     testnet: [],
     mainnet: [],
   },
+  recentlyViewedMarkets: {
+    testnet: [],
+    mainnet: [],
+  },
   tradeConfigurations: {
     testnet: {},
     mainnet: {},
