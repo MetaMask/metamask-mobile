@@ -46,6 +46,19 @@ const CHARTING_LIBRARY_ORIGIN = (() => {
 const stripHexAlpha = (hex: string): string =>
   hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
 
+const formatTradingViewCssColor = (hex: string): string => {
+  if (hex.length !== 9 || !hex.startsWith('#')) {
+    return hex;
+  }
+
+  const red = Number.parseInt(hex.slice(1, 3), 16);
+  const green = Number.parseInt(hex.slice(3, 5), 16);
+  const blue = Number.parseInt(hex.slice(5, 7), 16);
+  const alpha = Number.parseInt(hex.slice(7, 9), 16) / 255;
+
+  return `rgba(${red}, ${green}, ${blue}, ${alpha.toFixed(3)})`;
+};
+
 const getChartSuccessColor = (theme: Theme): string =>
   theme.themeAppearance === AppThemeKey.light
     ? LIGHT_MODE_SUCCESS_GREEN
@@ -55,11 +68,15 @@ interface ChartFeatures {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
   useSubscriptPriceFormat?: boolean;
+  hidePaneSeparator?: boolean;
+  gridLineColorOverride?: string;
   lineColorOverride?: string;
   successColorOverride?: string;
   errorColorOverride?: string;
   currentPriceLineColorOverride?: string;
   labelStyleOverrides?: ChartLabelStyleOverrides;
+  volumeSuccessColorOverride?: string;
+  volumeErrorColorOverride?: string;
   legendOverlay?: LegendOverlayConfig;
 }
 
@@ -92,6 +109,9 @@ const createConfigScript = (
     successColorOverride: features.successColorOverride,
     themeSuccessDefault: getChartSuccessColor(theme),
   });
+  const volumeSuccessColor =
+    features.volumeSuccessColorOverride ?? successColor;
+  const volumeErrorColor = features.volumeErrorColorOverride ?? errorColor;
   return `
 window.CONFIG = {
   libraryUrl: '${libraryUrl}',
@@ -107,13 +127,17 @@ window.CONFIG = {
     textAlternativeColor: '${legendTextColor}',
     successColor: '${successColor}',
     lineColor: '${lineColor}',
+    gridLineColor: '${features.gridLineColorOverride ? formatTradingViewCssColor(features.gridLineColorOverride) : 'transparent'}',
     errorColor: '${errorColor}',
+    volumeSuccessColor: '${volumeSuccessColor}',
+    volumeErrorColor: '${volumeErrorColor}',
     primaryColor: '${theme.colors.primary.default}',
     currentPriceColor: '${resolvedCurrentPriceColor}'
   },
   features: {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},
-    disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])}
+    disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])},
+    hidePaneSeparator: ${features.hidePaneSeparator ? 'true' : 'false'}
   },
   legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
   useSubscriptPriceFormat: ${features.useSubscriptPriceFormat ? 'true' : 'false'},
@@ -132,6 +156,10 @@ export const createAdvancedChartTemplate = (
   theme: Theme,
   features: ChartFeatures = {},
 ): string => {
+  const resolvedLineColor =
+    features.lineColorOverride ?? getChartSuccessColor(theme);
+  const resolvedCurrentPriceLabelColor =
+    features.currentPriceLineColorOverride ?? resolvedLineColor;
   const configInline = createConfigScript(
     CHARTING_LIBRARY_URL,
     theme,
@@ -180,7 +208,99 @@ export const createAdvancedChartTemplate = (
             box-sizing: border-box;
         }
         /*
-         * Study legend pills (features/indicators/legend.ts): semi-transparent background via color-mix.
+         * Transparent layer on top of the chart, same size as #chart_surface.
+         * - pointer-events: none — touches pass through to the chart (we do not block gestures).
+         * - z-index: 50 — above the TV canvas so labels render on top.
+         * chartLogic sets left/top on the pills inside; this div only defines the coordinate system.
+         */
+        #custom-crosshair-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 50;
+        }
+        /*
+         * Shared “pill” look for crosshair price, crosshair time, and last-close labels.
+         * - position: absolute — placed by chartLogic (px from overlay edges).
+         * - display: none by default; chartLogic sets display:flex when showing a label.
+         * - flex + center — keeps text centered inside the pill; gap reserved if an icon is added later.
+         * - min-width / padding — minimum tap target; horizontal padding matches design spacing.
+         * - ellipsis + nowrap — long strings stay on one line with … if needed.
+         * Colors: section background + default text (success theme applied on last-close only).
+         */
+        .crosshair-label {
+            position: absolute;
+            display: none;
+            box-sizing: border-box;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            min-width: 22px;
+            padding: 0 6px;
+            overflow: hidden;
+            text-align: center;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            font-family: Geist, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI',
+                Roboto, sans-serif;
+            font-size: 12px;
+            font-style: normal;
+            font-weight: 500;
+            line-height: 20px;
+            border-radius: 4px;
+            background: ${stripHexAlpha(theme.colors.background.section)};
+            color: ${stripHexAlpha(theme.colors.text.default)};
+        }
+        /*
+         * Price pills (crosshair + last close): default vertical centering on the Y from chartLogic.
+         * - translateY(-50%) — shifts the pill up by half its height so it sits on the crosshair line.
+         * - right: 0; left: auto — fallback when JS cannot measure the axis (pill hugs the overlay right).
+         * When measurement works, chartLogic sets left/right explicitly and overrides this.
+         */
+        .crosshair-price-label {
+            right: 0;
+            left: auto;
+            transform: translateY(-50%);
+        }
+        /*
+         * Time pill along the bottom axis: pinned to the bottom of the overlay.
+         * - translateX(-50%) — horizontal center of the pill aligns with the inline left set by chartLogic (crosshair X).
+         */
+        .crosshair-time-label {
+            bottom: 0;
+            top: auto;
+            transform: translateX(-50%);
+        }
+        /*
+         * Last-close: filled pill matching the current-price line override when supplied,
+         * otherwise matching the default chart line color.
+         */
+        #last-close-price-label {
+            z-index: 50;
+            background: ${resolvedCurrentPriceLabelColor};
+            color: ${stripHexAlpha(theme.colors.success.inverse)};
+        }
+        /*
+         * Visible-edge outline pill: same pill metrics as .crosshair-label + .crosshair-price-label
+         * as the filled last-close label, but transparent fill + success border and success (green)
+         * text for readability on the chart background. Shown only when the series tail is off-screen
+         * and lineChrome.useCustomPriceLabels is true (chartLogic.js).
+         */
+        #custom-series-last-value-label {
+            z-index: 55;
+            background: transparent;
+            border: 1px solid ${stripHexAlpha(resolvedLineColor)};
+            color: ${stripHexAlpha(resolvedLineColor)};
+        }
+        /*
+         * Crosshair price pill draws above last-close when both share the same Y so text stays readable.
+         */
+        #crosshair-price-label {
+            z-index: 60;
+        }
+        /*
+         * Study legend pills (chartLogic.js): semi-transparent background via color-mix.
          */
         .legend-pill {
             display: inline-flex;

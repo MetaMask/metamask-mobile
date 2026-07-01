@@ -78,7 +78,10 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'addDeviceSyncEnabled',
     type: FeatureFlagType.Remote,
     inProd: false,
-    productionDefault: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '8.6.0',
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -3834,6 +3837,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: {
       enabled: true,
       minimumVersion: '7.68.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  perpsAdvancedChartEnabledV2: {
+    name: 'perpsAdvancedChartEnabledV2',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.81.0',
     },
     status: FeatureFlagStatus.Active,
   },
