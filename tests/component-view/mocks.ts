@@ -197,6 +197,17 @@ jest.mock('../../app/core/Engine', () => {
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
       },
+      GeolocationController: {
+        state: {
+          location: 'US',
+        },
+        refreshGeolocation: jest.fn().mockResolvedValue('US'),
+      },
+      SeedlessOnboardingController: {
+        state: {
+          accessToken: undefined,
+        },
+      },
       // Notifications: stubbed so notification view + settings flows can call
       // controller methods (enable / disable / toggleFeatureAnnouncements /
       // markMetamaskNotificationsAsRead / fetchAndUpdateMetamaskNotifications
@@ -327,6 +338,7 @@ jest.mock('../../app/core/Engine', () => {
         resetState: jest.fn(),
         stopAllPolling: jest.fn(),
         setLocation: jest.fn(),
+        setInputPrimaryDenomination: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
       },
       PredictController: {
@@ -364,6 +376,7 @@ jest.mock('../../app/core/Engine', () => {
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
         trackBannerAction: jest.fn(),
+        trackCategoryClicked: jest.fn(),
         trackMarketDetailsOpened: jest.fn(),
         trackGeoBlockTriggered: jest.fn(),
         trackActivityViewed: jest.fn(),

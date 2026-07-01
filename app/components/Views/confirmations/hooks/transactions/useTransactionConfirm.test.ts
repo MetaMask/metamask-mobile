@@ -488,6 +488,48 @@ describe('useTransactionConfirm', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
+    it('money home if money account deposit', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.moneyAccountDeposit,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('money home if money account deposit is a nested batch transaction', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.batch,
+        nestedTransactions: [
+          { type: TransactionType.tokenMethodApprove },
+          { type: TransactionType.moneyAccountDeposit },
+        ],
+      } as unknown as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HOME_TABS, {
+        screen: Routes.MONEY.ROOT,
+        params: { screen: Routes.MONEY.HOME },
+      });
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
     it('skips navigation if perps deposit and order (caller handles navigation)', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,

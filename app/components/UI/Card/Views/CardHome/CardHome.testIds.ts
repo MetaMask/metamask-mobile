@@ -12,6 +12,7 @@ export const CardHomeSelectors = {
   ENABLE_CARD_BUTTON: 'enable-card-button',
   CONTACT_SUPPORT_ITEM: 'contact-support-item',
   MANAGE_SPENDING_LIMIT_ITEM: 'manage-spending-limit-item',
+  UNLINK_MONEY_ACCOUNT_ITEM: 'unlink-money-account-item',
   CARD_VIEW_TITLE: 'card-view-title',
   ADD_FUNDS_BOTTOM_SHEET: 'add-funds-bottom-sheet',
   ADD_FUNDS_BOTTOM_SHEET_DEPOSIT_OPTION:

@@ -14,6 +14,7 @@ import type {
   TokenAmount,
 } from '../../../../util/activity-adapters';
 import { useActivityListItemRowContent } from '../../../UI/ActivityListItemRow/useActivityListItemRowContent';
+import { useNftActivityImage } from '../../../UI/ActivityListItemRow/useNftActivityImage';
 import { selectBridgeHistoryForAccount } from '../../../../selectors/bridgeStatusController';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { ActivityDetailsAvatar } from './ActivityDetailsAvatar';
@@ -38,6 +39,7 @@ export function ActivityDetailsAmountHeader({
     item.chainId,
     bridgeHistoryItem,
   );
+  const nftImageUrl = useNftActivityImage(item);
 
   return (
     <Box
@@ -48,6 +50,7 @@ export function ActivityDetailsAmountHeader({
         tokens={content.avatarTokens}
         chainId={item.chainId}
         showNetworkBadge
+        iconUrl={content.avatarIconUrl ?? nftImageUrl}
       />
       <Box twClassName="shrink">
         {content.primaryAmount ? (

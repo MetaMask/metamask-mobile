@@ -3,6 +3,7 @@ import {
   selectCardSelectedCountry,
   selectCardActiveProviderId,
   selectIsCardAuthenticated,
+  selectCardLastUnauthenticatedReason,
   selectIsMoneyAccountCardLinkInProgress,
   selectCardholderAccounts,
   selectHasCardholderAccounts,
@@ -189,6 +190,32 @@ describe('CardController selectors', () => {
       const state = createMockRootState({ isAuthenticated: true });
 
       expect(selectIsCardAuthenticated(state)).toBe(true);
+    });
+  });
+
+  describe('selectCardLastUnauthenticatedReason', () => {
+    it('returns null by default', () => {
+      const state = createMockRootState();
+
+      expect(selectCardLastUnauthenticatedReason(state)).toBeNull();
+    });
+
+    it('returns the last unauthenticated reason when set', () => {
+      const state = createMockRootState({
+        lastUnauthenticatedReason: 'onboarding_token_revoked',
+      });
+
+      expect(selectCardLastUnauthenticatedReason(state)).toBe(
+        'onboarding_token_revoked',
+      );
+    });
+
+    it('returns null when CardController state is undefined', () => {
+      const state = {
+        engine: { backgroundState: {} },
+      } as unknown as RootState;
+
+      expect(selectCardLastUnauthenticatedReason(state)).toBeNull();
     });
   });
 
