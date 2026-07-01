@@ -7766,6 +7766,27 @@ describe('RewardsController', () => {
         mockSubscriptionId,
         mockBenefitId,
         mockBenefitType,
+        undefined,
+      );
+    });
+
+    it('forwards the wallet address to RewardsDataService when provided', async () => {
+      mockMessenger.call.mockResolvedValue(undefined);
+      const mockWalletAddress = '0xabc';
+
+      await controller.postBenefitImpression(
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+        mockWalletAddress,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:postBenefitImpression',
+        mockSubscriptionId,
+        mockBenefitId,
+        mockBenefitType,
+        mockWalletAddress,
       );
     });
 
