@@ -4765,6 +4765,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  perpsTerminalBackendEnabled: {
+    name: 'perpsTerminalBackendEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: true,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   swapsSWAPS4242AbtestTokenSelectorBalanceLayout: {
     name: 'swapsSWAPS4242AbtestTokenSelectorBalanceLayout',
     type: FeatureFlagType.Remote,
