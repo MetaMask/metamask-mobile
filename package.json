@@ -216,7 +216,7 @@
     "@metamask/transaction-controller": "68.2.0",
     "@metamask/keyring-controller": "^27.1.0",
     "@metamask/accounts-controller": "^39.0.3",
-    "expo-web-browser@npm:~55.0.16": "patch:expo-web-browser@npm%3A55.0.16#~/.yarn/patches/expo-web-browser-npm-55.0.16-7d42befffd.patch",
+    "expo-web-browser@npm:~55.0.16": "55.0.16",
     "@expo/cli@npm:55.0.32": "patch:@expo/cli@npm%3A55.0.32#~/.yarn/patches/@expo-cli-npm-55.0.32-5fb47bae24.patch",
     "expo-modules-autolinking@npm:3.0.24": "patch:expo-modules-autolinking@npm%3A3.0.24#~/.yarn/patches/expo-modules-autolinking-npm-3.0.24-67e807d080.patch"
   },
