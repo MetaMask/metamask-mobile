@@ -38,14 +38,26 @@ class AddAccountBottomSheet {
   }
 
   async tapImportAccount(): Promise<void> {
-    await Gestures.waitAndTap(this.importAccountButton, {
-      elemDescription: 'Import Account button',
+    await UnifiedGestures.waitAndTap(this.importAccountButton, {
+      description: 'Import Account button',
+      timeout: 20_000,
+      checkForDisplayed: true,
+      checkForEnabled: true,
+      waitForInteractive: true,
+      enabledStableReads: 3,
+      postEnabledSettleMs: 250,
     });
   }
 
   async tapImportSrp(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.importSrpButton, {
       description: 'Import SRP button',
+      timeout: 20_000,
+      checkForDisplayed: true,
+      checkForEnabled: true,
+      waitForInteractive: true,
+      enabledStableReads: 3,
+      postEnabledSettleMs: 250,
     });
   }
 

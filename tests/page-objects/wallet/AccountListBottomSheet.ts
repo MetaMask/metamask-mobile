@@ -217,12 +217,24 @@ class AccountListBottomSheet {
   async tapAddAccountButton(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.addAccountButton, {
       description: 'Add Account button',
+      timeout: 20_000,
+      checkForDisplayed: true,
+      checkForEnabled: true,
+      waitForInteractive: true,
+      enabledStableReads: 3,
+      postEnabledSettleMs: 250,
     });
   }
 
   async tapAddWalletButton(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.addWalletButton, {
       description: 'Add Wallet button',
+      timeout: 20_000,
+      checkForDisplayed: true,
+      checkForEnabled: true,
+      waitForInteractive: true,
+      enabledStableReads: 3,
+      postEnabledSettleMs: 250,
     });
   }
 
@@ -265,23 +277,15 @@ class AccountListBottomSheet {
           timeout: 30000,
         });
 
-        if (PlatformDetector.isIOS()) {
-          await UnifiedGestures.waitAndTap(button, {
-            description: 'Add Account button in V2 multichain accounts',
-            delay: options?.shouldWait ? 5000 : 0,
-            timeout: 20000,
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            waitForInteractive: true,
-            enabledStableReads: 3,
-            postEnabledSettleMs: 500,
-          });
-          return;
-        }
-
-        await Gestures.waitAndTap(button, {
-          elemDescription: 'Add Account button in V2 multichain accounts',
+        await UnifiedGestures.waitAndTap(button, {
+          description: 'Add Account button in V2 multichain accounts',
           delay: options?.shouldWait ? 5000 : 0,
+          timeout: 20_000,
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          waitForInteractive: true,
+          enabledStableReads: 3,
+          postEnabledSettleMs: 500,
         });
       },
     });

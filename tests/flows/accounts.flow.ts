@@ -33,6 +33,7 @@ import {
 } from './wallet.flow';
 
 const PASSWORD = '123123123';
+const ADD_ACCOUNT_SHEET_TIMEOUT_MS = 30_000;
 
 async function expectElementVisible(
   target: EncapsulatedElementType | DetoxElement,
@@ -60,7 +61,20 @@ async function expectTextVisible(
 }
 
 export const openImportSrpFromAccountList = async (): Promise<void> => {
-  await AccountListBottomSheet.tapAddAccountButton();
+  await Utilities.executeWithRetry(
+    async () => {
+      await AccountListBottomSheet.tapAddAccountButton();
+      await expectElementVisible(AddAccountBottomSheet.importSrpButton, {
+        description: 'Import SRP option should be visible in add account sheet',
+        timeout: 4_000,
+      });
+    },
+    {
+      timeout: ADD_ACCOUNT_SHEET_TIMEOUT_MS,
+      description: 'Open add account sheet from account list',
+    },
+  );
+
   await AddAccountBottomSheet.tapImportSrp();
   await Assertions.expectElementToBeVisible(ImportSrpView.container);
 };
@@ -137,7 +151,20 @@ export const goToAccountActions = async (accountIndex: number) => {
 export const importAccountViaPrivateKey = async (
   privateKey: string,
 ): Promise<void> => {
-  await AccountListBottomSheet.tapAddWalletButton();
+  await Utilities.executeWithRetry(
+    async () => {
+      await AccountListBottomSheet.tapAddWalletButton();
+      await expectElementVisible(AddAccountBottomSheet.importAccountButton, {
+        description: 'Import account option should be visible in add account sheet',
+        timeout: 4_000,
+      });
+    },
+    {
+      timeout: ADD_ACCOUNT_SHEET_TIMEOUT_MS,
+      description: 'Open add account sheet for private key import',
+    },
+  );
+
   await AddAccountBottomSheet.tapImportAccount();
   await Assertions.expectElementToBeVisible(ImportAccountView.container);
   await ImportAccountView.enterPrivateKey(privateKey);
