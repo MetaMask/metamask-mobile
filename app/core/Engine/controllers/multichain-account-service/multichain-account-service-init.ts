@@ -77,9 +77,7 @@ export const multichainAccountServiceInit: MessengerClientInitFunction<
 
   const controller = new MultichainAccountService({
     messenger: controllerMessenger,
-    providerConfigs: providerConfigs as ConstructorParameters<
-      typeof MultichainAccountService
-    >[0]['providerConfigs'],
+    providerConfigs: providerConfigs as ConstructorParameters<typeof MultichainAccountService>[0]['providerConfigs'],
   });
 
   return { controller, memStateKey: null, persistedStateKey: null };

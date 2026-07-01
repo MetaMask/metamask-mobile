@@ -33,7 +33,6 @@ export function getPerpsControllerMessenger(
     namespace: 'PerpsController',
     parent: rootExtendedMessenger,
   });
-  // See rewards-controller-messenger for TS2590 rationale.
   rootExtendedMessenger.delegate({
     messenger: messenger as Messenger<
       'PerpsController',
