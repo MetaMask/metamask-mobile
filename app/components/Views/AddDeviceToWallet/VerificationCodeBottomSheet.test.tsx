@@ -1,117 +1,88 @@
 import React from 'react';
-import { DeviceEventEmitter } from 'react-native';
-import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { strings } from '../../../../locales/i18n';
 import VerificationCodeBottomSheet from './VerificationCodeBottomSheet';
+import { strings } from '../../../../locales/i18n';
 
 const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
+
+const mockUseRoute = jest.fn(() => ({
+  params: {} as { verificationCode?: string },
+}));
 
 jest.mock('@react-navigation/native', () => {
-  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  const actual = jest.requireActual('@react-navigation/native');
   return {
-    ...actualReactNavigation,
+    ...actual,
     useNavigation: () => ({
       goBack: mockGoBack,
+      canGoBack: mockCanGoBack,
     }),
+    useRoute: () => mockUseRoute(),
   };
 });
 
-const renderComponent = () =>
-  renderWithProvider(<VerificationCodeBottomSheet />);
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  const MockBottomSheet = ({
+    children,
+    goBack,
+  }: {
+    children: React.ReactNode;
+    goBack?: () => void;
+  }) =>
+    ReactActual.createElement(
+      View,
+      { testID: 'verification-bottom-sheet', onDismissSheet: goBack },
+      children,
+    );
+
+  return {
+    ...actual,
+    BottomSheet: MockBottomSheet,
+  };
+});
 
 describe('VerificationCodeBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
+    mockUseRoute.mockReturnValue({ params: {} });
   });
 
-  afterEach(() => {
-    jest.runOnlyPendingTimers();
-    jest.useRealTimers();
+  it('renders pending verification copy when route has no code', () => {
+    const { getByText } = renderWithProvider(<VerificationCodeBottomSheet />);
+
+    expect(
+      getByText(strings('app_settings.add_device.verification_code_pending')),
+    ).toBeOnTheScreen();
   });
 
-  describe('rendering', () => {
-    it('renders the bottom sheet header title', () => {
-      const { getByText } = renderComponent();
+  it('renders the OTP from route params', () => {
+    mockUseRoute.mockReturnValue({ params: { verificationCode: '469192' } });
 
-      expect(
-        getByText(strings('app_settings.add_device.enter_code_on_extension')),
-      ).toBeOnTheScreen();
-    });
+    const { getByText } = renderWithProvider(<VerificationCodeBottomSheet />);
 
-    it('renders the description text', () => {
-      const { getByText } = renderComponent();
-
-      expect(
-        getByText(
-          strings('app_settings.add_device.enter_code_on_extension_desc'),
-        ),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders the mock verification code', () => {
-      const { getByText } = renderComponent();
-
-      expect(getByText('123456')).toBeOnTheScreen();
-    });
-
-    it('renders the done button', () => {
-      const { getByText } = renderComponent();
-
-      expect(
-        getByText(strings('app_settings.add_device.done')),
-      ).toBeOnTheScreen();
-    });
+    expect(getByText('469192')).toBeOnTheScreen();
   });
 
-  describe('done button', () => {
-    it('emits addDeviceVerificationDone event when done button is pressed', () => {
-      const emitSpy = jest.spyOn(DeviceEventEmitter, 'emit');
-      const { getByText } = renderComponent();
+  it('does not render Done button', () => {
+    const { queryByText } = renderWithProvider(<VerificationCodeBottomSheet />);
 
-      fireEvent.press(getByText(strings('app_settings.add_device.done')));
-
-      expect(emitSpy).toHaveBeenCalledWith('addDeviceVerificationDone');
-    });
-
-    it('calls navigation.goBack immediately when done button is pressed', () => {
-      const { getByText } = renderComponent();
-
-      fireEvent.press(getByText(strings('app_settings.add_device.done')));
-
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls navigation.goBack a second time after 100ms delay', () => {
-      const { getByText } = renderComponent();
-
-      fireEvent.press(getByText(strings('app_settings.add_device.done')));
-
-      act(() => {
-        jest.advanceTimersByTime(100);
-      });
-
-      expect(mockGoBack).toHaveBeenCalledTimes(2);
-    });
+    expect(
+      queryByText(strings('app_settings.add_device.done')),
+    ).not.toBeOnTheScreen();
   });
 
-  describe('close button', () => {
-    it('emits addDeviceVerificationDone event when close button is pressed', () => {
-      const emitSpy = jest.spyOn(DeviceEventEmitter, 'emit');
-      const { getByTestId } = renderComponent();
+  it('pops the modal route when the sheet dismisses', () => {
+    const { getByTestId } = renderWithProvider(<VerificationCodeBottomSheet />);
 
-      fireEvent.press(getByTestId('verification-code-close-button'));
+    const sheet = getByTestId('verification-bottom-sheet');
+    sheet.props.onDismissSheet();
 
-      expect(emitSpy).toHaveBeenCalledWith('addDeviceVerificationDone');
-    });
-
-    it('calls navigation.goBack when close button is pressed', () => {
-      const { getByTestId } = renderComponent();
-
-      fireEvent.press(getByTestId('verification-code-close-button'));
-
-      expect(mockGoBack).toHaveBeenCalledTimes(1);
-    });
+    expect(mockCanGoBack).toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -16,16 +16,20 @@ import { DeviceEventEmitter, Image } from 'react-native';
 import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import {
   createQRScannerNavDetails,
   QRTabSwitcherScreens,
   type ScanSuccess,
-  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../QRTabSwitcher';
+/* eslint-enable import-x/no-restricted-paths */
 import DeviceAdded from './DeviceAdded';
 import { ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT } from './showExtensionCancelledErrorSheet';
 
-const MOCK_SCAN_DELAY_MS = 2000;
+/** Temporary mock OTP for bottom-sheet UI testing until QrSyncController is integrated. */
+const ADD_DEVICE_MOCK_VERIFICATION_CODE = '469192';
+
+const noopScanSuccess = (_data: ScanSuccess, _content?: string) => undefined;
 
 const Points = ({
   number,
@@ -56,7 +60,6 @@ const Points = ({
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [deviceAdded, setDeviceAdded] = useState(false);
 
   useEffect(() => {
@@ -75,19 +78,16 @@ const AddDeviceToWallet = () => {
     };
   }, []);
 
-  const showVerificationSheet = useCallback(() => {
-    (navigation.navigate as (route: string, params: object) => void)(
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      { screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE },
-    );
-  }, [navigation]);
-
-  const onScanSuccess = useCallback(
-    (_data: ScanSuccess, _content?: string) => {
-      // TODO: replace mock with real scan handling. This is a temporary mock to simulate a scan after delay.
-      setTimeout(showVerificationSheet, 300);
+  const handleMwpDeeplinkScanned = useCallback(
+    (_deeplink: string) => {
+      navigation.goBack();
+      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+        screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
+        // TODO(TO-793): Replace with QrSyncController OTP once integrated.
+        params: { verificationCode: ADD_DEVICE_MOCK_VERIFICATION_CODE },
+      });
     },
-    [showVerificationSheet],
+    [navigation],
   );
 
   const openQRScanner = useCallback(() => {
@@ -95,22 +95,12 @@ const AddDeviceToWallet = () => {
       ...createQRScannerNavDetails({
         initialScreen: QRTabSwitcherScreens.Scanner,
         disableTabber: true,
-        onScanSuccess,
-        onScanError: () => {
-          if (timerRef.current) {
-            clearTimeout(timerRef.current);
-            timerRef.current = null;
-          }
-        },
+        onScanSuccess: noopScanSuccess,
+        onMwpDeeplinkScanned: handleMwpDeeplinkScanned,
+        origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
       }),
     );
-
-    // TODO: uncomment when integrating real scan
-    // Mock: simulate a scan after delay (remove when integrating real scan)
-    timerRef.current = setTimeout(() => {
-      showVerificationSheet();
-    }, MOCK_SCAN_DELAY_MS);
-  }, [navigation, onScanSuccess, showVerificationSheet]);
+  }, [navigation, handleMwpDeeplinkScanned]);
 
   if (deviceAdded) {
     return <DeviceAdded />;

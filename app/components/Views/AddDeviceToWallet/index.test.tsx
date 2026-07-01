@@ -135,7 +135,7 @@ describe('AddDeviceToWallet', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
-    it('calls createQRScannerNavDetails with Scanner screen and tabber disabled', () => {
+    it('calls createQRScannerNavDetails with MWP deeplink handler', () => {
       const { getByText } = renderComponent();
 
       fireEvent.press(
@@ -147,69 +147,33 @@ describe('AddDeviceToWallet', () => {
           initialScreen: 'Scanner',
           disableTabber: true,
           onScanSuccess: expect.any(Function),
-          onScanError: expect.any(Function),
+          onMwpDeeplinkScanned: expect.any(Function),
+          origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
         }),
       );
     });
 
-    it('shows verification sheet after the mock scan delay', () => {
+    it('navigates to verification sheet after valid MWP deeplink scan', () => {
       const { getByText } = renderComponent();
 
       fireEvent.press(
         getByText(strings('app_settings.add_device.scan_qr_code_button')),
       );
 
-      act(() => {
-        jest.advanceTimersByTime(2000);
-      });
-
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
-      });
-    });
-
-    it('shows verification sheet 300ms after onScanSuccess fires', () => {
-      const { getByText } = renderComponent();
-
-      fireEvent.press(
-        getByText(strings('app_settings.add_device.scan_qr_code_button')),
-      );
-
-      const { onScanSuccess } = mockCreateQRScannerNavDetails.mock
-        .calls[0][0] as {
-        onScanSuccess: (data: object, content?: string) => void;
+      const scannerParams = mockCreateQRScannerNavDetails.mock.calls[0][0] as {
+        onMwpDeeplinkScanned: (url: string) => void;
       };
 
-      act(() => {
-        onScanSuccess({});
-        jest.advanceTimersByTime(300);
-      });
+      scannerParams.onMwpDeeplinkScanned('metamask://connect/mwp?p=abc');
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
-      });
-    });
-
-    it('clears the mock scan timer when onScanError fires', () => {
-      const { getByText } = renderComponent();
-
-      fireEvent.press(
-        getByText(strings('app_settings.add_device.scan_qr_code_button')),
+      expect(mockGoBack).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
+          params: { verificationCode: '469192' },
+        }),
       );
-
-      const { onScanError } = mockCreateQRScannerNavDetails.mock
-        .calls[0][0] as {
-        onScanError: () => void;
-      };
-
-      act(() => {
-        onScanError();
-        jest.advanceTimersByTime(2000);
-      });
-
-      // navigate was called once to open the QR scanner but the delayed
-      // verification sheet navigate must NOT have fired after the error
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -225,6 +189,9 @@ describe('AddDeviceToWallet', () => {
         expect(
           queryByText(strings('app_settings.add_device.add_device_to_wallet')),
         ).not.toBeOnTheScreen();
+        expect(
+          queryByText(strings('app_settings.add_device.waiting_for_extension')),
+        ).toBeOnTheScreen();
       });
     });
 
