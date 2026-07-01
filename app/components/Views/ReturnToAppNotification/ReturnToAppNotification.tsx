@@ -17,6 +17,7 @@ import { wait } from '../../../core/SDKConnect/utils/wait.util.ts';
 interface ReturnToAppNotificationRouteParams {
   method?: string;
   origin?: string;
+  dappName?: string;
   hideReturnToApp?: boolean;
 }
 
@@ -57,7 +58,7 @@ const ReturnToAppNotification = () => {
     >();
   const delayAfterMethod: number = 1200;
   const delayBetweenToast: number = 1500;
-  const { method, origin, hideReturnToApp } = route.params ?? {};
+  const { method, origin, dappName, hideReturnToApp } = route.params ?? {};
   const navigation = useNavigation();
   const { toastRef } = useContext(ToastContext);
   const favicon = useFavicon(origin ?? '');
@@ -94,7 +95,9 @@ const ReturnToAppNotification = () => {
           // Ask the user to go back to the app
           diplayToast(
             toastRef.current,
-            strings('sdk_return_to_app_toast.returnToAppLabel'),
+            dappName
+              ? strings('sdk_return_to_app_toast.returnToAppLabel', { dappName })
+              : strings('sdk_return_to_app_toast.returnToAppGenericLabel'),
             favicon.faviconURI,
           );
         }
@@ -103,7 +106,7 @@ const ReturnToAppNotification = () => {
       // Hide the fake modal
       navigation?.goBack();
     }
-  }, [toastRef, method, favicon, navigation, hideReturnToApp]);
+  }, [toastRef, method, favicon, navigation, hideReturnToApp, dappName]);
 
   return <></>;
 };
