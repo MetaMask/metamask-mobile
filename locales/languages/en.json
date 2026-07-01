@@ -8868,9 +8868,9 @@
       "available_cashback": "Available mUSD",
       "network_fee": "Network fee",
       "expected_to_receive": "Expected to receive",
+      "to": "To",
       "withdraw": "Withdraw",
       "withdraw_unavailable": "Withdrawal unavailable",
-      "withdrawal_initiated": "Withdrawal has been initiated",
       "withdrawal_success": "Withdrawal completed successfully",
       "withdrawal_failed": "Withdrawal failed. Please try again.",
       "no_cashback": "No mUSD back available",
@@ -8885,6 +8885,48 @@
         "description": "You need a linked Money Account before redeeming mUSD back.",
         "confirm_button_label": "Set up Money Account"
       }
+    },
+    "credit_screen": {
+      "title": "Card refunds",
+      "available_credit": "Refund balance",
+      "network_fee": "Network fee",
+      "expected_to_receive": "Expected to receive",
+      "to": "To",
+      "withdraw": "Move funds",
+      "withdraw_to_money_account": "Move to Money account",
+      "withdraw_unavailable": "Redemption unavailable",
+      "withdrawal_success": "Redemption completed successfully",
+      "withdrawal_failed": "Redemption failed. Please try again.",
+      "loading_error": "Failed to load credit. Please try again.",
+      "funding_required": {
+        "title": "Set up funding",
+        "description": "You need at least one approved funding source before redeeming your credit.",
+        "confirm_button_label": "Set up funding"
+      },
+      "money_account_required": {
+        "title": "Set up Money Account",
+        "description": "You need a linked Money Account before redeeming your credit.",
+        "confirm_button_label": "Set up Money Account"
+      },
+      "refund_info": {
+        "title": "Refund balance",
+        "description": "This balance includes any refunds you've received. It's the first balance your card purchases will pull from. It can be moved to your Money account anytime.",
+        "description_no_money_account": "This balance includes any refunds you've received. It's the first balance your card purchases will pull from. It can be redeemed to your wallet anytime."
+      }
+    },
+    "credit_balance_tooltip": {
+      "title": "Available balance",
+      "description": "Your balance is made up of your Money account balance and any refunds you've received.",
+      "description_no_money_account": "Your balance is made up of your wallet balance and any refunds you've received.",
+      "money_account": "Money account",
+      "wallet": "Wallet",
+      "refund_balance": "Refund balance"
+    },
+    "credit_banner": {
+      "title": "Refund balance: {{amount}}",
+      "description": "Spend it or move it to your Money account to keep earning on your balance.",
+      "description_no_money_account": "Spend it or redeem it to your wallet.",
+      "confirm_button_label": "Move funds"
     },
     "change_asset": {
       "title": "Change token and network",
