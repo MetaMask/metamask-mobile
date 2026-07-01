@@ -70,10 +70,25 @@ const styles = StyleSheet.create({
 //   });
 // }
 
+async function getBearerToken(): Promise<string> {
+  const bearerToken =
+    await Engine.context.AuthenticationController.getBearerToken();
+  if (!bearerToken) {
+    throw new Error(
+      'Unable to obtain an authentication bearer token — is the wallet signed in?',
+    );
+  }
+  return bearerToken;
+}
+
 async function createSession(jwtToken: string): Promise<string> {
+  const bearerToken = await getBearerToken();
   const response = await fetch(`${UKYC_API_BASE_URL}/sessions`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${bearerToken}`,
+    },
     body: JSON.stringify({
       vendorId: 'moonpay',
       vendorUserId: 'mockedId',
@@ -94,11 +109,15 @@ async function fetchAccessToken(
   sessionId: string,
   jwtToken: string,
 ): Promise<string> {
+  const bearerToken = await getBearerToken();
   const response = await fetch(
     `${UKYC_API_BASE_URL}/sessions/${sessionId}/wrapped-key`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${bearerToken}`,
+      },
       body: JSON.stringify({ jwtToken }),
     },
   );
