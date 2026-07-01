@@ -9,19 +9,19 @@ import { RootMessenger } from '../../types';
 
 const name = 'DelegationController' as const;
 
-export type DelegationControllerInitMessenger = ReturnType<
-  typeof getDelegationControllerInitMessenger
+export type DelegationControllerInitMessenger = Messenger<
+  'DelegationControllerInit',
+  never,
+  TransactionControllerTransactionStatusUpdatedEvent
 >;
 
 export function getDelegationControllerMessenger(
-  rootMessenger: RootMessenger,
-): DelegationControllerMessenger {
-  const messenger = new Messenger<
-    typeof name,
+  rootMessenger: RootMessenger<
     MessengerActions<DelegationControllerMessenger>,
-    MessengerEvents<DelegationControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<DelegationControllerMessenger>
+  >,
+): DelegationControllerMessenger {
+  const messenger: DelegationControllerMessenger = new Messenger({
     namespace: name,
     parent: rootMessenger,
   });
@@ -37,14 +37,12 @@ export function getDelegationControllerMessenger(
 }
 
 export function getDelegationControllerInitMessenger(
-  rootMessenger: RootMessenger,
-) {
-  const messenger = new Messenger<
-    'DelegationControllerInit',
-    never,
-    TransactionControllerTransactionStatusUpdatedEvent,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<DelegationControllerInitMessenger>,
+    MessengerEvents<DelegationControllerInitMessenger>
+  >,
+): DelegationControllerInitMessenger {
+  const messenger: DelegationControllerInitMessenger = new Messenger({
     namespace: 'DelegationControllerInit',
     parent: rootMessenger,
   });

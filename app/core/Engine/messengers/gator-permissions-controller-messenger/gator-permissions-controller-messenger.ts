@@ -1,24 +1,20 @@
 import type { GatorPermissionsControllerMessenger } from '@metamask/gator-permissions-controller';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
+import { RootMessenger } from '../../types';
 import {
   Messenger,
-  MessengerActions,
-  MessengerEvents,
+  type MessengerActions,
+  type MessengerEvents,
 } from '@metamask/messenger';
 
-export type { GatorPermissionsControllerMessenger };
-
 export function getGatorPermissionsControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
-): GatorPermissionsControllerMessenger {
-  const messenger = new Messenger<
-    'GatorPermissionsController',
+  rootMessenger: RootMessenger<
     MessengerActions<GatorPermissionsControllerMessenger>,
-    MessengerEvents<GatorPermissionsControllerMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<GatorPermissionsControllerMessenger>
+  >,
+): GatorPermissionsControllerMessenger {
+  const messenger: GatorPermissionsControllerMessenger = new Messenger({
     namespace: 'GatorPermissionsController',
-    parent: rootExtendedMessenger,
+    parent: rootMessenger,
   });
   return messenger;
 }
