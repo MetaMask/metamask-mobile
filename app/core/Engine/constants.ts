@@ -99,6 +99,7 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'ProfileMetricsController:stateChange',
   'ComplianceController:stateChange',
   'SocialController:stateChange',
+  'QrSyncController:stateChange',
 ] as const;
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';
