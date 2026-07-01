@@ -3,6 +3,9 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import VerificationCodeBottomSheet from './VerificationCodeBottomSheet';
 import { strings } from '../../../../locales/i18n';
 
+const mockGoBack = jest.fn();
+const mockCanGoBack = jest.fn(() => true);
+
 const mockUseRoute = jest.fn(() => ({
   params: {} as { verificationCode?: string },
 }));
@@ -12,9 +15,34 @@ jest.mock('@react-navigation/native', () => {
   return {
     ...actual,
     useNavigation: () => ({
-      goBack: jest.fn(),
+      goBack: mockGoBack,
+      canGoBack: mockCanGoBack,
     }),
     useRoute: () => mockUseRoute(),
+  };
+});
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+
+  const MockBottomSheet = ({
+    children,
+    goBack,
+  }: {
+    children: React.ReactNode;
+    goBack?: () => void;
+  }) =>
+    ReactActual.createElement(
+      View,
+      { testID: 'verification-bottom-sheet', onDismissSheet: goBack },
+      children,
+    );
+
+  return {
+    ...actual,
+    BottomSheet: MockBottomSheet,
   };
 });
 
@@ -46,5 +74,15 @@ describe('VerificationCodeBottomSheet', () => {
     expect(
       queryByText(strings('app_settings.add_device.done')),
     ).not.toBeOnTheScreen();
+  });
+
+  it('pops the modal route when the sheet dismisses', () => {
+    const { getByTestId } = renderWithProvider(<VerificationCodeBottomSheet />);
+
+    const sheet = getByTestId('verification-bottom-sheet');
+    sheet.props.onDismissSheet();
+
+    expect(mockCanGoBack).toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });
