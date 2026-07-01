@@ -11,14 +11,9 @@
 #
 # What it produces
 # ----------------
-#   app/components/UI/Charts/AdvancedChart/webview/chartLogicString.modular.ts
+#   app/components/UI/Charts/AdvancedChart/webview/chartLogicString.ts
 #
 #   Exports a single default string constant: chartLogicString.
-#
-#   The `.modular.ts` suffix marks the bundle as feature-flag-gated during
-#   the chartLogic.js migration (Phases 0-3). It is renamed to
-#   chartLogicString.ts in Phase 4 when the modular bundle becomes the
-#   default and legacy chartLogic.js is removed.
 #
 # Usage
 # -----
@@ -37,7 +32,7 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 WEBPACK_DIR="$REPO_ROOT/scripts/advanced-chart-webview"
 WEBPACK_DIST="$WEBPACK_DIR/dist"
-DEST_FILE="$REPO_ROOT/app/components/UI/Charts/AdvancedChart/webview/chartLogicString.modular.ts"
+DEST_FILE="$REPO_ROOT/app/components/UI/Charts/AdvancedChart/webview/chartLogicString.ts"
 
 echo "Building AdvancedChart WebView IIFE..."
 
@@ -77,4 +72,4 @@ fs.writeFileSync(destFile, content, 'utf8');
 console.log(`Wrote ${destFile}`);
 GENERATE_SCRIPT
 
-echo "✅ Done. Commit app/components/UI/Charts/AdvancedChart/webview/chartLogicString.modular.ts"
+echo "✅ Done. Commit app/components/UI/Charts/AdvancedChart/webview/chartLogicString.ts"
