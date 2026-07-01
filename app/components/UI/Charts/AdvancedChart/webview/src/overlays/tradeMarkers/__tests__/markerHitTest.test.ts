@@ -304,8 +304,11 @@ describe('findTradeMarkerIdNearPoint — edge cases', () => {
     } as unknown as TVActiveChart;
     setWidget(makeWidget(chart));
     setChartReady(true);
+    // Empty OHLCV so snapMarkerToNearestBar returns null → falls back to marker.price
+    setOhlcvData([]);
     setMarkers([{ id: 'a', time: 2_000, intent: 'entry', price: 50 }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
+    // priceToY(50) = (100-50)/100*400 = 200 → dyPx = 200-200 = 0, dxPx = 0 → dist=0
     expect(findTradeMarkerIdNearPoint(2, 200)).toBe('a');
   });
 });
