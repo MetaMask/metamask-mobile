@@ -1,28 +1,36 @@
 import { useRampsProviders } from './useRampsProviders';
+import { useFiatProviderScope } from '../utils/providerScope';
 
 /**
- * Returns whether the fiat deposit flow will run on a NATIVE provider
- * (e.g. Transak Native).
+ * Returns whether headless fiat deposit (MM Pay / Money Account, Perps, Predict)
+ * is available for the current region and provider-class scope.
  *
- * Headless fiat deposit (MM Pay / Money Account, Perps, Predict) is native-only
- * for v0. It is NOT enough for a native provider to merely exist in the region:
- * what matters is the PREFERRED provider that gets selected. The headless quote
- * auto-selects with `restrictToKnownOrNativeProviders`, but `RampsController`
- * resolves the currently selected provider first (see
- * `resolveProviderIdsForQuote`), so an aggregator preferred provider — carried
- * over from order history, or the aggregator `/providers/transak` matched by the
- * loose "transak" name check in `determinePreferredProvider` — would run a
- * non-native deposit experience.
+ * The name is kept for its single consumer (`useIsFiatPaymentAvailable`), but the
+ * meaning is now scope-aware. Scope `off` (production, or the dev/RC toggle off)
+ * keeps the native-only behaviour: a native provider must be the currently
+ * selected (preferred) one, since `RampsController` resolves the selected
+ * provider first and an aggregator preferred provider would otherwise run a
+ * non-native deposit. Scope `in-app` / `all` make the flow available whenever the
+ * region has any provider; `RampsController` widening performs the actual in-app
+ * quote selection at quote time, so this gate must not depend on which single
+ * provider is currently selected (it would disagree with core's pick).
  *
- * Therefore we gate on the selected (preferred) provider being native, and block
- * the flow whenever the preferred provider is an aggregator or none is native.
- *
- * Read-only — never mutates provider selection or controller state, so it has no
+ * Read-only: never mutates provider selection or controller state, so it has no
  * effect on the standalone Buy flows.
  */
 export function useHasNativeFiatProvider(): boolean {
-  const { selectedProvider } = useRampsProviders();
-  return selectedProvider?.type === 'native';
+  const scope = useFiatProviderScope();
+  const { providers, selectedProvider } = useRampsProviders();
+
+  if (selectedProvider?.type === 'native') {
+    return true;
+  }
+
+  if (scope === 'off') {
+    return false;
+  }
+
+  return providers.length > 0;
 }
 
 export default useHasNativeFiatProvider;
