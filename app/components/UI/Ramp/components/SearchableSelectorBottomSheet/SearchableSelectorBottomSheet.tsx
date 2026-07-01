@@ -15,9 +15,9 @@ import {
   FontWeight,
   HeaderStandard,
   Text,
+  TextFieldSearch,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import TextFieldSearch from '../../../../../component-library/components/Form/TextFieldSearch';
 import { useStyles } from '../../../../hooks/useStyles';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import styleSheet from './SearchableSelectorBottomSheet.styles';
@@ -55,7 +55,7 @@ function SearchableSelectorBottomSheet<T>({
   keyExtractor,
   extraData,
   closeButtonProps,
-}: SearchableSelectorBottomSheetProps<T>) {
+}: Readonly<SearchableSelectorBottomSheetProps<T>>) {
   const listRef = useRef<FlatList<T>>(null);
   const navigation = useNavigation();
   const [searchString, setSearchString] = useState('');
@@ -114,6 +114,7 @@ function SearchableSelectorBottomSheet<T>({
           onFocus={scrollToTop}
           onChangeText={handleSearchTextChange}
           placeholder={searchPlaceholder}
+          clearButtonProps={{ testID: 'searchable-selector-clear-button' }}
         />
       </View>
       <FlatList

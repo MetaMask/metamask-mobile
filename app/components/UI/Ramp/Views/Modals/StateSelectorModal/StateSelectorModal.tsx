@@ -97,10 +97,10 @@ function StateSelectorModal() {
   );
 
   const renderStateItem = useCallback(
-    ({ item: state }: { item: UsState }) => (
+    ({ item }: { item: UsState }) => (
       <ListItemSelect
-        isSelected={selectedState === state.code}
-        onPress={() => handleOnStatePressCallback(state)}
+        isSelected={selectedState === item.code}
+        onPress={() => handleOnStatePressCallback(item)}
         accessibilityRole="button"
         accessible
       >
@@ -111,7 +111,7 @@ function StateSelectorModal() {
               fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
             >
-              {state.name}
+              {item.name}
             </Text>
           </View>
         </ListItemColumn>

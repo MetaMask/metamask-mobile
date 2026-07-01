@@ -97,23 +97,23 @@ function PhoneCountrySelectorModal() {
   );
 
   const renderCountryItem = useCallback(
-    ({ item: country }: { item: Country }) => (
+    ({ item }: { item: Country }) => (
       <ListItemSelect
-        isSelected={selectedCountry?.isoCode === country.isoCode}
-        onPress={() => handleCountryPress(country)}
+        isSelected={selectedCountry?.isoCode === item.isoCode}
+        onPress={() => handleCountryPress(item)}
         accessibilityRole="button"
         accessible
       >
         <ListItemColumn widthType={WidthType.Fill}>
           <View style={styles.region}>
-            {country.flag ? (
+            {item.flag ? (
               <View style={styles.emoji}>
                 <Text
                   variant={TextVariant.BodyLg}
                   fontWeight={FontWeight.Medium}
                   color={TextColor.TextDefault}
                 >
-                  {country.flag}
+                  {item.flag}
                 </Text>
               </View>
             ) : null}
@@ -123,11 +123,11 @@ function PhoneCountrySelectorModal() {
                 fontWeight={FontWeight.Medium}
                 color={TextColor.TextDefault}
               >
-                {country.name}
+                {item.name}
               </Text>
-              {country.phone?.prefix ? (
+              {item.phone?.prefix ? (
                 <Text variant={TextVariant.BodyMd} color={TextColor.TextMuted}>
-                  {country.phone.prefix}
+                  {item.phone.prefix}
                 </Text>
               ) : null}
             </View>
