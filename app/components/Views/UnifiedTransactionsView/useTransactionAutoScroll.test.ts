@@ -557,6 +557,29 @@ describe('useTransactionAutoScroll', () => {
   });
 
   describe('Edge cases', () => {
+    it('handles list ref becoming null before auto-scroll timeout fires', () => {
+      const listRef = createMockListRef<{ id: string }>();
+      const keyExtractor = jest.fn((item: { id: string }) => item.id);
+
+      const { rerender } = renderHook(
+        ({ data }) => useTransactionAutoScroll(data, listRef, { keyExtractor }),
+        {
+          initialProps: {
+            data: [{ id: 'tx-1' }],
+          },
+        },
+      );
+
+      rerender({ data: [{ id: 'tx-2' }, { id: 'tx-1' }] });
+      listRef.current = null;
+
+      act(() => {
+        jest.advanceTimersByTime(150);
+      });
+
+      expect(Logger.error).not.toHaveBeenCalled();
+    });
+
     it('handles list ref being null', () => {
       const listRef: RefObject<FlashListRef<{ id: string }> | null> = {
         current: null,

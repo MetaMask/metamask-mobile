@@ -105,11 +105,7 @@ export const useBalanceRefresh = () => {
 
   const handleRefresh = useCallback(async () => {
     setRefreshing(true);
-    try {
-      await refreshBalance();
-    } catch {
-      // refreshBalance handles and logs errors internally
-    }
+    await refreshBalance();
     setRefreshing(false);
   }, [refreshBalance]);
 
