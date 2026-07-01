@@ -4,6 +4,7 @@ import {
   PredictHotTabFlag,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
+  PredictWimbledonTabFlag,
   PredictWorldCupConfig,
 } from '../types/flags';
 
@@ -45,6 +46,22 @@ export const DEFAULT_HOT_TAB_FLAG: PredictHotTabFlag = {
     'active=true&archived=false&closed=false&liquidity_min=10000&volume_min=10000&tag_id=1',
   minimumVersion: '7.64.0',
 };
+
+export const PREDICT_WIMBLEDON_DEFAULT_GAMES_TAG_ID = '100639';
+export const PREDICT_WIMBLEDON_DEFAULT_TAG_SLUG = 'tennis';
+export const PREDICT_WIMBLEDON_DEFAULT_SEARCH = 'Wimbledon';
+
+export const PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS =
+  `active=true&archived=false&closed=false&ended=false&tag_id=${PREDICT_WIMBLEDON_DEFAULT_GAMES_TAG_ID}` +
+  `&tag_slug=${PREDICT_WIMBLEDON_DEFAULT_TAG_SLUG}` +
+  `&title_search=${PREDICT_WIMBLEDON_DEFAULT_SEARCH}` +
+  '&order=volume24hr&ascending=false';
+
+export const DEFAULT_WIMBLEDON_TAB_FLAG = {
+  enabled: false,
+  queryParams: PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+  minimumVersion: '',
+} satisfies PredictWimbledonTabFlag;
 
 export const PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG = 'fifa-world-cup';
 export const PREDICT_WORLD_CUP_DEFAULT_GAMES_TAG_ID = '100639';

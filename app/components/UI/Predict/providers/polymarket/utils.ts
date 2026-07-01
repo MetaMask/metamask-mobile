@@ -79,7 +79,10 @@ import {
   OrderBook,
 } from './types';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
-import { PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG } from '../../constants/flags';
+import {
+  PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+  PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
+} from '../../constants/flags';
 import { PredictFeeCollection } from '../../types/flags';
 import { roundToFiveDecimals } from '../../utils/orders';
 import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
@@ -1212,6 +1215,11 @@ export const fetchEventsFromPolymarketApi = async (
     queryParams.set('order', 'volume24hr');
     queryParams.set('ascending', 'false');
     queryParamsEvents = queryParams.toString();
+  } else if (category === 'wimbledon') {
+    queryParamsEvents = appendCustomQueryParams(
+      queryParams,
+      customQueryParams ?? PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+    );
   } else {
     queryParams.set('active', 'true');
     queryParams.set('archived', 'false');
@@ -1222,7 +1230,7 @@ export const fetchEventsFromPolymarketApi = async (
     queryParams.set('volume_min', String(10000.0));
 
     const categoryParamMap: Record<
-      Exclude<PredictCategory, 'world-cup'>,
+      Exclude<PredictCategory, 'world-cup' | 'wimbledon'>,
       Record<string, string>
     > = {
       trending: { order: 'volume24hr' },
