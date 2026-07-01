@@ -105,7 +105,7 @@ const PhoneField = forwardRef<TextInput, PhoneFieldProps>(
 
     const handleChangeText = useCallback(
       (text: string) => {
-        const digits = text.startsWith('+')
+        const digits = /\+\d/.test(text)
           ? getLocalPhoneDigits(text, phoneCountry)
           : text.replace(/\D/g, '');
         const nextNumber = phonePrefix ? `${phonePrefix}${digits}` : digits;

@@ -140,14 +140,24 @@ describe('PhoneField', () => {
     expect(onSubmitEditing).toHaveBeenCalled();
   });
 
-  it('strips a pasted international prefix instead of duplicating it', () => {
-    const onChangeText = jest.fn();
-    // Selected country is GB (+44); the user pastes a full +44 number.
-    const { getByTestId } = renderField({ fallbackCountry: GB, onChangeText });
+  it.each([
+    ['a plain international number', '+447123456789'],
+    ['a number with leading whitespace', '  +447123456789'],
+    ['a tel: URI', 'tel:+447123456789'],
+  ])(
+    'strips the prefix instead of duplicating it when pasting %s',
+    (_label, pasted) => {
+      const onChangeText = jest.fn();
+      // Selected country is GB (+44); the user pastes a full +44 number.
+      const { getByTestId } = renderField({
+        fallbackCountry: GB,
+        onChangeText,
+      });
 
-    fireEvent.changeText(getByTestId('phone-input'), '+447123456789');
+      fireEvent.changeText(getByTestId('phone-input'), pasted);
 
-    // Prefix is applied once — not `+44447123456789`.
-    expect(onChangeText).toHaveBeenCalledWith('+447123456789');
-  });
+      // Prefix is applied once — not `+44447123456789`.
+      expect(onChangeText).toHaveBeenCalledWith('+447123456789');
+    },
+  );
 });
