@@ -33,13 +33,13 @@ export default class PlaywrightWebMatchers {
     return this.findElementByWebID(innerID);
   }
 
-  static async withWebViewAction<T>(
+  static async withWebViewAction(
     pageUrl: string,
-    action: () => Promise<T>,
-  ): Promise<T> {
+    action: () => Promise<void>,
+  ): Promise<void> {
     await this.ensureWebViewContext(pageUrl);
     try {
-      return await action();
+      await action();
     } finally {
       await PlaywrightContextHelpers.switchToNativeContext();
     }

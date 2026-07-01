@@ -98,11 +98,12 @@ class TestSnaps {
     return Matchers.getIdentifier('snap-ui-renderer__scrollview');
   }
 
-  private async withWebView<T>(action: () => Promise<T>): Promise<T> {
+  private async withWebView(action: () => Promise<void>): Promise<void> {
     if (FrameworkDetector.isAppium()) {
-      return PlaywrightWebMatchers.withWebViewAction(TEST_SNAPS_URL, action);
+      await PlaywrightWebMatchers.withWebViewAction(TEST_SNAPS_URL, action);
+    } else {
+      await action();
     }
-    return action();
   }
 
   private getTestSnapsWebElement(innerID: string) {
@@ -127,7 +128,7 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    return this.withWebView(async () => {
+    await this.withWebView(async () => {
       const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS[selector],
       );
@@ -161,7 +162,7 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    return this.withWebView(async () => {
+    await this.withWebView(async () => {
       const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS[selector],
       );
@@ -202,7 +203,7 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    return this.withWebView(async () => {
+    await this.withWebView(async () => {
       const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS[selector],
       );
@@ -250,7 +251,7 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    return this.withWebView(async () => {
+    await this.withWebView(async () => {
       const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS[selector],
       );
@@ -271,7 +272,7 @@ class TestSnaps {
       interval: 100,
     },
   ): Promise<void> {
-    return this.withWebView(async () => {
+    await this.withWebView(async () => {
       const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS[selector],
       );
@@ -295,7 +296,7 @@ class TestSnaps {
       interval: 100,
     },
   ) {
-    return this.withWebView(async () => {
+    await this.withWebView(async () => {
       const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS.clientStatusResultSpan,
       );
