@@ -1,9 +1,13 @@
 import PlaywrightContextHelpers from './PlaywrightContextHelpers.ts';
 import { wrapElement, type PlaywrightElement } from './PlaywrightAdapter.ts';
-import { getDriver } from './PlaywrightUtilities.ts';
+import { getDriver, withTimeout } from './PlaywrightUtilities.ts';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
 
 const logger = createPlaywrightLogger('PlaywrightWebMatchers');
+
+/** Caps hung Chromedriver HTTP calls (CI default client timeout is ~12 min). */
+const WEBVIEW_ELEMENT_LOOKUP_TIMEOUT_MS = 30_000;
+const WEBVIEW_ELEMENT_WAIT_EXIST_MS = 15_000;
 
 /**
  * Appium WebView element locators. Switches into the browser WebView context
@@ -52,8 +56,16 @@ export default class PlaywrightWebMatchers {
     if (!drv) throw new Error('Driver is not available');
 
     const escapedId = innerID.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-    const elem = await drv.$(`[id="${escapedId}"]`);
-    return wrapElement(elem);
+    const selector = `[id="${escapedId}"]`;
+    const rawElem = await drv.$(selector);
+
+    await withTimeout(
+      rawElem.waitForExist({ timeout: WEBVIEW_ELEMENT_WAIT_EXIST_MS }),
+      WEBVIEW_ELEMENT_LOOKUP_TIMEOUT_MS,
+      `WebView element lookup (${selector})`,
+    );
+
+    return wrapElement(rawElem);
   }
 
   static async getElementByXPath(

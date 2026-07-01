@@ -10,8 +10,9 @@ appiumTest.describe(SmokeSnaps('Lifecycle hooks Snap Tests'), () => {
     async ({ driver: _driver, currentDeviceDetails }) => {
       await withSnapsFixtures(currentDeviceDetails, {}, async () => {
         await TestSnaps.installSnap('connectLifeCycleButton');
-        await Assertions.checkIfTextIsDisplayed(
+        await Assertions.expectTextDisplayed(
           'The Snap was installed successfully, and the "onInstall" handler was called.',
+          { timeout: 30_000 },
         );
       });
     },

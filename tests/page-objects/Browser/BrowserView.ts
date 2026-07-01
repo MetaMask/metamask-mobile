@@ -194,7 +194,11 @@ class Browser {
     const deeplink = `dapp://${hostAndPath}`;
 
     await executeMobileDeepLink(deeplink);
-    await sleep(3_000);
+    const isAndroidCi =
+      FrameworkDetector.isAppium() &&
+      PlatformDetector.isAndroid() &&
+      process.env.CI === 'true';
+    await sleep(isAndroidCi ? 8_000 : 3_000);
   }
 
   private async typeUrlAppium(url: string): Promise<void> {
