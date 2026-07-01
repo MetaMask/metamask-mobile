@@ -1,0 +1,49 @@
+diff --git a/node_modules/@metamask/transaction-pay-controller/dist/actions/update-payment-token.cjs b/node_modules/@metamask/transaction-pay-controller/dist/actions/update-payment-token.cjs
+index e00daa9..a43d8ed 100644
+--- a/node_modules/@metamask/transaction-pay-controller/dist/actions/update-payment-token.cjs
++++ b/node_modules/@metamask/transaction-pay-controller/dist/actions/update-payment-token.cjs
+@@ -20,12 +20,19 @@ function updatePaymentToken(request, options) {
+         throw new Error('Transaction not found');
+     }
+     const state = messenger.call('TransactionPayController:getState');
+-    const accountOverride = state.transactionData[transactionId]?.accountOverride;
++    const transactionPayData = state.transactionData[transactionId];
++    const accountOverride = transactionPayData?.accountOverride;
+     const paymentToken = getPaymentToken({
+         chainId,
+         from: accountOverride ?? transaction.txParams.from,
+         messenger,
+         tokenAddress,
++        // For post-quote (withdraw) flows the selected token is the receive
++        // destination, which may live on a chain the wallet does not actively
++        // track (so no local market price / native-currency rate exists).
++        // Allow resolution without a fiat rate so selection is not blocked; the
++        // received amount is determined by the quote, not local rates.
++        allowMissingFiatRate: Boolean(transactionPayData?.isPostQuote),
+     });
+     if (!paymentToken) {
+         throw new Error('Payment token not found');
+@@ -47,14 +54,20 @@ exports.updatePaymentToken = updatePaymentToken;
+  * @param request.tokenAddress - The token address.
+  * @returns The payment token or undefined if the token data could not be retrieved.
+  */
+-function getPaymentToken({ chainId, from, messenger, tokenAddress, }) {
++function getPaymentToken({ chainId, from, messenger, tokenAddress, allowMissingFiatRate, }) {
+     const { decimals, symbol } = (0, token_1.getTokenInfo)(messenger, tokenAddress, chainId) ?? {};
+     if (decimals === undefined || !symbol) {
+         return undefined;
+     }
+-    const tokenFiatRate = (0, token_1.getTokenFiatRate)(messenger, tokenAddress, chainId);
++    let tokenFiatRate = (0, token_1.getTokenFiatRate)(messenger, tokenAddress, chainId);
+     if (tokenFiatRate === undefined) {
+-        return undefined;
++        if (!allowMissingFiatRate) {
++            return undefined;
++        }
++        // No local fiat rate for this chain/token (e.g. a withdraw destination
++        // on a non-tracked chain). Resolve with zeroed fiat so the token can be
++        // selected; fiat display is best-effort here.
++        tokenFiatRate = { usdRate: '0', fiatRate: '0' };
+     }
+     const balance = (0, token_1.getTokenBalance)(messenger, from, chainId, tokenAddress);
+     const { raw: balanceRaw, human: balanceHuman, usd: balanceUsd, fiat: balanceFiat, } = (0, token_1.computeTokenAmounts)(balance, decimals, tokenFiatRate);

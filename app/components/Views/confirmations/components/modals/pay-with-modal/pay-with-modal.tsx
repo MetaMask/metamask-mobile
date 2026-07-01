@@ -38,6 +38,7 @@ import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaym
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
+import { useEnsurePayToken } from '../../../hooks/tokens/useEnsurePayToken';
 
 interface PayWithModalParams {
   /**
@@ -85,6 +86,7 @@ export function PayWithModal() {
     isPredictContext,
     isPredictContext ? resetSelectedPaymentToken : undefined,
   );
+  const ensurePayToken = useEnsurePayToken();
 
   const isMoneyAccount = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
@@ -183,6 +185,18 @@ export function PayWithModal() {
           } catch {
             // Network not configured — skip
           }
+
+          // Adding via TokensController only covers legacy metadata. Ensure the
+          // token is also registered in unified assets state, so the pay
+          // controller can resolve it (otherwise it throws "Payment token not
+          // found").
+          await ensurePayToken({
+            address: token.address as Hex,
+            chainId: token.chainId as Hex,
+            symbol: token.symbol,
+            decimals: token.decimals,
+            name: token.name,
+          });
         }
 
         setPayToken({
@@ -196,6 +210,7 @@ export function PayWithModal() {
     [
       close,
       dismissOnSelectCount,
+      ensurePayToken,
       isPredictContext,
       isWithdraw,
       navigation,
