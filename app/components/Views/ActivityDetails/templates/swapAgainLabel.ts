@@ -6,6 +6,7 @@ type SwapFamilyType = Extract<
   {
     type:
       | 'swap'
+      | 'swapIncomplete'
       | 'convert'
       | 'lendingDeposit'
       | 'lendingWithdrawal'
