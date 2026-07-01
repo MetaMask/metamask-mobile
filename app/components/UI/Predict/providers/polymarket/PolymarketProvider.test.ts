@@ -354,6 +354,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   liveSportsLeagues: [],
   extendedSportsMarketsLeagues: [],
   enabledSportsMarketTypes: [],
+  nonRegTimeSportsMarketTypes: [],
   marketHighlightsFlag: {
     enabled: false,
     highlights: [],

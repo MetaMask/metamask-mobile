@@ -3,6 +3,7 @@ import { POLYMARKET_PROVIDER_ID } from './constants';
 import {
   buildOutcomeGroups,
   normalizeEnabledSportsMarketTypes,
+  normalizeSportsMarketTypes,
 } from './outcomeGrouping';
 
 function createGroupingOutcome(
@@ -38,6 +39,8 @@ describe('outcomeGrouping', () => {
         'both_teams_to_score',
         'soccer_first_to_score',
         'soccer_team_to_advance',
+        'soccer_extra_time',
+        'soccer_penalty_shootout',
         'team_totals',
         'soccer_team_totals',
         'basketball_team_to_score_first',
@@ -63,7 +66,41 @@ describe('outcomeGrouping', () => {
     });
   });
 
+  describe('normalizeSportsMarketTypes', () => {
+    it('returns an empty list for non-array values', () => {
+      expect(normalizeSportsMarketTypes(undefined)).toEqual([]);
+      expect(normalizeSportsMarketTypes('moneyline')).toEqual([]);
+    });
+
+    it('filters unsupported types and deduplicates case-insensitively', () => {
+      expect(
+        normalizeSportsMarketTypes([
+          'soccer_team_to_advance',
+          'SOCCER_TEAM_TO_ADVANCE',
+          'unsupported_market',
+        ]),
+      ).toEqual(['soccer_team_to_advance']);
+    });
+  });
+
   describe('buildOutcomeGroups', () => {
+    it('groups full-tie-outcome markets in game lines below moneyline', () => {
+      const groups = buildOutcomeGroups([
+        createGroupingOutcome('moneyline', 'moneyline'),
+        createGroupingOutcome('extra-time', 'soccer_extra_time'),
+        createGroupingOutcome('penalty-shootout', 'soccer_penalty_shootout'),
+        createGroupingOutcome('team-to-advance', 'soccer_team_to_advance'),
+      ]);
+
+      expect(groups.map((group) => group.key)).toEqual(['game_lines']);
+      expect(groups[0].subgroups?.map((group) => group.key)).toEqual([
+        'soccer_team_to_advance',
+        'moneyline',
+        'soccer_extra_time',
+        'soccer_penalty_shootout',
+      ]);
+    });
+
     it('orders team to advance before moneyline in game lines', () => {
       const outcomes = [
         createGroupingOutcome('moneyline', 'moneyline'),
