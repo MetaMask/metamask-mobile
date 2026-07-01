@@ -10,6 +10,7 @@ import { UserProfileProperty } from '../../../../../util/metrics/UserSettingsAna
 import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../../constants/flags';
 import type { OrderPreview } from '../types';
 import { Side, type PredictActivity, type PredictPosition } from '../../types';
@@ -353,6 +354,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   liveSportsLeagues: [],
   extendedSportsMarketsLeagues: [],
   enabledSportsMarketTypes: [],
+  nonRegTimeSportsMarketTypes: [],
   marketHighlightsFlag: {
     enabled: false,
     highlights: [],
@@ -365,6 +367,7 @@ const defaultFeatureFlags: PredictFeatureFlags = {
   predictHomeRedesignEnabled: false,
   predictSportCardLivePricesEnabled: true,
   predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
 };
 
 function createProvider(featureFlags?: Partial<PredictFeatureFlags>) {

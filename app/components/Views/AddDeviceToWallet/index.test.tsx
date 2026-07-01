@@ -228,6 +228,7 @@ describe('AddDeviceToWallet', () => {
         getByText(strings('app_settings.add_device.waiting_for_extension')),
       ).toBeOnTheScreen();
     });
+  
     it('does not render the manual QR input outside dev', () => {
       const globalWithDev = global as unknown as { __DEV__: boolean };
       const originalDev = globalWithDev.__DEV__;
@@ -287,6 +288,13 @@ describe('AddDeviceToWallet', () => {
             qrSyncImport: true,
           },
         );
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+          {
+            initialStep: 1,
+            qrSyncImport: true,
+          },
+        );
       });
     });
 
@@ -319,6 +327,10 @@ describe('AddDeviceToWallet', () => {
       });
 
       await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+          expect.anything(),
+        );
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
           expect.anything(),

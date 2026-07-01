@@ -33,6 +33,19 @@ import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import { QrSyncSecretTypes } from '../../../core/QrSync/constants';
 
+const mockQrSyncResetState = jest.fn();
+
+jest.mock('../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      QrSyncController: {
+        resetState: () => mockQrSyncResetState(),
+      },
+    },
+  },
+}));
+
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
   const keyboard = {
     dismiss: jest.fn(),

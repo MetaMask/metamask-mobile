@@ -11,6 +11,8 @@ import type { TransactionGroup } from './adapters/transaction-group';
 import type { PerpsTransaction } from '../../components/UI/Perps/types/transactionHistory';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { PredictActivity } from '../../components/UI/Predict/types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import type { FiatOrder } from '../../reducers/fiatOrders/types';
 
 export type Status = 'pending' | 'success' | 'failed' | 'cancelled';
 
@@ -19,6 +21,7 @@ export type ActivityKind =
   | 'sell'
   | 'buy'
   | 'deposit'
+  | 'unstake'
   | 'swap'
   | 'swapIncomplete'
   | 'claim'
@@ -100,7 +103,8 @@ interface ActivityData<Type extends ActivityKind, Data> {
     | { type: 'keyringTransaction'; data: Transaction }
     | { type: 'localTransaction'; data: TransactionGroup }
     | { type: 'perpsTransaction'; data: PerpsTransaction }
-    | { type: 'predictActivity'; data: PredictActivity };
+    | { type: 'predictActivity'; data: PredictActivity }
+    | { type: 'rampOrder'; data: FiatOrder };
   data: Data;
 }
 
@@ -142,11 +146,12 @@ export type ActivityListItem =
       }
     >
   | ActivityData<
-      'buy' | 'claim' | 'deposit',
+      'buy' | 'claim' | 'deposit' | 'unstake',
       {
         from?: string;
         to?: string;
         token?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >
   | ActivityData<
@@ -220,5 +225,6 @@ export type ActivityListItem =
         token?: TokenAmount;
         sourceToken?: TokenAmount;
         destinationToken?: TokenAmount;
+        fees?: ActivityFee[];
       }
     >;

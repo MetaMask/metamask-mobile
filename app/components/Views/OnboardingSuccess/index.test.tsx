@@ -10,16 +10,44 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import {
+  ONBOARDING_SUCCESS_FLOW,
+  AccountType,
+} from '../../../constants/onboarding';
 import Engine from '../../../core/Engine/Engine';
 import { strings } from '../../../../locales/i18n';
-import { useSelector } from 'react-redux';
 import Logger from '../../../util/Logger';
 import {
   SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
   setWalletHomeOnboardingStepsEligible,
 } from '../../../actions/onboarding';
 import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
+import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
+import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
+import { clearAttribution } from '../../../core/redux/slices/attribution';
+
+jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
+
+jest.mock('../../../selectors/onboarding', () => ({
+  ...jest.requireActual('../../../selectors/onboarding'),
+  selectOnboardingAccountType: jest.fn(),
+}));
+
+jest.mock('../../../selectors/settings', () => ({
+  ...jest.requireActual('../../../selectors/settings'),
+  selectBasicFunctionalityEnabled: jest.fn(),
+}));
+
+jest.mock('../../../selectors/attribution', () => ({
+  ...jest.requireActual('../../../selectors/attribution'),
+  selectWalletSetupCompletedAttributionAnalyticsProps: jest.fn(),
+}));
+
+const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
+  typeof trackOnboarding
+>;
 
 jest.mock('../../../core/Engine/Engine', () => ({
   context: {
@@ -103,7 +131,6 @@ const mockProvisionFromMetadata = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(),
   useDispatch: () => mockDispatch,
 }));
 
@@ -119,6 +146,13 @@ describe('OnboardingSuccessComponent', () => {
     });
     Engine.context.QrSyncProvisioningService.provisionFromMetadata =
       mockProvisionFromMetadata;
+    jest
+      .mocked(selectOnboardingAccountType)
+      .mockReturnValue(AccountType.Imported);
+    jest.mocked(selectBasicFunctionalityEnabled).mockReturnValue(true);
+    jest
+      .mocked(selectWalletSetupCompletedAttributionAnalyticsProps)
+      .mockReturnValue({});
   });
 
   it('renders correctly when successFlow is BACKED_UP_SRP', () => {
@@ -167,6 +201,20 @@ describe('OnboardingSuccessComponent', () => {
     const button = getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON);
     fireEvent.press(button);
 
+    expect(mockTrackOnboarding).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Onboarding Completed',
+        properties: expect.objectContaining({
+          wallet_setup_type: 'import',
+          new_wallet: false,
+          account_type: 'imported',
+          is_basic_functionality_enabled: true,
+          implementation_type: 'native',
+          onboarding_type: 'seed_phrase',
+        }),
+      }),
+      expect.any(Function),
+    );
     expect(mockDiscoverAccounts).toHaveBeenCalled();
     expect(mockProvisionFromMetadata).not.toHaveBeenCalled();
     expect(mockDispatch).toHaveBeenCalledWith(
@@ -174,6 +222,104 @@ describe('OnboardingSuccessComponent', () => {
         skipInitialBalanceWait: true,
       }),
     );
+    expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
+  });
+
+  it('includes persisted attribution on Onboarding Completed for seedless flow', () => {
+    jest
+      .mocked(selectOnboardingAccountType)
+      .mockReturnValue(AccountType.MetamaskGoogle);
+    jest
+      .mocked(selectWalletSetupCompletedAttributionAnalyticsProps)
+      .mockReturnValue({
+        utm_source: 'email',
+        utm_campaign: 'spring',
+        attribution_id: 'aid-1',
+      });
+
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING}
+      />,
+    );
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    expect(mockTrackOnboarding).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Onboarding Completed',
+        properties: expect.objectContaining({
+          wallet_setup_type: 'new',
+          new_wallet: true,
+          account_type: 'metamask',
+          implementation_type: 'native',
+          onboarding_type: 'social_login',
+          utm_source: 'email',
+          utm_campaign: 'spring',
+          attribution_id: 'aid-1',
+        }),
+      }),
+      expect.any(Function),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
+  });
+
+  it('calls provisionFromMetadata instead of discoverAccounts for QR sync users', () => {
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectQrSyncNeedsProvisioning) {
+        return true;
+      }
+
+      return undefined;
+    });
+
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={jest.fn()}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    expect(mockProvisionFromMetadata).toHaveBeenCalledTimes(1);
+    expect(mockDiscoverAccounts).not.toHaveBeenCalled();
+  });
+
+  it('logs when provisionFromMetadata rejects and still invokes onDone', async () => {
+    const loggerSpy = jest.spyOn(Logger, 'error').mockImplementation(() => {
+      // Do nothing
+    });
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectQrSyncNeedsProvisioning) {
+        return true;
+      }
+
+      return undefined;
+    });
+    mockProvisionFromMetadata.mockRejectedValueOnce(
+      new Error('provisioning failed'),
+    );
+    const onDone = jest.fn();
+    const { getByTestId } = renderWithProvider(
+      <OnboardingSuccessComponent
+        onDone={onDone}
+        successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
+      />,
+    );
+    fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
+
+    await waitFor(() => {
+      expect(onDone).toHaveBeenCalled();
+    });
+    await waitFor(() => {
+      expect(loggerSpy).toHaveBeenCalledWith(
+        expect.any(Error),
+        'OnboardingSuccess: provisionFromMetadata failed',
+      );
+    });
+    loggerSpy.mockRestore();
+    mockProvisionFromMetadata.mockResolvedValue(undefined);
   });
 
   it('calls provisionFromMetadata instead of discoverAccounts for QR sync users', () => {
@@ -270,11 +416,13 @@ describe('OnboardingSuccessComponent', () => {
     );
     fireEvent.press(getByTestId(OnboardingSuccessSelectorIDs.DONE_BUTTON));
 
+    expect(mockTrackOnboarding).not.toHaveBeenCalled();
     expect(
       mockDispatch.mock.calls.some(
         (call) => call[0]?.type === SET_WALLET_HOME_ONBOARDING_STEPS_ELIGIBLE,
       ),
     ).toBe(false);
+    expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
   });
 
   it('navigate to the default settings screen when the manage default settings button is pressed', () => {
@@ -372,9 +520,8 @@ describe('OnboardingSuccessComponent', () => {
 
 describe('OnboardingSuccess', () => {
   beforeEach(() => {
-    // Reset mocks before each test
-    (useSelector as jest.Mock).mockReset();
-    mockDiscoverAccounts.mockReset();
+    mockDiscoverAccounts.mockClear();
+    mockDiscoverAccounts.mockResolvedValue(0);
     mockRouteParams = {};
   });
 
