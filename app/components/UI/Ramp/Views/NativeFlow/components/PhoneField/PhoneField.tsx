@@ -105,7 +105,9 @@ const PhoneField = forwardRef<TextInput, PhoneFieldProps>(
 
     const handleChangeText = useCallback(
       (text: string) => {
-        const digits = text.replace(/\D/g, '');
+        const digits = text.includes('+')
+          ? getLocalPhoneDigits(text, phoneCountry)
+          : text.replace(/\D/g, '');
         const nextNumber = phonePrefix ? `${phonePrefix}${digits}` : digits;
         // Compare local digit counts (not the prefixed number) so a large
         // jump reads as autofill — a single keystroke must never advance.
