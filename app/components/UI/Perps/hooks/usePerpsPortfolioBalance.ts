@@ -3,8 +3,12 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../reducers';
 import { selectConversionRateBySymbol } from '../../../../selectors/currencyRateController';
-import { selectPerpsBalances } from '../selectors/perpsController';
+import {
+  selectPerpsBalances,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
 import { usePerpsLiveAccount } from './stream';
+import type { PerpsActiveProviderMode } from '@metamask/perps-controller';
 
 /**
  * Hook for getting aggregated Perps balance using hybrid approach:
@@ -22,6 +26,9 @@ export function usePerpsPortfolioBalance() {
 
   // Get Redux balances (for historical data)
   const perpsBalances = useSelector(selectPerpsBalances);
+  const activeProvider = useSelector(selectPerpsProvider) as
+    | PerpsActiveProviderMode
+    | undefined;
 
   // Calculate current balances from live account data and historical from Redux
   const { totalBalance, totalUnrealizedPnl, totalBalance1dAgo } =
@@ -47,17 +54,33 @@ export function usePerpsPortfolioBalance() {
       // Historical balance from Redux (for 24h percentage calculations)
       let historical1dAgoBalance = 0;
 
-      // Aggregate historical balance across all providers
-      for (const providerBalance of Object.values(perpsBalances)) {
+      const sumAllProviders1dAgo = () => {
+        let sum = 0;
+        for (const providerBalance of Object.values(perpsBalances)) {
+          if (
+            providerBalance &&
+            typeof providerBalance === 'object' &&
+            'accountValue1dAgo' in providerBalance
+          ) {
+            const balance1dAgoUsd = new BigNumber(
+              providerBalance.accountValue1dAgo || '0',
+            );
+            sum += balance1dAgoUsd.multipliedBy(conversionRate).toNumber();
+          }
+        }
+        return sum;
+      };
+
+      if (activeProvider === 'aggregated' || activeProvider === undefined) {
+        historical1dAgoBalance = sumAllProviders1dAgo();
+      } else {
+        const row = perpsBalances[activeProvider];
         if (
-          providerBalance &&
-          typeof providerBalance === 'object' &&
-          'accountValue1dAgo' in providerBalance
+          row &&
+          typeof row === 'object' &&
+          'accountValue1dAgo' in row
         ) {
-          const balance1dAgoUsd = new BigNumber(
-            providerBalance.accountValue1dAgo || '0',
-          );
-          historical1dAgoBalance += balance1dAgoUsd
+          historical1dAgoBalance = new BigNumber(row.accountValue1dAgo || '0')
             .multipliedBy(conversionRate)
             .toNumber();
         }
@@ -68,7 +91,7 @@ export function usePerpsPortfolioBalance() {
         totalUnrealizedPnl: currentUnrealizedPnl,
         totalBalance1dAgo: historical1dAgoBalance,
       };
-    }, [account, perpsBalances, usdConversionRate]);
+    }, [account, perpsBalances, usdConversionRate, activeProvider]);
 
   return {
     // Current total account value in display currency (cash + positions)

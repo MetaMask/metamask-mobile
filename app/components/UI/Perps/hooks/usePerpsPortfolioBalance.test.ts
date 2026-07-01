@@ -2,7 +2,11 @@ import { renderHook } from '@testing-library/react-native';
 import { usePerpsPortfolioBalance } from './usePerpsPortfolioBalance';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectPerpsBalances } from '../selectors/perpsController';
+import {
+  selectPerpsBalances,
+  selectPerpsProvider,
+} from '../selectors/perpsController';
+import type { PerpsActiveProviderMode } from '@metamask/perps-controller';
 import { type AccountState } from '@metamask/perps-controller';
 import { usePerpsLiveAccount } from './stream';
 
@@ -46,9 +50,11 @@ describe('usePerpsPortfolioBalance', () => {
     balances: Record<string, MockBalance> = {},
     accountData: AccountState | null = null,
     conversionRate: number = 1,
+    activeProvider: PerpsActiveProviderMode = 'hyperliquid',
   ) => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsBalances) return balances;
+      if (selector === selectPerpsProvider) return activeProvider;
       if (typeof selector === 'function') {
         return conversionRate;
       }
@@ -83,6 +89,7 @@ describe('usePerpsPortfolioBalance', () => {
     // Set up default mock for useSelector to return empty balances
     mockUseSelector.mockImplementation((selector) => {
       if (selector === selectPerpsBalances) return {};
+      if (selector === selectPerpsProvider) return 'hyperliquid';
       if (typeof selector === 'function') {
         // Default conversion rate
         return 1;
@@ -165,7 +172,7 @@ describe('usePerpsPortfolioBalance', () => {
         totalBalance: '1500.75',
       };
 
-      setupMocks(mockBalances, accountData);
+      setupMocks(mockBalances, accountData, 1, 'aggregated');
 
       const { result } = renderHook(() => usePerpsPortfolioBalance());
 
@@ -256,6 +263,7 @@ describe('usePerpsPortfolioBalance', () => {
       // Mock useSelector to return undefined for conversion rate (should default to 1)
       mockUseSelector.mockImplementation((selector) => {
         if (selector === selectPerpsBalances) return mockBalances;
+        if (selector === selectPerpsProvider) return 'hyperliquid';
         if (typeof selector === 'function') {
           return undefined; // Missing conversion rate
         }
@@ -474,7 +482,7 @@ describe('usePerpsPortfolioBalance', () => {
     it('should handle null provider balance objects', () => {
       const mockBalances = {
         hyperliquid: null as unknown as MockBalance,
-        dydx: {
+        myx: {
           totalBalance: '500.00',
           unrealizedPnl: '25.00',
           accountValue1dAgo: '450.00',
@@ -491,7 +499,7 @@ describe('usePerpsPortfolioBalance', () => {
         totalBalance: '500.00',
       };
 
-      setupMocks(mockBalances, accountData);
+      setupMocks(mockBalances, accountData, 1, 'myx');
 
       const { result } = renderHook(() => usePerpsPortfolioBalance());
 
