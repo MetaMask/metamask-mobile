@@ -230,7 +230,7 @@ describe('TraderRow', () => {
       expect(statsText).not.toBeNull();
     });
 
-    it('uses ButtonSize.Sm (32px height from the design system)', () => {
+    it('uses ButtonSize.Md (40px height) to match the Top Traders filter pills', () => {
       renderWithProvider(
         <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
       );
@@ -238,29 +238,13 @@ describe('TraderRow', () => {
       const followLabel = screen.getByText('Follow');
       const buttonWithHeight = findAncestor(
         followLabel,
-        (node) => resolveHeight(node) === 32,
+        (node) => resolveHeight(node) === 40,
       );
 
       expect(buttonWithHeight).not.toBeNull();
     });
 
-    it('applies 8px horizontal padding to match the Following state visually', () => {
-      renderWithProvider(
-        <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
-      );
-
-      const followLabel = screen.getByText('Follow');
-      const buttonWithPadding = findAncestor(followLabel, (node) => {
-        const flat = StyleSheet.flatten(node.props.style) as
-          | { paddingLeft?: number; paddingRight?: number }
-          | undefined;
-        return flat?.paddingLeft === 8 && flat?.paddingRight === 8;
-      });
-
-      expect(buttonWithPadding).not.toBeNull();
-    });
-
-    it('sets min-width 60px on the Follow button so the label is not clipped', () => {
+    it('sets min-width 96px on the Follow button so the row edge does not jitter when toggling to Following', () => {
       renderWithProvider(
         <TraderRow trader={baseTrader} onFollowPress={mockOnFollowPress} />,
       );
@@ -268,7 +252,7 @@ describe('TraderRow', () => {
       const followLabel = screen.getByText('Follow');
       const buttonWithMinWidth = findAncestor(
         followLabel,
-        (node) => resolveMinWidth(node) === 60,
+        (node) => resolveMinWidth(node) === 96,
       );
 
       expect(buttonWithMinWidth).not.toBeNull();
@@ -286,7 +270,7 @@ describe('TraderRow', () => {
       const followingLabel = screen.getByText('Following');
       const buttonWithMinWidth = findAncestor(
         followingLabel,
-        (node) => resolveMinWidth(node) === 60,
+        (node) => resolveMinWidth(node) === 96,
       );
 
       expect(buttonWithMinWidth).not.toBeNull();
