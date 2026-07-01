@@ -1,33 +1,27 @@
 import React from 'react';
-import { act, fireEvent } from '@testing-library/react-native';
-import { DeviceEventEmitter } from 'react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import VerificationCodeBottomSheet from './VerificationCodeBottomSheet';
 import { strings } from '../../../../locales/i18n';
 
-const mockGoBack = jest.fn();
+const mockUseRoute = jest.fn(() => ({
+  params: {} as { verificationCode?: string },
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
     useNavigation: () => ({
-      goBack: mockGoBack,
+      goBack: jest.fn(),
     }),
-    useRoute: () => ({
-      params: {},
-    }),
+    useRoute: () => mockUseRoute(),
   };
 });
 
 describe('VerificationCodeBottomSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.useFakeTimers();
-  });
-
-  afterEach(() => {
-    jest.useRealTimers();
+    mockUseRoute.mockReturnValue({ params: {} });
   });
 
   it('renders pending verification copy when route has no code', () => {
@@ -38,20 +32,19 @@ describe('VerificationCodeBottomSheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('emits verification done and navigates back when Done is pressed', () => {
-    const emitSpy = jest.spyOn(DeviceEventEmitter, 'emit');
+  it('renders the OTP from route params', () => {
+    mockUseRoute.mockReturnValue({ params: { verificationCode: '469192' } });
+
     const { getByText } = renderWithProvider(<VerificationCodeBottomSheet />);
 
-    fireEvent.press(getByText(strings('app_settings.add_device.done')));
+    expect(getByText('469192')).toBeOnTheScreen();
+  });
 
-    expect(emitSpy).toHaveBeenCalledWith('addDeviceVerificationDone');
-    expect(mockGoBack).toHaveBeenCalled();
+  it('does not render Done button', () => {
+    const { queryByText } = renderWithProvider(<VerificationCodeBottomSheet />);
 
-    act(() => {
-      jest.advanceTimersByTime(100);
-    });
-
-    expect(mockGoBack).toHaveBeenCalledTimes(2);
-    emitSpy.mockRestore();
+    expect(
+      queryByText(strings('app_settings.add_device.done')),
+    ).not.toBeOnTheScreen();
   });
 });
