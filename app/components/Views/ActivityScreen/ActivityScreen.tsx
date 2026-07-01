@@ -125,11 +125,8 @@ const ActivityScreen = () => {
       redirectToOrders: redirectToOrdersParam,
     });
     handleSelectTypeFilter(resolvedTypeFilter);
-    if (
-      initialPerpsFilterParam !== undefined &&
-      resolvedTypeFilter === ActivityTypeFilter.Perps
-    ) {
-      setPerpsFilter(initialPerpsFilterParam);
+    if (resolvedTypeFilter === ActivityTypeFilter.Perps) {
+      setPerpsFilter(initialPerpsFilterParam ?? PerpsActivityFilter.Trades);
     }
     navigation.setParams({
       initialTypeFilter: undefined,
