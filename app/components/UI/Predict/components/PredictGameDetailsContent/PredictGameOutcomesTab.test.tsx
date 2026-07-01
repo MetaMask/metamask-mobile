@@ -82,6 +82,12 @@ jest.mock('../../hooks/useLiveMarketPrices', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePredictPrices', () => ({
+  usePredictPrices: jest.fn(() => ({
+    prices: { providerId: '', results: [] },
+  })),
+}));
+
 const mockOnBuyPress = jest.fn();
 
 interface CapturedCard {
@@ -252,6 +258,11 @@ const mockGame: PredictMarketGame = {
   period: null,
   score: null,
 };
+const mockWorldCupGame: PredictMarketGame = {
+  ...mockGame,
+  league: 'fifwc',
+};
+
 const mockWorldCupGame: PredictMarketGame = {
   ...mockGame,
   league: 'fifwc',
