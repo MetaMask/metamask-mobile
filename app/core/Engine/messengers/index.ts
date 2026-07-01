@@ -66,7 +66,6 @@ import {
   getPermissionControllerMessenger,
 } from './permission-controller-messenger';
 import { getSubjectMetadataControllerMessenger } from './subject-metadata-controller-messenger';
-import { getPreferencesControllerMessenger } from './preferences-controller-messenger';
 import { getTokenSearchDiscoveryDataControllerMessenger } from './token-search-discovery-data-controller-messenger';
 import { getAssetsContractControllerMessenger } from './assets-contract-controller-messenger';
 import {
@@ -119,7 +118,6 @@ import {
 import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
-import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 import {
   getMultichainRoutingServiceInitMessenger,
   getMultichainRoutingServiceMessenger,
@@ -166,10 +164,6 @@ export const MESSENGER_FACTORIES = {
   AccountTreeController: {
     getMessenger: getAccountTreeControllerMessenger,
     getInitMessenger: getAccountTreeControllerInitMessenger,
-  },
-  AddressBookController: {
-    getMessenger: getAddressBookControllerMessenger,
-    getInitMessenger: noop,
   },
   AssetsContractController: {
     getMessenger: getAssetsContractControllerMessenger,
@@ -229,10 +223,6 @@ export const MESSENGER_FACTORIES = {
   },
   AppMetadataController: {
     getMessenger: getAppMetadataControllerMessenger,
-    getInitMessenger: noop,
-  },
-  PreferencesController: {
-    getMessenger: getPreferencesControllerMessenger,
     getInitMessenger: noop,
   },
   SignatureController: {

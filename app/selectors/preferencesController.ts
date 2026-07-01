@@ -73,46 +73,28 @@ export const selectIsTokenNetworkFilterEqualCurrentNetwork =
     },
   );
 
-// isMultiAccountBalancesEnabled is a patched property - ref patches/@metamask+preferences-controller+2.1.0.patch
 export const selectIsMultiAccountBalancesEnabled = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    (
-      preferencesControllerState as PreferencesState & {
-        isMultiAccountBalancesEnabled: boolean;
-      }
-    ).isMultiAccountBalancesEnabled,
+    preferencesControllerState.isMultiAccountBalancesEnabled,
 );
 
-// showTestNetworks is a patched property - ref patches/@metamask+preferences-controller+2.1.0.patch
 export const selectShowTestNetworks = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    (
-      preferencesControllerState as PreferencesState & {
-        showTestNetworks: boolean;
-      }
-    ).showTestNetworks,
+    preferencesControllerState.showTestNetworks,
 );
 
 export const selectIsIpfsGatewayEnabled = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    (
-      preferencesControllerState as PreferencesState & {
-        isIpfsGatewayEnabled: boolean;
-      }
-    ).isIpfsGatewayEnabled,
+    preferencesControllerState.isIpfsGatewayEnabled,
 );
 
 export const selectIsSecurityAlertsEnabled = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    (
-      preferencesControllerState as PreferencesState & {
-        securityAlertsEnabled: boolean;
-      }
-    ).securityAlertsEnabled,
+    preferencesControllerState.securityAlertsEnabled,
 );
 
 /**
@@ -135,11 +117,7 @@ export const selectSmartTransactionsOptInStatus = createSelector(
 export const selectUseTransactionSimulations = createSelector(
   selectPreferencesControllerState,
   (preferencesControllerState: PreferencesState) =>
-    (
-      preferencesControllerState as PreferencesState & {
-        useTransactionSimulations: boolean;
-      }
-    ).useTransactionSimulations,
+    preferencesControllerState.useTransactionSimulations,
 );
 
 export const selectPrivacyMode = createSelector(

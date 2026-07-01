@@ -10439,11 +10439,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/wallet@npm:^5.0.0":
-  version: 5.0.0
-  resolution: "@metamask/wallet@npm:5.0.0"
+"@metamask/wallet@npm:@metamask-previews/wallet@5.0.0-preview-4f9d41d":
+  version: 5.0.0-preview-4f9d41d
+  resolution: "@metamask-previews/wallet@npm:5.0.0-preview-4f9d41d"
   dependencies:
     "@metamask/accounts-controller": "npm:^39.0.3"
+    "@metamask/address-book-controller": "npm:^7.1.2"
     "@metamask/approval-controller": "npm:^9.0.2"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
@@ -10452,11 +10453,12 @@ __metadata:
     "@metamask/keyring-controller": "npm:^27.1.0"
     "@metamask/messenger": "npm:^1.2.0"
     "@metamask/network-controller": "npm:^33.0.0"
+    "@metamask/preferences-controller": "npm:^23.1.0"
     "@metamask/remote-feature-flag-controller": "npm:^4.2.2"
     "@metamask/scure-bip39": "npm:^2.1.1"
     "@metamask/storage-service": "npm:^1.0.2"
     "@metamask/utils": "npm:^11.11.0"
-  checksum: 10/30957bdda09c767fd6f4564421350a0ad5f6584095e060313af5a59fc4b0c987433d04a84cb5d7f924880a61aa180529da1f943b11c9665ccbe286e163485524
+  checksum: 10/6b032f2fd3dc08f45f0044ea03d2d1d38561e436b868525abc5a04059d619418ca0fa52f05779adecc24cbc6b56f6e26899cbbd08f018b873aa6f35fce6eb387
   languageName: node
   linkType: hard
 
@@ -35509,7 +35511,7 @@ __metadata:
     "@metamask/transaction-pay-controller": "npm:^23.17.1"
     "@metamask/tron-wallet-snap": "npm:^1.28.0"
     "@metamask/utils": "npm:^11.11.0"
-    "@metamask/wallet": "npm:^5.0.0"
+    "@metamask/wallet": "npm:@metamask-previews/wallet@5.0.0-preview-4f9d41d"
     "@myx-trade/sdk": "npm:^0.1.265"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.32.2"

@@ -9,10 +9,12 @@ import {
   getNetworkControllerInstanceOptions,
   setupRpcEndpointMetrics,
 } from './instance-options/network-controller';
+import { getPreferencesControllerInitialState } from './instance-options/preferences-controller';
 
 /**
  * Construct the `@metamask/wallet` `Wallet` for mobile. Each controller's
- * client-specific options live in its own builder under `./instance-options/`.
+ * client-specific configuration lives in its own builder under
+ * `./instance-options/`.
  */
 export function initializeWallet({
   messenger,
@@ -23,7 +25,10 @@ export function initializeWallet({
 }) {
   const wallet = new Wallet({
     messenger,
-    state,
+    state: {
+      ...state,
+      PreferencesController: getPreferencesControllerInitialState(state),
+    },
     instanceOptions: {
       approvalController: getApprovalControllerInstanceOptions(),
       connectivityController: getConnectivityControllerInstanceOptions(),

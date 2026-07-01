@@ -152,7 +152,6 @@ import { permissionControllerInit } from './controllers/permission-controller-in
 import { subjectMetadataControllerInit } from './controllers/subject-metadata-controller-init';
 ///: END:ONLY_INCLUDE_IF
 import { PreferencesController } from '@metamask/preferences-controller';
-import { preferencesControllerInit } from './controllers/preferences-controller-init';
 import { TransactionPayControllerInit } from './controllers/transaction-pay-controller';
 import { tokenSearchDiscoveryDataControllerInit } from './controllers/token-search-discovery-data-controller-init';
 import { assetsContractControllerInit } from './controllers/assets-contract-controller-init';
@@ -176,7 +175,6 @@ import { type RemoteFeatureFlagControllerState } from '@metamask/remote-feature-
 import { isRemoteFeatureFlagOverrideActivated } from './controllers/remote-feature-flag-controller';
 import { loggingControllerInit } from './controllers/logging-controller-init';
 import { phishingControllerInit } from './controllers/phishing-controller-init';
-import { addressBookControllerInit } from './controllers/address-book-controller-init';
 import { analyticsControllerInit } from './controllers/analytics-controller/analytics-controller-init';
 import { multichainRoutingServiceInit } from './controllers/multichain-routing-service-init.ts';
 import { profileMetricsControllerInit } from './controllers/profile-metrics-controller-init';
@@ -311,7 +309,6 @@ export class Engine {
       wallet: this.#wallet,
       initFunctions: {
         LoggingController: loggingControllerInit,
-        PreferencesController: preferencesControllerInit,
         PermissionController: permissionControllerInit,
         ///: BEGIN:ONLY_INCLUDE_IF(snaps)
         SubjectMetadataController: subjectMetadataControllerInit,
@@ -382,9 +379,6 @@ export class Engine {
         // subscribes to ClientController:stateChange before ClientController can emit.
         AssetsController: assetsControllerInit,
         ClientController: clientControllerInit,
-        // PhishingController hydrates known recipients from AddressBookController
-        // during construction for address poisoning checks.
-        AddressBookController: addressBookControllerInit,
         PhishingController: phishingControllerInit,
         PredictController: predictControllerInit,
         RewardsController: rewardsControllerInit,
@@ -440,9 +434,13 @@ export class Engine {
       messengerClientsByName.GatorPermissionsController;
     const selectedNetworkController =
       messengerClientsByName.SelectedNetworkController;
-    const preferencesController = messengerClientsByName.PreferencesController;
+    const preferencesController = this.#wallet.getInstance(
+      'PreferencesController',
+    );
     const delegationController = messengerClientsByName.DelegationController;
-    const addressBookController = messengerClientsByName.AddressBookController;
+    const addressBookController = this.#wallet.getInstance(
+      'AddressBookController',
+    );
     const connectivityController = this.#wallet.getInstance(
       'ConnectivityController',
     );

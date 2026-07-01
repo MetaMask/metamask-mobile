@@ -4,6 +4,7 @@ import { initializeWallet } from './initialization';
 import { getKeyringControllerInstanceOptions } from './instance-options/keyring-controller';
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
 import { getNetworkControllerInstanceOptions } from './instance-options/network-controller';
+import { getPreferencesControllerInitialState } from './instance-options/preferences-controller';
 
 const mockWalletInit = jest.fn().mockResolvedValue([]);
 jest.mock('@metamask/wallet', () => ({
@@ -26,6 +27,11 @@ jest.mock('./instance-options/connectivity-controller', () => ({
 jest.mock('./instance-options/storage-service', () => ({
   getStorageServiceInstanceOptions: jest.fn(() => 'storage-options'),
 }));
+jest.mock('./instance-options/preferences-controller', () => ({
+  getPreferencesControllerInitialState: jest.fn(() => ({
+    ipfsGateway: 'seeded-preferences-state',
+  })),
+}));
 
 describe('initializeWallet', () => {
   const messenger = new Messenger({ namespace: MOCK_ANY_NAMESPACE });
@@ -40,7 +46,10 @@ describe('initializeWallet', () => {
 
     expect(Wallet).toHaveBeenCalledWith({
       messenger,
-      state,
+      state: {
+        ...state,
+        PreferencesController: { ipfsGateway: 'seeded-preferences-state' },
+      },
       instanceOptions: {
         approvalController: 'approval-options',
         keyringController: 'keyring-options',
@@ -60,5 +69,6 @@ describe('initializeWallet', () => {
       messenger,
       state,
     });
+    expect(getPreferencesControllerInitialState).toHaveBeenCalledWith(state);
   });
 });
