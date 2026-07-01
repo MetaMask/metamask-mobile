@@ -16,9 +16,15 @@ import { isRelaySupported } from '../../util/transactions/transaction-relay';
  * multichain session `getCapabilities` hook so both compute capabilities
  * identically.
  *
+ * @param targetAddress - The address capabilities are being computed for.
+ * `getSendBundleSupportedChains` receives only chain IDs from the middleware,
+ * so the address must be threaded in here; when omitted (the EIP-1193
+ * middleware call site, which cannot know the per-request address at hook
+ * build time), it falls back to the selected account — the historical
+ * behavior.
  * @returns The getCapabilities hooks.
  */
-export function buildGetCapabilitiesHooks() {
+export function buildGetCapabilitiesHooks(targetAddress?: Hex) {
   return {
     getDismissSmartAccountSuggestionEnabled: () =>
       Engine.context.PreferencesController.state
@@ -31,10 +37,12 @@ export function buildGetCapabilitiesHooks() {
       ),
     isRelaySupported,
     getSendBundleSupportedChains: async (chainIds: Hex[]) => {
+      const address =
+        targetAddress ??
+        (Engine.context.AccountsController.getSelectedAccount().address as Hex);
       const isAtomicBatchSupportedResult =
         await Engine.context.TransactionController.isAtomicBatchSupported({
-          address: Engine.context.AccountsController.getSelectedAccount()
-            .address as Hex,
+          address,
           chainIds,
         });
       return isAtomicBatchSupportedResult.reduce(
@@ -63,7 +71,7 @@ export function getSessionCapabilities(
   address: string,
 ): ReturnType<typeof getCapabilities> {
   return getCapabilities(
-    buildGetCapabilitiesHooks(),
+    buildGetCapabilitiesHooks(address as Hex),
     Engine.controllerMessenger as unknown as EIP5792Messenger,
     address as Hex,
     undefined,

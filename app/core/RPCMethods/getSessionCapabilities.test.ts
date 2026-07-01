@@ -134,6 +134,23 @@ describe('getSessionCapabilities', () => {
       expect(hooks.isAuxiliaryFundsSupported('0x1')).toBe(true);
       expect(hooks.isAuxiliaryFundsSupported('0x2')).toBe(false);
     });
+
+    it('uses the target address for getSendBundleSupportedChains when provided', async () => {
+      const targetAddress = '0xAbcDef0123456789012345678901234567890123';
+      jest
+        .mocked(Engine.context.TransactionController.isAtomicBatchSupported)
+        .mockResolvedValue([]);
+
+      const hooks = buildGetCapabilitiesHooks(targetAddress);
+      await hooks.getSendBundleSupportedChains(['0x1']);
+
+      expect(
+        Engine.context.TransactionController.isAtomicBatchSupported,
+      ).toHaveBeenCalledWith({
+        address: targetAddress,
+        chainIds: ['0x1'],
+      });
+    });
   });
 
   describe('getSessionCapabilities', () => {
@@ -160,6 +177,26 @@ describe('getSessionCapabilities', () => {
       expect(messenger).toBe(Engine.controllerMessenger);
       expect(address).toBe(SELECTED_ADDRESS);
       expect(extra).toBeUndefined();
+    });
+
+    it('threads the queried address into the send-bundle support hook', async () => {
+      const targetAddress = '0xAbcDef0123456789012345678901234567890123';
+      mockGetCapabilities.mockReturnValue({} as never);
+      jest
+        .mocked(Engine.context.TransactionController.isAtomicBatchSupported)
+        .mockResolvedValue([]);
+
+      getSessionCapabilities(targetAddress);
+
+      const [hooks] = mockGetCapabilities.mock.calls[0];
+      await hooks.getSendBundleSupportedChains(['0x1']);
+
+      expect(
+        Engine.context.TransactionController.isAtomicBatchSupported,
+      ).toHaveBeenCalledWith({
+        address: targetAddress,
+        chainIds: ['0x1'],
+      });
     });
   });
 });
