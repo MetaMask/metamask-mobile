@@ -14,6 +14,15 @@ type DetailedContext = IosDetailedContext | AndroidDetailedContext;
 
 const NATIVE_APP = 'NATIVE_APP';
 const LAVAMOAT_PATTERN = /LavaMoat|ShadowRoot|scuttling/i;
+const LOCALHOST_HOST_PATTERN =
+  /^(localhost|127\.0\.0\.1|10\.0\.2\.2|bs-local\.com)$/i;
+const CONTEXT_SWITCH_TIMEOUT_MS = 15_000;
+
+type AndroidContextWithPages = AndroidDetailedContext & {
+  webviewName?: string;
+  webview?: string;
+  pages?: { url?: string }[];
+};
 
 export default class PlaywrightContextHelpers {
   private static readonly WEBVIEW_TIMEOUT_MS = 30_000;
@@ -76,29 +85,100 @@ export default class PlaywrightContextHelpers {
     const contexts: (Context | DetailedContext)[] =
       await getDriver().getContexts({ returnDetailedContexts: true });
 
-    return contexts.filter((ctx): ctx is DetailedContext => {
-      if (typeof ctx === 'string') return false;
-      return ctx.id !== NATIVE_APP;
-    });
+    return contexts
+      .filter((ctx): ctx is DetailedContext => {
+        if (typeof ctx === 'string') return false;
+        return ctx.id !== NATIVE_APP;
+      })
+      .map((ctx) => this.normalizeContext(ctx));
+  }
+
+  /** Android Chromedriver often omits top-level url; resolve from pages[].url. */
+  private static normalizeContext(ctx: DetailedContext): DetailedContext {
+    const android = ctx as AndroidContextWithPages;
+    const id = ctx.id ?? android.webviewName ?? android.webview ?? ctx.id;
+    if (ctx.url) {
+      return id && id !== ctx.id ? { ...ctx, id } : ctx;
+    }
+
+    const pageUrl = android.pages
+      ?.map((page) => page.url)
+      .find((url) => url && !/^about:blank/i.test(url));
+
+    if (!pageUrl && !id) {
+      return ctx;
+    }
+
+    return { ...ctx, id: id ?? ctx.id, url: pageUrl ?? ctx.url };
+  }
+
+  private static isLocalhostHost(host: string): boolean {
+    return LOCALHOST_HOST_PATTERN.test(host);
+  }
+
+  private static isLocalhostDappUrl(dappUrl: string): boolean {
+    try {
+      return this.isLocalhostHost(new URL(dappUrl).hostname);
+    } catch {
+      return /localhost|127\.0\.0\.1|10\.0\.2\.2|bs-local\.com/i.test(dappUrl);
+    }
+  }
+
+  /** Match dapp tabs when Chromedriver reports localhost vs 127.0.0.1, etc. */
+  private static urlsReferToSameDapp(
+    ctxUrl: string | undefined,
+    dappUrl: string,
+  ): boolean {
+    if (!ctxUrl) return false;
+    if (ctxUrl.includes(dappUrl)) return true;
+
+    try {
+      const ctx = new URL(ctxUrl);
+      const dapp = new URL(dappUrl);
+      if (ctx.port !== dapp.port) return false;
+      const sameHost =
+        ctx.hostname === dapp.hostname ||
+        (this.isLocalhostHost(ctx.hostname) &&
+          this.isLocalhostHost(dapp.hostname));
+      return sameHost;
+    } catch {
+      return false;
+    }
+  }
+
+  private static shouldAvoidWebview(
+    ctx: DetailedContext,
+    dappIsLocalhost: boolean,
+  ): boolean {
+    if (/devtools/i.test(ctx.id)) return true;
+    if (ctx.url && /chrome|devtools/i.test(ctx.url)) return true;
+    // Local dapp servers (adb reverse / BrowserStack Local) live on localhost tabs.
+    if (
+      !dappIsLocalhost &&
+      ctx.url &&
+      /localhost|127\.0\.0\.1|10\.0\.2\.2/i.test(ctx.url)
+    ) {
+      return true;
+    }
+    return false;
   }
 
   private static async selectBestWebview(
     webviews: DetailedContext[],
     dappUrl?: string,
   ): Promise<DetailedContext | undefined> {
+    const dappIsLocalhost = dappUrl ? this.isLocalhostDappUrl(dappUrl) : false;
+
     if (dappUrl) {
-      const urlMatch = webviews.find(
-        (ctx) => ctx.url?.includes(dappUrl) && !/localhost/i.test(ctx.url),
+      const urlMatch = webviews.find((ctx) =>
+        this.urlsReferToSameDapp(ctx.url, dappUrl),
       );
       if (urlMatch) return urlMatch;
     }
 
-    const filtered = webviews.filter((ctx) => {
-      const shouldAvoid =
-        /devtools/i.test(ctx.id) ||
-        (ctx.url && /chrome|devtools|localhost/i.test(ctx.url));
-      return !shouldAvoid;
-    });
+    const filtered = webviews.filter(
+      (ctx) => !this.shouldAvoidWebview(ctx, dappIsLocalhost),
+    );
 
     const packageId = (await PlatformDetector.isAndroid())
       ? APP_PACKAGE_IDS.ANDROID
@@ -114,7 +194,20 @@ export default class PlaywrightContextHelpers {
     contextId: string,
   ): Promise<boolean> {
     try {
-      await getDriver().switchContext(contextId);
+      await Promise.race([
+        getDriver().switchContext(contextId),
+        new Promise<never>((_, reject) => {
+          setTimeout(
+            () =>
+              reject(
+                new Error(
+                  `switchContext("${contextId}") timed out after ${CONTEXT_SWITCH_TIMEOUT_MS}ms`,
+                ),
+              ),
+            CONTEXT_SWITCH_TIMEOUT_MS,
+          );
+        }),
+      ]);
       return true;
     } catch (err) {
       const message = this.getErrorMessage(err);
@@ -146,5 +239,15 @@ export default class PlaywrightContextHelpers {
   static async withNativeAction(actionFn: () => Promise<void>): Promise<void> {
     await this.switchToNativeContext();
     await actionFn();
+  }
+
+  /** Scroll the active dapp WebView to the top (e.g. after navigation lands mid-page). */
+  static async scrollWebViewToTop(dappUrl: string): Promise<void> {
+    await this.withWebAction(async () => {
+      await getDriver().execute(() => {
+        window.scrollTo(0, 0);
+      });
+    }, dappUrl);
+    await this.switchToNativeContext();
   }
 }

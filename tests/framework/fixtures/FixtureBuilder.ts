@@ -1532,6 +1532,15 @@ class FixtureBuilder {
   }
 
   /**
+   * Sets the active browser tab URL in persisted fixture state.
+   * Uses fallback localhost ports; Android maps them via adb reverse at runtime.
+   */
+  withBrowserActiveTabUrl(url: string) {
+    this.fixture.state.browser.tabs[0].url = url;
+    return this;
+  }
+
+  /**
    * Sets ETH as the primary currency for both currency rate controller and settings.
    * @returns - The FixtureBuilder instance for method chaining.
    */

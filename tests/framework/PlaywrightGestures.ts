@@ -522,9 +522,10 @@ export default class PlaywrightGestures {
 
     if (PlatformDetector.isAndroid()) {
       try {
-        await drv.execute('mobile: performEditorAction', [
-          { action: keyName.toLowerCase() },
-        ]);
+        // Appium expects a plain object, not an array (array becomes double-nested args).
+        await drv.execute('mobile: performEditorAction', {
+          action: keyName.toLowerCase(),
+        });
       } catch {
         await drv.hideKeyboard();
       }

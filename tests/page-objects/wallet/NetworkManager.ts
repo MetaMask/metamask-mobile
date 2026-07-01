@@ -13,6 +13,11 @@ import {
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { EncapsulatedElementType } from '../../framework';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import WalletView from './WalletView';
+import TokensFullView from './HomeSections';
 
 class NetworkManager {
   /**
@@ -164,9 +169,28 @@ class NetworkManager {
    * Tap the network by name
    */
   async tapNetwork(caipChainId: CaipChainId) {
-    const elem = this.getNetworkByCaipChainId(caipChainId);
-    await Gestures.waitAndTap(elem, {
-      elemDescription: `NetworkManager - tapping network: ${caipChainId}`,
+    await encapsulatedAction({
+      detox: async () => {
+        const elem = this.getNetworkByCaipChainId(caipChainId);
+        await Gestures.waitAndTap(elem, {
+          elemDescription: `NetworkManager - tapping network: ${caipChainId}`,
+        });
+      },
+      appium: async () => {
+        const notSelected = await asPlaywrightElement(
+          this.getNotSelectedNetworkByCaipChainId(caipChainId),
+        );
+        try {
+          await notSelected.waitForDisplayed({ timeout: 3_000 });
+          await PlaywrightGestures.tap(notSelected);
+          return;
+        } catch {
+          const selected = await asPlaywrightElement(
+            this.getSelectedNetworkByCaipChainId(caipChainId),
+          );
+          await PlaywrightGestures.tap(selected);
+        }
+      },
     });
   }
 
@@ -194,6 +218,10 @@ class NetworkManager {
    * Open the network manager
    */
   async openNetworkManager(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.openNetworkManagerButton, {
+      elemDescription: 'Network filter button (Tokens Full View)',
+      timeout: 10000,
+    });
     await Gestures.waitAndTap(this.openNetworkManagerButton, {
       elemDescription: 'Open Network Manager Button',
     });
@@ -205,13 +233,21 @@ class NetworkManager {
    * so that the network filter control bar becomes accessible.
    */
   async navigateToTokensFullView(): Promise<void> {
-    const tokensSectionHeader = Matchers.getElementByText(
-      WalletViewSelectorsText.TOKENS_SECTION,
-    );
-    await Gestures.waitAndTap(tokensSectionHeader, {
-      checkStability: true,
-      elemDescription: 'Tokens Section Header (navigate to full view)',
+    await encapsulatedAction({
+      detox: async () => {
+        const tokensSectionHeader = Matchers.getElementByText(
+          WalletViewSelectorsText.TOKENS_SECTION,
+        );
+        await Gestures.waitAndTap(tokensSectionHeader, {
+          checkStability: true,
+          elemDescription: 'Tokens Section Header (navigate to full view)',
+        });
+      },
+      appium: async () => {
+        await WalletView.tapOnNewTokensSection();
+      },
     });
+    await TokensFullView.waitForVisible();
   }
 
   /**
@@ -243,7 +279,15 @@ class NetworkManager {
    * Check if the network manager is currently visible
    */
   async isNetworkManagerVisible(): Promise<boolean> {
-    return Utilities.isElementVisible(this.networkManagerBottomSheet, 1000);
+    const popularTabVisible = await Utilities.isElementVisible(
+      this.popularNetworksTab,
+      1000,
+    );
+    if (popularTabVisible) {
+      return true;
+    }
+
+    return Utilities.isElementVisible(this.customNetworksTab, 1000);
   }
 
   /**
@@ -373,13 +417,22 @@ class NetworkManager {
   }
 
   /**
-   * Wait for network manager to be fully loaded
+   * Wait for network manager to be fully loaded.
+   * Asserts on sheet content (tabs) rather than the bottom sheet wrapper — the
+   * wrapper testID is not always exposed in the iOS accessibility tree when open.
    */
   async waitForNetworkManagerToLoad() {
-    await Assertions.expectElementToBeVisible(this.networkManagerBottomSheet, {
-      elemDescription: 'Network Manager Bottom Sheet',
-      timeout: 10000,
-    });
+    try {
+      await Assertions.expectElementToBeVisible(this.popularNetworksTab, {
+        elemDescription: 'Popular Networks Tab (network manager open)',
+        timeout: 10000,
+      });
+    } catch {
+      await Assertions.expectElementToBeVisible(this.customNetworksTab, {
+        elemDescription: 'Custom Networks Tab (network manager open)',
+        timeout: 10000,
+      });
+    }
     // Wait for bottom sheet animation to complete
     // eslint-disable-next-line no-restricted-syntax
     await TestHelpers.delay(1000); // Allow for bottom sheet slide-up animation

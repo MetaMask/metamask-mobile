@@ -4,8 +4,11 @@ import {
 } from '../../../app/components/Views/MultichainAccounts/shared/ConnectAccountBottomSheet.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import Assertions from '../../framework/Assertions';
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { CommonSelectorsIDs } from '../../../app/util/Common.testIds';
+import { PlatformDetector } from '../../framework/PlatformLocator';
 
 class ConnectBottomSheet {
   get container(): EncapsulatedElementType {
@@ -14,7 +17,7 @@ class ConnectBottomSheet {
     );
   }
   get connectButton(): EncapsulatedElementType {
-    return device.getPlatform() === 'android'
+    return PlatformDetector.isAndroid()
       ? Matchers.getElementByLabel(CommonSelectorsIDs.CONNECT_BUTTON)
       : Matchers.getElementByID(CommonSelectorsIDs.CONNECT_BUTTON);
   }
@@ -59,6 +62,12 @@ class ConnectBottomSheet {
     await Gestures.waitAndTap(this.connectButton, {
       elemDescription: 'Tap on the connect button',
     });
+    if (FrameworkDetector.isAppium()) {
+      await Assertions.expectElementToNotBeVisible(this.connectButton, {
+        description: 'Connect sheet should dismiss after tapping Connect',
+        timeout: 15000,
+      });
+    }
   }
 
   async tapConnectMultipleAccountsButton(): Promise<void> {

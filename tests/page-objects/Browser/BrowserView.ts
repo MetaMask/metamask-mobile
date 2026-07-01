@@ -11,9 +11,20 @@ import {
   getTestDappLocalUrl,
   getDappUrl,
 } from '../../framework/fixtures/FixtureUtils';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import {
+  EncapsulatedElementType,
+  encapsulated,
+  asPlaywrightElement,
+} from '../../framework/EncapsulatedElement';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
 import { Assertions, Gestures, Matchers, Utilities } from '../../framework';
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { getDriver } from '../../framework/PlaywrightUtilities';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -46,7 +57,22 @@ class Browser {
   }
 
   get browserScreenID(): EncapsulatedElementType {
-    return Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID);
+    // iOS XCUITest often reports browser-screen container as not displayed while
+    // the URL bar and WebView are visible. url-input is a reliable proxy.
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID),
+      appium: {
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            BrowserViewSelectorsIDs.URL_INPUT,
+          ),
+        android: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            BrowserViewSelectorsIDs.BROWSER_SCREEN_ID,
+          ),
+      },
+    });
   }
 
   get androidBrowserWebViewID(): EncapsulatedElementType {
@@ -142,8 +168,35 @@ class Browser {
   }
 
   async tapUrlInputBox(): Promise<void> {
-    await Gestures.waitAndTap(this.urlInputBoxID, {
-      elemDescription: 'URL input box',
+    await encapsulatedAction({
+      detox: async () => {
+        // Detox iOS checks toExist(), not toBeVisible(), so it can tap the
+        // TextInput even while opacity:0 (see Utilities.checkElementReadyState).
+        await Gestures.waitAndTap(this.urlInputBoxID, {
+          elemDescription: 'URL input box',
+        });
+      },
+      appium: async () => {
+        if (PlatformDetector.isIOS()) {
+          // iOS XCUITest cannot focus the hidden TextInput; tap the URL bar center.
+          const urlBar = await asPlaywrightElement(this.addressBar);
+          const location = await urlBar.unwrap().getLocation();
+          const size = await urlBar.unwrap().getSize();
+          await getDriver().execute('mobile: tap', {
+            x: Math.floor(location.x + size.width * 0.5),
+            y: Math.floor(location.y + size.height / 2),
+          });
+        } else {
+          // Android hides browser-modal-url-input until focused; tap the visible container.
+          await Gestures.waitAndTap(this.addressBar, {
+            elemDescription: 'URL bar container',
+          });
+        }
+        await Assertions.expectElementToBeVisible(this.cancelUrlInputButton, {
+          elemDescription: 'Cancel button (URL bar focused)',
+          timeout: 10000,
+        });
+      },
     });
   }
 
@@ -326,30 +379,46 @@ class Browser {
     url: string,
     options: { skipUrlEditorDismissal?: boolean } = {},
   ): Promise<void> {
-    await Gestures.typeText(this.urlInputBoxID, url, {
-      hideKeyboard: true,
-      elemDescription: 'URL input box',
-    });
-    // After typing the URL + "\n", `onSubmitEditing` triggers navigation but
-    // does not always blur the URL bar `TextInput` under RN 0.81 / React 19
-    // on Android. The result is that the URL editor "Cancel" button stays
-    // mounted while the navigation completes, and the right-side action
-    // buttons in the top bar (close, network/account avatar) remain hidden.
-    // Defensively tap Cancel to drop the URL bar back into its non-editing
-    // state so subsequent gestures can target those buttons.
-    //
-    // Callers can opt-out via `skipUrlEditorDismissal: true` when the
-    // dismissal would race with concurrent app work that breaks Detox sync —
-    // notably `browser-phishing.spec.ts`, where phishing detection triggers
-    // AsyncStorage v2 writes that interact badly with Detox's
-    // `AsyncStorageIdlingResource` if dismissal taps land on top of them.
-    if (!options.skipUrlEditorDismissal) {
-      if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {
-        await Gestures.waitAndTap(this.cancelUrlInputButton, {
-          elemDescription: 'Cancel URL input (dismiss URL editor)',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.typeText(this.urlInputBoxID, url, {
+          hideKeyboard: true,
+          elemDescription: 'URL input box',
         });
-      }
-    }
+        if (!options.skipUrlEditorDismissal) {
+          if (
+            await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)
+          ) {
+            await Gestures.waitAndTap(this.cancelUrlInputButton, {
+              elemDescription: 'Cancel URL input (dismiss URL editor)',
+            });
+          }
+        }
+      },
+      appium: async () => {
+        await Assertions.expectElementToBeVisible(this.urlInputBoxID, {
+          elemDescription: 'URL input box (focused)',
+          timeout: 5000,
+        });
+        const urlInput = await asPlaywrightElement(this.urlInputBoxID);
+        await urlInput.clear();
+        await urlInput.fill(url);
+        await PlaywrightGestures.tapKeyboardReturnKey('Go');
+        // Allow WebView navigation to start before dismissing the URL editor.
+        if (PlatformDetector.isAndroid()) {
+          await TestHelpers.delay(2000);
+        }
+        if (!options.skipUrlEditorDismissal) {
+          if (
+            await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)
+          ) {
+            await Gestures.waitAndTap(this.cancelUrlInputButton, {
+              elemDescription: 'Cancel URL input (dismiss URL editor)',
+            });
+          }
+        }
+      },
+    });
   }
 
   /**
@@ -363,7 +432,11 @@ class Browser {
 
   async navigateToTestDApp(): Promise<void> {
     await this.tapUrlInputBox();
-    await this.navigateToURL(getTestDappLocalUrl());
+    await this.navigateToURL(getDappUrl(0));
+    // iOS Appium only: dapp can land mid-page; Android uses native WebView context.
+    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+      await PlaywrightContextHelpers.scrollWebViewToTop(getDappUrl(0));
+    }
   }
 
   async navigateToSecondTestDApp(): Promise<void> {
