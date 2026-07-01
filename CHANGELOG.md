@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.0.1]
+
+### Added
+
+- Added a Wimbledon tab to Predict and fixed sports home/away ordering consistency in scoreboards. (#32546)
+
+### Fixed
+
+- Replaced faulty money first time deposit animation and removed parallax effect. (#32535)
+
 ## [8.0.0]
 
 ### Uncategorized
@@ -12389,7 +12399,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.0...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.1...HEAD
+[8.0.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.0...v8.0.1
 [8.0.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.82.1...v8.0.0
 [7.82.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.82.0...v7.82.1
 [7.82.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.81.2...v7.82.0
