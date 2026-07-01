@@ -36,11 +36,6 @@ const encodeSecret = (plaintext: string): string =>
 const encodeBase64Json = (value: unknown): string =>
   Buffer.from(JSON.stringify(value), 'utf-8').toString('base64');
 
-const compressAndEncode = (data: string): string => {
-  const compressed = deflate(new TextEncoder().encode(data));
-  return Buffer.from(compressed).toString('base64');
-};
-
 const createMwpDeeplink = (payload: string): string =>
   `${QR_SYNC_MWP_DEEPLINK_PREFIX}?p=${encodeURIComponent(payload)}`;
 
@@ -50,7 +45,7 @@ const createSessionRequest = (
   id: VALID_SESSION_ID,
   publicKeyB64: VALID_PUBLIC_KEY_B64,
   channel: VALID_CHANNEL,
-  mode: 'trusted',
+  mode: 'untrusted',
   expiresAt: Date.now() + 600_000,
   ...overrides,
 });
