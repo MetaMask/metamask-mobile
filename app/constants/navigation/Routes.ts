@@ -477,6 +477,7 @@ const Routes = {
       LINK_CARD_SHEET: 'MoneyLinkCardSheet',
       EARN_CRYPTO_INFO_SHEET: 'MoneyEarnCryptoInfoSheet',
       GEO_BLOCK_SHEET: 'MoneyGeoBlockSheet',
+      DEEPLINK_MODAL: 'MoneyDeeplinkModal',
     },
   },
   FULL_SCREEN_CONFIRMATIONS: {
