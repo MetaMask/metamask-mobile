@@ -961,8 +961,12 @@ describe('ManagePriceAlertsView', () => {
         asset_id: 'eip155:1/slip44:60',
         token_symbol: 'ETH',
         alert_type: 'threshold',
-        prev_state: { active: true, threshold: 3000, occurrence: 'recurring' },
-        new_state: { active: false, threshold: 3000, occurrence: 'recurring' },
+        prev_active: true,
+        prev_alert_value: 3000,
+        prev_alert_occurrence: 'recurring',
+        new_active: false,
+        new_alert_value: 3000,
+        new_alert_occurrence: 'recurring',
       });
     });
 

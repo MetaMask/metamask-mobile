@@ -278,16 +278,12 @@ const CreatePriceAlertView: React.FC = () => {
               asset_id: assetId,
               token_symbol: symbol,
               alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
-              prev_state: {
-                active: editingAlert.active,
-                threshold: editingAlert.threshold,
-                occurrence: toAlertOccurrence(editingAlert.recurring),
-              },
-              new_state: {
-                active: editingAlert.active,
-                threshold: targetPrice,
-                occurrence: toAlertOccurrence(isRecurring),
-              },
+              prev_active: editingAlert.active,
+              prev_alert_value: editingAlert.threshold,
+              prev_alert_occurrence: toAlertOccurrence(editingAlert.recurring),
+              new_active: editingAlert.active,
+              new_alert_value: targetPrice,
+              new_alert_occurrence: toAlertOccurrence(isRecurring),
             })
             .build(),
         );

@@ -273,16 +273,12 @@ const ManagePriceAlertsView: React.FC = () => {
                 asset_id: assetId,
                 token_symbol: symbol,
                 alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
-                prev_state: {
-                  active: toggled.active,
-                  threshold: toggled.threshold,
-                  occurrence: toAlertOccurrence(toggled.recurring),
-                },
-                new_state: {
-                  active: newValue,
-                  threshold: toggled.threshold,
-                  occurrence: toAlertOccurrence(toggled.recurring),
-                },
+                prev_active: toggled.active,
+                prev_alert_value: toggled.threshold,
+                prev_alert_occurrence: toAlertOccurrence(toggled.recurring),
+                new_active: newValue,
+                new_alert_value: toggled.threshold,
+                new_alert_occurrence: toAlertOccurrence(toggled.recurring),
               })
               .build(),
           );
