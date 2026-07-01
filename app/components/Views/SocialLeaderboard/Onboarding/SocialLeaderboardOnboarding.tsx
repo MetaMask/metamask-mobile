@@ -235,6 +235,13 @@ const SocialLeaderboardOnboarding: React.FC = () => {
 
   const hasCompletedRef = useRef(false);
   const lastTrackedSlideRef = useRef<string | null>(null);
+  // "Maybe later" transitions to the Notify "3.1" slide, and that transition
+  // pulses the visible button's completion trigger as the slide animates in
+  // (the Figma flow even inserts a deliberate "RIVE DB" delay here, so the pulse
+  // can arrive late — a time-based guard isn't reliable). We latch on the
+  // maybe-later tap and swallow exactly that one spurious completion pulse; the
+  // user's real "Allow notifications"/"Got it" tap afterwards still completes.
+  const swallowNextCompletionRef = useRef(false);
 
   const [, setTransitionSpeed] = useRiveNumber(
     riveRef,
@@ -452,28 +459,42 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     );
   }, [topTraders, toggleFollow, setStep]);
 
-  // Follow step (not terminal): advance to the "maybe later" Notify copy variant.
+  // Follow step (not terminal): advance to the "maybe later" Notify copy variant
+  // and arm the latch so the transition's spurious completion pulse is ignored.
   const handleMaybeLater = useCallback(() => {
     setStep(3);
+    swallowNextCompletionRef.current = true;
   }, [setStep]);
 
-  // Notify step (terminal): enable notifications, then complete the flow. Gated
-  // on being on the Notify step so an earlier button that (mis)fires this
-  // trigger can't navigate the user out early.
+  // Notify step (terminal): enable notifications, then complete the flow.
+  //
+  // Two guards prevent a premature exit:
+  // 1. Must be on the Notify step, so an earlier button that (mis)fires this
+  //    trigger can't navigate the user out early.
+  // 2. Must be the *visible* button's trigger. The Notify step shows exactly one
+  //    of "Allow notifications" / "Got it" (toggled by `allowNotificationsBoolean`),
+  //    and the state machine pulses the hidden variant's trigger when the Notify
+  //    slide animates in (notably the "3.1" / maybe-later variant) — honoring it
+  //    would boot the user to the leaderboard the instant the slide appears.
   const handleAllowNotifications = useCallback(async () => {
-    if (stepIndexRef.current < NOTIFY_STEP_INDEX) {
+    if (
+      stepIndexRef.current < NOTIFY_STEP_INDEX ||
+      !shouldPromptNotifications
+    ) {
       return;
     }
-    if (shouldPromptNotifications) {
-      const granted = await requestPushPermission();
-      enableNotificationsInBackground(granted);
-      track(
-        MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_NOTIFICATIONS_ENABLED,
-        {
-          [SocialLeaderboardEventProperties.SOURCE]: ONBOARDING_SOURCE,
-        },
-      );
+    if (swallowNextCompletionRef.current) {
+      swallowNextCompletionRef.current = false;
+      return;
     }
+    const granted = await requestPushPermission();
+    enableNotificationsInBackground(granted);
+    track(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_NOTIFICATIONS_ENABLED,
+      {
+        [SocialLeaderboardEventProperties.SOURCE]: ONBOARDING_SOURCE,
+      },
+    );
     goToLeaderboard();
   }, [
     shouldPromptNotifications,
@@ -484,13 +505,18 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   ]);
 
   // Notify step (terminal): notifications already enabled, just complete. Same
-  // Notify-step gate as `handleAllowNotifications`.
+  // guards as `handleAllowNotifications` — "Got it" is only the visible button
+  // when we no longer need to prompt.
   const handleGotIt = useCallback(() => {
-    if (stepIndexRef.current < NOTIFY_STEP_INDEX) {
+    if (stepIndexRef.current < NOTIFY_STEP_INDEX || shouldPromptNotifications) {
+      return;
+    }
+    if (swallowNextCompletionRef.current) {
+      swallowNextCompletionRef.current = false;
       return;
     }
     goToLeaderboard();
-  }, [goToLeaderboard]);
+  }, [shouldPromptNotifications, goToLeaderboard]);
 
   // Rive owns navigation; RN observes the triggers to track the current step and
   // run each button's side effect. Completion is gated on the Notify step above.
@@ -576,7 +602,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       )}
       {/* Title + description overlay. */}
       <View
-        style={[styles.textOverlay, { top: insets.top + 24 }]}
+        style={[styles.textOverlay, { top: insets.top + 48 }]}
         pointerEvents="none"
       >
         <Text

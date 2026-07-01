@@ -510,6 +510,8 @@ describe('SocialLeaderboardOnboarding', () => {
   });
 
   it('completes only once even if a terminal trigger fires twice', async () => {
+    mockIsNotificationsEnabled = true;
+    mockIsPushEnabled = true;
     renderComponent();
 
     await advanceToNotifyStep();
@@ -517,6 +519,51 @@ describe('SocialLeaderboardOnboarding', () => {
     await fireTrigger(RIVE_TRIGGERS.GOT_IT);
 
     expect(mockDispatch).toHaveBeenCalledTimes(1);
+  });
+
+  it('swallows the completion pulse from the maybe-later transition, then completes on the real tap', async () => {
+    // "Maybe later" advances to the Notify "3.1" slide, whose transition pulses
+    // the visible completion trigger as it animates in. That first pulse must be
+    // ignored; the user's subsequent real tap must still complete the flow.
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.NEXT);
+    await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
+
+    // Spurious entry pulse of the visible "Allow notifications" trigger.
+    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
+    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockTrack).not.toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
+      expect.anything(),
+    );
+
+    // The user's real tap afterwards completes the flow.
+    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+    );
+  });
+
+  it('still ignores the hidden Notify button trigger on the maybe-later slide', async () => {
+    // Prompting is needed, so "Got it" is the hidden variant; its trigger must
+    // never complete regardless of the latch.
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.NEXT);
+    await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
+
+    expect(mockDispatch).not.toHaveBeenCalled();
+
+    // The latch is still armed, so the visible trigger's entry pulse is swallowed
+    // and only the real tap completes.
+    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
+    expect(mockDispatch).not.toHaveBeenCalled();
+    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+    );
   });
 
   it('dismisses to wallet and marks seen on the close trigger', async () => {
