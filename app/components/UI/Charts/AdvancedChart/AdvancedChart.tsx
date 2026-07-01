@@ -693,7 +693,12 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         return;
       }
 
-      if (visibleRangeChanged) {
+      // SocialLeaderboard only: when the requested viewport (visibleFromMs/To)
+      // changes without a series-key change, resend the full series so the WebView
+      // re-frames on the trades. Gated behind slbMode so other consumers (e.g.
+      // Perps) keep their stable latest-N-candle viewport + REALTIME_UPDATE path
+      // and never take a full-data resend on a visible-range-only change.
+      if (slbModeRef.current && visibleRangeChanged) {
         beginFullOhlcvLayoutSettle();
         sendOHLCVData(ohlcvData);
         prevOhlcvDataRef.current = ohlcvData;
