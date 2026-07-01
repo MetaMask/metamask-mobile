@@ -33,8 +33,8 @@ import DeveloperOptions from '../../Views/Settings/DeveloperOptions';
 import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
-import KYCDemo from '../../Views/KYCDemo';
-import MoonpayDemo from '../../Views/MoonpayDemo';
+// import SumSubDemo from '../../Views/SumSubDemo';
+// import MoonpayDemo from '../../Views/MoonpayDemo';
 import AssetDetails from '../../Views/AssetDetails';
 import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
@@ -183,6 +183,7 @@ import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
 import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
+import KYCDemo from '../../Views/KYCDemo';
 
 const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -1391,11 +1392,6 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.KYC_DEMO}
         component={KYCDemo}
-        options={{ headerShown: false, ...slideFromRightNativeOptions }}
-      />
-      <NativeStack.Screen
-        name={Routes.MOONPAY_DEMO}
-        component={MoonpayDemo}
         options={{ headerShown: false, ...slideFromRightNativeOptions }}
       />
       <NativeStack.Screen

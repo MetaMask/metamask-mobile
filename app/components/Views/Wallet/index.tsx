@@ -1069,12 +1069,12 @@ const Wallet = ({
     <HomepageDiscoveryPills iconStyle={discoveryPillsIconStyle} />
   ) : null;
 
+  // const handleSumSubDemoPress = useCallback(() => {
+  //   navigation.navigate(Routes.SUMSUB_DEMO);
+  // }, [navigation]);
+
   const handleKYCDemoPress = useCallback(() => {
     navigation.navigate(Routes.KYC_DEMO);
-  }, [navigation]);
-
-  const handleMoonpayDemoPress = useCallback(() => {
-    navigation.navigate(Routes.MOONPAY_DEMO);
   }, [navigation]);
 
   const portfolioHeaderBase = (
@@ -1094,13 +1094,6 @@ const Wallet = ({
           onPress={handleKYCDemoPress}
         >
           KYC Demo
-        </DSButton>
-        <DSButton
-          variant={DSButtonVariant.Secondary}
-          size={DSButtonSize.Md}
-          onPress={handleMoonpayDemoPress}
-        >
-          Moonpay Demo
         </DSButton>
       </View>
     </View>
@@ -1125,13 +1118,6 @@ const Wallet = ({
           onPress={handleKYCDemoPress}
         >
           KYC Demo
-        </DSButton>
-        <DSButton
-          variant={DSButtonVariant.Secondary}
-          size={DSButtonSize.Md}
-          onPress={handleMoonpayDemoPress}
-        >
-          Moonpay Demo
         </DSButton>
       </View>
     </View>
