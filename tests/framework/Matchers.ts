@@ -3,6 +3,7 @@ import { type EncapsulatedElementType } from './EncapsulatedElement.ts';
 import { FrameworkDetector } from './FrameworkDetector.ts';
 import { resolve } from './Selector.ts';
 import PlaywrightMatchers from './PlaywrightMatchers.ts';
+import PlaywrightWebMatchers from './PlaywrightWebMatchers.ts';
 import type { PlaywrightElement } from './PlaywrightAdapter.ts';
 import type { ScrollContainer } from './types.ts';
 
@@ -135,7 +136,11 @@ export default class Matchers {
   static async getElementByWebID(
     webviewID: string,
     innerID: string,
-  ): WebElement {
+    pageUrl?: string,
+  ): Promise<WebElement | PlaywrightElement> {
+    if (FrameworkDetector.isAppium()) {
+      return PlaywrightWebMatchers.getElementByWebID(innerID, pageUrl);
+    }
     const myWebView = this.getWebViewByID(webviewID);
     return myWebView.element(by.web.id(innerID));
   }
@@ -159,7 +164,11 @@ export default class Matchers {
   static async getElementByXPath(
     webviewID: string,
     xpath: string,
-  ): Promise<DetoxElement | WebElement> {
+    pageUrl?: string,
+  ): Promise<DetoxElement | WebElement | PlaywrightElement> {
+    if (FrameworkDetector.isAppium()) {
+      return PlaywrightWebMatchers.getElementByXPath(xpath, pageUrl);
+    }
     const myWebView = this.getWebViewByID(webviewID);
     return myWebView.element(by.web.xpath(xpath));
   }

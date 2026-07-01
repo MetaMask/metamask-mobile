@@ -11,9 +11,18 @@ import {
   getTestDappLocalUrl,
   getDappUrl,
 } from '../../framework/fixtures/FixtureUtils';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import {
+  EncapsulatedElementType,
+  asPlaywrightElement,
+} from '../../framework/EncapsulatedElement';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
 import { Assertions, Gestures, Matchers, Utilities } from '../../framework';
+import { setActiveBrowserUrl } from '../../framework/ActiveBrowserUrl';
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { PlatformDetector } from '../../framework/PlatformLocator';
+import { getDriver } from '../../framework/PlaywrightUtilities';
+import { sleep } from '../../framework/Utilities';
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -142,9 +151,58 @@ class Browser {
   }
 
   async tapUrlInputBox(): Promise<void> {
+    if (FrameworkDetector.isAppium()) {
+      // Appium navigates via dapp:// deeplink in navigateToURL (URL bar is unreliable).
+      return;
+    }
+
     await Gestures.waitAndTap(this.urlInputBoxID, {
       elemDescription: 'URL input box',
     });
+  }
+
+  /**
+   * iOS release builds hide the URL TextInput until focused (opacity: 0).
+   * Double-tap the url-input container, then wait for the focused editor UI.
+   */
+  private async focusUrlBarAppium(): Promise<void> {
+    const isFocused = await Utilities.isElementVisible(
+      this.cancelUrlInputButton,
+      500,
+    );
+    if (!isFocused) {
+      const urlBar = await asPlaywrightElement(this.addressBar);
+      await PlaywrightGestures.dblTap(urlBar);
+    }
+
+    await Assertions.expectElementToBeVisible(this.cancelUrlInputButton, {
+      timeout: 15_000,
+      description: 'URL bar focused (cancel button visible)',
+    });
+
+    await Assertions.expectElementToBeVisible(this.urlInputBoxID, {
+      timeout: 5_000,
+      description: 'URL text input visible when focused',
+    });
+  }
+
+  /**
+   * Opens a URL via the in-app dapp:// deeplink handler (bypasses the URL bar).
+   * Reliable on Appium where the URL TextInput is often not exposed.
+   */
+  private async navigateToUrlViaDeeplink(url: string): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    const hostAndPath = url.replace(/^https?:\/\//, '');
+    const deeplink = `dapp://${hostAndPath}`;
+
+    await drv.execute('mobile: deepLink', { url: deeplink });
+    await sleep(3_000);
+  }
+
+  private async typeUrlAppium(url: string): Promise<void> {
+    await this.navigateToUrlViaDeeplink(url);
   }
 
   async tapLocalHostDefaultAvatar(): Promise<void> {
@@ -326,10 +384,15 @@ class Browser {
     url: string,
     options: { skipUrlEditorDismissal?: boolean } = {},
   ): Promise<void> {
-    await Gestures.typeText(this.urlInputBoxID, url, {
-      hideKeyboard: true,
-      elemDescription: 'URL input box',
-    });
+    if (FrameworkDetector.isAppium()) {
+      setActiveBrowserUrl(url);
+      await this.typeUrlAppium(url);
+    } else {
+      await Gestures.typeText(this.urlInputBoxID, url, {
+        hideKeyboard: true,
+        elemDescription: 'URL input box',
+      });
+    }
     // After typing the URL + "\n", `onSubmitEditing` triggers navigation but
     // does not always blur the URL bar `TextInput` under RN 0.81 / React 19
     // on Android. The result is that the URL editor "Cancel" button stays
