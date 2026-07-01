@@ -9,6 +9,7 @@ import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import TrendingView from '../page-objects/Trending/TrendingView';
 import { FrameworkDetector } from '../framework/FrameworkDetector';
 import PlaywrightWebMatchers from '../framework/PlaywrightWebMatchers';
+import { TEST_SNAPS_URL } from '../selectors/Browser/TestSnaps.selectors';
 
 /**
  * Waits for the test dapp to load.
@@ -63,11 +64,15 @@ export const waitForTestSnapsToLoad = async (): Promise<void> => {
           await Matchers.getElementByWebID(
             BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
             'root',
+            TEST_SNAPS_URL,
           ),
         );
 
       if (FrameworkDetector.isAppium()) {
-        await PlaywrightWebMatchers.withWebViewAction(assertLoaded);
+        await PlaywrightWebMatchers.withWebViewAction(
+          TEST_SNAPS_URL,
+          assertLoaded,
+        );
       } else {
         await assertLoaded();
       }

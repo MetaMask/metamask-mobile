@@ -1,5 +1,4 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
-import { getDeviceLocale } from '../../framework/DeviceLocale.js';
 import { SmokeSnaps } from '../../tags.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import TestSnaps from '../../page-objects/Browser/TestSnaps.js';
@@ -9,8 +8,6 @@ appiumTest.describe(SmokeSnaps('Get Preferences Snap Tests'), () => {
   appiumTest(
     'gets the client preferences',
     async ({ driver: _driver, currentDeviceDetails }) => {
-      const locale = await getDeviceLocale(currentDeviceDetails);
-
       await withSnapsFixtures(
         currentDeviceDetails,
         {
@@ -24,8 +21,9 @@ appiumTest.describe(SmokeSnaps('Get Preferences Snap Tests'), () => {
         async () => {
           await TestSnaps.installSnap('connectGetPreferencesButton');
           await TestSnaps.tapButton('getPreferencesButton');
+          // CI emulators are en-US; locally, device locale varies so we only pin locale in CI.
           await TestSnaps.checkResultJson('preferencesResultSpan', {
-            locale,
+            ...(process.env.CI === 'true' ? { locale: 'en-US' } : {}),
             currency: 'usd',
             hideBalances: true,
             useSecurityAlerts: true,

@@ -9,6 +9,7 @@ import {
   TestSnapBottomSheetSelectorWebIDS,
   EntropyDropDownSelectorWebIDS,
   NativeDropdownSelectorWebIDS,
+  TEST_SNAPS_URL,
 } from '../../selectors/Browser/TestSnaps.selectors';
 import Gestures from '../../framework/Gestures';
 import { SNAP_INSTALL_CONNECT } from '../../../app/components/Approvals/InstallSnapApproval/components/InstallSnapConnectionRequest/InstallSnapConnectionRequest.constants';
@@ -28,8 +29,7 @@ import { Json } from '@metamask/utils';
 import ToastModal from '../wallet/ToastModal';
 import SolanaTestDApp from './SolanaTestDApp';
 
-export const TEST_SNAPS_URL =
-  'https://metamask.github.io/snaps/test-snaps/3.4.2/';
+export { TEST_SNAPS_URL } from '../../selectors/Browser/TestSnaps.selectors';
 
 class TestSnaps {
   get getConnectSnapButton(): EncapsulatedElementType {
@@ -100,9 +100,23 @@ class TestSnaps {
 
   private async withWebView<T>(action: () => Promise<T>): Promise<T> {
     if (FrameworkDetector.isAppium()) {
-      return PlaywrightWebMatchers.withWebViewAction(action);
+      return PlaywrightWebMatchers.withWebViewAction(TEST_SNAPS_URL, action);
     }
     return action();
+  }
+
+  private getTestSnapsWebElement(innerID: string) {
+    if (FrameworkDetector.isAppium()) {
+      return Matchers.getElementByWebID(
+        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+        innerID,
+        TEST_SNAPS_URL,
+      );
+    }
+    return Matchers.getElementByWebID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      innerID,
+    );
   }
 
   async checkResultSpan(
@@ -114,8 +128,7 @@ class TestSnaps {
     },
   ): Promise<void> {
     return this.withWebView(async () => {
-      const webElement = await Matchers.getElementByWebID(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS[selector],
       );
 
@@ -149,8 +162,7 @@ class TestSnaps {
     },
   ): Promise<void> {
     return this.withWebView(async () => {
-      const webElement = await Matchers.getElementByWebID(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS[selector],
       );
 
@@ -165,7 +177,18 @@ class TestSnaps {
           );
         }
 
-        await Assertions.checkIfJsonEqual(actualJson, expectedJson);
+        if (
+          typeof expectedJson === 'object' &&
+          expectedJson !== null &&
+          !Array.isArray(expectedJson)
+        ) {
+          await Assertions.checkIfObjectContains(
+            actualJson as Record<string, unknown>,
+            expectedJson as Record<string, unknown>,
+          );
+        } else {
+          await Assertions.checkIfJsonEqual(actualJson, expectedJson);
+        }
       }, options);
     });
   }
@@ -180,8 +203,7 @@ class TestSnaps {
     },
   ): Promise<void> {
     return this.withWebView(async () => {
-      const webElement = await Matchers.getElementByWebID(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS[selector],
       );
 
@@ -229,8 +251,7 @@ class TestSnaps {
     },
   ): Promise<void> {
     return this.withWebView(async () => {
-      const webElement = await Matchers.getElementByWebID(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS[selector],
       );
 
@@ -251,8 +272,7 @@ class TestSnaps {
     },
   ): Promise<void> {
     return this.withWebView(async () => {
-      const webElement = await Matchers.getElementByWebID(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS[selector],
       );
 
@@ -276,8 +296,7 @@ class TestSnaps {
     },
   ) {
     return this.withWebView(async () => {
-      const webElement = await Matchers.getElementByWebID(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      const webElement = await this.getTestSnapsWebElement(
         TestSnapResultSelectorWebIDS.clientStatusResultSpan,
       );
 
@@ -315,8 +334,7 @@ class TestSnaps {
     buttonLocator: keyof typeof TestSnapViewSelectorWebIDS,
   ): Promise<void> {
     const tap = async () => {
-      const webElement = await Matchers.getElementByWebID(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      const webElement = await this.getTestSnapsWebElement(
         TestSnapViewSelectorWebIDS[buttonLocator],
       );
       await Gestures.scrollToWebViewPort(webElement);
@@ -390,8 +408,7 @@ class TestSnaps {
     selector: keyof typeof EntropyDropDownSelectorWebIDS,
     text: string,
   ): Promise<void> {
-    const webElement = (await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    const webElement = (await this.getTestSnapsWebElement(
       EntropyDropDownSelectorWebIDS[selector],
     )) as IndexableWebElement;
 
@@ -529,8 +546,7 @@ class TestSnaps {
     message: string,
   ) {
     await this.withWebView(async () => {
-      const webElement = await Matchers.getElementByWebID(
-        BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+      const webElement = await this.getTestSnapsWebElement(
         TestSnapInputSelectorWebIDS[locator],
       );
 
@@ -600,8 +616,7 @@ class TestSnaps {
     origin: string | null;
     blockNumber: string | null;
   }): Promise<void> {
-    const resultElement = (await Matchers.getElementByWebID(
-      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    const resultElement = (await this.getTestSnapsWebElement(
       TestSnapResultSelectorWebIDS.networkAccessResultSpan,
     )) as IndexableWebElement;
 

@@ -1,9 +1,5 @@
 import PlaywrightContextHelpers from './PlaywrightContextHelpers.ts';
 import { wrapElement, type PlaywrightElement } from './PlaywrightAdapter.ts';
-import {
-  getActiveBrowserUrl,
-  getWebViewUrlFragment,
-} from './ActiveBrowserUrl.ts';
 import { getDriver } from './PlaywrightUtilities.ts';
 import { createPlaywrightLogger } from './playwrightLogger.ts';
 
@@ -11,27 +7,35 @@ const logger = createPlaywrightLogger('PlaywrightWebMatchers');
 
 /**
  * Appium WebView element locators. Switches into the browser WebView context
- * using the active browser URL before querying DOM selectors.
+ * for the given page URL before querying DOM selectors.
  */
 export default class PlaywrightWebMatchers {
-  private static async ensureWebViewContext(pageUrl?: string): Promise<void> {
-    const url = pageUrl ?? getActiveBrowserUrl();
-    const fragment = getWebViewUrlFragment(url);
+  private static getWebViewUrlFragment(url: string): string {
+    try {
+      const parsed = new URL(url);
+      return `${parsed.host}${parsed.pathname}`;
+    } catch {
+      return url;
+    }
+  }
+
+  private static async ensureWebViewContext(pageUrl: string): Promise<void> {
+    const fragment = this.getWebViewUrlFragment(pageUrl);
     logger.debug(`Ensuring WebView context for: ${fragment}`);
     await PlaywrightContextHelpers.switchToWebViewContext(fragment);
   }
 
   static async getElementByWebID(
     innerID: string,
-    pageUrl?: string,
+    pageUrl: string,
   ): Promise<PlaywrightElement> {
     await this.ensureWebViewContext(pageUrl);
     return this.findElementByWebID(innerID);
   }
 
   static async withWebViewAction<T>(
+    pageUrl: string,
     action: () => Promise<T>,
-    pageUrl?: string,
   ): Promise<T> {
     await this.ensureWebViewContext(pageUrl);
     try {
@@ -54,7 +58,7 @@ export default class PlaywrightWebMatchers {
 
   static async getElementByXPath(
     xpath: string,
-    pageUrl?: string,
+    pageUrl: string,
   ): Promise<PlaywrightElement> {
     await this.ensureWebViewContext(pageUrl);
     const drv = getDriver();

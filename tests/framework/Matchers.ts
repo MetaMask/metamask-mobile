@@ -139,6 +139,11 @@ export default class Matchers {
     pageUrl?: string,
   ): Promise<WebElement | PlaywrightElement> {
     if (FrameworkDetector.isAppium()) {
+      if (!pageUrl) {
+        throw new Error(
+          'pageUrl is required for Appium WebView element lookup via getElementByWebID',
+        );
+      }
       return PlaywrightWebMatchers.getElementByWebID(innerID, pageUrl);
     }
     const myWebView = this.getWebViewByID(webviewID);
@@ -167,6 +172,11 @@ export default class Matchers {
     pageUrl?: string,
   ): Promise<DetoxElement | WebElement | PlaywrightElement> {
     if (FrameworkDetector.isAppium()) {
+      if (!pageUrl) {
+        throw new Error(
+          'pageUrl is required for Appium WebView element lookup via getElementByXPath',
+        );
+      }
       return PlaywrightWebMatchers.getElementByXPath(xpath, pageUrl);
     }
     const myWebView = this.getWebViewByID(webviewID);
