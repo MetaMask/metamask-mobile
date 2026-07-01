@@ -338,7 +338,7 @@ describe('BridgeViewFooter', () => {
       await waitFor(() => {
         expect(
           getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
-        ).toHaveTextContent('Includes 0.575% MetaMask fee.');
+        ).toHaveTextContent('Includes 0.575% MetaMask fee');
       });
     });
 
@@ -396,7 +396,7 @@ describe('BridgeViewFooter', () => {
           expect(
             getByTestId(BridgeViewSelectorsIDs.FEE_DISCLAIMER),
           ).toHaveTextContent(
-            `${expectedBadgeLabel ?? ''}Includes0.9%0.575% MM fee.`,
+            `${expectedBadgeLabel ?? ''}0.9%0.575% MetaMask fee`,
           );
         });
       },
