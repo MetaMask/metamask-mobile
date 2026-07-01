@@ -4,6 +4,8 @@ import type {
 } from '@metamask/base-controller';
 import type { Messenger } from '@metamask/messenger';
 
+import type { EntropySourceId } from '@metamask/keyring-api';
+
 import type {
   QrSyncProvisioningMetadata,
   QrSyncProvisioningStatus,
@@ -13,6 +15,11 @@ import type {
   QrSyncOtpDisplay,
   QrSyncPhase,
 } from './types';
+
+/** Runtime IDs written to persisted metadata after vault import (Phase B). */
+export type QrSyncProvisioningEntryEnrichment =
+  | { entropySource: EntropySourceId }
+  | { accountAddress: string };
 
 export const QR_SYNC_CONTROLLER_NAME = 'QrSyncController';
 
@@ -31,6 +38,21 @@ export type QrSyncControllerState = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncControllerEnrichProvisioningEntryAction = {
+  type: `${typeof QR_SYNC_CONTROLLER_NAME}:enrichProvisioningEntry`;
+  handler: (
+    index: number,
+    enrichment: QrSyncProvisioningEntryEnrichment,
+  ) => void;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncControllerFinalizeSecretImportAction = {
+  type: `${typeof QR_SYNC_CONTROLLER_NAME}:finalizeSecretImport`;
+  handler: () => void;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type QrSyncControllerCompleteSecretImportAction = {
   type: `${typeof QR_SYNC_CONTROLLER_NAME}:completeSecretImport`;
   handler: (enrichedMetadata: QrSyncProvisioningMetadata) => void;
@@ -42,6 +64,12 @@ export type QrSyncControllerMarkProvisioningFailedAction = {
   handler: () => void;
 };
 
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncControllerCompleteProvisioningAction = {
+  type: `${typeof QR_SYNC_CONTROLLER_NAME}:completeProvisioning`;
+  handler: () => void;
+};
+
 export type QrSyncControllerGetStateAction = ControllerGetStateAction<
   typeof QR_SYNC_CONTROLLER_NAME,
   QrSyncControllerState
@@ -50,8 +78,11 @@ export type QrSyncControllerGetStateAction = ControllerGetStateAction<
 /** Controller-local actions exposed by the QR sync controller namespace. */
 export type QrSyncControllerActions =
   | QrSyncControllerGetStateAction
+  | QrSyncControllerEnrichProvisioningEntryAction
+  | QrSyncControllerFinalizeSecretImportAction
   | QrSyncControllerCompleteSecretImportAction
-  | QrSyncControllerMarkProvisioningFailedAction;
+  | QrSyncControllerMarkProvisioningFailedAction
+  | QrSyncControllerCompleteProvisioningAction;
 
 /** Controller-local events emitted by the QR sync controller namespace. */
 export type QrSyncControllerEvents = ControllerStateChangeEvent<

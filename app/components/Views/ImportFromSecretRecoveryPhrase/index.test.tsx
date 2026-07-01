@@ -33,19 +33,6 @@ import type { Span } from '@sentry/core';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import { QrSyncSecretTypes } from '../../../core/QrSync/constants';
 
-const mockQrSyncResetState = jest.fn();
-
-jest.mock('../../../core/Engine', () => ({
-  __esModule: true,
-  default: {
-    context: {
-      QrSyncController: {
-        resetState: () => mockQrSyncResetState(),
-      },
-    },
-  },
-}));
-
 jest.mock('react-native/Libraries/Components/Keyboard/Keyboard', () => {
   const keyboard = {
     dismiss: jest.fn(),
@@ -1310,14 +1297,16 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       ).toBeNull();
     });
 
-    it('clears QR sync secrets after a successful vault import', async () => {
+    it('preserves QR sync provisioning state after a successful vault import', async () => {
       jest
         .spyOn(Authentication, 'componentAuthenticationType')
         .mockResolvedValueOnce({
           currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC,
           availableBiometryType: BIOMETRY_TYPE.FACE_ID,
         });
-      jest.spyOn(Authentication, 'newWalletAndRestore').mockResolvedValueOnce();
+      const newWalletAndRestoreSpy = jest
+        .spyOn(Authentication, 'newWalletAndRestore')
+        .mockResolvedValueOnce();
 
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
@@ -1344,7 +1333,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(getByTestId(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID));
 
       await waitFor(() => {
-        expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
+        expect(newWalletAndRestoreSpy).toHaveBeenCalledTimes(1);
       });
     });
   });

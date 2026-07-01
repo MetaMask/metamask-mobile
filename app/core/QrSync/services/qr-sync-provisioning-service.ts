@@ -1,46 +1,68 @@
-import type { EntropySourceId } from '@metamask/keyring-api';
-import {
-  KeyringControllerGetStateAction,
-  KeyringTypes,
-  type KeyringControllerState,
-} from '@metamask/keyring-controller';
-import type { Messenger } from '@metamask/messenger';
-import { KeyringType } from '@metamask/keyring-api/v2';
-
-import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
-import { Authentication } from '../..';
 import type {
-  QrSyncControllerCompleteSecretImportAction,
+  AccountId,
+  AccountsControllerGetAccountByAddressAction,
+} from '@metamask/accounts-controller';
+import {
+  AccountGroupType,
+  AccountWalletType,
+  MultichainAccountWalletId,
+  toMultichainAccountGroupId,
+  type AccountGroupId,
+} from '@metamask/account-api';
+import type { EntropySourceId } from '@metamask/keyring-api';
+import type { Messenger } from '@metamask/messenger';
+import type {
+  AccountTreeControllerGetAccountWalletObjectsAction,
+  AccountTreeControllerSetAccountGroupHiddenAction,
+  AccountTreeControllerSetAccountGroupNameAction,
+  AccountTreeControllerSetAccountGroupPinnedAction,
+  AccountTreeControllerSetAccountWalletNameAction,
+  AccountWalletObject,
+} from '@metamask/account-tree-controller';
+import type {
+  MultichainAccountServiceAlignWalletAction,
+  MultichainAccountServiceCreateMultichainAccountGroupAction,
+  MultichainAccountServiceCreateMultichainAccountGroupsAction,
+} from '@metamask/multichain-account-service';
+
+import type {
+  QrSyncControllerCompleteProvisioningAction,
   QrSyncControllerGetStateAction,
   QrSyncControllerMarkProvisioningFailedAction,
-  QrSyncControllerState,
 } from '../controller-types';
 import { QrSyncSecretTypes } from '../constants';
 import type {
-  QrSyncProvisioningEntry,
+  QrSyncAccountGroup,
   QrSyncProvisioningMetadata,
   QrSyncProvisioningMnemonicEntry,
   QrSyncProvisioningPrivateKeyEntry,
-  QrSyncSecretImportEntry,
 } from '../types';
 import { toFormattedAddress } from '../../../util/address';
 
 const SERVICE_NAME = 'QrSyncProvisioningService' as const;
 
-export interface QrSyncProvisioningServiceImportRemainingSecretsAction {
-  type: `${typeof SERVICE_NAME}:importRemainingSecrets`;
-  handler: QrSyncProvisioningService['importRemainingSecrets'];
+export interface QrSyncProvisioningServiceProvisionFromMetadataAction {
+  type: `${typeof SERVICE_NAME}:provisionFromMetadata`;
+  handler: QrSyncProvisioningService['provisionFromMetadata'];
 }
 
 export type QrSyncProvisioningServiceActions =
-  QrSyncProvisioningServiceImportRemainingSecretsAction;
+  QrSyncProvisioningServiceProvisionFromMetadataAction;
 
 type QrSyncProvisioningServiceAllowedActions =
   | QrSyncProvisioningServiceActions
   | QrSyncControllerGetStateAction
-  | QrSyncControllerCompleteSecretImportAction
   | QrSyncControllerMarkProvisioningFailedAction
-  | KeyringControllerGetStateAction;
+  | QrSyncControllerCompleteProvisioningAction
+  | MultichainAccountServiceCreateMultichainAccountGroupAction
+  | MultichainAccountServiceCreateMultichainAccountGroupsAction
+  | MultichainAccountServiceAlignWalletAction
+  | AccountTreeControllerGetAccountWalletObjectsAction
+  | AccountTreeControllerSetAccountWalletNameAction
+  | AccountTreeControllerSetAccountGroupNameAction
+  | AccountTreeControllerSetAccountGroupPinnedAction
+  | AccountTreeControllerSetAccountGroupHiddenAction
+  | AccountsControllerGetAccountByAddressAction;
 
 export type QrSyncProvisioningServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -48,82 +70,9 @@ export type QrSyncProvisioningServiceMessenger = Messenger<
   never
 >;
 
-function assertProvisioningPreconditions(
-  provisioningStatus: string | null,
-  pendingSecretImports: QrSyncSecretImportEntry[] | null,
-  provisioningMetadata: QrSyncProvisioningMetadata | null,
-): asserts provisioningMetadata is QrSyncProvisioningMetadata {
-  if (provisioningStatus !== 'awaiting_password') {
-    throw new Error(
-      'QR sync provisioning requires provisioningStatus awaiting_password',
-    );
-  }
-
-  if (!pendingSecretImports || pendingSecretImports.length === 0) {
-    throw new Error('QR sync provisioning requires pending secret imports');
-  }
-
-  if (!provisioningMetadata) {
-    throw new Error('QR sync provisioning requires provisioning metadata');
-  }
-}
-
-function getValidatedPendingSecrets(
-  pendingSecretImports: QrSyncSecretImportEntry[] | null,
-): QrSyncSecretImportEntry[] {
-  if (!pendingSecretImports || pendingSecretImports.length === 0) {
-    throw new Error('QR sync provisioning requires pending secret imports');
-  }
-
-  return pendingSecretImports;
-}
-
-function cloneProvisioningMetadata(
-  metadata: QrSyncProvisioningMetadata,
-): QrSyncProvisioningMetadata {
-  return {
-    version: metadata.version,
-    entries: metadata.entries.map((entry) => ({ ...entry })),
-  };
-}
-
-function setMnemonicEntropySource(
-  entries: QrSyncProvisioningEntry[],
-  index: number,
-  entropySource: EntropySourceId,
-): QrSyncProvisioningEntry[] {
-  return entries.map((entry) => {
-    if (entry.index !== index || entry.type !== QrSyncSecretTypes.MNEMONIC) {
-      return entry;
-    }
-
-    return {
-      ...entry,
-      entropySource,
-    } satisfies QrSyncProvisioningMnemonicEntry;
-  });
-}
-
-function setPrivateKeyAccountAddress(
-  entries: QrSyncProvisioningEntry[],
-  index: number,
-  accountAddress: string,
-): QrSyncProvisioningEntry[] {
-  return entries.map((entry) => {
-    if (entry.index !== index || entry.type !== QrSyncSecretTypes.PRIVATE_KEY) {
-      return entry;
-    }
-
-    return {
-      ...entry,
-      accountAddress,
-    } satisfies QrSyncProvisioningPrivateKeyEntry;
-  });
-}
-
 /**
- * Service that imports QR sync secrets after primary mnemonic restore and
- * enriches persisted provisioning metadata via controller messengers.
+ * Applies extension provisioning metadata to the account tree after secrets
+ * are imported into the vault (Phase C).
  */
 export class QrSyncProvisioningService {
   readonly name: typeof SERVICE_NAME = SERVICE_NAME;
@@ -137,166 +86,246 @@ export class QrSyncProvisioningService {
   }) {
     this.#messenger = messenger;
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:importRemainingSecrets`,
-      this.importRemainingSecrets.bind(this),
+      `${SERVICE_NAME}:provisionFromMetadata`,
+      this.provisionFromMetadata.bind(this),
     );
   }
 
   /**
-   * Imports QR sync secrets that remain after primary mnemonic restore, enriches
-   * persisted provisioning metadata with runtime IDs, and clears ephemeral secrets.
+   * Creates explicit account groups and applies extension metadata after secrets
+   * are imported into the vault.
    */
-  async importRemainingSecrets(): Promise<void> {
-    const { pendingSecretImports, provisioningMetadata, provisioningStatus } =
+  async provisionFromMetadata(): Promise<void> {
+    const { provisioningMetadata, provisioningStatus } =
       this.#getQrSyncControllerState();
 
-    assertProvisioningPreconditions(
+    this.#assertMetadataProvisioningPreconditions(
       provisioningStatus,
-      pendingSecretImports,
       provisioningMetadata,
     );
 
-    let enrichedMetadata = cloneProvisioningMetadata(provisioningMetadata);
-    const sortedSecrets = [
-      ...getValidatedPendingSecrets(pendingSecretImports),
-    ].sort((left, right) => left.index - right.index);
-
     try {
-      for (const secretEntry of sortedSecrets) {
-        if (
-          secretEntry.type === QrSyncSecretTypes.MNEMONIC &&
-          secretEntry.isPrimary
-        ) {
-          enrichedMetadata = {
-            ...enrichedMetadata,
-            entries: setMnemonicEntropySource(
-              enrichedMetadata.entries,
-              secretEntry.index,
-              this.#getPrimaryEntropySourceId(),
-            ),
-          };
-          continue;
+      const sortedEntries = [...provisioningMetadata.entries].sort(
+        (left, right) => left.index - right.index,
+      );
+      for (const entry of sortedEntries) {
+        if (entry.type === QrSyncSecretTypes.MNEMONIC) {
+          await this.#provisionMnemonicEntry(entry);
+        } else {
+          this.#provisionPrivateKeyEntry(entry);
         }
-
-        if (secretEntry.type === QrSyncSecretTypes.MNEMONIC) {
-          const { address } = await importNewSecretRecoveryPhrase(
-            secretEntry.value,
-            { shouldSelectAccount: false, skipDiscovery: true },
-          );
-          enrichedMetadata = {
-            ...enrichedMetadata,
-            entries: setMnemonicEntropySource(
-              enrichedMetadata.entries,
-              secretEntry.index,
-              this.#getEntropySourceForAccountAddress(address),
-            ),
-          };
-          continue;
-        }
-
-        const accountsBeforeImport = this.#getKeyringAccountAddresses();
-        const importSucceeded =
-          await Authentication.importAccountFromPrivateKey(secretEntry.value, {
-            shouldSelectAccount: false,
-            shouldCreateSocialBackup: false,
-          });
-
-        if (!importSucceeded) {
-          throw new Error(
-            'Private key import failed during QR sync provisioning',
-          );
-        }
-
-        const accountAddress =
-          this.#findNewAccountAddress(accountsBeforeImport);
-        enrichedMetadata = {
-          ...enrichedMetadata,
-          entries: setPrivateKeyAccountAddress(
-            enrichedMetadata.entries,
-            secretEntry.index,
-            accountAddress,
-          ),
-        };
       }
 
-      this.#messenger.call(
-        'QrSyncController:completeSecretImport',
-        enrichedMetadata,
-      );
+      this.#messenger.call('QrSyncController:completeProvisioning');
     } catch (error) {
       this.#messenger.call('QrSyncController:markProvisioningFailed');
       throw error;
     }
   }
 
-  #getQrSyncControllerState(): QrSyncControllerState {
-    return this.#messenger.call('QrSyncController:getState');
-  }
-
-  #getKeyringControllerState(): KeyringControllerState {
-    return this.#messenger.call('KeyringController:getState');
-  }
-
-  #getPrimaryEntropySourceId(): EntropySourceId {
-    const { keyrings } = this.#getKeyringControllerState();
-    const primaryHdKeyring = keyrings.find(
-      (keyring) =>
-        keyring.type === KeyringTypes.hd || keyring.type === KeyringType.Hd,
-    );
-
-    if (!primaryHdKeyring) {
-      throw new Error('Primary HD keyring not found after wallet restore');
-    }
-
-    return primaryHdKeyring.metadata.id;
-  }
-
-  #getEntropySourceForAccountAddress(address: string): EntropySourceId {
-    const keyring = this.#getKeyringByAddress(address);
-
-    if (!keyring?.metadata?.id) {
+  #assertMetadataProvisioningPreconditions(
+    provisioningStatus: string | null,
+    provisioningMetadata: QrSyncProvisioningMetadata | null,
+  ): asserts provisioningMetadata is QrSyncProvisioningMetadata {
+    if (provisioningStatus !== 'secrets_imported') {
       throw new Error(
-        `Unable to resolve entropy source for account address ${address}`,
+        'QR sync metadata provisioning requires provisioningStatus secrets_imported',
       );
     }
 
-    return keyring.metadata.id;
+    if (!provisioningMetadata) {
+      throw new Error(
+        'QR sync metadata provisioning requires provisioning metadata',
+      );
+    }
   }
 
-  #getKeyringByAddress(
-    address: string,
-  ): KeyringControllerState['keyrings'][number] | undefined {
-    const formattedAddress = toFormattedAddress(address);
-    const { keyrings } = this.#getKeyringControllerState();
+  async #provisionMnemonicEntry(
+    entry: QrSyncProvisioningMnemonicEntry,
+  ): Promise<void> {
+    const entropySource = this.#getRequiredEntropySource(entry);
+    await this.#createMnemonicGroups(entropySource, entry.groups ?? []);
+    await this.#messenger.call(
+      'MultichainAccountService:alignWallet',
+      entropySource,
+    );
 
-    return keyrings.find((keyring) =>
-      keyring.accounts
-        .map((account) => toFormattedAddress(account))
-        .includes(formattedAddress),
+    const wallets = this.#getAccountWalletObjects();
+    const wallet = wallets.find(
+      (candidate) =>
+        candidate.type === AccountWalletType.Entropy &&
+        candidate.metadata.entropy?.id === entropySource,
+    );
+
+    if (!wallet) {
+      throw new Error(
+        `Unable to resolve account tree wallet for entropy source ${entropySource}`,
+      );
+    }
+
+    if (entry.name) {
+      this.#messenger.call(
+        'AccountTreeController:setAccountWalletName',
+        wallet.id,
+        entry.name,
+      );
+    }
+
+    for (const group of entry.groups ?? []) {
+      const groupId = toMultichainAccountGroupId(
+        wallet.id as MultichainAccountWalletId,
+        group.groupIndex,
+      );
+
+      if (!wallet.groups[groupId]) {
+        throw new Error(
+          `Unable to resolve account group ${group.groupIndex} for entropy source ${entropySource}`,
+        );
+      }
+
+      this.#applyGroupMetadata(groupId, group);
+    }
+  }
+
+  #provisionPrivateKeyEntry(entry: QrSyncProvisioningPrivateKeyEntry): void {
+    const accountAddress = this.#getRequiredAccountAddress(entry);
+    const account = this.#messenger.call(
+      'AccountsController:getAccountByAddress',
+      toFormattedAddress(accountAddress),
+    );
+
+    if (!account) {
+      throw new Error(
+        `Unable to resolve account for address ${accountAddress}`,
+      );
+    }
+
+    const wallets = this.#getAccountWalletObjects();
+    const groupId = this.#findSingleAccountGroupIdByAccountId(
+      wallets,
+      account.id,
+    );
+
+    if (!groupId) {
+      throw new Error(
+        `Unable to resolve account tree group for address ${accountAddress}`,
+      );
+    }
+
+    this.#applyGroupMetadata(groupId, entry);
+  }
+
+  async #createMnemonicGroups(
+    entropySource: EntropySourceId,
+    groups: QrSyncAccountGroup[],
+  ): Promise<void> {
+    if (groups.length === 0) {
+      return;
+    }
+
+    // Extension exports the full root wallet with contiguous group indices 0..N.
+    // Group 0 already exists after restore/import; create 1..maxGroupIndex.
+    const maxGroupIndex = Math.max(...groups.map((group) => group.groupIndex));
+
+    if (maxGroupIndex < 1) {
+      return;
+    }
+
+    if (maxGroupIndex === 1) {
+      await this.#messenger.call(
+        'MultichainAccountService:createMultichainAccountGroup',
+        {
+          entropySource,
+          groupIndex: 1,
+        },
+      );
+      return;
+    }
+
+    await this.#messenger.call(
+      'MultichainAccountService:createMultichainAccountGroups',
+      {
+        entropySource,
+        fromGroupIndex: 1,
+        toGroupIndex: maxGroupIndex,
+      },
     );
   }
 
-  #getKeyringAccountAddresses(): Set<string> {
-    const { keyrings } = this.#getKeyringControllerState();
-
-    return new Set(
-      keyrings.flatMap((keyring) =>
-        keyring.accounts.map((account) => toFormattedAddress(account)),
-      ),
+  #applyGroupMetadata(
+    groupId: AccountGroupId,
+    metadata: Pick<QrSyncAccountGroup, 'name' | 'pinned' | 'hidden'>,
+  ): void {
+    this.#messenger.call(
+      'AccountTreeController:setAccountGroupName',
+      groupId,
+      metadata.name,
     );
+
+    if (metadata.pinned) {
+      this.#messenger.call(
+        'AccountTreeController:setAccountGroupPinned',
+        groupId,
+        metadata.pinned,
+      );
+    }
+
+    if (metadata.hidden) {
+      this.#messenger.call(
+        'AccountTreeController:setAccountGroupHidden',
+        groupId,
+        metadata.hidden,
+      );
+    }
   }
 
-  #findNewAccountAddress(before: Set<string>): string {
-    const after = this.#getKeyringAccountAddresses();
-
-    for (const address of after) {
-      if (!before.has(address)) {
-        return address;
+  #findSingleAccountGroupIdByAccountId(
+    wallets: AccountWalletObject[],
+    accountId: AccountId,
+  ): AccountGroupId | undefined {
+    for (const wallet of wallets) {
+      for (const group of Object.values(wallet.groups)) {
+        if (
+          group.type === AccountGroupType.SingleAccount &&
+          group.accounts.includes(accountId)
+        ) {
+          return group.id;
+        }
       }
     }
 
-    throw new Error(
-      'Unable to resolve account address after private key import',
+    return undefined;
+  }
+
+  #getRequiredEntropySource(
+    entry: QrSyncProvisioningMnemonicEntry,
+  ): EntropySourceId {
+    if (!entry.entropySource) {
+      throw new Error(
+        `QR sync metadata provisioning requires entropySource for entry ${entry.index}`,
+      );
+    }
+
+    return entry.entropySource;
+  }
+
+  #getRequiredAccountAddress(entry: QrSyncProvisioningPrivateKeyEntry): string {
+    if (!entry.accountAddress) {
+      throw new Error(
+        `QR sync metadata provisioning requires accountAddress for entry ${entry.index}`,
+      );
+    }
+
+    return entry.accountAddress;
+  }
+
+  #getAccountWalletObjects(): AccountWalletObject[] {
+    return this.#messenger.call(
+      'AccountTreeController:getAccountWalletObjects',
     );
+  }
+
+  #getQrSyncControllerState() {
+    return this.#messenger.call('QrSyncController:getState');
   }
 }

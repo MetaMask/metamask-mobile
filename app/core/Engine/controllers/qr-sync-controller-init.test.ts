@@ -81,8 +81,11 @@ describe('qrSyncControllerInit', () => {
   it('exposes provisioning mutation methods on the initialized controller', () => {
     const { controller } = qrSyncControllerInit(initRequestMock);
 
+    expect(typeof controller.enrichProvisioningEntry).toBe('function');
+    expect(typeof controller.finalizeSecretImport).toBe('function');
     expect(typeof controller.completeSecretImport).toBe('function');
     expect(typeof controller.markProvisioningFailed).toBe('function');
+    expect(typeof controller.completeProvisioning).toBe('function');
   });
 
   it('registers provisioning mutation action handlers on the controller messenger', () => {
@@ -94,11 +97,23 @@ describe('qrSyncControllerInit', () => {
     qrSyncControllerInit(initRequestMock);
 
     expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:enrichProvisioningEntry',
+      expect.any(Function),
+    );
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:finalizeSecretImport',
+      expect.any(Function),
+    );
+    expect(registerSpy).toHaveBeenCalledWith(
       'QrSyncController:completeSecretImport',
       expect.any(Function),
     );
     expect(registerSpy).toHaveBeenCalledWith(
       'QrSyncController:markProvisioningFailed',
+      expect.any(Function),
+    );
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:completeProvisioning',
       expect.any(Function),
     );
   });

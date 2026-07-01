@@ -1,49 +1,100 @@
-import {
-  KeyringObject,
-  KeyringTypes,
-  type KeyringControllerState,
-} from '@metamask/keyring-controller';
 import type { EntropySourceId } from '@metamask/keyring-api';
+import {
+  AccountGroupType,
+  AccountWalletType,
+  type AccountGroupId,
+  toMultichainAccountWalletId,
+} from '@metamask/account-api';
+import type {
+  AccountGroupObject,
+  AccountWalletObject,
+} from '@metamask/account-tree-controller';
 
-import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
-import { Authentication } from '../..';
 import { QrSyncSecretTypes, QrSyncMessageVersion } from '../constants';
 import { defaultQrSyncControllerState } from '../QrSyncController';
 import type { QrSyncControllerState } from '../controller-types';
-import type {
-  QrSyncProvisioningMetadata,
-  QrSyncSecretImportEntry,
-} from '../types';
+import type { QrSyncProvisioningMetadata } from '../types';
 import {
   QrSyncProvisioningService,
   type QrSyncProvisioningServiceMessenger,
 } from './qr-sync-provisioning-service';
-import { KeyringType } from '@metamask/keyring-api/v2';
-
-jest.mock('../../../actions/multiSrp', () => ({
-  importNewSecretRecoveryPhrase: jest.fn(),
-}));
-
-jest.mock('../..', () => ({
-  Authentication: {
-    importAccountFromPrivateKey: jest.fn(),
-  },
-}));
-
-const mockImportNewSecretRecoveryPhrase = jest.mocked(
-  importNewSecretRecoveryPhrase,
-);
-const mockImportAccountFromPrivateKey = jest.mocked(
-  Authentication.importAccountFromPrivateKey,
-);
 
 const PRIMARY_ENTROPY_SOURCE = 'primary-entropy-source' as EntropySourceId;
 const SECONDARY_ENTROPY_SOURCE = 'secondary-entropy-source' as EntropySourceId;
 const PRIMARY_ADDRESS = '0x1111111111111111111111111111111111111111';
 const SECONDARY_ADDRESS = '0x2222222222222222222222222222222222222222';
 const PRIVATE_KEY_ADDRESS = '0x3333333333333333333333333333333333333333';
+const PRIVATE_KEY_ACCOUNT_ID = 'keyring:private-key-account';
+const PRIVATE_KEY_GROUP_ID =
+  'keyring:private-key-wallet/group-1' as AccountGroupId;
+const PRIVATE_KEY_WALLET_ID = 'keyring:private-key-wallet';
 
-const createProvisioningMetadata = (): QrSyncProvisioningMetadata => ({
+const getEntropyGroupId = (
+  wallet: AccountWalletObject,
+  groupIndex: number,
+): AccountGroupId => `${wallet.id}/${groupIndex}` as AccountGroupId;
+
+const createEntropyWallet = (
+  entropySource: EntropySourceId,
+  groups: { groupIndex: number; name: string; accountId: string }[],
+): AccountWalletObject => {
+  const walletId = toMultichainAccountWalletId(entropySource);
+  const walletGroups = groups.reduce<Record<string, AccountGroupObject>>(
+    (acc, group) => {
+      const groupId = `${walletId}/${group.groupIndex}` as AccountGroupId;
+
+      acc[groupId] = {
+        id: groupId,
+        type: AccountGroupType.MultichainAccount,
+        accounts: [group.accountId] as [string, ...string[]],
+        metadata: {
+          name: group.name,
+          pinned: false,
+          hidden: false,
+          lastSelected: 0,
+          entropy: { groupIndex: group.groupIndex },
+        },
+      } as unknown as AccountGroupObject;
+
+      return acc;
+    },
+    {},
+  );
+
+  return {
+    type: AccountWalletType.Entropy,
+    id: walletId,
+    status: 'ready',
+    groups: walletGroups,
+    metadata: {
+      name: 'Wallet',
+      entropy: { id: entropySource },
+    },
+  } as unknown as AccountWalletObject;
+};
+
+const createPrivateKeyWallet = (): AccountWalletObject =>
+  ({
+    type: AccountWalletType.Keyring,
+    id: PRIVATE_KEY_WALLET_ID,
+    status: 'ready',
+    groups: {
+      [PRIVATE_KEY_GROUP_ID]: {
+        type: AccountGroupType.SingleAccount,
+        id: PRIVATE_KEY_GROUP_ID,
+        accounts: [PRIVATE_KEY_ACCOUNT_ID] as [string],
+        metadata: {
+          name: 'Imported PK',
+          pinned: false,
+          hidden: false,
+          lastSelected: 0,
+        },
+      },
+    },
+    metadata: { name: 'Imported PK Wallet' },
+  }) as unknown as AccountWalletObject;
+
+const createSecretsImportedMetadata = (): QrSyncProvisioningMetadata => ({
   version: QrSyncMessageVersion.V1,
   entries: [
     {
@@ -51,256 +102,298 @@ const createProvisioningMetadata = (): QrSyncProvisioningMetadata => ({
       type: QrSyncSecretTypes.MNEMONIC,
       isPrimary: true,
       name: 'Primary Wallet',
-      groups: [{ groupIndex: 0, name: 'Account 1' }],
+      entropySource: PRIMARY_ENTROPY_SOURCE,
+      groups: [
+        { groupIndex: 0, name: 'Primary Account', pinned: true },
+        { groupIndex: 1, name: 'Primary Account 2', hidden: true },
+        { groupIndex: 2, name: 'Primary Account 3' },
+        { groupIndex: 3, name: 'Primary Account 4' },
+      ],
     },
     {
       index: 1,
-      type: QrSyncSecretTypes.MNEMONIC,
-      name: 'Secondary Wallet',
-      groups: [{ groupIndex: 0, name: 'Account 2' }],
-    },
-    {
-      index: 2,
       type: QrSyncSecretTypes.PRIVATE_KEY,
       name: 'Imported PK',
+      accountAddress: PRIVATE_KEY_ADDRESS,
+      pinned: false,
     },
   ],
 });
 
-const createPendingSecrets = (): QrSyncSecretImportEntry[] => [
-  {
-    index: 0,
-    type: QrSyncSecretTypes.MNEMONIC,
-    value: 'primary mnemonic phrase',
-    isPrimary: true,
-  },
-  {
-    index: 1,
-    type: QrSyncSecretTypes.MNEMONIC,
-    value: 'secondary mnemonic phrase',
-  },
-  {
-    index: 2,
-    type: QrSyncSecretTypes.PRIVATE_KEY,
-    value: '0xabc123',
-  },
-];
-
-const createQrSyncState = (
+const createSecretsImportedState = (
   overrides: Partial<QrSyncControllerState> = {},
 ): QrSyncControllerState => ({
   ...defaultQrSyncControllerState,
-  pendingSecretImports: createPendingSecrets(),
-  provisioningMetadata: createProvisioningMetadata(),
-  provisioningStatus: 'awaiting_password',
+  pendingSecretImports: null,
+  provisioningMetadata: createSecretsImportedMetadata(),
+  provisioningStatus: 'secrets_imported',
   ...overrides,
-});
-
-const createKeyringState = (
-  keyringsState: KeyringObject[],
-): KeyringControllerState => ({
-  isUnlocked: true,
-  keyrings: keyringsState,
 });
 
 const createMessengerCallMock = (
   qrSyncStateOverrides: Partial<QrSyncControllerState> = {},
-  getKeyrings: () => KeyringObject[] = () => [],
 ): jest.Mock =>
   jest.fn((action: string) => {
     if (action === 'QrSyncController:getState') {
-      return createQrSyncState(qrSyncStateOverrides);
-    }
-
-    if (action === 'KeyringController:getState') {
-      return createKeyringState(getKeyrings());
+      return createSecretsImportedState(qrSyncStateOverrides);
     }
 
     return undefined;
   });
 
-interface MockProvisioningMessenger {
+interface MockMessenger {
   call: jest.Mock;
   registerActionHandler: jest.Mock;
 }
 
 const asProvisioningMessenger = (
-  mock: MockProvisioningMessenger,
+  mock: MockMessenger,
 ): QrSyncProvisioningServiceMessenger =>
   mock as unknown as QrSyncProvisioningServiceMessenger;
 
 describe('QrSyncProvisioningService', () => {
-  let mockMessenger: MockProvisioningMessenger;
+  let mockMessenger: MockMessenger;
   let service: QrSyncProvisioningService;
-  let keyrings: KeyringObject[];
 
   beforeEach(() => {
     jest.clearAllMocks();
 
-    keyrings = [
-      {
-        type: KeyringType.Hd,
-        metadata: {
-          id: PRIMARY_ENTROPY_SOURCE,
-          name: 'Primary Entropy Source',
-        },
-        accounts: [PRIMARY_ADDRESS],
-      },
-      {
-        type: KeyringType.Hd,
-        metadata: {
-          id: SECONDARY_ENTROPY_SOURCE,
-          name: 'Secondary Entropy Source',
-        },
-        accounts: [SECONDARY_ADDRESS],
-      },
-    ];
-
     mockMessenger = {
-      call: createMessengerCallMock({}, () => keyrings),
+      call: createMessengerCallMock(),
       registerActionHandler: jest.fn(),
     };
 
     service = new QrSyncProvisioningService({
       messenger: asProvisioningMessenger(mockMessenger),
     });
-
-    mockImportNewSecretRecoveryPhrase.mockResolvedValue({
-      address: SECONDARY_ADDRESS,
-      discoveredAccountsCount: 0,
-    });
-    mockImportAccountFromPrivateKey.mockImplementation(async () => {
-      keyrings.push({
-        type: KeyringType.PrivateKey,
-        metadata: { id: 'simple-keyring', name: 'Simple Keyring' },
-        accounts: [PRIVATE_KEY_ADDRESS],
-      });
-      return true;
-    });
   });
 
-  it('registers importRemainingSecrets on the service messenger', () => {
+  it('registers provisionFromMetadata on the service messenger', () => {
     expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
-      'QrSyncProvisioningService:importRemainingSecrets',
+      'QrSyncProvisioningService:provisionFromMetadata',
       expect.any(Function),
     );
   });
 
-  describe('importRemainingSecrets', () => {
-    it('imports secondary secrets, enriches metadata, and completes provisioning', async () => {
-      await service.importRemainingSecrets();
-
-      expect(mockImportNewSecretRecoveryPhrase).toHaveBeenCalledWith(
-        'secondary mnemonic phrase',
-        { shouldSelectAccount: false, skipDiscovery: true },
-      );
-      expect(mockImportAccountFromPrivateKey).toHaveBeenCalledWith('0xabc123', {
-        shouldSelectAccount: false,
-        shouldCreateSocialBackup: false,
-      });
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'QrSyncController:completeSecretImport',
-        {
-          version: QrSyncMessageVersion.V1,
-          entries: [
-            expect.objectContaining({
-              index: 0,
-              type: QrSyncSecretTypes.MNEMONIC,
-              entropySource: PRIMARY_ENTROPY_SOURCE,
-            }),
-            expect.objectContaining({
-              index: 1,
-              type: QrSyncSecretTypes.MNEMONIC,
-              entropySource: SECONDARY_ENTROPY_SOURCE,
-            }),
-            expect.objectContaining({
-              index: 2,
-              type: QrSyncSecretTypes.PRIVATE_KEY,
-              accountAddress: PRIVATE_KEY_ADDRESS,
-            }),
-          ],
-        },
-      );
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'QrSyncController:markProvisioningFailed',
-      );
-    });
-
-    it('skips primary mnemonic import and only enriches its entropy source', async () => {
-      mockMessenger.call = createMessengerCallMock(
-        {
-          pendingSecretImports: [
-            {
-              index: 0,
-              type: QrSyncSecretTypes.MNEMONIC,
-              value: 'primary mnemonic phrase',
-              isPrimary: true,
-            },
-          ],
-          provisioningMetadata: {
-            version: QrSyncMessageVersion.V1,
-            entries: [
-              {
-                index: 0,
-                type: QrSyncSecretTypes.MNEMONIC,
-                isPrimary: true,
-                name: 'Primary Wallet',
-              },
+  describe('provisionFromMetadata group creation', () => {
+    it('batches contiguous group indices above zero into a single range', async () => {
+      const contiguousWallet = createEntropyWallet(PRIMARY_ENTROPY_SOURCE, [
+        { groupIndex: 0, name: 'Account 1', accountId: 'account-0' },
+        { groupIndex: 1, name: 'Account 2', accountId: 'account-1' },
+        { groupIndex: 2, name: 'Account 3', accountId: 'account-2' },
+        { groupIndex: 3, name: 'Account 4', accountId: 'account-3' },
+      ]);
+      const contiguousMetadata: QrSyncProvisioningMetadata = {
+        version: QrSyncMessageVersion.V1,
+        entries: [
+          {
+            index: 0,
+            type: QrSyncSecretTypes.MNEMONIC,
+            isPrimary: true,
+            entropySource: PRIMARY_ENTROPY_SOURCE,
+            groups: [
+              { groupIndex: 0, name: 'Account 1' },
+              { groupIndex: 1, name: 'Account 2' },
+              { groupIndex: 2, name: 'Account 3' },
+              { groupIndex: 3, name: 'Account 4' },
             ],
           },
-        },
-        () => keyrings,
-      );
+        ],
+      };
+      const mockCall = jest.fn((action: string) => {
+        if (action === 'QrSyncController:getState') {
+          return createSecretsImportedState({
+            provisioningMetadata: contiguousMetadata,
+          });
+        }
 
-      await service.importRemainingSecrets();
+        if (action === 'AccountTreeController:getAccountWalletObjects') {
+          return [contiguousWallet];
+        }
 
-      expect(mockImportNewSecretRecoveryPhrase).not.toHaveBeenCalled();
-      expect(mockImportAccountFromPrivateKey).not.toHaveBeenCalled();
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'QrSyncController:completeSecretImport',
+        return undefined;
+      });
+      mockMessenger.call = mockCall;
+      const contiguousProvisionService = new QrSyncProvisioningService({
+        messenger: asProvisioningMessenger(mockMessenger),
+      });
+
+      await contiguousProvisionService.provisionFromMetadata();
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'MultichainAccountService:createMultichainAccountGroups',
         {
-          version: QrSyncMessageVersion.V1,
-          entries: [
-            expect.objectContaining({
-              index: 0,
-              entropySource: PRIMARY_ENTROPY_SOURCE,
-            }),
-          ],
+          entropySource: PRIMARY_ENTROPY_SOURCE,
+          fromGroupIndex: 1,
+          toGroupIndex: 3,
         },
       );
-    });
-
-    it('marks provisioning failed and rethrows when secondary mnemonic import fails', async () => {
-      const importError = new Error('Secondary import failed');
-      mockImportNewSecretRecoveryPhrase.mockRejectedValue(importError);
-
-      await expect(service.importRemainingSecrets()).rejects.toThrow(
-        importError,
-      );
-
-      expect(mockMessenger.call).toHaveBeenCalledWith(
-        'QrSyncController:markProvisioningFailed',
-      );
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'QrSyncController:completeSecretImport',
+      expect(mockCall).not.toHaveBeenCalledWith(
+        'MultichainAccountService:createMultichainAccountGroup',
         expect.anything(),
       );
     });
+  });
 
-    it('throws when provisioning status is not awaiting_password', async () => {
-      mockMessenger.call = createMessengerCallMock(
+  describe('provisionFromMetadata', () => {
+    let provisionService: QrSyncProvisioningService;
+
+    const primaryWallet = createEntropyWallet(PRIMARY_ENTROPY_SOURCE, [
+      {
+        groupIndex: 0,
+        name: 'Primary Account',
+        accountId: 'primary-account-0',
+      },
+      {
+        groupIndex: 1,
+        name: 'Primary Account 2',
+        accountId: 'primary-account-1',
+      },
+      {
+        groupIndex: 2,
+        name: 'Primary Account 3',
+        accountId: 'primary-account-2',
+      },
+      {
+        groupIndex: 3,
+        name: 'Primary Account 4',
+        accountId: 'primary-account-3',
+      },
+    ]);
+
+    const createProvisionMessengerCallMock = (
+      wallets: AccountWalletObject[] = [
+        primaryWallet,
+        createPrivateKeyWallet(),
+      ],
+    ): jest.Mock =>
+      jest.fn((action: string, ...args: unknown[]) => {
+        if (action === 'QrSyncController:getState') {
+          return createSecretsImportedState();
+        }
+
+        if (action === 'AccountTreeController:getAccountWalletObjects') {
+          return wallets;
+        }
+
+        if (action === 'AccountsController:getAccountByAddress') {
+          return {
+            id: PRIVATE_KEY_ACCOUNT_ID,
+            address: args[0],
+          };
+        }
+
+        if (
+          action === 'MultichainAccountService:createMultichainAccountGroup' ||
+          action === 'MultichainAccountService:createMultichainAccountGroups' ||
+          action === 'MultichainAccountService:alignWallet'
+        ) {
+          return undefined;
+        }
+
+        return undefined;
+      });
+
+    beforeEach(() => {
+      mockMessenger.call = createProvisionMessengerCallMock();
+      provisionService = new QrSyncProvisioningService({
+        messenger: asProvisioningMessenger(mockMessenger),
+      });
+    });
+
+    it('creates groups, applies metadata, and completes provisioning', async () => {
+      const mockCall = mockMessenger.call as jest.Mock;
+
+      await provisionService.provisionFromMetadata();
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'MultichainAccountService:createMultichainAccountGroups',
         {
-          provisioningStatus: 'secrets_imported',
+          entropySource: PRIMARY_ENTROPY_SOURCE,
+          fromGroupIndex: 1,
+          toGroupIndex: 3,
         },
-        () => keyrings,
       );
-
-      await expect(service.importRemainingSecrets()).rejects.toThrow(
-        'QR sync provisioning requires provisioningStatus awaiting_password',
+      expect(mockCall).not.toHaveBeenCalledWith(
+        'MultichainAccountService:createMultichainAccountGroup',
+        expect.anything(),
       );
-
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+      expect(mockCall).toHaveBeenCalledWith(
+        'MultichainAccountService:alignWallet',
+        PRIMARY_ENTROPY_SOURCE,
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'AccountTreeController:setAccountWalletName',
+        primaryWallet.id,
+        'Primary Wallet',
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'AccountTreeController:setAccountGroupName',
+        getEntropyGroupId(primaryWallet, 0),
+        'Primary Account',
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'AccountTreeController:setAccountGroupPinned',
+        getEntropyGroupId(primaryWallet, 0),
+        true,
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'AccountTreeController:setAccountGroupHidden',
+        getEntropyGroupId(primaryWallet, 1),
+        true,
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'AccountTreeController:setAccountGroupName',
+        PRIVATE_KEY_GROUP_ID,
+        'Imported PK',
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'QrSyncController:completeProvisioning',
+      );
+      expect(mockCall).not.toHaveBeenCalledWith(
+        'AccountTreeController:setSelectedAccountGroup',
+        expect.anything(),
+      );
+      expect(mockCall).not.toHaveBeenCalledWith(
         'QrSyncController:markProvisioningFailed',
+      );
+    });
+
+    it('marks provisioning failed and rethrows when metadata provisioning fails', async () => {
+      mockMessenger.call = jest.fn((action: string) => {
+        if (action === 'QrSyncController:getState') {
+          return createSecretsImportedState();
+        }
+
+        if (action === 'AccountTreeController:getAccountWalletObjects') {
+          return [];
+        }
+
+        return undefined;
+      });
+
+      await expect(provisionService.provisionFromMetadata()).rejects.toThrow(
+        `Unable to resolve account tree wallet for entropy source ${PRIMARY_ENTROPY_SOURCE}`,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'QrSyncController:markProvisioningFailed',
+      );
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'QrSyncController:completeProvisioning',
+      );
+    });
+
+    it('throws when provisioning status is not secrets_imported', async () => {
+      mockMessenger.call = createMessengerCallMock({
+        provisioningStatus: 'awaiting_password',
+      });
+      provisionService = new QrSyncProvisioningService({
+        messenger: asProvisioningMessenger(mockMessenger),
+      });
+
+      await expect(provisionService.provisionFromMetadata()).rejects.toThrow(
+        'QR sync metadata provisioning requires provisioningStatus secrets_imported',
       );
     });
   });

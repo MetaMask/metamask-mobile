@@ -27,9 +27,17 @@ export function getQrSyncProvisioningServiceMessenger(
     messenger,
     actions: [
       'QrSyncController:getState',
-      'QrSyncController:completeSecretImport',
       'QrSyncController:markProvisioningFailed',
-      'KeyringController:getState',
+      'QrSyncController:completeProvisioning',
+      'MultichainAccountService:createMultichainAccountGroup',
+      'MultichainAccountService:createMultichainAccountGroups',
+      'MultichainAccountService:alignWallet',
+      'AccountTreeController:getAccountWalletObjects',
+      'AccountTreeController:setAccountWalletName',
+      'AccountTreeController:setAccountGroupName',
+      'AccountTreeController:setAccountGroupPinned',
+      'AccountTreeController:setAccountGroupHidden',
+      'AccountsController:getAccountByAddress',
     ],
   });
 

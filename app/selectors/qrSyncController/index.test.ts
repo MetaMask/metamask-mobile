@@ -1,7 +1,12 @@
-import { QrSyncPhases, QrSyncSecretTypes } from '../../core/QrSync/constants';
+import {
+  QrSyncMessageVersion,
+  QrSyncPhases,
+  QrSyncSecretTypes,
+} from '../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../core/QrSync/QrSyncController';
 import type { RootState } from '../../reducers';
 import {
+  selectQrSyncNeedsProvisioning,
   selectQrSyncPresentation,
   selectQrSyncShouldNavigateToImport,
 } from './index';
@@ -60,6 +65,64 @@ describe('qrSyncController selectors', () => {
           buildState({
             provisioningStatus: 'secrets_imported',
             pendingSecretImports,
+          }),
+        ),
+      ).toBe(false);
+    });
+  });
+
+  const provisioningMetadata = {
+    version: QrSyncMessageVersion.V1,
+    entries: [
+      {
+        index: 0,
+        type: QrSyncSecretTypes.MNEMONIC,
+        isPrimary: true,
+        entropySource: 'entropy-1',
+      },
+    ],
+  };
+
+  describe('selectQrSyncNeedsProvisioning', () => {
+    it('returns true when secrets are imported and metadata is present', () => {
+      expect(
+        selectQrSyncNeedsProvisioning(
+          buildState({
+            provisioningStatus: 'secrets_imported',
+            provisioningMetadata,
+          }),
+        ),
+      ).toBe(true);
+    });
+
+    it('returns false when provisioning status is not secrets_imported', () => {
+      expect(
+        selectQrSyncNeedsProvisioning(
+          buildState({
+            provisioningStatus: 'awaiting_password',
+            provisioningMetadata,
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when provisioning metadata is null', () => {
+      expect(
+        selectQrSyncNeedsProvisioning(
+          buildState({
+            provisioningStatus: 'secrets_imported',
+            provisioningMetadata: null,
+          }),
+        ),
+      ).toBe(false);
+    });
+
+    it('returns false when provisioning is already completed', () => {
+      expect(
+        selectQrSyncNeedsProvisioning(
+          buildState({
+            provisioningStatus: 'completed',
+            provisioningMetadata: null,
           }),
         ),
       ).toBe(false);

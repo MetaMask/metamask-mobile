@@ -1,3 +1,4 @@
+import type { EntropySourceId } from '@metamask/keyring-api';
 import type {
   IKeyManager,
   SessionRequest,
@@ -625,6 +626,31 @@ describe('QrSyncController', () => {
       ],
     };
 
+    it('clears secrets and sets secrets_imported via finalizeSecretImport', async () => {
+      const controller = buildController({
+        getIsOnboardingCompleted: () => false,
+      });
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      controller.enrichProvisioningEntry(0, {
+        entropySource: 'entropy-1' as EntropySourceId,
+      });
+      controller.finalizeSecretImport();
+
+      expect(controller.state.pendingSecretImports).toBeNull();
+      expect(controller.state.provisioningMetadata?.entries[0]).toEqual(
+        expect.objectContaining({
+          index: 0,
+          entropySource: 'entropy-1',
+        }),
+      );
+      expect(controller.state.provisioningStatus).toBe('secrets_imported');
+    });
+
     it('clears secrets and sets secrets_imported via completeSecretImport', async () => {
       const controller = buildController({
         getIsOnboardingCompleted: () => false,
@@ -661,6 +687,23 @@ describe('QrSyncController', () => {
         metadataBeforeFailure,
       );
       expect(controller.state.provisioningStatus).toBe('failed');
+    });
+
+    it('clears metadata and sets completed via completeProvisioning', async () => {
+      const controller = buildController({
+        getIsOnboardingCompleted: () => false,
+      });
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      controller.completeSecretImport(enrichedMetadata);
+      controller.completeProvisioning();
+
+      expect(controller.state.provisioningMetadata).toBeNull();
+      expect(controller.state.provisioningStatus).toBe('completed');
     });
   });
 });

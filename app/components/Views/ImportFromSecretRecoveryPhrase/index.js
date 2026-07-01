@@ -429,11 +429,8 @@ const ImportFromSecretRecoveryPhrase = ({
           authData,
           parsedSeed,
           true,
+          isQrSyncImport,
         );
-
-        if (isQrSyncImport) {
-          Engine.context.QrSyncController.resetState();
-        }
 
         setBiometryType(authData.availableBiometryType);
         setLoading(false);

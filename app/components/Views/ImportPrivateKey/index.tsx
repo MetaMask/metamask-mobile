@@ -105,10 +105,10 @@ const ImportPrivateKey = () => {
     setLoading(true);
     // Import private key
     try {
-      const isImported =
+      const importedAccountAddress =
         await Authentication.importAccountFromPrivateKey(privateKeyToProcess);
       // no need to handle error here, password outdated state will trigger modal that force user to log out
-      if (isImported) {
+      if (importedAccountAddress) {
         navigation.navigate('ImportPrivateKeyView', {
           screen: 'ImportPrivateKeySuccess',
         });

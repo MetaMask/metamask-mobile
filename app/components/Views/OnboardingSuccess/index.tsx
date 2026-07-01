@@ -1,6 +1,6 @@
 import React, { useCallback, useLayoutEffect } from 'react';
 import { Platform } from 'react-native';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CommonActions,
@@ -20,6 +20,7 @@ import { shouldMarkWalletHomeOnboardingStepsEligible } from '../../../util/onboa
 import Engine from '../../../core/Engine/Engine';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
 import Logger from '../../../util/Logger';
+import { selectQrSyncNeedsProvisioning } from '../../../selectors/qrSyncController';
 import {
   Box,
   BoxAlignItems,
@@ -59,6 +60,7 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
+  const needsQrProvisioning = useSelector(selectQrSyncNeedsProvisioning);
 
   const tw = useTailwind();
 
@@ -93,11 +95,37 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
         );
       }
     };
-    void runDiscoverAccounts();
+
+    const runQrProvisioning = async () => {
+      const { QrSyncProvisioningService } = Engine.context;
+
+      if (!QrSyncProvisioningService) {
+        Logger.error(
+          new Error('QR sync provisioning service is unavailable'),
+          'OnboardingSuccess: provisionFromMetadata failed',
+        );
+        return;
+      }
+
+      try {
+        await QrSyncProvisioningService.provisionFromMetadata();
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'OnboardingSuccess: provisionFromMetadata failed',
+        );
+      }
+    };
+
+    if (needsQrProvisioning) {
+      void runQrProvisioning();
+    } else {
+      void runDiscoverAccounts();
+    }
     queueMicrotask(() => {
       onDone();
     });
-  }, [dispatch, onDone, successFlow]);
+  }, [dispatch, needsQrProvisioning, onDone, successFlow]);
 
   const getTitleString = () => {
     if (successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP) {

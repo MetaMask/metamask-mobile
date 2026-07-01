@@ -84,3 +84,10 @@ export const selectQrSyncShouldNavigateToImport = createSelector(
     qrSyncState.pendingSecretImports !== null &&
     qrSyncState.pendingSecretImports.length > 0,
 );
+
+export const selectQrSyncNeedsProvisioning = createSelector(
+  selectQrSyncControllerState,
+  (qrSyncState) =>
+    qrSyncState.provisioningStatus === 'secrets_imported' &&
+    qrSyncState.provisioningMetadata !== null,
+);

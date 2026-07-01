@@ -6,6 +6,7 @@ import {
   QR_SYNC_CONTROLLER_NAME,
   type QrSyncControllerMessenger,
   type QrSyncControllerState,
+  type QrSyncProvisioningEntryEnrichment,
 } from './controller-types';
 import type {
   QrSyncConnectionStatus,
@@ -25,6 +26,7 @@ import {
   QrSyncActionTypes,
   QrSyncMessageVersion,
   QrSyncPhases,
+  QrSyncSecretTypes,
   RELAY_URL,
 } from './constants';
 import { routeIncomingQrSyncMessage } from './services/qr-sync-message-router';
@@ -192,6 +194,108 @@ export class QrSyncController extends BaseController<
   }
 
   /**
+   * Merges vault-derived runtime IDs into a persisted provisioning metadata entry.
+   */
+  public enrichProvisioningEntry(
+    index: number,
+    enrichment: QrSyncProvisioningEntryEnrichment,
+  ): void {
+    const { provisioningMetadata, provisioningStatus, pendingSecretImports } =
+      this.state;
+
+    if (
+      provisioningStatus !== 'awaiting_password' ||
+      !pendingSecretImports?.length
+    ) {
+      return;
+    }
+
+    if (!provisioningMetadata) {
+      throw new Error('QR sync enrichment requires provisioning metadata');
+    }
+
+    const entryIndex = provisioningMetadata.entries.findIndex(
+      (entry) => entry.index === index,
+    );
+
+    if (entryIndex === -1) {
+      throw new Error(`QR sync metadata has no entry at index ${index}`);
+    }
+
+    const entry = provisioningMetadata.entries[entryIndex];
+
+    if ('entropySource' in enrichment) {
+      if (entry.type !== QrSyncSecretTypes.MNEMONIC) {
+        throw new Error(`QR sync metadata entry ${index} is not a mnemonic`);
+      }
+
+      this.update((state) => {
+        if (!state.provisioningMetadata) {
+          return;
+        }
+
+        const entries = state.provisioningMetadata.entries.map(
+          (metadataEntry, metadataIndex) =>
+            metadataIndex === entryIndex &&
+            metadataEntry.type === QrSyncSecretTypes.MNEMONIC
+              ? {
+                  ...metadataEntry,
+                  entropySource: enrichment.entropySource,
+                }
+              : metadataEntry,
+        );
+
+        state.provisioningMetadata = {
+          ...state.provisioningMetadata,
+          entries,
+        };
+      });
+      return;
+    }
+
+    if (entry.type !== QrSyncSecretTypes.PRIVATE_KEY) {
+      throw new Error(`QR sync metadata entry ${index} is not a private key`);
+    }
+
+    this.update((state) => {
+      if (!state.provisioningMetadata) {
+        return;
+      }
+
+      const entries = state.provisioningMetadata.entries.map(
+        (metadataEntry, metadataIndex) =>
+          metadataIndex === entryIndex &&
+          metadataEntry.type === QrSyncSecretTypes.PRIVATE_KEY
+            ? {
+                ...metadataEntry,
+                accountAddress: enrichment.accountAddress,
+              }
+            : metadataEntry,
+      );
+
+      state.provisioningMetadata = {
+        ...state.provisioningMetadata,
+        entries,
+      };
+    });
+  }
+
+  /**
+   * Clears ephemeral secrets and marks Phase B complete. Persisted metadata is
+   * left as-is (possibly partially enriched).
+   */
+  public finalizeSecretImport(): void {
+    if (!this.state.provisioningMetadata) {
+      throw new Error('QR sync finalize requires provisioning metadata');
+    }
+
+    this.update((state) => {
+      state.pendingSecretImports = null;
+      state.provisioningStatus = 'secrets_imported';
+    });
+  }
+
+  /**
    * Persists enriched provisioning metadata after all secrets are imported into
    * the vault. Clears ephemeral secret material from memory.
    */
@@ -220,6 +324,16 @@ export class QrSyncController extends BaseController<
       state.provisioningStatus = 'failed';
       state.pendingSecretImports = null;
     });
+  }
+
+  /**
+   * Marks metadata provisioning complete and clears persisted metadata.
+   */
+  public completeProvisioning(): void {
+    this.update(() => ({
+      ...defaultQrSyncControllerState,
+      provisioningStatus: 'completed',
+    }));
   }
 
   private attachClient(client: WalletClient, sessionId: string): void {
