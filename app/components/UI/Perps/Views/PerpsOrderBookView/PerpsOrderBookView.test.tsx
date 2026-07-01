@@ -263,46 +263,43 @@ jest.mock('../../components/PerpsMarketHeader', () => {
   };
 });
 
-// Mock BottomSheet components to avoid SafeAreaProvider requirement
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-    const ReactMock = jest.requireActual('react');
-    return {
-      __esModule: true,
-      default: ReactMock.forwardRef(
-        (
-          props: {
-            children: React.ReactNode;
-            onClose?: () => void;
-          },
-          _ref: unknown,
-        ) => (
-          <View testID="bottom-sheet">
-            {props.children}
-            <TouchableOpacity
-              testID="bottom-sheet-backdrop"
-              onPress={props.onClose}
-            >
-              <Text>Backdrop</Text>
-            </TouchableOpacity>
-          </View>
-        ),
-      ),
-    };
-  },
-);
+// Mock MMDS BottomSheet only — requires SafeAreaProvider/reanimated in Jest.
+jest.mock('@metamask/design-system-react-native', () => {
+  const { View } = jest.requireActual('react-native');
+  const ReactMock = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    return (props: { children: React.ReactNode; onClose?: () => void }) => (
-      <View testID="bottom-sheet-header">{props.children}</View>
-    );
-  },
-);
+  const MockBottomSheet = ReactMock.forwardRef(
+    (
+      props: {
+        children: React.ReactNode;
+        onClose?: () => void;
+        testID?: string;
+      },
+      ref: React.Ref<{
+        onOpenBottomSheet: (callback?: () => void) => void;
+        onCloseBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      ReactMock.useImperativeHandle(ref, () => ({
+        onOpenBottomSheet: (callback?: () => void) => {
+          callback?.();
+        },
+        onCloseBottomSheet: (callback?: () => void) => {
+          props.onClose?.();
+          callback?.();
+        },
+      }));
+
+      return <View testID={props.testID}>{props.children}</View>;
+    },
+  );
+
+  return {
+    ...actual,
+    BottomSheet: MockBottomSheet,
+  };
+});
 
 // Mock PerpsSelectModifyActionView
 jest.mock('../PerpsSelectModifyActionView', () => {
@@ -1453,9 +1450,11 @@ describe('PerpsOrderBookView', () => {
         expect(queryByText('Depth Band')).toBeOnTheScreen();
       });
 
-      // Close via backdrop (onClose callback)
-      const backdrop = getByTestId('bottom-sheet-backdrop');
-      fireEvent.press(backdrop);
+      // Close via header close button
+      const closeButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_SHEET_CLOSE,
+      );
+      fireEvent.press(closeButton);
 
       await waitFor(() => {
         expect(queryByText('Depth Band')).toBeNull();
