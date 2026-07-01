@@ -66,22 +66,19 @@ enum MoneyAccountFlagStatus {
 const getMoneyAccountFlagStatus = (
   state: RootState,
 ): MoneyAccountFlagStatus => {
-  // Raw flag contains gradual rollout config shape
+  // Raw flag contains gradual rollout config shape.
   const rawFlag =
     selectRawRemoteFeatureFlags(state)?.[MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME];
 
-  // Resolved flag contains the winning cohort's { enabled, minimumVersion } value
+  // Resolved flag respects basic-functionality gating, local overrides, and rollout cohort resolution.
   const resolvedFlag =
     selectRemoteFeatureFlags(state)?.[MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME];
 
   if (!Array.isArray(rawFlag)) {
-    /**
-     * Plain object → NOT a rollout (maintenance kill-switch or GA)
-     * Has shape { enabled: boolean, minimumVersion: string }
-     */
-    return validatedVersionGatedFeatureFlag(rawFlag)
-      ? MoneyAccountFlagStatus.Enabled // { enabled: true }  → GA
-      : MoneyAccountFlagStatus.Disabled; // { enabled: false } → State 1 (maintenance/unavailable)
+    // Standard flags must use the resolved selector to match Money stack registration.
+    return validatedVersionGatedFeatureFlag(resolvedFlag)
+      ? MoneyAccountFlagStatus.Enabled
+      : MoneyAccountFlagStatus.Disabled;
   }
 
   // Array → active gradual rollout; resolvedFlag is the selected cohort's value
