@@ -232,9 +232,11 @@ export function placeTradeMarkers(): void {
   // Skip when the drawn set already matches — prevents pan flicker.
   const desiredKey = desired
     .map((d) => d.id)
-    .sort()
+    .sort((a, b) => a.localeCompare(b))
     .join('|');
-  const drawnKey = Array.from(getShapesByMarkerId().keys()).sort().join('|');
+  const drawnKey = Array.from(getShapesByMarkerId().keys())
+    .sort((a, b) => a.localeCompare(b))
+    .join('|');
   if (desiredKey === drawnKey) return;
 
   const gen = bumpPlacementGeneration();
