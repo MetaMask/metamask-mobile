@@ -16,6 +16,11 @@ import {
 import { usePerpsEventTracking } from './usePerpsEventTracking';
 import { usePerpsMeasurement } from './usePerpsMeasurement';
 import { usePerpsTrading } from './usePerpsTrading';
+import { PERPS_CHART_EVENT_PROPERTY } from '../utils/analytics/chartInstrumentation';
+
+interface PerpsChartTrackingData {
+  chartLibrary?: string;
+}
 
 interface UsePerpsOrderExecutionParams {
   /** Called when the order has been successfully submitted to the exchange (before position fetch). */
@@ -77,6 +82,9 @@ export function usePerpsOrderExecution(
             'usePerpsOrderExecution: Order placed successfully',
             result,
           );
+          const chartLibrary = (
+            orderParams.trackingData as PerpsChartTrackingData | undefined
+          )?.chartLibrary;
 
           // Check if order was partially filled
           const orderSize = Number.parseFloat(orderParams.size.toString());
@@ -105,6 +113,10 @@ export function usePerpsOrderExecution(
             if (orderParams.trackingData?.source) {
               partialProps[PERPS_EVENT_PROPERTY.SOURCE] =
                 orderParams.trackingData.source;
+            }
+            if (chartLibrary) {
+              partialProps[PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY] =
+                chartLibrary;
             }
             if (orderParams.trackingData?.tradeWithToken === true) {
               if (orderParams.trackingData.mmPayTokenSelected != null) {
@@ -176,6 +188,13 @@ export function usePerpsOrderExecution(
             failedProps[PERPS_EVENT_PROPERTY.SOURCE] =
               orderParams.trackingData.source;
           }
+          const chartLibrary = (
+            orderParams.trackingData as PerpsChartTrackingData | undefined
+          )?.chartLibrary;
+          if (chartLibrary) {
+            failedProps[PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY] =
+              chartLibrary;
+          }
           if (orderParams.trackingData?.tradeWithToken === true) {
             if (orderParams.trackingData.mmPayTokenSelected != null) {
               failedProps[PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED] =
@@ -243,6 +262,13 @@ export function usePerpsOrderExecution(
         if (orderParams.trackingData?.source) {
           exceptionProps[PERPS_EVENT_PROPERTY.SOURCE] =
             orderParams.trackingData.source;
+        }
+        const chartLibrary = (
+          orderParams.trackingData as PerpsChartTrackingData | undefined
+        )?.chartLibrary;
+        if (chartLibrary) {
+          exceptionProps[PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY] =
+            chartLibrary;
         }
         if (orderParams.trackingData?.tradeWithToken === true) {
           if (orderParams.trackingData.mmPayTokenSelected != null) {
