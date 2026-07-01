@@ -208,6 +208,30 @@ describe('useRampsOrders', () => {
     expect(mockAddOrder).toHaveBeenCalledWith(order);
   });
 
+  it('preserves the walletAddress from an existing precreated order when adding an updated order', () => {
+    const precreatedOrder = createMockOrder({
+      providerOrderId: 'precreated-order',
+      walletAddress: RAMP_HOOKS_TEST_ADDRESS,
+    });
+    const updatedOrder = createMockOrder({
+      providerOrderId: 'precreated-order',
+      walletAddress: '',
+    });
+    const store = createMockStore([precreatedOrder]);
+    const { result } = renderHook(() => useRampsOrders(), {
+      wrapper: wrapper(store),
+    });
+
+    act(() => {
+      result.current.addOrder(updatedOrder);
+    });
+
+    expect(mockAddOrder).toHaveBeenCalledWith({
+      ...updatedOrder,
+      walletAddress: RAMP_HOOKS_TEST_ADDRESS,
+    });
+  });
+
   it('calls Engine.context.RampsController.removeOrder', () => {
     const store = createMockStore();
     const { result } = renderHook(() => useRampsOrders(), {
@@ -245,6 +269,38 @@ describe('useRampsOrders', () => {
     expect(returnedOrder).toEqual(refreshedOrder);
   });
 
+  it('preserves the request walletAddress when refreshOrder response omits it', async () => {
+    const refreshedOrder = createMockOrder({
+      walletAddress: '',
+      status: RampsOrderStatus.Completed,
+    });
+    mockGetOrder.mockResolvedValue(refreshedOrder);
+
+    const store = createMockStore();
+    const { result } = renderHook(() => useRampsOrders(), {
+      wrapper: wrapper(store),
+    });
+
+    let returnedOrder: RampsOrder | undefined;
+    await act(async () => {
+      returnedOrder = await result.current.refreshOrder(
+        'coinbase',
+        'order-code',
+        RAMP_HOOKS_TEST_ADDRESS,
+      );
+    });
+
+    expect(mockGetOrder).toHaveBeenCalledWith(
+      'coinbase',
+      'order-code',
+      RAMP_HOOKS_TEST_ADDRESS,
+    );
+    expect(returnedOrder).toEqual({
+      ...refreshedOrder,
+      walletAddress: RAMP_HOOKS_TEST_ADDRESS,
+    });
+  });
+
   it('calls Engine.context.RampsController.getOrderFromCallback', async () => {
     const callbackOrder = createMockOrder({ providerOrderId: 'callback-1' });
     mockGetOrderFromCallback.mockResolvedValue(callbackOrder);
@@ -269,6 +325,38 @@ describe('useRampsOrders', () => {
       '0x123',
     );
     expect(returnedOrder).toEqual(callbackOrder);
+  });
+
+  it('preserves the request walletAddress when callback order response omits it', async () => {
+    const callbackOrder = createMockOrder({
+      providerOrderId: 'callback-1',
+      walletAddress: '',
+    });
+    mockGetOrderFromCallback.mockResolvedValue(callbackOrder);
+
+    const store = createMockStore();
+    const { result } = renderHook(() => useRampsOrders(), {
+      wrapper: wrapper(store),
+    });
+
+    let returnedOrder: RampsOrder | undefined;
+    await act(async () => {
+      returnedOrder = await result.current.getOrderFromCallback(
+        'paypal',
+        'https://callback.url',
+        RAMP_HOOKS_TEST_ADDRESS,
+      );
+    });
+
+    expect(mockGetOrderFromCallback).toHaveBeenCalledWith(
+      'paypal',
+      'https://callback.url',
+      RAMP_HOOKS_TEST_ADDRESS,
+    );
+    expect(returnedOrder).toEqual({
+      ...callbackOrder,
+      walletAddress: RAMP_HOOKS_TEST_ADDRESS,
+    });
   });
 
   it('calls Engine.context.RampsController.addPrecreatedOrder', () => {
