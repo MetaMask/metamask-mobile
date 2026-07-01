@@ -429,7 +429,8 @@ class Browser {
   async navigateToTestDApp(): Promise<void> {
     await this.tapUrlInputBox();
     await this.navigateToURL(getDappUrl(0));
-    if (FrameworkDetector.isAppium()) {
+    // iOS Appium only: dapp can land mid-page; Android uses native WebView context.
+    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
       await PlaywrightContextHelpers.scrollWebViewToTop(getDappUrl(0));
     }
   }

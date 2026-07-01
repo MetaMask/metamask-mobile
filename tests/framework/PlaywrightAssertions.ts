@@ -270,9 +270,7 @@ export default class PlaywrightAssertions {
         } catch {
           // native elements may not support textContent
         }
-        const actual =
-          candidates.find((value) => value.trim().length > 0) ?? '';
-        if (actual === label) {
+        if (candidates.some((value) => value === label)) {
           return;
         }
       } catch {

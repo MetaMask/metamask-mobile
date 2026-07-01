@@ -14,6 +14,8 @@ type DetailedContext = IosDetailedContext | AndroidDetailedContext;
 
 const NATIVE_APP = 'NATIVE_APP';
 const LAVAMOAT_PATTERN = /LavaMoat|ShadowRoot|scuttling/i;
+const LOCALHOST_HOST_PATTERN =
+  /^(localhost|127\.0\.0\.1|10\.0\.2\.2|bs-local\.com)$/i;
 
 export default class PlaywrightContextHelpers {
   private static readonly WEBVIEW_TIMEOUT_MS = 30_000;
@@ -82,23 +84,73 @@ export default class PlaywrightContextHelpers {
     });
   }
 
+  private static isLocalhostHost(host: string): boolean {
+    return LOCALHOST_HOST_PATTERN.test(host);
+  }
+
+  private static isLocalhostDappUrl(dappUrl: string): boolean {
+    try {
+      return this.isLocalhostHost(new URL(dappUrl).hostname);
+    } catch {
+      return /localhost|127\.0\.0\.1|10\.0\.2\.2|bs-local\.com/i.test(dappUrl);
+    }
+  }
+
+  /** Match dapp tabs when Chromedriver reports localhost vs 127.0.0.1, etc. */
+  private static urlsReferToSameDapp(
+    ctxUrl: string | undefined,
+    dappUrl: string,
+  ): boolean {
+    if (!ctxUrl) return false;
+    if (ctxUrl.includes(dappUrl)) return true;
+
+    try {
+      const ctx = new URL(ctxUrl);
+      const dapp = new URL(dappUrl);
+      if (ctx.port !== dapp.port) return false;
+      const sameHost =
+        ctx.hostname === dapp.hostname ||
+        (this.isLocalhostHost(ctx.hostname) &&
+          this.isLocalhostHost(dapp.hostname));
+      return sameHost;
+    } catch {
+      return false;
+    }
+  }
+
+  private static shouldAvoidWebview(
+    ctx: DetailedContext,
+    dappIsLocalhost: boolean,
+  ): boolean {
+    if (/devtools/i.test(ctx.id)) return true;
+    if (ctx.url && /chrome|devtools/i.test(ctx.url)) return true;
+    // Local dapp servers (adb reverse / BrowserStack Local) live on localhost tabs.
+    if (
+      !dappIsLocalhost &&
+      ctx.url &&
+      /localhost|127\.0\.0\.1|10\.0\.2\.2/i.test(ctx.url)
+    ) {
+      return true;
+    }
+    return false;
+  }
+
   private static async selectBestWebview(
     webviews: DetailedContext[],
     dappUrl?: string,
   ): Promise<DetailedContext | undefined> {
+    const dappIsLocalhost = dappUrl ? this.isLocalhostDappUrl(dappUrl) : false;
+
     if (dappUrl) {
-      const urlMatch = webviews.find(
-        (ctx) => ctx.url?.includes(dappUrl) && !/localhost/i.test(ctx.url),
+      const urlMatch = webviews.find((ctx) =>
+        this.urlsReferToSameDapp(ctx.url, dappUrl),
       );
       if (urlMatch) return urlMatch;
     }
 
-    const filtered = webviews.filter((ctx) => {
-      const shouldAvoid =
-        /devtools/i.test(ctx.id) ||
-        (ctx.url && /chrome|devtools|localhost/i.test(ctx.url));
-      return !shouldAvoid;
-    });
+    const filtered = webviews.filter(
+      (ctx) => !this.shouldAvoidWebview(ctx, dappIsLocalhost),
+    );
 
     const packageId = (await PlatformDetector.isAndroid())
       ? APP_PACKAGE_IDS.ANDROID
