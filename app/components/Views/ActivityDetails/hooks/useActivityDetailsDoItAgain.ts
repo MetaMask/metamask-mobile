@@ -1,15 +1,15 @@
 import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import {
-  formatChainIdToCaip,
-  MetaMetricsSwapsEventSource,
-} from '@metamask/bridge-controller';
+import { useDispatch } from 'react-redux';
+import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import type { CaipChainId, Hex } from '@metamask/utils';
 import Routes from '../../../../constants/navigation/Routes';
-import { areAddressesEqual } from '../../../../util/address';
+import { setSourceAmount } from '../../../../core/redux/slices/bridge';
 import { type BridgeToken, BridgeViewMode } from '../../../UI/Bridge/types';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): reuses the Bridge token-balance list to hydrate "swap again"; route-isolation backlog
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the Bridge token-balance list + equality helper to hydrate "swap again"; route-isolation backlog */
 import { useTokensWithBalance } from '../../../UI/Bridge/hooks/useTokensWithBalance';
+import { isSameBridgeToken } from '../../../UI/Bridge/utils/tokenUtils';
+/* eslint-enable import-x/no-restricted-paths */
 import type { TokenAmount } from '../../../../util/activity-adapters';
 import { toBridgeToken } from './activityDetailsDoItAgainUtils';
 
@@ -29,11 +29,7 @@ function hydrateFromHeldTokens(
   if (!token) {
     return undefined;
   }
-  const match = heldTokens.find(
-    (held) =>
-      areAddressesEqual(held.address, token.address) &&
-      formatChainIdToCaip(held.chainId) === formatChainIdToCaip(token.chainId),
-  );
+  const match = heldTokens.find((held) => isSameBridgeToken(held, token));
   return match ?? token;
 }
 
@@ -47,6 +43,7 @@ export function useActivityDetailsDoItAgain({
   fallbackCaipChainId: CaipChainId;
 }) {
   const navigation = useNavigation();
+  const dispatch = useDispatch();
   const sourceBridgeToken = useMemo(
     () => toBridgeToken(sourceToken, fallbackCaipChainId),
     [fallbackCaipChainId, sourceToken],
@@ -90,6 +87,11 @@ export function useActivityDetailsDoItAgain({
       return;
     }
 
+    // Clear any amount left in the Bridge slice from a prior session so "swap
+    // again" opens with an empty amount. We intentionally don't prefill one,
+    // and useInitialSourceToken only sets the amount when a truthy one is passed.
+    dispatch(setSourceAmount(undefined));
+
     navigation.navigate(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BRIDGE_VIEW,
       params: {
@@ -105,6 +107,7 @@ export function useActivityDetailsDoItAgain({
     });
   }, [
     bridgeViewMode,
+    dispatch,
     hydratedDestinationToken,
     navigation,
     hydratedSourceToken,

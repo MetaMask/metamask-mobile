@@ -56,6 +56,19 @@ describe('activityDetailsDoItAgainUtils', () => {
       );
     });
 
+    it('normalizes Polygon native (0x…1010) to the zero address so it matches held holdings', () => {
+      const token = {
+        assetId: 'eip155:137/erc20:0x0000000000000000000000000000000000001010',
+        symbol: 'POL',
+        decimals: 18,
+        direction: 'out',
+      } as TokenAmount;
+
+      expect(toBridgeToken(token, 'eip155:137')?.address).toBe(
+        NATIVE_SWAPS_TOKEN_ADDRESS,
+      );
+    });
+
     it('populates the icon url from the asset id (so un-held tokens still show an icon)', () => {
       const token = {
         assetId:
