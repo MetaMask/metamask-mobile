@@ -1,5 +1,5 @@
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { useWindowDimensions, View } from 'react-native';
 import { Hex } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import { ScrollView } from 'react-native-gesture-handler';
@@ -56,8 +56,10 @@ const AdvancedDetailsRow = () => {
   // Nonce is always editable unless smart transactions are enabled
   const isNonceChangeDisabled = isSTXEnabledForChain && isSTXOptIn;
 
+  const { height: windowHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     isNonceChangeDisabled,
+    windowHeight,
   });
 
   const handleShowNonceModal = useCallback(() => {
@@ -93,68 +95,70 @@ const AdvancedDetailsRow = () => {
         }
         expandedContent={
           <>
-            {!isDowngrade && to && (
-              <InfoSection>
-                <AlertRow
-                  alertField={RowAlertKey.InteractingWith}
-                  label={strings('stake.interacting_with')}
-                  disableAlertInteraction
-                >
-                  {isBatched || isUpgrade ? (
-                    <SmartContractWithLogo />
-                  ) : (
-                    <Name
-                      value={to}
-                      type={NameType.EthereumAddress}
-                      variation={transactionMetadata?.chainId as Hex}
-                    />
-                  )}
-                </AlertRow>
-              </InfoSection>
-            )}
-            <InfoSection>
-              <InfoRow
-                label={strings('transaction.custom_nonce')}
-                tooltip={strings('transaction.custom_nonce_tooltip')}
-              >
-                <Text
-                  variant={TextVariant.BodyMD}
-                  style={styles.nonceText}
-                  onPress={
-                    isNonceChangeDisabled ? undefined : handleShowNonceModal
-                  }
-                >
-                  {userSelectedNonce}
-                </Text>
-              </InfoRow>
-            </InfoSection>
-            {shouldShowData && (
+            <ScrollView style={styles.expandedScrollContainer}>
+              {!isDowngrade && to && (
+                <InfoSection>
+                  <AlertRow
+                    alertField={RowAlertKey.InteractingWith}
+                    label={strings('stake.interacting_with')}
+                    disableAlertInteraction
+                  >
+                    {isBatched || isUpgrade ? (
+                      <SmartContractWithLogo />
+                    ) : (
+                      <Name
+                        value={to}
+                        type={NameType.EthereumAddress}
+                        variation={transactionMetadata?.chainId as Hex}
+                      />
+                    )}
+                  </AlertRow>
+                </InfoSection>
+              )}
               <InfoSection>
                 <InfoRow
-                  label={strings('transaction.data')}
-                  copyText={data}
-                  valueOnNewLine
+                  label={strings('transaction.custom_nonce')}
+                  tooltip={strings('transaction.custom_nonce_tooltip')}
                 >
-                  {hasDataNeedsScroll ? (
-                    <ScrollView
-                      style={styles.dataScrollContainer}
-                      testID="scroll-view-data"
-                    >
-                      <Text
-                        // Keep this onPress to prevent the scroll view from being dismissed
-                        // eslint-disable-next-line no-empty-function
-                        onPress={() => {}}
-                      >
-                        {data}
-                      </Text>
-                    </ScrollView>
-                  ) : (
-                    data
-                  )}
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    style={styles.nonceText}
+                    onPress={
+                      isNonceChangeDisabled ? undefined : handleShowNonceModal
+                    }
+                  >
+                    {userSelectedNonce}
+                  </Text>
                 </InfoRow>
               </InfoSection>
-            )}
-            {isBatched && <NestedTransactionData />}
+              {shouldShowData && (
+                <InfoSection>
+                  <InfoRow
+                    label={strings('transaction.data')}
+                    copyText={data}
+                    valueOnNewLine
+                  >
+                    {hasDataNeedsScroll ? (
+                      <ScrollView
+                        style={styles.dataScrollContainer}
+                        testID="scroll-view-data"
+                      >
+                        <Text
+                          // Keep this onPress to prevent the scroll view from being dismissed
+                          // eslint-disable-next-line no-empty-function
+                          onPress={() => {}}
+                        >
+                          {data}
+                        </Text>
+                      </ScrollView>
+                    ) : (
+                      data
+                    )}
+                  </InfoRow>
+                </InfoSection>
+              )}
+              {isBatched && <NestedTransactionData />}
+            </ScrollView>
             {showNonceModal && (
               <CustomNonceModal
                 proposedNonce={proposedNonce}
@@ -173,8 +177,10 @@ const AdvancedDetailsRow = () => {
 };
 
 export function AdvancedDetailsRowSkeleton() {
+  const { height: windowHeight } = useWindowDimensions();
   const { styles } = useStyles(styleSheet, {
     isNonceChangeDisabled: false,
+    windowHeight,
   });
 
   return (
