@@ -570,6 +570,83 @@ describe('PredictGameChart Wrapper', () => {
       });
     });
 
+    it.each([
+      ['zero (empty/locked book)', 0],
+      ['NaN (invalid feed value)', NaN],
+    ])(
+      'carries forward the last real value when bestAsk is %s instead of plotting 0 or 50',
+      async (_label, invalidBestAsk) => {
+        const baseTimestamp = new Date('2024-01-15T12:00:00.000Z').getTime();
+        jest.setSystemTime(new Date(baseTimestamp + 30000)); // same minute
+
+        // Distinguishable seed values: token-a -> 60, token-b -> 40, so a
+        // carried value (60) is clearly neither a 0 cliff nor a fabricated 50.
+        const mockHistories = [
+          [{ timestamp: baseTimestamp, price: 0.6 }],
+          [{ timestamp: baseTimestamp, price: 0.4 }],
+        ];
+
+        mockUsePredictPriceHistory.mockReturnValue({
+          priceHistories: mockHistories,
+          isFetching: false,
+          errors: [null, null],
+          refetch: jest.fn(),
+        });
+
+        const pricesMap = new Map([
+          [
+            'token-a',
+            {
+              tokenId: 'token-a',
+              price: 0.54,
+              bestAsk: invalidBestAsk,
+              timestamp: Date.now(),
+            },
+          ],
+          [
+            'token-b',
+            {
+              tokenId: 'token-b',
+              price: 0.44,
+              bestAsk: 0.46,
+              timestamp: Date.now(),
+            },
+          ],
+        ]);
+
+        mockUseLiveMarketPrices.mockReturnValue({
+          prices: pricesMap,
+          getPrice: (id: string) => pricesMap.get(id),
+          isConnected: true,
+          lastUpdateTime: Date.now(),
+        });
+
+        const { getByTestId, rerender } = render(
+          <PredictGameChart market={defaultMarket} testID="chart" />,
+        );
+
+        await waitFor(() => {
+          const data = JSON.parse(
+            String(getByTestId('content-data').children[0]),
+          );
+          expect(data).toHaveLength(2);
+        });
+
+        rerender(<PredictGameChart market={defaultMarket} testID="chart" />);
+
+        await waitFor(() => {
+          const data = JSON.parse(
+            String(getByTestId('content-data').children[0]),
+          );
+
+          // Invalid bestAsk -> carry forward the seeded 60 (no 0, no 50).
+          expect(data[0].data[data[0].data.length - 1].value).toBe(60);
+          // The other token still updates normally from its valid bestAsk.
+          expect(data[1].data[data[1].data.length - 1].value).toBe(46);
+        });
+      },
+    );
+
     it('adds new data point when minute changes', async () => {
       const baseTimestamp = new Date('2024-01-15T12:00:00.000Z').getTime();
 
