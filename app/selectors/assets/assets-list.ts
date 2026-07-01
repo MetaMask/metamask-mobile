@@ -349,6 +349,7 @@ function shouldIncludeAssetWhenHideZeroBalance(
   hideZeroBalance: boolean,
   customAssets: ReturnType<typeof getCustomAssets>,
   assetsBalance: ReturnType<typeof getAssetsBalance>,
+  retainZeroBalanceNative = true,
 ): boolean {
   if (isTronSpecialAsset(asset.chainId, asset.symbol)) {
     return false;
@@ -356,7 +357,7 @@ function shouldIncludeAssetWhenHideZeroBalance(
 
   if (
     !hideZeroBalance ||
-    asset.isNative ||
+    (retainZeroBalanceNative && asset.isNative) ||
     parseFloat(asset.balance ?? '0') !== 0
   ) {
     return true;
@@ -563,6 +564,7 @@ export const selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance =
               hideZeroBalance,
               customAssets,
               assetsBalance,
+              false,
             ),
           ),
         );
