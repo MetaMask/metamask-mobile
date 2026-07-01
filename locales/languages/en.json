@@ -9982,6 +9982,7 @@
       "bluetooth_connection_failed": "The connection to your device failed. Please try again",
       "camera_permission_denied": "Camera permission is required to scan QR codes. Please enable it in your device settings",
       "not_supported": "This operation is not supported",
+      "only_v4_supported": "Your {{device}} can only sign version 4 (V4) typed data. This site requested an older signature type that isn't supported",
       "unknown_error": "Make sure your {{device}} is set up with the Secret Recovery Phrase or passphrase for this account"
     },
     "error": {
@@ -10005,6 +10006,7 @@
       "nearby_devices_permission_denied": "Nearby Devices Permission Required",
       "scan_failed": "Scan Failed",
       "camera_permission_denied": "Camera Permission Required",
+      "unsupported_signature": "Signature not supported",
       "something_went_wrong": "Something went wrong"
     },
     "qr_scan_errors": {
