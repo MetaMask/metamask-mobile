@@ -525,10 +525,10 @@ describe('MoneyActivityView', () => {
         <MoneyActivityView />,
       );
 
-      expect(getByTestId(MoneyActivityViewTestIds.EMPTY_LIST)).toBeOnTheScreen();
       expect(
-        queryByTestId(MoneyActivityLoadingTestIds.CONTAINER),
-      ).toBeNull();
+        getByTestId(MoneyActivityViewTestIds.EMPTY_LIST),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(MoneyActivityLoadingTestIds.CONTAINER)).toBeNull();
     });
   });
 

@@ -36,8 +36,6 @@ const MoneyActivityList = ({
   }
 
   const previewItems = items.slice(0, MAX_PREVIEW_ITEMS);
-  // More to see either because we're already holding extra rows, or because
-  // additional pages remain un-fetched upstream.
   const hasMoreItems = items.length > MAX_PREVIEW_ITEMS || hasMore;
 
   return (

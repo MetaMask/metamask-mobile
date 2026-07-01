@@ -126,9 +126,9 @@ export function buildMoneyActivityBuckets(
  * Accounts-API activity), bucketed by filter tab. In mock-data mode it merges
  * curated demo activity instead and never surfaces the API loading state.
  */
-export function useMoneyActivityItems(
-  { ensureCount }: UseMoneyActivityItemsOptions = {},
-): UseMoneyActivityItemsResult {
+export function useMoneyActivityItems({
+  ensureCount,
+}: UseMoneyActivityItemsOptions = {}): UseMoneyActivityItemsResult {
   const {
     allTransactions,
     deposits,
