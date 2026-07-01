@@ -178,6 +178,10 @@ export enum TraceName {
   PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
   PerpsMarketDataPreload = 'Perps Market Data Preload',
   PerpsUserDataPreload = 'Perps User Data Preload',
+  /** Perps advanced chart: skeleton cleared after initial load or symbol/interval change. */
+  PerpsAdvancedChartInitialVisible = 'Perps Advanced Chart Initial Visible',
+  /** Perps advanced chart: skeleton cleared after interval change only. */
+  PerpsAdvancedChartIntervalVisible = 'Perps Advanced Chart Interval Visible',
   // Predict
   PredictFeedView = 'Predict Feed View',
   PredictMarketDetailsView = 'Predict Market Details View',
@@ -265,6 +269,10 @@ export enum TraceOperation {
   PerpsMarketData = 'perps.market_data',
   PerpsOrderSubmission = 'perps.order_submission',
   PerpsPositionManagement = 'perps.position_management',
+  /** Perps advanced chart: initial load or symbol/interval change */
+  PerpsAdvancedChart = 'perps.advanced_chart',
+  /** Perps advanced chart: interval change only */
+  PerpsAdvancedChartInterval = 'perps.advanced_chart_interval',
   // Predict
   PredictOperation = 'predict.operation',
   PredictOrderSubmission = 'predict.order_submission',
