@@ -60,6 +60,7 @@ import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../c
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
+import type { MarketInsightsRouteParams } from '../../components/UI/MarketInsights/Views/MarketInsightsView/MarketInsightsView';
 
 // QR Scanner params
 import type { QRScannerParams } from '../../components/Views/QRScanner/QRScanner.types';
@@ -422,6 +423,7 @@ export type RootStackParamList = {
     | undefined;
   SitesFullView: { mode?: 'favorites' } | undefined;
   ExploreSearch: undefined;
+  MarketInsightsView: MarketInsightsRouteParams;
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
   BenefitFullView: BenefitFullViewRouteParams;
@@ -651,6 +653,7 @@ export type RootStackParamList = {
   // leaderboard into PerpsMarketDetails).
   Perps: NestedNavigationParams | PerpsNavigationParamList['Perps'];
   PerpsTradingView: PerpsNavigationParamList['PerpsTradingView'];
+  PerpsOrderRedirect: PerpsNavigationParamList['PerpsOrderRedirect'];
   PerpsWithdraw: PerpsNavigationParamList['PerpsWithdraw'];
   PerpsPositions: PerpsNavigationParamList['PerpsPositions'];
   PerpsMarketListView: PerpsNavigationParamList['PerpsMarketListView'];
@@ -676,6 +679,7 @@ export type RootStackParamList = {
   PerpsCancelAllOrders: undefined;
   PerpsTooltip: undefined;
   PerpsCrossMarginWarning: undefined;
+  PerpsSelectProvider: PerpsNavigationParamList['PerpsSelectProvider'];
   PerpsPositionTransaction: PerpsNavigationParamList['PerpsPositionTransaction'];
   PerpsOrderTransaction: PerpsNavigationParamList['PerpsOrderTransaction'];
   PerpsFundingTransaction: PerpsNavigationParamList['PerpsFundingTransaction'];
