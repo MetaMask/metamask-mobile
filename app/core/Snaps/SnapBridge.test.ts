@@ -8,11 +8,15 @@ import getRpcMethodMiddleware from '../RPCMethods/RPCMethodMiddleware';
 import { setupMultiplex } from '../../util/streams';
 import Engine from '../Engine/Engine';
 import { createMultichainApiMethodMiddleware } from '../RPCMethods/utils';
-import { getSessionCapabilities } from '../RPCMethods/getSessionCapabilities';
+import {
+  getPermittedEip155ChainIds,
+  getSessionCapabilities,
+} from '../RPCMethods/getSessionCapabilities';
 
 jest.mock('../RPCMethods/getSessionCapabilities', () => ({
   buildGetCapabilitiesHooks: jest.fn(() => ({})),
   getSessionCapabilities: jest.fn(),
+  getPermittedEip155ChainIds: jest.fn(() => ['0x1']),
 }));
 
 // Wrap the real createMultichainApiMethodMiddleware so we can inspect the
@@ -295,6 +299,7 @@ describe('SnapBridge', () => {
 
     options?.getCapabilities?.({ address });
 
-    expect(getSessionCapabilities).toHaveBeenCalledWith(address);
+    expect(getPermittedEip155ChainIds).toHaveBeenCalled();
+    expect(getSessionCapabilities).toHaveBeenCalledWith(address, ['0x1']);
   });
 });

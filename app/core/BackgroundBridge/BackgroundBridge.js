@@ -64,6 +64,7 @@ import {
   Caip25CaveatType,
   Caip25EndowmentPermissionName,
   getPermittedAccountsForScopes,
+  getPermittedEthChainIds,
   getSessionProperties,
   getSessionScopes,
   KnownSessionProperties,
@@ -80,6 +81,7 @@ import {
 import { createEip5792Middleware } from '../RPCMethods/createEip5792Middleware';
 import {
   buildGetCapabilitiesHooks,
+  getPermittedEip155ChainIds,
   getSessionCapabilities,
 } from '../RPCMethods/getSessionCapabilities';
 import { createOriginThrottlingMiddleware } from '../RPCMethods/OriginThrottlingMiddleware';
@@ -793,7 +795,14 @@ export class BackgroundBridge extends EventEmitter {
         ),
         sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
         trackSessionCreatedEvent: () => undefined,
-        getCapabilities: ({ address }) => getSessionCapabilities(address),
+        // Resolve the caveat at call time: wallet_createSession grants the
+        // permission before hydrating session properties, so the fresh
+        // caveat is visible here.
+        getCapabilities: ({ address }) =>
+          getSessionCapabilities(
+            address,
+            getPermittedEip155ChainIds(this.channelIdOrOrigin),
+          ),
       }),
     );
 
@@ -1467,8 +1476,14 @@ export class BackgroundBridge extends EventEmitter {
     // drop the sessionScopes update, so fall back to emitting scopes only.
     let sessionProperties;
     try {
+      // Scope hydration to the authorization's own permitted eip155 chains:
+      // avoids fanning out capability RPCs to (and disclosing) networks the
+      // dapp was not granted. Derived from newAuthorization directly since
+      // the updated caveat may not be persisted yet.
+      const permittedChainIds = getPermittedEthChainIds(newAuthorization);
       sessionProperties = await getSessionProperties(newAuthorization, {
-        getCapabilities: ({ address }) => getSessionCapabilities(address),
+        getCapabilities: ({ address }) =>
+          getSessionCapabilities(address, permittedChainIds),
       });
     } catch (err) {
       Logger.error(

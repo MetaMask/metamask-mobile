@@ -18,7 +18,10 @@ import {
   TrxAccountType,
   TrxScope,
 } from '@metamask/keyring-api';
-import { getSessionCapabilities } from '../RPCMethods/getSessionCapabilities';
+import {
+  getPermittedEip155ChainIds,
+  getSessionCapabilities,
+} from '../RPCMethods/getSessionCapabilities';
 
 jest.mock('../Engine', () => ({
   init: jest.fn(),
@@ -119,6 +122,7 @@ jest.mock('../RPCMethods/getSessionCapabilities', () => ({
   getSessionCapabilities: jest.fn(async () => ({
     '0x1': { atomic: { status: 'supported' } },
   })),
+  getPermittedEip155ChainIds: jest.fn(() => ['0x1']),
 }));
 
 // Wrap the real createMultichainApiMethodMiddleware so we can inspect the
@@ -1867,6 +1871,12 @@ describe('BackgroundBridge', () => {
       expect(Object.values(eip155Capabilities)[0]).toStrictEqual({
         '0x1': { atomic: { status: 'supported' } },
       });
+
+      // Hydration is scoped to the authorization's permitted eip155 chains
+      // (derived from the authorization itself, not a store lookup).
+      expect(getSessionCapabilities).toHaveBeenCalledWith(expect.any(String), [
+        '0x1',
+      ]);
     });
 
     it('still emits sessionScopes when capability hydration fails', async () => {
@@ -2069,7 +2079,7 @@ describe('BackgroundBridge', () => {
   });
 
   describe('getCapabilities session hook wiring', () => {
-    it('wires getSessionCapabilities into the multichain getCapabilities hook', () => {
+    it('wires getSessionCapabilities into the multichain getCapabilities hook scoped to permitted chains', () => {
       const url = 'https://www.mock.io';
       setupBackgroundBridge(url);
 
@@ -2079,7 +2089,8 @@ describe('BackgroundBridge', () => {
 
       options.getCapabilities({ address });
 
-      expect(getSessionCapabilities).toHaveBeenCalledWith(address);
+      expect(getPermittedEip155ChainIds).toHaveBeenCalled();
+      expect(getSessionCapabilities).toHaveBeenCalledWith(address, ['0x1']);
     });
   });
 

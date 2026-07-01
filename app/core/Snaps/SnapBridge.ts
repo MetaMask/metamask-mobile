@@ -51,7 +51,10 @@ import {
 import { MultichainRoutingService } from '@metamask/snaps-controllers';
 import { asLegacyMiddleware } from '@metamask/json-rpc-engine/v2';
 import { sortMultichainAccountsByLastSelected } from '../Permissions';
-import { getSessionCapabilities } from '../RPCMethods/getSessionCapabilities';
+import {
+  getPermittedEip155ChainIds,
+  getSessionCapabilities,
+} from '../RPCMethods/getSessionCapabilities';
 
 /**
  * Type definition for the GetRPCMethodMiddleware function.
@@ -308,8 +311,14 @@ export default class SnapBridge {
         ),
         sortAccountIdsByLastSelected: sortMultichainAccountsByLastSelected,
         trackSessionCreatedEvent: () => undefined,
+        // Resolve the caveat at call time: wallet_createSession grants the
+        // permission before hydrating session properties, so the fresh
+        // caveat is visible here.
         getCapabilities: ({ address }: { address: string }) =>
-          getSessionCapabilities(address),
+          getSessionCapabilities(
+            address,
+            getPermittedEip155ChainIds(this.#snapId),
+          ),
       }),
     );
 
