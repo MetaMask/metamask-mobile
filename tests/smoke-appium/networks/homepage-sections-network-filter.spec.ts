@@ -1,6 +1,9 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeNetworkAbstractions } from '../../tags.js';
-import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
+import {
+  loginToAppPlaywright,
+  waitForWalletHomePlaywright,
+} from '../../flows/wallet.flow.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
@@ -34,13 +37,9 @@ appiumTest.describe(
           },
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
-
-            await Assertions.expectElementToBeVisible(WalletView.container, {
-              description: 'Wallet homepage should be visible',
-            });
+            await waitForWalletHomePlaywright();
 
             await WalletView.tapOnNewTokensSection();
-
             await TokensFullView.waitForVisible();
             await Assertions.expectElementToBeVisible(
               TokensFullView.networkFilterButton,
@@ -79,6 +78,7 @@ appiumTest.describe(
           },
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
+            await waitForWalletHomePlaywright();
 
             await WalletView.tapOnNewTokensSection();
             await TokensFullView.waitForVisible();
@@ -119,10 +119,7 @@ appiumTest.describe(
           },
           async () => {
             await loginToAppPlaywright({ scenarioType: 'e2e' });
-
-            await Assertions.expectElementToBeVisible(WalletView.container, {
-              description: 'Wallet homepage should be visible',
-            });
+            await waitForWalletHomePlaywright();
 
             await WalletView.tapOnNewTokensSection();
             await TokensFullView.waitForVisible();
@@ -136,13 +133,11 @@ appiumTest.describe(
             await NetworkManager.checkTokenIsNotVisible('ETH');
 
             await TokensFullView.tapBackButton();
+            await waitForWalletHomePlaywright();
 
-            await Assertions.expectElementToBeVisible(WalletView.container, {
-              description:
-                'Wallet homepage should be visible after navigating back',
-            });
-
+            // Homepage tokens section is independent of the full-view network filter.
             await NetworkManager.checkTokenIsVisible('ETH');
+            await NetworkManager.checkTokenIsVisible('USDC');
           },
         );
       },

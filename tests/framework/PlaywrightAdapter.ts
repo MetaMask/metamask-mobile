@@ -141,6 +141,14 @@ export class PlaywrightElement {
     visibilityProperty?: boolean;
     reverse?: boolean;
   }): Promise<void> {
+    if (!this.elem) {
+      if (options?.reverse) {
+        return;
+      }
+      throw new Error(
+        'An element could not be located on the page using the given search parameters.',
+      );
+    }
     await this.elem.waitForDisplayed(options);
   }
 

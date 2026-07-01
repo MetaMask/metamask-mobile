@@ -1,6 +1,7 @@
 import { createLogger } from '../framework/logger';
 import Assertions from '../framework/Assertions';
 import {
+  FrameworkDetector,
   Gestures,
   PlaywrightAssertions,
   PlaywrightGestures,
@@ -12,6 +13,7 @@ import LoginView from '../page-objects/wallet/LoginView';
 import WalletView from '../page-objects/wallet/WalletView';
 import { PlatformDetector } from '../framework/PlatformLocator';
 import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
+import { isWalletHomeReadyOnIOS } from './wallet-home-readiness';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { execSync } from 'node:child_process';
 
@@ -240,17 +242,26 @@ export const waitForAppReady = async (
   logger.debug('Waiting for app to reach login or wallet home...');
 
   while (Date.now() < deadline) {
-    try {
-      await Assertions.expectElementToBeVisible(WalletView.container, {
-        description: 'Wallet home should be visible',
-        timeout: 3000,
-      });
-      logger.debug(
-        `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
-      );
-      return;
-    } catch {
-      // Not on wallet yet.
+    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+      if (await isWalletHomeReadyOnIOS()) {
+        logger.debug(
+          `App on wallet home after ${Date.now() - startTime}ms (iOS readiness) — skipping login wait`,
+        );
+        return;
+      }
+    } else {
+      try {
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description: 'Wallet home should be visible',
+          timeout: 3000,
+        });
+        logger.debug(
+          `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
+        );
+        return;
+      } catch {
+        // Not on wallet yet.
+      }
     }
 
     try {

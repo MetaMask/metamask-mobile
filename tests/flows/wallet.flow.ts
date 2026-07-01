@@ -47,7 +47,6 @@ import { getPasswordForScenario } from '../framework/utils/TestConstants';
 import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
 import PlaywrightUtilities, {
   getDriver,
-  withImplicitWait,
 } from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
@@ -57,72 +56,13 @@ import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/Onbo
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
-import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/WalletView.testIds';
-import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
+import { isWalletHomeReadyOnIOS } from './wallet-home-readiness';
 
 const logger = createLogger({
   name: 'WalletFlow',
 });
 
-const IOS_WALLET_HOME_INDICATOR_IDS = [
-  WalletViewSelectorsIDs.WALLET_HEADER_ROOT,
-  WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
-  WalletViewSelectorsIDs.ACCOUNT_ICON,
-  WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
-  WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER,
-] as const;
-
 const WALLET_HOME_POLL_INTERVAL_MS = 250;
-
-const isElementDisplayedById = async (testId: string): Promise<boolean> => {
-  try {
-    return await withImplicitWait(500, async () => {
-      const el = await PlaywrightMatchers.getElementById(testId, {
-        exact: true,
-      });
-      return await el.isVisible();
-    });
-  } catch {
-    return false;
-  }
-};
-
-const isAnyWalletHomeIndicatorDisplayedOnIOS = async (): Promise<boolean> => {
-  for (const testId of IOS_WALLET_HOME_INDICATOR_IDS) {
-    if (await isElementDisplayedById(testId)) {
-      return true;
-    }
-  }
-  return false;
-};
-
-const isWalletScreenExistsWithLoginHiddenOnIOS = async (): Promise<boolean> => {
-  try {
-    return await withImplicitWait(500, async () => {
-      const walletScreen = await PlaywrightMatchers.getElementById(
-        WalletViewSelectorsIDs.WALLET_CONTAINER,
-        { exact: true },
-      );
-      if (!(await walletScreen.unwrap().isExisting())) {
-        return false;
-      }
-      const loginContainer = await PlaywrightMatchers.getElementById(
-        LoginViewSelectors.CONTAINER,
-        { exact: true },
-      );
-      return !(await loginContainer.isVisible());
-    });
-  } catch {
-    return false;
-  }
-};
-
-const isWalletHomeReadyOnIOS = async (): Promise<boolean> => {
-  if (await isAnyWalletHomeIndicatorDisplayedOnIOS()) {
-    return true;
-  }
-  return isWalletScreenExistsWithLoginHiddenOnIOS();
-};
 
 /**
  * Waits for the wallet home screen to be ready after login.
