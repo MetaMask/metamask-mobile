@@ -26,10 +26,10 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
       >
         <Skeleton width={56} height={28} style={tw.style('rounded-full')} />
         <Skeleton
-          width={140}
-          height={28}
+          width={24}
+          height={24}
           style={tw.style('rounded-full')}
-          testID="quick-buy-skeleton-rate-tag"
+          testID="quick-buy-skeleton-close-button"
         />
       </Box>
 
@@ -75,6 +75,24 @@ const QuickBuyBottomSheetSkeleton: React.FC = () => {
             height={28}
             style={tw.style('rounded-full')}
             testID="quick-buy-skeleton-pay-with"
+          />
+        </Box>
+
+        {/* Rate row */}
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+          twClassName="pb-5"
+        >
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {strings('social_leaderboard.quick_buy.rate')}
+          </Text>
+          <Skeleton
+            width={140}
+            height={20}
+            style={tw.style('rounded-md')}
+            testID="quick-buy-skeleton-rate-row"
           />
         </Box>
 
