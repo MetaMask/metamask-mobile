@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { View } from 'react-native';
+import { ListRenderItem, View } from 'react-native';
 import Fuse from 'fuse.js';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -96,8 +96,8 @@ function StateSelectorModal() {
     [navigation, onStateSelect],
   );
 
-  const renderStateItem = useCallback(
-    ({ item }: { item: UsState }) => (
+  const renderStateItem = useCallback<ListRenderItem<UsState>>(
+    ({ item }) => (
       <ListItemSelect
         isSelected={selectedState === item.code}
         onPress={() => handleOnStatePressCallback(item)}

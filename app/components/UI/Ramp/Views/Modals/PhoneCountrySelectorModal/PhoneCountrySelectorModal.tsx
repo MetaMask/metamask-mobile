@@ -1,15 +1,15 @@
 import React, { useCallback, useMemo, useRef } from 'react';
-import { View } from 'react-native';
+import { ListRenderItem, View } from 'react-native';
 import Fuse from 'fuse.js';
 import {
   BottomSheetRef,
   FontWeight,
+  ListItemSelect,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type { Country } from '@metamask/ramps-controller';
-import ListItemSelect from '../../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
   WidthType,
 } from '../../../../../../component-library/components/List/ListItemColumn';
@@ -96,8 +96,8 @@ function PhoneCountrySelectorModal() {
     [onCountrySelect],
   );
 
-  const renderCountryItem = useCallback(
-    ({ item }: { item: Country }) => (
+  const renderCountryItem = useCallback<ListRenderItem<Country>>(
+    ({ item }) => (
       <ListItemSelect
         isSelected={selectedCountry?.isoCode === item.isoCode}
         onPress={() => handleCountryPress(item)}
