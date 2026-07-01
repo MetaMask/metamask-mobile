@@ -191,6 +191,14 @@ const styleSheet = (params: { theme: Theme }) => {
       textAlign: 'center',
       maxWidth: 280,
     },
+    emptyStateCta: {
+      marginTop: 20,
+      paddingVertical: 10,
+      paddingHorizontal: 24,
+      borderRadius: 20,
+      borderWidth: 1,
+      borderColor: colors.border.default,
+    },
   });
 };
 

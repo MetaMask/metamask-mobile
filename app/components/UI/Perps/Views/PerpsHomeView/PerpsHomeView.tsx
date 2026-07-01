@@ -91,6 +91,7 @@ import { TraceName } from '../../../../../util/trace';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
+  type PerpsMarketData,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
@@ -107,6 +108,7 @@ import PerpsServiceInterruptionBanner from '../../components/PerpsServiceInterru
 import PerpsCompetitionBanner from '../../components/PerpsCompetitionBanner';
 import PerpsProducts from '../../components/PerpsProducts';
 import PerpsTopMoversSection from '../../components/PerpsTopMoversSection';
+import PerpsRecentlyAddedSection from '../../components/PerpsRecentlyAddedSection';
 
 interface PerpsHomeViewProps {
   hideHeader?: boolean;
@@ -258,6 +260,7 @@ const PerpsHomeView = ({
     commoditiesMarkets, // Commodity markets
     stocksMarkets, // Equity markets only
     forexMarkets,
+    recentlyAddedMarkets,
     hasMarkets,
     recentActivity,
     sortBy,
@@ -456,6 +459,16 @@ const PerpsHomeView = ({
         PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
     });
   }, [track]);
+
+  const handleRecentlyAddedMarketPress = useCallback(
+    (market: PerpsMarketData) => {
+      perpsNavigation.navigateToMarketDetails(
+        market,
+        PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
+      );
+    },
+    [perpsNavigation],
+  );
 
   const navigtateToTutorial = useCallback(() => {
     // Track tutorial button click
@@ -982,6 +995,12 @@ const PerpsHomeView = ({
             isLoading={isLoading.activity}
           />
         </View>
+
+        {/* Recently Added Markets Rail */}
+        <PerpsRecentlyAddedSection
+          markets={recentlyAddedMarkets}
+          onMarketPress={handleRecentlyAddedMarketPress}
+        />
 
         <View style={styles.sectionContent}>
           <PerpsNavigationCard items={navigationItems} />

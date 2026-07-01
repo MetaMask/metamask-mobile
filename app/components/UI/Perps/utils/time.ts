@@ -40,3 +40,39 @@ export const formatDurationForDisplay = (seconds: number): string => {
 
   return shortEnglishHumanizer(milliseconds, options);
 };
+
+const THIRTY_DAYS_MS = 30 * 24 * 60 * 60 * 1000;
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const ONE_HOUR_MS = 60 * 60 * 1000;
+
+/**
+ * Returns true when the given epoch-ms timestamp falls within the last 30 days.
+ *
+ * @param listedAt - Epoch milliseconds timestamp (from PerpsMarketData.listedAt)
+ */
+export const isWithinLast30Days = (listedAt: number): boolean =>
+  Date.now() - listedAt < THIRTY_DAYS_MS;
+
+/**
+ * Formats the time elapsed since a market was listed as a compact relative label.
+ * Used on the "Recently added" rail tiles.
+ *
+ * @param listedAt - Epoch milliseconds timestamp (from PerpsMarketData.listedAt)
+ * @returns e.g. "3h ago", "1 day ago", "12 days ago"
+ *
+ * @example
+ * formatTimeSinceListing(Date.now() - 3 * 60 * 60 * 1000)  // "3h ago"
+ * formatTimeSinceListing(Date.now() - 24 * 60 * 60 * 1000) // "1 day ago"
+ * formatTimeSinceListing(Date.now() - 5 * 24 * 60 * 60 * 1000) // "5 days ago"
+ */
+export const formatTimeSinceListing = (listedAt: number): string => {
+  const elapsed = Date.now() - listedAt;
+
+  if (elapsed < ONE_DAY_MS) {
+    const hours = Math.floor(elapsed / ONE_HOUR_MS);
+    return `${Math.max(hours, 1)}h ago`;
+  }
+
+  const days = Math.floor(elapsed / ONE_DAY_MS);
+  return days === 1 ? '1 day ago' : `${days} days ago`;
+};
