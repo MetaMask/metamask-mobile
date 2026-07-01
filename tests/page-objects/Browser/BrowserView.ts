@@ -382,12 +382,13 @@ class Browser {
   ): Promise<void> {
     if (FrameworkDetector.isAppium()) {
       await this.typeUrlAppium(url);
-    } else {
-      await Gestures.typeText(this.urlInputBoxID, url, {
-        hideKeyboard: true,
-        elemDescription: 'URL input box',
-      });
+      return;
     }
+
+    await Gestures.typeText(this.urlInputBoxID, url, {
+      hideKeyboard: true,
+      elemDescription: 'URL input box',
+    });
 
     if (!options.skipUrlEditorDismissal) {
       if (await Utilities.isElementVisible(this.cancelUrlInputButton, 1000)) {

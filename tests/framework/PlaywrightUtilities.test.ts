@@ -244,6 +244,39 @@ describe('executeMobileDeepLink', () => {
     });
   });
 
+  it('falls back to unprefixed appPackage in session capabilities', async () => {
+    globalThis.driver = {
+      execute: executeMock,
+      capabilities: {
+        platformName: 'Android',
+        appPackage: 'io.metamask',
+      },
+    } as unknown as WebdriverIO.Browser;
+
+    await executeMobileDeepLink('dapp://example.com');
+
+    expect(executeMock).toHaveBeenCalledWith('mobile: deepLink', {
+      url: 'dapp://example.com',
+      package: 'io.metamask',
+    });
+  });
+
+  it('uses an explicit package when provided', async () => {
+    globalThis.driver = {
+      execute: executeMock,
+      capabilities: {},
+    } as unknown as WebdriverIO.Browser;
+
+    await executeMobileDeepLink('dapp://example.com', {
+      package: 'io.metamask',
+    });
+
+    expect(executeMock).toHaveBeenCalledWith('mobile: deepLink', {
+      url: 'dapp://example.com',
+      package: 'io.metamask',
+    });
+  });
+
   it('omits package on iOS deep links', async () => {
     setDeviceInfo('ios', { width: 390, height: 844 });
     await executeMobileDeepLink('dapp://example.com');

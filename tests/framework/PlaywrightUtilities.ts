@@ -86,23 +86,61 @@ interface AppiumDeepLinkArgs {
   package?: string;
 }
 
+type AndroidSessionCapabilities = WebdriverIO.Capabilities & {
+  'appium:appPackage'?: string;
+  appPackage?: string;
+  platformName?: string;
+  'appium:platformName'?: string;
+};
+
+function getAndroidSessionPackage(
+  drv: WebdriverIO.Browser,
+): string | undefined {
+  const caps = drv.capabilities as AndroidSessionCapabilities;
+  return (caps['appium:appPackage'] ?? caps.appPackage)?.trim();
+}
+
+function isAndroidSession(drv: WebdriverIO.Browser): boolean {
+  try {
+    if (PlatformDetector.isAndroid()) {
+      return true;
+    }
+    if (PlatformDetector.isIOS()) {
+      return false;
+    }
+  } catch {
+    // DeviceInfoCache may be unset in unit tests; fall back to session caps.
+  }
+
+  const caps = drv.capabilities as AndroidSessionCapabilities;
+  const platform = (
+    caps.platformName ??
+    caps['appium:platformName'] ??
+    ''
+  ).toLowerCase();
+  return platform.includes('android');
+}
+
 /**
  * Opens a deep link via Appium `mobile: deepLink`.
  * On Android, scopes the intent to the active app package so the system
  * "Open with" chooser is not shown (see launchAppAndroidForDebugBuild).
  */
-export async function executeMobileDeepLink(url: string): Promise<void> {
+export async function executeMobileDeepLink(
+  url: string,
+  options: { package?: string } = {},
+): Promise<void> {
   const drv = getDriver();
   const args: AppiumDeepLinkArgs = { url };
 
-  if (PlatformDetector.isAndroid()) {
-    const caps = drv.capabilities as WebdriverIO.Capabilities & {
-      'appium:appPackage'?: string;
-    };
-    const pkg = caps['appium:appPackage']?.trim();
+  const explicitPackage = options.package?.trim();
+  if (explicitPackage) {
+    args.package = explicitPackage;
+  } else if (isAndroidSession(drv)) {
+    const pkg = getAndroidSessionPackage(drv);
     if (!pkg) {
       throw new Error(
-        'Android mobile: deepLink requires appium:appPackage in session capabilities.',
+        'Android mobile: deepLink requires appium:appPackage or appPackage in session capabilities.',
       );
     }
     args.package = pkg;
@@ -658,7 +696,7 @@ class PlaywrightUtilities {
     });
 
     logger.debug(`Opening Android debug deep link in ${pkg}: ${deepLinkUrl}`);
-    await executeMobileDeepLink(deepLinkUrl);
+    await executeMobileDeepLink(deepLinkUrl, { package: pkg });
     await new Promise((resolve) =>
       setTimeout(resolve, ANDROID_POST_DEEPLINK_SETTLE_MS),
     );
