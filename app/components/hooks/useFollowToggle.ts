@@ -2,7 +2,6 @@ import { playImpact, ImpactMoment } from '../../util/haptics';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../core/Engine';
-import ReactQueryService from '../../core/ReactQueryService';
 import { reportSocialServiceFailure } from '../../util/social/socialServiceTelemetry';
 import { selectFollowingProfileIds } from '../../selectors/socialController';
 import {
@@ -40,6 +39,21 @@ export interface UseFollowToggleManyResult {
     analyticsContext?: FollowToggleAnalyticsContext,
   ) => Promise<void>;
 }
+
+const FOLLOWING_QUERY_KEY = ['SocialService:fetchFollowing'] as const;
+
+/**
+ * Invalidates the followed-traders query without importing ReactQueryService at
+ * module load (that import pulls in Engine and breaks tests that mock Engine).
+ */
+const invalidateFollowingQuery = async (): Promise<void> => {
+  const { default: ReactQueryService } = await import(
+    '../../core/ReactQueryService'
+  );
+  await ReactQueryService.queryClient.invalidateQueries({
+    queryKey: FOLLOWING_QUERY_KEY,
+  });
+};
 
 /**
  * Shared primitive that optimistically toggles follow/unfollow state for one
@@ -100,9 +114,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
             : 'SocialController:unfollowTrader',
           opts,
         );
-        await ReactQueryService.queryClient.invalidateQueries({
-          queryKey: ['SocialService:fetchFollowing'],
-        });
+        await invalidateFollowingQuery();
         if (analyticsContext) {
           track(MetaMetricsEvents.SOCIAL_TRADER_FOLLOW_INTERACTION, {
             [SocialLeaderboardEventProperties.ACTION]: nextValue
