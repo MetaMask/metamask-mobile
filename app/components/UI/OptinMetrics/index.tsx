@@ -252,7 +252,6 @@ const OptinMetrics = () => {
     if (isBasicUsageChecked) {
       try {
         shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
-        // shouldShowInterestQuestionnaire = true;
       } catch (error) {
         Logger.error(
           error instanceof Error ? error : new Error(String(error)),
