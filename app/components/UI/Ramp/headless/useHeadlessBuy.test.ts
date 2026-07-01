@@ -362,7 +362,10 @@ describe('useHeadlessBuy', () => {
       }
       expect(started.sessionId).toMatch(/^headless-buy-/);
       const session = getSession(started.sessionId);
-      expect(session?.params).toEqual(baseStartParams);
+      expect(session?.params).toEqual({
+        ...baseStartParams,
+        walletAddress: '0xWALLET',
+      });
       expect(session?.callbacks).toBe(callbacks);
       expect(session?.status).toBe('pending');
     });
@@ -430,6 +433,31 @@ describe('useHeadlessBuy', () => {
         ...baseStartParams,
         currency: 'EUR',
         paymentMethodId: '/payments/debit-credit-card',
+        walletAddress: '0xWALLET',
+      });
+    });
+
+    it('persists an explicit walletAddress override on the session params', () => {
+      const { result } = renderHook(() => useHeadlessBuy());
+      let started: { sessionId: string; cancel: () => void } | undefined;
+
+      act(() => {
+        started = result.current.startHeadlessBuy(
+          {
+            ...baseStartParams,
+            walletAddress: '0xOVERRIDE',
+          },
+          buildCallbacks(),
+        );
+      });
+
+      if (!started) {
+        throw new Error('startHeadlessBuy did not return a session');
+      }
+      expect(mockResolveAccount).not.toHaveBeenCalled();
+      expect(getSession(started.sessionId)?.params).toEqual({
+        ...baseStartParams,
+        walletAddress: '0xOVERRIDE',
       });
     });
 

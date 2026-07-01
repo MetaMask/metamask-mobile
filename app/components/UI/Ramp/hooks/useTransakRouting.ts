@@ -65,6 +65,7 @@ interface RampStackParamList {
     workFlowRunId: string;
     /** User-entered fiat from BuildQuote; used when resetting stack so amount screen keeps the typed value. */
     amount?: number;
+    headlessSessionId?: string;
   };
   RampKycProcessing: { headlessSessionId?: string } | undefined;
   RampEnterEmail: undefined;
@@ -439,12 +440,18 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
           buildBaseRouteEntry({ amount }),
           {
             name: Routes.RAMP.ADDITIONAL_VERIFICATION,
-            params: { quote, kycUrl, workFlowRunId, amount },
+            params: {
+              quote,
+              kycUrl,
+              workFlowRunId,
+              amount,
+              headlessSessionId,
+            },
           },
         ],
       });
     },
-    [navigation, buildBaseRouteEntry],
+    [navigation, buildBaseRouteEntry, headlessSessionId],
   );
 
   const handleNavigationStateChange = useCallback(
@@ -681,6 +688,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         workFlowRunId,
         quote,
         amount,
+        headlessSessionId,
       });
       navigation.reset({
         index: 2,

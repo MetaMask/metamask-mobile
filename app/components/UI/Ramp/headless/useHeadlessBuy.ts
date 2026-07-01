@@ -166,7 +166,20 @@ export function useHeadlessBuy(): HeadlessBuyResult {
         null;
       setSelectedPaymentMethod(matchedPaymentMethod);
 
-      const session = createSession(params, callbacks);
+      const chainId = getChainIdFromAssetId(params.assetId);
+      const walletAddress =
+        params.walletAddress ??
+        (chainId
+          ? (resolveWalletAddressForChain(chainId) ?? undefined)
+          : undefined);
+      const sessionParams = walletAddress
+        ? {
+            ...params,
+            walletAddress,
+          }
+        : params;
+
+      const session = createSession(sessionParams, callbacks);
 
       navigation.navigate(Routes.RAMP.HEADLESS_ENTRY, {
         screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
