@@ -5,20 +5,21 @@
  * Integration Guide (2026-06-22). Step numbers in the comments refer to the
  * integration walkthrough in that document.
  *
- *   Step 2  — POST  /platform/v1/sessions             (server, via UKYC)
- *   Step 4  — POST  /platform/v1/identities           (client, Bearer accessToken)
- *   Step 5  — PATCH /platform/v1/identities/{id}      (client, Bearer accessToken)
- *   Step 5b — POST  /platform/v1/identities/{id}/files/upload-url
- *           — PUT   <presigned url>                   (no auth — URL is credential)
- *           — POST  /platform/v1/identities/{id}/files
- *   Step 6  — POST  /platform/v1/identities/{id}/verifications
- *   Step 7  — GET   /platform/v1/identities/{id}      (poll)
+ * Step 2  — POST  /platform/v1/sessions             (server, via UKYC)
+ * Step 4  — POST  /platform/v1/identities           (client, Bearer accessToken)
+ * Step 5  — PATCH /platform/v1/identities/{id}      (client, Bearer accessToken)
+ * Step 5b — POST /platform/v1/identities/{id}/files/upload-url
+ * (cont.) — PUT  <presigned url> (no auth — URL is credential)
+ * (cont.) — POST /platform/v1/identities/{id}/files
+ * Step 6  — POST  /platform/v1/identities/{id}/verifications
+ * Step 7  — GET   /platform/v1/identities/{id}      (poll)
  *
  * MoonPay wraps everything in a `{ data: ... }` envelope; these helpers
  * unwrap it for you.
  */
 
 import { Platform } from 'react-native';
+import Engine from '../../../core/Engine';
 
 // ---------------------------------------------------------------------------
 // Endpoint configuration
@@ -62,13 +63,15 @@ export interface CreateSessionResponse {
 export async function createSession(
   params: CreateSessionParams,
 ): Promise<CreateSessionResponse> {
+  const bearerToken =
+    await Engine.context.AuthenticationController.getBearerToken();
   const response = await fetch(
     `${UKYC_API_BASE_URL}/vendors/moonpay/sessions`,
     {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${UKYC_BEARER_TOKEN}`,
+        Authorization: `Bearer ${bearerToken}`,
       },
       body: JSON.stringify(params),
     },
@@ -193,9 +196,7 @@ interface FetchOpts {
 }
 
 async function moonpayFetch<T>(path: string, opts: FetchOpts): Promise<T> {
-  const url = path.startsWith('http')
-    ? path
-    : `${MOONPAY_API_BASE_URL}${path}`;
+  const url = path.startsWith('http') ? path : `${MOONPAY_API_BASE_URL}${path}`;
   const headers: Record<string, string> = {
     Authorization: `Bearer ${opts.accessToken}`,
   };
@@ -249,10 +250,9 @@ export interface CreateIdentityParams {
 /**
  * POST /platform/v1/identities
  *
- * Returns either:
- *   - the freshly created Identity (status === 'created'), OR
- *   - `null` when MoonPay responded 204 No Content (customer already
- *     satisfies the requested capabilities — skip straight to payment).
+ * Returns either the freshly created Identity (status === 'created'), or
+ * `null` when MoonPay responded 204 No Content (customer already satisfies
+ * the requested capabilities — skip straight to payment).
  */
 export async function createIdentity(
   params: CreateIdentityParams,
@@ -384,14 +384,11 @@ export async function confirmFiles(
   identityId: string,
   files: ConfirmFileEntry[],
 ): Promise<Identity> {
-  return moonpayFetch<Identity>(
-    `/platform/v1/identities/${identityId}/files`,
-    {
-      accessToken,
-      method: 'POST',
-      body: { files },
-    },
-  );
+  return moonpayFetch<Identity>(`/platform/v1/identities/${identityId}/files`, {
+    accessToken,
+    method: 'POST',
+    body: { files },
+  });
 }
 
 // ---------------------------------------------------------------------------

@@ -29,6 +29,7 @@ import {
 import type { MoonpayFrameMessage } from './MoonpayFrame';
 // eslint-disable-next-line import-x/no-restricted-paths
 import useSumSubDemo from '../SumSubDemo/useSumSubDemo';
+import { Engine } from '../../../core/Engine/Engine';
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -60,7 +61,7 @@ const REQUIREMENT_FULFILLMENT: Partial<Record<string, string>> = {
   questionnaires: 'undocumented — no API fulfillment path in the preview guide',
 };
 
-const DEMO_SUBMISSION: IdentitySubmission = {
+const DEMO_SUBMISSION_US: IdentitySubmission = {
   basicDetails: {
     firstName: 'Jane',
     lastName: 'Doe',
@@ -77,6 +78,32 @@ const DEMO_SUBMISSION: IdentitySubmission = {
   },
   phoneNumber: { number: '+12025550143' },
   taxIdentifiers: [{ type: 'ssn', value: '123-45-6789' }],
+};
+
+const DEMO_SUBMISSION_FR: IdentitySubmission = {
+  basicDetails: {
+    firstName: 'Marie',
+    lastName: 'Dupont',
+    dateOfBirth: '1988-03-22',
+    nationality: 'FRA',
+  },
+  residentialAddress: {
+    country: 'FRA',
+    street: '15 Rue de Rivoli',
+    subStreet: 'Bât A',
+    locality: 'Paris',
+    administrativeArea: 'Île-de-France',
+    postalCode: '75001',
+  },
+  phoneNumber: { number: '+33609965745' },
+  taxIdentifiers: [{ type: 'ssn', value: '288037512345678' }],
+};
+
+export type DemoProfile = 'US' | 'FR';
+
+export const DEMO_PROFILES: Record<DemoProfile, IdentitySubmission> = {
+  US: DEMO_SUBMISSION_US,
+  FR: DEMO_SUBMISSION_FR,
 };
 
 // ---------------------------------------------------------------------------
@@ -138,6 +165,11 @@ interface ChallengeEventPayload {
 const truncate = (s: string, head = 12, tail = 6): string =>
   s.length <= head + tail + 3 ? s : `${s.slice(0, head)}…${s.slice(-tail)}`;
 
+const getIncompleteRequirements = (identity: Identity): RequirementType[] =>
+  (Object.keys(identity.requirements) as RequirementType[]).filter(
+    (type) => identity.requirements[type]?.status === 'incomplete',
+  );
+
 // ---------------------------------------------------------------------------
 // Hook
 // ---------------------------------------------------------------------------
@@ -152,7 +184,7 @@ const useMoonpayIdentityFlow = () => {
 
   const [email, setEmail] = useState(DEMO_EMAIL);
   const [submission, setSubmission] =
-    useState<IdentitySubmission>(DEMO_SUBMISSION);
+    useState<IdentitySubmission>(DEMO_SUBMISSION_US);
 
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
@@ -194,6 +226,12 @@ const useMoonpayIdentityFlow = () => {
     },
     [pushDebug],
   );
+
+  useEffect(() => {
+    if (finalStatus === 'approved') {
+      launchSumSubSDK();
+    }
+  }, [finalStatus, launchSumSubSDK]);
 
   // ---- Check frame visibility toggle ----
   const [showCheckFrame, setShowCheckFrame] = useState(false);
@@ -249,6 +287,7 @@ const useMoonpayIdentityFlow = () => {
         setFinalStatus(finalIdentity.status);
         setPhase('done');
         setStatusMessage(`Final status: ${finalIdentity.status}`);
+        launchSumSubSDK();
       } catch (err) {
         if (!pollAbortedRef.current) {
           setErrorMessage(`Polling failed: ${err}`);
@@ -256,7 +295,7 @@ const useMoonpayIdentityFlow = () => {
         }
       }
     },
-    [],
+    [launchSumSubSDK],
   );
 
   // ---------- Step 3a / 3b: Check + Auth frame message handler ----------
@@ -368,7 +407,6 @@ const useMoonpayIdentityFlow = () => {
           setAccessToken(credentials.accessToken);
           setPhase('form');
           setStatusMessage('Authenticated. Review the profile to submit.');
-          launchSumSubSDK();
           return;
         }
         if (status === 'termsAcceptanceRequired') {
@@ -382,7 +420,7 @@ const useMoonpayIdentityFlow = () => {
         setPhase('error');
       }
     },
-    [keypair.privateKey, pushCheckDebug, launchSumSubSDK],
+    [keypair.privateKey, pushCheckDebug],
   );
 
   // ---------- Step 4 / 5: create identity, submit requirements ----------
@@ -421,9 +459,7 @@ const useMoonpayIdentityFlow = () => {
       let current: Identity = created;
       const MAX_ROUNDS = 6;
       for (let round = 0; round < MAX_ROUNDS; round++) {
-        const pending = (
-          Object.keys(current.requirements) as RequirementType[]
-        ).filter((type) => current.requirements[type]?.status === 'incomplete');
+        const pending = getIncompleteRequirements(current);
         const inlinePending = pending.filter((type) =>
           INLINE_REQUIREMENT_TYPES.includes(type),
         );
@@ -463,9 +499,7 @@ const useMoonpayIdentityFlow = () => {
         setIdentity(current);
       }
 
-      const remaining = (
-        Object.keys(current.requirements) as RequirementType[]
-      ).filter((type) => current.requirements[type]?.status === 'incomplete');
+      const remaining = getIncompleteRequirements(current);
 
       if (remaining.length > 0) {
         pushDebug(

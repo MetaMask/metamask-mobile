@@ -5,33 +5,32 @@
  * Partner Integration Guide (2026-06-22). The screen is structured as a
  * linear state machine that mirrors Steps 1-8 of the guide:
  *
- *   terms   → display MoonPay's Terms of Use; capture acceptance timestamp
- *   session → POST /platform/v1/sessions via the local UKYC service
- *   check   → mount the Check frame (invisible) to detect a returning auth
- *   auth    → mount the Auth frame (visible) for email OTP when needed
- *   form    → confirm/edit the customer profile to submit
- *   submit  → POST /identities, then PATCH country, then PATCH rest
- *   verify  → POST /verifications
- *   challenge → render the Challenge frame for liveness / doc capture
- *   poll    → GET /identities/{id} until terminal
- *   done    → show approved / rejected / blocked / manualReview
+ * terms — display MoonPay's Terms of Use; capture acceptance timestamp
+ * session — POST /platform/v1/sessions via the local UKYC service
+ * check — mount the Check frame (invisible) to detect a returning auth
+ * auth — mount the Auth frame (visible) for email OTP when needed
+ * form — confirm/edit the customer profile to submit
+ * submit — POST /identities, then PATCH country, then PATCH rest
+ * verify — POST /verifications
+ * challenge — render the Challenge frame for liveness / doc capture
+ * poll — GET /identities/{id} until terminal
+ * done — show approved / rejected / blocked / manualReview
  *
  * State machine logic lives in `./useMoonpayIdentityFlow`. The HTTP layer
  * is in `./api`, crypto in `./crypto`, and the WebView bridge in
  * `./MoonpayFrame`.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Linking,
   Platform,
+  Pressable,
   ScrollView,
   StyleSheet,
   TextInput,
   View,
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useNavigation } from '@react-navigation/native';
 import {
   Button,
   ButtonVariant,
@@ -39,14 +38,13 @@ import {
   Text,
   TextVariant,
   TextColor,
-  IconName,
-  ButtonIcon,
-  ButtonIconSize,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../util/theme';
 import type { IdentityStatus, IdentitySubmission } from './api';
 import MoonpayFrame from './MoonpayFrame';
 import useMoonpayIdentityFlow, {
+  DEMO_PROFILES,
+  type DemoProfile,
   type Phase,
   type DebugEvent,
   type DebugSeverity,
@@ -77,19 +75,12 @@ const SEVERITY_TO_COLOR: Record<DebugSeverity, TextColor> = {
   error: TextColor.ErrorDefault,
 };
 
-
 // ---------------------------------------------------------------------------
 // Styles
 // ---------------------------------------------------------------------------
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
   headerTitle: { flex: 1, marginLeft: 8 },
   scrollContent: {
     paddingHorizontal: 16,
@@ -115,9 +106,36 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   bold: { fontWeight: 'bold' },
+  profileSelector: {
+    gap: 4,
+  },
+  profileDropdown: {
+    borderWidth: 1,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  profileOption: {
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+  },
+  profileTrigger: {
+    borderWidth: 1,
+    borderRadius: 8,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    flexDirection: 'row' as const,
+    alignItems: 'center' as const,
+    justifyContent: 'space-between' as const,
+  },
   frameArea: {
     flex: 1,
     minHeight: 480,
+  },
+  donePanel: {
+    borderRadius: 12,
   },
   errorPanel: {
     borderRadius: 12,
@@ -196,17 +214,16 @@ const TermsPanel: React.FC<{
       </Text>
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
         All regulated services, including digital asset purchase and sale
-        transactions, fiat currency payments, and related services, are
-        provided exclusively by our partner, MoonPay. By using our platform
-        for such services, you are engaging directly with MoonPay which will
-        conduct such services under its applicable licenses and regulatory
-        approvals.
+        transactions, fiat currency payments, and related services, are provided
+        exclusively by our partner, MoonPay. By using our platform for such
+        services, you are engaging directly with MoonPay which will conduct such
+        services under its applicable licenses and regulatory approvals.
       </Text>
       <Text variant={TextVariant.BodySm} style={styles.bold}>
         Applicable Terms & Policies
       </Text>
       <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        By accessing these services, you agree to be bound by MoonPay's{' '}
+        By accessing these services, you agree to be bound by MoonPay&apos;s{' '}
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.PrimaryDefault}
@@ -251,12 +268,27 @@ const TermsPanel: React.FC<{
   </View>
 );
 
+const PROFILE_LABELS: Record<DemoProfile, string> = {
+  US: '🇺🇸  United States — Jane Doe',
+  FR: '🇫🇷  France — Marie Dupont',
+};
+const PROFILE_KEYS: DemoProfile[] = ['US', 'FR'];
+
 const SubmissionReviewPanel: React.FC<{
   submission: IdentitySubmission;
   onChange: (s: IdentitySubmission) => void;
   onSubmit: () => void;
   colors: ThemeColors;
 }> = ({ submission, onChange, onSubmit, colors }) => {
+  const [selectedProfile, setSelectedProfile] = useState<DemoProfile>('US');
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+
+  const applyProfile = (profile: DemoProfile) => {
+    setSelectedProfile(profile);
+    onChange(DEMO_PROFILES[profile]);
+    setDropdownOpen(false);
+  };
+
   const phoneNumber = submission.phoneNumber?.number ?? '';
   const ssnValue =
     submission.taxIdentifiers?.find((t) => t.type === 'ssn')?.value ?? '';
@@ -332,6 +364,72 @@ const SubmissionReviewPanel: React.FC<{
         /verifications. If a challenge is required, the Challenge frame will
         render.
       </Text>
+
+      <View style={styles.profileSelector}>
+        <Text variant={TextVariant.BodySm}>Demo profile preset</Text>
+        <Pressable
+          onPress={() => setDropdownOpen((v) => !v)}
+          style={[
+            styles.profileTrigger,
+            {
+              borderColor: colors.border.muted,
+              backgroundColor: colors.background.alternative,
+            },
+          ]}
+        >
+          <Text variant={TextVariant.BodySm}>
+            {PROFILE_LABELS[selectedProfile]}
+          </Text>
+          <Text variant={TextVariant.BodySm}>{dropdownOpen ? '▲' : '▼'}</Text>
+        </Pressable>
+        {dropdownOpen && (
+          <View
+            style={[
+              styles.profileDropdown,
+              {
+                borderColor: colors.border.muted,
+                backgroundColor: colors.background.default,
+              },
+            ]}
+          >
+            {PROFILE_KEYS.map((key) => {
+              const isSelected = key === selectedProfile;
+              return (
+                <Pressable
+                  key={key}
+                  onPress={() => applyProfile(key)}
+                  style={[
+                    styles.profileOption,
+                    isSelected && {
+                      backgroundColor: colors.primary.default + '18',
+                    },
+                  ]}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={
+                      isSelected
+                        ? TextColor.PrimaryDefault
+                        : TextColor.TextDefault
+                    }
+                  >
+                    {PROFILE_LABELS[key]}
+                  </Text>
+                  {isSelected && (
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.PrimaryDefault}
+                    >
+                      ✓
+                    </Text>
+                  )}
+                </Pressable>
+              );
+            })}
+          </View>
+        )}
+      </View>
+
       <Button
         variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
@@ -356,10 +454,8 @@ const DonePanel: React.FC<{
   <View
     style={[
       styles.panel,
-      {
-        backgroundColor: colors.background.alternative,
-        borderRadius: 12,
-      },
+      styles.donePanel,
+      { backgroundColor: colors.background.alternative },
     ]}
   >
     <Text variant={TextVariant.HeadingSm}>Final status: {status}</Text>
@@ -382,12 +478,7 @@ const DebugEntry: React.FC<{
     dataString = String(event.data);
   }
   return (
-    <View
-      style={[
-        styles.debugEntry,
-        { borderColor: colors.border.muted },
-      ]}
-    >
+    <View style={[styles.debugEntry, { borderColor: colors.border.muted }]}>
       <View style={styles.debugEntryHeader}>
         <Text variant={TextVariant.BodyXs} color={color}>
           {time}
@@ -480,9 +571,7 @@ const ErrorPanel: React.FC<{
   </View>
 );
 
-
 const MoonpayDemo: React.FC = () => {
-  const navigation = useNavigation();
   const { colors } = useTheme();
 
   const {
@@ -511,10 +600,9 @@ const MoonpayDemo: React.FC = () => {
   } = useMoonpayIdentityFlow();
 
   return (
-    <SafeAreaView
+    <View
       style={[styles.container, { backgroundColor: colors.background.default }]}
     >
-
       <ScrollView contentContainerStyle={styles.scrollContent}>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
           Phase: {phase}
@@ -528,9 +616,7 @@ const MoonpayDemo: React.FC = () => {
             colors={colors}
             phase={phase}
             showCheckFrame={showCheckFrame}
-            onToggleCheckFrameVisibility={() =>
-              setShowCheckFrame((v) => !v)
-            }
+            onToggleCheckFrameVisibility={() => setShowCheckFrame((v) => !v)}
           />
         )}
 
@@ -609,11 +695,8 @@ const MoonpayDemo: React.FC = () => {
           />
         </View>
       )}
-    </SafeAreaView>
+    </View>
   );
 };
-
-
-
 
 export default MoonpayDemo;

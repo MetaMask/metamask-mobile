@@ -4,15 +4,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import {
-  Button,
-  ButtonVariant,
-  ButtonSize,
   Text,
   TextVariant,
   TextColor,
-  IconName,
-  ButtonIcon,
-  ButtonIconSize,
 } from '@metamask/design-system-react-native';
 import useSumSubDemo from './useSumSubDemo';
 
@@ -53,25 +47,13 @@ const styles = StyleSheet.create({
 });
 
 const SumSubDemo = () => {
-  const navigation = useNavigation();
   const { colors } = useTheme();
-  const { sdkResult, isLoading, status, launchSumSubSDK } = useSumSubDemo();
+  const { sdkResult, status } = useSumSubDemo();
 
   return (
     <SafeAreaView
       style={[styles.container, { backgroundColor: colors.background.default }]}
     >
-      <View style={styles.header}>
-        <ButtonIcon
-          iconName={IconName.ArrowLeft}
-          size={ButtonIconSize.Md}
-          onPress={() => navigation.goBack()}
-        />
-        <Text variant={TextVariant.HeadingSm} style={styles.headerTitle}>
-          SumSub Demo
-        </Text>
-      </View>
-
       <View style={styles.content}>
         <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
           Launch the SumSub identity verification flow. This will create a UKYC
@@ -84,15 +66,6 @@ const SumSubDemo = () => {
           </Text>
         )}
 
-        <Button
-          variant={ButtonVariant.Primary}
-          size={ButtonSize.Lg}
-          onPress={launchSumSubSDK}
-          isDisabled={isLoading}
-        >
-          {isLoading ? 'Launching...' : 'Start SumSub Verification'}
-        </Button>
-
         {sdkResult && (
           <View
             style={[
@@ -100,10 +73,15 @@ const SumSubDemo = () => {
               { backgroundColor: colors.background.alternative },
             ]}
           >
-            <Text variant={TextVariant.BodySm} style={styles.bold}>SDK Result</Text>
+            <Text variant={TextVariant.BodySm} style={styles.bold}>
+              SDK Result
+            </Text>
             {Object.entries(sdkResult).map(([key, value]) => (
               <View key={key} style={styles.statusRow}>
-                <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+                <Text
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
+                >
                   {key}
                 </Text>
                 <Text variant={TextVariant.BodySm}>{String(value)}</Text>

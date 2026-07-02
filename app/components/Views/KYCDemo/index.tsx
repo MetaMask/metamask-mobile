@@ -4,19 +4,19 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../../../util/theme';
 import {
-  Button,
-  ButtonVariant,
-  ButtonSize,
   Text,
   TextVariant,
-  TextColor,
   IconName,
   ButtonIcon,
   ButtonIconSize,
 } from '@metamask/design-system-react-native';
+
 // eslint-disable-next-line import-x/no-restricted-paths
 import MoonpayDemo from '../MoonpayDemo/';
-// import useSumSubDemo from '../SumSubDemo/useSumSubDemo';
+// eslint-disable-next-line import-x/no-restricted-paths
+import SumSubDemo from '../SumSubDemo/';
+// eslint-disable-next-line import-x/no-restricted-paths
+import useSumSubDemo from '../SumSubDemo/useSumSubDemo';
 
 const styles = StyleSheet.create({
   container: {
@@ -32,32 +32,12 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 8,
   },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 32,
-    gap: 24,
-  },
-  statusContainer: {
-    padding: 16,
-    borderRadius: 12,
-    width: '100%',
-  },
-  statusRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    paddingVertical: 4,
-  },
-  bold: {
-    fontWeight: 'bold',
-  },
 });
 
 const KYCDemo = () => {
   const navigation = useNavigation();
   const { colors } = useTheme();
-  // const { sdkResult, isLoading, status, launchSumSubSDK } = useSumSubDemo();
+  const { isLoading: isLoadingSumSubDemo } = useSumSubDemo();
 
   return (
     <SafeAreaView
@@ -73,8 +53,8 @@ const KYCDemo = () => {
           KYC Demo
         </Text>
       </View>
-      <MoonpayDemo />
-
+      {!isLoadingSumSubDemo && <MoonpayDemo />}
+      {isLoadingSumSubDemo && <SumSubDemo />}
     </SafeAreaView>
   );
 };
