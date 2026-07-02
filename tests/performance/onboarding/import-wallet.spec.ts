@@ -13,12 +13,10 @@ import OnboardingSheet from '../../page-objects/Onboarding/OnboardingSheet';
 import ImportWalletView from '../../page-objects/Onboarding/ImportWalletView';
 import CreatePasswordView from '../../page-objects/Onboarding/CreatePasswordView';
 import MetaMetricsOptInView from '../../page-objects/Onboarding/MetaMetricsOptInView';
-import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSuccessView';
 import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import {
   dismissOnboardingInterestQuestionnaire,
   dismisspredictionsModalPlaywright,
-  dismissOnboardingCryptoExperienceQuestionnaire,
   dismissPushNotificationExistingUserSheet,
   resolvePredictGtmOnboardingModalEnabled,
 } from '../../flows/wallet.flow';
@@ -51,11 +49,6 @@ test.describe(PerformanceOnboarding, () => {
       const timer4 = new TimerHelper(
         'Time since the user clicks on "Create Password" button until Metrics screen is displayed',
         { ios: 2000, android: 1800 },
-        currentDeviceDetails.platform,
-      );
-      const timer5 = new TimerHelper(
-        'Time since the user clicks on "I agree" button on Metrics screen until Onboarding Success screen is visible',
-        { ios: 2000, android: 2000 },
         currentDeviceDetails.platform,
       );
       const timer6 = new TimerHelper(
@@ -126,14 +119,6 @@ test.describe(PerformanceOnboarding, () => {
 
       await MetaMetricsOptInView.tapIAgreeButton();
       await dismissOnboardingInterestQuestionnaire();
-
-      await timer5.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(OnboardingSuccessView.doneButton),
-          { timeout: 30_000 },
-        );
-      });
-      await OnboardingSuccessView.tapDone();
       await dismissPushNotificationExistingUserSheet();
       const predictGtmOnboardingModalEnabled =
         await resolvePredictGtmOnboardingModalEnabled(productionFeatureFlags);
@@ -147,7 +132,6 @@ test.describe(PerformanceOnboarding, () => {
       }
 
       await dismisspredictionsModalPlaywright();
-      await dismissOnboardingCryptoExperienceQuestionnaire();
       await timer7.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
@@ -155,14 +139,7 @@ test.describe(PerformanceOnboarding, () => {
         );
       });
 
-      performanceTracker.addTimers(
-        timer1,
-        timer2,
-        timer3,
-        timer4,
-        timer5,
-        timer7,
-      );
+      performanceTracker.addTimers(timer1, timer2, timer3, timer4, timer7);
       if (
         predictGtmOnboardingModalEnabled &&
         predictGtmOnboardingModalEnabled === true

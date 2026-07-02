@@ -25,7 +25,6 @@ import {
 } from '../framework/fixtures/FixtureUtils';
 import TermsOfUseModal from '../page-objects/Onboarding/TermsOfUseModal';
 import CreatePasswordView from '../page-objects/Onboarding/CreatePasswordView';
-import OnboardingSuccessView from '../page-objects/Onboarding/OnboardingSuccessView';
 import ImportWalletView from '../page-objects/Onboarding/ImportWalletView';
 import OnboardingView from '../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../page-objects/Onboarding/OnboardingSheet';
@@ -52,7 +51,6 @@ import PlaywrightUtilities, {
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
-import OnboardingCryptoExperienceQuestionnaireView from '../page-objects/Onboarding/OnboardingCryptoExperienceQuestionnaireView';
 import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/OnboardingInterestQuestionnaireView';
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
@@ -434,13 +432,8 @@ export const importWalletWithRecoveryPhrase = async ({
   }
   if (optInToMetrics) {
     await OnboardingInterestQuestionnaireView.tapContinueButton();
-    await OnboardingCryptoExperienceQuestionnaireView.tapContinueButton();
   }
   //'Should dismiss Enable device Notifications checks alert'
-  await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
-    description: 'Onboarding Success View should be visible',
-  });
-  await OnboardingSuccessView.tapDone();
   await closeOnboardingModals(fromResetWallet);
 };
 
@@ -558,13 +551,8 @@ export const CreateNewWallet = async ({
 
   if (optInToMetrics) {
     await OnboardingInterestQuestionnaireView.tapContinueButton();
-    await OnboardingCryptoExperienceQuestionnaireView.tapContinueButton();
   }
 
-  await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
-    description: 'Onboarding Success View should be visible',
-  });
-  await OnboardingSuccessView.tapDone();
   await closeOnboardingModals(false);
   // Dismissing to protect your wallet modal
   await dismissProtectYourWalletModal();
@@ -817,46 +805,8 @@ const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS = 3_000;
 const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS = 250;
 
 /**
- * Advances past the optional crypto experience questionnaire (Playwright / Appium only).
- * No-op when the screen is not shown.
- */
-export const dismissOnboardingCryptoExperienceQuestionnaire =
-  async (): Promise<void> => {
-    const deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
-
-    while (Date.now() < deadline) {
-      try {
-        const successDoneButton = await asPlaywrightElement(
-          OnboardingSuccessView.doneButton,
-        );
-        if (await successDoneButton.unwrap().isExisting()) {
-          return;
-        }
-
-        const continueButton = await asPlaywrightElement(
-          OnboardingCryptoExperienceQuestionnaireView.continueButton,
-        );
-        if (await continueButton.unwrap().isExisting()) {
-          await PlaywrightGestures.waitAndTap(continueButton, {
-            timeout: 10_000,
-            checkForDisplayed: true,
-            checkForEnabled: true,
-          });
-          await continueButton
-            .unwrap()
-            .waitForDisplayed({ reverse: true, timeout: 10_000 });
-          return;
-        }
-      } catch {
-        // Stale element / screen transition while the next route loads.
-      }
-      await sleep(ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS);
-    }
-  };
-
-/**
  * Advances past the optional onboarding interest questionnaire (Playwright / Appium only).
- * No-op when the app navigates straight to onboarding success (common on some builds/flags).
+ * No-op when the app navigates straight to the wallet home (common on some builds/flags).
  */
 export const dismissOnboardingInterestQuestionnaire =
   async (): Promise<void> => {
@@ -864,12 +814,10 @@ export const dismissOnboardingInterestQuestionnaire =
 
     while (Date.now() < deadline) {
       try {
-        const successDoneButton = await asPlaywrightElement(
-          OnboardingSuccessView.doneButton,
-        );
-        if (await successDoneButton.unwrap().isExisting()) {
+        const walletContainer = await asPlaywrightElement(WalletView.container);
+        if (await walletContainer.unwrap().isExisting()) {
           logger.debug(
-            'Onboarding success already visible; skipping interest questionnaire',
+            'Wallet home already visible; skipping interest questionnaire',
           );
           return;
         }
@@ -1033,12 +981,6 @@ export const onboardingFlowImportSRPPlaywright = async (
   );
   await MetaMetricsOptInView.tapIAgreeButton();
   await dismissOnboardingInterestQuestionnaire();
-  await dismissOnboardingCryptoExperienceQuestionnaire();
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(OnboardingSuccessView.doneButton),
-    { timeout: 30_000 },
-  );
-  await OnboardingSuccessView.tapDone();
   const productionFeatureFlags = await fetchProductionFeatureFlags(
     'main',
     testEnvironment,
