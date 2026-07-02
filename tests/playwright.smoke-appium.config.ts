@@ -7,18 +7,18 @@ import { defineConfig } from './framework/config';
 // Requires HAS_TEST_OVERRIDES=true baked in at build time so the app activates
 // ReadOnlyNetworkStore and fetches fixture state from /state.json.
 //
-// Defaults match local debug e2e builds (.e2e.env PREBUILT_* or build/MetaMask.*).
+// Defaults match Detox local debug e2e output
 // Override with ANDROID_APK_PATH / IOS_APP_PATH for release/main-e2e artifacts
 // (e.g. build/ci-main-e2e/app-prod-release.apk) — launch helpers detect release
 // from the path and skip Metro deep-link automatically.
 const DEFAULT_ANDROID_APK =
   process.env.ANDROID_APK_PATH?.trim() ||
   process.env.PREBUILT_ANDROID_APK_PATH?.trim() ||
-  'build/MetaMask.apk';
+  'android/app/build/outputs/apk/prod/debug/app-prod-debug.apk';
 const DEFAULT_IOS_APP =
   process.env.IOS_APP_PATH?.trim() ||
   process.env.PREBUILT_IOS_APP_PATH?.trim() ||
-  'build/MetaMask.app';
+  'ios/build/Build/Products/Debug-iphonesimulator/MetaMask.app';
 
 /**
  * Playwright runner config for Appium smoke tests.
@@ -27,9 +27,9 @@ const DEFAULT_IOS_APP =
  * via tags.js (same convention as Detox); --grep uses the tag id (e.g. SmokeAccounts).
  *
  * Environment variables (all optional — defaults shown):
- * - PREBUILT_ANDROID_APK_PATH — e2e test APK from .e2e.env (local debug default)
+ * - PREBUILT_ANDROID_APK_PATH — e2e APK from .e2e.env (overrides default debug path)
  * - ANDROID_APK_PATH — path to the APK (overrides PREBUILT_ANDROID_APK_PATH)
- * - PREBUILT_IOS_APP_PATH — e2e .app from .e2e.env (local debug default)
+ * - PREBUILT_IOS_APP_PATH — e2e .app from .e2e.env (overrides default debug path)
  * - IOS_APP_PATH — path to the .app (overrides PREBUILT_IOS_APP_PATH)
  * - ANDROID_AVD_NAME — AVD name (default: 'Pixel_5_Pro_API_34')
  * - IOS_SIMULATOR_NAME — simulator name (default: 'iPhone 16 Pro')
