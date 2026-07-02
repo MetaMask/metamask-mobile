@@ -352,7 +352,7 @@ function escapeRegex(str: string): string {
  */
 function registryEntryLineRegex(name: string): RegExp {
   return new RegExp(
-    `^  (?:"${escapeRegex(name)}"|${escapeRegex(name)}):\\s*\\{`,
+    `^ {2}(?:"${escapeRegex(name)}"|'${escapeRegex(name)}'|${escapeRegex(name)}):\\s*\\{`,
     'mu',
   );
 }
@@ -488,6 +488,10 @@ export function validateRegistryFile(content: string): string[] {
         .filter((line: string) => line.includes('error TS'));
       if (tsErrors.length > 0) {
         errors.push(...tsErrors);
+      } else {
+        errors.push(
+          `tsc exited with an error but no TS diagnostics found: ${output.trim().split('\n')[0]}`,
+        );
       }
     }
   }

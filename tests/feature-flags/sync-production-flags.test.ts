@@ -515,6 +515,27 @@ describe('validateRegistryFile', () => {
     const errors = validateRegistryFile(content);
     expect(errors).toContainEqual(expect.stringContaining('tsc failed to run'));
   });
+
+  it('reports error when tsc exits with non-TS diagnostic output', () => {
+    mockedExecFileSync.mockImplementation(() => {
+      const err = new Error('tsc failed') as Error & {
+        stdout: string;
+        stderr: string;
+      };
+      err.stdout = 'Some unexpected compiler crash output';
+      err.stderr = '';
+      throw err;
+    });
+    const content = `
+  flagA: {
+    name: 'flagA',
+  },
+`;
+    const errors = validateRegistryFile(content);
+    expect(errors).toContainEqual(
+      expect.stringContaining('tsc exited with an error'),
+    );
+  });
 });
 
 describe('compareProductionFlagsToRegistry - key ordering', () => {
