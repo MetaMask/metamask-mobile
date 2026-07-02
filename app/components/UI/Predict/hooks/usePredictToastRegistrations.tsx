@@ -13,7 +13,9 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
-import Routes from '../../../../constants/navigation/Routes';
+import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
+import { ActivityTypeFilter } from '../../../Views/ActivityScreen/types';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
 import { useAppThemeFromContext } from '../../../../util/theme';
 import { PredictEventValues } from '../constants/eventNames';
@@ -195,14 +197,10 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             }),
             trackLabel: strings('predict.deposit.track'),
             onTrack: () => {
-              navigation.navigate(Routes.TRANSACTIONS_VIEW);
-              if (transactionId) {
-                setTimeout(() => {
-                  navigation.navigate(Routes.TRANSACTION_DETAILS, {
-                    transactionId,
-                  });
-                }, 100);
-              }
+              navigateToTransactionDetails(navigation, {
+                transactionId,
+                initialTypeFilter: ActivityTypeFilter.Predictions,
+              });
             },
           });
           return;

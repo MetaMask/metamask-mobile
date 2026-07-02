@@ -20,10 +20,6 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 
 import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../../../../../selectors/currencyRateController';
-import {
   findBlockExplorerUrlForChain,
   getBlockExplorerTxUrl,
 } from '../../../../../util/networks';
@@ -38,7 +34,6 @@ import Name from '../../../Name/Name';
 import { NameType } from '../../../Name/Name.types';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
-import { getUsdToFiatConversionRate } from '../../utils/moneyActivityFiat';
 import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
 import styleSheet from '../../../../Views/confirmations/components/activity/transaction-details/transaction-details.styles';
 import Button, {
@@ -57,14 +52,14 @@ const HERO_COPY_KEY: Record<AccountsApiActivity['kind'], string> = {
 
 const iconStyles = StyleSheet.create({
   moneyIconWrapper: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
+    width: 16,
+    height: 16,
+    borderRadius: 4,
     overflow: 'hidden' as const,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
   },
-  moneyIcon: { width: 32, height: 32 },
+  moneyIcon: { width: 21.33, height: 21.33 },
   heroMoneyIcon: { width: 32, height: 32, borderRadius: 16 },
 });
 
@@ -105,8 +100,6 @@ function MoneyApiActivityDetailsContent({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const currencyRates = useSelector(selectCurrencyRates);
   const blockExplorerLinkEnabled = useSelector(
     selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   );
@@ -115,12 +108,8 @@ function MoneyApiActivityDetailsContent({
   const isCard = activity.kind === 'card';
 
   const display = useMemo(
-    () =>
-      accountsApiActivityDisplayInfo(activity, {
-        currentCurrency,
-        usdToCurrentCurrencyRate: getUsdToFiatConversionRate(currencyRates),
-      }),
-    [activity, currentCurrency, currencyRates],
+    () => accountsApiActivityDisplayInfo(activity),
+    [activity],
   );
 
   const formattedDate = useMemo(() => {

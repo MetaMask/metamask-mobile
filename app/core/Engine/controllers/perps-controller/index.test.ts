@@ -195,6 +195,14 @@ function buildSeedPrefs(
         myx: { testnet: [], mainnet: [] },
       },
     },
+    agenticCli: {
+      inAppNotificationsEnabled: false,
+      pushNotificationsEnabled: false,
+    },
+    priceAlerts: {
+      inAppNotificationsEnabled: false,
+      pushNotificationsEnabled: false,
+    },
     socialAI: {
       inAppNotificationsEnabled: false,
       pushNotificationsEnabled: false,
