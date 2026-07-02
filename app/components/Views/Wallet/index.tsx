@@ -188,7 +188,15 @@ import {
 import {
   selectSocialLeaderboardEnabled,
   selectAiSocialLeaderboardOnboardingEnabled,
+  selectSocialLeaderboardPerpsEnabled,
 } from '../../../selectors/featureFlagController/socialLeaderboard';
+import ReactQueryService from '../../../core/ReactQueryService';
+import {
+  prefetchOnboardingLeaderboardData,
+  buildOnboardingLeaderboardQueryKey,
+} from '../../../util/social/socialLeaderboardOnboardingQueries';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { ALL_CHAINS, SPOT_CHAINS } from '../shared/top-traders-constants';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { InitSendLocation } from '../confirmations/constants/send';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -399,6 +407,9 @@ const Wallet = ({
   );
   const isSocialLeaderboardOnboardingEnabled = useSelector(
     selectAiSocialLeaderboardOnboardingEnabled,
+  );
+  const isSocialLeaderboardPerpsEnabled = useSelector(
+    selectSocialLeaderboardPerpsEnabled,
   );
 
   const { toastRef } = useContext(ToastContext);
@@ -660,8 +671,29 @@ const Wallet = ({
         }
       }
 
+      // The onboarding renders live trader cards (names, PnL, avatars) inside
+      // the Rive artboard, so it must NOT be entered until that data is actually
+      // in the query cache — otherwise the user sees an empty/loading artboard.
+      // Prefetch runs behind the Wallet screen (it never blocks Wallet's own
+      // render), and we only navigate once the data has landed. If the fetch
+      // can't resolve (offline/error), we skip onboarding for this session and
+      // try again on the next launch rather than showing a broken screen.
+      const chains = isSocialLeaderboardPerpsEnabled ? ALL_CHAINS : SPOT_CHAINS;
+      const { queryClient } = ReactQueryService;
+
+      await prefetchOnboardingLeaderboardData(queryClient, chains).catch(
+        () => undefined,
+      );
+
+      const hasLeaderboardData = Boolean(
+        queryClient.getQueryData(buildOnboardingLeaderboardQueryKey(chains)),
+      );
+      if (!hasLeaderboardData) {
+        return;
+      }
+
       navigate(Routes.SOCIAL_LEADERBOARD.ONBOARDING);
-    }, [navigate]);
+    }, [navigate, isSocialLeaderboardPerpsEnabled]);
 
   useEffect(() => {
     if (

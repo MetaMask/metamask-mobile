@@ -6,6 +6,7 @@ import React, {
   useState,
 } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
@@ -49,11 +50,14 @@ import {
   useSocialLeaderboardAnalytics,
 } from '../analytics';
 import { formatSignedFullUsdNoDecimals } from '../utils/formatters';
-import createStyles from './SocialLeaderboardOnboarding.styles';
+import createStyles, {
+  ONBOARDING_GRADIENT_COLORS,
+} from './SocialLeaderboardOnboarding.styles';
 import { SocialLeaderboardOnboardingSelectorsIDs } from './SocialLeaderboardOnboarding.testIds';
 import {
   NOTIFY_STEP_INDEX,
   ONBOARDING_TOP_TRADERS_LIMIT,
+  REFERENCED_ASSETS_TIMEOUT_MS,
   RIVE_ARTBOARD_NAME,
   RIVE_AVATAR_ASSET_KEYS,
   RIVE_AVATAR_PLACEHOLDERS,
@@ -365,19 +369,42 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   const [referencedAssets, setReferencedAssets] =
     useState<FilesHandledMapping | null>(null);
 
+  // Read inside the timeout/settle effect below via a ref so it always sees the
+  // latest fetch result without re-arming the timeout on every re-render (the
+  // hook returns a new `traders` array identity on each fetch tick).
+  const topTradersRef = useRef(topTraders);
+  topTradersRef.current = topTraders;
+
+  // Pure safety net: `Wallet` only navigates here once this query's data is in
+  // cache, so the artboard normally mounts with live data on the first effect
+  // run. This guards the rare case the data isn't ready at mount (e.g. cache
+  // evicted between prefetch and navigation) so we don't wait on
+  // `referencedAssets` forever. If the fetch settles after this forced mount,
+  // the name/PnL text bindings above still pick up the real data (they're not
+  // frozen) — only the avatars stay on the placeholder for that session, since
+  // swapping them would trigger the `reloadView()` crash.
+  const [forceMountAssets, setForceMountAssets] = useState(false);
   useEffect(() => {
-    if (referencedAssets || isLoadingTraders) {
+    const timer = setTimeout(
+      () => setForceMountAssets(true),
+      REFERENCED_ASSETS_TIMEOUT_MS,
+    );
+    return () => clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    if (referencedAssets || (isLoadingTraders && !forceMountAssets)) {
       return;
     }
     const mapping: FilesHandledMapping = {};
     RIVE_AVATAR_ASSET_KEYS.forEach((assetKey, index) => {
-      const uri = topTraders[index]?.avatarUri;
+      const uri = topTradersRef.current[index]?.avatarUri;
       mapping[assetKey] = hasRealAvatar(uri)
         ? { source: { uri } }
         : { source: RIVE_AVATAR_PLACEHOLDERS[index] };
     });
     setReferencedAssets(mapping);
-  }, [referencedAssets, isLoadingTraders, topTraders]);
+  }, [referencedAssets, isLoadingTraders, forceMountAssets]);
 
   // `AutoBind(true)` builds a fresh object each call; memoize it so the Rive
   // `dataBinding` prop keeps a stable identity and isn't reconfigured per render.
@@ -599,6 +626,13 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       style={styles.container}
       testID={SocialLeaderboardOnboardingSelectorsIDs.CONTAINER}
     >
+      {/* Branded backdrop behind the artboard, covering the artboard's native
+          first-paint warmup so the step copy never sits on a black flash. */}
+      <LinearGradient
+        colors={ONBOARDING_GRADIENT_COLORS}
+        style={styles.gradient}
+        pointerEvents="none"
+      />
       {stepButtons.map(({ slot, buttons }) => (
         <RiveStepButtonsBinding
           key={slot}

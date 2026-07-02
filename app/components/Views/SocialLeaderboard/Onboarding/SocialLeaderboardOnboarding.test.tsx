@@ -11,6 +11,7 @@ import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import SocialLeaderboardOnboarding from './SocialLeaderboardOnboarding';
 import { SocialLeaderboardOnboardingSelectorsIDs } from './SocialLeaderboardOnboarding.testIds';
 import {
+  REFERENCED_ASSETS_TIMEOUT_MS,
   RIVE_AVATAR_ASSET_KEYS,
   RIVE_AVATAR_PLACEHOLDERS,
   RIVE_BOOLEAN_BINDINGS,
@@ -478,6 +479,60 @@ describe('SocialLeaderboardOnboarding', () => {
     expect(mockReferencedAssets?.[RIVE_AVATAR_ASSET_KEYS[2]]).toEqual({
       source: RIVE_AVATAR_PLACEHOLDERS[2],
     });
+  });
+
+  it('mounts with bundled placeholder avatars if trader data has not settled within the timeout', () => {
+    // A slow/offline fetch must not leave the artboard unmounted forever; after
+    // REFERENCED_ASSETS_TIMEOUT_MS it mounts with placeholders regardless.
+    jest.useFakeTimers();
+    mockIsLoading = true;
+    mockTraders = [];
+    renderComponent();
+
+    expect(
+      screen.queryByTestId(
+        SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION,
+      ),
+    ).not.toBeOnTheScreen();
+
+    act(() => {
+      jest.advanceTimersByTime(REFERENCED_ASSETS_TIMEOUT_MS);
+    });
+
+    expect(
+      screen.getByTestId(
+        SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION,
+      ),
+    ).toBeOnTheScreen();
+    expect(mockReferencedAssets?.[RIVE_AVATAR_ASSET_KEYS[0]]).toEqual({
+      source: RIVE_AVATAR_PLACEHOLDERS[0],
+    });
+
+    jest.useRealTimers();
+  });
+
+  it('does not re-trigger the forced mount once trader data settles naturally first', () => {
+    jest.useFakeTimers();
+    mockIsLoading = false;
+    mockTraders = [makeTrader({ id: 'a' })];
+    renderComponent();
+
+    expect(
+      screen.getByTestId(
+        SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION,
+      ),
+    ).toBeOnTheScreen();
+    const settledAssets = mockReferencedAssets;
+
+    act(() => {
+      jest.advanceTimersByTime(REFERENCED_ASSETS_TIMEOUT_MS);
+    });
+
+    // Assets were frozen from the natural settle; the timeout firing afterwards
+    // must not recompute or remount them.
+    expect(mockReferencedAssets).toBe(settledAssets);
+
+    jest.useRealTimers();
   });
 
   it('tracks the follow slide when next advances the flow', async () => {
