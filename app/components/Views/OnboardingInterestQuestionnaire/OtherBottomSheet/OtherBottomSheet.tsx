@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from 'react';
-import { TextInput } from 'react-native';
+import { Platform, TextInput } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -67,7 +67,8 @@ const OtherBottomSheet = ({
       <KeyboardAwareScrollView
         keyboardShouldPersistTaps="handled"
         enableOnAndroid
-        extraScrollHeight={20}
+        enableAutomaticScroll
+        extraScrollHeight={Platform.OS === 'android' ? 120 : 20}
         contentContainerStyle={tw.style('px-4 pb-6')}
       >
         <TextInput
