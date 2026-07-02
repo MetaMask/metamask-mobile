@@ -159,6 +159,7 @@ jest.mock('../../hooks/stream', () => ({
     bid: '2999',
     ask: '3001',
   })),
+  usePerpsLiveFocusedPrice: jest.fn(() => undefined),
 }));
 
 jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
