@@ -5,7 +5,10 @@ import {
 } from '@metamask/transaction-controller';
 import type { Hex } from '@metamask/utils';
 import { safeToChecksumAddress } from '../../../../util/address';
-import { buildMoneyActivityFiatLine } from './moneyActivityFiat';
+import {
+  buildMoneyActivityFiatLine,
+  getUsdToFiatConversionRate,
+} from './moneyActivityFiat';
 import { getMusdDisplayAmountFromTransactionMeta } from '../constants/activityStyles';
 import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 
@@ -201,6 +204,21 @@ describe('moneyActivityFiat', () => {
       const line = buildMoneyActivityFiatLine(tx, mockRates, {});
 
       expect(line).toBe('+$1,000.00');
+    });
+  });
+
+  describe('getUsdToFiatConversionRate', () => {
+    it('returns 1 when the selected currency is USD (matching ETH rates)', () => {
+      expect(getUsdToFiatConversionRate(mockRates)).toBe(1);
+    });
+
+    it('returns the USD→preferred rate as (currency per ETH) ÷ (USD per ETH)', () => {
+      // 2300 / 2500 = 0.92
+      expect(getUsdToFiatConversionRate(mockRatesEur)).toBeCloseTo(0.92);
+    });
+
+    it('returns undefined when currencyRates are missing', () => {
+      expect(getUsdToFiatConversionRate(undefined)).toBeUndefined();
     });
   });
 

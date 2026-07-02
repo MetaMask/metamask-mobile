@@ -133,6 +133,23 @@ function getEthToUsdRate(
 }
 
 /**
+ * USD → user's selected fiat rate. For a USD-pegged token (USDC/mUSD) the USD
+ * amount equals the token amount, so this is all that's needed to render its
+ * fiat line. Derived as (currency per ETH) ÷ (USD per ETH); `undefined` when
+ * rates aren't available (caller should then omit the fiat line). Returns `1`
+ * implicitly when the selected currency already is USD (the two ETH rates match).
+ */
+export function getUsdToFiatConversionRate(
+  currencyRates: CurrencyRatesMap | undefined,
+): number | undefined {
+  const entry = resolveCurrencyRateEntry(currencyRates, ETH_TICKER);
+  if (!entry) {
+    return undefined;
+  }
+  return entry.conversionRate / entry.usdConversionRate;
+}
+
+/**
  * Secondary fiat line for a Money activity row: prefix (+/-) + USD (2 decimals).
  *
  * mUSD is USD-pegged 1:1, so its dollar value is the token amount directly.
