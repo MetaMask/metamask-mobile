@@ -121,7 +121,9 @@ export function useAccountTokens({
     // "Show conversion on test networks" setting: when disabled, testnet
     // assets must not display fiat values nor be ranked by them.
     const isFiatHidden = (chainId?: string) =>
-      !showFiatOnTestnets && Boolean(chainId) && isNetworkTestnet(chainId as string);
+      !showFiatOnTestnets &&
+      Boolean(chainId) &&
+      isNetworkTestnet(chainId as string);
 
     const processedAssets = assetsWithBalance.map((asset) => {
       const fiatAmount = new BigNumber(asset.fiat?.balance || 0);

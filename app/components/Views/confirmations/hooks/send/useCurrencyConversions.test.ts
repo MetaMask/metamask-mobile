@@ -141,9 +141,9 @@ describe('useCurrencyConversions', () => {
     } as unknown as AssetType;
 
     afterEach(() => {
-      mockUseSendContext.mockReturnValue({} as ReturnType<
-        typeof useSendContext
-      >);
+      mockUseSendContext.mockReturnValue(
+        {} as ReturnType<typeof useSendContext>,
+      );
     });
 
     it('does not support conversion for testnet assets when the setting is disabled', () => {
@@ -166,12 +166,15 @@ describe('useCurrencyConversions', () => {
         chainId: '0xaa36a7',
       } as unknown as ReturnType<typeof useSendContext>);
 
-      const { result } = renderHookWithProvider(() => useCurrencyConversions(), {
-        state: {
-          ...evmSendStateMock,
-          settings: { showFiatOnTestnets: true },
+      const { result } = renderHookWithProvider(
+        () => useCurrencyConversions(),
+        {
+          state: {
+            ...evmSendStateMock,
+            settings: { showFiatOnTestnets: true },
+          },
         },
-      });
+      );
 
       expect(result.current.conversionSupportedForAsset).toBe(true);
     });
