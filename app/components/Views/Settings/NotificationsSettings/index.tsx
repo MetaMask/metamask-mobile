@@ -200,6 +200,21 @@ const NotificationsSettings = ({ navigation }: Props) => {
                 )
               }
             />
+
+            <NotificationRow
+              title={strings(
+                'app_settings.notifications_opts.price_alerts_title',
+              )}
+              status={getStatusText(preferences?.priceAlerts)}
+              iconName={IconName.Notification}
+              onPress={() =>
+                navigateToSection(
+                  'priceAlerts',
+                  strings('app_settings.notifications_opts.price_alerts_title'),
+                  strings('app_settings.notifications_opts.price_alerts_desc'),
+                )
+              }
+            />
           </>
         )}
       </ScrollView>
