@@ -702,6 +702,7 @@
     "paste": "पेस्ट करें",
     "no_assets_available": "भेजने के लिए कोई एसेट उपलब्ध नहीं है",
     "clear": "हटाएं",
+    "scan_qr_code": "Scan QR code",
     "to": "को",
     "enter_address_to_send_to": "भेजने के लिए एड्रेस दर्ज करें",
     "accounts": "एकाउंट्स",
@@ -1162,6 +1163,7 @@
   "perps": {
     "basic_functionality_disabled_title": "पर्प्स उपलब्ध नहीं है",
     "title": "पर्प्स",
+    "send_to_perps": "Send to Perps",
     "perps_trading": "पर्प्स ट्रेडिंग",
     "perp_account_balance": "पर्प अकाउंट बैलेंस",
     "manage_balance": "बैलेंस प्रबंधित करें",
@@ -2039,7 +2041,8 @@
         "high": "उच्च",
         "low": "कम",
         "close": "बंद करें",
-        "volume": "वॉल्यूम"
+        "volume": "वॉल्यूम",
+        "change": "Change"
       }
     },
     "cancel": "कैंसिल करें",
@@ -2060,6 +2063,7 @@
       "commodities": "कमोडिटीज़",
       "stocks_and_commodities": "स्टॉक्स और कमोडिटीज़ एक्सप्लोर करें",
       "tabs": {
+        "all": "All",
         "crypto": "क्रिप्टो",
         "pre_ipo": "Pre-IPO",
         "forex": "फॉरेक्स",
@@ -2218,10 +2222,25 @@
       "funding": {
         "date": "तिथि",
         "fee": " शुल्क",
+        "funding_fee": "Funding fee",
         "rate": "दर"
       },
       "view_on_explorer": "ब्लॉक एक्सप्लोरर पर देखें",
       "trade_again": "फिर से ट्रेड करें",
+      "fund_again": "Fund again",
+      "try_again": "Try again",
+      "steps": {
+        "title_completed": "Steps ({{completed}} completed)",
+        "title_pending": "Steps ({{completed}} completed, {{pending}} pending)",
+        "title_failed": "Steps ({{completed}} completed, {{failed}} failed)",
+        "approve_funds": "Approve funds",
+        "bridge_funds": "Bridge funds",
+        "receive_usdc": "Receive USDC on Arbitrum",
+        "add_funds": "Add funds",
+        "initiate_withdrawal": "Initiate withdrawal",
+        "process_withdrawal": "Process withdrawal",
+        "receive_funds": "Receive funds"
+      },
       "activity": {
         "deposit_title": "डिपॉज़िट करें",
         "withdrawal_title": "विदड्रॉवल",
@@ -2306,7 +2325,8 @@
       "referral_code_text": "एक्स्ट्रा रिवॉर्ड कमाने के लिए मेरे रेफ़रल कोड का उपयोग करें।"
     },
     "market_details": {
-      "category_search": "रिलेटेड मार्केट्स ब्राउज़ करें"
+      "category_search": "रिलेटेड मार्केट्स ब्राउज़ करें",
+      "fullscreen_chart": "Fullscreen chart"
     }
   },
   "market_insights": {
@@ -2342,11 +2362,15 @@
   },
   "predict": {
     "title": "MetaMask प्रिडिक्शन्स",
+    "send_to_predictions": "Send to Predictions",
     "select_predict_account": "प्रेडिक्ट अकाउंट चुनें",
     "search_account": "किसी अकाउंट को ढूंढें",
     "home": {
       "live_now_title": "अब लाइव है",
-      "categories_placeholder": "कैटेगरीज़"
+      "categories_title": "Categories",
+      "popular_today_placeholder": "Popular today",
+      "trending_title": "Trending",
+      "trending_unable_to_load": "Unable to load markets, please try again"
     },
     "homepage_discovery": {
       "btc_title": "BTC प्राइस: {{price}}",
@@ -2396,6 +2420,14 @@
         "group_j": "ग्रुप जे",
         "group_k": "ग्रुप के",
         "group_l": "ग्रुप एल"
+      },
+      "market_info": {
+        "regulation_time_winner": {
+          "title": "Regulation time winner"
+        },
+        "team_to_advance": {
+          "title": "Team to advance"
+        }
       }
     },
     "prediction_markets": "प्रेडिक्शन मार्केट",
@@ -2506,7 +2538,10 @@
       "soccer_anytime_goalscorer": "गोलस्कोरर्स",
       "soccer_exact_score": "सटीक स्कोर",
       "soccer_halftime_result": "हाफ़टाइम रिज़ल्ट",
+      "soccer_team_to_advance": "Team to Advance",
       "soccer_first_to_score": "First Team to Score",
+      "soccer_extra_time": "Extra Time?",
+      "soccer_penalty_shootout": "Penalty Shootout?",
       "total_corners": "कॉर्नर्स",
       "tennis_set_totals": "कुल सेट",
       "tennis_set_handicap": "सेट हैंडीकैप",
@@ -2552,7 +2587,8 @@
       "sports": "स्पोर्ट्स",
       "crypto": "क्रिप्टो",
       "politics": "राजनीति",
-      "hot": "हॉट"
+      "hot": "हॉट",
+      "wimbledon": "Wimbledon"
     },
     "feed": {
       "live": "लाइव",
@@ -2648,9 +2684,21 @@
       "price_per_share": "कीमत प्रति शेयर",
       "price_impact": "कीमत का प्रभाव",
       "net_pnl": "नेट P&L",
-      "total_net_pnl": "टोटल नेट P&L",
+      "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "मार्केट नेट P&L",
       "activity_details": "गतिविधि का ब्यौरा",
+      "you_predicted": "You predicted",
+      "view_on_polymarket": "View on Polymarket",
+      "place_another_prediction": "Place another prediction",
+      "fund_again": "Fund again",
+      "try_again": "Try again",
+      "steps": {
+        "title_completed": "Steps ({{completed}} completed)",
+        "title_pending": "Steps ({{completed}} completed, {{pending}} pending)",
+        "title_failed": "Steps ({{completed}} completed, {{failed}} failed)",
+        "bridge_funds": "Bridge from ETH to USDC.e",
+        "add_funds": "Add funds"
+      },
       "today": "आज",
       "yesterday": "कल"
     },
@@ -2783,6 +2831,12 @@
       "make_your_prediction": "अपना प्रेडिक्शन करें",
       "volume_display": "${{volume}} वॉल्यूम",
       "read_terms": "कॉन्ट्रैक्ट के सभी नियम और शर्तें पढ़ें"
+    },
+    "reg_time_info": {
+      "tag": "Reg time",
+      "accessibility_label": "Regulation time market information",
+      "title": "Regulation time",
+      "description": "This market refers to the outcome during the 90 minutes of regular play plus stoppage time. It excludes extra time and penalties."
     },
     "sports": {
       "halftime": "हाफटाइम",
@@ -4005,7 +4059,11 @@
       "enter_code_on_extension": "एक्सटेंशन पर कोड डालें",
       "enter_code_on_extension_desc": "सुरक्षा के लिए, अपने MetaMask एक्सटेंशन पर नीचे दिया गया वेरिफ़िकेशन कोड डालें।",
       "done": "पूरा हुआ",
-      "device_added": "डिवाइस जोड़ा गया"
+      "waiting_for_extension": "Waiting for extension...",
+      "waiting_for_extension_description": "Finish choosing accounts on your computer to continue.",
+      "extension_cancelled_title": "Import cancelled",
+      "extension_cancelled_description": "The account import was cancelled/failed. Try again.",
+      "extension_cancelled_button": "Try again"
     }
   },
   "aes_crypto_test_form": {
@@ -4166,7 +4224,11 @@
     "set_price_alert": "प्राइस एलर्ट सेट करें",
     "update_price_alert": "प्राइस एलर्ट अपडेट करें",
     "save_success": "{{ticker}} के लिए प्राइस एलर्ट सफलतापूर्वक सेव हो गया।",
+    "save_error": "Failed to save price alert. Please try again.",
     "delete_success": "प्राइस एलर्ट हटा दिया गया।",
+    "delete_error": "Failed to delete price alert. Please try again.",
+    "toggle_error": "Failed to update price alert. Please try again.",
+    "fetch_error": "Failed to load price alerts. Please try again.",
     "duplicate_threshold": "इस प्राइस पर पहले से ही एक एलर्ट मौजूद है।",
     "manage_title": "प्राइस एलर्ट",
     "add_alert": "एलर्ट जोड़ें",
@@ -4572,7 +4634,7 @@
     "submitted": "सबमिट किया गया",
     "queued": "कतार में",
     "failed": "असफल हुआ",
-    "cancelled": "रद्द हो गया",
+    "canceled": "Canceled",
     "signed": "अभी पूरा नहीं हुआ",
     "unconfirmed": "अभी पूरा नहीं हुआ",
     "tokenContractAddressWarning_1": "यह पता है एक ",
@@ -4795,6 +4857,8 @@
     "activity_market_short": "मार्केट शॉर्ट",
     "activity_stop_market_close_short": "Stop market—close short",
     "activity_market_close_short": "Market—close short",
+    "activity_limit_short": "Limit short",
+    "activity_limit_close_short": "Limit—close short",
     "claim": "क्लेम करें",
     "sent_ether": "ETH भेजा",
     "self_sent_ether": "खुद को ETH भेजा",
@@ -5910,6 +5974,7 @@
     "empty_sell_orders_list": "आपके पास कोई बेचने की ऑर्डर नहीं है",
     "purchased_currency": "{{currency}} खरीदा गया",
     "sold_currency": "{{currency}} बेचा गया",
+    "date": "Date",
     "order_status_pending": "विचाराधीन",
     "order_status_processing": "प्रोसेस हो रहा है",
     "order_status_completed": "पूरा हुआ",
@@ -7061,8 +7126,10 @@
     "balance_no_account": "Money अकाउंट नहीं मिला",
     "onboarding": {
       "step_1": {
-        "title": "अपना अकाउंट फंड करें",
-        "description": "कुछ फंड जमा करें। आपका Money अकाउंट बाकी सब संभाल लेगा।",
+        "title": "Earn up to {{apy}}% APY",
+        "title_no_apy": "Fund your Money account",
+        "description": "Fund your Money account and watch your balance grow with up to {{apy}}% APY (variable).",
+        "description_no_apy": "Fund your Money account and watch your balance grow.",
         "cta": "फंड जोड़ें"
       },
       "step_2": {
@@ -7163,12 +7230,19 @@
       "link_card_sheet_description_suffix": " ।",
       "link_card_sheet_description_no_apy": "अपना कार्ड लिंक करें ताकि आप अपने Money बैलेंस को खर्च कर सकें और खरीदारी पर mUSD वापस कमा सकें।",
       "link_card_sheet_cta": "कार्ड लिंक करें",
+      "unlink_card_sheet_title_no_funding_source": "Unlink Money account?",
+      "unlink_card_sheet_title_with_funding_source": "Are you sure?",
+      "unlink_card_sheet_description_no_funding_source": "You'll stop earning on purchases. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.",
+      "unlink_card_sheet_description_with_funding_source": "You'll stop earning on purchases. Future card spend will be funded by {{fundingSource}}. Reconnect your Money account anytime.",
+      "unlink_card_sheet_another_money_account": "another Money account",
+      "unlink_card_sheet_keep_linked": "Keep linked",
+      "unlink_card_sheet_unlink_account": "Unlink account",
       "manage_card": "मैनेज करें",
       "avail_balance": "उपलब्ध बैलेंस",
       "verification_pending": "आपकी पहचान सत्यापन की समीक्षा की जा रही है। यह आम तौर पर 12 घंटे से कम समय लेता है।"
     },
     "what_you_get": {
-      "title": "आपको क्या मिलता है",
+      "title": "Money account benefits",
       "benefit_auto_earn": "तक ऑटो-अर्न करें",
       "benefit_auto_earn_variable": "(वेरिएबल)",
       "benefit_dollar_backed": "अपना पैसा mUSD में रखें, जो एक 1:1 डॉलर-बैक्ड स्टेबलकॉइन है",
@@ -7195,7 +7269,7 @@
     "more_sheet": {
       "title": "अधिक",
       "how_it_works": "ये कैसे काम करता है",
-      "what_you_get": "आपको क्या मिलता है",
+      "what_you_get": "Money account benefits",
       "contact_support": "सपोर्ट टीम से कॉन्टेक्ट करें"
     },
     "transfer_sheet": {
@@ -7264,11 +7338,12 @@
       "pending": "अभी पूरा नहीं हुआ",
       "filter_all": "सभी",
       "filter_deposits": "डिपॉज़िट",
-      "filter_sends": "भेजता है"
+      "filter_sends": "भेजता है",
+      "filter_purchases": "Purchases"
     },
     "condensed_cards": {
       "how_it_works_title": "ये कैसे काम करता है",
-      "how_it_works_subtitle": "देखें कि आपका पैसा कैसे बढ़ सकता है",
+      "how_it_works_subtitle": "See how your money works for you",
       "musd_title": "MetaMask USD",
       "musd_subtitle": "mUSD के बारे में ज्यादा जानें",
       "what_you_get_title": "आपको क्या मिलता है",
@@ -7282,6 +7357,7 @@
       "cashback": "mUSD वापस",
       "card": "कार्ड",
       "purchase": "खरीद",
+      "refund": "Refund",
       "musd_back": "mUSD वापस",
       "converted": "कन्वर्ट किया गया",
       "depositing": "डिपॉज़िट कर रहे हैं",
@@ -7299,6 +7375,7 @@
       "cashback_title": "mUSD वापस",
       "you_spent": "आपने खर्च किया",
       "you_earned": "आपने कमाया",
+      "you_were_refunded": "You were refunded",
       "completed": "पूरा किया गया",
       "paid_to": "इनको दिया",
       "received_from": "से प्राप्त किया गया",
@@ -7325,31 +7402,45 @@
       "description_2": "आपका Money बैलेंस आपका खर्च करने का बैलेंस है। दुनिया भर में 150M+ मर्चेंट पर खर्च करने के लिए अपना MetaMask कार्ड लिंक करें। आपका पैसा तब तक कमाता रहता है जब तक आप इसका इस्तेमाल नहीं करते।",
       "description_3": "Money अकाउंट Monad द्वारा संचालित है।",
       "faq_title": "सामान्य प्रश्न",
-      "faq_q1": "MetaMask मनी अकाउंट क्या है?",
-      "faq_a1": "MetaMask Money अकाउंट, MetaMask में बना एक सेल्फ-कस्टोडियल अकाउंट है जो डिपॉज़िट किए गए फंड पर {{percentage}}% तक वेरिएबल APY कमाता है—बिना किसी लॉकअप, बिना किसी विदड्रॉवल पेनल्टी और बिना किसी अकाउंट फीस के। जब आप किसी सपोर्टेड स्टेबलकॉइन ({{stablecoins}}) या aTokens को Money अकाउंट में डिपॉज़िट करते हैं, तो यह mUSD में बदल जाता है, जो MetaMask का डॉलर-बैक्ड स्टेबलकॉइन है, और इसमें कोई कन्वर्शन फीस नहीं होती है। आप कन्वर्शन फीस के साथ किसी भी टोकन को भी Money अकाउंट में डिपॉज़िट कर सकते हैं। आपका Money अकाउंट बैलेंस (mUSD) दुनिया भर में 150+ मिलियन मास्टरकार्ड मर्चेंट्स पर MetaMask कार्ड के ज़रिए कभी भी ट्रेड करने, भेजने और कमाने—या खर्च करने के लिए उपलब्ध रहता है।",
-      "faq_q2": "क्या MetaMask मनी अकाउंट सुरक्षित है?",
-      "faq_a2": "MetaMask एक सेल्फ-कस्टोडियल वॉलेट है—सिर्फ़ आप ही अपनी प्राइवेट कीज़ और फंड्स को कंट्रोल करते हैं। MetaMask आपके बैलेंस को एक्सेस, फ्रीज़ या मूव नहीं कर सकता। mUSD खुद US डॉलर और शॉर्ट-टर्म US ट्रेजरी बिल से 1:1 के अनुपात में बैक्ड है, जिसे Bridge (एक Stripe कंपनी) रेगुलेटेड कस्टडी में रखती है। हालाँकि, सभी DeFi-बेस्ड प्रोडक्ट्स की तरह, मनी अकाउंट में भी रिस्क होते हैं, जिसमें स्मार्ट-कॉन्ट्रैक्ट फेलियर, प्रोटोकॉल एक्सप्लॉइट, लिक्विडिटी की कमी, थर्ड-पार्टी फेलियर और कानूनी या रेगुलेटरी पाबंदियाँ शामिल हैं। APY वेरिएबल है और इसकी गारंटी नहीं है, और इसमें नुकसान का रिस्क है। मनी बैलेंस (mUSD) FDIC या किसी सरकारी एजेंसी द्वारा इंश्योर्ड नहीं है।",
-      "faq_q3": "मेरा MetaMask मनी अकाउंट कौन कंट्रोल करता है?",
-      "faq_a3": "आपके मनी अकाउंट पर आपका पूरा कंट्रोल होता है। MetaMask एक सेल्फ-कस्टोडियल वॉलेट है, जिसका मतलब है कि सिर्फ़ अकाउंट होल्डर की प्राइवेट कीज़ ही मनी अकाउंट में रखे mUSD को कंट्रोल करती हैं। MetaMask किसी भी मनी अकाउंट बैलेंस को एक्सेस, फ्रीज़ या मूव नहीं कर सकता है। यह ट्रेडिशनल बैंक अकाउंट और कस्टोडियल क्रिप्टो प्लेटफॉर्म से एक मुख्य अंतर है, जहाँ कोई थर्ड पार्टी यूज़र की ओर से फंड रखती है।",
-      "faq_q4": "MetaMask मनी अकाउंट की फीस क्या है?",
-      "faq_a4": "MetaMask मनी अकाउंट खोलना फ़्री है। स्टेबलकॉइन से mUSD कन्वर्ज़न 1:1 बराबरी पर होता है और इसमें कोई कन्वर्ज़न फ़ीस नहीं लगती। मनी अकाउंट में दिखाया गया APY वह नेट रेट है जो आप कमाते हैं। सभी प्रोडक्ट फ़ीस—जो MetaMask, Veda, और Steakhouse में बांटी जाती हैं—पहले ही काट ली गई हैं। MetaMask कार्ड ट्रांज़ैक्शन फ़ीस, ATM विड्रॉल फ़ीस, और फ़िएट ऑफ़रैंप कॉस्ट की जानकारी के लिए, MetaMask के अंदर फ़ीस का पूरा ब्रेकडाउन देखें।",
-      "faq_q5": "मैं MetaMask मनी अकाउंट से कितना कमा सकता हूँ?",
-      "faq_a5": "MetaMask मनी अकाउंट {{percentage}}% APY तक कमाता है। रेट बदलता रहता है और मार्केट के हालात के साथ बदलता रहता है। अभी का रेट हमेशा मनी अकाउंट के अंदर दिखता है।",
+      "faq_q1": "What is a MetaMask Money account?",
+      "faq_a1": "An account that earns up to {{percentage}}% variable APY. You deposit funds, which are held in the account as mUSD, and earn up to {{percentage}}% APY. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
+      "faq_q2": "Is MetaMask Money account safe?",
+      "faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Private Keys.\n\nRisks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
+      "faq_q3": "Who controls my MetaMask Money account?",
+      "faq_a3": "You! MetaMask is a self-custodial wallet, meaning only the account holder's Private Keys control it. MetaMask can't access, freeze, or move your funds. This is what distinguishes us from traditional bank accounts and custodial crypto platforms—there's no third party holding your funds.",
+      "faq_q4": "What are MetaMask Money account fees?",
+      "faq_a4": "There's no fee to open a Money account and no fee to deposit stablecoins. You will get charged fees when depositing non-stablecoin tokens. There are also fees associated with MetaMask Card transactions, ATM withdrawals, and local currency offramp costs. ",
+      "faq_a4_link": "See the full Card fee breakdown here.",
+      "faq_q5": "How much can I earn with a MetaMask Money account?",
+      "faq_a5": "Up to {{percentage}}% APY. The rate is variable and fluctuates with market conditions. The current rate is always visible inside the Money account.",
       "faq_q6": "यील्ड कहाँ से आती है?",
-      "faq_a6": "जब Money अकाउंट में फंड डिपॉज़िट किए जाते हैं, तो ये एसेट्स एक थर्ड-पार्टी स्मार्ट कॉन्ट्रैक्ट वॉल्ट में चले जाते हैं। वॉल्ट पहले से मौजूद DeFi प्रोटोकॉल के साथ इंटरैक्ट करता है—उदाहरण के लिए, Aave और Morpho जैसे लेंडिंग मार्केट—जहां वे असली इकोनॉमिक एक्टिविटी से रिटर्न कमाते हैं, खासकर बॉरोअर्स द्वारा दिया गया इंटरेस्ट। लागू प्रोटोकॉल कॉस्ट और प्रोडक्ट फीस के बाद, कोई भी रिटर्न APY के रूप में दिखता है। कमाई MetaMask या mUSD जारी करने वाले द्वारा दिया गया इंटरेस्ट नहीं है। वे थर्ड-पार्टी DeFi प्रोटोकॉल में वॉल्ट की पोज़िशन से जनरेट होने वाले ऑनचेन रिटर्न हैं।\n\nदिखाया गया रेट एक अनुमानित वार्षिक प्रतिशत यील्ड (APY) है जो मौजूदा बाज़ार परिस्थितियों पर आधारित है। APY बदल सकता है और इसकी कोई गारंटी नहीं है। DeFi वॉल्ट Veda द्वारा मैनेज किया जाता है और Steakhouse Financial जोखिम की निगरानी करता है।",
-      "faq_q7": "मैं मनी अकाउंट में कौन से टोकन जमा कर सकता हूँ?",
-      "faq_a7": "आप निम्न स्टेबलकॉइन्स और aTokens को बिना किसी कन्वर्शन फीस के अपने Money अकाउंट में डिपॉज़िट कर सकते हैं:\n\n{{tokenBullets}}\n\nअन्य सभी EVM टोकन्स भी Money अकाउंट में डिपॉज़िट किए जा सकते हैं, लेकिन स्टैंडर्ड एक्सचेंज फीस लग सकती है। आप अपने Money अकाउंट को डेबिट कार्ड, क्रेडिट कार्ड या Apple Pay से भी फंड कर सकते हैं।\n\nनोट: लिक्विडिटी सुनिश्चित करने के लिए प्रति टोकन $100,000 की शुरुआती अधिकतम डिपॉज़िट सीमा है।",
-      "faq_q8": "क्या मैं MetaMask मनी अकाउंट से कभी भी पैसे निकाल सकता हूँ?",
-      "faq_a8": "हाँ। आपका mUSD कभी लॉक नहीं होता। आप बिना किसी नोटिस पीरियड, पेनल्टी और MetaMask से बिना किसी विदड्रॉवल फीस के किसी भी समय अपना पूरा बैलेंस ट्रेड, भेज, खर्च या विड्रॉल कर सकते हैं। विदड्रॉवल तुरंत प्रोसेस होता है, जो संबंधित ब्लॉकचेन पर स्टैंडर्ड नेटवर्क कन्फर्मेशन टाइम पर निर्भर करता है। अगर लिक्विडिटी कम है, तो कुछ समय के लिए देरी हो सकती है।",
-      "faq_q9": "क्या मुझे MetaMask मनी अकाउंट इस्तेमाल करने के लिए KYC पूरा करना होगा?",
-      "faq_a9": "मनी अकाउंट खोलने और mUSD रखने के लिए आइडेंटिटी वेरिफिकेशन की ज़रूरत नहीं होती है। हालाँकि, MetaMask के कुछ फीचर्स—जिसमें MetaMask कार्ड और Ramps शामिल हैं—के लिए लागू नियमों के अनुसार KYC (नो योर कस्टमर) वेरिफिकेशन की ज़रूरत होती है। ये चेक थर्ड-पार्टी प्रोवाइडर करते हैं जो इन रेगुलेटेड सर्विसेज़ को ऑपरेट करते हैं, MetaMask नहीं। अगर ज़रूरत हो, तो साइन-अप के दौरान ऐप के अंदर आपको प्रोसेस के बारे में गाइड किया जाएगा।",
-      "faq_q10": "MetaMask मनी अकाउंट किन देशों में उपलब्ध है?",
-      "faq_a10": "MetaMask मनी अकाउंट इन इलाकों को छोड़कर दुनिया भर में उपलब्ध है: UK, और USA की सैंक्शन लिस्ट वाले देश।"
+      "faq_a6": "When you deposit funds, they're put in established DeFi protocols, like Aave and Morpho, where they earn returns from real economic activity. These returns are then delivered to you in the form of APY.\n\nA third-party service provider called Steakhouse Financial monitors how funds are allocated in the protocols. Veda, a third-party infrastructure provider, deploys and maintains the vault smart contracts that hold your funds.\n\nEarnings are not interest paid by MetaMask or by the issuer of mUSD. They are the onchain returns generated by positions in third-party DeFi protocols.",
+      "faq_q7": "What tokens can I deposit into the Money account?",
+      "faq_a7": "You can deposit the following stablecoins and aTokens into your Money account with no conversion fees:\n\n{{tokenBullets}}\n\nAll other EVM tokens can be deposited into the Money account, but standard fees may apply. You can also fund your Money account using a debit card, credit card, bank account, PayPal, Apple Pay, or Google Pay.\n\nNote: There's an initial max deposit of $100,000 per token to ensure liquidity.",
+      "faq_q8": "Can I withdraw from the MetaMask Money account anytime?",
+      "faq_a8": "Yes. You can trade, send, spend, or withdraw your full balance at any time with no notice periods, no penalties, and no withdrawal fees from MetaMask. If liquidity is tight, there may be temporary delays.",
+      "faq_q9": "Do I need to complete identity verification to use MetaMask Money account?",
+      "faq_a9": "No, opening a Money account doesn't require identity verification. However, certain features, including Card and Ramps, do require verification. Checks are carried out by third-party providers that operate regulated services, not by MetaMask. If needed, you will be guided through the process inside the app during sign-up.",
+      "faq_q10": "Which countries is MetaMask Money account available in?",
+      "faq_a10": "Most places! We currently aren't available in the UK and countries on the USA sanctions list.",
+      "disclosures_title": "Risk and Disclosures",
+      "disclosures_body": "Money account is not a bank account, savings account, or insured deposit product. APY is variable and not guaranteed. Money account involves smart contract, protocol, liquidity, and other risks, and you may lose some or all of your funds. Subject to regional restrictions. Terms apply."
     },
     "geo_block": {
       "title": "Money अकाउंट उपलब्ध नहीं है",
       "description": "आपके स्थान पर स्थानीय प्रतिबंधों या रुकावटों के कारण Money अकाउंट उपलब्ध नहीं है।",
       "button": "समझ गए"
+    },
+    "deeplink_modal": {
+      "button": "Got it",
+      "money_account_disabled": {
+        "title": "Money account is temporarily unavailable",
+        "description": "We're working on it. Money Account will be back up shortly — check back soon."
+      },
+      "excluded_from_gradual_rollout": {
+        "title": "Money Account is on its way",
+        "description": "We're rolling out Money Account gradually to ensure everything works smoothly. Check back soon."
+      }
     }
   },
   "stake": {
@@ -7640,6 +7731,7 @@
       "network": "नेटवर्क",
       "primary_type": "प्राइमरी प्रकार",
       "request_from": "इनसे मिला अनुरोध",
+      "external_app": "External app",
       "signing_in_with": "के साथ साइन इन किया जा रहा है",
       "spender": "खर्च करने वाला",
       "now": "अब",
@@ -7676,7 +7768,8 @@
       "perps_withdraw": "निकालें",
       "predict_deposit": "प्रिडिक्शन फ़ंड जोड़ें",
       "predict_withdraw": "निकालें",
-      "money_account_add_money": "फंड जोड़ें"
+      "money_account_add_money": "फंड जोड़ें",
+      "money_account_send": "Send"
     },
     "sub_title": {
       "permit": "यह साइट आपके टोकन खर्च करने की अनुमति चाहती है।",
@@ -7714,7 +7807,7 @@
         "transaction_fee": "कन्वर्शन फ़ीस में नेटवर्क कॉस्ट और प्रोवाइडर फ़ीस शामिल हो सकती है।"
       },
       "title": {
-        "transaction_fee": "फीस"
+        "transaction_fee": "Transaction fees"
       },
       "network_fee": "नेटवर्क फीस इस बात पर निर्भर करते हैं कि नेटवर्क कितना व्यस्त है और आपका ट्रांसेक्शन कितना जटिल है।"
     },
@@ -7816,6 +7909,7 @@
     "edit_amount_done": "जारी रखें",
     "deposit_edit_amount_done": "फंड जोड़ें",
     "deposit_edit_amount_predict_withdraw": "निकालें",
+    "deposit_edit_amount_money_account_send": "Send",
     "deposit_edit_amount_musd_conversion": "mUSD में कन्वर्ट करें",
     "preparing_order": "ऑर्डर तैयार किया जा रहा है"
   },
@@ -8637,6 +8731,7 @@
     "card_home": {
       "title": "कार्ड",
       "authentication_error": "आपका सेशन खत्म हो गया है। कृपया फिर से लॉग इन करें।",
+      "onboarding_token_revoked": "We couldn't continue your Card session. Please log in again.",
       "available_balance": "उपलब्ध बैलेंस",
       "error_title": "डेटा प्राप्त नहीं किया जा सकता",
       "error_description": "ऐसा लगता है कि कोई समस्या आपको इस पेज की सामग्री देखने से रोक रही है। कृपया अपना कनेक्शन जांचें या पेज को रीफ्रेश करके देखें।",
@@ -8723,6 +8818,8 @@
         "manage_spending_limit": "लिमिट प्रबंधित करें",
         "manage_spending_limit_description_restricted": "सीमित खर्च की सेटिंग चालू है",
         "manage_spending_limit_description_full": "फुल एक्सेस चालू है",
+        "unlink_money_account": "Unlink Money account",
+        "unlink_money_account_description": "Change your Card funding source",
         "travel_title": "MetaMask ट्रैवल",
         "travel_description": "70% तक की छूट के साथ होटल बुक करें",
         "card_tos_title": "नियम और शर्त",
@@ -9539,8 +9636,8 @@
     },
     "earn_rewards": {
       "title": "रिवॉर्ड्स कमाएं",
-      "musd_title": "mUSD पर {{percentage}}% तक बोनस",
-      "musd_subtitle": "मनी अकाउंट यहां हैं",
+      "musd_title": "Up to {{percentage}}% bonus on mUSD",
+      "musd_subtitle": "Money accounts are here",
       "card_title": "खर्च पर 3% तक वापस",
       "card_subtitle": "अपना MetaMask कार्ड अभी पाएं",
       "card_subtitle_cardholder": "अपने MetaMask कार्ड के फ़ायदे पाएं"
@@ -9667,18 +9764,29 @@
     "status": "स्टेटस",
     "date": "तिथि",
     "account": "अकाउंट",
+    "address": "Address",
     "from": "से",
     "to": "प्रति",
     "network": "नेटवर्क",
     "transaction_id": "ट्रांसेक्शन आईडी",
     "network_fee": "नेटवर्क फीस",
+    "bandwidth_fee": "Bandwidth",
+    "energy_fee": "Energy",
     "bridge_fee": "ब्रिज फीस",
     "transaction_fee": "ट्रांसेक्शन फीस",
+    "unknown_token": "Unknown",
     "total_amount": "कुल रकम",
     "you_sent": "आपने भेजे",
     "you_received": "आपने प्राप्त किया",
     "view_on_block_explorer": "ब्लॉक एक्सप्लोरर पर देखें",
-    "do_it_again": "Do it again",
+    "swap_again": "Swap again",
+    "bridge_again": "Bridge again",
+    "convert_again": "Convert again",
+    "wrap_again": "Wrap again",
+    "unwrap_again": "Unwrap again",
+    "transaction_pending": "Transaction pending",
+    "likely_to_confirm_in": "Likely to confirm in",
+    "confirm_time_estimate": "< 30 sec",
     "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {

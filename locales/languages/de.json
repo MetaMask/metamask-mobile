@@ -702,6 +702,7 @@
     "paste": "Einfügen",
     "no_assets_available": "Keine Assets zum Senden verfügbar",
     "clear": "Löschen",
+    "scan_qr_code": "Scan QR code",
     "to": "An",
     "enter_address_to_send_to": "Empfängeradresse eingeben",
     "accounts": "Konten",
@@ -1162,6 +1163,7 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps nicht verfügbar",
     "title": "Perps",
+    "send_to_perps": "Send to Perps",
     "perps_trading": "Perps-Trading",
     "perp_account_balance": "Perp-Guthaben abrufen",
     "manage_balance": "Guthaben verwalten",
@@ -2039,7 +2041,8 @@
         "high": "Hoch",
         "low": "Niedrig",
         "close": "Schließen",
-        "volume": "Volumen"
+        "volume": "Volumen",
+        "change": "Change"
       }
     },
     "cancel": "Stornieren",
@@ -2060,6 +2063,7 @@
       "commodities": "Rohstoffe",
       "stocks_and_commodities": "Aktien und Rohstoffe entdecken",
       "tabs": {
+        "all": "All",
         "crypto": "Krypto",
         "pre_ipo": "Pre-IPO",
         "forex": "Devisen",
@@ -2218,10 +2222,25 @@
       "funding": {
         "date": "Datum",
         "fee": "Gebühr",
+        "funding_fee": "Funding fee",
         "rate": "Wechselkurs"
       },
       "view_on_explorer": "Im Block-Explorer anzeigen",
       "trade_again": "Erneut traden",
+      "fund_again": "Fund again",
+      "try_again": "Try again",
+      "steps": {
+        "title_completed": "Steps ({{completed}} completed)",
+        "title_pending": "Steps ({{completed}} completed, {{pending}} pending)",
+        "title_failed": "Steps ({{completed}} completed, {{failed}} failed)",
+        "approve_funds": "Approve funds",
+        "bridge_funds": "Bridge funds",
+        "receive_usdc": "Receive USDC on Arbitrum",
+        "add_funds": "Add funds",
+        "initiate_withdrawal": "Initiate withdrawal",
+        "process_withdrawal": "Process withdrawal",
+        "receive_funds": "Receive funds"
+      },
       "activity": {
         "deposit_title": "Einzahlung",
         "withdrawal_title": "Auszahlung",
@@ -2306,7 +2325,8 @@
       "referral_code_text": "Verwenden Sie meinen Empfehlungscode und erhalten Sie zusätzliche Belohnungen."
     },
     "market_details": {
-      "category_search": "Verwandte Märkte durchsuche"
+      "category_search": "Verwandte Märkte durchsuche",
+      "fullscreen_chart": "Fullscreen chart"
     }
   },
   "market_insights": {
@@ -2342,11 +2362,15 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "send_to_predictions": "Send to Predictions",
     "select_predict_account": "Prognosekonto auswählen",
     "search_account": "Ein Konto suchen",
     "home": {
       "live_now_title": "Jetzt live",
-      "categories_placeholder": "Kategorien"
+      "categories_title": "Categories",
+      "popular_today_placeholder": "Popular today",
+      "trending_title": "Trending",
+      "trending_unable_to_load": "Unable to load markets, please try again"
     },
     "homepage_discovery": {
       "btc_title": "BTC-Preis: {{price}}",
@@ -2396,6 +2420,14 @@
         "group_j": "Gruppe J",
         "group_k": "Gruppe K",
         "group_l": "Gruppe L"
+      },
+      "market_info": {
+        "regulation_time_winner": {
+          "title": "Regulation time winner"
+        },
+        "team_to_advance": {
+          "title": "Team to advance"
+        }
       }
     },
     "prediction_markets": "Prognosemärkte",
@@ -2506,7 +2538,10 @@
       "soccer_anytime_goalscorer": "Torschützen",
       "soccer_exact_score": "Genaues Ergebnis",
       "soccer_halftime_result": "Halbzeitergebnis",
+      "soccer_team_to_advance": "Team to Advance",
       "soccer_first_to_score": "First Team to Score",
+      "soccer_extra_time": "Extra Time?",
+      "soccer_penalty_shootout": "Penalty Shootout?",
       "total_corners": "Eckstöße",
       "tennis_set_totals": "Sätze insgesamt",
       "tennis_set_handicap": "Handicap festlegen",
@@ -2552,7 +2587,8 @@
       "sports": "Sport",
       "crypto": "Krypto",
       "politics": "Politik",
-      "hot": "Hot"
+      "hot": "Hot",
+      "wimbledon": "Wimbledon"
     },
     "feed": {
       "live": "Live",
@@ -2648,9 +2684,21 @@
       "price_per_share": "Preis pro Aktie",
       "price_impact": "Preiseinfluss",
       "net_pnl": "Netto-GuV",
-      "total_net_pnl": "Gesamte Netto-GuV",
+      "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "Marktnetto-GuV",
       "activity_details": "Aktivitätsdetails",
+      "you_predicted": "You predicted",
+      "view_on_polymarket": "View on Polymarket",
+      "place_another_prediction": "Place another prediction",
+      "fund_again": "Fund again",
+      "try_again": "Try again",
+      "steps": {
+        "title_completed": "Steps ({{completed}} completed)",
+        "title_pending": "Steps ({{completed}} completed, {{pending}} pending)",
+        "title_failed": "Steps ({{completed}} completed, {{failed}} failed)",
+        "bridge_funds": "Bridge from ETH to USDC.e",
+        "add_funds": "Add funds"
+      },
       "today": "Heute",
       "yesterday": "Gestern"
     },
@@ -2783,6 +2831,12 @@
       "make_your_prediction": "Treffen Sie Ihre Prognose",
       "volume_display": "{{volume}} $ Vol.",
       "read_terms": "Lesen Sie die vollständigen Vertragsbedingungen"
+    },
+    "reg_time_info": {
+      "tag": "Reg time",
+      "accessibility_label": "Regulation time market information",
+      "title": "Regulation time",
+      "description": "This market refers to the outcome during the 90 minutes of regular play plus stoppage time. It excludes extra time and penalties."
     },
     "sports": {
       "halftime": "Halbzeit",
@@ -4005,7 +4059,11 @@
       "enter_code_on_extension": "Code in Erweiterung eingeben",
       "enter_code_on_extension_desc": "Geben Sie aus Sicherheitsgründen den untenstehenden Bestätigungscode in Ihre MetaMask-Erweiterung ein.",
       "done": "Fertig",
-      "device_added": "Gerät hinzugefügt"
+      "waiting_for_extension": "Waiting for extension...",
+      "waiting_for_extension_description": "Finish choosing accounts on your computer to continue.",
+      "extension_cancelled_title": "Import cancelled",
+      "extension_cancelled_description": "The account import was cancelled/failed. Try again.",
+      "extension_cancelled_button": "Try again"
     }
   },
   "aes_crypto_test_form": {
@@ -4166,7 +4224,11 @@
     "set_price_alert": "Preisbenachrichtigung festlegen",
     "update_price_alert": "Preisbenachrichtigung aktualisieren",
     "save_success": "Preisbenachrichtigung für {{ticker}} erfolgreich gespeichert.",
+    "save_error": "Failed to save price alert. Please try again.",
     "delete_success": "Preisbenachrichtigung gelöscht.",
+    "delete_error": "Failed to delete price alert. Please try again.",
+    "toggle_error": "Failed to update price alert. Please try again.",
+    "fetch_error": "Failed to load price alerts. Please try again.",
     "duplicate_threshold": "Eine Benachrichtigung zu diesem Preis existiert bereits.",
     "manage_title": "Preisbenachrichtigung",
     "add_alert": "Benachrichtigung hinzufügen",
@@ -4572,7 +4634,7 @@
     "submitted": "Eingereicht",
     "queued": "In der Warteschlange",
     "failed": "Fehlgeschlagen",
-    "cancelled": "Storniert",
+    "canceled": "Canceled",
     "signed": "Ausstehend",
     "unconfirmed": "Ausstehend",
     "tokenContractAddressWarning_1": "WARNUNG: Diese Adresse ist eine",
@@ -4795,6 +4857,8 @@
     "activity_market_short": "Markt-Short-Position",
     "activity_stop_market_close_short": "Stop market—close short",
     "activity_market_close_short": "Market—close short",
+    "activity_limit_short": "Limit short",
+    "activity_limit_close_short": "Limit—close short",
     "claim": "Einfordern",
     "sent_ether": "ETH senden",
     "self_sent_ether": "Senden Sie sich selbst ETH",
@@ -5910,6 +5974,7 @@
     "empty_sell_orders_list": "Sie haben keine Verkaufsorders",
     "purchased_currency": "{{currency}} gekauft",
     "sold_currency": "{{currency}} verkauft",
+    "date": "Date",
     "order_status_pending": "Ausstehend",
     "order_status_processing": "Verarbeitung",
     "order_status_completed": "Abgeschlossen",
@@ -7061,8 +7126,10 @@
     "balance_no_account": "Geldkonto nicht gefunden",
     "onboarding": {
       "step_1": {
-        "title": "Zahlen Sie Geld auf Ihr Konto ein",
-        "description": "Zahlen Sie etwas Geld ein. Ihr Geldkonto erledigt den Rest.",
+        "title": "Earn up to {{apy}}% APY",
+        "title_no_apy": "Fund your Money account",
+        "description": "Fund your Money account and watch your balance grow with up to {{apy}}% APY (variable).",
+        "description_no_apy": "Fund your Money account and watch your balance grow.",
         "cta": "Gelder hinzufügen"
       },
       "step_2": {
@@ -7163,12 +7230,19 @@
       "link_card_sheet_description_suffix": " (variabel).",
       "link_card_sheet_description_no_apy": "Verknüpfen Sie Ihre Karte, damit Sie Ihr Geldguthaben ausgeben und mUSD auf Einkäufe zurückverdienen können.",
       "link_card_sheet_cta": "Karte verknüpfen",
+      "unlink_card_sheet_title_no_funding_source": "Unlink Money account?",
+      "unlink_card_sheet_title_with_funding_source": "Are you sure?",
+      "unlink_card_sheet_description_no_funding_source": "You'll stop earning on purchases. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.",
+      "unlink_card_sheet_description_with_funding_source": "You'll stop earning on purchases. Future card spend will be funded by {{fundingSource}}. Reconnect your Money account anytime.",
+      "unlink_card_sheet_another_money_account": "another Money account",
+      "unlink_card_sheet_keep_linked": "Keep linked",
+      "unlink_card_sheet_unlink_account": "Unlink account",
       "manage_card": "Verwalten",
       "avail_balance": "Verfügbares Guthaben",
       "verification_pending": "Ihre Identitätsverifizierung wird derzeit durchgeführt. Dies dauert in der Regel weniger als 12 Stunden."
     },
     "what_you_get": {
-      "title": "Was Sie erhalten",
+      "title": "Money account benefits",
       "benefit_auto_earn": "Automatisch verdienen bis zu",
       "benefit_auto_earn_variable": "(variabel)",
       "benefit_dollar_backed": "Halten Sie Ihr Geld sicher in mUSD, einem 1:1 durch den Dollar gedeckten Stablecoin",
@@ -7195,7 +7269,7 @@
     "more_sheet": {
       "title": "Mehr",
       "how_it_works": "Wie es funktioniert",
-      "what_you_get": "Was Sie erhalten",
+      "what_you_get": "Money account benefits",
       "contact_support": "Support kontaktieren"
     },
     "transfer_sheet": {
@@ -7264,11 +7338,12 @@
       "pending": "Ausstehend",
       "filter_all": "Alle",
       "filter_deposits": "Einzahlungen",
-      "filter_sends": "Versenden"
+      "filter_sends": "Versenden",
+      "filter_purchases": "Purchases"
     },
     "condensed_cards": {
       "how_it_works_title": "Wie es funktioniert",
-      "how_it_works_subtitle": "Sehen Sie sich an, wie Ihr Geld wachsen kann",
+      "how_it_works_subtitle": "See how your money works for you",
       "musd_title": "MetaMask USD",
       "musd_subtitle": "Erfahren Sie mehr über mUSD",
       "what_you_get_title": "Was Sie erhalten",
@@ -7282,6 +7357,7 @@
       "cashback": "mUSD zurück",
       "card": "Karte",
       "purchase": "Kaufen",
+      "refund": "Refund",
       "musd_back": "mUSD zurück",
       "converted": "Konvertiert",
       "depositing": "Einzahlung",
@@ -7299,6 +7375,7 @@
       "cashback_title": "mUSD zurück",
       "you_spent": "Sie haben ausgegeben",
       "you_earned": "Sie haben verdient",
+      "you_were_refunded": "You were refunded",
       "completed": "Abgeschlossen",
       "paid_to": "Bezahlt an",
       "received_from": "Empfangen von",
@@ -7325,31 +7402,45 @@
       "description_2": "Ihr Geldguthaben ist Ihr Ausgabensaldo. Verknüpfen Sie Ihre MetaMask Card, um bei mehr als 150 Millionen Händlern weltweit zu bezahlen. Ihr Geld verdient so lange, bis Sie es nutzen.",
       "description_3": "Das Geldkonto wird durch Monad betrieben.",
       "faq_title": "FAQs",
-      "faq_q1": "Was ist ein MetaMask-Geldkonto?",
-      "faq_a1": "Das MetaMask-Geldkonto ist ein in MetaMask integriertes, selbstverwaltetes Konto, das einen variablen effektiven Jahreszins von bis zu {{percentage}} % auf eingezahlte Gelder erwirtschaftet – ohne Sperren, ohne Auszahlungsgebühren und ohne Kontogebühren. Bei der Einzahlung eines unterstützten Stablecoins ({{stablecoins}}) oder aTokens auf ein Geldkonto wird dieser ohne Konvertierungsgebühren in mUSD, in MetaMasks US-Dollar gedeckten Stablecoin, konvertiert. Sie können auch jedes Token auf ein Geldkonto einzahlen, wobei eine Konvertierungsgebühr anfällt. Ihr Guthaben auf dem Geldkonto (mUSD) bleibt für Handel, Senden und Verdienen zugänglich – oder geben Sie es jederzeit über die MetaMask Card bei über 150 Millionen Mastercard-Händlern weltweit aus. Konto.",
-      "faq_q2": "Ist das MetaMask-Geldkonto sicher?",
-      "faq_a2": "MetaMask ist eine selbstverwahrende Wallet – nur Sie haben die Kontrolle über Ihre privaten Schlüssel und Gelder. MetaMask kann nicht auf Ihr Guthaben zugreifen, es einfrieren oder verschieben. mUSD selbst ist 1:1 durch US-Dollars und kurzfristige US-Schatzbriefe gedeckt, die von Bridge (einem Stripe-Unternehmen) verwahrt werden. Wie bei allen DeFi-basierten Produkten birgt auch das Geldkonto Risiken, wie z. B. Ausfälle von Smart Contracts, Missbrauch von Protokollen, Liquiditätsengpässe, Ausfälle von Drittanbietern sowie rechtliche oder regulatorische Einschränkungen. Der effektive Jahreszins ist variabel und nicht garantiert, weshalb ein Verlustrisiko besteht. Das Geldguthaben (mUSD) ist nicht durch die FDIC oder eine staatliche Behörde versichert.",
-      "faq_q3": "Wer kontrolliert mein MetaMask-Geldkonto?",
-      "faq_a3": "Sie haben die volle Kontrolle über Ihr Geldkonto. MetaMask ist eine selbstverwahrende Wallet, was bedeutet, dass nur die privaten Schlüssel des Kontoinhabers die Kontrolle über die mUSD auf dem Geldkonto haben. MetaMask kann weder auf das Guthaben des Geldkontos zugreifen noch dieses einfrieren oder verschieben. Hierin liegt ein wesentlicher Unterschied zu herkömmlichen Bankkonten und Krypto-Plattformen, bei denen ein Dritter die Gelder im Namen des Nutzers verwahrt.",
-      "faq_q4": "Wie hoch sind die Gebühren für das MetaMask-Geldkonto?",
-      "faq_a4": "Die Eröffnung eines MetaMask-Geldkontos ist kostenlos. Die Konvertierung von Stablecoin in mUSD erfolgt zum Kurs von 1:1 und ohne Konvertierungsgebühren. Der im Geldkonto angegebene effektive Jahreszins ist der von Ihnen verdiente Nettosatz. Alle Produktgebühren – aufgeteilt auf MetaMask, Veda und Steakhouse – sind bereits berücksichtigt. Einzelheiten zu den Transaktionsgebühren der MetaMask Card, den Gebühren für Abhebungen am Geldautomaten und den Kosten für den Fiat-Offramp finden Sie in der ausführlichen Gebührenübersicht von MetaMask.",
-      "faq_q5": "Wie viel kann ich mit einem MetaMask-Geldkonto verdienen?",
-      "faq_a5": "Mit dem MetaMask-Geldkonto verdienen Sie bis zu {{percentage}} % effektiven Jahreszins. Der Zinssatz ist variabel und schwankt mit den Marktbedingungen. Der aktuelle Zinssatz ist immer im Geldkonto sichtbar.",
+      "faq_q1": "What is a MetaMask Money account?",
+      "faq_a1": "An account that earns up to {{percentage}}% variable APY. You deposit funds, which are held in the account as mUSD, and earn up to {{percentage}}% APY. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
+      "faq_q2": "Is MetaMask Money account safe?",
+      "faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Private Keys.\n\nRisks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
+      "faq_q3": "Who controls my MetaMask Money account?",
+      "faq_a3": "You! MetaMask is a self-custodial wallet, meaning only the account holder's Private Keys control it. MetaMask can't access, freeze, or move your funds. This is what distinguishes us from traditional bank accounts and custodial crypto platforms—there's no third party holding your funds.",
+      "faq_q4": "What are MetaMask Money account fees?",
+      "faq_a4": "There's no fee to open a Money account and no fee to deposit stablecoins. You will get charged fees when depositing non-stablecoin tokens. There are also fees associated with MetaMask Card transactions, ATM withdrawals, and local currency offramp costs. ",
+      "faq_a4_link": "See the full Card fee breakdown here.",
+      "faq_q5": "How much can I earn with a MetaMask Money account?",
+      "faq_a5": "Up to {{percentage}}% APY. The rate is variable and fluctuates with market conditions. The current rate is always visible inside the Money account.",
       "faq_q6": "Woher kommt die Rendite?",
-      "faq_a6": "Wenn Gelder auf ein Geldkonto eingezahlt werden, fließen diese Assets in einen Smart-Contract-Tresor eines Dritten. Dieser Tresor interagiert mit etablierten DeFi-Protokollen – z. B. mit Kreditmärkten wie Aave und Morpho – und erwirtschaftet dort Erträge aus realer wirtschaftlicher Aktivität, vor allem Zinsen, die von Kreditnehmern gezahlt werden. Die daraus resultierenden Erträge werden nach den anfallenden Protokollkosten und Produktgebühren als effektiver Jahreszins ausgewiesen. Bei den Erträgen handelt es sich nicht um Zinsen, die von MetaMask oder dem Emittenten von mUSD gezahlt werden. Es sind die Onchain-Renditen, die durch die Positionen des Tresors in DeFi-Protokollen Dritter generiert werden.\n\nDer angegebene effektive Jahreszins (APY) ist ein Schätzwert, der auf den aktuellen Marktbedingungen basiert. Der APY ist variabel und nicht garantiert. Die Gelder fließen in einen DeFi-Tresor, der von Veda verwaltet und von Steakhouse Financial risikoüberwacht wird und Renditen auf den etablierten Kreditmärkten erwirtschaftet.",
-      "faq_q7": "Welche Token kann ich auf das Geldkonto einzahlen?",
-      "faq_a7": "Sie können die folgenden Stablecoins und aTokens ohne Konvertierungsgebühren auf Ihr Geldkonto einzahlen:\n\n{{tokenBullets}}\n\nAlle anderen EVM-Token können ebenfalls auf das Geldkonto eingezahlt werden, wobei jedoch die üblichen Konvertierungsgebühren anfallen könnten. Sie können Ihr Geldkonto auch mit einer Debit- oder Kreditkarte, einem Bankkonto, PayPal, Apple Pay oder Google Pay aufladen.\n\nHinweis: Zur Sicherstellung der Liquidität gibt es eine anfängliche Höchsteinzahlung von 100.000 $ pro Token.",
-      "faq_q8": "Kann ich jederzeit vom MetaMask-Geldkonto eine Auszahlung vornehmen?",
-      "faq_a8": "Ja. Ihr mUSD ist nie gesperrt. Sie können Ihr gesamtes Guthaben jederzeit handeln, senden, ausgeben oder auszahlen lassen, ohne Kündigungsfristen, ohne Strafen und ohne Auszahlungsgebühren von MetaMask. Auszahlungen werden sofort bearbeitet, vorbehaltlich der üblichen Netzwerkbestätigungszeiten auf der entsprechenden Blockchain. Bei knapper Liquidität kann es zu vorübergehenden Verzögerungen kommen.",
-      "faq_q9": "Muss ich KYC ausfüllen, um das MetaMask-Geldkonto zu nutzen?",
-      "faq_a9": "Die Eröffnung eines Geldkontos und das Halten von mUSD erfordern keine Identitätsprüfung. Bestimmte MetaMask-Funktionen – einschließlich MetaMask Card und Ramps – erfordern jedoch gemäß den geltenden Vorschriften eine KYC-Überprüfung (Know Your Customer). Diese Überprüfungen werden von Drittanbietern, die diese regulierten Dienste betreiben, durchgeführt, nicht von MetaMask. Bei Bedarf werden Sie während der Anmeldung in der App durch den Prozess geführt.",
-      "faq_q10": "In welchen Ländern ist das MetaMask-Geldkonto verfügbar?",
-      "faq_a10": "Das MetaMask-Geldkonto ist mit Ausnahme der folgenden Regionen weltweit verfügbar: Vereinigtes Königreich und Länder, die auf der Sanktionsliste der USA stehen."
+      "faq_a6": "When you deposit funds, they're put in established DeFi protocols, like Aave and Morpho, where they earn returns from real economic activity. These returns are then delivered to you in the form of APY.\n\nA third-party service provider called Steakhouse Financial monitors how funds are allocated in the protocols. Veda, a third-party infrastructure provider, deploys and maintains the vault smart contracts that hold your funds.\n\nEarnings are not interest paid by MetaMask or by the issuer of mUSD. They are the onchain returns generated by positions in third-party DeFi protocols.",
+      "faq_q7": "What tokens can I deposit into the Money account?",
+      "faq_a7": "You can deposit the following stablecoins and aTokens into your Money account with no conversion fees:\n\n{{tokenBullets}}\n\nAll other EVM tokens can be deposited into the Money account, but standard fees may apply. You can also fund your Money account using a debit card, credit card, bank account, PayPal, Apple Pay, or Google Pay.\n\nNote: There's an initial max deposit of $100,000 per token to ensure liquidity.",
+      "faq_q8": "Can I withdraw from the MetaMask Money account anytime?",
+      "faq_a8": "Yes. You can trade, send, spend, or withdraw your full balance at any time with no notice periods, no penalties, and no withdrawal fees from MetaMask. If liquidity is tight, there may be temporary delays.",
+      "faq_q9": "Do I need to complete identity verification to use MetaMask Money account?",
+      "faq_a9": "No, opening a Money account doesn't require identity verification. However, certain features, including Card and Ramps, do require verification. Checks are carried out by third-party providers that operate regulated services, not by MetaMask. If needed, you will be guided through the process inside the app during sign-up.",
+      "faq_q10": "Which countries is MetaMask Money account available in?",
+      "faq_a10": "Most places! We currently aren't available in the UK and countries on the USA sanctions list.",
+      "disclosures_title": "Risk and Disclosures",
+      "disclosures_body": "Money account is not a bank account, savings account, or insured deposit product. APY is variable and not guaranteed. Money account involves smart contract, protocol, liquidity, and other risks, and you may lose some or all of your funds. Subject to regional restrictions. Terms apply."
     },
     "geo_block": {
       "title": "Geldkonto nicht verfügbar",
       "description": "Geldkonto ist an Ihrem Standort aufgrund lokaler Beschränkungen oder Sanktionen nicht verfügbar.",
       "button": "Verstanden"
+    },
+    "deeplink_modal": {
+      "button": "Got it",
+      "money_account_disabled": {
+        "title": "Money account is temporarily unavailable",
+        "description": "We're working on it. Money Account will be back up shortly — check back soon."
+      },
+      "excluded_from_gradual_rollout": {
+        "title": "Money Account is on its way",
+        "description": "We're rolling out Money Account gradually to ensure everything works smoothly. Check back soon."
+      }
     }
   },
   "stake": {
@@ -7640,6 +7731,7 @@
       "network": "Netzwerk",
       "primary_type": "Primäre Art",
       "request_from": "Anfrage von",
+      "external_app": "External app",
       "signing_in_with": "Anmelden mit",
       "spender": "Spender",
       "now": "Jetzt",
@@ -7676,7 +7768,8 @@
       "perps_withdraw": "Auszahlen",
       "predict_deposit": "Prognosegelder hinzufügen",
       "predict_withdraw": "Auszahlen",
-      "money_account_add_money": "Gelder hinzufügen"
+      "money_account_add_money": "Gelder hinzufügen",
+      "money_account_send": "Send"
     },
     "sub_title": {
       "permit": "Diese Website möchte die Genehmigung, Ihre Tokens auszugeben.",
@@ -7714,7 +7807,7 @@
         "transaction_fee": "Die Konvertierungsgebühren umfassen Netzwerkkosten und können Anbietergebühren beinhalten."
       },
       "title": {
-        "transaction_fee": "Gebühren"
+        "transaction_fee": "Transaction fees"
       },
       "network_fee": "Die Netzwerkgebühren richten sich nach der Netzwerkauslastung und der Komplexität Ihrer Transaktion."
     },
@@ -7816,6 +7909,7 @@
     "edit_amount_done": "Fortfahren",
     "deposit_edit_amount_done": "Gelder hinzufügen",
     "deposit_edit_amount_predict_withdraw": "Auszahlen",
+    "deposit_edit_amount_money_account_send": "Send",
     "deposit_edit_amount_musd_conversion": "Zu mUSD konvertieren",
     "preparing_order": "Order wird vorbereitet"
   },
@@ -8637,6 +8731,7 @@
     "card_home": {
       "title": "Karte",
       "authentication_error": "Ihre Sitzung ist abgelaufen. Bitte melden Sie sich erneut an.",
+      "onboarding_token_revoked": "We couldn't continue your Card session. Please log in again.",
       "available_balance": "Verfügbares Guthaben",
       "error_title": "Daten können nicht abgerufen werden",
       "error_description": "Es scheint ein Problem zu geben, das Sie an der Anzeige des Inhalts dieser Seite hindert. Bitte überprüfen Sie Ihre Verbindung oder aktualisieren Sie die Seite.",
@@ -8723,6 +8818,8 @@
         "manage_spending_limit": "Limit verwalten",
         "manage_spending_limit_description_restricted": "Begrenzte Ausgaben sind an",
         "manage_spending_limit_description_full": "Vollzugriff ist an",
+        "unlink_money_account": "Unlink Money account",
+        "unlink_money_account_description": "Change your Card funding source",
         "travel_title": "MetaMask Travel",
         "travel_description": "Hotels mit bis zu 70 % Rabatt buchen",
         "card_tos_title": "Geschäftsbedingungen",
@@ -9539,8 +9636,8 @@
     },
     "earn_rewards": {
       "title": "Belohnungen verdienen",
-      "musd_title": "Bis zu {{percentage}} % Bonus auf mUSD",
-      "musd_subtitle": "Geldkonten sind hier",
+      "musd_title": "Up to {{percentage}}% bonus on mUSD",
+      "musd_subtitle": "Money accounts are here",
       "card_title": "Bis zu 3 % Rabatt auf Ausgaben",
       "card_subtitle": "Sichern Sie sich jetzt Ihre MetaMask Card",
       "card_subtitle_cardholder": "Nutzen Sie die Vorteile Ihrer MetaMask Card"
@@ -9667,18 +9764,29 @@
     "status": "Status",
     "date": "Datum",
     "account": "Konto",
+    "address": "Address",
     "from": "Von",
     "to": "Bis",
     "network": "Netzwerk",
     "transaction_id": "Transaktions-ID",
     "network_fee": "Netzwerkgebühr",
+    "bandwidth_fee": "Bandwidth",
+    "energy_fee": "Energy",
     "bridge_fee": "Bridge-Gebühr",
     "transaction_fee": "Transaktionsgebühr",
+    "unknown_token": "Unknown",
     "total_amount": "Gesamtbetrag",
     "you_sent": "Sie sandten",
     "you_received": "Sie haben empfangen",
     "view_on_block_explorer": "Im Block-Explorer anzeigen",
-    "do_it_again": "Do it again",
+    "swap_again": "Swap again",
+    "bridge_again": "Bridge again",
+    "convert_again": "Convert again",
+    "wrap_again": "Wrap again",
+    "unwrap_again": "Unwrap again",
+    "transaction_pending": "Transaction pending",
+    "likely_to_confirm_in": "Likely to confirm in",
+    "confirm_time_estimate": "< 30 sec",
     "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {

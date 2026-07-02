@@ -702,6 +702,7 @@
     "paste": "Tempel",
     "no_assets_available": "Aset untuk dikirim tidak tersedia",
     "clear": "Hapus",
+    "scan_qr_code": "Scan QR code",
     "to": "Ke",
     "enter_address_to_send_to": "Masukkan alamat untuk dikirim",
     "accounts": "Akun",
@@ -1162,6 +1163,7 @@
   "perps": {
     "basic_functionality_disabled_title": "Perp tidak tersedia",
     "title": "Perps",
+    "send_to_perps": "Send to Perps",
     "perps_trading": "Perdagangan Perp",
     "perp_account_balance": "Saldo akun perp",
     "manage_balance": "Kelola saldo",
@@ -2039,7 +2041,8 @@
         "high": "Tinggi",
         "low": "Rendah",
         "close": "Tutup",
-        "volume": "Volume"
+        "volume": "Volume",
+        "change": "Change"
       }
     },
     "cancel": "Batalkan",
@@ -2060,6 +2063,7 @@
       "commodities": "Komoditas",
       "stocks_and_commodities": "Jelajahi saham dan komoditas",
       "tabs": {
+        "all": "All",
         "crypto": "Kripto",
         "pre_ipo": "Pra-IPO",
         "forex": "Forex",
@@ -2218,10 +2222,25 @@
       "funding": {
         "date": "Tanggal",
         "fee": "Biaya",
+        "funding_fee": "Funding fee",
         "rate": "Terbaik"
       },
       "view_on_explorer": "Lihat di block explorer",
       "trade_again": "Berdagang lagi",
+      "fund_again": "Fund again",
+      "try_again": "Try again",
+      "steps": {
+        "title_completed": "Steps ({{completed}} completed)",
+        "title_pending": "Steps ({{completed}} completed, {{pending}} pending)",
+        "title_failed": "Steps ({{completed}} completed, {{failed}} failed)",
+        "approve_funds": "Approve funds",
+        "bridge_funds": "Bridge funds",
+        "receive_usdc": "Receive USDC on Arbitrum",
+        "add_funds": "Add funds",
+        "initiate_withdrawal": "Initiate withdrawal",
+        "process_withdrawal": "Process withdrawal",
+        "receive_funds": "Receive funds"
+      },
       "activity": {
         "deposit_title": "Deposit",
         "withdrawal_title": "Penarikan",
@@ -2306,7 +2325,8 @@
       "referral_code_text": "Gunakan kode referensi saya untuk mendapatkan reward tambahan."
     },
     "market_details": {
-      "category_search": "Jelajahi pasar terkait"
+      "category_search": "Jelajahi pasar terkait",
+      "fullscreen_chart": "Fullscreen chart"
     }
   },
   "market_insights": {
@@ -2342,11 +2362,15 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
+    "send_to_predictions": "Send to Predictions",
     "select_predict_account": "Pilih akun predict",
     "search_account": "Cari akun",
     "home": {
       "live_now_title": "Sedang live",
-      "categories_placeholder": "Kategori"
+      "categories_title": "Categories",
+      "popular_today_placeholder": "Popular today",
+      "trending_title": "Trending",
+      "trending_unable_to_load": "Unable to load markets, please try again"
     },
     "homepage_discovery": {
       "btc_title": "Harga BTC: {{price}}",
@@ -2396,6 +2420,14 @@
         "group_j": "Grup J",
         "group_k": "Grup K",
         "group_l": "Grup L"
+      },
+      "market_info": {
+        "regulation_time_winner": {
+          "title": "Regulation time winner"
+        },
+        "team_to_advance": {
+          "title": "Team to advance"
+        }
       }
     },
     "prediction_markets": "Pasar prediksi",
@@ -2506,7 +2538,10 @@
       "soccer_anytime_goalscorer": "Pencetak gol",
       "soccer_exact_score": "Skor Akurat",
       "soccer_halftime_result": "Hasil Babak Pertama",
+      "soccer_team_to_advance": "Team to Advance",
       "soccer_first_to_score": "First Team to Score",
+      "soccer_extra_time": "Extra Time?",
+      "soccer_penalty_shootout": "Penalty Shootout?",
       "total_corners": "Sudut",
       "tennis_set_totals": "Total Set",
       "tennis_set_handicap": "Atur Handicap",
@@ -2552,7 +2587,8 @@
       "sports": "Olahraga",
       "crypto": "Kripto",
       "politics": "Politik",
-      "hot": "Terpopuler"
+      "hot": "Terpopuler",
+      "wimbledon": "Wimbledon"
     },
     "feed": {
       "live": "Langsung",
@@ -2648,9 +2684,21 @@
       "price_per_share": "Harga per saham",
       "price_impact": "Dampak harga",
       "net_pnl": "P&L Bersih",
-      "total_net_pnl": "Total P&L bersih",
+      "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "P&L Bersih Pasar",
       "activity_details": "Detail aktivitas",
+      "you_predicted": "You predicted",
+      "view_on_polymarket": "View on Polymarket",
+      "place_another_prediction": "Place another prediction",
+      "fund_again": "Fund again",
+      "try_again": "Try again",
+      "steps": {
+        "title_completed": "Steps ({{completed}} completed)",
+        "title_pending": "Steps ({{completed}} completed, {{pending}} pending)",
+        "title_failed": "Steps ({{completed}} completed, {{failed}} failed)",
+        "bridge_funds": "Bridge from ETH to USDC.e",
+        "add_funds": "Add funds"
+      },
       "today": "Hari ini",
       "yesterday": "Kemarin"
     },
@@ -2783,6 +2831,12 @@
       "make_your_prediction": "Buat prediksi Anda",
       "volume_display": "${{volume}} Vol",
       "read_terms": "Baca syarat dan ketentuan kontrak secara lengkap"
+    },
+    "reg_time_info": {
+      "tag": "Reg time",
+      "accessibility_label": "Regulation time market information",
+      "title": "Regulation time",
+      "description": "This market refers to the outcome during the 90 minutes of regular play plus stoppage time. It excludes extra time and penalties."
     },
     "sports": {
       "halftime": "Babak pertama",
@@ -4005,7 +4059,11 @@
       "enter_code_on_extension": "Masukkan kode pada ekstensi",
       "enter_code_on_extension_desc": "Demi keamanan, masukkan kode verifikasi di bawah ini pada ekstensi MetaMask.",
       "done": "Selesai",
-      "device_added": "Perangkat ditambahkan"
+      "waiting_for_extension": "Waiting for extension...",
+      "waiting_for_extension_description": "Finish choosing accounts on your computer to continue.",
+      "extension_cancelled_title": "Import cancelled",
+      "extension_cancelled_description": "The account import was cancelled/failed. Try again.",
+      "extension_cancelled_button": "Try again"
     }
   },
   "aes_crypto_test_form": {
@@ -4166,7 +4224,11 @@
     "set_price_alert": "Atur peringatan harga",
     "update_price_alert": "Perbarui peringatan harga",
     "save_success": "Peringatan harga untuk {{ticker}} berhasil disimpan.",
+    "save_error": "Failed to save price alert. Please try again.",
     "delete_success": "Peringatan harga dihapus.",
+    "delete_error": "Failed to delete price alert. Please try again.",
+    "toggle_error": "Failed to update price alert. Please try again.",
+    "fetch_error": "Failed to load price alerts. Please try again.",
     "duplicate_threshold": "Peringatan dengan harga ini sudah ada.",
     "manage_title": "Peringatan harga",
     "add_alert": "Tambahkan peringatan",
@@ -4572,7 +4634,7 @@
     "submitted": "Dikirim",
     "queued": "Mengantre",
     "failed": "Gagal",
-    "cancelled": "Dibatalkan",
+    "canceled": "Canceled",
     "signed": "Menunggu",
     "unconfirmed": "Menunggu",
     "tokenContractAddressWarning_1": "Alamat ini merupakan ",
@@ -4795,6 +4857,8 @@
     "activity_market_short": "Pasar short",
     "activity_stop_market_close_short": "Stop market—close short",
     "activity_market_close_short": "Market—close short",
+    "activity_limit_short": "Limit short",
+    "activity_limit_close_short": "Limit—close short",
     "claim": "Klaim",
     "sent_ether": "Mengirim ETH",
     "self_sent_ether": "Mengirim ETH ke diri Anda sendiri",
@@ -5910,6 +5974,7 @@
     "empty_sell_orders_list": "Anda tidak memiliki pesanan penjualan",
     "purchased_currency": "Membeli {{currency}}",
     "sold_currency": "{{currency}} terjual",
+    "date": "Date",
     "order_status_pending": "Menunggu",
     "order_status_processing": "Memproses",
     "order_status_completed": "Selesai",
@@ -7061,8 +7126,10 @@
     "balance_no_account": "Akun Dana tidak ditemukan",
     "onboarding": {
       "step_1": {
-        "title": "Danai akun Anda",
-        "description": "Depositkan sejumlah dana. Akun Dana akan menangani sisanya.",
+        "title": "Earn up to {{apy}}% APY",
+        "title_no_apy": "Fund your Money account",
+        "description": "Fund your Money account and watch your balance grow with up to {{apy}}% APY (variable).",
+        "description_no_apy": "Fund your Money account and watch your balance grow.",
         "cta": "Tambahkan dana"
       },
       "step_2": {
@@ -7163,12 +7230,19 @@
       "link_card_sheet_description_suffix": " (variabel).",
       "link_card_sheet_description_no_apy": "Hubungkan kartu agar Anda dapat menggunakan saldo Dana dan mendapatkan cashback mUSD untuk setiap pembelian.",
       "link_card_sheet_cta": "Tautkan kartu",
+      "unlink_card_sheet_title_no_funding_source": "Unlink Money account?",
+      "unlink_card_sheet_title_with_funding_source": "Are you sure?",
+      "unlink_card_sheet_description_no_funding_source": "You'll stop earning on purchases. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.",
+      "unlink_card_sheet_description_with_funding_source": "You'll stop earning on purchases. Future card spend will be funded by {{fundingSource}}. Reconnect your Money account anytime.",
+      "unlink_card_sheet_another_money_account": "another Money account",
+      "unlink_card_sheet_keep_linked": "Keep linked",
+      "unlink_card_sheet_unlink_account": "Unlink account",
       "manage_card": "Kelola",
       "avail_balance": "Saldo tersedia",
       "verification_pending": "Verifikasi identitas Anda sedang ditinjau. Proses ini umumnya memerlukan waktu kurang dari 12 jam."
     },
     "what_you_get": {
-      "title": "Yang Anda dapatkan",
+      "title": "Money account benefits",
       "benefit_auto_earn": "Dapatkan otomatis hingga",
       "benefit_auto_earn_variable": "(variabel)",
       "benefit_dollar_backed": "Amankan uang Anda di mUSD, stablecoin yang didukung dolar dengan rasio 1:1",
@@ -7195,7 +7269,7 @@
     "more_sheet": {
       "title": "Selengkapnya",
       "how_it_works": "Cara kerjanya",
-      "what_you_get": "Yang Anda dapatkan",
+      "what_you_get": "Money account benefits",
       "contact_support": "Hubungi dukungan"
     },
     "transfer_sheet": {
@@ -7264,11 +7338,12 @@
       "pending": "Menunggu",
       "filter_all": "Semua",
       "filter_deposits": "Deposit",
-      "filter_sends": "Mengirim"
+      "filter_sends": "Mengirim",
+      "filter_purchases": "Purchases"
     },
     "condensed_cards": {
       "how_it_works_title": "Cara kerjanya",
-      "how_it_works_subtitle": "Lihat bagaimana uang Anda dapat bertambah",
+      "how_it_works_subtitle": "See how your money works for you",
       "musd_title": "MetaMask USD",
       "musd_subtitle": "Pelajari lebih lanjut seputar mUSD",
       "what_you_get_title": "Yang Anda dapatkan",
@@ -7282,6 +7357,7 @@
       "cashback": "pengembalian mUSD",
       "card": "Kartu",
       "purchase": "Pembelian",
+      "refund": "Refund",
       "musd_back": "pengembalian mUSD",
       "converted": "Dikonversi",
       "depositing": "Mendeposit",
@@ -7299,6 +7375,7 @@
       "cashback_title": "pengembalian mUSD",
       "you_spent": "Anda menggunakan",
       "you_earned": "Anda mendapatkan",
+      "you_were_refunded": "You were refunded",
       "completed": "Selesai",
       "paid_to": "Dibayar kepada",
       "received_from": "Diterima dari",
@@ -7325,31 +7402,45 @@
       "description_2": "Saldo Dana merupakan saldo penggunaan Anda. Hubungkan Kartu MetaMask untuk digunakan di lebih dari 150 juta merchant di seluruh dunia. Dana Anda terus menghasilkan keuntungan hingga saat Anda menggunakannya.",
       "description_3": "Akun Dana ini didukung oleh Monad.",
       "faq_title": "Pertanyaan Umum",
-      "faq_q1": "Apa itu Akun Dana MetaMask?",
-      "faq_a1": "Akun Dana MetaMask merupakan akun penyimpanan mandiri yang dibangun di MetaMask yang menghasilkan hingga {{percentage}}% variabel APY pada dana yang didepositkan - tanpa penguncian, tanpa penalti penarikan, dan tanpa biaya akun. Saat Anda mendeposit stablecoin yang didukung ({{stablecoins}}) atau aTokens ke dalam Akun Dana, koin akan dikonversi menjadi mUSD, stablecoin yang didukung dolar MetaMask, tanpa biaya konversi. Anda juga dapat mendeposit token apa pun ke Akun Dana, dengan biaya konversi. Saldo Akun Dana Anda (mUSD) tetap tersedia untuk diperdagangkan, dikirim, dan diperoleh—atau digunakan setiap saat melalui Kartu MetaMask, di 150+ juta merchant Mastercard di seluruh dunia.",
-      "faq_q2": "Apakah Akun Dana MetaMask aman?",
-      "faq_a2": "MetaMask merupakan dompet penyimpanan mandiri—hanya Anda yang mengontrol kunci pribadi dan dana Anda. MetaMask tidak dapat mengakses, membekukan, atau memindahkan saldo Anda. mUSD sendiri didukung 1:1 oleh dolar AS dan Surat utang pemerintah AS jangka pendek yang disimpan dalam penyimpanan teregulasi oleh Bridge (perusahaan Stripe). Namun, seperti produk berbasis DeFi lainnya, Akun Dana memiliki risiko, termasuk kegagalan kontrak cerdas, eksploitasi protokol, kekurangan likuiditas, kegagalan pihak ketiga, serta pembatasan hukum atau peraturan. APY bersifat variabel dan tidak dijamin, dan ada risiko kehilangan. Saldo Dana (mUSD) tidak diasuransikan oleh FDIC atau lembaga pemerintah mana pun.",
-      "faq_q3": "Siapa yang mengontrol Akun Dana MetaMask saya?",
-      "faq_a3": "Anda memiliki kendali penuh atas Akun Dana milik Anda. MetaMask merupakan dompet penyimpanan mandiri, yang berarti hanya kunci pribadi pemilik akun yang mengontrol mUSD yang disimpan di Akun Dana. MetaMask tidak dapat mengakses, membekukan, atau memindahkan saldo Akun Dana. Ini adalah perbedaan mendasar dari rekening bank tradisional dan platform kripto kustodian, di mana pihak ketiga memegang dana atas nama pengguna.",
-      "faq_q4": "Apa saja biaya Akun Dana MetaMask?",
-      "faq_a4": "Akun Dana MetaMask dibuka secara gratis. Konversi stablecoin ke mUSD dilakukan dengan paritas 1:1 tanpa biaya konversi. APY yang ditampilkan di Akun Dana merupakan nilai bersih yang Anda peroleh. Semua biaya produk—yang didistribusikan antara MetaMask, Veda, dan Steakhouse—telah dipotong. Untuk detail terkait biaya transaksi Kartu MetaMask, biaya penarikan ATM, dan biaya penarikan fiat, lihat detail biaya secara lengkap di MetaMask.",
-      "faq_q5": "Berapa penghasilan yang bisa saya peroleh dengan Akun Dana MetaMask?",
-      "faq_a5": "Akun Dana MetaMask menghasilkan hingga {{percentage}}% APY. Nilainya bersifat variabel dan berfluktuasi sesuai kondisi pasar. Nilai saat ini selalu ditampilkan di dalam Akun Dana.",
+      "faq_q1": "What is a MetaMask Money account?",
+      "faq_a1": "An account that earns up to {{percentage}}% variable APY. You deposit funds, which are held in the account as mUSD, and earn up to {{percentage}}% APY. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
+      "faq_q2": "Is MetaMask Money account safe?",
+      "faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Private Keys.\n\nRisks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
+      "faq_q3": "Who controls my MetaMask Money account?",
+      "faq_a3": "You! MetaMask is a self-custodial wallet, meaning only the account holder's Private Keys control it. MetaMask can't access, freeze, or move your funds. This is what distinguishes us from traditional bank accounts and custodial crypto platforms—there's no third party holding your funds.",
+      "faq_q4": "What are MetaMask Money account fees?",
+      "faq_a4": "There's no fee to open a Money account and no fee to deposit stablecoins. You will get charged fees when depositing non-stablecoin tokens. There are also fees associated with MetaMask Card transactions, ATM withdrawals, and local currency offramp costs. ",
+      "faq_a4_link": "See the full Card fee breakdown here.",
+      "faq_q5": "How much can I earn with a MetaMask Money account?",
+      "faq_a5": "Up to {{percentage}}% APY. The rate is variable and fluctuates with market conditions. The current rate is always visible inside the Money account.",
       "faq_q6": "Dari mana hasil tersebut berasal?",
-      "faq_a6": "Saat dana didepositkan ke Akun Dana, aset-aset ini masuk ke brankas kontrak cerdas pihak ketiga. Brankas tersebut berinteraksi dengan protokol DeFi yang sudah mapan - misalnya, pasar pinjaman seperti Aave dan Morpho - di mana mereka memperoleh pengembalian dari aktivitas ekonomi riil, terutama bunga yang dibayarkan oleh peminjam. Setiap pengembalian yang dihasilkan, setelah biaya protokol dan biaya produk yang berlaku, muncul sebagai APY. Penghasilan bukan bunga yang dibayarkan oleh MetaMask atau oleh penerbit mUSD. Ini merupakan laba onchain yang dihasilkan oleh posisi vault dalam protokol DeFi pihak ketiga.\n\nNilai yang ditampilkan merupakan estimasi Persentase Hasil Tahunan (APY) berdasarkan kondisi pasar saat ini. APY bersifat variabel dan tidak dijamin. Brankas DeFi dikelola oleh Veda dengan pengawasan risiko oleh Steakhouse Financial.",
-      "faq_q7": "Token apa saja yang dapat saya depositkan ke Akun Dana?",
-      "faq_a7": "Anda dapat mendeposit stablecoin dan aToken berikut ke Akun Dana tanpa biaya konversi:\n\n{{tokenBullets}}\n\nSemua token EVM lainnya juga dapat didepositkan ke Akun Dana, tetapi biaya swap standar dapat berlaku. Anda juga dapat mendanai Akun Dana menggunakan kartu debit, kartu kredit, atau Apple Pay.\n\nCatatan: Ada deposit maks awal sebesar $ 100.000 per token untuk memastikan likuiditas.",
-      "faq_q8": "Bisakah saya menarik dana dari Akun Dana MetaMask setiap saat?",
-      "faq_a8": "Ya. mUSD milik Anda tidak pernah terkunci. Anda dapat memperdagangkan, mengirim, menggunakan, atau menarik seluruh saldo Anda setiap saat tanpa periode pemberitahuan, tanpa penalti, dan tanpa biaya penarikan dari MetaMask. Penarikan diproses dengan segera, tergantung waktu konfirmasi jaringan standar pada blockchain yang relevan. Jika likuiditas ketat, penundaan sementara dapat terjadi.",
-      "faq_q9": "Apakah saya perlu menyelesaikan KYC untuk menggunakan Akun Dana MetaMask?",
-      "faq_a9": "Membuka Akun Dana dan menyimpan mUSD tidak memerlukan verifikasi identitas. Namun, fitur MetaMask tertentu—termasuk MetaMask Card dan Ramp—memerlukan verifikasi KYC (Prinsip Mengenal Nasabah) sesuai dengan peraturan yang berlaku. Pemeriksaan ini dilakukan oleh penyedia pihak ketiga yang mengoperasikan layanan yang diatur ini, bukan oleh MetaMask. Jika diperlukan, Anda akan dipandu untuk melewati proses tersebut di dalam aplikasi selama pendaftaran.",
-      "faq_q10": "Akun Dana MetaMask tersedia di negara mana saja?",
-      "faq_a10": "Akun Dana MetaMask tersedia secara global kecuali di wilayah berikut: Britania Raya, dan negara-negara yang masuk dalam daftar sanksi AS."
+      "faq_a6": "When you deposit funds, they're put in established DeFi protocols, like Aave and Morpho, where they earn returns from real economic activity. These returns are then delivered to you in the form of APY.\n\nA third-party service provider called Steakhouse Financial monitors how funds are allocated in the protocols. Veda, a third-party infrastructure provider, deploys and maintains the vault smart contracts that hold your funds.\n\nEarnings are not interest paid by MetaMask or by the issuer of mUSD. They are the onchain returns generated by positions in third-party DeFi protocols.",
+      "faq_q7": "What tokens can I deposit into the Money account?",
+      "faq_a7": "You can deposit the following stablecoins and aTokens into your Money account with no conversion fees:\n\n{{tokenBullets}}\n\nAll other EVM tokens can be deposited into the Money account, but standard fees may apply. You can also fund your Money account using a debit card, credit card, bank account, PayPal, Apple Pay, or Google Pay.\n\nNote: There's an initial max deposit of $100,000 per token to ensure liquidity.",
+      "faq_q8": "Can I withdraw from the MetaMask Money account anytime?",
+      "faq_a8": "Yes. You can trade, send, spend, or withdraw your full balance at any time with no notice periods, no penalties, and no withdrawal fees from MetaMask. If liquidity is tight, there may be temporary delays.",
+      "faq_q9": "Do I need to complete identity verification to use MetaMask Money account?",
+      "faq_a9": "No, opening a Money account doesn't require identity verification. However, certain features, including Card and Ramps, do require verification. Checks are carried out by third-party providers that operate regulated services, not by MetaMask. If needed, you will be guided through the process inside the app during sign-up.",
+      "faq_q10": "Which countries is MetaMask Money account available in?",
+      "faq_a10": "Most places! We currently aren't available in the UK and countries on the USA sanctions list.",
+      "disclosures_title": "Risk and Disclosures",
+      "disclosures_body": "Money account is not a bank account, savings account, or insured deposit product. APY is variable and not guaranteed. Money account involves smart contract, protocol, liquidity, and other risks, and you may lose some or all of your funds. Subject to regional restrictions. Terms apply."
     },
     "geo_block": {
       "title": "Akun Dana tidak tersedia",
       "description": "Akun Dana tidak tersedia di lokasi Anda karena pembatasan atau sanksi setempat.",
       "button": "Mengerti"
+    },
+    "deeplink_modal": {
+      "button": "Got it",
+      "money_account_disabled": {
+        "title": "Money account is temporarily unavailable",
+        "description": "We're working on it. Money Account will be back up shortly — check back soon."
+      },
+      "excluded_from_gradual_rollout": {
+        "title": "Money Account is on its way",
+        "description": "We're rolling out Money Account gradually to ensure everything works smoothly. Check back soon."
+      }
     }
   },
   "stake": {
@@ -7640,6 +7731,7 @@
       "network": "Jaringan",
       "primary_type": "Tipe primer",
       "request_from": "Permintaan dari",
+      "external_app": "External app",
       "signing_in_with": "Masuk dengan",
       "spender": "Spender",
       "now": "Sekarang",
@@ -7676,7 +7768,8 @@
       "perps_withdraw": "Tarik",
       "predict_deposit": "Tambahkan dana Prediction",
       "predict_withdraw": "Tarik",
-      "money_account_add_money": "Tambahkan dana"
+      "money_account_add_money": "Tambahkan dana",
+      "money_account_send": "Send"
     },
     "sub_title": {
       "permit": "Situs ini meminta izin untuk menggunakan token Anda.",
@@ -7714,7 +7807,7 @@
         "transaction_fee": "Biaya konversi mencakup biaya jaringan dan mungkin termasuk biaya penyedia layanan."
       },
       "title": {
-        "transaction_fee": "Biaya"
+        "transaction_fee": "Transaction fees"
       },
       "network_fee": "Biaya jaringan bergantung pada seberapa sibuk jaringan dan seberapa rumit transaksi Anda."
     },
@@ -7816,6 +7909,7 @@
     "edit_amount_done": "Lanjutkan",
     "deposit_edit_amount_done": "Tambahkan dana",
     "deposit_edit_amount_predict_withdraw": "Tarik",
+    "deposit_edit_amount_money_account_send": "Send",
     "deposit_edit_amount_musd_conversion": "Konversikan ke mUSD",
     "preparing_order": "Mempersiapkan order"
   },
@@ -8637,6 +8731,7 @@
     "card_home": {
       "title": "Kartu",
       "authentication_error": "Sesi Anda telah berakhir. Masuk lagi.",
+      "onboarding_token_revoked": "We couldn't continue your Card session. Please log in again.",
       "available_balance": "Saldo tersedia",
       "error_title": "Tidak dapat mengambil data",
       "error_description": "Tampaknya ada masalah yang mencegah Anda melihat konten di halaman ini. Periksa koneksi Anda atau coba segarkan halaman.",
@@ -8723,6 +8818,8 @@
         "manage_spending_limit": "Kelola batasan",
         "manage_spending_limit_description_restricted": "Penggunaan terbatas aktif",
         "manage_spending_limit_description_full": "Akses penuh aktif",
+        "unlink_money_account": "Unlink Money account",
+        "unlink_money_account_description": "Change your Card funding source",
         "travel_title": "MetaMask Travel",
         "travel_description": "Pesan hotel dengan diskon hingga 70%",
         "card_tos_title": "Syarat dan Ketentuan",
@@ -9539,8 +9636,8 @@
     },
     "earn_rewards": {
       "title": "Dapatkan reward",
-      "musd_title": "Bonus hingga {{percentage}}% pada mUSD",
-      "musd_subtitle": "Akun Dana telah hadir",
+      "musd_title": "Up to {{percentage}}% bonus on mUSD",
+      "musd_subtitle": "Money accounts are here",
       "card_title": "Pengembalian hingga 3% dari penggunaan",
       "card_subtitle": "Dapatkan Kartu MetaMask sekarang",
       "card_subtitle_cardholder": "Manfaatkan keuntungan Kartu MetaMask"
@@ -9667,18 +9764,29 @@
     "status": "Status",
     "date": "Tanggal",
     "account": "Akun",
+    "address": "Address",
     "from": "Dari",
     "to": "Ke",
     "network": "Jaringan",
     "transaction_id": "ID Transaksi",
     "network_fee": "Biaya jaringan",
+    "bandwidth_fee": "Bandwidth",
+    "energy_fee": "Energy",
     "bridge_fee": "Biaya bridge",
     "transaction_fee": "Biaya transaksi",
+    "unknown_token": "Unknown",
     "total_amount": "Jumlah total",
     "you_sent": "Anda mengirim",
     "you_received": "Anda menerima",
     "view_on_block_explorer": "Lihat di block explorer",
-    "do_it_again": "Do it again",
+    "swap_again": "Swap again",
+    "bridge_again": "Bridge again",
+    "convert_again": "Convert again",
+    "wrap_again": "Wrap again",
+    "unwrap_again": "Unwrap again",
+    "transaction_pending": "Transaction pending",
+    "likely_to_confirm_in": "Likely to confirm in",
+    "confirm_time_estimate": "< 30 sec",
     "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
