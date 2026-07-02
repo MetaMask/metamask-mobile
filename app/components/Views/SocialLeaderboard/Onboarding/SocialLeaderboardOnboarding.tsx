@@ -291,24 +291,26 @@ const SocialLeaderboardOnboarding: React.FC = () => {
 
   // Localized button labels per authored `stepText{slot}` (1-based).
   //
-  // Slots 3 and 4 are both the Notify slide. Slot 3 is the follow-path variant:
-  // it keeps the "Allow notifications" / "Got it" pair (the `allowNotifications`
-  // trigger enables notifications). Slot 4 is the maybe-later variant (3.1),
-  // which must ALWAYS read "Got it" — the Rive doesn't swap its button here via
-  // `allowNotificationsBoolean`, so we pin both labels to "Got it" to guarantee
-  // it regardless of which button that slide renders.
+  // Slots 3 and 4 are both the Notify slide (follow-path step 3 and maybe-later
+  // step 3.1). Their labels follow notification state so they stay correct
+  // whichever text run the artboard reads for each layout:
+  // - prompt still needed → "Allow notifications" (primary) + "Got it"
+  //   (secondary), paired with `allowNotificationsBoolean = true` (two buttons);
+  // - already enabled → both labels "Got it", paired with
+  //   `allowNotificationsBoolean = false` (single "Got it").
   const stepButtons = useMemo<{ slot: number; buttons: StepButtons }[]>(() => {
     const gotIt = strings('social_leaderboard.onboarding.got_it');
-    const notifyButtons: StepButtons = {
-      primaryButton: strings(
-        'social_leaderboard.onboarding.allow_notifications',
-      ),
-      secondaryButton: gotIt,
-    };
-    const gotItButtons: StepButtons = {
-      primaryButton: gotIt,
-      secondaryButton: gotIt,
-    };
+    const notifyButtons: StepButtons = shouldPromptNotifications
+      ? {
+          primaryButton: strings(
+            'social_leaderboard.onboarding.allow_notifications',
+          ),
+          secondaryButton: gotIt,
+        }
+      : {
+          primaryButton: gotIt,
+          secondaryButton: gotIt,
+        };
     return [
       {
         slot: 1,
@@ -327,9 +329,9 @@ const SocialLeaderboardOnboarding: React.FC = () => {
         },
       },
       { slot: 3, buttons: notifyButtons },
-      { slot: 4, buttons: gotItButtons },
+      { slot: 4, buttons: notifyButtons },
     ];
-  }, []);
+  }, [shouldPromptNotifications]);
 
   // Live trader card text (avatars handled separately via referencedAssets).
   const traderCards = useMemo(
@@ -388,15 +390,15 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     setIsReady(true);
   }, [riveRef, setTransitionSpeed, setIsReady]);
 
-  // Toggle the Notify step's button. `allowNotificationsBoolean` follows its
-  // name: `true` shows "Allow notifications", `false` shows "Got it". Show
-  // "Allow notifications" ONLY on the follow-path Notify slide (step 3) while a
-  // prompt is still needed; the maybe-later variant (step 3.1) and the
-  // already-enabled case show "Got it".
+  // Toggle the Notify step's button layout. `allowNotificationsBoolean` follows
+  // notification state on ANY Notify step (post-follow step 3 and the
+  // maybe-later variant step 3.1): `true` renders two buttons ("Allow
+  // notifications" + "Got it") while a prompt is still needed; `false` renders a
+  // single "Got it" once notifications are enabled.
   useEffect(() => {
     if (!riveRef) return;
     const showAllowNotifications =
-      shouldPromptNotifications && stepIndex === NOTIFY_STEP_INDEX;
+      shouldPromptNotifications && stepIndex >= NOTIFY_STEP_INDEX;
     setAllowNotificationsBoolean(showAllowNotifications);
   }, [
     riveRef,
@@ -500,13 +502,13 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     swallowNextCompletionRef.current = true;
   }, [setStep]);
 
-  // "Allow notifications" (terminal): enable notifications, then complete. This
-  // button only exists on the follow-path Notify slide (step 3) while prompting
-  // is needed, so it is honored exactly there — never on step 3.1, and never
-  // before the Notify step (an earlier mis-fired trigger can't boot the user).
+  // "Allow notifications" (terminal): enable notifications, then complete. The
+  // button appears on either Notify slide (step 3 or 3.1) while prompting is
+  // needed, so it is honored on any Notify step — never before it (an earlier
+  // mis-fired trigger can't boot the user).
   const handleAllowNotifications = useCallback(async () => {
     if (
-      stepIndexRef.current !== NOTIFY_STEP_INDEX ||
+      stepIndexRef.current < NOTIFY_STEP_INDEX ||
       !shouldPromptNotifications
     ) {
       return;
@@ -535,7 +537,8 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   // "Got it" (terminal): complete without enabling notifications. It is present
   // on every Notify slide — step 3.1 (maybe later) and step 3 (above the "Allow
   // notifications" button, or on its own once notifications are enabled) — so it
-  // completes on any Notify step.
+  // completes on any Notify step. Fired by both the `gotIt` and `gotIt 2`
+  // triggers (the two Notify button layouts).
   const handleGotIt = useCallback(() => {
     if (stepIndexRef.current < NOTIFY_STEP_INDEX) {
       return;
@@ -564,6 +567,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     handleAllowNotifications,
   );
   useRiveTrigger(riveRef, RIVE_TRIGGERS.GOT_IT, handleGotIt);
+  useRiveTrigger(riveRef, RIVE_TRIGGERS.GOT_IT_2, handleGotIt);
 
   const handleError = useCallback(
     (riveError: RNRiveError) => {

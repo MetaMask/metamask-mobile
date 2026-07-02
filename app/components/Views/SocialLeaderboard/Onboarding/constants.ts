@@ -23,11 +23,11 @@ export const RIVE_NUMBER_BINDINGS = {
 /**
  * Boolean data-binding inputs pushed into the artboard.
  *
- * `ALLOW_NOTIFICATIONS` gates the Notify step's button — `true` shows "Allow
- * notifications" (still need to prompt), `false` shows "Got it". Only the
- * follow-path Notify slide (step 3) while a prompt is still needed pushes
- * `true`; the maybe-later variant (step 3.1) and the already-enabled case push
- * `false`.
+ * `ALLOW_NOTIFICATIONS` toggles the Notify step's button layout and is driven
+ * purely by notification state on ANY Notify step (post-follow step 3 and the
+ * maybe-later variant step 3.1). `true` renders two buttons ("Allow
+ * notifications" + "Got it") — pushed whenever a prompt is still needed;
+ * `false` renders a single "Got it" — pushed once notifications are enabled.
  * `IS_READY` signals that RN has pushed the initial copy/data so the artboard
  * can proceed.
  */
@@ -61,6 +61,9 @@ export const RIVE_TRIGGERS = {
   NEXT: 'next',
   BACK: 'back',
   GOT_IT: 'gotIt',
+  // Second "Got it" trigger the artboard fires from the single-button Notify
+  // layout; observed alongside `gotIt` so both complete the flow.
+  GOT_IT_2: 'gotIt 2',
   ALLOW_NOTIFICATIONS: 'allowNotifications',
   FOLLOW_TOP_TRADERS: 'followTopTraders',
   MAYBE_LATER: 'maybeLater',

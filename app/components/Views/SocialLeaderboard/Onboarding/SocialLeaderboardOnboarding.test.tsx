@@ -246,14 +246,36 @@ describe('SocialLeaderboardOnboarding', () => {
     expect(getLastStringValue(riveStepTextBinding(2, 'secondaryButton'))).toBe(
       'Maybe later',
     );
+    // Notifications are OFF by default in these tests, so both Notify slots (3
+    // follow-path and 4 maybe-later) prompt with "Allow notifications" + "Got
+    // it".
     expect(getLastStringValue(riveStepTextBinding(3, 'primaryButton'))).toBe(
       'Allow notifications',
     );
     expect(getLastStringValue(riveStepTextBinding(3, 'secondaryButton'))).toBe(
       'Got it',
     );
-    // Slot 4 is the maybe-later Notify variant (3.1): both labels pinned to
-    // "Got it" so it never renders "Allow notifications".
+    expect(getLastStringValue(riveStepTextBinding(4, 'primaryButton'))).toBe(
+      'Allow notifications',
+    );
+    expect(getLastStringValue(riveStepTextBinding(4, 'secondaryButton'))).toBe(
+      'Got it',
+    );
+  });
+
+  it('pushes single "Got it" labels for both Notify slots when notifications are already enabled', () => {
+    mockIsNotificationsEnabled = true;
+    mockIsPushEnabled = true;
+    renderComponent();
+
+    // No prompt needed: both Notify slots collapse to "Got it" (paired with the
+    // `allowNotificationsBoolean = false` single-button layout).
+    expect(getLastStringValue(riveStepTextBinding(3, 'primaryButton'))).toBe(
+      'Got it',
+    );
+    expect(getLastStringValue(riveStepTextBinding(3, 'secondaryButton'))).toBe(
+      'Got it',
+    );
     expect(getLastStringValue(riveStepTextBinding(4, 'primaryButton'))).toBe(
       'Got it',
     );
@@ -327,10 +349,10 @@ describe('SocialLeaderboardOnboarding', () => {
     ).toHaveTextContent(
       "When you're ready, follow a trader to get notified the moment they make a move.",
     );
-    // The maybe-later variant shows "Got it", never "Allow notifications"
-    // (`false` = "Got it").
+    // Notifications are OFF here, so the skip Notify variant prompts with the
+    // two-button layout (`true` = "Allow notifications" + "Got it").
     expect(getLastBooleanValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
-      false,
+      true,
     );
 
     // The skip transition's spurious completion pulse is swallowed; the user's
@@ -361,14 +383,28 @@ describe('SocialLeaderboardOnboarding', () => {
     );
   });
 
-  it('keeps the Allow-notifications button hidden on the maybe-later Notify step', async () => {
+  it('shows the Allow-notifications button on the maybe-later Notify step when prompting', async () => {
     renderComponent();
 
-    // Step 3.1 (maybe later) always shows just "Got it", even when prompting
-    // (`false` = "Got it").
+    // Notifications OFF: step 3.1 (maybe later) also prompts with the two-button
+    // layout (`true` = "Allow notifications" + "Got it").
     await fireTrigger(RIVE_TRIGGERS.NEXT);
     await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
 
+    expect(getLastBooleanValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
+      true,
+    );
+  });
+
+  it('shows a single Got-it button on the maybe-later Notify step when notifications are enabled', async () => {
+    mockIsNotificationsEnabled = true;
+    mockIsPushEnabled = true;
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.NEXT);
+    await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
+
+    // No prompt needed: single "Got it" (`false`).
     expect(getLastBooleanValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
       false,
     );
@@ -578,6 +614,41 @@ describe('SocialLeaderboardOnboarding', () => {
     );
   });
 
+  it('completes on the second Got-it trigger (gotIt 2) without requesting notification permission', async () => {
+    mockIsNotificationsEnabled = true;
+    mockIsPushEnabled = true;
+    renderComponent();
+
+    await advanceToNotifyStep();
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT_2);
+
+    expect(mockRequestPushPermission).not.toHaveBeenCalled();
+    expect(mockTrack).toHaveBeenCalledWith(
+      MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
+      expect.objectContaining({ source: 'nux' }),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+    );
+  });
+
+  it('swallows the maybe-later completion pulse for gotIt 2, then completes on the real tap', async () => {
+    renderComponent();
+
+    await fireTrigger(RIVE_TRIGGERS.NEXT);
+    await fireTrigger(RIVE_TRIGGERS.MAYBE_LATER);
+
+    // Spurious entry pulse routed through the second Got-it trigger is swallowed.
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT_2);
+    expect(mockDispatch).not.toHaveBeenCalled();
+
+    // The user's real tap afterwards completes the flow.
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT_2);
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+    );
+  });
+
   it('completes only once even if a terminal trigger fires twice', async () => {
     mockIsNotificationsEnabled = true;
     mockIsPushEnabled = true;
@@ -616,9 +687,12 @@ describe('SocialLeaderboardOnboarding', () => {
     );
   });
 
-  it('never completes on the hidden Allow-notifications trigger on the maybe-later slide', async () => {
-    // Step 3.1 has no "Allow notifications" button, so its trigger must never
-    // complete the flow or request permission, no matter how often it fires.
+  it('never completes on the hidden Allow-notifications trigger when notifications are already enabled', async () => {
+    // With notifications enabled the Notify slides show a single "Got it", so
+    // the "Allow notifications" trigger must never complete the flow or request
+    // permission, no matter how often it fires.
+    mockIsNotificationsEnabled = true;
+    mockIsPushEnabled = true;
     renderComponent();
 
     await fireTrigger(RIVE_TRIGGERS.NEXT);
