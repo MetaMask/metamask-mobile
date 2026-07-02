@@ -31,6 +31,7 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import Routes from '../../../constants/navigation/Routes';
 import Engine from '../../../core/Engine';
 import { SEEDLESS_CV_ACCESS_TOKEN } from '../../../../tests/component-view/presets/seedlessOnboarding';
+import { analytics } from '../../../util/analytics/analytics';
 
 const VALID_PASSWORD = 'Test1234!';
 const socialLoginProviders = [
@@ -48,6 +49,12 @@ function mockAuthenticationForSocialWalletCreation() {
   jest
     .spyOn(Authentication, 'newWalletAndKeychain')
     .mockResolvedValue(undefined);
+  // Return an empty string so getAnalyticsId() is falsy, causing
+  // useOnboardingInterestQuestionnaireEligibility to short-circuit and return
+  // false. Without this, a randomly generated UUID has a ~25% chance of
+  // satisfying the rollout threshold, flakily routing to INTEREST_QUESTIONNAIRE
+  // instead of SUCCESS_FLOW.
+  jest.spyOn(analytics, 'getAnalyticsId').mockResolvedValue('');
 }
 
 function mockAuthenticationGetType() {
