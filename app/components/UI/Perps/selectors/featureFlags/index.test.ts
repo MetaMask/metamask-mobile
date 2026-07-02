@@ -17,6 +17,7 @@ import {
   selectPerpsMYXProviderEnabledFlag,
   selectPerpsWatchlistEnabledFlag,
   selectPerpsShowFullAssetNamesFlag,
+  PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY,
 } from '.';
 import mockedEngine from '../../../../../core/__mocks__/MockedEngine';
 import type { StateWithPartialEngine } from '../../../../../selectors/featureFlagController/types';
@@ -897,7 +898,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsShowFullAssetNames: {
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: {
                     enabled: true,
                     minimumVersion: '1.0.0',
                   },
@@ -922,7 +923,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsShowFullAssetNames: {
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: {
                     enabled: false,
                     minimumVersion: '1.0.0',
                   },
@@ -947,7 +948,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsShowFullAssetNames: {
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: {
                     enabled: true,
                     minimumVersion: '99.0.0',
                   },
@@ -970,7 +971,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsShowFullAssetNames: {
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: {
                     enabled: 'invalid',
                     minimumVersion: 123,
                   },
@@ -993,7 +994,7 @@ describe('Perps Feature Flag Selectors', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsShowFullAssetNames: null,
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: null,
                 },
                 cacheTimestamp: 0,
               },
