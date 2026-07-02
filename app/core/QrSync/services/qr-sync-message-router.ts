@@ -62,7 +62,7 @@ export function routeIncomingQrSyncMessage(
     case QrSyncActionTypes.SYNC_READY: {
       const parseResult = parseQrSyncSyncReadyMessage(rawMessage);
 
-      if (!parseResult.valid) {
+      if (!parseResult.valid && parseResult.error) {
         return {
           handled: false,
           event: {

@@ -265,13 +265,13 @@ describe('qr-sync-validation', () => {
         return;
       }
 
-      expect(result.pendingSecretImports[0]?.isPrimary).toBe(false);
-      expect(result.pendingSecretImports[1]?.isPrimary).toBe(false);
-      expect(result.provisioningMetadata.entries[0]).toMatchObject({
+      expect(result.pendingSecretImports?.[0]?.isPrimary).toBe(false);
+      expect(result.pendingSecretImports?.[1]?.isPrimary).toBe(false);
+      expect(result.provisioningMetadata?.entries?.[0]).toMatchObject({
         isPrimary: false,
         name: 'Wallet 1',
       });
-      expect(result.provisioningMetadata.entries[1]).toMatchObject({
+      expect(result.provisioningMetadata?.entries?.[1]).toMatchObject({
         isPrimary: false,
         name: 'Wallet 2',
       });
