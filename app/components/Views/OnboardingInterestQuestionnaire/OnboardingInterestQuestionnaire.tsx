@@ -250,6 +250,7 @@ const OnboardingInterestQuestionnaire = () => {
             color={TextColor.TextDefault}
             onPress={onSkip}
             testID={OnboardingInterestQuestionnaireTestIds.SKIP_BUTTON}
+            style={tw.style('pr-4')}
           >
             {strings('onboarding_interest_questionnaire.skip')}
           </Text>
@@ -284,8 +285,8 @@ const OnboardingInterestQuestionnaire = () => {
               style={tw.style(
                 'flex-row items-center rounded-full px-6 py-4 border',
                 isSelected
-                  ? 'border-default bg-background-muted'
-                  : 'border-border-muted',
+                  ? 'border-text-default bg-background-section'
+                  : 'border-text-muted',
               )}
               testID={`${OnboardingInterestQuestionnaireTestIds.OPTION_PREFIX}${option.id}`}
               accessibilityRole="checkbox"

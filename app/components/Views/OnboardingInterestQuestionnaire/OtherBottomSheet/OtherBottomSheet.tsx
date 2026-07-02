@@ -69,7 +69,7 @@ const OtherBottomSheet = ({
         enableOnAndroid
         enableAutomaticScroll
         extraScrollHeight={Platform.OS === 'android' ? 120 : 20}
-        contentContainerStyle={tw.style('px-4 pb-6')}
+        contentContainerStyle={tw.style('px-4')}
       >
         <TextInput
           value={draftValue}
