@@ -20,6 +20,7 @@ import {
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 
 const LINEA_MUSD_ADDRESS = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
 const LINEA_MUSD_CHECKSUM_ADDRESS =
@@ -119,6 +120,10 @@ jest.mock('../../../selectors/tokenRatesController', () => ({
   ),
 }));
 
+jest.mock('../../hooks/useTokensData/useTokensData', () => ({
+  useTokensData: jest.fn(() => ({})),
+}));
+
 jest.mock('../Earn/constants/musd', () => ({
   MUSD_DECIMALS: 6,
   MUSD_TOKEN: { symbol: 'mUSD' },
@@ -204,6 +209,18 @@ jest.mock('@metamask/design-system-react-native', () => {
       src,
     });
 
+  const AvatarIcon = ({
+    iconName,
+    severity,
+  }: {
+    iconName?: string;
+    severity?: string;
+  }) =>
+    ReactActual.createElement(View, {
+      testID: `avatar-icon-${iconName ?? 'unknown'}`,
+      severity,
+    });
+
   const BadgeNetwork = ({ src }: { src?: unknown }) =>
     ReactActual.createElement(View, { src });
 
@@ -218,11 +235,19 @@ jest.mock('@metamask/design-system-react-native', () => {
   return {
     Icon,
     IconColor: { IconAlternative: 'icon-alternative' },
-    IconName: { Clock: 'Clock' },
+    IconName: {
+      Clock: 'Clock',
+      Arrow2UpRight: 'Arrow2UpRight',
+      Received: 'Received',
+      SwapHorizontal: 'SwapHorizontal',
+    },
     IconSize: { Sm: '16' },
     ListItem,
     AvatarToken,
     AvatarTokenSize: { Xs: 'xs', Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
+    AvatarIcon,
+    AvatarIconSeverity: { Neutral: 'neutral', Danger: 'danger' },
+    AvatarIconSize: { Xs: 'xs', Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
     BadgeNetwork,
     BadgeWrapper,
     BadgeWrapperPosition: { BottomRight: 'BottomRight' },
@@ -926,6 +951,37 @@ describe('ActivityListItemRow — row content', () => {
     expect(queryByText('115792089237316195423570985.639935 USDT')).toBeNull();
   });
 
+  it('resolves a spending-cap token symbol/decimals from the tokens API', () => {
+    const assetId = 'eip155:1/erc20:0x0000000000000000000000000000000000000001';
+    jest.mocked(useTokensData).mockReturnValue({
+      [assetId]: {
+        assetId,
+        symbol: 'USDC',
+        decimals: 6,
+        name: 'USD Coin',
+        iconUrl: '',
+      },
+    });
+
+    // Token from the adapter carries only the asset id (no symbol/decimals).
+    const item = makeItem({
+      type: 'approveSpendingCap',
+      status: 'success',
+      token: { amount: '100000000', direction: 'out', assetId },
+    });
+
+    const { getByTestId } = render(
+      <ActivityListItemRow item={item} index={0} />,
+    );
+
+    expect(getByTestId('activity-primary-amount-0xabc').props.children).toBe(
+      '100 USDC',
+    );
+    expect(getByTestId('avatar-token-USDC')).toBeOnTheScreen();
+
+    jest.mocked(useTokensData).mockReturnValue({});
+  });
+
   it('renders cross-token bridge as swapped with token pair subtitle', () => {
     const item = makeItem({
       type: 'bridge',
@@ -1438,6 +1494,7 @@ const ALL_KINDS: ActivityListItem['type'][] = [
   'claim',
   'claimMusdBonus',
   'deposit',
+  'unstake',
   'convert',
   'wrap',
   'unwrap',
@@ -1489,6 +1546,7 @@ const EXPECTED_TITLES = {
   claim: 'Claimed',
   claimMusdBonus: strings('transactions.activity_claim_musd_bonus'),
   deposit: 'Deposited',
+  unstake: 'Unstaked',
   convert: 'Converted',
   wrap: strings('transactions.activity_wrap'),
   unwrap: strings('transactions.activity_unwrap'),

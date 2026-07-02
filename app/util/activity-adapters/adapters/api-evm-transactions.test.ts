@@ -145,6 +145,41 @@ describe('mapApiEvmTransactions', () => {
     });
   });
 
+  it('falls back to the contract-address asset id for an approval of an unlisted token', () => {
+    const unlistedToken = '0x1111111111111111111111111111111111111111';
+    const transaction = {
+      hash: '0xunlistedapprove',
+      timestamp: '2026-05-27T13:20:27.000Z',
+      chainId: 8453,
+      accountId: `eip155:8453:${subjectAddress}`,
+      methodId: approveFunctionSignature,
+      input: buildApproveData(baseRecipientAddress, 100000000n),
+      value: '0',
+      to: unlistedToken,
+      from: subjectAddress,
+      isError: false,
+      valueTransfers: [],
+      logs: [],
+      transactionProtocol: 'ERC_20',
+      transactionCategory: 'APPROVE',
+      transactionType: 'ERC_20_APPROVE',
+    } as unknown as V1TransactionByHashResponse;
+
+    const item = mapApiEvmTransactions({ subjectAddress, transaction });
+
+    expect(item.type).toBe('approveSpendingCap');
+    if (item.type !== 'approveSpendingCap') {
+      throw new Error(`Expected approveSpendingCap item, got ${item.type}`);
+    }
+    // No symbol/decimals (not in any known list) — but the contract address is
+    // surfaced as an asset id so the UI can resolve metadata + show the avatar.
+    expect(item.data.token).toStrictEqual({
+      direction: 'out',
+      assetId: toAssetId(unlistedToken, 'eip155:8453'),
+      amount: '100000000',
+    });
+  });
+
   it('adds API gas fees to approval activities', () => {
     const transaction = {
       hash: '0xapprovefee',
@@ -760,6 +795,81 @@ describe('mapApiEvmTransactions', () => {
         },
       },
     });
+  });
+
+  it('includes the network fee on a CLAIM activity', () => {
+    const transaction = {
+      hash: '0xclaimfee0000000000000000000000000000000000000000000000000000001',
+      timestamp: '2026-05-12T13:37:47.000Z',
+      chainId: 1,
+      from: subjectAddress,
+      to: metamaskBonusContract,
+      transactionCategory: 'CLAIM',
+      gasUsed: 21000,
+      effectiveGasPrice: 1000000000,
+      valueTransfers: [
+        {
+          from: metamaskBonusContract,
+          to: subjectAddress,
+          amount: '1000000',
+          decimal: 6,
+          symbol: 'USDC',
+          transferType: 'normal',
+        },
+      ],
+    } as unknown as V1TransactionByHashResponse;
+
+    const item = mapApiEvmTransactions({ subjectAddress, transaction });
+    expect(item.type).toBe('claim');
+    if (item.type !== 'claim') {
+      throw new Error(`Expected claim item, got ${item.type}`);
+    }
+    expect(item.data.fees).toStrictEqual([
+      expect.objectContaining({
+        type: 'base',
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+      }),
+    ]);
+  });
+
+  it('includes the network fee on a DEPOSIT activity', () => {
+    const stakingContractAddress = '0x00000000219ab540356cbb839cbe05303d7705fa';
+    const transaction = {
+      hash: '0xdepositfee000000000000000000000000000000000000000000000000000001',
+      timestamp: '2026-05-12T13:37:47.000Z',
+      chainId: 1,
+      from: subjectAddress,
+      to: stakingContractAddress,
+      transactionCategory: 'DEPOSIT',
+      gasUsed: 21000,
+      effectiveGasPrice: 1000000000,
+      valueTransfers: [
+        {
+          from: subjectAddress,
+          to: stakingContractAddress,
+          amount: '1000000000000000000',
+          decimal: 18,
+          symbol: 'ETH',
+          transferType: 'normal',
+        },
+      ],
+    } as unknown as V1TransactionByHashResponse;
+
+    const item = mapApiEvmTransactions({ subjectAddress, transaction });
+    expect(item.type).toBe('deposit');
+    if (item.type !== 'deposit') {
+      throw new Error(`Expected deposit item, got ${item.type}`);
+    }
+    expect(item.data.fees).toStrictEqual([
+      expect.objectContaining({
+        type: 'base',
+        amount: '21000000000000',
+        decimals: 18,
+        symbol: 'ETH',
+      }),
+    ]);
   });
 
   it('maps a MetaMask mUSD bonus claim to a Claim mUSD bonus activity', () => {

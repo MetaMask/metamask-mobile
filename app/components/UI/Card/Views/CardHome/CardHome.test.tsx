@@ -297,6 +297,19 @@ jest.mock('../../hooks/useCardHomeData', () => ({
   useCardHomeData: jest.fn(),
 }));
 
+jest.mock('../../hooks/useCreditBalance', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    wallet: null,
+    creditBalance: '0',
+    creditBalanceNumber: 0,
+    creditCurrency: undefined,
+    creditFiatNumber: undefined,
+    hasCredit: false,
+    isLoading: false,
+  })),
+}));
+
 jest.mock('../../hooks/useCardFreeze', () => ({
   __esModule: true,
   default: jest.fn(() => mockUseCardFreeze()),
