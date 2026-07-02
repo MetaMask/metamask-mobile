@@ -35,6 +35,7 @@ import {
   getElevatedSurfaceColor,
   useElevatedSurface,
 } from '../../../util/theme/themeUtils';
+import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import {
   useSafeAreaFrame,
   useSafeAreaInsets,
@@ -201,6 +202,9 @@ function TradeWalletActions() {
     postCallback.current = () => {
       navigate(Routes.BRIDGE.ROOT, {
         screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+        params: {
+          batchSellLocation: BatchSellMetricsLocation.TradeMenu,
+        },
       });
     };
     handleNavigateBack();

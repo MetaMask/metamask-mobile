@@ -111,6 +111,7 @@ jest.mock('../../app/core/Engine', () => {
           onboarding: { requiresEmail: true },
           supportsPinView: true,
           supportsCashback: true,
+          supportsCredit: true,
         }),
       },
       PhishingController: {
@@ -376,6 +377,7 @@ jest.mock('../../app/core/Engine', () => {
         trackFeedViewed: jest.fn(),
         trackTabChanged: jest.fn(),
         trackBannerAction: jest.fn(),
+        trackCategoryClicked: jest.fn(),
         trackMarketDetailsOpened: jest.fn(),
         trackGeoBlockTriggered: jest.fn(),
         trackActivityViewed: jest.fn(),
