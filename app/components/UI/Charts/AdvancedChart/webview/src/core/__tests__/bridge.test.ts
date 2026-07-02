@@ -138,6 +138,16 @@ describe('core/bridge', () => {
       expect(handler).not.toHaveBeenCalled();
     });
 
+    it('rejects messages from real web origins', () => {
+      const handler = jest.fn();
+      onFromRN(handler);
+      listeners.window[0]({
+        origin: 'https://evil.com',
+        data: JSON.stringify({ type: 'SET_THEME_COLORS', payload: {} }),
+      } as MessageEvent);
+      expect(handler).not.toHaveBeenCalled();
+    });
+
     it('returns an unsubscribe that removes both listeners', () => {
       const unsubscribe = onFromRN(() => undefined);
       unsubscribe();
