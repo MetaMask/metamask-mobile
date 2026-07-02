@@ -48,7 +48,9 @@ export function useTokenSearch(
       nftsToFilter = nfts.filter(
         (nft) => nft.chainId === selectedNetworkFilter,
       );
-    } else if (selectedNetworkFilter === NETWORK_FILTER_ALL) {
+    }
+
+    if (selectedNetworkFilter === NETWORK_FILTER_ALL) {
       // Testnet NFTs are excluded from "All networks" and only shown when
       // their network is explicitly selected
       nftsToFilter = nfts.filter((nft) => !isNetworkTestnet(nft.chainId));
