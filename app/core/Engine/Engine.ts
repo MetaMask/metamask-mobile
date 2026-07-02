@@ -444,7 +444,9 @@ export class Engine {
       messengerClientsByName.SelectedNetworkController;
     const preferencesController = messengerClientsByName.PreferencesController;
     const delegationController = messengerClientsByName.DelegationController;
-    const addressBookController = this.#wallet.getInstance('AddressBookController');
+    const addressBookController = this.#wallet.getInstance(
+      'AddressBookController',
+    );
     const connectivityController = this.#wallet.getInstance(
       'ConnectivityController',
     );
