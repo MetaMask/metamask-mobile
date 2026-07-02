@@ -1,0 +1,20 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  // Type-aware lint config (hybrid with ESLint). oxlint runs ONLY the type-aware
+  // rule(s) ESLint drops (no-deprecated); ESLint keeps every non-type-aware rule
+  // via .eslintrc.no-type-aware.js. Together = the hybrid.
+  //
+  // Run via:  yarn lint:type-aware   (scripts/oxlint-type-aware.sh handles the
+  // TS7 tsconfig swap; tsgolint can only read ./tsconfig.json).
+  //
+  // Ignore ambient declaration shims (invalid TS7 syntax, not lint targets).
+  "ignorePatterns": ["app/declarations/**"],
+  "plugins": ["typescript"],
+  // Turn off oxlint's default (non-type-aware) rules; ESLint owns those.
+  "categories": {
+    "correctness": "off"
+  },
+  "rules": {
+    "typescript/no-deprecated": "warn"
+  }
+}
