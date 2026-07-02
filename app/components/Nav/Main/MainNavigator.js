@@ -152,6 +152,7 @@ import {
   TopTradersView,
   TraderProfileView,
   TraderPositionView,
+  TradingSignalsSetupBottomSheet,
 } from '../../Views/SocialLeaderboard';
 import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
@@ -182,6 +183,7 @@ import BenefitFullView from '../../UI/Rewards/Views/BenefitFullView';
 import BenefitsFullView from '../../UI/Rewards/Views/BenefitsFullView';
 import MoneyTabPressTracker from '../../UI/Money/components/MoneyTabPressTracker';
 import { withMessenger } from '../../../messengers/helpers/route-messenger-helpers';
+import MoneyDeeplinkModal from '../../UI/Money/components/MoneyDeeplinkModal/MoneyDeeplinkModal';
 
 const NativeStack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -217,10 +219,6 @@ const AssetStackFlow = (props) => (
     <NativeStack.Screen
       name={Routes.SECURITY_TRUST}
       component={SecurityTrustScreen}
-    />
-    <NativeStack.Screen
-      name={Routes.TRANSACTION_DETAILS}
-      component={TransactionDetails}
     />
     <NativeStack.Screen
       name={Routes.CREATE_PRICE_ALERT}
@@ -285,16 +283,6 @@ const TransactionsHome = () => {
       <NativeStack.Screen
         name={Routes.TRANSACTIONS_VIEW}
         component={ActivityView}
-      />
-      <NativeStack.Screen
-        name={Routes.TRANSACTION_DETAILS}
-        component={TransactionDetails}
-        options={{ headerShown: false }}
-      />
-      <NativeStack.Screen
-        name={Routes.ACTIVITY_DETAILS}
-        component={ActivityDetails}
-        options={{ headerShown: false }}
       />
       <NativeStack.Screen
         name={Routes.RAMP.ORDER_DETAILS}
@@ -1099,6 +1087,16 @@ const MainNavigator = () => {
         options={slideFromRightNativeOptions}
       />
       <NativeStack.Screen
+        name={Routes.ACTIVITY_DETAILS}
+        component={ActivityDetails}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
+        name={Routes.TRANSACTION_DETAILS}
+        component={TransactionDetails}
+        options={{ headerShown: false }}
+      />
+      <NativeStack.Screen
         name="TrendingTokensFullView"
         component={TrendingTokensFullView}
         options={slideFromRightNativeOptions}
@@ -1274,6 +1272,19 @@ const MainNavigator = () => {
           />
         </>
       )}
+      {/*
+       * Rendered outside isMoneyAccountEnabled so we can display modal when feature is disabled.
+       * - Maintenance modal when the feature is disabled.
+       * - Gradual rollout modal when the user is not part of the gradual rollout cohort yet but feature is enabled.
+       */}
+      <NativeStack.Screen
+        name={Routes.MONEY.MODALS.DEEPLINK_MODAL}
+        component={MoneyDeeplinkModal}
+        options={{
+          ...clearNativeStackNavigatorOptions,
+          ...transparentModalScreenOptions,
+        }}
+      />
       <NativeStack.Screen
         name="StakeModals"
         component={StakeModalStack}
@@ -1380,6 +1391,16 @@ const MainNavigator = () => {
           name={Routes.SOCIAL_LEADERBOARD.POSITION}
           component={TraderPositionView}
           options={{ headerShown: false, ...slideFromRightNativeOptions }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <NativeStack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP}
+          component={TradingSignalsSetupBottomSheet}
+          options={{
+            ...clearNativeStackNavigatorOptions,
+            ...transparentModalScreenOptions,
+          }}
         />
       )}
       <>

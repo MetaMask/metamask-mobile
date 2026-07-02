@@ -11,6 +11,9 @@ import {
 } from '../ActivityListItemRow/ActivityListItemRow';
 import { type ActivityListItem } from '../../../util/activity-adapters';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
+import { selectIsTransactionsRedesignEnabled } from '../../../selectors/featureFlagController/activityRedesign';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity-details routing; route-isolation backlog
+import { getActivityDetailsRoute } from '../../Views/ActivityList/getActivityDetailsRoute';
 import ActivityListAccountImportTimeRow from '../ActivityListItemRow/ActivityListAccountImportTimeRow';
 import {
   getActivityFromTo,
@@ -42,6 +45,9 @@ export const AssetDetailsActivityListItem = ({
   onCancelAction,
 }: AssetDetailsActivityListItemProps) => {
   const selectedInternalAccount = useSelector(selectSelectedInternalAccount);
+  const isTransactionsRedesignEnabled = useSelector(
+    selectIsTransactionsRedesignEnabled,
+  );
   const accountImportTime = selectedInternalAccount?.metadata.importTime;
   const activityItem = useMemo(
     () =>
@@ -56,6 +62,14 @@ export const AssetDetailsActivityListItem = ({
 
   const handlePress = useCallback(
     (item: ActivityListItem) => {
+      if (isTransactionsRedesignEnabled) {
+        const detailsRoute = getActivityDetailsRoute(item);
+        if (detailsRoute) {
+          navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+          return;
+        }
+      }
+
       const selectedTx =
         item.raw?.type === 'localTransaction'
           ? item.raw.data.primaryTransaction
@@ -82,7 +96,14 @@ export const AssetDetailsActivityListItem = ({
         }),
       });
     },
-    [currentChainId, navigation, onCancelAction, onSpeedUpAction, tokenChainId],
+    [
+      currentChainId,
+      isTransactionsRedesignEnabled,
+      navigation,
+      onCancelAction,
+      onSpeedUpAction,
+      tokenChainId,
+    ],
   );
 
   const handleImportTimePress = useCallback(() => {

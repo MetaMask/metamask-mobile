@@ -101,6 +101,65 @@ describe('useActivityAmountsFiat', () => {
     expect(result.current.totalFiat).toBe('$9');
   });
 
+  it('labels a non-native resource fee by its resource and excludes it from fiat/total', () => {
+    const tronFees: ActivityFee[] = [
+      {
+        type: 'base',
+        amount: '1000000',
+        decimals: 6,
+        symbol: 'TRX',
+        assetId: 'tron:728126428/slip44:195',
+      },
+      {
+        // The Tron snap surfaces resource fees as virtual assets, so `assetId`
+        // is unreliable/absent — detection must rely on the symbol.
+        type: 'base',
+        amount: '268',
+        decimals: 0,
+        symbol: 'BANDWIDTH',
+      },
+    ];
+    const tronActivity: ActivityListItem = {
+      type: 'receive',
+      chainId: 'tron:728126428',
+      status: 'success',
+      timestamp: 1,
+      hash: '0xhash',
+      data: {
+        from: '0xfrom',
+        to: '0xto',
+        token: {
+          amount: '8567000',
+          assetId: 'tron:728126428/slip44:195',
+          decimals: 6,
+          direction: 'in',
+          symbol: 'TRX',
+        },
+        fees: tronFees,
+      },
+    };
+
+    // Tron is non-EVM: there's no native `conversionRate`, so fees render as
+    // token amounts and the total's fiat comes from the token's multichain rate.
+    mockUseSelectorState({
+      currentCurrency: 'usd',
+      conversionRate: undefined,
+      contractExchangeRates: {},
+      multichainAssetRates: {
+        'tron:728126428/slip44:195': { rate: '0.324' },
+      },
+    });
+
+    const { result } = renderHook(() => useActivityAmountsFiat(tronActivity));
+
+    expect(result.current.feeRows).toStrictEqual([
+      { label: 'Network fee', value: '1', fee: tronFees[0] },
+      { label: 'Bandwidth', value: '268', fee: tronFees[1] },
+    ]);
+    // Total = token amount (8.567 TRX * 0.324) only; both fees are token-only.
+    expect(result.current.totalFiat).toBe('$2.78');
+  });
+
   it('falls back to token-denominated fee values when fiat is unavailable', () => {
     mockUseSelectorState({
       currentCurrency: undefined,
