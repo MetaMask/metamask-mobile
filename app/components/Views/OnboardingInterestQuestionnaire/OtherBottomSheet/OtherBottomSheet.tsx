@@ -91,6 +91,7 @@ const OtherBottomSheet = ({
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
+            isDisabled={trimmedDraftValue.length === 0}
             onPress={handleDone}
             testID={OtherBottomSheetTestIds.DONE_BUTTON}
           >
