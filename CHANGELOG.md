@@ -12419,6 +12419,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.2...HEAD
 [8.0.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.0...v8.0.2
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.1...HEAD
+[8.0.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.0...v8.0.1
 [8.0.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.82.1...v8.0.0
 [7.82.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.82.0...v7.82.1
 [7.82.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.81.2...v7.82.0

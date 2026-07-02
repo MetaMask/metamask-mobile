@@ -366,7 +366,7 @@ describe('PredictActivityDetails - Claim Activity', () => {
     });
 
     // Assert
-    expect(getByText('Total net P&L')).toBeOnTheScreen();
+    expect(getByText('Total Net P&L')).toBeOnTheScreen();
   });
 });
 

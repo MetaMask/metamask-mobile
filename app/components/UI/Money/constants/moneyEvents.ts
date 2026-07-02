@@ -30,6 +30,7 @@ export enum BOTTOM_SHEET_NAMES {
   MONEY_MORE_SHEET = 'money_more_sheet',
   MONEY_BALANCE_INFO_SHEET = 'money_balance_info_sheet',
   MONEY_GEO_BLOCK_SHEET = 'money_geo_block_sheet',
+  MONEY_DEEPLINK_MODAL = 'money_deeplink_modal',
 }
 
 export enum REDIRECT_TARGETS_TYPES {
