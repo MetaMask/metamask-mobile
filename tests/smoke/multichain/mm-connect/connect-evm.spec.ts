@@ -187,6 +187,16 @@ describe(SmokeMultiChainAPI('MMConnect Legacy EVM (in-app browser)'), () => {
           await MMConnectBrowserPlaygroundDapp.assertLegacyEvmChainIdContains(
             MAINNET_CHAIN_ID_HEX,
           );
+
+          // The readout above is client-side. Follow up with a `personal_sign`
+          // to prove the switch actually reached the wallet: the request must
+          // still round-trip through the (now Mainnet) per-dapp session and
+          // produce a signature via the redesigned confirmation footer.
+          await MMConnectBrowserPlaygroundDapp.tapLegacyPersonalSign();
+          await FooterActions.tapConfirmButton();
+          await MMConnectBrowserPlaygroundDapp.assertLegacyEvmResponseContains(
+            '0x',
+          );
         } finally {
           await device.enableSynchronization();
         }
