@@ -618,7 +618,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
       <View style={styles.container} testID={testID}>
         {orderBookHeader}
         <View style={styles.errorContainer}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.Error}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.ErrorDefault}>
             {strings('perps.order_book.error')}
           </Text>
         </View>
