@@ -45,42 +45,12 @@ export type QrSyncControllerImportRemainingSecretsAction = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncControllerAssertReadyForSecretImportAction = {
-  type: `${typeof QR_SYNC_CONTROLLER_NAME}:assertReadyForSecretImport`;
-  handler: () => void;
-};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncControllerEnrichPrimaryProvisioningEntryAction = {
-  type: `${typeof QR_SYNC_CONTROLLER_NAME}:enrichPrimaryProvisioningEntry`;
-  handler: (primaryEntropySource: EntropySourceId) => void;
-};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncControllerGetRemainingSecretImportsAction = {
-  type: `${typeof QR_SYNC_CONTROLLER_NAME}:getRemainingSecretImports`;
-  handler: () => QrSyncSecretImportEntry[];
-};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type QrSyncControllerEnrichProvisioningEntryAction = {
   type: `${typeof QR_SYNC_CONTROLLER_NAME}:enrichProvisioningEntry`;
   handler: (
     index: number,
     enrichment: QrSyncProvisioningEntryEnrichment,
   ) => void;
-};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncControllerFinalizeSecretImportAction = {
-  type: `${typeof QR_SYNC_CONTROLLER_NAME}:finalizeSecretImport`;
-  handler: () => void;
-};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type QrSyncControllerCompleteSecretImportAction = {
-  type: `${typeof QR_SYNC_CONTROLLER_NAME}:completeSecretImport`;
-  handler: (enrichedMetadata: QrSyncProvisioningMetadata) => void;
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -104,12 +74,7 @@ export type QrSyncControllerGetStateAction = ControllerGetStateAction<
 export type QrSyncControllerActions =
   | QrSyncControllerGetStateAction
   | QrSyncControllerImportRemainingSecretsAction
-  | QrSyncControllerAssertReadyForSecretImportAction
-  | QrSyncControllerEnrichPrimaryProvisioningEntryAction
-  | QrSyncControllerGetRemainingSecretImportsAction
   | QrSyncControllerEnrichProvisioningEntryAction
-  | QrSyncControllerFinalizeSecretImportAction
-  | QrSyncControllerCompleteSecretImportAction
   | QrSyncControllerMarkProvisioningFailedAction
   | QrSyncControllerCompleteProvisioningAction;
 

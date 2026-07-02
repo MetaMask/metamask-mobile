@@ -265,3 +265,24 @@ export type QrSyncProvisioningStatus =
   | 'secrets_imported'
   | 'completed'
   | 'failed';
+
+/** Phase B secret-import preconditions used by the QR sync controller. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export interface QrSyncSecretImportPreconditions {
+  provisioningStatus: QrSyncProvisioningStatus | null;
+  pendingSecretImports: QrSyncSecretImportEntry[] | null;
+}
+
+/** Phase B enrichment context: secret-import preconditions plus persisted metadata. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export interface QrSyncProvisioningEntryEnrichmentContext
+  extends QrSyncSecretImportPreconditions {
+  provisioningMetadata: QrSyncProvisioningMetadata | null;
+}
+
+/** Resolved provisioning metadata entry for Phase B enrichment. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export interface QrSyncProvisioningEntryResolution {
+  entryIndex: number;
+  entry: QrSyncProvisioningEntry;
+}

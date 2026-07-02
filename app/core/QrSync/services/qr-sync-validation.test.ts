@@ -8,10 +8,12 @@ import {
 } from '../constants';
 import type { QrSyncReadyData, QrSyncSyncReadyMessage } from '../types';
 import {
+  isQrSyncReadyForSecretImport,
   isQrSyncSessionRequest,
   parseQrSyncConnectionRequest,
   parseQrSyncSyncReadyMessage,
   QR_SYNC_MWP_DEEPLINK_PREFIX,
+  resolveQrSyncProvisioningEntryForEnrichment,
   validateQrSyncSecretImportsForOnboarding,
 } from './qr-sync-validation';
 
@@ -544,6 +546,132 @@ describe('qr-sync-validation', () => {
             'QR sync payload must include a primary mnemonic when onboarding is not completed.',
         },
       });
+    });
+  });
+
+  describe('isQrSyncReadyForSecretImport', () => {
+    const pendingSecretImports = [
+      {
+        index: 0,
+        type: QrSyncSecretTypes.MNEMONIC,
+        value: 'word1 word2 word3',
+        isPrimary: true,
+      },
+    ];
+
+    it('returns true when awaiting_password with pending secrets', () => {
+      expect(
+        isQrSyncReadyForSecretImport({
+          provisioningStatus: 'awaiting_password',
+          pendingSecretImports,
+        }),
+      ).toBe(true);
+    });
+
+    it('returns false when provisioning status is not awaiting_password', () => {
+      expect(
+        isQrSyncReadyForSecretImport({
+          provisioningStatus: 'secrets_imported',
+          pendingSecretImports,
+        }),
+      ).toBe(false);
+    });
+
+    it('returns false when pending secrets are empty or missing', () => {
+      expect(
+        isQrSyncReadyForSecretImport({
+          provisioningStatus: 'awaiting_password',
+          pendingSecretImports: [],
+        }),
+      ).toBe(false);
+      expect(
+        isQrSyncReadyForSecretImport({
+          provisioningStatus: 'awaiting_password',
+          pendingSecretImports: null,
+        }),
+      ).toBe(false);
+    });
+  });
+
+  describe('resolveQrSyncProvisioningEntryForEnrichment', () => {
+    const pendingSecretImports = [
+      {
+        index: 0,
+        type: QrSyncSecretTypes.MNEMONIC,
+        value: 'word1 word2 word3',
+        isPrimary: true,
+      },
+    ];
+    const provisioningMetadata = {
+      version: QrSyncMessageVersion.V1,
+      entries: [
+        {
+          index: 0,
+          type: QrSyncSecretTypes.MNEMONIC,
+          isPrimary: true,
+          name: 'Wallet 1',
+        },
+        {
+          index: 1,
+          type: QrSyncSecretTypes.PRIVATE_KEY,
+          name: 'Imported Account',
+        },
+      ],
+    };
+
+    it('resolves the metadata entry at the given index', () => {
+      expect(
+        resolveQrSyncProvisioningEntryForEnrichment(
+          {
+            provisioningStatus: 'awaiting_password',
+            pendingSecretImports,
+            provisioningMetadata,
+          },
+          1,
+        ),
+      ).toEqual({
+        entryIndex: 1,
+        entry: provisioningMetadata.entries[1],
+      });
+    });
+
+    it('throws when secret import preconditions are not met', () => {
+      expect(() =>
+        resolveQrSyncProvisioningEntryForEnrichment(
+          {
+            provisioningStatus: 'secrets_imported',
+            pendingSecretImports,
+            provisioningMetadata,
+          },
+          0,
+        ),
+      ).toThrow('QR sync enrichment requires ready for secret import');
+    });
+
+    it('throws when provisioning metadata is missing', () => {
+      expect(() =>
+        resolveQrSyncProvisioningEntryForEnrichment(
+          {
+            provisioningStatus: 'awaiting_password',
+            pendingSecretImports,
+            provisioningMetadata: null,
+          },
+          0,
+        ),
+      ).toThrow('QR sync enrichment requires provisioning metadata');
+    });
+
+    it('throws when no metadata entry matches the index', () => {
+      expect(() =>
+        resolveQrSyncProvisioningEntryForEnrichment(
+          {
+            provisioningStatus: 'awaiting_password',
+            pendingSecretImports,
+            provisioningMetadata,
+          },
+          99,
+        ),
+      ).toThrow('QR sync metadata has no entry at index 99');
     });
   });
 });

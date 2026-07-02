@@ -83,11 +83,6 @@ describe('qrSyncControllerInit', () => {
 
     expect(typeof controller.importRemainingSecrets).toBe('function');
     expect(typeof controller.enrichProvisioningEntry).toBe('function');
-    expect(typeof controller.assertReadyForSecretImport).toBe('function');
-    expect(typeof controller.enrichPrimaryProvisioningEntry).toBe('function');
-    expect(typeof controller.getRemainingSecretImports).toBe('function');
-    expect(typeof controller.finalizeSecretImport).toBe('function');
-    expect(typeof controller.completeSecretImport).toBe('function');
     expect(typeof controller.markProvisioningFailed).toBe('function');
     expect(typeof controller.completeProvisioning).toBe('function');
   });
@@ -105,27 +100,7 @@ describe('qrSyncControllerInit', () => {
       expect.any(Function),
     );
     expect(registerSpy).toHaveBeenCalledWith(
-      'QrSyncController:assertReadyForSecretImport',
-      expect.any(Function),
-    );
-    expect(registerSpy).toHaveBeenCalledWith(
-      'QrSyncController:enrichPrimaryProvisioningEntry',
-      expect.any(Function),
-    );
-    expect(registerSpy).toHaveBeenCalledWith(
-      'QrSyncController:getRemainingSecretImports',
-      expect.any(Function),
-    );
-    expect(registerSpy).toHaveBeenCalledWith(
       'QrSyncController:enrichProvisioningEntry',
-      expect.any(Function),
-    );
-    expect(registerSpy).toHaveBeenCalledWith(
-      'QrSyncController:finalizeSecretImport',
-      expect.any(Function),
-    );
-    expect(registerSpy).toHaveBeenCalledWith(
-      'QrSyncController:completeSecretImport',
       expect.any(Function),
     );
     expect(registerSpy).toHaveBeenCalledWith(

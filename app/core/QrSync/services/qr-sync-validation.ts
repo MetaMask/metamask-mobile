@@ -12,32 +12,16 @@ import type {
   QrSyncConnectionRequest,
   QrSyncError,
   QrSyncProvisioningEntry,
+  QrSyncProvisioningEntryEnrichmentContext,
+  QrSyncProvisioningEntryResolution,
   QrSyncProvisioningMetadata,
   QrSyncReadyData,
   QrSyncReadyMnemonicData,
   QrSyncReadyPrivateKeyData,
   QrSyncSecretImportEntry,
+  QrSyncSecretImportPreconditions,
   QrSyncSyncReadyMessage,
 } from '../types';
-
-interface QrSyncValidationSuccessResult {
-  valid: true;
-}
-interface QrSyncValidationErrorResult {
-  valid: false;
-  error: QrSyncError;
-}
-type QrSyncValidationResult =
-  | QrSyncValidationSuccessResult
-  | QrSyncValidationErrorResult;
-
-export type QrSyncSyncReadyParseResult =
-  | {
-      valid: true;
-      pendingSecretImports: QrSyncSecretImportEntry[];
-      provisioningMetadata: QrSyncProvisioningMetadata;
-    }
-  | QrSyncValidationErrorResult;
 
 const HANDSHAKE_CHANNEL_REGEX =
   /^handshake:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -51,7 +35,10 @@ const isRecord = (data: unknown): data is Record<string, unknown> =>
 const buildValidationError = (
   code: QrSyncError['code'],
   message: string,
-): QrSyncValidationErrorResult => ({
+): {
+  valid: false;
+  error: QrSyncError;
+} => ({
   valid: false,
   error: {
     code,
@@ -266,7 +253,10 @@ const isQrSyncReadyData = (data: unknown): data is QrSyncReadyData =>
 function validateSyncReadyMessage(
   message: Partial<QrSyncSyncReadyMessage>,
   currentTimestamp = Date.now(),
-): QrSyncValidationResult {
+): {
+  valid: boolean;
+  error?: QrSyncError;
+} {
   if (typeof message.deadline !== 'number' || Number.isNaN(message.deadline)) {
     return buildValidationError(
       'INVALID_PAYLOAD',
@@ -315,6 +305,50 @@ function validateSyncReadyMessage(
   }
 
   return { valid: true };
+}
+
+/**
+ * Returns whether remaining QR sync secrets can be imported into the vault.
+ */
+export function isQrSyncReadyForSecretImport(
+  preconditions: QrSyncSecretImportPreconditions,
+): boolean {
+  const { provisioningStatus, pendingSecretImports } = preconditions;
+
+  return (
+    provisioningStatus === 'awaiting_password' &&
+    Boolean(pendingSecretImports?.length)
+  );
+}
+
+/**
+ * Asserts Phase B enrichment preconditions and resolves the metadata entry.
+ */
+export function resolveQrSyncProvisioningEntryForEnrichment(
+  context: QrSyncProvisioningEntryEnrichmentContext,
+  index: number,
+): QrSyncProvisioningEntryResolution {
+  if (!isQrSyncReadyForSecretImport(context)) {
+    throw new Error('QR sync enrichment requires ready for secret import');
+  }
+
+  const { provisioningMetadata } = context;
+  if (!provisioningMetadata) {
+    throw new Error('QR sync enrichment requires provisioning metadata');
+  }
+
+  const entryIndex = provisioningMetadata.entries.findIndex(
+    (metadataEntry) => metadataEntry.index === index,
+  );
+
+  if (entryIndex === -1) {
+    throw new Error(`QR sync metadata has no entry at index ${index}`);
+  }
+
+  return {
+    entryIndex,
+    entry: provisioningMetadata.entries[entryIndex],
+  };
 }
 
 const toControllerState = (
@@ -383,7 +417,12 @@ const toControllerState = (
 export function parseQrSyncSyncReadyMessage(
   data: unknown,
   currentTimestamp = Date.now(),
-): QrSyncSyncReadyParseResult {
+): {
+  valid: boolean;
+  error?: QrSyncError;
+  pendingSecretImports?: QrSyncSecretImportEntry[];
+  provisioningMetadata?: QrSyncProvisioningMetadata;
+} {
   if (!isRecord(data)) {
     return buildValidationError(
       'INVALID_PAYLOAD',
@@ -431,7 +470,10 @@ export function parseQrSyncSyncReadyMessage(
 /** Validates that the pending secret imports include a primary mnemonic. */
 export function validateQrSyncSecretImportsForOnboarding(
   secretImports: QrSyncSecretImportEntry[] | undefined,
-): QrSyncValidationResult {
+): {
+  valid: boolean;
+  error?: QrSyncError;
+} {
   const hasPrimaryMnemonic = secretImports?.some(
     (entry) =>
       entry.type === QrSyncSecretTypes.MNEMONIC && entry.isPrimary === true,

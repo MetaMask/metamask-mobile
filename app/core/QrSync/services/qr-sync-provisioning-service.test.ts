@@ -253,9 +253,6 @@ describe('QrSyncProvisioningService', () => {
         2,
         { accountAddress: PRIVATE_KEY_ADDRESS },
       );
-      expect(mockCall).not.toHaveBeenCalledWith(
-        'QrSyncController:finalizeSecretImport',
-      );
     });
   });
 

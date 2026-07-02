@@ -14,14 +14,14 @@ import type {
   QrSyncError,
   QrSyncErrorCode,
   QrSyncPhase,
-  QrSyncProvisioningMetadata,
-  QrSyncSecretImportEntry,
   QrSyncServiceEvent,
   QrSyncWireMessage,
 } from './types';
 import { createQrSyncWalletClient } from './services/create-qr-sync-wallet-client';
 import {
   parseQrSyncConnectionRequest,
+  isQrSyncReadyForSecretImport,
+  resolveQrSyncProvisioningEntryForEnrichment,
   validateQrSyncSecretImportsForOnboarding,
 } from './services/qr-sync-validation';
 import {
@@ -199,26 +199,33 @@ export class QrSyncController extends BaseController<
   /**
    * Phase B entrypoint: validates state, then delegates vault imports to the
    * provisioning service.
+   *
+   * @param primaryEntropySource - The entropy source to enrich the primary provisioning entry with.
    */
   public async importRemainingSecrets(
-    primaryEntropySource: EntropySourceId,
+    primaryEntropySource?: EntropySourceId,
   ): Promise<void> {
-    if (!this.canImportRemainingSecrets()) {
+    if (!isQrSyncReadyForSecretImport(this.state)) {
       return;
     }
 
-    this.assertReadyForSecretImport();
-
-    try {
-      this.enrichPrimaryProvisioningEntry(primaryEntropySource);
-    } catch (error) {
-      Logger.error(
-        error as Error,
-        'QrSyncController.importRemainingSecrets enrichPrimary',
-      );
+    if (primaryEntropySource) {
+      try {
+        this.enrichPrimaryProvisioningEntry(primaryEntropySource);
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'QrSyncController.importRemainingSecrets enrichPrimary',
+        );
+      }
     }
 
-    const remainingSecrets = this.getRemainingSecretImports();
+    const { pendingSecretImports } = this.state;
+    const remainingSecrets =
+      pendingSecretImports?.filter(
+        (secret) =>
+          !(secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary),
+      ) ?? [];
 
     await this.messenger.call(
       'QrSyncProvisioningService:importSecretsToVault',
@@ -236,195 +243,41 @@ export class QrSyncController extends BaseController<
   }
 
   /**
-   * Asserts Phase B secret-import preconditions (awaiting_password + pending secrets).
-   */
-  public assertReadyForSecretImport(): void {
-    const { provisioningStatus, pendingSecretImports } = this.state;
-
-    if (provisioningStatus !== 'awaiting_password') {
-      throw new Error(
-        'QR sync secret import requires provisioningStatus awaiting_password',
-      );
-    }
-
-    if (!pendingSecretImports?.length) {
-      throw new Error('QR sync secret import requires pending secret imports');
-    }
-  }
-
-  /**
-   * Returns whether remaining QR sync secrets can be imported into the vault.
-   */
-  public canImportRemainingSecrets(): boolean {
-    const { provisioningStatus, pendingSecretImports } = this.state;
-
-    return (
-      provisioningStatus === 'awaiting_password' &&
-      Boolean(pendingSecretImports?.length)
-    );
-  }
-
-  /**
-   * Enriches the primary mnemonic entry after the primary vault restore.
-   */
-  public enrichPrimaryProvisioningEntry(
-    primaryEntropySource: EntropySourceId,
-  ): void {
-    this.assertReadyForSecretImport();
-
-    const primarySecret = this.state.pendingSecretImports?.find(
-      (secret) =>
-        secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary,
-    );
-
-    if (!primarySecret) {
-      return;
-    }
-
-    this.enrichProvisioningEntry(primarySecret.index, {
-      entropySource: primaryEntropySource,
-    });
-  }
-
-  /**
-   * Returns non-primary pending secrets for vault import (Phase B).
-   */
-  public getRemainingSecretImports(): QrSyncSecretImportEntry[] {
-    this.assertReadyForSecretImport();
-
-    const { pendingSecretImports } = this.state;
-    if (!pendingSecretImports) {
-      return [];
-    }
-
-    return [...pendingSecretImports].filter(
-      (secret) =>
-        !(secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary),
-    );
-  }
-
-  /**
    * Merges vault-derived runtime IDs into a persisted provisioning metadata entry.
    */
   public enrichProvisioningEntry(
     index: number,
     enrichment: QrSyncProvisioningEntryEnrichment,
   ): void {
-    const { provisioningMetadata, provisioningStatus, pendingSecretImports } =
-      this.state;
-
-    if (provisioningStatus !== 'awaiting_password') {
-      throw new Error(
-        'QR sync enrichment requires provisioningStatus awaiting_password',
-      );
-    }
-
-    if (!pendingSecretImports?.length) {
-      throw new Error('QR sync enrichment requires pending secret imports');
-    }
-
-    if (!provisioningMetadata) {
-      throw new Error('QR sync enrichment requires provisioning metadata');
-    }
-
-    const entryIndex = provisioningMetadata.entries.findIndex(
-      (entry) => entry.index === index,
+    const { entryIndex, entry } = resolveQrSyncProvisioningEntryForEnrichment(
+      this.state,
+      index,
     );
-
-    if (entryIndex === -1) {
-      throw new Error(`QR sync metadata has no entry at index ${index}`);
-    }
-
-    const entry = provisioningMetadata.entries[entryIndex];
 
     if ('entropySource' in enrichment) {
       if (entry.type !== QrSyncSecretTypes.MNEMONIC) {
         throw new Error(`QR sync metadata entry ${index} is not a mnemonic`);
       }
-
-      this.update((state) => {
-        if (!state.provisioningMetadata) {
-          return;
-        }
-
-        const entries = state.provisioningMetadata.entries.map(
-          (metadataEntry, metadataIndex) =>
-            metadataIndex === entryIndex &&
-            metadataEntry.type === QrSyncSecretTypes.MNEMONIC
-              ? {
-                  ...metadataEntry,
-                  entropySource: enrichment.entropySource,
-                }
-              : metadataEntry,
-        );
-
-        state.provisioningMetadata = {
-          ...state.provisioningMetadata,
-          entries,
-        };
-      });
-      return;
-    }
-
-    if (entry.type !== QrSyncSecretTypes.PRIVATE_KEY) {
+    } else if (entry.type !== QrSyncSecretTypes.PRIVATE_KEY) {
       throw new Error(`QR sync metadata entry ${index} is not a private key`);
     }
+
+    const enrichedEntry =
+      'entropySource' in enrichment
+        ? { ...entry, entropySource: enrichment.entropySource }
+        : { ...entry, accountAddress: enrichment.accountAddress };
 
     this.update((state) => {
       if (!state.provisioningMetadata) {
         return;
       }
 
-      const entries = state.provisioningMetadata.entries.map(
-        (metadataEntry, metadataIndex) =>
-          metadataIndex === entryIndex &&
-          metadataEntry.type === QrSyncSecretTypes.PRIVATE_KEY
-            ? {
-                ...metadataEntry,
-                accountAddress: enrichment.accountAddress,
-              }
-            : metadataEntry,
-      );
-
+      const entries = [...state.provisioningMetadata.entries];
+      entries[entryIndex] = enrichedEntry;
       state.provisioningMetadata = {
         ...state.provisioningMetadata,
         entries,
       };
-    });
-  }
-
-  /**
-   * Clears ephemeral secrets and marks Phase B complete. Persisted metadata is
-   * left as-is (possibly partially enriched).
-   */
-  public finalizeSecretImport(): void {
-    if (!this.state.provisioningMetadata) {
-      throw new Error('QR sync finalize requires provisioning metadata');
-    }
-
-    this.update((state) => {
-      state.pendingSecretImports = null;
-      state.provisioningStatus = 'secrets_imported';
-    });
-  }
-
-  /**
-   * Persists enriched provisioning metadata after all secrets are imported into
-   * the vault. Clears ephemeral secret material from memory.
-   */
-  public completeSecretImport(
-    enrichedMetadata: QrSyncProvisioningMetadata,
-  ): void {
-    if (!enrichedMetadata) {
-      throw new Error(
-        'QrSyncController.completeSecretImport requires enriched metadata',
-      );
-    }
-
-    this.update((state) => {
-      state.pendingSecretImports = null;
-      state.provisioningMetadata = enrichedMetadata;
-      state.provisioningStatus = 'secrets_imported';
     });
   }
 
@@ -509,7 +362,7 @@ export class QrSyncController extends BaseController<
               routedMessage.pendingSecretImports,
             );
 
-          if (!secretImportValidation.valid) {
+          if (!secretImportValidation.valid && secretImportValidation.error) {
             this.terminateWithError(secretImportValidation.error);
             return;
           }
@@ -616,6 +469,45 @@ export class QrSyncController extends BaseController<
       state.error = null;
     });
     await this.destroySession();
+  }
+
+  /**
+   * Enriches the primary mnemonic entry after the primary vault restore.
+   */
+  private enrichPrimaryProvisioningEntry(
+    primaryEntropySource: EntropySourceId,
+  ): void {
+    if (!isQrSyncReadyForSecretImport(this.state)) {
+      return;
+    }
+
+    const primarySecret = this.state.pendingSecretImports?.find(
+      (secret) =>
+        secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary,
+    );
+
+    if (!primarySecret) {
+      return;
+    }
+
+    this.enrichProvisioningEntry(primarySecret.index, {
+      entropySource: primaryEntropySource,
+    });
+  }
+
+  /**
+   * Clears ephemeral secrets and marks Phase B complete. Persisted metadata is
+   * left as-is (possibly partially enriched).
+   */
+  private finalizeSecretImport(): void {
+    if (!this.state.provisioningMetadata) {
+      throw new Error('QR sync finalize requires provisioning metadata');
+    }
+
+    this.update((state) => {
+      state.pendingSecretImports = null;
+      state.provisioningStatus = 'secrets_imported';
+    });
   }
 
   private async sendMessage(message: QrSyncWireMessage): Promise<void> {
