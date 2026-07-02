@@ -2,9 +2,12 @@ import { StyleSheet } from 'react-native';
 
 const styleSheet = () =>
   StyleSheet.create({
-    state: {
+    region: {
       flexDirection: 'row',
       alignItems: 'center',
+    },
+    emoji: {
+      marginRight: 12,
     },
   });
 

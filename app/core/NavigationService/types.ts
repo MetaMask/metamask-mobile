@@ -361,6 +361,7 @@ export type RootStackParamList = {
   RampFiatSelectorModal: undefined;
   RampIncompatibleAccountTokenModal: undefined;
   RampRegionSelectorModal: undefined;
+  RampPhoneCountrySelectorModal: undefined;
   RampUnsupportedRegionModal: undefined;
   RampUnsupportedTokenModal: undefined;
   RampPaymentMethodSelectorModal: undefined;
