@@ -2065,6 +2065,86 @@ describe('PerpsMarketDetailsView', () => {
       );
     });
 
+    it('defers fallback screen view to declarative tracking when advanced chart errors before screen view conditions are ready', async () => {
+      const mockTrack = jest.fn();
+      const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
+        jest.requireMock('../../hooks/usePerpsEventTracking');
+      mockUsePerpsEventTrackingFn.mockImplementation(() => ({
+        track: mockTrack,
+      }));
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: false,
+        isLoading: true,
+        error: null,
+        existingPosition: null,
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const renderView = () => (
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>
+      );
+      const { getByTestId, rerender } = renderWithProvider(renderView(), {
+        state: initialState,
+      });
+
+      await act(async () => {
+        getByTestId('mock-perps-advanced-chart').props.onError(
+          'Advanced chart unavailable before screen view',
+        );
+      });
+
+      expect(mockTrack).not.toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+        expect.objectContaining({
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+        }),
+      );
+
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: false,
+        isLoading: false,
+        error: null,
+        existingPosition: null,
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+      rerender(renderView());
+
+      expect(mockUsePerpsEventTrackingFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED}`,
+          conditions: [true],
+          properties: expect.objectContaining({
+            [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+              PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+            [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+              PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+          }),
+        }),
+      );
+    });
+
     it('uses error object and fallback messages for advanced chart errors', async () => {
       const mockTrack = jest.fn();
       const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =

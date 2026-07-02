@@ -18,7 +18,10 @@ import {
   PERPS_CUF_STREAM_TIMEOUT_MS,
 } from '../constants/perpsCufTags';
 import { endTrace, TraceName } from '../../../../util/trace';
-import { PERPS_CHART_EVENT_PROPERTY } from '../utils/analytics/chartInstrumentation';
+import {
+  PERPS_CHART_EVENT_PROPERTY,
+  PERPS_CHART_EVENT_VALUE,
+} from '../utils/analytics/chartInstrumentation';
 
 jest.mock('./usePerpsTrading');
 jest.mock('../../../../util/trace', () => {
@@ -589,6 +592,8 @@ describe('usePerpsOrderExecution', () => {
             PERPS_EVENT_VALUE.STATUS.PARTIALLY_FILLED,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
           [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
           [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
           [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
         }),
@@ -726,6 +731,8 @@ describe('usePerpsOrderExecution', () => {
           [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
           [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
           [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
           [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
         }),
@@ -843,6 +850,8 @@ describe('usePerpsOrderExecution', () => {
           [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
           [PERPS_EVENT_PROPERTY.TRADE_WITH_TOKEN]: true,
           [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]: 'advanced',
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
           [PERPS_EVENT_PROPERTY.MM_PAY_TOKEN_SELECTED]: 'USDC',
           [PERPS_EVENT_PROPERTY.MM_PAY_NETWORK_SELECTED]: 'ethereum',
         }),

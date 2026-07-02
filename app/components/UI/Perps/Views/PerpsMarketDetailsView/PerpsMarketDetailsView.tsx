@@ -286,17 +286,24 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     configuredChartLibrary,
   );
   const trackedFallbackScreenViewLibrariesRef = useRef<Set<string>>(new Set());
+  const hasTrackedMarketDetailsScreenViewRef = useRef(false);
   useEffect(() => {
     setEffectiveChartLibrary(configuredChartLibrary);
     trackedFallbackScreenViewLibrariesRef.current = new Set();
   }, [configuredChartLibrary, market?.symbol]);
-  const chartAnalyticsProperties = useMemo(
-    () => getPerpsChartAnalyticsPropertiesForLibrary(effectiveChartLibrary),
-    [effectiveChartLibrary],
-  );
   const chartLibrary = useMemo(
-    () => effectiveChartLibrary,
-    [effectiveChartLibrary],
+    () =>
+      configuredChartLibrary ===
+        PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED &&
+      effectiveChartLibrary ===
+        PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT
+        ? PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT
+        : configuredChartLibrary,
+    [configuredChartLibrary, effectiveChartLibrary],
+  );
+  const chartAnalyticsProperties = useMemo(
+    () => getPerpsChartAnalyticsPropertiesForLibrary(chartLibrary),
+    [chartLibrary],
   );
   const isServiceInterruptionBannerEnabled = useSelector(
     selectPerpsServiceInterruptionBannerEnabledFlag,
@@ -692,28 +699,58 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     ],
   );
 
-  // Track asset screen viewed event - declarative (main's event name)
+  const marketDetailsScreenViewResetKey = `${
+    market?.symbol || ''
+  }:${configuredChartLibrary}`;
+  const isMarketDetailsScreenViewReady =
+    !!market &&
+    !!marketStats &&
+    !isLoadingHistory &&
+    !isLoadingPosition &&
+    !isPerpsInsightsLoading &&
+    // Guard against stale insights from a prior symbol (the loading flag
+    // may not flip to true until the next render after a symbol change).
+    // Uses reportAssetId (the input identifier) instead of report.asset
+    // to avoid casing mismatches between the API response and market symbol.
+    (!isPerpsInsightsEnabled ||
+      !perpsInsightsReport ||
+      perpsInsightsAssetId === market?.symbol);
+
+  useEffect(() => {
+    hasTrackedMarketDetailsScreenViewRef.current = false;
+  }, [marketDetailsScreenViewResetKey]);
+
+  // Track asset screen viewed event - declarative (main's event name).
   // Waits for market insights to finish loading so market_insights_displayed
   // reflects the actual display state rather than a loading-time snapshot.
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-    resetKey: `${market?.symbol || ''}:${configuredChartLibrary}`,
-    conditions: [
-      !!market,
-      !!marketStats,
-      !isLoadingHistory,
-      !isLoadingPosition,
-      !isPerpsInsightsLoading,
-      // Guard against stale insights from a prior symbol (the loading flag
-      // may not flip to true until the next render after a symbol change).
-      // Uses reportAssetId (the input identifier) instead of report.asset
-      // to avoid casing mismatches between the API response and market symbol.
-      !isPerpsInsightsEnabled ||
-        !perpsInsightsReport ||
-        perpsInsightsAssetId === market?.symbol,
-    ],
+    resetKey: marketDetailsScreenViewResetKey,
+    conditions: [isMarketDetailsScreenViewReady],
     properties: marketDetailsScreenViewedProperties,
   });
+
+  // Keep the imperative fallback path from duplicating the declarative first
+  // screen view when the advanced chart errors before loading finishes.
+  useEffect(() => {
+    if (!isMarketDetailsScreenViewReady) {
+      return;
+    }
+
+    hasTrackedMarketDetailsScreenViewRef.current = true;
+    if (chartLibrary === PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT) {
+      trackedFallbackScreenViewLibrariesRef.current.add(
+        `${market?.symbol || ''}:${
+          PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT
+        }`,
+      );
+    }
+  }, [
+    chartLibrary,
+    isMarketDetailsScreenViewReady,
+    market?.symbol,
+    marketDetailsScreenViewResetKey,
+  ]);
 
   const handleCandlePeriodChange = useCallback(
     (newPeriod: CandlePeriod) => {
@@ -1318,6 +1355,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT
         }`;
         if (
+          hasTrackedMarketDetailsScreenViewRef.current &&
           !trackedFallbackScreenViewLibrariesRef.current.has(
             fallbackScreenViewKey,
           )
