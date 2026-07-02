@@ -20,7 +20,10 @@ import { BannerAlertSeverity } from '../../../../../component-library/components
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
 import ApprovalTooltip from '../../components/ApprovalText';
-import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
+import {
+  DiscountType,
+  MetaMetricsSwapsEventSource,
+} from '@metamask/bridge-controller';
 import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.tsx';
 import { useStyles } from '../../../../../component-library/hooks/useStyles.ts';
 import { createStyles } from './BridgeView.styles.ts';
@@ -31,7 +34,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds.ts';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge.tsx';
+import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge';
+import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscountBadge';
 import { useFeeDisclaimer } from '../../hooks/useFeeDisclaimer';
 
 interface Props {
@@ -56,7 +60,7 @@ export const BridgeViewFooter = ({
 
   const { activeQuote, isLoading, blockaidError, needsNewQuote } =
     useBridgeQuoteDataContext();
-  const { showVipBadge, infoText, infoSuffix, baseFeePercentage } =
+  const { discountBadge, infoText, infoSuffix, baseFeePercentage } =
     useFeeDisclaimer({ activeQuote });
 
   const isValidSourceAmount =
@@ -121,7 +125,13 @@ export const BridgeViewFooter = ({
             gap={2}
             testID={BridgeViewSelectorsIDs.FEE_DISCLAIMER}
           >
-            {showVipBadge ? <RewardsVipBadge /> : null}
+            {discountBadge?.type === DiscountType.VIP ? (
+              <RewardsVipBadge />
+            ) : null}
+
+            {discountBadge && discountBadge.type !== DiscountType.VIP ? (
+              <RewardsDiscountBadge label={discountBadge.label} />
+            ) : null}
 
             <Text
               variant={TextVariant.BodySm}

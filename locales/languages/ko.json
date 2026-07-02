@@ -103,7 +103,7 @@
       "title": "자금 부족"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "더 적은 액수를 추가하거나 다른 결제 수단을 사용하세요."
     },
     "insufficient_pay_token_native": {
       "message": "{{ticker}} 잔액이 부족해 수수료를 결제할 수 없습니다. 다른 네트워크의 토큰을 사용하거나 {{ticker}} 추가 후 계속 진행하세요.",
@@ -1094,6 +1094,7 @@
       "twitter_link": "X(Twitter)에서 보기",
       "sort": {
         "value": "가격",
+        "top_trades": "Top Trades",
         "pnl_percent": "손익 %",
         "recent": "최근"
       }
@@ -1132,6 +1133,8 @@
       "price_impact": "가격 영향",
       "est_points": "예상 포인트",
       "no_quotes": "사용 가능한 견적이 없습니다",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "로딩 중...",
       "unavailable": "스왑 이용 불가",
       "unsupported_chain": "이 체인은 아직 Quick Buy를 지원하지 않습니다",
@@ -1159,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "무기한 선물을 사용할 수 없습니다",
     "title": "무기한 선물",
-    "transfer_to_perps": "무기한 선물 계정으로 전송",
     "perps_trading": "무기한 선물 거래",
     "perp_account_balance": "무기한 선물 계정 잔액",
     "manage_balance": "잔액 관리",
@@ -2340,13 +2342,11 @@
   },
   "predict": {
     "title": "MetaMask 예측",
-    "transfer_to_predictions": "예측 계정으로 전송",
     "select_predict_account": "예측 계정 선택",
     "search_account": "계정 검색",
     "home": {
       "live_now_title": "지금 진행 중",
-      "categories_placeholder": "카테고리",
-      "trending_placeholder": "인기"
+      "categories_placeholder": "카테고리"
     },
     "homepage_discovery": {
       "btc_title": "BTC 가격: {{price}}",
@@ -2367,11 +2367,15 @@
       "predictions_title": "월드컵 예측",
       "banner_title": "월드컵 2026",
       "banner_description": "모든 경기, 모든 순간에 대해 거래하세요.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "모두",
         "props": "프롭",
-        "live": "진행 중"
+        "live": "진행 중",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "조별 예선",
         "round_of_32": "32강",
@@ -3539,6 +3543,8 @@
       "wallet_activity_desc": "구매, 판매, 이체, 스왑, 보상",
       "perps_title": "거래 활동",
       "perps_desc": "포지션 변동, 청산, 펀딩비, 마진 관련 업데이트",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "트레이딩 신호",
       "social_ai_desc": "팔로우하는 트레이더와 자산에 관한 최신 정보, 그리고 엄선된 시장 뉴스",
       "marketing_title": "업데이트 및 보상",
@@ -6028,6 +6034,11 @@
       "description": "현지 결제 제공업체의 제한 또는 규제 요건으로 인해 해당 지역에서는 암호화폐를 구매할 수 없습니다.",
       "got_it": "확인"
     },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "컨펌"
+    },
     "region": {
       "buy_crypto_tokens": "암호화폐 토큰 구매",
       "sell_crypto_tokens": "암호화폐 토큰 매도",
@@ -7665,8 +7676,7 @@
       "perps_withdraw": "출금",
       "predict_deposit": "예측 자금 추가",
       "predict_withdraw": "출금",
-      "money_account_add_money": "자금 추가",
-      "money_account_transfer_money": "자금 전송"
+      "money_account_add_money": "자금 추가"
     },
     "sub_title": {
       "permit": "이 사이트에서 토큰 사용 권한을 요청합니다.",
@@ -7948,9 +7958,13 @@
       "rejected": "거부됨",
       "reconnect": "다시 연결",
       "done": "완료",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "다음 QR 코드 스캔",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "총 {{total}}단계 중 {{current}}단계: 지갑에 표시된 QR 코드를 스캔하세요",
-      "scanner_last_step_text": "마지막 단계: 지갑에 표시된 QR 코드를 스캔하세요"
+      "scanner_last_step_text": "마지막 단계: 지갑에 표시된 QR 코드를 스캔하세요",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "가격 영향",
     "price_impact_info_description": "이는 거래가 토큰의 시장 가격에 어떤 영향을 미치는지 보여줍니다. 거래 규모, 이용 가능한 유동성, 공급자 수수료에 따라 달라집니다. MetaMask는 가격 영향에 관여하지 않습니다.",
@@ -9525,8 +9539,8 @@
     },
     "earn_rewards": {
       "title": "보상 받기",
-      "musd_title": "스테이블코인 최대 3% 보너스",
-      "musd_subtitle": "mUSD 보너스 계산하기",
+      "musd_title": "mUSD 최대 {{percentage}}% 보너스",
+      "musd_subtitle": "머니 계정을 소개합니다",
       "card_title": "지출 금액의 최대 3% 캐시백",
       "card_subtitle": "지금 MetaMask 카드를 받으세요",
       "card_subtitle_cardholder": "MetaMask 카드 혜택을 이용하세요"
@@ -9600,17 +9614,6 @@
       "predict_withdraw": "출금",
       "money_account_deposit": "머니 계정에 입금하기",
       "money_account_withdraw": "머니 계정에서 이체",
-      "money_account_sent": "{{symbol}} 보냄",
-      "money_account_received": "받음",
-      "deposited_musd": "예치된 mUSD",
-      "depositing_musd": "mUSD 입금 중",
-      "deposit_failed": "예치 실패",
-      "sent": "보낸",
-      "sending_musd": "mUSD 전송 중",
-      "send_failed": "전송 실패",
-      "converted_to_musd": "mUSD로 전환 완료",
-      "converting_to_musd": "mUSD로 환전 중",
-      "conversion_failed": "전환 실패",
       "default": "트랜잭션 세부 사항"
     },
     "label": {
@@ -9659,6 +9662,24 @@
       "fiat_purchase": "{{paymentMethod}}(으)로 {{token}} 매입"
     },
     "perps_deposit_solution": "이제 Arbitrum에 {{fiat}} USDC가 있습니다. 다시 입금해 보세요."
+  },
+  "activity_details": {
+    "status": "상태",
+    "date": "날짜",
+    "account": "계정",
+    "from": "발신:",
+    "to": "수신:",
+    "network": "네트워크",
+    "transaction_id": "트랜잭션 ID",
+    "network_fee": "네트워크 수수료",
+    "bridge_fee": "브릿지 수수료",
+    "transaction_fee": "트랜잭션 수수료",
+    "total_amount": "총 금액",
+    "you_sent": "전송 금액:",
+    "you_received": "수령한 금액",
+    "view_on_block_explorer": "블록 탐색기에서 보기",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

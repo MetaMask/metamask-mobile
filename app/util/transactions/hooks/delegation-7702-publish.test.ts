@@ -22,9 +22,8 @@ import {
 import { getDeleGatorEnvironment } from '../../../core/Delegation';
 import { TransactionControllerInitMessenger } from '../../../core/Engine/messengers/transaction-controller-messenger';
 import {
-  RelayStatus,
   submitRelayTransaction,
-  waitForRelayResult,
+  waitForRelaySuccess,
 } from '../transaction-relay';
 import { Delegation7702PublishHook } from './delegation-7702-publish';
 import { NetworkClientId } from '@metamask/network-controller';
@@ -89,7 +88,7 @@ const getRootMessenger = (): RootMessenger =>
 
 describe('Delegation 7702 Publish Hook', () => {
   const submitRelayTransactionMock = jest.mocked(submitRelayTransaction);
-  const waitForRelayResultMock = jest.mocked(waitForRelayResult);
+  const waitForRelaySuccessMock = jest.mocked(waitForRelaySuccess);
   let messenger: TransactionControllerInitMessenger;
   let hookClass: Delegation7702PublishHook;
 
@@ -184,8 +183,8 @@ describe('Delegation 7702 Publish Hook', () => {
     signEip7702AuthorizationMock.mockResolvedValue(
       AUTHORIZATION_SIGNATURE_MOCK,
     );
-    waitForRelayResultMock.mockResolvedValue({
-      status: RelayStatus.Success,
+    waitForRelaySuccessMock.mockResolvedValue({
+      status: 'VALIDATED',
       transactionHash: TRANSACTION_HASH_MOCK,
     });
     getStateMock.mockReturnValue({
@@ -683,10 +682,12 @@ describe('Delegation 7702 Publish Hook', () => {
     );
   });
 
-  it('throws if relay status is not success', async () => {
-    waitForRelayResultMock.mockResolvedValueOnce({
-      status: 'TEST_STATUS',
-    });
+  it('throws if relay result is not success', async () => {
+    waitForRelaySuccessMock.mockRejectedValueOnce(
+      new Error(
+        'Sentinel: Relay: Transaction failed - TEST_STATUS - Unknown error',
+      ),
+    );
     isAtomicBatchSupportedMock.mockResolvedValueOnce([
       {
         chainId: TRANSACTION_META_MOCK.chainId,
@@ -706,7 +707,7 @@ describe('Delegation 7702 Publish Hook', () => {
         SIGNED_TX_MOCK,
       ),
     ).rejects.toThrow(
-      'Gas Station 7702: Transaction relay error - TEST_STATUS',
+      'Gas Station 7702: Sentinel: Relay: Transaction failed - TEST_STATUS - Unknown error',
     );
   });
 

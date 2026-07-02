@@ -7,8 +7,8 @@ import type { PolymarketCallbacks } from '@metamask/transaction-pay-controller';
 import type { Hex } from '@metamask/utils';
 
 import {
-  deriveDepositWalletAddress,
   executeDepositWalletBatchAndWaitForCompletion,
+  resolveDepositWalletAddress,
 } from '../../../../components/UI/Predict/providers/polymarket/depositWallet';
 import type { Signer } from '../../../../components/UI/Predict/providers/types';
 import type { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
@@ -29,7 +29,7 @@ export function createPolymarketCallbacks(
 }
 
 async function getDepositWalletAddress(eoa: Hex): Promise<Hex> {
-  return deriveDepositWalletAddress(eoa) as Hex;
+  return resolveDepositWalletAddress({ ownerAddress: eoa });
 }
 
 async function submitDepositWalletBatch(

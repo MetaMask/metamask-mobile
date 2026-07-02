@@ -523,6 +523,30 @@ class QuoteView {
       description: `Slippage should display ${value}%`,
     });
   }
+
+  /**
+   * Waits for the RWA geo-restricted quote stream banner.
+   */
+  async checkRwaGeoRestrictedMessageIsDisplayed(): Promise<void> {
+    const timeout = 60000;
+    const message = QuoteViewSelectorText.RWA_GEO_RESTRICTED_MESSAGE;
+    const banner = PlaywrightMatchers.getElementById(
+      QuoteViewSelectorIDs.NO_QUOTES_BANNER,
+      { exact: true },
+    );
+
+    await PlaywrightAssertions.expectElementToBeVisible(banner, {
+      timeout,
+      description:
+        'RWA geo-restricted banner should be visible on the swap screen',
+    });
+
+    await PlaywrightAssertions.expectTextDisplayed(message, {
+      within: banner,
+      timeout,
+      description: `RWA geo-restricted message "${message}" should be visible on the swap screen`,
+    });
+  }
 }
 
 export default new QuoteView();

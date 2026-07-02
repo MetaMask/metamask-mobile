@@ -22,7 +22,7 @@ export interface UseNetworkFilterResult {
  * @param chainId - The chain ID to check (can be hex format or CAIP format)
  * @returns True if the network is a testnet, false otherwise
  */
-const isNetworkTestnet = (chainId: string): boolean => {
+export const isNetworkTestnet = (chainId: string): boolean => {
   // Check if it's a CAIP chain ID (non-EVM networks)
   if (chainId.includes(':')) {
     try {
