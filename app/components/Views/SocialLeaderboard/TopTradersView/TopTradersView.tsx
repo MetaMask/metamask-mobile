@@ -55,9 +55,6 @@ import { useTheme } from '../../../../util/theme';
 import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import { areTradingSignalsChannelsDisabled } from '../NotificationPreferences/hooks/tradingSignalsChannels';
-import TradingSignalsSetupBottomSheet, {
-  type TradingSignalsSetupBottomSheetRef,
-} from '../components/TradingSignalsSetupBottomSheet';
 import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup';
 import {
   TraderRow,
@@ -258,9 +255,7 @@ const TopTradersView = () => {
   const needsNotificationSetup =
     hasSocialAiPreferences &&
     areTradingSignalsChannelsDisabled(notificationPreferences);
-  const setupSheetRef = useRef<TradingSignalsSetupBottomSheetRef>(null);
-  const { openSetupIfNeeded, onSetupDismiss } =
-    useOpenTradingSignalsSetup(setupSheetRef);
+  const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
   const title = strings('social_leaderboard.top_traders_view.title');
@@ -683,11 +678,6 @@ const TopTradersView = () => {
           />
         </Animated.View>
       </Box>
-
-      <TradingSignalsSetupBottomSheet
-        ref={setupSheetRef}
-        onDismiss={onSetupDismiss}
-      />
     </SafeAreaView>
   );
 };

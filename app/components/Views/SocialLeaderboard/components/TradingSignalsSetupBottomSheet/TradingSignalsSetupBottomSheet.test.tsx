@@ -1,14 +1,58 @@
-import { act, fireEvent, render, screen } from '@testing-library/react-native';
-import React, { useRef } from 'react';
-import { Pressable, Text } from 'react-native';
-import TradingSignalsSetupBottomSheet, {
-  type TradingSignalsSetupBottomSheetRef,
-} from './TradingSignalsSetupBottomSheet';
+import { fireEvent, render, screen } from '@testing-library/react-native';
+import React from 'react';
+import TradingSignalsSetupBottomSheet from './TradingSignalsSetupBottomSheet';
 import { TradingSignalsSetupBottomSheetSelectorsIDs } from './TradingSignalsSetupBottomSheet.testIds';
 
 const mockSetPushNotificationsEnabled = jest.fn();
 const mockSetInAppNotificationsEnabled = jest.fn();
 const mockSetTxAmountLimit = jest.fn();
+const mockGoBack = jest.fn();
+let mockRouteParams: { onSetupComplete?: () => void } = {};
+let mockPreferences = {
+  pushNotificationsEnabled: false,
+  inAppNotificationsEnabled: true,
+  txAmountLimit: 100,
+  mutedTraderProfileIds: [] as string[],
+};
+
+jest.mock('@react-navigation/native', () => ({
+  useNavigation: () => ({ goBack: mockGoBack }),
+  useRoute: () => ({ params: mockRouteParams }),
+}));
+
+// Render children and expose the `onClose` prop through a pressable so the
+// close-gating logic can be exercised without the real sheet animation.
+jest.mock('@metamask/design-system-react-native', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Pressable } = jest.requireActual('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    BottomSheet: ReactActual.forwardRef(
+      (
+        {
+          children,
+          onClose,
+          testID,
+        }: {
+          children: React.ReactNode;
+          onClose?: () => void;
+          testID?: string;
+        },
+        ref: React.Ref<{ onCloseBottomSheet: () => void }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: () => onClose?.(),
+        }));
+        return (
+          <Pressable testID={testID} onPress={() => onClose?.()}>
+            {children}
+          </Pressable>
+        );
+      },
+    ),
+  };
+});
 
 jest.mock('../../NotificationPreferences/hooks', () => {
   const { DEFAULT_SOCIAL_AI_PREFERENCES } = jest.requireActual(
@@ -19,11 +63,7 @@ jest.mock('../../NotificationPreferences/hooks', () => {
     useNotificationPreferences: () => ({
       preferences: {
         ...DEFAULT_SOCIAL_AI_PREFERENCES,
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: true,
-        mutedTraderProfileIds: [
-          ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
-        ],
+        ...mockPreferences,
       },
       hasNotificationPreferences: true,
       isLoading: false,
@@ -45,29 +85,20 @@ jest.mock('react-redux', () => ({
   useSelector: (selector: () => unknown) => selector(),
 }));
 
-const Harness = () => {
-  const ref = useRef<TradingSignalsSetupBottomSheetRef>(null);
-
-  return (
-    <>
-      <TradingSignalsSetupBottomSheet ref={ref} />
-      <Pressable
-        testID="open-trigger"
-        onPress={() => ref.current?.onOpenBottomSheet()}
-      >
-        <Text>Open</Text>
-      </Pressable>
-    </>
-  );
-};
-
 describe('TradingSignalsSetupBottomSheet', () => {
-  it('renders push and in-app toggles when opened', () => {
-    render(<Harness />);
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockRouteParams = {};
+    mockPreferences = {
+      pushNotificationsEnabled: false,
+      inAppNotificationsEnabled: true,
+      txAmountLimit: 100,
+      mutedTraderProfileIds: [],
+    };
+  });
 
-    act(() => {
-      fireEvent.press(screen.getByTestId('open-trigger'));
-    });
+  it('renders push and in-app toggles', () => {
+    render(<TradingSignalsSetupBottomSheet />);
 
     expect(
       screen.getByTestId(TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER),
@@ -82,5 +113,35 @@ describe('TradingSignalsSetupBottomSheet', () => {
         TradingSignalsSetupBottomSheetSelectorsIDs.IN_APP_TOGGLE,
       ),
     ).toBeOnTheScreen();
+  });
+
+  it('invokes onSetupComplete on close when a channel is enabled', () => {
+    const onSetupComplete = jest.fn();
+    mockRouteParams = { onSetupComplete };
+
+    render(<TradingSignalsSetupBottomSheet />);
+    fireEvent.press(
+      screen.getByTestId(TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER),
+    );
+
+    expect(onSetupComplete).toHaveBeenCalledTimes(1);
+  });
+
+  it('drops onSetupComplete on close when both channels are disabled', () => {
+    const onSetupComplete = jest.fn();
+    mockRouteParams = { onSetupComplete };
+    mockPreferences = {
+      pushNotificationsEnabled: false,
+      inAppNotificationsEnabled: false,
+      txAmountLimit: 100,
+      mutedTraderProfileIds: [],
+    };
+
+    render(<TradingSignalsSetupBottomSheet />);
+    fireEvent.press(
+      screen.getByTestId(TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER),
+    );
+
+    expect(onSetupComplete).not.toHaveBeenCalled();
   });
 });

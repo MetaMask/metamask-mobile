@@ -36,11 +36,6 @@ import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
 import { ALL_CHAINS, SPOT_CHAINS } from '../../../shared/top-traders-constants';
 import { usePrefetchTraderProfiles, useTopTraders } from './hooks';
 import type { TopTrader } from './types';
-/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
-import TradingSignalsSetupBottomSheet, {
-  type TradingSignalsSetupBottomSheetRef,
-} from '../../../SocialLeaderboard/components/TradingSignalsSetupBottomSheet';
-/* eslint-enable import-x/no-restricted-paths */
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useOpenTradingSignalsSetup } from '../../../SocialLeaderboard/hooks/useOpenTradingSignalsSetup';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -78,9 +73,7 @@ const TopTradersSection = forwardRef<
   TopTradersSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
-  const setupSheetRef = useRef<TradingSignalsSetupBottomSheetRef>(null);
-  const { openSetupIfNeeded, onSetupDismiss } =
-    useOpenTradingSignalsSetup(setupSheetRef);
+  const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
@@ -341,11 +334,6 @@ const TopTradersSection = forwardRef<
           </Box>
         </Box>
       </View>
-
-      <TradingSignalsSetupBottomSheet
-        ref={setupSheetRef}
-        onDismiss={onSetupDismiss}
-      />
     </>
   );
 });

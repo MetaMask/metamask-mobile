@@ -13,7 +13,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ImpactMoment } from '../../../../util/haptics';
 import TopTradersView from './TopTradersView';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
-import { TradingSignalsSetupBottomSheetSelectorsIDs } from '../components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet.testIds';
 
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
@@ -704,16 +703,13 @@ describe('TopTradersView', () => {
       isFollowing: true,
     }));
 
-    const rerenderWithEnabledNotifications = async () => {
-      mockNotificationPreferences = {
-        ...channelsDisabledPreferences,
-        pushNotificationsEnabled: true,
-      };
-
+    const runDeferredSetupAction = async () => {
+      const setupCall = mockNavigate.mock.calls.find(
+        ([route]) => route === Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      );
+      const onSetupComplete = setupCall?.[1]?.onSetupComplete;
       await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
-        );
+        onSetupComplete?.();
       });
     };
 
@@ -728,14 +724,13 @@ describe('TopTradersView', () => {
 
       expect(mockToggleFollow).not.toHaveBeenCalled();
       expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
-      expect(
-        screen.getByTestId(
-          TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER,
-        ),
-      ).toBeOnTheScreen();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+        expect.objectContaining({ onSetupComplete: expect.any(Function) }),
+      );
     });
 
-    it('performs the follow when notifications are enabled before the sheet closes', async () => {
+    it('performs the follow when the deferred setup action runs', async () => {
       mockNotificationPreferences = channelsDisabledPreferences;
 
       renderWithProvider(<TopTradersView />);
@@ -744,15 +739,7 @@ describe('TopTradersView', () => {
         fireEvent.press(screen.getAllByText('Follow')[0]);
       });
 
-      await rerenderWithEnabledNotifications();
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(
-            TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
-          ),
-        );
-      });
+      await runDeferredSetupAction();
 
       expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     });
@@ -770,15 +757,7 @@ describe('TopTradersView', () => {
         fireEvent.press(screen.getByTestId('trader-row-mute-chip-trader-1'));
       });
 
-      await rerenderWithEnabledNotifications();
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(
-            TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
-          ),
-        );
-      });
+      await runDeferredSetupAction();
 
       expect(mockToggleTraderNotification).not.toHaveBeenCalled();
     });
@@ -797,15 +776,7 @@ describe('TopTradersView', () => {
         fireEvent.press(screen.getByTestId('trader-row-mute-chip-trader-1'));
       });
 
-      await rerenderWithEnabledNotifications();
-
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(
-            TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
-          ),
-        );
-      });
+      await runDeferredSetupAction();
 
       expect(mockToggleTraderNotification).toHaveBeenCalledWith(
         fixtureTraders[0].id,
@@ -826,11 +797,10 @@ describe('TopTradersView', () => {
       );
       expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.FollowToggle);
       expect(mockPlayErrorNotification).not.toHaveBeenCalled();
-      expect(
-        screen.queryByTestId(
-          TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER,
-        ),
-      ).toBeNull();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+        expect.anything(),
+      );
     });
   });
 

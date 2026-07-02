@@ -1,2 +1,5 @@
 export { default } from './TradingSignalsSetupBottomSheet';
-export type { TradingSignalsSetupBottomSheetRef } from './TradingSignalsSetupBottomSheet';
+export {
+  createTradingSignalsSetupNavigationDetails,
+  type TradingSignalsSetupParams,
+} from './TradingSignalsSetupBottomSheet';

@@ -5,8 +5,6 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TopTradersSection from './TopTradersSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { TradingSignalsSetupBottomSheetSelectorsIDs } from '../../../SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet.testIds';
 
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockNavigate = jest.fn();
@@ -326,7 +324,7 @@ describe('TopTradersSection', () => {
     );
   });
 
-  it('opens the trading signals setup sheet when following with both channels off', async () => {
+  it('navigates to the trading signals setup sheet when following with both channels off', async () => {
     const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
     mockNotificationPreferences = {
       ...DEFAULT_SOCIAL_AI_PREFERENCES,
@@ -351,9 +349,10 @@ describe('TopTradersSection', () => {
       fireEvent.press(screen.getByText('Follow'));
     });
 
-    expect(
-      screen.getByTestId(TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      expect.objectContaining({ onSetupComplete: expect.any(Function) }),
+    );
   });
 
   it('intercepts the follow without calling toggleFollow when both channels are off', async () => {
@@ -422,14 +421,13 @@ describe('TopTradersSection', () => {
 
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
-    expect(
-      screen.queryByTestId(
-        TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER,
-      ),
-    ).toBeNull();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      expect.anything(),
+    );
   });
 
-  it('drops the follow when the setup sheet is dismissed without enabling notifications', async () => {
+  it('defers the follow to the setup sheet via the onSetupComplete param', async () => {
     const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
     mockNotificationPreferences = channelsDisabledPreferences;
     mockUseTopTraders.mockReturnValue({
@@ -447,49 +445,15 @@ describe('TopTradersSection', () => {
       fireEvent.press(screen.getByText('Follow'));
     });
 
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(
-          TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
-        ),
-      );
-    });
-
     expect(mockToggleFollow).not.toHaveBeenCalled();
-  });
 
-  it('performs the follow when notifications are enabled before the sheet closes', async () => {
-    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
-    mockNotificationPreferences = channelsDisabledPreferences;
-    mockUseTopTraders.mockReturnValue({
-      traders: mockTraders,
-      isLoading: false,
-      isFetching: false,
-      error: null,
-      refresh: mockRefetch,
-      toggleFollow: mockToggleFollow,
-    });
-
-    const { rerender } = renderWithProvider(
-      <TopTradersSection {...defaultProps} />,
+    const setupCall = mockNavigate.mock.calls.find(
+      ([route]) => route === Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
     );
+    const { onSetupComplete } = setupCall?.[1] ?? {};
 
     await act(async () => {
-      fireEvent.press(screen.getByText('Follow'));
-    });
-
-    mockNotificationPreferences = {
-      ...channelsDisabledPreferences,
-      pushNotificationsEnabled: true,
-    };
-    rerender(<TopTradersSection {...defaultProps} />);
-
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(
-          TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
-        ),
-      );
+      onSetupComplete?.();
     });
 
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);

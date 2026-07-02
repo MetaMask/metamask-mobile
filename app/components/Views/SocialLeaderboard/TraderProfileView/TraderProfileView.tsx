@@ -52,9 +52,6 @@ import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featu
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 import TraderMuteChip from '../components/TraderMuteChip';
-import TradingSignalsSetupBottomSheet, {
-  type TradingSignalsSetupBottomSheetRef,
-} from '../components/TradingSignalsSetupBottomSheet';
 import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup';
 import { useTraderMute } from '../hooks/useTraderMute';
 import { HYPERLIQUID_CHAIN_NAME, isPerpPosition } from '../utils/perp';
@@ -204,9 +201,7 @@ const TraderProfileView = () => {
 
   const { isChipMuted, isMuted, showMuteChip, toggleMute } =
     useTraderMute(traderId);
-  const setupSheetRef = useRef<TradingSignalsSetupBottomSheetRef>(null);
-  const { openSetupIfNeeded, onSetupDismiss } =
-    useOpenTradingSignalsSetup(setupSheetRef);
+  const { openSetupIfNeeded } = useOpenTradingSignalsSetup();
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
   const [openSort, setOpenSort] = useState<OpenSortKey>('value');
@@ -556,11 +551,6 @@ const TraderProfileView = () => {
           )}
         </Animated.ScrollView>
       </Box>
-
-      <TradingSignalsSetupBottomSheet
-        ref={setupSheetRef}
-        onDismiss={onSetupDismiss}
-      />
     </SafeAreaView>
   );
 };

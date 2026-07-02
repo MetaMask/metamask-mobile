@@ -4,9 +4,9 @@ import { useOpenTradingSignalsSetup } from './useOpenTradingSignalsSetup';
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import { playErrorNotification } from '../../../../util/haptics';
 import Routes from '../../../../constants/navigation/Routes';
+import { createTradingSignalsSetupNavigationDetails } from '../components/TradingSignalsSetupBottomSheet';
 
 const mockNavigate = jest.fn();
-const mockOnOpenBottomSheet = jest.fn();
 let focusEffectCleanup: (() => void) | undefined;
 
 jest.mock('@react-navigation/native', () => ({
@@ -20,6 +20,13 @@ jest.mock('../../../../util/haptics', () => ({
   playErrorNotification: jest.fn(() => Promise.resolve()),
 }));
 
+jest.mock('../components/TradingSignalsSetupBottomSheet', () => ({
+  createTradingSignalsSetupNavigationDetails: jest.fn((params) => [
+    'TradingSignalsSetupBottomSheet',
+    params,
+  ]),
+}));
+
 const mockUseNotificationPreferences =
   useNotificationPreferences as jest.MockedFunction<
     typeof useNotificationPreferences
@@ -30,6 +37,12 @@ const mockPlayErrorNotification = playErrorNotification as jest.MockedFunction<
 const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
   typeof useFocusEffect
 >;
+const mockCreateSetupNavigationDetails =
+  createTradingSignalsSetupNavigationDetails as jest.MockedFunction<
+    typeof createTradingSignalsSetupNavigationDetails
+  >;
+
+const SETUP_ROUTE = 'TradingSignalsSetupBottomSheet';
 
 const runFocusEffect = () => {
   const focusCallback = mockUseFocusEffect.mock.calls.at(-1)?.[0];
@@ -61,13 +74,6 @@ const buildPreferences = (
 });
 
 describe('useOpenTradingSignalsSetup', () => {
-  const sheetRef = {
-    current: {
-      onOpenBottomSheet: mockOnOpenBottomSheet,
-      onCloseBottomSheet: jest.fn(),
-    },
-  };
-
   beforeEach(() => {
     jest.clearAllMocks();
     focusEffectCleanup = undefined;
@@ -78,18 +84,23 @@ describe('useOpenTradingSignalsSetup', () => {
     mockUseNotificationPreferences.mockReturnValue(buildPreferences());
   });
 
-  it('opens the setup sheet when both trading-signal channels are disabled', () => {
-    const { result } = renderHook(() => useOpenTradingSignalsSetup(sheetRef));
+  it('navigates to the setup sheet when both trading-signal channels are disabled', () => {
+    const pendingAction = jest.fn();
+    const { result } = renderHook(() => useOpenTradingSignalsSetup());
 
-    const handled = result.current.openSetupIfNeeded();
+    const handled = result.current.openSetupIfNeeded(pendingAction);
 
     expect(handled).toBe(true);
-    expect(mockOnOpenBottomSheet).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).not.toHaveBeenCalled();
+    expect(mockCreateSetupNavigationDetails).toHaveBeenCalledWith({
+      onSetupComplete: pendingAction,
+    });
+    expect(mockNavigate).toHaveBeenCalledWith(SETUP_ROUTE, {
+      onSetupComplete: pendingAction,
+    });
   });
 
   it('fires an error haptic when the setup sheet is intercepted', () => {
-    const { result } = renderHook(() => useOpenTradingSignalsSetup(sheetRef));
+    const { result } = renderHook(() => useOpenTradingSignalsSetup());
 
     result.current.openSetupIfNeeded(jest.fn());
 
@@ -101,7 +112,7 @@ describe('useOpenTradingSignalsSetup', () => {
       buildPreferences({ hasNotificationPreferences: false }),
     );
 
-    const { result } = renderHook(() => useOpenTradingSignalsSetup(sheetRef));
+    const { result } = renderHook(() => useOpenTradingSignalsSetup());
 
     const handled = result.current.openSetupIfNeeded();
 
@@ -109,18 +120,16 @@ describe('useOpenTradingSignalsSetup', () => {
     expect(mockNavigate).toHaveBeenCalledWith(Routes.SETTINGS_VIEW, {
       screen: Routes.SETTINGS.NOTIFICATIONS,
     });
-    expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
+    expect(mockCreateSetupNavigationDetails).not.toHaveBeenCalled();
   });
 
-  it('stores the pending action when navigating to notification settings', () => {
+  it('forwards the pending action after returning from settings with channels enabled', () => {
     mockUseNotificationPreferences.mockReturnValue(
       buildPreferences({ hasNotificationPreferences: false }),
     );
 
     const pendingAction = jest.fn();
-    const { result, rerender } = renderHook(() =>
-      useOpenTradingSignalsSetup(sheetRef),
-    );
+    const { result, rerender } = renderHook(() => useOpenTradingSignalsSetup());
 
     result.current.openSetupIfNeeded(pendingAction);
     runFocusEffectCleanup();
@@ -147,7 +156,7 @@ describe('useOpenTradingSignalsSetup', () => {
     );
 
     const pendingAction = jest.fn();
-    const { result } = renderHook(() => useOpenTradingSignalsSetup(sheetRef));
+    const { result } = renderHook(() => useOpenTradingSignalsSetup());
 
     result.current.openSetupIfNeeded(pendingAction);
     runFocusEffectCleanup();
@@ -156,15 +165,13 @@ describe('useOpenTradingSignalsSetup', () => {
     expect(pendingAction).not.toHaveBeenCalled();
   });
 
-  it('opens the setup sheet when returning from settings with channels disabled', () => {
+  it('navigates to the setup sheet when returning from settings with channels disabled', () => {
     mockUseNotificationPreferences.mockReturnValue(
       buildPreferences({ hasNotificationPreferences: false }),
     );
 
     const pendingAction = jest.fn();
-    const { result, rerender } = renderHook(() =>
-      useOpenTradingSignalsSetup(sheetRef),
-    );
+    const { result, rerender } = renderHook(() => useOpenTradingSignalsSetup());
 
     result.current.openSetupIfNeeded(pendingAction);
     runFocusEffectCleanup();
@@ -174,7 +181,9 @@ describe('useOpenTradingSignalsSetup', () => {
     runFocusEffect();
 
     expect(pendingAction).not.toHaveBeenCalled();
-    expect(mockOnOpenBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenLastCalledWith(SETUP_ROUTE, {
+      onSetupComplete: pendingAction,
+    });
     expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
   });
 
@@ -183,7 +192,7 @@ describe('useOpenTradingSignalsSetup', () => {
       buildPreferences({ hasNotificationPreferences: false }),
     );
 
-    const { result } = renderHook(() => useOpenTradingSignalsSetup(sheetRef));
+    const { result } = renderHook(() => useOpenTradingSignalsSetup());
 
     result.current.openSetupIfNeeded(jest.fn());
 
@@ -202,12 +211,12 @@ describe('useOpenTradingSignalsSetup', () => {
       }),
     );
 
-    const { result } = renderHook(() => useOpenTradingSignalsSetup(sheetRef));
+    const { result } = renderHook(() => useOpenTradingSignalsSetup());
 
     const handled = result.current.openSetupIfNeeded(jest.fn());
 
     expect(handled).toBe(false);
-    expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
+    expect(mockCreateSetupNavigationDetails).not.toHaveBeenCalled();
     expect(mockNavigate).not.toHaveBeenCalled();
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
   });
@@ -217,12 +226,12 @@ describe('useOpenTradingSignalsSetup', () => {
       buildPreferences({ isLoading: true }),
     );
 
-    const { result } = renderHook(() => useOpenTradingSignalsSetup(sheetRef));
+    const { result } = renderHook(() => useOpenTradingSignalsSetup());
 
     const handled = result.current.openSetupIfNeeded(jest.fn());
 
     expect(handled).toBe(false);
-    expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
+    expect(mockCreateSetupNavigationDetails).not.toHaveBeenCalled();
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
   });
 
@@ -233,9 +242,7 @@ describe('useOpenTradingSignalsSetup', () => {
     );
 
     const pendingAction = jest.fn();
-    const { result, rerender } = renderHook(() =>
-      useOpenTradingSignalsSetup(sheetRef),
-    );
+    const { result, rerender } = renderHook(() => useOpenTradingSignalsSetup());
 
     result.current.openSetupIfNeeded(pendingAction);
 
@@ -252,67 +259,6 @@ describe('useOpenTradingSignalsSetup', () => {
     rerender({});
 
     expect(pendingAction).not.toHaveBeenCalled();
-    expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
-  });
-
-  it('drops the pending action when the sheet is dismissed without enabling', () => {
-    const pendingAction = jest.fn();
-    const { result } = renderHook(() => useOpenTradingSignalsSetup(sheetRef));
-
-    result.current.openSetupIfNeeded(pendingAction);
-    result.current.onSetupDismiss();
-
-    expect(pendingAction).not.toHaveBeenCalled();
-  });
-
-  it('forwards the pending action when a channel is enabled before close', () => {
-    const pendingAction = jest.fn();
-    const { result, rerender } = renderHook(() =>
-      useOpenTradingSignalsSetup(sheetRef),
-    );
-
-    result.current.openSetupIfNeeded(pendingAction);
-
-    mockUseNotificationPreferences.mockReturnValue(
-      buildPreferences({
-        preferences: {
-          pushNotificationsEnabled: true,
-          inAppNotificationsEnabled: false,
-          txAmountLimit: 100,
-          mutedTraderProfileIds: [],
-        },
-      }),
-    );
-    rerender({});
-
-    result.current.onSetupDismiss();
-
-    expect(pendingAction).toHaveBeenCalledTimes(1);
-  });
-
-  it('runs the pending action only once across repeated dismisses', () => {
-    const pendingAction = jest.fn();
-    const { result, rerender } = renderHook(() =>
-      useOpenTradingSignalsSetup(sheetRef),
-    );
-
-    result.current.openSetupIfNeeded(pendingAction);
-
-    mockUseNotificationPreferences.mockReturnValue(
-      buildPreferences({
-        preferences: {
-          pushNotificationsEnabled: true,
-          inAppNotificationsEnabled: false,
-          txAmountLimit: 100,
-          mutedTraderProfileIds: [],
-        },
-      }),
-    );
-    rerender({});
-
-    result.current.onSetupDismiss();
-    result.current.onSetupDismiss();
-
-    expect(pendingAction).toHaveBeenCalledTimes(1);
+    expect(mockCreateSetupNavigationDetails).not.toHaveBeenCalled();
   });
 });

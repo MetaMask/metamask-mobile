@@ -13,7 +13,6 @@ import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
 import type { UseTraderProfileResult } from './hooks/useTraderProfile';
 import TraderProfileView from './TraderProfileView';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
-import { TradingSignalsSetupBottomSheetSelectorsIDs } from '../components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet.testIds';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const mockGoBack = jest.fn();
@@ -500,7 +499,17 @@ describe('TraderProfileView', () => {
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the trading signals setup sheet when following with both channels off', async () => {
+  const runDeferredSetupAction = async () => {
+    const setupCall = mockNavigate.mock.calls.find(
+      ([route]) => route === Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+    );
+    const onSetupComplete = setupCall?.[1]?.onSetupComplete;
+    await act(async () => {
+      onSetupComplete?.();
+    });
+  };
+
+  it('navigates to the trading signals setup sheet when following with both channels off', async () => {
     mockNotificationPreferences = {
       ...DEFAULT_SOCIAL_AI_PREFERENCES,
       pushNotificationsEnabled: false,
@@ -518,9 +527,10 @@ describe('TraderProfileView', () => {
       );
     });
 
-    expect(
-      screen.getByTestId(TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      expect.objectContaining({ onSetupComplete: expect.any(Function) }),
+    );
     expect(mockToggleFollow).not.toHaveBeenCalled();
     expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
   });
@@ -536,14 +546,13 @@ describe('TraderProfileView', () => {
 
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
-    expect(
-      screen.queryByTestId(
-        TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER,
-      ),
-    ).toBeNull();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      expect.anything(),
+    );
   });
 
-  it('drops the follow when the setup sheet is dismissed without enabling notifications', async () => {
+  it('performs the follow when the deferred setup action runs', async () => {
     mockNotificationPreferences = channelsDisabledPreferences;
 
     renderWithProvider(<TraderProfileView />);
@@ -554,46 +563,12 @@ describe('TraderProfileView', () => {
       );
     });
 
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(
-          TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
-        ),
-      );
-    });
-
-    expect(mockToggleFollow).not.toHaveBeenCalled();
-  });
-
-  it('performs the follow when notifications are enabled before the sheet closes', async () => {
-    mockNotificationPreferences = channelsDisabledPreferences;
-
-    const { rerender } = renderWithProvider(<TraderProfileView />);
-
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(TraderProfileViewSelectorsIDs.FOLLOW_BUTTON),
-      );
-    });
-
-    mockNotificationPreferences = {
-      ...channelsDisabledPreferences,
-      pushNotificationsEnabled: true,
-    };
-    rerender(<TraderProfileView />);
-
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(
-          TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
-        ),
-      );
-    });
+    await runDeferredSetupAction();
 
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
   });
 
-  it('opens the setup sheet instead of toggling mute when both channels are off', async () => {
+  it('navigates to the setup sheet instead of toggling mute when both channels are off', async () => {
     mockProfileResult.isFollowing = true;
     mockNotificationPreferences = {
       ...DEFAULT_SOCIAL_AI_PREFERENCES,
@@ -611,9 +586,10 @@ describe('TraderProfileView', () => {
       );
     });
 
-    expect(
-      screen.getByTestId(TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER),
-    ).toBeOnTheScreen();
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      expect.objectContaining({ onSetupComplete: expect.any(Function) }),
+    );
     expect(mockToggleTraderNotification).not.toHaveBeenCalled();
     expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
   });
@@ -623,7 +599,7 @@ describe('TraderProfileView', () => {
     mockNotificationPreferences = channelsDisabledPreferences;
     mockIsTraderNotificationEnabled.mockReturnValue(true);
 
-    const { rerender } = renderWithProvider(<TraderProfileView />);
+    renderWithProvider(<TraderProfileView />);
 
     await act(async () => {
       fireEvent.press(
@@ -631,19 +607,7 @@ describe('TraderProfileView', () => {
       );
     });
 
-    mockNotificationPreferences = {
-      ...channelsDisabledPreferences,
-      pushNotificationsEnabled: true,
-    };
-    rerender(<TraderProfileView />);
-
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(
-          TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
-        ),
-      );
-    });
+    await runDeferredSetupAction();
 
     expect(mockToggleTraderNotification).not.toHaveBeenCalled();
   });
@@ -656,7 +620,7 @@ describe('TraderProfileView', () => {
     };
     mockIsTraderNotificationEnabled.mockReturnValue(false);
 
-    const { rerender } = renderWithProvider(<TraderProfileView />);
+    renderWithProvider(<TraderProfileView />);
 
     await act(async () => {
       fireEvent.press(
@@ -664,20 +628,7 @@ describe('TraderProfileView', () => {
       );
     });
 
-    mockNotificationPreferences = {
-      ...channelsDisabledPreferences,
-      pushNotificationsEnabled: true,
-      mutedTraderProfileIds: ['trader-1'],
-    };
-    rerender(<TraderProfileView />);
-
-    await act(async () => {
-      fireEvent.press(
-        screen.getByTestId(
-          TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
-        ),
-      );
-    });
+    await runDeferredSetupAction();
 
     expect(mockToggleTraderNotification).toHaveBeenCalledTimes(1);
   });
@@ -696,11 +647,10 @@ describe('TraderProfileView', () => {
     expect(mockToggleTraderNotification).toHaveBeenCalledTimes(1);
     expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.FollowToggle);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
-    expect(
-      screen.queryByTestId(
-        TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER,
-      ),
-    ).toBeNull();
+    expect(mockNavigate).not.toHaveBeenCalledWith(
+      Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      expect.anything(),
+    );
   });
 
   it('renders open positions', () => {
