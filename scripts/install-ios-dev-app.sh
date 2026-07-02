@@ -2,13 +2,23 @@
 
 set -euo pipefail
 
-# Install the latest expo-dev-build iOS simulator app from GitHub Actions artifacts.
+# Install the latest expo-dev-build iOS app from GitHub Actions artifacts.
 # Replaces the Runway-bucket flow with `gh run download` from expo-dev-build.yml.
+#
+# Simulator mode (default):
+#   Downloads ios-app-main-dev-expo (.app bundle) and installs on a booted simulator.
+#   Targets IOS_SIMULATOR from .js.env; falls back to the currently booted simulator.
+#
+# Device mode (--device):
+#   Downloads ios-ipa-main-dev-expo (.ipa) and installs on a connected iPhone via devicectl.
+#   Targets IOS_DEVICE from .js.env (name or UDID); falls back to single connected device.
+#   Requires: Xcode 15+, device connected and trusted, Developer Mode enabled, device UDID
+#   registered in the development-metamask provisioning profile.
 #
 # Verify step by step:
 #   Step 1 (Resolve):  Run with --skipInstall and watch the resolved run id / artifact size.
-#   Step 2 (Download): Inspect build/gh-expo-dev-build/ios/*.zip and build/MetaMask.app.
-#   Step 3 (Install):  Run with --skip-download to install build/MetaMask.app on a booted simulator.
+#   Step 2 (Download): Inspect build/gh-expo-dev-build/ios/* and build/MetaMask.{app,ipa}.
+#   Step 3 (Install):  Run with --skip-download to install without re-downloading.
 
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -18,6 +28,7 @@ NC='\033[0m'
 
 BUNDLE_ID="io.metamask.MetaMask"
 APP_NAME="MetaMask.app"
+IPA_NAME="MetaMask.ipa"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 readonly BUILD_DIR="$REPO_ROOT/build"
@@ -44,6 +55,7 @@ RUN_ID=""
 UNINSTALL=false
 SKIP_DOWNLOAD=false
 SKIP_INSTALL=false
+DEVICE_MODE=false
 ZIP_PATH=""
 DOWNLOAD_SUCCESS=false
 
@@ -92,16 +104,21 @@ while [[ $# -gt 0 ]]; do
       SKIP_INSTALL=true
       shift
       ;;
+    --device)
+      DEVICE_MODE=true
+      shift
+      ;;
     *)
       echo -e "${RED}Unknown option: $1${NC}"
-      echo "Usage: $0 [--branch main] [--run RUN_ID] [--skip-download] [--skipInstall] [--uninstall]"
-      echo "Targets IOS_SIMULATOR from .js.env (boots if needed); falls back to booted simulator."
+      echo "Usage: $0 [--branch main] [--run RUN_ID] [--device] [--skip-download] [--skipInstall] [--uninstall]"
+      echo "  (default) Targets IOS_SIMULATOR from .js.env (boots if needed); falls back to booted simulator."
+      echo "  --device  Targets IOS_DEVICE from .js.env (name or UDID); falls back to single connected iPhone."
       exit 1
       ;;
   esac
 done
 
-download_latest_app() {
+download_latest_app_simulator() {
   echo -e "${BLUE}━━━ Step 1: Resolving expo-dev-build run ━━━${NC}"
   require_gh
 
@@ -158,8 +175,49 @@ download_latest_app() {
   DOWNLOAD_SUCCESS=true
 }
 
+download_latest_app_device() {
+  echo -e "${BLUE}━━━ Step 1: Resolving expo-dev-build run ━━━${NC}"
+  require_gh
+
+  local resolved_run_id
+  resolved_run_id="$(resolve_expo_dev_run "$IOS_DEVICE_IPA_ARTIFACT_NAME" "$BRANCH" "$RUN_ID")"
+  echo "$resolved_run_id" > "$BUILD_DIR/expo-dev-build-run-id.txt"
+
+  echo -e "${BLUE}━━━ Step 2: Downloading ${IOS_DEVICE_IPA_ARTIFACT_NAME} ━━━${NC}"
+  rm -rf "$DOWNLOAD_DIR"
+  mkdir -p "$DOWNLOAD_DIR"
+
+  if ! download_artifact_from_run "$resolved_run_id" "$IOS_DEVICE_IPA_ARTIFACT_NAME" "$DOWNLOAD_DIR"; then
+    echo -e "${RED}❌ Failed to download artifact${NC}"
+    exit 1
+  fi
+
+  local ipa_count
+  ipa_count="$(find "$DOWNLOAD_DIR" -maxdepth 1 -type f -name "*.ipa" 2>/dev/null | wc -l | tr -d ' ')"
+  if [[ "$ipa_count" != "1" ]]; then
+    echo -e "${RED}❌ Expected exactly one .ipa in ${DOWNLOAD_DIR}, found ${ipa_count}${NC}"
+    find "$DOWNLOAD_DIR" -maxdepth 2 -type f || true
+    exit 1
+  fi
+
+  local downloaded_ipa
+  downloaded_ipa="$(find "$DOWNLOAD_DIR" -maxdepth 1 -type f -name "*.ipa" | head -1)"
+  echo -e "${GREEN}✓ Downloaded: ${downloaded_ipa}${NC}"
+
+  echo -e "${BLUE}━━━ Step 3: Staging .ipa ━━━${NC}"
+  local target_ipa="$BUILD_DIR/$IPA_NAME"
+  rm -f "$target_ipa"
+  cp "$downloaded_ipa" "$target_ipa"
+  echo -e "${GREEN}✓ Staged to ${target_ipa}${NC}"
+  DOWNLOAD_SUCCESS=true
+}
+
 if [[ "$SKIP_DOWNLOAD" == false ]]; then
-  download_latest_app
+  if [[ "$DEVICE_MODE" == true ]]; then
+    download_latest_app_device
+  else
+    download_latest_app_simulator
+  fi
 fi
 
 if [[ "$SKIP_INSTALL" == true ]]; then
@@ -167,6 +225,53 @@ if [[ "$SKIP_INSTALL" == true ]]; then
   exit 0
 fi
 
+# ─── Device install ───────────────────────────────────────────────────────────
+if [[ "$DEVICE_MODE" == true ]]; then
+  echo -e "${BLUE}━━━ Step 4: Installing on physical device ━━━${NC}"
+
+  DEVICE_UDID=$(dev_resolve_ios_physical_device_udid)
+  _tmpdevfile="$(mktemp /tmp/devicectl-info.XXXXXX.json)"
+  xcrun devicectl list devices --json-output "$_tmpdevfile" > /dev/null 2>&1 || true
+  DEVICE_NAME="$(jq -r --arg udid "$DEVICE_UDID" \
+    '[.result.devices[] | select(.hardwareProperties.udid == $udid)] | first | .deviceProperties.name // "unknown"' \
+    "$_tmpdevfile" 2>/dev/null || echo "unknown")"
+  rm -f "$_tmpdevfile"
+
+  echo -e "${GREEN}✓ Target device:${NC} ${DEVICE_NAME} (${DEVICE_UDID})"
+
+  IPA_PATH="$BUILD_DIR/$IPA_NAME"
+  if [[ ! -f "$IPA_PATH" ]]; then
+    echo -e "${RED}❌ No .ipa found at ${IPA_PATH}${NC}"
+    echo -e "${YELLOW}Run without --skip-download to download an IPA first${NC}"
+    exit 1
+  fi
+
+  echo -e "${GREEN}Found IPA:${NC} $(basename "$IPA_PATH")"
+
+  if [[ "$UNINSTALL" == true ]]; then
+    echo -e "${YELLOW}Uninstalling existing app from device...${NC}"
+    xcrun devicectl device uninstall app --device "$DEVICE_UDID" "$BUNDLE_ID" 2>/dev/null || {
+      echo -e "${YELLOW}App was not installed or already uninstalled${NC}"
+    }
+    echo -e "${GREEN}✓ Uninstall complete${NC}"
+  fi
+
+  echo -e "${BLUE}Installing IPA on device...${NC}"
+  if ! xcrun devicectl device install app --device "$DEVICE_UDID" "$IPA_PATH"; then
+    echo -e "${RED}❌ Installation failed. Common causes:${NC}"
+    echo -e "${YELLOW}  • Device UDID not registered in the 'development-metamask' provisioning profile${NC}"
+    echo -e "${YELLOW}    → Ask a team member with Apple Developer access to add your device UDID${NC}"
+    echo -e "${YELLOW}  • Developer Mode is disabled on the device${NC}"
+    echo -e "${YELLOW}    → Settings → Privacy & Security → Developer Mode → Enable${NC}"
+    echo -e "${YELLOW}  • Device is not trusted / paired with this Mac${NC}"
+    echo -e "${YELLOW}    → Unlock the device and tap 'Trust' when prompted${NC}"
+    exit 1
+  fi
+  echo -e "${GREEN}✓ Successfully installed app on device!${NC}"
+  exit 0
+fi
+
+# ─── Simulator install ────────────────────────────────────────────────────────
 echo -e "${BLUE}━━━ Step 4: Installing on simulator ━━━${NC}"
 
 SIMULATOR_UDID=$(dev_resolve_ios_simulator_udid)
