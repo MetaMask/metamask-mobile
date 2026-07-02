@@ -16,6 +16,11 @@ export interface VisibilityWithSettleOptions extends AssertionOptions {
   settleMs?: number;
 }
 
+export interface TextDisplayedOptions extends AssertionOptions {
+  /** When set, asserts text on this element instead of searching the screen. */
+  within?: PlaywrightElement | Promise<PlaywrightElement>;
+}
+
 /**
  * Assertion helpers that integrate with TimerHelper's automatic overhead
  * tracking so performance measurements reflect real app latency.
@@ -260,9 +265,14 @@ export default class PlaywrightAssertions {
 
   static async expectTextDisplayed(
     text: string,
-    options: AssertionOptions = {},
+    options: TextDisplayedOptions = {},
   ): Promise<void> {
-    const timeout = this.getTimeout(options);
+    const { within, ...assertionOptions } = options;
+    if (within) {
+      await this.expectElementText(within, text, assertionOptions);
+      return;
+    }
+    const timeout = this.getTimeout(assertionOptions);
     return Utilities.executeWithRetry(
       async () => {
         const el = await PlaywrightMatchers.getElementByText(text);
