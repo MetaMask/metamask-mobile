@@ -260,9 +260,18 @@ export function useTraderPositionData(
   const marketCap = spotPrices.marketCap;
 
   // While the period is still auto-selected (user hasn't tapped one), widen to
-  // the first loaded period whose candles actually cover the whole trade range,
-  // so the chart can frame all trades once that period's prices arrive.
+  // the first loaded period whose data actually covers the whole trade range, so
+  // the chart can frame all trades once that period's data arrives.
+  //
+  // PERP ONLY: perps render the price-line arrays (`resolvedPrices`), so their
+  // coverage is the right signal here. Spot renders OHLCV candles and is widened
+  // by `TraderAdvancedChart` against its own OHLCV coverage (which also keeps the
+  // tap-to-focus request in sync). Running both for spot let the two disagree —
+  // price arrays span further back than the OHLCV first page — and fight over
+  // `activeTimePeriod` (period flicker + off-screen trades), so spot is left to
+  // the chart as the single source of truth.
   useEffect(() => {
+    if (!isPerp) return;
     if (userSelectedTimePeriodRef.current) return;
 
     const coveredPeriod = getFirstLoadedPeriodCoveringTrades(
@@ -276,6 +285,7 @@ export function useTraderPositionData(
     }
   }, [
     activeTimePeriod,
+    isPerp,
     positionParam?.trades,
     recommendedTradeSpanPeriod,
     resolvedPrices,

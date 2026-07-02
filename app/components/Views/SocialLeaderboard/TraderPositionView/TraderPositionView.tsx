@@ -396,7 +396,6 @@ const TraderPositionView = () => {
         current
           ? {
               ...current,
-              timePeriod,
               spanMs: getTradeFocusSpanMs(timePeriod),
             }
           : current,
@@ -412,7 +411,6 @@ const TraderPositionView = () => {
         id: trade.transactionHash,
         timestamp: trade.timestamp,
         nonce: focusNonceRef.current,
-        timePeriod: activeTimePeriod,
         spanMs: getTradeFocusSpanMs(activeTimePeriod),
       });
     },

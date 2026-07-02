@@ -186,7 +186,6 @@ export interface TradeFocusRequest {
   id: string;
   timestamp: number;
   nonce: number;
-  timePeriod: TimePeriod;
   spanMs: number;
 }
 
@@ -563,12 +562,18 @@ const TraderAdvancedChart = ({
     !chartLoading &&
     (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || !!chartError);
 
-  // Slide the chart to center a tapped trade only after the current period's
-  // loaded bars actually contain the target time. If not, ask the parent to try
-  // the next wider period and re-check after reload.
+  // Slide the chart to center a tapped trade once the current period's loaded
+  // bars actually contain the target time. If not, ask the parent to try the
+  // next wider period and re-check after reload.
+  //
+  // We evaluate against whatever period is currently active rather than the one
+  // active at tap time: the auto-period selection can widen the period after the
+  // tap (e.g. perp price coverage settling), and pinning to the tap-time period
+  // would leave the request stuck forever. `chartLoading` gates transitions so we
+  // never focus against a not-yet-loaded period, and the nonce guard stops a
+  // handled request from re-firing.
   useEffect(() => {
     if (!focusRequest || chartLoading || shouldFallback) return;
-    if (activeTimePeriod !== focusRequest.timePeriod) return;
     if (handledFocusNonceRef.current === focusRequest.nonce) return;
 
     const tradeTime = normalizeTs(focusRequest.timestamp);

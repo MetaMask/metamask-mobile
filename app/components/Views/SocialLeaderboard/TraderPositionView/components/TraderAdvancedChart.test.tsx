@@ -466,7 +466,6 @@ describe('TraderAdvancedChart', () => {
           id: '0xbuy',
           timestamp: 1_700_000_060,
           nonce: 1,
-          timePeriod: '1D',
           spanMs: getTradeFocusSpanMs('1D'),
         }}
       />,
@@ -484,13 +483,55 @@ describe('TraderAdvancedChart', () => {
           id: '0xbuy',
           timestamp: 1_700_000_060,
           nonce: 2,
-          timePeriod: '1D',
           spanMs: getTradeFocusSpanMs('1D'),
         }}
       />,
     );
     expect(mockFocusTime).toHaveBeenCalledTimes(2);
     expect(mockPulseTradeMarker).toHaveBeenCalledTimes(2);
+  });
+
+  it('still focuses a pending trade after the active period changes (not pinned to the tap-time period)', () => {
+    // A focus request arrives while the chart is still loading, so it can't be
+    // handled yet. The auto-period selection then changes the active period
+    // (e.g. widening) before the request resolves. The request must NOT be pinned
+    // to the period that was active at tap time — it should resolve against the
+    // new active period once its data is ready. Regression for "focus stalls
+    // after hook period change".
+    setOHLCV(makeBars(20), { isLoading: true });
+    const { rerender } = render(
+      <TraderAdvancedChart
+        {...defaultProps}
+        activeTimePeriod="1D"
+        focusRequest={{
+          id: '0xbuy',
+          timestamp: 1_700_000_060,
+          nonce: 1,
+          spanMs: getTradeFocusSpanMs('1D'),
+        }}
+      />,
+    );
+    expect(mockFocusTime).not.toHaveBeenCalled();
+
+    // Data settles and the active period has since widened to 1W (same request).
+    setOHLCV(makeBars(20), { isLoading: false });
+    rerender(
+      <TraderAdvancedChart
+        {...defaultProps}
+        activeTimePeriod="1W"
+        focusRequest={{
+          id: '0xbuy',
+          timestamp: 1_700_000_060,
+          nonce: 1,
+          spanMs: getTradeFocusSpanMs('1W'),
+        }}
+      />,
+    );
+
+    expect(mockFocusTime).toHaveBeenCalledWith(1_700_000_060_000, {
+      spanMs: getTradeFocusSpanMs('1W'),
+    });
+    expect(mockPulseTradeMarker).toHaveBeenCalledWith('0xbuy');
   });
 
   it('does not focus when the selected widest period still lacks the trade time', () => {
@@ -506,7 +547,6 @@ describe('TraderAdvancedChart', () => {
           id: '0xold',
           timestamp: bars[0].time - DAY_MS,
           nonce: 1,
-          timePeriod: 'All',
           spanMs: getTradeFocusSpanMs('All'),
         }}
         onRequestTimePeriod={mockRequestTimePeriod}
@@ -531,7 +571,6 @@ describe('TraderAdvancedChart', () => {
           id: '0xold',
           timestamp: bars[0].time - DAY_MS,
           nonce: 1,
-          timePeriod: '1M',
           spanMs: getTradeFocusSpanMs('1M'),
         }}
         onRequestTimePeriod={mockRequestTimePeriod}
