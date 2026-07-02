@@ -25,6 +25,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved Money account deeplink handling to surface accurate unavailability messages for maintenance, gradual rollout exclusion, and version-gate states. (#32622)
 - Fixed Predict deposit-wallet address resolution for new Polymarket BeaconProxy wallets while preserving existing wallets. (#32614)
 
+## [8.0.1]
+
+### Added
+
+- Added a Wimbledon tab to Predict and fixed sports home/away ordering consistency in scoreboards. (#32546)
+
+### Fixed
+
+- Replaced faulty money first time deposit animation and removed parallax effect. (#32535)
+
 ## [8.0.0]
 
 ### Uncategorized
