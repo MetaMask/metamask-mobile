@@ -1,6 +1,7 @@
 import { CaipAssetId } from '@metamask/utils';
 import { renderHook } from '@testing-library/react-native';
 import type { Hex } from 'viem';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
   type AccountState,
@@ -19,6 +20,7 @@ import {
   type WithdrawResult,
 } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
+import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 
 const mockEnsureArbitrumNetworkExists = jest.fn().mockResolvedValue(undefined);
 jest.mock('./usePerpsNetworkManagement', () => ({
@@ -28,6 +30,11 @@ jest.mock('./usePerpsNetworkManagement', () => ({
     getArbitrumChainId: jest.fn(),
     currentNetwork: 'mainnet',
   }),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
 }));
 
 // Mock Engine
@@ -68,6 +75,10 @@ jest.mock('../../../../../locales/i18n', () => ({
 describe('usePerpsTrading', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useSelector as jest.Mock).mockImplementation((selector) => {
+      if (selector === selectPerpsTerminalBackendEnabledFlag) return true;
+      return undefined;
+    });
   });
 
   describe('placeOrder', () => {

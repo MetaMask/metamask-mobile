@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
+import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { USE_TERMINAL_API } from '../constants/terminalApi';
+import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import { usePerpsNetworkManagement } from './usePerpsNetworkManagement';
 import {
   type AccountState,
@@ -51,6 +52,7 @@ export type MobileGetMarketsParams = Omit<GetMarketsParams, 'useTerminalApi'>;
  */
 export function usePerpsTrading() {
   const { ensureArbitrumNetworkExists } = usePerpsNetworkManagement();
+  const useTerminalApi = useSelector(selectPerpsTerminalBackendEnabledFlag);
 
   const placeOrder = useCallback(
     async (params: OrderParams): Promise<OrderResult> => {
@@ -81,10 +83,10 @@ export function usePerpsTrading() {
       const controller = Engine.context.PerpsController;
       return controller.getMarkets({
         ...params,
-        useTerminalApi: USE_TERMINAL_API,
+        useTerminalApi,
       });
     },
-    [],
+    [useTerminalApi],
   );
 
   const getPositions = useCallback(

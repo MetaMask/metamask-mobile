@@ -10,11 +10,7 @@ import {
   getMetaMaskPayFiatChainTarget,
   normalizeMetaMaskPayPaymentMethod,
 } from '../../../../../components/Views/confirmations/utils/transaction-pay-metrics';
-import {
-  TransactionPayBridgeQuote,
-  TransactionPayQuote,
-  TransactionPayStrategy,
-} from '@metamask/transaction-pay-controller';
+import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { RootState } from '../../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
 import { Hex } from '@metamask/utils';
@@ -125,18 +121,6 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
 
     const quoteIndex = quoteTransactionIds.indexOf(transactionMeta.id);
     const quote = quotes[quoteIndex];
-
-    if (quote?.strategy === TransactionPayStrategy.Bridge) {
-      const bridgeQuote =
-        quote as TransactionPayQuote<TransactionPayBridgeQuote>;
-
-      const metrics = bridgeQuote.original.metrics;
-
-      properties.mm_pay_quotes_attempts = metrics?.attempts;
-      properties.mm_pay_quotes_buffer_size = metrics?.buffer;
-      properties.mm_pay_quotes_latency = metrics?.latency;
-      properties.mm_pay_bridge_provider = bridgeQuote.original.quote.bridgeId;
-    }
 
     if (quote && quote.request.targetTokenAddress !== NATIVE_TOKEN_ADDRESS) {
       properties.mm_pay_dust_usd = quote.dust.usd;
@@ -255,9 +239,7 @@ function addPayTypeProperties(
 
   const strategy = quotes?.[0]?.strategy;
 
-  if (strategy === TransactionPayStrategy.Bridge) {
-    properties.mm_pay_strategy = 'mm_swaps_bridge';
-  } else if (strategy === TransactionPayStrategy.Relay) {
+  if (strategy === TransactionPayStrategy.Relay) {
     properties.mm_pay_strategy = 'relay';
   } else if (strategy === TransactionPayStrategy.Fiat) {
     properties.mm_pay_strategy = 'fiat';

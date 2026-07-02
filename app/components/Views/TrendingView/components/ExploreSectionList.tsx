@@ -24,10 +24,11 @@ const ExploreSectionList: React.FC<ExploreSectionListProps> = ({
       <Fragment key={section.key}>
         {index > 0 ? (
           <Box testID="explore-section-divider">
-            <SectionDivider twClassName="-mx-4" />
+            <SectionDivider />
           </Box>
         ) : null}
         <Box
+          testID={`explore-section-${section.key}`}
           twClassName={
             index < sections.length - 1 && !section.isVerticalList
               ? 'pb-3'

@@ -5,6 +5,9 @@
 #import <React/RCTBridgeModule.h>
 #import <NitroFetch/NitroAutoPrefetcher.h>
 
+// Firebase Messaging — exposes FIRMessaging to Swift (see AppDelegate.swift willPresent).
+#import <FirebaseMessaging/FirebaseMessaging.h>
+
 // Thin C wrappers around BrazeReactBridge / BrazeReactUtils.
 // Implemented in BrazeHelper.mm.
 // Uses id (AnyObject in Swift) to avoid importing BrazeKit-Swift.h here,

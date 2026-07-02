@@ -27,6 +27,9 @@ import {
   PlaywrightGestures,
   Utilities,
 } from '../../framework';
+import AddAccountBottomSheet from './AddAccountBottomSheet';
+
+const ADD_ACCOUNT_SHEET_TIMEOUT_MS = 30_000;
 
 const logger = createLogger({
   name: 'AccountListBottomSheet',
@@ -217,12 +220,46 @@ class AccountListBottomSheet {
   async tapAddAccountButton(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.addAccountButton, {
       description: 'Add Account button',
+      timeout: 20_000,
+      checkForDisplayed: true,
+      checkForEnabled: true,
+      waitForInteractive: true,
+      enabledStableReads: 3,
+      postEnabledSettleMs: 250,
     });
   }
 
   async tapAddWalletButton(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.addWalletButton, {
       description: 'Add Wallet button',
+      timeout: 20_000,
+      checkForDisplayed: true,
+      checkForEnabled: true,
+      waitForInteractive: true,
+      enabledStableReads: 3,
+      postEnabledSettleMs: 250,
+    });
+  }
+
+  async openAddAccountSheet(): Promise<void> {
+    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+      await this.waitForAccountSyncToComplete();
+    }
+
+    await this.tapAddAccountButton();
+    await AddAccountBottomSheet.waitForImportSrpOption({
+      timeout: ADD_ACCOUNT_SHEET_TIMEOUT_MS,
+    });
+  }
+
+  async openAddWalletSheet(): Promise<void> {
+    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+      await this.waitForAccountSyncToComplete();
+    }
+
+    await this.tapAddWalletButton();
+    await AddAccountBottomSheet.waitForImportAccountOption({
+      timeout: ADD_ACCOUNT_SHEET_TIMEOUT_MS,
     });
   }
 
@@ -241,14 +278,41 @@ class AccountListBottomSheet {
       options?.srpIndex ?? 0,
     );
 
-    await Assertions.expectElementToHaveText(button, 'Add account', {
-      description: 'Add Account button should be ready (not syncing)',
-      timeout: 30000,
-    });
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToHaveText(button, 'Add account', {
+          description: 'Add Account button should be ready (not syncing)',
+          timeout: 30000,
+        });
 
-    await Gestures.waitAndTap(button, {
-      elemDescription: 'Add Account button in V2 multichain accounts',
-      delay: options?.shouldWait ? 5000 : 0,
+        await Gestures.waitAndTap(button, {
+          elemDescription: 'Add Account button in V2 multichain accounts',
+          delay: options?.shouldWait ? 5000 : 0,
+        });
+      },
+      appium: async () => {
+        if (PlatformDetector.isIOS()) {
+          // Account sync/discovery can keep the row visible but not yet tappable.
+          // Wait for the sync phase to settle before tapping "Add account".
+          await this.waitForAccountSyncToComplete();
+        }
+
+        await Assertions.expectElementToHaveText(button, 'Add account', {
+          description: 'Add Account button should be ready (not syncing)',
+          timeout: 30000,
+        });
+
+        await UnifiedGestures.waitAndTap(button, {
+          description: 'Add Account button in V2 multichain accounts',
+          delay: options?.shouldWait ? 5000 : 0,
+          timeout: 20_000,
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          waitForInteractive: true,
+          enabledStableReads: 3,
+          postEnabledSettleMs: 500,
+        });
+      },
     });
   }
 
