@@ -99,6 +99,12 @@ const TradingViewChart = React.forwardRef<
     const [isChartReady, setIsChartReady] = useState(false);
     const [webViewError, setWebViewError] = useState<string | null>(null);
     const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
+    // Bumped on every CHART_READY message (including re-fires after a WebView
+    // reload/remount while isChartReady was already true, e.g. iOS reclaiming
+    // the WKWebView content process in the background). Included in the send-
+    // effect deps below so a reload always triggers a resend of currently-held
+    // candle data instead of leaving the newly-blanked chart stuck empty.
+    const [chartReadyNonce, setChartReadyNonce] = useState(0);
     // Buffer for candle data that arrives before WebView is ready (Android fix)
     const pendingCandleDataRef = useRef<{
       data: CandleData;
@@ -270,6 +276,10 @@ const TradingViewChart = React.forwardRef<
               // must be a full reload regardless of prior signature state.
               lastSentSignatureRef.current = null;
               setIsChartReady(true);
+              // Force the send-effect to re-run even if isChartReady was
+              // already true (e.g. the WebView silently reloaded in the
+              // background and re-fired CHART_READY) so the chart repaints.
+              setChartReadyNonce((n) => n + 1);
               onChartReady?.();
               break;
             case 'PRICE_LINES_UPDATE':
@@ -495,6 +505,7 @@ const TradingViewChart = React.forwardRef<
       }
     }, [
       isChartReady,
+      chartReadyNonce,
       candleDataVersion,
       formatCandleData,
       candleData,

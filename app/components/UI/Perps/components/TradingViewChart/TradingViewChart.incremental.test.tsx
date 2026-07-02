@@ -435,7 +435,8 @@ describe('TradingViewChart — incremental update routing', () => {
   });
 
   // -----------------------------------------------------------------------
-  // CHART_READY resets the signature → next update is a full reload
+  // CHART_READY resets the signature → self-heal repaints immediately, and
+  // subsequent updates are routed against the freshly-painted signature.
   // -----------------------------------------------------------------------
 
   it('resets to full reload after a CHART_READY (WebView remount)', () => {
@@ -460,11 +461,17 @@ describe('TradingViewChart — incremental update routing', () => {
     });
     expect(lastMessageType()).toBe('UPDATE_LAST_CANDLE');
 
-    // Simulate WebView remount (CHART_READY fires again)
-    triggerChartReady(getByTestId, testID);
+    // Simulate WebView remount (CHART_READY fires again). The self-heal
+    // immediately repaints the currently-held data into the freshly blanked
+    // WebView — this is itself a full reload, so it must NOT wait for the
+    // next prop change.
     mockPostMessage.mockClear();
+    triggerChartReady(getByTestId, testID);
+    expect(lastMessageType()).toBe('SET_CANDLESTICK_DATA');
 
-    // Next update must be a full reload, not an incremental update
+    // A subsequent tick is now routed against the data that was just
+    // repainted, so a same-count close update is correctly incremental.
+    mockPostMessage.mockClear();
     const nextTick: CandleData = {
       ...twoCandles,
       candles: [twoCandles.candles[0], makeCandle(4, '46000')],
@@ -474,6 +481,50 @@ describe('TradingViewChart — incremental update routing', () => {
         <TradingViewChart candleData={nextTick} symbol="BTC" testID={testID} />,
       );
     });
+    expect(lastMessageType()).toBe('UPDATE_LAST_CANDLE');
+  });
+
+  // -----------------------------------------------------------------------
+  // Self-heal: a WebView reload with unchanged candleData must still repaint.
+  // Without a repaint trigger, a WebView that silently reloads in the
+  // background (e.g. iOS reclaiming the WKWebView content process) would
+  // re-fire CHART_READY into a blanked chart, but no prop change would occur
+  // to re-run the send effect — leaving the chart permanently empty.
+  // -----------------------------------------------------------------------
+
+  it('resends full candlestick data on a repeated CHART_READY even when candleData is unchanged', () => {
+    const testID = 'incremental-selfheal-repaint';
+    const { getByTestId, rerender } = render(
+      <TradingViewChart candleData={twoCandles} symbol="BTC" testID={testID} />,
+    );
+
+    // First boot — establishes isChartReady and the initial signature. Other
+    // effects (TPSL lines / volume sync) also fire on this first transition,
+    // so assert presence rather than relying on message ordering.
+    triggerChartReady(getByTestId, testID);
+    expect(allMessageTypes()).toContain('SET_CANDLESTICK_DATA');
+    mockPostMessage.mockClear();
+
+    // Re-render with the exact same candleData reference — simulates no new
+    // data having arrived, only the WebView having reloaded underneath.
+    act(() => {
+      rerender(
+        <TradingViewChart
+          candleData={twoCandles}
+          symbol="BTC"
+          testID={testID}
+        />,
+      );
+    });
+    expect(mockPostMessage).not.toHaveBeenCalled();
+
+    // Simulate the WebView reloading and re-firing CHART_READY with no
+    // accompanying prop change. isChartReady/tpslLines/showVolume are all
+    // unchanged, so only the self-heal (chartReadyNonce) effect re-runs.
+    triggerChartReady(getByTestId, testID);
+
+    // The chart must repaint from the data it already holds, not stay blank.
+    expect(mockPostMessage).toHaveBeenCalledTimes(1);
     expect(lastMessageType()).toBe('SET_CANDLESTICK_DATA');
   });
 });
