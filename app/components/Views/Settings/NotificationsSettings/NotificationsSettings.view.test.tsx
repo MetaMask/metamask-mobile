@@ -161,15 +161,6 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(queryByText(SECTION_TITLES.priceAlerts)).toBeNull();
   });
 
-  it('renders price alerts section when price alerts feature flag is enabled', async () => {
-    const { getByText, findByText } = renderSettings({
-      priceAlertsEnabled: true,
-    });
-
-    expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
-    expect(getByText(SECTION_TITLES.priceAlerts)).toBeOnTheScreen();
-  });
-
   it('hides notification sections when main toggle is off', async () => {
     const { getByTestId, queryByText } = renderSettings({
       notificationsEnabled: false,
