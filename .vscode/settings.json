@@ -29,25 +29,5 @@
   "editor.quickSuggestions": {
     "strings": true
   },
-  "editor.inlayHints.enabled": "on",
-  "workbench.colorCustomizations": {
-    "activityBar.activeBackground": "#fff3f5",
-    "activityBar.background": "#fff3f5",
-    "activityBar.foreground": "#15202b",
-    "activityBar.inactiveForeground": "#15202b99",
-    "activityBarBadge.background": "#20bf00",
-    "activityBarBadge.foreground": "#e7e7e7",
-    "commandCenter.border": "#15202b99",
-    "sash.hoverBorder": "#fff3f5",
-    "statusBar.background": "#ffc0cb",
-    "statusBar.foreground": "#15202b",
-    "statusBarItem.hoverBackground": "#ff8da1",
-    "statusBarItem.remoteBackground": "#ffc0cb",
-    "statusBarItem.remoteForeground": "#15202b",
-    "titleBar.activeBackground": "#ffc0cb",
-    "titleBar.activeForeground": "#15202b",
-    "titleBar.inactiveBackground": "#ffc0cb99",
-    "titleBar.inactiveForeground": "#15202b99"
-  },
-  "peacock.color": "pink"
+  "editor.inlayHints.enabled": "on"
 }
