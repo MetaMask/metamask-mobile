@@ -100,7 +100,7 @@ jest.mock('../../../app/util/trace', () => ({
 import React from 'react';
 import { View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 
@@ -362,7 +362,7 @@ export function buildPerpsComponentHarness(
       initialParams?: Record<string, unknown>;
     },
   ) => {
-    const Stack = createStackNavigator();
+    const Stack = createNativeStackNavigator();
     return renderWithFlow(
       <Stack.Navigator>
         <Stack.Screen
