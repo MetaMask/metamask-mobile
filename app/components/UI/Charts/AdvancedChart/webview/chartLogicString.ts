@@ -1981,25 +1981,31 @@ function generatePaletteShades(hex) {
     }
     return shades;
 }
-/**
- * Shared TV widget defaults, minus disabled_features (computed from
- * CONFIG.features at call time). Mirrors legacy enabled_features list.
- */
-const DEFAULT_ENABLED_FEATURES = [
+const BASE_ENABLED_FEATURES = [
     'study_templates',
     'iframe_loading_same_origin',
-    'always_show_legend_values_on_mobile',
 ];
+function resolveEnabledFeatures(features) {
+    const list = [...BASE_ENABLED_FEATURES];
+    if (features.showBuiltInLegend) {
+        list.push('always_show_legend_values_on_mobile');
+    }
+    return list;
+}
 function resolveDisabledFeatures(features) {
     const list = (features.disabledFeatures ?? []).slice();
     if (!features.enableDrawingTools) {
         list.push('left_toolbar', 'context_menus');
     }
+    if (!features.showBuiltInLegend) {
+        list.push('legend_widget');
+    }
     list.push('use_localstorage_for_settings');
     return list;
 }
-function buildWidgetOverrides(theme) {
+function buildWidgetOverrides(theme, features) {
     const gridLineColor = theme.gridLineColor || 'transparent';
+    const showLegend = features?.showBuiltInLegend === true;
     return {
         'paneProperties.background': theme.backgroundColor,
         'paneProperties.backgroundType': 'solid',
@@ -2017,13 +2023,13 @@ function buildWidgetOverrides(theme) {
         'scalesProperties.showPriceScaleCrosshairLabel': true,
         'scalesProperties.showTimeScaleCrosshairLabel': true,
         'paneProperties.legendProperties.showSeriesTitle': false,
-        'paneProperties.legendProperties.showSeriesOHLC': false,
-        'paneProperties.legendProperties.showBarChange': false,
-        'paneProperties.legendProperties.showVolume': false,
+        'paneProperties.legendProperties.showSeriesOHLC': showLegend,
+        'paneProperties.legendProperties.showBarChange': showLegend,
+        'paneProperties.legendProperties.showVolume': showLegend,
         'paneProperties.legendProperties.showBackground': false,
-        'paneProperties.legendProperties.showStudyTitles': false,
-        'paneProperties.legendProperties.showStudyArguments': false,
-        'paneProperties.legendProperties.showStudyValues': false,
+        'paneProperties.legendProperties.showStudyTitles': showLegend,
+        'paneProperties.legendProperties.showStudyArguments': showLegend,
+        'paneProperties.legendProperties.showStudyValues': showLegend,
         'mainSeriesProperties.showPriceLine': !getHasExplicitCurrentPriceLine(),
         'mainSeriesProperties.priceLineColor': getThemeLastPriceLineColor(theme),
         // Pane margins keep candle (high/low fit) and line (close-only fit) charts
@@ -2066,14 +2072,14 @@ function createChartWidget(config, options) {
         autosize: true,
         theme: 'Dark',
         disabled_features: disabledFeatures,
-        enabled_features: [...DEFAULT_ENABLED_FEATURES],
+        enabled_features: resolveEnabledFeatures(features),
         custom_themes: {
             dark: {
                 color1: generatePaletteShades(theme.successColor),
                 color3: generatePaletteShades(theme.errorColor),
             },
         },
-        overrides: buildWidgetOverrides(theme),
+        overrides: buildWidgetOverrides(theme, features),
         loading_screen: {
             backgroundColor: theme.backgroundColor,
             foregroundColor: theme.successColor,
@@ -2910,7 +2916,6 @@ function macdPreset(colors) {
         studyName: 'MACD',
         inputs: { in_0: 12, in_1: 26, in_2: 9 },
         overrides: {
-            showLegendValues: false,
             'MACD.color': c.macd,
             'Signal.color': c.signal,
             'Histogram.color.0': c.histogramPositive,
@@ -2924,7 +2929,6 @@ function rsiPreset(colors) {
         studyName: 'Relative Strength Index',
         inputs: { in_0: 14 },
         overrides: {
-            showLegendValues: false,
             'Plot.color': c.plot,
             'hlines background.visible': false,
         },
@@ -2936,7 +2940,6 @@ function bolPreset(colors) {
         studyName: 'Bollinger Bands',
         inputs: { in_0: 20, in_1: 2 },
         overrides: {
-            showLegendValues: false,
             'Upper.color': c.upper,
             'Basis.color': c.basis,
             'Lower.color': c.lower,
@@ -2947,7 +2950,7 @@ function ma200Preset() {
     return {
         studyName: 'Moving Average',
         inputs: { length: 200 },
-        overrides: { showLegendValues: false },
+        overrides: {},
     };
 }
 function maVariantPreset(name, colors) {
@@ -2955,7 +2958,6 @@ function maVariantPreset(name, colors) {
         studyName: 'Moving Average',
         inputs: { length: MA_LENGTHS[name] },
         overrides: {
-            showLegendValues: false,
             'Plot.color': getMAColor(name, colors),
         },
     };
@@ -2964,7 +2966,7 @@ function fallbackPreset(inputs) {
     return {
         studyName: '',
         inputs: inputs ?? {},
-        overrides: { showLegendValues: false },
+        overrides: {},
     };
 }
 /**
@@ -3242,13 +3244,11 @@ function buildVolumeOverrides(useOverlay) {
     const theme = getTheme();
     if (!theme) {
         return {
-            showLegendValues: false,
             'volume ma.display': 0,
             'volume.transparency': useOverlay ? 70 : 0,
         };
     }
     return {
-        showLegendValues: false,
         'volume ma.display': 0,
         'volume.transparency': useOverlay ? 70 : 0,
         'volume.color.0': getVolumeErrorColor(theme),

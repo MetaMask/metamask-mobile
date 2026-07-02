@@ -769,6 +769,14 @@ export interface AdvancedChartProps {
   legendOverlay?: LegendOverlayConfig;
 
   /**
+   * When true, TradingView's built-in native legend is shown (study titles,
+   * OHLC values, volume, bar change). By default the legend is suppressed
+   * via widget overrides. This flag re-enables it for consumers that prefer
+   * the native TV legend over the custom DOM overlay or no legend at all.
+   */
+  showBuiltInLegend?: boolean;
+
+  /**
    * When true, the chart surface stops capturing touches (`pointerEvents="none"`)
    * so gestures fall through to whatever scrolls behind it. Used when the chart is
    * pinned as a scroll-linked overlay (e.g. Trader Position): once pinned, drags on

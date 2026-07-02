@@ -31,13 +31,11 @@ function buildVolumeOverrides(useOverlay: boolean): Record<string, unknown> {
   const theme = getTheme();
   if (!theme) {
     return {
-      showLegendValues: false,
       'volume ma.display': 0,
       'volume.transparency': useOverlay ? 70 : 0,
     };
   }
   return {
-    showLegendValues: false,
     'volume ma.display': 0,
     'volume.transparency': useOverlay ? 70 : 0,
     'volume.color.0': getVolumeErrorColor(theme),

@@ -116,7 +116,7 @@ describe('handleAddIndicator', () => {
       false,
       false,
       expect.objectContaining({ in_0: 12 }),
-      expect.objectContaining({ showLegendValues: false }),
+      expect.not.objectContaining({ showLegendValues: false }),
     );
     expect(getActiveStudies().get('MACD')).toBe('sid-macd');
   });
@@ -184,7 +184,7 @@ describe('handleSetMAVisibility', () => {
       false,
       false,
       { length: 50 },
-      expect.objectContaining({ showLegendValues: false }),
+      expect.objectContaining({ 'Plot.color': expect.any(String) }),
     );
     expect(getMaStudies().get('MA50')).toBe('sid-50');
   });

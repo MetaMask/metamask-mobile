@@ -78,6 +78,7 @@ interface ChartFeatures {
   volumeSuccessColorOverride?: string;
   volumeErrorColorOverride?: string;
   legendOverlay?: LegendOverlayConfig;
+  showBuiltInLegend?: boolean;
 }
 
 const createConfigScript = (
@@ -137,7 +138,8 @@ window.CONFIG = {
   features: {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},
     disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])},
-    hidePaneSeparator: ${features.hidePaneSeparator ? 'true' : 'false'}
+    hidePaneSeparator: ${features.hidePaneSeparator ? 'true' : 'false'},
+    showBuiltInLegend: ${features.showBuiltInLegend ? 'true' : 'false'}
   },
   legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
   useSubscriptPriceFormat: ${features.useSubscriptPriceFormat ? 'true' : 'false'},

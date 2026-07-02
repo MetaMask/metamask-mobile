@@ -114,6 +114,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       successColorOverride,
       errorColorOverride,
       legendOverlay,
+      showBuiltInLegend,
       currentPriceLineColorOverride,
       labelStyleOverrides,
       scrollPassthrough = false,
@@ -212,6 +213,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         currentPriceLineColorOverride,
         labelStyleOverrides,
         legendOverlay,
+        showBuiltInLegend,
         volumeSuccessColorOverride,
         volumeErrorColorOverride,
       });
@@ -228,6 +230,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       hidePaneSeparator,
       gridLineColorOverride,
       legendOverlay,
+      showBuiltInLegend,
     ]);
 
     // Reset all chart state when the WebView reloads due to htmlContent changes.

@@ -44,6 +44,7 @@ export interface ChartFeaturesConfig {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
   hidePaneSeparator?: boolean;
+  showBuiltInLegend?: boolean;
 }
 
 /**

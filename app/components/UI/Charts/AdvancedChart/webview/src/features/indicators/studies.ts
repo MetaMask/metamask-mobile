@@ -49,7 +49,6 @@ function macdPreset(colors: IndicatorColors | undefined): StudyPreset {
     studyName: 'MACD',
     inputs: { in_0: 12, in_1: 26, in_2: 9 },
     overrides: {
-      showLegendValues: false,
       'MACD.color': c.macd,
       'Signal.color': c.signal,
       'Histogram.color.0': c.histogramPositive,
@@ -64,7 +63,6 @@ function rsiPreset(colors: IndicatorColors | undefined): StudyPreset {
     studyName: 'Relative Strength Index',
     inputs: { in_0: 14 },
     overrides: {
-      showLegendValues: false,
       'Plot.color': c.plot,
       'hlines background.visible': false,
     },
@@ -77,7 +75,6 @@ function bolPreset(colors: IndicatorColors | undefined): StudyPreset {
     studyName: 'Bollinger Bands',
     inputs: { in_0: 20, in_1: 2 },
     overrides: {
-      showLegendValues: false,
       'Upper.color': c.upper,
       'Basis.color': c.basis,
       'Lower.color': c.lower,
@@ -89,7 +86,7 @@ function ma200Preset(): StudyPreset {
   return {
     studyName: 'Moving Average',
     inputs: { length: 200 },
-    overrides: { showLegendValues: false },
+    overrides: {},
   };
 }
 
@@ -101,7 +98,6 @@ function maVariantPreset(
     studyName: 'Moving Average',
     inputs: { length: MA_LENGTHS[name] },
     overrides: {
-      showLegendValues: false,
       'Plot.color': getMAColor(name, colors),
     },
   };
@@ -113,7 +109,7 @@ function fallbackPreset(
   return {
     studyName: '',
     inputs: inputs ?? {},
-    overrides: { showLegendValues: false },
+    overrides: {},
   };
 }
 

@@ -73,27 +73,37 @@ export function generatePaletteShades(hex: string): string[] {
   return shades;
 }
 
-/**
- * Shared TV widget defaults, minus disabled_features (computed from
- * CONFIG.features at call time). Mirrors legacy enabled_features list.
- */
-const DEFAULT_ENABLED_FEATURES = [
+const BASE_ENABLED_FEATURES: readonly string[] = [
   'study_templates',
   'iframe_loading_same_origin',
-  'always_show_legend_values_on_mobile',
-] as const;
+];
+
+function resolveEnabledFeatures(features: ChartFeaturesConfig): string[] {
+  const list = [...BASE_ENABLED_FEATURES];
+  if (features.showBuiltInLegend) {
+    list.push('always_show_legend_values_on_mobile');
+  }
+  return list;
+}
 
 function resolveDisabledFeatures(features: ChartFeaturesConfig): string[] {
   const list = (features.disabledFeatures ?? []).slice();
   if (!features.enableDrawingTools) {
     list.push('left_toolbar', 'context_menus');
   }
+  if (!features.showBuiltInLegend) {
+    list.push('legend_widget');
+  }
   list.push('use_localstorage_for_settings');
   return list;
 }
 
-function buildWidgetOverrides(theme: ChartTheme): Record<string, unknown> {
+function buildWidgetOverrides(
+  theme: ChartTheme,
+  features?: ChartFeaturesConfig,
+): Record<string, unknown> {
   const gridLineColor = theme.gridLineColor || 'transparent';
+  const showLegend = features?.showBuiltInLegend === true;
   return {
     'paneProperties.background': theme.backgroundColor,
     'paneProperties.backgroundType': 'solid',
@@ -111,13 +121,13 @@ function buildWidgetOverrides(theme: ChartTheme): Record<string, unknown> {
     'scalesProperties.showPriceScaleCrosshairLabel': true,
     'scalesProperties.showTimeScaleCrosshairLabel': true,
     'paneProperties.legendProperties.showSeriesTitle': false,
-    'paneProperties.legendProperties.showSeriesOHLC': false,
-    'paneProperties.legendProperties.showBarChange': false,
-    'paneProperties.legendProperties.showVolume': false,
+    'paneProperties.legendProperties.showSeriesOHLC': showLegend,
+    'paneProperties.legendProperties.showBarChange': showLegend,
+    'paneProperties.legendProperties.showVolume': showLegend,
     'paneProperties.legendProperties.showBackground': false,
-    'paneProperties.legendProperties.showStudyTitles': false,
-    'paneProperties.legendProperties.showStudyArguments': false,
-    'paneProperties.legendProperties.showStudyValues': false,
+    'paneProperties.legendProperties.showStudyTitles': showLegend,
+    'paneProperties.legendProperties.showStudyArguments': showLegend,
+    'paneProperties.legendProperties.showStudyValues': showLegend,
     'mainSeriesProperties.showPriceLine': !getHasExplicitCurrentPriceLine(),
     'mainSeriesProperties.priceLineColor': getThemeLastPriceLineColor(theme),
     // Pane margins keep candle (high/low fit) and line (close-only fit) charts
@@ -185,14 +195,14 @@ export function createChartWidget(
     autosize: true,
     theme: 'Dark',
     disabled_features: disabledFeatures,
-    enabled_features: [...DEFAULT_ENABLED_FEATURES],
+    enabled_features: resolveEnabledFeatures(features),
     custom_themes: {
       dark: {
         color1: generatePaletteShades(theme.successColor),
         color3: generatePaletteShades(theme.errorColor),
       },
     },
-    overrides: buildWidgetOverrides(theme),
+    overrides: buildWidgetOverrides(theme, features),
     loading_screen: {
       backgroundColor: theme.backgroundColor,
       foregroundColor: theme.successColor,
