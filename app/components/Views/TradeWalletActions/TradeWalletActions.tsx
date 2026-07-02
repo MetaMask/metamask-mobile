@@ -1,5 +1,11 @@
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import {
   BackHandler,
   Platform,
@@ -11,7 +17,6 @@ import {
 } from 'react-native';
 import Animated, {
   Easing,
-  FadeInDown,
   FadeOutDown,
   runOnJS,
   useAnimatedStyle,
@@ -114,22 +119,24 @@ function TradeWalletActions() {
   const theme = useTheme();
   const { colors } = theme;
 
-  // Mirrors the fade timing the shared Overlay component provides (opacity
-  // 0 -> 1, linear) of a layer whose own background color already carries
-  // the desired translucency (colors.overlay.default is an 8-digit hex with
-  // its own alpha channel). Applied directly here instead of via the
-  // Overlay component because OverlayWithHole's hole is cut into the SVG
-  // path itself (an evenodd fill-rule), so it can be rendered as real
-  // content rather than as a MaskedView mask -- avoiding a MaskedView bug
-  // where Android flashes an opaque black frame on mount/unmount.
   const backdropOpacity = useSharedValue(0);
   const backdropAnimatedStyle = useAnimatedStyle(() => ({
     opacity: backdropOpacity.value,
   }));
-  backdropOpacity.value = withTiming(1, {
-    duration: animationDuration,
-    easing: Easing.linear,
-  });
+
+  const sheetProgress = useSharedValue(0);
+  const sheetAnimatedStyle = useAnimatedStyle(() => ({
+    opacity: sheetProgress.value,
+    transform: [{ translateY: (1 - sheetProgress.value) * 50 }],
+  }));
+
+  useEffect(() => {
+    backdropOpacity.value = withTiming(1, {
+      duration: animationDuration,
+      easing: Easing.linear,
+    });
+    sheetProgress.value = withTiming(1, { duration: animationDuration });
+  }, [backdropOpacity, sheetProgress]);
 
   const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
@@ -380,26 +387,8 @@ function TradeWalletActions() {
     </>
   );
 
-  // The card + button-notch shape is built from real Views/SVG instead of a
-  // MaskedView mask (see backdrop comment above for why). Unlike a mask --
-  // which can erase pixels of the box underneath it to reveal the button --
-  // a plain View painted on top can only ever add pixels, never remove the
-  // solid background already painted beneath it. So the notch row is a
-  // genuine sibling stacked *below* the content box (not overlapping it):
-  // the box's own background simply doesn't extend into that area, leaving
-  // real transparency for the notch to reveal the button through.
-  // This makes the card slightly taller than a masked version would be, but
-  // that's safe: the outer container is `justify-end` with a fixed-height
-  // spacer below the card (see the bottom of this component), so the card's
-  // *bottom* edge -- where the notch lives -- stays pinned to the button's
-  // position regardless of the card's total height; extra height only
-  // pushes the action list further up.
   const sheetContent = (
-    <Animated.View
-      entering={FadeInDown.duration(animationDuration).withInitialValues({
-        transform: [{ translateY: 50 }],
-      })}
-    >
+    <Animated.View style={sheetAnimatedStyle}>
       <View style={tw.style('px-4')}>
         <View style={tw.style(`${surfaceClass} p-4 rounded-t-2xl px-0`)}>
           {actionList}

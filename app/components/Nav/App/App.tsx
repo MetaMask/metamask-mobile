@@ -1030,21 +1030,7 @@ const AppFlow = () => {
         presentation: 'transparentModal',
       }}
     >
-      <NativeStack.Screen
-        name={Routes.ONBOARDING.HOME_NAV}
-        component={Main}
-        // AppFlow's default presentation is `transparentModal`, which keeps
-        // whatever screen is behind HOME_NAV (e.g. FOX_LOADER, the initial
-        // route in this same stack) attached underneath. On Android, opening
-        // any later transparent modal over HOME_NAV (e.g. the trade sheet)
-        // can momentarily leave HOME_NAV uncomposited for one frame, exposing
-        // that screen behind it. Presenting HOME_NAV as an opaque card means
-        // there's nothing left to flash through.
-        options={{
-          presentation: 'card',
-          contentStyle: { backgroundColor: colors.background.default },
-        }}
-      />
+      <NativeStack.Screen name={Routes.ONBOARDING.HOME_NAV} component={Main} />
       <NativeStack.Screen name={Routes.FOX_LOADER} component={FoxLoader} />
       <NativeStack.Screen
         name={Routes.ONBOARDING.LOGIN}
