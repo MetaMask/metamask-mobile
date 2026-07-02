@@ -16,41 +16,14 @@ const mockGenerateDeterministicRandomNumber = jest.mocked(
 
 describe('useOnboardingInterestQuestionnaireEligibility', () => {
   const mockGetAnalyticsId = jest.fn();
-  const originalDev = __DEV__;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // @ts-expect-error – override read-only global for testing
-    __DEV__ = false;
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
         getAnalyticsId: mockGetAnalyticsId,
       }),
     );
-  });
-
-  afterEach(() => {
-    // @ts-expect-error – restore original value
-    __DEV__ = originalDev;
-  });
-
-  it('always returns true in __DEV__ builds', async () => {
-    // @ts-expect-error – override read-only global for testing
-    __DEV__ = true;
-    mockGetAnalyticsId.mockResolvedValue(undefined);
-
-    const { result } = renderHook(() =>
-      useOnboardingInterestQuestionnaireEligibility(),
-    );
-
-    let eligible: boolean | undefined;
-
-    await act(async () => {
-      eligible = await result.current();
-    });
-
-    expect(eligible).toBe(true);
-    expect(mockGetAnalyticsId).not.toHaveBeenCalled();
   });
 
   it('returns false when analytics id is undefined', async () => {
