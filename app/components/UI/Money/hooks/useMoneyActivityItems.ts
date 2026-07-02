@@ -114,6 +114,11 @@ export function buildMoneyActivityBuckets(
       mergeMoneyActivity(onchain.transfers, cards),
       watermark,
     ),
+    // Purchases is API-only (no local on-chain rows to interleave), and every
+    // card/cashback/refund row's time is >= watermark by construction, so
+    // `safeItems` would be a no-op here. Deliberately left unwrapped; if a
+    // local/pending source is ever added to this bucket it will need the
+    // watermark to prevent pop-in, like the buckets above.
     [MoneyActivityFilter.Purchases]: mergeMoneyActivity(
       [],
       [...cards, ...cashback, ...refunds],
