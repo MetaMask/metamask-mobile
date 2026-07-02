@@ -1,12 +1,55 @@
 import React, { createRef } from 'react';
 import { screen, fireEvent, act } from '@testing-library/react-native';
+import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TopTradersSection from './TopTradersSection';
 import Routes from '../../../../../constants/navigation/Routes';
 import { SectionRefreshHandle } from '../../types';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { TradingSignalsSetupBottomSheetSelectorsIDs } from '../../../SocialLeaderboard/components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet.testIds';
 
 const mockRefetch = jest.fn().mockResolvedValue(undefined);
 const mockNavigate = jest.fn();
+const mockPlayErrorNotification = jest.fn(() => Promise.resolve());
+
+jest.mock('../../../../../util/haptics', () => ({
+  playErrorNotification: () => mockPlayErrorNotification(),
+}));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      props: {
+        children?: React.ReactNode;
+        testID?: string;
+        onClose?: () => void;
+      },
+      ref: React.Ref<{
+        onCloseBottomSheet: (callback?: () => void) => void;
+        onOpenBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (cb?: () => void) => {
+          props.onClose?.();
+          cb?.();
+        },
+        onOpenBottomSheet: (cb?: () => void) => {
+          cb?.();
+        },
+      }));
+      return ReactActual.createElement(
+        View,
+        { testID: props.testID ?? 'bottom-sheet' },
+        props.children,
+      );
+    },
+  );
+  return { ...actual, BottomSheet: MockBottomSheet };
+});
 
 const mockTraders = [
   {
@@ -75,6 +118,58 @@ jest.mock('../../hooks/useSectionViewportVisible', () => ({
   default: jest.fn(() => ({ isVisible: true, onLayout: jest.fn() })),
 }));
 
+let mockNotificationPreferences = {
+  ...DEFAULT_SOCIAL_AI_PREFERENCES,
+  mutedTraderProfileIds: [
+    ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+  ],
+};
+const mockHasNotificationPreferences = jest.fn(() => true);
+
+jest.mock('../../../SocialLeaderboard/NotificationPreferences/hooks', () => ({
+  ...jest.requireActual(
+    '../../../SocialLeaderboard/NotificationPreferences/hooks',
+  ),
+  useNotificationPreferences: () => ({
+    preferences: mockNotificationPreferences,
+    hasNotificationPreferences: mockHasNotificationPreferences(),
+    isLoading: false,
+    error: null,
+    setPushNotificationsEnabled: jest.fn(),
+    setInAppNotificationsEnabled: jest.fn(),
+    setTxAmountLimit: jest.fn(),
+    toggleTraderNotification: jest.fn(),
+    isTraderNotificationEnabled: jest.fn(() => true),
+  }),
+}));
+
+jest.mock(
+  '../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return ReactActual.forwardRef(
+      (
+        props: { children?: React.ReactNode; testID?: string },
+        ref: React.Ref<{
+          onCloseBottomSheet: (callback?: () => void) => void;
+          onOpenBottomSheet: (callback?: () => void) => void;
+        }>,
+      ) => {
+        ReactActual.useImperativeHandle(ref, () => ({
+          onCloseBottomSheet: jest.fn(),
+          onOpenBottomSheet: jest.fn(),
+        }));
+        return ReactActual.createElement(
+          View,
+          { testID: props.testID ?? 'bottom-sheet' },
+          props.children,
+        );
+      },
+    );
+  },
+);
+
 const mockSelectSocialLeaderboardEnabled = jest.requireMock(
   '../../../../../selectors/featureFlagController/socialLeaderboard',
 ).selectSocialLeaderboardEnabled;
@@ -84,11 +179,27 @@ const mockSelectSocialLeaderboardPerpsEnabled = jest.requireMock(
 
 const defaultProps = { sectionIndex: 1, totalSectionsLoaded: 3 };
 
+const channelsDisabledPreferences = {
+  ...DEFAULT_SOCIAL_AI_PREFERENCES,
+  pushNotificationsEnabled: false,
+  inAppNotificationsEnabled: false,
+  mutedTraderProfileIds: [
+    ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+  ],
+};
+
 describe('TopTradersSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectSocialLeaderboardEnabled.mockImplementation(() => true);
     mockSelectSocialLeaderboardPerpsEnabled.mockImplementation(() => true);
+    mockNotificationPreferences = {
+      ...DEFAULT_SOCIAL_AI_PREFERENCES,
+      mutedTraderProfileIds: [
+        ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+      ],
+    };
+    mockHasNotificationPreferences.mockReturnValue(true);
     mockUseTopTraders.mockReturnValue({
       traders: mockTraders,
       isLoading: false,
@@ -190,8 +301,8 @@ describe('TopTradersSection', () => {
     );
   });
 
-  it('calls toggleFollow with the correct analytics context when the follow button is pressed', () => {
-    const mockToggleFollow = jest.fn();
+  it('calls toggleFollow with the correct analytics context when the follow button is pressed', async () => {
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
     mockUseTopTraders.mockReturnValue({
       traders: mockTraders,
       isLoading: false,
@@ -202,7 +313,9 @@ describe('TopTradersSection', () => {
     });
     renderWithProvider(<TopTradersSection {...defaultProps} />);
 
-    fireEvent.press(screen.getByText('Follow'));
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
 
     expect(mockToggleFollow).toHaveBeenCalledWith(
       'trader-1',
@@ -211,6 +324,175 @@ describe('TopTradersSection', () => {
         traderAddress: '0x0000000000000000000000000000000000000001',
       }),
     );
+  });
+
+  it('opens the trading signals setup sheet when following with both channels off', async () => {
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockNotificationPreferences = {
+      ...DEFAULT_SOCIAL_AI_PREFERENCES,
+      pushNotificationsEnabled: false,
+      inAppNotificationsEnabled: false,
+      mutedTraderProfileIds: [
+        ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+      ],
+    };
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    expect(
+      screen.getByTestId(TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+  });
+
+  it('intercepts the follow without calling toggleFollow when both channels are off', async () => {
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockNotificationPreferences = {
+      ...DEFAULT_SOCIAL_AI_PREFERENCES,
+      pushNotificationsEnabled: false,
+      inAppNotificationsEnabled: false,
+      mutedTraderProfileIds: [
+        ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+      ],
+    };
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    expect(mockToggleFollow).not.toHaveBeenCalled();
+  });
+
+  it('fires an error haptic when the follow is intercepted', async () => {
+    mockNotificationPreferences = {
+      ...DEFAULT_SOCIAL_AI_PREFERENCES,
+      pushNotificationsEnabled: false,
+      inAppNotificationsEnabled: false,
+      mutedTraderProfileIds: [
+        ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+      ],
+    };
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('follows immediately without a haptic when a channel is already enabled', async () => {
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
+    expect(mockPlayErrorNotification).not.toHaveBeenCalled();
+    expect(
+      screen.queryByTestId(
+        TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER,
+      ),
+    ).toBeNull();
+  });
+
+  it('drops the follow when the setup sheet is dismissed without enabling notifications', async () => {
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockNotificationPreferences = channelsDisabledPreferences;
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+
+    renderWithProvider(<TopTradersSection {...defaultProps} />);
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        ),
+      );
+    });
+
+    expect(mockToggleFollow).not.toHaveBeenCalled();
+  });
+
+  it('performs the follow when notifications are enabled before the sheet closes', async () => {
+    const mockToggleFollow = jest.fn().mockResolvedValue(undefined);
+    mockNotificationPreferences = channelsDisabledPreferences;
+    mockUseTopTraders.mockReturnValue({
+      traders: mockTraders,
+      isLoading: false,
+      isFetching: false,
+      error: null,
+      refresh: mockRefetch,
+      toggleFollow: mockToggleFollow,
+    });
+
+    const { rerender } = renderWithProvider(
+      <TopTradersSection {...defaultProps} />,
+    );
+
+    await act(async () => {
+      fireEvent.press(screen.getByText('Follow'));
+    });
+
+    mockNotificationPreferences = {
+      ...channelsDisabledPreferences,
+      pushNotificationsEnabled: true,
+    };
+    rerender(<TopTradersSection {...defaultProps} />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        ),
+      );
+    });
+
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
   });
 
   it('renders the error state instead of the carousel when the fetch fails', () => {

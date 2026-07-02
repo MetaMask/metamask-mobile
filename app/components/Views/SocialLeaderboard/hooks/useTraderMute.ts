@@ -1,16 +1,31 @@
 import { useCallback } from 'react';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
+import {
+  areTradingSignalsChannelsDisabled,
+  areTradingSignalsChannelsEnabled,
+} from '../NotificationPreferences/hooks/tradingSignalsChannels';
 
 export interface UseTraderMuteResult {
   /** True when the trader is followed but their alerts are paused. */
   isMuted: boolean;
   /**
    * True when muting is actionable: the user has notification preferences and
-   * push notifications are enabled. When false, there is nothing to mute yet,
-   * so the inline chip should stay hidden and setup is handled elsewhere.
+   * push notifications are enabled.
    */
   isMuteAvailable: boolean;
+  /**
+   * True when the inline bell can render for a followed trader. Requires saved
+   * notification preferences; push may still be off (tap then opens setup).
+   */
+  showMuteChip: boolean;
+  /** True when both channels are off but preferences exist — follow/unmute should prompt setup. */
+  needsNotificationSetup: boolean;
+  /**
+   * Visual mute state for the bell chip: muted when the trader is paused or
+   * when both trading-signal channels are disabled globally.
+   */
+  isChipMuted: boolean;
   /** Optimistically flips the muted state for this trader. */
   toggleMute: () => void;
 }
@@ -36,15 +51,24 @@ export const useTraderMute = (traderId: string): UseTraderMuteResult => {
   } = useNotificationPreferences();
 
   const isMuteAvailable =
-    hasNotificationPreferences && preferences.pushNotificationsEnabled;
+    hasNotificationPreferences && areTradingSignalsChannelsEnabled(preferences);
+  const showMuteChip = hasNotificationPreferences;
+  const needsNotificationSetup =
+    hasNotificationPreferences &&
+    areTradingSignalsChannelsDisabled(preferences);
 
   const toggleMute = useCallback(() => {
     toggleTraderNotification(traderId);
   }, [toggleTraderNotification, traderId]);
 
+  const isMuted = !isTraderNotificationEnabled(traderId);
+
   return {
-    isMuted: !isTraderNotificationEnabled(traderId),
+    isMuted,
     isMuteAvailable,
+    showMuteChip,
+    needsNotificationSetup,
+    isChipMuted: isMuted || needsNotificationSetup,
     toggleMute,
   };
 };

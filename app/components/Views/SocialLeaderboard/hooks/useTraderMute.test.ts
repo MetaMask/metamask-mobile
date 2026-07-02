@@ -22,6 +22,7 @@ const buildPreferences = (
   isLoading: false,
   error: null,
   setPushNotificationsEnabled: jest.fn(),
+  setInAppNotificationsEnabled: jest.fn(),
   setTxAmountLimit: jest.fn(),
   toggleTraderNotification: jest.fn(),
   isTraderNotificationEnabled: jest.fn(() => true),
@@ -49,7 +50,7 @@ describe('useTraderMute', () => {
     expect(result.current.isMuted).toBe(false);
   });
 
-  it('marks mute available only when push notifications are enabled', () => {
+  it('marks mute available when either trading-signal channel is enabled', () => {
     mockUseNotificationPreferences.mockReturnValue(
       buildPreferences({
         preferences: {
@@ -63,7 +64,7 @@ describe('useTraderMute', () => {
 
     const { result } = renderHook(() => useTraderMute('trader-1'));
 
-    expect(result.current.isMuteAvailable).toBe(false);
+    expect(result.current.isMuteAvailable).toBe(true);
   });
 
   it('marks mute unavailable when no notification preferences exist', () => {
@@ -74,6 +75,50 @@ describe('useTraderMute', () => {
     const { result } = renderHook(() => useTraderMute('trader-1'));
 
     expect(result.current.isMuteAvailable).toBe(false);
+    expect(result.current.showMuteChip).toBe(false);
+    expect(result.current.needsNotificationSetup).toBe(false);
+  });
+
+  it('shows the mute chip as active when in-app is on but push is off', () => {
+    mockUseNotificationPreferences.mockReturnValue(
+      buildPreferences({
+        preferences: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: true,
+          txAmountLimit: 100,
+          mutedTraderProfileIds: [],
+        },
+        isTraderNotificationEnabled: jest.fn(() => true),
+      }),
+    );
+
+    const { result } = renderHook(() => useTraderMute('trader-1'));
+
+    expect(result.current.needsNotificationSetup).toBe(false);
+    expect(result.current.isMuteAvailable).toBe(true);
+    expect(result.current.isChipMuted).toBe(false);
+  });
+
+  it('shows the mute chip as muted when both channels are off', () => {
+    mockUseNotificationPreferences.mockReturnValue(
+      buildPreferences({
+        preferences: {
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+          txAmountLimit: 100,
+          mutedTraderProfileIds: [],
+        },
+        isTraderNotificationEnabled: jest.fn(() => true),
+      }),
+    );
+
+    const { result } = renderHook(() => useTraderMute('trader-1'));
+
+    expect(result.current.showMuteChip).toBe(true);
+    expect(result.current.needsNotificationSetup).toBe(true);
+    expect(result.current.isMuteAvailable).toBe(false);
+    expect(result.current.isMuted).toBe(false);
+    expect(result.current.isChipMuted).toBe(true);
   });
 
   it('toggles the underlying trader notification with the trader id', () => {

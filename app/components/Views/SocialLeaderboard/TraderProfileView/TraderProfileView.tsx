@@ -1,13 +1,4 @@
-import React, {
-  useCallback,
-  useMemo,
-  useEffect,
-  useRef,
-  useState,
-} from 'react';
-import { RefreshControl, TouchableOpacity } from 'react-native';
-import Animated from 'react-native-reanimated';
-import { useSelector } from 'react-redux';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import {
   Box,
   BoxAlignItems,
@@ -30,24 +21,43 @@ import {
   type NavigationProp,
   type RouteProp,
 } from '@react-navigation/native';
-import {
-  SocialLeaderboardEventProperties,
-  useSocialLeaderboardAnalytics,
-} from '../analytics';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { chainNameToId } from '../utils/chainMapping';
-import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import { RefreshControl, TouchableOpacity } from 'react-native';
+import Animated from 'react-native-reanimated';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import {
   ImpactMoment,
   playImpact,
   playSelection,
 } from '../../../../util/haptics';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { toAssetId } from '../../../UI/Bridge/hooks/useAssetMetadata/utils';
+import {
+  SocialLeaderboardEventProperties,
+  useSocialLeaderboardAnalytics,
+} from '../analytics';
+import { chainNameToId } from '../utils/chainMapping';
+
+import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
+import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
+import TraderMuteChip from '../components/TraderMuteChip';
+import TradingSignalsSetupBottomSheet, {
+  type TradingSignalsSetupBottomSheetRef,
+} from '../components/TradingSignalsSetupBottomSheet';
+import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup';
+import { useTraderMute } from '../hooks/useTraderMute';
+import { HYPERLIQUID_CHAIN_NAME, isPerpPosition } from '../utils/perp';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
 import ProfileHeader from './components/ProfileHeader';
@@ -59,11 +69,7 @@ import {
 import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
 import TraderProfileCompactStats from './components/TraderProfileCompactStats';
-import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
-import TraderMuteChip from '../components/TraderMuteChip';
-import { useTraderMute } from '../hooks/useTraderMute';
 import { useTraderPositions, useTraderProfile } from './hooks';
-import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import {
   CLOSED_SORT_CYCLE,
   OPEN_SORT_CYCLE,
@@ -72,7 +78,6 @@ import {
   type OpenSortKey,
   type SortKey,
 } from './utils/sortPositions';
-import { HYPERLIQUID_CHAIN_NAME, isPerpPosition } from '../utils/perp';
 
 const POSITION_SKELETON_COUNT = 4;
 const POSITION_SKELETON_KEYS = Array.from(
@@ -197,7 +202,11 @@ const TraderProfileView = () => {
     });
   }, [profile, traderAddress, source, isFollowing, traderRank, track]);
 
-  const { isMuted, isMuteAvailable, toggleMute } = useTraderMute(traderId);
+  const { isChipMuted, isMuted, showMuteChip, toggleMute } =
+    useTraderMute(traderId);
+  const setupSheetRef = useRef<TradingSignalsSetupBottomSheetRef>(null);
+  const { openSetupIfNeeded, onSetupDismiss } =
+    useOpenTradingSignalsSetup(setupSheetRef);
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
   const [openSort, setOpenSort] = useState<OpenSortKey>('value');
@@ -220,15 +229,35 @@ const TraderProfileView = () => {
     }
   }, [refresh, refetchPositions]);
 
-  const handleFollowPress = useCallback(() => {
-    toggleFollow({
-      source: 'trader_profile',
-      traderAddress: traderAddress || profile?.profile.address || '',
-      traderUsername: profile?.profile.name,
-      // Rank only meaningful when arriving from a ranked surface; omit on
-      // trader_profile to keep schema clean.
-    });
-  }, [toggleFollow, traderAddress, profile]);
+  const handleFollowPress = useCallback(async () => {
+    const wasFollowing = isFollowing;
+    const performFollow = () =>
+      toggleFollow({
+        source: 'trader_profile',
+        traderAddress: traderAddress || profile?.profile.address || '',
+        traderUsername: profile?.profile.name,
+        // Rank only meaningful when arriving from a ranked surface; omit on
+        // trader_profile to keep schema clean.
+      });
+    if (!wasFollowing && openSetupIfNeeded(performFollow)) {
+      return;
+    }
+    await performFollow();
+  }, [toggleFollow, traderAddress, profile, isFollowing, openSetupIfNeeded]);
+
+  const handleMutePress = useCallback(() => {
+    // Tapping a bell that only looks disabled because notifications are off
+    // means "enable"; forward an idempotent unmute rather than a toggle.
+    const ensureUnmuted = () => {
+      if (isMuted) {
+        toggleMute();
+      }
+    };
+    if (openSetupIfNeeded(ensureUnmuted)) {
+      return;
+    }
+    toggleMute();
+  }, [openSetupIfNeeded, toggleMute, isMuted]);
 
   const handleTabChange = useCallback(
     (tab: 'open' | 'closed') => {
@@ -435,11 +464,11 @@ const TraderProfileView = () => {
                           : strings('social_leaderboard.follow')}
                       </Button>
                     </Box>
-                    {isMuteAvailable && (
+                    {showMuteChip && (
                       <TraderMuteChip
-                        isMuted={isMuted}
+                        isMuted={isChipMuted}
                         visible={isFollowing}
-                        onPress={toggleMute}
+                        onPress={handleMutePress}
                         traderName={profile?.profile.name}
                         testID={TraderProfileViewSelectorsIDs.MUTE_CHIP}
                       />
@@ -524,6 +553,11 @@ const TraderProfileView = () => {
           )}
         </Animated.ScrollView>
       </Box>
+
+      <TradingSignalsSetupBottomSheet
+        ref={setupSheetRef}
+        onDismiss={onSetupDismiss}
+      />
     </SafeAreaView>
   );
 };

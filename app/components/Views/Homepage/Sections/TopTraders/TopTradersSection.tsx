@@ -36,6 +36,13 @@ import { TOP_TRADER_CARD_WIDTH } from './components/TopTraderCard';
 import { ALL_CHAINS, SPOT_CHAINS } from '../../../shared/top-traders-constants';
 import { usePrefetchTraderProfiles, useTopTraders } from './hooks';
 import type { TopTrader } from './types';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
+import TradingSignalsSetupBottomSheet, {
+  type TradingSignalsSetupBottomSheetRef,
+} from '../../../SocialLeaderboard/components/TradingSignalsSetupBottomSheet';
+/* eslint-enable import-x/no-restricted-paths */
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import { useOpenTradingSignalsSetup } from '../../../SocialLeaderboard/hooks/useOpenTradingSignalsSetup';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { WalletViewSelectorsIDs } from '../../../Wallet/WalletView.testIds';
 
@@ -71,6 +78,9 @@ const TopTradersSection = forwardRef<
   TopTradersSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
+  const setupSheetRef = useRef<TradingSignalsSetupBottomSheetRef>(null);
+  const { openSetupIfNeeded, onSetupDismiss } =
+    useOpenTradingSignalsSetup(setupSheetRef);
   const navigation = useNavigation<AppNavigationProp>();
   const tw = useTailwind();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
@@ -188,16 +198,22 @@ const TopTradersSection = forwardRef<
   );
 
   const handleFollowPress = useCallback(
-    (traderId: string) => {
+    async (traderId: string) => {
       const trader = traders.find((t) => t.id === traderId);
-      toggleFollow(traderId, {
-        source: 'home_carousel',
-        traderAddress: trader?.address ?? '',
-        traderUsername: trader?.username,
-        traderRank: trader?.rank,
-      });
+      const wasFollowing = trader?.isFollowing ?? false;
+      const performFollow = () =>
+        toggleFollow(traderId, {
+          source: 'home_carousel',
+          traderAddress: trader?.address ?? '',
+          traderUsername: trader?.username,
+          traderRank: trader?.rank,
+        });
+      if (!wasFollowing && openSetupIfNeeded(performFollow)) {
+        return;
+      }
+      await performFollow();
     },
-    [traders, toggleFollow],
+    [traders, toggleFollow, openSetupIfNeeded],
   );
 
   const onViewableItemsChanged = useRef(
@@ -281,47 +297,56 @@ const TopTradersSection = forwardRef<
   }
 
   return (
-    <View
-      ref={sectionViewRef}
-      onLayout={handleSectionLayout}
-      testID="homepage-top-traders-section-root"
-    >
-      <Box paddingBottom={3}>
-        <SectionDivider />
-        <SectionHeader
-          title={title}
-          isInteractive
-          onPress={handleViewAll}
-          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('top-traders')}
-        />
-        <Box paddingTop={3}>
-          {showSkeletons ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={tw.style('px-4 gap-3')}
-              testID="homepage-top-traders-carousel"
-            >
-              {SKELETON_KEYS.map((key) => (
-                <TopTraderCardSkeleton key={key} />
-              ))}
-            </ScrollView>
-          ) : (
-            <FlatList
-              horizontal
-              data={carouselData}
-              renderItem={renderCarouselItem}
-              keyExtractor={keyExtractor}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
-              testID="homepage-top-traders-carousel"
-              viewabilityConfig={viewabilityConfig}
-              onViewableItemsChanged={onViewableItemsChanged}
-            />
-          )}
+    <>
+      <View
+        ref={sectionViewRef}
+        onLayout={handleSectionLayout}
+        testID="homepage-top-traders-section-root"
+      >
+        <Box paddingBottom={3}>
+          <SectionDivider />
+          <SectionHeader
+            title={title}
+            isInteractive
+            onPress={handleViewAll}
+            testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+              'top-traders',
+            )}
+          />
+          <Box paddingTop={3}>
+            {showSkeletons ? (
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={tw.style('px-4 gap-3')}
+                testID="homepage-top-traders-carousel"
+              >
+                {SKELETON_KEYS.map((key) => (
+                  <TopTraderCardSkeleton key={key} />
+                ))}
+              </ScrollView>
+            ) : (
+              <FlatList
+                horizontal
+                data={carouselData}
+                renderItem={renderCarouselItem}
+                keyExtractor={keyExtractor}
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={tw.style('px-4 gap-3 items-stretch')}
+                testID="homepage-top-traders-carousel"
+                viewabilityConfig={viewabilityConfig}
+                onViewableItemsChanged={onViewableItemsChanged}
+              />
+            )}
+          </Box>
         </Box>
-      </Box>
-    </View>
+      </View>
+
+      <TradingSignalsSetupBottomSheet
+        ref={setupSheetRef}
+        onDismiss={onSetupDismiss}
+      />
+    </>
   );
 });
 

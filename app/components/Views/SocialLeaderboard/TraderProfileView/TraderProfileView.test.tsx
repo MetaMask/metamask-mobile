@@ -13,6 +13,7 @@ import type { UseTraderPositionsResult } from './hooks/useTraderPositions';
 import type { UseTraderProfileResult } from './hooks/useTraderProfile';
 import TraderProfileView from './TraderProfileView';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
+import { TradingSignalsSetupBottomSheetSelectorsIDs } from '../components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet.testIds';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 const mockGoBack = jest.fn();
@@ -22,12 +23,50 @@ const mockRefresh = jest.fn();
 const mockRefetchPositions = jest.fn();
 const mockPlayImpact = jest.fn().mockResolvedValue(undefined);
 const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
+const mockPlayErrorNotification = jest.fn().mockResolvedValue(undefined);
 
 jest.mock('../../../../util/haptics', () => ({
   ...jest.requireActual('../../../../util/haptics'),
   playImpact: (...args: unknown[]) => mockPlayImpact(...args),
   playSelection: (...args: unknown[]) => mockPlaySelection(...args),
+  playErrorNotification: (...args: unknown[]) =>
+    mockPlayErrorNotification(...args),
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      props: {
+        children?: React.ReactNode;
+        testID?: string;
+        onClose?: () => void;
+      },
+      ref: React.Ref<{
+        onCloseBottomSheet: (callback?: () => void) => void;
+        onOpenBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (cb?: () => void) => {
+          props.onClose?.();
+          cb?.();
+        },
+        onOpenBottomSheet: (cb?: () => void) => {
+          cb?.();
+        },
+      }));
+      return ReactActual.createElement(
+        View,
+        { testID: props.testID ?? 'bottom-sheet' },
+        props.children,
+      );
+    },
+  );
+  return { ...actual, BottomSheet: MockBottomSheet };
+});
 
 jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
   getAssetImageUrl: () => 'https://example.com/token.png',
@@ -62,6 +101,7 @@ let mockNotificationPreferences: SocialAIPreference = {
 };
 let mockIsLoadingPreferences = false;
 const mockSetPushNotificationsEnabled = jest.fn();
+const mockSetInAppNotificationsEnabled = jest.fn();
 const mockSetTxAmountLimit = jest.fn();
 const mockToggleTraderNotification = jest.fn();
 const mockIsTraderNotificationEnabled = jest.fn().mockReturnValue(true);
@@ -75,6 +115,7 @@ jest.mock('../NotificationPreferences/hooks', () => ({
     isLoading: mockIsLoadingPreferences,
     error: null,
     setPushNotificationsEnabled: mockSetPushNotificationsEnabled,
+    setInAppNotificationsEnabled: mockSetInAppNotificationsEnabled,
     setTxAmountLimit: mockSetTxAmountLimit,
     toggleTraderNotification: mockToggleTraderNotification,
     isTraderNotificationEnabled: mockIsTraderNotificationEnabled,
@@ -328,6 +369,15 @@ jest.mock('./hooks', () => ({
   useTraderPositions: () => mockPositionsResult,
 }));
 
+const channelsDisabledPreferences: SocialAIPreference = {
+  ...DEFAULT_SOCIAL_AI_PREFERENCES,
+  pushNotificationsEnabled: false,
+  inAppNotificationsEnabled: false,
+  mutedTraderProfileIds: [
+    ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+  ],
+};
+
 describe('TraderProfileView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -349,6 +399,7 @@ describe('TraderProfileView', () => {
     };
     mockRefresh.mockResolvedValue(undefined);
     mockRefetchPositions.mockResolvedValue(undefined);
+    mockToggleFollow.mockResolvedValue(undefined);
     mockNotificationPreferences = {
       ...DEFAULT_SOCIAL_AI_PREFERENCES,
       mutedTraderProfileIds: [
@@ -441,10 +492,214 @@ describe('TraderProfileView', () => {
     expect(screen.getByText('Following')).toBeOnTheScreen();
   });
 
-  it('calls toggleFollow when the follow button is pressed', () => {
+  it('calls toggleFollow when the follow button is pressed', async () => {
     renderWithProvider(<TraderProfileView />);
-    fireEvent.press(screen.getByTestId('trader-profile-follow-button'));
+    await act(async () => {
+      fireEvent.press(screen.getByTestId('trader-profile-follow-button'));
+    });
     expect(mockToggleFollow).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the trading signals setup sheet when following with both channels off', async () => {
+    mockNotificationPreferences = {
+      ...DEFAULT_SOCIAL_AI_PREFERENCES,
+      pushNotificationsEnabled: false,
+      inAppNotificationsEnabled: false,
+      mutedTraderProfileIds: [
+        ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+      ],
+    };
+
+    renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.FOLLOW_BUTTON),
+      );
+    });
+
+    expect(
+      screen.getByTestId(TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(mockToggleFollow).not.toHaveBeenCalled();
+    expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('follows immediately without a haptic when a channel is already enabled', async () => {
+    renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.FOLLOW_BUTTON),
+      );
+    });
+
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
+    expect(mockPlayErrorNotification).not.toHaveBeenCalled();
+    expect(
+      screen.queryByTestId(
+        TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER,
+      ),
+    ).toBeNull();
+  });
+
+  it('drops the follow when the setup sheet is dismissed without enabling notifications', async () => {
+    mockNotificationPreferences = channelsDisabledPreferences;
+
+    renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.FOLLOW_BUTTON),
+      );
+    });
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        ),
+      );
+    });
+
+    expect(mockToggleFollow).not.toHaveBeenCalled();
+  });
+
+  it('performs the follow when notifications are enabled before the sheet closes', async () => {
+    mockNotificationPreferences = channelsDisabledPreferences;
+
+    const { rerender } = renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.FOLLOW_BUTTON),
+      );
+    });
+
+    mockNotificationPreferences = {
+      ...channelsDisabledPreferences,
+      pushNotificationsEnabled: true,
+    };
+    rerender(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        ),
+      );
+    });
+
+    expect(mockToggleFollow).toHaveBeenCalledTimes(1);
+  });
+
+  it('opens the setup sheet instead of toggling mute when both channels are off', async () => {
+    mockProfileResult.isFollowing = true;
+    mockNotificationPreferences = {
+      ...DEFAULT_SOCIAL_AI_PREFERENCES,
+      pushNotificationsEnabled: false,
+      inAppNotificationsEnabled: false,
+      mutedTraderProfileIds: ['trader-1'],
+    };
+    mockIsTraderNotificationEnabled.mockReturnValue(false);
+
+    renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.MUTE_CHIP),
+      );
+    });
+
+    expect(
+      screen.getByTestId(TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER),
+    ).toBeOnTheScreen();
+    expect(mockToggleTraderNotification).not.toHaveBeenCalled();
+    expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps the trader unmuted when the bell intercept fires for an already-unmuted trader', async () => {
+    mockProfileResult.isFollowing = true;
+    mockNotificationPreferences = channelsDisabledPreferences;
+    mockIsTraderNotificationEnabled.mockReturnValue(true);
+
+    const { rerender } = renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.MUTE_CHIP),
+      );
+    });
+
+    mockNotificationPreferences = {
+      ...channelsDisabledPreferences,
+      pushNotificationsEnabled: true,
+    };
+    rerender(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        ),
+      );
+    });
+
+    expect(mockToggleTraderNotification).not.toHaveBeenCalled();
+  });
+
+  it('unmutes the trader when the bell intercept fires for a muted trader', async () => {
+    mockProfileResult.isFollowing = true;
+    mockNotificationPreferences = {
+      ...channelsDisabledPreferences,
+      mutedTraderProfileIds: ['trader-1'],
+    };
+    mockIsTraderNotificationEnabled.mockReturnValue(false);
+
+    const { rerender } = renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.MUTE_CHIP),
+      );
+    });
+
+    mockNotificationPreferences = {
+      ...channelsDisabledPreferences,
+      pushNotificationsEnabled: true,
+      mutedTraderProfileIds: ['trader-1'],
+    };
+    rerender(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(
+          TradingSignalsSetupBottomSheetSelectorsIDs.CLOSE_BUTTON,
+        ),
+      );
+    });
+
+    expect(mockToggleTraderNotification).toHaveBeenCalledTimes(1);
+  });
+
+  it('toggles mute normally when notifications are already enabled', async () => {
+    mockProfileResult.isFollowing = true;
+
+    renderWithProvider(<TraderProfileView />);
+
+    await act(async () => {
+      fireEvent.press(
+        screen.getByTestId(TraderProfileViewSelectorsIDs.MUTE_CHIP),
+      );
+    });
+
+    expect(mockToggleTraderNotification).toHaveBeenCalledTimes(1);
+    expect(mockPlayErrorNotification).not.toHaveBeenCalled();
+    expect(
+      screen.queryByTestId(
+        TradingSignalsSetupBottomSheetSelectorsIDs.CONTAINER,
+      ),
+    ).toBeNull();
   });
 
   it('renders open positions', () => {

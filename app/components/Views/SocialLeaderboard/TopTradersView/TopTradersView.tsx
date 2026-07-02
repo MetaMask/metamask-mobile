@@ -53,6 +53,11 @@ import { useTheme } from '../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
+import { areTradingSignalsChannelsDisabled } from '../NotificationPreferences/hooks/tradingSignalsChannels';
+import TradingSignalsSetupBottomSheet, {
+  type TradingSignalsSetupBottomSheetRef,
+} from '../components/TradingSignalsSetupBottomSheet';
+import { useOpenTradingSignalsSetup } from '../hooks/useOpenTradingSignalsSetup';
 import {
   TraderRow,
   TraderRowSkeleton,
@@ -248,8 +253,13 @@ const TopTradersView = () => {
     isTraderNotificationEnabled,
     toggleTraderNotification,
   } = useNotificationPreferences();
-  const isMuteAvailable =
-    hasSocialAiPreferences && notificationPreferences.pushNotificationsEnabled;
+  const showMuteChip = hasSocialAiPreferences;
+  const needsNotificationSetup =
+    hasSocialAiPreferences &&
+    areTradingSignalsChannelsDisabled(notificationPreferences);
+  const setupSheetRef = useRef<TradingSignalsSetupBottomSheetRef>(null);
+  const { openSetupIfNeeded, onSetupDismiss } =
+    useOpenTradingSignalsSetup(setupSheetRef);
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
   const title = strings('social_leaderboard.top_traders_view.title');
@@ -376,16 +386,22 @@ const TopTradersView = () => {
   );
 
   const handleFollowPress = useCallback(
-    (traderId: string) => {
+    async (traderId: string) => {
       const trader = traders.find((t) => t.id === traderId);
-      toggleFollow(traderId, {
-        source: 'leaderboard',
-        traderAddress: trader?.address ?? '',
-        traderUsername: trader?.username,
-        traderRank: trader?.rank,
-      });
+      const wasFollowing = trader?.isFollowing ?? false;
+      const performFollow = () =>
+        toggleFollow(traderId, {
+          source: 'leaderboard',
+          traderAddress: trader?.address ?? '',
+          traderUsername: trader?.username,
+          traderRank: trader?.rank,
+        });
+      if (!wasFollowing && openSetupIfNeeded(performFollow)) {
+        return;
+      }
+      await performFollow();
     },
-    [traders, toggleFollow],
+    [traders, toggleFollow, openSetupIfNeeded],
   );
 
   const {
@@ -502,9 +518,19 @@ const TopTradersView = () => {
 
   const handleMuteToggle = useCallback(
     (traderId: string) => {
+      // Tapping a bell that only looks disabled because notifications are off
+      // means "enable"; forward an idempotent unmute rather than a toggle.
+      const ensureUnmuted = () => {
+        if (!isTraderNotificationEnabled(traderId)) {
+          toggleTraderNotification(traderId);
+        }
+      };
+      if (openSetupIfNeeded(ensureUnmuted)) {
+        return;
+      }
       toggleTraderNotification(traderId);
     },
-    [toggleTraderNotification],
+    [openSetupIfNeeded, toggleTraderNotification, isTraderNotificationEnabled],
   );
 
   const renderTraderRow = useCallback(
@@ -513,15 +539,18 @@ const TopTradersView = () => {
         trader={item}
         onFollowPress={handleFollowPress}
         onTraderPress={handleTraderPress}
-        showMute={isMuteAvailable}
-        isMuted={!isTraderNotificationEnabled(item.id)}
+        showMute={showMuteChip}
+        isMuted={
+          !isTraderNotificationEnabled(item.id) || needsNotificationSetup
+        }
         onMuteToggle={handleMuteToggle}
       />
     ),
     [
       handleFollowPress,
       handleTraderPress,
-      isMuteAvailable,
+      showMuteChip,
+      needsNotificationSetup,
       isTraderNotificationEnabled,
       handleMuteToggle,
     ],
@@ -650,6 +679,11 @@ const TopTradersView = () => {
           />
         </Animated.View>
       </Box>
+
+      <TradingSignalsSetupBottomSheet
+        ref={setupSheetRef}
+        onDismiss={onSetupDismiss}
+      />
     </SafeAreaView>
   );
 };
