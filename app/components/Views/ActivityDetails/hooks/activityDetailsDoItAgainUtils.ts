@@ -1,6 +1,14 @@
-import type { CaipChainId } from '@metamask/utils';
+import type { CaipAssetType, CaipChainId } from '@metamask/utils';
+import {
+  formatChainIdToHex,
+  isNonEvmChainId,
+} from '@metamask/bridge-controller';
 import { NATIVE_SWAPS_TOKEN_ADDRESS } from '../../../../constants/bridge';
 import type { BridgeToken } from '../../../UI/Bridge/types';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses Bridge token helpers for "swap again"; route-isolation backlog */
+import { getTokenIconUrl } from '../../../UI/Bridge/utils';
+import { normalizeTokenAddress } from '../../../UI/Bridge/utils/tokenUtils';
+/* eslint-enable import-x/no-restricted-paths */
 import type { TokenAmount } from '../../../../util/activity-adapters';
 import {
   getAssetIdCaipChainId,
@@ -41,10 +49,20 @@ export function toBridgeToken(
     return undefined;
   }
 
+  const chainId = getActivityTokenCaipChainId(token, fallbackCaipChainId);
+  const image = token?.assetId
+    ? getTokenIconUrl(token.assetId as CaipAssetType, isNonEvmChainId(chainId))
+    : undefined;
+  const rawAddress = address ?? NATIVE_SWAPS_TOKEN_ADDRESS;
+  const normalizedAddress = isNonEvmChainId(chainId)
+    ? rawAddress
+    : normalizeTokenAddress(rawAddress, formatChainIdToHex(chainId));
+
   return {
-    address: address ?? NATIVE_SWAPS_TOKEN_ADDRESS,
+    address: normalizedAddress,
     symbol,
     decimals,
-    chainId: getActivityTokenCaipChainId(token, fallbackCaipChainId),
+    chainId,
+    ...(image ? { image } : {}),
   };
 }

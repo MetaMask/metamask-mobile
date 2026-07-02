@@ -1,7 +1,7 @@
 import { BigNumber } from 'bignumber.js';
 import { formatWithThreshold } from '../../../../util/assets';
 import { getLocaleLanguageCode } from '../../../hooks/useFormatters';
-import { moneyFormatFiat } from './moneyFormatFiat';
+import { moneyFormatFiat, moneyFormatUsd } from './moneyFormatFiat';
 
 jest.mock('../../../../util/assets', () => ({
   formatWithThreshold: jest.fn(),
@@ -124,6 +124,39 @@ describe('moneyFormatFiat', () => {
         style: 'currency',
         currency: 'usd',
       });
+    });
+  });
+
+  describe('moneyFormatUsd', () => {
+    it('always formats as USD with en-US locale, ignoring the user locale', () => {
+      mockGetLocaleLanguageCode.mockReturnValue('de');
+
+      moneyFormatUsd(new BigNumber(1234.56));
+
+      expect(mockFormatWithThreshold).toHaveBeenCalledWith(
+        1234.56,
+        0.01,
+        'en-US',
+        {
+          style: 'currency',
+          currency: 'USD',
+        },
+      );
+    });
+
+    it('collapses sub-cent dust to 0', () => {
+      moneyFormatUsd(new BigNumber(-0.004));
+
+      expect(mockFormatWithThreshold).toHaveBeenCalledWith(0, 0.01, 'en-US', {
+        style: 'currency',
+        currency: 'USD',
+      });
+    });
+
+    it('returns the string produced by formatWithThreshold', () => {
+      mockFormatWithThreshold.mockReturnValue('$1,234.56');
+
+      expect(moneyFormatUsd(new BigNumber(1234.56))).toBe('$1,234.56');
     });
   });
 });
