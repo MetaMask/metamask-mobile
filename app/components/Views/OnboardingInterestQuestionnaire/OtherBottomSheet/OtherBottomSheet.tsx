@@ -68,7 +68,7 @@ const OtherBottomSheet = ({
         keyboardShouldPersistTaps="handled"
         enableOnAndroid
         enableAutomaticScroll
-        extraScrollHeight={Platform.OS === 'android' ? 250 : 20}
+        extraScrollHeight={Platform.OS === 'android' ? 230 : 20}
         contentContainerStyle={tw.style('px-4')}
       >
         <TextInput
