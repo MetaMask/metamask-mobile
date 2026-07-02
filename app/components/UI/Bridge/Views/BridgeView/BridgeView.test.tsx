@@ -11,6 +11,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
 import BridgeView from '.';
+import { areDisplayedBridgeTokensSyncedWithRedux } from './BridgeView.utils';
 import type { BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation';
 import { createBridgeTestState } from '../../testUtils';
 import { BridgeToken, BridgeViewMode, SecurityDataType } from '../../types';
@@ -34,6 +35,7 @@ import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
 import { Button } from '@metamask/design-system-react-native';
 import { FEATURE_FLAG_NAME } from '../../../../../selectors/featureFlagController/rwa';
+import { InteractionManager } from 'react-native';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -407,6 +409,133 @@ describe('BridgeView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeTruthy();
+  });
+
+  it('shows prefilled form shell and defers heavy bridge content when entered from ActivityDetails', () => {
+    let runDeferredBridgeContent: (() => void) | undefined;
+    const runAfterInteractionsSpy = jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((callback) => {
+        runDeferredBridgeContent = callback as () => void;
+        return {
+          then: jest.fn(),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        };
+      });
+    mockRoute.params = {
+      sourcePage: 'ActivityDetails',
+      sourceToken: {
+        address: '0x0000000000000000000000000000000000000000',
+        chainId: '0x1' as Hex,
+        decimals: 18,
+        symbol: 'ETH',
+      },
+      destToken: {
+        address: token2Address,
+        chainId: '0x1' as Hex,
+        decimals: 18,
+        symbol: 'TOKEN2',
+      },
+      sourceAmount: '1.23',
+    } as BridgeRouteParams;
+
+    const staleReduxState = {
+      ...mockState,
+      bridge: {
+        ...mockState.bridge,
+        sourceAmount: '9',
+        sourceToken: {
+          address: '0x0000000000000000000000000000000000000009',
+          chainId: '0x1' as Hex,
+          decimals: 18,
+          symbol: 'OLD',
+        },
+        destToken: {
+          address: '0x0000000000000000000000000000000000000008',
+          chainId: '0x1' as Hex,
+          decimals: 18,
+          symbol: 'OLD_DEST',
+        },
+      },
+    };
+
+    const { getByText, getByTestId, queryByTestId, queryByText } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: staleReduxState },
+    );
+
+    expect(getByText('ETH')).toBeTruthy();
+    expect(getByText('TOKEN2')).toBeTruthy();
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.QUOTE_DETAILS_SKELETON),
+    ).toBeTruthy();
+
+    act(() => {
+      runDeferredBridgeContent?.();
+    });
+
+    expect(getByText('ETH')).toBeTruthy();
+    expect(queryByText('OLD')).toBeNull();
+    expect(queryByText('OLD_DEST')).toBeNull();
+    expect(getByTestId('source-token-area-input').props.value).toBe('1.23');
+    expect(
+      getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
+    ).toBeTruthy();
+    expect(queryByTestId('quote-details-card')).toBeNull();
+    expect(queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON)).toBeNull();
+    expect(
+      queryByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON_KEYPAD),
+    ).toBeNull();
+    runAfterInteractionsSpy.mockRestore();
+  });
+
+  it('keeps flip disabled while displayed route tokens are not synced to Redux tokens', () => {
+    const reduxSourceToken = {
+      address: '0x0000000000000000000000000000000000000009',
+      chainId: '0x1' as Hex,
+      decimals: 18,
+      symbol: 'OLD',
+    };
+    const reduxDestToken = {
+      address: '0x0000000000000000000000000000000000000008',
+      chainId: '0x1' as Hex,
+      decimals: 18,
+      symbol: 'OLD_DEST',
+    };
+    const displaySourceToken = {
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0x1' as Hex,
+      decimals: 18,
+      symbol: 'ETH',
+    };
+    const displayDestToken = {
+      address: token2Address,
+      chainId: '0x1' as Hex,
+      decimals: 18,
+      symbol: 'TOKEN2',
+    };
+
+    expect(
+      areDisplayedBridgeTokensSyncedWithRedux({
+        sourceToken: reduxSourceToken,
+        destToken: reduxDestToken,
+        displaySourceToken,
+        displayDestToken,
+      }),
+    ).toBe(false);
+
+    expect(
+      areDisplayedBridgeTokensSyncedWithRedux({
+        sourceToken: displaySourceToken,
+        destToken: displayDestToken,
+        displaySourceToken,
+        displayDestToken,
+      }),
+    ).toBe(true);
   });
 
   it('scrolls to top and clears the route param when requested on focus', () => {
@@ -1525,16 +1654,61 @@ describe('BridgeView', () => {
     it('uses destToken from route params when provided', () => {
       mockRoute.params.destToken = mockDeepLinkDestToken;
 
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          destToken: undefined,
+        },
+      };
+
       const { getByText } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: mockState },
+        { state: testState },
       );
 
-      // Should display the deep link dest token symbol
+      // Should display the route-param dest token before Redux destToken is set.
       expect(getByText('USDT')).toBeTruthy();
+    });
+
+    it('does not let route destToken override a later Redux destination selection', async () => {
+      mockRoute.params.destToken = mockDeepLinkDestToken;
+      const manualDestToken = {
+        address: '0x0000000000000000000000000000000000000007',
+        chainId: '0x1' as Hex,
+        decimals: 18,
+        symbol: 'MANUAL',
+      };
+
+      const testState = {
+        ...mockState,
+        bridge: {
+          ...mockState.bridge,
+          destToken: undefined,
+        },
+      };
+
+      const { getByText, queryByText, store } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: testState },
+      );
+
+      expect(getByText('USDT')).toBeTruthy();
+
+      act(() => {
+        store.dispatch(setDestToken(manualDestToken));
+      });
+
+      await waitFor(() => {
+        expect(getByText('MANUAL')).toBeTruthy();
+      });
+      expect(queryByText('USDT')).toBeNull();
     });
 
     it('uses sourceAmount from route params when provided', () => {

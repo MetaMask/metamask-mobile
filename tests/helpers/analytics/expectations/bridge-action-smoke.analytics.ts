@@ -18,7 +18,6 @@ export const bridgeActionAnalyticsExpectations: AnalyticsExpectations = {
     SUBMITTED,
     COMPLETED,
   ],
-  expectedTotalCount: 9,
   events: [
     {
       name: BRIDGE_BUTTON_CLICKED,

@@ -1,5 +1,51 @@
-import { QuoteStreamCompleteReason } from '@metamask/bridge-controller';
+import {
+  formatChainIdToCaip,
+  QuoteStreamCompleteReason,
+} from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
+import { areAddressesEqual } from '../../../../../util/address';
+import { BridgeToken, BridgeViewMode } from '../../types';
+
+export const getHeaderTitle = (bridgeViewMode?: BridgeViewMode) => {
+  if (bridgeViewMode === BridgeViewMode.Bridge) {
+    return strings('bridge.title');
+  }
+
+  if (
+    bridgeViewMode === BridgeViewMode.Swap ||
+    bridgeViewMode === BridgeViewMode.Unified
+  ) {
+    return strings('swaps.title');
+  }
+
+  return `${strings('swaps.title')}/${strings('bridge.title')}`;
+};
+
+export const areBridgeTokensEqual = (
+  firstToken?: BridgeToken,
+  secondToken?: BridgeToken,
+) =>
+  Boolean(
+    firstToken &&
+      secondToken &&
+      areAddressesEqual(firstToken.address, secondToken.address) &&
+      formatChainIdToCaip(firstToken.chainId) ===
+        formatChainIdToCaip(secondToken.chainId),
+  );
+
+export const areDisplayedBridgeTokensSyncedWithRedux = ({
+  sourceToken,
+  destToken,
+  displaySourceToken,
+  displayDestToken,
+}: {
+  sourceToken?: BridgeToken;
+  destToken?: BridgeToken;
+  displaySourceToken?: BridgeToken;
+  displayDestToken?: BridgeToken;
+}) =>
+  areBridgeTokensEqual(sourceToken, displaySourceToken) &&
+  areBridgeTokensEqual(destToken, displayDestToken);
 
 export const getQuoteStreamReasonString = (
   reason?: QuoteStreamCompleteReason,

@@ -20,10 +20,12 @@ export const useBridgeExchangeRates = ({
   token,
   currencyOverride,
   action,
+  enabled = true,
 }: {
   token?: BridgeToken;
   currencyOverride?: string;
   action: typeof setSourceTokenExchangeRate | typeof setDestTokenExchangeRate;
+  enabled?: boolean;
 }) => {
   const dispatch = useThunkDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);
@@ -35,6 +37,10 @@ export const useBridgeExchangeRates = ({
 
   // Fetch exchange rates for selected token if not found in marketData
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
+
     if (token?.chainId && token?.address) {
       const exchangeRateInNativeAsset = exchangeRateFromMarketData(
         token.chainId,
@@ -55,6 +61,7 @@ export const useBridgeExchangeRates = ({
   }, [
     currency,
     dispatch,
+    enabled,
     token?.chainId,
     token?.address,
     evmMarketData,

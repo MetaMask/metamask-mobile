@@ -1,5 +1,6 @@
 import {
   setDestToken,
+  setIsDestTokenManuallySet,
   selectBridgeViewMode,
   selectDestToken,
   selectBip44DefaultPair,
@@ -41,6 +42,7 @@ export const useInitialDestToken = (
 
     if (initialDestToken && prevInitialDestToken !== initialDestToken) {
       dispatch(setDestToken(initialDestToken));
+      dispatch(setIsDestTokenManuallySet(true));
       return;
     }
 
