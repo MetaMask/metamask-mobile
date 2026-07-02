@@ -12,6 +12,29 @@ interface SwapOptions {
   slippage?: string;
 }
 
+/**
+ * Selects source/destination tokens and enters an amount without waiting for quotes.
+ */
+export async function enterSwapQuote(
+  quantity: string,
+  sourceTokenSymbol: string,
+  destTokenSymbol: string,
+  chainId: string,
+): Promise<void> {
+  await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea, {
+    timeout: 20000,
+  });
+  if (sourceTokenSymbol !== 'ETH') {
+    await QuoteView.tapSourceToken();
+    await QuoteView.tapToken(chainId, sourceTokenSymbol);
+  }
+  await QuoteView.tapSourceAmountInput();
+  await QuoteView.enterAmount(quantity);
+  await QuoteView.tapDestinationToken();
+  await QuoteView.tapToken(chainId, destTokenSymbol);
+  await QuoteView.dismissKeypad();
+}
+
 export async function submitSwapUnifiedUI(
   quantity: string,
   sourceTokenSymbol: string,
