@@ -1,4 +1,10 @@
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { LayoutChangeEvent } from 'react-native';
 import {
   runOnJS,
@@ -21,6 +27,9 @@ import { ActivityScreenSelectorsIDs } from './ActivityScreen.testIds';
 import ActivityTypeFilterSheet, {
   ACTIVITY_TYPE_FILTER_LABEL_KEY,
 } from './components/ActivityTypeFilterSheet';
+import PerpsActivityFilterSheet, {
+  PERPS_ACTIVITY_FILTER_LABEL_KEY,
+} from './components/PerpsActivityFilterSheet';
 import AssetListControlBar from './components/AssetListControlBar';
 import ActivityList, {
   // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
@@ -29,8 +38,15 @@ import ActivityList, {
 } from '../ActivityList';
 import { TrendingTokenNetworkBottomSheet } from '../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenNetworkBottomSheet';
 import type { CaipChainId } from '@metamask/utils';
-import { ActivityTypeFilter } from './types';
+import {
+  ActivityTypeFilter,
+  PerpsActivityFilter,
+  getPerpsSubFilterKinds,
+  resolveInitialActivityTypeFilter,
+  type ActivityScreenParams,
+} from './types';
 import { useNetworkFilterOptions } from './hooks/useNetworkFilterOptions';
+import { useParams } from '../../../util/navigation/navUtils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorBoundary from '../ErrorBoundary';
 
@@ -52,14 +68,25 @@ const ActivityScreen = () => {
   // const [searchQuery, setSearchQuery] = useState('');
   // TODO: restore `ActivityTypeFilter.All` as the default once data-source
   // unification lands. See `ACTIVITY_TYPE_FILTER_ORDER` in ./types.ts.
-  const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(
-    ActivityTypeFilter.Transactions,
+  const params = useParams<ActivityScreenParams>();
+  const {
+    initialTypeFilter: initialTypeFilterParam,
+    redirectToPerpsTransactions: redirectToPerpsParam,
+    redirectToOrders: redirectToOrdersParam,
+    initialPerpsFilter: initialPerpsFilterParam,
+  } = params;
+  const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(() =>
+    resolveInitialActivityTypeFilter(params),
   );
   const [isTypeSheetOpen, setIsTypeSheetOpen] = useState(false);
   const [networkFilter, setNetworkFilter] = useState<CaipChainId[] | null>(
     null,
   );
   const [isNetworkSheetOpen, setIsNetworkSheetOpen] = useState(false);
+  const [perpsFilter, setPerpsFilter] = useState<PerpsActivityFilter>(
+    () => initialPerpsFilterParam ?? PerpsActivityFilter.Trades,
+  );
+  const [isPerpsSheetOpen, setIsPerpsSheetOpen] = useState(false);
 
   const networkOptions = useNetworkFilterOptions();
 
@@ -78,22 +105,54 @@ const ActivityScreen = () => {
 
   const handleSelectTypeFilter = useCallback((filter: ActivityTypeFilter) => {
     setTypeFilter(filter);
+    if (filter !== ActivityTypeFilter.Perps) {
+      setPerpsFilter(PerpsActivityFilter.Trades);
+    }
   }, []);
 
-  const isTypeFilterActive = typeFilter !== ActivityTypeFilter.All;
-  const typeFilterLabel = isTypeFilterActive
-    ? strings('activity_view.filter_types_selected', {
-        label: strings(ACTIVITY_TYPE_FILTER_LABEL_KEY[typeFilter]),
-      })
-    : strings('activity_view.filter_all_types');
+  useEffect(() => {
+    if (
+      initialTypeFilterParam === undefined &&
+      !redirectToPerpsParam &&
+      !redirectToOrdersParam &&
+      initialPerpsFilterParam === undefined
+    ) {
+      return;
+    }
+    const resolvedTypeFilter = resolveInitialActivityTypeFilter({
+      initialTypeFilter: initialTypeFilterParam,
+      redirectToPerpsTransactions: redirectToPerpsParam,
+      redirectToOrders: redirectToOrdersParam,
+    });
+    handleSelectTypeFilter(resolvedTypeFilter);
+    if (resolvedTypeFilter === ActivityTypeFilter.Perps) {
+      setPerpsFilter(initialPerpsFilterParam ?? PerpsActivityFilter.Trades);
+    }
+    navigation.setParams({
+      initialTypeFilter: undefined,
+      redirectToPerpsTransactions: undefined,
+      redirectToOrders: undefined,
+      initialPerpsFilter: undefined,
+    });
+  }, [
+    initialTypeFilterParam,
+    redirectToPerpsParam,
+    redirectToOrdersParam,
+    initialPerpsFilterParam,
+    handleSelectTypeFilter,
+    navigation,
+  ]);
 
-  const isNetworkFilterDisabled =
-    typeFilter === ActivityTypeFilter.Perps ||
-    typeFilter === ActivityTypeFilter.Predictions;
+  const typeFilterLabel = strings(ACTIVITY_TYPE_FILTER_LABEL_KEY[typeFilter]);
+
+  const showPerpsFilter = typeFilter === ActivityTypeFilter.Perps;
+  const showNetworkFilter =
+    typeFilter !== ActivityTypeFilter.Perps &&
+    typeFilter !== ActivityTypeFilter.Predictions;
 
   const effectiveNetworkFilter = useMemo<CaipChainId[] | null>(
-    () => (isNetworkFilterDisabled ? null : networkFilter),
-    [isNetworkFilterDisabled, networkFilter],
+    () => (showNetworkFilter ? networkFilter : null),
+    [showNetworkFilter, networkFilter],
   );
 
   const isNetworkFilterActive =
@@ -104,10 +163,12 @@ const ActivityScreen = () => {
     : undefined;
   const networkFilterLabel =
     isNetworkFilterActive && selectedNetworkName
-      ? strings('activity_view.filter_network_selected', {
-          label: selectedNetworkName,
-        })
+      ? selectedNetworkName
       : strings('activity_view.filter_all_networks');
+
+  const perpsFilterLabel = strings(
+    PERPS_ACTIVITY_FILTER_LABEL_KEY[perpsFilter],
+  );
 
   const handleOpenNetworkSheet = useCallback(() => {
     setIsNetworkSheetOpen(true);
@@ -120,6 +181,56 @@ const ActivityScreen = () => {
   const handleSelectNetwork = useCallback((chainIds: CaipChainId[] | null) => {
     setNetworkFilter(chainIds);
   }, []);
+
+  const handleOpenPerpsSheet = useCallback(() => {
+    setIsPerpsSheetOpen(true);
+  }, []);
+
+  const handleClosePerpsSheet = useCallback(() => {
+    setIsPerpsSheetOpen(false);
+  }, []);
+
+  const handleSelectPerpsFilter = useCallback((filter: PerpsActivityFilter) => {
+    setPerpsFilter(filter);
+  }, []);
+
+  const typeChip = useMemo(
+    () => ({
+      label: typeFilterLabel,
+      onPress: handleOpenTypeSheet,
+      testID: ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP,
+    }),
+    [typeFilterLabel, handleOpenTypeSheet],
+  );
+
+  const secondaryChip = useMemo(() => {
+    if (showPerpsFilter) {
+      return {
+        label: perpsFilterLabel,
+        onPress: handleOpenPerpsSheet,
+        testID: ActivityScreenSelectorsIDs.PERPS_FILTER_CHIP,
+      };
+    }
+    if (showNetworkFilter) {
+      return {
+        label: networkFilterLabel,
+        onPress: handleOpenNetworkSheet,
+        testID: ActivityScreenSelectorsIDs.NETWORK_FILTER_CHIP,
+      };
+    }
+    return null;
+  }, [
+    showPerpsFilter,
+    showNetworkFilter,
+    perpsFilterLabel,
+    networkFilterLabel,
+    handleOpenPerpsSheet,
+    handleOpenNetworkSheet,
+  ]);
+
+  const subFilterKinds = showPerpsFilter
+    ? getPerpsSubFilterKinds(perpsFilter)
+    : undefined;
 
   const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
@@ -171,26 +282,12 @@ const ActivityScreen = () => {
         </Box>
 
         <AssetListControlBar
-          networkLabel={networkFilterLabel}
-          isNetworkFilterActive={isNetworkFilterActive}
-          isNetworkFilterDisabled={isNetworkFilterDisabled}
-          onNetworkPress={handleOpenNetworkSheet}
-          typeLabel={typeFilterLabel}
-          isTypeFilterActive={isTypeFilterActive}
-          onTypePress={handleOpenTypeSheet}
+          typeChip={typeChip}
+          secondaryChip={secondaryChip}
         />
       </Box>
     ),
-    [
-      handleOpenNetworkSheet,
-      handleOpenTypeSheet,
-      handleTitleLayout,
-      isNetworkFilterActive,
-      isNetworkFilterDisabled,
-      isTypeFilterActive,
-      networkFilterLabel,
-      typeFilterLabel,
-    ],
+    [handleTitleLayout, typeChip, secondaryChip],
   );
 
   return (
@@ -223,6 +320,7 @@ const ActivityScreen = () => {
               scrollY={scrollY}
               typeFilter={typeFilter}
               networkFilter={effectiveNetworkFilter}
+              subFilterKinds={subFilterKinds}
             />
 
             {isFilterBarPinned ? (
@@ -238,13 +336,8 @@ const ActivityScreen = () => {
                 </Box>
                 */}
                 <AssetListControlBar
-                  networkLabel={networkFilterLabel}
-                  isNetworkFilterActive={isNetworkFilterActive}
-                  isNetworkFilterDisabled={isNetworkFilterDisabled}
-                  onNetworkPress={handleOpenNetworkSheet}
-                  typeLabel={typeFilterLabel}
-                  isTypeFilterActive={isTypeFilterActive}
-                  onTypePress={handleOpenTypeSheet}
+                  typeChip={typeChip}
+                  secondaryChip={secondaryChip}
                   suppressTestIDs
                 />
               </Box>
@@ -257,6 +350,14 @@ const ActivityScreen = () => {
             selected={typeFilter}
             onSelect={handleSelectTypeFilter}
             onClose={handleCloseTypeSheet}
+          />
+        ) : null}
+
+        {isPerpsSheetOpen ? (
+          <PerpsActivityFilterSheet
+            selected={perpsFilter}
+            onSelect={handleSelectPerpsFilter}
+            onClose={handleClosePerpsSheet}
           />
         ) : null}
 

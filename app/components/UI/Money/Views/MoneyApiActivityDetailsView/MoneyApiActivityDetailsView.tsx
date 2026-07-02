@@ -20,10 +20,6 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { selectNetworkConfigurations } from '../../../../../selectors/networkController';
 
 import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../../../../../selectors/currencyRateController';
-import {
   findBlockExplorerUrlForChain,
   getBlockExplorerTxUrl,
 } from '../../../../../util/networks';
@@ -38,7 +34,6 @@ import Name from '../../../Name/Name';
 import { NameType } from '../../../Name/Name.types';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import { accountsApiActivityDisplayInfo } from '../../utils/accountsApiActivityDisplayInfo';
-import { getUsdToFiatConversionRate } from '../../utils/moneyActivityFiat';
 import { selectMoneyEnableActivityDetailsBlockexplorerLinkFlag } from '../../selectors/featureFlags';
 import styleSheet from '../../../../Views/confirmations/components/activity/transaction-details/transaction-details.styles';
 import Button, {
@@ -105,8 +100,6 @@ function MoneyApiActivityDetailsContent({
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const networkConfigurations = useSelector(selectNetworkConfigurations);
-  const currentCurrency = useSelector(selectCurrentCurrency);
-  const currencyRates = useSelector(selectCurrencyRates);
   const blockExplorerLinkEnabled = useSelector(
     selectMoneyEnableActivityDetailsBlockexplorerLinkFlag,
   );
@@ -115,12 +108,8 @@ function MoneyApiActivityDetailsContent({
   const isCard = activity.kind === 'card';
 
   const display = useMemo(
-    () =>
-      accountsApiActivityDisplayInfo(activity, {
-        currentCurrency,
-        usdToCurrentCurrencyRate: getUsdToFiatConversionRate(currencyRates),
-      }),
-    [activity, currentCurrency, currencyRates],
+    () => accountsApiActivityDisplayInfo(activity),
+    [activity],
   );
 
   const formattedDate = useMemo(() => {
