@@ -33,6 +33,7 @@ import {
   FontWeight,
   BoxFlexDirection,
   BoxAlignItems,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import { NotificationPreferences } from '@metamask/authenticated-user-storage';
 
@@ -58,7 +59,11 @@ const NotificationRow = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
       >
-        <Icon name={iconName} color={IconColor.IconAlternative} />
+        <Icon
+          name={iconName}
+          color={IconColor.IconAlternative}
+          size={IconSize.Lg}
+        />
         <Box twClassName="ml-4">
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {title}
@@ -148,7 +153,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
             <NotificationRow
               title={strings('app_settings.notifications_opts.perps_title')}
               status={getStatusText(preferences?.perps)}
-              iconName={IconName.Global}
+              iconName={IconName.Candlestick}
               onPress={() =>
                 navigateToSection(
                   'perps',
@@ -179,7 +184,7 @@ const NotificationsSettings = ({ navigation }: Props) => {
                   'app_settings.notifications_opts.social_ai_title',
                 )}
                 status={getStatusText(preferences?.socialAI)}
-                iconName={IconName.Ai}
+                iconName={IconName.Flash}
                 onPress={() =>
                   navigateToSection(
                     'socialAI',
