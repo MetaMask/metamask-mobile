@@ -325,7 +325,7 @@ const PerpsOrderBookView: React.FC<PerpsOrderBookViewProps> = ({
 
   // Footer bottom padding accounts for home indicator when SafeAreaView is not used
   const footerStyle = useMemo(
-    () => [styles.footer, { paddingBottom: insets.bottom }],
+    () => [styles.footer, { paddingBottom: insets.bottom + 12 }],
     [styles.footer, insets.bottom],
   );
 
