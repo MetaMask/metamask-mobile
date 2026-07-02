@@ -21,7 +21,6 @@ const styleSheet = (params: {
       justifyContent: 'center',
       alignItems: 'center',
       minHeight: 70,
-      gap: 5,
     },
     input: {
       textAlign: 'center',
@@ -35,11 +34,10 @@ const styleSheet = (params: {
           : params.theme.colors.text.default,
     },
     cursor: {
-      width: 2,
-      height: Math.round(fontSize * 0.65),
+      width: 1,
+      height: Math.round(fontSize * 0.7),
       backgroundColor: params.theme.colors.primary.default,
-      marginLeft: 2,
-      marginBottom: Math.round(fontSize * 0.12),
+      transform: [{ translateY: Math.round(fontSize * -0.08) }],
     },
     alertMessage: {
       textAlign: 'center',
