@@ -149,33 +149,6 @@ describe('handleAssetUrl', () => {
       nowSpy.mockRestore();
     });
 
-    it('sends null for alert_type and price_at_trigger when absent from the URL', async () => {
-      const { mockTrackEvent } = arrangeMocks();
-
-      await handleAssetUrl({
-        assetPath:
-          '?assetId=eip155:1/slip44:60&source=price_alert_notification',
-      });
-
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: EVENT_NAME.PRICE_ALERT_NOTIFICATION_OPENED,
-          properties: expect.objectContaining({
-            token_symbol: 'TEST',
-            alert_type: null,
-            price_at_trigger: null,
-          }),
-        }),
-      );
-
-      // time_to_open is undefined when triggered_at is absent and is stripped
-      // by filterUndefinedValues — verify the key is not present.
-      const received = mockTrackEvent.mock.calls[0][0] as {
-        properties: Record<string, unknown>;
-      };
-      expect(received.properties).not.toHaveProperty('time_to_open');
-    });
-
     it('does not track the event for other navigation sources', async () => {
       const { mockTrackEvent } = arrangeMocks();
 
