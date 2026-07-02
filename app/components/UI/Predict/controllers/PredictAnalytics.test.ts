@@ -771,6 +771,39 @@ describe('PredictAnalytics', () => {
       });
     });
 
+    it('tracks category clicked with category name and entry point', () => {
+      predictAnalytics.trackCategoryClicked({
+        categoryName: 'politics',
+        entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_CATEGORY_CLICKED.category,
+      );
+      expect(event.properties).toMatchObject({
+        category_name: 'politics',
+        entry_point: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+      });
+    });
+
+    it('tracks category clicked without an entry point', () => {
+      predictAnalytics.trackCategoryClicked({
+        categoryName: 'sports',
+      });
+
+      const event = getTrackedEvent();
+
+      expect(event.name).toBe(
+        MetaMetricsEvents.PREDICT_CATEGORY_CLICKED.category,
+      );
+      expect(event.properties).toMatchObject({
+        category_name: 'sports',
+      });
+      expect(event.properties).not.toHaveProperty('entry_point');
+    });
+
     it('tracks share action with optional market fields', () => {
       predictAnalytics.trackShareAction({
         status: PredictShareStatus.SUCCESS,

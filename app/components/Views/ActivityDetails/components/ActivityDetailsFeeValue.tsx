@@ -18,7 +18,7 @@ import { getNetworkImageSource } from '../../../../util/networks';
 import { getTokenImageSource } from '../../../UI/ActivityListItemRow/tokenIcon';
 
 const FEE_NETWORK_BADGE_SIZE = 12;
-const FEE_NETWORK_BADGE_RADIUS = 3;
+const FEE_NETWORK_BADGE_RADIUS = 4;
 
 const styles = StyleSheet.create({
   networkBadge: {
@@ -60,18 +60,24 @@ export function ActivityDetailsFeeValue({
 
   return (
     <Box twClassName="flex-row items-center justify-end gap-2 shrink">
-      <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        twClassName="shrink"
+        numberOfLines={1}
+        ellipsizeMode="tail"
+      >
         {value}
       </Text>
       {fee.symbol ? (
-        <Box twClassName="flex-row items-center gap-1">
+        <Box twClassName="flex-row items-center gap-1 shrink">
           <BadgeWrapper
             position={BadgeWrapperPosition.BottomRight}
             style={styles.tokenAvatarWrapper}
             badge={
               networkImageSource ? (
                 <Box
-                  twClassName="overflow-hidden border rounded-full border-background-default bg-default"
+                  twClassName="overflow-hidden border border-background-default bg-default"
                   style={styles.networkBadge}
                   testID="fee-network-badge"
                 >
@@ -93,7 +99,9 @@ export function ActivityDetailsFeeValue({
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="ml-1"
+            twClassName="ml-1 shrink"
+            numberOfLines={1}
+            ellipsizeMode="tail"
           >
             {fee.symbol}
           </Text>

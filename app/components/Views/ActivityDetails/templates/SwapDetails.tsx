@@ -1,6 +1,5 @@
 import React from 'react';
 import { Box, SectionDivider } from '@metamask/design-system-react-native';
-import { strings } from '../../../../../locales/i18n';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import {
   ActivityDetailsBlockExplorerButton,
@@ -14,6 +13,7 @@ import {
   canRenderActivityDetailsDoItAgain,
   useActivityDetailsDoItAgain,
 } from '../hooks/useActivityDetailsDoItAgain';
+import { getSwapAgainLabel } from './swapAgainLabel';
 
 type SwapDetailsItem = Extract<
   ActivityListItem,
@@ -60,7 +60,7 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
           />
           {canDoItAgain ? (
             <ActivityDetailsDoItAgainButton
-              label={strings('activity_details.do_it_again')}
+              label={getSwapAgainLabel(item.type)}
               onPress={handleDoItAgain}
             />
           ) : null}

@@ -2346,8 +2346,7 @@
     "search_account": "Αναζήτηση λογαριασμού",
     "home": {
       "live_now_title": "Ζωντανά τώρα",
-      "categories_placeholder": "Κατηγορίες",
-      "trending_placeholder": "Δημοφιλή"
+      "categories_placeholder": "Κατηγορίες"
     },
     "homepage_discovery": {
       "btc_title": "Τιμή BTC: {{price}}",
