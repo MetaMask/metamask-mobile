@@ -105,7 +105,11 @@ const PhoneField = forwardRef<TextInput, PhoneFieldProps>(
 
     const handleChangeText = useCallback(
       (text: string) => {
-        const digits = /\+\d/.test(text)
+        // A leading `+<digit>` or a `tel:` URI signals a full international
+        // number (typed or pasted); strip the country code so it isn't
+        // prepended twice. Plain digits are treated as the local part.
+        const isFullNumber = /\+\d/.test(text) || /^\s*tel:/i.test(text);
+        const digits = isFullNumber
           ? getLocalPhoneDigits(text, phoneCountry)
           : text.replace(/\D/g, '');
         const nextNumber = phonePrefix ? `${phonePrefix}${digits}` : digits;

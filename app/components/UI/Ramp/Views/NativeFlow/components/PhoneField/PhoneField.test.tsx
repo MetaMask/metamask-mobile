@@ -144,6 +144,7 @@ describe('PhoneField', () => {
     ['a plain international number', '+447123456789'],
     ['a number with leading whitespace', '  +447123456789'],
     ['a tel: URI', 'tel:+447123456789'],
+    ['a plain international number without plus sign', 'tel:447123456789'],
   ])(
     'strips the prefix instead of duplicating it when pasting %s',
     (_label, pasted) => {
