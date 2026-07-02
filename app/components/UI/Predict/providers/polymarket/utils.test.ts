@@ -31,6 +31,7 @@ import {
   getIsApprovedForAll,
   getOrderBook,
   getRawBalance,
+  getTickSizeRoundConfig,
   parsePolymarketEvents,
   parsePolymarketActivity,
   previewOrder,
@@ -1711,6 +1712,50 @@ describe('polymarket utils', () => {
 
     await expect(getOrderBook({ tokenId: 'token-1' })).rejects.toThrow(
       PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK,
+    );
+  });
+
+  describe('getTickSizeRoundConfig', () => {
+    it('uses explicit rounding config for documented 0.0025 tick size', () => {
+      expect(getTickSizeRoundConfig({ tickSize: '0.0025' })).toEqual({
+        tickSize: '0.0025',
+        roundConfig: {
+          price: 4,
+          size: 2,
+          amount: 6,
+        },
+      });
+    });
+
+    it('derives rounding config for valid tick sizes not in the static config', () => {
+      expect(getTickSizeRoundConfig({ tickSize: '0.005' })).toEqual({
+        tickSize: '0.005',
+        roundConfig: {
+          price: 3,
+          size: 2,
+          amount: 5,
+        },
+      });
+    });
+
+    it('normalizes scientific notation tick sizes before deriving config', () => {
+      expect(getTickSizeRoundConfig({ tickSize: 1e-6 })).toEqual({
+        tickSize: '0.000001',
+        roundConfig: {
+          price: 6,
+          size: 2,
+          amount: 6,
+        },
+      });
+    });
+
+    it.each([undefined, null, 0, -0.01, 1, Number.NaN, Infinity, 'invalid'])(
+      'throws for invalid tick size %p',
+      (tickSize) => {
+        expect(() => getTickSizeRoundConfig({ tickSize })).toThrow(
+          'Invalid Polymarket tick size',
+        );
+      },
     );
   });
 
