@@ -39,9 +39,9 @@ describe('diskSpaceError', () => {
     });
 
     it('detects NSCocoaErrorDomain out-of-space errors', () => {
-      expect(
-        isDiskSpaceError(new Error('NSCocoaErrorDomain Code=640')),
-      ).toBe(true);
+      expect(isDiskSpaceError(new Error('NSCocoaErrorDomain Code=640'))).toBe(
+        true,
+      );
     });
 
     it('detects non-Error disk space messages', () => {
