@@ -872,7 +872,7 @@ describe('ManagePriceAlertsView', () => {
         .value;
     };
 
-    it('tracks Price Alert Deleted with the deleted alert value on success', async () => {
+    it('tracks Price Alert Creation Interaction (deleted) on success', async () => {
       mockFetchAlerts.mockResolvedValue(
         makeFetchResponse([
           makeAlert({ id: 'alert-1', threshold: 3000 }),
@@ -890,20 +890,24 @@ describe('ManagePriceAlertsView', () => {
 
       await waitFor(() => {
         expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
-          MetaMetricsEvents.PRICE_ALERT_DELETED,
+          MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
         );
       });
       expect(
-        builderForEvent(MetaMetricsEvents.PRICE_ALERT_DELETED).addProperties,
+        builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+          .addProperties,
       ).toHaveBeenCalledWith({
+        interaction_type: 'deleted',
         asset_id: 'eip155:1/slip44:60',
         token_symbol: 'ETH',
         alert_type: 'threshold',
         alert_value: 3000,
+        alert_occurrence: 'recurring',
+        alert_active: true,
       });
     });
 
-    it('does not track Price Alert Deleted when the request fails', async () => {
+    it('does not track Price Alert Creation Interaction when delete fails', async () => {
       mockDeleteAlert.mockResolvedValueOnce(makeErrorResponse(500));
       mockFetchAlerts.mockResolvedValue(
         makeFetchResponse([
@@ -924,11 +928,11 @@ describe('ManagePriceAlertsView', () => {
         expect(mockShowToast).toHaveBeenCalled();
       });
       expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
-        MetaMetricsEvents.PRICE_ALERT_DELETED,
+        MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
       );
     });
 
-    it('tracks Price Alert Updated with prev/new state when toggling active', async () => {
+    it('tracks Price Alert Creation Interaction (updated) when toggling active', async () => {
       mockFetchAlerts.mockResolvedValue(
         makeFetchResponse([
           makeAlert({
@@ -952,25 +956,27 @@ describe('ManagePriceAlertsView', () => {
 
       await waitFor(() => {
         expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
-          MetaMetricsEvents.PRICE_ALERT_UPDATED,
+          MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
         );
       });
       expect(
-        builderForEvent(MetaMetricsEvents.PRICE_ALERT_UPDATED).addProperties,
+        builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+          .addProperties,
       ).toHaveBeenCalledWith({
+        interaction_type: 'updated',
         asset_id: 'eip155:1/slip44:60',
         token_symbol: 'ETH',
         alert_type: 'threshold',
-        prev_active: true,
+        alert_value: 3000,
+        alert_occurrence: 'recurring',
+        alert_active: false,
         prev_alert_value: 3000,
         prev_alert_occurrence: 'recurring',
-        new_active: false,
-        new_alert_value: 3000,
-        new_alert_occurrence: 'recurring',
+        prev_alert_active: true,
       });
     });
 
-    it('does not track Price Alert Updated when the toggle request fails', async () => {
+    it('does not track Price Alert Creation Interaction when toggle fails', async () => {
       mockUpdateAlert.mockResolvedValueOnce(makeErrorResponse(500));
       mockFetchAlerts.mockResolvedValue(
         makeFetchResponse([makeAlert({ id: 'alert-1', active: true })]),
@@ -990,7 +996,7 @@ describe('ManagePriceAlertsView', () => {
         expect(mockShowToast).toHaveBeenCalled();
       });
       expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
-        MetaMetricsEvents.PRICE_ALERT_UPDATED,
+        MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
       );
     });
   });

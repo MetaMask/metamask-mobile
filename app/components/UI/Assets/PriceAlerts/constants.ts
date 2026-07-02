@@ -44,6 +44,11 @@ export const PriceAlertAnalytics = {
     RECURRING: 'recurring',
     NOT_RECURRING: 'not_recurring',
   },
+  INTERACTION_TYPE: {
+    CREATED: 'created',
+    UPDATED: 'updated',
+    DELETED: 'deleted',
+  },
 } as const;
 
 /** Maps the `recurring` flag to its analytics `occurrence` string. */

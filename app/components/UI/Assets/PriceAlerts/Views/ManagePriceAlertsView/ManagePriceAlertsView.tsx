@@ -186,18 +186,24 @@ const ManagePriceAlertsView: React.FC = () => {
         const response = await deleteAlert(id);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-        // "Price Alert Deleted" — measures alert churn.
         const deleted = previous.find((a) => a.id === id);
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_DELETED)
-            .addProperties({
-              asset_id: assetId,
-              token_symbol: symbol,
-              alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
-              alert_value: deleted?.threshold,
-            })
-            .build(),
-        );
+        if (deleted) {
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+            )
+              .addProperties({
+                interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.DELETED,
+                asset_id: assetId,
+                token_symbol: symbol,
+                alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
+                alert_value: deleted.threshold,
+                alert_occurrence: toAlertOccurrence(deleted.recurring),
+                alert_active: deleted.active,
+              })
+              .build(),
+          );
+        }
 
         const next = previous.filter((a) => a.id !== id);
         queryClient.setQueryData(queryKey, next);
@@ -265,20 +271,22 @@ const ManagePriceAlertsView: React.FC = () => {
         const response = await updateAlert(id, { active: newValue });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-        // "Price Alert Updated" — enable/disable behavior.
         if (toggled) {
           trackEvent(
-            createEventBuilder(MetaMetricsEvents.PRICE_ALERT_UPDATED)
+            createEventBuilder(
+              MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+            )
               .addProperties({
+                interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
                 asset_id: assetId,
                 token_symbol: symbol,
                 alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
-                prev_active: toggled.active,
+                alert_value: toggled.threshold,
+                alert_occurrence: toAlertOccurrence(toggled.recurring),
+                alert_active: newValue,
                 prev_alert_value: toggled.threshold,
                 prev_alert_occurrence: toAlertOccurrence(toggled.recurring),
-                new_active: newValue,
-                new_alert_value: toggled.threshold,
-                new_alert_occurrence: toAlertOccurrence(toggled.recurring),
+                prev_alert_active: toggled.active,
               })
               .build(),
           );

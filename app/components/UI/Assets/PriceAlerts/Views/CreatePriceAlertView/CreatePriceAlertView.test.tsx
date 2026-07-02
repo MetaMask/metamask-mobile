@@ -738,10 +738,10 @@ describe('CreatePriceAlertView — analytics', () => {
     renderWithToast();
 
     expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.PRICE_ALERT_CREATION_INITIATED,
+      MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED,
     );
     expect(
-      builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INITIATED)
+      builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED)
         .addProperties,
     ).toHaveBeenCalledWith({
       asset_id: 'eip155:1/slip44:60',
@@ -756,14 +756,14 @@ describe('CreatePriceAlertView — analytics', () => {
     renderWithToast();
 
     expect(
-      builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INITIATED)
+      builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED)
         .addProperties,
     ).toHaveBeenCalledWith(
       expect.objectContaining({ has_existing_alert: true }),
     );
   });
 
-  it('tracks Price Alert Created with numeric value and occurrence on save', async () => {
+  it('tracks Price Alert Creation Interaction (created) on save', async () => {
     const { getByTestId } = renderWithToast();
 
     fireEvent.press(getByTestId('keypad-key-1'));
@@ -776,16 +776,19 @@ describe('CreatePriceAlertView — analytics', () => {
     });
 
     expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.PRICE_ALERT_CREATED,
+      MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
     );
     expect(
-      builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATED).addProperties,
+      builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+        .addProperties,
     ).toHaveBeenCalledWith({
+      interaction_type: 'created',
       asset_id: 'eip155:1/slip44:60',
       token_symbol: 'ETH',
       alert_type: 'threshold',
       alert_value: 1500,
       alert_occurrence: 'recurring',
+      alert_active: true,
     });
   });
 
@@ -804,16 +807,19 @@ describe('CreatePriceAlertView — analytics', () => {
     });
 
     expect(
-      builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATED).addProperties,
+      builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+        .addProperties,
     ).toHaveBeenCalledWith(
       expect.objectContaining({
+        interaction_type: 'created',
         alert_value: 2,
         alert_occurrence: 'not_recurring',
+        alert_active: true,
       }),
     );
   });
 
-  it('tracks Price Alert Updated (not Created/Creation Initiated) when editing', async () => {
+  it('tracks Price Alert Creation Interaction (updated) when editing', async () => {
     setRoute({
       ...baseRoute,
       fromManage: true,
@@ -834,26 +840,25 @@ describe('CreatePriceAlertView — analytics', () => {
     });
 
     expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
-      MetaMetricsEvents.PRICE_ALERT_CREATION_INITIATED,
-    );
-    expect(mockAnalytics.createEventBuilder).not.toHaveBeenCalledWith(
-      MetaMetricsEvents.PRICE_ALERT_CREATED,
+      MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED,
     );
     expect(mockAnalytics.createEventBuilder).toHaveBeenCalledWith(
-      MetaMetricsEvents.PRICE_ALERT_UPDATED,
+      MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
     );
     expect(
-      builderForEvent(MetaMetricsEvents.PRICE_ALERT_UPDATED).addProperties,
+      builderForEvent(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+        .addProperties,
     ).toHaveBeenCalledWith({
+      interaction_type: 'updated',
       asset_id: 'eip155:1/slip44:60',
       token_symbol: 'ETH',
       alert_type: 'threshold',
-      prev_active: true,
+      alert_value: 1500,
+      alert_occurrence: 'not_recurring',
+      alert_active: true,
       prev_alert_value: 1500,
       prev_alert_occurrence: 'recurring',
-      new_active: true,
-      new_alert_value: 1500,
-      new_alert_occurrence: 'not_recurring',
+      prev_alert_active: true,
     });
   });
 });

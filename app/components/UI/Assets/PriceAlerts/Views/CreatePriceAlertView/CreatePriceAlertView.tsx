@@ -144,7 +144,7 @@ const CreatePriceAlertView: React.FC = () => {
       return;
     }
     trackEvent(
-      createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INITIATED)
+      createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED)
         .addProperties({
           asset_id: assetId,
           token_symbol: symbol,
@@ -271,32 +271,33 @@ const CreatePriceAlertView: React.FC = () => {
                 : a,
             ),
         );
-        // "Price Alert Updated" — threshold and/or occurrence edited.
         trackEvent(
-          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_UPDATED)
+          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
             .addProperties({
-              asset_id: assetId,
-              token_symbol: symbol,
-              alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
-              prev_active: editingAlert.active,
-              prev_alert_value: editingAlert.threshold,
-              prev_alert_occurrence: toAlertOccurrence(editingAlert.recurring),
-              new_active: editingAlert.active,
-              new_alert_value: targetPrice,
-              new_alert_occurrence: toAlertOccurrence(isRecurring),
-            })
-            .build(),
-        );
-      } else {
-        // "Price Alert Created" — a new alert was saved.
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATED)
-            .addProperties({
+              interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
               asset_id: assetId,
               token_symbol: symbol,
               alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
               alert_value: targetPrice,
               alert_occurrence: toAlertOccurrence(isRecurring),
+              alert_active: editingAlert.active,
+              prev_alert_value: editingAlert.threshold,
+              prev_alert_occurrence: toAlertOccurrence(editingAlert.recurring),
+              prev_alert_active: editingAlert.active,
+            })
+            .build(),
+        );
+      } else {
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION)
+            .addProperties({
+              interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.CREATED,
+              asset_id: assetId,
+              token_symbol: symbol,
+              alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
+              alert_value: targetPrice,
+              alert_occurrence: toAlertOccurrence(isRecurring),
+              alert_active: true,
             })
             .build(),
         );
