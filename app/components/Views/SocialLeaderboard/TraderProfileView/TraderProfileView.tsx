@@ -63,6 +63,8 @@ import SortButton from './components/SortButton';
 import StatsRow from './components/StatsRow';
 import TraderProfileCompactStats from './components/TraderProfileCompactStats';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
+import TraderMuteChip from '../components/TraderMuteChip';
+import { useTraderMute } from '../hooks/useTraderMute';
 import TopTradersNotificationsSetupBottomSheet, {
   type TopTradersNotificationsSetupBottomSheetRef,
 } from './components/TopTradersNotificationsSetupBottomSheet';
@@ -211,6 +213,8 @@ const TraderProfileView = () => {
     setPushNotificationsEnabled,
     setTxAmountLimit,
   } = useNotificationPreferences();
+
+  const { isMuted, isMuteAvailable, toggleMute } = useTraderMute(traderId);
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
   const [openSort, setOpenSort] = useState<OpenSortKey>('value');
@@ -461,21 +465,36 @@ const TraderProfileView = () => {
 
               {profile && (
                 <>
-                  <Box twClassName="px-4 pt-3 pb-1">
-                    <Button
-                      variant={
-                        isFollowing
-                          ? ButtonVariant.Secondary
-                          : ButtonVariant.Primary
-                      }
-                      isFullWidth
-                      onPress={handleFollowPress}
-                      testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
-                    >
-                      {isFollowing
-                        ? strings('social_leaderboard.following')
-                        : strings('social_leaderboard.follow')}
-                    </Button>
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    twClassName="px-4 pt-3 pb-1"
+                  >
+                    <Box twClassName="flex-1">
+                      <Button
+                        variant={
+                          isFollowing
+                            ? ButtonVariant.Secondary
+                            : ButtonVariant.Primary
+                        }
+                        isFullWidth
+                        onPress={handleFollowPress}
+                        testID={TraderProfileViewSelectorsIDs.FOLLOW_BUTTON}
+                      >
+                        {isFollowing
+                          ? strings('social_leaderboard.following')
+                          : strings('social_leaderboard.follow')}
+                      </Button>
+                    </Box>
+                    {isMuteAvailable && (
+                      <TraderMuteChip
+                        isMuted={isMuted}
+                        visible={isFollowing}
+                        onPress={toggleMute}
+                        traderName={profile?.profile.name}
+                        testID={TraderProfileViewSelectorsIDs.MUTE_CHIP}
+                      />
+                    )}
                   </Box>
 
                   <Box twClassName="h-px bg-muted mx-4 mt-5 mb-4" />

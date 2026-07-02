@@ -52,6 +52,7 @@ import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialSer
 import { useTheme } from '../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
+import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import {
   TraderRow,
   TraderRowSkeleton,
@@ -241,6 +242,14 @@ const TopTradersView = () => {
     hasNotificationPreferences,
     isLoading: isLoadingNotificationPreferences,
   } = useNotificationStoragePreferences();
+  const {
+    preferences: notificationPreferences,
+    hasNotificationPreferences: hasSocialAiPreferences,
+    isTraderNotificationEnabled,
+    toggleTraderNotification,
+  } = useNotificationPreferences();
+  const isMuteAvailable =
+    hasSocialAiPreferences && notificationPreferences.pushNotificationsEnabled;
   const { track } = useSocialLeaderboardAnalytics();
   const source = route.params?.source ?? 'nav_tab';
   const title = strings('social_leaderboard.top_traders_view.title');
@@ -491,15 +500,31 @@ const TopTradersView = () => {
     [navigation, traders, activeTab, track],
   );
 
+  const handleMuteToggle = useCallback(
+    (traderId: string) => {
+      toggleTraderNotification(traderId);
+    },
+    [toggleTraderNotification],
+  );
+
   const renderTraderRow = useCallback(
     ({ item }: { item: TopTrader }) => (
       <TraderRow
         trader={item}
         onFollowPress={handleFollowPress}
         onTraderPress={handleTraderPress}
+        showMute={isMuteAvailable}
+        isMuted={!isTraderNotificationEnabled(item.id)}
+        onMuteToggle={handleMuteToggle}
       />
     ),
-    [handleFollowPress, handleTraderPress],
+    [
+      handleFollowPress,
+      handleTraderPress,
+      isMuteAvailable,
+      isTraderNotificationEnabled,
+      handleMuteToggle,
+    ],
   );
 
   const listHeader = useMemo(

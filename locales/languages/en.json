@@ -1084,6 +1084,12 @@
     },
     "follow": "Follow",
     "following": "Following",
+    "mute": {
+      "on_accessibility_label": "Notifications on. Tap to mute this trader",
+      "muted_accessibility_label": "Muted. Tap to turn notifications back on",
+      "on_accessibility_label_named": "Notifications on for {{traderName}}. Tap to mute",
+      "muted_accessibility_label_named": "{{traderName}} muted. Tap to turn notifications back on"
+    },
     "all_networks": "All networks",
     "trader_profile": {
       "followers_count": "{{count}} follower",
