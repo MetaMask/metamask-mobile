@@ -166,6 +166,15 @@ const MOCK_MONEY_TRANSACTIONS: MoneyActivityTransactionMeta[] = [
     moneySubtitle: 'Transak',
     moneyActivityTitleKey: 'deposited',
   }),
+  // Apple Pay funded deposit; renders an "Apple Pay" subtitle in the list.
+  makeMoneyTx({
+    id: 'money-tx-deposited-apple-pay',
+    timestampSec: 1747004100,
+    type: TransactionType.moneyAccountDeposit,
+    amount: '1000000000',
+    moneySubtitle: 'Apple Pay',
+    moneyActivityTitleKey: 'deposited',
+  }),
   makeMoneyTx({
     id: 'money-tx-deposited-musd',
     timestampSec: 1747000800,
