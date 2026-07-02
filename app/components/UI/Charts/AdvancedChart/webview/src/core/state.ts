@@ -50,6 +50,14 @@ interface CoreState {
   rnBackedPagination: { enabled: boolean };
   /** True when position lines include a currentPrice line; hides TV's native price line. */
   hasExplicitCurrentPriceLine: boolean;
+  /** SLB scoping flag — activates Strategy C (bulk back-fill) pagination. */
+  slbMode: boolean;
+  /**
+   * Set to true when SLB data arrives and the viewport hasn't been
+   * centered yet. Cleared after the first successful setVisibleRange
+   * so re-centering only happens on a fresh SET_OHLCV_DATA.
+   */
+  slbCenteringPending: boolean;
 }
 
 const emptyPagination = (): OHLCVPaginationConfig => ({
@@ -82,6 +90,8 @@ const state: CoreState = {
   subPaneHeightRatio: null,
   rnBackedPagination: { enabled: false },
   hasExplicitCurrentPriceLine: false,
+  slbMode: false,
+  slbCenteringPending: false,
 };
 
 // ----- Widget lifecycle ---------------------------------------------------
@@ -317,6 +327,24 @@ export function setRnBackedPagination(config: { enabled: boolean }): void {
   state.rnBackedPagination = config;
 }
 
+// ----- SLB (Social Leaderboard) mode -----------------------------------------
+
+export function getSlbMode(): boolean {
+  return state.slbMode;
+}
+
+export function setSlbMode(enabled: boolean): void {
+  state.slbMode = enabled;
+}
+
+export function isSlbCenteringPending(): boolean {
+  return state.slbCenteringPending;
+}
+
+export function setSlbCenteringPending(pending: boolean): void {
+  state.slbCenteringPending = pending;
+}
+
 // ----- Explicit current price line -------------------------------------------
 
 export function getHasExplicitCurrentPriceLine(): boolean {
@@ -355,4 +383,6 @@ export function __resetStateForTests(): void {
   state.subPaneHeightRatio = null;
   state.rnBackedPagination = { enabled: false };
   state.hasExplicitCurrentPriceLine = false;
+  state.slbMode = false;
+  state.slbCenteringPending = false;
 }

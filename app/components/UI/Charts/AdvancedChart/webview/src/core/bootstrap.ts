@@ -57,6 +57,7 @@ import { registerTradeMarkerPulseHandler } from '../overlays/tradeMarkers/animat
 import { attachMarkerHitTest } from '../overlays/tradeMarkers/markerHitTest';
 import { registerFocusTimeOverlay } from '../overlays/focusTime';
 import { registerPositionLinesOverlay } from '../overlays/positionLines';
+import { slbScheduleInitialCentering } from '../overlays/socialLeaderboard';
 import { registerRnBackedPaginationHandler } from '../pagination/rnBacked';
 import {
   getOhlcvData,
@@ -186,6 +187,7 @@ export function bootstrap(): ChartConfig {
               attachMarkerHitTest(widget, chart);
               attachVisibleRangeListeners(chart);
               attachLegendResizeListener(widget);
+              slbScheduleInitialCentering();
               scheduleChartLayoutSettledNotify();
             } catch (error) {
               reportErrorToRN(error);

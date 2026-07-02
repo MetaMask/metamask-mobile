@@ -11,7 +11,14 @@
 // gating during the animation lived in the deleted line-chrome path.
 
 import { reportErrorToRN } from '../../core/bridge';
-import { getOhlcvData, getWidget, isChartReady } from '../../core/state';
+import {
+  getOhlcvData,
+  getSlbMode,
+  getVisibleFromMs,
+  getVisibleToMs,
+  getWidget,
+  isChartReady,
+} from '../../core/state';
 import {
   getApproxBarDurationSec,
   normalizeChartUnixSec,
@@ -86,6 +93,18 @@ export function handleFocusTime(payload: FocusTimePayload): void {
   let spanSec: number;
   if (Number.isFinite(payload.spanMs) && (payload.spanMs as number) > 0) {
     spanSec = (payload.spanMs as number) / 1000;
+  } else if (getSlbMode()) {
+    // SLB: default span covers the entire trade window so the focused
+    // trade stays in context with all other trades visible.
+    const slbFromMs = getVisibleFromMs();
+    const slbToMs = getVisibleToMs();
+    if (slbFromMs != null && slbToMs != null) {
+      spanSec = (slbToMs - slbFromMs) / 1000;
+    } else if (current) {
+      spanSec = current.to - current.from;
+    } else {
+      spanSec = getApproxBarDurationSec(getOhlcvData()) * FALLBACK_BARS;
+    }
   } else if (current) {
     spanSec = current.to - current.from;
   } else {

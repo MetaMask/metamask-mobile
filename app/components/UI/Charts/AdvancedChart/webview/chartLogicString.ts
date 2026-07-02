@@ -165,6 +165,8 @@ const state = {
     subPaneHeightRatio: null,
     rnBackedPagination: { enabled: false },
     hasExplicitCurrentPriceLine: false,
+    slbMode: false,
+    slbCenteringPending: false,
 };
 // ----- Widget lifecycle ---------------------------------------------------
 function getWidget() {
@@ -338,6 +340,19 @@ function getRnBackedPagination() {
 function setRnBackedPagination(config) {
     state.rnBackedPagination = config;
 }
+// ----- SLB (Social Leaderboard) mode -----------------------------------------
+function getSlbMode() {
+    return state.slbMode;
+}
+function setSlbMode(enabled) {
+    state.slbMode = enabled;
+}
+function isSlbCenteringPending() {
+    return state.slbCenteringPending;
+}
+function setSlbCenteringPending(pending) {
+    state.slbCenteringPending = pending;
+}
 // ----- Explicit current price line -------------------------------------------
 function getHasExplicitCurrentPriceLine() {
     return state.hasExplicitCurrentPriceLine;
@@ -373,6 +388,8 @@ function __resetStateForTests() {
     state.subPaneHeightRatio = null;
     state.rnBackedPagination = { enabled: false };
     state.hasExplicitCurrentPriceLine = false;
+    state.slbMode = false;
+    state.slbCenteringPending = false;
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/loadLibrary.ts
@@ -878,6 +895,181 @@ function __resetRnBackedPaginationForTests() {
     requestSeq = 0;
 }
 
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/timeUtils.ts
+// Time normalization helpers used across modules.
+//
+// Ported from chartLogic.js: normalizeChartUnixSec (line ~3564),
+// chartRawTimeToUnixMs (line ~3573), getApproxBarDurationSec (line ~3587).
+// Phase 2's widget/ohlcvIngestion.ts and pagination/priceApi.ts consume
+// these.
+/**
+ * Convert a timestamp to unix seconds, accepting either ms or seconds.
+ * Values ≥ 1e12 are treated as milliseconds (~Sep 2001 in seconds; safe
+ * threshold). Returns null for non-finite input.
+ */
+function normalizeChartUnixSec(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+        return null;
+    }
+    return n >= 1e12 ? Math.floor(n / 1000) : Math.floor(n);
+}
+/**
+ * Convert a raw TradingView timestamp to unix milliseconds. Unlike
+ * normalizeChartUnixSec, keeps sub-second precision when the input is already
+ * in seconds (multiplies by 1000 instead of flooring).
+ */
+function chartRawTimeToUnixMs(value) {
+    const n = Number(value);
+    if (!Number.isFinite(n)) {
+        return null;
+    }
+    if (n >= 1e12) {
+        return n;
+    }
+    return n * 1000;
+}
+const DEFAULT_BAR_DURATION_SEC = 300;
+const MIN_BAR_DURATION_SEC = 60;
+/**
+ * Approximates the bar duration (seconds) for a series of OHLCV bars by
+ * measuring the gap between the last two points. Used for visible-range
+ * alignment and end-icon insets.
+ *
+ * Returns a sensible default when the series is too short.
+ */
+function getApproxBarDurationSec(bars) {
+    if (!bars || bars.length < 2) {
+        return DEFAULT_BAR_DURATION_SEC;
+    }
+    const prev = bars.at(-2);
+    const last = bars.at(-1);
+    if (!prev || !last)
+        return DEFAULT_BAR_DURATION_SEC;
+    const lastMs = Math.abs(last.time - prev.time);
+    return Math.max(MIN_BAR_DURATION_SEC, Math.round(lastMs / 1000));
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/socialLeaderboard/index.ts
+// Social Leaderboard (SLB) viewport centering and back-fill pagination.
+//
+// Implements **Strategy C — SLB bulk back-fill**, the third pagination
+// strategy alongside Strategy A (Price API / Token Details) and Strategy B
+// (RN-backed / Perps).
+//
+// ── How it works ──────────────────────────────────────────────────────────
+//
+//   1. RN pre-loads the complete OHLCV dataset that covers the trade window
+//      (visibleFromMs → visibleToMs) and sends it in one SET_OHLCV_DATA
+//      message with \`slbMode: true\`.
+//
+//   2. The WebView stores the data in core/state and marks viewport centering
+//      as pending (\`slbCenteringPending = true\`).
+//
+//   3. After the TradingView widget finishes its data load cycle, this module
+//      centers the viewport on the trade window so the user sees all relevant
+//      trades immediately (no manual scrolling needed).
+//
+//   4. getBars pagination is a no-op: because RN pre-loaded all data, any
+//      getBars call for a time range outside the in-memory dataset returns
+//      \`{ noData: true }\`. There is no second fetch — the dataset is complete.
+//
+//   5. When the user taps a different trade row, RN re-sends SET_OHLCV_DATA
+//      with updated visibleFromMs / visibleToMs. The centering flag resets,
+//      and step 3 fires again for the new window.
+//
+// ── Why a separate strategy? ──────────────────────────────────────────────
+//
+//   Strategy A (Price API) and Strategy B (RN-backed) both paginate
+//   incrementally — fetching one page at a time as the user scrolls left.
+//   SLB needs the entire trade window visible from the start, so incremental
+//   pagination would cause visible "holes" while pages load. Bulk back-fill
+//   avoids this by having RN send all data upfront.
+//
+// ── Scoping via slbMode ──────────────────────────────────────────────────
+//
+//   All SLB behavior is gated behind the \`slbMode\` flag so it cannot affect
+//   Token Details, Perps, or any other consumer. When \`slbMode\` is false
+//   (or omitted), this module is inert.
+
+
+
+/**
+ * Centers the viewport on the SLB trade window after a data load.
+ *
+ * Called from ohlcvIngestion's \`applyVisibleRange\` when \`slbMode\` is active.
+ * Uses \`visibleFromMs\` / \`visibleToMs\` to frame the viewport, with a 2-bar
+ * padding on each side so the edge candles aren't glued to the chart border.
+ *
+ * The centering flag is cleared after success so subsequent REALTIME_UPDATE
+ * messages don't re-trigger the slide. Only a fresh SET_OHLCV_DATA resets it.
+ */
+function slbCenterViewport(chart) {
+    if (!getSlbMode() || !isSlbCenteringPending())
+        return;
+    const fromMs = getVisibleFromMs();
+    const toMs = getVisibleToMs();
+    if (fromMs == null || toMs == null)
+        return;
+    const capturedGeneration = getOhlcvGeneration();
+    const subscription = chart.onDataLoaded();
+    const onLoaded = () => {
+        subscription.unsubscribe(null, onLoaded);
+        if (capturedGeneration !== getOhlcvGeneration())
+            return;
+        if (!isSlbCenteringPending())
+            return;
+        const data = getOhlcvData();
+        const barPadSec = getApproxBarDurationSec(data) * 2;
+        const fromSec = Math.floor(fromMs / 1000) - barPadSec;
+        const toSec = Math.ceil(toMs / 1000) + barPadSec;
+        try {
+            chart.setVisibleRange({ from: fromSec, to: toSec }, { percentRightMargin: 0 });
+            setSlbCenteringPending(false);
+        }
+        catch (error) {
+            reportErrorToRN(error);
+        }
+    };
+    subscription.subscribe(null, onLoaded);
+}
+/**
+ * Schedules SLB viewport centering after the initial chart-ready event.
+ *
+ * Called from bootstrap's \`onReady\` callback. Only fires when the chart
+ * loaded with \`slbMode\` active — for all other consumers this is a no-op.
+ */
+function slbScheduleInitialCentering() {
+    if (!getSlbMode() || !isSlbCenteringPending())
+        return;
+    const widget = getWidget();
+    if (!widget || !isChartReady())
+        return;
+    try {
+        const chart = widget.activeChart();
+        slbCenterViewport(chart);
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+/**
+ * SLB back-fill pagination handler for datafeed.ts getBars.
+ *
+ * In SLB mode, RN has already sent the complete dataset — there is nothing
+ * to fetch. This function simply signals \`noData: true\` to TradingView,
+ * which stops it from requesting more bars.
+ *
+ * Returns \`true\` if it handled the request (caller should return early),
+ * or \`false\` if the caller should fall through to the other strategies.
+ */
+function slbHandleGetBars(onResult) {
+    if (!getSlbMode())
+        return false;
+    onResult([], { noData: true });
+    return true;
+}
+
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/datafeed.ts
 // TradingView UDF datafeed object passed into the widget constructor.
 //
@@ -885,6 +1077,7 @@ function __resetRnBackedPaginationForTests() {
 // helpers \`filterBarsForRange\` (~4944), \`fetchOlderBars\` (~4991).
 // Phase 2 wires the default Price API paginator; Phase 6 swaps in
 // pagination/rnBacked.ts when consumers opt into the custom strategy.
+
 
 
 
@@ -1002,6 +1195,10 @@ const customDatafeed = {
             }
             const oldestAtDefer = all[0].time;
             const pag = getOhlcvPagination();
+            // Strategy C (SLB): all data is pre-loaded by RN — no pagination.
+            if (slbHandleGetBars(onResult))
+                return;
+            // Strategy A (Price API / Token Details):
             if (pag.assetId) {
                 fetchOlderBarsFromPriceApi({ oldestAtDefer })
                     .then(({ olderBars, noData }) => {
@@ -1011,6 +1208,7 @@ const customDatafeed = {
                     reportErrorToRN(error);
                     onResult([], { noData: true });
                 });
+                // Strategy B (RN-backed / Perps):
             }
             else if (getRnBackedPagination().enabled) {
                 requestOlderBarsFromRN({
@@ -1152,61 +1350,6 @@ function advancedChartPriceFormatterFactory(symbolInfo, _minTick) {
     };
 }
 
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/timeUtils.ts
-// Time normalization helpers used across modules.
-//
-// Ported from chartLogic.js: normalizeChartUnixSec (line ~3564),
-// chartRawTimeToUnixMs (line ~3573), getApproxBarDurationSec (line ~3587).
-// Phase 2's widget/ohlcvIngestion.ts and pagination/priceApi.ts consume
-// these.
-/**
- * Convert a timestamp to unix seconds, accepting either ms or seconds.
- * Values ≥ 1e12 are treated as milliseconds (~Sep 2001 in seconds; safe
- * threshold). Returns null for non-finite input.
- */
-function normalizeChartUnixSec(value) {
-    const n = Number(value);
-    if (!Number.isFinite(n)) {
-        return null;
-    }
-    return n >= 1e12 ? Math.floor(n / 1000) : Math.floor(n);
-}
-/**
- * Convert a raw TradingView timestamp to unix milliseconds. Unlike
- * normalizeChartUnixSec, keeps sub-second precision when the input is already
- * in seconds (multiplies by 1000 instead of flooring).
- */
-function chartRawTimeToUnixMs(value) {
-    const n = Number(value);
-    if (!Number.isFinite(n)) {
-        return null;
-    }
-    if (n >= 1e12) {
-        return n;
-    }
-    return n * 1000;
-}
-const DEFAULT_BAR_DURATION_SEC = 300;
-const MIN_BAR_DURATION_SEC = 60;
-/**
- * Approximates the bar duration (seconds) for a series of OHLCV bars by
- * measuring the gap between the last two points. Used for visible-range
- * alignment and end-icon insets.
- *
- * Returns a sensible default when the series is too short.
- */
-function getApproxBarDurationSec(bars) {
-    if (!bars || bars.length < 2) {
-        return DEFAULT_BAR_DURATION_SEC;
-    }
-    const prev = bars.at(-2);
-    const last = bars.at(-1);
-    if (!prev || !last)
-        return DEFAULT_BAR_DURATION_SEC;
-    const lastMs = Math.abs(last.time - prev.time);
-    return Math.max(MIN_BAR_DURATION_SEC, Math.round(lastMs / 1000));
-}
-
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/resolution.ts
 // Maps OHLCV bar intervals (milliseconds) to TradingView resolution strings.
 //
@@ -1281,6 +1424,7 @@ function detectResolution(data) {
 
 
 
+
 let firstDataCallback = null;
 let firstDataDelivered = false;
 /**
@@ -1300,6 +1444,11 @@ function handleSetOHLCVData(payload) {
     state_bumpOhlcvGeneration();
     if (payload.rnBackedPagination) {
         setRnBackedPagination(payload.rnBackedPagination);
+    }
+    const slb = !!payload.slbMode;
+    setSlbMode(slb);
+    if (slb) {
+        setSlbCenteringPending(true);
     }
     if (payload.pagination) {
         setOhlcvPagination({
@@ -1374,6 +1523,13 @@ function handleRealtimeUpdate(payload) {
     });
 }
 function applyVisibleRange(chart) {
+    // Strategy C (SLB): center the viewport on the trade window using both
+    // visibleFromMs and visibleToMs. Handled by the socialLeaderboard overlay
+    // which subscribes to onDataLoaded and frames the exact trade window.
+    if (getSlbMode()) {
+        slbCenterViewport(chart);
+        return;
+    }
     const fromMs = getVisibleFromMs();
     if (fromMs == null) {
         try {
@@ -1384,6 +1540,9 @@ function applyVisibleRange(chart) {
         }
         return;
     }
+    // Strategy A / B: anchor the visible range from \`visibleFromMs\` to the
+    // last bar + 2-bar padding. This one-sided framing works because Token
+    // Details and Perps always want the right edge near the latest candle.
     const capturedGeneration = getOhlcvGeneration();
     const subscription = chart.onDataLoaded();
     const onLoaded = () => {
@@ -4164,6 +4323,21 @@ function handleFocusTime(payload) {
     if (Number.isFinite(payload.spanMs) && payload.spanMs > 0) {
         spanSec = payload.spanMs / 1000;
     }
+    else if (getSlbMode()) {
+        // SLB: default span covers the entire trade window so the focused
+        // trade stays in context with all other trades visible.
+        const slbFromMs = getVisibleFromMs();
+        const slbToMs = getVisibleToMs();
+        if (slbFromMs != null && slbToMs != null) {
+            spanSec = (slbToMs - slbFromMs) / 1000;
+        }
+        else if (current) {
+            spanSec = current.to - current.from;
+        }
+        else {
+            spanSec = getApproxBarDurationSec(getOhlcvData()) * FALLBACK_BARS;
+        }
+    }
     else if (current) {
         spanSec = current.to - current.from;
     }
@@ -4448,6 +4622,7 @@ function registerPositionLinesOverlay() {
 
 
 
+
 /**
  * When RN passes an explicit visible-range start (e.g. a specific period like
  * 1D/1W/1M), build a \`{ type: 'time-range', from, to }\` timeframe so the
@@ -4558,6 +4733,7 @@ function bootstrap() {
                         attachMarkerHitTest(widget, chart);
                         attachVisibleRangeListeners(chart);
                         attachLegendResizeListener(widget);
+                        slbScheduleInitialCentering();
                         scheduleChartLayoutSettledNotify();
                     }
                     catch (error) {

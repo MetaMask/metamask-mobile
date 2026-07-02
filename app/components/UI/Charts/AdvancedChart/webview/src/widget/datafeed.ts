@@ -27,6 +27,7 @@ import type {
 } from '../core/types';
 import { fetchOlderBarsFromPriceApi } from '../pagination/priceApi';
 import { requestOlderBarsFromRN } from '../pagination/rnBacked';
+import { slbHandleGetBars } from '../overlays/socialLeaderboard';
 
 const SUPPORTED_RESOLUTIONS: TVResolution[] = [
   '1',
@@ -163,6 +164,10 @@ export const customDatafeed: TVDatafeed = {
       const oldestAtDefer = all[0].time;
       const pag = getOhlcvPagination();
 
+      // Strategy C (SLB): all data is pre-loaded by RN — no pagination.
+      if (slbHandleGetBars(onResult)) return;
+
+      // Strategy A (Price API / Token Details):
       if (pag.assetId) {
         fetchOlderBarsFromPriceApi({ oldestAtDefer })
           .then(({ olderBars, noData }) => {
@@ -172,6 +177,7 @@ export const customDatafeed: TVDatafeed = {
             reportErrorToRN(error);
             onResult([], { noData: true });
           });
+        // Strategy B (RN-backed / Perps):
       } else if (getRnBackedPagination().enabled) {
         requestOlderBarsFromRN({
           resolution,

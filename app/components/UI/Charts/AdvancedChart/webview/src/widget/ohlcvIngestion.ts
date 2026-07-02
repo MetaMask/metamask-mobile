@@ -24,6 +24,7 @@ import {
   getCurrentResolution,
   getOhlcvData,
   getOhlcvGeneration,
+  getSlbMode,
   getVisibleFromMs,
   getWidget,
   isChartReady,
@@ -31,12 +32,15 @@ import {
   setOhlcvData,
   setOhlcvPagination,
   setRnBackedPagination,
+  setSlbCenteringPending,
+  setSlbMode,
   setVisibleFromMs,
   setVisibleToMs,
 } from '../core/state';
 import type { TVActiveChart } from '../core/types';
 import { forwardRealtimeTick } from './datafeed';
 import { resolveAllPendingOlderBarsNoData } from '../pagination/rnBacked';
+import { slbCenterViewport } from '../overlays/socialLeaderboard';
 import type {
   RealtimeUpdateMessage,
   SetOHLCVDataPayload,
@@ -68,6 +72,12 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
 
   if (payload.rnBackedPagination) {
     setRnBackedPagination(payload.rnBackedPagination);
+  }
+
+  const slb = !!payload.slbMode;
+  setSlbMode(slb);
+  if (slb) {
+    setSlbCenteringPending(true);
   }
 
   if (payload.pagination) {
@@ -147,6 +157,14 @@ export function handleRealtimeUpdate(
 }
 
 function applyVisibleRange(chart: TVActiveChart): void {
+  // Strategy C (SLB): center the viewport on the trade window using both
+  // visibleFromMs and visibleToMs. Handled by the socialLeaderboard overlay
+  // which subscribes to onDataLoaded and frames the exact trade window.
+  if (getSlbMode()) {
+    slbCenterViewport(chart);
+    return;
+  }
+
   const fromMs = getVisibleFromMs();
   if (fromMs == null) {
     try {
@@ -157,6 +175,9 @@ function applyVisibleRange(chart: TVActiveChart): void {
     return;
   }
 
+  // Strategy A / B: anchor the visible range from `visibleFromMs` to the
+  // last bar + 2-bar padding. This one-sided framing works because Token
+  // Details and Perps always want the right edge near the latest candle.
   const capturedGeneration = getOhlcvGeneration();
   const subscription = chart.onDataLoaded();
   const onLoaded = (): void => {

@@ -68,6 +68,38 @@ export interface SetOHLCVDataPayload {
   /** Optional symbol/vsCurrency for downstream pagination strategies. */
   symbol?: string;
   vsCurrency?: string;
+  /**
+   * SocialLeaderboard (SLB) scoping flag. Activates the third pagination
+   * strategy ("Strategy C — SLB bulk back-fill"):
+   *
+   * **Strategy A** (Price API / WebView-driven) — Token Details default.
+   * The WebView fetches older pages from the public Price API using
+   * cursor-based pagination (assetId + nextCursor). RN is not involved
+   * after the initial SET_OHLCV_DATA handoff.
+   *
+   * **Strategy B** (RN-backed) — Perps. The WebView sends
+   * FETCH_OLDER_BARS_REQUEST to RN, which fetches from a private candle
+   * source and sends bars back via FETCH_OLDER_BARS_RESPONSE.
+   * Opt-in: `rnBackedPagination.enabled`.
+   *
+   * **Strategy C** (SLB bulk back-fill) — Social Leaderboard. RN
+   * pre-loads the full OHLCV dataset covering the trade window
+   * (visibleFromMs to visibleToMs) and sends it in a single
+   * SET_OHLCV_DATA. The WebView does NOT paginate — getBars returns
+   * noData for any request outside the pre-loaded range. After data
+   * loads, the viewport is centered on the trade window so the user
+   * sees all relevant trades immediately. When the user taps a
+   * different trade row, RN re-sends the full dataset with updated
+   * visibleFromMs/visibleToMs and the viewport re-centers.
+   * Opt-in: `slbMode: true` on the payload.
+   *
+   * The branching is in datafeed.ts getBars:
+   * 1. slbMode -> noData (all data pre-loaded by RN)
+   * 2. pag.assetId -> Price API (Strategy A)
+   * 3. rnBackedPagination.enabled -> RN callback (Strategy B)
+   * 4. else -> noData: true
+   */
+  slbMode?: boolean;
 }
 
 export interface RealtimeUpdateMessage {
