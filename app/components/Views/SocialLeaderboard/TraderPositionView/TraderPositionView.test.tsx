@@ -23,6 +23,7 @@ const mockPriceChart = jest.fn();
 const mockTraderPriceChart = jest.fn();
 const mockRefetchPosition = jest.fn().mockResolvedValue(undefined);
 const mockRefreshProfile = jest.fn().mockResolvedValue(undefined);
+const mockSelectSocialLeaderboardPerpsEnabled = jest.fn(() => true);
 
 interface MockRouteParams {
   positionId?: string;
@@ -167,7 +168,7 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => {
   return { useAnalytics: () => createMockUseAnalyticsHook() };
 });
 
-jest.mock('../../../UI/AssetOverview/PriceChart', () => {
+jest.mock('../../../UI/AssetOverview/PriceChart/PriceChart', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -205,6 +206,14 @@ global.fetch = jest.fn().mockResolvedValue({
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
+
+jest.mock(
+  '../../../../selectors/featureFlagController/socialLeaderboard',
+  () => ({
+    selectSocialLeaderboardPerpsEnabled: () =>
+      mockSelectSocialLeaderboardPerpsEnabled(),
+  }),
+);
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -247,6 +256,7 @@ describe('TraderPositionView', () => {
       tradableSymbols: new Set<string>(),
       isLoading: false,
     });
+    mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockRouteParams = {
       traderId: 'trader-1',
       traderName: 'trader1',
@@ -271,6 +281,16 @@ describe('TraderPositionView', () => {
       ).getByText('trader1'),
     ).toBeOnTheScreen();
     expect(screen.getAllByText('PEPE').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('does not render the floating sticky day header at rest', () => {
+    renderWithProvider(<TraderPositionView />, { state: mockState });
+
+    // At rest the natural in-list day headers carry the labels; the floating
+    // sticky only appears once trades scroll behind the pinned chart's edge.
+    expect(
+      screen.queryByTestId(TraderPositionViewSelectorsIDs.STICKY_DAY_HEADER),
+    ).toBeNull();
   });
 
   it('shows empty state when trades array is empty', () => {
@@ -307,22 +327,6 @@ describe('TraderPositionView', () => {
       },
     );
     expect(mockGoBack).not.toHaveBeenCalled();
-  });
-
-  it('title section onLayout sets header height for scroll animation', () => {
-    renderWithProvider(<TraderPositionView />, { state: mockState });
-
-    const titleSectionWrapper = screen.getByTestId(
-      TraderPositionViewSelectorsIDs.TITLE_SECTION_WRAPPER,
-    );
-    fireEvent(titleSectionWrapper, 'layout', {
-      nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 80 } },
-    });
-
-    expect(titleSectionWrapper).toBeOnTheScreen();
-    expect(
-      screen.getByTestId(TraderPositionViewSelectorsIDs.HEADER),
-    ).toBeOnTheScreen();
   });
 
   it('renders the fallback when position is undefined and no positionId is provided', () => {
@@ -465,8 +469,14 @@ describe('TraderPositionView', () => {
     it('renders the perp leverage and direction badges in the header', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
-      expect(screen.getByText('10x')).toBeOnTheScreen();
-      expect(screen.getByText('SHORT')).toBeOnTheScreen();
+      const headerPerpBadges = within(
+        screen.getByTestId(
+          TraderPositionViewSelectorsIDs.HEADER_COMPACT_PERP_BADGES,
+        ),
+      );
+
+      expect(headerPerpBadges.getByText('10x')).toBeOnTheScreen();
+      expect(headerPerpBadges.getByText('SHORT')).toBeOnTheScreen();
     });
 
     it('does not render the copy token address button for a perp position', () => {
@@ -478,6 +488,51 @@ describe('TraderPositionView', () => {
           TraderPositionViewSelectorsIDs.COPY_TOKEN_ADDRESS_BUTTON,
         ),
       ).not.toBeOnTheScreen();
+    });
+
+    it('renders the fallback instead of perp details when social leaderboard perps are disabled', () => {
+      mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.FALLBACK),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).not.toBeOnTheScreen();
+      expect(screen.queryByText('SHORT')).not.toBeOnTheScreen();
+    });
+
+    it('renders the fallback when a disabled perp position resolves from positionId', () => {
+      const { useTraderPosition } = jest.requireMock(
+        './hooks/useTraderPosition',
+      );
+      (useTraderPosition as jest.Mock).mockReturnValue({
+        position: mockRouteParams.position,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchPosition,
+      });
+      mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(false);
+      mockRouteParams.position = undefined;
+      mockRouteParams.positionId = 'position-uuid-1';
+
+      renderWithProvider(<TraderPositionView />, { state: mockState });
+
+      expect(
+        screen.getByTestId(TraderPositionViewSelectorsIDs.FALLBACK),
+      ).toBeOnTheScreen();
+      expect(
+        screen.queryByTestId(TraderPositionViewSelectorsIDs.TRADE_BUTTON),
+      ).not.toBeOnTheScreen();
+
+      (useTraderPosition as jest.Mock).mockReturnValue({
+        position: undefined,
+        isLoading: false,
+        error: null,
+        refetch: mockRefetchPosition,
+      });
     });
 
     describe('HIP-3 markets', () => {
@@ -748,7 +803,7 @@ describe('TraderPositionView', () => {
 
     expect(screen.getByText('Closed position')).toBeOnTheScreen();
     expect(screen.getByText('+$300.00')).toBeOnTheScreen();
-    expect(screen.getByText('+25%')).toBeOnTheScreen();
+    expect(screen.getByText('+25.00%')).toBeOnTheScreen();
   });
 
   it('displays market cap from the fallback API when cache is empty', async () => {
@@ -765,7 +820,11 @@ describe('TraderPositionView', () => {
     });
   });
 
-  it('shows all trades regardless of the active time period, but filters chart markers', async () => {
+  it('passes all trades to the chart regardless of the active time period', async () => {
+    // Markers are bounded to the chart's loaded data window inside the chart
+    // component (not a now-relative period window), so the view forwards the
+    // full trade list and never drops past trades — e.g. a closed position whose
+    // fills predate the selected period must still surface on the chart.
     const now = Date.now();
 
     mockRouteParams.position = {
@@ -802,8 +861,10 @@ describe('TraderPositionView', () => {
         mockTraderPriceChart.mock.calls[
           mockTraderPriceChart.mock.calls.length - 1
         ]?.[0]?.trades;
-      expect(chartTrades).toHaveLength(1);
-      expect(chartTrades[0].transactionHash).toBe('0xrecent');
+      expect(chartTrades).toHaveLength(2);
+      expect(
+        chartTrades.map((t: { transactionHash: string }) => t.transactionHash),
+      ).toEqual(expect.arrayContaining(['0xrecent', '0xolder']));
     });
     expect(screen.getByTestId('trade-row-0xrecent')).toBeOnTheScreen();
     expect(screen.getByTestId('trade-row-0xolder')).toBeOnTheScreen();

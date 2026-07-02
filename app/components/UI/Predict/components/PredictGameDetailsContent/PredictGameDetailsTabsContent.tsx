@@ -23,8 +23,11 @@ interface PredictGameDetailsTabsContentProps {
   activePositions: PredictPosition[];
   claimablePositions: PredictPosition[];
   groupMap: Map<string, PredictOutcomeGroup>;
+  resolvedOutcomeGroups?: PredictOutcomeGroup[];
   activeChipKey: string;
   onBetPress: (token: PredictOutcomeToken) => void;
+  nonRegTimeSportsMarketTypes?: string[];
+  onRegTimeInfoPress?: () => void;
 }
 
 const PredictGameDetailsTabsContent = memo(
@@ -37,8 +40,11 @@ const PredictGameDetailsTabsContent = memo(
     activePositions,
     claimablePositions,
     groupMap,
+    resolvedOutcomeGroups = [],
     activeChipKey,
     onBetPress,
+    nonRegTimeSportsMarketTypes = [],
+    onRegTimeInfoPress,
   }: PredictGameDetailsTabsContentProps) => {
     const { game } = usePredictGame(market, { live: false });
     const handleBuyPress = useCallback(
@@ -71,12 +77,34 @@ const PredictGameDetailsTabsContent = memo(
     }
 
     if (!showTabBar) {
+      if (hasPositions) {
+        return (
+          <Box twClassName="px-4 py-2">
+            <Text
+              variant={TextVariant.HeadingMd}
+              twClassName="font-medium pt-8"
+            >
+              {strings('predict.market_details.your_picks')}
+            </Text>
+            <PredictPicks
+              market={market}
+              positions={activePositions}
+              claimablePositions={claimablePositions}
+              testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.GAME_PICK}
+            />
+          </Box>
+        );
+      }
+
       return (
         <PredictGameOutcomesTab
           groupMap={groupMap}
+          resolvedOutcomeGroups={resolvedOutcomeGroups}
           game={game}
           activeChipKey={activeChipKey}
           onBuyPress={handleBuyPress}
+          nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
+          onRegTimeInfoPress={onRegTimeInfoPress}
         />
       );
     }
@@ -101,9 +129,12 @@ const PredictGameDetailsTabsContent = memo(
         {currentKey === 'outcomes' && (
           <PredictGameOutcomesTab
             groupMap={groupMap}
+            resolvedOutcomeGroups={resolvedOutcomeGroups}
             game={game}
             activeChipKey={activeChipKey}
             onBuyPress={handleBuyPress}
+            nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
+            onRegTimeInfoPress={onRegTimeInfoPress}
           />
         )}
       </>

@@ -14,6 +14,7 @@ import {
   EXPLORE_QUICK_BUY_VARIANTS,
   EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
 } from '../../search/abTestConfig';
+import { useQuickBuySearchKeyboard } from '../../../../UI/Trending/hooks/useQuickBuySearchKeyboard/useQuickBuySearchKeyboard';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -81,6 +82,12 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
     EXPLORE_QUICK_BUY_VARIANTS,
     EXPLORE_QUICK_BUY_EXPOSURE_METADATA,
   );
+
+  const closeQuickBuy = useCallback(() => {
+    setQuickTradeToken(null);
+  }, []);
+
+  useQuickBuySearchKeyboard(quickTradeToken, closeQuickBuy);
 
   useEffect(() => {
     flashListRef.current?.scrollToOffset({ offset: 0, animated: false });
@@ -173,10 +180,7 @@ const FullFeedList: React.FC<FullFeedListProps> = ({
         onEndReachedThreshold={0.3}
         ListFooterComponent={footer}
       />
-      <TrendingQuickBuy
-        token={quickTradeToken}
-        onClose={() => setQuickTradeToken(null)}
-      />
+      <TrendingQuickBuy token={quickTradeToken} onClose={closeQuickBuy} />
     </>
   );
 };
@@ -269,14 +273,12 @@ const ExploreSearchContent: React.FC<ExploreSearchContentProps> = ({
 
   return (
     <Box twClassName="flex-1">
-      <Box twClassName="px-4">
-        <PillRow
-          pills={pills}
-          activeKey={activePill}
-          onSelect={handlePillSelect}
-          testIdPrefix="explore-search"
-        />
-      </Box>
+      <PillRow
+        pills={pills}
+        activeKey={activePill}
+        onSelect={handlePillSelect}
+        testIdPrefix="explore-search"
+      />
       {showFeedList ? (
         <FullFeedList
           key={activePill}

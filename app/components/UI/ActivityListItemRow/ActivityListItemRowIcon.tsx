@@ -1,42 +1,20 @@
 import React, { useEffect, useMemo } from 'react';
 import { Image, ImageSourcePropType, View } from 'react-native';
-import BadgeWrapper from '../../../component-library/components/Badges/BadgeWrapper';
-import Badge, {
-  BadgeVariant,
-} from '../../../component-library/components/Badges/Badge';
-import { AvatarSize } from '../../../component-library/components/Avatars/Avatar';
-import AvatarToken from '../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import imageIcons from '../../../images/image-icons';
+import {
+  AvatarIcon,
+  AvatarIconSeverity,
+  AvatarIconSize,
+  AvatarToken,
+  AvatarTokenSize,
+  BadgeNetwork,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  type IconName,
+} from '@metamask/design-system-react-native';
 import type { TokenAmount } from '../../../util/activity-adapters';
 import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
-
-function getTokenIconUrl(assetId: string | undefined): string | undefined {
-  if (!assetId) return undefined;
-
-  const formattedAssetId = assetId.startsWith('eip155:')
-    ? assetId.toLowerCase()
-    : assetId;
-
-  return `https://static.cx.metamask.io/api/v2/tokenIcons/assets/${formattedAssetId
-    .split(':')
-    .join('/')}.png`;
-}
-
-function getTokenImageSource(
-  token: TokenAmount | undefined,
-): ImageSourcePropType | undefined {
-  const symbol = token?.symbol;
-
-  if (symbol && Object.keys(imageIcons).includes(symbol)) {
-    const localIcon = imageIcons[symbol as keyof typeof imageIcons];
-    if (typeof localIcon !== 'function' && typeof localIcon !== 'string') {
-      return localIcon as ImageSourcePropType;
-    }
-  }
-
-  const iconUrl = getTokenIconUrl(token?.assetId);
-  return iconUrl ? { uri: iconUrl } : undefined;
-}
+import { getTokenImageSource } from './tokenIcon';
+import PerpsTokenLogo from '../Perps/components/PerpsTokenLogo';
 
 function getImageUri(
   source: ImageSourcePropType | undefined,
@@ -49,17 +27,28 @@ function getImageUri(
 }
 
 function TokenAvatar({
-  fallbackIcon,
+  fallbackIconName,
+  isFailed,
+  iconUrl,
+  perpsMarketSymbol,
   styles,
   tokens,
 }: {
-  fallbackIcon: ImageSourcePropType;
+  fallbackIconName: IconName;
+  isFailed: boolean;
+  iconUrl?: string;
+  perpsMarketSymbol?: string;
   styles: ActivityListItemRowStyles;
   tokens: TokenAmount[];
 }) {
   const tokenImageSources = useMemo(
-    () => tokens.map((token) => getTokenImageSource(token)),
-    [tokens],
+    () =>
+      tokens.map((token, index) =>
+        // An explicit iconUrl (HyperLiquid market icon) overrides the
+        // token-derived source for the single-avatar case.
+        index === 0 && iconUrl ? { uri: iconUrl } : getTokenImageSource(token),
+      ),
+    [tokens, iconUrl],
   );
 
   useEffect(() => {
@@ -71,9 +60,28 @@ function TokenAvatar({
     });
   }, [tokenImageSources]);
 
-  if (tokens.length === 0) {
+  if (perpsMarketSymbol) {
     return (
-      <Image source={fallbackIcon} style={styles.icon} resizeMode="stretch" />
+      <PerpsTokenLogo
+        symbol={perpsMarketSymbol}
+        size={32}
+        recyclingKey={perpsMarketSymbol}
+      />
+    );
+  }
+
+  if (tokens.length === 0) {
+    if (iconUrl) {
+      return <AvatarToken src={{ uri: iconUrl }} size={AvatarTokenSize.Md} />;
+    }
+    return (
+      <AvatarIcon
+        iconName={fallbackIconName}
+        severity={
+          isFailed ? AvatarIconSeverity.Danger : AvatarIconSeverity.Neutral
+        }
+        size={AvatarIconSize.Md}
+      />
     );
   }
 
@@ -82,9 +90,8 @@ function TokenAvatar({
     return (
       <AvatarToken
         name={token.symbol}
-        imageSource={tokenImageSources[0]}
-        size={AvatarSize.Md}
-        isIpfsGatewayCheckBypassed
+        src={tokenImageSources[0]}
+        size={AvatarTokenSize.Md}
       />
     );
   }
@@ -96,17 +103,15 @@ function TokenAvatar({
       <View style={styles.tokenIconStackBack}>
         <AvatarToken
           name={sourceToken.symbol}
-          imageSource={tokenImageSources[0]}
-          size={AvatarSize.Md}
-          isIpfsGatewayCheckBypassed
+          src={tokenImageSources[0]}
+          size={AvatarTokenSize.Md}
         />
       </View>
       <View style={styles.tokenIconStackFront}>
         <AvatarToken
           name={destinationToken.symbol}
-          imageSource={tokenImageSources[1]}
-          size={AvatarSize.Md}
-          isIpfsGatewayCheckBypassed
+          src={tokenImageSources[1]}
+          size={AvatarTokenSize.Md}
           style={styles.tokenIconStackFrontImage}
         />
       </View>
@@ -116,13 +121,27 @@ function TokenAvatar({
 }
 
 export function ActivityListItemRowIcon({
-  fallbackIcon,
+  fallbackIconName,
+  isFailed = false,
+  iconUrl,
   networkImageSource,
+  perpsMarketSymbol,
   styles,
   tokens,
 }: {
-  fallbackIcon: ImageSourcePropType;
-  networkImageSource: ImageSourcePropType;
+  /** Design-system arrow icon shown when the row has no token avatar. */
+  fallbackIconName: IconName;
+  /** Renders the fallback icon in the danger (failed) severity. */
+  isFailed?: boolean;
+  /** Explicit avatar image URL (e.g. HyperLiquid market icon) for the single-avatar case. */
+  iconUrl?: string;
+  /**
+   * Network badge source. Omitted for single-network domains (perps =
+   * Arbitrum, predict = Polygon) where the badge adds no information, so the
+   * avatar renders without it.
+   */
+  networkImageSource?: ImageSourcePropType;
+  perpsMarketSymbol?: string;
   styles: ActivityListItemRowStyles;
   tokens: TokenAmount[];
 }) {
@@ -133,23 +152,36 @@ export function ActivityListItemRowIcon({
     }
   }, [networkImageSource]);
 
+  const avatar = (
+    <TokenAvatar
+      fallbackIconName={fallbackIconName}
+      isFailed={isFailed}
+      iconUrl={iconUrl}
+      perpsMarketSymbol={perpsMarketSymbol}
+      styles={styles}
+      tokens={tokens}
+    />
+  );
+
+  if (!networkImageSource) {
+    return avatar;
+  }
+
   return (
     <BadgeWrapper
-      badgePosition={{ bottom: -4, right: -4 }}
-      badgeElement={
-        <Badge
-          variant={BadgeVariant.Network}
-          imageSource={networkImageSource}
-          isScaled={false}
-          size={AvatarSize.Xs}
+      position={BadgeWrapperPosition.BottomRight}
+      badge={
+        <BadgeNetwork
+          twClassName="rounded-md"
+          src={
+            networkImageSource as React.ComponentProps<
+              typeof BadgeNetwork
+            >['src']
+          }
         />
       }
     >
-      <TokenAvatar
-        fallbackIcon={fallbackIcon}
-        styles={styles}
-        tokens={tokens}
-      />
+      {avatar}
     </BadgeWrapper>
   );
 }

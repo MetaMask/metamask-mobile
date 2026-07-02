@@ -44,7 +44,8 @@ import { useTokenFiatRates } from '../../../hooks/tokens/useTokenFiatRates';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
-
+import { usePayWithMoneyAccountSection } from '../../../hooks/pay/sections/usePayWithMoneyAccountSection';
+import Logger from '../../../../../../util/Logger';
 import useClearConfirmationOnBackSwipe from '../../../hooks/ui/useClearConfirmationOnBackSwipe';
 
 jest.mock('../../../hooks/ui/useClearConfirmationOnBackSwipe');
@@ -77,6 +78,13 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 }));
 jest.mock('../../../hooks/transactions/useTransactionAccountOverride');
 jest.mock('../../../hooks/pay/useMoneyNoFeeTokens');
+jest.mock('../../../hooks/pay/sections/usePayWithMoneyAccountSection');
+jest.mock('../../rows/perps-account-picker-row', () => ({
+  PerpsAccountPickerRow: () => null,
+}));
+jest.mock('../../rows/predict-account-picker-row', () => ({
+  PredictAccountPickerRow: () => null,
+}));
 jest.mock('../../../../../../util/transaction-controller', () => ({}));
 
 jest.mock('../../../../../../core/Engine', () => ({
@@ -266,6 +274,9 @@ describe('CustomAmountInfo', () => {
     useClearConfirmationOnBackSwipe,
   );
   const useMoneyNoFeeTokensMock = jest.mocked(useMoneyNoFeeTokens);
+  const usePayWithMoneyAccountSectionMock = jest.mocked(
+    usePayWithMoneyAccountSection,
+  );
   const setIsConfirmationSubmittingMock = jest.fn();
 
   const useRouteMock = jest.mocked(useRoute);
@@ -314,6 +325,7 @@ describe('CustomAmountInfo', () => {
       amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
+      isPrefillPending: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: jest.fn(),
@@ -366,6 +378,7 @@ describe('CustomAmountInfo', () => {
     } as never);
 
     useMoneyNoFeeTokensMock.mockReturnValue({ isMoneyNoFeeToken: false });
+    usePayWithMoneyAccountSectionMock.mockReturnValue(null);
   });
 
   it('renders amount', () => {
@@ -471,6 +484,24 @@ describe('CustomAmountInfo', () => {
     ).toBeDefined();
   });
 
+  it('does not render buy button when money account is available', () => {
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
+
+    usePayWithMoneyAccountSectionMock.mockReturnValue({
+      id: 'money-account',
+      title: '',
+      testID: 'pay-with-section-money-account',
+      rows: [],
+    });
+
+    const { queryByText } = render();
+
+    expect(queryByText(strings('confirm.custom_amount.buy_button'))).toBeNull();
+  });
+
   it('navigates to ramps if buy button pressed', () => {
     useTransactionPayAvailableTokensMock.mockReturnValue({
       availableTokens: [],
@@ -524,6 +555,34 @@ describe('CustomAmountInfo', () => {
     },
   );
 
+  it.each([TransactionType.perpsDeposit, TransactionType.predictDeposit])(
+    'renders "Send" confirm label for %s from Money Account',
+    async (transactionType) => {
+      useRouteMock.mockReturnValue({
+        key: 'mock-route',
+        name: 'MockScreen',
+        params: { payWithOption: 'money_account' },
+      } as never);
+
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: transactionType,
+        txParams: { from: '0x123' },
+      } as never);
+
+      const { getByText, findByText } = render({ transactionType });
+
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
+
+      expect(
+        await findByText(
+          strings('confirm.deposit_edit_amount_money_account_send'),
+        ),
+      ).toBeOnTheScreen();
+    },
+  );
+
   it('hides PayTokenAmount when hidePayTokenAmount is true', () => {
     const { queryByText } = render({ hidePayTokenAmount: true });
 
@@ -554,6 +613,7 @@ describe('CustomAmountInfo', () => {
       amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
+      isPrefillPending: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: updateTokenAmountMock,
@@ -600,6 +660,7 @@ describe('CustomAmountInfo', () => {
       amountFiatDebounced: '0',
       hasInput: true,
       isInputChanged: false,
+      isPrefillPending: false,
       updatePendingAmount: noop,
       updatePendingAmountPercentage: noop,
       updateTokenAmount: updateTokenAmountMock,
@@ -713,6 +774,7 @@ describe('CustomAmountInfo', () => {
         amountFiatDebounced: '0',
         hasInput: false,
         isInputChanged: false,
+        isPrefillPending: false,
         updatePendingAmount: noop,
         updatePendingAmountPercentage: noop,
         updateTokenAmount: jest.fn(),

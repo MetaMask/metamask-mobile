@@ -1,121 +1,213 @@
-import React from 'react';
-import { View, StyleSheet } from 'react-native';
-import { Theme } from '@metamask/design-tokens';
-import { useStyles } from '../../../hooks/useStyles';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
+import type { Hex } from '@metamask/utils';
+import React, { useMemo } from 'react';
 import {
+  Box,
+  BoxFlexDirection,
   ButtonIcon,
   ButtonIconSize,
+  HeaderSubpage,
   IconName,
+  IconColor,
+  IconSize,
 } from '@metamask/design-system-react-native';
-import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import Badge, {
+  BadgeVariant,
+} from '../../../../component-library/components/Badges/Badge';
+import BadgeWrapper, {
+  BadgePosition,
+} from '../../../../component-library/components/Badges/BadgeWrapper';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
+import { strings } from '../../../../../locales/i18n';
+import { formatAddress } from '../../../../util/address';
+import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
+import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
+import { resolveTokenContractAddress } from '../../AssetOverview/utils/getTokenDetails';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
-
-const inlineHeaderStyles = (params: {
-  theme: Theme;
-  vars: { insets: EdgeInsets };
-}) => {
-  const {
-    theme,
-    vars: { insets },
-  } = params;
-  const { colors } = theme;
-  return StyleSheet.create({
-    container: {
-      backgroundColor: colors.background.default,
-      flexDirection: 'row',
-      justifyContent: 'space-between',
-      alignItems: 'center',
-      alignSelf: 'stretch',
-      paddingVertical: 8,
-      paddingHorizontal: 4,
-      marginTop: insets.top,
-    },
-    backButtonHitArea: {
-      width: 40,
-      height: 40,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      gap: 10,
-      flexShrink: 0,
-    },
-    endButtons: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 0,
-      flexShrink: 0,
-    },
-    endButtonHitArea: {
-      width: 40,
-      height: 40,
-      flexDirection: 'row',
-      justifyContent: 'center',
-      alignItems: 'center',
-      flexShrink: 0,
-    },
-  });
-};
+import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
+import { BridgeToken } from '../../Bridge/types';
+import StockBadge from '../../shared/StockBadge/StockBadge';
+import type { TokenDetailsRouteParams } from '../constants/constants';
+import { useCopyTokenContractAddress } from '../hooks/useCopyTokenContractAddress';
+import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 
 export const TokenDetailsInlineHeader = ({
+  token,
+  securityData,
   onBackPress,
   onPriceAlertPress,
   onSharePress,
+  onCopyAddress,
   iconColor,
   useAmbientColor = false,
 }: {
+  token: TokenDetailsRouteParams;
+  securityData: TokenSecurityData | null | undefined;
   onBackPress: () => void;
   onPriceAlertPress?: () => void;
   onSharePress?: () => void;
+  onCopyAddress?: () => void;
   /** Hex color string for the back button icon (A/B test). */
   iconColor?: string;
   useAmbientColor?: boolean;
 }) => {
-  const insets = useSafeAreaInsets();
-  const { styles } = useStyles(inlineHeaderStyles, { insets });
+  const tw = useTailwind();
+  const { isStockToken } = useRWAToken();
+  const { securityConfig, handleSecurityBadgePress } =
+    useTokenSecurityBadgePress(token, securityData);
 
-  // In control (useAmbientColor=false): always show button
-  // In treatment (useAmbientColor=true): only show when iconColor is defined
-  const shouldShowButton = !useAmbientColor || iconColor !== undefined;
+  const isNativeToken = token.isETH || token.isNative;
+  const contractAddress = useMemo(() => {
+    if (isNativeToken) {
+      return null;
+    }
+    return resolveTokenContractAddress(token);
+  }, [token, isNativeToken]);
+  const handleCopyContractAddress = useCopyTokenContractAddress(
+    contractAddress,
+    onCopyAddress,
+  );
+
+  const shouldShowEndButtons = !useAmbientColor || iconColor !== undefined;
+
+  const backButtonIconProps = useMemo(() => {
+    if (useAmbientColor && iconColor) {
+      return { twClassName: `text-[${iconColor}]` };
+    }
+    return undefined;
+  }, [useAmbientColor, iconColor]);
+
+  const networkBadgeSource = token.chainId
+    ? NetworkBadgeSource(token.chainId as Hex)
+    : undefined;
+
+  const titleEndAccessory = useMemo(() => {
+    const verifiedBadgeConfig =
+      securityData?.resultType === 'Verified'
+        ? securityConfig.badge
+        : undefined;
+    const showStock = isStockToken(token as BridgeToken);
+
+    const verifiedBadge = verifiedBadgeConfig ? (
+      <ButtonIcon
+        iconName={verifiedBadgeConfig.icon}
+        size={ButtonIconSize.Sm}
+        onPress={handleSecurityBadgePress}
+        iconProps={{ color: verifiedBadgeConfig.iconColor }}
+        testID="security-badge-verified"
+        accessibilityLabel={securityConfig.label}
+      />
+    ) : null;
+
+    const stockBadge = showStock ? (
+      <StockBadge token={token as BridgeToken} />
+    ) : null;
+
+    if (!verifiedBadge && !stockBadge) {
+      return undefined;
+    }
+
+    if (verifiedBadge && stockBadge) {
+      return (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          twClassName="items-center gap-1"
+        >
+          {verifiedBadge}
+          {stockBadge}
+        </Box>
+      );
+    }
+
+    return verifiedBadge ?? stockBadge;
+  }, [
+    securityData?.resultType,
+    securityConfig.badge,
+    securityConfig.label,
+    handleSecurityBadgePress,
+    token,
+    isStockToken,
+  ]);
+
+  const endButtonIconProps = useMemo(() => {
+    if (!shouldShowEndButtons) {
+      return undefined;
+    }
+    const buttons = [];
+    if (onSharePress) {
+      buttons.push({
+        iconName: IconName.Share,
+        onPress: onSharePress,
+        testID: 'share-button',
+        accessibilityLabel: 'Share token',
+      });
+    }
+    if (onPriceAlertPress) {
+      buttons.push({
+        iconName: IconName.Notification,
+        onPress: onPriceAlertPress,
+        testID: TokenOverviewSelectorsIDs.PRICE_ALERT_BUTTON,
+        accessibilityLabel: 'Create price alert',
+      });
+    }
+    return buttons.length > 0 ? buttons : undefined;
+  }, [shouldShowEndButtons, onSharePress, onPriceAlertPress]);
+
+  const descriptionEndAccessory = useMemo(() => {
+    if (!contractAddress) {
+      return undefined;
+    }
+
+    return (
+      <ButtonIcon
+        iconName={IconName.Copy}
+        size={ButtonIconSize.Xs}
+        onPress={handleCopyContractAddress}
+        iconProps={{ color: IconColor.IconAlternative, size: IconSize.Sm }}
+        testID="copy-contract-address-button"
+        accessibilityLabel={strings('token.contract_address')}
+      />
+    );
+  }, [contractAddress, handleCopyContractAddress]);
 
   return (
-    <View style={styles.container}>
-      <View style={styles.backButtonHitArea}>
-        {shouldShowButton && (
-          <ButtonIcon
-            onPress={onBackPress}
-            size={ButtonIconSize.Md}
-            iconName={IconName.ArrowLeft}
-            iconProps={
-              iconColor ? { twClassName: `text-[${iconColor}]` } : undefined
-            }
-            testID="back-arrow-button"
-          />
-        )}
-      </View>
-      <View style={styles.endButtons}>
-        {shouldShowButton && onPriceAlertPress ? (
-          <View style={styles.endButtonHitArea}>
-            <ButtonIcon
-              onPress={onPriceAlertPress}
-              size={ButtonIconSize.Md}
-              iconName={IconName.Notification}
-              testID={TokenOverviewSelectorsIDs.PRICE_ALERT_BUTTON}
-              accessibilityLabel="Create price alert"
-            />
-          </View>
-        ) : null}
-        {shouldShowButton && onSharePress ? (
-          <View style={styles.endButtonHitArea}>
-            <ButtonIcon
-              onPress={onSharePress}
-              size={ButtonIconSize.Md}
-              iconName={IconName.Share}
-              testID="share-button"
-              accessibilityLabel="Share token"
-            />
-          </View>
-        ) : null}
-      </View>
-    </View>
+    <HeaderSubpage
+      includesTopInset
+      twClassName="min-h-14 h-auto bg-default justify-center"
+      startAccessory={
+        <ButtonIcon
+          iconName={IconName.ArrowLeft}
+          size={ButtonIconSize.Md}
+          onPress={onBackPress}
+          iconProps={backButtonIconProps}
+          testID="back-arrow-button"
+        />
+      }
+      endButtonIconProps={endButtonIconProps}
+      avatar={
+        <BadgeWrapper
+          badgePosition={BadgePosition.BottomRight}
+          style={tw.style('self-center')}
+          badgeElement={
+            networkBadgeSource ? (
+              <Badge
+                variant={BadgeVariant.Network}
+                imageSource={networkBadgeSource}
+                size={AvatarSize.Xs}
+              />
+            ) : undefined
+          }
+        >
+          <AssetLogo asset={token} />
+        </BadgeWrapper>
+      }
+      title={token.ticker || token.symbol}
+      titleEndAccessory={titleEndAccessory}
+      description={
+        contractAddress ? formatAddress(contractAddress, 'short') : undefined
+      }
+      descriptionEndAccessory={descriptionEndAccessory}
+    />
   );
 };

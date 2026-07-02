@@ -1,9 +1,11 @@
 import { AppThemeKey, type Theme } from '../../../../util/theme/models';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import {
+  type ChartLabelStyleOverrides,
   type LineChromeOptions,
   type LegendOverlayConfig,
   resolveLineChromeOptions,
+  resolveCurrentPriceColor,
 } from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
 import { getIndicatorColorsForWebview } from './indicatorColors';
@@ -46,6 +48,19 @@ const CHARTING_LIBRARY_ORIGIN = (() => {
 const stripHexAlpha = (hex: string): string =>
   hex.length === 9 && hex.startsWith('#') ? hex.slice(0, 7) : hex;
 
+const formatTradingViewCssColor = (hex: string): string => {
+  if (hex.length !== 9 || !hex.startsWith('#')) {
+    return hex;
+  }
+
+  const red = Number.parseInt(hex.slice(1, 3), 16);
+  const green = Number.parseInt(hex.slice(3, 5), 16);
+  const blue = Number.parseInt(hex.slice(5, 7), 16);
+  const alpha = Number.parseInt(hex.slice(7, 9), 16) / 255;
+
+  return `rgba(${red}, ${green}, ${blue}, ${alpha.toFixed(3)})`;
+};
+
 const getChartSuccessColor = (theme: Theme): string =>
   theme.themeAppearance === AppThemeKey.light
     ? LIGHT_MODE_SUCCESS_GREEN
@@ -55,10 +70,16 @@ interface ChartFeatures {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
   lineChrome?: LineChromeOptions;
+  useSubscriptPriceFormat?: boolean;
+  hidePaneSeparator?: boolean;
+  gridLineColorOverride?: string;
   lineColorOverride?: string;
   successColorOverride?: string;
   errorColorOverride?: string;
   currentPriceLineColorOverride?: string;
+  labelStyleOverrides?: ChartLabelStyleOverrides;
+  volumeSuccessColorOverride?: string;
+  volumeErrorColorOverride?: string;
   legendOverlay?: LegendOverlayConfig;
 }
 
@@ -72,23 +93,55 @@ const createConfigScript = (
     features.successColorOverride ?? getChartSuccessColor(theme);
   const lineColor = features.lineColorOverride ?? successColor;
   const errorColor = features.errorColorOverride ?? theme.colors.error.default;
+  const labelStyles = features.labelStyleOverrides;
+  const sectionBackgroundColor = stripHexAlpha(
+    labelStyles?.crosshairBackgroundColor ?? theme.colors.background.section,
+  );
+  const textDefaultColor = stripHexAlpha(
+    labelStyles?.crosshairTextColor ?? theme.colors.text.default,
+  );
+  const axisTextColor = stripHexAlpha(
+    labelStyles?.axisTextColor ?? theme.colors.text.muted,
+  );
+  const legendTextColor = stripHexAlpha(
+    labelStyles?.legendTextColor ?? theme.colors.text.alternative,
+  );
+  const resolvedCurrentPriceColor = resolveCurrentPriceColor({
+    lastValuePillColor: labelStyles?.lastValuePillColor,
+    currentPriceLineColorOverride: features.currentPriceLineColorOverride,
+    lineColorOverride: features.lineColorOverride,
+    successColorOverride: features.successColorOverride,
+    themeSuccessDefault: getChartSuccessColor(theme),
+  });
+  const volumeSuccessColor =
+    features.volumeSuccessColorOverride ?? successColor;
+  const volumeErrorColor = features.volumeErrorColorOverride ?? errorColor;
   return `
 window.CONFIG = {
   libraryUrl: '${libraryUrl}',
   theme: {
     backgroundColor: '${theme.colors.background.default}',
     borderColor: '${stripHexAlpha(theme.colors.border.muted)}',
-    textColor: '${stripHexAlpha(theme.colors.text.muted)}',
-    textAlternativeColor: '${stripHexAlpha(theme.colors.text.alternative)}',
+    textColor: '${axisTextColor}',
+    textDefaultColor: '${textDefaultColor}',
+    sectionBackgroundColor: '${sectionBackgroundColor}',
+    crosshairBackgroundColor: '${sectionBackgroundColor}',
+    crosshairTextColor: '${textDefaultColor}',
+    legendTextColor: '${legendTextColor}',
+    textAlternativeColor: '${legendTextColor}',
     successColor: '${successColor}',
     lineColor: '${lineColor}',
+    gridLineColor: '${features.gridLineColorOverride ? formatTradingViewCssColor(features.gridLineColorOverride) : 'transparent'}',
     errorColor: '${errorColor}',
+    volumeSuccessColor: '${volumeSuccessColor}',
+    volumeErrorColor: '${volumeErrorColor}',
     primaryColor: '${theme.colors.primary.default}',
-    currentPriceColor: '${features.currentPriceLineColorOverride ?? ''}'
+    currentPriceColor: '${resolvedCurrentPriceColor}'
   },
   features: {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},
-    disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])}
+    disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])},
+    hidePaneSeparator: ${features.hidePaneSeparator ? 'true' : 'false'}
   },
   lineChrome: {
     hideTimeScale: ${lc.hideTimeScale ? 'true' : 'false'},
@@ -97,6 +150,7 @@ window.CONFIG = {
     useCustomPriceLabels: ${lc.useCustomPriceLabels ? 'true' : 'false'}
   },
   legendOverlay: ${JSON.stringify(features.legendOverlay ?? { enabled: false })},
+  useSubscriptPriceFormat: ${features.useSubscriptPriceFormat ? 'true' : 'false'},
   indicatorColors: ${JSON.stringify(getIndicatorColorsForWebview(theme.themeAppearance))}
 };
 `;
@@ -114,6 +168,8 @@ export const createAdvancedChartTemplate = (
 ): string => {
   const resolvedLineColor =
     features.lineColorOverride ?? getChartSuccessColor(theme);
+  const resolvedCurrentPriceLabelColor =
+    features.currentPriceLineColorOverride ?? resolvedLineColor;
   const configInline = createConfigScript(
     CHARTING_LIBRARY_URL,
     theme,
@@ -227,11 +283,12 @@ export const createAdvancedChartTemplate = (
             transform: translateX(-50%);
         }
         /*
-         * Last-close: green pill (matches TV last-price line), same stacking context as the overlay.
+         * Last-close: filled pill matching the current-price line override when supplied,
+         * otherwise matching the default chart line color.
          */
         #last-close-price-label {
             z-index: 50;
-            background: ${stripHexAlpha(resolvedLineColor)};
+            background: ${resolvedCurrentPriceLabelColor};
             color: ${stripHexAlpha(theme.colors.success.inverse)};
         }
         /*

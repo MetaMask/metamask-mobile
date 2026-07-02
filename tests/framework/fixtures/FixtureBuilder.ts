@@ -188,7 +188,6 @@ class FixtureBuilder {
       '@MetaMask:existingUser': 'true',
       '@MetaMask:OptinMetaMetricsUISeen': 'true',
       '@MetaMask:UserTermsAcceptedv1.0': 'true',
-      '@MetaMask:WhatsNewAppVersionSeen': '7.24.3',
       '@MetaMask:solanaFeatureModalShownV2': 'false',
     };
     return this;
@@ -1413,6 +1412,19 @@ class FixtureBuilder {
     });
 
     // Enable basic functionality in settings (required for profile syncing)
+    merge(this.fixture.state.settings, {
+      basicFunctionalityEnabled: true,
+    });
+
+    return this;
+  }
+
+  /**
+   * Enables basic functionality in settings.
+   * Required for remote feature flags and other external-service gated features.
+   * @returns The current instance for method chaining.
+   */
+  withBasicFunctionalityEnabled() {
     merge(this.fixture.state.settings, {
       basicFunctionalityEnabled: true,
     });

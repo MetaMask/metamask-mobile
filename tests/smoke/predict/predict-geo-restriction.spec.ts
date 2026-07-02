@@ -33,6 +33,15 @@ const predictionGeoBlockedFeature = async (mockServer: Mockttp) => {
       minimumVersion: '0.0.0',
     },
     carouselBanners: false,
+    predictExtendedSportsMarkets: {
+      versions: {
+        '7.82.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
+      },
+    },
   });
   await POLYMARKET_MARKET_FEEDS_MOCKS(mockServer);
   await POLYMARKET_GEO_BLOCKED_MOCKS(mockServer);
@@ -45,6 +54,7 @@ describe(SmokePredictions('Predictions - Geo Restriction'), () => {
       {
         fixture: new FixtureBuilder()
           .withPolygon()
+          .withBasicFunctionalityEnabled()
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,

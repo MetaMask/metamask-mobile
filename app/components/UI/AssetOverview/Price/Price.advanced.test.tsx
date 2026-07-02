@@ -313,6 +313,12 @@ describe('PriceAdvanced', () => {
     ).toBeOnTheScreen();
   });
 
+  it('does not render token name in price header', () => {
+    const { queryByText } = render(<PriceAdvanced {...baseProps} />);
+
+    expect(queryByText('Test Token')).toBeNull();
+  });
+
   it('shows loading skeletons when isLoading is true', () => {
     const { getByTestId } = render(<PriceAdvanced {...baseProps} isLoading />);
     expect(getByTestId('loading-price-diff')).toBeOnTheScreen();
@@ -992,6 +998,26 @@ describe('PriceAdvanced', () => {
       });
 
       expect(timeRangeSelector.props.accessibilityState?.busy).toBe(false);
+    });
+
+    it('keeps TimeRangeSelector visible after time range change when technical indicators FF is OFF', () => {
+      const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
+
+      act(() => {
+        getByTestId('mock-advanced-chart').props.onSkeletonHidden?.();
+      });
+
+      expect(
+        getByTestId('mock-time-range-selector').props.accessibilityState?.busy,
+      ).toBe(false);
+
+      act(() => {
+        fireEvent.press(getByTestId('select-1W'));
+      });
+
+      expect(
+        getByTestId('mock-time-range-selector').props.accessibilityState?.busy,
+      ).toBe(false);
     });
 
     it('keeps interval and indicator bars hidden until advanced chart is revealed', () => {
@@ -1953,7 +1979,7 @@ describe('PriceAdvanced', () => {
       );
     });
 
-    it('replaces other sub-pane indicators when selecting a new one', () => {
+    it('allows RSI and MACD to be active at the same time', () => {
       enableIndicatorBar(['MACD']);
       const { getByTestId } = render(<PriceAdvanced {...baseProps} />);
 
@@ -1968,7 +1994,7 @@ describe('PriceAdvanced', () => {
           properties: expect.objectContaining({
             indicator_type: 'RSI',
             indicator_action: 'on',
-            indicators_active: ['RSI'],
+            indicators_active: expect.arrayContaining(['MACD', 'RSI']),
           }),
         }),
       );
