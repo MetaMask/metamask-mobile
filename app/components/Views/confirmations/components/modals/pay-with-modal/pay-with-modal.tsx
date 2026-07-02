@@ -109,6 +109,15 @@ export function PayWithModal() {
     }
   }, [close, dismissOnSelectCount, navigation]);
 
+  const dismissAfterTokenSelect = useCallback(() => {
+    if (dismissOnSelectCount > 1) {
+      navigation.dispatch(StackActions.pop(dismissOnSelectCount));
+      return;
+    }
+
+    navigation.goBack();
+  }, [dismissOnSelectCount, navigation]);
+
   const wrapHighlightedItemCallbacks = useCallback(
     (items: TokenListItem[]): TokenListItem[] =>
       items.map((item) => {
@@ -132,73 +141,68 @@ export function PayWithModal() {
   );
 
   const handleTokenSelect = useCallback(
-    (token: AssetType) => {
-      const onClosed = async () => {
-        if (dismissOnSelectCount > 1) {
-          navigation.dispatch(StackActions.pop(dismissOnSelectCount));
-        }
+    async (token: AssetType) => {
+      if (
+        hasTransactionType(transactionMeta, [TransactionType.musdConversion])
+      ) {
+        onMusdPaymentTokenChange(token);
+        dismissAfterTokenSelect();
+        return;
+      }
 
-        if (
-          hasTransactionType(transactionMeta, [TransactionType.musdConversion])
-        ) {
-          onMusdPaymentTokenChange(token);
-          return;
-        }
+      if (
+        hasTransactionType(transactionMeta, [
+          TransactionType.perpsDepositAndOrder,
+        ])
+      ) {
+        onPerpsPaymentTokenChange(token);
+        dismissAfterTokenSelect();
+        return;
+      }
 
-        if (
-          hasTransactionType(transactionMeta, [
-            TransactionType.perpsDepositAndOrder,
-          ])
-        ) {
-          onPerpsPaymentTokenChange(token);
-          return;
-        }
+      if (isPredictContext) {
+        onPredictPaymentTokenChange(token);
+        dismissAfterTokenSelect();
+        return;
+      }
 
-        if (isPredictContext) {
-          onPredictPaymentTokenChange(token);
-          return;
-        }
-
-        // Ensure the token is tracked by TokensController so the pay
-        // controller can resolve its metadata (symbol, decimals, balance).
-        // Must complete before setPayToken so the controller can find the token.
-        if (isWithdraw && token.balance === '0' && !token.isNative) {
-          const { TokensController, NetworkController } = Engine.context;
-          try {
-            const networkClientId =
-              NetworkController.findNetworkClientIdByChainId(
-                token.chainId as Hex,
-              );
-            await TokensController.addTokens(
-              [
-                {
-                  address: token.address,
-                  symbol: token.symbol,
-                  decimals: token.decimals,
-                  image: token.image || undefined,
-                },
-              ],
-              networkClientId,
+      // Ensure the token is tracked by TokensController so the pay
+      // controller can resolve its metadata (symbol, decimals, balance).
+      // Must complete before setPayToken so the controller can find the token.
+      if (isWithdraw && token.balance === '0' && !token.isNative) {
+        const { TokensController, NetworkController } = Engine.context;
+        try {
+          const networkClientId =
+            NetworkController.findNetworkClientIdByChainId(
+              token.chainId as Hex,
             );
-          } catch {
-            // Network not configured — skip
-          }
+          await TokensController.addTokens(
+            [
+              {
+                address: token.address,
+                symbol: token.symbol,
+                decimals: token.decimals,
+                image: token.image || undefined,
+              },
+            ],
+            networkClientId,
+          );
+        } catch {
+          // Network not configured — skip
         }
+      }
 
-        setPayToken({
-          address: token.address as Hex,
-          chainId: token.chainId as Hex,
-        });
-      };
+      setPayToken({
+        address: token.address as Hex,
+        chainId: token.chainId as Hex,
+      });
 
-      close(onClosed);
+      dismissAfterTokenSelect();
     },
     [
-      close,
-      dismissOnSelectCount,
+      dismissAfterTokenSelect,
       isPredictContext,
       isWithdraw,
-      navigation,
       onMusdPaymentTokenChange,
       onPerpsPaymentTokenChange,
       onPredictPaymentTokenChange,
