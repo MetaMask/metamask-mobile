@@ -1,19 +1,8 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
-import { LayoutChangeEvent, TextInput } from 'react-native';
+import React, { useCallback, useMemo, useState } from 'react';
+import { TextInput } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { Gesture, GestureDetector } from 'react-native-gesture-handler';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withTiming,
-} from 'react-native-reanimated';
+import { GestureDetector } from 'react-native-gesture-handler';
+import Animated from 'react-native-reanimated';
 import {
   AvatarToken,
   AvatarTokenSize,
@@ -53,13 +42,16 @@ import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { RewardsMetricsButtons } from '../../../utils';
 import { formatCompactUsd, formatUsd } from '../../../utils/formatUtils';
 import {
-  amountToPercent,
-  clampAmount,
-  MAX_AMOUNT as MAX_SLIDER_AMOUNT,
   MUSD_CALCULATOR_APY,
-  percentToAmount,
   SNAP_POINTS,
 } from '../../../utils/musdCalculatorSlider';
+import {
+  MUSD_SLIDER_INITIAL_AMOUNT,
+  MUSD_SLIDER_ROW_HEIGHT,
+  MUSD_SLIDER_THUMB_SIZE_REST,
+  MUSD_SLIDER_TRACK_HEIGHT,
+  useMusdCalculatorSlider,
+} from '../../../hooks/useMusdCalculatorSlider';
 import type { ImageOrSvgSrc } from '@metamask/design-system-react-native/dist/components/temp-components/ImageOrSvg/ImageOrSvg.types.d.cts';
 
 const BUY_MUSD_URL =
@@ -77,14 +69,10 @@ const MUSD_DEST_TOKEN: BridgeToken = {
   ),
 };
 
-const TRACK_HEIGHT = 12;
-const THUMB_SIZE_REST = 24;
-const THUMB_SIZE_DRAG = 32;
-const THUMB_DRAG_SCALE = THUMB_SIZE_DRAG / THUMB_SIZE_REST;
-const SLIDER_ROW_HEIGHT = 32;
-/** ms between JS amount updates while dragging — keeps labels in sync without a re-render every frame */
-const SLIDER_AMOUNT_THROTTLE_MS = 48;
-const INITIAL_AMOUNT = SNAP_POINTS[1];
+const TRACK_HEIGHT = MUSD_SLIDER_TRACK_HEIGHT;
+const THUMB_SIZE_REST = MUSD_SLIDER_THUMB_SIZE_REST;
+const SLIDER_ROW_HEIGHT = MUSD_SLIDER_ROW_HEIGHT;
+const INITIAL_AMOUNT = MUSD_SLIDER_INITIAL_AMOUNT;
 const KEYBOARD_EXTRA_SCROLL_HEIGHT = 20;
 const MAX_DECIMAL_PLACES = 2;
 const MAX_INPUT_AMOUNT = 10_000_000;
@@ -118,129 +106,6 @@ const getAmountInputState = (value: string) => {
   };
 };
 
-const useMusdSlider = (
-  amount: number,
-  onAmountChange: (nextAmount: number) => void,
-) => {
-  const thumbScale = useSharedValue(1);
-  const trackWidthShared = useSharedValue(0);
-  const thumbLinearPctShared = useSharedValue(amountToPercent(INITIAL_AMOUNT));
-  const lastThrottledAmountSyncRef = useRef(0);
-
-  useEffect(() => {
-    thumbLinearPctShared.value = amountToPercent(
-      Math.min(amount, MAX_SLIDER_AMOUNT),
-    );
-  }, [amount, thumbLinearPctShared]);
-
-  const syncAmountFromLinearPct = useCallback(
-    (linearPct: number, force: boolean) => {
-      const now = globalThis.performance.now();
-      if (
-        !force &&
-        now - lastThrottledAmountSyncRef.current < SLIDER_AMOUNT_THROTTLE_MS
-      ) {
-        return;
-      }
-      lastThrottledAmountSyncRef.current = now;
-      onAmountChange(clampAmount(percentToAmount(linearPct)));
-    },
-    [onAmountChange],
-  );
-
-  const commitSliderAtX = useCallback(
-    (x: number) => {
-      const w = trackWidthShared.value;
-      if (w <= 0) {
-        return;
-      }
-      const clampedX = Math.max(0, Math.min(w, x));
-      const linearPct = (clampedX / w) * 100;
-      thumbLinearPctShared.value = linearPct;
-      const next = clampAmount(percentToAmount(linearPct));
-      onAmountChange(next);
-      thumbLinearPctShared.value = amountToPercent(next);
-      lastThrottledAmountSyncRef.current = 0;
-    },
-    [onAmountChange, thumbLinearPctShared, trackWidthShared],
-  );
-
-  const panGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .minDistance(2)
-        .onBegin(() => {
-          thumbScale.value = withTiming(THUMB_DRAG_SCALE, { duration: 150 });
-        })
-        .onUpdate((e) => {
-          const w = trackWidthShared.value;
-          if (w <= 0) {
-            return;
-          }
-          const clampedX = Math.max(0, Math.min(w, e.x));
-          const linearPct = (clampedX / w) * 100;
-          thumbLinearPctShared.value = linearPct;
-          runOnJS(syncAmountFromLinearPct)(linearPct, false);
-        })
-        .onEnd((e) => {
-          runOnJS(commitSliderAtX)(e.x);
-        })
-        .onFinalize(() => {
-          thumbScale.value = withTiming(1, { duration: 150 });
-        }),
-    [
-      thumbScale,
-      thumbLinearPctShared,
-      trackWidthShared,
-      syncAmountFromLinearPct,
-      commitSliderAtX,
-    ],
-  );
-
-  const tapGesture = useMemo(
-    () =>
-      Gesture.Tap().onEnd((e) => {
-        runOnJS(commitSliderAtX)(e.x);
-      }),
-    [commitSliderAtX],
-  );
-
-  const sliderGesture = useMemo(
-    () => Gesture.Simultaneous(tapGesture, panGesture),
-    [tapGesture, panGesture],
-  );
-
-  const animatedFillStyle = useAnimatedStyle(() => {
-    const w = trackWidthShared.value;
-    const pct = thumbLinearPctShared.value;
-    return { width: (pct / 100) * w };
-  });
-
-  const animatedThumbStyle = useAnimatedStyle(() => {
-    const w = trackWidthShared.value;
-    const pct = thumbLinearPctShared.value;
-    const filled = (pct / 100) * w;
-    return {
-      transform: [{ scale: thumbScale.value }],
-      left: filled - THUMB_SIZE_REST / 2,
-    };
-  });
-
-  const handleSliderLayout = useCallback(
-    (event: LayoutChangeEvent) => {
-      trackWidthShared.value = event.nativeEvent.layout.width;
-    },
-    [trackWidthShared],
-  );
-
-  return {
-    animatedFillStyle,
-    animatedThumbStyle,
-    handleSliderLayout,
-    sliderGesture,
-  };
-};
-
 const MusdCalculatorTab: React.FC = () => {
   const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -258,7 +123,7 @@ const MusdCalculatorTab: React.FC = () => {
     setAmount(nextAmount);
     setAmountInputValue(String(nextAmount));
   }, []);
-  const slider = useMusdSlider(amount, handleAmountChange);
+  const slider = useMusdCalculatorSlider(amount, handleAmountChange);
 
   const scaleMinLabel = formatUsd(SNAP_POINTS[0]);
   const scaleMidLabel = formatUsd(SNAP_POINTS[1]);

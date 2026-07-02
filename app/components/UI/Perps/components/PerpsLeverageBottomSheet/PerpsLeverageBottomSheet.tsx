@@ -889,6 +889,8 @@ const PerpsLeverageBottomSheet: React.FC<PerpsLeverageBottomSheetProps> = ({
 
 PerpsLeverageBottomSheet.displayName = 'PerpsLeverageBottomSheet';
 
+export { LeverageSlider };
+
 export default memo(
   PerpsLeverageBottomSheet,
   (prevProps, nextProps) =>

@@ -132,12 +132,19 @@ const getStories = () => {
     "./app/component-library/components/Toast/Toast.stories.tsx": require("../app/component-library/components/Toast/Toast.stories.tsx"),
     "./app/components/Base/Keypad/Keypad.stories.tsx": require("../app/components/Base/Keypad/Keypad.stories.tsx"),
     "./app/components/UI/BalanceEmptyState/BalanceEmptyState.stories.tsx": require("../app/components/UI/BalanceEmptyState/BalanceEmptyState.stories.tsx"),
+    "./app/components/UI/Bridge/Views/BatchSellReview/BatchSellPercentageSlider.stories.tsx": require("../app/components/UI/Bridge/Views/BatchSellReview/BatchSellPercentageSlider.stories.tsx"),
     "./app/components/UI/CollectiblesEmptyState/CollectiblesEmptyState.stories.tsx": require("../app/components/UI/CollectiblesEmptyState/CollectiblesEmptyState.stories.tsx"),
     "./app/components/UI/DefiEmptyState/DefiEmptyState.stories.tsx": require("../app/components/UI/DefiEmptyState/DefiEmptyState.stories.tsx"),
+    "./app/components/UI/Perps/components/PerpsLeverageBottomSheet/LeverageSlider.stories.tsx": require("../app/components/UI/Perps/components/PerpsLeverageBottomSheet/LeverageSlider.stories.tsx"),
+    "./app/components/UI/Perps/components/PerpsSlider/PerpsSlider.stories.tsx": require("../app/components/UI/Perps/components/PerpsSlider/PerpsSlider.stories.tsx"),
     "./app/components/UI/Perps/Views/PerpsEmptyState/PerpsEmptyState.stories.tsx": require("../app/components/UI/Perps/Views/PerpsEmptyState/PerpsEmptyState.stories.tsx"),
     "./app/components/UI/Ramp/Aggregator/components/ShapesBackgroundAnimation/index.stories.tsx": require("../app/components/UI/Ramp/Aggregator/components/ShapesBackgroundAnimation/index.stories.tsx"),
+    "./app/components/UI/Rewards/components/MusdCalculatorSlider/MusdCalculatorSlider.stories.tsx": require("../app/components/UI/Rewards/components/MusdCalculatorSlider/MusdCalculatorSlider.stories.tsx"),
     "./app/components/UI/Rewards/components/RewardPointsAnimation/RewardPointsAnimation.stories.tsx": require("../app/components/UI/Rewards/components/RewardPointsAnimation/RewardPointsAnimation.stories.tsx"),
     "./app/components/UI/SettingsButtonSection/SettingsButtonSection.stories.tsx": require("../app/components/UI/SettingsButtonSection/SettingsButtonSection.stories.tsx"),
+    "./app/components/UI/SliderButton/SliderButton.stories.tsx": require("../app/components/UI/SliderButton/SliderButton.stories.tsx"),
+    "./app/components/UI/SlippageSlider/SlippageSlider.stories.tsx": require("../app/components/UI/SlippageSlider/SlippageSlider.stories.tsx"),
+    "./app/components/UI/WhatsHappening/components/WhatsHappeningAssetSlider.stories.tsx": require("../app/components/UI/WhatsHappening/components/WhatsHappeningAssetSlider.stories.tsx"),
     "./app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories.tsx": require("../app/components/Views/AssetDetails/AssetDetailsActions/AssetDetailsActions.stories.tsx"),
     "./app/components/Views/confirmations/components/deposit-keyboard/deposit-keyboard.stories.tsx": require("../app/components/Views/confirmations/components/deposit-keyboard/deposit-keyboard.stories.tsx"),
     "./app/components/Views/confirmations/components/edit-amount-keyboard/edit-amount-keyboard.stories.tsx": require("../app/components/Views/confirmations/components/edit-amount-keyboard/edit-amount-keyboard.stories.tsx"),
@@ -146,6 +153,7 @@ const getStories = () => {
     "./app/components/Views/MultichainAccounts/MultichainAccountsConnectedList/MultichainAccountsConnectedList.stories.tsx": require("../app/components/Views/MultichainAccounts/MultichainAccountsConnectedList/MultichainAccountsConnectedList.stories.tsx"),
     "./app/components/Views/MultichainAccounts/MultichainPermissionsSummary/MultichainPermissionsSummary.stories.tsx": require("../app/components/Views/MultichainAccounts/MultichainPermissionsSummary/MultichainPermissionsSummary.stories.tsx"),
     "./app/components/Views/QRAccountDisplay/QRAccountDisplay.stories.tsx": require("../app/components/Views/QRAccountDisplay/QRAccountDisplay.stories.tsx"),
+    "./app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/components/QuickBuyPercentageSlider.stories.tsx": require("../app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuy/components/QuickBuyPercentageSlider.stories.tsx"),
   };
 };
 
