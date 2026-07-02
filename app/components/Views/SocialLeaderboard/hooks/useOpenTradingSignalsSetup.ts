@@ -52,6 +52,11 @@ export const useOpenTradingSignalsSetup = (
   const pendingActionRef = useRef<PendingAction | null>(null);
   const awaitingSettingsNavigationRef = useRef(false);
   const wasBlurredRef = useRef(false);
+  // Tracks whether this hook's screen is currently focused. The shared
+  // notification-preferences cache can re-render this hook while the screen is
+  // in the background (e.g. the user toggles a channel in the Settings flow),
+  // and we must not resume the deferred action until the user returns.
+  const isFocusedRef = useRef(false);
   // Read the freshest preferences at sheet-close time; the user may have just
   // toggled a channel while the sheet was open.
   const preferencesRef = useRef(preferences);
@@ -140,6 +145,8 @@ export const useOpenTradingSignalsSetup = (
 
   useFocusEffect(
     useCallback(() => {
+      isFocusedRef.current = true;
+
       if (
         wasBlurredRef.current &&
         awaitingSettingsNavigationRef.current &&
@@ -149,12 +156,15 @@ export const useOpenTradingSignalsSetup = (
       ) {
         clearPendingAction();
         wasBlurredRef.current = false;
-        return;
+        return () => {
+          isFocusedRef.current = false;
+        };
       }
 
       resumeFromSettingsNavigation();
 
       return () => {
+        isFocusedRef.current = false;
         wasBlurredRef.current = true;
       };
     }, [
@@ -165,7 +175,13 @@ export const useOpenTradingSignalsSetup = (
     ]),
   );
 
+  // Covers the case where preferences resolve slightly after focus is regained.
+  // Guarded on focus so shared-cache updates while the screen is backgrounded
+  // never resume the deferred action before the user returns.
   useEffect(() => {
+    if (!isFocusedRef.current) {
+      return;
+    }
     resumeFromSettingsNavigation();
   }, [resumeFromSettingsNavigation]);
 

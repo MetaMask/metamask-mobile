@@ -226,6 +226,35 @@ describe('useOpenTradingSignalsSetup', () => {
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
   });
 
+  it('does not resume the deferred action on a background cache update while unfocused', () => {
+    mockUseFocusEffect.mockImplementation(() => undefined);
+    mockUseNotificationPreferences.mockReturnValue(
+      buildPreferences({ hasNotificationPreferences: false }),
+    );
+
+    const pendingAction = jest.fn();
+    const { result, rerender } = renderHook(() =>
+      useOpenTradingSignalsSetup(sheetRef),
+    );
+
+    result.current.openSetupIfNeeded(pendingAction);
+
+    mockUseNotificationPreferences.mockReturnValue(
+      buildPreferences({
+        preferences: {
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: false,
+          txAmountLimit: 100,
+          mutedTraderProfileIds: [],
+        },
+      }),
+    );
+    rerender({});
+
+    expect(pendingAction).not.toHaveBeenCalled();
+    expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
+  });
+
   it('drops the pending action when the sheet is dismissed without enabling', () => {
     const pendingAction = jest.fn();
     const { result } = renderHook(() => useOpenTradingSignalsSetup(sheetRef));
