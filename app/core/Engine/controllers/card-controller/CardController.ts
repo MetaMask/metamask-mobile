@@ -37,6 +37,10 @@ import {
   type CashbackWithdrawEstimationResponse,
   type CashbackWithdrawParams,
   type CashbackWithdrawResponse,
+  type CreditWalletResponse,
+  type CreditWithdrawEstimationResponse,
+  type CreditWithdrawParams,
+  type CreditWithdrawResponse,
   type DelegationChallengeResponse,
   type FundingApprovalParams,
   type ICardProvider,
@@ -1451,5 +1455,46 @@ export class CardController extends BaseController<
       );
     }
     return this.#withAuthRetry((tokens) => withdrawCashback(params, tokens));
+  }
+
+  // -- Credit --
+
+  async getCreditWallet(): Promise<CreditWalletResponse> {
+    const provider = this.getActiveProvider();
+    const getCreditWallet = provider.getCreditWallet?.bind(provider);
+    if (!getCreditWallet) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Credit not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getCreditWallet(tokens));
+  }
+
+  async getCreditWithdrawEstimation(): Promise<CreditWithdrawEstimationResponse> {
+    const provider = this.getActiveProvider();
+    const getCreditWithdrawEstimation =
+      provider.getCreditWithdrawEstimation?.bind(provider);
+    if (!getCreditWithdrawEstimation) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Credit not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => getCreditWithdrawEstimation(tokens));
+  }
+
+  async withdrawCredit(
+    params: CreditWithdrawParams,
+  ): Promise<CreditWithdrawResponse> {
+    const provider = this.getActiveProvider();
+    const withdrawCredit = provider.withdrawCredit?.bind(provider);
+    if (!withdrawCredit) {
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'Credit withdrawal not supported',
+      );
+    }
+    return this.#withAuthRetry((tokens) => withdrawCredit(params, tokens));
   }
 }
