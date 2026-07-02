@@ -23,6 +23,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   getBridgeTokenSecurityConfig,
@@ -608,6 +610,9 @@ const BridgeViewContent = ({
                       backgroundColor: colors.error.muted,
                       paddingLeft: 8,
                     };
+                    const quoteStreamErrorMessage = getQuoteStreamReasonString(
+                      displayQuoteStreamComplete?.reason,
+                    );
                     return (
                       <BannerBase
                         style={quoteStreamErrorBannerStyle}
@@ -618,9 +623,14 @@ const BridgeViewContent = ({
                             size={IconSize.Lg}
                           />
                         }
-                        description={getQuoteStreamReasonString(
-                          displayQuoteStreamComplete?.reason,
-                        )}
+                        description={
+                          <Text
+                            testID={BridgeViewSelectorsIDs.NO_QUOTES_BANNER}
+                            variant={TextVariant.BodySm}
+                          >
+                            {quoteStreamErrorMessage}
+                          </Text>
+                        }
                       />
                     );
                   })()
