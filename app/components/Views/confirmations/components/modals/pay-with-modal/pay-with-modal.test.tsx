@@ -35,7 +35,10 @@ import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePer
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 
+const mockAddToken = jest.fn().mockResolvedValue([]);
 const mockAddTokens = jest.fn().mockResolvedValue(undefined);
+const mockUpdatePaymentToken = jest.fn();
+const mockAddCustomAsset = jest.fn().mockResolvedValue(undefined);
 const mockRenderNoFeeTag = jest.fn(() => null);
 const mockFindNetworkClientIdByChainId = jest
   .fn()
@@ -44,14 +47,43 @@ const mockFindNetworkClientIdByChainId = jest
 jest.mock('../../../../../../core/Engine', () => ({
   context: {
     TokensController: {
+      addToken: (...args: unknown[]) => mockAddToken(...args),
       addTokens: (...args: unknown[]) => mockAddTokens(...args),
     },
     NetworkController: {
       findNetworkClientIdByChainId: (...args: unknown[]) =>
         mockFindNetworkClientIdByChainId(...args),
     },
+    TransactionPayController: {
+      updatePaymentToken: (...args: unknown[]) =>
+        mockUpdatePaymentToken(...args),
+    },
+    AssetsController: {
+      addCustomAsset: (...args: unknown[]) => mockAddCustomAsset(...args),
+    },
   },
 }));
+
+jest.mock('../../../../../../core/EngineService', () => ({
+  flushState: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../../../selectors/featureFlagController/assetsUnifyState',
+  () => ({
+    selectIsAssetsUnifyStateEnabled: jest.fn(() => false),
+  }),
+);
+
+jest.mock(
+  '../../../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../../selectors/multichainAccounts/accountTreeController',
+    ),
+    selectSelectedAccountGroupEvmInternalAccount: jest.fn(() => null),
+  }),
+);
 
 jest.mock('../../../hooks/pay/usePayWithNoFeeToken', () => ({
   usePayWithNoFeeToken: () => ({
@@ -496,14 +528,14 @@ describe('PayWithModal', () => {
       expect(mockRenderNoFeeTag).toHaveBeenCalled();
     });
 
-    it('awaits addTokens before calling setPayToken for zero-balance withdraw token', async () => {
+    it('awaits addToken before calling setPayToken for zero-balance withdraw token', async () => {
       const callOrder: string[] = [];
 
-      mockAddTokens.mockImplementation(
+      mockAddToken.mockImplementation(
         () =>
           new Promise<void>((resolve) => {
             setTimeout(() => {
-              callOrder.push('addTokens');
+              callOrder.push('addToken');
               resolve();
             }, 0);
           }),
@@ -537,11 +569,11 @@ describe('PayWithModal', () => {
         expect(setPayTokenMock).toHaveBeenCalled();
       });
 
-      expect(mockAddTokens).toHaveBeenCalled();
-      expect(callOrder).toStrictEqual(['addTokens', 'setPayToken']);
+      expect(mockAddToken).toHaveBeenCalled();
+      expect(callOrder).toStrictEqual(['addToken', 'setPayToken']);
     });
 
-    it('passes image to addTokens when available on zero-balance token', async () => {
+    it('passes token data to addToken when available on zero-balance token', async () => {
       mockFindNetworkClientIdByChainId.mockReturnValue('network-client-1');
 
       const zeroBalanceToken = {
@@ -565,16 +597,16 @@ describe('PayWithModal', () => {
 
       fireEvent.press(await findByText('Zero Token'));
 
-      expect(mockAddTokens).toHaveBeenCalledWith(
-        [
-          expect.objectContaining({
-            address: '0xZeroBalanceToken',
-            symbol: 'ZERO',
-            decimals: 6,
-            image: 'https://example.com/token.png',
-          }),
-        ],
-        'network-client-1',
+      await waitFor(() => {
+        expect(mockAddToken).toHaveBeenCalled();
+      });
+
+      expect(mockAddToken).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: '0xZeroBalanceToken',
+          symbol: 'ZERO',
+          decimals: 6,
+        }),
       );
     });
   });

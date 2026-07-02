@@ -43,13 +43,16 @@ export function useTransactionPayToken(): {
       const { GasFeeController, NetworkController, TransactionPayController } =
         Engine.context;
 
-      const networkClientId = NetworkController.findNetworkClientIdByChainId(
-        newPayToken.chainId,
-      );
-
-      GasFeeController.fetchGasFeeEstimates({
-        networkClientId,
-      }).catch(noop);
+      try {
+        const networkClientId = NetworkController.findNetworkClientIdByChainId(
+          newPayToken.chainId,
+        );
+        GasFeeController.fetchGasFeeEstimates({
+          networkClientId,
+        }).catch(noop);
+      } catch {
+        // Chain not configured — gas estimate prefetch skipped
+      }
 
       try {
         TransactionPayController.updatePaymentToken({

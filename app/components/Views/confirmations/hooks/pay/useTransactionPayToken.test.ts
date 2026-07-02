@@ -163,6 +163,28 @@ describe('useTransactionPayToken', () => {
     });
   });
 
+  it('still calls updatePaymentToken when findNetworkClientIdByChainId throws', async () => {
+    findNetworkClientIdByChainIdMock.mockImplementation(() => {
+      throw new Error('Network not found');
+    });
+
+    const { result } = runHook();
+
+    result.current.setPayToken({
+      address: PAY_TOKEN_MOCK.address,
+      chainId: PAY_TOKEN_MOCK.chainId as ChainId,
+    });
+
+    await flushPromises();
+
+    expect(fetchGasFeeEstimatesMock).not.toHaveBeenCalled();
+    expect(updatePaymentTokenMock).toHaveBeenCalledWith({
+      transactionId: TRANSACTION_ID_MOCK,
+      tokenAddress: PAY_TOKEN_MOCK.address,
+      chainId: PAY_TOKEN_MOCK.chainId,
+    });
+  });
+
   it('returns isNative true when pay token is native address', () => {
     const { result } = runHook({
       payToken: {

@@ -2,7 +2,7 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
-import Engine from '../../../../../../core/Engine';
+import { useAddTokenCallback } from '../../../hooks/tokens/useAddTokenCallback';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
@@ -86,6 +86,9 @@ export function PayWithModal() {
     isPredictContext ? resetSelectedPaymentToken : undefined,
   );
 
+  const addToken = useAddTokenCallback();
+  const transactionId = transactionMeta?.id ?? '';
+
   const isMoneyAccount = hasTransactionType(transactionMeta, [
     TransactionType.moneyAccountDeposit,
     TransactionType.moneyAccountWithdraw,
@@ -159,29 +162,17 @@ export function PayWithModal() {
           return;
         }
 
-        // Ensure the token is tracked by TokensController so the pay
-        // controller can resolve its metadata (symbol, decimals, balance).
-        // Must complete before setPayToken so the controller can find the token.
-        if (isWithdraw && token.balance === '0' && !token.isNative) {
-          const { TokensController, NetworkController } = Engine.context;
+        if (isWithdraw && !token.isNative) {
           try {
-            const networkClientId =
-              NetworkController.findNetworkClientIdByChainId(
-                token.chainId as Hex,
-              );
-            await TokensController.addTokens(
-              [
-                {
-                  address: token.address,
-                  symbol: token.symbol,
-                  decimals: token.decimals,
-                  image: token.image || undefined,
-                },
-              ],
-              networkClientId,
-            );
+            await addToken({
+              chainId: token.chainId as Hex,
+              decimals: token.decimals,
+              name: token.name ?? token.symbol,
+              symbol: token.symbol,
+              tokenAddress: token.address as Hex,
+            });
           } catch {
-            // Network not configured — skip
+            // Chain not configured or token add failed
           }
         }
 
@@ -194,6 +185,7 @@ export function PayWithModal() {
       close(onClosed);
     },
     [
+      addToken,
       close,
       dismissOnSelectCount,
       isPredictContext,
