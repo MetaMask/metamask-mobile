@@ -19,13 +19,7 @@ const TREATMENT_ROLLOUT_THRESHOLD = 0.25;
  */
 export function useOnboardingInterestQuestionnaireEligibility(): () => Promise<boolean> {
   const { getAnalyticsId } = useAnalytics();
-
   return useCallback(async () => {
-    if (__DEV__) {
-      // eslint-disable-next-line no-console
-      return true;
-    }
-
     const metaMetricsId = await getAnalyticsId();
     if (!metaMetricsId) {
       return false;

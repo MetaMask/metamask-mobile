@@ -226,10 +226,8 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
     });
   });
 
-  describe('when basic usage data is checked and eligibility returns false', () => {
-    it('calls navigation reset to HomeNav instead of navigating to questionnaire', async () => {
-      mockGetShouldShow.mockResolvedValue(false);
-
+  describe('when basic usage data is checked', () => {
+    it('always navigates to the interest questionnaire', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       fireEvent.press(
@@ -239,23 +237,18 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect(mockNavigate).toHaveBeenCalledWith(
           Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
-          expect.anything(),
-        );
-        expect(mockReset).toHaveBeenCalledWith(
           expect.objectContaining({
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+            onComplete: expect.any(Function),
           }),
         );
       });
     });
   });
 
-  describe('when basic usage data is checked and eligibility throws', () => {
-    it('falls back to resetting navigation so onboarding is not blocked', async () => {
-      mockGetShouldShow.mockRejectedValue(new Error('eligibility failed'));
-
+  describe('when basic usage data is checked (questionnaire always shown)', () => {
+    it('navigates to the interest questionnaire regardless of eligibility mock state', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       fireEvent.press(
@@ -265,61 +258,18 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).not.toHaveBeenCalledWith(
+        expect(mockNavigate).toHaveBeenCalledWith(
           Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
-          expect.anything(),
-        );
-        expect(mockReset).toHaveBeenCalledWith(
           expect.objectContaining({
-            routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
+            onComplete: expect.any(Function),
           }),
-        );
-      });
-    });
-
-    it('logs Error rejections from the eligibility check', async () => {
-      mockGetShouldShow.mockRejectedValue(new Error('eligibility failed'));
-
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalledWith(
-          expect.objectContaining({ message: 'eligibility failed' }),
-          'OptinMetrics: interest questionnaire eligibility check failed',
-        );
-      });
-    });
-
-    it('wraps non-Error rejections before logging', async () => {
-      mockGetShouldShow.mockRejectedValue('string failure');
-
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
-
-      await waitFor(() => {
-        expect(Logger.error).toHaveBeenCalledWith(
-          expect.objectContaining({ message: 'string failure' }),
-          'OptinMetrics: interest questionnaire eligibility check failed',
         );
       });
     });
   });
 
-  describe('when basic usage data is checked and eligibility returns true', () => {
+  describe('interest questionnaire navigation params', () => {
     it('navigates to the interest questionnaire with onComplete callback', async () => {
-      mockGetShouldShow.mockResolvedValue(true);
-
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       fireEvent.press(
@@ -339,7 +289,6 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
     });
 
     it('includes accountType in navigation params when onboarding account type is set in Redux', async () => {
-      mockGetShouldShow.mockResolvedValue(true);
       mockOptinMetricsTestOnboardingSlice.accountType = 'imported';
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
@@ -362,8 +311,6 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
     });
 
     it('onComplete callback resets navigation to HOME_NAV via continueNavigation', async () => {
-      mockGetShouldShow.mockResolvedValue(true);
-
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       fireEvent.press(
@@ -410,9 +357,7 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
       };
     });
 
-    it('dispatches setWalletHomeOnboardingStepsEligible when successFlow is IMPORT_FROM_SEED_PHRASE', async () => {
-      mockGetShouldShow.mockResolvedValue(false);
-
+    it('navigates to interest questionnaire then dispatches setWalletHomeOnboardingStepsEligible on onComplete', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       fireEvent.press(
@@ -420,6 +365,20 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
           name: strings('privacy_policy.continue'),
         }),
       );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({ onComplete: expect.any(Function) }),
+        );
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+      );
+      const onComplete = navCall?.[1]?.onComplete;
+
+      await onComplete();
 
       await waitFor(() => {
         expect(
@@ -428,9 +387,7 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
       });
     });
 
-    it('calls discoverAccounts when successFlow is IMPORT_FROM_SEED_PHRASE', async () => {
-      mockGetShouldShow.mockResolvedValue(false);
-
+    it('calls discoverAccounts via onComplete when successFlow is IMPORT_FROM_SEED_PHRASE', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       fireEvent.press(
@@ -438,15 +395,27 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
           name: strings('privacy_policy.continue'),
         }),
       );
+
+      await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({ onComplete: expect.any(Function) }),
+        );
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+      );
+      const onComplete = navCall?.[1]?.onComplete;
+
+      await onComplete();
 
       await waitFor(() => {
         expect(mockDiscoverAccounts).toHaveBeenCalledWith('mock-keyring-id');
       });
     });
 
-    it('calls onContinue after running handleOnDone logic', async () => {
-      mockGetShouldShow.mockResolvedValue(false);
-
+    it('calls onContinue via onComplete after running handleOnDone logic', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       fireEvent.press(
@@ -456,12 +425,26 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
       );
 
       await waitFor(() => {
+        expect(mockNavigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({ onComplete: expect.any(Function) }),
+        );
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+      );
+      const onComplete = navCall?.[1]?.onComplete;
+
+      await onComplete();
+
+      await waitFor(() => {
         expect(mockOnContinue).toHaveBeenCalled();
       });
     });
 
-    it('runs handleOnDone logic before onComplete when interest questionnaire is shown', async () => {
-      mockGetShouldShow.mockResolvedValue(true);
+    it('logs discoverAccounts failure without blocking navigation via onComplete', async () => {
+      mockDiscoverAccounts.mockRejectedValueOnce(new Error('discovery failed'));
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
@@ -482,31 +465,8 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
         (call) => call[0] === Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
       );
       const onComplete = navCall?.[1]?.onComplete;
-      mockSetWalletHomeOnboardingStepsEligibleAction.mockClear();
-      mockDiscoverAccounts.mockClear();
 
       await onComplete();
-
-      await waitFor(() => {
-        expect(
-          mockSetWalletHomeOnboardingStepsEligibleAction,
-        ).toHaveBeenCalledWith(true, { skipInitialBalanceWait: true });
-        expect(mockDiscoverAccounts).toHaveBeenCalledWith('mock-keyring-id');
-        expect(mockOnContinue).toHaveBeenCalled();
-      });
-    });
-
-    it('logs discoverAccounts failure without blocking navigation', async () => {
-      mockGetShouldShow.mockResolvedValue(false);
-      mockDiscoverAccounts.mockRejectedValueOnce(new Error('discovery failed'));
-
-      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
-
-      fireEvent.press(
-        screen.getByRole('button', {
-          name: strings('privacy_policy.continue'),
-        }),
-      );
 
       await waitFor(() => {
         expect(mockOnContinue).toHaveBeenCalled();

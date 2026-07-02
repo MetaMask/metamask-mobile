@@ -61,8 +61,8 @@ import {
   type ParamListBase,
 } from '@react-navigation/native';
 import type { RootState } from '../../../reducers';
-import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
-import Logger from '../../../util/Logger';
+// import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
+// import Logger from '../../../util/Logger';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
 import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
@@ -113,8 +113,8 @@ const OptinMetrics = () => {
     [isMediumDevice],
   );
 
-  const getShouldShowQuestionnaire =
-    useOnboardingInterestQuestionnaireEligibility();
+  // const getShouldShowQuestionnaire =
+  //   useOnboardingInterestQuestionnaireEligibility();
 
   /**
    * Temporary disabling the back button so users can't go back
@@ -254,19 +254,19 @@ const OptinMetrics = () => {
 
     dispatch(clearOnboardingEvents());
 
-    let shouldShowInterestQuestionnaire = false;
-    if (isBasicUsageChecked) {
-      try {
-        shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
-      } catch (error) {
-        Logger.error(
-          error instanceof Error ? error : new Error(String(error)),
-          'OptinMetrics: interest questionnaire eligibility check failed',
-        );
-      }
-    }
+    // let shouldShowInterestQuestionnaire = false;
+    // if (isBasicUsageChecked) {
+    //   try {
+    //     shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
+    //   } catch (error) {
+    //     Logger.error(
+    //       error instanceof Error ? error : new Error(String(error)),
+    //       'OptinMetrics: interest questionnaire eligibility check failed',
+    //     );
+    //   }
+    // }
 
-    if (isBasicUsageChecked && shouldShowInterestQuestionnaire) {
+    if (isBasicUsageChecked) {
       navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
         onComplete: continueNavigation,
         ...(accountType && { accountType }),
@@ -281,7 +281,6 @@ const OptinMetrics = () => {
     isMarketingChecked,
     accountType,
     events,
-    getShouldShowQuestionnaire,
     navigation,
     continueNavigation,
   ]);

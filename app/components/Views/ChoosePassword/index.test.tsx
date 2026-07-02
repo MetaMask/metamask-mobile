@@ -693,7 +693,7 @@ describe('ChoosePassword', () => {
       mockComponentAuthenticationType.mockRestore();
     });
 
-    it('navigates to OnboardingSuccess after OAuth wallet creation', async () => {
+    it('navigates to interest questionnaire after OAuth wallet creation', async () => {
       (
         Authentication.componentAuthenticationType as jest.Mock
       ).mockResolvedValue({
@@ -724,20 +724,12 @@ describe('ChoosePassword', () => {
       });
 
       await waitFor(() => {
-        expect(mockNavigation.reset).toHaveBeenCalledWith({
-          index: 0,
-          routes: [
-            {
-              name: 'OnboardingSuccessFlow',
-              params: {
-                screen: 'OnboardingSuccess',
-                params: {
-                  successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
-                },
-              },
-            },
-          ],
-        });
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
+          expect.objectContaining({
+            onComplete: expect.any(Function),
+          }),
+        );
         expect(mockTrackEvent).toHaveBeenCalled();
         expect(mockMetrics.identify).toHaveBeenCalled();
       });
@@ -1699,8 +1691,7 @@ describe('ChoosePassword', () => {
   });
 
   describe('Interest Questionnaire navigation', () => {
-    it('navigates to the interest questionnaire when eligibility returns true for OAuth users', async () => {
-      mockGetShouldShowQuestionnaire.mockResolvedValue(true);
+    it('always navigates to the interest questionnaire for OAuth users', async () => {
       (
         Authentication.componentAuthenticationType as jest.Mock
       ).mockResolvedValue({
@@ -1734,46 +1725,6 @@ describe('ChoosePassword', () => {
           expect.objectContaining({
             onComplete: expect.any(Function),
           }),
-        );
-      });
-
-      mockNewWalletAndKeychain.mockRestore();
-      mockGetShouldShowQuestionnaire.mockResolvedValue(false);
-    });
-
-    it('skips the interest questionnaire and goes to OnboardingSuccess when eligibility returns false', async () => {
-      mockGetShouldShowQuestionnaire.mockResolvedValue(false);
-      (
-        Authentication.componentAuthenticationType as jest.Mock
-      ).mockResolvedValue({
-        currentAuthType: 'biometrics',
-        availableBiometryType: 'faceID',
-      });
-      const mockNewWalletAndKeychain = jest.spyOn(
-        Authentication,
-        'newWalletAndKeychain',
-      );
-      mockNewWalletAndKeychain.mockResolvedValue(undefined);
-
-      mockRoute.params = {
-        ...mockRoute.params,
-        [PREVIOUS_SCREEN]: ONBOARDING,
-        oauthLoginSuccess: true,
-        provider: 'google',
-      };
-
-      const component = renderWithProviders(<ChoosePassword />);
-      await waitForInit();
-      await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
-
-      await act(async () => {
-        await new Promise((resolve) => setTimeout(resolve, 200));
-      });
-
-      await waitFor(() => {
-        expect(mockNavigation.navigate).not.toHaveBeenCalledWith(
-          Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
-          expect.anything(),
         );
       });
 
