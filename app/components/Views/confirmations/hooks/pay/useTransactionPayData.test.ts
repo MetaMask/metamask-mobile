@@ -33,7 +33,7 @@ import {
 jest.mock('../../context/confirmation-context');
 
 const QUOTE_MOCK = {
-  strategy: TransactionPayStrategy.Test,
+  strategy: TransactionPayStrategy.Relay,
 } as TransactionPayQuote<Json>;
 
 const REQUIRED_TOKEN_MOCK = {
