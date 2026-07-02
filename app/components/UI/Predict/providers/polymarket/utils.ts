@@ -2291,18 +2291,14 @@ const getTickSizeDecimalPlaces = (tickSize: string): number => {
 
 export const getTickSizeRoundConfig = ({
   tickSize,
-  fallbackTickSize,
 }: {
   tickSize?: string | number | null;
-  fallbackTickSize?: string | number | null;
 }): { tickSize: string; roundConfig: RoundConfig } => {
-  const normalizedTickSize =
-    normalizeTickSizeCandidate(tickSize) ??
-    normalizeTickSizeCandidate(fallbackTickSize);
+  const normalizedTickSize = normalizeTickSizeCandidate(tickSize);
 
   if (!normalizedTickSize) {
     throw new Error(
-      `Invalid Polymarket tick size: ${String(tickSize ?? fallbackTickSize ?? 'missing')}`,
+      `Invalid Polymarket tick size: ${String(tickSize ?? 'missing')}`,
     );
   }
 
@@ -2343,7 +2339,6 @@ export const previewOrder = async (
     feeCollection,
     isV2,
     clobBaseUrl,
-    tickSize: fallbackTickSize,
   } = params;
   const [book, feeRateBps, marketInfo] = await Promise.all([
     getOrderBook({
@@ -2365,7 +2360,6 @@ export const previewOrder = async (
   }
   const { tickSize, roundConfig } = getTickSizeRoundConfig({
     tickSize: book.tick_size,
-    fallbackTickSize,
   });
 
   if (side === Side.BUY) {

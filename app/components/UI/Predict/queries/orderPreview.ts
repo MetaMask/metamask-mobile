@@ -12,7 +12,6 @@ export const predictOrderPreviewKeys = {
       params.outcomeTokenId,
       params.side,
       params.size,
-      params.tickSize,
       params.positionId,
     ] as const,
 };
@@ -23,7 +22,6 @@ export const predictOrderPreviewOptions = ({
   outcomeTokenId,
   side,
   size,
-  tickSize,
   positionId,
 }: PreviewOrderParams) =>
   queryOptions<OrderPreview, Error>({
@@ -33,7 +31,6 @@ export const predictOrderPreviewOptions = ({
       outcomeTokenId,
       side,
       size,
-      tickSize,
       positionId,
     }),
     queryFn: async (): Promise<OrderPreview> =>
@@ -43,7 +40,6 @@ export const predictOrderPreviewOptions = ({
         outcomeTokenId,
         side,
         size,
-        tickSize,
         positionId,
       }),
     retry: false,

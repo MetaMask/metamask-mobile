@@ -211,7 +211,6 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     outcomeTokenId: outcomeToken.id,
     side: Side.BUY,
     size: currentValue,
-    tickSize: outcome.tickSize,
     autoRefreshTimeout: 1000,
   });
 

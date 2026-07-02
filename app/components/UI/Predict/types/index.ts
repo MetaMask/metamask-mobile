@@ -749,7 +749,6 @@ export interface PreviewOrderParams {
   outcomeTokenId: string;
   side: Side;
   size: number;
-  tickSize?: string;
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
