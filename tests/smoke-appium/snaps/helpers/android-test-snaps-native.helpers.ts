@@ -8,7 +8,6 @@ import {
 import Assertions from '../../../framework/Assertions';
 import Gestures from '../../../framework/Gestures';
 import Matchers from '../../../framework/Matchers';
-import PlaywrightWebMatchers from '../../../framework/PlaywrightWebMatchers';
 import PlaywrightGestures from '../../../framework/PlaywrightGestures';
 import { getDriver } from '../../../framework/PlaywrightUtilities';
 import Utilities, { sleep } from '../../../framework/Utilities';
@@ -16,7 +15,6 @@ import {
   TestSnapInputSelectorWebIDS,
   TestSnapResultSelectorWebIDS,
   TestSnapViewSelectorWebIDS,
-  TEST_SNAPS_URL,
 } from '../../../selectors/Browser/TestSnaps.selectors';
 import { createPlaywrightLogger } from '../../../framework/playwrightLogger';
 
@@ -66,6 +64,7 @@ const TEST_SNAPS_SCROLL_LABELS: Record<string, string> = {
 
 const SCROLL_ATTEMPTS = 48;
 const UI_SCROLL_INTO_VIEW_TIMEOUT_MS = 90_000;
+const IN_PLACE_FIND_TIMEOUT_MS = 5_000;
 
 export async function waitForAndroidTestSnapsNativeLoad(): Promise<void> {
   await logAndroidTestSnapsNativeBridgeOnce();
@@ -97,42 +96,14 @@ export async function fillAndroidTestSnapsInput(
 ): Promise<void> {
   const webId = TestSnapInputSelectorWebIDS[inputKey];
 
-  // Set the DOM value inside the WebView only — no native EditText tap/focus (avoids
-  // soft keyboard covering buttons on serial tests with restartDevice: false).
-  await PlaywrightWebMatchers.withWebViewAction(TEST_SNAPS_URL, async () => {
-    const drv = getDriver();
-    if (!drv) {
-      throw new Error('Driver is not available');
-    }
-
-    await drv.execute(
-      (id: string, text: string) => {
-        const el = document.getElementById(id) as
-          | HTMLInputElement
-          | HTMLTextAreaElement
-          | null;
-        if (!el) {
-          throw new Error(`Test Snaps input #${id} not found in WebView DOM`);
-        }
-
-        el.scrollIntoView({ block: 'center', inline: 'nearest' });
-        el.value = text;
-        const tracker = (
-          el as unknown as {
-            _valueTracker?: { setValue: (nextValue: string) => void };
-          }
-        )._valueTracker;
-        tracker?.setValue('');
-        el.dispatchEvent(new Event('input', { bubbles: true }));
-        el.dispatchEvent(new Event('change', { bubbles: true }));
-        if (document.activeElement === el && typeof el.blur === 'function') {
-          el.blur();
-        }
-      },
-      webId,
-      value,
-    );
-  });
+  // Fill via the native UiAutomator node — switching into the Chromedriver WebView
+  // context wedges Appium's setContext on CI after snap installs, hanging the whole
+  // UiAutomator2 session. Focus + IME typing instead of setValue: UiAutomator2's
+  // element/value endpoint routes numeric text to ACTION_SET_PROGRESS, which
+  // Chromium-exposed EditText nodes reject.
+  const elem = await scrollNativeWebIdIntoView(webId);
+  await elem.click();
+  await getDriver().execute('mobile: type', { text: value });
 
   await PlaywrightGestures.hideKeyboard().catch(() => undefined);
 }
@@ -254,7 +225,13 @@ export async function assertAndroidTestSnapsClientStatus(
 async function scrollNativeWebIdIntoView(
   webId: string,
 ): Promise<PlaywrightElement> {
-  const alreadyVisible = await tryFindNativeWebIdElement(webId);
+  // Generous in-place wait: result spans/buttons usually appear in the current
+  // viewport (Chromium exposes nodes lazily), and a UiScrollable sweep scans the
+  // whole page from the top (~60s) — far costlier than waiting a few seconds here.
+  const alreadyVisible = await tryFindNativeWebIdElement(
+    webId,
+    IN_PLACE_FIND_TIMEOUT_MS,
+  );
   if (alreadyVisible) {
     return alreadyVisible;
   }
@@ -287,10 +264,11 @@ async function findNativeWebIdElement(
 
 async function tryFindNativeWebIdElement(
   webId: string,
+  timeout = 500,
 ): Promise<PlaywrightElement | null> {
   try {
     const elem = await findNativeWebIdElement(webId);
-    await elem.unwrap().waitForExist({ timeout: 500 });
+    await elem.unwrap().waitForExist({ timeout });
     return elem;
   } catch {
     return null;
