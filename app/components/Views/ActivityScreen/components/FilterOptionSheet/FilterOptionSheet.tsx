@@ -34,8 +34,7 @@ export interface FilterOptionSheetProps<T extends string> {
 /**
  * Generic single-select bottom sheet for Activity filters (Type, Perps
  * sub-filter, …). One row per option; the selected row is highlighted and shows
- * a check. Selecting an option fires `onSelect` then animates the sheet closed
- * (forwarding `onClose` so the parent can unmount/re-open it).
+ * a check.
  */
 export function FilterOptionSheet<T extends string>({
   title,
@@ -53,9 +52,9 @@ export function FilterOptionSheet<T extends string>({
   const handleSelect = useCallback(
     (option: T) => {
       onSelect(option);
-      sheetRef.current?.onCloseBottomSheet(onClose);
+      sheetRef.current?.onCloseBottomSheet();
     },
-    [onSelect, onClose],
+    [onSelect],
   );
 
   return (

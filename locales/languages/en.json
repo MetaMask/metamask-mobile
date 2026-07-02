@@ -702,6 +702,7 @@
     "paste": "Paste",
     "no_assets_available": "No assets available to send",
     "clear": "Clear",
+    "scan_qr_code": "Scan QR code",
     "to": "To",
     "enter_address_to_send_to": "Enter address to send to",
     "accounts": "Accounts",
@@ -3122,6 +3123,9 @@
       "perps": {
         "description": "Your first perps trade could be your best.",
         "action": "Browse markets"
+      },
+      "perps_sub_filter": {
+        "description": "No activity for this filter. Try a different Perps filter."
       },
       "transactions_funded": {
         "description": "Swap your first token today.",
@@ -9788,6 +9792,9 @@
     "convert_again": "Convert again",
     "wrap_again": "Wrap again",
     "unwrap_again": "Unwrap again",
+    "transaction_pending": "Transaction pending",
+    "likely_to_confirm_in": "Likely to confirm in",
+    "confirm_time_estimate": "< 30 sec",
     "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {

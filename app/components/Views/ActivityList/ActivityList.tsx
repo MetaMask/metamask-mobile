@@ -1109,7 +1109,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         return;
       }
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
-    }, [typeFilter, networkFilter]);
+    }, [typeFilter, networkFilter, subFilterKinds]);
 
     const runAutoScroll = useCallback(() => {
       handleScroll();
@@ -1124,9 +1124,18 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       },
     });
 
+    const perpsSubFilterActive =
+      typeFilter === ActivityTypeFilter.Perps &&
+      Boolean(subFilterKinds) &&
+      isPerpsEnabled &&
+      perpsSource.items.length > 0;
+
     const renderEmptyList = () => (
       <View style={styles.emptyList}>
-        <ActivityEmptyState typeFilter={typeFilter ?? ActivityTypeFilter.All} />
+        <ActivityEmptyState
+          typeFilter={typeFilter ?? ActivityTypeFilter.All}
+          perpsSubFilterActive={perpsSubFilterActive}
+        />
       </View>
     );
 

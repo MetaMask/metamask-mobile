@@ -68,14 +68,12 @@ const ActivityScreen = () => {
   // const [searchQuery, setSearchQuery] = useState('');
   // TODO: restore `ActivityTypeFilter.All` as the default once data-source
   // unification lands. See `ACTIVITY_TYPE_FILTER_ORDER` in ./types.ts.
-  // Context-aware: the initial filter comes from route params. The initializer
-  // covers a fresh mount (no first-paint flash); the effect below re-applies
-  // when the (persistent) Activity tab is re-entered with new params.
   const params = useParams<ActivityScreenParams>();
   const {
     initialTypeFilter: initialTypeFilterParam,
     redirectToPerpsTransactions: redirectToPerpsParam,
     redirectToOrders: redirectToOrdersParam,
+    initialPerpsFilter: initialPerpsFilterParam,
   } = params;
   const [typeFilter, setTypeFilter] = useState<ActivityTypeFilter>(() =>
     resolveInitialActivityTypeFilter(params),
@@ -86,7 +84,7 @@ const ActivityScreen = () => {
   );
   const [isNetworkSheetOpen, setIsNetworkSheetOpen] = useState(false);
   const [perpsFilter, setPerpsFilter] = useState<PerpsActivityFilter>(
-    PerpsActivityFilter.Trades,
+    () => initialPerpsFilterParam ?? PerpsActivityFilter.Trades,
   );
   const [isPerpsSheetOpen, setIsPerpsSheetOpen] = useState(false);
 
@@ -116,26 +114,31 @@ const ActivityScreen = () => {
     if (
       initialTypeFilterParam === undefined &&
       !redirectToPerpsParam &&
-      !redirectToOrdersParam
+      !redirectToOrdersParam &&
+      initialPerpsFilterParam === undefined
     ) {
       return;
     }
-    handleSelectTypeFilter(
-      resolveInitialActivityTypeFilter({
-        initialTypeFilter: initialTypeFilterParam,
-        redirectToPerpsTransactions: redirectToPerpsParam,
-        redirectToOrders: redirectToOrdersParam,
-      }),
-    );
+    const resolvedTypeFilter = resolveInitialActivityTypeFilter({
+      initialTypeFilter: initialTypeFilterParam,
+      redirectToPerpsTransactions: redirectToPerpsParam,
+      redirectToOrders: redirectToOrdersParam,
+    });
+    handleSelectTypeFilter(resolvedTypeFilter);
+    if (resolvedTypeFilter === ActivityTypeFilter.Perps) {
+      setPerpsFilter(initialPerpsFilterParam ?? PerpsActivityFilter.Trades);
+    }
     navigation.setParams({
       initialTypeFilter: undefined,
       redirectToPerpsTransactions: undefined,
       redirectToOrders: undefined,
+      initialPerpsFilter: undefined,
     });
   }, [
     initialTypeFilterParam,
     redirectToPerpsParam,
     redirectToOrdersParam,
+    initialPerpsFilterParam,
     handleSelectTypeFilter,
     navigation,
   ]);

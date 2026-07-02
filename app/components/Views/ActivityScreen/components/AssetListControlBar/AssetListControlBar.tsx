@@ -31,6 +31,25 @@ export interface AssetListControlBarProps {
 }
 
 /**
+ * A single filter chip — plain design-system select-button styling (label +
+ * dropdown chevron). `testID` is dropped when the bar is rendered as its pinned
+ * copy to avoid duplicate testIDs.
+ */
+const FilterChip: React.FC<{
+  chip: FilterChipDescriptor;
+  suppressTestID: boolean;
+}> = ({ chip, suppressTestID }) => (
+  <ButtonBase
+    size={ButtonBaseSize.Md}
+    endIconName={IconName.ArrowDown}
+    onPress={chip.onPress}
+    testID={suppressTestID ? undefined : chip.testID}
+  >
+    {chip.label}
+  </ButtonBase>
+);
+
+/**
  * Horizontally-scrollable filter chip row for the Activity screen — mirrors
  * the extension's `AssetListControlBar` pattern. Pure presentational: the
  * parent screen owns filter state, label resolution, and sheet rendering.
@@ -48,25 +67,16 @@ const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
 }) => {
   const tw = useTailwind();
 
-  const renderChip = (chip: FilterChipDescriptor) => (
-    <ButtonBase
-      size={ButtonBaseSize.Md}
-      endIconName={IconName.ArrowDown}
-      onPress={chip.onPress}
-      testID={suppressTestIDs ? undefined : chip.testID}
-    >
-      {chip.label}
-    </ButtonBase>
-  );
-
   return (
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={tw.style('flex-row gap-2 px-4 pb-4')}
     >
-      {renderChip(typeChip)}
-      {secondaryChip ? renderChip(secondaryChip) : null}
+      <FilterChip chip={typeChip} suppressTestID={suppressTestIDs} />
+      {secondaryChip ? (
+        <FilterChip chip={secondaryChip} suppressTestID={suppressTestIDs} />
+      ) : null}
     </ScrollView>
   );
 };

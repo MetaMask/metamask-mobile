@@ -188,6 +188,7 @@ export interface ActivityScreenParams {
    * (e.g. Perps → Perps, Predict → Predictions).
    */
   initialTypeFilter?: ActivityTypeFilter;
+  initialPerpsFilter?: PerpsActivityFilter;
   /** Legacy redirect hints, mapped to a Type filter for back-compat. */
   redirectToPerpsTransactions?: boolean;
   redirectToOrders?: boolean;

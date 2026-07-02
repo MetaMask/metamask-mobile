@@ -13,7 +13,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
-import Routes from '../../../../constants/navigation/Routes';
+import { navigateToTransactionDetails } from '../../../../util/navigation/navigateToTransactionDetails';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
 import { ActivityTypeFilter } from '../../../Views/ActivityScreen/types';
 import type { ToastRegistration } from '../../../Nav/App/ControllerEventToastBridge';
@@ -152,29 +152,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const bottomSheetEnabled = useSelector(selectPredictBottomSheetEnabledFlag);
   const selectedAddress = getEvmAccountFromSelectedAccountGroup()?.address;
   const normalizedSelectedAddress = selectedAddress?.toLowerCase() ?? '';
-  const navigateToDepositTransaction = useCallback(
-    (transactionId?: string) => {
-      navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-        screen: Routes.TRANSACTIONS_VIEW,
-        params: {
-          initialTypeFilter: ActivityTypeFilter.Predictions,
-        },
-      });
-
-      if (transactionId) {
-        setTimeout(() => {
-          navigation.navigate(Routes.TRANSACTIONS_VIEW, {
-            screen: Routes.TRANSACTION_DETAILS,
-            params: {
-              transactionId,
-            },
-          });
-        }, 100);
-      }
-    },
-    [navigation],
-  );
-
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
       const { type, status, senderAddress, transactionId, amount, marketId } =
@@ -219,7 +196,12 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
               minutes: 1,
             }),
             trackLabel: strings('predict.deposit.track'),
-            onTrack: () => navigateToDepositTransaction(transactionId),
+            onTrack: () => {
+              navigateToTransactionDetails(navigation, {
+                transactionId,
+                initialTypeFilter: ActivityTypeFilter.Predictions,
+              });
+            },
           });
           return;
         }
@@ -426,7 +408,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
       bottomSheetEnabled,
       claim,
       deposit,
-      navigateToDepositTransaction,
+      navigation,
       normalizedSelectedAddress,
       queryClient,
       theme.colors.accent04.normal,
