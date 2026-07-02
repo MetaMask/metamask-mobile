@@ -3,7 +3,7 @@ import { useNavigation, useRoute } from '@react-navigation/native';
 
 import Routes from '../../../../../constants/navigation/Routes';
 
-type SendStackScreen =
+export type SendStackScreen =
   | typeof Routes.SEND.ASSET
   | typeof Routes.SEND.RECIPIENT
   | typeof Routes.SEND.AMOUNT;
