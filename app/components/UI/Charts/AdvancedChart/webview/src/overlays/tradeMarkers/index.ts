@@ -174,12 +174,13 @@ function collectDesiredMarkers(
 ): DesiredMarker[] {
   if (!data.length) return [];
   const firstT = data[0].time;
-  const lastT = data[data.length - 1].time;
+  const lastBar = data.at(-1);
+  if (!lastBar) return [];
+  const lastT = lastBar.time;
 
   const eligible = markers.filter(
     (m) =>
-      m &&
-      m.id != null &&
+      m?.id != null &&
       Number.isFinite(m.time) &&
       m.time >= firstT &&
       m.time <= lastT,
@@ -190,12 +191,14 @@ function collectDesiredMarkers(
   for (const marker of ordered) {
     const snapped = snapMarkerToNearestBar(data, marker.time);
     const timeSec = snapped ? snapped.timeSec : Math.floor(marker.time / 1000);
-    const rawPrice =
-      snapped != null
-        ? snapped.close
-        : marker.price != null && Number.isFinite(marker.price)
-          ? marker.price
-          : null;
+    let rawPrice: number | null;
+    if (snapped === null) {
+      const hasValidPrice =
+        marker.price != null && Number.isFinite(marker.price);
+      rawPrice = hasValidPrice ? (marker.price as number) : null;
+    } else {
+      rawPrice = snapped.close;
+    }
     if (rawPrice === null) continue;
     const color =
       marker.intent === 'exit' ? theme.errorColor : theme.successColor;
@@ -257,42 +260,47 @@ export function placeTradeMarkers(): void {
     // Draw ring1 → fill1 → ring2 → fill2 sequentially. Every new shape is
     // created at zOrder 'top', so the next ring lands ON TOP of the
     // previous fill — keeps a black seam between touching circles.
+    const drawRingAndFill = async (marker: DesiredMarker): Promise<void> => {
+      if (gen !== getPlacementGeneration()) return;
+
+      const ringId = await createTradeMarkerIcon(
+        activeChart,
+        marker.timeSec,
+        marker.price,
+        TRADE_MARKER_RING_COLOR,
+        TRADE_MARKER_RING_SIZE,
+      );
+
+      if (gen !== getPlacementGeneration()) {
+        removeEntitySafe(activeChart, ringId);
+        return;
+      }
+
+      const fillId = await createTradeMarkerIcon(
+        activeChart,
+        marker.timeSec,
+        marker.price,
+        marker.color,
+        TRADE_MARKER_SIZE,
+      );
+
+      if (gen !== getPlacementGeneration()) {
+        removeEntitySafe(activeChart, ringId);
+        removeEntitySafe(activeChart, fillId);
+        return;
+      }
+
+      if (ringId) pushShapeId(ringId);
+      if (fillId) pushShapeId(fillId);
+      setShapesForMarkerId(marker.id, {
+        fill: fillId ?? null,
+        ring: ringId ?? null,
+      });
+    };
+
     let chain: Promise<unknown> = Promise.resolve();
     for (const marker of desired) {
-      chain = chain.then(() => {
-        if (gen !== getPlacementGeneration()) return undefined;
-        return createTradeMarkerIcon(
-          activeChart,
-          marker.timeSec,
-          marker.price,
-          TRADE_MARKER_RING_COLOR,
-          TRADE_MARKER_RING_SIZE,
-        ).then((ringId) => {
-          if (gen !== getPlacementGeneration()) {
-            removeEntitySafe(activeChart, ringId);
-            return undefined;
-          }
-          return createTradeMarkerIcon(
-            activeChart,
-            marker.timeSec,
-            marker.price,
-            marker.color,
-            TRADE_MARKER_SIZE,
-          ).then((fillId) => {
-            if (gen !== getPlacementGeneration()) {
-              removeEntitySafe(activeChart, ringId);
-              removeEntitySafe(activeChart, fillId);
-              return;
-            }
-            if (ringId) pushShapeId(ringId);
-            if (fillId) pushShapeId(fillId);
-            setShapesForMarkerId(marker.id, {
-              fill: fillId ?? null,
-              ring: ringId ?? null,
-            });
-          });
-        });
-      });
+      chain = chain.then(() => drawRingAndFill(marker));
     }
     chain.catch(() => {
       // Swallow — createShape failures are non-fatal for individual markers.

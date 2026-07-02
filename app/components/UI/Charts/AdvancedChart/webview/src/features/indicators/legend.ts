@@ -78,7 +78,7 @@ export function attachLegendResizeListener(widget: {
 
 function createOverlayElement(): void {
   const existing = document.getElementById(OVERLAY_ID);
-  if (existing) existing.parentNode?.removeChild(existing);
+  if (existing) existing.remove();
   const container = document.getElementById('tv_chart_container');
   if (!container) return;
   const div = document.createElement('div');
@@ -416,17 +416,30 @@ export function refreshStudyLegendFromExport(): void {
     .catch(() => scheduleRetry(gen));
 }
 
-function handleExportData(data: TVExportData, gen: number): void {
-  if (!data || !data.schema || !data.data || data.data.length === 0) {
-    scheduleRetry(gen);
-    return;
-  }
-  const lastRow = data.data[data.data.length - 1];
-  if (!lastRow) {
-    scheduleRetry(gen);
-    return;
-  }
+function isValidExportData(data: TVExportData): boolean {
+  return Boolean(data?.schema && data.data && data.data.length > 0);
+}
 
+function resolveDisplayValue(
+  rawVal: number | undefined,
+  colIndex: number,
+  displayedData: TVExportData['displayedData'],
+): string {
+  let displayVal =
+    rawVal !== undefined && !Number.isNaN(rawVal)
+      ? formatLegendValue(rawVal)
+      : '';
+  if (displayedData && displayedData.length > 0) {
+    const dispRow = displayedData.at(-1);
+    if (dispRow?.[colIndex]) displayVal = dispRow[colIndex];
+  }
+  return displayVal;
+}
+
+function buildStudyMap(
+  data: TVExportData,
+  lastRow: (number | undefined)[],
+): Record<string, StudyValueEntry[]> {
   const byStudy: Record<string, StudyValueEntry[]> = {};
   for (let s = 0; s < data.schema.length; s++) {
     const field = data.schema[s];
@@ -434,16 +447,24 @@ function handleExportData(data: TVExportData, gen: number): void {
     const sid = field.sourceId ? String(field.sourceId) : '';
     if (!sid) continue;
     if (!byStudy[sid]) byStudy[sid] = [];
-    const rawVal = lastRow[s];
-    let displayVal =
-      rawVal !== undefined && !isNaN(rawVal) ? formatLegendValue(rawVal) : '';
-    if (data.displayedData && data.displayedData.length > 0) {
-      const dispRow = data.displayedData[data.displayedData.length - 1];
-      if (dispRow && dispRow[s]) displayVal = dispRow[s];
-    }
+    const displayVal = resolveDisplayValue(lastRow[s], s, data.displayedData);
     byStudy[sid].push({ title: field.plotTitle ?? '', value: displayVal });
   }
+  return byStudy;
+}
 
+function handleExportData(data: TVExportData, gen: number): void {
+  if (!isValidExportData(data)) {
+    scheduleRetry(gen);
+    return;
+  }
+  const lastRow = data.data.at(-1);
+  if (!lastRow) {
+    scheduleRetry(gen);
+    return;
+  }
+
+  const byStudy = buildStudyMap(data, lastRow);
   const entries = buildOrderedEntries(byStudy);
   if (hasAnyEmpty(entries) && retryCount < MAX_RETRIES) {
     scheduleRetry(gen);
@@ -477,7 +498,7 @@ export function subscribeStudyDataLoaded(
 ): void {
   try {
     const study = chart.getStudyById(studyId);
-    if (study && study.onDataLoaded) {
+    if (study?.onDataLoaded) {
       study.onDataLoaded().subscribe(null, () => scheduleLegendRefresh());
       return;
     }
@@ -490,7 +511,7 @@ export function subscribeStudyDataLoaded(
 // ----- Layout ------------------------------------------------------------
 
 function getMainPriceAxisLeftRelativeTo(el: HTMLElement): number | null {
-  if (!el || !el.getBoundingClientRect) return null;
+  if (!el?.getBoundingClientRect) return null;
   const orect = el.getBoundingClientRect();
   let bestLeft: number | null = null;
   let bestTop = Infinity;
@@ -505,7 +526,7 @@ function getMainPriceAxisLeftRelativeTo(el: HTMLElement): number | null {
       }
     }
   });
-  if (bestLeft === null || isNaN(bestLeft)) return null;
+  if (bestLeft === null || Number.isNaN(bestLeft)) return null;
   const maxW = el.clientWidth;
   if (maxW <= 0) return null;
   return Math.max(0, Math.min(bestLeft, maxW));

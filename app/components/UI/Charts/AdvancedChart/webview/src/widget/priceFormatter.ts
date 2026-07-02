@@ -25,7 +25,7 @@ const SUBSCRIPT_DIGITS = [
 function toSubscriptDigits(n: number): string {
   return String(n)
     .split('')
-    .map((digit) => SUBSCRIPT_DIGITS[parseInt(digit, 10)] ?? digit)
+    .map((digit) => SUBSCRIPT_DIGITS[Number.parseInt(digit, 10)] ?? digit)
     .join('');
 }
 
@@ -37,7 +37,7 @@ function toSubscriptDigits(n: number): string {
 export function formatSubscriptNotation(abs: number): string | null {
   if (!(abs > 0 && abs < 0.0001)) return null;
   const priceStr = abs.toFixed(20);
-  const match = priceStr.match(/^0\.0*([1-9]\d*)/);
+  const match = /^0\.0*([1-9]\d*)/.exec(priceStr);
   if (!match) return null;
   const leadingZeros = priceStr.indexOf(match[1]) - 2;
   if (leadingZeros < 4) return null;
@@ -52,7 +52,7 @@ export function formatSubscriptNotation(abs: number): string | null {
  * safe. Numbers below 0.0001 use subscript notation; others use Intl decimal.
  */
 export function formatCrosshairPrice(price: unknown): string {
-  if (price === undefined || price === null || isNaN(Number(price))) {
+  if (price === undefined || price === null || Number.isNaN(Number(price))) {
     return '';
   }
   const p = Number(price);

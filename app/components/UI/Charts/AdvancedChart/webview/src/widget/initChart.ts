@@ -46,9 +46,9 @@ import { installTradingViewExternalOpenBridge } from './externalLinkBridge';
  * from chartLogic.js `generatePaletteShades` (~line 999).
  */
 export function generatePaletteShades(hex: string): string[] {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
+  const r = Number.parseInt(hex.slice(1, 3), 16);
+  const g = Number.parseInt(hex.slice(3, 5), 16);
+  const b = Number.parseInt(hex.slice(5, 7), 16);
   const shades: string[] = [];
   for (let i = 0; i < 19; i++) {
     const t = i / 18;
@@ -86,8 +86,7 @@ const DEFAULT_ENABLED_FEATURES = [
 function resolveDisabledFeatures(features: ChartFeaturesConfig): string[] {
   const list = (features.disabledFeatures ?? []).slice();
   if (!features.enableDrawingTools) {
-    list.push('left_toolbar');
-    list.push('context_menus');
+    list.push('left_toolbar', 'context_menus');
   }
   list.push('use_localstorage_for_settings');
   return list;

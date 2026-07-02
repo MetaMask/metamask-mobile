@@ -56,7 +56,7 @@ export function handleSetPositionLines(payload: SetPositionLinesPayload): void {
 
   clearPositionLines();
 
-  if (!payload || !payload.position) {
+  if (!payload?.position) {
     setHasExplicitCurrentPriceLine(false);
     try {
       widget.applyOverrides({
@@ -174,7 +174,7 @@ export function handleSetPositionLines(payload: SetPositionLinesPayload): void {
               fontsize: 11,
               horzLabelsAlign: line.horzLabelsAlign,
               showPrice: line.showPrice,
-              ...(line.text != null ? { text: line.text } : {}),
+              ...(line.text == null ? {} : { text: line.text }),
             },
           },
         )

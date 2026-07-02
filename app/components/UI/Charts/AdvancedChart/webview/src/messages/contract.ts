@@ -18,13 +18,7 @@
 //
 // Phase 4 deletes SET_LINE_CHROME alongside the custom-chrome implementation.
 
-import type {
-  ChartTheme,
-  ChartType,
-  IndicatorName,
-  OHLCVBar,
-  OHLCVPaginationConfig,
-} from '../core/types';
+import type { ChartType, OHLCVBar, OHLCVPaginationConfig } from '../core/types';
 
 /** Inbound — React Native → WebView IIFE. */
 export type InboundMessage =
@@ -304,7 +298,7 @@ export interface OutboundPayloads {
 }
 
 /** Re-export for callers writing Phase 3 handlers. */
-export type { IndicatorName };
+export type { IndicatorName } from '../core/types';
 
 /** Helper for messages/handler.ts — narrows InboundMessage by type tag. */
 export type InboundMessageOf<T extends InboundMessageType> = Extract<
@@ -313,4 +307,4 @@ export type InboundMessageOf<T extends InboundMessageType> = Extract<
 >;
 
 /** Re-exports for consumers that want to import shapes alongside types. */
-export type { ChartTheme };
+export type { ChartTheme } from '../core/types';

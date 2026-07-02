@@ -19,8 +19,8 @@ export function findOuterChartMarkupTable(
   for (const el of Array.from(list)) {
     const className = el.className ? String(el.className) : '';
     if (el.classList.contains('pane')) continue;
-    if (className.indexOf('price-axis-container') !== -1) continue;
-    if (className.indexOf('time-axis') !== -1) continue;
+    if (className.includes('price-axis-container')) continue;
+    if (className.includes('time-axis')) continue;
     return el;
   }
   return list.length ? list[0] : null;
@@ -41,7 +41,7 @@ export function eachChartDocument(fn: (doc: Document) => void): void {
   try {
     const container = document.getElementById('tv_chart_container');
     const iframe = container?.querySelector('iframe');
-    if (iframe && iframe.contentDocument) {
+    if (iframe?.contentDocument) {
       fn(iframe.contentDocument);
     }
   } catch {

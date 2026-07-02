@@ -39,38 +39,73 @@ interface VisibleTimeRangeSec {
   hi: number;
 }
 
+/**
+ * Extract a normalized time range from a TradingView bar/visible range result.
+ * Returns the range or null if the values are missing or non-normalizable.
+ */
+function normalizeRange(
+  raw: { from?: number; to?: number } | null | undefined,
+): VisibleTimeRangeSec | null {
+  if (!raw || raw.from === undefined || raw.to === undefined) return null;
+  const from = normalizeChartUnixSec(raw.from);
+  const to = normalizeChartUnixSec(raw.to);
+  if (from === null || to === null) return null;
+  return { lo: Math.min(from, to), hi: Math.max(from, to) };
+}
+
 function getVisibleTimeRangeSec(
   chart: TVActiveChart,
 ): VisibleTimeRangeSec | null {
   try {
     if (typeof chart.getVisibleBarsRange === 'function') {
-      const br = chart.getVisibleBarsRange();
-      if (br && br.from !== undefined && br.to !== undefined) {
-        const from = normalizeChartUnixSec(br.from);
-        const to = normalizeChartUnixSec(br.to);
-        if (from !== null && to !== null) {
-          return { lo: Math.min(from, to), hi: Math.max(from, to) };
-        }
-      }
+      const result = normalizeRange(chart.getVisibleBarsRange());
+      if (result) return result;
     }
   } catch {
     // fall through to getVisibleRange
   }
   try {
     if (typeof chart.getVisibleRange === 'function') {
-      const vr = chart.getVisibleRange();
-      if (vr && vr.from !== undefined && vr.to !== undefined) {
-        const from = normalizeChartUnixSec(vr.from);
-        const to = normalizeChartUnixSec(vr.to);
-        if (from !== null && to !== null) {
-          return { lo: Math.min(from, to), hi: Math.max(from, to) };
-        }
-      }
+      return normalizeRange(chart.getVisibleRange());
     }
   } catch {
     return null;
   }
   return null;
+}
+
+/**
+ * Compute the Y coordinate for a price given a linear price scale.
+ * Returns null when the height is non-positive or the scale range is degenerate.
+ */
+function linearPriceToY(
+  lo: number,
+  hi: number,
+  price: number,
+  h: number,
+  inverted: boolean,
+): number | null {
+  if (inverted) return ((price - lo) / (hi - lo)) * h;
+  return ((hi - price) / (hi - lo)) * h;
+}
+
+/**
+ * Compute the Y coordinate for a price given a logarithmic price scale.
+ * Returns null when any value is non-positive or the log range is degenerate.
+ */
+function logPriceToY(
+  lo: number,
+  hi: number,
+  price: number,
+  h: number,
+  inverted: boolean,
+): number {
+  const logLo = Math.log(lo);
+  const logHi = Math.log(hi);
+  const logP = Math.log(price);
+  if (logHi === logLo) return inverted ? 0 : h / 2;
+  const t = (logP - logLo) / (logHi - logLo);
+  return inverted ? t * h : (1 - t) * h;
 }
 
 /**
@@ -83,12 +118,12 @@ function priceToY(chart: TVActiveChart, price: number): number | null {
   if (typeof chart.getPanes !== 'function') return null;
   try {
     const panes = chart.getPanes();
-    if (!panes || !panes.length) return null;
+    if (!panes?.length) return null;
     const pane = panes[0];
     const scale = pane.getMainSourcePriceScale();
     if (!scale) return null;
     const range = scale.getVisiblePriceRange();
-    if (!range || range.from === undefined || range.to === undefined) {
+    if (range?.from === undefined || range?.to === undefined) {
       return null;
     }
     const lo = Math.min(range.from, range.to);
@@ -100,18 +135,54 @@ function priceToY(chart: TVActiveChart, price: number): number | null {
       typeof scale.isInverted === 'function' && scale.isInverted();
     const mode = typeof scale.getMode === 'function' ? scale.getMode() : 0;
     if (mode === 1 && lo > 0 && hi > 0 && clamped > 0) {
-      const logLo = Math.log(lo);
-      const logHi = Math.log(hi);
-      const logP = Math.log(clamped);
-      if (logHi === logLo) return inverted ? 0 : h / 2;
-      const t = (logP - logLo) / (logHi - logLo);
-      return inverted ? t * h : (1 - t) * h;
+      return logPriceToY(lo, hi, clamped, h, inverted);
     }
-    if (inverted) return ((clamped - lo) / (hi - lo)) * h;
-    return ((hi - clamped) / (hi - lo)) * h;
+    return linearPriceToY(lo, hi, clamped, h, inverted);
   } catch {
     return null;
   }
+}
+
+/** Resolve the plot width (in pixels) from the chart's time scale. */
+function getPlotWidth(chart: TVActiveChart): number {
+  try {
+    const ts = chart.getTimeScale();
+    if (ts && typeof ts.width === 'function') return ts.width();
+  } catch {
+    // ignore — caller treats 0 as unavailable
+  }
+  return 0;
+}
+
+/**
+ * Resolve the price to use for Y-distance calculation for a marker.
+ * Returns null when no usable price is available.
+ */
+function resolveMarkerPrice(
+  snapped: { close: number } | null,
+  markerPrice: number | undefined | null,
+): number | null {
+  if (snapped != null) return snapped.close;
+  if (markerPrice != null && Number.isFinite(markerPrice)) return markerPrice;
+  return null;
+}
+
+/**
+ * Compute the Y pixel distance between a marker and the tap point.
+ * Returns 0 when Y cannot be determined (falls back to X-only matching).
+ */
+function computeYDistance(
+  chart: TVActiveChart,
+  offsetY: number | undefined,
+  snapped: { timeSec: number; close: number } | null,
+  markerPrice: number | undefined | null,
+): number {
+  if (offsetY == null || !Number.isFinite(offsetY)) return 0;
+  const price = resolveMarkerPrice(snapped, markerPrice);
+  if (price == null) return 0;
+  const markerY = priceToY(chart, price);
+  if (markerY == null || !Number.isFinite(markerY)) return 0;
+  return markerY - offsetY;
 }
 
 export function findTradeMarkerIdNearPoint(
@@ -119,7 +190,7 @@ export function findTradeMarkerIdNearPoint(
   offsetY: number | undefined,
 ): string | null {
   const markers = getMarkers();
-  if (!markers || !markers.length) return null;
+  if (!markers?.length) return null;
   const widget = getWidget();
   if (!widget || !isChartReady()) return null;
   if (!Number.isFinite(timeSec)) return null;
@@ -135,14 +206,8 @@ export function findTradeMarkerIdNearPoint(
   const range = getVisibleTimeRangeSec(chart);
   if (!range || range.hi <= range.lo) return null;
 
-  let plotW = 0;
-  try {
-    const ts = chart.getTimeScale();
-    if (ts && typeof ts.width === 'function') plotW = ts.width();
-  } catch {
-    plotW = 0;
-  }
-  if (!(plotW > 0)) return null;
+  const plotW = getPlotWidth(chart);
+  if (plotW <= 0) return null;
   const pxPerSec = plotW / (range.hi - range.lo);
 
   const drawn = getShapesByMarkerId();
@@ -152,7 +217,7 @@ export function findTradeMarkerIdNearPoint(
   let bestId: string | null = null;
   let bestDist = Infinity;
   for (const marker of markers) {
-    if (!marker || marker.id == null || !Number.isFinite(marker.time)) continue;
+    if (marker?.id == null || !Number.isFinite(marker?.time)) continue;
     const markerKey = String(marker.id);
     // Only match markers that actually have a circle on screen. Off-range
     // markers are tracked but not drawn — a tap where one *would* be must
@@ -162,21 +227,8 @@ export function findTradeMarkerIdNearPoint(
     const mSec = snapped ? snapped.timeSec : marker.time / 1000;
     if (mSec < range.lo || mSec > range.hi) continue;
     const dxPx = (mSec - timeSec) * pxPerSec;
-    let dyPx = 0;
-    if (offsetY != null && Number.isFinite(offsetY)) {
-      const price =
-        snapped != null
-          ? snapped.close
-          : marker.price != null && Number.isFinite(marker.price)
-            ? marker.price
-            : null;
-      if (price != null) {
-        const markerY = priceToY(chart, price);
-        if (markerY != null && Number.isFinite(markerY))
-          dyPx = markerY - offsetY;
-      }
-    }
-    const dist = Math.sqrt(dxPx * dxPx + dyPx * dyPx);
+    const dyPx = computeYDistance(chart, offsetY, snapped, marker.price);
+    const dist = Math.hypot(dxPx, dyPx);
     if (dist < bestDist) {
       bestDist = dist;
       bestId = markerKey;
@@ -197,7 +249,7 @@ export function attachMarkerHitTest(
 ): void {
   try {
     chart.crossHairMoved().subscribe(null, (params: TVCrosshairParams) => {
-      if (!params || params.price === undefined || params.time === undefined) {
+      if (params?.price === undefined || params?.time === undefined) {
         return;
       }
       lastTapPoint = {

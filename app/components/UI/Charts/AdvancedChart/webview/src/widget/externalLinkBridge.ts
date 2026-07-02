@@ -30,7 +30,7 @@ export function isTradingViewExternalHostname(
   return (
     h === 'tradingview.com' ||
     h === 'www.tradingview.com' ||
-    /\.tradingview\.com$/.test(h)
+    h.endsWith('.tradingview.com')
   );
 }
 
@@ -55,7 +55,7 @@ function handleTradingViewLinkCapture(ev: Event): void {
   const target = ev.target as Element | null;
   if (!target || typeof target.closest !== 'function') return;
   const anchor = target.closest('a') as HTMLAnchorElement | null;
-  if (!anchor || !anchor.href || !isTradingViewExternalHref(anchor.href)) {
+  if (!anchor?.href || !isTradingViewExternalHref(anchor.href)) {
     return;
   }
   const now = Date.now();
@@ -71,7 +71,7 @@ function handleTradingViewLinkCapture(ev: Event): void {
 }
 
 function patchWindowOpen(win: WindowWithOpenPatch | null | undefined): void {
-  if (!win || !win.open || win.__mmTvOpenPatched) return;
+  if (!win?.open || win.__mmTvOpenPatched) return;
   win.__mmTvOpenPatched = true;
   const origOpen = win.open.bind(win);
   win.open = function patchedOpen(
@@ -101,7 +101,7 @@ function applyAllOnce(): void {
       // defaultView access can fail in detached iframes.
     }
     const flagged = doc as DocumentWithCaptureFlag;
-    if (doc && doc.addEventListener && !flagged.__mmTvLinkCaptureInstalled) {
+    if (doc?.addEventListener && !flagged.__mmTvLinkCaptureInstalled) {
       flagged.__mmTvLinkCaptureInstalled = true;
       doc.addEventListener('click', handleTradingViewLinkCapture, true);
     }

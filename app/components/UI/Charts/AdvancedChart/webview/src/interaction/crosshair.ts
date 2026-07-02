@@ -80,7 +80,7 @@ export function attachCrosshairListener(chart: TVActiveChart): void {
   try {
     const subscription = chart.crossHairMoved();
     subscription.subscribe(null, (params: TVCrosshairParams) => {
-      if (!params || params.price === undefined || params.time === undefined) {
+      if (params?.price === undefined || params?.time === undefined) {
         postToRN('CROSSHAIR_MOVE', { data: null });
         return;
       }

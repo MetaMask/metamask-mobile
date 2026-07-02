@@ -57,7 +57,7 @@ export function requestOlderBarsFromRN(params: RequestOlderBarsParams): void {
     resolution: params.resolution,
     fromSec: params.fromSec,
     toSec: params.toSec,
-    ...(params.countBack != null ? { countBack: params.countBack } : {}),
+    ...(params.countBack == null ? {} : { countBack: params.countBack }),
     oldestLoadedTimeMs: oldestAtDefer,
   });
 }

@@ -185,7 +185,11 @@ export const customDatafeed: TVDatafeed = {
       }
     } catch (error) {
       onError(
-        error instanceof Error ? error.message : String(error ?? 'Unknown'),
+        error instanceof Error
+          ? error.message
+          : typeof error === 'string'
+            ? error
+            : (JSON.stringify(error) ?? 'Unknown'),
       );
     }
   },

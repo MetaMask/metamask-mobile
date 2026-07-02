@@ -57,7 +57,7 @@ export function onFirstOhlcvData(cb: FirstDataCallback): void {
 }
 
 export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
-  if (!payload || !payload.data || payload.data.length === 0) {
+  if (!payload?.data || payload.data.length === 0) {
     return;
   }
 
@@ -92,7 +92,13 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
   if (widget && isChartReady()) {
     try {
       const chart = widget.activeChart();
-      if (previousResolution !== newResolution) {
+      if (previousResolution === newResolution) {
+        chart.resetData();
+        resetMainPriceScaleAutoScale(chart);
+        notifyDataLifecycle('ohlcvReset');
+        applyVisibleRange(chart);
+        emitLayoutSettled();
+      } else {
         chart.setResolution(newResolution, () => {
           try {
             chart.resetData();
@@ -104,12 +110,6 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
             reportErrorToRN(error);
           }
         });
-      } else {
-        chart.resetData();
-        resetMainPriceScaleAutoScale(chart);
-        notifyDataLifecycle('ohlcvReset');
-        applyVisibleRange(chart);
-        emitLayoutSettled();
       }
     } catch (error) {
       reportErrorToRN(error);
@@ -131,7 +131,7 @@ export function handleSetOHLCVData(payload: SetOHLCVDataPayload): void {
 export function handleRealtimeUpdate(
   payload: RealtimeUpdateMessage['payload'],
 ): void {
-  if (!payload || !payload.bar) return;
+  if (!payload?.bar) return;
 
   const bar = payload.bar;
   appendOrReplaceLastBar(bar);
@@ -165,7 +165,7 @@ function applyVisibleRange(chart: TVActiveChart): void {
       return;
     }
     const data = getOhlcvData();
-    const lastBar = data[data.length - 1];
+    const lastBar = data.at(-1);
     const toSec = lastBar
       ? Math.ceil(lastBar.time / 1000)
       : Math.ceil(Date.now() / 1000);

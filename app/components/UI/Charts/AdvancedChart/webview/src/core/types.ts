@@ -108,7 +108,7 @@ export interface ChartConfig {
  * Minimal TradingView types we touch in Phase 1. Full types ship with the
  * charting library at runtime; we stub the bits we call.
  */
-export type TVResolution = string;
+export type TVResolution = string; // NOSONAR — intentional semantic alias for TradingView resolution strings
 
 export interface TVTimeRange {
   type: 'time-range';
@@ -151,7 +151,7 @@ export interface TVMainSeries {
 }
 
 /** Entity id returned by TradingView's `createShape`. */
-export type TVShapeId = string;
+export type TVShapeId = string; // NOSONAR — intentional semantic alias for TradingView shape entity IDs
 
 /**
  * Runtime handle to a drawing shape (icon, horizontal_line, etc.).
@@ -190,7 +190,7 @@ export interface TVPane {
   getHeight(): number;
 }
 
-export type StudyId = string;
+export type StudyId = string; // NOSONAR — intentional semantic alias for TradingView study entity IDs
 
 export interface TVStudy {
   onDataLoaded(): TVSubscription;

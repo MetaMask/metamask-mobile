@@ -7,7 +7,6 @@
 
 import { reportErrorToRN } from '../core/bridge';
 import { getWidget, isChartReady, setCurrentChartType } from '../core/state';
-import { ChartType } from '../core/types';
 import type { SetChartTypeMessage } from '../messages/contract';
 import { applyScaleLayout } from './scaleLayout';
 
@@ -39,4 +38,4 @@ export function handleSetChartType(
   }
 }
 
-export { ChartType };
+export { ChartType } from '../core/types';

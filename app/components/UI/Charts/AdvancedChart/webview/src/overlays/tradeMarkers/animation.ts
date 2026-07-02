@@ -48,7 +48,7 @@ export function handlePulseTradeMarker(
 ): void {
   const widget = getWidget();
   if (!widget || !isChartReady()) return;
-  if (!payload || payload.id == null) return;
+  if (payload?.id == null) return;
 
   const markerId = String(payload.id);
   const record = getShapesByMarkerId().get(markerId);
@@ -82,7 +82,7 @@ export function handlePulseTradeMarker(
     if (!getWidget() || !isChartReady()) return;
     // Abort if the markers were rebuilt — record ids now point elsewhere.
     const current = getShapesByMarkerId().get(markerId);
-    if (!current || current.fill !== fillId || current.ring !== ringId) return;
+    if (current?.fill !== fillId || current?.ring !== ringId) return;
 
     const t = (Date.now() - startTs) / PULSE_MS;
     if (t >= 1) {

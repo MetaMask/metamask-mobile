@@ -7,7 +7,6 @@
 
 import type {
   InboundMessage,
-  InboundMessageType,
   OutboundMessageType,
   OutboundPayloads,
 } from '../messages/contract';
@@ -41,7 +40,11 @@ export function postToRN<T extends OutboundMessageType>(
  */
 export function reportErrorToRN(error: unknown): void {
   const message =
-    error instanceof Error ? error.message : String(error ?? 'Unknown error');
+    error instanceof Error
+      ? error.message
+      : typeof error === 'string'
+        ? error
+        : (JSON.stringify(error) ?? 'Unknown error');
   postToRN('ERROR', { message });
 }
 
@@ -99,4 +102,4 @@ export function onFromRN(handler: InboundMessageHandler): () => void {
 }
 
 /** Re-export for callers that want the type tag union. */
-export type { InboundMessageType };
+export type { InboundMessageType } from '../messages/contract';

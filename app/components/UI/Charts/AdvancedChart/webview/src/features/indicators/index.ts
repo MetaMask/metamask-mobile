@@ -55,7 +55,7 @@ export function handleAddIndicator(
 ): void {
   const widget = getWidget();
   if (!widget || !isChartReady()) return;
-  if (!payload || !payload.name) return;
+  if (!payload?.name) return;
   const name = payload.name;
   if (!isOwnStringKey(name)) return;
   if (getActiveStudies().has(name)) return;
@@ -91,7 +91,7 @@ export function handleRemoveIndicator(
 ): void {
   const widget = getWidget();
   if (!widget || !isChartReady()) return;
-  if (!payload || !payload.name) return;
+  if (!payload?.name) return;
   const name = payload.name;
   if (!isOwnStringKey(name)) return;
   if (!getActiveStudies().has(name)) return;
