@@ -214,7 +214,7 @@ export const useMoneyAccountCardLinkage =
     );
 
     const showPendingToast = useCallback(
-      (action: LinkageAction = 'link') => {
+      (action: LinkageAction) => {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           labelOptions: [
@@ -238,7 +238,7 @@ export const useMoneyAccountCardLinkage =
     );
 
     const showSuccessToast = useCallback(
-      (action: LinkageAction = 'link') => {
+      (action: LinkageAction) => {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
           labelOptions: [
