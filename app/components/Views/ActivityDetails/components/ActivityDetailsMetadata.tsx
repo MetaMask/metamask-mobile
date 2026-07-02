@@ -18,17 +18,29 @@ import { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
 import { ActivityDetailsTransactionId } from './ActivityDetailsTransactionId';
 
 /**
- * The type-agnostic metadata block: status, date, account (or from/to, or a
- * single Address row for self-referential txns like a smart-account upgrade),
- * network, and a copyable transaction id.
+ * The type-agnostic metadata block: status, date, account, network, and a
+ * copyable transaction id.
+ *
+ * From/To is opt-in per template: a caller passes `addressRows={{ from, to }}`
+ * (Send and NFT do) to render a From/To pair. Every other activity type — swaps,
+ * approvals, contract interactions, etc. — shows a single Account row, mirroring
+ * the extension's `MetadataSection`. A smart-account upgrade is self-referential
+ * and shows a single Address row.
  */
-export function ActivityDetailsMetadata({ item }: { item: ActivityListItem }) {
+export function ActivityDetailsMetadata({
+  item,
+  addressRows,
+}: {
+  item: ActivityListItem;
+  addressRows?: { from?: string; to?: string };
+}) {
   const { from, to } = getActivityFromTo(item);
   const networkName = useActivityNetworkName(item.chainId);
-  // A smart-account upgrade is self-referential (from === to === the account),
-  // so a From/To pair is redundant — show a single Address row instead.
   const showAddressOnly = item.type === 'smartAccountUpgrade';
-  const showFromTo = !showAddressOnly && Boolean(from && to);
+  const showFromTo =
+    !showAddressOnly && Boolean(addressRows?.from && addressRows?.to);
+  const fromAddress = addressRows?.from ?? '';
+  const toAddress = addressRows?.to ?? '';
   const accountAddress = from || to;
 
   return (
@@ -59,7 +71,7 @@ export function ActivityDetailsMetadata({ item }: { item: ActivityListItem }) {
             label={strings('activity_details.from')}
             value={
               <ActivityDetailsAccountValue
-                address={from}
+                address={fromAddress}
                 chainId={item.chainId}
               />
             }
@@ -69,7 +81,7 @@ export function ActivityDetailsMetadata({ item }: { item: ActivityListItem }) {
             label={strings('activity_details.to')}
             value={
               <ActivityDetailsAccountValue
-                address={to}
+                address={toAddress}
                 chainId={item.chainId}
               />
             }
