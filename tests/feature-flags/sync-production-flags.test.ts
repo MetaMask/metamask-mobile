@@ -5,7 +5,12 @@ jest.mock('prettier', () => ({
   },
 }));
 
+jest.mock('child_process', () => ({
+  execFileSync: jest.fn(),
+}));
+
 /* eslint-disable import-x/no-nodejs-modules -- Node.js script for CI/sync */
+import { execFileSync } from 'child_process';
 import fs from 'fs';
 import {
   getProductionRemoteFlagApiResponse,
@@ -13,7 +18,9 @@ import {
 } from './feature-flag-registry';
 import {
   compareProductionFlagsToRegistry,
+  findDuplicateRegistryKeys,
   updateRegistryFile,
+  validateRegistryFile,
 } from './sync-production-flags';
 
 // Synthetic registry fixture matching structure required by updateRegistryFile
@@ -333,5 +340,243 @@ describe('updateRegistryFile', () => {
     expect(written).not.toContain(
       'Production defaults last synced: 2020-01-01',
     );
+  });
+
+  it('skips appending a new flag that already exists in the registry', async () => {
+    const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
+    const result = {
+      newInProduction: [{ name: 'flagA', value: { updated: true } }],
+      removedFromProduction: [],
+      valueMismatches: [],
+      inProdMismatches: [],
+      hasDrift: true,
+    };
+    await updateRegistryFile(result);
+    expect(writeFileSyncMock).toHaveBeenCalledTimes(1);
+    const written = writeFileSyncMock.mock.calls[0][1] as string;
+    const matches = written.match(/flagA:\s*\{/gu) ?? [];
+    expect(matches).toHaveLength(1);
+    expect(consoleSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Skipping duplicate: "flagA"'),
+    );
+    consoleSpy.mockRestore();
+  });
+
+  it('serializes object values with sorted keys for deterministic output', async () => {
+    const result = {
+      newInProduction: [
+        { name: 'sortedFlag', value: { zebra: 1, alpha: 2, middle: 3 } },
+      ],
+      removedFromProduction: [],
+      valueMismatches: [],
+      inProdMismatches: [],
+      hasDrift: true,
+    };
+    await updateRegistryFile(result);
+    expect(writeFileSyncMock).toHaveBeenCalledTimes(1);
+    const written = writeFileSyncMock.mock.calls[0][1] as string;
+    const alphaIdx = written.indexOf('"alpha"');
+    const middleIdx = written.indexOf('"middle"');
+    const zebraIdx = written.indexOf('"zebra"');
+    expect(alphaIdx).toBeLessThan(middleIdx);
+    expect(middleIdx).toBeLessThan(zebraIdx);
+  });
+});
+
+describe('findDuplicateRegistryKeys', () => {
+  it('returns empty array when no duplicates exist', () => {
+    const content = `
+  flagA: {
+    name: 'flagA',
+  },
+  flagB: {
+    name: 'flagB',
+  },
+`;
+    expect(findDuplicateRegistryKeys(content)).toHaveLength(0);
+  });
+
+  it('detects duplicate unquoted keys', () => {
+    const content = `
+  flagA: {
+    name: 'flagA',
+  },
+  flagB: {
+    name: 'flagB',
+  },
+  flagA: {
+    name: 'flagA',
+  },
+`;
+    const dupes = findDuplicateRegistryKeys(content);
+    expect(dupes).toHaveLength(1);
+    expect(dupes[0]).toContain('flagA');
+  });
+
+  it('detects duplicate quoted keys', () => {
+    const content = `
+  "myFlag": {
+    name: 'myFlag',
+  },
+  "myFlag": {
+    name: 'myFlag',
+  },
+`;
+    const dupes = findDuplicateRegistryKeys(content);
+    expect(dupes).toHaveLength(1);
+    expect(dupes[0]).toContain('myFlag');
+  });
+});
+
+describe('validateRegistryFile', () => {
+  const mockedExecFileSync = execFileSync as unknown as jest.Mock;
+
+  beforeEach(() => {
+    mockedExecFileSync.mockReset();
+  });
+
+  it('returns empty array for valid content with no duplicates and clean tsc', () => {
+    mockedExecFileSync.mockReturnValue('');
+    const content = `
+  flagA: {
+    name: 'flagA',
+  },
+  flagB: {
+    name: 'flagB',
+  },
+`;
+    expect(validateRegistryFile(content)).toHaveLength(0);
+  });
+
+  it('returns duplicate key errors', () => {
+    mockedExecFileSync.mockReturnValue('');
+    const content = `
+  flagA: {
+    name: 'flagA',
+  },
+  flagA: {
+    name: 'flagA',
+  },
+`;
+    const errors = validateRegistryFile(content);
+    expect(errors.length).toBeGreaterThan(0);
+    expect(errors[0]).toContain('flagA');
+  });
+
+  it('returns TypeScript errors from tsc', () => {
+    const tsError =
+      'feature-flag-registry.ts(10,3): error TS1117: Duplicate property';
+    mockedExecFileSync.mockImplementation(() => {
+      const err = new Error('tsc failed') as Error & { stdout: string };
+      err.stdout = tsError;
+      throw err;
+    });
+    const content = `
+  flagA: {
+    name: 'flagA',
+  },
+`;
+    const errors = validateRegistryFile(content);
+    expect(errors).toContainEqual(expect.stringContaining('error TS1117'));
+  });
+
+  it('catches chained TypeScript errors from imported files', () => {
+    const chainedError =
+      'node_modules/@metamask/utils/types.d.ts(5,1): error TS2305: Module has no exported member';
+    mockedExecFileSync.mockImplementation(() => {
+      const err = new Error('tsc failed') as Error & { stdout: string };
+      err.stdout = chainedError;
+      throw err;
+    });
+    const content = `
+  flagA: {
+    name: 'flagA',
+  },
+`;
+    const errors = validateRegistryFile(content);
+    expect(errors).toContainEqual(expect.stringContaining('error TS2305'));
+  });
+
+  it('reports error when tsc fails to spawn with no output', () => {
+    mockedExecFileSync.mockImplementation(() => {
+      const err = new Error('ENOENT') as Error & {
+        stdout: string;
+        stderr: string;
+      };
+      err.stdout = '';
+      err.stderr = '';
+      throw err;
+    });
+    const content = `
+  flagA: {
+    name: 'flagA',
+  },
+`;
+    const errors = validateRegistryFile(content);
+    expect(errors).toContainEqual(expect.stringContaining('tsc failed to run'));
+  });
+
+  it('reports error when tsc exits with non-TS diagnostic output', () => {
+    mockedExecFileSync.mockImplementation(() => {
+      const err = new Error('tsc failed') as Error & {
+        stdout: string;
+        stderr: string;
+      };
+      err.stdout = 'Some unexpected compiler crash output';
+      err.stderr = '';
+      throw err;
+    });
+    const content = `
+  flagA: {
+    name: 'flagA',
+  },
+`;
+    const errors = validateRegistryFile(content);
+    expect(errors).toContainEqual(
+      expect.stringContaining('tsc exited with an error'),
+    );
+  });
+});
+
+describe('compareProductionFlagsToRegistry - key ordering', () => {
+  it('does not flag reordered object keys as drift', () => {
+    const registryMap = { myFlag: { alpha: 1, zebra: 2 } };
+    const prodResponse = [{ myFlag: { zebra: 2, alpha: 1 } }];
+    const result = compareProductionFlagsToRegistry(prodResponse, registryMap);
+
+    expect(result.valueMismatches).toHaveLength(0);
+    expect(result.hasDrift).toBe(false);
+  });
+
+  it('does not flag deeply nested reordered keys as drift', () => {
+    const registryMap = {
+      myFlag: {
+        versions: {
+          '1.0.0': { alpha: true, beta: false },
+        },
+      },
+    };
+    const prodResponse = [
+      {
+        myFlag: {
+          versions: {
+            '1.0.0': { beta: false, alpha: true },
+          },
+        },
+      },
+    ];
+    const result = compareProductionFlagsToRegistry(prodResponse, registryMap);
+
+    expect(result.valueMismatches).toHaveLength(0);
+    expect(result.hasDrift).toBe(false);
+  });
+
+  it('still detects actual value changes even with different key order', () => {
+    const registryMap = { myFlag: { alpha: 1, zebra: 2 } };
+    const prodResponse = [{ myFlag: { zebra: 999, alpha: 1 } }];
+    const result = compareProductionFlagsToRegistry(prodResponse, registryMap);
+
+    expect(result.valueMismatches).toHaveLength(1);
+    expect(result.hasDrift).toBe(true);
   });
 });

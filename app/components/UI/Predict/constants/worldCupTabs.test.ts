@@ -52,9 +52,23 @@ describe('worldCupTabs', () => {
         'final',
       ]);
     });
+
+    it('does not add stage tabs when no stages are configured', () => {
+      expect(getPredictWorldCupAvailableTabKeys({ stages: [] })).toEqual([
+        PREDICT_WORLD_CUP_TAB_KEYS.ALL,
+        PREDICT_WORLD_CUP_TAB_KEYS.LIVE,
+        PREDICT_WORLD_CUP_TAB_KEYS.PROPS,
+      ]);
+    });
   });
 
   describe('resolvePredictWorldCupInitialTab', () => {
+    it('falls back to All when requested group tab is not configured', () => {
+      expect(resolvePredictWorldCupInitialTab('group-b', { stages: [] })).toBe(
+        PREDICT_WORLD_CUP_TAB_KEYS.ALL,
+      );
+    });
+
     it('falls back to All when requested tab is hidden by availability', () => {
       expect(
         resolvePredictWorldCupInitialTab('group-stage', config, {

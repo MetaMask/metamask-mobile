@@ -8,7 +8,7 @@ import {
   RelayWaitResponse,
   isRelaySupported,
   submitRelayTransaction,
-  waitForRelayResult,
+  waitForRelaySuccess,
 } from './transaction-relay';
 
 import jsonRpcRequest from '../../util/jsonRpcRequest';
@@ -142,15 +142,15 @@ describe('Transaction Relay (mobile)', () => {
     });
   });
 
-  describe('waitForRelayResult', () => {
+  describe('waitForRelaySuccess', () => {
     it('throws when chain is not supported by relay', async () => {
       mockRelayUnsupported();
-      await expect(waitForRelayResult(WAIT_REQUEST_MOCK)).rejects.toThrow(
+      await expect(waitForRelaySuccess(WAIT_REQUEST_MOCK)).rejects.toThrow(
         `Sentinel: Relay: Chain not supported - ${WAIT_REQUEST_MOCK.chainId}`,
       );
     });
 
-    it('resolves with transactionHash when status is Success', async () => {
+    it('resolves with transactionHash and errorReason when status is Success', async () => {
       mockRelaySupported('mainnet');
       mockFetchSuccess({
         transactions: [
@@ -158,12 +158,13 @@ describe('Transaction Relay (mobile)', () => {
         ],
       });
 
-      const resultPromise = waitForRelayResult(WAIT_REQUEST_MOCK);
+      const resultPromise = waitForRelaySuccess(WAIT_REQUEST_MOCK);
 
       await jest.advanceTimersByTimeAsync(INTERVAL_MS);
 
       const result = await resultPromise;
       expect(result).toEqual<RelayWaitResponse>({
+        errorReason: 'Unknown error',
         status: RelayStatus.Success,
         transactionHash: TRANSACTION_HASH_MOCK,
       });
@@ -174,26 +175,27 @@ describe('Transaction Relay (mobile)', () => {
       );
     });
 
-    it('resolves with status only (no hash) when transaction hash is missing', async () => {
+    it('throws when relay status is not Success', async () => {
       mockFetchSuccess({
         transactions: [{ status: 'TEST_STATUS' }],
       });
 
-      const resultPromise = waitForRelayResult(WAIT_REQUEST_MOCK);
+      const errorPromise = waitForRelaySuccess(WAIT_REQUEST_MOCK).catch(
+        (error) => error,
+      );
 
       await jest.advanceTimersByTimeAsync(INTERVAL_MS);
 
-      const result = await resultPromise;
-      expect(result).toEqual<RelayWaitResponse>({
-        status: 'TEST_STATUS',
-        transactionHash: undefined,
+      await expect(errorPromise).resolves.toMatchObject({
+        message:
+          'Sentinel: Relay: Transaction failed - TEST_STATUS - Unknown error',
       });
     });
 
     it('rejects when polling responds with non-ok status', async () => {
       mockFetchError(ERROR_BODY_MOCK, 502);
 
-      const errorPromise = waitForRelayResult(WAIT_REQUEST_MOCK).catch(
+      const errorPromise = waitForRelaySuccess(WAIT_REQUEST_MOCK).catch(
         (error) => error,
       );
 
@@ -210,7 +212,7 @@ describe('Transaction Relay (mobile)', () => {
         new Error('poll failed'),
       );
 
-      const errorPromise = waitForRelayResult(WAIT_REQUEST_MOCK).catch(
+      const errorPromise = waitForRelaySuccess(WAIT_REQUEST_MOCK).catch(
         (error) => error,
       );
 
@@ -230,7 +232,7 @@ describe('Transaction Relay (mobile)', () => {
         ],
       });
 
-      const resultPromise = waitForRelayResult(WAIT_REQUEST_MOCK);
+      const resultPromise = waitForRelaySuccess(WAIT_REQUEST_MOCK);
 
       await jest.advanceTimersByTimeAsync(INTERVAL_MS);
       await jest.advanceTimersByTimeAsync(INTERVAL_MS);
@@ -238,6 +240,7 @@ describe('Transaction Relay (mobile)', () => {
 
       const result = await resultPromise;
       expect(result).toEqual<RelayWaitResponse>({
+        errorReason: 'Unknown error',
         status: RelayStatus.Success,
         transactionHash: TRANSACTION_HASH_MOCK,
       });
