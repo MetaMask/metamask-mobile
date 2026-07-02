@@ -108,6 +108,9 @@ export function getPermittedEip155ChainIds(origin: string): Hex[] | undefined {
       Caip25EndowmentPermissionName,
       Caip25CaveatType,
     );
+    if (!caveat) {
+      return undefined;
+    }
     return getPermittedEthChainIds(caveat.value as Caip25CaveatValue);
   } catch {
     return undefined;
