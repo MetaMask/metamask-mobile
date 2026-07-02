@@ -1,3 +1,9 @@
+export { default as AccountRow } from './AccountRow';
+export type { AccountRowProps } from './AccountRow';
+
+export { default as TokenRow } from './TokenRow';
+export type { TokenRowProps } from './TokenRow';
+
 export { default as AssetCard } from './AssetCard';
 export type { AssetCardProps } from './AssetCard';
 

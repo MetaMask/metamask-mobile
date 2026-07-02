@@ -11,13 +11,13 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  HeaderStandard,
   Icon,
   IconName,
   IconSize,
   IconColor,
 } from '@metamask/design-system-react-native';
 import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import { strings } from '../../../../../../../locales/i18n';
 import Routes from '../../../../../../constants/navigation/Routes';
 import {
@@ -109,7 +109,7 @@ const TraderNotificationsBottomSheet = forwardRef<
       onClose={handleSheetClosed}
       testID={TraderNotificationsBottomSheetSelectorsIDs.CONTAINER}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('social_leaderboard.trader_notifications.title', {
           traderName,
         })}

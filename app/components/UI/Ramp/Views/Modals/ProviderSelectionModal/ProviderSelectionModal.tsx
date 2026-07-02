@@ -28,6 +28,7 @@ import styleSheet from './ProviderSelectionModal.styles';
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { strings } from '../../../../../../../locales/i18n';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 export interface ProviderSelectionModalParams {
   amount?: number;
@@ -135,12 +136,13 @@ function ProviderSelectionModal() {
     loading: quotesLoading,
     error: quotesError,
   } = useRampsQuotes(quoteFetchParams);
+  const surfaceClass = useElevatedSurface();
 
   const handleDismiss = useCallback(
     (hasPendingAction?: boolean) => {
       if (!hasPendingAction && skipQuotes) {
         navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.TOKEN_SELECTION,
+          screen: Routes.RAMP.TOKEN_SELECTION_ROOT,
         });
       }
     },
@@ -180,10 +182,12 @@ function ProviderSelectionModal() {
       ref={sheetRef}
       goBack={navigation.goBack}
       onClose={handleDismiss}
+      twClassName={surfaceClass}
     >
       <View style={styles.container}>
         <ProviderSelection
           providers={displayProviders}
+          amount={amount}
           quotes={quotes}
           quotesLoading={quotesLoading}
           quotesError={

@@ -60,21 +60,19 @@ module.exports = function (baseConfig) {
   // command polling, Sentry mock) while keeping METAMASK_ENVIRONMENT='e2e' so
   // the build still works on feature branches with e2e signing/secrets.
   const isPerformanceTest = process.env.IS_PERFORMANCE_TEST === 'true';
-  const isE2E =
-    !isPerformanceTest &&
-    (process.env.IS_TEST === 'true' ||
-      process.env.METAMASK_ENVIRONMENT === 'e2e');
+  const hasTestOverrides =
+    !isPerformanceTest && process.env.HAS_TEST_OVERRIDES === 'true';
 
   /**
    * E2E Metro redirects under tests/module-mocking.
    * Enables both: seedless-onboarding-controller + OAuthLoginHandlers mocks.
-   * True when IS_TEST / METAMASK_ENVIRONMENT=e2e OR E2E_MOCK_OAUTH.
+   * True when HAS_TEST_OVERRIDES OR E2E_MOCK_OAUTH.
    * Performance builds set E2E_MOCK_OAUTH=true to keep this mock active
-   * even though isE2E is false (preventing real OAuth calls to production).
+   * even though hasTestOverrides is false (preventing real OAuth calls to production).
    */
   const isE2EMockOAuth = process.env.E2E_MOCK_OAUTH === 'true';
 
-  const e2eAllowsSeedlessOAuthMetroMocks = isE2E || isE2EMockOAuth;
+  const e2eAllowsSeedlessOAuthMetroMocks = hasTestOverrides || isE2EMockOAuth;
 
   // For less powerful machines, leave room to do other tasks. For instance,
   // if you have 10 cores but only 16GB, only 3 workers would get used.
@@ -118,10 +116,6 @@ module.exports = function (baseConfig) {
           net: require.resolve('react-native-tcp-socket'),
           fs: require.resolve('react-native-level-fs'),
           images: path.resolve(__dirname, 'app/images'),
-          '@metamask/perps-controller': path.resolve(
-            __dirname,
-            'app/controllers/perps',
-          ),
           'base64-js': 'react-native-quick-base64',
           base64: 'react-native-quick-base64',
           'js-base64': 'react-native-quick-base64',
@@ -129,6 +123,16 @@ module.exports = function (baseConfig) {
           'node:buffer': '@craftzdog/react-native-buffer',
         },
         resolveRequest: (context, moduleName, platform) => {
+          // MYXProvider is intentionally excluded from @metamask/perps-controller's
+          // published dist (extension-only). The dynamic import() uses webpackIgnore
+          // but babel's dynamicImportToRequire rewrites it to require(), causing Metro
+          // to resolve it statically. Return an empty module stub.
+          if (
+            moduleName === './providers/MYXProvider' &&
+            context.originModulePath?.includes('@metamask/perps-controller')
+          ) {
+            return { type: 'empty' };
+          }
           // @ledgerhq packages use exports field subpath mapping (e.g. ./signers/index -> ./lib/signers/index.js)
           // which doesn't work with unstable_enablePackageExports: false — manually replicate the lib/ mapping
           // Affected: domain-service, evm-tools, devices, cryptoassets-evm-signatures
@@ -165,7 +169,7 @@ module.exports = function (baseConfig) {
               type: 'sourceFile',
             };
           }
-          if (isE2E) {
+          if (hasTestOverrides) {
             if (moduleName === '@sentry/react-native') {
               return {
                 type: 'sourceFile',

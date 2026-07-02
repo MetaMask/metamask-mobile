@@ -28,6 +28,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { useElevatedSurface } from '../../../util/theme/themeUtils';
 import {
   useSafeAreaFrame,
@@ -38,14 +39,18 @@ import { useSelector } from 'react-redux';
 import { WalletActionsBottomSheetSelectorsIDs } from '../WalletActions/WalletActionsBottomSheet.testIds';
 import { strings } from '../../../../locales/i18n';
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
-import { BATCH_SELL_ENABLED } from '../../../constants/bridge';
+import { selectBatchSellEnabled } from '../../../selectors/featureFlagController/batchSell';
 import Routes from '../../../constants/navigation/Routes';
 import AppConstants from '../../../core/AppConstants';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { RootState } from '../../../reducers';
-import { selectCanSignTransactions } from '../../../selectors/accountsController';
+import {
+  selectCanSignTransactions,
+  selectSelectedInternalAccountAddress,
+} from '../../../selectors/accountsController';
 import { earnSelectors } from '../../../selectors/earnController';
 import { selectChainId } from '../../../selectors/networkController';
+import { isHardwareAccount } from '../../../util/address';
 import { getDecimalChainId } from '../../../util/networks';
 import {
   SwapBridgeNavigationLocation,
@@ -111,6 +116,13 @@ function TradeWalletActions() {
   const { isEligible: isEarnEligible } = useStakingEligibility();
 
   const canSignTransactions = useSelector(selectCanSignTransactions);
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const isHardwareWallet = selectedAddress
+    ? Boolean(isHardwareAccount(selectedAddress))
+    : false;
+  const isBatchSellEnabled = useSelector(selectBatchSellEnabled);
+  const shouldRenderBatchSell =
+    isBatchSellEnabled && AppConstants.SWAPS.ACTIVE && !isHardwareWallet;
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
 
@@ -137,6 +149,16 @@ function TradeWalletActions() {
     swapButtonEventLocationOverride: ActionLocation.NAVBAR,
   });
 
+  const dismissRootModalFlow = useCallback(() => {
+    const parentNavigation = navigation.getParent();
+    if (parentNavigation?.canGoBack()) {
+      parentNavigation.goBack();
+      return;
+    }
+
+    navigation.goBack();
+  }, [navigation]);
+
   const handleNavigateBack = useCallback(() => {
     onDismiss?.();
     setIsVisible(false);
@@ -153,6 +175,9 @@ function TradeWalletActions() {
     postCallback.current = () => {
       navigate(Routes.BRIDGE.ROOT, {
         screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
+        params: {
+          batchSellLocation: BatchSellMetricsLocation.TradeMenu,
+        },
       });
     };
     handleNavigateBack();
@@ -238,10 +263,20 @@ function TradeWalletActions() {
   const exitingWithNavigateBack = useMemo(
     () =>
       exitingAnimationWithCallback(() => {
-        navigation.goBack();
-        postCallback.current?.();
+        const callback = postCallback.current;
+        postCallback.current = undefined;
+
+        dismissRootModalFlow();
+
+        if (callback) {
+          // Defer navigation until RootModalFlow is fully dismissed so screens
+          // on MainNavigator (e.g. StakeModals) are not opened underneath it.
+          requestAnimationFrame(() => {
+            callback();
+          });
+        }
       }),
-    [exitingAnimationWithCallback, navigation],
+    [dismissRootModalFlow, exitingAnimationWithCallback],
   );
 
   return (
@@ -267,6 +302,8 @@ function TradeWalletActions() {
       {visible && (
         <Animated.View exiting={exitingWithNavigateBack}>
           <MaskedView
+            // iOS: MaskedView otherwise intercepts touches and ActionListItem onPress never fires (Android is unaffected).
+            pointerEvents="box-none"
             maskElement={
               <View style={tw.style('flex-1 bg-transparent px-4')}>
                 <View style={tw.style('flex-1 bg-black')} />
@@ -299,7 +336,7 @@ function TradeWalletActions() {
                   `px-0`,
                 )}
               >
-                {BATCH_SELL_ENABLED && AppConstants.SWAPS.ACTIVE && (
+                {shouldRenderBatchSell && (
                   <ActionListItem
                     label={
                       <View style={tw.style('flex-row items-center gap-2')}>

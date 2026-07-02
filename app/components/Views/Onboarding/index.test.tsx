@@ -84,12 +84,12 @@ import { endTrace, TraceName } from '../../../util/trace';
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
 
-// Create a mutable mock for isE2E that can be controlled per test
-let mockIsE2E = false;
+// Create a mutable mock for hasTestOverrides that can be controlled per test
+let mockHasTestOverrides = false;
 jest.mock('../../../util/test/utils', () => ({
   ...jest.requireActual('../../../util/test/utils'),
-  get isE2E() {
-    return mockIsE2E;
+  get hasTestOverrides() {
+    return mockHasTestOverrides;
   },
 }));
 
@@ -253,26 +253,6 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
-jest.mock('../../../core/Analytics/MetaMetrics', () => ({
-  getInstance: () => ({}),
-  MetaMetricsEvents: jest.requireActual('../../../core/Analytics/MetaMetrics')
-    .MetaMetricsEvents,
-}));
-
-interface EventBuilder {
-  addProperties: () => EventBuilder;
-  build: () => Record<string, unknown>;
-}
-
-interface MetricsProps {
-  metrics: {
-    isEnabled: () => boolean;
-    trackEvent: (...args: unknown[]) => void;
-    enable: (enable?: boolean) => Promise<void>;
-    createEventBuilder: () => EventBuilder;
-  };
-}
-
 // Import analytics to access mocks
 import { analytics } from '../../../util/analytics/analytics';
 
@@ -289,41 +269,16 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
         await mockAnalytics.optIn();
       }
     },
-    addTraitsToUser: mockAnalytics.identify,
+    identify: mockAnalytics.identify,
     createDataDeletionTask: jest.fn(),
     checkDataDeleteStatus: jest.fn(),
     getDeleteRegulationCreationDate: jest.fn(),
     getDeleteRegulationId: jest.fn(),
-    isDataRecorded: jest.fn(),
     isEnabled: mockAnalytics.isEnabled,
     getAnalyticsId: mockAnalytics.getAnalyticsId,
     createEventBuilder: mockCreateEventBuilder,
   }),
 }));
-
-jest.mock(
-  '../../hooks/useMetrics/withMetricsAwareness',
-  () =>
-    <P extends object>(Component: React.ComponentType<P & MetricsProps>) =>
-    (props: P) => (
-      <Component
-        {...props}
-        metrics={{
-          isEnabled: () => mockAnalytics.isEnabled(),
-          trackEvent: (event: unknown) =>
-            mockAnalytics.trackEvent(event as never),
-          enable: async (enable?: boolean) => {
-            if (enable === false) {
-              await mockAnalytics.optOut();
-            } else {
-              await mockAnalytics.optIn();
-            }
-          },
-          createEventBuilder: mockCreateEventBuilder,
-        }}
-      />
-    ),
-);
 
 const mockSeedlessOnboardingEnabled = jest.fn();
 jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
@@ -344,8 +299,8 @@ const mockNav = {
     }
   }),
 };
-jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: () => ({
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: () => ({
     Navigator: ({ children }: { children: React.ReactNode }) => <>{children}</>,
     Screen: ({
       component: ScreenComponent,
@@ -2783,7 +2738,7 @@ describe('Onboarding', () => {
         success: false,
         vault: null,
       });
-      mockIsE2E = false;
+      mockHasTestOverrides = false;
     });
 
     it('returns early when route.params.delete is true', async () => {
@@ -2809,7 +2764,7 @@ describe('Onboarding', () => {
 
     it('skips vault backup check when running in E2E test environment', async () => {
       // Arrange
-      mockIsE2E = true;
+      mockHasTestOverrides = true;
       mockGetVaultFromBackup.mockClear();
 
       // Act
@@ -2829,7 +2784,7 @@ describe('Onboarding', () => {
       expect(mockGetVaultFromBackup).not.toHaveBeenCalled();
 
       // Cleanup
-      mockIsE2E = false;
+      mockHasTestOverrides = false;
     });
 
     it('checks migration error flag when not E2E and no delete param', async () => {

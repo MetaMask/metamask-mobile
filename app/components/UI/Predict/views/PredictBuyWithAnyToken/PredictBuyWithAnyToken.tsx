@@ -23,6 +23,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { TraceName } from '../../../../../util/trace';
+import { strings } from '../../../../../../locales/i18n';
 import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import PredictBuyActionButton from './components/PredictBuyActionButton';
 import PredictBuyAmountSection from './components/PredictBuyAmountSection';
@@ -58,9 +59,9 @@ import {
   PredictNavigationParamList,
 } from '../../types/navigation';
 import Routes from '../../../../../constants/navigation/Routes';
-import { isPayWithBottomSheetEnabled } from '../../../../Views/confirmations/utils/transaction-pay';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatPrice } from '../../utils/format';
+import { getDisplayBuyPrice } from '../../utils/prices';
 import { usePredictBuyError } from './hooks/usePredictBuyError';
 import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 import { usePredictDeposit } from '../../hooks/usePredictDeposit';
@@ -130,6 +131,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     outcome,
     outcomeToken,
     entryPoint,
+    predictFeedTab,
+    predictScreen,
     transactionActiveAbTests,
   } = isSheetMode ? props : route.params;
   const onClose = isSheetMode ? props.onClose : undefined;
@@ -145,8 +148,15 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
   const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const analyticsProperties = useMemo(
-    () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
-    [market, outcomeToken, entryPoint],
+    () =>
+      parseAnalyticsProperties(
+        market,
+        outcomeToken,
+        entryPoint,
+        predictFeedTab,
+        predictScreen,
+      ),
+    [market, outcomeToken, entryPoint, predictFeedTab, predictScreen],
   );
 
   const { availableBalance, isBalanceLoading } =
@@ -229,6 +239,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isBelowMinimum,
     isInsufficientBalance,
     isCurrentTokenInsufficient,
+    isPayRouteUnavailable,
     hasAlternativeBalance,
     isPaySystemSettling,
     isPaymentSelectorNavigationLocked,
@@ -242,6 +253,14 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     totalPayForPredictBalance,
     hasBlockingPayAlerts,
   });
+
+  // Reuse the existing no-pay-token-quotes copy when the betslip blocks a bet
+  // because no usable pay route to pUSD is available.
+  const effectiveBlockingPayAlertMessage =
+    blockingPayAlertMessage ??
+    (isPayRouteUnavailable
+      ? strings('alert_system.no_pay_token_quotes.message')
+      : null);
 
   const {
     errorMessage,
@@ -259,8 +278,8 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
     isConfirming,
     isPayFeesLoading,
     isPaySystemSettling,
-    blockingPayAlertMessage,
-    outcomeTokenPrice: outcomeToken?.price,
+    blockingPayAlertMessage: effectiveBlockingPayAlertMessage,
+    outcomeTokenPrice: getDisplayBuyPrice(outcomeToken),
     isSheetMode,
   });
 
@@ -275,10 +294,7 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
 
   const handleChangePaymentMethod = useCallback(() => {
     lockPaymentSelectorNavigation();
-    const navigateTo = isPayWithBottomSheetEnabled()
-      ? Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET
-      : Routes.CONFIRMATION_PAY_WITH_MODAL;
-    navigation.navigate(navigateTo);
+    navigation.navigate(Routes.CONFIRMATION_PAY_WITH_BOTTOM_SHEET);
   }, [lockPaymentSelectorNavigation, navigation]);
 
   const handleAddFunds = useCallback(() => {
@@ -541,7 +557,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
             disabled={isBuyActionButtonDisabled}
             showReducedOpacity={showBuyActionButtonReducedOpacity}
             outcomeTokenTitle={outcomeToken?.title}
-            sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+            sharePrice={
+              preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+            }
             isSheetMode={isSheetMode}
             isRetry={isSheetMode && isBannerActive}
             isChangePaymentMode={!isBannerActive && isChangePaymentMode}
@@ -568,7 +586,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
           providerFee={exchangeFee}
           metamaskFee={metamaskFee}
           depositFee={depositFee}
-          sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+          sharePrice={
+            preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+          }
           contractCount={preview?.minAmountReceived ?? 0}
           betAmount={currentValue}
           total={total}
@@ -579,7 +599,9 @@ const PredictBuyWithAnyToken = (props: PredictBuyPreviewProps) => {
       <PredictOrderRetrySheet
         ref={retrySheetRef}
         variant={retrySheetVariant}
-        sharePrice={preview?.sharePrice ?? outcomeToken?.price ?? 0}
+        sharePrice={
+          preview?.sharePrice ?? getDisplayBuyPrice(outcomeToken) ?? 0
+        }
         side={Side.BUY}
         onRetry={handleRetryWithBestPrice}
         onDismiss={resetOrderNotFilled}

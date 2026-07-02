@@ -331,8 +331,17 @@ export const validateEmail = (email: string): boolean => {
  * @example formatUsd('11500.000000') // '$11,500.00'
  * @example formatUsd(12500.5)        // '$12,500.50'
  */
-export const formatUsd = (value: string | number): string =>
-  formatFiat(new BigNumber(value), 'USD');
+export const formatUsd = (
+  value: string | number | null | undefined,
+): string => {
+  const fiatAmount = new BigNumber(value ?? NaN);
+
+  if (!fiatAmount.isFinite()) {
+    return '—';
+  }
+
+  return formatFiat(fiatAmount, 'USD');
+};
 
 interface FormatCompactValueOptions {
   maximumFractionDigits?: number;

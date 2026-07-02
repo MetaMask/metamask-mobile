@@ -1,13 +1,43 @@
-import { useCallback, useRef } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
+import {
+  mergeAssetViewedProperties,
+  MetaMetricsEvents,
+} from '../../../../core/Analytics';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import type { SearchFeedId } from './useExploreSearch';
+import type { SearchFeedId, SearchFeedSection } from './useExploreSearch';
+
+/** Sum of result counts across all feed sections. */
+export const getTotalSectionResultCount = (
+  sections: SearchFeedSection[],
+): number => sections.reduce((sum, s) => sum + (s.total ?? s.items.length), 0);
+
+/**
+ * Result count visible to the user for the active pill.
+ * Aggregated and empty-tab fallback views sum all sections; a feed pill with
+ * its own list uses that section's count only.
+ */
+export const getExploreSearchResultCount = (
+  pill: SearchFeedPill,
+  sections: SearchFeedSection[],
+): number => {
+  if (pill === 'all') {
+    return getTotalSectionResultCount(sections);
+  }
+  const section = sections.find((s) => s.feedId === pill);
+  const showsSingleFeedList =
+    section?.isLoading || (section?.items.length ?? 0) > 0;
+  if (showsSingleFeedList) {
+    return section?.total ?? section?.items.length ?? 0;
+  }
+  return getTotalSectionResultCount(sections);
+};
 
 export type SearchInteractionType =
   | 'result_clicked'
   | 'scrolled'
-  | 'tab_switched';
+  | 'tab_switched'
+  | 'searched';
 
 /** 'all' = aggregated view; other values are a specific feed pill. */
 export type SearchFeedPill = SearchFeedId | 'all';
@@ -23,6 +53,8 @@ export interface ExploreSearchInteractedProperties {
   comes_from_view_all_tap?: boolean;
   item_clicked?: string;
   position?: number;
+  /** Total number of results visible to the user at the time of the interaction. */
+  result_count?: number;
 }
 
 export type ExploreTabName =
@@ -68,6 +100,8 @@ export interface ExploreInteractedProperties {
   token_symbol?: string;
   chain_id?: string;
   item_clicked?: string;
+  /** Entry surface when the user arrived on Explore (e.g. `homescreen_pill`). */
+  source?: string;
 }
 
 export const trackExploreInteracted = (
@@ -82,15 +116,45 @@ export const trackExploreInteracted = (
   );
 };
 
-export const trackExploreEvent = (
-  event: Parameters<typeof AnalyticsEventBuilder.createEventBuilder>[0],
-  properties: Record<string, string>,
+const PREDICTIONS_TRENDING_SECTION: ExploreSectionName = 'predictions_trending';
+
+/**
+ * Trade funnel: `Asset Viewed` when the user taps View all / the Predict section
+ * header on Explore (`predictions_trending`).
+ */
+export const trackExplorePredictTrendingAssetViewed = (
+  tabName: ExploreTabName,
 ): void => {
   analytics.trackEvent(
-    AnalyticsEventBuilder.createEventBuilder(event)
-      .addProperties(properties)
+    AnalyticsEventBuilder.createEventBuilder(MetaMetricsEvents.ASSET_VIEWED)
+      .addProperties(
+        mergeAssetViewedProperties('Predict', {
+          section_name: PREDICTIONS_TRENDING_SECTION,
+          asset_type: 'prediction',
+          tab_name: tabName,
+          interaction_type: 'section_see_all_tapped',
+        }),
+      )
       .build(),
   );
+};
+
+export const trackExploreSectionSeeAll = ({
+  tabName,
+  sectionName,
+}: {
+  tabName: ExploreTabName;
+  sectionName: ExploreSectionName;
+}): void => {
+  trackExploreInteracted({
+    interaction_type: 'section_see_all_tapped',
+    tab_name: tabName,
+    section_name: sectionName,
+  });
+
+  if (sectionName === PREDICTIONS_TRENDING_SECTION) {
+    trackExplorePredictTrendingAssetViewed(tabName);
+  }
 };
 
 export const trackExploreSearchEvent = (
@@ -103,6 +167,45 @@ export const trackExploreSearchEvent = (
       .addProperties(properties as unknown as Record<string, unknown>)
       .build(),
   );
+};
+
+/**
+ * Side effect hook to invoke analytics when searching.
+ * Fires the 'searched' event once per unique settled query (after loading
+ * completes). Resets when the query is cleared.
+ */
+export const useInstrumentedSearchEffect = ({
+  searchQuery,
+  isLoading,
+  getPill,
+  getSections,
+}: {
+  searchQuery: string;
+  isLoading: boolean;
+  getPill: () => SearchFeedPill;
+  getSections: () => SearchFeedSection[];
+}): void => {
+  const instrumentedQueryRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!searchQuery.trim()) {
+      instrumentedQueryRef.current = null;
+      return;
+    }
+    if (isLoading) return;
+    if (instrumentedQueryRef.current === searchQuery) return;
+
+    const pill = getPill();
+    const resultCount = getExploreSearchResultCount(pill, getSections());
+
+    trackExploreSearchEvent({
+      interaction_type: 'searched',
+      search_query: searchQuery,
+      tab_name: pill,
+      result_count: resultCount,
+    });
+    instrumentedQueryRef.current = searchQuery;
+  }, [searchQuery, isLoading, getPill, getSections]);
 };
 
 /**

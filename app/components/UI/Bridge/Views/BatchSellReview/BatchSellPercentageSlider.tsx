@@ -1,5 +1,9 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { AccessibilityActionEvent, LayoutChangeEvent } from 'react-native';
+import {
+  AccessibilityActionEvent,
+  LayoutChangeEvent,
+  View,
+} from 'react-native';
 import {
   Gesture,
   GestureDetector,
@@ -10,38 +14,44 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
 } from 'react-native-reanimated';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useStyles } from '../../../../../component-library/hooks';
+import styleSheet from './BatchSellPercentageSlider.styles';
 
-const HANDLE_SIZE = 24;
-const MARKER_SIZE = 4;
-const PERCENTAGE_STEP = 25;
-export const SNAP_POINTS = [0, 25, 50, 75, 100];
+const HANDLE_SIZE = 32;
+const PERCENTAGE_STEPS = [0, 25, 50, 75, 100] as const;
+export const MARKER_POINTS = [25, 50, 75, 100];
+const MIN_PERCENTAGE = 0;
+const MAX_PERCENTAGE = 100;
 
-export function snapToPercentageStep(value: number): number {
-  const snappedValue = Math.round(value / PERCENTAGE_STEP) * PERCENTAGE_STEP;
-  return Math.max(0, Math.min(100, snappedValue));
+export function clampToPercentage(value: number): number {
+  return Math.max(MIN_PERCENTAGE, Math.min(MAX_PERCENTAGE, Math.round(value)));
 }
 
 interface BatchSellPercentageSliderProps {
   value: number;
+  /** Called on every 1% change during drag for live display updates. */
   onValueChange: (value: number) => void;
+  /** Called when the user lifts their finger or taps the track. */
+  onDragEnd?: (value: number) => void;
   testID?: string;
 }
 
 export function BatchSellPercentageSlider({
   value,
   onValueChange,
+  onDragEnd,
   testID,
 }: BatchSellPercentageSliderProps) {
-  const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, {});
+  const clampedValue = clampToPercentage(value);
   const sliderWidth = useSharedValue(0);
   const translateX = useSharedValue(0);
   const widthRef = useRef(0);
 
   const updatePosition = useCallback(
     (nextValue: number, width = widthRef.current) => {
-      const snappedValue = snapToPercentageStep(nextValue);
-      translateX.value = (snappedValue / 100) * width;
+      const nextClampedValue = clampToPercentage(nextValue);
+      translateX.value = (nextClampedValue / MAX_PERCENTAGE) * width;
     },
     [translateX],
   );
@@ -53,12 +63,33 @@ export function BatchSellPercentageSlider({
       }
 
       const clampedPosition = Math.max(0, Math.min(position, width));
-      const nextValue = snapToPercentageStep((clampedPosition / width) * 100);
+      const nextValue = clampToPercentage(
+        (clampedPosition / width) * MAX_PERCENTAGE,
+      );
 
       updatePosition(nextValue, width);
-      onValueChange(nextValue);
+
+      if (nextValue !== value) {
+        onValueChange(nextValue);
+      }
     },
-    [onValueChange, updatePosition],
+    [onValueChange, updatePosition, value],
+  );
+
+  const commitFromPosition = useCallback(
+    (position: number, width: number) => {
+      if (width === 0 || !onDragEnd) {
+        return;
+      }
+
+      const clampedPosition = Math.max(0, Math.min(position, width));
+      const nextValue = clampToPercentage(
+        (clampedPosition / width) * MAX_PERCENTAGE,
+      );
+
+      onDragEnd(nextValue);
+    },
+    [onDragEnd],
   );
 
   const handleLayout = useCallback(
@@ -66,14 +97,14 @@ export function BatchSellPercentageSlider({
       const { width } = event.nativeEvent.layout;
       widthRef.current = width;
       sliderWidth.value = width;
-      updatePosition(value, width);
+      updatePosition(clampedValue, width);
     },
-    [sliderWidth, updatePosition, value],
+    [sliderWidth, clampedValue, updatePosition],
   );
 
   useEffect(() => {
-    updatePosition(value);
-  }, [updatePosition, value]);
+    updatePosition(clampedValue);
+  }, [clampedValue, updatePosition]);
 
   const progressStyle = useAnimatedStyle(() => ({
     width: translateX.value,
@@ -96,71 +127,72 @@ export function BatchSellPercentageSlider({
   const gesture = Gesture.Simultaneous(
     Gesture.Tap().onEnd((event) => {
       runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
+      runOnJS(commitFromPosition)(event.x, sliderWidth.value);
     }),
-    Gesture.Pan().onUpdate((event) => {
-      runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
-    }),
+    Gesture.Pan()
+      .onUpdate((event) => {
+        runOnJS(updateValueFromPosition)(event.x, sliderWidth.value);
+      })
+      .onEnd((event) => {
+        runOnJS(commitFromPosition)(event.x, sliderWidth.value);
+      }),
   );
 
   const handleAccessibilityAction = useCallback(
     (event: AccessibilityActionEvent) => {
       const nextValue =
         event.nativeEvent.actionName === 'increment'
-          ? snapToPercentageStep(value + PERCENTAGE_STEP)
-          : snapToPercentageStep(value - PERCENTAGE_STEP);
+          ? clampToPercentage(clampedValue + 1)
+          : clampToPercentage(clampedValue - 1);
 
-      onValueChange(nextValue);
+      if (nextValue !== clampedValue) {
+        onValueChange(nextValue);
+        onDragEnd?.(nextValue);
+      }
     },
-    [onValueChange, value],
+    [onDragEnd, onValueChange, clampedValue],
   );
 
   return (
     <GestureHandlerRootView
       testID={testID}
       accessibilityRole="adjustable"
-      accessibilityValue={{ min: 0, max: 100, now: value, text: `${value}%` }}
+      accessibilityValue={{
+        min: MIN_PERCENTAGE,
+        max: MAX_PERCENTAGE,
+        now: clampedValue,
+        text: `${clampedValue}%`,
+      }}
       accessibilityActions={[{ name: 'increment' }, { name: 'decrement' }]}
       onAccessibilityAction={handleAccessibilityAction}
-      style={tw.style('h-6 w-full')}
+      style={styles.container}
     >
-      <GestureDetector gesture={gesture}>
-        <Animated.View
-          onLayout={handleLayout}
-          style={tw.style('h-6 w-full justify-center')}
-        >
+      <View style={styles.trackContainer}>
+        <GestureDetector gesture={gesture}>
           <Animated.View
-            style={tw.style(
-              'absolute left-0 right-0 h-1 rounded-full bg-icon-muted',
-            )}
+            onLayout={handleLayout}
+            style={styles.gestureArea}
+            testID={testID ? `${testID}-gesture-area` : undefined}
+          >
+            <Animated.View style={styles.track} />
+            <Animated.View style={[styles.progress, progressStyle]} />
+            <Animated.View style={[styles.thumb, handleStyle]} />
+          </Animated.View>
+        </GestureDetector>
+
+        {PERCENTAGE_STEPS.map((percent) => (
+          <View
+            key={`dot-${percent}`}
+            pointerEvents="none"
+            testID={
+              testID && MARKER_POINTS.includes(percent)
+                ? `${testID}-marker-point-${percent}`
+                : undefined
+            }
+            style={[styles.dot, styles[`dot${percent}` as keyof typeof styles]]}
           />
-          <Animated.View
-            style={[
-              tw.style('absolute left-0 h-1 rounded-full bg-icon-default'),
-              progressStyle,
-            ]}
-          />
-          {SNAP_POINTS.map((snapPoint) => (
-            <Animated.View
-              key={snapPoint}
-              pointerEvents="none"
-              testID={testID ? `${testID}-snap-point-${snapPoint}` : undefined}
-              style={[
-                tw.style('absolute h-1 w-1 rounded-full bg-icon-muted'),
-                {
-                  left: `${snapPoint}%`,
-                  transform: [{ translateX: -MARKER_SIZE / 2 }],
-                },
-              ]}
-            />
-          ))}
-          <Animated.View
-            style={[
-              tw.style('absolute h-6 w-6 rounded-full bg-icon-default'),
-              handleStyle,
-            ]}
-          />
-        </Animated.View>
-      </GestureDetector>
+        ))}
+      </View>
     </GestureHandlerRootView>
   );
 }

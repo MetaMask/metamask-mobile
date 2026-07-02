@@ -1581,6 +1581,13 @@ describe('formatUtils', () => {
     it('formats an integer string', () => {
       expect(formatUsd('100')).toBe('$100.00');
     });
+
+    it('returns em dash for invalid values', () => {
+      expect(formatUsd(null)).toBe('—');
+      expect(formatUsd(undefined)).toBe('—');
+      expect(formatUsd(Number.NaN)).toBe('—');
+      expect(formatUsd('not-a-number')).toBe('—');
+    });
   });
 
   describe('formatSignedUsd', () => {

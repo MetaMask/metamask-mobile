@@ -1,31 +1,7 @@
 import type { NativeStackNavigationOptions } from '@react-navigation/native-stack';
-import type { StackNavigationOptions } from '@react-navigation/stack';
-
-/** Transparent stack with no transition animation; used for modal-style flows. */
-export const clearStackNavigatorOptions: StackNavigationOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
-/** Transparent stack with no transition animation; used for modal-style flows. */
-export const clearStackNavigatorOptionsWithTransitionAnimation: StackNavigationOptions =
-  {
-    headerShown: false,
-    cardStyle: {
-      backgroundColor: 'transparent',
-    },
-    cardStyleInterpolator: () => ({
-      overlayStyle: {
-        opacity: 0,
-      },
-    }),
-    animationEnabled: false,
-  };
 
 /**
- * Native-stack counterpart to {@link clearStackNavigatorOptions}.
+ * Transparent native stack with no transition animation; used for modal-style flows.
  * Use with `createNativeStackNavigator` only (`contentStyle` / `animation`, not `cardStyle` / `animationEnabled`).
  *
  * Includes `animation: 'none'` — omit this preset on screens where you want the default push/modal animation.
@@ -50,3 +26,23 @@ export const clearNativeStackNavigatorOptions: NativeStackNavigationOptions = {
 export const transparentModalScreenOptions: NativeStackNavigationOptions = {
   presentation: 'transparentModal',
 };
+
+export const slideFromRightNativeOptions: NativeStackNavigationOptions = {
+  animation: 'slide_from_right',
+};
+
+export const fadeNativeOptions: NativeStackNavigationOptions = {
+  animation: 'fade',
+  gestureEnabled: false,
+};
+
+/**
+ * Native-stack counterpart to JS-stack `TransitionPresets.ModalSlideFromBottomIOS`.
+ * Use default card presentation (not `modal` sheet or `fullScreenModal`) so content
+ * stays full-screen while safe-area / HeaderStandard includesTopInset still work.
+ */
+export const fullScreenModalSlideFromBottomNativeOptions: NativeStackNavigationOptions =
+  {
+    animation: 'slide_from_bottom',
+    headerShown: false,
+  };

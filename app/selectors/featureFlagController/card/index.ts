@@ -4,6 +4,22 @@ import { validatedVersionGatedFeatureFlag } from '../../../util/remoteFeatureFla
 
 export const defaultCardFeatureFlag: CardFeatureFlag = {
   chains: {
+    'eip155:143': {
+      enabled: true,
+      foxConnectAddresses: {
+        global: '0x40A695A16C213afEf1c87Fd471Fb73157b948f3f',
+        us: '0x144c1cE815Bd1Eb71678978fE8641cC4e3fd59e6',
+      },
+      tokens: [
+        {
+          address: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
+          decimals: 6,
+          enabled: true,
+          name: 'USD Coin',
+          symbol: 'USDC',
+        },
+      ],
+    },
     'eip155:59144': {
       balanceScannerAddress: '0xed9f04f2da1b42ae558d5e688fe2ef7080931c9a',
       enabled: true,
@@ -61,6 +77,13 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
           name: 'MetaMask USD',
           symbol: 'mUSD',
         },
+        {
+          address: '0x61B19879F4033c2b5682a969cccC9141e022823c',
+          decimals: 6,
+          enabled: true,
+          name: 'Aave Linea mUSD',
+          symbol: 'amUSD',
+        },
       ],
     },
     'eip155:8453': {
@@ -90,6 +113,13 @@ export const defaultCardFeatureFlag: CardFeatureFlag = {
           enabled: true,
           name: 'Aave Base USDC',
           symbol: 'aUSDC',
+        },
+        {
+          address: '0x4200000000000000000000000000000000000006',
+          decimals: 18,
+          enabled: true,
+          name: 'Wrapped Ether',
+          symbol: 'WETH',
         },
       ],
     },
@@ -190,6 +220,26 @@ export const selectGalileoGoogleWalletProvisioningEnabled = createSelector(
   (remoteFeatureFlags) => {
     const remoteFlag =
       remoteFeatureFlags?.galileoGoogleWalletInAppProvisioningEnabled as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+export const selectCardForgotPasswordFeatureEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.cardForgotPasswordFeature as unknown as GateVersionedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+export const selectCardFiatCreditFeatureEnabled = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.cardFiatCreditFeature as unknown as GateVersionedFeatureFlag;
 
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },

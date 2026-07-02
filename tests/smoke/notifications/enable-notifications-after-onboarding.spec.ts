@@ -35,19 +35,24 @@ describe(SmokeNetworkAbstractions('Notification Onboarding'), () => {
         await TabBarComponent.tapAccountsMenu();
         await AccountMenu.tapNotifications();
 
+        const featureAnnouncementItemId = getMockFeatureAnnouncementItemId();
+
         await Assertions.expectElementToBeVisible(NotificationMenuView.title);
+        await NotificationMenuView.scrollToNotificationItem(
+          featureAnnouncementItemId,
+        );
         await Assertions.expectElementToBeVisible(
           NotificationMenuView.selectNotificationItem(
-            getMockFeatureAnnouncementItemId(),
+            featureAnnouncementItemId,
           ),
           {
             description: 'Feature Announcement Item',
           },
         );
 
-        // Feature Annonucement Details
+        // Feature Announcement Details
         await NotificationMenuView.tapOnNotificationItem(
-          getMockFeatureAnnouncementItemId(),
+          featureAnnouncementItemId,
         );
         await Assertions.expectElementToBeVisible(
           NotificationDetailsView.title,

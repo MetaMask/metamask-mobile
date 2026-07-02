@@ -9,8 +9,10 @@ import { View } from 'react-native';
 import { BigNumber } from 'bignumber.js';
 import {
   useIsTransactionPayLoading,
+  useTransactionPaySourceAmounts,
   useTransactionPayTotals,
 } from '../../../hooks/pay/useTransactionPayData';
+import { useTransactionMetadataOrThrow } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { InfoRowSkeleton, InfoRowVariant } from '../../UI/info-row/info-row';
 import useFiatFormatter from '../../../../../UI/SimulationDetails/FiatDisplay/useFiatFormatter';
 import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
@@ -30,11 +32,18 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
+  const sourceAmounts = useTransactionPaySourceAmounts();
+  const transactionMeta = useTransactionMetadataOrThrow();
 
   const receiveUsd = useMemo(() => {
     if (!totals || inputAmountUsd == null) return '';
 
     const inputUsd = new BigNumber(inputAmountUsd);
+
+    if (transactionMeta?.isGasFeeSponsored && !sourceAmounts?.length) {
+      return formatFiat(inputUsd.isPositive() ? inputUsd : new BigNumber(0));
+    }
+
     const providerFee = new BigNumber(totals.fees?.provider?.usd ?? 0);
     const sourceNetworkFee = new BigNumber(
       totals.fees?.sourceNetwork?.estimate?.usd ?? 0,
@@ -50,7 +59,13 @@ export function ReceiveRow({ inputAmountUsd }: ReceiveRowProps) {
       .plus(metaMaskFee);
     const youReceive = inputUsd.minus(totalFees);
     return formatFiat(youReceive.isPositive() ? youReceive : new BigNumber(0));
-  }, [totals, formatFiat, inputAmountUsd]);
+  }, [
+    totals,
+    formatFiat,
+    inputAmountUsd,
+    transactionMeta?.isGasFeeSponsored,
+    sourceAmounts?.length,
+  ]);
 
   if (isLoading) {
     return <InfoRowSkeleton testId="receive-row-skeleton" />;

@@ -66,10 +66,13 @@ describe('TransactionDetailsNetworkFeeRow', () => {
     expect(toJSON()).toBeNull();
   });
 
-  it('renders calculated network fee for moneyAccountWithdraw fallback', () => {
+  it.each([
+    ['moneyAccountWithdraw', TransactionType.moneyAccountWithdraw],
+    ['revoke delegation', TransactionType.revokeDelegation],
+  ])('renders calculated network fee for %s fallback', (_label, type) => {
     useTransactionDetailsMock.mockReturnValue({
       transactionMeta: {
-        type: TransactionType.moneyAccountWithdraw,
+        type,
       } as unknown as TransactionMeta,
     });
 

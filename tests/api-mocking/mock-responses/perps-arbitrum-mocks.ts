@@ -14,6 +14,7 @@ import {
   RampsRegion,
 } from '../../framework';
 import { safeGetBodyText } from '../MockServerE2E.ts';
+import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers.ts';
 
 const logger = createLogger({
   name: 'PerpsArbitrumMocks',
@@ -43,13 +44,17 @@ const MOCK_RESPONSES: Record<string, unknown> = {
   // eth_blockNumber - latest block
   eth_blockNumber: '0x1234567',
 
-  // eth_getBlockByNumber - block data
+  // eth_getBlockByNumber - block data. `baseFeePerGas` marks the chain as
+  // EIP-1559 so transactions resolve maxFeePerGas/maxPriorityFeePerGas. Without
+  // it, EIP-7702 (type 0x4) batches fail with "Invalid transaction envelope
+  // type: specified type 0x4 but included a gasPrice".
   eth_getBlockByNumber: {
     number: '0x1234567',
     hash: '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
     timestamp: '0x' + Math.floor(Date.now() / 1000).toString(16),
     gasLimit: '0x1c9c380',
     gasUsed: '0x5208',
+    baseFeePerGas: '0x989680',
     transactions: [],
   },
 
@@ -72,9 +77,33 @@ const MOCK_COIN_SVG = `<svg width="24" height="24" xmlns="http://www.w3.org/2000
  */
 const HYPERLIQUID_E2E_META_BODY = {
   universe: [
-    { name: 'BTC', szDecimals: 3, maxLeverage: 50, marginTableId: 0 },
-    { name: 'ETH', szDecimals: 4, maxLeverage: 50, marginTableId: 0 },
-    { name: 'SOL', szDecimals: 2, maxLeverage: 50, marginTableId: 0 },
+    {
+      name: 'BTC',
+      szDecimals: 3,
+      maxLeverage: 50,
+      marginTableId: 0,
+      markPx: '67000',
+      openInterest: '1000',
+      volume: '5000000',
+    },
+    {
+      name: 'ETH',
+      szDecimals: 4,
+      maxLeverage: 50,
+      marginTableId: 0,
+      markPx: '2500',
+      openInterest: '500',
+      volume: '3000000',
+    },
+    {
+      name: 'SOL',
+      szDecimals: 2,
+      maxLeverage: 50,
+      marginTableId: 0,
+      markPx: '200',
+      openInterest: '100',
+      volume: '1000000',
+    },
   ],
 } as const;
 
@@ -516,6 +545,40 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
           'Content-Type': 'application/json',
           'Cache-Control': 'public, max-age=3600',
         },
+      };
+    });
+
+  await mockServer
+    .forPost('/proxy')
+    .matching((request) => {
+      try {
+        const decodedUrl = getDecodedProxiedURL(request.url);
+        return /compliance\.(dev-api|api|uat-api)\.cx\.metamask\.io\/v1\/wallet\/batch/.test(
+          decodedUrl,
+        );
+      } catch {
+        return false;
+      }
+    })
+    .asPriority(1001)
+    .thenCallback(async (request) => {
+      let addresses: string[] = [];
+      try {
+        const text = await safeGetBodyText(request);
+        if (text) {
+          const parsed = JSON.parse(text) as unknown;
+          if (Array.isArray(parsed)) {
+            addresses = parsed.filter(
+              (a): a is string => typeof a === 'string',
+            );
+          }
+        }
+      } catch {
+        /* ignore malformed body */
+      }
+      return {
+        statusCode: 200,
+        json: addresses.map((address) => ({ address, blocked: false })),
       };
     });
 };

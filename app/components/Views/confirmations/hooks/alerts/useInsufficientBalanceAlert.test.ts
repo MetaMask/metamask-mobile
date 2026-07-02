@@ -136,7 +136,6 @@ describe('useInsufficientBalanceAlert', () => {
       goToBuy: mockGoToBuy,
       goToAggregator: jest.fn(),
       goToSell: jest.fn(),
-      goToDeposit: jest.fn(),
     });
 
     useTransactionPayHasSourceAmountMock.mockReturnValue(false);
@@ -380,6 +379,38 @@ describe('useInsufficientBalanceAlert', () => {
 
       const { result } = renderHook(() => useInsufficientBalanceAlert());
       expect(result.current).toEqual([]);
+    });
+
+    it('returns alert when transaction is revoke delegation', () => {
+      useIsGaslessSupportedMock.mockReturnValue({
+        isSmartTransaction: true,
+        isSupported: true,
+        pending: false,
+      });
+      const txWithGasFeeSponsored = {
+        ...mockTransaction,
+        isGasFeeSponsored: true,
+        type: TransactionType.revokeDelegation,
+      };
+      mockUseTransactionMetadataRequest.mockReturnValue(txWithGasFeeSponsored);
+
+      const { result } = renderHook(() => useInsufficientBalanceAlert());
+
+      expect(result.current).toEqual([
+        {
+          action: {
+            label: `Buy ${mockNativeCurrency}`,
+            callback: expect.any(Function),
+          },
+          isBlocking: true,
+          field: RowAlertKey.EstimatedFee,
+          key: AlertKeys.InsufficientBalance,
+          message: `Insufficient ${mockNativeCurrency} balance`,
+          title: 'Insufficient Balance',
+          severity: Severity.Danger,
+          skipConfirmation: true,
+        },
+      ]);
     });
   });
 

@@ -17,9 +17,12 @@ import {
   buildMoneyAccountWithdrawBatch,
 } from '../utils/moneyAccountTransactions';
 import {
+  getMoneyAccountDepositIntent,
+  clearMoneyAccountDepositIntent,
   useMoneyAccountDeposit,
   useMoneyAccountWithdrawal,
 } from './useMoneyAccount';
+import { showDevErrorAlert } from '../utils/devErrorAlert';
 
 jest.mock('react-redux');
 jest.mock('../../../../util/transaction-controller');
@@ -30,6 +33,10 @@ jest.mock('../../../../util/Logger', () => ({
     error: jest.fn(),
     log: jest.fn(),
   },
+}));
+
+jest.mock('../utils/devErrorAlert', () => ({
+  showDevErrorAlert: jest.fn(),
 }));
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -198,6 +205,8 @@ describe('useMoneyAccountDeposit', () => {
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
       loader: ConfirmationLoader.CustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+      preferredPaymentToken: undefined,
+      autoSelectFiatPayment: undefined,
     });
 
     expect(mockAddTransactionBatch).toHaveBeenCalledWith(
@@ -207,8 +216,95 @@ describe('useMoneyAccountDeposit', () => {
         origin: ORIGIN_METAMASK,
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
       }),
     );
+  });
+
+  it('passes autoSelectFiatPayment to navigateToConfirmation', async () => {
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({ autoSelectFiatPayment: true });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      loader: ConfirmationLoader.CustomAmount,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+      preferredPaymentToken: undefined,
+      autoSelectFiatPayment: true,
+    });
+  });
+
+  it('pre-generates a batchId, registers intent before the await, and forwards preferredPaymentToken', async () => {
+    const preferredPaymentToken = {
+      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex,
+      chainId: '0x1' as Hex,
+    };
+
+    let observedBatchId: string | undefined;
+    let intentAtCallTime: ReturnType<typeof getMoneyAccountDepositIntent>;
+    mockAddTransactionBatch.mockImplementationOnce(async (args) => {
+      observedBatchId = (args as { batchId: string }).batchId;
+      intentAtCallTime = getMoneyAccountDepositIntent(observedBatchId);
+      return {} as never;
+    });
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit({
+        preferredPaymentToken,
+        intent: 'addMusd',
+      });
+    });
+
+    expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
+      loader: ConfirmationLoader.CustomAmount,
+      stack: Routes.MONEY.CONFIRMATIONS_ROOT,
+      preferredPaymentToken,
+      autoSelectFiatPayment: undefined,
+    });
+    expect(observedBatchId).toMatch(/^0x[0-9a-f]+$/);
+    expect(intentAtCallTime).toBe('addMusd');
+    clearMoneyAccountDepositIntent(observedBatchId);
+  });
+
+  it('defaults intent to "convert" when omitted', async () => {
+    let observedBatchId: string | undefined;
+    mockAddTransactionBatch.mockImplementationOnce(async (args) => {
+      observedBatchId = (args as { batchId: string }).batchId;
+      return {} as never;
+    });
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current.initiateDeposit();
+    });
+
+    expect(getMoneyAccountDepositIntent(observedBatchId)).toBe('convert');
+    clearMoneyAccountDepositIntent(observedBatchId);
+  });
+
+  it('clears the registered intent if addTransactionBatch throws', async () => {
+    let observedBatchId: string | undefined;
+    const txError = new Error('batch submission failed');
+    mockAddTransactionBatch.mockImplementationOnce(async (args) => {
+      observedBatchId = (args as { batchId: string }).batchId;
+      throw txError;
+    });
+
+    const { result } = renderHook(() => useMoneyAccountDeposit());
+
+    await act(async () => {
+      await result.current
+        .initiateDeposit({ intent: 'addMusd' })
+        .catch(() => undefined);
+    });
+
+    expect(observedBatchId).toBeDefined();
+    expect(getMoneyAccountDepositIntent(observedBatchId)).toBeUndefined();
   });
 
   it('logs and rethrows when addTransactionBatch fails', async () => {
@@ -230,6 +326,10 @@ describe('useMoneyAccountDeposit', () => {
     expect(Logger.error).toHaveBeenCalledWith(
       txError,
       '[Money Account] Deposit transaction failed',
+    );
+    expect(showDevErrorAlert).toHaveBeenCalledWith(
+      '[Money Account] Deposit transaction failed',
+      txError,
     );
   });
 
@@ -355,10 +455,44 @@ describe('useMoneyAccountWithdrawal', () => {
         origin: ORIGIN_METAMASK,
         disableHook: true,
         disableSequential: true,
+        disableUpgrade: true,
         transactions: [
           expect.objectContaining({ type: 'moneyAccountWithdraw' }),
           expect.objectContaining({ type: 'tokenMethodTransfer' }),
         ],
+      }),
+    );
+  });
+
+  it('sets isGasFeeSponsored to true when vault chain is Monad', async () => {
+    setupSelectors({
+      vaultConfig: { ...MOCK_VAULT_CONFIG, chainId: '0x8f' },
+    });
+
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await act(async () => {
+      await result.current.initiateWithdrawal();
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGasFeeSponsored: true,
+        skipInitialGasEstimate: true,
+      }),
+    );
+  });
+
+  it('sets isGasFeeSponsored to false when vault chain is not Monad', async () => {
+    const { result } = renderHook(() => useMoneyAccountWithdrawal());
+
+    await act(async () => {
+      await result.current.initiateWithdrawal();
+    });
+
+    expect(mockAddTransactionBatch).toHaveBeenCalledWith(
+      expect.objectContaining({
+        isGasFeeSponsored: false,
       }),
     );
   });
@@ -382,6 +516,10 @@ describe('useMoneyAccountWithdrawal', () => {
     expect(Logger.error).toHaveBeenCalledWith(
       txError,
       '[Money Account] Withdrawal transaction failed',
+    );
+    expect(showDevErrorAlert).toHaveBeenCalledWith(
+      '[Money Account] Withdrawal transaction failed',
+      txError,
     );
   });
 

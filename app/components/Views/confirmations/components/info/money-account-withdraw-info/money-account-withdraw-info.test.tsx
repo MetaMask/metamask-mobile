@@ -1,11 +1,9 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 import {
   MoneyAccountWithdrawInfo,
   MONEY_ACCOUNT_CURRENCY,
 } from './money-account-withdraw-info';
-import { MUSD_TOKEN_ADDRESS } from '../../../../../UI/Earn/constants/musd';
 
 jest.mock('../../../hooks/ui/useNavbar', () => ({
   __esModule: true,
@@ -28,8 +26,7 @@ jest.mock('../custom-amount-info', () => ({
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) =>
-    ({ 'confirm.title.money_account_transfer_money': 'Transfer money' })[key] ??
-    key,
+    ({ 'confirm.title.money_account_send': 'Send' })[key] ?? key,
 }));
 
 jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
@@ -42,7 +39,7 @@ jest.mock('../../../hooks/pay/useTransactionPayWithdraw', () => ({
 jest.mock('../../../../../UI/Money/hooks/useMoneyAccountBalance', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-    totalFiatFormatted: '$42.00',
+    withdrawableFiatFormatted: '$42.00',
   })),
 }));
 
@@ -65,7 +62,7 @@ describe('MoneyAccountWithdrawInfo', () => {
 
     render(<MoneyAccountWithdrawInfo />);
 
-    expect(useNavbar).toHaveBeenCalledWith('Transfer money');
+    expect(useNavbar).toHaveBeenCalledWith('Send');
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
@@ -100,19 +97,6 @@ describe('MoneyAccountWithdrawInfo', () => {
     expect(lastCall.disablePay).toBe(true);
   });
 
-  it('passes mUSD on Ethereum as preferredToken', () => {
-    render(<MoneyAccountWithdrawInfo />);
-
-    const lastCall =
-      mockCustomAmountInfo.mock.calls[
-        mockCustomAmountInfo.mock.calls.length - 1
-      ][0];
-    expect(lastCall.preferredToken).toEqual({
-      address: MUSD_TOKEN_ADDRESS,
-      chainId: CHAIN_IDS.MAINNET,
-    });
-  });
-
   it('renders available balance as child of CustomAmountInfo', () => {
     const { getByTestId, getByText } = render(<MoneyAccountWithdrawInfo />);
 
@@ -142,12 +126,12 @@ describe('MoneyAccountWithdrawInfo', () => {
     expect(lastCall.hasMax).toBe(true);
   });
 
-  it('renders empty balance when totalFiatFormatted is undefined', () => {
+  it('renders empty balance when withdrawableFiatFormatted is undefined', () => {
     const useMoneyAccountBalance = jest.requireMock(
       '../../../../../UI/Money/hooks/useMoneyAccountBalance',
     ).default;
     useMoneyAccountBalance.mockReturnValueOnce({
-      totalFiatFormatted: undefined,
+      withdrawableFiatFormatted: undefined,
     });
 
     const { getByTestId, getByText } = render(<MoneyAccountWithdrawInfo />);

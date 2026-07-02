@@ -1,4 +1,5 @@
 import React, { useCallback } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { ScrollView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,7 +11,6 @@ import styleSheet from './BackupAndSyncSettings.styles';
 import BackupAndSyncToggle from '../../../UI/Identity/BackupAndSyncToggle/BackupAndSyncToggle';
 import BackupAndSyncFeaturesToggles from '../../../UI/Identity/BackupAndSyncFeaturesToggles/BackupAndSyncFeaturesToggles';
 import { strings } from '../../../../../locales/i18n';
-import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import { CommonSelectorsIDs } from '../../../../util/Common.testIds';
 import { BackupAndSyncSettingsSelectorsIDs } from './BackupAndSyncSettings.testIds';
 
@@ -30,7 +30,7 @@ const BackupAndSyncSettings = () => {
       style={tw.style('flex-1 bg-default')}
       testID={BackupAndSyncSettingsSelectorsIDs.SAFE_AREA}
     >
-      <HeaderCompactStandard
+      <HeaderStandard
         title={strings('backupAndSync.title')}
         onBack={handleBack}
         includesTopInset

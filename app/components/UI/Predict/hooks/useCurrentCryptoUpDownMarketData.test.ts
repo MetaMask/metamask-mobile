@@ -104,6 +104,49 @@ describe('useCurrentCryptoUpDownMarketData', () => {
     expect(result.current.timeRemainingMs).toBe(120_000);
   });
 
+  it('falls back to market threshold when fetched target price is unavailable', () => {
+    const marketWithThreshold = {
+      ...MARKET,
+      outcomes: [
+        {
+          id: 'outcome-1',
+          providerId: 'polymarket',
+          marketId: MARKET.id,
+          title: 'BTC Up or Down',
+          description: '',
+          image: '',
+          status: 'open' as const,
+          tokens: [],
+          volume: 0,
+          groupItemTitle: 'BTC',
+          groupItemThreshold: 77123,
+        },
+      ],
+    };
+    mockUseCurrentPredictMarketFromSeries.mockReturnValue({
+      market: marketWithThreshold,
+      marketId: MARKET.id,
+      isLoading: false,
+      isFetching: false,
+      refetch: jest.fn(),
+    });
+    mockUseCryptoTargetPrice.mockReturnValue({
+      data: undefined,
+      isFetching: true,
+    });
+
+    const { result } = renderHook(() =>
+      useCurrentCryptoUpDownMarketData({ series: SERIES }),
+    );
+
+    expect(mockUseCryptoUpDownChartData).toHaveBeenCalledWith(
+      marketWithThreshold,
+      77123,
+      { enabled: true },
+    );
+    expect(result.current.priceToBeat).toBe(77123);
+  });
+
   it('keeps downstream price hooks disabled until the series market resolves', () => {
     mockUseCurrentPredictMarketFromSeries.mockReturnValue({
       market: undefined,

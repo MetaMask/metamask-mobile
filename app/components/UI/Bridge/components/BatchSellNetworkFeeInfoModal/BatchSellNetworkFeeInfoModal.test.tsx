@@ -46,7 +46,7 @@ describe('BatchSellNetworkFeeInfoModal', () => {
       getByTestId(BatchSellNetworkFeeInfoModalSelectorsIDs.DESCRIPTION),
     ).toBeOnTheScreen();
     expect(
-      getByText(strings('bridge.network_fee_info_content')),
+      getByText(strings('bridge.batch_sell_network_fee_info_content')),
     ).toBeOnTheScreen();
   });
 

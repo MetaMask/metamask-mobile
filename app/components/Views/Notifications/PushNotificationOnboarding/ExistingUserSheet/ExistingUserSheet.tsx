@@ -2,6 +2,10 @@ import React, { useRef, useCallback } from 'react';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import ButtonIcon, {
+  ButtonIconSizes,
+} from '../../../../../component-library/components/Buttons/ButtonIcon';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   Box,
   Button,
@@ -9,10 +13,10 @@ import {
   ButtonSize,
   Text,
   TextVariant,
-  FontWeight,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { ExistingUserSheetSelectorsIDs } from './ExistingUserSheet.testIds';
+import NotifCard from '../NotifCard';
 
 export interface ExistingUserSheetProps {
   isVisible: boolean;
@@ -57,66 +61,61 @@ const ExistingUserSheet: React.FC<ExistingUserSheetProps> = ({
       onClose={onClose}
       testID={testID ?? ExistingUserSheetSelectorsIDs.CONTAINER}
     >
-      <Box twClassName="px-6 pb-8 pt-6">
-        <Text
-          variant={TextVariant.HeadingMd}
-          twClassName="mb-3 text-center"
-          testID={ExistingUserSheetSelectorsIDs.TITLE}
-        >
-          {strings('notifications.push_onboarding.existing_user.title')}
-        </Text>
-
-        <Text
-          variant={TextVariant.BodyMd}
-          twClassName="mb-6 text-center text-alternative"
-          testID={ExistingUserSheetSelectorsIDs.BODY}
-        >
-          {strings('notifications.push_onboarding.existing_user.body')}
-        </Text>
-
-        <Box
-          twClassName="mb-6 rounded-xl bg-section p-4"
-          testID={ExistingUserSheetSelectorsIDs.CONSENT_CARD}
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Bold}
-            twClassName="mb-2"
-          >
-            {strings('notifications.push_onboarding.existing_user.card_title')}
-          </Text>
-          <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-            {strings(
-              'notifications.push_onboarding.existing_user.card_description',
-            )}
-          </Text>
+      <Box twClassName="pb-5 pt-0">
+        <Box twClassName="mb-1 items-end pr-2">
+          <ButtonIcon
+            iconName={IconName.Close}
+            size={ButtonIconSizes.Lg}
+            onPress={() => bottomSheetRef.current?.onCloseBottomSheet()}
+          />
+        </Box>
+        <Box twClassName="mb-2 px-6">
+          <NotifCard />
         </Box>
 
-        <Box twClassName="gap-3">
-          <Button
-            variant={ButtonVariant.Primary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleConfirm}
-            twClassName="rounded-xl"
-            testID={ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM}
+        <Box twClassName="px-4">
+          <Text
+            variant={TextVariant.HeadingLg}
+            twClassName="mb-2 text-center"
+            testID={ExistingUserSheetSelectorsIDs.TITLE}
           >
-            {strings(
-              'notifications.push_onboarding.existing_user.button_confirm',
-            )}
-          </Button>
-          <Button
-            variant={ButtonVariant.Secondary}
-            size={ButtonSize.Lg}
-            isFullWidth
-            onPress={handleNotNow}
-            twClassName="rounded-xl"
-            testID={ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW}
+            {strings('notifications.push_onboarding.existing_user.title')}
+          </Text>
+
+          <Text
+            variant={TextVariant.BodyMd}
+            twClassName="mb-7 text-center text-alternative"
+            testID={ExistingUserSheetSelectorsIDs.BODY}
           >
-            {strings(
-              'notifications.push_onboarding.existing_user.button_not_now',
-            )}
-          </Button>
+            {strings('notifications.push_onboarding.existing_user.body')}
+          </Text>
+
+          <Box twClassName="gap-3">
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleConfirm}
+              twClassName="rounded-xl"
+              testID={ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM}
+            >
+              {strings(
+                'notifications.push_onboarding.existing_user.button_confirm',
+              )}
+            </Button>
+            <Button
+              variant={ButtonVariant.Primary}
+              size={ButtonSize.Lg}
+              isFullWidth
+              onPress={handleNotNow}
+              twClassName="rounded-xl"
+              testID={ExistingUserSheetSelectorsIDs.BUTTON_NOT_NOW}
+            >
+              {strings(
+                'notifications.push_onboarding.existing_user.button_not_now',
+              )}
+            </Button>
+          </Box>
         </Box>
       </Box>
     </BottomSheet>

@@ -139,7 +139,7 @@ async function buildAuthorizationList<MessengerType extends SignMessenger>(
     networkClientId,
   );
 
-  const nonce = nonceLock.nextNonce;
+  const nonce = nonceLock.nonceDetails.params.nextNetworkNonce;
   nonceLock.releaseLock();
 
   const authorizationSignature = (await messenger.call(

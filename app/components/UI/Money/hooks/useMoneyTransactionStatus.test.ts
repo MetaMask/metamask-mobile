@@ -1,4 +1,5 @@
 import {
+  CHAIN_IDS,
   TransactionMeta,
   TransactionStatus,
   TransactionType,
@@ -12,6 +13,25 @@ import {
   IN_PROGRESS_DELAY_MS,
 } from './useMoneyTransactionStatus';
 import useMoneyToasts, { MoneyToastOptionsConfig } from './useMoneyToasts';
+import {
+  clearMoneyAccountDepositIntent,
+  getMoneyAccountDepositIntent,
+} from './useMoneyAccount';
+import { getMemoizedInternalAccountByAddress } from '../../../../selectors/accountsController';
+import { selectAccountToGroupMap } from '../../../../selectors/multichainAccounts/accountTreeController';
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectAccountToGroupMap: jest.fn(() => ({})),
+  }),
+);
+
+jest.mock('./useMoneyAccount', () => ({
+  __esModule: true,
+  getMoneyAccountDepositIntent: jest.fn(),
+  clearMoneyAccountDepositIntent: jest.fn(),
+}));
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { NotificationMoment } from '../../../../util/haptics';
@@ -38,6 +58,12 @@ jest.mock('../../../../selectors/currencyRateController', () => ({
 jest.mock('../../../../selectors/networkController', () => ({
   ...jest.requireActual('../../../../selectors/networkController'),
   selectNetworkConfigurations: jest.fn(() => undefined),
+}));
+jest.mock('../../../../selectors/accountsController', () => ({
+  ...jest.requireActual('../../../../selectors/accountsController'),
+  getMemoizedInternalAccountByAddress: jest.fn(() => ({
+    metadata: { name: 'Account 1' },
+  })),
 }));
 jest.mock('../../../../util/theme', () => ({
   useAppThemeFromContext: jest.fn(() => ({
@@ -105,6 +131,18 @@ const encodeWithdrawData = (amountWei: bigint) =>
     '0x0000000000000000000000000000000000000000',
   ]);
 
+const ERC20_TRANSFER_INTERFACE = new ethers.utils.Interface([
+  'function transfer(address to, uint256 amount)',
+]);
+
+const RECIPIENT_ADDRESS = '0x1111111111111111111111111111111111111111';
+
+const encodeTransferData = (recipient: string, amountWei: bigint = BigInt(0)) =>
+  ERC20_TRANSFER_INTERFACE.encodeFunctionData('transfer', [
+    recipient,
+    amountWei.toString(),
+  ]);
+
 const buildTxMeta = (overrides: Partial<TransactionMeta>): TransactionMeta =>
   ({
     id: 'tx-id-1',
@@ -166,6 +204,18 @@ describe('useMoneyTransactionStatus', () => {
     ReturnType<MoneyToastOptionsConfig['withdraw']['failed']>,
     Parameters<MoneyToastOptionsConfig['withdraw']['failed']>
   >(() => baseFailedToast);
+  const sendInProgressFn = jest.fn<
+    ReturnType<MoneyToastOptionsConfig['send']['inProgress']>,
+    Parameters<MoneyToastOptionsConfig['send']['inProgress']>
+  >(() => baseInProgressToast);
+  const sendSuccessFn = jest.fn<
+    ReturnType<MoneyToastOptionsConfig['send']['success']>,
+    Parameters<MoneyToastOptionsConfig['send']['success']>
+  >(() => baseSuccessToast);
+  const sendFailedFn = jest.fn<
+    ReturnType<MoneyToastOptionsConfig['send']['failed']>,
+    Parameters<MoneyToastOptionsConfig['send']['failed']>
+  >(() => baseFailedToast);
 
   const moneyToastOptions: MoneyToastOptionsConfig = {
     deposit: {
@@ -177,6 +227,11 @@ describe('useMoneyTransactionStatus', () => {
       inProgress: withdrawInProgressFn,
       success: withdrawSuccessFn,
       failed: withdrawFailedFn,
+    },
+    send: {
+      inProgress: sendInProgressFn,
+      success: sendSuccessFn,
+      failed: sendFailedFn,
     },
   };
 
@@ -261,6 +316,124 @@ describe('useMoneyTransactionStatus', () => {
       expect(mockShowToast).toHaveBeenCalledWith(baseInProgressToast);
     });
 
+    it('approved → in-progress toast forwards the batch intent', () => {
+      (
+        getMoneyAccountDepositIntent as jest.MockedFunction<
+          typeof getMoneyAccountDepositIntent
+        >
+      ).mockReturnValueOnce('addMusd');
+
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'tx-id-intent',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.approved,
+          batchId: '0xINTENTBATCH',
+        }),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(getMoneyAccountDepositIntent).toHaveBeenCalledWith(
+        '0xINTENTBATCH',
+      );
+      expect(depositInProgressFn).toHaveBeenCalledWith({ intent: 'addMusd' });
+    });
+
+    it('clears the batch intent on terminal states', () => {
+      const { statusUpdatedHandler, confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.confirmed,
+          batchId: '0xBATCH_CONFIRMED',
+          txParams: {
+            from: '0x0',
+            data: encodeDepositData(BigInt(1)),
+          },
+        }),
+      );
+
+      expect(clearMoneyAccountDepositIntent).toHaveBeenCalledWith(
+        '0xBATCH_CONFIRMED',
+      );
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'tx-id-failed',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+          batchId: '0xBATCH_FAILED',
+        }),
+      });
+
+      expect(clearMoneyAccountDepositIntent).toHaveBeenCalledWith(
+        '0xBATCH_FAILED',
+      );
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'tx-id-rejected',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.rejected,
+          batchId: '0xBATCH_REJECTED',
+        }),
+      });
+
+      expect(clearMoneyAccountDepositIntent).toHaveBeenCalledWith(
+        '0xBATCH_REJECTED',
+      );
+    });
+
+    it('forwards intent to deposit.success on confirmed', () => {
+      (
+        getMoneyAccountDepositIntent as jest.MockedFunction<
+          typeof getMoneyAccountDepositIntent
+        >
+      ).mockReturnValueOnce('addMusd');
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.confirmed,
+          batchId: '0xBATCH_SUCCESS',
+          txParams: {
+            from: '0x0',
+            data: encodeDepositData(BigInt(12_340_000)),
+          },
+        }),
+      );
+
+      expect(depositSuccessFn).toHaveBeenCalledWith(
+        expect.objectContaining({ intent: 'addMusd' }),
+      );
+    });
+
+    it('forwards intent to deposit.failed on failed', () => {
+      (
+        getMoneyAccountDepositIntent as jest.MockedFunction<
+          typeof getMoneyAccountDepositIntent
+        >
+      ).mockReturnValueOnce('addMusd');
+
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'tx-id-failed-intent',
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.failed,
+          batchId: '0xBATCH_FAILED_INTENT',
+        }),
+      });
+
+      expect(depositFailedFn).toHaveBeenCalledWith({ intent: 'addMusd' });
+    });
+
     it('confirmed → success toast with decoded fiat amount', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 
@@ -297,7 +470,6 @@ describe('useMoneyTransactionStatus', () => {
 
     it.each([
       ['dropped', TransactionStatus.dropped],
-      ['rejected', TransactionStatus.rejected],
       ['cancelled', TransactionStatus.cancelled],
     ])('statusUpdated with %s → deposit failed toast', (_label, status) => {
       const { statusUpdatedHandler } = renderAndGetHandlers();
@@ -310,6 +482,42 @@ describe('useMoneyTransactionStatus', () => {
       });
 
       expect(depositFailedFn).toHaveBeenCalledTimes(1);
+    });
+
+    it('rejected → no toast (user backed out of confirmation)', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          type: TransactionType.moneyAccountDeposit,
+          status: TransactionStatus.rejected,
+        }),
+      });
+
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositFailedFn).not.toHaveBeenCalled();
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('approved → rejected before delay → no toast and pending in-progress cleared', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      const tx = buildTxMeta({
+        type: TransactionType.moneyAccountDeposit,
+        status: TransactionStatus.approved,
+      });
+      statusUpdatedHandler({ transactionMeta: tx });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS - 1);
+      statusUpdatedHandler({
+        transactionMeta: { ...tx, status: TransactionStatus.rejected },
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(depositFailedFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
   });
 
@@ -330,7 +538,7 @@ describe('useMoneyTransactionStatus', () => {
       expect(depositInProgressFn).not.toHaveBeenCalled();
     });
 
-    it('confirmed → success toast with destination and decoded amount', () => {
+    it('confirmed → success toast resolves destination from the nested transfer recipient', () => {
       const { confirmedHandler } = renderAndGetHandlers();
 
       confirmedHandler(
@@ -341,13 +549,202 @@ describe('useMoneyTransactionStatus', () => {
             from: '0x0',
             data: encodeWithdrawData(BigInt(50_000_000)),
           },
-        }),
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(RECIPIENT_ADDRESS),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
       );
 
       expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
       const params = withdrawSuccessFn.mock.calls[0][0];
       expect(params.amountFiat).toContain('50.00');
-      expect(params.destination).toBeDefined();
+      expect(params.destination).toBe('Account 1');
+      expect(getMemoizedInternalAccountByAddress).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.stringMatching(/^0x1111/i),
+      );
+    });
+
+    it('falls back to a shortened address when the recipient is not an internal account', () => {
+      jest
+        .mocked(getMemoizedInternalAccountByAddress)
+        .mockReturnValueOnce(undefined);
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(10_000_000)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(RECIPIENT_ADDRESS),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      const destination = withdrawSuccessFn.mock.calls[0][0].destination ?? '';
+      expect(destination).toMatch(/^0x[0-9a-fA-F]+\.{3}[0-9a-fA-F]+$/);
+    });
+
+    it('falls back to "your account" when the recipient is an internal account with a blank name', () => {
+      jest.mocked(getMemoizedInternalAccountByAddress).mockReturnValueOnce({
+        metadata: { name: '   ' },
+      } as unknown as ReturnType<typeof getMemoizedInternalAccountByAddress>);
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(10_000_000)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(RECIPIENT_ADDRESS),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe(
+        'your account',
+      );
+    });
+
+    it('prefers the account group name over the internal account name', () => {
+      jest.mocked(getMemoizedInternalAccountByAddress).mockReturnValueOnce({
+        id: 'acc-1',
+        metadata: { name: 'Account 1' },
+      } as unknown as ReturnType<typeof getMemoizedInternalAccountByAddress>);
+      jest.mocked(selectAccountToGroupMap).mockReturnValueOnce({
+        'acc-1': { metadata: { name: 'My savings' } },
+      } as unknown as ReturnType<typeof selectAccountToGroupMap>);
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(10_000_000)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(RECIPIENT_ADDRESS),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe('My savings');
+    });
+
+    it('falls back to the internal account name when no account group is found', () => {
+      jest.mocked(getMemoizedInternalAccountByAddress).mockReturnValueOnce({
+        id: 'acc-1',
+        metadata: { name: 'Account 1' },
+      } as unknown as ReturnType<typeof getMemoizedInternalAccountByAddress>);
+      jest
+        .mocked(selectAccountToGroupMap)
+        .mockReturnValueOnce(
+          {} as unknown as ReturnType<typeof selectAccountToGroupMap>,
+        );
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(10_000_000)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(RECIPIENT_ADDRESS),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe('Account 1');
+    });
+
+    it('falls back to "your account" when both group and internal names are blank', () => {
+      jest.mocked(getMemoizedInternalAccountByAddress).mockReturnValueOnce({
+        id: 'acc-1',
+        metadata: { name: '' },
+      } as unknown as ReturnType<typeof getMemoizedInternalAccountByAddress>);
+      jest.mocked(selectAccountToGroupMap).mockReturnValueOnce({
+        'acc-1': { metadata: { name: '  ' } },
+      } as unknown as ReturnType<typeof selectAccountToGroupMap>);
+
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(10_000_000)),
+          },
+          nestedTransactions: [
+            {
+              type: TransactionType.tokenMethodTransfer,
+              data: encodeTransferData(RECIPIENT_ADDRESS),
+            },
+          ],
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe(
+        'your account',
+      );
+    });
+
+    it('falls back to "your account" when the nested transfer tx is absent', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          type: TransactionType.moneyAccountWithdraw,
+          status: TransactionStatus.confirmed,
+          txParams: {
+            from: '0x0',
+            data: encodeWithdrawData(BigInt(1_000_000)),
+          },
+        }),
+      );
+
+      expect(withdrawSuccessFn).toHaveBeenCalledTimes(1);
+      expect(withdrawSuccessFn.mock.calls[0][0].destination).toBe(
+        'your account',
+      );
     });
 
     it('failed → withdraw failed toast', () => {
@@ -362,6 +759,251 @@ describe('useMoneyTransactionStatus', () => {
 
       expect(withdrawFailedFn).toHaveBeenCalledTimes(1);
       expect(depositFailedFn).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('perps/predict send lifecycle', () => {
+    const buildSendTxMeta = (
+      type: TransactionType,
+      overrides: Partial<TransactionMeta> = {},
+    ): TransactionMeta =>
+      buildTxMeta({
+        id: 'send-tx-1',
+        type,
+        metamaskPay: {
+          tokenAddress: MUSD_ADDRESS,
+          chainId: CHAIN_IDS.MONAD,
+          targetFiat: '100',
+          totalFiat: '106',
+        },
+        ...overrides,
+      } as unknown as Partial<TransactionMeta>);
+
+    it('approved → send in-progress toast (after deferral), not deposit/withdraw', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildSendTxMeta(TransactionType.perpsDeposit, {
+          status: TransactionStatus.approved,
+        }),
+      });
+
+      expect(sendInProgressFn).not.toHaveBeenCalled();
+
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(sendInProgressFn).toHaveBeenCalledTimes(1);
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(withdrawInProgressFn).not.toHaveBeenCalled();
+    });
+
+    it('confirmed → send success toast uses targetFiat (amount received), not totalFiat (amount + fee), with "Perps" destination', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildSendTxMeta(TransactionType.perpsDeposit, {
+          status: TransactionStatus.confirmed,
+        }),
+      );
+
+      expect(sendSuccessFn).toHaveBeenCalledTimes(1);
+      const params = sendSuccessFn.mock.calls[0][0];
+      expect(params.amountFiat).toContain('100');
+      expect(params.amountFiat).not.toContain('106');
+      expect(params.destination).toBe('Perps');
+      expect(depositSuccessFn).not.toHaveBeenCalled();
+      expect(withdrawSuccessFn).not.toHaveBeenCalled();
+    });
+
+    it('confirmed predict deposit → "Predict" destination', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildSendTxMeta(TransactionType.predictDeposit, {
+          status: TransactionStatus.confirmed,
+        }),
+      );
+
+      expect(sendSuccessFn).toHaveBeenCalledTimes(1);
+      expect(sendSuccessFn.mock.calls[0][0].destination).toBe('Predict');
+    });
+
+    it('confirmed with missing/zero fiat → success without amount', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildSendTxMeta(TransactionType.perpsDeposit, {
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            tokenAddress: MUSD_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            targetFiat: '0',
+          },
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(sendSuccessFn).toHaveBeenCalledTimes(1);
+      expect(sendSuccessFn.mock.calls[0][0].amountFiat).toBeUndefined();
+    });
+
+    it('confirmed with missing targetFiat → success without amount, never falls back to totalFiat', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildSendTxMeta(TransactionType.perpsDeposit, {
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            tokenAddress: MUSD_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            totalFiat: '106',
+          },
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(sendSuccessFn).toHaveBeenCalledTimes(1);
+      expect(sendSuccessFn.mock.calls[0][0].amountFiat).toBeUndefined();
+    });
+
+    it.each([
+      ['failed', TransactionStatus.failed],
+      ['dropped', TransactionStatus.dropped],
+      ['cancelled', TransactionStatus.cancelled],
+    ])('statusUpdated with %s → send failed toast', (_label, status) => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildSendTxMeta(TransactionType.perpsDeposit, {
+          status,
+        }),
+      });
+
+      expect(sendFailedFn).toHaveBeenCalledTimes(1);
+      expect(depositFailedFn).not.toHaveBeenCalled();
+      expect(withdrawFailedFn).not.toHaveBeenCalled();
+      expect(clearMoneyAccountDepositIntent).not.toHaveBeenCalled();
+    });
+
+    it('ignores a perps deposit not funded with mUSD on the Money chain', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildTxMeta({
+          id: 'send-tx-other',
+          type: TransactionType.perpsDeposit,
+          status: TransactionStatus.approved,
+          metamaskPay: {
+            tokenAddress: MUSD_ADDRESS,
+            chainId: '0x1',
+            totalFiat: '100',
+          },
+        } as unknown as Partial<TransactionMeta>),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      expect(sendInProgressFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('perps/predict receive (money withdraw) lifecycle', () => {
+    const buildReceiveTxMeta = (
+      type: TransactionType,
+      overrides: Partial<TransactionMeta> = {},
+    ): TransactionMeta =>
+      buildTxMeta({
+        id: 'receive-tx-1',
+        type,
+        metamaskPay: {
+          tokenAddress: MUSD_ADDRESS,
+          chainId: CHAIN_IDS.MONAD,
+          isPostQuote: true,
+          targetFiat: '50',
+        },
+        ...overrides,
+      } as unknown as Partial<TransactionMeta>);
+
+    it('confirmed → deposit success toast with fiat amount and addMusd intent', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildReceiveTxMeta(TransactionType.perpsWithdraw, {
+          status: TransactionStatus.confirmed,
+        }),
+      );
+
+      expect(depositSuccessFn).toHaveBeenCalledTimes(1);
+      const params = depositSuccessFn.mock.calls[0][0];
+      expect(params.intent).toBe('addMusd');
+      expect(params.amountFiat).toContain('50');
+      expect(withdrawSuccessFn).not.toHaveBeenCalled();
+      expect(sendSuccessFn).not.toHaveBeenCalled();
+    });
+
+    it('confirmed with invalid targetFiat → success without amount', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildReceiveTxMeta(TransactionType.perpsWithdraw, {
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            tokenAddress: MUSD_ADDRESS,
+            chainId: CHAIN_IDS.MONAD,
+            isPostQuote: true,
+            targetFiat: 'not-a-number',
+          },
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(depositSuccessFn).toHaveBeenCalledTimes(1);
+      expect(depositSuccessFn.mock.calls[0][0].amountFiat).toBeUndefined();
+      expect(depositSuccessFn.mock.calls[0][0].intent).toBe('addMusd');
+    });
+
+    it('does not fire in-progress or failed money toasts for a receive (those stay native)', () => {
+      const { statusUpdatedHandler } = renderAndGetHandlers();
+
+      statusUpdatedHandler({
+        transactionMeta: buildReceiveTxMeta(TransactionType.perpsWithdraw, {
+          status: TransactionStatus.approved,
+        }),
+      });
+      jest.advanceTimersByTime(IN_PROGRESS_DELAY_MS);
+
+      statusUpdatedHandler({
+        transactionMeta: buildReceiveTxMeta(TransactionType.perpsWithdraw, {
+          id: 'receive-tx-failed',
+          status: TransactionStatus.failed,
+        }),
+      });
+
+      expect(withdrawInProgressFn).not.toHaveBeenCalled();
+      expect(depositInProgressFn).not.toHaveBeenCalled();
+      expect(sendInProgressFn).not.toHaveBeenCalled();
+      expect(withdrawFailedFn).not.toHaveBeenCalled();
+      expect(depositFailedFn).not.toHaveBeenCalled();
+      expect(sendFailedFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
+    });
+
+    it('ignores a perps withdraw not landing as mUSD on the Money chain', () => {
+      const { confirmedHandler } = renderAndGetHandlers();
+
+      confirmedHandler(
+        buildTxMeta({
+          id: 'receive-tx-other',
+          type: TransactionType.perpsWithdraw,
+          status: TransactionStatus.confirmed,
+          metamaskPay: {
+            tokenAddress: MUSD_ADDRESS,
+            chainId: '0x1',
+            isPostQuote: true,
+            targetFiat: '50',
+          },
+        } as unknown as Partial<TransactionMeta>),
+      );
+
+      expect(depositSuccessFn).not.toHaveBeenCalled();
+      expect(mockShowToast).not.toHaveBeenCalled();
     });
   });
 

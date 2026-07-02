@@ -1,7 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -11,9 +11,9 @@ import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { selectSourceToken } from '../../../../../core/redux/slices/bridge';
 import {
   BottomSheet,
-  BottomSheetRef,
   BottomSheetFooter,
   BottomSheetHeader,
+  BottomSheetRef,
   Box,
   BoxAlignItems,
   ButtonIconSize,
@@ -25,18 +25,18 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 
 export interface MissingPriceModalParams {
   location: MetaMetricsSwapsEventSource;
 }
 
 export const MissingPriceModal = () => {
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [loading, setLoading] = useState(false);
   const { location } = useParams<MissingPriceModalParams>();
-
+  const surfaceClass = useElevatedSurface();
   const sourceToken = useSelector(selectSourceToken);
   const tokenBalance = useLatestBalance({
     address: sourceToken?.address,
@@ -58,11 +58,19 @@ export const MissingPriceModal = () => {
 
   const handleProceed = useCallback(async () => {
     setLoading(true);
-    await confirmBridge();
+    if (sheetRef.current?.onCloseBottomSheet) {
+      sheetRef.current.onCloseBottomSheet(confirmBridge);
+    } else {
+      await confirmBridge();
+    }
   }, [confirmBridge]);
 
   return (
-    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      twClassName={surfaceClass}
+    >
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{

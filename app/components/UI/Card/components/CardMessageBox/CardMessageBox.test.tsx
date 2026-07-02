@@ -6,7 +6,7 @@ import { renderScreen } from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 jest.mock('../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
+  strings: jest.fn((key: string, params?: Record<string, string | number>) => {
     const mockStrings: Record<string, string> = {
       'card.card_home.warnings.close_spending_limit.title':
         'Close Spending Limit',
@@ -29,8 +29,24 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'You need at least one approved funding source on Linea before redeeming cashback.',
       'card.cashback_screen.funding_required.confirm_button_label':
         'Set up funding',
+      'card.cashback_screen.money_account_required.title':
+        'Set up Money Account',
+      'card.cashback_screen.money_account_required.description':
+        'You need a linked Money Account before redeeming cashback.',
+      'card.cashback_screen.money_account_required.confirm_button_label':
+        'Set up Money Account',
+      'card.credit_banner.title': 'Refund balance: {{amount}}',
+      'card.credit_banner.description':
+        'Spend it or move it to your Money account to keep earning on your balance.',
+      'card.credit_banner.confirm_button_label': 'Move funds',
     };
-    return mockStrings[key] || key;
+    let value = mockStrings[key] || key;
+    if (params) {
+      Object.entries(params).forEach(([name, replacement]) => {
+        value = value.replace(`{{${name}}}`, String(replacement));
+      });
+    }
+    return value;
   }),
 }));
 
@@ -220,6 +236,64 @@ describe('CardMessageBox', () => {
     });
   });
 
+  describe('CashbackMoneyAccountRequired warning', () => {
+    it('renders title and description', () => {
+      const { getByText } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CashbackMoneyAccountRequired}
+        />
+      ));
+
+      expect(getByText('Set up Money Account')).toBeOnTheScreen();
+      expect(
+        getByText('You need a linked Money Account before redeeming cashback.'),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onConfirm when the Money Account setup button is pressed', () => {
+      const { getByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CashbackMoneyAccountRequired}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      fireEvent.press(getByTestId('confirm-button'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('CreditAvailable info', () => {
+    it('interpolates the amount into the title and renders the description', () => {
+      const { getByText } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CreditAvailable}
+          values={{ amount: '$10.86' }}
+        />
+      ));
+
+      expect(getByText('Refund balance: $10.86')).toBeOnTheScreen();
+      expect(
+        getByText(
+          'Spend it or move it to your Money account to keep earning on your balance.',
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('calls onConfirm when the Move funds button is pressed', () => {
+      const { getByTestId } = renderWithProvider(() => (
+        <CardMessageBox
+          messageType={CardMessageBoxType.CreditAvailable}
+          values={{ amount: '$10.86' }}
+          onConfirm={mockOnConfirm}
+        />
+      ));
+
+      fireEvent.press(getByTestId('confirm-button'));
+      expect(mockOnConfirm).toHaveBeenCalledTimes(1);
+    });
+  });
+
   describe('common behaviors', () => {
     it('renders dismiss button when onDismiss is provided', () => {
       const { getByTestId } = renderWithProvider(() => (
@@ -273,6 +347,7 @@ describe('CardMessageBox', () => {
         CardMessageBoxType.CardProvisioning,
         CardMessageBoxType.AuthPrompt,
         CardMessageBoxType.CashbackFundingRequired,
+        CardMessageBoxType.CashbackMoneyAccountRequired,
       ];
 
       allMessageTypes.forEach((messageType) => {

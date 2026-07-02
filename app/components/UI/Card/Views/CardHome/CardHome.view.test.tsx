@@ -60,7 +60,7 @@ describe('CardHome', () => {
         expect(params.screen).toBe(Routes.CARD.MODALS.ASSET_SELECTION);
       });
 
-      it('opens Spending Limit screen with flow=enable when Manage Spending Limit button is pressed', async () => {
+      it('opens Spending Limit screen with flow=manage when Manage Spending Limit button is pressed', async () => {
         const { getByTestId, findByTestId } = renderCardHomeView({
           extraRoutes: [
             {
@@ -79,7 +79,7 @@ describe('CardHome', () => {
         );
         expect(paramsEl).toBeOnTheScreen();
         const params = JSON.parse(paramsEl.props.children as string);
-        expect(params.flow).toBe('enable');
+        expect(params.flow).toBe('manage');
       });
 
       it('opens Cashback screen showing balance and withdrawal button when Cashback button is pressed', async () => {

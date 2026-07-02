@@ -24,25 +24,57 @@ import reducer, {
   selectIsRwaSwap,
   setBatchSellSourceTokens,
   selectBatchSellSourceTokens,
+  setBatchSellSourceTokenAmount,
+  setBatchSellSourceTokenAmounts,
+  selectBatchSellSourceTokenAmounts,
   setBatchSellDestToken,
   selectBatchSellDestToken,
   selectBatchSellDestStablecoins,
   selectBatchSellDestStablecoinsByChain,
+  selectHardwareWalletsSwaps,
+  updateHardwareWalletsSwaps,
+  selectBatchSellQuotes,
   selectBatchSellSlippages,
   setBatchSellTokenSlippage,
   setBatchSellTokenSlippages,
+  selectIsNonEvmSourced,
 } from '.';
 import { FEATURE_FLAG_NAME } from '../../../../selectors/featureFlagController/rwa';
 import {
   BridgeToken,
   BridgeViewMode,
 } from '../../../../components/UI/Bridge/types';
-import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
+import {
+  CaipAssetType,
+  CaipChainId,
+  Hex,
+  parseCaipAssetType,
+} from '@metamask/utils';
 import { RootState } from '../../../../reducers';
 import { cloneDeep } from 'lodash';
 import { BridgeTokenMetadata } from '../../../../components/UI/Bridge/constants/tokens';
+import {
+  HardwareWalletsSwapsEventType,
+  HardwareWalletsSwapsStatus,
+  initialHardwareWalletsSwapsState,
+} from '../../../../components/UI/HardwareWallet/Swaps/HardwareWalletsSwaps.state';
+import { formatAddressToAssetId } from '@metamask/bridge-controller';
 
 describe('bridge slice', () => {
+  function getChecksummedBridgeTokenMetadata(assetId: CaipAssetType) {
+    const metadata = BridgeTokenMetadata[assetId];
+    const formattedAssetId = formatAddressToAssetId(
+      metadata.address,
+      metadata.chainId,
+    ) as CaipAssetType;
+    const { assetReference } = parseCaipAssetType(formattedAssetId);
+
+    return {
+      ...metadata,
+      address: assetReference,
+    };
+  }
+
   const mockToken: BridgeToken = {
     address: '0x123',
     symbol: 'ETH',
@@ -96,8 +128,11 @@ describe('bridge slice', () => {
         tokenSelectorNetworkFilter: undefined,
         visiblePillChainIds: undefined,
         selectedQuoteRequestId: undefined,
+        balanceRefreshKey: 0,
         abTestContext: undefined,
+        hardwareWalletsSwaps: initialHardwareWalletsSwapsState,
         batchSellSourceTokens: [],
+        batchSellSourceTokenAmounts: {},
         batchSellDestToken: undefined,
         batchSellSlippages: {},
       });
@@ -279,6 +314,50 @@ describe('bridge slice', () => {
       } as RootState;
 
       expect(selectBatchSellSourceTokens(mockState)).toEqual([mockToken]);
+    });
+
+    it('sets Batch Sell source token amount by asset ID', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+
+      const state = reducer(
+        initialState,
+        setBatchSellSourceTokenAmount({ assetId, amount: '1.5' }),
+      );
+
+      expect(state.batchSellSourceTokenAmounts[assetId]).toBe('1.5');
+    });
+
+    it('replaces Batch Sell source token amount map', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+
+      const state = reducer(
+        {
+          ...initialState,
+          batchSellSourceTokenAmounts: {
+            'eip155:1/erc20:0xdac17f958d2ee523a2206206994597c13d831ec7': '0.5',
+          },
+        },
+        setBatchSellSourceTokenAmounts({ [assetId]: '3' }),
+      );
+
+      expect(state.batchSellSourceTokenAmounts).toEqual({ [assetId]: '3' });
+    });
+
+    it('selects Batch Sell source token amount map', () => {
+      const assetId =
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
+      const mockState = {
+        bridge: {
+          ...initialState,
+          batchSellSourceTokenAmounts: { [assetId]: '2' },
+        },
+      } as RootState;
+
+      expect(selectBatchSellSourceTokenAmounts(mockState)).toEqual({
+        [assetId]: '2',
+      });
     });
 
     it('sets Batch Sell destination token metadata', () => {
@@ -760,7 +839,7 @@ describe('bridge slice', () => {
         {
           symbol: 'USDC',
           name: 'USD Coin',
-          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
           decimals: 6,
           image:
             'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
@@ -796,14 +875,12 @@ describe('bridge slice', () => {
         batchSellDestStablecoins: [baseUsdc],
       } as unknown as any;
 
-      const expectedEthUsdc =
-        BridgeTokenMetadata[
-          'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType
-        ];
-      const expectedBaseUsdc =
-        BridgeTokenMetadata[
-          'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as CaipAssetType
-        ];
+      const expectedEthUsdc = getChecksummedBridgeTokenMetadata(
+        'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType,
+      );
+      const expectedBaseUsdc = getChecksummedBridgeTokenMetadata(
+        'eip155:8453/erc20:0x833589fcd6edb6e08f4c7c32d4f71b54bda02913' as CaipAssetType,
+      );
 
       const result = selectBatchSellDestStablecoinsByChain(
         mockState as unknown as RootState,
@@ -856,6 +933,20 @@ describe('bridge slice', () => {
       const state = reducer(stateWithFilter, action);
 
       expect(state.tokenSelectorNetworkFilter).toBe('eip155:137');
+    });
+  });
+
+  describe('selectBatchSellQuotes', () => {
+    it('uses the BridgeController quote request count', () => {
+      const mockState = cloneDeep(mockRootState);
+      mockState.engine.backgroundState.BridgeController.quoteRequest = [
+        { srcTokenAddress: '0x1111111111111111111111111111111111111111' },
+        { srcTokenAddress: '0x2222222222222222222222222222222222222222' },
+      ] as unknown as typeof mockState.engine.backgroundState.BridgeController.quoteRequest;
+
+      const result = selectBatchSellQuotes(mockState as unknown as RootState);
+
+      expect(result.recommendedQuotes).toHaveLength(2);
     });
   });
 
@@ -991,6 +1082,39 @@ describe('bridge slice', () => {
     });
   });
 
+  describe('selectHardwareWalletsSwaps', () => {
+    it('returns initial hardware wallet swaps state from bridge state', () => {
+      const mockState = {
+        bridge: initialState,
+      } as RootState;
+
+      expect(selectHardwareWalletsSwaps(mockState)).toEqual(
+        initialHardwareWalletsSwapsState,
+      );
+    });
+
+    it('returns updated hardware wallet swaps state after reducer action', () => {
+      const bridgeState = reducer(
+        initialState,
+        updateHardwareWalletsSwaps({
+          type: HardwareWalletsSwapsEventType.Start,
+          payload: { totalSteps: 1 },
+        }),
+      );
+      const mockState = {
+        bridge: bridgeState,
+      } as RootState;
+
+      expect(selectHardwareWalletsSwaps(mockState)).toEqual({
+        ...initialHardwareWalletsSwapsState,
+        status: HardwareWalletsSwapsStatus.Waiting,
+        currentStep: 0,
+        totalSteps: 1,
+        steps: expect.any(Array),
+      });
+    });
+  });
+
   describe('resetBridgeState with selectedQuoteRequestId', () => {
     it('resets selectedQuoteRequestId when bridge state resets', () => {
       const stateWithSelection = {
@@ -1105,6 +1229,56 @@ describe('bridge slice', () => {
       );
 
       expect(result).toBe(false);
+    });
+  });
+
+  describe('selectIsNonEvmSourced', () => {
+    const buildState = (sourceToken: BridgeToken | undefined) => {
+      const mockState = cloneDeep(mockRootState);
+      (mockState as any).bridge = {
+        ...initialState,
+        sourceToken,
+      };
+      return mockState as unknown as RootState;
+    };
+
+    const tokenOn = (chainId: string): BridgeToken =>
+      ({
+        address: '0xsource',
+        symbol: 'SRC',
+        decimals: 18,
+        image: '',
+        chainId: chainId as BridgeToken['chainId'],
+        name: 'Source',
+      }) as BridgeToken;
+
+    it('returns true for a Solana source token', () => {
+      const state = buildState(
+        tokenOn('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+      );
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns true for a Tron source token', () => {
+      const state = buildState(tokenOn('tron:728126428'));
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns true for a Bitcoin source token', () => {
+      const state = buildState(
+        tokenOn('bip122:000000000019d6689c085ae165831e93'),
+      );
+      expect(selectIsNonEvmSourced(state)).toBe(true);
+    });
+
+    it('returns false for an EVM source token', () => {
+      const state = buildState(tokenOn('0x1'));
+      expect(selectIsNonEvmSourced(state)).toBe(false);
+    });
+
+    it('returns a falsy value when there is no source token', () => {
+      const state = buildState(undefined);
+      expect(selectIsNonEvmSourced(state)).toBeFalsy();
     });
   });
 });

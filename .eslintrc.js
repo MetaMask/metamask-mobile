@@ -82,7 +82,7 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/Ramp/Aggregator/hooks/useHandleSuccessfulOrder.ts',
   'app/components/UI/Ramp/Aggregator/hooks/useIntentAmount.ts',
   'app/components/UI/Ramp/Aggregator/utils/index.ts',
-  'app/components/UI/Ramp/Deposit/utils/index.ts',
+  'app/components/UI/Ramp/utils/depositUtils.ts',
   'app/components/UI/Ramp/utils/getOrderAmount.ts',
   'app/components/UI/Ramp/utils/v2OrderToast.ts',
   'app/components/UI/Stake/components/StakingBalance/StakingBanners/ClaimBanner/ClaimBanner.tsx',
@@ -96,7 +96,6 @@ const utilNumberImportBurndownFiles = [
   'app/components/UI/TransactionElement/utils-gas.js',
   'app/components/UI/TransactionElement/utils.js',
   'app/components/UI/UrlAutocomplete/Result.tsx',
-  'app/components/Views/AssetDetails/index.tsx',
   'app/components/Views/GasEducationCarousel/index.js',
   'app/components/Views/NetworksManagement/NetworkDetailsView/hooks/useNetworkValidation.ts',
   'app/components/Views/SocialLeaderboard/TraderPositionView/components/QuickBuyBottomSheet/useQuickBuyBottomSheet.ts',
@@ -167,6 +166,22 @@ module.exports = {
     {
       files: ['tests/**/*.{js,ts}'],
       extends: ['./tests/framework/.eslintrc.js'],
+    },
+    {
+      // These files intentionally omit dependencies from a useEffect/useCallback
+      // (documented inline at each call site). The React Compiler refuses to
+      // optimize any file containing an inline `eslint-disable` for a React
+      // rule, so the suppression is relocated here (invisible to the compiler)
+      // instead of being a per-line comment. Runtime behavior is unchanged.
+      files: [
+        'app/components/hooks/useAsyncResult.ts',
+        'app/components/hooks/useOTAUpdates.ts',
+        'app/components/Nav/Main/index.js',
+        'app/components/Nav/App/App.tsx',
+      ],
+      rules: {
+        'react-hooks/exhaustive-deps': 'off',
+      },
     },
     {
       files: ['*.{ts,tsx}'],
@@ -435,10 +450,7 @@ module.exports = {
     //
     // See docs/perps/perps-core-sync.md for the full sync workflow.
     {
-      files: [
-        'app/controllers/perps/**/*.{ts,tsx}',
-        'app/**/*-method-action-types*.ts',
-      ],
+      files: ['app/**/*-method-action-types*.ts'],
       excludedFiles: ['**/*.test.ts', '**/*.test.tsx'],
       rules: {
         // === Existing rule ===
@@ -633,22 +645,12 @@ module.exports = {
       },
     },
     {
-      // Perps test files use top-level type imports (import type + import from same module),
-      // which conflicts with the global no-duplicate-imports rule.
-      files: ['app/controllers/perps/**/*.test.{ts,tsx}'],
-      rules: {
-        'no-duplicate-imports': 'off',
-      },
-    },
-    {
       // Default app import fences (expo-haptics, perps, deprecated util/number/index.js).
       // `excludedFiles` applies to the whole override — listing burn-down paths
       // here would incorrectly skip expo/perps for those files, so burn-down is
       // excluded from *this* block only and picked up by the next override.
       files: ['app/**/*.{ts,tsx,js,jsx}'],
       excludedFiles: [
-        // Perps controller is exempt from importing itself.
-        'app/controllers/perps/**/*.{ts,tsx,js,jsx}',
         // Designated expo-haptics wrapper — only this tree may import expo-haptics.
         'app/util/haptics/**/*.{ts,tsx,js,jsx}',
         // Legacy number utils + parity tests.
@@ -668,11 +670,6 @@ module.exports = {
               },
             ],
             patterns: [
-              {
-                group: ['**/controllers/perps', '**/controllers/perps/**'],
-                message:
-                  'Use @metamask/perps-controller instead of relative imports into app/controllers/perps/.',
-              },
               {
                 group: ['expo-haptics/*'],
                 message:
@@ -716,11 +713,6 @@ module.exports = {
               },
             ],
             patterns: [
-              {
-                group: ['**/controllers/perps', '**/controllers/perps/**'],
-                message:
-                  'Use @metamask/perps-controller instead of relative imports into app/controllers/perps/.',
-              },
               {
                 group: ['expo-haptics/*'],
                 message:

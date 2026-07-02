@@ -15,10 +15,12 @@ import {
   startMultiInstanceResourceWithRetry,
   cleanupAllAndroidPortForwarding,
 } from './FixtureUtils';
-import Utilities from '../Utilities';
+import Utilities, { sleep } from '../Utilities';
 import {
+  dismissAndroidSystemOverlaysPlaywright,
   dismissDevScreens,
-  dismissDevScreensPlaywright,
+  dismissDeveloperMenuPlaywright,
+  dismissDevelopmentServerPickerPlaywright,
 } from '../../flows/general.flow';
 import TestHelpers from '../../helpers';
 import MockServerE2E from '../../api-mocking/MockServerE2E';
@@ -44,6 +46,7 @@ import {
   FALLBACK_MOCKSERVER_PORT,
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
+  resolveE2EFixtureBootstrapTimeoutMs,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
@@ -117,6 +120,17 @@ async function handleDapps(
               dapp.dappPath ||
               TestDapps[DappVariants.SOLANA_TEST_DAPP].dappPath,
             dappVariant: DappVariants.SOLANA_TEST_DAPP,
+          }),
+        );
+        break;
+      case DappVariants.BITCOIN_TEST_DAPP:
+        dappServer.push(
+          new DappServer({
+            dappCounter: i,
+            rootDirectory:
+              dapp.dappPath ||
+              TestDapps[DappVariants.BITCOIN_TEST_DAPP].dappPath,
+            dappVariant: DappVariants.BITCOIN_TEST_DAPP,
           }),
         );
         break;
@@ -566,6 +580,7 @@ export async function withFixtures(
     ResourceType.ACCOUNT_ACTIVITY_WS,
   );
   let testError: Error | null = null;
+  let didAttemptPlaywrightDevelopmentServerPickerDismissal = false;
 
   try {
     // Step 1: Start local nodes (Anvil/Ganache)
@@ -684,12 +699,35 @@ export async function withFixtures(
           await deviceCommands.clearAppData();
         }
 
-        const appStateRequest = fixtureServer.waitForNextStateRequest();
+        // Cold Metro bundles can take 60–160s locally; pre-warm runs in launchApp but
+        // device-side load + E2E bootstrap still need headroom after deep link.
+        const appStateRequest = fixtureServer.waitForNextStateRequest(
+          resolveE2EFixtureBootstrapTimeoutMs(),
+        );
         try {
           await PlaywrightUtilities.launchApp(currentDeviceDetails, {
             launchArgs: testArgs,
           });
-          await appStateRequest;
+          if (process.env.CI !== 'true') {
+            didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
+            await Promise.all([
+              appStateRequest,
+              (async () => {
+                for (;;) {
+                  await dismissDevelopmentServerPickerPlaywright();
+                  const bootstrapped = await Promise.race([
+                    appStateRequest.then(() => true),
+                    sleep(1500).then(() => false),
+                  ]);
+                  if (bootstrapped) {
+                    return;
+                  }
+                }
+              })(),
+            ]);
+          } else {
+            await appStateRequest;
+          }
         } catch (error) {
           appStateRequest.catch(() => undefined);
           throw error;
@@ -707,12 +745,16 @@ export async function withFixtures(
       }
     }
 
-    // Dismiss dev screens if running locally (not in CI)
+    // Dismiss dev menu after bootstrap (Appium: adb-only overlay dismiss — element
+    // queries here crash UiAutomator2 while Metro is still loading).
     if (process.env.CI !== 'true') {
       if (FrameworkDetector.isDetox()) {
         await dismissDevScreens();
       } else if (FrameworkDetector.isAppium()) {
-        await dismissDevScreensPlaywright();
+        if (!didAttemptPlaywrightDevelopmentServerPickerDismissal) {
+          await dismissDevelopmentServerPickerPlaywright();
+        }
+        await dismissDeveloperMenuPlaywright();
       }
     }
 

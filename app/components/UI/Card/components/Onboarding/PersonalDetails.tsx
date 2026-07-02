@@ -14,7 +14,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import SelectField from './SelectField';
-import DepositDateField from '../../../Ramp/Deposit/components/DepositDateField';
+import DepositDateField from '../../../Ramp/components/DepositDateField';
 import {
   resetOnboardingState,
   selectOnboardingId,
@@ -465,6 +465,7 @@ const PersonalDetails = () => {
       description={strings('card.card_onboarding.personal_details.description')}
       formFields={renderFormFields()}
       actions={renderActions()}
+      headerMode="close-with-confirmation"
     />
   );
 };

@@ -6,8 +6,8 @@ import Assertions from '../../framework/Assertions';
 import WalletView from '../../page-objects/wallet/WalletView';
 import {
   remoteFeatureFlagPredictEnabled,
-  confirmationFeatureFlags,
   remoteFeatureFlagHomepageSectionsV1Enabled,
+  confirmationFeatureFlags,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   POLYMARKET_COMPLETE_MOCKS,
@@ -28,7 +28,10 @@ import {
   POLYMARKET_RESOLVED_LOST_POSITIONS_RESPONSE,
   POLYMARKET_WINNING_POSITIONS_RESPONSE,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-positions-response';
-import { PredictHelpers } from './helpers/predict-helpers';
+import {
+  PredictHelpers,
+  remoteFeatureFlagPerpsDisabledForPredictSmoke,
+} from './helpers/predict-helpers';
 import { POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE } from '../../api-mocking/mock-responses/polymarket/polymarket-activity-response';
 import Utilities from '../../framework/Utilities';
 import PredictClaimPage from '../../page-objects/Predict/PredictClaimPage';
@@ -55,8 +58,9 @@ Test Scenario: Claim winning positions
 
 const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
-    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
+    ...remoteFeatureFlagPerpsDisabledForPredictSmoke(),
     ...remoteFeatureFlagPredictEnabled(true),
+    ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...Object.assign({}, ...confirmationFeatureFlags),
     carouselBanners: false,
   });
@@ -112,6 +116,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
       {
         fixture: new FixtureBuilder()
           .withPolygon()
+          .withBasicFunctionalityEnabled()
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
@@ -167,7 +172,11 @@ describe(SmokePredictions('Claim winnings:'), () => {
   it('claim winnings via market details', async () => {
     await withFixtures(
       {
-        fixture: new FixtureBuilder().withPolygon().build(),
+        fixture: new FixtureBuilder()
+          .withPolygon()
+          .withBasicFunctionalityEnabled()
+          .withMetaMetricsOptIn()
+          .build(),
         restartDevice: true,
         testSpecificMock: PredictionMarketFeatureForMarketDetails,
       },

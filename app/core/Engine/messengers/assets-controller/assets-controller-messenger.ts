@@ -1,115 +1,33 @@
-import type { AssetsControllerMessenger as PackageAssetsControllerMessenger } from '@metamask/assets-controller';
-import { Messenger } from '@metamask/messenger';
+import type { AssetsControllerMessenger } from '@metamask/assets-controller';
+import {
+  Messenger,
+  MessengerActions,
+  MessengerEvents,
+} from '@metamask/messenger';
 import { AuthenticationController } from '@metamask/profile-sync-controller';
-import type {
-  PreferencesControllerGetStateAction,
-  PreferencesControllerStateChangeEvent,
-} from '@metamask/preferences-controller';
-import type {
-  NetworkControllerGetStateAction,
-  NetworkControllerGetNetworkClientByIdAction,
-  NetworkControllerStateChangeEvent,
-  NetworkControllerNetworkAddedEvent,
-  NetworkControllerNetworkRemovedEvent,
-} from '@metamask/network-controller';
-import type {
-  AccountsControllerAccountBalancesUpdatesEvent,
-  AccountsControllerGetSelectedAccountAction,
-} from '@metamask/accounts-controller';
-import type {
-  NetworkEnablementControllerGetStateAction,
-  NetworkEnablementControllerEvents,
-} from '@metamask/network-enablement-controller';
-import type { ClientControllerStateChangeEvent } from '@metamask/client-controller';
-import type {
-  KeyringControllerLockEvent,
-  KeyringControllerUnlockEvent,
-} from '@metamask/keyring-controller';
-import type {
-  AccountTreeControllerGetAccountsFromSelectedAccountGroupAction,
-  AccountTreeControllerSelectedAccountGroupChangeEvent,
-} from '@metamask/account-tree-controller';
-import type {
-  BackendWebSocketServiceActions,
-  BackendWebSocketServiceEvents,
-} from '@metamask/core-backend';
-import type {
-  GetPermissions,
-  PermissionControllerStateChange,
-} from '@metamask/permission-controller';
-import type { PhishingControllerBulkScanTokensAction } from '@metamask/phishing-controller';
-import type {
-  SnapControllerHandleRequestAction,
-  SnapControllerGetRunnableSnapsAction,
-} from '@metamask/snaps-controllers';
-import type {
-  TransactionControllerTransactionConfirmedEvent,
-  TransactionControllerIncomingTransactionsReceivedEvent,
-  TransactionControllerUnapprovedTransactionAddedEvent,
-} from '@metamask/transaction-controller';
+import type { PreferencesControllerGetStateAction } from '@metamask/preferences-controller';
 import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import type { AnalyticsControllerActions } from '@metamask/analytics-controller';
-import { RootExtendedMessenger, RootMessenger } from '../../types';
-
-/**
- * Actions allowed for AssetsController messenger.
- * Aligned with extension: core controller + RpcDataSource + BackendWebsocketDataSource + SnapDataSource + TokenDataSource.
- */
-type AssetsControllerAllowedActions =
-  | NetworkControllerGetStateAction
-  | NetworkControllerGetNetworkClientByIdAction
-  | NetworkEnablementControllerGetStateAction
-  | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
-  | BackendWebSocketServiceActions
-  | SnapControllerHandleRequestAction
-  | SnapControllerGetRunnableSnapsAction
-  | GetPermissions
-  | PhishingControllerBulkScanTokensAction
-  | AccountsControllerGetSelectedAccountAction;
-/**
- * Events that AssetsController and its data sources subscribe to.
- * Aligned with extension: core + RpcDataSource + BackendWebsocketDataSource + SnapDataSource.
- */
-type AssetsControllerAllowedEvents =
-  | KeyringControllerUnlockEvent
-  | KeyringControllerLockEvent
-  | ClientControllerStateChangeEvent
-  | PreferencesControllerStateChangeEvent
-  | AccountTreeControllerSelectedAccountGroupChangeEvent
-  | NetworkEnablementControllerEvents
-  | BackendWebSocketServiceEvents
-  | NetworkControllerStateChangeEvent
-  | TransactionControllerTransactionConfirmedEvent
-  | TransactionControllerIncomingTransactionsReceivedEvent
-  | AccountsControllerAccountBalancesUpdatesEvent
-  | PermissionControllerStateChange
-  | TransactionControllerUnapprovedTransactionAddedEvent
-  | NetworkControllerNetworkRemovedEvent
-  | NetworkControllerNetworkAddedEvent;
-
-/** Re-export package type so init receives the type expected by AssetsController constructor. */
-export type AssetsControllerMessenger = PackageAssetsControllerMessenger;
+import { RootMessenger } from '../../types';
 
 /**
  * Get the messenger for the AssetsController. This is scoped to the
  * actions and events that the AssetsController is allowed to handle.
  *
- * @param rootExtendedMessenger - The root extended messenger.
+ * @param rootMessenger - The root messenger.
  * @returns The AssetsControllerMessenger.
  */
 export function getAssetsControllerMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
-): PackageAssetsControllerMessenger {
-  const messenger = new Messenger<
-    'AssetsController',
-    AssetsControllerAllowedActions,
-    AssetsControllerAllowedEvents,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<AssetsControllerMessenger>,
+    MessengerEvents<AssetsControllerMessenger>
+  >,
+): AssetsControllerMessenger {
+  const messenger: AssetsControllerMessenger = new Messenger({
     namespace: 'AssetsController',
-    parent: rootExtendedMessenger,
+    parent: rootMessenger,
   });
-  rootExtendedMessenger.delegate({
+  rootMessenger.delegate({
     actions: [
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'NetworkEnablementController:getState',
@@ -133,22 +51,30 @@ export function getAssetsControllerMessenger(
       'PreferencesController:stateChange',
       'NetworkController:stateChange',
       'TransactionController:transactionConfirmed',
-      'TransactionController:incomingTransactionsReceived',
       'BackendWebSocketService:connectionStateChanged',
       'AccountsController:accountBalancesUpdated',
       'PermissionController:stateChange',
       'TransactionController:unapprovedTransactionAdded',
       'NetworkController:networkRemoved',
       'NetworkController:networkAdded',
+      'SnapController:snapInstalled',
     ],
     messenger,
   });
-  // Mobile delegates extra actions/events for data sources; package types a narrower messenger.
-  return messenger as PackageAssetsControllerMessenger;
+
+  return messenger;
 }
 
-export type AssetsControllerInitMessenger = ReturnType<
-  typeof getAssetsControllerInitMessenger
+type AssetsControllerInitMessengerActions =
+  | AuthenticationController.AuthenticationControllerGetBearerTokenAction
+  | PreferencesControllerGetStateAction
+  | RemoteFeatureFlagControllerGetStateAction
+  | AnalyticsControllerActions;
+
+export type AssetsControllerInitMessenger = Messenger<
+  'AssetsControllerInit',
+  AssetsControllerInitMessengerActions,
+  never
 >;
 
 /**
@@ -156,25 +82,20 @@ export type AssetsControllerInitMessenger = ReturnType<
  * actions and events that the AssetsController is allowed to handle during
  * initialization.
  *
- * @param rootExtendedMessenger - The root extended messenger.
+ * @param rootMessenger - The root messenger.
  * @returns The AssetsControllerInitMessenger.
  */
 export function getAssetsControllerInitMessenger(
-  rootExtendedMessenger: RootExtendedMessenger,
-) {
-  const messenger = new Messenger<
-    'AssetsControllerInit',
-    | AuthenticationController.AuthenticationControllerGetBearerTokenAction
-    | PreferencesControllerGetStateAction
-    | RemoteFeatureFlagControllerGetStateAction
-    | AnalyticsControllerActions,
-    never,
-    RootMessenger
-  >({
+  rootMessenger: RootMessenger<
+    MessengerActions<AssetsControllerInitMessenger>,
+    MessengerEvents<AssetsControllerInitMessenger>
+  >,
+): AssetsControllerInitMessenger {
+  const messenger: AssetsControllerInitMessenger = new Messenger({
     namespace: 'AssetsControllerInit',
-    parent: rootExtendedMessenger,
+    parent: rootMessenger,
   });
-  rootExtendedMessenger.delegate({
+  rootMessenger.delegate({
     actions: [
       'AuthenticationController:getBearerToken',
       'PreferencesController:getState',

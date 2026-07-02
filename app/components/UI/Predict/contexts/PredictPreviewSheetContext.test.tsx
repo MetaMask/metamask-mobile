@@ -195,10 +195,12 @@ const sellParams: PredictSellPreviewParams = {
 };
 
 const TestConsumer: React.FC = () => {
-  const { openBuySheet, openSellSheet } = usePredictPreviewSheet();
+  const { openBuySheet, openSellSheet, isBuySheetOpen } =
+    usePredictPreviewSheet();
 
   return (
     <View>
+      <Text testID="buy-sheet-open">{String(isBuySheetOpen)}</Text>
       <TouchableOpacity
         testID="open-buy"
         onPress={() => openBuySheet(buyParams)}
@@ -258,6 +260,24 @@ describe('PredictPreviewSheetContext', () => {
 
     expect(screen.getByTestId('predict-buy-preview-sheet')).toBeOnTheScreen();
     expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
+  it('exposes buy sheet open state while sheet is mounted', () => {
+    render(
+      <PredictPreviewSheetProvider>
+        <TestConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    expect(screen.getByTestId('buy-sheet-open')).toHaveTextContent('false');
+
+    fireEvent.press(screen.getByTestId('open-buy'));
+
+    expect(screen.getByTestId('buy-sheet-open')).toHaveTextContent('true');
+
+    fireEvent.press(screen.getByTestId('dismiss-sheet'));
+
+    expect(screen.getByTestId('buy-sheet-open')).toHaveTextContent('false');
   });
 
   it('renders sell preview sheet when openSellSheet is called and flag is ON', () => {
@@ -418,6 +438,63 @@ describe('PredictPreviewSheetContext', () => {
     fireEvent.press(screen.getByTestId('open-buy'));
 
     expect(screen.getByTestId('sheet-image')).toBeOnTheScreen();
+  });
+
+  it('renders provider-normalized moneyline team selections in the buy sheet header', () => {
+    const moneylineBuyParams: PredictBuyPreviewParams = {
+      market: {
+        id: 'market-2',
+        title: 'Korea Republic vs. Czechia',
+      } as PredictBuyPreviewParams['market'],
+      outcome: {
+        id: 'outcome-2',
+        title: 'Korea Republic vs. Czechia',
+        groupItemTitle: 'Korea Republic',
+        image: 'https://example.com/korea.png',
+        sportsMarketType: 'moneyline',
+        tokens: [
+          {
+            id: 'token-2',
+            title: 'Yes',
+            shortTitle: 'KOR',
+            price: 0.375,
+          },
+        ],
+      } as PredictBuyPreviewParams['outcome'],
+      outcomeToken: {
+        id: 'token-2',
+        title: 'Yes',
+        shortTitle: 'KOR',
+        price: 0.375,
+      } as PredictBuyPreviewParams['outcomeToken'],
+    };
+    const MoneylineConsumer = () => {
+      const { openBuySheet } = usePredictPreviewSheet();
+
+      return (
+        <TouchableOpacity
+          testID="open-moneyline-buy"
+          onPress={() => openBuySheet(moneylineBuyParams)}
+        >
+          <Text>Open Moneyline Buy</Text>
+        </TouchableOpacity>
+      );
+    };
+
+    render(
+      <PredictPreviewSheetProvider>
+        <MoneylineConsumer />
+      </PredictPreviewSheetProvider>,
+    );
+
+    fireEvent.press(screen.getByTestId('open-moneyline-buy'));
+
+    expect(screen.getByTestId('sheet-title')).toHaveTextContent(
+      'Yes · Korea Republic',
+    );
+    expect(screen.getByTestId('sheet-image')).toHaveTextContent(
+      'https://example.com/korea.png',
+    );
   });
 
   it('renders SellSheetHeader with position info for sell sheet', () => {

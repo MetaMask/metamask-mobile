@@ -3,11 +3,11 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  ButtonIcon,
+  ButtonIconSize,
   FontWeight,
-  Icon,
   IconColor,
   IconName,
-  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -24,22 +24,36 @@ export const VIP_VOLUME_SECTION_TEST_IDS = {
   REFERRALS: 'vip-volume-section-referrals',
   REFERRALS_CAP: 'vip-volume-section-referrals-cap',
   SWAPS: 'vip-volume-section-swaps',
+  SWAPS_INFO: 'vip-volume-section-swaps-info',
   PERPS: 'vip-volume-section-perps',
-  ON_TRACK: 'vip-volume-section-on-track',
 } as const;
+
+interface VipVolumeSectionLabels {
+  points: string;
+  swapsVolume: string;
+  pointsFromReferrals: string;
+  perpsVolume: string;
+  vipReferrals: string;
+}
 
 interface VipVolumeSectionProps {
   volume: VipVolumeDto;
   title: string;
   period: string;
-  status: string;
+  labels: VipVolumeSectionLabels;
+  /**
+   * Optional callback fired when the swaps-volume help icon is pressed.
+   * When provided, an info icon is rendered next to the swaps-volume label.
+   */
+  onSwapsVolumeInfoPress?: () => void;
 }
 
 const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
   volume,
   title,
   period,
-  status,
+  labels,
+  onSwapsVolumeInfoPress,
 }) => (
   <Box twClassName="gap-3 px-4" testID={VIP_VOLUME_SECTION_TEST_IDS.CONTAINER}>
     <Box twClassName="gap-1">
@@ -58,16 +72,34 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
     <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6 mt-1">
       <Box twClassName="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.POINTS}>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.vip.points_label')}
+          {labels.points}
         </Text>
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {formatNumber(volume.points)}
         </Text>
       </Box>
       <Box twClassName="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.SWAPS}>
-        <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.vip.swaps_label')}
-        </Text>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+        >
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {labels.swapsVolume}
+          </Text>
+          {onSwapsVolumeInfoPress ? (
+            <ButtonIcon
+              iconName={IconName.Info}
+              iconProps={{ color: IconColor.IconAlternative }}
+              size={ButtonIconSize.Sm}
+              onPress={onSwapsVolumeInfoPress}
+              accessibilityLabel={strings(
+                'rewards.vip.swaps_volume_info_label',
+              )}
+              testID={VIP_VOLUME_SECTION_TEST_IDS.SWAPS_INFO}
+            />
+          ) : null}
+        </Box>
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {formatUsd(volume.swapsUsd)}
         </Text>
@@ -80,7 +112,7 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
         testID={VIP_VOLUME_SECTION_TEST_IDS.POINTS_FROM_REFERRALS}
       >
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.vip.points_from_referrals_label')}
+          {labels.pointsFromReferrals}
         </Text>
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {formatNumber(volume.pointsFromReferrals)}
@@ -89,7 +121,7 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
 
       <Box twClassName="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.PERPS}>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.vip.perps_label')}
+          {labels.perpsVolume}
         </Text>
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {formatUsd(volume.perpsUsd)}
@@ -99,28 +131,12 @@ const VipVolumeSection: React.FC<VipVolumeSectionProps> = ({
     <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-6 mt-1">
       <Box twClassName="flex-1" testID={VIP_VOLUME_SECTION_TEST_IDS.REFERRALS}>
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.vip.referrals_label')}
+          {labels.vipReferrals}
         </Text>
         <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
           {volume.referrals}/{volume.referralsCap}
         </Text>
       </Box>
-    </Box>
-
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      twClassName="gap-2 mt-1"
-      testID={VIP_VOLUME_SECTION_TEST_IDS.ON_TRACK}
-    >
-      <Icon
-        name={IconName.TrendUp}
-        size={IconSize.Sm}
-        color={IconColor.IconAlternative}
-      />
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {status}
-      </Text>
     </Box>
   </Box>
 );

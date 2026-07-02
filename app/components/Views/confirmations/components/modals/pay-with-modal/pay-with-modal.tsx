@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useRef } from 'react';
+import { HeaderStandard } from '@metamask/design-system-react-native';
 import { Hex } from '@metamask/utils';
 import { StackActions, useNavigation } from '@react-navigation/native';
 import Engine from '../../../../../../core/Engine';
@@ -11,7 +12,6 @@ import { Asset } from '../../send/asset';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   AssetType,
   isHighlightedItemInAssetList,
@@ -22,11 +22,7 @@ import {
   useTransactionPayFiatPayment,
   useTransactionPayRequiredTokens,
 } from '../../../hooks/pay/useTransactionPayData';
-import { useFiatPaymentHighlightedActions } from '../../../hooks/pay/useFiatPaymentHighlightedActions';
-import {
-  getAvailableTokens,
-  isPayWithBottomSheetEnabled,
-} from '../../../utils/transaction-pay';
+import { getAvailableTokens } from '../../../utils/transaction-pay';
 import { useTransactionPayBlockedTokens } from '../../../hooks/pay/useTransactionPayBlockedTokens';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
@@ -41,6 +37,7 @@ import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePer
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
+import { usePayWithNoFeeToken } from '../../../hooks/pay/usePayWithNoFeeToken';
 
 interface PayWithModalParams {
   /**
@@ -67,11 +64,6 @@ export function PayWithModal() {
   const { isWithdraw } = useTransactionPayWithdraw();
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
-  const fiatHighlightedActions = useFiatPaymentHighlightedActions();
-  const effectiveFiatHighlightedActions = useMemo(
-    () => (isPayWithBottomSheetEnabled() ? [] : fiatHighlightedActions),
-    [fiatHighlightedActions],
-  );
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
   const { onPaymentTokenChange: onMusdPaymentTokenChange } =
@@ -92,6 +84,16 @@ export function PayWithModal() {
   const predictBalanceTokenFilter = usePredictBalanceTokenFilter(
     isPredictContext,
     isPredictContext ? resetSelectedPaymentToken : undefined,
+  );
+
+  const isMoneyAccount = hasTransactionType(transactionMeta, [
+    TransactionType.moneyAccountDeposit,
+    TransactionType.moneyAccountWithdraw,
+  ]);
+  const { renderNoFeeTag } = usePayWithNoFeeToken();
+  const tagRenderers = useMemo(
+    () => (isMoneyAccount ? [renderNoFeeTag] : undefined),
+    [isMoneyAccount, renderNoFeeTag],
   );
 
   const close = useCallback((onClosed?: () => void) => {
@@ -236,16 +238,10 @@ export function PayWithModal() {
         filteredTokens = predictBalanceTokenFilter(availableTokens);
       }
 
-      const wrappedTokens = wrapHighlightedItemCallbacks(filteredTokens);
-      const wrappedFiatActions = wrapHighlightedItemCallbacks(
-        effectiveFiatHighlightedActions,
-      );
-
-      return [...wrappedFiatActions, ...wrappedTokens];
+      return wrapHighlightedItemCallbacks(filteredTokens);
     },
     [
       blockedTokens,
-      effectiveFiatHighlightedActions,
       fiatPayment,
       withdrawTokenFilter,
       musdTokenFilter,
@@ -259,10 +255,7 @@ export function PayWithModal() {
     ],
   );
 
-  // Dynamic title based on transaction type
-  const modalTitle = isWithdraw
-    ? strings('pay_with_modal.title_receive')
-    : strings('pay_with_modal.title');
+  const modalTitle = strings('pay_with_modal.modal_title');
 
   return (
     <BottomSheet
@@ -270,12 +263,21 @@ export function PayWithModal() {
       ref={bottomSheetRef}
       keyboardAvoidingViewEnabled={false}
       shouldNavigateBack={dismissOnSelectCount <= 1}
+      onClose={(hasCallback) => {
+        // Swipe/overlay/back-button dismiss: navigate back manually.
+        // X button or token selection: postCallback handles it (hasCallback=true).
+        if (!hasCallback && dismissOnSelectCount > 1) {
+          navigation.goBack();
+        }
+      }}
     >
-      <HeaderCompactStandard title={modalTitle} onClose={handleClose} />
+      <HeaderStandard title={modalTitle} onClose={handleClose} />
       <Asset
         includeNoBalance
         hideNfts
+        hideHeader
         tokenFilter={tokenFilter}
+        tagRenderers={tagRenderers}
         onTokenSelect={handleTokenSelect}
         hideNetworkFilter={hideNetworkFilter}
       />

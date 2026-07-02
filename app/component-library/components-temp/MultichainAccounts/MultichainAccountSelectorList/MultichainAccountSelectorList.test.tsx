@@ -48,6 +48,7 @@ import {
   createMockInternalAccountsWithAddresses,
 } from '../test-utils';
 import { AccountCellIds } from '../AccountCell/AccountCell.testIds';
+import { ACCOUNT_LIST_CELL_CHECKBOX_ICON_TEST_ID } from './AccountListCell/AccountListCell.testIds';
 
 jest.mock('../../../../core/Engine', () => ({
   context: {
@@ -323,6 +324,98 @@ describe('MultichainAccountSelectorList', () => {
         `account-list-cell-checkbox-${account1.id}`,
       );
       expect(account1Checkbox).toHaveLength(1);
+    });
+  });
+
+  describe('Wallet header visibility', () => {
+    it('does not render wallet header when there is only one wallet', () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet1/group2',
+        'Account 2',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [
+        account1,
+        account2,
+      ]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+      const { queryByText } = renderComponentWithMockState(
+        [wallet1],
+        internalAccounts,
+        [],
+      );
+
+      expect(queryByText('Account 1')).toBeTruthy();
+      expect(queryByText('Account 2')).toBeTruthy();
+      expect(queryByText('Wallet 1')).toBeFalsy();
+    });
+
+    it('renders wallet headers when there are multiple wallets', () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Account 1',
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet2/group2',
+        'Account 2',
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const wallet2 = createMockWallet('wallet2', 'Wallet 2', [account2]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+      const { queryByText } = renderComponentWithMockState(
+        [wallet1, wallet2],
+        internalAccounts,
+        [],
+      );
+
+      expect(queryByText('Account 1')).toBeTruthy();
+      expect(queryByText('Account 2')).toBeTruthy();
+      expect(queryByText('Wallet 1')).toBeTruthy();
+      expect(queryByText('Wallet 2')).toBeTruthy();
+    });
+
+    it('preserves wallet headers when search filters results to a single wallet', async () => {
+      const account1 = createMockAccountGroup(
+        'keyring:wallet1/group1',
+        'Alpha Account',
+        ['account1'],
+      );
+      const account2 = createMockAccountGroup(
+        'keyring:wallet2/group2',
+        'Beta Account',
+        ['account2'],
+      );
+      const wallet1 = createMockWallet('wallet1', 'Wallet 1', [account1]);
+      const wallet2 = createMockWallet('wallet2', 'Wallet 2', [account2]);
+
+      const internalAccounts = createMockInternalAccountsFromGroups([
+        account1,
+        account2,
+      ]);
+      const { getByTestId, queryByText } = renderComponentWithMockState(
+        [wallet1, wallet2],
+        internalAccounts,
+        [],
+      );
+
+      await performSearch(
+        getByTestId,
+        queryByText,
+        'Alpha',
+        ['Alpha Account', 'Wallet 1'],
+        ['Beta Account', 'Wallet 2'],
+      );
     });
   });
 
@@ -1286,7 +1379,9 @@ describe('MultichainAccountSelectorList', () => {
       expect(account2Checkboxes.length).toEqual(1); // Only container (unselected account, no icon rendered)
 
       // Check that there are no checked checkbox icons (since none are selected)
-      expect(queryByTestId('checkbox-icon-component')).toBeFalsy();
+      expect(
+        queryByTestId(ACCOUNT_LIST_CELL_CHECKBOX_ICON_TEST_ID),
+      ).toBeFalsy();
     });
 
     it('calls onSelectAccount when checkbox is pressed', () => {

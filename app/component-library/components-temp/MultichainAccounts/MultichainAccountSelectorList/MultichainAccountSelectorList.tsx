@@ -10,10 +10,14 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
 import { useSelector } from 'react-redux';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
+import {
+  Text,
+  TextColor,
+  TextFieldSearch,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 import { useStyles } from '../../../hooks';
-import Text, { TextColor, TextVariant } from '../../../components/Texts/Text';
-import TextFieldSearch from '../../../components/Form/TextFieldSearch';
 import { selectAccountGroupsByWallet } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsById } from '../../../../selectors/accountsController';
 import AccountListHeader from './AccountListHeader';
@@ -179,11 +183,15 @@ const MultichainAccountSelectorList = ({
       return items;
     }
 
+    const showWalletHeaders = walletSections.length > 1;
+
     filteredWalletSections.forEach((section) => {
-      items.push({
-        type: 'header',
-        data: { title: section.title, walletName: section.walletName },
-      });
+      if (showWalletHeaders) {
+        items.push({
+          type: 'header',
+          data: { title: section.title, walletName: section.walletName },
+        });
+      }
 
       section.data.forEach((accountGroup) => {
         items.push({
@@ -205,6 +213,7 @@ const MultichainAccountSelectorList = ({
     isExternalAddressValid,
     shouldShowExternalAccount,
     trimmedSearchText,
+    walletSections.length,
   ]);
 
   // Track if we've done the initial scroll to selected item
@@ -408,14 +417,16 @@ const MultichainAccountSelectorList = ({
           onChangeText={setSearchText}
           onPressClearButton={() => setSearchText('')}
           placeholder={strings('accounts.search_your_accounts')}
-          testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID}
+          inputProps={{
+            testID: MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_INPUT_TESTID,
+          }}
           autoFocus={false}
           isError={shouldShowInvalidAddressError}
         />
         {shouldShowInvalidAddressError ? (
           <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Error}
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
             style={styles.searchErrorText}
             testID={MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID}
           >
@@ -430,8 +441,8 @@ const MultichainAccountSelectorList = ({
             testID={MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID}
           >
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Muted}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextMuted}
               style={styles.emptyStateText}
             >
               {emptyStateText}

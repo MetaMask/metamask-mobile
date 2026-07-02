@@ -8,11 +8,16 @@ import {
   selectPredictFeeCollectionFlag,
   selectPredictGtmOnboardingModalEnabledFlag,
   selectPredictHomeFeaturedVariant,
-  selectPredictHomepageDiscoveryNbaChampionEnabledFlag,
+  selectPredictHomeRedesignEnabledFlag,
   selectPredictHotTabFlag,
+  selectPredictPortfolioEnabledFlag,
+  selectPredictSportCardLivePricesEnabledFlag,
   selectPredictUpDownEnabledFlag,
   selectPredictWithAnyTokenEnabledFlag,
+  selectPredictWimbledonTabFlag,
   selectPredictWorldCupConfig,
+  selectPredictWorldCupHubBannerEnabledFlag,
+  selectPredictWorldCupHubV2EnabledFlag,
   selectPredictWorldCupMainFeedBannerEnabledFlag,
   selectPredictWorldCupMainFeedTabEnabledFlag,
   selectPredictWorldCupScreenEnabledFlag,
@@ -28,7 +33,10 @@ import {
 } from '../../../../../util/remoteFeatureFlag';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../../../util/remoteFeatureFlag';
-import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
+import {
+  DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_WIMBLEDON_TAB_FLAG,
+} from '../../constants/flags';
 
 jest.mock('react-native-device-info', () => ({
   getVersion: jest.fn().mockReturnValue('1.0.0'),
@@ -535,6 +543,89 @@ describe('Predict Feature Flag Selectors', () => {
           minimumVersion: '7.64.0',
         });
       });
+    });
+  });
+
+  describe('selectPredictWimbledonTabFlag', () => {
+    it('returns default flag when remote flag is missing', () => {
+      expect(selectPredictWimbledonTabFlag(mockedEmptyFlagsState)).toEqual(
+        DEFAULT_WIMBLEDON_TAB_FLAG,
+      );
+    });
+
+    it('returns enabled flag with default query params when remote query params are omitted', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const stateWithWimbledonTabFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictWimbledon: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(selectPredictWimbledonTabFlag(stateWithWimbledonTabFlag)).toEqual({
+        ...DEFAULT_WIMBLEDON_TAB_FLAG,
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+    });
+
+    it('returns enabled flag with remote query params when provided', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const stateWithWimbledonTabFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictWimbledon: {
+                  enabled: true,
+                  queryParams: 'tag_slug=wimbledon&order=volume24hr',
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(selectPredictWimbledonTabFlag(stateWithWimbledonTabFlag)).toEqual({
+        enabled: true,
+        queryParams: 'tag_slug=wimbledon&order=volume24hr',
+        minimumVersion: '1.0.0',
+      });
+    });
+
+    it('returns default flag when query params are invalid', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const stateWithInvalidQueryParams = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictWimbledon: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                  queryParams: 12345,
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(
+        selectPredictWimbledonTabFlag(stateWithInvalidQueryParams),
+      ).toEqual(DEFAULT_WIMBLEDON_TAB_FLAG);
     });
   });
 
@@ -1474,11 +1565,6 @@ describe('Predict Feature Flag Selectors', () => {
       expect(
         selectPredictWorldCupScreenEnabledFlag(mockedEmptyFlagsState),
       ).toBe(false);
-      expect(
-        selectPredictHomepageDiscoveryNbaChampionEnabledFlag(
-          mockedEmptyFlagsState,
-        ),
-      ).toBe(true);
     });
 
     it('returns normalized config and gated booleans when enabled', () => {
@@ -1544,15 +1630,182 @@ describe('Predict Feature Flag Selectors', () => {
     });
   });
 
-  describe('selectPredictHomepageDiscoveryNbaChampionEnabledFlag', () => {
-    it('returns false when the remote flag is disabled', () => {
+  describe('selectPredictWorldCupHubV2EnabledFlag', () => {
+    const buildWorldCupState = <T>(predictWorldCup: T) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: { predictWorldCup },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    beforeEach(() => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+    });
+
+    it('returns true only when enabled, showWorldCupScreen and showHubV2 are all true', () => {
+      const state = buildWorldCupState({
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: true,
+        showHubV2: true,
+      });
+
+      expect(selectPredictWorldCupHubV2EnabledFlag(state)).toBe(true);
+    });
+
+    it('returns false when showWorldCupScreen is false even if showHubV2 is true', () => {
+      const state = buildWorldCupState({
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: false,
+        showHubV2: true,
+      });
+
+      expect(selectPredictWorldCupHubV2EnabledFlag(state)).toBe(false);
+    });
+
+    it('returns false when showHubV2 is false', () => {
+      const state = buildWorldCupState({
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: true,
+        showHubV2: false,
+      });
+
+      expect(selectPredictWorldCupHubV2EnabledFlag(state)).toBe(false);
+    });
+
+    it('returns false when the World Cup feature is disabled', () => {
+      const state = buildWorldCupState({
+        enabled: false,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: true,
+        showHubV2: true,
+      });
+
+      expect(selectPredictWorldCupHubV2EnabledFlag(state)).toBe(false);
+    });
+  });
+
+  describe('selectPredictWorldCupHubBannerEnabledFlag', () => {
+    const buildWorldCupState = <T>(predictWorldCup: T) => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: { predictWorldCup },
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    beforeEach(() => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+    });
+
+    it('returns true only when enabled, showWorldCupScreen, showHubV2 and showHubBanner are all true', () => {
+      const state = buildWorldCupState({
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: true,
+        showHubV2: true,
+        showHubBanner: true,
+      });
+
+      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(true);
+    });
+
+    it('returns false when showWorldCupScreen is false even if showHubBanner is true', () => {
+      const state = buildWorldCupState({
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: false,
+        showHubV2: true,
+        showHubBanner: true,
+      });
+
+      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(false);
+    });
+
+    it('returns false when showHubV2 is false even if showHubBanner is true', () => {
+      const state = buildWorldCupState({
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: true,
+        showHubV2: false,
+        showHubBanner: true,
+      });
+
+      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(false);
+    });
+
+    it('returns false when showHubBanner is false', () => {
+      const state = buildWorldCupState({
+        enabled: true,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: true,
+        showHubV2: true,
+        showHubBanner: false,
+      });
+
+      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(false);
+    });
+
+    it('returns false when the World Cup feature is disabled', () => {
+      const state = buildWorldCupState({
+        enabled: false,
+        minimumVersion: '1.0.0',
+        showWorldCupScreen: true,
+        showHubV2: true,
+        showHubBanner: true,
+      });
+
+      expect(selectPredictWorldCupHubBannerEnabledFlag(state)).toBe(false);
+    });
+  });
+
+  describe('selectPredictPortfolioEnabledFlag', () => {
+    it('returns false when flag is missing', () => {
+      const result = selectPredictPortfolioEnabledFlag(mockedEmptyFlagsState);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when flag is enabled and version requirement is met', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(true);
       const state = {
         engine: {
           backgroundState: {
             RemoteFeatureFlagController: {
               remoteFeatureFlags: {
-                predictHomepageDiscoveryNbaChampionEnabled: {
+                predictPortfolio: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictPortfolioEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictPortfolio: {
                   enabled: false,
                   minimumVersion: '1.0.0',
                 },
@@ -1563,9 +1816,226 @@ describe('Predict Feature Flag Selectors', () => {
         },
       };
 
-      expect(selectPredictHomepageDiscoveryNbaChampionEnabledFlag(state)).toBe(
-        false,
+      const result = selectPredictPortfolioEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when flag is malformed', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictPortfolio: {
+                  enabled: 'true',
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictPortfolioEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when app version is below minimum required', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictPortfolio: {
+                  enabled: true,
+                  minimumVersion: '99.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictPortfolioEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when minimumVersion is the default empty string', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictPortfolio: {
+                  enabled: true,
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictPortfolioEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPredictHomeRedesignEnabledFlag', () => {
+    it('returns false when flag is missing', () => {
+      const result = selectPredictHomeRedesignEnabledFlag(
+        mockedEmptyFlagsState,
       );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns true when flag is enabled and version requirement is met', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeRedesign: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHomeRedesignEnabledFlag(state);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeRedesign: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHomeRedesignEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when flag is malformed', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeRedesign: {
+                  enabled: 'true',
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHomeRedesignEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when app version is below minimum required', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeRedesign: {
+                  enabled: true,
+                  minimumVersion: '99.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHomeRedesignEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when minimumVersion is the default empty string', () => {
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictHomeRedesign: {
+                  enabled: true,
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPredictHomeRedesignEnabledFlag(state);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectPredictSportCardLivePricesEnabledFlag', () => {
+    it('defaults to true when the remote flag is missing', () => {
+      expect(
+        selectPredictSportCardLivePricesEnabledFlag(mockedEmptyFlagsState),
+      ).toBe(true);
+    });
+
+    it('returns false when the remote flag is disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+      const state = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                predictSportCardLivePrices: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      expect(selectPredictSportCardLivePricesEnabledFlag(state)).toBe(false);
     });
   });
 

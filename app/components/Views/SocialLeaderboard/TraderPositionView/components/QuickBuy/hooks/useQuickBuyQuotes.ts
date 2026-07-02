@@ -21,6 +21,7 @@ import { calcTokenValue } from '../../../../../../../util/transactions';
 import { analytics } from '../../../../../../../util/analytics/analytics';
 import { selectRemoteFeatureFlags } from '../../../../../../../selectors/featureFlagController';
 import {
+  selectBridgeFeatureFlags,
   selectDestAddress,
   selectSlippage,
 } from '../../../../../../../core/redux/slices/bridge';
@@ -32,10 +33,13 @@ import { getDecimalChainId } from '../../../../../../../util/networks';
 import Logger from '../../../../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../../../../util/social/socialServiceTelemetry';
 import {
-  SocialLeaderboardEventProperties,
-  useSocialLeaderboardAnalytics,
-} from '../../../../analytics';
+  QuickBuyEventProperties,
+  type QuickBuySheetSource,
+} from '../analytics';
+import { useSocialLeaderboardAnalytics } from '../../../../analytics';
 import { MetaMetricsEvents } from '../../../../../../../core/Analytics';
+import { getQuoteRefreshRate } from '../../../../../../UI/Bridge/utils/quoteUtils';
+import { getQuickBuyFeatureId } from '../utils/getQuickBuyFeatureId';
 
 export type QuickBuyQuote = QuoteResponse & L1GasFees & NonEvmFees;
 
@@ -46,6 +50,8 @@ export interface QuickBuyQuotesAnalyticsContext {
   caip19?: string;
   /** USD amount the user has selected; used as `amount_usd`. */
   amountUsd?: number;
+  /** Entry surface for FeatureId mapping on fetchQuotes. */
+  source?: QuickBuySheetSource;
 }
 
 export type EnrichedQuickBuyQuote = ReturnType<
@@ -59,17 +65,44 @@ interface UseQuickBuyQuotesParams {
   destToken: BridgeToken | undefined;
   sourceTokenAmount: string | undefined;
   analyticsContext?: QuickBuyQuotesAnalyticsContext;
+  /** When set, overrides the recommended quote with the quote matching this requestId. */
+  selectedQuoteRequestId?: string;
+  /**
+   * Monotonic nonce bumped by the consumer when the amount change is a
+   * committed value (e.g. a slider release) rather than rapidly-changing input
+   * (e.g. typing). When it increments, the pending debounce is flushed so the
+   * quote fetch fires immediately instead of waiting out the typing debounce.
+   */
+  immediateFetchToken?: number;
 }
 
 export interface UseQuickBuyQuotesResult {
   activeQuote: EnrichedQuickBuyQuote | undefined;
+  sortedQuotes: EnrichedQuickBuyQuote[];
   destTokenAmount: string | undefined;
   isQuoteLoading: boolean;
   quoteFetchError: string | null;
   isNoQuotesAvailable: boolean;
   isActiveQuoteForCurrentTokenPair: boolean;
+  /**
+   * True when request-only inputs the consumer cannot observe (slippage,
+   * destination address, gas settings) have changed since the currently
+   * displayed quotes were fetched. While true, the displayed quotes no longer
+   * match the active request and must not be treated as submittable.
+   */
+  isQuoteRequestStale: boolean;
   /** Number of quotes returned by the most recent successful request. */
   quoteCount: number;
+  /** Timestamp (ms) of the last successful quotes fetch. */
+  quotesLastFetchedAt: number | null;
+  /** Number of times quotes have been auto-refreshed since inputs last changed. */
+  refreshCount: number;
+  /** Quote refresh rate in ms (from feature flags). */
+  quoteRefreshRateMs: number;
+  /** Max auto-refresh attempts before showing "Get new quote" button. */
+  maxRefreshCount: number;
+  /** Imperatively trigger a new quotes fetch and reset the refresh counter. */
+  refetchQuotes: () => void;
 }
 
 const buildQuoteRequest = ({
@@ -141,6 +174,8 @@ export function useQuickBuyQuotes({
   destToken,
   sourceTokenAmount,
   analyticsContext,
+  selectedQuoteRequestId,
+  immediateFetchToken,
 }: UseQuickBuyQuotesParams): UseQuickBuyQuotesResult {
   const slippage = useSelector(selectSlippage);
   const destAddress = useSelector(selectDestAddress);
@@ -148,22 +183,59 @@ export function useQuickBuyQuotes({
   const { gasIncluded, gasIncluded7702 } = useSelector(
     selectGasIncludedQuoteParams,
   );
+  const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
   const { track } = useSocialLeaderboardAnalytics();
 
   const [rawQuotes, setRawQuotes] = useState<QuickBuyQuote[]>([]);
   const [isQuoteLoading, setIsQuoteLoading] = useState(false);
   const [quoteFetchError, setQuoteFetchError] = useState<string | null>(null);
   const [isNoQuotesAvailable, setIsNoQuotesAvailable] = useState(false);
+  const [quotesLastFetchedAt, setQuotesLastFetchedAt] = useState<number | null>(
+    null,
+  );
+  /** Start time of the most recent fetch attempt (success or failure). */
+  const [quotesLastAttemptAt, setQuotesLastAttemptAt] = useState<number | null>(
+    null,
+  );
+  const [refreshCount, setRefreshCount] = useState(0);
+
+  const quoteRefreshRateMs = useMemo(
+    () => getQuoteRefreshRate(bridgeFeatureFlags, sourceToken),
+    [bridgeFeatureFlags, sourceToken],
+  );
+  const maxRefreshCount = bridgeFeatureFlags?.maxRefreshCount ?? 5;
 
   const abortControllerRef = useRef<AbortController | null>(null);
   // Tracks request timing so the received-event can report latency.
   const requestStartedAtRef = useRef<number | null>(null);
+
+  // Signature of the request-only inputs (slippage, destination address, gas
+  // settings) that the consumer of this hook cannot observe. Used to detect when
+  // the displayed quotes were fetched for a different request than the current
+  // one so the CTA is not left enabled with a stale quote.
+  const requestParamsKey = useMemo(
+    () =>
+      JSON.stringify({
+        slippage: slippage ?? null,
+        destAddress: destAddress ?? null,
+        gasIncluded,
+        gasIncluded7702,
+      }),
+    [slippage, destAddress, gasIncluded, gasIncluded7702],
+  );
+  // The request-params signature the most recently settled quotes were fetched
+  // for. Null until the first fetch settles (or after quotes are reset).
+  const settledRequestParamsKeyRef = useRef<string | null>(null);
 
   const resetQuotesIdle = useCallback(() => {
     setRawQuotes([]);
     setIsQuoteLoading(false);
     setIsNoQuotesAvailable(false);
     setQuoteFetchError(null);
+    setQuotesLastFetchedAt(null);
+    setQuotesLastAttemptAt(null);
+    setRefreshCount(0);
+    settledRequestParamsKeyRef.current = null;
   }, []);
 
   const fetchQuotes = useCallback(async () => {
@@ -196,6 +268,15 @@ export function useQuickBuyQuotes({
       return;
     }
 
+    // Snapshot of the request-only inputs this fetch is for, recorded as settled
+    // once the result (or error) lands so later input changes register as stale.
+    const fetchedRequestParamsKey = JSON.stringify({
+      slippage: slippage ?? null,
+      destAddress: destAddress ?? null,
+      gasIncluded,
+      gasIncluded7702,
+    });
+
     const controller = new AbortController();
     abortControllerRef.current = controller;
 
@@ -203,6 +284,7 @@ export function useQuickBuyQuotes({
     setQuoteFetchError(null);
 
     const requestedAt = Date.now();
+    setQuotesLastAttemptAt(requestedAt);
     requestStartedAtRef.current = requestedAt;
 
     // Shared by REQUESTED + RECEIVED. Null when analytics context is incomplete
@@ -210,13 +292,12 @@ export function useQuickBuyQuotes({
     const quotesBaseProps =
       analyticsContext?.traderAddress && analyticsContext?.caip19
         ? {
-            [SocialLeaderboardEventProperties.TRADER_ADDRESS]:
+            [QuickBuyEventProperties.TRADER_ADDRESS]:
               analyticsContext.traderAddress,
-            [SocialLeaderboardEventProperties.CAIP19]: analyticsContext.caip19,
-            [SocialLeaderboardEventProperties.AMOUNT_USD]:
+            [QuickBuyEventProperties.CAIP19]: analyticsContext.caip19,
+            [QuickBuyEventProperties.AMOUNT_USD]:
               analyticsContext.amountUsd ?? 0,
-            [SocialLeaderboardEventProperties.PAY_WITH_TOKEN]:
-              sourceToken.symbol,
+            [QuickBuyEventProperties.PAY_WITH_TOKEN]: sourceToken.symbol,
           }
         : null;
 
@@ -231,9 +312,8 @@ export function useQuickBuyQuotes({
       if (quotesBaseProps) {
         track(MetaMetricsEvents.SOCIAL_QUICK_BUY_QUOTES_RECEIVED, {
           ...quotesBaseProps,
-          [SocialLeaderboardEventProperties.QUOTE_COUNT]: quoteCount,
-          [SocialLeaderboardEventProperties.LATENCY_MS]:
-            Date.now() - requestedAt,
+          [QuickBuyEventProperties.QUOTE_COUNT]: quoteCount,
+          [QuickBuyEventProperties.LATENCY_MS]: Date.now() - requestedAt,
         });
       }
     };
@@ -241,18 +321,20 @@ export function useQuickBuyQuotes({
     try {
       const result = await Engine.context.BridgeController.fetchQuotes(
         params,
+        getQuickBuyFeatureId(analyticsContext?.source),
         controller.signal,
-        // @ts-expect-error quickBuy has not been added as a FeatureId yet
-        'quickBuy',
       );
 
       if (controller.signal.aborted) {
         return;
       }
 
+      settledRequestParamsKeyRef.current = fetchedRequestParamsKey;
       setRawQuotes(result);
       setIsNoQuotesAvailable(result.length === 0);
       setIsQuoteLoading(false);
+      setQuotesLastFetchedAt(Date.now());
+      setRefreshCount((prev) => prev + 1);
       fireReceived(result.length);
     } catch (error) {
       if (controller.signal.aborted) {
@@ -274,6 +356,7 @@ export function useQuickBuyQuotes({
           },
         }),
       );
+      settledRequestParamsKeyRef.current = fetchedRequestParamsKey;
       setQuoteFetchError(message);
       setRawQuotes([]);
       setIsNoQuotesAvailable(false);
@@ -305,6 +388,51 @@ export function useQuickBuyQuotes({
       debouncedFetchQuotes.cancel();
     };
   }, [debouncedFetchQuotes]);
+
+  // Committed-value paths (e.g. slider release) bump `immediateFetchToken`.
+  // The reactive effect above has already scheduled the debounced fetch for the
+  // new amount in this same commit; cancelling it and invoking `fetchQuotes`
+  // directly fetches immediately with the current value, skipping the typing
+  // debounce. The initial render is a no-op (token unchanged from its initial).
+  const prevImmediateFetchTokenRef = useRef(immediateFetchToken);
+  useEffect(() => {
+    if (prevImmediateFetchTokenRef.current === immediateFetchToken) {
+      return;
+    }
+    prevImmediateFetchTokenRef.current = immediateFetchToken;
+    debouncedFetchQuotes.cancel();
+    fetchQuotes();
+  }, [immediateFetchToken, debouncedFetchQuotes, fetchQuotes]);
+
+  // Auto-refresh quotes on a fixed interval indefinitely.
+  // `refreshCount` starts at 0 and increments on each successful fetch, so
+  // after the initial fetch (count=1) this effect schedules the next one.
+  useEffect(() => {
+    if (!quotesLastAttemptAt || refreshCount === 0 || isQuoteLoading) {
+      return;
+    }
+
+    const elapsed = Date.now() - quotesLastAttemptAt;
+    const delay = Math.max(0, quoteRefreshRateMs - elapsed);
+
+    const timer = setTimeout(() => {
+      fetchQuotes();
+    }, delay);
+
+    return () => clearTimeout(timer);
+  }, [
+    quotesLastAttemptAt,
+    refreshCount,
+    quoteRefreshRateMs,
+    isQuoteLoading,
+    fetchQuotes,
+  ]);
+
+  /** Reset the refresh counter and re-fetch immediately (for "Get new quote" CTA). */
+  const refetchQuotes = useCallback(() => {
+    setRefreshCount(0);
+    fetchQuotes();
+  }, [fetchQuotes]);
 
   useEffect(
     () => () => {
@@ -357,7 +485,25 @@ export function useQuickBuyQuotes({
     });
   }, [rawQuotes, metadataDeps, sourceToken, destToken]);
 
-  const activeQuote = enrichedResult.recommendedQuote ?? undefined;
+  const sortedQuotes = useMemo(
+    () => enrichedResult.sortedQuotes ?? [],
+    [enrichedResult.sortedQuotes],
+  );
+
+  // When the user has manually selected a provider, use that quote; otherwise
+  // fall back to the recommended (lowest-cost) quote.
+  const activeQuote = useMemo(() => {
+    if (selectedQuoteRequestId) {
+      return (
+        sortedQuotes.find(
+          (q) => q.quote.requestId === selectedQuoteRequestId,
+        ) ??
+        enrichedResult.recommendedQuote ??
+        undefined
+      );
+    }
+    return enrichedResult.recommendedQuote ?? undefined;
+  }, [selectedQuoteRequestId, sortedQuotes, enrichedResult.recommendedQuote]);
 
   const isActiveQuoteForCurrentTokenPair = useMemo(() => {
     if (!activeQuote || !sourceToken || !destToken) {
@@ -387,13 +533,27 @@ export function useQuickBuyQuotes({
         )
       : undefined;
 
+  // The displayed quotes were fetched for a settled request; if the current
+  // request-only inputs no longer match it, the quotes are stale. Before the
+  // first settle (ref null) there is nothing displayed to be stale against.
+  const isQuoteRequestStale =
+    settledRequestParamsKeyRef.current !== null &&
+    settledRequestParamsKeyRef.current !== requestParamsKey;
+
   return {
     activeQuote,
+    sortedQuotes,
     destTokenAmount,
     isQuoteLoading,
     quoteFetchError,
     isNoQuotesAvailable,
     isActiveQuoteForCurrentTokenPair,
-    quoteCount: enrichedResult.sortedQuotes?.length ?? rawQuotes.length,
+    isQuoteRequestStale,
+    quoteCount: sortedQuotes.length,
+    quotesLastFetchedAt,
+    refreshCount,
+    quoteRefreshRateMs,
+    maxRefreshCount,
+    refetchQuotes,
   };
 }

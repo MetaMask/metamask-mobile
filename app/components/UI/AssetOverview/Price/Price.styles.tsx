@@ -2,7 +2,7 @@ import type { Theme } from '@metamask/design-tokens';
 import { StyleSheet, ViewStyle } from 'react-native';
 import { TOKEN_OVERVIEW_TIME_RANGE_ROW_HEIGHT } from './tokenOverviewChart.constants';
 
-const styleSheet = (_params: { theme: Theme }) =>
+const styleSheet = (params: { theme: Theme }) =>
   StyleSheet.create({
     wrapper: {
       width: '100%',
@@ -18,22 +18,33 @@ const styleSheet = (_params: { theme: Theme }) =>
     stockBadge: {
       marginLeft: 8,
     },
-    loadingPrice: {
-      paddingTop: 8,
-    },
-    loadingPriceDiff: {
-      paddingTop: 2,
-    },
     chartContainer: {
       width: '100%',
       alignSelf: 'stretch',
     } as ViewStyle,
-    /** Figma: column, py 12, align start, gap 10; child row is full width */
+    edgeOverlay: {
+      position: 'absolute',
+      left: 0,
+      top: 0,
+      bottom: 0,
+      width: 15,
+      zIndex: 10,
+    } as ViewStyle,
     timeRangeContainer: {
       width: '100%',
       alignSelf: 'stretch',
       paddingTop: 12,
       paddingBottom: 24,
+      flexDirection: 'column',
+      alignItems: 'flex-start',
+      gap: 10,
+    } as ViewStyle,
+    /** Container for IntervalBar above chart (technical indicators flag ON) - exactly 16px spacing to chart */
+    intervalBarContainer: {
+      width: '100%',
+      alignSelf: 'stretch',
+      paddingTop: 8,
+      paddingBottom: 8,
       flexDirection: 'column',
       alignItems: 'flex-start',
       gap: 10,

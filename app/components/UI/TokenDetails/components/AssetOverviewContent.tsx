@@ -45,7 +45,7 @@ import TokenDetails from '../../AssetOverview/TokenDetails';
 import { TokenDetailsActions } from './TokenDetailsActions';
 import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
 import MoneyConvertStablecoins from '../../Money/components/MoneyConvertStablecoins/MoneyConvertStablecoins';
-import { MONEY_EVENTS_CONSTANTS } from '../../Money/constants/moneyEvents';
+import { MONEY_HUB_EVENTS_CONSTANTS } from '../../Money/constants/moneyHubEvents';
 import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
 import { isMusdToken } from '../../Earn/constants/musd';
 import {
@@ -55,7 +55,6 @@ import {
 import { useMusdConversionEligibility } from '../../Earn/hooks/useMusdConversionEligibility';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
-import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import {
   MarketInsightsEntryCard,
@@ -67,29 +66,21 @@ import { isCaipAssetType, type Hex } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
-import type { TokenDetailsRouteParams } from '../constants/constants';
-import { getResultTypeConfig } from '../../SecurityTrust/utils/securityUtils';
+import {
+  TokenDetailsAction,
+  type TokenDetailsRouteParams,
+} from '../constants/constants';
+import { useTokenDetailsActionTracking } from '../hooks/useTokenDetailsActionTracking';
+import { useTokenSecurityBadgePress } from '../hooks/useTokenSecurityBadgePress';
 import {
   Box,
   BoxFlexDirection,
-  BoxAlignItems,
-  Icon,
-  IconSize,
   FontWeight,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { SecurityBanner } from './SecurityBanner';
-import Badge, {
-  BadgeVariant,
-} from '../../../../component-library/components/Badges/Badge';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar/Avatar.types';
-import BadgeWrapper, {
-  BadgePosition,
-} from '../../../../component-library/components/Badges/BadgeWrapper';
-import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
-import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
 import TronAssetOverviewSection from './TronAssetOverviewSection';
@@ -99,7 +90,6 @@ import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButt
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../Bridge/types';
-import StockBadge from '../../shared/StockBadge/StockBadge';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import {
   endTrace,
@@ -160,6 +150,7 @@ export interface AssetOverviewContentProps {
   comparePrice: number;
   prices: TokenPrice[];
   isLoading: boolean;
+  hasInsufficientCoverage?: boolean;
 
   timePeriod: TimePeriod;
   setTimePeriod: (period: TimePeriod) => void;
@@ -198,6 +189,15 @@ export interface AssetOverviewContentProps {
   isSecurityDataLoading?: boolean;
   /** Whether the security data fetch failed. Hides the card when true. */
   hasSecurityDataError?: boolean;
+
+  // Ambient price color A/B test
+  onPriceDirectionChange?: (isPositive: boolean) => void;
+  useAmbientColor?: boolean;
+
+  // Exit action tracking
+  onExitAction?: () => void;
+  /** Resolved price direction from the chart; true = positive, false = negative, null = not yet resolved. */
+  isPricePositive?: boolean | null;
 }
 
 /**
@@ -221,6 +221,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   comparePrice,
   prices,
   isLoading,
+  hasInsufficientCoverage,
   timePeriod,
   setTimePeriod,
   chartNavigationButtons,
@@ -237,12 +238,23 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   securityData,
   isSecurityDataLoading = false,
   hasSecurityDataError = false,
+  onPriceDirectionChange,
+  useAmbientColor,
+  onExitAction,
+  isPricePositive,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
-  const { isTokenTradingOpen, isStockToken } = useRWAToken();
+  const { isTokenTradingOpen } = useRWAToken();
+
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const hasBalanceValue = Boolean(balance) && balance !== '0';
+  const trackActionTapped = useTokenDetailsActionTracking({
+    token,
+    hasBalance: hasBalanceValue,
+    severity: securityData?.resultType,
+  });
   const tronNativeToken = isTronNativeToken(token) ? token : null;
 
   const {
@@ -283,6 +295,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           setIsEligibilityModalVisible(true);
           return;
         }
+        onExitAction?.();
         handlePerpsAction?.('long');
       }).finally(() => {
         // Release the TokenDetailsActions nav lock whenever gate() settles
@@ -291,7 +304,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         // listeners also clear the lock.
         resetNavigationLockRef.current?.();
       }),
-    [gate, isEligible, track, handlePerpsAction],
+    [gate, isEligible, track, handlePerpsAction, onExitAction],
   );
 
   const handleShortPress = useCallback(
@@ -307,11 +320,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           setIsEligibilityModalVisible(true);
           return;
         }
+        onExitAction?.();
         handlePerpsAction?.('short');
       }).finally(() => {
         resetNavigationLockRef.current?.();
       }),
-    [gate, isEligible, track, handlePerpsAction],
+    [gate, isEligible, track, handlePerpsAction, onExitAction],
   );
 
   const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
@@ -357,61 +371,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     isMusdConversionFlowEnabled &&
     isMusdGeoEligible;
 
-  const securityConfig = useMemo(
-    () => getResultTypeConfig(securityData?.resultType),
-    [securityData?.resultType],
-  );
-
-  const handleSecurityBadgePress = useCallback(() => {
-    if (
-      !securityData?.resultType ||
-      securityData.resultType === 'Benign' ||
-      !securityConfig.icon ||
-      !securityConfig.iconColor ||
-      !securityConfig.sheetTitle ||
-      !securityConfig.getSheetDescription
-    ) {
-      return;
-    }
-
-    // For Verified tokens, use badge icon (VerifiedFilled) instead of tag icon (SecurityTick)
-    const isVerified = securityData.resultType === 'Verified';
-    const displayIcon =
-      isVerified && securityConfig.badge
-        ? securityConfig.badge.icon
-        : securityConfig.icon;
-    const displayIconColor =
-      isVerified && securityConfig.badge
-        ? securityConfig.badge.iconColor
-        : securityConfig.iconColor;
-
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET,
-      params: {
-        icon: displayIcon,
-        iconColor: displayIconColor,
-        title: securityConfig.sheetTitle,
-        description: securityConfig.getSheetDescription(token.symbol),
-        source: 'badge',
-        severity: securityData.resultType,
-        tokenAddress: token.address,
-        tokenSymbol: token.symbol,
-        chainId: token.chainId,
-        features: securityData.features,
-      },
-    });
-  }, [
-    securityData,
-    securityConfig,
-    token.symbol,
-    token.address,
-    token.chainId,
-    navigation,
-  ]);
-
-  const networkBadgeSource = token.chainId
-    ? NetworkBadgeSource(token.chainId as Hex)
-    : undefined;
+  const { securityConfig, handleSecurityBadgePress } =
+    useTokenSecurityBadgePress(token, securityData);
 
   const marketInsightsCaip19Id = useMemo(() => {
     if (!isMarketInsightsEnabled) {
@@ -521,6 +482,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       pricePercentChange: percentChange,
       token,
       source: 'token_details',
+      isPricePositive: isPricePositive ?? undefined,
+      useAmbientColor,
     });
   }, [
     navigation,
@@ -531,6 +494,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     marketInsightsReport,
     priceDiff,
     comparePrice,
+    useAmbientColor,
+    isPricePositive,
   ]);
 
   const handlePerpsDiscoveryPress = useCallback(() => {
@@ -575,6 +540,22 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     Boolean(marketInsightsCaip19Id) &&
     (Boolean(marketInsightsReport) || isMarketInsightsLoading);
 
+  const tokenDisplaySymbol = token.symbol || token.name;
+  const securityBadgeDescription = (() => {
+    if (securityData?.resultType === 'Malicious') {
+      return tokenDisplaySymbol
+        ? strings('security_trust.malicious_token_description', {
+            symbol: tokenDisplaySymbol,
+          })
+        : strings('security_trust.malicious_token_description_no_symbol');
+    }
+    return tokenDisplaySymbol
+      ? strings('security_trust.suspicious_token_description', {
+          symbol: tokenDisplaySymbol,
+        })
+      : strings('security_trust.suspicious_token_description_no_symbol');
+  })();
+
   return (
     <Box twClassName="pt-[2px]" testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {token.hasBalanceError ? (
@@ -607,98 +588,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                     ? strings('security_trust.malicious_token_title')
                     : undefined
                 }
-                description={
-                  securityData.resultType === 'Malicious'
-                    ? strings('security_trust.malicious_token_description', {
-                        symbol: token.symbol,
-                      })
-                    : strings('security_trust.suspicious_token_description', {
-                        symbol: token.symbol,
-                      })
-                }
+                description={securityBadgeDescription}
                 className="mx-4 mb-3 gap-4"
                 onPress={handleSecurityBadgePress}
               />
             )}
-
-          {/* Token icon + name row */}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-4 py-2 pl-4 pr-[16px]"
-          >
-            <BadgeWrapper
-              badgePosition={BadgePosition.BottomRight}
-              badgeElement={
-                networkBadgeSource ? (
-                  <Badge
-                    variant={BadgeVariant.Network}
-                    imageSource={networkBadgeSource}
-                    size={AvatarSize.Xs}
-                  />
-                ) : undefined
-              }
-            >
-              <AssetLogo asset={token} />
-            </BadgeWrapper>
-
-            <Box twClassName="min-w-0 flex-1">
-              <Box
-                flexDirection={BoxFlexDirection.Row}
-                alignItems={BoxAlignItems.Center}
-                twClassName="max-w-full min-w-0 gap-1.5 self-stretch"
-              >
-                <Box twClassName="min-w-0 shrink grow-0">
-                  <Text
-                    variant={TextVariant.HeadingMd}
-                    color={TextColor.TextDefault}
-                    numberOfLines={1}
-                  >
-                    {token.name || token.symbol}
-                  </Text>
-                </Box>
-                {securityData?.resultType === 'Verified' &&
-                  securityConfig.badge && (
-                    <Box twClassName="shrink-0 pb-[2px]">
-                      <TouchableOpacity
-                        onPress={handleSecurityBadgePress}
-                        testID="security-badge-verified"
-                      >
-                        <Icon
-                          name={securityConfig.badge.icon}
-                          size={IconSize.Md}
-                          color={securityConfig.badge.iconColor}
-                        />
-                      </TouchableOpacity>
-                    </Box>
-                  )}
-                {!token.name && isStockToken(token as BridgeToken) && (
-                  <Box twClassName="shrink-0">
-                    <StockBadge token={token as BridgeToken} />
-                  </Box>
-                )}
-              </Box>
-              {token.name ? (
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Center}
-                  twClassName="gap-1"
-                >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
-                    fontWeight={FontWeight.Medium}
-                    numberOfLines={1}
-                  >
-                    {token.ticker || token.symbol}
-                  </Text>
-                  {isStockToken(token as BridgeToken) && (
-                    <StockBadge token={token as BridgeToken} />
-                  )}
-                </Box>
-              ) : null}
-            </Box>
-          </Box>
 
           <Price
             asset={token}
@@ -711,6 +605,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             currentPrice={currentPrice}
             comparePrice={comparePrice}
             isLoading={isLoading}
+            hasInsufficientCoverage={hasInsufficientCoverage}
+            onPriceDirectionChange={onPriceDirectionChange}
+            useAmbientColor={useAmbientColor}
           />
           {!isTokenTradingOpen(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
@@ -723,7 +620,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           )}
           <TokenDetailsActions
             hasPerpsMarket={hasPerpsMarket}
-            hasBalance={Boolean(balance) && balance !== '0'}
+            hasBalance={hasBalanceValue}
             isBuyable={isBuyable}
             isNativeCurrency={token.isETH || token.isNative || false}
             token={token}
@@ -734,6 +631,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             onReceive={onReceive}
             isLoading={isButtonsLoading}
             resetNavigationLockRef={resetNavigationLockRef}
+            onActionTapped={trackActionTapped}
           />
           {shouldShowMarketInsights ? (
             <View style={styles.marketInsightsWrapper}>
@@ -769,7 +667,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           )}
           {showMusdConvertSection && (
             <MoneyConvertStablecoins
-              location={MONEY_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
+              location={MONEY_HUB_EVENTS_CONSTANTS.EVENT_LOCATIONS.ASSET_DETAIL}
             />
           )}
           {
@@ -806,7 +704,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             />
           )}
           <View style={styles.tokenDetailsWrapper}>
-            <TokenDetails asset={token} />
+            <TokenDetails
+              asset={token}
+              onCopyAddress={() =>
+                trackActionTapped(TokenDetailsAction.CopyTokenAddress)
+              }
+            />
           </View>
           {!hasSecurityDataError &&
             (isSecurityDataLoading || securityData?.resultType) && (
@@ -815,6 +718,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   securityData={securityData ?? null}
                   isLoading={isSecurityDataLoading}
                   token={token as TokenDetailsRouteParams}
+                  isPricePositive={isPricePositive ?? undefined}
+                  useAmbientColor={useAmbientColor}
                 />
               </View>
             )}

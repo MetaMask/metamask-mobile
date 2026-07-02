@@ -276,7 +276,6 @@ jest.mock('../../core/NotificationManager', () => ({
   watchSubmittedTransaction: jest.fn(),
   getTransactionToView: jest.fn(),
   setTransactionToView: jest.fn(),
-  gotIncomingTransaction: jest.fn(),
   requestPushNotificationsPermission: jest.fn(),
   showSimpleNotification: jest.fn(),
 }));
@@ -757,6 +756,8 @@ jest.mock('redux-persist', () => ({
 
 jest.mock('../../store/storage-wrapper', () => ({
   getItem: jest.fn(),
+  getItemSync: jest.fn(),
+  removeItem: jest.fn(),
   setItem: jest.fn(),
 }));
 
@@ -814,6 +815,37 @@ if (typeof Reanimated.useAnimatedGestureHandler !== 'function') {
 }
 
 global.__DEV__ = false;
+
+// Mock react-native-screens so @react-navigation/native-stack renders plain
+// views in Jest. The real Screen components attach Animated listeners that
+// throw "Cannot read properties of undefined (reading 'remove')" during unmount
+// under fake timers. Rendering them as Views keeps native-stack navigators
+// (used by renderScreen and migrated test files) working in jsdom.
+jest.mock('react-native-screens', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const actual = jest.requireActual('react-native-screens');
+
+  const asView = (displayName) => {
+    const Component = React.forwardRef((props, ref) =>
+      React.createElement(View, { ...props, ref }),
+    );
+    Component.displayName = displayName;
+    return Component;
+  };
+
+  return {
+    ...actual,
+    enableScreens: jest.fn(),
+    enableFreeze: jest.fn(),
+    screensEnabled: jest.fn(() => false),
+    Screen: asView('Screen'),
+    ScreenContainer: asView('ScreenContainer'),
+    ScreenStack: asView('ScreenStack'),
+    ScreenStackHeaderConfig: asView('ScreenStackHeaderConfig'),
+    ScreenStackHeaderSubview: asView('ScreenStackHeaderSubview'),
+  };
+});
 
 // Custom snapshot serializer to handle Reanimated shared value proxies.
 expect.addSnapshotSerializer({
@@ -1160,16 +1192,6 @@ jest.mock('@react-native-firebase/messaging', () => {
   };
 
   return module;
-});
-
-jest.mock('../../core/Analytics/MetaMetricsTestUtils', () => {
-  return {
-    default: {
-      getInstance: jest.fn().mockReturnValue({
-        trackEvent: jest.fn(),
-      }),
-    },
-  };
 });
 
 // Mock whenEngineReady to prevent async Engine access after Jest teardown.

@@ -12,8 +12,8 @@ import {
   PredictEntryPoint,
 } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
-import { usePredictEntryPoint, usePredictPreviewSheet } from '../../contexts';
-import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { usePredictPreviewSheet } from '../../contexts';
+import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PredictActionButtons } from '../PredictActionButtons';
 import { PredictPicksForCard } from '../PredictPicks';
@@ -42,16 +42,7 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
 
-  const contextEntryPoint = usePredictEntryPoint();
-  const baseEntryPoint =
-    contextEntryPoint ??
-    propEntryPoint ??
-    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
-
-  const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
-    .isFromTrending
-    ? PredictEventValues.ENTRY_POINT.TRENDING
-    : baseEntryPoint;
+  const resolvedEntryPoint = useResolvedPredictEntryPoint(propEntryPoint);
 
   const { data: positions = [], isLoading } = usePredictPositions({
     marketId: market.id,
@@ -112,11 +103,15 @@ const PredictSportCardFooter: React.FC<PredictSportCardFooterProps> = ({
   const handleClaimPress = useCallback(async () => {
     await executeGuardedAction(
       async () => {
-        await claim();
+        // Claims are aggregate; market attribution is derived controller-side.
+        await claim({
+          entryPoint:
+            resolvedEntryPoint ?? PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
-  }, [executeGuardedAction, claim]);
+  }, [executeGuardedAction, claim, resolvedEntryPoint]);
 
   const hasPositions = positions.length > 0;
   const hasClaimablePositions = claimablePositions.length > 0;

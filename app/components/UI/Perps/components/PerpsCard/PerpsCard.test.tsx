@@ -305,6 +305,24 @@ describe('PerpsCard', () => {
       expect(getByText('Limit short')).toBeDefined();
     });
 
+    it('formats low-price order with adaptive sig-dig instead of threshold', () => {
+      // Arrange
+      const lowPriceOrder = {
+        ...mockOrder,
+        symbol: 'PUMP',
+        price: '0.001',
+      };
+
+      // Act
+      const { getByText, queryByText } = render(
+        <PerpsCard order={lowPriceOrder} testID="test-card" />,
+      );
+
+      // Assert — must show actual price, not <$0.01
+      expect(getByText('$0.001')).toBeOnTheScreen();
+      expect(queryByText('<$0.01')).toBeNull();
+    });
+
     it('uses trigger price label for trigger orders', () => {
       const triggerOrder = {
         ...mockOrder,

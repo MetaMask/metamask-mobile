@@ -35,6 +35,55 @@ const hasEventName = (
   eventName: string,
 ): boolean => mapping.eventNames.includes(eventName);
 
+const eventMatchesPropertyRequirements = (
+  mapping: ABTestAnalyticsMapping,
+  event: { name: string; properties: Record<string, unknown> },
+): boolean => {
+  const requirements = mapping.eventPropertyRequirements?.[event.name];
+  if (!requirements) {
+    return true;
+  }
+
+  return Object.entries(requirements).every(
+    ([propertyKey, expectedValue]) =>
+      event.properties[propertyKey] === expectedValue,
+  );
+};
+
+const eventMatchesInjectGate = (
+  properties: Record<string, unknown>,
+  mapping: ABTestAnalyticsMapping,
+): boolean => {
+  const gate = mapping.injectWhenPropertiesMatch;
+  if (!gate || Object.keys(gate).length === 0) {
+    return true;
+  }
+  return Object.entries(gate).every(([propertyKey, expected]) => {
+    const actual = properties[propertyKey];
+    if (Array.isArray(expected)) {
+      return (expected as readonly unknown[]).includes(actual);
+    }
+    return actual === expected;
+  });
+};
+
+const eventMatchesExcludeGate = (
+  properties: Record<string, unknown>,
+  mapping: ABTestAnalyticsMapping,
+): boolean => {
+  const gate = mapping.excludeWhenPropertiesMatch;
+  if (!gate || Object.keys(gate).length === 0) {
+    return false;
+  }
+  return Object.entries(gate).some(([propertyKey, excluded]) => {
+    const actual = properties[propertyKey];
+    if (Array.isArray(excluded)) {
+      return (excluded as readonly unknown[]).includes(actual);
+    }
+    return actual === excluded;
+  });
+};
+
 export const getRemoteFeatureFlagsFromState = (
   state: StateWithPartialEngine | null | undefined,
 ): Record<string, unknown> => {
@@ -57,8 +106,12 @@ export const enrichWithABTests = <
   const existingAssignments = normalizeActiveABTestAssignments(
     event.properties.active_ab_tests,
   );
-  const relevantMappings = AB_TEST_ANALYTICS_MAPPINGS.filter((mapping) =>
-    hasEventName(mapping, event.name),
+  const relevantMappings = AB_TEST_ANALYTICS_MAPPINGS.filter(
+    (mapping) =>
+      hasEventName(mapping, event.name) &&
+      eventMatchesPropertyRequirements(mapping, event) &&
+      eventMatchesInjectGate(event.properties, mapping) &&
+      !eventMatchesExcludeGate(event.properties, mapping),
   );
 
   if (relevantMappings.length === 0) {

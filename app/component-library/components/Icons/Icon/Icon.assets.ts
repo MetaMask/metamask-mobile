@@ -251,6 +251,7 @@ import tabcloseSVG from './assets/tab-close.svg';
 import tablerowSVG from './assets/table-row.svg';
 import tabletSVG from './assets/tablet.svg';
 import tagSVG from './assets/tag.svg';
+import telegramSVG from './assets/telegram.svg';
 import thumbdownfilledSVG from './assets/thumb-down-filled.svg';
 import thumbdownSVG from './assets/thumb-down.svg';
 import thumbupfilledSVG from './assets/thumb-up-filled.svg';
@@ -261,6 +262,7 @@ import translateSVG from './assets/translate.svg';
 import trashSVG from './assets/trash.svg';
 import trenddownSVG from './assets/trend-down.svg';
 import trendupSVG from './assets/trend-up.svg';
+import trophySVG from './assets/trophy.svg';
 import undoSVG from './assets/undo.svg';
 import unfoldSVG from './assets/unfold.svg';
 import unlockedfilledSVG from './assets/unlocked-filled.svg';
@@ -540,6 +542,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.TableRow]: tablerowSVG,
   [IconName.Tablet]: tabletSVG,
   [IconName.Tag]: tagSVG,
+  [IconName.Telegram]: telegramSVG,
   [IconName.ThumbDownFilled]: thumbdownfilledSVG,
   [IconName.ThumbDown]: thumbdownSVG,
   [IconName.ThumbUpFilled]: thumbupfilledSVG,
@@ -550,6 +553,7 @@ export const assetByIconName: AssetByIconName = {
   [IconName.Trash]: trashSVG,
   [IconName.TrendDown]: trenddownSVG,
   [IconName.TrendUp]: trendupSVG,
+  [IconName.Trophy]: trophySVG,
   [IconName.Undo]: undoSVG,
   [IconName.Unfold]: unfoldSVG,
   [IconName.UnlockedFilled]: unlockedfilledSVG,

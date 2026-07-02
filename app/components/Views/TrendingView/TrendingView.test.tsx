@@ -1,7 +1,7 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { NavigationContainer } from '@react-navigation/native';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 const mockNavigate = jest.fn();
@@ -40,11 +40,10 @@ import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetwork
 import { selectEnabledNetworksByNamespace } from '../../../selectors/networkEnablementController';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
-import { selectExplorePageV2EnabledFlag } from '../../../selectors/featureFlagController/explorePageV2';
 import { useSelector } from 'react-redux';
 import Routes from '../../../constants/navigation/Routes';
 
-const Stack = createStackNavigator();
+const Stack = createNativeStackNavigator();
 
 const TrendingView: React.FC = () => (
   <Stack.Navigator
@@ -70,11 +69,10 @@ const renderTrendingView = () => {
   );
 };
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     isEnabled: mockIsEnabled,
   }),
-  withMetricsAwareness: (Component: unknown) => Component,
 }));
 
 jest.mock('../../../util/browser', () => ({
@@ -144,7 +142,6 @@ describe('TrendingView', () => {
       overrides: {
         browserTabsCount?: number;
         basicFunctionalityEnabled?: boolean;
-        explorePageV2Enabled?: boolean;
       } = {},
     ) =>
     (selector: unknown) => {
@@ -188,9 +185,6 @@ describe('TrendingView', () => {
       }
       if (selector === selectBasicFunctionalityEnabled) {
         return overrides.basicFunctionalityEnabled ?? true;
-      }
-      if (selector === selectExplorePageV2EnabledFlag) {
-        return overrides.explorePageV2Enabled ?? true;
       }
       if (selector === selectSelectedInternalAccountByScope) {
         return (_scope: string) => null;
@@ -352,19 +346,6 @@ describe('TrendingView', () => {
       const { getByTestId } = renderTrendingView();
 
       expect(getByTestId('basic-functionality-empty-state')).toBeOnTheScreen();
-    });
-
-    it('renders Explore Page V1 when Explore Page V2 flag is disabled', () => {
-      mockUseSelector.mockImplementation(
-        createMockSelectorImplementation({
-          explorePageV2Enabled: false,
-          basicFunctionalityEnabled: true,
-        }),
-      );
-
-      const { getByTestId } = renderTrendingView();
-
-      expect(getByTestId('explore-page-v1')).toBeOnTheScreen();
     });
   });
 });

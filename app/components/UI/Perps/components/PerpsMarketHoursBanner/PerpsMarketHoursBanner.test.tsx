@@ -21,7 +21,7 @@ describe('PerpsMarketHoursBanner', () => {
   });
 
   describe('rendering', () => {
-    it('should not render for non-equity assets', () => {
+    it('should not render for non-stock assets', () => {
       (isEquityAsset as jest.Mock).mockReturnValue(false);
 
       const { queryByTestId } = render(
@@ -34,12 +34,12 @@ describe('PerpsMarketHoursBanner', () => {
       expect(queryByTestId('perps-market-hours-banner')).toBeNull();
     });
 
-    it('should render for equity assets', () => {
+    it('should render for stock-like assets', () => {
       (isEquityAsset as jest.Mock).mockReturnValue(true);
 
       const { getByTestId } = render(
         <PerpsMarketHoursBanner
-          marketType="equity"
+          marketType="stock"
           onInfoPress={mockOnInfoPress}
         />,
       );
@@ -52,7 +52,7 @@ describe('PerpsMarketHoursBanner', () => {
 
       const { getByTestId } = render(
         <PerpsMarketHoursBanner
-          marketType="equity"
+          marketType="stock"
           onInfoPress={mockOnInfoPress}
           testID="custom-banner-id"
         />,
@@ -75,7 +75,7 @@ describe('PerpsMarketHoursBanner', () => {
     it('should display 24/7 trading message when market is open', () => {
       const { getByText } = render(
         <PerpsMarketHoursBanner
-          marketType="equity"
+          marketType="stock"
           onInfoPress={mockOnInfoPress}
         />,
       );
@@ -86,7 +86,7 @@ describe('PerpsMarketHoursBanner', () => {
     it('should display volatility warning when market is open', () => {
       const { getByText } = render(
         <PerpsMarketHoursBanner
-          marketType="equity"
+          marketType="stock"
           onInfoPress={mockOnInfoPress}
         />,
       );
@@ -110,7 +110,7 @@ describe('PerpsMarketHoursBanner', () => {
     it('should display after-hours trading message when market is closed', () => {
       const { getByText } = render(
         <PerpsMarketHoursBanner
-          marketType="equity"
+          marketType="stock"
           onInfoPress={mockOnInfoPress}
         />,
       );
@@ -121,7 +121,7 @@ describe('PerpsMarketHoursBanner', () => {
     it('should display slippage warning when market is closed', () => {
       const { getByText } = render(
         <PerpsMarketHoursBanner
-          marketType="equity"
+          marketType="stock"
           onInfoPress={mockOnInfoPress}
         />,
       );
@@ -140,7 +140,7 @@ describe('PerpsMarketHoursBanner', () => {
     it('should call onInfoPress when info button is pressed', () => {
       const { getByTestId } = render(
         <PerpsMarketHoursBanner
-          marketType="equity"
+          marketType="stock"
           onInfoPress={mockOnInfoPress}
         />,
       );
@@ -161,7 +161,7 @@ describe('PerpsMarketHoursBanner', () => {
 
       const { getByTestId, rerender } = render(
         <PerpsMarketHoursBanner
-          marketType="equity"
+          marketType="stock"
           onInfoPress={mockOnInfoPress}
         />,
       );
@@ -177,7 +177,7 @@ describe('PerpsMarketHoursBanner', () => {
 
       rerender(
         <PerpsMarketHoursBanner
-          marketType="equity"
+          marketType="stock"
           onInfoPress={mockOnInfoPress}
         />,
       );
@@ -194,7 +194,7 @@ describe('PerpsMarketHoursBanner', () => {
     it('should have proper hit slop for info button', () => {
       const { getByTestId } = render(
         <PerpsMarketHoursBanner
-          marketType="equity"
+          marketType="stock"
           onInfoPress={mockOnInfoPress}
         />,
       );

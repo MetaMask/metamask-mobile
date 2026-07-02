@@ -57,7 +57,7 @@ export const predictWorldCupQueryParams = {
     buildPredictWorldCupAllQuery(config),
   props: (config: Pick<PredictWorldCupConfig, 'tagSlug' | 'gamesTagId'>) =>
     buildPredictWorldCupPropsQuery(config),
-  live: (config: Pick<PredictWorldCupConfig, 'seriesId' | 'gamesTagId'>) =>
+  live: (config: Pick<PredictWorldCupConfig, 'tagSlug' | 'gamesTagId'>) =>
     buildPredictWorldCupLiveQuery(config),
   stage: (stage: Pick<PredictWorldCupStageConfig, 'eventIds'>) =>
     buildPredictWorldCupStageEventsQuery(stage),
@@ -126,7 +126,7 @@ export const predictWorldCupOptions = {
     });
   },
   live: (
-    config: Pick<PredictWorldCupConfig, 'seriesId' | 'gamesTagId'>,
+    config: Pick<PredictWorldCupConfig, 'tagSlug' | 'gamesTagId'>,
     pageOptions?: PredictWorldCupPageOptions,
   ) => {
     const { limit } = getPageOptions(pageOptions);
@@ -153,7 +153,7 @@ export const predictWorldCupOptions = {
     });
   },
   availability: {
-    live: (config: Pick<PredictWorldCupConfig, 'seriesId' | 'gamesTagId'>) =>
+    live: (config: Pick<PredictWorldCupConfig, 'tagSlug' | 'gamesTagId'>) =>
       buildAvailabilityOptions({
         tabKey: 'live',
         queryParams: predictWorldCupQueryParams.live(config),

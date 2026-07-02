@@ -31,6 +31,7 @@ import {
   formatPnl,
   formatPercentage,
   PRICE_RANGES_MINIMAL_VIEW,
+  PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import {
   formatOrderLabel,
@@ -77,7 +78,7 @@ const getOrderDisplayData = (order: Order): CardDisplayData => {
   const valueText =
     priceValue !== null
       ? formatPerpsFiat(priceValue, {
-          ranges: PRICE_RANGES_MINIMAL_VIEW,
+          ranges: PRICE_RANGES_UNIVERSAL,
         })
       : strings('perps.order.market');
   const labelText = strings(labelKey);
@@ -103,6 +104,7 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
   onPress,
   testID,
   source,
+  source_section,
   iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
 }) => {
   const navigation = useNavigation();
@@ -155,10 +157,20 @@ const PerpsCard: React.FC<PerpsCardProps> = ({
           market,
           initialTab,
           source,
+          ...(source_section && { source_section }),
         },
       });
     }
-  }, [onPress, market, navigation, order, position, source, track]);
+  }, [
+    onPress,
+    market,
+    navigation,
+    order,
+    position,
+    source,
+    source_section,
+    track,
+  ]);
 
   if (!position && !order) {
     return null;

@@ -5,9 +5,16 @@ import {
   MONEY_ACCOUNT_CURRENCY,
 } from './money-account-deposit-info';
 
+const mockUseParams = jest.fn();
+jest.mock('../../../../../../util/navigation/navUtils', () => ({
+  useParams: () => mockUseParams(),
+}));
+
+const mockUseNavbar = jest.fn();
 jest.mock('../../../hooks/ui/useNavbar', () => ({
   __esModule: true,
-  default: jest.fn(),
+  default: (title: string, addBackButton: boolean) =>
+    mockUseNavbar(title, addBackButton),
 }));
 
 const mockCustomAmountInfo = jest.fn();
@@ -26,13 +33,15 @@ jest.mock('../custom-amount-info', () => ({
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) =>
-    ({ 'confirm.title.money_account_add_money': 'Add money' })[key] ?? key,
+    ({ 'confirm.title.money_account_add_money': 'Add funds' })[key] ?? key,
 }));
 
 describe('MoneyAccountDepositInfo', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCustomAmountInfo.mockClear();
+    mockUseNavbar.mockReturnValue(undefined);
+    mockUseParams.mockReturnValue({});
   });
 
   it('renders CustomAmountInfo with usd currency', () => {
@@ -44,12 +53,11 @@ describe('MoneyAccountDepositInfo', () => {
     );
   });
 
-  it('sets navbar title via useNavbar', () => {
-    const useNavbar = jest.requireMock('../../../hooks/ui/useNavbar').default;
-
+  it('installs the navbar with the add money title and a back button', () => {
     render(<MoneyAccountDepositInfo />);
 
-    expect(useNavbar).toHaveBeenCalledWith('Add money');
+    expect(mockUseNavbar).toHaveBeenCalledTimes(1);
+    expect(mockUseNavbar).toHaveBeenCalledWith('Add funds', true);
   });
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
@@ -66,13 +74,45 @@ describe('MoneyAccountDepositInfo', () => {
     expect(lastCall.supportAccountSelection).toBe(true);
   });
 
-  it('passes hasMax=true to CustomAmountInfo', () => {
+  it('passes autoSelectFiatPayment and hideAccountSelector from route params', () => {
+    mockUseParams.mockReturnValue({ autoSelectFiatPayment: true });
+
     render(<MoneyAccountDepositInfo />);
 
     const lastCall =
       mockCustomAmountInfo.mock.calls[
         mockCustomAmountInfo.mock.calls.length - 1
       ][0];
-    expect(lastCall.hasMax).toBe(true);
+    expect(lastCall.autoSelectFiatPayment).toBe(true);
+    expect(lastCall.hideAccountSelector).toBe(true);
+  });
+
+  it('forwards preferredPaymentToken from route params to CustomAmountInfo', () => {
+    const preferredPaymentToken = {
+      address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+      chainId: '0x1',
+    };
+    mockUseParams.mockReturnValueOnce({ preferredPaymentToken });
+
+    render(<MoneyAccountDepositInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.preferredToken).toEqual(preferredPaymentToken);
+  });
+
+  it('does not pass autoSelectFiatPayment when route param is absent', () => {
+    mockUseParams.mockReturnValue({});
+
+    render(<MoneyAccountDepositInfo />);
+
+    const lastCall =
+      mockCustomAmountInfo.mock.calls[
+        mockCustomAmountInfo.mock.calls.length - 1
+      ][0];
+    expect(lastCall.autoSelectFiatPayment).toBeUndefined();
+    expect(lastCall.hideAccountSelector).toBeUndefined();
   });
 });

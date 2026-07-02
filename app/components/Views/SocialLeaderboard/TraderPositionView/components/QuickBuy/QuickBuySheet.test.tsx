@@ -28,7 +28,17 @@ jest.mock('./hooks/useQuickBuySetup', () => ({
   useQuickBuySetup: jest.fn(),
 }));
 
-// Captures the onOpenBottomSheet callback registered by QuickBuyBottomSheetInner.
+const mockTrack = jest.fn();
+
+jest.mock('../../../analytics', () => {
+  const actual = jest.requireActual('../../../analytics');
+  return {
+    ...actual,
+    useSocialLeaderboardAnalytics: () => ({ track: mockTrack }),
+  };
+});
+
+// Captures the onOpenDialog callback registered by QuickBuyRootInner.
 // Call storedOnOpenCallback() inside act() after render to simulate the sheet
 // finishing its open animation and make isContentReady become true.
 let storedOnOpenCallback: (() => void) | undefined;
@@ -41,7 +51,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 
   return {
     ...actual,
-    BottomSheet: ReactMock.forwardRef(
+    BottomSheetDialog: ReactMock.forwardRef(
       (
         {
           children,
@@ -53,13 +63,14 @@ jest.mock('@metamask/design-system-react-native', () => {
         ref: unknown,
       ) => {
         ReactMock.useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: (cb: () => void) => {
+          onOpenDialog: (cb: () => void) => {
             storedOnOpenCallback = cb;
           },
+          onCloseDialog: (cb?: () => void) => cb?.(),
         }));
         return ReactMock.createElement(
           View,
-          { testID: 'mock-bottom-sheet', onTouchEnd: onClose },
+          { testID: 'mock-bottom-sheet-dialog', onTouchEnd: onClose },
           children,
         );
       },
@@ -174,6 +185,7 @@ const buildHookResult = (
   overrides: Partial<UseQuickBuyControllerResult> = {},
 ): UseQuickBuyControllerResult => ({
   hiddenInputRef: mockCreateRef() as never,
+  activeQuote: undefined,
   destToken: undefined,
   isSetupLoading: false,
   isUnsupportedChain: false,
@@ -184,22 +196,37 @@ const buildHookResult = (
   isSourcePickerOpen: false,
   setIsSourcePickerOpen: jest.fn(),
   setSelectedSourceToken: jest.fn(),
-  usdAmount: '',
+  currentCurrency: 'USD',
+  fiatAmount: '',
+  fiatAmountLabel: '$0.00',
   sliderPercent: 0,
-  maxSpendUsd: 0,
+  maxSpendFiat: 0,
   formattedExchangeRate: undefined,
   metamaskFeePercent: 0,
   estimatedReceiveAmount: undefined,
   sourceBalanceFiat: '$0.00',
   sourceBalanceDisplay: undefined,
+  destBalanceFiat: undefined,
   formattedNetworkFee: '-',
   formattedSlippage: '-',
   formattedMinimumReceived: '-',
+  formattedMinimumReceivedFiat: undefined,
   formattedPriceImpact: '-',
-  totalAmountUsd: '$0',
+  formattedRate: undefined,
+  totalAmountFiat: '$0',
   isQuoteLoading: false,
+  isBlockingQuoteLoad: false,
   isSubmittingTx: false,
   isTotalLoading: false,
+  sortedQuotes: [],
+  selectedQuoteRequestId: undefined,
+  setSelectedQuoteRequestId: jest.fn(),
+  handleSelectQuote: jest.fn(),
+  quotesLastFetchedAt: null,
+  refreshCount: 0,
+  quoteRefreshRateMs: 30000,
+  maxRefreshCount: 5,
+  refetchQuotes: jest.fn(),
   isHardwareSolanaBlocked: false,
   priceImpactViewData: {
     textColor: TextColor.TextAlternative,
@@ -215,9 +242,21 @@ const buildHookResult = (
   getButtonLabel: () => 'social_leaderboard.trader_position.buy',
   handleClose: jest.fn(),
   handleSliderChange: jest.fn(),
+  handleSliderDragEnd: jest.fn(),
   handleAmountAreaPress: jest.fn(),
   handleAmountChange: jest.fn(),
   handleToggleAmountDisplay: jest.fn(),
+  handleSelectSourceToken: jest.fn(),
+  tradeMode: 'buy' as const,
+  setTradeMode: jest.fn(),
+  hasSellableBalance: false,
+  sourceAmountTokens: '',
+  sourceTokenAmount: undefined,
+  hasSourcePrice: true,
+  isSliderDisabled: false,
+  sellDestTokenOptions: [],
+  selectedDestStable: undefined,
+  handleSelectDestStable: jest.fn(),
   amountDisplayMode: 'fiat',
   handleConfirm: jest.fn(),
   ...overrides,
@@ -279,7 +318,9 @@ describe('QuickBuy.Root', () => {
         />,
       );
 
-      expect(screen.queryByTestId('mock-bottom-sheet')).not.toBeOnTheScreen();
+      expect(
+        screen.queryByTestId('mock-bottom-sheet-dialog'),
+      ).not.toBeOnTheScreen();
     });
 
     it('mounts the inner sheet when visible with a valid position', () => {
@@ -292,7 +333,7 @@ describe('QuickBuy.Root', () => {
         />,
       );
 
-      expect(screen.getByTestId('mock-bottom-sheet')).toBeOnTheScreen();
+      expect(screen.getByTestId('mock-bottom-sheet-dialog')).toBeOnTheScreen();
     });
   });
 

@@ -1,8 +1,10 @@
 import { trackEvent, buildAndTrackEvent } from './analytics';
 import Logger from '../../../util/Logger';
 import type { ControllerMessenger } from '../types';
-import type { AnalyticsTrackingEvent } from '@metamask/analytics-controller';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from '../../../util/analytics/AnalyticsEventBuilder';
 import { store } from '../../../store';
 import initialRootState from '../../../util/test/initial-root-state';
 
@@ -56,7 +58,6 @@ describe('trackEvent', () => {
         name: 'test-event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
       } as AnalyticsTrackingEvent;
 
       trackEvent(mockInitMessenger, event);
@@ -75,7 +76,6 @@ describe('trackEvent', () => {
           anotherProperty: 123,
         },
         sensitiveProperties: {},
-        saveDataRecording: false,
       } as unknown as AnalyticsTrackingEvent;
 
       trackEvent(mockInitMessenger, event);
@@ -99,7 +99,6 @@ describe('trackEvent', () => {
           source: 'wallet',
         },
         sensitiveProperties: {},
-        saveDataRecording: false,
       } as unknown as AnalyticsTrackingEvent;
 
       trackEvent(mockInitMessenger, event);
@@ -134,7 +133,6 @@ describe('trackEvent', () => {
         name: 'test-event',
         properties: {},
         sensitiveProperties: {},
-        saveDataRecording: false,
       } as AnalyticsTrackingEvent;
 
       expect(() => {
@@ -180,7 +178,6 @@ describe('trackEvent', () => {
           name: 'test-event',
           properties: { prop1: 'value1' },
           sensitiveProperties: {},
-          saveDataRecording: false,
           get isAnonymous(): boolean {
             return false;
           },
@@ -219,7 +216,6 @@ describe('trackEvent', () => {
           name: 'Card Button Viewed',
           properties: { source: 'wallet' },
           sensitiveProperties: {},
-          saveDataRecording: false,
           get isAnonymous(): boolean {
             return false;
           },
@@ -261,7 +257,6 @@ describe('trackEvent', () => {
           name: 'test-event',
           properties: {},
           sensitiveProperties: {},
-          saveDataRecording: false,
           get isAnonymous(): boolean {
             return false;
           },
@@ -290,7 +285,6 @@ describe('trackEvent', () => {
           name: 'test-event',
           properties: {},
           sensitiveProperties: {},
-          saveDataRecording: false,
           get isAnonymous(): boolean {
             return false;
           },
@@ -385,7 +379,6 @@ describe('trackEvent', () => {
           name: 'test-event',
           properties: {},
           sensitiveProperties: {},
-          saveDataRecording: false,
           get isAnonymous(): boolean {
             return false;
           },

@@ -10,9 +10,14 @@ import {
   getErrorMessage,
   getSeverity,
   hasGasFeeTokenSelected,
+  getTransactionType,
   hasTransactionType,
+  isRevokeDelegationTransaction,
+  isTransactionMarkedAsGasFeeSponsored,
   isTransactionPayWithdraw,
   parseStandardTokenTransactionData,
+  resolveTransactionType,
+  shouldApplyGasFeeSponsorship,
 } from './transaction';
 import {
   abiERC721,
@@ -176,6 +181,60 @@ describe('get4ByteCode', () => {
   });
 });
 
+describe('getTransactionType', () => {
+  it('returns undefined for undefined input', () => {
+    expect(getTransactionType(undefined)).toBeUndefined();
+  });
+
+  it('returns direct type for regular transactions', () => {
+    const txMeta = {
+      type: TransactionType.perpsDeposit,
+    } as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.perpsDeposit);
+  });
+
+  it('returns nested type when nested transactions exist', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.predictDeposit }],
+    } as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.predictDeposit);
+  });
+
+  it('returns direct type when nested transactions have no type', () => {
+    const txMeta = {
+      type: TransactionType.simpleSend,
+      nestedTransactions: [{}],
+    } as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.simpleSend);
+  });
+
+  it('returns first nested type that has a type', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [
+        {},
+        { type: TransactionType.perpsWithdraw },
+        { type: TransactionType.predictWithdraw },
+      ],
+    } as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.perpsWithdraw);
+  });
+
+  it('returns direct type when nestedTransactions is empty', () => {
+    const txMeta = {
+      type: TransactionType.perpsDeposit,
+      nestedTransactions: [],
+    } as unknown as TransactionMeta;
+
+    expect(getTransactionType(txMeta)).toBe(TransactionType.perpsDeposit);
+  });
+});
+
 describe('hasTransactionType', () => {
   it('returns true if transaction type matches', () => {
     const txMeta = {
@@ -219,6 +278,71 @@ describe('hasTransactionType', () => {
   });
 });
 
+describe('resolveTransactionType', () => {
+  const enabledTypes = [
+    TransactionType.perpsDeposit,
+    TransactionType.predictDeposit,
+    TransactionType.moneyAccountDeposit,
+  ];
+
+  it('returns the transaction type for non-batch transactions', () => {
+    const txMeta = {
+      type: TransactionType.perpsDeposit,
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.perpsDeposit,
+    );
+  });
+
+  it('returns the first nested type that appears in the enabled types list', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [
+        { type: TransactionType.simpleSend },
+        { type: TransactionType.predictDeposit },
+        { type: TransactionType.perpsDeposit },
+      ],
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.predictDeposit,
+    );
+  });
+
+  it('returns batch when no nested transaction type matches the enabled types list', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [{ type: TransactionType.simpleSend }],
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.batch,
+    );
+  });
+
+  it('returns batch when nested transactions are missing', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.batch,
+    );
+  });
+
+  it('skips nested transactions without a type', () => {
+    const txMeta = {
+      type: TransactionType.batch,
+      nestedTransactions: [{}, { type: TransactionType.moneyAccountDeposit }],
+    } as TransactionMeta;
+
+    expect(resolveTransactionType(txMeta, enabledTypes)).toBe(
+      TransactionType.moneyAccountDeposit,
+    );
+  });
+});
+
 describe('hasGasFeeTokenSelected', () => {
   it('returns false for undefined transaction', () => {
     expect(hasGasFeeTokenSelected(undefined)).toBe(false);
@@ -244,6 +368,84 @@ describe('hasGasFeeTokenSelected', () => {
         selectedGasFeeToken: '0xabc123',
       } as unknown as TransactionMeta),
     ).toBe(true);
+  });
+});
+
+describe('isRevokeDelegationTransaction', () => {
+  it('returns true for revoke delegation transaction', () => {
+    const txMeta = {
+      type: TransactionType.revokeDelegation,
+    } as TransactionMeta;
+
+    expect(isRevokeDelegationTransaction(txMeta)).toBe(true);
+  });
+
+  it('returns false for undefined transaction', () => {
+    expect(isRevokeDelegationTransaction(undefined)).toBe(false);
+  });
+});
+
+describe('shouldApplyGasFeeSponsorship', () => {
+  it('returns true when gas sponsorship is supported and transaction is sponsored', () => {
+    const txMeta = {
+      isGasFeeSponsored: true,
+      type: TransactionType.simpleSend,
+    } as TransactionMeta;
+
+    expect(
+      shouldApplyGasFeeSponsorship({
+        transactionMeta: txMeta,
+        isGaslessSupported: true,
+      }),
+    ).toBe(true);
+  });
+
+  it('returns false when gasless is not supported', () => {
+    const txMeta = {
+      isGasFeeSponsored: true,
+      type: TransactionType.simpleSend,
+    } as TransactionMeta;
+
+    expect(
+      shouldApplyGasFeeSponsorship({
+        transactionMeta: txMeta,
+        isGaslessSupported: false,
+      }),
+    ).toBe(false);
+  });
+
+  it('returns false for sponsored revoke delegation transaction', () => {
+    const txMeta = {
+      isGasFeeSponsored: true,
+      type: TransactionType.revokeDelegation,
+    } as TransactionMeta;
+
+    expect(
+      shouldApplyGasFeeSponsorship({
+        transactionMeta: txMeta,
+        isGaslessSupported: true,
+      }),
+    ).toBe(false);
+  });
+});
+
+describe('isTransactionMarkedAsGasFeeSponsored', () => {
+  it('returns true when a transaction is marked as gas fee sponsored', () => {
+    const txMeta = {
+      isGasFeeSponsored: true,
+      type: TransactionType.simpleSend,
+    } as TransactionMeta;
+
+    expect(isTransactionMarkedAsGasFeeSponsored(txMeta)).toBe(true);
+  });
+
+  it('returns false for a revoke delegation transaction', () => {
+    const txMeta = {
+      isGasFeeSponsored: true,
+      type: TransactionType.revokeDelegation,
+    } as TransactionMeta;
+
+    expect(isTransactionMarkedAsGasFeeSponsored(txMeta)).toBe(false);
   });
 });
 

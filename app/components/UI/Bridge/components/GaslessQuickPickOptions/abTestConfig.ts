@@ -1,3 +1,4 @@
+import { ASSET_VIEWED_PROPERTY } from '../../../../../core/Analytics/trade-transaction-funnel/assetViewedAnalytics';
 import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
 import type { ABTestAnalyticsMapping } from '../../../../../util/analytics/abTestAnalytics.types';
 
@@ -30,5 +31,10 @@ export const NUMPAD_QUICK_ACTIONS_AB_TEST_ANALYTICS_MAPPING: ABTestAnalyticsMapp
   {
     flagKey: NUMPAD_QUICK_ACTIONS_AB_KEY,
     validVariants: Object.values(NumpadQuickActionsVariant),
-    eventNames: [EVENT_NAME.SWAP_PAGE_VIEWED],
+    eventNames: [EVENT_NAME.SWAP_PAGE_VIEWED, EVENT_NAME.ASSET_VIEWED],
+    eventPropertyRequirements: {
+      [EVENT_NAME.ASSET_VIEWED]: {
+        [ASSET_VIEWED_PROPERTY.TRADE_TYPE]: 'Swaps',
+      },
+    },
   };

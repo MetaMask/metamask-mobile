@@ -22,10 +22,13 @@ import { useContacts } from '../../../hooks/send/useContacts';
 import { useRecipientPageReset } from '../../../hooks/send/useRecipientPageReset';
 import { useRouteParams } from '../../../hooks/send/useRouteParams';
 import { useSendActions } from '../../../hooks/send/useSendActions';
+import { useSendNavbar } from '../../../hooks/send/useSendNavbar';
+import { useAddressPoisoningDetection } from '../../../hooks/send/useAddressPoisoningDetection';
 import { useToAddressValidation } from '../../../hooks/send/useToAddressValidation';
 import { RecipientInput } from '../../recipient-input';
 import { RecipientList } from '../../recipient-list/recipient-list';
 import { RecipientType } from '../../UI/recipient';
+import { AddressPoisoningAlertContent } from '../address-poisoning-alert-content/address-poisoning-alert-content';
 import { SendAlertModal } from '../send-alert-modal';
 import { styleSheet } from './recipient.styles';
 
@@ -33,8 +36,12 @@ export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
     useState(false);
   const [pastedRecipient, setPastedRecipient] = useState<string>();
+  const [autoFilledInputMethod, setAutoFilledInputMethod] = useState<
+    typeof RecipientInputMethod.Pasted | typeof RecipientInputMethod.QrScan
+  >(RecipientInputMethod.Pasted);
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
   const { to, updateTo, asset, chainId } = useSendContext();
+  const { header: renderRecipientHeader } = useSendNavbar().Recipient;
   const { handleSubmitPress } = useSendActions();
   const accounts = useAccounts();
   const contacts = useContacts();
@@ -47,6 +54,12 @@ export const Recipient = () => {
     loading,
     resolvedAddress,
   } = useToAddressValidation();
+
+  const recipientCandidateAddress =
+    !toAddressError && !loading ? resolvedAddress || to : undefined;
+  const { bestMatch: poisoningMatch } = useAddressPoisoningDetection(
+    recipientCandidateAddress,
+  );
 
   const {
     alerts,
@@ -78,10 +91,14 @@ export const Recipient = () => {
       if (!asset || !chainId) {
         return;
       }
+      const recipientAddress = resolvedAddress || to;
+      if (!recipientAddress) {
+        return;
+      }
       setIsSubmittingTransaction(true);
       setPastedRecipient(undefined);
       captureRecipientSelected(
-        isPasted ? RecipientInputMethod.Pasted : RecipientInputMethod.Manual,
+        isPasted ? autoFilledInputMethod : RecipientInputMethod.Manual,
       );
       await handleSubmitPress(resolvedAddress || to);
       setIsSubmittingTransaction(false);
@@ -90,6 +107,7 @@ export const Recipient = () => {
       to,
       handleSubmitPress,
       captureRecipientSelected,
+      autoFilledInputMethod,
       resolvedAddress,
       setPastedRecipient,
       isSubmittingTransaction,
@@ -133,6 +151,7 @@ export const Recipient = () => {
       pastedRecipient === toAddressValidated &&
       !toAddressError &&
       !toAddressWarning &&
+      !poisoningMatch &&
       !loading &&
       !isAlertCheckPending &&
       !hasUnacknowledgedAlerts
@@ -145,6 +164,7 @@ export const Recipient = () => {
     toAddressError,
     toAddressValidated,
     toAddressWarning,
+    poisoningMatch,
     loading,
     isAlertCheckPending,
     hasUnacknowledgedAlerts,
@@ -195,6 +215,7 @@ export const Recipient = () => {
 
   return (
     <SafeAreaView edges={['left', 'right', 'bottom']} style={styles.container}>
+      {renderRecipientHeader()}
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         style={styles.container}
@@ -205,6 +226,7 @@ export const Recipient = () => {
             isRecipientSelectedFromList={isRecipientSelectedFromList}
             resetStateOnInput={resetStateOnInput}
             setPastedRecipient={setPastedRecipient}
+            setAutoFilledInputMethod={setAutoFilledInputMethod}
           />
           <ScrollView>
             <RecipientList
@@ -228,6 +250,24 @@ export const Recipient = () => {
           </ScrollView>
           {(to || '').length > 0 && !isRecipientSelectedFromList && (
             <Box twClassName="px-4 py-4">
+              {poisoningMatch && recipientCandidateAddress && (
+                <Banner
+                  testID="address-poisoning-warning-banner"
+                  variant={BannerVariant.Alert}
+                  severity={BannerAlertSeverity.Error}
+                  style={styles.banner}
+                  title={strings('alert_system.address_poisoning.title')}
+                  description={strings(
+                    'alert_system.address_poisoning.message',
+                  )}
+                >
+                  <AddressPoisoningAlertContent
+                    address={recipientCandidateAddress}
+                    knownAddress={poisoningMatch.knownAddress}
+                    diffIndices={poisoningMatch.diffIndices}
+                  />
+                </Banner>
+              )}
               {toAddressWarning && (
                 <Banner
                   testID="to-address-warning-banner"

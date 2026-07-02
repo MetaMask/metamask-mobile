@@ -11,8 +11,8 @@ jest.mock('@react-navigation/native', () => ({
     children,
 }));
 
-jest.mock('@react-navigation/stack', () => ({
-  createStackNavigator: jest.fn(() => ({
+jest.mock('@react-navigation/native-stack', () => ({
+  createNativeStackNavigator: jest.fn(() => ({
     Navigator: ({ children }: { children: React.ReactNode }) => children,
     Screen: ({ children }: { children: React.ReactNode }) => children,
   })),
@@ -28,15 +28,11 @@ jest.mock('../SelectSRP', () => {
   ));
 });
 
-jest.mock('../../UI/Navbar', () => ({
-  getNavigationOptionsTitle: jest.fn((title: string) => ({ title })),
-}));
-
 jest.mock('../../../images/google.svg', () => 'GoogleIcon');
 jest.mock('../../../images/apple.svg', () => 'AppleIcon');
 
 const mockNavigation = {
-  setOptions: jest.fn(),
+  goBack: jest.fn(),
   navigate: jest.fn(),
 };
 
@@ -62,16 +58,15 @@ describe('WalletRecovery', () => {
       },
     });
 
-  it('renders SRP section and sets navigation options', () => {
+  it('renders SRP section with HeaderStandard', () => {
     renderComponent();
 
     expect(
       screen.getByText(strings('protect_your_wallet.srps_title')),
     ).toBeOnTheScreen();
     expect(screen.getByTestId('select-srp')).toBeOnTheScreen();
-    expect(mockNavigation.setOptions).toHaveBeenCalledWith({
-      title: strings('app_settings.manage_recovery_method'),
-    });
+    expect(screen.getByTestId('wallet-recovery-header')).toBeOnTheScreen();
+    expect(screen.getByTestId('wallet-recovery-back-button')).toBeOnTheScreen();
   });
 
   it('does not display social recovery when no auth connection', () => {

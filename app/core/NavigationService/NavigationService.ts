@@ -97,11 +97,8 @@ class NavigationService {
     this.#assertNavigationRefType(navRef);
     this.#navigation = this.#createReactAwareNavigation(navRef);
 
-    // __DEV__ only — install the full agentic bridge (setupWallet, pressTestId,
-    // scrollView, etc.) for AI coding agents. Completely stripped in production.
-    // See docs/perps/perps-agentic-feedback-loop.md for the full workflow.
     if (__DEV__) {
-      import('../AgenticService/AgenticService').then(
+      import('../../dev-tools/AgenticService/AgenticService').then(
         ({ default: AgenticService }) => {
           AgenticService.install(navRef, this.#navigation);
         },

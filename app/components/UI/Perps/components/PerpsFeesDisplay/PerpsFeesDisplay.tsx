@@ -1,9 +1,5 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge';
 import { createStyles } from './PerpsFeesDisplay.styles';
 import { useTheme } from '../../../../../util/theme';
@@ -11,6 +7,11 @@ import {
   formatPerpsFiat,
   PRICE_RANGES_MINIMAL_VIEW,
 } from '../../utils/formatUtils';
+import {
+  Text,
+  TextVariant,
+  TextColor,
+} from '@metamask/design-system-react-native';
 
 interface PerpsFeesDisplayProps {
   /**
@@ -41,7 +42,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
   originalFee,
   placeholder = '--',
   testID,
-  variant = TextVariant.BodyMD,
+  variant = TextVariant.BodyMd,
 }) => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
@@ -74,7 +75,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
       {originalFeeText !== undefined ? (
         <Text
           variant={variant}
-          color={TextColor.Alternative}
+          color={TextColor.TextAlternative}
           // eslint-disable-next-line react-native/no-inline-styles
           style={{ textDecorationLine: 'line-through' }}
           testID={testID ? `${testID}-original` : undefined}
@@ -82,7 +83,7 @@ const PerpsFeesDisplay: React.FC<PerpsFeesDisplayProps> = ({
           {originalFeeText}
         </Text>
       ) : null}
-      <Text variant={variant} color={TextColor.Alternative} testID={testID}>
+      <Text variant={variant} color={TextColor.TextAlternative} testID={testID}>
         {feeText}
       </Text>
     </View>

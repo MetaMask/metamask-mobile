@@ -67,6 +67,8 @@ export const WalletViewSelectorsIDs = {
   PROFILE_BUTTON_AVATAR_NETWORK_SUBTITLE_CONTAINER:
     'profile-button-avatar-network-subtitle-container',
   HOMEPAGE_CONTAINER: 'homepage-container',
+  HOMEPAGE_MORE_SECTION: 'homepage-more-section',
+  HOMEPAGE_MORE_CONTACT_SUPPORT_BUTTON: 'homepage-more-contact-support-button',
   CAROUSEL_CONTAINER: 'carousel-container',
   CAROUSEL_PROGRESS_DOTS: 'progress-dots',
   CAROUSEL_SLIDE: (id: string | number): string => `carousel-slide-${id}`,

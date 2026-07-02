@@ -4,6 +4,7 @@ import React, {
   useRef,
   useCallback,
   useContext,
+  useMemo,
 } from 'react';
 import { TouchableOpacity, Platform, Keyboard, TextInput } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -29,6 +30,7 @@ import {
   IconSize,
   IconColor,
   Checkbox,
+  HeaderStandard,
 } from '@metamask/design-system-react-native';
 import StorageWrapper from '../../../store/storage-wrapper';
 import { useDispatch, useSelector } from 'react-redux';
@@ -43,7 +45,6 @@ import Engine from '../../../core/Engine';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { passcodeType } from '../../../util/authentication';
 import { strings } from '../../../../locales/i18n';
-import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import AppConstants from '../../../core/AppConstants';
 import Logger from '../../../util/Logger';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
@@ -60,6 +61,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   AccountType,
   getSocialAccountType,
+  ONBOARDING_SUCCESS_FLOW,
 } from '../../../constants/onboarding';
 import type {
   IMetaMetricsEvent,
@@ -72,11 +74,13 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext } from '../../../util/theme';
 import { ChoosePasswordSelectorsIDs } from './ChoosePassword.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import Routes from '../../../constants/navigation/Routes';
 import { RESET_PASSWORD_GUIDE_URL } from '../../../constants/urls';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
+import FoxRiveLoaderAnimation, {
+  type FoxRiveLoaderAnimationRef,
+} from './FoxRiveLoaderAnimation/FoxRiveLoaderAnimation';
 import {
   TraceName,
   endTrace,
@@ -86,17 +90,19 @@ import {
 } from '../../../util/trace';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
-import { isE2E } from '../../../util/test/utils';
+import { hasTestOverrides } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
-import { selectAttributionRecord } from '../../../selectors/attribution';
-import { getWalletSetupCompletedAttributionAnalyticsProps } from '../../../util/analytics/walletSetupCompletedAttribution';
+import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
+import { selectGeolocationLocation } from '../../../selectors/geolocationController';
+import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
 
 interface KeyringState {
   type: string;
@@ -109,9 +115,12 @@ interface KeyringControllerState {
 
 interface ExtendedKeyringController {
   state: KeyringControllerState;
-  exportAccount: (password: string, account: string) => Promise<string>;
+  exportAccount: (
+    credentials: { password: string },
+    account: string,
+  ) => Promise<string>;
   addNewAccount: () => Promise<void>;
-  exportSeedPhrase: (password: string) => Promise<Uint8Array>;
+  exportSeedPhrase: (credentials: { password: string }) => Promise<Uint8Array>;
   importAccountWithStrategy: (
     strategy: AccountImportStrategy,
     args: string[],
@@ -119,7 +128,7 @@ interface ExtendedKeyringController {
 }
 
 const ChoosePassword = () => {
-  const { colors, themeAppearance } = useContext(ThemeContext);
+  const { themeAppearance } = useContext(ThemeContext);
   const tw = useTailwind();
 
   const navigation = useNavigation();
@@ -127,10 +136,19 @@ const ChoosePassword = () => {
     useRoute<RouteProp<{ params: ChoosePasswordRouteParams }, 'params'>>();
 
   const dispatch = useDispatch();
-  const attributionRecord = useSelector(selectAttributionRecord);
   const metrics = useAnalytics();
 
+  const isSocialLoginUser = route.params?.oauthLoginSuccess === true;
+  const geoLocation = useSelector(selectGeolocationLocation);
+  const hasKnownGeolocation =
+    geoLocation != null && geoLocation !== UNKNOWN_LOCATION;
   const [isSelected, setIsSelected] = useState(false);
+  const [marketingOptInTouched, setMarketingOptInTouched] = useState(false);
+  const [resolvedGeolocationLocation, setResolvedGeolocationLocation] =
+    useState<string | undefined>(hasKnownGeolocation ? geoLocation : undefined);
+  const [isGeolocationResolved, setIsGeolocationResolved] = useState(
+    !isSocialLoginUser || hasKnownGeolocation,
+  );
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -143,15 +161,83 @@ const ChoosePassword = () => {
   const confirmPasswordInputRef = useRef<TextInput | null>(null);
   // Flag to know if password in keyring was set or not
   const keyringControllerPasswordSet = useRef(false);
+  const foxRiveLoaderRef = useRef<FoxRiveLoaderAnimationRef>(null);
 
   const getOauth2LoginSuccess = useCallback(
     () => route.params?.oauthLoginSuccess,
     [route.params?.oauthLoginSuccess],
   );
 
+  useEffect(() => {
+    if (!isSocialLoginUser) {
+      return;
+    }
+
+    if (geoLocation && geoLocation !== UNKNOWN_LOCATION) {
+      setResolvedGeolocationLocation(geoLocation);
+      setIsGeolocationResolved(true);
+      return;
+    }
+
+    let cancelled = false;
+    setIsGeolocationResolved(false);
+
+    Promise.resolve(
+      Engine.context.GeolocationController?.refreshGeolocation?.(),
+    )
+      .then((location) => {
+        if (!cancelled) {
+          setResolvedGeolocationLocation(location);
+          setIsGeolocationResolved(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setResolvedGeolocationLocation(undefined);
+          setIsGeolocationResolved(true);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isSocialLoginUser, geoLocation]);
+
+  const marketingOptInChecked = useMemo(() => {
+    if (isSocialLoginUser) {
+      if (marketingOptInTouched) {
+        return isSelected;
+      }
+
+      return getDefaultMarketingOptInChecked(true, resolvedGeolocationLocation);
+    }
+
+    return isSelected;
+  }, [
+    isSocialLoginUser,
+    marketingOptInTouched,
+    isSelected,
+    resolvedGeolocationLocation,
+  ]);
+
+  const setSelection = useCallback(() => {
+    setMarketingOptInTouched(true);
+    setIsSelected((prev) => {
+      if (!marketingOptInTouched) {
+        const defaultChecked = isSocialLoginUser
+          ? getDefaultMarketingOptInChecked(true, resolvedGeolocationLocation)
+          : false;
+
+        return !defaultChecked;
+      }
+
+      return !prev;
+    });
+  }, [marketingOptInTouched, isSocialLoginUser, resolvedGeolocationLocation]);
+
   const track = useCallback(
     (event: IMetaMetricsEvent | ITrackingEvent, properties?: JsonMap) => {
-      const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
+      const eventBuilder = AnalyticsEventBuilder.createEventBuilder(event);
       if (properties) {
         eventBuilder.addProperties(properties);
       }
@@ -163,14 +249,11 @@ const ChoosePassword = () => {
     [dispatch],
   );
 
-  const setSelection = useCallback(() => {
-    setIsSelected((prev) => !prev);
-  }, []);
-
   const tryExportSeedPhrase = useCallback(async (pwd: string) => {
     const context = Engine.context;
-    const uint8ArrayMnemonic =
-      await context.KeyringController.exportSeedPhrase(pwd);
+    const uint8ArrayMnemonic = await context.KeyringController.exportSeedPhrase(
+      { password: pwd },
+    );
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   }, []);
 
@@ -182,8 +265,9 @@ const ChoosePassword = () => {
       const keychainPassword = keyringControllerPasswordSet.current
         ? password
         : '';
-      const seedPhraseUint8 =
-        await context.KeyringController.exportSeedPhrase(keychainPassword);
+      const seedPhraseUint8 = await context.KeyringController.exportSeedPhrase({
+        password: keychainPassword,
+      });
       const seedPhrase = uint8ArrayToMnemonic(seedPhraseUint8, wordlist);
       let importedAccounts: string[] = [];
       // Get imported accounts
@@ -194,7 +278,10 @@ const ChoosePassword = () => {
         for (const simpleKeyring of simpleKeyrings) {
           const simpleKeyringAccounts = await Promise.all(
             simpleKeyring.accounts.map((account) =>
-              keyringController.exportAccount(keychainPassword, account),
+              keyringController.exportAccount(
+                { password: keychainPassword },
+                account,
+              ),
             ),
           );
           importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
@@ -311,7 +398,7 @@ const ChoosePassword = () => {
   );
 
   const handlePostWalletCreation = useCallback(
-    async (authType: AuthData) => {
+    async (authType: AuthData, marketingOptInChecked: boolean) => {
       dispatch(passwordSetAction());
       dispatch(setLockTimeAction(AppConstants.DEFAULT_LOCK_TIMEOUT));
 
@@ -319,12 +406,12 @@ const ChoosePassword = () => {
         endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
         endTrace({ name: TraceName.OnboardingJourneyOverall });
 
-        dispatch(setDataCollectionForMarketing(isSelected));
-        OAuthLoginService.updateMarketingOptInStatus(isSelected).catch(
-          (err) => {
-            Logger.error(err);
-          },
-        );
+        dispatch(setDataCollectionForMarketing(marketingOptInChecked));
+        OAuthLoginService.updateMarketingOptInStatus(
+          marketingOptInChecked,
+        ).catch((err) => {
+          Logger.error(err);
+        });
 
         const oauthProvider = route.params?.provider;
         const socialAccountType =
@@ -339,8 +426,9 @@ const ChoosePassword = () => {
                 MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
               )
               .addProperties({
-                [UserProfileProperty.HAS_MARKETING_CONSENT]:
-                  Boolean(isSelected),
+                [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
+                  marketingOptInChecked,
+                ),
                 is_metrics_opted_in: true,
                 location: 'onboarding_choosePassword',
                 updated_after_onboarding: false,
@@ -349,7 +437,7 @@ const ChoosePassword = () => {
               .build(),
           );
 
-          await metrics.addTraitsToUser({
+          await metrics.identify({
             ...generateDeviceAnalyticsMetaData(),
             ...generateUserSettingsAnalyticsMetaData(),
           });
@@ -361,8 +449,13 @@ const ChoosePassword = () => {
           index: 0,
           routes: [
             {
-              name: Routes.ONBOARDING.SUCCESS,
-              params: { showPasswordHint: true },
+              name: Routes.ONBOARDING.SUCCESS_FLOW,
+              params: {
+                screen: Routes.ONBOARDING.SUCCESS,
+                params: {
+                  successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+                },
+              },
             },
           ],
         });
@@ -381,7 +474,6 @@ const ChoosePassword = () => {
     },
     [
       dispatch,
-      isSelected,
       metrics,
       navigation,
       route.params?.provider,
@@ -494,21 +586,29 @@ const ChoosePassword = () => {
 
       await handleWalletCreation(authType, previous_screen);
 
-      await handlePostWalletCreation(authType);
+      foxRiveLoaderRef.current?.stop();
+
+      await handlePostWalletCreation(authType, marketingOptInChecked);
 
       track(MetaMetricsEvents.WALLET_CREATED, {
         biometrics_enabled: Boolean(biometryType),
         account_type: accountType,
       });
+
+      let walletSetupAttributionProps = {};
+      if (isSocialLogin) {
+        walletSetupAttributionProps = getWalletSetupAttributionPropsFromStore(
+          marketingOptInChecked,
+        );
+      }
+
       track(MetaMetricsEvents.WALLET_SETUP_COMPLETED, {
         wallet_setup_type: 'new',
         new_wallet: true,
         account_type: accountType,
-        ...getWalletSetupCompletedAttributionAnalyticsProps(
-          attributionRecord,
-          isSelected,
-        ),
+        ...walletSetupAttributionProps,
       });
+
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
       const metricsEnabled = metrics.isEnabled();
@@ -524,8 +624,7 @@ const ChoosePassword = () => {
     handlePostWalletCreation,
     handleWalletCreationError,
     metrics,
-    attributionRecord,
-    isSelected,
+    marketingOptInChecked,
   ]);
 
   const onPasswordChange = useCallback(
@@ -540,7 +639,7 @@ const ChoosePassword = () => {
     track(MetaMetricsEvents.EXTERNAL_LINK_CLICKED, {
       text: 'Learn More',
       location: 'choose_password',
-      url: RESET_PASSWORD_GUIDE_URL,
+      url_domain: RESET_PASSWORD_GUIDE_URL,
     });
 
     navigation.navigate('Webview', {
@@ -575,36 +674,6 @@ const ChoosePassword = () => {
       password !== '' && confirmPassword !== '' && password !== confirmPassword,
     [password, confirmPassword],
   );
-
-  const HeaderLeft = useCallback(() => {
-    const marginLeft = 16;
-    return (
-      <TouchableOpacity onPress={() => navigation.goBack()} disabled={loading}>
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Lg}
-          color={IconColor.IconDefault}
-          style={{ marginLeft }}
-        />
-      </TouchableOpacity>
-    );
-  }, [navigation, loading]);
-
-  const EmptyHeaderLeft = useCallback(() => <Box />, []);
-
-  const updateNavBar = useCallback(() => {
-    navigation.setOptions(
-      getOnboardingNavbarOptions(
-        route,
-        {
-          headerLeft: loading ? EmptyHeaderLeft : HeaderLeft,
-          headerRight: () => null,
-        },
-        colors,
-        false,
-      ),
-    );
-  }, [navigation, loading, colors, route, HeaderLeft, EmptyHeaderLeft]);
 
   useEffect(() => {
     const initBiometrics = async () => {
@@ -643,19 +712,6 @@ const ChoosePassword = () => {
     [],
   );
 
-  useEffect(() => {
-    updateNavBar();
-  }, [updateNavBar]);
-
-  useEffect(() => {
-    if (loading) {
-      // update navigationOptions
-      navigation.setParams({
-        headerLeft: EmptyHeaderLeft,
-      });
-    }
-  }, [loading, navigation, EmptyHeaderLeft]);
-
   const renderContent = () => {
     const passwordsMatch = password !== '' && password === confirmPassword;
     const isPasswordTooShort =
@@ -664,7 +720,10 @@ const ChoosePassword = () => {
       password.length < MIN_PASSWORD_LENGTH;
     let canSubmit;
     if (getOauth2LoginSuccess()) {
-      canSubmit = passwordsMatch && password.length >= MIN_PASSWORD_LENGTH;
+      canSubmit =
+        passwordsMatch &&
+        password.length >= MIN_PASSWORD_LENGTH &&
+        isGeolocationResolved;
     } else {
       canSubmit =
         passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
@@ -675,6 +734,13 @@ const ChoosePassword = () => {
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-background-default')}
       >
+        <HeaderStandard
+          includesTopInset
+          onBack={loading ? undefined : () => navigation.goBack()}
+          backButtonProps={{
+            testID: ChoosePasswordSelectorsIDs.BACK_BUTTON_ID,
+          }}
+        />
         {loading ? (
           <Box
             alignItems={BoxAlignItems.Center}
@@ -682,7 +748,9 @@ const ChoosePassword = () => {
             twClassName="flex-1 px-4"
             gap={6}
           >
-            {!isE2E && <FoxRiveLoaderAnimation />}
+            {!hasTestOverrides && (
+              <FoxRiveLoaderAnimation ref={foxRiveLoaderRef} />
+            )}
           </Box>
         ) : (
           <KeyboardAwareScrollView
@@ -870,7 +938,7 @@ const ChoosePassword = () => {
                 >
                   <Checkbox
                     onChange={setSelection}
-                    isSelected={isSelected}
+                    isSelected={marketingOptInChecked}
                     testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                     accessibilityLabel={
                       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID

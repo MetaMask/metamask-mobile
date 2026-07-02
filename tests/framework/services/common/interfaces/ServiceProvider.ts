@@ -11,6 +11,12 @@ export interface ServiceProvider {
   sessionId?: string;
 
   /**
+   * Time in milliseconds from session creation request to session ready.
+   * Only populated by providers that involve remote session allocation (e.g. BrowserStack).
+   */
+  sessionCreationDurationMs?: number;
+
+  /**
    * Global setup - validates configuration before tests run
    */
   globalSetup?(): Promise<void>;

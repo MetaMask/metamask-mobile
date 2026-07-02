@@ -44,7 +44,7 @@ export const initialStateBridge = (options?: InitialStateBridgeOptions) => {
     } as unknown as DeepPartial<RootState>)
     .withMinimalAnalyticsController()
     .withAccountTreeForSelectedAccount()
-    .withRemoteFeatureFlags({});
+    .withRemoteFeatureFlags({ enableFiatToggle: true });
 
   if (options?.deterministicFiat) {
     builder.withOverrides({

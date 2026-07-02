@@ -2,9 +2,7 @@ import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { SmokePerps } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
-import WalletView from '../../page-objects/wallet/WalletView';
-import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
-import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
+import { navigateToPerpsOrderEntry } from '../../flows/perps.flow';
 import {
   PERPS_ARBITRUM_MOCKS,
   mockPerpsGeolocation,
@@ -21,7 +19,6 @@ import {
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({
   name: 'PerpsPositionStopLossSpec',
@@ -35,6 +32,7 @@ describe(SmokePerps('Perps Position Stop Loss'), () => {
         fixture: new FixtureBuilder()
           .withPerpsProfile('no-positions')
           .withPerpsFirstTimeUser(false)
+          .withAccountTreeController()
           .withNetworkController({
             type: 'rpc',
             chainId: '0xa4b1',
@@ -51,13 +49,11 @@ describe(SmokePerps('Perps Position Stop Loss'), () => {
               type: 'erc20',
             },
           ])
-          .withPopularNetworks()
           .build(),
         restartDevice: true,
+        permissions: { notifications: 'YES' },
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
+          await setupRemoteFeatureFlagsMock(mockServer, {});
           await PERPS_ARBITRUM_MOCKS(mockServer);
           await mockPerpsGeolocation(
             mockServer,
@@ -75,11 +71,7 @@ describe(SmokePerps('Perps Position Stop Loss'), () => {
         await loginToApp();
         await device.disableSynchronization();
 
-        await WalletView.scrollAndTapPerpsSection();
-        await PerpsHomeView.tapExploreCryptoIfVisible();
-
-        await PerpsMarketListView.selectMarket('ETH');
-        await PerpsMarketDetailsView.tapLongButton();
+        await navigateToPerpsOrderEntry('ETH', 'long');
 
         await PerpsOrderView.tapTakeProfitButton();
         // Default ETH mock mark ~2500; SL below entry for a long
