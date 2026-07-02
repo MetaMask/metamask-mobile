@@ -45,7 +45,7 @@ const AssetListControlBar: React.FC<AssetListControlBarProps> = ({
     <ScrollView
       horizontal
       showsHorizontalScrollIndicator={false}
-      contentContainerStyle={tw.style('flex-row gap-2 pb-4')}
+      contentContainerStyle={tw.style('flex-row gap-2 px-4 pb-4')}
     >
       <ButtonBase
         size={ButtonBaseSize.Md}

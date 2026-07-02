@@ -1,5 +1,5 @@
+/* eslint-disable jsdoc/check-indentation */
 import { selectIsMoneyAccountGeoEligible } from '../../../../components/UI/Money/selectors/eligibility';
-import { selectMoneyEnableMoneyAccountFlag } from '../../../../components/UI/Money/selectors/featureFlags';
 import Routes from '../../../../constants/navigation/Routes';
 import { selectMoneyOnboardingSeen } from '../../../../reducers/user';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../selectors/featureFlagController/moneyAccount';
@@ -7,8 +7,104 @@ import Logger from '../../../../util/Logger';
 import NavigationService from '../../../NavigationService';
 import ReduxService from '../../../redux';
 import DevLogger from '../../../SDKConnect/utils/DevLogger';
-import { DeepLinkModalLinkType } from '../../types/deepLink.types';
-import handleDeepLinkModalDisplay from './handleDeepLinkModalDisplay';
+import {
+  hasMinimumRequiredVersion,
+  isVersionGatedFeatureFlag,
+  validatedVersionGatedFeatureFlag,
+} from '../../../../util/remoteFeatureFlag';
+import {
+  selectRawRemoteFeatureFlags,
+  selectRemoteFeatureFlags,
+} from '../../../../selectors/featureFlagController';
+import { RootState } from '../../../../reducers';
+import { MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME } from '../../../../lib/Money/feature-flags';
+import { strings } from '../../../../../locales/i18n';
+
+enum MoneyAccountFlagStatus {
+  Enabled = 'enabled',
+  Disabled = 'disabled',
+  NotInRollout = 'not_in_rollout',
+}
+
+/**
+ * We use 2 shapes for feature flags:
+ *
+ * Type 1: Standard flags.
+ * {
+ *   enabled: boolean,
+ *   minimumVersion: string
+ * }
+ *
+ * Type 2: Gradual rollout flags.
+ * [
+ *   {
+ *     scope: {
+ *       type: string,
+ *       value: number,
+ *     },
+ *     thresholdName: string,
+ *     thresholdVersion: number,
+ *     value: {
+ *       enabled: boolean,
+ *       minimumVersion: string,
+ *     },
+ *   },
+ *   {
+ *     scope: {
+ *       type: string,
+ *       value: number,
+ *     },
+ *     thresholdName: string,
+ *     thresholdVersion: number,
+ *     value: {
+ *       enabled: boolean,
+ *       minimumVersion: string,
+ *     },
+ *   },
+ * ]
+ */
+const getMoneyAccountFlagStatus = (
+  state: RootState,
+): MoneyAccountFlagStatus => {
+  // Raw flag contains gradual rollout config shape.
+  const rawFlag =
+    selectRawRemoteFeatureFlags(state)?.[MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME];
+
+  // Resolved flag respects basic-functionality gating, local overrides, and rollout cohort resolution.
+  const resolvedFlag =
+    selectRemoteFeatureFlags(state)?.[MONEY_ENABLE_MONEY_ACCOUNT_FLAG_NAME];
+
+  if (!Array.isArray(rawFlag)) {
+    // Standard flags must use the resolved selector to match Money stack registration.
+    return validatedVersionGatedFeatureFlag(resolvedFlag)
+      ? MoneyAccountFlagStatus.Enabled
+      : MoneyAccountFlagStatus.Disabled;
+  }
+
+  // Array → active gradual rollout; resolvedFlag is the selected cohort's value
+  if (!isVersionGatedFeatureFlag(resolvedFlag)) {
+    Logger.error(
+      new Error('Malformed money account rollout flag value'),
+      '[handleMoney] getMoneyAccountFlagStatus received an invalid resolved rollout flag',
+    );
+    return MoneyAccountFlagStatus.Disabled;
+  }
+
+  if (!resolvedFlag.enabled) {
+    return MoneyAccountFlagStatus.NotInRollout; // in the "disabled" cohort
+  }
+
+  // In the "enabled" cohort, but still version-gated
+  return hasMinimumRequiredVersion(resolvedFlag.minimumVersion)
+    ? MoneyAccountFlagStatus.Enabled
+    : MoneyAccountFlagStatus.Disabled;
+};
+
+const navigateToDeeplinkModal = (title: string, description: string) =>
+  NavigationService.navigation.navigate(Routes.MONEY.MODALS.DEEPLINK_MODAL, {
+    title,
+    description,
+  });
 
 export const handleMoney = () => {
   DevLogger.log('[handleMoney] Starting deeplink handling');
@@ -16,18 +112,28 @@ export const handleMoney = () => {
   try {
     const state = ReduxService.store.getState();
     const isMoneyAccountGeoEligible = selectIsMoneyAccountGeoEligible(state);
-    const isMoneyAccountEnabled = selectMoneyEnableMoneyAccountFlag(state);
     const hasSeenMoneyOnboarding = selectMoneyOnboardingSeen(state);
     const isOnboardingEnabled =
       selectMoneyOnboardingStepperAnimationEnabled(state);
 
-    if (!isMoneyAccountEnabled) {
-      handleDeepLinkModalDisplay({
-        linkType: DeepLinkModalLinkType.UNSUPPORTED,
-        onBack: () => {
-          NavigationService.navigation.navigate(Routes.WALLET.HOME);
-        },
-      });
+    const moneyAccountFlagStatus = getMoneyAccountFlagStatus(state);
+
+    if (moneyAccountFlagStatus === MoneyAccountFlagStatus.Disabled) {
+      navigateToDeeplinkModal(
+        strings('money.deeplink_modal.money_account_disabled.title'),
+        strings('money.deeplink_modal.money_account_disabled.description'),
+      );
+      return;
+    }
+
+    // User not part of gradual rollout cohort yet.
+    if (moneyAccountFlagStatus === MoneyAccountFlagStatus.NotInRollout) {
+      navigateToDeeplinkModal(
+        strings('money.deeplink_modal.excluded_from_gradual_rollout.title'),
+        strings(
+          'money.deeplink_modal.excluded_from_gradual_rollout.description',
+        ),
+      );
       return;
     }
 
@@ -42,6 +148,7 @@ export const handleMoney = () => {
       NavigationService.navigation.navigate(Routes.MONEY.ONBOARDING);
       return;
     }
+
     NavigationService.navigation.navigate(Routes.HOME_TABS, {
       screen: Routes.MONEY.ROOT,
       params: { screen: Routes.MONEY.HOME },

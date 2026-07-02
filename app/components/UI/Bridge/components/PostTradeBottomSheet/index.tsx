@@ -374,7 +374,15 @@ export const PostTradeBottomSheet = () => {
             testID: PostTradeBottomSheetTestIds.TRY_AGAIN_BUTTON,
           },
         }
-      : undefined;
+      : {
+          secondaryButtonProps: {
+            children: strings('bridge.post_trade_modal.view_activity'),
+            size: ButtonSize.Lg,
+            onPress: handleViewActivity,
+            testID: PostTradeBottomSheetTestIds.VIEW_ACTIVITY_BUTTON,
+          },
+          primaryButtonProps: undefined,
+        };
 
   return (
     <BottomSheet
@@ -385,6 +393,7 @@ export const PostTradeBottomSheet = () => {
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{ testID: PostTradeBottomSheetTestIds.CLOSE_BUTTON }}
+        twClassName="pt-4 h-auto"
       >
         <StatusIcon status={status} />
       </BottomSheetHeader>
@@ -407,14 +416,12 @@ export const PostTradeBottomSheet = () => {
         destToken={params.destToken}
         onTokenPress={handleSuggestionPress}
       />
-      {footerButtonProps ? (
-        <BottomSheetFooter
-          buttonsAlignment={ButtonsAlignment.Vertical}
-          secondaryButtonProps={footerButtonProps.secondaryButtonProps}
-          primaryButtonProps={footerButtonProps.primaryButtonProps}
-          style={styles.footer}
-        />
-      ) : null}
+      <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Vertical}
+        secondaryButtonProps={footerButtonProps.secondaryButtonProps}
+        primaryButtonProps={footerButtonProps.primaryButtonProps}
+        style={styles.footer}
+      />
     </BottomSheet>
   );
 };

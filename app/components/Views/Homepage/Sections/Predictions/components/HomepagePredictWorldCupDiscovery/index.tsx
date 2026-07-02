@@ -35,7 +35,6 @@ import BtcLiveRow from './BtcLiveRow';
 import ChampionshipRow, { type ChampionshipRowState } from './ChampionshipRow';
 import MensWorldCupRow from './MensWorldCupRow';
 import LiveGameRow from './LiveGameRow';
-import BracketPills from './BracketPills';
 
 const WORLD_CUP_CTA_CATEGORY_NAME = 'world_cup';
 
@@ -193,10 +192,6 @@ const HomepagePredictWorldCupDiscovery: React.FC<
     () => goToWorldCup(PREDICT_WORLD_CUP_TAB_KEYS.ALL),
     [goToWorldCup],
   );
-  const handlePropsPill = useCallback(
-    () => goToWorldCup(PREDICT_WORLD_CUP_TAB_KEYS.PROPS),
-    [goToWorldCup],
-  );
   const handleViewAll = useCallback(() => {
     onTreatmentCtaClick?.(PREDICT_EMPTY_STATE_CTA_NAMES.EXPLORE_FEATURED);
     onViewAll(transactionActiveAbTests);
@@ -251,10 +246,6 @@ const HomepagePredictWorldCupDiscovery: React.FC<
             eventCountLabel={eventCountLabel}
           />
         </Box>
-        <BracketPills
-          onPropsPress={handlePropsPill}
-          onStagePress={goToWorldCup}
-        />
       </PredictEntryPointProvider>
     </>
   );
