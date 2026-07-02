@@ -24,12 +24,12 @@ Mobile imports the secrets securely, then rebuilds the **same account layout** t
 
 Secrets cannot all be imported at scan time. Mobile needs a **password first** to create the encrypted vault. Layout metadata (names, groups) is applied **after** secrets exist in the vault.
 
-| Phase | User-visible step                  | What happens                                                                           |
-| ----- | ---------------------------------- | -------------------------------------------------------------------------------------- |
-| **A** | Scan QR codes on Add Device        | Receive and validate extension data; open import screen with primary phrase pre-filled |
-| **B** | Create password on import screen   | Create vault; import remaining SRPs and private keys                                   |
-| **C** | Tap **Done** on Onboarding Success | Create account groups and apply names / pin / hide from extension                      |
-| **D** | Use the app after Home             | Existing mobile behaviour (cloud backup, unlock-time account checks)                   |
+| Phase | User-visible step                  | What happens                                                                                                  |
+| ----- | ---------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **A** | Scan QR codes on Add Device        | Receive and validate extension data; open import screen with primary phrase pre-filled                        |
+| **B** | Create password on import screen   | Create vault; import remaining SRPs and private keys                                                          |
+| **C** | Tap **Done** on Onboarding Success | Create account groups, apply names / pin / hide from extension, then reconcile with user storage (background) |
+| **D** | Use the app after Home             | Existing mobile behaviour (cloud backup, unlock-time account checks)                                          |
 
 ---
 
@@ -138,18 +138,19 @@ sequenceDiagram
 
     User->>Success: Tap Done
     alt QR sync user
-        Success->>Layout: Apply extension layout plan
+        Success->>Layout: Apply extension layout plan (background)
         Note over Layout: Create groups 1..N per wallet
         Note over Layout: Set names, pin, hide
+        Note over Layout: Reconcile with user storage
     else Normal import user
-        Success->>Layout: Activity-based account discovery
+        Success->>Layout: Activity-based account discovery (background)
     end
-    Success->>Home: Navigate (layout work continues in background)
+    Success->>Home: Navigate immediately (does not wait for layout/sync)
 ```
 
-**User sees:** Moves to Home quickly. Account names and groups may finish updating moments later.
+**User sees:** Navigates to Home **immediately** after tapping Done. Phase C (layout + user-storage reconciliation) runs in the background and does not block navigation. Account names, groups, and cloud merge may finish updating moments later.
 
-**Extension is ground truth:** For QR users, mobile **does not** use “find accounts with activity” on this screen.
+**Extension is ground truth for HD layout:** For QR users, mobile **does not** use “find accounts with activity” on this screen. After layout is applied, user storage is reconciled so Snap accounts and other cloud-backed tree data can merge in, and the extension layout can be pushed to Backup & Sync when enabled.
 
 ---
 
@@ -218,12 +219,12 @@ These are the main touchpoints with systems that already exist on mobile. Coordi
 
 ### 4. Backup & Sync / user storage
 
-| System                                                       | Normal behaviour                            | QR sync                                      |
-| ------------------------------------------------------------ | ------------------------------------------- | -------------------------------------------- |
-| **Cloud sync** (`syncWithUserStorage`, `useIdentityEffects`) | Syncs account tree when Backup & Sync is on | **Not called** during QR import (Phases B–C) |
-| **After Home**                                               | Unchanged                                   | Unchanged                                    |
+| System                                                       | Normal behaviour                                                                | QR sync                                                                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| **Cloud sync** (`syncWithUserStorage`, `useIdentityEffects`) | `discoverAccounts` pulls once on Done; `useIdentityEffects` may sync after Home | Phase C calls `syncWithUserStorage` **after** extension layout (background); Phase B still does not sync |
+| **After Home**                                               | `useIdentityEffects` may sync again                                             | Same — may overlap with in-flight Phase C sync                                                           |
 
-**Teams:** Identity / Backup & Sync. QR import should not trigger premature cloud pushes of a half-built tree.
+**Teams:** Identity / Backup & Sync. Sync is deferred until extension layout is complete so cloud is not updated with a half-built tree. Sync failures are logged and do not block onboarding or mark provisioning failed.
 
 ### 5. Account tree initialization
 
@@ -243,7 +244,7 @@ These are the main touchpoints with systems that already exist on mobile. Coordi
 | **Accounts / Multichain**    | Wallet and group creation APIs used in Phases B and C; `alignWallet` after group creation                         |
 | **Account tree**             | Names, pin, hide applied in Phase C                                                                               |
 | **Authentication**           | Vault creation, unlock flow; post-login discovery interaction (deferred fix)                                      |
-| **Identity / Backup & Sync** | No sync during import; Phase D unchanged                                                                          |
+| **Identity / Backup & Sync** | No sync during Phase B; Phase C reconciles user storage after layout (background, non-blocking)                   |
 | **QA**                       | Happy path, multi-SRP, private keys, app-kill before Done, Phase C failure (no retry)                             |
 
 ---
@@ -297,18 +298,17 @@ Add Device QR for users who already use mobile is **not** wired end-to-end yet (
 | --------------------------------------------------------------------- | ------------------------------------- |
 | Phases A, B, C for **new-user** onboarding happy path                 | Resume layout after app kill          |
 | Extension layout instead of discovery on Onboarding Success (QR only) | Post-onboarding QR for existing users |
-| Unit test coverage for core QR provisioning                           | E2E / device QA for full QR journey   |
-|                                                                       | Phase C failure recovery UX           |
+| User-storage reconciliation at end of Phase C (background)            | E2E / device QA for full QR journey   |
+| Unit test coverage for core QR provisioning                           | Phase C failure recovery UX           |
 
 ---
 
 ## Glossary
 
-| Term                         | Meaning                                                        |
-| ---------------------------- | -------------------------------------------------------------- |
-| **SRP / mnemonic**           | Secret Recovery Phrase (12/24 words)                           |
-| **Primary mnemonic**         | The SRP used to create the vault first                         |
-| **Account group**            | A set of accounts under one HD wallet index (group 0, 1, 2, …) |
-| **Activity-based discovery** | Mobile finds accounts that had on-chain activity               |
-| **Extension layout**         | Names, groups, pin/hide copied from extension export           |
-| **Vault**                    | Password-encrypted storage for keys on device                  |
+| Term                            | Meaning                                                                                 |
+| ------------------------------- | --------------------------------------------------------------------------------------- |
+| **Primary mnemonic**            | The SRP used to create the vault first                                                  |
+| **Account group**               | A set of accounts under one HD wallet index (group 0, 1, 2, …)                          |
+| **Activity-based discovery**    | Mobile finds accounts that had on-chain activity                                        |
+| **Extension layout**            | Names, groups, pin/hide copied from extension export                                    |
+| **User-storage reconciliation** | Bidirectional account-tree sync with cloud after Phase C layout (`syncWithUserStorage`) |

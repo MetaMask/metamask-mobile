@@ -37,6 +37,7 @@ export function getQrSyncProvisioningServiceMessenger(
       'KeyringController:withKeyringV2',
       'KeyringController:importAccountWithStrategy',
       'AccountTreeController:getAccountWalletObjects',
+      'AccountTreeController:syncWithUserStorage',
       'AccountTreeController:setAccountWalletName',
       'AccountTreeController:setAccountGroupName',
       'AccountTreeController:setAccountGroupPinned',

@@ -24,6 +24,7 @@ import type {
   AccountTreeControllerSetAccountGroupNameAction,
   AccountTreeControllerSetAccountGroupPinnedAction,
   AccountTreeControllerSetAccountWalletNameAction,
+  AccountTreeControllerSyncWithUserStorageAction,
   AccountWalletObject,
 } from '@metamask/account-tree-controller';
 import type {
@@ -83,6 +84,7 @@ type QrSyncProvisioningServiceAllowedActions =
   | AccountTreeControllerSetAccountGroupNameAction
   | AccountTreeControllerSetAccountGroupPinnedAction
   | AccountTreeControllerSetAccountGroupHiddenAction
+  | AccountTreeControllerSyncWithUserStorageAction
   | AccountsControllerGetAccountByAddressAction;
 
 export type QrSyncProvisioningServiceMessenger = Messenger<
@@ -214,6 +216,8 @@ export class QrSyncProvisioningService {
           this.#provisionPrivateKeyEntry(entry);
         }
       }
+
+      await this.#reconcileWithUserStorage();
 
       this.#messenger.call('QrSyncController:completeProvisioning');
     } catch (error) {
@@ -416,6 +420,17 @@ export class QrSyncProvisioningService {
     }
 
     return entry.accountAddress;
+  }
+
+  async #reconcileWithUserStorage(): Promise<void> {
+    try {
+      await this.#messenger.call('AccountTreeController:syncWithUserStorage');
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'QrSyncProvisioningService: user storage reconciliation failed',
+      );
+    }
   }
 
   #getAccountWalletObjects(): AccountWalletObject[] {

@@ -367,7 +367,8 @@ describe('QrSyncProvisioningService', () => {
         if (
           action === 'MultichainAccountService:createMultichainAccountGroup' ||
           action === 'MultichainAccountService:createMultichainAccountGroups' ||
-          action === 'MultichainAccountService:alignWallet'
+          action === 'MultichainAccountService:alignWallet' ||
+          action === 'AccountTreeController:syncWithUserStorage'
         ) {
           return undefined;
         }
@@ -429,11 +430,55 @@ describe('QrSyncProvisioningService', () => {
         'Imported PK',
       );
       expect(mockCall).toHaveBeenCalledWith(
+        'AccountTreeController:syncWithUserStorage',
+      );
+      expect(mockCall).toHaveBeenCalledWith(
         'QrSyncController:completeProvisioning',
       );
       expect(mockCall).not.toHaveBeenCalledWith(
         'AccountTreeController:setSelectedAccountGroup',
         expect.anything(),
+      );
+      expect(mockCall).not.toHaveBeenCalledWith(
+        'QrSyncController:markProvisioningFailed',
+      );
+    });
+
+    it('completes provisioning when user storage reconciliation fails', async () => {
+      const mockCall = jest.fn((action: string, ...args: unknown[]) => {
+        if (action === 'QrSyncController:getState') {
+          return createSecretsImportedState();
+        }
+
+        if (action === 'AccountTreeController:getAccountWalletObjects') {
+          return [primaryWallet, createPrivateKeyWallet()];
+        }
+
+        if (action === 'AccountsController:getAccountByAddress') {
+          return {
+            id: PRIVATE_KEY_ACCOUNT_ID,
+            address: args[0],
+          };
+        }
+
+        if (action === 'AccountTreeController:syncWithUserStorage') {
+          return Promise.reject(new Error('sync failed'));
+        }
+
+        return undefined;
+      });
+      mockMessenger.call = mockCall;
+      provisionService = new QrSyncProvisioningService({
+        messenger: asProvisioningMessenger(mockMessenger),
+      });
+
+      await provisionService.provisionFromMetadata();
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'AccountTreeController:syncWithUserStorage',
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'QrSyncController:completeProvisioning',
       );
       expect(mockCall).not.toHaveBeenCalledWith(
         'QrSyncController:markProvisioningFailed',

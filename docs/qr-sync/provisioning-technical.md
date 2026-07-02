@@ -23,8 +23,6 @@
 | Onboarding wiring     | `Authentication.newWalletAndRestore(..., isQrSync)`                                                       |
 | Tests to run          | `yarn jest app/core/QrSync app/selectors/qrSyncController app/core/Authentication/Authentication.test.ts` |
 
-**Do not re-introduce:** legacy wire format (`{ type, value, metadata }`), `importPlan`, `provisioning-types.ts`, vault orchestration inside `Authentication`, removed controller APIs (`canImportRemainingSecrets`, `assertReadyForSecretImport`, `getRemainingSecretImports`, `completeSecretImport`), or a separate payload splitter module.
-
 ---
 
 ## Table of contents
@@ -84,6 +82,7 @@
 - [x] `selectQrSyncNeedsProvisioning` selector
 - [x] `completeProvisioning` controller method
 - [x] `QrSyncProvisioningService.provisionFromMetadata`
+- [x] User-storage reconciliation at end of Phase C (`syncWithUserStorage`, non-blocking)
 - [x] `OnboardingSuccess` branches to `provisionFromMetadata` vs `discoverAccounts`
 - [ ] App-launch resume for `provisioningStatus === 'secrets_imported'`
 - [ ] Post-onboarding Phase C trigger
@@ -100,6 +99,7 @@
 | No secret staleness              | Wipe `pendingSecretImports` after Phase B; keep metadata for Phase C                        |
 | No `@metamask/*` bumps           | Use APIs already in mobile dependencies                                                     |
 | Extension export is ground truth | Skip activity-based `discoverAccounts` for QR onboarding on OnboardingSuccess               |
+| Cloud tree reconciliation        | `syncWithUserStorage` at end of Phase C after layout; failures logged, non-fatal            |
 | Reusable Phase B                 | Status-gated; optional `primaryEntropySource` for primary enrichment                        |
 
 **Hard constraints:**
@@ -108,6 +108,7 @@
 - Primary mnemonic must be restored first; pass `entropySource` into `importRemainingSecrets` when enriching primary metadata.
 - Phase B secondary mnemonics use `QrSyncProvisioningService.#importMnemonicToVault` — **not** `importNewSecretRecoveryPhrase`.
 - Phase B must **not** call `discoverAccounts`, `syncWithUserStorage`, or seedless backup APIs.
+- Phase C may call `syncWithUserStorage` only **after** extension layout is applied; sync failure must not block onboarding or mark provisioning failed.
 - Per-secret Phase B errors: log and continue.
 - `Authentication` must **not** import `QrSyncProvisioningService` directly.
 - Group `0` created by restore/import; Phase C creates `1..N` from max `groupIndex`.
@@ -145,12 +146,13 @@ sequenceDiagram
     Note over QC: secrets_imported
     Import->>Success: Navigate
 
-    Note over Success,ATC: Phase C
-    Success->>Prov: provisionFromMetadata()
+    Note over Success,ATC: Phase C (background)
+    Success->>Prov: void provisionFromMetadata()
+    Success->>Success: Navigate Home immediately
     Prov->>MAS: createMultichainAccountGroups / alignWallet
     Prov->>ATC: set names, pin, hide
+    Prov->>ATC: syncWithUserStorage
     Prov->>QC: completeProvisioning
-    Success->>Success: Navigate Home (non-blocking)
 ```
 
 ### Phase B callers
@@ -303,11 +305,12 @@ flowchart TD
     B -->|No| D[discoverAccounts]
     C --> E[For each MNEMONIC: create groups 1..N, alignWallet, names/pin/hide]
     C --> F[For each PRIVATE_KEY: names/pin/hide]
-    E --> G[completeProvisioning]
-    F --> G
-    C -->|Error| H[markProvisioningFailed]
+    E --> R[syncWithUserStorage reconciliation]
+    F --> R
+    R --> G[completeProvisioning]
     G --> I[completed]
-    A --> J[Navigate Home non-blocking]
+    C -->|Layout error| H[markProvisioningFailed]
+    A --> J[Navigate Home immediately via queueMicrotask]
     D --> J
     C --> J
 ```
@@ -336,8 +339,12 @@ FOR each PRIVATE_KEY entry:
   resolve groupId from accountAddress
   setAccountGroupName, pin/hide
 
+syncWithUserStorage()   // user-storage reconciliation; failures logged, non-fatal
+
 completeProvisioning()
 ```
+
+**Non-blocking onboarding:** `OnboardingSuccess` fires `provisionFromMetadata()` with `void` and navigates Home on the next microtask without awaiting Phase C. User-storage sync therefore runs in the background and does not block the Done → Home transition. Layout errors mark provisioning `failed`; sync errors are logged only.
 
 ### OnboardingSuccess wiring
 
@@ -358,8 +365,10 @@ See [Known gaps](#known-gaps-deferred).
 
 - [x] QR users skip `discoverAccounts` on OnboardingSuccess
 - [x] Group 0 not re-created; groups 1..N from extension
+- [x] User-storage reconciliation via `syncWithUserStorage` after layout (log-and-continue on failure)
+- [x] Phase C does not block navigation to Home (`void` + `queueMicrotask`)
 - [x] `completed` + metadata cleared on success
-- [x] Failure → `failed`
+- [x] Layout failure → `failed`
 
 ---
 
@@ -374,13 +383,13 @@ See [Discovery / sync conflicts](#discovery--sync-conflicts) and [Known gaps](#k
 
 ## Discovery / sync conflicts
 
-| System               | Location                                     | Normal behaviour                      | QR behaviour            | Conflict                   |
-| -------------------- | -------------------------------------------- | ------------------------------------- | ----------------------- | -------------------------- |
-| Onboarding discovery | `OnboardingSuccess`                          | `discoverAccounts`                    | `provisionFromMetadata` | Intentional replacement    |
-| Unlock discovery     | `Authentication.postLoginAsyncOperations`    | `discoverAccounts` per entropy source | **Same** — still runs   | **Gap** if Phase C pending |
-| Add SRP              | `importNewSecretRecoveryPhrase`              | Discovery + optional sync             | **Not used**            | Keep paths separate        |
-| Cloud sync           | `syncWithUserStorage` / `useIdentityEffects` | After Home if enabled                 | Not called in B/C       | No import-time sync        |
-| Tree init            | `newWalletAndRestore`                        | Group 0                               | Same                    | Phase C adds 1..N          |
+| System               | Location                                     | Normal behaviour                                                 | QR behaviour                                                                         | Conflict                                      |
+| -------------------- | -------------------------------------------- | ---------------------------------------------------------------- | ------------------------------------------------------------------------------------ | --------------------------------------------- |
+| Onboarding discovery | `OnboardingSuccess`                          | `discoverAccounts`                                               | `provisionFromMetadata`                                                              | Intentional replacement                       |
+| Unlock discovery     | `Authentication.postLoginAsyncOperations`    | `discoverAccounts` per entropy source                            | **Same** — still runs                                                                | **Gap** if Phase C pending                    |
+| Add SRP              | `importNewSecretRecoveryPhrase`              | Discovery + optional sync                                        | **Not used**                                                                         | Keep paths separate                           |
+| Cloud sync           | `syncWithUserStorage` / `useIdentityEffects` | `discoverAccounts` uses `syncWithUserStorageAtLeastOnce` on Done | Phase C calls `syncWithUserStorage` after layout (background); Phase B still no sync | Intentional — sync only after layout complete |
+| Tree init            | `newWalletAndRestore`                        | Group 0                                                          | Same                                                                                 | Phase C adds 1..N                             |
 
 **First onboard (no kill):** `newWalletAndRestore` does not call `postLoginAsyncOperations`; user goes Import → OnboardingSuccess → Phase C on Done.
 
@@ -571,9 +580,10 @@ Resolve gap #1 before or instead of running `discoverAccounts` when `secrets_imp
 | 8   | OnboardingSuccess branch                           | C     | Done         |
 | 9   | QR `resetState` back only                          | B     | Done         |
 | 10  | Phase B guards in `qr-sync-validation.ts`          | B     | Done         |
-| 11  | App-launch / unlock resume                         | C     | **Deferred** |
-| 12  | Post-onboarding QR UI + B/C                        | B/C   | **Deferred** |
-| 13  | Phase C failure recovery                           | C     | **Deferred** |
+| 11  | User-storage reconciliation in Phase C             | C     | Done         |
+| 12  | App-launch / unlock resume                         | C     | **Deferred** |
+| 13  | Post-onboarding QR UI + B/C                        | B/C   | **Deferred** |
+| 14  | Phase C failure recovery                           | C     | **Deferred** |
 
 ---
 
@@ -586,7 +596,7 @@ Resolve gap #1 before or instead of running `discoverAccounts` when `secrets_imp
 | `importRemainingSecrets`                      | Delegate, enrich, finalize, no-op                                 |
 | `importSecretsToVault`                        | MAS + keyring; log-and-continue                                   |
 | `newWalletAndRestore` (isQrSync)              | Calls / skips `importRemainingSecrets`                            |
-| `provisionFromMetadata`                       | Groups, names, pin/hide                                           |
+| `provisionFromMetadata`                       | Groups, names, pin/hide, user-storage reconciliation              |
 | `selectQrSyncNeedsProvisioning`               | `secrets_imported` + metadata                                     |
 | OnboardingSuccess                             | QR vs `discoverAccounts`                                          |
 | ImportFromSecretRecoveryPhrase                | No `resetState` on success                                        |
