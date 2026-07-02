@@ -126,6 +126,12 @@ class MMConnectBrowserPlaygroundDapp {
     );
   }
 
+  get legacyEvmSwitchToMainnetButton(): WebElement {
+    return this.getByDataTestId(
+      MMConnectDappTestIds.LEGACY_EVM_BTN_SWITCH_MAINNET,
+    );
+  }
+
   get legacyEvmResponseText(): WebElement {
     return this.getByDataTestId(MMConnectDappTestIds.LEGACY_EVM_RESPONSE_TEXT);
   }
@@ -302,6 +308,14 @@ class MMConnectBrowserPlaygroundDapp {
 
   async tapLegacySendTransaction(): Promise<void> {
     await this.tapElement(this.legacyEvmSendTransactionButton);
+  }
+
+  /**
+   * Tap the Legacy EVM "Switch to Mainnet" button, which issues a
+   * dapp-initiated `wallet_switchEthereumChain` to `0x1`.
+   */
+  async tapLegacySwitchToMainnet(): Promise<void> {
+    await this.tapElement(this.legacyEvmSwitchToMainnetButton);
   }
 
   /**

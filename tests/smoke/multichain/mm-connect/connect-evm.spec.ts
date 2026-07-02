@@ -15,11 +15,14 @@
  * Wagmi connector variant is intentionally deferred — its dapp interactions
  * differ but the underlying provider path is identical to Legacy EVM.
  */
+import type { Mockttp } from 'mockttp';
 import { SmokeMultiChainAPI } from '../../../tags';
 import { DappVariants } from '../../../framework/Constants';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
-import { DEFAULT_ANVIL_PORT } from '../../../seeder/anvil-manager';
+import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
+import { LocalNode, LocalNodeType } from '../../../framework/types';
+import { AnvilManager } from '../../../seeder/anvil-manager';
 import MMConnectBrowserPlaygroundDapp from '../../../page-objects/Browser/MMConnectBrowserPlaygroundDapp';
 import ConnectBottomSheet from '../../../page-objects/Browser/ConnectBottomSheet';
 import ConfirmationUITypes from '../../../page-objects/Browser/Confirmations/ConfirmationUITypes';
@@ -27,21 +30,20 @@ import FooterActions from '../../../page-objects/Browser/Confirmations/FooterAct
 import Assertions from '../../../framework/Assertions';
 import Browser from '../../../page-objects/Browser/BrowserView';
 import ConnectedAccountsModal from '../../../page-objects/Browser/ConnectedAccountsModal';
-import NetworkConnectMultiSelector from '../../../page-objects/Browser/NetworkConnectMultiSelector';
-import NetworkNonPemittedBottomSheet from '../../../page-objects/Network/NetworkNonPemittedBottomSheet';
-import { CustomNetworks } from '../../../resources/networks.e2e';
-import { CUSTOM_RPC_PROVIDER_MOCKS } from '../../../api-mocking/mock-responses/custom-rpc-provider-mocks';
+import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
+import {
+  SECURITY_ALERTS_BENIGN_RESPONSE,
+  securityAlertsUrl,
+} from '../../../api-mocking/mock-responses/security-alerts-mock';
 
-// Anvil's default chain id in hex (1337 → 0x539). Used to keep the wallet on
-// the local node so `eth_sendTransaction` resolves against a funded account
-// instead of hitting Infura/mainnet.
-const ANVIL_CHAIN_ID_HEX = '0x539';
+// Mainnet in hex. MMConnect's legacy provider always connects on eip155:1:
+// the dapp's `LegacyEVMSDKProvider` requests chainId `0x1` by default and
+// `@metamask/connect-evm` pins the active chain to the first permitted scope.
+const MAINNET_CHAIN_ID_HEX = '0x1';
 
-// Elysium Testnet (chainId 1338 → 0x53a) — the secondary chain we add to
-// the dapp's permitted set so we can swap the active chain out from under
-// it without touching Infura. Matches
-// `tests/resources/networks.e2e.js` `CustomNetworks.ElysiumTestnet`.
-const ELYSIUM_TESTNET_CHAIN_ID_HEX = '0x53a';
+// Localhost (Anvil) chain — the e2e default per-dapp network the connect-evm
+// card reports right after connecting with the default fixture.
+const LOCALHOST_CHAIN_ID_HEX = '0x539';
 
 describe(SmokeMultiChainAPI('MMConnect Legacy EVM (in-app browser)'), () => {
   beforeAll(async () => {
@@ -138,7 +140,20 @@ describe(SmokeMultiChainAPI('MMConnect Legacy EVM (in-app browser)'), () => {
     );
   });
 
-  it('notifies the dapp when the wallet changes the permitted chain', async () => {
+  // NOTE ON WALLET-SIDE `chainChanged`:
+  // The extension spec's "wallet changes the permitted chain → dapp gets
+  // chainChanged" scenario is not reproducible from the MetaMask Mobile UI for
+  // a *connected* connect-evm dapp. The dapp's displayed chain tracks the
+  // per-dapp network (`SelectedNetworkController.domains[origin]`), which only
+  // changes via `setNetworkClientIdForDomain`. But (a) the connected-accounts
+  // network picker navigates to the network selector without `hostInfo`, so it
+  // switches the *global* network (no per-dapp change); (b) the browser
+  // toolbar's per-dapp network selector is only rendered while *disconnected*
+  // (`selectedAddress` becomes the connected account once connected). So we
+  // instead cover the `chainChanged` delivery path via a dapp-initiated
+  // `wallet_switchEthereumChain`, which does update the per-dapp network and
+  // emits `metamask_chainChanged` to the provider.
+  it('notifies the dapp when it switches the active chain', async () => {
     await withFixtures(
       {
         dapps: [
@@ -146,57 +161,31 @@ describe(SmokeMultiChainAPI('MMConnect Legacy EVM (in-app browser)'), () => {
             dappVariant: DappVariants.BROWSER_PLAYGROUND,
           },
         ],
-        // Pre-seed Elysium Testnet so it shows up in the permissions editor.
-        // We don't make the wallet's globally-active network change; instead
-        // we add Elysium to the dapp's per-origin permitted set and then
-        // remove Mainnet, which fires `chainChanged` to the dapp.
-        fixture: new FixtureBuilder()
-          .withNetworkController(CustomNetworks.ElysiumTestnet.providerConfig)
-          .build(),
+        fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: CUSTOM_RPC_PROVIDER_MOCKS,
       },
       async () => {
         await MMConnectBrowserPlaygroundDapp.setupAndNavigateToTestDapp();
 
-        // Establish the legacy session on Mainnet (default active chain).
         await device.disableSynchronization();
         try {
+          // Establish the legacy session. The e2e default per-dapp network is
+          // Localhost `0x539`, so the card's chain-id readout starts there.
           await MMConnectBrowserPlaygroundDapp.tapConnectLegacy();
           await ConnectBottomSheet.tapConnectButton();
           await MMConnectBrowserPlaygroundDapp.assertLegacyEvmCardVisible();
           await MMConnectBrowserPlaygroundDapp.assertLegacyEvmChainIdContains(
-            '0x1',
+            LOCALHOST_CHAIN_ID_HEX,
           );
-        } finally {
-          await device.enableSynchronization();
-        }
 
-        // Step 1: add Elysium Testnet to the dapp's permitted set. The
-        // dapp's active chain stays on Mainnet because Mainnet is still
-        // in the set, so no `chainChanged` is expected yet.
-        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await ConnectedAccountsModal.tapPermissionsSummaryTab();
-        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
-        await NetworkNonPemittedBottomSheet.tapElysiumTestnetNetworkName();
-        await NetworkConnectMultiSelector.tapUpdateButton();
+          // Dapp-initiated `wallet_switchEthereumChain` to Mainnet (`0x1`,
+          // already permitted since connect-evm requests `eip155:1` on connect).
+          await MMConnectBrowserPlaygroundDapp.tapLegacySwitchToMainnet();
 
-        // Step 2: remove Mainnet from the dapp's permitted set. Only
-        // Elysium Testnet remains, so the wallet must rotate the dapp's
-        // active chain to Elysium and emit `chainChanged(0x53a)`.
-        await Browser.tapNetworkAvatarOrAccountButtonOnBrowser();
-        await ConnectedAccountsModal.tapPermissionsSummaryTab();
-        await ConnectedAccountsModal.tapNavigateToEditNetworksPermissionsButton();
-        await NetworkConnectMultiSelector.selectNetworkChainPermission(
-          'Ethereum Main Network',
-        );
-        await NetworkConnectMultiSelector.tapUpdateButton();
-
-        // Assert the dapp observed the wallet-side chain switch.
-        await device.disableSynchronization();
-        try {
+          // The connect-evm provider observes `metamask_chainChanged(0x1)` and
+          // re-renders the card's chain-id readout.
           await MMConnectBrowserPlaygroundDapp.assertLegacyEvmChainIdContains(
-            ELYSIUM_TESTNET_CHAIN_ID_HEX,
+            MAINNET_CHAIN_ID_HEX,
           );
         } finally {
           await device.enableSynchronization();
@@ -259,39 +248,58 @@ describe(SmokeMultiChainAPI('MMConnect Legacy EVM (in-app browser)'), () => {
             dappVariant: DappVariants.BROWSER_PLAYGROUND,
           },
         ],
-        // The dapp's "Send Transaction" button submits an `eth_sendTransaction`
-        // against whatever chain MetaMask is connected to. Point the wallet at
-        // the locally-spun-up Anvil node so the from-account (account #0 of
-        // Anvil's mnemonic, which matches the default fixture SRP) is funded.
-        fixture: new FixtureBuilder()
-          .withNetworkController({
-            chainId: ANVIL_CHAIN_ID_HEX,
-            rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
-            type: 'custom',
-            nickname: 'Local RPC',
-            ticker: 'ETH',
-          })
-          .withNetworkEnabledMap({
-            eip155: { [ANVIL_CHAIN_ID_HEX]: true },
-          })
-          .build(),
+        // MMConnect's legacy provider always connects on eip155:1 (mainnet), so
+        // the dapp's `eth_sendTransaction` is a mainnet transaction regardless
+        // of the wallet's globally-selected network. Back mainnet with a local
+        // Anvil node started as chainId 1 so the tx submits against a funded
+        // account (Anvil account #0 == the default fixture SRP) and returns a
+        // real tx hash to the dapp — instead of hanging on live/mocked Infura.
+        localNodeOptions: [
+          {
+            type: LocalNodeType.anvil,
+            options: { chainId: 1 },
+          },
+        ],
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort = node?.getPort?.() ?? AnvilPort();
+          return new FixtureBuilder()
+            .withNetworkController({
+              chainId: MAINNET_CHAIN_ID_HEX,
+              rpcUrl: `http://localhost:${rpcPort}`,
+              type: 'custom',
+              nickname: 'Ethereum Mainnet',
+              ticker: 'ETH',
+            })
+            .build();
+        },
         restartDevice: true,
+        // The dapp's "Send Transaction" targets the zero address, which Blockaid
+        // flags — turning the confirmation footer into "Review alert" instead of
+        // "Confirm". Mock a benign security-alerts response so the tx can be
+        // confirmed and submitted.
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupMockRequest(mockServer, {
+            requestMethod: 'POST',
+            url: securityAlertsUrl(MAINNET_CHAIN_ID_HEX),
+            response: SECURITY_ALERTS_BENIGN_RESPONSE,
+            responseCode: 201,
+          });
+        },
       },
       async () => {
         await MMConnectBrowserPlaygroundDapp.setupAndNavigateToTestDapp();
 
         await device.disableSynchronization();
         try {
-          // Connect on the Anvil chain. The single permitted scope (eip155:1337)
-          // is what the dapp's legacy provider will use for the subsequent
-          // `eth_sendTransaction`.
+          // Connect on mainnet (the legacy provider's default active chain,
+          // now backed by the local Anvil node).
           await MMConnectBrowserPlaygroundDapp.tapConnectLegacy();
           await ConnectBottomSheet.tapConnectButton();
           await MMConnectBrowserPlaygroundDapp.assertLegacyEvmCardVisible();
 
           // Tap "Send Transaction" → MetaMask's redesigned transaction
-          // confirmation modal opens. The default tx is a 0-value self-send
-          // (from = to = active account) so it always passes simulation.
+          // confirmation modal opens.
           await MMConnectBrowserPlaygroundDapp.tapLegacySendTransaction();
           await Assertions.expectElementToBeVisible(
             ConfirmationUITypes.ModalConfirmationContainer,
