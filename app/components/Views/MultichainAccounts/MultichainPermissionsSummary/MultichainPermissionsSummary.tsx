@@ -60,7 +60,6 @@ import Badge, {
 } from '../../../../component-library/components/Badges/Badge';
 import AvatarFavicon from '../../../../component-library/components/Avatars/Avatar/variants/AvatarFavicon';
 import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { endTrace, trace, TraceName } from '../../../../util/trace';
 import { NetworkAvatarProps } from '../../MultichainAccounts/shared/AccountConnect.types';
 import MultichainAccountsConnectedList from '../MultichainAccountsConnectedList/MultichainAccountsConnectedList';
 import { AccountGroupId } from '@metamask/account-api';
@@ -300,7 +299,6 @@ const MultichainPermissionsSummary = ({
   }, [onRevokeAll, hostname, navigation]);
 
   const toggleRevokeAllPermissionsModal = useCallback(() => {
-    trace({ name: TraceName.DisconnectAllAccountPermissions });
     navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.REVOKE_ALL_ACCOUNT_PERMISSIONS,
       params: {
@@ -312,7 +310,6 @@ const MultichainPermissionsSummary = ({
         onRevokeAll: onRevokeAllHandler,
       },
     });
-    endTrace({ name: TraceName.DisconnectAllAccountPermissions });
   }, [onRevokeAllHandler, hostname, navigate]);
 
   const getNetworkLabel = useCallback(() => {

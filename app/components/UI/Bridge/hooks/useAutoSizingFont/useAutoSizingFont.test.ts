@@ -37,25 +37,25 @@ describe('getTextWidthRatio', () => {
 
 describe('calculateFontSizeForWidth', () => {
   it('returns maxFontSize when text is empty', () => {
-    expect(calculateFontSizeForWidth('', 300)).toBe(40);
+    expect(calculateFontSizeForWidth('', 300)).toBe(32);
     expect(calculateFontSizeForWidth('', 300, 50)).toBe(50);
   });
 
   it('returns maxFontSize when containerWidth is 0', () => {
-    expect(calculateFontSizeForWidth('123', 0)).toBe(40);
+    expect(calculateFontSizeForWidth('123', 0)).toBe(32);
   });
 
   it('calculates font size for short text in wide container', () => {
     // "0" has ratio 0.6
-    // idealFontSize = (300 * 0.95) / 0.6 = 475 → clamped to 40
-    expect(calculateFontSizeForWidth('0', 300)).toBe(40);
+    // idealFontSize = (300 * 0.95) / 0.6 = 475 → clamped to 32
+    expect(calculateFontSizeForWidth('0', 300)).toBe(32);
   });
 
   it('reduces font size for longer text', () => {
     // "0.88888855" has ratio 5.7
-    // idealFontSize = (220 * 0.95) / 5.7 ≈ 36.6 → floor to 36
+    // idealFontSize = (220 * 0.95) / 5.7 ≈ 36.6 → clamped to 32
     const fontSize = calculateFontSizeForWidth('0.88888855', 220);
-    expect(fontSize).toBe(36);
+    expect(fontSize).toBe(32);
   });
 
   it('clamps to minFontSize for very long text', () => {
@@ -73,9 +73,9 @@ describe('calculateFontSizeForWidth', () => {
 
   it('correctly sizes text with many narrow characters', () => {
     // "1,234,567.89" = 9 digits (5.4) + 3 narrow chars (0.9) = 6.3
-    // idealFontSize = (250 * 0.95) / 6.3 ≈ 37.7 → floor to 37
+    // idealFontSize = (250 * 0.95) / 6.3 ≈ 37.7 → clamped to 32
     const fontSize = calculateFontSizeForWidth('1,234,567.89', 250);
-    expect(fontSize).toBe(37);
+    expect(fontSize).toBe(32);
   });
 });
 
@@ -85,7 +85,7 @@ describe('useAutoSizingFont', () => {
       useAutoSizingFont({ text: '0.88888855' }),
     );
 
-    expect(result.current.fontSize).toBe(40);
+    expect(result.current.fontSize).toBe(32);
     expect(typeof result.current.onContainerLayout).toBe('function');
   });
 
@@ -101,8 +101,8 @@ describe('useAutoSizingFont', () => {
     });
 
     // ratio for "0.88888855" = 5.7
-    // idealFontSize = (220 * 0.95) / 5.7 ≈ 36.6 → 36
-    expect(result.current.fontSize).toBe(36);
+    // idealFontSize = (220 * 0.95) / 5.7 ≈ 36.6 → clamped to 32
+    expect(result.current.fontSize).toBe(32);
   });
 
   it('returns maxFontSize for short text in wide container', () => {
@@ -114,7 +114,7 @@ describe('useAutoSizingFont', () => {
       } as never);
     });
 
-    expect(result.current.fontSize).toBe(40);
+    expect(result.current.fontSize).toBe(32);
   });
 
   it('respects custom maxFontSize and minFontSize', () => {
@@ -151,10 +151,10 @@ describe('useAutoSizingFont', () => {
       } as never);
     });
 
-    expect(result.current.fontSize).toBe(40); // Short text: clamped to max
+    expect(result.current.fontSize).toBe(32); // Short text: clamped to max
 
     rerender({ text: '0.88888855' });
-    expect(result.current.fontSize).toBe(36);
+    expect(result.current.fontSize).toBe(32);
 
     rerender({ text: '12345678901234567890' });
     // ratio = 20 * 0.6 = 12
@@ -171,6 +171,6 @@ describe('useAutoSizingFont', () => {
       } as never);
     });
 
-    expect(result.current.fontSize).toBe(40);
+    expect(result.current.fontSize).toBe(32);
   });
 });

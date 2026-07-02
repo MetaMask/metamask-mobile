@@ -152,6 +152,8 @@ jest.mock('../Engine', () => ({
         nodeAuthTokens: [],
         isNewUser: false,
       })),
+      refreshAuthTokens: jest.fn().mockResolvedValue(undefined),
+      getAccessToken: jest.fn(),
       state: {
         accessToken: undefined,
         socialBackupsMetadata: [],
@@ -898,10 +900,19 @@ describe('OAuth login service', () => {
 describe('updateMarketingOptInStatus', () => {
   const mockFetch = jest.fn();
   const originalFetch = global.fetch;
+  const mockGetAccessToken = Engine.context.SeedlessOnboardingController
+    .getAccessToken as jest.Mock;
+  const mockRefreshAuthTokens = Engine.context.SeedlessOnboardingController
+    .refreshAuthTokens as jest.Mock;
 
   beforeEach(() => {
     global.fetch = mockFetch;
     mockFetch.mockClear();
+    mockGetAccessToken.mockClear();
+    mockRefreshAuthTokens.mockClear();
+    mockGetAccessToken.mockImplementation(
+      async () => Engine.context.SeedlessOnboardingController.state.accessToken,
+    );
     // Reset the Engine state to default
     Engine.context.SeedlessOnboardingController.state = {
       accessToken: undefined,
@@ -941,6 +952,8 @@ describe('updateMarketingOptInStatus', () => {
         body: JSON.stringify({ opt_in_status: true }),
       },
     );
+    expect(mockGetAccessToken).toHaveBeenCalled();
+    expect(mockRefreshAuthTokens).not.toHaveBeenCalled();
   });
 
   it('should successfully update marketing opt-in status to false', async () => {
@@ -980,6 +993,8 @@ describe('updateMarketingOptInStatus', () => {
       OAuthLoginService.updateMarketingOptInStatus(true),
     ).rejects.toThrow('No access token found. User must be authenticated.');
 
+    expect(mockGetAccessToken).toHaveBeenCalled();
+    expect(mockRefreshAuthTokens).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
@@ -992,6 +1007,8 @@ describe('updateMarketingOptInStatus', () => {
       OAuthLoginService.updateMarketingOptInStatus(true),
     ).rejects.toThrow('No access token found. User must be authenticated.');
 
+    expect(mockGetAccessToken).toHaveBeenCalled();
+    expect(mockRefreshAuthTokens).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
@@ -1035,6 +1052,10 @@ describe('updateMarketingOptInStatus', () => {
     ).rejects.toThrow(
       'Failed to update marketing opt-in status: 401 - Token expired',
     );
+
+    expect(mockGetAccessToken).toHaveBeenCalledTimes(1);
+    expect(mockRefreshAuthTokens).not.toHaveBeenCalled();
+    expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 
   it('should throw error when API request fails with 500 status', async () => {
@@ -1188,10 +1209,19 @@ describe('updateMarketingOptInStatus', () => {
 describe('getMarketingOptInStatus', () => {
   const mockFetch = jest.fn();
   const originalFetch = global.fetch;
+  const mockGetAccessToken = Engine.context.SeedlessOnboardingController
+    .getAccessToken as jest.Mock;
+  const mockRefreshAuthTokens = Engine.context.SeedlessOnboardingController
+    .refreshAuthTokens as jest.Mock;
 
   beforeEach(() => {
     global.fetch = mockFetch;
     mockFetch.mockClear();
+    mockGetAccessToken.mockClear();
+    mockRefreshAuthTokens.mockClear();
+    mockGetAccessToken.mockImplementation(
+      async () => Engine.context.SeedlessOnboardingController.state.accessToken,
+    );
     Engine.context.SeedlessOnboardingController.state = {
       accessToken: undefined,
       socialBackupsMetadata: [],
@@ -1232,6 +1262,8 @@ describe('getMarketingOptInStatus', () => {
       },
     );
     expect(result).toEqual(mockResponse);
+    expect(mockGetAccessToken).toHaveBeenCalled();
+    expect(mockRefreshAuthTokens).not.toHaveBeenCalled();
   });
 
   it('should successfully get marketing opt-in status when user is not opted in', async () => {
@@ -1271,6 +1303,8 @@ describe('getMarketingOptInStatus', () => {
       'No access token found. User must be authenticated.',
     );
 
+    expect(mockGetAccessToken).toHaveBeenCalled();
+    expect(mockRefreshAuthTokens).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
   });
 
@@ -1281,6 +1315,8 @@ describe('getMarketingOptInStatus', () => {
       'No access token found. User must be authenticated.',
     );
 
+    expect(mockGetAccessToken).toHaveBeenCalled();
+    expect(mockRefreshAuthTokens).not.toHaveBeenCalled();
     expect(mockFetch).not.toHaveBeenCalled();
   });
 

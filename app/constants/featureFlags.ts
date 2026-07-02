@@ -17,8 +17,12 @@ export enum FeatureFlagNames {
   googleLoginIosUnsupportedBlockingEnabled = 'googleLoginIosUnsupportedBlockingEnabled',
   telegramLoginEnabled = 'telegram_login_enabled',
   tronClaimUnstakedTrxButtonEnabled = 'tronClaimUnstakedTrxButtonEnabled',
+  addDeviceSyncEnabled = 'addDeviceSyncEnabled',
   hapticsKillSwitch = 'hapticsKillSwitch',
 }
+
+/** Minimum expected app version required for QR add-device account sync. Will update if extends */
+export const ADD_DEVICE_SYNC_MINIMUM_VERSION = '8.6.0';
 
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   Record<FeatureFlagNames, Json>
@@ -28,5 +32,9 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   [FeatureFlagNames.tokenDetailsV2ButtonLayout]: false,
   [FeatureFlagNames.tronClaimUnstakedTrxButtonEnabled]: false,
   [FeatureFlagNames.googleLoginIosUnsupportedBlockingEnabled]: false,
+  [FeatureFlagNames.addDeviceSyncEnabled]: {
+    enabled: false,
+    minimumVersion: ADD_DEVICE_SYNC_MINIMUM_VERSION,
+  },
   [FeatureFlagNames.telegramLoginEnabled]: false,
 };

@@ -5,17 +5,16 @@ import {
   validatedVersionGatedFeatureFlag,
   VersionGatedFeatureFlag,
 } from '../../../util/remoteFeatureFlag';
-import { selectBasicFunctionalityEnabled } from '../../settings';
 
 // TODO: Remove hardcoded true when feature flag is properly configured
 const DEFAULT_FULL_PAGE_ACCOUNT_LIST_ENABLED = false;
 export const FULL_PAGE_ACCOUNT_LIST_FLAG_NAME = 'fullPageAccountList';
 
 /**
- * Selector for the raw full page account list remote flag value.
- * Returns the flag value without considering basic functionality.
+ * Selector for the full page account list enabled flag.
+ * Returns false when basic functionality is disabled via selectRemoteFeatureFlags.
  */
-export const selectFullPageAccountListEnabledRawFlag = createSelector(
+export const selectFullPageAccountListEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
     if (!hasProperty(remoteFeatureFlags, FULL_PAGE_ACCOUNT_LIST_FLAG_NAME)) {
@@ -32,17 +31,6 @@ export const selectFullPageAccountListEnabledRawFlag = createSelector(
   },
 );
 
-/**
- * Selector for the full page account list enabled flag.
- * Returns false if basic functionality is disabled, otherwise returns the remote flag value.
- */
-export const selectFullPageAccountListEnabledFlag = createSelector(
-  selectBasicFunctionalityEnabled,
-  selectFullPageAccountListEnabledRawFlag,
-  (isBasicFunctionalityEnabled, fullPageAccountListEnabledRawFlag) => {
-    if (!isBasicFunctionalityEnabled) {
-      return false;
-    }
-    return fullPageAccountListEnabledRawFlag;
-  },
-);
+/** @deprecated Use selectFullPageAccountListEnabledFlag — basic functionality is gated centrally. */
+export const selectFullPageAccountListEnabledRawFlag =
+  selectFullPageAccountListEnabledFlag;
