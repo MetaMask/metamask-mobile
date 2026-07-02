@@ -50,7 +50,6 @@ import {
   PriceAlert,
   PriceAlertRouteParams,
   PriceAlertAnalytics,
-  toAlertOccurrence,
 } from '../../constants';
 import {
   fetchAlerts,
@@ -198,7 +197,7 @@ const ManagePriceAlertsView: React.FC = () => {
                 token_symbol: symbol,
                 alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
                 alert_value: deleted.threshold,
-                alert_occurrence: toAlertOccurrence(deleted.recurring),
+                alert_recurring: deleted.recurring,
                 alert_active: deleted.active,
               })
               .build(),
@@ -282,10 +281,10 @@ const ManagePriceAlertsView: React.FC = () => {
                 token_symbol: symbol,
                 alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
                 alert_value: toggled.threshold,
-                alert_occurrence: toAlertOccurrence(toggled.recurring),
+                alert_recurring: toggled.recurring,
                 alert_active: newValue,
                 prev_alert_value: toggled.threshold,
-                prev_alert_occurrence: toAlertOccurrence(toggled.recurring),
+                prev_alert_recurring: toggled.recurring,
                 prev_alert_active: toggled.active,
               })
               .build(),

@@ -787,12 +787,12 @@ describe('CreatePriceAlertView — analytics', () => {
       token_symbol: 'ETH',
       alert_type: 'threshold',
       alert_value: 1500,
-      alert_occurrence: 'recurring',
+      alert_recurring: true,
       alert_active: true,
     });
   });
 
-  it('records alert_occurrence not_recurring when the toggle is off', async () => {
+  it('records alert_recurring false when the toggle is off', async () => {
     const { getByTestId } = renderWithToast();
 
     fireEvent(
@@ -813,7 +813,7 @@ describe('CreatePriceAlertView — analytics', () => {
       expect.objectContaining({
         interaction_type: 'created',
         alert_value: 2,
-        alert_occurrence: 'not_recurring',
+        alert_recurring: false,
         alert_active: true,
       }),
     );
@@ -854,10 +854,10 @@ describe('CreatePriceAlertView — analytics', () => {
       token_symbol: 'ETH',
       alert_type: 'threshold',
       alert_value: 1500,
-      alert_occurrence: 'not_recurring',
+      alert_recurring: false,
       alert_active: true,
       prev_alert_value: 1500,
-      prev_alert_occurrence: 'recurring',
+      prev_alert_recurring: true,
       prev_alert_active: true,
     });
   });

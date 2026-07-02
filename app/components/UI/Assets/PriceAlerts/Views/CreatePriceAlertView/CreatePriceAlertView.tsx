@@ -53,7 +53,6 @@ import {
   PRICE_ALERT_QUICK_PERCENTAGES,
   PriceAlert,
   PriceAlertAnalytics,
-  toAlertOccurrence,
 } from '../../constants';
 import { priceAlertsQueryKey, useSubmitPriceAlert } from '../../api';
 import { trimTrailingZeros } from '../../../../Bridge/utils/trimTrailingZeros';
@@ -279,10 +278,10 @@ const CreatePriceAlertView: React.FC = () => {
               token_symbol: symbol,
               alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
               alert_value: targetPrice,
-              alert_occurrence: toAlertOccurrence(isRecurring),
+              alert_recurring: isRecurring,
               alert_active: editingAlert.active,
               prev_alert_value: editingAlert.threshold,
-              prev_alert_occurrence: toAlertOccurrence(editingAlert.recurring),
+              prev_alert_recurring: editingAlert.recurring,
               prev_alert_active: editingAlert.active,
             })
             .build(),
@@ -296,7 +295,7 @@ const CreatePriceAlertView: React.FC = () => {
               token_symbol: symbol,
               alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
               alert_value: targetPrice,
-              alert_occurrence: toAlertOccurrence(isRecurring),
+              alert_recurring: isRecurring,
               alert_active: true,
             })
             .build(),

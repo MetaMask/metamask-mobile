@@ -40,22 +40,12 @@ export const PriceAlertAnalytics = {
   TYPE: {
     THRESHOLD: 'threshold',
   },
-  OCCURRENCE: {
-    RECURRING: 'recurring',
-    NOT_RECURRING: 'not_recurring',
-  },
   INTERACTION_TYPE: {
     CREATED: 'created',
     UPDATED: 'updated',
     DELETED: 'deleted',
   },
 } as const;
-
-/** Maps the `recurring` flag to its analytics `occurrence` string. */
-export const toAlertOccurrence = (recurring: boolean): string =>
-  recurring
-    ? PriceAlertAnalytics.OCCURRENCE.RECURRING
-    : PriceAlertAnalytics.OCCURRENCE.NOT_RECURRING;
 
 export const CURRENCY_SYMBOLS: Record<string, string> = {
   usd: '$',

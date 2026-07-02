@@ -902,7 +902,7 @@ describe('ManagePriceAlertsView', () => {
         token_symbol: 'ETH',
         alert_type: 'threshold',
         alert_value: 3000,
-        alert_occurrence: 'recurring',
+        alert_recurring: true,
         alert_active: true,
       });
     });
@@ -968,10 +968,10 @@ describe('ManagePriceAlertsView', () => {
         token_symbol: 'ETH',
         alert_type: 'threshold',
         alert_value: 3000,
-        alert_occurrence: 'recurring',
+        alert_recurring: true,
         alert_active: false,
         prev_alert_value: 3000,
-        prev_alert_occurrence: 'recurring',
+        prev_alert_recurring: true,
         prev_alert_active: true,
       });
     });
