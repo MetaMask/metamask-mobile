@@ -7905,7 +7905,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/assets-controller@npm:^10.0.1":
+"@metamask/assets-controller@npm:^10.0.0, @metamask/assets-controller@npm:^10.0.1":
   version: 10.0.1
   resolution: "@metamask/assets-controller@npm:10.0.1"
   dependencies:
@@ -8146,9 +8146,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/bridge-controller@npm:^77.1.0":
-  version: 77.1.0
-  resolution: "@metamask/bridge-controller@npm:77.1.0"
+"@metamask/bridge-controller@npm:^77.1.0, @metamask/bridge-controller@npm:^77.2.0":
+  version: 77.3.0
+  resolution: "@metamask/bridge-controller@npm:77.3.0"
   dependencies:
     "@ethersproject/address": "npm:^5.7.0"
     "@ethersproject/bignumber": "npm:^5.7.0"
@@ -8156,7 +8156,7 @@ __metadata:
     "@ethersproject/contracts": "npm:^5.7.0"
     "@ethersproject/providers": "npm:^5.7.0"
     "@metamask/accounts-controller": "npm:^39.0.3"
-    "@metamask/assets-controller": "npm:^9.1.0"
+    "@metamask/assets-controller": "npm:^10.0.0"
     "@metamask/assets-controllers": "npm:^109.2.2"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
@@ -8175,7 +8175,7 @@ __metadata:
     bignumber.js: "npm:^9.1.2"
     reselect: "npm:^5.1.1"
     uuid: "npm:^8.3.2"
-  checksum: 10/75ce2ee62dd5c0790ab2b78903f9e0c793e028008fc3dc22f089a799ee5add662b6a6990df5c8225a2f136e047aeb0aa01a1d0a16bc77e2ece2846b52d6ddf82
+  checksum: 10/afcebdff5f1046293a0a711b95e2983613c529571179164ecffbf0e3833a0ea3351c912cec1355afe26e32cdbf55b8bd5a2588f3897f19459565b40c429018aa
   languageName: node
   linkType: hard
 
@@ -35443,7 +35443,7 @@ __metadata:
     "@metamask/base-controller": "npm:^9.0.1"
     "@metamask/bitcoin-wallet-snap": "npm:^1.14.0"
     "@metamask/bitcoin-wallet-standard": "npm:^1.0.0"
-    "@metamask/bridge-controller": "npm:^77.1.0"
+    "@metamask/bridge-controller": "npm:^77.2.0"
     "@metamask/bridge-status-controller": "npm:^74.0.0"
     "@metamask/browser-passworder": "npm:^5.0.0"
     "@metamask/browser-playground": "npm:0.3.0"
