@@ -2,11 +2,18 @@ import type { CaipChainId } from '@metamask/utils';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import {
   FillType,
+  PerpsOrderTransactionStatus,
+  PerpsOrderTransactionStatusType,
   type PerpsTransaction,
 } from '../../../components/UI/Perps/types/transactionHistory';
+// eslint-disable-next-line import-x/no-restricted-paths -- exercise the real perps order transform output
+import { transformOrdersToTransactions } from '../../../components/UI/Perps/utils/transactionTransforms';
 import { mapPerpsTransaction } from './perps-transaction';
 
 const ARBITRUM: CaipChainId = 'eip155:42161';
+
+/** The real Perps order shape accepted by the transform. */
+type Order = Parameters<typeof transformOrdersToTransactions>[0][number];
 
 const base: Pick<
   PerpsTransaction,
@@ -92,6 +99,28 @@ const withdrawalTx: PerpsTransaction = {
     type: 'withdrawal',
   },
 };
+
+const orderTx = (
+  title: string,
+  text: PerpsOrderTransactionStatus,
+  statusType: PerpsOrderTransactionStatusType,
+  orderType: 'limit' | 'market' = 'market',
+): PerpsTransaction => ({
+  ...base,
+  id: 'order-1',
+  title,
+  type: 'order',
+  category: 'limit_order',
+  order: {
+    text,
+    statusType,
+    type: orderType,
+    size: '10.23',
+    limitPrice: '92023',
+    filled:
+      statusType === PerpsOrderTransactionStatusType.Filled ? '100%' : '0%',
+  },
+});
 
 // `token` lives only on some ActivityListItem arms, so narrow via `'token' in`
 // before reading it (the swap/bridge arms have no `token`).
@@ -307,8 +336,263 @@ describe('mapPerpsTransaction', () => {
     });
   });
 
+  describe('orders', () => {
+    it.each([
+      ['Market short', 'marketShort'],
+      ['Market close short', 'marketCloseShort'],
+      ['Stop market close short', 'stopMarketCloseShort'],
+    ] as const)('maps %s filled order → %s', (title, expectedType) => {
+      const transaction = orderTx(
+        title,
+        PerpsOrderTransactionStatus.Filled,
+        PerpsOrderTransactionStatusType.Filled,
+      );
+      const result = mapPerpsTransaction({
+        transaction,
+        chainId: ARBITRUM,
+      });
+
+      expect(result?.type).toBe(expectedType);
+      expect(result?.status).toBe('success');
+      expect(result?.hash).toBe('order-1');
+      expect(tokenOf(result)).toEqual({
+        amount: '10.23',
+        symbol: 'USD',
+        assetId: undefined,
+        direction: 'out',
+      });
+    });
+
+    it('maps canceled historical orders as cancelled Activity rows', () => {
+      const result = mapPerpsTransaction({
+        transaction: orderTx(
+          'Take profit close short',
+          PerpsOrderTransactionStatus.Canceled,
+          PerpsOrderTransactionStatusType.Canceled,
+        ),
+        chainId: ARBITRUM,
+      });
+
+      expect(result?.type).toBe('marketCloseShort');
+      expect(result?.status).toBe('cancelled');
+    });
+
+    it('maps rejected historical orders as failed Activity rows', () => {
+      const result = mapPerpsTransaction({
+        transaction: orderTx(
+          'Market short',
+          PerpsOrderTransactionStatus.Rejected,
+          PerpsOrderTransactionStatusType.Canceled,
+        ),
+        chainId: ARBITRUM,
+      });
+
+      expect(result?.type).toBe('marketShort');
+      expect(result?.status).toBe('failed');
+    });
+
+    it('returns null for pending/open orders', () => {
+      const result = mapPerpsTransaction({
+        transaction: orderTx(
+          'Market short',
+          PerpsOrderTransactionStatus.Open,
+          PerpsOrderTransactionStatusType.Pending,
+        ),
+        chainId: ARBITRUM,
+      });
+
+      expect(result).toBeNull();
+    });
+
+    it.each([
+      ['Limit short', 'limitShort'],
+      ['Limit close short', 'limitCloseShort'],
+    ] as const)(
+      'maps %s (limit order) to %s, not a market kind',
+      (title, expectedType) => {
+        const result = mapPerpsTransaction({
+          transaction: orderTx(
+            title,
+            PerpsOrderTransactionStatus.Filled,
+            PerpsOrderTransactionStatusType.Filled,
+            'limit',
+          ),
+          chainId: ARBITRUM,
+        });
+
+        expect(result?.type).toBe(expectedType);
+      },
+    );
+
+    it('keeps stop orders on their dedicated kind regardless of order type', () => {
+      const result = mapPerpsTransaction({
+        transaction: orderTx(
+          'Stop market close short',
+          PerpsOrderTransactionStatus.Filled,
+          PerpsOrderTransactionStatusType.Filled,
+          'limit',
+        ),
+        chainId: ARBITRUM,
+      });
+
+      expect(result?.type).toBe('stopMarketCloseShort');
+    });
+
+    it('includes the position size (asset units) in sourceToken for the row subtitle', () => {
+      const result = mapPerpsTransaction({
+        transaction: orderTx(
+          'Market short',
+          PerpsOrderTransactionStatus.Filled,
+          PerpsOrderTransactionStatusType.Filled,
+        ),
+        chainId: ARBITRUM,
+      });
+
+      const sourceToken =
+        result && 'sourceToken' in result.data
+          ? result.data.sourceToken
+          : undefined;
+      // The asset quantity comes from the perps subtitle ("2.01 ETH").
+      expect(sourceToken).toEqual({
+        amount: '2.01',
+        symbol: 'ETH',
+        direction: 'out',
+      });
+    });
+
+    it('reads the size from the subtitle even when the order has no limit price', () => {
+      const result = mapPerpsTransaction({
+        transaction: {
+          ...base,
+          id: 'order-no-price',
+          subtitle: '5 BTC',
+          asset: 'BTC',
+          title: 'Market short',
+          type: 'order',
+          category: 'limit_order',
+          order: {
+            text: PerpsOrderTransactionStatus.Canceled,
+            statusType: PerpsOrderTransactionStatusType.Canceled,
+            type: 'market',
+            size: '0',
+            limitPrice: '0',
+            filled: '0%',
+          },
+        },
+        chainId: ARBITRUM,
+      });
+
+      const sourceToken =
+        result && 'sourceToken' in result.data
+          ? result.data.sourceToken
+          : undefined;
+      expect(sourceToken).toEqual({
+        amount: '5',
+        symbol: 'BTC',
+        direction: 'out',
+      });
+    });
+
+    it('omits the size leg when the subtitle does not start with a number', () => {
+      const result = mapPerpsTransaction({
+        transaction: {
+          ...base,
+          id: 'order-bad-subtitle',
+          subtitle: 'Limit short',
+          asset: 'ETH',
+          title: 'Market short',
+          type: 'order',
+          category: 'limit_order',
+          order: {
+            text: PerpsOrderTransactionStatus.Filled,
+            statusType: PerpsOrderTransactionStatusType.Filled,
+            type: 'market',
+            size: '10',
+            limitPrice: '5',
+            filled: '100%',
+          },
+        },
+        chainId: ARBITRUM,
+      });
+
+      const sourceToken =
+        result && 'sourceToken' in result.data
+          ? result.data.sourceToken
+          : undefined;
+      // No leading numeric token → size omitted (symbol only), not garbage.
+      expect(sourceToken).toEqual({ symbol: 'ETH', direction: 'out' });
+    });
+  });
+
+  describe('orders (real transformOrdersToTransactions output)', () => {
+    const makeOrder = (overrides: Partial<Order> = {}): Order => ({
+      orderId: 'order-1',
+      symbol: 'ETH',
+      side: 'sell',
+      orderType: 'limit',
+      size: '0',
+      originalSize: '2.01',
+      price: '2000',
+      filledSize: '2.01',
+      remainingSize: '0',
+      status: 'filled',
+      timestamp: 1_700_000_000_000,
+      ...overrides,
+    });
+
+    const mapFromOrder = (order: Order) => {
+      const [transaction] = transformOrdersToTransactions([order]);
+      return mapPerpsTransaction({ transaction, chainId: ARBITRUM });
+    };
+
+    it.each([
+      [
+        'Limit short (open)',
+        { orderType: 'limit', side: 'sell' },
+        'limitShort',
+      ],
+      [
+        'Limit close short',
+        { orderType: 'limit', side: 'buy', reduceOnly: true },
+        'limitCloseShort',
+      ],
+      [
+        'Market short (open)',
+        { orderType: 'market', side: 'sell' },
+        'marketShort',
+      ],
+      [
+        'Market close short',
+        { orderType: 'market', side: 'buy', reduceOnly: true },
+        'marketCloseShort',
+      ],
+    ] as const)(
+      'maps a real %s order to the matching Activity kind',
+      (_label, overrides, expectedKind) => {
+        const result = mapFromOrder(makeOrder(overrides));
+        expect(result?.type).toBe(expectedKind);
+      },
+    );
+
+    it('carries the transform subtitle position size into sourceToken.amount', () => {
+      const result = mapFromOrder(
+        makeOrder({ orderType: 'limit', side: 'sell', originalSize: '2.01' }),
+      );
+      const sourceToken =
+        result && 'sourceToken' in result.data
+          ? result.data.sourceToken
+          : undefined;
+      // transform subtitle is "2.01 ETH" -> asset quantity is reused verbatim.
+      expect(sourceToken).toEqual({
+        amount: '2.01',
+        symbol: 'ETH',
+        direction: 'out',
+      });
+    });
+  });
+
   describe('skipped entries', () => {
-    it("returns null for orders (open orders aren't history)", () => {
+    it("returns null for orders that don't map to a known Activity kind", () => {
       const result = mapPerpsTransaction({
         transaction: {
           ...base,

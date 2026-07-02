@@ -34,6 +34,15 @@ on:
         required: false
         type: string
         default: current
+      include_arm64:
+        description: >-
+          Include arm64-v8a in the E2E build (in addition to x86_64) so the APK runs on
+          Apple Silicon emulators. Default false = standard CI behavior (x86_64-only).
+          When true, all build reuse/caching is disabled and artifact names are suffixed
+          with "-arm64" to avoid colliding with the standard x86_64 CI artifacts.
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   build-android-apks:
@@ -125,7 +134,7 @@ jobs:
 
       - name: Check Namespace E2E APK cache
         id: namespace-apk-cache
-        if: ${{ inputs.runner_provider == 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
+        if: ${{ inputs.runner_provider == 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
         shell: bash
         env:
           APK_TARGET: ${{ steps.determine-target-paths.outputs.apk-target-path }}
@@ -169,7 +178,7 @@ jobs:
 
       - name: Find reusable build from prior run
         id: find-reusable-build
-        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
         uses: ./.github/actions/find-reusable-build
         with:
           fingerprint: ${{ inputs.source-fingerprint }}
@@ -178,7 +187,7 @@ jobs:
           github-token: ${{ github.token }}
 
       - name: Restore APKs matching fingerprint from branch cache
-        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && inputs.include_arm64 == false }}
         id: apk-cache-restore
         # This action automatically updates the cache at the end of the workflow
         uses: cirruslabs/cache@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -189,7 +198,7 @@ jobs:
           key: android-apk-${{ github.ref_name }}-${{ inputs.build_type }}-${{ env.CACHE_GENERATION }}-${{ inputs.source-fingerprint }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
 
       - name: Restore APKs matching fingerprint from main cache
-        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' }}
+        if: ${{ inputs.runner_provider != 'namespace' && steps.force-builds.outputs.force != 'true' && steps.find-reusable-build.outputs.found != 'true' && steps.apk-cache-restore.outputs.cache-hit != 'true' && github.ref_name != 'main' && inputs.include_arm64 == false }}
         id: apk-cache-restore-main
         # This will only restore the cache, not update it
         uses: cirruslabs/cache/restore@bba69c6578b863ad0398ad40567bd2ef70290fe0 # v4
@@ -258,7 +267,7 @@ jobs:
 
       - name: Download reusable APK from prior run
         id: download-reusable-apk
-        if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' }}
+        if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
@@ -270,7 +279,7 @@ jobs:
 
       - name: Download reusable androidTest APK from prior run
         id: download-reusable-test-apk
-        if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' }}
+        if: ${{ steps.validate-reusable-metadata.outputs.valid == 'true' && inputs.include_arm64 == false }}
         continue-on-error: true
         uses: actions/download-artifact@v4
         with:
@@ -489,6 +498,7 @@ jobs:
           PLATFORM: android
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
+          E2E_INCLUDE_ARM64: ${{ inputs.include_arm64 }}
           HAS_TEST_OVERRIDES: true
           E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
@@ -528,7 +538,7 @@ jobs:
           MM_PREDICT_GTM_MODAL_ENABLED: 'false'
 
       - name: Record Namespace E2E APK cache marker
-        if: ${{ inputs.runner_provider == 'namespace' && steps.gate.outputs.needs-native-build == 'true' && inputs.source-fingerprint != '' }}
+        if: ${{ inputs.runner_provider == 'namespace' && steps.gate.outputs.needs-native-build == 'true' && inputs.source-fingerprint != '' && inputs.include_arm64 == false }}
         shell: bash
         env:
           APK_SOURCE: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
@@ -559,6 +569,7 @@ jobs:
           PLATFORM: android
           METAMASK_ENVIRONMENT: ${{ inputs.metamask_environment }}
           METAMASK_BUILD_TYPE: ${{ inputs.build_type }}
+          E2E_INCLUDE_ARM64: ${{ inputs.include_arm64 }}
           HAS_TEST_OVERRIDES: true
           E2E: 'true'
           IGNORE_BOXLOGS_DEVELOPMENT: true
@@ -600,7 +611,7 @@ jobs:
           GITHUB_REF_NAME_VALUE: ${{ github.ref_name }}
           GITHUB_EVENT_NAME_VALUE: ${{ github.event_name }}
           GITHUB_RUN_ID_VALUE: ${{ github.run_id }}
-          ARTIFACT_NAMES: '["${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk","${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk"]'
+          ARTIFACT_NAMES: ${{ format('["{0}-{1}{2}-release.apk","{0}-{1}{2}-release-androidTest.apk"]', inputs.build_type, inputs.metamask_environment, inputs.include_arm64 && '-arm64' || '') }}
         run: |
           set -euo pipefail
           mkdir -p .e2e-build-metadata
@@ -639,7 +650,7 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release.apk
           path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
           retention-days: 7
           if-no-files-found: error
@@ -649,7 +660,7 @@ jobs:
         if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release.apk
           path: ${{ steps.determine-target-paths.outputs.apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}.apk
           retention-days: 7
           if-no-files-found: error
@@ -659,7 +670,7 @@ jobs:
         if: ${{ inputs.runner_provider == 'namespace' }}
         uses: namespace-actions/upload-artifact@f6ccaacc655aec41b93af180d1d7eef21af862d2 # v1.0.3
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release-androidTest.apk
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           retention-days: 7
           if-no-files-found: error
@@ -691,7 +702,7 @@ jobs:
         if: ${{ inputs.runner_provider != 'namespace' }}
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}-release-androidTest.apk
+          name: ${{ inputs.build_type }}-${{ inputs.metamask_environment }}${{ inputs.include_arm64 && '-arm64' || '' }}-release-androidTest.apk
           path: ${{ steps.determine-target-paths.outputs.test-apk-target-path }}/${{ steps.determine-target-paths.outputs.artifact_name }}-androidTest.apk
           retention-days: 7
           if-no-files-found: error
