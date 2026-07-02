@@ -33,6 +33,14 @@ __webpack_require__.r(__webpack_exports__);
 // legacy chartLogic.js's sendToReactNative() uses, so the RN-side
 // parseWebViewMessage in AdvancedChart.types.ts decodes our messages without
 // any change to its consumers.
+function safeStringify(value) {
+    try {
+        return JSON.stringify(value) ?? 'Unknown error';
+    }
+    catch {
+        return String(value);
+    }
+}
 /**
  * Posts a typed message to React Native via window.ReactNativeWebView.
  * Equivalent to legacy \`sendToReactNative(type, payload)\` at chartLogic.js
@@ -58,7 +66,16 @@ function postToRN(type, payload) {
  * chartLogic.js.
  */
 function reportErrorToRN(error) {
-    const message = error instanceof Error ? error.message : String(error ?? 'Unknown error');
+    let message;
+    if (error instanceof Error) {
+        message = error.message;
+    }
+    else if (typeof error === 'string') {
+        message = error;
+    }
+    else {
+        message = safeStringify(error);
+    }
     postToRN('ERROR', { message });
 }
 /**
@@ -211,7 +228,8 @@ function setOhlcvData(data) {
 }
 function appendOrReplaceLastBar(bar) {
     const data = state.ohlcvData;
-    if (data.length > 0 && data[data.length - 1].time === bar.time) {
+    const last = data.at(-1);
+    if (data.length > 0 && last?.time === bar.time) {
         data[data.length - 1] = bar;
     }
     else {
@@ -796,7 +814,7 @@ function requestOlderBarsFromRN(params) {
         resolution: params.resolution,
         fromSec: params.fromSec,
         toSec: params.toSec,
-        ...(params.countBack != null ? { countBack: params.countBack } : {}),
+        ...(params.countBack == null ? {} : { countBack: params.countBack }),
         oldestLoadedTimeMs: oldestAtDefer,
     });
 }
@@ -1008,7 +1026,17 @@ const customDatafeed = {
             }
         }
         catch (error) {
-            onError(error instanceof Error ? error.message : String(error ?? 'Unknown'));
+            let errMsg;
+            if (error instanceof Error) {
+                errMsg = error.message;
+            }
+            else if (typeof error === 'string') {
+                errMsg = error;
+            }
+            else {
+                errMsg = safeStringify(error);
+            }
+            onError(errMsg);
         }
     },
     subscribeBars(_symbolInfo, _resolution, onTick, listenerGuid) {
@@ -1060,7 +1088,7 @@ const SUBSCRIPT_DIGITS = [
 function toSubscriptDigits(n) {
     return String(n)
         .split('')
-        .map((digit) => SUBSCRIPT_DIGITS[parseInt(digit, 10)] ?? digit)
+        .map((digit) => SUBSCRIPT_DIGITS[Number.parseInt(digit, 10)] ?? digit)
         .join('');
 }
 /**
@@ -1072,7 +1100,7 @@ function formatSubscriptNotation(abs) {
     if (!(abs > 0 && abs < 0.0001))
         return null;
     const priceStr = abs.toFixed(20);
-    const match = priceStr.match(/^0\\.0*([1-9]\\d*)/);
+    const match = /^0\\.0*([1-9]\\d*)/.exec(priceStr);
     if (!match)
         return null;
     const leadingZeros = priceStr.indexOf(match[1]) - 2;
@@ -1087,7 +1115,7 @@ function formatSubscriptNotation(abs) {
  * safe. Numbers below 0.0001 use subscript notation; others use Intl decimal.
  */
 function formatCrosshairPrice(price) {
-    if (price === undefined || price === null || isNaN(Number(price))) {
+    if (price === undefined || price === null || Number.isNaN(Number(price))) {
         return '';
     }
     const p = Number(price);
@@ -1171,7 +1199,11 @@ function getApproxBarDurationSec(bars) {
     if (!bars || bars.length < 2) {
         return DEFAULT_BAR_DURATION_SEC;
     }
-    const lastMs = Math.abs(bars[bars.length - 1].time - bars[bars.length - 2].time);
+    const prev = bars.at(-2);
+    const last = bars.at(-1);
+    if (!prev || !last)
+        return DEFAULT_BAR_DURATION_SEC;
+    const lastMs = Math.abs(last.time - prev.time);
     return Math.max(MIN_BAR_DURATION_SEC, Math.round(lastMs / 1000));
 }
 
@@ -1260,7 +1292,7 @@ function onFirstOhlcvData(cb) {
     firstDataCallback = cb;
 }
 function handleSetOHLCVData(payload) {
-    if (!payload || !payload.data || payload.data.length === 0) {
+    if (!payload?.data || payload.data.length === 0) {
         return;
     }
     resolveAllPendingOlderBarsNoData();
@@ -1289,7 +1321,14 @@ function handleSetOHLCVData(payload) {
     if (widget && isChartReady()) {
         try {
             const chart = widget.activeChart();
-            if (previousResolution !== newResolution) {
+            if (previousResolution === newResolution) {
+                chart.resetData();
+                resetMainPriceScaleAutoScale(chart);
+                notifyDataLifecycle('ohlcvReset');
+                applyVisibleRange(chart);
+                emitLayoutSettled();
+            }
+            else {
                 chart.setResolution(newResolution, () => {
                     try {
                         chart.resetData();
@@ -1302,13 +1341,6 @@ function handleSetOHLCVData(payload) {
                         reportErrorToRN(error);
                     }
                 });
-            }
-            else {
-                chart.resetData();
-                resetMainPriceScaleAutoScale(chart);
-                notifyDataLifecycle('ohlcvReset');
-                applyVisibleRange(chart);
-                emitLayoutSettled();
             }
         }
         catch (error) {
@@ -1328,7 +1360,7 @@ function handleSetOHLCVData(payload) {
     }
 }
 function handleRealtimeUpdate(payload) {
-    if (!payload || !payload.bar)
+    if (!payload?.bar)
         return;
     const bar = payload.bar;
     appendOrReplaceLastBar(bar);
@@ -1360,7 +1392,7 @@ function applyVisibleRange(chart) {
             return;
         }
         const data = getOhlcvData();
-        const lastBar = data[data.length - 1];
+        const lastBar = data.at(-1);
         const toSec = lastBar
             ? Math.ceil(lastBar.time / 1000)
             : Math.ceil(Date.now() / 1000);
@@ -1412,19 +1444,6 @@ function __resetOhlcvIngestionForTests() {
     firstDataCallback = null;
     firstDataDelivered = false;
 }
-
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/types.ts
-// Shared types for the AdvancedChart WebView modules.
-//
-// These types are local to the WebView bundle. Cross-bridge payload shapes that
-// must match the RN side live in messages/contract.ts and mirror the unions in
-// app/components/UI/Charts/AdvancedChart/AdvancedChart.types.ts.
-/** Chart type integers used by TradingView's setChartType / currentChartType. */
-var ChartType;
-(function (ChartType) {
-    ChartType[ChartType["Candles"] = 1] = "Candles";
-    ChartType[ChartType["Line"] = 2] = "Line";
-})(ChartType || (ChartType = {}));
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/scaleLayout.ts
 // Centralised price-scale + pane-layout overrides.
@@ -1508,6 +1527,19 @@ function syncMainSeriesToRightScale(widget) {
     }
 }
 
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/core/types.ts
+// Shared types for the AdvancedChart WebView modules.
+//
+// These types are local to the WebView bundle. Cross-bridge payload shapes that
+// must match the RN side live in messages/contract.ts and mirror the unions in
+// app/components/UI/Charts/AdvancedChart/AdvancedChart.types.ts.
+/** Chart type integers used by TradingView's setChartType / currentChartType. */
+var ChartType;
+(function (ChartType) {
+    ChartType[ChartType["Candles"] = 1] = "Candles";
+    ChartType[ChartType["Line"] = 2] = "Line";
+})(ChartType || (ChartType = {}));
+
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/widget/chartType.ts
 // SET_CHART_TYPE handler — switches between candle (1) and line (2) types.
 //
@@ -1515,7 +1547,6 @@ function syncMainSeriesToRightScale(widget) {
 // setChartType, the legacy code calls applyChartScaleLayout to re-apply
 // pane margins + right-scale binding; without it the line chart auto-fits
 // to close-only and looks "zoomed in" vs the candle chart's high/low range.
-
 
 
 
@@ -1745,9 +1776,9 @@ function findOuterChartMarkupTable(doc) {
         const className = el.className ? String(el.className) : '';
         if (el.classList.contains('pane'))
             continue;
-        if (className.indexOf('price-axis-container') !== -1)
+        if (className.includes('price-axis-container'))
             continue;
-        if (className.indexOf('time-axis') !== -1)
+        if (className.includes('time-axis'))
             continue;
         return el;
     }
@@ -1769,7 +1800,7 @@ function eachChartDocument(fn) {
     try {
         const container = document.getElementById('tv_chart_container');
         const iframe = container?.querySelector('iframe');
-        if (iframe && iframe.contentDocument) {
+        if (iframe?.contentDocument) {
             fn(iframe.contentDocument);
         }
     }
@@ -1797,7 +1828,7 @@ function isTradingViewExternalHostname(hostname) {
     const h = String(hostname).toLowerCase();
     return (h === 'tradingview.com' ||
         h === 'www.tradingview.com' ||
-        /\\.tradingview\\.com$/.test(h));
+        h.endsWith('.tradingview.com'));
 }
 function isTradingViewExternalHref(href) {
     if (!href)
@@ -1819,7 +1850,7 @@ function handleTradingViewLinkCapture(ev) {
     if (!target || typeof target.closest !== 'function')
         return;
     const anchor = target.closest('a');
-    if (!anchor || !anchor.href || !isTradingViewExternalHref(anchor.href)) {
+    if (!anchor?.href || !isTradingViewExternalHref(anchor.href)) {
         return;
     }
     const now = Date.now();
@@ -1836,7 +1867,7 @@ function handleTradingViewLinkCapture(ev) {
     sendTradingViewClicked(anchor.href);
 }
 function patchWindowOpen(win) {
-    if (!win || !win.open || win.__mmTvOpenPatched)
+    if (!win?.open || win.__mmTvOpenPatched)
         return;
     win.__mmTvOpenPatched = true;
     const origOpen = win.open.bind(win);
@@ -1863,7 +1894,7 @@ function applyAllOnce() {
             // defaultView access can fail in detached iframes.
         }
         const flagged = doc;
-        if (doc && doc.addEventListener && !flagged.__mmTvLinkCaptureInstalled) {
+        if (doc?.addEventListener && !flagged.__mmTvLinkCaptureInstalled) {
             flagged.__mmTvLinkCaptureInstalled = true;
             doc.addEventListener('click', handleTradingViewLinkCapture, true);
         }
@@ -1925,9 +1956,9 @@ function __resetExternalLinkBridgeForTests() {
  * from chartLogic.js \`generatePaletteShades\` (~line 999).
  */
 function generatePaletteShades(hex) {
-    const r = parseInt(hex.slice(1, 3), 16);
-    const g = parseInt(hex.slice(3, 5), 16);
-    const b = parseInt(hex.slice(5, 7), 16);
+    const r = Number.parseInt(hex.slice(1, 3), 16);
+    const g = Number.parseInt(hex.slice(3, 5), 16);
+    const b = Number.parseInt(hex.slice(5, 7), 16);
     const shades = [];
     for (let i = 0; i < 19; i++) {
         const t = i / 18;
@@ -1962,8 +1993,7 @@ const DEFAULT_ENABLED_FEATURES = [
 function resolveDisabledFeatures(features) {
     const list = (features.disabledFeatures ?? []).slice();
     if (!features.enableDrawingTools) {
-        list.push('left_toolbar');
-        list.push('context_menus');
+        list.push('left_toolbar', 'context_menus');
     }
     list.push('use_localstorage_for_settings');
     return list;
@@ -2168,7 +2198,7 @@ function attachCrosshairListener(chart) {
     try {
         const subscription = chart.crossHairMoved();
         subscription.subscribe(null, (params) => {
-            if (!params || params.price === undefined || params.time === undefined) {
+            if (params?.price === undefined || params?.time === undefined) {
                 postToRN('CROSSHAIR_MOVE', { data: null });
                 return;
             }
@@ -2384,7 +2414,7 @@ function attachLegendResizeListener(widget) {
 function createOverlayElement() {
     const existing = document.getElementById(OVERLAY_ID);
     if (existing)
-        existing.parentNode?.removeChild(existing);
+        existing.remove();
     const container = document.getElementById('tv_chart_container');
     if (!container)
         return;
@@ -2685,16 +2715,21 @@ function refreshStudyLegendFromExport() {
     })
         .catch(() => scheduleRetry(gen));
 }
-function handleExportData(data, gen) {
-    if (!data || !data.schema || !data.data || data.data.length === 0) {
-        scheduleRetry(gen);
-        return;
+function isValidExportData(data) {
+    return Boolean(data?.schema && data.data && data.data.length > 0);
+}
+function resolveDisplayValue(rawVal, colIndex, displayedData) {
+    let displayVal = rawVal !== undefined && !Number.isNaN(rawVal)
+        ? formatLegendValue(rawVal)
+        : '';
+    if (displayedData && displayedData.length > 0) {
+        const dispRow = displayedData.at(-1);
+        if (dispRow?.[colIndex])
+            displayVal = dispRow[colIndex];
     }
-    const lastRow = data.data[data.data.length - 1];
-    if (!lastRow) {
-        scheduleRetry(gen);
-        return;
-    }
+    return displayVal;
+}
+function buildStudyMap(data, lastRow) {
     const byStudy = {};
     for (let s = 0; s < data.schema.length; s++) {
         const field = data.schema[s];
@@ -2705,15 +2740,22 @@ function handleExportData(data, gen) {
             continue;
         if (!byStudy[sid])
             byStudy[sid] = [];
-        const rawVal = lastRow[s];
-        let displayVal = rawVal !== undefined && !isNaN(rawVal) ? formatLegendValue(rawVal) : '';
-        if (data.displayedData && data.displayedData.length > 0) {
-            const dispRow = data.displayedData[data.displayedData.length - 1];
-            if (dispRow && dispRow[s])
-                displayVal = dispRow[s];
-        }
+        const displayVal = resolveDisplayValue(lastRow[s], s, data.displayedData);
         byStudy[sid].push({ title: field.plotTitle ?? '', value: displayVal });
     }
+    return byStudy;
+}
+function handleExportData(data, gen) {
+    if (!isValidExportData(data)) {
+        scheduleRetry(gen);
+        return;
+    }
+    const lastRow = data.data.at(-1);
+    if (!lastRow) {
+        scheduleRetry(gen);
+        return;
+    }
+    const byStudy = buildStudyMap(data, lastRow);
     const entries = buildOrderedEntries(byStudy);
     if (hasAnyEmpty(entries) && retryCount < MAX_RETRIES) {
         scheduleRetry(gen);
@@ -2741,7 +2783,7 @@ function scheduleLegendRefresh() {
 function subscribeStudyDataLoaded(chart, studyId) {
     try {
         const study = chart.getStudyById(studyId);
-        if (study && study.onDataLoaded) {
+        if (study?.onDataLoaded) {
             study.onDataLoaded().subscribe(null, () => scheduleLegendRefresh());
             return;
         }
@@ -2753,7 +2795,7 @@ function subscribeStudyDataLoaded(chart, studyId) {
 }
 // ----- Layout ------------------------------------------------------------
 function getMainPriceAxisLeftRelativeTo(el) {
-    if (!el || !el.getBoundingClientRect)
+    if (!el?.getBoundingClientRect)
         return null;
     const orect = el.getBoundingClientRect();
     let bestLeft = null;
@@ -2770,7 +2812,7 @@ function getMainPriceAxisLeftRelativeTo(el) {
             }
         }
     });
-    if (bestLeft === null || isNaN(bestLeft))
+    if (bestLeft === null || Number.isNaN(bestLeft))
         return null;
     const maxW = el.clientWidth;
     if (maxW <= 0)
@@ -3064,7 +3106,7 @@ function handleAddIndicator(payload, config) {
     const widget = getWidget();
     if (!widget || !isChartReady())
         return;
-    if (!payload || !payload.name)
+    if (!payload?.name)
         return;
     const name = payload.name;
     if (!isOwnStringKey(name))
@@ -3093,7 +3135,7 @@ function handleRemoveIndicator(payload) {
     const widget = getWidget();
     if (!widget || !isChartReady())
         return;
-    if (!payload || !payload.name)
+    if (!payload?.name)
         return;
     const name = payload.name;
     if (!isOwnStringKey(name))
@@ -3501,13 +3543,23 @@ function handleSetTradeMarkers(payload) {
     }
     placeTradeMarkers();
 }
+function resolveSnappedPrice(snapped, markerPrice) {
+    if (snapped !== null)
+        return snapped.close;
+    if (markerPrice != null && Number.isFinite(markerPrice)) {
+        return markerPrice;
+    }
+    return null;
+}
 function collectDesiredMarkers(markers, data, theme) {
     if (!data.length)
         return [];
     const firstT = data[0].time;
-    const lastT = data[data.length - 1].time;
-    const eligible = markers.filter((m) => m &&
-        m.id != null &&
+    const lastBar = data.at(-1);
+    if (!lastBar)
+        return [];
+    const lastT = lastBar.time;
+    const eligible = markers.filter((m) => m?.id != null &&
         Number.isFinite(m.time) &&
         m.time >= firstT &&
         m.time <= lastT);
@@ -3516,11 +3568,7 @@ function collectDesiredMarkers(markers, data, theme) {
     for (const marker of ordered) {
         const snapped = snapMarkerToNearestBar(data, marker.time);
         const timeSec = snapped ? snapped.timeSec : Math.floor(marker.time / 1000);
-        const rawPrice = snapped != null
-            ? snapped.close
-            : marker.price != null && Number.isFinite(marker.price)
-                ? marker.price
-                : null;
+        const rawPrice = resolveSnappedPrice(snapped, marker.price);
         if (rawPrice === null)
             continue;
         const color = marker.intent === 'exit' ? theme.errorColor : theme.successColor;
@@ -3558,9 +3606,11 @@ function placeTradeMarkers() {
     // Skip when the drawn set already matches — prevents pan flicker.
     const desiredKey = desired
         .map((d) => d.id)
-        .sort()
+        .sort((a, b) => a.localeCompare(b))
         .join('|');
-    const drawnKey = Array.from(getShapesByMarkerId().keys()).sort().join('|');
+    const drawnKey = Array.from(getShapesByMarkerId().keys())
+        .sort((a, b) => a.localeCompare(b))
+        .join('|');
     if (desiredKey === drawnKey)
         return;
     const gen = bumpPlacementGeneration();
@@ -3583,33 +3633,32 @@ function placeTradeMarkers() {
         // Draw ring1 → fill1 → ring2 → fill2 sequentially. Every new shape is
         // created at zOrder 'top', so the next ring lands ON TOP of the
         // previous fill — keeps a black seam between touching circles.
+        const drawRingAndFill = async (marker) => {
+            if (gen !== getPlacementGeneration())
+                return;
+            const ringId = await createTradeMarkerIcon(activeChart, marker.timeSec, marker.price, TRADE_MARKER_RING_COLOR, TRADE_MARKER_RING_SIZE);
+            if (gen !== getPlacementGeneration()) {
+                removeEntitySafe(activeChart, ringId);
+                return;
+            }
+            const fillId = await createTradeMarkerIcon(activeChart, marker.timeSec, marker.price, marker.color, TRADE_MARKER_SIZE);
+            if (gen !== getPlacementGeneration()) {
+                removeEntitySafe(activeChart, ringId);
+                removeEntitySafe(activeChart, fillId);
+                return;
+            }
+            if (ringId)
+                pushShapeId(ringId);
+            if (fillId)
+                pushShapeId(fillId);
+            setShapesForMarkerId(marker.id, {
+                fill: fillId ?? null,
+                ring: ringId ?? null,
+            });
+        };
         let chain = Promise.resolve();
         for (const marker of desired) {
-            chain = chain.then(() => {
-                if (gen !== getPlacementGeneration())
-                    return undefined;
-                return createTradeMarkerIcon(activeChart, marker.timeSec, marker.price, TRADE_MARKER_RING_COLOR, TRADE_MARKER_RING_SIZE).then((ringId) => {
-                    if (gen !== getPlacementGeneration()) {
-                        removeEntitySafe(activeChart, ringId);
-                        return undefined;
-                    }
-                    return createTradeMarkerIcon(activeChart, marker.timeSec, marker.price, marker.color, TRADE_MARKER_SIZE).then((fillId) => {
-                        if (gen !== getPlacementGeneration()) {
-                            removeEntitySafe(activeChart, ringId);
-                            removeEntitySafe(activeChart, fillId);
-                            return;
-                        }
-                        if (ringId)
-                            pushShapeId(ringId);
-                        if (fillId)
-                            pushShapeId(fillId);
-                        setShapesForMarkerId(marker.id, {
-                            fill: fillId ?? null,
-                            ring: ringId ?? null,
-                        });
-                    });
-                });
-            });
+            chain = chain.then(() => drawRingAndFill(marker));
         }
         chain.catch(() => {
             // Swallow — createShape failures are non-fatal for individual markers.
@@ -3710,7 +3759,7 @@ function handlePulseTradeMarker(payload) {
     const widget = getWidget();
     if (!widget || !isChartReady())
         return;
-    if (!payload || payload.id == null)
+    if (payload?.id == null)
         return;
     const markerId = String(payload.id);
     const record = getShapesByMarkerId().get(markerId);
@@ -3746,7 +3795,7 @@ function handlePulseTradeMarker(payload) {
             return;
         // Abort if the markers were rebuilt — record ids now point elsewhere.
         const current = getShapesByMarkerId().get(markerId);
-        if (!current || current.fill !== fillId || current.ring !== ringId)
+        if (current?.fill !== fillId || current?.ring !== ringId)
             return;
         const t = (Date.now() - startTs) / PULSE_MS;
         if (t >= 1) {
@@ -3798,17 +3847,25 @@ const TAP_RADIUS_PX = 26;
 /** Max delay between last crosshair point and mouse_up to consider it a tap. */
 const TAP_MAX_AGE_MS = 700;
 let lastTapPoint = null;
+/**
+ * Extract a normalized time range from a TradingView bar/visible range result.
+ * Returns the range or null if the values are missing or non-normalizable.
+ */
+function normalizeRange(raw) {
+    if (raw?.from === undefined || raw?.to === undefined)
+        return null;
+    const from = normalizeChartUnixSec(raw.from);
+    const to = normalizeChartUnixSec(raw.to);
+    if (from === null || to === null)
+        return null;
+    return { lo: Math.min(from, to), hi: Math.max(from, to) };
+}
 function getVisibleTimeRangeSec(chart) {
     try {
         if (typeof chart.getVisibleBarsRange === 'function') {
-            const br = chart.getVisibleBarsRange();
-            if (br && br.from !== undefined && br.to !== undefined) {
-                const from = normalizeChartUnixSec(br.from);
-                const to = normalizeChartUnixSec(br.to);
-                if (from !== null && to !== null) {
-                    return { lo: Math.min(from, to), hi: Math.max(from, to) };
-                }
-            }
+            const result = normalizeRange(chart.getVisibleBarsRange());
+            if (result)
+                return result;
         }
     }
     catch {
@@ -3816,20 +3873,35 @@ function getVisibleTimeRangeSec(chart) {
     }
     try {
         if (typeof chart.getVisibleRange === 'function') {
-            const vr = chart.getVisibleRange();
-            if (vr && vr.from !== undefined && vr.to !== undefined) {
-                const from = normalizeChartUnixSec(vr.from);
-                const to = normalizeChartUnixSec(vr.to);
-                if (from !== null && to !== null) {
-                    return { lo: Math.min(from, to), hi: Math.max(from, to) };
-                }
-            }
+            return normalizeRange(chart.getVisibleRange());
         }
     }
     catch {
         return null;
     }
     return null;
+}
+/**
+ * Compute the Y coordinate for a price given a linear price scale.
+ * Returns null when the height is non-positive or the scale range is degenerate.
+ */
+function linearPriceToY(lo, hi, price, h, inverted) {
+    if (inverted)
+        return ((price - lo) / (hi - lo)) * h;
+    return ((hi - price) / (hi - lo)) * h;
+}
+/**
+ * Compute the Y coordinate for a price given a logarithmic price scale.
+ * Returns null when any value is non-positive or the log range is degenerate.
+ */
+function logPriceToY(lo, hi, price, h, inverted) {
+    const logLo = Math.log(lo);
+    const logHi = Math.log(hi);
+    const logP = Math.log(price);
+    if (logHi === logLo)
+        return inverted ? 0 : h / 2;
+    const t = (logP - logLo) / (logHi - logLo);
+    return inverted ? t * h : (1 - t) * h;
 }
 /**
  * Y coordinate (main-pane overlay pixels) for a price. Mirrors chartLogic.js
@@ -3843,14 +3915,14 @@ function priceToY(chart, price) {
         return null;
     try {
         const panes = chart.getPanes();
-        if (!panes || !panes.length)
+        if (!panes?.length)
             return null;
         const pane = panes[0];
         const scale = pane.getMainSourcePriceScale();
         if (!scale)
             return null;
         const range = scale.getVisiblePriceRange();
-        if (!range || range.from === undefined || range.to === undefined) {
+        if (range?.from === undefined || range?.to === undefined) {
             return null;
         }
         const lo = Math.min(range.from, range.to);
@@ -3862,25 +3934,69 @@ function priceToY(chart, price) {
         const inverted = typeof scale.isInverted === 'function' && scale.isInverted();
         const mode = typeof scale.getMode === 'function' ? scale.getMode() : 0;
         if (mode === 1 && lo > 0 && hi > 0 && clamped > 0) {
-            const logLo = Math.log(lo);
-            const logHi = Math.log(hi);
-            const logP = Math.log(clamped);
-            if (logHi === logLo)
-                return inverted ? 0 : h / 2;
-            const t = (logP - logLo) / (logHi - logLo);
-            return inverted ? t * h : (1 - t) * h;
+            return logPriceToY(lo, hi, clamped, h, inverted);
         }
-        if (inverted)
-            return ((clamped - lo) / (hi - lo)) * h;
-        return ((hi - clamped) / (hi - lo)) * h;
+        return linearPriceToY(lo, hi, clamped, h, inverted);
     }
     catch {
         return null;
     }
 }
+/** Resolve the plot width (in pixels) from the chart's time scale. */
+function getPlotWidth(chart) {
+    try {
+        const ts = chart.getTimeScale();
+        if (ts && typeof ts.width === 'function')
+            return ts.width();
+    }
+    catch {
+        // ignore — caller treats 0 as unavailable
+    }
+    return 0;
+}
+/**
+ * Resolve the price to use for Y-distance calculation for a marker.
+ * Returns null when no usable price is available.
+ */
+function resolveMarkerPrice(snapped, markerPrice) {
+    if (snapped != null)
+        return snapped.close;
+    if (markerPrice != null && Number.isFinite(markerPrice))
+        return markerPrice;
+    return null;
+}
+/**
+ * Compute the Y pixel distance between a marker and the tap point.
+ * Returns 0 when Y cannot be determined (falls back to X-only matching).
+ */
+function computeYDistance(chart, offsetY, snapped, markerPrice) {
+    if (offsetY == null || !Number.isFinite(offsetY))
+        return 0;
+    const price = resolveMarkerPrice(snapped, markerPrice);
+    if (price == null)
+        return 0;
+    const markerY = priceToY(chart, price);
+    if (markerY == null || !Number.isFinite(markerY))
+        return 0;
+    return markerY - offsetY;
+}
+function computeMarkerDistance(ctx, marker) {
+    if (marker?.id == null || !Number.isFinite(marker?.time))
+        return null;
+    const markerKey = String(marker.id);
+    if (!ctx.drawn.has(markerKey))
+        return null;
+    const snapped = snapMarkerToNearestBar(ctx.data, marker.time);
+    const mSec = snapped ? snapped.timeSec : marker.time / 1000;
+    if (mSec < ctx.range.lo || mSec > ctx.range.hi)
+        return null;
+    const dxPx = (mSec - ctx.timeSec) * ctx.pxPerSec;
+    const dyPx = computeYDistance(ctx.chart, ctx.offsetY, snapped, marker.price);
+    return { key: markerKey, dist: Math.hypot(dxPx, dyPx) };
+}
 function findTradeMarkerIdNearPoint(timeSec, offsetY) {
     const markers = getMarkers();
-    if (!markers || !markers.length)
+    if (!markers?.length)
         return null;
     const widget = getWidget();
     if (!widget || !isChartReady())
@@ -3899,55 +4015,28 @@ function findTradeMarkerIdNearPoint(timeSec, offsetY) {
     const range = getVisibleTimeRangeSec(chart);
     if (!range || range.hi <= range.lo)
         return null;
-    let plotW = 0;
-    try {
-        const ts = chart.getTimeScale();
-        if (ts && typeof ts.width === 'function')
-            plotW = ts.width();
-    }
-    catch {
-        plotW = 0;
-    }
-    if (!(plotW > 0))
+    const plotW = getPlotWidth(chart);
+    if (plotW <= 0)
         return null;
-    const pxPerSec = plotW / (range.hi - range.lo);
     const drawn = getShapesByMarkerId();
     if (!drawn.size)
         return null;
-    const data = getOhlcvData();
+    const ctx = {
+        chart,
+        range,
+        pxPerSec: plotW / (range.hi - range.lo),
+        drawn,
+        data: getOhlcvData(),
+        timeSec,
+        offsetY,
+    };
     let bestId = null;
     let bestDist = Infinity;
     for (const marker of markers) {
-        if (!marker || marker.id == null || !Number.isFinite(marker.time))
-            continue;
-        const markerKey = String(marker.id);
-        // Only match markers that actually have a circle on screen. Off-range
-        // markers are tracked but not drawn — a tap where one *would* be must
-        // not fire a press for an invisible circle.
-        if (!drawn.has(markerKey))
-            continue;
-        const snapped = snapMarkerToNearestBar(data, marker.time);
-        const mSec = snapped ? snapped.timeSec : marker.time / 1000;
-        if (mSec < range.lo || mSec > range.hi)
-            continue;
-        const dxPx = (mSec - timeSec) * pxPerSec;
-        let dyPx = 0;
-        if (offsetY != null && Number.isFinite(offsetY)) {
-            const price = snapped != null
-                ? snapped.close
-                : marker.price != null && Number.isFinite(marker.price)
-                    ? marker.price
-                    : null;
-            if (price != null) {
-                const markerY = priceToY(chart, price);
-                if (markerY != null && Number.isFinite(markerY))
-                    dyPx = markerY - offsetY;
-            }
-        }
-        const dist = Math.sqrt(dxPx * dxPx + dyPx * dyPx);
-        if (dist < bestDist) {
-            bestDist = dist;
-            bestId = markerKey;
+        const result = computeMarkerDistance(ctx, marker);
+        if (result && result.dist < bestDist) {
+            bestDist = result.dist;
+            bestId = result.key;
         }
     }
     return bestDist <= TAP_RADIUS_PX ? bestId : null;
@@ -3961,7 +4050,7 @@ function findTradeMarkerIdNearPoint(timeSec, offsetY) {
 function attachMarkerHitTest(widget, chart) {
     try {
         chart.crossHairMoved().subscribe(null, (params) => {
-            if (!params || params.price === undefined || params.time === undefined) {
+            if (params?.price === undefined || params?.time === undefined) {
                 return;
             }
             lastTapPoint = {
@@ -4180,7 +4269,7 @@ function handleSetPositionLines(payload) {
     if (!widget || !isChartReady())
         return;
     clearPositionLines();
-    if (!payload || !payload.position) {
+    if (!payload?.position) {
         setHasExplicitCurrentPriceLine(false);
         try {
             widget.applyOverrides({
@@ -4291,7 +4380,7 @@ function handleSetPositionLines(payload) {
                     fontsize: 11,
                     horzLabelsAlign: line.horzLabelsAlign,
                     showPrice: line.showPrice,
-                    ...(line.text != null ? { text: line.text } : {}),
+                    ...(line.text == null ? {} : { text: line.text }),
                 },
             })
                 .then((entityId) => {
