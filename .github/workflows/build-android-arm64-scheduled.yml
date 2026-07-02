@@ -7,13 +7,6 @@ on:
   schedule:
     - cron: '0 */6 * * *' # 00:00, 06:00, 12:00, 18:00 UTC — 4x/day
   workflow_dispatch: {}
-  # TEMP(revert before merge): run on this PR to validate the workflow end-to-end.
-  # Scoped to the files this feature touches so it does not run on unrelated PRs.
-  pull_request:
-    paths:
-      - '.github/workflows/build-android-arm64-scheduled.yml'
-      - '.github/workflows/build-android-e2e.yml'
-      - 'scripts/build.sh'
 
 permissions:
   contents: read
@@ -36,10 +29,9 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
-          # Manual runs always build. TEMP(revert before merge): pull_request also always
-          # builds so the workflow can be validated on this PR.
-          if [[ "$EVENT_NAME" == "workflow_dispatch" || "$EVENT_NAME" == "pull_request" ]]; then
-            echo "Manual/PR trigger; building."
+          # Manual runs always build.
+          if [[ "$EVENT_NAME" == "workflow_dispatch" ]]; then
+            echo "Manual trigger; building."
             echo "should-build=true" >> "$GITHUB_OUTPUT"
             exit 0
           fi
