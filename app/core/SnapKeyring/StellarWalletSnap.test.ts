@@ -1,5 +1,6 @@
 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { HandlerType } from '@metamask/snaps-utils';
+import type { JsonRpcRequest } from '@metamask/utils';
 import {
   STELLAR_WALLET_SNAP_ID,
   StellarWalletSnapSender,
@@ -21,7 +22,11 @@ describe('StellarWalletSnap', () => {
   it('routes keyring requests through handleSnapRequest', async () => {
     const { handleSnapRequest } = jest.requireMock('../Snaps/utils');
     const sender = new StellarWalletSnapSender();
-    const request = { jsonrpc: '2.0', id: 1, method: 'ping' };
+    const request: JsonRpcRequest = {
+      jsonrpc: '2.0',
+      id: 1,
+      method: 'ping',
+    };
 
     await sender.send(request);
 
