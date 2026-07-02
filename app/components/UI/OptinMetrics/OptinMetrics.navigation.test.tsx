@@ -36,6 +36,7 @@ jest.mock('react-redux', () => {
     useSelector: jest.fn((selector) =>
       selector({
         ...rootState,
+        settings: { basicFunctionalityEnabled: true },
         onboarding: {
           ...rootState.onboarding,
           events: mockOptinMetricsTestOnboardingSlice.events,
@@ -51,6 +52,20 @@ jest.mock(
   '../../../hooks/useOnboardingInterestQuestionnaireEligibility',
   () => ({
     useOnboardingInterestQuestionnaireEligibility: () => mockGetShouldShow,
+  }),
+);
+
+jest.mock('../../../util/analytics/walletSetupCompletedAttribution', () => ({
+  getWalletSetupAttributionPropsFromStore: jest.fn().mockReturnValue({}),
+  getWalletSetupCompletedAttributionAnalyticsProps: jest
+    .fn()
+    .mockReturnValue({}),
+}));
+
+jest.mock(
+  '../../../util/analytics/walletSetupCompletedAttributionReplay',
+  () => ({
+    scheduleBufferedOnboardingEventReplay: jest.fn(),
   }),
 );
 
