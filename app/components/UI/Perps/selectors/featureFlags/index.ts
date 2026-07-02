@@ -100,6 +100,23 @@ export const selectPerpsAdvancedChartEnabledFlag = createSelector(
 );
 
 /**
+ * Selector for showing full asset names in Perps market row lists.
+ * When enabled, vertical market lists display the full asset name (e.g. "Bitcoin")
+ * instead of the ticker symbol (e.g. "BTC").
+ *
+ * @returns boolean - true if full asset names should be shown, false otherwise.
+ */
+export const selectPerpsShowFullAssetNamesFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsShowFullAssetNames as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
+  },
+);
+
+/**
  * Selector for Related Markets rail feature flag.
  * Controls visibility of the discovery rail on Perps market details.
  *

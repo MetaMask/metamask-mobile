@@ -15,6 +15,7 @@ import {
   type PerpsMarketData,
 } from '@metamask/perps-controller';
 import PerpsTabView from './PerpsTabView';
+import { selectPerpsShowFullAssetNamesFlag } from '../../selectors/featureFlags';
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
@@ -348,6 +349,9 @@ describe('PerpsTabView', () => {
           id: 'mock-account-id',
           type: 'eip155:eoa',
         });
+      }
+      if (selector === selectPerpsShowFullAssetNamesFlag) {
+        return true;
       }
       return undefined;
     });
@@ -683,6 +687,9 @@ describe('PerpsTabView', () => {
             type: 'eip155:eoa',
           });
         }
+        if (selector === selectPerpsShowFullAssetNamesFlag) {
+          return true;
+        }
         return undefined;
       });
 
@@ -712,6 +719,9 @@ describe('PerpsTabView', () => {
             id: 'mock-account-id',
             type: 'eip155:eoa',
           });
+        }
+        if (selector === selectPerpsShowFullAssetNamesFlag) {
+          return true;
         }
         return undefined;
       });

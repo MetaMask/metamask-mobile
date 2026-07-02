@@ -41,11 +41,31 @@ const mockUsePerpsLivePrices = usePerpsLivePrices as jest.MockedFunction<
   typeof usePerpsLivePrices
 >;
 
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPerpsShowFullAssetNamesFlag: jest.fn(),
+}));
+
 // Mock react-redux for AvatarToken component
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => false), // Mock selectIsIpfsGatewayEnabled to return false
+  useSelector: jest.fn(),
 }));
+
+const { selectPerpsShowFullAssetNamesFlag } = jest.requireMock(
+  '../../selectors/featureFlags',
+);
+const { useSelector } = jest.requireMock('react-redux');
+const mockUseSelector = useSelector as jest.MockedFunction<
+  (selector: unknown) => unknown
+>;
+
+// Returns the feature-flag value only for the full asset names selector,
+// and false for every other selector (e.g. selectIsIpfsGatewayEnabled).
+const mockSelectors = (showFullAssetNames: boolean) => {
+  mockUseSelector.mockImplementation((selector) =>
+    selector === selectPerpsShowFullAssetNamesFlag ? showFullAssetNames : false,
+  );
+};
 
 describe('PerpsMarketRowItem', () => {
   const mockMarketData: PerpsMarketData = {
@@ -60,6 +80,8 @@ describe('PerpsMarketRowItem', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    // Default to full asset names enabled so existing assertions on full names hold
+    mockSelectors(true);
   });
 
   describe('Component Rendering', () => {
@@ -202,6 +224,34 @@ describe('PerpsMarketRowItem', () => {
       render(<PerpsMarketRowItem market={largePriceChangeMarket} />);
 
       expect(screen.getByText('+85.50%')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Full Asset Name Feature Flag', () => {
+    it('shows the full asset name when the flag is enabled', () => {
+      mockSelectors(true);
+
+      render(<PerpsMarketRowItem market={mockMarketData} />);
+
+      expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
+      expect(screen.queryByText('BTC')).toBeNull();
+    });
+
+    it('shows the ticker symbol when the flag is disabled', () => {
+      mockSelectors(false);
+
+      render(<PerpsMarketRowItem market={mockMarketData} />);
+
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(screen.queryByText('Bitcoin')).toBeNull();
+    });
+
+    it('falls back to the ticker when the flag is enabled but name is missing', () => {
+      mockSelectors(true);
+
+      render(<PerpsMarketRowItem market={{ ...mockMarketData, name: '' }} />);
+
+      expect(screen.getByText('BTC')).toBeOnTheScreen();
     });
   });
 
