@@ -122,7 +122,7 @@ describe('diskSpaceSentry', () => {
   it('normalizes top-level message for disk-full reports', () => {
     const report = groupDiskSpaceSentryReport({
       message:
-        "Failed to set item for persist:BrowserController due to no space left on device",
+        'Failed to set item for persist:BrowserController due to no space left on device',
     });
 
     expect(report.message).toBe(
