@@ -1,12 +1,24 @@
 import { useCallback, useState } from 'react';
 import { NativeModules, Platform } from 'react-native';
 import SNSMobileSDK from '@sumsub/react-native-mobilesdk-module';
+import Engine from '../../../core/Engine';
 
 // Android emulator uses 10.0.2.2 to reach the host machine's localhost
 const UKYC_API_BASE_URL = Platform.select({
   android: 'http://10.0.2.2:3000',
   default: 'http://localhost:3000',
 });
+
+async function getBearerToken(): Promise<string> {
+  const bearerToken =
+    await Engine.context.AuthenticationController.getBearerToken();
+  if (!bearerToken) {
+    throw new Error(
+      'Unable to obtain an authentication bearer token — is the wallet signed in?',
+    );
+  }
+  return bearerToken;
+}
 
 interface CreateSessionResponse {
   sessionId: string;
@@ -15,9 +27,13 @@ interface CreateSessionResponse {
 }
 
 async function createSession(jwtToken: string): Promise<CreateSessionResponse> {
+  const bearerToken = await getBearerToken();
   const response = await fetch(`${UKYC_API_BASE_URL}/sessions`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${bearerToken}`,
+    },
     body: JSON.stringify({
       vendorId: 'moonpay',
       vendorUserId: 'mockedId',
@@ -44,11 +60,15 @@ async function fetchAccessToken(
   idosSessionId: string,
   jwtToken: string,
 ): Promise<SubmitWrappedKeyResponse> {
+  const bearerToken = await getBearerToken();
   const response = await fetch(
     `${UKYC_API_BASE_URL}/sessions/${sessionId}/wrapped-key`,
     {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${bearerToken}`,
+      },
       body: JSON.stringify({ wrappedUserKey, jwtToken, idosSessionId }),
     },
   );
@@ -111,11 +131,13 @@ const useSumSubDemo = () => {
             prevStatus: string;
             newStatus: string;
           }) => {
+            // eslint-disable-next-line no-console
             console.log(
               `[SumSub] Status: ${event.prevStatus} => ${event.newStatus}`,
             );
           },
           onLog: (event: { message: string }) => {
+            // eslint-disable-next-line no-console
             console.log(`[SumSub] ${event.message}`);
           },
         })
@@ -124,10 +146,12 @@ const useSumSubDemo = () => {
         .build();
 
       const result: Record<string, unknown> = await snsMobileSDK.launch();
+      // eslint-disable-next-line no-console
       console.log('[SumSub] Result:', JSON.stringify(result));
       setSdkResult(result);
       setStatus('Complete');
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('[SumSubDemo] Error:', err);
       setSdkResult({ error: String(err) });
       setStatus('Failed');
