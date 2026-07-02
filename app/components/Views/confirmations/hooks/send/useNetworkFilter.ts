@@ -104,11 +104,7 @@ export const useNetworkFilter = (
 
   const filteredTokensByNetwork = useMemo(() => {
     if (selectedNetworkFilter === NETWORK_FILTER_ALL) {
-      // Testnet assets are excluded from "All networks" and only shown when
-      // their network is explicitly selected
-      return tokens.filter(
-        (token) => !token.chainId || !isNetworkTestnet(token.chainId),
-      );
+      return tokens;
     }
 
     return tokens.filter((token) => token.chainId === selectedNetworkFilter);

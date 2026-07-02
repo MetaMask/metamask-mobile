@@ -226,44 +226,6 @@ describe('useTokenSearch', () => {
       expect(result.current.filteredNfts).toEqual(mockNfts);
     });
 
-    it('exclude testnet NFTs when network filter is "all"', () => {
-      const sepoliaNft: Nft = {
-        address: '0x6666666666666666666666666666666666666666',
-        standard: 'ERC721',
-        name: 'Sepolia NFT',
-        collectionName: 'Sepolia Collection',
-        chainId: '0xaa36a7',
-        tokenId: '1',
-        accountId: 'account1',
-        networkBadgeSource: { uri: 'image6.png' },
-      };
-
-      const { result } = renderHook(() =>
-        useTokenSearch([], [...mockNfts, sepoliaNft], 'all'),
-      );
-
-      expect(result.current.filteredNfts).toEqual(mockNfts);
-    });
-
-    it('include testnet NFTs when their network is explicitly selected', () => {
-      const sepoliaNft: Nft = {
-        address: '0x6666666666666666666666666666666666666666',
-        standard: 'ERC721',
-        name: 'Sepolia NFT',
-        collectionName: 'Sepolia Collection',
-        chainId: '0xaa36a7',
-        tokenId: '1',
-        accountId: 'account1',
-        networkBadgeSource: { uri: 'image6.png' },
-      };
-
-      const { result } = renderHook(() =>
-        useTokenSearch([], [...mockNfts, sepoliaNft], '0xaa36a7'),
-      );
-
-      expect(result.current.filteredNfts).toEqual([sepoliaNft]);
-    });
-
     it('filter NFTs by chainId when network filter is specified', () => {
       const { result } = renderHook(() => useTokenSearch([], mockNfts, '0x1'));
 
