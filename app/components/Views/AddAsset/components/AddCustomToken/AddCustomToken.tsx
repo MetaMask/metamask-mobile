@@ -289,6 +289,12 @@ const AddCustomToken = ({
 
   const addToken = useCallback(async (): Promise<void> => {
     const { TokensController } = Engine.context;
+    const networkClientIdForChain =
+      networkClientId ??
+      Engine.context.NetworkController.findNetworkClientIdByChainId(
+        chainId as Hex,
+      ) ??
+      '';
 
     trace({ name: TraceName.ImportTokens });
     await TokensController.addToken({
@@ -296,7 +302,7 @@ const AddCustomToken = ({
       symbol,
       decimals: Number(decimals),
       name,
-      networkClientId: networkClientId ?? '',
+      networkClientId: networkClientIdForChain,
     });
     endTrace({ name: TraceName.ImportTokens });
 
