@@ -369,7 +369,8 @@ describe('registerTradeMarkerOverlay lifecycle hooks', () => {
     setOhlcvData(sampleBars);
 
     handleSetTradeMarkers({ markers: [entryMarker('a', 2_000)] });
-    // No dataReady → paint() called directly
+    // paint() starts a Promise.resolve().then() chain — await a tick
+    await Promise.resolve();
     expect(createShapeCalls.length).toBeGreaterThan(0);
   });
 
