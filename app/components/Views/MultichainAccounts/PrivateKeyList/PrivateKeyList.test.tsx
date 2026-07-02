@@ -51,7 +51,7 @@ jest.mock('../../../../core/Engine', () => ({
         }
         return Promise.reject(new Error('Wrong password'));
       },
-      exportAccount: jest.fn().mockImplementation((password, address) => {
+      exportAccount: jest.fn().mockImplementation(({ password }, address) => {
         if (password === 'correct-password') {
           return Promise.resolve(`mock-private-key-for-${address}`);
         }

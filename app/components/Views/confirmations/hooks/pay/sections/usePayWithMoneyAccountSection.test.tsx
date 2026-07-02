@@ -87,7 +87,7 @@ describe('usePayWithMoneyAccountSection', () => {
     });
 
     useMoneyAccountBalanceMock.mockReturnValue({
-      totalFiatFormatted: '$100.00',
+      withdrawableFiatFormatted: '$100.00',
     } as never);
   });
 
@@ -245,7 +245,7 @@ describe('usePayWithMoneyAccountSection', () => {
 
   it('renders subtitle with formatted balance', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
-      totalFiatFormatted: '$250.50',
+      withdrawableFiatFormatted: '$250.50',
     } as never);
 
     const { result } = renderHook(() => usePayWithMoneyAccountSection());
@@ -253,9 +253,9 @@ describe('usePayWithMoneyAccountSection', () => {
     expect(result.current?.rows[0].subtitle).toBe('$250.50 available');
   });
 
-  it('renders undefined subtitle when totalFiatFormatted is falsy', () => {
+  it('renders undefined subtitle when withdrawableFiatFormatted is falsy', () => {
     useMoneyAccountBalanceMock.mockReturnValue({
-      totalFiatFormatted: '',
+      withdrawableFiatFormatted: '',
     } as never);
 
     const { result } = renderHook(() => usePayWithMoneyAccountSection());

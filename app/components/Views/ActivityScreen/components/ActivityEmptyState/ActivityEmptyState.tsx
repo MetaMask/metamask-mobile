@@ -26,6 +26,7 @@ import {
 export interface ActivityEmptyStateProps {
   /** Currently selected type filter — drives copy + CTA. */
   typeFilter: ActivityTypeFilter;
+  perpsSubFilterActive?: boolean;
 }
 
 /**
@@ -35,6 +36,7 @@ export interface ActivityEmptyStateProps {
  */
 const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
   typeFilter,
+  perpsSubFilterActive = false,
 }) => {
   const designSystemTheme = useDesignSystemTheme();
   const navigation = useNavigation();
@@ -47,7 +49,11 @@ const ActivityEmptyState: React.FC<ActivityEmptyStateProps> = ({
       ? ActivityEmptyDarkIcon
       : ActivityEmptyLightIcon;
 
-  const emptyState = getActivityEmptyState({ filter: typeFilter, hasFunds });
+  const emptyState = getActivityEmptyState({
+    filter: typeFilter,
+    hasFunds,
+    perpsSubFilterActive,
+  });
 
   const handleAction = useCallback(() => {
     switch (emptyState.action) {

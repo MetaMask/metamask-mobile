@@ -16,8 +16,10 @@ import type { LedgerTransactionModalParams } from '../../components/UI/LedgerMod
 
 // Browser params
 import type { BrowserParams } from '../../components/Views/Browser/Browser.types';
+import type { ActivityDetailsParams } from '../../components/Views/ActivityDetails/ActivityDetails.types';
 
 // Bridge params
+import type { BatchSellTokenSelectRouteParams } from '../../components/UI/Bridge/Views/BatchSellTokenSelect/types';
 import type { BridgeRouteParams } from '../../components/UI/Bridge/hooks/useSwapBridgeNavigation';
 import type { BridgeTokenSelectorRouteParams } from '../../components/UI/Bridge/components/BridgeTokenSelector/BridgeTokenSelector';
 import type { HardwareWalletsSwapsRouteParams } from '../../components/UI/HardwareWallet/Swaps/flowStrategy';
@@ -361,6 +363,7 @@ export type RootStackParamList = {
   RampFiatSelectorModal: undefined;
   RampIncompatibleAccountTokenModal: undefined;
   RampRegionSelectorModal: undefined;
+  RampPhoneCountrySelectorModal: undefined;
   RampUnsupportedRegionModal: undefined;
   RampUnsupportedTokenModal: undefined;
   RampPaymentMethodSelectorModal: undefined;
@@ -410,6 +413,7 @@ export type RootStackParamList = {
   QRScanner: QRScannerParams;
   TransactionsView: TransactionsViewParams | undefined;
   TransactionDetails: TransactionDetailsParams | undefined;
+  ActivityDetails: ActivityDetailsParams;
   RewardsView: undefined;
   RewardsFlow: NestedNavigationParams | undefined;
   ReferralRewardsView: undefined;
@@ -621,7 +625,7 @@ export type RootStackParamList = {
   Bridge: BridgeRouteParams | undefined;
   BridgeView: BridgeRouteParams | undefined;
   BridgeTokenSelector: BridgeTokenSelectorRouteParams | undefined;
-  BatchSellTokenSelect: undefined;
+  BatchSellTokenSelect: BatchSellTokenSelectRouteParams | undefined;
   BatchSellReview: undefined;
   BridgeModals: undefined;
   SwapDefaultSlippageModal: SwapSlippageModalParams | undefined;

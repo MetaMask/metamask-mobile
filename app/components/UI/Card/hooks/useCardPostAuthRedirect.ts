@@ -17,6 +17,11 @@ export const CASHBACK_MONEY_ACCOUNT_ORIGIN: LinkFlowOrigin = {
   entrypoint: CardEntryPoint.CASHBACK,
 };
 
+export const CREDIT_MONEY_ACCOUNT_ORIGIN: LinkFlowOrigin = {
+  screen: Routes.CARD.CREDIT_REDEEM,
+  entrypoint: CardEntryPoint.CREDIT,
+};
+
 const isLinkFlowOrigin = (value: unknown): value is LinkFlowOrigin =>
   typeof value === 'object' &&
   value !== null &&
