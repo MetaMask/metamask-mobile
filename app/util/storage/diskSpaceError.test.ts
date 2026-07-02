@@ -38,6 +38,16 @@ describe('diskSpaceError', () => {
       ).toBe(true);
     });
 
+    it('detects NSCocoaErrorDomain out-of-space errors', () => {
+      expect(
+        isDiskSpaceError(new Error('NSCocoaErrorDomain Code=640')),
+      ).toBe(true);
+    });
+
+    it('detects non-Error disk space messages', () => {
+      expect(isDiskSpaceError('No space left on device')).toBe(true);
+    });
+
     it('returns false for unrelated errors', () => {
       expect(isDiskSpaceError(new Error('Network request failed'))).toBe(false);
     });
@@ -74,6 +84,37 @@ describe('diskSpaceError', () => {
 
       expect(Logger.error).toHaveBeenCalledTimes(2);
       expect(ReduxService.store.dispatch).not.toHaveBeenCalled();
+    });
+
+    it('includes storage source tag when provided', () => {
+      const error = new Error('No space left on device');
+
+      reportStorageWriteError(error, {
+        message: 'Failed to set item for persist:root',
+        key: 'persist:root',
+        source: 'persist_storage',
+      });
+
+      expect(Logger.error).toHaveBeenCalledWith(
+        error,
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            error_category: 'disk_full',
+            storage_source: 'persist_storage',
+          }),
+        }),
+      );
+    });
+
+    it('reports to Sentry when store dispatch throws during alert', () => {
+      const error = new Error('No space left on device');
+      (ReduxService.store.dispatch as jest.Mock).mockImplementation(() => {
+        throw new Error('Store not ready');
+      });
+
+      reportStorageWriteError(error, { message: 'Failed to set item' });
+
+      expect(Logger.error).toHaveBeenCalledTimes(1);
     });
   });
 });

@@ -74,6 +74,10 @@ jest.mock('redux-persist-filesystem-storage', () => ({
 }));
 jest.mock('../../util/device');
 jest.mock('../../util/Logger');
+jest.mock('../../util/storage/diskSpaceError', () => ({
+  reportStorageWriteError: jest.fn(),
+}));
+import { reportStorageWriteError } from '../../util/storage/diskSpaceError';
 jest.mock('@metamask/base-controller', () => ({
   getPersistentState: (
     state: Record<string, unknown>,
@@ -147,6 +151,17 @@ describe('persistConfig', () => {
       expect(persistConfig.stateReconciler).toBeDefined();
       expect(persistConfig.migrate).toBeDefined();
     });
+
+    it('reports storage write errors via writeFailHandler', () => {
+      const persistError = new Error('No space left on device');
+
+      persistConfig.writeFailHandler?.(persistError);
+
+      expect(reportStorageWriteError).toHaveBeenCalledWith(persistError, {
+        message: 'Error persisting data',
+        source: 'redux_persist',
+      });
+    });
   });
 
   describe('storage operations', () => {
@@ -193,6 +208,19 @@ describe('persistConfig', () => {
         mockValue,
         true,
       );
+    });
+
+    it('reports storage write errors when setItem fails', async () => {
+      const storageError = new Error('No space left on device');
+      (FilesystemStorage.setItem as jest.Mock).mockRejectedValue(storageError);
+
+      await persistConfig.storage.setItem(mockKey, mockValue);
+
+      expect(reportStorageWriteError).toHaveBeenCalledWith(storageError, {
+        message: `Failed to set item for ${mockKey}`,
+        key: mockKey,
+        source: 'persist_storage',
+      });
     });
 
     it('remove item using FilesystemStorage', async () => {
