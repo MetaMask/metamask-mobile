@@ -313,6 +313,14 @@ const TradingViewChart = React.forwardRef<
               );
               onNeedMoreHistory?.();
               break;
+            case 'CANDLE_UPDATE_DEBUG':
+              if (__DEV__) {
+                DevLogger.log(
+                  'TradingViewChart: WebView incremental candle update',
+                  message.data,
+                );
+              }
+              break;
             default:
               break;
           }
@@ -476,18 +484,36 @@ const TradingViewChart = React.forwardRef<
         // they actually send, instead of re-formatting the entire (up to ~1000)
         // candle array on every tick.
         if (canIncrementalUpdate) {
+          const isNewBar = nextSignature.count === prev.count + 1;
           // Send the last candle for same-count ticks, or the last two candles
           // for a bar-close transition (previous bar may have been finalized
           // at a different close than its last streamed value).
-          const sliceSize = nextSignature.count === prev.count + 1 ? 2 : 1;
+          const sliceSize = isNewBar ? 2 : 1;
           const incrementalCandles = formatCandleData({
             ...dataToUse,
             candles: dataToUse.candles.slice(-sliceSize),
           });
+          if (__DEV__) {
+            DevLogger.log('TradingViewChart: Incremental candle update', {
+              symbol: nextSignature.symbol,
+              interval: nextSignature.interval,
+              isNewBar,
+              previousCandleCount: prev.count,
+              nextCandleCount: nextSignature.count,
+              previousLastTime: prev.lastTime,
+              nextLastTime: nextSignature.lastTime,
+              sliceSize,
+            });
+          }
           webViewRef.current.postMessage(
             JSON.stringify({
               type: 'UPDATE_LAST_CANDLE',
               candles: incrementalCandles,
+              isNewBar,
+              previousCandleCount: prev.count,
+              nextCandleCount: nextSignature.count,
+              previousLastTime: prev.lastTime,
+              nextLastTime: nextSignature.lastTime,
             }),
           );
         } else {

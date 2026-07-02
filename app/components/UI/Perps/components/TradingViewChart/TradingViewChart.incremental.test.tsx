@@ -13,6 +13,7 @@ import React from 'react';
 import { render, act } from '@testing-library/react-native';
 import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
 import TradingViewChart from './TradingViewChart';
+import { createTradingViewChartTemplate } from './TradingViewChartTemplate';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 const { mockTheme } = jest.requireActual('../../../../../util/theme');
@@ -204,6 +205,13 @@ describe('TradingViewChart — incremental update routing', () => {
 
     expect(typesAfterTick).toContain('UPDATE_LAST_CANDLE');
     expect(typesAfterTick).not.toContain('SET_CANDLESTICK_DATA');
+
+    const msg = JSON.parse(
+      mockPostMessage.mock.calls[mockPostMessage.mock.calls.length - 1][0],
+    );
+    expect(msg.isNewBar).toBe(false);
+    expect(msg.previousCandleCount).toBe(2);
+    expect(msg.nextCandleCount).toBe(2);
   });
 
   // -----------------------------------------------------------------------
@@ -343,6 +351,27 @@ describe('TradingViewChart — incremental update routing', () => {
     });
 
     expect(lastMessageType()).toBe('UPDATE_LAST_CANDLE');
+    const msg = JSON.parse(mockPostMessage.mock.calls[0][0]);
+    expect(msg.isNewBar).toBe(true);
+    expect(msg.previousCandleCount).toBe(2);
+    expect(msg.nextCandleCount).toBe(3);
+    expect(msg.previousLastTime).toBe(twoCandles.candles[1].time);
+    expect(msg.nextLastTime).toBe(withNewBar.candles[2].time);
+  });
+
+  it('template follows appended bars only when currently tracking realtime', () => {
+    const template = createTradingViewChartTemplate(mockTheme, '', true);
+
+    expect(template).toContain('var wasTrackingRealtime =');
+    expect(template).toContain(
+      'visibleLogicalRangeBefore.to >= rightEdgeBefore - realtimeFollowThreshold',
+    );
+    expect(template).toContain(
+      'if ((message.isNewBar || appendedCandle) && wasTrackingRealtime)',
+    );
+    expect(template).toContain(
+      'window.applyZoom(window.visibleCandleCount, false)',
+    );
   });
 
   // -----------------------------------------------------------------------

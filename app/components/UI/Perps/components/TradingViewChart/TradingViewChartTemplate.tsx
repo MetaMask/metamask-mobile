@@ -1444,6 +1444,14 @@ export const createTradingViewChartTemplate = (
                             message.candles.length > 0
                         ) {
                             try {
+                                var previousDataLength = window.allCandleData ? window.allCandleData.length : 0;
+                                var visibleLogicalRangeBefore = window.chart.timeScale().getVisibleLogicalRange();
+                                var rightEdgeBefore = previousDataLength > 0 ? previousDataLength - 1 + 2 : 0;
+                                var realtimeFollowThreshold = 3;
+                                var wasTrackingRealtime = !visibleLogicalRangeBefore ||
+                                    visibleLogicalRangeBefore.to >= rightEdgeBefore - realtimeFollowThreshold;
+                                var appendedCandle = false;
+
                                 message.candles.forEach(function (candle) {
                                     // Update candlestick series (handles both in-place
                                     // tick updates and newly appended bars).
@@ -1463,6 +1471,7 @@ export const createTradingViewChartTemplate = (
                                             window.allCandleData[existingIndex] = candle;
                                         } else {
                                             window.allCandleData.push(candle);
+                                            appendedCandle = true;
                                         }
                                     }
 
@@ -1479,9 +1488,33 @@ export const createTradingViewChartTemplate = (
                                     }
                                 });
 
+                                // When a new interval bar is appended while the user is
+                                // already following realtime, advance the logical range so
+                                // the new bar enters the viewport. If the user has panned
+                                // away from realtime, preserve their current viewport.
+                                if ((message.isNewBar || appendedCandle) && wasTrackingRealtime) {
+                                    window.applyZoom(window.visibleCandleCount, false);
+                                }
+
                                 // Refresh dynamic Y-axis decimal precision without
                                 // triggering a zoom/range change.
                                 window.updateVisiblePriceRange();
+
+                                if (${__DEV__ ? 'true' : 'false'} && window.ReactNativeWebView) {
+                                    window.ReactNativeWebView.postMessage(JSON.stringify({
+                                        type: 'CANDLE_UPDATE_DEBUG',
+                                        data: {
+                                            isNewBar: !!message.isNewBar,
+                                            appendedCandle: appendedCandle,
+                                            previousDataLength: previousDataLength,
+                                            nextDataLength: window.allCandleData ? window.allCandleData.length : 0,
+                                            incomingTimes: message.candles.map(function(candle) { return candle.time; }),
+                                            visibleLogicalRangeBefore: visibleLogicalRangeBefore,
+                                            visibleLogicalRangeAfter: window.chart.timeScale().getVisibleLogicalRange(),
+                                            wasTrackingRealtime: wasTrackingRealtime
+                                        }
+                                    }));
+                                }
                             } catch (error) {
                                 console.error('TradingView: Error applying incremental update:', error);
                             }
