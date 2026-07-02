@@ -23,7 +23,7 @@ import { formatSignedUsd } from '../../../../SocialLeaderboard/utils/formatters'
 import TraderMuteChip from '../../../../SocialLeaderboard/components/TraderMuteChip';
 import TraderAvatar from './TraderAvatar';
 
-const MUTE_CHIP_DIAMETER = 32;
+const MUTE_CHIP_DIAMETER = 40;
 
 const AVATAR_SIZE = 40;
 // Fixed row height so the skeleton placeholder can match it exactly without
