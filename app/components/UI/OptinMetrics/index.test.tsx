@@ -88,6 +88,9 @@ jest.mock('../../../core/AppStateEventListener', () => ({
 
 jest.mock('../../../util/analytics/walletSetupCompletedAttribution', () => ({
   getWalletSetupAttributionPropsFromStore: jest.fn().mockReturnValue({}),
+  getWalletSetupCompletedAttributionAnalyticsProps: jest
+    .fn()
+    .mockReturnValue({}),
 }));
 
 jest.mock(
