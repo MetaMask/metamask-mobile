@@ -48,10 +48,6 @@ export const initialStatePerps = () =>
         enabled: true,
         minimumVersion: '0.0.0',
       },
-      perpsShowFullAssetNames: {
-        enabled: true,
-        minimumVersion: '0.0.0',
-      },
     } as Record<string, unknown>)
     .withOverrides({
       engine: {

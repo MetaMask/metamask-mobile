@@ -202,13 +202,19 @@ const PerpsMarketRowItem = ({
         </Box>
 
         <Box twClassName="flex-1">
-          {/* Symbol + leverage */}
+          {/* Asset label + leverage */}
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
             gap={2}
           >
-            <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            <Text
+              variant={TextVariant.BodyMDMedium}
+              color={TextColor.Default}
+              testID={getPerpsMarketRowItemSelector.assetLabel(
+                displayMarket.symbol,
+              )}
+            >
               {showFullAssetNames && displayMarket.name
                 ? displayMarket.name
                 : getPerpsDisplaySymbol(displayMarket.symbol)}

@@ -66,14 +66,14 @@ describe('PerpsMarketListView', () => {
 
       fireEvent.press(cryptoBadge);
       await waitFor(() => {
-        expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
-        expect(screen.queryByText('Gold')).not.toBeOnTheScreen();
+        expect(screen.getByText('BTC')).toBeOnTheScreen();
+        expect(screen.queryByText('XAU')).not.toBeOnTheScreen();
       });
 
       fireEvent.press(commoditiesBadge);
       await waitFor(() => {
-        expect(screen.getByText('Gold')).toBeOnTheScreen();
-        expect(screen.queryByText('Bitcoin')).not.toBeOnTheScreen();
+        expect(screen.getByText('XAU')).toBeOnTheScreen();
+        expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
       });
     });
 
@@ -91,8 +91,8 @@ describe('PerpsMarketListView', () => {
         expect(
           screen.getByText(strings('perps.no_tokens_found')),
         ).toBeOnTheScreen();
-        expect(screen.queryByText('Bitcoin')).not.toBeOnTheScreen();
-        expect(screen.queryByText('Gold')).not.toBeOnTheScreen();
+        expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
+        expect(screen.queryByText('XAU')).not.toBeOnTheScreen();
       });
     });
 
@@ -105,6 +105,48 @@ describe('PerpsMarketListView', () => {
       expect(
         await screen.findByText(strings('perps.watchlist.empty_subtitle')),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('Full asset names feature flag', () => {
+    it('shows ticker symbols by default (flag off)', async () => {
+      renderPerpsMarketListView({
+        streamOverrides: { marketData: marketDataWithCategories },
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('BTC')).toBeOnTheScreen();
+        expect(screen.getByText('XAU')).toBeOnTheScreen();
+      });
+      expect(screen.queryByText('Bitcoin')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Gold')).not.toBeOnTheScreen();
+    });
+
+    it('shows full asset names when perpsShowFullAssetNames is enabled', async () => {
+      renderPerpsMarketListView({
+        streamOverrides: { marketData: marketDataWithCategories },
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  perpsShowFullAssetNames: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      await waitFor(() => {
+        expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
+        expect(screen.getByText('Gold')).toBeOnTheScreen();
+      });
+      expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
+      expect(screen.queryByText('XAU')).not.toBeOnTheScreen();
     });
   });
 });
