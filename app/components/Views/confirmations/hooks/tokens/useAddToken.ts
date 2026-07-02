@@ -29,15 +29,12 @@ export function useAddToken({
 
   const addToken = useAddTokenCallback();
 
-  const { error } = useAsyncResult(
-    async () => {
-      if (hasToken) {
-        return;
-      }
-      await addToken({ chainId, decimals, name, symbol, tokenAddress });
-    },
-    [hasToken, addToken],
-  );
+  const { error } = useAsyncResult(async () => {
+    if (hasToken) {
+      return;
+    }
+    await addToken({ chainId, decimals, name, symbol, tokenAddress });
+  }, [hasToken, addToken]);
 
   if (error) {
     log('Failed', { tokenAddress, chainId, error });
