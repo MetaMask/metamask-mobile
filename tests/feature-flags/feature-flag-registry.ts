@@ -295,6 +295,20 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  bridgeQuoteStatusManager: {
+    name: 'bridgeQuoteStatusManager',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      versions: {
+        '8.2.0': {
+          enabled: true,
+        },
+      },
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   bridgeConfig: {
     name: 'bridgeConfig',
     type: FeatureFlagType.Remote,
@@ -841,6 +855,16 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
+  configRegistryApiEnabled: {
+    name: 'configRegistryApiEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      enabled: false,
+    },
     status: FeatureFlagStatus.Active,
   },
 
@@ -4703,14 +4727,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
         },
       },
     ],
-    status: FeatureFlagStatus.Active,
-  },
-
-  configRegistryApiEnabled: {
-    name: 'configRegistryApiEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
