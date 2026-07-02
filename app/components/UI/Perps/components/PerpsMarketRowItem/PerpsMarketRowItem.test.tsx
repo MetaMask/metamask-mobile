@@ -89,7 +89,9 @@ describe('PerpsMarketRowItem', () => {
     it('renders all market data correctly', () => {
       render(<PerpsMarketRowItem market={mockMarketData} />);
 
-      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+      ).toHaveTextContent('BTC');
       expect(screen.getByText('50x')).toBeOnTheScreen();
       expect(screen.getByText('$52,000')).toBeOnTheScreen();
       expect(screen.getByText('+4.00%')).toBeOnTheScreen();
@@ -165,7 +167,9 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={ethMarket} />);
 
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('ETH')),
+      ).toHaveTextContent('ETH');
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.rowItem('ETH')),
       ).toBeOnTheScreen();
@@ -226,7 +230,7 @@ describe('PerpsMarketRowItem', () => {
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
       ).toHaveTextContent('Bitcoin');
-      expect(screen.queryByText('BTC')).toBeNull();
+      expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
     });
 
     it('shows the ticker symbol when the flag is disabled', () => {
@@ -237,7 +241,7 @@ describe('PerpsMarketRowItem', () => {
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
       ).toHaveTextContent('BTC');
-      expect(screen.queryByText('Bitcoin')).toBeNull();
+      expect(screen.queryByText('Bitcoin')).not.toBeOnTheScreen();
     });
 
     it('strips the provider prefix from the ticker when the flag is disabled', () => {
@@ -254,8 +258,8 @@ describe('PerpsMarketRowItem', () => {
           getPerpsMarketRowItemSelector.assetLabel('xyz:TSLA'),
         ),
       ).toHaveTextContent('TSLA');
-      expect(screen.queryByText('xyz:TSLA')).toBeNull();
-      expect(screen.queryByText('Tesla')).toBeNull();
+      expect(screen.queryByText('xyz:TSLA')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Tesla')).not.toBeOnTheScreen();
     });
 
     it('falls back to the ticker when the flag is enabled but name is missing', () => {
@@ -279,7 +283,11 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={longSymbolMarket} />);
 
-      expect(screen.getByText('VERYLONGSYMBOLNAME')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.assetLabel('VERYLONGSYMBOLNAME'),
+        ),
+      ).toHaveTextContent('VERYLONGSYMBOLNAME');
       expect(
         screen.getByTestId(
           getPerpsMarketRowItemSelector.rowItem('VERYLONGSYMBOLNAME'),
@@ -298,7 +306,9 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={specialCharMarket} />);
 
-      expect(screen.getByText('BTC/USD')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC/USD')),
+      ).toHaveTextContent('BTC/USD');
       expect(screen.getByText('+2.50%')).toBeOnTheScreen();
     });
 
@@ -314,7 +324,9 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={unicodeMarket} />);
 
-      expect(screen.getByText('BTC€')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC€')),
+      ).toHaveTextContent('BTC€');
       expect(screen.getByText('€45,000')).toBeOnTheScreen();
     });
   });
@@ -600,6 +612,12 @@ describe('PerpsMarketRowItem', () => {
   });
 
   describe('Price Change Color Indication', () => {
+    beforeEach(() => {
+      // Use the provided market props (no live-price override) so the change
+      // percentage is deterministic for these assertions.
+      mockUsePerpsLivePrices.mockReturnValue({});
+    });
+
     it('shows positive change', () => {
       const positiveMarket = {
         ...mockMarketData,
@@ -609,10 +627,10 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={positiveMarket} />);
 
-      // Verify the component renders without error
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
-      ).toBeOnTheScreen();
+      ).toHaveTextContent('BTC');
+      expect(screen.getByText('+1.00%')).toBeOnTheScreen();
     });
 
     it('shows negative change', () => {
@@ -624,10 +642,10 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={negativeMarket} />);
 
-      // Verify the component renders without error
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
-      ).toBeOnTheScreen();
+      ).toHaveTextContent('BTC');
+      expect(screen.getByText('-1.00%')).toBeOnTheScreen();
     });
 
     it('handles zero change correctly', () => {
@@ -639,10 +657,10 @@ describe('PerpsMarketRowItem', () => {
 
       render(<PerpsMarketRowItem market={zeroChangeMarket} />);
 
-      // Verify the component renders without error
       expect(
         screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
-      ).toBeOnTheScreen();
+      ).toHaveTextContent('BTC');
+      expect(screen.getByText('+0.00%')).toBeOnTheScreen();
     });
   });
 

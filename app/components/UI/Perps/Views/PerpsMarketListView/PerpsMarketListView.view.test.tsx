@@ -8,7 +8,10 @@ import '../../../../../../tests/component-view/mocks';
 import { screen, fireEvent, waitFor } from '@testing-library/react-native';
 import { renderPerpsMarketListView } from '../../../../../../tests/component-view/renderers/perpsViewRenderer';
 import { strings } from '../../../../../../locales/i18n';
-import { PerpsMarketListViewSelectorsIDs } from '../../Perps.testIds';
+import {
+  PerpsMarketListViewSelectorsIDs,
+  getPerpsMarketRowItemSelector,
+} from '../../Perps.testIds';
 import { PerpsMarketData } from '@metamask/perps-controller';
 
 /** Crypto market (no HIP-3): counted in marketCounts.crypto */
@@ -109,20 +112,8 @@ describe('PerpsMarketListView', () => {
   });
 
   describe('Full asset names feature flag', () => {
-    it('shows ticker symbols by default (flag off)', async () => {
-      renderPerpsMarketListView({
-        streamOverrides: { marketData: marketDataWithCategories },
-      });
-
-      await waitFor(() => {
-        expect(screen.getByText('BTC')).toBeOnTheScreen();
-        expect(screen.getByText('XAU')).toBeOnTheScreen();
-      });
-      expect(screen.queryByText('Bitcoin')).not.toBeOnTheScreen();
-      expect(screen.queryByText('Gold')).not.toBeOnTheScreen();
-    });
-
-    it('shows full asset names when perpsShowFullAssetNames is enabled', async () => {
+    // Default-off (ticker) behaviour is covered by the category-filter test above.
+    it('shows full asset names on the asset label when perpsShowFullAssetNames is enabled', async () => {
       renderPerpsMarketListView({
         streamOverrides: { marketData: marketDataWithCategories },
         overrides: {
@@ -142,8 +133,12 @@ describe('PerpsMarketListView', () => {
       });
 
       await waitFor(() => {
-        expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
-        expect(screen.getByText('Gold')).toBeOnTheScreen();
+        expect(
+          screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+        ).toHaveTextContent('Bitcoin');
+        expect(
+          screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('XAU')),
+        ).toHaveTextContent('Gold');
       });
       expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
       expect(screen.queryByText('XAU')).not.toBeOnTheScreen();

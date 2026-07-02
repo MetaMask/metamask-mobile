@@ -182,7 +182,8 @@ jest.mock('../../Perps.testIds', () => ({
 }));
 
 // Import after mock to use the mocked values
-const { PerpsTabViewSelectorsIDs } = jest.requireMock('../../Perps.testIds');
+const { PerpsTabViewSelectorsIDs, getPerpsMarketRowItemSelector } =
+  jest.requireMock('../../Perps.testIds');
 
 jest.mock('../../components/PerpsBottomSheetTooltip', () => ({
   __esModule: true,
@@ -435,8 +436,12 @@ describe('PerpsTabView', () => {
       render(<PerpsTabView />);
 
       // Confirm the explore state is rendered (tickers shown when flag is off)
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
-      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('ETH')),
+      ).toHaveTextContent('ETH');
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+      ).toHaveTextContent('BTC');
     });
 
     it('should render Start a new trade CTA when positions exist', () => {
@@ -656,7 +661,9 @@ describe('PerpsTabView', () => {
 
       // Assert - Component should render explore state with market data
       expect(screen.toJSON()).toBeTruthy();
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('ETH')),
+      ).toHaveTextContent('ETH');
     });
   });
 
@@ -746,8 +753,12 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(screen.getByText('ETH')).toBeOnTheScreen();
-      expect(screen.getByText('BTC')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('ETH')),
+      ).toHaveTextContent('ETH');
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+      ).toHaveTextContent('BTC');
     });
 
     it('displays explore state with full asset names when the flag is on', () => {
@@ -786,8 +797,12 @@ describe('PerpsTabView', () => {
 
       render(<PerpsTabView />);
 
-      expect(screen.getByText('Ethereum')).toBeOnTheScreen();
-      expect(screen.getByText('Bitcoin')).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('ETH')),
+      ).toHaveTextContent('Ethereum');
+      expect(
+        screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+      ).toHaveTextContent('Bitcoin');
     });
   });
 });
