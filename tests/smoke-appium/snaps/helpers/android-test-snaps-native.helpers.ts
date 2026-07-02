@@ -96,14 +96,11 @@ export async function fillAndroidTestSnapsInput(
 ): Promise<void> {
   const webId = TestSnapInputSelectorWebIDS[inputKey];
 
-  // Fill via the native UiAutomator node — switching into the Chromedriver WebView
-  // context wedges Appium's setContext on CI after snap installs, hanging the whole
-  // UiAutomator2 session. Focus + IME typing instead of setValue: UiAutomator2's
-  // element/value endpoint routes numeric text to ACTION_SET_PROGRESS, which
-  // Chromium-exposed EditText nodes reject.
+  // Fill via native UiAutomator node to avoid WebView context issues on CI.
+  // Use W3C key actions instead of setValue/mobile:type for compatibility.
   const elem = await scrollNativeWebIdIntoView(webId);
   await elem.click();
-  await getDriver().execute('mobile: type', { text: value });
+  await getDriver().keys(value.split(''));
 
   await PlaywrightGestures.hideKeyboard().catch(() => undefined);
 }
