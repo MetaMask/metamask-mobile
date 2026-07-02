@@ -180,9 +180,7 @@ describe('OtherBottomSheet', () => {
       render(<OtherBottomSheet {...createProps()} />);
 
       expect(
-        screen.getByText(
-          strings('onboarding_interest_questionnaire.other_done'),
-        ),
+        screen.getByText(strings('onboarding_interest_questionnaire.done')),
       ).toBeOnTheScreen();
     });
   });

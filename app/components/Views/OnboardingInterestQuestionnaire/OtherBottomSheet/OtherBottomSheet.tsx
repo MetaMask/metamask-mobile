@@ -95,7 +95,7 @@ const OtherBottomSheet = ({
             onPress={handleDone}
             testID={OtherBottomSheetTestIds.DONE_BUTTON}
           >
-            {strings('onboarding_interest_questionnaire.other_done')}
+            {strings('onboarding_interest_questionnaire.done')}
           </Button>
         </Box>
       </KeyboardAwareScrollView>

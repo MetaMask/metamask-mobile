@@ -72,14 +72,15 @@ export function finalizeOnboardingCompletion({
       }),
     );
 
-    discoverAccounts(
-      Engine.context.KeyringController.state.keyrings[0].metadata.id,
-    ).catch((error: unknown) => {
-      Logger.error(
-        error as Error,
-        `${discoverAccountsLogContext}: discoverAccounts failed`,
-      );
-    });
+    const keyrings = Engine.context.KeyringController.state.keyrings;
+    if (keyrings?.length > 0) {
+      discoverAccounts(keyrings[0].metadata.id).catch((error: unknown) => {
+        Logger.error(
+          error as Error,
+          `${discoverAccountsLogContext}: discoverAccounts failed`,
+        );
+      });
+    }
   }
 
   dispatch(clearAttribution());

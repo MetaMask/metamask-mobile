@@ -3261,7 +3261,7 @@
     "option_use_other_crypto_apps": "Use other crypto apps",
     "option_other": "Other",
     "other_placeholder": "How else will you use MetaMask?",
-    "other_done": "Done",
+    "done": "Done",
     "skip": "Skip",
     "next": "Next"
   },

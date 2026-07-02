@@ -334,7 +334,7 @@ const OnboardingInterestQuestionnaire = () => {
           style={tw.style('w-full')}
           testID={OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON}
         >
-          {strings('onboarding_interest_questionnaire.other_done')}
+          {strings('onboarding_interest_questionnaire.done')}
         </Button>
       </Box>
 
