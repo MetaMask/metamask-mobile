@@ -41,8 +41,7 @@ import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
-import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
-import { moneyFormatFiat, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
+import { moneyFormatUsd, DUST_THRESHOLD } from '../../utils/moneyFormatFiat';
 import { calculateProjectedEarnings } from '../../utils/projections';
 import AppConstants from '../../../../../core/AppConstants';
 import {
@@ -94,7 +93,6 @@ const MoneyHomeView = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const { styles } = useStyles(styleSheet, {});
-  const currentCurrency = useSelector(selectCurrentCurrency);
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const hasTrackedCardActionRowViewRef = useRef(false);
@@ -141,8 +139,14 @@ const MoneyHomeView = () => {
   }, [refetchBalance, refreshMusdFiatRate]);
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
-  const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
+  // mUSD is USD-pegged 1:1, so show the token balance as dollars — consistent
+  // with the account balance and projected earnings above, which also use USD.
+  const { tokenBalanceAggregated: musdTokenBalanceAggregated } =
     useMusdBalance();
+  const musdFiatFormatted = useMemo(
+    () => moneyFormatUsd(new BigNumber(musdTokenBalanceAggregated)),
+    [musdTokenBalanceAggregated],
+  );
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
@@ -215,10 +219,7 @@ const MoneyHomeView = () => {
   const isFunded = hasSpendableBalance || activityItems.length > 0;
   const isEmptyState = hasBalanceValue && !isFunded;
 
-  const formattedZero = useMemo(
-    () => moneyFormatFiat(new BigNumber(0), currentCurrency),
-    [currentCurrency],
-  );
+  const formattedZero = useMemo(() => moneyFormatUsd(new BigNumber(0)), []);
 
   const monthlyEarnings = useMemo(() => {
     if (!totalFiatRaw || !apyDecimal) return formattedZero;
@@ -230,9 +231,9 @@ const MoneyHomeView = () => {
       1 / 12,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
-    const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    const formatted = moneyFormatUsd(new BigNumber(earnings));
     return formatted === formattedZero ? formatted : `+${formatted}`;
-  }, [totalFiatRaw, apyDecimal, currentCurrency, formattedZero]);
+  }, [totalFiatRaw, apyDecimal, formattedZero]);
 
   const yearlyEarnings = useMemo(() => {
     if (!totalFiatRaw || !apyDecimal) return formattedZero;
@@ -244,9 +245,9 @@ const MoneyHomeView = () => {
       1,
     );
     if (!Number.isFinite(earnings)) return formattedZero;
-    const formatted = moneyFormatFiat(new BigNumber(earnings), currentCurrency);
+    const formatted = moneyFormatUsd(new BigNumber(earnings));
     return formatted === formattedZero ? formatted : `+${formatted}`;
-  }, [totalFiatRaw, apyDecimal, currentCurrency, formattedZero]);
+  }, [totalFiatRaw, apyDecimal, formattedZero]);
 
   const handleMenuPress = useCallback(() => {
     trackButtonClicked({
