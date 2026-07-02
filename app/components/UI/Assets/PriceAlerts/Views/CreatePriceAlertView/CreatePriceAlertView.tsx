@@ -146,7 +146,7 @@ const CreatePriceAlertView: React.FC = () => {
       createEventBuilder(MetaMetricsEvents.PRICE_ALERT_CREATION_VIEWED)
         .addProperties({
           asset_id: assetId,
-          token_symbol: symbol,
+          token_symbol: displayTicker,
           has_existing_alert: (existingThresholds?.length ?? 0) > 0,
         })
         .build(),
@@ -275,7 +275,7 @@ const CreatePriceAlertView: React.FC = () => {
             .addProperties({
               interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
               asset_id: assetId,
-              token_symbol: symbol,
+              token_symbol: displayTicker,
               alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
               alert_value: targetPrice,
               alert_recurring: isRecurring,
@@ -292,7 +292,7 @@ const CreatePriceAlertView: React.FC = () => {
             .addProperties({
               interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.CREATED,
               asset_id: assetId,
-              token_symbol: symbol,
+              token_symbol: displayTicker,
               alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
               alert_value: targetPrice,
               alert_recurring: isRecurring,
@@ -343,7 +343,6 @@ const CreatePriceAlertView: React.FC = () => {
     toastRef,
     colors,
     displayTicker,
-    symbol,
     trackEvent,
     createEventBuilder,
   ]);

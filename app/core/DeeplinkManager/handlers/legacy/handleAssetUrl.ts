@@ -143,7 +143,7 @@ const trackPriceAlertNotificationOpened = (
       )
         .addProperties({
           asset_id: urlParams.get('assetId'),
-          token_symbol: token?.symbol,
+          token_symbol: token?.ticker || token?.symbol,
           alert_type: urlParams.get('alert_type'),
           price_at_trigger: Number.parseFloat(
             urlParams.get('price_at_trigger') as string,

@@ -79,6 +79,7 @@ const ManagePriceAlertsView: React.FC = () => {
     >();
   const { symbol, ticker, currentPrice, currentCurrency, assetId } =
     route.params;
+  const displayTicker = ticker || symbol;
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const hasResolvedInitialFetch = useRef(false);
@@ -194,7 +195,7 @@ const ManagePriceAlertsView: React.FC = () => {
               .addProperties({
                 interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.DELETED,
                 asset_id: assetId,
-                token_symbol: symbol,
+                token_symbol: displayTicker,
                 alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
                 alert_value: deleted.threshold,
                 alert_recurring: deleted.recurring,
@@ -246,7 +247,7 @@ const ManagePriceAlertsView: React.FC = () => {
       queryClient,
       toastRef,
       colors,
-      symbol,
+      displayTicker,
       trackEvent,
       createEventBuilder,
     ],
@@ -278,7 +279,7 @@ const ManagePriceAlertsView: React.FC = () => {
               .addProperties({
                 interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
                 asset_id: assetId,
-                token_symbol: symbol,
+                token_symbol: displayTicker,
                 alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
                 alert_value: toggled.threshold,
                 alert_recurring: toggled.recurring,
@@ -316,7 +317,7 @@ const ManagePriceAlertsView: React.FC = () => {
       queryClient,
       toastRef,
       colors,
-      symbol,
+      displayTicker,
       trackEvent,
       createEventBuilder,
     ],
