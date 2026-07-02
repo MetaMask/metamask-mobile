@@ -99,7 +99,7 @@ describe('polymarket protocol order codec', () => {
     ]);
   });
 
-  it('builds a v2 order with runtime tick sizes outside the legacy config', () => {
+  it('builds a v2 order with 0.0025 tick size from ROUNDING_CONFIG', () => {
     const order = buildProtocolUnsignedOrder({
       protocol,
       preview: {
@@ -113,6 +113,22 @@ describe('polymarket protocol order codec', () => {
     });
 
     expect(order).toHaveProperty('takerAmount', '18873085');
+  });
+
+  it('builds a v2 order with runtime tick sizes outside the legacy config', () => {
+    const order = buildProtocolUnsignedOrder({
+      protocol,
+      preview: {
+        ...preview,
+        tickSize: 0.005,
+        minAmountReceived: 19.456789,
+      },
+      makerAddress: ownerAddress,
+      signerAddress: safeAddress,
+      nowInSeconds: 456,
+    });
+
+    expect(order).toHaveProperty('takerAmount', '18873080');
   });
 
   it('builds a deposit-wallet order with POLY_1271 signature type', () => {

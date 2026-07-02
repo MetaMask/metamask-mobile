@@ -2024,7 +2024,7 @@ describe('polymarket utils', () => {
     );
   });
 
-  it('previews buy orders with runtime CLOB tick sizes outside the legacy config', async () => {
+  it('previews buy orders with 0.0025 tick size from ROUNDING_CONFIG', async () => {
     mockFetch
       .mockResolvedValueOnce({
         ok: true,
@@ -2056,6 +2056,44 @@ describe('polymarket utils', () => {
     expect(preview).toEqual(
       expect.objectContaining({
         tickSize: 0.0025,
+        maxAmountSpent: 10,
+        minAmountReceived: 20,
+      }),
+    );
+  });
+
+  it('previews buy orders with runtime CLOB tick sizes outside the legacy config', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          ...orderBook,
+          tick_size: '0.005',
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.02,
+            e: 1,
+            to: true,
+          },
+        }),
+      });
+
+    const preview = await previewOrder({
+      marketId: 'market-1',
+      outcomeId:
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      outcomeTokenId: 'token-1',
+      side: Side.BUY,
+      size: 10,
+    });
+
+    expect(preview).toEqual(
+      expect.objectContaining({
+        tickSize: 0.005,
         maxAmountSpent: 10,
         minAmountReceived: 20,
       }),
