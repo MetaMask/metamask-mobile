@@ -228,7 +228,7 @@ describe('AddDeviceToWallet', () => {
         getByText(strings('app_settings.add_device.waiting_for_extension')),
       ).toBeOnTheScreen();
     });
-  
+
     it('does not render the manual QR input outside dev', () => {
       const globalWithDev = global as unknown as { __DEV__: boolean };
       const originalDev = globalWithDev.__DEV__;

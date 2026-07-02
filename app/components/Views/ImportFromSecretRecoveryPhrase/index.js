@@ -243,6 +243,9 @@ const ImportFromSecretRecoveryPhrase = ({
   );
 
   const onBackPress = () => {
+    if (isQrSyncImport) {
+      Engine.context.QrSyncController.resetState();
+    }
     if (currentStep === 0 || (isQrSyncImport && currentStep === 1)) {
       navigation.goBack();
     } else {
@@ -431,10 +434,6 @@ const ImportFromSecretRecoveryPhrase = ({
           true,
           isQrSyncImport,
         );
-
-        if (isQrSyncImport) {
-          Engine.context.QrSyncController.resetState();
-        }
 
         setBiometryType(authData.availableBiometryType);
         setLoading(false);

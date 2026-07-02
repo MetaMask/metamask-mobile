@@ -1293,6 +1293,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.press(getByTestId(ImportFromSeedSelectorsIDs.BACK_BUTTON_ID));
 
       expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockQrSyncResetState).toHaveBeenCalledTimes(1);
     });
 
     it('does not prefill the seed phrase when qrSyncImport is false', async () => {
@@ -1348,6 +1349,8 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       await waitFor(() => {
         expect(newWalletAndRestoreSpy).toHaveBeenCalledTimes(1);
       });
+
+      expect(mockQrSyncResetState).not.toHaveBeenCalled();
     });
   });
 

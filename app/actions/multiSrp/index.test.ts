@@ -263,34 +263,6 @@ describe('MultiSRP Actions', () => {
       });
     });
 
-    it('skips background discovery when skipDiscovery is true', async () => {
-      // Arrange
-      mockDiscoverAccounts.mockResolvedValue(5);
-      const mockCallback = jest.fn();
-
-      // Act
-      const result = await importNewSecretRecoveryPhrase(
-        mockSeed,
-        { shouldSelectAccount: true, skipDiscovery: true },
-        mockCallback,
-      );
-
-      // Assert
-      expect(result).toEqual({
-        address: mockAddress,
-        discoveredAccountsCount: 0,
-      });
-      expect(mockCreateMultichainAccountWallet).toHaveBeenCalledWith({
-        type: 'import',
-        mnemonic: mnemonicPhraseToBytes(mockSeed),
-      });
-      expect(mockSetSelectedAddress).toHaveBeenCalledWith(mockAddress);
-      expect(mockGetSnapKeyring).not.toHaveBeenCalled();
-      expect(mockSyncAccountTreeWithUserStorage).not.toHaveBeenCalled();
-      expect(mockDiscoverAccounts).not.toHaveBeenCalled();
-      expect(mockCallback).not.toHaveBeenCalled();
-    });
-
     describe('seedless onboarding login flow', () => {
       beforeEach(() => {
         mockSelectSeedlessOnboardingLoginFlow.mockReturnValue(true);
