@@ -23,6 +23,9 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../hooks/usePerpsTopMovers', () => ({
   usePerpsTopMovers: jest.fn(),
+  isPerpsTopMoversSectionVisible: jest.requireActual(
+    '../../hooks/usePerpsTopMovers',
+  ).isPerpsTopMoversSectionVisible,
 }));
 
 jest.mock('../../hooks', () => ({
@@ -171,14 +174,9 @@ describe('PerpsTopMoversSection', () => {
   it('selects the gainers (desc) toggle by default', () => {
     renderSection();
 
-    expect(
-      screen.getByTestId(PerpsHomeViewSelectorsIDs.TOP_MOVERS_GAINERS_PILL)
-        .props.accessibilityState.selected,
-    ).toBe(true);
-    expect(
-      screen.getByTestId(PerpsHomeViewSelectorsIDs.TOP_MOVERS_LOSERS_PILL).props
-        .accessibilityState.selected,
-    ).toBe(false);
+    expect(mockUsePerpsTopMovers).toHaveBeenCalledWith({
+      direction: 'desc',
+    });
   });
 
   it('selects the losers toggle after pressing it', () => {
@@ -188,14 +186,17 @@ describe('PerpsTopMoversSection', () => {
       screen.getByTestId(PerpsHomeViewSelectorsIDs.TOP_MOVERS_LOSERS_PILL),
     );
 
-    expect(
-      screen.getByTestId(PerpsHomeViewSelectorsIDs.TOP_MOVERS_LOSERS_PILL).props
-        .accessibilityState.selected,
-    ).toBe(true);
-    expect(
-      screen.getByTestId(PerpsHomeViewSelectorsIDs.TOP_MOVERS_GAINERS_PILL)
-        .props.accessibilityState.selected,
-    ).toBe(false);
+    expect(mockUsePerpsTopMovers).toHaveBeenLastCalledWith({
+      direction: 'asc',
+    });
+
+    fireEvent.press(
+      screen.getByTestId(PerpsHomeViewSelectorsIDs.TOP_MOVERS_GAINERS_PILL),
+    );
+
+    expect(mockUsePerpsTopMovers).toHaveBeenLastCalledWith({
+      direction: 'desc',
+    });
   });
 
   it('requests the losers (asc) direction from the data hook after selecting losers', () => {

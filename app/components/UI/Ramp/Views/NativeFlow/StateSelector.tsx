@@ -11,8 +11,8 @@ import {
   IconColor,
 } from '@metamask/design-system-react-native';
 import { createStateSelectorModalNavigationDetails } from '../Modals/StateSelectorModal';
-import { US_STATES } from '../../Deposit/constants';
-import { createStateSelectorStyles } from '../../Deposit/components/StateSelector/StateSelector.styles';
+import { US_STATES } from '../../constants';
+import { createStateSelectorStyles } from './StateSelector.styles';
 import { strings } from '../../../../../../locales/i18n';
 
 interface StateSelectorProps {

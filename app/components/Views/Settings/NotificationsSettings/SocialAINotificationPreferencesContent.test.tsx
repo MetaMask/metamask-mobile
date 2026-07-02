@@ -1,5 +1,8 @@
-import React from 'react';
+/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
+import { AvatarAccount } from '@metamask/design-system-react-native';
 import { fireEvent, screen } from '@testing-library/react-native';
+import { Image } from 'expo-image';
+import React from 'react';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 import {
@@ -16,9 +19,7 @@ import {
   type SocialAIPreference,
   type UseFollowedTradersResult,
   type UseNotificationPreferencesResult,
-  // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 } from '../../SocialLeaderboard/NotificationPreferences/hooks';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { NotificationPreferencesSelectorsIDs } from '../../SocialLeaderboard/NotificationPreferences/NotificationPreferences.testIds';
 import SocialAINotificationPreferencesContent from './SocialAINotificationPreferencesContent';
 
@@ -64,6 +65,7 @@ const mockFireSwitchHaptic = jest.mocked(fireSwitchHaptic);
 const mockPlayImpact = jest.mocked(playImpact);
 
 const mockSetPushNotificationsEnabled = jest.fn().mockResolvedValue(undefined);
+const mockSetInAppNotificationsEnabled = jest.fn().mockResolvedValue(undefined);
 const mockSetTxAmountLimit = jest.fn().mockResolvedValue(undefined);
 const mockToggleTraderNotification = jest.fn().mockResolvedValue(undefined);
 const mockIsTraderNotificationEnabled = jest.fn().mockReturnValue(true);
@@ -97,6 +99,7 @@ const makeNotificationPreferencesResult = (
   isLoading: false,
   error: null,
   setPushNotificationsEnabled: mockSetPushNotificationsEnabled,
+  setInAppNotificationsEnabled: mockSetInAppNotificationsEnabled,
   setTxAmountLimit: mockSetTxAmountLimit,
   toggleTraderNotification: mockToggleTraderNotification,
   isTraderNotificationEnabled: mockIsTraderNotificationEnabled,
@@ -107,11 +110,13 @@ const followedTraders: FollowedTrader[] = [
   {
     id: 'trader-1',
     username: 'trader1',
+    address: '0x0000000000000000000000000000000000000001',
     avatarUri: 'https://example.com/avatar.png',
   },
   {
     id: 'trader-2',
     username: 'pixelmage',
+    address: '0x0000000000000000000000000000000000000002',
   },
 ];
 
@@ -209,6 +214,17 @@ describe('SocialAINotificationPreferencesContent', () => {
     ).toBe(false);
   });
 
+  it('renders the Maskicon fallback for traders without a profile image', () => {
+    mockUseFollowedTraders.mockReturnValue(
+      makeFollowedTradersResult({ traders: followedTraders }),
+    );
+
+    renderComponent();
+
+    expect(screen.UNSAFE_getAllByType(AvatarAccount)).toHaveLength(1);
+    expect(screen.UNSAFE_getAllByType(Image)).toHaveLength(1);
+  });
+
   it('sets push notifications enabled and fires a medium switch haptic when the global toggle changes', () => {
     renderComponent();
 
@@ -274,13 +290,16 @@ describe('SocialAINotificationPreferencesContent', () => {
     expect(mockToggleTraderNotification).toHaveBeenCalledWith('trader-1');
   });
 
-  it('disables threshold and trader toggles while push notifications are off', () => {
+  it('disables threshold and trader toggles only when both channels are off', () => {
     mockUseFollowedTraders.mockReturnValue(
       makeFollowedTradersResult({ traders: followedTraders }),
     );
     mockUseNotificationPreferences.mockReturnValue(
       makeNotificationPreferencesResult({
-        preferences: makePreferences({ pushNotificationsEnabled: false }),
+        preferences: makePreferences({
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: false,
+        }),
       }),
     );
 
@@ -306,6 +325,33 @@ describe('SocialAINotificationPreferencesContent', () => {
     ).toBe(true);
     expect(mockFireSwitchHaptic).not.toHaveBeenCalled();
     expect(mockToggleTraderNotification).not.toHaveBeenCalled();
+  });
+
+  it('keeps threshold and trader toggles enabled when in-app is on but push is off', () => {
+    mockUseFollowedTraders.mockReturnValue(
+      makeFollowedTradersResult({ traders: followedTraders }),
+    );
+    mockUseNotificationPreferences.mockReturnValue(
+      makeNotificationPreferencesResult({
+        preferences: makePreferences({
+          pushNotificationsEnabled: false,
+          inAppNotificationsEnabled: true,
+        }),
+      }),
+    );
+
+    renderComponent();
+
+    expect(
+      screen.getByTestId(
+        NotificationPreferencesSelectorsIDs.THRESHOLD_OPTION(100),
+      ).props.accessibilityState.disabled,
+    ).toBe(false);
+    expect(
+      screen.getByTestId(
+        NotificationPreferencesSelectorsIDs.TRADER_TOGGLE('trader-1'),
+      ).props.disabled,
+    ).toBe(false);
   });
 
   it('navigates to the trader profile when a trader row is pressed', () => {

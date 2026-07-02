@@ -83,6 +83,11 @@ export interface BannerArgs {
   bannerType: string;
 }
 
+export interface CategoryClickedArgs {
+  categoryName: string;
+  entryPoint?: string;
+}
+
 export interface PredictPortfolioAnalyticsContextArgs {
   actionType?: string;
   entryPoint?: string;
@@ -457,6 +462,10 @@ export class PredictAnalytics {
 
   public trackBannerAction(params: BannerArgs): void {
     this.trackConfiguredEvent('bannerAction', params);
+  }
+
+  public trackCategoryClicked(params: CategoryClickedArgs): void {
+    this.trackConfiguredEvent('categoryClicked', params);
   }
 
   public trackShareAction(params: ShareActionArgs): void {

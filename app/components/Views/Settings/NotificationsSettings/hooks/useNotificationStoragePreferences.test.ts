@@ -62,6 +62,14 @@ const buildPreferences = (
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,
   },
+  agenticCli: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
+  priceAlerts: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
   socialAI: {
     inAppNotificationsEnabled: true,
     pushNotificationsEnabled: true,

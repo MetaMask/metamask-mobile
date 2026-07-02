@@ -17,6 +17,7 @@ import {
   type AccountState,
 } from '@metamask/perps-controller';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import {
   PERPS_DISK_CACHE_MARKETS,
@@ -27,6 +28,12 @@ jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');
 jest.mock('../services/PerpsConnectionManager');
+jest.mock('../../../../store', () => ({
+  store: { getState: jest.fn(() => ({})) },
+}));
+jest.mock('../selectors/featureFlags', () => ({
+  selectPerpsTerminalBackendEnabledFlag: jest.fn(() => true),
+}));
 jest.mock('../../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
@@ -44,6 +51,8 @@ const mockPerpsConnectionManager = PerpsConnectionManager as jest.Mocked<
   typeof PerpsConnectionManager
 >;
 const mockStorageWrapper = StorageWrapper as jest.Mocked<typeof StorageWrapper>;
+const mockSelectPerpsTerminalBackendEnabledFlag =
+  selectPerpsTerminalBackendEnabledFlag as unknown as jest.Mock;
 
 // Test component that uses the stream hook
 const TestPriceComponent = ({
@@ -82,6 +91,9 @@ describe('PerpsStreamManager', () => {
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useFakeTimers();
+
+    // Restore the default Terminal flag state (enabled) after any per-test override.
+    mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
 
     // Create a fresh stream manager for each test
     testStreamManager = new PerpsStreamManager();
@@ -306,6 +318,7 @@ describe('PerpsStreamManager', () => {
             bestAsk: '50100',
             spread: '200',
             markPrice: '50050',
+            isTradable: true,
           },
         ];
         params.callback(cachedData);
@@ -336,6 +349,7 @@ describe('PerpsStreamManager', () => {
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
+          isTradable: true,
         },
       });
     });
@@ -371,6 +385,7 @@ describe('PerpsStreamManager', () => {
           price: '50000',
           percentChange24h: '5',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -387,6 +402,7 @@ describe('PerpsStreamManager', () => {
           price: '50100',
           percentChange24h: '5.1',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -414,6 +430,7 @@ describe('PerpsStreamManager', () => {
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
+          isTradable: true,
         },
       });
     });
@@ -449,6 +466,7 @@ describe('PerpsStreamManager', () => {
           price: '50000',
           percentChange24h: '5',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -465,6 +483,7 @@ describe('PerpsStreamManager', () => {
           price: '50100',
           percentChange24h: '5.1',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
       controllerCallback?.([
@@ -473,6 +492,7 @@ describe('PerpsStreamManager', () => {
           price: '50200',
           percentChange24h: '5.2',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
       controllerCallback?.([
@@ -481,6 +501,7 @@ describe('PerpsStreamManager', () => {
           price: '50300',
           percentChange24h: '5.3',
           timestamp: Date.now(),
+          isTradable: true,
         },
       ]);
     });
@@ -509,6 +530,7 @@ describe('PerpsStreamManager', () => {
           funding: undefined,
           openInterest: undefined,
           volume24h: undefined,
+          isTradable: true,
         },
       });
     });
@@ -571,6 +593,7 @@ describe('PerpsStreamManager', () => {
           price: '3000',
           timestamp: Date.now(),
           percentChange24h: '2',
+          isTradable: true,
         },
       ]);
     });
@@ -586,6 +609,7 @@ describe('PerpsStreamManager', () => {
           price: '3010',
           timestamp: Date.now(),
           percentChange24h: '2.1',
+          isTradable: true,
         },
       ]);
     });
@@ -601,6 +625,7 @@ describe('PerpsStreamManager', () => {
           price: '3020',
           timestamp: Date.now(),
           percentChange24h: '2.2',
+          isTradable: true,
         },
       ]);
     });
@@ -641,6 +666,7 @@ describe('PerpsStreamManager', () => {
           price: '50000',
           timestamp: Date.now(),
           percentChange24h: '5',
+          isTradable: true,
         },
       ]);
     });
@@ -657,6 +683,7 @@ describe('PerpsStreamManager', () => {
           price: '50100',
           timestamp: Date.now(),
           percentChange24h: '5.1',
+          isTradable: true,
         },
       ]);
     });
@@ -739,6 +766,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     // Send first update from WebSocket
@@ -787,6 +815,7 @@ describe('PerpsStreamManager', () => {
             price: '50000',
             timestamp: Date.now(),
             percentChange24h: '5',
+            isTradable: true,
           },
         ]);
       });
@@ -1395,6 +1424,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     // Send first update - should be immediate
@@ -1411,6 +1441,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50100',
       timestamp: Date.now() + 10,
+      isTradable: true,
     };
 
     const thirdUpdate: PriceUpdate = {
@@ -1418,6 +1449,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50200',
       timestamp: Date.now() + 20,
+      isTradable: true,
     };
 
     // Send rapid subsequent updates
@@ -1499,6 +1531,7 @@ describe('PerpsStreamManager', () => {
 
       price: '50000',
       timestamp: Date.now(),
+      isTradable: true,
     };
 
     // Send update
@@ -1603,6 +1636,7 @@ describe('PerpsStreamManager', () => {
       symbol,
       price,
       timestamp: Date.now(),
+      isTradable: true,
     });
 
     it('dispatches a single-symbol tick only to subscribers registered for that symbol', () => {
@@ -1807,6 +1841,71 @@ describe('PerpsStreamManager', () => {
     });
   });
 
+  describe('PriceStreamChannel isTradable propagation', () => {
+    let priceCallback: (data: PriceUpdate[]) => void;
+
+    beforeEach(() => {
+      priceCallback = jest.fn();
+      mockSubscribeToPrices.mockImplementation((params) => {
+        priceCallback = params.callback;
+        return jest.fn();
+      });
+    });
+
+    it('propagates isTradable from live price updates', () => {
+      const cb = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: cb,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        priceCallback([
+          {
+            symbol: 'BTC-PERP',
+            price: '50000',
+            timestamp: Date.now(),
+            isTradable: false,
+          },
+        ]);
+      });
+
+      expect(cb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({
+          symbol: 'BTC-PERP',
+          isTradable: false,
+        }),
+      });
+    });
+
+    it('defaults isTradable to true when live update omits the field', () => {
+      const cb = jest.fn();
+      testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC-PERP'],
+        callback: cb,
+        throttleMs: 0,
+      });
+
+      act(() => {
+        priceCallback([
+          {
+            symbol: 'BTC-PERP',
+            price: '50000',
+            timestamp: Date.now(),
+          } as PriceUpdate,
+        ]);
+      });
+
+      expect(cb).toHaveBeenCalledWith({
+        'BTC-PERP': expect.objectContaining({
+          symbol: 'BTC-PERP',
+          isTradable: true,
+        }),
+      });
+    });
+  });
+
   it('cleans up all subscriptions on provider unmount', async () => {
     const mockUnsubscribe = jest.fn();
     mockSubscribeToPrices.mockReturnValue(mockUnsubscribe);
@@ -1880,6 +1979,38 @@ describe('PerpsStreamManager', () => {
       });
 
       unsubscribe();
+    });
+
+    it('passes useTerminalApi: true to getMarketDataWithPrices', async () => {
+      const callback = jest.fn();
+
+      const unsubscribe = testStreamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledWith({
+          useTerminalApi: true,
+        });
+      });
+
+      unsubscribe();
+    });
+
+    it('passes useTerminalApi: true to getMarkets during prewarm', async () => {
+      await testStreamManager.prices.prewarm();
+
+      const mockController = (
+        Engine.context as unknown as {
+          PerpsController: Record<string, jest.Mock>;
+        }
+      ).PerpsController;
+      await waitFor(() => {
+        expect(mockController.getMarkets).toHaveBeenCalledWith({
+          useTerminalApi: true,
+        });
+      });
     });
 
     it('uses cached data for subsequent subscriptions within cache duration', async () => {
@@ -2108,6 +2239,10 @@ describe('PerpsStreamManager', () => {
     it('uses controller preloaded cache when fresh', async () => {
       const callback = jest.fn();
 
+      // Controller preload cache is always direct-sourced, so it is only adopted
+      // when the Terminal backend is disabled.
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(false);
+
       // Set up controller with fresh cached market data via per-provider helper
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
@@ -2158,6 +2293,10 @@ describe('PerpsStreamManager', () => {
       const callback = jest.fn((data: PerpsMarketData[]) => {
         callTimings.push({ data, callIndex: callTimings.length });
       });
+
+      // Controller preload cache is always direct-sourced, so it is only served
+      // synchronously when the Terminal backend is disabled.
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(false);
 
       // Set up controller with fresh cached market data via per-provider helper
       (
@@ -2232,6 +2371,60 @@ describe('PerpsStreamManager', () => {
       await waitFor(() => {
         expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
       });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      unsubscribe();
+
+      // Reset state for other tests
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest.fn().mockReturnValue(null);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        cachedMarketDataByProvider: {},
+      };
+    });
+
+    it('does not adopt controller preloaded cache when Terminal backend is enabled', async () => {
+      const callback = jest.fn();
+
+      // Terminal enabled: the controller's direct-sourced preload cache must not be
+      // served/cached as Terminal data — a fresh source-correct fetch must happen.
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
+
+      const getCachedMock = jest.fn().mockReturnValue(mockMarketData);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = getCachedMock;
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        cachedMarketDataByProvider: {},
+        activeProvider: 'hyperliquid',
+      };
+
+      const streamManager = new PerpsStreamManager();
+
+      const unsubscribe = streamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // getCachedData() must not synchronously serve the direct controller cache
+      // while in Terminal mode.
+      expect(callback).not.toHaveBeenCalled();
+
+      // fetchMarketData() must skip the controller cache and fetch fresh Terminal data.
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
+      });
+      expect(mockGetMarketDataWithPrices).toHaveBeenCalledWith(
+        expect.objectContaining({ useTerminalApi: true }),
+      );
 
       await waitFor(() => {
         expect(callback).toHaveBeenCalledWith(mockMarketData);
@@ -2395,10 +2588,10 @@ describe('PerpsStreamManager', () => {
 
       // Assert - DevLogger should log the discard
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'PerpsStreamManager: Provider/network changed during fetch, discarding data',
+        'PerpsStreamManager: Provider/network/flag changed during fetch, discarding data',
         expect.objectContaining({
-          fetchedFor: 'providerA:mainnet',
-          current: 'providerB:mainnet',
+          fetchedFor: 'providerA:mainnet:terminal',
+          current: 'providerB:mainnet:terminal',
         }),
       );
 
