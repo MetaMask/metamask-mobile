@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { RegionsService, ServicesSignatures } from '@consensys/on-ramp-sdk';
 import { useRampSDK, SDK } from '../sdk';
 import Logger from '../../../../../util/Logger';
@@ -98,7 +98,7 @@ export default function useSDKMethod<T extends keyof RegionsService>(
   > | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(onMount);
-  const stringifiedParams = useMemo(() => JSON.stringify(params), [params]);
+  const stringifiedParams = JSON.stringify(params);
   const abortControllerRef = useRef<AbortController | undefined>(undefined);
 
   const query = useCallback(
