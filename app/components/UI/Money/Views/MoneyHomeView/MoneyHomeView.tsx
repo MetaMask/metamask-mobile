@@ -162,10 +162,20 @@ const MoneyHomeView = () => {
     buckets,
     isLoading: showCardActivityLoading,
     hasMore: hasMoreActivity,
+    isComplete: isActivityComplete,
     moneyAddress,
     mockDataEnabled,
   } = useMoneyActivityItems({ ensureCount: MONEY_HOME_ACTIVITY_PREVIEW_COUNT });
   const activityItems = buckets[MoneyActivityFilter.All];
+
+  // The preview is still settling while the initial query loads OR while the
+  // "All" bucket is empty but auto-fill pages may still arrive. Without the
+  // second clause the section vanishes (no rows, no spinner) between the
+  // initial page resolving and the first preview row landing. Mirrors the
+  // guard in MoneyActivityView.
+  const isActivitySettling =
+    showCardActivityLoading ||
+    (activityItems.length === 0 && !isActivityComplete);
 
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
@@ -228,7 +238,9 @@ const MoneyHomeView = () => {
   // Report time-to-content separately for the balance and the activity list, so
   // their load times can be compared, plus a combined "fully usable" span.
   const balanceReady = !isBalanceLoading;
-  const activityReady = !showCardActivityLoading;
+  // Only ready once the preview is no longer settling, so the time-to-content
+  // trace can't close before auto-fill rows are actually on screen.
+  const activityReady = !isActivitySettling;
   const moneyHomePerformanceSegments = useMemo(
     () => [
       { name: TraceName.MoneyHomeBalanceTimeToContent, ready: balanceReady },
@@ -710,10 +722,10 @@ const MoneyHomeView = () => {
     contentSections.push(metamaskCardSection);
   }
 
-  if (showCardActivityLoading || activityItems.length >= 1) {
+  if (isActivitySettling || activityItems.length >= 1) {
     contentSections.push({
       key: 'activity',
-      node: showCardActivityLoading ? (
+      node: isActivitySettling ? (
         <MoneyActivityLoading />
       ) : (
         <MoneyActivityList
