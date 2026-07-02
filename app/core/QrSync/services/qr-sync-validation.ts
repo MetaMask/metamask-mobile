@@ -394,8 +394,8 @@ const toControllerState = (
         index,
         type: entry.type,
         name: entry.name,
-        ...(entry.pinned !== undefined ? { pinned: entry.pinned } : {}),
-        ...(entry.hidden !== undefined ? { hidden: entry.hidden } : {}),
+        ...(entry.pinned ? { pinned: entry.pinned } : {}),
+        ...(entry.hidden ? { hidden: entry.hidden } : {}),
       });
       return state;
     },

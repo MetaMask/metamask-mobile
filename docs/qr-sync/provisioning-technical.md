@@ -1,8 +1,5 @@
 # QR Sync — Provisioning technical reference
 
-**Audience:** Mobile engineers implementing or reviewing QR sync onboarding.  
-**Non-technical overview:** see [Provisioning overview](./provisioning-overview.md).
-
 **Primary flow:** New users (`isOnboardingCompleted === false`) — Add Device → OTP → password import → OnboardingSuccess.
 
 **Phase B is reusable:** `QrSyncController.importRemainingSecrets` is not onboarding-only; it requires `provisioningStatus === 'awaiting_password'` and pending secrets (`isQrSyncReadyForSecretImport`). Today wired from `Authentication.newWalletAndRestore(..., isQrSync: true)`.
