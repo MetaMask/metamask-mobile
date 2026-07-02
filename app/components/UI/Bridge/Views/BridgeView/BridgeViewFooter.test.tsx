@@ -77,19 +77,36 @@ jest.mock('../../components/ApprovalText', () => {
 
 jest.mock('../../../Rewards/components/RewardsVipBadge/RewardsVipBadge', () => {
   const MockReact = jest.requireActual('react');
-  const { Text, View } = jest.requireActual('react-native');
+  const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: () =>
       MockReact.createElement(View, { testID: 'rewards-vip-badge' }),
-    RewardsDiscountBadge: ({ label }: { label: string }) =>
-      MockReact.createElement(
-        View,
-        { testID: 'rewards-discount-badge' },
-        MockReact.createElement(Text, null, label),
-      ),
   };
 });
+
+jest.mock(
+  '../../../Rewards/components/RewardsDiscountBadge/RewardsDiscountBadge',
+  () => {
+    const MockReact = jest.requireActual('react');
+    const { Text, View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      default: ({ label }: { label: string }) =>
+        MockReact.createElement(
+          View,
+          { testID: 'rewards-discount-badge' },
+          MockReact.createElement(Text, null, label),
+        ),
+      RewardsDiscountBadge: ({ label }: { label: string }) =>
+        MockReact.createElement(
+          View,
+          { testID: 'rewards-discount-badge' },
+          MockReact.createElement(Text, null, label),
+        ),
+    };
+  },
+);
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 

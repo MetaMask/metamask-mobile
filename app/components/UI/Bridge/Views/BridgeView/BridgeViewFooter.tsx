@@ -34,9 +34,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds.ts';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
-import RewardsVipBadge, {
-  RewardsDiscountBadge,
-} from '../../../Rewards/components/RewardsVipBadge/RewardsVipBadge.tsx';
+import RewardsVipBadge from '../../../Rewards/components/RewardsVipBadge';
+import { RewardsDiscountBadge } from '../../../Rewards/components/RewardsDiscountBadge';
 import { useFeeDisclaimer } from '../../hooks/useFeeDisclaimer';
 
 interface Props {
