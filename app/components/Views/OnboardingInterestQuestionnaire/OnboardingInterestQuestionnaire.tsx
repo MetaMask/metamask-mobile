@@ -330,6 +330,7 @@ const OnboardingInterestQuestionnaire = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={onNext}
+          isDisabled={selectedIds.size === 0}
           style={tw.style('w-full')}
           testID={OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON}
         >

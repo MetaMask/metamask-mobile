@@ -367,18 +367,14 @@ describe('OnboardingInterestQuestionnaire', () => {
       expect(mockOnComplete).toHaveBeenCalledTimes(1);
     });
 
-    it('calls onComplete when no option is selected', async () => {
+    it('disables Continue button when no option is selected', () => {
       renderComponent();
 
-      await act(async () => {
-        fireEvent.press(
-          screen.getByTestId(
-            OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
-          ),
-        );
-      });
-
-      expect(mockOnComplete).toHaveBeenCalledTimes(1);
+      expect(
+        screen.getByTestId(
+          OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON,
+        ),
+      ).toBeDisabled();
     });
   });
 

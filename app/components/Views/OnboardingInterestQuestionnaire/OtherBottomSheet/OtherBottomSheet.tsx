@@ -50,7 +50,7 @@ const OtherBottomSheet = ({
     <BottomSheet
       ref={bottomSheetRef}
       onClose={onClose}
-      keyboardAvoidingViewEnabled={false}
+      keyboardAvoidingViewEnabled
       testID={OtherBottomSheetTestIds.BOTTOM_SHEET}
     >
       <BottomSheetHeader
