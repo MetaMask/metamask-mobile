@@ -1,4 +1,4 @@
-import type { Dispatch, UnknownAction } from 'redux';
+import type { Dispatch, AnyAction } from 'redux';
 import {
   saveOnboardingEvent as saveEvent,
   setWalletHomeOnboardingStepsEligible,
@@ -20,7 +20,7 @@ export interface FinalizeOnboardingCompletionParams {
   accountType: string | undefined;
   isBasicFunctionalityEnabled: boolean;
   walletSetupAttributionProps: WalletSetupCompletedAttributionAnalyticsPayload;
-  dispatch: Dispatch<UnknownAction>;
+  dispatch: Dispatch<AnyAction>;
   discoverAccountsLogContext?: string;
 }
 

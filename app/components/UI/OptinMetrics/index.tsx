@@ -28,11 +28,10 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { useDispatch, useSelector } from 'react-redux';
-import {
-  clearOnboardingEvents,
-  setWalletHomeOnboardingStepsEligible,
-} from '../../../actions/onboarding';
+import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
+import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
@@ -66,9 +65,7 @@ import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/us
 import Logger from '../../../util/Logger';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
-import Engine from '../../../core/Engine/Engine';
-import { discoverAccounts } from '../../../multichain-accounts/discovery';
-import { shouldMarkWalletHomeOnboardingStepsEligible } from '../../../util/onboarding/walletHomeOnboardingStepsEligibility';
+import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -89,6 +86,12 @@ const OptinMetrics = () => {
   // Redux state selectors
   const events = useSelector((state: RootState) => state.onboarding.events);
   const reduxAccountType = useSelector(selectOnboardingAccountType);
+  const isBasicFunctionalityEnabled = useSelector(
+    selectBasicFunctionalityEnabled,
+  );
+  const walletSetupAttributionProps = useSelector(
+    selectWalletSetupCompletedAttributionAnalyticsProps,
+  );
 
   // State
   const [scrollViewContentHeight, setScrollViewContentHeight] = useState<
@@ -159,18 +162,14 @@ const OptinMetrics = () => {
     await markMetricsOptInUISeen();
 
     const successFlow = route?.params?.successFlow;
-    if (shouldMarkWalletHomeOnboardingStepsEligible(successFlow)) {
-      dispatch(
-        setWalletHomeOnboardingStepsEligible(true, {
-          skipInitialBalanceWait: true,
-        }),
-      );
-      discoverAccounts(
-        Engine.context.KeyringController.state.keyrings[0].metadata.id,
-      ).catch((error) => {
-        Logger.error(error as Error, 'OptinMetrics: discoverAccounts failed');
-      });
-    }
+    finalizeOnboardingCompletion({
+      successFlow,
+      accountType,
+      isBasicFunctionalityEnabled,
+      walletSetupAttributionProps,
+      dispatch,
+      discoverAccountsLogContext: 'OptinMetrics',
+    });
 
     const onContinue = route?.params?.onContinue as (() => void) | undefined;
     if (onContinue) {
@@ -180,7 +179,14 @@ const OptinMetrics = () => {
     navigation.reset({
       routes: [{ name: Routes.ONBOARDING.HOME_NAV }],
     });
-  }, [dispatch, navigation, route?.params]);
+  }, [
+    dispatch,
+    navigation,
+    route?.params,
+    accountType,
+    isBasicFunctionalityEnabled,
+    walletSetupAttributionProps,
+  ]);
 
   /**
    * Callback on press confirm
