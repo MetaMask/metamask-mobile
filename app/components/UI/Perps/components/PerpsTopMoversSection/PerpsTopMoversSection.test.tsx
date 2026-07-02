@@ -23,6 +23,9 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../hooks/usePerpsTopMovers', () => ({
   usePerpsTopMovers: jest.fn(),
+  isPerpsTopMoversSectionVisible: jest.requireActual(
+    '../../hooks/usePerpsTopMovers',
+  ).isPerpsTopMoversSectionVisible,
 }));
 
 jest.mock('../../hooks', () => ({
