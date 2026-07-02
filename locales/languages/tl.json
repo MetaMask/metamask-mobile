@@ -702,6 +702,7 @@
     "paste": "I-paste",
     "no_assets_available": "Walang asset na maipapadala",
     "clear": "I-clear",
+    "scan_qr_code": "Scan QR code",
     "to": "Para kay/sa",
     "enter_address_to_send_to": "Ilagay ang address na padadalhan",
     "accounts": "Mga Account",
@@ -1162,6 +1163,7 @@
   "perps": {
     "basic_functionality_disabled_title": "Hindi available ang mga perp",
     "title": "Perps",
+    "send_to_perps": "Send to Perps",
     "perps_trading": "Perps trading",
     "perp_account_balance": "Balanse ng Perp account",
     "manage_balance": "Pamahalaan ang balanse",
@@ -2039,7 +2041,8 @@
         "high": "Mataas",
         "low": "Mababa",
         "close": "Isara",
-        "volume": "Volume"
+        "volume": "Volume",
+        "change": "Change"
       }
     },
     "cancel": "Kanselahin",
@@ -2060,6 +2063,7 @@
       "commodities": "Mga Commodity",
       "stocks_and_commodities": "Tuklasin ang mga stock at commodity",
       "tabs": {
+        "all": "All",
         "crypto": "Crypto",
         "pre_ipo": "Pre-IPO",
         "forex": "Forex",
@@ -2218,10 +2222,25 @@
       "funding": {
         "date": "Petsa",
         "fee": "Bayarin",
+        "funding_fee": "Funding fee",
         "rate": "Singil"
       },
       "view_on_explorer": "Tingnan sa block explorer",
       "trade_again": "Mag-trade ulit",
+      "fund_again": "Fund again",
+      "try_again": "Try again",
+      "steps": {
+        "title_completed": "Steps ({{completed}} completed)",
+        "title_pending": "Steps ({{completed}} completed, {{pending}} pending)",
+        "title_failed": "Steps ({{completed}} completed, {{failed}} failed)",
+        "approve_funds": "Approve funds",
+        "bridge_funds": "Bridge funds",
+        "receive_usdc": "Receive USDC on Arbitrum",
+        "add_funds": "Add funds",
+        "initiate_withdrawal": "Initiate withdrawal",
+        "process_withdrawal": "Process withdrawal",
+        "receive_funds": "Receive funds"
+      },
       "activity": {
         "deposit_title": "Magdeposito",
         "withdrawal_title": "Pag-withdraw",
@@ -2306,7 +2325,8 @@
       "referral_code_text": "Gamitin ang referral code ko para makakuha ng dagdag na reward."
     },
     "market_details": {
-      "category_search": "Mag-browse ng mga nauugnay na market"
+      "category_search": "Mag-browse ng mga nauugnay na market",
+      "fullscreen_chart": "Fullscreen chart"
     }
   },
   "market_insights": {
@@ -2342,11 +2362,15 @@
   },
   "predict": {
     "title": "Mga Predisksyon ng MetaMask",
+    "send_to_predictions": "Send to Predictions",
     "select_predict_account": "Pumili ng predict account",
     "search_account": "Pumili ng isang account",
     "home": {
       "live_now_title": "Live ngayon",
-      "categories_placeholder": "Mga Kategorya"
+      "categories_title": "Categories",
+      "popular_today_placeholder": "Popular today",
+      "trending_title": "Trending",
+      "trending_unable_to_load": "Unable to load markets, please try again"
     },
     "homepage_discovery": {
       "btc_title": "Presyo ng BTC: {{price}}",
@@ -2396,6 +2420,14 @@
         "group_j": "Grupo J",
         "group_k": "Grupo K",
         "group_l": "Grupo L"
+      },
+      "market_info": {
+        "regulation_time_winner": {
+          "title": "Regulation time winner"
+        },
+        "team_to_advance": {
+          "title": "Team to advance"
+        }
       }
     },
     "prediction_markets": "Mga market ng prediksyon",
@@ -2506,7 +2538,10 @@
       "soccer_anytime_goalscorer": "Mga Goalscorer",
       "soccer_exact_score": "Eksaktong Score",
       "soccer_halftime_result": "Resulta sa Halftime",
+      "soccer_team_to_advance": "Team to Advance",
       "soccer_first_to_score": "First Team to Score",
+      "soccer_extra_time": "Extra Time?",
+      "soccer_penalty_shootout": "Penalty Shootout?",
       "total_corners": "Mga Corner",
       "tennis_set_totals": "Kabuuang Set",
       "tennis_set_handicap": "Itakda ang Handicap",
@@ -2552,7 +2587,8 @@
       "sports": "Palakasan",
       "crypto": "Crypto",
       "politics": "Pulitika",
-      "hot": "Hot"
+      "hot": "Hot",
+      "wimbledon": "Wimbledon"
     },
     "feed": {
       "live": "Live",
@@ -2648,9 +2684,21 @@
       "price_per_share": "Presyo kada share",
       "price_impact": "Epekto ng presyo",
       "net_pnl": "Net P&L",
-      "total_net_pnl": "Kabuuang net P&L",
+      "total_net_pnl": "Total Net P&L",
       "market_net_pnl": "Market na net P&L",
       "activity_details": "Mga detalye ng aktibidad",
+      "you_predicted": "You predicted",
+      "view_on_polymarket": "View on Polymarket",
+      "place_another_prediction": "Place another prediction",
+      "fund_again": "Fund again",
+      "try_again": "Try again",
+      "steps": {
+        "title_completed": "Steps ({{completed}} completed)",
+        "title_pending": "Steps ({{completed}} completed, {{pending}} pending)",
+        "title_failed": "Steps ({{completed}} completed, {{failed}} failed)",
+        "bridge_funds": "Bridge from ETH to USDC.e",
+        "add_funds": "Add funds"
+      },
       "today": "Ngayong araw",
       "yesterday": "Kahapon"
     },
@@ -2783,6 +2831,12 @@
       "make_your_prediction": "Isagawa ang iyong prediksyon",
       "volume_display": "${{volume}} Vol",
       "read_terms": "Basahin ang buong termino at kondisyon ng kontrata"
+    },
+    "reg_time_info": {
+      "tag": "Reg time",
+      "accessibility_label": "Regulation time market information",
+      "title": "Regulation time",
+      "description": "This market refers to the outcome during the 90 minutes of regular play plus stoppage time. It excludes extra time and penalties."
     },
     "sports": {
       "halftime": "Halftime",
@@ -4005,7 +4059,11 @@
       "enter_code_on_extension": "Ilagay ang code sa extension",
       "enter_code_on_extension_desc": "Para sa seguridad, ilagay ang code ng pag-verify sa ibaba sa iyong extension ng MetaMask.",
       "done": "Tapos na",
-      "device_added": "Naidagdag ang device"
+      "waiting_for_extension": "Waiting for extension...",
+      "waiting_for_extension_description": "Finish choosing accounts on your computer to continue.",
+      "extension_cancelled_title": "Import cancelled",
+      "extension_cancelled_description": "The account import was cancelled/failed. Try again.",
+      "extension_cancelled_button": "Try again"
     }
   },
   "aes_crypto_test_form": {
@@ -4166,7 +4224,11 @@
     "set_price_alert": "Magtakda ng alerto sa presyo",
     "update_price_alert": "I-update ang alerto sa presyo",
     "save_success": "Matagumpay na na-save ang alerto sa presyo para sa {{ticker}}.",
+    "save_error": "Failed to save price alert. Please try again.",
     "delete_success": "Tanggalin ang alerto sa presyo.",
+    "delete_error": "Failed to delete price alert. Please try again.",
+    "toggle_error": "Failed to update price alert. Please try again.",
+    "fetch_error": "Failed to load price alerts. Please try again.",
     "duplicate_threshold": "Mayroon nang alerto sa presyong ito.",
     "manage_title": "Mga alerto sa presyo",
     "add_alert": "Magdagdag ng alerto",
@@ -4572,7 +4634,7 @@
     "submitted": "Naisumite",
     "queued": "Nakapila",
     "failed": "Nabigo",
-    "cancelled": "Nakansela",
+    "canceled": "Canceled",
     "signed": "Nakabinbin",
     "unconfirmed": "Nakabinbin",
     "tokenContractAddressWarning_1": "Ang address na ito ay isang ",
@@ -4795,6 +4857,8 @@
     "activity_market_short": "Market short",
     "activity_stop_market_close_short": "Stop market—close short",
     "activity_market_close_short": "Market—close short",
+    "activity_limit_short": "Limit short",
+    "activity_limit_close_short": "Limit—close short",
     "claim": "I-claim",
     "sent_ether": "Naipadala ang ETH",
     "self_sent_ether": "Nagpadala ka sa sarili mo ng ETH",
@@ -5910,6 +5974,7 @@
     "empty_sell_orders_list": "Wala kang anumang mga order na magbenta",
     "purchased_currency": " Nakabili ng {{currency}}",
     "sold_currency": "Nagbenta ng {{currency}}",
+    "date": "Date",
     "order_status_pending": "Nakabinbin",
     "order_status_processing": "Pinoproseso",
     "order_status_completed": "Nakumpleto",
@@ -7061,8 +7126,10 @@
     "balance_no_account": "Hindi nahanap ang Money account",
     "onboarding": {
       "step_1": {
-        "title": "Pondohan ang account mo",
-        "description": "Maglagay ng ilang pondo. Ang Money account mo na ang bahala sa mga susunod na hakbang.",
+        "title": "Earn up to {{apy}}% APY",
+        "title_no_apy": "Fund your Money account",
+        "description": "Fund your Money account and watch your balance grow with up to {{apy}}% APY (variable).",
+        "description_no_apy": "Fund your Money account and watch your balance grow.",
         "cta": "Magdagdag ng pondo"
       },
       "step_2": {
@@ -7163,12 +7230,19 @@
       "link_card_sheet_description_suffix": " (variable).",
       "link_card_sheet_description_no_apy": "I-link ang card mo para magastos mo ang balanse sa Money account mo at makakuha ng ibabalik na mUSD sa mga pagbili.",
       "link_card_sheet_cta": "I-link ang card",
+      "unlink_card_sheet_title_no_funding_source": "Unlink Money account?",
+      "unlink_card_sheet_title_with_funding_source": "Are you sure?",
+      "unlink_card_sheet_description_no_funding_source": "You'll stop earning on purchases. Future card spend will be declined until you set a new funding source. Reconnect your Money account anytime.",
+      "unlink_card_sheet_description_with_funding_source": "You'll stop earning on purchases. Future card spend will be funded by {{fundingSource}}. Reconnect your Money account anytime.",
+      "unlink_card_sheet_another_money_account": "another Money account",
+      "unlink_card_sheet_keep_linked": "Keep linked",
+      "unlink_card_sheet_unlink_account": "Unlink account",
       "manage_card": "Pamahalaan",
       "avail_balance": "Avail. na balanse",
       "verification_pending": "Sinusuri ang pag-verify ng pagkakakilanlan mo. Karaniwan itong tumatagal nang wala pang 12 oras."
     },
     "what_you_get": {
-      "title": "Ano ang makukuha mo",
+      "title": "Money account benefits",
       "benefit_auto_earn": "Awtomatikong kumita ng hanggang",
       "benefit_auto_earn_variable": "(variable)",
       "benefit_dollar_backed": "Itabi nang ligtas ang pera mo sa mUSD, isang stablecoin na sinusuportahan ng dolyar nang 1:1",
@@ -7195,7 +7269,7 @@
     "more_sheet": {
       "title": "Higit pa",
       "how_it_works": "Paano ito gumagana",
-      "what_you_get": "Ano ang makukuha mo",
+      "what_you_get": "Money account benefits",
       "contact_support": "Kontakin ang suporta"
     },
     "transfer_sheet": {
@@ -7264,11 +7338,12 @@
       "pending": "Nakabinbin",
       "filter_all": "Lahat",
       "filter_deposits": "Mga deposito",
-      "filter_sends": "Ipinapadala"
+      "filter_sends": "Ipinapadala",
+      "filter_purchases": "Purchases"
     },
     "condensed_cards": {
       "how_it_works_title": "Paano ito gumagana",
-      "how_it_works_subtitle": "Alamin kung paano lalago ang pera mo",
+      "how_it_works_subtitle": "See how your money works for you",
       "musd_title": "MetaMask USD",
       "musd_subtitle": "Matuto pa tungkol sa mUSD",
       "what_you_get_title": "Ano ang makukuha mo",
@@ -7282,6 +7357,7 @@
       "cashback": "ibinabalik na mUSD",
       "card": "Card",
       "purchase": "Bumili",
+      "refund": "Refund",
       "musd_back": "ibinabalik na mUSD",
       "converted": "Na-convert",
       "depositing": "Idinideposito",
@@ -7299,6 +7375,7 @@
       "cashback_title": "ibinabalik na mUSD",
       "you_spent": "Gumastos ka ng",
       "you_earned": "Kumita ka",
+      "you_were_refunded": "You were refunded",
       "completed": "Nakumpleto",
       "paid_to": "Ibinayad sa",
       "received_from": "Natanggap mula sa/kay",
@@ -7325,31 +7402,45 @@
       "description_2": "Ang balanse mo sa Money ang balanseng puwede mong gastusin. I-link ang MetaMask Card mo para magamit ito sa 150M+ merchant sa buong mundo. Patuloy na kikita ang pera mo hanggang sa gastusin mo ito.",
       "description_3": "Pinapagana ng Monad ang Money account.",
       "faq_title": "Mga FAQ",
-      "faq_q1": "Ano ang MetaMask Money Account?",
-      "faq_a1": "Ang MetaMask Money Account ay isang self-custodial account na nakapaloob sa MetaMask na kumikita ng nagbabagong APY na hanggang {{percentage}}% sa nakadepositong pondo—walang lockup, walang penalty sa pag-withdraw, at walang babayaran sa account. Kapag nagdeposito ka ng sinusuportahang stablecoin ({{stablecoins}}) o ng mga aToken sa Money Account, nako-convert ito na mUSD, stablecoin ng MetaMask na sinusuportahan ng dolyar, nang walang bayarin sa pag-convert. Maaari ka ring magdeposito ng kahit anong token sa Money Account nang may bayarin sa pag-convert. Mananatiling available ang balanse mo sa Money Account (mUSD) para i-trade, ipadala, at kumita—o gastusin anumang oras gamit ang MetaMask Card, sa lahat ng 150+ milyong Mastercard merchant sa buong mundo.",
-      "faq_q2": "Ligtas ba ang MetaMask Money Account?",
-      "faq_a2": "Ang MetaMask ay isang self-custodial na wallet—tanging ikaw lang ang may kontrol sa mga pribadong key at pondo mo. Hindi maaaring i-access, i-freeze, o galawin ng MetaMask ang balanse mo. Ang mUSD mismo ay sinusuportahan 1:1 ng dolyar ng US at ng mga short-term US Treasury bill na hawak sa ilalim ng kinokontrol na pag-iingat ng Bridge (isang Stripe na kumpanya). Gayunpaman, gaya ng lahat ng produktong batay sa DeFi, may mga panganib ang Money Account, kabilang ang mga pagpalya ng smart-contract, pagsasamantala sa protocol, kakulangan ng liquidity, pagpalya ng third-party at mga legal o regulatoryong paghihigpit. Nagbabago ang APY at hindi ito garantisado, at may panganib ng pagkalugi. Ang balanse ng Money (mUSD) ay hindi naka-insure sa FDIC o anumang ahensiya ng gobyerno.",
-      "faq_q3": "Sino ang kumokontrol sa MetaMask Money Account ko?",
-      "faq_a3": "Ikaw ang may ganap na kontrol sa Money Account mo. Ang MetaMask ay isang self-custodial na wallet, ibig sabihin tanging ang mga private key ng may-ari ng account ang may kontrol sa mUSD na inilagay sa Money Account. Hindi maaaring i-access, i-freeze, o galawin ng MetaMask ang anumang balanse sa Money Account. Ito ang pangunahing pagkakaiba ng mga tradisyonal na bank account at mga custodial crypto platform, kung saan hawak ng third party ang pondo sa ngalan ng user.",
-      "faq_q4": "Ano ang mga bayarin sa MetaMask Money Account?",
-      "faq_a4": "Libreng magbukas ng MetaMask Money Account. Ang palitan ng Stablecoin sa mUSD ay pantay na 1:1 na walang mga bayarin sa pag-convert. Ang APY na ipinapakita sa Money Account ay ang net rate na kinita mo. Ang lahat ng bayad sa produkto—na ipinamahagi sa MetaMask, Veda, at Steakhouse—ay naibawas na. Para sa mga detalye ng bayad sa transaksyon sa MetaMask Card, bayad sa pag-withdraw sa ATM, at gastos sa fiat offramp, tingnan ang buong detalye ng bayarin sa loob ng MetaMask.",
-      "faq_q5": "Magkano ang maaari kong kitain sa MetaMask Money Account?",
-      "faq_a5": "Ang MetaMask Money Account ay kumikita ng hanggang {{percentage}}% APY. Nagbabago at tumataas-baba ang rate ayon sa mga kondisyon ng market. Laging makikita ang kasalukuyang rate sa loob ng Money Account.",
+      "faq_q1": "What is a MetaMask Money account?",
+      "faq_a1": "An account that earns up to {{percentage}}% variable APY. You deposit funds, which are held in the account as mUSD, and earn up to {{percentage}}% APY. mUSD is MetaMask's dollar-backed stablecoin. You can use or withdraw your funds anytime with no penalties. You can spend your funds via MetaMask Card at 150+ million Mastercard merchants worldwide.",
+      "faq_q2": "Is MetaMask Money account safe?",
+      "faq_a2": "Yes, but like all DeFi products, it carries risk. It's a self-custodial wallet, meaning you have full control over your account with your Private Keys.\n\nRisks include smart-contract failures, protocol exploits, liquidity shortages, third-party failures, and legal or regulatory restrictions. The Money account isn't insured by the FDIC or any government agency. There is a risk of loss.",
+      "faq_q3": "Who controls my MetaMask Money account?",
+      "faq_a3": "You! MetaMask is a self-custodial wallet, meaning only the account holder's Private Keys control it. MetaMask can't access, freeze, or move your funds. This is what distinguishes us from traditional bank accounts and custodial crypto platforms—there's no third party holding your funds.",
+      "faq_q4": "What are MetaMask Money account fees?",
+      "faq_a4": "There's no fee to open a Money account and no fee to deposit stablecoins. You will get charged fees when depositing non-stablecoin tokens. There are also fees associated with MetaMask Card transactions, ATM withdrawals, and local currency offramp costs. ",
+      "faq_a4_link": "See the full Card fee breakdown here.",
+      "faq_q5": "How much can I earn with a MetaMask Money account?",
+      "faq_a5": "Up to {{percentage}}% APY. The rate is variable and fluctuates with market conditions. The current rate is always visible inside the Money account.",
       "faq_q6": "Saan nanggagaling ang yield?",
-      "faq_a6": "Kapag naideposito ang mga pondo sa Money Account, ang mga asset na ito ay napupunta sa third-party smart contract vault. Nakikipag-ugnayan ang vault sa mga itinatag na protocol ng DeFi—halimbawa, mga merkado ng pagpapautang gaya ng Aave at Morpho—kung saan kumikita sila ng tubo mula sa totoong aktibidad na pang-ekonomiya, ang pangunahing interes ay binabayaran ng mga nanghihiram. Ang anumang magiging tubo, pagkatapos ng naaangkop na gastos sa protocol at bayad sa produkto, ay makikita bilang APY. Ang kinikita ay hindi interes na binabayaran ng MetaMask o ng nag-isyu ng mUSD. Ang mga ito ay tinubo onchain na nilikha ng mga posisyon ng vault sa mga third-party protocol nd DeFi.\n\nAng rate na ipinapakita ay tinantyang Annual Percentage Yield (APY) batay sa mga kasalukuyang kondisyon ng merkado. Nag-iiba-iba ang APY at hindi ito garantisado. Pinapangasiwaan ng Veda ang DeFi vault at sinusubaybayan ng Steakhouse Financial ang panganib.",
-      "faq_q7": "Aling mga token ang maaari kong ideposito sa Money Account?",
-      "faq_a7": "Maaari mong ideposito ang mga sumusunod na stablecoin at aToken sa Money Account mo nang walang bayarin sa pag-convert:\n\n{{tokenBullets}}\n\nAng lahat ng iba pang EVM token ay maaari ring ideposito sa Money Account, ngunit may mga karaniwang bayarin na malalapat. Maaari mo ring pondohan ang iyong Money Account gamit ang debit card, credit card, o Apple Pay.\n\nPaalala: Mayroong inisyal na max na deposito na $100,000 kada token para matiyak ang liquidity.",
-      "faq_q8": "Maaari ba akong mag-withdraw mula sa MetaMask Money Account anumang oras?",
-      "faq_a8": "Oo. Ang iyong mUSD ay hindi kailanman ila-lock. Maaari mong i-trade, ipadala, gastusin, o i-withdraw ang buong balanse mo anumang oras nang walang mga abiso sa panahon, walang mga penalty, at walang mga bayarin sa pag-withdraw mula sa MetaMask. Ipoproseso kaagad ang mga withdrawal, sasailalim sa mga oras ng pamantayang kumpirmasyon ng network sa nauugnay na blockchain. Kung hirap sa liquidity, maaaring magkaroon ng pansamantalang mga pagkaantala.",
-      "faq_q9": "Kailangan ko bang kumpletuhin ang KYC para magamit ang MetaMask Money Account?",
-      "faq_a9": "Hindi kinakailangan ng pag-verify sa pagkakakilanlan ang pagbubukas ng Money Account at paglalagay ng mUSD. Gayunpaman, ang mga tiyak na feature ng MetaMask—kabilang ang MetaMask Card at Ramps—ay nangangailangan ng pag-verify sa KYC (Know Your Customer) gaya ng hinihingi ng mga naaangkop na regulasyon. Ang mga pagsisiyasat na ito ay isinasagawa ng mga the third-party provider na nagpapatakbo sa mga kinokontrol na serbisyong ito, hindi ng MetaMask. Kung kinakailangan, gagabayan ka sa proseso sa loob ng app habang nagsa-sign up.",
-      "faq_q10": "Saang mga bansa available ang MetaMask Money Account?",
-      "faq_a10": "Available ang MetaMask Money Account sa buong mundo maliban sa mga sumusunod na rehiyon: sa UK, at mga bansa na nasa listahan ng walang pahintulot ng USA."
+      "faq_a6": "When you deposit funds, they're put in established DeFi protocols, like Aave and Morpho, where they earn returns from real economic activity. These returns are then delivered to you in the form of APY.\n\nA third-party service provider called Steakhouse Financial monitors how funds are allocated in the protocols. Veda, a third-party infrastructure provider, deploys and maintains the vault smart contracts that hold your funds.\n\nEarnings are not interest paid by MetaMask or by the issuer of mUSD. They are the onchain returns generated by positions in third-party DeFi protocols.",
+      "faq_q7": "What tokens can I deposit into the Money account?",
+      "faq_a7": "You can deposit the following stablecoins and aTokens into your Money account with no conversion fees:\n\n{{tokenBullets}}\n\nAll other EVM tokens can be deposited into the Money account, but standard fees may apply. You can also fund your Money account using a debit card, credit card, bank account, PayPal, Apple Pay, or Google Pay.\n\nNote: There's an initial max deposit of $100,000 per token to ensure liquidity.",
+      "faq_q8": "Can I withdraw from the MetaMask Money account anytime?",
+      "faq_a8": "Yes. You can trade, send, spend, or withdraw your full balance at any time with no notice periods, no penalties, and no withdrawal fees from MetaMask. If liquidity is tight, there may be temporary delays.",
+      "faq_q9": "Do I need to complete identity verification to use MetaMask Money account?",
+      "faq_a9": "No, opening a Money account doesn't require identity verification. However, certain features, including Card and Ramps, do require verification. Checks are carried out by third-party providers that operate regulated services, not by MetaMask. If needed, you will be guided through the process inside the app during sign-up.",
+      "faq_q10": "Which countries is MetaMask Money account available in?",
+      "faq_a10": "Most places! We currently aren't available in the UK and countries on the USA sanctions list.",
+      "disclosures_title": "Risk and Disclosures",
+      "disclosures_body": "Money account is not a bank account, savings account, or insured deposit product. APY is variable and not guaranteed. Money account involves smart contract, protocol, liquidity, and other risks, and you may lose some or all of your funds. Subject to regional restrictions. Terms apply."
     },
     "geo_block": {
       "title": "Hindi avaiable ang money account",
       "description": "Hindi available ang Money account sa iyong lokasyon dahil sa mga lokal na paghihigpit o pagbabawal.",
       "button": "Nakuha ko"
+    },
+    "deeplink_modal": {
+      "button": "Got it",
+      "money_account_disabled": {
+        "title": "Money account is temporarily unavailable",
+        "description": "We're working on it. Money Account will be back up shortly — check back soon."
+      },
+      "excluded_from_gradual_rollout": {
+        "title": "Money Account is on its way",
+        "description": "We're rolling out Money Account gradually to ensure everything works smoothly. Check back soon."
+      }
     }
   },
   "stake": {
@@ -7640,6 +7731,7 @@
       "network": "Network",
       "primary_type": "Pangunahing uri",
       "request_from": "Kahilingan mula sa/kay",
+      "external_app": "External app",
       "signing_in_with": "Nagsa-sign in gamit ang",
       "spender": "Gumagastos",
       "now": "Ngayon",
@@ -7676,7 +7768,8 @@
       "perps_withdraw": "Mag-withdraw",
       "predict_deposit": "Magdagdag ng mga pondo para sa Prediksyon",
       "predict_withdraw": "Mag-withdraw",
-      "money_account_add_money": "Magdagdag ng pondo"
+      "money_account_add_money": "Magdagdag ng pondo",
+      "money_account_send": "Send"
     },
     "sub_title": {
       "permit": "Kailangan ng site na ito ng pahintulot para gastusin ang mga token mo.",
@@ -7714,7 +7807,7 @@
         "transaction_fee": "Kasama sa mga bayarin sa palitan ang mga gastos sa network at maaaring may kasamang bayarin sa provider."
       },
       "title": {
-        "transaction_fee": "Mga Bayarin"
+        "transaction_fee": "Transaction fees"
       },
       "network_fee": "Nagbabago ang bayad sa network depende kung gaano karami ang gumagamit at kung gaano kahirap ang transaksyon mo."
     },
@@ -7816,6 +7909,7 @@
     "edit_amount_done": "Magpatuloy",
     "deposit_edit_amount_done": "Magdagdag ng pondo",
     "deposit_edit_amount_predict_withdraw": "Mag-withdraw",
+    "deposit_edit_amount_money_account_send": "Send",
     "deposit_edit_amount_musd_conversion": "I-convert sa mUSD",
     "preparing_order": "Inihahanda ang order"
   },
@@ -8637,6 +8731,7 @@
     "card_home": {
       "title": "Card",
       "authentication_error": "Nag-expire ang sesyon mo. Mag-log in muli.",
+      "onboarding_token_revoked": "We couldn't continue your Card session. Please log in again.",
       "available_balance": "Available na balanse",
       "error_title": "Hindi makuha ang data",
       "error_description": "Mukhang may isyu na humahadlang sa iyong tingnan ang nilalaman ng page na ito. Suriin ang iyong koneksyon o subukang i-refresh ang page.",
@@ -8723,6 +8818,8 @@
         "manage_spending_limit": "Pamahalaan ang limit",
         "manage_spending_limit_description_restricted": "Naka-on ang limitadong paggastos",
         "manage_spending_limit_description_full": "Naka-on ang buong pag-access",
+        "unlink_money_account": "Unlink Money account",
+        "unlink_money_account_description": "Change your Card funding source",
         "travel_title": "MetaMask Travel",
         "travel_description": "Mag-book ng mga hotel na may hanggang 70% diskuwento",
         "card_tos_title": "Mga tuntunin at kundisyon",
@@ -9539,8 +9636,8 @@
     },
     "earn_rewards": {
       "title": "Kumita ng mga reward",
-      "musd_title": "Hanggang {{percentage}}% bonus sa mUSD",
-      "musd_subtitle": "Narito ang mga money account",
+      "musd_title": "Up to {{percentage}}% bonus on mUSD",
+      "musd_subtitle": "Money accounts are here",
       "card_title": "Hanggang sa 3% ang maibabalik sa ginastos",
       "card_subtitle": "Kunin ang iyong MetaMask Card ngayon",
       "card_subtitle_cardholder": "I-access ang mga benepisyo ng iyong MetaMask Card"
@@ -9667,18 +9764,29 @@
     "status": "Katayuan",
     "date": "Petsa",
     "account": "Account",
+    "address": "Address",
     "from": "Mula sa/kay",
     "to": "Sa/Kay",
     "network": "Network",
     "transaction_id": "ID ng Transaksyon",
     "network_fee": "Bayad sa network",
+    "bandwidth_fee": "Bandwidth",
+    "energy_fee": "Energy",
     "bridge_fee": "Bayad sa bridge",
     "transaction_fee": "Bayarin sa transaksyon",
+    "unknown_token": "Unknown",
     "total_amount": "Kabuuang halaga",
     "you_sent": "Nagpadala ka",
     "you_received": "Nakatanggap ka ng",
     "view_on_block_explorer": "Tingnan sa block explorer",
-    "do_it_again": "Do it again",
+    "swap_again": "Swap again",
+    "bridge_again": "Bridge again",
+    "convert_again": "Convert again",
+    "wrap_again": "Wrap again",
+    "unwrap_again": "Unwrap again",
+    "transaction_pending": "Transaction pending",
+    "likely_to_confirm_in": "Likely to confirm in",
+    "confirm_time_estimate": "< 30 sec",
     "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
