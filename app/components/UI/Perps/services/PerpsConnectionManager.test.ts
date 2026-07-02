@@ -76,6 +76,7 @@ const mockStreamManagerInstance = {
   topOfBook: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   candles: { clearCache: jest.fn(), prewarm: jest.fn(() => jest.fn()) },
   resetDiskCacheThrottles: jest.fn(),
+  clearAllChannels: jest.fn(),
 };
 
 jest.mock('../providers/PerpsStreamManager', () => ({
@@ -1494,6 +1495,23 @@ describe('PerpsConnectionManager', () => {
       );
     });
 
+    it('re-registers stream subscriptions when the first ping succeeds', async () => {
+      // Establish an initial connection
+      await PerpsConnectionManager.connect();
+      mockStreamManagerInstance.clearAllChannels.mockClear();
+
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_MOUNT,
+        suppressError: true,
+      });
+
+      // A healthy ping alone doesn't guarantee the server kept the topic
+      // subscriptions alive — force a resubscribe so candles/prices resume.
+      expect(mockStreamManagerInstance.clearAllChannels).toHaveBeenCalledTimes(
+        1,
+      );
+    });
+
     it('retries ping after delay and skips reconnect when retry succeeds', async () => {
       // Establish an initial connection
       await PerpsConnectionManager.connect();
@@ -1520,6 +1538,29 @@ describe('PerpsConnectionManager', () => {
       );
     });
 
+    it('re-registers stream subscriptions when the retry ping succeeds', async () => {
+      // Establish an initial connection
+      await PerpsConnectionManager.connect();
+
+      const failPing = jest
+        .fn()
+        .mockRejectedValueOnce(new Error('ping timeout'));
+      const succeedPing = jest.fn().mockResolvedValue(undefined);
+      (Engine.context.PerpsController.getActiveProvider as jest.Mock)
+        .mockReturnValueOnce({ ping: failPing })
+        .mockReturnValueOnce({ ping: succeedPing });
+
+      mockStreamManagerInstance.clearAllChannels.mockClear();
+
+      await PerpsConnectionManager.resumeFromForeground({
+        source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
+      });
+
+      expect(mockStreamManagerInstance.clearAllChannels).toHaveBeenCalledTimes(
+        1,
+      );
+    });
+
     it('soft-reconnects with preserveCaches when both pings fail', async () => {
       // Establish an initial connection
       await PerpsConnectionManager.connect();
@@ -1541,6 +1582,7 @@ describe('PerpsConnectionManager', () => {
       });
       (Engine.context.PerpsController.init as jest.Mock).mockClear();
       (Engine.context.PerpsController.disconnect as jest.Mock).mockClear();
+      mockStreamManagerInstance.clearAllChannels.mockClear();
 
       await PerpsConnectionManager.resumeFromForeground({
         source: PERPS_CONNECTION_SOURCE.WALLET_ROOT_FOREGROUND,
@@ -1548,6 +1590,10 @@ describe('PerpsConnectionManager', () => {
 
       // Should have reconnected
       expect(Engine.context.PerpsController.init).toHaveBeenCalled();
+      // The soft-reconnect path (ensureConnected) already re-establishes every
+      // subscription via connect() — clearAllChannels is only for the
+      // healthy-ping short-circuit path and must not be double-invoked here.
+      expect(mockStreamManagerInstance.clearAllChannels).not.toHaveBeenCalled();
       // Caches must NOT be cleared — preserveCaches=true prevents skeleton flash
       expect(
         mockStreamManagerInstance.positions.clearCache,
