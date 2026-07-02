@@ -72,7 +72,7 @@ jest.mock('@metamask/design-system-react-native', () => {
       testID?: string;
     }) => <Text testID={testID}>{children}</Text>,
     Icon: ({ testID }: { testID?: string }) => <View testID={testID} />,
-    TextVariant: { BodyMdMedium: 'BodyMdMedium' },
+    TextVariant: { BodyMd: 'BodyMd' },
     TextColor: { TextAlternative: 'TextAlternative' },
     IconName: { Arrow2Up: 'Arrow2Up', Arrow2Down: 'Arrow2Down' },
     IconSize: { Md: 'Md' },

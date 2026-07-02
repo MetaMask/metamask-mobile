@@ -113,7 +113,7 @@ const PerpsMarketSortFieldBottomSheet: React.FC<
               isSelected ? (
                 <Box twClassName="flex-row items-center gap-2">
                   <Text
-                    variant={TextVariant.BodyMdMedium}
+                    variant={TextVariant.BodyMd}
                     color={TextColor.TextAlternative}
                     testID={testID ? `${testID}-direction-text` : undefined}
                   >
