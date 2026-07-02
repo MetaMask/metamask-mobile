@@ -901,6 +901,29 @@ describe('rewriteReport', () => {
     mockStore.getState.mockReturnValue({} as unknown as RootState);
   });
 
+  it('groups disk-full persist errors during rewriteReport', () => {
+    const report = {
+      exception: {
+        values: [
+          {
+            value:
+              "File '/var/mobile/.../persistStore/persist-root' could not be written; out of space",
+          },
+        ],
+      },
+      contexts: {},
+    };
+
+    const result = rewriteReport(report);
+
+    expect(result.fingerprint).toEqual(['disk-space-full', 'persist:root']);
+    expect(result.exception?.values?.[0]?.value).toBe(
+      'Device storage full: failed to persist persist:root',
+    );
+    expect(result.tags?.error_category).toBe('disk_full');
+    expect(result.tags?.persist_key).toBe('persist:root');
+  });
+
   it('should remove SES from stack trace', () => {
     const report = {
       exception: {
