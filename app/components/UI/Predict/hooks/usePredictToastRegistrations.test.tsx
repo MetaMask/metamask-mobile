@@ -2,6 +2,8 @@ import { TEST_HEX_COLORS as mockTestHexColors } from '../testUtils/mockColors';
 import { act, renderHook } from '@testing-library/react-hooks';
 
 import Routes from '../../../../constants/navigation/Routes';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): shared activity type-filter; route-isolation backlog
+import { ActivityTypeFilter } from '../../../Views/ActivityScreen/types';
 
 import { usePredictToastRegistrations } from './usePredictToastRegistrations';
 import { selectTransactionMetadataById } from '../../../../selectors/transactionController';
@@ -181,9 +183,11 @@ describe('usePredictToastRegistrations', () => {
 
       const onTrack = showToast.mock.calls[0][0].closeButtonOptions.onPress;
       onTrack();
-      jest.advanceTimersByTime(100);
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
+        screen: Routes.TRANSACTIONS_VIEW,
+        params: { initialTypeFilter: ActivityTypeFilter.Predictions },
+      });
       expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTION_DETAILS, {
         transactionId: 'tx-1',
       });
