@@ -29,6 +29,10 @@ jest.mock('../../../UI/ActivityListItemRow/useNftActivityImage', () => ({
   useNftActivityImage: () => undefined,
 }));
 
+jest.mock('../../../UI/Bridge/hooks/useTokensWithBalance', () => ({
+  useTokensWithBalance: () => [],
+}));
+
 jest.mock(
   '../../../../selectors/multichainAccounts/accountTreeController',
   () => {
