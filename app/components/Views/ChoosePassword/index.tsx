@@ -425,70 +425,7 @@ const ChoosePassword = () => {
       dispatch(passwordSetAction());
       dispatch(setLockTimeAction(AppConstants.DEFAULT_LOCK_TIMEOUT));
 
-      if (authType.oauth2Login) {
-        endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
-        endTrace({ name: TraceName.OnboardingJourneyOverall });
-
-        dispatch(setDataCollectionForMarketing(marketingOptInChecked));
-        OAuthLoginService.updateMarketingOptInStatus(
-          marketingOptInChecked,
-        ).catch((err) => {
-          Logger.error(err);
-        });
-
-        const oauthProvider = route.params?.provider;
-        const socialAccountType =
-          oauthProvider !== undefined
-            ? getSocialAccountType(oauthProvider, false)
-            : undefined;
-
-        try {
-          metrics.trackEvent(
-            metrics
-              .createEventBuilder(
-                MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
-              )
-              .addProperties({
-                [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
-                  marketingOptInChecked,
-                ),
-                is_metrics_opted_in: true,
-                location: 'onboarding_choosePassword',
-                updated_after_onboarding: false,
-                ...(socialAccountType && { account_type: socialAccountType }),
-              })
-              .build(),
-          );
-
-          await metrics.identify({
-            ...generateDeviceAnalyticsMetaData(),
-            ...generateUserSettingsAnalyticsMetaData(),
-          });
-        } catch (analyticsError) {
-          Logger.error(analyticsError as Error);
-        }
-
-        // Check if interest questionnaire should be shown
-        let shouldShowInterestQuestionnaire = false;
-        try {
-          shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
-        } catch (error) {
-          Logger.error(
-            error instanceof Error ? error : new Error(String(error)),
-            'OptinMetrics: interest questionnaire eligibility check failed',
-          );
-        }
-
-        if (shouldShowInterestQuestionnaire) {
-          const accountType = reduxAccountType;
-          navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
-            onComplete: onContinueNavigation,
-            ...(accountType && { accountType }),
-          });
-        } else {
-          onContinueNavigation();
-        }
-      } else {
+      if (!authType.oauth2Login) {
         const seedPhrase = await tryExportSeedPhrase(password);
         (
           navigation as unknown as {
@@ -499,6 +436,68 @@ const ChoosePassword = () => {
           backupFlow: false,
           settingsBackup: false,
         });
+        return;
+      }
+
+      endTrace({ name: TraceName.OnboardingNewSocialCreateWallet });
+      endTrace({ name: TraceName.OnboardingJourneyOverall });
+
+      dispatch(setDataCollectionForMarketing(marketingOptInChecked));
+      OAuthLoginService.updateMarketingOptInStatus(marketingOptInChecked).catch(
+        (err) => {
+          Logger.error(err);
+        },
+      );
+
+      const oauthProvider = route.params?.provider;
+      const socialAccountType =
+        oauthProvider !== undefined
+          ? getSocialAccountType(oauthProvider, false)
+          : undefined;
+
+      try {
+        metrics.trackEvent(
+          metrics
+            .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+            .addProperties({
+              [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(
+                marketingOptInChecked,
+              ),
+              is_metrics_opted_in: true,
+              location: 'onboarding_choosePassword',
+              updated_after_onboarding: false,
+              ...(socialAccountType && { account_type: socialAccountType }),
+            })
+            .build(),
+        );
+
+        await metrics.identify({
+          ...generateDeviceAnalyticsMetaData(),
+          ...generateUserSettingsAnalyticsMetaData(),
+        });
+      } catch (analyticsError) {
+        Logger.error(analyticsError as Error);
+      }
+
+      // Check if interest questionnaire should be shown
+      let shouldShowInterestQuestionnaire = false;
+      try {
+        shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
+      } catch (error) {
+        Logger.error(
+          error instanceof Error ? error : new Error(String(error)),
+          'OptinMetrics: interest questionnaire eligibility check failed',
+        );
+      }
+
+      if (shouldShowInterestQuestionnaire) {
+        const accountType = reduxAccountType;
+        navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
+          onComplete: onContinueNavigation,
+          ...(accountType && { accountType }),
+        });
+      } else {
+        onContinueNavigation();
       }
     },
     [

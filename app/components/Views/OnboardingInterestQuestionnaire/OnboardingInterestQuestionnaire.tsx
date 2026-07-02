@@ -1,34 +1,23 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import {
   BackHandler,
-  Image,
   type ImageSourcePropType,
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import {
-  useNavigation,
-  useRoute,
-  type RouteProp,
-} from '@react-navigation/native';
+import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  BoxAlignItems,
-  BoxJustifyContent,
   Button,
   ButtonSize,
   ButtonVariant,
-  Icon,
-  IconColor,
   IconName,
-  IconSize,
   Text,
   TextVariant,
   TextColor,
   FontWeight,
-  TextButton,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { InterestSelectionIndicator } from './InterestSelectionIndicator';
@@ -39,7 +28,6 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { useSelector } from 'react-redux';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import type { RootStackParamList } from '../../../core/NavigationService/types';
-import Routes from '../../../constants/navigation/Routes';
 import { OnboardingInterestQuestionnaireTestIds } from './OnboardingInterestQuestionnaire.testIds';
 import buyAndSellCryptoImage from '../../../images/buy_and_sell_crypto.png';
 import advancedTradesImage from '../../../images/advanced_trades.png';
@@ -118,7 +106,6 @@ const INTEREST_OPTION_ICONS: Partial<Record<InterestOptionId, IconName>> = {
 
 const OnboardingInterestQuestionnaire = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const route =
     useRoute<
