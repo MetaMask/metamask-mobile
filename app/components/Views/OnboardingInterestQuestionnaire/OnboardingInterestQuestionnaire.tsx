@@ -313,7 +313,7 @@ const OnboardingInterestQuestionnaire = () => {
                     testID={OnboardingInterestQuestionnaireTestIds.OTHER_TEXT}
                     numberOfLines={1}
                     ellipsizeMode="tail"
-                    twClassName="flex-shrink"
+                    twClassName="flex-shrink mr-1"
                   >
                     {otherText}
                   </Text>
