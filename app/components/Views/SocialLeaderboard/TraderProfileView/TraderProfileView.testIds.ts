@@ -1,7 +1,6 @@
 export const TraderProfileViewSelectorsIDs = {
   CONTAINER: 'trader-profile-container',
   BACK_BUTTON: 'trader-profile-back-button',
-  NOTIFICATION_BUTTON: 'trader-profile-notification-button',
   HEADER: 'trader-profile-header',
   HEADER_COMPACT_IDENTITY: 'trader-profile-header-compact-identity',
   PROFILE_HEADER: 'trader-profile-profile-header',

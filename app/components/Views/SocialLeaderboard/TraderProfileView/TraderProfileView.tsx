@@ -17,7 +17,6 @@ import {
   ButtonVariant,
   FontWeight,
   HeaderStandardAnimated,
-  IconName,
   Text,
   TextColor,
   TextVariant,
@@ -49,8 +48,6 @@ import {
 } from '../../../../util/haptics';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import ErrorState from '../../Homepage/components/ErrorState/ErrorState';
-// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
-import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import { TraderProfileViewSelectorsIDs } from './TraderProfileView.testIds';
 import PositionRow from './components/PositionRow';
 import ProfileHeader from './components/ProfileHeader';
@@ -65,12 +62,6 @@ import TraderProfileCompactStats from './components/TraderProfileCompactStats';
 import TraderHeaderIdentity from '../components/TraderHeaderIdentity';
 import TraderMuteChip from '../components/TraderMuteChip';
 import { useTraderMute } from '../hooks/useTraderMute';
-import TopTradersNotificationsSetupBottomSheet, {
-  type TopTradersNotificationsSetupBottomSheetRef,
-} from './components/TopTradersNotificationsSetupBottomSheet';
-import TraderNotificationsBottomSheet, {
-  type TraderNotificationsBottomSheetRef,
-} from './components/TraderNotificationsBottomSheet';
 import { useTraderPositions, useTraderProfile } from './hooks';
 import { selectSocialLeaderboardPerpsEnabled } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import {
@@ -206,23 +197,11 @@ const TraderProfileView = () => {
     });
   }, [profile, traderAddress, source, isFollowing, traderRank, track]);
 
-  const {
-    preferences,
-    hasNotificationPreferences,
-    isLoading: isLoadingPreferences,
-    setPushNotificationsEnabled,
-    setTxAmountLimit,
-  } = useNotificationPreferences();
-
   const { isMuted, isMuteAvailable, toggleMute } = useTraderMute(traderId);
 
   const [activeTab, setActiveTab] = useState<'open' | 'closed'>('open');
   const [openSort, setOpenSort] = useState<OpenSortKey>('value');
   const [closedSort, setClosedSort] = useState<ClosedSortKey>('value');
-
-  const notificationsSheetRef = useRef<TraderNotificationsBottomSheetRef>(null);
-  const setupSheetRef =
-    useRef<TopTradersNotificationsSetupBottomSheetRef>(null);
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -240,29 +219,6 @@ const TraderProfileView = () => {
       setIsRefreshing(false);
     }
   }, [refresh, refetchPositions]);
-
-  const handleNotificationPress = useCallback(() => {
-    // Don't open any sheet while preferences are still loading — the enabled
-    // default may not match the server, which would incorrectly route users
-    // before their saved preferences are available.
-    if (isLoadingPreferences) return;
-    if (!hasNotificationPreferences) {
-      navigation.navigate(Routes.SETTINGS_VIEW, {
-        screen: Routes.SETTINGS.NOTIFICATIONS,
-      });
-      return;
-    }
-    if (preferences.pushNotificationsEnabled) {
-      notificationsSheetRef.current?.onOpenBottomSheet();
-    } else {
-      setupSheetRef.current?.onOpenBottomSheet();
-    }
-  }, [
-    hasNotificationPreferences,
-    isLoadingPreferences,
-    navigation,
-    preferences.pushNotificationsEnabled,
-  ]);
 
   const handleFollowPress = useCallback(() => {
     toggleFollow({
@@ -399,13 +355,6 @@ const TraderProfileView = () => {
         backButtonProps={{
           testID: TraderProfileViewSelectorsIDs.BACK_BUTTON,
         }}
-        endButtonIconProps={[
-          {
-            iconName: IconName.Notification,
-            onPress: handleNotificationPress,
-            testID: TraderProfileViewSelectorsIDs.NOTIFICATION_BUTTON,
-          },
-        ]}
         testID={TraderProfileViewSelectorsIDs.HEADER}
       />
 
@@ -575,19 +524,6 @@ const TraderProfileView = () => {
           )}
         </Animated.ScrollView>
       </Box>
-
-      <TopTradersNotificationsSetupBottomSheet
-        ref={setupSheetRef}
-        preferences={preferences}
-        setPushNotificationsEnabled={setPushNotificationsEnabled}
-        setTxAmountLimit={setTxAmountLimit}
-      />
-
-      <TraderNotificationsBottomSheet
-        ref={notificationsSheetRef}
-        traderId={traderId}
-        traderName={profile?.profile.name ?? traderName}
-      />
     </SafeAreaView>
   );
 };
