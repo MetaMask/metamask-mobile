@@ -34,6 +34,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      canGoBack: jest.fn(() => true),
     }),
     useFocusEffect: jest.fn(() => {
       // No-op to avoid infinite loops during render

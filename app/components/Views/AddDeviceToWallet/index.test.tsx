@@ -25,6 +25,7 @@ jest.mock('../../../core/Engine', () => ({
     QrSyncController: {
       cancelSession: jest.fn(),
       handleScannedQrPayload: jest.fn(),
+      resetState: jest.fn(),
     },
   },
 }));
@@ -33,9 +34,14 @@ import Engine from '../../../core/Engine';
 
 const mockCancelSession = Engine.context.QrSyncController
   .cancelSession as jest.Mock;
+const mockResetState = Engine.context.QrSyncController.resetState as jest.Mock;
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockUseNavigationState = jest.fn(
+  (selector: (state: { routes: { name: string }[] }) => unknown) =>
+    selector({ routes: [] }),
+);
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -45,6 +51,9 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
     }),
+    useNavigationState: (
+      selector: (state: { routes: { name: string }[] }) => unknown,
+    ) => mockUseNavigationState(selector),
   };
 });
 
@@ -81,6 +90,10 @@ const renderComponent = (
 describe('AddDeviceToWallet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseNavigationState.mockImplementation(
+      (selector: (state: { routes: { name: string }[] }) => unknown) =>
+        selector({ routes: [] }),
+    );
   });
 
   describe('initial render', () => {
@@ -177,6 +190,26 @@ describe('AddDeviceToWallet', () => {
         getByText(strings('app_settings.add_device.scan_qr_code_button')),
       );
 
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+    });
+
+    it('resets a stale QR sync session before opening the scanner', () => {
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: { routes: { name: string }[] }) => unknown) =>
+          selector({
+            routes: [{ name: Routes.QR_TAB_SWITCHER }],
+          }),
+      );
+
+      const { getByText } = renderComponent({
+        phase: QrSyncPhases.AWAITING_SYNC_READY,
+      });
+
+      fireEvent.press(
+        getByText(strings('app_settings.add_device.scan_qr_code_button')),
+      );
+
+      expect(mockResetState).toHaveBeenCalledTimes(1);
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 

@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
+import { DeviceEventEmitter, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -13,8 +14,7 @@ import {
   TextField,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import { useNavigation } from '@react-navigation/native';
-import { Image } from 'react-native';
+import { useNavigation, useNavigationState } from '@react-navigation/native';
 import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
@@ -26,6 +26,7 @@ import {
 } from '../QRTabSwitcher';
 import DeviceAdded from './DeviceAdded';
 import Engine from '../../../core/Engine';
+import { ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT } from '../../../core/QrSync/showExtensionCancelledErrorSheet';
 import {
   selectQrSyncError,
   selectQrSyncIsBusy,
@@ -66,6 +67,9 @@ const AddDeviceToWallet = () => {
   const navigation = useNavigation();
   const [manualQrPayload, setManualQrPayload] = useState('');
   const hasOpenedVerificationSheetRef = useRef(false);
+  const isScannerOpen = useNavigationState((state) =>
+    state.routes.some((route) => route.name === Routes.QR_TAB_SWITCHER),
+  );
   const presentation = useSelector(selectQrSyncPresentation);
   const shouldNavigateToImport = useSelector(
     selectQrSyncShouldNavigateToImport,
@@ -91,7 +95,7 @@ const AddDeviceToWallet = () => {
   }, [navigation]);
 
   useEffect(() => {
-    if (!shouldShowOtpSheet) {
+    if (!shouldShowOtpSheet || isScannerOpen) {
       hasOpenedVerificationSheetRef.current = false;
       return;
     }
@@ -102,7 +106,7 @@ const AddDeviceToWallet = () => {
 
     hasOpenedVerificationSheetRef.current = true;
     showVerificationSheet();
-  }, [shouldShowOtpSheet, showVerificationSheet]);
+  }, [shouldShowOtpSheet, isScannerOpen, showVerificationSheet]);
 
   useEffect(() => {
     if (!shouldNavigateToImport) {
@@ -114,6 +118,17 @@ const AddDeviceToWallet = () => {
       qrSyncImport: true,
     });
   }, [shouldNavigateToImport, navigation]);
+
+  useEffect(() => {
+    const subscription = DeviceEventEmitter.addListener(
+      ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT,
+      () => {
+        Engine.context.QrSyncController.resetState();
+      },
+    );
+
+    return () => subscription.remove();
+  }, []);
 
   const submitQrPayload = useCallback(async (qrPayload: string) => {
     await Engine.context.QrSyncController.handleScannedQrPayload(qrPayload);
@@ -129,6 +144,10 @@ const AddDeviceToWallet = () => {
   );
 
   const openQRScanner = useCallback(() => {
+    if (isSessionActive) {
+      Engine.context.QrSyncController.resetState();
+    }
+
     navigation.navigate(
       ...createQRScannerNavDetails({
         initialScreen: QRTabSwitcherScreens.Scanner,
@@ -137,7 +156,7 @@ const AddDeviceToWallet = () => {
         onScanSuccess,
       }),
     );
-  }, [navigation, onScanSuccess]);
+  }, [navigation, onScanSuccess, isSessionActive]);
 
   const handleManualQrSubmit = useCallback(async () => {
     if (!manualQrPayload.trim()) {
@@ -155,7 +174,7 @@ const AddDeviceToWallet = () => {
     handleManualQrSubmit().catch(() => undefined);
   }, [handleManualQrSubmit]);
 
-  if (presentation === 'device-linked') {
+  if (presentation === 'device-linked' && !isScannerOpen) {
     return <DeviceAdded />;
   }
 
