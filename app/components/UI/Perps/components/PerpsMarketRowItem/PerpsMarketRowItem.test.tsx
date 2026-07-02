@@ -262,6 +262,24 @@ describe('PerpsMarketRowItem', () => {
       expect(screen.queryByText('Tesla')).not.toBeOnTheScreen();
     });
 
+    it('shows the full asset name for a provider-prefixed symbol when the flag is enabled', () => {
+      mockSelectors(true);
+
+      render(
+        <PerpsMarketRowItem
+          market={{ ...mockMarketData, symbol: 'xyz:TSLA', name: 'Tesla' }}
+        />,
+      );
+
+      expect(
+        screen.getByTestId(
+          getPerpsMarketRowItemSelector.assetLabel('xyz:TSLA'),
+        ),
+      ).toHaveTextContent('Tesla');
+      expect(screen.queryByText('TSLA')).not.toBeOnTheScreen();
+      expect(screen.queryByText('xyz:TSLA')).not.toBeOnTheScreen();
+    });
+
     it('falls back to the ticker when the flag is enabled but name is missing', () => {
       mockSelectors(true);
 

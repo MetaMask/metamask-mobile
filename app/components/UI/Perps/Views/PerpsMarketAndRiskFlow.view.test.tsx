@@ -27,6 +27,7 @@ import {
   TradingViewChartSelectorsIDs,
   getPerpsMarketRowItemSelector,
 } from '../Perps.testIds';
+import { PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY } from '../selectors/featureFlags';
 import PerpsLoader from '../components/PerpsLoader/PerpsLoader';
 import LivePriceDisplay from '../components/LivePriceDisplay/LivePriceDisplay';
 import PerpsMarketRowItem from '../components/PerpsMarketRowItem/PerpsMarketRowItem';
@@ -464,5 +465,37 @@ describe('Market Browsing & Risk Awareness Flow', () => {
     );
     renderPerpsView(NotificationTooltipWrapper, 'NotificationTooltipTest');
     expect(screen.queryByText(NOTIFICATIONS_TITLE)).not.toBeOnTheScreen();
+  });
+
+  it('renders full asset names on market rows when perpsShowFullAssetNames is enabled', async () => {
+    renderPerpsComponent(
+      PerpsMarketRowItem as unknown as React.ComponentType<
+        Record<string, unknown>
+      >,
+      { market: ethMarket },
+      {
+        overrides: {
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {
+                remoteFeatureFlags: {
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: {
+                    enabled: true,
+                    minimumVersion: '0.0.0',
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    );
+
+    expect(
+      await screen.findByTestId(
+        getPerpsMarketRowItemSelector.assetLabel('ETH'),
+      ),
+    ).toHaveTextContent('Ethereum');
+    expect(screen.queryByText('ETH')).not.toBeOnTheScreen();
   });
 });

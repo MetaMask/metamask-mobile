@@ -12,6 +12,7 @@ import {
   PerpsMarketListViewSelectorsIDs,
   getPerpsMarketRowItemSelector,
 } from '../../Perps.testIds';
+import { PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY } from '../../selectors/featureFlags';
 import { PerpsMarketData } from '@metamask/perps-controller';
 
 /** Crypto market (no HIP-3): counted in marketCounts.crypto */
@@ -94,8 +95,12 @@ describe('PerpsMarketListView', () => {
         expect(
           screen.getByText(strings('perps.no_tokens_found')),
         ).toBeOnTheScreen();
-        expect(screen.queryByText('BTC')).not.toBeOnTheScreen();
-        expect(screen.queryByText('XAU')).not.toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+        ).not.toBeOnTheScreen();
+        expect(
+          screen.queryByTestId(getPerpsMarketRowItemSelector.assetLabel('XAU')),
+        ).not.toBeOnTheScreen();
       });
     });
 
@@ -112,7 +117,23 @@ describe('PerpsMarketListView', () => {
   });
 
   describe('Full asset names feature flag', () => {
-    // Default-off (ticker) behaviour is covered by the category-filter test above.
+    it('shows ticker symbols on the asset label by default (flag off)', async () => {
+      renderPerpsMarketListView({
+        streamOverrides: { marketData: marketDataWithCategories },
+      });
+
+      await waitFor(() => {
+        expect(
+          screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('BTC')),
+        ).toHaveTextContent('BTC');
+        expect(
+          screen.getByTestId(getPerpsMarketRowItemSelector.assetLabel('XAU')),
+        ).toHaveTextContent('XAU');
+      });
+      expect(screen.queryByText('Bitcoin')).not.toBeOnTheScreen();
+      expect(screen.queryByText('Gold')).not.toBeOnTheScreen();
+    });
+
     it('shows full asset names on the asset label when perpsShowFullAssetNames is enabled', async () => {
       renderPerpsMarketListView({
         streamOverrides: { marketData: marketDataWithCategories },
@@ -121,7 +142,7 @@ describe('PerpsMarketListView', () => {
             backgroundState: {
               RemoteFeatureFlagController: {
                 remoteFeatureFlags: {
-                  perpsShowFullAssetNames: {
+                  [PERPS_SHOW_FULL_ASSET_NAMES_FLAG_KEY]: {
                     enabled: true,
                     minimumVersion: '0.0.0',
                   },
