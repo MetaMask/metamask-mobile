@@ -29,6 +29,7 @@ export interface UseNotificationPreferencesResult {
   isLoading: boolean;
   error: string | null;
   setPushNotificationsEnabled: (value: boolean) => Promise<void>;
+  setInAppNotificationsEnabled: (value: boolean) => Promise<void>;
   setTxAmountLimit: (value: TxAmountThreshold) => Promise<void>;
   toggleTraderNotification: (traderId: string) => Promise<void>;
   /** Derived selector: is the given trader currently receiving notifications? */
@@ -122,6 +123,35 @@ export const useNotificationPreferences =
       [hasNotificationPreferences, updateSectionChannel],
     );
 
+    const setInAppNotificationsEnabled = useCallback(
+      async (value: boolean) => {
+        if (!hasNotificationPreferences) {
+          const err = new Error(
+            'No notification preferences found when updating social AI preferences, enable notifications first',
+          );
+          Logger.error(err, 'useNotificationPreferences: persist skipped');
+          setPersistError(toErrorMessage(err));
+          return;
+        }
+
+        setPersistError(null);
+        try {
+          await updateSectionChannel(
+            'socialAI',
+            'inAppNotificationsEnabled',
+            value,
+          );
+        } catch (err) {
+          Logger.error(
+            err as Error,
+            'useNotificationPreferences: persist failed',
+          );
+          setPersistError(toErrorMessage(err));
+        }
+      },
+      [hasNotificationPreferences, updateSectionChannel],
+    );
+
     const setTxAmountLimit = useCallback(
       (value: TxAmountThreshold) =>
         applyChange((prev) => ({ ...prev, txAmountLimit: value })),
@@ -162,6 +192,7 @@ export const useNotificationPreferences =
       isLoading,
       error,
       setPushNotificationsEnabled,
+      setInAppNotificationsEnabled,
       setTxAmountLimit,
       toggleTraderNotification,
       isTraderNotificationEnabled,
