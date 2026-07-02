@@ -22,7 +22,7 @@ export interface UseNetworkFilterResult {
  * @param chainId - The chain ID to check (can be hex format or CAIP format)
  * @returns True if the network is a testnet, false otherwise
  */
-const isNetworkTestnet = (chainId: string): boolean => {
+export const isNetworkTestnet = (chainId: string): boolean => {
   // Check if it's a CAIP chain ID (non-EVM networks)
   if (chainId.includes(':')) {
     try {
@@ -104,7 +104,11 @@ export const useNetworkFilter = (
 
   const filteredTokensByNetwork = useMemo(() => {
     if (selectedNetworkFilter === NETWORK_FILTER_ALL) {
-      return tokens;
+      // Testnet assets are excluded from "All networks" and only shown when
+      // their network is explicitly selected
+      return tokens.filter(
+        (token) => !token.chainId || !isNetworkTestnet(token.chainId),
+      );
     }
 
     return tokens.filter((token) => token.chainId === selectedNetworkFilter);

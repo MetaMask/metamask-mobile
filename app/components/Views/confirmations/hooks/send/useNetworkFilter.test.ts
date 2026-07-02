@@ -160,6 +160,114 @@ describe('useNetworkFilter', () => {
     expect(result.current.filteredTokensByNetwork).toEqual([]);
   });
 
+  describe('testnet token exclusion', () => {
+    const sepoliaToken = {
+      chainId: '0xaa36a7',
+      address: '0xsep',
+      symbol: 'SepoliaETH',
+      name: 'Sepolia Ether',
+      aggregators: [],
+      decimals: 18,
+      image: '',
+      balance: '1',
+      logo: undefined,
+      isETH: true,
+    } as unknown as AssetType;
+
+    const solanaDevnetToken = {
+      chainId: SolScope.Devnet,
+      address: 'devnetsol',
+      symbol: 'SOL',
+      name: 'Solana Devnet',
+      aggregators: [],
+      decimals: 9,
+      image: '',
+      balance: '1',
+      logo: undefined,
+      isETH: false,
+    } as unknown as AssetType;
+
+    const bitcoinTestnetToken = {
+      chainId: BtcScope.Testnet,
+      address: 'btctestnet',
+      symbol: 'BTC',
+      name: 'Bitcoin Testnet',
+      aggregators: [],
+      decimals: 8,
+      image: '',
+      balance: '1',
+      logo: undefined,
+      isETH: false,
+    } as unknown as AssetType;
+
+    const tokensWithTestnets = [
+      ...mockTokens,
+      sepoliaToken,
+      solanaDevnetToken,
+      bitcoinTestnetToken,
+    ];
+
+    it('excludes testnet tokens when filter is set to "all"', () => {
+      const { result } = renderHook(() =>
+        useNetworkFilter(tokensWithTestnets, mockNetworks),
+      );
+
+      expect(result.current.selectedNetworkFilter).toBe(NETWORK_FILTER_ALL);
+      expect(result.current.filteredTokensByNetwork).toEqual(mockTokens);
+      expect(
+        result.current.filteredTokensByNetwork.some(
+          (token) => token.symbol === 'SepoliaETH',
+        ),
+      ).toBe(false);
+    });
+
+    it('includes testnet tokens when their network is explicitly selected', () => {
+      const { result } = renderHook(() =>
+        useNetworkFilter(tokensWithTestnets, mockNetworks),
+      );
+
+      act(() => {
+        result.current.setSelectedNetworkFilter('0xaa36a7');
+      });
+
+      expect(result.current.filteredTokensByNetwork).toEqual([sepoliaToken]);
+
+      act(() => {
+        result.current.setSelectedNetworkFilter(SolScope.Devnet);
+      });
+
+      expect(result.current.filteredTokensByNetwork).toEqual([
+        solanaDevnetToken,
+      ]);
+
+      act(() => {
+        result.current.setSelectedNetworkFilter(BtcScope.Testnet);
+      });
+
+      expect(result.current.filteredTokensByNetwork).toEqual([
+        bitcoinTestnetToken,
+      ]);
+    });
+
+    it('excludes testnet tokens again when switching back to "all"', () => {
+      const { result } = renderHook(() =>
+        useNetworkFilter(tokensWithTestnets, mockNetworks),
+      );
+
+      act(() => {
+        result.current.setSelectedNetworkFilter('0xaa36a7');
+      });
+
+      expect(result.current.filteredTokensByNetwork).toEqual([sepoliaToken]);
+
+      act(() => {
+        result.current.setSelectedNetworkFilter(NETWORK_FILTER_ALL);
+      });
+
+      expect(result.current.filteredTokensByNetwork).toEqual(mockTokens);
+    });
+  });
+
   it('recomputes filtered tokens when switching back to "all"', () => {
     const { result } = renderHook(() =>
       useNetworkFilter(mockTokens, mockNetworks),

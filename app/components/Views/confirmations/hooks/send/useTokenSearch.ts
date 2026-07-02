@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { AssetType, Nft } from '../../types/token';
+import { isNetworkTestnet, NETWORK_FILTER_ALL } from './useNetworkFilter';
 
 export interface UseTokenSearchReturn {
   searchQuery: string;
@@ -43,10 +44,14 @@ export function useTokenSearch(
   const filteredNfts = useMemo(() => {
     let nftsToFilter = nfts;
 
-    if (selectedNetworkFilter && selectedNetworkFilter !== 'all') {
+    if (selectedNetworkFilter && selectedNetworkFilter !== NETWORK_FILTER_ALL) {
       nftsToFilter = nfts.filter(
         (nft) => nft.chainId === selectedNetworkFilter,
       );
+    } else if (selectedNetworkFilter === NETWORK_FILTER_ALL) {
+      // Testnet NFTs are excluded from "All networks" and only shown when
+      // their network is explicitly selected
+      nftsToFilter = nfts.filter((nft) => !isNetworkTestnet(nft.chainId));
     }
 
     if (!searchQuery.trim()) {
