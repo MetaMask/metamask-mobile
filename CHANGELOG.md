@@ -9,6 +9,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.0.2]
 
+### Added
+
+- Added World Cup "Extra Time?" and "Penalty Shootout?" markets to the game details page. (#32609)
+- Added a Regulation Time tag and contextual info for applicable World Cup prediction markets. (#32610)
+- Added World Cup-specific market labels and tooltip info for Predict moneyline and team-to-advance markets. (#32573)
+
+### Changed
+
+- Removed World Cup shortcut pills from the Predict empty state. (#32600)
+
+### Fixed
+
+- Fixed a bug that could show flipped odds chart labels. (#32597)
+- Improved Money account deeplink handling to surface accurate unavailability messages for maintenance, gradual rollout exclusion, and version-gate states. (#32622)
+- Fixed Predict deposit-wallet address resolution for new Polymarket BeaconProxy wallets while preserving existing wallets. (#32614)
+
 ## [8.0.0]
 
 ### Uncategorized
