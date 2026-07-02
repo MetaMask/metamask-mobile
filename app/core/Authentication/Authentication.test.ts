@@ -214,24 +214,7 @@ jest.mock('../Engine', () => ({
     },
 
     QrSyncController: {
-      state: {
-        provisioningStatus: null,
-        pendingSecretImports: null,
-        provisioningMetadata: null,
-      },
       importRemainingSecrets: jest.fn().mockResolvedValue(undefined),
-      assertReadyForSecretImport: jest.fn(),
-      enrichPrimaryProvisioningEntry: jest.fn(),
-      getRemainingSecretImports: jest.fn().mockReturnValue([]),
-      enrichProvisioningEntry: jest.fn(),
-      finalizeSecretImport: jest.fn(),
-      completeSecretImport: jest.fn(),
-      markProvisioningFailed: jest.fn(),
-    },
-
-    QrSyncProvisioningService: {
-      importSecretsToVault: jest.fn().mockResolvedValue(undefined),
-      provisionFromMetadata: jest.fn().mockResolvedValue(undefined),
     },
   },
 }));
@@ -1446,6 +1429,22 @@ describe('Authentication', () => {
         ).toHaveBeenCalledWith(PRIMARY_ENTROPY_SOURCE);
       });
 
+      it('does not import remaining QR sync secrets when isQrSync is false', async () => {
+        const Engine = jest.requireMock('../Engine');
+
+        await Authentication.newWalletAndRestore(
+          'password',
+          { currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC },
+          'test seed phrase',
+          true,
+          false,
+        );
+
+        expect(
+          Engine.context.QrSyncController.importRemainingSecrets,
+        ).not.toHaveBeenCalled();
+      });
+
       it('resyncs accounts after login', async () => {
         const Engine = jest.requireMock('../Engine');
         Engine.context.KeyringController.state.keyrings = [
@@ -2111,7 +2110,7 @@ describe('Authentication', () => {
         .mockResolvedValueOnce(undefined);
       const importAccountFromPrivateKeySpy = jest
         .spyOn(Authentication, 'importAccountFromPrivateKey')
-        .mockResolvedValueOnce('0x1111111111111111111111111111111111111111');
+        .mockResolvedValueOnce(true);
 
       await Authentication.unlockWallet({
         password: mockPassword,
@@ -2208,7 +2207,7 @@ describe('Authentication', () => {
       expect(importAccountFromPrivateKeySpy).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(
         importError,
-        'Error in Authentication.importRemainingSecretsToVault',
+        'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
@@ -2302,7 +2301,7 @@ describe('Authentication', () => {
       ).not.toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(
         error,
-        'Error in Authentication.importRemainingSecretsToVault',
+        'Error in rehydrateSeedPhrase- SeedlessOnboardingController',
       );
       expect(ReduxService.store.dispatch).toHaveBeenCalledTimes(8); // logIn, setCompletedOnboarding, passwordSet, setOsAuthEnabled, setAllowLoginWithRememberMe (from storePassword), dispatchLogin, dispatchOauthReset, and setExistingUser
       expect(OAuthService.resetOauthState).toHaveBeenCalled();
@@ -3070,76 +3069,6 @@ describe('Authentication', () => {
     });
   });
 
-  describe('importMnemonicToVault', () => {
-    const Engine = jest.requireMock('../Engine');
-
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockHdKeyringV2.getAccounts.mockResolvedValue([{ address: mockAddress }]);
-
-      Engine.context.KeyringController = {
-        withKeyringV2: jest
-          .fn()
-          .mockImplementation(
-            async ({ id: _id }, callback) =>
-              await callback({ keyring: mockHdKeyringV2 }),
-          ),
-        state: {
-          keyrings: [createMockHdKeyringObject()],
-        },
-      } as unknown as KeyringController;
-
-      Engine.context.MultichainAccountService = {
-        createMultichainAccountWallet: jest
-          .fn()
-          .mockResolvedValue(mockMultichainAccountWallet),
-        removeMultichainAccountWallet: jest.fn(),
-      } as unknown as MultichainAccountService;
-    });
-
-    it('imports mnemonic into vault and returns entropy source', async () => {
-      const mnemonic = 'test mnemonic phrase for wallet';
-
-      const result = await Authentication.importMnemonicToVault(mnemonic);
-
-      expect(
-        Engine.context.MultichainAccountService.createMultichainAccountWallet,
-      ).toHaveBeenCalledWith({
-        type: 'import',
-        mnemonic: new Uint8Array([1, 2, 3, 4]),
-      });
-      expect(
-        Engine.context.KeyringController.withKeyringV2,
-      ).toHaveBeenCalledWith(
-        { id: mockMultichainAccountWallet.entropySource },
-        expect.any(Function),
-      );
-      expect(result).toEqual(mockMultichainAccountWallet.entropySource);
-    });
-
-    it('propagates MultichainAccountService.createMultichainAccountWallet failure', async () => {
-      const mnemonic = 'test mnemonic phrase for wallet';
-      const error = new Error('Failed to add new wallet');
-      Engine.context.MultichainAccountService.createMultichainAccountWallet.mockRejectedValue(
-        error,
-      );
-
-      await expect(
-        Authentication.importMnemonicToVault(mnemonic),
-      ).rejects.toThrow('Failed to add new wallet');
-    });
-
-    it('propagates keyring.getAccounts failure', async () => {
-      const mnemonic = 'test mnemonic phrase for wallet';
-      const error = new Error('Failed to get accounts');
-      mockHdKeyringV2.getAccounts.mockRejectedValue(error);
-
-      await expect(
-        Authentication.importMnemonicToVault(mnemonic),
-      ).rejects.toThrow('Failed to get accounts');
-    });
-  });
-
   describe('importSeedlessMnemonicToVault', () => {
     const Engine = jest.requireMock('../Engine');
 
@@ -3348,7 +3277,7 @@ describe('Authentication', () => {
       } as unknown as ReduxStore);
     });
 
-    it('returns undefined when seedless password is outdated', async () => {
+    it('returns false when seedless password is outdated', async () => {
       // Arrange
       const checkIsSeedlessPasswordOutdatedSpy = jest
         .spyOn(Authentication, 'checkIsSeedlessPasswordOutdated')
@@ -3363,7 +3292,7 @@ describe('Authentication', () => {
         skipCache: true,
         captureSentryError: true,
       });
-      expect(result).toBeUndefined();
+      expect(result).toBe(false);
       expect(
         Engine.context.KeyringController.importAccountWithStrategy,
       ).not.toHaveBeenCalled();
@@ -3844,7 +3773,7 @@ describe('Authentication', () => {
       // Mock Authentication methods
       jest
         .spyOn(Authentication, 'importAccountFromPrivateKey')
-        .mockResolvedValue('0x1111111111111111111111111111111111111111');
+        .mockResolvedValue(true);
       jest
         .spyOn(Authentication, 'importSeedlessMnemonicToVault')
         .mockResolvedValue('test-keyring-id');
