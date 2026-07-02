@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { useOpenTradingSignalsSetup } from './useOpenTradingSignalsSetup';
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
 import { playErrorNotification } from '../../../../util/haptics';
@@ -6,9 +7,11 @@ import Routes from '../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 const mockOnOpenBottomSheet = jest.fn();
+let focusEffectCleanup: (() => void) | undefined;
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
+  useFocusEffect: jest.fn(),
 }));
 
 jest.mock('../NotificationPreferences/hooks');
@@ -24,6 +27,18 @@ const mockUseNotificationPreferences =
 const mockPlayErrorNotification = playErrorNotification as jest.MockedFunction<
   typeof playErrorNotification
 >;
+const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
+  typeof useFocusEffect
+>;
+
+const runFocusEffect = () => {
+  const focusCallback = mockUseFocusEffect.mock.calls.at(-1)?.[0];
+  focusCallback?.();
+};
+
+const runFocusEffectCleanup = () => {
+  focusEffectCleanup?.();
+};
 
 const buildPreferences = (
   overrides: Partial<ReturnType<typeof useNotificationPreferences>> = {},
@@ -55,6 +70,11 @@ describe('useOpenTradingSignalsSetup', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    focusEffectCleanup = undefined;
+    mockUseFocusEffect.mockImplementation((callback) => {
+      const cleanup = callback();
+      focusEffectCleanup = typeof cleanup === 'function' ? cleanup : undefined;
+    });
     mockUseNotificationPreferences.mockReturnValue(buildPreferences());
   });
 
@@ -90,6 +110,72 @@ describe('useOpenTradingSignalsSetup', () => {
       screen: Routes.SETTINGS.NOTIFICATIONS,
     });
     expect(mockOnOpenBottomSheet).not.toHaveBeenCalled();
+  });
+
+  it('stores the pending action when navigating to notification settings', () => {
+    mockUseNotificationPreferences.mockReturnValue(
+      buildPreferences({ hasNotificationPreferences: false }),
+    );
+
+    const pendingAction = jest.fn();
+    const { result, rerender } = renderHook(() =>
+      useOpenTradingSignalsSetup(sheetRef),
+    );
+
+    result.current.openSetupIfNeeded(pendingAction);
+    runFocusEffectCleanup();
+
+    mockUseNotificationPreferences.mockReturnValue(
+      buildPreferences({
+        preferences: {
+          pushNotificationsEnabled: true,
+          inAppNotificationsEnabled: false,
+          txAmountLimit: 100,
+          mutedTraderProfileIds: [],
+        },
+      }),
+    );
+    rerender({});
+    runFocusEffect();
+
+    expect(pendingAction).toHaveBeenCalledTimes(1);
+  });
+
+  it('drops the pending action when returning from settings without preferences', () => {
+    mockUseNotificationPreferences.mockReturnValue(
+      buildPreferences({ hasNotificationPreferences: false }),
+    );
+
+    const pendingAction = jest.fn();
+    const { result } = renderHook(() => useOpenTradingSignalsSetup(sheetRef));
+
+    result.current.openSetupIfNeeded(pendingAction);
+    runFocusEffectCleanup();
+    runFocusEffect();
+
+    expect(pendingAction).not.toHaveBeenCalled();
+  });
+
+  it('opens the setup sheet when returning from settings with channels disabled', () => {
+    mockUseNotificationPreferences.mockReturnValue(
+      buildPreferences({ hasNotificationPreferences: false }),
+    );
+
+    const pendingAction = jest.fn();
+    const { result, rerender } = renderHook(() =>
+      useOpenTradingSignalsSetup(sheetRef),
+    );
+
+    result.current.openSetupIfNeeded(pendingAction);
+    runFocusEffectCleanup();
+
+    mockUseNotificationPreferences.mockReturnValue(buildPreferences());
+    rerender({});
+    runFocusEffect();
+
+    expect(pendingAction).not.toHaveBeenCalled();
+    expect(mockOnOpenBottomSheet).toHaveBeenCalledTimes(1);
+    expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
   });
 
   it('does not fire a haptic on the navigate-to-settings branch', () => {

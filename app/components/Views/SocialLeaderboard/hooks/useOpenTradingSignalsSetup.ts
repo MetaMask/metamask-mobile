@@ -1,5 +1,5 @@
-import { useCallback, useRef, type RefObject } from 'react';
-import { useNavigation } from '@react-navigation/native';
+import { useCallback, useEffect, useRef, type RefObject } from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import Routes from '../../../../constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationPreferences } from '../NotificationPreferences/hooks';
@@ -17,9 +17,11 @@ export interface UseOpenTradingSignalsSetupResult {
   /**
    * Intercepts an action that requires notifications. When the trading-signal
    * channels are disabled it fires an error haptic, opens the setup sheet, and
-   * defers `pendingAction` until the sheet closes with a channel enabled.
+   * defers `pendingAction` until setup completes. For the bottom sheet that
+   * means a channel is enabled before close; for the no-preferences path it
+   * means returning from notification settings with channels enabled.
    *
-   * @param pendingAction - Ran on sheet close only if a channel becomes enabled.
+   * @param pendingAction - Deferred until setup completes with channels enabled.
    * @returns `true` when the action was intercepted (sheet opened or settings
    * navigation triggered) and the caller must not perform it inline.
    */
@@ -33,8 +35,9 @@ export interface UseOpenTradingSignalsSetupResult {
  * routes to notification settings when the user has no saved preferences yet.
  *
  * Rather than performing the action optimistically, the caller passes it to
- * `openSetupIfNeeded`; it only runs after the user enables a channel and closes
- * the sheet. Dismissing without enabling drops the action.
+ * `openSetupIfNeeded`; it only runs after setup completes with at least one
+ * trading-signal channel enabled. Dismissing the sheet without enabling, or
+ * returning from settings without creating preferences, drops the action.
  */
 export const useOpenTradingSignalsSetup = (
   sheetRef: RefObject<TradingSignalsSetupBottomSheetRef | null>,
@@ -47,10 +50,56 @@ export const useOpenTradingSignalsSetup = (
   } = useNotificationPreferences();
 
   const pendingActionRef = useRef<PendingAction | null>(null);
+  const awaitingSettingsNavigationRef = useRef(false);
+  const wasBlurredRef = useRef(false);
   // Read the freshest preferences at sheet-close time; the user may have just
   // toggled a channel while the sheet was open.
   const preferencesRef = useRef(preferences);
   preferencesRef.current = preferences;
+
+  const clearPendingAction = useCallback(() => {
+    pendingActionRef.current = null;
+    awaitingSettingsNavigationRef.current = false;
+  }, []);
+
+  const tryForwardPendingAction = useCallback((): boolean => {
+    const pendingAction = pendingActionRef.current;
+    if (
+      !pendingAction ||
+      !areTradingSignalsChannelsEnabled(preferencesRef.current)
+    ) {
+      return false;
+    }
+
+    clearPendingAction();
+    pendingAction();
+    return true;
+  }, [clearPendingAction]);
+
+  const resumeFromSettingsNavigation = useCallback(() => {
+    if (
+      !awaitingSettingsNavigationRef.current ||
+      !pendingActionRef.current ||
+      isLoadingPreferences ||
+      !hasNotificationPreferences
+    ) {
+      return;
+    }
+
+    awaitingSettingsNavigationRef.current = false;
+
+    if (tryForwardPendingAction()) {
+      return;
+    }
+
+    playErrorNotification().catch(() => undefined);
+    sheetRef.current?.onOpenBottomSheet();
+  }, [
+    hasNotificationPreferences,
+    isLoadingPreferences,
+    sheetRef,
+    tryForwardPendingAction,
+  ]);
 
   const openSetupIfNeeded = useCallback(
     (pendingAction?: PendingAction): boolean => {
@@ -59,6 +108,8 @@ export const useOpenTradingSignalsSetup = (
       }
 
       if (!hasNotificationPreferences) {
+        pendingActionRef.current = pendingAction ?? null;
+        awaitingSettingsNavigationRef.current = true;
         navigation.navigate(Routes.SETTINGS_VIEW, {
           screen: Routes.SETTINGS.NOTIFICATIONS,
         });
@@ -84,15 +135,39 @@ export const useOpenTradingSignalsSetup = (
   );
 
   const onSetupDismiss = useCallback(() => {
-    const pendingAction = pendingActionRef.current;
-    pendingActionRef.current = null;
-    if (
-      pendingAction &&
-      areTradingSignalsChannelsEnabled(preferencesRef.current)
-    ) {
-      pendingAction();
-    }
-  }, []);
+    tryForwardPendingAction();
+  }, [tryForwardPendingAction]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        wasBlurredRef.current &&
+        awaitingSettingsNavigationRef.current &&
+        pendingActionRef.current &&
+        !isLoadingPreferences &&
+        !hasNotificationPreferences
+      ) {
+        clearPendingAction();
+        wasBlurredRef.current = false;
+        return;
+      }
+
+      resumeFromSettingsNavigation();
+
+      return () => {
+        wasBlurredRef.current = true;
+      };
+    }, [
+      clearPendingAction,
+      hasNotificationPreferences,
+      isLoadingPreferences,
+      resumeFromSettingsNavigation,
+    ]),
+  );
+
+  useEffect(() => {
+    resumeFromSettingsNavigation();
+  }, [resumeFromSettingsNavigation]);
 
   return { openSetupIfNeeded, onSetupDismiss };
 };
