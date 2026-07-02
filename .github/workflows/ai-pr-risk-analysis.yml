@@ -15,7 +15,6 @@ concurrency:
 jobs:
   analyze:
     name: Analyze
-    continue-on-error: true
     if: >-
       github.event_name == 'pull_request'
       && !(github.event.pull_request.head.repo.fork || github.event.repository.fork)
@@ -25,28 +24,27 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
+      checks: write
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       # https://github.com/MetaMask/ai-analyzer/releases
       - name: Checkout AI Analyzer
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           repository: MetaMask/ai-analyzer
           ref: v1
           path: .ai-analyzer-action
-          token: ${{ secrets.AI_ANALYZER_TOKEN || secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.AI_ANALYZER_TOKEN }}
 
       - name: Run AI PR Analysis
         uses: ./.ai-analyzer-action
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           mode: pr-risk-analysis
           add-comment: false
           add-label: true
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          litellm-api-key: ${{ secrets.LITELLM_API_KEY }}
+          litellm-api-key: ${{ secrets.AI_ANALYZER_LITELLM_KEY }}

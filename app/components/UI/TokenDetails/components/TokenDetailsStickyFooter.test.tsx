@@ -2,14 +2,11 @@ import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import TokenDetailsStickyFooter from './TokenDetailsStickyFooter';
-import {
-  AMBIENT_NEGATIVE_COLOR,
-  STICKY_FOOTER_SWAP_LABEL_VARIANTS,
-  StickyFooterSwapLabelVariant,
-} from './abTestConfig';
+import { AMBIENT_NEGATIVE_COLOR } from './abTestConfig';
 import { LIGHT_MODE_SUCCESS_GREEN } from '../../../../util/theme';
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
+import { getDetectedGeolocation } from '../../../../reducers/fiatOrders';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -38,6 +35,17 @@ jest.mock('../../Bridge/hooks/useRWAToken', () => ({
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(() => undefined),
+}));
+
+jest.mock('../../AssetOverview/Price/hooks/useTokenChartPreferences', () => ({
+  useTokenChartPreferences: () => ({
+    chartType: 'line',
+    chartInterval: '15m',
+    indicators: [],
+    setChartType: jest.fn(),
+    setChartInterval: jest.fn(),
+    setIndicators: jest.fn(),
+  }),
 }));
 
 jest.mock('../../../../reducers/fiatOrders', () => ({
@@ -86,8 +94,6 @@ jest.mock('@metamask/design-system-react-native', () => {
   };
 });
 
-jest.mock('./assets/flash-filled.svg', () => 'FlashFilledIcon');
-
 const mockOnBuy = jest.fn();
 const mockOnSwap = jest.fn();
 let mockHasEligibleSwapTokens = true;
@@ -98,11 +104,6 @@ jest.mock('../hooks/useStickyTokenActions', () => ({
     hasEligibleSwapTokens: mockHasEligibleSwapTokens,
     networkModal: null,
   }),
-}));
-
-const mockUseABTest = jest.fn();
-jest.mock('../../../../hooks/useABTest', () => ({
-  useABTest: (...args: unknown[]) => mockUseABTest(...args),
 }));
 
 const mockTrackStickyFooterTapped = jest.fn();
@@ -127,18 +128,22 @@ const defaultProps = {
   balanceFiatUsd: 50,
 };
 
+const setupSelectorMock = (geolocation?: string) => {
+  (useSelector as jest.Mock).mockImplementation((selector: unknown) => {
+    if (selector === getDetectedGeolocation) {
+      return geolocation;
+    }
+    return undefined;
+  });
+};
+
 describe('TokenDetailsStickyFooter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsBuyable.mockReturnValue(true);
     mockIsTokenTradingOpen.mockReturnValue(true);
     mockHasEligibleSwapTokens = true;
-    mockUseABTest.mockReturnValue({
-      variant:
-        STICKY_FOOTER_SWAP_LABEL_VARIANTS[StickyFooterSwapLabelVariant.Control],
-      variantName: StickyFooterSwapLabelVariant.Control,
-      isActive: false,
-    });
+    setupSelectorMock();
   });
 
   describe('button visibility', () => {
@@ -292,64 +297,8 @@ describe('TokenDetailsStickyFooter', () => {
     });
   });
 
-  describe('A/B test variants - swap button label', () => {
-    it('control variant shows "Swap" label', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: true,
-      });
-      const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
-      );
-      expect(getByText('Swap')).toBeTruthy();
-    });
-
-    it('convert variant shows "Convert" label on swap button', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Treatment
-          ],
-        variantName: StickyFooterSwapLabelVariant.Treatment,
-        isActive: true,
-      });
-      const { getByText, queryByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
-      );
-      expect(getByText('Convert')).toBeTruthy();
-      expect(queryByText('Swap')).toBeNull();
-    });
-
-    it('falls back to "Swap" label when flag is not active', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: false,
-      });
-      const { getByText } = render(
-        <TokenDetailsStickyFooter {...defaultProps} />,
-      );
-      expect(getByText('Swap')).toBeTruthy();
-    });
-  });
-
   describe('Sticky Footer Button Tapped tracking', () => {
     it('tracks swap button tap with usd_amount_range when balance < $100', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: true,
-      });
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={50} />,
       );
@@ -361,18 +310,11 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
 
     it('tracks buy button tap with usd_amount_range when balance < $100', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: true,
-      });
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={50} />,
       );
@@ -384,42 +326,28 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
 
     it('tracks swap tap with usd_amount_range when balance >= $100', () => {
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Treatment
-          ],
-        variantName: StickyFooterSwapLabelVariant.Treatment,
-        isActive: true,
-      });
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} balanceFiatUsd={150} />,
       );
 
-      fireEvent.press(getByText('Convert'));
+      fireEvent.press(getByText('Swap'));
 
       expect(mockTrackStickyFooterTapped).toHaveBeenCalledWith({
         ctaType: 'swap',
         balanceFiatUsd: 150,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
 
     it('tracks single swap button with usd_amount_range when balance is undefined', () => {
       mockIsBuyable.mockReturnValue(false);
-      mockUseABTest.mockReturnValue({
-        variant:
-          STICKY_FOOTER_SWAP_LABEL_VARIANTS[
-            StickyFooterSwapLabelVariant.Control
-          ],
-        variantName: StickyFooterSwapLabelVariant.Control,
-        isActive: true,
-      });
       const { getByText } = render(
         <TokenDetailsStickyFooter
           {...defaultProps}
@@ -434,6 +362,7 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: undefined,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
   });
@@ -585,7 +514,7 @@ describe('TokenDetailsStickyFooter', () => {
   describe('RWA geo-restriction', () => {
     it('blocks the buy action when token is a geo-restricted stock', () => {
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('US');
+      setupSelectorMock('US');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -598,7 +527,7 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('blocks the swap action when token is a geo-restricted stock', () => {
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('GB');
+      setupSelectorMock('GB');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -611,7 +540,7 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('proceeds normally for a stock token in a non-restricted country', () => {
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('AR');
+      setupSelectorMock('AR');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -624,7 +553,7 @@ describe('TokenDetailsStickyFooter', () => {
 
     it('proceeds normally for a non-stock token even if in a restricted country', () => {
       mockIsStockToken.mockReturnValue(false);
-      (useSelector as jest.Mock).mockReturnValue('US');
+      setupSelectorMock('US');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} />,
@@ -657,7 +586,7 @@ describe('TokenDetailsStickyFooter', () => {
     it('does not call onSwapPress when geo-restricted', () => {
       const onSwapPress = jest.fn();
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('US');
+      setupSelectorMock('US');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter
@@ -689,7 +618,7 @@ describe('TokenDetailsStickyFooter', () => {
     it('does not call onBuyPress when geo-restricted', () => {
       const onBuyPress = jest.fn();
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('GB');
+      setupSelectorMock('GB');
 
       const { getByText } = render(
         <TokenDetailsStickyFooter {...defaultProps} onBuyPress={onBuyPress} />,
@@ -824,12 +753,13 @@ describe('TokenDetailsStickyFooter', () => {
         balanceFiatUsd: 50,
         tokenAddress: '0x123',
         chainId: '0x1',
+        indicatorsActive: [],
       });
     });
 
     it('blocks quick buy when token is a geo-restricted stock', () => {
       mockIsStockToken.mockReturnValue(true);
-      (useSelector as jest.Mock).mockReturnValue('US');
+      setupSelectorMock('US');
       const onQuickBuyPress = jest.fn();
       const { getByTestId } = render(
         <TokenDetailsStickyFooter

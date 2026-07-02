@@ -51,12 +51,9 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ replace: mockReplace }),
 }));
 
-jest.mock(
-  '../../../../../core/redux/slices/bridge/utils/hasMinimumRequiredVersion',
-  () => ({
-    hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
-  }),
-);
+jest.mock('../../../../../util/remoteFeatureFlag', () => ({
+  hasMinimumRequiredVersion: jest.fn().mockReturnValue(true),
+}));
 
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useLatestBalance } from '../../hooks/useLatestBalance';

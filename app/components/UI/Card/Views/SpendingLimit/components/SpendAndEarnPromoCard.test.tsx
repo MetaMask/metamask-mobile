@@ -1,8 +1,30 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
 import SpendAndEarnPromoCard from './SpendAndEarnPromoCard';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import {
+  CardActions,
+  CardEntryPoint,
+  CardFlow,
+  CardScreens,
+} from '../../../util/metrics';
+
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'built-event' }));
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn((_eventName?: unknown) => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
 
 jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string | number>) => {
@@ -29,6 +51,11 @@ describe('SpendAndEarnPromoCard', () => {
     apyPercent: 4,
     cashbackPercent: 1,
     onPress: jest.fn(),
+  };
+  const analytics = {
+    screen: CardScreens.SPENDING_LIMIT,
+    entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
+    flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
   };
 
   beforeEach(() => {
@@ -80,5 +107,44 @@ describe('SpendAndEarnPromoCard', () => {
     render(<SpendAndEarnPromoCard {...defaultProps} testID="custom-promo" />);
 
     expect(screen.getByTestId('custom-promo')).toBeOnTheScreen();
+  });
+
+  it('tracks Card Viewed when analytics props are provided', () => {
+    render(<SpendAndEarnPromoCard {...defaultProps} analytics={analytics} />);
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_VIEWED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      screen: CardScreens.SPENDING_LIMIT,
+      entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
+      flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+    });
+  });
+
+  it('tracks the Use Money account CTA click before invoking onPress', () => {
+    const onPress = jest.fn();
+
+    render(
+      <SpendAndEarnPromoCard
+        {...defaultProps}
+        onPress={onPress}
+        analytics={analytics}
+      />,
+    );
+    jest.clearAllMocks();
+
+    fireEvent.press(screen.getByTestId('use-money-account-cta'));
+
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.CARD_BUTTON_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({
+      screen: CardScreens.SPENDING_LIMIT,
+      entrypoint: CardEntryPoint.SPENDING_LIMIT_SPEND_AND_EARN_PROMO,
+      flow: CardFlow.MONEY_ACCOUNT_LINKAGE,
+      action: CardActions.SPENDING_LIMIT_USE_MONEY_ACCOUNT_BUTTON,
+    });
+    expect(onPress).toHaveBeenCalledTimes(1);
   });
 });

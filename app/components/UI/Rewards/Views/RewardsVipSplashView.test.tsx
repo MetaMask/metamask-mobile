@@ -7,20 +7,27 @@ import {
   selectIsCurrentSubscriptionVipEnabled,
   selectRewardsSubscriptionId,
 } from '../../../../selectors/rewards';
-import { VIP_SPLASH_SCREEN_TEST_IDS } from '../components/Vip/VipSplashScreen';
+import { selectVipProgramEnabled } from '../../../../selectors/featureFlagController/vipProgram';
+import { VIP_SPLASH_SCREEN_TEST_IDS } from '../components/Vip/VipSplashScreenLayout';
 import { useVipDashboard } from '../hooks/useVipDashboard';
 import RewardsVipSplashView from './RewardsVipSplashView';
 
 const mockNavigateDispatch = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+const mockExitRewardsFlow = jest.fn();
 const mockSubscriptionId = 'test-subscription-id';
 let mockIsVipEnabled = true;
+let mockIsVipProgramEnabled = true;
 let mockCanGoBack = true;
 let mockVipSplashAccepted: Record<string, boolean> = {};
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+}));
+
+jest.mock('../utils', () => ({
+  exitRewardsFlow: (...args: unknown[]) => mockExitRewardsFlow(...args),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -102,9 +109,9 @@ jest.mock('../../../../images/rewards/vip_splash.png', () => 1);
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => {
     const translations: Record<string, string> = {
-      'rewards.vip.splash_title': 'WELCOME\nTO GOLD\nFOX VIP',
+      'rewards.vip.splash_title': 'WELCOME\nTO MOCK\nVIP PROGRAM',
       'rewards.vip.splash_description':
-        'Unlock exclusive perks, early features, and curated rewards. By invitation only.',
+        'Placeholder splash copy for tests only. Not representative of the live program.',
       'rewards.vip.splash_accept_invite': 'Accept invite',
       'rewards.vip.splash_not_now': 'Not now',
     };
@@ -115,6 +122,10 @@ jest.mock('../../../../../locales/i18n', () => ({
 jest.mock('../../../../selectors/rewards', () => ({
   selectIsCurrentSubscriptionVipEnabled: jest.fn(),
   selectRewardsSubscriptionId: jest.fn(),
+}));
+
+jest.mock('../../../../selectors/featureFlagController/vipProgram', () => ({
+  selectVipProgramEnabled: jest.fn(),
 }));
 
 jest.mock('../../../Views/ErrorBoundary', () => ({
@@ -141,6 +152,7 @@ describe('RewardsVipSplashView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockIsVipEnabled = true;
+    mockIsVipProgramEnabled = true;
     mockCanGoBack = true;
     mockVipSplashAccepted = {};
     mockUseVipDashboard.mockReturnValue({
@@ -154,6 +166,9 @@ describe('RewardsVipSplashView', () => {
       if (selector === selectRewardsSubscriptionId) return mockSubscriptionId;
       if (selector === selectIsCurrentSubscriptionVipEnabled) {
         return mockIsVipEnabled;
+      }
+      if (selector === selectVipProgramEnabled) {
+        return mockIsVipProgramEnabled;
       }
 
       return (
@@ -170,10 +185,10 @@ describe('RewardsVipSplashView', () => {
     );
 
     expect(getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.CONTAINER)).toBeOnTheScreen();
-    expect(getAllByText('WELCOME\nTO GOLD\nFOX VIP')[0]).toBeOnTheScreen();
+    expect(getAllByText('WELCOME\nTO MOCK\nVIP PROGRAM')[0]).toBeOnTheScreen();
     expect(
       getByText(
-        'Unlock exclusive perks, early features, and curated rewards. By invitation only.',
+        'Placeholder splash copy for tests only. Not representative of the live program.',
       ),
     ).toBeOnTheScreen();
     expect(mockUseVipDashboard).toHaveBeenCalled();
@@ -189,28 +204,28 @@ describe('RewardsVipSplashView', () => {
     );
   });
 
-  it('goes back when not now is pressed without accepting', () => {
+  it('exits the rewards flow when not now is pressed', () => {
     const { getByTestId } = render(<RewardsVipSplashView />);
 
     fireEvent.press(getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.NOT_NOW_BUTTON));
 
-    expect(mockGoBack).toHaveBeenCalled();
-    expect(mockNavigateDispatch).not.toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_DASHBOARD),
+    expect(mockExitRewardsFlow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        canGoBack: expect.any(Function),
+        goBack: mockGoBack,
+        navigate: mockNavigate,
+      }),
     );
   });
 
-  it('replaces with dashboard on not now when there is no back route', () => {
+  it('exits the rewards flow on not now even when there is no back route', () => {
     mockCanGoBack = false;
 
     const { getByTestId } = render(<RewardsVipSplashView />);
 
     fireEvent.press(getByTestId(VIP_SPLASH_SCREEN_TEST_IDS.NOT_NOW_BUTTON));
 
-    expect(mockGoBack).not.toHaveBeenCalled();
-    expect(mockNavigateDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_DASHBOARD),
-    );
+    expect(mockExitRewardsFlow).toHaveBeenCalled();
   });
 
   it('replaces with VIP view when the invite is already accepted', () => {
@@ -224,14 +239,21 @@ describe('RewardsVipSplashView', () => {
     );
   });
 
-  it('replaces with dashboard when the user cannot view VIP', () => {
+  it('exits the rewards flow when the user cannot view VIP', () => {
     mockIsVipEnabled = false;
 
     const { queryByTestId } = render(<RewardsVipSplashView />);
 
     expect(queryByTestId(VIP_SPLASH_SCREEN_TEST_IDS.CONTAINER)).toBeNull();
-    expect(mockNavigateDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.REWARDS_DASHBOARD),
-    );
+    expect(mockExitRewardsFlow).toHaveBeenCalled();
+  });
+
+  it('exits the rewards flow when the VIP program flag is off, even if the subscription is VIP', () => {
+    mockIsVipProgramEnabled = false;
+
+    const { queryByTestId } = render(<RewardsVipSplashView />);
+
+    expect(queryByTestId(VIP_SPLASH_SCREEN_TEST_IDS.CONTAINER)).toBeNull();
+    expect(mockExitRewardsFlow).toHaveBeenCalled();
   });
 });

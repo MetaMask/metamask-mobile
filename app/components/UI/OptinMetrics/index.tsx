@@ -32,7 +32,6 @@ import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { markMetricsOptInUISeen } from '../../../util/metrics/metricsOptInUIUtils';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
@@ -62,6 +61,8 @@ import {
 import type { RootState } from '../../../reducers';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
 import Logger from '../../../util/Logger';
+import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
+import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -215,25 +216,16 @@ const OptinMetrics = () => {
 
     // track onboarding events that were stored before user opted in
     // only if the user eventually opts in.
-    if (events?.length) {
-      let delay = 0; // Initialize delay
-      const eventTrackingDelay = 200; // ms delay between each event
-      events.forEach((eventArgs) => {
-        // delay each event to prevent them from
-        // being tracked with the same timestamp
-        // which would cause them to be grouped together
-        // by sentAt time in the Segment dashboard
-        // as precision is only to the milisecond
-        // and loop seems to runs faster than that
-        setTimeout(() => {
-          const event = AnalyticsEventBuilder.createEventBuilder(
-            eventArgs[0],
-          ).build();
-          metrics.trackEvent(event);
-        }, delay);
-        delay += eventTrackingDelay;
+    if (events?.length && isBasicUsageChecked) {
+      const attributionProps =
+        getWalletSetupAttributionPropsFromStore(isMarketingChecked);
+      scheduleBufferedOnboardingEventReplay({
+        events,
+        attributionProps,
+        trackEvent: (event) => metrics.trackEvent(event),
       });
     }
+
     dispatch(clearOnboardingEvents());
 
     let shouldShowInterestQuestionnaire = false;
@@ -489,6 +481,9 @@ const OptinMetrics = () => {
               }
               onPress={handleMarketingToggle}
               disabled={isMarketingDisabled}
+              testID={
+                MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_MARKETING_CHECKBOX
+              }
             >
               <Box
                 flexDirection={BoxFlexDirection.Row}

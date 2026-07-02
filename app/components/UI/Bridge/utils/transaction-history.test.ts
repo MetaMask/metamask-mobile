@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import '../_mocks_/initialState';
 import {
+  decodeBatchSellTx,
   decodeBridgeTx,
   decodeSwapsTx,
   getSwapBridgeTxActivityTitle,
@@ -10,7 +11,9 @@ import {
   BridgeHistoryItem,
   MAX_ATTEMPTS,
 } from '@metamask/bridge-status-controller';
-import { ChainId, StatusTypes } from '@metamask/bridge-controller';
+import { ChainId, FeatureId, StatusTypes } from '@metamask/bridge-controller';
+import { TRANSACTION_TYPES } from '../../../../util/transactions';
+import { toFormattedAddress } from '../../../../util/address';
 import { TransactionType } from '@metamask/transaction-controller';
 import Routes from '../../../../constants/navigation/Routes';
 import Engine from '../../../../core/Engine';
@@ -222,6 +225,304 @@ describe('getBridgeTxActivityTitle', () => {
 
     const result = getSwapBridgeTxActivityTitle(bridgeHistoryItem);
     expect(result).toBe('Bridge to Solana');
+  });
+
+  it('returns batch sell label for BATCH_SELL feature with 7702 batch', () => {
+    const bridgeHistoryItem = {
+      txMetaId: 'batch-sell-tx-id',
+      account: '0x123',
+      featureId: FeatureId.BATCH_SELL,
+      quote: {
+        requestId: 'test-request-id',
+        srcChainId: 1,
+        srcAsset: {
+          chainId: 1,
+          address: '0x123',
+          decimals: 18,
+          symbol: 'LINK',
+          name: 'Chainlink',
+          assetId: 'eip155:1/erc20:0x123',
+        },
+        destChainId: 1,
+        destAsset: {
+          chainId: 1,
+          address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          decimals: 6,
+          symbol: 'USDC',
+          name: 'USDC',
+          assetId: 'eip155:1/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+        },
+        srcTokenAmount: '1000000000000000000',
+        destTokenAmount: '5000000',
+        minDestTokenAmount: '4900000',
+        feeData: {
+          metabridge: {
+            amount: '0',
+            asset: {
+              chainId: 1,
+              address: '0x123',
+              decimals: 18,
+              symbol: 'LINK',
+              name: 'Chainlink',
+              assetId: 'eip155:1/erc20:0x123',
+            },
+          },
+        },
+        bridgeId: 'test-bridge',
+        bridges: [],
+        steps: [],
+      },
+      status: {
+        srcChain: {
+          chainId: 1,
+          txHash: '0xabc',
+        },
+        destChain: {
+          chainId: 1,
+          txHash: '0xdef',
+        },
+        status: StatusTypes.COMPLETE,
+      },
+      startTime: Date.now(),
+      estimatedProcessingTimeInSeconds: 0,
+      slippagePercentage: 0,
+      hasApprovalTx: false,
+    } as BridgeHistoryItem;
+
+    const result = getSwapBridgeTxActivityTitle(bridgeHistoryItem, true);
+
+    expect(result).toBe('Batch sell');
+  });
+
+  it('returns swap label for BATCH_SELL feature without 7702 batch', () => {
+    const bridgeHistoryItem = {
+      txMetaId: 'batch-sell-tx-id',
+      account: '0x123',
+      featureId: FeatureId.BATCH_SELL,
+      quote: {
+        requestId: 'test-request-id',
+        srcChainId: 1,
+        srcAsset: {
+          chainId: 1,
+          address: '0x123',
+          decimals: 18,
+          symbol: 'LINK',
+          name: 'Chainlink',
+          assetId: 'eip155:1/erc20:0x123',
+        },
+        destChainId: 1,
+        destAsset: {
+          chainId: 1,
+          address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+          decimals: 6,
+          symbol: 'USDC',
+          name: 'USDC',
+          assetId: 'eip155:1/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+        },
+        srcTokenAmount: '1000000000000000000',
+        destTokenAmount: '5000000',
+        minDestTokenAmount: '4900000',
+        feeData: {
+          metabridge: {
+            amount: '0',
+            asset: {
+              chainId: 1,
+              address: '0x123',
+              decimals: 18,
+              symbol: 'LINK',
+              name: 'Chainlink',
+              assetId: 'eip155:1/erc20:0x123',
+            },
+          },
+        },
+        bridgeId: 'test-bridge',
+        bridges: [],
+        steps: [],
+      },
+      status: {
+        srcChain: {
+          chainId: 1,
+          txHash: '0xabc',
+        },
+        destChain: {
+          chainId: 1,
+          txHash: '0xdef',
+        },
+        status: StatusTypes.COMPLETE,
+      },
+      startTime: Date.now(),
+      estimatedProcessingTimeInSeconds: 0,
+      slippagePercentage: 0,
+      hasApprovalTx: false,
+    } as BridgeHistoryItem;
+
+    const result = getSwapBridgeTxActivityTitle(bridgeHistoryItem, false);
+
+    expect(result).toBe('Swap LINK to USDC');
+  });
+});
+
+describe('decodeBatchSellTx', () => {
+  const baseBridgeHistoryItem = {
+    txMetaId: 'batch-sell-tx-id',
+    account: '0x123',
+    featureId: FeatureId.BATCH_SELL,
+    quote: {
+      requestId: 'test-request-id',
+      srcChainId: 42161,
+      srcAsset: {
+        chainId: 42161,
+        address: '0xf97f4df75117a78c1a5a0dbb814af92458539fb4',
+        decimals: 18,
+        symbol: 'LINK',
+        name: 'Chainlink',
+        assetId:
+          'eip155:42161/erc20:0xf97f4df75117a78c1a5a0dbb814af92458539fb4',
+      },
+      destChainId: 42161,
+      destAsset: {
+        chainId: 42161,
+        address: '0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+        decimals: 6,
+        symbol: 'USDC',
+        name: 'USDC',
+        assetId:
+          'eip155:42161/erc20:0xaf88d065e77c8cc2239327c5edb3a432268e5831',
+      },
+      srcTokenAmount: '1000000000000000000',
+      destTokenAmount: '5000000',
+      minDestTokenAmount: '4900000',
+      feeData: {
+        metabridge: {
+          amount: '0',
+          asset: {
+            chainId: 42161,
+            address: '0xf97f4df75117a78c1a5a0dbb814af92458539fb4',
+            decimals: 18,
+            symbol: 'LINK',
+            name: 'Chainlink',
+            assetId:
+              'eip155:42161/erc20:0xf97f4df75117a78c1a5a0dbb814af92458539fb4',
+          },
+        },
+      },
+      bridgeId: 'test-bridge',
+      bridges: [],
+      steps: [],
+    },
+    status: {
+      srcChain: {
+        chainId: 42161,
+        txHash: '0xabc',
+      },
+      destChain: {
+        chainId: 42161,
+        txHash: '0xdef',
+      },
+      status: StatusTypes.COMPLETE,
+    },
+    startTime: Date.now(),
+    estimatedProcessingTimeInSeconds: 0,
+    slippagePercentage: 0,
+    hasApprovalTx: false,
+  } as BridgeHistoryItem;
+
+  it('returns batch sell transaction element with aggregated dest amount', () => {
+    const usdcAddress = '0xaf88d065e77c8cc2239327c5edb3a432268e5831';
+    const args = {
+      tx: {
+        id: 'batch-sell-tx-id',
+        chainId: '0xa4b1',
+        status: 'confirmed',
+        txParams: {
+          from: '0x141d32a89a1e0a5ef360034a2f60a4b917c18838',
+          to: '0x9dDA6Ef3D919c9bC8885D5560999A3640431e8e6',
+          gas: '0x5208',
+          value: '0x0',
+        },
+      },
+      txChainId: '0xa4b1',
+      ticker: 'ETH',
+      currentCurrency: 'usd',
+      contractExchangeRates: {
+        [toFormattedAddress(usdcAddress)]: {
+          price: 1,
+        },
+      },
+      conversionRate: 1,
+      primaryCurrency: 'ETH',
+      bridgeTxHistoryData: {
+        bridgeTxHistoryItem: baseBridgeHistoryItem,
+        batchTotalDestAmount: 7000000,
+        is7702Batch: true,
+      },
+    };
+
+    const [transactionElement, transactionDetails] = decodeBatchSellTx(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      args as unknown as any,
+    );
+
+    expect(transactionElement).toEqual({
+      value: '7 USDC',
+      fiatValue: '$7.00',
+      transactionType: TRANSACTION_TYPES.BATCH_SELL_TRANSACTION,
+      actionKey: 'Batch sell',
+    });
+    expect(transactionDetails).toEqual({});
+  });
+
+  it('uses native exchange rate when dest asset is native', () => {
+    const nativeBridgeHistoryItem = {
+      ...baseBridgeHistoryItem,
+      quote: {
+        ...baseBridgeHistoryItem.quote,
+        destAsset: {
+          chainId: 42161,
+          address: '0x0000000000000000000000000000000000000000',
+          decimals: 18,
+          symbol: 'ETH',
+          name: 'Ethereum',
+        },
+      },
+    } as BridgeHistoryItem;
+
+    const args = {
+      tx: {
+        id: 'batch-sell-tx-id',
+        chainId: '0xa4b1',
+        status: 'confirmed',
+        txParams: {
+          from: '0x141d32a89a1e0a5ef360034a2f60a4b917c18838',
+          to: '0x9dDA6Ef3D919c9bC8885D5560999A3640431e8e6',
+          gas: '0x5208',
+          value: '0x0',
+        },
+      },
+      txChainId: '0xa4b1',
+      ticker: 'ETH',
+      currentCurrency: 'usd',
+      contractExchangeRates: {},
+      conversionRate: 2500,
+      primaryCurrency: 'ETH',
+      bridgeTxHistoryData: {
+        bridgeTxHistoryItem: nativeBridgeHistoryItem,
+        batchTotalDestAmount: 1000000000000000,
+        is7702Batch: true,
+      },
+    };
+
+    const [transactionElement] = decodeBatchSellTx(
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      args as unknown as any,
+    );
+
+    expect(transactionElement).toMatchObject({
+      value: '0.001 ETH',
+      fiatValue: '$2.50',
+      transactionType: TRANSACTION_TYPES.BATCH_SELL_TRANSACTION,
+      actionKey: 'Batch sell',
+    });
   });
 });
 
@@ -891,8 +1192,8 @@ describe('handleUnifiedSwapsTxHistoryItemClick', () => {
       counter: MAX_ATTEMPTS,
       lastAttemptTime: Date.now(),
     };
-    bridgeTxHistoryItem.quote.srcAsset.chainId = 10;
-    bridgeTxHistoryItem.quote.destAsset.chainId = 10;
+    bridgeTxHistoryItem.quote.destChainId =
+      bridgeTxHistoryItem.quote.srcChainId;
 
     // Act
     handleUnifiedSwapsTxHistoryItemClick({

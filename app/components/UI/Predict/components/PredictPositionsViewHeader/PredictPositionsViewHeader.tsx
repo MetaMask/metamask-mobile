@@ -16,7 +16,10 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import type { PredictPortfolioModel } from '../../hooks/usePredictPortfolio';
 import { PredictPositionsViewSelectorsIDs } from '../../Predict.testIds';
-import type { PredictNavigationParamList } from '../../types/navigation';
+import type {
+  PredictEntryPoint,
+  PredictNavigationParamList,
+} from '../../types/navigation';
 import {
   formatPredictUnrealizedPnLStringParts,
   formatPrice,
@@ -24,6 +27,7 @@ import {
 import PredictClaimButton from '../PredictActionButtons/PredictClaimButton';
 
 interface PredictPositionsViewHeaderProps {
+  entryPoint?: PredictEntryPoint;
   isPrivacyMode: boolean;
   portfolio: PredictPortfolioModel;
 }
@@ -45,6 +49,7 @@ const formatUnrealizedPnl = (amount: number, percent: number | undefined) => {
 };
 
 const PredictPositionsViewHeader = ({
+  entryPoint = PredictEventValues.ENTRY_POINT.HOMEPAGE_POSITIONS,
   isPrivacyMode,
   portfolio,
 }: PredictPositionsViewHeaderProps) => {
@@ -73,11 +78,25 @@ const PredictPositionsViewHeader = ({
   const handleClaimPress = useCallback(async () => {
     await executeGuardedAction(
       async () => {
-        await claim();
+        await claim({
+          entryPoint,
+          openPositionsCount: portfolio.openPositionCount,
+          claimablePositionsCount: portfolio.claimablePositionCount,
+          hasClaimableWinnings: portfolio.hasClaimableWinnings,
+          predictScreen:
+            PredictEventValues.PREDICT_SCREEN.PREDICT_POSITIONS_SCREEN,
+        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
-  }, [claim, executeGuardedAction]);
+  }, [
+    claim,
+    entryPoint,
+    executeGuardedAction,
+    portfolio.claimablePositionCount,
+    portfolio.hasClaimableWinnings,
+    portfolio.openPositionCount,
+  ]);
 
   return (
     <Box

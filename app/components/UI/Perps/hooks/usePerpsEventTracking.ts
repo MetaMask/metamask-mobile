@@ -38,6 +38,7 @@ const shouldEmitAssetViewedForPerpsScreenViewed = (
 interface EventTrackingOptions {
   eventName: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents];
   properties?: Record<string, unknown>;
+  resetKey?: string | number | boolean | null;
 
   // Simple API - most common case
   conditions?: boolean[]; // Track when all conditions are true
@@ -108,6 +109,7 @@ export const usePerpsEventTracking = (options?: EventTrackingOptions) => {
 
   // Declarative API implementation (similar to usePerpsMeasurement)
   const hasTracked = useRef(false);
+  const lastResetKey = useRef(options?.resetKey);
 
   const { actualConditions, actualResetConditions } = useMemo(() => {
     if (!options) {
@@ -144,6 +146,11 @@ export const usePerpsEventTracking = (options?: EventTrackingOptions) => {
 
   useEffect(() => {
     if (!options) return; // Imperative usage only
+
+    if (options.resetKey !== lastResetKey.current) {
+      hasTracked.current = false;
+      lastResetKey.current = options.resetKey;
+    }
 
     // Handle reset conditions
     if (shouldReset && hasTracked.current) {

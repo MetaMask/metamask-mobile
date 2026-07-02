@@ -22,7 +22,10 @@ import {
 } from '../../../constants/navigation/clearStackNavigatorOptions';
 import { TokenWarningModal } from './components/TokenWarningModal';
 import { MissingPriceModal } from './components/MissingPriceModal';
+import { HardwareWalletsSwaps } from '../HardwareWallet/Swaps/HardwareWalletsSwaps';
+import { HwQrScanner } from '../HardwareWallet/Swaps/HwQrScanner';
 import { HighRateAlertModal } from './components/HighRateAlertModal';
+import { PostTradeBottomSheet } from './components/PostTradeBottomSheet';
 import { BatchSellDestinationTokenSelectorModal } from './components/BatchSellDestinationTokenSelectorModal';
 import { BatchSellQuoteDetailsModal } from './components/BatchSellQuoteDetailsModal';
 import { BatchSellFinalReviewModal } from './components/BatchSellFinalReviewModal';
@@ -54,6 +57,16 @@ export const BridgeScreenStack = () => (
     <Stack.Screen
       name={Routes.BRIDGE.QUOTE_SELECTOR_VIEW}
       component={QuoteSelectorView}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.HARDWARE_WALLETS_SWAPS}
+      component={HardwareWalletsSwaps}
+      options={{ headerShown: false }}
+    />
+    <Stack.Screen
+      name={Routes.BRIDGE.HW_QR_SCANNER}
+      component={HwQrScanner}
+      options={{ headerShown: false }}
     />
   </Stack.Navigator>
 );
@@ -117,6 +130,10 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.HIGH_RATE_ALERT_MODAL}
       component={HighRateAlertModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.POST_TRADE_MODAL}
+      component={PostTradeBottomSheet}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BATCH_SELL_DESTINATION_TOKEN_SELECTOR_MODAL}

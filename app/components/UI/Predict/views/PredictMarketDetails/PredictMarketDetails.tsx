@@ -14,6 +14,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { estimateLineCount } from '../../utils/format';
@@ -49,6 +50,7 @@ import { isCryptoUpDown } from '../../utils/cryptoUpDown';
 import {
   selectPredictUpDownEnabledFlag,
   selectPredictFeeCollectionFlag,
+  selectNonRegTimeSportsMarketTypes,
 } from '../../selectors/featureFlags';
 import PredictMarketDetailsStatus from './components/PredictMarketDetailsStatus';
 import PredictMarketDetailsHeader from './components/PredictMarketDetailsHeader';
@@ -81,6 +83,9 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
   const [isResolvedExpanded, setIsResolvedExpanded] = useState<boolean>(false);
 
   const upDownEnabled = useSelector(selectPredictUpDownEnabledFlag);
+  const nonRegTimeSportsMarketTypes = useSelector(
+    selectNonRegTimeSportsMarketTypes,
+  );
   const {
     marketId,
     series,
@@ -228,69 +233,94 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
     timeframes,
   } = useChartData({ market, hasAnyOutcomeToken });
 
+  // The game branch (PredictGameDetailsContent) does not consume openOutcomes /
+  // yesPercentage and runs its own live price subscriptions internally. Keeping
+  // this hook live for game markets only adds a redundant high-frequency price
+  // subscription that re-renders this whole screen on every tick.
   const shouldRefreshOpenOutcomePrices =
-    market?.status === PredictMarketStatus.OPEN && !isBuySheetOpen;
+    market?.status === PredictMarketStatus.OPEN &&
+    !isBuySheetOpen &&
+    !market?.game;
 
-  const { closedOutcomes, openOutcomes, yesPercentage } = useOpenOutcomes({
+  const { closedOutcomes, openOutcomes } = useOpenOutcomes({
     market,
     enabled: shouldRefreshOpenOutcomePrices,
   });
 
-  const handleBackPress = () => {
+  const handleBackPress = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();
     } else {
       // If we can't go back, navigate to the main predict screen
       navigation.navigate(Routes.PREDICT.ROOT);
     }
-  };
+  }, [navigation]);
 
-  const handleBuyPress = (
-    token: PredictOutcomeToken,
-    selectedMarket: typeof market = market,
-  ) => {
-    if (!selectedMarket) {
-      return;
-    }
-    executeGuardedAction(
-      () => {
-        const selectedOpenOutcomes =
-          selectedMarket.id === market?.id
-            ? openOutcomes
-            : selectedMarket.outcomes.filter(
-                (outcome) => outcome.status === OPEN_PREDICT_OUTCOME_STATUS,
-              );
-        const matchingOutcome =
-          selectedMarket.outcomes.find((o) =>
-            o.tokens.some((marketToken) => marketToken.id === token.id),
-          ) ??
-          selectedOpenOutcomes[0] ??
-          selectedMarket.outcomes?.[0];
-        openBuySheet({
-          market: selectedMarket,
-          outcome: matchingOutcome,
-          outcomeToken: token,
-          entryPoint:
-            entryPoint || PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
-          ...(predictFeedTab && { predictFeedTab }),
-          ...(predictScreen && { predictScreen }),
-          ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
-        });
-      },
-      {
-        attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
-      },
-    );
-  };
+  const handleBuyPress = useCallback(
+    (token: PredictOutcomeToken, selectedMarket: typeof market = market) => {
+      if (!selectedMarket) {
+        return;
+      }
+      executeGuardedAction(
+        () => {
+          const selectedOpenOutcomes =
+            selectedMarket.id === market?.id
+              ? openOutcomes
+              : selectedMarket.outcomes.filter(
+                  (outcome) => outcome.status === OPEN_PREDICT_OUTCOME_STATUS,
+                );
+          const matchingOutcome =
+            selectedMarket.outcomes.find((o) =>
+              o.tokens.some((marketToken) => marketToken.id === token.id),
+            ) ??
+            selectedOpenOutcomes[0] ??
+            selectedMarket.outcomes?.[0];
+          openBuySheet({
+            market: selectedMarket,
+            outcome: matchingOutcome,
+            outcomeToken: token,
+            entryPoint:
+              entryPoint ||
+              PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+            ...(predictFeedTab && { predictFeedTab }),
+            ...(predictScreen && { predictScreen }),
+            ...(transactionActiveAbTests?.length && {
+              transactionActiveAbTests,
+            }),
+          });
+        },
+        {
+          attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
+        },
+      );
+    },
+    [
+      executeGuardedAction,
+      openOutcomes,
+      market,
+      openBuySheet,
+      entryPoint,
+      predictFeedTab,
+      predictScreen,
+      transactionActiveAbTests,
+    ],
+  );
 
-  const handleClaimPress = async () => {
+  const handleClaimPress = useCallback(async () => {
     await executeGuardedAction(
       async () => {
-        await claim();
+        // Claims are aggregate (all claimable positions), so market_id/title are
+        // intentionally omitted here; the controller derives them when exactly
+        // one market is claimed.
+        await claim({
+          entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_MARKET_DETAILS,
+          ...(predictScreen && { predictScreen }),
+          ...(predictFeedTab && { predictFeedTab }),
+        });
       },
       { attemptedAction: PredictEventValues.ATTEMPTED_ACTION.CLAIM },
     );
-  };
+  }, [executeGuardedAction, claim, predictScreen, predictFeedTab]);
 
   const handleTabPress = (tabIndex: number) => {
     if (!tabsReady) return;
@@ -319,13 +349,20 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const handlePolymarketResolution = useCallback(() => {
     InteractionManager.runAfterInteractions(() => {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: 'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
-          title: strings('predict.market_details.resolution_details'),
+      // `navigation` is typed to the Predict stack (for usePredictActionGuard),
+      // but Webview is a root-level route. Cast to the root prop for this
+      // cross-stack navigation. TODO(nav-phase-4): migrate Predict call sites
+      // + usePredictActionGuard to AppNavigationProp and drop this cast.
+      (navigation as unknown as AppNavigationProp).navigate(
+        Routes.WEBVIEW.MAIN,
+        {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url: 'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
+            title: strings('predict.market_details.resolution_details'),
+          },
         },
-      });
+      );
     });
   }, [navigation]);
 
@@ -463,6 +500,7 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
         )}
         isLoading={isClaimablePositionsLoading}
         isClaimPending={isClaimPending}
+        nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}
       />
     );
   }
@@ -583,7 +621,6 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
           isMarketLoading={isResolvedMarketLoading}
           market={market}
           openOutcomes={openOutcomes}
-          yesPercentage={yesPercentage}
           onClaimPress={handleClaimPress}
           onBuyPress={handleBuyPress}
           isClaimPending={isClaimPending}

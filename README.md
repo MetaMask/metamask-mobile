@@ -24,7 +24,7 @@ To learn how to contribute to the MetaMask codebase, visit our [Contributor Docs
 - [On-Ramp Provider Manual Testing](./tests/docs/ONRAMP-PROVIDER-TESTING.md)
 - [Debugging](./docs/readme/debugging.md)
 - [Development Process](./docs/readme/development-process.md)
-- [Performance](./docs/readme/performance.md)
+- [Performance](./docs/performance/)
 - [Release Build Profiling](./docs/readme/release-build-profiler.md)
 - [Storybook](./docs/readme/storybook.md)
 - [Miscellaneous](./docs/readme/miscellaneous.md)
@@ -81,17 +81,61 @@ yarn watch
 
 #### Download and install the development build
 
-- Expo development builds are hosted in [Runway](https://www.runway.team/) buckets and are made available to all contributors through the public bucket links below. A new build is generated every time a PR is merged into the `main` branch.
+Expo development builds are produced by the [`Expo Dev Build`](https://github.com/MetaMask/metamask-mobile/actions/workflows/expo-dev-build.yml) GitHub Actions workflow on every push to `main`. Artifacts are stored as GitHub Actions artifacts (not Runway buckets).
 
-- For Android:
-  - Download and install an `.apk` file from this [Runway bucket](https://app.runway.team/bucket/hykQxdZCEGgoyyZ9sBtkhli8wupv9PiTA6uRJf3Lh65FTECF1oy8vzkeXdmuJKhm7xGLeV35GzIT1Un7J5XkBADm5OhknlBXzA0CzqB767V36gi1F3yg3Uss) onto your Android device or emulator.
-- For iOS:
-  - Physical device
-    - Your test device needs to first be registered with our Apple developer account.
-    - Once registered, download and install an `.ipa` file from this [Runway bucket](https://app.runway.team/bucket/MV2BJmn6D5_O7nqGw8jHpATpEA4jkPrBB4EcWXC6wV7z8jgwIbAsDhE5Ncl7KwF32qRQQD9YrahAIaxdFVvLT4v3UvBcViMtT3zJdMMfkXDPjSdqVGw=) onto your device.
-  - Simulator
-    - Download and install an `.app` file from this [Runway bucket](https://app.runway.team/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=) onto your simulator.
-    - Note: Our `.app` files are zipped and hosted under `Additional Artifacts` in the bucket. Since this hosting additional artifacts in public buckets is a relatively new feature, contributors may find that some builds are missing additional artifacts. Under the hood, these are usually associated with failed or aborted CI builds. We are working with the Runway team to better filter out these builds and are subject to change in the future.
+**Prerequisites:** [GitHub CLI](https://cli.github.com/) (`gh`) authenticated with access to this repository (`gh auth login`).
+
+**Recommended — install the latest build on a simulator/emulator:**
+
+```bash
+# iOS simulator
+yarn install:ios:dev
+
+# Android emulator or device
+yarn install:android:dev
+```
+
+Download only (no install):
+
+```bash
+yarn install:ios:dev --skipInstall
+yarn install:android:dev --skipInstall
+```
+
+Artifacts land under `build/` (`MetaMask.app` on iOS, `metamask-dev.apk` on Android). The workflow run id is saved to `build/expo-dev-build-run-id.txt`.
+
+**Manual download from GitHub Actions:**
+
+```bash
+# List recent successful Expo Dev Build runs on main
+gh run list --repo MetaMask/metamask-mobile --workflow expo-dev-build.yml --branch main --status success --limit 5
+
+mkdir -p build
+
+# iOS simulator (.zip artifact → extract to MetaMask.app)
+gh run download RUN_ID --repo MetaMask/metamask-mobile \
+  -n ios-app-main-dev-expo -D build
+mkdir -p build/MetaMask.app
+ditto -x -k build/metamask-simulator-*.zip build/MetaMask.app
+
+# Android debug APK
+gh run download RUN_ID --repo MetaMask/metamask-mobile \
+  -n android-apk-main-dev-expo -D build
+cp build/metamask-dev-main-*.apk build/metamask-dev.apk
+
+# iOS physical device (.ipa — requires registered test device)
+gh run download RUN_ID --repo MetaMask/metamask-mobile \
+  -n ios-ipa-main-dev-expo -D build
+```
+
+Use a specific workflow run instead of the latest:
+
+```bash
+yarn install:ios:dev --run RUN_ID
+yarn install:android:dev --run RUN_ID
+```
+
+(`--run-id` is also accepted.) Related: [MCWP-683](https://consensyssoftware.atlassian.net/browse/MCWP-683), supersedes [PR #29891](https://github.com/MetaMask/metamask-mobile/pull/29891).
 
 #### Load the app
 
@@ -204,8 +248,8 @@ AI coding agents (Cursor, Claude Code, Codex) consume shared skills from the [Me
 Zero-config setup:
 
 ```bash
-yarn install # clones MetaMask/skills into .skills-cache/metamask-skills
-yarn skills  # syncs all default skills from the cache
+yarn install # refreshes the MetaMask/skills cache via the shared @metamask/skills CLI
+yarn skills  # syncs all default skills through metamask-skills sync
 ```
 
 Optional local configuration:
@@ -219,7 +263,7 @@ SKILLS_DOMAINS=perps,testing yarn skills      # one-off domain override
 
 Use `.skills.local` for persistent skills configuration. Shell environment variables with the same names are supported for one-off or CI overrides and take precedence.
 
-Skipping `yarn skills` is fine — it only affects agent tooling, not the app build.
+Skipping `yarn skills` is fine — it only affects agent tooling, not the app build. The repo uses the shared `@metamask/skills` package so sync/cache behavior stays uniform across MetaMask packages. To opt into best-effort regeneration during install/setup, set `SKILLS_AUTO_UPDATE=1` in your shell or `.skills.local`.
 
 ### Git Hooks (Husky)
 

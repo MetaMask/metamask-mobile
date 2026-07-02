@@ -82,6 +82,7 @@ export const useLatestBalance = (token: {
   decimals?: number;
   chainId?: Hex | CaipChainId;
   balance?: string;
+  refreshKey?: string | number;
 }) => {
   const [balance, setBalance] = useState<Balance | undefined>(undefined);
   const selectedAddress = useSelector(
@@ -218,7 +219,7 @@ export const useLatestBalance = (token: {
     }
 
     handleFetchEvmAtomicBalance();
-  }, [chainId, handleFetchEvmAtomicBalance]);
+  }, [chainId, handleFetchEvmAtomicBalance, token.refreshKey]);
 
   useEffect(() => {
     if (!chainId || !isCaipChainId(chainId) || !isNonEvmChainId(chainId)) {
@@ -226,7 +227,7 @@ export const useLatestBalance = (token: {
     }
 
     handleNonEvmAtomicBalance();
-  }, [chainId, handleNonEvmAtomicBalance]);
+  }, [chainId, handleNonEvmAtomicBalance, token.refreshKey]);
 
   const cachedBalance = useMemo(() => {
     const displayBalance = token.balance;

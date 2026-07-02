@@ -47,49 +47,53 @@ const buildDashboard = (
   overrides: Partial<VipDashboardState> = {},
 ): VipDashboardState =>
   ({
-    program: { id: 'vip', name: 'VIP Pilot' },
+    program: { id: 'mock-vip-program', name: 'Acme Rewards Beta' },
     period: {
-      start: '2026-03-31T00:00:00.000Z',
-      end: '2026-04-30T23:59:59.999Z',
+      start: '2099-06-01T00:00:00.000Z',
+      end: '2099-06-30T23:59:59.999Z',
     },
-    currentTier: { id: 't3', name: 'Gold Fox 3', tier: 3 },
-    nextTier: { id: 't4', name: 'Gold Fox 4', tier: 4 },
+    currentTier: {
+      id: 'mock-tier-alpha-3',
+      name: 'Mock Tier Alpha 3',
+      tier: 3,
+    },
+    nextTier: { id: 'mock-tier-alpha-4', name: 'Mock Tier Alpha 4', tier: 4 },
     progress: {
-      percent: 72,
-      remainingPointsToNextTier: 360000,
+      percent: 42,
+      remainingPointsToNextTier: 123456,
       status: 'on_track',
     },
     fees: {
-      revenueShareBps: 1500,
-      swapsBps: 15,
-      perpsBps: 4,
-      nextTierRevenueShareBps: 2000,
-      nextTierSwapsBps: 12,
-      nextTierPerpsBps: 3,
+      revenueShareBps: 1200,
+      swapsBps: 11,
+      perpsBps: 7,
+      nextTierRevenueShareBps: 1300,
+      nextTierSwapsBps: 9,
+      nextTierPerpsBps: 6,
     },
     volume: {
-      swapsUsd: 4100000,
-      perpsUsd: 2300000,
-      points: 530000,
-      pointsFromReferrals: 100000,
-      referrals: 12,
-      referralsCap: 50,
+      swapsUsd: 1234567,
+      perpsUsd: 9876543,
+      points: 555555,
+      pointsFromReferrals: 111111,
+      referrals: 3,
+      referralsCap: 7,
     },
     pointsAllocation: {
-      earned: 24400000,
-      threshold: 100000000,
-      percent: 24.4,
+      earned: 3333333,
+      threshold: 7777777,
+      percent: 42.9,
     },
     tiers: [
       {
-        id: 't3',
-        name: 'Gold Fox 3',
+        id: 'mock-tier-alpha-3',
+        name: 'Mock Tier Alpha 3',
         tier: 3,
-        pointsRequirement: 150000,
-        swapsBps: 15,
-        perpsBps: 4,
-        revenueShareBps: 1500,
-        referralCarryoverBps: 1500,
+        pointsRequirement: 222222,
+        swapsBps: 11,
+        perpsBps: 7,
+        revenueShareBps: 1200,
+        referralCarryoverBps: 4242,
         status: 'current',
       },
     ],
@@ -214,10 +218,10 @@ describe('ReferralInfoSection', () => {
       ).toBeTruthy();
       expect(
         getByTestId(REFERRAL_INFO_SECTION_TEST_IDS.VIP_REFERRALS_VALUE),
-      ).toHaveTextContent('12/50');
+      ).toHaveTextContent('3/7');
       expect(
         getByTestId(REFERRAL_INFO_SECTION_TEST_IDS.VIP_REVENUE_SHARE_VALUE),
-      ).toHaveTextContent('15%');
+      ).toHaveTextContent('42.42%');
       expect(queryByTestId(REFERRAL_INFO_SECTION_TEST_IDS.GENERIC)).toBeNull();
     });
 
@@ -233,14 +237,14 @@ describe('ReferralInfoSection', () => {
       const dashboard = buildDashboard({
         tiers: [
           {
-            id: 't3',
-            name: 'Gold Fox 3',
+            id: 'mock-tier-alpha-3',
+            name: 'Mock Tier Alpha 3',
             tier: 3,
-            pointsRequirement: 150000,
-            swapsBps: 15,
-            perpsBps: 4,
-            revenueShareBps: 1500,
-            referralCarryoverBps: 1500,
+            pointsRequirement: 222222,
+            swapsBps: 11,
+            perpsBps: 7,
+            revenueShareBps: 1200,
+            referralCarryoverBps: 4242,
             status: 'upcoming',
           },
         ],

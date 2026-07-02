@@ -1,4 +1,3 @@
-import { UnifiedRampRoutingType } from '../../../../reducers/fiatOrders';
 import { buildBaseProps, extractHostname } from './webviewFunnelAnalytics';
 
 describe('webviewFunnelAnalytics', () => {
@@ -8,32 +7,40 @@ describe('webviewFunnelAnalytics', () => {
         buildBaseProps({
           checkoutSessionId: 'session-1',
           providerName: 'MoonPay',
-          rampRouting: UnifiedRampRoutingType.AGGREGATOR,
         }),
       ).toEqual({
         checkout_session_id: 'session-1',
         location: 'Checkout',
         ramp_type: 'UNIFIED_BUY_2',
         provider_name: 'MoonPay',
-        ramp_routing: UnifiedRampRoutingType.AGGREGATOR,
       });
     });
 
-    it('omits provider_name and ramp_routing when absent', () => {
+    it('omits provider_name when absent', () => {
       const result = buildBaseProps({ checkoutSessionId: 'session-2' });
       expect(result.checkout_session_id).toBe('session-2');
       expect(result.location).toBe('Checkout');
       expect(result.ramp_type).toBe('UNIFIED_BUY_2');
       expect(result.provider_name).toBeUndefined();
-      expect(result.ramp_routing).toBeUndefined();
     });
 
-    it('coerces null ramp_routing to undefined', () => {
-      const result = buildBaseProps({
-        checkoutSessionId: 'session-3',
-        rampRouting: null,
+    it('applies HEADLESS overrides (ramp_type, ramp_surface, region)', () => {
+      expect(
+        buildBaseProps({
+          checkoutSessionId: 'session-4',
+          providerName: 'Transak',
+          rampType: 'HEADLESS',
+          rampSurface: 'money_account',
+          region: 'us-ca',
+        }),
+      ).toEqual({
+        checkout_session_id: 'session-4',
+        location: 'Checkout',
+        ramp_type: 'HEADLESS',
+        ramp_surface: 'money_account',
+        region: 'us-ca',
+        provider_name: 'Transak',
       });
-      expect(result.ramp_routing).toBeUndefined();
     });
   });
 
