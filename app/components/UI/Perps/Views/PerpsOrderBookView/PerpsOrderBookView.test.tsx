@@ -263,46 +263,51 @@ jest.mock('../../components/PerpsMarketHeader', () => {
   };
 });
 
-// Mock BottomSheet components to avoid SafeAreaProvider requirement
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-    const ReactMock = jest.requireActual('react');
-    return {
-      __esModule: true,
-      default: ReactMock.forwardRef(
-        (
-          props: {
-            children: React.ReactNode;
-            onClose?: () => void;
-          },
-          _ref: unknown,
-        ) => (
-          <View testID="bottom-sheet">
-            {props.children}
-            <TouchableOpacity
-              testID="bottom-sheet-backdrop"
-              onPress={props.onClose}
-            >
-              <Text>Backdrop</Text>
-            </TouchableOpacity>
-          </View>
-        ),
-      ),
-    };
-  },
-);
+// Mock MMDS BottomSheet only — requires SafeAreaProvider/reanimated in Jest.
+const mockBottomSheetRefState = { refAvailable: true };
 
-jest.mock(
-  '../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    return (props: { children: React.ReactNode; onClose?: () => void }) => (
-      <View testID="bottom-sheet-header">{props.children}</View>
-    );
-  },
-);
+jest.mock('@metamask/design-system-react-native', () => {
+  const { View } = jest.requireActual('react-native');
+  const ReactMock = jest.requireActual('react');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+
+  const MockBottomSheet = ReactMock.forwardRef(
+    (
+      props: {
+        children: React.ReactNode;
+        onClose?: () => void;
+        testID?: string;
+      },
+      ref: React.Ref<{
+        onOpenBottomSheet: (callback?: () => void) => void;
+        onCloseBottomSheet: (callback?: () => void) => void;
+      } | null>,
+    ) => {
+      ReactMock.useImperativeHandle(ref, () => {
+        if (!mockBottomSheetRefState.refAvailable) {
+          return null;
+        }
+
+        return {
+          onOpenBottomSheet: (callback?: () => void) => {
+            callback?.();
+          },
+          onCloseBottomSheet: (callback?: () => void) => {
+            props.onClose?.();
+            callback?.();
+          },
+        };
+      });
+
+      return <View testID={props.testID}>{props.children}</View>;
+    },
+  );
+
+  return {
+    ...actual,
+    BottomSheet: MockBottomSheet,
+  };
+});
 
 // Mock PerpsSelectModifyActionView
 jest.mock('../PerpsSelectModifyActionView', () => {
@@ -366,6 +371,7 @@ describe('PerpsOrderBookView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBottomSheetRefState.refAvailable = true;
     mockUseRoute.mockReturnValue({
       params: {
         symbol: 'BTC',
@@ -671,6 +677,36 @@ describe('PerpsOrderBookView', () => {
 
       fireEvent.press(option);
 
+      expect(mockTrack).toHaveBeenCalled();
+    });
+
+    it('applies grouping immediately when bottom sheet ref is unavailable', async () => {
+      mockBottomSheetRefState.refAvailable = false;
+
+      const { getByTestId, queryByText } = renderWithProvider(
+        <PerpsOrderBookView />,
+        { state: initialState },
+      );
+
+      fireEvent.press(
+        getByTestId(PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_BUTTON),
+      );
+
+      await waitFor(() => {
+        expect(
+          getByTestId(`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-1`),
+        ).toBeOnTheScreen();
+      });
+
+      fireEvent.press(
+        getByTestId(`${PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_OPTION}-1`),
+      );
+
+      await waitFor(() => {
+        expect(queryByText('Depth Band')).toBeNull();
+      });
+
+      expect(mockSaveGrouping).toHaveBeenCalledWith(1);
       expect(mockTrack).toHaveBeenCalled();
     });
 
@@ -1453,9 +1489,11 @@ describe('PerpsOrderBookView', () => {
         expect(queryByText('Depth Band')).toBeOnTheScreen();
       });
 
-      // Close via backdrop (onClose callback)
-      const backdrop = getByTestId('bottom-sheet-backdrop');
-      fireEvent.press(backdrop);
+      // Close via header close button
+      const closeButton = getByTestId(
+        PerpsOrderBookViewSelectorsIDs.DEPTH_BAND_SHEET_CLOSE,
+      );
+      fireEvent.press(closeButton);
 
       await waitFor(() => {
         expect(queryByText('Depth Band')).toBeNull();
