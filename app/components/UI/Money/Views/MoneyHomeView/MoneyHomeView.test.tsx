@@ -1653,6 +1653,22 @@ describe('MoneyHomeView', () => {
       expect(getAllByTestId(MoneyFooterTestIds.CONTAINER)).toHaveLength(1);
     });
 
+    it('shows the mUSD token row balance in USD, not the preferred currency', () => {
+      // mUSD is USD-pegged, so the row must use the USD-formatted token balance
+      // (moneyFormatUsd) — never the preferred-currency string.
+      mockMoneyFormatUsd.mockReturnValue('$1.00');
+      mockUseMusdBalance.mockReturnValue({
+        tokenBalanceAggregated: '1',
+        fiatBalanceAggregatedFormatted: '€99.00',
+      } as ReturnType<typeof useMusdBalance>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      const row = getByTestId(MoneyMusdTokenRowTestIds.CONTAINER);
+      expect(within(row).getByText('$1.00 • mUSD')).toBeOnTheScreen();
+      expect(within(row).queryByText(/€99\.00/)).not.toBeOnTheScreen();
+    });
+
     it('opens the Add money sheet from the empty-state footer', () => {
       const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 

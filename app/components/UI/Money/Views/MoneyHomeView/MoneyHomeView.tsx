@@ -140,8 +140,14 @@ const MoneyHomeView = () => {
   }, [refetchBalance, refreshMusdFiatRate]);
 
   const { hasMoneyAccount } = useMoneyAccountInfo();
-  const { fiatBalanceAggregatedFormatted: musdFiatFormatted } =
+  // mUSD is USD-pegged 1:1, so show the token balance as dollars — consistent
+  // with the account balance and projected earnings above, which also use USD.
+  const { tokenBalanceAggregated: musdTokenBalanceAggregated } =
     useMusdBalance();
+  const musdFiatFormatted = useMemo(
+    () => moneyFormatUsd(new BigNumber(musdTokenBalanceAggregated)),
+    [musdTokenBalanceAggregated],
+  );
 
   const { tokens: depositTokens, isNoFeeToken } = useMoneyEarnableTokens();
   const { initiateDeposit } = useMoneyAccountDeposit();
