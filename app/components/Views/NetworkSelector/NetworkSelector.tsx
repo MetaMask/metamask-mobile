@@ -911,7 +911,9 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
         });
       } else {
         // Remove the chainId from the tokenNetworkFilter
-        const { [chainId]: _, ...newTokenNetworkFilter } = tokenNetworkFilter;
+        const newTokenNetworkFilter = Object.fromEntries(
+          Object.entries(tokenNetworkFilter).filter(([id]) => id !== chainId),
+        );
         PreferencesController.setTokenNetworkFilter({
           // TODO fix type of preferences controller level
           // setTokenNetworkFilter in preferences controller accepts Record<string, boolean> while tokenNetworkFilter is Record<string, string>
