@@ -57,14 +57,14 @@ const HERO_COPY_KEY: Record<AccountsApiActivity['kind'], string> = {
 
 const iconStyles = StyleSheet.create({
   moneyIconWrapper: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
+    width: 16,
+    height: 16,
+    borderRadius: 4,
     overflow: 'hidden' as const,
     alignItems: 'center' as const,
     justifyContent: 'center' as const,
   },
-  moneyIcon: { width: 32, height: 32 },
+  moneyIcon: { width: 21.33, height: 21.33 },
   heroMoneyIcon: { width: 32, height: 32, borderRadius: 16 },
 });
 
