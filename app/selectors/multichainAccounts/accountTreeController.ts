@@ -75,12 +75,12 @@ export const selectAccountSections = createSelector(
 
     return Object.values(accountTreeState.accountTree.wallets).map(
       (wallet: AccountWalletObject) => {
-        const allAccountsIdInWallet = Object.values(wallet.groups).flatMap(
-          (group) => group.accounts,
+        const walletAccountIds = new Set(
+          Object.values(wallet.groups).flatMap((group) => group.accounts),
         );
         // To preserve the order of the accounts in the accounts controller
         const accountIds = internalAccounts
-          .filter((account) => allAccountsIdInWallet.includes(account.id))
+          .filter((account) => walletAccountIds.has(account.id))
           .map((account) => account.id);
 
         return {

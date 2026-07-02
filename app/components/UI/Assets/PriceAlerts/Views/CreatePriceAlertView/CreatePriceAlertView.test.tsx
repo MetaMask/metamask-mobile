@@ -191,12 +191,12 @@ describe('CreatePriceAlertView', () => {
     );
 
     expect(getByTestId(CreatePriceAlertTestIds.PERCENT_DIFF)).toHaveTextContent(
-      /5%/,
+      /\+5%/,
     );
     expect(getByText(/above current ETH price/)).toBeOnTheScreen();
   });
 
-  it('shows the percentage and "below" wording when target is less than current price', () => {
+  it('shows the negative percentage and "below" wording when target is less than current price', () => {
     const { getByTestId, getByText } = renderWithToast();
 
     // $1000 is ~17% below 1201.98
@@ -205,7 +205,27 @@ describe('CreatePriceAlertView', () => {
     fireEvent.press(getByTestId('keypad-key-0'));
     fireEvent.press(getByTestId('keypad-key-0'));
 
+    expect(getByTestId(CreatePriceAlertTestIds.PERCENT_DIFF)).toHaveTextContent(
+      /-17%/,
+    );
     expect(getByText(/below current ETH price/)).toBeOnTheScreen();
+  });
+
+  it('shows signed labels on quick percentage buttons', () => {
+    const { getByTestId } = renderWithToast();
+
+    expect(
+      getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}--10`),
+    ).toHaveTextContent('-10%');
+    expect(
+      getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}--5`),
+    ).toHaveTextContent('-5%');
+    expect(
+      getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-5`),
+    ).toHaveTextContent('+5%');
+    expect(
+      getByTestId(`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-10`),
+    ).toHaveTextContent('+10%');
   });
 
   describe('Set price alert button', () => {
@@ -288,7 +308,7 @@ describe('CreatePriceAlertView', () => {
       expect(mockGoBack).not.toHaveBeenCalled();
     });
 
-    it('does not navigate or show toast when submit throws', async () => {
+    it('does not navigate but shows an error toast when submit throws', async () => {
       mockSubmit.mockRejectedValueOnce(new Error('HTTP 500'));
       const { getByTestId } = renderWithToast();
 
@@ -299,7 +319,16 @@ describe('CreatePriceAlertView', () => {
       });
 
       expect(mockGoBack).not.toHaveBeenCalled();
-      expect(mockShowToast).not.toHaveBeenCalled();
+      expect(mockShowToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          labelOptions: expect.arrayContaining([
+            expect.objectContaining({
+              label: 'Failed to save price alert. Please try again.',
+            }),
+          ]),
+          hasNoTimeout: false,
+        }),
+      );
     });
 
     it('does not call submit a second time when the button is pressed while already submitting', async () => {

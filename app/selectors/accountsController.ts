@@ -80,7 +80,7 @@ export const selectInternalAccounts = createDeepEqualSelector(
   },
 );
 
-export const selectInternalEvmAccounts = createSelector(
+export const selectInternalEvmAccounts = createDeepEqualSelector(
   selectInternalAccounts,
   (accounts) => accounts.filter((account) => isEvmAccountType(account.type)),
 );
@@ -136,21 +136,13 @@ export const selectSelectedInternalAccountId = createSelector(
 /**
  * A memoized selector that returns the internal accounts sorted by the last selected timestamp
  */
-export const selectOrderedInternalAccountsByLastSelected = createSelector(
-  selectAccountsControllerState,
-  (accountsControllerState) => {
-    const accounts = accountsControllerState.internalAccounts.accounts;
-
-    // Convert accounts object to array and sort by lastSelected timestamp
-    return Object.values(accounts).sort((a, b) => {
-      const aLastSelected = a.metadata?.lastSelected || 0;
-      const bLastSelected = b.metadata?.lastSelected || 0;
-
-      // Sort in descending order (most recent first)
-      return bLastSelected - aLastSelected;
-    });
-  },
-);
+export const selectOrderedInternalAccountsByLastSelected =
+  createDeepEqualSelector(selectInternalAccountsById, (accounts) =>
+    Object.values(accounts).sort(
+      (a, b) =>
+        (b.metadata?.lastSelected || 0) - (a.metadata?.lastSelected || 0),
+    ),
+  );
 
 export const getMemoizedInternalAccountByAddress = createDeepEqualSelector(
   [selectInternalAccounts, (_state, address) => address],
