@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.0.3]
 
+### Fixed
+
+- Fixed failed order preview for Polymarket markets using non-standard tick sizes (e.g. World Cup match predictions) (#32720)
+
 ## [8.0.2]
 
 ### Added
