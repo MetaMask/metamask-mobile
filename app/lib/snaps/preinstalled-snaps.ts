@@ -15,7 +15,7 @@ import { isTestEnvironment } from '../../util/test/utils';
 import TronWalletSnap from '@metamask/tron-wallet-snap/dist/preinstalled-snap.json';
 ///: END:ONLY_INCLUDE_IF
 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
-import StellarWalletSnap from '@metamask-previews/stellar-wallet-snap/dist/preinstalled-snap.json';
+import StellarWalletSnap from '@metamask/stellar-wallet-snap/dist/preinstalled-snap.json';
 ///: END:ONLY_INCLUDE_IF
 
 const PREINSTALLED_SNAPS: readonly PreinstalledSnap[] = Object.freeze([

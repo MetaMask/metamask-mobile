@@ -1,8 +1,10 @@
 ///: BEGIN:ONLY_INCLUDE_IF(stellar)
 import { XlmAccountType, XlmScope } from '@metamask/keyring-api';
 import { KeyringTypes } from '@metamask/keyring-controller';
-import type { MultichainAccountServiceMessenger } from '@metamask/multichain-account-service';
-import { XlmAccountProvider } from './XlmAccountProvider';
+import {
+  XlmAccountProvider,
+  type MultichainAccountServiceMessenger,
+} from '@metamask/multichain-account-service';
 
 describe('XlmAccountProvider', () => {
   const messenger = {} as MultichainAccountServiceMessenger;
@@ -41,25 +43,10 @@ describe('XlmAccountProvider', () => {
     ).toBe(false);
   });
 
-  it('returns no discovered accounts when discovery is disabled', async () => {
-    const disabledProvider = new XlmAccountProvider(messenger, {
-      maxConcurrency: 1,
-      discovery: {
-        enabled: false,
-        timeoutMs: 2000,
-        maxAttempts: 3,
-        backOffMs: 1000,
-      },
-      createAccounts: { timeoutMs: 10000, batched: true },
-      resyncAccounts: { autoRemoveExtraSnapAccounts: false },
-    });
-
-    await expect(
-      disabledProvider.discoverAccounts({
-        entropySource: 'entropy-source' as never,
-        groupIndex: 0,
-      }),
-    ).resolves.toEqual([]);
+  it('uses the canonical stellar wallet snap id', () => {
+    expect(XlmAccountProvider.XLM_SNAP_ID).toBe(
+      'npm:@metamask/stellar-wallet-snap',
+    );
   });
 });
 ///: END:ONLY_INCLUDE_IF

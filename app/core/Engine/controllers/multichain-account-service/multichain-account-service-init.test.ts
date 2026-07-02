@@ -4,6 +4,9 @@ import {
   SOL_ACCOUNT_PROVIDER_NAME,
   BTC_ACCOUNT_PROVIDER_NAME,
   TRX_ACCOUNT_PROVIDER_NAME,
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  XLM_ACCOUNT_PROVIDER_NAME,
+  ///: END:ONLY_INCLUDE_IF
 } from '@metamask/multichain-account-service';
 import { buildMessengerClientInitRequestMock } from '../../utils/test-utils';
 import { MessengerClientInitRequest } from '../../types';
@@ -114,4 +117,20 @@ describe('MultichainAccountServiceInit', () => {
       batched: true,
     });
   });
+
+  ///: BEGIN:ONLY_INCLUDE_IF(stellar)
+  it('does enable batched account creation for stellar with extended timeout', () => {
+    multichainAccountServiceInit(getInitRequestMock());
+
+    const callArgs = jest.mocked(MultichainAccountService).mock.calls[0][0];
+    const { providerConfigs } = callArgs;
+
+    expect(
+      providerConfigs?.[XLM_ACCOUNT_PROVIDER_NAME]?.createAccounts,
+    ).toMatchObject({
+      batched: true,
+      timeoutMs: 30000,
+    });
+  });
+  ///: END:ONLY_INCLUDE_IF
 });
