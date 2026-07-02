@@ -6,6 +6,7 @@ import {
 import { SignMessenger, getDelegationTransaction } from './delegation';
 import { MOCK_ANY_NAMESPACE, Messenger } from '@metamask/messenger';
 import { Hex } from '@metamask/utils';
+import { type Caveat } from '../../core/Delegation';
 
 const mockGetNonceLock = jest.fn();
 
@@ -180,6 +181,30 @@ describe('Transaction Delegation Utils', () => {
       await expect(
         getDelegationTransaction(messengerMock, TRANSACTION_META_MOCK),
       ).rejects.toThrow('Upgrade contract address not found');
+    });
+
+    it('uses provided caveats instead of building default ones', async () => {
+      const customCaveats: Caveat[] = [
+        {
+          enforcer: '0xc2b0d624c1c4319760C96503BA27C347F3260f55' as Hex,
+          terms:
+            '0x0000000000000000000000000000000000000000000000000000000000000000a9059cbb0000000000000000000000001234567890abcdef1234567890abcdef12345678' as Hex,
+          args: '0x' as Hex,
+        },
+      ];
+
+      await getDelegationTransaction(
+        messengerMock,
+        TRANSACTION_META_MOCK,
+        customCaveats,
+      );
+
+      expect(signDelegationMock).toHaveBeenCalledWith({
+        chainId: TRANSACTION_META_MOCK.chainId,
+        delegation: expect.objectContaining({
+          caveats: customCaveats,
+        }),
+      });
     });
   });
 });

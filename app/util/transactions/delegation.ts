@@ -51,6 +51,7 @@ export async function getDelegationTransaction<
 >(
   messenger: MessengerType,
   transaction: TransactionMeta,
+  caveats?: Caveat[],
 ): Promise<DelegationTransaction> {
   const { chainId } = transaction;
   const delegationEnvironment = getDeleGatorEnvironment(parseInt(chainId, 16));
@@ -62,6 +63,7 @@ export async function getDelegationTransaction<
     delegationEnvironment,
     transaction,
     messenger,
+    caveats,
   );
 
   const executions = buildExecutions(transaction);
@@ -180,10 +182,12 @@ async function buildDelegation<MessengerType extends SignMessenger>(
   delegationEnvironment: DeleGatorEnvironment,
   transactionMeta: TransactionMeta,
   messenger: MessengerType,
+  caveats?: Caveat[],
 ): Promise<Delegation[][]> {
   const unsignedDelegation = buildUnsignedDelegation(
     delegationEnvironment,
     transactionMeta,
+    caveats,
   );
 
   log('Signing delegation');
@@ -228,15 +232,16 @@ function buildExecutions(
 function buildUnsignedDelegation(
   environment: DeleGatorEnvironment,
   transactionMeta: TransactionMeta,
+  caveats?: Caveat[],
 ): UnsignedDelegation {
-  const caveats = buildCaveats(environment, transactionMeta);
+  const resolvedCaveats = caveats ?? buildCaveats(environment, transactionMeta);
 
-  log('Caveats', caveats);
+  log('Caveats', resolvedCaveats);
 
   const delegation = createDelegation({
     from: transactionMeta.txParams.from as Hex,
     to: ANY_BENEFICIARY,
-    caveats,
+    caveats: resolvedCaveats,
   });
 
   log('Delegation', delegation);
