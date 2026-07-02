@@ -14,6 +14,11 @@ import { QrSyncSecretTypes, QrSyncMessageVersion } from '../constants';
 import { defaultQrSyncControllerState } from '../QrSyncController';
 import type { QrSyncControllerState } from '../controller-types';
 import type { QrSyncProvisioningMetadata } from '../types';
+
+jest.mock('@metamask/key-tree', () => ({
+  mnemonicPhraseToBytes: jest.fn().mockReturnValue(new Uint8Array([1, 2, 3])),
+}));
+
 import {
   QrSyncProvisioningService,
   type QrSyncProvisioningServiceMessenger,
@@ -173,6 +178,85 @@ describe('QrSyncProvisioningService', () => {
       'QrSyncProvisioningService:provisionFromMetadata',
       expect.any(Function),
     );
+    expect(mockMessenger.registerActionHandler).toHaveBeenCalledWith(
+      'QrSyncProvisioningService:importSecretsToVault',
+      expect.any(Function),
+    );
+  });
+
+  describe('importSecretsToVault', () => {
+    const SECONDARY_ENTROPY_SOURCE =
+      'secondary-entropy-source' as EntropySourceId;
+
+    const remainingSecrets = [
+      {
+        index: 1,
+        type: QrSyncSecretTypes.MNEMONIC,
+        value: 'secondary mnemonic',
+      },
+      {
+        index: 2,
+        type: QrSyncSecretTypes.PRIVATE_KEY,
+        value: '0xabc',
+      },
+    ];
+
+    it('imports secrets and enriches metadata via the controller', async () => {
+      const mockCall = jest.fn((action: string) => {
+        if (
+          action === 'MultichainAccountService:createMultichainAccountWallet'
+        ) {
+          return Promise.resolve({ entropySource: SECONDARY_ENTROPY_SOURCE });
+        }
+
+        if (action === 'KeyringController:withKeyringV2') {
+          return Promise.resolve(undefined);
+        }
+
+        if (action === 'KeyringController:importAccountWithStrategy') {
+          return Promise.resolve(PRIVATE_KEY_ADDRESS);
+        }
+
+        return undefined;
+      });
+      mockMessenger.call = mockCall;
+      const importService = new QrSyncProvisioningService({
+        messenger: asProvisioningMessenger(mockMessenger),
+      });
+
+      await importService.importSecretsToVault(remainingSecrets);
+
+      expect(mockCall).toHaveBeenCalledWith(
+        'MultichainAccountService:createMultichainAccountWallet',
+        {
+          type: 'import',
+          mnemonic: expect.any(Uint8Array),
+        },
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'KeyringController:withKeyringV2',
+        { id: SECONDARY_ENTROPY_SOURCE },
+        expect.any(Function),
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'QrSyncController:enrichProvisioningEntry',
+        1,
+        { entropySource: SECONDARY_ENTROPY_SOURCE },
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'KeyringController:importAccountWithStrategy',
+        'privateKey',
+        ['abc'],
+      );
+      expect(mockCall).toHaveBeenCalledWith(
+        'QrSyncController:enrichProvisioningEntry',
+        2,
+        { accountAddress: PRIVATE_KEY_ADDRESS },
+      );
+      expect(mockCall).not.toHaveBeenCalledWith(
+        'QrSyncController:finalizeSecretImport',
+      );
+    });
   });
 
   describe('provisionFromMetadata group creation', () => {

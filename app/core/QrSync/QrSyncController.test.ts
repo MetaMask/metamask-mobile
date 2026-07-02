@@ -705,5 +705,112 @@ describe('QrSyncController', () => {
       expect(controller.state.provisioningMetadata).toBeNull();
       expect(controller.state.provisioningStatus).toBe('completed');
     });
+
+    it('assertReadyForSecretImport throws when not awaiting_password', () => {
+      const controller = buildController();
+
+      expect(() => controller.assertReadyForSecretImport()).toThrow(
+        'QR sync secret import requires provisioningStatus awaiting_password',
+      );
+    });
+
+    it('canImportRemainingSecrets returns true when awaiting_password with secrets', async () => {
+      const controller = buildController({
+        getIsOnboardingCompleted: () => false,
+      });
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      expect(controller.canImportRemainingSecrets()).toBe(true);
+    });
+
+    it('enrichPrimaryProvisioningEntry enriches the primary mnemonic entry', async () => {
+      const controller = buildController({
+        getIsOnboardingCompleted: () => false,
+      });
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      controller.enrichPrimaryProvisioningEntry(
+        'primary-entropy' as EntropySourceId,
+      );
+
+      expect(controller.state.provisioningMetadata?.entries[0]).toEqual(
+        expect.objectContaining({
+          index: 0,
+          entropySource: 'primary-entropy',
+        }),
+      );
+    });
+
+    it('getRemainingSecretImports excludes the primary mnemonic', async () => {
+      const controller = buildController({
+        getIsOnboardingCompleted: () => false,
+      });
+      const walletClient = buildMockWalletClient();
+
+      await startSession(controller, walletClient);
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      const remaining = controller.getRemainingSecretImports();
+
+      expect(remaining).toHaveLength(0);
+    });
+
+    it('importRemainingSecrets delegates vault imports to the provisioning service', async () => {
+      const walletClient = buildMockWalletClient();
+      const messenger = buildMessenger();
+      const callSpy = jest
+        .spyOn(messenger, 'call')
+        .mockResolvedValue(undefined);
+
+      const orchestratingController = new QrSyncController({
+        messenger,
+        keyManager: {} as IKeyManager,
+        relayUrl: TEST_RELAY_URL,
+        getIsOnboardingCompleted: () => false,
+      });
+
+      await startSession(orchestratingController, walletClient);
+      walletClient.emit('message', createSyncReadyWireMessage());
+      await flushPromises();
+
+      await orchestratingController.importRemainingSecrets(
+        'primary-entropy' as EntropySourceId,
+      );
+
+      expect(callSpy).toHaveBeenCalledWith(
+        'QrSyncProvisioningService:importSecretsToVault',
+        [],
+      );
+      expect(orchestratingController.state.provisioningStatus).toBe(
+        'secrets_imported',
+      );
+    });
+
+    it('importRemainingSecrets no-ops when not awaiting_password', async () => {
+      const messenger = buildMessenger();
+      const callSpy = jest.spyOn(messenger, 'call');
+
+      const idleController = new QrSyncController({
+        messenger,
+        keyManager: {} as IKeyManager,
+        relayUrl: TEST_RELAY_URL,
+        getIsOnboardingCompleted: () => false,
+      });
+
+      await idleController.importRemainingSecrets(
+        'primary-entropy' as EntropySourceId,
+      );
+
+      expect(callSpy).not.toHaveBeenCalled();
+    });
   });
 });

@@ -1,4 +1,5 @@
 import { BaseController, type StateMetadata } from '@metamask/base-controller';
+import type { EntropySourceId } from '@metamask/keyring-api';
 import type { IKeyManager } from '@metamask/mobile-wallet-protocol-core';
 import { WalletClient } from '@metamask/mobile-wallet-protocol-wallet-client';
 
@@ -14,6 +15,7 @@ import type {
   QrSyncErrorCode,
   QrSyncPhase,
   QrSyncProvisioningMetadata,
+  QrSyncSecretImportEntry,
   QrSyncServiceEvent,
   QrSyncWireMessage,
 } from './types';
@@ -30,6 +32,7 @@ import {
   RELAY_URL,
 } from './constants';
 import { routeIncomingQrSyncMessage } from './services/qr-sync-message-router';
+import Logger from '../../util/Logger';
 
 const metadata: StateMetadata<QrSyncControllerState> = {
   phase: {
@@ -194,6 +197,113 @@ export class QrSyncController extends BaseController<
   }
 
   /**
+   * Phase B entrypoint: validates state, then delegates vault imports to the
+   * provisioning service.
+   */
+  public async importRemainingSecrets(
+    primaryEntropySource: EntropySourceId,
+  ): Promise<void> {
+    if (!this.canImportRemainingSecrets()) {
+      return;
+    }
+
+    this.assertReadyForSecretImport();
+
+    try {
+      this.enrichPrimaryProvisioningEntry(primaryEntropySource);
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'QrSyncController.importRemainingSecrets enrichPrimary',
+      );
+    }
+
+    const remainingSecrets = this.getRemainingSecretImports();
+
+    await this.messenger.call(
+      'QrSyncProvisioningService:importSecretsToVault',
+      remainingSecrets,
+    );
+
+    try {
+      this.finalizeSecretImport();
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'QrSyncController.importRemainingSecrets finalize',
+      );
+    }
+  }
+
+  /**
+   * Asserts Phase B secret-import preconditions (awaiting_password + pending secrets).
+   */
+  public assertReadyForSecretImport(): void {
+    const { provisioningStatus, pendingSecretImports } = this.state;
+
+    if (provisioningStatus !== 'awaiting_password') {
+      throw new Error(
+        'QR sync secret import requires provisioningStatus awaiting_password',
+      );
+    }
+
+    if (!pendingSecretImports?.length) {
+      throw new Error('QR sync secret import requires pending secret imports');
+    }
+  }
+
+  /**
+   * Returns whether remaining QR sync secrets can be imported into the vault.
+   */
+  public canImportRemainingSecrets(): boolean {
+    const { provisioningStatus, pendingSecretImports } = this.state;
+
+    return (
+      provisioningStatus === 'awaiting_password' &&
+      Boolean(pendingSecretImports?.length)
+    );
+  }
+
+  /**
+   * Enriches the primary mnemonic entry after the primary vault restore.
+   */
+  public enrichPrimaryProvisioningEntry(
+    primaryEntropySource: EntropySourceId,
+  ): void {
+    this.assertReadyForSecretImport();
+
+    const primarySecret = this.state.pendingSecretImports?.find(
+      (secret) =>
+        secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary,
+    );
+
+    if (!primarySecret) {
+      return;
+    }
+
+    this.enrichProvisioningEntry(primarySecret.index, {
+      entropySource: primaryEntropySource,
+    });
+  }
+
+  /**
+   * Returns non-primary pending secrets for vault import (Phase B).
+   */
+  public getRemainingSecretImports(): QrSyncSecretImportEntry[] {
+    this.assertReadyForSecretImport();
+
+    const { pendingSecretImports } = this.state;
+    if (!pendingSecretImports) {
+      return [];
+    }
+
+    return [...pendingSecretImports].filter(
+      (secret) =>
+        !(secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary),
+    );
+  }
+
+  /**
    * Merges vault-derived runtime IDs into a persisted provisioning metadata entry.
    */
   public enrichProvisioningEntry(
@@ -203,11 +313,14 @@ export class QrSyncController extends BaseController<
     const { provisioningMetadata, provisioningStatus, pendingSecretImports } =
       this.state;
 
-    if (
-      provisioningStatus !== 'awaiting_password' ||
-      !pendingSecretImports?.length
-    ) {
-      return;
+    if (provisioningStatus !== 'awaiting_password') {
+      throw new Error(
+        'QR sync enrichment requires provisioningStatus awaiting_password',
+      );
+    }
+
+    if (!pendingSecretImports?.length) {
+      throw new Error('QR sync enrichment requires pending secret imports');
     }
 
     if (!provisioningMetadata) {

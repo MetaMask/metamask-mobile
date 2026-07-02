@@ -81,8 +81,6 @@ import { Alert, Platform } from 'react-native';
 import { strings } from '../../../locales/i18n';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
 import { mnemonicPhraseToBytes } from '@metamask/key-tree';
-import { QrSyncSecretTypes } from '../QrSync/constants';
-import type { QrSyncProvisioningEntryEnrichment } from '../QrSync/controller-types';
 import { toFormattedAddress } from '../../util/address';
 import { AuthCapabilities, ReauthenticateErrorType } from './types';
 import {
@@ -255,8 +253,6 @@ class AuthenticationService {
     secrets: {
       type: SecretType.Mnemonic | SecretType.PrivateKey;
       data: string;
-      metadataIndex?: number;
-      isQrSync?: boolean;
     }[];
     /** When true, remaining mnemonics also update seedless backup metadata (rehydrate path). */
     syncSeedlessBackupMetadata?: boolean;
@@ -264,40 +260,15 @@ class AuthenticationService {
     for (const item of secrets) {
       try {
         if (item.type === SecretType.PrivateKey) {
-          const accountAddress = await this.importAccountFromPrivateKey(
-            item.data,
-            {
-              shouldCreateSocialBackup: false,
-              shouldSelectAccount: false,
-            },
-          );
-
-          if (
-            accountAddress &&
-            item.isQrSync &&
-            item.metadataIndex !== undefined
-          ) {
-            Engine.context.QrSyncController.enrichProvisioningEntry(
-              item.metadataIndex,
-              {
-                accountAddress,
-              },
-            );
-          }
+          await this.importAccountFromPrivateKey(item.data, {
+            shouldCreateSocialBackup: false,
+            shouldSelectAccount: false,
+          });
         } else if (item.type === SecretType.Mnemonic) {
-          const entropySource = await this.importRemainingMnemonicToVault(
+          await this.importRemainingMnemonicToVault(
             item.data,
             syncSeedlessBackupMetadata,
           );
-
-          if (item.isQrSync && item.metadataIndex !== undefined) {
-            Engine.context.QrSyncController.enrichProvisioningEntry(
-              item.metadataIndex,
-              {
-                entropySource,
-              },
-            );
-          }
         } else {
           Logger.error(
             new Error('Authentication: Unknown remaining secret type'),
@@ -310,60 +281,6 @@ class AuthenticationService {
           'Error in Authentication.importRemainingSecretsToVault',
         );
       }
-    }
-  };
-
-  /**
-   * Imports QR sync remaining secrets after primary restore. Vault imports mirror
-   * seedless rehydrate; metadata enrichment updates QrSyncController directly.
-   */
-  private importRemainingSecrets = async (
-    primaryEntropySource: EntropySourceId,
-    isQrSync = false,
-  ): Promise<void> => {
-    if (!isQrSync) {
-      return;
-    }
-
-    const { QrSyncController } = Engine.context;
-    const { pendingSecretImports } = QrSyncController.state;
-    if (!pendingSecretImports) {
-      return;
-    }
-
-    const primarySecret = pendingSecretImports.find(
-      (secret) =>
-        secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary,
-    );
-
-    if (primarySecret) {
-      Engine.context.QrSyncController.enrichProvisioningEntry(
-        primarySecret.index,
-        {
-          entropySource: primaryEntropySource,
-        },
-      );
-    }
-
-    const remainingSecrets = [...pendingSecretImports].filter(
-      (secret) =>
-        !(secret.type === QrSyncSecretTypes.MNEMONIC && secret.isPrimary),
-    );
-
-    await this.importRemainingSecretsToVault({
-      secrets: remainingSecrets.map((secret) => ({
-        type:
-          secret.type === QrSyncSecretTypes.MNEMONIC
-            ? SecretType.Mnemonic
-            : SecretType.PrivateKey,
-        data: secret.value,
-        metadataIndex: secret.index,
-        isQrSync,
-      })),
-    });
-
-    if (isQrSync) {
-      Engine.context.QrSyncController.finalizeSecretImport();
     }
   };
 
@@ -734,12 +651,11 @@ class AuthenticationService {
       );
 
       if (isQrSync) {
-        Engine.context.QrSyncController.enrichProvisioningEntry(0, {
-          entropySource: primaryEntropySource,
-        });
+        await Engine.context.QrSyncController.importRemainingSecrets(
+          primaryEntropySource,
+        );
       }
 
-      await this.importRemainingSecrets(primaryEntropySource, isQrSync);
       await this.storePassword(password, authData.currentAuthType, true);
       ReduxService.store.dispatch(setExistingUser(true));
       await StorageWrapper.removeItem(SEED_PHRASE_HINTS);

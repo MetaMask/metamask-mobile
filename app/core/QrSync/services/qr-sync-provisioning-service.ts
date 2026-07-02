@@ -10,6 +10,13 @@ import {
   type AccountGroupId,
 } from '@metamask/account-api';
 import type { EntropySourceId } from '@metamask/keyring-api';
+import { mnemonicPhraseToBytes } from '@metamask/key-tree';
+import {
+  AccountImportStrategy,
+  type KeyringControllerImportAccountWithStrategyAction,
+  type KeyringControllerWithKeyringV2Action,
+} from '@metamask/keyring-controller';
+import { remove0x } from '@metamask/utils';
 import type { Messenger } from '@metamask/messenger';
 import type {
   AccountTreeControllerGetAccountWalletObjectsAction,
@@ -23,10 +30,12 @@ import type {
   MultichainAccountServiceAlignWalletAction,
   MultichainAccountServiceCreateMultichainAccountGroupAction,
   MultichainAccountServiceCreateMultichainAccountGroupsAction,
+  MultichainAccountServiceCreateMultichainAccountWalletAction,
 } from '@metamask/multichain-account-service';
 
 import type {
   QrSyncControllerCompleteProvisioningAction,
+  QrSyncControllerEnrichProvisioningEntryAction,
   QrSyncControllerGetStateAction,
   QrSyncControllerMarkProvisioningFailedAction,
 } from '../controller-types';
@@ -36,10 +45,17 @@ import type {
   QrSyncProvisioningMetadata,
   QrSyncProvisioningMnemonicEntry,
   QrSyncProvisioningPrivateKeyEntry,
+  QrSyncSecretImportEntry,
 } from '../types';
 import { toFormattedAddress } from '../../../util/address';
+import Logger from '../../../util/Logger';
 
 const SERVICE_NAME = 'QrSyncProvisioningService' as const;
+
+export interface QrSyncProvisioningServiceImportSecretsToVaultAction {
+  type: `${typeof SERVICE_NAME}:importSecretsToVault`;
+  handler: QrSyncProvisioningService['importSecretsToVault'];
+}
 
 export interface QrSyncProvisioningServiceProvisionFromMetadataAction {
   type: `${typeof SERVICE_NAME}:provisionFromMetadata`;
@@ -47,16 +63,21 @@ export interface QrSyncProvisioningServiceProvisionFromMetadataAction {
 }
 
 export type QrSyncProvisioningServiceActions =
-  QrSyncProvisioningServiceProvisionFromMetadataAction;
+  | QrSyncProvisioningServiceImportSecretsToVaultAction
+  | QrSyncProvisioningServiceProvisionFromMetadataAction;
 
 type QrSyncProvisioningServiceAllowedActions =
   | QrSyncProvisioningServiceActions
   | QrSyncControllerGetStateAction
+  | QrSyncControllerEnrichProvisioningEntryAction
   | QrSyncControllerMarkProvisioningFailedAction
   | QrSyncControllerCompleteProvisioningAction
   | MultichainAccountServiceCreateMultichainAccountGroupAction
   | MultichainAccountServiceCreateMultichainAccountGroupsAction
+  | MultichainAccountServiceCreateMultichainAccountWalletAction
   | MultichainAccountServiceAlignWalletAction
+  | KeyringControllerWithKeyringV2Action
+  | KeyringControllerImportAccountWithStrategyAction
   | AccountTreeControllerGetAccountWalletObjectsAction
   | AccountTreeControllerSetAccountWalletNameAction
   | AccountTreeControllerSetAccountGroupNameAction
@@ -86,9 +107,87 @@ export class QrSyncProvisioningService {
   }) {
     this.#messenger = messenger;
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:importSecretsToVault`,
+      this.importSecretsToVault.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:provisionFromMetadata`,
       this.provisionFromMetadata.bind(this),
     );
+  }
+
+  /**
+   * Imports secrets into the vault (Phase B). Called by QrSyncController after
+   * state validation; enriches metadata via the controller messenger.
+   */
+  async importSecretsToVault(
+    secrets: QrSyncSecretImportEntry[],
+  ): Promise<void> {
+    for (const secret of secrets) {
+      try {
+        if (secret.type === QrSyncSecretTypes.MNEMONIC) {
+          const entropySource = await this.#importMnemonicToVault(secret.value);
+          this.#messenger.call(
+            'QrSyncController:enrichProvisioningEntry',
+            secret.index,
+            { entropySource },
+          );
+        } else if (secret.type === QrSyncSecretTypes.PRIVATE_KEY) {
+          const accountAddress = await this.#importPrivateKeyToVault(
+            secret.value,
+          );
+
+          if (accountAddress) {
+            this.#messenger.call(
+              'QrSyncController:enrichProvisioningEntry',
+              secret.index,
+              { accountAddress },
+            );
+          }
+        } else {
+          Logger.error(
+            new Error('QrSyncProvisioningService: Unknown secret type'),
+            secret.type,
+          );
+        }
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'QrSyncProvisioningService.importSecretsToVault',
+        );
+      }
+    }
+  }
+
+  async #importMnemonicToVault(seed: string): Promise<EntropySourceId> {
+    const mnemonic = mnemonicPhraseToBytes(seed);
+
+    const wallet = await this.#messenger.call(
+      'MultichainAccountService:createMultichainAccountWallet',
+      {
+        type: 'import',
+        mnemonic,
+      },
+    );
+    const entropySource = wallet.entropySource;
+
+    await this.#messenger.call(
+      'KeyringController:withKeyringV2',
+      { id: entropySource },
+      async ({ keyring }) => keyring.getAccounts(),
+    );
+
+    return entropySource;
+  }
+
+  async #importPrivateKeyToVault(privateKey: string): Promise<string> {
+    const importedAccountAddress = await this.#messenger.call(
+      'KeyringController:importAccountWithStrategy',
+      AccountImportStrategy.privateKey,
+      [remove0x(privateKey)],
+    );
+
+    return toFormattedAddress(importedAccountAddress);
   }
 
   /**

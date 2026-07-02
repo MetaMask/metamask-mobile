@@ -15,6 +15,7 @@ import type {
   QrSyncOtpDisplay,
   QrSyncPhase,
 } from './types';
+import { QrSyncProvisioningServiceImportSecretsToVaultAction } from './services/qr-sync-provisioning-service';
 
 /** Runtime IDs written to persisted metadata after vault import (Phase B). */
 export type QrSyncProvisioningEntryEnrichment =
@@ -35,6 +36,30 @@ export type QrSyncControllerState = {
   provisioningStatus: QrSyncProvisioningStatus | null;
   otp: QrSyncOtpDisplay | null;
   error: QrSyncError | null;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncControllerImportRemainingSecretsAction = {
+  type: `${typeof QR_SYNC_CONTROLLER_NAME}:importRemainingSecrets`;
+  handler: (primaryEntropySource: EntropySourceId) => Promise<void>;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncControllerAssertReadyForSecretImportAction = {
+  type: `${typeof QR_SYNC_CONTROLLER_NAME}:assertReadyForSecretImport`;
+  handler: () => void;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncControllerEnrichPrimaryProvisioningEntryAction = {
+  type: `${typeof QR_SYNC_CONTROLLER_NAME}:enrichPrimaryProvisioningEntry`;
+  handler: (primaryEntropySource: EntropySourceId) => void;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type QrSyncControllerGetRemainingSecretImportsAction = {
+  type: `${typeof QR_SYNC_CONTROLLER_NAME}:getRemainingSecretImports`;
+  handler: () => QrSyncSecretImportEntry[];
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -78,6 +103,10 @@ export type QrSyncControllerGetStateAction = ControllerGetStateAction<
 /** Controller-local actions exposed by the QR sync controller namespace. */
 export type QrSyncControllerActions =
   | QrSyncControllerGetStateAction
+  | QrSyncControllerImportRemainingSecretsAction
+  | QrSyncControllerAssertReadyForSecretImportAction
+  | QrSyncControllerEnrichPrimaryProvisioningEntryAction
+  | QrSyncControllerGetRemainingSecretImportsAction
   | QrSyncControllerEnrichProvisioningEntryAction
   | QrSyncControllerFinalizeSecretImportAction
   | QrSyncControllerCompleteSecretImportAction
@@ -90,9 +119,10 @@ export type QrSyncControllerEvents = ControllerStateChangeEvent<
   QrSyncControllerState
 >;
 
-/** Typed messenger used by the QR sync controller. */
+type AllowedActions = QrSyncProvisioningServiceImportSecretsToVaultAction;
+
 export type QrSyncControllerMessenger = Messenger<
   typeof QR_SYNC_CONTROLLER_NAME,
-  QrSyncControllerActions | never,
-  QrSyncControllerEvents | never
+  QrSyncControllerActions | AllowedActions,
+  QrSyncControllerEvents
 >;

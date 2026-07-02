@@ -81,7 +81,11 @@ describe('qrSyncControllerInit', () => {
   it('exposes provisioning mutation methods on the initialized controller', () => {
     const { controller } = qrSyncControllerInit(initRequestMock);
 
+    expect(typeof controller.importRemainingSecrets).toBe('function');
     expect(typeof controller.enrichProvisioningEntry).toBe('function');
+    expect(typeof controller.assertReadyForSecretImport).toBe('function');
+    expect(typeof controller.enrichPrimaryProvisioningEntry).toBe('function');
+    expect(typeof controller.getRemainingSecretImports).toBe('function');
     expect(typeof controller.finalizeSecretImport).toBe('function');
     expect(typeof controller.completeSecretImport).toBe('function');
     expect(typeof controller.markProvisioningFailed).toBe('function');
@@ -96,6 +100,22 @@ describe('qrSyncControllerInit', () => {
 
     qrSyncControllerInit(initRequestMock);
 
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:importRemainingSecrets',
+      expect.any(Function),
+    );
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:assertReadyForSecretImport',
+      expect.any(Function),
+    );
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:enrichPrimaryProvisioningEntry',
+      expect.any(Function),
+    );
+    expect(registerSpy).toHaveBeenCalledWith(
+      'QrSyncController:getRemainingSecretImports',
+      expect.any(Function),
+    );
     expect(registerSpy).toHaveBeenCalledWith(
       'QrSyncController:enrichProvisioningEntry',
       expect.any(Function),

@@ -31,7 +31,6 @@ import {
   KeyringTypes,
   AccountImportStrategy,
 } from '@metamask/keyring-controller';
-import { QrSyncMessageVersion, QrSyncSecretTypes } from '../QrSync/constants';
 import { EncryptionKey } from '@metamask/browser-passworder';
 import { uint8ArrayToMnemonic } from '../../util/mnemonic';
 import {
@@ -220,6 +219,10 @@ jest.mock('../Engine', () => ({
         pendingSecretImports: null,
         provisioningMetadata: null,
       },
+      importRemainingSecrets: jest.fn().mockResolvedValue(undefined),
+      assertReadyForSecretImport: jest.fn(),
+      enrichPrimaryProvisioningEntry: jest.fn(),
+      getRemainingSecretImports: jest.fn().mockReturnValue([]),
       enrichProvisioningEntry: jest.fn(),
       finalizeSecretImport: jest.fn(),
       completeSecretImport: jest.fn(),
@@ -227,6 +230,7 @@ jest.mock('../Engine', () => ({
     },
 
     QrSyncProvisioningService: {
+      importSecretsToVault: jest.fn().mockResolvedValue(undefined),
       provisionFromMetadata: jest.fn().mockResolvedValue(undefined),
     },
   },
@@ -1429,45 +1433,6 @@ describe('Authentication', () => {
         const Engine = jest.requireMock('../Engine');
         const PRIMARY_ENTROPY_SOURCE = 'primary-entropy-source';
 
-        Engine.context.QrSyncController.state = {
-          provisioningStatus: 'awaiting_password',
-          pendingSecretImports: [
-            {
-              index: 0,
-              type: QrSyncSecretTypes.MNEMONIC,
-              value: 'primary mnemonic phrase',
-              isPrimary: true,
-            },
-            {
-              index: 1,
-              type: QrSyncSecretTypes.MNEMONIC,
-              value: 'secondary mnemonic phrase',
-            },
-          ],
-          provisioningMetadata: {
-            version: QrSyncMessageVersion.V1,
-            entries: [
-              {
-                index: 0,
-                type: QrSyncSecretTypes.MNEMONIC,
-                isPrimary: true,
-              },
-              {
-                index: 1,
-                type: QrSyncSecretTypes.MNEMONIC,
-              },
-            ],
-          },
-        };
-
-        Engine.context.MultichainAccountService.createMultichainAccountWallet.mockResolvedValue(
-          { entropySource: PRIMARY_ENTROPY_SOURCE },
-        );
-
-        const importMnemonicToVaultSpy = jest
-          .spyOn(Authentication, 'importMnemonicToVault')
-          .mockResolvedValue('secondary-entropy-source');
-
         await Authentication.newWalletAndRestore(
           'password',
           { currentAuthType: AUTHENTICATION_TYPE.BIOMETRIC },
@@ -1477,28 +1442,8 @@ describe('Authentication', () => {
         );
 
         expect(
-          Engine.context.QrSyncController.enrichProvisioningEntry,
-        ).toHaveBeenCalledWith(0, {
-          entropySource: PRIMARY_ENTROPY_SOURCE,
-        });
-        expect(importMnemonicToVaultSpy).toHaveBeenCalledWith(
-          'secondary mnemonic phrase',
-        );
-        expect(
-          Engine.context.QrSyncController.enrichProvisioningEntry,
-        ).toHaveBeenCalledWith(1, {
-          entropySource: 'secondary-entropy-source',
-        });
-        expect(
-          Engine.context.QrSyncController.finalizeSecretImport,
-        ).toHaveBeenCalledTimes(1);
-
-        importMnemonicToVaultSpy.mockRestore();
-        Engine.context.QrSyncController.state = {
-          provisioningStatus: null,
-          pendingSecretImports: null,
-          provisioningMetadata: null,
-        };
+          Engine.context.QrSyncController.importRemainingSecrets,
+        ).toHaveBeenCalledWith(PRIMARY_ENTROPY_SOURCE);
       });
 
       it('resyncs accounts after login', async () => {
