@@ -287,6 +287,7 @@ app/components/Views/NetworkSelector             @MetaMask/mobile-core-ux
 app/components/Views/QRAccountDisplay            @MetaMask/mobile-core-ux
 app/components/Views/QRScanner                   @MetaMask/mobile-core-ux
 app/components/Views/Settings                    @MetaMask/mobile-core-ux
+app/components/Views/Settings/NotificationsSettings @MetaMask/mobile-core-ux @MetaMask/engagement
 app/components/Views/TermsAndConditions          @MetaMask/mobile-core-ux
 app/components/Views/MultichainTransactionsView  @MetaMask/mobile-core-ux
 app/components/Views/UnifiedTransactionsView     @MetaMask/mobile-core-ux
