@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - Fixed failed order preview for Polymarket markets using non-standard tick sizes (e.g. World Cup match predictions) (#32720)
+- Reverted money.onboarding.step_1 copy to 8.0.0 state; apy variable is not used. (#32739)
 
 ## [8.0.2]
 
