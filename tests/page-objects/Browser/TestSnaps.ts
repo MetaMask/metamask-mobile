@@ -364,8 +364,10 @@ class TestSnaps {
     });
   }
 
-  async navigateToTestSnap(): Promise<void> {
-    if (PlatformDetector.isAndroidAppium()) {
+  async navigateToTestSnap(
+    options: { skipTabCleanup?: boolean } = {},
+  ): Promise<void> {
+    if (PlatformDetector.isAndroidAppium() && !options.skipTabCleanup) {
       await Browser.closeAllBrowserTabsIfOpen();
     }
 
