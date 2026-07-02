@@ -1,6 +1,6 @@
 import type { Position } from '@metamask/social-controllers';
 import React, { useMemo } from 'react';
-import type { QuickBuySheetSource } from '../../../analytics';
+import type { QuickBuySheetSource } from './analytics';
 import { QuickBuy } from './quickBuy';
 import { TOP_TRADERS_QUICK_BUY_FEATURES } from './features';
 import {
@@ -14,6 +14,8 @@ export interface TraderPositionQuickBuyProps {
   onClose: () => void;
   traderAddress?: string;
   marketCap?: number;
+  /** Latest buy-token price in the user's display currency (chart feed). */
+  tokenPriceFiat?: number;
   source?: QuickBuySheetSource;
   /** `true` when the trader has closed the position (sell); `false` when still open (buy). */
   isTraderPositionClosed?: boolean;
@@ -29,6 +31,7 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
   onClose,
   traderAddress,
   marketCap,
+  tokenPriceFiat,
   source,
   isTraderPositionClosed,
 }) => {
@@ -55,12 +58,19 @@ const TraderPositionQuickBuy: React.FC<TraderPositionQuickBuyProps> = ({
     const hasAny =
       traderAddress !== undefined ||
       marketCap !== undefined ||
+      tokenPriceFiat !== undefined ||
       source !== undefined ||
       traderTradeType !== undefined;
     return hasAny
-      ? { traderAddress, marketCap, source, traderTradeType }
+      ? { traderAddress, marketCap, tokenPriceFiat, source, traderTradeType }
       : undefined;
-  }, [traderAddress, marketCap, source, isTraderPositionClosed]);
+  }, [
+    traderAddress,
+    marketCap,
+    tokenPriceFiat,
+    source,
+    isTraderPositionClosed,
+  ]);
 
   return (
     <QuickBuy.Root

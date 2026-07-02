@@ -139,6 +139,29 @@ describe('ActivityList transformations', () => {
         ),
       ).toBe(true);
     });
+
+    it('keeps direct incoming token transfers when the indexer omits contractAddress', () => {
+      const transaction = buildTransaction({
+        from: otherAddress,
+        to: address,
+        valueTransfers: [
+          {
+            amount: '1',
+            contractAddress: '',
+            decimal: 6,
+            from: otherAddress,
+            name: 'USD Coin',
+            symbol: 'USDC',
+            to: address,
+            transferType: 'ERC20',
+          },
+        ],
+      });
+
+      const result = shouldSkipTransaction(address, transaction);
+
+      expect(result).toBe(false);
+    });
   });
 
   it('matches bridge history by tx ids, original id, and source hash', () => {

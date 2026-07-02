@@ -12,13 +12,93 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import type { TransactionGroup } from './transaction-group';
-import type { Status, TokenAmount } from '../types';
+import type { ActivityFee, Status, TokenAmount } from '../types';
 import {
   mobileActivityAdapterEnvironment,
   type ActivityAdapterEnvironment,
+  type ActivityTokenMetadata,
 } from './environment';
 
+const NATIVE_FEE_DECIMALS = 18;
+
+/**
+ * Computes the network (gas) fee in wei as a decimal string from a gas amount
+ * and gas price (both accepted as hex or decimal). Mirrors the extension's
+ * `toNetworkFeeAmount`.
+ */
+export function getNetworkFeeAmount(
+  gasUsed: string | undefined,
+  gasPrice: string | undefined,
+): string | undefined {
+  if (gasUsed === undefined || gasPrice === undefined) {
+    return undefined;
+  }
+  try {
+    return String(BigInt(gasUsed) * BigInt(gasPrice));
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Builds the base network fee (in the chain's native token) for a local
+ * transaction from its receipt (`gasUsed × effectiveGasPrice`), falling back to
+ * `txParams.gasPrice` while pending. Mirrors the extension's
+ * `getLocalTransactionFees` + `buildBaseNetworkFee`.
+ */
+export function getLocalTransactionFees(
+  transactionGroup: Pick<TransactionGroup, 'primaryTransaction'>,
+  nativeAsset: ActivityTokenMetadata | undefined,
+  nativeSymbol: string | undefined,
+): ActivityFee[] | undefined {
+  const { primaryTransaction } = transactionGroup;
+  const amount = getNetworkFeeAmount(
+    primaryTransaction.txReceipt?.gasUsed,
+    primaryTransaction.txReceipt?.effectiveGasPrice ??
+      primaryTransaction.txParams?.gasPrice,
+  );
+
+  if (!amount) {
+    return undefined;
+  }
+
+  return [
+    {
+      type: 'base',
+      amount,
+      decimals: nativeAsset?.decimals ?? NATIVE_FEE_DECIMALS,
+      ...(nativeSymbol ? { symbol: nativeSymbol } : {}),
+      ...(nativeAsset?.assetId ? { assetId: nativeAsset.assetId } : {}),
+    },
+  ];
+}
+
+export function getApiTransactionFees(
+  transaction: V1TransactionByHashResponse,
+  nativeAsset: ActivityTokenMetadata | undefined,
+): ActivityFee[] | undefined {
+  const amount = getNetworkFeeAmount(
+    transaction.gasUsed?.toString(),
+    transaction.effectiveGasPrice?.toString(),
+  );
+
+  if (!amount) {
+    return undefined;
+  }
+
+  return [
+    {
+      type: 'base',
+      amount,
+      decimals: nativeAsset?.decimals ?? NATIVE_FEE_DECIMALS,
+      ...(nativeAsset?.symbol ? { symbol: nativeAsset.symbol } : {}),
+      ...(nativeAsset?.assetId ? { assetId: nativeAsset.assetId } : {}),
+    },
+  ];
+}
+
 const MAINNET_HEX_CHAIN_ID = '0x1';
+const TOKEN_VALUE_UNLIMITED_THRESHOLD = 10 ** 15;
 
 export type ValueTransfer = NonNullable<
   V1TransactionByHashResponse['valueTransfers']
@@ -80,6 +160,19 @@ export function getTokenApprovalAmountFromData(
 
   return stringifyParsedTokenAmount(
     args._value ?? args.value ?? args.amount ?? args[1],
+  );
+}
+
+export function isUnlimitedApprovalAmount(
+  amount: string | undefined,
+  decimals = 0,
+): boolean {
+  if (!amount) {
+    return false;
+  }
+
+  return (
+    Number.parseFloat(amount) / 10 ** decimals > TOKEN_VALUE_UNLIMITED_THRESHOLD
   );
 }
 
@@ -232,37 +325,158 @@ export function getTokenMetadataFromKnownToken(
   };
 }
 
+/**
+ * Finds the fungible/native payment leg of an NFT trade, mirroring the
+ * extension's `getNftPaymentTransfer`. For a buy this is the native/token
+ * amount the subject sent to the seller; for a sell it is the amount the
+ * subject received from the buyer.
+ *
+ * @param params - Resolved NFT trade transfers and counterparty context.
+ * @returns The matching fungible payment transfer, or `undefined`.
+ */
+export function getNftPaymentTransfer({
+  side,
+  sentTransfer,
+  receivedTransfer,
+  sentNativeTransfer,
+  nftCounterparty,
+  transactionFrom,
+  subjectAddress,
+  environment = mobileActivityAdapterEnvironment,
+}: {
+  side: 'buy' | 'sell';
+  sentTransfer?: ValueTransfer;
+  receivedTransfer?: ValueTransfer;
+  sentNativeTransfer?: ValueTransfer;
+  nftCounterparty: string;
+  transactionFrom?: string;
+  subjectAddress: string;
+  environment?: ActivityAdapterEnvironment;
+}): ValueTransfer | undefined {
+  const isFungible = (transfer?: ValueTransfer) =>
+    Boolean(transfer && !isNftTransferType(transfer.transferType));
+
+  if (side === 'buy') {
+    for (const transfer of [sentNativeTransfer, sentTransfer]) {
+      if (!transfer || !isFungible(transfer)) {
+        continue;
+      }
+
+      if (
+        environment.equalsIgnoreCase(transfer.to, nftCounterparty) ||
+        normalizeTransferType(transfer.transferType) === 'normal'
+      ) {
+        return transfer;
+      }
+    }
+
+    return undefined;
+  }
+
+  if (!receivedTransfer || !isFungible(receivedTransfer)) {
+    return undefined;
+  }
+
+  if (
+    environment.equalsIgnoreCase(receivedTransfer.from, nftCounterparty) ||
+    (transactionFrom &&
+      !environment.equalsIgnoreCase(transactionFrom, subjectAddress) &&
+      environment.equalsIgnoreCase(receivedTransfer.from, transactionFrom))
+  ) {
+    return receivedTransfer;
+  }
+
+  return undefined;
+}
+
+/**
+ * Resolves the subject's value-transfer legs from an indexed transaction,
+ * mirroring the extension's `parseValueTransfers`. Each leg is the first
+ * transfer (in API order) sent from / received by the subject that matches the
+ * requested asset class.
+ *
+ * @param valueTransfers - Indexed value transfers from the Accounts API.
+ * @param subjectAddress - The account the activity is being built for.
+ * @param environment - Host dependency boundary (address comparison).
+ * @returns The subject's primary sent/received fungible, native, and NFT legs.
+ */
+export function parseValueTransfers(
+  valueTransfers: ValueTransfer[] | undefined,
+  subjectAddress: string,
+  environment: ActivityAdapterEnvironment = mobileActivityAdapterEnvironment,
+): {
+  sentTransfer: ValueTransfer | undefined;
+  receivedTransfer: ValueTransfer | undefined;
+  sentNativeTransfer: ValueTransfer | undefined;
+  receivedNativeTransfer: ValueTransfer | undefined;
+  sentNftTransfer: ValueTransfer | undefined;
+  receivedNftTransfer: ValueTransfer | undefined;
+} {
+  const sent = valueTransfers?.filter(({ from }) =>
+    environment.equalsIgnoreCase(from, subjectAddress),
+  );
+  const received = valueTransfers?.filter(({ to }) =>
+    environment.equalsIgnoreCase(to, subjectAddress),
+  );
+
+  return {
+    sentTransfer: sent?.[0],
+    receivedTransfer: received?.[0],
+    sentNativeTransfer: sent?.find(({ transferType }) =>
+      isNativeTransferType(transferType),
+    ),
+    receivedNativeTransfer: received?.find(({ transferType }) =>
+      isNativeTransferType(transferType),
+    ),
+    sentNftTransfer: sent?.find(({ transferType }) =>
+      isNftTransferType(transferType),
+    ),
+    receivedNftTransfer: received?.find(({ transferType }) =>
+      isNftTransferType(transferType),
+    ),
+  };
+}
+
 export function getTokenAmountFromTransfer(
   transfer: ValueTransfer | undefined,
   direction: TokenAmount['direction'],
   chainId: CaipChainId,
   environment: ActivityAdapterEnvironment = mobileActivityAdapterEnvironment,
 ) {
-  if (!transfer?.symbol && transfer?.amount === undefined) {
+  if (!transfer) {
     return undefined;
   }
 
-  const isNftTransfer = isNftTransferType(transfer?.transferType);
+  const isNftTransfer = isNftTransferType(transfer.transferType);
+  // NFTs carry a collection/token name that's friendlier than the symbol, so
+  // prefer it. Mirrors the extension's `getTokenAmountFromTransfer`.
+  const symbol = isNftTransfer
+    ? transfer.name || transfer.symbol
+    : transfer.symbol;
 
-  const assetId =
-    transfer && !isNftTransfer
-      ? resolveAssetId(
-          chainId,
-          {
-            contractAddress: transfer.contractAddress,
-            transferType: transfer.transferType,
-          },
-          environment,
-        )
-      : undefined;
+  if (!symbol && transfer.amount === undefined) {
+    return undefined;
+  }
+
+  const assetId = isNftTransfer
+    ? undefined
+    : resolveAssetId(
+        chainId,
+        {
+          contractAddress: transfer.contractAddress,
+          transferType: transfer.transferType,
+        },
+        environment,
+      );
+
+  const hasTransferAmount =
+    !isNftTransfer && transfer.amount !== null && transfer.amount !== undefined;
 
   return {
     direction,
-    ...(transfer.amount === null || transfer.amount === undefined
-      ? {}
-      : { amount: String(transfer.amount) }),
+    ...(hasTransferAmount ? { amount: String(transfer.amount) } : {}),
     ...(transfer.decimal === undefined ? {} : { decimals: transfer.decimal }),
-    ...(transfer.symbol ? { symbol: transfer.symbol } : {}),
+    ...(symbol ? { symbol } : {}),
     ...(assetId ? { assetId } : {}),
   };
 }
