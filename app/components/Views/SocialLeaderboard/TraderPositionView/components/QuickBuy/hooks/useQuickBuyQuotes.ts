@@ -79,14 +79,6 @@ interface UseQuickBuyQuotesParams {
    * quote fetch fires immediately instead of waiting out the typing debounce.
    */
   immediateFetchToken?: number;
-  /**
-   * When true, suspends the periodic auto-refresh so the displayed quotes (and
-   * the recommended/active quote) stay frozen — e.g. while the user has a quote
-   * manually selected, since each refresh returns new requestIds that would
-   * otherwise drop their selection. In-flight fetches are unaffected; only the
-   * next scheduled refresh is held off.
-   */
-  pauseAutoRefresh?: boolean;
 }
 
 export interface UseQuickBuyQuotesResult {
@@ -189,7 +181,6 @@ export function useQuickBuyQuotes({
   analyticsContext,
   selectedQuoteRequestId,
   immediateFetchToken,
-  pauseAutoRefresh,
 }: UseQuickBuyQuotesParams): UseQuickBuyQuotesResult {
   const slippage = useSelector(selectSlippage);
   const destAddress = useSelector(selectDestAddress);
@@ -513,15 +504,11 @@ export function useQuickBuyQuotes({
   // stream this means each cycle spans the stream duration plus the refresh
   // rate. Guarded on `isFetchInFlight` (not `isQuoteLoading`) so a streaming
   // fetch — which clears `isQuoteLoading` on its first quote while still open —
-  // is never interrupted by a refresh mid-stream. `pauseAutoRefresh` freezes the
-  // cycle entirely (e.g. while the user has a quote manually selected).
+  // is never interrupted by a refresh mid-stream. Refresh is never paused: a
+  // stream terminates on its own (the server sends `complete`), so there is
+  // nothing to hold off for.
   useEffect(() => {
-    if (
-      !quotesLastSettledAt ||
-      refreshCount === 0 ||
-      isFetchInFlight ||
-      pauseAutoRefresh
-    ) {
+    if (!quotesLastSettledAt || refreshCount === 0 || isFetchInFlight) {
       return;
     }
 
@@ -538,7 +525,6 @@ export function useQuickBuyQuotes({
     refreshCount,
     quoteRefreshRateMs,
     isFetchInFlight,
-    pauseAutoRefresh,
     fetchQuotes,
   ]);
 
