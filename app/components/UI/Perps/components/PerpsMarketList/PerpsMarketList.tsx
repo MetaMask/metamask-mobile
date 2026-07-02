@@ -92,6 +92,7 @@ const PerpsMarketList: React.FC<PerpsMarketListProps> = ({
       ListHeaderComponent={ListHeaderComponent}
       drawDistance={PERPS_MARKET_LIST_CONSTANTS.FLASH_LIST_DRAW_DISTANCE}
       removeClippedSubviews
+      showsVerticalScrollIndicator={false}
       testID={testID}
     />
   );

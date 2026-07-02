@@ -313,7 +313,10 @@ app/components/Views/transactions @MetaMask/transactions
 # Web3auth Team
 app/core/Engine/messengers/seedless-onboarding-controller-messenger @MetaMask/web3auth
 app/core/Engine/controllers/seedless-onboarding-controller  @MetaMask/web3auth
+app/core/Engine/controllers/qr-sync-controller-init.ts      @MetaMask/web3auth
+app/core/Engine/messengers/qr-sync-controller-messenger     @MetaMask/web3auth
 app/core/OAuthService                                       @MetaMask/web3auth
+app/core/QrSync                                             @MetaMask/web3auth
 app/components/Views/Onboarding                             @MetaMask/web3auth
 app/components/Views/OnboardingSheet                        @MetaMask/web3auth
 app/components/Views/OnboardingSuccess                      @MetaMask/web3auth
