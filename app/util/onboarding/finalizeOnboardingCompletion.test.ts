@@ -93,7 +93,7 @@ describe('finalizeOnboardingCompletion', () => {
     expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
   });
 
-  it('only clears attribution when successFlow is undefined', () => {
+  it('no-ops when successFlow is undefined, preserving attribution for downstream screens', () => {
     finalizeOnboardingCompletion({
       successFlow: undefined,
       accountType: AccountType.Metamask,
@@ -104,7 +104,7 @@ describe('finalizeOnboardingCompletion', () => {
 
     expect(mockTrackOnboarding).not.toHaveBeenCalled();
     expect(mockDiscoverAccounts).not.toHaveBeenCalled();
-    expect(mockDispatch).toHaveBeenCalledWith(clearAttribution());
+    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('buffers onboarding event via saveOnboardingEvent when trackOnboarding save callback is invoked', () => {
