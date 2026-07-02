@@ -18,6 +18,20 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
+const mockTrackHomeSectionInteraction = jest.fn();
+
+jest.mock('../../../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PredictController: {
+        trackHomeSectionInteraction: (...args: unknown[]) =>
+          mockTrackHomeSectionInteraction(...args),
+      },
+    },
+  },
+}));
+
 jest.mock('../../../../hooks/usePredictFilterOptions');
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -195,6 +209,11 @@ describe('PredictPopularTodaySection', () => {
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
       },
     });
+    expect(mockTrackHomeSectionInteraction).toHaveBeenCalledWith({
+      sectionId: PredictEventValues.SECTION_ID.POPULAR_TODAY,
+      actionType: PredictEventValues.ACTION_TYPE.SEE_ALL,
+      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
+    });
   });
 
   it('navigates to the Popular Today feed with the selected filter when a chip is pressed', () => {
@@ -217,6 +236,13 @@ describe('PredictPopularTodaySection', () => {
         initialFilterId: 'elections',
         entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
       },
+    });
+    expect(mockTrackHomeSectionInteraction).toHaveBeenCalledWith({
+      sectionId: PredictEventValues.SECTION_ID.POPULAR_TODAY,
+      actionType: PredictEventValues.ACTION_TYPE.CLICKED,
+      filterId: 'elections',
+      isDynamicFilter: true,
+      entryPoint: PredictEventValues.ENTRY_POINT.HOME_SECTION,
     });
   });
 });

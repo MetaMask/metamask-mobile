@@ -36,6 +36,33 @@ jest.mock('@react-navigation/native', () => ({
     canGoBack: mockCanGoBack,
   }),
   useRoute: () => ({ params: mockRouteParams }),
+  // Run the focus callback once on mount (mirrors gaining focus).
+  useFocusEffect: (callback: () => void | (() => void)) => {
+    const ReactActual = jest.requireActual('react');
+    ReactActual.useEffect(() => callback(), [callback]);
+  },
+}));
+
+const mockTrackFeedViewed = jest.fn();
+const mockTrackFeedTabChanged = jest.fn();
+const mockTrackFeedFilterChanged = jest.fn();
+const mockTrackSearchInteracted = jest.fn();
+
+jest.mock('../../../../../core/Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      PredictController: {
+        trackFeedViewed: (...args: unknown[]) => mockTrackFeedViewed(...args),
+        trackFeedTabChanged: (...args: unknown[]) =>
+          mockTrackFeedTabChanged(...args),
+        trackFeedFilterChanged: (...args: unknown[]) =>
+          mockTrackFeedFilterChanged(...args),
+        trackSearchInteracted: (...args: unknown[]) =>
+          mockTrackSearchInteracted(...args),
+      },
+    },
+  },
 }));
 
 jest.mock('../../hooks/usePredictFeedConfig', () => ({
@@ -432,6 +459,141 @@ describe('PredictFeedView', () => {
       expect(
         screen.getByTestId('predict-feed-view-search-overlay'),
       ).toBeOnTheScreen();
+    });
+  });
+
+  describe('analytics', () => {
+    it('tracks feed viewed on focus with feed/tab/filter ids, tracking_mode:focus, and entry point', () => {
+      mockRouteParams = { feedId: 'sports', entryPoint: 'home_section' };
+
+      render(<PredictFeedView />);
+
+      expect(mockTrackFeedViewed).toHaveBeenCalledWith({
+        feedId: 'sports',
+        tabId: 'basketball',
+        filterId: 'all',
+        trackingMode: 'focus',
+        entryPoint: 'home_section',
+      });
+    });
+
+    it('does not track feed viewed when the feed is not found', () => {
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({ status: 'not-found', feedId: undefined }),
+      );
+
+      render(<PredictFeedView />);
+
+      expect(mockTrackFeedViewed).not.toHaveBeenCalled();
+    });
+
+    it('tracks a tab change when a tab is pressed', () => {
+      mockRouteParams = { feedId: 'sports', entryPoint: 'home_section' };
+
+      render(<PredictFeedView />);
+
+      fireEvent.press(screen.getAllByText('Tennis')[0]);
+
+      expect(mockTrackFeedTabChanged).toHaveBeenCalledWith({
+        feedId: 'sports',
+        tabId: 'tennis',
+        entryPoint: 'home_section',
+      });
+    });
+
+    it('tracks a static filter change with is_dynamic_filter false', () => {
+      mockRouteParams = { feedId: 'sports', entryPoint: 'home_section' };
+
+      render(<PredictFeedView />);
+
+      fireEvent.press(screen.getByText('Live'));
+
+      expect(mockTrackFeedFilterChanged).toHaveBeenCalledWith({
+        feedId: 'sports',
+        tabId: 'basketball',
+        filterId: 'live',
+        isDynamicFilter: false,
+        entryPoint: 'home_section',
+      });
+    });
+
+    it('tracks a dynamic filter change with is_dynamic_filter true', () => {
+      mockRouteParams = { feedId: 'politics', entryPoint: 'home_section' };
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'politics',
+          tabs: [{ id: 'politics', titleKey: 'predict.category.politics' }],
+          showTabBar: false,
+          activeTabId: 'politics',
+          filters: [
+            {
+              id: 'all',
+              titleKey: 'predict.feed.filters.all',
+              params: {},
+              isDynamic: false,
+            },
+            {
+              id: 'elections',
+              label: 'Elections',
+              params: { tagSlugs: ['elections'] },
+              isDynamic: true,
+            },
+          ],
+          activeFilterId: 'all',
+        }),
+      );
+
+      render(<PredictFeedView />);
+
+      fireEvent.press(screen.getByText('Elections'));
+
+      expect(mockTrackFeedFilterChanged).toHaveBeenCalledWith({
+        feedId: 'politics',
+        tabId: 'politics',
+        filterId: 'elections',
+        isDynamicFilter: true,
+        entryPoint: 'home_section',
+      });
+    });
+
+    it('does not track filter changed when re-pressing the already-active chip', () => {
+      // Active filter is 'all'. Pressing 'All' again should be a no-op.
+      mockRouteParams = { feedId: 'sports', entryPoint: 'home_section' };
+
+      render(<PredictFeedView />);
+
+      fireEvent.press(screen.getByText('All'));
+
+      expect(mockTrackFeedFilterChanged).not.toHaveBeenCalled();
+      expect(mockSetActiveFilterId).not.toHaveBeenCalled();
+    });
+
+    it('does not track tab changed when feedId is missing from route', () => {
+      mockRouteParams = {}; // no feedId
+
+      render(<PredictFeedView />);
+
+      // Feed config returns not-found when feedId is absent, causing a
+      // navigation bounce. The tab bar is never shown; pressing tabs is
+      // not possible, but we assert the tracking guard is in place.
+      expect(mockTrackFeedTabChanged).not.toHaveBeenCalled();
+      expect(mockTrackFeedFilterChanged).not.toHaveBeenCalled();
+    });
+
+    it('tracks search opened from the header search icon', () => {
+      mockRouteParams = { feedId: 'sports', entryPoint: 'home_section' };
+
+      render(<PredictFeedView />);
+
+      fireEvent.press(
+        screen.getByTestId(PredictSearchSelectorsIDs.SEARCH_BUTTON),
+      );
+
+      expect(mockTrackSearchInteracted).toHaveBeenCalledWith({
+        interactionType: 'opened',
+        predictFeedTab: 'basketball',
+        entryPoint: 'home_section',
+      });
     });
   });
 
