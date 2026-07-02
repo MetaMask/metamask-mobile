@@ -5613,16 +5613,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  bridgeQuoteStatusManager: {
-    name: 'bridgeQuoteStatusManager',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      versions: {},
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   cardFiatCreditFeature: {
     name: 'cardFiatCreditFeature',
     type: FeatureFlagType.Remote,
