@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [8.0.2]
+
+### Added
+
+- Added World Cup "Extra Time?" and "Penalty Shootout?" markets to the game details page. (#32609)
+- Added a Regulation Time tag and contextual info for applicable World Cup prediction markets. (#32610)
+- Added World Cup-specific market labels and tooltip info for Predict moneyline and team-to-advance markets. (#32573)
+
+### Changed
+
+- Removed World Cup shortcut pills from the Predict empty state. (#32600)
+
+### Fixed
+
+- Fixed a bug that could show flipped odds chart labels. (#32597)
+- Improved Money account deeplink handling to surface accurate unavailability messages for maintenance, gradual rollout exclusion, and version-gate states. (#32622)
+- Fixed Predict deposit-wallet address resolution for new Polymarket BeaconProxy wallets while preserving existing wallets. (#32614)
+
 ## [8.0.1]
 
 ### Added
@@ -12391,7 +12409,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.2...HEAD
+[8.0.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.1...v8.0.2
 [8.0.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.0...v8.0.1
 [8.0.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.82.1...v8.0.0
 [7.82.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.82.0...v7.82.1

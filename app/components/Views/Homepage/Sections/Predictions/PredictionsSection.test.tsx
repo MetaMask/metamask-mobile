@@ -789,40 +789,7 @@ describe('PredictionsSection', () => {
       });
     });
 
-    it('tracks World Cup winner CTA clicks with the canonical category name', async () => {
-      mockUsePredictMarketsForHomepage.mockReturnValue({
-        markets: noPositionsTrendingMarkets,
-        isLoading: false,
-        error: null,
-        refetch: jest.fn(),
-      });
-      mockUsePredictWorldCupHomepageMarkets.mockReturnValue(
-        worldCupMarketsWithDiscoveryChampionship(),
-      );
-
-      renderWithProvider(
-        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
-      );
-
-      await waitFor(() => {
-        expect(
-          screen.getByText('2026 FIFA World Cup Winner'),
-        ).toBeOnTheScreen();
-      });
-
-      fireEvent.press(screen.getByText('2026 FIFA World Cup Winner'));
-
-      expect(mockTrackEvent).toHaveBeenCalledWith({
-        event: MetaMetricsEvents.PREDICT_EMPTY_STATE_CTA_CLICKED,
-        properties: {
-          cta_name: 'browse_category',
-          category_name: 'world_cup',
-          active_ab_tests: predictEmptyStateTreatmentActiveAbTests,
-        },
-      });
-    });
-
-    it('tracks World Cup discovery CTAs with the canonical category name', async () => {
+    it('tracks World Cup discovery CTA with the canonical category name', async () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: noPositionsTrendingMarkets,
         isLoading: false,
@@ -843,19 +810,13 @@ describe('PredictionsSection', () => {
 
       mockTrackEvent.mockClear();
 
-      fireEvent.press(screen.getByText('FIFA World Cup 2026'));
-      fireEvent.press(screen.getByText('Group A'));
+      expect(screen.queryByText('Group A')).toBeNull();
+      expect(screen.queryByText('Props')).toBeNull();
 
-      expect(mockTrackEvent).toHaveBeenCalledTimes(2);
-      expect(mockTrackEvent).toHaveBeenNthCalledWith(1, {
-        event: MetaMetricsEvents.PREDICT_EMPTY_STATE_CTA_CLICKED,
-        properties: {
-          cta_name: 'browse_category',
-          category_name: 'world_cup',
-          active_ab_tests: predictEmptyStateTreatmentActiveAbTests,
-        },
-      });
-      expect(mockTrackEvent).toHaveBeenNthCalledWith(2, {
+      fireEvent.press(screen.getByText('FIFA World Cup 2026'));
+
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith({
         event: MetaMetricsEvents.PREDICT_EMPTY_STATE_CTA_CLICKED,
         properties: {
           cta_name: 'browse_category',
