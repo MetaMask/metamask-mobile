@@ -431,7 +431,7 @@ export const importWalletWithRecoveryPhrase = async ({
     await MetaMetricsOptInView.tapAgreeButton();
   }
   if (optInToMetrics) {
-    await OnboardingInterestQuestionnaireView.tapContinueButton();
+    await OnboardingInterestQuestionnaireView.tapSkipButton();
   }
   //'Should dismiss Enable device Notifications checks alert'
   await closeOnboardingModals(fromResetWallet);
@@ -550,7 +550,7 @@ export const CreateNewWallet = async ({
   await device.disableSynchronization(); // Detox is hanging after wallet creation
 
   if (optInToMetrics) {
-    await OnboardingInterestQuestionnaireView.tapContinueButton();
+    await OnboardingInterestQuestionnaireView.tapSkipButton();
   }
 
   await closeOnboardingModals(false);
