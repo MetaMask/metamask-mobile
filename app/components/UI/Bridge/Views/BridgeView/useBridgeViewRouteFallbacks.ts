@@ -113,15 +113,19 @@ export const useBridgeViewRouteFallbacks = ({
     ? destToken
     : (destRouteFallbackToken ?? destToken);
 
+  const isDisplayedSourceAmountSyncedWithRedux =
+    displaySourceAmount === sourceAmount;
+
   return {
     displaySourceToken,
     displaySourceAmount,
     displayDestToken,
-    areDisplayedTokensSyncedWithRedux: areDisplayedBridgeTokensSyncedWithRedux({
-      sourceToken,
-      destToken,
-      displaySourceToken,
-      displayDestToken,
-    }),
+    areDisplayedTokensSyncedWithRedux:
+      areDisplayedBridgeTokensSyncedWithRedux({
+        sourceToken,
+        destToken,
+        displaySourceToken,
+        displayDestToken,
+      }) && isDisplayedSourceAmountSyncedWithRedux,
   };
 };
