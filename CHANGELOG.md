@@ -35,7 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - perf(ci): compress node_modules tarball with zstd to speed up build download (#32428)
 - chore(ci): skip Android AAB for non-production builds (PR-C) (#32411)
 - Add sign prefix to price alert percentage displays (#32453)
-- Revert "feat(networking): integrate nitro-fetch with startup prefetching (#31206)" (#31206)
+- Revert "feat(networking): integrate nitro-fetch with startup prefetching" (#31206)
 - Improved QuickBuy and Weekly Top Traders interactions (#32392)
 - chore: migrate StackNavigationProp types to native-stack equivalents (#32119)
 - Updated the Follow / Following button and row spacing on the Top Traders leaderboard to match the latest design. (#32367)
@@ -91,7 +91,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated the add-device flow waiting screen to show a loading state while waiting for the extension, and added an error sheet (#32511)
   when the extension import is cancelled or fails.
 - Added redesigned activity details for Perps and Predict transactions (#32405)
-- feat(networking): reapply integrate nitro-fetch with startup prefetching (#31206) (#31206)
+- feat(networking): reapply integrate nitro-fetch with startup prefetching (#31206)
 - Replaced global.fetch with react-native-nitro-fetch (Cronet on Android, URLSession on iOS) and added startup prefetching for (#31206)
   feature flags and phishing lists
 - Added interactive price charts to the Social Trading trader position view — buy/sell trade markers on the price line, (#32293)
