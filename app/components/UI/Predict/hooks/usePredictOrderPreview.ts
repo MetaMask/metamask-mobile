@@ -30,6 +30,7 @@ export function usePredictOrderPreview(
     outcomeTokenId,
     side,
     size,
+    tickSize,
     autoRefreshTimeout,
     positionId,
   } = params;
@@ -41,6 +42,7 @@ export function usePredictOrderPreview(
     outcomeTokenId,
     side,
     size,
+    tickSize,
     positionId,
   });
 
@@ -52,11 +54,12 @@ export function usePredictOrderPreview(
         outcomeTokenId,
         side,
         size,
+        tickSize,
         positionId,
       });
     }, 100);
     return () => clearTimeout(timer);
-  }, [marketId, outcomeId, outcomeTokenId, side, size, positionId]);
+  }, [marketId, outcomeId, outcomeTokenId, side, size, tickSize, positionId]);
 
   const hasValidSize = !!debouncedParams.size && debouncedParams.size > 0;
 

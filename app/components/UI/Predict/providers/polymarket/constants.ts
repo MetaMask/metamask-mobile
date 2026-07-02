@@ -1,4 +1,4 @@
-import { ContractConfig, RoundConfig, TickSize } from './types';
+import { ContractConfig, RoundConfig } from './types';
 
 export const POLYMARKET_PROVIDER_ID = 'polymarket';
 
@@ -46,7 +46,7 @@ export const ClobAuthDomain = {
 export const MSG_TO_SIGN =
   'This message attests that I control the given wallet';
 
-export const ROUNDING_CONFIG: Record<TickSize, RoundConfig> = {
+export const ROUNDING_CONFIG: Record<string, RoundConfig> = {
   '0.1': {
     price: 1,
     size: 2,

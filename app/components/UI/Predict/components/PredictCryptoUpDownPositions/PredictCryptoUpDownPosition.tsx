@@ -84,6 +84,8 @@ const PredictCryptoUpDownPosition: React.FC<
     outcomeTokenId: position.outcomeTokenId,
     side: Side.SELL,
     size: position.size,
+    tickSize: market.outcomes.find((o) => o.id === position.outcomeId)
+      ?.tickSize,
     autoRefreshTimeout,
   });
 

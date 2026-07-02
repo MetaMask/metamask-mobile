@@ -121,6 +121,7 @@ const PredictSellPreview = (props: PredictSellPreviewProps) => {
     outcomeTokenId: position.outcomeTokenId,
     side: Side.SELL,
     size: position.amount,
+    tickSize: outcome?.tickSize,
     positionId: position.id,
     autoRefreshTimeout: 1000,
   });
