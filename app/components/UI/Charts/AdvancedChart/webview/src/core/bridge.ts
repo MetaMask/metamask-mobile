@@ -11,6 +11,14 @@ import type {
   OutboundPayloads,
 } from '../messages/contract';
 
+export function safeStringify(value: unknown): string {
+  try {
+    return JSON.stringify(value) ?? 'Unknown error';
+  } catch {
+    return String(value);
+  }
+}
+
 /**
  * Posts a typed message to React Native via window.ReactNativeWebView.
  * Equivalent to legacy `sendToReactNative(type, payload)` at chartLogic.js
@@ -44,7 +52,7 @@ export function reportErrorToRN(error: unknown): void {
       ? error.message
       : typeof error === 'string'
         ? error
-        : (JSON.stringify(error) ?? 'Unknown error');
+        : safeStringify(error);
   postToRN('ERROR', { message });
 }
 

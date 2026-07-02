@@ -5,7 +5,7 @@
 // Phase 2 wires the default Price API paginator; Phase 6 swaps in
 // pagination/rnBacked.ts when consumers opt into the custom strategy.
 
-import { reportErrorToRN } from '../core/bridge';
+import { reportErrorToRN, safeStringify } from '../core/bridge';
 import {
   getOhlcvData,
   getOhlcvPagination,
@@ -189,7 +189,7 @@ export const customDatafeed: TVDatafeed = {
           ? error.message
           : typeof error === 'string'
             ? error
-            : (JSON.stringify(error) ?? 'Unknown'),
+            : safeStringify(error),
       );
     }
   },
