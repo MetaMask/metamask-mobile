@@ -47,12 +47,14 @@ export function postToRN<T extends OutboundMessageType>(
  * chartLogic.js.
  */
 export function reportErrorToRN(error: unknown): void {
-  const message =
-    error instanceof Error
-      ? error.message
-      : typeof error === 'string'
-        ? error
-        : safeStringify(error);
+  let message: string;
+  if (error instanceof Error) {
+    message = error.message;
+  } else if (typeof error === 'string') {
+    message = error;
+  } else {
+    message = safeStringify(error);
+  }
   postToRN('ERROR', { message });
 }
 

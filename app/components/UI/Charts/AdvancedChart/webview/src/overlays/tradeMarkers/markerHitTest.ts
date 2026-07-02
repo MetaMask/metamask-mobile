@@ -14,10 +14,12 @@ import { postToRN, reportErrorToRN } from '../../core/bridge';
 import { getOhlcvData, getWidget, isChartReady } from '../../core/state';
 import { normalizeChartUnixSec } from '../../core/timeUtils';
 import type {
+  OHLCVBar,
   TVActiveChart,
   TVChartingLibraryWidget,
   TVCrosshairParams,
 } from '../../core/types';
+import type { TradeMarker } from '../../messages/contract';
 import { getMarkers, getShapesByMarkerId } from './state';
 import { snapMarkerToNearestBar } from './index';
 
@@ -46,7 +48,7 @@ interface VisibleTimeRangeSec {
 function normalizeRange(
   raw: { from?: number; to?: number } | null | undefined,
 ): VisibleTimeRangeSec | null {
-  if (!raw || raw.from === undefined || raw.to === undefined) return null;
+  if (raw?.from === undefined || raw?.to === undefined) return null;
   const from = normalizeChartUnixSec(raw.from);
   const to = normalizeChartUnixSec(raw.to);
   if (from === null || to === null) return null;
@@ -185,6 +187,31 @@ function computeYDistance(
   return markerY - offsetY;
 }
 
+interface HitTestContext {
+  chart: TVActiveChart;
+  range: VisibleTimeRangeSec;
+  pxPerSec: number;
+  drawn: Map<string, unknown>;
+  data: readonly OHLCVBar[];
+  timeSec: number;
+  offsetY: number | undefined;
+}
+
+function computeMarkerDistance(
+  ctx: HitTestContext,
+  marker: TradeMarker,
+): { key: string; dist: number } | null {
+  if (marker?.id == null || !Number.isFinite(marker?.time)) return null;
+  const markerKey = String(marker.id);
+  if (!ctx.drawn.has(markerKey)) return null;
+  const snapped = snapMarkerToNearestBar(ctx.data, marker.time);
+  const mSec = snapped ? snapped.timeSec : marker.time / 1000;
+  if (mSec < ctx.range.lo || mSec > ctx.range.hi) return null;
+  const dxPx = (mSec - ctx.timeSec) * ctx.pxPerSec;
+  const dyPx = computeYDistance(ctx.chart, ctx.offsetY, snapped, marker.price);
+  return { key: markerKey, dist: Math.hypot(dxPx, dyPx) };
+}
+
 export function findTradeMarkerIdNearPoint(
   timeSec: number,
   offsetY: number | undefined,
@@ -208,30 +235,27 @@ export function findTradeMarkerIdNearPoint(
 
   const plotW = getPlotWidth(chart);
   if (plotW <= 0) return null;
-  const pxPerSec = plotW / (range.hi - range.lo);
 
   const drawn = getShapesByMarkerId();
   if (!drawn.size) return null;
 
-  const data = getOhlcvData();
+  const ctx: HitTestContext = {
+    chart,
+    range,
+    pxPerSec: plotW / (range.hi - range.lo),
+    drawn,
+    data: getOhlcvData(),
+    timeSec,
+    offsetY,
+  };
+
   let bestId: string | null = null;
   let bestDist = Infinity;
   for (const marker of markers) {
-    if (marker?.id == null || !Number.isFinite(marker?.time)) continue;
-    const markerKey = String(marker.id);
-    // Only match markers that actually have a circle on screen. Off-range
-    // markers are tracked but not drawn — a tap where one *would* be must
-    // not fire a press for an invisible circle.
-    if (!drawn.has(markerKey)) continue;
-    const snapped = snapMarkerToNearestBar(data, marker.time);
-    const mSec = snapped ? snapped.timeSec : marker.time / 1000;
-    if (mSec < range.lo || mSec > range.hi) continue;
-    const dxPx = (mSec - timeSec) * pxPerSec;
-    const dyPx = computeYDistance(chart, offsetY, snapped, marker.price);
-    const dist = Math.hypot(dxPx, dyPx);
-    if (dist < bestDist) {
-      bestDist = dist;
-      bestId = markerKey;
+    const result = computeMarkerDistance(ctx, marker);
+    if (result && result.dist < bestDist) {
+      bestDist = result.dist;
+      bestId = result.key;
     }
   }
   return bestDist <= TAP_RADIUS_PX ? bestId : null;

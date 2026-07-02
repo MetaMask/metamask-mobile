@@ -3,7 +3,6 @@
 //
 // Source: app/components/UI/Charts/AdvancedChart/webview/src/
 
-/* eslint-disable */
 // prettier-ignore
 const chartLogicString = `/******/ (() => { // webpackBootstrap
 /******/ 	"use strict";

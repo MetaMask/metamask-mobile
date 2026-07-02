@@ -62,7 +62,6 @@ const content = `// AUTO-GENERATED — do not edit manually.
 //
 // Source: app/components/UI/Charts/AdvancedChart/webview/src/
 
-/* eslint-disable */
 // prettier-ignore
 const chartLogicString = \`${escape(bundle)}\`;
 export default chartLogicString;

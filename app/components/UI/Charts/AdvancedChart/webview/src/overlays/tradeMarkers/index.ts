@@ -167,6 +167,17 @@ interface DesiredMarker {
   color: string;
 }
 
+function resolveSnappedPrice(
+  snapped: { timeSec: number; close: number } | null,
+  markerPrice: number | undefined,
+): number | null {
+  if (snapped !== null) return snapped.close;
+  if (markerPrice != null && Number.isFinite(markerPrice)) {
+    return markerPrice as number;
+  }
+  return null;
+}
+
 function collectDesiredMarkers(
   markers: readonly TradeMarker[],
   data: readonly OHLCVBar[],
@@ -191,14 +202,7 @@ function collectDesiredMarkers(
   for (const marker of ordered) {
     const snapped = snapMarkerToNearestBar(data, marker.time);
     const timeSec = snapped ? snapped.timeSec : Math.floor(marker.time / 1000);
-    let rawPrice: number | null;
-    if (snapped === null) {
-      const hasValidPrice =
-        marker.price != null && Number.isFinite(marker.price);
-      rawPrice = hasValidPrice ? (marker.price as number) : null;
-    } else {
-      rawPrice = snapped.close;
-    }
+    const rawPrice = resolveSnappedPrice(snapped, marker.price);
     if (rawPrice === null) continue;
     const color =
       marker.intent === 'exit' ? theme.errorColor : theme.successColor;

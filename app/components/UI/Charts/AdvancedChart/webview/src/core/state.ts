@@ -171,7 +171,7 @@ export function setOhlcvData(data: OHLCVBar[]): void {
 export function appendOrReplaceLastBar(bar: OHLCVBar): void {
   const data = state.ohlcvData;
   const last = data.at(-1);
-  if (data.length > 0 && last && last.time === bar.time) {
+  if (data.length > 0 && last?.time === bar.time) {
     data[data.length - 1] = bar;
   } else {
     data.push(bar);

@@ -184,13 +184,15 @@ export const customDatafeed: TVDatafeed = {
         onResult([], { noData: true });
       }
     } catch (error) {
-      onError(
-        error instanceof Error
-          ? error.message
-          : typeof error === 'string'
-            ? error
-            : safeStringify(error),
-      );
+      let errMsg: string;
+      if (error instanceof Error) {
+        errMsg = error.message;
+      } else if (typeof error === 'string') {
+        errMsg = error;
+      } else {
+        errMsg = safeStringify(error);
+      }
+      onError(errMsg);
     }
   },
 
