@@ -67,6 +67,11 @@ export const ROUNDING_CONFIG: Record<string, RoundConfig> = {
     size: 2,
     amount: 6,
   },
+  '0.0025': {
+    price: 4,
+    size: 2,
+    amount: 6,
+  },
 };
 
 /**
