@@ -754,6 +754,32 @@ describe('PerpsChartFullscreenModal', () => {
         }),
       );
       expect(mockOnClose).not.toHaveBeenCalled();
+
+      mockTrack.mockClear();
+      const latestFallbackChartProps =
+        mockPerpsAdvancedChart.mock.calls[
+          mockPerpsAdvancedChart.mock.calls.length - 1
+        ][0];
+      await act(async () => {
+        latestFallbackChartProps.onError();
+      });
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_ERROR,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.ERROR_TYPE]:
+            PERPS_EVENT_VALUE.ERROR_TYPE.WARNING,
+          [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]:
+            'Chart rendering error in fullscreen chart modal',
+          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+            PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+            PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
     });
 
     it('tracks lightweight fallback view after advanced screen view was already tracked', async () => {

@@ -37,7 +37,6 @@ import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import { useScreenOrientation } from '../../../../../core/ScreenOrientation';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import {
-  getPerpsChartAnalyticsProperties,
   getPerpsChartAnalyticsPropertiesForLibrary,
   getPerpsChartLibrary,
   PERPS_CHART_EVENT_VALUE,
@@ -206,9 +205,9 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
         PERPS_EVENT_VALUE.SCREEN_TYPE.FULL_SCREEN_CHART,
       ...(symbol ? { [PERPS_EVENT_PROPERTY.ASSET]: symbol } : {}),
-      ...getPerpsChartAnalyticsProperties(Boolean(isAdvancedChartEnabled)),
+      ...chartAnalyticsProperties,
     });
-  }, [isAdvancedChartEnabled, symbol, track]);
+  }, [chartAnalyticsProperties, symbol, track]);
 
   // Handle boundary-level chart errors by closing the modal.
   // Orientation is automatically restored by the hook.
