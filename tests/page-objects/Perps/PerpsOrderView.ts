@@ -332,8 +332,29 @@ class PerpsOrderView {
   }
 
   async openOrderTypeSelector(): Promise<void> {
-    await Gestures.waitAndTap(this.orderTypeSelector, {
-      elemDescription: 'Open order type selector',
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(
+          asDetoxElement(this.orderTypeSelector),
+          {
+            description: 'Order type selector button',
+            timeout: 20000,
+          },
+        );
+        await Gestures.waitAndTap(this.orderTypeSelector, {
+          elemDescription: 'Open order type selector',
+          timeout: 20000,
+        });
+      },
+      appium: async () => {
+        const orderTypeEl = await asPlaywrightElement(this.orderTypeSelector);
+        await orderTypeEl.waitForDisplayed({ timeout: 20000 });
+        await PlaywrightGestures.waitAndTap(orderTypeEl, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          timeout: 20000,
+        });
+      },
     });
   }
 
