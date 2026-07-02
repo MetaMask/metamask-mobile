@@ -13,6 +13,7 @@ import {
 import { useTokenAmount } from '../useTokenAmount';
 import { hasTransactionType } from '../../utils/transaction';
 import {
+  useIsTransactionPayLoading,
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
@@ -28,6 +29,7 @@ export function useInsufficientPerpsBalanceAlert({
   const amountHuman = pendingAmount ?? amountPrecise ?? '0';
   const totals = useTransactionPayTotals();
   const quotes = useTransactionPayQuotes();
+  const isQuotesLoading = useIsTransactionPayLoading();
   const hasQuotes = Boolean(quotes?.length);
 
   // `withdrawableBalance` is the Unified-aware value populated by
@@ -44,6 +46,17 @@ export function useInsufficientPerpsBalanceAlert({
 
   const isPendingInput = pendingAmount !== undefined;
 
+  const noQuotes = useMemo(
+    () =>
+      isPerpsWithdraw &&
+      !isPendingInput &&
+      !isQuotesLoading &&
+      new BigNumber(amountHuman).isGreaterThan(0) &&
+      Array.isArray(quotes) &&
+      quotes.length === 0,
+    [amountHuman, isPendingInput, isPerpsWithdraw, isQuotesLoading, quotes],
+  );
+
   const isInsufficient = useMemo(() => {
     if (!isPerpsWithdraw) return false;
 
@@ -55,9 +68,7 @@ export function useInsufficientPerpsBalanceAlert({
       return true;
     }
 
-    // On the confirmation screen (not while typing), check if fees
-    // exceed the withdraw amount — user would receive nothing.
-    // Skipped during input because totals may be stale.
+    // Skip during input — totals may be stale.
     if (
       !isPendingInput &&
       hasQuotes &&
@@ -70,6 +81,16 @@ export function useInsufficientPerpsBalanceAlert({
         .plus(totals.fees.metaMask?.usd ?? 0);
 
       if (totalFees.isGreaterThanOrEqualTo(amountHuman)) {
+        return true;
+      }
+
+      if (
+        withdrawableBalance !== undefined &&
+        withdrawableBalance !== null &&
+        new BigNumber(amountHuman)
+          .plus(totalFees)
+          .isGreaterThan(withdrawableBalance)
+      ) {
         return true;
       }
     }
@@ -85,6 +106,19 @@ export function useInsufficientPerpsBalanceAlert({
   ]);
 
   return useMemo(() => {
+    if (noQuotes) {
+      return [
+        {
+          key: AlertKeys.InsufficientPerpsBalance,
+          field: RowAlertKey.Amount,
+          title: strings('alert_system.no_pay_token_quotes.title'),
+          message: strings('alert_system.no_pay_token_quotes.message'),
+          severity: Severity.Danger,
+          isBlocking: true,
+        },
+      ];
+    }
+
     if (!isInsufficient) {
       return [];
     }
@@ -93,10 +127,13 @@ export function useInsufficientPerpsBalanceAlert({
       {
         key: AlertKeys.InsufficientPerpsBalance,
         field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        title: strings('alert_system.insufficient_pay_token_balance.message'),
+        message: strings(
+          'alert_system.insufficient_pay_method_balance.message',
+        ),
         severity: Severity.Danger,
         isBlocking: true,
       },
     ];
-  }, [isInsufficient]);
+  }, [isInsufficient, noQuotes]);
 }

@@ -10,6 +10,7 @@ import {
 } from '@metamask/transaction-controller';
 import { useTokenAmount } from '../useTokenAmount';
 import {
+  useIsTransactionPayLoading,
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
@@ -78,7 +79,10 @@ describe('useInsufficientPerpsBalanceAlert', () => {
       {
         key: AlertKeys.InsufficientPerpsBalance,
         field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        title: strings('alert_system.insufficient_pay_token_balance.message'),
+        message: strings(
+          'alert_system.insufficient_pay_method_balance.message',
+        ),
         severity: Severity.Danger,
         isBlocking: true,
       },
@@ -96,7 +100,10 @@ describe('useInsufficientPerpsBalanceAlert', () => {
       {
         key: AlertKeys.InsufficientPerpsBalance,
         field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        title: strings('alert_system.insufficient_pay_token_balance.message'),
+        message: strings(
+          'alert_system.insufficient_pay_method_balance.message',
+        ),
         severity: Severity.Danger,
         isBlocking: true,
       },
@@ -211,6 +218,84 @@ describe('useInsufficientPerpsBalanceAlert', () => {
         metaMask: { usd: '0.003' },
       },
     } as unknown as TransactionPayTotals);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns no-quotes alert when no quotes are available', () => {
+    useTokenAmountMock.mockReturnValue({
+      amountPrecise: '10',
+    } as ReturnType<typeof useTokenAmount>);
+
+    jest.mocked(useTransactionPayQuotes).mockReturnValue([]);
+
+    const { result } = runHook();
+
+    expect(result.current).toEqual([
+      {
+        key: AlertKeys.InsufficientPerpsBalance,
+        field: RowAlertKey.Amount,
+        title: strings('alert_system.no_pay_token_quotes.title'),
+        message: strings('alert_system.no_pay_token_quotes.message'),
+        severity: Severity.Danger,
+        isBlocking: true,
+      },
+    ]);
+  });
+
+  it('does not trigger no-quotes check when quotes is undefined', () => {
+    useTokenAmountMock.mockReturnValue({
+      amountPrecise: '10',
+    } as ReturnType<typeof useTokenAmount>);
+
+    jest.mocked(useTransactionPayQuotes).mockReturnValue(undefined);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('does not trigger no-quotes check during pending input', () => {
+    jest.mocked(useTransactionPayQuotes).mockReturnValue([]);
+
+    const { result } = runHook({ pendingAmount: '10' });
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns alert when amount + fees exceed withdrawable balance', () => {
+    useTokenAmountMock.mockReturnValue({
+      amountPrecise: '40',
+    } as ReturnType<typeof useTokenAmount>);
+
+    jest
+      .mocked(useTransactionPayQuotes)
+      .mockReturnValue([{} as TransactionPayQuote<Json>]);
+
+    useTransactionPayTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '5' },
+        sourceNetwork: { estimate: { usd: '1' } },
+        targetNetwork: { usd: '0' },
+        metaMask: { usd: '0' },
+      },
+    } as unknown as TransactionPayTotals);
+
+    const { result } = runHook();
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].key).toBe(AlertKeys.InsufficientPerpsBalance);
+  });
+
+  it('does not trigger no-quotes alert when quotes are loading', () => {
+    useTokenAmountMock.mockReturnValue({
+      amountPrecise: '10',
+    } as ReturnType<typeof useTokenAmount>);
+
+    jest.mocked(useTransactionPayQuotes).mockReturnValue([]);
+    jest.mocked(useIsTransactionPayLoading).mockReturnValue(true);
 
     const { result } = runHook();
 

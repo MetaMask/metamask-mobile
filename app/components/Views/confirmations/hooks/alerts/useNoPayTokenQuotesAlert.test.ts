@@ -302,6 +302,50 @@ describe('useNoPayTokenQuotesAlert', () => {
     expect(result.current).toStrictEqual([]);
   });
 
+  it('returns alert for post-quote with empty sourceAmounts when quotes resolved empty', () => {
+    useTransactionPayIsPostQuoteMock.mockReturnValue(true);
+    useTransactionPaySourceAmountsMock.mockReturnValue([]);
+    useTransactionPayQuotesMock.mockReturnValue([]);
+
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        address: ADDRESS_MOCK,
+        chainId: CHAIN_ID_MOCK,
+        amountRaw: '10000',
+        skipIfBalance: false,
+      } as TransactionPayRequiredToken,
+    ]);
+
+    const { result } = runHook();
+
+    expect(result.current).toEqual([
+      expect.objectContaining({
+        key: AlertKeys.NoPayTokenQuotes,
+        severity: Severity.Danger,
+        isBlocking: true,
+      }),
+    ]);
+  });
+
+  it('returns no alert for post-quote with empty sourceAmounts when quotes not yet resolved', () => {
+    useTransactionPayIsPostQuoteMock.mockReturnValue(true);
+    useTransactionPaySourceAmountsMock.mockReturnValue([]);
+    useTransactionPayQuotesMock.mockReturnValue(undefined);
+
+    useTransactionPayRequiredTokensMock.mockReturnValue([
+      {
+        address: ADDRESS_MOCK,
+        chainId: CHAIN_ID_MOCK,
+        amountRaw: '10000',
+        skipIfBalance: false,
+      } as TransactionPayRequiredToken,
+    ]);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual([]);
+  });
+
   it('returns alert for post-quote with non-empty sourceAmounts when isMaxAmount is true', () => {
     useTransactionPayIsPostQuoteMock.mockReturnValue(true);
     useTransactionPaySourceAmountsMock.mockReturnValue([
