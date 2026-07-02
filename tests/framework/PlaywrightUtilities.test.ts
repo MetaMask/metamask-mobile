@@ -7,6 +7,10 @@ import { setDeviceInfo } from './DeviceInfoCache.ts';
 describe('PlaywrightUtilities.launchApp', () => {
   const executeMock = jest.fn();
   const terminateAppMock = jest.fn();
+  // babel's transform-inline-environment-variables bakes process.env reads in at
+  // compile time, so ANDROID_APK_PATH/IOS_APP_PATH cannot be set per-test — spy on
+  // the artifact detection instead to pick the release vs debug launch path.
+  let isReleaseArtifactSpy: jest.SpyInstance;
 
   const androidDevice: CurrentDeviceDetails = {
     platform: 'android',
@@ -27,6 +31,13 @@ describe('PlaywrightUtilities.launchApp', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     process.env.CI = 'true';
+    isReleaseArtifactSpy = jest
+      .spyOn(
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        require('./Constants'),
+        'isReleaseE2eArtifactForPlatform',
+      )
+      .mockReturnValue(true);
     executeMock.mockResolvedValue(undefined);
     terminateAppMock.mockResolvedValue(undefined);
     globalThis.driver = {
@@ -38,6 +49,7 @@ describe('PlaywrightUtilities.launchApp', () => {
   afterEach(() => {
     delete globalThis.driver;
     delete process.env.CI;
+    isReleaseArtifactSpy.mockRestore();
     jest.useRealTimers();
     jest.clearAllMocks();
   });
@@ -155,6 +167,7 @@ describe('PlaywrightUtilities.launchApp', () => {
   it('launches local Android debug builds via Expo dev-client deep link', async () => {
     jest.useRealTimers();
     process.env.CI = 'false';
+    isReleaseArtifactSpy.mockReturnValue(false);
     const execSyncMock = jest.spyOn(
       // eslint-disable-next-line @typescript-eslint/no-require-imports, import-x/no-nodejs-modules
       require('child_process'),
