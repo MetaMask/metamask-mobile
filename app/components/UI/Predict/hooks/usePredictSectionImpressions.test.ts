@@ -70,7 +70,10 @@ describe('usePredictSectionImpressions', () => {
   const setup = (onSectionViewed = jest.fn()) => {
     const scrollY = { value: 0 } as { value: number };
     const { result, unmount } = renderHook(() =>
-      usePredictSectionImpressions({ scrollY: scrollY as never, onSectionViewed }),
+      usePredictSectionImpressions({
+        scrollY: scrollY as never,
+        onSectionViewed,
+      }),
     );
     return { result, unmount, onSectionViewed, scrollY };
   };

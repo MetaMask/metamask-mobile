@@ -71,12 +71,9 @@ export interface FeedViewedArgs {
   tabId?: string;
   filterId?: string;
   /**
-   * Distinguishes the two call paths that share the `PREDICT_FEED_VIEWED`
-   * event:
-   * - `'focus'`   — lightweight one-shot fired by `PredictFeedView` on each
-   *                 screen focus (no session fields).
-   * - `'session'` — legacy full-session tracking via `PredictFeedSessionManager`
-   *                 (includes `sessionId`, `numPagesViewed`, etc.).
+   * Distinguishes the two call paths that share the `PREDICT_FEED_VIEWED` event:
+   * - `'focus'` — lightweight one-shot fired by `PredictFeedView` on each screen focus (no session fields).
+   * - `'session'` — legacy full-session tracking via `PredictFeedSessionManager` (includes `sessionId`, `numPagesViewed`, etc.).
    *
    * Omit for legacy callers that pre-date this field.
    */
@@ -522,9 +519,7 @@ export class PredictAnalytics {
     this.trackConfiguredEvent('homeViewed', params);
   }
 
-  public trackHomeSectionInteraction(
-    params: HomeSectionInteractionArgs,
-  ): void {
+  public trackHomeSectionInteraction(params: HomeSectionInteractionArgs): void {
     this.trackConfiguredEvent('homeSectionInteraction', params);
   }
 

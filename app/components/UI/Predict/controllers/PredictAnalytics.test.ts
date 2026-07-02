@@ -895,7 +895,9 @@ describe('PredictAnalytics', () => {
 
       const feedEvent = getTrackEventMock().mock.calls[0][0] as TrackedEvent;
 
-      expect(feedEvent.name).toBe(MetaMetricsEvents.PREDICT_FEED_VIEWED.category);
+      expect(feedEvent.name).toBe(
+        MetaMetricsEvents.PREDICT_FEED_VIEWED.category,
+      );
       expect(feedEvent.properties).toMatchObject({
         feed_id: 'sports',
         tab_id: 'basketball',

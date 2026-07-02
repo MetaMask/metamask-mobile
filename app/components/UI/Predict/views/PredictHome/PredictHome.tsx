@@ -70,11 +70,14 @@ const PredictHome: React.FC = () => {
     [entryPoint],
   );
 
-  const { registerSection, setViewportHeight, reset: resetImpressions } =
-    usePredictSectionImpressions({
-      scrollY,
-      onSectionViewed: handleSectionViewed,
-    });
+  const {
+    registerSection,
+    setViewportHeight,
+    reset: resetImpressions,
+  } = usePredictSectionImpressions({
+    scrollY,
+    onSectionViewed: handleSectionViewed,
+  });
 
   // Fire "home viewed" once per focus, and reset section impressions so a
   // return visit can re-fire section-viewed events.
@@ -174,9 +177,7 @@ const PredictHome: React.FC = () => {
           </Box>
           <Box
             testID={PredictHomeSelectorsIDs.CATEGORIES_IMPRESSION}
-            onLayout={registerSection(
-              PredictEventValues.SECTION_ID.CATEGORIES,
-            )}
+            onLayout={registerSection(PredictEventValues.SECTION_ID.CATEGORIES)}
           >
             <PredictCategoriesSection />
           </Box>
