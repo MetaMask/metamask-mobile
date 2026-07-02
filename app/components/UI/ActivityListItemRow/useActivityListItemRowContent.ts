@@ -10,6 +10,7 @@ import {
   selectUSDConversionRateByChainId,
 } from '../../../selectors/currencyRateController';
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
+import { useTokensData } from '../../hooks/useTokensData/useTokensData';
 import {
   MUSD_DECIMALS,
   MUSD_TOKEN,
@@ -26,6 +27,7 @@ import {
   type ActivityListItem,
   getDisplaySignPrefix,
   getHumanReadableTokenAmount,
+  isUnlimitedApprovalAmount,
   shouldShowPlusSign,
   type TokenAmount,
   toMarketRateLookupToken,
@@ -358,6 +360,40 @@ function enrichStablecoinTokenMetadata(
     ...token,
     decimals: token.decimals ?? MUSD_DECIMALS,
     assetId: token.assetId ?? MUSD_TOKEN_ASSET_ID_BY_CHAIN[hexChainId],
+  };
+}
+
+function isSpendingCapKind(type: ActivityKind): boolean {
+  return (
+    type === 'approveSpendingCap' ||
+    type === 'increaseSpendingCap' ||
+    type === 'revokeSpendingCap'
+  );
+}
+
+/**
+ * Fills a spending-cap token's missing symbol/decimals from the tokens API
+ * and re-derives the "unlimited" flag now that decimals are known,
+ * so the cap renders as e.g. "Unlimited USDC" / "50,000 USDC".
+ */
+function enrichSpendingCapToken(
+  token: TokenAmount | undefined,
+  listToken: { symbol?: string; decimals?: number } | undefined,
+): TokenAmount | undefined {
+  if (!token) {
+    return token;
+  }
+  const symbol = token.symbol ?? listToken?.symbol;
+  const decimals = token.decimals ?? listToken?.decimals;
+  const isUnlimitedApproval =
+    token.amount !== undefined
+      ? isUnlimitedApprovalAmount(token.amount, decimals)
+      : token.isUnlimitedApproval;
+  return {
+    ...token,
+    ...(symbol ? { symbol } : {}),
+    ...(decimals === undefined ? {} : { decimals }),
+    ...(isUnlimitedApproval ? { isUnlimitedApproval: true } : {}),
   };
 }
 
@@ -1117,9 +1153,34 @@ export function useActivityListItemRowContent(
       : undefined,
   );
 
+  // Spending caps: resolve the token's symbol/decimals from the tokens API by
+  // its asset id (mirroring the extension's ApprovalDetails), so the row/details
+  // show the token avatar + cap amount instead of a generic "unknown" fallback.
+  const isSpendingCap = isSpendingCapKind(item.type);
+  const spendingCapAssetId =
+    isSpendingCap && 'token' in item.data
+      ? item.data.token?.assetId
+      : undefined;
+  const spendingCapTokenData = useTokensData(
+    spendingCapAssetId ? [spendingCapAssetId] : [],
+  );
+  const spendingCapToken =
+    isSpendingCap && 'token' in item.data
+      ? enrichSpendingCapToken(
+          item.data.token,
+          spendingCapAssetId
+            ? spendingCapTokenData[spendingCapAssetId.toLowerCase()]
+            : undefined,
+        )
+      : undefined;
+
   const content = resolveCoreContent(item, bridgeHistoryItem);
   const primaryToken = enrichStablecoinTokenMetadata(
-    content.primaryToken,
+    isSpendingCap
+      ? spendingCapToken?.amount
+        ? spendingCapToken
+        : undefined
+      : content.primaryToken,
     networkChainId,
   );
   const secondaryToken = enrichStablecoinTokenMetadata(
@@ -1189,7 +1250,10 @@ export function useActivityListItemRowContent(
 
   return {
     ...content,
-    avatarTokens: resolveAvatarTokens(item, bridgeHistoryItem),
+    avatarTokens:
+      isSpendingCap && spendingCapToken
+        ? [spendingCapToken]
+        : resolveAvatarTokens(item, bridgeHistoryItem),
     avatarIconUrl: predictIconUrl,
     perpsMarketSymbol,
     primaryToken,
