@@ -81,21 +81,29 @@ You can either use prebuilt app files from Expo (iOS only) or build the app loca
 
 Choose one of the following methods to download the prebuilt iOS app:
 
-**Method A: Using Runway Script (Recommended)**
+**Method A: Using the install script (recommended)**
+
+Requires [GitHub CLI](https://cli.github.com/) (`gh auth login`).
 
 ```bash
-yarn install:ios:runway --skipInstall
+yarn install:ios:dev --skipInstall
 ```
 
-**Method B: Manual Download from Runway**
+**Method B: Manual download from GitHub Actions**
 
-1. Navigate to [Runway builds](https://app.runway.team/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=)
-2. Download the latest version of the app
-3. Copy and rename the build:
+1. Find a successful [`Expo Dev Build`](https://github.com/MetaMask/metamask-mobile/actions/workflows/expo-dev-build.yml) run on `main`.
+2. Download the `ios-app-main-dev-expo` artifact:
 
    ```bash
-   # Copy your downloaded .app file to the prebuild path
-   cp /path/to/your/downloaded/AAA.app build/MetaMask.app
+   gh run download RUN_ID --repo MetaMask/metamask-mobile \
+     -n ios-app-main-dev-expo -D build
+   ```
+
+3. Extract the simulator zip:
+
+   ```bash
+   mkdir -p build/MetaMask.app
+   ditto -x -k build/metamask-simulator-*.zip build/MetaMask.app
    ```
 
 #### Option 2: Build the App Locally
@@ -473,7 +481,7 @@ yarn run-playwright:ios-bs
 
 _Important Note:_ We strongly advise the use of Browserstack for this as we're still going through the migration and the amulator interface isn't yet fully ready.
 
-You need to make sure that the artifact is created. Download the binary from the [runway](https://github.com/MetaMask/metamask-mobile/tree/main?tab=readme-ov-file#download-and-install-the-development-build) and place it in a folder accessible to Playwright.
+You need to make sure that the artifact is created. Download the binary using [`yarn install:ios:dev --skipInstall` / `yarn install:android:dev --skipInstall`](https://github.com/MetaMask/metamask-mobile/tree/main?tab=readme-ov-file#download-and-install-the-development-build) and place it in a folder accessible to Playwright.
 
 Then update the build path in the `ios` or `android` config:
 
