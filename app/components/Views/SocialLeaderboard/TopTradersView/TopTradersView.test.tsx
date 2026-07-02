@@ -10,6 +10,7 @@ import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hoo
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { ImpactMoment } from '../../../../util/haptics';
 import TopTradersView from './TopTradersView';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 import { TradingSignalsSetupBottomSheetSelectorsIDs } from '../components/TradingSignalsSetupBottomSheet/TradingSignalsSetupBottomSheet.testIds';
@@ -19,10 +20,12 @@ jest.mock('../../../../util/Logger', () => ({
 }));
 
 const mockPlayErrorNotification = jest.fn(() => Promise.resolve());
+const mockPlayImpact = jest.fn();
 
 jest.mock('../../../../util/haptics', () => ({
   ...jest.requireActual('../../../../util/haptics'),
   playErrorNotification: () => mockPlayErrorNotification(),
+  playImpact: (...args: unknown[]) => mockPlayImpact(...args),
   fireSwitchHaptic: jest.fn(),
 }));
 
@@ -821,6 +824,7 @@ describe('TopTradersView', () => {
       expect(mockToggleTraderNotification).toHaveBeenCalledWith(
         fixtureTraders[0].id,
       );
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.FollowToggle);
       expect(mockPlayErrorNotification).not.toHaveBeenCalled();
       expect(
         screen.queryByTestId(

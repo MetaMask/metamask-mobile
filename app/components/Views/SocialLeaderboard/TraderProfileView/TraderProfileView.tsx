@@ -250,12 +250,15 @@ const TraderProfileView = () => {
     // means "enable"; forward an idempotent unmute rather than a toggle.
     const ensureUnmuted = () => {
       if (isMuted) {
+        // Symmetric with the Follow button: same Light impact on any real toggle.
+        playImpact(ImpactMoment.FollowToggle);
         toggleMute();
       }
     };
     if (openSetupIfNeeded(ensureUnmuted)) {
       return;
     }
+    playImpact(ImpactMoment.FollowToggle);
     toggleMute();
   }, [openSetupIfNeeded, toggleMute, isMuted]);
 

@@ -2,13 +2,6 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import TraderMuteChip from './TraderMuteChip';
-import { fireSwitchHaptic } from '../../../../util/haptics';
-
-jest.mock('../../../../util/haptics');
-
-const mockFireSwitchHaptic = fireSwitchHaptic as jest.MockedFunction<
-  typeof fireSwitchHaptic
->;
 
 const TEST_ID = 'mute-chip';
 
@@ -37,7 +30,7 @@ describe('TraderMuteChip', () => {
     );
   });
 
-  it('fires a switch haptic and invokes onPress when tapped', () => {
+  it('invokes onPress when tapped', () => {
     const onPress = jest.fn();
     renderWithProvider(
       <TraderMuteChip isMuted={false} onPress={onPress} testID={TEST_ID} />,
@@ -45,7 +38,6 @@ describe('TraderMuteChip', () => {
 
     fireEvent.press(screen.getByTestId(TEST_ID));
 
-    expect(mockFireSwitchHaptic).toHaveBeenCalledTimes(1);
     expect(onPress).toHaveBeenCalledTimes(1);
   });
 

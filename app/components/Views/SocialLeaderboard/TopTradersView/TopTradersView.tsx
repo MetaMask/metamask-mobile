@@ -49,6 +49,7 @@ import {
 } from '../../../../selectors/featureFlagController/socialLeaderboard';
 import Logger from '../../../../util/Logger';
 import { buildSocialLoggerErrorOptions } from '../../../../util/social/socialServiceTelemetry';
+import { ImpactMoment, playImpact } from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { useNotificationStoragePreferences } from '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences';
@@ -522,12 +523,15 @@ const TopTradersView = () => {
       // means "enable"; forward an idempotent unmute rather than a toggle.
       const ensureUnmuted = () => {
         if (!isTraderNotificationEnabled(traderId)) {
+          // Symmetric with the Follow button: same Light impact on any real toggle.
+          playImpact(ImpactMoment.FollowToggle);
           toggleTraderNotification(traderId);
         }
       };
       if (openSetupIfNeeded(ensureUnmuted)) {
         return;
       }
+      playImpact(ImpactMoment.FollowToggle);
       toggleTraderNotification(traderId);
     },
     [openSetupIfNeeded, toggleTraderNotification, isTraderNotificationEnabled],

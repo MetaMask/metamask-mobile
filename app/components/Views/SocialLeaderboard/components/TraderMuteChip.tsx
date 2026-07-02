@@ -16,10 +16,6 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import { strings } from '../../../../../locales/i18n';
-import {
-  fireSwitchHaptic,
-  ImpactFeedbackStyle,
-} from '../../../../util/haptics';
 import { useTheme } from '../../../../util/theme';
 
 const PRESS_SPRING = { damping: 14, stiffness: 420, mass: 0.6 } as const;
@@ -75,7 +71,8 @@ export interface TraderMuteChipProps {
  * (so an adjacent flex button translates and resizes smoothly every frame,
  * never instantly) and the chip's slide-in + spring scale. Tapping adds a
  * press-down scale, a spring "pop", a small wiggle, and a diagonal slash that
- * strokes across the bell when muted, alongside a Light switch haptic.
+ * strokes across the bell when muted. Tactile feedback fires when the mute
+ * state actually toggles (see `toggleTraderNotification`), matching follow.
  */
 const TraderMuteChip: React.FC<TraderMuteChipProps> = ({
   isMuted,
@@ -135,9 +132,6 @@ const TraderMuteChip: React.FC<TraderMuteChipProps> = ({
   }, [pressScale]);
 
   const handlePress = useCallback(() => {
-    // Subordinate control: a single Light impact keeps the tactile weight in
-    // line with the notification toggle it replaces.
-    fireSwitchHaptic(ImpactFeedbackStyle.Light);
     onPress();
   }, [onPress]);
 

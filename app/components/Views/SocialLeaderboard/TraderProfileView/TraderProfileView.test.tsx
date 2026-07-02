@@ -694,6 +694,7 @@ describe('TraderProfileView', () => {
     });
 
     expect(mockToggleTraderNotification).toHaveBeenCalledTimes(1);
+    expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.FollowToggle);
     expect(mockPlayErrorNotification).not.toHaveBeenCalled();
     expect(
       screen.queryByTestId(
