@@ -85,13 +85,13 @@ const OtherBottomSheet = ({
             'min-h-[120px] rounded-xl border border-default bg-background-muted px-4 py-3 text-body-md text-default',
           )}
           testID={OtherBottomSheetTestIds.TEXT_INPUT}
+          maxLength={100}
         />
         <Box twClassName="mt-4">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            isDisabled={trimmedDraftValue.length === 0}
             onPress={handleDone}
             testID={OtherBottomSheetTestIds.DONE_BUTTON}
           >

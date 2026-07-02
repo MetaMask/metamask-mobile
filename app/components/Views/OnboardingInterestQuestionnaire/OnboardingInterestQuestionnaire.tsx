@@ -313,7 +313,7 @@ const OnboardingInterestQuestionnaire = () => {
                     testID={OnboardingInterestQuestionnaireTestIds.OTHER_TEXT}
                     numberOfLines={1}
                     ellipsizeMode="tail"
-                    twClassName="flex-shrink mr-1"
+                    twClassName="flex-shrink mr-2"
                   >
                     {otherText}
                   </Text>
@@ -334,7 +334,7 @@ const OnboardingInterestQuestionnaire = () => {
           style={tw.style('w-full')}
           testID={OnboardingInterestQuestionnaireTestIds.CONTINUE_BUTTON}
         >
-          {strings('onboarding_interest_questionnaire.next')}
+          {strings('onboarding_interest_questionnaire.other_done')}
         </Button>
       </Box>
 
