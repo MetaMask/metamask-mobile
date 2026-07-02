@@ -57,6 +57,7 @@ const Routes = {
       SSN_INFO: 'RampSsnInfoModal',
       STATE_SELECTOR: 'RampStateSelectorModal',
       UNSUPPORTED_STATE: 'RampUnsupportedStateModal',
+      PHONE_COUNTRY_SELECTOR: 'RampPhoneCountrySelectorModal',
     },
   },
   DEPOSIT: {
