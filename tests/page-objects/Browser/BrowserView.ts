@@ -26,6 +26,12 @@ import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { getDriver } from '../../framework/PlaywrightUtilities';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 
+const PORTFOLIO_HOST_PATTERN = /portfolio\.metamask\.io/i;
+const DAPP_NAVIGATION_MAX_ATTEMPTS = 3;
+const TAB_THUMBNAIL_POLL_MS = 500;
+const TAB_THUMBNAIL_WAIT_MS = 5_000;
+const DAPP_URL_BAR_VERIFY_MS = 10_000;
+
 interface TransactionParams {
   [key: string]: string | number | boolean;
 }
@@ -251,6 +257,110 @@ class Browser {
     }
   }
 
+  /**
+   * If the "Opened tabs" grid is shown, open an existing tab or return to the
+   * active tab. Avoids tapping "Add tab" when thumbnails are still loading,
+   * which would open Portfolio (the browser homepage).
+   */
+  async ensureSingleBrowserTabView(): Promise<void> {
+    const openedTabsHeader = Matchers.getElementByID(
+      BrowserViewSelectorsIDs.TABS_OPENED_TITLE,
+    );
+    const isInTabListView = await Utilities.isElementVisible(
+      openedTabsHeader,
+      2000,
+    );
+    if (!isInTabListView) {
+      return;
+    }
+
+    const deadline = Date.now() + TAB_THUMBNAIL_WAIT_MS;
+    while (Date.now() < deadline) {
+      const firstTab = Matchers.getElementByID(
+        BrowserViewSelectorsIDs.TABS_ITEM_REGEX,
+        0,
+      );
+      if (await Utilities.isElementVisible(firstTab, 500)) {
+        await Gestures.waitAndTap(firstTab, {
+          elemDescription: 'First browser tab (select to open single-tab view)',
+        });
+        return;
+      }
+      await TestHelpers.delay(TAB_THUMBNAIL_POLL_MS);
+    }
+
+    const backButton = Matchers.getElementByID(
+      BrowserViewSelectorsIDs.TABS_BACK_BUTTON,
+    );
+    if (await Utilities.isElementVisible(backButton, 2000)) {
+      await Gestures.waitAndTap(backButton, {
+        elemDescription: 'Back from tab list to active browser tab',
+      });
+      return;
+    }
+
+    const addNewTab = Matchers.getElementByID(
+      BrowserViewSelectorsIDs.ADD_NEW_TAB,
+    );
+    await Gestures.waitAndTap(addNewTab, {
+      elemDescription: 'Add new browser tab from empty tabs view',
+    });
+  }
+
+  private async getUrlBarDisplayText(): Promise<string> {
+    if (FrameworkDetector.isAppium()) {
+      const urlBar = await asPlaywrightElement(this.addressBar);
+      return (await urlBar.textContent()) ?? '';
+    }
+
+    const urlBar = (await this.addressBar) as Detox.IndexableNativeElement;
+    return urlBar.getAttributes().then((attrs) => {
+      if (typeof attrs === 'string') return attrs;
+      if ('text' in attrs && typeof attrs.text === 'string') return attrs.text;
+      if ('label' in attrs && typeof attrs.label === 'string')
+        return attrs.label;
+      return '';
+    });
+  }
+
+  private urlBarTextMatchesDapp(urlBarText: string, dappUrl: string): boolean {
+    const normalized = urlBarText.toLowerCase();
+    if (PORTFOLIO_HOST_PATTERN.test(normalized)) {
+      return false;
+    }
+
+    let port = '';
+    try {
+      port = new URL(dappUrl).port;
+    } catch {
+      port = '';
+    }
+
+    return (
+      normalized.includes('localhost') ||
+      normalized.includes('127.0.0.1') ||
+      normalized.includes('10.0.2.2') ||
+      (port.length > 0 && normalized.includes(port))
+    );
+  }
+
+  private async waitForUrlBarToShowDapp(
+    dappUrl: string,
+    timeoutMs = DAPP_URL_BAR_VERIFY_MS,
+  ): Promise<boolean> {
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+      const urlBarText = await this.getUrlBarDisplayText();
+      if (this.urlBarTextMatchesDapp(urlBarText, dappUrl)) {
+        return true;
+      }
+      await TestHelpers.delay(500);
+    }
+
+    return false;
+  }
+
   // Legacy methods for backward compatibility with existing tests
   async tapBottomSearchBar(): Promise<void> {
     // Search button removed from bottom bar
@@ -431,11 +541,32 @@ class Browser {
   }
 
   async navigateToTestDApp(): Promise<void> {
-    await this.tapUrlInputBox();
-    await this.navigateToURL(getDappUrl(0));
-    // iOS Appium only: dapp can land mid-page; Android uses native WebView context.
-    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
-      await PlaywrightContextHelpers.scrollWebViewToTop(getDappUrl(0));
+    const dappUrl = getDappUrl(0);
+
+    if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
+      await this.ensureSingleBrowserTabView();
+    }
+
+    for (let attempt = 1; attempt <= DAPP_NAVIGATION_MAX_ATTEMPTS; attempt++) {
+      await this.dismissUrlEditorIfOpen();
+      await this.tapUrlInputBox();
+      await this.navigateToURL(dappUrl, { skipUrlEditorDismissal: true });
+
+      const navigated = await this.waitForUrlBarToShowDapp(dappUrl);
+      await this.dismissUrlEditorIfOpen();
+
+      if (navigated) {
+        if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+          await PlaywrightContextHelpers.scrollWebViewToTop(dappUrl);
+        }
+        return;
+      }
+
+      if (attempt === DAPP_NAVIGATION_MAX_ATTEMPTS) {
+        throw new Error(
+          `Failed to navigate to test dapp at ${dappUrl} after ${DAPP_NAVIGATION_MAX_ATTEMPTS} attempts (URL bar still shows Portfolio or another page)`,
+        );
+      }
     }
   }
 

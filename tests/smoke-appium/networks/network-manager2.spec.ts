@@ -19,6 +19,10 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
+const step = (label: string): void => {
+  console.log(`[network-manager2] ▶ ${label}`);
+};
+
 appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
   appiumTest(
     'should preserve existing enabled networks when adding a network via dapp',
@@ -49,23 +53,36 @@ appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
           testSpecificMock: dappTestMock,
         },
         async () => {
+          step('login');
           await loginToAppPlaywright({ scenarioType: 'e2e' });
 
+          step('open network manager from homepage');
           await NetworkManager.openNetworkManagerFromHomepage();
+          step('wait for network manager');
           await NetworkManager.waitForNetworkManagerToLoad();
+          step('check popular networks visible');
           await NetworkManager.checkPopularNetworksContainerIsVisible();
+          step('check Popular tab selected');
           await NetworkManager.checkTabIsSelected('Popular');
+          step('tap Ethereum network');
           await NetworkManager.tapNetwork(NetworkToCaipChainId.ETHEREUM);
+          step('check Ethereum in control bar');
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.ETHEREUM,
           );
+          step('navigate back from tokens full view');
           await NetworkManager.navigateBackFromTokensFullView();
 
+          step('navigate to browser view');
           await navigateToBrowserView();
+          step('navigate to test dapp');
           await Browser.navigateToTestDApp();
+          step('tap open network picker in dapp');
           await TestDApp.tapOpenNetworkPicker();
+          step(`tap network ${POLYGON} in dapp`);
           await TestDApp.tapNetworkByName(POLYGON);
 
+          step('assert edit networks permissions label');
           const expectedText = `Use your enabled networks, Requesting for ${POLYGON} Mainnet`;
           await Assertions.expectElementToHaveLabel(
             ConnectedAccountsModal.navigateToEditNetworksPermissionsButton,
@@ -74,20 +91,28 @@ appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
               description: `edit networks permissions button should show "${expectedText}"`,
             },
           );
+          step('assert connect button visible');
           await Assertions.expectElementToBeVisible(
             ConnectBottomSheet.connectButton,
           );
 
+          step('tap connect');
           await ConnectBottomSheet.tapConnectButton();
+          step('assert browser visible after connect');
           await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
             description: 'Browser screen should be visible after connecting',
           });
+          step('close browser');
           await Browser.tapCloseBrowserButton();
+          step('tap wallet tab');
           await TabBarComponent.tapWallet();
+          step('navigate to tokens full view');
           await NetworkManager.navigateToTokensFullView();
+          step('assert Ethereum still in control bar');
           await NetworkManager.checkBaseControlBarText(
             NetworkToCaipChainId.ETHEREUM,
           );
+          step('test complete');
         },
       );
     },

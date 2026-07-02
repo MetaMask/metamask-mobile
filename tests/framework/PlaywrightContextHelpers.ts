@@ -17,6 +17,8 @@ const LAVAMOAT_PATTERN = /LavaMoat|ShadowRoot|scuttling/i;
 const LOCALHOST_HOST_PATTERN =
   /^(localhost|127\.0\.0\.1|10\.0\.2\.2|bs-local\.com)$/i;
 const CONTEXT_SWITCH_TIMEOUT_MS = 15_000;
+const WEB_ACTION_LAVAMOAT_RETRY_ATTEMPTS = 3;
+const WEB_ACTION_RETRY_DELAY_MS = 500;
 
 type AndroidContextWithPages = AndroidDetailedContext & {
   webviewName?: string;
@@ -193,26 +195,35 @@ export default class PlaywrightContextHelpers {
   private static async attemptContextSwitch(
     contextId: string,
   ): Promise<boolean> {
+    let switchTimeoutId: ReturnType<typeof setTimeout> | undefined;
+
     try {
-      await Promise.race([
-        getDriver().switchContext(contextId),
-        new Promise<never>((_, reject) => {
-          setTimeout(
-            () =>
-              reject(
-                new Error(
-                  `switchContext("${contextId}") timed out after ${CONTEXT_SWITCH_TIMEOUT_MS}ms`,
-                ),
+      const switchContextPromise = getDriver().switchContext(contextId);
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        switchTimeoutId = setTimeout(
+          () =>
+            reject(
+              new Error(
+                `switchContext("${contextId}") timed out after ${CONTEXT_SWITCH_TIMEOUT_MS}ms`,
               ),
-            CONTEXT_SWITCH_TIMEOUT_MS,
-          );
-        }),
-      ]);
+            ),
+          CONTEXT_SWITCH_TIMEOUT_MS,
+        );
+      });
+
+      try {
+        await Promise.race([switchContextPromise, timeoutPromise]);
+      } finally {
+        if (switchTimeoutId !== undefined) {
+          clearTimeout(switchTimeoutId);
+        }
+      }
+
       return true;
     } catch (err) {
       const message = this.getErrorMessage(err);
 
-      if (LAVAMOAT_PATTERN.test(message)) {
+      if (this.isLavaMoatError(err)) {
         logger.debug('Encountered LavaMoat scuttling, retrying context switch');
         return false;
       }
@@ -228,12 +239,47 @@ export default class PlaywrightContextHelpers {
     return JSON.stringify(err);
   }
 
+  private static isLavaMoatError(err: unknown): boolean {
+    return LAVAMOAT_PATTERN.test(this.getErrorMessage(err));
+  }
+
   static async withWebAction(
     actionFn: () => Promise<void>,
     dappUrl: string,
   ): Promise<void> {
-    await this.switchToWebViewContext(dappUrl);
-    await actionFn();
+    for (
+      let attempt = 1;
+      attempt <= WEB_ACTION_LAVAMOAT_RETRY_ATTEMPTS;
+      attempt++
+    ) {
+      try {
+        await this.switchToWebViewContext(dappUrl);
+        await actionFn();
+        return;
+      } catch (err) {
+        const isLastAttempt = attempt === WEB_ACTION_LAVAMOAT_RETRY_ATTEMPTS;
+        if (!this.isLavaMoatError(err) || isLastAttempt) {
+          throw err;
+        }
+
+        logger.debug(
+          `Encountered LavaMoat scuttling during web action (attempt ${attempt}/${WEB_ACTION_LAVAMOAT_RETRY_ATTEMPTS}), retrying`,
+        );
+
+        try {
+          await this.switchToNativeContext();
+        } catch (nativeErr) {
+          logger.debug(
+            'Failed to switch to native context before LavaMoat retry:',
+            this.getErrorMessage(nativeErr).slice(0, 300),
+          );
+        }
+
+        await new Promise((resolve) =>
+          setTimeout(resolve, WEB_ACTION_RETRY_DELAY_MS),
+        );
+      }
+    }
   }
 
   static async withNativeAction(actionFn: () => Promise<void>): Promise<void> {
