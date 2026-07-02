@@ -63,6 +63,14 @@ export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
   'itf',
 ];
 
+export const WORLD_CUP_LEAGUE: PredictSportsLeague = 'fifwc';
+
+export const DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES = [
+  'soccer_team_to_advance',
+  'soccer_extra_time',
+  'soccer_penalty_shootout',
+];
+
 export const filterSupportedLeagues = (
   leagues: string[],
 ): PredictSportsLeague[] =>
@@ -130,6 +138,8 @@ export const MONEYLINE_MARKET_TYPES: ReadonlySet<string> = new Set([
   'moneyline',
   'first_half_moneyline',
   'soccer_halftime_result',
+  'soccer_first_to_score',
+  'soccer_team_to_advance',
   'tennis_first_set_winner',
 ]);
 

@@ -124,6 +124,7 @@ jobs:
       signing_android_keystore_path: ${{ steps.config.outputs.signing_android_keystore_path }}
       script_name: ${{ steps.config.outputs.script_name }}
       checkout_ref_for_setup: ${{ inputs.source_branch }}
+      should_cache: ${{ startsWith(github.ref_name, 'release/') || github.event_name == 'workflow_dispatch' }}
     steps:
       - uses: namespacelabs/nscloud-checkout-action@938f5d2d403d6224d9a0c0dc559b1dae09c2ede4 # v8.1.1
         if: ${{ inputs.runner_provider == 'namespace' }}
@@ -186,8 +187,9 @@ jobs:
       checkout-submodules: true
       platform: ${{ matrix.platform }}
       build_name: ${{ inputs.build_name }}
-      use-tarball: true
-      upload-artifact: true
+      use-cache: ${{ needs.prepare.outputs.should_cache == 'true' }}
+      use-tarball: ${{ needs.prepare.outputs.should_cache != 'true' }}
+      upload-artifact: ${{ needs.prepare.outputs.should_cache != 'true' }}
       artifact-name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
       artifact-retention-days: 1
       runner_provider: ${{ inputs.runner_provider }}
@@ -238,22 +240,61 @@ jobs:
           ./scripts/set-build-version.sh "$BUILD_NUMBER"
           echo "Bump applied locally (no commit). Build number: $BUILD_NUMBER"
 
-      # Node first so we can download/extract/verify; no yarn install here (we use the tarball to avoid running install in this job).
+      # Node first so we can download/extract/verify; no yarn install here.
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version-file: '.nvmrc'
 
+      # release/* branches and manual workflow_dispatch: restore node_modules from GitHub Actions cache (fast, no artifact download).
+      - name: Compute node_modules cache key
+        id: cache-key
+        if: ${{ needs.prepare.outputs.should_cache == 'true' }}
+        run: |
+          NODE_VERSION=$(node --version | sed 's/v//')
+          KEY="node-modules-${{ env.CACHE_GENERATION }}-${{ inputs.build_name }}-${{ matrix.platform }}-${RUNNER_OS}-${NODE_VERSION}-${{ hashFiles('yarn.lock', 'patches/**', 'scripts/inpage-bridge/**', 'scripts/build-inpage-bridge.sh') }}"
+          echo "key=${KEY}" >> "$GITHUB_OUTPUT"
+          echo "Cache key: ${KEY}"
+
+      - name: Restore node_modules cache
+        if: ${{ needs.prepare.outputs.should_cache == 'true' }}
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            node_modules
+            app/util/termsOfUse/termsOfUseContent.ts
+            app/core/InpageBridgeWeb3.js
+            scripts/inpage-bridge/dist
+          key: ${{ steps.cache-key.outputs.key }}
+          fail-on-cache-miss: true
+
+      # All other branches: download tarball artifact from setup-dependencies job.
       - name: Download node_modules tarball
+        if: ${{ needs.prepare.outputs.should_cache != 'true' }}
         uses: actions/download-artifact@v4
         with:
           name: node-modules-${{ inputs.build_name }}-${{ matrix.platform }}
 
+      - name: Ensure zstd is available
+        if: ${{ needs.prepare.outputs.should_cache != 'true' }}
+        shell: bash
+        run: |
+          if command -v zstd >/dev/null 2>&1; then
+            echo "✅ zstd present: $(zstd --version)"
+          elif [ "$RUNNER_OS" = "macOS" ]; then
+            echo "Installing zstd via Homebrew..."
+            brew install zstd
+          else
+            echo "Installing zstd via apt..."
+            sudo apt-get update -qq && sudo apt-get install -y -qq zstd
+          fi
+
       - name: Extract tarball (preserves symlinks)
+        if: ${{ needs.prepare.outputs.should_cache != 'true' }}
         run: |
           echo "📦 Extracting tarball..."
-          tar -xzf node-modules-${{ matrix.platform }}.tar.gz
-          rm node-modules-${{ matrix.platform }}.tar.gz
+          tar --use-compress-program 'zstd -d' -xf node-modules-${{ matrix.platform }}.tar.zst
+          rm node-modules-${{ matrix.platform }}.tar.zst
           echo "✅ Tarball extracted"
 
       - name: Verify artifacts and symlinks
@@ -290,7 +331,7 @@ jobs:
 
           echo "✅ All artifacts verified with working symlinks!"
 
-      # iOS only: Ruby + CocoaPods + Xcode (no yarn install; node_modules from tarball). Signing is in Configure signing certificates below.
+      # iOS only: Ruby + CocoaPods + Xcode (no yarn install; node_modules from cache). Signing is in Configure signing certificates below.
       - name: Setup Ruby (iOS)
         if: matrix.platform == 'ios'
         uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
@@ -480,8 +521,9 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${SCRIPT_BASE//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Prod Play–shaped Android: lint merged prodRelease manifest, then validate the AAB produced above (bundletool).
-      # Skips e2e (no AAB) and Debug dev builds. Mirrors former ci.yml android-play-store-manifest-check without a second bundle.
+      # Android Play Store checks: Gradle lint (all main release builds) + bundletool AAB validation (production only).
+      # The lint + Slack report run for every main release build so RC gets Slack feedback.
+      # bundletool cache is gated on production because non-prod builds don't produce an AAB.
       - name: Cache bundletool (Android Play bundle validation)
         id: bundletool-cache-play-check
         if: >-
@@ -489,7 +531,7 @@ jobs:
           matrix.platform == 'android' &&
           env.CONFIGURATION != 'Debug' &&
           env.METAMASK_BUILD_TYPE == 'main' &&
-          env.METAMASK_ENVIRONMENT != 'e2e'
+          env.METAMASK_ENVIRONMENT == 'production'
         uses: actions/cache@v4
         with:
           path: ${{ runner.temp }}/bundletool-all.jar
@@ -500,8 +542,7 @@ jobs:
           success() &&
           matrix.platform == 'android' &&
           env.CONFIGURATION != 'Debug' &&
-          env.METAMASK_BUILD_TYPE == 'main' &&
-          env.METAMASK_ENVIRONMENT != 'e2e'
+          env.METAMASK_BUILD_TYPE == 'main'
         env:
           SENTRY_DISABLE_AUTO_UPLOAD: true
         run: node scripts/android-play-store-check-slack.mjs
@@ -512,8 +553,7 @@ jobs:
           matrix.platform == 'android' &&
           inputs.build_name == 'main-rc' &&
           env.CONFIGURATION != 'Debug' &&
-          env.METAMASK_BUILD_TYPE == 'main' &&
-          env.METAMASK_ENVIRONMENT != 'e2e'
+          env.METAMASK_BUILD_TYPE == 'main'
         uses: actions/upload-artifact@v4
         with:
           name: android-play-store-check-slack
@@ -587,7 +627,11 @@ jobs:
           if-no-files-found: error
 
       - name: Upload Android AAB
-        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug' && steps.rename.outputs.android_aab_path != ''
+        if: >-
+          matrix.platform == 'android' &&
+          env.CONFIGURATION != 'Debug' &&
+          env.METAMASK_ENVIRONMENT == 'production' &&
+          steps.rename.outputs.android_aab_path != ''
         uses: actions/upload-artifact@v4
         with:
           name: android-aab-${{ inputs.build_name }}

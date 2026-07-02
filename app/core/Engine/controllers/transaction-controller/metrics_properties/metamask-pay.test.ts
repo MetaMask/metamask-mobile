@@ -20,14 +20,10 @@ const PAY_CONTROLLER_STATE_MOCK = {
               { dust: { usd: '0', fiat: '0' } },
               {
                 dust: { usd: '0', fiat: '0' },
-                original: {
-                  metrics: { attempts: 3, buffer: 0.123, latency: 1234 },
-                  quote: { bridgeId: 'testBridge' },
-                },
                 request: {
                   targetTokenAddress: '0x123',
                 },
-                strategy: TransactionPayStrategy.Bridge,
+                strategy: TransactionPayStrategy.Relay,
               },
             ],
           },
@@ -295,68 +291,6 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
-  it('adds quote properties if bridge', () => {
-    request.transactionMeta.type = TransactionType.bridge;
-
-    request.allTransactions = [
-      {
-        id: 'child-0',
-        type: TransactionType.bridge,
-      } as TransactionMeta,
-      {
-        id: 'parent-1',
-        type: TransactionType.perpsDeposit,
-        requiredTransactionIds: ['child-0', 'child-1'],
-      } as TransactionMeta,
-      request.transactionMeta,
-    ];
-
-    getStateMock.mockReturnValue(PAY_CONTROLLER_STATE_MOCK);
-
-    const result = getMetaMaskPayProperties(request);
-
-    expect(result).toStrictEqual({
-      properties: expect.objectContaining({
-        mm_pay_bridge_provider: 'testBridge',
-        mm_pay_quotes_attempts: 3,
-        mm_pay_quotes_buffer_size: 0.123,
-        mm_pay_quotes_latency: 1234,
-      }),
-      sensitiveProperties: {},
-    });
-  });
-
-  it('adds quote properties if swap', () => {
-    request.transactionMeta.type = TransactionType.swap;
-
-    request.allTransactions = [
-      {
-        id: 'child-0',
-        type: TransactionType.swap,
-      } as TransactionMeta,
-      {
-        id: 'parent-1',
-        type: TransactionType.perpsDeposit,
-        requiredTransactionIds: ['child-0', 'child-1'],
-      } as TransactionMeta,
-      request.transactionMeta,
-    ];
-
-    getStateMock.mockReturnValue(PAY_CONTROLLER_STATE_MOCK);
-
-    const result = getMetaMaskPayProperties(request);
-
-    expect(result).toStrictEqual({
-      properties: expect.objectContaining({
-        mm_pay_bridge_provider: 'testBridge',
-        mm_pay_quotes_attempts: 3,
-        mm_pay_quotes_buffer_size: 0.123,
-        mm_pay_quotes_latency: 1234,
-      }),
-      sensitiveProperties: {},
-    });
-  });
-
   it('adds dust property from quote', () => {
     request.transactionMeta.type = TransactionType.bridge;
 
@@ -385,7 +319,7 @@ describe('Metamask Pay Metrics', () => {
                     {
                       dust: { usd: '1.23', fiat: '1.23' },
                       request: { targetTokenAddress: '0x123' },
-                      strategy: TransactionPayStrategy.Bridge,
+                      strategy: TransactionPayStrategy.Relay,
                     },
                   ],
                 },
@@ -760,6 +694,423 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_transaction_step: 2,
       }),
       sensitiveProperties: {},
+    });
+  });
+
+  describe('mm_pay_payment_method_selected', () => {
+    it('defaults to crypto when no fiat method is selected', () => {
+      request.transactionMeta.type = TransactionType.perpsDeposit;
+      request.transactionMeta.metamaskPay = {
+        chainId: '0x1',
+        tokenAddress: '0xA0b8',
+      };
+
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            TransactionPayController: {
+              transactionData: {
+                'child-1': {
+                  paymentToken: { symbol: 'ETH', chainId: '0x1' },
+                  quotes: [{ strategy: TransactionPayStrategy.Relay }],
+                  tokens: [],
+                  totals: {
+                    targetAmount: { usd: '0', fiat: '0' },
+                    fees: {
+                      metaMask: { usd: '0', fiat: '0' },
+                      provider: { usd: '0', fiat: '0' },
+                      sourceNetwork: { estimate: { usd: '0', fiat: '0' } },
+                      targetNetwork: { usd: '0', fiat: '0' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as never);
+
+      const result = getMetaMaskPayProperties(request);
+
+      expect(result).toStrictEqual({
+        properties: expect.objectContaining({
+          mm_pay_payment_method_selected: 'crypto',
+        }),
+        sensitiveProperties: {},
+      });
+    });
+
+    it('is set to normalized fiat type when a fiat method is selected', () => {
+      request.transactionMeta.type = TransactionType.perpsDeposit;
+      request.transactionMeta.metamaskPay = {
+        chainId: '0x1',
+        tokenAddress: '0xA0b8',
+      };
+
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            TransactionPayController: {
+              transactionData: {
+                'child-1': {
+                  paymentToken: { symbol: 'ETH', chainId: '0x1' },
+                  quotes: [{ strategy: TransactionPayStrategy.Fiat }],
+                  tokens: [],
+                  totals: {
+                    targetAmount: { usd: '0', fiat: '0' },
+                    fees: {
+                      metaMask: { usd: '0', fiat: '0' },
+                      provider: { usd: '0', fiat: '0' },
+                      sourceNetwork: { estimate: { usd: '0', fiat: '0' } },
+                      targetNetwork: { usd: '0', fiat: '0' },
+                    },
+                  },
+                  fiatPayment: {
+                    selectedPaymentMethodId: '/payments/debit-credit-card',
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as never);
+
+      const result = getMetaMaskPayProperties(request);
+
+      expect(result).toStrictEqual({
+        properties: expect.objectContaining({
+          mm_pay_payment_method_selected: 'debit_credit_card',
+          mm_pay_strategy: 'fiat',
+        }),
+        sensitiveProperties: {},
+      });
+    });
+
+    it.each([
+      ['/payments/debit-credit-card', 'debit_credit_card'],
+      ['/payments/bank-transfer', 'bank_transfer'],
+      ['/payments/sepa-bank-transfer', 'bank_transfer'],
+      ['/payments/instant-bank-transfer', 'bank_transfer'],
+      ['/payments/apple-pay', 'apple_pay'],
+      ['/payments/google-pay', 'google_pay'],
+      ['/payments/revolut-pay', 'rev_pay'],
+      ['/payments/rev-pay', 'rev_pay'],
+      ['debit-credit-card', 'debit_credit_card'],
+    ])('normalizes %s to %s', (paymentMethodId, expected) => {
+      request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+      request.transactionMeta.metamaskPay = {
+        chainId: '0x1',
+        tokenAddress: '0xA0b8',
+      };
+
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            TransactionPayController: {
+              transactionData: {
+                'child-1': {
+                  paymentToken: { symbol: 'ETH', chainId: '0x1' },
+                  quotes: [],
+                  tokens: [],
+                  totals: {
+                    targetAmount: { usd: '0', fiat: '0' },
+                    fees: {
+                      metaMask: { usd: '0', fiat: '0' },
+                      provider: { usd: '0', fiat: '0' },
+                      sourceNetwork: { estimate: { usd: '0', fiat: '0' } },
+                      targetNetwork: { usd: '0', fiat: '0' },
+                    },
+                  },
+                  fiatPayment: { selectedPaymentMethodId: paymentMethodId },
+                },
+              },
+            },
+          },
+        },
+      } as never);
+
+      const result = getMetaMaskPayProperties(request);
+
+      expect(result).toStrictEqual({
+        properties: expect.objectContaining({
+          mm_pay_payment_method_selected: expected,
+        }),
+        sensitiveProperties: {},
+      });
+    });
+  });
+
+  describe('mm_pay_fiat_provider / mm_pay_fiat_token_target / mm_pay_fiat_chain_target', () => {
+    const FIAT_TXDATA = {
+      paymentToken: { symbol: 'ETH', chainId: '0x1' },
+      quotes: [],
+      tokens: [],
+      totals: {
+        targetAmount: { usd: '0', fiat: '0' },
+        fees: {
+          metaMask: { usd: '0', fiat: '0' },
+          provider: { usd: '0', fiat: '0' },
+          sourceNetwork: { estimate: { usd: '0', fiat: '0' } },
+          targetNetwork: { usd: '0', fiat: '0' },
+        },
+      },
+      fiatPayment: {
+        selectedPaymentMethodId: '/payments/debit-credit-card',
+        rampsQuote: {
+          provider: '/providers/transak-native',
+          quote: {
+            amountIn: 100,
+            amountOut: 95,
+            paymentMethod: '/payments/debit-credit-card',
+            cryptoTranslation: {
+              symbol: 'USDC',
+              chainId: '0x1',
+            },
+          },
+        },
+        caipAssetId:
+          'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+      },
+    };
+
+    beforeEach(() => {
+      request.transactionMeta.type = TransactionType.moneyAccountDeposit;
+      request.transactionMeta.metamaskPay = {
+        chainId: '0x1',
+        tokenAddress: '0xA0b8',
+      };
+
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            TransactionPayController: {
+              transactionData: { 'child-1': FIAT_TXDATA },
+            },
+          },
+        },
+      } as never);
+    });
+
+    it('extracts mm_pay_fiat_provider from rampsQuote.provider path', () => {
+      const result = getMetaMaskPayProperties(request);
+
+      expect(result).toStrictEqual({
+        properties: expect.objectContaining({
+          mm_pay_fiat_provider: 'transak-native',
+        }),
+        sensitiveProperties: {},
+      });
+    });
+
+    it('extracts mm_pay_fiat_provider from bare provider code', () => {
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            TransactionPayController: {
+              transactionData: {
+                'child-1': merge({}, FIAT_TXDATA, {
+                  fiatPayment: {
+                    rampsQuote: { provider: 'moonpay' },
+                  },
+                }),
+              },
+            },
+          },
+        },
+      } as never);
+
+      const result = getMetaMaskPayProperties(request);
+
+      expect(result).toStrictEqual({
+        properties: expect.objectContaining({
+          mm_pay_fiat_provider: 'moonpay',
+        }),
+        sensitiveProperties: {},
+      });
+    });
+
+    it('extracts mm_pay_fiat_token_target from cryptoTranslation.symbol', () => {
+      const result = getMetaMaskPayProperties(request);
+
+      expect(result).toStrictEqual({
+        properties: expect.objectContaining({
+          mm_pay_fiat_token_target: 'USDC',
+        }),
+        sensitiveProperties: {},
+      });
+    });
+
+    it('extracts mm_pay_fiat_chain_target from cryptoTranslation.chainId', () => {
+      const result = getMetaMaskPayProperties(request);
+
+      expect(result).toStrictEqual({
+        properties: expect.objectContaining({
+          mm_pay_fiat_chain_target: '0x1',
+        }),
+        sensitiveProperties: {},
+      });
+    });
+
+    it('falls back to mm_pay_fiat_chain_target from caipAssetId', () => {
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            TransactionPayController: {
+              transactionData: {
+                'child-1': merge({}, FIAT_TXDATA, {
+                  fiatPayment: {
+                    rampsQuote: {
+                      quote: {
+                        cryptoTranslation: null,
+                      },
+                    },
+                    caipAssetId:
+                      'eip155:137/erc20:0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+                  },
+                }),
+              },
+            },
+          },
+        },
+      } as never);
+
+      const result = getMetaMaskPayProperties(request);
+
+      expect(result).toStrictEqual({
+        properties: expect.objectContaining({
+          mm_pay_fiat_chain_target: '0x89',
+        }),
+        sensitiveProperties: {},
+      });
+    });
+
+    it('omits fiat properties when no fiat method is selected', () => {
+      request.transactionMeta.metamaskPay = {
+        chainId: '0x1',
+        tokenAddress: '0xA0b8',
+      };
+
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            TransactionPayController: {
+              transactionData: {
+                'child-1': {
+                  paymentToken: { symbol: 'ETH', chainId: '0x1' },
+                  quotes: [],
+                  tokens: [],
+                  totals: {
+                    targetAmount: { usd: '0', fiat: '0' },
+                    fees: {
+                      metaMask: { usd: '0', fiat: '0' },
+                      provider: { usd: '0', fiat: '0' },
+                      sourceNetwork: { estimate: { usd: '0', fiat: '0' } },
+                      targetNetwork: { usd: '0', fiat: '0' },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      } as never);
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties.mm_pay_fiat_provider).toBeUndefined();
+      expect(result.properties.mm_pay_fiat_token_target).toBeUndefined();
+      expect(result.properties.mm_pay_fiat_chain_target).toBeUndefined();
+    });
+
+    it('propagates fiat properties from parent to non-PAY child transaction', () => {
+      // bridge/swap are non-PAY types, so the code takes the parent path
+      request.transactionMeta.type = TransactionType.bridge;
+      request.transactionMeta.metamaskPay = undefined;
+
+      request.allTransactions = [
+        {
+          id: 'parent-1',
+          type: TransactionType.moneyAccountDeposit,
+          metamaskPay: { chainId: '0x1', tokenAddress: '0xA0b8' },
+          requiredTransactionIds: ['child-1'],
+        } as unknown as TransactionMeta,
+        request.transactionMeta,
+      ];
+
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            TransactionPayController: {
+              transactionData: { 'parent-1': FIAT_TXDATA },
+            },
+          },
+        },
+      } as never);
+
+      const result = getMetaMaskPayProperties(request);
+
+      expect(result).toStrictEqual({
+        properties: expect.objectContaining({
+          mm_pay_payment_method_selected: 'debit_credit_card',
+          mm_pay_fiat_provider: 'transak-native',
+          mm_pay_fiat_token_target: 'USDC',
+          mm_pay_fiat_chain_target: '0x1',
+        }),
+        sensitiveProperties: {},
+      });
+    });
+
+    it('propagates parent UI payment method metrics to non-PAY child transaction', () => {
+      request.transactionMeta.type = TransactionType.bridge;
+      request.transactionMeta.metamaskPay = undefined;
+
+      request.allTransactions = [
+        {
+          id: 'parent-1',
+          type: TransactionType.moneyAccountDeposit,
+          metamaskPay: { chainId: '0x1', tokenAddress: '0xA0b8' },
+          requiredTransactionIds: ['child-1'],
+        } as unknown as TransactionMeta,
+        request.transactionMeta,
+      ];
+
+      request.getUIMetrics = jest.fn().mockReturnValue({
+        properties: {
+          mm_pay_payment_method_available: ['crypto', 'debit_credit_card'],
+          mm_pay_payment_method_presented: 'debit_credit_card',
+        },
+        sensitiveProperties: {},
+      });
+
+      getStateMock.mockReturnValue({
+        engine: {
+          backgroundState: {
+            TokensController: { allTokens: {} },
+            TransactionPayController: {
+              transactionData: { 'parent-1': FIAT_TXDATA },
+            },
+          },
+        },
+      } as never);
+
+      const result = getMetaMaskPayProperties(request);
+
+      expect(result).toStrictEqual({
+        properties: expect.objectContaining({
+          mm_pay_payment_method_available: ['crypto', 'debit_credit_card'],
+          mm_pay_payment_method_presented: 'debit_credit_card',
+          mm_pay_payment_method_selected: 'debit_credit_card',
+        }),
+        sensitiveProperties: {},
+      });
     });
   });
 

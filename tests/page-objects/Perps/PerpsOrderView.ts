@@ -10,7 +10,6 @@ import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
-  PerpsMarketDetailsViewSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import {
   asDetoxElement,
@@ -113,11 +112,11 @@ class PerpsOrderView {
   async tapTakeProfitButton() {
     await Gestures.scrollToElement(
       this.takeProfitButton,
-      Matchers.scrollContainer(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      Matchers.scrollContainer(PerpsOrderViewSelectorsIDs.SCROLL_VIEW),
       {
         direction: 'down',
         scrollAmount: 250,
-        elemDescription: 'Scroll Perps market details to TP/SL row',
+        elemDescription: 'Scroll Perps order view to TP/SL row',
       },
     );
     await Gestures.waitAndTap(this.takeProfitButton, {
@@ -333,8 +332,29 @@ class PerpsOrderView {
   }
 
   async openOrderTypeSelector(): Promise<void> {
-    await Gestures.waitAndTap(this.orderTypeSelector, {
-      elemDescription: 'Open order type selector',
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(
+          asDetoxElement(this.orderTypeSelector),
+          {
+            description: 'Order type selector button',
+            timeout: 20000,
+          },
+        );
+        await Gestures.waitAndTap(this.orderTypeSelector, {
+          elemDescription: 'Open order type selector',
+          timeout: 20000,
+        });
+      },
+      appium: async () => {
+        const orderTypeEl = await asPlaywrightElement(this.orderTypeSelector);
+        await orderTypeEl.waitForDisplayed({ timeout: 20000 });
+        await PlaywrightGestures.waitAndTap(orderTypeEl, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          timeout: 20000,
+        });
+      },
     });
   }
 
@@ -377,15 +397,43 @@ class PerpsOrderView {
     });
 
     const input = this.getTpslPriceInput(inputTestId);
+    const firstKey = price[0] ?? '0';
 
-    await UnifiedGestures.waitAndTap(input, {
-      description: focusInputElemDescription,
-      checkForDisplayed: true,
-      checkForEnabled: false,
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        await UnifiedGestures.waitAndTap(input, {
+          description: focusInputElemDescription,
+          checkForDisplayed: true,
+          checkForEnabled: false,
+        });
+        await Assertions.expectElementToBeVisible(
+          this.getTpslKeypadKey(firstKey),
+          {
+            description: `TPSL keypad key ${firstKey} should be visible`,
+            timeout: 5000,
+          },
+        );
+      },
+      {
+        timeout: 20000,
+        interval: 1000,
+        description: 'Focus TPSL input and wait for keypad',
+        elemDescription: focusInputElemDescription,
+      },
+    );
 
     for (const ch of price) {
-      await UnifiedGestures.waitAndTap(this.getTpslKeypadKey(ch), {
+      const keypadKey = this.getTpslKeypadKey(ch);
+
+      if (!(await Utilities.isElementVisible(keypadKey, 1500))) {
+        await UnifiedGestures.waitAndTap(input, {
+          description: `${focusInputElemDescription} (refocus keypad)`,
+          checkForDisplayed: true,
+          checkForEnabled: false,
+        });
+      }
+
+      await UnifiedGestures.waitAndTap(keypadKey, {
         description: `TPSL keypad key ${ch}`,
         checkForDisplayed: true,
         checkForEnabled: false,

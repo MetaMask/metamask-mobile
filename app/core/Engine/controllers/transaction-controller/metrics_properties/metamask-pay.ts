@@ -2,15 +2,15 @@ import {
   TransactionMeta,
   TransactionType,
 } from '@metamask/transaction-controller';
-import { TransactionMetricsBuilder } from '../types';
+import { TransactionMetrics, TransactionMetricsBuilder } from '../types';
 import { JsonMap } from '../../../../../util/analytics/analytics.types';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
 import {
-  TransactionPayBridgeQuote,
-  TransactionPayQuote,
-  TransactionPayStrategy,
-} from '@metamask/transaction-pay-controller';
+  getMetaMaskPayFiatChainTarget,
+  normalizeMetaMaskPayPaymentMethod,
+} from '../../../../../components/Views/confirmations/utils/transaction-pay-metrics';
+import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { RootState } from '../../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
 import { Hex } from '@metamask/utils';
@@ -39,10 +39,16 @@ const USE_CASE_MAP: [TransactionType[], string][] = [
   [[TransactionType.moneyAccountWithdraw], 'money_account_withdraw'],
 ];
 
+const UI_PAYMENT_METHOD_PROPERTIES = [
+  'mm_pay_payment_method_available',
+  'mm_pay_payment_method_presented',
+] as const;
+
 export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   eventType,
   transactionMeta,
   allTransactions,
+  getUIMetrics,
   getState,
 }) => {
   const properties: JsonMap = {};
@@ -84,6 +90,10 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   }
 
   addPayTypeProperties(properties, parentTransaction, getState());
+  addParentPaymentMethodUIMetrics(
+    properties,
+    getUIMetrics(parentTransaction.id),
+  );
 
   const relatedTransactionIds = parentTransaction.requiredTransactionIds ?? [];
 
@@ -111,18 +121,6 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
 
     const quoteIndex = quoteTransactionIds.indexOf(transactionMeta.id);
     const quote = quotes[quoteIndex];
-
-    if (quote?.strategy === TransactionPayStrategy.Bridge) {
-      const bridgeQuote =
-        quote as TransactionPayQuote<TransactionPayBridgeQuote>;
-
-      const metrics = bridgeQuote.original.metrics;
-
-      properties.mm_pay_quotes_attempts = metrics?.attempts;
-      properties.mm_pay_quotes_buffer_size = metrics?.buffer;
-      properties.mm_pay_quotes_latency = metrics?.latency;
-      properties.mm_pay_bridge_provider = bridgeQuote.original.quote.bridgeId;
-    }
 
     if (quote && quote.request.targetTokenAddress !== NATIVE_TOKEN_ADDRESS) {
       properties.mm_pay_dust_usd = quote.dust.usd;
@@ -195,6 +193,7 @@ function addPayTypeProperties(
 
   properties.mm_pay = true;
   properties.mm_pay_chain_selected = chainId;
+  properties.mm_pay_payment_method_selected = 'crypto';
 
   const txPayData =
     state.engine.backgroundState.TransactionPayController?.transactionData?.[
@@ -240,14 +239,48 @@ function addPayTypeProperties(
 
   const strategy = quotes?.[0]?.strategy;
 
-  if (strategy === TransactionPayStrategy.Bridge) {
-    properties.mm_pay_strategy = 'mm_swaps_bridge';
-  } else if (strategy === TransactionPayStrategy.Relay) {
+  if (strategy === TransactionPayStrategy.Relay) {
     properties.mm_pay_strategy = 'relay';
+  } else if (strategy === TransactionPayStrategy.Fiat) {
+    properties.mm_pay_strategy = 'fiat';
   }
 
   properties.mm_pay_transaction_step_total = (quotes?.length ?? 0) + 1;
   properties.mm_pay_transaction_step = properties.mm_pay_transaction_step_total;
+
+  const fiatPayment = txPayData.fiatPayment;
+  const selectedPaymentMethodId = fiatPayment?.selectedPaymentMethodId;
+
+  if (selectedPaymentMethodId) {
+    properties.mm_pay_payment_method_selected =
+      normalizeMetaMaskPayPaymentMethod(selectedPaymentMethodId);
+
+    if (fiatPayment?.rampsQuote) {
+      const providerCode = extractFiatProviderCode(
+        fiatPayment.rampsQuote.provider,
+      );
+
+      if (providerCode) {
+        properties.mm_pay_fiat_provider = providerCode;
+      }
+
+      const fiatTokenTargetSymbol =
+        fiatPayment.rampsQuote.quote.cryptoTranslation?.symbol;
+
+      if (fiatTokenTargetSymbol) {
+        properties.mm_pay_fiat_token_target = fiatTokenTargetSymbol;
+      }
+    }
+
+    const fiatChainTarget = getMetaMaskPayFiatChainTarget({
+      caipAssetId: fiatPayment?.caipAssetId,
+      chainId: fiatPayment?.rampsQuote?.quote.cryptoTranslation?.chainId,
+    });
+
+    if (fiatChainTarget) {
+      properties.mm_pay_fiat_chain_target = fiatChainTarget;
+    }
+  }
 }
 
 function getTokenSymbol(state: RootState, chainId: Hex, tokenAddress: Hex) {
@@ -258,4 +291,40 @@ function getTokenSymbol(state: RootState, chainId: Hex, tokenAddress: Hex) {
   );
 
   return token?.symbol;
+}
+
+function addParentPaymentMethodUIMetrics(
+  properties: JsonMap,
+  parentMetrics: TransactionMetrics | undefined,
+) {
+  for (const property of UI_PAYMENT_METHOD_PROPERTIES) {
+    const value = parentMetrics?.properties?.[property];
+
+    if (value !== undefined) {
+      properties[property] = value;
+    }
+  }
+}
+
+/**
+ * Extracts the provider code from a Ramps provider string.
+ *
+ * Accepts the canonical provider code (e.g. `transak-native`) and, for
+ * backwards compatibility, the legacy path form (e.g. `/providers/transak-native`).
+ *
+ * @param provider - Canonical provider code, or legacy provider path.
+ * @returns The provider code, or `null` if the format is invalid.
+ */
+function extractFiatProviderCode(provider: string | undefined): string | null {
+  if (!provider) {
+    return null;
+  }
+
+  const parts = provider.split('/').filter(Boolean);
+
+  if (parts[0] === 'providers') {
+    return parts[1] ?? null;
+  }
+
+  return parts.length === 1 ? parts[0] : null;
 }
