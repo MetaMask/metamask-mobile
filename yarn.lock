@@ -10457,7 +10457,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/wallet@npm:6.0.0":
+"@metamask/wallet@npm:^6.0.0":
   version: 6.0.0
   resolution: "@metamask/wallet@npm:6.0.0"
   dependencies:
@@ -35529,7 +35529,7 @@ __metadata:
     "@metamask/transaction-pay-controller": "npm:^23.17.2"
     "@metamask/tron-wallet-snap": "npm:^1.28.0"
     "@metamask/utils": "npm:^11.11.0"
-    "@metamask/wallet": "npm:6.0.0"
+    "@metamask/wallet": "npm:^6.0.0"
     "@myx-trade/sdk": "npm:^0.1.265"
     "@ngraveio/bc-ur": "npm:^1.1.6"
     "@nktkas/hyperliquid": "npm:^0.32.2"
