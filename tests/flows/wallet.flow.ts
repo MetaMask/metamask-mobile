@@ -44,7 +44,10 @@ import {
 } from './general.flow';
 import LoginView from '../page-objects/wallet/LoginView';
 import { getPasswordForScenario } from '../framework/utils/TestConstants';
-import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
+import {
+  resolveE2EWaitTimeoutMs,
+  shouldHandleMetroDevLauncherLocally,
+} from '../framework/Constants';
 import PlaywrightUtilities, {
   getDriver,
   withImplicitWait,
@@ -710,7 +713,9 @@ export const loginToAppPlaywright = async (
 
   await dismissAndroidSystemOverlaysPlaywright();
   await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
-  await dismissDeveloperMenuPlaywright();
+  if (shouldHandleMetroDevLauncherLocally()) {
+    await dismissDeveloperMenuPlaywright();
+  }
   await dismissAndroidSystemOverlaysPlaywright();
 
   try {

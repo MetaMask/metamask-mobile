@@ -12,6 +12,7 @@ import {
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
   FALLBACK_MOCKSERVER_PORT,
   resolveE2EWaitTimeoutMs,
+  isReleaseE2eArtifactForPlatform,
 } from './Constants';
 import Utilities from './Utilities';
 import { ACCOUNT_ACTIVITY_WS } from '../websocket/constants.ts';
@@ -59,17 +60,6 @@ const IOS_TERMINATE_TRANSIENT_ERROR_PATTERNS = [
 
 const getMetroPort = (): string =>
   process.env.METRO_PORT_E2E || process.env.WATCHER_PORT || '8081';
-
-const isCiEnvironment = (): boolean => {
-  const ci = process.env.CI?.toLowerCase();
-  return ci === 'true' || ci === '1';
-};
-
-/**
- * Whether local debug builds should bypass the Expo dev server picker via deep link.
- * Mirrors Detox `TestHelpers.launchAppForDebugBuild` (non-CI configs).
- */
-const shouldUseDebugDeepLinkLaunch = (): boolean => !isCiEnvironment();
 
 /**
  * Get the driver instance.
@@ -799,8 +789,11 @@ class PlaywrightUtilities {
       throw new Error('Package name or app id is not available');
     }
 
+    const platform = currentDeviceDetails.platform as 'android' | 'ios';
+    const useDebugDeepLinkLaunch = !isReleaseE2eArtifactForPlatform(platform);
+
     if (currentDeviceDetails.platform === 'android') {
-      if (shouldUseDebugDeepLinkLaunch()) {
+      if (useDebugDeepLinkLaunch) {
         await this.launchAppAndroidForDebugBuild(currentDeviceDetails, {
           launchArgs,
         });
@@ -810,7 +803,7 @@ class PlaywrightUtilities {
         });
       }
     } else if (currentDeviceDetails.platform === 'ios') {
-      if (shouldUseDebugDeepLinkLaunch()) {
+      if (useDebugDeepLinkLaunch) {
         await this.launchAppIOSForDebugBuild(currentDeviceDetails, {
           launchArgs,
         });

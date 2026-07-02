@@ -11,7 +11,10 @@ import Utilities, { sleep } from '../framework/Utilities';
 import LoginView from '../page-objects/wallet/LoginView';
 import WalletView from '../page-objects/wallet/WalletView';
 import { PlatformDetector } from '../framework/PlatformLocator';
-import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
+import {
+  resolveE2EWaitTimeoutMs,
+  isUiAutomator2SessionDeadError,
+} from '../framework/Constants';
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { execSync } from 'node:child_process';
 
@@ -247,8 +250,13 @@ export const waitForAppReady = async (
         `App on wallet home after ${Date.now() - startTime}ms — skipping login wait`,
       );
       return;
-    } catch {
-      // Not on wallet yet.
+    } catch (error) {
+      if (isUiAutomator2SessionDeadError(error)) {
+        throw new Error(
+          'UiAutomator2 instrumentation is not running. Cold-boot the emulator (or restart Appium) and re-run.',
+          { cause: error },
+        );
+      }
     }
 
     try {
@@ -263,8 +271,13 @@ export const waitForAppReady = async (
       });
       logger.debug(`App ready on login after ${Date.now() - startTime}ms`);
       return;
-    } catch {
-      // Still booting — keep polling.
+    } catch (error) {
+      if (isUiAutomator2SessionDeadError(error)) {
+        throw new Error(
+          'UiAutomator2 instrumentation is not running. Cold-boot the emulator (or restart Appium) and re-run.',
+          { cause: error },
+        );
+      }
     }
 
     await sleep(2000);

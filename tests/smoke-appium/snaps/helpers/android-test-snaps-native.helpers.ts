@@ -9,6 +9,7 @@ import Assertions from '../../../framework/Assertions';
 import Gestures from '../../../framework/Gestures';
 import Matchers from '../../../framework/Matchers';
 import PlaywrightWebMatchers from '../../../framework/PlaywrightWebMatchers';
+import PlaywrightGestures from '../../../framework/PlaywrightGestures';
 import { getDriver } from '../../../framework/PlaywrightUtilities';
 import Utilities, { sleep } from '../../../framework/Utilities';
 import {
@@ -95,10 +96,9 @@ export async function fillAndroidTestSnapsInput(
   value: string,
 ): Promise<void> {
   const webId = TestSnapInputSelectorWebIDS[inputKey];
-  await scrollNativeWebIdIntoView(webId);
 
-  // WebView EditText nodes in the UiAutomator tree reject setValue/addValue
-  // (ACTION_SET_TEXT / ACTION_SET_PROGRESS). Set the DOM value directly instead.
+  // Set the DOM value inside the WebView only — no native EditText tap/focus (avoids
+  // soft keyboard covering buttons on serial tests with restartDevice: false).
   await PlaywrightWebMatchers.withWebViewAction(TEST_SNAPS_URL, async () => {
     const drv = getDriver();
     if (!drv) {
@@ -115,7 +115,7 @@ export async function fillAndroidTestSnapsInput(
           throw new Error(`Test Snaps input #${id} not found in WebView DOM`);
         }
 
-        el.focus();
+        el.scrollIntoView({ block: 'center', inline: 'nearest' });
         el.value = text;
         const tracker = (
           el as unknown as {
@@ -125,11 +125,16 @@ export async function fillAndroidTestSnapsInput(
         tracker?.setValue('');
         el.dispatchEvent(new Event('input', { bubbles: true }));
         el.dispatchEvent(new Event('change', { bubbles: true }));
+        if (document.activeElement === el && typeof el.blur === 'function') {
+          el.blur();
+        }
       },
       webId,
       value,
     );
   });
+
+  await PlaywrightGestures.hideKeyboard().catch(() => undefined);
 }
 
 export async function assertAndroidTestSnapsTextContains(
@@ -293,19 +298,27 @@ async function tryFindNativeWebIdElement(
 }
 
 function buildUiScrollableSelectors(webId: string): string[] {
+  const browserWebViewId = BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID;
   const escapedWebId = escapeUiAutomatorString(webId);
-  const scrollable =
-    'new UiScrollable(new UiSelector().className("android.webkit.WebView").scrollable(true))';
-  const selectors = [
-    `${scrollable}.scrollIntoView(new UiSelector().resourceId("${escapedWebId}"))`,
+  const scrollableBases = [
+    `new UiScrollable(new UiSelector().resourceId("${browserWebViewId}").childSelector(new UiSelector().className("android.webkit.WebView").scrollable(true)))`,
+    `new UiScrollable(new UiSelector().resourceId("${browserWebViewId}").childSelector(new UiSelector().className("android.webkit.WebView")))`,
+    `new UiScrollable(new UiSelector().resourceId("${browserWebViewId}"))`,
   ];
 
-  const label = TEST_SNAPS_SCROLL_LABELS[webId];
-  if (label) {
-    const escapedLabel = escapeUiAutomatorString(label);
+  const selectors: string[] = [];
+  for (const scrollable of scrollableBases) {
     selectors.push(
-      `${scrollable}.scrollIntoView(new UiSelector().text("${escapedLabel}"))`,
+      `${scrollable}.scrollIntoView(new UiSelector().resourceId("${escapedWebId}"))`,
     );
+
+    const label = TEST_SNAPS_SCROLL_LABELS[webId];
+    if (label) {
+      const escapedLabel = escapeUiAutomatorString(label);
+      selectors.push(
+        `${scrollable}.scrollIntoView(new UiSelector().text("${escapedLabel}"))`,
+      );
+    }
   }
 
   return selectors;
@@ -332,37 +345,58 @@ async function scrollNativeWebIdIntoViewViaUiScrollable(
   return null;
 }
 
-async function getScrollableTestSnapsWebViewElementId(): Promise<string> {
+async function getBrowserWebViewContainer(): Promise<PlaywrightElement> {
+  const browserWebViewId = BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID;
   const webView = wrapElement(
-    getDriver().$(
-      `android=new UiSelector().resourceId("${BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID}").childSelector(new UiSelector().className("android.webkit.WebView").scrollable(true))`,
-    ),
+    getDriver().$(`android=new UiSelector().resourceId("${browserWebViewId}")`),
   );
-  await webView.unwrap().waitForExist({ timeout: 10_000 });
-  const elemId = await webView.unwrap().elementId;
-  if (!elemId) {
-    throw new Error('Scrollable Test Snaps WebView elemId unavailable');
+  await webView.unwrap().waitForExist({ timeout: 3_000 });
+  return webView;
+}
+
+/** Scroll up inside the browser WebView. Inner WebView elemIds reject scrollGesture on release builds. */
+async function scrollTestSnapsWebViewUp(): Promise<void> {
+  const drv = getDriver();
+  const container = await getBrowserWebViewContainer();
+  const elementId = await container.unwrap().elementId;
+
+  if (elementId) {
+    try {
+      await drv.execute('mobile: scrollGesture', {
+        elemId: elementId,
+        direction: 'up',
+        percent: 0.9,
+      });
+      return;
+    } catch (error) {
+      logger.debug(
+        `scrollGesture by browser-webview elemId failed, using bounds: ${String(error)}`,
+      );
+    }
   }
-  return elemId;
+
+  const location = await container.unwrap().getLocation();
+  const size = await container.unwrap().getSize();
+  await drv.execute('mobile: scrollGesture', {
+    left: location.x,
+    top: location.y,
+    width: size.width,
+    height: size.height,
+    direction: 'up',
+    percent: 0.9,
+  });
 }
 
 async function scrollNativeWebIdIntoViewViaScrollGesture(
   webId: string,
 ): Promise<PlaywrightElement> {
-  const drv = getDriver();
-
   for (let attempt = 0; attempt < SCROLL_ATTEMPTS; attempt += 1) {
     const elem = await tryFindNativeWebIdElement(webId);
     if (elem) {
       return elem;
     }
 
-    const webViewElementId = await getScrollableTestSnapsWebViewElementId();
-    await drv.execute('mobile: scrollGesture', {
-      elemId: webViewElementId,
-      direction: 'up',
-      percent: 0.9,
-    });
+    await scrollTestSnapsWebViewUp();
     await sleep(300);
   }
 

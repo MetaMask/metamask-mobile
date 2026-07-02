@@ -47,6 +47,7 @@ import {
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
   resolveE2EFixtureBootstrapTimeoutMs,
+  shouldHandleMetroDevLauncherLocally,
 } from '../Constants';
 import ContractAddressRegistry from '../../../app/util/test/contract-address-registry';
 import FixtureBuilder from './FixtureBuilder';
@@ -708,7 +709,7 @@ export async function withFixtures(
           await PlaywrightUtilities.launchApp(currentDeviceDetails, {
             launchArgs: testArgs,
           });
-          if (process.env.CI !== 'true') {
+          if (shouldHandleMetroDevLauncherLocally()) {
             didAttemptPlaywrightDevelopmentServerPickerDismissal = true;
             await Promise.all([
               appStateRequest,
@@ -745,12 +746,14 @@ export async function withFixtures(
       }
     }
 
-    // Dismiss dev menu after bootstrap (Appium: adb-only overlay dismiss — element
-    // queries here crash UiAutomator2 while Metro is still loading).
+    // Dismiss dev menu after bootstrap (Appium debug only — release/CI skip Metro paths).
     if (process.env.CI !== 'true') {
       if (FrameworkDetector.isDetox()) {
         await dismissDevScreens();
-      } else if (FrameworkDetector.isAppium()) {
+      } else if (
+        FrameworkDetector.isAppium() &&
+        shouldHandleMetroDevLauncherLocally()
+      ) {
         if (!didAttemptPlaywrightDevelopmentServerPickerDismissal) {
           await dismissDevelopmentServerPickerPlaywright();
         }
