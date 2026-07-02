@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   ScrollView,
   ActivityIndicator,
@@ -55,10 +55,12 @@ const styles = StyleSheet.create({
   },
 });
 
-// Pull roughly a screenful upfront so the list is scrollable and `onEndReached`
-// fires reliably; further pages then load on scroll. Bounded by
-// `AUTO_FILL_MAX_PAGES` for sparse accounts.
-const INITIAL_FILL_COUNT = 15;
+// Pull roughly a screenful into the active bucket upfront so the list is tall
+// enough for scroll-driven pagination (`onEndReached`) to take over. Fetches as
+// many pages as it takes — for a sparse bucket that means paging to the end,
+// which is the only way to know it's short rather than deep. See the fill
+// effect below for why this can't rely on list height alone.
+export const INITIAL_FILL_COUNT = 15;
 
 const FILTER_LABEL_KEYS = {
   all: 'money.activity.filter_all',
@@ -145,6 +147,9 @@ const MoneyActivityView = () => {
 
   useMountEffect(trackScreenViewed);
 
+  // No `ensureCount` here: the initial fill is driven per active bucket by the
+  // effect below rather than by the hook's All-bucket, page-capped auto-fill
+  // (which stays for the home preview).
   const {
     buckets,
     isLoading: showActivityLoading,
@@ -154,7 +159,7 @@ const MoneyActivityView = () => {
     isLoadingMore,
     moneyAddress,
     mockDataEnabled,
-  } = useMoneyActivityItems({ ensureCount: INITIAL_FILL_COUNT });
+  } = useMoneyActivityItems();
 
   const handleFilterPress = useCallback(
     (
@@ -194,6 +199,25 @@ const MoneyActivityView = () => {
   );
 
   const filtered = buckets[filter];
+
+  // Fill the *active* bucket up to a screenful so the list becomes tall enough
+  // for scroll-driven `onEndReached` pagination to take over. Keyed on
+  // `isLoadingMore` (a page finished) rather than list height, so a fetched
+  // page that adds no rows to this bucket (e.g. a page of non-card txns on the
+  // Purchases tab) still advances to the next page instead of stalling — a
+  // short, unscrollable list can never re-trigger `onEndReached` on its own.
+  // Terminates when the bucket reaches the fill count or the activity is
+  // exhausted (`hasMore` false). Switching tabs re-evaluates for the new bucket.
+  useEffect(() => {
+    if (
+      !mockDataEnabled &&
+      hasMore &&
+      !isLoadingMore &&
+      filtered.length < INITIAL_FILL_COUNT
+    ) {
+      loadMore();
+    }
+  }, [mockDataEnabled, hasMore, isLoadingMore, filtered.length, loadMore]);
 
   const sections = useMemo(
     () => buildSections(filtered, I18n.locale),

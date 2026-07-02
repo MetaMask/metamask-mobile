@@ -9,7 +9,7 @@ import {
   isMoneyActivityTransfer,
 } from '../../constants/moneyActivityFilters';
 import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoading/MoneyActivityLoading.testIds';
-import MoneyActivityView from './MoneyActivityView';
+import MoneyActivityView, { INITIAL_FILL_COUNT } from './MoneyActivityView';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -443,6 +443,9 @@ describe('MoneyActivityView', () => {
       });
 
       const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+      // The initial-fill effect may fetch on mount (bucket below a screenful);
+      // clear it so this asserts only the scroll-driven fetch.
+      mockLoadMore.mockClear();
       fireEvent(getByTestId(MoneyActivityViewTestIds.LIST), 'onEndReached');
 
       expect(mockLoadMore).toHaveBeenCalledTimes(1);
@@ -484,6 +487,74 @@ describe('MoneyActivityView', () => {
       expect(
         queryByTestId(MoneyActivityViewTestIds.LOAD_MORE_SPINNER),
       ).toBeNull();
+    });
+  });
+
+  describe('initial fill', () => {
+    const withoutLocalTransactions = () =>
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
+      });
+
+    it('fetches more pages on mount while the active bucket is below a screenful and pages remain', () => {
+      withoutLocalTransactions();
+      mockApiActivity({
+        activity: [CARD_TX],
+        hasMore: true,
+        isComplete: false,
+        pageCount: 1,
+      });
+
+      renderWithProvider(<MoneyActivityView />);
+
+      expect(mockLoadMore).toHaveBeenCalled();
+    });
+
+    it('does not fetch on mount once the active bucket already holds a screenful', () => {
+      withoutLocalTransactions();
+      const rows = Array.from({ length: INITIAL_FILL_COUNT }, (_, i) => ({
+        ...CARD_TX,
+        hash: `0xcardfill${i}` as `0x${string}`,
+      }));
+      mockApiActivity({ activity: rows, hasMore: true, isComplete: false });
+
+      renderWithProvider(<MoneyActivityView />);
+
+      expect(mockLoadMore).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch on mount once the activity is exhausted', () => {
+      withoutLocalTransactions();
+      mockApiActivity({
+        activity: [CARD_TX],
+        hasMore: false,
+        isComplete: true,
+      });
+
+      renderWithProvider(<MoneyActivityView />);
+
+      expect(mockLoadMore).not.toHaveBeenCalled();
+    });
+
+    it('does not fetch on mount in mock-data mode', () => {
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: true,
+      });
+      mockApiActivity({ activity: [], hasMore: true, isComplete: false });
+
+      renderWithProvider(<MoneyActivityView />);
+
+      expect(mockLoadMore).not.toHaveBeenCalled();
     });
   });
 
