@@ -13,7 +13,6 @@ import {
 import { useTokenAmount } from '../useTokenAmount';
 import { hasTransactionType } from '../../utils/transaction';
 import {
-  useIsTransactionPayLoading,
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
@@ -29,7 +28,6 @@ export function useInsufficientPerpsBalanceAlert({
   const amountHuman = pendingAmount ?? amountPrecise ?? '0';
   const totals = useTransactionPayTotals();
   const quotes = useTransactionPayQuotes();
-  const isQuotesLoading = useIsTransactionPayLoading();
   const hasQuotes = Boolean(quotes?.length);
 
   // `withdrawableBalance` is the Unified-aware value populated by
@@ -45,17 +43,6 @@ export function useInsufficientPerpsBalanceAlert({
   ]);
 
   const isPendingInput = pendingAmount !== undefined;
-
-  const noQuotes = useMemo(
-    () =>
-      isPerpsWithdraw &&
-      !isPendingInput &&
-      !isQuotesLoading &&
-      new BigNumber(amountHuman).isGreaterThan(0) &&
-      Array.isArray(quotes) &&
-      quotes.length === 0,
-    [amountHuman, isPendingInput, isPerpsWithdraw, isQuotesLoading, quotes],
-  );
 
   const isInsufficient = useMemo(() => {
     if (!isPerpsWithdraw) return false;
@@ -106,19 +93,6 @@ export function useInsufficientPerpsBalanceAlert({
   ]);
 
   return useMemo(() => {
-    if (noQuotes) {
-      return [
-        {
-          key: AlertKeys.InsufficientPerpsBalance,
-          field: RowAlertKey.Amount,
-          title: strings('alert_system.no_pay_token_quotes.title'),
-          message: strings('alert_system.no_pay_token_quotes.message'),
-          severity: Severity.Danger,
-          isBlocking: true,
-        },
-      ];
-    }
-
     if (!isInsufficient) {
       return [];
     }
@@ -135,5 +109,5 @@ export function useInsufficientPerpsBalanceAlert({
         isBlocking: true,
       },
     ];
-  }, [isInsufficient, noQuotes]);
+  }, [isInsufficient]);
 }

@@ -13,7 +13,6 @@ import { useTokenAmount } from '../useTokenAmount';
 import { hasTransactionType } from '../../utils/transaction';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
 import {
-  useIsTransactionPayLoading,
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
@@ -28,7 +27,6 @@ export function useInsufficientPredictBalanceAlert({
   const amountHuman = pendingAmount ?? amountPrecise ?? '0';
   const totals = useTransactionPayTotals();
   const quotes = useTransactionPayQuotes();
-  const isQuotesLoading = useIsTransactionPayLoading();
   const hasQuotes = Boolean(quotes?.length);
 
   const { data: predictBalanceHuman = 0 } = usePredictBalance();
@@ -38,17 +36,6 @@ export function useInsufficientPredictBalanceAlert({
   ]);
 
   const isPendingInput = pendingAmount !== undefined;
-
-  const noQuotes = useMemo(
-    () =>
-      isPredictWithdraw &&
-      !isPendingInput &&
-      !isQuotesLoading &&
-      new BigNumber(amountHuman).isGreaterThan(0) &&
-      Array.isArray(quotes) &&
-      quotes.length === 0,
-    [amountHuman, isPendingInput, isPredictWithdraw, isQuotesLoading, quotes],
-  );
 
   const isInsufficient = useMemo(() => {
     if (!isPredictWithdraw) return false;
@@ -89,19 +76,6 @@ export function useInsufficientPredictBalanceAlert({
   ]);
 
   return useMemo(() => {
-    if (noQuotes) {
-      return [
-        {
-          key: AlertKeys.InsufficientPredictBalance,
-          field: RowAlertKey.Amount,
-          title: strings('alert_system.no_pay_token_quotes.title'),
-          message: strings('alert_system.no_pay_token_quotes.message'),
-          severity: Severity.Danger,
-          isBlocking: true,
-        },
-      ];
-    }
-
     if (!isInsufficient) {
       return [];
     }
@@ -118,5 +92,5 @@ export function useInsufficientPredictBalanceAlert({
         isBlocking: true,
       },
     ];
-  }, [isInsufficient, noQuotes]);
+  }, [isInsufficient]);
 }

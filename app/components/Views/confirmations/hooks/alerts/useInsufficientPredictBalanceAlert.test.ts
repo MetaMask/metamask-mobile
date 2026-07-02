@@ -10,7 +10,6 @@ import {
 } from '@metamask/transaction-controller';
 import { useTokenAmount } from '../useTokenAmount';
 import {
-  useIsTransactionPayLoading,
   useTransactionPayQuotes,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
@@ -171,65 +170,6 @@ describe('useInsufficientPredictBalanceAlert', () => {
     } as unknown as TransactionPayTotals);
 
     const { result } = runHook({ pendingAmount: '0.04' });
-
-    expect(result.current).toStrictEqual([]);
-  });
-
-  it('returns no-quotes alert when no quotes are available', () => {
-    usePredictBalanceMock.mockReturnValue({ data: 100 } as never);
-    useTokenAmountMock.mockReturnValue({
-      amountPrecise: '0.03',
-    } as ReturnType<typeof useTokenAmount>);
-
-    jest.mocked(useTransactionPayQuotes).mockReturnValue([]);
-
-    const { result } = runHook();
-
-    expect(result.current).toEqual([
-      {
-        key: AlertKeys.InsufficientPredictBalance,
-        field: RowAlertKey.Amount,
-        title: strings('alert_system.no_pay_token_quotes.title'),
-        message: strings('alert_system.no_pay_token_quotes.message'),
-        severity: Severity.Danger,
-        isBlocking: true,
-      },
-    ]);
-  });
-
-  it('does not trigger no-quotes check when quotes is undefined', () => {
-    usePredictBalanceMock.mockReturnValue({ data: 100 } as never);
-    useTokenAmountMock.mockReturnValue({
-      amountPrecise: '0.03',
-    } as ReturnType<typeof useTokenAmount>);
-
-    jest.mocked(useTransactionPayQuotes).mockReturnValue(undefined);
-
-    const { result } = runHook();
-
-    expect(result.current).toStrictEqual([]);
-  });
-
-  it('does not trigger no-quotes check during pending input', () => {
-    usePredictBalanceMock.mockReturnValue({ data: 100 } as never);
-
-    jest.mocked(useTransactionPayQuotes).mockReturnValue([]);
-
-    const { result } = runHook({ pendingAmount: '0.03' });
-
-    expect(result.current).toStrictEqual([]);
-  });
-
-  it('does not trigger no-quotes alert when quotes are loading', () => {
-    usePredictBalanceMock.mockReturnValue({ data: 100 } as never);
-    useTokenAmountMock.mockReturnValue({
-      amountPrecise: '10',
-    } as ReturnType<typeof useTokenAmount>);
-
-    jest.mocked(useTransactionPayQuotes).mockReturnValue([]);
-    jest.mocked(useIsTransactionPayLoading).mockReturnValue(true);
-
-    const { result } = runHook();
 
     expect(result.current).toStrictEqual([]);
   });
