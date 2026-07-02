@@ -206,7 +206,14 @@ const PredictFeedView: React.FC = () => {
         });
       }
     },
-    [setActiveFilterId, filters, feedId, activeTabId, entryPoint],
+    [
+      setActiveFilterId,
+      filters,
+      feedId,
+      activeTabId,
+      activeFilterId,
+      entryPoint,
+    ],
   );
 
   const chips = useMemo(
