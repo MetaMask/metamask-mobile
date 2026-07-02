@@ -36,7 +36,7 @@ import {
 } from '../../../../../selectors/cardController';
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import { MONEY_HOME_CARD_ORIGIN } from '../../../Card/hooks/useCardPostAuthRedirect';
-import { moneyFormatFiat } from '../../utils/moneyFormatFiat';
+import { moneyFormatUsd } from '../../utils/moneyFormatFiat';
 import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import {
   BOTTOM_SHEET_NAMES,
@@ -66,8 +66,8 @@ const mockCreateEventBuilder = jest.fn((_eventName?: unknown) => ({
   addProperties: mockAddProperties,
   build: mockBuild,
 }));
-const mockMoneyFormatFiat = moneyFormatFiat as jest.MockedFunction<
-  typeof moneyFormatFiat
+const mockMoneyFormatUsd = moneyFormatUsd as jest.MockedFunction<
+  typeof moneyFormatUsd
 >;
 
 jest.mock('@react-navigation/native', () => {
@@ -167,6 +167,7 @@ jest.mock('../../../../../core/NavigationService', () => ({
 jest.mock('../../utils/moneyFormatFiat', () => ({
   ...jest.requireActual('../../utils/moneyFormatFiat'),
   moneyFormatFiat: jest.fn(() => '$0.12'),
+  moneyFormatUsd: jest.fn(() => '$0.12'),
 }));
 
 jest.mock('../../../../../selectors/cardController', () => ({
@@ -1191,7 +1192,7 @@ describe('MoneyHomeView', () => {
 
   describe('monthly and yearly earnings', () => {
     it('passes the formatted monthly earnings to MoneyEarnings', () => {
-      mockMoneyFormatFiat.mockImplementation((value) =>
+      mockMoneyFormatUsd.mockImplementation((value) =>
         String(value) === '0' ? '$0.00' : '$0.12',
       );
 
@@ -1203,7 +1204,7 @@ describe('MoneyHomeView', () => {
     });
 
     it('passes the formatted yearly earnings to MoneyEarnings', () => {
-      mockMoneyFormatFiat.mockImplementation((value) =>
+      mockMoneyFormatUsd.mockImplementation((value) =>
         String(value) === '0' ? '$0.00' : '$0.12',
       );
 
@@ -1215,9 +1216,9 @@ describe('MoneyHomeView', () => {
     });
 
     it('drops the + prefix when projected earnings round to formatted zero', () => {
-      mockMoneyFormatFiat.mockReturnValue('$0.00');
+      mockMoneyFormatUsd.mockReturnValue('$0.00');
       // totalFiatRaw must be >= DUST_THRESHOLD so hasSpendableBalance is true
-      // and MoneyEarnings renders. moneyFormatFiat is mocked to return '$0.00'
+      // and MoneyEarnings renders. moneyFormatUsd is mocked to return '$0.00'
       // for all values, exercising the no-plus-prefix path.
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: '$3.00',
@@ -1243,7 +1244,7 @@ describe('MoneyHomeView', () => {
     it('hides MoneyEarnings when totalFiatFormatted is absent in non-error, non-loading state', () => {
       // Prevents inconsistent UI where "Balance unavailable" headline pairs
       // with concrete "$0.00" projected earnings — that mismatch was the bug.
-      mockMoneyFormatFiat.mockReturnValue('$0.00');
+      mockMoneyFormatUsd.mockReturnValue('$0.00');
       mockUseMoneyAccountBalance.mockReturnValue({
         totalFiatFormatted: undefined,
         totalFiatRaw: undefined,
@@ -1633,6 +1634,22 @@ describe('MoneyHomeView', () => {
 
       expect(getByTestId(MoneyMusdTokenRowTestIds.CONTAINER)).toBeOnTheScreen();
       expect(getAllByTestId(MoneyFooterTestIds.CONTAINER)).toHaveLength(1);
+    });
+
+    it('shows the mUSD token row balance in USD, not the preferred currency', () => {
+      // mUSD is USD-pegged, so the row must use the USD-formatted token balance
+      // (moneyFormatUsd) — never the preferred-currency string.
+      mockMoneyFormatUsd.mockReturnValue('$1.00');
+      mockUseMusdBalance.mockReturnValue({
+        tokenBalanceAggregated: '1',
+        fiatBalanceAggregatedFormatted: '€99.00',
+      } as ReturnType<typeof useMusdBalance>);
+
+      const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+      const row = getByTestId(MoneyMusdTokenRowTestIds.CONTAINER);
+      expect(within(row).getByText('$1.00 • mUSD')).toBeOnTheScreen();
+      expect(within(row).queryByText(/€99\.00/)).not.toBeOnTheScreen();
     });
 
     it('opens the Add money sheet from the empty-state footer', () => {
