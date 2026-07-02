@@ -17,6 +17,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write # required for AWS OIDC role assumption when fetching signing keystores
   actions: read
 
 jobs:
