@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -9,27 +10,30 @@ import {
   TextVariant,
   Button,
   BoxBackgroundColor,
+  TextField,
 } from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import { useNavigation } from '@react-navigation/native';
-import { DeviceEventEmitter, Image } from 'react-native';
+import { Image } from 'react-native';
 import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
-/* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog */
 import {
   createQRScannerNavDetails,
   QRTabSwitcherScreens,
   type ScanSuccess,
+  // eslint-disable-next-line import-x/no-restricted-paths
 } from '../QRTabSwitcher';
-/* eslint-enable import-x/no-restricted-paths */
 import DeviceAdded from './DeviceAdded';
-import { ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT } from './showExtensionCancelledErrorSheet';
-
-/** Temporary mock OTP for bottom-sheet UI testing until QrSyncController is integrated. */
-const ADD_DEVICE_MOCK_VERIFICATION_CODE = '469192';
-
-const noopScanSuccess = (_data: ScanSuccess, _content?: string) => undefined;
+import Engine from '../../../core/Engine';
+import {
+  selectQrSyncError,
+  selectQrSyncIsBusy,
+  selectQrSyncIsSessionActive,
+  selectQrSyncPresentation,
+  selectQrSyncShouldNavigateToImport,
+  selectQrSyncShouldShowOtpSheet,
+} from '../../../selectors/qrSyncController';
 
 const Points = ({
   number,
@@ -60,34 +64,68 @@ const Points = ({
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const [deviceAdded, setDeviceAdded] = useState(false);
+  const [manualQrPayload, setManualQrPayload] = useState('');
+  const hasOpenedVerificationSheetRef = useRef(false);
+  const presentation = useSelector(selectQrSyncPresentation);
+  const shouldNavigateToImport = useSelector(
+    selectQrSyncShouldNavigateToImport,
+  );
+  const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
+  const isBusy = useSelector(selectQrSyncIsBusy);
+  const isSessionActive = useSelector(selectQrSyncIsSessionActive);
+  const error = useSelector(selectQrSyncError);
+
+  const handleBack = useCallback(() => {
+    if (isSessionActive) {
+      Engine.context.QrSyncController.cancelSession();
+    }
+
+    navigation.goBack();
+  }, [isSessionActive, navigation]);
+
+  const showVerificationSheet = useCallback(() => {
+    (navigation.navigate as (route: string, params: object) => void)(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      { screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE },
+    );
+  }, [navigation]);
 
   useEffect(() => {
-    const verificationDoneSubscription = DeviceEventEmitter.addListener(
-      'addDeviceVerificationDone',
-      () => setDeviceAdded(true),
-    );
-    const resetSubscription = DeviceEventEmitter.addListener(
-      ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT,
-      () => setDeviceAdded(false),
-    );
+    if (!shouldShowOtpSheet) {
+      hasOpenedVerificationSheetRef.current = false;
+      return;
+    }
 
-    return () => {
-      verificationDoneSubscription.remove();
-      resetSubscription.remove();
-    };
+    if (hasOpenedVerificationSheetRef.current) {
+      return;
+    }
+
+    hasOpenedVerificationSheetRef.current = true;
+    showVerificationSheet();
+  }, [shouldShowOtpSheet, showVerificationSheet]);
+
+  useEffect(() => {
+    if (!shouldNavigateToImport) {
+      return;
+    }
+
+    navigation.navigate(Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE, {
+      initialStep: 1,
+      qrSyncImport: true,
+    });
+  }, [shouldNavigateToImport, navigation]);
+
+  const submitQrPayload = useCallback(async (qrPayload: string) => {
+    await Engine.context.QrSyncController.handleScannedQrPayload(qrPayload);
   }, []);
 
-  const handleMwpDeeplinkScanned = useCallback(
-    (_deeplink: string) => {
-      navigation.goBack();
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
-        // TODO(TO-793): Replace with QrSyncController OTP once integrated.
-        params: { verificationCode: ADD_DEVICE_MOCK_VERIFICATION_CODE },
-      });
+  const onScanSuccess = useCallback(
+    (data: ScanSuccess, content?: string) => {
+      const scannedQrPayload = content ?? data.content ?? '';
+
+      submitQrPayload(scannedQrPayload).catch(() => undefined);
     },
-    [navigation],
+    [submitQrPayload],
   );
 
   const openQRScanner = useCallback(() => {
@@ -95,23 +133,35 @@ const AddDeviceToWallet = () => {
       ...createQRScannerNavDetails({
         initialScreen: QRTabSwitcherScreens.Scanner,
         disableTabber: true,
-        onScanSuccess: noopScanSuccess,
-        onMwpDeeplinkScanned: handleMwpDeeplinkScanned,
         origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+        onScanSuccess,
       }),
     );
-  }, [navigation, handleMwpDeeplinkScanned]);
+  }, [navigation, onScanSuccess]);
 
-  if (deviceAdded) {
+  const handleManualQrSubmit = useCallback(async () => {
+    if (!manualQrPayload.trim()) {
+      return;
+    }
+
+    try {
+      await submitQrPayload(manualQrPayload);
+    } catch {
+      // Error state is handled by the controller.
+    }
+  }, [manualQrPayload, submitQrPayload]);
+
+  const triggerManualQrSubmit = useCallback(() => {
+    handleManualQrSubmit().catch(() => undefined);
+  }, [handleManualQrSubmit]);
+
+  if (presentation === 'device-linked') {
     return <DeviceAdded />;
   }
 
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
-      <HeaderCompactStandard
-        onBack={() => navigation.goBack()}
-        backButtonProps={{ testID: 'add-device-to-wallet-back-button' }}
-      />
+      <HeaderCompactStandard onBack={handleBack} />
       <Box twClassName="flex-1 gap-5 px-4 py-4">
         <Image
           source={addDeviceToWalletImage}
@@ -156,9 +206,63 @@ const AddDeviceToWallet = () => {
           </Points>
         </Box>
 
-        <Button twClassName="w-full mt-auto" onPress={openQRScanner}>
-          {strings('app_settings.add_device.scan_qr_code_button')}
-        </Button>
+        <Box twClassName="mt-auto gap-4">
+          <Button
+            twClassName="w-full"
+            onPress={openQRScanner}
+            isDisabled={isBusy}
+            isLoading={isBusy}
+          >
+            {strings('app_settings.add_device.scan_qr_code_button')}
+          </Button>
+
+          {presentation === 'error' && error?.message ? (
+            <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
+              {error.message}
+            </Text>
+          ) : null}
+
+          {__DEV__ ? (
+            <Box
+              backgroundColor={BoxBackgroundColor.BackgroundSection}
+              twClassName="rounded-xl p-4 gap-3"
+            >
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextDefault}
+                fontWeight={FontWeight.Bold}
+              >
+                Enter QR data manually
+              </Text>
+              <Text
+                variant={TextVariant.BodySm}
+                color={TextColor.TextAlternative}
+              >
+                Paste the QR code payload here when testing on an emulator.
+              </Text>
+              <TextField
+                value={manualQrPayload}
+                onChangeText={setManualQrPayload}
+                placeholder="Paste QR payload"
+                isDisabled={isBusy}
+                inputProps={{
+                  autoCapitalize: 'none',
+                  autoCorrect: false,
+                  onSubmitEditing: triggerManualQrSubmit,
+                  returnKeyType: 'done',
+                }}
+              />
+              <Button
+                twClassName="w-full"
+                onPress={triggerManualQrSubmit}
+                isDisabled={!manualQrPayload.trim() || isBusy}
+                isLoading={isBusy}
+              >
+                Submit QR data
+              </Button>
+            </Box>
+          ) : null}
+        </Box>
       </Box>
     </SafeAreaView>
   );

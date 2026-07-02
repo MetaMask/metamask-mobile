@@ -6,8 +6,8 @@ import {
 import type { Hex } from '@metamask/utils';
 
 import {
-  deriveDepositWalletAddress,
   executeDepositWalletBatchAndWaitForCompletion,
+  resolveDepositWalletAddress,
 } from '../../../../components/UI/Predict/providers/polymarket/depositWallet';
 import type { TransactionPayControllerInitMessenger } from '../../messengers/transaction-pay-controller-messenger';
 import { createPolymarketCallbacks } from './polymarket-callbacks';
@@ -35,8 +35,8 @@ function buildInitMessenger() {
 }
 
 describe('createPolymarketCallbacks', () => {
-  const deriveDepositWalletAddressMock = jest.mocked(
-    deriveDepositWalletAddress,
+  const resolveDepositWalletAddressMock = jest.mocked(
+    resolveDepositWalletAddress,
   );
   const executeDepositWalletBatchAndWaitForCompletionMock = jest.mocked(
     executeDepositWalletBatchAndWaitForCompletion,
@@ -45,7 +45,7 @@ describe('createPolymarketCallbacks', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    deriveDepositWalletAddressMock.mockReturnValue(DEPOSIT_WALLET_MOCK);
+    resolveDepositWalletAddressMock.mockResolvedValue(DEPOSIT_WALLET_MOCK);
     executeDepositWalletBatchAndWaitForCompletionMock.mockResolvedValue(
       SOURCE_HASH_MOCK,
     );
@@ -62,7 +62,9 @@ describe('createPolymarketCallbacks', () => {
       const result = await callbacks.getDepositWalletAddress({ eoa: EOA_MOCK });
 
       expect(result).toBe(DEPOSIT_WALLET_MOCK);
-      expect(deriveDepositWalletAddressMock).toHaveBeenCalledWith(EOA_MOCK);
+      expect(resolveDepositWalletAddressMock).toHaveBeenCalledWith({
+        ownerAddress: EOA_MOCK,
+      });
     });
   });
 

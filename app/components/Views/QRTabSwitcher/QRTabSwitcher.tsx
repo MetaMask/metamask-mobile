@@ -43,7 +43,6 @@ export interface QRTabSwitcherParams {
   onScanSuccess: (data: ScanSuccess, content?: string) => void;
   onStartScan?: (data: StartScan) => Promise<void>;
   onScanError?: (error: string) => void;
-  onMwpDeeplinkScanned?: (url: string) => void;
   initialScreen?: QRTabSwitcherScreens;
   disableTabber?: boolean;
   origin?: string;
@@ -62,13 +61,8 @@ const QRTabSwitcher = () => {
   }
 
   const route = useRoute();
-  const {
-    onScanError,
-    onScanSuccess,
-    onStartScan,
-    onMwpDeeplinkScanned,
-    origin,
-  } = route.params as QRTabSwitcherParams;
+  const { onScanError, onScanSuccess, onStartScan, origin } =
+    route.params as QRTabSwitcherParams;
 
   // QR scanner displays camera view for scanning codes
   const selectedIndex = QRTabSwitcherScreens.Scanner;
@@ -102,7 +96,6 @@ const QRTabSwitcher = () => {
           onScanError={onScanError}
           onScanSuccess={onScanSuccess}
           onStartScan={onStartScan}
-          onMwpDeeplinkScanned={onMwpDeeplinkScanned}
           origin={origin}
           shouldDismissOnScan={
             origin !== Routes.ONBOARDING.ADD_DEVICE_TO_WALLET

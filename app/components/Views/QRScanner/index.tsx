@@ -88,14 +88,12 @@ const QRScanner = ({
   onScanSuccess,
   onScanError,
   onStartScan,
-  onMwpDeeplinkScanned,
   origin,
   shouldDismissOnScan = true,
 }: {
   onScanSuccess: (data: ScanSuccess, content?: string) => void;
   onStartScan?: (data: StartScan) => Promise<void>;
   onScanError?: (error: string) => void;
-  onMwpDeeplinkScanned?: (url: string) => void;
   origin?: string;
   shouldDismissOnScan?: boolean;
 }) => {
@@ -278,8 +276,7 @@ const QRScanner = ({
             .addProperties({
               [QRScannerEventProperties.SCAN_SUCCESS]: true,
               [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
-              [QRScannerEventProperties.SCAN_RESULT]:
-                ScanResult.DEEPLINK_HANDLED,
+              [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
             })
             .build(),
         );
@@ -290,12 +287,8 @@ const QRScanner = ({
           return;
         }
 
-        if (onMwpDeeplinkScanned) {
-          onMwpDeeplinkScanned(addDeviceDeeplink);
-        } else {
-          SDKConnectV2.handleMwpDeeplink(addDeviceDeeplink);
-        }
-
+        end();
+        onScanSuccess({ content: addDeviceDeeplink }, addDeviceDeeplink);
         return;
       }
 
@@ -320,8 +313,7 @@ const QRScanner = ({
         }
       }
 
-      const isScannedMwpDeeplink = SDKConnectV2.isMwpDeeplink(content);
-      if (isScannedMwpDeeplink) {
+      if (SDKConnectV2.isMwpDeeplink(response.data)) {
         // SDKConnectV2 handles the connection entirely internally (establishes WebSocket, etc.)
         // and bypasses the standard deeplink saga flow. We don't call onScanSuccess here because
         // parent components don't need to be notified.
@@ -338,11 +330,7 @@ const QRScanner = ({
             .build(),
         );
 
-        if (onMwpDeeplinkScanned) {
-          onMwpDeeplinkScanned(content);
-        } else {
-          SDKConnectV2.handleMwpDeeplink(content);
-        }
+        SDKConnectV2.handleMwpDeeplink(response.data);
         end();
         return;
       }
@@ -483,6 +471,23 @@ const QRScanner = ({
           mountedRef.current = false;
         }
       } else {
+        if (origin === Routes.ONBOARDING.ADD_DEVICE_TO_WALLET) {
+          shouldReadBarCodeRef.current = false;
+          data = { content };
+          trackEvent(
+            createEventBuilder(MetaMetricsEvents.QR_SCANNED)
+              .addProperties({
+                [QRScannerEventProperties.SCAN_SUCCESS]: true,
+                [QRScannerEventProperties.QR_TYPE]: QRType.DEEPLINK,
+                [QRScannerEventProperties.SCAN_RESULT]: ScanResult.COMPLETED,
+              })
+              .build(),
+          );
+          end();
+          onScanSuccess(data, content);
+          return;
+        }
+
         if (
           !failedSeedPhraseRequirements(content) &&
           isValidMnemonic(content)
@@ -752,7 +757,6 @@ const QRScanner = ({
       origin,
       isAddDeviceScanner,
       end,
-      onMwpDeeplinkScanned,
       showAlertForURLRedirection,
       navigation,
       onStartScan,

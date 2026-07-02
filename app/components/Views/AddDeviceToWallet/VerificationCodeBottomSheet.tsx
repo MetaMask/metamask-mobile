@@ -1,5 +1,6 @@
-import React, { useCallback, useRef } from 'react';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import React, { useCallback, useEffect, useRef } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import {
   BottomSheet,
   type BottomSheetRef,
@@ -12,27 +13,32 @@ import {
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
-
-interface VerificationCodeBottomSheetParams {
-  verificationCode?: string;
-}
+import { QrSyncPhases } from '../../../core/QrSync/constants';
+import {
+  selectQrSyncOtp,
+  selectQrSyncPhase,
+} from '../../../selectors/qrSyncController';
 
 const VerificationCodeBottomSheet = () => {
   const bottomSheetRef = useRef<BottomSheetRef>(null);
   const navigation = useNavigation();
-  const route = useRoute();
-  const verificationCode = (
-    route.params as VerificationCodeBottomSheetParams | undefined
-  )?.verificationCode;
+  const phase = useSelector(selectQrSyncPhase);
+  const otp = useSelector(selectQrSyncOtp) ?? '';
 
-  const dismissSheet = useCallback(() => {
+  const closeSheet = useCallback(() => {
     if (navigation.canGoBack()) {
       navigation.goBack();
     }
   }, [navigation]);
 
+  useEffect(() => {
+    if (phase !== QrSyncPhases.DISPLAYING_OTP) {
+      closeSheet();
+    }
+  }, [closeSheet, phase]);
+
   return (
-    <BottomSheet ref={bottomSheetRef} goBack={dismissSheet}>
+    <BottomSheet ref={bottomSheetRef} goBack={closeSheet}>
       <BottomSheetHeader>
         {strings('app_settings.add_device.enter_code_on_extension')}
       </BottomSheetHeader>
@@ -50,8 +56,7 @@ const VerificationCodeBottomSheet = () => {
           color={TextColor.TextDefault}
           twClassName="my-6"
         >
-          {verificationCode ??
-            strings('app_settings.add_device.verification_code_pending')}
+          {otp}
         </Text>
       </Box>
     </BottomSheet>
