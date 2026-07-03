@@ -44,6 +44,7 @@ export const MONEY_URLS = {
   MONEY_LANDING: AppConstants.URLS.MONEY_LANDING,
   MUSD_PRICE: AppConstants.URLS.MUSD_PRICE,
   METAMASK_SUPPORT: METAMASK_SUPPORT_URL,
+  CARD_FEES: AppConstants.CARD.CARD_FEES_URL,
 } as const;
 
 export type MONEY_URLS = (typeof MONEY_URLS)[keyof typeof MONEY_URLS];
@@ -80,6 +81,7 @@ export enum COMPONENT_NAMES {
   MONEY_ACTIVITY_FILTER_ALL = 'money_activity_filter_all',
   MONEY_ACTIVITY_FILTER_DEPOSITS = 'money_activity_filter_deposits',
   MONEY_ACTIVITY_FILTER_TRANSFERS = 'money_activity_filter_transfers',
+  MONEY_ACTIVITY_FILTER_PURCHASES = 'money_activity_filter_purchases',
 
   // — Condensed Info Cards —
   MONEY_CONDENSED_INFO_CARDS_HOW_IT_WORKS = 'money_condensed_info_cards_how_it_works',
@@ -111,6 +113,9 @@ export enum COMPONENT_NAMES {
   MONEY_FOOTER = 'money_footer',
   MONEY_CONVERT_CRYPTO_BUTTON = 'money_convert_crypto_button',
   MONEY_MORE = 'money_more',
+
+  // — How It Works / FAQ —
+  FAQ_ITEM = 'money_faq_item',
 }
 
 /**
@@ -128,6 +133,7 @@ export enum MONEY_BUTTON_INTENTS {
   VIEW_ALL = 'view_all',
   FILTER = 'filter',
   CARD_HOME = 'card_home',
+  CARD_FEES = 'card_fees',
 }
 
 export enum MONEY_BUTTON_TYPES {

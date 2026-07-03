@@ -581,7 +581,9 @@ describe('ManualBackupStep1', () => {
       });
 
       await waitFor(() => {
-        expect(mockExportSeedPhrase).toHaveBeenCalledWith('correct-password');
+        expect(mockExportSeedPhrase).toHaveBeenCalledWith({
+          password: 'correct-password',
+        });
       });
     });
 

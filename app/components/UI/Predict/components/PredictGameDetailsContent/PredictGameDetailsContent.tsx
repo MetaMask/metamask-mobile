@@ -102,6 +102,7 @@ const PredictGameDetailsContentComponent: React.FC<
     handleTabPress,
     chips,
     groupMap,
+    resolvedOutcomeGroups,
     activeChipKey,
     handleChipSelect,
     showChips,
@@ -112,10 +113,11 @@ const PredictGameDetailsContentComponent: React.FC<
     outcomeGroups: market.outcomeGroups ?? [],
   });
 
+  const resolvedGroups = resolvedOutcomeGroups ?? [];
   const showStickyHeader = showTabBar || showChips;
-  const hasExtendedOutcomes = tabsEnabled && groupMap.size > 0;
+  const hasOpenExtendedOutcomes = tabsEnabled && groupMap.size > 0;
   const showFooter =
-    !hasExtendedOutcomes || (claimableAmount > 0 && Boolean(onClaimPress));
+    !hasOpenExtendedOutcomes || (claimableAmount > 0 && Boolean(onClaimPress));
   const stickyHeaderIndices = useMemo(
     () => (showStickyHeader ? [CHIPS_STICKY_INDEX] : undefined),
     [showStickyHeader],
@@ -143,6 +145,7 @@ const PredictGameDetailsContentComponent: React.FC<
           hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
           accessibilityRole="button"
           accessibilityLabel={strings('predict.buttons.back')}
+          testID={PredictMarketDetailsSelectorsIDs.BACK_BUTTON}
         >
           <Icon
             name={IconName.ArrowLeft}
@@ -166,6 +169,7 @@ const PredictGameDetailsContentComponent: React.FC<
       </Box>
 
       <ScrollView
+        testID={PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.SCROLL_VIEW}
         style={tw.style('flex-1')}
         contentContainerStyle={tw.style('pb-4')}
         stickyHeaderIndices={stickyHeaderIndices}
@@ -220,6 +224,7 @@ const PredictGameDetailsContentComponent: React.FC<
           activePositions={activePositions}
           claimablePositions={claimablePositions}
           groupMap={groupMap}
+          resolvedOutcomeGroups={resolvedGroups}
           activeChipKey={activeChipKey}
           onBetPress={onBetPress}
           nonRegTimeSportsMarketTypes={nonRegTimeSportsMarketTypes}

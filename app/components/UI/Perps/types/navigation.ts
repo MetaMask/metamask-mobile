@@ -1,4 +1,3 @@
-import { ParamListBase } from '@react-navigation/native';
 import {
   type Position,
   type Order,
@@ -14,11 +13,24 @@ import type { DataMonitorParams } from '../hooks/usePerpsDataMonitor';
 import type { TransactionActiveAbTestEntry } from '../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 
 /**
- * PERPS navigation parameter types
+ * Nested navigation into the Perps stack root.
+ * Kept local to avoid a circular import with NavigationService/types.
  */
-export interface PerpsNavigationParamList extends ParamListBase {
-  [key: string]: object | undefined;
+interface PerpsNestedNavigationParams {
+  screen?: string;
+  params?: object;
+}
 
+/**
+ * PERPS navigation parameter types.
+ *
+ * Declared as a `type` (not `interface`) so it gains an implicit index
+ * signature and satisfies React Navigation's `ParamListBase` constraint while
+ * `keyof` stays a strict union of route names. The repo's
+ * `consistent-type-definitions` rule prefers `interface`, hence the suppression.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type PerpsNavigationParamList = {
   // Order flow routes
   PerpsOrder: {
     direction: 'long' | 'short';
@@ -228,7 +240,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
   };
 
   // Root perps view
-  Perps: undefined;
+  Perps: PerpsNestedNavigationParams | undefined;
 
   /** Params for RedesignedConfirmations when shown in Perps stack (header options) */
   RedesignedConfirmations: {
@@ -243,7 +255,40 @@ export interface PerpsNavigationParamList extends ParamListBase {
     fromTokenDetails?: boolean;
     transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   };
-}
+
+  // Screen names registered in the Perps stack (may differ from legacy aliases above)
+  PerpsTrendingView: {
+    source?: string;
+    variant?: 'full' | 'minimal';
+    title?: string;
+    showBalanceActions?: boolean;
+    showBottomNav?: boolean;
+    showWatchlistOnly?: boolean;
+    defaultMarketTypeFilter?: MarketTypeFilter;
+    defaultSortOptionId?: SortOptionId;
+    defaultSortDirection?: SortDirection;
+    fromHome?: boolean;
+    button_clicked?: string;
+    button_location?: string;
+    transactionActiveAbTests?: TransactionActiveAbTestEntry[];
+  };
+  PerpsOrderDetailsView: {
+    order: Order;
+    action?: 'view' | 'edit' | 'cancel';
+  };
+  PerpsHIP3Debug: undefined;
+  PerpsClosePositionModals: PerpsNestedNavigationParams | undefined;
+  PerpsModals: PerpsNestedNavigationParams | undefined;
+  PerpsQuoteExpiredModal: undefined;
+  PerpsGTMModal: undefined;
+  PerpsCloseAllPositions: undefined;
+  PerpsCancelAllOrders: undefined;
+  PerpsTooltip: undefined;
+  PerpsCrossMarginWarning: undefined;
+  PerpsSelectProvider: undefined;
+  ConfirmationPayWithModal: undefined;
+  ConfirmationPayWithBottomSheet: undefined;
+};
 
 /**
  * Type helper for PERPS route parameters

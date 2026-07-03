@@ -13,7 +13,8 @@ import {
 
 // Mappings
 export const ICONSIZE_BY_BUTTONICONSIZE: IconSizeByButtonIconSize = {
-  [ButtonIconSizes.Sm]: IconSize.Sm,
+  [ButtonIconSizes.Xs]: IconSize.Sm,
+  [ButtonIconSizes.Sm]: IconSize.Md,
   [ButtonIconSizes.Md]: IconSize.Lg,
   [ButtonIconSizes.Lg]: IconSize.Xl,
 };

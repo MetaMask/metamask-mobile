@@ -52,6 +52,37 @@ describe('useTransactionAutoScroll', () => {
     });
   });
 
+  it('does not scroll when the list only grows (pagination / staged load) with the same top item', () => {
+    const listRef = {
+      current: {
+        scrollToOffset: jest.fn(),
+      },
+    };
+    const { rerender } = renderHook(
+      ({ data }) =>
+        useTransactionAutoScroll(data, listRef as never, {
+          delay: 50,
+          keyExtractor,
+        }),
+      {
+        initialProps: { data: [{ id: 'a' }, { id: 'b' }] },
+      },
+    );
+
+    act(() => {
+      jest.runOnlyPendingTimers();
+    });
+
+    // Append older items at the bottom — top item ('a') unchanged.
+    rerender({ data: [{ id: 'a' }, { id: 'b' }, { id: 'c' }, { id: 'd' }] });
+
+    act(() => {
+      jest.advanceTimersByTime(50);
+    });
+
+    expect(listRef.current.scrollToOffset).not.toHaveBeenCalled();
+  });
+
   it('clears pending auto-scroll when disabled and ignores new items while user is scrolling', () => {
     const listRef = {
       current: {
@@ -124,7 +155,14 @@ describe('useTransactionAutoScroll', () => {
       'useTransactionAutoScroll: Failed to extract item ID',
     );
 
-    rerender({ data: [{ id: 'new' }, { id: 'bad' }, { id: 'old' }] });
+    // Recover to a known top item (no scroll — the bad extract nulled the
+    // tracked top id), then surface a new top item so the scroll fires.
+    rerender({ data: [{ id: 'good' }] });
+    act(() => {
+      jest.advanceTimersByTime(50);
+    });
+
+    rerender({ data: [{ id: 'newer' }, { id: 'good' }] });
     act(() => {
       jest.advanceTimersByTime(50);
     });
