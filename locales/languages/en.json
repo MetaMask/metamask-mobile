@@ -1103,7 +1103,6 @@
       "trades": "Trades",
       "buy": "Buy",
       "trade": "Trade",
-      "unsupported_market": "Unsupported market",
       "bought": "Bought",
       "sold": "Sold",
       "no_trades": "No trades yet",
@@ -3989,34 +3988,6 @@
     "feature_flag_override": {
       "title": "Feature flag override",
       "description": "Override the feature flags for the app locally."
-    },
-    "add_device": {
-      "title": "Add device",
-      "enter_your_password": "Enter your password",
-      "enter_your_password_desc": "For account security, enter your password to view the QR code.",
-      "continue": "Continue",
-      "add_wallets": "Add wallets",
-      "add_wallets_desc": "Pick the wallets you’d like to use on this device. You can add or remove them later.",
-      "select_all": "Select all",
-      "scan_qr_code": "Scan QR code",
-      "scan_qr_code_desc": "Scan this with the MetaMask app on the device you want to add.",
-      "enter_verification_code": "Enter verification code",
-      "enter_verification_code_desc": "For security, enter the code shown in the MetaMask app on your device.",
-      "add_device_to_wallet": "Add this device to wallet",
-      "points": {
-        "one": "Open MetaMask on your other device",
-        "two": "Go to",
-        "two_bold_one": "Settings",
-        "two_bold_two": "Add device",
-        "two_icon": ">",
-        "three": "Scan the QR code with this device",
-        "four": "Enter the security code on your extension"
-      },
-      "scan_qr_code_button": "Scan QR code",
-      "enter_code_on_extension": "Enter code on extension",
-      "enter_code_on_extension_desc": "For security, enter the verification code below on your MetaMask extension.",
-      "done": "Done",
-      "device_added": "Device added"
     }
   },
   "aes_crypto_test_form": {
@@ -4793,8 +4764,8 @@
     "activity_perps_close_short_take_profit": "Closed short - take profit",
     "activity_perps_close_long_take_profit": "Closed long - take profit",
     "activity_market_short": "Market short",
-    "activity_stop_market_close_short": "Stop market—close short",
-    "activity_market_close_short": "Market—close short",
+    "activity_stop_market_close_short": "Stop market - close short",
+    "activity_market_close_short": "Market - close short",
     "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
@@ -9660,24 +9631,6 @@
       "fiat_purchase": "Buy {{token}} with {{paymentMethod}}"
     },
     "perps_deposit_solution": "You now have {{fiat}} of USDC on Arbitrum. Try your deposit again."
-  },
-  "activity_details": {
-    "status": "Status",
-    "date": "Date",
-    "account": "Account",
-    "from": "From",
-    "to": "To",
-    "network": "Network",
-    "transaction_id": "Transaction ID",
-    "network_fee": "Network fee",
-    "bridge_fee": "Bridge fee",
-    "transaction_fee": "Transaction fee",
-    "total_amount": "Total amount",
-    "you_sent": "You sent",
-    "you_received": "You received",
-    "view_on_block_explorer": "View on block explorer",
-    "do_it_again": "Do it again",
-    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {
