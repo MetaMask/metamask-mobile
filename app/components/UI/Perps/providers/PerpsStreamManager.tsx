@@ -589,10 +589,13 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   public reconnect(): void {
     const shouldRestorePrewarm = Boolean(this.prewarmUnsubscribe);
 
+    if (shouldRestorePrewarm) {
+      this.cleanupPrewarm();
+    }
+
     super.reconnect();
 
     if (shouldRestorePrewarm) {
-      this.cleanupPrewarm();
       this.prewarm().catch((error) => {
         Logger.error(ensureError(error, 'PriceStreamChannel.reconnect'), {
           context: 'PriceStreamChannel.reconnect',
@@ -712,6 +715,11 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
 
         // Store the actual unsubscribe function
         this.actualPriceUnsubscribe = unsub;
+
+        if (this.wsSubscription) {
+          this.wsSubscription();
+          this.wsSubscription = null;
+        }
       })
       .catch((error) => {
         Logger.error(

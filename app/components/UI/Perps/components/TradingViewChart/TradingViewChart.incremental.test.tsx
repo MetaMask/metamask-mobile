@@ -362,7 +362,11 @@ describe('TradingViewChart — incremental update routing', () => {
   it('template follows appended bars only when currently tracking realtime', () => {
     const template = createTradingViewChartTemplate(mockTheme, '', true);
 
-    expect(template).toContain('var wasTrackingRealtime =');
+    expect(template).toContain('RIGHT_MARGIN_CANDLES: 2');
+    expect(template).toContain('const wasTrackingRealtime =');
+    expect(template).toContain(
+      'previousDataLength - 1 + window.ZOOM_LIMITS.RIGHT_MARGIN_CANDLES',
+    );
     expect(template).toContain(
       'visibleLogicalRangeBefore.to >= rightEdgeBefore - realtimeFollowThreshold',
     );
