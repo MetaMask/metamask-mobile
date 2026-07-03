@@ -31,6 +31,22 @@ export interface PriceAlert {
 
 export const PRICE_ALERT_QUICK_PERCENTAGES = [-10, -5, 5, 10] as const;
 
+/**
+ * Literal values emitted as analytics properties for price-alert events.
+ * Centralised so event payloads stay consistent across the Create/Manage
+ * views, the notification deeplink handler, and their tests.
+ */
+export const PriceAlertAnalytics = {
+  TYPE: {
+    THRESHOLD: 'threshold',
+  },
+  INTERACTION_TYPE: {
+    CREATED: 'created',
+    UPDATED: 'updated',
+    DELETED: 'deleted',
+  },
+} as const;
+
 export const CURRENCY_SYMBOLS: Record<string, string> = {
   usd: '$',
   eur: '€',
