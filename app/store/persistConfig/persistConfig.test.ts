@@ -463,10 +463,11 @@ describe('persistConfig', () => {
       const filteredState = { data: 'test' };
       const controllerName = 'NetworkController';
 
-      // Act & Assert - should not throw
-      await expect(
+      // Act - queue is synchronous; flush runs asynchronously
+      expect(() =>
         persistController(filteredState, controllerName),
-      ).resolves.toBeUndefined();
+      ).not.toThrow();
+      await Promise.resolve();
 
       // Assert error logging
       expect(Logger.error).toHaveBeenCalledWith(persistError, {
