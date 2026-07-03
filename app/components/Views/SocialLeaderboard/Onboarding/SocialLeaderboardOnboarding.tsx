@@ -1,11 +1,13 @@
 import React, {
   useCallback,
+  useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
-import { PixelRatio, StyleSheet, Text, View } from 'react-native';
+import { Animated, PixelRatio, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, StackActions } from '@react-navigation/native';
@@ -24,6 +26,16 @@ import Rive, {
 } from 'rive-react-native';
 
 import { strings } from '../../../../../locales/i18n';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
+import Icon, {
+  IconColor,
+  IconName,
+  IconSize,
+} from '../../../../component-library/components/Icons/Icon';
+import { TAB_BAR_HEIGHT } from '../../../../component-library/components/Navigation/TabBar/TabBar.constants';
 import Routes from '../../../../constants/navigation/Routes';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { SOCIAL_LEADERBOARD_ONBOARDING_SHOWN } from '../../../../constants/storage';
@@ -67,6 +79,7 @@ import {
   RIVE_TOKEN_ASSET_SOURCES,
   RIVE_TRANSITION_SPEED,
   RIVE_TRIGGERS,
+  TEXT_FADE_DURATION_MS,
   SLIDE_BY_STEP_INDEX,
   isSocialLeaderboardOnboardingSkipSeen,
   riveStepTextBinding,
@@ -193,6 +206,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   const styles = useMemo(() => createStyles(), []);
   const insets = useSafeAreaInsets();
   const { track } = useSocialLeaderboardAnalytics();
+  const { toastRef } = useContext(ToastContext);
 
   const isPerpsEnabled = useSelector(selectSocialLeaderboardPerpsEnabled);
   const isNotificationsEnabled = useSelector(
@@ -537,6 +551,47 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     swallowNextCompletionRef.current = true;
   }, [setStep]);
 
+  // Surface the outcome of the OS push prompt as a toast (rendered by the global
+  // ToastContext, so it survives the route replace and lands on the leaderboard).
+  // `granted` is false when notifications are off at the OS level, in which case
+  // we tell the user how to turn them on rather than silently doing nothing.
+  const showNotificationStatusToast = useCallback(
+    (areOn: boolean) => {
+      toastRef?.current?.showToast({
+        variant: ToastVariants.Plain,
+        labelOptions: [
+          {
+            label: strings(
+              areOn
+                ? 'notifications.push_onboarding.new_user.toast.notifications_on.title'
+                : 'notifications.push_onboarding.new_user.toast.notifications_off.title',
+            ),
+            isBold: true,
+          },
+        ],
+        descriptionOptions: {
+          description: strings(
+            areOn
+              ? 'notifications.push_onboarding.new_user.toast.notifications_on.description'
+              : 'notifications.push_onboarding.new_user.toast.notifications_off.description',
+          ),
+        },
+        startAccessory: (
+          <View style={styles.toastAccessory}>
+            <Icon
+              name={areOn ? IconName.CheckBold : IconName.Info}
+              size={IconSize.Lg}
+              color={areOn ? IconColor.Success : IconColor.Alternative}
+            />
+          </View>
+        ),
+        customBottomOffset: TAB_BAR_HEIGHT,
+        hasNoTimeout: false,
+      });
+    },
+    [toastRef, styles.toastAccessory],
+  );
+
   // "Allow notifications" (terminal): enable notifications, then complete. The
   // button appears on either Notify slide (step 3 or 3.1) while prompting is
   // needed, so it is honored on any Notify step — never before it (an earlier
@@ -559,6 +614,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     // the toggle never actually flips on. (The hook handles its own errors, so
     // this never rejects.)
     await enableNotificationsInBackground(granted);
+    showNotificationStatusToast(granted);
     track(
       MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_NOTIFICATIONS_ENABLED,
       {
@@ -570,6 +626,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
     shouldPromptNotifications,
     requestPushPermission,
     enableNotificationsInBackground,
+    showNotificationStatusToast,
     track,
     goToLeaderboard,
   ]);
@@ -634,6 +691,54 @@ const SocialLeaderboardOnboarding: React.FC = () => {
 
   const currentText = stepText[stepIndex] ?? stepText[0];
 
+  // Fade the RN title/description overlay out-then-in on each step change so the
+  // copy transitions like the artboard's own button fades (motion proposal). The
+  // live layer always renders `currentText` (updates synchronously) but starts
+  // invisible; on a change we stack the previous copy over it, fade the old copy
+  // fully out, then fade the new copy in. A *sequential* fade (not a cross-fade)
+  // avoids two different strings overlapping mid-transition, which reads as a
+  // flicker. `useLayoutEffect` resets the opacities before the frame paints, so
+  // the new copy never flashes in at full opacity first.
+  const enterOpacity = useRef(new Animated.Value(1)).current;
+  const exitOpacity = useRef(new Animated.Value(0)).current;
+  const previousTextRef = useRef(currentText);
+  const [fadingOutText, setFadingOutText] = useState<{
+    title: string;
+    description: string;
+  } | null>(null);
+
+  useLayoutEffect(() => {
+    const previous = previousTextRef.current;
+    if (
+      previous.title === currentText.title &&
+      previous.description === currentText.description
+    ) {
+      return undefined;
+    }
+    previousTextRef.current = currentText;
+    setFadingOutText(previous);
+    enterOpacity.setValue(0);
+    exitOpacity.setValue(1);
+    const animation = Animated.sequence([
+      Animated.timing(exitOpacity, {
+        toValue: 0,
+        duration: TEXT_FADE_DURATION_MS,
+        useNativeDriver: true,
+      }),
+      Animated.timing(enterOpacity, {
+        toValue: 1,
+        duration: TEXT_FADE_DURATION_MS,
+        useNativeDriver: true,
+      }),
+    ]);
+    animation.start(({ finished }) => {
+      if (finished) {
+        setFadingOutText(null);
+      }
+    });
+    return () => animation.stop();
+  }, [currentText, enterOpacity, exitOpacity]);
+
   return (
     <View
       style={styles.container}
@@ -680,23 +785,39 @@ const SocialLeaderboardOnboarding: React.FC = () => {
           testID={SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION}
         />
       )}
-      {/* Title + description overlay. */}
+      {/* Title + description overlay. The live layer holds the current copy; the
+          fading-out layer (only present mid-transition) holds the previous copy
+          pinned on top so the two cross-fade in place. */}
       <View
         style={[styles.textOverlay, { top: insets.top + OVERLAY_TOP_OFFSET }]}
         pointerEvents="none"
       >
-        <Text
-          style={styles.title}
-          testID={SocialLeaderboardOnboardingSelectorsIDs.STEP_TITLE}
-        >
-          {currentText.title}
-        </Text>
-        <Text
-          style={styles.description}
-          testID={SocialLeaderboardOnboardingSelectorsIDs.STEP_DESCRIPTION}
-        >
-          {currentText.description}
-        </Text>
+        <View style={styles.textStack}>
+          {fadingOutText && (
+            <Animated.View
+              style={[styles.textLayerFadingOut, { opacity: exitOpacity }]}
+            >
+              <Text style={styles.title}>{fadingOutText.title}</Text>
+              <Text style={styles.description}>
+                {fadingOutText.description}
+              </Text>
+            </Animated.View>
+          )}
+          <Animated.View style={[styles.textStack, { opacity: enterOpacity }]}>
+            <Text
+              style={styles.title}
+              testID={SocialLeaderboardOnboardingSelectorsIDs.STEP_TITLE}
+            >
+              {currentText.title}
+            </Text>
+            <Text
+              style={styles.description}
+              testID={SocialLeaderboardOnboardingSelectorsIDs.STEP_DESCRIPTION}
+            >
+              {currentText.description}
+            </Text>
+          </Animated.View>
+        </View>
       </View>
     </View>
   );

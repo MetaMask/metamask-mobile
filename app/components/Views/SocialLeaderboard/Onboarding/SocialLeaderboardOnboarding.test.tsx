@@ -1,6 +1,10 @@
 import { act, screen, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { StackActions } from '@react-navigation/native';
+import {
+  ToastContext,
+  ToastVariants,
+} from '../../../../component-library/components/Toast';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
@@ -25,6 +29,10 @@ import {
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
+const mockShowToast = jest.fn();
+const mockToastRef = {
+  current: { showToast: mockShowToast, closeToast: jest.fn() },
+};
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -215,7 +223,12 @@ describe('SocialLeaderboardOnboarding', () => {
   });
 
   const renderComponent = () =>
-    renderWithProvider(<SocialLeaderboardOnboarding />, {});
+    renderWithProvider(
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <SocialLeaderboardOnboarding />
+      </ToastContext.Provider>,
+      {},
+    );
 
   it('renders the Rive animation and tracks the first slide on mount', () => {
     renderComponent();
@@ -687,6 +700,64 @@ describe('SocialLeaderboardOnboarding', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
     );
+  });
+
+  it('shows the "notifications on" toast after allow when permission is granted', async () => {
+    mockRequestPushPermission.mockResolvedValueOnce(true);
+    renderComponent();
+
+    await advanceToNotifyStep();
+    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Notifications are on', isBold: true }],
+        descriptionOptions: {
+          description:
+            "We'll send you transactions, price alerts, and updates.",
+        },
+        startAccessory: expect.any(Object),
+        customBottomOffset: expect.any(Number),
+        hasNoTimeout: false,
+      }),
+    );
+  });
+
+  it('shows the "notifications off" toast after allow when permission is denied (OS off)', async () => {
+    mockRequestPushPermission.mockResolvedValueOnce(false);
+    renderComponent();
+
+    await advanceToNotifyStep();
+    await fireTrigger(RIVE_TRIGGERS.ALLOW_NOTIFICATIONS);
+
+    expect(mockShowToast).toHaveBeenCalledWith(
+      expect.objectContaining({
+        variant: ToastVariants.Plain,
+        labelOptions: [{ label: 'Notifications are off', isBold: true }],
+        descriptionOptions: {
+          description: 'Turn them on anytime in Settings → Notifications.',
+        },
+        startAccessory: expect.any(Object),
+        customBottomOffset: expect.any(Number),
+        hasNoTimeout: false,
+      }),
+    );
+    // Still completes the flow so the user is never stuck.
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+    );
+  });
+
+  it('does not show a notification toast on the gotIt path', async () => {
+    mockIsNotificationsEnabled = true;
+    mockIsPushEnabled = true;
+    renderComponent();
+
+    await advanceToNotifyStep();
+    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
+
+    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('completes on gotIt without requesting notification permission', async () => {

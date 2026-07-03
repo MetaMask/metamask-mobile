@@ -40,6 +40,16 @@ export const RIVE_BOOLEAN_BINDINGS = {
 export const RIVE_TRANSITION_SPEED = 300;
 
 /**
+ * Duration (ms) of EACH phase of the RN title/description fade when the step
+ * changes: the previous copy fades fully out, then the new copy fades in (a
+ * sequential fade, not a cross-fade, so two different strings never overlap and
+ * flicker). The full out+in therefore runs ~2× this value, tuned by feel to sit
+ * a beat behind the artboard's own button fades rather than matching
+ * `RIVE_TRANSITION_SPEED` exactly.
+ */
+export const TEXT_FADE_DURATION_MS = 320;
+
+/**
  * State-machine triggers. Rive owns navigation: these triggers advance the
  * artboard's own steps, so RN must only *observe* them (via `useRiveTrigger`)
  * to run side effects — never intercept, or a button tap would no-op the

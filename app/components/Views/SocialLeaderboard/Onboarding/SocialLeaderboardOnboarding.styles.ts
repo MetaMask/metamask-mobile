@@ -54,6 +54,28 @@ const createStyles = () =>
       alignItems: 'center',
       paddingHorizontal: 32,
     },
+    // Full-width wrapper that stacks the live copy layer and the outgoing
+    // (fading-out) copy layer on top of each other so they cross-fade in place.
+    textStack: {
+      width: '100%',
+      alignItems: 'center',
+    },
+    // The outgoing copy layer during a step cross-fade — pinned over the live
+    // layer (same width + centering) so both sets of text line up exactly.
+    textLayerFadingOut: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      alignItems: 'center',
+    },
+    // Matches the notifications pre-prompt toast leading-icon spacing so the
+    // Social Leaderboard toast reads identically to the rest of the app.
+    toastAccessory: {
+      alignSelf: 'flex-start',
+      marginRight: 12,
+      paddingTop: 4,
+    },
     title: {
       fontSize: 28,
       lineHeight: 34,
