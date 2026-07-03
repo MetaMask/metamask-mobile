@@ -75,6 +75,7 @@ import {
   PolymarketApiMarket,
   PolymarketApiTeam,
   PolymarketPosition,
+  RoundConfig,
   TickSize,
   OrderBook,
 } from './types';
@@ -1113,14 +1114,6 @@ export const parsePolymarketActivity = (
 
     const price = Number(activity.price ?? 0);
     const amount = Number(activity.usdcSize ?? 0);
-    const rawSize =
-      activity.size === undefined || activity.size === null
-        ? undefined
-        : Number(activity.size);
-    const size =
-      rawSize !== undefined && Number.isFinite(rawSize) && rawSize > 0
-        ? rawSize
-        : undefined;
 
     const outcomeId = String(activity.conditionId ?? '');
     const marketId = String(activity.conditionId ?? '');
@@ -1128,16 +1121,6 @@ export const parsePolymarketActivity = (
     const title = String(activity.title ?? 'Market');
     const outcome = activity.outcome ? String(activity.outcome) : undefined;
     const icon = activity.icon as string | undefined;
-    const slug = activity.slug ? String(activity.slug) : undefined;
-    const eventSlug = activity.eventSlug
-      ? String(activity.eventSlug)
-      : undefined;
-    const netPnlUsd =
-      typeof activity.netPnlUsd === 'number' ? activity.netPnlUsd : undefined;
-    const totalNetPnlUsd =
-      typeof activity.totalNetPnlUsd === 'number'
-        ? activity.totalNetPnlUsd
-        : undefined;
 
     const parsedActivity: PredictActivity = {
       id,
@@ -1153,23 +1136,14 @@ export const parsePolymarketActivity = (
               outcomeTokenId,
               amount,
               price,
-              ...(size !== undefined && { size }),
             },
       title,
       outcome,
       icon,
-      slug,
-      eventSlug,
-      netPnlUsd,
-      totalNetPnlUsd,
     } as PredictActivity & {
       title?: string;
       outcome?: string;
       icon?: string;
-      slug?: string;
-      eventSlug?: string;
-      netPnlUsd?: number;
-      totalNetPnlUsd?: number;
     };
 
     return parsedActivity;
@@ -2251,6 +2225,77 @@ export const roundOrderAmount = ({
   return amount;
 };
 
+const toDecimalTickSizeString = (value: number): string => {
+  const valueAsString = value.toString();
+
+  if (!valueAsString.includes('e')) {
+    return valueAsString;
+  }
+
+  return value
+    .toFixed(COLLATERAL_TOKEN_DECIMALS)
+    .replace(/(?:\.0+|(\.\d*?)0+)$/u, '$1');
+};
+
+const normalizeTickSizeCandidate = (
+  tickSize?: string | number | null,
+): string | undefined => {
+  if (tickSize === undefined || tickSize === null) {
+    return undefined;
+  }
+
+  const parsedTickSize = Number(tickSize);
+
+  if (
+    !Number.isFinite(parsedTickSize) ||
+    parsedTickSize <= 0 ||
+    parsedTickSize >= 1
+  ) {
+    return undefined;
+  }
+
+  return toDecimalTickSizeString(parsedTickSize);
+};
+
+const getTickSizeDecimalPlaces = (tickSize: string): number => {
+  const [, decimalPart = ''] = tickSize.split('.');
+  return decimalPart.length;
+};
+
+export const getTickSizeRoundConfig = ({
+  tickSize,
+}: {
+  tickSize?: string | number | null;
+}): { tickSize: string; roundConfig: RoundConfig } => {
+  const normalizedTickSize = normalizeTickSizeCandidate(tickSize);
+
+  if (!normalizedTickSize) {
+    throw new Error(
+      `Invalid Polymarket tick size: ${String(tickSize ?? 'missing')}`,
+    );
+  }
+
+  const configuredRoundConfig = ROUNDING_CONFIG[normalizedTickSize];
+
+  if (configuredRoundConfig) {
+    return {
+      tickSize: normalizedTickSize,
+      roundConfig: configuredRoundConfig,
+    };
+  }
+
+  const priceDecimals = getTickSizeDecimalPlaces(normalizedTickSize);
+
+  return {
+    tickSize: normalizedTickSize,
+    roundConfig: {
+      price: priceDecimals,
+      size: 2,
+      amount: Math.min(priceDecimals + 2, COLLATERAL_TOKEN_DECIMALS),
+    },
+  };
+};
+
 export const previewOrder = async (
   params: Omit<PreviewOrderParams, 'providerId'> & {
     feeCollection?: PredictFeeCollection;
@@ -2286,7 +2331,9 @@ export const previewOrder = async (
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
   }
-  const roundConfig = ROUNDING_CONFIG[book.tick_size as TickSize];
+  const { tickSize, roundConfig } = getTickSizeRoundConfig({
+    tickSize: book.tick_size,
+  });
 
   if (side === Side.BUY) {
     const { asks } = book;
@@ -2312,7 +2359,7 @@ export const previewOrder = async (
       maxAmountSpent: makerAmount,
       minAmountReceived: takerAmount,
       slippage: SLIPPAGE_BUY,
-      tickSize: parseFloat(book.tick_size),
+      tickSize: parseFloat(tickSize),
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
       feeRateBps,
@@ -2360,7 +2407,7 @@ export const previewOrder = async (
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,
     slippage: SLIPPAGE_SELL,
-    tickSize: parseFloat(book.tick_size),
+    tickSize: parseFloat(tickSize),
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
     feeRateBps,

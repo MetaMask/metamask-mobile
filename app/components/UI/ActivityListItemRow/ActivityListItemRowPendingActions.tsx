@@ -7,11 +7,18 @@
  */
 import React from 'react';
 import { View } from 'react-native';
-import { type TransactionMeta } from '@metamask/transaction-controller';
+import {
+  TransactionType,
+  type TransactionMeta,
+} from '@metamask/transaction-controller';
 import { strings } from '../../../../locales/i18n';
 import StyledButton from '../StyledButton';
-import { getPendingTxActionVisibility } from '../Transactions/pendingTxActions';
+import { hasGasFeeTokenSelected } from '../../Views/confirmations/utils/transaction';
 import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
+
+type TransactionMetaWithSmartTransaction = TransactionMeta & {
+  isSmartTransaction?: boolean;
+};
 
 export interface ActivityListItemRowPendingActionsProps {
   tx: TransactionMeta;
@@ -21,7 +28,7 @@ export interface ActivityListItemRowPendingActionsProps {
   onSpeedUpAction: (open: boolean, tx?: TransactionMeta) => void;
   onCancelAction: (open: boolean, tx?: TransactionMeta) => void;
   signQRTransaction: (tx: TransactionMeta) => void;
-  signLedgerTransaction: (tx: Pick<TransactionMeta, 'id'>) => void;
+  signLedgerTransaction: (tx: { id: string }) => void;
   cancelUnsignedQRTransaction: (tx: TransactionMeta) => void;
 }
 
@@ -36,14 +43,20 @@ export function ActivityListItemRowPendingActions({
   signLedgerTransaction,
   cancelUnsignedQRTransaction,
 }: ActivityListItemRowPendingActionsProps) {
-  const {
-    showSpeedUpCancel: renderNormalActions,
-    showQRSign: renderUnsignedQRActions,
-    showLedgerSign: renderLedgerActions,
-  } = getPendingTxActionVisibility(tx, {
-    isQRHardwareAccount,
-    isLedgerAccount,
-  });
+  const { status, type } = tx;
+  const isSmartTransaction = (tx as TransactionMetaWithSmartTransaction)
+    .isSmartTransaction;
+  const isBridgeTransaction = type === TransactionType.bridge;
+
+  // Gating mirrors TransactionElement.renderTxElement.
+  const renderNormalActions =
+    (status === 'submitted' ||
+      (status === 'approved' && !isQRHardwareAccount && !isLedgerAccount)) &&
+    !isSmartTransaction &&
+    !isBridgeTransaction &&
+    !hasGasFeeTokenSelected(tx);
+  const renderUnsignedQRActions = status === 'approved' && isQRHardwareAccount;
+  const renderLedgerActions = status === 'approved' && isLedgerAccount;
 
   if (
     !renderNormalActions &&

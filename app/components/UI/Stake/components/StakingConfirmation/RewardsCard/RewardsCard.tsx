@@ -1,7 +1,9 @@
 import React from 'react';
 import { View } from 'react-native';
 import { strings } from '../../../../../../../locales/i18n';
-import KeyValueRow from '../../../../../../component-library/components-temp/KeyValueRow';
+import KeyValueRow, {
+  TooltipSizes,
+} from '../../../../../../component-library/components-temp/KeyValueRow';
 import Text, {
   TextColor,
   TextVariant,
@@ -29,6 +31,7 @@ const RewardsCard = ({
           tooltip: {
             title: strings('tooltip_modal.reward_rate.title'),
             content: strings('tooltip_modal.reward_rate.tooltip'),
+            size: TooltipSizes.Sm,
             onPress: () =>
               trackEvent(
                 createTooltipOpenedEvent('Rewards Card', 'Reward Rate'),
@@ -60,6 +63,7 @@ const RewardsCard = ({
           tooltip: {
             title: strings('tooltip_modal.reward_frequency.title'),
             content: strings('tooltip_modal.reward_frequency.tooltip'),
+            size: TooltipSizes.Sm,
             onPress: () =>
               trackEvent(
                 createTooltipOpenedEvent('Rewards Card', 'Reward Frequency'),

@@ -3,7 +3,6 @@ import {
   StyleSheet,
   ImageSourcePropType,
   TouchableOpacity,
-  View,
 } from 'react-native';
 import Text, {
   TextVariant,
@@ -17,13 +16,6 @@ import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
 import TokenIcon from '../../../Base/TokenIcon';
-import { useABTest } from '../../../../hooks';
-import type { CaipAssetType } from '@metamask/utils';
-import {
-  BRIDGE_TOKEN_SELECTOR_VERIFIED_BADGE_AB_KEY,
-  BRIDGE_TOKEN_SELECTOR_VERIFIED_BADGE_VARIANTS,
-} from './TokenButton.abTestConfig';
-import SwapsTokenSecurityBadge from './SwapsTokenSecurityBadge';
 
 interface TokenProps {
   symbol?: string;
@@ -32,7 +24,6 @@ interface TokenProps {
   networkName?: string;
   testID?: string;
   onPress?: () => void;
-  securityBadgeAssetId?: CaipAssetType;
 }
 
 interface StylesParams {
@@ -50,25 +41,20 @@ const createStyles = (params: StylesParams) => {
     },
     pillContainer: {
       flexDirection: 'row' as const,
-      alignItems: 'center' as const,
+      alignItems: 'flex-end' as const,
       justifyContent: 'flex-end' as const,
-      gap: 12,
+      gap: 8,
       backgroundColor: theme.colors.background.muted,
-      borderRadius: 60,
+      borderRadius: 100,
       paddingLeft: 8,
       paddingVertical: 8,
-      paddingRight: 12,
+      paddingRight: 11,
       ...shadows.size.xs,
     },
     tokenSymbol: {
       color: theme.colors.text.default,
-      fontSize: theme.typography.sHeadingMD.fontSize,
+      fontSize: theme.typography.sHeadingLG.fontSize,
       fontWeight: 500,
-    },
-    tokenSymbolRow: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 4,
     },
   });
 };
@@ -80,16 +66,8 @@ export const TokenButton: React.FC<TokenProps> = ({
   networkName,
   testID,
   onPress,
-  securityBadgeAssetId,
 }) => {
   const { styles } = useStyles(createStyles, {});
-  const { variant } = useABTest(
-    BRIDGE_TOKEN_SELECTOR_VERIFIED_BADGE_AB_KEY,
-    BRIDGE_TOKEN_SELECTOR_VERIFIED_BADGE_VARIANTS,
-  );
-  const shouldShowSecurityBadge =
-    variant.showVerifiedBadge && Boolean(securityBadgeAssetId);
-
   return (
     <TouchableOpacity
       onPress={onPress}
@@ -109,14 +87,9 @@ export const TokenButton: React.FC<TokenProps> = ({
         <TokenIcon symbol={symbol} icon={iconUrl} style={styles.icon} />
       </BadgeWrapper>
 
-      <View style={styles.tokenSymbolRow}>
-        <Text style={styles.tokenSymbol} variant={TextVariant.HeadingMD}>
-          {symbol}
-        </Text>
-        {shouldShowSecurityBadge && securityBadgeAssetId ? (
-          <SwapsTokenSecurityBadge caipAssetId={securityBadgeAssetId} />
-        ) : null}
-      </View>
+      <Text style={styles.tokenSymbol} variant={TextVariant.HeadingLG}>
+        {symbol}
+      </Text>
     </TouchableOpacity>
   );
 };

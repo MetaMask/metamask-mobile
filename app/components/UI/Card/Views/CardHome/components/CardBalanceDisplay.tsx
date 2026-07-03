@@ -34,9 +34,6 @@ interface CardBalanceDisplayProps {
   privacyMode: boolean;
   assetBalance: CardBalanceDisplayData | undefined;
   onTogglePrivacy: (value: boolean) => void;
-  showInfoBadge?: boolean;
-  onInfoPress?: () => void;
-  infoBadgeTestID?: string;
 }
 
 const CardBalanceDisplay = ({
@@ -45,9 +42,6 @@ const CardBalanceDisplay = ({
   privacyMode,
   assetBalance,
   onTogglePrivacy,
-  showInfoBadge = false,
-  onInfoPress,
-  infoBadgeTestID,
 }: CardBalanceDisplayProps) => {
   const tw = useTailwind();
 
@@ -85,27 +79,12 @@ const CardBalanceDisplay = ({
             />
           </TouchableOpacity>
         </Box>
-        <Box twClassName="flex-row items-center gap-1">
-          <Text
-            variant={TextVariant.BodySm}
-            twClassName={`text-text-alternative ${isLoading ? 'hidden' : ''}`}
-          >
-            {strings('card.card_home.available_balance')}
-          </Text>
-          {showInfoBadge && !isLoading ? (
-            <TouchableOpacity
-              onPress={onInfoPress}
-              testID={infoBadgeTestID}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.Alternative}
-              />
-            </TouchableOpacity>
-          ) : null}
-        </Box>
+        <Text
+          variant={TextVariant.BodySm}
+          twClassName={`text-text-alternative ${isLoading ? 'hidden' : ''}`}
+        >
+          {strings('card.card_home.available_balance')}
+        </Text>
       </Box>
       {isLoading ? (
         <Skeleton

@@ -36,9 +36,7 @@ export const doesPasswordMatch = async (
         // TODO: Replace "any" with type
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { KeyringController } = Engine.context as any;
-        await KeyringController.exportSeedPhrase({
-          password: credentials.password,
-        });
+        await KeyringController.exportSeedPhrase(credentials.password);
         // now that we are confident that the user is logged in, we can test that the input matches
         if (input === credentials.password) {
           return {

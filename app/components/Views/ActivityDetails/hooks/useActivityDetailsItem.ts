@@ -5,7 +5,6 @@ import type { ActivityListItem } from '../../../../util/activity-adapters';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../../selectors/multichain/multichain';
 /* eslint-disable import-x/no-restricted-paths -- TODO(ADR-0020): reuses the activity list's data sources; route-isolation backlog */
 import { useLocalActivityItems } from '../../ActivityList/hooks/useLocalActivityItems';
-import { useRampActivityItems } from '../../ActivityList/hooks/useRampActivityItems';
 import { useTransactionsQuery } from '../../ActivityList/useTransactionsQuery';
 import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformations';
 /* eslint-enable import-x/no-restricted-paths */
@@ -17,12 +16,9 @@ import { mapNonEvmTransactions } from '../../ActivityList/helpers/transformation
  * (keyring) transactions.
  *
  * Mirrors the extension's `ui/pages/details/transaction-details.tsx` resolution:
- * a more-categorized API item takes precedence over a local item when the local
- * item is less-categorized than the API copy — either a generic
- * `contractInteraction` or a `swapIncomplete` (a swap whose destination token
- * could not be resolved on-device, which the API often resolves to a full
- * `swap`). This keeps the details page in sync with the list, which dedups
- * confirmed swaps to the API copy.
+ * a more-categorized API item takes precedence over a local item, unless the
+ * local item is a generic `contractInteraction` (in which case the richer API
+ * categorization wins anyway).
  *
  * When a `chainId` is provided, candidates are restricted to that chain first,
  * so a hash that collides across chains resolves to the correct transaction.
@@ -44,25 +40,6 @@ function buildItemsByHash(
   return byHash;
 }
 
-function buildItemsByIdentifier(
-  items: ActivityListItem[],
-): Map<string, ActivityListItem> {
-  const byIdentifier = buildItemsByHash(items);
-  for (const item of items) {
-    const identifier =
-      item.raw?.type === 'perpsTransaction' ||
-      item.raw?.type === 'predictActivity' ||
-      item.raw?.type === 'rampOrder'
-        ? item.raw.data.id
-        : undefined;
-    const normalizedIdentifier = identifier?.toLowerCase();
-    if (normalizedIdentifier && !byIdentifier.has(normalizedIdentifier)) {
-      byIdentifier.set(normalizedIdentifier, item);
-    }
-  }
-  return byIdentifier;
-}
-
 function filterByChain(
   items: ActivityListItem[],
   chainId: CaipChainId | undefined,
@@ -79,10 +56,8 @@ function filterByChain(
 export function useActivityDetailsItem(
   txIdentifier: string | undefined,
   chainId?: CaipChainId,
-  preloadedItem?: ActivityListItem,
 ): ActivityListItem | undefined {
   const localActivityItems = useLocalActivityItems();
-  const rampActivityItems = useRampActivityItems();
   const { data: evmTransactions } = useTransactionsQuery();
   const nonEvmState = useSelector(
     selectNonEvmTransactionsForSelectedAccountGroup,
@@ -110,17 +85,6 @@ export function useActivityDetailsItem(
     () => buildItemsByHash(filterByChain(nonEvmItems, chainId)),
     [nonEvmItems, chainId],
   );
-  const preloadedByIdentifier = useMemo(
-    () =>
-      buildItemsByIdentifier(
-        filterByChain(preloadedItem ? [preloadedItem] : [], chainId),
-      ),
-    [preloadedItem, chainId],
-  );
-  const rampByIdentifier = useMemo(
-    () => buildItemsByIdentifier(filterByChain(rampActivityItems, chainId)),
-    [rampActivityItems, chainId],
-  );
 
   return useMemo(() => {
     const id = txIdentifier?.toLowerCase();
@@ -131,35 +95,16 @@ export function useActivityDetailsItem(
     const localItem = localByHash.get(id);
     const apiItem = apiByHash.get(id);
     const nonEvmItem = nonEvmByHash.get(id);
-    const preloadedResolvedItem = preloadedByIdentifier.get(id);
-    const rampItem = rampByIdentifier.get(id);
-
-    if (preloadedResolvedItem) {
-      return preloadedResolvedItem;
-    }
-
-    if (rampItem) {
-      return rampItem;
-    }
 
     if (localItem) {
       const hasMatchingType = apiItem?.type === localItem.type;
-      const isLocalLessCategorized =
-        localItem.type === 'contractInteraction' ||
-        localItem.type === 'swapIncomplete';
-      if (apiItem && (hasMatchingType || isLocalLessCategorized)) {
+      const isLocalUncategorized = localItem.type === 'contractInteraction';
+      if (apiItem && (hasMatchingType || isLocalUncategorized)) {
         return apiItem;
       }
       return localItem;
     }
 
     return nonEvmItem ?? apiItem ?? undefined;
-  }, [
-    txIdentifier,
-    localByHash,
-    apiByHash,
-    nonEvmByHash,
-    preloadedByIdentifier,
-    rampByIdentifier,
-  ]);
+  }, [txIdentifier, localByHash, apiByHash, nonEvmByHash]);
 }

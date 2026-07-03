@@ -3,13 +3,15 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useGetOndoCampaignDeposits } from './useGetOndoCampaignDeposits';
 import Engine from '../../../../core/Engine';
 import {
+  selectOndoCampaignDeposits,
+  selectOndoCampaignDepositsLoading,
+  selectOndoCampaignDepositsError,
+} from '../../../../reducers/rewards/selectors';
+import {
   setOndoCampaignDeposits,
   setOndoCampaignDepositsLoading,
   setOndoCampaignDepositsError,
-  initialState,
-  type RewardsState,
 } from '../../../../reducers/rewards';
-import type { RootState } from '../../../../reducers';
 import type { OndoGmCampaignDepositsDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('react-redux', () => ({
@@ -21,24 +23,26 @@ jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: { call: jest.fn() },
 }));
 
-jest.mock('../../../../reducers/rewards', () => {
-  const actual = jest.requireActual('../../../../reducers/rewards');
-  return {
-    ...actual,
-    setOndoCampaignDeposits: jest.fn((payload) => ({
-      type: 'rewards/setOndoCampaignDeposits',
-      payload,
-    })),
-    setOndoCampaignDepositsLoading: jest.fn((payload) => ({
-      type: 'rewards/setOndoCampaignDepositsLoading',
-      payload,
-    })),
-    setOndoCampaignDepositsError: jest.fn((payload) => ({
-      type: 'rewards/setOndoCampaignDepositsError',
-      payload,
-    })),
-  };
-});
+jest.mock('../../../../reducers/rewards/selectors', () => ({
+  selectOndoCampaignDeposits: jest.fn(),
+  selectOndoCampaignDepositsLoading: jest.fn(),
+  selectOndoCampaignDepositsError: jest.fn(),
+}));
+
+jest.mock('../../../../reducers/rewards', () => ({
+  setOndoCampaignDeposits: jest.fn((payload) => ({
+    type: 'rewards/setOndoCampaignDeposits',
+    payload,
+  })),
+  setOndoCampaignDepositsLoading: jest.fn((payload) => ({
+    type: 'rewards/setOndoCampaignDepositsLoading',
+    payload,
+  })),
+  setOndoCampaignDepositsError: jest.fn((payload) => ({
+    type: 'rewards/setOndoCampaignDepositsError',
+    payload,
+  })),
+}));
 
 const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
   typeof Engine.controllerMessenger.call
@@ -51,30 +55,19 @@ const MOCK_DEPOSITS: OndoGmCampaignDepositsDto = {
   totalUsdDeposited: '1250000.000000',
 };
 
-function setupSelectors(rewardsOverrides: Partial<RewardsState>) {
-  const mockRootState = {
-    rewards: { ...initialState, ...rewardsOverrides },
-  } as RootState;
-  mockUseSelector.mockImplementation((selector) => selector(mockRootState));
+interface SelectorState {
+  deposits: OndoGmCampaignDepositsDto | null;
+  isLoading: boolean;
+  hasError: boolean;
 }
 
-function createDepositsCache(
-  campaignId: string,
-  overrides: {
-    data?: OndoGmCampaignDepositsDto | null;
-    loading?: boolean;
-    error?: boolean;
-  } = {},
-): Partial<RewardsState> {
-  return {
-    ondoCampaignDeposits: {
-      [campaignId]: {
-        data: overrides.data ?? null,
-        loading: overrides.loading ?? false,
-        error: overrides.error ?? false,
-      },
-    },
-  };
+function setupSelectors(state: SelectorState) {
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectOndoCampaignDeposits) return state.deposits;
+    if (selector === selectOndoCampaignDepositsLoading) return state.isLoading;
+    if (selector === selectOndoCampaignDepositsError) return state.hasError;
+    return undefined;
+  });
 }
 
 describe('useGetOndoCampaignDeposits', () => {
@@ -83,13 +76,23 @@ describe('useGetOndoCampaignDeposits', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
-    setupSelectors(createDepositsCache(CAMPAIGN_ID));
+    setupSelectors({
+      deposits: null,
+      isLoading: false,
+      hasError: false,
+    });
   });
 
-  it('does not fetch when campaignId is undefined', async () => {
+  it('does not fetch when campaignId is undefined but resets loading and error', async () => {
     renderHook(() => useGetOndoCampaignDeposits(undefined));
 
     expect(mockCall).not.toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setOndoCampaignDepositsLoading(false),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setOndoCampaignDepositsError(false),
+    );
   });
 
   it('fetches deposits and dispatches actions on success', async () => {
@@ -102,29 +105,20 @@ describe('useGetOndoCampaignDeposits', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignDepositsLoading({
-        campaignId: CAMPAIGN_ID,
-        loading: true,
-      }),
+      setOndoCampaignDepositsLoading(true),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignDepositsError({ campaignId: CAMPAIGN_ID, error: false }),
+      setOndoCampaignDepositsError(false),
     );
     expect(mockCall).toHaveBeenCalledWith(
       'RewardsController:getOndoCampaignDeposits',
       CAMPAIGN_ID,
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignDeposits({
-        campaignId: CAMPAIGN_ID,
-        deposits: MOCK_DEPOSITS,
-      }),
+      setOndoCampaignDeposits(MOCK_DEPOSITS),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignDepositsLoading({
-        campaignId: CAMPAIGN_ID,
-        loading: false,
-      }),
+      setOndoCampaignDepositsLoading(false),
     );
   });
 
@@ -138,18 +132,19 @@ describe('useGetOndoCampaignDeposits', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignDepositsError({ campaignId: CAMPAIGN_ID, error: true }),
+      setOndoCampaignDepositsError(true),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignDepositsLoading({
-        campaignId: CAMPAIGN_ID,
-        loading: false,
-      }),
+      setOndoCampaignDepositsLoading(false),
     );
   });
 
   it('returns deposits data from selector', () => {
-    setupSelectors(createDepositsCache(CAMPAIGN_ID, { data: MOCK_DEPOSITS }));
+    setupSelectors({
+      deposits: MOCK_DEPOSITS,
+      isLoading: false,
+      hasError: false,
+    });
 
     const { result } = renderHook(() =>
       useGetOndoCampaignDeposits(CAMPAIGN_ID),
@@ -159,7 +154,11 @@ describe('useGetOndoCampaignDeposits', () => {
   });
 
   it('returns loading state from selector', () => {
-    setupSelectors(createDepositsCache(CAMPAIGN_ID, { loading: true }));
+    setupSelectors({
+      deposits: null,
+      isLoading: true,
+      hasError: false,
+    });
 
     const { result } = renderHook(() =>
       useGetOndoCampaignDeposits(CAMPAIGN_ID),
@@ -169,7 +168,11 @@ describe('useGetOndoCampaignDeposits', () => {
   });
 
   it('returns error state from selector', () => {
-    setupSelectors(createDepositsCache(CAMPAIGN_ID, { error: true }));
+    setupSelectors({
+      deposits: null,
+      isLoading: false,
+      hasError: true,
+    });
 
     const { result } = renderHook(() =>
       useGetOndoCampaignDeposits(CAMPAIGN_ID),
@@ -197,10 +200,7 @@ describe('useGetOndoCampaignDeposits', () => {
 
     expect(mockCall).toHaveBeenCalledTimes(2);
     expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignDepositsLoading({
-        campaignId: CAMPAIGN_ID,
-        loading: true,
-      }),
+      setOndoCampaignDepositsLoading(true),
     );
   });
 });

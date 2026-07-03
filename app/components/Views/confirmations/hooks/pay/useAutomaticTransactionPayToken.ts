@@ -393,36 +393,34 @@ function getBestToken({
   }
 
   if (preferredTokensFromFlags.length) {
-    const candidates: AssetType[] = [];
-    for (const preferred of preferredTokensFromFlags) {
+    const sorted = [...preferredTokensFromFlags].sort(
+      (a, b) => b.successRate - a.successRate,
+    );
+
+    for (const preferred of sorted) {
       const matchingToken = tokens.find(
         (token) =>
           token.address.toLowerCase() === preferred.address.toLowerCase() &&
           token.chainId?.toLowerCase() === preferred.chainId.toLowerCase(),
       );
+
       if (matchingToken) {
-        candidates.push(matchingToken);
+        if (isWithdraw) {
+          return {
+            address: matchingToken.address as Hex,
+            chainId: matchingToken.chainId as Hex,
+          };
+        }
+
+        const fiatBalance = matchingToken.fiat?.balance ?? 0;
+
+        if (fiatBalance >= minimumRequiredTokenBalance) {
+          return {
+            address: matchingToken.address as Hex,
+            chainId: matchingToken.chainId as Hex,
+          };
+        }
       }
-    }
-
-    if (isWithdraw && candidates.length) {
-      return {
-        address: candidates[0].address as Hex,
-        chainId: candidates[0].chainId as Hex,
-      };
-    }
-
-    const eligible = candidates
-      .filter(
-        (token) => (token.fiat?.balance ?? 0) >= minimumRequiredTokenBalance,
-      )
-      .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
-
-    if (eligible.length) {
-      return {
-        address: eligible[0].address as Hex,
-        chainId: eligible[0].chainId as Hex,
-      };
     }
   }
 

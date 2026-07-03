@@ -34,18 +34,18 @@ export function ActivityDetailsAccountValue({
   const displayAddress = renderShortAddress(address);
 
   return (
-    <Box twClassName="flex-row items-center justify-end gap-1 shrink">
+    <Box twClassName="flex-row items-center justify-end gap-2 shrink">
       <AvatarAccount
         address={address}
         variant={accountVariant}
         size={AvatarBaseSize.Sm}
       />
       {accountName ? (
-        <Box twClassName="flex-row items-center shrink">
+        <Box twClassName="flex-row items-center justify-end shrink">
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            twClassName="shrink"
+            twClassName="shrink text-right"
             numberOfLines={1}
             ellipsizeMode="tail"
           >
@@ -69,7 +69,7 @@ export function ActivityDetailsAccountValue({
         <Text
           variant={TextVariant.BodyMd}
           fontWeight={FontWeight.Medium}
-          twClassName="shrink"
+          twClassName="shrink text-right"
           numberOfLines={1}
           ellipsizeMode="middle"
         >

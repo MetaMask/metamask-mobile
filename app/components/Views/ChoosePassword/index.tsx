@@ -93,6 +93,7 @@ import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import { hasTestOverrides } from '../../../util/test/utils';
 import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
+import { clearAttribution } from '../../../core/redux/slices/attribution';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -115,12 +116,9 @@ interface KeyringControllerState {
 
 interface ExtendedKeyringController {
   state: KeyringControllerState;
-  exportAccount: (
-    credentials: { password: string },
-    account: string,
-  ) => Promise<string>;
+  exportAccount: (password: string, account: string) => Promise<string>;
   addNewAccount: () => Promise<void>;
-  exportSeedPhrase: (credentials: { password: string }) => Promise<Uint8Array>;
+  exportSeedPhrase: (password: string) => Promise<Uint8Array>;
   importAccountWithStrategy: (
     strategy: AccountImportStrategy,
     args: string[],
@@ -251,9 +249,8 @@ const ChoosePassword = () => {
 
   const tryExportSeedPhrase = useCallback(async (pwd: string) => {
     const context = Engine.context;
-    const uint8ArrayMnemonic = await context.KeyringController.exportSeedPhrase(
-      { password: pwd },
-    );
+    const uint8ArrayMnemonic =
+      await context.KeyringController.exportSeedPhrase(pwd);
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   }, []);
 
@@ -265,9 +262,8 @@ const ChoosePassword = () => {
       const keychainPassword = keyringControllerPasswordSet.current
         ? password
         : '';
-      const seedPhraseUint8 = await context.KeyringController.exportSeedPhrase({
-        password: keychainPassword,
-      });
+      const seedPhraseUint8 =
+        await context.KeyringController.exportSeedPhrase(keychainPassword);
       const seedPhrase = uint8ArrayToMnemonic(seedPhraseUint8, wordlist);
       let importedAccounts: string[] = [];
       // Get imported accounts
@@ -278,10 +274,7 @@ const ChoosePassword = () => {
         for (const simpleKeyring of simpleKeyrings) {
           const simpleKeyringAccounts = await Promise.all(
             simpleKeyring.accounts.map((account) =>
-              keyringController.exportAccount(
-                { password: keychainPassword },
-                account,
-              ),
+              keyringController.exportAccount(keychainPassword, account),
             ),
           );
           importedAccounts = [...importedAccounts, ...simpleKeyringAccounts];
@@ -609,6 +602,9 @@ const ChoosePassword = () => {
         ...walletSetupAttributionProps,
       });
 
+      if (isSocialLogin) {
+        dispatch(clearAttribution());
+      }
       endTrace({ name: TraceName.OnboardingSRPAccountCreationTime });
     } catch (err) {
       const metricsEnabled = metrics.isEnabled();
@@ -625,6 +621,7 @@ const ChoosePassword = () => {
     handleWalletCreationError,
     metrics,
     marketingOptInChecked,
+    dispatch,
   ]);
 
   const onPasswordChange = useCallback(

@@ -33,18 +33,15 @@ jest.mock('@react-navigation/native-stack', () => {
       Screen: ({
         name,
         options,
-        component: Component,
       }: {
         name: string;
         options?: {
           headerShown?: boolean;
         };
-        component?: React.ComponentType;
       }) => (
         <View testID={`screen-${name}`}>
           <Text>{name}</Text>
           {options?.headerShown === false && <Text>no-header</Text>}
-          {name === 'CardModals' && Component ? <Component /> : null}
         </View>
       ),
     }),
@@ -129,11 +126,6 @@ jest.mock('../components/ViewPinBottomSheet', () => {
   return () => <View testID="view-pin-bottom-sheet" />;
 });
 
-jest.mock('../components/MoneyUnlinkCardSheet', () => {
-  const { View } = require('react-native');
-  return () => <View testID="money-unlink-card-sheet" />;
-});
-
 jest.mock('../Views/OrderCompleted/OrderCompleted', () => {
   const { View } = require('react-native');
   return () => <View testID="order-completed" />;
@@ -143,27 +135,6 @@ jest.mock('../Views/Cashback/Cashback', () => {
   const { View } = require('react-native');
   return () => <View testID="cashback" />;
 });
-
-jest.mock('../Views/CreditRedeem/CreditRedeem', () => {
-  const { View } = require('react-native');
-  return () => <View testID="credit-redeem" />;
-});
-
-jest.mock(
-  '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet',
-  () => {
-    const { View } = require('react-native');
-    return () => <View testID="credit-balance-tooltip" />;
-  },
-);
-
-jest.mock(
-  '../components/CreditRefundTooltipSheet/CreditRefundTooltipSheet',
-  () => {
-    const { View } = require('react-native');
-    return () => <View testID="credit-refund-tooltip" />;
-  },
-);
 
 jest.mock('../sdk', () => ({
   withCardSDK: (Component: React.ComponentType) => Component,
@@ -177,7 +148,6 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     REVIEW_ORDER: 'ReviewOrder',
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'Cashback',
-    CREDIT_REDEEM: 'CreditRedeem',
     AUTHENTICATION: 'CardAuthentication',
     SPENDING_LIMIT: 'SpendingLimit',
     ONBOARDING: {
@@ -193,12 +163,6 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       RECURRING_FEE: 'RecurringFee',
       DAIMO_PAY: 'DaimoPay',
       VIEW_PIN: 'ViewPin',
-      CREDIT_BALANCE_TOOLTIP: 'CreditBalanceTooltip',
-      CREDIT_REFUND_TOOLTIP: 'CreditRefundTooltip',
-      SPENDING_LIMIT_OPTIONS: 'SpendingLimitOptions',
-      WAITLIST_FORM: 'WaitlistForm',
-      FORGOT_PASSWORD: 'ForgotPassword',
-      UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
     },
   },
 }));
@@ -230,9 +194,9 @@ describe('CardRoutes', () => {
 
   describe('CardRoutes component', () => {
     it('renders successfully', () => {
-      const { getAllByTestId } = renderWithProviders(<CardRoutes />);
+      const { getByTestId } = renderWithProviders(<CardRoutes />);
 
-      expect(getAllByTestId('stack-navigator').length).toBeGreaterThan(0);
+      expect(getByTestId('stack-navigator')).toBeTruthy();
     });
 
     it('renders nested stack navigators', () => {
@@ -251,12 +215,6 @@ describe('CardRoutes', () => {
       const { getByTestId } = renderWithProviders(<CardRoutes />);
 
       expect(getByTestId('screen-CardModals')).toBeTruthy();
-    });
-
-    it('includes unlink Money account modal screen', () => {
-      const { getByTestId } = renderWithProviders(<CardRoutes />);
-
-      expect(getByTestId('screen-CardUnlinkMoneyAccountSheet')).toBeTruthy();
     });
   });
 
@@ -284,9 +242,9 @@ describe('CardRoutes', () => {
 
   describe('Navigator configuration', () => {
     it('renders with header hidden configuration', () => {
-      const { getAllByText } = renderWithProviders(<CardRoutes />);
+      const { getByText } = renderWithProviders(<CardRoutes />);
 
-      expect(getAllByText('headerShown: false').length).toBeGreaterThan(0);
+      expect(getByText('headerShown: false')).toBeTruthy();
     });
   });
 });

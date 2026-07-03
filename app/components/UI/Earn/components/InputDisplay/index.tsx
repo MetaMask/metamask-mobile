@@ -210,7 +210,7 @@ const InputDisplay = ({
               )}`}
             </Text>
             <ButtonIcon
-              size={TooltipSizes.Xs}
+              size={TooltipSizes.Md}
               iconColor={IconColor.Alternative}
               iconName={IconName.Question}
               onPress={onNavigateToLendingMaxWithdrawModal}

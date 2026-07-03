@@ -265,13 +265,7 @@ const CreatePriceAlertView: React.FC = () => {
         navigation.pop(2);
       }
     } catch {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Danger,
-        iconColor: colors.error.default,
-        labelOptions: [{ label: strings('price_alerts.save_error') }],
-        hasNoTimeout: false,
-      });
+      // submit() surfaces the error via its thrown rejection; nothing to do here
     }
   }, [
     submit,
@@ -383,7 +377,7 @@ const CreatePriceAlertView: React.FC = () => {
                       : TextColor.ErrorDefault
                   }
                 >
-                  {`${percentDiff.direction === 'above' ? '+' : '-'}${percentDiff.rounded}%`}
+                  {`${percentDiff.rounded}%`}
                 </Text>
                 {` ${strings(
                   percentDiff.direction === 'above'
@@ -433,9 +427,7 @@ const CreatePriceAlertView: React.FC = () => {
                 testID={`${CreatePriceAlertTestIds.QUICK_PERCENTAGE_PREFIX}-${percentage}`}
                 twClassName="flex-1"
               >
-                {strings('price_alerts.quick_percentage', {
-                  percentage: percentage > 0 ? `+${percentage}` : percentage,
-                })}
+                {strings('price_alerts.quick_percentage', { percentage })}
               </Button>
             ))}
           </Box>

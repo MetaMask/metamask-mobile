@@ -56,16 +56,7 @@ class AppDelegate: ExpoAppDelegate {
     window = UIWindow(frame: UIScreen.main.bounds)
     window?.makeKeyAndVisible()
 
-    // Safe Firebase configuration — validates plist before configure() to prevent
-    // FIRInstallations from throwing an uncatchable NSException on launch when
-    // GoogleService-Info.plist is missing or contains a blank/placeholder/mock API_KEY.
-    // Real Firebase API keys always start with "AIzaSy"; anything else (empty, mock-*, etc.)
-    // would cause validateAPIKey: to throw an NSException that Swift cannot catch.
-    if FirebaseApp.app() == nil,
-       let path = Bundle.main.path(forResource: "GoogleService-Info", ofType: "plist"),
-       let plist = NSDictionary(contentsOfFile: path),
-       let apiKey = plist["API_KEY"] as? String,
-       apiKey.hasPrefix("AIzaSy") {
+    if FirebaseApp.app() == nil {
       FirebaseApp.configure()
     }
 
@@ -74,20 +65,6 @@ class AppDelegate: ExpoAppDelegate {
 
     RNBranch.branch.checkPasteboardOnInstall()
     RNBranch.initSession(launchOptions: launchOptions, isReferrable: true)
-
-    // Seed native prefetch queue before JS loads (iOS fires it automatically via
-    // NitroBootstrap.mm on UIApplicationDidFinishLaunchingNotification).
-    // Covers first-launch since JS-side prefetchOnAppStart() only runs after first JS execution.
-    // Feature flags omitted — environment value isn't available natively;
-    // JS registers the correct URL after its first run.
-    NitroAutoPrefetcher.registerPrefetch(
-      withUrl: "https://phishing-detection.api.cx.metamask.io/v1/stalelist",
-      prefetchKey: "phishing-stalelist",
-      headers: [:])
-    NitroAutoPrefetcher.registerPrefetch(
-      withUrl: "https://client-side-detection.api.cx.metamask.io/v1/request-blocklist",
-      prefetchKey: "phishing-c2-blocklist",
-      headers: [:])
 
     // Setup Braze
     if let brazeApiKey = Bundle.main.object(forInfoDictionaryKey: "braze_api_key") as? String,

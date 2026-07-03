@@ -19,7 +19,6 @@ jest.mock('../../../UI/Perps/selectors/featureFlags', () => ({
 const createMockState = ({
   notificationsEnabled = false,
   socialLeaderboardEnabled = false,
-  priceAlertsEnabled = false,
 } = {}) => ({
   settings: {
     avatarAccountType: AvatarAccountType.Maskicon,
@@ -39,10 +38,6 @@ const createMockState = ({
           ...backgroundState.RemoteFeatureFlagController.remoteFeatureFlags,
           aiSocialLeaderboardEnabled: {
             enabled: socialLeaderboardEnabled,
-            minimumVersion: '0.0.1',
-          },
-          priceAlertsEnabled: {
-            enabled: priceAlertsEnabled,
             minimumVersion: '0.0.1',
           },
         },
@@ -111,10 +106,6 @@ jest.mock('./hooks/useNotificationStoragePreferences', () => ({
         pushNotificationsEnabled: false,
         inAppNotificationsEnabled: false,
       },
-      priceAlerts: {
-        pushNotificationsEnabled: false,
-        inAppNotificationsEnabled: false,
-      },
       card: {
         pushNotificationsEnabled: false,
         inAppNotificationsEnabled: false,
@@ -132,9 +123,6 @@ jest.mock('./hooks/useNotificationStoragePreferences', () => ({
 
 const socialAISectionTitle = strings(
   'app_settings.notifications_opts.social_ai_title',
-);
-const priceAlertsSectionTitle = strings(
-  'app_settings.notifications_opts.price_alerts_title',
 );
 
 describe('NotificationsSettings', () => {
@@ -170,27 +158,5 @@ describe('NotificationsSettings', () => {
     const { queryByText } = renderNotificationsSettings(state);
 
     expect(queryByText(socialAISectionTitle)).toBeNull();
-  });
-
-  it('renders price alerts section when price alerts feature flag is enabled', () => {
-    const state = createMockState({
-      notificationsEnabled: true,
-      priceAlertsEnabled: true,
-    });
-
-    const { getByText } = renderNotificationsSettings(state);
-
-    expect(getByText(priceAlertsSectionTitle)).toBeOnTheScreen();
-  });
-
-  it('hides price alerts section when price alerts feature flag is disabled', () => {
-    const state = createMockState({
-      notificationsEnabled: true,
-      priceAlertsEnabled: false,
-    });
-
-    const { queryByText } = renderNotificationsSettings(state);
-
-    expect(queryByText(priceAlertsSectionTitle)).toBeNull();
   });
 });

@@ -355,7 +355,6 @@ describe('PerpsMarketDetailsView', () => {
           price: '2800',
           markPrice: '2800',
           timestamp: Date.now(),
-          isTradable: true,
         },
       });
       stream.emitPositions([]);
@@ -490,16 +489,16 @@ describe('PerpsMarketDetailsView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('renders header with market title', async () => {
+    it('renders header and title section with market title', async () => {
       renderEligibleNoPositionPerpsDetails();
 
       expect(
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
-      expect(screen.getByText('ETH-USD')).toBeOnTheScreen();
+      expect(screen.getAllByText('ETH-USD').length).toBeGreaterThanOrEqual(1);
     });
 
-    it('renders header price when market has no maxLeverage', async () => {
+    it('renders title section with price when market has no maxLeverage', async () => {
       renderPerpsMarketDetailsView({
         initialParams: {
           market: {
@@ -537,10 +536,30 @@ describe('PerpsMarketDetailsView', () => {
         await screen.findByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
       expect(
-        await screen.findByTestId(PerpsMarketHeaderSelectorsIDs.PRICE),
+        await screen.findByTestId(
+          PerpsMarketHeaderSelectorsIDs.PRICE_TITLE_SECTION,
+        ),
       ).toBeOnTheScreen();
       expect(
-        await screen.findByTestId(PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE),
+        await screen.findByTestId(
+          PerpsMarketHeaderSelectorsIDs.PRICE_CHANGE_TITLE_SECTION,
+        ),
+      ).toBeOnTheScreen();
+    });
+
+    it('title section onLayout sets header height for scroll animation', async () => {
+      renderEligibleNoPositionPerpsDetails();
+
+      const titleSectionWrapper = await screen.findByTestId(
+        PerpsMarketDetailsViewSelectorsIDs.TITLE_SECTION_WRAPPER,
+      );
+      fireEvent(titleSectionWrapper, 'layout', {
+        nativeEvent: { layout: { x: 0, y: 0, width: 100, height: 80 } },
+      });
+
+      expect(titleSectionWrapper).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketDetailsViewSelectorsIDs.HEADER),
       ).toBeOnTheScreen();
     });
 

@@ -6,17 +6,13 @@ import { ActivityDetailsStandardTemplate } from './ActivityDetailsStandardTempla
 export function NftDetails({
   item,
 }: {
-  item: Extract<ActivityListItem, { type: 'nftBuy' | 'nftMint' | 'nftSell' }>;
+  item: Extract<ActivityListItem, { type: 'nftMint' }>;
 }) {
-  const totalToken =
-    item.type === 'nftMint' ? item.data.token : item.data.paymentToken;
-
   return (
     <ActivityDetailsStandardTemplate
       item={item}
       header={<ActivityDetailsAmountHeader item={item} />}
-      token={totalToken}
-      addressRows={{ from: item.data.from, to: item.data.to }}
+      token={item.data.token}
     />
   );
 }

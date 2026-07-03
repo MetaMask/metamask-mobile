@@ -18,7 +18,6 @@ import {
   getKeyringV2Builders,
   qrKeyringBridge,
 } from './keyrings';
-import { SnapKeyring as SnapKeyringV2 } from '@metamask/eth-snap-keyring/v2';
 
 jest.mock('../../../store', () => ({
   store: { dispatch: jest.fn() },
@@ -174,7 +173,6 @@ describe('wallet-init/keyrings', () => {
         LegacyLedgerKeyring.type,
         LegacyQrKeyring.type,
         LegacyMoneyKeyring.type,
-        SnapKeyringV2.type,
       ]);
     });
 

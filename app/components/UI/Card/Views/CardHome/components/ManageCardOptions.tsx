@@ -33,8 +33,6 @@ interface ManageCardOptionsProps {
   onViewPin: () => void;
   onToggleFreeze: () => void;
   onManageSpendingLimit: () => void;
-  showUnlinkMoneyAccount: boolean;
-  onUnlinkMoneyAccount: () => void;
   onOrderMetalCard: () => void;
   isSpendingLimitActive: boolean;
   onChangeAsset: () => void;
@@ -62,8 +60,6 @@ const ManageCardOptions = ({
   onViewPin,
   onToggleFreeze,
   onManageSpendingLimit,
-  showUnlinkMoneyAccount,
-  onUnlinkMoneyAccount,
   onOrderMetalCard,
   isSpendingLimitActive,
   onChangeAsset,
@@ -209,19 +205,6 @@ const ManageCardOptions = ({
             rightIcon={IconName.ArrowRight}
             onPress={onManageSpendingLimit}
             testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
-          />
-        )}
-        {isFullySetUp && showUnlinkMoneyAccount && (
-          <ManageCardListItem
-            title={strings(
-              'card.card_home.manage_card_options.unlink_money_account',
-            )}
-            description={strings(
-              'card.card_home.manage_card_options.unlink_money_account_description',
-            )}
-            rightIcon={IconName.ArrowRight}
-            onPress={onUnlinkMoneyAccount}
-            testID={CardHomeSelectors.UNLINK_MONEY_ACCOUNT_ITEM}
           />
         )}
       </Box>

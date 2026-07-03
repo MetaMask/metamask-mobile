@@ -18,7 +18,6 @@ export type PredictAnalyticsEventKey =
   | 'geoBlockTriggered'
   | 'marketDetailsOpened'
   | 'bannerAction'
-  | 'categoryClicked'
   | 'searchInteracted';
 
 const mapPortfolioProperties = ({
@@ -124,16 +123,6 @@ export const PREDICT_ANALYTICS_EVENTS: Record<
     mapProperties: ({ actionType, bannerType }) => ({
       [PredictEventProperties.ACTION_TYPE]: actionType,
       [PredictEventProperties.BANNER_TYPE]: bannerType,
-    }),
-  },
-  categoryClicked: {
-    event: MetaMetricsEvents.PREDICT_CATEGORY_CLICKED,
-    logLabel: '📊 [Analytics] PREDICT_CATEGORY_CLICKED',
-    mapProperties: ({ categoryName, entryPoint }) => ({
-      [PredictEventProperties.CATEGORY_NAME]: categoryName,
-      ...(entryPoint
-        ? { [PredictEventProperties.ENTRY_POINT]: entryPoint }
-        : {}),
     }),
   },
   shareAction: {

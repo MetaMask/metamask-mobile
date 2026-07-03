@@ -36,9 +36,6 @@ export const Recipient = () => {
   const [isRecipientSelectedFromList, setIsRecipientSelectedFromList] =
     useState(false);
   const [pastedRecipient, setPastedRecipient] = useState<string>();
-  const [autoFilledInputMethod, setAutoFilledInputMethod] = useState<
-    typeof RecipientInputMethod.Pasted | typeof RecipientInputMethod.QrScan
-  >(RecipientInputMethod.Pasted);
   const [isAlertModalOpen, setIsAlertModalOpen] = useState(false);
   const { to, updateTo, asset, chainId } = useSendContext();
   const { header: renderRecipientHeader } = useSendNavbar().Recipient;
@@ -98,7 +95,7 @@ export const Recipient = () => {
       setIsSubmittingTransaction(true);
       setPastedRecipient(undefined);
       captureRecipientSelected(
-        isPasted ? autoFilledInputMethod : RecipientInputMethod.Manual,
+        isPasted ? RecipientInputMethod.Pasted : RecipientInputMethod.Manual,
       );
       await handleSubmitPress(resolvedAddress || to);
       setIsSubmittingTransaction(false);
@@ -107,7 +104,6 @@ export const Recipient = () => {
       to,
       handleSubmitPress,
       captureRecipientSelected,
-      autoFilledInputMethod,
       resolvedAddress,
       setPastedRecipient,
       isSubmittingTransaction,
@@ -226,7 +222,6 @@ export const Recipient = () => {
             isRecipientSelectedFromList={isRecipientSelectedFromList}
             resetStateOnInput={resetStateOnInput}
             setPastedRecipient={setPastedRecipient}
-            setAutoFilledInputMethod={setAutoFilledInputMethod}
           />
           <ScrollView>
             <RecipientList

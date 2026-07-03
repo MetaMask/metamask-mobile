@@ -75,7 +75,7 @@ describeForPlatforms('PrivateKeyList multichain accounts', () => {
     await waitFor(() => {
       expect(verifyPasswordSpy).toHaveBeenCalledWith('correct-password');
       expect(exportAccountSpy).toHaveBeenCalledWith(
-        { password: 'correct-password' },
+        'correct-password',
         MULTICHAIN_TEST_ACCOUNTS.account1.address,
       );
     });

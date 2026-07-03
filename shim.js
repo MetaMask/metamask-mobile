@@ -312,15 +312,6 @@ if (enableApiCallLogs || isTestEnvironment) {
       }
     }
 
-    // Capture the fetch installed by NitroFetchSetup. This shim's synchronous
-    // import (index.js) runs before NitroFetchSetup, so `originalFetch` above
-    // was captured as RN's pre-nitro fetch. By the time this async IIFE resumes
-    // (after the health-check await), NitroFetchSetup has replaced global.fetch
-    // with nitro-fetch AND global.Headers with nitro's Headers. Routing app
-    // requests through nitro-fetch is required: RN's pre-nitro fetch cannot read
-    // a NitroHeaders instance and silently drops headers like Content-Type,
-    // which makes HyperLiquid reject perps orders/candles with a 415.
-    const installedFetch = global.fetch;
     // if mockServer is off we route to original destination
     global.fetch = async (url, options) => {
       // Extract URL string from Request or URL objects
@@ -337,11 +328,11 @@ if (enableApiCallLogs || isTestEnvironment) {
       }
 
       return isMockServerAvailable
-        ? installedFetch(
+        ? originalFetch(
             `${MOCKTTP_URL}/proxy?url=${encodeURIComponent(urlString)}`,
             options,
-          ).catch(() => installedFetch(url, options))
-        : installedFetch(url, options);
+          ).catch(() => originalFetch(url, options))
+        : originalFetch(url, options);
     };
 
     if (isMockServerAvailable) {

@@ -39,11 +39,9 @@ jest.mock('../../../../../core/Analytics', () => ({
 jest.mock('../../util/metrics', () => ({
   CardActions: {
     CASHBACK_BUTTON: 'CASHBACK_BUTTON',
-    CREDIT_BUTTON: 'CREDIT_BUTTON',
   },
   CardEntryPoint: {
     CASHBACK: 'CASHBACK',
-    CREDIT: 'CREDIT',
   },
 }));
 
@@ -72,10 +70,10 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'card.cashback_screen.available_cashback': 'Available mUSD',
       'card.cashback_screen.network_fee': 'Network fee',
       'card.cashback_screen.expected_to_receive': 'Expected to receive',
-      'card.cashback_screen.to': 'To',
-      'card.card_spending_limit.money_account_label': 'Money account',
       'card.cashback_screen.withdraw': 'Withdraw',
       'card.cashback_screen.withdraw_unavailable': 'Withdrawal unavailable',
+      'card.cashback_screen.withdrawal_initiated':
+        'Withdrawal has been initiated',
       'card.cashback_screen.withdrawal_success':
         'Withdrawal completed successfully',
       'card.cashback_screen.withdrawal_failed':
@@ -112,51 +110,30 @@ jest.mock('../../hooks/useMoneyAccountCardLinkage', () => ({
   useMoneyAccountCardLinkage: jest.fn(() => mockLinkageReturn),
 }));
 
+const mockSelectCardHasApprovedLineaFunding = jest.fn();
 const mockSelectCardHomeDataStatus = jest.fn();
+const mockSelectCardLineaUsdcToken = jest.fn();
+const mockSelectIsCardResidencyBlocked = jest.fn();
+const mockSelectIsMoneyAccountDelegatedForCard = jest.fn();
+const mockSelectMoneyEnableMoneyAccountFlag = jest.fn();
 
 jest.mock('../../../../../selectors/cardController', () => ({
+  selectCardHasApprovedLineaFunding: () =>
+    mockSelectCardHasApprovedLineaFunding(),
   selectCardHomeDataStatus: () => mockSelectCardHomeDataStatus(),
-  selectIsCardAuthenticated: jest.fn(() => true),
+  selectCardLineaUsdcToken: () => mockSelectCardLineaUsdcToken(),
+  selectIsCardResidencyBlocked: () => mockSelectIsCardResidencyBlocked(),
+  selectIsMoneyAccountDelegatedForCard: () =>
+    mockSelectIsMoneyAccountDelegatedForCard(),
 }));
 
-const MOCK_LINEA_USDC_TOKEN = {
-  symbol: 'USDC',
-  name: 'USD Coin',
-  address: '0xusdc000000000000000000000000000000000001',
-  decimals: 6,
-  caipChainId: 'eip155:59144',
-  walletAddress: '0x1111111111111111111111111111111111111111',
-};
-
-interface DestinationReturn {
-  caipChainId: string | undefined;
-  symbol: string | undefined;
-  isResolved: boolean;
-  isMoneyAccountDestination: boolean;
-  hasApprovedDestination: boolean;
-  delegationToken: unknown;
-  receivingAddress?: string;
-}
-
-const defaultDestination = (): DestinationReturn => ({
-  caipChainId: 'eip155:59144',
-  symbol: 'musd',
-  isResolved: true,
-  isMoneyAccountDestination: false,
-  hasApprovedDestination: true,
-  delegationToken: MOCK_LINEA_USDC_TOKEN,
-  receivingAddress: '0x1111111111111111111111111111111111111111',
-});
-
-let mockDestination: DestinationReturn = defaultDestination();
-
-jest.mock('../../hooks/useRedeemDestination', () => ({
-  __esModule: true,
-  default: () => mockDestination,
+jest.mock('../../../Money/selectors/featureFlags', () => ({
+  selectMoneyEnableMoneyAccountFlag: () =>
+    mockSelectMoneyEnableMoneyAccountFlag(),
 }));
 
 let mockHookReturn = {
-  wallet: null as {
+  cashbackWallet: null as {
     id: string;
     balance: string;
     currency: string;
@@ -169,22 +146,18 @@ let mockHookReturn = {
     wei: string;
     eth: string;
     price: string;
-    network?: string;
   } | null,
   isEstimating: false,
-  fetchWallet: jest.fn(),
-  estimationError: null as Error | null,
   fetchEstimation: mockFetchEstimation,
   withdraw: mockWithdraw,
   isWithdrawing: false,
   withdrawError: null as Error | null,
-  txHash: null as string | null,
   monitoringStatus: 'idle' as string,
   monitoringError: null as Error | null,
   resetWithdraw: mockResetWithdraw,
 };
 
-jest.mock('../../hooks/useRedeemableWallet', () => ({
+jest.mock('../../hooks/useCashbackWallet', () => ({
   __esModule: true,
   default: jest.fn(() => mockHookReturn),
 }));
@@ -206,23 +179,55 @@ const mockToastRef = {
   },
 };
 
+const MOCK_LINEA_USDC_TOKEN = {
+  symbol: 'USDC',
+  name: 'USD Coin',
+  address: '0xusdc000000000000000000000000000000000001',
+  decimals: 6,
+  caipChainId: 'eip155:59144',
+};
+
 const CashbackWithToast = () => (
   <ToastContext.Provider value={{ toastRef: mockToastRef }}>
     <Cashback />
   </ToastContext.Provider>
 );
 
-interface RenderOverrides {
+interface SelectorOverrides {
+  hasApprovedLineaFunding?: boolean;
   cardHomeDataStatus?: string;
-  destination?: Partial<DestinationReturn>;
+  lineaUsdcToken?: unknown;
+  residencyBlocked?: boolean;
+  moneyAccountDelegated?: boolean;
+  moneyAccountEnabled?: boolean;
 }
 
-function render(overrides: RenderOverrides = {}) {
+function render(overrides: SelectorOverrides = {}) {
+  if (overrides.hasApprovedLineaFunding !== undefined) {
+    mockSelectCardHasApprovedLineaFunding.mockReturnValue(
+      overrides.hasApprovedLineaFunding,
+    );
+  }
   if (overrides.cardHomeDataStatus !== undefined) {
     mockSelectCardHomeDataStatus.mockReturnValue(overrides.cardHomeDataStatus);
   }
-  if (overrides.destination) {
-    mockDestination = { ...defaultDestination(), ...overrides.destination };
+  if (overrides.lineaUsdcToken !== undefined) {
+    mockSelectCardLineaUsdcToken.mockReturnValue(overrides.lineaUsdcToken);
+  }
+  if (overrides.residencyBlocked !== undefined) {
+    mockSelectIsCardResidencyBlocked.mockReturnValue(
+      overrides.residencyBlocked,
+    );
+  }
+  if (overrides.moneyAccountDelegated !== undefined) {
+    mockSelectIsMoneyAccountDelegatedForCard.mockReturnValue(
+      overrides.moneyAccountDelegated,
+    );
+  }
+  if (overrides.moneyAccountEnabled !== undefined) {
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(
+      overrides.moneyAccountEnabled,
+    );
   }
 
   return renderScreen(
@@ -242,22 +247,23 @@ describe('Cashback Component', () => {
       canLink: true,
     };
 
+    mockSelectCardHasApprovedLineaFunding.mockReturnValue(true);
     mockSelectCardHomeDataStatus.mockReturnValue('success');
-    mockDestination = defaultDestination();
+    mockSelectCardLineaUsdcToken.mockReturnValue(MOCK_LINEA_USDC_TOKEN);
+    mockSelectIsCardResidencyBlocked.mockReturnValue(false);
+    mockSelectIsMoneyAccountDelegatedForCard.mockReturnValue(false);
+    mockSelectMoneyEnableMoneyAccountFlag.mockReturnValue(false);
 
     mockHookReturn = {
-      wallet: null,
+      cashbackWallet: null,
       isLoading: false,
       error: null,
       estimation: null,
       isEstimating: false,
-      fetchWallet: jest.fn(),
-      estimationError: null,
       fetchEstimation: mockFetchEstimation,
       withdraw: mockWithdraw,
       isWithdrawing: false,
       withdrawError: null,
-      txHash: null,
       monitoringStatus: 'idle',
       monitoringError: null,
       resetWithdraw: mockResetWithdraw,
@@ -299,7 +305,7 @@ describe('Cashback Component', () => {
 
   describe('wallet data display', () => {
     it('renders balance and currency', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.50',
         currency: 'musd',
@@ -319,7 +325,7 @@ describe('Cashback Component', () => {
     });
 
     it('formats unknown currency to uppercase', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '5.00',
         currency: 'musd',
@@ -338,7 +344,7 @@ describe('Cashback Component', () => {
     });
 
     it('renders details card with fee and expected receive', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -363,7 +369,7 @@ describe('Cashback Component', () => {
 
   describe('button states', () => {
     it('shows withdraw button when withdrawable', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -382,7 +388,7 @@ describe('Cashback Component', () => {
     });
 
     it('shows unavailable label when not withdrawable', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -396,7 +402,7 @@ describe('Cashback Component', () => {
     });
 
     it('shows unavailable label when balance is insufficient', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '0.50',
         currency: 'musd',
@@ -415,7 +421,7 @@ describe('Cashback Component', () => {
     });
 
     it('shows unavailable label when balance is zero', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '0',
         currency: 'musd',
@@ -428,8 +434,8 @@ describe('Cashback Component', () => {
       expect(screen.getByText('Withdrawal unavailable')).toBeOnTheScreen();
     });
 
-    it('shows unavailable label when expected receive floors to zero', () => {
-      mockHookReturn.wallet = {
+    it('shows unavailable label when net amount floors to zero', () => {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '0.50005',
         currency: 'musd',
@@ -448,14 +454,9 @@ describe('Cashback Component', () => {
     });
   });
 
-  describe('funding destination requirement (funding flow)', () => {
-    it('shows a warning when the destination has no approved funding', () => {
-      render({
-        destination: {
-          isMoneyAccountDestination: false,
-          hasApprovedDestination: false,
-        },
-      });
+  describe('Linea funding requirement', () => {
+    it('shows a warning when the user has no approved Linea funding', () => {
+      render({ hasApprovedLineaFunding: false });
 
       expect(
         screen.getByTestId(CashbackSelectors.FUNDING_WARNING),
@@ -468,13 +469,8 @@ describe('Cashback Component', () => {
       ).toBeOnTheScreen();
     });
 
-    it('navigates to Spending Limit with the resolved delegation token pre-selected', () => {
-      render({
-        destination: {
-          isMoneyAccountDestination: false,
-          hasApprovedDestination: false,
-        },
-      });
+    it('navigates to Spending Limit with USDC on Linea pre-selected', () => {
+      render({ hasApprovedLineaFunding: false });
 
       fireEvent.press(screen.getByText('Set up funding'));
 
@@ -487,8 +483,8 @@ describe('Cashback Component', () => {
       });
     });
 
-    it('blocks withdrawal when the destination delegation is missing', () => {
-      mockHookReturn.wallet = {
+    it('blocks withdrawal when approved Linea funding is missing', () => {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -501,12 +497,7 @@ describe('Cashback Component', () => {
         price: '0.50',
       };
 
-      render({
-        destination: {
-          isMoneyAccountDestination: false,
-          hasApprovedDestination: false,
-        },
-      });
+      render({ hasApprovedLineaFunding: false });
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
@@ -514,7 +505,7 @@ describe('Cashback Component', () => {
     });
 
     it('shows the generic loading error instead of missing-funding warning when card home data failed to load', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -527,10 +518,7 @@ describe('Cashback Component', () => {
         price: '0.50',
       };
 
-      render({
-        cardHomeDataStatus: 'error',
-        destination: { hasApprovedDestination: false },
-      });
+      render({ cardHomeDataStatus: 'error' });
 
       expect(
         screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
@@ -547,33 +535,11 @@ describe('Cashback Component', () => {
       expect(mockWithdraw).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
     });
-
-    it('keeps withdrawal disabled while the destination is unresolved (estimation pending)', () => {
-      mockHookReturn.wallet = {
-        id: 'w1',
-        balance: '10.00',
-        currency: 'musd',
-        isWithdrawable: true,
-        type: 'reward',
-      };
-
-      render({
-        destination: { isResolved: false, hasApprovedDestination: false },
-      });
-
-      expect(
-        screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
-      ).not.toBeOnTheScreen();
-
-      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
-
-      expect(mockWithdraw).not.toHaveBeenCalled();
-    });
   });
 
-  describe('money account destination requirement', () => {
+  describe('Money Account funding requirement (supported regions)', () => {
     const setWithdrawableWallet = () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -590,12 +556,7 @@ describe('Cashback Component', () => {
     it('shows a Money Account warning and starts link flow when no Money Account is delegated', () => {
       setWithdrawableWallet();
 
-      render({
-        destination: {
-          isMoneyAccountDestination: true,
-          hasApprovedDestination: false,
-        },
-      });
+      render({ moneyAccountEnabled: true, hasApprovedLineaFunding: false });
 
       expect(
         screen.getByTestId(CashbackSelectors.FUNDING_WARNING),
@@ -624,12 +585,7 @@ describe('Cashback Component', () => {
         canLink: false,
       };
 
-      render({
-        destination: {
-          isMoneyAccountDestination: true,
-          hasApprovedDestination: false,
-        },
-      });
+      render({ moneyAccountEnabled: true, hasApprovedLineaFunding: false });
 
       expect(
         screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
@@ -641,29 +597,23 @@ describe('Cashback Component', () => {
       expect(mockWithdraw).not.toHaveBeenCalled();
     });
 
-    it('blocks withdrawal when no Money Account is delegated', () => {
+    it('blocks withdrawal when no Money Account is delegated in a supported region', () => {
       setWithdrawableWallet();
 
-      render({
-        destination: {
-          isMoneyAccountDestination: true,
-          hasApprovedDestination: false,
-        },
-      });
+      render({ moneyAccountEnabled: true, hasApprovedLineaFunding: false });
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
       expect(mockWithdraw).not.toHaveBeenCalled();
     });
 
-    it('allows withdrawal when the Money Account destination is delegated', () => {
+    it('allows withdrawal when Money Account is delegated in a supported region', () => {
       setWithdrawableWallet();
 
       render({
-        destination: {
-          isMoneyAccountDestination: true,
-          hasApprovedDestination: true,
-        },
+        moneyAccountEnabled: true,
+        moneyAccountDelegated: true,
+        hasApprovedLineaFunding: false,
       });
 
       expect(
@@ -672,13 +622,13 @@ describe('Cashback Component', () => {
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
-      expect(mockWithdraw).toHaveBeenCalledWith('10.00');
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
     });
   });
 
-  describe('approved destination', () => {
+  describe('UK / restricted region funding requirement', () => {
     const setWithdrawableWallet = () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -692,14 +642,14 @@ describe('Cashback Component', () => {
       };
     };
 
-    it('allows withdrawal when the funding destination is approved', () => {
+    it('allows withdrawal when only Linea funding is approved', () => {
       setWithdrawableWallet();
 
       render({
-        destination: {
-          isMoneyAccountDestination: false,
-          hasApprovedDestination: true,
-        },
+        moneyAccountEnabled: true,
+        residencyBlocked: true,
+        hasApprovedLineaFunding: true,
+        moneyAccountDelegated: false,
       });
 
       expect(
@@ -708,17 +658,36 @@ describe('Cashback Component', () => {
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
-      expect(mockWithdraw).toHaveBeenCalledWith('10.00');
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
     });
 
-    it('shows the funding warning and redirects to Spending Limit when no destination is configured', () => {
+    it('allows withdrawal when only Money Account is delegated', () => {
       setWithdrawableWallet();
 
       render({
-        destination: {
-          isMoneyAccountDestination: false,
-          hasApprovedDestination: false,
-        },
+        moneyAccountEnabled: true,
+        residencyBlocked: true,
+        hasApprovedLineaFunding: false,
+        moneyAccountDelegated: true,
+      });
+
+      expect(
+        screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
+    });
+
+    it('shows Linea warning and redirects to Spending Limit when neither destination is configured', () => {
+      setWithdrawableWallet();
+
+      render({
+        moneyAccountEnabled: true,
+        residencyBlocked: true,
+        hasApprovedLineaFunding: false,
+        moneyAccountDelegated: false,
       });
 
       expect(
@@ -739,9 +708,40 @@ describe('Cashback Component', () => {
     });
   });
 
+  describe('Money Account feature flag disabled', () => {
+    it('uses the UK-style Linea or Money Account gate when the Money Account FF is off', () => {
+      mockHookReturn.cashbackWallet = {
+        id: 'w1',
+        balance: '10.00',
+        currency: 'musd',
+        isWithdrawable: true,
+        type: 'reward',
+      };
+      mockHookReturn.estimation = {
+        wei: '100000',
+        eth: '0.0001',
+        price: '0.50',
+      };
+
+      render({
+        moneyAccountEnabled: false,
+        moneyAccountDelegated: true,
+        hasApprovedLineaFunding: false,
+      });
+
+      expect(
+        screen.queryByTestId(CashbackSelectors.FUNDING_WARNING),
+      ).not.toBeOnTheScreen();
+
+      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
+
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
+    });
+  });
+
   describe('withdraw action', () => {
-    it('calls withdraw with full balance on button press', () => {
-      mockHookReturn.wallet = {
+    it('calls withdraw with net amount on button press', () => {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -758,32 +758,11 @@ describe('Cashback Component', () => {
 
       fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
 
-      expect(mockWithdraw).toHaveBeenCalledWith('10.00');
-    });
-
-    it('submits the full cashback balance for dust-sized claims', () => {
-      mockHookReturn.wallet = {
-        id: 'w1',
-        balance: '0.0007',
-        currency: 'musd',
-        isWithdrawable: true,
-        type: 'reward',
-      };
-      mockHookReturn.estimation = {
-        wei: '100000',
-        eth: '0.0001',
-        price: '0.0005',
-      };
-
-      render();
-
-      fireEvent.press(screen.getByTestId(CashbackSelectors.WITHDRAW_BUTTON));
-
-      expect(mockWithdraw).toHaveBeenCalledWith('0.0007');
+      expect(mockWithdraw).toHaveBeenCalledWith('9.5');
     });
 
     it('tracks analytics event on withdraw', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -813,7 +792,7 @@ describe('Cashback Component', () => {
 
   describe('toast notifications', () => {
     it('does not show a toast when status is monitoring', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -828,7 +807,7 @@ describe('Cashback Component', () => {
     });
 
     it('shows success toast when monitoring completes', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -849,7 +828,7 @@ describe('Cashback Component', () => {
     });
 
     it('navigates back after successful withdrawal', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -864,7 +843,7 @@ describe('Cashback Component', () => {
     });
 
     it('does not navigate back when monitoring fails', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -879,7 +858,7 @@ describe('Cashback Component', () => {
     });
 
     it('does not navigate back when status is idle', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -894,7 +873,7 @@ describe('Cashback Component', () => {
     });
 
     it('shows failure toast when monitoring fails', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -915,7 +894,7 @@ describe('Cashback Component', () => {
     });
 
     it('shows failure toast on monitoring error', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -934,7 +913,7 @@ describe('Cashback Component', () => {
     });
 
     it('shows failure toast when withdraw mutation fails', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -957,7 +936,7 @@ describe('Cashback Component', () => {
 
   describe('estimation fetch', () => {
     it('fetches estimation when wallet data loads', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',
@@ -971,7 +950,7 @@ describe('Cashback Component', () => {
     });
 
     it('does not fetch estimation when wallet data is null', () => {
-      mockHookReturn.wallet = null;
+      mockHookReturn.cashbackWallet = null;
 
       render();
 
@@ -979,48 +958,9 @@ describe('Cashback Component', () => {
     });
   });
 
-  describe('destination "To" row', () => {
-    it('renders the To row with the receiving wallet address by default', () => {
-      mockHookReturn.wallet = {
-        id: 'w1',
-        balance: '10.00',
-        currency: 'musd',
-        isWithdrawable: true,
-        type: 'reward',
-      };
-
-      render({ cardHomeDataStatus: 'success' });
-
-      const toRow = screen.getByTestId(CashbackSelectors.TO_ROW);
-      expect(toRow).toBeOnTheScreen();
-      expect(screen.getByText('To')).toBeOnTheScreen();
-      expect(toRow).toHaveTextContent(/0x11111/);
-    });
-
-    it('renders "Money account" in the To row for a Money account destination', () => {
-      mockHookReturn.wallet = {
-        id: 'w1',
-        balance: '10.00',
-        currency: 'musd',
-        isWithdrawable: true,
-        type: 'reward',
-      };
-
-      render({
-        cardHomeDataStatus: 'success',
-        destination: {
-          isMoneyAccountDestination: true,
-          hasApprovedDestination: true,
-        },
-      });
-
-      expect(screen.getByText('Money account')).toBeOnTheScreen();
-    });
-  });
-
   describe('cleanup', () => {
     it('calls resetWithdraw on unmount', () => {
-      mockHookReturn.wallet = {
+      mockHookReturn.cashbackWallet = {
         id: 'w1',
         balance: '10.00',
         currency: 'musd',

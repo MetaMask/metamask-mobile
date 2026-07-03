@@ -1,6 +1,6 @@
 import React, { useCallback, useLayoutEffect } from 'react';
 import { Platform } from 'react-native';
-import { useDispatch, useSelector } from 'react-redux';
+import { useDispatch } from 'react-redux';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   CommonActions,
@@ -14,19 +14,8 @@ import { OnboardingSuccessSelectorIDs } from './OnboardingSuccess.testIds';
 
 import OnboardingSuccessEndAnimation from './OnboardingSuccessEndAnimation/index';
 import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
-import {
-  saveOnboardingEvent as saveEvent,
-  setWalletHomeOnboardingStepsEligible,
-} from '../../../actions/onboarding';
+import { setWalletHomeOnboardingStepsEligible } from '../../../actions/onboarding';
 import { shouldMarkWalletHomeOnboardingStepsEligible } from '../../../util/onboarding/walletHomeOnboardingStepsEligibility';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import { getOnboardingCompletedAnalyticsPropsFromSuccessFlow } from '../../../util/analytics/onboardingCompletedAnalytics';
-import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import { selectOnboardingAccountType } from '../../../selectors/onboarding';
-import { selectBasicFunctionalityEnabled } from '../../../selectors/settings';
-import { selectWalletSetupCompletedAttributionAnalyticsProps } from '../../../selectors/attribution';
-import { clearAttribution } from '../../../core/redux/slices/attribution';
 
 import Engine from '../../../core/Engine/Engine';
 import { discoverAccounts } from '../../../multichain-accounts/discovery';
@@ -70,13 +59,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 }) => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
-  const accountType = useSelector(selectOnboardingAccountType);
-  const isBasicFunctionalityEnabled = useSelector(
-    selectBasicFunctionalityEnabled,
-  );
-  const walletSetupAttributionProps = useSelector(
-    selectWalletSetupCompletedAttributionAnalyticsProps,
-  );
 
   const tw = useTailwind();
 
@@ -92,24 +74,6 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
 
   const handleOnDone = useCallback(() => {
     if (shouldMarkWalletHomeOnboardingStepsEligible(successFlow)) {
-      const onboardingCompletedProperties =
-        getOnboardingCompletedAnalyticsPropsFromSuccessFlow(successFlow, {
-          accountType,
-          isBasicFunctionalityEnabled,
-        });
-
-      trackOnboarding(
-        AnalyticsEventBuilder.createEventBuilder(
-          MetaMetricsEvents.ONBOARDING_COMPLETED,
-        )
-          .addProperties({
-            ...onboardingCompletedProperties,
-            ...walletSetupAttributionProps,
-          })
-          .build(),
-        (event) => dispatch(saveEvent([event])),
-      );
-
       dispatch(
         setWalletHomeOnboardingStepsEligible(true, {
           skipInitialBalanceWait: true,
@@ -117,29 +81,23 @@ export const OnboardingSuccessComponent: React.FC<OnboardingSuccessProps> = ({
       );
     }
 
-    dispatch(clearAttribution());
-
-    Promise.resolve(
-      discoverAccounts(
-        Engine.context.KeyringController.state.keyrings[0].metadata.id,
-      ),
-    ).catch((error: unknown) => {
-      Logger.error(
-        error as Error,
-        'OnboardingSuccess: discoverAccounts failed',
-      );
-    });
+    const runDiscoverAccounts = async () => {
+      try {
+        await discoverAccounts(
+          Engine.context.KeyringController.state.keyrings[0].metadata.id,
+        );
+      } catch (error) {
+        Logger.error(
+          error as Error,
+          'OnboardingSuccess: discoverAccounts failed',
+        );
+      }
+    };
+    void runDiscoverAccounts();
     queueMicrotask(() => {
       onDone();
     });
-  }, [
-    accountType,
-    dispatch,
-    isBasicFunctionalityEnabled,
-    onDone,
-    successFlow,
-    walletSetupAttributionProps,
-  ]);
+  }, [dispatch, onDone, successFlow]);
 
   const getTitleString = () => {
     if (successFlow === ONBOARDING_SUCCESS_FLOW.SETTINGS_BACKUP) {

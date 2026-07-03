@@ -9635,16 +9635,6 @@ describe('PredictController', () => {
         expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       });
     });
-
-    it('calls analytics.trackEvent for trackCategoryClicked', () => {
-      withController(({ controller }) => {
-        controller.trackCategoryClicked({
-          categoryName: 'politics',
-          entryPoint: 'home_section',
-        });
-        expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
-      });
-    });
   });
 
   describe('onPlaceOrderSuccess', () => {

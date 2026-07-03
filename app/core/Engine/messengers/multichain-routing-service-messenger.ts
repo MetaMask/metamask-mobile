@@ -5,7 +5,7 @@ import {
 } from '@metamask/messenger';
 import { MultichainRoutingServiceMessenger } from '@metamask/snaps-controllers';
 import { RootMessenger } from '../types';
-import { KeyringControllerWithKeyringV2Action } from '@metamask/keyring-controller';
+import { SnapAccountServiceGetLegacySnapKeyringAction } from '@metamask/snap-account-service';
 
 /**
  * Get the multichain routing service messenger for the multichain routing
@@ -40,7 +40,8 @@ export function getMultichainRoutingServiceMessenger(
   return messenger;
 }
 
-type AllowedInitializationActions = KeyringControllerWithKeyringV2Action;
+type AllowedInitializationActions =
+  SnapAccountServiceGetLegacySnapKeyringAction;
 
 export type MultichainRoutingServiceInitMessenger = Messenger<
   'MultichainRoutingServiceInit',
@@ -50,8 +51,8 @@ export type MultichainRoutingServiceInitMessenger = Messenger<
 
 /**
  * Get the multichain routing service init messenger for the multichain routing
- * service. Used to look up the per-snap v2 Snap keyring that owns a given
- * account.
+ * service.
+ * multichain router is allowed to handle.
  *
  * @param rootMessenger - The root messenger.
  * @returns The multichain routing service init messenger.
@@ -68,7 +69,7 @@ export function getMultichainRoutingServiceInitMessenger(
   });
 
   rootMessenger.delegate({
-    actions: ['KeyringController:withKeyringV2'],
+    actions: ['SnapAccountService:getLegacySnapKeyring'],
     events: [],
     messenger,
   });

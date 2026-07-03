@@ -152,23 +152,12 @@ export function parseAccountsApiActivity(
 ): AccountsApiActivity[] {
   return (response.data ?? []).flatMap((tx): AccountsApiActivity[] => {
     if (tx.transactionType === METAMASK_CARD_PAYMENT_TYPE) {
-      // A spend debits the money account (outbound leg). A refund of a spend
-      // reverses that: mUSD is credited back, so there's an inbound leg and
-      // no outbound one.
-      const outbound = outboundTransfer(tx, moneyAddress);
-      if (outbound) {
-        const parsed = parseSettlement(tx, outbound);
-        if (!parsed) {
-          return [];
-        }
-        return [{ ...parsed, kind: 'card', paidTo: outbound.to as Hex }];
-      }
-      const inbound = inboundMusdTransfer(tx, moneyAddress);
-      const parsed = parseSettlement(tx, inbound);
-      if (!parsed || !inbound) {
+      const transfer = outboundTransfer(tx, moneyAddress);
+      const parsed = parseSettlement(tx, transfer);
+      if (!parsed || !transfer) {
         return [];
       }
-      return [{ ...parsed, kind: 'refund', receivedFrom: inbound.from as Hex }];
+      return [{ ...parsed, kind: 'card', paidTo: transfer.to as Hex }];
     }
     if (isCashbackTransaction(tx, moneyAddress, cashbackMultisendContracts)) {
       const transfer = inboundMusdTransfer(tx, moneyAddress);

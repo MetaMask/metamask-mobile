@@ -1,5 +1,5 @@
-import { useCallback, useMemo } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
@@ -7,16 +7,26 @@ import type { CampaignDto } from '../../../../core/Engine/controllers/rewards-co
 import { strings } from '../../../../../locales/i18n';
 import useRewardsToast from './useRewardsToast';
 import { useRewardsNotificationsNudge } from './useRewardsNotificationsNudge';
-import { subscribeCampaignReminder } from '../../../../reducers/rewards';
-import { selectSubscribedCampaignReminders } from '../../../../reducers/rewards/selectors';
-import { buildSubscriptionCampaignCompositeKey } from '../../../../reducers/rewards/compositeKeys';
+import StorageWrapper from '../../../../store/storage-wrapper';
 
-/** @deprecated Use {@link buildSubscriptionCampaignCompositeKey} instead. */
-export const buildCampaignReminderCompositeKey =
-  buildSubscriptionCampaignCompositeKey;
+const REMINDER_SUBSCRIBED_VALUE = '1';
+
+export function buildCampaignReminderCompositeKey(
+  subscriptionId: string,
+  campaignId: string,
+): string {
+  return `${subscriptionId}:${campaignId}`;
+}
 
 /**
- * Shared Redux state, analytics, and toasts for campaign start reminders
+ * One MMKV key per subscription:campaign reminder (no shared JSON list).
+ */
+export function reminderStorageKeyForComposite(compositeKey: string): string {
+  return `rewards_campaign_reminder_subscribed::${compositeKey}`;
+}
+
+/**
+ * Shared storage, analytics, and toasts for campaign start reminders
  * (tile icon CTA and preview "Notify me" CTA).
  */
 export function useCampaignReminderActions(
@@ -26,10 +36,10 @@ export function useCampaignReminderActions(
   showRemindMeCta: boolean;
   handleRemindMePress: () => Promise<void>;
 } {
-  const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const subscribedReminders =
-    useSelector(selectSubscribedCampaignReminders) ?? {};
+  const isStoredRef = useRef(false);
+  const [hydrated, setHydrated] = useState(false);
+  const [renderKey, setRenderKey] = useState(0);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { showToast, RewardsToastOptions } = useRewardsToast();
   const {
@@ -42,33 +52,58 @@ export function useCampaignReminderActions(
     if (!subscriptionId || !campaign.id) {
       return null;
     }
-    return buildSubscriptionCampaignCompositeKey(subscriptionId, campaign.id);
+    return buildCampaignReminderCompositeKey(subscriptionId, campaign.id);
   }, [subscriptionId, campaign.id]);
 
-  const isSubscribed = compositeKey
-    ? subscribedReminders[compositeKey] === true
-    : false;
+  useEffect(() => {
+    if (!enabled) {
+      setHydrated(true);
+      return;
+    }
+    if (!compositeKey) {
+      setHydrated(true);
+      return;
+    }
+    const storageKey = reminderStorageKeyForComposite(compositeKey);
+    const raw = StorageWrapper.getItemSync(storageKey);
+    isStoredRef.current = raw === REMINDER_SUBSCRIBED_VALUE;
+    setHydrated(true);
+    setRenderKey((k) => k + 1);
+  }, [enabled, compositeKey]);
 
   const showRemindMeCta = Boolean(
-    enabled &&
+    renderKey >= 0 &&
+      enabled &&
       canPromptToEnableNotifications &&
+      hydrated &&
       compositeKey &&
-      (!areNotificationsEnabled || !isSubscribed),
+      (!areNotificationsEnabled || !isStoredRef.current),
   );
 
-  const subscribeToReminder = useCallback(() => {
-    if (!subscriptionId || !campaign.id) {
+  const persistReminderSubscription = useCallback(async () => {
+    if (!compositeKey) {
+      throw new Error('Missing subscription or campaign for reminder storage');
+    }
+    if (isStoredRef.current) {
       return;
     }
-    if (isSubscribed) {
+    const storageKey = reminderStorageKeyForComposite(compositeKey);
+    await StorageWrapper.setItem(storageKey, REMINDER_SUBSCRIBED_VALUE);
+    isStoredRef.current = true;
+    setRenderKey((k) => k + 1);
+  }, [compositeKey]);
+
+  const subscribeToReminder = useCallback(async () => {
+    try {
+      await persistReminderSubscription();
+    } catch {
+      showToast(
+        RewardsToastOptions.error(
+          strings('rewards.campaign.remind_me_save_error'),
+        ),
+      );
       return;
     }
-    dispatch(
-      subscribeCampaignReminder({
-        subscriptionId,
-        campaignId: campaign.id,
-      }),
-    );
     trackEvent(
       createEventBuilder(MetaMetricsEvents.REWARDS_CAMPAIGN_REMINDER_SUBSCRIBED)
         .addProperties({
@@ -83,11 +118,9 @@ export function useCampaignReminderActions(
       ),
     );
   }, [
-    subscriptionId,
     campaign.id,
     campaign.startDate,
-    isSubscribed,
-    dispatch,
+    persistReminderSubscription,
     trackEvent,
     createEventBuilder,
     showToast,

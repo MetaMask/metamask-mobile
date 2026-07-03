@@ -30,7 +30,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         price: '111.00',
         markPrice: '100.00',
         timestamp: Date.now(),
-        isTradable: true,
       },
     });
 
@@ -52,7 +51,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         price: '105.00',
         markPrice: '100.00',
         timestamp: Date.now(),
-        isTradable: true,
       },
     });
 
@@ -76,7 +74,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         price: '110.00',
         markPrice: '100.00',
         timestamp: Date.now(),
-        isTradable: true,
       },
     });
 
@@ -98,7 +95,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         price: '89.00',
         markPrice: '100.00',
         timestamp: Date.now(),
-        isTradable: true,
       },
     });
 
@@ -127,7 +123,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         symbol: 'BTC',
         price: '111.00',
         timestamp: Date.now(),
-        isTradable: true,
         // markPrice is missing
       },
     });
@@ -146,7 +141,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         symbol: 'BTC',
         markPrice: '100.00',
         timestamp: Date.now(),
-        isTradable: true,
         // price is missing
       } as PriceUpdate,
     });
@@ -177,7 +171,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         price: '0',
         markPrice: '100.00',
         timestamp: Date.now(),
-        isTradable: true,
       },
     });
 
@@ -196,7 +189,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         price: '100.00',
         markPrice: '0',
         timestamp: Date.now(),
-        isTradable: true,
       },
     });
 
@@ -215,7 +207,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         price: '-100.00',
         markPrice: '100.00',
         timestamp: Date.now(),
-        isTradable: true,
       },
     });
 
@@ -234,7 +225,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         price: '100.00',
         markPrice: '-100.00',
         timestamp: Date.now(),
-        isTradable: true,
       },
     });
 
@@ -255,7 +245,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         price: '0.0012',
         markPrice: '0.001',
         timestamp: Date.now(),
-        isTradable: true,
       },
     });
 
@@ -276,7 +265,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         price: '111000.00',
         markPrice: '100000.00',
         timestamp: Date.now(),
-        isTradable: true,
       },
     });
 
@@ -296,7 +284,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         price: '105.00',
         markPrice: '100.00',
         timestamp: Date.now(),
-        isTradable: true,
       },
     };
 
@@ -316,7 +303,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         price: '111.00',
         markPrice: '100.00',
         timestamp: Date.now(),
-        isTradable: true,
       },
     };
 
@@ -339,7 +325,6 @@ describe('useIsPriceDeviatedAboveThreshold', () => {
         price: perpsPrice.toFixed(2),
         markPrice: spotPrice.toFixed(2),
         timestamp: Date.now(),
-        isTradable: true,
       },
     });
 

@@ -459,7 +459,6 @@ describe('usePerpsLivePositions', () => {
           price: '52000',
           markPrice: '52000',
           timestamp: Date.now(),
-          isTradable: true,
         },
       };
 
@@ -510,7 +509,6 @@ describe('usePerpsLivePositions', () => {
           price: '51000',
           markPrice: '51500',
           timestamp: Date.now(),
-          isTradable: true,
         },
       };
 
@@ -559,7 +557,6 @@ describe('usePerpsLivePositions', () => {
           symbol: 'BTC-PERP',
           price: '51000',
           timestamp: Date.now(),
-          isTradable: true,
         },
       };
 
@@ -609,7 +606,6 @@ describe('usePerpsLivePositions', () => {
           price: '48000',
           markPrice: '48000',
           timestamp: Date.now(),
-          isTradable: true,
         },
       };
 
@@ -659,7 +655,6 @@ describe('usePerpsLivePositions', () => {
           symbol: 'ETH-PERP',
           price: '3000',
           timestamp: Date.now(),
-          isTradable: true,
         },
       };
 
@@ -758,7 +753,6 @@ describe('usePerpsLivePositions', () => {
             price: '51000',
             markPrice: '51000',
             timestamp: Date.now(),
-            isTradable: true,
           },
         });
       });
@@ -791,7 +785,6 @@ describe('usePerpsLivePositions', () => {
             price: '52000',
             markPrice: '52000',
             timestamp: Date.now(),
-            isTradable: true,
           },
         });
       });
@@ -848,14 +841,12 @@ describe('usePerpsLivePositions', () => {
             price: '52000',
             markPrice: '52000',
             timestamp: Date.now(),
-            isTradable: true,
           },
           'ETH-PERP': {
             symbol: 'ETH-PERP',
             price: '2200',
             markPrice: '2200',
             timestamp: Date.now(),
-            isTradable: true,
           },
         });
       });
@@ -873,7 +864,6 @@ describe('usePerpsLivePositions', () => {
             price: '53000',
             markPrice: '53000',
             timestamp: Date.now(),
-            isTradable: true,
           },
         });
       });
@@ -1001,7 +991,6 @@ describe('usePerpsLivePositions', () => {
         price: '52000',
         markPrice: '52000',
         timestamp: Date.now(),
-        isTradable: true,
       },
     };
 
@@ -1052,7 +1041,6 @@ describe('usePerpsLivePositions', () => {
           symbol: 'BTC-PERP',
           price: '0',
           timestamp: Date.now(),
-          isTradable: true,
         },
       };
 

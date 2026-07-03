@@ -27,7 +27,6 @@ import {
   resolveCurrentPriceColor,
   type AdvancedChartProps,
   type AdvancedChartRef,
-  type FetchOlderBarsResponse,
   type IndicatorType,
   type OHLCVBar,
   type OHLCVPaginationConfig,
@@ -83,18 +82,13 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       height = DEFAULT_CHART_HEIGHT,
       realtimeBar,
       ohlcvPagination,
-      rnBackedPagination,
-      onFetchOlderBarsRequest,
       indicators = [],
       selectedMAs = [],
       positionLines,
       tradeMarkers,
-      positionLineColors,
       chartType,
       showVolume = false,
       volumeOverlay = false,
-      hidePaneSeparator = false,
-      gridLineColorOverride,
       enableDrawingTools = false,
       disabledFeatures = DEFAULT_DISABLED_FEATURES,
       onChartReady,
@@ -119,9 +113,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       currentPriceLineColorOverride,
       labelStyleOverrides,
       scrollPassthrough = false,
-      slbMode = false,
-      volumeSuccessColorOverride,
-      volumeErrorColorOverride,
     },
     ref,
   ) => {
@@ -155,7 +146,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const webViewLoadedRef = useRef(false);
     const prevPositionLinesRef = useRef(positionLines);
     const prevTradeMarkersRef = useRef(tradeMarkers);
-    const prevPositionLineColorsRef = useRef(positionLineColors);
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
     const prevOhlcvSeriesKeyRef = useRef<string | undefined>(undefined);
@@ -182,8 +172,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         themeSuccessDefault: theme.colors.success.default,
       }),
     );
-    const initialVolumeSuccessColorRef = useRef(volumeSuccessColorOverride);
-    const initialVolumeErrorColorRef = useRef(volumeErrorColorOverride);
     const themeColorsSentRef = useRef(false);
 
     const htmlContent = useMemo(() => {
@@ -202,23 +190,17 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         successColorOverride,
         themeSuccessDefault: theme.colors.success.default,
       });
-      initialVolumeSuccessColorRef.current = volumeSuccessColorOverride;
-      initialVolumeErrorColorRef.current = volumeErrorColorOverride;
       return createAdvancedChartTemplate(theme, {
         enableDrawingTools,
         disabledFeatures,
         lineChrome,
         useSubscriptPriceFormat,
-        hidePaneSeparator,
-        gridLineColorOverride,
         lineColorOverride,
         successColorOverride,
         errorColorOverride,
         currentPriceLineColorOverride,
         labelStyleOverrides,
         legendOverlay,
-        volumeSuccessColorOverride,
-        volumeErrorColorOverride,
       });
       // lineColorOverride/successColorOverride/errorColorOverride/currentPriceLineColorOverride
       // intentionally excluded — color changes hot-swap via SET_THEME_COLORS without
@@ -231,8 +213,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       lineChrome,
       useSubscriptPriceFormat,
       labelStyleOverrides,
-      hidePaneSeparator,
-      gridLineColorOverride,
       legendOverlay,
     ]);
 
@@ -250,7 +230,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
       prevTradeMarkersRef.current = undefined;
-      prevPositionLineColorsRef.current = undefined;
       prevChartTypeRef.current = undefined;
       prevOhlcvDataRef.current = [];
       prevOhlcvSeriesKeyRef.current = undefined;
@@ -325,7 +304,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setAppliedIndicatorCount(0);
       setLegendRendered(false);
       prevPositionLinesRef.current = undefined;
-      prevPositionLineColorsRef.current = undefined;
       prevChartTypeRef.current = undefined;
     }, [clearLayoutSettleTimeout, clearIndicatorsSyncFallback]);
 
@@ -395,29 +373,11 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     );
     paginationRef.current = ohlcvPagination;
 
-    const rnBackedPaginationRef = useRef<{ enabled: boolean } | undefined>(
-      rnBackedPagination,
-    );
-    rnBackedPaginationRef.current = rnBackedPagination;
-
-    const onFetchOlderBarsRequestRef = useRef<
-      AdvancedChartProps['onFetchOlderBarsRequest']
-    >(onFetchOlderBarsRequest);
-    onFetchOlderBarsRequestRef.current = onFetchOlderBarsRequest;
-
     const visibleFromMsRef = useRef<number | undefined>(visibleFromMs);
     visibleFromMsRef.current = visibleFromMs;
 
     const visibleToMsRef = useRef<number | undefined>(visibleToMs);
     visibleToMsRef.current = visibleToMs;
-    const prevVisibleFromMsSentRef = useRef<number | undefined>(undefined);
-    const prevVisibleToMsSentRef = useRef<number | undefined>(undefined);
-
-    // Mirror `slbMode` into a ref so `sendOHLCVData` keeps a stable identity (it
-    // rarely changes — set once per consumer). Sent on every SET_OHLCV_DATA so the
-    // WebView's `window.__slbMode` gate is correct before the post-load centering.
-    const slbModeRef = useRef(slbMode);
-    slbModeRef.current = slbMode;
 
     const sendOHLCVData = useCallback(
       (data: OHLCVBar[]) => {
@@ -426,17 +386,10 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           payload: {
             data,
             pagination: paginationRef.current,
-            rnBackedPagination: rnBackedPaginationRef.current,
             visibleFromMs: visibleFromMsRef.current,
             visibleToMs: visibleToMsRef.current,
-            // Only sent for SocialLeaderboard; omitted otherwise so other
-            // consumers' payload is unchanged (the WebView coerces a missing
-            // value to false via `!!payload.slbMode`).
-            slbMode: slbModeRef.current || undefined,
           },
         });
-        prevVisibleFromMsSentRef.current = visibleFromMsRef.current;
-        prevVisibleToMsSentRef.current = visibleToMsRef.current;
       },
       [postMessage],
     );
@@ -522,7 +475,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             setLegendRendered(false);
             prevPositionLinesRef.current = undefined;
             prevTradeMarkersRef.current = undefined;
-            prevPositionLineColorsRef.current = undefined;
             prevChartTypeRef.current = undefined;
             clearLayoutSettleTimeout();
             setLayoutSettling(false);
@@ -587,38 +539,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             }
             break;
 
-          case 'FETCH_OLDER_BARS_REQUEST': {
-            const handler = onFetchOlderBarsRequestRef.current;
-            const req = message.payload;
-            const respond = (response: FetchOlderBarsResponse) => {
-              postMessage({
-                type: 'FETCH_OLDER_BARS_RESPONSE',
-                payload: response,
-              });
-            };
-            if (!handler) {
-              respond({
-                requestId: req.requestId,
-                seriesGeneration: req.seriesGeneration,
-                bars: [],
-                noData: true,
-                error: 'missing_onFetchOlderBarsRequest',
-              });
-              break;
-            }
-            handler(req)
-              .then(respond)
-              .catch(() =>
-                respond({
-                  requestId: req.requestId,
-                  seriesGeneration: req.seriesGeneration,
-                  bars: [],
-                  noData: true,
-                }),
-              );
-            break;
-          }
-
           default:
             break;
         }
@@ -636,7 +556,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         onTradeMarkerPress,
         onChartInteracted,
         handleTradingViewOpen,
-        postMessage,
       ],
     );
 
@@ -691,7 +610,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           activeIndicatorsRef.current.clear();
           prevPositionLinesRef.current = undefined;
           prevTradeMarkersRef.current = undefined;
-          prevPositionLineColorsRef.current = undefined;
           prevChartTypeRef.current = undefined;
           prevOhlcvDataRef.current = [];
           prevOhlcvSeriesKeyRef.current = undefined;
@@ -731,9 +649,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }
 
       const prevData = prevOhlcvDataRef.current;
-      const visibleRangeChanged =
-        visibleFromMsRef.current !== prevVisibleFromMsSentRef.current ||
-        visibleToMsRef.current !== prevVisibleToMsSentRef.current;
 
       if (
         ohlcvSeriesKey !== undefined &&
@@ -751,21 +666,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         prevData.length === 0 ||
         Math.abs(ohlcvData.length - prevData.length) > 1
       ) {
-        beginFullOhlcvLayoutSettle();
-        sendOHLCVData(ohlcvData);
-        prevOhlcvDataRef.current = ohlcvData;
-        if (ohlcvSeriesKey !== undefined) {
-          prevOhlcvSeriesKeyRef.current = ohlcvSeriesKey;
-        }
-        return;
-      }
-
-      // SocialLeaderboard only: when the requested viewport (visibleFromMs/To)
-      // changes without a series-key change, resend the full series so the WebView
-      // re-frames on the trades. Gated behind slbMode so other consumers (e.g.
-      // Perps) keep their stable latest-N-candle viewport + REALTIME_UPDATE path
-      // and never take a full-data resend on a visible-range-only change.
-      if (slbModeRef.current && visibleRangeChanged) {
         beginFullOhlcvLayoutSettle();
         sendOHLCVData(ohlcvData);
         prevOhlcvDataRef.current = ohlcvData;
@@ -801,8 +701,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       ohlcvData,
       ohlcvSeriesKey,
       webViewLoaded,
-      visibleFromMs,
-      visibleToMs,
       sendOHLCVData,
       postMessage,
       beginFullOhlcvLayoutSettle,
@@ -867,23 +765,14 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     // Sync positionLines prop
     useEffect(() => {
       if (chartReadyCount === 0) return;
-      if (
-        positionLines === prevPositionLinesRef.current &&
-        positionLineColors === prevPositionLineColorsRef.current
-      ) {
-        return;
-      }
+      if (positionLines === prevPositionLinesRef.current) return;
       prevPositionLinesRef.current = positionLines;
-      prevPositionLineColorsRef.current = positionLineColors;
 
       postMessage({
         type: 'SET_POSITION_LINES',
-        payload: {
-          position: positionLines ?? null,
-          positionLineColors,
-        },
+        payload: { position: positionLines ?? null },
       });
-    }, [positionLines, positionLineColors, chartReadyCount, postMessage]);
+    }, [positionLines, chartReadyCount, postMessage]);
 
     // Sync tradeMarkers prop (open/close circles). Compares by reference, so
     // parents should memoize the array; a new reference re-renders all markers.
@@ -953,17 +842,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           lineColorOverride === initialLineColorRef.current &&
           successColorOverride === initialSuccessColorRef.current &&
           errorColorOverride === initialErrorColorRef.current &&
-          effectiveCurrentPriceColor === initialCurrentPriceColorRef.current &&
-          volumeSuccessColorOverride === initialVolumeSuccessColorRef.current &&
-          volumeErrorColorOverride === initialVolumeErrorColorRef.current;
+          effectiveCurrentPriceColor === initialCurrentPriceColorRef.current;
         themeColorsSentRef.current = true;
-        if (
-          colorsMatch &&
-          currentPriceLineColorOverride === undefined &&
-          volumeSuccessColorOverride === undefined &&
-          volumeErrorColorOverride === undefined
-        )
-          return;
+        if (colorsMatch) return;
       }
       const effectiveSuccessColor =
         successColorOverride ?? theme.colors.success.default;
@@ -977,10 +858,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         successColorOverride,
         themeSuccessDefault: theme.colors.success.default,
       });
-      const effectiveVolumeSuccessColor =
-        volumeSuccessColorOverride ?? effectiveSuccessColor;
-      const effectiveVolumeErrorColor =
-        volumeErrorColorOverride ?? effectiveErrorColor;
       postMessage({
         type: 'SET_THEME_COLORS',
         payload: {
@@ -988,8 +865,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           successColor: effectiveSuccessColor,
           errorColor: effectiveErrorColor,
           currentPriceColor: effectiveCurrentPriceColor,
-          volumeSuccessColor: effectiveVolumeSuccessColor,
-          volumeErrorColor: effectiveVolumeErrorColor,
         },
       });
     }, [
@@ -998,8 +873,6 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       errorColorOverride,
       currentPriceLineColorOverride,
       labelStyleOverrides?.lastValuePillColor,
-      volumeSuccessColorOverride,
-      volumeErrorColorOverride,
       webViewLoaded,
       postMessage,
       theme.colors.success.default,

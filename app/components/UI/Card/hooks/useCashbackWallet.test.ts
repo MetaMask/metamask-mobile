@@ -114,7 +114,6 @@ describe('useCashbackWallet', () => {
       type: 'reward',
     };
     mockGetCashbackWallet.mockResolvedValue(walletData);
-    mockGetCashbackWithdrawEstimation.mockResolvedValue(defaultEstimationData);
     mockWithdrawCashback.mockResolvedValue({ txHash: '0xabc123' });
     mockRequest.mockResolvedValue(null);
 
@@ -125,14 +124,6 @@ describe('useCashbackWallet', () => {
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
-    });
-
-    await act(async () => {
-      await result.current.fetchEstimation();
-    });
-
-    await waitFor(() => {
-      expect(result.current.estimation?.network).toBe('linea');
     });
 
     act(() => {
@@ -157,9 +148,6 @@ describe('useCashbackWallet', () => {
         type: 'reward',
       };
       mockGetCashbackWallet.mockResolvedValue(walletData);
-      mockGetCashbackWithdrawEstimation.mockResolvedValue(
-        defaultEstimationData,
-      );
       mockWithdrawCashback.mockResolvedValue({ txHash: '0xabc123' });
       mockRequest.mockResolvedValue({ status: 1 });
 
@@ -170,14 +158,6 @@ describe('useCashbackWallet', () => {
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
-      });
-
-      await act(async () => {
-        await result.current.fetchEstimation();
-      });
-
-      await waitFor(() => {
-        expect(result.current.estimation?.network).toBe('linea');
       });
 
       act(() => {
@@ -205,9 +185,6 @@ describe('useCashbackWallet', () => {
         type: 'reward',
       };
       mockGetCashbackWallet.mockResolvedValue(walletData);
-      mockGetCashbackWithdrawEstimation.mockResolvedValue(
-        defaultEstimationData,
-      );
       mockWithdrawCashback.mockResolvedValue({ txHash: '0xabc123' });
       mockRequest.mockResolvedValue({ status: 0 });
 
@@ -218,14 +195,6 @@ describe('useCashbackWallet', () => {
 
       await waitFor(() => {
         expect(result.current.isLoading).toBe(false);
-      });
-
-      await act(async () => {
-        await result.current.fetchEstimation();
-      });
-
-      await waitFor(() => {
-        expect(result.current.estimation?.network).toBe('linea');
       });
 
       act(() => {
@@ -255,7 +224,6 @@ describe('useCashbackWallet', () => {
       type: 'reward',
     };
     mockGetCashbackWallet.mockResolvedValue(walletData);
-    mockGetCashbackWithdrawEstimation.mockResolvedValue(defaultEstimationData);
     mockWithdrawCashback.mockResolvedValue({ txHash: '0xabc123' });
     mockRequest.mockResolvedValue(null);
 
@@ -266,14 +234,6 @@ describe('useCashbackWallet', () => {
 
     await waitFor(() => {
       expect(result.current.isLoading).toBe(false);
-    });
-
-    await act(async () => {
-      await result.current.fetchEstimation();
-    });
-
-    await waitFor(() => {
-      expect(result.current.estimation?.network).toBe('linea');
     });
 
     act(() => {
@@ -451,7 +411,8 @@ describe('useCashbackWallet', () => {
     jest.useRealTimers();
   });
 
-  it('does not start polling when the estimation network is unresolvable', async () => {
+  it('defaults to Linea chain when estimation network is missing', async () => {
+    jest.useFakeTimers();
     const walletData = {
       id: 'w1',
       balance: '5.00',
@@ -477,10 +438,14 @@ describe('useCashbackWallet', () => {
     });
 
     await waitFor(() => {
-      expect(result.current.txHash).toBe('0xabc123');
+      expect(result.current.monitoringStatus).toBe('monitoring');
     });
 
-    expect(result.current.monitoringStatus).toBe('idle');
-    expect(mockFindNetworkClientIdByChainId).not.toHaveBeenCalled();
+    await act(async () => {
+      jest.advanceTimersByTime(5000);
+    });
+
+    expect(mockFindNetworkClientIdByChainId).toHaveBeenCalledWith('0xe708');
+    jest.useRealTimers();
   });
 });

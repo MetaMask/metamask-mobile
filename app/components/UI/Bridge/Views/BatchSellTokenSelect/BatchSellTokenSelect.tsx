@@ -1,11 +1,5 @@
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import React, {
-  useCallback,
-  useEffect,
-  useLayoutEffect,
-  useMemo,
-  useState,
-} from 'react';
+import { useNavigation } from '@react-navigation/native';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { ListRenderItemInfo, Pressable } from 'react-native';
 import { FlatList, ScrollView } from 'react-native-gesture-handler';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -37,14 +31,12 @@ import {
   formatChainIdToCaip,
   formatChainIdToHex,
   isNonEvmChainId,
-  BatchSellMetricsLocation,
 } from '@metamask/bridge-controller';
-import { CaipAssetType, CaipChainId } from '@metamask/utils';
+import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import { NetworkConfiguration } from '@metamask/network-controller';
 
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
-import Engine from '../../../../../core/Engine';
 import {
   resetBridgeState,
   selectBatchSellDestStablecoins,
@@ -80,9 +72,6 @@ import { DEFAULT_BATCH_SELL_SLIPPAGE } from '../../components/SlippageModal/util
 import { normalizeTokenAddress } from '../../utils/tokenUtils';
 import { useBatchSellTokens } from './useBatchSellTokens';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
-import { useTrackBatchSellTokenPageViewed } from '../../hooks/useTrackBatchSellTokenPageViewed';
-import { useTrackBatchSellTokenPageContinueClicked } from '../../hooks/useTrackBatchSellTokenPageContinueClicked';
-import type { BatchSellTokenSelectRouteParams } from './types';
 
 const getTokenKey = (token: BridgeToken) =>
   `${formatChainIdToCaip(token.chainId)}:${normalizeTokenAddress(
@@ -132,14 +121,6 @@ function getDefaultBatchSellSourceTokenAmounts(selectedTokens: BridgeToken[]) {
 
 export function BatchSellTokenSelect() {
   const navigation = useNavigation();
-  const route = useRoute<
-    RouteProp<
-      {
-        BatchSellTokenSelect: BatchSellTokenSelectRouteParams | undefined;
-      },
-      'BatchSellTokenSelect'
-    >
-  >();
   const dispatch = useDispatch();
   const tw = useTailwind();
   const evmNetworkConfigurations = useSelector(
@@ -173,22 +154,6 @@ export function BatchSellTokenSelect() {
     () => buildBatchSellEligibleChains(sortedEligibleSourceTokens),
     [sortedEligibleSourceTokens],
   );
-  const batchSellLocation =
-    route.params?.batchSellLocation ?? BatchSellMetricsLocation.Unknown;
-
-  useLayoutEffect(() => {
-    Engine.context.BridgeController.setLocation(batchSellLocation);
-  }, [batchSellLocation]);
-
-  useTrackBatchSellTokenPageViewed({
-    location: batchSellLocation,
-    sortedEligibleChains,
-  });
-  const trackBatchSellTokenPageContinueClicked =
-    useTrackBatchSellTokenPageContinueClicked({
-      location: batchSellLocation,
-    });
-
   const [selectedChainId, setSelectedChainId] = useState<
     CaipChainId | undefined
   >(() => sortedEligibleChains[0]?.chainId);
@@ -336,15 +301,8 @@ export function BatchSellTokenSelect() {
       return;
     }
 
-    const orderedSelectedTokens = sortBatchSellTokens(
-      selectedTokens,
-      tokenSortDirection,
-    );
-
-    trackBatchSellTokenPageContinueClicked(orderedSelectedTokens);
-
-    if (orderedSelectedTokens.length === 1) {
-      const sourceToken = orderedSelectedTokens[0];
+    if (selectedTokens.length === 1) {
+      const sourceToken = selectedTokens[0];
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.HIGH_RATE_ALERT_MODAL,
         params: {
@@ -357,6 +315,11 @@ export function BatchSellTokenSelect() {
       });
       return;
     }
+
+    const orderedSelectedTokens = sortBatchSellTokens(
+      selectedTokens,
+      tokenSortDirection,
+    );
 
     // Batch Sell picks a source chain in this screen without updating the wallet's
     // active network. Switch now so STX/gas checks and submit use the source chain
@@ -407,7 +370,6 @@ export function BatchSellTokenSelect() {
     onNonEvmNetworkChange,
     onSetRpcTarget,
     selectedTokens,
-    trackBatchSellTokenPageContinueClicked,
     tokenSortDirection,
   ]);
 

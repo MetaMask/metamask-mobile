@@ -5,7 +5,6 @@ export const MoneyActivityViewTestIds = {
   FILTER_ALL: 'money-activity-view-filter-all',
   FILTER_DEPOSITS: 'money-activity-view-filter-deposits',
   FILTER_TRANSFERS: 'money-activity-view-filter-transfers',
-  FILTER_PURCHASES: 'money-activity-view-filter-purchases',
   DATE_HEADER: 'money-activity-view-date-header',
   PENDING_HEADER: 'money-activity-view-pending-header',
   EMPTY_LIST: 'money-activity-view-empty-list',

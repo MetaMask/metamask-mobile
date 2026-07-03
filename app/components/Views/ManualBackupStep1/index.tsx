@@ -103,9 +103,7 @@ const ManualBackupStep1 = () => {
 
   const tryExportSeedPhrase = async (pwd: string): Promise<string[]> => {
     const { KeyringController } = Engine.context;
-    const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase({
-      password: pwd,
-    });
+    const uint8ArrayMnemonic = await KeyringController.exportSeedPhrase(pwd);
     return uint8ArrayToMnemonic(uint8ArrayMnemonic, wordlist).split(' ');
   };
 

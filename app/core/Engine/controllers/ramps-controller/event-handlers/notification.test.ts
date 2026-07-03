@@ -2,10 +2,7 @@ import {
   RampsOrderStatus as Status,
   type RampsOrder,
 } from '@metamask/ramps-controller';
-import {
-  handleOrderStatusChangedForNotifications,
-  shouldShowOrderStatusToast,
-} from './notification';
+import { handleOrderStatusChangedForNotifications } from './notification';
 import { showV2OrderToast } from '../../../../../components/UI/Ramp/utils/v2OrderToast';
 
 jest.mock('../../../../../components/UI/Ramp/utils/v2OrderToast', () => ({
@@ -34,32 +31,6 @@ const createMockOrder = (overrides: Partial<RampsOrder> = {}): RampsOrder => ({
   ...overrides,
 });
 
-describe('shouldShowOrderStatusToast', () => {
-  it('returns false when status is unchanged', () => {
-    expect(shouldShowOrderStatusToast(Status.Completed, Status.Completed)).toBe(
-      false,
-    );
-  });
-
-  it('returns false for PRECREATED stub resolution transitions', () => {
-    expect(
-      shouldShowOrderStatusToast(Status.Precreated, Status.Completed),
-    ).toBe(false);
-    expect(shouldShowOrderStatusToast(Status.Precreated, Status.Pending)).toBe(
-      false,
-    );
-  });
-
-  it('returns true for active order status transitions', () => {
-    expect(shouldShowOrderStatusToast(Status.Pending, Status.Completed)).toBe(
-      true,
-    );
-    expect(shouldShowOrderStatusToast(Status.Created, Status.Pending)).toBe(
-      true,
-    );
-  });
-});
-
 describe('handleOrderStatusChangedForNotifications', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -77,27 +48,6 @@ describe('handleOrderStatusChangedForNotifications', () => {
       cryptoAmount: '0.5',
       status: Status.Completed,
     });
-  });
-
-  it('does not call showV2OrderToast when status is unchanged', () => {
-    handleOrderStatusChangedForNotifications({
-      order: createMockOrder({ status: Status.Completed }),
-      previousStatus: Status.Completed,
-    });
-
-    expect(showV2OrderToast).not.toHaveBeenCalled();
-  });
-
-  it('does not call showV2OrderToast for PRECREATED to Completed transition', () => {
-    handleOrderStatusChangedForNotifications({
-      order: createMockOrder({
-        status: Status.Completed,
-        cryptoCurrency: { symbol: 'BTC' },
-      }),
-      previousStatus: Status.Precreated,
-    });
-
-    expect(showV2OrderToast).not.toHaveBeenCalled();
   });
 
   it('calls showV2OrderToast for Failed status', () => {
@@ -133,15 +83,20 @@ describe('handleOrderStatusChangedForNotifications', () => {
     );
   });
 
-  it('delegates no-op statuses to showV2OrderToast when transition is eligible', () => {
-    const statuses = [Status.Created, Status.Unknown, Status.IdExpired];
+  it('delegates to showV2OrderToast for all statuses (toast handles no-op internally)', () => {
+    const statuses = [
+      Status.Created,
+      Status.Precreated,
+      Status.Unknown,
+      Status.IdExpired,
+    ];
 
     for (const status of statuses) {
       jest.clearAllMocks();
 
       handleOrderStatusChangedForNotifications({
         order: createMockOrder({ status }),
-        previousStatus: Status.Pending,
+        previousStatus: Status.Unknown,
       });
 
       expect(showV2OrderToast).toHaveBeenCalledTimes(1);

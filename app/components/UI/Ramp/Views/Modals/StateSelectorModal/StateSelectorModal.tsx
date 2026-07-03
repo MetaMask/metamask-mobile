@@ -1,10 +1,13 @@
-import React, { useCallback, useMemo, useRef } from 'react';
-import { ListRenderItem, View } from 'react-native';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
+import { View, useWindowDimensions } from 'react-native';
+import { FlatList } from 'react-native-gesture-handler';
 import Fuse from 'fuse.js';
 import { useNavigation } from '@react-navigation/native';
 import {
+  BottomSheet,
   BottomSheetRef,
   FontWeight,
+  HeaderStandard,
   Text,
   TextColor,
   TextVariant,
@@ -13,6 +16,7 @@ import ListItemSelect from '../../../../../../component-library/components/List/
 import ListItemColumn, {
   WidthType,
 } from '../../../../../../component-library/components/List/ListItemColumn';
+import TextFieldSearch from '../../../../../../component-library/components/Form/TextFieldSearch';
 
 import styleSheet from './StateSelectorModal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -24,14 +28,9 @@ import { US_STATES } from '../../../constants';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { createUnsupportedStateModalNavigationDetails } from '../UnsupportedStateModal/UnsupportedStateModal';
-import SearchableSelectorBottomSheet from '../../../components/SearchableSelectorBottomSheet';
+import { useElevatedSurface } from '../../../../../../util/theme/themeUtils';
 
 const MAX_STATE_RESULTS = 20;
-
-interface UsState {
-  code: string;
-  name: string;
-}
 
 export interface StateSelectorModalParams {
   selectedState?: string;
@@ -46,10 +45,16 @@ export const createStateSelectorModalNavigationDetails =
 
 function StateSelectorModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
+  const listRef = useRef<FlatList<{ code: string; name: string }>>(null);
   const navigation = useNavigation();
   const { selectedState, onStateSelect } =
     useParams<StateSelectorModalParams>();
-  const { styles } = useStyles(styleSheet, {});
+  const [searchString, setSearchString] = useState('');
+  const { height: screenHeight } = useWindowDimensions();
+  const { styles } = useStyles(styleSheet, {
+    screenHeight,
+  });
+  const surfaceClass = useElevatedSurface();
 
   const fuseData = useMemo(
     () =>
@@ -65,19 +70,28 @@ function StateSelectorModal() {
     [],
   );
 
-  const getResults = useCallback(
-    (searchString: string): UsState[] => {
-      if (searchString.length > 0) {
-        return fuseData.search(searchString)?.slice(0, MAX_STATE_RESULTS) || [];
-      }
+  const dataSearchResults = useMemo(() => {
+    if (searchString.length > 0) {
+      const results = fuseData
+        .search(searchString)
+        ?.slice(0, MAX_STATE_RESULTS);
+      return results || [];
+    }
 
-      return [...US_STATES].sort((a, b) => a.name.localeCompare(b.name));
-    },
-    [fuseData],
-  );
+    return [...US_STATES].sort((a, b) => a.name.localeCompare(b.name));
+  }, [searchString, fuseData]);
+
+  const scrollToTop = useCallback(() => {
+    if (listRef?.current) {
+      listRef.current.scrollToOffset({
+        animated: false,
+        offset: 0,
+      });
+    }
+  }, []);
 
   const handleOnStatePressCallback = useCallback(
-    (state: UsState) => {
+    (state: { code: string; name: string }) => {
       if (state.code === 'NY') {
         sheetRef.current?.onCloseBottomSheet(() => {
           navigation.navigate(
@@ -96,11 +110,11 @@ function StateSelectorModal() {
     [navigation, onStateSelect],
   );
 
-  const renderStateItem = useCallback<ListRenderItem<UsState>>(
-    ({ item }) => (
+  const renderStateItem = useCallback(
+    ({ item: state }: { item: { code: string; name: string } }) => (
       <ListItemSelect
-        isSelected={selectedState === item.code}
-        onPress={() => handleOnStatePressCallback(item)}
+        isSelected={selectedState === state.code}
+        onPress={() => handleOnStatePressCallback(state)}
         accessibilityRole="button"
         accessible
       >
@@ -111,7 +125,7 @@ function StateSelectorModal() {
               fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
             >
-              {item.name}
+              {state.name}
             </Text>
           </View>
         </ListItemColumn>
@@ -120,20 +134,64 @@ function StateSelectorModal() {
     [handleOnStatePressCallback, selectedState, styles.state],
   );
 
+  const renderEmptyList = useCallback(
+    () => (
+      <View style={styles.emptyList}>
+        <Text variant={TextVariant.BodyLg} fontWeight={FontWeight.Medium}>
+          {strings('deposit.state_modal.no_state_results', {
+            searchString,
+          })}
+        </Text>
+      </View>
+    ),
+    [searchString, styles.emptyList],
+  );
+
+  const handleSearchTextChange = useCallback(
+    (text: string) => {
+      setSearchString(text);
+      scrollToTop();
+    },
+    [scrollToTop],
+  );
+
+  const clearSearchText = useCallback(() => {
+    setSearchString('');
+    scrollToTop();
+  }, [scrollToTop]);
+
   return (
-    <SearchableSelectorBottomSheet<UsState>
-      sheetRef={sheetRef}
-      title={strings('deposit.state_modal.select_a_state')}
-      searchPlaceholder={strings('deposit.state_modal.search_by_state')}
-      noResultsText={(searchString) =>
-        strings('deposit.state_modal.no_state_results', { searchString })
-      }
-      getResults={getResults}
-      renderItem={renderStateItem}
-      keyExtractor={(item) => item.code}
-      extraData={selectedState}
-      closeButtonProps={{ testID: 'state-selector-close-button' }}
-    />
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      twClassName={surfaceClass}
+    >
+      <HeaderStandard
+        title={strings('deposit.state_modal.select_a_state')}
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+        closeButtonProps={{ testID: 'state-selector-close-button' }}
+      />
+      <View style={styles.searchContainer}>
+        <TextFieldSearch
+          value={searchString}
+          onPressClearButton={clearSearchText}
+          onFocus={scrollToTop}
+          onChangeText={handleSearchTextChange}
+          placeholder={strings('deposit.state_modal.search_by_state')}
+        />
+      </View>
+      <FlatList
+        ref={listRef}
+        style={styles.list}
+        data={dataSearchResults}
+        renderItem={renderStateItem}
+        extraData={selectedState}
+        keyExtractor={(item) => item.code}
+        ListEmptyComponent={renderEmptyList}
+        keyboardDismissMode="none"
+        keyboardShouldPersistTaps="always"
+      />
+    </BottomSheet>
   );
 }
 

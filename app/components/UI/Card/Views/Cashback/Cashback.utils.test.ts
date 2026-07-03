@@ -23,10 +23,6 @@ describe('Cashback.utils', () => {
       expect(formatAmount(10.123456)).toBe('10.1234');
     });
 
-    it('formats dust balances without float drift', () => {
-      expect(formatAmount('0.0006')).toBe('0.0006');
-    });
-
     it('returns 0.00 for NaN', () => {
       expect(formatAmount('invalid')).toBe('0.00');
     });
@@ -48,7 +44,7 @@ describe('Cashback.utils', () => {
   });
 
   describe('floorToDisplayPrecision', () => {
-    it('floors amounts to display precision', () => {
+    it('floors net amounts to display precision', () => {
       expect(floorToDisplayPrecision(9.50009)).toBe(9.5);
     });
 
@@ -59,52 +55,59 @@ describe('Cashback.utils', () => {
   });
 
   describe('getCashbackWithdrawalAmounts', () => {
-    it('computes expected receive as balance minus fee rounded up', () => {
+    it('computes net amount as balance minus fee rounded up', () => {
       const result = getCashbackWithdrawalAmounts('10.00', '0.50');
 
       expect(result.roundedFeeNum).toBe(0.5);
-      expect(result.expectedToReceiveNumber).toBe(9.5);
+      expect(result.roundedFee).toBe('0.5');
+      expect(result.netAmountNumber).toBe(9.5);
+      expect(result.netAmount).toBe('9.5');
     });
 
     it('rounds fee up before subtracting from balance', () => {
       const result = getCashbackWithdrawalAmounts('10.00', '0.50001');
 
       expect(result.roundedFeeNum).toBe(0.5001);
-      expect(result.expectedToReceiveNumber).toBe(9.4999);
+      expect(result.netAmountNumber).toBe(9.4999);
+      expect(result.netAmount).toBe('9.4999');
     });
 
-    it('clamps expected receive at zero when fee exceeds balance', () => {
+    it('clamps net amount at zero when fee exceeds balance', () => {
       const result = getCashbackWithdrawalAmounts('0.50', '1.00');
 
-      expect(result.expectedToReceiveNumber).toBe(0);
+      expect(result.netAmountNumber).toBe(0);
+      expect(result.netAmount).toBe('0');
     });
 
     it('handles zero fee', () => {
       const result = getCashbackWithdrawalAmounts('10.00', '0');
 
       expect(result.roundedFeeNum).toBe(0);
-      expect(result.expectedToReceiveNumber).toBe(10);
+      expect(result.netAmount).toBe('10');
+      expect(result.netAmountNumber).toBe(10);
     });
 
     it('handles invalid inputs', () => {
       const result = getCashbackWithdrawalAmounts('invalid', 'invalid');
 
       expect(result.roundedFeeNum).toBe(0);
-      expect(result.expectedToReceiveNumber).toBe(0);
+      expect(result.netAmountNumber).toBe(0);
+      expect(result.netAmount).toBe('0');
     });
 
-    it('computes expected receive for dust-sized balances without float drift', () => {
-      const result = getCashbackWithdrawalAmounts('0.0007', '0.0005');
+    it('uses the same net value for display and API submission', () => {
+      const result = getCashbackWithdrawalAmounts('10.50', '0.50001');
 
-      expect(result.roundedFeeNum).toBe(0.0005);
-      expect(result.expectedToReceiveNumber).toBe(0.0002);
-      expect(formatAmount(result.expectedToReceiveNumber)).toBe('0.0002');
+      expect(formatAmount(result.netAmountNumber)).toBe(
+        formatAmount(result.netAmount),
+      );
     });
 
-    it('marks insufficient when expected receive floors to zero despite positive remainder', () => {
+    it('marks insufficient when net floors to zero despite positive remainder', () => {
       const result = getCashbackWithdrawalAmounts('0.50005', '0.5');
 
-      expect(result.expectedToReceiveNumber).toBe(0);
+      expect(result.netAmountNumber).toBe(0);
+      expect(result.netAmount).toBe('0');
       expect(result.hasInsufficientBalance).toBe(true);
     });
 
@@ -114,7 +117,7 @@ describe('Cashback.utils', () => {
       expect(result.hasInsufficientBalance).toBe(true);
     });
 
-    it('marks sufficient when expected receive is above display precision', () => {
+    it('marks sufficient when net is above display precision', () => {
       const result = getCashbackWithdrawalAmounts('10.00', '0.50');
 
       expect(result.hasInsufficientBalance).toBe(false);

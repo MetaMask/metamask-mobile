@@ -4,11 +4,6 @@ import {
   cashbackWalletOptions,
   cashbackWithdrawEstimationOptions,
 } from './cashback';
-import {
-  creditKeys,
-  creditWalletOptions,
-  creditWithdrawEstimationOptions,
-} from './credit';
 import { dashboardKeys } from './dashboard';
 import { authKeys } from './auth';
 
@@ -26,11 +21,6 @@ export const cardQueries = {
     keys: cashbackKeys,
     walletOptions: cashbackWalletOptions,
     withdrawEstimationOptions: cashbackWithdrawEstimationOptions,
-  },
-  credit: {
-    keys: creditKeys,
-    walletOptions: creditWalletOptions,
-    withdrawEstimationOptions: creditWithdrawEstimationOptions,
   },
   auth: {
     keys: authKeys,

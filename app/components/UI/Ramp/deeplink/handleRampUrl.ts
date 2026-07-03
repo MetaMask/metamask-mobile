@@ -8,10 +8,7 @@ import NavigationService from '../../../../core/NavigationService';
 import ReduxService from '../../../../core/redux';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
-import {
-  createBuildQuoteNavDetails,
-  type BuildQuoteParams,
-} from '../Views/BuildQuote';
+import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
 import {
   selectCountries,
@@ -30,19 +27,6 @@ import Engine from '../../../../core/Engine';
 interface RampUrlOptions {
   rampPath: string;
   rampType: RampType;
-}
-
-function parseBuildQuoteAmount(amount?: string): number | undefined {
-  const normalizedAmount = amount?.trim();
-
-  if (!normalizedAmount) {
-    return undefined;
-  }
-
-  const parsedAmount = Number(normalizedAmount);
-  return Number.isFinite(parsedAmount) && parsedAmount > 0
-    ? parsedAmount
-    : undefined;
 }
 
 async function navigateUnifiedV2Buy(
@@ -104,15 +88,10 @@ async function navigateUnifiedV2Buy(
     } catch {
       // Token may not be in controller's list yet; navigate anyway
     }
-    const buildQuoteParams: BuildQuoteParams = {
-      assetId: controllerAssetId,
-    };
-    const amount = parseBuildQuoteAmount(rampIntent.amount);
-    if (amount !== undefined) {
-      buildQuoteParams.amount = amount;
-    }
     NavigationService.navigation.navigate(
-      ...createBuildQuoteNavDetails(buildQuoteParams),
+      ...createBuildQuoteNavDetails({
+        assetId: controllerAssetId,
+      }),
     );
     return;
   }

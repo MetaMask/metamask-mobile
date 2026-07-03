@@ -11,7 +11,6 @@ export const newWalletWithMetricsOptInExpectations: AnalyticsExpectations = {
     onboardingEvents.WALLET_CREATION_ATTEMPTED,
     onboardingEvents.WALLET_CREATED,
     onboardingEvents.WALLET_SETUP_COMPLETED,
-    onboardingEvents.ONBOARDING_COMPLETED,
   ],
   events: [
     {
@@ -49,17 +48,6 @@ export const newWalletWithMetricsOptInExpectations: AnalyticsExpectations = {
         wallet_setup_type: 'new',
         new_wallet: true,
         account_type: 'metamask',
-      },
-    },
-    {
-      name: onboardingEvents.ONBOARDING_COMPLETED,
-      containProperties: {
-        wallet_setup_type: 'new',
-        new_wallet: true,
-        account_type: 'metamask',
-        is_basic_functionality_enabled: true,
-        implementation_type: 'native',
-        onboarding_type: 'seed_phrase',
       },
     },
   ],

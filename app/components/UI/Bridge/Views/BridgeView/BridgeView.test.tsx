@@ -157,7 +157,6 @@ jest.mock('../../../../../core/Engine', () => {
       BridgeController: {
         resetState: jest.fn(),
         setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
-        setInputPrimaryDenomination: jest.fn(),
         updateBridgeQuoteRequestParams: jest.fn(),
         trackUnifiedSwapBridgeEvent: jest.fn(),
       },

@@ -37,8 +37,11 @@ interface MoneyPotentialEarningsProps {
   apyDecimal: number | undefined;
   /**
    * Returns true when the given token qualifies for a subsidised (no-fee)
-   * deposit into the Money account. Used to render the "No fee" badge on
-   * each token row.
+   * deposit into the Money account (target: Monad mUSD). Used to render the
+   * "No fee" badge on each token row. Sourced from the
+   * `confirmations_relay_fixed_spread` remote feature flag via
+   * useMoneyEarnableTokens — tokens with a route into Monad mUSD, plus Monad
+   * mUSD itself, are tagged.
    */
   isNoFeeToken?: (token: AssetType) => boolean;
   onTokenCardPress?: (

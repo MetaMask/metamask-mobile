@@ -12,7 +12,6 @@ export function SendDetails({
     <ActivityDetailsStandardTemplate
       item={item}
       header={<ActivityDetailsAmountHeader item={item} />}
-      addressRows={{ from: item.data.from, to: item.data.to }}
     />
   );
 }

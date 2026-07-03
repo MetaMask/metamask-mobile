@@ -1,4 +1,3 @@
-import { IconName } from '@metamask/design-system-react-native';
 import type { ActivityKind } from '../../../util/activity-adapters';
 
 /**
@@ -9,7 +8,6 @@ export function resolveIconType(type: ActivityKind): string {
   switch (type) {
     case 'send':
     case 'sell':
-    case 'nftSell':
     case 'lendingDeposit':
     case 'deposit':
     case 'wrap':
@@ -18,9 +16,7 @@ export function resolveIconType(type: ActivityKind): string {
       return 'send';
     case 'receive':
     case 'buy':
-    case 'nftBuy':
     case 'claim':
-    case 'unstake':
     case 'claimMusdBonus':
     case 'lendingWithdrawal':
     case 'unwrap':
@@ -57,23 +53,6 @@ export function resolveIconType(type: ActivityKind): string {
     case 'marketShort':
     case 'stopMarketCloseShort':
     case 'marketCloseShort':
-    case 'limitShort':
-    case 'limitCloseShort':
       return 'interaction';
   }
-}
-
-/**
- * Maps an activity kind to the design-system arrow icon used as the avatar
- * fallback when a row has no token avatar
- */
-const FALLBACK_ICON_NAME: Partial<Record<string, IconName>> = {
-  send: IconName.Arrow2UpRight,
-  receive: IconName.Received,
-  swap: IconName.SwapHorizontal,
-  interaction: IconName.SwapHorizontal,
-};
-
-export function resolveTransactionIconName(type: ActivityKind): IconName {
-  return FALLBACK_ICON_NAME[resolveIconType(type)] ?? IconName.SwapHorizontal;
 }

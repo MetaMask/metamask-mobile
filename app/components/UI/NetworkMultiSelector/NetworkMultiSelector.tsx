@@ -15,6 +15,7 @@ import { useTheme } from '../../../util/theme';
 import { useStyles } from '../../../component-library/hooks/useStyles';
 import { Box } from '@metamask/design-system-react-native';
 import { ExtendedNetwork } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
+import { PopularList } from '../../../util/networks/customNetworks';
 import CustomNetwork from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork';
 import { strings } from '../../../../locales/i18n';
 import NetworkMultiSelectorList from '../NetworkMultiSelectorList/NetworkMultiSelectorList';
@@ -31,7 +32,6 @@ import {
   selectEvmNetworkConfigurationsByChainId,
   selectEvmChainId,
 } from '../../../selectors/networkController';
-import { getAdditionalNetworksList } from '../../../selectors/configRegistry';
 import {
   selectNonEvmNetworkConfigurationsByChainId,
   selectIsEvmNetworkSelected,
@@ -102,7 +102,6 @@ const NetworkMultiSelector = ({
   const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
   const selectedNonEvmChainId = useSelector(selectSelectedNonEvmNetworkChainId);
   const currentEvmChainId = useSelector(selectEvmChainId);
-  const additionalNetworksList = useSelector(getAdditionalNetworksList);
 
   const { networksToUse, areAllNetworksSelectedCombined } = useNetworksToUse({
     networks,
@@ -211,7 +210,7 @@ const NetworkMultiSelector = ({
       selectedNetwork: modalState.popularNetwork,
       toggleWarningModal,
       showNetworkModal,
-      customNetworksList: additionalNetworksList,
+      customNetworksList: PopularList,
       skipConfirmation: true,
       onNetworkAdd: handleAddPopularNetwork,
     }),
@@ -222,7 +221,6 @@ const NetworkMultiSelector = ({
       toggleWarningModal,
       showNetworkModal,
       handleAddPopularNetwork,
-      additionalNetworksList,
     ],
   );
 

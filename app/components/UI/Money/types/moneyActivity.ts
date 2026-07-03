@@ -30,10 +30,6 @@ export type AccountsApiActivity =
   | (AccountsApiSettlement & {
       kind: 'cashback';
       receivedFrom: Hex;
-    })
-  | (AccountsApiSettlement & {
-      kind: 'refund';
-      receivedFrom: Hex;
     });
 
 /**

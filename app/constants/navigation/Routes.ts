@@ -57,7 +57,6 @@ const Routes = {
       SSN_INFO: 'RampSsnInfoModal',
       STATE_SELECTOR: 'RampStateSelectorModal',
       UNSUPPORTED_STATE: 'RampUnsupportedStateModal',
-      PHONE_COUNTRY_SELECTOR: 'RampPhoneCountrySelectorModal',
     },
   },
   DEPOSIT: {
@@ -534,7 +533,6 @@ const Routes = {
     REVIEW_ORDER: 'ReviewOrder',
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'CardCashback',
-    CREDIT_REDEEM: 'CardCreditRedeem',
     ONBOARDING: {
       ROOT: 'CardOnboarding',
       SIGN_UP: 'CardOnboardingSignUp',
@@ -562,9 +560,6 @@ const Routes = {
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
       WAITLIST_FORM: 'CardWaitlistFormModal',
       FORGOT_PASSWORD: 'CardForgotPasswordModal',
-      CREDIT_BALANCE_TOOLTIP: 'CardCreditBalanceTooltipModal',
-      CREDIT_REFUND_TOOLTIP: 'CardCreditRefundTooltipModal',
-      UNLINK_MONEY_ACCOUNT: 'CardUnlinkMoneyAccountSheet',
     },
   },
   SEND: {
@@ -588,6 +583,6 @@ const Routes = {
     ID: 'AgenticCliApproval',
     CONFIRM: 'AgenticCliApprovalConfirm',
   },
-} as const;
+};
 
 export default Routes;

@@ -64,7 +64,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
-import Engine from '../../../core/Engine';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passcodeType } from '../../../util/authentication';
 import { ImportFromSeedSelectorsIDs } from './ImportFromSeed.testIds';
@@ -103,7 +102,6 @@ import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
 import { selectAddDeviceSyncEnabled } from '../../../selectors/featureFlagController/addDeviceSync';
-import { selectQrSyncPrimaryMnemonic } from '../../../selectors/qrSyncController';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -120,8 +118,6 @@ const ImportFromSecretRecoveryPhrase = ({
   saveOnboardingEvent,
   route,
 }) => {
-  const isQrSyncImport = Boolean(route?.params?.qrSyncImport);
-  const qrSyncPrimaryMnemonic = useSelector(selectQrSyncPrimaryMnemonic);
   const walletSetupCompletedAttributionProps = useSelector(
     selectWalletSetupCompletedAttributionAnalyticsProps,
   );
@@ -171,13 +167,6 @@ const ImportFromSecretRecoveryPhrase = ({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [seedPhrase]);
-
-  useEffect(() => {
-    if (isQrSyncImport && qrSyncPrimaryMnemonic) {
-      setSeedPhrase(qrSyncPrimaryMnemonic.split(SPACE_CHAR));
-      setCurrentStep(1);
-    }
-  }, [isQrSyncImport, qrSyncPrimaryMnemonic]);
 
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
@@ -243,7 +232,7 @@ const ImportFromSecretRecoveryPhrase = ({
   );
 
   const onBackPress = () => {
-    if (currentStep === 0 || (isQrSyncImport && currentStep === 1)) {
+    if (currentStep === 0) {
       navigation.goBack();
     } else {
       animateToStep(currentStep - 1);
@@ -331,7 +320,7 @@ const ImportFromSecretRecoveryPhrase = ({
     }
     animateToStep(currentStep + 1);
     // Start the trace when moving to the password setup step
-    const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
+    const onboardingTraceCtx = route.params?.onboardingTraceCtx;
     if (onboardingTraceCtx) {
       passwordSetupAttemptTraceCtxRef.current = trace({
         name: TraceName.OnboardingPasswordSetupAttempt,
@@ -399,8 +388,8 @@ const ImportFromSecretRecoveryPhrase = ({
     } else {
       try {
         setLoading(true);
-        const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
-        const oauthLoginSuccess = route?.params?.oauthLoginSuccess || false;
+        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
+        const oauthLoginSuccess = route.params?.oauthLoginSuccess || false;
         trace({
           name: TraceName.OnboardingSRPAccountImportTime,
           op: TraceOperation.OnboardingUserJourney,
@@ -431,10 +420,6 @@ const ImportFromSecretRecoveryPhrase = ({
           true,
         );
 
-        if (isQrSyncImport) {
-          Engine.context.QrSyncController.resetState();
-        }
-
         setBiometryType(authData.availableBiometryType);
         setLoading(false);
         passwordSet();
@@ -457,10 +442,7 @@ const ImportFromSecretRecoveryPhrase = ({
             {
               name: Routes.ONBOARDING.SUCCESS_FLOW,
               params: {
-                screen: Routes.ONBOARDING.SUCCESS,
-                params: {
-                  successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
-                },
+                successFlow: ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
               },
             },
           ],
@@ -487,7 +469,7 @@ const ImportFromSecretRecoveryPhrase = ({
           error_type: error.toString(),
         });
 
-        const onboardingTraceCtx = route?.params?.onboardingTraceCtx;
+        const onboardingTraceCtx = route.params?.onboardingTraceCtx;
         if (onboardingTraceCtx) {
           trace({
             name: TraceName.OnboardingPasswordSetupError,

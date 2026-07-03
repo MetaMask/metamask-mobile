@@ -38,7 +38,6 @@ import { useMusdBalance } from '../../../Earn/hooks/useMusdBalance';
 import { useMoneyActivityItems } from '../../hooks/useMoneyActivityItems';
 import { MoneyActivityFilter } from '../../constants/mockActivityData';
 import { deriveMoneyMetaMaskCardMode } from '../../utils/moneyMetaMaskCardMode';
-import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import MoneyActivityLoading from '../../components/MoneyActivityLoading/MoneyActivityLoading';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
@@ -535,8 +534,10 @@ const MoneyHomeView = () => {
       redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    openInAppBrowser(navigation, AppConstants.URLS.MONEY_LANDING);
-  }, [navigation, trackSurfaceClicked]);
+    Linking.openURL(AppConstants.URLS.MONEY_LANDING).catch((error: Error) => {
+      Logger.error(error, '[MoneyHomeView] Failed to open Money landing page');
+    });
+  }, [trackSurfaceClicked]);
 
   const handleLearnMorePress = useCallback(() => {
     trackButtonClicked({
@@ -547,8 +548,10 @@ const MoneyHomeView = () => {
       redirect_target: MONEY_URLS.MONEY_LANDING,
     });
 
-    openInAppBrowser(navigation, AppConstants.URLS.MONEY_LANDING);
-  }, [navigation, trackButtonClicked]);
+    Linking.openURL(AppConstants.URLS.MONEY_LANDING).catch((error: Error) => {
+      Logger.error(error, '[MoneyHomeView] Failed to open Money landing page');
+    });
+  }, [trackButtonClicked]);
 
   const handleHowItWorksPress = useCallback(
     ({ componentName }: { componentName: COMPONENT_NAMES }) => {

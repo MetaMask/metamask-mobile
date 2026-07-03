@@ -42,5 +42,4 @@ export interface ActivityListItemRowContent {
   secondaryAmount?: string;
   avatarTokens: TokenAmount[];
   avatarIconUrl?: string;
-  perpsMarketSymbol?: string;
 }

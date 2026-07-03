@@ -143,10 +143,6 @@ export type BrowserTabProps = SharedTabProps & {
    * Whether browser was opened from the What's Happening detail view
    */
   fromWhatsHappening?: boolean;
-  /**
-   * Whether browser was opened from the Money tab
-   */
-  fromMoney?: boolean;
 
   /**
    * Boolean indicating if browser is in fullscreen mode

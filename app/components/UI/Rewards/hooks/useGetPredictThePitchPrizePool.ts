@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
-  selectPredictThePitchPrizePoolByCampaignId,
-  selectPredictThePitchPrizePoolLoadingByCampaignId,
-  selectPredictThePitchPrizePoolErrorByCampaignId,
+  selectPredictThePitchPrizePool,
+  selectPredictThePitchPrizePoolLoading,
+  selectPredictThePitchPrizePoolError,
 } from '../../../../reducers/rewards/selectors';
 import {
   setPredictThePitchPrizePool,
@@ -24,45 +24,29 @@ export const useGetPredictThePitchPrizePool = (
   campaignId: string | undefined,
 ): UseGetPredictThePitchPrizePoolResult => {
   const dispatch = useDispatch();
-
-  const selectPrizePool = useMemo(
-    () => selectPredictThePitchPrizePoolByCampaignId(campaignId),
-    [campaignId],
-  );
-  const selectLoading = useMemo(
-    () => selectPredictThePitchPrizePoolLoadingByCampaignId(campaignId),
-    [campaignId],
-  );
-  const selectError = useMemo(
-    () => selectPredictThePitchPrizePoolErrorByCampaignId(campaignId),
-    [campaignId],
-  );
-
-  const prizePool = useSelector(selectPrizePool);
-  const isLoading = useSelector(selectLoading);
-  const hasError = useSelector(selectError);
+  const prizePool = useSelector(selectPredictThePitchPrizePool);
+  const isLoading = useSelector(selectPredictThePitchPrizePoolLoading);
+  const hasError = useSelector(selectPredictThePitchPrizePoolError);
 
   const fetchPrizePool = useCallback(async (): Promise<void> => {
     if (!campaignId) {
+      dispatch(setPredictThePitchPrizePoolLoading(false));
+      dispatch(setPredictThePitchPrizePoolError(false));
       return;
     }
 
     try {
-      dispatch(
-        setPredictThePitchPrizePoolLoading({ campaignId, loading: true }),
-      );
-      dispatch(setPredictThePitchPrizePoolError({ campaignId, error: false }));
+      dispatch(setPredictThePitchPrizePoolLoading(true));
+      dispatch(setPredictThePitchPrizePoolError(false));
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getPredictThePitchPrizePool',
         campaignId,
       );
-      dispatch(setPredictThePitchPrizePool({ campaignId, prizePool: result }));
+      dispatch(setPredictThePitchPrizePool(result));
     } catch {
-      dispatch(setPredictThePitchPrizePoolError({ campaignId, error: true }));
+      dispatch(setPredictThePitchPrizePoolError(true));
     } finally {
-      dispatch(
-        setPredictThePitchPrizePoolLoading({ campaignId, loading: false }),
-      );
+      dispatch(setPredictThePitchPrizePoolLoading(false));
     }
   }, [dispatch, campaignId]);
 

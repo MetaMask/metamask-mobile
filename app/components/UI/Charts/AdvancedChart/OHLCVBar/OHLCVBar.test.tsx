@@ -105,18 +105,4 @@ describe('OHLCVBar', () => {
 
     expect(getByTestId('ohlcv-bar')).toHaveTextContent(/\$1\.00M/);
   });
-
-  it('renders the change row when changePercent is provided', () => {
-    const { getByText } = render(
-      <OHLCVBar
-        data={baseData}
-        currency="USD"
-        changePercent="+1.31%"
-        testID="ohlcv-bar"
-      />,
-    );
-
-    expect(getByText('perps.chart.ohlc.change')).toBeOnTheScreen();
-    expect(getByText('+1.31%')).toBeOnTheScreen();
-  });
 });

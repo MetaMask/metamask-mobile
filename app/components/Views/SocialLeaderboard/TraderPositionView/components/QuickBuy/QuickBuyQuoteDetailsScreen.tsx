@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native';
 import { strings } from '../../../../../../../locales/i18n';
 import {
   KeyValueRowStubs,
+  TooltipSizes,
   KeyValueRowSectionAlignments,
 } from '../../../../../../component-library/components-temp/KeyValueRow';
 import { IconName as IconNameLegacy } from '../../../../../../component-library/components/Icons/Icon';
@@ -111,6 +112,7 @@ const QuickBuyQuoteDetailsScreen: React.FC = () => {
                 tooltip={{
                   title: strings('bridge.quote_info_title'),
                   content: strings('bridge.quote_info_content'),
+                  size: TooltipSizes.Sm,
                   iconName: IconNameLegacy.Info,
                 }}
               />

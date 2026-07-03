@@ -168,7 +168,7 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => {
   return { useAnalytics: () => createMockUseAnalyticsHook() };
 });
 
-jest.mock('../../../UI/AssetOverview/PriceChart/PriceChart', () => {
+jest.mock('../../../UI/AssetOverview/PriceChart', () => {
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
@@ -469,14 +469,8 @@ describe('TraderPositionView', () => {
     it('renders the perp leverage and direction badges in the header', () => {
       renderWithProvider(<TraderPositionView />, { state: mockState });
 
-      const headerPerpBadges = within(
-        screen.getByTestId(
-          TraderPositionViewSelectorsIDs.HEADER_COMPACT_PERP_BADGES,
-        ),
-      );
-
-      expect(headerPerpBadges.getByText('10x')).toBeOnTheScreen();
-      expect(headerPerpBadges.getByText('SHORT')).toBeOnTheScreen();
+      expect(screen.getByText('10x')).toBeOnTheScreen();
+      expect(screen.getByText('SHORT')).toBeOnTheScreen();
     });
 
     it('does not render the copy token address button for a perp position', () => {

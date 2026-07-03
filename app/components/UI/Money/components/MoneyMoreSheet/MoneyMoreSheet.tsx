@@ -19,7 +19,6 @@ import AppConstants from '../../../../../core/AppConstants';
 import Routes from '../../../../../constants/navigation/Routes';
 import { METAMASK_SUPPORT_URL } from '../../../../../constants/urls';
 import styleSheet from './MoneyMoreSheet.styles';
-import { openInAppBrowser } from '../../utils/openInAppBrowser';
 import { MoneyMoreSheetTestIds } from './MoneyMoreSheet.testIds';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -76,9 +75,9 @@ const MoneyMoreSheet = () => {
     });
 
     closeAndNavigate(() => {
-      openInAppBrowser(navigation, AppConstants.URLS.MONEY_LANDING);
+      Linking.openURL(AppConstants.URLS.MONEY_LANDING);
     });
-  }, [closeAndNavigate, navigation, trackSurfaceClicked]);
+  }, [closeAndNavigate, trackSurfaceClicked]);
 
   const handleContactSupport = useCallback(() => {
     trackSurfaceClicked({

@@ -30,16 +30,6 @@ const cashbackTx = (hash: Hex, time: number): AccountsApiActivity => ({
   receivedFrom: '0xrewarder' as Hex,
 });
 
-const refundTx = (hash: Hex, time: number): AccountsApiActivity => ({
-  kind: 'refund',
-  hash,
-  time,
-  chainId: '0x8f',
-  token: { address: '0xmusd' as Hex, symbol: 'mUSD', decimals: 6 },
-  amount: '10000000',
-  receivedFrom: '0xsettlement' as Hex,
-});
-
 describe('mergeMoneyActivity', () => {
   it('merges both sources, tags by source, and sorts time-descending', () => {
     const onchain = [onchainTx('a', 100), onchainTx('b', 300)];
@@ -93,7 +83,6 @@ describe('buildMoneyActivityBuckets', () => {
   };
   const card = cardTx('0xcard' as Hex, 200);
   const cashback = cashbackTx('0xback' as Hex, 300);
-  const refund = refundTx('0xrefund' as Hex, 250);
 
   it('routes card spends to Transfers and cashback to Deposits; both into All', () => {
     const buckets = buildMoneyActivityBuckets(onchain, [card, cashback]);
@@ -111,28 +100,6 @@ describe('buildMoneyActivityBuckets', () => {
     // Transfers: card outflow, not the cashback.
     expect(ids(MoneyActivityFilter.Transfers)).toContain('0xcard');
     expect(ids(MoneyActivityFilter.Transfers)).not.toContain('0xback');
-  });
-
-  it('groups all card activity (spend, cashback, refund) into Purchases without on-chain rows', () => {
-    const buckets = buildMoneyActivityBuckets(onchain, [
-      card,
-      cashback,
-      refund,
-    ]);
-
-    const ids = (filter: MoneyActivityFilter) =>
-      buckets[filter].map((i) => i.id);
-
-    // Purchases: every card-related row, time-descending, and no on-chain rows.
-    expect(ids(MoneyActivityFilter.Purchases)).toEqual([
-      '0xback',
-      '0xrefund',
-      '0xcard',
-    ]);
-    // Refund flows into All but leaves Deposits/Sends untouched (additive).
-    expect(ids(MoneyActivityFilter.All)).toContain('0xrefund');
-    expect(ids(MoneyActivityFilter.Deposits)).not.toContain('0xrefund');
-    expect(ids(MoneyActivityFilter.Transfers)).not.toContain('0xrefund');
   });
 
   it('keeps each bucket time-descending', () => {

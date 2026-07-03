@@ -15,32 +15,16 @@ import { useActivityNetworkName } from '../hooks/useActivityNetworkName';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 import { ActivityDetailsAccountValue } from './ActivityDetailsAccountValue';
 import { ActivityDetailsNetworkValue } from './ActivityDetailsNetworkValue';
-import { ActivityDetailsTransactionId } from './ActivityDetailsTransactionId';
 
 /**
- * The type-agnostic metadata block: status, date, account, network, and a
- * copyable transaction id.
- *
- * From/To is opt-in per template: a caller passes `addressRows={{ from, to }}`
- * (Send and NFT do) to render a From/To pair. Every other activity type — swaps,
- * approvals, contract interactions, etc. — shows a single Account row, mirroring
- * the extension's `MetadataSection`. A smart-account upgrade is self-referential
- * and shows a single Address row.
+ * The type-agnostic metadata block: status, date, account (or from/to), network
+ * row. From/To/Account rows carry an account avatar and the network row carries
+ * its network badge.
  */
-export function ActivityDetailsMetadata({
-  item,
-  addressRows,
-}: {
-  item: ActivityListItem;
-  addressRows?: { from?: string; to?: string };
-}) {
+export function ActivityDetailsMetadata({ item }: { item: ActivityListItem }) {
   const { from, to } = getActivityFromTo(item);
   const networkName = useActivityNetworkName(item.chainId);
-  const showAddressOnly = item.type === 'smartAccountUpgrade';
-  const showFromTo =
-    !showAddressOnly && Boolean(addressRows?.from && addressRows?.to);
-  const fromAddress = addressRows?.from ?? '';
-  const toAddress = addressRows?.to ?? '';
+  const showFromTo = Boolean(from && to);
   const accountAddress = from || to;
 
   return (
@@ -57,21 +41,13 @@ export function ActivityDetailsMetadata({
         testID={ActivityDetailsSelectorsIDs.DATE_ROW}
       />
 
-      {showAddressOnly ? (
-        <ActivityDetailRow
-          label={strings('activity_details.address')}
-          value={
-            accountAddress ? renderShortAddress(accountAddress) : undefined
-          }
-          testID={ActivityDetailsSelectorsIDs.ADDRESS_ROW}
-        />
-      ) : showFromTo ? (
+      {showFromTo ? (
         <>
           <ActivityDetailRow
             label={strings('activity_details.from')}
             value={
               <ActivityDetailsAccountValue
-                address={fromAddress}
+                address={from}
                 chainId={item.chainId}
               />
             }
@@ -81,7 +57,7 @@ export function ActivityDetailsMetadata({
             label={strings('activity_details.to')}
             value={
               <ActivityDetailsAccountValue
-                address={toAddress}
+                address={to}
                 chainId={item.chainId}
               />
             }
@@ -116,11 +92,7 @@ export function ActivityDetailsMetadata({
 
       <ActivityDetailRow
         label={strings('activity_details.transaction_id')}
-        value={
-          item.hash ? (
-            <ActivityDetailsTransactionId hash={item.hash} />
-          ) : undefined
-        }
+        value={item.hash ? renderShortAddress(item.hash) : undefined}
         testID={ActivityDetailsSelectorsIDs.TRANSACTION_ID_ROW}
       />
     </ActivityDetailSection>

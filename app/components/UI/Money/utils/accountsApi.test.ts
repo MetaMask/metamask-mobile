@@ -340,8 +340,8 @@ describe('parseAccountsApiActivity', () => {
     expect(parseAccountsApiActivity({}, MONEY_ADDRESS)).toEqual([]);
   });
 
-  it('maps a card payment with an inbound mUSD leg to a refund (a reversed spend)', () => {
-    // Arrange — mUSD moves back TO the money account; a spend was refunded.
+  it('drops a card payment with no leg leaving the money account (e.g. a refund)', () => {
+    // Arrange — funds move TO the money account; not a card outflow.
     const response = {
       data: [
         {
@@ -351,46 +351,6 @@ describe('parseAccountsApiActivity', () => {
               ...cardPaymentRow.valueTransfers[0],
               from: SETTLEMENT_ADDRESS.toLowerCase(),
               to: MONEY_ADDRESS.toLowerCase(),
-            },
-          ],
-        },
-      ],
-    };
-
-    // Act
-    const result = parseAccountsApiActivity(response, MONEY_ADDRESS);
-
-    // Assert
-    expect(result).toEqual([
-      {
-        kind: 'refund',
-        hash: cardPaymentRow.hash,
-        time: Date.parse('2026-06-04T11:53:51.000Z'),
-        chainId: '0x8f',
-        token: {
-          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-          symbol: 'mUSD',
-          decimals: 6,
-        },
-        amount: '5381986',
-        receivedFrom: SETTLEMENT_ADDRESS.toLowerCase(),
-      },
-    ]);
-  });
-
-  it('drops a card payment whose inbound refund leg is not mUSD', () => {
-    // Arrange — inbound credit, but in a non-mUSD token: not a refund we surface.
-    const response = {
-      data: [
-        {
-          ...cardPaymentRow,
-          valueTransfers: [
-            {
-              ...cardPaymentRow.valueTransfers[0],
-              from: SETTLEMENT_ADDRESS.toLowerCase(),
-              to: MONEY_ADDRESS.toLowerCase(),
-              contractAddress: '0x754704bc059f8c67012fed69bc8a327a5aafb603',
-              symbol: 'USDC',
             },
           ],
         },

@@ -8,7 +8,6 @@ import { IconName, IconSize, IconColor } from '../../Icons/Icon';
  * Size variants of ButtonIcon.
  */
 export enum ButtonIconSizes {
-  Xs = '20',
   Sm = '24',
   Md = '32',
   Lg = '40',

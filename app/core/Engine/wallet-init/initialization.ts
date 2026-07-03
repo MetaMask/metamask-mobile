@@ -5,10 +5,6 @@ import { getKeyringControllerInstanceOptions } from './instance-options/keyring-
 import { getRemoteFeatureFlagControllerInstanceOptions } from './instance-options/remote-feature-flag-controller';
 import { getConnectivityControllerInstanceOptions } from './instance-options/connectivity-controller';
 import { getStorageServiceInstanceOptions } from './instance-options/storage-service';
-import {
-  getNetworkControllerInstanceOptions,
-  setupRpcEndpointMetrics,
-} from './instance-options/network-controller';
 
 /**
  * Construct the `@metamask/wallet` `Wallet` for mobile. Each controller's
@@ -21,26 +17,19 @@ export function initializeWallet({
   messenger: RootMessenger;
   state: NonNullable<WalletOptions['state']>;
 }) {
-  const wallet = new Wallet({
+  return new Wallet({
     messenger,
     state,
     instanceOptions: {
       approvalController: getApprovalControllerInstanceOptions(),
-      connectivityController: getConnectivityControllerInstanceOptions(),
       keyringController: getKeyringControllerInstanceOptions(messenger),
-      networkController: getNetworkControllerInstanceOptions(),
       remoteFeatureFlagController:
         getRemoteFeatureFlagControllerInstanceOptions({
           messenger,
           state,
         }),
+      connectivityController: getConnectivityControllerInstanceOptions(),
       storageService: getStorageServiceInstanceOptions(),
     },
   });
-
-  setupRpcEndpointMetrics(messenger);
-
-  wallet.init().catch((error) => console.error(error));
-
-  return wallet;
 }

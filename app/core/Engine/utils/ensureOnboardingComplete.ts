@@ -22,15 +22,6 @@ function* waitForOnboardingCompleteSaga(): SagaIterator {
 }
 
 /**
- * Get whether onboarding is complete.
- *
- * @returns Whether onboarding is complete.
- */
-export function isOnboardingComplete() {
-  return selectCompletedOnboarding(store.getState());
-}
-
-/**
  * Resolves when onboarding is complete. Resolves immediately when onboarding
  * is already done; otherwise waits for the `SET_COMPLETED_ONBOARDING` action
  * with `completedOnboarding: true`.
@@ -39,7 +30,7 @@ export function isOnboardingComplete() {
  * task drives the wait.
  */
 export async function ensureOnboardingComplete(): Promise<void> {
-  if (isOnboardingComplete()) {
+  if (selectCompletedOnboarding(store.getState())) {
     return;
   }
 

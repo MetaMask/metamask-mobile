@@ -2,23 +2,6 @@ import { Platform } from 'react-native';
 
 export type RNPlatform = 'ios' | 'android';
 
-const PLATFORM_VERSION_BY_OS: Record<RNPlatform, string | number> = {
-  ios: '17.0',
-  android: 34,
-};
-
-function applyPlatformOs(os: RNPlatform): RNPlatform {
-  const originalOS = Platform.OS as RNPlatform;
-  Platform.OS = os;
-  Platform.Version = PLATFORM_VERSION_BY_OS[os];
-  return originalOS;
-}
-
-function restorePlatformOs(originalOS: RNPlatform): void {
-  Platform.OS = originalOS;
-  Platform.Version = PLATFORM_VERSION_BY_OS[originalOS];
-}
-
 type PlatformFilter =
   | RNPlatform
   | RNPlatform[]
@@ -78,11 +61,12 @@ export function itForPlatforms(
   const targets = resolveTargetPlatforms(filter);
   for (const os of targets) {
     it(`${name} [${os}]`, async () => {
-      const originalOS = applyPlatformOs(os);
+      const originalOS = Platform.OS;
+      Platform.OS = os;
       try {
         await testFn({ os });
       } finally {
-        restorePlatformOs(originalOS);
+        Platform.OS = originalOS;
       }
     });
   }
@@ -100,11 +84,12 @@ export function itOnlyForPlatforms(
   for (const os of targets) {
     // eslint-disable-next-line jest/no-focused-tests -- itOnlyForPlatforms intentionally uses it.only
     it.only(`${name} [${os}]`, async () => {
-      const originalOS = applyPlatformOs(os);
+      const originalOS = Platform.OS;
+      Platform.OS = os;
       try {
         await testFn({ os });
       } finally {
-        restorePlatformOs(originalOS);
+        Platform.OS = originalOS;
       }
     });
   }
@@ -121,19 +106,15 @@ export function describeForPlatforms(
   filter?: PlatformFilter,
 ) {
   const targets = resolveTargetPlatforms(filter);
-  const originalOS = applyPlatformOs(
-    (Platform.OS === 'ios' || Platform.OS === 'android'
-      ? Platform.OS
-      : 'ios') as RNPlatform,
-  );
+  const originalOS = Platform.OS;
   for (const os of targets) {
     describe(`${name} [${os}]`, () => {
       beforeAll(() => {
-        applyPlatformOs(os);
+        Platform.OS = os;
         (globalThis as Record<string, unknown>)[SCOPE_KEY] = os;
       });
       afterAll(() => {
-        restorePlatformOs(originalOS);
+        Platform.OS = originalOS;
         delete (globalThis as Record<string, unknown>)[SCOPE_KEY];
       });
       // Set scope before define() so itForPlatforms/itOnlyForPlatforms inside define
@@ -175,11 +156,12 @@ export function itEach<T extends Record<string, unknown>>(table: readonly T[]) {
     for (const row of table) {
       for (const os of targets) {
         it(`${interpolateName(name, row as Record<string, unknown>)} [${os}]`, async () => {
-          const previousOS = applyPlatformOs(os);
+          const originalOS = Platform.OS;
+          Platform.OS = os;
           try {
             await testFn(row);
           } finally {
-            restorePlatformOs(previousOS);
+            Platform.OS = originalOS;
           }
         });
       }
@@ -196,20 +178,16 @@ export function describeEach<T extends Record<string, unknown>>(
 ) {
   return (name: string, define: (row: T) => void, filter?: PlatformFilter) => {
     const targets = resolveTargetPlatforms(filter);
-    const originalOS = applyPlatformOs(
-      (Platform.OS === 'ios' || Platform.OS === 'android'
-        ? Platform.OS
-        : 'ios') as RNPlatform,
-    );
+    const originalOS = Platform.OS;
     for (const row of table) {
       for (const os of targets) {
         describe(`${interpolateName(name, row as Record<string, unknown>)} [${os}]`, () => {
           beforeAll(() => {
-            applyPlatformOs(os);
+            Platform.OS = os;
             (globalThis as Record<string, unknown>)[SCOPE_KEY] = os;
           });
           afterAll(() => {
-            restorePlatformOs(originalOS);
+            Platform.OS = originalOS;
             delete (globalThis as Record<string, unknown>)[SCOPE_KEY];
           });
           const previousScope = (globalThis as Record<string, unknown>)[

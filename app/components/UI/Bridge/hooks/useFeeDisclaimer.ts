@@ -1,8 +1,4 @@
-import {
-  BRIDGE_MM_FEE_RATE,
-  DiscountType,
-  QuoteResponse,
-} from '@metamask/bridge-controller';
+import { BRIDGE_MM_FEE_RATE, QuoteResponse } from '@metamask/bridge-controller';
 import { isNullOrUndefined } from '@metamask/utils';
 import { useMemo } from 'react';
 import { strings } from '../../../../../locales/i18n';
@@ -12,7 +8,7 @@ import { strings } from '../../../../../locales/i18n';
 
 * @param activeQuote - The active quote from the bridge controller
  * @returns An object containing the following properties:
- * - discountBadge - The discount badge to show
+ * - showVipBadge: boolean - Whether to show the VIP badge
  * - infoText: string - The text to display in the fee disclaimer
  * - infoSuffix: string - The suffix to display in the fee disclaimer
  * - baseFeePercentage: string - The base fee percentage to display in the fee disclaimer
@@ -33,44 +29,18 @@ export const useFeeDisclaimer = ({
   const feePercentage = !isNullOrUndefined(quoteBpsFee)
     ? quoteBpsFee / 100
     : BRIDGE_MM_FEE_RATE;
-  const discountType = activeQuote?.quote.feeData.metabridge?.discountType;
-  const hasDiscountType =
-    !isNullOrUndefined(discountType) && discountType !== '';
 
   const hasFee = activeQuote && feePercentage > 0;
 
   const isDiscounted =
     activeQuote &&
-    hasDiscountType &&
     Boolean(baseBpsFee) &&
-    !isNullOrUndefined(quoteBpsFee) &&
+    Boolean(quoteBpsFee) &&
     baseBpsFee > quoteBpsFee;
-
-  const discountBadge = useMemo(() => {
-    if (!hasDiscountType) {
-      return undefined;
-    }
-
-    if (discountType === DiscountType.VIP) {
-      return { type: DiscountType.VIP };
-    }
-
-    if (discountType === DiscountType.DAO) {
-      return {
-        type: DiscountType.DAO,
-        label: strings('bridge.discount_badge_dao'),
-      };
-    }
-
-    return {
-      type: DiscountType.PROMO,
-      label: strings('bridge.discount_badge_promo'),
-    };
-  }, [discountType, hasDiscountType]);
 
   const infoText = useMemo(() => {
     if (isDiscounted) {
-      return;
+      return strings('bridge.fee_includes');
     }
 
     if (hasFee) {
@@ -89,7 +59,7 @@ export const useFeeDisclaimer = ({
   }, [isDiscounted, hasFee, activeQuote, feePercentage]);
 
   return {
-    discountBadge,
+    showVipBadge: isDiscounted,
     infoText,
     infoSuffix: isDiscounted
       ? strings('bridge.fee_percentage_meta_mask', {

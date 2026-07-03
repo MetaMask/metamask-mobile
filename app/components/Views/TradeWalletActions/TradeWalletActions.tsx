@@ -28,7 +28,6 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { useElevatedSurface } from '../../../util/theme/themeUtils';
 import {
   useSafeAreaFrame,
@@ -175,9 +174,6 @@ function TradeWalletActions() {
     postCallback.current = () => {
       navigate(Routes.BRIDGE.ROOT, {
         screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
-        params: {
-          batchSellLocation: BatchSellMetricsLocation.TradeMenu,
-        },
       });
     };
     handleNavigateBack();

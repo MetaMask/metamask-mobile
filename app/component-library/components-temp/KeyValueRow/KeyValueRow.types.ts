@@ -25,7 +25,7 @@ interface KeyValueRowTooltip {
   content: string | ReactNode;
   /**
    * Optional size of the tooltip icon.
-   * @default TooltipSizes.Xs
+   * @default TooltipSizes.Md
    */
   size?: ButtonIconSizes;
   /**

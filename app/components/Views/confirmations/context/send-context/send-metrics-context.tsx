@@ -27,7 +27,6 @@ export const AmountInputMethod = {
 export const RecipientInputMethod = {
   Manual: 'manual',
   Pasted: 'pasted',
-  QrScan: 'qr_code_scan',
   SelectAccount: 'select_account',
   SelectContact: 'select_contact',
 };

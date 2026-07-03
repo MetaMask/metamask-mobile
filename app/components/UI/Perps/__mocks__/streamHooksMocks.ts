@@ -74,7 +74,6 @@ export const defaultMockPriceUpdate: PriceUpdate = {
   symbol: 'ETH',
   price: '2000.00',
   timestamp: Date.now(),
-  isTradable: true,
   volume24h: 1000000,
 };
 

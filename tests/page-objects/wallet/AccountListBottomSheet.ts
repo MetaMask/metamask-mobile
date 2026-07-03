@@ -241,49 +241,14 @@ class AccountListBottomSheet {
       options?.srpIndex ?? 0,
     );
 
-    await encapsulatedAction({
-      detox: async () => {
-        await Assertions.expectElementToHaveText(button, 'Add account', {
-          description: 'Add Account button should be ready (not syncing)',
-          timeout: 30000,
-        });
+    await Assertions.expectElementToHaveText(button, 'Add account', {
+      description: 'Add Account button should be ready (not syncing)',
+      timeout: 30000,
+    });
 
-        await Gestures.waitAndTap(button, {
-          elemDescription: 'Add Account button in V2 multichain accounts',
-          delay: options?.shouldWait ? 5000 : 0,
-        });
-      },
-      appium: async () => {
-        if (PlatformDetector.isIOS()) {
-          // Account sync/discovery can keep the row visible but not yet tappable.
-          // Wait for the sync phase to settle before tapping "Add account".
-          await this.waitForAccountSyncToComplete();
-        }
-
-        await Assertions.expectElementToHaveText(button, 'Add account', {
-          description: 'Add Account button should be ready (not syncing)',
-          timeout: 30000,
-        });
-
-        if (PlatformDetector.isIOS()) {
-          await UnifiedGestures.waitAndTap(button, {
-            description: 'Add Account button in V2 multichain accounts',
-            delay: options?.shouldWait ? 5000 : 0,
-            timeout: 20000,
-            checkForDisplayed: true,
-            checkForEnabled: true,
-            waitForInteractive: true,
-            enabledStableReads: 3,
-            postEnabledSettleMs: 500,
-          });
-          return;
-        }
-
-        await Gestures.waitAndTap(button, {
-          elemDescription: 'Add Account button in V2 multichain accounts',
-          delay: options?.shouldWait ? 5000 : 0,
-        });
-      },
+    await Gestures.waitAndTap(button, {
+      elemDescription: 'Add Account button in V2 multichain accounts',
+      delay: options?.shouldWait ? 5000 : 0,
     });
   }
 
@@ -362,15 +327,19 @@ class AccountListBottomSheet {
         });
       },
       appium: async () => {
-        const escapedAccountName = accountName.replace(/'/g, "\\'");
-        const accountEl = PlatformDetector.isAndroid()
-          ? await PlaywrightMatchers.getElementByXPath(
-              exactMatch
-                ? `//*[@name='${escapedAccountName}' or @label='${escapedAccountName}' or @text='${escapedAccountName}' or @content-desc='${escapedAccountName}']/ancestor::*[@clickable='true'][1]`
-                : `//*[contains(@name,'${escapedAccountName}') or contains(@label,'${escapedAccountName}') or contains(@text,'${escapedAccountName}') or contains(@content-desc,'${escapedAccountName}')]/ancestor::*[@clickable='true'][1]`,
-            )
-          : await PlaywrightMatchers.getElementByText(accountName, exactMatch);
-        await PlaywrightGestures.scrollIntoView(accountEl);
+        const accountCells =
+          await this.getAccountElementsByAccountNameV2(accountName);
+        if (accountCells.length === 0) {
+          throw new Error(`No account row found for "${accountName}"`);
+        }
+
+        const accountEl = exactMatch
+          ? accountCells[0]
+          : accountCells[accountCells.length - 1];
+        await PlaywrightGestures.scrollIntoView(accountEl, {
+          scrollParams: { direction: 'down' },
+          maxScrolls: 10,
+        });
         await PlaywrightGestures.waitAndTap(accountEl);
       },
     });

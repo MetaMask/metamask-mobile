@@ -74,6 +74,7 @@ export async function importNewSecretRecoveryPhrase(
     } catch (error) {
       await MultichainAccountService.removeMultichainAccountWallet(
         entropySource,
+        newAccount.address,
       );
 
       const errorMessage =
@@ -106,6 +107,8 @@ export async function importNewSecretRecoveryPhrase(
   (async () => {
     let capturedError;
     try {
+      // HACK: Force Snap keyring instantiation.
+      await Engine.getSnapKeyring();
       // We need to dispatch a full sync here since this is a new SRP
       await Engine.context.AccountTreeController.syncWithUserStorage();
       // Then we discover accounts

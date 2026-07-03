@@ -3,7 +3,6 @@ import { View } from 'react-native';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './custom-amount.styles';
 import { getCurrencySymbol } from '../../../../../../util/number';
-import { formatAmountWithLocaleSeparators } from '../../../../../UI/Bridge/utils/formatAmountWithLocaleSeparators';
 import { Skeleton } from '../../../../../../component-library/components-temp/Skeleton';
 import { useSelector } from 'react-redux';
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
@@ -40,8 +39,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
   const selectedCurrency = useSelector(selectCurrentCurrency);
   const currency = currencyProp ?? selectedCurrency;
   const fiatSymbol = getCurrencySymbol(currency);
-  const formattedAmount = formatAmountWithLocaleSeparators(amountFiat);
-  const amountLength = formattedAmount.length;
+  const amountLength = amountFiat.length;
 
   const { styles } = useStyles(styleSheet, {
     amountLength,
@@ -65,7 +63,7 @@ export const CustomAmount: React.FC<CustomAmountProps> = React.memo((props) => {
         style={styles.input}
         onPress={disabled ? undefined : onPress}
       >
-        {formattedAmount}
+        {amountFiat}
       </Text>
     </View>
   );

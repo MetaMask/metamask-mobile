@@ -69,7 +69,6 @@ const emitEthPrice = (
         markPrice: '2500',
         percentChange24h,
         timestamp: Date.now(),
-        isTradable: true,
       },
     });
   });

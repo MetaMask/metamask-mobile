@@ -234,13 +234,3 @@ export const selectCardForgotPasswordFeatureEnabled = createSelector(
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   },
 );
-
-export const selectCardFiatCreditFeatureEnabled = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.cardFiatCreditFeature as unknown as GateVersionedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
-);

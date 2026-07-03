@@ -43,7 +43,7 @@ const styleSheet = (params: { theme: Theme }) =>
     intervalBarContainer: {
       width: '100%',
       alignSelf: 'stretch',
-      paddingTop: 8,
+      paddingTop: 12,
       paddingBottom: 8,
       flexDirection: 'column',
       alignItems: 'flex-start',

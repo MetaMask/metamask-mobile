@@ -164,9 +164,10 @@ describe('PerpsProducts', () => {
   it('renders category icons', () => {
     mockCategories = [{ id: 'crypto', label: 'Crypto' }];
 
-    const { getByTestId, getByText } = render(<PerpsProducts />);
+    const { getByTestId } = render(<PerpsProducts />);
 
-    expect(getByTestId('perps-products-crypto')).toBeOnTheScreen();
-    expect(getByText('Crypto')).toBeOnTheScreen();
+    const pill = getByTestId('perps-products-crypto');
+    expect(pill).toBeOnTheScreen();
+    expect(pill.children.length).toBeGreaterThanOrEqual(2);
   });
 });

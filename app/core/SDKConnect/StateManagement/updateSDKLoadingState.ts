@@ -24,7 +24,7 @@ async function updateSDKLoadingState({
   DevLogger.log(
     `updateSDKLoadingState:: currentRouteName=${currentRouteName} loading=${loading}`,
   );
-  const skipRoutes: readonly string[] = [
+  const skipRoutes = [
     Routes.LOCK_SCREEN,
     Routes.ONBOARDING.LOGIN,
     Routes.SHEET.ACCOUNT_CONNECT,

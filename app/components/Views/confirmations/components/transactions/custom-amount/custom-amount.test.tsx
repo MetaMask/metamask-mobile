@@ -6,14 +6,8 @@ import {
   useIsTransactionPayLoading,
   useTransactionPayIsMaxAmount,
 } from '../../../hooks/pay/useTransactionPayData';
-import { formatAmountWithLocaleSeparators } from '../../../../../UI/Bridge/utils/formatAmountWithLocaleSeparators';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
-jest.mock('../../../../../UI/Bridge/utils/formatAmountWithLocaleSeparators');
-
-const mockFormatAmountWithLocaleSeparators = jest.mocked(
-  formatAmountWithLocaleSeparators,
-);
 
 const mockUseTransactionPayIsMaxAmount = jest.mocked(
   useTransactionPayIsMaxAmount,
@@ -25,7 +19,6 @@ describe('CustomAmount', () => {
     jest.resetAllMocks();
     mockUseTransactionPayIsMaxAmount.mockReturnValue(false);
     mockUseIsTransactionPayLoading.mockReturnValue(false);
-    mockFormatAmountWithLocaleSeparators.mockImplementation((value) => value);
   });
 
   it('renders amount', () => {
@@ -34,19 +27,6 @@ describe('CustomAmount', () => {
     );
 
     expect(getByText('123.45')).toBeOnTheScreen();
-  });
-
-  it('renders the amount formatted with thousand separators', () => {
-    mockFormatAmountWithLocaleSeparators.mockImplementation(() => '1,000,000');
-
-    const { getByText } = renderWithProvider(
-      <CustomAmount amountFiat="1000000" />,
-    );
-
-    expect(mockFormatAmountWithLocaleSeparators).toHaveBeenCalledWith(
-      '1000000',
-    );
-    expect(getByText('1,000,000')).toBeOnTheScreen();
   });
 
   it('renders fiat symbol for specified currency', () => {

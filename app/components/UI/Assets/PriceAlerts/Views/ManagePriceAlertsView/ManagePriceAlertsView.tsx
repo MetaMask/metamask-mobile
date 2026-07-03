@@ -108,16 +108,7 @@ const ManagePriceAlertsView: React.FC = () => {
       return;
     }
     hasResolvedInitialFetch.current = true;
-    if (isError) {
-      toastRef?.current?.showToast({
-        variant: ToastVariants.Icon,
-        iconName: IconName.Danger,
-        iconColor: colors.error.default,
-        labelOptions: [{ label: strings('price_alerts.fetch_error') }],
-        hasNoTimeout: false,
-      });
-      navigation.goBack();
-    } else if (alerts.length === 0) {
+    if (isError || alerts.length === 0) {
       navigation.replace(Routes.CREATE_PRICE_ALERT, {
         symbol,
         ticker,
@@ -136,8 +127,6 @@ const ManagePriceAlertsView: React.FC = () => {
     currentPrice,
     currentCurrency,
     assetId,
-    toastRef,
-    colors,
   ]);
 
   const handleBack = useCallback(() => {
@@ -194,13 +183,6 @@ const ManagePriceAlertsView: React.FC = () => {
           navigation.goBack();
         }
       } catch {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Danger,
-          iconColor: colors.error.default,
-          labelOptions: [{ label: strings('price_alerts.delete_error') }],
-          hasNoTimeout: false,
-        });
         const response = await fetchAlerts(assetId).catch(() => null);
         if (response?.ok) {
           const data: PriceAlert[] = await response.json().catch(() => []);
@@ -237,13 +219,6 @@ const ManagePriceAlertsView: React.FC = () => {
         const response = await updateAlert(id, { active: newValue });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
       } catch {
-        toastRef?.current?.showToast({
-          variant: ToastVariants.Icon,
-          iconName: IconName.Danger,
-          iconColor: colors.error.default,
-          labelOptions: [{ label: strings('price_alerts.toggle_error') }],
-          hasNoTimeout: false,
-        });
         queryClient.setQueryData(
           queryKey,
           previous.map((a) => (a.id === id ? { ...a, active: !newValue } : a)),
@@ -257,7 +232,7 @@ const ManagePriceAlertsView: React.FC = () => {
         });
       }
     },
-    [assetId, queryClient, toastRef, colors],
+    [assetId, queryClient],
   );
 
   const renderItem = ({ item }: { item: PriceAlert }) => {

@@ -182,7 +182,6 @@ export default class PhishingModal extends PureComponent {
           onPress={this.props.goBackToSafety}
           style={styles.buttonWrapper}
           width={ButtonWidthTypes.Full}
-          testID={PhishingModalSelectorsIDs.BACK_TO_SAFETY_BUTTON}
         />
       </View>
     );

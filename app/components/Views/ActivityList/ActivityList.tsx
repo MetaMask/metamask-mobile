@@ -29,7 +29,6 @@ import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 import Routes from '../../../constants/navigation/Routes';
 import { RPC } from '../../../constants/network';
-import { FIAT_ORDER_PROVIDERS } from '../../../constants/on-ramp';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectNonEvmTransactionsForSelectedAccountGroup } from '../../../selectors/multichain/multichain';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
@@ -75,6 +74,7 @@ import {
 } from '../../UI/Bridge/utils/transaction-history';
 import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
+import ListItem from '../../Base/ListItem';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import MultichainTransactionsFooter from '../MultichainTransactionsView/MultichainTransactionsFooter';
 import { getAddressUrl } from '../../../core/Multichain/utils';
@@ -95,6 +95,7 @@ import { filterMultichainTransactionsExcludingMaliciousTokenActivity } from '../
 import { useTransactionsQuery } from './useTransactionsQuery';
 import { type ActivityListItem } from './types';
 import {
+  formatActivityListDateHeader,
   getActivityFromTo,
   getActivityValue,
   getGroupedActivityListItemKey,
@@ -108,8 +109,6 @@ import {
 } from './helpers/transformations';
 import { normalizeTransaction } from './helpers/adapters';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
-import { stashPreloadedActivityItem } from './preloadedActivityItemStore';
-import { useRampActivityItems } from './hooks/useRampActivityItems';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
   PerpsActivitySource,
@@ -133,7 +132,6 @@ import {
   ActivityListItemRow,
   resolveActivityListItemTitle,
 } from '../../UI/ActivityListItemRow/ActivityListItemRow';
-import ActivityListDateHeader from '../../UI/ActivityListItemRow/ActivityListDateHeader';
 
 const confirmedEvmOverscan = 5;
 const visibilityConfig = { itemVisiblePercentThreshold: 1 };
@@ -227,7 +225,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
     // Local EVM transactions mapped through the shared adapter
     const localActivityItems = useLocalActivityItems();
-    const rampActivityItems = useRampActivityItems();
 
     const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
     const [perpsSource, setPerpsSource] = useState<PerpsActivitySourceState>(
@@ -342,11 +339,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           .filter(
             (item) =>
               (item.type === 'predictionsAddFunds' ||
-                item.type === 'predictionsWithdrawFunds' ||
-                item.type === 'deposit' ||
-                item.type === 'claim' ||
-                item.type === 'unstake' ||
-                item.type === 'smartAccountUpgrade') &&
+                item.type === 'predictionsWithdrawFunds') &&
               item.raw?.type === 'localTransaction',
           )
           .map((item) =>
@@ -471,7 +464,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         nonEvmItems,
         isPerpsEnabled ? perpsSource.items : [],
         isPredictEnabled ? predictSource.items : [],
-        rampActivityItems,
       );
 
       let filtered = merged;
@@ -498,7 +490,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       perpsSource.items,
       isPredictEnabled,
       predictSource.items,
-      rampActivityItems,
     ]);
     const groupedData = useMemo(() => groupActivityListItems(data), [data]);
 
@@ -771,24 +762,18 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
 
         // Redesigned details (flag-gated): route resolvable EVM / non-EVM rows
         // to the new ActivityDetails screen, replacing the legacy detail sheets.
-        // Specialized flows (bridge) keep their dedicated
+        // Specialized flows (perps, predict, bridge) keep their dedicated
         // screens until they get redesigned templates — ActivityDetails only
-        // resolves local/API/non-EVM/domain items, so it can't render those yet.
+        // resolves local/API/non-EVM items, so it can't render those yet.
         const hasDedicatedScreen =
-          raw.type === 'localTransaction' &&
-          raw.data.primaryTransaction?.type === TransactionType.bridge;
+          raw.type === 'perpsTransaction' ||
+          raw.type === 'predictActivity' ||
+          (raw.type === 'localTransaction' &&
+            raw.data.primaryTransaction?.type === TransactionType.bridge);
         if (isTransactionsRedesignEnabled && item.hash && !hasDedicatedScreen) {
-          // Provider-backed rows (Perps / Predict) can't be re-resolved by hash
-          // outside their source tree, so hand the row off via the transient
-          // store and pass only its key in the (serializable) params.
-          const preloadKey =
-            raw.type === 'perpsTransaction' || raw.type === 'predictActivity'
-              ? stashPreloadedActivityItem(item)
-              : undefined;
           navigation.navigate(Routes.ACTIVITY_DETAILS, {
             chainId: item.chainId,
             txIdentifier: item.hash,
-            ...(preloadKey ? { preloadKey } : {}),
           });
           return;
         }
@@ -820,30 +805,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           navigation.navigate(Routes.PREDICT.MODALS.ROOT, {
             screen: Routes.PREDICT.ACTIVITY_DETAIL,
             params: { activity: predictActivityToItem(raw.data) },
-          });
-          return;
-        }
-
-        if (raw.type === 'rampOrder') {
-          if (!isTransactionsRedesignEnabled) {
-            if (raw.data.provider === FIAT_ORDER_PROVIDERS.DEPOSIT) {
-              navigation.navigate(Routes.DEPOSIT.ORDER_DETAILS, {
-                orderId: raw.data.id,
-              });
-            } else if (raw.data.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2) {
-              navigation.navigate(Routes.RAMP.RAMPS_ORDER_DETAILS, {
-                orderId: raw.data.id,
-              });
-            } else {
-              navigation.navigate(Routes.RAMP.ORDER_DETAILS, {
-                orderId: raw.data.id,
-              });
-            }
-            return;
-          }
-          navigation.navigate(Routes.ACTIVITY_DETAILS, {
-            chainId: item.chainId,
-            txIdentifier: item.hash ?? raw.data.id,
           });
           return;
         }
@@ -898,7 +859,6 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         ) {
           const bridgeTxHistoryItem =
             bridgeHistory[tx.id] ??
-            // eslint-disable-next-line @typescript-eslint/no-deprecated -- Older persisted bridge history can still be keyed by actionId.
             (tx.actionId ? bridgeHistory[tx.actionId] : undefined) ??
             Object.values(bridgeHistory).find(
               (itemValue) =>
@@ -1168,12 +1128,18 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     }) => {
       if (groupedItem.type === 'pending-header') {
         return (
-          <ActivityListDateHeader label={strings('transaction.pending')} />
+          <ListItem.Date style={styles.dateHeader}>
+            {strings('transaction.pending')}
+          </ListItem.Date>
         );
       }
 
       if (groupedItem.type === 'date-header') {
-        return <ActivityListDateHeader timestamp={groupedItem.date} />;
+        return (
+          <ListItem.Date style={styles.dateHeader}>
+            {formatActivityListDateHeader(groupedItem.date)}
+          </ListItem.Date>
+        );
       }
 
       const { item } = groupedItem;
@@ -1253,7 +1219,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
                   autoscrollToTopThreshold: 100,
                 }}
                 style={baseStyles.flexGrow}
-                contentContainerStyle={tw.style('pb-8')}
+                contentContainerStyle={tw.style('px-4 pb-8')}
                 refreshControl={
                   <RefreshControl
                     refreshing={refreshing}

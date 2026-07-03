@@ -76,7 +76,6 @@ import rewardsReducer, {
   setVersionGuardLoading,
   setVersionGuardError,
   dismissCampaignOutcomeToast,
-  subscribeCampaignReminder,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
@@ -92,7 +91,6 @@ import {
   OndoGmActivityEntryDto,
   PerpsTradingCampaignLeaderboardDto,
   PerpsTradingCampaignLeaderboardPositionDto,
-  PerpsTradingCampaignVolumeDto,
   PredictThePitchLeaderboardDto,
   PredictThePitchLeaderboardPositionDto,
   PredictThePitchPositionsDto,
@@ -2115,24 +2113,36 @@ describe('rewardsReducer', () => {
         campaignsError: false,
         campaignsHasLoaded: false,
         campaignParticipantStatuses: {},
-        ondoCampaignLeaderboards: {},
+        ondoCampaignLeaderboard: null,
+        ondoCampaignLeaderboardLoading: false,
+        ondoCampaignLeaderboardError: false,
+        ondoCampaignLeaderboardSelectedTier: null,
         ondoCampaignLeaderboardPositions: {},
         ondoCampaignPortfolio: {},
         ondoCampaignActivity: {},
-        ondoCampaignDeposits: {},
+        ondoCampaignDeposits: null,
+        ondoCampaignDepositsLoading: false,
+        ondoCampaignDepositsError: false,
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
-        perpsTradingCampaignLeaderboards: {},
+        perpsTradingCampaignLeaderboard: null,
+        perpsTradingCampaignLeaderboardLoading: false,
+        perpsTradingCampaignLeaderboardError: false,
         perpsTradingCampaignLeaderboardPositions: {},
-        perpsTradingCampaignVolumes: {},
-        predictThePitchLeaderboards: {},
+        perpsTradingCampaignVolume: null,
+        perpsTradingCampaignVolumeLoading: false,
+        perpsTradingCampaignVolumeError: false,
+        predictThePitchLeaderboard: null,
+        predictThePitchLeaderboardLoading: false,
+        predictThePitchLeaderboardError: false,
         predictThePitchLeaderboardPositions: {},
         predictThePitchPositions: {},
-        predictThePitchPrizePools: {},
+        predictThePitchPrizePool: null,
+        predictThePitchPrizePoolLoading: false,
+        predictThePitchPrizePoolError: false,
         pendingDeeplink: null,
         dismissedCampaignOutcomeToasts: {},
-        subscribedCampaignReminders: {},
       };
       const action = resetRewardsState();
 
@@ -2249,24 +2259,36 @@ describe('rewardsReducer', () => {
         campaignsError: false,
         campaignsHasLoaded: false,
         campaignParticipantStatuses: {},
-        ondoCampaignLeaderboards: {},
+        ondoCampaignLeaderboard: null,
+        ondoCampaignLeaderboardLoading: false,
+        ondoCampaignLeaderboardError: false,
+        ondoCampaignLeaderboardSelectedTier: null,
         ondoCampaignLeaderboardPositions: {},
         ondoCampaignPortfolio: {},
         ondoCampaignActivity: {},
-        ondoCampaignDeposits: {},
+        ondoCampaignDeposits: null,
+        ondoCampaignDepositsLoading: false,
+        ondoCampaignDepositsError: false,
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
-        perpsTradingCampaignLeaderboards: {},
+        perpsTradingCampaignLeaderboard: null,
+        perpsTradingCampaignLeaderboardLoading: false,
+        perpsTradingCampaignLeaderboardError: false,
         perpsTradingCampaignLeaderboardPositions: {},
-        perpsTradingCampaignVolumes: {},
-        predictThePitchLeaderboards: {},
+        perpsTradingCampaignVolume: null,
+        perpsTradingCampaignVolumeLoading: false,
+        perpsTradingCampaignVolumeError: false,
+        predictThePitchLeaderboard: null,
+        predictThePitchLeaderboardLoading: false,
+        predictThePitchLeaderboardError: false,
         predictThePitchLeaderboardPositions: {},
         predictThePitchPositions: {},
-        predictThePitchPrizePools: {},
+        predictThePitchPrizePool: null,
+        predictThePitchPrizePoolLoading: false,
+        predictThePitchPrizePoolError: false,
         pendingDeeplink: null,
         dismissedCampaignOutcomeToasts: {},
-        subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2320,7 +2342,6 @@ describe('rewardsReducer', () => {
           },
         ],
         dismissedCampaignOutcomeToasts: {},
-        subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2378,7 +2399,6 @@ describe('rewardsReducer', () => {
           },
         ],
         dismissedCampaignOutcomeToasts: {},
-        subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2491,7 +2511,6 @@ describe('rewardsReducer', () => {
           },
         ],
         dismissedCampaignOutcomeToasts: {},
-        subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2557,7 +2576,6 @@ describe('rewardsReducer', () => {
         onboardingActiveStep: OnboardingStep.STEP_4, // This should NOT be persisted
         onboardingReferralCode: 'PERSISTED_REF', // This should NOT be persisted
         dismissedCampaignOutcomeToasts: {},
-        subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2642,7 +2660,6 @@ describe('rewardsReducer', () => {
           'sub-1:campaign-1': mockPosition,
         },
         dismissedCampaignOutcomeToasts: {},
-        subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2691,7 +2708,6 @@ describe('rewardsReducer', () => {
           'sub-1:campaign-1': persisted,
         },
         dismissedCampaignOutcomeToasts: {},
-        subscribedCampaignReminders: {},
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -4532,7 +4548,6 @@ describe('persist/REHYDRATE with bulk link state', () => {
         initialSubscriptionId: 'running-sub',
       },
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4565,7 +4580,6 @@ describe('persist/REHYDRATE with bulk link state', () => {
         initialSubscriptionId: 'progress-sub',
       },
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4596,7 +4610,6 @@ describe('persist/REHYDRATE with bulk link state', () => {
         initialSubscriptionId: 'validate-sub',
       },
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4625,7 +4638,6 @@ describe('persist/REHYDRATE with bulk link state', () => {
         initialSubscriptionId: 'completed-sub',
       },
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4655,7 +4667,6 @@ describe('persist/REHYDRATE with bulk link state', () => {
         initialSubscriptionId: 'old-sub',
       },
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const rehydrateAction = {
       type: 'persist/REHYDRATE',
@@ -4745,7 +4756,6 @@ describe('setBenefits', () => {
       ...initialState,
       benefits: mockBenefitsPayload.benefits,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const nextBenefitsPayload = {
       limit: 20,
@@ -4773,7 +4783,6 @@ describe('setBenefits', () => {
       campaignsLoading: true,
       activeTab: 'campaigns',
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setBenefits(mockBenefitsPayload);
 
@@ -4801,7 +4810,6 @@ describe('setBenefitsLoading', () => {
       ...initialState,
       benefitsLoading: true,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setBenefitsLoading(false);
 
@@ -4825,7 +4833,6 @@ describe('setBenefitsError', () => {
       ...initialState,
       benefitsError: true,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setBenefitsError(false);
 
@@ -4920,7 +4927,6 @@ describe('setVipDashboard', () => {
       ...initialState,
       vipDashboardError: true,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setVipDashboard({
       subscriptionId: 'sub-1',
@@ -4940,7 +4946,6 @@ describe('setVipDashboard', () => {
         'sub-1': mockVipDashboard,
       },
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setVipDashboard({
       subscriptionId: 'sub-1',
@@ -5118,7 +5123,6 @@ describe('setCampaigns', () => {
       ...initialState,
       campaigns: [mockCampaign],
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const newCampaign: CampaignDto = {
       ...mockCampaign,
@@ -5138,7 +5142,6 @@ describe('setCampaigns', () => {
       ...initialState,
       campaigns: [mockCampaign],
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setCampaigns([]);
 
@@ -5153,7 +5156,6 @@ describe('setCampaigns', () => {
       ...initialState,
       campaignsError: true,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setCampaigns([mockCampaign]);
 
@@ -5179,7 +5181,6 @@ describe('setCampaignsLoading', () => {
       campaigns: [mockCampaign],
       campaignsLoading: false,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setCampaignsLoading(true);
 
@@ -5193,7 +5194,6 @@ describe('setCampaignsLoading', () => {
       ...initialState,
       campaignsLoading: true,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setCampaignsLoading(false);
 
@@ -5208,7 +5208,6 @@ describe('setCampaignsLoading', () => {
       campaigns: [mockCampaign],
       campaignsLoading: true,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setCampaignsLoading(false);
 
@@ -5234,7 +5233,6 @@ describe('setCampaignsError', () => {
       campaignsError: true,
       campaignsHasLoaded: true,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setCampaignsError(false);
 
@@ -5250,7 +5248,6 @@ describe('setCampaignsError', () => {
       campaignsError: true,
       campaignsHasLoaded: false,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setCampaignsError(false);
 
@@ -5303,7 +5300,6 @@ describe('setCampaignParticipantStatus', () => {
         'sub-1:campaign-1': { optedIn: false, participantCount: 10 },
       },
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
 
     const action = setCampaignParticipantStatus({
@@ -5370,7 +5366,6 @@ describe('setVersionGuardMinimumMobileVersion', () => {
       ...initialState,
       versionGuardMinimumMobileVersion: '7.29.0',
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setVersionGuardMinimumMobileVersion('7.30.0');
 
@@ -5384,7 +5379,6 @@ describe('setVersionGuardMinimumMobileVersion', () => {
       ...initialState,
       versionGuardMinimumMobileVersion: '7.30.0',
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setVersionGuardMinimumMobileVersion(null);
 
@@ -5418,7 +5412,6 @@ describe('setVersionGuardLoading', () => {
       ...initialState,
       versionGuardLoading: true,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setVersionGuardLoading(false);
 
@@ -5453,7 +5446,6 @@ describe('setVersionGuardError', () => {
       ...initialState,
       versionGuardError: true,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setVersionGuardError(false);
 
@@ -5696,294 +5688,157 @@ const mockPortfolio: OndoGmPortfolioDto = {
   computedAt: '2024-03-20T12:00:00.000Z',
 };
 
-const MOCK_CAMPAIGN_ID = 'campaign-1';
-const PERPS_CAMPAIGN_ID = 'perps-c-1';
-const PREDICT_CAMPAIGN_ID = 'predict-c-1';
-
 describe('setOndoCampaignLeaderboard', () => {
   it('should set leaderboard data', () => {
-    const action = setOndoCampaignLeaderboard({
-      campaignId: MOCK_CAMPAIGN_ID,
-      leaderboard: mockLeaderboard,
-    });
+    const action = setOndoCampaignLeaderboard(mockLeaderboard);
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].data).toEqual(
-      mockLeaderboard,
-    );
-    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].error).toBe(false);
+    expect(state.ondoCampaignLeaderboard).toEqual(mockLeaderboard);
+    expect(state.ondoCampaignLeaderboardError).toBe(false);
   });
 
   it('should set first tier as selected when not already set', () => {
-    const action = setOndoCampaignLeaderboard({
-      campaignId: MOCK_CAMPAIGN_ID,
-      leaderboard: mockLeaderboard,
-    });
+    const action = setOndoCampaignLeaderboard(mockLeaderboard);
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].selectedTier).toBe(
-      'STARTER',
-    );
+    expect(state.ondoCampaignLeaderboardSelectedTier).toBe('STARTER');
   });
 
   it('should not override existing selected tier', () => {
     const stateWithSelectedTier: RewardsState = {
       ...initialState,
-      ondoCampaignLeaderboards: {
-        [MOCK_CAMPAIGN_ID]: {
-          data: null,
-          loading: false,
-          error: false,
-          selectedTier: 'MID',
-        },
-      },
+      ondoCampaignLeaderboardSelectedTier: 'MID',
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
-    const action = setOndoCampaignLeaderboard({
-      campaignId: MOCK_CAMPAIGN_ID,
-      leaderboard: mockLeaderboard,
-    });
+    const action = setOndoCampaignLeaderboard(mockLeaderboard);
 
     const state = rewardsReducer(stateWithSelectedTier, action);
 
-    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].selectedTier).toBe(
-      'MID',
-    );
+    expect(state.ondoCampaignLeaderboardSelectedTier).toBe('MID');
   });
 
   it('should reset selected tier to first when current selection does not exist in new data', () => {
     const stateWithStaleSelection: RewardsState = {
       ...initialState,
-      ondoCampaignLeaderboards: {
-        [MOCK_CAMPAIGN_ID]: {
-          data: null,
-          loading: false,
-          error: false,
-          selectedTier: 'UPPER',
-        },
-      },
+      ondoCampaignLeaderboardSelectedTier: 'UPPER',
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
-    const action = setOndoCampaignLeaderboard({
-      campaignId: MOCK_CAMPAIGN_ID,
-      leaderboard: mockLeaderboard,
-    });
+    const action = setOndoCampaignLeaderboard(mockLeaderboard);
 
     const state = rewardsReducer(stateWithStaleSelection, action);
 
-    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].selectedTier).toBe(
-      'STARTER',
-    );
+    expect(state.ondoCampaignLeaderboardSelectedTier).toBe('STARTER');
   });
 
   it('should set leaderboard to null', () => {
     const stateWithLeaderboard: RewardsState = {
       ...initialState,
-      ondoCampaignLeaderboards: {
-        [MOCK_CAMPAIGN_ID]: {
-          data: mockLeaderboard,
-          loading: false,
-          error: false,
-          selectedTier: 'STARTER',
-        },
-      },
+      ondoCampaignLeaderboard: mockLeaderboard,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
-    const action = setOndoCampaignLeaderboard({
-      campaignId: MOCK_CAMPAIGN_ID,
-      leaderboard: null,
-    });
+    const action = setOndoCampaignLeaderboard(null);
 
     const state = rewardsReducer(stateWithLeaderboard, action);
 
-    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].data).toBeNull();
+    expect(state.ondoCampaignLeaderboard).toBeNull();
   });
 
   it('should reset error when setting leaderboard', () => {
     const stateWithError: RewardsState = {
       ...initialState,
-      ondoCampaignLeaderboards: {
-        [MOCK_CAMPAIGN_ID]: {
-          data: null,
-          loading: false,
-          error: true,
-          selectedTier: null,
-        },
-      },
+      ondoCampaignLeaderboardError: true,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
-    const action = setOndoCampaignLeaderboard({
-      campaignId: MOCK_CAMPAIGN_ID,
-      leaderboard: mockLeaderboard,
-    });
+    const action = setOndoCampaignLeaderboard(mockLeaderboard);
 
     const state = rewardsReducer(stateWithError, action);
 
-    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].error).toBe(false);
-  });
-
-  it('should keep campaign A data when setting campaign B data', () => {
-    const campaignA = 'campaign-a';
-    const campaignB = 'campaign-b';
-    const leaderboardA = { ...mockLeaderboard, campaignId: campaignA };
-    const leaderboardB = { ...mockLeaderboard, campaignId: campaignB };
-
-    let state = rewardsReducer(
-      initialState,
-      setOndoCampaignLeaderboard({
-        campaignId: campaignA,
-        leaderboard: leaderboardA,
-      }),
-    );
-    state = rewardsReducer(
-      state,
-      setOndoCampaignLeaderboard({
-        campaignId: campaignB,
-        leaderboard: leaderboardB,
-      }),
-    );
-
-    expect(state.ondoCampaignLeaderboards[campaignA].data).toEqual(
-      leaderboardA,
-    );
-    expect(state.ondoCampaignLeaderboards[campaignB].data).toEqual(
-      leaderboardB,
-    );
+    expect(state.ondoCampaignLeaderboardError).toBe(false);
   });
 });
 
 describe('setOndoCampaignLeaderboardLoading', () => {
-  it('should set loading to true', () => {
-    const action = setOndoCampaignLeaderboardLoading({
-      campaignId: MOCK_CAMPAIGN_ID,
-      loading: true,
-    });
+  it('should set loading to true when no leaderboard exists', () => {
+    const action = setOndoCampaignLeaderboardLoading(true);
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].loading).toBe(true);
+    expect(state.ondoCampaignLeaderboardLoading).toBe(true);
+  });
+
+  it('should not set loading to true when leaderboard already exists', () => {
+    const stateWithLeaderboard: RewardsState = {
+      ...initialState,
+      ondoCampaignLeaderboard: mockLeaderboard,
+      ondoCampaignLeaderboardLoading: false,
+      dismissedCampaignOutcomeToasts: {},
+    };
+    const action = setOndoCampaignLeaderboardLoading(true);
+
+    const state = rewardsReducer(stateWithLeaderboard, action);
+
+    expect(state.ondoCampaignLeaderboardLoading).toBe(false);
   });
 
   it('should set loading to false', () => {
     const stateWithLoading: RewardsState = {
       ...initialState,
-      ondoCampaignLeaderboards: {
-        [MOCK_CAMPAIGN_ID]: {
-          data: null,
-          loading: true,
-          error: false,
-          selectedTier: null,
-        },
-      },
+      ondoCampaignLeaderboardLoading: true,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
-    const action = setOndoCampaignLeaderboardLoading({
-      campaignId: MOCK_CAMPAIGN_ID,
-      loading: false,
-    });
+    const action = setOndoCampaignLeaderboardLoading(false);
 
     const state = rewardsReducer(stateWithLoading, action);
 
-    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].loading).toBe(
-      false,
-    );
+    expect(state.ondoCampaignLeaderboardLoading).toBe(false);
   });
 });
 
 describe('setOndoCampaignLeaderboardError', () => {
-  it('should set error to true and clear data', () => {
-    const stateWithData: RewardsState = {
-      ...initialState,
-      ondoCampaignLeaderboards: {
-        [MOCK_CAMPAIGN_ID]: {
-          data: mockLeaderboard,
-          loading: false,
-          error: false,
-          selectedTier: 'STARTER',
-        },
-      },
-    };
-    const action = setOndoCampaignLeaderboardError({
-      campaignId: MOCK_CAMPAIGN_ID,
-      error: true,
-    });
+  it('should set error to true', () => {
+    const action = setOndoCampaignLeaderboardError(true);
 
-    const state = rewardsReducer(stateWithData, action);
+    const state = rewardsReducer(initialState, action);
 
-    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].error).toBe(true);
-    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].data).toBeNull();
+    expect(state.ondoCampaignLeaderboardError).toBe(true);
   });
 
   it('should set error to false', () => {
     const stateWithError: RewardsState = {
       ...initialState,
-      ondoCampaignLeaderboards: {
-        [MOCK_CAMPAIGN_ID]: {
-          data: null,
-          loading: false,
-          error: true,
-          selectedTier: null,
-        },
-      },
+      ondoCampaignLeaderboardError: true,
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
-    const action = setOndoCampaignLeaderboardError({
-      campaignId: MOCK_CAMPAIGN_ID,
-      error: false,
-    });
+    const action = setOndoCampaignLeaderboardError(false);
 
     const state = rewardsReducer(stateWithError, action);
 
-    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].error).toBe(false);
+    expect(state.ondoCampaignLeaderboardError).toBe(false);
   });
 });
 
 describe('setOndoCampaignLeaderboardSelectedTier', () => {
   it('should set selected tier', () => {
-    const action = setOndoCampaignLeaderboardSelectedTier({
-      campaignId: MOCK_CAMPAIGN_ID,
-      tier: 'MID',
-    });
+    const action = setOndoCampaignLeaderboardSelectedTier('MID');
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].selectedTier).toBe(
-      'MID',
-    );
+    expect(state.ondoCampaignLeaderboardSelectedTier).toBe('MID');
   });
 
   it('should update selected tier', () => {
     const stateWithSelectedTier: RewardsState = {
       ...initialState,
-      ondoCampaignLeaderboards: {
-        [MOCK_CAMPAIGN_ID]: {
-          data: null,
-          loading: false,
-          error: false,
-          selectedTier: 'STARTER',
-        },
-      },
+      ondoCampaignLeaderboardSelectedTier: 'STARTER',
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
-    const action = setOndoCampaignLeaderboardSelectedTier({
-      campaignId: MOCK_CAMPAIGN_ID,
-      tier: 'UPPER',
-    });
+    const action = setOndoCampaignLeaderboardSelectedTier('UPPER');
 
     const state = rewardsReducer(stateWithSelectedTier, action);
 
-    expect(state.ondoCampaignLeaderboards[MOCK_CAMPAIGN_ID].selectedTier).toBe(
-      'UPPER',
-    );
+    expect(state.ondoCampaignLeaderboardSelectedTier).toBe('UPPER');
   });
 });
 
@@ -6007,7 +5862,6 @@ describe('setOndoCampaignLeaderboardPosition', () => {
       ...initialState,
       ondoCampaignLeaderboardPositions: { 'sub-1:campaign-1': mockPosition },
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setOndoCampaignLeaderboardPosition({
       subscriptionId: 'sub-1',
@@ -6073,7 +5927,6 @@ describe('setOndoCampaignPortfolioPosition', () => {
       ...initialState,
       ondoCampaignPortfolio: { 'sub-1:campaign-1': mockPortfolio },
       dismissedCampaignOutcomeToasts: {},
-      subscribedCampaignReminders: {},
     };
     const action = setOndoCampaignPortfolioPosition({
       subscriptionId: 'sub-1',
@@ -6150,134 +6003,86 @@ describe('setPerpsTradingCampaignLeaderboard', () => {
   it('sets leaderboard data and clears error', () => {
     const stateWithError: RewardsState = {
       ...initialState,
-      perpsTradingCampaignLeaderboards: {
-        [PERPS_CAMPAIGN_ID]: {
-          data: null,
-          loading: false,
-          error: true,
-        },
-      },
+      perpsTradingCampaignLeaderboardError: true,
     };
 
     const state = rewardsReducer(
       stateWithError,
-      setPerpsTradingCampaignLeaderboard({
-        campaignId: PERPS_CAMPAIGN_ID,
-        leaderboard: mockPerpsLeaderboard,
-      }),
+      setPerpsTradingCampaignLeaderboard(mockPerpsLeaderboard),
     );
 
-    expect(
-      state.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].data,
-    ).toEqual(mockPerpsLeaderboard);
-    expect(
-      state.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].error,
-    ).toBe(false);
+    expect(state.perpsTradingCampaignLeaderboard).toEqual(mockPerpsLeaderboard);
+    expect(state.perpsTradingCampaignLeaderboardError).toBe(false);
   });
 
   it('sets leaderboard to null', () => {
     const stateWithData: RewardsState = {
       ...initialState,
-      perpsTradingCampaignLeaderboards: {
-        [PERPS_CAMPAIGN_ID]: {
-          data: mockPerpsLeaderboard,
-          loading: false,
-          error: false,
-        },
-      },
+      perpsTradingCampaignLeaderboard: mockPerpsLeaderboard,
     };
 
     const state = rewardsReducer(
       stateWithData,
-      setPerpsTradingCampaignLeaderboard({
-        campaignId: PERPS_CAMPAIGN_ID,
-        leaderboard: null,
-      }),
+      setPerpsTradingCampaignLeaderboard(null),
     );
 
-    expect(
-      state.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].data,
-    ).toBeNull();
+    expect(state.perpsTradingCampaignLeaderboard).toBeNull();
   });
 });
 
 describe('setPerpsTradingCampaignLeaderboardLoading', () => {
-  it('sets loading to true', () => {
+  it('sets loading to true when no leaderboard is cached', () => {
     const state = rewardsReducer(
       initialState,
-      setPerpsTradingCampaignLeaderboardLoading({
-        campaignId: PERPS_CAMPAIGN_ID,
-        loading: true,
-      }),
+      setPerpsTradingCampaignLeaderboardLoading(true),
     );
 
-    expect(
-      state.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].loading,
-    ).toBe(true);
+    expect(state.perpsTradingCampaignLeaderboardLoading).toBe(true);
+  });
+
+  it('does not set loading to true when leaderboard is already present', () => {
+    const stateWithLeaderboard: RewardsState = {
+      ...initialState,
+      perpsTradingCampaignLeaderboard: mockPerpsLeaderboard,
+      perpsTradingCampaignLeaderboardLoading: false,
+    };
+
+    const state = rewardsReducer(
+      stateWithLeaderboard,
+      setPerpsTradingCampaignLeaderboardLoading(true),
+    );
+
+    expect(state.perpsTradingCampaignLeaderboardLoading).toBe(false);
   });
 
   it('clears loading to false', () => {
     const stateWithLoading: RewardsState = {
       ...initialState,
-      perpsTradingCampaignLeaderboards: {
-        [PERPS_CAMPAIGN_ID]: {
-          data: null,
-          loading: true,
-          error: false,
-        },
-      },
+      perpsTradingCampaignLeaderboardLoading: true,
     };
 
     const state = rewardsReducer(
       stateWithLoading,
-      setPerpsTradingCampaignLeaderboardLoading({
-        campaignId: PERPS_CAMPAIGN_ID,
-        loading: false,
-      }),
+      setPerpsTradingCampaignLeaderboardLoading(false),
     );
 
-    expect(
-      state.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].loading,
-    ).toBe(false);
+    expect(state.perpsTradingCampaignLeaderboardLoading).toBe(false);
   });
 });
 
 describe('setPerpsTradingCampaignLeaderboardError', () => {
-  it('sets and clears the error flag and clears data on error', () => {
-    const withData: RewardsState = {
-      ...initialState,
-      perpsTradingCampaignLeaderboards: {
-        [PERPS_CAMPAIGN_ID]: {
-          data: mockPerpsLeaderboard,
-          loading: false,
-          error: false,
-        },
-      },
-    };
+  it('sets and clears the error flag', () => {
     const withError = rewardsReducer(
-      withData,
-      setPerpsTradingCampaignLeaderboardError({
-        campaignId: PERPS_CAMPAIGN_ID,
-        error: true,
-      }),
+      initialState,
+      setPerpsTradingCampaignLeaderboardError(true),
     );
-    expect(
-      withError.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].error,
-    ).toBe(true);
-    expect(
-      withError.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].data,
-    ).toBeNull();
+    expect(withError.perpsTradingCampaignLeaderboardError).toBe(true);
 
     const cleared = rewardsReducer(
       withError,
-      setPerpsTradingCampaignLeaderboardError({
-        campaignId: PERPS_CAMPAIGN_ID,
-        error: false,
-      }),
+      setPerpsTradingCampaignLeaderboardError(false),
     );
-    expect(
-      cleared.perpsTradingCampaignLeaderboards[PERPS_CAMPAIGN_ID].error,
-    ).toBe(false);
+    expect(cleared.perpsTradingCampaignLeaderboardError).toBe(false);
   });
 });
 
@@ -6312,93 +6117,49 @@ describe('setPerpsTradingCampaignLeaderboardPosition', () => {
 });
 
 describe('perps trading campaign volume', () => {
-  const mockVolume: PerpsTradingCampaignVolumeDto = {
+  const mockVolume: RewardsState['perpsTradingCampaignVolume'] = {
     totalUsdVolume: '1000000',
   };
 
   it('setPerpsTradingCampaignVolume sets data and clears error', () => {
     const stateWithError: RewardsState = {
       ...initialState,
-      perpsTradingCampaignVolumes: {
-        [PERPS_CAMPAIGN_ID]: {
-          data: null,
-          loading: false,
-          error: true,
-        },
-      },
+      perpsTradingCampaignVolumeError: true,
     };
 
     const state = rewardsReducer(
       stateWithError,
-      setPerpsTradingCampaignVolume({
-        campaignId: PERPS_CAMPAIGN_ID,
-        volume: mockVolume,
-      }),
+      setPerpsTradingCampaignVolume(mockVolume),
     );
 
-    expect(state.perpsTradingCampaignVolumes[PERPS_CAMPAIGN_ID].data).toEqual(
-      mockVolume,
-    );
-    expect(state.perpsTradingCampaignVolumes[PERPS_CAMPAIGN_ID].error).toBe(
-      false,
-    );
+    expect(state.perpsTradingCampaignVolume).toEqual(mockVolume);
+    expect(state.perpsTradingCampaignVolumeError).toBe(false);
   });
 
-  it('setPerpsTradingCampaignVolumeLoading toggles loading per campaign', () => {
+  it('setPerpsTradingCampaignVolumeLoading(true) is skipped when volume is cached', () => {
     const stateWithVolume: RewardsState = {
       ...initialState,
-      perpsTradingCampaignVolumes: {
-        [PERPS_CAMPAIGN_ID]: {
-          data: mockVolume,
-          loading: false,
-          error: false,
-        },
-      },
+      perpsTradingCampaignVolume: mockVolume,
+      perpsTradingCampaignVolumeLoading: false,
     };
 
-    const loading = rewardsReducer(
+    const state = rewardsReducer(
       stateWithVolume,
-      setPerpsTradingCampaignVolumeLoading({
-        campaignId: PERPS_CAMPAIGN_ID,
-        loading: true,
-      }),
+      setPerpsTradingCampaignVolumeLoading(true),
     );
-    expect(loading.perpsTradingCampaignVolumes[PERPS_CAMPAIGN_ID].loading).toBe(
-      true,
-    );
+
+    expect(state.perpsTradingCampaignVolumeLoading).toBe(false);
   });
 
-  it('setPerpsTradingCampaignVolumeError toggles the flag and clears data', () => {
-    const withData: RewardsState = {
-      ...initialState,
-      perpsTradingCampaignVolumes: {
-        [PERPS_CAMPAIGN_ID]: {
-          data: mockVolume,
-          loading: false,
-          error: false,
-        },
-      },
-    };
+  it('setPerpsTradingCampaignVolumeError toggles the flag', () => {
     const on = rewardsReducer(
-      withData,
-      setPerpsTradingCampaignVolumeError({
-        campaignId: PERPS_CAMPAIGN_ID,
-        error: true,
-      }),
+      initialState,
+      setPerpsTradingCampaignVolumeError(true),
     );
-    expect(on.perpsTradingCampaignVolumes[PERPS_CAMPAIGN_ID].error).toBe(true);
-    expect(on.perpsTradingCampaignVolumes[PERPS_CAMPAIGN_ID].data).toBeNull();
+    expect(on.perpsTradingCampaignVolumeError).toBe(true);
 
-    const off = rewardsReducer(
-      on,
-      setPerpsTradingCampaignVolumeError({
-        campaignId: PERPS_CAMPAIGN_ID,
-        error: false,
-      }),
-    );
-    expect(off.perpsTradingCampaignVolumes[PERPS_CAMPAIGN_ID].error).toBe(
-      false,
-    );
+    const off = rewardsReducer(on, setPerpsTradingCampaignVolumeError(false));
+    expect(off.perpsTradingCampaignVolumeError).toBe(false);
   });
 });
 
@@ -6460,76 +6221,33 @@ const mockPredictPrizePool: PredictThePitchPrizePoolDto = {
 describe('predict the pitch reducers', () => {
   it('sets and removes leaderboard data', () => {
     let state = rewardsReducer(
-      {
-        ...initialState,
-        predictThePitchLeaderboards: {
-          [PREDICT_CAMPAIGN_ID]: {
-            data: null,
-            loading: false,
-            error: true,
-          },
-        },
-      },
-      setPredictThePitchLeaderboard({
-        campaignId: PREDICT_CAMPAIGN_ID,
-        leaderboard: mockPredictLeaderboard,
-      }),
+      { ...initialState, predictThePitchLeaderboardError: true },
+      setPredictThePitchLeaderboard(mockPredictLeaderboard),
     );
 
-    expect(state.predictThePitchLeaderboards[PREDICT_CAMPAIGN_ID].data).toEqual(
-      mockPredictLeaderboard,
-    );
-    expect(state.predictThePitchLeaderboards[PREDICT_CAMPAIGN_ID].error).toBe(
-      false,
-    );
+    expect(state.predictThePitchLeaderboard).toEqual(mockPredictLeaderboard);
+    expect(state.predictThePitchLeaderboardError).toBe(false);
 
-    state = rewardsReducer(
-      state,
-      setPredictThePitchLeaderboard({
-        campaignId: PREDICT_CAMPAIGN_ID,
-        leaderboard: null,
-      }),
-    );
+    state = rewardsReducer(state, setPredictThePitchLeaderboard(null));
 
-    expect(
-      state.predictThePitchLeaderboards[PREDICT_CAMPAIGN_ID].data,
-    ).toBeNull();
+    expect(state.predictThePitchLeaderboard).toBeNull();
   });
 
-  it('toggles leaderboard loading and errors per campaign', () => {
-    const withLoading = rewardsReducer(
-      initialState,
-      setPredictThePitchLeaderboardLoading({
-        campaignId: PREDICT_CAMPAIGN_ID,
-        loading: true,
-      }),
-    );
-    expect(
-      withLoading.predictThePitchLeaderboards[PREDICT_CAMPAIGN_ID].loading,
-    ).toBe(true);
-
-    const withError = rewardsReducer(
+  it('skips leaderboard loading when leaderboard is cached and toggles errors', () => {
+    const withData = rewardsReducer(
       {
         ...initialState,
-        predictThePitchLeaderboards: {
-          [PREDICT_CAMPAIGN_ID]: {
-            data: mockPredictLeaderboard,
-            loading: false,
-            error: false,
-          },
-        },
+        predictThePitchLeaderboard: mockPredictLeaderboard,
       },
-      setPredictThePitchLeaderboardError({
-        campaignId: PREDICT_CAMPAIGN_ID,
-        error: true,
-      }),
+      setPredictThePitchLeaderboardLoading(true),
     );
-    expect(
-      withError.predictThePitchLeaderboards[PREDICT_CAMPAIGN_ID].error,
-    ).toBe(true);
-    expect(
-      withError.predictThePitchLeaderboards[PREDICT_CAMPAIGN_ID].data,
-    ).toBeNull();
+    expect(withData.predictThePitchLeaderboardLoading).toBe(false);
+
+    const withError = rewardsReducer(
+      initialState,
+      setPredictThePitchLeaderboardError(true),
+    );
+    expect(withError.predictThePitchLeaderboardError).toBe(true);
   });
 
   it('sets and removes leaderboard positions and positions by subscription/campaign key', () => {
@@ -6582,76 +6300,33 @@ describe('predict the pitch reducers', () => {
 
   it('sets and removes prize-pool data', () => {
     let state = rewardsReducer(
-      {
-        ...initialState,
-        predictThePitchPrizePools: {
-          [PREDICT_CAMPAIGN_ID]: {
-            data: null,
-            loading: false,
-            error: true,
-          },
-        },
-      },
-      setPredictThePitchPrizePool({
-        campaignId: PREDICT_CAMPAIGN_ID,
-        prizePool: mockPredictPrizePool,
-      }),
+      { ...initialState, predictThePitchPrizePoolError: true },
+      setPredictThePitchPrizePool(mockPredictPrizePool),
     );
 
-    expect(state.predictThePitchPrizePools[PREDICT_CAMPAIGN_ID].data).toEqual(
-      mockPredictPrizePool,
-    );
-    expect(state.predictThePitchPrizePools[PREDICT_CAMPAIGN_ID].error).toBe(
-      false,
-    );
+    expect(state.predictThePitchPrizePool).toEqual(mockPredictPrizePool);
+    expect(state.predictThePitchPrizePoolError).toBe(false);
 
-    state = rewardsReducer(
-      state,
-      setPredictThePitchPrizePool({
-        campaignId: PREDICT_CAMPAIGN_ID,
-        prizePool: null,
-      }),
-    );
+    state = rewardsReducer(state, setPredictThePitchPrizePool(null));
 
-    expect(
-      state.predictThePitchPrizePools[PREDICT_CAMPAIGN_ID].data,
-    ).toBeNull();
+    expect(state.predictThePitchPrizePool).toBeNull();
   });
 
-  it('toggles prize-pool loading and errors per campaign', () => {
-    const withLoading = rewardsReducer(
-      initialState,
-      setPredictThePitchPrizePoolLoading({
-        campaignId: PREDICT_CAMPAIGN_ID,
-        loading: true,
-      }),
-    );
-    expect(
-      withLoading.predictThePitchPrizePools[PREDICT_CAMPAIGN_ID].loading,
-    ).toBe(true);
-
-    const withError = rewardsReducer(
+  it('skips prize-pool loading when data is cached and toggles errors', () => {
+    const withData = rewardsReducer(
       {
         ...initialState,
-        predictThePitchPrizePools: {
-          [PREDICT_CAMPAIGN_ID]: {
-            data: mockPredictPrizePool,
-            loading: false,
-            error: false,
-          },
-        },
+        predictThePitchPrizePool: mockPredictPrizePool,
       },
-      setPredictThePitchPrizePoolError({
-        campaignId: PREDICT_CAMPAIGN_ID,
-        error: true,
-      }),
+      setPredictThePitchPrizePoolLoading(true),
     );
-    expect(withError.predictThePitchPrizePools[PREDICT_CAMPAIGN_ID].error).toBe(
-      true,
+    expect(withData.predictThePitchPrizePoolLoading).toBe(false);
+
+    const withError = rewardsReducer(
+      initialState,
+      setPredictThePitchPrizePoolError(true),
     );
-    expect(
-      withError.predictThePitchPrizePools[PREDICT_CAMPAIGN_ID].data,
-    ).toBeNull();
+    expect(withError.predictThePitchPrizePoolError).toBe(true);
   });
 });
 
@@ -6660,93 +6335,65 @@ describe('ondoCampaignDeposits', () => {
     const deposits = { totalUsdDeposited: '1250000.000000' };
     const prevState = {
       ...initialState,
-      ondoCampaignDeposits: {
-        [MOCK_CAMPAIGN_ID]: {
-          data: null,
-          loading: false,
-          error: true,
-        },
-      },
+      ondoCampaignDepositsError: true,
     };
 
-    const state = rewardsReducer(
-      prevState,
-      setOndoCampaignDeposits({ campaignId: MOCK_CAMPAIGN_ID, deposits }),
-    );
+    const state = rewardsReducer(prevState, setOndoCampaignDeposits(deposits));
 
-    expect(state.ondoCampaignDeposits[MOCK_CAMPAIGN_ID].data).toEqual(deposits);
-    expect(state.ondoCampaignDeposits[MOCK_CAMPAIGN_ID].error).toBe(false);
+    expect(state.ondoCampaignDeposits).toEqual(deposits);
+    expect(state.ondoCampaignDepositsError).toBe(false);
   });
 
-  it('setOndoCampaignDepositsLoading toggles loading per campaign', () => {
+  it('setOndoCampaignDepositsLoading(true) sets loading when no data', () => {
     const state = rewardsReducer(
       initialState,
-      setOndoCampaignDepositsLoading({
-        campaignId: MOCK_CAMPAIGN_ID,
-        loading: true,
-      }),
+      setOndoCampaignDepositsLoading(true),
     );
 
-    expect(state.ondoCampaignDeposits[MOCK_CAMPAIGN_ID].loading).toBe(true);
+    expect(state.ondoCampaignDepositsLoading).toBe(true);
   });
 
-  it('setOndoCampaignDepositsLoading(false) clears loading', () => {
+  it('setOndoCampaignDepositsLoading(true) skips when data already exists', () => {
     const prevState = {
       ...initialState,
-      ondoCampaignDeposits: {
-        [MOCK_CAMPAIGN_ID]: {
-          data: null,
-          loading: true,
-          error: false,
-        },
-      },
-    };
-
-    const state = rewardsReducer(
-      prevState,
-      setOndoCampaignDepositsLoading({
-        campaignId: MOCK_CAMPAIGN_ID,
-        loading: false,
-      }),
-    );
-
-    expect(state.ondoCampaignDeposits[MOCK_CAMPAIGN_ID].loading).toBe(false);
-  });
-
-  it('setOndoCampaignDepositsError clears data on error', () => {
-    const prevState = {
-      ...initialState,
-      ondoCampaignDeposits: {
-        [MOCK_CAMPAIGN_ID]: {
-          data: { totalUsdDeposited: '500000' },
-          loading: false,
-          error: false,
-        },
-      },
+      ondoCampaignDeposits: { totalUsdDeposited: '500000' },
+      ondoCampaignDepositsLoading: false,
     };
 
     const state = rewardsReducer(
       prevState as RewardsState,
-      setOndoCampaignDepositsError({
-        campaignId: MOCK_CAMPAIGN_ID,
-        error: true,
-      }),
+      setOndoCampaignDepositsLoading(true),
     );
 
-    expect(state.ondoCampaignDeposits[MOCK_CAMPAIGN_ID].error).toBe(true);
-    expect(state.ondoCampaignDeposits[MOCK_CAMPAIGN_ID].data).toBeNull();
+    expect(state.ondoCampaignDepositsLoading).toBe(false);
   });
 
-  it('resetRewardsState resets deposits map', () => {
+  it('setOndoCampaignDepositsLoading(false) clears loading', () => {
+    const prevState = { ...initialState, ondoCampaignDepositsLoading: true };
+
+    const state = rewardsReducer(
+      prevState,
+      setOndoCampaignDepositsLoading(false),
+    );
+
+    expect(state.ondoCampaignDepositsLoading).toBe(false);
+  });
+
+  it('setOndoCampaignDepositsError(true) sets error', () => {
+    const state = rewardsReducer(
+      initialState,
+      setOndoCampaignDepositsError(true),
+    );
+
+    expect(state.ondoCampaignDepositsError).toBe(true);
+  });
+
+  it('resetRewardsState resets deposits to null', () => {
     const prevState = {
       ...initialState,
-      ondoCampaignDeposits: {
-        [MOCK_CAMPAIGN_ID]: {
-          data: { totalUsdDeposited: '500000' },
-          loading: true,
-          error: true,
-        },
-      },
+      ondoCampaignDeposits: { totalUsdDeposited: '500000' },
+      ondoCampaignDepositsLoading: true,
+      ondoCampaignDepositsError: true,
     };
 
     const state = rewardsReducer(
@@ -6754,7 +6401,9 @@ describe('ondoCampaignDeposits', () => {
       resetRewardsState(),
     );
 
-    expect(state.ondoCampaignDeposits).toEqual({});
+    expect(state.ondoCampaignDeposits).toBeNull();
+    expect(state.ondoCampaignDepositsLoading).toBe(false);
+    expect(state.ondoCampaignDepositsError).toBe(false);
   });
 
   describe('dismissCampaignOutcomeToast', () => {
@@ -6817,44 +6466,6 @@ describe('ondoCampaignDeposits', () => {
     });
   });
 
-  describe('subscribeCampaignReminder', () => {
-    it('records subscription keyed by subscriptionId and campaignId', () => {
-      const state = rewardsReducer(
-        initialState,
-        subscribeCampaignReminder({
-          subscriptionId: 'sub-1',
-          campaignId: 'camp-2',
-        }),
-      );
-
-      expect(state.subscribedCampaignReminders['sub-1:camp-2']).toBe(true);
-    });
-
-    it('accumulates multiple subscriptions without overwriting existing ones', () => {
-      let state = rewardsReducer(
-        initialState,
-        subscribeCampaignReminder({
-          subscriptionId: 'sub-1',
-          campaignId: 'camp-1',
-        }),
-      );
-      state = rewardsReducer(
-        state,
-        subscribeCampaignReminder({
-          subscriptionId: 'sub-1',
-          campaignId: 'camp-2',
-        }),
-      );
-
-      expect(state.subscribedCampaignReminders['sub-1:camp-1']).toBe(true);
-      expect(state.subscribedCampaignReminders['sub-1:camp-2']).toBe(true);
-    });
-
-    it('starts with empty subscribedCampaignReminders in initial state', () => {
-      expect(initialState.subscribedCampaignReminders).toEqual({});
-    });
-  });
-
   describe('persist/REHYDRATE — dismissedCampaignOutcomeToasts', () => {
     it('restores dismissedCampaignOutcomeToasts from persisted state', () => {
       const persisted: RewardsState = {
@@ -6884,38 +6495,6 @@ describe('ondoCampaignDeposits', () => {
       });
 
       expect(state.dismissedCampaignOutcomeToasts).toEqual({});
-    });
-  });
-
-  describe('persist/REHYDRATE — subscribedCampaignReminders', () => {
-    it('restores subscribedCampaignReminders from persisted state', () => {
-      const persisted: RewardsState = {
-        ...initialState,
-        subscribedCampaignReminders: {
-          'sub-1:camp-1': true,
-        },
-      };
-
-      const state = rewardsReducer(initialState, {
-        type: 'persist/REHYDRATE',
-        payload: { rewards: persisted },
-      });
-
-      expect(state.subscribedCampaignReminders).toEqual({
-        'sub-1:camp-1': true,
-      });
-    });
-
-    it('defaults to empty object when subscribedCampaignReminders is absent from persisted state', () => {
-      const persisted = { ...initialState } as Partial<RewardsState>;
-      delete persisted.subscribedCampaignReminders;
-
-      const state = rewardsReducer(initialState, {
-        type: 'persist/REHYDRATE',
-        payload: { rewards: persisted },
-      });
-
-      expect(state.subscribedCampaignReminders).toEqual({});
     });
   });
 
@@ -6966,27 +6545,6 @@ describe('ondoCampaignDeposits', () => {
 
       expect(state.dismissedCampaignOutcomeToasts).toEqual({
         'campaign-1:old-sub:winner': true,
-      });
-    });
-  });
-
-  describe('setCandidateSubscriptionId — preserves subscribedCampaignReminders', () => {
-    it('preserves subscribedCampaignReminders when subscription ID changes', () => {
-      const stateWithReminders: RewardsState = {
-        ...initialState,
-        candidateSubscriptionId: 'old-sub',
-        subscribedCampaignReminders: {
-          'old-sub:camp-1': true,
-        },
-      };
-
-      const state = rewardsReducer(
-        stateWithReminders,
-        setCandidateSubscriptionId('new-sub'),
-      );
-
-      expect(state.subscribedCampaignReminders).toEqual({
-        'old-sub:camp-1': true,
       });
     });
   });

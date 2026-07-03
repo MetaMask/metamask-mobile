@@ -31,11 +31,7 @@ class TabBarComponent {
   }
 
   get tabBarWalletButton(): EncapsulatedElementType {
-    return resolve({
-      detoxTestID: TabBarSelectorIDs.WALLET,
-      androidAppiumTestID: TabBarSelectorIDs.WALLET,
-      iosAppiumTestID: TabBarSelectorIDs.WALLET,
-    });
+    return Matchers.getElementByID(TabBarSelectorIDs.WALLET);
   }
 
   get tabBarActionButton(): EncapsulatedElementType {

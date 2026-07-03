@@ -34,15 +34,15 @@ import {
   type RouteProp,
 } from '@react-navigation/native';
 import type { RootStackParamList } from '../../../../core/NavigationService/types';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import {
   SocialLeaderboardEventProperties,
   useSocialLeaderboardAnalytics,
 } from '../analytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
 import {
   selectSocialLeaderboardEnabled,
   selectSocialLeaderboardPerpsEnabled,
@@ -72,38 +72,12 @@ import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
 type TabFilter = 'all' | 'tokens' | 'perps';
 
-interface IdleCallbackGlobals {
-  requestIdleCallback?: (
-    callback: () => void,
-    options?: { timeout?: number },
-  ) => number;
-  cancelIdleCallback?: (handle: number) => void;
-}
-
 interface TabFilterItem {
   key: TabFilter;
   label: string;
 }
 
 const LEADERBOARD_LIMIT = 50;
-const INITIAL_TRADER_ROWS_TO_RENDER = 6;
-const SECONDARY_TAB_PREFETCH_IDLE_TIMEOUT_MS = 1000;
-
-const scheduleIdleTask = (task: () => void) => {
-  const idleGlobals = globalThis as typeof globalThis & IdleCallbackGlobals;
-
-  if (!idleGlobals.requestIdleCallback) {
-    return undefined;
-  }
-
-  const idleCallbackId = idleGlobals.requestIdleCallback(task, {
-    timeout: SECONDARY_TAB_PREFETCH_IDLE_TIMEOUT_MS,
-  });
-
-  return () => {
-    idleGlobals.cancelIdleCallback?.(idleCallbackId);
-  };
-};
 
 const getTabFilters = (isPerpsEnabled: boolean): TabFilterItem[] => {
   const allFilter = {
@@ -246,13 +220,6 @@ const TopTradersView = () => {
   const title = strings('social_leaderboard.top_traders_view.title');
 
   const [renderedTab, setRenderedTab] = useState<TabFilter>('all');
-  const [queryEnabledTabs, setQueryEnabledTabs] = useState<
-    Record<TabFilter, boolean>
-  >({
-    all: true,
-    tokens: false,
-    perps: false,
-  });
   const [, startTabTransition] = useTransition();
   const [refreshing, setRefreshing] = useState(false);
   // Tracks whether we've already emitted the screen-viewed event this mount.
@@ -276,17 +243,17 @@ const TopTradersView = () => {
   const allResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: allChains,
-    enabled: isEnabled && queryEnabledTabs.all,
+    enabled: isEnabled,
   });
   const tokensResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: SPOT_CHAINS,
-    enabled: isEnabled && isPerpsEnabled && queryEnabledTabs.tokens,
+    enabled: isEnabled && isPerpsEnabled,
   });
   const perpsResult = useTopTraders({
     limit: LEADERBOARD_LIMIT,
     chains: PERP_CHAINS,
-    enabled: isEnabled && isPerpsEnabled && queryEnabledTabs.perps,
+    enabled: isEnabled && isPerpsEnabled,
   });
 
   const resultsByTab = useMemo(
@@ -301,14 +268,6 @@ const TopTradersView = () => {
   const activeTab = isPerpsEnabled ? renderedTab : 'all';
   const activeResult = resultsByTab[activeTab];
   const { traders, isLoading, toggleFollow } = activeResult;
-  const shouldPrefetchSecondaryTabs =
-    isEnabled &&
-    isPerpsEnabled &&
-    activeTab === 'all' &&
-    !allResult.isLoading &&
-    (!queryEnabledTabs.tokens || !queryEnabledTabs.perps);
-  const shouldRefreshTokens = isPerpsEnabled && queryEnabledTabs.tokens;
-  const shouldRefreshPerps = isPerpsEnabled && queryEnabledTabs.perps;
 
   useEffect(() => {
     if (!isEnabled) {
@@ -332,20 +291,6 @@ const TopTradersView = () => {
     });
   }, [isEnabled, source, track]);
 
-  useEffect(() => {
-    if (!shouldPrefetchSecondaryTabs) {
-      return undefined;
-    }
-
-    return scheduleIdleTask(() => {
-      setQueryEnabledTabs((current) => ({
-        ...current,
-        tokens: true,
-        perps: true,
-      }));
-    });
-  }, [shouldPrefetchSecondaryTabs]);
-
   const handleTabPress = useCallback(
     (next: TabFilter) => {
       if (!isPerpsEnabled && next !== 'all') return;
@@ -357,9 +302,6 @@ const TopTradersView = () => {
         [SocialLeaderboardEventProperties.PREVIOUS_CHAIN_FILTER]: previousTab,
       });
       startTabTransition(() => {
-        setQueryEnabledTabs((current) =>
-          current[next] ? current : { ...current, [next]: true },
-        );
         setRenderedTab(next);
       });
     },
@@ -443,8 +385,9 @@ const TopTradersView = () => {
       );
       await Promise.all([
         allResult.refresh(),
-        ...(shouldRefreshTokens ? [tokensResult.refresh()] : []),
-        ...(shouldRefreshPerps ? [perpsResult.refresh()] : []),
+        ...(isPerpsEnabled
+          ? [tokensResult.refresh(), perpsResult.refresh()]
+          : []),
         minDuration,
       ]);
     } catch (err) {
@@ -461,13 +404,7 @@ const TopTradersView = () => {
     } finally {
       setRefreshing(false);
     }
-  }, [
-    allResult,
-    tokensResult,
-    perpsResult,
-    shouldRefreshTokens,
-    shouldRefreshPerps,
-  ]);
+  }, [allResult, tokensResult, perpsResult, isPerpsEnabled]);
 
   const handleTraderPress = useCallback(
     (traderId: string, traderName: string) => {
@@ -587,8 +524,7 @@ const TopTradersView = () => {
             showsVerticalScrollIndicator={false}
             contentContainerStyle={tw.style('pb-6')}
             testID={TopTradersViewSelectorsIDs.TRADER_LIST}
-            initialNumToRender={INITIAL_TRADER_ROWS_TO_RENDER}
-            maxToRenderPerBatch={INITIAL_TRADER_ROWS_TO_RENDER}
+            initialNumToRender={15}
             windowSize={5}
             onScroll={onScroll}
             scrollEventThrottle={16}

@@ -52,7 +52,6 @@ describe('PerpsClosePositionView', () => {
           symbol: 'ETH',
           price: '2500',
           timestamp: Date.now(),
-          isTradable: true,
         },
       });
     });
@@ -114,7 +113,6 @@ describe('PerpsClosePositionView', () => {
           symbol: 'ETH',
           price: '2800',
           timestamp: Date.now(),
-          isTradable: true,
         },
       });
     });
@@ -167,7 +165,6 @@ describe('PerpsClosePositionView', () => {
           symbol: 'ETH',
           price: '2500',
           timestamp: Date.now(),
-          isTradable: true,
         },
       });
     });

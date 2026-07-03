@@ -4,7 +4,8 @@
  * with an hourglass indicator while keeping the normal address subtitle.
  */
 import React, { useCallback } from 'react';
-import { View } from 'react-native';
+import { View, useColorScheme } from 'react-native';
+import { useSelector } from 'react-redux';
 import {
   Icon,
   IconColor,
@@ -13,12 +14,15 @@ import {
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
+import { getTransactionIcon } from '../../../util/transaction-icons';
 import { getNetworkImageSource } from '../../../util/networks';
+import { RootState } from '../../../reducers';
+import { AppThemeKey } from '../../../util/theme/models';
 import PendingSpinner from '../Money/components/PendingSpinner/PendingSpinner';
 import { createStyles } from './ActivityListItemRow.styles';
 import { ActivityListItemRowIcon } from './ActivityListItemRowIcon';
 import { ActivityListItemRowLayout } from './ActivityListItemRowLayout';
-import { resolveTransactionIconName } from './resolveIconType';
+import { resolveIconType } from './resolveIconType';
 import { useActivityListItemRowContent } from './useActivityListItemRowContent';
 import type { ActivityListItemRowProps } from './ActivityListItemRow.types';
 
@@ -30,13 +34,22 @@ export function PendingActivityListItemRow({
   title: titleOverride,
 }: ActivityListItemRowProps) {
   const { colors, typography } = useTheme();
+  const osColorScheme = useColorScheme();
+  const appTheme = useSelector(
+    (state: RootState) => state.user.appTheme as AppThemeKey,
+  );
   const content = useActivityListItemRowContent(
     item,
     undefined,
     bridgeHistoryItem,
   );
   const styles = createStyles(colors, typography);
-  const fallbackIconName = resolveTransactionIconName(item.type);
+  const icon = getTransactionIcon(
+    resolveIconType(item.type),
+    false,
+    appTheme,
+    osColorScheme,
+  );
   const networkImageSource = getNetworkImageSource({
     chainId: item.chainId,
   });
@@ -73,7 +86,7 @@ export function PendingActivityListItemRow({
     <ActivityListItemRowLayout
       avatar={
         <ActivityListItemRowIcon
-          fallbackIconName={fallbackIconName}
+          fallbackIcon={icon}
           networkImageSource={networkImageSource}
           styles={styles}
           tokens={content.avatarTokens}

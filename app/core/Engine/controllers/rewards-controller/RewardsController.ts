@@ -1195,46 +1195,18 @@ export class RewardsController extends BaseController<
       } else {
         const sortedAccounts = sortAccounts(accounts as InternalAccount[]);
 
-        let bulkOptInStatus: boolean[] | null = null;
         try {
           // Prefer to get opt in status in bulk for sorted accounts.
-          const bulkOptInStatusResult = await this.getOptInStatus({
+          await this.getOptInStatus({
             addresses: sortedAccounts.map((account) => account.address),
           });
-          bulkOptInStatus = bulkOptInStatusResult.ois ?? null;
         } catch {
           // Failed to get opt in status in bulk for sorted accounts, let silent auth do it individually
         }
 
-        // Try silent auth on each account until one succeeds.
-        // When the bulk opt-in status is available, only attempt silent auth
-        // (which mints a session via mobile-login) for accounts that are
-        // opted in. This avoids spamming mobile-login with guaranteed-401
-        // requests for non-enrolled accounts on every account switch.
+        // Try silent auth on each account until one succeeds
         let successAccount: InternalAccount | null = null;
-        for (let i = 0; i < sortedAccounts.length; i++) {
-          const account = sortedAccounts[i];
-          if (bulkOptInStatus && bulkOptInStatus[i] === false) {
-            // Known not opted in — skip session mint for this account.
-            const skippedCaip = this.convertInternalAccountToCaipAccountId(
-              account as InternalAccount,
-            );
-            if (skippedCaip && !this.#getAccountState(skippedCaip)) {
-              // Seed missing state so setActiveAccountFromCandidate can run
-              // later. Do not set lastFreshOptInStatusCheck here — fresh OIS
-              // owns that timestamp.
-              this.update((state) => {
-                state.accounts[skippedCaip] = {
-                  account: skippedCaip,
-                  hasOptedIn: false,
-                  subscriptionId: null,
-                  perpsFeeDiscount: null,
-                  lastPerpsDiscountRateFetched: null,
-                };
-              });
-            }
-            continue;
-          }
+        for (const account of sortedAccounts) {
           try {
             const subscriptionId = await this.performSilentAuth(
               account as InternalAccount,
@@ -1455,7 +1427,7 @@ export class RewardsController extends BaseController<
           return null;
         }
       } catch {
-        // Continue with silent login attempt when OIS is unavailable.
+        // Continue with silent login attempt
       }
     }
 

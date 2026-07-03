@@ -349,10 +349,6 @@ export interface PredictActivity {
   title?: string;
   outcome?: string;
   icon?: string;
-  slug?: string;
-  eventSlug?: string;
-  netPnlUsd?: number;
-  totalNetPnlUsd?: number;
 }
 
 export type PredictActivityEntry =
@@ -360,22 +356,24 @@ export type PredictActivityEntry =
   | PredictActivitySell
   | PredictActivityClaimWinnings;
 
-export interface PredictActivityTrade {
+export interface PredictActivityBuy {
+  type: 'buy';
   timestamp: number;
   marketId: string;
   outcomeId: string;
   outcomeTokenId: number;
   amount: number;
   price: number;
-  size?: number;
 }
 
-export interface PredictActivityBuy extends PredictActivityTrade {
-  type: 'buy';
-}
-
-export interface PredictActivitySell extends PredictActivityTrade {
+export interface PredictActivitySell {
   type: 'sell';
+  timestamp: number;
+  marketId: string;
+  outcomeId: string;
+  outcomeTokenId: number;
+  amount: number;
+  price: number;
 }
 
 export interface PredictActivityClaimWinnings {

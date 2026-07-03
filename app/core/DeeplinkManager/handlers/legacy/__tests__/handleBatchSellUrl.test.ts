@@ -1,5 +1,4 @@
 import { handleBatchSellUrl } from '../handleBatchSellUrl';
-import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import DevLogger from '../../../../SDKConnect/utils/DevLogger';
@@ -89,9 +88,6 @@ describe('handleBatchSellUrl', () => {
     });
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.ROOT, {
       screen: Routes.BRIDGE.BATCH_SELL_TOKEN_SELECT,
-      params: {
-        batchSellLocation: BatchSellMetricsLocation.Deeplink,
-      },
     });
   });
 

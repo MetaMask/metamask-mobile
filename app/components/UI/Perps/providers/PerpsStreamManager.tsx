@@ -24,8 +24,6 @@ import {
   type PerpsMarketData,
   findEvmAccount,
 } from '@metamask/perps-controller';
-import { store } from '../../../../store';
-import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import {
   PROVIDER_CONFIG,
   PERPS_DISK_CACHE_MARKETS,
@@ -487,31 +485,6 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
   // Override cache to store individual PriceUpdate objects
   protected priceCache = new Map<string, PriceUpdate>();
 
-  /**
-   * Maps a raw price update to the cached PriceUpdate shape, stamping the
-   * receive time and applying backward-compatible defaults.
-   *
-   * Backward-compatible default for `isTradable`: pre-8.3.0 streams don't
-   * emit the field, so treat absence as tradable to avoid breaking existing
-   * market display.
-   */
-  private toPriceUpdate(update: PriceUpdate): PriceUpdate {
-    return {
-      symbol: update.symbol,
-      price: update.price,
-      timestamp: Date.now(),
-      percentChange24h: update.percentChange24h,
-      bestBid: update.bestBid,
-      bestAsk: update.bestAsk,
-      spread: update.spread,
-      markPrice: update.markPrice,
-      funding: update.funding,
-      openInterest: update.openInterest,
-      volume24h: update.volume24h,
-      isTradable: update.isTradable ?? true,
-    };
-  }
-
   protected connect() {
     if (this.wsSubscription) {
       return;
@@ -549,7 +522,20 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
         // Update cache and build price map
         const priceMap: Record<string, PriceUpdate> = {};
         updates.forEach((update) => {
-          const priceUpdate = this.toPriceUpdate(update);
+          // Map the update to PriceUpdate format
+          const priceUpdate: PriceUpdate = {
+            symbol: update.symbol,
+            price: update.price,
+            timestamp: Date.now(),
+            percentChange24h: update.percentChange24h,
+            bestBid: update.bestBid,
+            bestAsk: update.bestAsk,
+            spread: update.spread,
+            markPrice: update.markPrice,
+            funding: update.funding,
+            openInterest: update.openInterest,
+            volume24h: update.volume24h,
+          };
           this.priceCache.set(update.symbol, priceUpdate);
           priceMap[update.symbol] = priceUpdate;
         });
@@ -644,9 +630,7 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     // Start market fetch in background (non-blocking)
     // We need the symbols to register subscribers, but we can return immediately
     controller
-      .getMarkets({
-        useTerminalApi: selectPerpsTerminalBackendEnabledFlag(store.getState()),
-      })
+      .getMarkets()
       .then((markets) => {
         // If this promise is from a stale cycle, don't set up subscription
         // This prevents leaks when prewarm is called multiple times rapidly
@@ -683,7 +667,19 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
           callback: (updates: PriceUpdate[]) => {
             const priceMap: Record<string, PriceUpdate> = {};
             updates.forEach((update) => {
-              const priceUpdate = this.toPriceUpdate(update);
+              const priceUpdate: PriceUpdate = {
+                symbol: update.symbol,
+                price: update.price,
+                timestamp: Date.now(),
+                percentChange24h: update.percentChange24h,
+                bestBid: update.bestBid,
+                bestAsk: update.bestAsk,
+                spread: update.spread,
+                markPrice: update.markPrice,
+                funding: update.funding,
+                openInterest: update.openInterest,
+                volume24h: update.volume24h,
+              };
               this.priceCache.set(update.symbol, priceUpdate);
               priceMap[update.symbol] = priceUpdate;
             });
@@ -1497,25 +1493,20 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       return;
     }
 
-    // Get current provider ID + network + terminal flag as a composite key.
-    // Network changes (testnet toggle) and terminal backend flag changes must
-    // also invalidate the market cache so a HyperLiquid-sourced response is
-    // never served after the flag flips to Terminal (and vice-versa).
+    // Get current provider ID + network as a composite key.
+    // Network changes (testnet toggle) must also invalidate the market cache.
     const controller = Engine.context.PerpsController;
     const currentProviderId =
       controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider;
-    const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
-      store.getState(),
-    );
-    const currentNetworkKey = `${buildProviderCacheKey(
+    const currentNetworkKey = buildProviderCacheKey(
       currentProviderId,
       controller.state?.isTestnet ?? false,
-    )}:${terminalEnabled ? 'terminal' : 'direct'}`;
+    );
 
-    // Invalidate cache if provider, network, OR terminal flag changed
+    // Invalidate cache if provider OR network changed
     if (this.cachedProviderId && this.cachedProviderId !== currentNetworkKey) {
       DevLogger.log(
-        'PerpsStreamManager: Provider/network/flag changed, invalidating cache',
+        'PerpsStreamManager: Provider/network changed, invalidating cache',
         {
           from: this.cachedProviderId,
           to: currentNetworkKey,
@@ -1569,30 +1560,11 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       try {
         const controller = Engine.context.PerpsController;
 
-        // Read terminal flag once at the start of this fetch cycle.
-        const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
-          store.getState(),
-        );
-        const terminalSuffix = terminalEnabled ? 'terminal' : 'direct';
-
         // One-time read of controller-level preloaded cache (REST snapshot).
         // This avoids an HTTP round-trip when the controller already has fresh data.
-        // Include terminal flag in the key so a flag flip forces a fresh fetch.
-        const controllerNetworkKey = `${getProviderNetworkKey(controller.state)}:${terminalSuffix}`;
-
-        // The controller's preload cache (cachedMarketDataByProvider) is keyed only
-        // by provider/network and is ALWAYS sourced from the direct provider — its
-        // background preload calls getMarketDataWithPrices() without useTerminalApi,
-        // so it never contains Terminal-API data. It is therefore only safe to adopt
-        // when the Terminal backend is disabled. Adopting it while Terminal is enabled
-        // (e.g. after a flag flip, or on startup if preload ran before the remote flag
-        // settled) would serve direct HyperLiquid data and cache it as Terminal data
-        // (or the reverse). When the source can't be guaranteed to match, skip the
-        // preloaded cache and fetch fresh market data below.
-        const controllerCacheSourceMatches = !terminalEnabled;
-        const cachedForProvider = controllerCacheSourceMatches
-          ? controller.getCachedMarketDataForActiveProvider?.()
-          : undefined;
+        const controllerNetworkKey = getProviderNetworkKey(controller.state);
+        const cachedForProvider =
+          controller.getCachedMarketDataForActiveProvider?.();
         if (
           cachedForProvider &&
           cachedForProvider.length > 0 &&
@@ -1616,24 +1588,19 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
           'PerpsStreamManager: Fetching fresh market data from API',
         );
 
-        // Snapshot provider + network + flag BEFORE the async call to avoid race conditions.
-        // If the user switches providers, toggles testnet, or the terminal flag flips while
-        // getMarketDataWithPrices() is in-flight, we must not cache data under the new key.
-        const preFetchNetworkKey = `${getProviderNetworkKey(controller.state)}:${terminalSuffix}`;
+        // Snapshot provider + network BEFORE the async call to avoid race conditions.
+        // If the user switches providers or toggles testnet while getMarketDataWithPrices()
+        // is in-flight, we must not tag the returned data with the new network key.
+        const preFetchNetworkKey = getProviderNetworkKey(controller.state);
 
-        const data = await controller.getMarketDataWithPrices({
-          useTerminalApi: terminalEnabled,
-        });
+        const data = await controller.getMarketDataWithPrices();
         const fetchTime = Date.now() - fetchStartTime;
 
-        // If provider, network, or terminal flag changed during fetch, discard stale data
-        const postTerminalEnabled = selectPerpsTerminalBackendEnabledFlag(
-          store.getState(),
-        );
-        const postFetchNetworkKey = `${getProviderNetworkKey(controller.state)}:${postTerminalEnabled ? 'terminal' : 'direct'}`;
+        // If provider or network changed during fetch, discard stale data
+        const postFetchNetworkKey = getProviderNetworkKey(controller.state);
         if (preFetchNetworkKey !== postFetchNetworkKey) {
           DevLogger.log(
-            'PerpsStreamManager: Provider/network/flag changed during fetch, discarding data',
+            'PerpsStreamManager: Provider/network changed during fetch, discarding data',
             {
               fetchedFor: preFetchNetworkKey,
               current: postFetchNetworkKey,
@@ -1713,18 +1680,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
       return cached;
     }
 
-    // Fallback: read per-provider cache via helper. The controller's preload cache
-    // is always direct-sourced (its preload never passes useTerminalApi), so only
-    // serve it synchronously when the Terminal backend is disabled — otherwise we'd
-    // surface direct HyperLiquid data while in Terminal mode. When Terminal is
-    // enabled, return null so callers wait for a source-correct fetch instead.
-    const terminalEnabled = selectPerpsTerminalBackendEnabledFlag(
-      store.getState(),
-    );
-    if (terminalEnabled) {
-      return null;
-    }
-
+    // Fallback: read per-provider cache via helper
     const controller = Engine.context.PerpsController;
     const fromController =
       controller.getCachedMarketDataForActiveProvider?.() ?? null;

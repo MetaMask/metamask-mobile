@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, SectionDivider } from '@metamask/design-system-react-native';
+import { strings } from '../../../../../locales/i18n';
 import type { ActivityListItem } from '../../../../util/activity-adapters';
 import {
   ActivityDetailsBlockExplorerButton,
@@ -13,14 +14,12 @@ import {
   canRenderActivityDetailsDoItAgain,
   useActivityDetailsDoItAgain,
 } from '../hooks/useActivityDetailsDoItAgain';
-import { getSwapAgainLabel } from './swapAgainLabel';
 
 type SwapDetailsItem = Extract<
   ActivityListItem,
   {
     type:
       | 'swap'
-      | 'swapIncomplete'
       | 'convert'
       | 'lendingDeposit'
       | 'lendingWithdrawal'
@@ -30,25 +29,24 @@ type SwapDetailsItem = Extract<
 >;
 
 export function SwapDetails({ item }: { item: SwapDetailsItem }) {
-  const { sourceToken } = item.data;
-  const destinationToken =
-    'destinationToken' in item.data ? item.data.destinationToken : undefined;
-  const totalToken = sourceToken?.amount ? sourceToken : destinationToken;
+  const totalToken = item.data.sourceToken?.amount
+    ? item.data.sourceToken
+    : item.data.destinationToken;
   const handleDoItAgain = useActivityDetailsDoItAgain({
-    sourceToken,
-    destinationToken,
+    sourceToken: item.data.sourceToken,
+    destinationToken: item.data.destinationToken,
     fallbackCaipChainId: item.chainId,
   });
   const canDoItAgain = canRenderActivityDetailsDoItAgain(
-    sourceToken,
+    item.data.sourceToken,
     item.chainId,
   );
 
   return (
     <Box twClassName="flex-1">
       <ActivityDetailsDualAmountHeader
-        sentToken={sourceToken}
-        receivedToken={destinationToken}
+        sentToken={item.data.sourceToken}
+        receivedToken={item.data.destinationToken}
       />
       <SectionDivider marginVertical={3} />
       <ActivityDetailsMetadata item={item} />
@@ -62,7 +60,7 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
           />
           {canDoItAgain ? (
             <ActivityDetailsDoItAgainButton
-              label={getSwapAgainLabel(item.type)}
+              label={strings('activity_details.do_it_again')}
               onPress={handleDoItAgain}
             />
           ) : null}

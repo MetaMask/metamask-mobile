@@ -296,14 +296,7 @@ const EarnMusdConversionEducationView = () => {
         if (navigation.canGoBack()) {
           navigation.goBack();
         }
-        // `returnTo` is a dynamic navigation target (route name + params are
-        // resolved at runtime), so it can't be checked against the strict
-        // route map. Cast to a generic navigate signature for this call.
-        const navigateToDynamicRoute = navigation.navigate as unknown as (
-          screen: string,
-          params?: Record<string, unknown>,
-        ) => void;
-        navigateToDynamicRoute(returnTo.screen, returnTo.params);
+        navigation.navigate(returnTo.screen, returnTo.params);
         return;
       }
 

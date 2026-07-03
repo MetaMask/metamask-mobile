@@ -58,7 +58,6 @@ export function buildMoneyActivityBuckets(
 ): MoneyActivityBuckets {
   const cards = apiActivity.filter((a) => a.kind === 'card');
   const cashback = apiActivity.filter((a) => a.kind === 'cashback');
-  const refunds = apiActivity.filter((a) => a.kind === 'refund');
   return {
     [MoneyActivityFilter.All]: mergeMoneyActivity(onchain.all, apiActivity),
     [MoneyActivityFilter.Deposits]: mergeMoneyActivity(
@@ -68,10 +67,6 @@ export function buildMoneyActivityBuckets(
     [MoneyActivityFilter.Transfers]: mergeMoneyActivity(
       onchain.transfers,
       cards,
-    ),
-    [MoneyActivityFilter.Purchases]: mergeMoneyActivity(
-      [],
-      [...cards, ...cashback, ...refunds],
     ),
   };
 }

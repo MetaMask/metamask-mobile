@@ -1,13 +1,16 @@
 import React, { useMemo } from 'react';
+import { Pressable } from 'react-native';
 import {
   Box,
   Icon,
   IconColor,
   IconName,
   IconSize,
-  SelectButton,
-  SelectButtonVariant,
 } from '@metamask/design-system-react-native';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import { styleSheet } from './PerpsMarketSortDropdowns.styles';
@@ -19,6 +22,19 @@ import { MARKET_SORTING_CONFIG } from '@metamask/perps-controller';
  *
  * Compact dropdown button for market sorting.
  * Opens bottom sheet for sort options selection.
+ *
+ * Features:
+ * - Dropdown button showing current sort selection
+ * - Chevron indicator
+ * - Opens bottom sheet for sort option selection
+ *
+ * @example
+ * ```tsx
+ * <PerpsMarketSortDropdowns
+ *   selectedOptionId="volume"
+ *   onSortPress={() => setShowSortSheet(true)}
+ * />
+ * ```
  */
 const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
   selectedOptionId,
@@ -27,6 +43,7 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
+  // Get display label for current sort option
   const sortLabel = useMemo(() => {
     const option = MARKET_SORTING_CONFIG.SortOptions.find(
       (opt) => opt.id === selectedOptionId,
@@ -36,21 +53,24 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
 
   return (
     <Box style={styles.container} testID={testID}>
-      <SelectButton
-        testID={`${testID}-sort-field`}
-        variant={SelectButtonVariant.Secondary}
-        placeholder={sortLabel}
-        value={sortLabel}
+      {/* Sort Field Dropdown */}
+      <Pressable
+        style={({ pressed }) => [
+          styles.dropdownButton,
+          pressed && styles.dropdownButtonPressed,
+        ]}
         onPress={onSortPress}
-        hideEndArrow
-        endAccessory={
-          <Icon
-            name={IconName.SwapVertical}
-            size={IconSize.Sm}
-            color={IconColor.IconAlternative}
-          />
-        }
-      />
+        testID={`${testID}-sort-field`}
+      >
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          {sortLabel}
+        </Text>
+        <Icon
+          name={IconName.SwapVertical}
+          size={IconSize.Sm}
+          color={IconColor.IconAlternative}
+        />
+      </Pressable>
     </Box>
   );
 };

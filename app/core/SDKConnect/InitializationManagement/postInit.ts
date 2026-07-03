@@ -52,10 +52,7 @@ async function postInit(instance: SDKConnect) {
     `SDKConnect::postInit() - currentRouteName=${currentRouteName}`,
   );
 
-  const waitRoutes: readonly string[] = [
-    Routes.LOCK_SCREEN,
-    Routes.ONBOARDING.LOGIN,
-  ];
+  const waitRoutes = [Routes.LOCK_SCREEN, Routes.ONBOARDING.LOGIN];
   await waitForCondition({
     fn: () => {
       currentRouteName = instance.state.navigation?.getCurrentRoute()?.name;

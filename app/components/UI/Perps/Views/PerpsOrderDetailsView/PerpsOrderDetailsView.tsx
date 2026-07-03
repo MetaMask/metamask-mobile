@@ -25,11 +25,7 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { usePerpsOrderFees } from '../../hooks/usePerpsOrderFees';
 import usePerpsToasts from '../../hooks/usePerpsToasts';
 import { TraceName } from '../../../../../util/trace';
-import {
-  getPerpsDisplaySymbol,
-  PERPS_CONSTANTS,
-  type Order,
-} from '@metamask/perps-controller';
+import { PERPS_CONSTANTS, type Order } from '@metamask/perps-controller';
 import styleSheet from './PerpsOrderDetailsView.styles';
 import { PerpsOrderDetailsViewSelectorsIDs } from '../../Perps.testIds';
 import PerpsTokenLogo from '../../components/PerpsTokenLogo';
@@ -255,8 +251,6 @@ const PerpsOrderDetailsView: React.FC = () => {
     return null;
   }
 
-  const displaySymbol = getPerpsDisplaySymbol(order.symbol);
-
   const detailRows: DetailRow[] = [
     {
       key: 'date',
@@ -298,13 +292,13 @@ const PerpsOrderDetailsView: React.FC = () => {
     {
       key: 'size',
       label: strings('perps.order_details.size'),
-      value: `${formatPositionSize(Number.parseFloat(order.size))} ${displaySymbol}`,
+      value: `${formatPositionSize(parseFloat(order.size))} ${order.symbol}`,
     },
     {
       key: 'original-size',
       label: strings('perps.order_details.original_size'),
-      value: `${formatPositionSize(Number.parseFloat(order.originalSize))} ${
-        displaySymbol
+      value: `${formatPositionSize(parseFloat(order.originalSize))} ${
+        order.symbol
       }`,
     },
     {
@@ -356,7 +350,7 @@ const PerpsOrderDetailsView: React.FC = () => {
             <PerpsTokenLogo symbol={order.symbol} size={48} />
           </View>
           <Text variant={TextVariant.HeadingLG} style={styles.assetName}>
-            {displaySymbol}
+            {order.symbol}
           </Text>
         </View>
 

@@ -2,7 +2,6 @@ import { useCallback, useContext } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../../core/NavigationService/types';
-import type { NavigationDetails } from '../../../../../../util/navigation/navUtils';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../../../core/Engine';
 import { useTheme } from '../../../../../../util/theme';
@@ -16,7 +15,7 @@ import {
 import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import Routes from '../../../../../../constants/navigation/Routes';
-import { CardActions, CardEntryPoint } from '../../../util/metrics';
+import { CardActions } from '../../../util/metrics';
 import { DEPOSIT_SUPPORTED_TOKENS, cardNetworkInfos } from '../../../constants';
 import { withBiometricAuth } from '../../../util/withBiometricAuth';
 import { createAddFundsModalNavigationDetails } from '../../../components/AddFundsBottomSheet/AddFundsBottomSheet';
@@ -244,10 +243,7 @@ export function useCardHomeActions({
     );
     try {
       const response = await generatePinToken();
-      // `createViewPinBottomSheetNavigationDetails` returns a `[routeName, params]`
-      // tuple with the route name widened to `string`, which can't satisfy the
-      // strict `AppNavigationProp` overloads. Cast to a generic navigate.
-      (navigation.navigate as unknown as (...args: NavigationDetails) => void)(
+      navigation.navigate(
         ...createViewPinBottomSheetNavigationDetails({
           imageUrl: response.url,
         }),
@@ -337,9 +333,7 @@ export function useCardHomeActions({
 
     if (isPriorityTokenSupportedDeposit) {
       switchToFundingAccountIfNeeded();
-      // See note in `fetchAndShowPin`: the details helper widens the route name
-      // to `string`, so cast to a generic navigate for the strict prop.
-      (navigation.navigate as unknown as (...args: NavigationDetails) => void)(
+      navigation.navigate(
         ...createAddFundsModalNavigationDetails({
           priorityToken: primaryToken ?? undefined,
         }),
@@ -365,11 +359,7 @@ export function useCardHomeActions({
         .build(),
     );
     if (isAuthenticated) {
-      // See note in `fetchAndShowPin`: the details helper widens the route name
-      // to `string`, so cast to a generic navigate for the strict prop.
-      (navigation.navigate as unknown as (...args: NavigationDetails) => void)(
-        ...createAssetSelectionModalNavigationDetails({}),
-      );
+      navigation.navigate(...createAssetSelectionModalNavigationDetails({}));
     } else {
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
@@ -400,24 +390,6 @@ export function useCardHomeActions({
       navigation.navigate(Routes.CARD.AUTHENTICATION, { showAuthPrompt: true });
     }
   }, [isAuthenticated, navigation, trackEvent, createEventBuilder]);
-
-  const unlinkMoneyAccountAction = useCallback(
-    (fundingSource?: string) => {
-      trackEvent(
-        createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-          .addProperties({ action: CardActions.UNLINK_MONEY_ACCOUNT_BUTTON })
-          .build(),
-      );
-      navigation.navigate(Routes.CARD.MODALS.ID, {
-        screen: Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT,
-        params: {
-          fundingSource,
-          entrypoint: CardEntryPoint.CARD_HOME_UNLINK_MONEY_ACCOUNT,
-        },
-      });
-    },
-    [navigation, trackEvent, createEventBuilder],
-  );
 
   const logoutAction = useCallback(() => {
     Alert.alert(
@@ -494,7 +466,6 @@ export function useCardHomeActions({
     changeAssetAction,
     enableCardAction,
     manageSpendingLimitAction,
-    unlinkMoneyAccountAction,
     logoutAction,
     orderMetalCardAction,
     cashbackAction,

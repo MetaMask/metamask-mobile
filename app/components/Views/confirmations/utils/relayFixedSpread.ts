@@ -35,20 +35,11 @@ const buildAliasMap = (raw: unknown): Map<string, Hex> | null => {
   return map;
 };
 
-interface ResolvedRouteBase {
-  srcTokenAlias: string;
-  dstTokenAlias: string;
-  sourceChain: Hex;
-  sourceToken: Hex;
-  targetChain: Hex;
-  targetToken: Hex;
-}
-
-const resolveRouteBase = (
+const resolveRoute = (
   tuple: unknown,
   chains: Map<string, Hex>,
   tokens: Map<string, Hex>,
-): ResolvedRouteBase | null => {
+): RelayFixedSpreadRoute | null => {
   if (!Array.isArray(tuple) || tuple.length !== 4) return null;
   const [srcChainAlias, srcTokenAlias, dstChainAlias, dstTokenAlias] = tuple;
   if (
@@ -66,29 +57,7 @@ const resolveRouteBase = (
   if (!sourceChain || !sourceToken || !targetChain || !targetToken) {
     return null;
   }
-  return {
-    srcTokenAlias,
-    dstTokenAlias,
-    sourceChain,
-    sourceToken,
-    targetChain,
-    targetToken,
-  };
-};
-
-const resolveRoute = (
-  tuple: unknown,
-  chains: Map<string, Hex>,
-  tokens: Map<string, Hex>,
-): RelayFixedSpreadRoute | null => {
-  const base = resolveRouteBase(tuple, chains, tokens);
-  if (!base) return null;
-  return {
-    sourceChain: base.sourceChain,
-    sourceToken: base.sourceToken,
-    targetChain: base.targetChain,
-    targetToken: base.targetToken,
-  };
+  return { sourceChain, sourceToken, targetChain, targetToken };
 };
 
 const tryJsonParse = (raw: string): unknown => {
@@ -165,15 +134,30 @@ const resolveRouteWithSymbols = (
   chains: Map<string, Hex>,
   tokens: Map<string, Hex>,
 ): RelayFixedSpreadAliasRoute | null => {
-  const base = resolveRouteBase(tuple, chains, tokens);
-  if (!base) return null;
+  if (!Array.isArray(tuple) || tuple.length !== 4) return null;
+  const [srcChainAlias, srcTokenAlias, dstChainAlias, dstTokenAlias] = tuple;
+  if (
+    typeof srcChainAlias !== 'string' ||
+    typeof srcTokenAlias !== 'string' ||
+    typeof dstChainAlias !== 'string' ||
+    typeof dstTokenAlias !== 'string'
+  ) {
+    return null;
+  }
+  const sourceChain = chains.get(srcChainAlias);
+  const sourceToken = tokens.get(srcTokenAlias);
+  const targetChain = chains.get(dstChainAlias);
+  const targetToken = tokens.get(dstTokenAlias);
+  if (!sourceChain || !sourceToken || !targetChain || !targetToken) {
+    return null;
+  }
   return {
-    sourceChain: base.sourceChain,
-    sourceTokenAlias: base.srcTokenAlias,
-    sourceToken: base.sourceToken,
-    targetChain: base.targetChain,
-    targetTokenAlias: base.dstTokenAlias,
-    targetToken: base.targetToken,
+    sourceChain,
+    sourceTokenAlias: srcTokenAlias,
+    sourceToken,
+    targetChain,
+    targetTokenAlias: dstTokenAlias,
+    targetToken,
   };
 };
 

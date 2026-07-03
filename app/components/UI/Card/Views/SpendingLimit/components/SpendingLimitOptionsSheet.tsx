@@ -55,11 +55,7 @@ const SpendingLimitOptionsSheet: React.FC = () => {
 
   const handleConfirm = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      const navigateWithDynamicRoute = navigation.navigate as unknown as (
-        screen: string,
-        params?: Record<string, unknown>,
-      ) => void;
-      navigateWithDynamicRoute(callerRoute, {
+      navigation.navigate(callerRoute, {
         ...callerParams,
         returnedLimitType: limitType,
         returnedCustomLimit: customLimit,

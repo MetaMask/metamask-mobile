@@ -9,7 +9,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import useMoneyAccountInfo from '../../hooks/useMoneyAccountInfo';
 import { selectMoneyOnboardingSeen } from '../../../../../reducers/user/selectors';
-import { selectHasWalletFundingPrimaryCta } from '../../selectors/homePrimaryCta';
+import { selectShouldShowWalletHomeOnboardingSteps } from '../../../../../selectors/onboarding';
 import { selectMoneyOnboardingStepperAnimationEnabled } from '../../../../../selectors/featureFlagController/moneyAccount';
 import { useMoneyNavigation } from '../../hooks/useMoneyNavigation';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
@@ -71,9 +71,9 @@ jest.mock('../../../../../reducers/user/selectors', () => ({
   selectMoneyOnboardingSeen: jest.fn(),
 }));
 
-jest.mock('../../selectors/homePrimaryCta', () => ({
+jest.mock('../../../../../selectors/onboarding', () => ({
   __esModule: true,
-  selectHasWalletFundingPrimaryCta: jest.fn(),
+  selectShouldShowWalletHomeOnboardingSteps: jest.fn(),
 }));
 
 jest.mock(
@@ -92,8 +92,8 @@ jest.mock('../../../../../util/Logger', () => ({
 const mockUseMoneyAccountBalance = jest.mocked(useMoneyAccountBalance);
 const mockUseMoneyAccountInfo = jest.mocked(useMoneyAccountInfo);
 const mockSelectMoneyOnboardingSeen = jest.mocked(selectMoneyOnboardingSeen);
-const mockSelectHasWalletFundingPrimaryCta = jest.mocked(
-  selectHasWalletFundingPrimaryCta,
+const mockSelectShouldShowWalletHomeOnboardingSteps = jest.mocked(
+  selectShouldShowWalletHomeOnboardingSteps,
 );
 const mockSelectMoneyOnboardingStepperAnimationEnabled = jest.mocked(
   selectMoneyOnboardingStepperAnimationEnabled,
@@ -147,7 +147,7 @@ describe('MoneyBalanceCard', () => {
     mockUseMoneyAccountBalance.mockReturnValue(createBalanceMock());
     mockUseMoneyAccountInfo.mockReturnValue(createInfoMock());
     mockSelectMoneyOnboardingSeen.mockReturnValue(true);
-    mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
+    mockSelectShouldShowWalletHomeOnboardingSteps.mockReturnValue(false);
     mockSelectMoneyOnboardingStepperAnimationEnabled.mockReturnValue(true);
     mockUseMoneyNavigation.mockReturnValue({
       navigateToMoneyHome: mockNavigateToMoneyHome,
@@ -352,7 +352,7 @@ describe('MoneyBalanceCard', () => {
 
     describe('when the wallet-home onboarding stepper is not displayed', () => {
       beforeEach(() => {
-        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
+        mockSelectShouldShowWalletHomeOnboardingSteps.mockReturnValue(false);
       });
 
       it('renders the Add button with the add label', () => {
@@ -371,7 +371,7 @@ describe('MoneyBalanceCard', () => {
 
     describe('when the wallet-home onboarding stepper is displayed', () => {
       beforeEach(() => {
-        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
+        mockSelectShouldShowWalletHomeOnboardingSteps.mockReturnValue(true);
       });
 
       it('renders the Add button (never Get started) when the stepper is visible', () => {
@@ -625,8 +625,8 @@ describe('MoneyBalanceCard', () => {
         mockSelectMoneyOnboardingSeen.mockReturnValue(true);
       });
 
-      it('renders Add as Secondary when another primary CTA is present on Home', () => {
-        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
+      it('renders Add as Secondary when the onboarding stepper is visible', () => {
+        mockSelectShouldShowWalletHomeOnboardingSteps.mockReturnValue(true);
 
         const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
 
@@ -636,7 +636,7 @@ describe('MoneyBalanceCard', () => {
       });
 
       it('renders Add as Primary when no other primary CTA is on Home', () => {
-        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
+        mockSelectShouldShowWalletHomeOnboardingSteps.mockReturnValue(false);
 
         const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
 
@@ -648,7 +648,7 @@ describe('MoneyBalanceCard', () => {
 
     describe('funded balance', () => {
       it('renders Add as Primary when no other primary CTA is on Home', () => {
-        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
+        mockSelectShouldShowWalletHomeOnboardingSteps.mockReturnValue(false);
 
         const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
 
@@ -657,8 +657,8 @@ describe('MoneyBalanceCard', () => {
         ).toBe(ButtonVariant.Primary);
       });
 
-      it('renders Add as Secondary when another primary CTA is present on Home', () => {
-        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
+      it('renders Add as Secondary when the onboarding stepper is visible', () => {
+        mockSelectShouldShowWalletHomeOnboardingSteps.mockReturnValue(true);
 
         const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
 
@@ -680,7 +680,7 @@ describe('MoneyBalanceCard', () => {
       });
 
       it('renders Add as Primary when no other primary CTA is on Home', () => {
-        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(false);
+        mockSelectShouldShowWalletHomeOnboardingSteps.mockReturnValue(false);
 
         const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
 
@@ -689,8 +689,8 @@ describe('MoneyBalanceCard', () => {
         ).toBe(ButtonVariant.Primary);
       });
 
-      it('renders Add as Secondary when another primary CTA is present on Home', () => {
-        mockSelectHasWalletFundingPrimaryCta.mockReturnValue(true);
+      it('renders Add as Secondary when the onboarding stepper is visible', () => {
+        mockSelectShouldShowWalletHomeOnboardingSteps.mockReturnValue(true);
 
         const { UNSAFE_getByProps } = renderWithProvider(<MoneyBalanceCard />);
 

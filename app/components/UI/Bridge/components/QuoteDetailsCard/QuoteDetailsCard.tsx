@@ -5,6 +5,7 @@ import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import createStyles from './QuoteDetailsCard.styles';
 import { IconName as IconNameLegacy } from '../../../../../component-library/components/Icons/Icon';
+import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import {
   Box,
   BoxFlexDirection,
@@ -188,6 +189,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             tooltip={{
               title: strings('bridge.quote_info_title'),
               content: strings('bridge.quote_info_content'),
+              size: TooltipSizes.Sm,
               iconName: IconNameLegacy.Info,
             }}
           />
@@ -231,6 +233,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                 content: strings('bridge.network_fee_info_content_sponsored', {
                   nativeToken: nativeTokenName,
                 }),
+                size: TooltipSizes.Sm,
                 iconName: IconNameLegacy.Info,
               },
             }}
@@ -296,6 +299,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               tooltip: {
                 title: strings('bridge.network_fee_info_title'),
                 content: strings('bridge.network_fee_info_content'),
+                size: TooltipSizes.Sm,
                 iconName: IconNameLegacy.Info,
               },
             }}
@@ -319,6 +323,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
             tooltip: {
               title: strings('bridge.slippage_info_title'),
               content: strings('bridge.slippage_info_description'),
+              size: TooltipSizes.Sm,
               iconName: IconNameLegacy.Info,
             },
           }}
@@ -357,6 +362,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               tooltip: {
                 title: strings('bridge.minimum_received_tooltip_title'),
                 content: strings('bridge.minimum_received_tooltip_content'),
+                size: TooltipSizes.Sm,
                 iconName: IconNameLegacy.Info,
               },
             }}
@@ -381,6 +387,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
               tooltip: {
                 title: strings('bridge.price_impact_info_title'),
                 content: strings('bridge.price_impact_info_description'),
+                size: TooltipSizes.Sm,
                 iconName: IconNameLegacy.Info,
               },
             }}
@@ -433,6 +440,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                   content: `${strings(
                     'bridge.points_tooltip_content_1',
                   )}\n\n${strings('bridge.points_tooltip_content_2')}`,
+                  size: TooltipSizes.Sm,
                   iconName: IconNameLegacy.Info,
                 },
               }}
@@ -469,6 +477,7 @@ const QuoteDetailsCard: React.FC<QuoteDetailsCardProps> = ({
                   tooltip: {
                     title: strings('bridge.points_error'),
                     content: strings('bridge.points_error_content'),
+                    size: TooltipSizes.Sm,
                     iconName: IconNameLegacy.Info,
                   },
                 }),

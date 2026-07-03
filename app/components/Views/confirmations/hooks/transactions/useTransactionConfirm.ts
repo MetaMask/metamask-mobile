@@ -32,6 +32,7 @@ import { useHandleHwSend } from '../../../../UI/HardwareWallet/Swaps/useHandleHw
 const log = createProjectLogger('transaction-confirm');
 
 export const GO_BACK_TYPES = [
+  TransactionType.moneyAccountDeposit,
   TransactionType.moneyAccountWithdraw,
   TransactionType.perpsWithdraw,
   TransactionType.predictClaim,
@@ -178,15 +179,6 @@ export function useTransactionConfirm() {
         }
       } else if (type === TransactionType.musdConversion) {
         musdConversionNavigateOnConfirm();
-      } else if (
-        hasTransactionType(transactionMetadata, [
-          TransactionType.moneyAccountDeposit,
-        ])
-      ) {
-        navigation.navigate(Routes.HOME_TABS, {
-          screen: Routes.MONEY.ROOT,
-          params: { screen: Routes.MONEY.HOME },
-        });
       } else if (
         isFullScreenConfirmation &&
         !hasTransactionType(transactionMetadata, GO_BACK_TYPES)

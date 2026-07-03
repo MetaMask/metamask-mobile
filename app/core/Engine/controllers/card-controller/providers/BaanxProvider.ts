@@ -62,10 +62,6 @@ import {
   CashbackWithdrawEstimationResponse,
   CashbackWithdrawParams,
   CashbackWithdrawResponse,
-  CreditWalletResponse,
-  CreditWithdrawEstimationResponse,
-  CreditWithdrawParams,
-  CreditWithdrawResponse,
   type DelegationChallengeResponse,
   emptyCardHomeData,
   isCardAuthTokenError,
@@ -237,7 +233,6 @@ export class BaanxProvider implements ICardProvider {
     },
     supportsPinView: true,
     supportsCashback: true,
-    supportsCredit: true,
   };
   private readonly service: BaanxService;
   private readonly getCardFeatureFlag: () => CardFeatureFlag | null;
@@ -423,10 +418,9 @@ export class BaanxProvider implements ICardProvider {
         ],
       );
 
-      const { details: walletDetails, priorities: externalWalletPriority } =
-        delegationSettings
-          ? await this.fetchWalletDetails(tokens)
-          : { details: [], priorities: [] };
+      const walletDetails = delegationSettings
+        ? await this.fetchWalletDetails(tokens)
+        : [];
 
       let fundingAssets = this.mapWalletDetailsToAssets(walletDetails);
 
@@ -489,7 +483,6 @@ export class BaanxProvider implements ICardProvider {
         alerts,
         actions,
         delegationSettings,
-        externalWalletPriority,
       };
     } catch (error) {
       if (isCardAuthTokenError(error)) {
@@ -805,32 +798,6 @@ export class BaanxProvider implements ICardProvider {
   ): Promise<CashbackWithdrawResponse> {
     return this.service.post<CashbackWithdrawResponse>(
       '/v1/wallet/reward/withdraw',
-      params,
-      tokens,
-    );
-  }
-
-  // -- Credit --
-
-  async getCreditWallet(tokens: CardAuthTokens): Promise<CreditWalletResponse> {
-    return this.service.get<CreditWalletResponse>('/v1/wallet/credit', tokens);
-  }
-
-  async getCreditWithdrawEstimation(
-    tokens: CardAuthTokens,
-  ): Promise<CreditWithdrawEstimationResponse> {
-    return this.service.get<CreditWithdrawEstimationResponse>(
-      '/v1/wallet/credit/withdraw-estimation',
-      tokens,
-    );
-  }
-
-  async withdrawCredit(
-    params: CreditWithdrawParams,
-    tokens: CardAuthTokens,
-  ): Promise<CreditWithdrawResponse> {
-    return this.service.post<CreditWithdrawResponse>(
-      '/v1/wallet/credit/withdraw',
       params,
       tokens,
     );
@@ -1322,10 +1289,9 @@ export class BaanxProvider implements ICardProvider {
    * details or CAIP chain IDs. This method resolves the token info by matching
    * `currency` against the feature-flag supported tokens for each network.
    */
-  private async fetchWalletDetails(tokens: CardAuthTokens): Promise<{
-    details: CardExternalWalletDetail[];
-    priorities: CardWalletExternalPriorityResponse[];
-  }> {
+  private async fetchWalletDetails(
+    tokens: CardAuthTokens,
+  ): Promise<CardExternalWalletDetail[]> {
     try {
       const [rawWallets, priorities] = await Promise.all([
         this.service.get<
@@ -1347,7 +1313,7 @@ export class BaanxProvider implements ICardProvider {
           }),
       ]);
 
-      if (!rawWallets?.length) return { details: [], priorities };
+      if (!rawWallets?.length) return [];
 
       const maxPriority = priorities.reduce(
         (max, p) => Math.max(max, p.priority),
@@ -1394,16 +1360,13 @@ export class BaanxProvider implements ICardProvider {
         });
       }
 
-      return {
-        details: enriched.sort((a, b) => a.priority - b.priority),
-        priorities,
-      };
+      return enriched.sort((a, b) => a.priority - b.priority);
     } catch (error) {
       if (isCardAuthTokenError(error)) {
         throw mapApiError(error, 'fetchWalletDetails');
       }
       Logger.error(error as Error, getErrorContext('fetchWalletDetails'));
-      return { details: [], priorities: [] };
+      return [];
     }
   }
 

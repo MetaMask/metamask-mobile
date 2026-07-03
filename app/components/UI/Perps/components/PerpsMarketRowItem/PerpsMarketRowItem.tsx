@@ -205,8 +205,7 @@ const PerpsMarketRowItem = ({
             gap={2}
           >
             <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
-              {displayMarket.name ||
-                getPerpsDisplaySymbol(displayMarket.symbol)}
+              {getPerpsDisplaySymbol(displayMarket.symbol)}
             </Text>
             <PerpsLeverage maxLeverage={displayMarket.maxLeverage} />
           </Box>

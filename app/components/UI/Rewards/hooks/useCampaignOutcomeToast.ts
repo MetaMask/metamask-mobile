@@ -19,7 +19,6 @@ import {
   selectCampaigns,
   selectDismissedCampaignOutcomeToasts,
 } from '../../../../reducers/rewards/selectors';
-import { buildCampaignOutcomeToastCompositeKey } from '../../../../reducers/rewards/compositeKeys';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { navigateToRewardsRoute } from '../utils';
 import useRewardsToast from './useRewardsToast';
@@ -91,11 +90,7 @@ export function useCampaignOutcomeToast(
 
   const isDismissed = useMemo(() => {
     if (!variant || !targetCampaign || !subscriptionId) return true;
-    const key = buildCampaignOutcomeToastCompositeKey(
-      targetCampaign.id,
-      subscriptionId,
-      variant,
-    );
+    const key = `${targetCampaign.id}:${subscriptionId}:${variant}`;
     return dismissed[key] === true;
   }, [variant, targetCampaign, subscriptionId, dismissed]);
 

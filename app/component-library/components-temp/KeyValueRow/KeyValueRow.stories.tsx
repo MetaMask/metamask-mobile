@@ -1,6 +1,9 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import KeyValueRowComponent, { KeyValueRowFieldIconSides } from './index';
+import KeyValueRowComponent, {
+  KeyValueRowFieldIconSides,
+  TooltipSizes,
+} from './index';
 import Text, { TextColor, TextVariant } from '../../components/Texts/Text';
 import Title from '../../../components/Base/Title';
 import { IconColor, IconName, IconSize } from '../../components/Icons/Icon';
@@ -58,6 +61,7 @@ export const KeyValueRow = {
               title: 'Sample Title',
               content:
                 'Pariatur nisi pariatur ex veniam ad. Non tempor nostrud sint velit cupidatat aliquip elit ut pariatur reprehenderit enim enim commodo eu.',
+              size: TooltipSizes.Sm,
             },
           }}
         />

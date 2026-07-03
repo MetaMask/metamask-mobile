@@ -1,5 +1,3 @@
-/* istanbul ignore file -- Browser-only TradingView script covered via AdvancedChartTemplate tests. */
-/* global globalThis */
 /**
  * TradingView Chart WebView Logic
  *
@@ -48,45 +46,15 @@ window.ohlcvPagination = {
   assetId: null,
   vsCurrency: null,
 };
-/**
- * RN-backed pagination: when enabled, getBars sends FETCH_OLDER_BARS_REQUEST to RN
- * instead of fetching the Price API directly. Used when the data source is only
- * accessible from RN (e.g. Perps candle channel via PerpsController).
- */
-window.rnBackedPagination = { enabled: false };
-/** Pending getBars callbacks waiting for a FETCH_OLDER_BARS_RESPONSE from RN. */
-window.pendingOlderBarsCallbacks = new Map();
-/** Monotonic request id suffix for RN-backed older-bars requests. */
-globalThis.olderBarsRequestSeq = 0;
 /** Bumped on each `SET_OHLCV_DATA` so in-flight fetches from a previous series are discarded. */
 window.ohlcvGeneration = 0;
 /** Visible-range start (ms) from RN; used to clip bars on first load so the chart auto-fits correctly. */
 window.visibleFromMs = null;
 /** Visible-range end (ms) from RN; anchors the timeframe `to` to the last candle instead of Date.now(). */
 window.visibleToMs = null;
-// ============================================
-// SocialLeaderboard (Social Trading) namespace — `slb*` / `__slb*` / `SLB_*`
-// ----------------------------------------------------------------------------
-// Everything prefixed `slb`/`__slb`/`SLB_` in this file is owned by the
-// SocialLeaderboard team (Trader Position chart). The prefix is a temporary
-// name-scope so these functions/globals can't collide with other consumers'
-// additions (e.g. Perps in PR #31247) until this file is split per-team.
-// Other teams: do not call these directly; duplicate under your own prefix if
-// you need similar behavior.
-// ============================================
-/**
- * True while a viewport-centering pagination loop is running. Cold init applies the
- * centered range twice (on `dataReady` and again after a 350ms settle); this guard
- * stops the second pass from starting a concurrent `slbPaginateOlderBarsUntil` against
- * the same cursor (which would double-fetch and duplicate bars). Reset on each new
- * series in `handleSetOHLCVData` so an aborted (superseded-generation) loop never
- * strands the flag.
- */
-window.__slbCenteringInFlight = false;
 // Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
 window.currentChartType = 2;
 window.lineLastPriceShapeId = null;
-window.hasExplicitCurrentPriceLine = false;
 /** Bumped when `ohlcvData` is replaced or last bar changes; visible-range dot refresh ignores stale timers. */
 window.lineChartOhlcvEpoch = 0;
 
@@ -307,33 +275,16 @@ function queueTryCompleteLayoutSettleAfterData() {
  */
 /** Pre-`resetData` `getBars` during `setResolution` — deliver empty/noData, not real bars. */
 function isHotReloadPreResetGetBars(firstDataRequest) {
-  return !!firstDataRequest && globalThis.__mmInHotReloadPreResetPhase;
+  return !!firstDataRequest && window.__mmInHotReloadPreResetPhase;
 }
 
 function resetDatafeedCacheBeforeHotReload() {
-  if (!globalThis.chartWidget) {
+  if (!window.chartWidget) {
     return;
   }
   try {
-    if (typeof globalThis.chartWidget.resetCache === 'function') {
-      globalThis.chartWidget.resetCache();
-    }
-  } catch (e) {}
-}
-
-function resetMainPriceScaleAutoScale(chart) {
-  try {
-    if (!chart || typeof chart.getPanes !== 'function') {
-      return;
-    }
-    const panes = chart.getPanes();
-    const mainPane = panes?.[0];
-    if (!mainPane || typeof mainPane.getMainSourcePriceScale !== 'function') {
-      return;
-    }
-    const priceScale = mainPane.getMainSourcePriceScale();
-    if (typeof priceScale?.setAutoScale === 'function') {
-      priceScale.setAutoScale(true);
+    if (typeof window.chartWidget.resetCache === 'function') {
+      window.chartWidget.resetCache();
     }
   } catch (e) {}
 }
@@ -384,160 +335,6 @@ function abortDeferredLayoutSettleAndNotify() {
   scheduleChartLayoutSettledNotify();
 }
 
-/**
- * How long (ms) to keep re-asserting the centered visible range after applying it.
- * A one-shot `setVisibleRange` issued during the post-load settle is overridden by
- * TradingView's default "scroll to latest" positioning, so we re-apply every frame
- * for this window — this is what the animated `handleFocusTime` (which sticks) does
- * implicitly, and a single auto-center call did not. Sits within the post-load
- * `suppressChartUserInteraction` window so it never fights a real user gesture.
- */
-const SLB_CENTER_VISIBLE_RANGE_HOLD_MS = 700;
-/** Bumped on each hold so a newer center / new series cancels an in-flight hold. */
-window.__slbCenterHoldGen = 0;
-
-/**
- * Re-asserts `setVisibleRange({from, to})` every animation frame for
- * {@link SLB_CENTER_VISIBLE_RANGE_HOLD_MS}, defeating TradingView's post-load
- * scroll-to-latest that clobbers a single call. Generation- and series-guarded so a
- * newer center or a fresh series stops it; no-ops once the widget is torn down.
- */
-function slbHoldCenteredVisibleRange(chart, fromSec, toSec) {
-  window.__slbCenterHoldGen = (window.__slbCenterHoldGen || 0) + 1;
-  const gen = window.__slbCenterHoldGen;
-  const dataGen = window.ohlcvGeneration;
-  const startTs = Date.now();
-  // Re-asserting the range emits visible-range changes; keep them out of the
-  // pan/zoom analytics, matching handleFocusTime's programmatic slide.
-  suppressChartUserInteraction(SLB_CENTER_VISIBLE_RANGE_HOLD_MS + 200);
-
-  function apply() {
-    if (gen !== window.__slbCenterHoldGen) return;
-    if (dataGen !== window.ohlcvGeneration) return;
-    if (!window.chartWidget || !window.isChartReady) return;
-    try {
-      // No options object: passing { percentRightMargin: 0 } makes TradingView
-      // anchor to the latest candle and ignore an older from/to, so a historical
-      // frame (an old position's trades) snaps back to "today". This matches the
-      // working handleFocusTime call, which slides to old trades without issue.
-      chart.setVisibleRange({ from: fromSec, to: toSec });
-    } catch (e) {}
-    if (Date.now() - startTs < SLB_CENTER_VISIBLE_RANGE_HOLD_MS) {
-      try {
-        requestAnimationFrame(apply);
-      } catch (e) {
-        setTimeout(apply, 16);
-      }
-    }
-  }
-
-  apply();
-}
-
-/**
- * Frames a trade-centered visible range, FIRST paginating older candles into
- * `window.ohlcvData` when `fromMs` predates the loaded page.
- *
- * Two failure modes are handled together:
- * 1. `setVisibleRange` cannot frame a range whose candles aren't loaded —
- *    TradingView snaps the viewport back to the latest candle. Paginating the
- *    target candles into `window.ohlcvData` first lets the `setVisibleRange`'s
- *    `getBars` answer from the in-WebView cache. (The markers can still draw via
- *    draw-on-pan as candles trickle in, which is why the circle appeared while the
- *    chart stayed on "today".)
- * 2. A single `setVisibleRange` during the post-load settle is overridden by
- *    TradingView's scroll-to-latest, so we re-assert it for a short window (see
- *    {@link slbHoldCenteredVisibleRange}).
- *
- * Refreshes trade markers once the range is applied so the circles land in view.
- */
-function slbApplyCenteredVisibleRange(chart, fromMs, toMs) {
-  if (!chart || typeof chart.setVisibleRange !== 'function') return;
-  if (fromMs == null) return;
-
-  function apply() {
-    window.__slbCenteringInFlight = false;
-    let fromSec = Math.floor(fromMs / 1000);
-    let toSec = Math.ceil((toMs != null ? toMs : Date.now()) / 1000);
-    let barPadSec = getApproxBarDurationSec() * 2;
-    let targetToSec = toSec + barPadSec;
-
-    // A frame ending at/after the latest loaded bar is the trailing window (Token
-    // Details): TradingView's scroll-to-latest doesn't fight it, so a single
-    // setVisibleRange is enough and we keep the original behavior. A frame ending
-    // well BEFORE the latest bar is a historical position (an old trade range) that
-    // scroll-to-latest WILL clobber, so re-assert it across the settle window.
-    let lastBar = window.ohlcvData[window.ohlcvData.length - 1];
-    let lastBarSec = lastBar ? Math.floor(lastBar.time / 1000) : null;
-    let isHistoricalFrame = lastBarSec != null && toSec < lastBarSec;
-
-    if (isHistoricalFrame) {
-      slbHoldCenteredVisibleRange(chart, fromSec, targetToSec);
-    } else {
-      try {
-        chart.setVisibleRange(
-          { from: fromSec, to: targetToSec },
-          { percentRightMargin: 0 },
-        );
-      } catch (e) {}
-    }
-    scheduleTradeMarkerRefresh();
-  }
-
-  let oldest = window.ohlcvData[0] ? window.ohlcvData[0].time : null;
-  let needsOlderHistory =
-    oldest != null &&
-    fromMs < oldest &&
-    window.ohlcvPagination &&
-    window.ohlcvPagination.nextCursor &&
-    window.ohlcvPagination.hasMore;
-
-  if (needsOlderHistory) {
-    // A loop is already paginating toward this range (cold init's second pass) —
-    // let it finish and apply, rather than racing the same cursor.
-    if (window.__slbCenteringInFlight) return;
-    window.__slbCenteringInFlight = true;
-    slbPaginateOlderBarsUntil(fromMs, apply);
-  } else {
-    apply();
-  }
-}
-
-function slbApplyVisibleRangeFromWindow(chart) {
-  if (!chart || typeof chart.setVisibleRange !== 'function') return;
-
-  if (window.visibleFromMs == null) {
-    try {
-      chart.getTimeScale().setRightOffset(2);
-    } catch (e) {}
-    return;
-  }
-
-  slbApplyCenteredVisibleRange(chart, window.visibleFromMs, window.visibleToMs);
-}
-
-function slbScheduleVisibleRangeFromWindowAfterDataLoad(chart) {
-  function run() {
-    slbApplyVisibleRangeFromWindow(chart);
-    scheduleTradeMarkerRefresh();
-  }
-
-  try {
-    if (chart && typeof chart.dataReady === 'function') {
-      chart.dataReady(run);
-    } else {
-      setTimeout(run, 0);
-    }
-  } catch (e) {
-    setTimeout(run, 0);
-  }
-
-  // Cold init can report chart ready before drawings can anchor to bars. A
-  // delayed second pass mirrors the interval-switch reset path and fixes the
-  // initial marker/range race without waiting for the user to change periods.
-  setTimeout(run, 350);
-}
-
 // ============================================
 // Message Handler
 // ============================================
@@ -546,16 +343,7 @@ function handleMessage(event) {
     let message =
       typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
 
-    // SET_OHLCV_DATA bootstraps the chart, and FETCH_OLDER_BARS_RESPONSE resolves a
-    // datafeed getBars() callback — both can legitimately arrive before `onChartReady`
-    // (TradingView calls getBars during initial load). Queuing the older-bars response
-    // would deadlock: onChartReady drains the queue, but it cannot fire until the pending
-    // getBars callback this response carries is resolved.
-    if (
-      !window.isChartReady &&
-      message.type !== 'SET_OHLCV_DATA' &&
-      message.type !== 'FETCH_OLDER_BARS_RESPONSE'
-    ) {
+    if (!window.isChartReady && message.type !== 'SET_OHLCV_DATA') {
       window.pendingMessages.push(message);
       return;
     }
@@ -602,9 +390,6 @@ function handleMessage(event) {
         break;
       case 'SET_THEME_COLORS':
         handleSetThemeColors(message.payload);
-        break;
-      case 'FETCH_OLDER_BARS_RESPONSE':
-        handleFetchOlderBarsResponse(message.payload);
         break;
     }
   } catch (error) {
@@ -724,21 +509,11 @@ function handleSetOHLCVData(payload) {
     return;
   }
 
-  // SocialLeaderboard scoping flag (see the slb* namespace banner). RN sets this
-  // only for the Social Trading position chart; it gates the SLB-only viewport
-  // behavior below so other consumers (Token Details, Perps) keep the original
-  // code paths. Set first so every downstream branch in this load sees it.
-  window.__slbMode = !!payload.slbMode;
-
   suppressChartUserInteraction(700);
 
   window.ohlcvData = payload.data;
   bumpLineChartOhlcvEpoch();
   window.ohlcvGeneration++;
-  // A new series supersedes any in-flight centering pagination (its generation
-  // guard will abort it without running the apply that clears this flag), so reset
-  // here to keep the next centering pass unblocked.
-  window.__slbCenteringInFlight = false;
 
   if (payload.pagination) {
     window.ohlcvPagination = {
@@ -755,13 +530,6 @@ function handleSetOHLCVData(payload) {
       vsCurrency: null,
     };
   }
-
-  window.rnBackedPagination = payload.rnBackedPagination
-    ? { enabled: !!payload.rnBackedPagination.enabled }
-    : { enabled: false };
-
-  // Resolve pending older-bar callbacks from the previous series before clearing.
-  resolveAllPendingOlderBarsNoData();
 
   let visibleFromMs =
     payload.visibleFromMs != null ? payload.visibleFromMs : null;
@@ -786,15 +554,6 @@ function handleSetOHLCVData(payload) {
       if (capturedGeneration !== window.ohlcvGeneration) {
         return;
       }
-      if (window.__slbMode) {
-        // SocialLeaderboard: paginate the trade-date candles in before framing
-        // them — the reset page only holds recent candles, so a direct
-        // setVisibleRange to an older range would otherwise snap back to the
-        // latest candle (see slbApplyCenteredVisibleRange).
-        slbApplyCenteredVisibleRange(chart, visibleFromMs, visibleToMs);
-        return;
-      }
-      // Default (Token Details / others): frame the trailing window to the last bar.
       let fromSec = Math.floor(visibleFromMs / 1000);
       let lastBar = window.ohlcvData[window.ohlcvData.length - 1];
       let toSec = lastBar
@@ -835,8 +594,7 @@ function handleSetOHLCVData(payload) {
             resetDatafeedCacheBeforeHotReload();
             beginDeferredLayoutSettleAfterOhlcvReload();
             chart.resetData();
-            resetMainPriceScaleAutoScale(chart);
-            // resetData()/setResolution drop Drawing API shapes; clear our tracking and
+            // resetData() drops the trade-marker shapes; clear our tracking and
             // re-schedule a draw, otherwise placeTradeMarkers skips the redraw
             // (its id set still matches) and the circles stay gone.
             clearTradeMarkers();
@@ -852,7 +610,6 @@ function handleSetOHLCVData(payload) {
           resetDatafeedCacheBeforeHotReload();
           beginDeferredLayoutSettleAfterOhlcvReload();
           chart.resetData();
-          resetMainPriceScaleAutoScale(chart);
           // resetData() drops the trade-marker shapes; clear our tracking and
           // re-schedule a draw, otherwise placeTradeMarkers skips the redraw
           // (its id set still matches) and the circles stay gone.
@@ -1388,21 +1145,6 @@ function applySeriesColors() {
   applySeriesStyleProperties(lineColor);
 }
 
-function getCurrentPriceVisualColor() {
-  const theme = globalThis.CONFIG?.theme || {};
-  return theme.currentPriceColor || theme.lineColor || theme.successColor;
-}
-
-function getVolumeSuccessColor() {
-  const theme = globalThis.CONFIG?.theme || {};
-  return theme.volumeSuccessColor || theme.successColor;
-}
-
-function getVolumeErrorColor() {
-  const theme = globalThis.CONFIG?.theme || {};
-  return theme.volumeErrorColor || theme.errorColor;
-}
-
 /**
  * Hot-swap theme colors (line, success/up, error/down) without rebuilding the
  * WebView. Uses TradingView's documented runtime APIs in one pass:
@@ -1421,12 +1163,6 @@ function handleSetThemeColors(payload) {
   if (payload.errorColor != null) theme.errorColor = payload.errorColor;
   if (payload.currentPriceColor != null) {
     theme.currentPriceColor = payload.currentPriceColor;
-  }
-  if (payload.volumeSuccessColor != null) {
-    theme.volumeSuccessColor = payload.volumeSuccessColor;
-  }
-  if (payload.volumeErrorColor != null) {
-    theme.volumeErrorColor = payload.volumeErrorColor;
   }
 
   if (!window.chartWidget || !window.isChartReady) return;
@@ -1458,8 +1194,8 @@ function handleSetThemeColors(payload) {
   if (window.volumeStudyId) {
     try {
       chart.getStudyById(window.volumeStudyId).applyOverrides({
-        'volume.color.0': getVolumeErrorColor(),
-        'volume.color.1': getVolumeSuccessColor(),
+        'volume.color.0': theme.errorColor,
+        'volume.color.1': theme.successColor,
       });
     } catch (e) {}
   }
@@ -1467,7 +1203,7 @@ function handleSetThemeColors(payload) {
   // Update custom DOM pill colors
   let elLast = document.getElementById('last-close-price-label');
   if (elLast) {
-    elLast.style.background = lastPriceLineColor;
+    elLast.style.background = lineColor;
   }
 
   // Update Drawing API shapes in-place via setProperties (synchronous, no
@@ -1541,11 +1277,6 @@ function applyChartScaleLayout(type) {
   let useCustomDashed = lc.useCustomDashedLastPriceLine;
   /** Match pane background so time/price scale rules disappear; labels use textColor above. */
   let axisLineColor = theme.backgroundColor || '#131416';
-  let separatorColor =
-    window.CONFIG.features && window.CONFIG.features.hidePaneSeparator
-      ? theme.backgroundColor || '#131416'
-      : theme.borderColor;
-  let gridLineColor = theme.gridLineColor || 'transparent';
 
   try {
     window.chartWidget.applyOverrides(
@@ -1558,15 +1289,10 @@ function applyChartScaleLayout(type) {
           'scalesProperties.showSymbolLabels': false,
           'scalesProperties.showPriceScaleCrosshairLabel': !useCustomLabels,
           'scalesProperties.showTimeScaleCrosshairLabel': !useCustomLabels,
-          'paneProperties.vertGridProperties.color': gridLineColor,
-          'paneProperties.horzGridProperties.color': gridLineColor,
-          'mainSeriesProperties.showPriceLine':
-            !useCustomDashed && !window.hasExplicitCurrentPriceLine,
-          'mainSeriesProperties.priceLineColor':
-            getThemeLastPriceLineColor(theme),
+          'mainSeriesProperties.showPriceLine': !useCustomDashed,
           'timeScale.borderColor': axisLineColor,
           'scalesProperties.lineColor': axisLineColor,
-          'paneProperties.separatorColor': separatorColor,
+          'paneProperties.separatorColor': theme.borderColor,
           'paneProperties.topMargin': 12,
           'paneProperties.bottomMargin': 8,
         },
@@ -1999,14 +1725,13 @@ function updateVisibleEdgeOutlinePriceLabel() {
   const theme = (w.CONFIG && w.CONFIG.theme) || {};
   const upColor = theme.successColor || '#0C9F76';
   const lineColor = getThemeLineColor(theme) || upColor;
-  const currentPriceColor = getThemeLastPriceLineColor(theme) || lineColor;
   const downColor = theme.errorColor || '#E06470';
-  let outlineColor = currentPriceColor;
+  let outlineColor = ct === 2 ? lineColor : upColor;
   if (ct === 1) {
     const o = Number(edgeBar.open);
     const c = Number(edgeBar.close);
-    if (!theme.currentPriceColor) {
-      outlineColor = isFinite(o) && isFinite(c) && c < o ? downColor : upColor;
+    if (isFinite(o) && isFinite(c) && c < o) {
+      outlineColor = downColor;
     }
   }
   elOut.style.borderColor = outlineColor;
@@ -2146,7 +1871,6 @@ function updateLastClosePriceLabel() {
     return;
   }
   el.textContent = formatCrosshairPrice(labelPrice);
-  el.style.background = getCurrentPriceVisualColor();
   el.style.display = 'flex';
   let overlay = document.getElementById('custom-crosshair-overlay');
   positionPricePillAtPlotPriceBoundary(el, overlay, y);
@@ -2820,100 +2544,50 @@ function handleSetPositionLines(payload) {
   clearPositionLines();
 
   // null or missing position means "clear only"
-  if (!payload || !payload.position) {
-    window.hasExplicitCurrentPriceLine = false;
-    try {
-      window.chartWidget.applyOverrides({
-        'mainSeriesProperties.showPriceLine':
-          !getLineChrome().useCustomDashedLastPriceLine,
-      });
-    } catch (e) {}
-    return;
-  }
+  if (!payload || !payload.position) return;
 
   let position = payload.position;
-  window.hasExplicitCurrentPriceLine = !!position.currentPrice;
   let theme = window.CONFIG.theme;
-  try {
-    window.chartWidget.applyOverrides({
-      'mainSeriesProperties.showPriceLine':
-        !getLineChrome().useCustomDashedLastPriceLine &&
-        !window.hasExplicitCurrentPriceLine,
-    });
-  } catch (e) {}
-  // Position lines are consumer-specific (currently Perps only); the consumer
-  // supplies colors via the payload. Fall back to theme-derived defaults.
-  let colors = payload.positionLineColors || {};
-  let currentPriceColor =
-    colors.currentPrice || getThemeLastPriceLineColor(theme);
-  let entryColor = colors.entry || '#858585';
-  let takeProfitColor = colors.takeProfit || theme.successColor;
-  let stopLossColor = colors.stopLoss || '#858585';
-  let liquidationColor = colors.liquidation || theme.errorColor;
 
   try {
     let chart = window.chartWidget.activeChart();
     let lines = [];
 
-    if (position.currentPrice) {
-      lines.push({
-        price: position.currentPrice,
-        color: currentPriceColor,
-        lineStyle: 2,
-        lineWidth: 1,
-        showLabel: false,
-        showPrice: false,
-        horzLabelsAlign: 'right',
-      });
-    }
     if (position.entryPrice) {
       lines.push({
         price: position.entryPrice,
         text: 'Entry',
-        color: entryColor,
+        color: '#858585',
         lineStyle: 2,
-        lineWidth: 1,
-        showLabel: true,
-        showPrice: true,
-        horzLabelsAlign: 'left',
       });
     }
     if (position.takeProfitPrice) {
       lines.push({
         price: position.takeProfitPrice,
         text: 'TP',
-        color: takeProfitColor,
+        color: theme.successColor,
         lineStyle: 2,
-        lineWidth: 1,
-        showLabel: true,
-        showPrice: true,
-        horzLabelsAlign: 'left',
       });
     }
     if (position.stopLossPrice) {
       lines.push({
         price: position.stopLossPrice,
         text: 'SL',
-        color: stopLossColor,
+        color: '#858585',
         lineStyle: 2,
-        lineWidth: 1,
-        showLabel: true,
-        showPrice: true,
-        horzLabelsAlign: 'left',
       });
     }
     if (position.liquidationPrice) {
       lines.push({
         price: position.liquidationPrice,
         text: 'Liq',
-        color: liquidationColor,
+        color: theme.errorColor,
         lineStyle: 2,
-        lineWidth: 1,
-        showLabel: true,
-        showPrice: true,
-        horzLabelsAlign: 'left',
       });
     }
+    // TODO: currentPrice is defined in PositionLines but not yet rendered here.
+    // Add a line for position.currentPrice (e.g. a solid line showing live mark
+    // price) when the Perps integration is ready.
 
     for (let i = 0; i < lines.length; i++) {
       (function (line) {
@@ -2930,12 +2604,12 @@ function handleSetPositionLines(payload) {
               overrides: {
                 linecolor: line.color,
                 linestyle: line.lineStyle,
-                linewidth: line.lineWidth,
-                showLabel: line.showLabel,
+                linewidth: 1,
+                showLabel: true,
                 textcolor: line.color,
                 fontsize: 11,
-                horzLabelsAlign: line.horzLabelsAlign,
-                showPrice: line.showPrice,
+                horzLabelsAlign: 'right',
+                showPrice: true,
               },
             },
           )
@@ -3047,7 +2721,6 @@ function handleSetTradeMarkers(payload) {
   }
 
   placeTradeMarkers();
-  scheduleTradeMarkerRefresh();
 }
 
 /**
@@ -3409,10 +3082,9 @@ const FOCUS_TIME_ANIM_MS = 600;
 /** Fallback visible span (in bar durations) when no current range is readable. */
 const FOCUS_TIME_FALLBACK_BARS = 60;
 /**
- * Default (non-SLB) "already visible" inset: a target inside the inner
- * `1 - 2*inset` of the visible window is treated as comfortably visible and the
- * chart doesn't move. SocialLeaderboard overrides this with a full-window check
- * (see `window.__slbMode` branch in {@link handleFocusTime}).
+ * Fraction of the visible span treated as an inset on each edge. A target time
+ * inside the inset window is "already comfortably visible" → the chart doesn't
+ * move (it only pulses). Keeps re-taps and taps on nearby trades from re-centering.
  */
 const FOCUS_TIME_VISIBLE_INSET = 0.08;
 
@@ -3442,53 +3114,31 @@ function handleFocusTime(payload) {
 
   const centerSec = payload.timeMs / 1000;
 
-  // Current visible range (seconds) — used to detect a trade that is already on
-  // screen and to seed the slide animation / preserve the zoom.
+  // Current visible range (seconds) — used for the start of the animation and to
+  // preserve the zoom when no explicit span is requested.
   let curFrom = null;
   let curTo = null;
-  if (window.__slbMode) {
-    // SocialLeaderboard: prefer the robust reader (loaded-bars range with a
-    // logical-range fallback). A bare getVisibleRange() can momentarily report a
-    // stale/empty range right after a programmatic reframe, which would make an
-    // on-screen trade look off-screen and wrongly re-center it.
-    const visibleRange = getVisibleTimeRangeSecFromChart(chart);
-    if (visibleRange && visibleRange.hi > visibleRange.lo) {
-      curFrom = visibleRange.lo;
-      curTo = visibleRange.hi;
+  try {
+    const vr = chart.getVisibleRange();
+    if (vr) {
+      const f = normalizeChartUnixSec(vr.from);
+      const t = normalizeChartUnixSec(vr.to);
+      if (f !== null && t !== null && t > f) {
+        curFrom = f;
+        curTo = t;
+      }
     }
-  } else {
-    try {
-      const vr = chart.getVisibleRange();
-      if (vr) {
-        const f = normalizeChartUnixSec(vr.from);
-        const t = normalizeChartUnixSec(vr.to);
-        if (f !== null && t !== null && t > f) {
-          curFrom = f;
-          curTo = t;
-        }
-      }
-    } catch (e2) {}
-  }
+  } catch (e2) {}
 
-  // Already visible → leave the chart exactly where it is (no scroll, no zoom);
-  // the caller pulses the marker separately.
+  // Already comfortably within the visible window → leave the chart exactly where
+  // it is (no scroll, no zoom); the caller pulses the marker separately. This is
+  // what makes re-tapping the same trade — or tapping a nearby one that's already
+  // on screen — only pulse instead of re-centering.
   if (curFrom !== null && curTo !== null) {
-    if (window.__slbMode) {
-      // SocialLeaderboard: the WHOLE visible window counts as "visible" (plus a
-      // one-bar tolerance for a marker on the very edge), so tapping any on-screen
-      // trade only pulses instead of re-centering — not just re-taps / mid-window.
-      const edgeToleranceSec = getApproxBarDurationSec();
-      if (
-        centerSec >= curFrom - edgeToleranceSec &&
-        centerSec <= curTo + edgeToleranceSec
-      ) {
-        return;
-      }
-    } else if (
-      // Default: only skip when comfortably inside the inset window (re-taps /
-      // nearby trades). Keeps the pre-SLB behavior for other consumers.
-      centerSec >= curFrom + (curTo - curFrom) * FOCUS_TIME_VISIBLE_INSET &&
-      centerSec <= curTo - (curTo - curFrom) * FOCUS_TIME_VISIBLE_INSET
+    const visibleInset = (curTo - curFrom) * FOCUS_TIME_VISIBLE_INSET;
+    if (
+      centerSec >= curFrom + visibleInset &&
+      centerSec <= curTo - visibleInset
     ) {
       return;
     }
@@ -5177,12 +4827,12 @@ function createVolumeStudy(useOverlay) {
 
   try {
     const chart = window.chartWidget.activeChart();
+    const t = window.CONFIG.theme;
     const overrides = {
       showLegendValues: false,
-      'volume ma.display': 0,
-      'volume.color.0': getVolumeErrorColor(),
-      'volume.color.1': getVolumeSuccessColor(),
       'volume.transparency': useOverlay ? 70 : 0,
+      'volume.color.0': t.errorColor,
+      'volume.color.1': t.successColor,
     };
     const promise = useOverlay
       ? chart.createStudy('Volume', true, false, {}, overrides, {
@@ -5332,92 +4982,6 @@ function filterBarsForRange(fromMs, toMs, countBack) {
   return barsInRange;
 }
 
-function resolvePendingOlderBarsNoData(pending) {
-  if (!pending || typeof pending.onResult !== 'function') {
-    return;
-  }
-  try {
-    pending.onResult([], { noData: true });
-  } catch (e) {}
-  if (window.__mmLayoutSettlePending) {
-    queueTryCompleteLayoutSettleAfterData();
-  }
-}
-
-function resolveAllPendingOlderBarsNoData() {
-  if (
-    !window.pendingOlderBarsCallbacks ||
-    typeof window.pendingOlderBarsCallbacks.forEach !== 'function'
-  ) {
-    window.pendingOlderBarsCallbacks = new Map();
-    return;
-  }
-  window.pendingOlderBarsCallbacks.forEach(function (pending) {
-    resolvePendingOlderBarsNoData(pending);
-  });
-  window.pendingOlderBarsCallbacks = new Map();
-}
-
-/**
- * Handles FETCH_OLDER_BARS_RESPONSE from RN.
- * Merges returned bars into window.ohlcvData and resolves the pending getBars callback.
- */
-function handleFetchOlderBarsResponse(payload) {
-  if (!payload || typeof payload.requestId !== 'string') {
-    return;
-  }
-  var pending = window.pendingOlderBarsCallbacks.get(payload.requestId);
-  if (!pending) {
-    return; // already resolved or timed out
-  }
-  window.pendingOlderBarsCallbacks.delete(payload.requestId);
-
-  // Discard stale response if series changed since request was sent.
-  if (
-    payload.seriesGeneration !== pending.gen ||
-    payload.seriesGeneration !== window.ohlcvGeneration
-  ) {
-    resolvePendingOlderBarsNoData(pending);
-    return;
-  }
-
-  if (
-    payload.error ||
-    payload.noData ||
-    !Array.isArray(payload.bars) ||
-    payload.bars.length === 0
-  ) {
-    pending.onResult([], { noData: true });
-    if (window.__mmLayoutSettlePending) {
-      queueTryCompleteLayoutSettleAfterData();
-    }
-    return;
-  }
-
-  var existingTimes = new Set();
-  for (var j = 0; j < window.ohlcvData.length; j++) {
-    existingTimes.add(window.ohlcvData[j].time);
-  }
-
-  var olderBars = [];
-  for (var i = 0; i < payload.bars.length; i++) {
-    var bar = payload.bars[i];
-    if (bar.time < pending.oldestAtDefer && !existingTimes.has(bar.time)) {
-      existingTimes.add(bar.time);
-      olderBars.push(bar);
-    }
-  }
-
-  if (olderBars.length > 0) {
-    window.ohlcvData = olderBars.concat(window.ohlcvData);
-  }
-
-  pending.onResult(olderBars, { noData: olderBars.length === 0 });
-  if (window.__mmLayoutSettlePending) {
-    queueTryCompleteLayoutSettleAfterData();
-  }
-}
-
 let OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
 
 /**
@@ -5505,124 +5069,6 @@ function fetchOlderBars(pending) {
         queueTryCompleteLayoutSettleAfterData();
       }
     });
-}
-
-/**
- * Paginates older OHLCV pages into `window.ohlcvData` until the oldest loaded bar
- * is at or before `targetFromMs`, pagination is exhausted, or the 50-page cap is
- * reached, then invokes `onDone`. Page fetches abort silently (without calling
- * `onDone`) if `window.ohlcvGeneration` advances mid-flight — a newer series has
- * superseded this one.
- *
- * Shared by the datafeed getBars path ({@link slbFetchOlderBarsUntilRange}) and the
- * viewport-centering path ({@link slbApplyCenteredVisibleRange}).
- */
-function slbPaginateOlderBarsUntil(targetFromMs, onDone) {
-  let gen = window.ohlcvGeneration;
-  let remainingPages = 50;
-
-  function finish() {
-    if (gen !== window.ohlcvGeneration) {
-      return;
-    }
-    onDone();
-  }
-
-  function step() {
-    if (gen !== window.ohlcvGeneration) {
-      return;
-    }
-
-    let oldest = window.ohlcvData[0] ? window.ohlcvData[0].time : null;
-    if (targetFromMs == null || (oldest != null && oldest <= targetFromMs)) {
-      finish();
-      return;
-    }
-
-    let pag = window.ohlcvPagination;
-    if (
-      remainingPages <= 0 ||
-      !pag.nextCursor ||
-      !pag.hasMore ||
-      !pag.assetId
-    ) {
-      finish();
-      return;
-    }
-    remainingPages -= 1;
-
-    let url = OHLCV_BASE_URL + '/' + pag.assetId;
-    let queryParams = [];
-    queryParams.push('nextCursor=' + encodeURIComponent(pag.nextCursor));
-    if (pag.vsCurrency) {
-      queryParams.push('vsCurrency=' + encodeURIComponent(pag.vsCurrency));
-    }
-    url = url + '?' + queryParams.join('&');
-
-    fetch(url)
-      .then(function (response) {
-        if (!response.ok) {
-          throw new Error('OHLCV API error: ' + response.status);
-        }
-        return response.json();
-      })
-      .then(function (result) {
-        if (gen !== window.ohlcvGeneration) {
-          return;
-        }
-
-        if (!result || !Array.isArray(result.data)) {
-          throw new Error('OHLCV API response: invalid payload');
-        }
-
-        let newBars = [];
-        for (let i = 0; i < result.data.length; i++) {
-          let c = result.data[i];
-          newBars.push({
-            time: c.timestamp,
-            open: c.open,
-            high: c.high,
-            low: c.low,
-            close: c.close,
-            volume: c.volume,
-          });
-        }
-
-        window.ohlcvPagination.nextCursor = result.nextCursor || null;
-        window.ohlcvPagination.hasMore = !!result.hasNext;
-
-        if (newBars.length > 0) {
-          window.ohlcvData = newBars.concat(window.ohlcvData);
-          step();
-          return;
-        }
-
-        finish();
-      })
-      .catch(function () {
-        finish();
-      });
-  }
-
-  step();
-}
-
-/**
- * TradingView can ask for an initial visible window older than the first page RN
- * supplied (Social Trading positions centered on an old trade). On first
- * request, paginate backwards until the requested range is covered, then answer
- * from the expanded in-WebView candle cache.
- */
-function slbFetchOlderBarsUntilRange(pending) {
-  slbPaginateOlderBarsUntil(pending.fromMs, function () {
-    let bars = filterBarsForRange(
-      pending.fromMs,
-      pending.toMs,
-      pending.countBack,
-    );
-    pending.onResult(bars, { noData: bars.length === 0 });
-    scheduleTradeMarkerRefresh();
-  });
 }
 
 let customDatafeed = {
@@ -5730,68 +5176,17 @@ let customDatafeed = {
         return;
       }
 
-      let oldestTs = window.ohlcvData[0]?.time;
-      if (
-        // SocialLeaderboard only: back-fill older pages so the WebView can frame a
-        // requested range that predates the loaded page (centering on an old
-        // trade). Mode-gated so it never competes with other consumers' getBars
-        // pagination paths.
-        window.__slbMode &&
-        firstRequest &&
-        oldestTs != null &&
-        fromMs < oldestTs &&
-        window.ohlcvPagination &&
-        window.ohlcvPagination.nextCursor &&
-        window.ohlcvPagination.hasMore
-      ) {
-        slbFetchOlderBarsUntilRange({
-          fromMs: fromMs,
-          toMs: toMs,
-          countBack: countBack,
-          onResult: deliverBars,
-        });
-        return;
-      }
-
       if (firstRequest || window.ohlcvData.length === 0) {
         deliverBars([], { noData: true });
         return;
       }
 
-      // `oldestTs` is declared above (before the SLB back-fill block); reuse it
-      // here instead of re-declaring so the two pagination paths coexist.
-      if (window.ohlcvPagination.assetId) {
-        // Token details path: WebView fetches older pages from Price API directly.
-        fetchOlderBars({
-          onResult: onResult,
-          oldestAtDefer: oldestTs,
-        });
-      } else if (globalThis.rnBackedPagination.enabled) {
-        // RN-backed path (Perps): send a request to RN and store the pending callback.
-        const gen = globalThis.ohlcvGeneration;
-        globalThis.olderBarsRequestSeq += 1;
-        const requestId = 'obr-' + gen + '-' + globalThis.olderBarsRequestSeq;
-        globalThis.pendingOlderBarsCallbacks.set(requestId, {
-          onResult: onResult,
-          oldestAtDefer: oldestTs,
-          gen: gen,
-        });
-        sendToReactNative('FETCH_OLDER_BARS_REQUEST', {
-          requestId: requestId,
-          seriesGeneration: gen,
-          symbol: globalThis.currentSymbol || symbolInfo.name,
-          resolution: resolution,
-          fromSec: periodParams.from,
-          toSec: periodParams.to,
-          countBack: periodParams.countBack,
-          oldestLoadedTimeMs: oldestTs,
-        });
-      } else {
-        onResult([], { noData: true });
-        if (window.__mmLayoutSettlePending) {
-          queueTryCompleteLayoutSettleAfterData();
-        }
-      }
+      let oldestTs = window.ohlcvData[0].time;
+
+      fetchOlderBars({
+        onResult: onResult,
+        oldestAtDefer: oldestTs,
+      });
     } catch (error) {
       abortDeferredLayoutSettleAndNotify();
       onError(error && error.message ? error.message : String(error));
@@ -6059,11 +5454,8 @@ function initChart() {
         {
           'paneProperties.background': theme.backgroundColor,
           'paneProperties.backgroundType': 'solid',
-          'paneProperties.vertGridProperties.color':
-            theme.gridLineColor || 'transparent',
-          'paneProperties.horzGridProperties.color':
-            theme.gridLineColor || 'transparent',
-          'scalesProperties.textColor': theme.textColor,
+          'paneProperties.vertGridProperties.color': 'transparent',
+          'paneProperties.horzGridProperties.color': 'transparent',
           'scalesProperties.lineColor': theme.backgroundColor || '#131416', // done to hide the axis line
           'timeScale.borderColor': theme.backgroundColor || '#131416', // done to hide the axis line
           'scalesProperties.fontSize': 12,
@@ -6082,10 +5474,7 @@ function initChart() {
           'paneProperties.legendProperties.showStudyTitles': false,
           'paneProperties.legendProperties.showStudyArguments': false,
           'paneProperties.legendProperties.showStudyValues': false,
-          'mainSeriesProperties.showPriceLine':
-            !initCustomDashed && !window.hasExplicitCurrentPriceLine,
-          'mainSeriesProperties.priceLineColor':
-            getThemeLastPriceLineColor(theme),
+          'mainSeriesProperties.showPriceLine': !initCustomDashed,
 
           'mainSeriesProperties.candleStyle.upColor': theme.successColor,
           'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
@@ -6138,16 +5527,6 @@ function initChart() {
       } else {
         ensureNoLineChartEndIcons();
         createLastPriceLine();
-      }
-
-      // SocialLeaderboard cold-init centering pass. Mode-gated so other consumers
-      // keep the original onChartReady behavior (this call did not exist for them).
-      if (window.__slbMode) {
-        try {
-          slbScheduleVisibleRangeFromWindowAfterDataLoad(
-            window.chartWidget.activeChart(),
-          );
-        } catch (e) {}
       }
 
       // Prevent series selection (blue dots) by clearing any selection immediately

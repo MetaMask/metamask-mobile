@@ -23,12 +23,17 @@ const selectedTypeFilterLabel = (filter: ActivityTypeFilter) =>
   });
 
 describeForPlatforms('ActivityScreen', () => {
-  it('updates the selected type filter through the real screen controls', async () => {
-    const { getByTestId, getAllByText, findByTestId } =
+  it('updates search text and selected type filter through the real screen controls', async () => {
+    const { getByPlaceholderText, getByTestId, getAllByText, findByTestId } =
       renderActivityScreenView();
 
-    // The search input is temporarily commented out — TODO(activity-redesign):
-    // restore the search-typing assertion with the unified list + filtering.
+    const searchInput = getByPlaceholderText(
+      strings('activity_view.search_placeholder'),
+    );
+    fireEvent.changeText(searchInput, 'swap');
+
+    expect(searchInput).toHaveProp('value', 'swap');
+
     fireEvent.press(getByTestId(ActivityScreenSelectorsIDs.TYPE_FILTER_CHIP));
 
     expect(

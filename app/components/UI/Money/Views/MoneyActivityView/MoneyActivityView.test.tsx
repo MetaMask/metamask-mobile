@@ -103,7 +103,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'money.activity.filter_all': 'All',
       'money.activity.filter_deposits': 'Deposits',
       'money.activity.filter_sends': 'Sends',
-      'money.activity.filter_purchases': 'Purchases',
       'money.activity.pending': 'Pending',
     };
     return map[key] ?? key;
@@ -147,21 +146,6 @@ const CASHBACK_TX: AccountsApiActivity = {
   receivedFrom: '0xfe80eea4249a1f01095d35e0cf4f37367976a9f0',
 };
 const CASHBACK_ROW_TEST_ID = `activity-mock-api-${CASHBACK_TX.hash}`;
-
-const REFUND_TX: AccountsApiActivity = {
-  kind: 'refund',
-  hash: '0xrefund1',
-  time: 1780574031000,
-  chainId: '0x8f',
-  token: {
-    address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
-    symbol: 'mUSD',
-    decimals: 6,
-  },
-  amount: '10000000',
-  receivedFrom: '0x8dFE562Cbb4E93D5029f39DA26BB6B501a8d1D3e',
-};
-const REFUND_ROW_TEST_ID = `activity-mock-api-${REFUND_TX.hash}`;
 
 function mockApiActivity(
   overrides: Partial<ReturnType<typeof useMoneyAccountApiActivity>> = {},
@@ -228,9 +212,6 @@ describe('MoneyActivityView', () => {
     ).toBeOnTheScreen();
     expect(
       getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS),
-    ).toBeOnTheScreen();
-    expect(
-      getByTestId(MoneyActivityViewTestIds.FILTER_PURCHASES),
     ).toBeOnTheScreen();
   });
 
@@ -373,39 +354,6 @@ describe('MoneyActivityView', () => {
     // Transfers: absent.
     fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS));
     expect(queryByTestId(CASHBACK_ROW_TEST_ID)).toBeNull();
-  });
-
-  it('groups card spends, cashback, and refunds under the Purchases filter', () => {
-    mockApiActivity({ activity: [CARD_TX, CASHBACK_TX, REFUND_TX] });
-
-    const { getByTestId } = renderWithProvider(<MoneyActivityView />);
-
-    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_PURCHASES));
-
-    expect(getByTestId(CARD_ROW_TEST_ID)).toBeOnTheScreen();
-    expect(getByTestId(CASHBACK_ROW_TEST_ID)).toBeOnTheScreen();
-    expect(getByTestId(REFUND_ROW_TEST_ID)).toBeOnTheScreen();
-    // Plain on-chain sends never appear under Purchases.
-    expect(
-      getByTestId(MoneyActivityViewTestIds.FILTER_PURCHASES),
-    ).toBeOnTheScreen();
-  });
-
-  it('keeps refunds out of Deposits and Sends (additive Purchases bucket)', () => {
-    mockApiActivity({ activity: [REFUND_TX] });
-
-    const { getByTestId, queryByTestId } = renderWithProvider(
-      <MoneyActivityView />,
-    );
-
-    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_DEPOSITS));
-    expect(queryByTestId(REFUND_ROW_TEST_ID)).toBeNull();
-
-    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_TRANSFERS));
-    expect(queryByTestId(REFUND_ROW_TEST_ID)).toBeNull();
-
-    fireEvent.press(getByTestId(MoneyActivityViewTestIds.FILTER_PURCHASES));
-    expect(getByTestId(REFUND_ROW_TEST_ID)).toBeOnTheScreen();
   });
 
   it('does not render real Accounts-API rows in mock-data mode', () => {

@@ -40,7 +40,7 @@ describe('getSnapAccountServiceMessenger', () => {
         actions: expect.arrayContaining([
           'KeyringController:withController',
           'KeyringController:getState',
-          'KeyringController:withKeyringV2Unsafe',
+          'KeyringController:withKeyringUnsafe',
         ]),
       }),
     );

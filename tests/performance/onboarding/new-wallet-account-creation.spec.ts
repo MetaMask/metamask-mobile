@@ -26,7 +26,8 @@ import {
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
 import { fetchProductionFeatureFlags } from '../feature-flag-helper';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
+import PredictModalView from '../../page-objects/Predict/PredictModalView.js';
+import OnboardingInterestQuestionnaireView from '../../page-objects/Onboarding/OnboardingInterestQuestionnaireView.js';
 
 const testEnvironment = 'test'; // hard coding this for now. We need a new FF env in LD for e2e. An admin needs to create it..
 
@@ -81,6 +82,9 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
         predictGtmOnboardingModalEnabled &&
         predictGtmOnboardingModalEnabled === true
       ) {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(PredictModalView.notNowButton),
+        );
         await dismisspredictionsModalPlaywright();
       }
 
@@ -101,11 +105,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       );
 
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
-        {
-          description:
-            'token list should be visible after selecting the new account',
-        },
+        await asPlaywrightElement(WalletView.walletBuyButton),
       );
 
       await WalletView.tapIdenticon();
@@ -131,7 +131,7 @@ test.describe(`${Performance} ${System} ${PerformanceOnboarding} ${PerformanceAc
       await screen3Timer.measure(async () => {
         await WalletView.checkActiveAccount('Account 2');
         await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(TabBarComponent.tabBarWalletButton),
+          await asPlaywrightElement(WalletView.tokensSection),
           {
             description:
               'token list should be visible after selecting the new account',

@@ -26,7 +26,6 @@ export const STATELESS_NON_CONTROLLER_NAMES = [
   'SocialService',
   'AuthenticatedUserStorageService',
   'MoneyAccountBalanceService',
-  'ConfigRegistryApiService',
   'ChompApiService',
 ] as const;
 
@@ -39,7 +38,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'AppMetadataController:stateChange',
   'AssetsController:stateChange',
   'ConnectivityController:stateChange',
-  'ConfigRegistryController:stateChange',
   'ApprovalController:stateChange',
   'CurrencyRateController:stateChange',
   'GasFeeController:stateChange',
@@ -101,7 +99,6 @@ export const BACKGROUND_STATE_CHANGE_EVENT_NAMES = [
   'ProfileMetricsController:stateChange',
   'ComplianceController:stateChange',
   'SocialController:stateChange',
-  'QrSyncController:stateChange',
 ] as const;
 
 export const MAINNET_DISPLAY_NAME = 'Ethereum';

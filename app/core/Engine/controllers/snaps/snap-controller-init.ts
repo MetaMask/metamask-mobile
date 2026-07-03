@@ -20,8 +20,9 @@ import {
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { store } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
+import { buildAndTrackEvent } from '../../utils/analytics';
+import type { AnalyticsUnfilteredProperties } from '../../../../util/analytics/analytics.types';
 import { getMnemonicSeed } from '../../../Snaps/permissions/utils';
-import { getClientConfig } from './utils';
 import { ensureOnboardingComplete } from '../../utils/ensureOnboardingComplete';
 import { CAN_INSTALL_THIRD_PARTY_SNAPS } from '../../../../constants/snaps';
 
@@ -113,8 +114,16 @@ export const snapControllerInit: MessengerClientInitFunction<
       pbkdf2Sha512: pbkdf2,
       hmacSha512: async (key, data) => hmacSha512(key, data),
     },
-
-    clientConfig: getClientConfig(),
+    trackEvent: (params: {
+      event: string;
+      properties?: Record<string, unknown>;
+    }) => {
+      buildAndTrackEvent(
+        initMessenger,
+        params.event,
+        params.properties as AnalyticsUnfilteredProperties,
+      );
+    },
   });
 
   initMessenger.subscribe('KeyringController:lock', () => {

@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
-  selectPerpsTradingCampaignLeaderboardByCampaignId,
-  selectPerpsTradingCampaignLeaderboardLoadingByCampaignId,
-  selectPerpsTradingCampaignLeaderboardErrorByCampaignId,
+  selectPerpsTradingCampaignLeaderboard,
+  selectPerpsTradingCampaignLeaderboardLoading,
+  selectPerpsTradingCampaignLeaderboardError,
 } from '../../../../reducers/rewards/selectors';
 import {
   setPerpsTradingCampaignLeaderboard,
@@ -25,69 +25,38 @@ export const useGetPerpsTradingCampaignLeaderboard = (
   campaignId: string | undefined,
 ): UseGetPerpsTradingCampaignLeaderboardResult => {
   const dispatch = useDispatch();
-
-  const selectLeaderboard = useMemo(
-    () => selectPerpsTradingCampaignLeaderboardByCampaignId(campaignId),
-    [campaignId],
-  );
-  const selectLoading = useMemo(
-    () => selectPerpsTradingCampaignLeaderboardLoadingByCampaignId(campaignId),
-    [campaignId],
-  );
-  const selectError = useMemo(
-    () => selectPerpsTradingCampaignLeaderboardErrorByCampaignId(campaignId),
-    [campaignId],
-  );
-
-  const leaderboard = useSelector(selectLeaderboard);
-  const isLoading = useSelector(selectLoading);
-  const hasError = useSelector(selectError);
+  const leaderboard = useSelector(selectPerpsTradingCampaignLeaderboard);
+  const isLoading = useSelector(selectPerpsTradingCampaignLeaderboardLoading);
+  const hasError = useSelector(selectPerpsTradingCampaignLeaderboardError);
   const [isLeaderboardNotYetComputed, setIsLeaderboardNotYetComputed] =
     useState(false);
 
   const fetchLeaderboard = useCallback(async (): Promise<void> => {
     if (!campaignId) {
+      dispatch(setPerpsTradingCampaignLeaderboardLoading(false));
+      dispatch(setPerpsTradingCampaignLeaderboardError(false));
       setIsLeaderboardNotYetComputed(false);
       return;
     }
 
     try {
-      dispatch(
-        setPerpsTradingCampaignLeaderboardLoading({
-          campaignId,
-          loading: true,
-        }),
-      );
-      dispatch(
-        setPerpsTradingCampaignLeaderboardError({ campaignId, error: false }),
-      );
+      dispatch(setPerpsTradingCampaignLeaderboardLoading(true));
+      dispatch(setPerpsTradingCampaignLeaderboardError(false));
       setIsLeaderboardNotYetComputed(false);
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getPerpsTradingCampaignLeaderboard',
         campaignId,
       );
-      dispatch(
-        setPerpsTradingCampaignLeaderboard({
-          campaignId,
-          leaderboard: result,
-        }),
-      );
+      dispatch(setPerpsTradingCampaignLeaderboard(result));
     } catch (error) {
       const is404 = error instanceof Error && error.message.includes('404');
       if (is404) {
         setIsLeaderboardNotYetComputed(true);
       } else {
-        dispatch(
-          setPerpsTradingCampaignLeaderboardError({ campaignId, error: true }),
-        );
+        dispatch(setPerpsTradingCampaignLeaderboardError(true));
       }
     } finally {
-      dispatch(
-        setPerpsTradingCampaignLeaderboardLoading({
-          campaignId,
-          loading: false,
-        }),
-      );
+      dispatch(setPerpsTradingCampaignLeaderboardLoading(false));
     }
   }, [dispatch, campaignId]);
 

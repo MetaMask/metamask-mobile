@@ -470,7 +470,6 @@ export const BrowserPure = (props) => {
               fromBenefit={route.params?.fromBenefit}
               fromCard={route.params?.fromCard}
               fromWhatsHappening={route.params?.fromWhatsHappening}
-              fromMoney={route.params?.fromMoney}
             />
           ) : (
             <DiscoveryTab
@@ -495,7 +494,6 @@ export const BrowserPure = (props) => {
       route.params?.fromBenefit,
       route.params?.fromCard,
       route.params?.fromWhatsHappening,
-      route.params?.fromMoney,
     ],
   );
 

@@ -14,47 +14,16 @@ import {
 } from '../hooks/useActivityBlockExplorer';
 import { ActivityDetailsSelectorsIDs } from '../ActivityDetails.testIds';
 
-function useOpenWebview() {
+function useOpenExplorer() {
   const navigation = useNavigation();
   return useCallback(
-    ({ title, url }: { title?: string; url: string }) => {
+    (link: ActivityExplorerLink) => {
       navigation.navigate(Routes.WEBVIEW.MAIN, {
         screen: Routes.WEBVIEW.SIMPLE,
-        params: { url, title },
+        params: { url: link.url, title: link.title },
       });
     },
     [navigation],
-  );
-}
-
-/** Secondary CTA that opens an arbitrary URL in the in-app webview. */
-export function ActivityDetailsWebviewButton({
-  label,
-  testID,
-  title,
-  url,
-}: {
-  label: string;
-  testID?: string;
-  title?: string;
-  url: string | undefined;
-}) {
-  const openWebview = useOpenWebview();
-
-  if (!url) {
-    return null;
-  }
-
-  return (
-    <Button
-      variant={ButtonVariant.Secondary}
-      size={ButtonSize.Lg}
-      twClassName="w-full"
-      onPress={() => openWebview({ title, url })}
-      testID={testID}
-    >
-      {label}
-    </Button>
   );
 }
 
@@ -67,7 +36,7 @@ export function ActivityDetailsBlockExplorerButton({
   hash: string | undefined;
 }) {
   const link = useActivityBlockExplorer(chainId, hash);
-  const openWebview = useOpenWebview();
+  const openExplorer = useOpenExplorer();
 
   if (!link) {
     return null;
@@ -78,7 +47,7 @@ export function ActivityDetailsBlockExplorerButton({
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Lg}
       twClassName="w-full"
-      onPress={() => openWebview(link)}
+      onPress={() => openExplorer(link)}
       testID={ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}
     >
       {strings('activity_details.view_on_block_explorer')}
@@ -104,7 +73,7 @@ export function ActivityDetailsBridgeExplorerButtons({
 }) {
   const sourceLink = useActivityBlockExplorer(sourceChainId, sourceHash);
   const destLink = useActivityBlockExplorer(destChainId, destHash);
-  const openWebview = useOpenWebview();
+  const openExplorer = useOpenExplorer();
 
   const isCrossChain =
     Boolean(destLink) &&
@@ -122,7 +91,7 @@ export function ActivityDetailsBridgeExplorerButtons({
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
         twClassName="w-full"
-        onPress={() => openWebview(link)}
+        onPress={() => openExplorer(link)}
         testID={ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}
       >
         {strings('activity_details.view_on_block_explorer')}
@@ -137,7 +106,7 @@ export function ActivityDetailsBridgeExplorerButtons({
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
           twClassName="w-full"
-          onPress={() => openWebview(sourceLink)}
+          onPress={() => openExplorer(sourceLink)}
           testID={`${ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}-source`}
         >
           {strings('activity_details.view_on_block_explorer')}
@@ -148,7 +117,7 @@ export function ActivityDetailsBridgeExplorerButtons({
           variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
           twClassName="w-full"
-          onPress={() => openWebview(destLink)}
+          onPress={() => openExplorer(destLink)}
           testID={`${ActivityDetailsSelectorsIDs.BLOCK_EXPLORER_BUTTON}-dest`}
         >
           {strings('activity_details.view_on_block_explorer')}
@@ -159,16 +128,15 @@ export function ActivityDetailsBridgeExplorerButtons({
 }
 
 /**
- * Primary "do it again" CTA. Both the action target and the verb are
- * transaction-type-specific (swap → "Swap again", bridge → "Bridge again",
- * etc.), so callers must supply an explicit `label` — there is intentionally
- * no generic fallback copy.
+ * Primary "do it again" CTA. The action target is type-specific (swap → swap,
+ * send → send), so per-type templates supply `onPress`; the generic fallback
+ * omits it.
  */
 export function ActivityDetailsDoItAgainButton({
   label,
   onPress,
 }: {
-  label: string;
+  label?: string;
   onPress: () => void;
 }) {
   return (
@@ -179,7 +147,7 @@ export function ActivityDetailsDoItAgainButton({
       onPress={onPress}
       testID={ActivityDetailsSelectorsIDs.DO_IT_AGAIN_BUTTON}
     >
-      {label}
+      {label ?? strings('activity_details.do_it_again')}
     </Button>
   );
 }

@@ -89,12 +89,7 @@ describe('usePerpsAdjustMarginData', () => {
     });
 
     mockUsePerpsLivePrices.mockReturnValue({
-      BTC: {
-        price: '100000',
-        symbol: 'BTC',
-        timestamp: Date.now(),
-        isTradable: true,
-      },
+      BTC: { price: '100000', symbol: 'BTC', timestamp: Date.now() },
     });
 
     mockUsePerpsMarkets.mockReturnValue({
@@ -319,12 +314,7 @@ describe('usePerpsAdjustMarginData', () => {
 
     it('returns 0 when current price is 0', () => {
       mockUsePerpsLivePrices.mockReturnValue({
-        BTC: {
-          price: '0',
-          symbol: 'BTC',
-          timestamp: Date.now(),
-          isTradable: true,
-        },
+        BTC: { price: '0', symbol: 'BTC', timestamp: Date.now() },
       });
 
       const { result } = renderHook(() =>

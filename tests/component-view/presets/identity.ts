@@ -77,9 +77,6 @@ export const initialStateIdentity = (
           AddressBookController: {
             addressBook,
           },
-          SnapController: {
-            snaps: {},
-          },
           KeyringController: {
             isUnlocked: true,
             keyrings: [
