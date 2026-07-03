@@ -17,20 +17,23 @@ export const useBridgeViewOnFocus = ({
   const hasAutoFocusedRef = useRef(false);
 
   useFocusEffect(
-    useCallback(
-      () => {
-        if (autoFocusSourceAmountInput && !hasAutoFocusedRef.current) {
-          inputRef.current?.focus();
-          keypadRef.current?.open();
+    useCallback(() => {
+      if (autoFocusSourceAmountInput && !hasAutoFocusedRef.current) {
+        const input = inputRef.current;
+        const keypad = keypadRef.current;
+
+        input?.focus();
+        keypad?.open();
+
+        if (input && keypad) {
           hasAutoFocusedRef.current = true;
         }
+      }
 
-        return () => {
-          inputRef.current?.blur();
-          keypadRef.current?.close();
-        };
-      },
-      [autoFocusSourceAmountInput, inputRef, keypadRef],
-    ),
+      return () => {
+        inputRef.current?.blur();
+        keypadRef.current?.close();
+      };
+    }, [autoFocusSourceAmountInput, inputRef, keypadRef]),
   );
 };
