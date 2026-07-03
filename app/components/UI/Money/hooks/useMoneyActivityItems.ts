@@ -21,27 +21,22 @@ export type MoneyActivityBuckets = Record<
 
 export interface UseMoneyActivityItemsResult {
   buckets: MoneyActivityBuckets;
-  isLoading: boolean;
   /** Fetch the next page of Accounts-API activity (for infinite scroll). */
   loadMore: () => void;
   /** True while more Accounts-API pages remain to be fetched. */
   hasMore: boolean;
-  /** True once every page is fetched — the list is exhaustive (empty == truly empty). */
-  isComplete: boolean;
   /** True while a follow-up page is being fetched (footer spinner). */
   isLoadingMore: boolean;
-  /** Number of Accounts-API pages fetched so far. */
-  pageCount: number;
   /** True when the Accounts-API fetch failed — terminal until `refetch`. */
   error: boolean;
   /** Refetch the Accounts-API activity (all fetched pages, sequentially). */
   refetch: () => void;
   /**
-   * True while an empty list may still gain rows (initial load, or the
-   * `ensureCount` auto-fill still fetching). Consumers should show a loading
-   * state rather than "no activity" while this holds. Derived from the same
-   * predicate that drives the auto-fill effect, so it can neither outlive the
-   * fetch loop nor drop while it still runs.
+   * True while the `fill` target bucket is empty but may still gain rows
+   * (initial load, or the auto-fill still fetching). Consumers should show a
+   * loading state rather than "no activity" while this holds. Derived from
+   * the same predicate that drives the auto-fill effect, so it can neither
+   * outlive the fetch loop nor drop while it still runs.
    */
   isSettling: boolean;
   moneyAddress: string | undefined;
@@ -50,29 +45,26 @@ export interface UseMoneyActivityItemsResult {
 }
 
 /**
- * Upper bound on pages the {@link UseMoneyActivityItemsOptions.ensureCount}
- * auto-fill will pull once at least one row is on screen. Stops a sparse Money
- * account with a long unrelated on-chain history from sweeping every page on
- * mount; further pages then come from user-driven scroll instead.
+ * Upper bound on pages the {@link UseMoneyActivityItemsOptions.fill}
+ * auto-fill will pull. Deep enough that an account whose first Money row sits
+ * a few pages in isn't stranded on "no activity", but finite — a card-less
+ * account with a long raw history must not sweep every page on mount. Past
+ * the budget, further pages come from user-driven scroll instead.
  */
-export const AUTO_FILL_MAX_PAGES = 3;
-
-/**
- * Deeper budget that applies while the list is still *empty*: an account whose
- * first Money row sits a few pages in shouldn't be stranded on "no activity",
- * but the budget stays finite — a card-less account with a long raw history
- * must not sweep every page on mount. Past this, the list settles as empty.
- */
-export const EMPTY_AUTO_FILL_MAX_PAGES = 10;
+export const AUTO_FILL_MAX_PAGES = 10;
 
 export interface UseMoneyActivityItemsOptions {
   /**
-   * Keep fetching pages until the "All" bucket holds at least this many safe
-   * (below-watermark-excluded) rows or the activity is exhausted. Used by the
-   * home preview to fetch the minimum viable amount upfront; the full list
-   * leaves this unset and paginates on scroll instead.
+   * Keep fetching pages until `bucket` holds at least `count` safe
+   * (above-watermark) rows, the activity is exhausted, or the
+   * {@link AUTO_FILL_MAX_PAGES} budget is spent. The home preview fills the
+   * "All" bucket to its preview size; the full activity view fills the active
+   * tab's bucket to a screenful so `onEndReached` pagination can take over.
    */
-  ensureCount?: number;
+  fill?: {
+    bucket: MoneyActivityFilter;
+    count: number;
+  };
 }
 
 /**
@@ -155,7 +147,7 @@ export function buildMoneyActivityBuckets(
  * curated demo activity instead and never surfaces the API loading state.
  */
 export function useMoneyActivityItems({
-  ensureCount,
+  fill,
 }: UseMoneyActivityItemsOptions = {}): UseMoneyActivityItemsResult {
   const {
     allTransactions,
@@ -171,7 +163,6 @@ export function useMoneyActivityItems({
     hasMore,
     loadMore,
     isLoadingMore,
-    isComplete: apiIsComplete,
     pageCount,
     error,
     refetch,
@@ -194,44 +185,36 @@ export function useMoneyActivityItems({
     [allTransactions, deposits, transfers, apiActivity, effectiveWatermark],
   );
 
-  // Minimum-viable upfront fetch: pull more pages until the "All" bucket holds
-  // `ensureCount` safe rows, the activity is exhausted, or the page budget is
-  // spent — the standard budget once something is on screen, the deeper (but
-  // still finite) empty budget while nothing is. `loadMore` already guards
-  // against concurrent fetches and errored queries.
-  const allCount = buckets[MoneyActivityFilter.All].length;
-  const withinPageBudget =
-    pageCount <
-    (allCount === 0 ? EMPTY_AUTO_FILL_MAX_PAGES : AUTO_FILL_MAX_PAGES);
+  // Minimum-viable upfront fetch: pull more pages until the target bucket
+  // holds `fill.count` safe rows, the activity is exhausted, or the page
+  // budget is spent. `loadMore` already guards against concurrent fetches and
+  // errored queries.
+  const fillCount = buckets[fill?.bucket ?? MoneyActivityFilter.All].length;
   const wantsMorePages =
-    ensureCount !== undefined &&
+    fill !== undefined &&
     !mockDataEnabled &&
     hasMore &&
-    allCount < ensureCount &&
-    withinPageBudget;
+    fillCount < fill.count &&
+    pageCount < AUTO_FILL_MAX_PAGES;
   useEffect(() => {
     if (wantsMorePages && !isLoadingMore) {
       loadMore();
     }
   }, [wantsMorePages, isLoadingMore, loadMore]);
 
-  // An empty list is still settling while the initial query loads or the
+  // An empty bucket is still settling while the initial query loads or the
   // auto-fill above may yet deliver its first row. This is the same predicate
   // the fetch effect runs on, so the two can't disagree.
   const isSettling =
     !mockDataEnabled &&
-    (isLoading || (allCount === 0 && (wantsMorePages || isLoadingMore)));
+    (isLoading || (fillCount === 0 && (wantsMorePages || isLoadingMore)));
 
   return {
     buckets,
-    // Mock mode shows curated demo data only — never surface real API loading.
-    isLoading: isLoading && !mockDataEnabled,
     loadMore,
+    // Mock data is exhaustive and unpaginated — mask the live query's state.
     hasMore: hasMore && !mockDataEnabled,
-    // Mock data is exhaustive: an empty mock list is genuinely empty.
-    isComplete: mockDataEnabled || apiIsComplete,
     isLoadingMore: isLoadingMore && !mockDataEnabled,
-    pageCount,
     error: error && !mockDataEnabled,
     refetch,
     isSettling,

@@ -172,7 +172,12 @@ const MoneyHomeView = () => {
     error: activityError,
     moneyAddress,
     mockDataEnabled,
-  } = useMoneyActivityItems({ ensureCount: MONEY_HOME_ACTIVITY_PREVIEW_COUNT });
+  } = useMoneyActivityItems({
+    fill: {
+      bucket: MoneyActivityFilter.All,
+      count: MONEY_HOME_ACTIVITY_PREVIEW_COUNT,
+    },
+  });
   const activityItems = buckets[MoneyActivityFilter.All];
 
   const isCardholder = useSelector(selectIsCardholder);
@@ -242,36 +247,27 @@ const MoneyHomeView = () => {
   const activityReady = !isActivitySettling;
   // Each segment carries its own content_state so it is sampled from data
   // that segment has actually settled — the combined span may only read
-  // `isFunded` because it waits for both.
-  const moneyHomePerformanceSegments = useMemo(
-    (): MoneyHomeSegment[] => [
-      {
-        name: TraceName.MoneyHomeBalanceTimeToContent,
-        ready: balanceReady,
-        contentState: hasSpendableBalance ? 'filled' : 'empty',
-      },
-      {
-        name: TraceName.MoneyHomeActivityTimeToContent,
-        ready: activityReady,
-        failed: activityError,
-        contentState: activityItems.length > 0 ? 'filled' : 'empty',
-      },
-      {
-        name: TraceName.MoneyHomeTimeToContent,
-        ready: balanceReady && activityReady,
-        failed: activityError,
-        contentState: isFunded ? 'filled' : 'empty',
-      },
-    ],
-    [
-      balanceReady,
-      activityReady,
-      activityError,
-      hasSpendableBalance,
-      activityItems.length,
-      isFunded,
-    ],
-  );
+  // `isFunded` because it waits for both. Rebuilt every render; the hook ends
+  // each span at most once, so no memoisation is needed.
+  const moneyHomePerformanceSegments: MoneyHomeSegment[] = [
+    {
+      name: TraceName.MoneyHomeBalanceTimeToContent,
+      ready: balanceReady,
+      contentState: hasSpendableBalance ? 'filled' : 'empty',
+    },
+    {
+      name: TraceName.MoneyHomeActivityTimeToContent,
+      ready: activityReady,
+      failed: activityError,
+      contentState: activityItems.length > 0 ? 'filled' : 'empty',
+    },
+    {
+      name: TraceName.MoneyHomeTimeToContent,
+      ready: balanceReady && activityReady,
+      failed: activityError,
+      contentState: isFunded ? 'filled' : 'empty',
+    },
+  ];
   useMoneyHomePerformance({ segments: moneyHomePerformanceSegments });
 
   const formattedZero = useMemo(() => moneyFormatUsd(new BigNumber(0)), []);

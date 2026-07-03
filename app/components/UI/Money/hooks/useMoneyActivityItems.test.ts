@@ -5,6 +5,7 @@ import {
   mergeMoneyActivity,
   buildMoneyActivityBuckets,
   useMoneyActivityItems,
+  AUTO_FILL_MAX_PAGES,
 } from './useMoneyActivityItems';
 import { MoneyActivityFilter } from '../constants/mockActivityData';
 import type { AccountsApiActivity } from '../types/moneyActivity';
@@ -226,6 +227,10 @@ describe('useMoneyActivityItems', () => {
       ...overrides,
     }) as ReturnType<typeof useMoneyAccountApiActivity>;
 
+  const fillAll = (count: number) => ({
+    fill: { bucket: MoneyActivityFilter.All, count },
+  });
+
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseMoneyAccountTransactions.mockReturnValue(txResult());
@@ -254,7 +259,7 @@ describe('useMoneyActivityItems', () => {
     expect(result.current.hasMore).toBe(true);
   });
 
-  it('fetches more pages until the All bucket reaches ensureCount', () => {
+  it('fetches more pages until the fill bucket reaches its count', () => {
     const loadMore = jest.fn();
     mockUseMoneyAccountApiActivity.mockReturnValue(
       apiResult({
@@ -266,13 +271,37 @@ describe('useMoneyActivityItems', () => {
       }),
     );
 
-    renderHook(() => useMoneyActivityItems({ ensureCount: 5 }));
+    renderHook(() => useMoneyActivityItems(fillAll(5)));
 
     // Only one safe row but five wanted and more pages remain → fetch more.
     expect(loadMore).toHaveBeenCalledTimes(1);
   });
 
-  it('does not over-fetch once the All bucket already meets ensureCount', () => {
+  it('fills the target bucket, not All: an empty Deposits tab keeps fetching', () => {
+    // Card rows land in All/Transfers/Purchases but not Deposits, so a fill
+    // targeting Deposits must keep paging even though All has rows.
+    const loadMore = jest.fn();
+    mockUseMoneyAccountApiActivity.mockReturnValue(
+      apiResult({
+        activity: [cardTx('0xa' as Hex, 200)],
+        isComplete: false,
+        hasMore: true,
+        loadMore,
+      }),
+    );
+
+    const { result } = renderHook(() =>
+      useMoneyActivityItems({
+        fill: { bucket: MoneyActivityFilter.Deposits, count: 5 },
+      }),
+    );
+
+    expect(loadMore).toHaveBeenCalledTimes(1);
+    // And the empty target bucket reports as settling while it fetches.
+    expect(result.current.isSettling).toBe(true);
+  });
+
+  it('does not over-fetch once the fill bucket already meets its count', () => {
     const loadMore = jest.fn();
     mockUseMoneyAccountApiActivity.mockReturnValue(
       apiResult({
@@ -287,81 +316,47 @@ describe('useMoneyActivityItems', () => {
       }),
     );
 
-    renderHook(() => useMoneyActivityItems({ ensureCount: 2 }));
+    renderHook(() => useMoneyActivityItems(fillAll(2)));
 
     expect(loadMore).not.toHaveBeenCalled();
   });
 
-  it('stops auto-filling after the page budget once at least one row is present', () => {
-    const loadMore = jest.fn();
-    mockUseMoneyAccountApiActivity.mockReturnValue(
-      apiResult({
-        activity: [cardTx('0xa' as Hex, 200)],
-        isComplete: false,
-        hasMore: true,
-        pageCount: 3, // AUTO_FILL_MAX_PAGES — budget exhausted
-        loadMore,
-      }),
-    );
-
-    renderHook(() => useMoneyActivityItems({ ensureCount: 5 }));
-
-    // One row on screen and the budget is spent → wait for user-driven scroll.
-    expect(loadMore).not.toHaveBeenCalled();
-  });
-
-  it('keeps fetching past the standard budget while the list is still empty', () => {
+  it('keeps fetching while the list is empty and the page budget remains', () => {
     const loadMore = jest.fn();
     mockUseMoneyAccountApiActivity.mockReturnValue(
       apiResult({
         activity: [],
         isComplete: false,
         hasMore: true,
-        pageCount: 9, // past the standard budget but within the empty budget
+        pageCount: AUTO_FILL_MAX_PAGES - 1,
         loadMore,
       }),
     );
 
-    renderHook(() => useMoneyActivityItems({ ensureCount: 5 }));
+    renderHook(() => useMoneyActivityItems(fillAll(5)));
 
     expect(loadMore).toHaveBeenCalledTimes(1);
   });
 
-  it('stops the empty-list auto-fill at the (deeper) empty page budget', () => {
+  it('stops auto-filling once the page budget is spent, and settles', () => {
     // A card-less account with a long raw history parses every page to zero
-    // rows; the empty budget keeps that from sweeping the entire history.
+    // rows; the budget keeps that from sweeping the entire history.
     const loadMore = jest.fn();
     mockUseMoneyAccountApiActivity.mockReturnValue(
       apiResult({
         activity: [],
         isComplete: false,
         hasMore: true,
-        pageCount: 10, // EMPTY_AUTO_FILL_MAX_PAGES — budget exhausted
+        pageCount: AUTO_FILL_MAX_PAGES,
         loadMore,
       }),
     );
 
-    const { result } = renderHook(() =>
-      useMoneyActivityItems({ ensureCount: 5 }),
-    );
+    const { result } = renderHook(() => useMoneyActivityItems(fillAll(5)));
 
     expect(loadMore).not.toHaveBeenCalled();
     // With the fill stopped, an empty list must settle (no eternal skeleton).
     expect(result.current.isSettling).toBe(false);
-  });
-
-  it('passes through isComplete and reports complete in mock mode', () => {
-    mockUseMoneyAccountApiActivity.mockReturnValue(
-      apiResult({ isComplete: false, hasMore: true }),
-    );
-    const { result: live } = renderHook(() => useMoneyActivityItems());
-    expect(live.current.isComplete).toBe(false);
-
-    mockUseMoneyAccountTransactions.mockReturnValue(
-      txResult({ mockDataEnabled: true }),
-    );
-    const { result: mock } = renderHook(() => useMoneyActivityItems());
-    expect(mock.current.isComplete).toBe(true);
   });
 
   it('never auto-fetches while a page is already in flight', () => {
@@ -375,7 +370,7 @@ describe('useMoneyActivityItems', () => {
       }),
     );
 
-    renderHook(() => useMoneyActivityItems({ ensureCount: 5 }));
+    renderHook(() => useMoneyActivityItems(fillAll(5)));
 
     expect(loadMore).not.toHaveBeenCalled();
   });
@@ -391,7 +386,7 @@ describe('useMoneyActivityItems', () => {
       }),
     );
     const { result: filling } = renderHook(() =>
-      useMoneyActivityItems({ ensureCount: 5 }),
+      useMoneyActivityItems(fillAll(5)),
     );
     expect(filling.current.isSettling).toBe(true);
 
@@ -405,7 +400,7 @@ describe('useMoneyActivityItems', () => {
       }),
     );
     const { result: withRow } = renderHook(() =>
-      useMoneyActivityItems({ ensureCount: 5 }),
+      useMoneyActivityItems(fillAll(5)),
     );
     expect(withRow.current.isSettling).toBe(false);
 
@@ -414,7 +409,7 @@ describe('useMoneyActivityItems', () => {
       apiResult({ activity: [], isComplete: true, hasMore: false }),
     );
     const { result: exhausted } = renderHook(() =>
-      useMoneyActivityItems({ ensureCount: 5 }),
+      useMoneyActivityItems(fillAll(5)),
     );
     expect(exhausted.current.isSettling).toBe(false);
   });
@@ -429,15 +424,14 @@ describe('useMoneyActivityItems', () => {
     expect(result.current.isSettling).toBe(true);
   });
 
-  it('passes through pageCount, error and refetch from the API hook', () => {
+  it('passes through error and refetch from the API hook', () => {
     const refetch = jest.fn();
     mockUseMoneyAccountApiActivity.mockReturnValue(
-      apiResult({ pageCount: 4, error: true, refetch }),
+      apiResult({ error: true, refetch }),
     );
 
     const { result } = renderHook(() => useMoneyActivityItems());
 
-    expect(result.current.pageCount).toBe(4);
     expect(result.current.error).toBe(true);
     result.current.refetch();
     expect(refetch).toHaveBeenCalled();
@@ -469,9 +463,7 @@ describe('useMoneyActivityItems', () => {
       }),
     );
 
-    const { result } = renderHook(() =>
-      useMoneyActivityItems({ ensureCount: 5 }),
-    );
+    const { result } = renderHook(() => useMoneyActivityItems(fillAll(5)));
 
     expect(result.current.mockDataEnabled).toBe(true);
     expect(result.current.hasMore).toBe(false);

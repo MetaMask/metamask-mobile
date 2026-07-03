@@ -9,10 +9,8 @@ import {
   isMoneyActivityTransfer,
 } from '../../constants/moneyActivityFilters';
 import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoading/MoneyActivityLoading.testIds';
-import MoneyActivityView, {
-  INITIAL_FILL_COUNT,
-  INITIAL_FILL_MAX_PAGES,
-} from './MoneyActivityView';
+import MoneyActivityView, { INITIAL_FILL_COUNT } from './MoneyActivityView';
+import { AUTO_FILL_MAX_PAGES } from '../../hooks/useMoneyActivityItems';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -175,10 +173,10 @@ function mockApiActivity(
     activity: [],
     watermark: Number.NEGATIVE_INFINITY,
     isComplete: true,
-    // At the view's fill ceiling by default so the initial-fill effect stays
-    // inert in tests that aren't exercising it; tests that want the fill
-    // drop this to 0/1.
-    pageCount: INITIAL_FILL_MAX_PAGES,
+    // At the fill page budget by default so the auto-fill stays inert in
+    // tests that aren't exercising it; tests that want the fill drop this
+    // to 0/1.
+    pageCount: AUTO_FILL_MAX_PAGES,
     hasMore: false,
     loadMore: mockLoadMore,
     isLoadingMore: false,
@@ -568,7 +566,7 @@ describe('MoneyActivityView', () => {
       expect(mockLoadMore).not.toHaveBeenCalled();
     });
 
-    it('stops fetching at the fill page ceiling even while the bucket is sparse', () => {
+    it('stops fetching at the fill page budget even while the bucket is sparse', () => {
       // A sparse bucket that can never reach the fill count must not page
       // through the account's entire remote history to prove it.
       withoutLocalTransactions();
@@ -576,7 +574,7 @@ describe('MoneyActivityView', () => {
         activity: [CARD_TX],
         hasMore: true,
         isComplete: false,
-        pageCount: INITIAL_FILL_MAX_PAGES,
+        pageCount: AUTO_FILL_MAX_PAGES,
       });
 
       renderWithProvider(<MoneyActivityView />);
@@ -650,7 +648,7 @@ describe('MoneyActivityView', () => {
       expect(queryByTestId(MoneyActivityLoadingTestIds.CONTAINER)).toBeNull();
     });
 
-    it('drops the skeleton once the fill page ceiling is reached with no rows', () => {
+    it('drops the skeleton once the fill page budget is spent with no rows', () => {
       // The fill loop has stopped, so the skeleton must settle rather than
       // spin forever on a bucket that will not fill.
       noLocalTransactions();
@@ -658,7 +656,7 @@ describe('MoneyActivityView', () => {
         activity: [],
         hasMore: true,
         isComplete: false,
-        pageCount: INITIAL_FILL_MAX_PAGES,
+        pageCount: AUTO_FILL_MAX_PAGES,
       });
 
       const { getByTestId, queryByTestId } = renderWithProvider(

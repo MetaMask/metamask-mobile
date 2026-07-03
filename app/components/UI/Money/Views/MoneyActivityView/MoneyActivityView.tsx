@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
   ScrollView,
   ActivityIndicator,
@@ -56,16 +56,9 @@ const styles = StyleSheet.create({
 });
 
 // Pull roughly a screenful into the active bucket upfront so the list is tall
-// enough for scroll-driven pagination (`onEndReached`) to take over. See the
-// fill effect below for why this can't rely on list height alone.
+// enough for scroll-driven pagination (`onEndReached`) to take over — a
+// short, unscrollable list can never trigger `onEndReached` on its own.
 export const INITIAL_FILL_COUNT = 15;
-
-// Hard ceiling on pages the initial fill will pull. A sparse bucket (e.g.
-// Deposits on a card-heavy account) can never reach the fill count, and
-// without a ceiling opening the tab would page through the account's entire
-// remote history just to prove the bucket is short. Past the ceiling the
-// bucket renders what it has; deeper rows arrive via scroll or completion.
-export const INITIAL_FILL_MAX_PAGES = 10;
 
 const FILTER_LABEL_KEYS = {
   all: 'money.activity.filter_all',
@@ -152,21 +145,21 @@ const MoneyActivityView = () => {
 
   useMountEffect(trackScreenViewed);
 
-  // No `ensureCount` here: the initial fill is driven per active bucket by the
-  // effect below rather than by the hook's All-bucket, page-capped auto-fill
-  // (which stays for the home preview).
   const {
     buckets,
-    isLoading: showActivityLoading,
     loadMore,
     hasMore,
     isLoadingMore,
-    pageCount,
+    isSettling,
     error,
     refetch,
     moneyAddress,
     mockDataEnabled,
-  } = useMoneyActivityItems();
+  } = useMoneyActivityItems({
+    // Auto-fill the active tab's bucket to a screenful; switching tabs
+    // re-evaluates for the new bucket.
+    fill: { bucket: filter, count: INITIAL_FILL_COUNT },
+  });
 
   const handleFilterPress = useCallback(
     (
@@ -206,28 +199,6 @@ const MoneyActivityView = () => {
   );
 
   const filtered = buckets[filter];
-
-  // Fill the *active* bucket up to a screenful so the list becomes tall enough
-  // for scroll-driven `onEndReached` pagination to take over. Keyed on
-  // `isLoadingMore` (a page finished) rather than list height, so a fetched
-  // page that adds no rows to this bucket (e.g. a page of non-card txns on the
-  // Purchases tab) still advances to the next page instead of stalling — a
-  // short, unscrollable list can never re-trigger `onEndReached` on its own.
-  // Terminates when the bucket reaches the fill count, the activity is
-  // exhausted (`hasMore` false — including after an error), or the page
-  // ceiling is hit. Switching tabs re-evaluates for the new bucket. The
-  // skeleton gate below runs on this same predicate so it can't outlive the
-  // fetch loop.
-  const wantsFillPage =
-    !mockDataEnabled &&
-    hasMore &&
-    filtered.length < INITIAL_FILL_COUNT &&
-    pageCount < INITIAL_FILL_MAX_PAGES;
-  useEffect(() => {
-    if (wantsFillPage && !isLoadingMore) {
-      loadMore();
-    }
-  }, [wantsFillPage, isLoadingMore, loadMore]);
 
   const sections = useMemo(
     () => buildSections(filtered, I18n.locale),
@@ -419,13 +390,11 @@ const MoneyActivityView = () => {
         </Button>
       </ScrollView>
 
-      {showActivityLoading ||
-      (sections.length === 0 && (wantsFillPage || isLoadingMore)) ? (
-        // Keep the skeleton up while the list is empty but the fill loop is
+      {isSettling ? (
+        // Keep the skeleton up while the bucket is empty but the fill loop is
         // still fetching — otherwise an in-flight fetch would flash "No
-        // activity". Gated on the fill predicate itself (not `isComplete`) so
-        // the skeleton settles the moment fetching stops, including when the
-        // page ceiling is reached or the query errors.
+        // activity". The hook settles the moment fetching stops, including
+        // when the page budget is spent or the query errors.
         <MoneyActivityLoading />
       ) : sections.length === 0 ? (
         <Box
