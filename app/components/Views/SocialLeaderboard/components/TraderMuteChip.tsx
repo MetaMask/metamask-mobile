@@ -212,14 +212,14 @@ const TraderMuteChip: React.FC<TraderMuteChipProps> = ({
               // calm, neutral preference so it falls back to the grey surface.
               backgroundColor: isMuted
                 ? colors.background.muted
-                : colors.primary.muted,
+                : colors.background.muted,
             },
           ]}
         >
           <Icon
             name={IconName.Notification}
             size={iconSize}
-            color={isMuted ? IconColor.IconMuted : IconColor.PrimaryDefault}
+            color={isMuted ? IconColor.IconMuted : IconColor.IconDefault}
           />
           <Animated.View
             pointerEvents="none"
