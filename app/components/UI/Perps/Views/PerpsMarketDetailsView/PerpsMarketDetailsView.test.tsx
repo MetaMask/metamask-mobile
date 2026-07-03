@@ -1731,12 +1731,48 @@ describe('PerpsMarketDetailsView', () => {
       const refreshControl = scrollView.props.refreshControl;
       expect(mockPerpsAdvancedChartMount).toHaveBeenCalledTimes(1);
 
+      const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
+        jest.requireMock('../../hooks/usePerpsEventTracking');
+      const initialScreenViewCalls =
+        mockUsePerpsEventTrackingFn.mock.calls.filter(
+          ([options]: [
+            {
+              eventName?: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents];
+              resetKey?: string;
+            },
+          ]) =>
+            options?.eventName === MetaMetricsEvents.PERPS_SCREEN_VIEWED &&
+            options?.resetKey ===
+              `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED}`,
+        ).length;
+
       await act(async () => {
         await refreshControl.props.onRefresh();
       });
 
       expect(mockPerpsAdvancedChartUnmount).toHaveBeenCalledTimes(1);
       expect(mockPerpsAdvancedChartMount).toHaveBeenCalledTimes(2);
+      const screenViewCallsAfterRefresh =
+        mockUsePerpsEventTrackingFn.mock.calls.filter(
+          ([options]: [
+            {
+              eventName?: (typeof MetaMetricsEvents)[keyof typeof MetaMetricsEvents];
+              resetKey?: string;
+            },
+          ]) =>
+            options?.eventName === MetaMetricsEvents.PERPS_SCREEN_VIEWED &&
+            options?.resetKey ===
+              `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED}`,
+        ).length;
+      expect(screenViewCallsAfterRefresh).toBeGreaterThan(
+        initialScreenViewCalls,
+      );
+      expect(mockUsePerpsEventTrackingFn).not.toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED}:1`,
+        }),
+      );
     });
 
     it('does not remount the advanced chart when only the candle period changes', () => {
@@ -1937,6 +1973,13 @@ describe('PerpsMarketDetailsView', () => {
         expect.objectContaining({
           eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
           resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED}`,
+          conditions: [true],
+          properties: expect.objectContaining({
+            [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+              PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+            [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+              PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+          }),
         }),
       );
 
@@ -1971,16 +2014,24 @@ describe('PerpsMarketDetailsView', () => {
             PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
         }),
       );
-      expect(mockTrack).toHaveBeenCalledWith(
+      expect(mockTrack).not.toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SCREEN_VIEWED,
         expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-            PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
-          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
           [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
             PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
-          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
-            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+      expect(mockUsePerpsEventTrackingFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}`,
+          conditions: [true],
+          properties: expect.objectContaining({
+            [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+              PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+            [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+              PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+          }),
         }),
       );
 
@@ -2024,22 +2075,44 @@ describe('PerpsMarketDetailsView', () => {
         await refreshControl.props.onRefresh();
       });
 
+      expect(mockUsePerpsEventTrackingFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED}`,
+          conditions: [true],
+          properties: expect.objectContaining({
+            [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+              PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED,
+            [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+              PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+          }),
+        }),
+      );
+
       mockTrack.mockClear();
       await act(async () => {
         getByTestId('mock-perps-advanced-chart').props.onError(
           'Advanced chart unavailable after refresh',
         );
       });
-      expect(mockTrack).toHaveBeenCalledWith(
+      expect(mockTrack).not.toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_SCREEN_VIEWED,
         expect.objectContaining({
-          [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-            PERPS_EVENT_VALUE.SCREEN_TYPE.ASSET_DETAILS,
-          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
           [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
             PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
-          [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
-            PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+        }),
+      );
+      expect(mockUsePerpsEventTrackingFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}`,
+          conditions: [true],
+          properties: expect.objectContaining({
+            [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:
+              PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+            [PERPS_CHART_EVENT_PROPERTY.ASSET_TYPE]:
+              PERPS_CHART_EVENT_VALUE.ASSET_TYPE.PERP,
+          }),
         }),
       );
 
@@ -2151,7 +2224,7 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockUsePerpsEventTrackingFn).toHaveBeenCalledWith(
         expect.objectContaining({
           eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-          resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED}`,
+          resetKey: `BTC:${PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT}`,
           conditions: [true],
           properties: expect.objectContaining({
             [PERPS_CHART_EVENT_PROPERTY.CHART_LIBRARY]:

@@ -284,22 +284,12 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
     configuredChartLibrary,
   );
-  const trackedFallbackScreenViewLibrariesRef = useRef<Set<string>>(new Set());
-  const hasTrackedMarketDetailsScreenViewRef = useRef(false);
   useEffect(() => {
     setEffectiveChartLibrary(configuredChartLibrary);
-    trackedFallbackScreenViewLibrariesRef.current = new Set();
   }, [configuredChartLibrary, market?.symbol]);
-  const chartLibrary = useMemo(
-    () =>
-      configuredChartLibrary ===
-        PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.ADVANCED &&
-      effectiveChartLibrary ===
-        PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT
-        ? PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT
-        : configuredChartLibrary,
-    [configuredChartLibrary, effectiveChartLibrary],
-  );
+  const chartLibrary = isAdvancedChartEnabled
+    ? effectiveChartLibrary
+    : PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
   const chartAnalyticsProperties = useMemo(
     () => getPerpsChartAnalyticsPropertiesForLibrary(chartLibrary),
     [chartLibrary],
@@ -700,7 +690,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   const marketDetailsScreenViewResetKey = `${
     market?.symbol || ''
-  }:${configuredChartLibrary}`;
+  }:${chartLibrary}`;
   const isMarketDetailsScreenViewReady =
     !!market &&
     !!marketStats &&
@@ -715,10 +705,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       !perpsInsightsReport ||
       perpsInsightsAssetId === market?.symbol);
 
-  useEffect(() => {
-    hasTrackedMarketDetailsScreenViewRef.current = false;
-  }, [marketDetailsScreenViewResetKey]);
-
   // Track asset screen viewed event - declarative (main's event name).
   // Waits for market insights to finish loading so market_insights_displayed
   // reflects the actual display state rather than a loading-time snapshot.
@@ -728,28 +714,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     conditions: [isMarketDetailsScreenViewReady],
     properties: marketDetailsScreenViewedProperties,
   });
-
-  // Keep the imperative fallback path from duplicating the declarative first
-  // screen view when the advanced chart errors before loading finishes.
-  useEffect(() => {
-    if (!isMarketDetailsScreenViewReady) {
-      return;
-    }
-
-    hasTrackedMarketDetailsScreenViewRef.current = true;
-    if (chartLibrary === PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT) {
-      trackedFallbackScreenViewLibrariesRef.current.add(
-        `${market?.symbol || ''}:${
-          PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT
-        }`,
-      );
-    }
-  }, [
-    chartLibrary,
-    isMarketDetailsScreenViewReady,
-    market?.symbol,
-    marketDetailsScreenViewResetKey,
-  ]);
 
   const handleCandlePeriodChange = useCallback(
     (newPeriod: CandlePeriod) => {
@@ -788,7 +752,6 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       // Reset chart view to default position
       if (isAdvancedChartEnabled) {
         setEffectiveChartLibrary(configuredChartLibrary);
-        trackedFallbackScreenViewLibrariesRef.current = new Set();
         setAdvancedChartResetKey((key) => key + 1);
       } else {
         chartRef.current?.resetToDefault();
@@ -1347,36 +1310,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         setEffectiveChartLibrary(
           PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
         );
-        const fallbackScreenViewKey = `${market?.symbol || ''}:${
-          PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT
-        }`;
-        if (
-          hasTrackedMarketDetailsScreenViewRef.current &&
-          !trackedFallbackScreenViewLibrariesRef.current.has(
-            fallbackScreenViewKey,
-          )
-        ) {
-          trackedFallbackScreenViewLibrariesRef.current.add(
-            fallbackScreenViewKey,
-          );
-          // `track` intentionally emits the paired Asset Viewed event with the
-          // same fallback chart attribution.
-          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-            ...marketDetailsScreenViewedProperties,
-            ...getPerpsChartAnalyticsPropertiesForLibrary(
-              PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
-            ),
-          });
-        }
       }
     },
-    [
-      isAdvancedChartEnabled,
-      market?.symbol,
-      chartAnalyticsProperties,
-      marketDetailsScreenViewedProperties,
-      track,
-    ],
+    [isAdvancedChartEnabled, market?.symbol, chartAnalyticsProperties, track],
   );
 
   // Determine market hours content key based on current status - recalculated on each render to stay current
