@@ -114,9 +114,6 @@ export const handleSkipBackup = async ({
     navigation.dispatch(resetAction);
   } else {
     navigation.navigate('OptinMetrics', {
-      // onContinue: () => {
-      //   navigation.dispatch(resetAction);
-      // },
       accountType: AccountType.Metamask,
       successFlow,
     });
