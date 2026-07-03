@@ -65,6 +65,7 @@ export function PayWithModal() {
   const requiredTokens = useTransactionPayRequiredTokens();
   const fiatPayment = useTransactionPayFiatPayment();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const isDismissingRef = useRef(false);
   const { filterAllowedTokens: musdTokenFilter } = useMusdConversionTokens();
   const { onPaymentTokenChange: onMusdPaymentTokenChange } =
     useMusdPaymentToken();
@@ -110,6 +111,9 @@ export function PayWithModal() {
   }, [close, dismissOnSelectCount, navigation]);
 
   const dismissAfterTokenSelect = useCallback(() => {
+    if (isDismissingRef.current) return;
+    isDismissingRef.current = true;
+
     if (dismissOnSelectCount > 1) {
       navigation.dispatch(StackActions.pop(dismissOnSelectCount));
       return;
