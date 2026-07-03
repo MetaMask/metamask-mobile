@@ -49,6 +49,7 @@ import {
   ManagePriceAlertsTestIds,
   PriceAlert,
   PriceAlertRouteParams,
+  PriceAlertAnalytics,
 } from '../../constants';
 import {
   fetchAlerts,
@@ -56,6 +57,8 @@ import {
   updateAlert,
   priceAlertsQueryKey,
 } from '../../api';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 
 const styles = StyleSheet.create({
   switchDisabled: { opacity: 0.5 },
@@ -76,6 +79,8 @@ const ManagePriceAlertsView: React.FC = () => {
     >();
   const { symbol, ticker, currentPrice, currentCurrency, assetId } =
     route.params;
+  const displayTicker = ticker || symbol;
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const hasResolvedInitialFetch = useRef(false);
   const [deletingIds, setDeletingIds] = useState<ReadonlySet<string>>(
@@ -181,6 +186,25 @@ const ManagePriceAlertsView: React.FC = () => {
         const response = await deleteAlert(id);
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
+        const deleted = previous.find((a) => a.id === id);
+        if (deleted) {
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+            )
+              .addProperties({
+                interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.DELETED,
+                asset_id: assetId,
+                token_symbol: displayTicker,
+                alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
+                alert_value: deleted.threshold,
+                alert_recurring: deleted.recurring,
+                alert_active: deleted.active,
+              })
+              .build(),
+          );
+        }
+
         const next = previous.filter((a) => a.id !== id);
         queryClient.setQueryData(queryKey, next);
         toastRef?.current?.showToast({
@@ -217,7 +241,16 @@ const ManagePriceAlertsView: React.FC = () => {
         });
       }
     },
-    [navigation, assetId, queryClient, toastRef, colors],
+    [
+      navigation,
+      assetId,
+      queryClient,
+      toastRef,
+      colors,
+      displayTicker,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const handleToggleAlert = useCallback(
@@ -228,6 +261,7 @@ const ManagePriceAlertsView: React.FC = () => {
 
       const queryKey = priceAlertsQueryKey(assetId);
       const previous = queryClient.getQueryData<PriceAlert[]>(queryKey) ?? [];
+      const toggled = previous.find((a) => a.id === id);
       queryClient.setQueryData(
         queryKey,
         previous.map((a) => (a.id === id ? { ...a, active: newValue } : a)),
@@ -236,6 +270,27 @@ const ManagePriceAlertsView: React.FC = () => {
       try {
         const response = await updateAlert(id, { active: newValue });
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
+
+        if (toggled) {
+          trackEvent(
+            createEventBuilder(
+              MetaMetricsEvents.PRICE_ALERT_CREATION_INTERACTION,
+            )
+              .addProperties({
+                interaction_type: PriceAlertAnalytics.INTERACTION_TYPE.UPDATED,
+                asset_id: assetId,
+                token_symbol: displayTicker,
+                alert_type: PriceAlertAnalytics.TYPE.THRESHOLD,
+                alert_value: toggled.threshold,
+                alert_recurring: toggled.recurring,
+                alert_active: newValue,
+                prev_alert_value: toggled.threshold,
+                prev_alert_recurring: toggled.recurring,
+                prev_alert_active: toggled.active,
+              })
+              .build(),
+          );
+        }
       } catch {
         toastRef?.current?.showToast({
           variant: ToastVariants.Icon,
@@ -257,7 +312,15 @@ const ManagePriceAlertsView: React.FC = () => {
         });
       }
     },
-    [assetId, queryClient, toastRef, colors],
+    [
+      assetId,
+      queryClient,
+      toastRef,
+      colors,
+      displayTicker,
+      trackEvent,
+      createEventBuilder,
+    ],
   );
 
   const renderItem = ({ item }: { item: PriceAlert }) => {

@@ -78,7 +78,10 @@ describe('useInsufficientPerpsBalanceAlert', () => {
       {
         key: AlertKeys.InsufficientPerpsBalance,
         field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        title: strings('alert_system.insufficient_pay_token_balance.message'),
+        message: strings(
+          'alert_system.insufficient_pay_method_balance.message',
+        ),
         severity: Severity.Danger,
         isBlocking: true,
       },
@@ -96,7 +99,10 @@ describe('useInsufficientPerpsBalanceAlert', () => {
       {
         key: AlertKeys.InsufficientPerpsBalance,
         field: RowAlertKey.Amount,
-        message: strings('alert_system.insufficient_pay_token_balance.message'),
+        title: strings('alert_system.insufficient_pay_token_balance.message'),
+        message: strings(
+          'alert_system.insufficient_pay_method_balance.message',
+        ),
         severity: Severity.Danger,
         isBlocking: true,
       },
@@ -215,5 +221,29 @@ describe('useInsufficientPerpsBalanceAlert', () => {
     const { result } = runHook();
 
     expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns alert when amount + fees exceed withdrawable balance', () => {
+    useTokenAmountMock.mockReturnValue({
+      amountPrecise: '40',
+    } as ReturnType<typeof useTokenAmount>);
+
+    jest
+      .mocked(useTransactionPayQuotes)
+      .mockReturnValue([{} as TransactionPayQuote<Json>]);
+
+    useTransactionPayTotalsMock.mockReturnValue({
+      fees: {
+        provider: { usd: '5' },
+        sourceNetwork: { estimate: { usd: '1' } },
+        targetNetwork: { usd: '0' },
+        metaMask: { usd: '0' },
+      },
+    } as unknown as TransactionPayTotals);
+
+    const { result } = runHook();
+
+    expect(result.current).toHaveLength(1);
+    expect(result.current[0].key).toBe(AlertKeys.InsufficientPerpsBalance);
   });
 });
