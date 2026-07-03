@@ -10,9 +10,6 @@ const TREATMENT_ROLLOUT_THRESHOLD = 0.25;
  * `@metamask/remote-feature-flag-controller` so the same analytics id maps to a
  * stable value in [0, 1) (aligned with other app sampling, e.g. network RPC tracking).
  *
- * In __DEV__ builds the questionnaire is always shown so QA can test the flow
- * without being gated by the 25% rollout threshold.
- *
  * LaunchDarkly flag for this experiment: `tradeTMCU722AbtestOnboardingInterestQuestion`.
  *
  * Call once per onboarding flow after metrics are enabled and an analytics ID exists.
