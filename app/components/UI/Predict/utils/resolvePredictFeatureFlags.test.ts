@@ -4,7 +4,9 @@ import {
   DEFAULT_FEE_COLLECTION_FLAG,
   DEFAULT_MARKET_HIGHLIGHTS_FLAG,
   DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  DEFAULT_WIMBLEDON_TAB_FLAG,
 } from '../constants/flags';
+import { DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES } from '../constants/sports';
 import { resolvePredictFeatureFlags } from './resolvePredictFeatureFlags';
 
 jest.mock('../../../../util/remoteFeatureFlag', () => ({
@@ -29,6 +31,7 @@ describe('resolvePredictFeatureFlags', () => {
       liveSportsLeagues: [],
       extendedSportsMarketsLeagues: [],
       enabledSportsMarketTypes: [],
+      nonRegTimeSportsMarketTypes: DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
       marketHighlightsFlag: DEFAULT_MARKET_HIGHLIGHTS_FLAG,
       fakOrdersEnabled: false,
       predictWithAnyTokenEnabled: false,
@@ -37,6 +40,7 @@ describe('resolvePredictFeatureFlags', () => {
       predictHomeRedesignEnabled: false,
       predictSportCardLivePricesEnabled: true,
       predictWorldCup: DEFAULT_PREDICT_WORLD_CUP_FLAG,
+      predictWimbledonTab: DEFAULT_WIMBLEDON_TAB_FLAG,
     });
   });
 
@@ -348,6 +352,81 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.predictWorldCup).toEqual(DEFAULT_PREDICT_WORLD_CUP_FLAG);
+    });
+  });
+
+  describe('predictWimbledonTab', () => {
+    it('returns default disabled flag when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.predictWimbledonTab).toEqual(DEFAULT_WIMBLEDON_TAB_FLAG);
+    });
+
+    it('uses default query params when enabled flag omits query params', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        Boolean(
+          flag &&
+            typeof flag === 'object' &&
+            'enabled' in flag &&
+            (flag as { enabled: boolean }).enabled,
+        ),
+      );
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictWimbledon: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        },
+      });
+
+      expect(result.predictWimbledonTab).toEqual({
+        ...DEFAULT_WIMBLEDON_TAB_FLAG,
+        enabled: true,
+        minimumVersion: '1.0.0',
+      });
+    });
+
+    it('uses remote query params when provided', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) =>
+        Boolean(
+          flag &&
+            typeof flag === 'object' &&
+            'enabled' in flag &&
+            (flag as { enabled: boolean }).enabled,
+        ),
+      );
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictWimbledon: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            queryParams: 'tag_slug=wimbledon&order=volume24hr',
+          },
+        },
+      });
+
+      expect(result.predictWimbledonTab).toEqual({
+        enabled: true,
+        minimumVersion: '1.0.0',
+        queryParams: 'tag_slug=wimbledon&order=volume24hr',
+      });
+    });
+
+    it('falls back to default when schema parsing fails', () => {
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictWimbledon: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            queryParams: 12345,
+          },
+        },
+      });
+
+      expect(result.predictWimbledonTab).toEqual(DEFAULT_WIMBLEDON_TAB_FLAG);
     });
   });
 
@@ -757,10 +836,43 @@ describe('resolvePredictFeatureFlags', () => {
         'totals',
         'both_teams_to_score',
         'soccer_first_to_score',
+        'soccer_team_to_advance',
+        'soccer_extra_time',
+        'soccer_penalty_shootout',
         'team_totals',
         'soccer_team_totals',
         'basketball_team_to_score_first',
         'soccer_exact_score',
+      ]);
+    });
+
+    it('keeps the new full-tie-outcome market types when enabled', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['fifwc'],
+            enabledSportsMarketTypes: [
+              'moneyline',
+              'soccer_extra_time',
+              'soccer_penalty_shootout',
+            ],
+          },
+        },
+      });
+
+      expect(result.enabledSportsMarketTypes).toEqual([
+        'moneyline',
+        'soccer_extra_time',
+        'soccer_penalty_shootout',
       ]);
     });
 
@@ -887,6 +999,90 @@ describe('resolvePredictFeatureFlags', () => {
       });
 
       expect(result.enabledSportsMarketTypes).toEqual(['totals']);
+    });
+  });
+
+  describe('nonRegTimeSportsMarketTypes', () => {
+    it('returns the default full-tie market type when flag is missing', () => {
+      const result = resolvePredictFeatureFlags({});
+
+      expect(result.nonRegTimeSportsMarketTypes).toEqual(
+        DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
+      );
+    });
+
+    it('uses the default full-tie market type when the optional remote field is missing', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['ucl'],
+            enabledSportsMarketTypes: ['moneyline'],
+          },
+        },
+      });
+
+      expect(result.nonRegTimeSportsMarketTypes).toEqual(
+        DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
+      );
+    });
+
+    it('replaces the default list when the optional remote field is present', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return true;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+            leagues: ['ucl'],
+            nonRegTimeSportsMarketTypes: [
+              'moneyline',
+              'MONEYLINE',
+              'unsupported_market',
+            ],
+          },
+        },
+      });
+
+      expect(result.nonRegTimeSportsMarketTypes).toEqual(['moneyline']);
+    });
+
+    it('falls back to the default list when the flag fails the version gate', () => {
+      mockValidatedVersionGatedFeatureFlag.mockImplementation((flag) => {
+        if (flag && typeof flag === 'object' && 'leagues' in flag) {
+          return false;
+        }
+        return undefined;
+      });
+
+      const result = resolvePredictFeatureFlags({
+        remoteFeatureFlags: {
+          predictExtendedSportsMarkets: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+            leagues: ['ucl'],
+            nonRegTimeSportsMarketTypes: ['moneyline'],
+          },
+        },
+      });
+
+      expect(result.nonRegTimeSportsMarketTypes).toEqual(
+        DEFAULT_NON_REG_TIME_SPORTS_MARKET_TYPES,
+      );
     });
   });
 });

@@ -20,14 +20,10 @@ const PAY_CONTROLLER_STATE_MOCK = {
               { dust: { usd: '0', fiat: '0' } },
               {
                 dust: { usd: '0', fiat: '0' },
-                original: {
-                  metrics: { attempts: 3, buffer: 0.123, latency: 1234 },
-                  quote: { bridgeId: 'testBridge' },
-                },
                 request: {
                   targetTokenAddress: '0x123',
                 },
-                strategy: TransactionPayStrategy.Bridge,
+                strategy: TransactionPayStrategy.Relay,
               },
             ],
           },
@@ -295,68 +291,6 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
-  it('adds quote properties if bridge', () => {
-    request.transactionMeta.type = TransactionType.bridge;
-
-    request.allTransactions = [
-      {
-        id: 'child-0',
-        type: TransactionType.bridge,
-      } as TransactionMeta,
-      {
-        id: 'parent-1',
-        type: TransactionType.perpsDeposit,
-        requiredTransactionIds: ['child-0', 'child-1'],
-      } as TransactionMeta,
-      request.transactionMeta,
-    ];
-
-    getStateMock.mockReturnValue(PAY_CONTROLLER_STATE_MOCK);
-
-    const result = getMetaMaskPayProperties(request);
-
-    expect(result).toStrictEqual({
-      properties: expect.objectContaining({
-        mm_pay_bridge_provider: 'testBridge',
-        mm_pay_quotes_attempts: 3,
-        mm_pay_quotes_buffer_size: 0.123,
-        mm_pay_quotes_latency: 1234,
-      }),
-      sensitiveProperties: {},
-    });
-  });
-
-  it('adds quote properties if swap', () => {
-    request.transactionMeta.type = TransactionType.swap;
-
-    request.allTransactions = [
-      {
-        id: 'child-0',
-        type: TransactionType.swap,
-      } as TransactionMeta,
-      {
-        id: 'parent-1',
-        type: TransactionType.perpsDeposit,
-        requiredTransactionIds: ['child-0', 'child-1'],
-      } as TransactionMeta,
-      request.transactionMeta,
-    ];
-
-    getStateMock.mockReturnValue(PAY_CONTROLLER_STATE_MOCK);
-
-    const result = getMetaMaskPayProperties(request);
-
-    expect(result).toStrictEqual({
-      properties: expect.objectContaining({
-        mm_pay_bridge_provider: 'testBridge',
-        mm_pay_quotes_attempts: 3,
-        mm_pay_quotes_buffer_size: 0.123,
-        mm_pay_quotes_latency: 1234,
-      }),
-      sensitiveProperties: {},
-    });
-  });
-
   it('adds dust property from quote', () => {
     request.transactionMeta.type = TransactionType.bridge;
 
@@ -385,7 +319,7 @@ describe('Metamask Pay Metrics', () => {
                     {
                       dust: { usd: '1.23', fiat: '1.23' },
                       request: { targetTokenAddress: '0x123' },
-                      strategy: TransactionPayStrategy.Bridge,
+                      strategy: TransactionPayStrategy.Relay,
                     },
                   ],
                 },

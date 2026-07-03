@@ -16,6 +16,11 @@ import styleSheet from './ListItemSelect.styles';
 import { ListItemSelectProps } from './ListItemSelect.types';
 import { DEFAULT_SELECTITEM_GAP } from './ListItemSelect.constants';
 
+/**
+ * @deprecated This component is deprecated and will be removed in a future release.
+ * Please use the ListItemSelect component from @metamask/design-system-react-native instead.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/tree/main/packages/design-system-react-native/src/components/ListItemSelect | Component Source}
+ */
 const ListItemSelect: React.FC<ListItemSelectProps> = ({
   style,
   isSelected = false,

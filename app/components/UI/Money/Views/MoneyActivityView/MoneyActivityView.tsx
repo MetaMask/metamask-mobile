@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { SectionList, StyleSheet } from 'react-native';
+import { ScrollView, SectionList, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import { type TransactionMeta } from '@metamask/transaction-controller';
@@ -41,12 +41,20 @@ import { partition } from 'lodash';
 
 const styles = StyleSheet.create({
   safeArea: { flex: 1 },
+  filterScroll: { flexGrow: 0 },
+  filterRow: {
+    flexDirection: 'row',
+    gap: 8,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
 });
 
 const FILTER_LABEL_KEYS = {
   all: 'money.activity.filter_all',
   deposits: 'money.activity.filter_deposits',
   transfers: 'money.activity.filter_sends',
+  purchases: 'money.activity.filter_purchases',
 } as const;
 
 interface ActivitySection {
@@ -83,7 +91,7 @@ function groupByDate(
   }
   return Array.from(groups.entries()).map(([dateKey, data]) => ({
     title: new Date(`${dateKey}T00:00:00.000Z`).toLocaleDateString(locale, {
-      month: 'long',
+      month: 'short',
       day: 'numeric',
       year: 'numeric',
     }),
@@ -239,11 +247,11 @@ const MoneyActivityView = () => {
         </Text>
       </Box>
 
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        gap={2}
-        paddingHorizontal={4}
-        paddingBottom={3}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        style={styles.filterScroll}
+        contentContainerStyle={styles.filterRow}
       >
         <Button
           variant={
@@ -252,7 +260,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
+          twClassName="px-3"
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.All,
@@ -271,7 +279,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
+          twClassName="px-3"
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.Deposits,
@@ -290,7 +298,7 @@ const MoneyActivityView = () => {
               : ButtonVariant.Secondary
           }
           size={ButtonSize.Md}
-          twClassName="min-w-0 shrink px-3"
+          twClassName="px-3"
           onPress={() =>
             handleFilterPress(
               MoneyActivityFilter.Transfers,
@@ -302,16 +310,32 @@ const MoneyActivityView = () => {
         >
           {strings(FILTER_LABEL_KEYS.transfers)}
         </Button>
-      </Box>
+        <Button
+          variant={
+            isActive(MoneyActivityFilter.Purchases)
+              ? ButtonVariant.Primary
+              : ButtonVariant.Secondary
+          }
+          size={ButtonSize.Md}
+          twClassName="px-3"
+          onPress={() =>
+            handleFilterPress(
+              MoneyActivityFilter.Purchases,
+              FILTER_LABEL_KEYS.purchases,
+              COMPONENT_NAMES.MONEY_ACTIVITY_FILTER_PURCHASES,
+            )
+          }
+          testID={MoneyActivityViewTestIds.FILTER_PURCHASES}
+        >
+          {strings(FILTER_LABEL_KEYS.purchases)}
+        </Button>
+      </ScrollView>
 
       {showActivityLoading ? (
         <MoneyActivityLoading />
       ) : sections.length === 0 ? (
         <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="flex-1 px-6 pb-8"
+          twClassName="flex-1 items-center justify-center px-6 pb-32"
           testID={MoneyActivityViewTestIds.EMPTY_LIST}
         >
           <Text

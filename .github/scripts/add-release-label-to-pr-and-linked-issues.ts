@@ -14,12 +14,9 @@ main().catch((error: Error): void => {
 });
 
 async function main(): Promise<void> {
-  // "GITHUB_TOKEN" is an automatically generated, repository-specific access token provided by GitHub Actions.
-  // We can't use "GITHUB_TOKEN" here, as its permissions are scoped to the repository where the action is running.
-  // "GITHUB_TOKEN" does not have access to other repositories, even when they belong to the same organization.
-  // As we want to update linked issues which are not necessarily located in the same repository,
-  // we need to create our own "RELEASE_LABEL_TOKEN" with "repo" permissions.
-  // Such a token allows to access other repositories of the MetaMask organisation.
+  // RELEASE_LABEL_TOKEN is a same-repository installation token obtained via OIDC token exchange.
+  // It can only label issues and PRs within this repository; cross-repo labeling is intentionally
+  // skipped with a warning (see the loop below).
   const personalAccessToken = process.env.RELEASE_LABEL_TOKEN;
   if (!personalAccessToken) {
     core.setFailed('RELEASE_LABEL_TOKEN not found');
@@ -86,8 +83,17 @@ async function main(): Promise<void> {
     pullRequestNumber,
   );
 
-  // Add the release label to the linked issues
+  // Add the release label to the linked issues (same-repo only)
   for (const linkedIssue of linkedIssues) {
+    if (
+      linkedIssue.repoOwner !== pullRequestRepoOwner ||
+      linkedIssue.repoName !== pullRequestRepoName
+    ) {
+      core.warning(
+        `Skipping release label for ${linkedIssue.repoOwner}/${linkedIssue.repoName}#${linkedIssue.number}: cross-repo labeling is not supported by the same-repo token.`,
+      );
+      continue;
+    }
     await addLabelToLabelable(octokit, linkedIssue, releaseLabel);
   }
 }
