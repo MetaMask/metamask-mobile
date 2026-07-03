@@ -1,8 +1,7 @@
 import RNFS from 'react-native-fs';
 import { deleteTabScreenshotFile } from './tabScreenshotCleanup';
 
-const APP_TMP_DIR =
-  '/private/var/mobile/Containers/Data/Application/abc/tmp';
+const APP_TMP_DIR = '/private/var/mobile/Containers/Data/Application/abc/tmp';
 
 jest.mock('react-native-fs', () => ({
   TemporaryDirectoryPath: APP_TMP_DIR,
