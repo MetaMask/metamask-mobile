@@ -38,7 +38,13 @@ const logger = createLogger({
 });
 
 class AccountListBottomSheet {
-  /** Account list container - Appium uses `account-list` testID; Detox uses the same ID. */
+  /**
+   * Account list container.
+   * Detox: `account-list` testID.
+   * Appium iOS: header title text — `account-list` is on a wrapper XCTest keeps
+   * `visible=false` while the sheet is open; "Accounts" is reliably displayed.
+   * Appium Android: `account-list` testID.
+   */
   get accountList(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -46,10 +52,14 @@ class AccountListBottomSheet {
           AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementById(
-          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
-          { exact: true },
-        ),
+        PlatformDetector.isIOS()
+          ? PlaywrightMatchers.getElementByText(
+              AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
+            )
+          : PlaywrightMatchers.getElementById(
+              AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+              { exact: true },
+            ),
     });
   }
 
@@ -269,6 +279,46 @@ class AccountListBottomSheet {
     await Gestures.waitAndTap(this.backButton, {
       elemDescription: 'Account list header back button',
     });
+  }
+
+  /**
+   * Appium: poll until the account list sheet is open.
+   * Retries lookup + visibility — needed after rename/back navigation when the
+   * sheet is animating in and text/testID queries can briefly miss.
+   */
+  async waitForAccountListVisible(timeout = 15_000): Promise<void> {
+    if (!FrameworkDetector.isAppium()) {
+      await Assertions.expectElementToBeVisible(this.accountList, { timeout });
+      return;
+    }
+
+    await Utilities.executeWithRetry(
+      async () => {
+        let el: PlaywrightElement;
+        try {
+          el = PlatformDetector.isIOS()
+            ? await PlaywrightMatchers.getElementByText(
+                AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
+              )
+            : await PlaywrightMatchers.getElementById(
+                AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+                { exact: true },
+              );
+        } catch {
+          throw new Error('Account list sheet element not found');
+        }
+
+        const visible = await el.isVisible().catch(() => false);
+        if (!visible) {
+          throw new Error('Account list sheet is not visible yet');
+        }
+      },
+      {
+        timeout,
+        interval: 500,
+        description: 'Account list sheet visible',
+      },
+    );
   }
 
   async tapAddAccountButtonV2(options?: {
