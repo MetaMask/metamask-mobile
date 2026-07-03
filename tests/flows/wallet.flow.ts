@@ -822,16 +822,16 @@ export const dismissOnboardingInterestQuestionnaire =
           return;
         }
 
-        const continueButton = await asPlaywrightElement(
-          OnboardingInterestQuestionnaireView.continueButton,
+        const skipButton = await asPlaywrightElement(
+          OnboardingInterestQuestionnaireView.skipButton,
         );
-        if (await continueButton.unwrap().isExisting()) {
-          await PlaywrightGestures.waitAndTap(continueButton, {
+        if (await skipButton.unwrap().isExisting()) {
+          await PlaywrightGestures.waitAndTap(skipButton, {
             timeout: 5000,
             checkForDisplayed: true,
             checkForEnabled: true,
           });
-          await continueButton
+          await skipButton
             .unwrap()
             .waitForDisplayed({ reverse: true, timeout: 5000 });
           return;
