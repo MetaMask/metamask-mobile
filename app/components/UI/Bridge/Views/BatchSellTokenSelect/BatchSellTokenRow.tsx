@@ -47,95 +47,89 @@ interface BatchSellTokenRowProps {
   pricePercentChangeTextColor?: DSTextColor;
 }
 
-export const BatchSellTokenRow = React.memo(({
-  token,
-  isSelected,
-  networkName,
-  networkImageSource,
-  onTokenPress,
-  tokenPriceText,
-  pricePercentChangeText,
-  pricePercentChangeTextColor,
-}: BatchSellTokenRowProps) => {
-  // eslint-disable-next-line no-console
-  console.log('[BATCH_SELL_TOKEN_ROW_RENDER_TRACE] render', {
-    chainId: token.chainId,
-    address: token.address,
-    symbol: token.symbol,
+export const BatchSellTokenRow = React.memo(
+  ({
+    token,
     isSelected,
-  });
+    networkName,
+    networkImageSource,
+    onTokenPress,
+    tokenPriceText,
+    pricePercentChangeText,
+    pricePercentChangeTextColor,
+  }: BatchSellTokenRowProps) => {
+    const secondaryRowContent =
+      tokenPriceText || pricePercentChangeText ? (
+        <View style={styles.secondaryRow}>
+          {tokenPriceText && (
+            <Text
+              variant={DSTextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={DSTextColor.TextAlternative}
+              numberOfLines={1}
+              style={styles.priceText}
+            >
+              {tokenPriceText}
+            </Text>
+          )}
+          {tokenPriceText && pricePercentChangeText && (
+            <Text
+              variant={DSTextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={DSTextColor.TextAlternative}
+            >
+              {' • '}
+            </Text>
+          )}
+          {pricePercentChangeText && pricePercentChangeTextColor && (
+            <Text
+              variant={DSTextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+              color={pricePercentChangeTextColor}
+              numberOfLines={1}
+            >
+              {pricePercentChangeText}
+            </Text>
+          )}
+        </View>
+      ) : undefined;
 
-  const secondaryRowContent =
-    tokenPriceText || pricePercentChangeText ? (
-      <View style={styles.secondaryRow}>
-        {tokenPriceText && (
-          <Text
-            variant={DSTextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={DSTextColor.TextAlternative}
-            numberOfLines={1}
-            style={styles.priceText}
-          >
-            {tokenPriceText}
-          </Text>
-        )}
-        {tokenPriceText && pricePercentChangeText && (
-          <Text
-            variant={DSTextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={DSTextColor.TextAlternative}
-          >
-            {' • '}
-          </Text>
-        )}
-        {pricePercentChangeText && pricePercentChangeTextColor && (
-          <Text
-            variant={DSTextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={pricePercentChangeTextColor}
-            numberOfLines={1}
-          >
-            {pricePercentChangeText}
-          </Text>
-        )}
-      </View>
-    ) : undefined;
+    const pressTargetAccessibilityLabel = `${token.symbol} ${strings(
+      'bridge.batch_sell_checkbox_label',
+    )}`;
 
-  const pressTargetAccessibilityLabel = `${token.symbol} ${strings(
-    'bridge.batch_sell_checkbox_label',
-  )}`;
-
-  return (
-    <TokenSelectorItem
-      token={token}
-      onPress={onTokenPress}
-      networkName={networkName}
-      networkImageSource={networkImageSource}
-      isSelected={isSelected}
-      shouldChangeSelectedStyle={false}
-      shouldShowNetworkIcon={false}
-      shouldIncludeChildrenInPressTarget
-      pressTargetAccessibilityLabel={pressTargetAccessibilityLabel}
-      secondaryRowContent={secondaryRowContent}
-      balanceLayoutConfigOverride={
-        TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
-          TokenSelectorBalanceLayoutVariant.Control
-        ]
-      }
-      tokenBalanceTextProps={{
-        textVariant: ComponentLibraryTextVariant.BodySMMedium,
-        textColor: ComponentLibraryTextColor.Alternative,
-        textStyle: styles.tokenBalance,
-      }}
-    >
-      <Checkbox
+    return (
+      <TokenSelectorItem
+        token={token}
+        onPress={onTokenPress}
+        networkName={networkName}
+        networkImageSource={networkImageSource}
         isSelected={isSelected}
-        // eslint-disable-next-line no-empty-function
-        onChange={() => {}}
-        pointerEvents="none"
-        importantForAccessibility="no-hide-descendants"
-        accessibilityElementsHidden
-      />
-    </TokenSelectorItem>
-  );
-});
+        shouldChangeSelectedStyle={false}
+        shouldShowNetworkIcon={false}
+        shouldIncludeChildrenInPressTarget
+        pressTargetAccessibilityLabel={pressTargetAccessibilityLabel}
+        secondaryRowContent={secondaryRowContent}
+        balanceLayoutConfigOverride={
+          TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
+            TokenSelectorBalanceLayoutVariant.Control
+          ]
+        }
+        tokenBalanceTextProps={{
+          textVariant: ComponentLibraryTextVariant.BodySMMedium,
+          textColor: ComponentLibraryTextColor.Alternative,
+          textStyle: styles.tokenBalance,
+        }}
+      >
+        <Checkbox
+          isSelected={isSelected}
+          // eslint-disable-next-line no-empty-function
+          onChange={() => {}}
+          pointerEvents="none"
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
+        />
+      </TokenSelectorItem>
+    );
+  },
+);
