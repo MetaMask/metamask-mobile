@@ -13,15 +13,18 @@ import {
 import PerpsMarketAboutSection from './PerpsMarketAboutSection';
 
 const mockTrack = jest.fn();
+const mockUsePerpsEventTracking = jest.fn();
 
-// Mock the declarative event-tracking hook so we can assert the "displayed"
-// event fires with the right properties when the section renders.
+// Mock the declarative event-tracking hook so we can assert both the options it
+// receives (e.g. resetKey) and the "displayed" event it fires on render.
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
   usePerpsEventTracking: (options?: {
     eventName: string;
+    resetKey?: string;
     conditions?: boolean[];
     properties?: Record<string, unknown>;
   }) => {
+    mockUsePerpsEventTracking(options);
     if (options && (!options.conditions || options.conditions.every(Boolean))) {
       mockTrack(options.eventName, options.properties);
     }
@@ -144,6 +147,32 @@ describe('PerpsMarketAboutSection', () => {
       ).toBeNull();
     });
 
+    it('does not render the toggle at exactly the collapsed line count', () => {
+      render(<PerpsMarketAboutSection market={createMarket()} />);
+
+      // Exactly the default 3-line clamp must not overflow.
+      simulateMeasuredLines(3);
+
+      expect(
+        screen.queryByTestId(PerpsMarketAboutSectionSelectorsIDs.TOGGLE),
+      ).toBeNull();
+    });
+
+    it('updates the toggle when a later measurement changes the line count', () => {
+      render(<PerpsMarketAboutSection market={createMarket()} />);
+
+      simulateMeasuredLines(5);
+      expect(
+        screen.getByTestId(PerpsMarketAboutSectionSelectorsIDs.TOGGLE),
+      ).toBeOnTheScreen();
+
+      // A re-layout that now fits within the clamp hides the toggle again.
+      simulateMeasuredLines(2);
+      expect(
+        screen.queryByTestId(PerpsMarketAboutSectionSelectorsIDs.TOGGLE),
+      ).toBeNull();
+    });
+
     it('does not render the toggle before the description is measured', () => {
       render(<PerpsMarketAboutSection market={createMarket()} />);
 
@@ -193,6 +222,11 @@ describe('PerpsMarketAboutSection', () => {
         <PerpsMarketAboutSection market={createMarket()} />,
       );
 
+      // The hook must receive the market symbol as its resetKey so the event
+      // re-fires when navigating between markets.
+      expect(mockUsePerpsEventTracking).toHaveBeenCalledWith(
+        expect.objectContaining({ resetKey: 'BTC' }),
+      );
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_UI_INTERACTION,
         expect.objectContaining({ [PERPS_EVENT_PROPERTY.ASSET]: 'BTC' }),

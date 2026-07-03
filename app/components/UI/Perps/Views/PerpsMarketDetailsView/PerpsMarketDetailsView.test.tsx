@@ -402,10 +402,11 @@ jest.mock('../../../../../core/Engine', () => ({
   },
 }));
 
-// Mock for usePerpsMarkets that can be modified per test
+// Mock for usePerpsMarkets that can be modified per test. Options are captured
+// so tests can assert the enrichment gating (skipInitialFetch).
 const mockUsePerpsMarketsImpl = jest.fn<
   ReturnType<typeof import('../../hooks/usePerpsMarkets').usePerpsMarkets>,
-  []
+  [options?: { skipInitialFetch?: boolean }]
 >(() => ({
   markets: [],
   isLoading: false,
@@ -416,7 +417,8 @@ const mockUsePerpsMarketsImpl = jest.fn<
 
 // Mock the direct import path for usePerpsMarkets
 jest.mock('../../hooks/usePerpsMarkets', () => ({
-  usePerpsMarkets: () => mockUsePerpsMarketsImpl(),
+  usePerpsMarkets: (options?: { skipInitialFetch?: boolean }) =>
+    mockUsePerpsMarketsImpl(options),
 }));
 
 const mockRefreshMarketStats = jest.fn();
@@ -560,7 +562,8 @@ jest.mock('../../hooks', () => ({
     closePosition: jest.fn(),
     isClosing: false,
   })),
-  usePerpsMarkets: () => mockUsePerpsMarketsImpl(),
+  usePerpsMarkets: (options?: { skipInitialFetch?: boolean }) =>
+    mockUsePerpsMarketsImpl(options),
   usePerpsMarketData: jest.fn(() => ({
     marketData: null,
     isLoading: false,
@@ -1128,6 +1131,16 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         getByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
       ).toBeOnTheScreen();
+      expect(
+        getByTestId(PerpsMarketAboutSectionSelectorsIDs.TITLE),
+      ).toHaveTextContent('About Bitcoin');
+      expect(
+        getByTestId(PerpsMarketAboutSectionSelectorsIDs.DESCRIPTION),
+      ).toHaveTextContent('Bitcoin is a decentralized digital currency.');
+      // Route market already has a description, so no enrichment fetch is needed.
+      expect(mockUsePerpsMarketsImpl).toHaveBeenCalledWith(
+        expect.objectContaining({ skipInitialFetch: true }),
+      );
     });
 
     it('does not render the About section when the flag is disabled', () => {
@@ -1212,6 +1225,14 @@ describe('PerpsMarketDetailsView', () => {
       expect(
         getByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
       ).toBeOnTheScreen();
+      // Enriched copy from the streamed market is rendered.
+      expect(
+        getByTestId(PerpsMarketAboutSectionSelectorsIDs.DESCRIPTION),
+      ).toHaveTextContent('Bitcoin is a decentralized digital currency.');
+      // Route market lacked a description, so enrichment must fetch markets.
+      expect(mockUsePerpsMarketsImpl).toHaveBeenCalledWith(
+        expect.objectContaining({ skipInitialFetch: false }),
+      );
     });
   });
 

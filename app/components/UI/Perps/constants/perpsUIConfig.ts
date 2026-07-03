@@ -34,6 +34,9 @@ export const HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS = 30000; // 30 seconds 
 // Number of lines the asset description is collapsed to before the
 // "Read more" toggle is shown.
 export const MARKET_ABOUT_COLLAPSED_NUMBER_OF_LINES = 3;
+// Vertical rhythm between the title, description and toggle. Matches the
+// spacing used by sibling market-detail cards (e.g. PerpsMarketStatisticsCard).
+export const MARKET_ABOUT_SECTION_GAP = 12;
 // Touch target padding around the "Read more" / "Show less" toggle.
 export const MARKET_ABOUT_TOGGLE_HIT_SLOP = {
   top: 8,

@@ -50,7 +50,9 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
 
   const handleMeasureLayout = useCallback((event: TextLayoutEvent) => {
     const measuredLines = event.nativeEvent.lines.length;
-    setLineCount((prev) => (prev === null ? measuredLines : prev));
+    // Keep the latest measurement so a re-layout (width/font/content change)
+    // updates the toggle instead of freezing on the first measured value.
+    setLineCount((prev) => (prev === measuredLines ? prev : measuredLines));
   }, []);
 
   const handleToggle = useCallback(() => {
@@ -93,7 +95,9 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
         color={TextColor.Default}
         testID={PerpsMarketAboutSectionSelectorsIDs.TITLE}
       >
-        {strings('perps.market.about', { name: market.name || market.symbol })}
+        {strings('perps.market.about', {
+          name: market.name?.trim() || market.symbol,
+        })}
       </Text>
 
       <Text
@@ -109,8 +113,10 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
           count so we know whether the description overflows the clamp. */}
       <Text
         variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
         style={styles.measuringText}
         onTextLayout={handleMeasureLayout}
+        pointerEvents="none"
         accessibilityElementsHidden
         importantForAccessibility="no-hide-descendants"
         testID={PerpsMarketAboutSectionSelectorsIDs.DESCRIPTION_MEASURE}
