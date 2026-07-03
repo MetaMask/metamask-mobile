@@ -3068,7 +3068,7 @@
       "buy_sell": "Buy/Sell",
       "perps": "Perps",
       "predictions": "Predictions",
-      "metamask_card": "MetaMask Card",
+      "metamask_card": "Card",
       "money": "Money"
     },
     "empty_state": {
@@ -4027,12 +4027,7 @@
       "enter_code_on_extension": "Enter code on extension",
       "enter_code_on_extension_desc": "For security, enter the verification code below on your MetaMask extension.",
       "done": "Done",
-      "device_added": "Device added",
-      "waiting_for_extension": "Waiting for extension...",
-      "waiting_for_extension_description": "Finish choosing accounts on your computer to continue.",
-      "extension_cancelled_title": "Import cancelled",
-      "extension_cancelled_description": "The account import was cancelled/failed. Try again.",
-      "extension_cancelled_button": "Try again"
+      "device_added": "Device added"
     }
   },
   "aes_crypto_test_form": {
@@ -4809,19 +4804,19 @@
     "activity_perps_withdrawal": "Perps withdrawal",
     "activity_perps_open_long": "Opened long",
     "activity_perps_close_long": "Closed long",
-    "activity_perps_close_long_liquidated": "Closed long - liquidated",
-    "activity_perps_close_long_stop_loss": "Closed long - stop loss",
+    "activity_perps_close_long_liquidated": "Closed long—liquidated",
+    "activity_perps_close_long_stop_loss": "Closed long—stop loss",
     "activity_perps_open_short": "Opened short",
     "activity_perps_close_short": "Closed short",
-    "activity_perps_close_short_liquidated": "Closed short - liquidated",
-    "activity_perps_close_short_stop_loss": "Closed short - stop loss",
+    "activity_perps_close_short_liquidated": "Closed short—liquidated",
+    "activity_perps_close_short_stop_loss": "Closed short—stop loss",
     "activity_perps_paid_funding_fees": "Paid funding fees",
     "activity_perps_received_funding_fees": "Received funding fees",
-    "activity_perps_close_short_take_profit": "Closed short - take profit",
-    "activity_perps_close_long_take_profit": "Closed long - take profit",
+    "activity_perps_close_short_take_profit": "Closed short—take profit",
+    "activity_perps_close_long_take_profit": "Closed long—take profit",
     "activity_market_short": "Market short",
-    "activity_stop_market_close_short": "Stop market - close short",
-    "activity_market_close_short": "Market - close short",
+    "activity_stop_market_close_short": "Stop market—close short",
+    "activity_market_close_short": "Market—close short",
     "claim": "Claim",
     "sent_ether": "Sent ETH",
     "self_sent_ether": "Sent yourself ETH",
@@ -7195,7 +7190,7 @@
       "verification_pending": "Your identity verification is being reviewed. This typically takes less than 12 hours."
     },
     "what_you_get": {
-      "title": "What you get",
+      "title": "Money account benefits",
       "benefit_auto_earn": "Auto-earn up to",
       "benefit_auto_earn_variable": "(variable)",
       "benefit_dollar_backed": "Keep your money secure in mUSD, a 1:1 dollar-backed stablecoin",
@@ -7222,7 +7217,7 @@
     "more_sheet": {
       "title": "More",
       "how_it_works": "How it works",
-      "what_you_get": "What you get",
+      "what_you_get": "Money account benefits",
       "contact_support": "Contact support"
     },
     "transfer_sheet": {
@@ -7295,7 +7290,7 @@
     },
     "condensed_cards": {
       "how_it_works_title": "How it works",
-      "how_it_works_subtitle": "See how your money can grow",
+      "how_it_works_subtitle": "See how your money works for you",
       "musd_title": "MetaMask USD",
       "musd_subtitle": "Learn more about mUSD",
       "what_you_get_title": "What you get",
@@ -9542,9 +9537,9 @@
       "stats_title": "Stats",
       "label_rank": "Rank",
       "label_your_rank": "Your rank",
-      "label_roi": "ROI",
+      "label_roi": "ROI (after fees)",
       "label_total_volume": "Total volume",
-      "label_pnl": "PnL",
+      "label_pnl": "PnL (after fees)",
       "predict_now_cta": "Predict now",
       "positions_title": "Your predictions",
       "positions_open_section": "Open",
@@ -9817,6 +9812,7 @@
     "low_to_high": "Low to high",
     "apply": "Apply",
     "search_placeholder": "Search tokens, markets and URLs",
+    "quick_trade": "Quick Buy & Sell",
     "cancel": "Cancel",
     "perps": "Perps",
     "rwa_perps_section": "Perps",
