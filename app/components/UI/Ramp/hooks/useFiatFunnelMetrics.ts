@@ -3,7 +3,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 import useAnalytics from './useAnalytics';
 import { useRampsUserRegion } from './useRampsUserRegion';
 import { getChainIdFromAssetId } from '../headless';
-import { RAMP_SURFACE, type RampSurface } from '../Deposit/types/analytics';
+import { RAMP_SURFACE, type RampSurface } from '../types/depositAnalytics';
 import type { Quote } from '../types';
 
 /**

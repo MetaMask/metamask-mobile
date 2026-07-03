@@ -1,8 +1,3 @@
-export enum PriceAlertType {
-  PriceReaches = 'price_reaches',
-  PriceChange = 'price_change',
-}
-
 /** Shared navigation params used by both Create and Manage screens. */
 export interface PriceAlertRouteParams {
   symbol: string;
@@ -19,6 +14,8 @@ export interface CreatePriceAlertRouteParams extends PriceAlertRouteParams {
   fromManage?: boolean;
   /** Thresholds of existing alerts for this asset, used for duplicate-threshold validation. */
   existingThresholds?: number[];
+  /** When present the screen is in edit mode; pre-populates threshold/recurring and calls PATCH on save. */
+  editingAlert?: PriceAlert;
 }
 
 /** API response shape for a single price alert. */
@@ -32,7 +29,23 @@ export interface PriceAlert {
   createdAt: string;
 }
 
-export const PRICE_ALERT_QUICK_PERCENTAGES = [5, 10, 20, 30] as const;
+export const PRICE_ALERT_QUICK_PERCENTAGES = [-10, -5, 5, 10] as const;
+
+/**
+ * Literal values emitted as analytics properties for price-alert events.
+ * Centralised so event payloads stay consistent across the Create/Manage
+ * views, the notification deeplink handler, and their tests.
+ */
+export const PriceAlertAnalytics = {
+  TYPE: {
+    THRESHOLD: 'threshold',
+  },
+  INTERACTION_TYPE: {
+    CREATED: 'created',
+    UPDATED: 'updated',
+    DELETED: 'deleted',
+  },
+} as const;
 
 export const CURRENCY_SYMBOLS: Record<string, string> = {
   usd: '$',
@@ -60,13 +73,9 @@ export interface UpdateAlertParams {
 
 export const CreatePriceAlertTestIds = {
   CONTAINER: 'create-price-alert-container',
-  ALERT_TYPE_TOGGLE: 'create-price-alert-type-toggle',
-  PRICE_REACHES_TAB: 'create-price-alert-price-reaches-tab',
-  PRICE_CHANGE_TAB: 'create-price-alert-price-change-tab',
   TARGET_PRICE_INPUT: 'create-price-alert-target-price',
   PERCENT_DIFF: 'create-price-alert-percent-diff',
   RECURRING_TOGGLE: 'create-price-alert-recurring-toggle',
-  UNDER_DEVELOPMENT: 'create-price-alert-under-development',
   QUICK_PERCENTAGE_PREFIX: 'create-price-alert-quick-percentage',
   SET_ALERT_BUTTON: 'create-price-alert-set-button',
 } as const;
@@ -76,6 +85,7 @@ export const ManagePriceAlertsTestIds = {
   LOADING: 'manage-price-alerts-loading',
   ALERT_LIST: 'manage-price-alerts-list',
   ALERT_ITEM_PREFIX: 'manage-price-alerts-item',
+  ALERT_EDIT_PREFIX: 'manage-price-alerts-edit',
   ALERT_TOGGLE_PREFIX: 'manage-price-alerts-toggle',
   ALERT_DELETE_PREFIX: 'manage-price-alerts-delete',
   ALERT_DELETE_SPINNER_PREFIX: 'manage-price-alerts-delete-spinner',

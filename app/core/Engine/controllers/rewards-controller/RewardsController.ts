@@ -119,8 +119,9 @@ const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 // Benefits details cache threshold
 const BENEFITS_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 
-// VIP dashboard cache threshold — disabled while backend still serves hardcoded data
-const VIP_DASHBOARD_CACHE_THRESHOLD_MS = 0;
+// VIP dashboard cache threshold — re-fetched on every dashboard screen focus,
+// so cache for 5 minutes to avoid redundant backend calls.
+const VIP_DASHBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5;
 
 // VIP perps fees cache threshold — read on every perps trade UI render, so
 // cache for the same 5-minute window as the legacy public-discount path.
@@ -1194,18 +1195,46 @@ export class RewardsController extends BaseController<
       } else {
         const sortedAccounts = sortAccounts(accounts as InternalAccount[]);
 
+        let bulkOptInStatus: boolean[] | null = null;
         try {
           // Prefer to get opt in status in bulk for sorted accounts.
-          await this.getOptInStatus({
+          const bulkOptInStatusResult = await this.getOptInStatus({
             addresses: sortedAccounts.map((account) => account.address),
           });
+          bulkOptInStatus = bulkOptInStatusResult.ois ?? null;
         } catch {
           // Failed to get opt in status in bulk for sorted accounts, let silent auth do it individually
         }
 
-        // Try silent auth on each account until one succeeds
+        // Try silent auth on each account until one succeeds.
+        // When the bulk opt-in status is available, only attempt silent auth
+        // (which mints a session via mobile-login) for accounts that are
+        // opted in. This avoids spamming mobile-login with guaranteed-401
+        // requests for non-enrolled accounts on every account switch.
         let successAccount: InternalAccount | null = null;
-        for (const account of sortedAccounts) {
+        for (let i = 0; i < sortedAccounts.length; i++) {
+          const account = sortedAccounts[i];
+          if (bulkOptInStatus && bulkOptInStatus[i] === false) {
+            // Known not opted in — skip session mint for this account.
+            const skippedCaip = this.convertInternalAccountToCaipAccountId(
+              account as InternalAccount,
+            );
+            if (skippedCaip && !this.#getAccountState(skippedCaip)) {
+              // Seed missing state so setActiveAccountFromCandidate can run
+              // later. Do not set lastFreshOptInStatusCheck here — fresh OIS
+              // owns that timestamp.
+              this.update((state) => {
+                state.accounts[skippedCaip] = {
+                  account: skippedCaip,
+                  hasOptedIn: false,
+                  subscriptionId: null,
+                  perpsFeeDiscount: null,
+                  lastPerpsDiscountRateFetched: null,
+                };
+              });
+            }
+            continue;
+          }
           try {
             const subscriptionId = await this.performSilentAuth(
               account as InternalAccount,
@@ -1426,7 +1455,7 @@ export class RewardsController extends BaseController<
           return null;
         }
       } catch {
-        // Continue with silent login attempt
+        // Continue with silent login attempt when OIS is unavailable.
       }
     }
 

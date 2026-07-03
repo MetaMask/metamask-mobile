@@ -13,14 +13,12 @@ import type { RootMessenger } from '../types';
  * @returns The AuthenticatedUserStorageMessenger.
  */
 export function getAuthenticatedUserStorageServiceMessenger(
-  rootMessenger: RootMessenger,
-): AuthenticatedUserStorageMessenger {
-  const serviceMessenger = new Messenger<
-    'AuthenticatedUserStorageService',
+  rootMessenger: RootMessenger<
     MessengerActions<AuthenticatedUserStorageMessenger>,
-    MessengerEvents<AuthenticatedUserStorageMessenger>,
-    RootMessenger
-  >({
+    MessengerEvents<AuthenticatedUserStorageMessenger>
+  >,
+): AuthenticatedUserStorageMessenger {
+  const serviceMessenger: AuthenticatedUserStorageMessenger = new Messenger({
     namespace: 'AuthenticatedUserStorageService',
     parent: rootMessenger,
   });

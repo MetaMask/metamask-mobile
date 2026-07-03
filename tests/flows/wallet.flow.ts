@@ -4,6 +4,7 @@ import {
   createLogger,
   encapsulated,
   Matchers,
+  PlatformDetector,
   PlaywrightAssertions,
   PlaywrightGestures,
   PlaywrightMatchers,
@@ -36,10 +37,18 @@ import ManualBackupStep1View from '../page-objects/Onboarding/ManualBackupStep1V
 import NetworkListModal from '../page-objects/Network/NetworkListModal';
 import { CustomNetworks } from '../resources/networks.e2e';
 import ToastModal from '../page-objects/wallet/ToastModal';
-import { waitForAppReady } from './general.flow';
+import {
+  dismissAndroidSystemOverlaysPlaywright,
+  dismissDeveloperMenuPlaywright,
+  waitForAppReady,
+} from './general.flow';
 import LoginView from '../page-objects/wallet/LoginView';
 import { getPasswordForScenario } from '../framework/utils/TestConstants';
-import PlaywrightUtilities from '../framework/PlaywrightUtilities';
+import { resolveE2EWaitTimeoutMs } from '../framework/Constants';
+import PlaywrightUtilities, {
+  getDriver,
+  withImplicitWait,
+} from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
 import PredictModalView from '../page-objects/Predict/PredictModalView';
@@ -48,9 +57,186 @@ import OnboardingInterestQuestionnaireView from '../page-objects/Onboarding/Onbo
 import ExperienceEnhancerBottomSheet from '../page-objects/Onboarding/ExperienceEnhancerBottomSheet';
 import { fetchProductionFeatureFlags } from '../performance/feature-flag-helper';
 import { ExistingUserSheetSelectorsIDs } from '../../app/components/Views/Notifications/PushNotificationOnboarding/ExistingUserSheet/ExistingUserSheet.testIds';
+import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/WalletView.testIds';
+import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
+
 const logger = createLogger({
   name: 'WalletFlow',
 });
+
+const IOS_WALLET_HOME_INDICATOR_IDS = [
+  WalletViewSelectorsIDs.WALLET_HEADER_ROOT,
+  WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
+  WalletViewSelectorsIDs.ACCOUNT_ICON,
+  WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
+  WalletViewSelectorsIDs.ACTION_BUTTONS_CONTAINER,
+] as const;
+
+const WALLET_HOME_POLL_INTERVAL_MS = 250;
+
+const isElementDisplayedById = async (testId: string): Promise<boolean> => {
+  try {
+    return await withImplicitWait(500, async () => {
+      const el = await PlaywrightMatchers.getElementById(testId, {
+        exact: true,
+      });
+      return await el.isVisible();
+    });
+  } catch {
+    return false;
+  }
+};
+
+const isAnyWalletHomeIndicatorDisplayedOnIOS = async (): Promise<boolean> => {
+  for (const testId of IOS_WALLET_HOME_INDICATOR_IDS) {
+    if (await isElementDisplayedById(testId)) {
+      return true;
+    }
+  }
+  return false;
+};
+
+const isWalletScreenExistsWithLoginHiddenOnIOS = async (): Promise<boolean> => {
+  try {
+    return await withImplicitWait(500, async () => {
+      const walletScreen = await PlaywrightMatchers.getElementById(
+        WalletViewSelectorsIDs.WALLET_CONTAINER,
+        { exact: true },
+      );
+      if (!(await walletScreen.unwrap().isExisting())) {
+        return false;
+      }
+      const loginContainer = await PlaywrightMatchers.getElementById(
+        LoginViewSelectors.CONTAINER,
+        { exact: true },
+      );
+      return !(await loginContainer.isVisible());
+    });
+  } catch {
+    return false;
+  }
+};
+
+const isWalletHomeReadyOnIOS = async (): Promise<boolean> => {
+  if (await isAnyWalletHomeIndicatorDisplayedOnIOS()) {
+    return true;
+  }
+  return isWalletScreenExistsWithLoginHiddenOnIOS();
+};
+
+/**
+ * Waits for the wallet home screen to be ready after login.
+ * On iOS, `wallet-screen` may exist but report `displayed === false` while
+ * child indicators are visible — mirrors Detox `toExist` readiness checks.
+ */
+export const waitForWalletHomePlaywright = async (
+  timeout: number = resolveE2EWaitTimeoutMs(30_000),
+): Promise<void> => {
+  if (PlatformDetector.isAndroid()) {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      asPlaywrightElement(WalletView.container),
+      {
+        description: 'Wallet should be visible',
+        timeout,
+      },
+    );
+    return;
+  }
+
+  const deadline = Date.now() + timeout;
+  while (Date.now() < deadline) {
+    if (await isWalletHomeReadyOnIOS()) {
+      logger.debug('Wallet home ready on iOS');
+      return;
+    }
+    await sleep(WALLET_HOME_POLL_INTERVAL_MS);
+  }
+
+  throw new Error(
+    `Wallet home not ready within ${timeout}ms (iOS wallet readiness indicators not satisfied)`,
+  );
+};
+
+/**
+ * Opens the account list when nested navigation (e.g. AddressList / AccountDetails)
+ * may have hidden the tab bar or wallet chrome. Backs out until wallet home or
+ * the list is reachable, then taps the identicon if needed.
+ */
+export const ensureAccountListOpenPlaywright = async (
+  timeout: number = resolveE2EWaitTimeoutMs(30_000),
+): Promise<void> => {
+  const deadline = Date.now() + timeout;
+
+  while (Date.now() < deadline) {
+    try {
+      await Assertions.expectElementToBeVisible(
+        AccountListBottomSheet.accountList,
+        { timeout: 1_500, description: 'Account list' },
+      );
+      return;
+    } catch {
+      // list not visible yet
+    }
+
+    if (PlatformDetector.isAndroid() || (await isWalletHomeReadyOnIOS())) {
+      await WalletView.tapIdenticon();
+      await Assertions.expectElementToBeVisible(
+        AccountListBottomSheet.accountList,
+        {
+          timeout: resolveE2EWaitTimeoutMs(10_000),
+          description: 'Account list should open from wallet home',
+        },
+      );
+      return;
+    }
+
+    try {
+      await getDriver().back();
+    } catch {
+      // ignore transient back failures
+    }
+    await sleep(300);
+  }
+
+  throw new Error(`Account list not open within ${timeout}ms`);
+};
+
+/**
+ * Returns to wallet home from nested account flows (AddressList, AccountDetails,
+ * or an account-list overlay that hides wallet chrome).
+ */
+export const dismissToWalletHomePlaywright = async (
+  timeout: number = resolveE2EWaitTimeoutMs(60_000),
+): Promise<void> => {
+  const deadline = Date.now() + timeout;
+
+  while (Date.now() < deadline) {
+    if (PlatformDetector.isAndroid() || (await isWalletHomeReadyOnIOS())) {
+      return;
+    }
+
+    try {
+      await Assertions.expectElementToBeVisible(
+        AccountListBottomSheet.accountList,
+        { timeout: 1_500, description: 'Account list overlay' },
+      );
+      await getDriver().back();
+      await sleep(500);
+      continue;
+    } catch {
+      // not showing account list
+    }
+
+    try {
+      await getDriver().back();
+    } catch {
+      // ignore transient back failures
+    }
+    await sleep(300);
+  }
+
+  throw new Error(`Wallet home not reached within ${timeout}ms`);
+};
 
 const validAccount = Accounts.getValidAccount();
 const SEEDLESS_ONBOARDING_ENABLED =
@@ -473,24 +659,25 @@ export const loginToApp = async (password?: string): Promise<void> => {
 export const dismissPushNotificationExistingUserSheet =
   async (): Promise<void> => {
     try {
-      const btn = await asPlaywrightElement(
-        encapsulated({
-          detox: () =>
-            Matchers.getElementByID(
-              ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
-            ),
-          appium: () =>
-            PlaywrightMatchers.getElementById(
-              ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
-              { exact: true },
-            ),
-        }),
-      );
-      const isDisplayed = await btn.unwrap().isDisplayed();
-      if (isDisplayed) {
-        await PlaywrightGestures.waitAndTap(btn, { timeout: 5_000 });
-        logger.debug('Dismissed push notification existing user sheet');
-      }
+      await withImplicitWait(500, async () => {
+        const btn = await asPlaywrightElement(
+          encapsulated({
+            detox: () =>
+              Matchers.getElementByID(
+                ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
+              ),
+            appium: () =>
+              PlaywrightMatchers.getElementById(
+                ExistingUserSheetSelectorsIDs.BUTTON_CONFIRM,
+                { exact: true },
+              ),
+          }),
+        );
+        if (await btn.unwrap().isDisplayed()) {
+          await PlaywrightGestures.waitAndTap(btn, { timeout: 5_000 });
+          logger.debug('Dismissed push notification existing user sheet');
+        }
+      });
     } catch {
       // Sheet not present — no-op
     }
@@ -515,18 +702,37 @@ export const loginToAppPlaywright = async (
 ): Promise<void> => {
   const { scenarioType = 'login' } = options;
 
+  const dismissPostLoginModals = async (): Promise<void> => {
+    await PlaywrightUtilities.wait(500);
+    await dismissPushNotificationExistingUserSheet();
+    await dismissExperienceEnhancerModal();
+  };
+
+  await dismissAndroidSystemOverlaysPlaywright();
+  await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
+  await dismissDeveloperMenuPlaywright();
+  await dismissAndroidSystemOverlaysPlaywright();
+
+  try {
+    await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(3_000));
+    await dismissPostLoginModals();
+    return;
+  } catch {
+    // Login screen expected — continue below.
+  }
+
   await PlaywrightAssertions.expectElementToBeVisible(
     asPlaywrightElement(LoginView.container),
     {
       description: 'Login view container',
-      timeout: 45_000,
+      timeout: resolveE2EWaitTimeoutMs(30_000),
     },
   );
   await PlaywrightAssertions.expectElementToBeVisible(
     asPlaywrightElement(LoginView.passwordInput),
     {
       description: 'Login password input',
-      timeout: 15_000,
+      timeout: resolveE2EWaitTimeoutMs(10_000),
     },
   );
 
@@ -535,9 +741,9 @@ export const loginToAppPlaywright = async (
   await LoginView.enterPassword(password ?? '');
   await LoginView.tapLoginButton();
 
-  await PlaywrightUtilities.wait(5000);
-  await dismissPushNotificationExistingUserSheet();
-  await dismissExperienceEnhancerModal();
+  await dismissPostLoginModals();
+
+  await waitForWalletHomePlaywright(resolveE2EWaitTimeoutMs(30_000));
 };
 
 /**
@@ -559,10 +765,7 @@ export const loginAndOpenAccountList = async (
 
   await loginToAppPlaywright(loginOptions);
 
-  await Assertions.expectElementToBeVisible(WalletView.container, {
-    description: 'Wallet should be visible after login',
-    timeout: walletTimeout,
-  });
+  await waitForWalletHomePlaywright(walletTimeout);
 
   await WalletView.tapIdenticon();
 
@@ -731,21 +934,64 @@ export const resolvePredictGtmOnboardingModalEnabled = async (
  * @function dismisspredictionsModalPlaywright
  * @returns {Promise<void>} Resolves when the predictions modal is dismissed.
  */
-export const dismisspredictionsModalPlaywright = async (
-  maxRetries = 2,
-): Promise<void> => {
+const tryDismissPredictionsModalPlaywright = async (
+  timeout = 3000,
+): Promise<boolean> => {
   try {
     const btn = await asPlaywrightElement(PredictModalView.notNowButton);
     await PlaywrightGestures.waitAndTap(btn, {
-      timeout: 3000,
+      timeout,
       checkForDisplayed: true,
       checkForEnabled: true,
     });
     await btn.unwrap().waitForDisplayed({ reverse: true, timeout: 3000 });
-    return;
+    return true;
   } catch {
+    return false;
+  }
+};
+
+export const dismisspredictionsModalPlaywright = async (
+  maxRetries = 2,
+): Promise<void> => {
+  const dismissed = await tryDismissPredictionsModalPlaywright();
+  if (!dismissed) {
     logger.error(`Predict modal not dismissed after ${maxRetries} attempts`);
   }
+};
+
+const startPredictionsModalWatcher = (intervalMs = 1000): (() => void) => {
+  let stopped = false;
+  let inFlight = false;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const tick = async () => {
+    if (stopped || inFlight) {
+      if (!stopped) {
+        timeoutId = setTimeout(tick, intervalMs);
+      }
+      return;
+    }
+
+    inFlight = true;
+    try {
+      await tryDismissPredictionsModalPlaywright(1000);
+    } finally {
+      inFlight = false;
+      if (!stopped) {
+        timeoutId = setTimeout(tick, intervalMs);
+      }
+    }
+  };
+
+  timeoutId = setTimeout(tick, 0);
+
+  return () => {
+    stopped = true;
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  };
 };
 
 /**
@@ -806,9 +1052,14 @@ export const onboardingFlowImportSRPPlaywright = async (
     'predictGtmOnboardingModalEnabled',
     predictGtmOnboardingModalEnabled,
   );
-  await dismisspredictionsModalPlaywright();
 
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(WalletView.container),
-  );
+  const stopPredictionsModalWatcher = startPredictionsModalWatcher();
+  try {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      await asPlaywrightElement(WalletView.container),
+    );
+    await tryDismissPredictionsModalPlaywright();
+  } finally {
+    stopPredictionsModalWatcher();
+  }
 };

@@ -2,17 +2,16 @@ import handleRedirection from './handleRedirection';
 import getRedirectPathsAndParams from '../utils/getRedirectPathAndParams';
 import { RampType } from '../Aggregator/types';
 import parseRampIntent from '../utils/parseRampIntent';
-import {
-  createBuyNavigationDetails,
-  createSellNavigationDetails,
-} from '../Aggregator/routes/utils';
+import { createSellNavigationDetails } from '../Aggregator/routes/utils';
 import Logger from '../../../../util/Logger';
 import NavigationService from '../../../../core/NavigationService';
 import ReduxService from '../../../../core/redux';
-import { isRampsUnifiedV2Enabled } from '../utils/isRampsUnifiedV2Enabled';
 import { createEligibilityFailedModalNavigationDetails } from '../components/EligibilityFailedModal/EligibilityFailedModal';
 import { createRampUnsupportedModalNavigationDetails } from '../components/RampUnsupportedModal/RampUnsupportedModal';
-import { createBuildQuoteNavDetails } from '../Views/BuildQuote';
+import {
+  createBuildQuoteNavDetails,
+  type BuildQuoteParams,
+} from '../Views/BuildQuote';
 import { createTokenSelectionNavDetails } from '../Views/TokenSelection/TokenSelection';
 import {
   selectCountries,
@@ -31,6 +30,19 @@ import Engine from '../../../../core/Engine';
 interface RampUrlOptions {
   rampPath: string;
   rampType: RampType;
+}
+
+function parseBuildQuoteAmount(amount?: string): number | undefined {
+  const normalizedAmount = amount?.trim();
+
+  if (!normalizedAmount) {
+    return undefined;
+  }
+
+  const parsedAmount = Number(normalizedAmount);
+  return Number.isFinite(parsedAmount) && parsedAmount > 0
+    ? parsedAmount
+    : undefined;
 }
 
 async function navigateUnifiedV2Buy(
@@ -92,10 +104,15 @@ async function navigateUnifiedV2Buy(
     } catch {
       // Token may not be in controller's list yet; navigate anyway
     }
+    const buildQuoteParams: BuildQuoteParams = {
+      assetId: controllerAssetId,
+    };
+    const amount = parseBuildQuoteAmount(rampIntent.amount);
+    if (amount !== undefined) {
+      buildQuoteParams.amount = amount;
+    }
     NavigationService.navigation.navigate(
-      ...createBuildQuoteNavDetails({
-        assetId: controllerAssetId,
-      }),
+      ...createBuildQuoteNavDetails(buildQuoteParams),
     );
     return;
   }
@@ -117,20 +134,8 @@ export default function handleRampUrl({ rampPath, rampType }: RampUrlOptions) {
     }
 
     switch (rampType) {
-      case RampType.BUY: {
-        try {
-          const state = ReduxService.store.getState();
-          if (isRampsUnifiedV2Enabled(state)) {
-            return navigateUnifiedV2Buy(rampIntent);
-          }
-        } catch {
-          // Store may not be ready; fall through to legacy behavior
-        }
-        NavigationService.navigation.navigate(
-          ...createBuyNavigationDetails(rampIntent),
-        );
-        break;
-      }
+      case RampType.BUY:
+        return navigateUnifiedV2Buy(rampIntent);
       case RampType.SELL:
         NavigationService.navigation.navigate(
           ...createSellNavigationDetails(rampIntent),
