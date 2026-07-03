@@ -385,12 +385,12 @@ describe('OtherBottomSheet', () => {
       render(<OtherBottomSheet {...createProps()} />);
 
       expect(
-        screen.getByTestId(OtherBottomSheetTestIds.KEYBOARD_OFFSET_CONTAINER),
-      ).toBeOnTheScreen();
+        screen.queryByTestId(OtherBottomSheetTestIds.KEYBOARD_OFFSET_CONTAINER),
+      ).not.toBeOnTheScreen();
       expect(
         screen.getByTestId(OtherBottomSheetTestIds.BOTTOM_SHEET).props
           .accessibilityState,
-      ).toEqual({ selected: false });
+      ).toEqual({ selected: true });
       expect(
         screen.getByTestId(OtherBottomSheetTestIds.DONE_BUTTON),
       ).toBeOnTheScreen();
