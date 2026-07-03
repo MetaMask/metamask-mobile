@@ -113,7 +113,20 @@ export default class PlaywrightGestures {
         elem.getAttribute('clickable'),
         elem.getAttribute('enabled'),
       ]);
-      return clickableAttr !== 'false' && enabledAttr !== 'false';
+      if (enabledAttr === 'false') {
+        return false;
+      }
+      if (clickableAttr !== 'false') {
+        return true;
+      }
+      // RN often attaches testIDs to non-clickable Text/View children whose
+      // touchable ancestor receives the tap (Appium clicks by coordinates), and
+      // whether the child is merged into the touchable's accessibility node is
+      // nondeterministic. A genuinely disabled control has no clickable ancestor.
+      return await elem
+        .unwrap()
+        .$('./ancestor::*[@clickable="true"]')
+        .isExisting();
     } catch {
       return true;
     }
