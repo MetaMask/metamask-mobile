@@ -235,7 +235,7 @@ describe('BatchSellQuoteDetailsModal', () => {
     expect(
       getByTestId(BatchSellQuoteDetailsModalSelectorsIDs.MINIMUM_RECEIVED_ROW),
     ).toBeOnTheScreen();
-    expect(getByText('Minimum received')).toBeOnTheScreen();
+    expect(getByText('Min. received:')).toBeOnTheScreen();
     expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
   });
 
@@ -492,7 +492,7 @@ describe('BatchSellQuoteDetailsModal', () => {
     expect(queryByText('UNI • 0.5% slippage')).toBeNull();
     expect(getByText('Total received')).toBeOnTheScreen();
     expect(getByText('7,638.23 USDC')).toBeOnTheScreen();
-    expect(getByText('Minimum received')).toBeOnTheScreen();
+    expect(getByText('Min. received:')).toBeOnTheScreen();
     expect(getByText('7,485.47 USDC')).toBeOnTheScreen();
   });
 
