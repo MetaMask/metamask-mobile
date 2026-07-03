@@ -61,6 +61,7 @@ import type { OnboardingCryptoExperienceQuestionnaireRouteParams } from '../../c
 // Perps navigation params
 import type { PerpsNavigationParamList } from '../../components/UI/Perps/types/navigation';
 import type { TrendingTokensFullViewParams } from '../../components/UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
+import type { ExploreFeedRouteParams } from '../../components/Views/TrendingView/TrendingView';
 
 // QR Scanner params
 import type { QRScannerParams } from '../../components/Views/QRScanner/QRScanner.types';
@@ -418,8 +419,8 @@ export type RootStackParamList = {
   ReferralRewardsView: undefined;
   RewardsSettingsView: undefined;
   RewardsDashboard: undefined;
-  TrendingView: undefined;
-  TrendingFeed: undefined;
+  TrendingView: NestedNavigationParams | undefined;
+  TrendingFeed: ExploreFeedRouteParams | undefined;
   WhatsHappeningDetailView:
     | { initialIndex?: number; source: WhatsHappeningSourceValue }
     | undefined;
