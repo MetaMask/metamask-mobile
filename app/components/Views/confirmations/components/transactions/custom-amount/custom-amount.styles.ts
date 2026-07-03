@@ -11,20 +11,21 @@ function getFontSize(length: number) {
 const styleSheet = (params: {
   theme: Theme;
   vars: { amountLength: number; hasAlert: boolean; disabled: boolean };
-}) =>
-  StyleSheet.create({
+}) => {
+  const fontSize = getFontSize(params.vars.amountLength);
+
+  return StyleSheet.create({
     container: {
       display: 'flex',
       flexDirection: 'row',
       justifyContent: 'center',
       alignItems: 'center',
       minHeight: 70,
-      gap: 5,
     },
     input: {
       textAlign: 'center',
-      fontSize: getFontSize(params.vars.amountLength),
-      lineHeight: getFontSize(params.vars.amountLength) * 1.1,
+      fontSize,
+      lineHeight: fontSize * 1.1,
       fontWeight: '500',
       color: params.vars.hasAlert
         ? params.theme.colors.error.default
@@ -32,11 +33,18 @@ const styleSheet = (params: {
           ? params.theme.colors.text.muted
           : params.theme.colors.text.default,
     },
+    cursor: {
+      width: 1,
+      height: Math.round(fontSize * 0.7),
+      backgroundColor: params.theme.colors.primary.default,
+      transform: [{ translateY: Math.round(fontSize * -0.08) }],
+    },
     alertMessage: {
       textAlign: 'center',
       marginTop: 16,
       color: params.theme.colors.error.default,
     },
   });
+};
 
 export default styleSheet;
