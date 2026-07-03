@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [8.1.0]
 
+### Uncategorized
+
+- chore: sync stable into release/8.1.0 (#32742)
+- chore: sync stable into release/8.1.0 (#32699)
+- chore: sync stable into release/8.1.0 (#32636)
+- chore: sync stable into release/8.1.0 (#32508)
+
 ### Added
 
 - Add missing Component View Tests on Price Alerts (#32301)
