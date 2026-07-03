@@ -1,5 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { BackHandler, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  BackHandler,
+  Keyboard,
+  ScrollView,
+  TouchableOpacity,
+} from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -147,10 +152,12 @@ const OnboardingInterestQuestionnaire = () => {
   );
 
   const handleOtherBottomSheetClose = useCallback(() => {
+    Keyboard.dismiss();
     setIsOtherBottomSheetVisible(false);
   }, []);
 
   const handleOtherDone = useCallback((value: string) => {
+    Keyboard.dismiss();
     const isEmpty = value.length === 0;
     setOtherText(isEmpty ? '' : value);
     setSelectedIds((prev) => {

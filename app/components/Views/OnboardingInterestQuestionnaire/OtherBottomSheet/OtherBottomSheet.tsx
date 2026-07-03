@@ -1,6 +1,10 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { Platform, TextInput } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Keyboard, StyleSheet, TextInput, View } from 'react-native';
+import {
+  KeyboardProvider,
+  useKeyboardState,
+  useResizeMode,
+} from 'react-native-keyboard-controller';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -24,7 +28,10 @@ interface OtherBottomSheetProps {
   onDone: (value: string) => void;
 }
 
-const OtherBottomSheet = ({
+/** Matches design-system bottom sheet open animation duration. */
+const SHEET_OPEN_FOCUS_DELAY_MS = 320;
+
+const OtherBottomSheetContent = ({
   initialValue = '',
   onClose,
   onDone,
@@ -32,63 +39,102 @@ const OtherBottomSheet = ({
   const tw = useTailwind();
   const { colors } = useTheme();
   const bottomSheetRef = useRef<BottomSheetRef>(null);
+  const inputRef = useRef<TextInput>(null);
+  const focusTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [draftValue, setDraftValue] = useState(initialValue);
+  const keyboardHeight = useKeyboardState((state) => state.height);
+
+  useResizeMode();
+
+  const clearFocusTimeout = useCallback(() => {
+    if (focusTimeoutRef.current !== null) {
+      clearTimeout(focusTimeoutRef.current);
+      focusTimeoutRef.current = null;
+    }
+  }, []);
+
+  const focusInputAfterSheetOpens = useCallback(() => {
+    clearFocusTimeout();
+    focusTimeoutRef.current = setTimeout(() => {
+      inputRef.current?.focus();
+      focusTimeoutRef.current = null;
+    }, SHEET_OPEN_FOCUS_DELAY_MS);
+  }, [clearFocusTimeout]);
+
+  useEffect(
+    () => () => {
+      clearFocusTimeout();
+      Keyboard.dismiss();
+    },
+    [clearFocusTimeout],
+  );
 
   const handleClose = useCallback(() => {
+    clearFocusTimeout();
+    Keyboard.dismiss();
     bottomSheetRef.current?.onCloseBottomSheet(onClose);
-  }, [onClose]);
+  }, [clearFocusTimeout, onClose]);
 
   const trimmedDraftValue = draftValue.trim();
 
   const handleDone = useCallback(() => {
+    clearFocusTimeout();
+    Keyboard.dismiss();
     bottomSheetRef.current?.onCloseBottomSheet(() => {
       onDone(trimmedDraftValue);
     });
-  }, [onDone, trimmedDraftValue]);
+  }, [clearFocusTimeout, onDone, trimmedDraftValue]);
 
   return (
-    <BottomSheet
-      ref={bottomSheetRef}
-      onClose={onClose}
-      keyboardAvoidingViewEnabled
-      testID={OtherBottomSheetTestIds.BOTTOM_SHEET}
+    <View
+      pointerEvents="box-none"
+      style={[
+        StyleSheet.absoluteFill,
+        {
+          transform: [{ translateY: -keyboardHeight }],
+        },
+      ]}
+      testID={OtherBottomSheetTestIds.KEYBOARD_OFFSET_CONTAINER}
     >
-      <BottomSheetHeader
-        onClose={handleClose}
-        closeButtonProps={{
-          testID: `${OtherBottomSheetTestIds.BOTTOM_SHEET}-close-button`,
-        }}
+      <BottomSheet
+        ref={bottomSheetRef}
+        onClose={onClose}
+        onOpen={focusInputAfterSheetOpens}
+        keyboardAvoidingViewEnabled={false}
+        testID={OtherBottomSheetTestIds.BOTTOM_SHEET}
       >
-        <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
-          {strings('onboarding_interest_questionnaire.option_other')}
-        </Text>
-      </BottomSheetHeader>
+        <BottomSheetHeader
+          onClose={handleClose}
+          closeButtonProps={{
+            testID: `${OtherBottomSheetTestIds.BOTTOM_SHEET}-close-button`,
+          }}
+        >
+          <Text variant={TextVariant.HeadingSm} fontWeight={FontWeight.Bold}>
+            {strings('onboarding_interest_questionnaire.option_other')}
+          </Text>
+        </BottomSheetHeader>
 
-      <KeyboardAwareScrollView
-        keyboardShouldPersistTaps="handled"
-        enableOnAndroid
-        enableAutomaticScroll
-        extraScrollHeight={Platform.OS === 'android' ? 250 : 20}
-        contentContainerStyle={tw.style('px-4')}
-      >
-        <TextInput
-          value={draftValue}
-          onChangeText={setDraftValue}
-          multiline
-          numberOfLines={4}
-          textAlignVertical="top"
-          autoFocus
-          placeholder={strings(
-            'onboarding_interest_questionnaire.other_placeholder',
-          )}
-          placeholderTextColor={colors.text.alternative}
-          style={tw.style(
-            'min-h-[120px] rounded-xl border border-default bg-background-muted px-4 py-3 text-body-md text-default',
-          )}
-          testID={OtherBottomSheetTestIds.TEXT_INPUT}
-          maxLength={100}
-        />
-        <Box twClassName="mt-4">
+        <Box twClassName="px-4">
+          <TextInput
+            ref={inputRef}
+            value={draftValue}
+            onChangeText={setDraftValue}
+            multiline
+            numberOfLines={4}
+            textAlignVertical="top"
+            placeholder={strings(
+              'onboarding_interest_questionnaire.other_placeholder',
+            )}
+            placeholderTextColor={colors.text.alternative}
+            style={tw.style(
+              'min-h-[120px] rounded-xl border border-default bg-background-muted px-4 py-3 text-body-md text-default',
+            )}
+            testID={OtherBottomSheetTestIds.TEXT_INPUT}
+            maxLength={100}
+          />
+        </Box>
+
+        <Box twClassName="mt-4 px-4 pb-6">
           <Button
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
@@ -99,9 +145,15 @@ const OtherBottomSheet = ({
             {strings('onboarding_interest_questionnaire.done')}
           </Button>
         </Box>
-      </KeyboardAwareScrollView>
-    </BottomSheet>
+      </BottomSheet>
+    </View>
   );
 };
+
+const OtherBottomSheet = (props: OtherBottomSheetProps) => (
+  <KeyboardProvider>
+    <OtherBottomSheetContent {...props} />
+  </KeyboardProvider>
+);
 
 export default OtherBottomSheet;

@@ -6,6 +6,7 @@ import {
   View as MockView,
   TouchableOpacity as MockTouchableOpacity,
   Text as MockRNText,
+  Platform,
 } from 'react-native';
 import { render, screen, fireEvent } from '@testing-library/react-native';
 import OtherBottomSheet from './OtherBottomSheet';
@@ -28,14 +29,13 @@ jest.mock('../../../../util/theme', () => {
   };
 });
 
-jest.mock('react-native-keyboard-aware-scroll-view', () => ({
-  KeyboardAwareScrollView: ({
-    children,
-    contentContainerStyle,
-  }: {
-    children: React.ReactNode;
-    contentContainerStyle?: object;
-  }) => <MockView style={contentContainerStyle}>{children}</MockView>,
+jest.mock('react-native-keyboard-controller', () => ({
+  KeyboardProvider: ({ children }: { children: React.ReactNode }) => children,
+  useKeyboardState: (selector?: (state: { height: number }) => number) => {
+    const state = { height: 0, isVisible: false };
+    return selector ? selector(state) : state;
+  },
+  useResizeMode: jest.fn(),
 }));
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -47,13 +47,22 @@ jest.mock('@metamask/design-system-react-native', () => {
       onClose?: () => void;
       keyboardAvoidingViewEnabled?: boolean;
     }
-  >(({ children, testID }, ref) => {
+  >(({ children, testID, keyboardAvoidingViewEnabled }, ref) => {
     mockUseImperativeHandle(ref, () => ({
       onCloseBottomSheet: (callback: () => void) => {
         callback?.();
       },
     }));
-    return <MockView testID={testID}>{children}</MockView>;
+    return (
+      <MockView
+        testID={testID}
+        accessibilityState={{
+          selected: keyboardAvoidingViewEnabled,
+        }}
+      >
+        {children}
+      </MockView>
+    );
   });
   BottomSheet.displayName = 'BottomSheet';
 
@@ -334,6 +343,57 @@ describe('OtherBottomSheet', () => {
       fireEvent.press(screen.getByTestId(OtherBottomSheetTestIds.DONE_BUTTON));
 
       expect(onClose).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('platform keyboard handling', () => {
+    const originalPlatform = Platform.OS;
+
+    afterEach(() => {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: originalPlatform,
+      });
+    });
+
+    it('offsets the entire sheet by keyboard height on Android', () => {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: 'android',
+      });
+
+      render(<OtherBottomSheet {...createProps()} />);
+
+      expect(
+        screen.getByTestId(OtherBottomSheetTestIds.KEYBOARD_OFFSET_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(OtherBottomSheetTestIds.BOTTOM_SHEET).props
+          .accessibilityState,
+      ).toEqual({ selected: false });
+      expect(
+        screen.getByTestId(OtherBottomSheetTestIds.DONE_BUTTON),
+      ).toBeOnTheScreen();
+    });
+
+    it('offsets the entire sheet by keyboard height on iOS', () => {
+      Object.defineProperty(Platform, 'OS', {
+        configurable: true,
+        value: 'ios',
+      });
+
+      render(<OtherBottomSheet {...createProps()} />);
+
+      expect(
+        screen.getByTestId(OtherBottomSheetTestIds.KEYBOARD_OFFSET_CONTAINER),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(OtherBottomSheetTestIds.BOTTOM_SHEET).props
+          .accessibilityState,
+      ).toEqual({ selected: false });
+      expect(
+        screen.getByTestId(OtherBottomSheetTestIds.DONE_BUTTON),
+      ).toBeOnTheScreen();
     });
   });
 });
