@@ -1,21 +1,36 @@
 import { useFocusEffect } from '@react-navigation/native';
-import { RefObject, useCallback } from 'react';
+import { RefObject, useCallback, useRef } from 'react';
 import { TokenInputAreaRef } from '../../components/TokenInputArea';
 import { SwapsKeypadRef } from '../../components/SwapsKeypad/types';
 
 interface Params {
   inputRef: RefObject<TokenInputAreaRef | null>;
   keypadRef: RefObject<SwapsKeypadRef | null>;
+  autoFocusSourceAmountInput?: boolean;
 }
 
-export const useBridgeViewOnFocus = ({ inputRef, keypadRef }: Params) => {
+export const useBridgeViewOnFocus = ({
+  inputRef,
+  keypadRef,
+  autoFocusSourceAmountInput = false,
+}: Params) => {
+  const hasAutoFocusedRef = useRef(false);
+
   useFocusEffect(
     useCallback(
-      () => () => {
-        inputRef.current?.blur();
-        keypadRef.current?.close();
+      () => {
+        if (autoFocusSourceAmountInput && !hasAutoFocusedRef.current) {
+          inputRef.current?.focus();
+          keypadRef.current?.open();
+          hasAutoFocusedRef.current = true;
+        }
+
+        return () => {
+          inputRef.current?.blur();
+          keypadRef.current?.close();
+        };
       },
-      [inputRef, keypadRef],
+      [autoFocusSourceAmountInput, inputRef, keypadRef],
     ),
   );
 };

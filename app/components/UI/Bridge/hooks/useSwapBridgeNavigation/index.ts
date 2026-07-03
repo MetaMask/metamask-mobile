@@ -77,6 +77,7 @@ export interface BridgeRouteParams {
   sourceAmount?: string;
   location: MetaMetricsSwapsEventSource;
   scrollToTopOnNav?: boolean;
+  autoFocusSourceAmountInput?: boolean;
   /**
    * Homepage / explicit flow `active_ab_tests` carried on the route and bound
    * to transactions when the user submits (not stored in Redux).
@@ -334,12 +335,19 @@ export const useSwapBridgeNavigation = ({
         Engine.context.BridgeController.setLocation(mappedLocation);
       }
 
+      const shouldAutoFocusSourceAmountInput = Boolean(
+        effectiveSourceTokenBase || effectiveDestTokenBase,
+      );
+
       const params: BridgeRouteParams = {
         sourceToken,
         sourcePage,
         bridgeViewMode,
         location: mappedLocation,
         ...(scrollToTopOnNav && { scrollToTopOnNav: true }),
+        ...(shouldAutoFocusSourceAmountInput && {
+          autoFocusSourceAmountInput: true,
+        }),
         ...(transactionActiveAbTests?.length && { transactionActiveAbTests }),
       };
 
