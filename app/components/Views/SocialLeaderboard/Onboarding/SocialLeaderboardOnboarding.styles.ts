@@ -26,6 +26,13 @@ export const ONBOARDING_GRADIENT_COLORS = [
 ];
 
 /**
+ * Vertical gap (px) added to the top safe-area inset before the title/description
+ * overlay. Sized so the copy clears the Rive artboard's progress bar with the
+ * breathing room from the Figma spec (node 616-4566) — the same on every step.
+ */
+export const OVERLAY_TOP_OFFSET = 80;
+
+/**
  * The onboarding is a single full-screen Rive artboard that renders every
  * visual (background, trader cards, buttons). In the v4 ("hybrid") artboard the
  * step title + description are NOT baked into the Rive, so React Native renders

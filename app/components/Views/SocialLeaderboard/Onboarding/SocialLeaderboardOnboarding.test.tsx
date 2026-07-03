@@ -1,4 +1,4 @@
-import { act, screen } from '@testing-library/react-native';
+import { act, screen, waitFor } from '@testing-library/react-native';
 import React from 'react';
 import { StackActions } from '@react-navigation/native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -249,19 +249,20 @@ describe('SocialLeaderboardOnboarding', () => {
       'Maybe later',
     );
     // Notifications are OFF by default in these tests, so both Notify slots (3
-    // follow-path and 4 maybe-later) prompt with "Allow notifications" + "Got
-    // it".
+    // follow-path and 4 maybe-later) prompt. The artboard's run names are
+    // inverted vs their roles: `primaryButton` feeds the ghost (gotIt) button
+    // and `secondaryButton` feeds the solid "Allow notifications" (enables) CTA.
     expect(getLastStringValue(riveStepTextBinding(3, 'primaryButton'))).toBe(
-      'Allow notifications',
+      'Got it',
     );
     expect(getLastStringValue(riveStepTextBinding(3, 'secondaryButton'))).toBe(
-      'Got it',
-    );
-    expect(getLastStringValue(riveStepTextBinding(4, 'primaryButton'))).toBe(
       'Allow notifications',
     );
-    expect(getLastStringValue(riveStepTextBinding(4, 'secondaryButton'))).toBe(
+    expect(getLastStringValue(riveStepTextBinding(4, 'primaryButton'))).toBe(
       'Got it',
+    );
+    expect(getLastStringValue(riveStepTextBinding(4, 'secondaryButton'))).toBe(
+      'Allow notifications',
     );
   });
 
@@ -644,6 +645,45 @@ describe('SocialLeaderboardOnboarding', () => {
       MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_COMPLETED,
       expect.objectContaining({ source: 'nux' }),
     );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+    );
+  });
+
+  it('waits for the enable to finish before navigating to the leaderboard', async () => {
+    let resolveEnable!: () => void;
+    mockEnableNotificationsInBackground.mockReturnValueOnce(
+      new Promise<void>((resolve) => {
+        resolveEnable = resolve;
+      }),
+    );
+    renderComponent();
+
+    await advanceToNotifyStep();
+
+    // Fire the trigger but don't await it settling — the handler parks on the
+    // still-pending enable promise.
+    let handlerPromise: Promise<void> | undefined;
+    await act(async () => {
+      handlerPromise = mockTriggerCallbacks[
+        RIVE_TRIGGERS.ALLOW_NOTIFICATIONS
+      ]?.() as Promise<void> | undefined;
+    });
+
+    await waitFor(() =>
+      expect(mockEnableNotificationsInBackground).toHaveBeenCalledWith(true),
+    );
+    // Enable is still in flight, so we must not have navigated yet.
+    expect(mockDispatch).not.toHaveBeenCalledWith(
+      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
+    );
+
+    // Once the enable resolves, the flow completes and navigates.
+    await act(async () => {
+      resolveEnable();
+      await handlerPromise;
+    });
+
     expect(mockDispatch).toHaveBeenCalledWith(
       StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
     );

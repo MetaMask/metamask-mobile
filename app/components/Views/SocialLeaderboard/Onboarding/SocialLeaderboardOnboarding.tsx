@@ -51,6 +51,7 @@ import {
 import { formatSignedFullUsdNoDecimals } from '../utils/formatters';
 import createStyles, {
   ONBOARDING_GRADIENT_COLORS,
+  OVERLAY_TOP_OFFSET,
 } from './SocialLeaderboardOnboarding.styles';
 import { SocialLeaderboardOnboardingSelectorsIDs } from './SocialLeaderboardOnboarding.testIds';
 import {
@@ -296,20 +297,27 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   // Localized button labels per authored `stepText{slot}` (1-based).
   //
   // Slots 3 and 4 are both the Notify slide (follow-path step 3 and maybe-later
-  // step 3.1). Their labels follow notification state so they stay correct
-  // whichever text run the artboard reads for each layout:
-  // - prompt still needed → "Allow notifications" (primary) + "Got it"
-  //   (secondary), paired with `allowNotificationsBoolean = true` (two buttons);
+  // step 3.1). Their labels follow notification state.
+  //
+  // IMPORTANT: on this artboard the `primaryButton` run feeds the ghost button
+  // (which fires the `gotIt` trigger) and the `secondaryButton` run feeds the
+  // solid CTA (which fires the `allowNotifications` trigger) — i.e. the run
+  // names are inverted relative to the visual/trigger roles. So we place the
+  // "Allow notifications" label on `secondaryButton` (solid, enables) and
+  // "Got it" on `primaryButton` (ghost, dismisses) to match the Figma design:
+  // - prompt still needed → ghost "Got it" (`primaryButton`) + solid "Allow
+  //   notifications" (`secondaryButton`), paired with `allowNotificationsBoolean
+  //   = true` (two buttons);
   // - already enabled → both labels "Got it", paired with
   //   `allowNotificationsBoolean = false` (single "Got it").
   const stepButtons = useMemo<{ slot: number; buttons: StepButtons }[]>(() => {
     const gotIt = strings('social_leaderboard.onboarding.got_it');
     const notifyButtons: StepButtons = shouldPromptNotifications
       ? {
-          primaryButton: strings(
+          primaryButton: gotIt,
+          secondaryButton: strings(
             'social_leaderboard.onboarding.allow_notifications',
           ),
-          secondaryButton: gotIt,
         }
       : {
           primaryButton: gotIt,
@@ -545,7 +553,12 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       return;
     }
     const granted = await requestPushPermission();
-    enableNotificationsInBackground(granted);
+    // Await the enable before navigating: `goToLeaderboard` does a full route
+    // replace that tears down this screen, and firing the enable without
+    // awaiting lets that teardown cut off the in-flight notification setup so
+    // the toggle never actually flips on. (The hook handles its own errors, so
+    // this never rejects.)
+    await enableNotificationsInBackground(granted);
     track(
       MetaMetricsEvents.SOCIAL_LEADERBOARD_ONBOARDING_NOTIFICATIONS_ENABLED,
       {
@@ -669,7 +682,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       )}
       {/* Title + description overlay. */}
       <View
-        style={[styles.textOverlay, { top: insets.top + 48 }]}
+        style={[styles.textOverlay, { top: insets.top + OVERLAY_TOP_OFFSET }]}
         pointerEvents="none"
       >
         <Text
