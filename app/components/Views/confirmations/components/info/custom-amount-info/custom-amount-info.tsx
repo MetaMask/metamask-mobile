@@ -7,6 +7,7 @@ import React, {
   useRef,
   useState,
 } from 'react';
+import { View } from 'react-native';
 import { toCaipAssetType } from '@metamask/utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { PayTokenAmount, PayTokenAmountSkeleton } from '../../pay-token-amount';
@@ -418,17 +419,20 @@ export function AdvancedCustomAmountInfoSkeleton() {
   const { styles } = useStyles(styleSheet, {});
 
   return (
-    <Box style={styles.container}>
-      <Box style={styles.inputContainer}>
+    <View
+      style={styles.container}
+      testID="advanced-custom-amount-info-skeleton"
+    >
+      <View style={styles.inputContainer}>
         <CustomAmountSkeleton />
         <PayTokenAmountSkeleton />
-      </Box>
-      <Box>
+      </View>
+      <View>
         <AccountSelectorSkeleton />
         <PayWithRowSkeleton />
         <DepositKeyboardSkeleton />
-      </Box>
-    </Box>
+      </View>
+    </View>
   );
 }
 
