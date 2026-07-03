@@ -1,11 +1,13 @@
 import React, { ReactNode } from 'react';
 import {
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
   Text,
   TextColor,
   TextVariant,
   FontWeight,
-  SectionDivider,
   SectionHeader,
   ButtonIcon,
   ButtonIconSize,
@@ -97,45 +99,61 @@ const PerpsHomeSection: React.FC<PerpsHomeSectionProps> = ({
 
   const showAction = onActionPress && !isLoading && !isEmpty;
 
+  const actionButton = showAction ? (
+    <ButtonIcon
+      iconName={IconName.MoreHorizontal}
+      iconProps={{ color: IconColor.IconAlternative }}
+      size={ButtonIconSize.Md}
+      onPress={onActionPress}
+      testID={PerpsHomeSectionTestIds.ACTION_BUTTON}
+    />
+  ) : null;
+
+  const sectionTitle = showAction ? (
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.Between}
+      twClassName="w-full"
+    >
+      <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
+        {title}
+      </Text>
+      {actionButton}
+    </Box>
+  ) : (
+    title
+  );
+
+  const subtitleContent =
+    subtitle && subtitleSuffix ? (
+      <HomepageSectionUnrealizedPnlRow
+        label={subtitleSuffix}
+        valueText={subtitle}
+        valueColor={subtitleColor}
+        paddingHorizontal={0}
+        valueTestID={subtitleTestID}
+        labelTestID={subtitleTestID ? `${subtitleTestID}-suffix` : undefined}
+      />
+    ) : subtitle ? (
+      <Text
+        variant={TextVariant.BodyMd}
+        color={subtitleColor}
+        fontWeight={FontWeight.Medium}
+        testID={subtitleTestID}
+      >
+        {subtitle}
+      </Text>
+    ) : null;
+
   return (
     <Box testID={testID}>
-      <SectionDivider />
       <SectionHeader
-        title={title}
-        twClassName={showAction ? 'pb-1 justify-between pr-3' : 'pb-1'}
-        endAccessory={
-          showAction ? (
-            <ButtonIcon
-              iconName={IconName.MoreHorizontal}
-              iconProps={{ color: IconColor.IconAlternative }}
-              size={ButtonIconSize.Md}
-              onPress={onActionPress}
-              testID={PerpsHomeSectionTestIds.ACTION_BUTTON}
-            />
-          ) : undefined
-        }
-      />
-      {subtitle && subtitleSuffix ? (
-        <HomepageSectionUnrealizedPnlRow
-          label={subtitleSuffix}
-          valueText={subtitle}
-          valueColor={subtitleColor}
-          paddingHorizontal={4}
-          valueTestID={subtitleTestID}
-          labelTestID={subtitleTestID ? `${subtitleTestID}-suffix` : undefined}
-        />
-      ) : subtitle ? (
-        <Box paddingHorizontal={4}>
-          <Text
-            variant={TextVariant.BodyMd}
-            color={subtitleColor}
-            fontWeight={FontWeight.Medium}
-            testID={subtitleTestID}
-          >
-            {subtitle}
-          </Text>
-        </Box>
-      ) : null}
+        title={sectionTitle}
+        titleWrapperProps={showAction ? { twClassName: 'w-full' } : undefined}
+      >
+        {subtitleContent}
+      </SectionHeader>
       {isLoading ? renderSkeleton() : children}
     </Box>
   );

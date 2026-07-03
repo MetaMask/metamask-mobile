@@ -99,6 +99,7 @@ import {
   getActivityValue,
   getGroupedActivityListItemKey,
   groupActivityListItems,
+  type ActivityKind,
   type GroupedActivityListItem,
 } from '../../../util/activity-adapters';
 import {
@@ -108,7 +109,7 @@ import {
 } from './helpers/transformations';
 import { normalizeTransaction } from './helpers/adapters';
 import { useLocalActivityItems } from './hooks/useLocalActivityItems';
-import { stashPreloadedActivityItem } from './preloadedActivityItemStore';
+import { getActivityDetailsRoute } from './getActivityDetailsRoute';
 import { useRampActivityItems } from './hooks/useRampActivityItems';
 import {
   INITIAL_PERPS_ACTIVITY_SOURCE_STATE,
@@ -178,6 +179,7 @@ interface ActivityListProps {
   scrollY?: SharedValue<number>;
   typeFilter?: ActivityTypeFilter;
   networkFilter?: CaipChainId[] | null;
+  subFilterKinds?: ReadonlySet<ActivityKind>;
 }
 
 export interface ActivityListHandle {
@@ -186,7 +188,18 @@ export interface ActivityListHandle {
 }
 
 const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
-  ({ header, chainId, location, scrollY, typeFilter, networkFilter }, ref) => {
+  (
+    {
+      header,
+      chainId,
+      location,
+      scrollY,
+      typeFilter,
+      networkFilter,
+      subFilterKinds,
+    },
+    ref,
+  ) => {
     const navigation = useNavigation();
     const { trackEvent, createEventBuilder } = useAnalytics();
     const { colors } = useTheme();
@@ -480,6 +493,9 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
           activityKindMatchesTypeFilter(item.type, typeFilter),
         );
       }
+      if (subFilterKinds) {
+        filtered = filtered.filter((item) => subFilterKinds.has(item.type));
+      }
       if (networkFilter && networkFilter.length > 0) {
         const allowedChains = new Set(
           networkFilter.map((caipChainId) => caipChainId.toLowerCase()),
@@ -493,6 +509,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
     }, [
       unifiedTransactionSource,
       typeFilter,
+      subFilterKinds,
       networkFilter,
       isPerpsEnabled,
       perpsSource.items,
@@ -769,28 +786,12 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         const { raw } = item;
         if (!raw) return;
 
-        // Redesigned details (flag-gated): route resolvable EVM / non-EVM rows
-        // to the new ActivityDetails screen, replacing the legacy detail sheets.
-        // Specialized flows (bridge) keep their dedicated
-        // screens until they get redesigned templates — ActivityDetails only
-        // resolves local/API/non-EVM/domain items, so it can't render those yet.
-        const hasDedicatedScreen =
-          raw.type === 'localTransaction' &&
-          raw.data.primaryTransaction?.type === TransactionType.bridge;
-        if (isTransactionsRedesignEnabled && item.hash && !hasDedicatedScreen) {
-          // Provider-backed rows (Perps / Predict) can't be re-resolved by hash
-          // outside their source tree, so hand the row off via the transient
-          // store and pass only its key in the (serializable) params.
-          const preloadKey =
-            raw.type === 'perpsTransaction' || raw.type === 'predictActivity'
-              ? stashPreloadedActivityItem(item)
-              : undefined;
-          navigation.navigate(Routes.ACTIVITY_DETAILS, {
-            chainId: item.chainId,
-            txIdentifier: item.hash,
-            ...(preloadKey ? { preloadKey } : {}),
-          });
-          return;
+        if (isTransactionsRedesignEnabled) {
+          const detailsRoute = getActivityDetailsRoute(item);
+          if (detailsRoute) {
+            navigation.navigate(Routes.ACTIVITY_DETAILS, detailsRoute);
+            return;
+          }
         }
 
         const pressToken = (activityPressTokenRef.current += 1);
@@ -1108,7 +1109,7 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
         return;
       }
       listRef.current?.scrollToOffset({ offset: 0, animated: false });
-    }, [typeFilter, networkFilter]);
+    }, [typeFilter, networkFilter, subFilterKinds]);
 
     const runAutoScroll = useCallback(() => {
       handleScroll();
@@ -1123,9 +1124,18 @@ const ActivityList = forwardRef<ActivityListHandle, ActivityListProps>(
       },
     });
 
+    const perpsSubFilterActive =
+      typeFilter === ActivityTypeFilter.Perps &&
+      Boolean(subFilterKinds) &&
+      isPerpsEnabled &&
+      perpsSource.items.length > 0;
+
     const renderEmptyList = () => (
       <View style={styles.emptyList}>
-        <ActivityEmptyState typeFilter={typeFilter ?? ActivityTypeFilter.All} />
+        <ActivityEmptyState
+          typeFilter={typeFilter ?? ActivityTypeFilter.All}
+          perpsSubFilterActive={perpsSubFilterActive}
+        />
       </View>
     );
 

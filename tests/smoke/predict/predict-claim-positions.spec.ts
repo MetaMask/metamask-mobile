@@ -63,6 +63,15 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...Object.assign({}, ...confirmationFeatureFlags),
     carouselBanners: false,
+    predictExtendedSportsMarkets: {
+      versions: {
+        '7.82.0': {
+          enabled: false,
+          leagues: [],
+          enabledSportsMarketTypes: [],
+        },
+      },
+    },
   });
   await POLYMARKET_COMPLETE_MOCKS(mockServer);
   await POLYMARKET_TRANSACTION_SENTINEL_MOCKS(mockServer);

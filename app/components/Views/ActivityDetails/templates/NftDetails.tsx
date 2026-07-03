@@ -16,6 +16,7 @@ export function NftDetails({
       item={item}
       header={<ActivityDetailsAmountHeader item={item} />}
       token={totalToken}
+      addressRows={{ from: item.data.from, to: item.data.to }}
     />
   );
 }
