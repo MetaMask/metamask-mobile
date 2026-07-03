@@ -1,11 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import {
-  TouchableOpacity,
-  View,
-  type NativeSyntheticEvent,
-  type TextLayoutEventData,
-} from 'react-native';
-import { PERPS_EVENT_PROPERTY } from '@metamask/perps-controller';
+import { TouchableOpacity, View, type TextLayoutEvent } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
@@ -15,34 +9,14 @@ import { useStyles } from '../../../../hooks/useStyles';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsMarketAboutSectionSelectorsIDs } from '../../Perps.testIds';
+import {
+  ABOUT_COLLAPSED_NUMBER_OF_LINES,
+  getMarketAboutDisplayedEventProperties,
+} from '../../utils/marketAbout';
 import styleSheet from './PerpsMarketAboutSection.styles';
 import type { PerpsMarketAboutSectionProps } from './PerpsMarketAboutSection.types';
 
-const DEFAULT_COLLAPSED_NUMBER_OF_LINES = 3;
-
-/**
- * Interaction type values for the market About section (TAT-2308).
- *
- * These are not (yet) part of `PERPS_EVENT_VALUE.INTERACTION_TYPE` in
- * `@metamask/perps-controller`, so they are declared locally to keep the
- * Mixpanel contract defined by the ticket in one place.
- */
-export const MARKET_ABOUT_INTERACTION_TYPE = {
-  DISPLAYED: 'market_about_section_displayed',
-} as const;
-
-/**
- * Resolves the analytics `market_type` value for a market, mapping HIP-3
- * markets to a dedicated `hip3` bucket as required by the instrumentation spec.
- */
-const getMarketTypeForAnalytics = (
-  market: PerpsMarketAboutSectionProps['market'],
-): string => {
-  if (market.isHip3) {
-    return 'hip3';
-  }
-  return market.marketType ?? 'crypto';
-};
+const TOGGLE_HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
 
 /**
  * "About" section shown on the Perps market details screen (TAT-2308).
@@ -51,57 +25,44 @@ const getMarketTypeForAnalytics = (
  * description is collapsed to a few lines with a "Read more" / "Show less"
  * toggle when it overflows.
  *
- * The section renders nothing when the market has no description, so callers
- * can mount it unconditionally once the feature flag is enabled.
+ * The section renders nothing when the market has no (non-whitespace)
+ * description, so callers can mount it unconditionally once the feature flag is
+ * enabled.
  */
 const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
   market,
-  collapsedNumberOfLines = DEFAULT_COLLAPSED_NUMBER_OF_LINES,
+  collapsedNumberOfLines = ABOUT_COLLAPSED_NUMBER_OF_LINES,
 }) => {
   const { styles } = useStyles(styleSheet, {});
-  const { track } = usePerpsEventTracking();
 
   const description = market?.description?.trim();
 
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isTruncated, setIsTruncated] = useState(false);
-  const [hasMeasured, setHasMeasured] = useState(false);
+  // Full (unclamped) line count of the description, measured off-screen so we
+  // can reliably decide whether the "Read more" toggle is needed.
+  const [lineCount, setLineCount] = useState<number | null>(null);
 
-  // Reset the truncation measurement when the description changes (e.g. when
-  // navigating between markets while the component stays mounted).
+  // Reset when the content or clamp changes (e.g. navigating between markets
+  // while the component stays mounted).
   useEffect(() => {
     setIsExpanded(false);
-    setIsTruncated(false);
-    setHasMeasured(false);
-  }, [description]);
+    setLineCount(null);
+  }, [description, collapsedNumberOfLines]);
 
-  const handleTextLayout = useCallback(
-    (event: NativeSyntheticEvent<TextLayoutEventData>) => {
-      if (hasMeasured || !description) {
-        return;
-      }
-      const { lines } = event.nativeEvent;
-      const renderedText = lines.map((line) => line.text).join('');
-      // When collapsed, the rendered text is clipped to `collapsedNumberOfLines`
-      // so a shorter rendered length than the full description means it overflows.
-      setIsTruncated(renderedText.length < description.length);
-      setHasMeasured(true);
-    },
-    [description, hasMeasured],
-  );
+  const handleMeasureLayout = useCallback((event: TextLayoutEvent) => {
+    const measuredLines = event.nativeEvent.lines.length;
+    setLineCount((prev) => (prev === null ? measuredLines : prev));
+  }, []);
 
   const handleToggle = useCallback(() => {
     setIsExpanded((prev) => !prev);
   }, []);
 
+  const isTruncatable =
+    lineCount !== null && lineCount > collapsedNumberOfLines;
+
   const displayedEventProperties = useMemo(
-    () => ({
-      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
-        MARKET_ABOUT_INTERACTION_TYPE.DISPLAYED,
-      market_symbol: market?.symbol ?? '',
-      market_type: getMarketTypeForAnalytics(market),
-      description_length: description?.length ?? 0,
-    }),
+    () => getMarketAboutDisplayedEventProperties(market, description ?? ''),
     [market, description],
   );
 
@@ -116,6 +77,12 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
   if (!description) {
     return null;
   }
+
+  const toggleLabel = strings(
+    isExpanded
+      ? 'perps.market.about_show_less'
+      : 'perps.market.about_read_more',
+  );
 
   return (
     <View
@@ -134,32 +101,39 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
         variant={TextVariant.BodyMD}
         color={TextColor.Alternative}
         numberOfLines={isExpanded ? undefined : collapsedNumberOfLines}
-        onTextLayout={handleTextLayout}
-        style={[
-          styles.description,
-          !hasMeasured && styles.descriptionMeasuring,
-        ]}
+        style={styles.description}
         testID={PerpsMarketAboutSectionSelectorsIDs.DESCRIPTION}
       >
         {description}
       </Text>
 
-      {isTruncated ? (
+      {/* Off-screen, non-interactive copy used only to measure the full line
+          count so we know whether the description overflows the clamp. */}
+      <Text
+        variant={TextVariant.BodyMD}
+        style={styles.measuringText}
+        onTextLayout={handleMeasureLayout}
+        accessibilityElementsHidden
+        importantForAccessibility="no-hide-descendants"
+        testID={PerpsMarketAboutSectionSelectorsIDs.DESCRIPTION_MEASURE}
+      >
+        {description}
+      </Text>
+
+      {isTruncatable ? (
         <TouchableOpacity
           onPress={handleToggle}
           testID={PerpsMarketAboutSectionSelectorsIDs.TOGGLE}
           accessibilityRole="button"
+          accessibilityLabel={toggleLabel}
+          hitSlop={TOGGLE_HIT_SLOP}
         >
           <Text
             variant={TextVariant.BodyMDMedium}
             color={TextColor.Default}
             style={styles.toggle}
           >
-            {strings(
-              isExpanded
-                ? 'perps.market.about_show_less'
-                : 'perps.market.about_read_more',
-            )}
+            {toggleLabel}
           </Text>
         </TouchableOpacity>
       ) : null}

@@ -133,6 +133,7 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
   - **Slippage interactions:** `'slippage_config_opened'` | `'slippage_config_changed'` | `'slippage_limit_blocked_order'`
   - **Discovery interactions:** `'related_market_clicked'`
   - **Market list filter:** `'market_list_filter'` — category badge or watchlist toggle tap in PerpsMarketListView _(`PERPS_EVENT_VALUE.INTERACTION_TYPE.MARKET_LIST_FILTER`)_
+  - **Market About section:** `'market_about_section_displayed'` — fired when the About section renders on the market details screen because the asset has a description (TAT-2308). Sent with `asset`, `market_category`, and `description_length`. _(`MARKET_ABOUT_INTERACTION_TYPE.DISPLAYED` in `utils/marketAbout.ts` until promoted to the shared enum.)_
 - `action` (optional): Specific action performed: `'connection_retry'` | `'connection_go_back'` | `'share'` | `'add_margin'` | `'remove_margin'` | `'edit_tp_sl'` | `'create_tp_sl'` | `'create_position'` | `'increase_exposure'` | `'flip_long_to_short'` | `'flip_short_to_long'`
 - `attempt_number` (optional): Retry attempt number when action is 'connection_retry' (number)
 - `action_type` (optional): `'start_trading'` | `'skip'` | `'stop_loss_set'` | `'take_profit_set'` | `'adl_learn_more'` | `'learn_more'` | `'favorite_market'` | `'unfavorite_market'` (Note: `favorite_market` = add to watchlist, `unfavorite_market` = remove from watchlist)
@@ -156,6 +157,8 @@ this.#getMetrics().trackPerpsEvent(PerpsAnalyticsEvent.TradeTransaction, {
 - `button_location` (optional): Location of the button for entry point tracking (see [Entry Point Tracking](#entry-point-tracking)): `'perps_home'` | `'perps_tutorial'` | `'perps_home_empty_state'` | `'perps_asset_screen'` | `'perps_tab'` | `'trade_menu_action'` | `'wallet_home'` | `'market_list'` | `'screen'` | `'tooltip'` | `'perp_market_details'` | `'order_book'` | `'full_screen_chart'`
   - **Discovery value** _(`PERPS_EVENT_VALUE.BUTTON_LOCATION.ASSET_DETAILS`)_: `'asset_details'` — magnifying glass button on the asset details screen
 - `result_count` (optional): Number of search results after a market search query stabilises; included with `interaction_type = search_clicked`. Reported for both non-zero and zero-result searches. _(`PERPS_EVENT_PROPERTY.RESULT_COUNT`.)_
+- `market_category` (optional): Market category bucket (`'crypto'` | `'hip3'` | `'stock'` | `'commodity'` | `'forex'`); included with `interaction_type = market_about_section_displayed`. _(`PERPS_EVENT_PROPERTY.MARKET_CATEGORY`.)_
+- `description_length` (optional): Character length of the rendered asset description; included with `interaction_type = market_about_section_displayed`. _(`MARKET_ABOUT_EVENT_PROPERTY.DESCRIPTION_LENGTH` in `utils/marketAbout.ts`.)_
 - `initial_payment_method` (optional): Payment method before change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
 - `new_payment_method` (optional): Payment method after change (e.g. `'perps_balance'` or token symbol; used with `payment_method_changed`)
 - `max_slippage_pct` (optional): Current max slippage percentage (number, used with slippage interactions)

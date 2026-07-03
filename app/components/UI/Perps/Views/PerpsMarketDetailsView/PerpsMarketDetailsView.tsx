@@ -212,7 +212,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const hasFormattedMaxLeverage =
     typeof routeMarket?.maxLeverage === 'string' &&
     routeMarket.maxLeverage.endsWith('x');
-  const needsEnrichment = !hasFormattedMaxLeverage;
+  // The About section relies on `description`, which minimal/legacy route
+  // payloads may omit even when `maxLeverage` is formatted. Enrich in that case
+  // so a market that has a description isn't hidden due to a partial payload.
+  const routeMarketHasDescription =
+    typeof routeMarket?.description === 'string' &&
+    routeMarket.description.trim().length > 0;
+  const needsEnrichment =
+    !hasFormattedMaxLeverage ||
+    (isMarketAboutEnabled && !routeMarketHasDescription);
   const { markets } = usePerpsMarkets({
     skipInitialFetch: !needsEnrichment,
   });
@@ -1500,8 +1508,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             />
           </View>
 
-          {/* About Section - only shown when the market has a description */}
-          {isMarketAboutEnabled && market?.description ? (
+          {/* About Section - only shown when the market has a (non-empty) description */}
+          {isMarketAboutEnabled && market?.description?.trim() ? (
             <View style={styles.section}>
               <PerpsMarketAboutSection market={market} />
             </View>

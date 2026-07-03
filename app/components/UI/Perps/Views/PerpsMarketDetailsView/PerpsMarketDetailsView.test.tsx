@@ -5,6 +5,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import {
   getPerpsRelatedMarketsSelector,
+  PerpsMarketAboutSectionSelectorsIDs,
   PerpsMarketDetailsViewSelectorsIDs,
   PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
@@ -17,6 +18,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   selectPerpsAdvancedChartEnabledFlag,
+  selectPerpsMarketAboutEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
 } from '../../selectors/featureFlags';
 import {
@@ -882,6 +884,9 @@ describe('PerpsMarketDetailsView', () => {
       if (selector === selectPerpsAdvancedChartEnabledFlag) {
         return false;
       }
+      if (selector === selectPerpsMarketAboutEnabledFlag) {
+        return false;
+      }
       return undefined;
     });
 
@@ -1079,6 +1084,93 @@ describe('PerpsMarketDetailsView', () => {
     expect(
       getByTestId(getPerpsRelatedMarketsSelector.tile('xyz:MSFT')),
     ).toBeOnTheScreen();
+  });
+
+  describe('About section', () => {
+    const enableAboutFlag = () => {
+      const { useSelector } = jest.requireMock('react-redux');
+      const mockSelectPerpsEligibility = jest.requireMock(
+        '../../selectors/perpsController',
+      ).selectPerpsEligibility;
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === mockSelectPerpsEligibility) {
+          return true;
+        }
+        if (selector === selectPerpsMarketAboutEnabledFlag) {
+          return true;
+        }
+        if (selector === selectPerpsRelatedMarketsEnabledFlag) {
+          return false;
+        }
+        if (selector === selectPerpsAdvancedChartEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+    };
+
+    it('renders the About section when the flag is enabled and the market has a description', () => {
+      enableAboutFlag();
+      mockRouteParams.market = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+        description: 'Bitcoin is a decentralized digital currency.',
+      } as PerpsMarketData;
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
+
+    it('does not render the About section when the flag is disabled', () => {
+      // Default beforeEach mock leaves the About flag disabled.
+      mockRouteParams.market = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+        description: 'Bitcoin is a decentralized digital currency.',
+      } as PerpsMarketData;
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        queryByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('does not render the About section for a whitespace-only description', () => {
+      enableAboutFlag();
+      mockRouteParams.market = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+        description: '   ',
+      } as PerpsMarketData;
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        queryByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
   });
 
   it('shows tooltip when Open Interest info icon is clicked', async () => {

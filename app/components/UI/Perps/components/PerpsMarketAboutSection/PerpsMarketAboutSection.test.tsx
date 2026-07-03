@@ -1,8 +1,12 @@
 import React from 'react';
 import { fireEvent, render, screen } from '@testing-library/react-native';
-import type { PerpsMarketData } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_PROPERTY,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsMarketAboutSectionSelectorsIDs } from '../../Perps.testIds';
+import { MARKET_ABOUT_INTERACTION_TYPE } from '../../utils/marketAbout';
 import PerpsMarketAboutSection from './PerpsMarketAboutSection';
 
 const mockTrack = jest.fn();
@@ -52,20 +56,22 @@ const createMarket = (
   }) as PerpsMarketData;
 
 /**
- * Simulate the native text layout callback so the component can detect that the
- * collapsed description overflows `collapsedNumberOfLines`.
+ * Simulate the native text layout callback on the off-screen measurer with a
+ * given rendered line count so the component can decide whether it overflows
+ * the collapsed clamp.
  */
-const simulateTruncatedLayout = (fullText: string) => {
-  const description = screen.getByTestId(
-    PerpsMarketAboutSectionSelectorsIDs.DESCRIPTION,
+const simulateMeasuredLines = (lineCount: number) => {
+  // The measurer is intentionally hidden from accessibility, so opt into
+  // hidden elements when querying it.
+  const measurer = screen.getByTestId(
+    PerpsMarketAboutSectionSelectorsIDs.DESCRIPTION_MEASURE,
+    { includeHiddenElements: true },
   );
-  // Rendered (clipped) text is shorter than the full description => truncated.
-  fireEvent(description, 'textLayout', {
+  fireEvent(measurer, 'textLayout', {
     nativeEvent: {
-      lines: [
-        { text: fullText.slice(0, 20) },
-        { text: fullText.slice(20, 40) },
-      ],
+      lines: Array.from({ length: lineCount }, (_, i) => ({
+        text: `line ${i}`,
+      })),
     },
   });
 };
@@ -82,7 +88,9 @@ describe('PerpsMarketAboutSection', () => {
       screen.getByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
     expect(screen.getByText('About Bitcoin')).toBeOnTheScreen();
-    expect(screen.getByText(LONG_DESCRIPTION)).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsMarketAboutSectionSelectorsIDs.DESCRIPTION),
+    ).toHaveTextContent(LONG_DESCRIPTION);
   });
 
   it('renders nothing when the description is missing', () => {
@@ -118,7 +126,18 @@ describe('PerpsMarketAboutSection', () => {
   });
 
   describe('read more / show less toggle', () => {
-    it('does not render the toggle when the description is not truncated', () => {
+    it('does not render the toggle when the description fits within the clamp', () => {
+      render(<PerpsMarketAboutSection market={createMarket()} />);
+
+      // Measured line count is within the default 3-line clamp.
+      simulateMeasuredLines(2);
+
+      expect(
+        screen.queryByTestId(PerpsMarketAboutSectionSelectorsIDs.TOGGLE),
+      ).toBeNull();
+    });
+
+    it('does not render the toggle before the description is measured', () => {
       render(<PerpsMarketAboutSection market={createMarket()} />);
 
       expect(
@@ -129,7 +148,8 @@ describe('PerpsMarketAboutSection', () => {
     it('renders "Read more" when the description overflows, then toggles to "Show less" and back', () => {
       render(<PerpsMarketAboutSection market={createMarket()} />);
 
-      simulateTruncatedLayout(LONG_DESCRIPTION);
+      // Measured line count exceeds the default 3-line clamp.
+      simulateMeasuredLines(5);
 
       const toggle = screen.getByTestId(
         PerpsMarketAboutSectionSelectorsIDs.TOGGLE,
@@ -145,21 +165,22 @@ describe('PerpsMarketAboutSection', () => {
   });
 
   describe('analytics', () => {
-    it('fires the displayed interaction event with market details', () => {
+    it('fires the displayed interaction event with canonical property keys', () => {
       render(<PerpsMarketAboutSection market={createMarket()} />);
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_UI_INTERACTION,
         expect.objectContaining({
-          interaction_type: 'market_about_section_displayed',
-          market_symbol: 'BTC',
-          market_type: 'crypto',
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            MARKET_ABOUT_INTERACTION_TYPE.DISPLAYED,
+          [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
+          [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: 'crypto',
           description_length: LONG_DESCRIPTION.length,
         }),
       );
     });
 
-    it('reports the market_type as hip3 for HIP-3 markets', () => {
+    it('reports the market_category as hip3 for HIP-3 markets', () => {
       render(
         <PerpsMarketAboutSection
           market={createMarket({ isHip3: true, marketType: 'stock' })}
@@ -168,7 +189,9 @@ describe('PerpsMarketAboutSection', () => {
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.PERPS_UI_INTERACTION,
-        expect.objectContaining({ market_type: 'hip3' }),
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: 'hip3',
+        }),
       );
     });
 

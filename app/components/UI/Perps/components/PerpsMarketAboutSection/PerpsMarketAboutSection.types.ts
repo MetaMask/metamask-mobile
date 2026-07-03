@@ -9,7 +9,7 @@ export interface PerpsMarketAboutSectionProps {
   /**
    * Number of lines to show for the description while collapsed.
    *
-   * @default 3
+   * @default ABOUT_COLLAPSED_NUMBER_OF_LINES
    */
   collapsedNumberOfLines?: number;
 }
