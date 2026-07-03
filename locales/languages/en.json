@@ -9027,6 +9027,7 @@
       "referee_error_description": "Check your connection and try again.",
       "referee_contact_support": "Contact support",
       "referee_priority_support_disclaimer": "By contacting priority support you will connect your wallet.",
+      "referral_tag_label": "VIP",
       "last_updated": "Last updated: {{time}}"
     },
     "referral_title": "Referrals",
