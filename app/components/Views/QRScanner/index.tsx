@@ -456,12 +456,11 @@ const QRScanner = ({
               })
               .build(),
           );
-          navigation.goBack();
+          end();
           Alert.alert(
             strings('qr_scanner.error'),
             strings('qr_scanner.attempting_to_scan_with_wallet_locked'),
           );
-          markUnmounted();
           return;
         }
 
