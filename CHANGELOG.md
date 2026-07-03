@@ -122,6 +122,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the Trade button for assets without a supported xyz market.
 - fix: show correct decimal places when managing price alerts (#31986)
 
+## [8.0.4]
+
+### Fixed
+
+- Fixed missing English translations in the 8.0.x OTA release. (#32750)
+
 ## [8.0.3]
 
 ### Changed
@@ -12540,7 +12546,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
 [Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v8.1.0...HEAD
-[8.1.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.3...v8.1.0
+[8.1.0]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.4...v8.1.0
+[8.0.4]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.3...v8.0.4
 [8.0.3]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.2...v8.0.3
 [8.0.2]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.1...v8.0.2
 [8.0.1]: https://github.com/MetaMask/metamask-mobile/compare/v8.0.0...v8.0.1
