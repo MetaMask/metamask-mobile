@@ -15,7 +15,7 @@ import {
   brandColor,
 } from '@metamask/design-tokens';
 import Device from '../device';
-import { isPureBlackEnabled } from './themeUtils';
+import { isPureBlackEnabled } from './pureBlackPreview';
 
 const resolvedDarkTheme = resolveDarkTheme(isPureBlackEnabled);
 
