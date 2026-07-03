@@ -136,6 +136,22 @@ export const RIVE_AVATAR_PLACEHOLDERS: readonly number[] = [
   require('../../../../images/leaderboard_card_3_avatar-6249127.png'),
 ];
 
+/**
+ * Referenced-asset sources for the token logos on the Notify-step buy cards
+ * (marked "Referenced" in the Rive editor). Keyed by the plain asset name the
+ * motion team exposes in the artboard (`nova`/`blast`/`punch`, no id suffix).
+ * These are static bundled images, so they can be merged into the frozen
+ * `referencedAssets` mapping alongside the dynamic avatars.
+ */
+export const RIVE_TOKEN_ASSET_SOURCES: Readonly<Record<string, number>> = {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+  nova: require('../../../../images/nova-6273546.png'),
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+  blast: require('../../../../images/blast-6273535.png'),
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+  punch: require('../../../../images/punch-6223749.png'),
+};
+
 /** Number of top traders surfaced on the "Follow the best" step. */
 export const ONBOARDING_TOP_TRADERS_LIMIT = 3;
 

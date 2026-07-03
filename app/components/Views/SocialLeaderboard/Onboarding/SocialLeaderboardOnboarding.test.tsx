@@ -14,6 +14,7 @@ import {
   REFERENCED_ASSETS_TIMEOUT_MS,
   RIVE_AVATAR_ASSET_KEYS,
   RIVE_AVATAR_PLACEHOLDERS,
+  RIVE_TOKEN_ASSET_SOURCES,
   RIVE_BOOLEAN_BINDINGS,
   RIVE_TRANSITION_SPEED,
   RIVE_TRIGGERS,
@@ -331,40 +332,29 @@ describe('SocialLeaderboardOnboarding', () => {
     );
   });
 
-  it('treats a forward tap on the Follow slide as a skip to the maybe-later Notify variant', async () => {
-    // The artboard's forward tap-zone fires `next` from the Follow slide too;
-    // RN must advance the overlay to the maybe-later Notify variant ("Never miss
-    // a move" + "Got it"), not leave the "Follow the best" copy over it.
+  it('ignores a forward tap on the Follow slide so the user must pick a button', async () => {
+    // The v6 artboard does not transition Follow on `next`, so a forward
+    // side-tap must be a no-op: the overlay stays on "Follow the best" instead
+    // of desyncing to the Notify copy while Rive keeps showing Follow.
     renderComponent();
 
     await fireTrigger(RIVE_TRIGGERS.NEXT); // Trade -> Follow
-    await fireTrigger(RIVE_TRIGGERS.NEXT); // Follow -> Notify (skip)
+    await fireTrigger(RIVE_TRIGGERS.NEXT); // Follow -> (no-op)
 
     expect(
       screen.getByTestId(SocialLeaderboardOnboardingSelectorsIDs.STEP_TITLE),
-    ).toHaveTextContent('Never miss a move');
+    ).toHaveTextContent('Follow the best');
     expect(
       screen.getByTestId(
         SocialLeaderboardOnboardingSelectorsIDs.STEP_DESCRIPTION,
       ),
     ).toHaveTextContent(
-      "When you're ready, follow a trader to get notified the moment they make a move.",
-    );
-    // Notifications are OFF here, so the skip Notify variant prompts with the
-    // two-button layout (`true` = "Allow notifications" + "Got it").
-    expect(getLastBooleanValue(RIVE_BOOLEAN_BINDINGS.ALLOW_NOTIFICATIONS)).toBe(
-      true,
+      'Tap to follow the top three traders who are up big this week.',
     );
 
-    // The skip transition's spurious completion pulse is swallowed; the user's
-    // real "Got it" tap completes without requesting notification permission.
+    // Still on Follow (not a terminal step): a completion trigger must not exit.
     await fireTrigger(RIVE_TRIGGERS.GOT_IT);
     expect(mockDispatch).not.toHaveBeenCalled();
-    await fireTrigger(RIVE_TRIGGERS.GOT_IT);
-    expect(mockRequestPushPermission).not.toHaveBeenCalled();
-    expect(mockDispatch).toHaveBeenCalledWith(
-      StackActions.replace(Routes.SOCIAL_LEADERBOARD.VIEW, { source: 'nux' }),
-    );
   });
 
   it('shows the Allow-notifications button on the follow-path Notify step when prompting', async () => {
@@ -453,6 +443,14 @@ describe('SocialLeaderboardOnboarding', () => {
     });
     expect(mockReferencedAssets?.[RIVE_AVATAR_ASSET_KEYS[2]]).toEqual({
       source: { uri: 'https://img.example/c.png' },
+    });
+  });
+
+  it('wires the static token logos into their referenced asset slots', () => {
+    renderComponent();
+
+    Object.entries(RIVE_TOKEN_ASSET_SOURCES).forEach(([assetKey, source]) => {
+      expect(mockReferencedAssets?.[assetKey]).toEqual({ source });
     });
   });
 

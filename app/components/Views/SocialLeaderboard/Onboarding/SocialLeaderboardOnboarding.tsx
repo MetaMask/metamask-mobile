@@ -63,6 +63,7 @@ import {
   RIVE_BOOLEAN_BINDINGS,
   RIVE_NUMBER_BINDINGS,
   RIVE_STATE_MACHINE_NAME,
+  RIVE_TOKEN_ASSET_SOURCES,
   RIVE_TRANSITION_SPEED,
   RIVE_TRIGGERS,
   SLIDE_BY_STEP_INDEX,
@@ -396,6 +397,11 @@ const SocialLeaderboardOnboarding: React.FC = () => {
       return;
     }
     const mapping: FilesHandledMapping = {};
+    // Static token logos on the Notify-step buy cards (nova/blast/punch). These
+    // never change, so they're folded into the same frozen mapping.
+    Object.entries(RIVE_TOKEN_ASSET_SOURCES).forEach(([assetKey, source]) => {
+      mapping[assetKey] = { source };
+    });
     RIVE_AVATAR_ASSET_KEYS.forEach((assetKey, index) => {
       const uri = topTradersRef.current[index]?.avatarUri;
       mapping[assetKey] = hasRealAvatar(uri)
@@ -483,18 +489,13 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   // showing — so RN must advance relative to the current step, not hardcode it,
   // or the overlay copy/button toggle desync from the slide Rive actually shows.
   //
-  // Trade -> Follow. A forward tap on Follow is a skip (the user didn't press
-  // "Follow the top three"), so it lands on the maybe-later Notify variant (3.1,
-  // "Got it") and arms the completion latch exactly like "Maybe later".
+  // Trade -> Follow only. On the Follow slide a forward tap is intentionally a
+  // no-op: the v6 artboard does not transition Follow on `next`, so advancing
+  // the RN overlay here would desync the copy from the slide Rive keeps showing.
+  // The user must choose "Follow the top three" or "Maybe later" to move on.
   const handleNext = useCallback(() => {
-    const current = stepIndexRef.current;
-    if (current === 0) {
+    if (stepIndexRef.current === 0) {
       setStep(1);
-      return;
-    }
-    if (current === 1) {
-      setStep(3);
-      swallowNextCompletionRef.current = true;
     }
   }, [setStep]);
 
