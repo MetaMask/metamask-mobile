@@ -190,13 +190,21 @@ describe('PerpsMarketAboutSection', () => {
       const toggle = screen.getByTestId(
         PerpsMarketAboutSectionSelectorsIDs.TOGGLE,
       );
+      const description = screen.getByTestId(
+        PerpsMarketAboutSectionSelectorsIDs.DESCRIPTION,
+      );
       expect(screen.getByText('Read more')).toBeOnTheScreen();
+      // Collapsed: description is clamped to the default number of lines.
+      expect(description.props.numberOfLines).toBe(3);
 
       fireEvent.press(toggle);
       expect(screen.getByText('Show less')).toBeOnTheScreen();
+      // Expanded: clamp removed so the full description is shown.
+      expect(description.props.numberOfLines).toBeUndefined();
 
       fireEvent.press(toggle);
       expect(screen.getByText('Read more')).toBeOnTheScreen();
+      expect(description.props.numberOfLines).toBe(3);
     });
   });
 

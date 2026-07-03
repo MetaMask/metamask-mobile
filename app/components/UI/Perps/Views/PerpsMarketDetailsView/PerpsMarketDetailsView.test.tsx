@@ -1234,6 +1234,34 @@ describe('PerpsMarketDetailsView', () => {
         expect.objectContaining({ skipInitialFetch: false }),
       );
     });
+
+    it('hides the About section while enrichment is still loading the description', () => {
+      enableAboutFlag();
+      mockRouteParams.market = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+      } as PerpsMarketData;
+      // Enrichment in progress: no market data yet, so no description exists.
+      mockUsePerpsMarketsImpl.mockReturnValue({
+        markets: [],
+        isLoading: true,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        queryByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
   });
 
   it('shows tooltip when Open Interest info icon is clicked', async () => {

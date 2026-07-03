@@ -130,6 +130,7 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
           testID={PerpsMarketAboutSectionSelectorsIDs.TOGGLE}
           accessibilityRole="button"
           accessibilityLabel={toggleLabel}
+          accessibilityState={{ expanded: isExpanded }}
           hitSlop={MARKET_ABOUT_TOGGLE_HIT_SLOP}
         >
           <Text
