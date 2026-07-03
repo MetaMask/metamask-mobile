@@ -108,9 +108,7 @@ const isSignedTypedDataField = (
 ) =>
   Boolean(
     primaryType &&
-      types?.[primaryType]?.some(
-        (field: BaseType) => field.name === fieldName,
-      ),
+      types?.[primaryType]?.some((field: BaseType) => field.name === fieldName),
   );
 
 /**

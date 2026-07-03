@@ -84,11 +84,14 @@ describe('PermitSimulation', () => {
   });
 
   it('ignores an injected "value": "0" sibling on a Permit2 PermitBatch and renders as a spending cap', async () => {
-    const { getByText, queryByText } = renderWithProvider(<PermitSimulation />, {
-      state: generateStateSignTypedData(
-        SignTypedDataMockType.BATCH_INJECTED_VALUE,
-      ),
-    });
+    const { getByText, queryByText } = renderWithProvider(
+      <PermitSimulation />,
+      {
+        state: generateStateSignTypedData(
+          SignTypedDataMockType.BATCH_INJECTED_VALUE,
+        ),
+      },
+    );
 
     expect(
       getByText(

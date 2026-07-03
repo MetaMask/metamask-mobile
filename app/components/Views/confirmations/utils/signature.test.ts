@@ -258,7 +258,13 @@ describe('Signature Utils', () => {
 
     it('still classifies DAI revoke via the allowed flag regardless of value schema', () => {
       expect(
-        isPermitRevoke(TOKEN_ADDRESS.DAI, false, undefined, undefined, 'Permit'),
+        isPermitRevoke(
+          TOKEN_ADDRESS.DAI,
+          false,
+          undefined,
+          undefined,
+          'Permit',
+        ),
       ).toBe(true);
     });
 
