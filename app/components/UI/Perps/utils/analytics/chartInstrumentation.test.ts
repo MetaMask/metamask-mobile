@@ -1,4 +1,4 @@
-jest.mock('@metamask/perps-controller', () => ({
+jest.mock('@metamask/perps-controller/constants', () => ({
   PERPS_EVENT_PROPERTY: {
     CHART_LIBRARY: 'chart_library',
     ASSET_TYPE: 'asset_type',
