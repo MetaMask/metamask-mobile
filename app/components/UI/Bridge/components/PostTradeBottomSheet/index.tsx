@@ -44,11 +44,17 @@ import {
   PostTradeBottomSheetParams,
   PostTradeStatus,
 } from './PostTradeBottomSheet.types';
+import type { BridgeToken } from '../../types';
 import styleSheet from './PostTradeBottomSheet.styles';
 import { usePostTradeTxStatus } from './usePostTradeTxStatus';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { PostTradeTokenSuggestions } from './PostTradeTokenSuggestions';
-import { convertApiTokenToBridgeToken } from '../../utils/tokenUtils';
+import {
+  convertApiTokenToBridgeToken,
+  getDefaultDestToken,
+  getNativeSourceToken,
+  isSameBridgeToken,
+} from '../../utils/tokenUtils';
 import { getTrendingTokenImageUrl } from '../../../Trending/utils/getTrendingTokenImageUrl';
 import { PostTradeBottomSheetTestIds } from './PostTradeBottomSheet.testIds';
 import {
@@ -318,8 +324,29 @@ export const PostTradeBottomSheet = () => {
     });
     shouldSkipDismissedTrackingRef.current = true;
 
-    if (params.sourceToken) {
-      dispatch(setSourceToken(params.sourceToken));
+    // Resolve a non-conflicting source token; the clicked suggestion is kept
+    // as the destination. Fallbacks: previous source -> native gas -> chain
+    // default -> prior trade's destination.
+    let resolvedSourceToken: BridgeToken | undefined = params.sourceToken;
+    if (isSameBridgeToken(resolvedSourceToken, selectedDestToken)) {
+      const nativeSourceToken = getNativeSourceToken(selectedDestToken.chainId);
+      if (isSameBridgeToken(nativeSourceToken, selectedDestToken)) {
+        const defaultDestToken = getDefaultDestToken(selectedDestToken.chainId);
+        if (
+          defaultDestToken &&
+          !isSameBridgeToken(defaultDestToken, selectedDestToken)
+        ) {
+          resolvedSourceToken = defaultDestToken;
+        } else if (!isSameBridgeToken(params.destToken, selectedDestToken)) {
+          resolvedSourceToken = params.destToken;
+        }
+      } else {
+        resolvedSourceToken = nativeSourceToken;
+      }
+    }
+
+    if (resolvedSourceToken) {
+      dispatch(setSourceToken(resolvedSourceToken));
     }
     dispatch(setDestToken(selectedDestToken));
     dispatch(setIsDestTokenManuallySet(true));
@@ -347,7 +374,15 @@ export const PostTradeBottomSheet = () => {
             testID: PostTradeBottomSheetTestIds.TRY_AGAIN_BUTTON,
           },
         }
-      : undefined;
+      : {
+          secondaryButtonProps: {
+            children: strings('bridge.post_trade_modal.view_activity'),
+            size: ButtonSize.Lg,
+            onPress: handleViewActivity,
+            testID: PostTradeBottomSheetTestIds.VIEW_ACTIVITY_BUTTON,
+          },
+          primaryButtonProps: undefined,
+        };
 
   return (
     <BottomSheet
@@ -358,6 +393,7 @@ export const PostTradeBottomSheet = () => {
       <BottomSheetHeader
         onClose={handleClose}
         closeButtonProps={{ testID: PostTradeBottomSheetTestIds.CLOSE_BUTTON }}
+        twClassName="pt-4 h-auto"
       >
         <StatusIcon status={status} />
       </BottomSheetHeader>
@@ -380,14 +416,12 @@ export const PostTradeBottomSheet = () => {
         destToken={params.destToken}
         onTokenPress={handleSuggestionPress}
       />
-      {footerButtonProps ? (
-        <BottomSheetFooter
-          buttonsAlignment={ButtonsAlignment.Vertical}
-          secondaryButtonProps={footerButtonProps.secondaryButtonProps}
-          primaryButtonProps={footerButtonProps.primaryButtonProps}
-          style={styles.footer}
-        />
-      ) : null}
+      <BottomSheetFooter
+        buttonsAlignment={ButtonsAlignment.Vertical}
+        secondaryButtonProps={footerButtonProps.secondaryButtonProps}
+        primaryButtonProps={footerButtonProps.primaryButtonProps}
+        style={styles.footer}
+      />
     </BottomSheet>
   );
 };

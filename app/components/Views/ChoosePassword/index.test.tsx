@@ -25,6 +25,7 @@ import { InteractionManager, Platform } from 'react-native';
 import { EVENT_NAME } from '../../../core/Analytics';
 import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
 import { passwordRequirementsMet } from '../../../util/password';
+import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 
 jest.mock('../../../util/password', () => ({
   ...jest.requireActual('../../../util/password'),
@@ -48,10 +49,6 @@ jest.mock('../../../util/mnemonic', () => ({
   ),
 }));
 
-jest.mock('../../../util/region/isUsaDeviceRegion', () => ({
-  isUsaDeviceRegion: jest.fn(() => false),
-}));
-
 jest.mock('@metamask/key-tree', () => ({
   mnemonicPhraseToBytes: jest.fn((_phrase) => new Uint8Array([1, 2, 3])),
 }));
@@ -71,7 +68,7 @@ import {
 import type { Span } from '@sentry/core';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { captureException } from '@sentry/react-native';
-import { isUsaDeviceRegion } from '../../../util/region/isUsaDeviceRegion';
+import Engine from '../../../core/Engine';
 
 const mockTrackOnboarding = trackOnboarding as jest.MockedFunction<
   typeof trackOnboarding
@@ -85,9 +82,8 @@ OAuthLoginService.updateMarketingOptInStatus = jest
   .fn()
   .mockResolvedValue({ is_opt_in: true });
 
-const mockIsUsaDeviceRegion = isUsaDeviceRegion as jest.MockedFunction<
-  typeof isUsaDeviceRegion
->;
+const mockRefreshGeolocation = Engine.context.GeolocationController
+  .refreshGeolocation as jest.Mock;
 
 jest.mock('../../../core/Engine', () => ({
   context: {
@@ -112,6 +108,9 @@ jest.mock('../../../core/Engine', () => ({
     },
     AccountTrackerController: {
       refresh: jest.fn().mockResolvedValue(undefined),
+    },
+    GeolocationController: {
+      refreshGeolocation: jest.fn().mockResolvedValue('GB'),
     },
   },
 }));
@@ -186,7 +185,7 @@ jest
   .mockImplementation(mockRunAfterInteractions);
 
 const mockStore = configureMockStore();
-const initialState = {
+const createInitialState = (geolocationLocation = 'GB') => ({
   user: {
     passwordSet: true,
     seedphraseBackedUp: false,
@@ -195,6 +194,10 @@ const initialState = {
     backgroundState: {
       ...backgroundState,
       AccountsController: MOCK_ACCOUNTS_CONTROLLER_STATE,
+      GeolocationController: {
+        location: geolocationLocation,
+        status: 'loaded',
+      },
     },
   },
   security: {
@@ -203,8 +206,8 @@ const initialState = {
   onboarding: {
     events: [],
   },
-};
-const store = mockStore(initialState);
+});
+let store = mockStore(createInitialState());
 ReduxService.store = store as unknown as ReduxStore;
 
 const mockNavigation = {
@@ -327,7 +330,9 @@ describe('ChoosePassword', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockTrackOnboarding.mockClear();
-    mockIsUsaDeviceRegion.mockReturnValue(false);
+    store = mockStore(createInitialState());
+    ReduxService.store = store as unknown as ReduxStore;
+    mockRefreshGeolocation.mockResolvedValue('GB');
     mockRoute.params = {
       [ONBOARDING]: true,
       [PROTECT]: true,
@@ -695,9 +700,12 @@ describe('ChoosePassword', () => {
           index: 0,
           routes: [
             {
-              name: 'OnboardingSuccess',
+              name: 'OnboardingSuccessFlow',
               params: {
-                successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+                screen: 'OnboardingSuccess',
+                params: {
+                  successFlow: ONBOARDING_SUCCESS_FLOW.SEEDLESS_ONBOARDING,
+                },
               },
             },
           ],
@@ -989,11 +997,12 @@ describe('ChoosePassword', () => {
   describe('Marketing API', () => {
     beforeEach(() => {
       jest.clearAllMocks();
-      mockIsUsaDeviceRegion.mockReturnValue(false);
+      mockRefreshGeolocation.mockResolvedValue('GB');
     });
 
     it('defaults marketing opt-in to checked for USA OAuth users without toggling the checkbox', async () => {
-      mockIsUsaDeviceRegion.mockReturnValue(true);
+      store = mockStore(createInitialState('US'));
+      ReduxService.store = store as unknown as ReduxStore;
       (
         Authentication.componentAuthenticationType as jest.Mock
       ).mockResolvedValue({
@@ -1026,8 +1035,101 @@ describe('ChoosePassword', () => {
       mockNewWalletAndKeychain.mockRestore();
     });
 
+    it('keeps submit disabled until geolocation refresh completes', async () => {
+      store = mockStore(createInitialState(UNKNOWN_LOCATION));
+      ReduxService.store = store as unknown as ReduxStore;
+      mockRefreshGeolocation.mockImplementation(
+        () => new Promise((resolve) => setTimeout(() => resolve('US'), 500)),
+      );
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
+        currentAuthType: 'passcode',
+        availableBiometryType: 'faceID',
+      });
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValue(undefined);
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+        provider: 'google',
+      };
+      const spyUpdateMarketingOptInStatus = jest
+        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
+        .mockResolvedValue(undefined);
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await fillForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
+
+      const submitButton = component.getByTestId(
+        ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+      );
+      expect(submitButton).toBeDisabled();
+
+      await waitFor(
+        () => {
+          expect(submitButton).not.toBeDisabled();
+        },
+        { timeout: 2000 },
+      );
+
+      await act(async () => {
+        fireEvent.press(submitButton);
+      });
+
+      await waitFor(() => {
+        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+      });
+
+      mockNewWalletAndKeychain.mockRestore();
+    });
+
+    it('shows the same marketing opt-in value in the checkbox and on submit for USA OAuth users', async () => {
+      store = mockStore(createInitialState('US'));
+      ReduxService.store = store as unknown as ReduxStore;
+      (
+        Authentication.componentAuthenticationType as jest.Mock
+      ).mockResolvedValue({
+        currentAuthType: 'passcode',
+        availableBiometryType: 'faceID',
+      });
+      const mockNewWalletAndKeychain = jest.spyOn(
+        Authentication,
+        'newWalletAndKeychain',
+      );
+      mockNewWalletAndKeychain.mockResolvedValue(undefined);
+      mockRoute.params = {
+        ...mockRoute.params,
+        [PREVIOUS_SCREEN]: ONBOARDING,
+        oauthLoginSuccess: true,
+        provider: 'google',
+      };
+      const spyUpdateMarketingOptInStatus = jest
+        .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
+        .mockResolvedValue(undefined);
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      const { checkbox } = getFormElements(component);
+      expect(checkbox).toBeChecked();
+
+      await fillAndSubmitForm(component, VALID_PASSWORD, VALID_PASSWORD, false);
+
+      await waitFor(() => {
+        expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+      });
+
+      mockNewWalletAndKeychain.mockRestore();
+    });
+
     it('defaults marketing opt-in to unchecked for non-USA OAuth users without toggling the checkbox', async () => {
-      mockIsUsaDeviceRegion.mockReturnValue(false);
+      store = mockStore(createInitialState('GB'));
+      ReduxService.store = store as unknown as ReduxStore;
       (
         Authentication.componentAuthenticationType as jest.Mock
       ).mockResolvedValue({
@@ -1061,7 +1163,8 @@ describe('ChoosePassword', () => {
     });
 
     it('keeps the acknowledgement checkbox unchecked by default for USA non-OAuth users', async () => {
-      mockIsUsaDeviceRegion.mockReturnValue(true);
+      store = mockStore(createInitialState('US'));
+      ReduxService.store = store as unknown as ReduxStore;
       mockRoute.params = {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,

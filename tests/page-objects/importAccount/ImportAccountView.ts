@@ -1,9 +1,11 @@
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
+import {
+  EncapsulatedElementType,
+  asPlaywrightElement,
+} from '../../framework/EncapsulatedElement';
 import { ImportAccountFromPrivateKeyIDs } from '../../../app/components/Views/ImportPrivateKey/ImportAccountFromPrivateKey.testIds';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
 import { PlatformDetector } from '../../framework';
 
 class ImportAccountView {
@@ -38,17 +40,25 @@ class ImportAccountView {
         });
       },
       appium: async () => {
+        if (PlatformDetector.isIOS()) {
+          const field = await asPlaywrightElement(this.privateKeyField);
+          await field.unwrap().click();
+          await field.unwrap().clearValue();
+          for (const char of privateKey) {
+            await field.unwrap().addValue(char);
+          }
+          // Multiline input blocks tapOutside keyboard dismiss; Return submits via goNext().
+          await field.unwrap().addValue('\n');
+          return;
+        }
+
         await Gestures.typeText(this.privateKeyField, privateKey, {
           elemDescription: 'Private key input field',
           hideKeyboard: false,
         });
-        if (PlatformDetector.isIOS()) {
-          await PlaywrightGestures.tapKeyboardReturnKey('Next');
-        } else {
-          await Gestures.waitAndTap(this.importButton, {
-            elemDescription: 'Import Button',
-          });
-        }
+        await Gestures.waitAndTap(this.importButton, {
+          elemDescription: 'Import Button',
+        });
       },
     });
   }

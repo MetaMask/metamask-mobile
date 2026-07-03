@@ -24,6 +24,7 @@ import Icon, {
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
 import {
+  CommonActions,
   StackActions,
   useFocusEffect,
   useNavigation,
@@ -37,9 +38,15 @@ import Engine from '../../../../../core/Engine';
 import { strings } from '../../../../../../locales/i18n';
 import {
   selectIsCardAuthenticated,
+  selectCardLastUnauthenticatedReason,
   selectCardUserLocation,
   selectCardHomeDataStatus,
 } from '../../../../../selectors/cardController';
+import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import {
+  getCardSupportEmail,
+  getCardTermsAndConditionsUrl,
+} from '../../util/registrationSettings';
 import {
   CardStatus,
   FundingAssetStatus,
@@ -86,7 +93,11 @@ const CardHome = () => {
   const { data, isLoading, isError, refetch, primaryToken } = useCardHomeData();
   const capabilities = useCardCapabilities();
   const isAuthenticated = useSelector(selectIsCardAuthenticated);
+  const lastUnauthenticatedReason = useSelector(
+    selectCardLastUnauthenticatedReason,
+  );
   const userLocation = useSelector(selectCardUserLocation);
+  const { data: registrationSettings } = useRegistrationSettings();
   const privacyMode = useSelector(selectPrivacyMode);
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
@@ -107,12 +118,21 @@ const CardHome = () => {
   const hasSetupActions = (data?.actions ?? []).some(
     (a) => a.type === 'enable_card',
   );
+  const cardTermsAndConditionsUrl = useMemo(
+    () => getCardTermsAndConditionsUrl(registrationSettings, userLocation),
+    [registrationSettings, userLocation],
+  );
+  const supportEmail = useMemo(
+    () => getCardSupportEmail(registrationSettings, userLocation),
+    [registrationSettings, userLocation],
+  );
 
   // --- Extracted hooks ---
   const actions = useCardHomeActions({
     data,
     primaryToken,
     isFrozen,
+    cardTermsAndConditionsUrl,
   });
 
   const { initiateProvisioning, isProvisioning, canAddToWallet } =
@@ -181,10 +201,43 @@ const CardHome = () => {
   useEffect(() => {
     const wasAuth = wasAuthenticated.current;
     wasAuthenticated.current = isAuthenticated;
-    if (wasAuth && !isAuthenticated) {
+    if (
+      wasAuth &&
+      !isAuthenticated &&
+      lastUnauthenticatedReason !== 'onboarding_token_revoked'
+    ) {
       navigation.dispatch(StackActions.replace(Routes.CARD.AUTHENTICATION));
     }
-  }, [isAuthenticated, navigation]);
+  }, [isAuthenticated, lastUnauthenticatedReason, navigation]);
+
+  const hasHandledOnboardingTokenRevocation = useRef(false);
+  useEffect(() => {
+    if (
+      lastUnauthenticatedReason !== 'onboarding_token_revoked' ||
+      hasHandledOnboardingTokenRevocation.current
+    ) {
+      return;
+    }
+
+    hasHandledOnboardingTokenRevocation.current = true;
+    toastRef?.current?.showToast({
+      variant: ToastVariants.Icon,
+      labelOptions: [
+        {
+          label: strings('card.card_home.onboarding_token_revoked'),
+        },
+      ],
+      hasNoTimeout: false,
+      iconName: IconName.Warning,
+    });
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{ name: Routes.CARD.AUTHENTICATION }],
+      }),
+    );
+    Engine.context.CardController.clearLastUnauthenticatedReason();
+  }, [lastUnauthenticatedReason, navigation, toastRef]);
 
   // --- Deeplink toast ---
   const hasShownDeeplinkToast = useRef(false);
@@ -482,6 +535,7 @@ const CardHome = () => {
           isLoading={isLoading}
           hasAlerts={hasAlertOnlyState}
           hasSetupActions={hasSetupActions}
+          supportEmail={supportEmail}
           onNavigateToCardTos={actions.navigateToCardTosPage}
           onLogout={actions.logoutAction}
         />

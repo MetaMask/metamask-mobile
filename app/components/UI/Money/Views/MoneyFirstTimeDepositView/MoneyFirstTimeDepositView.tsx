@@ -1,7 +1,8 @@
 import React, { useCallback, useEffect } from 'react';
 import { BackHandler, PixelRatio, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { type StackNavigationProp } from '@react-navigation/stack';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
+import { Accelerometer } from 'expo-sensors';
 import Rive, {
   AutoBind,
   useRive,
@@ -47,8 +48,7 @@ const styles = StyleSheet.create({
 });
 
 const MoneyFirstTimeDepositView = () => {
-  const navigation =
-    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
+  const navigation = useNavigation<AppNavigationProp>();
 
   const { trackScreenViewed } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_FIRST_TIME_DEPOSIT,
