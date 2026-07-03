@@ -110,6 +110,20 @@ export const selectMoneyFirstTimeDepositAnimationEnabledFlag = createSelector(
   },
 );
 
+/**
+ * Kill-switch for the Card education page Rive animation.
+ * Defaults to ON (true).
+ */
+export const selectCardEducationAnimationEnabledFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.earnCardEducationAnimationEnabled as unknown as VersionGatedFeatureFlag;
+    const local = process.env.MM_CARD_EDUCATION_ANIMATION_ENABLED !== 'false';
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? local;
+  },
+);
+
 const FALLBACK_MONEY_DEPOSIT_MIN_BALANCE = 0.01; // 1 cent
 
 /**
