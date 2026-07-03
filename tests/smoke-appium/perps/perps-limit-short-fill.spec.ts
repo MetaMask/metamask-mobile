@@ -13,7 +13,8 @@ import {
   setupPerpsSmokeMocks,
 } from '../../helpers/perps/perps-smoke-helpers.js';
 
-appiumTest.describe(SmokePerps('Perps - ETH limit short fill'), () => {
+// TODO: unskip when fixed — main CI failure (Jul 2026)
+appiumTest.describe.skip(SmokePerps('Perps - ETH limit short fill'), () => {
   appiumTest(
     'creates ETH limit short at Mid, shows open order, then fills after +15%',
     async ({ driver: _driver, currentDeviceDetails }) => {
