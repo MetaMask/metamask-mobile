@@ -75,7 +75,10 @@ import {
 import { TraceName } from '../../../../../util/trace';
 import { useMoneyAccountDeposit } from '../../hooks/useMoneyAccount';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
-import { useMoneyHomePerformance } from '../../hooks/useMoneyHomePerformance';
+import {
+  useMoneyHomePerformance,
+  type MoneyHomeSegment,
+} from '../../hooks/useMoneyHomePerformance';
 import useMountEffect from '../../hooks/useMountEffect';
 import {
   COMPONENT_NAMES,
@@ -160,22 +163,17 @@ const MoneyHomeView = () => {
   // preview shows the "All" bucket; `isLoading` is already mock-aware.
   const {
     buckets,
-    isLoading: showCardActivityLoading,
     hasMore: hasMoreActivity,
-    isComplete: isActivityComplete,
+    // Still settling while the initial query loads or the auto-fill may yet
+    // deliver a first preview row — the hook derives this from the same
+    // predicate that drives its fetch loop, so the skeleton can neither
+    // vanish mid-fill nor outlive a fill that stopped (budget spent, error).
+    isSettling: isActivitySettling,
+    error: activityError,
     moneyAddress,
     mockDataEnabled,
   } = useMoneyActivityItems({ ensureCount: MONEY_HOME_ACTIVITY_PREVIEW_COUNT });
   const activityItems = buckets[MoneyActivityFilter.All];
-
-  // The preview is still settling while the initial query loads OR while the
-  // "All" bucket is empty but auto-fill pages may still arrive. Without the
-  // second clause the section vanishes (no rows, no spinner) between the
-  // initial page resolving and the first preview row landing. Mirrors the
-  // guard in MoneyActivityView.
-  const isActivitySettling =
-    showCardActivityLoading ||
-    (activityItems.length === 0 && !isActivityComplete);
 
   const isCardholder = useSelector(selectIsCardholder);
   const cardHomeDataStatus = useSelector(selectCardHomeDataStatus);
@@ -239,23 +237,42 @@ const MoneyHomeView = () => {
   // their load times can be compared, plus a combined "fully usable" span.
   const balanceReady = !isBalanceLoading;
   // Only ready once the preview is no longer settling, so the time-to-content
-  // trace can't close before auto-fill rows are actually on screen.
+  // trace can't close before auto-fill rows are actually on screen. A failed
+  // fetch ends the span as a failure rather than a (fast) success.
   const activityReady = !isActivitySettling;
+  // Each segment carries its own content_state so it is sampled from data
+  // that segment has actually settled — the combined span may only read
+  // `isFunded` because it waits for both.
   const moneyHomePerformanceSegments = useMemo(
-    () => [
-      { name: TraceName.MoneyHomeBalanceTimeToContent, ready: balanceReady },
-      { name: TraceName.MoneyHomeActivityTimeToContent, ready: activityReady },
+    (): MoneyHomeSegment[] => [
+      {
+        name: TraceName.MoneyHomeBalanceTimeToContent,
+        ready: balanceReady,
+        contentState: hasSpendableBalance ? 'filled' : 'empty',
+      },
+      {
+        name: TraceName.MoneyHomeActivityTimeToContent,
+        ready: activityReady,
+        failed: activityError,
+        contentState: activityItems.length > 0 ? 'filled' : 'empty',
+      },
       {
         name: TraceName.MoneyHomeTimeToContent,
         ready: balanceReady && activityReady,
+        failed: activityError,
+        contentState: isFunded ? 'filled' : 'empty',
       },
     ],
-    [balanceReady, activityReady],
+    [
+      balanceReady,
+      activityReady,
+      activityError,
+      hasSpendableBalance,
+      activityItems.length,
+      isFunded,
+    ],
   );
-  useMoneyHomePerformance({
-    segments: moneyHomePerformanceSegments,
-    isEmpty: !isFunded,
-  });
+  useMoneyHomePerformance({ segments: moneyHomePerformanceSegments });
 
   const formattedZero = useMemo(() => moneyFormatUsd(new BigNumber(0)), []);
 

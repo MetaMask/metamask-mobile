@@ -30,6 +30,20 @@ export interface UseMoneyActivityItemsResult {
   isComplete: boolean;
   /** True while a follow-up page is being fetched (footer spinner). */
   isLoadingMore: boolean;
+  /** Number of Accounts-API pages fetched so far. */
+  pageCount: number;
+  /** True when the Accounts-API fetch failed — terminal until `refetch`. */
+  error: boolean;
+  /** Refetch the Accounts-API activity (all fetched pages, sequentially). */
+  refetch: () => void;
+  /**
+   * True while an empty list may still gain rows (initial load, or the
+   * `ensureCount` auto-fill still fetching). Consumers should show a loading
+   * state rather than "no activity" while this holds. Derived from the same
+   * predicate that drives the auto-fill effect, so it can neither outlive the
+   * fetch loop nor drop while it still runs.
+   */
+  isSettling: boolean;
   moneyAddress: string | undefined;
   /** When true, the list shows curated demo data and rows aren't pressable. */
   mockDataEnabled: boolean;
@@ -43,6 +57,14 @@ export interface UseMoneyActivityItemsResult {
  */
 export const AUTO_FILL_MAX_PAGES = 3;
 
+/**
+ * Deeper budget that applies while the list is still *empty*: an account whose
+ * first Money row sits a few pages in shouldn't be stranded on "no activity",
+ * but the budget stays finite — a card-less account with a long raw history
+ * must not sweep every page on mount. Past this, the list settles as empty.
+ */
+export const EMPTY_AUTO_FILL_MAX_PAGES = 10;
+
 export interface UseMoneyActivityItemsOptions {
   /**
    * Keep fetching pages until the "All" bucket holds at least this many safe
@@ -54,9 +76,12 @@ export interface UseMoneyActivityItemsOptions {
 }
 
 /**
- * Withhold merged rows older than the Accounts-API watermark: below it there
+ * Withhold merged rows at or below the Accounts-API watermark: below it there
  * may be un-fetched API rows that belong higher in the list, so showing those
  * rows now would let older activity pop in above them on the next page load.
+ * The gate is strict (`>`): timestamps are second-resolution, so the next
+ * un-fetched page can open with rows at exactly the watermark whose id
+ * tiebreak would sort them above an already-rendered row.
  */
 function safeItems(
   items: MoneyActivityItem[],
@@ -65,7 +90,7 @@ function safeItems(
   if (watermark === Number.NEGATIVE_INFINITY) {
     return items;
   }
-  return items.filter((item) => item.time >= watermark);
+  return items.filter((item) => item.time > watermark);
 }
 
 /**
@@ -114,14 +139,12 @@ export function buildMoneyActivityBuckets(
       mergeMoneyActivity(onchain.transfers, cards),
       watermark,
     ),
-    // Purchases is API-only (no local on-chain rows to interleave), and every
-    // card/cashback/refund row's time is >= watermark by construction, so
-    // `safeItems` would be a no-op here. Deliberately left unwrapped; if a
-    // local/pending source is ever added to this bucket it will need the
-    // watermark to prevent pop-in, like the buckets above.
-    [MoneyActivityFilter.Purchases]: mergeMoneyActivity(
-      [],
-      [...cards, ...cashback, ...refunds],
+    // Purchases is API-only, but the strict gate still applies: a fetched row
+    // at exactly the watermark may have same-timestamp siblings on the next
+    // page that would sort above it, so it's withheld like everything else.
+    [MoneyActivityFilter.Purchases]: safeItems(
+      mergeMoneyActivity([], [...cards, ...cashback, ...refunds]),
+      watermark,
     ),
   };
 }
@@ -150,6 +173,8 @@ export function useMoneyActivityItems({
     isLoadingMore,
     isComplete: apiIsComplete,
     pageCount,
+    error,
+    refetch,
   } = useMoneyAccountApiActivity();
 
   const apiActivity = mockDataEnabled ? MOCK_API_ACTIVITY : activity;
@@ -170,35 +195,32 @@ export function useMoneyActivityItems({
   );
 
   // Minimum-viable upfront fetch: pull more pages until the "All" bucket holds
-  // `ensureCount` safe rows or the activity is exhausted. `loadMore` already
-  // guards against concurrent fetches.
-  //
-  // The page budget keeps this bounded once something is on screen, but never
-  // while the list is still empty: an empty-but-incomplete list keeps fetching
-  // (capped only by `hasMore`) so we never strand the user on a spinner when
-  // their first row sits deep in the pages.
+  // `ensureCount` safe rows, the activity is exhausted, or the page budget is
+  // spent — the standard budget once something is on screen, the deeper (but
+  // still finite) empty budget while nothing is. `loadMore` already guards
+  // against concurrent fetches and errored queries.
   const allCount = buckets[MoneyActivityFilter.All].length;
+  const withinPageBudget =
+    pageCount <
+    (allCount === 0 ? EMPTY_AUTO_FILL_MAX_PAGES : AUTO_FILL_MAX_PAGES);
+  const wantsMorePages =
+    ensureCount !== undefined &&
+    !mockDataEnabled &&
+    hasMore &&
+    allCount < ensureCount &&
+    withinPageBudget;
   useEffect(() => {
-    const withinPageBudget = allCount === 0 || pageCount < AUTO_FILL_MAX_PAGES;
-    if (
-      ensureCount !== undefined &&
-      !mockDataEnabled &&
-      hasMore &&
-      !isLoadingMore &&
-      allCount < ensureCount &&
-      withinPageBudget
-    ) {
+    if (wantsMorePages && !isLoadingMore) {
       loadMore();
     }
-  }, [
-    ensureCount,
-    mockDataEnabled,
-    hasMore,
-    isLoadingMore,
-    allCount,
-    pageCount,
-    loadMore,
-  ]);
+  }, [wantsMorePages, isLoadingMore, loadMore]);
+
+  // An empty list is still settling while the initial query loads or the
+  // auto-fill above may yet deliver its first row. This is the same predicate
+  // the fetch effect runs on, so the two can't disagree.
+  const isSettling =
+    !mockDataEnabled &&
+    (isLoading || (allCount === 0 && (wantsMorePages || isLoadingMore)));
 
   return {
     buckets,
@@ -209,6 +231,10 @@ export function useMoneyActivityItems({
     // Mock data is exhaustive: an empty mock list is genuinely empty.
     isComplete: mockDataEnabled || apiIsComplete,
     isLoadingMore: isLoadingMore && !mockDataEnabled,
+    pageCount,
+    error: error && !mockDataEnabled,
+    refetch,
+    isSettling,
     moneyAddress,
     mockDataEnabled,
   };

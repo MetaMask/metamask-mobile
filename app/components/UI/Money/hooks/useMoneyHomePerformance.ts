@@ -9,7 +9,19 @@ import {
 
 export interface MoneyHomeSegment {
   name: TraceName;
+  /** Ends the span successfully the first time this flips true. */
   ready: boolean;
+  /**
+   * Ends the span as a failure if it flips true before `ready` does; a span
+   * already ended successfully is never relabelled.
+   */
+  failed?: boolean;
+  /**
+   * What this segment showed, sampled at the moment the span ends — per
+   * segment, so an early-ready segment can't latch a value derived from data
+   * another segment is still loading.
+   */
+  contentState: 'empty' | 'filled';
 }
 
 interface UseMoneyHomePerformanceConfig {
@@ -17,11 +29,6 @@ interface UseMoneyHomePerformanceConfig {
    * The parts of the screen to measure.
    **/
   segments: MoneyHomeSegment[];
-  /**
-   * True when the account has nothing meaningful to show (no spendable balance
-   * and no activity); reported as each span's `content_state`.
-   */
-  isEmpty: boolean;
 }
 
 interface SegmentTrace {
@@ -37,7 +44,6 @@ interface SegmentTrace {
  */
 export function useMoneyHomePerformance({
   segments,
-  isEmpty,
 }: UseMoneyHomePerformanceConfig): void {
   const tracesRef = useRef<Map<TraceName, SegmentTrace>>(new Map());
 
@@ -66,19 +72,32 @@ export function useMoneyHomePerformance({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // End each segment's span the first time it becomes ready.
+  // End each segment's span the first time it becomes ready — or fails.
+  // Failure is checked first: an error that arrives with (or before) readiness
+  // means the content never truly loaded, while an error after a successful
+  // end is ignored (the span is already closed with an accurate duration).
   useEffect(() => {
     const traces = tracesRef.current;
-    for (const { name, ready } of segments) {
+    for (const { name, ready, failed, contentState } of segments) {
       const segmentTrace = traces.get(name);
-      if (ready && segmentTrace && !segmentTrace.ended) {
+      if (!segmentTrace || segmentTrace.ended) {
+        continue;
+      }
+      if (failed) {
         endTrace({
           name,
           id: segmentTrace.id,
-          data: { success: true, content_state: isEmpty ? 'empty' : 'filled' },
+          data: { success: false, reason: 'error' },
+        });
+        segmentTrace.ended = true;
+      } else if (ready) {
+        endTrace({
+          name,
+          id: segmentTrace.id,
+          data: { success: true, content_state: contentState },
         });
         segmentTrace.ended = true;
       }
     }
-  }, [segments, isEmpty]);
+  }, [segments]);
 }

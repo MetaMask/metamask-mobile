@@ -182,6 +182,23 @@ describe('useMoneyAccountApiActivity', () => {
     ).toBeUndefined();
   });
 
+  it('getNextPageParam stops on an empty cursor even if hasNextPage is true', () => {
+    // react-query only stops on `undefined`; an empty-string cursor would
+    // refetch the first page in a loop.
+    renderHook(() => useMoneyAccountApiActivity());
+    const { getNextPageParam } = mockUseInfiniteQuery.mock
+      .calls[0][0] as unknown as {
+      getNextPageParam: (page: unknown) => string | undefined;
+    };
+
+    expect(
+      getNextPageParam({ pageInfo: { hasNextPage: true, cursor: '' } }),
+    ).toBeUndefined();
+    expect(
+      getNextPageParam({ pageInfo: { hasNextPage: true } }),
+    ).toBeUndefined();
+  });
+
   it('parses every fetched page through parseAccountsApiActivity and flattens', () => {
     mockParse.mockReturnValueOnce([CARD]).mockReturnValueOnce([]);
     const page1 = { data: [{ timestamp: '2026-06-04T00:00:00.000Z' }] };
@@ -206,6 +223,52 @@ describe('useMoneyAccountApiActivity', () => {
       CASHBACK_MULTISEND_CONTRACTS,
     );
     expect(result.current.activity).toEqual([CARD]);
+  });
+
+  it('drops a row repeated across a page boundary (inclusive cursor)', () => {
+    const duplicate = { ...CARD };
+    mockParse.mockReturnValueOnce([CARD]).mockReturnValueOnce([duplicate]);
+    mockQueryResult({
+      data: {
+        pages: [
+          { data: [{ timestamp: '2026-06-04T00:00:00.000Z' }] },
+          { data: [{ timestamp: '2026-06-04T00:00:00.000Z' }] },
+        ],
+        pageParams: [],
+      },
+      hasNextPage: true,
+    });
+
+    const { result } = renderHook(() => useMoneyAccountApiActivity());
+
+    expect(result.current.activity).toEqual([CARD]);
+  });
+
+  it('keeps same-hash rows of different kinds (e.g. a spend and its cashback)', () => {
+    const cashback: AccountsApiActivity = {
+      kind: 'cashback',
+      hash: CARD.hash,
+      time: CARD.time,
+      chainId: CARD.chainId,
+      token: CARD.token,
+      amount: CARD.amount,
+      receivedFrom: '0xdef',
+    };
+    mockParse.mockReturnValueOnce([CARD]).mockReturnValueOnce([cashback]);
+    mockQueryResult({
+      data: {
+        pages: [
+          { data: [{ timestamp: '2026-06-04T00:00:00.000Z' }] },
+          { data: [{ timestamp: '2026-06-04T00:00:00.000Z' }] },
+        ],
+        pageParams: [],
+      },
+      hasNextPage: true,
+    });
+
+    const { result } = renderHook(() => useMoneyAccountApiActivity());
+
+    expect(result.current.activity).toEqual([CARD, cashback]);
   });
 
   it('reports the oldest fetched raw time as the watermark while more pages remain', () => {
@@ -299,6 +362,21 @@ describe('useMoneyAccountApiActivity', () => {
     expect(result.current.isComplete).toBe(true);
     expect(result.current.watermark).toBe(Number.NEGATIVE_INFINITY);
     expect(result.current.hasMore).toBe(false);
+  });
+
+  it('stops pagination after a mid-scroll error even though a next page was pending', () => {
+    // After a failed `fetchNextPage`, `hasNextPage` (derived from the last
+    // *successful* page) stays true. Without the error guard every pagination
+    // driver would re-issue the failed request in a loop.
+    const fetchNextPage = jest.fn();
+    mockQueryResult({ isError: true, hasNextPage: true, fetchNextPage });
+
+    const { result } = renderHook(() => useMoneyAccountApiActivity());
+    result.current.loadMore();
+
+    expect(result.current.hasMore).toBe(false);
+    expect(result.current.isComplete).toBe(true);
+    expect(fetchNextPage).not.toHaveBeenCalled();
   });
 
   it('treats a disabled query (no money account) as a terminal (complete) state', () => {

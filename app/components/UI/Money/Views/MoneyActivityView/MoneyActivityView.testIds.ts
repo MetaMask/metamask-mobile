@@ -11,5 +11,7 @@ export const MoneyActivityViewTestIds = {
   EMPTY_LIST: 'money-activity-view-empty-list',
   EMPTY_LIST_MESSAGE: 'money-activity-view-empty-list-message',
   LOAD_MORE_SPINNER: 'money-activity-view-load-more-spinner',
+  LOAD_ERROR: 'money-activity-view-load-error',
+  RETRY_BUTTON: 'money-activity-view-retry-button',
   LIST: 'money-activity-view-list',
 };

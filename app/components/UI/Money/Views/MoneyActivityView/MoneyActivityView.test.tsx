@@ -9,7 +9,10 @@ import {
   isMoneyActivityTransfer,
 } from '../../constants/moneyActivityFilters';
 import { MoneyActivityLoadingTestIds } from '../../components/MoneyActivityLoading/MoneyActivityLoading.testIds';
-import MoneyActivityView, { INITIAL_FILL_COUNT } from './MoneyActivityView';
+import MoneyActivityView, {
+  INITIAL_FILL_COUNT,
+  INITIAL_FILL_MAX_PAGES,
+} from './MoneyActivityView';
 import { MoneyActivityViewTestIds } from './MoneyActivityView.testIds';
 import type { AccountsApiActivity } from '../../types/moneyActivity';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
@@ -163,6 +166,7 @@ const REFUND_TX: AccountsApiActivity = {
 };
 const REFUND_ROW_TEST_ID = `activity-mock-api-${REFUND_TX.hash}`;
 const mockLoadMore = jest.fn();
+const mockRefetch = jest.fn();
 
 function mockApiActivity(
   overrides: Partial<ReturnType<typeof useMoneyAccountApiActivity>> = {},
@@ -171,16 +175,16 @@ function mockApiActivity(
     activity: [],
     watermark: Number.NEGATIVE_INFINITY,
     isComplete: true,
-    // At the auto-fill page budget by default so the view's `ensureCount`
-    // floor stays inert in tests that aren't exercising it; tests that want
-    // auto-fill drop this to 0/1.
-    pageCount: 3,
+    // At the view's fill ceiling by default so the initial-fill effect stays
+    // inert in tests that aren't exercising it; tests that want the fill
+    // drop this to 0/1.
+    pageCount: INITIAL_FILL_MAX_PAGES,
     hasMore: false,
     loadMore: mockLoadMore,
     isLoadingMore: false,
     isLoading: false,
     error: false,
-    refetch: jest.fn(),
+    refetch: mockRefetch,
     ...overrides,
   });
 }
@@ -464,6 +468,23 @@ describe('MoneyActivityView', () => {
       expect(mockLoadMore).not.toHaveBeenCalled();
     });
 
+    it('does not fetch on end-reached while a page is already in flight', () => {
+      // Momentum scrolling fires onEndReached in bursts; without the guard
+      // each one would cancel and re-issue the in-flight fetch.
+      mockApiActivity({
+        activity: [CARD_TX],
+        hasMore: true,
+        isComplete: false,
+        isLoadingMore: true,
+      });
+
+      const { getByTestId } = renderWithProvider(<MoneyActivityView />);
+      mockLoadMore.mockClear();
+      fireEvent(getByTestId(MoneyActivityViewTestIds.LIST), 'onEndReached');
+
+      expect(mockLoadMore).not.toHaveBeenCalled();
+    });
+
     it('shows a footer spinner while a follow-up page is loading', () => {
       mockApiActivity({
         activity: [CARD_TX],
@@ -521,7 +542,12 @@ describe('MoneyActivityView', () => {
         ...CARD_TX,
         hash: `0xcardfill${i}` as `0x${string}`,
       }));
-      mockApiActivity({ activity: rows, hasMore: true, isComplete: false });
+      mockApiActivity({
+        activity: rows,
+        hasMore: true,
+        isComplete: false,
+        pageCount: 1,
+      });
 
       renderWithProvider(<MoneyActivityView />);
 
@@ -534,6 +560,23 @@ describe('MoneyActivityView', () => {
         activity: [CARD_TX],
         hasMore: false,
         isComplete: true,
+        pageCount: 1,
+      });
+
+      renderWithProvider(<MoneyActivityView />);
+
+      expect(mockLoadMore).not.toHaveBeenCalled();
+    });
+
+    it('stops fetching at the fill page ceiling even while the bucket is sparse', () => {
+      // A sparse bucket that can never reach the fill count must not page
+      // through the account's entire remote history to prove it.
+      withoutLocalTransactions();
+      mockApiActivity({
+        activity: [CARD_TX],
+        hasMore: true,
+        isComplete: false,
+        pageCount: INITIAL_FILL_MAX_PAGES,
       });
 
       renderWithProvider(<MoneyActivityView />);
@@ -550,7 +593,12 @@ describe('MoneyActivityView', () => {
         moneyAddress: '0x0000000000000000000000000000000000000001',
         mockDataEnabled: true,
       });
-      mockApiActivity({ activity: [], hasMore: true, isComplete: false });
+      mockApiActivity({
+        activity: [],
+        hasMore: true,
+        isComplete: false,
+        pageCount: 1,
+      });
 
       renderWithProvider(<MoneyActivityView />);
 
@@ -600,6 +648,84 @@ describe('MoneyActivityView', () => {
         getByTestId(MoneyActivityViewTestIds.EMPTY_LIST),
       ).toBeOnTheScreen();
       expect(queryByTestId(MoneyActivityLoadingTestIds.CONTAINER)).toBeNull();
+    });
+
+    it('drops the skeleton once the fill page ceiling is reached with no rows', () => {
+      // The fill loop has stopped, so the skeleton must settle rather than
+      // spin forever on a bucket that will not fill.
+      noLocalTransactions();
+      mockApiActivity({
+        activity: [],
+        hasMore: true,
+        isComplete: false,
+        pageCount: INITIAL_FILL_MAX_PAGES,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyActivityView />,
+      );
+
+      expect(
+        getByTestId(MoneyActivityViewTestIds.EMPTY_LIST),
+      ).toBeOnTheScreen();
+      expect(queryByTestId(MoneyActivityLoadingTestIds.CONTAINER)).toBeNull();
+    });
+  });
+
+  describe('load errors', () => {
+    const noLocalTransactions = () =>
+      mockUseMoneyAccountTransactions.mockReturnValue({
+        allTransactions: [],
+        deposits: [],
+        transfers: [],
+        submittedTransactions: [],
+        moneyAddress: '0x0000000000000000000000000000000000000001',
+        mockDataEnabled: false,
+      });
+
+    it('shows an error footer with retry (not a spinner) when paging fails mid-list', () => {
+      mockApiActivity({
+        activity: [CARD_TX],
+        error: true,
+        hasMore: false,
+        isComplete: true,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyActivityView />,
+      );
+
+      expect(
+        getByTestId(MoneyActivityViewTestIds.LOAD_ERROR),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(MoneyActivityViewTestIds.LOAD_MORE_SPINNER),
+      ).toBeNull();
+
+      fireEvent.press(getByTestId(MoneyActivityViewTestIds.RETRY_BUTTON));
+      expect(mockRefetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows an error message with retry (never "No activity") when the first fetch fails', () => {
+      noLocalTransactions();
+      mockApiActivity({
+        activity: [],
+        error: true,
+        hasMore: false,
+        isComplete: true,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MoneyActivityView />,
+      );
+
+      expect(
+        getByTestId(MoneyActivityViewTestIds.EMPTY_LIST_MESSAGE),
+      ).toHaveTextContent('money.activity.load_error');
+      expect(queryByTestId(MoneyActivityLoadingTestIds.CONTAINER)).toBeNull();
+
+      fireEvent.press(getByTestId(MoneyActivityViewTestIds.RETRY_BUTTON));
+      expect(mockRefetch).toHaveBeenCalledTimes(1);
     });
   });
 

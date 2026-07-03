@@ -29,9 +29,12 @@ export interface UseMoneyAccountApiActivityResult {
   isComplete: boolean;
   /** Number of Accounts-API pages fetched so far. */
   pageCount: number;
-  /** True while more pages remain to be fetched. */
+  /** True while more pages remain to be fetched (false once the query errors). */
   hasMore: boolean;
-  /** Fetch the next page; no-op if a fetch is in flight or none remain. */
+  /**
+   * Fetch the next page; no-op if a fetch is in flight, none remain, or the
+   * query errored (use `refetch` to recover from an error).
+   */
   loadMore: () => void;
   /** True while a follow-up (non-initial) page is being fetched. */
   isLoadingMore: boolean;
@@ -84,8 +87,13 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
         ...ACCOUNT_ACTIVITY_QUERY_OPTIONS,
         cursor: pageParam,
       }),
+    // Guard the cursor too: react-query only stops on `undefined`, so a
+    // malformed page with `hasNextPage: true` but an empty cursor would
+    // otherwise refetch the first page in a loop.
     getNextPageParam: (lastPage: V1AccountTransactionsResponse) =>
-      lastPage.pageInfo?.hasNextPage ? lastPage.pageInfo.cursor : undefined,
+      lastPage.pageInfo?.hasNextPage && lastPage.pageInfo.cursor
+        ? lastPage.pageInfo.cursor
+        : undefined,
     enabled,
     staleTime: 5 * MINUTE,
     retry: false,
@@ -96,19 +104,31 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
 
   const pages = query.data?.pages ?? EMPTY_PAGES;
 
-  const activity = useMemo(
-    () =>
-      pages.length === 0
-        ? EMPTY_ACTIVITY
-        : pages.flatMap((page) =>
-            parseAccountsApiActivity(
-              page,
-              moneyAddress,
-              cashbackMultisendContracts,
-            ),
-          ),
-    [pages, moneyAddress, cashbackMultisendContracts],
-  );
+  const activity = useMemo(() => {
+    if (pages.length === 0) {
+      return EMPTY_ACTIVITY;
+    }
+    // Dedupe across page boundaries: if the API cursor is ever inclusive (the
+    // last row of one page repeated as the first of the next), the duplicate
+    // would otherwise render twice and collide on the list's `id` key.
+    const seen = new Set<string>();
+    return pages
+      .flatMap((page) =>
+        parseAccountsApiActivity(
+          page,
+          moneyAddress,
+          cashbackMultisendContracts,
+        ),
+      )
+      .filter((row) => {
+        const key = `${row.kind}:${row.hash.toLowerCase()}`;
+        if (seen.has(key)) {
+          return false;
+        }
+        seen.add(key);
+        return true;
+      });
+  }, [pages, moneyAddress, cashbackMultisendContracts]);
 
   // "Complete" means no further pages will arrive, so the merged list can be
   // shown in full. This happens if:
@@ -122,19 +142,23 @@ export function useMoneyAccountApiActivity(): UseMoneyAccountApiActivityResult {
     [pages, isComplete],
   );
 
-  const { hasNextPage, isFetchingNextPage, fetchNextPage } = query;
+  const { hasNextPage, isFetchingNextPage, fetchNextPage, isError } = query;
+  // An errored query is terminal (`retry: false`), but `hasNextPage` is derived
+  // from the last *successful* page and stays true — without the `isError`
+  // guards every pagination driver (fill effects, onEndReached) would re-issue
+  // the failed request in a loop. Recovery is via the explicit `refetch`.
   const loadMore = useCallback(() => {
-    if (hasNextPage && !isFetchingNextPage) {
+    if (hasNextPage && !isFetchingNextPage && !isError) {
       fetchNextPage();
     }
-  }, [hasNextPage, isFetchingNextPage, fetchNextPage]);
+  }, [hasNextPage, isFetchingNextPage, fetchNextPage, isError]);
 
   return {
     activity,
     watermark,
     isComplete,
     pageCount: pages.length,
-    hasMore: hasNextPage === true,
+    hasMore: hasNextPage === true && !isError,
     loadMore,
     isLoadingMore: isFetchingNextPage,
     // `isInitialLoading` (not `isLoading`) so a disabled query never reports

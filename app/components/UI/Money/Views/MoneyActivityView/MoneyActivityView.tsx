@@ -56,11 +56,16 @@ const styles = StyleSheet.create({
 });
 
 // Pull roughly a screenful into the active bucket upfront so the list is tall
-// enough for scroll-driven pagination (`onEndReached`) to take over. Fetches as
-// many pages as it takes — for a sparse bucket that means paging to the end,
-// which is the only way to know it's short rather than deep. See the fill
-// effect below for why this can't rely on list height alone.
+// enough for scroll-driven pagination (`onEndReached`) to take over. See the
+// fill effect below for why this can't rely on list height alone.
 export const INITIAL_FILL_COUNT = 15;
+
+// Hard ceiling on pages the initial fill will pull. A sparse bucket (e.g.
+// Deposits on a card-heavy account) can never reach the fill count, and
+// without a ceiling opening the tab would page through the account's entire
+// remote history just to prove the bucket is short. Past the ceiling the
+// bucket renders what it has; deeper rows arrive via scroll or completion.
+export const INITIAL_FILL_MAX_PAGES = 10;
 
 const FILTER_LABEL_KEYS = {
   all: 'money.activity.filter_all',
@@ -155,8 +160,10 @@ const MoneyActivityView = () => {
     isLoading: showActivityLoading,
     loadMore,
     hasMore,
-    isComplete,
     isLoadingMore,
+    pageCount,
+    error,
+    refetch,
     moneyAddress,
     mockDataEnabled,
   } = useMoneyActivityItems();
@@ -206,18 +213,21 @@ const MoneyActivityView = () => {
   // page that adds no rows to this bucket (e.g. a page of non-card txns on the
   // Purchases tab) still advances to the next page instead of stalling — a
   // short, unscrollable list can never re-trigger `onEndReached` on its own.
-  // Terminates when the bucket reaches the fill count or the activity is
-  // exhausted (`hasMore` false). Switching tabs re-evaluates for the new bucket.
+  // Terminates when the bucket reaches the fill count, the activity is
+  // exhausted (`hasMore` false — including after an error), or the page
+  // ceiling is hit. Switching tabs re-evaluates for the new bucket. The
+  // skeleton gate below runs on this same predicate so it can't outlive the
+  // fetch loop.
+  const wantsFillPage =
+    !mockDataEnabled &&
+    hasMore &&
+    filtered.length < INITIAL_FILL_COUNT &&
+    pageCount < INITIAL_FILL_MAX_PAGES;
   useEffect(() => {
-    if (
-      !mockDataEnabled &&
-      hasMore &&
-      !isLoadingMore &&
-      filtered.length < INITIAL_FILL_COUNT
-    ) {
+    if (wantsFillPage && !isLoadingMore) {
       loadMore();
     }
-  }, [mockDataEnabled, hasMore, isLoadingMore, filtered.length, loadMore]);
+  }, [wantsFillPage, isLoadingMore, loadMore]);
 
   const sections = useMemo(
     () => buildSections(filtered, I18n.locale),
@@ -250,14 +260,37 @@ const MoneyActivityView = () => {
   );
 
   // Pages are shared across all three tabs (one cursor stream), so reaching the
-  // end of any rendered bucket pulls the next page for all of them.
+  // end of any rendered bucket pulls the next page for all of them. The
+  // `isLoadingMore` guard stops momentum-scroll bursts from cancelling and
+  // re-issuing the in-flight fetch.
   const handleEndReached = useCallback(() => {
-    if (hasMore) {
+    if (hasMore && !isLoadingMore) {
       loadMore();
     }
-  }, [hasMore, loadMore]);
+  }, [hasMore, isLoadingMore, loadMore]);
 
-  const listFooter = isLoadingMore ? (
+  // A failed fetch is terminal (no automatic retries), so surface it: older
+  // pages exist but won't arrive on their own. Retry replays the query.
+  const listFooter = error ? (
+    <Box
+      paddingVertical={4}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-2"
+      testID={MoneyActivityViewTestIds.LOAD_ERROR}
+    >
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {strings('money.activity.load_error_more')}
+      </Text>
+      <Button
+        variant={ButtonVariant.Secondary}
+        size={ButtonSize.Md}
+        onPress={refetch}
+        testID={MoneyActivityViewTestIds.RETRY_BUTTON}
+      >
+        {strings('money.activity.retry')}
+      </Button>
+    </Box>
+  ) : isLoadingMore ? (
     <Box
       paddingVertical={4}
       testID={MoneyActivityViewTestIds.LOAD_MORE_SPINNER}
@@ -386,9 +419,13 @@ const MoneyActivityView = () => {
         </Button>
       </ScrollView>
 
-      {showActivityLoading || (sections.length === 0 && !isComplete) ? (
-        // Keep the skeleton up while the list is empty but more pages may still
-        // arrive — otherwise an in-flight fetch would flash "No activity".
+      {showActivityLoading ||
+      (sections.length === 0 && (wantsFillPage || isLoadingMore)) ? (
+        // Keep the skeleton up while the list is empty but the fill loop is
+        // still fetching — otherwise an in-flight fetch would flash "No
+        // activity". Gated on the fill predicate itself (not `isComplete`) so
+        // the skeleton settles the moment fetching stops, including when the
+        // page ceiling is reached or the query errors.
         <MoneyActivityLoading />
       ) : sections.length === 0 ? (
         <Box
@@ -400,8 +437,22 @@ const MoneyActivityView = () => {
             color={TextColor.TextAlternative}
             testID={MoneyActivityViewTestIds.EMPTY_LIST_MESSAGE}
           >
-            {strings('money.activity.empty')}
+            {strings(
+              // "No activity" must mean verified-empty, never failed-to-load.
+              error ? 'money.activity.load_error' : 'money.activity.empty',
+            )}
           </Text>
+          {error ? (
+            <Button
+              variant={ButtonVariant.Secondary}
+              size={ButtonSize.Md}
+              twClassName="mt-4"
+              onPress={refetch}
+              testID={MoneyActivityViewTestIds.RETRY_BUTTON}
+            >
+              {strings('money.activity.retry')}
+            </Button>
+          ) : null}
         </Box>
       ) : (
         <SectionList
