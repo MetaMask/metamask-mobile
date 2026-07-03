@@ -221,20 +221,18 @@ function getTokenPricePercentChange({
   tokenMarketData: ReturnType<typeof selectTokenMarketData>;
   multichainAssetsRates: ReturnType<typeof selectMultichainAssetsRates>;
 }): number | undefined {
+  const tokenPercentageChange = token.address
+    ? tokenMarketData?.[chainId]?.[token.address as Hex]?.pricePercentChange1d
+    : undefined;
+  const evmPricePercentChange1d = isNative
+    ? tokenMarketData?.[chainId]?.[getNativeTokenAddress(chainId) as Hex]
+        ?.pricePercentChange1d
+    : tokenPercentageChange;
   const multichainPricePercentChange =
     multichainAssetsRates?.[token.address as CaipAssetType]?.marketData
       ?.pricePercentChange?.P1D;
 
-  if (multichainPricePercentChange !== undefined) {
-    return multichainPricePercentChange;
-  }
-
-  const addressToUse = isNative
-    ? getNativeTokenAddress(chainId)
-    : token.address;
-
-  return tokenMarketData?.[chainId]?.[addressToUse as Hex]
-    ?.pricePercentChange1d;
+  return multichainPricePercentChange ?? evmPricePercentChange1d;
 }
 
 interface TokenPriceDisplay {

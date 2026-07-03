@@ -717,6 +717,67 @@ describe('BatchSellTokenSelect', () => {
     });
   });
 
+  it('renders EVM percentage changes when multichain percentage change is null', () => {
+    const token = createToken({
+      symbol: 'EVM',
+      name: 'EVM Token',
+      address: '0x2222222222222222222222222222222222222222',
+      tokenFiatAmount: 10,
+    });
+    mockWalletTokens = [token];
+    mockMultichainAssetsRates = {
+      [token.address]: {
+        marketData: {
+          pricePercentChange: {
+            P1D: null,
+          },
+        },
+      },
+    };
+    mockTokenMarketData = {
+      ['0x1' as Hex]: {
+        [token.address as Hex]: {
+          pricePercentChange1d: 2.34,
+        },
+      },
+    };
+
+    const { getByText } = render(<BatchSellTokenSelect />);
+
+    expect(getByText('+2.34%')).toBeOnTheScreen();
+  });
+
+  it('renders multichain percentage changes before EVM percentage changes', () => {
+    const token = createToken({
+      symbol: 'MCA',
+      name: 'Multichain Asset',
+      address: '0x2222222222222222222222222222222222222222',
+      tokenFiatAmount: 10,
+    });
+    mockWalletTokens = [token];
+    mockMultichainAssetsRates = {
+      [token.address]: {
+        marketData: {
+          pricePercentChange: {
+            P1D: 3.45,
+          },
+        },
+      },
+    };
+    mockTokenMarketData = {
+      ['0x1' as Hex]: {
+        [token.address as Hex]: {
+          pricePercentChange1d: 2.34,
+        },
+      },
+    };
+
+    const { getByText, queryByText } = render(<BatchSellTokenSelect />);
+
+    expect(getByText('+3.45%')).toBeOnTheScreen();
+    expect(queryByText('+2.34%')).not.toBeOnTheScreen();
+  });
+
   it('disables TokenSelectorItem selected row styling and network icons for Batch Sell rows', () => {
     mockWalletTokens = [
       createToken({
