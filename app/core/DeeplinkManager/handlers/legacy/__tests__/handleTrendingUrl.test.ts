@@ -20,15 +20,16 @@ describe('handleTrendingUrl', () => {
     jest.clearAllMocks();
   });
 
-  it.each([[''], ['?screen=unknown'], ['?tab=unknown']])(
-    'falls back to trending view for actionPath=%s',
-    async (actionPath) => {
-      await handleTrendingUrl({ actionPath });
+  it.each([
+    { description: 'default explore view', actionPath: '' },
+    { description: 'unknown screen param', actionPath: '?screen=unknown' },
+    { description: 'unknown tab param', actionPath: '?tab=unknown' },
+  ])('falls back to trending view for $description', async ({ actionPath }) => {
+    await handleTrendingUrl({ actionPath });
 
-      expect(mockNavigate).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
-    },
-  );
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
+  });
 });
 
 describe('handleTrendingUrl - explore tabs (tab=...)', () => {
@@ -38,17 +39,35 @@ describe('handleTrendingUrl - explore tabs (tab=...)', () => {
     jest.clearAllMocks();
   });
 
-  it.each<[string, number]>([
-    [EXPLORE_TAB_DEEPLINK_PARAM.NOW, EXPLORE_TAB_INDEX.NOW],
-    [EXPLORE_TAB_DEEPLINK_PARAM.MACRO, EXPLORE_TAB_INDEX.MACRO],
-    [EXPLORE_TAB_DEEPLINK_PARAM.RWAS, EXPLORE_TAB_INDEX.RWAS],
-    [EXPLORE_TAB_DEEPLINK_PARAM.CRYPTO, EXPLORE_TAB_INDEX.CRYPTO],
-    [EXPLORE_TAB_DEEPLINK_PARAM.SPORTS, EXPLORE_TAB_INDEX.SPORTS],
-    [EXPLORE_TAB_DEEPLINK_PARAM.SITES, EXPLORE_TAB_INDEX.SITES],
-    ['CRYPTO', EXPLORE_TAB_INDEX.CRYPTO],
+  it.each([
+    {
+      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.NOW,
+      expectedIndex: EXPLORE_TAB_INDEX.NOW,
+    },
+    {
+      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.MACRO,
+      expectedIndex: EXPLORE_TAB_INDEX.MACRO,
+    },
+    {
+      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.RWAS,
+      expectedIndex: EXPLORE_TAB_INDEX.RWAS,
+    },
+    {
+      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.CRYPTO,
+      expectedIndex: EXPLORE_TAB_INDEX.CRYPTO,
+    },
+    {
+      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.SPORTS,
+      expectedIndex: EXPLORE_TAB_INDEX.SPORTS,
+    },
+    {
+      tabParam: EXPLORE_TAB_DEEPLINK_PARAM.SITES,
+      expectedIndex: EXPLORE_TAB_INDEX.SITES,
+    },
+    { tabParam: 'CRYPTO', expectedIndex: EXPLORE_TAB_INDEX.CRYPTO },
   ])(
-    'navigates to the Explore feed with tab=%s preselected',
-    async (tabParam, expectedIndex) => {
+    'navigates to the Explore feed with tab=$tabParam preselected',
+    async ({ tabParam, expectedIndex }) => {
       await handleTrendingUrl({ actionPath: `?tab=${tabParam}` });
 
       expect(mockNavigate).toHaveBeenCalledTimes(1);
@@ -70,28 +89,35 @@ describe('handleTrendingUrl - full-screen views (screen=...)', () => {
     jest.clearAllMocks();
   });
 
-  it.each<[string, string, object | undefined]>([
-    [
-      EXPLORE_SCREEN_DEEPLINK_PARAM.STOCKS,
-      Routes.WALLET.RWA_TOKENS_FULL_VIEW,
-      undefined,
-    ],
-    ['STOCKS', Routes.WALLET.RWA_TOKENS_FULL_VIEW, undefined],
-    [
-      EXPLORE_SCREEN_DEEPLINK_PARAM.TRENDING_TOKENS,
-      Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
-      undefined,
-    ],
-    [EXPLORE_SCREEN_DEEPLINK_PARAM.SITES, Routes.SITES_FULL_VIEW, undefined],
-    [
-      EXPLORE_SCREEN_DEEPLINK_PARAM.FAVORITE_SITES,
-      Routes.SITES_FULL_VIEW,
-      { mode: 'favorites' },
-    ],
-    [EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH, Routes.EXPLORE_SEARCH, undefined],
+  it.each([
+    {
+      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.STOCKS,
+      expectedRoute: Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+    },
+    {
+      screenParam: 'STOCKS',
+      expectedRoute: Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+    },
+    {
+      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.TRENDING_TOKENS,
+      expectedRoute: Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
+    },
+    {
+      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.SITES,
+      expectedRoute: Routes.SITES_FULL_VIEW,
+    },
+    {
+      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.FAVORITE_SITES,
+      expectedRoute: Routes.SITES_FULL_VIEW,
+      expectedParams: { mode: 'favorites' },
+    },
+    {
+      screenParam: EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH,
+      expectedRoute: Routes.EXPLORE_SEARCH,
+    },
   ])(
-    'activates Explore tab then navigates to the full view for screen=%s',
-    async (screenParam, expectedRoute, expectedParams) => {
+    'activates Explore tab then navigates to the full view for screen=$screenParam',
+    async ({ screenParam, expectedRoute, expectedParams }) => {
       await handleTrendingUrl({ actionPath: `?screen=${screenParam}` });
 
       expect(mockNavigate).toHaveBeenCalledTimes(2);
