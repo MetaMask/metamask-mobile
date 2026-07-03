@@ -20,11 +20,7 @@ describe('handleTrendingUrl', () => {
     jest.clearAllMocks();
   });
 
-  it.each([
-    [''],
-    ['?screen=unknown'],
-    ['?tab=unknown'],
-  ])(
+  it.each([[''], ['?screen=unknown'], ['?tab=unknown']])(
     'falls back to trending view for actionPath=%s',
     async (actionPath) => {
       await handleTrendingUrl({ actionPath });
@@ -80,11 +76,7 @@ describe('handleTrendingUrl - full-screen views (screen=...)', () => {
       Routes.WALLET.RWA_TOKENS_FULL_VIEW,
       undefined,
     ],
-    [
-      'STOCKS',
-      Routes.WALLET.RWA_TOKENS_FULL_VIEW,
-      undefined,
-    ],
+    ['STOCKS', Routes.WALLET.RWA_TOKENS_FULL_VIEW, undefined],
     [
       EXPLORE_SCREEN_DEEPLINK_PARAM.TRENDING_TOKENS,
       Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
