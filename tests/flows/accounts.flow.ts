@@ -29,6 +29,7 @@ import ContactsView from '../page-objects/Settings/Contacts/ContactsView';
 import AddContactView from '../page-objects/Settings/Contacts/AddContactView';
 import {
   loginToAppPlaywright,
+  ensureAccountListOpenPlaywright,
   waitForWalletHomePlaywright,
 } from './wallet.flow';
 
@@ -229,6 +230,9 @@ export const renameAccountAtIndex = async (
   await EditAccountName.updateAccountName(newName);
   await EditAccountName.tapSave();
   await AccountDetails.tapBackButton();
+  if (FrameworkDetector.isAppium()) {
+    await ensureAccountListOpenPlaywright();
+  }
 };
 
 export const assertAccountCount = async (
