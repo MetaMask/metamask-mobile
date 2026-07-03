@@ -208,11 +208,7 @@ const TraderMuteChip: React.FC<TraderMuteChipProps> = ({
             {
               width: diameter,
               height: diameter,
-              // Color marks the *active* state (getting alerts); muting is a
-              // calm, neutral preference so it falls back to the grey surface.
-              backgroundColor: isMuted
-                ? colors.background.muted
-                : colors.background.muted,
+              backgroundColor: colors.background.muted,
             },
           ]}
         >
