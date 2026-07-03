@@ -42,12 +42,20 @@ export const FLipQuoteButton = ({ onPress, disabled }: Props) => {
 
   const triggerOnPress = useCallback(() => {
     rotationValue.setValue(0);
-    Animated.timing(rotationValue, {
-      toValue: 1,
-      duration: 300,
-      easing: Easing.out(Easing.cubic),
-      useNativeDriver: true,
-    }).start();
+    Animated.sequence([
+      Animated.timing(rotationValue, {
+        toValue: 1.04,
+        duration: 230,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.spring(rotationValue, {
+        toValue: 1,
+        speed: 18,
+        bounciness: 8,
+        useNativeDriver: true,
+      }),
+    ]).start();
     onPress();
   }, [onPress, rotationValue]);
 

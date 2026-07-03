@@ -20,6 +20,7 @@ type SwapDetailsItem = Extract<
   {
     type:
       | 'swap'
+      | 'swapIncomplete'
       | 'convert'
       | 'lendingDeposit'
       | 'lendingWithdrawal'
@@ -29,24 +30,25 @@ type SwapDetailsItem = Extract<
 >;
 
 export function SwapDetails({ item }: { item: SwapDetailsItem }) {
-  const totalToken = item.data.sourceToken?.amount
-    ? item.data.sourceToken
-    : item.data.destinationToken;
+  const { sourceToken } = item.data;
+  const destinationToken =
+    'destinationToken' in item.data ? item.data.destinationToken : undefined;
+  const totalToken = sourceToken?.amount ? sourceToken : destinationToken;
   const handleDoItAgain = useActivityDetailsDoItAgain({
-    sourceToken: item.data.sourceToken,
-    destinationToken: item.data.destinationToken,
+    sourceToken,
+    destinationToken,
     fallbackCaipChainId: item.chainId,
   });
   const canDoItAgain = canRenderActivityDetailsDoItAgain(
-    item.data.sourceToken,
+    sourceToken,
     item.chainId,
   );
 
   return (
     <Box twClassName="flex-1">
       <ActivityDetailsDualAmountHeader
-        sentToken={item.data.sourceToken}
-        receivedToken={item.data.destinationToken}
+        sentToken={sourceToken}
+        receivedToken={destinationToken}
       />
       <SectionDivider marginVertical={3} />
       <ActivityDetailsMetadata item={item} />

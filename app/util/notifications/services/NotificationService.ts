@@ -274,8 +274,13 @@ class NotificationsService {
     id?: string;
   }): Promise<void> => {
     try {
+      const channel = notificationChannels.find((c) => c.id === channelId);
+      if (channel) {
+        await notifee.createChannel(channel);
+      }
+      const notifId = id ?? `notif-${Date.now()}`;
       await notifee.displayNotification({
-        id,
+        id: notifId,
         title,
         body,
         // Notifee can only store and handle data strings
@@ -288,7 +293,7 @@ class NotificationsService {
             id: pressActionId,
             launchActivity: LAUNCH_ACTIVITY,
           },
-          tag: id,
+          tag: notifId,
         },
         ios: {
           launchImageName: 'Default',

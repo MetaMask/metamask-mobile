@@ -144,6 +144,27 @@ jest.mock('../Views/Cashback/Cashback', () => {
   return () => <View testID="cashback" />;
 });
 
+jest.mock('../Views/CreditRedeem/CreditRedeem', () => {
+  const { View } = require('react-native');
+  return () => <View testID="credit-redeem" />;
+});
+
+jest.mock(
+  '../components/CreditBalanceTooltipSheet/CreditBalanceTooltipSheet',
+  () => {
+    const { View } = require('react-native');
+    return () => <View testID="credit-balance-tooltip" />;
+  },
+);
+
+jest.mock(
+  '../components/CreditRefundTooltipSheet/CreditRefundTooltipSheet',
+  () => {
+    const { View } = require('react-native');
+    return () => <View testID="credit-refund-tooltip" />;
+  },
+);
+
 jest.mock('../sdk', () => ({
   withCardSDK: (Component: React.ComponentType) => Component,
 }));
@@ -156,6 +177,7 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
     REVIEW_ORDER: 'ReviewOrder',
     ORDER_COMPLETED: 'OrderCompleted',
     CASHBACK: 'Cashback',
+    CREDIT_REDEEM: 'CreditRedeem',
     AUTHENTICATION: 'CardAuthentication',
     SPENDING_LIMIT: 'SpendingLimit',
     ONBOARDING: {
@@ -171,6 +193,8 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       RECURRING_FEE: 'RecurringFee',
       DAIMO_PAY: 'DaimoPay',
       VIEW_PIN: 'ViewPin',
+      CREDIT_BALANCE_TOOLTIP: 'CreditBalanceTooltip',
+      CREDIT_REFUND_TOOLTIP: 'CreditRefundTooltip',
       SPENDING_LIMIT_OPTIONS: 'SpendingLimitOptions',
       WAITLIST_FORM: 'WaitlistForm',
       FORGOT_PASSWORD: 'ForgotPassword',
