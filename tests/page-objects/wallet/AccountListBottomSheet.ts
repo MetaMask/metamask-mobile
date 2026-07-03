@@ -294,8 +294,9 @@ class AccountListBottomSheet {
 
     await Utilities.executeWithRetry(
       async () => {
+        let el: PlaywrightElement;
         try {
-          const el = PlatformDetector.isIOS()
+          el = PlatformDetector.isIOS()
             ? await PlaywrightMatchers.getElementByText(
                 AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
               )
@@ -303,9 +304,13 @@ class AccountListBottomSheet {
                 AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
                 { exact: true },
               );
-          return await el.isVisible();
         } catch {
-          return false;
+          throw new Error('Account list sheet element not found');
+        }
+
+        const visible = await el.isVisible().catch(() => false);
+        if (!visible) {
+          throw new Error('Account list sheet is not visible yet');
         }
       },
       {
