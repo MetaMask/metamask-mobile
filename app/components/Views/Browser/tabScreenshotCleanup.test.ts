@@ -1,7 +1,11 @@
 import RNFS from 'react-native-fs';
 import { deleteTabScreenshotFile } from './tabScreenshotCleanup';
 
+const APP_TMP_DIR =
+  '/private/var/mobile/Containers/Data/Application/abc/tmp';
+
 jest.mock('react-native-fs', () => ({
+  TemporaryDirectoryPath: APP_TMP_DIR,
   exists: jest.fn(),
   unlink: jest.fn(),
 }));
@@ -22,18 +26,26 @@ describe('tabScreenshotCleanup', () => {
   });
 
   it('deletes screenshots under the React Native temp folder', async () => {
-    const uri =
-      'file:///private/var/mobile/Containers/Data/Application/abc/tmp/ReactNative/screenshot.jpg';
+    const uri = `file://${APP_TMP_DIR}/ReactNative/screenshot.jpg`;
 
     await deleteTabScreenshotFile(uri);
 
     expect(RNFS.unlink).toHaveBeenCalledWith(
-      '/private/var/mobile/Containers/Data/Application/abc/tmp/ReactNative/screenshot.jpg',
+      `${APP_TMP_DIR}/ReactNative/screenshot.jpg`,
     );
   });
 
   it('ignores non-temp screenshot paths', async () => {
     await deleteTabScreenshotFile('file:///some/other/path.jpg');
+
+    expect(RNFS.exists).not.toHaveBeenCalled();
+    expect(RNFS.unlink).not.toHaveBeenCalled();
+  });
+
+  it('ignores path traversal attempts', async () => {
+    const uri = `file://${APP_TMP_DIR}/ReactNative/../Documents/secret.jpg`;
+
+    await deleteTabScreenshotFile(uri);
 
     expect(RNFS.exists).not.toHaveBeenCalled();
     expect(RNFS.unlink).not.toHaveBeenCalled();

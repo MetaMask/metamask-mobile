@@ -1,7 +1,31 @@
 import RNFS from 'react-native-fs';
 import Logger from '../../../util/Logger';
 
-const TAB_SCREENSHOT_TMP_PATH = '/tmp/ReactNative/';
+const TAB_SCREENSHOT_SUBDIR = 'ReactNative';
+
+function getTabScreenshotDirectory(): string {
+  return `${RNFS.TemporaryDirectoryPath}/${TAB_SCREENSHOT_SUBDIR}`;
+}
+
+function isUnderTabScreenshotDirectory(filePath: string): boolean {
+  const screenshotDir = getTabScreenshotDirectory();
+  const normalizedPath = filePath.replace(/\/+/g, '/');
+  const normalizedDir = screenshotDir.replace(/\/+/g, '/');
+
+  if (
+    normalizedPath !== normalizedDir &&
+    !normalizedPath.startsWith(`${normalizedDir}/`)
+  ) {
+    return false;
+  }
+
+  const relativePath =
+    normalizedPath === normalizedDir
+      ? ''
+      : normalizedPath.slice(normalizedDir.length + 1);
+
+  return !relativePath.split('/').some((segment) => segment === '..');
+}
 
 /**
  * Deletes a browser tab preview image from the app temp directory.
@@ -15,7 +39,7 @@ export async function deleteTabScreenshotFile(
   }
 
   const path = uri.replace(/^file:\/\//, '');
-  if (!path.includes(TAB_SCREENSHOT_TMP_PATH)) {
+  if (!isUnderTabScreenshotDirectory(path)) {
     return;
   }
 
