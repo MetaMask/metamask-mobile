@@ -829,7 +829,7 @@ describe('useBatchedUnusedApprovalsAlert', () => {
       const { result } = runHook({
         ...batchApprovalConfirmation,
         nestedTransactions: [
-          ...batchApprovalConfirmation.nestedTransactions,
+          ...(batchApprovalConfirmation.nestedTransactions ?? []),
           { type: TransactionType.perpsDeposit },
         ],
       } as unknown as TransactionMeta);
