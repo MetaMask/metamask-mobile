@@ -37,7 +37,7 @@ const logger = createLogger({
 });
 
 class AccountListBottomSheet {
-  /** Account list container - wdio uses getElementByText('Accounts') for Appium */
+  /** Account list container */
   get accountList(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -45,8 +45,9 @@ class AccountListBottomSheet {
           AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementByText(
-          AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
+        PlaywrightMatchers.getElementById(
+          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+          { exact: true },
         ),
     });
   }
@@ -291,11 +292,9 @@ class AccountListBottomSheet {
         });
       },
       appium: async () => {
-        if (PlatformDetector.isIOS()) {
-          // Account sync/discovery can keep the row visible but not yet tappable.
-          // Wait for the sync phase to settle before tapping "Add account".
-          await this.waitForAccountSyncToComplete();
-        }
+        // Account sync/discovery can keep rows visible but not yet tappable.
+        // Wait for the sync phase to settle before tapping "Add account".
+        await this.waitForAccountSyncToComplete();
 
         await Assertions.expectElementToHaveText(button, 'Add account', {
           description: 'Add Account button should be ready (not syncing)',
