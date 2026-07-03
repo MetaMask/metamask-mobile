@@ -6,7 +6,10 @@ import {
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsMarketAboutSectionSelectorsIDs } from '../../Perps.testIds';
-import { MARKET_ABOUT_INTERACTION_TYPE } from '../../utils/marketAbout';
+import {
+  MARKET_ABOUT_EVENT_PROPERTY,
+  MARKET_ABOUT_INTERACTION_TYPE,
+} from '../../utils/marketAbout';
 import PerpsMarketAboutSection from './PerpsMarketAboutSection';
 
 const mockTrack = jest.fn();
@@ -87,7 +90,9 @@ describe('PerpsMarketAboutSection', () => {
     expect(
       screen.getByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
     ).toBeOnTheScreen();
-    expect(screen.getByText('About Bitcoin')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsMarketAboutSectionSelectorsIDs.TITLE),
+    ).toHaveTextContent('About Bitcoin');
     expect(
       screen.getByTestId(PerpsMarketAboutSectionSelectorsIDs.DESCRIPTION),
     ).toHaveTextContent(LONG_DESCRIPTION);
@@ -122,7 +127,9 @@ describe('PerpsMarketAboutSection', () => {
       />,
     );
 
-    expect(screen.getByText('About CL')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId(PerpsMarketAboutSectionSelectorsIDs.TITLE),
+    ).toHaveTextContent('About CL');
   });
 
   describe('read more / show less toggle', () => {
@@ -175,8 +182,33 @@ describe('PerpsMarketAboutSection', () => {
             MARKET_ABOUT_INTERACTION_TYPE.DISPLAYED,
           [PERPS_EVENT_PROPERTY.ASSET]: 'BTC',
           [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: 'crypto',
-          description_length: LONG_DESCRIPTION.length,
+          [MARKET_ABOUT_EVENT_PROPERTY.DESCRIPTION_LENGTH]:
+            LONG_DESCRIPTION.length,
         }),
+      );
+    });
+
+    it('re-fires the displayed event with the new asset when the market changes', () => {
+      const { rerender } = render(
+        <PerpsMarketAboutSection market={createMarket()} />,
+      );
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({ [PERPS_EVENT_PROPERTY.ASSET]: 'BTC' }),
+      );
+
+      mockTrack.mockClear();
+
+      rerender(
+        <PerpsMarketAboutSection
+          market={createMarket({ symbol: 'ETH', name: 'Ethereum' })}
+        />,
+      );
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.PERPS_UI_INTERACTION,
+        expect.objectContaining({ [PERPS_EVENT_PROPERTY.ASSET]: 'ETH' }),
       );
     });
 

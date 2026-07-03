@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { memo, useCallback, useEffect, useMemo, useState } from 'react';
 import { TouchableOpacity, View, type TextLayoutEvent } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -10,13 +10,12 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsMarketAboutSectionSelectorsIDs } from '../../Perps.testIds';
 import {
-  ABOUT_COLLAPSED_NUMBER_OF_LINES,
-  getMarketAboutDisplayedEventProperties,
-} from '../../utils/marketAbout';
+  MARKET_ABOUT_COLLAPSED_NUMBER_OF_LINES,
+  MARKET_ABOUT_TOGGLE_HIT_SLOP,
+} from '../../constants/perpsUIConfig';
+import { getMarketAboutDisplayedEventProperties } from '../../utils/marketAbout';
 import styleSheet from './PerpsMarketAboutSection.styles';
 import type { PerpsMarketAboutSectionProps } from './PerpsMarketAboutSection.types';
-
-const TOGGLE_HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
 
 /**
  * "About" section shown on the Perps market details screen (TAT-2308).
@@ -31,7 +30,7 @@ const TOGGLE_HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 };
  */
 const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
   market,
-  collapsedNumberOfLines = ABOUT_COLLAPSED_NUMBER_OF_LINES,
+  collapsedNumberOfLines = MARKET_ABOUT_COLLAPSED_NUMBER_OF_LINES,
 }) => {
   const { styles } = useStyles(styleSheet, {});
 
@@ -101,7 +100,6 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
         variant={TextVariant.BodyMD}
         color={TextColor.Alternative}
         numberOfLines={isExpanded ? undefined : collapsedNumberOfLines}
-        style={styles.description}
         testID={PerpsMarketAboutSectionSelectorsIDs.DESCRIPTION}
       >
         {description}
@@ -126,7 +124,7 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
           testID={PerpsMarketAboutSectionSelectorsIDs.TOGGLE}
           accessibilityRole="button"
           accessibilityLabel={toggleLabel}
-          hitSlop={TOGGLE_HIT_SLOP}
+          hitSlop={MARKET_ABOUT_TOGGLE_HIT_SLOP}
         >
           <Text
             variant={TextVariant.BodyMDMedium}
@@ -141,4 +139,4 @@ const PerpsMarketAboutSection: React.FC<PerpsMarketAboutSectionProps> = ({
   );
 };
 
-export default PerpsMarketAboutSection;
+export default memo(PerpsMarketAboutSection);

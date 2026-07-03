@@ -1171,6 +1171,48 @@ describe('PerpsMarketDetailsView', () => {
         queryByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
       ).toBeNull();
     });
+
+    it('renders the About section using an enriched description when the route market omits it', () => {
+      enableAboutFlag();
+      // Route market has a formatted maxLeverage but no description, so the view
+      // must enrich from the streamed markets to surface the About section.
+      mockRouteParams.market = {
+        symbol: 'BTC',
+        name: 'Bitcoin',
+        maxLeverage: '40x',
+      } as PerpsMarketData;
+      mockUsePerpsMarketsImpl.mockReturnValue({
+        markets: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '$60,000',
+            change24h: '+$1,000',
+            change24hPercent: '+1.70%',
+            volume: '$10B',
+            maxLeverage: '40x',
+            marketType: 'crypto',
+            description: 'Bitcoin is a decentralized digital currency.',
+            volumeNumber: 10000000000,
+          },
+        ],
+        isLoading: false,
+        error: null,
+        refresh: jest.fn(),
+        isRefreshing: false,
+      });
+
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId(PerpsMarketAboutSectionSelectorsIDs.CONTAINER),
+      ).toBeOnTheScreen();
+    });
   });
 
   it('shows tooltip when Open Interest info icon is clicked', async () => {

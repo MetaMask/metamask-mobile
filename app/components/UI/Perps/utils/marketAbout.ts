@@ -1,20 +1,19 @@
 import {
+  MarketCategory,
   PERPS_EVENT_PROPERTY,
   type PerpsMarketData,
 } from '@metamask/perps-controller';
-
-/**
- * Default number of lines the market About description is collapsed to before
- * the "Read more" toggle is shown.
- */
-export const ABOUT_COLLAPSED_NUMBER_OF_LINES = 3;
 
 /**
  * `interaction_type` values for the market About section (TAT-2308).
  *
  * These are not (yet) part of `PERPS_EVENT_VALUE.INTERACTION_TYPE` in
  * `@metamask/perps-controller`, so they are declared here as the single source
- * of truth for the Mixpanel contract until they are promoted to the shared enum.
+ * of truth for the Mixpanel contract — mirroring the sibling `relatedMarkets.ts`
+ * pattern — until they are promoted to the shared enum.
+ *
+ * TODO: promote to `@metamask/perps-controller` `PERPS_EVENT_VALUE` once the
+ * package exposes an About-section interaction type.
  */
 export const MARKET_ABOUT_INTERACTION_TYPE = {
   DISPLAYED: 'market_about_section_displayed',
@@ -29,14 +28,20 @@ export const MARKET_ABOUT_EVENT_PROPERTY = {
 } as const;
 
 /**
+ * Analytics `market_category` bucket for HIP-3 markets, which are reported
+ * separately from their underlying `marketType`.
+ */
+export const MARKET_ABOUT_HIP3_CATEGORY = 'hip3';
+
+/**
  * Resolves the analytics market category for a market, bucketing HIP-3 markets
- * into a dedicated `hip3` value.
+ * into a dedicated `hip3` value and defaulting to the crypto category.
  */
 export const getMarketAboutMarketType = (market: PerpsMarketData): string => {
-  if (market?.isHip3) {
-    return 'hip3';
+  if (market.isHip3) {
+    return MARKET_ABOUT_HIP3_CATEGORY;
   }
-  return market?.marketType ?? 'crypto';
+  return market.marketType ?? MarketCategory.CryptoCurrency;
 };
 
 /**
@@ -49,7 +54,7 @@ export const getMarketAboutDisplayedEventProperties = (
 ): Record<string, unknown> => ({
   [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
     MARKET_ABOUT_INTERACTION_TYPE.DISPLAYED,
-  [PERPS_EVENT_PROPERTY.ASSET]: market?.symbol ?? '',
+  [PERPS_EVENT_PROPERTY.ASSET]: market.symbol ?? '',
   [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: getMarketAboutMarketType(market),
   [MARKET_ABOUT_EVENT_PROPERTY.DESCRIPTION_LENGTH]: description.length,
 });

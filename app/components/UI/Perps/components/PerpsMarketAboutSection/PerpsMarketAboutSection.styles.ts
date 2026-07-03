@@ -9,7 +9,6 @@ const styleSheet = () =>
     container: {
       gap: SECTION_GAP,
     },
-    description: {},
     // Off-screen measurer: laid out at the container width but visually hidden
     // and removed from the layout flow so it only reports the full line count.
     measuringText: {
