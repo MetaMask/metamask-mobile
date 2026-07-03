@@ -127,18 +127,7 @@ function publishHook({
       return payResult;
     }
 
-    if (hasTransactionType(transactionMeta, QUOTE_REQUIRED_TRANSACTION_TYPES)) {
-      const transactionPayState = initMessenger.call(
-        'TransactionPayController:getState',
-      );
-
-      const quotes =
-        transactionPayState.transactionData?.[transactionMeta.id]?.quotes ?? [];
-
-      if (!quotes.length) {
-        throw new Error('MetaMask Pay: Cannot submit without quote');
-      }
-    }
+    validateRequiredQuote(transactionMeta, initMessenger);
 
     const { isExternalSign } = transactionMeta;
     const isRevokeDelegation =
@@ -229,6 +218,25 @@ function publishHook({
 
     return { transactionHash: undefined };
   };
+}
+
+function validateRequiredQuote(
+  transactionMeta: TransactionMeta,
+  messenger: TransactionControllerInitMessenger,
+) {
+  if (!hasTransactionType(transactionMeta, QUOTE_REQUIRED_TRANSACTION_TYPES)) {
+    return;
+  }
+
+  const { transactionData } = messenger.call(
+    'TransactionPayController:getState',
+  );
+
+  const quotes = transactionData?.[transactionMeta.id]?.quotes ?? [];
+
+  if (!quotes.length) {
+    throw new Error('MetaMask Pay: Cannot submit without quote');
+  }
 }
 
 function getSmartTransactionCommonParams(state: RootState, chainId: Hex) {
