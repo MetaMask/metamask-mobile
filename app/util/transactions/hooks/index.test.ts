@@ -351,9 +351,9 @@ describe('getTransactionControllerHooks', () => {
         type: TransactionType.moneyAccountDeposit,
       };
 
-      await expect(
-        hooks.publish?.(moneyAccountTx),
-      ).rejects.toThrow('MetaMask Pay: Cannot submit without quote');
+      await expect(hooks.publish?.(moneyAccountTx)).rejects.toThrow(
+        'MetaMask Pay: Cannot submit without quote',
+      );
     });
 
     it('does not throw for moneyAccountDeposit when quotes are present', async () => {
