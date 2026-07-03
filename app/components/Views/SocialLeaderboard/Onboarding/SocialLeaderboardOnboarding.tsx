@@ -5,13 +5,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { PixelRatio, StyleSheet, Text, View } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation, StackActions } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Rive, {
-  Alignment,
   AutoBind,
   Fit,
   FilesHandledMapping,
@@ -73,7 +72,7 @@ import {
 } from './constants';
 
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
-const SocialLeaderboardNuxAnimation = require('../../../../animations/onboarding_nux_v5.riv');
+const SocialLeaderboardNuxAnimation = require('../../../../animations/onboarding_nux_v6.riv');
 
 const ONBOARDING_SOURCE = 'nux';
 
@@ -660,8 +659,8 @@ const SocialLeaderboardOnboarding: React.FC = () => {
           stateMachineName={RIVE_STATE_MACHINE_NAME}
           dataBinding={dataBinding}
           referencedAssets={referencedAssets}
-          fit={Fit.Cover}
-          alignment={Alignment.Center}
+          fit={Fit.Layout}
+          layoutScaleFactor={PixelRatio.get()}
           onError={handleError}
           style={StyleSheet.absoluteFillObject}
           testID={SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION}
