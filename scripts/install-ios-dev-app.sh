@@ -14,6 +14,12 @@ set -euo pipefail
 #   Targets IOS_DEVICE from .js.env (name or UDID); falls back to single connected device.
 #   Requires: Xcode 15+, device connected and trusted, Developer Mode enabled, device UDID
 #   registered in the development-metamask provisioning profile.
+#   After install, automatically launches the app connected to Metro (auto-detected LAN IP,
+#   or METRO_HOST from .js.env) — no need to manually type this Mac's IP into the Expo Dev
+#   Client screen. Note: the device and this Mac must be on the same Wi-Fi network — iOS
+#   does not proxy Metro traffic over the USB cable the way Android's `adb reverse` does.
+#   To reconnect without re-downloading (e.g. after restarting Metro), rerun with
+#   --device --skip-download: this reinstalls the cached .ipa and relaunches connected.
 #
 # Verify step by step:
 #   Step 1 (Resolve):  Run with --skipInstall and watch the resolved run id / artifact size.
@@ -29,6 +35,7 @@ NC='\033[0m'
 BUNDLE_ID="io.metamask.MetaMask"
 APP_NAME="MetaMask.app"
 IPA_NAME="MetaMask.ipa"
+DEV_CLIENT_URL_SCHEME="expo-metamask"
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 readonly BUILD_DIR="$REPO_ROOT/build"
@@ -113,6 +120,7 @@ while [[ $# -gt 0 ]]; do
       echo "Usage: $0 [--branch main] [--run RUN_ID] [--device] [--skip-download] [--skipInstall] [--uninstall]"
       echo "  (default) Targets IOS_SIMULATOR from .js.env (boots if needed); falls back to booted simulator."
       echo "  --device  Targets IOS_DEVICE from .js.env (name or UDID); falls back to single connected iPhone."
+      echo "            Auto-connects to Metro after install. Add --skip-download to just reconnect."
       exit 1
       ;;
   esac
@@ -216,6 +224,32 @@ download_latest_app_device() {
   DOWNLOAD_SUCCESS=true
 }
 
+# Relaunches the already-installed app on the connected device, deep-linked to this
+# Mac's Metro server, so the engineer never has to type an IP into the Dev Client screen.
+launch_device_app_connected_to_metro() {
+  echo -e "${BLUE}━━━ Connecting app to Metro ━━━${NC}"
+
+  local device_udid metro_host metro_port metro_url encoded_url payload_url
+  device_udid=$(dev_resolve_ios_physical_device_udid)
+  metro_host=$(dev_resolve_metro_host)
+  metro_port="${WATCHER_PORT:-8081}"
+  metro_url="http://${metro_host}:${metro_port}"
+  encoded_url="$(jq -rn --arg v "$metro_url" '$v|@uri')"
+  payload_url="${DEV_CLIENT_URL_SCHEME}://expo-development-client/?url=${encoded_url}"
+
+  echo -e "${GREEN}✓ Target device UDID:${NC} ${device_udid}"
+  echo -e "${GREEN}✓ Metro server:${NC} ${metro_url}"
+
+  if ! xcrun devicectl device process launch --device "$device_udid" --terminate-existing --payload-url "$payload_url" "$BUNDLE_ID"; then
+    echo -e "${RED}❌ Failed to launch app on device.${NC}"
+    echo -e "${YELLOW}Make sure the app is installed and the device is unlocked.${NC}"
+    exit 1
+  fi
+
+  echo -e "${GREEN}✓ App launched and connected to Metro at ${metro_url}${NC}"
+  echo -e "${YELLOW}Make sure \`yarn watch\` or \`yarn watch:clean\` is running so the bundler can respond.${NC}"
+}
+
 if [[ "$SKIP_DOWNLOAD" == false ]]; then
   if [[ "$DEVICE_MODE" == true ]]; then
     download_latest_app_device
@@ -272,6 +306,8 @@ if [[ "$DEVICE_MODE" == true ]]; then
     exit 1
   fi
   echo -e "${GREEN}✓ Successfully installed app on device!${NC}"
+
+  launch_device_app_connected_to_metro
   exit 0
 fi
 

@@ -4,6 +4,8 @@
 # Reads slot-specific targets from .js.env (same as scripts/build.sh):
 #   IOS_SIMULATOR  — simulator name (e.g. mm-1); boots if needed
 #   IOS_DEVICE     — physical iPhone name or UDID; used by install:ios:dev:device
+#   METRO_HOST     — override the auto-detected LAN IP used to connect a physical
+#                    device to Metro (e.g. when on a VPN); used by install:ios:dev:device
 #   ADB_SERIAL     — adb serial (e.g. emulator-5554); takes precedence on Android
 #   ANDROID_DEVICE — AVD name or emulator serial when ADB_SERIAL is unset
 
@@ -168,6 +170,41 @@ dev_resolve_ios_physical_device_udid() {
   name="$(echo "$devices_json" | jq -r '.[0].name')"
   echo -e "${YELLOW}IOS_DEVICE not set in .js.env — using single connected device: ${name} (${udid})${NC}" >&2
   echo "$udid"
+}
+
+# Prints this Mac's LAN IP address to stdout, for a physical device to reach Metro over Wi-Fi.
+# Reads METRO_HOST from .js.env as an override; otherwise auto-detects via the default route
+# interface (falls back to en0/en1 directly if that lookup fails).
+dev_resolve_metro_host() {
+  dev_load_js_env
+
+  if [[ -n "${METRO_HOST:-}" ]]; then
+    echo -e "${BLUE}Using METRO_HOST from .js.env: ${METRO_HOST}${NC}" >&2
+    echo "$METRO_HOST"
+    return 0
+  fi
+
+  local iface ip
+  iface="$(route get default 2>/dev/null | awk '/interface: /{print $2}')"
+  if [[ -n "$iface" ]]; then
+    ip="$(ipconfig getifaddr "$iface" 2>/dev/null || true)"
+  fi
+
+  if [[ -z "${ip:-}" ]]; then
+    for iface in en0 en1; do
+      ip="$(ipconfig getifaddr "$iface" 2>/dev/null || true)"
+      [[ -n "$ip" ]] && break
+    done
+  fi
+
+  if [[ -z "${ip:-}" ]]; then
+    echo -e "${RED}❌ Could not auto-detect this Mac's LAN IP address.${NC}" >&2
+    echo -e "${YELLOW}Ensure Wi-Fi is connected, or set METRO_HOST in .js.env (e.g. METRO_HOST=192.168.1.12).${NC}" >&2
+    exit 1
+  fi
+
+  echo -e "${YELLOW}METRO_HOST not set in .js.env — auto-detected LAN IP: ${ip} (interface ${iface:-unknown})${NC}" >&2
+  echo "$ip"
 }
 
 dev_android_serial_is_ready() {
