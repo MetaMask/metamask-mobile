@@ -1,6 +1,7 @@
 import enContent from '../../../../locales/languages/en.json';
 
 export const WalletActionsBottomSheetSelectorsIDs = {
+  MENU_CONTAINER: 'wallet-actions-bottom-sheet-menu-container',
   SEND_BUTTON: 'wallet-send-button',
   RECEIVE_BUTTON: 'wallet-receive-action',
   SWAP_BUTTON: 'wallet-actions-bottom-sheet-swap-button',

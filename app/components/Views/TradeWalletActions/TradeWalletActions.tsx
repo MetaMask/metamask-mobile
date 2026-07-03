@@ -27,7 +27,10 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  usePureBlack,
+  useTailwind,
+} from '@metamask/design-system-twrnc-preset';
 import { BatchSellMetricsLocation } from '@metamask/bridge-controller';
 import { useElevatedSurface } from '../../../util/theme/themeUtils';
 import {
@@ -103,6 +106,7 @@ function TradeWalletActions() {
   const insetsTop = Platform.OS === 'android' ? insets.top : 0;
 
   const tw = useTailwind();
+  const isPureBlack = usePureBlack();
   const surfaceClass = useElevatedSurface();
   const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
@@ -330,10 +334,13 @@ function TradeWalletActions() {
               })}
             >
               <Box
+                testID={WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER}
                 style={tw.style(
-                  `${surfaceClass} p-4 rounded-2xl mx-4`,
+                  surfaceClass,
+                  isPureBlack && 'border border-muted',
+                  'p-4 rounded-2xl mx-4',
                   `pb-[${bottomMaskHeight - 12}px]`,
-                  `px-0`,
+                  'px-0',
                 )}
               >
                 {shouldRenderBatchSell && (

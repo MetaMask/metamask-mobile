@@ -361,9 +361,25 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
 }));
 
+let mockIsPureBlack = false;
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  ...jest.requireActual('@metamask/design-system-twrnc-preset'),
+  usePureBlack: () => mockIsPureBlack,
+}));
+
+const flattenStyle = (style: unknown): Record<string, unknown>[] => {
+  if (!style) return [];
+  if (Array.isArray(style)) {
+    return style.flatMap((entry) => flattenStyle(entry));
+  }
+  return [style as Record<string, unknown>];
+};
+
 describe('TradeWalletActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockIsPureBlack = false;
     mockParentCanGoBack = true;
     jest
       .spyOn(global, 'requestAnimationFrame')
@@ -435,6 +451,54 @@ describe('TradeWalletActions', () => {
     expect(
       queryByTestId(WalletActionsBottomSheetSelectorsIDs.PREDICT_BUTTON),
     ).toBeNull();
+  });
+
+  it('adds border-muted to the menu container when pure black is enabled', () => {
+    mockIsPureBlack = true;
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const menuStyles = flattenStyle(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER).props
+        .style,
+    );
+
+    expect(
+      menuStyles.some(
+        (entry) => entry.borderWidth === 1 || entry.borderWidth === 0.5,
+      ),
+    ).toBe(true);
+  });
+
+  it('does not add a border to the menu container when pure black is disabled', () => {
+    mockIsPureBlack = false;
+
+    const { getByTestId } = renderScreen(
+      TradeWalletActions,
+      {
+        name: 'TradeWalletActions',
+      },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    const menuStyles = flattenStyle(
+      getByTestId(WalletActionsBottomSheetSelectorsIDs.MENU_CONTAINER).props
+        .style,
+    );
+
+    expect(menuStyles.some((entry) => entry.borderWidth !== undefined)).toBe(
+      false,
+    );
   });
 
   it('should render earn button if the stablecoin lending feature is enabled', () => {
