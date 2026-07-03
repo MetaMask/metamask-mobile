@@ -13,6 +13,9 @@ import {
   useTransactionPayRequiredTokens,
   useTransactionPaySourceAmounts,
 } from '../pay/useTransactionPayData';
+import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { QUOTE_REQUIRED_TRANSACTION_TYPES } from '../../constants/confirmations';
+import { hasTransactionType } from '../../utils/transaction';
 
 export function useNoPayTokenQuotesAlert() {
   const { payToken } = useTransactionPayToken();
@@ -23,6 +26,7 @@ export function useNoPayTokenQuotesAlert() {
   const requiredTokens = useTransactionPayRequiredTokens();
   const isPostQuote = useTransactionPayIsPostQuote();
   const isMaxAmount = useTransactionPayIsMaxAmount();
+  const transactionMeta = useTransactionMetadataRequest();
 
   const fiatAmount = Number(fiatPayment?.amountFiat);
   const hasValidFiatAmount = Number.isFinite(fiatAmount) && fiatAmount > 0;
@@ -77,10 +81,17 @@ export function useNoPayTokenQuotesAlert() {
     !quotes?.length &&
     hasPositiveRequiredAmount;
 
+  const shouldShowQuoteRequiredNoQuotesAlert =
+    hasTransactionType(transactionMeta, QUOTE_REQUIRED_TRANSACTION_TYPES) &&
+    !isQuotesLoading &&
+    !quotes?.length &&
+    hasPositiveRequiredAmount;
+
   const showAlert =
     shouldShowNonFiatNoQuotesAlert ||
     shouldShowFiatNoQuotesAlert ||
-    shouldShowPostQuoteNoQuotesAlert;
+    shouldShowPostQuoteNoQuotesAlert ||
+    shouldShowQuoteRequiredNoQuotesAlert;
 
   return useMemo(() => {
     if (!showAlert) {
