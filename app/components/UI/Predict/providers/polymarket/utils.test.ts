@@ -5,6 +5,7 @@ import Engine from '../../../../../core/Engine';
 import Logger from '../../../../../util/Logger';
 import { Side, type OrderPreview, type PredictOutcome } from '../../types';
 import { PREDICT_ERROR_CODES } from '../../constants/errors';
+import { PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS } from '../../constants/flags';
 import {
   DEFAULT_CLOB_BASE_URL,
   MATIC_CONTRACTS_V2,
@@ -30,6 +31,7 @@ import {
   getIsApprovedForAll,
   getOrderBook,
   getRawBalance,
+  getTickSizeRoundConfig,
   parsePolymarketEvents,
   parsePolymarketActivity,
   previewOrder,
@@ -252,6 +254,69 @@ describe('polymarket utils', () => {
     expect(parsedActivity[0].id).not.toBe(parsedActivity[1].id);
   });
 
+  it('preserves trade size from activity rows', () => {
+    const rawActivity = createRawActivity({
+      price: 0.18,
+      size: 11.11111,
+      usdcSize: 2.129179,
+    });
+
+    const [parsedActivity] = parsePolymarketActivity([rawActivity]);
+
+    expect(parsedActivity.entry).toMatchObject({
+      type: 'buy',
+      amount: 2.129179,
+      price: 0.18,
+      size: 11.11111,
+    });
+  });
+
+  it('preserves market slugs from activity rows when present', () => {
+    const [activity] = parsePolymarketActivity([
+      createRawActivity({
+        slug: 'will-it-rain-tomorrow',
+        eventSlug: 'weather-markets',
+      }),
+    ]);
+
+    expect(activity.slug).toBe('will-it-rain-tomorrow');
+    expect(activity.eventSlug).toBe('weather-markets');
+  });
+
+  it('preserves P&L fields from activity rows when present', () => {
+    const [activity] = parsePolymarketActivity([
+      createRawActivity({
+        netPnlUsd: -2.5,
+        totalNetPnlUsd: 12.5,
+      }),
+    ]);
+
+    expect(activity.netPnlUsd).toBe(-2.5);
+    expect(activity.totalNetPnlUsd).toBe(12.5);
+  });
+
+  it.each([
+    ['null', null],
+    ['undefined', undefined],
+    ['zero', 0],
+    ['empty string', ''],
+  ])('omits %s trade size instead of coercing it to zero', (_label, size) => {
+    const [activity] = parsePolymarketActivity([
+      createRawActivity({
+        size: size as PolymarketApiActivity['size'],
+        usdcSize: 2.129179,
+        price: 0.18,
+      }),
+    ]);
+
+    expect(activity.entry).toMatchObject({
+      type: 'buy',
+      amount: 2.129179,
+      price: 0.18,
+    });
+    expect(activity.entry).not.toHaveProperty('size');
+  });
+
   it('builds outcome groups only from supported and enabled sports market types', () => {
     const event = createNbaGameEvent([
       createSportsMarket({ id: 'moneyline', sportsMarketType: 'moneyline' }),
@@ -298,6 +363,50 @@ describe('polymarket utils', () => {
           expect.objectContaining({ key: 'totals' }),
         ],
       }),
+    ]);
+  });
+
+  it('surfaces extra time and penalty shootout as binary game lines subgroups', () => {
+    const event = createNbaGameEvent([
+      createSportsMarket({ id: 'moneyline', sportsMarketType: 'moneyline' }),
+      createSportsMarket({
+        id: 'extra-time',
+        sportsMarketType: 'soccer_extra_time',
+      }),
+      createSportsMarket({
+        id: 'penalty-shootout',
+        sportsMarketType: 'soccer_penalty_shootout',
+      }),
+    ]);
+
+    const [market] = parsePolymarketEvents([event], {
+      category: 'hot',
+      teamLookup: (_league, abbreviation) =>
+        nbaTeamsByAbbreviation[abbreviation],
+      extendedSportsMarketsLeagues: ['nba'],
+      enabledSportsMarketTypes: [
+        'moneyline',
+        'soccer_extra_time',
+        'soccer_penalty_shootout',
+      ],
+    });
+
+    const gameLines = market.outcomeGroups?.find(
+      (group) => group.key === 'game_lines',
+    );
+
+    expect(gameLines?.subgroups?.map((subgroup) => subgroup.key)).toEqual([
+      'moneyline',
+      'soccer_extra_time',
+      'soccer_penalty_shootout',
+    ]);
+
+    const extraTime = gameLines?.subgroups?.find(
+      (subgroup) => subgroup.key === 'soccer_extra_time',
+    );
+    expect(extraTime?.outcomes[0]?.tokens.map((token) => token.title)).toEqual([
+      'Yes',
+      'No',
     ]);
   });
 
@@ -1005,6 +1114,42 @@ describe('polymarket utils', () => {
       expect(requestedUrl).not.toContain('offset=');
     });
 
+    it('uses exact Wimbledon custom query params without normal feed filters', async () => {
+      await fetchEventsFromPolymarketApi({
+        category: 'wimbledon',
+        limit: 20,
+        customQueryParams: 'tag_slug=wimbledon&order=volume24hr',
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://gamma-api.polymarket.com/events/keyset?limit=20&tag_slug=wimbledon&order=volume24hr',
+      );
+      const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).not.toContain('liquidity_min');
+      expect(requestedUrl).not.toContain('volume_min');
+      expect(requestedUrl).not.toContain('offset=');
+    });
+
+    it('falls back to default Wimbledon query params without normal feed filters', async () => {
+      await fetchEventsFromPolymarketApi({
+        category: 'wimbledon',
+        limit: 10,
+      });
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://gamma-api.polymarket.com/events/keyset?limit=10&${PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS}`,
+      );
+      const requestedUrl = String(mockFetch.mock.calls[0][0]);
+      expect(requestedUrl).toContain('tag_id=100639');
+      expect(requestedUrl).toContain('tag_slug=tennis');
+      expect(requestedUrl).toContain('title_search=Wimbledon');
+      expect(requestedUrl).toContain('ended=false');
+      expect(requestedUrl).toContain('order=volume24hr');
+      expect(requestedUrl).not.toContain('liquidity_min');
+      expect(requestedUrl).not.toContain('volume_min');
+      expect(requestedUrl).not.toContain('offset=');
+    });
+
     it('keeps Hot category default query on normal feed filters without custom params', async () => {
       await fetchEventsFromPolymarketApi({
         category: 'hot',
@@ -1570,6 +1715,50 @@ describe('polymarket utils', () => {
     );
   });
 
+  describe('getTickSizeRoundConfig', () => {
+    it('uses explicit rounding config for documented 0.0025 tick size', () => {
+      expect(getTickSizeRoundConfig({ tickSize: '0.0025' })).toEqual({
+        tickSize: '0.0025',
+        roundConfig: {
+          price: 4,
+          size: 2,
+          amount: 6,
+        },
+      });
+    });
+
+    it('derives rounding config for valid tick sizes not in the static config', () => {
+      expect(getTickSizeRoundConfig({ tickSize: '0.005' })).toEqual({
+        tickSize: '0.005',
+        roundConfig: {
+          price: 3,
+          size: 2,
+          amount: 5,
+        },
+      });
+    });
+
+    it('normalizes scientific notation tick sizes before deriving config', () => {
+      expect(getTickSizeRoundConfig({ tickSize: 1e-6 })).toEqual({
+        tickSize: '0.000001',
+        roundConfig: {
+          price: 6,
+          size: 2,
+          amount: 6,
+        },
+      });
+    });
+
+    it.each([undefined, null, 0, -0.01, 1, Number.NaN, Infinity, 'invalid'])(
+      'throws for invalid tick size %p',
+      (tickSize) => {
+        expect(() => getTickSizeRoundConfig({ tickSize })).toThrow(
+          'Invalid Polymarket tick size',
+        );
+      },
+    );
+  });
+
   it('fetches CLOB market info and caches by condition ID', async () => {
     const marketInfo = {
       fd: {
@@ -1880,6 +2069,82 @@ describe('polymarket utils', () => {
     );
   });
 
+  it('previews buy orders with 0.0025 tick size from ROUNDING_CONFIG', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          ...orderBook,
+          tick_size: '0.0025',
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.02,
+            e: 1,
+            to: true,
+          },
+        }),
+      });
+
+    const preview = await previewOrder({
+      marketId: 'market-1',
+      outcomeId:
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      outcomeTokenId: 'token-1',
+      side: Side.BUY,
+      size: 10,
+    });
+
+    expect(preview).toEqual(
+      expect.objectContaining({
+        tickSize: 0.0025,
+        maxAmountSpent: 10,
+        minAmountReceived: 20,
+      }),
+    );
+  });
+
+  it('previews buy orders with runtime CLOB tick sizes outside the legacy config', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          ...orderBook,
+          tick_size: '0.005',
+        }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({
+          fd: {
+            r: 0.02,
+            e: 1,
+            to: true,
+          },
+        }),
+      });
+
+    const preview = await previewOrder({
+      marketId: 'market-1',
+      outcomeId:
+        '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',
+      outcomeTokenId: 'token-1',
+      side: Side.BUY,
+      size: 10,
+    });
+
+    expect(preview).toEqual(
+      expect.objectContaining({
+        tickSize: 0.005,
+        maxAmountSpent: 10,
+        minAmountReceived: 20,
+      }),
+    );
+  });
+
   it('uses v2 CLOB endpoint for buy preview order book and market info', async () => {
     const v2ClobBaseUrl = 'https://clob-v2.example.com';
     mockFetch
@@ -1944,7 +2209,7 @@ describe('polymarket utils', () => {
         side: Side.SELL,
       }),
     );
-    expect(preview.fees).toBeUndefined();
+    expect(preview.fees).toBeDefined();
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch).toHaveBeenCalledWith(
       `${DEFAULT_CLOB_BASE_URL}/book?token_id=token-1`,

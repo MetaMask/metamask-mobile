@@ -1,3 +1,5 @@
+import React, { useCallback } from 'react';
+import { TouchableOpacity } from 'react-native';
 import {
   Box,
   BoxAlignItems,
@@ -10,8 +12,6 @@ import {
 } from '@metamask/design-system-react-native';
 import { getPerpsDisplaySymbol } from '@metamask/perps-controller';
 import type { Position } from '@metamask/social-controllers';
-import React from 'react';
-import { TouchableOpacity } from 'react-native';
 import PerpBadges from '../../components/PerpBadges';
 import PositionTokenAvatar from '../../components/PositionTokenAvatar';
 import {
@@ -34,7 +34,7 @@ export interface PositionRowProps {
   showTradeDate?: boolean;
 }
 
-const PositionRow: React.FC<PositionRowProps> = ({
+const PositionRowComponent: React.FC<PositionRowProps> = ({
   position,
   onPress,
   isClosed: isClosedProp,
@@ -77,6 +77,10 @@ const PositionRow: React.FC<PositionRowProps> = ({
   const displaySymbol = getPerpsDisplaySymbol(position.tokenSymbol);
 
   const perpDirection = getPerpPositionDirection(position);
+
+  const handlePress = useCallback(() => {
+    onPress?.(position);
+  }, [onPress, position]);
 
   // Open positions — perp and spot alike — show the current position value in
   // neutral white (matching spot). Closed positions show signed, colored
@@ -206,7 +210,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity onPress={() => onPress(position)} testID={testID}>
+      <TouchableOpacity onPress={handlePress} testID={testID}>
         {content}
       </TouchableOpacity>
     );
@@ -214,5 +218,7 @@ const PositionRow: React.FC<PositionRowProps> = ({
 
   return content;
 };
+
+const PositionRow = React.memo(PositionRowComponent);
 
 export default PositionRow;

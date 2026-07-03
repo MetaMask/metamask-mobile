@@ -87,6 +87,43 @@ export function mapLocalTransaction(
     };
   };
 
+  const getNativeTokenWithAmount = (
+    direction: TokenAmount['direction'],
+    amount?: string,
+  ) => {
+    if (nativeSymbol === undefined) {
+      return undefined;
+    }
+    return {
+      direction,
+      symbol: nativeSymbol,
+      ...(amount ? { amount } : {}),
+      ...(nativeAsset?.assetId ? { assetId: nativeAsset.assetId } : {}),
+      decimals: nativeAsset?.decimals ?? EVM_NATIVE_DECIMALS,
+    };
+  };
+
+  const getUnstakeAmount = (): string | undefined => {
+    const data = initialTransaction.txParams.data;
+    if (!data || data.length < 74) {
+      return undefined;
+    }
+    try {
+      const shares = BigInt(`0x${data.slice(10, 74)}`);
+      return shares > 0n ? `0x${shares.toString(16)}` : undefined;
+    } catch {
+      return undefined;
+    }
+  };
+
+  const getClaimAmount = (): string | undefined => {
+    const change = initialTransaction.simulationData?.nativeBalanceChange;
+    if (!change || change.isDecrease) {
+      return undefined;
+    }
+    return change.difference;
+  };
+
   const getContractToken = ({
     amount,
     contractAddress,
@@ -392,6 +429,40 @@ export function mapLocalTransaction(
     return predictFundsActivity;
   }
 
+  const getSmartAccountUpgradeActivity = (): ActivityListItem | undefined => {
+    // EIP-7702: a transaction carrying an authorization list is the one that
+    // delegates (upgrades) the EOA to a smart account. This is the canonical
+    // `isUpgrade` signal used elsewhere (see transaction-controller batch
+    // metrics). Checked after the more specific early-returns above so a batch
+    // that also performs a recognised action (e.g. a Predict deposit) keeps its
+    // action label.
+    if (!initialTransaction.txParams.authorizationList?.length) {
+      return undefined;
+    }
+    // No asset moves in an upgrade — the only ETH movement is gas, so the row
+    // shows the gas paid as a native-asset amount (rendered like any other tx).
+    const gasAmount = fees?.find((fee) => fee.type === 'base')?.amount;
+    return {
+      type: 'smartAccountUpgrade',
+      chainId,
+      status,
+      timestamp,
+      hash,
+      raw: { type: 'localTransaction', data: transactionGroup },
+      data: {
+        from,
+        to,
+        token: getNativeTokenWithAmount('out', gasAmount),
+        ...(fees ? { fees } : {}),
+      },
+    };
+  };
+
+  const smartAccountUpgradeActivity = getSmartAccountUpgradeActivity();
+  if (smartAccountUpgradeActivity) {
+    return smartAccountUpgradeActivity;
+  }
+
   switch (initialTransaction.type) {
     case TransactionType.simpleSend: {
       return {
@@ -616,11 +687,39 @@ export function mapLocalTransaction(
         hash,
         raw: { type: 'localTransaction', data: transactionGroup },
         data: {
-          token: getContractToken({
-            transaction: initialTransaction,
-            direction: 'out',
-            contractAddress: initialTransaction.txParams.to,
-          }),
+          token: getNativeTokenWithAmount(
+            'out',
+            initialTransaction.txParams.value,
+          ),
+          ...(fees ? { fees } : {}),
+        },
+      };
+
+    case TransactionType.stakingClaim:
+      return {
+        type: 'claim',
+        chainId,
+        status,
+        timestamp,
+        hash,
+        raw: { type: 'localTransaction', data: transactionGroup },
+        data: {
+          token: getNativeTokenWithAmount('in', getClaimAmount()),
+          ...(fees ? { fees } : {}),
+        },
+      };
+
+    case TransactionType.stakingUnstake:
+      return {
+        type: 'unstake',
+        chainId,
+        status,
+        timestamp,
+        hash,
+        raw: { type: 'localTransaction', data: transactionGroup },
+        data: {
+          token: getNativeTokenWithAmount('in', getUnstakeAmount()),
+          ...(fees ? { fees } : {}),
         },
       };
 

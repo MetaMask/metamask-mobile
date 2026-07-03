@@ -10,7 +10,10 @@ import {
   getPredictFeedSelector,
   getPredictFeedMockSelector,
 } from '../../Predict.testIds';
-import { DEFAULT_PREDICT_WORLD_CUP_FLAG } from '../../constants/flags';
+import {
+  DEFAULT_PREDICT_WORLD_CUP_FLAG,
+  PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+} from '../../constants/flags';
 import { buildPredictWorldCupAllQuery } from '../../utils/worldCup';
 
 jest.mock('react-native-reanimated', () => {
@@ -107,6 +110,11 @@ const mockHotTabFlag: { enabled: boolean; queryParams?: string } = {
 };
 let mockIsWorldCupMainFeedTabEnabled = false;
 let mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
+let mockWimbledonTabFlag = {
+  enabled: false,
+  queryParams: PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+  minimumVersion: '',
+};
 let mockIsFeaturedCarouselEnabled = false;
 let mockIsUpDownEnabled = false;
 let mockIsPredictPortfolioEnabled = false;
@@ -125,6 +133,7 @@ jest.mock('../../selectors/featureFlags', () => ({
   selectPredictHotTabFlag: 'selectPredictHotTabFlag',
   selectPredictPortfolioEnabledFlag: 'selectPredictPortfolioEnabledFlag',
   selectPredictUpDownEnabledFlag: 'selectPredictUpDownEnabledFlag',
+  selectPredictWimbledonTabFlag: 'selectPredictWimbledonTabFlag',
   selectPredictWorldCupConfig: 'selectPredictWorldCupConfig',
   selectPredictWorldCupMainFeedTabEnabledFlag:
     'selectPredictWorldCupMainFeedTabEnabledFlag',
@@ -328,6 +337,11 @@ describe('PredictFeed', () => {
     mockHotTabFlag.queryParams = undefined;
     mockIsWorldCupMainFeedTabEnabled = false;
     mockWorldCupConfig = DEFAULT_PREDICT_WORLD_CUP_FLAG;
+    mockWimbledonTabFlag = {
+      enabled: false,
+      queryParams: PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+      minimumVersion: '',
+    };
     mockIsFeaturedCarouselEnabled = false;
     mockIsUpDownEnabled = false;
     mockIsPredictPortfolioEnabled = false;
@@ -341,6 +355,8 @@ describe('PredictFeed', () => {
           return mockIsPredictPortfolioEnabled;
         case 'selectPredictUpDownEnabledFlag':
           return mockIsUpDownEnabled;
+        case 'selectPredictWimbledonTabFlag':
+          return mockWimbledonTabFlag;
         case 'selectPredictWorldCupConfig':
           return mockWorldCupConfig;
         case 'selectPredictWorldCupMainFeedTabEnabledFlag':
