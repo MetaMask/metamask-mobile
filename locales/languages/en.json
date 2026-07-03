@@ -7118,10 +7118,8 @@
     "balance_no_account": "Money account not found",
     "onboarding": {
       "step_1": {
-        "title": "Earn up to {{apy}}% APY",
-        "title_no_apy": "Fund your Money account",
-        "description": "Fund your Money account and watch your balance grow with up to {{apy}}% APY (variable).",
-        "description_no_apy": "Fund your Money account and watch your balance grow.",
+        "title": "Fund your account",
+        "description": "Drop in some funds. Your Money account will handle the rest.",
         "cta": "Add funds"
       },
       "step_2": {
