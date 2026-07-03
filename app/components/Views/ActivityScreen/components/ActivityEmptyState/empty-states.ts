@@ -26,6 +26,7 @@ export interface ActivityEmptyStateConfig {
 interface GetEmptyStateArgs {
   filter: ActivityTypeFilter;
   hasFunds: boolean;
+  perpsSubFilterActive?: boolean;
 }
 
 /**
@@ -38,6 +39,7 @@ interface GetEmptyStateArgs {
 export function getActivityEmptyState({
   filter,
   hasFunds,
+  perpsSubFilterActive = false,
 }: GetEmptyStateArgs): ActivityEmptyStateConfig {
   switch (filter) {
     case ActivityTypeFilter.Predictions:
@@ -48,6 +50,14 @@ export function getActivityEmptyState({
       };
 
     case ActivityTypeFilter.Perps:
+      if (perpsSubFilterActive) {
+        return {
+          descriptionKey:
+            'activity_view.empty_state.perps_sub_filter.description',
+          actionLabelKey: 'activity_view.empty_state.perps.action',
+          action: ActivityEmptyStateAction.BrowsePerpsMarkets,
+        };
+      }
       return {
         descriptionKey: 'activity_view.empty_state.perps.description',
         actionLabelKey: 'activity_view.empty_state.perps.action',

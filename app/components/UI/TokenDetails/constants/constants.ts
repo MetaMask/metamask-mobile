@@ -30,6 +30,8 @@ export enum TokenDetailsSource {
   HomepageTrending = 'homepage-trending',
   /** Swap/Bridge token selector */
   Swap = 'swap',
+  /** Price alert notification deeplink */
+  PriceAlertNotification = 'price_alert_notification',
   /** Fallback when source cannot be determined */
   Unknown = 'unknown',
 }

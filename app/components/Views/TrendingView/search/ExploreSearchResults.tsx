@@ -173,28 +173,30 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
             }}
             endAccessory={
               viewMoreLabel !== null ? (
-                <Pressable
-                  onPress={() => handleViewMore(section)}
-                  hitSlop={8}
-                  accessibilityRole="button"
-                  accessibilityLabel={`${viewMoreLabel} ${item.title}`}
-                  style={({ pressed }) => [
-                    pressedStyle.pressable,
-                    pressed && { opacity: 0.5 },
-                  ]}
-                >
-                  <Text
-                    variant={TextVariant.BodyMd}
-                    color={TextColor.TextAlternative}
+                <Box twClassName="flex-1 justify-end items-end">
+                  <Pressable
+                    onPress={() => handleViewMore(section)}
+                    hitSlop={8}
+                    accessibilityRole="button"
+                    accessibilityLabel={`${viewMoreLabel} ${item.title}`}
+                    style={({ pressed }) => [
+                      pressedStyle.pressable,
+                      pressed && { opacity: 0.5 },
+                    ]}
                   >
-                    {viewMoreLabel}
-                  </Text>
-                  <Icon
-                    name={IconName.ArrowRight}
-                    size={IconSize.Sm}
-                    color={IconColor.IconAlternative}
-                  />
-                </Pressable>
+                    <Text
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextAlternative}
+                    >
+                      {viewMoreLabel}
+                    </Text>
+                    <Icon
+                      name={IconName.ArrowRight}
+                      size={IconSize.Sm}
+                      color={IconColor.IconAlternative}
+                    />
+                  </Pressable>
+                </Box>
               ) : undefined
             }
           />

@@ -36,7 +36,13 @@ const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 const MONTH_MS = 30 * DAY_MS;
 
-const TRADE_FOCUS_PERIOD_ORDER: readonly TimePeriod[] = ['1M', 'All'];
+const TRADE_FOCUS_PERIOD_ORDER: readonly TimePeriod[] = [
+  '1H',
+  '1D',
+  '1W',
+  '1M',
+  'All',
+];
 
 const TRADE_FOCUS_SPAN_MS: Record<TimePeriod, number> = {
   '1H': HOUR_MS,
@@ -86,6 +92,9 @@ export function getRecommendedTradeFocusPeriod(
     ? Math.max(0, nowMs - tradeTime)
     : Number.POSITIVE_INFINITY;
 
+  if (ageMs <= HOUR_MS) return '1H';
+  if (ageMs <= DAY_MS) return '1D';
+  if (ageMs <= 7 * DAY_MS) return '1W';
   return ageMs <= MONTH_MS ? '1M' : 'All';
 }
 
@@ -96,17 +105,9 @@ function getNextWiderTradeFocusPeriod(period: TimePeriod): TimePeriod | null {
 
 function getFallbackTradeFocusPeriod(
   currentPeriod: TimePeriod,
-  timestamp: number,
-  isPerp: boolean,
 ): TimePeriod | null {
   if (currentPeriod === 'All') return null;
-
-  const recommendedPeriod = getRecommendedTradeFocusPeriod(timestamp, isPerp);
-  if (currentPeriod === recommendedPeriod) {
-    return getNextWiderTradeFocusPeriod(currentPeriod);
-  }
-
-  return recommendedPeriod;
+  return getNextWiderTradeFocusPeriod(currentPeriod);
 }
 
 /**
@@ -132,6 +133,49 @@ export function mapTradesToAdvancedMarkers(
   return markers;
 }
 
+function getMarkerTimeRange(markers: readonly TradeMarker[]): {
+  min: number;
+  max: number;
+  center: number;
+} | null {
+  if (!markers.length) return null;
+
+  let min = Infinity;
+  let max = -Infinity;
+
+  for (const marker of markers) {
+    if (!Number.isFinite(marker.time)) continue;
+    min = Math.min(min, marker.time);
+    max = Math.max(max, marker.time);
+  }
+
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+
+  return {
+    min,
+    max,
+    center: (min + max) / 2,
+  };
+}
+
+function ohlcvDataCoversMarkerRange(
+  ohlcvData: readonly OHLCVBar[],
+  markerRange: { min: number; max: number },
+): boolean {
+  const firstBarTime = ohlcvData[0]?.time;
+  const lastBarTime = ohlcvData[ohlcvData.length - 1]?.time;
+  return Boolean(
+    firstBarTime != null &&
+      lastBarTime != null &&
+      markerRange.min >= firstBarTime &&
+      markerRange.max <= lastBarTime,
+  );
+}
+
+function isSpotPeriodLoaded(spot: ReturnType<typeof useOHLCVChart>): boolean {
+  return !spot.isLoading && !spot.error;
+}
+
 /**
  * A request to slide the chart to a trade and pulse its marker. `timestamp` is
  * the trade's timestamp (seconds or ms — normalized here); `id` is its
@@ -142,7 +186,6 @@ export interface TradeFocusRequest {
   id: string;
   timestamp: number;
   nonce: number;
-  timePeriod: TimePeriod;
   spanMs: number;
 }
 
@@ -161,6 +204,8 @@ export interface TraderAdvancedChartProps {
   isPerp?: boolean;
   /** Social Trading period selection (`1H`..`All`). */
   activeTimePeriod: TimePeriod;
+  /** Allow automatic period widening when the current interval lacks trade-date candles. */
+  shouldAutoRequestTimePeriod?: boolean;
   /** Trades to render as open/close circles. */
   trades: readonly Trade[];
   /** When set, the chart slides to center this trade's time (see {@link TradeFocusRequest}). */
@@ -203,6 +248,7 @@ const TraderAdvancedChart = ({
   assetId,
   isPerp = false,
   activeTimePeriod,
+  shouldAutoRequestTimePeriod = false,
   trades,
   focusRequest,
   onRequestTimePeriod,
@@ -267,16 +313,26 @@ const TraderAdvancedChart = ({
     interval: allConfig.interval,
     vsCurrency,
   });
+  const spotByPeriod = useMemo(
+    () => ({
+      '1H': hourSpot,
+      '1D': daySpot,
+      '1W': weekSpot,
+      '1M': monthSpot,
+      All: allSpot,
+    }),
+    [hourSpot, daySpot, weekSpot, monthSpot, allSpot],
+  );
   const spot =
     activeTimePeriod === '1H'
-      ? hourSpot
+      ? spotByPeriod['1H']
       : activeTimePeriod === '1D'
-        ? daySpot
+        ? spotByPeriod['1D']
         : activeTimePeriod === '1W'
-          ? weekSpot
+          ? spotByPeriod['1W']
           : activeTimePeriod === '1M'
-            ? monthSpot
-            : allSpot;
+            ? spotByPeriod['1M']
+            : spotByPeriod.All;
 
   // Perps (Hyperliquid) have no CAIP asset id and no spot OHLCV feed; their price
   // history is already fetched as a line series (`historicalPrices`, from the
@@ -351,6 +407,55 @@ const TraderAdvancedChart = ({
     () => mapTradesToAdvancedMarkers(trades),
     [trades],
   );
+  const allTradeTimeRange = useMemo(
+    () => getMarkerTimeRange(tradeMarkers),
+    [tradeMarkers],
+  );
+
+  useEffect(() => {
+    if (
+      isPerp ||
+      !shouldAutoRequestTimePeriod ||
+      !onRequestTimePeriod ||
+      !allTradeTimeRange
+    ) {
+      return;
+    }
+
+    const activeSpot = spotByPeriod[activeTimePeriod];
+    if (!isSpotPeriodLoaded(activeSpot)) return;
+
+    if (ohlcvDataCoversMarkerRange(activeSpot.ohlcvData, allTradeTimeRange)) {
+      return;
+    }
+
+    const activeIndex = TRADE_FOCUS_PERIOD_ORDER.indexOf(activeTimePeriod);
+    if (activeIndex < 0) return;
+
+    for (const period of TRADE_FOCUS_PERIOD_ORDER.slice(activeIndex + 1)) {
+      const candidateSpot = spotByPeriod[period];
+
+      // Wait for each narrower period to settle before skipping it, otherwise
+      // the chart could jump wider than necessary while warm requests finish.
+      if (!isSpotPeriodLoaded(candidateSpot)) {
+        return;
+      }
+
+      if (
+        ohlcvDataCoversMarkerRange(candidateSpot.ohlcvData, allTradeTimeRange)
+      ) {
+        onRequestTimePeriod(period);
+        return;
+      }
+    }
+  }, [
+    activeTimePeriod,
+    allTradeTimeRange,
+    isPerp,
+    onRequestTimePeriod,
+    shouldAutoRequestTimePeriod,
+    spotByPeriod,
+  ]);
 
   // Subset within the currently-loaded window — used ONLY to frame the initial
   // viewport (below). Framing must not span the full trade history, or the period
@@ -367,9 +472,10 @@ const TraderAdvancedChart = ({
   // Visible viewport. Unlike Token Details (which always shows the trailing
   // `durationMs`), a position chart must FRAME THE TRADES: a closed position may
   // have traded weeks before the feed's last candle, so a trailing window would
-  // push the markers off-screen to the left. We center the trades and enforce a
-  // minimum span of `durationMs` so a tight entry/exit isn't over-zoomed, then
-  // clamp to the loaded data range. With no markers we keep the trailing window.
+  // push the markers off-screen to the left. When trades exist, request a window
+  // centered on the first/last trade midpoint even if the current OHLCV page does
+  // not yet include that time — the WebView datafeed can paginate older candles
+  // for the requested range before TradingView paints it.
   const { visibleFromMs, visibleToMs } = useMemo(() => {
     if (lastBarTime == null || !ohlcvData.length) {
       return { visibleFromMs: undefined, visibleToMs: undefined };
@@ -378,7 +484,18 @@ const TraderAdvancedChart = ({
     let from: number;
     let to: number;
 
-    if (framingMarkers.length) {
+    if (allTradeTimeRange) {
+      // Frame the first→last trade so the position fills the screen, padded so
+      // the outer markers aren't flush against the edges. A single/clustered
+      // trade has ~no span, so the pad floors to a fraction of the period for
+      // context. We deliberately do NOT widen to a fixed `durationMs` window
+      // centered on the trades: when the asset has fewer candles than the
+      // period's nominal span, that left a large blank gap at the oldest edge.
+      const { min: minT, max: maxT } = allTradeTimeRange;
+      const pad = Math.max(maxT - minT, config.durationMs * 0.5) * 0.2;
+      from = minT - pad;
+      to = maxT + pad;
+    } else if (framingMarkers.length) {
       const times = framingMarkers.map((m) => m.time);
       const minT = Math.min(...times);
       const maxT = Math.max(...times);
@@ -396,11 +513,28 @@ const TraderAdvancedChart = ({
       from = lastBarTime - config.durationMs;
     }
 
+    // Clamp to the loaded candle range so the viewport never extends past the
+    // available data into a blank gap ("fill the screen ... if the data is
+    // available"). `from` is allowed below the loaded range only while older
+    // candles can still be paginated in, so a position older than the first
+    // page is still framed once the WebView datafeed pages it into view.
+    const canPaginateOlder = !isPerp && Boolean(ohlcvPagination?.hasMore);
     return {
-      visibleFromMs: Math.max(from, firstBarTime),
+      visibleFromMs:
+        allTradeTimeRange && canPaginateOlder
+          ? from
+          : Math.max(from, firstBarTime),
       visibleToMs: Math.min(to, lastBarTime),
     };
-  }, [lastBarTime, ohlcvData, framingMarkers, config.durationMs]);
+  }, [
+    lastBarTime,
+    ohlcvData,
+    allTradeTimeRange,
+    framingMarkers,
+    config.durationMs,
+    isPerp,
+    ohlcvPagination,
+  ]);
 
   // Reference price for crosshair % change: the first bar inside the window.
   const comparePrice = useMemo(() => {
@@ -428,12 +562,18 @@ const TraderAdvancedChart = ({
     !chartLoading &&
     (ohlcvData.length < CHART_DATA_THRESHOLD || hasEmptyData || !!chartError);
 
-  // Slide the chart to center a tapped trade only after the current period's
-  // loaded bars actually contain the target time. If not, ask the parent to
-  // fallback to the month/all focus ranges and re-check after reload.
+  // Slide the chart to center a tapped trade once the current period's loaded
+  // bars actually contain the target time. If not, ask the parent to try the
+  // next wider period and re-check after reload.
+  //
+  // We evaluate against whatever period is currently active rather than the one
+  // active at tap time: the auto-period selection can widen the period after the
+  // tap (e.g. perp price coverage settling), and pinning to the tap-time period
+  // would leave the request stuck forever. `chartLoading` gates transitions so we
+  // never focus against a not-yet-loaded period, and the nonce guard stops a
+  // handled request from re-firing.
   useEffect(() => {
     if (!focusRequest || chartLoading || shouldFallback) return;
-    if (activeTimePeriod !== focusRequest.timePeriod) return;
     if (handledFocusNonceRef.current === focusRequest.nonce) return;
 
     const tradeTime = normalizeTs(focusRequest.timestamp);
@@ -460,11 +600,7 @@ const TraderAdvancedChart = ({
     }
 
     if (tradeTime < firstBarTime) {
-      const fallbackPeriod = getFallbackTradeFocusPeriod(
-        activeTimePeriod,
-        focusRequest.timestamp,
-        isPerp,
-      );
+      const fallbackPeriod = getFallbackTradeFocusPeriod(activeTimePeriod);
       if (fallbackPeriod && onRequestTimePeriod) {
         onRequestTimePeriod(fallbackPeriod);
         return;
@@ -500,6 +636,10 @@ const TraderAdvancedChart = ({
     <View style={{ height: chartHeight }} testID="trader-advanced-chart">
       <AdvancedChart
         ref={chartRef}
+        // Opt into the SocialLeaderboard-only chart behavior (trade-framed
+        // centering, back-fill pagination, full-window focus guard). Scopes that
+        // logic to this consumer so it can't affect Token Details / Perps.
+        slbMode
         scrollPassthrough={scrollPassthrough}
         ohlcvData={ohlcvData}
         ohlcvSeriesKey={ohlcvSeriesKey}
