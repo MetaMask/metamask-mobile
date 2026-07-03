@@ -9,7 +9,7 @@
 
 import { act, renderHook } from '@testing-library/react-native';
 import { LayoutChangeEvent } from 'react-native';
-import { DEFAULT_DWELL_MS } from './sectionImpressionTracker';
+import { DEFAULT_DWELL_MS } from '../utils/sectionViewTracker';
 import { usePredictSectionImpressions } from './usePredictSectionImpressions';
 
 // ---------------------------------------------------------------------------

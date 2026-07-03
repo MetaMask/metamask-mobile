@@ -1,8 +1,8 @@
 import {
   computeSectionVisibleRatio,
-  createSectionImpressionTracker,
+  createSectionViewTracker,
   DEFAULT_DWELL_MS,
-} from './sectionImpressionTracker';
+} from './sectionViewTracker';
 
 describe('computeSectionVisibleRatio', () => {
   const viewportHeight = 800;
@@ -44,7 +44,7 @@ describe('computeSectionVisibleRatio', () => {
   });
 });
 
-describe('createSectionImpressionTracker', () => {
+describe('createSectionViewTracker', () => {
   beforeEach(() => {
     jest.useFakeTimers();
   });
@@ -55,7 +55,7 @@ describe('createSectionImpressionTracker', () => {
 
   const setup = () => {
     const onViewed = jest.fn();
-    const tracker = createSectionImpressionTracker({ onViewed });
+    const tracker = createSectionViewTracker({ onViewed });
     return { onViewed, tracker };
   };
 

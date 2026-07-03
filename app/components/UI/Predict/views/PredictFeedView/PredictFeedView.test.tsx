@@ -580,6 +580,107 @@ describe('PredictFeedView', () => {
       expect(mockTrackFeedFilterChanged).not.toHaveBeenCalled();
     });
 
+    it('delays trackFeedViewed until a dynamic initialFilterId resolves', () => {
+      // Simulate entry from a Popular-Today home chip: initialFilterId targets a
+      // dynamic filter that hasn't loaded yet.
+      mockRouteParams = {
+        feedId: 'popular-today',
+        initialFilterId: 'soccer',
+        entryPoint: 'home_chip',
+      };
+
+      // First render: dynamic filters are still loading; activeFilterId is the
+      // default ('all') because the dynamic option hasn't resolved yet.
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'popular-today',
+          dynamicFilters: { status: 'loading' },
+          activeFilterId: 'all',
+        }),
+      );
+
+      const { rerender } = render(<PredictFeedView />);
+
+      // trackFeedViewed must NOT fire yet — filter is still settling.
+      expect(mockTrackFeedViewed).not.toHaveBeenCalled();
+
+      // Dynamic filters resolve; the pending filter is now applied.
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'popular-today',
+          dynamicFilters: { status: 'ready' },
+          activeFilterId: 'soccer',
+          filters: [
+            {
+              id: 'all',
+              titleKey: 'predict.feed.filters.all',
+              params: {},
+              isDynamic: false,
+            },
+            {
+              id: 'soccer',
+              label: 'Soccer',
+              params: { tagSlugs: ['soccer'] },
+              isDynamic: true,
+            },
+          ],
+          activeFilter: {
+            id: 'soccer',
+            label: 'Soccer',
+            params: { tagSlugs: ['soccer'] },
+            isDynamic: true,
+          },
+        }),
+      );
+
+      rerender(<PredictFeedView />);
+
+      expect(mockTrackFeedViewed).toHaveBeenCalledTimes(1);
+      expect(mockTrackFeedViewed).toHaveBeenCalledWith({
+        feedId: 'popular-today',
+        tabId: 'basketball',
+        filterId: 'soccer',
+        trackingMode: 'focus',
+        entryPoint: 'home_chip',
+      });
+    });
+
+    it('fires trackFeedViewed with fallback filter when dynamic loading fails (unavailable)', () => {
+      mockRouteParams = {
+        feedId: 'popular-today',
+        initialFilterId: 'soccer',
+        entryPoint: 'home_chip',
+      };
+
+      // Initially loading.
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'popular-today',
+          dynamicFilters: { status: 'loading' },
+          activeFilterId: 'all',
+        }),
+      );
+
+      const { rerender } = render(<PredictFeedView />);
+      expect(mockTrackFeedViewed).not.toHaveBeenCalled();
+
+      // Dynamic filters fail — status becomes unavailable, filter stays 'all'.
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'popular-today',
+          dynamicFilters: { status: 'unavailable' },
+          activeFilterId: 'all',
+        }),
+      );
+
+      rerender(<PredictFeedView />);
+
+      expect(mockTrackFeedViewed).toHaveBeenCalledTimes(1);
+      expect(mockTrackFeedViewed).toHaveBeenCalledWith(
+        expect.objectContaining({ filterId: 'all' }),
+      );
+    });
+
     it('tracks search opened from the header search icon', () => {
       mockRouteParams = { feedId: 'sports', entryPoint: 'home_section' };
 

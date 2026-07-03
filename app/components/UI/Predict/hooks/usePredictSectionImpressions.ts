@@ -6,9 +6,9 @@ import {
   type SharedValue,
 } from 'react-native-reanimated';
 import {
-  createSectionImpressionTracker,
-  type SectionImpressionTracker,
-} from './sectionImpressionTracker';
+  createSectionViewTracker,
+  type SectionViewTracker,
+} from '../utils/sectionViewTracker';
 
 export interface UsePredictSectionImpressionsParams {
   /** Scroll offset shared value driving the page (from usePredictStackedHeader). */
@@ -50,9 +50,9 @@ export const usePredictSectionImpressions = ({
     onViewedRef.current = onSectionViewed;
   }, [onSectionViewed]);
 
-  const trackerRef = useRef<SectionImpressionTracker | undefined>(undefined);
+  const trackerRef = useRef<SectionViewTracker | undefined>(undefined);
   if (!trackerRef.current) {
-    trackerRef.current = createSectionImpressionTracker({
+    trackerRef.current = createSectionViewTracker({
       onViewed: (sectionId) => onViewedRef.current(sectionId),
       threshold,
       dwellMs,

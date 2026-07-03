@@ -70,12 +70,25 @@ const PredictFeedView: React.FC = () => {
     activeTabId,
     setActiveTabId,
     filters,
+    dynamicFilters,
     activeFilterId,
     setActiveFilterId,
     activeFilter,
   } = usePredictFeedConfig(feedId, { initialTabId, initialFilterId });
 
   const isReady = status === 'ready';
+
+  // True once the active filter state is stable enough to log. Delays firing
+  // `trackFeedViewed` when `initialFilterId` targets a dynamic chip (e.g., a
+  // Popular Today filter from the home) that hasn't resolved yet: dynamic
+  // filters load asynchronously and `usePredictFeedConfig` only applies the
+  // pending dynamic filter after the fetch settles. If loading fails
+  // (`unavailable`), fall back and fire with whatever filter is active.
+  const isFilterSettled =
+    dynamicFilters.status !== 'loading' &&
+    (!initialFilterId ||
+      activeFilterId === initialFilterId ||
+      dynamicFilters.status === 'unavailable');
 
   const {
     isSearchVisible,
@@ -115,10 +128,18 @@ const PredictFeedView: React.FC = () => {
     }, []),
   );
 
-  // Fire once per focus when the feed config is ready.
+  // Fire once per focus when the feed config is ready and the filter selection
+  // has settled. `isFilterSettled` delays the fire when `initialFilterId`
+  // targets a dynamic chip that hasn't resolved yet; `feedSelectionRef` carries
+  // the latest tab/filter at fire-time so they don't need to be effect deps.
   useFocusEffect(
     useCallback(() => {
-      if (!isReady || !feedId || feedViewedFiredRef.current) {
+      if (
+        !isReady ||
+        !feedId ||
+        !isFilterSettled ||
+        feedViewedFiredRef.current
+      ) {
         return;
       }
       feedViewedFiredRef.current = true;
@@ -129,7 +150,7 @@ const PredictFeedView: React.FC = () => {
         trackingMode: 'focus',
         entryPoint,
       });
-    }, [isReady, feedId, entryPoint]),
+    }, [isReady, feedId, isFilterSettled, entryPoint]),
   );
 
   const handleBack = useCallback(() => {

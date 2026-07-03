@@ -1,5 +1,5 @@
 /**
- * Section impression tracking core (framework-agnostic).
+ * Section view tracking core (framework-agnostic).
  *
  * Powers `usePredictSectionImpressions`. Kept free of React/Reanimated so all
  * visibility + dwell logic is plain, deterministically unit-testable JS. The
@@ -19,13 +19,13 @@ export interface SectionLayout {
   height: number;
 }
 
-export interface SectionImpressionTrackerOptions {
+export interface SectionViewTrackerOptions {
   onViewed: (sectionId: string) => void;
   threshold?: number;
   dwellMs?: number;
 }
 
-export interface SectionImpressionTracker {
+export interface SectionViewTracker {
   setViewportHeight: (height: number) => void;
   setLayout: (sectionId: string, layout: SectionLayout) => void;
   setScrollY: (scrollY: number) => void;
@@ -68,11 +68,11 @@ export const computeSectionVisibleRatio = (
  * >= `dwellMs`. Scrolling a section back below the threshold cancels its
  * pending dwell timer.
  */
-export const createSectionImpressionTracker = ({
+export const createSectionViewTracker = ({
   onViewed,
   threshold = DEFAULT_VISIBILITY_THRESHOLD,
   dwellMs = DEFAULT_DWELL_MS,
-}: SectionImpressionTrackerOptions): SectionImpressionTracker => {
+}: SectionViewTrackerOptions): SectionViewTracker => {
   const layouts = new Map<string, SectionLayout>();
   const timers = new Map<string, ReturnType<typeof setTimeout>>();
   const fired = new Set<string>();

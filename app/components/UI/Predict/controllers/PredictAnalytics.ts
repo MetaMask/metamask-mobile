@@ -118,6 +118,11 @@ export interface FeedFilterChangedArgs {
   entryPoint?: string;
 }
 
+export interface CategoryClickedArgs {
+  categoryName: string;
+  entryPoint?: string;
+}
+
 export interface BannerArgs {
   actionType: string;
   bannerType: string;
@@ -505,6 +510,10 @@ export class PredictAnalytics {
 
   public trackBannerAction(params: BannerArgs): void {
     this.trackConfiguredEvent('bannerAction', params);
+  }
+
+  public trackCategoryClicked(params: CategoryClickedArgs): void {
+    this.trackConfiguredEvent('categoryClicked', params);
   }
 
   public trackShareAction(params: ShareActionArgs): void {
