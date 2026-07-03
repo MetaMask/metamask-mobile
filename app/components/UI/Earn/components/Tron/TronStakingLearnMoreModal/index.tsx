@@ -20,6 +20,14 @@ import {
   StakingInfoStrings,
 } from '../../../../Stake/components/LearnMoreModal';
 import { TRON_STAKING_FAQ_URL } from '../../../../../../constants/urls';
+import { AppStackNavigationProp } from '../../../../../../core/NavigationService/types';
+import { useNavigation } from '@react-navigation/native';
+import { MetaMetricsEvents } from '../../../../../../core/Analytics';
+import {
+  EVENT_LOCATIONS,
+  EVENT_PROVIDERS,
+} from '../../../../../UI/Stake/constants/events';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 
 const TronStakingLearnMoreModal = () => {
   const { styles } = useStyles(styleSheet, {});
@@ -27,8 +35,33 @@ const TronStakingLearnMoreModal = () => {
 
   const { apyPercent, fetchStatus } = useTronStakeApy();
 
+  const navigation = useNavigation<AppStackNavigationProp>();
+
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
   const handleClose = () => {
     sheetRef.current?.onCloseBottomSheet();
+  };
+
+  const handleLearnMorePress = () => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.STAKE_LEARN_MORE_CLICKED)
+        .addProperties({
+          selected_provider: EVENT_PROVIDERS.CONSENSYS,
+          text: 'Learn More',
+          location: EVENT_LOCATIONS.LEARN_MORE_MODAL,
+        })
+        .build(),
+    );
+
+    sheetRef.current?.onCloseBottomSheet(() => {
+      navigation.navigate('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: TRON_STAKING_FAQ_URL,
+        },
+      });
+    });
   };
 
   useEffect(() => {
@@ -84,7 +117,7 @@ const TronStakingLearnMoreModal = () => {
       </ScrollView>
       <LearnMoreModalFooter
         onClose={handleClose}
-        learnMoreUrl={TRON_STAKING_FAQ_URL}
+        onLearnMorePress={handleLearnMorePress}
         style={styles.footer}
       />
     </BottomSheet>

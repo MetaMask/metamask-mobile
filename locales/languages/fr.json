@@ -103,7 +103,7 @@
       "title": "Fonds insuffisants"
     },
     "insufficient_pay_method_balance": {
-      "message": "Add less or use a different payment method."
+      "message": "Réduisez le montant ou utilisez un autre moyen de paiement."
     },
     "insufficient_pay_token_native": {
       "message": "Pas assez de {{ticker}} pour couvrir les frais. Utilisez un jeton sur un autre réseau ou ajoutez plus de {{ticker}} pour continuer.",
@@ -1094,6 +1094,7 @@
       "twitter_link": "Voir sur X (Twitter)",
       "sort": {
         "value": "Valeur",
+        "top_trades": "Top Trades",
         "pnl_percent": "Résultat %",
         "recent": "Récents"
       }
@@ -1132,6 +1133,8 @@
       "price_impact": "Impact sur les prix",
       "est_points": "Points estimés",
       "no_quotes": "Aucune cotation disponible pour ce jeton",
+      "quote_details_empty_no_amount": "Enter an amount to see quote details.",
+      "quote_details_empty_no_quote": "No quote available right now. Try a different amount.",
       "loading": "Chargement…",
       "unavailable": "Swap non disponible",
       "unsupported_chain": "Cette chaîne ne prend pas encore en charge l’achat rapide",
@@ -1159,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "Contrats à terme perpétuels non disponibles",
     "title": "Perps",
-    "transfer_to_perps": "Transfert vers Perps",
     "perps_trading": "Trading de contrats à terme perpétuels (perps)",
     "perp_account_balance": "Solde du compte de trading de contrats à terme perpétuels (perps)",
     "manage_balance": "Gérer le solde",
@@ -2340,13 +2342,11 @@
   },
   "predict": {
     "title": "Prédictions MetaMask",
-    "transfer_to_predictions": "Transférer vers Prédictions",
     "select_predict_account": "Sélectionner un compte de prédiction",
     "search_account": "Rechercher un compte",
     "home": {
       "live_now_title": "Disponible dès maintenant",
-      "categories_placeholder": "Catégories",
-      "trending_placeholder": "Tendance"
+      "categories_placeholder": "Catégories"
     },
     "homepage_discovery": {
       "btc_title": "Prix BTC : {{price}}",
@@ -2367,11 +2367,15 @@
       "predictions_title": "Prédictions pour la Coupe du monde",
       "banner_title": "Coupe du monde 2026",
       "banner_description": "Tradez à chaque match, à chaque instant.",
+      "hub_banner_title": "$75K up for grabs",
+      "hub_banner_description": "Predict World Cup knockout games to win—join now",
       "tabs": {
         "all": "Tous",
         "props": "Props",
-        "live": "Active"
+        "live": "Active",
+        "games": "Games"
       },
+      "who_will_win": "Who will win the World Cup?",
       "stages": {
         "group_stage": "Phase de groupes",
         "round_of_32": "Seizièmes de finale",
@@ -3539,6 +3543,8 @@
       "wallet_activity_desc": "Acheter, vendre, transférer, échanger et récompenser",
       "perps_title": "Trading Activity",
       "perps_desc": "Évolution des positions sur les contrats à terme perpétuels, liquidations, taux de financement et mises à jour de marges",
+      "agentic_cli_title": "Agentic CLI",
+      "agentic_cli_desc": "CLI connection requests, approvals, and session updates for Agentic",
       "social_ai_title": "Signaux de trading",
       "social_ai_desc": "Actualité des traders et des actifs que vous suivez, ainsi que des informations sélectionnées sur les marchés",
       "marketing_title": "Mises à jour et récompenses",
@@ -6028,6 +6034,11 @@
       "description": "L’achat de crypto-monnaies n’est pas disponible dans votre région en raison de limitations imposées par les prestataires de services de paiement locaux ou de restrictions réglementaires.",
       "got_it": "D’accord"
     },
+    "service_disruption_modal": {
+      "title": "Temporary service disruption",
+      "description": "There's a service disruption in your region. We're working to restore service, but some transactions may not go through until then.",
+      "got_it": "J’ai compris"
+    },
     "region": {
       "buy_crypto_tokens": "Acheter des jetons",
       "sell_crypto_tokens": "Vendre des jetons",
@@ -7665,8 +7676,7 @@
       "perps_withdraw": "Retirer",
       "predict_deposit": "Ajouter des fonds de prédiction",
       "predict_withdraw": "Retirer",
-      "money_account_add_money": "Ajouter des fonds",
-      "money_account_transfer_money": "Transférez des fonds"
+      "money_account_add_money": "Ajouter des fonds"
     },
     "sub_title": {
       "permit": "Ce site demande l’autorisation de dépenser vos jetons.",
@@ -7948,9 +7958,13 @@
       "rejected": "Demande rejetée",
       "reconnect": "Reconnecter",
       "done": "Terminé",
+      "network_fee_paid_with_symbol": "Network fee paid with {{symbol}}",
+      "paying_network_fee_with_symbol": "Paying network fee with {{symbol}}",
       "scan_next_qr_code": "Scannez le code QR suivant",
+      "scan_final_qr_code": "Scan final QR code",
       "scanner_step_text": "Étape {{current}} sur {{total}} : scannez le code QR affiché sur votre portefeuille",
-      "scanner_last_step_text": "Dernière étape : scannez le code QR affiché sur votre portefeuille"
+      "scanner_last_step_text": "Dernière étape : scannez le code QR affiché sur votre portefeuille",
+      "qr_display_step_text": "Step {{current}} of {{total}}: Scan this QR code with your wallet"
     },
     "price_impact_info_title": "Impact sur les prix",
     "price_impact_info_description": "Voici comment votre transaction modifie le prix de marché d’un jeton. Cela dépend de la taille de la transaction, de la liquidité disponible et des frais facturés par le fournisseur. MetaMask n’exerce aucun contrôle sur cet impact.",
@@ -9525,8 +9539,8 @@
     },
     "earn_rewards": {
       "title": "Gagner des récompenses",
-      "musd_title": "Jusqu’à 3 % de bonus sur les stablecoins",
-      "musd_subtitle": "Calculer votre bonus en mUSD",
+      "musd_title": "Jusqu’à {{percentage}} % de bonus sur mUSD",
+      "musd_subtitle": "Les comptes Money sont disponibles",
       "card_title": "Jusqu’à 3 % de remise sur vos dépenses",
       "card_subtitle": "Obtenez votre carte MetaMask Card dès maintenant",
       "card_subtitle_cardholder": "Accédez aux avantages de votre carte MetaMask Card"
@@ -9600,17 +9614,6 @@
       "predict_withdraw": "Retrait",
       "money_account_deposit": "Déposer sur le compte Money",
       "money_account_withdraw": "Transférer depuis le compte Money",
-      "money_account_sent": "{{symbol}} envoyé(s)",
-      "money_account_received": "Reçu",
-      "deposited_musd": "mUSD déposés",
-      "depositing_musd": "Dépôt de mUSD",
-      "deposit_failed": "Le dépôt a échoué",
-      "sent": "Envoyé(s)",
-      "sending_musd": "Envoi de mUSD",
-      "send_failed": "Échec de l’envoi",
-      "converted_to_musd": "Converti en mUSD",
-      "converting_to_musd": "Conversion en mUSD",
-      "conversion_failed": "La connexion a échoué",
       "default": "Détails de la transaction"
     },
     "label": {
@@ -9659,6 +9662,24 @@
       "fiat_purchase": "Acheter des{{token}} avec {{paymentMethod}}"
     },
     "perps_deposit_solution": "Vous disposez désormais de {{fiat}} d’USDC sur Arbitrum. Réessayez d’effectuer un dépôt."
+  },
+  "activity_details": {
+    "status": "État",
+    "date": "Date",
+    "account": "Compte",
+    "from": "De",
+    "to": "À",
+    "network": "Réseau",
+    "transaction_id": "ID de transaction",
+    "network_fee": "Frais de réseau",
+    "bridge_fee": "Frais de passerelle",
+    "transaction_fee": "Frais de transaction",
+    "total_amount": "Montant total",
+    "you_sent": "Vous avez envoyé",
+    "you_received": "Vous avez reçu",
+    "view_on_block_explorer": "Afficher sur l’explorateur de blocs",
+    "do_it_again": "Do it again",
+    "not_found": "Transaction details are unavailable."
   },
   "sdk_connect_v2": {
     "show_loading": {

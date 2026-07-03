@@ -37,6 +37,10 @@ const MOCK_NOTIFICATION_PREFERENCES = {
     inAppNotificationsEnabled: false,
     pushNotificationsEnabled: false,
   },
+  priceAlerts: {
+    inAppNotificationsEnabled: true,
+    pushNotificationsEnabled: true,
+  },
 };
 
 /**
@@ -55,6 +59,7 @@ const SECTION_TITLES = {
   agenticCli: 'Agentic CLI',
   socialAI: 'Trading Signals',
   marketing: 'Updates and Rewards',
+  priceAlerts: 'Price Alerts',
 };
 
 const hasFetchedNotificationPreferences = () =>
@@ -113,7 +118,10 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
 
   it('renders notification sections when notifications are enabled', async () => {
     const { getByTestId, getByText, findAllByText, findByText } =
-      renderSettings({ socialLeaderboardEnabled: true });
+      renderSettings({
+        socialLeaderboardEnabled: true,
+        priceAlertsEnabled: true,
+      });
 
     expect(
       getByTestId(NotificationSettingsViewSelectorsIDs.NOTIFICATIONS_TOGGLE),
@@ -124,7 +132,8 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.socialAI)).toBeOnTheScreen();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
-    expect(await findAllByText('Push, In app')).toHaveLength(4);
+    expect(getByText(SECTION_TITLES.priceAlerts)).toBeOnTheScreen();
+    expect(await findAllByText('Push, In app')).toHaveLength(5);
     expect(getByText('Off')).toBeOnTheScreen();
   });
 
@@ -138,6 +147,18 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
     expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
     expect(await findAllByText('Push, In app')).toHaveLength(3);
+  });
+
+  it('hides price alerts section when price alerts feature flag is disabled', async () => {
+    const { getByText, queryByText, findByText } = renderSettings({
+      priceAlertsEnabled: false,
+    });
+
+    expect(await findByText(SECTION_TITLES.walletActivity)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.perps)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.agenticCli)).toBeOnTheScreen();
+    expect(getByText(SECTION_TITLES.marketing)).toBeOnTheScreen();
+    expect(queryByText(SECTION_TITLES.priceAlerts)).toBeNull();
   });
 
   it('hides notification sections when main toggle is off', async () => {
@@ -157,6 +178,7 @@ describeForPlatforms('Notifications settings (toggles + visibility)', () => {
     expect(queryByText(SECTION_TITLES.agenticCli)).toBeNull();
     expect(queryByText(SECTION_TITLES.socialAI)).toBeNull();
     expect(queryByText(SECTION_TITLES.marketing)).toBeNull();
+    expect(queryByText(SECTION_TITLES.priceAlerts)).toBeNull();
   });
 
   it('invokes the disable controller path when the main toggle is pressed (on -> off)', async () => {
