@@ -96,5 +96,50 @@ describe('activityDetailsDoItAgainUtils', () => {
       );
       expect(toBridgeToken(token, 'eip155:1')?.chainId).toBe('eip155:8453');
     });
+
+    it('returns undefined for EVM rows missing decimals', () => {
+      const token = {
+        assetId: 'eip155:1/erc20:0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+        symbol: 'USDC',
+        direction: 'out',
+      } as TokenAmount;
+
+      expect(toBridgeToken(token, 'eip155:1')).toBeUndefined();
+    });
+
+    it('builds a non-EVM (Solana) SPL token without decimals, keyed by the full asset id so it can hydrate from held tokens', () => {
+      const token = {
+        // Non-EVM activity rows carry no decimals.
+        assetId:
+          'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+        symbol: 'USDC',
+        direction: 'out',
+      } as TokenAmount;
+
+      expect(
+        toBridgeToken(token, 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'),
+      ).toEqual(
+        expect.objectContaining({
+          address:
+            'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token:EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+          symbol: 'USDC',
+          decimals: 0,
+          chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        }),
+      );
+    });
+
+    it('builds a non-EVM (Solana) native token keyed by its full slip44 asset id', () => {
+      const token = {
+        assetId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501',
+        symbol: 'SOL',
+        direction: 'out',
+      } as TokenAmount;
+
+      expect(
+        toBridgeToken(token, 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp')
+          ?.address,
+      ).toBe('solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44:501');
+    });
   });
 });
