@@ -681,6 +681,60 @@ describe('PredictFeedView', () => {
       );
     });
 
+    it('fires trackFeedViewed with fallback when the requested chip is absent from a ready response', () => {
+      // Regression: status becomes 'ready' but the chip was not in the API
+      // response. The previous condition only fell back on 'unavailable', so
+      // isFilterSettled stayed false permanently.
+      mockRouteParams = {
+        feedId: 'popular-today',
+        initialFilterId: 'soccer',
+        entryPoint: 'home_chip',
+      };
+
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'popular-today',
+          dynamicFilters: { status: 'loading' },
+          activeFilterId: 'all',
+        }),
+      );
+
+      const { rerender } = render(<PredictFeedView />);
+      expect(mockTrackFeedViewed).not.toHaveBeenCalled();
+
+      // Dynamic filters loaded successfully but 'soccer' is not in the list.
+      mockUsePredictFeedConfig.mockReturnValue(
+        feedConfigResult({
+          feedId: 'popular-today',
+          dynamicFilters: { status: 'ready' },
+          activeFilterId: 'all',
+          // Only 'trending' is in the response — 'soccer' is absent.
+          filters: [
+            {
+              id: 'all',
+              titleKey: 'predict.feed.filters.all',
+              params: {},
+              isDynamic: false,
+            },
+            {
+              id: 'trending',
+              label: 'Trending',
+              params: { tagSlugs: ['trending'] },
+              isDynamic: true,
+            },
+          ],
+        }),
+      );
+
+      rerender(<PredictFeedView />);
+
+      // Must fire with the fallback ('all'), NOT block forever.
+      expect(mockTrackFeedViewed).toHaveBeenCalledTimes(1);
+      expect(mockTrackFeedViewed).toHaveBeenCalledWith(
+        expect.objectContaining({ filterId: 'all' }),
+      );
+    });
+
     it('tracks search opened from the header search icon', () => {
       mockRouteParams = { feedId: 'sports', entryPoint: 'home_section' };
 

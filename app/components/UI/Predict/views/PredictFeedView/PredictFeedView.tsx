@@ -78,17 +78,20 @@ const PredictFeedView: React.FC = () => {
 
   const isReady = status === 'ready';
 
-  // True once the active filter state is stable enough to log. Delays firing
-  // `trackFeedViewed` when `initialFilterId` targets a dynamic chip (e.g., a
-  // Popular Today filter from the home) that hasn't resolved yet: dynamic
-  // filters load asynchronously and `usePredictFeedConfig` only applies the
-  // pending dynamic filter after the fetch settles. If loading fails
-  // (`unavailable`), fall back and fire with whatever filter is active.
+  // True once the active filter state is stable enough to log.
+  // - No initialFilterId → settled immediately.
+  // - Otherwise block while dynamic filters are still loading.
+  // - Once loading is done, check whether the requested filter actually
+  //   appeared in the resolved list:
+  //   • If it did appear, wait for activeFilterId to catch up (usePredictFeedConfig
+  //     applies the pending filter one render after the fetch settles).
+  //   • If it never appeared (chip absent from the API response), fire with
+  //     the current fallback filter rather than blocking forever.
   const isFilterSettled =
-    dynamicFilters.status !== 'loading' &&
-    (!initialFilterId ||
-      activeFilterId === initialFilterId ||
-      dynamicFilters.status === 'unavailable');
+    !initialFilterId ||
+    (dynamicFilters.status !== 'loading' &&
+      (!filters.some((f) => f.id === initialFilterId) ||
+        activeFilterId === initialFilterId));
 
   const {
     isSearchVisible,
