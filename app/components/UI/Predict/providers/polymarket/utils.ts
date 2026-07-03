@@ -75,11 +75,15 @@ import {
   PolymarketApiMarket,
   PolymarketApiTeam,
   PolymarketPosition,
+  RoundConfig,
   TickSize,
   OrderBook,
 } from './types';
 import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../../constants/errors';
-import { PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG } from '../../constants/flags';
+import {
+  PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+  PREDICT_WORLD_CUP_DEFAULT_TAG_SLUG,
+} from '../../constants/flags';
 import { PredictFeeCollection } from '../../types/flags';
 import { roundToFiveDecimals } from '../../utils/orders';
 import { getMinAmountReceivedWithSlippage } from './protocol/slippage';
@@ -1212,6 +1216,11 @@ export const fetchEventsFromPolymarketApi = async (
     queryParams.set('order', 'volume24hr');
     queryParams.set('ascending', 'false');
     queryParamsEvents = queryParams.toString();
+  } else if (category === 'wimbledon') {
+    queryParamsEvents = appendCustomQueryParams(
+      queryParams,
+      customQueryParams ?? PREDICT_WIMBLEDON_DEFAULT_QUERY_PARAMS,
+    );
   } else {
     queryParams.set('active', 'true');
     queryParams.set('archived', 'false');
@@ -1222,7 +1231,7 @@ export const fetchEventsFromPolymarketApi = async (
     queryParams.set('volume_min', String(10000.0));
 
     const categoryParamMap: Record<
-      Exclude<PredictCategory, 'world-cup'>,
+      Exclude<PredictCategory, 'world-cup' | 'wimbledon'>,
       Record<string, string>
     > = {
       trending: { order: 'volume24hr' },
@@ -2216,6 +2225,77 @@ export const roundOrderAmount = ({
   return amount;
 };
 
+const toDecimalTickSizeString = (value: number): string => {
+  const valueAsString = value.toString();
+
+  if (!valueAsString.includes('e')) {
+    return valueAsString;
+  }
+
+  return value
+    .toFixed(COLLATERAL_TOKEN_DECIMALS)
+    .replace(/(?:\.0+|(\.\d*?)0+)$/u, '$1');
+};
+
+const normalizeTickSizeCandidate = (
+  tickSize?: string | number | null,
+): string | undefined => {
+  if (tickSize === undefined || tickSize === null) {
+    return undefined;
+  }
+
+  const parsedTickSize = Number(tickSize);
+
+  if (
+    !Number.isFinite(parsedTickSize) ||
+    parsedTickSize <= 0 ||
+    parsedTickSize >= 1
+  ) {
+    return undefined;
+  }
+
+  return toDecimalTickSizeString(parsedTickSize);
+};
+
+const getTickSizeDecimalPlaces = (tickSize: string): number => {
+  const [, decimalPart = ''] = tickSize.split('.');
+  return decimalPart.length;
+};
+
+export const getTickSizeRoundConfig = ({
+  tickSize,
+}: {
+  tickSize?: string | number | null;
+}): { tickSize: string; roundConfig: RoundConfig } => {
+  const normalizedTickSize = normalizeTickSizeCandidate(tickSize);
+
+  if (!normalizedTickSize) {
+    throw new Error(
+      `Invalid Polymarket tick size: ${String(tickSize ?? 'missing')}`,
+    );
+  }
+
+  const configuredRoundConfig = ROUNDING_CONFIG[normalizedTickSize];
+
+  if (configuredRoundConfig) {
+    return {
+      tickSize: normalizedTickSize,
+      roundConfig: configuredRoundConfig,
+    };
+  }
+
+  const priceDecimals = getTickSizeDecimalPlaces(normalizedTickSize);
+
+  return {
+    tickSize: normalizedTickSize,
+    roundConfig: {
+      price: priceDecimals,
+      size: 2,
+      amount: Math.min(priceDecimals + 2, COLLATERAL_TOKEN_DECIMALS),
+    },
+  };
+};
+
 export const previewOrder = async (
   params: Omit<PreviewOrderParams, 'providerId'> & {
     feeCollection?: PredictFeeCollection;
@@ -2251,7 +2331,9 @@ export const previewOrder = async (
   if (!book) {
     throw new Error(PREDICT_ERROR_CODES.PREVIEW_NO_ORDER_BOOK);
   }
-  const roundConfig = ROUNDING_CONFIG[book.tick_size as TickSize];
+  const { tickSize, roundConfig } = getTickSizeRoundConfig({
+    tickSize: book.tick_size,
+  });
 
   if (side === Side.BUY) {
     const { asks } = book;
@@ -2277,7 +2359,7 @@ export const previewOrder = async (
       maxAmountSpent: makerAmount,
       minAmountReceived: takerAmount,
       slippage: SLIPPAGE_BUY,
-      tickSize: parseFloat(book.tick_size),
+      tickSize: parseFloat(tickSize),
       minOrderSize: parseFloat(book.min_order_size),
       negRisk: book.neg_risk,
       feeRateBps,
@@ -2325,7 +2407,7 @@ export const previewOrder = async (
     maxAmountSpent: makerAmount,
     minAmountReceived: takerAmount,
     slippage: SLIPPAGE_SELL,
-    tickSize: parseFloat(book.tick_size),
+    tickSize: parseFloat(tickSize),
     minOrderSize: parseFloat(book.min_order_size),
     negRisk: book.neg_risk,
     feeRateBps,

@@ -9584,11 +9584,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/profile-metrics-controller@npm:^4.0.0":
-  version: 4.0.0
-  resolution: "@metamask/profile-metrics-controller@npm:4.0.0"
+"@metamask/profile-metrics-controller@npm:^4.0.1":
+  version: 4.0.1
+  resolution: "@metamask/profile-metrics-controller@npm:4.0.1"
   dependencies:
-    "@metamask/accounts-controller": "npm:^39.0.2"
+    "@metamask/accounts-controller": "npm:^39.0.3"
     "@metamask/base-controller": "npm:^9.1.0"
     "@metamask/controller-utils": "npm:^12.3.0"
     "@metamask/keyring-controller": "npm:^27.1.0"
@@ -9599,11 +9599,11 @@ __metadata:
     "@metamask/snaps-sdk": "npm:^11.0.0"
     "@metamask/snaps-utils": "npm:^12.1.2"
     "@metamask/superstruct": "npm:^3.1.0"
-    "@metamask/transaction-controller": "npm:^68.1.1"
+    "@metamask/transaction-controller": "npm:^68.2.0"
     "@metamask/utils": "npm:^11.11.0"
     async-mutex: "npm:^0.5.0"
     uuid: "npm:^8.3.2"
-  checksum: 10/88461f5a81a5ce32d546157398e3aae1d1983722f5cefc6d6a35b91974499f695d96df7cd7ac0c76d65c575713ca838088570fa41afb462a76aa3d6bcbc7f241
+  checksum: 10/0fbc167e619e07af7df36f213e8f6fc9678dbf6ff57b41daf00a8a7b95ceb712a273496732a66d17f516856d7aeff7730b552c3819f60059ab6492e5d812699d
   languageName: node
   linkType: hard
 
@@ -10412,9 +10412,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-pay-controller@npm:^23.16.1":
-  version: 23.16.1
-  resolution: "@metamask/transaction-pay-controller@npm:23.16.1"
+"@metamask/transaction-pay-controller@npm:^23.17.1":
+  version: 23.17.1
+  resolution: "@metamask/transaction-pay-controller@npm:23.17.1"
   dependencies:
     "@ethersproject/abi": "npm:^5.7.0"
     "@ethersproject/contracts": "npm:^5.7.0"
@@ -10438,7 +10438,7 @@ __metadata:
     bn.js: "npm:^5.2.1"
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
-  checksum: 10/708ede9b28b037dae9895f05abfadabc2ce315b751836fa4a2ea6b1803223c6e039e0d794aa9406cc4b25ff9680f561b5643ae43a69bc359791502a6d602a1fa
+  checksum: 10/636fe1ff705294be71afd2913449943defac71027b5a42f4c3190d4c78eed7116e1a8466114a6973bb247873de407ab25a28629867654abdfa1ba0c970f14205
   languageName: node
   linkType: hard
 
@@ -19271,11 +19271,11 @@ __metadata:
   linkType: hard
 
 "@types/node@npm:^20.1.0, @types/node@npm:^20.11.30":
-  version: 20.19.25
-  resolution: "@types/node@npm:20.19.25"
+  version: 20.19.43
+  resolution: "@types/node@npm:20.19.43"
   dependencies:
     undici-types: "npm:~6.21.0"
-  checksum: 10/f0ed863599da289df5838380e211f9e010414dc7df8127b79f6a7eeca80a8d6e3daf3e58ddad1884f8dfafd17c16b02f56cee1689b7ebdf5df6d0e5770165ac1
+  checksum: 10/cb060ea17ef9f1fc9d47cfb00098175b25fc6f6bae3c08a89ec7ba1be3353445ccf8af62d88c591e6413c09713f7705a71684a27ef01d2bccac4be96b00cacac
   languageName: node
   linkType: hard
 
@@ -35512,7 +35512,7 @@ __metadata:
     "@metamask/post-message-stream": "npm:^10.0.0"
     "@metamask/preferences-controller": "npm:^23.0.0"
     "@metamask/preinstalled-example-snap": "npm:^0.7.2"
-    "@metamask/profile-metrics-controller": "npm:^4.0.0"
+    "@metamask/profile-metrics-controller": "npm:^4.0.1"
     "@metamask/profile-sync-controller": "npm:^28.2.0"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^14.3.0"
@@ -35552,7 +35552,7 @@ __metadata:
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
     "@metamask/transaction-controller": "npm:^68.2.0"
-    "@metamask/transaction-pay-controller": "npm:^23.16.1"
+    "@metamask/transaction-pay-controller": "npm:^23.17.1"
     "@metamask/tron-wallet-snap": "npm:^1.28.0"
     "@metamask/utils": "npm:^11.11.0"
     "@metamask/wallet": "npm:^4.0.0"
@@ -35825,7 +35825,7 @@ __metadata:
     react-native-release-profiler: "npm:^0.4.4"
     react-native-render-html: "npm:^6.3.4"
     react-native-safe-area-context: "npm:~5.6.0"
-    react-native-screens: "npm:~4.16.0"
+    react-native-screens: "npm:~4.20.0"
     react-native-sensors: "patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch"
     react-native-share: "npm:7.3.7"
     react-native-size-matters: "npm:0.4.0"
@@ -40804,17 +40804,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-screens@npm:~4.16.0":
-  version: 4.16.0
-  resolution: "react-native-screens@npm:4.16.0"
+"react-native-screens@npm:~4.20.0":
+  version: 4.20.0
+  resolution: "react-native-screens@npm:4.20.0"
   dependencies:
     react-freeze: "npm:^1.0.0"
-    react-native-is-edge-to-edge: "npm:^1.2.1"
     warn-once: "npm:^0.1.0"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/f055d37b3abf96f42c15d61645441995884ed69b2a6b35f63a21abeb147b9df7e084447d2a329a424ee3686d703c25817ea588d3be9e6ebc38e5c653ebe5e05b
+  checksum: 10/949b92bbd27403608df78216421d55ab2c0af352baed4e31a2fe3b7f00b5b16117ff491c0e14ae51c8048e43e345438df37e42397ebbb5047cc3289f10b5d72d
   languageName: node
   linkType: hard
 
