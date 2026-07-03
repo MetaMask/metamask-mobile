@@ -28,10 +28,9 @@ import {
   selectQrSyncIsSessionActive,
   selectQrSyncPhase,
   selectQrSyncPresentation,
-  selectQrSyncShouldNavigateToImport,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
-import { navigateToQrSyncImport } from '../../../core/QrSync/navigateToQrSyncImport';
+import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
 import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
 
 const DEVICE_LINKED_WAIT_PHASES: ReadonlySet<QrSyncPhase> = new Set([
@@ -95,9 +94,6 @@ const QRTabSwitcher = () => {
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
   const presentation = useSelector(selectQrSyncPresentation);
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
-  const shouldNavigateToImport = useSelector(
-    selectQrSyncShouldNavigateToImport,
-  );
   const hasOpenedVerificationSheetRef = useRef(false);
   const hasShownExtensionCancelSheetRef = useRef(false);
   const prevPhaseRef = useRef(phase);
@@ -133,13 +129,7 @@ const QRTabSwitcher = () => {
     showVerificationSheet();
   }, [isAddDeviceOrigin, shouldShowOtpSheet, showVerificationSheet]);
 
-  useEffect(() => {
-    if (!isAddDeviceOrigin || !shouldNavigateToImport) {
-      return;
-    }
-
-    navigateToQrSyncImport(navigation);
-  }, [isAddDeviceOrigin, shouldNavigateToImport, navigation]);
+  useQrSyncImportNavigation({ enabled: isAddDeviceOrigin });
 
   const showDeviceAddedLoader =
     isAddDeviceOrigin && presentation === 'device-linked';

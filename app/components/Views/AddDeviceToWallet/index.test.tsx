@@ -6,6 +6,15 @@ import Routes from '../../../constants/navigation/Routes';
 import { QrSyncPhases } from '../../../core/QrSync/constants';
 import { defaultQrSyncControllerState } from '../../../core/QrSync/QrSyncController';
 import AddDeviceToWallet from './index';
+import { completeExistingUserQrSyncImport } from '../../../core/QrSync/completeExistingUserQrSyncImport';
+
+jest.mock('../../../core/QrSync/completeExistingUserQrSyncImport', () => ({
+  completeExistingUserQrSyncImport: jest.fn(() => Promise.resolve()),
+}));
+
+const mockCompleteExistingUserQrSyncImport = jest.mocked(
+  completeExistingUserQrSyncImport,
+);
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
@@ -73,6 +82,7 @@ jest.mock('../QRTabSwitcher', () => ({
 
 const renderComponent = (
   qrSyncState: Partial<typeof defaultQrSyncControllerState> = {},
+  completedOnboarding = false,
 ) =>
   renderWithProvider(<AddDeviceToWallet />, {
     state: {
@@ -83,6 +93,9 @@ const renderComponent = (
             ...qrSyncState,
           },
         },
+      },
+      onboarding: {
+        completedOnboarding,
       },
     },
   });
@@ -291,20 +304,23 @@ describe('AddDeviceToWallet', () => {
   });
 
   describe('QR sync import navigation', () => {
-    it('navigates to import when sync-ready provides import data', async () => {
-      renderComponent({
-        phase: QrSyncPhases.REVIEWING_IMPORT,
-        importPlan: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
-            isPrimary: true,
-          },
-        ],
-      });
+    it('navigates to import when sync-ready provides import data for new users', async () => {
+      renderComponent(
+        {
+          phase: QrSyncPhases.REVIEWING_IMPORT,
+          importPlan: [
+            {
+              index: 0,
+              value: 'word1 word2 word3',
+              type: 'MNEMONIC',
+              accountName: null,
+              hiddenIndexes: [],
+              isPrimary: true,
+            },
+          ],
+        },
+        false,
+      );
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
@@ -314,6 +330,70 @@ describe('AddDeviceToWallet', () => {
             qrSyncImport: true,
           },
         );
+      });
+      expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
+    });
+
+    it('auto-imports and navigates home for existing users when sync-ready arrives', async () => {
+      const mnemonic =
+        'word1 word2 word3 word4 word5 word6 word7 word8 word9 word10 word11 word12';
+
+      renderComponent(
+        {
+          phase: QrSyncPhases.REVIEWING_IMPORT,
+          importPlan: [
+            {
+              index: 0,
+              value: mnemonic,
+              type: 'MNEMONIC',
+              accountName: null,
+              hiddenIndexes: [],
+              isPrimary: true,
+            },
+          ],
+        },
+        true,
+      );
+
+      await waitFor(() => {
+        expect(mockCompleteExistingUserQrSyncImport).toHaveBeenCalledWith(
+          expect.objectContaining({ navigate: mockNavigate }),
+          mnemonic,
+        );
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+        expect.anything(),
+      );
+    });
+
+    it('does not auto-import while the scanner is open', async () => {
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: { routes: { name: string }[] }) => unknown) =>
+          selector({
+            routes: [{ name: Routes.QR_TAB_SWITCHER }],
+          }),
+      );
+
+      renderComponent(
+        {
+          phase: QrSyncPhases.REVIEWING_IMPORT,
+          importPlan: [
+            {
+              index: 0,
+              value: 'word1 word2 word3',
+              type: 'MNEMONIC',
+              accountName: null,
+              hiddenIndexes: [],
+              isPrimary: true,
+            },
+          ],
+        },
+        true,
+      );
+
+      await waitFor(() => {
+        expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
       });
     });
 
@@ -325,25 +405,29 @@ describe('AddDeviceToWallet', () => {
           }),
       );
 
-      renderComponent({
-        phase: QrSyncPhases.REVIEWING_IMPORT,
-        importPlan: [
-          {
-            index: 0,
-            value: 'word1 word2 word3',
-            type: 'MNEMONIC',
-            accountName: null,
-            hiddenIndexes: [],
-            isPrimary: true,
-          },
-        ],
-      });
+      renderComponent(
+        {
+          phase: QrSyncPhases.REVIEWING_IMPORT,
+          importPlan: [
+            {
+              index: 0,
+              value: 'word1 word2 word3',
+              type: 'MNEMONIC',
+              accountName: null,
+              hiddenIndexes: [],
+              isPrimary: true,
+            },
+          ],
+        },
+        false,
+      );
 
       await waitFor(() => {
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
           expect.anything(),
         );
+        expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
       });
     });
 
@@ -367,6 +451,7 @@ describe('AddDeviceToWallet', () => {
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
           expect.anything(),
         );
+        expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
       });
     });
 
@@ -394,6 +479,7 @@ describe('AddDeviceToWallet', () => {
           Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
           expect.anything(),
         );
+        expect(mockCompleteExistingUserQrSyncImport).not.toHaveBeenCalled();
       });
     });
   });

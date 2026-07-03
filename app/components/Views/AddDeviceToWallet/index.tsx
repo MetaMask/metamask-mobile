@@ -27,15 +27,14 @@ import {
 import DeviceAdded from './DeviceAdded';
 import Engine from '../../../core/Engine';
 import { ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT } from '../../../core/QrSync/showExtensionCancelledErrorSheet';
-import { navigateToQrSyncImport } from '../../../core/QrSync/navigateToQrSyncImport';
 import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
+import { useQrSyncImportNavigation } from '../../../core/QrSync/useQrSyncImportNavigation';
 import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   selectQrSyncError,
   selectQrSyncIsBusy,
   selectQrSyncIsSessionActive,
   selectQrSyncPresentation,
-  selectQrSyncShouldNavigateToImport,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
 
@@ -74,9 +73,6 @@ const AddDeviceToWallet = () => {
     state.routes.some((route) => route.name === Routes.QR_TAB_SWITCHER),
   );
   const presentation = useSelector(selectQrSyncPresentation);
-  const shouldNavigateToImport = useSelector(
-    selectQrSyncShouldNavigateToImport,
-  );
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
   const isBusy = useSelector(selectQrSyncIsBusy);
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
@@ -108,13 +104,11 @@ const AddDeviceToWallet = () => {
     showVerificationSheet();
   }, [shouldShowOtpSheet, isScannerOpen, showVerificationSheet]);
 
-  useEffect(() => {
-    if (!shouldNavigateToImport || isScannerOpen) {
-      return;
-    }
-
-    navigateToQrSyncImport(navigation);
-  }, [shouldNavigateToImport, isScannerOpen, navigation]);
+  useQrSyncImportNavigation({
+    enabled: true,
+    deferWhileScannerOpen: true,
+    isScannerOpen,
+  });
 
   useEffect(() => {
     const subscription = DeviceEventEmitter.addListener(
