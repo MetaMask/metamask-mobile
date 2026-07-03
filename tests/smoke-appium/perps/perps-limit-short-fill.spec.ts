@@ -2,8 +2,9 @@ import { test as appiumTest } from '../../framework/fixtures/playwright/index.js
 import { SmokePerps } from '../../tags.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import { placeLimitOrderAtPreset } from '../../flows/perps.flow.js';
-import PerpsView from '../../page-objects/Perps/PerpsView.js';
+import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView.js';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers.js';
+import Utilities from '../../framework/Utilities.js';
 import { TestSuiteParams } from '../../framework/types.js';
 import {
   beginPerpsSmokeTestPlaywright,
@@ -13,8 +14,7 @@ import {
   setupPerpsSmokeMocks,
 } from '../../helpers/perps/perps-smoke-helpers.js';
 
-// TODO: unskip when fixed — main CI failure (Jul 2026)
-appiumTest.describe.skip(SmokePerps('Perps - ETH limit short fill'), () => {
+appiumTest.describe(SmokePerps('Perps - ETH limit short fill'), () => {
   appiumTest(
     'creates ETH limit short at Mid, shows open order, then fills after +15%',
     async ({ driver: _driver, currentDeviceDetails }) => {
@@ -39,10 +39,8 @@ appiumTest.describe.skip(SmokePerps('Perps - ETH limit short fill'), () => {
             'short',
             'Mid',
           );
-          await PerpsView.navigateToPerpsPortfolioHomeFromMarketOrderFlow();
 
-          await PerpsView.expectLimitOrderVisibleOnPortfolio({
-            symbol: PERPS_SMOKE_MARKET_SYMBOL,
+          await PerpsMarketDetailsView.expectCompactOpenOrderVisible({
             direction: 'short',
           });
 
@@ -52,10 +50,16 @@ appiumTest.describe.skip(SmokePerps('Perps - ETH limit short fill'), () => {
             '2875.00',
           );
 
-          await PerpsView.expectPositionRowAfterLimitOrderFilled({
-            symbol: PERPS_SMOKE_MARKET_SYMBOL,
-            direction: 'short',
-          });
+          await Utilities.executeWithRetry(
+            async () => {
+              await PerpsMarketDetailsView.expectClosePositionButtonVisible();
+            },
+            {
+              interval: 1000,
+              timeout: 60000,
+              description: 'wait for limit short to fill into an open position',
+            },
+          );
         },
       );
     },

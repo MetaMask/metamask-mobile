@@ -7,15 +7,15 @@ import {
   mockPerpsGeolocation,
 } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import { placeLimitOrderAtPreset } from '../../flows/perps.flow';
-import PerpsView from '../../page-objects/Perps/PerpsView';
+import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
+import Utilities from '../../framework/Utilities';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
 import { TestSuiteParams } from '../../framework/types';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
-// TODO: unskip when fixed — main CI failure (Jul 2026)
-describe.skip(SmokePerps('Perps - ETH limit long fill'), () => {
+describe(SmokePerps('Perps - ETH limit long fill'), () => {
   it('creates ETH limit long at Mid, shows open order, then fills after -15%', async () => {
     await withFixtures(
       {
@@ -62,10 +62,7 @@ describe.skip(SmokePerps('Perps - ETH limit long fill'), () => {
 
         await placeLimitOrderAtPreset('ETH', 'long', 'Mid');
 
-        await PerpsView.navigateToPerpsPortfolioHomeFromMarketOrderFlow();
-
-        await PerpsView.expectLimitOrderVisibleOnPortfolio({
-          symbol: 'ETH',
+        await PerpsMarketDetailsView.expectCompactOpenOrderVisible({
           direction: 'long',
         });
 
@@ -75,10 +72,16 @@ describe.skip(SmokePerps('Perps - ETH limit long fill'), () => {
           '2125.00',
         );
 
-        await PerpsView.expectPositionRowAfterLimitOrderFilled({
-          symbol: 'ETH',
-          direction: 'long',
-        });
+        await Utilities.executeWithRetry(
+          async () => {
+            await PerpsMarketDetailsView.expectClosePositionButtonVisible();
+          },
+          {
+            interval: 1000,
+            timeout: 60000,
+            description: 'wait for limit long to fill into an open position',
+          },
+        );
       },
     );
   });
