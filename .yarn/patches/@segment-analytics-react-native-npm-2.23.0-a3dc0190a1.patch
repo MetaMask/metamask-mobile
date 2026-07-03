@@ -1,0 +1,20 @@
+diff --git a/android/src/main/java/com/segmentanalyticsreactnative/AnalyticsReactNativeModule.kt b/android/src/main/java/com/segmentanalyticsreactnative/AnalyticsReactNativeModule.kt
+index 3cf9c4604c86e334d59cb683c1998b0213bbb929..99fc83daf47244d818fbe7e74798d80e4498e837 100644
+--- a/android/src/main/java/com/segmentanalyticsreactnative/AnalyticsReactNativeModule.kt
++++ b/android/src/main/java/com/segmentanalyticsreactnative/AnalyticsReactNativeModule.kt
+@@ -217,11 +217,10 @@ class AnalyticsReactNativeModule : ReactContextBaseJavaModule, ActivityEventList
+     }
+ 
+     Log.d(name, "Sending Deeplink data to store: uri=${uri}, referrer=${referrer}")
+-    val sovran = (reactApplicationContext.currentActivity?.application as ReactApplication)
+-      ?.reactNativeHost
+-      ?.reactInstanceManager
+-      ?.currentReactContext
+-      ?.getNativeModule(SovranModule::class.java)
++    // New Architecture: `ReactApplication.reactNativeHost` throws (it's bridge-only and
++    // removed under bridgeless). Resolve SovranModule directly from the React context,
++    // matching the pattern already used by setAnonymousId below.
++    val sovran = reactApplicationContext.getNativeModule(SovranModule::class.java)
+     sovran?.dispatch("add-deepLink-data", properties)
+ 
+ 

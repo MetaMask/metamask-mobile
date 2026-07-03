@@ -5,9 +5,12 @@ import { BridgeDetails } from './BridgeDetails';
 import { ClaimMusdBonusDetails } from './ClaimMusdBonusDetails';
 import { ContractInteractionDetails } from './ContractInteractionDetails';
 import { DefaultDetails } from './DefaultDetails';
+import { DepositDetails } from './DepositDetails';
 import { NftDetails } from './NftDetails';
+import { SmartAccountUpgradeDetails } from './SmartAccountUpgradeDetails';
 import { PerpsDetails } from './PerpsDetails';
 import { PredictDetails } from './PredictDetails';
+import { isRampActivityListItem, RampDetails } from './RampDetails';
 import { SendDetails } from './SendDetails';
 import { SwapDetails } from './SwapDetails';
 
@@ -31,6 +34,7 @@ export function TemplateLoader({
     case 'bridge':
       return <BridgeDetails item={item} />;
     case 'swap':
+    case 'swapIncomplete':
     case 'convert':
     case 'lendingDeposit':
     case 'lendingWithdrawal':
@@ -49,6 +53,24 @@ export function TemplateLoader({
       return <ContractInteractionDetails item={item} />;
     case 'claimMusdBonus':
       return <ClaimMusdBonusDetails item={item} />;
+    case 'claim':
+    case 'unstake':
+      return <DepositDetails item={item} />;
+    case 'smartAccountUpgrade':
+      return <SmartAccountUpgradeDetails item={item} />;
+    case 'deposit':
+      return isRampActivityListItem(item) ? (
+        <RampDetails item={item} />
+      ) : (
+        <DepositDetails item={item} />
+      );
+    case 'buy':
+    case 'sell':
+      return isRampActivityListItem(item) ? (
+        <RampDetails item={item} />
+      ) : (
+        <DefaultDetails item={item} />
+      );
     case 'predictionsAddFunds':
     case 'predictionsWithdrawFunds':
     case 'predictionClaimWinnings':

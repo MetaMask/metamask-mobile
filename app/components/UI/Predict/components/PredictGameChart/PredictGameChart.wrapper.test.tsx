@@ -306,6 +306,60 @@ describe('PredictGameChart Wrapper', () => {
       });
     });
 
+    it('labels home-away league token histories in token order', async () => {
+      const mockHistories = [
+        [{ timestamp: 1000000, price: 0.35 }],
+        [{ timestamp: 1000000, price: 0.65 }],
+      ];
+      const wimbledonMarket = createMockMarket({
+        game: {
+          ...mockBaseGame,
+          league: 'atp',
+          homeTeam: {
+            ...mockBaseGame.homeTeam,
+            name: 'Otto Virtanen',
+            abbreviation: 'VIRT',
+          },
+          awayTeam: {
+            ...mockBaseGame.awayTeam,
+            name: 'Ben Shelton',
+            abbreviation: 'SHEL',
+          },
+        },
+        outcomes: [
+          {
+            ...defaultMarket.outcomes[0],
+            sportsMarketType: 'moneyline',
+            tokens: [
+              { id: 'token-virtanen', title: 'Otto Virtanen', price: 0.35 },
+              { id: 'token-shelton', title: 'Ben Shelton', price: 0.65 },
+            ],
+          },
+        ],
+      });
+
+      mockUsePredictPriceHistory.mockReturnValue({
+        priceHistories: mockHistories,
+        isFetching: false,
+        errors: [null, null],
+        refetch: jest.fn(),
+      });
+
+      const { getByTestId } = render(
+        <PredictGameChart market={wimbledonMarket} testID="chart" />,
+      );
+
+      await waitFor(() => {
+        const dataText = getByTestId('content-data').children[0];
+        const data = JSON.parse(String(dataText));
+
+        expect(data[0].label).toBe('VIRT');
+        expect(data[0].data[0].value).toBe(35);
+        expect(data[1].label).toBe('SHEL');
+        expect(data[1].data[0].value).toBe(65);
+      });
+    });
+
     it('converts price (0-1) to percentage (0-100)', async () => {
       const mockHistories = [
         [{ timestamp: 1000000, price: 0.75 }],

@@ -83,7 +83,8 @@ export type ExploreSectionName =
   | 'sites_recents'
   | 'sites_favorites'
   | 'sites_ecosystems'
-  | 'sites_popular';
+  | 'sites_popular'
+  | 'whats_happening';
 
 export interface ExploreInteractedProperties {
   interaction_type:

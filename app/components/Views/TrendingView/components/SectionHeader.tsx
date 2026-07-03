@@ -48,6 +48,11 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
     onViewAll?.();
   }, [onViewAll, sectionName, source, tabName]);
 
+  const resolvedTitleTwClassName =
+    titleTwClassName ?? (subtitle ? 'pb-1' : undefined);
+  const resolvedSubtitleTwClassName =
+    subtitleTwClassName ?? (subtitle ? 'mb-3 px-4' : undefined);
+
   return (
     <Box>
       <MMDSSectionHeader
@@ -55,13 +60,13 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         title={title}
         isInteractive={Boolean(onViewAll)}
         onPress={onViewAll ? handleViewAll : undefined}
-        twClassName={`px-0 ${titleTwClassName ?? ''}`.trim()}
+        twClassName={resolvedTitleTwClassName}
       />
       {subtitle ? (
         <Text
           variant={TextVariant.BodySm}
           color={TextColor.TextAlternative}
-          twClassName={subtitleTwClassName}
+          twClassName={resolvedSubtitleTwClassName}
         >
           {subtitle}
         </Text>

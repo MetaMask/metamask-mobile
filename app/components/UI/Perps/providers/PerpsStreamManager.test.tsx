@@ -17,6 +17,7 @@ import {
   type AccountState,
 } from '@metamask/perps-controller';
 import { PerpsConnectionManager } from '../services/PerpsConnectionManager';
+import { selectPerpsTerminalBackendEnabledFlag } from '../selectors/featureFlags';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import {
   PERPS_DISK_CACHE_MARKETS,
@@ -27,6 +28,12 @@ jest.mock('../../../../core/Engine');
 jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('../../../../util/Logger');
 jest.mock('../services/PerpsConnectionManager');
+jest.mock('../../../../store', () => ({
+  store: { getState: jest.fn(() => ({})) },
+}));
+jest.mock('../selectors/featureFlags', () => ({
+  selectPerpsTerminalBackendEnabledFlag: jest.fn(() => true),
+}));
 jest.mock('../../../../store/storage-wrapper', () => ({
   __esModule: true,
   default: {
@@ -44,6 +51,8 @@ const mockPerpsConnectionManager = PerpsConnectionManager as jest.Mocked<
   typeof PerpsConnectionManager
 >;
 const mockStorageWrapper = StorageWrapper as jest.Mocked<typeof StorageWrapper>;
+const mockSelectPerpsTerminalBackendEnabledFlag =
+  selectPerpsTerminalBackendEnabledFlag as unknown as jest.Mock;
 
 // Test component that uses the stream hook
 const TestPriceComponent = ({
@@ -82,6 +91,9 @@ describe('PerpsStreamManager', () => {
     jest.clearAllMocks();
     jest.clearAllTimers();
     jest.useFakeTimers();
+
+    // Restore the default Terminal flag state (enabled) after any per-test override.
+    mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
 
     // Create a fresh stream manager for each test
     testStreamManager = new PerpsStreamManager();
@@ -2227,6 +2239,10 @@ describe('PerpsStreamManager', () => {
     it('uses controller preloaded cache when fresh', async () => {
       const callback = jest.fn();
 
+      // Controller preload cache is always direct-sourced, so it is only adopted
+      // when the Terminal backend is disabled.
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(false);
+
       // Set up controller with fresh cached market data via per-provider helper
       (
         mockEngine.context.PerpsController as unknown as Record<string, unknown>
@@ -2277,6 +2293,10 @@ describe('PerpsStreamManager', () => {
       const callback = jest.fn((data: PerpsMarketData[]) => {
         callTimings.push({ data, callIndex: callTimings.length });
       });
+
+      // Controller preload cache is always direct-sourced, so it is only served
+      // synchronously when the Terminal backend is disabled.
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(false);
 
       // Set up controller with fresh cached market data via per-provider helper
       (
@@ -2351,6 +2371,60 @@ describe('PerpsStreamManager', () => {
       await waitFor(() => {
         expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
       });
+
+      await waitFor(() => {
+        expect(callback).toHaveBeenCalledWith(mockMarketData);
+      });
+
+      unsubscribe();
+
+      // Reset state for other tests
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = jest.fn().mockReturnValue(null);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        cachedMarketDataByProvider: {},
+      };
+    });
+
+    it('does not adopt controller preloaded cache when Terminal backend is enabled', async () => {
+      const callback = jest.fn();
+
+      // Terminal enabled: the controller's direct-sourced preload cache must not be
+      // served/cached as Terminal data — a fresh source-correct fetch must happen.
+      mockSelectPerpsTerminalBackendEnabledFlag.mockReturnValue(true);
+
+      const getCachedMock = jest.fn().mockReturnValue(mockMarketData);
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).getCachedMarketDataForActiveProvider = getCachedMock;
+      (
+        mockEngine.context.PerpsController as unknown as Record<string, unknown>
+      ).state = {
+        cachedMarketDataByProvider: {},
+        activeProvider: 'hyperliquid',
+      };
+
+      const streamManager = new PerpsStreamManager();
+
+      const unsubscribe = streamManager.marketData.subscribe({
+        callback,
+        throttleMs: 0,
+      });
+
+      // getCachedData() must not synchronously serve the direct controller cache
+      // while in Terminal mode.
+      expect(callback).not.toHaveBeenCalled();
+
+      // fetchMarketData() must skip the controller cache and fetch fresh Terminal data.
+      await waitFor(() => {
+        expect(mockGetMarketDataWithPrices).toHaveBeenCalledTimes(1);
+      });
+      expect(mockGetMarketDataWithPrices).toHaveBeenCalledWith(
+        expect.objectContaining({ useTerminalApi: true }),
+      );
 
       await waitFor(() => {
         expect(callback).toHaveBeenCalledWith(mockMarketData);
@@ -2514,10 +2588,10 @@ describe('PerpsStreamManager', () => {
 
       // Assert - DevLogger should log the discard
       expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'PerpsStreamManager: Provider/network changed during fetch, discarding data',
+        'PerpsStreamManager: Provider/network/flag changed during fetch, discarding data',
         expect.objectContaining({
-          fetchedFor: 'providerA:mainnet',
-          current: 'providerB:mainnet',
+          fetchedFor: 'providerA:mainnet:terminal',
+          current: 'providerB:mainnet:terminal',
         }),
       );
 
@@ -4023,6 +4097,95 @@ describe('PerpsStreamManager', () => {
 
       unsubscribe();
       pricesDisconnect.mockRestore();
+    });
+
+    it('recreates prewarmed price subscription when no direct price subscribers are active', async () => {
+      const firstUnsubscribe = jest.fn();
+      const secondUnsubscribe = jest.fn();
+      mockSubscribeToPrices
+        .mockReturnValueOnce(firstUnsubscribe)
+        .mockReturnValueOnce(secondUnsubscribe);
+
+      await testStreamManager.prices.prewarm();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+
+      testStreamManager.clearAllChannels();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(
+        mockEngine.context.PerpsController.getMarkets,
+      ).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith({
+        symbols: ['BTC-PERP', 'ETH-PERP'],
+        includeMarketData: false,
+        callback: expect.any(Function),
+      });
+
+      testStreamManager.prices.cleanupPrewarm();
+      expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('uses a direct price subscription while restoring prewarm for active subscribers', async () => {
+      const firstPrewarmUnsubscribe = jest.fn();
+      const directUnsubscribe = jest.fn();
+      const restoredPrewarmUnsubscribe = jest.fn();
+      mockSubscribeToPrices
+        .mockReturnValueOnce(firstPrewarmUnsubscribe)
+        .mockReturnValueOnce(directUnsubscribe)
+        .mockReturnValueOnce(restoredPrewarmUnsubscribe);
+
+      await testStreamManager.prices.prewarm();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+
+      const unsubscribe = testStreamManager.prices.subscribeToSymbols({
+        symbols: ['BTC'],
+        callback: jest.fn(),
+      });
+
+      // The existing all-market prewarm covers the direct subscriber.
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+
+      testStreamManager.clearAllChannels();
+
+      expect(firstPrewarmUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenNthCalledWith(2, {
+        symbols: ['BTC'],
+        callback: expect.any(Function),
+      });
+      expect(directUnsubscribe).not.toHaveBeenCalled();
+
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(3);
+      expect(directUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith({
+        symbols: ['BTC-PERP', 'ETH-PERP'],
+        includeMarketData: false,
+        callback: expect.any(Function),
+      });
+
+      unsubscribe();
+      testStreamManager.prices.cleanupPrewarm();
+      expect(restoredPrewarmUnsubscribe).toHaveBeenCalledTimes(1);
     });
   });
 
