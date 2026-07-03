@@ -118,3 +118,11 @@ export const MM_PAY_TRANSACTION_TYPES = [
   TransactionType.predictDepositAndOrder,
   TransactionType.predictWithdraw,
 ];
+
+/**
+ * Transaction types that require a Pay quote before publishing.
+ * These transactions will fail if no quotes are available.
+ */
+export const QUOTE_REQUIRED_TRANSACTION_TYPES = [
+  TransactionType.moneyAccountDeposit,
+] as const;
