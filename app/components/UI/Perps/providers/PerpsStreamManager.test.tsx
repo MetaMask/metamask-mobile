@@ -4098,6 +4098,42 @@ describe('PerpsStreamManager', () => {
       unsubscribe();
       pricesDisconnect.mockRestore();
     });
+
+    it('recreates prewarmed price subscription when no direct price subscribers are active', async () => {
+      const firstUnsubscribe = jest.fn();
+      const secondUnsubscribe = jest.fn();
+      mockSubscribeToPrices
+        .mockReturnValueOnce(firstUnsubscribe)
+        .mockReturnValueOnce(secondUnsubscribe);
+
+      await testStreamManager.prices.prewarm();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
+
+      testStreamManager.clearAllChannels();
+      await act(async () => {
+        await Promise.resolve();
+        await Promise.resolve();
+      });
+
+      expect(firstUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(
+        mockEngine.context.PerpsController.getMarkets,
+      ).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenCalledTimes(2);
+      expect(mockSubscribeToPrices).toHaveBeenLastCalledWith({
+        symbols: ['BTC-PERP', 'ETH-PERP'],
+        includeMarketData: false,
+        callback: expect.any(Function),
+      });
+
+      testStreamManager.prices.cleanupPrewarm();
+      expect(secondUnsubscribe).toHaveBeenCalledTimes(1);
+    });
   });
 
   describe('Cached user data preloading', () => {

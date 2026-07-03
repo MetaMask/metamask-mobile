@@ -586,6 +586,21 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     super.clearCache();
   }
 
+  public reconnect(): void {
+    const shouldRestorePrewarm = Boolean(this.prewarmUnsubscribe);
+
+    super.reconnect();
+
+    if (shouldRestorePrewarm) {
+      this.cleanupPrewarm();
+      this.prewarm().catch((error) => {
+        Logger.error(ensureError(error, 'PriceStreamChannel.reconnect'), {
+          context: 'PriceStreamChannel.reconnect',
+        });
+      });
+    }
+  }
+
   subscribeToSymbols(params: {
     symbols: string[];
     callback: (prices: Record<string, PriceUpdate>) => void;
