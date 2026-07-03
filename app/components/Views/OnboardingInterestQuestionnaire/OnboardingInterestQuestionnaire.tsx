@@ -1,10 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import {
-  BackHandler,
-  type ImageSourcePropType,
-  ScrollView,
-  TouchableOpacity,
-} from 'react-native';
+import { BackHandler, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRoute, type RouteProp } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -13,7 +8,6 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
-  IconName,
   Text,
   TextVariant,
   TextColor,
@@ -29,12 +23,6 @@ import { useSelector } from 'react-redux';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import type { RootStackParamList } from '../../../core/NavigationService/types';
 import { OnboardingInterestQuestionnaireTestIds } from './OnboardingInterestQuestionnaire.testIds';
-import buyAndSellCryptoImage from '../../../images/buy_and_sell_crypto.png';
-import advancedTradesImage from '../../../images/advanced_trades.png';
-import predictSportsEventsImage from '../../../images/predict_sports_events.png';
-import cryptoAsMoneyImage from '../../../images/crypto_as_money.png';
-import connectAppsSitesImage from '../../../images/connect_apps_sites.png';
-import consolidateWalletsImage from '../../../images/consolidate_wallets.png';
 
 type InterestOptionId =
   | 'swap_tokens'
@@ -88,21 +76,6 @@ const INTEREST_OPTIONS: InterestOption[] = [
     emoji: '📝',
   },
 ];
-
-const INTEREST_OPTION_IMAGES: Partial<
-  Record<InterestOptionId, ImageSourcePropType>
-> = {
-  swap_tokens: buyAndSellCryptoImage,
-  trade_perpetuals: advancedTradesImage,
-  prediction_markets: predictSportsEventsImage,
-  send_receive_crypto: cryptoAsMoneyImage,
-  earn_and_spend: consolidateWalletsImage,
-  use_other_crypto_apps: connectAppsSitesImage,
-};
-
-const INTEREST_OPTION_ICONS: Partial<Record<InterestOptionId, IconName>> = {
-  other: IconName.Edit,
-};
 
 const OnboardingInterestQuestionnaire = () => {
   const tw = useTailwind();
