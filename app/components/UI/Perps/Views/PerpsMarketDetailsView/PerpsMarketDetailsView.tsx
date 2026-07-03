@@ -58,6 +58,7 @@ import {
   PerpsTutorialSelectorsIDs,
   PerpsCompactOrderRowSelectorsIDs,
 } from '../../Perps.testIds';
+import PerpsMarketAboutSection from '../../components/PerpsMarketAboutSection';
 import PerpsMarketInlineHeader from '../../components/PerpsMarketInlineHeader';
 import PerpsMarketHoursBanner from '../../components/PerpsMarketHoursBanner';
 import PerpsMarketStatisticsCard from '../../components/PerpsMarketStatisticsCard';
@@ -81,6 +82,7 @@ import PerpsAdvancedChart from '../../components/PerpsAdvancedChart/PerpsAdvance
 import {
   selectPerpsAdvancedChartEnabledFlag,
   selectPerpsButtonColorTestVariant,
+  selectPerpsMarketAboutEnabledFlag,
   selectPerpsOrderBookEnabledFlag,
   selectPerpsRelatedMarketsEnabledFlag,
   selectPerpsServiceInterruptionBannerEnabledFlag,
@@ -201,6 +203,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const isRelatedMarketsEnabled = useSelector(
     selectPerpsRelatedMarketsEnabledFlag,
   );
+  const isMarketAboutEnabled = useSelector(selectPerpsMarketAboutEnabledFlag);
   const { showToast, PerpsToastOptions } = usePerpsToasts();
 
   // Get full market data from stream to ensure all fields (including maxLeverage) are available
@@ -1496,6 +1499,13 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               }
             />
           </View>
+
+          {/* About Section - only shown when the market has a description */}
+          {isMarketAboutEnabled && market?.description ? (
+            <View style={styles.section}>
+              <PerpsMarketAboutSection market={market} />
+            </View>
+          ) : null}
 
           {/* Related Markets Section */}
           {isRelatedMarketsEnabled && market ? (

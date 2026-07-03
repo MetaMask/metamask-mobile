@@ -22,21 +22,24 @@ import {
 } from '@metamask/perps-controller';
 
 // Helper function to create mock asset context with all required properties
-const createMockAssetCtx = (overrides: Record<string, unknown> = {}) => ({
-  prevDayPx: '50000',
-  dayNtlVlm: '1000000000',
-  funding: '0.01',
-  openInterest: '1000000',
-  premium: '0.001',
-  oraclePx: '51000',
-  totalVlm: '5000000000',
-  impactPxs: ['50000', '52000'],
-  markPx: '51500',
-  impactPx: '51000',
-  dayBaseVlm: '500000',
-  midPx: '51000',
-  ...overrides,
-});
+const createMockAssetCtx = (
+  overrides: Record<string, unknown> = {},
+): PerpsAssetCtx =>
+  ({
+    prevDayPx: '50000',
+    dayNtlVlm: '1000000000',
+    funding: '0.01',
+    openInterest: '1000000',
+    premium: '0.001',
+    oraclePx: '51000',
+    totalVlm: '5000000000',
+    impactPxs: ['50000', '52000'],
+    markPx: '51500',
+    impactPx: '51000',
+    dayBaseVlm: '500000',
+    midPx: '51000',
+    ...overrides,
+  }) as unknown as PerpsAssetCtx;
 
 describe('marketDataTransform', () => {
   describe('transformMarketData', () => {
