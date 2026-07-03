@@ -4027,6 +4027,7 @@
       "enter_code_on_extension": "Enter code on extension",
       "enter_code_on_extension_desc": "For security, enter the verification code below on your MetaMask extension.",
       "done": "Done",
+      "device_added": "Device added",
       "waiting_for_extension": "Waiting for extension...",
       "waiting_for_extension_description": "Finish choosing accounts on your computer to continue.",
       "extension_cancelled_title": "Import cancelled",
