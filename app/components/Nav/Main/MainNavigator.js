@@ -46,6 +46,7 @@ import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
 import QRTabSwitcher from '../../Views/QRTabSwitcher';
 import AddDeviceToWallet from '../../Views/AddDeviceToWallet';
+import VerificationCodeBottomSheet from '../../Views/AddDeviceToWallet/VerificationCodeBottomSheet';
 import EnterPasswordSimple from '../../Views/EnterPasswordSimple';
 import ChoosePassword from '../../Views/ChoosePassword';
 import ResetPassword from '../../Views/ResetPassword';
@@ -1129,6 +1130,11 @@ const MainNavigator = () => {
       <NativeStack.Screen
         name={Routes.QR_TAB_SWITCHER}
         component={QRTabSwitcher}
+      />
+      <NativeStack.Screen
+        name={Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE}
+        component={VerificationCodeBottomSheet}
+        options={transparentModalScreenOptions}
       />
       <NativeStack.Screen
         name={Routes.ONBOARDING.ADD_DEVICE_TO_WALLET}

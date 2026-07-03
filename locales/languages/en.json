@@ -4072,7 +4072,6 @@
       },
       "enter_code_on_extension": "Enter code on extension",
       "enter_code_on_extension_desc": "For security, enter the verification code below on your MetaMask extension.",
-      "verification_code_pending": "Generating verification code…",
       "done": "Done",
       "waiting_for_extension": "Waiting for extension...",
       "waiting_for_extension_description": "Finish choosing accounts on your computer to continue.",

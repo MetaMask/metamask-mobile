@@ -29,6 +29,13 @@ export const selectQrSyncPrimaryMnemonic = createSelector(
     )?.value ?? null,
 );
 
+export const selectQrSyncImportMnemonic = createSelector(
+  selectQrSyncControllerState,
+  (qrSyncState) =>
+    qrSyncState.importPlan?.find((entry) => entry.type === 'MNEMONIC')?.value ??
+    null,
+);
+
 export const selectQrSyncHasImportPlan = createSelector(
   selectQrSyncControllerState,
   (qrSyncState) =>

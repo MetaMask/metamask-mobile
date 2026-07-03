@@ -28,8 +28,11 @@ import {
   selectQrSyncIsSessionActive,
   selectQrSyncPhase,
   selectQrSyncPresentation,
+  selectQrSyncShouldNavigateToImport,
   selectQrSyncShouldShowOtpSheet,
 } from '../../../selectors/qrSyncController';
+import { navigateToQrSyncImport } from '../../../core/QrSync/navigateToQrSyncImport';
+import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
 
 const DEVICE_LINKED_WAIT_PHASES: ReadonlySet<QrSyncPhase> = new Set([
   QrSyncPhases.AWAITING_SYNC_READY,
@@ -92,6 +95,9 @@ const QRTabSwitcher = () => {
   const isSessionActive = useSelector(selectQrSyncIsSessionActive);
   const presentation = useSelector(selectQrSyncPresentation);
   const shouldShowOtpSheet = useSelector(selectQrSyncShouldShowOtpSheet);
+  const shouldNavigateToImport = useSelector(
+    selectQrSyncShouldNavigateToImport,
+  );
   const hasOpenedVerificationSheetRef = useRef(false);
   const hasShownExtensionCancelSheetRef = useRef(false);
   const prevPhaseRef = useRef(phase);
@@ -106,10 +112,7 @@ const QRTabSwitcher = () => {
   }, [navigation]);
 
   const showVerificationSheet = useCallback(() => {
-    (navigation.navigate as (route: string, params: object) => void)(
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      { screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE },
-    );
+    showAddDeviceVerificationSheet(navigation);
   }, [navigation]);
 
   useEffect(() => {
@@ -129,6 +132,14 @@ const QRTabSwitcher = () => {
     hasOpenedVerificationSheetRef.current = true;
     showVerificationSheet();
   }, [isAddDeviceOrigin, shouldShowOtpSheet, showVerificationSheet]);
+
+  useEffect(() => {
+    if (!isAddDeviceOrigin || !shouldNavigateToImport) {
+      return;
+    }
+
+    navigateToQrSyncImport(navigation);
+  }, [isAddDeviceOrigin, shouldNavigateToImport, navigation]);
 
   const showDeviceAddedLoader =
     isAddDeviceOrigin && presentation === 'device-linked';

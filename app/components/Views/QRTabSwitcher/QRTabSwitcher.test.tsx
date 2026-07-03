@@ -170,6 +170,30 @@ describe('QRTabSwitcher', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
+  it('navigates to import when sync-ready arrives during add-device flow', () => {
+    renderAddDeviceFlow({
+      phase: QrSyncPhases.REVIEWING_IMPORT,
+      importPlan: [
+        {
+          index: 0,
+          value: 'word1 word2 word3',
+          type: 'MNEMONIC',
+          accountName: null,
+          hiddenIndexes: [],
+          isPrimary: false,
+        },
+      ],
+    });
+
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+      {
+        initialStep: 1,
+        qrSyncImport: true,
+      },
+    );
+  });
+
   it('shows extension-cancel error sheet when extension ends the session', () => {
     (useRoute as jest.Mock).mockReturnValue({
       params: {

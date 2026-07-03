@@ -240,10 +240,7 @@ describe('AddDeviceToWallet', () => {
 
       await waitFor(() => {
         expect(mockNavigate).toHaveBeenCalledWith(
-          Routes.MODAL.ROOT_MODAL_FLOW,
-          {
-            screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
-          },
+          Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE,
         );
       });
     });
@@ -316,6 +313,36 @@ describe('AddDeviceToWallet', () => {
             initialStep: 1,
             qrSyncImport: true,
           },
+        );
+      });
+    });
+
+    it('does not navigate to import while the scanner is open', async () => {
+      mockUseNavigationState.mockImplementation(
+        (selector: (state: { routes: { name: string }[] }) => unknown) =>
+          selector({
+            routes: [{ name: Routes.QR_TAB_SWITCHER }],
+          }),
+      );
+
+      renderComponent({
+        phase: QrSyncPhases.REVIEWING_IMPORT,
+        importPlan: [
+          {
+            index: 0,
+            value: 'word1 word2 word3',
+            type: 'MNEMONIC',
+            accountName: null,
+            hiddenIndexes: [],
+            isPrimary: true,
+          },
+        ],
+      });
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE,
+          expect.anything(),
         );
       });
     });

@@ -27,6 +27,9 @@ import {
 import DeviceAdded from './DeviceAdded';
 import Engine from '../../../core/Engine';
 import { ADD_DEVICE_RESET_TO_INSTRUCTIONS_EVENT } from '../../../core/QrSync/showExtensionCancelledErrorSheet';
+import { navigateToQrSyncImport } from '../../../core/QrSync/navigateToQrSyncImport';
+import { showAddDeviceVerificationSheet } from '../../../core/QrSync/showAddDeviceVerificationSheet';
+import type { AppNavigationProp } from '../../../core/NavigationService/types';
 import {
   selectQrSyncError,
   selectQrSyncIsBusy,
@@ -64,7 +67,7 @@ const Points = ({
 
 const AddDeviceToWallet = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const [manualQrPayload, setManualQrPayload] = useState('');
   const hasOpenedVerificationSheetRef = useRef(false);
   const isScannerOpen = useNavigationState((state) =>
@@ -88,10 +91,7 @@ const AddDeviceToWallet = () => {
   }, [isSessionActive, navigation]);
 
   const showVerificationSheet = useCallback(() => {
-    (navigation.navigate as (route: string, params: object) => void)(
-      Routes.MODAL.ROOT_MODAL_FLOW,
-      { screen: Routes.SHEET.ADD_DEVICE_VERIFICATION_CODE },
-    );
+    showAddDeviceVerificationSheet(navigation);
   }, [navigation]);
 
   useEffect(() => {
@@ -109,15 +109,12 @@ const AddDeviceToWallet = () => {
   }, [shouldShowOtpSheet, isScannerOpen, showVerificationSheet]);
 
   useEffect(() => {
-    if (!shouldNavigateToImport) {
+    if (!shouldNavigateToImport || isScannerOpen) {
       return;
     }
 
-    navigation.navigate(Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE, {
-      initialStep: 1,
-      qrSyncImport: true,
-    });
-  }, [shouldNavigateToImport, navigation]);
+    navigateToQrSyncImport(navigation);
+  }, [shouldNavigateToImport, isScannerOpen, navigation]);
 
   useEffect(() => {
     const subscription = DeviceEventEmitter.addListener(
