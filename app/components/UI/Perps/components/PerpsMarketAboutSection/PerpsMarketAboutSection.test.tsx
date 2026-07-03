@@ -6,6 +6,7 @@ import {
 } from '@metamask/perps-controller';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PerpsMarketAboutSectionSelectorsIDs } from '../../Perps.testIds';
+import { MARKET_ABOUT_COLLAPSED_NUMBER_OF_LINES } from '../../constants/perpsUIConfig';
 import {
   MARKET_ABOUT_EVENT_PROPERTY,
   MARKET_ABOUT_INTERACTION_TYPE,
@@ -150,8 +151,8 @@ describe('PerpsMarketAboutSection', () => {
     it('does not render the toggle at exactly the collapsed line count', () => {
       render(<PerpsMarketAboutSection market={createMarket()} />);
 
-      // Exactly the default 3-line clamp must not overflow.
-      simulateMeasuredLines(3);
+      // Exactly the default clamp must not overflow.
+      simulateMeasuredLines(MARKET_ABOUT_COLLAPSED_NUMBER_OF_LINES);
 
       expect(
         screen.queryByTestId(PerpsMarketAboutSectionSelectorsIDs.TOGGLE),
@@ -195,7 +196,9 @@ describe('PerpsMarketAboutSection', () => {
       );
       expect(screen.getByText('Read more')).toBeOnTheScreen();
       // Collapsed: description is clamped to the default number of lines.
-      expect(description.props.numberOfLines).toBe(3);
+      expect(description.props.numberOfLines).toBe(
+        MARKET_ABOUT_COLLAPSED_NUMBER_OF_LINES,
+      );
 
       fireEvent.press(toggle);
       expect(screen.getByText('Show less')).toBeOnTheScreen();
@@ -204,7 +207,37 @@ describe('PerpsMarketAboutSection', () => {
 
       fireEvent.press(toggle);
       expect(screen.getByText('Read more')).toBeOnTheScreen();
-      expect(description.props.numberOfLines).toBe(3);
+      expect(description.props.numberOfLines).toBe(
+        MARKET_ABOUT_COLLAPSED_NUMBER_OF_LINES,
+      );
+    });
+
+    it('honors a custom collapsedNumberOfLines clamp for both the toggle and the description', () => {
+      const customClamp = MARKET_ABOUT_COLLAPSED_NUMBER_OF_LINES + 2;
+      render(
+        <PerpsMarketAboutSection
+          market={createMarket()}
+          collapsedNumberOfLines={customClamp}
+        />,
+      );
+
+      // At the default clamp the text no longer overflows the larger custom
+      // clamp, so the toggle must stay hidden.
+      simulateMeasuredLines(MARKET_ABOUT_COLLAPSED_NUMBER_OF_LINES);
+      expect(
+        screen.queryByTestId(PerpsMarketAboutSectionSelectorsIDs.TOGGLE),
+      ).toBeNull();
+
+      // Only once the measured lines exceed the custom clamp does the toggle
+      // appear, and the description is clamped to the custom value.
+      simulateMeasuredLines(customClamp + 1);
+      expect(
+        screen.getByTestId(PerpsMarketAboutSectionSelectorsIDs.TOGGLE),
+      ).toBeOnTheScreen();
+      expect(
+        screen.getByTestId(PerpsMarketAboutSectionSelectorsIDs.DESCRIPTION)
+          .props.numberOfLines,
+      ).toBe(customClamp);
     });
   });
 

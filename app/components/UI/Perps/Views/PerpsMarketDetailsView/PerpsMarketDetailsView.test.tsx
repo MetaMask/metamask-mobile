@@ -913,6 +913,18 @@ describe('PerpsMarketDetailsView', () => {
       fills: [],
       isInitialLoading: false,
     });
+
+    // Reset the markets mock to a safe default. afterEach's clearAllMocks()
+    // clears recorded calls but not implementations, so without this a
+    // per-test mockReturnValue (e.g. the enrichment loading state) could leak
+    // into later specs.
+    mockUsePerpsMarketsImpl.mockReturnValue({
+      markets: [],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      isRefreshing: false,
+    });
   });
 
   // Clean up mocks after each test

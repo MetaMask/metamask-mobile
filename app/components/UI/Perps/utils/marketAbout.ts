@@ -37,7 +37,9 @@ export const MARKET_ABOUT_HIP3_CATEGORY = 'hip3';
  * Resolves the analytics market category for a market, bucketing HIP-3 markets
  * into a dedicated `hip3` value and defaulting to the crypto category.
  */
-export const getMarketAboutMarketType = (market: PerpsMarketData): string => {
+export const getMarketAboutMarketCategory = (
+  market: PerpsMarketData,
+): string => {
   if (market.isHip3) {
     return MARKET_ABOUT_HIP3_CATEGORY;
   }
@@ -55,6 +57,6 @@ export const getMarketAboutDisplayedEventProperties = (
   [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
     MARKET_ABOUT_INTERACTION_TYPE.DISPLAYED,
   [PERPS_EVENT_PROPERTY.ASSET]: market.symbol ?? '',
-  [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: getMarketAboutMarketType(market),
+  [PERPS_EVENT_PROPERTY.MARKET_CATEGORY]: getMarketAboutMarketCategory(market),
   [MARKET_ABOUT_EVENT_PROPERTY.DESCRIPTION_LENGTH]: description.length,
 });

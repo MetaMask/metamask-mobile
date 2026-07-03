@@ -1508,7 +1508,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             />
           </View>
 
-          {/* About Section - only shown when the market has a (non-empty) description */}
+          {/* About Section. The component self-guards on an empty description,
+              but we also gate here so the wrapping `styles.section` (with its
+              vertical spacing) isn't rendered as an empty gap for markets that
+              have no description. */}
           {isMarketAboutEnabled && market?.description?.trim() ? (
             <View style={styles.section}>
               <PerpsMarketAboutSection market={market} />

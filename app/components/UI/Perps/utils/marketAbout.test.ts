@@ -6,7 +6,7 @@ import {
   MARKET_ABOUT_EVENT_PROPERTY,
   MARKET_ABOUT_INTERACTION_TYPE,
   getMarketAboutDisplayedEventProperties,
-  getMarketAboutMarketType,
+  getMarketAboutMarketCategory,
 } from './marketAbout';
 
 const createMarket = (
@@ -20,14 +20,14 @@ const createMarket = (
   }) as PerpsMarketData;
 
 describe('marketAbout', () => {
-  describe('getMarketAboutMarketType', () => {
-    it('returns the market type for a standard market', () => {
-      expect(getMarketAboutMarketType(createMarket())).toBe('crypto');
+  describe('getMarketAboutMarketCategory', () => {
+    it('returns the market category for a standard market', () => {
+      expect(getMarketAboutMarketCategory(createMarket())).toBe('crypto');
     });
 
     it('buckets HIP-3 markets into hip3 regardless of market type', () => {
       expect(
-        getMarketAboutMarketType(
+        getMarketAboutMarketCategory(
           createMarket({ isHip3: true, marketType: 'stock' }),
         ),
       ).toBe('hip3');
@@ -35,7 +35,7 @@ describe('marketAbout', () => {
 
     it('defaults to crypto when the market type is missing', () => {
       expect(
-        getMarketAboutMarketType(createMarket({ marketType: undefined })),
+        getMarketAboutMarketCategory(createMarket({ marketType: undefined })),
       ).toBe('crypto');
     });
   });
