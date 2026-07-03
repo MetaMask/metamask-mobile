@@ -86,6 +86,7 @@ import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToke
 import { useMoneyNoFeeTokens } from '../../../hooks/pay/useMoneyNoFeeTokens';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import PayAccountSelector from '../../PayAccountSelector';
+import { AccountSelectorSkeleton } from '../../AccountSelector';
 import { PerpsAccountPickerRow } from '../../rows/perps-account-picker-row';
 import { PredictAccountPickerRow } from '../../rows/predict-account-picker-row';
 import { useTransactionAccountOverride } from '../../../hooks/transactions/useTransactionAccountOverride';
@@ -406,6 +407,24 @@ export function CustomAmountInfoSkeleton() {
         <PayTokenAmountSkeleton />
       </Box>
       <Box>
+        <PayWithRowSkeleton />
+        <DepositKeyboardSkeleton />
+      </Box>
+    </Box>
+  );
+}
+
+export function AdvancedCustomAmountInfoSkeleton() {
+  const { styles } = useStyles(styleSheet, {});
+
+  return (
+    <Box style={styles.container}>
+      <Box style={styles.inputContainer}>
+        <CustomAmountSkeleton />
+        <PayTokenAmountSkeleton />
+      </Box>
+      <Box>
+        <AccountSelectorSkeleton />
         <PayWithRowSkeleton />
         <DepositKeyboardSkeleton />
       </Box>
