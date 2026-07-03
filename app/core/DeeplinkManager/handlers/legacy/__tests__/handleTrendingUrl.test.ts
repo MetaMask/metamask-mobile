@@ -3,8 +3,8 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { EXPLORE_TAB_INDEX } from '../../../../../constants/navigation/exploreTabIndices';
 import {
   handleTrendingUrl,
+  EXPLORE_SCREEN_DEEPLINK_PARAM,
   EXPLORE_TAB_DEEPLINK_PARAM,
-  type ExploreTabDeeplinkParam,
 } from '../handleTrendingUrl';
 
 jest.mock('../../../../NavigationService', () => ({
@@ -20,25 +20,19 @@ describe('handleTrendingUrl', () => {
     jest.clearAllMocks();
   });
 
-  it('navigates to trending view by default', async () => {
-    await handleTrendingUrl({ actionPath: '' });
+  it.each([
+    [''],
+    ['?screen=unknown'],
+    ['?tab=unknown'],
+  ])(
+    'falls back to trending view for actionPath=%s',
+    async (actionPath) => {
+      await handleTrendingUrl({ actionPath });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
-  });
-
-  it('falls back to trending view for unknown screen param', async () => {
-    await handleTrendingUrl({ actionPath: '?screen=unknown' });
-
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
-  });
-
-  it('falls back to trending view for unknown tab param', async () => {
-    await handleTrendingUrl({ actionPath: '?tab=unknown' });
-
-    expect(mockNavigate).toHaveBeenCalledTimes(1);
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
-  });
+      expect(mockNavigate).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
+    },
+  );
 });
 
 describe('handleTrendingUrl - explore tabs (tab=...)', () => {
@@ -48,13 +42,14 @@ describe('handleTrendingUrl - explore tabs (tab=...)', () => {
     jest.clearAllMocks();
   });
 
-  it.each<[ExploreTabDeeplinkParam, number]>([
+  it.each<[string, number]>([
     [EXPLORE_TAB_DEEPLINK_PARAM.NOW, EXPLORE_TAB_INDEX.NOW],
     [EXPLORE_TAB_DEEPLINK_PARAM.MACRO, EXPLORE_TAB_INDEX.MACRO],
     [EXPLORE_TAB_DEEPLINK_PARAM.RWAS, EXPLORE_TAB_INDEX.RWAS],
     [EXPLORE_TAB_DEEPLINK_PARAM.CRYPTO, EXPLORE_TAB_INDEX.CRYPTO],
     [EXPLORE_TAB_DEEPLINK_PARAM.SPORTS, EXPLORE_TAB_INDEX.SPORTS],
     [EXPLORE_TAB_DEEPLINK_PARAM.SITES, EXPLORE_TAB_INDEX.SITES],
+    ['CRYPTO', EXPLORE_TAB_INDEX.CRYPTO],
   ])(
     'navigates to the Explore feed with tab=%s preselected',
     async (tabParam, expectedIndex) => {
@@ -70,18 +65,6 @@ describe('handleTrendingUrl - explore tabs (tab=...)', () => {
       });
     },
   );
-
-  it('accepts uppercase tab params', async () => {
-    await handleTrendingUrl({ actionPath: '?tab=CRYPTO' });
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW, {
-      screen: Routes.TRENDING_FEED,
-      params: {
-        initialTab: EXPLORE_TAB_INDEX.CRYPTO,
-        source: 'deeplink',
-      },
-    });
-  });
 });
 
 describe('handleTrendingUrl - full-screen views (screen=...)', () => {
@@ -91,64 +74,47 @@ describe('handleTrendingUrl - full-screen views (screen=...)', () => {
     jest.clearAllMocks();
   });
 
-  it('activates Explore tab then navigates to the RWA tokens full view', async () => {
-    await handleTrendingUrl({ actionPath: '?screen=stocks' });
-
-    expect(mockNavigate).toHaveBeenCalledTimes(2);
-    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
-    expect(mockNavigate).toHaveBeenNthCalledWith(
-      2,
+  it.each<[string, string, object | undefined]>([
+    [
+      EXPLORE_SCREEN_DEEPLINK_PARAM.STOCKS,
       Routes.WALLET.RWA_TOKENS_FULL_VIEW,
-    );
-  });
-
-  it('activates Explore tab then navigates to the RWA tokens full view with uppercase screen param', async () => {
-    await handleTrendingUrl({ actionPath: '?screen=STOCKS' });
-
-    expect(mockNavigate).toHaveBeenCalledTimes(2);
-    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
-    expect(mockNavigate).toHaveBeenNthCalledWith(
-      2,
+      undefined,
+    ],
+    [
+      'STOCKS',
       Routes.WALLET.RWA_TOKENS_FULL_VIEW,
-    );
-  });
-
-  it('activates Explore tab then navigates to the trending tokens full view', async () => {
-    await handleTrendingUrl({ actionPath: '?screen=trending-tokens' });
-
-    expect(mockNavigate).toHaveBeenCalledTimes(2);
-    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
-    expect(mockNavigate).toHaveBeenNthCalledWith(
-      2,
+      undefined,
+    ],
+    [
+      EXPLORE_SCREEN_DEEPLINK_PARAM.TRENDING_TOKENS,
       Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
-    );
-  });
+      undefined,
+    ],
+    [EXPLORE_SCREEN_DEEPLINK_PARAM.SITES, Routes.SITES_FULL_VIEW, undefined],
+    [
+      EXPLORE_SCREEN_DEEPLINK_PARAM.FAVORITE_SITES,
+      Routes.SITES_FULL_VIEW,
+      { mode: 'favorites' },
+    ],
+    [EXPLORE_SCREEN_DEEPLINK_PARAM.SEARCH, Routes.EXPLORE_SEARCH, undefined],
+  ])(
+    'activates Explore tab then navigates to the full view for screen=%s',
+    async (screenParam, expectedRoute, expectedParams) => {
+      await handleTrendingUrl({ actionPath: `?screen=${screenParam}` });
 
-  it('activates Explore tab then navigates to the sites full view', async () => {
-    await handleTrendingUrl({ actionPath: '?screen=sites' });
-
-    expect(mockNavigate).toHaveBeenCalledTimes(2);
-    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
-    expect(mockNavigate).toHaveBeenNthCalledWith(2, Routes.SITES_FULL_VIEW);
-  });
-
-  it('activates Explore tab then navigates to the sites full view in favorites mode', async () => {
-    await handleTrendingUrl({ actionPath: '?screen=favorite-sites' });
-
-    expect(mockNavigate).toHaveBeenCalledTimes(2);
-    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
-    expect(mockNavigate).toHaveBeenNthCalledWith(2, Routes.SITES_FULL_VIEW, {
-      mode: 'favorites',
-    });
-  });
-
-  it('activates Explore tab then navigates to the explore search screen', async () => {
-    await handleTrendingUrl({ actionPath: '?screen=search' });
-
-    expect(mockNavigate).toHaveBeenCalledTimes(2);
-    expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
-    expect(mockNavigate).toHaveBeenNthCalledWith(2, Routes.EXPLORE_SEARCH);
-  });
+      expect(mockNavigate).toHaveBeenCalledTimes(2);
+      expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
+      if (expectedParams) {
+        expect(mockNavigate).toHaveBeenNthCalledWith(
+          2,
+          expectedRoute,
+          expectedParams,
+        );
+      } else {
+        expect(mockNavigate).toHaveBeenNthCalledWith(2, expectedRoute);
+      }
+    },
+  );
 
   it('prioritizes screen over tab when both are provided', async () => {
     await handleTrendingUrl({ actionPath: '?tab=crypto&screen=stocks' });
