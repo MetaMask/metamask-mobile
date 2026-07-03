@@ -104,7 +104,6 @@ import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { selectGeolocationLocation } from '../../../selectors/geolocationController';
 import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
-// import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 
 interface KeyringState {
   type: string;
@@ -166,8 +165,6 @@ const ChoosePassword = () => {
   const foxRiveLoaderRef = useRef<FoxRiveLoaderAnimationRef>(null);
 
   const reduxAccountType = useSelector(selectOnboardingAccountType);
-  // const getShouldShowQuestionnaire =
-  //   useOnboardingInterestQuestionnaireEligibility();
 
   const getOauth2LoginSuccess = useCallback(
     () => route.params?.oauthLoginSuccess,
@@ -478,17 +475,6 @@ const ChoosePassword = () => {
       } catch (analyticsError) {
         Logger.error(analyticsError as Error);
       }
-
-      // // Check if interest questionnaire should be shown
-      // let shouldShowInterestQuestionnaire = false;
-      // try {
-      //   shouldShowInterestQuestionnaire = await getShouldShowQuestionnaire();
-      // } catch (error) {
-      //   Logger.error(
-      //     error instanceof Error ? error : new Error(String(error)),
-      //     'OptinMetrics: interest questionnaire eligibility check failed',
-      //   );
-      // }
 
       const accountType = reduxAccountType;
       navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
