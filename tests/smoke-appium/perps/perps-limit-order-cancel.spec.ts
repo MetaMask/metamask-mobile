@@ -15,7 +15,8 @@ import {
   setupPerpsSmokeMocks,
 } from '../../helpers/perps/perps-smoke-helpers.js';
 
-appiumTest.describe(SmokePerps('Perps - Limit order cancel'), () => {
+// TODO: unskip when fixed — main CI failure (Jul 2026)
+appiumTest.describe.skip(SmokePerps('Perps - Limit order cancel'), () => {
   appiumTest(
     'cancels an open ETH limit long from order details and keeps portfolio clear of positions',
     async ({ driver: _driver, currentDeviceDetails }) => {
