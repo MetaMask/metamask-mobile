@@ -1590,10 +1590,11 @@ describe('PerpsConnectionManager', () => {
 
       // Should have reconnected
       expect(Engine.context.PerpsController.init).toHaveBeenCalled();
-      // The soft-reconnect path (ensureConnected) already re-establishes every
-      // subscription via connect() — clearAllChannels is only for the
-      // healthy-ping short-circuit path and must not be double-invoked here.
-      expect(mockStreamManagerInstance.clearAllChannels).not.toHaveBeenCalled();
+      // The soft-reconnect path preserves caches, so it must separately
+      // rebind active stream handles after the controller reconnects.
+      expect(mockStreamManagerInstance.clearAllChannels).toHaveBeenCalledTimes(
+        1,
+      );
       // Caches must NOT be cleared — preserveCaches=true prevents skeleton flash
       expect(
         mockStreamManagerInstance.positions.clearCache,

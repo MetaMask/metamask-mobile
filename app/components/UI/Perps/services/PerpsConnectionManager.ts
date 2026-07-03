@@ -472,7 +472,7 @@ class PerpsConnectionManagerClass {
    * header appear frozen after foregrounding until the user navigates away
    * and back (which happens to trigger a fresh subscription elsewhere).
    */
-  private resubscribeStreamsAfterHealthyPing(): void {
+  private resubscribeActiveStreamChannels(): void {
     getStreamManagerInstance().clearAllChannels();
   }
 
@@ -494,7 +494,7 @@ class PerpsConnectionManagerClass {
         if (!suppressError) {
           this.clearError();
         }
-        this.resubscribeStreamsAfterHealthyPing();
+        this.resubscribeActiveStreamChannels();
         return;
       } catch {
         // First ping failed — JS thread may be sluggish right after foregrounding.
@@ -510,7 +510,7 @@ class PerpsConnectionManagerClass {
           if (!suppressError) {
             this.clearError();
           }
-          this.resubscribeStreamsAfterHealthyPing();
+          this.resubscribeActiveStreamChannels();
           return;
         } catch {
           DevLogger.log(
@@ -1253,6 +1253,14 @@ class PerpsConnectionManagerClass {
       source: source ?? 'ensure_connected',
       suppressError,
     });
+
+    // A cache-preserving foreground reconnect intentionally skips stream cache
+    // clearing during disconnect. Rebind active channel handles after the
+    // controller comes back so subscribers do not keep stale WebSocket
+    // unsubscribe references from the pre-reconnect provider.
+    if (preserveCaches) {
+      this.resubscribeActiveStreamChannels();
+    }
   }
 
   async disconnect(): Promise<void> {
