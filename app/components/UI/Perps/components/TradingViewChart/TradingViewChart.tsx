@@ -313,14 +313,6 @@ const TradingViewChart = React.forwardRef<
               );
               onNeedMoreHistory?.();
               break;
-            case 'CANDLE_UPDATE_DEBUG':
-              if (__DEV__) {
-                DevLogger.log(
-                  'TradingViewChart: WebView incremental candle update',
-                  message.data,
-                );
-              }
-              break;
             default:
               break;
           }
@@ -493,18 +485,6 @@ const TradingViewChart = React.forwardRef<
             ...dataToUse,
             candles: dataToUse.candles.slice(-sliceSize),
           });
-          if (__DEV__) {
-            DevLogger.log('TradingViewChart: Incremental candle update', {
-              symbol: nextSignature.symbol,
-              interval: nextSignature.interval,
-              isNewBar,
-              previousCandleCount: prev.count,
-              nextCandleCount: nextSignature.count,
-              previousLastTime: prev.lastTime,
-              nextLastTime: nextSignature.lastTime,
-              sliceSize,
-            });
-          }
           webViewRef.current.postMessage(
             JSON.stringify({
               type: 'UPDATE_LAST_CANDLE',

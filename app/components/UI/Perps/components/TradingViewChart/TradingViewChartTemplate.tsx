@@ -1499,22 +1499,6 @@ export const createTradingViewChartTemplate = (
                                 // Refresh dynamic Y-axis decimal precision without
                                 // triggering a zoom/range change.
                                 window.updateVisiblePriceRange();
-
-                                if (${__DEV__ ? 'true' : 'false'} && window.ReactNativeWebView) {
-                                    window.ReactNativeWebView.postMessage(JSON.stringify({
-                                        type: 'CANDLE_UPDATE_DEBUG',
-                                        data: {
-                                            isNewBar: !!message.isNewBar,
-                                            appendedCandle: appendedCandle,
-                                            previousDataLength: previousDataLength,
-                                            nextDataLength: window.allCandleData ? window.allCandleData.length : 0,
-                                            incomingTimes: message.candles.map(function(candle) { return candle.time; }),
-                                            visibleLogicalRangeBefore: visibleLogicalRangeBefore,
-                                            visibleLogicalRangeAfter: window.chart.timeScale().getVisibleLogicalRange(),
-                                            wasTrackingRealtime: wasTrackingRealtime
-                                        }
-                                    }));
-                                }
                             } catch (error) {
                                 console.error('TradingView: Error applying incremental update:', error);
                             }
