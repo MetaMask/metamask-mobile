@@ -25,6 +25,7 @@ import {
   encapsulatedAction,
   LogLevel,
   PlaywrightGestures,
+  sleep,
   Utilities,
 } from '../../framework';
 import AddAccountBottomSheet from './AddAccountBottomSheet';
@@ -37,7 +38,7 @@ const logger = createLogger({
 });
 
 class AccountListBottomSheet {
-  /** Account list container - wdio uses getElementByText('Accounts') for Appium */
+  /** Account list container - Appium uses `account-list` testID; Detox uses the same ID. */
   get accountList(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -45,8 +46,9 @@ class AccountListBottomSheet {
           AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementByText(
-          AccountListBottomSheetSelectorsText.ACCOUNTS_LIST_TITLE,
+        PlaywrightMatchers.getElementById(
+          AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ID,
+          { exact: true },
         ),
     });
   }
@@ -242,7 +244,7 @@ class AccountListBottomSheet {
   }
 
   async openAddAccountSheet(): Promise<void> {
-    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+    if (FrameworkDetector.isAppium()) {
       await this.waitForAccountSyncToComplete();
     }
 
@@ -253,7 +255,7 @@ class AccountListBottomSheet {
   }
 
   async openAddWalletSheet(): Promise<void> {
-    if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+    if (FrameworkDetector.isAppium()) {
       await this.waitForAccountSyncToComplete();
     }
 
@@ -291,25 +293,23 @@ class AccountListBottomSheet {
         });
       },
       appium: async () => {
-        if (PlatformDetector.isIOS()) {
-          // Account sync/discovery can keep the row visible but not yet tappable.
-          // Wait for the sync phase to settle before tapping "Add account".
-          await this.waitForAccountSyncToComplete();
-        }
+        const buttonIndex = options?.srpIndex ?? 0;
 
-        await Assertions.expectElementToHaveText(button, 'Add account', {
-          description: 'Add Account button should be ready (not syncing)',
-          timeout: 30000,
+        // Account sync/discovery can keep the row visible but not yet tappable.
+        // Wait for the sync phase to settle before tapping "Add account".
+        await this.waitForAccountSyncToComplete(90_000, {
+          addAccountButtonIndex: buttonIndex,
         });
 
-        await UnifiedGestures.waitAndTap(button, {
-          description: 'Add Account button in V2 multichain accounts',
+        // Re-query after sync settle — never reuse a pre-sync element handle.
+        const tapTarget = await this.getAddAccountButtonTapTarget(buttonIndex);
+
+        await PlaywrightGestures.waitAndTap(tapTarget, {
           delay: options?.shouldWait ? 5000 : 0,
           timeout: 20_000,
           checkForDisplayed: true,
           checkForEnabled: true,
-          waitForInteractive: true,
-          enabledStableReads: 3,
+          waitForInteractive: false,
           postEnabledSettleMs: 500,
         });
       },
@@ -557,12 +557,97 @@ class AccountListBottomSheet {
     await this.swipeToDismissAccountsModal();
   }
 
+  private static readonly ADD_ACCOUNT_READY_LABEL = 'Add account';
+
+  /**
+   * Appium: fresh lookup of the V2 footer label (`CREATE_ACCOUNT` testID).
+   */
+  private async getAddAccountButtonLabel(
+    srpIndex: number,
+  ): Promise<PlaywrightElement> {
+    return PlaywrightMatchers.getElementById(
+      AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
+      { exact: true, index: srpIndex },
+    );
+  }
+
+  /**
+   * Appium: true while the footer label is not yet showing the idle copy.
+   * Catches fast sync/discovery flashes that Step 1 can miss via global text search.
+   */
+  private async isAddAccountFooterBusy(srpIndex: number): Promise<boolean> {
+    try {
+      const label = await this.getAddAccountButtonLabel(srpIndex);
+      const text = (await label.textContent()).trim();
+      return text !== AccountListBottomSheet.ADD_ACCOUNT_READY_LABEL;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Appium: resolve the tappable row for "Add account" (V2 multichain footer).
+   * `CREATE_ACCOUNT` is on the label `Text`; the disabled state lives on the parent
+   * `TouchableOpacity`, so taps must target the clickable ancestor on Android.
+   */
+  private async getAddAccountButtonTapTarget(
+    srpIndex: number,
+  ): Promise<PlaywrightElement> {
+    const createAccountId = AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT;
+
+    if (PlatformDetector.isAndroid()) {
+      return PlaywrightMatchers.getElementByXPath(
+        `(//*[@resource-id='${createAccountId}'])[${srpIndex + 1}]/ancestor::*[@clickable='true'][1]`,
+      );
+    }
+
+    return PlaywrightMatchers.getElementById(createAccountId, {
+      exact: true,
+      index: srpIndex,
+    });
+  }
+
+  /**
+   * Appium: poll with fresh DOM queries until the footer label reads "Add account"
+   * and the clickable row is stably interactive.
+   */
+  private async waitForAddAccountButtonReady(
+    srpIndex: number,
+    timeoutMs: number,
+  ): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        const label = await this.getAddAccountButtonLabel(srpIndex);
+        const text = (await label.textContent()).trim();
+        if (text !== AccountListBottomSheet.ADD_ACCOUNT_READY_LABEL) {
+          throw new Error(
+            `Add account footer label is "${text}", expected "${AccountListBottomSheet.ADD_ACCOUNT_READY_LABEL}"`,
+          );
+        }
+
+        const tapTarget = await this.getAddAccountButtonTapTarget(srpIndex);
+        await PlaywrightGestures.waitUntilInteractive(tapTarget, 3000, {
+          requiredStableReads: 3,
+        });
+      },
+      {
+        timeout: timeoutMs,
+        interval: 500,
+        description: `Add account button (index ${srpIndex}) ready`,
+      },
+    );
+  }
+
   /**
    * Waits for the account sync to complete.
    * @param timeout - The timeout in milliseconds.
+   * @param options.addAccountButtonIndex - When set (Appium V2 add-account flows), also wait until that footer row is interactive after sync/discovery text clears.
    * @returns {Promise<void>} Resolves when the account sync is complete.
    */
-  async waitForAccountSyncToComplete(timeout = 90000): Promise<void> {
+  async waitForAccountSyncToComplete(
+    timeout = 90000,
+    options?: { addAccountButtonIndex?: number },
+  ): Promise<void> {
     logger.debug('⏳ waitForSyncingToComplete: Starting...');
     const startTime = Date.now();
     const pollInterval = 500;
@@ -585,52 +670,93 @@ class AccountListBottomSheet {
       '⏳ Step 1: Waiting up to 5s for "Syncing" or "Discovering" to appear...',
     );
     let syncingDetected = false;
+    const footerIndex = options?.addAccountButtonIndex;
     while (Date.now() - startTime < initialWaitTimeout) {
       const isSyncing = await isTextVisible('Syncing');
       const isDiscovering = await isTextVisible('Discovering');
+      const footerBusy =
+        footerIndex !== undefined &&
+        (await this.isAddAccountFooterBusy(footerIndex));
 
-      if (isSyncing || isDiscovering) {
+      if (isSyncing || isDiscovering || footerBusy) {
         syncingDetected = true;
         logger.debug(
-          `✅ Step 1: Loading detected after ${getElapsed()}s (Syncing: ${isSyncing}, Discovering: ${isDiscovering})`,
+          `✅ Step 1: Loading detected after ${getElapsed()}s (Syncing: ${isSyncing}, Discovering: ${isDiscovering}, footerBusy: ${footerBusy})`,
         );
         break;
       }
-      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      await sleep(pollInterval);
     }
 
-    // If nothing appeared after 5 seconds, we're done
     if (!syncingDetected) {
       logger.debug(
-        `✅ waitForSyncingToComplete: No syncing detected after 5s, finishing after ${getElapsed()}s`,
+        `⏳ Step 1: No syncing/discovering/footer-busy within 5s — skipping text-settle steps`,
       );
-      return;
+    } else if (footerIndex !== undefined) {
+      // Step 2–4 (footer path): re-query label until idle copy shows, even when
+      // global "Syncing"/"Discovering" text was never visible or flashed quickly.
+      logger.debug(
+        `⏳ Step 2: Waiting for Add account footer label (index ${footerIndex})...`,
+      );
+      while (Date.now() - startTime < timeout) {
+        if (!(await this.isAddAccountFooterBusy(footerIndex))) {
+          logger.debug(
+            `✅ Step 2: Add account footer label ready after ${getElapsed()}s`,
+          );
+          break;
+        }
+        await sleep(pollInterval);
+      }
+
+      logger.debug('⏳ Step 3: Waiting 1 second...');
+      await sleep(1000);
+    } else {
+      // Step 2: Wait for "Syncing" to disappear
+      logger.debug('⏳ Step 2: Waiting for "Syncing" to disappear...');
+      while (Date.now() - startTime < timeout) {
+        if (!(await isTextVisible('Syncing'))) {
+          logger.debug(
+            `✅ Step 2: "Syncing" disappeared after ${getElapsed()}s`,
+          );
+          break;
+        }
+        await sleep(pollInterval);
+      }
+
+      // Step 3: Wait 1 second delay
+      logger.debug('⏳ Step 3: Waiting 1 second...');
+      await sleep(1000);
+
+      // Step 4: Wait for "Discovering" to disappear
+      logger.debug('⏳ Step 4: Waiting for "Discovering" to disappear...');
+      while (Date.now() - startTime < timeout) {
+        if (!(await isTextVisible('Discovering'))) {
+          logger.debug(
+            `✅ Step 4: "Discovering" disappeared after ${getElapsed()}s`,
+          );
+          break;
+        }
+        await sleep(pollInterval);
+      }
     }
 
-    // Step 2: Wait for "Syncing" to disappear
-    logger.debug('⏳ Step 2: Waiting for "Syncing" to disappear...');
-    while (Date.now() - startTime < timeout) {
-      if (!(await isTextVisible('Syncing'))) {
-        logger.debug(`✅ Step 2: "Syncing" disappeared after ${getElapsed()}s`);
-        break;
-      }
-      await new Promise((resolve) => setTimeout(resolve, pollInterval));
-    }
+    if (
+      FrameworkDetector.isAppium() &&
+      options?.addAccountButtonIndex !== undefined
+    ) {
+      const remainingMs = Math.max(timeout - (Date.now() - startTime), 1000);
+      logger.debug(
+        `⏳ Step 5: Waiting up to ${remainingMs}ms for Add account control (index ${options.addAccountButtonIndex}) — re-querying each attempt...`,
+      );
 
-    // Step 3: Wait 1 second delay
-    logger.debug('⏳ Step 3: Waiting 1 second...');
-    await new Promise((resolve) => setTimeout(resolve, 1000));
+      await this.waitForAddAccountButtonReady(
+        options.addAccountButtonIndex,
+        remainingMs,
+      );
 
-    // Step 4: Wait for "Discovering" to disappear
-    logger.debug('⏳ Step 4: Waiting for "Discovering" to disappear...');
-    while (Date.now() - startTime < timeout) {
-      if (!(await isTextVisible('Discovering'))) {
-        logger.debug(
-          `✅ Step 4: "Discovering" disappeared after ${getElapsed()}s`,
-        );
-        break;
-      }
-      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+      logger.debug(
+        `✅ Step 5: Add account control is interactive after ${getElapsed()}s`,
+      );
     }
 
     logger.debug(
