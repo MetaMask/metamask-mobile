@@ -119,6 +119,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 download_latest_app_simulator() {
+  mkdir -p "$BUILD_DIR"
+
   echo -e "${BLUE}━━━ Step 1: Resolving expo-dev-build run ━━━${NC}"
   require_gh
 
@@ -176,6 +178,8 @@ download_latest_app_simulator() {
 }
 
 download_latest_app_device() {
+  mkdir -p "$BUILD_DIR"
+
   echo -e "${BLUE}━━━ Step 1: Resolving expo-dev-build run ━━━${NC}"
   require_gh
 

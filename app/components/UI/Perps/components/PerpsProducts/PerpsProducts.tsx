@@ -6,7 +6,6 @@ import {
   Icon,
   IconColor,
   IconSize,
-  SectionDivider,
   SectionHeader,
 } from '@metamask/design-system-react-native';
 import {
@@ -117,7 +116,6 @@ const PerpsProducts: React.FC<PerpsProductsProps> = ({
 
   return (
     <Box paddingBottom={3} testID={TEST_ID}>
-      <SectionDivider />
       <SectionHeader title={strings('perps.home.products')} />
 
       <PillScrollList<PerpsCategory>

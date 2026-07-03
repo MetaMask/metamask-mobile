@@ -16,6 +16,7 @@ import {
 interface RenderActivityScreenViewOptions {
   overrides?: DeepPartial<RootState>;
   state?: DeepPartial<RootState>;
+  params?: Record<string, unknown>;
 }
 
 interface RenderActivityScreenViewWithRoutesOptions
@@ -95,6 +96,7 @@ export function renderActivityScreenView(
     ActivityScreenWithProviders,
     { name: Routes.TRANSACTIONS_VIEW },
     { state },
+    options.params,
   );
 }
 
