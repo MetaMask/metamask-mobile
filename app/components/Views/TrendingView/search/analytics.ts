@@ -91,7 +91,7 @@ export interface ExploreInteractedProperties {
     | 'section_see_all_tapped'
     | 'section_item_tapped'
     | 'prediction_voted';
-  tab_name: ExploreTabName;
+  tab_name?: ExploreTabName;
   section_name?: ExploreSectionName;
   position?: number;
   asset_type?: 'token' | 'stock' | 'perp' | 'prediction' | 'dapp';
@@ -142,17 +142,20 @@ export const trackExplorePredictTrendingAssetViewed = (
 export const trackExploreSectionSeeAll = ({
   tabName,
   sectionName,
+  source,
 }: {
-  tabName: ExploreTabName;
+  tabName?: ExploreTabName;
   sectionName: ExploreSectionName;
+  source?: string;
 }): void => {
   trackExploreInteracted({
     interaction_type: 'section_see_all_tapped',
-    tab_name: tabName,
+    ...(tabName && { tab_name: tabName }),
     section_name: sectionName,
+    ...(source && { source }),
   });
 
-  if (sectionName === PREDICTIONS_TRENDING_SECTION) {
+  if (sectionName === PREDICTIONS_TRENDING_SECTION && tabName) {
     trackExplorePredictTrendingAssetViewed(tabName);
   }
 };

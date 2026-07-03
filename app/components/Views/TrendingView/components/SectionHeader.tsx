@@ -22,6 +22,8 @@ export interface SectionHeaderProps {
   tabName?: ExploreTabName;
   /** Section context for analytics — required when onViewAll is set. */
   sectionName?: ExploreSectionName;
+  /** Entry surface for analytics (e.g. `swaps`). */
+  source?: string;
   /** Extra Tailwind classes for the title row (e.g. bottom padding overrides). */
   titleTwClassName?: string;
   /** Extra Tailwind classes for the optional subtitle. */
@@ -37,13 +39,14 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   sectionName,
   titleTwClassName,
   subtitleTwClassName,
+  source,
 }) => {
   const handleViewAll = useCallback(() => {
-    if (tabName && sectionName) {
-      trackExploreSectionSeeAll({ tabName, sectionName });
+    if (sectionName) {
+      trackExploreSectionSeeAll({ tabName, sectionName, source });
     }
     onViewAll?.();
-  }, [onViewAll, tabName, sectionName]);
+  }, [onViewAll, sectionName, source, tabName]);
 
   return (
     <Box>
