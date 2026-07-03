@@ -52,7 +52,10 @@ jest.mock('../utils/moneyAccountTransactions');
 jest.mock(
   '../../../Views/confirmations/components/confirm/confirm-component',
   () => ({
-    ConfirmationLoader: { CustomAmount: 'customAmount' },
+    ConfirmationLoader: {
+      CustomAmount: 'customAmount',
+      AdvancedCustomAmount: 'advancedCustomAmount',
+    },
   }),
 );
 
@@ -203,7 +206,7 @@ describe('useMoneyAccountDeposit', () => {
     );
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken: undefined,
       autoSelectFiatPayment: undefined,
@@ -229,7 +232,7 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken: undefined,
       autoSelectFiatPayment: true,
@@ -260,7 +263,7 @@ describe('useMoneyAccountDeposit', () => {
     });
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
       preferredPaymentToken,
       autoSelectFiatPayment: undefined,
@@ -444,7 +447,7 @@ describe('useMoneyAccountWithdrawal', () => {
     );
 
     expect(getNavigateToConfirmation()).toHaveBeenCalledWith({
-      loader: ConfirmationLoader.CustomAmount,
+      loader: ConfirmationLoader.AdvancedCustomAmount,
       stack: Routes.MONEY.CONFIRMATIONS_ROOT,
     });
 
