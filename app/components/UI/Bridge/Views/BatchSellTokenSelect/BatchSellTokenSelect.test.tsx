@@ -53,6 +53,7 @@ let mockTokenMarketData: Record<
 let mockCurrencyRates: Record<string, { conversionRate: number }> = {};
 let mockCurrentCurrency = 'usd';
 let mockNativeCurrencyByChainId: Record<Hex, string | undefined> = {};
+let mockMultichainAssetsRates = {};
 const usdcAssetId =
   'eip155:1/erc20:0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48' as CaipAssetType;
 
@@ -163,6 +164,10 @@ jest.mock('../../../../../selectors/tokenRatesController', () => ({
 jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrencyRates: jest.fn(() => mockCurrencyRates),
   selectCurrentCurrency: jest.fn(() => mockCurrentCurrency),
+}));
+
+jest.mock('../../../../../selectors/multichain/multichain', () => ({
+  selectMultichainAssetsRates: jest.fn(() => mockMultichainAssetsRates),
 }));
 
 jest.mock('../../../../../selectors/networkController', () => ({
@@ -419,6 +424,7 @@ describe('BatchSellTokenSelect', () => {
       ETH: { conversionRate: 1 },
     };
     mockCurrentCurrency = 'usd';
+    mockMultichainAssetsRates = {};
     mockCommittedSourceTokens = [];
     mockNativeCurrencyByChainId = {
       ['0x1' as Hex]: 'ETH',
@@ -680,8 +686,14 @@ describe('BatchSellTokenSelect', () => {
     };
     mockTokenMarketData = {
       ['0x1' as Hex]: {
-        [gainToken.address as Hex]: { price: 1.17226 },
-        [lossToken.address as Hex]: { price: 0.5 },
+        [gainToken.address as Hex]: {
+          price: 1.17226,
+          pricePercentChange1d: 1.23,
+        },
+        [lossToken.address as Hex]: {
+          price: 0.5,
+          pricePercentChange1d: -4.56,
+        },
       },
     };
 
