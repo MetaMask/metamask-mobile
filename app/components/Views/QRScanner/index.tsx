@@ -81,6 +81,7 @@ const QRScanner = ({
     mountedRef.current = mounted;
     setIsMounted(mounted);
   }, []);
+  const markUnmounted = useCallback(() => setMounted(false), [setMounted]);
 
   const cameraDevice = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
@@ -139,17 +140,17 @@ const QRScanner = ({
       setIsCameraActive(true);
 
       return () => {
-        setMounted(false);
+        markUnmounted();
         shouldReadBarCodeRef.current = false;
         setIsCameraActive(false);
       };
-    }, [setMounted]),
+    }, [setMounted, markUnmounted]),
   );
 
   const end = useCallback(() => {
-    setMounted(false);
+    markUnmounted();
     navigation.goBack();
-  }, [navigation, setMounted]);
+  }, [navigation, markUnmounted]);
 
   const showAlertForInvalidAddress = () => {
     Alert.alert(
@@ -168,7 +169,7 @@ const QRScanner = ({
   const showAlertForURLRedirection = useCallback(
     (url: string): Promise<boolean> =>
       new Promise((resolve) => {
-        setMounted(false);
+        markUnmounted();
         navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
           screen: Routes.MODAL.MODAL_CONFIRMATION,
           params: {
@@ -184,7 +185,7 @@ const QRScanner = ({
           },
         });
       }),
-    [navigation, setMounted],
+    [navigation, markUnmounted],
   );
 
   const onBarCodeRead = useCallback(
@@ -301,7 +302,7 @@ const QRScanner = ({
               })
               .build(),
           );
-          setMounted(false);
+          markUnmounted();
           return;
         }
 
@@ -384,7 +385,7 @@ const QRScanner = ({
           onStartScan(data).then(() => {
             onScanSuccess(data);
           });
-          setMounted(false);
+          markUnmounted();
         } else {
           trackEvent(
             createEventBuilder(MetaMetricsEvents.QR_SCANNED)
@@ -400,7 +401,7 @@ const QRScanner = ({
             strings('qr_scanner.error'),
             strings('qr_scanner.attempting_sync_from_wallet_error'),
           );
-          setMounted(false);
+          markUnmounted();
         }
       } else {
         if (origin === Routes.ONBOARDING.ADD_DEVICE_TO_WALLET) {
@@ -460,7 +461,7 @@ const QRScanner = ({
             strings('qr_scanner.error'),
             strings('qr_scanner.attempting_to_scan_with_wallet_locked'),
           );
-          setMounted(false);
+          markUnmounted();
           return;
         }
 
@@ -618,7 +619,7 @@ const QRScanner = ({
               })
               .build(),
           );
-          setMounted(false);
+          markUnmounted();
           return;
         }
 
@@ -688,7 +689,7 @@ const QRScanner = ({
     [
       origin,
       end,
-      setMounted,
+      markUnmounted,
       showAlertForURLRedirection,
       navigation,
       onStartScan,

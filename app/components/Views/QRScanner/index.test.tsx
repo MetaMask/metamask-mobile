@@ -24,6 +24,7 @@ const mockAddProperties = jest.fn();
 const mockLinkingOpenURL = jest.fn();
 const mockNavigateToSendPage = jest.fn();
 const mockDispatch = jest.fn();
+let lastCameraIsActive: boolean | undefined;
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -41,7 +42,10 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('react-native-vision-camera', () => ({
-  Camera: () => null,
+  Camera: (props: { isActive?: boolean }) => {
+    lastCameraIsActive = props.isActive;
+    return null;
+  },
   useCameraDevice: jest.fn(),
   useCameraPermission: jest.fn(),
   useCodeScanner: jest.fn(),
@@ -270,6 +274,7 @@ describe('QrScanner', () => {
     });
 
     onCodeScannedCallback = null;
+    lastCameraIsActive = undefined;
 
     mockNavigate.mockImplementation(() => undefined);
   });
@@ -310,6 +315,44 @@ describe('QrScanner', () => {
 
     await waitFor(() => {
       expect(mockRequestPermission).not.toHaveBeenCalled();
+    });
+  });
+
+  it('marks permission check complete when requestPermission throws', async () => {
+    const mockRequestPermission = jest
+      .fn()
+      .mockRejectedValue(new Error('permission denied'));
+    mockUseCameraPermission.mockReturnValue({
+      hasPermission: false,
+      requestPermission: mockRequestPermission,
+    });
+
+    const alertModule = jest.requireMock(
+      'react-native/Libraries/Alert/Alert',
+    ).default;
+
+    renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+      state: initialState,
+    });
+
+    await waitFor(() => {
+      expect(mockRequestPermission).toHaveBeenCalledTimes(1);
+      expect(alertModule.alert).toHaveBeenCalled();
+    });
+  });
+
+  it('passes isMounted state to Camera isActive when focused', async () => {
+    mockUseCameraPermission.mockReturnValue({
+      hasPermission: true,
+      requestPermission: jest.fn().mockResolvedValue('granted'),
+    });
+
+    renderWithProvider(<QrScanner onScanSuccess={jest.fn()} />, {
+      state: initialState,
+    });
+
+    await waitFor(() => {
+      expect(lastCameraIsActive).toBe(true);
     });
   });
 

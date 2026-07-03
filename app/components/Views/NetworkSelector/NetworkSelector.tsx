@@ -66,6 +66,7 @@ import {
 // Internal dependencies
 import createStyles from './NetworkSelector.styles';
 import { ShowConfirmDeleteModalState, infuraNetwork } from './types';
+import { omitChainFromTokenNetworkFilter } from './utils/omitChainFromTokenNetworkFilter';
 import { InfuraNetworkType } from '@metamask/controller-utils';
 import InfoModal from '../../Base/InfoModal';
 import hideKeyFromUrl from '../../../util/hideKeyFromUrl';
@@ -911,8 +912,9 @@ const NetworkSelector = ({ route }: NetworkSelectorProps) => {
         });
       } else {
         // Remove the chainId from the tokenNetworkFilter
-        const newTokenNetworkFilter = Object.fromEntries(
-          Object.entries(tokenNetworkFilter).filter(([id]) => id !== chainId),
+        const newTokenNetworkFilter = omitChainFromTokenNetworkFilter(
+          tokenNetworkFilter,
+          chainId,
         );
         PreferencesController.setTokenNetworkFilter({
           // TODO fix type of preferences controller level
