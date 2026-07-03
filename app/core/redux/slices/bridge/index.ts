@@ -1,5 +1,5 @@
 import { PayloadAction, createAsyncThunk, createSlice } from '@reduxjs/toolkit';
-import { RootState } from '../../../../reducers';
+import type { RootState } from '../../../../reducers';
 import {
   Hex,
   CaipChainId,
@@ -692,7 +692,7 @@ export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
 export const selectIsGasIncluded7702Supported = (state: RootState) =>
   state.bridge.isGasIncluded7702Supported;
 
-const selectControllerFields = (state: RootState) => ({
+export const selectControllerFields = (state: RootState) => ({
   ...state.engine.backgroundState.BridgeController,
   gasFeeEstimatesByChainId:
     state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
