@@ -1,5 +1,4 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Image } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import {
@@ -25,8 +24,7 @@ import {
 import { useMoneyAccountCardLinkage } from '../../../Card/hooks/useMoneyAccountCardLinkage';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
 import { CardType } from '../../../Card/types';
-import mmCardRegular from '../../../../../images/mm_card_regular.png';
-import mmCardMetal from '../../../../../images/mm_card_metal.png';
+import AnimatedMoneyCard from '../AnimatedMoneyCard';
 import styleSheet from './MoneyLinkCardSheet.styles';
 import { MoneyLinkCardSheetTestIds } from './MoneyLinkCardSheet.testIds';
 import { useElevatedSurface } from '../../../../../util/theme/themeUtils';
@@ -173,12 +171,11 @@ const MoneyLinkCardSheet = () => {
         <Box
           alignItems={BoxAlignItems.Center}
           justifyContent={BoxJustifyContent.Center}
-          testID={MoneyLinkCardSheetTestIds.ILLUSTRATION}
         >
-          <Image
-            source={isMetalCard ? mmCardMetal : mmCardRegular}
+          <AnimatedMoneyCard
+            cardType={isMetalCard ? 'metal' : 'virtual'}
             style={styles.cardImage}
-            resizeMode="contain"
+            testID={MoneyLinkCardSheetTestIds.ILLUSTRATION}
           />
         </Box>
         <Box twClassName="gap-2 items-center">
