@@ -157,6 +157,107 @@ export const JS_POST_MESSAGE_TO_PROVIDER = (
   }
 })();`;
 
+export const WEB_SHARE_MESSAGE_TYPE = 'WEB_SHARE';
+
+const WEB_SHARE_READ_FILE_FN = `function readFileAsBase64(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        resolve({
+          name: file.name || 'share',
+          type: file.type || 'application/octet-stream',
+          data: reader.result,
+        });
+      };
+      reader.onerror = function () {
+        reject(reader.error || new Error('Failed to read file'));
+      };
+      reader.readAsDataURL(file);
+    });
+  }`;
+
+const WEB_SHARE_CAN_SHARE_FN = `function canShareData(data) {
+    if (data == null || typeof data !== 'object') {
+      return false;
+    }
+    if (data.files && data.files.length > 0) {
+      return true;
+    }
+    return !!(data.url || data.text || data.title);
+  }`;
+
+const WEB_SHARE_SHARE_FN = `function shareData(data) {
+    if (!window.ReactNativeWebView || !window.ReactNativeWebView.postMessage) {
+      return Promise.reject(new Error('Share failed'));
+    }
+    if (!canShareData(data)) {
+      return Promise.reject(new TypeError('Invalid share data'));
+    }
+
+    var files = data.files ? Array.prototype.slice.call(data.files) : [];
+    var readFiles = files.length === 0
+      ? Promise.resolve([])
+      : Promise.all(files.map(readFileAsBase64));
+
+    return readFiles.then(function (encodedFiles) {
+      window.ReactNativeWebView.postMessage(JSON.stringify({
+        type: ${JSON.stringify(WEB_SHARE_MESSAGE_TYPE)},
+        payload: {
+          url: data.url,
+          text: data.text,
+          title: data.title,
+          files: encodedFiles,
+        },
+      }));
+    });
+  }`;
+
+/**
+ * Builds a script that polyfills navigator.share and navigator.canShare for
+ * WebViews that lack Web Share API support (Android).
+ *
+ * @param forceInstall - When true, always installs the polyfill (Android). When false, skips if a native share implementation already exists (iOS).
+ */
+export const buildWebSharePolyfillScript = (forceInstall = false): string =>
+  `(function () {
+  ${WEB_SHARE_READ_FILE_FN}
+  ${WEB_SHARE_CAN_SHARE_FN}
+  ${WEB_SHARE_SHARE_FN}
+
+  ${
+    forceInstall
+      ? ''
+      : `if (navigator.share != null && typeof navigator.share === 'function' &&
+      navigator.canShare != null && typeof navigator.canShare === 'function') {
+    return;
+  }`
+  }
+
+  try {
+    Object.defineProperty(Navigator.prototype, 'share', {
+      value: shareData,
+      writable: true,
+      configurable: true,
+      enumerable: true,
+    });
+    Object.defineProperty(Navigator.prototype, 'canShare', {
+      value: canShareData,
+      writable: true,
+      configurable: true,
+      enumerable: true,
+    });
+  } catch (e) {
+    navigator.share = shareData;
+    navigator.canShare = canShareData;
+  }
+})();
+true;`;
+
+/**
+ * Polyfill script for Android WebView. Always overrides share/canShare.
+ */
+export const WEB_SHARE_API_POLYFILL_SCRIPT = buildWebSharePolyfillScript(true);
+
 export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (
   _message: object,
   _origin: string,

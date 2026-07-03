@@ -6,7 +6,11 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 import { MOCK_ACCOUNTS_CONTROLLER_STATE } from '../../../util/test/accountsControllerTestUtils';
 import BrowserTab from './BrowserTab';
 import Routes from '../../../constants/navigation/Routes';
-import { DOCUMENT_URL_FOR_URL_BAR } from '../../../util/browserScripts';
+import {
+  DOCUMENT_URL_FOR_URL_BAR,
+  WEB_SHARE_MESSAGE_TYPE,
+} from '../../../util/browserScripts';
+import { handleWebShare } from '../../../util/browser/handleWebShare';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 
 const mockInjectJavaScript = jest.fn();
@@ -117,6 +121,10 @@ jest.mock('../../../util/phishingDetection', () => ({
   getPhishingTestResultAsync: jest.fn(() =>
     Promise.resolve({ result: false, name: '' }),
   ),
+}));
+
+jest.mock('../../../util/browser/handleWebShare', () => ({
+  handleWebShare: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
@@ -591,6 +599,35 @@ describe('BrowserTab', () => {
       });
 
       expect(mockNavigation.setParams).not.toHaveBeenCalled();
+    });
+
+    it('routes Web Share API messages to handleWebShare', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onMessage } = webView.props;
+      const sharePayload = {
+        title: 'Share title',
+        text: 'Share text',
+        url: 'https://example.com',
+      };
+
+      onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: WEB_SHARE_MESSAGE_TYPE,
+            payload: sharePayload,
+          }),
+        },
+      });
+
+      expect(handleWebShare).toHaveBeenCalledWith(sharePayload);
     });
   });
 });

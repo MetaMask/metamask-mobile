@@ -30,8 +30,14 @@ import {
   JS_DESELECT_TEXT,
   SCROLL_TRACKER_SCRIPT,
   DOCUMENT_URL_FOR_URL_BAR,
+  WEB_SHARE_MESSAGE_TYPE,
+  buildWebSharePolyfillScript,
   buildDocumentUrlForUrlBarScript,
 } from '../../../util/browserScripts';
+import {
+  handleWebShare,
+  WEB_SHARE_MAX_MESSAGE_LENGTH,
+} from '../../../util/browser/handleWebShare';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import { strings } from '../../../../locales/i18n';
 import URLParse from 'url-parse';
@@ -215,6 +221,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       | undefined
     >(undefined);
     const searchEngine = useSelector(selectSearchEngine);
+
+    const webSharePolyfillScript = useMemo(
+      () => buildWebSharePolyfillScript(Device.isAndroid()),
+      [],
+    );
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
       const permissionsControllerState = selectPermissionControllerState(state);
@@ -532,7 +543,8 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       const getEntryScriptWeb3 = async () => {
         const entryScriptWeb3Fetched = await EntryScriptWeb3.get();
         setEntryScriptWeb3(
-          entryScriptWeb3Fetched +
+          webSharePolyfillScript +
+            entryScriptWeb3Fetched +
             SPA_urlChangeListener +
             SCROLL_TRACKER_SCRIPT,
         );
@@ -540,7 +552,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
       getEntryScriptWeb3();
       handleFirstUrl();
-    }, [isTabActive, handleFirstUrl]);
+    }, [isTabActive, handleFirstUrl, webSharePolyfillScript]);
 
     // Cleanup bridges when tab is closed
     useEffect(
@@ -974,8 +986,18 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
         // Reset pull-to-refresh state when page finishes loading
         isRefreshing.value = false;
+
+        if (Device.isAndroid()) {
+          webviewRef.current?.injectJavaScript(webSharePolyfillScript);
+        }
       },
-      [handleError, handleSuccessfulPageResolution, favicon, isRefreshing],
+      [
+        handleError,
+        handleSuccessfulPageResolution,
+        favicon,
+        isRefreshing,
+        webSharePolyfillScript,
+      ],
     );
 
     /**
@@ -1002,7 +1024,16 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       ({ nativeEvent }: WebViewMessageEvent) => {
         const data = nativeEvent.data;
         try {
-          if (data.length > MAX_MESSAGE_LENGTH) {
+          const isWebShareMessage =
+            typeof data === 'string' &&
+            data.startsWith(
+              `{"type":${JSON.stringify(WEB_SHARE_MESSAGE_TYPE)}`,
+            );
+          const maxMessageLength = isWebShareMessage
+            ? WEB_SHARE_MAX_MESSAGE_LENGTH
+            : MAX_MESSAGE_LENGTH;
+
+          if (data.length > maxMessageLength) {
             console.warn(
               `message exceeded size limit and will be dropped: ${data.slice(
                 0,
@@ -1036,6 +1067,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           }
           if (dataParsed.type === DOCUMENT_URL_FOR_URL_BAR) {
             handleDocumentUrlForUrlBar(dataParsed.payload);
+            return;
+          }
+          if (dataParsed.type === WEB_SHARE_MESSAGE_TYPE) {
+            handleWebShare(dataParsed.payload);
             return;
           }
           if (dataParsed.name) {
@@ -1597,6 +1632,11 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         renderError={renderError}
                         source={webViewSource}
                         injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
+                        injectedJavaScript={
+                          Device.isAndroid()
+                            ? webSharePolyfillScript
+                            : undefined
+                        }
                         style={styles.webview}
                         onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
                         onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}
