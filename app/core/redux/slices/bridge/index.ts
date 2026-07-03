@@ -692,27 +692,48 @@ export const selectIsGasIncludedSTXSendBundleSupported = (state: RootState) =>
 export const selectIsGasIncluded7702Supported = (state: RootState) =>
   state.bridge.isGasIncluded7702Supported;
 
-export const selectControllerFields = (state: RootState) => ({
-  ...state.engine.backgroundState.BridgeController,
-  gasFeeEstimatesByChainId:
-    state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
-    {},
-  ...{
-    conversionRates: getMultichainAssetsRatesControllerConversionRates(state),
-    historicalPrices: {},
-  },
-  ...{
-    marketData: getTokenRatesControllerMarketData(state),
-  },
-  ...{
-    currencyRates: getCurrencyRateControllerCurrencyRates(state),
-    currentCurrency: getCurrencyRateControllerCurrentCurrency(state),
-  },
-  participateInMetaMetrics: analytics.isEnabled(),
-  remoteFeatureFlags: {
-    bridgeConfig: selectRemoteFeatureFlags(state).bridgeConfig,
-  },
-});
+const EMPTY_GAS_FEE_ESTIMATES_BY_CHAIN_ID = {};
+const EMPTY_HISTORICAL_PRICES = {};
+
+const selectGasFeeEstimatesByChainIdForBridge = (state: RootState) =>
+  state.engine.backgroundState.GasFeeController.gasFeeEstimatesByChainId ??
+  EMPTY_GAS_FEE_ESTIMATES_BY_CHAIN_ID;
+
+const selectBridgeConfig = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => remoteFeatureFlags.bridgeConfig,
+);
+
+export const selectControllerFields = createSelector(
+  selectBridgeControllerState,
+  selectGasFeeEstimatesByChainIdForBridge,
+  getMultichainAssetsRatesControllerConversionRates,
+  getTokenRatesControllerMarketData,
+  getCurrencyRateControllerCurrencyRates,
+  getCurrencyRateControllerCurrentCurrency,
+  selectBridgeConfig,
+  (
+    bridgeControllerState,
+    gasFeeEstimatesByChainId,
+    conversionRates,
+    marketData,
+    currencyRates,
+    currentCurrency,
+    bridgeConfig,
+  ) => ({
+    ...bridgeControllerState,
+    gasFeeEstimatesByChainId,
+    conversionRates,
+    historicalPrices: EMPTY_HISTORICAL_PRICES,
+    marketData,
+    currencyRates,
+    currentCurrency,
+    participateInMetaMetrics: analytics.isEnabled(),
+    remoteFeatureFlags: {
+      bridgeConfig,
+    },
+  }),
+);
 
 export const selectBridgeQuotes = createSelector(
   selectControllerFields,
