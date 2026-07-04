@@ -20,9 +20,9 @@ import {
   PerpsOHLCVBarSelectorsIDs,
 } from '../../Perps.testIds';
 import {
-  PERPS_CHART_EVENT_PROPERTY,
-  PERPS_CHART_EVENT_VALUE,
-} from '../../utils/analytics/chartInstrumentation';
+  PERPS_EVENT_PROPERTY as PERPS_CHART_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE as PERPS_CHART_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
 
 jest.mock('expo-screen-orientation');
 jest.mock('../../../../../util/Logger');

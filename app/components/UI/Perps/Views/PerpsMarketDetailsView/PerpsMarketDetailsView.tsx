@@ -25,13 +25,15 @@ import { Linking, RefreshControl, ScrollView, View } from 'react-native';
 import {
   CandlePeriod,
   TimeDuration,
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
   type Position,
   type PerpsMarketData,
   type TPSLTrackingData,
 } from '@metamask/perps-controller';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -145,11 +147,6 @@ import {
   BUTTON_COLOR_VARIANTS,
   PERPS_BUTTON_COLOR_AB_TEST_KEY,
 } from '../../abTestConfig';
-import {
-  getPerpsChartAnalyticsPropertiesForLibrary,
-  getPerpsChartLibrary,
-  PERPS_CHART_EVENT_VALUE,
-} from '../../utils/analytics/chartInstrumentation';
 import { getMarketHoursStatus } from '../../utils/marketHours';
 import { normalizeMarketDetailsOrders } from '../../normalization/normalizeMarketDetailsOrders';
 import { ensureError } from '../../../../../util/errorUtils';
@@ -170,6 +167,16 @@ interface MarketDetailsRouteParams {
   source_section?: string;
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
+
+const getChartLibrary = (isAdvancedChartEnabled: boolean) =>
+  isAdvancedChartEnabled
+    ? PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
+    : PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
+
+const getChartAnalyticsPropertiesForLibrary = (chartLibrary: string) => ({
+  [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
+  [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
+});
 
 const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Use centralized navigation hook for all Perps navigation
@@ -278,7 +285,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     selectPerpsAdvancedChartEnabledFlag,
   );
   const configuredChartLibrary = useMemo(
-    () => getPerpsChartLibrary(isAdvancedChartEnabled),
+    () => getChartLibrary(isAdvancedChartEnabled),
     [isAdvancedChartEnabled],
   );
   const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
@@ -289,9 +296,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   }, [configuredChartLibrary, market?.symbol]);
   const chartLibrary = isAdvancedChartEnabled
     ? effectiveChartLibrary
-    : PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
+    : PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
   const chartAnalyticsProperties = useMemo(
-    () => getPerpsChartAnalyticsPropertiesForLibrary(chartLibrary),
+    () => getChartAnalyticsPropertiesForLibrary(chartLibrary),
     [chartLibrary],
   );
   const isServiceInterruptionBannerEnabled = useSelector(
@@ -1307,9 +1314,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         ...chartAnalyticsProperties,
       });
       if (isAdvancedChartEnabled) {
-        setEffectiveChartLibrary(
-          PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
-        );
+        setEffectiveChartLibrary(PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT);
       }
     },
     [isAdvancedChartEnabled, market?.symbol, chartAnalyticsProperties, track],

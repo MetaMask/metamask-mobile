@@ -21,12 +21,11 @@ import TradingViewChart, {
   type TPSLLines,
   type OhlcData,
 } from '../TradingViewChart';
+import { CandlePeriod, type CandleData } from '@metamask/perps-controller';
 import {
-  CandlePeriod,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
-  type CandleData,
-} from '@metamask/perps-controller';
+} from '@metamask/perps-controller/constants';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsAdvancedChart from '../PerpsAdvancedChart/PerpsAdvancedChart';
 import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
@@ -36,11 +35,6 @@ import PerpsOHLCVBar from '../PerpsOHLCVBar';
 import ComponentErrorBoundary from '../../../ComponentErrorBoundary';
 import { useScreenOrientation } from '../../../../../core/ScreenOrientation';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import {
-  getPerpsChartAnalyticsPropertiesForLibrary,
-  getPerpsChartLibrary,
-  PERPS_CHART_EVENT_VALUE,
-} from '../../utils/analytics/chartInstrumentation';
 
 export interface PerpsChartFullscreenModalProps {
   isVisible: boolean;
@@ -61,6 +55,16 @@ export interface PerpsChartFullscreenModalProps {
   /** Effective chart library from the parent surface, used for initial attribution. */
   initialChartLibrary?: string;
 }
+
+const getChartLibrary = (isAdvancedChartEnabled: boolean) =>
+  isAdvancedChartEnabled
+    ? PERPS_EVENT_VALUE.CHART_LIBRARY.ADVANCED
+    : PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT;
+
+const getChartAnalyticsPropertiesForLibrary = (chartLibrary: string) => ({
+  [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
+  [PERPS_EVENT_PROPERTY.ASSET_TYPE]: PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
+});
 
 const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   isVisible,
@@ -93,8 +97,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
   const { track } = usePerpsEventTracking();
   const configuredChartLibrary = useMemo(
     () =>
-      initialChartLibrary ??
-      getPerpsChartLibrary(Boolean(isAdvancedChartEnabled)),
+      initialChartLibrary ?? getChartLibrary(Boolean(isAdvancedChartEnabled)),
     [initialChartLibrary, isAdvancedChartEnabled],
   );
   const [effectiveChartLibrary, setEffectiveChartLibrary] = useState(
@@ -104,7 +107,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
     setEffectiveChartLibrary(configuredChartLibrary);
   }, [configuredChartLibrary, isVisible, symbol]);
   const chartAnalyticsProperties = useMemo(
-    () => getPerpsChartAnalyticsPropertiesForLibrary(effectiveChartLibrary),
+    () => getChartAnalyticsPropertiesForLibrary(effectiveChartLibrary),
     [effectiveChartLibrary],
   );
 
@@ -142,7 +145,7 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
         `${symbol}:${trackedChartLibrary}`,
       );
       const screenViewChartAnalyticsProperties = chartLibrary
-        ? getPerpsChartAnalyticsPropertiesForLibrary(chartLibrary)
+        ? getChartAnalyticsPropertiesForLibrary(chartLibrary)
         : chartAnalyticsProperties;
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
         [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
@@ -218,9 +221,9 @@ const PerpsChartFullscreenModal: React.FC<PerpsChartFullscreenModalProps> = ({
 
   const handleAdvancedChartError = useCallback(() => {
     trackChartError();
-    setEffectiveChartLibrary(PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT);
+    setEffectiveChartLibrary(PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT);
     trackFullscreenChartScreenViewed(
-      PERPS_CHART_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
+      PERPS_EVENT_VALUE.CHART_LIBRARY.LIGHTWEIGHT,
     );
   }, [trackChartError, trackFullscreenChartScreenViewed]);
 

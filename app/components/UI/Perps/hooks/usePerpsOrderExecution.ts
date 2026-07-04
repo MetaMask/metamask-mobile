@@ -7,8 +7,6 @@ import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
 import {
   PERPS_CONSTANTS,
-  PERPS_EVENT_PROPERTY,
-  PERPS_EVENT_VALUE,
   type OrderParams,
   type OrderResult,
   type Position,
@@ -34,7 +32,10 @@ import {
   PERPS_CUF_STREAM_CONFIRM_RACE_MS,
 } from '../constants/perpsCufTags';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
-import { getPerpsChartAnalyticsPropertiesForLibrary } from '../utils/analytics/chartInstrumentation';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller/constants';
 
 interface PerpsChartTrackingData {
   chartLibrary?: string;
@@ -181,7 +182,11 @@ export function usePerpsOrderExecution(
         orderParams.trackingData as PerpsChartTrackingData | undefined
       )?.chartLibrary;
       const chartAnalyticsProperties = chartLibrary
-        ? getPerpsChartAnalyticsPropertiesForLibrary(chartLibrary)
+        ? {
+            [PERPS_EVENT_PROPERTY.CHART_LIBRARY]: chartLibrary,
+            [PERPS_EVENT_PROPERTY.ASSET_TYPE]:
+              PERPS_EVENT_VALUE.ASSET_TYPE.PERP,
+          }
         : undefined;
 
       try {
