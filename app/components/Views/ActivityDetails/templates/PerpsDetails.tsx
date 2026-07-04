@@ -106,6 +106,7 @@ function TradeDetails({
 
   return (
     <ActivityDetailsTemplateFrame
+      showHeroDivider={false}
       hero={
         <ActivityDetailsPerpsHero
           amount={transaction.subtitle}
@@ -184,6 +185,7 @@ function OrderDetails({
 
   return (
     <ActivityDetailsTemplateFrame
+      showHeroDivider={false}
       hero={
         <ActivityDetailsPerpsHero
           amount={transaction.subtitle}
@@ -253,6 +255,7 @@ function FundingDetails({
 
   return (
     <ActivityDetailsTemplateFrame
+      showHeroDivider={false}
       hero={
         <ActivityDetailsPerpsHero
           amount={headerAmount}
@@ -316,6 +319,7 @@ function FundsDetails({
 
   return (
     <ActivityDetailsTemplateFrame
+      showHeroDivider={false}
       hero={
         <ActivityDetailsPerpsHero
           amount={depositWithdrawal.amount}

@@ -32,11 +32,12 @@ export function ActivityDetailsStandardTemplate({
   return (
     <Box twClassName="flex-1">
       {header}
-      <SectionDivider marginVertical={3} />
-      <ActivityDetailsMetadata item={item} addressRows={addressRows} />
+      <Box twClassName="mt-5">
+        <ActivityDetailsMetadata item={item} addressRows={addressRows} />
+      </Box>
       {showFeesAndTotal ? (
         <>
-          <SectionDivider marginVertical={3} />
+          <SectionDivider marginVertical={5} />
           {showTotal ? (
             <ActivityDetailsFeesAndTotal
               item={item}

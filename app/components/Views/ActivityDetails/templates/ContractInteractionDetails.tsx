@@ -22,17 +22,23 @@ function ContractInteractionHero({
   const isFailed = item.status === 'failed' || item.status === 'cancelled';
 
   return (
-    <Box twClassName="flex-row items-center gap-3">
-      {/* Match the list row's fallback avatar (same DS AvatarIcon + resolver). */}
-      <AvatarIcon
-        iconName={resolveTransactionIconName(item.type)}
-        severity={
-          isFailed ? AvatarIconSeverity.Danger : AvatarIconSeverity.Neutral
-        }
-        size={AvatarIconSize.Lg}
-      />
+    <Box
+      marginTop={4}
+      marginBottom={6}
+      twClassName="w-full flex-col items-center justify-center gap-4"
+    >
+      <Box twClassName="self-center items-center">
+        {/* Match the list row's fallback avatar (same DS AvatarIcon + resolver). */}
+        <AvatarIcon
+          iconName={resolveTransactionIconName(item.type)}
+          severity={
+            isFailed ? AvatarIconSeverity.Danger : AvatarIconSeverity.Neutral
+          }
+          size={AvatarIconSize.Xl}
+        />
+      </Box>
       {displayAddress ? (
-        <Text variant={TextVariant.DisplayMd}>
+        <Text variant={TextVariant.DisplayMd} twClassName="text-center">
           {renderShortAddress(displayAddress)}
         </Text>
       ) : null}

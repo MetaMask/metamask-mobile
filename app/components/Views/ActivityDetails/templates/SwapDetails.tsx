@@ -50,9 +50,9 @@ export function SwapDetails({ item }: { item: SwapDetailsItem }) {
         sentToken={sourceToken}
         receivedToken={destinationToken}
       />
-      <SectionDivider marginVertical={3} />
+      <SectionDivider marginVertical={5} />
       <ActivityDetailsMetadata item={item} />
-      <SectionDivider marginVertical={3} />
+      <SectionDivider marginVertical={5} />
       <ActivityDetailsFeesAndTotal item={item} token={totalToken} fiatOnly />
       <Box twClassName="mt-auto pt-4">
         <ActivityDetailsFooter>
