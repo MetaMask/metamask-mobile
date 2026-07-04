@@ -171,6 +171,7 @@
     ]
   },
   "resolutions": {
+    "@metamask/transaction-pay-controller": "npm:@metamask-previews/transaction-pay-controller@23.17.4-preview-8b02acdf0",
     "@metamask/network-controller": "34.0.0",
     "@react-native-community/viewpager": "patch:@react-native-community/viewpager@npm%3A3.3.0#~/.yarn/patches/@react-native-community-viewpager-npm-3.3.0.patch",
     "@solana-mobile/mobile-wallet-adapter-protocol": "^2.2.5",
@@ -847,11 +848,5 @@
       }
     },
     "version": "v0.3.0"
-  },
-  "previewBuilds": {
-    "@metamask/transaction-pay-controller": {
-      "type": "non-breaking",
-      "previewVersion": "23.17.4-preview-8b02acdf0"
-    }
   }
 }
