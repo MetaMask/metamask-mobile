@@ -29,13 +29,13 @@ export function PendingActivityListItemRow({
   onPress,
   title: titleOverride,
 }: ActivityListItemRowProps) {
-  const { colors, typography } = useTheme();
+  const { colors } = useTheme();
   const content = useActivityListItemRowContent(
     item,
     undefined,
     bridgeHistoryItem,
   );
-  const styles = createStyles(colors, typography);
+  const styles = createStyles(colors);
   const fallbackIconName = resolveTransactionIconName(item.type);
   const networkImageSource = getNetworkImageSource({
     chainId: item.chainId,

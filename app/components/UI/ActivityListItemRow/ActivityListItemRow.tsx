@@ -57,7 +57,7 @@ function ResolvedActivityListItemRow({
   onPress,
   title: titleOverride,
 }: ActivityListItemRowProps) {
-  const { colors, typography } = useTheme();
+  const { colors } = useTheme();
   const content = useActivityListItemRowContent(
     item,
     undefined,
@@ -65,7 +65,7 @@ function ResolvedActivityListItemRow({
   );
 
   const nftImageUrl = useNftActivityImage(item);
-  const styles = createStyles(colors, typography);
+  const styles = createStyles(colors);
   const isFailed = item.status === 'failed' || item.status === 'cancelled';
   const fallbackIconName = resolveTransactionIconName(item.type);
   const networkImageSource = isSingleNetworkDomainKind(item.type)

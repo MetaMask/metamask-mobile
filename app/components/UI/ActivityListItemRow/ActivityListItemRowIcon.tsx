@@ -64,7 +64,7 @@ function TokenAvatar({
     return (
       <PerpsTokenLogo
         symbol={perpsMarketSymbol}
-        size={32}
+        size={40}
         recyclingKey={perpsMarketSymbol}
       />
     );
@@ -72,7 +72,7 @@ function TokenAvatar({
 
   if (tokens.length === 0) {
     if (iconUrl) {
-      return <AvatarToken src={{ uri: iconUrl }} size={AvatarTokenSize.Md} />;
+      return <AvatarToken src={{ uri: iconUrl }} size={AvatarTokenSize.Lg} />;
     }
     return (
       <AvatarIcon
@@ -80,7 +80,7 @@ function TokenAvatar({
         severity={
           isFailed ? AvatarIconSeverity.Danger : AvatarIconSeverity.Neutral
         }
-        size={AvatarIconSize.Md}
+        size={AvatarIconSize.Lg}
       />
     );
   }
@@ -91,7 +91,7 @@ function TokenAvatar({
       <AvatarToken
         name={token.symbol}
         src={tokenImageSources[0]}
-        size={AvatarTokenSize.Md}
+        size={AvatarTokenSize.Lg}
       />
     );
   }
@@ -104,14 +104,14 @@ function TokenAvatar({
         <AvatarToken
           name={sourceToken.symbol}
           src={tokenImageSources[0]}
-          size={AvatarTokenSize.Md}
+          size={AvatarTokenSize.Lg}
         />
       </View>
       <View style={styles.tokenIconStackFront}>
         <AvatarToken
           name={destinationToken.symbol}
           src={tokenImageSources[1]}
-          size={AvatarTokenSize.Md}
+          size={AvatarTokenSize.Lg}
           style={styles.tokenIconStackFrontImage}
         />
       </View>

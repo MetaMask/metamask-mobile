@@ -172,7 +172,35 @@ jest.mock('../../../component-library/components/Texts/Text', () => ({
 
 jest.mock('@metamask/design-system-react-native', () => {
   const ReactActual = jest.requireActual('react');
-  const { Pressable, View } = jest.requireActual('react-native');
+  const { Pressable, Text: RNText, View } = jest.requireActual('react-native');
+
+  const TextColor = {
+    TextDefault: 'text-default',
+    TextAlternative: 'text-alternative',
+    ErrorDefault: 'error-default',
+    WarningDefault: 'warning-default',
+    SuccessDefault: 'success-default',
+  };
+
+  const Text = ({
+    children,
+    color = TextColor.TextDefault,
+    style,
+    ...rest
+  }: {
+    children?: React.ReactNode;
+    color?: string;
+    style?: unknown;
+  }) =>
+    ReactActual.createElement(
+      RNText,
+      {
+        ...rest,
+        color,
+        style: [{ color }, style],
+      },
+      children,
+    );
 
   const ListItem = ({
     avatar,
@@ -233,6 +261,9 @@ jest.mock('@metamask/design-system-react-native', () => {
   }) => ReactActual.createElement(View, null, children, badge);
 
   return {
+    FontWeight: {
+      Medium: 'medium',
+    },
     Icon,
     IconColor: { IconAlternative: 'icon-alternative' },
     IconName: {
@@ -243,6 +274,12 @@ jest.mock('@metamask/design-system-react-native', () => {
     },
     IconSize: { Sm: '16' },
     ListItem,
+    Text,
+    TextColor,
+    TextVariant: {
+      BodyMd: 'body-md',
+      BodySm: 'body-sm',
+    },
     AvatarToken,
     AvatarTokenSize: { Xs: 'xs', Sm: 'sm', Md: 'md', Lg: 'lg', Xl: 'xl' },
     AvatarIcon,
@@ -643,7 +680,7 @@ describe('ActivityListItemRow — row content', () => {
     const logo = getByTestId('perps-token-logo-BTC');
     expect(logo.props.recyclingKey).toBe('BTC');
     expect(logo.props.symbol).toBe('BTC');
-    expect(logo.props.size).toBe(32);
+    expect(logo.props.size).toBe(40);
   });
 
   it('passes k-prefixed perps market symbols to PerpsTokenLogo', () => {
@@ -666,7 +703,7 @@ describe('ActivityListItemRow — row content', () => {
     const logo = getByTestId('perps-token-logo-kPEPE');
     expect(logo.props.recyclingKey).toBe('kPEPE');
     expect(logo.props.symbol).toBe('kPEPE');
-    expect(logo.props.size).toBe(32);
+    expect(logo.props.size).toBe(40);
   });
 
   it('gives liquidation, stop-loss, and neutral close titles distinct colors', () => {
@@ -688,11 +725,9 @@ describe('ActivityListItemRow — row content', () => {
       }) as unknown as ActivityListItem;
 
     const titleColor = (item: ActivityListItem, hash: string, index: number) =>
-      StyleSheet.flatten(
-        render(<ActivityListItemRow item={item} index={index} />).getByTestId(
-          `activity-title-${hash}`,
-        ).props.style,
-      ).color;
+      render(<ActivityListItemRow item={item} index={index} />).getByTestId(
+        `activity-title-${hash}`,
+      ).props.color;
 
     const neutral = titleColor(
       makePerpsClose('perpsCloseLong', '0xn'),

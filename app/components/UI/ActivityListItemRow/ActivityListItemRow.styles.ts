@@ -1,14 +1,7 @@
-import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 import { useTheme } from '../../../util/theme';
-import {
-  getFontFamily,
-  TextVariant,
-} from '../../../component-library/components/Texts/Text';
 
-export const createStyles = (
-  colors: ReturnType<typeof useTheme>['colors'],
-  typography: ReturnType<typeof useTheme>['typography'],
-) =>
+export const createStyles = (colors: ReturnType<typeof useTheme>['colors']) =>
   StyleSheet.create({
     row: {
       backgroundColor: colors.background.default,
@@ -26,84 +19,45 @@ export const createStyles = (
       paddingBottom: 8,
     },
     icon: {
-      width: 32,
-      height: 32,
+      width: 40,
+      height: 40,
     },
     tokenIconStack: {
-      width: 32,
-      height: 32,
-      borderRadius: 16,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
       overflow: 'hidden',
       flexDirection: 'row',
     },
     tokenIconStackBack: {
-      width: 16,
-      height: 32,
+      width: 20,
+      height: 40,
       overflow: 'hidden',
     } as ViewStyle,
     tokenIconStackFront: {
-      width: 16,
-      height: 32,
+      width: 20,
+      height: 40,
       overflow: 'hidden',
     } as ViewStyle,
     tokenIconStackFrontImage: {
       position: 'absolute',
-      left: -16,
+      left: -20,
       top: 0,
     } as ViewStyle,
     tokenIconStackDivider: {
       position: 'absolute',
-      left: 15,
+      left: 19,
       top: 0,
       width: 1,
-      height: 32,
+      height: 40,
       backgroundColor: colors.text.default,
     } as ViewStyle,
-    listItemTitle: {
-      ...typography.sBodyMDMedium,
-      fontFamily: getFontFamily(TextVariant.BodyMDMedium),
-      lineHeight: 18,
-      marginTop: 0,
-      color: colors.text.default,
-    } as TextStyle,
-    listItemTitleFailed: {
-      color: colors.error.default,
-    } as TextStyle,
-    listItemTitleWarning: {
-      color: colors.warning.default,
-    } as TextStyle,
-    subtitleText: {
-      ...typography.sBodySM,
-      fontFamily: getFontFamily(TextVariant.BodySM),
-      lineHeight: 16,
-      marginTop: 4,
-      color: colors.text.alternative,
-    } as TextStyle,
     listItemAmounts: {
       alignItems: 'flex-end',
       flexShrink: 1,
       maxWidth: '45%',
       minWidth: 0,
     },
-    listItemAmount: {
-      ...typography.sBodyMDMedium,
-      fontFamily: getFontFamily(TextVariant.BodyMDMedium),
-      color: colors.text.default,
-      lineHeight: 18,
-      textAlign: 'right',
-    } as TextStyle,
-    listItemAmountIncoming: {
-      color: colors.success.default,
-    } as TextStyle,
-    listItemSecondaryAmount: {
-      ...typography.sBodySM,
-      fontFamily: getFontFamily(TextVariant.BodySM),
-      color: colors.text.alternative,
-      lineHeight: 16,
-      // Match the title/subtitle gap so the two amount lines aren't cramped.
-      marginTop: 4,
-      textAlign: 'right',
-    } as TextStyle,
     titleRow: {
       flexDirection: 'row',
       alignItems: 'center',
@@ -130,9 +84,6 @@ export const createStyles = (
       marginRight: 4,
       transform: [{ translateY: -1 }],
     },
-    statusText: {
-      marginTop: 0,
-    } as TextStyle,
     pendingActions: {
       flexDirection: 'row',
       justifyContent: 'flex-end',

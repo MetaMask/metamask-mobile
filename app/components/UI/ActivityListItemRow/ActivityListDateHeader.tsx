@@ -4,6 +4,7 @@ import { Box } from '@metamask/design-system-react-native';
 import ListItem from '../../Base/ListItem';
 import { useTheme } from '../../../util/theme';
 import { formatActivityListDateHeader } from '../../../util/activity-adapters';
+import { fontStyles } from '../../../styles/common';
 
 export const ActivityListDateHeader = ({
   timestamp,
@@ -21,6 +22,7 @@ export const ActivityListDateHeader = ({
       paddingHorizontal: 0,
       paddingTop: 16,
       paddingBottom: 4,
+      ...fontStyles.medium,
     },
   });
 

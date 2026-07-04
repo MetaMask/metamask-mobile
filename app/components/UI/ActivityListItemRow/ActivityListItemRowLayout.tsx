@@ -1,11 +1,32 @@
 import React from 'react';
-import { Text, View } from 'react-native';
-import { ListItem } from '@metamask/design-system-react-native';
+import { View } from 'react-native';
+import {
+  FontWeight,
+  ListItem,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import type {
   ActivityListItem,
   TokenAmount,
 } from '../../../util/activity-adapters';
 import type { ActivityListItemRowStyles } from './ActivityListItemRow.styles';
+
+function resolveTitleColor(
+  isFailed: boolean,
+  titleSeverity?: 'error' | 'warning',
+): (typeof TextColor)[keyof typeof TextColor] {
+  if (isFailed || titleSeverity === 'error') {
+    return TextColor.ErrorDefault;
+  }
+
+  if (titleSeverity === 'warning') {
+    return TextColor.WarningDefault;
+  }
+
+  return TextColor.TextDefault;
+}
 
 export function ActivityListItemRowLayout({
   avatar,
@@ -41,16 +62,12 @@ export function ActivityListItemRowLayout({
   titleAccessory?: React.ReactNode;
 }) {
   const testIdSuffix = item.hash ?? index;
-  const titleSeverityStyle =
-    isFailed || titleSeverity === 'error'
-      ? styles.listItemTitleFailed
-      : titleSeverity === 'warning'
-        ? styles.listItemTitleWarning
-        : undefined;
   const titleText = (
     <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={resolveTitleColor(isFailed, titleSeverity)}
       numberOfLines={1}
-      style={[styles.listItemTitle, titleSeverityStyle]}
       testID={`activity-title-${testIdSuffix}`}
     >
       {title}
@@ -69,8 +86,10 @@ export function ActivityListItemRowLayout({
       <View style={styles.subtitleRow}>
         {subtitleLeadingAccessory}
         <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
           numberOfLines={1}
-          style={styles.subtitleText}
           testID={`activity-subtitle-${testIdSuffix}`}
         >
           {subtitle}
@@ -78,8 +97,10 @@ export function ActivityListItemRowLayout({
       </View>
     ) : (
       <Text
+        variant={TextVariant.BodySm}
+        fontWeight={FontWeight.Medium}
+        color={TextColor.TextAlternative}
         numberOfLines={1}
-        style={styles.subtitleText}
         testID={`activity-subtitle-${testIdSuffix}`}
       >
         {subtitle}
@@ -88,12 +109,16 @@ export function ActivityListItemRowLayout({
   ) : undefined;
   const primaryAmountNode = primaryAmount ? (
     <Text
+      variant={TextVariant.BodyMd}
+      fontWeight={FontWeight.Medium}
+      color={
+        primaryToken?.direction === 'in'
+          ? TextColor.SuccessDefault
+          : TextColor.TextDefault
+      }
+      twClassName="text-right"
       numberOfLines={1}
       ellipsizeMode="tail"
-      style={[
-        styles.listItemAmount,
-        primaryToken?.direction === 'in' && styles.listItemAmountIncoming,
-      ]}
       testID={`activity-primary-amount-${testIdSuffix}`}
     >
       {primaryAmount}
@@ -101,9 +126,12 @@ export function ActivityListItemRowLayout({
   ) : undefined;
   const secondaryAmountNode = secondaryAmount ? (
     <Text
+      variant={TextVariant.BodySm}
+      fontWeight={FontWeight.Medium}
+      color={TextColor.TextAlternative}
+      twClassName="text-right"
       numberOfLines={1}
       ellipsizeMode="tail"
-      style={styles.listItemSecondaryAmount}
       testID={`activity-secondary-amount-${testIdSuffix}`}
     >
       {secondaryAmount}
