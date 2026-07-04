@@ -4,6 +4,9 @@ import {
   AvatarAccount,
   AvatarBaseSize,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
   FontWeight,
   Text,
   TextVariant,
@@ -34,11 +37,17 @@ export function ActivityDetailsAccountValue({
   const displayAddress = renderShortAddress(address);
 
   return (
-    <Box twClassName="flex-row items-center justify-end gap-1 shrink">
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      justifyContent={BoxJustifyContent.End}
+      gap={2}
+      twClassName="shrink"
+    >
       <AvatarAccount
         address={address}
         variant={accountVariant}
-        size={AvatarBaseSize.Sm}
+        size={AvatarBaseSize.Xs}
       />
       {accountName ? (
         <Box twClassName="flex-row items-center shrink">

@@ -3,6 +3,8 @@ import {
   AvatarNetwork,
   AvatarNetworkSize,
   Box,
+  BoxAlignItems,
+  BoxFlexDirection,
   FontWeight,
   Text,
   TextVariant,
@@ -19,12 +21,17 @@ export function ActivityDetailsNetworkValue({
   const networkImage = getNetworkImageSource({ chainId });
 
   return (
-    <Box twClassName="flex-row items-center gap-1 shrink">
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      gap={2}
+      twClassName="shrink"
+    >
       {networkImage ? (
         <AvatarNetwork
           name={name}
           src={networkImage}
-          size={AvatarNetworkSize.Sm}
+          size={AvatarNetworkSize.Xs}
         />
       ) : null}
       <Text

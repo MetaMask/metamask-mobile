@@ -12,20 +12,26 @@ export function ActivityDetailsTemplateFrame({
   metadata,
   details,
   footer,
+  showHeroDivider = true,
 }: {
   hero?: React.ReactNode;
   metadata: React.ReactNode;
   details?: React.ReactNode;
   footer: React.ReactNode;
+  showHeroDivider?: boolean;
 }) {
   return (
     <Box twClassName="flex-1">
       {hero}
-      {hero ? <SectionDivider marginVertical={3} /> : null}
-      {metadata}
+      {hero && showHeroDivider ? <SectionDivider marginVertical={5} /> : null}
+      {hero && !showHeroDivider ? (
+        <Box twClassName="mt-5">{metadata}</Box>
+      ) : (
+        metadata
+      )}
       {details ? (
         <>
-          <SectionDivider marginVertical={3} />
+          <SectionDivider marginVertical={5} />
           {details}
         </>
       ) : null}

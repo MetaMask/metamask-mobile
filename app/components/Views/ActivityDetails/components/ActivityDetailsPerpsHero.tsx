@@ -80,12 +80,17 @@ export function ActivityDetailsPerpsHero({
 
   return (
     <Box
-      twClassName="flex-row items-center gap-3"
+      marginTop={4}
+      marginBottom={6}
+      twClassName="w-full flex-col items-center justify-center gap-4"
       testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}
     >
-      <PerpsHeroIcon symbol={symbol} />
+      <Box twClassName="self-center items-center">
+        <PerpsHeroIcon symbol={symbol} />
+      </Box>
       <Text
         variant={TextVariant.DisplayMd}
+        twClassName="text-center"
         color={isPositive ? TextColor.SuccessDefault : TextColor.TextDefault}
       >
         {amount}

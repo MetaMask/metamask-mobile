@@ -8,6 +8,7 @@ import {
   Box,
   FontWeight,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import type {
@@ -62,6 +63,7 @@ export function ActivityDetailsFeeValue({
     <Box twClassName="flex-row items-center justify-end gap-2 shrink">
       <Text
         variant={TextVariant.BodyMd}
+        color={TextColor.TextAlternative}
         fontWeight={FontWeight.Medium}
         twClassName="shrink"
         numberOfLines={1}

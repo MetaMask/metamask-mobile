@@ -4,6 +4,7 @@ import type { BridgeHistoryItem } from '@metamask/bridge-status-controller';
 import {
   AvatarTokenSize,
   Box,
+  FontWeight,
   Text,
   TextColor,
   TextVariant,
@@ -43,29 +44,32 @@ export function ActivityDetailsAmountHeader({
 
   return (
     <Box
-      twClassName="flex-row items-center gap-3"
+      marginTop={4}
+      marginBottom={6}
+      twClassName="w-full flex-col items-center justify-center gap-4"
       testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}
     >
-      <ActivityDetailsAvatar
-        tokens={content.avatarTokens}
-        chainId={item.chainId}
-        showNetworkBadge
-        iconUrl={content.avatarIconUrl ?? nftImageUrl}
-      />
-      <Box twClassName="shrink">
-        {content.primaryAmount ? (
-          <Text
-            variant={TextVariant.DisplayMd}
-            color={
-              content.primaryToken?.direction === 'in'
-                ? TextColor.SuccessDefault
-                : TextColor.TextDefault
-            }
-          >
-            {content.primaryAmount}
-          </Text>
-        ) : null}
+      <Box twClassName="self-center items-center">
+        <ActivityDetailsAvatar
+          tokens={content.avatarTokens}
+          chainId={item.chainId}
+          showNetworkBadge
+          iconUrl={content.avatarIconUrl ?? nftImageUrl}
+        />
       </Box>
+      {content.primaryAmount ? (
+        <Text
+          variant={TextVariant.DisplayMd}
+          twClassName="text-center"
+          color={
+            content.primaryToken?.direction === 'in'
+              ? TextColor.SuccessDefault
+              : TextColor.TextDefault
+          }
+        >
+          {content.primaryAmount}
+        </Text>
+      ) : null}
     </Box>
   );
 }
@@ -74,15 +78,19 @@ function AssetLine({ label, token }: { label: string; token: TokenAmount }) {
   const amount = formatActivityTokenAmount(token);
 
   return (
-    <Box twClassName="gap-1">
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+    <Box twClassName="gap-2">
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        fontWeight={FontWeight.Medium}
+      >
         {label}
       </Text>
       <Box twClassName="flex-row items-center gap-3">
         <ActivityDetailsAvatar tokens={[token]} size={AvatarTokenSize.Lg} />
         {amount ? (
           <Text
-            variant={TextVariant.HeadingMd}
+            variant={TextVariant.HeadingLg}
             color={
               token.direction === 'in'
                 ? TextColor.SuccessDefault
@@ -117,7 +125,7 @@ export function ActivityDetailsDualAmountHeader({
   }
 
   return (
-    <Box twClassName="gap-4" testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}>
+    <Box twClassName="gap-5" testID={ActivityDetailsSelectorsIDs.AMOUNT_HEADER}>
       {sentToken ? <AssetLine label={sentLabel} token={sentToken} /> : null}
       {receivedToken ? (
         <AssetLine label={receivedLabel} token={receivedToken} />
