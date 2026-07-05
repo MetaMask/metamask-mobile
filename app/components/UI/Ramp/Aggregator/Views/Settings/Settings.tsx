@@ -1,5 +1,6 @@
 import React, { useCallback } from 'react';
 import { HeaderStandard } from '@metamask/design-system-react-native';
+import { EnvironmentType } from '@metamask/remote-feature-flag-controller';
 import { KeyboardAvoidingView, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -19,6 +20,7 @@ import Button, {
 import { strings } from '../../../../../../../locales/i18n';
 import useAnalytics from '../../../hooks/useAnalytics';
 import Routes from '../../../../../../constants/navigation/Routes';
+import { getFeatureFlagAppEnvironment } from '../../../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 
 import ActivationKeys from './ActivationKeys';
 
@@ -38,6 +40,12 @@ function Settings() {
   const trackEvent = useAnalytics();
   const { userRegion } = useRampsController();
   const style = styles();
+  // TEMP(device-testing): also surface the headless playground on RC builds so
+  // the provider-scope toggle can be flipped on-device (the scope guard honors
+  // the stored setting on ReleaseCandidate; production stays hard-off). REVERT
+  // before merge - restore the `isInternalBuild`-only gate on the playground.
+  const isReleaseCandidate =
+    getFeatureFlagAppEnvironment() === EnvironmentType.ReleaseCandidate;
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -96,7 +104,7 @@ function Settings() {
                   <ActivationKeys />
                 </Row>
               ) : null}
-              {isInternalBuild ? (
+              {isInternalBuild || isReleaseCandidate ? (
                 <Row>
                   <Button
                     variant={ButtonVariants.Secondary}
