@@ -1,17 +1,48 @@
+import { EnvironmentType } from '@metamask/remote-feature-flag-controller';
+
 import { getEffectiveProviderScope } from './providerScope';
+import { getFeatureFlagAppEnvironment } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
+import { selectFiatProviderScopeSetting } from '../../../../reducers/fiatOrders';
+import type { FiatProviderScope } from '../../../../reducers/fiatOrders/types';
 import type { RootState } from '../../../../reducers';
 
-// TEMP(device-testing): getEffectiveProviderScope is hard-forced to `in-app`
-// (see providerScope.ts). When the production guard + stored-setting logic is
-// restored before merge, restore the env-matrix tests (prod -> off, non-prod ->
-// stored setting) alongside it.
+jest.mock(
+  '../../../../core/Engine/controllers/remote-feature-flag-controller/utils',
+);
+jest.mock('../../../../reducers/fiatOrders');
+
 describe('getEffectiveProviderScope', () => {
-  it('is temporarily forced to in-app for on-device testing', () => {
-    expect(getEffectiveProviderScope({} as RootState)).toBe('in-app');
-    expect(
-      getEffectiveProviderScope({
-        fiatOrders: { providerScope: 'off' },
-      } as unknown as RootState),
-    ).toBe('in-app');
+  const getEnvMock = jest.mocked(getFeatureFlagAppEnvironment);
+  const getSettingMock = jest.mocked(selectFiatProviderScopeSetting);
+  const state = {} as RootState;
+
+  beforeEach(() => {
+    jest.resetAllMocks();
+  });
+
+  it('hard-forces off in production regardless of the stored setting', () => {
+    getEnvMock.mockReturnValue(EnvironmentType.Production);
+    getSettingMock.mockReturnValue('in-app');
+
+    expect(getEffectiveProviderScope(state)).toBe('off');
+    // Short-circuits before reading the setting.
+    expect(getSettingMock).not.toHaveBeenCalled();
+  });
+
+  it.each(['off', 'in-app', 'all'] as FiatProviderScope[])(
+    'returns the stored setting (%s) on non-production builds',
+    (scope) => {
+      getEnvMock.mockReturnValue(EnvironmentType.Development);
+      getSettingMock.mockReturnValue(scope);
+
+      expect(getEffectiveProviderScope(state)).toBe(scope);
+    },
+  );
+
+  it('returns the stored setting on release-candidate builds', () => {
+    getEnvMock.mockReturnValue(EnvironmentType.ReleaseCandidate);
+    getSettingMock.mockReturnValue('in-app');
+
+    expect(getEffectiveProviderScope(state)).toBe('in-app');
   });
 });
