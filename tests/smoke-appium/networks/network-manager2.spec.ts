@@ -16,6 +16,7 @@ import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet.js
 import { CustomNetworks } from '../../resources/networks.e2e.js';
 import type { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper.js';
+import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers.js';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
@@ -98,10 +99,8 @@ appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
 
           step('tap connect');
           await ConnectBottomSheet.tapConnectButton();
-          step('assert browser visible after connect');
-          await Assertions.expectElementToBeVisible(Browser.browserScreenID, {
-            description: 'Browser screen should be visible after connecting',
-          });
+          // Fixture pre-connects the dapp on Ethereum; Connect approves Polygon.
+          await PlaywrightContextHelpers.switchToNativeContext();
           step('close browser');
           await Browser.tapCloseBrowserButton();
           step('tap wallet tab');

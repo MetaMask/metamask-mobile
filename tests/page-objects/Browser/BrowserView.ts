@@ -29,8 +29,10 @@ import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
 const PORTFOLIO_HOST_PATTERN = /portfolio\.metamask\.io/i;
 const DAPP_NAVIGATION_MAX_ATTEMPTS = 3;
 const TAB_THUMBNAIL_POLL_MS = 500;
-const TAB_THUMBNAIL_WAIT_MS = 5_000;
-const DAPP_URL_BAR_VERIFY_MS = 10_000;
+const TAB_THUMBNAIL_WAIT_MS = 10_000;
+const DAPP_NAVIGATION_VERIFY_MS = 15_000;
+/** Persisted browser tab id in tests/framework/fixtures/json/default-fixture.json */
+const FIXTURE_DEFAULT_BROWSER_TAB_ID = 1692550481062;
 
 interface TransactionParams {
   [key: string]: string | number | boolean;
@@ -63,21 +65,15 @@ class Browser {
   }
 
   get browserScreenID(): EncapsulatedElementType {
-    // iOS XCUITest often reports browser-screen container as not displayed while
-    // the URL bar and WebView are visible. url-input is a reliable proxy.
+    // XCUITest / UiAutomator2 often report browser-screen container as not displayed
+    // while the URL bar and WebView are visible. url-input is a reliable proxy.
     return encapsulated({
       detox: () =>
         Matchers.getElementByID(BrowserViewSelectorsIDs.BROWSER_SCREEN_ID),
-      appium: {
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            BrowserViewSelectorsIDs.URL_INPUT,
-          ),
-        android: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            BrowserViewSelectorsIDs.BROWSER_SCREEN_ID,
-          ),
-      },
+      appium: () =>
+        PlaywrightMatchers.getElementByAccessibilityId(
+          BrowserViewSelectorsIDs.URL_INPUT,
+        ),
     });
   }
 
@@ -237,7 +233,14 @@ class Browser {
     // dismiss a modal (e.g. transaction confirmation) the URL bar focus can
     // be restored under RN 0.81 / React 19, leaving the close button missing.
     // Defensively dismiss the URL editor if the Cancel button is visible.
+    if (FrameworkDetector.isAppium()) {
+      await PlaywrightContextHelpers.switchToNativeContext();
+    }
     await this.dismissUrlEditorIfOpen();
+    await Assertions.expectElementToBeVisible(this.closeBrowserButton, {
+      description: 'Close browser button should be visible',
+      timeout: 15_000,
+    });
     await Gestures.waitAndTap(this.closeBrowserButton, {
       elemDescription: 'Close browser button',
     });
@@ -258,9 +261,9 @@ class Browser {
   }
 
   /**
-   * If the "Opened tabs" grid is shown, open an existing tab or return to the
-   * active tab. Avoids tapping "Add tab" when thumbnails are still loading,
-   * which would open Portfolio (the browser homepage).
+   * If the "Opened tabs" grid is shown, open the fixture tab or any existing tab.
+   * Avoids tapping Back (returns to the active tab, often Portfolio) or "+" too early
+   * (opens a new Portfolio homepage tab).
    */
   async ensureSingleBrowserTabView(): Promise<void> {
     const openedTabsHeader = Matchers.getElementByID(
@@ -274,6 +277,20 @@ class Browser {
       return;
     }
 
+    const fixtureTab = Matchers.getElementByID(
+      `browser-tab-${FIXTURE_DEFAULT_BROWSER_TAB_ID}`,
+    );
+    if (await Utilities.isElementVisible(fixtureTab, 3000)) {
+      await Gestures.waitAndTap(fixtureTab, {
+        elemDescription: 'Fixture browser tab from persisted state',
+      });
+      await Assertions.expectElementToBeVisible(this.addressBar, {
+        description: 'Browser URL bar after opening fixture tab',
+        timeout: 10_000,
+      });
+      return;
+    }
+
     const deadline = Date.now() + TAB_THUMBNAIL_WAIT_MS;
     while (Date.now() < deadline) {
       const firstTab = Matchers.getElementByID(
@@ -284,31 +301,30 @@ class Browser {
         await Gestures.waitAndTap(firstTab, {
           elemDescription: 'First browser tab (select to open single-tab view)',
         });
+        await Assertions.expectElementToBeVisible(this.addressBar, {
+          description: 'Browser URL bar after opening first tab',
+          timeout: 10_000,
+        });
         return;
       }
       await TestHelpers.delay(TAB_THUMBNAIL_POLL_MS);
     }
 
-    const backButton = Matchers.getElementByID(
-      BrowserViewSelectorsIDs.TABS_BACK_BUTTON,
+    throw new Error(
+      'Browser tab list is open but no tab thumbnail was found to select',
     );
-    if (await Utilities.isElementVisible(backButton, 2000)) {
-      await Gestures.waitAndTap(backButton, {
-        elemDescription: 'Back from tab list to active browser tab',
-      });
-      return;
-    }
-
-    const addNewTab = Matchers.getElementByID(
-      BrowserViewSelectorsIDs.ADD_NEW_TAB,
-    );
-    await Gestures.waitAndTap(addNewTab, {
-      elemDescription: 'Add new browser tab from empty tabs view',
-    });
   }
 
   private async getUrlBarDisplayText(): Promise<string> {
     if (FrameworkDetector.isAppium()) {
+      const urlInput = await asPlaywrightElement(this.urlInputBoxID);
+      if (await urlInput.isVisible()) {
+        const inputText = await urlInput.textContent();
+        if (inputText.trim().length > 0) {
+          return inputText;
+        }
+      }
+
       const urlBar = await asPlaywrightElement(this.addressBar);
       return (await urlBar.textContent()) ?? '';
     }
@@ -346,7 +362,7 @@ class Browser {
 
   private async waitForUrlBarToShowDapp(
     dappUrl: string,
-    timeoutMs = DAPP_URL_BAR_VERIFY_MS,
+    timeoutMs = DAPP_NAVIGATION_VERIFY_MS,
   ): Promise<boolean> {
     const deadline = Date.now() + timeoutMs;
 
@@ -359,6 +375,37 @@ class Browser {
     }
 
     return false;
+  }
+
+  /** Confirms the dapp WebView tab is loaded (more reliable than native URL bar text). */
+  private async waitForDappWebViewContext(
+    dappUrl: string,
+    timeoutMs = DAPP_NAVIGATION_VERIFY_MS,
+  ): Promise<boolean> {
+    const deadline = Date.now() + timeoutMs;
+
+    while (Date.now() < deadline) {
+      try {
+        await PlaywrightContextHelpers.switchToWebViewContext(dappUrl);
+        await PlaywrightContextHelpers.switchToNativeContext();
+        return true;
+      } catch {
+        await TestHelpers.delay(500);
+      }
+    }
+
+    return false;
+  }
+
+  private async waitForDappNavigation(dappUrl: string): Promise<boolean> {
+    if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
+      const webViewLoaded = await this.waitForDappWebViewContext(dappUrl);
+      if (webViewLoaded) {
+        return true;
+      }
+    }
+
+    return this.waitForUrlBarToShowDapp(dappUrl);
   }
 
   // Legacy methods for backward compatibility with existing tests
@@ -513,7 +560,11 @@ class Browser {
         const urlInput = await asPlaywrightElement(this.urlInputBoxID);
         await urlInput.clear();
         await urlInput.fill(url);
-        await PlaywrightGestures.tapKeyboardReturnKey('Go');
+        if (PlatformDetector.isAndroid()) {
+          await PlaywrightGestures.submitAndroidUrlBar();
+        } else {
+          await PlaywrightGestures.tapKeyboardReturnKey('Go');
+        }
         // Allow WebView navigation to start before dismissing the URL editor.
         if (PlatformDetector.isAndroid()) {
           await TestHelpers.delay(2000);
@@ -552,10 +603,10 @@ class Browser {
       await this.tapUrlInputBox();
       await this.navigateToURL(dappUrl, { skipUrlEditorDismissal: true });
 
-      const navigated = await this.waitForUrlBarToShowDapp(dappUrl);
-      await this.dismissUrlEditorIfOpen();
+      const navigated = await this.waitForDappNavigation(dappUrl);
 
       if (navigated) {
+        await this.dismissUrlEditorIfOpen();
         if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
           await PlaywrightContextHelpers.scrollWebViewToTop(dappUrl);
         }

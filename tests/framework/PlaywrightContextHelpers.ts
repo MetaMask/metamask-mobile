@@ -296,4 +296,49 @@ export default class PlaywrightContextHelpers {
     }, dappUrl);
     await this.switchToNativeContext();
   }
+
+  /**
+   * Tap a dapp element by HTML id inside the WebView. Uses in-page JS instead of
+   * Chromedriver XPath (avoids LavaMoat scuttling) and scrolls into view first.
+   */
+  static async tapDappElementById(
+    elementId: string,
+    dappUrl: string,
+  ): Promise<void> {
+    await this.withWebAction(async () => {
+      await getDriver().execute((id: string) => {
+        const el = document.getElementById(id);
+        if (!el) {
+          throw new Error(`Dapp element #${id} not found`);
+        }
+        el.scrollIntoView({ block: 'center', inline: 'nearest' });
+        (el as HTMLElement).click();
+      }, elementId);
+    }, dappUrl);
+  }
+
+  /** Tap a network row in the test-dapp network picker modal. */
+  static async tapDappNetworkByName(
+    networkName: string,
+    dappUrl: string,
+  ): Promise<void> {
+    await this.withWebAction(async () => {
+      const clicked = await getDriver().execute((name: string) => {
+        const items = document.querySelectorAll('.network-modal-item-name');
+        for (const item of items) {
+          if (item.textContent?.includes(name)) {
+            item.scrollIntoView({ block: 'center', inline: 'nearest' });
+            (item as HTMLElement).click();
+            return true;
+          }
+        }
+        return false;
+      }, networkName);
+      if (!clicked) {
+        throw new Error(
+          `Could not find network "${networkName}" in dapp network picker`,
+        );
+      }
+    }, dappUrl);
+  }
 }

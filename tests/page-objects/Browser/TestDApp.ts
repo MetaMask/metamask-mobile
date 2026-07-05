@@ -13,8 +13,6 @@ import Browser from './BrowserView';
 import { Assertions, TapOptions, Utilities } from '../../framework';
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightContextHelpers from '../../framework/PlaywrightContextHelpers';
-import PlaywrightGestures from '../../framework/PlaywrightGestures';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 const CONFIRM_BUTTON_TEXT = enContent.confirmation_modal.confirm_cta;
 const APPROVE_BUTTON_TEXT = enContent.transactions.tx_review_approve;
@@ -584,12 +582,11 @@ class TestDApp {
         });
       },
       appium: async () => {
-        await PlaywrightContextHelpers.withWebAction(async () => {
-          const openPicker = await PlaywrightMatchers.getElementByXPath(
-            `//*[@id="${TestDappSelectorsWebIDs.OPEN_NETWORK_PICKER}"]`,
-          );
-          await PlaywrightGestures.waitAndTap(openPicker);
-        }, getDappUrl(0));
+        await PlaywrightContextHelpers.tapDappElementById(
+          TestDappSelectorsWebIDs.OPEN_NETWORK_PICKER,
+          getDappUrl(0),
+        );
+        await PlaywrightContextHelpers.switchToNativeContext();
       },
     });
   }
@@ -611,12 +608,10 @@ class TestDApp {
         }
       },
       appium: async () => {
-        await PlaywrightContextHelpers.withWebAction(async () => {
-          const networkItem = await PlaywrightMatchers.getElementByXPath(
-            `//div[contains(@class, "network-modal-item-name") and contains(text(), "${networkName}")]`,
-          );
-          await PlaywrightGestures.waitAndTap(networkItem);
-        }, getDappUrl(0));
+        await PlaywrightContextHelpers.tapDappNetworkByName(
+          networkName,
+          getDappUrl(0),
+        );
         await PlaywrightContextHelpers.switchToNativeContext();
       },
     });
