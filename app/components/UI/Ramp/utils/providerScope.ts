@@ -1,32 +1,36 @@
 import { useSelector } from 'react-redux';
-import { EnvironmentType } from '@metamask/remote-feature-flag-controller';
 
 import type { RootState } from '../../../../reducers';
-import { selectFiatProviderScopeSetting } from '../../../../reducers/fiatOrders';
 import type { FiatProviderScope } from '../../../../reducers/fiatOrders/types';
-import { getFeatureFlagAppEnvironment } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 
 /**
- * Resolves the effective headless fiat provider-class scope, applying the
- * production hard-off guard: the dev/RC toggle is only honored on non-production
- * builds, so production always resolves to `off` (native-only) regardless of the
- * stored setting.
+ * Resolves the effective headless fiat provider-class scope.
+ *
+ * TEMP(device-testing): hard-forced to `in-app` on every build. The
+ * HeadlessPlayground scope toggle is hidden on RC builds (the Ramp SDK treats RC
+ * as production), so this lets the widened in-app flow be exercised on-device
+ * without the toggle. This intentionally bypasses the production hard-off guard
+ * and the stored `fiatOrders.providerScope` setting.
+ *
+ * REVERT before merge: restore the production hard-off guard (return `off` when
+ * `getFeatureFlagAppEnvironment()` is `EnvironmentType.Production`) and otherwise
+ * return `selectFiatProviderScopeSetting(state)`, re-adding the `EnvironmentType`,
+ * `getFeatureFlagAppEnvironment`, and `selectFiatProviderScopeSetting` imports.
  *
  * Read by both the mobile availability gate (`useHasNativeFiatProvider`) and the
  * `RampsController` `getProviderScope` injection so the two never disagree.
  *
- * @param state - The Redux root state.
+ * @param _state - The Redux root state (unused while forced).
  * @returns The effective provider scope.
  */
-export function getEffectiveProviderScope(state: RootState): FiatProviderScope {
-  if (getFeatureFlagAppEnvironment() === EnvironmentType.Production) {
-    return 'off';
-  }
-  return selectFiatProviderScopeSetting(state);
+export function getEffectiveProviderScope(
+  _state: RootState,
+): FiatProviderScope {
+  return 'in-app';
 }
 
 /**
- * Hook returning the effective headless fiat provider-class scope (prod-guarded).
+ * Hook returning the effective headless fiat provider-class scope.
  *
  * @returns The effective provider scope.
  */
