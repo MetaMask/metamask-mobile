@@ -5,6 +5,7 @@ import Utilities from '../framework/Utilities';
 import BrowserView from '../page-objects/Browser/BrowserView';
 import TestDApp from '../page-objects/Browser/TestDApp';
 import { BrowserViewSelectorsIDs } from '../../app/components/Views/BrowserTab/BrowserView.testIds';
+import { BrowserURLBarSelectorsIDs } from '../../app/components/UI/BrowserUrlBar/BrowserURLBar.testIds';
 import TabBarComponent from '../page-objects/wallet/TabBarComponent';
 import TrendingView from '../page-objects/Trending/TrendingView';
 import {
@@ -142,6 +143,19 @@ const ensureSingleBrowserTabView = async (): Promise<void> => {
   }
 };
 
+const getBrowserUrlBarVisibleIndicator = (): EncapsulatedElementType =>
+  encapsulated({
+    detox: () => Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
+    appium: {
+      // TextInput (`browser-modal-url-input`) is hidden when the URL bar is unfocused;
+      // the wrapper view (`url-input`) stays visible and shows the current URL.
+      android: () =>
+        PlaywrightMatchers.getElementById(BrowserViewSelectorsIDs.URL_INPUT),
+      ios: () =>
+        PlaywrightMatchers.getElementById(BrowserURLBarSelectorsIDs.URL_INPUT),
+    },
+  });
+
 export const navigateToBrowserView = async (): Promise<void> => {
   await TabBarComponent.tapExploreButton();
   await TrendingView.tapBrowserButton();
@@ -149,11 +163,7 @@ export const navigateToBrowserView = async (): Promise<void> => {
   // If we landed on the "Opened tabs" grid (tab list), select the first tab to get to single-tab view
   await ensureSingleBrowserTabView();
 
-  const urlBar = FrameworkDetector.isAppium()
-    ? BrowserView.addressBar
-    : BrowserView.urlInputBoxID;
-
-  await Assertions.expectElementToBeVisible(urlBar, {
+  await Assertions.expectElementToBeVisible(getBrowserUrlBarVisibleIndicator(), {
     description: 'Browser URL bar should be visible after navigation',
     timeout: FrameworkDetector.isAppium() ? 30_000 : undefined,
   });
