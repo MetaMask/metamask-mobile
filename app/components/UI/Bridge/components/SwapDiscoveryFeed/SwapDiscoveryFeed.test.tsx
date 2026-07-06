@@ -207,6 +207,16 @@ describe('SwapDiscoveryFeed', () => {
       Routes.WALLET.TRENDING_TOKENS_FULL_VIEW,
       { initialTimeOption: TimeOption.OneHour },
     );
+    expect(mockTrackExploreInteracted).toHaveBeenCalledWith(
+      expect.objectContaining({
+        interaction_type: 'section_see_all_tapped',
+        section_name: 'tokens_movers',
+        source: 'swaps',
+      }),
+    );
+    expect(mockTrackExploreInteracted.mock.calls[0][0]).not.toHaveProperty(
+      'tab_name',
+    );
 
     const pillProps = mockCryptoMoversPillItem.mock.calls[0][0];
     pillProps.onCardPress();
@@ -222,7 +232,7 @@ describe('SwapDiscoveryFeed', () => {
         source: 'swaps',
       }),
     );
-    expect(mockTrackExploreInteracted.mock.calls[0][0]).not.toHaveProperty(
+    expect(mockTrackExploreInteracted.mock.calls[1][0]).not.toHaveProperty(
       'tab_name',
     );
   });

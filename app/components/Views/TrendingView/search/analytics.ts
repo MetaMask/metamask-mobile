@@ -143,20 +143,17 @@ export const trackExplorePredictTrendingAssetViewed = (
 export const trackExploreSectionSeeAll = ({
   tabName,
   sectionName,
-  source,
 }: {
-  tabName?: ExploreTabName;
+  tabName: ExploreTabName;
   sectionName: ExploreSectionName;
-  source?: string;
 }): void => {
   trackExploreInteracted({
     interaction_type: 'section_see_all_tapped',
-    ...(tabName && { tab_name: tabName }),
+    tab_name: tabName,
     section_name: sectionName,
-    ...(source && { source }),
   });
 
-  if (sectionName === PREDICTIONS_TRENDING_SECTION && tabName) {
+  if (sectionName === PREDICTIONS_TRENDING_SECTION) {
     trackExplorePredictTrendingAssetViewed(tabName);
   }
 };

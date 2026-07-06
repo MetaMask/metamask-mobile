@@ -27,8 +27,8 @@ import {
 import type { ExploreSectionName } from '../../../../Views/TrendingView/search/analytics';
 import type { SwapDiscoveryFeedMode } from './abTestConfig';
 import {
-  SWAP_DISCOVERY_SOURCE,
   trackDiscoveryItemTap,
+  trackDiscoverySeeAll,
 } from './swapDiscoveryFeedAnalytics';
 import { SwapDiscoveryFeedTestIds } from './SwapDiscoveryFeed.testIds';
 
@@ -107,9 +107,10 @@ const buildTokenCardSection = ({
     <>
       <SectionHeader
         title={title}
-        onViewAll={onViewAll}
-        sectionName={sectionName}
-        source={SWAP_DISCOVERY_SOURCE}
+        onViewAll={() => {
+          trackDiscoverySeeAll(sectionName);
+          onViewAll();
+        }}
       />
       <CardList<TrendingAsset>
         data={feed.data}
@@ -135,14 +136,13 @@ const buildHotTokensSection = ({
     <>
       <SectionHeader
         title={strings('trending.hot_tokens')}
-        onViewAll={() =>
+        onViewAll={() => {
+          trackDiscoverySeeAll('tokens_movers');
           navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW, {
             initialTimeOption: HOT_TOKENS_TIME_OPTION,
-          })
-        }
+          });
+        }}
         testID={SwapDiscoveryFeedTestIds.HOT_TOKENS_VIEW_ALL}
-        sectionName="tokens_movers"
-        source={SWAP_DISCOVERY_SOURCE}
       />
       <PillScrollList<TrendingAsset>
         data={feed.data}

@@ -7,6 +7,14 @@ import {
 
 export const SWAP_DISCOVERY_SOURCE = 'swaps';
 
+export const trackDiscoverySeeAll = (sectionName: ExploreSectionName): void => {
+  trackExploreInteracted({
+    interaction_type: 'section_see_all_tapped',
+    section_name: sectionName,
+    source: SWAP_DISCOVERY_SOURCE,
+  });
+};
+
 export const trackDiscoveryItemTap = ({
   sectionName,
   assetType,
