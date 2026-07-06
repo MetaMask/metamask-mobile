@@ -8,11 +8,15 @@
 
 import { postToRN, reportErrorToRN } from '../../core/bridge';
 import {
+  deleteStudyPaneIndex,
   getActiveStudies,
   getMaStudies,
+  getStudyPaneIndex,
   getWidget,
   isChartReady,
   registerStudy,
+  reindexPanesAfterRemoval,
+  setStudyPaneIndex,
   unregisterStudy,
 } from '../../core/state';
 import type { ChartConfig, StudyId, TVActiveChart } from '../../core/types';
@@ -21,12 +25,16 @@ import type {
   RemoveIndicatorMessage,
   SetMAVisibilityMessage,
 } from '../../messages/contract';
-import { scheduleLegendRefresh, subscribeStudyDataLoaded } from './legend';
+import {
+  removeSubPaneOverlay,
+  scheduleLegendRefresh,
+  subscribeStudyDataLoaded,
+} from './legend';
 import { scheduleChartWidgetResize } from './resize';
 import { applySubPaneHeightRatio, hasActiveSubPaneIndicators } from './subPane';
 import {
   createIndicatorStudy,
-  isSubPaneIndicator,
+  isSubPanePreset,
   MA_LENGTHS,
   resolveStudyPreset,
 } from './studies';
@@ -70,7 +78,9 @@ export function handleAddIndicator(
   createIndicatorStudy(chart, preset)
     .then((studyId) => {
       registerStudy('active', name, studyId);
-      if (isSubPaneIndicator(name)) {
+      if (isSubPanePreset(preset)) {
+        const paneIdx = chart.getAllPanesHeight().length - 1;
+        setStudyPaneIndex(name, paneIdx);
         applySubPaneHeightRatio(chart);
       }
       subscribeStudyDataLoaded(chart, studyId);
@@ -99,12 +109,20 @@ export function handleRemoveIndicator(
   const studyId = unregisterStudy(name);
   if (!studyId) return;
 
+  const removedPaneIdx = getStudyPaneIndex(name);
+  const wasSubPane = removedPaneIdx !== undefined;
+  if (wasSubPane) {
+    removeSubPaneOverlay(removedPaneIdx);
+    deleteStudyPaneIndex(name);
+    reindexPanesAfterRemoval(removedPaneIdx);
+  }
+
   try {
     const chart = widget.activeChart();
     chart.removeEntity(studyId);
     scheduleLegendRefresh();
     postToRN('INDICATOR_REMOVED', { name });
-    if (isSubPaneIndicator(name) && hasActiveSubPaneIndicators()) {
+    if (wasSubPane && hasActiveSubPaneIndicators()) {
       applySubPaneHeightRatio(chart);
     }
   } catch (error) {

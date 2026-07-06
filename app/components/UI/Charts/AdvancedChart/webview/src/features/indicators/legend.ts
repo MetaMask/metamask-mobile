@@ -18,6 +18,7 @@ import {
   getActiveStudies,
   getLegendStudyOrder,
   getMaStudies,
+  getStudyPaneIndexMap,
   getTheme,
   getVolumeStudyId,
   getWidget,
@@ -26,6 +27,7 @@ import {
 import { eachChartDocument } from '../../widget/tvDomHelpers';
 import type {
   IndicatorColors,
+  LegendIndicatorCfg,
   LegendOverlayConfig,
   StudyId,
   TVActiveChart,
@@ -43,6 +45,10 @@ let retryCount = 0;
 let timeoutId: ReturnType<typeof setTimeout> | null = null;
 let legendOverlayEnabled = false;
 let indicatorColors: IndicatorColors | undefined;
+/** Typed legend config from RN; when present, replaces the hardcoded buildPresetMap(). */
+let legendConfig: Record<string, LegendIndicatorCfg> | undefined;
+/** Sub-pane overlay elements keyed by pane index. */
+const subPaneOverlays = new Map<number, HTMLDivElement>();
 
 // ----- Lifecycle ---------------------------------------------------------
 
@@ -53,6 +59,7 @@ export function setupLegendOverlay(
 ): void {
   legendOverlayEnabled = Boolean(config?.enabled);
   indicatorColors = colors;
+  legendConfig = config?.config;
   if (!legendOverlayEnabled) return;
   createOverlayElement();
   injectHideLegendButtonsCSS();
@@ -65,11 +72,13 @@ export function setupLegendOverlay(
  */
 export function attachLegendResizeListener(widget: {
   subscribe(event: 'panes_height_changed', handler: () => void): void;
+  activeChart(): TVActiveChart;
 }): void {
   try {
     widget.subscribe('panes_height_changed', () => {
       const el = document.getElementById(OVERLAY_ID);
       if (el) updateLegendOverlayLayout();
+      repositionSubPaneOverlays(widget.activeChart());
     });
   } catch {
     // TV may throw if subscribe isn't ready; safe to ignore.
@@ -113,40 +122,24 @@ function injectHideLegendButtonsCSS(): void {
 
 // ----- Legend rebuild ---------------------------------------------------
 
-interface PlotCfg {
-  tvTitle: string;
-  label: string;
-  color: string | null;
+/**
+ * Returns the per-indicator legend config. When RN supplied a typed config via
+ * legendOverlay.config (the single source of truth), use it directly.
+ * Otherwise fall back to a minimal built-in map derived from indicatorColors.
+ */
+function getPresetMap(): Record<string, LegendIndicatorCfg> {
+  if (legendConfig) return legendConfig;
+  return buildFallbackPresetMap();
 }
 
-interface IndicatorLegendCfg {
-  plots: PlotCfg[];
-  isMA?: boolean;
-  combineInOnePill?: boolean;
-  title?: string;
-  useIndex?: boolean;
-}
-
-function getMACDColors(): Record<string, string | undefined> {
-  return indicatorColors?.MACD ?? {};
-}
-function getRSIColors(): Record<string, string | undefined> {
-  return indicatorColors?.RSI ?? {};
-}
-function getBOLColors(): Record<string, string | undefined> {
-  return indicatorColors?.BOL ?? {};
-}
-function getMAColors(): Record<string, string | undefined> {
-  return indicatorColors?.MA ?? {};
-}
-
-function buildPresetMap(): Record<string, IndicatorLegendCfg> {
-  const macd = getMACDColors();
-  const rsi = getRSIColors();
-  const bol = getBOLColors();
-  const ma = getMAColors();
+function buildFallbackPresetMap(): Record<string, LegendIndicatorCfg> {
+  const macd = indicatorColors?.MACD ?? {};
+  const rsi = indicatorColors?.RSI ?? {};
+  const bol = indicatorColors?.BOL ?? {};
+  const ma = indicatorColors?.MA ?? {};
   return {
     MACD: {
+      subPaneLegend: true,
       plots: [
         { tvTitle: 'MACD', label: 'MACD(12,26)', color: macd.macd ?? null },
         { tvTitle: 'Signal', label: 'Signal', color: macd.signal ?? null },
@@ -159,6 +152,7 @@ function buildPresetMap(): Record<string, IndicatorLegendCfg> {
       useIndex: true,
     },
     RSI: {
+      subPaneLegend: true,
       plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: rsi.plot ?? null }],
       useIndex: true,
     },
@@ -248,7 +242,7 @@ function wrapPill(innerHtml: string, color?: string): string {
 
 function buildHTML(entries: StudyDataEntry[]): string {
   const altColor = getLegendAltColor();
-  const presets = buildPresetMap();
+  const presets = getPresetMap();
   const successColor = getTheme()?.successColor ?? 'rgb(38,166,154)';
   const pills: string[] = [];
 
@@ -378,10 +372,47 @@ function scheduleRetry(gen: number): void {
 }
 
 function renderOverlay(entries: StudyDataEntry[]): void {
-  const overlay = document.getElementById(OVERLAY_ID);
-  if (!overlay) return;
-  overlay.innerHTML = buildHTML(entries);
+  const presets = getPresetMap();
+  const paneIndexMap = getStudyPaneIndexMap();
+
+  const mainEntries: StudyDataEntry[] = [];
+  const subPaneGroups = new Map<number, StudyDataEntry[]>();
+
+  for (const entry of entries) {
+    const cfg = presets[entry.name];
+    const paneIdx = paneIndexMap.get(entry.name);
+    if (cfg?.subPaneLegend && paneIdx !== undefined) {
+      let group = subPaneGroups.get(paneIdx);
+      if (!group) {
+        group = [];
+        subPaneGroups.set(paneIdx, group);
+      }
+      group.push(entry);
+    } else {
+      mainEntries.push(entry);
+    }
+  }
+
+  const mainOverlay = document.getElementById(OVERLAY_ID);
+  if (mainOverlay) {
+    mainOverlay.innerHTML = buildHTML(mainEntries);
+  }
+
+  const widget = getWidget();
+  const chart = widget?.activeChart();
+
+  const activePanes = new Set(subPaneGroups.keys());
+  for (const paneIdx of subPaneOverlays.keys()) {
+    if (!activePanes.has(paneIdx)) removeSubPaneOverlay(paneIdx);
+  }
+
+  for (const [paneIdx, group] of subPaneGroups) {
+    const overlay = ensureSubPaneOverlay(paneIdx, chart ?? undefined);
+    if (overlay) overlay.innerHTML = buildHTML(group);
+  }
+
   updateLegendOverlayLayout();
+  if (chart) repositionSubPaneOverlays(chart);
 }
 
 export function refreshStudyLegendFromExport(): void {
@@ -395,6 +426,7 @@ export function refreshStudyLegendFromExport(): void {
   const studyIds = Object.keys(studyIdMap);
   if (studyIds.length === 0) {
     overlay.innerHTML = '';
+    removeAllSubPaneOverlays();
     retryCount = 0;
     clearTimer();
     return;
@@ -508,6 +540,62 @@ export function subscribeStudyDataLoaded(
   scheduleLegendRefresh();
 }
 
+// ----- Sub-pane overlay management ----------------------------------------
+
+function subPaneOverlayId(paneIndex: number): string {
+  return `${OVERLAY_ID}-pane-${paneIndex}`;
+}
+
+function getSubPaneTopPx(paneIndex: number, chart: TVActiveChart): number {
+  const heights = chart.getAllPanesHeight();
+  let top = 0;
+  for (let i = 0; i < paneIndex && i < heights.length; i++) {
+    top += heights[i];
+  }
+  return top + 1;
+}
+
+function ensureSubPaneOverlay(
+  paneIndex: number,
+  chart?: TVActiveChart,
+): HTMLDivElement | null {
+  const existing = subPaneOverlays.get(paneIndex);
+  if (existing && document.contains(existing)) return existing;
+
+  const container = document.getElementById('tv_chart_container');
+  if (!container) return null;
+
+  const div = document.createElement('div');
+  div.id = subPaneOverlayId(paneIndex);
+  const topPx = chart ? getSubPaneTopPx(paneIndex, chart) : 0;
+  div.style.cssText =
+    `position:absolute;top:${topPx}px;left:${OVERLAY_LEFT_PX}px;z-index:5;` +
+    `pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-start;` +
+    `column-gap:8px;row-gap:2px;`;
+  container.appendChild(div);
+  subPaneOverlays.set(paneIndex, div);
+  return div;
+}
+
+export function removeSubPaneOverlay(paneIndex: number): void {
+  const el = subPaneOverlays.get(paneIndex);
+  if (el) {
+    el.remove();
+    subPaneOverlays.delete(paneIndex);
+  }
+}
+
+function removeAllSubPaneOverlays(): void {
+  for (const el of subPaneOverlays.values()) el.remove();
+  subPaneOverlays.clear();
+}
+
+function repositionSubPaneOverlays(chart: TVActiveChart): void {
+  for (const [paneIdx, el] of subPaneOverlays) {
+    el.style.top = `${getSubPaneTopPx(paneIdx, chart)}px`;
+  }
+}
+
 // ----- Layout ------------------------------------------------------------
 
 function getMainPriceAxisLeftRelativeTo(el: HTMLElement): number | null {
@@ -552,4 +640,6 @@ export function __resetLegendForTests(): void {
   clearTimer();
   legendOverlayEnabled = false;
   indicatorColors = undefined;
+  legendConfig = undefined;
+  removeAllSubPaneOverlays();
 }

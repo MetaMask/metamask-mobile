@@ -50,6 +50,8 @@ interface CoreState {
   rnBackedPagination: { enabled: boolean };
   /** True when position lines include a currentPrice line; hides TV's native price line. */
   hasExplicitCurrentPriceLine: boolean;
+  /** Indicator name → pane index (0 = main). Only sub-pane studies are tracked. */
+  studyPaneIndex: Map<string, number>;
   /** SLB scoping flag — activates Strategy C (bulk back-fill) pagination. */
   slbMode: boolean;
   /**
@@ -90,6 +92,7 @@ const state: CoreState = {
   subPaneHeightRatio: null,
   rnBackedPagination: { enabled: false },
   hasExplicitCurrentPriceLine: false,
+  studyPaneIndex: new Map(),
   slbMode: false,
   slbCenteringPending: false,
 };
@@ -327,6 +330,36 @@ export function setRnBackedPagination(config: { enabled: boolean }): void {
   state.rnBackedPagination = config;
 }
 
+// ----- Study pane index (sub-pane tracking) -----------------------------------
+
+export function getStudyPaneIndex(name: string): number | undefined {
+  return state.studyPaneIndex.get(name);
+}
+
+export function setStudyPaneIndex(name: string, idx: number): void {
+  state.studyPaneIndex.set(name, idx);
+}
+
+export function deleteStudyPaneIndex(name: string): void {
+  state.studyPaneIndex.delete(name);
+}
+
+export function getStudyPaneIndexMap(): Map<string, number> {
+  return state.studyPaneIndex;
+}
+
+/**
+ * After a sub-pane is removed, TradingView renumbers panes. Decrement all
+ * tracked indices above the removed pane so they stay in sync.
+ */
+export function reindexPanesAfterRemoval(removedPaneIndex: number): void {
+  for (const [name, idx] of state.studyPaneIndex) {
+    if (idx > removedPaneIndex) {
+      state.studyPaneIndex.set(name, idx - 1);
+    }
+  }
+}
+
 // ----- SLB (Social Leaderboard) mode -----------------------------------------
 
 export function getSlbMode(): boolean {
@@ -383,6 +416,7 @@ export function __resetStateForTests(): void {
   state.subPaneHeightRatio = null;
   state.rnBackedPagination = { enabled: false };
   state.hasExplicitCurrentPriceLine = false;
+  state.studyPaneIndex = new Map();
   state.slbMode = false;
   state.slbCenteringPending = false;
 }
