@@ -33,7 +33,9 @@ const SECURITY_ALERTS_API_URL =
   process.env.SECURITY_ALERTS_API_URL ??
   'https://security-alerts.api.cx.metamask.io';
 
-const PRICE_ALERTS_API_URL = 'http://localhost:3333';
+const PRICE_ALERTS_API_URL =
+  process.env.PRICE_ALERTS_API_URL ??
+  'https://price-alerts.dev-api.cx.metamask.io';
 
 export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
