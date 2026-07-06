@@ -562,7 +562,7 @@ function getSubPaneTopPx(paneIndex: number, chart: TVActiveChart): number {
   for (let i = 0; i < paneIndex && i < heights.length; i++) {
     top += heights[i];
   }
-  return top + 1;
+  return top + 4;
 }
 
 function ensureSubPaneOverlay(
