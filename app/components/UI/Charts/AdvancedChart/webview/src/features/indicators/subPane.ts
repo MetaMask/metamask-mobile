@@ -6,7 +6,7 @@
 
 import { reportErrorToRN } from '../../core/bridge';
 import {
-  getActiveStudies,
+  getStudyPaneIndexMap,
   getSubPaneHeightRatio,
   getWidget,
   isChartReady,
@@ -14,15 +14,11 @@ import {
 } from '../../core/state';
 import type { TVActiveChart } from '../../core/types';
 import type { SetSubPaneLayoutMessage } from '../../messages/contract';
-import { isSubPaneIndicator } from './studies';
 
 const MIN_MAIN_PX = 72;
 
 export function hasActiveSubPaneIndicators(): boolean {
-  for (const name of getActiveStudies().keys()) {
-    if (isSubPaneIndicator(name)) return true;
-  }
-  return false;
+  return getStudyPaneIndexMap().size > 0;
 }
 
 export function applySubPaneHeightRatio(chart: TVActiveChart): void {

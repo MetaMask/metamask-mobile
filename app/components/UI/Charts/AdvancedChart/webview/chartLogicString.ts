@@ -166,6 +166,7 @@ const state = {
     rnBackedPagination: { enabled: false },
     hasExplicitCurrentPriceLine: false,
     hotReloadSeq: 0,
+    studyPaneIndex: new Map(),
     slbMode: false,
     slbCenteringPending: false,
     legendOwnsLayoutSettle: false,
@@ -350,6 +351,30 @@ function bumpHotReloadSeq() {
 function getHotReloadSeq() {
     return state.hotReloadSeq;
 }
+// ----- Study pane index (sub-pane tracking) -----------------------------------
+function getStudyPaneIndex(name) {
+    return state.studyPaneIndex.get(name);
+}
+function setStudyPaneIndex(name, idx) {
+    state.studyPaneIndex.set(name, idx);
+}
+function deleteStudyPaneIndex(name) {
+    state.studyPaneIndex.delete(name);
+}
+function getStudyPaneIndexMap() {
+    return state.studyPaneIndex;
+}
+/**
+ * After a sub-pane is removed, TradingView renumbers panes. Decrement all
+ * tracked indices above the removed pane so they stay in sync.
+ */
+function reindexPanesAfterRemoval(removedPaneIndex) {
+    for (const [name, idx] of state.studyPaneIndex) {
+        if (idx > removedPaneIndex) {
+            state.studyPaneIndex.set(name, idx - 1);
+        }
+    }
+}
 // ----- SLB (Social Leaderboard) mode -----------------------------------------
 function getSlbMode() {
     return state.slbMode;
@@ -406,6 +431,7 @@ function __resetStateForTests() {
     state.rnBackedPagination = { enabled: false };
     state.hasExplicitCurrentPriceLine = false;
     state.hotReloadSeq = 0;
+    state.studyPaneIndex = new Map();
     state.slbMode = false;
     state.slbCenteringPending = false;
     state.legendOwnsLayoutSettle = false;
@@ -2753,11 +2779,16 @@ let retryCount = 0;
 let timeoutId = null;
 let legendOverlayEnabled = false;
 let indicatorColors;
+/** Typed legend config from RN; when present, replaces the hardcoded buildPresetMap(). */
+let legendConfig;
+/** Sub-pane overlay elements keyed by pane index. */
+const subPaneOverlays = new Map();
 // ----- Lifecycle ---------------------------------------------------------
 /** Called once on chart-ready to set up the DOM container. */
 function setupLegendOverlay(config, colors) {
     legendOverlayEnabled = Boolean(config?.enabled);
     indicatorColors = colors;
+    legendConfig = config?.config;
     if (!legendOverlayEnabled)
         return;
     createOverlayElement();
@@ -2774,6 +2805,7 @@ function attachLegendResizeListener(widget) {
             const el = document.getElementById(OVERLAY_ID);
             if (el)
                 updateLegendOverlayLayout();
+            repositionSubPaneOverlays(widget.activeChart());
         });
     }
     catch {
@@ -2817,25 +2849,25 @@ function injectHideLegendButtonsCSS() {
             '.legendElement .buttonsWrapper{display:none!important;}';
     targetDoc.head.appendChild(style);
 }
-function getMACDColors() {
-    return indicatorColors?.MACD ?? {};
+// ----- Legend rebuild ---------------------------------------------------
+/**
+ * Returns the per-indicator legend config. When RN supplied a typed config via
+ * legendOverlay.config (the single source of truth), use it directly.
+ * Otherwise fall back to a minimal built-in map derived from indicatorColors.
+ */
+function getPresetMap() {
+    if (legendConfig)
+        return legendConfig;
+    return buildFallbackPresetMap();
 }
-function getRSIColors() {
-    return indicatorColors?.RSI ?? {};
-}
-function getBOLColors() {
-    return indicatorColors?.BOL ?? {};
-}
-function getMAColors() {
-    return indicatorColors?.MA ?? {};
-}
-function buildPresetMap() {
-    const macd = getMACDColors();
-    const rsi = getRSIColors();
-    const bol = getBOLColors();
-    const ma = getMAColors();
+function buildFallbackPresetMap() {
+    const macd = indicatorColors?.MACD ?? {};
+    const rsi = indicatorColors?.RSI ?? {};
+    const bol = indicatorColors?.BOL ?? {};
+    const ma = indicatorColors?.MA ?? {};
     return {
         MACD: {
+            subPaneLegend: true,
             plots: [
                 { tvTitle: 'MACD', label: 'MACD(12,26)', color: macd.macd ?? null },
                 { tvTitle: 'Signal', label: 'Signal', color: macd.signal ?? null },
@@ -2848,6 +2880,7 @@ function buildPresetMap() {
             useIndex: true,
         },
         RSI: {
+            subPaneLegend: true,
             plots: [{ tvTitle: 'Plot', label: 'RSI(14)', color: rsi.plot ?? null }],
             useIndex: true,
         },
@@ -2915,7 +2948,7 @@ function wrapPill(innerHtml, color) {
 }
 function buildHTML(entries) {
     const altColor = getLegendAltColor();
-    const presets = buildPresetMap();
+    const presets = getPresetMap();
     const successColor = getTheme()?.successColor ?? 'rgb(38,166,154)';
     const pills = [];
     for (const entry of entries) {
@@ -3051,11 +3084,44 @@ function scheduleRetry(gen) {
     }, RETRY_DELAY_MS);
 }
 function renderOverlay(entries) {
-    const overlay = document.getElementById(OVERLAY_ID);
-    if (!overlay)
-        return;
-    overlay.innerHTML = buildHTML(entries);
+    const presets = getPresetMap();
+    const paneIndexMap = getStudyPaneIndexMap();
+    const mainEntries = [];
+    const subPaneGroups = new Map();
+    for (const entry of entries) {
+        const cfg = presets[entry.name];
+        const paneIdx = paneIndexMap.get(entry.name);
+        if (cfg?.subPaneLegend && paneIdx !== undefined) {
+            let group = subPaneGroups.get(paneIdx);
+            if (!group) {
+                group = [];
+                subPaneGroups.set(paneIdx, group);
+            }
+            group.push(entry);
+        }
+        else {
+            mainEntries.push(entry);
+        }
+    }
+    const mainOverlay = document.getElementById(OVERLAY_ID);
+    if (mainOverlay) {
+        mainOverlay.innerHTML = buildHTML(mainEntries);
+    }
+    const widget = getWidget();
+    const chart = widget?.activeChart();
+    const activePanes = new Set(subPaneGroups.keys());
+    for (const paneIdx of subPaneOverlays.keys()) {
+        if (!activePanes.has(paneIdx))
+            removeSubPaneOverlay(paneIdx);
+    }
+    for (const [paneIdx, group] of subPaneGroups) {
+        const overlay = ensureSubPaneOverlay(paneIdx, chart ?? undefined);
+        if (overlay)
+            overlay.innerHTML = buildHTML(group);
+    }
     updateLegendOverlayLayout();
+    if (chart)
+        repositionSubPaneOverlays(chart);
 }
 function refreshStudyLegendFromExport() {
     if (!legendOverlayEnabled)
@@ -3070,6 +3136,7 @@ function refreshStudyLegendFromExport() {
     const studyIds = Object.keys(studyIdMap);
     if (studyIds.length === 0) {
         overlay.innerHTML = '';
+        removeAllSubPaneOverlays();
         retryCount = 0;
         clearTimer();
         return;
@@ -3170,6 +3237,53 @@ function subscribeStudyDataLoaded(chart, studyId) {
     }
     scheduleLegendRefresh();
 }
+// ----- Sub-pane overlay management ----------------------------------------
+function subPaneOverlayId(paneIndex) {
+    return \`\${OVERLAY_ID}-pane-\${paneIndex}\`;
+}
+function getSubPaneTopPx(paneIndex, chart) {
+    const heights = chart.getAllPanesHeight();
+    let top = 0;
+    for (let i = 0; i < paneIndex && i < heights.length; i++) {
+        top += heights[i];
+    }
+    return top + 1;
+}
+function ensureSubPaneOverlay(paneIndex, chart) {
+    const existing = subPaneOverlays.get(paneIndex);
+    if (existing && document.contains(existing))
+        return existing;
+    const container = document.getElementById('tv_chart_container');
+    if (!container)
+        return null;
+    const div = document.createElement('div');
+    div.id = subPaneOverlayId(paneIndex);
+    const topPx = chart ? getSubPaneTopPx(paneIndex, chart) : 0;
+    div.style.cssText =
+        \`position:absolute;top:\${topPx}px;left:\${OVERLAY_LEFT_PX}px;z-index:5;\` +
+            \`pointer-events:none;display:flex;flex-wrap:wrap;align-items:flex-start;\` +
+            \`column-gap:8px;row-gap:2px;\`;
+    container.appendChild(div);
+    subPaneOverlays.set(paneIndex, div);
+    return div;
+}
+function removeSubPaneOverlay(paneIndex) {
+    const el = subPaneOverlays.get(paneIndex);
+    if (el) {
+        el.remove();
+        subPaneOverlays.delete(paneIndex);
+    }
+}
+function removeAllSubPaneOverlays() {
+    for (const el of subPaneOverlays.values())
+        el.remove();
+    subPaneOverlays.clear();
+}
+function repositionSubPaneOverlays(chart) {
+    for (const [paneIdx, el] of subPaneOverlays) {
+        el.style.top = \`\${getSubPaneTopPx(paneIdx, chart)}px\`;
+    }
+}
 // ----- Layout ------------------------------------------------------------
 function getMainPriceAxisLeftRelativeTo(el) {
     if (!el?.getBoundingClientRect)
@@ -3217,6 +3331,8 @@ function __resetLegendForTests() {
     clearTimer();
     legendOverlayEnabled = false;
     indicatorColors = undefined;
+    legendConfig = undefined;
+    removeAllSubPaneOverlays();
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/resize.ts
@@ -3247,6 +3363,65 @@ function scheduleChartWidgetResize() {
         setTimeout(run, 0);
     }
     setTimeout(run, 120);
+}
+
+;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/subPane.ts
+// Sub-pane height ratio handler.
+//
+// Ported from chartLogic.js handleSetSubPaneLayout (~line 783) +
+// applySubPaneHeightRatio (~line 750). The consumer-supplied ratio
+// (subPaneHeightRatio prop) governs the size of RSI/MACD sub-panes.
+
+
+const MIN_MAIN_PX = 72;
+function hasActiveSubPaneIndicators() {
+    return getStudyPaneIndexMap().size > 0;
+}
+function applySubPaneHeightRatio(chart) {
+    const ratio = getSubPaneHeightRatio();
+    if (ratio === null)
+        return;
+    try {
+        const heights = chart.getAllPanesHeight();
+        if (heights.length < 2)
+            return;
+        const total = heights.reduce((sum, h) => sum + h, 0);
+        const bottomCount = heights.length - 1;
+        let bottomTotal = Math.round(total * ratio * bottomCount);
+        let main = total - bottomTotal;
+        if (main < MIN_MAIN_PX) {
+            main = MIN_MAIN_PX;
+            bottomTotal = total - main;
+        }
+        const newHeights = [main];
+        let remaining = bottomTotal;
+        for (let i = 0; i < bottomCount; i++) {
+            const h = i === bottomCount - 1
+                ? remaining
+                : Math.floor(bottomTotal / bottomCount);
+            newHeights.push(h);
+            remaining -= h;
+        }
+        chart.setAllPanesHeight(newHeights);
+    }
+    catch (error) {
+        reportErrorToRN(error);
+    }
+}
+function handleSetSubPaneLayout(payload) {
+    if (payload.heightRatio == null) {
+        setSubPaneHeightRatio(null);
+        return;
+    }
+    const ratio = payload.heightRatio;
+    if (typeof ratio !== 'number' || !(ratio > 0 && ratio <= 1)) {
+        return;
+    }
+    setSubPaneHeightRatio(ratio);
+    const widget = getWidget();
+    if (widget && isChartReady() && hasActiveSubPaneIndicators()) {
+        applySubPaneHeightRatio(widget.activeChart());
+    }
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/studies.ts
@@ -3292,6 +3467,7 @@ function macdPreset(colors) {
             'Histogram.color.0': c.histogramPositive,
             'Histogram.color.1': c.histogramNegative,
         },
+        paneTarget: 'sub',
     };
 }
 function rsiPreset(colors) {
@@ -3303,6 +3479,7 @@ function rsiPreset(colors) {
             'Plot.color': c.plot,
             'hlines background.visible': false,
         },
+        paneTarget: 'sub',
     };
 }
 function bolPreset(colors) {
@@ -3367,13 +3544,8 @@ function resolveStudyPreset(name, indicatorColors, inputsOverride) {
         }
     }
 }
-/** Sub-pane indicators always render in a dedicated pane below the main series. */
-const SUB_PANE_INDICATOR_NAMES = new Set([
-    'MACD',
-    'RSI',
-]);
-function isSubPaneIndicator(name) {
-    return SUB_PANE_INDICATOR_NAMES.has(name);
+function isSubPanePreset(preset) {
+    return preset.paneTarget === 'sub';
 }
 /**
  * Creates the indicator study on the given chart, returning the studyId once
@@ -3381,70 +3553,6 @@ function isSubPaneIndicator(name) {
  */
 function createIndicatorStudy(chart, preset) {
     return chart.createStudy(preset.studyName, false, false, preset.inputs, preset.overrides);
-}
-
-;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/subPane.ts
-// Sub-pane height ratio handler.
-//
-// Ported from chartLogic.js handleSetSubPaneLayout (~line 783) +
-// applySubPaneHeightRatio (~line 750). The consumer-supplied ratio
-// (subPaneHeightRatio prop) governs the size of RSI/MACD sub-panes.
-
-
-
-const MIN_MAIN_PX = 72;
-function hasActiveSubPaneIndicators() {
-    for (const name of getActiveStudies().keys()) {
-        if (isSubPaneIndicator(name))
-            return true;
-    }
-    return false;
-}
-function applySubPaneHeightRatio(chart) {
-    const ratio = getSubPaneHeightRatio();
-    if (ratio === null)
-        return;
-    try {
-        const heights = chart.getAllPanesHeight();
-        if (heights.length < 2)
-            return;
-        const total = heights.reduce((sum, h) => sum + h, 0);
-        const bottomCount = heights.length - 1;
-        let bottomTotal = Math.round(total * ratio * bottomCount);
-        let main = total - bottomTotal;
-        if (main < MIN_MAIN_PX) {
-            main = MIN_MAIN_PX;
-            bottomTotal = total - main;
-        }
-        const newHeights = [main];
-        let remaining = bottomTotal;
-        for (let i = 0; i < bottomCount; i++) {
-            const h = i === bottomCount - 1
-                ? remaining
-                : Math.floor(bottomTotal / bottomCount);
-            newHeights.push(h);
-            remaining -= h;
-        }
-        chart.setAllPanesHeight(newHeights);
-    }
-    catch (error) {
-        reportErrorToRN(error);
-    }
-}
-function handleSetSubPaneLayout(payload) {
-    if (payload.heightRatio == null) {
-        setSubPaneHeightRatio(null);
-        return;
-    }
-    const ratio = payload.heightRatio;
-    if (typeof ratio !== 'number' || !(ratio > 0 && ratio <= 1)) {
-        return;
-    }
-    setSubPaneHeightRatio(ratio);
-    const widget = getWidget();
-    if (widget && isChartReady() && hasActiveSubPaneIndicators()) {
-        applySubPaneHeightRatio(widget.activeChart());
-    }
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/features/indicators/index.ts
@@ -3491,7 +3599,9 @@ function handleAddIndicator(payload, config) {
     createIndicatorStudy(chart, preset)
         .then((studyId) => {
         registerStudy('active', name, studyId);
-        if (isSubPaneIndicator(name)) {
+        if (isSubPanePreset(preset)) {
+            const paneIdx = chart.getAllPanesHeight().length - 1;
+            setStudyPaneIndex(name, paneIdx);
             applySubPaneHeightRatio(chart);
         }
         subscribeStudyDataLoaded(chart, studyId);
@@ -3518,12 +3628,19 @@ function handleRemoveIndicator(payload) {
     const studyId = unregisterStudy(name);
     if (!studyId)
         return;
+    const removedPaneIdx = getStudyPaneIndex(name);
+    const wasSubPane = removedPaneIdx !== undefined;
+    if (wasSubPane) {
+        removeSubPaneOverlay(removedPaneIdx);
+        deleteStudyPaneIndex(name);
+        reindexPanesAfterRemoval(removedPaneIdx);
+    }
     try {
         const chart = widget.activeChart();
         chart.removeEntity(studyId);
         scheduleLegendRefresh();
         postToRN('INDICATOR_REMOVED', { name });
-        if (isSubPaneIndicator(name) && hasActiveSubPaneIndicators()) {
+        if (wasSubPane && hasActiveSubPaneIndicators()) {
             applySubPaneHeightRatio(chart);
         }
     }

@@ -11,6 +11,7 @@ import {
   getSubPaneHeightRatio,
   registerStudy,
   setChartReady,
+  setStudyPaneIndex,
   setWidget,
 } from '../../../core/state';
 import type {
@@ -39,8 +40,9 @@ describe('hasActiveSubPaneIndicators', () => {
     expect(hasActiveSubPaneIndicators()).toBe(false);
   });
 
-  it('true when MACD or RSI is active', () => {
+  it('true when a study has a pane index entry', () => {
     registerStudy('active', 'MACD', 'sid-1');
+    setStudyPaneIndex('MACD', 1);
     expect(hasActiveSubPaneIndicators()).toBe(true);
     __resetStateForTests();
     registerStudy('active', 'BOL', 'sid-2');
@@ -71,6 +73,7 @@ describe('handleSetSubPaneLayout', () => {
     } as unknown as TVChartingLibraryWidget);
     setChartReady(true);
     registerStudy('active', 'MACD', 'sid-1');
+    setStudyPaneIndex('MACD', 1);
 
     handleSetSubPaneLayout({ heightRatio: 0.2 });
 

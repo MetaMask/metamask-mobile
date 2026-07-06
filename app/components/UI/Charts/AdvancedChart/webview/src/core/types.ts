@@ -63,6 +63,22 @@ export type IndicatorName =
   | 'MA20'
   | 'MA50';
 
+export interface LegendPlotCfg {
+  tvTitle: string;
+  label: string;
+  color: string | null;
+}
+
+export interface LegendIndicatorCfg {
+  plots: LegendPlotCfg[];
+  isMA?: boolean;
+  useIndex?: boolean;
+  combineInOnePill?: boolean;
+  title?: string;
+  /** When true, legend pills render in the study's own sub-pane overlay. */
+  subPaneLegend?: boolean;
+}
+
 /**
  * Optional consumer-supplied legend overlay config inlined as
  * window.CONFIG.legendOverlay. When `enabled` is true the WebView builds a
@@ -70,8 +86,8 @@ export type IndicatorName =
  */
 export interface LegendOverlayConfig {
   enabled?: boolean;
-  /** Optional per-indicator override map; falls back to built-in presets. */
-  config?: Record<string, unknown>;
+  /** Per-indicator legend configuration supplied by RN. */
+  config?: Record<string, LegendIndicatorCfg>;
 }
 
 /**
