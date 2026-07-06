@@ -206,8 +206,6 @@ describe('PredictLiveNowSection', () => {
     const header = getByTestId(PREDICT_LIVE_NOW_SECTION_TEST_IDS.HEADER);
     expect(header).toBeOnTheScreen();
     expect(getByText(strings('predict.home.live_now_title'))).toBeOnTheScreen();
-    // The chevron renders only when the header is pressable (onPress set).
-    expect(getByTestId('section-header-arrow-icon')).toBeOnTheScreen();
 
     fireEvent.press(header);
 

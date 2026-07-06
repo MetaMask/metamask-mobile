@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-hooks';
+import { TransactionType } from '@metamask/transaction-controller';
 import { useSelector } from 'react-redux';
 import { AlertKeys } from '../../constants/alerts';
 import { Severity } from '../../types/alerts';
@@ -7,6 +8,7 @@ import { useTransactionMetadataRequest } from '../transactions/useTransactionMet
 import { useTransferRecipient } from '../transactions/useTransferRecipient';
 import { useAddressTrustSignal } from '../useAddressTrustSignals';
 import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
+import { MM_PAY_TRANSACTION_TYPES } from '../../constants/confirmations';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -160,5 +162,34 @@ describe('useFirstTimeInteractionAlert', () => {
     const { result } = renderHook(() => useFirstTimeInteractionAlert());
 
     expect(result.current).toHaveLength(0);
+  });
+
+  it.each(MM_PAY_TRANSACTION_TYPES)(
+    'returns empty array for MM Pay transaction type %s',
+    (transactionType: TransactionType) => {
+      mockUseTransactionMetadataRequest.mockReturnValue({
+        type: transactionType,
+        chainId: '0x1',
+        txParams: { to: '0xRecipient' },
+        isFirstTimeInteraction: true,
+      });
+      mockUseAddressTrustSignal.mockReturnValue({ state: 'SomeOtherState' });
+
+      const { result } = renderHook(() => useFirstTimeInteractionAlert());
+      expect(result.current).toEqual([]);
+    },
+  );
+
+  it('returns empty array for MM Pay nested transaction type', () => {
+    mockUseTransactionMetadataRequest.mockReturnValue({
+      chainId: '0x1',
+      txParams: { to: '0xRecipient' },
+      isFirstTimeInteraction: true,
+      nestedTransactions: [{ type: TransactionType.perpsDeposit }],
+    });
+    mockUseAddressTrustSignal.mockReturnValue({ state: 'SomeOtherState' });
+
+    const { result } = renderHook(() => useFirstTimeInteractionAlert());
+    expect(result.current).toEqual([]);
   });
 });

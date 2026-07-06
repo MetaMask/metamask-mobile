@@ -35,11 +35,20 @@ const buildAliasMap = (raw: unknown): Map<string, Hex> | null => {
   return map;
 };
 
-const resolveRoute = (
+interface ResolvedRouteBase {
+  srcTokenAlias: string;
+  dstTokenAlias: string;
+  sourceChain: Hex;
+  sourceToken: Hex;
+  targetChain: Hex;
+  targetToken: Hex;
+}
+
+const resolveRouteBase = (
   tuple: unknown,
   chains: Map<string, Hex>,
   tokens: Map<string, Hex>,
-): RelayFixedSpreadRoute | null => {
+): ResolvedRouteBase | null => {
   if (!Array.isArray(tuple) || tuple.length !== 4) return null;
   const [srcChainAlias, srcTokenAlias, dstChainAlias, dstTokenAlias] = tuple;
   if (
@@ -57,7 +66,29 @@ const resolveRoute = (
   if (!sourceChain || !sourceToken || !targetChain || !targetToken) {
     return null;
   }
-  return { sourceChain, sourceToken, targetChain, targetToken };
+  return {
+    srcTokenAlias,
+    dstTokenAlias,
+    sourceChain,
+    sourceToken,
+    targetChain,
+    targetToken,
+  };
+};
+
+const resolveRoute = (
+  tuple: unknown,
+  chains: Map<string, Hex>,
+  tokens: Map<string, Hex>,
+): RelayFixedSpreadRoute | null => {
+  const base = resolveRouteBase(tuple, chains, tokens);
+  if (!base) return null;
+  return {
+    sourceChain: base.sourceChain,
+    sourceToken: base.sourceToken,
+    targetChain: base.targetChain,
+    targetToken: base.targetToken,
+  };
 };
 
 const tryJsonParse = (raw: string): unknown => {
@@ -112,6 +143,75 @@ export const getRelayFixedSpreadFromConfig = (
   }
 
   return { routes };
+};
+
+/**
+ * Like {@link RelayFixedSpreadRoute} but preserves the original token alias keys
+ * (e.g. `eth_usdc`) alongside the resolved addresses. Consumers that need the
+ * human-facing token symbols (which {@link getRelayFixedSpreadFromConfig}
+ * discards) use this shape.
+ */
+export interface RelayFixedSpreadAliasRoute {
+  sourceChain: Hex;
+  sourceTokenAlias: string;
+  sourceToken: Hex;
+  targetChain: Hex;
+  targetTokenAlias: string;
+  targetToken: Hex;
+}
+
+const resolveRouteWithSymbols = (
+  tuple: unknown,
+  chains: Map<string, Hex>,
+  tokens: Map<string, Hex>,
+): RelayFixedSpreadAliasRoute | null => {
+  const base = resolveRouteBase(tuple, chains, tokens);
+  if (!base) return null;
+  return {
+    sourceChain: base.sourceChain,
+    sourceTokenAlias: base.srcTokenAlias,
+    sourceToken: base.sourceToken,
+    targetChain: base.targetChain,
+    targetTokenAlias: base.dstTokenAlias,
+    targetToken: base.targetToken,
+  };
+};
+
+/**
+ * Parses a `confirmations_relay_fixed_spread` remote flag value into a list of
+ * routes that retain their token alias keys. Unlike
+ * {@link getRelayFixedSpreadFromConfig}, the alias (and therefore the token
+ * symbol) is preserved for consumers that render token symbols. Invalid entries
+ * are dropped; an invalid/empty payload yields an empty array.
+ */
+export const getRelayFixedSpreadRoutesWithSymbols = (
+  remoteValue: unknown,
+  remoteFlagName: string,
+): RelayFixedSpreadAliasRoute[] => {
+  if (remoteValue === undefined || remoteValue === null || remoteValue === '') {
+    return [];
+  }
+
+  const parsed =
+    typeof remoteValue === 'string' ? tryJsonParse(remoteValue) : remoteValue;
+  if (!isStringRecord(parsed)) {
+    console.warn(`Failed to parse remote ${remoteFlagName}: invalid JSON.`);
+    return [];
+  }
+
+  const chains = buildAliasMap(parsed.chains);
+  const tokens = buildAliasMap(parsed.tokens);
+  const routes = parsed.routes;
+  if (!chains || !tokens || !Array.isArray(routes)) {
+    console.warn(
+      `Remote ${remoteFlagName} produced invalid structure. ${EXPECTED_FORMAT}`,
+    );
+    return [];
+  }
+
+  return routes
+    .map((tuple) => resolveRouteWithSymbols(tuple, chains, tokens))
+    .filter((route): route is RelayFixedSpreadAliasRoute => route !== null);
 };
 
 const addressesEqual = (

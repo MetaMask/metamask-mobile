@@ -154,4 +154,30 @@ describe('SourceHashSummaryLine', () => {
       ),
     ).toBeDefined();
   });
+
+  it('renders perps-withdraw title with USDC and Arbitrum network', () => {
+    useNetworkNameMock.mockImplementation((chainId?: Hex) =>
+      chainId === '0xa4b1' ? 'Arbitrum' : 'Monad',
+    );
+
+    const { getByText } = render({
+      id: 'parent-id',
+      chainId: '0xa4b1' as Hex,
+      submittedTime: 1755719285723,
+      type: TransactionType.perpsWithdraw,
+      metamaskPay: {
+        tokenAddress: '0xmusd' as Hex,
+        chainId: '0xmonad' as Hex,
+      },
+    } as Partial<TransactionMeta>);
+
+    expect(
+      getByText(
+        strings('transaction_details.summary_title.bridge_send', {
+          sourceSymbol: 'USDC',
+          sourceChain: 'Arbitrum',
+        }),
+      ),
+    ).toBeDefined();
+  });
 });

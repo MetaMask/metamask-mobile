@@ -13,6 +13,18 @@ export const PORTUGAL_LOCATION = {
   lon: -7.798836,
 };
 
+/**
+ * Disables the Perps homepage section for predict smoke tests.
+ * With homepage sections enabled, an uninitialized Perps stream can crash wallet home
+ * (`PERPS_EVENT_VALUE.SECTION_NAME.BALANCE` / `usePerpsLivePositions`).
+ */
+export const remoteFeatureFlagPerpsDisabledForPredictSmoke = () => ({
+  perpsPerpTradingEnabled: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+});
+
 export class PredictHelpers {
   /**
    * Sets the device location to Portugal coordinates.

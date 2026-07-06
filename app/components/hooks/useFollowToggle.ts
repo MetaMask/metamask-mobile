@@ -40,6 +40,21 @@ export interface UseFollowToggleManyResult {
   ) => Promise<void>;
 }
 
+const FOLLOWING_QUERY_KEY = ['SocialService:fetchFollowing'] as const;
+
+/**
+ * Invalidates the followed-traders query without importing ReactQueryService at
+ * module load (that import pulls in Engine and breaks tests that mock Engine).
+ */
+const invalidateFollowingQuery = async (): Promise<void> => {
+  const { default: ReactQueryService } = await import(
+    '../../core/ReactQueryService'
+  );
+  await ReactQueryService.queryClient.invalidateQueries({
+    queryKey: FOLLOWING_QUERY_KEY,
+  });
+};
+
 /**
  * Shared primitive that optimistically toggles follow/unfollow state for one
  * or more traders against `SocialController`. The caller is identified
@@ -99,6 +114,7 @@ export const useFollowToggleMany = (): UseFollowToggleManyResult => {
             : 'SocialController:unfollowTrader',
           opts,
         );
+        await invalidateFollowingQuery();
         if (analyticsContext) {
           track(MetaMetricsEvents.SOCIAL_TRADER_FOLLOW_INTERACTION, {
             [SocialLeaderboardEventProperties.ACTION]: nextValue

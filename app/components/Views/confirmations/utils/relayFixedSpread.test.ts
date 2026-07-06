@@ -1,6 +1,7 @@
 import {
   EMPTY_RELAY_FIXED_SPREAD_CONFIG,
   getRelayFixedSpreadFromConfig,
+  getRelayFixedSpreadRoutesWithSymbols,
   isSubsidizedRoute,
   isSubsidizedSource,
 } from './relayFixedSpread';
@@ -233,6 +234,122 @@ describe('getRelayFixedSpreadFromConfig', () => {
 
     expect(result).toEqual(EMPTY_RELAY_FIXED_SPREAD_CONFIG);
     expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('getRelayFixedSpreadRoutesWithSymbols', () => {
+  let consoleWarnSpy: jest.SpyInstance;
+
+  beforeEach(() => {
+    consoleWarnSpy = jest
+      .spyOn(console, 'warn')
+      .mockImplementation(() => undefined);
+  });
+
+  afterEach(() => {
+    consoleWarnSpy.mockRestore();
+  });
+
+  it('resolves aliases and preserves token alias fields from object input', () => {
+    const result = getRelayFixedSpreadRoutesWithSymbols(
+      samplePayload,
+      FLAG_NAME,
+    );
+
+    expect(result).toEqual([
+      {
+        sourceChain: '0x1',
+        sourceTokenAlias: 'eth_usdc',
+        sourceToken: ETH_USDC,
+        targetChain: '0x1',
+        targetTokenAlias: 'musd',
+        targetToken: ETH_MUSD,
+      },
+    ]);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  it('drops malformed tuples that are not 4-tuples of strings', () => {
+    const result = getRelayFixedSpreadRoutesWithSymbols(
+      withRoutes([
+        ['eth', 'eth_usdc', 'eth', 'musd'],
+        ['eth', 'eth_usdc', 'eth'],
+        ['eth', 'eth_usdc', 'eth', 'musd', 'extra'],
+        ['eth', 42, 'eth', 'musd'],
+        null,
+        'not-an-array',
+      ]),
+      FLAG_NAME,
+    );
+
+    expect(result).toEqual([
+      {
+        sourceChain: '0x1',
+        sourceTokenAlias: 'eth_usdc',
+        sourceToken: ETH_USDC,
+        targetChain: '0x1',
+        targetTokenAlias: 'musd',
+        targetToken: ETH_MUSD,
+      },
+    ]);
+  });
+
+  it('drops routes that reference unknown chain or token aliases', () => {
+    const result = getRelayFixedSpreadRoutesWithSymbols(
+      withRoutes([
+        ['eth', 'eth_usdc', 'eth', 'musd'],
+        ['mystery_chain', 'eth_usdc', 'eth', 'musd'],
+        ['eth', 'mystery_token', 'eth', 'musd'],
+      ]),
+      FLAG_NAME,
+    );
+
+    expect(result).toEqual([
+      {
+        sourceChain: '0x1',
+        sourceTokenAlias: 'eth_usdc',
+        sourceToken: ETH_USDC,
+        targetChain: '0x1',
+        targetTokenAlias: 'musd',
+        targetToken: ETH_MUSD,
+      },
+    ]);
+  });
+
+  it('returns empty without warning when remote is undefined, null, or empty string', () => {
+    expect(getRelayFixedSpreadRoutesWithSymbols(undefined, FLAG_NAME)).toEqual(
+      [],
+    );
+    expect(getRelayFixedSpreadRoutesWithSymbols(null, FLAG_NAME)).toEqual([]);
+    expect(getRelayFixedSpreadRoutesWithSymbols('', FLAG_NAME)).toEqual([]);
+    expect(consoleWarnSpy).not.toHaveBeenCalled();
+  });
+
+  it('warns and returns empty when remote JSON is malformed', () => {
+    const result = getRelayFixedSpreadRoutesWithSymbols(
+      '{not-valid-json',
+      FLAG_NAME,
+    );
+
+    expect(result).toEqual([]);
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('Failed to parse remote'),
+    );
+  });
+
+  it('warns and returns empty when shape is invalid', () => {
+    const result = getRelayFixedSpreadRoutesWithSymbols(
+      {
+        tokens: { eth_usdc: ETH_USDC, musd: ETH_MUSD },
+        routes: [['eth', 'eth_usdc', 'eth', 'musd']],
+      },
+      FLAG_NAME,
+    );
+
+    expect(result).toEqual([]);
+    expect(consoleWarnSpy).toHaveBeenCalledWith(
+      expect.stringContaining('produced invalid structure'),
+    );
   });
 });
 

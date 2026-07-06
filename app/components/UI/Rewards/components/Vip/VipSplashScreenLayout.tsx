@@ -1,5 +1,5 @@
-import React, { type ReactNode } from 'react';
-import { Image, Pressable } from 'react-native';
+import React, { type ReactNode, useMemo } from 'react';
+import { Image, Pressable, useWindowDimensions } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -17,6 +17,9 @@ import {
   VIP_GOLD_TEXT_MUTED,
   VIP_SPLASH_ACCEPT_BUTTON_BACKGROUND,
   VIP_SPLASH_BACKGROUND_GRADIENT_COLORS,
+  VIP_SPLASH_FOX_HEIGHT,
+  VIP_SPLASH_FOX_WIDTH,
+  VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES,
 } from './Vip.constants';
 import VipSplashGradientTitle from './VipSplashGradientTitle';
 
@@ -72,6 +75,22 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
   footerContent,
 }) => {
   const tw = useTailwind();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
+  const isSmallScreen =
+    screenHeight < VIP_SPLASH_MIN_SCREEN_HEIGHT_FOR_SMALL_STYLES;
+  const foxDimensions = useMemo(() => {
+    if (!isSmallScreen) {
+      return { width: VIP_SPLASH_FOX_WIDTH, height: VIP_SPLASH_FOX_HEIGHT };
+    }
+
+    const foxWidth = Math.min(screenWidth - 32, 260);
+    return {
+      width: foxWidth,
+      height: Math.round(
+        foxWidth * (VIP_SPLASH_FOX_HEIGHT / VIP_SPLASH_FOX_WIDTH),
+      ),
+    };
+  }, [isSmallScreen, screenWidth]);
 
   return (
     <LinearGradient
@@ -97,20 +116,23 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
           </Text>
           <Image
             source={VipSplashFox}
-            style={tw.style('mt-[54px]')}
+            style={tw.style(isSmallScreen ? 'mt-6' : 'mt-[54px]')}
             testID={testIDs.fox}
-            width={320}
-            height={381}
+            width={foxDimensions.width}
+            height={foxDimensions.height}
           />
         </Box>
 
-        <Box twClassName="gap-[18px] px-4 pb-[18px]">
+        <Box
+          twClassName={`px-4 ${isSmallScreen ? 'gap-3 pb-3' : 'gap-[18px] pb-[18px]'}`}
+        >
           {footerContent}
           <Pressable
             accessibilityRole="button"
             onPress={onPrimaryPress}
             style={tw.style(
-              'h-12 items-center justify-center rounded-[10px] border',
+              'items-center justify-center rounded-[10px] border',
+              isSmallScreen ? 'h-10' : 'h-12',
               primaryButtonBorderStyle,
               primaryButtonBackgroundStyle,
             )}
@@ -127,7 +149,10 @@ const VipSplashScreenLayout: React.FC<VipSplashScreenLayoutProps> = ({
           <Pressable
             accessibilityRole="button"
             onPress={onNotNow}
-            style={tw.style('h-9 items-center justify-center')}
+            style={tw.style(
+              'items-center justify-center',
+              isSmallScreen ? 'h-8' : 'h-9',
+            )}
             testID={testIDs.notNowButton}
           >
             <Text

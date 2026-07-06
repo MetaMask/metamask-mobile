@@ -28,7 +28,7 @@ import {
   upsertStickyComment,
 } from './shared/pr-template-comment';
 
-const knownBots = ["metamaskbot", "metamaskbotv2", "dependabot", "github-actions", "sentry-io", "devin-ai-integration", "runway-github" , "cursor"];
+const knownBots = ["metamaskbot", "metamaskbotv2", "dependabot", "github-actions", "sentry-io", "devin-ai-integration", "runway-github" , "cursor", "mm-token-exchange-service"];
 
 // GitHub App / bot logins that cannot be resolved as User in GraphQL (user(login:) returns null).
 // Issues/PRs from these actors still get full template and label checks; we only skip the org check.

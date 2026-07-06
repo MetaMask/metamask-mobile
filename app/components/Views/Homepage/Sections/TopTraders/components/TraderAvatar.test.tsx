@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react-native';
 import React from 'react';
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
 import { AvatarAccount } from '@metamask/design-system-react-native';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { KNOWN_DEFAULT_AVATAR_URLS } from '../utils/avatarFallback';
@@ -24,6 +24,23 @@ describe('TraderAvatar', () => {
     expect(screen.getByTestId('trader-avatar')).toBeOnTheScreen();
     expect(screen.UNSAFE_queryByType(Image)).not.toBeNull();
     expect(screen.UNSAFE_queryByType(AvatarAccount)).toBeNull();
+  });
+
+  it('renders the avatar with expo-image disk caching so recycled FlatList cells reuse cached images', () => {
+    renderWithProvider(
+      <TraderAvatar
+        imageUrl={REAL_AVATAR_URL}
+        address={ADDRESS}
+        size={40}
+        recyclingKey="trader-1"
+        testID="trader-avatar"
+      />,
+    );
+
+    const image = screen.UNSAFE_getByType(Image);
+    expect(image.props.cachePolicy).toBe('memory-disk');
+    expect(image.props.recyclingKey).toBe('trader-1');
+    expect(image.props.contentFit).toBe('cover');
   });
 
   it('renders the Maskicon fallback when no image url is provided', () => {

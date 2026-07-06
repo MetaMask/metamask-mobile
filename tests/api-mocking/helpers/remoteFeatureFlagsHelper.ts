@@ -66,6 +66,9 @@ const E2E_SAFE_DEFAULTS: Record<string, unknown> = {
   // Production uses a percentage rollout for this A/B test. Pin E2E to control
   // so homepage section labels do not depend on the generated analytics ID.
   homeTMCU470AbtestTrendingSections: 'control',
+  // Pin discovery tabs to control so wallet E2E uses the scrollable Homepage
+  // (wallet-scroll-view) instead of HomepageDiscoveryTabs tab swipes.
+  coreMCU589AbtestHubPageDiscoveryTabs: 'control',
 };
 
 /**

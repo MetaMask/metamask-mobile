@@ -129,6 +129,13 @@ export const PredictEventValues = {
     MM_PREDICT_WITHDRAW: 'mm_predict_withdraw',
     MM_PREDICT_CLAIM: 'mm_predict_claim',
   },
+  CLAIM_FAILURE_REASON: {
+    PENDING_RESOLUTION: 'pending_resolution',
+    INSUFFICIENT_GAS: 'insufficient_gas',
+    NETWORK_ERROR: 'network_error',
+    USER_REJECTED: 'user_rejected',
+    UNKNOWN: 'unknown',
+  },
   MARKET_TYPE: {
     BINARY: 'binary',
     MULTI_OUTCOME: 'multi-outcome',
@@ -168,6 +175,7 @@ export const PredictEventValues = {
   },
   BANNER_TYPE: {
     WORLD_CUP: 'world_cup',
+    PREDICT_THE_PITCH: 'predict_the_pitch',
   },
   SEARCH_INTERACTION: {
     OPENED: 'opened',

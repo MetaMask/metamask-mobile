@@ -16,7 +16,7 @@ export function PerpsDepositInfo() {
   const { payWithOption } = useParams<ConfirmationParams>({});
   const title =
     payWithOption === PayWithOption.MoneyAccount
-      ? strings('perps.transfer_to_perps')
+      ? strings('perps.send_to_perps')
       : strings('confirm.title.perps_deposit');
 
   useNavbar(title);

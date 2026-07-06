@@ -25,8 +25,8 @@ import {
 } from '../../constants/sports';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
-import { useLiveGameUpdates } from '../../hooks/useLiveGameUpdates';
 import { useLiveMarketPrices } from '../../hooks/useLiveMarketPrices';
+import { usePredictGame } from '../../hooks/usePredictGame';
 import { usePredictPreviewSheet } from '../../contexts';
 import { useResolvedPredictEntryPoint } from '../../hooks/useResolvedPredictEntryPoint';
 import {
@@ -218,14 +218,13 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
     selectPredictSportCardLivePricesEnabledFlag,
   );
 
-  const game = market.game as PredictMarketGame | undefined;
-  const { gameUpdate } = useLiveGameUpdates(game?.id ?? null);
+  const { game } = usePredictGame(market, { live: true });
   // Mirror the canonical "game over" definition (terminal status, a full-time
   // period, or a stamped endTime) so buy buttons disappear exactly when the
   // scoreboard reads "Final" and the market becomes eligible for hiding.
   const gameEnded = isGameEnded({
-    status: gameUpdate?.status ?? game?.status,
-    period: gameUpdate?.period ?? game?.period,
+    status: game?.status,
+    period: game?.period,
     endTime: game?.endTime,
   });
 
@@ -378,7 +377,6 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
           <PredictSportScoreboard
             game={game}
             compact={isCompact}
-            gameUpdate={gameUpdate}
             testID={testID ? `${testID}-scoreboard` : undefined}
           />
 
@@ -392,7 +390,8 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                   <Button
                     onPress={() => handleBuy(item)}
                     style={{ backgroundColor: getButtonBackgroundColor(item) }}
-                    twClassName={`${isCompact ? 'p-0' : ''}`}
+                    twClassName={isCompact ? 'p-0' : 'px-1'}
+                    contentWrapperProps={{ twClassName: 'w-full' }}
                     isFullWidth
                     size={isCompact ? ButtonBaseSize.Md : ButtonBaseSize.Lg}
                     testID={
@@ -402,8 +401,11 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
                     <Text
                       variant={TextVariant.BodySm}
                       numberOfLines={1}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
+                      ellipsizeMode="clip"
                       style={tw.style(
-                        'font-medium text-center',
+                        'font-medium text-center flex-1',
                         getButtonTextColorClass(item),
                       )}
                     >

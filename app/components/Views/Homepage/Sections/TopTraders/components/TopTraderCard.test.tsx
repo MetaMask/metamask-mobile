@@ -121,6 +121,20 @@ describe('TopTraderCard', () => {
     expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 1);
   });
 
+  it('calls onTraderPress when the card pressable area is tapped', () => {
+    renderWithProvider(
+      <TopTraderCard
+        trader={baseTrader}
+        onFollowPress={mockOnFollowPress}
+        onTraderPress={mockOnTraderPress}
+      />,
+    );
+
+    fireEvent.press(screen.getByText('+$963.1K'));
+
+    expect(mockOnTraderPress).toHaveBeenCalledWith('trader-1', 'alpha.eth', 1);
+  });
+
   it('forwards trader.overallRank (not the filtered rank) to onTraderPress so the profile podium gates on true top-3 traders', () => {
     const filteredTrader: TopTrader = {
       ...baseTrader,

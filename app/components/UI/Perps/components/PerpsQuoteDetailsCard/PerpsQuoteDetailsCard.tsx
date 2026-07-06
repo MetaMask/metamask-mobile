@@ -3,7 +3,6 @@ import { strings } from '../../../../../../locales/i18n';
 import { TextVariant } from '../../../../../component-library/components/Texts/Text';
 import { Box } from '../../../Box/Box';
 import KeyValueRow from '../../../../../component-library/components-temp/KeyValueRow';
-import { TooltipSizes } from '../../../../../component-library/components-temp/KeyValueRow/KeyValueRow.types';
 import { useStyles } from '../../../../../component-library/hooks';
 import createStyles from './PerpsQuoteDetailsCard.styles';
 
@@ -53,7 +52,6 @@ const PerpsQuoteDetailsCard: React.FC<PerpsQuoteDetailsCardProps> = ({
           tooltip: {
             title: strings('perps.quote.metamask_fee'),
             content: strings(`perps.quote.metamask_fee_tooltip_${direction}`),
-            size: TooltipSizes.Sm,
           },
         }}
         value={{

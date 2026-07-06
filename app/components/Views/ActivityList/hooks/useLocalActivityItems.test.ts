@@ -125,11 +125,67 @@ describe('useLocalActivityItems', () => {
 
     expect(result.current).toHaveLength(2);
     expect(result.current[0]).toMatchObject({
-      data: { hash: '0xnonce1' },
+      hash: '0xnonce1',
       isEarliestNonce: true,
     });
     expect(result.current[1]).toMatchObject({
-      data: { hash: '0xnonce2retry' },
+      hash: '0xnonce2retry',
+      isEarliestNonce: false,
+    });
+  });
+
+  it('does not mark a sole pending transaction as queued when lower nonces are confirmed', () => {
+    selectorState.localTransactions = [
+      makeTx({
+        id: 'confirmed-nonce-1',
+        hash: '0xconfirmednonce1',
+        status: TransactionStatus.confirmed,
+        time: 1,
+        txParams: { from, nonce: '0x1', to: recipient, value: '0x1' },
+      }),
+      makeTx({
+        id: 'pending-nonce-2',
+        hash: '0xpendingnonce2',
+        status: TransactionStatus.submitted,
+        time: 2,
+        txParams: { from, nonce: '0x2', to: recipient, value: '0x1' },
+      }),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    expect(result.current).toHaveLength(2);
+    expect(
+      result.current.find((item) => item.hash === '0xpendingnonce2'),
+    ).toMatchObject({
+      isEarliestNonce: true,
+    });
+  });
+
+  it('marks a higher-nonce pending transaction as queued when a lower nonce is signed', () => {
+    selectorState.localTransactions = [
+      makeTx({
+        id: 'signed-nonce-1',
+        hash: '0xsignednonce1',
+        status: TransactionStatus.signed,
+        time: 1,
+        txParams: { from, nonce: '0x1', to: recipient, value: '0x1' },
+      }),
+      makeTx({
+        id: 'pending-nonce-2',
+        hash: '0xpendingnonce2',
+        status: TransactionStatus.submitted,
+        time: 2,
+        txParams: { from, nonce: '0x2', to: recipient, value: '0x1' },
+      }),
+    ];
+
+    const { result } = renderHook(() => useLocalActivityItems());
+
+    expect(result.current).toHaveLength(2);
+    expect(
+      result.current.find((item) => item.hash === '0xpendingnonce2'),
+    ).toMatchObject({
       isEarliestNonce: false,
     });
   });
@@ -192,7 +248,7 @@ describe('useLocalActivityItems', () => {
     const { result } = renderHook(() => useLocalActivityItems());
 
     expect(result.current[0]).toMatchObject({
-      data: { hash: '0xbridge' },
+      hash: '0xbridge',
       status: 'success',
     });
     expect(result.current[1]).toMatchObject({

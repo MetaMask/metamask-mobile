@@ -3,7 +3,10 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { isMusdOnMoneyAccountChain } from '../../Earn/constants/musd';
+import {
+  isMusdOnMoneyAccountChain,
+  isMusdToken,
+} from '../../Earn/constants/musd';
 
 /**
  * Returns the first nested transaction matching a given TransactionType,
@@ -28,6 +31,20 @@ export const isMoneyWithdrawTx = (transactionMeta: TransactionMeta) =>
   Boolean(
     nestedTxWithType(transactionMeta, TransactionType.moneyAccountWithdraw),
   );
+
+/**
+ * True when a Money Account withdrawal lands as mUSD (single-row hero and
+ * "Sent mUSD" title). Cross-token destinations (e.g. USDC) return false.
+ * Chain is irrelevant — only the destination token matters.
+ */
+export const isSingleRowMusdMoneyWithdraw = (
+  transactionMeta: TransactionMeta,
+): boolean => {
+  if (!isMoneyWithdrawTx(transactionMeta)) {
+    return false;
+  }
+  return isMusdToken(transactionMeta.metamaskPay?.tokenAddress);
+};
 
 export const isMoneyAccountTx = (transactionMeta: TransactionMeta) =>
   isMoneyDepositTx(transactionMeta) || isMoneyWithdrawTx(transactionMeta);

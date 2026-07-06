@@ -15,6 +15,14 @@ jest.mock('./hooks/useChainDisplayInfos', () => ({
   useChainDisplayInfos: jest.fn(),
 }));
 
+jest.mock('./components/QuickBuyTokenSecurityBadge', () => {
+  const ReactMock = jest.requireActual('react');
+  return {
+    __esModule: true,
+    default: () => ReactMock.createElement(ReactMock.Fragment),
+  };
+});
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -300,6 +308,6 @@ describe('QuickBuyPayWithScreen', () => {
     const scrollView = screen.getByTestId('quick-buy-pay-with-scroll');
     const flattenedStyle = StyleSheet.flatten(scrollView.props.style);
 
-    expect(flattenedStyle.flexGrow).toBe(1);
+    expect(flattenedStyle?.flex ?? flattenedStyle?.flexGrow).toBe(1);
   });
 });

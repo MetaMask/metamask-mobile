@@ -22,6 +22,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   PERPS_EVENT_VALUE,
+  PERPS_EVENT_PROPERTY,
   type PerpsMarketData,
   type Position,
   type Order,
@@ -30,12 +31,14 @@ import PerpsMarketRowItem from '../PerpsMarketRowItem';
 import PerpsRowSkeleton from '../PerpsRowSkeleton';
 import type { TransactionActiveAbTestEntry } from '../../../../../util/transactions/transaction-active-ab-test-attribution-registry';
 import { usePerpsWatchlistActions } from '../../hooks/usePerpsWatchlistActions';
+import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsWatchlistSelectorsIDs } from '../../Perps.testIds';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './PerpsWatchlistMarkets.styles';
 import { WATCHLIST_LIMIT } from '../../utils/marketUtils';
 import { selectPerpsWatchlistMarkets } from '../../selectors/perpsController';
 import { selectPerpsWatchlistEnabledFlag } from '../../selectors/featureFlags';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 const ANIMATION_DURATION = 250;
 
@@ -53,6 +56,8 @@ interface PerpsWatchlistMarketsProps {
   orders?: Order[];
   /** Analytics source identifying the parent screen (e.g., 'perps_home') */
   source?: string;
+  /** Sub-section of the parent screen that triggered navigation (e.g., 'watchlist'). */
+  source_section?: string;
   /** Bound onto market-details routes for downstream transaction attribution. */
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
   /** Override section styles (e.g., to adjust margins) */
@@ -72,6 +77,8 @@ interface PerpsWatchlistMarketsProps {
   onSeeAllPress?: () => void;
   /** Whether to render the "Watchlist" section header. Defaults to true. */
   showHeader?: boolean;
+  /** Whether to render a divider above the section header. Defaults to true. */
+  showLeadingDivider?: boolean;
   /** Whether to render the collapsible "Show more"/"Show less" toggle. Defaults to true. */
   enableShowMore?: boolean;
 }
@@ -88,10 +95,12 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
   positions = [],
   orders = [],
   source,
+  source_section,
   transactionActiveAbTests,
   sectionStyle,
   contentContainerStyle,
   onMarketPress,
+  showLeadingDivider = true,
 }) => {
   const navigation = useNavigation();
 
@@ -118,6 +127,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
           market,
           initialTab,
           source,
+          ...(source_section && { source_section }),
           ...(transactionActiveAbTests?.length
             ? { transactionActiveAbTests }
             : {}),
@@ -130,6 +140,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
       positions,
       orders,
       source,
+      source_section,
       transactionActiveAbTests,
     ],
   );
@@ -151,7 +162,7 @@ const PerpsWatchlistMarketsV1: React.FC<PerpsWatchlistMarketsProps> = ({
 
   return (
     <Box style={sectionStyle} testID={PerpsWatchlistSelectorsIDs.SECTION}>
-      <SectionDivider />
+      {showLeadingDivider ? <SectionDivider /> : null}
       <SectionHeader title={strings('perps.home.watchlist')} />
       <Box paddingHorizontal={4} style={contentContainerStyle}>
         {isLoading ? (
@@ -179,6 +190,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   positions = [],
   orders = [],
   source,
+  source_section,
   transactionActiveAbTests,
   sectionStyle,
   headerStyle,
@@ -187,15 +199,29 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
   onSeeAllPress,
   showHeader = true,
   enableShowMore = true,
+  showLeadingDivider = true,
 }) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
   const [expanded, setExpanded] = useState(false);
   const watchlistSymbols = useSelector(selectPerpsWatchlistMarkets);
+  const { track } = usePerpsEventTracking();
 
   const { addToWatchlist } = usePerpsWatchlistActions(
     PERPS_EVENT_VALUE.SOURCE.PERPS_HOME_WATCHLIST,
   );
+
+  const handleSeeAllPress = useCallback(() => {
+    track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
+      [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+        PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
+      [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]:
+        PERPS_EVENT_VALUE.BUTTON_CLICKED.WATCHLIST,
+      [PERPS_EVENT_PROPERTY.BUTTON_LOCATION]:
+        PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
+    });
+    onSeeAllPress?.();
+  }, [track, onSeeAllPress]);
 
   const handleMarketPress = useCallback(
     (market: PerpsMarketData) => {
@@ -220,6 +246,7 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
           market,
           initialTab,
           source,
+          ...(source_section && { source_section }),
           ...(transactionActiveAbTests?.length
             ? { transactionActiveAbTests }
             : {}),
@@ -232,17 +259,18 @@ const PerpsWatchlistMarketsV2: React.FC<PerpsWatchlistMarketsProps> = ({
       positions,
       orders,
       source,
+      source_section,
       transactionActiveAbTests,
     ],
   );
 
   const watchlistHeader = showHeader ? (
     <>
-      <SectionDivider />
+      {showLeadingDivider ? <SectionDivider /> : null}
       <SectionHeader
         title={strings('perps.home.watchlist')}
         isInteractive={Boolean(onSeeAllPress)}
-        onPress={onSeeAllPress}
+        onPress={handleSeeAllPress}
         testID={PerpsWatchlistSelectorsIDs.HEADER}
         style={headerStyle}
       />

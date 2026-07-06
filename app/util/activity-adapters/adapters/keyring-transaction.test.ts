@@ -43,8 +43,8 @@ describe('mapKeyringTransaction', () => {
         chainId: SOLANA_CHAIN_ID,
         status: 'success',
         timestamp: 1716367781000,
+        hash: 'send-id',
         data: {
-          hash: 'send-id',
           from: 'from-address',
           to: 'to-address',
           token: {
@@ -100,8 +100,8 @@ describe('mapKeyringTransaction', () => {
         chainId: SOLANA_CHAIN_ID,
         status: 'pending',
         timestamp: 1716367781000,
+        hash: 'swap-id',
         data: {
-          hash: 'swap-id',
           sourceToken: {
             amount: '1',
             assetId: `${SOLANA_CHAIN_ID}/slip44:501`,
@@ -151,8 +151,8 @@ describe('mapKeyringTransaction', () => {
         chainId: BITCOIN_CHAIN_ID,
         status: 'success',
         timestamp: 1716367781000,
+        hash: 'btc-send-output-id',
         data: {
-          hash: 'btc-send-output-id',
           from: 'bc1from',
           to: 'bc1to',
           token: {
@@ -162,6 +162,105 @@ describe('mapKeyringTransaction', () => {
             symbol: 'BTC',
           },
         },
+      }),
+    );
+  });
+
+  it('maps token approvals as spending-cap activity with unlimited metadata', () => {
+    const item = mapKeyringTransaction({
+      transaction: {
+        id: 'approve-id',
+        chain: SOLANA_CHAIN_ID,
+        account: '00000000-0000-4000-8000-000000000000',
+        status: TransactionStatus.Confirmed,
+        timestamp: 1716367781,
+        type: TransactionType.TokenApprove,
+        from: [
+          {
+            address: 'owner-address',
+            asset: {
+              fungible: true,
+              type: `${SOLANA_CHAIN_ID}/token:usdt`,
+              unit: 'USDT',
+              amount: '115792089237316195423570985.639935',
+            },
+          },
+        ],
+        to: [
+          {
+            address: 'spender-address',
+            asset: {
+              fungible: true,
+              type: `${SOLANA_CHAIN_ID}/token:usdt`,
+              unit: 'USDT',
+              amount: '115792089237316195423570985.639935',
+            },
+          },
+        ],
+        fees: [],
+        events: [],
+      } as Transaction,
+    });
+
+    expect(item).toStrictEqual(
+      expect.objectContaining({
+        type: 'approveSpendingCap',
+        chainId: SOLANA_CHAIN_ID,
+        status: 'success',
+        timestamp: 1716367781000,
+        hash: 'approve-id',
+        data: {
+          token: {
+            amount: '115792089237316195423570985.639935',
+            assetId: `${SOLANA_CHAIN_ID}/token:usdt`,
+            direction: 'out',
+            isUnlimitedApproval: true,
+            symbol: 'USDT',
+          },
+        },
+      }),
+    );
+  });
+
+  it('maps keyring contract interaction fees', () => {
+    const item = mapKeyringTransaction({
+      transaction: {
+        id: 'contract-id',
+        chain: SOLANA_CHAIN_ID,
+        account: '00000000-0000-4000-8000-000000000000',
+        status: TransactionStatus.Confirmed,
+        timestamp: 1716367781,
+        type: TransactionType.Unknown,
+        from: [{ address: 'from-address', asset: null }],
+        to: [{ address: 'to-address', asset: null }],
+        fees: [
+          {
+            type: 'base',
+            asset: {
+              fungible: true,
+              type: `${SOLANA_CHAIN_ID}/slip44:501`,
+              unit: 'SOL',
+              amount: '0.00001',
+            },
+          },
+        ],
+        events: [],
+      } as Transaction,
+    });
+
+    expect(item).toStrictEqual(
+      expect.objectContaining({
+        type: 'contractInteraction',
+        data: expect.objectContaining({
+          fees: [
+            {
+              type: 'base',
+              amount: '0.00001',
+              assetId: `${SOLANA_CHAIN_ID}/slip44:501`,
+              symbol: 'SOL',
+            },
+          ],
+        }),
       }),
     );
   });

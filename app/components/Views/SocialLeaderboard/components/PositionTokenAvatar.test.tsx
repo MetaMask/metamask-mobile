@@ -9,10 +9,16 @@ import PositionTokenAvatar from './PositionTokenAvatar';
 import type { Position } from '@metamask/social-controllers';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
 import BadgeNetwork from '../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
+import PerpsTokenLogo from '../../../UI/Perps/components/PerpsTokenLogo';
 
 jest.mock('@metamask/design-system-react-native', () => ({
   ...jest.requireActual('@metamask/design-system-react-native'),
   AvatarToken: jest.fn(() => null),
+}));
+
+jest.mock('../../../UI/Perps/components/PerpsTokenLogo', () => ({
+  __esModule: true,
+  default: jest.fn(() => null),
 }));
 
 jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
@@ -23,6 +29,7 @@ jest.mock('../../../UI/Bridge/hooks/useAssetMetadata/utils', () => ({
 }));
 
 jest.mock('../utils/chainMapping', () => ({
+  HYPERLIQUID_CHAIN_NAME: 'hyperliquid',
   chainNameToId: jest.fn((chain: string) =>
     chain === 'base' ? 'eip155:8453' : undefined,
   ),
@@ -61,6 +68,16 @@ jest.mock('../../../../util/networks', () => ({
 const MockAvatarToken = AvatarToken as jest.Mock;
 const MockBadgeWrapper = BadgeWrapper as unknown as jest.Mock;
 const MockBadgeNetwork = BadgeNetwork as jest.Mock;
+const MockPerpsTokenLogo = PerpsTokenLogo as unknown as jest.Mock;
+
+const lastPerpsTokenLogoProps = () =>
+  MockPerpsTokenLogo.mock.calls[
+    MockPerpsTokenLogo.mock.calls.length - 1
+  ][0] as {
+    symbol: string;
+    size: number;
+    recyclingKey?: string;
+  };
 
 const lastAvatarTokenProps = () =>
   MockAvatarToken.mock.calls[MockAvatarToken.mock.calls.length - 1][0] as {
@@ -290,6 +307,68 @@ describe('PositionTokenAvatar', () => {
 
       renderWithProvider(
         <PositionTokenAvatar position={position} showChainBadge />,
+      );
+
+      expect(MockBadgeWrapper).toHaveBeenCalled();
+      const badgeElement = MockBadgeWrapper.mock.calls[0][0]
+        .badgeElement as React.ReactElement<{ name: string }>;
+      expect(badgeElement.props.name).toBe('Hyperliquid');
+    });
+  });
+
+  describe('hyperliquid positions', () => {
+    const hyperliquidPosition: Position = {
+      ...basePosition,
+      positionId: 'ondo-hl',
+      tokenSymbol: 'ONDO',
+      tokenAddress: 'ONDO',
+      chain: 'hyperliquid',
+      // Clicker serves a blank/dark placeholder here, so it must be ignored.
+      tokenImageUrl: 'https://clicker.example/ondo-blank.jpg',
+    };
+
+    it('renders PerpsTokenLogo with the token symbol instead of AvatarToken', () => {
+      renderWithProvider(
+        <PositionTokenAvatar position={hyperliquidPosition} />,
+      );
+
+      expect(MockAvatarToken).not.toHaveBeenCalled();
+      expect(MockPerpsTokenLogo).toHaveBeenCalled();
+      expect(lastPerpsTokenLogoProps().symbol).toBe('ONDO');
+    });
+
+    it('does not use the unreliable Clicker tokenImageUrl', () => {
+      renderWithProvider(
+        <PositionTokenAvatar position={hyperliquidPosition} />,
+      );
+
+      // PerpsTokenLogo resolves icons from the symbol; no Clicker URI is forwarded.
+      expect(MockPerpsTokenLogo).toHaveBeenCalled();
+      expect(MockAvatarToken).not.toHaveBeenCalled();
+    });
+
+    it('maps the AvatarToken size to the matching pixel size', () => {
+      renderWithProvider(
+        <PositionTokenAvatar
+          position={hyperliquidPosition}
+          size={AvatarTokenSize.Md}
+        />,
+      );
+
+      expect(lastPerpsTokenLogoProps().size).toBe(32);
+    });
+
+    it('defaults to the Lg pixel size', () => {
+      renderWithProvider(
+        <PositionTokenAvatar position={hyperliquidPosition} />,
+      );
+
+      expect(lastPerpsTokenLogoProps().size).toBe(40);
+    });
+
+    it('still wraps the perps logo in the Hyperliquid network badge', () => {
+      renderWithProvider(
+        <PositionTokenAvatar position={hyperliquidPosition} showChainBadge />,
       );
 
       expect(MockBadgeWrapper).toHaveBeenCalled();

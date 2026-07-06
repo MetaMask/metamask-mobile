@@ -15,7 +15,8 @@ import type { TransactionActiveAbTestEntry } from '../../../../../util/transacti
 const LOGO_SIZE = 24;
 
 type PerpsMarketDetailsSource =
-  (typeof PERPS_EVENT_VALUE.SOURCE)[keyof typeof PERPS_EVENT_VALUE.SOURCE];
+  | (typeof PERPS_EVENT_VALUE.SOURCE)[keyof typeof PERPS_EVENT_VALUE.SOURCE]
+  | string;
 
 interface PerpsPillItemProps {
   item: PerpsFeedItem;
@@ -28,6 +29,11 @@ interface PerpsPillItemProps {
    * movers stay unchanged; homepage passes `HOME_SECTION` to match `PerpsSection` tiles.
    */
   marketDetailsSource?: PerpsMarketDetailsSource;
+  /**
+   * `params.source_section` for market-details navigation.
+   * Identifies the specific sub-section within the origin screen.
+   */
+  marketDetailsSourceSection?: string;
   /** Bound onto market-details route params for downstream transaction attribution. */
   transactionActiveAbTests?: TransactionActiveAbTestEntry[];
 }
@@ -37,6 +43,7 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
   onCardPress,
   onNavigateToMarketDetails,
   marketDetailsSource = PERPS_EVENT_VALUE.SOURCE.EXPLORE,
+  marketDetailsSourceSection,
   transactionActiveAbTests,
 }) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
@@ -58,6 +65,9 @@ const PerpsPillItem: React.FC<PerpsPillItemProps> = ({
       params: {
         market,
         source: marketDetailsSource,
+        ...(marketDetailsSourceSection && {
+          source_section: marketDetailsSourceSection,
+        }),
         ...(transactionActiveAbTests?.length
           ? { transactionActiveAbTests }
           : {}),

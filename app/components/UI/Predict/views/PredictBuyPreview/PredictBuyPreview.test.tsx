@@ -320,6 +320,29 @@ describe('PredictBuyPreview', () => {
       expect(screen.getByText('$120.00')).toBeOnTheScreen();
     });
 
+    it('tracks the initiated buy event using the ask (buyPrice), not the mid', () => {
+      const Engine = jest.requireMock('../../../../../core/Engine');
+      mockUseRoute.mockReturnValue({
+        ...mockRoute,
+        params: {
+          ...mockRoute.params,
+          // Wide spread: mid 0.63 but ask 0.92.
+          outcomeToken: {
+            id: 'outcome-token-789',
+            title: 'Yes',
+            price: 0.63,
+            buyPrice: 0.92,
+          },
+        },
+      });
+
+      renderWithProvider(<PredictBuyPreview />, { state: initialState });
+
+      expect(
+        Engine.context.PredictController.trackPredictOrderEvent,
+      ).toHaveBeenCalledWith(expect.objectContaining({ sharePrice: 0.92 }));
+    });
+
     it('displays disclaimer text when done button is pressed', () => {
       renderWithProvider(<PredictBuyPreview />, { state: initialState });
       const doneButton = screen.getByText('Done');

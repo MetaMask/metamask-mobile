@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet } from 'react-native';
+import { Linking, Pressable, ScrollView, StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
 import {
@@ -15,6 +15,7 @@ import {
   IconName,
   IconSize,
   Text,
+  TextButton,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -28,15 +29,18 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import useMoneyAccountBalance from '../../hooks/useMoneyAccountBalance';
-import { selectMoneyNoFeeTokens } from '../../selectors/featureFlags';
-import {
-  resolveNoFeeTokens,
-  formatNoFeeTokenBullets,
-  formatBaseStablecoins,
-} from '../../utils/depositFaqTokens';
+import { selectMoneyNoFeeDepositTokens } from '../../selectors/featureFlags';
+import { formatNoFeeTokenBullets } from '../../utils/depositFaqTokens';
+import AppConstants from '../../../../../core/AppConstants';
 import { MoneyHowItWorksViewTestIds } from './MoneyHowItWorksView.testIds';
 import useMountEffect from '../../hooks/useMountEffect';
-import { COMPONENT_NAMES, SCREEN_NAMES } from '../../constants/moneyEvents';
+import {
+  COMPONENT_NAMES,
+  MONEY_BUTTON_INTENTS,
+  MONEY_BUTTON_TYPES,
+  MONEY_URLS,
+  SCREEN_NAMES,
+} from '../../constants/moneyEvents';
 import { useMoneyAnalytics } from '../../hooks/useMoneyAnalytics';
 
 const localStyles = StyleSheet.create({
@@ -65,10 +69,12 @@ const ANIMATION_DURATION = 200;
 const FaqItem = ({
   question,
   answer,
+  link,
   testID,
 }: {
   question: string;
   answer: string;
+  link?: { label: string; testID: string; onPress: () => void };
   testID: string;
 }) => {
   const [expanded, setExpanded] = useState(false);
@@ -117,6 +123,11 @@ const FaqItem = ({
               color={TextColor.TextAlternative}
             >
               {answer}
+              {link && (
+                <TextButton onPress={link.onPress} testID={link.testID}>
+                  {link.label}
+                </TextButton>
+              )}
             </Text>
           </Box>
         )}
@@ -131,11 +142,10 @@ const MoneyHowItWorksView = () => {
   const { colors: themeColors } = useTheme();
   const { apyPercent } = useMoneyAccountBalance();
 
-  const noFeeTokens = resolveNoFeeTokens(useSelector(selectMoneyNoFeeTokens));
+  const noFeeTokens = useSelector(selectMoneyNoFeeDepositTokens);
   const tokenBullets = formatNoFeeTokenBullets(noFeeTokens);
-  const stablecoins = formatBaseStablecoins(noFeeTokens);
 
-  const { trackScreenViewed } = useMoneyAnalytics({
+  const { trackScreenViewed, trackButtonClicked } = useMoneyAnalytics({
     screen_name: SCREEN_NAMES.MONEY_HOW_IT_WORKS,
   });
 
@@ -144,6 +154,17 @@ const MoneyHowItWorksView = () => {
   const handleGoBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
+
+  const handleCardFeesPress = useCallback(() => {
+    trackButtonClicked({
+      button_type: MONEY_BUTTON_TYPES.TEXT,
+      button_intent: MONEY_BUTTON_INTENTS.CARD_FEES,
+      component_name: COMPONENT_NAMES.FAQ_ITEM,
+      label_key: 'money.how_it_works_page.faq_a4_link',
+      redirect_target: MONEY_URLS.CARD_FEES,
+    });
+    Linking.openURL(AppConstants.CARD.CARD_FEES_URL);
+  }, [trackButtonClicked]);
 
   return (
     <Box
@@ -226,22 +247,52 @@ const MoneyHowItWorksView = () => {
           </Text>
         </Box>
 
-        {FAQ_KEYS.map((key, index) => (
-          <React.Fragment key={key}>
-            {index > 0 && <FaqDivider />}
-            <FaqItem
-              question={strings(`money.how_it_works_page.${key}`, {
-                percentage: apyPercent,
-              })}
-              answer={strings(`money.how_it_works_page.faq_a${index + 1}`, {
-                percentage: apyPercent,
-                tokenBullets,
-                stablecoins,
-              })}
-              testID={MoneyHowItWorksViewTestIds.FAQ_ITEM(index + 1)}
-            />
-          </React.Fragment>
-        ))}
+        {FAQ_KEYS.map((key, index) => {
+          const number = index + 1;
+          return (
+            <React.Fragment key={key}>
+              {index > 0 && <FaqDivider />}
+              <FaqItem
+                question={strings(`money.how_it_works_page.${key}`, {
+                  percentage: apyPercent,
+                })}
+                answer={strings(`money.how_it_works_page.faq_a${number}`, {
+                  percentage: apyPercent,
+                  tokenBullets,
+                })}
+                link={
+                  number === 4
+                    ? {
+                        label: strings('money.how_it_works_page.faq_a4_link'),
+                        testID: MoneyHowItWorksViewTestIds.FAQ_LINK,
+                        onPress: handleCardFeesPress,
+                      }
+                    : undefined
+                }
+                testID={MoneyHowItWorksViewTestIds.FAQ_ITEM(number)}
+              />
+            </React.Fragment>
+          );
+        })}
+
+        <SectionDivider />
+
+        <Box twClassName="py-5 px-4 gap-3">
+          <Text
+            variant={TextVariant.HeadingMd}
+            fontWeight={FontWeight.Bold}
+            testID={MoneyHowItWorksViewTestIds.DISCLOSURES_TITLE}
+          >
+            {strings('money.how_it_works_page.disclosures_title')}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            testID={MoneyHowItWorksViewTestIds.DISCLOSURES_BODY}
+          >
+            {strings('money.how_it_works_page.disclosures_body')}
+          </Text>
+        </Box>
       </ScrollView>
     </Box>
   );

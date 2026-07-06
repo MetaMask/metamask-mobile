@@ -24,7 +24,6 @@ jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
 
 jest.mock('../../../../util/url', () => ({
   isCardTravelUrl: jest.fn(),
-  isCardTosUrl: jest.fn(),
 }));
 
 jest.mock('../../../../core/AppConstants', () => ({
@@ -35,9 +34,13 @@ jest.mock('../../../../core/AppConstants', () => ({
   },
 }));
 
+const FALLBACK_TOS_URL =
+  'https://secure.baanx.co.uk/MM-Card-RoW-Terms-2025-Sept.pdf';
+const DYNAMIC_TOS_URL = 'https://docs.baanx.us/metamask/terms-of-service.pdf';
+
 jest.mock('react-native', () => ({
   Linking: {
-    openURL: jest.fn(),
+    openURL: jest.fn(() => Promise.resolve()),
   },
 }));
 
@@ -90,15 +93,18 @@ const createMockEventBuilder = () => ({
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 
+const STABLE_EMPTY_TABS: BrowserTab[] = [];
+
 const setupMocks = (
   mockEventBuilder: ReturnType<typeof createMockEventBuilder>,
 ) => {
-  (useSelector as jest.Mock).mockReturnValue([]);
+  (useSelector as jest.Mock).mockReturnValue(STABLE_EMPTY_TABS);
   (useAnalytics as jest.Mock).mockReturnValue({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   });
   (isCardTravelUrl as jest.Mock).mockReturnValue(false);
+  (Linking.openURL as jest.Mock).mockResolvedValue(undefined);
   mockCreateEventBuilder.mockReturnValue(mockEventBuilder);
 };
 
@@ -201,45 +207,6 @@ describe('useNavigateToInternalBrowserPage', () => {
       });
     },
   );
-
-  describe('CardInternalBrowserPage.TOS', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-      mockNavigation = createMockNavigation();
-      mockEventBuilder = createMockEventBuilder();
-      setupMocks(mockEventBuilder);
-    });
-
-    it('opens TOS URL with Linking.openURL', () => {
-      const { result } = renderHook(() =>
-        useNavigateToInternalBrowserPage(mockNavigation),
-      );
-
-      act(() => {
-        result.current.navigateToInternalBrowserPage(
-          CardInternalBrowserPage.TOS,
-        );
-      });
-
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        'https://secure.baanx.co.uk/MM-Card-RoW-Terms-2025-Sept.pdf',
-      );
-    });
-
-    it('does not navigate to browser when opening TOS', () => {
-      const { result } = renderHook(() =>
-        useNavigateToInternalBrowserPage(mockNavigation),
-      );
-
-      act(() => {
-        result.current.navigateToInternalBrowserPage(
-          CardInternalBrowserPage.TOS,
-        );
-      });
-
-      expect(mockNavigation.navigate).not.toHaveBeenCalled();
-    });
-  });
 
   describe('edge cases', () => {
     it.each([undefined, null, []])(
@@ -381,9 +348,19 @@ describe('useNavigateToCardPage', () => {
         result.current.navigateToCardTosPage();
       });
 
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        'https://secure.baanx.co.uk/MM-Card-RoW-Terms-2025-Sept.pdf',
+      expect(Linking.openURL).toHaveBeenCalledWith(FALLBACK_TOS_URL);
+    });
+
+    it('opens dynamic TOS URL when provided', () => {
+      const { result } = renderHook(() =>
+        useNavigateToCardPage(mockNavigation, DYNAMIC_TOS_URL),
       );
+
+      act(() => {
+        result.current.navigateToCardTosPage();
+      });
+
+      expect(Linking.openURL).toHaveBeenCalledWith(DYNAMIC_TOS_URL);
     });
 
     it('does not navigate to browser', () => {

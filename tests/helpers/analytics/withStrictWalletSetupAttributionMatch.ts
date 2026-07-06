@@ -25,6 +25,20 @@ export function withStrictWalletSetupAttributionMatch(
         };
       }
       if (ev.name !== onboardingEvents.WALLET_SETUP_COMPLETED) {
+        if (ev.name === onboardingEvents.ONBOARDING_COMPLETED) {
+          const {
+            containProperties,
+            matchProperties: _matchProperties,
+            ...rest
+          } = ev;
+          return {
+            ...rest,
+            containProperties: {
+              ...(containProperties ?? _matchProperties ?? {}),
+              ...E2E_WALLET_SETUP_ATTRIBUTION_FIELDS,
+            },
+          };
+        }
         return ev;
       }
       const { containProperties: _unused, matchProperties, ...rest } = ev;

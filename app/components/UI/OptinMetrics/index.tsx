@@ -61,7 +61,6 @@ import {
 import type { RootState } from '../../../reducers';
 import { useOnboardingInterestQuestionnaireEligibility } from '../../Views/OnboardingInterestQuestionnaire/useOnboardingInterestQuestionnaireEligibility';
 import Logger from '../../../util/Logger';
-import { clearAttribution } from '../../../core/redux/slices/attribution';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
 
@@ -226,8 +225,6 @@ const OptinMetrics = () => {
         trackEvent: (event) => metrics.trackEvent(event),
       });
     }
-
-    dispatch(clearAttribution());
 
     dispatch(clearOnboardingEvents());
 

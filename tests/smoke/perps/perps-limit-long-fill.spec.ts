@@ -6,9 +6,9 @@ import {
   PERPS_ARBITRUM_MOCKS,
   mockPerpsGeolocation,
 } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
-import { navigateToPerpsOrderEntry } from '../../flows/perps.flow';
-import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
-import PerpsView from '../../page-objects/Perps/PerpsView';
+import { placeLimitOrderAtPreset } from '../../flows/perps.flow';
+import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
+import Utilities from '../../framework/Utilities';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
 import { TestSuiteParams } from '../../framework/types';
@@ -41,6 +41,7 @@ describe(SmokePerps('Perps - ETH limit long fill'), () => {
           ])
           .build(),
         restartDevice: true,
+        permissions: { notifications: 'YES' },
         testSpecificMock: async (mockServer: Mockttp) => {
           await setupRemoteFeatureFlagsMock(mockServer, {});
           await PERPS_ARBITRUM_MOCKS(mockServer);
@@ -57,44 +58,30 @@ describe(SmokePerps('Perps - ETH limit long fill'), () => {
         }
         await loginToApp();
 
-        // This is needed due to disable animations
         await device.disableSynchronization();
 
-        await navigateToPerpsOrderEntry('ETH', 'long');
+        await placeLimitOrderAtPreset('ETH', 'long', 'Mid');
 
-        // Open order type selector and select Limit using Page Object
-        await PerpsOrderView.openOrderTypeSelector();
-        await PerpsOrderView.selectLimitOrderType();
-
-        // When Limit is selected without price, the limit price bottom sheet opens automatically.
-        await PerpsOrderView.setLimitPricePresetLong('Mid');
-
-        // Confirm limit price (Set button)
-        await PerpsOrderView.confirmLimitPrice();
-
-        // Place order (PerpsView waits until the button is enabled, then taps)
-        await PerpsView.tapPlaceOrderButton();
-
-        // Return to Perps portfolio home (explore → details → order: need list back, not wallet back)
-        await PerpsView.navigateToPerpsPortfolioHomeFromMarketOrderFlow();
-
-        await PerpsView.expectLimitOrderVisibleOnPortfolio({
-          symbol: 'ETH',
+        await PerpsMarketDetailsView.expectCompactOpenOrderVisible({
           direction: 'long',
         });
 
-        // Push the price -15% to ensure the order is executed
-        // Default ETH price in mock is 2500.00, -15% => 2125.00
         await PerpsE2EModifiers.updateMarketPriceServer(
           commandQueueServer,
           'ETH',
           '2125.00',
         );
 
-        await PerpsView.expectPositionRowAfterLimitOrderFilled({
-          symbol: 'ETH',
-          direction: 'long',
-        });
+        await Utilities.executeWithRetry(
+          async () => {
+            await PerpsMarketDetailsView.expectClosePositionButtonVisible();
+          },
+          {
+            interval: 1000,
+            timeout: 60000,
+            description: 'wait for limit long to fill into an open position',
+          },
+        );
       },
     );
   });

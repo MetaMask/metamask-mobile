@@ -7,6 +7,7 @@ import { DeFiPositionsControllerInitMessenger } from '../../messengers/defi-posi
 import { store } from '../../../../store';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import type { AnalyticsTrackingEvent as PackageAnalyticsTrackingEvent } from '@metamask/analytics-controller';
 import {
   DEFAULT_FEATURE_FLAG_VALUES,
   FeatureFlagNames,
@@ -51,7 +52,11 @@ export const defiPositionsControllerInit: MessengerClientInitFunction<
           .addProperties(params.properties)
           .build();
 
-        initMessenger.call('AnalyticsController:trackEvent', event);
+        // Cast needed until @metamask/analytics-controller removes saveDataRecording from its AnalyticsTrackingEvent
+        initMessenger.call(
+          'AnalyticsController:trackEvent',
+          event as unknown as PackageAnalyticsTrackingEvent,
+        );
       } catch (error) {
         // Analytics tracking failures should not break DeFi positions functionality
         // Error is logged but not thrown

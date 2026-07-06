@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image } from 'react-native';
+import { Image } from 'expo-image';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   AvatarAccount,
@@ -27,6 +27,12 @@ export interface TraderAvatarProps {
   address?: string;
   /** Avatar diameter in pixels. */
   size: number;
+  /**
+   * Stable identity for the rendered cell. When set, expo-image reuses the
+   * decoded/cached image across FlatList cell recycling instead of re-fetching
+   * it. Pass the list item's key (e.g. `trader.id`) on recycled surfaces.
+   */
+  recyclingKey?: string;
   testID?: string;
 }
 
@@ -42,6 +48,7 @@ const TraderAvatar: React.FC<TraderAvatarProps> = ({
   imageUrl,
   address,
   size,
+  recyclingKey,
   testID,
 }) => {
   const tw = useTailwind();
@@ -50,8 +57,13 @@ const TraderAvatar: React.FC<TraderAvatarProps> = ({
     return (
       <Image
         source={{ uri: imageUrl }}
-        style={tw.style(`w-[${size}px] h-[${size}px] rounded-full bg-muted`)}
-        resizeMode="cover"
+        style={[
+          { width: size, height: size, borderRadius: size / 2 },
+          tw.style('bg-muted'),
+        ]}
+        contentFit="cover"
+        cachePolicy="memory-disk"
+        recyclingKey={recyclingKey}
         testID={testID}
       />
     );

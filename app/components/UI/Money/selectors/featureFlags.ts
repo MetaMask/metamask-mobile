@@ -1,4 +1,5 @@
 import { createSelector } from 'reselect';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { selectRemoteFeatureFlags } from '../../../../selectors/featureFlagController';
 import {
   validatedVersionGatedFeatureFlag,
@@ -6,10 +7,65 @@ import {
   VersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import { isMoneyAccountEnabled } from '../../../../lib/Money/feature-flags';
+import { WildcardTokenList } from '../../Earn/utils/wildcardTokenList';
+import { MUSD_TOKEN_ADDRESS } from '../../Earn/constants/musd';
 import {
-  getWildcardTokenListFromConfig,
-  WildcardTokenList,
-} from '../../Earn/utils/wildcardTokenList';
+  MONEY_NO_FEE_TOKENS_FALLBACK,
+  ensureMonadMusdListed,
+} from '../utils/depositFaqTokens';
+import { getRelayFixedSpreadRoutesWithSymbols } from '../../../Views/confirmations/utils/relayFixedSpread';
+import { parseNonNegativeFinite } from '../utils/number';
+import { MoneyVaultApyRemoteConfig } from './featureFlags.types';
+import { DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS } from '../utils/accountsApi';
+
+/**
+ * Selects whether the Money activity detail view is enabled.
+ * When off, clicking on an activity list item does nothing instead of opening
+ * the detail view.
+ */
+export const selectMoneyEnableActivityDetailsFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    const localFlag = process.env.MM_MONEY_ENABLE_ACTIVITY_DETAILS === 'true';
+    const remoteFlag =
+      remoteFeatureFlags?.moneyEnableActivityDetails as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  },
+);
+
+/**
+ * Selects whether the block explorer link is shown in Money activity detail
+ * views. When off, the "View on block explorer" button is hidden.
+ */
+export const selectMoneyEnableActivityDetailsBlockexplorerLinkFlag =
+  createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags) => {
+    const localFlag =
+      process.env.MM_MONEY_ENABLE_ACTIVITY_DETAILS_BLOCKEXPLORER_LINK ===
+      'true';
+    const remoteFlag =
+      remoteFeatureFlags?.moneyEnableActivityDetailsBlockexplorerLink as unknown as VersionGatedFeatureFlag;
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  });
+
+/**
+ * Baanx card-cashback multisend contract addresses used to classify unlabeled
+ * Accounts API rows as cashback. Remote flag takes precedence; falls back to
+ * the built-in default list when absent or invalid.
+ */
+export const selectMoneyCardActivityCashbackMultisendContracts = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string[] => {
+    const remote =
+      remoteFeatureFlags?.moneyCardActivityCashbackMultisendContracts;
+    if (
+      Array.isArray(remote) &&
+      remote.every((item): item is string => typeof item === 'string')
+    ) {
+      return remote;
+    }
+    return [...DEFAULT_MONEY_CARD_ACTIVITY_CASHBACK_MULTISEND_CONTRACTS];
+  },
+);
 
 /** Temporary flag: remote value is a boolean only. */
 export const selectMoneyActivityMockDataEnabledFlag = createSelector(
@@ -54,55 +110,6 @@ export const selectMoneyFirstTimeDepositAnimationEnabledFlag = createSelector(
   },
 );
 
-/**
- * Selects the blocked payment tokens for Money surfaces from remote config or local fallback.
- * Returns a wildcard blocklist mapping chain IDs (or "*") to token symbols (or ["*"]).
- *
- * Supports wildcards:
- * - "*" as chain key: applies to all chains
- * - "*" in symbol array: blocks all tokens on that chain
- *
- * Examples:
- * - { "*": ["SCAM"] }              - Block SCAM on ALL chains
- * - { "0x1": ["*"] }               - Block ALL tokens on Ethereum mainnet
- * - { "0xa4b1": ["USDT", "DAI"] }  - Block specific tokens on specific chain
- *
- * Remote flag takes precedence over local env var.
- * If both are unavailable, returns {} (no blocking).
- */
-export const selectMoneyDepositTokensBlocklist = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): WildcardTokenList =>
-    getWildcardTokenListFromConfig(
-      remoteFeatureFlags?.earnMoneyPaymentTokensBlocklist,
-      'earnMoneyPaymentTokensBlocklist',
-      process.env.MM_MONEY_PAYMENT_TOKENS_BLOCKLIST,
-      'MM_MONEY_PAYMENT_TOKENS_BLOCKLIST',
-    ),
-);
-
-/**
- * Selects the no-fee tokens for Money surfaces from remote config or local fallback.
- * Returns a wildcard map of chain IDs (or "*") to token symbols (or ["*"]) that are
- * eligible for fee-free deposit into the Money account.
- *
- * Used by useMoneyDepositTokens to apply "no-fee priority" sorting when the remote
- * sort mode flag is set to `noFeePriority`.
- *
- * Remote flag takes precedence over local env var.
- * If both are unavailable, returns {} (no tokens have subsidised fees).
- */
-export const selectMoneyNoFeeTokens = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags): WildcardTokenList =>
-    getWildcardTokenListFromConfig(
-      remoteFeatureFlags?.earnMoneyDepositNoFeeTokens,
-      'earnMoneyDepositNoFeeTokens',
-      process.env.MM_MONEY_DEPOSIT_NO_FEE_TOKENS,
-      'MM_MONEY_DEPOSIT_NO_FEE_TOKENS',
-    ),
-);
-
 const FALLBACK_MONEY_DEPOSIT_MIN_BALANCE = 0.01; // 1 cent
 
 /**
@@ -118,55 +125,108 @@ const FALLBACK_MONEY_DEPOSIT_MIN_BALANCE = 0.01; // 1 cent
 export const selectMoneyDepositMinBalance = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): number => {
-    const localRaw = process.env.MM_MONEY_DEPOSIT_MIN_ASSET_BALANCE;
-    const local =
-      localRaw === undefined ? undefined : Number.parseFloat(localRaw);
-
-    const remoteRaw = remoteFeatureFlags?.earnMoneyDepositMinAssetBalance;
-    const remote =
-      typeof remoteRaw === 'number'
-        ? remoteRaw
-        : typeof remoteRaw === 'string'
-          ? Number.parseFloat(remoteRaw)
-          : undefined;
-
-    const remoteValue = Number.isFinite(remote) ? remote : undefined;
-    const localValue = Number.isFinite(local) ? local : undefined;
+    const localValue = parseNonNegativeFinite(
+      process.env.MM_MONEY_DEPOSIT_MIN_ASSET_BALANCE,
+    );
+    const remoteValue = parseNonNegativeFinite(
+      remoteFeatureFlags?.earnMoneyDepositMinAssetBalance,
+    );
 
     return remoteValue ?? localValue ?? FALLBACK_MONEY_DEPOSIT_MIN_BALANCE;
   },
 );
 
-/**
- * Valid sort modes for useMoneyDepositTokens.
- * - fiatBalanceDesc: all eligible tokens sorted by fiat balance descending (default)
- * - noFeePriority: no-fee tokens bucket first (fiat-desc), then fee tokens bucket (fiat-desc)
- */
-export type MoneyTokensSortMode = 'fiatBalanceDesc' | 'noFeePriority';
-
-const VALID_SORT_MODES: MoneyTokensSortMode[] = [
-  'fiatBalanceDesc',
-  'noFeePriority',
-];
-
-/**
- * Selects the remote sort mode for Money token lists.
- * Remote flag `moneyTokensSortMode` accepts the string values
- * `fiatBalanceDesc` or `noFeePriority`.
- *
- * Fallback: `fiatBalanceDesc` when the remote value is absent or invalid.
- */
-export const selectMoneyTokensSortMode = createSelector(
+export const selectMoneyVaultApyRemoteConfig = createSelector(
   selectRemoteFeatureFlags,
-  (remoteFeatureFlags): MoneyTokensSortMode => {
-    const remote = remoteFeatureFlags?.earnMoneyTokensSortMode;
-    if (
-      typeof remote === 'string' &&
-      VALID_SORT_MODES.includes(remote as MoneyTokensSortMode)
-    ) {
-      return remote as MoneyTokensSortMode;
+  (remoteFeatureFlags): MoneyVaultApyRemoteConfig => {
+    const raw = remoteFeatureFlags?.earnMoneyVaultApyControl as
+      | Record<string, unknown>
+      | undefined;
+
+    const vaultApyFallback = parseNonNegativeFinite(raw?.vaultApyFallback);
+    const vaultApyOverride = parseNonNegativeFinite(raw?.vaultApyOverride);
+
+    return { vaultApyFallback, vaultApyOverride };
+  },
+);
+
+/**
+ * Aave-wrapped token aliases present in the confirmations_relay_fixed_spread
+ * flag. Each maps to a mixed-case display symbol ("aUSDC", not "AUSDC").
+ * Extend this set when new aave tokens are added to the flag — do not rely on
+ * a regex heuristic, as other tokens starting with "a" (e.g. ATOM, AVAX) would
+ * be incorrectly cased.
+ */
+const AAVE_TOKEN_ALIASES = new Set(['ausdc', 'ausdt', 'adai', 'ausdcn']);
+
+/**
+ * Converts a raw token alias (e.g. "eth_usdc", "eth_ausdc", "musd") to its
+ * display symbol:
+ * - Strip the chain prefix ("eth_usdc" → "usdc")
+ * - Known aave tokens (see AAVE_TOKEN_ALIASES): "ausdc" → "aUSDC"
+ * - All others: full uppercase ("usdc" → "USDC")
+ */
+const normalizeTokenSymbol = (tokenAlias: string): string => {
+  const underscoreIdx = tokenAlias.indexOf('_');
+  const raw =
+    underscoreIdx >= 0 ? tokenAlias.slice(underscoreIdx + 1) : tokenAlias;
+  if (AAVE_TOKEN_ALIASES.has(raw.toLowerCase())) {
+    return 'a' + raw.slice(1).toUpperCase();
+  }
+  return raw.toUpperCase();
+};
+
+/**
+ * Derives the no-fee deposit token catalog from the `confirmations_relay_fixed_spread`
+ * remote feature flag, scoped to Money account deposits (output = Monad mUSD).
+ *
+ * Filters routes where the destination is Monad mUSD, then maps each input
+ * (chainId, tokenAlias) to a display symbol, emitting a WildcardTokenList
+ * (hex chainId → [SYMBOL, ...]) compatible with formatNoFeeTokenBullets in
+ * depositFaqTokens.ts.
+ *
+ * Falls back to MONEY_NO_FEE_TOKENS_FALLBACK when the flag is absent or
+ * structurally invalid, preserving current FAQ behaviour.
+ *
+ * Uses getRelayFixedSpreadRoutesWithSymbols (the alias-preserving parser) rather
+ * than selectRelayFixedSpread, because the parsed RelayFixedSpreadConfig drops
+ * the token alias keys that carry the symbols the FAQ renders.
+ */
+export const selectMoneyNoFeeDepositTokens = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): WildcardTokenList => {
+    const routes = getRelayFixedSpreadRoutesWithSymbols(
+      remoteFeatureFlags?.confirmations_relay_fixed_spread,
+      'confirmations_relay_fixed_spread',
+    );
+
+    const monadHex = CHAIN_IDS.MONAD.toLowerCase();
+    const musdAddress = MUSD_TOKEN_ADDRESS.toLowerCase();
+
+    const catalog: Record<string, string[]> = {};
+
+    for (const route of routes) {
+      // Only deposit routes: output must resolve to Monad mUSD
+      if (
+        route.targetChain.toLowerCase() !== monadHex ||
+        route.targetToken.toLowerCase() !== musdAddress
+      ) {
+        continue;
+      }
+
+      const srcChainHex = route.sourceChain.toLowerCase();
+      const symbol = normalizeTokenSymbol(route.sourceTokenAlias);
+
+      if (!catalog[srcChainHex]) catalog[srcChainHex] = [];
+      if (!catalog[srcChainHex].includes(symbol)) {
+        catalog[srcChainHex].push(symbol);
+      }
     }
-    return 'fiatBalanceDesc';
+
+    const result =
+      Object.keys(catalog).length > 0 ? catalog : MONEY_NO_FEE_TOKENS_FALLBACK;
+
+    return ensureMonadMusdListed(result);
   },
 );
 

@@ -1,15 +1,14 @@
 import { useNavigation } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import { useCallback, useEffect, useRef } from 'react';
 import { BackHandler } from 'react-native';
 import Device from '../../../../../util/device';
 import { useConfirmActions } from '../useConfirmActions';
 import { useFullScreenConfirmation } from './useFullScreenConfirmation';
-import type { RootStackParamList } from '../../../../../core/NavigationService/types';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { useConfirmationContext } from '../../context/confirmation-context';
 
 const useClearConfirmationOnBackSwipe = () => {
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const { onReject } = useConfirmActions();
   const { isConfirmationSubmittingRef } = useConfirmationContext();

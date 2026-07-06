@@ -193,6 +193,30 @@ describe('PerpsOrderDetailsView', () => {
     expect(screen.getByText('BTC')).toBeOnTheScreen();
   });
 
+  it('strips DEX prefix from visible asset symbol while preserving raw symbol for cancellation', async () => {
+    mockRouteParams = {
+      order: {
+        ...mockOrder,
+        symbol: 'xyz:MSTR',
+      },
+    };
+
+    render(<PerpsOrderDetailsView />);
+
+    expect(screen.getByText('MSTR')).toBeOnTheScreen();
+    expect(screen.getAllByText('0.5000 MSTR')).toHaveLength(2);
+    expect(screen.queryByText('xyz:MSTR')).not.toBeOnTheScreen();
+
+    fireEvent.press(screen.getByText('perps.order_details.cancel_order'));
+
+    await waitFor(() => {
+      expect(mockCancelOrder).toHaveBeenCalledWith({
+        orderId: 'order-123',
+        symbol: 'xyz:MSTR',
+      });
+    });
+  });
+
   it('renders error state when no order is provided', () => {
     mockRouteParams = {};
 
