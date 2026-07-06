@@ -197,10 +197,6 @@ class Browser {
         await Gestures.waitAndTap(this.addressBar, {
           elemDescription: 'URL bar container',
         });
-        await Gestures.waitAndTap(this.urlInputBoxID, {
-          elemDescription: 'URL input box',
-          checkForDisplayed: false,
-        });
       },
     });
   }
