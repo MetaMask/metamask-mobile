@@ -260,133 +260,94 @@ export const WEB_SHARE_API_POLYFILL_SCRIPT = buildWebSharePolyfillScript(true);
 
 export const WEB_DOWNLOAD_MESSAGE_TYPE = 'WEB_DOWNLOAD';
 
-/**
- * Intercepts anchor-triggered downloads that use `blob:` or `data:` URLs.
- *
- * These URLs only exist inside the WebView's JS context, so the native
- * download listener (`onFileDownload`) can never fetch them and the click
- * silently does nothing. This reads the bytes in-page and hands them to the
- * native side (via postMessage) to be written to disk.
- *
- * Regular `http(s)` downloads are intentionally left untouched so they keep
- * flowing through the native download path.
- */
-export const buildWebDownloadInterceptorScript = (): string =>
-  `(function () {
-  var blobRegistry = window.__mmBlobRegistry || new Map();
-  window.__mmBlobRegistry = blobRegistry;
+const WEB_DOWNLOAD_READ_FN = `function readAsBase64(url) {
+    return fetch(url)
+      .then(function (response) { return response.blob(); })
+      .then(function (blob) {
+        return new Promise(function (resolve, reject) {
+          var reader = new FileReader();
+          reader.onload = function () {
+            resolve({ data: reader.result, type: blob.type });
+          };
+          reader.onerror = function () {
+            reject(reader.error || new Error('Failed to read blob'));
+          };
+          reader.readAsDataURL(blob);
+        });
+      });
+  }`;
 
-  if (!window.__mmNativeCreateObjectURL) {
-    window.__mmNativeCreateObjectURL = URL.createObjectURL;
-    window.__mmNativeRevokeObjectURL = URL.revokeObjectURL;
-  }
-  URL.createObjectURL = function (blob) {
-    var url = window.__mmNativeCreateObjectURL.call(URL, blob);
-    blobRegistry.set(url, blob);
-    return url;
-  };
-  URL.revokeObjectURL = function (url) {
-    blobRegistry.delete(url);
-    window.__mmNativeRevokeObjectURL.call(URL, url);
-  };
-
-  function extToMime(dataUrl) {
-    var match = /^data:([^;,]+)/.exec(dataUrl || '');
-    return match ? match[1] : 'application/octet-stream';
-  }
-
-  function mimeToExt(mimeType) {
-    var map = {
-      'image/png': 'png',
-      'image/jpeg': 'jpg',
-      'image/webp': 'webp',
-      'image/gif': 'gif',
-      'application/pdf': 'pdf',
-      'application/json': 'json',
-      'text/plain': 'txt',
-      'text/csv': 'csv',
-    };
-    return map[(mimeType || '').toLowerCase()] || 'bin';
-  }
-
-  function deriveFilename(anchor, mimeType) {
-    var name = anchor && anchor.getAttribute ? anchor.getAttribute('download') : '';
-    if (name) return name;
-    return 'download-' + Date.now() + '.' + mimeToExt(mimeType);
-  }
-
-  function post(filename, mimeType, dataUrl) {
-    if (!window.ReactNativeWebView || !window.ReactNativeWebView.postMessage) return;
-    window.ReactNativeWebView.postMessage(JSON.stringify({
-      type: ${JSON.stringify(WEB_DOWNLOAD_MESSAGE_TYPE)},
-      payload: { filename: filename, mimeType: mimeType, data: dataUrl },
-    }));
-  }
-
-  function readBlob(blob, anchor) {
-    var reader = new FileReader();
-    reader.onload = function () {
-      var mimeType = blob.type || 'application/octet-stream';
-      post(deriveFilename(anchor, mimeType), mimeType, reader.result);
-    };
-    reader.onerror = function () {};
-    reader.readAsDataURL(blob);
-  }
-
-  function readBlobUrl(href, anchor) {
-    var tracked = blobRegistry.get(href);
-    if (tracked) {
-      readBlob(tracked, anchor);
-      return;
-    }
-    fetch(href)
-      .then(function (res) { return res.blob(); })
-      .then(function (blob) { readBlob(blob, anchor); })
+const WEB_DOWNLOAD_FORWARD_FN = `function forwardDownload(url, name) {
+    readAsBase64(url)
+      .then(function (result) {
+        window.ReactNativeWebView.postMessage(JSON.stringify({
+          type: ${JSON.stringify(WEB_DOWNLOAD_MESSAGE_TYPE)},
+          payload: {
+            name: name || 'download',
+            type: result.type || 'application/octet-stream',
+            data: result.data,
+          },
+        }));
+      })
       .catch(function () {});
-  }
+  }`;
 
-  function handleAnchor(anchor) {
-    if (!anchor) return false;
-    var href = anchor.getAttribute('href') || anchor.href || '';
-    if (href.indexOf('blob:') !== 0 && href.indexOf('data:') !== 0) {
+const WEB_DOWNLOAD_IS_INTERCEPTABLE_FN = `function isInterceptable(anchor) {
+    if (!anchor || anchor.tagName !== 'A' || !anchor.hasAttribute('download')) {
       return false;
     }
+    var href = anchor.getAttribute('href') || '';
+    return href.indexOf('blob:') === 0 || href.indexOf('data:') === 0;
+  }`;
 
-    if (href.indexOf('data:') === 0) {
-      var mimeType = extToMime(href);
-      post(deriveFilename(anchor, mimeType), mimeType, href);
-      return true;
-    }
-
-    readBlobUrl(href, anchor);
-    return true;
+/**
+ * Builds a script that intercepts anchor-triggered `blob:`/`data:` downloads
+ * and forwards their bytes to native. Android WebView cannot download in-memory
+ * blob URLs via the native download manager (the URL is only resolvable inside
+ * the renderer), so the page must read the payload as base64 and post it back.
+ */
+export const buildBlobDownloadInterceptorScript = (): string =>
+  `(function () {
+  if (!window.ReactNativeWebView || !window.ReactNativeWebView.postMessage) {
+    return;
   }
 
-  if (!window.__mmNativeAnchorClick) {
-    window.__mmNativeAnchorClick = HTMLAnchorElement.prototype.click;
-  }
-  // Re-apply on every injection so a page cannot permanently clobber the patch.
-  HTMLAnchorElement.prototype.click = function () {
-    if (handleAnchor(this)) {
-      return;
-    }
-    return window.__mmNativeAnchorClick.call(this);
-  };
+  ${WEB_DOWNLOAD_READ_FN}
+  ${WEB_DOWNLOAD_FORWARD_FN}
+  ${WEB_DOWNLOAD_IS_INTERCEPTABLE_FN}
 
-  if (!window.__mmWebDownloadClickInstalled) {
-    window.__mmWebDownloadClickInstalled = true;
-    document.addEventListener('click', function (event) {
-      var target = event.target;
-      var anchor = target && target.closest ? target.closest('a') : null;
-      if (!anchor) return;
-      if (handleAnchor(anchor)) {
-        event.preventDefault();
-        event.stopPropagation();
+  try {
+    var originalClick = HTMLAnchorElement.prototype.click;
+    HTMLAnchorElement.prototype.click = function () {
+      if (isInterceptable(this)) {
+        forwardDownload(this.href, this.getAttribute('download'));
+        return;
       }
-    }, true);
+      return originalClick.apply(this, arguments);
+    };
+  } catch (e) {
+    // Ignore: fall back to the capture-phase listener below.
   }
+
+  document.addEventListener('click', function (event) {
+    var node = event.target;
+    while (node && node.tagName !== 'A') {
+      node = node.parentElement;
+    }
+    if (isInterceptable(node)) {
+      event.preventDefault();
+      event.stopPropagation();
+      forwardDownload(node.href, node.getAttribute('download'));
+    }
+  }, true);
 })();
 true;`;
+
+/**
+ * Blob/data download interceptor for Android WebView.
+ */
+export const WEB_DOWNLOAD_INTERCEPTOR_SCRIPT =
+  buildBlobDownloadInterceptorScript();
 
 export const JS_IFRAME_POST_MESSAGE_TO_PROVIDER = (
   _message: object,

@@ -1,19 +1,15 @@
-import { Alert, InteractionManager, Platform } from 'react-native';
 import RNFS from 'react-native-fs';
-import ReactNativeBlobUtil from 'react-native-blob-util';
-import Share from 'react-native-share';
-import { strings } from '../../../locales/i18n';
+import Share, { ShareOptions } from 'react-native-share';
 import Logger from '../Logger';
 
-/** Base64 file payloads can exceed the normal dapp postMessage limit. */
+/** Base64 file payloads can exceed normal dapp postMessage limits. */
 export const WEB_DOWNLOAD_MAX_MESSAGE_LENGTH = 15_000_000;
 
-/** Keep the temp file around long enough for the share target to read it. */
-const DOWNLOAD_FILE_RETENTION_MS = 120_000;
-
 export interface WebDownloadPayload {
-  filename?: string;
-  mimeType?: string;
+  /** Suggested filename from the anchor's `download` attribute. */
+  name?: string;
+  /** MIME type of the downloaded resource. */
+  type?: string;
   /** Data URL (`data:mime;base64,...`) or raw base64 string. */
   data?: string;
 }
@@ -25,9 +21,8 @@ const MIME_TO_EXTENSION: Record<string, string> = {
   'image/webp': 'webp',
   'image/gif': 'gif',
   'application/pdf': 'pdf',
-  'application/json': 'json',
   'text/plain': 'txt',
-  'text/csv': 'csv',
+  'application/json': 'json',
 };
 
 const parseFileData = (data: string): { base64: string; mimeType?: string } => {
@@ -44,104 +39,55 @@ const getExtensionFromMime = (mimeType: string): string =>
 const sanitizeFilename = (name: string): string =>
   name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 128);
 
-const resolveFilename = (rawName: string | undefined, mimeType: string) => {
-  const sanitized = rawName ? sanitizeFilename(rawName) : '';
+const resolveFilename = (
+  name: string | undefined,
+  mimeType: string,
+): string => {
+  const sanitized = name ? sanitizeFilename(name) : '';
   if (sanitized && sanitized.includes('.')) {
     return sanitized;
   }
-  const base = sanitized || `download-${Date.now()}`;
-  return `${base}.${getExtensionFromMime(mimeType)}`;
-};
-
-const scheduleTempFileCleanup = (path: string): void => {
-  setTimeout(() => {
-    RNFS.unlink(path).catch(() => undefined);
-  }, DOWNLOAD_FILE_RETENTION_MS);
-};
-
-const runAfterInteractions = (): Promise<void> =>
-  new Promise((resolve) => {
-    InteractionManager.runAfterInteractions(() => {
-      resolve();
-    });
-  });
-
-/**
- * Android: copy the file into the public Downloads collection (MediaStore on
- * Android 10+, direct write on older versions), then notify the user.
- */
-const saveToAndroidDownloads = async (
-  tempPath: string,
-  filename: string,
-  mimeType: string,
-): Promise<void> => {
-  if (Number(Platform.Version) >= 29) {
-    await ReactNativeBlobUtil.MediaCollection.copyToMediaStore(
-      { name: filename, parentFolder: '', mimeType },
-      'Download',
-      tempPath,
-    );
-  } else {
-    const destination = `${RNFS.DownloadDirectoryPath}/${filename}`;
-    await RNFS.copyFile(tempPath, destination);
-  }
-
-  Alert.alert(
-    strings('download_files.downloaded_title'),
-    strings('download_files.downloaded_message', { filename }),
-  );
+  return `${sanitized || 'download'}.${getExtensionFromMime(mimeType)}`;
 };
 
 /**
- * iOS: there is no public Downloads folder, so present the share sheet with
- * "Save to Files" available.
+ * Handles a `blob:`/`data:` download intercepted from the WebView.
+ *
+ * Android WebView cannot download in-memory blob URLs through the native
+ * download manager, so the page reads the bytes as base64 and forwards them
+ * here. We persist the payload to a temp file and hand it to the OS share
+ * sheet (with "Save to Files") so the user can store it, mirroring the native
+ * download path used for HTTP(S) resources.
  */
-const saveToIos = async (
-  tempPath: string,
-  filename: string,
-  mimeType: string,
-): Promise<void> => {
-  await Share.open({
-    url: `file://${tempPath}`,
-    filename,
-    type: mimeType,
-    saveToFiles: true,
-    failOnCancel: false,
-  });
-};
-
 export async function handleWebDownload(
   payload: WebDownloadPayload | undefined,
 ): Promise<void> {
-  if (payload == null || !payload.data) {
+  if (payload?.data == null || payload.data.length === 0) {
     return;
   }
 
-  let tempPath: string | undefined;
+  let path: string | undefined;
   try {
-    if (Platform.OS === 'android') {
-      await runAfterInteractions();
-    }
-
     const { base64, mimeType: dataUrlMime } = parseFileData(payload.data);
-    const mimeType =
-      payload.mimeType || dataUrlMime || 'application/octet-stream';
-    const filename = resolveFilename(payload.filename, mimeType);
+    const mimeType = payload.type || dataUrlMime || 'application/octet-stream';
+    const filename = resolveFilename(payload.name, mimeType);
+    path = `${RNFS.CachesDirectoryPath}/web-download-${Date.now()}-${filename}`;
 
-    tempPath = `${RNFS.CachesDirectoryPath}/web-download-${Date.now()}-${filename}`;
-    await RNFS.writeFile(tempPath, base64, 'base64');
+    await RNFS.writeFile(path, base64, 'base64');
 
-    if (Platform.OS === 'android') {
-      await saveToAndroidDownloads(tempPath, filename, mimeType);
-    } else {
-      await saveToIos(tempPath, filename, mimeType);
-    }
+    const options: ShareOptions = {
+      url: path,
+      type: mimeType,
+      filename,
+      saveToFiles: true,
+      failOnCancel: false,
+    };
+    await Share.open(options);
   } catch (error: unknown) {
     Logger.error(error as Error, 'Browser::handleWebDownload');
-    Alert.alert(strings('download_files.error'));
   } finally {
-    if (tempPath) {
-      scheduleTempFileCleanup(tempPath);
+    if (path) {
+      await RNFS.unlink(path).catch(() => undefined);
     }
   }
 }

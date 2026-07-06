@@ -1,8 +1,8 @@
 import {
   WEB_SHARE_MESSAGE_TYPE,
-  buildWebSharePolyfillScript,
   WEB_DOWNLOAD_MESSAGE_TYPE,
-  buildWebDownloadInterceptorScript,
+  buildWebSharePolyfillScript,
+  buildBlobDownloadInterceptorScript,
 } from './browserScripts';
 
 describe('buildWebSharePolyfillScript', () => {
@@ -27,27 +27,21 @@ describe('buildWebSharePolyfillScript', () => {
   });
 });
 
-describe('buildWebDownloadInterceptorScript', () => {
-  it('intercepts blob/data anchor downloads and posts them to native', () => {
-    const script = buildWebDownloadInterceptorScript();
+describe('buildBlobDownloadInterceptorScript', () => {
+  it('intercepts blob/data anchor downloads and forwards them to native', () => {
+    const script = buildBlobDownloadInterceptorScript();
 
-    expect(script).toContain(WEB_DOWNLOAD_MESSAGE_TYPE);
-    expect(script).toContain('ReactNativeWebView.postMessage');
+    expect(script).toContain('HTMLAnchorElement.prototype.click');
     expect(script).toContain("href.indexOf('blob:')");
     expect(script).toContain("href.indexOf('data:')");
-    expect(script).toContain('HTMLAnchorElement.prototype.click');
-    expect(script).toContain('URL.createObjectURL');
-    expect(script).toContain('blobRegistry');
-    expect(script).toContain('FileReader');
     expect(script).toContain('readAsDataURL');
-    expect(script).toContain("addEventListener('click'");
-    expect(script).toContain('event.preventDefault');
+    expect(script).toContain('ReactNativeWebView.postMessage');
+    expect(script).toContain(WEB_DOWNLOAD_MESSAGE_TYPE);
   });
 
-  it('guards against double installation of the click listener', () => {
-    const script = buildWebDownloadInterceptorScript();
+  it('only acts on anchors with a download attribute', () => {
+    const script = buildBlobDownloadInterceptorScript();
 
-    expect(script).toContain('__mmWebDownloadClickInstalled');
-    expect(script).toContain('__mmBlobRegistry');
+    expect(script).toContain("anchor.hasAttribute('download')");
   });
 });
