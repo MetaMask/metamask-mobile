@@ -119,7 +119,6 @@ import {
 import { getRampsServiceMessenger } from './ramps-service-messenger';
 import { getTransakServiceMessenger } from './transak-service-messenger/transak-service-messenger';
 import { getPhishingControllerMessenger } from './phishing-controller-messenger';
-import { getAddressBookControllerMessenger } from './address-book-controller-messenger';
 import { getConfigRegistryControllerMessenger } from './config-registry-controller-messenger';
 import {
   getMultichainRoutingServiceInitMessenger,
@@ -169,10 +168,6 @@ export const MESSENGER_FACTORIES = {
   AccountTreeController: {
     getMessenger: getAccountTreeControllerMessenger,
     getInitMessenger: getAccountTreeControllerInitMessenger,
-  },
-  AddressBookController: {
-    getMessenger: getAddressBookControllerMessenger,
-    getInitMessenger: noop,
   },
   ConfigRegistryController: {
     getMessenger: getConfigRegistryControllerMessenger,

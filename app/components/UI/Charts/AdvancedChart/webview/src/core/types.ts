@@ -142,6 +142,7 @@ export interface TVChartingLibraryWidget {
   subscribe(event: TVWidgetEvent, handler: () => void): void;
   resize(): void;
   remove(): void;
+  resetCache?(): void;
 }
 
 export interface TVSubscription<TArgs extends unknown[] = []> {
@@ -185,6 +186,7 @@ export interface TVShapePoint {
 
 export interface TVShapeCreateOptions {
   shape: string;
+  text?: string;
   icon?: number;
   lock?: boolean;
   overrides?: Record<string, unknown>;

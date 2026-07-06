@@ -131,15 +131,16 @@ describe('positionLines/index', () => {
 
     expect(createShape).toHaveBeenCalledTimes(5);
 
-    // Verify entry line
+    // Verify entry line — text is a top-level createShape option, not inside overrides
     const entryCall = createShape.mock.calls.find(
       (call: unknown[]) =>
-        (call[1] as Record<string, unknown>).overrides &&
-        (call[1] as Record<string, Record<string, unknown>>).overrides.text ===
-          'Entry',
+        (call[1] as Record<string, unknown>).text === 'Entry',
     );
     expect(entryCall).toBeDefined();
     expect(entryCall[0]).toEqual({ price: 42000 });
+    expect(
+      (entryCall[1] as Record<string, Record<string, unknown>>).overrides,
+    ).not.toHaveProperty('text');
 
     // Wait for shape promises to resolve
     await Promise.resolve();
@@ -260,6 +261,26 @@ describe('positionLines/index', () => {
     });
 
     expect(createShape).not.toHaveBeenCalled();
+  });
+
+  it('removes orphaned shapes when generation changes before promise resolves', async () => {
+    const { createShape, removeEntity } = installWidget();
+
+    // First call creates a shape whose promise is still pending
+    handleSetPositionLines({
+      position: { side: 'long', entryPrice: 42000 },
+    });
+
+    // Second call (clear) bumps generation before the first promise resolves
+    handleSetPositionLines({ position: null });
+
+    // Let the first createShape promise resolve
+    await Promise.resolve();
+    await Promise.resolve();
+
+    // The stale shape should be removed immediately, not tracked
+    expect(removeEntity).toHaveBeenCalledWith('shape-1');
+    expect(getPositionShapeIds()).toEqual([]);
   });
 
   describe('registerPositionLinesOverlay', () => {

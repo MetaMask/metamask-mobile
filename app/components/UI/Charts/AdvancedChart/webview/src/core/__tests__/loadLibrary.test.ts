@@ -1,7 +1,10 @@
 /**
  * @jest-environment jsdom
  */
-import { loadTradingViewLibrary } from '../loadLibrary';
+import {
+  loadTradingViewLibrary,
+  __resetLoadLibraryForTests,
+} from '../loadLibrary';
 import { __resetStateForTests } from '../state';
 
 interface ScriptStub {
@@ -17,6 +20,7 @@ describe('core/loadLibrary', () => {
 
   beforeEach(() => {
     __resetStateForTests();
+    __resetLoadLibraryForTests();
     delete (window as unknown as { ReactNativeWebView?: unknown })
       .ReactNativeWebView;
     script = {};
@@ -60,6 +64,18 @@ describe('core/loadLibrary', () => {
     appendSpy.mockClear();
     await loadTradingViewLibrary('https://cdn.example.com/');
     expect(appendSpy).not.toHaveBeenCalled();
+  });
+
+  it('second call before onload only appends once', async () => {
+    const first = loadTradingViewLibrary('https://cdn.example.com/');
+    const second = loadTradingViewLibrary('https://cdn.example.com/');
+
+    expect(appendSpy).toHaveBeenCalledTimes(1);
+    expect(second).toBe(first);
+
+    script.onload?.();
+    await first;
+    await second;
   });
 
   it('rejects subsequent calls if the prior load errored', async () => {

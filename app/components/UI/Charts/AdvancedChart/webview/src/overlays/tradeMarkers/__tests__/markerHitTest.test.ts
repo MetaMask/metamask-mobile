@@ -99,7 +99,7 @@ describe('findTradeMarkerIdNearPoint', () => {
     const chart = makeChart(300);
     setWidget(makeWidget(chart));
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     // Not present in shapesByMarkerId → drawn.has(id) === false → skipped.
     expect(findTradeMarkerIdNearPoint(2, 0)).toBeNull();
   });
@@ -108,7 +108,7 @@ describe('findTradeMarkerIdNearPoint', () => {
     const chart = makeChart(300);
     setWidget(makeWidget(chart));
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     // Register drawn shape so hit-test doesn't skip it.
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
     // Tap exactly on the marker time (2s), offsetY undefined → dyPx=0.
@@ -119,7 +119,7 @@ describe('findTradeMarkerIdNearPoint', () => {
     const chart = makeChart(300);
     setWidget(makeWidget(chart));
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
     // pxPerSec = 300 / (3-1) = 150. Tap at time 1 → dx = (2-1)*150 = 150px.
     // 150 > 26 (radius) → null.
@@ -142,7 +142,7 @@ describe('findTradeMarkerIdNearPoint — edge cases', () => {
   it('returns null when timeSec is NaN', () => {
     setWidget(makeWidget(makeChart(300)));
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
     expect(findTradeMarkerIdNearPoint(NaN, 0)).toBeNull();
   });
@@ -155,7 +155,7 @@ describe('findTradeMarkerIdNearPoint — edge cases', () => {
     } as unknown as TVChartingLibraryWidget;
     setWidget(widget);
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
     expect(findTradeMarkerIdNearPoint(2, 0)).toBeNull();
   });
@@ -164,7 +164,7 @@ describe('findTradeMarkerIdNearPoint — edge cases', () => {
     const chart = makeChart(0);
     setWidget(makeWidget(chart));
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
     expect(findTradeMarkerIdNearPoint(2, 0)).toBeNull();
   });
@@ -176,7 +176,7 @@ describe('findTradeMarkerIdNearPoint — edge cases', () => {
     } as unknown as TVActiveChart;
     setWidget(makeWidget(chart));
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
     expect(findTradeMarkerIdNearPoint(2, undefined)).toBe('a');
   });
@@ -187,7 +187,7 @@ describe('findTradeMarkerIdNearPoint — edge cases', () => {
     } as unknown as TVActiveChart;
     setWidget(makeWidget(chart));
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
     expect(findTradeMarkerIdNearPoint(2, 0)).toBeNull();
   });
@@ -209,7 +209,7 @@ describe('findTradeMarkerIdNearPoint — edge cases', () => {
     } as unknown as TVActiveChart;
     setWidget(makeWidget(chart));
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
     // Marker snaps to bar at time 2_000, close=20
     // priceToY: hi=100, lo=0, price=20, h=400 → y = (100-20)/100 * 400 = 320
@@ -234,7 +234,7 @@ describe('findTradeMarkerIdNearPoint — edge cases', () => {
     } as unknown as TVActiveChart;
     setWidget(makeWidget(chart));
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
     // Log mode with valid prices → should compute Y without error
     expect(findTradeMarkerIdNearPoint(2, 200)).not.toBeUndefined();
@@ -257,7 +257,7 @@ describe('findTradeMarkerIdNearPoint — edge cases', () => {
     } as unknown as TVActiveChart;
     setWidget(makeWidget(chart));
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
     // Inverted: y = (price-lo)/(hi-lo)*h = (20-0)/(100-0)*400 = 80
     expect(findTradeMarkerIdNearPoint(2, 80)).toBe('a');
@@ -271,7 +271,7 @@ describe('findTradeMarkerIdNearPoint — edge cases', () => {
     } as unknown as TVActiveChart;
     setWidget(makeWidget(chart));
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
     // priceToY returns null → dyPx=0 → only X distance matters
     // dxPx=0 → within radius
@@ -282,7 +282,7 @@ describe('findTradeMarkerIdNearPoint — edge cases', () => {
     const chart = makeChart(300);
     setWidget(makeWidget(chart));
     setChartReady(true);
-    setMarkers([{ id: 'a', time: NaN, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: NaN, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
     expect(findTradeMarkerIdNearPoint(2, 0)).toBeNull();
   });
@@ -306,7 +306,7 @@ describe('findTradeMarkerIdNearPoint — edge cases', () => {
     setChartReady(true);
     // Empty OHLCV so snapMarkerToNearestBar returns null → falls back to marker.price
     setOhlcvData([]);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry', price: 50 }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter', price: 50 }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
     // priceToY(50) = (100-50)/100*400 = 200 → dyPx = 200-200 = 0, dxPx = 0 → dist=0
     expect(findTradeMarkerIdNearPoint(2, 200)).toBe('a');
@@ -329,7 +329,7 @@ describe('attachMarkerHitTest', () => {
     const widget = makeWidget(chart);
     setWidget(widget);
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
 
     attachMarkerHitTest(widget, chart);
@@ -358,7 +358,7 @@ describe('attachMarkerHitTest', () => {
     const widget = makeWidget(chart);
     setWidget(widget);
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
 
     attachMarkerHitTest(widget, chart);
@@ -380,7 +380,7 @@ describe('attachMarkerHitTest', () => {
     const widget = makeWidget(chart);
     setWidget(widget);
     setChartReady(true);
-    setMarkers([{ id: 'a', time: 2_000, intent: 'entry' }]);
+    setMarkers([{ id: 'a', time: 2_000, intent: 'enter' }]);
     getShapesByMarkerId().set('a', { fill: 'f', ring: 'r' });
 
     attachMarkerHitTest(widget, chart);

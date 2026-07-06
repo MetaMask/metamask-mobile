@@ -139,14 +139,14 @@ export interface SetSubPaneLayoutMessage {
 
 /**
  * A single trade marker anchored to a candle in `time` (unix ms). `intent`
- * selects the theme color (successColor for 'entry', errorColor for 'exit');
+ * selects the theme color (successColor for 'enter', errorColor for 'exit');
  * `price` is a fallback anchor when the candle is outside the loaded range.
  * Mirrors the shape RN sends in `TradeMarker` from AdvancedChart.types.ts.
  */
 export interface TradeMarker {
   id: string | number;
   time: number;
-  intent: 'entry' | 'exit';
+  intent: 'enter' | 'exit';
   price?: number;
 }
 

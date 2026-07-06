@@ -21,15 +21,17 @@ import {
   setChartReady,
   getCurrentSymbol,
   getCurrentResolution,
+  getCurrentChartType,
   getTheme,
   getHasExplicitCurrentPriceLine,
 } from '../core/state';
 import { resolveUserTimezone } from '../core/timezone';
-import type {
-  ChartConfig,
-  ChartFeaturesConfig,
-  ChartTheme,
-  TVChartingLibraryWidget,
+import {
+  ChartType,
+  type ChartConfig,
+  type ChartFeaturesConfig,
+  type ChartTheme,
+  type TVChartingLibraryWidget,
 } from '../core/types';
 import {
   getBuiltInScaleLabelOverrides,
@@ -213,6 +215,20 @@ export function createChartWidget(
 
   widget.onChartReady(() => {
     setChartReady(true);
+
+    // Apply the stored chart type before revealing the chart. RN sends
+    // SET_CHART_TYPE before SET_OHLCV_DATA, so the state already holds
+    // the user's selection by the time onChartReady fires. Applying it
+    // here prevents the brief candlestick flash for line-chart users.
+    const storedType = getCurrentChartType();
+    if (storedType !== ChartType.Candles) {
+      try {
+        widget.activeChart().setChartType(storedType);
+      } catch (e) {
+        reportErrorToRN(e);
+      }
+    }
+
     hideLoadingOverlay();
     installTradingViewExternalOpenBridge();
     postToRN('CHART_READY', {});

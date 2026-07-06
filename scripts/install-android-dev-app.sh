@@ -87,6 +87,8 @@ while [[ $# -gt 0 ]]; do
 done
 
 download_latest_app() {
+  mkdir -p "$BUILD_DIR"
+
   echo -e "${BLUE}━━━ Step 1: Resolving expo-dev-build run ━━━${NC}"
   require_gh
 

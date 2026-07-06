@@ -52,6 +52,10 @@ interface CoreState {
   hasExplicitCurrentPriceLine: boolean;
   /** Indicator name → pane index (0 = main). Only sub-pane studies are tracked. */
   studyPaneIndex: Map<string, number>;
+  /** Sequence counter for setResolution callbacks; stale callbacks bail when mismatched. */
+  hotReloadSeq: number;
+  /** True between setResolution call and its callback; getBars returns noData during this window. */
+  inHotReloadPreResetPhase: boolean;
   /** SLB scoping flag — activates Strategy C (bulk back-fill) pagination. */
   slbMode: boolean;
   /**
@@ -93,6 +97,8 @@ const state: CoreState = {
   rnBackedPagination: { enabled: false },
   hasExplicitCurrentPriceLine: false,
   studyPaneIndex: new Map(),
+  hotReloadSeq: 0,
+  inHotReloadPreResetPhase: false,
   slbMode: false,
   slbCenteringPending: false,
 };
@@ -359,6 +365,24 @@ export function reindexPanesAfterRemoval(removedPaneIndex: number): void {
     }
   }
 }
+// ----- Hot-reload sequence guards --------------------------------------------
+
+export function bumpHotReloadSeq(): number {
+  state.hotReloadSeq += 1;
+  return state.hotReloadSeq;
+}
+
+export function getHotReloadSeq(): number {
+  return state.hotReloadSeq;
+}
+
+export function isInHotReloadPreResetPhase(): boolean {
+  return state.inHotReloadPreResetPhase;
+}
+
+export function setInHotReloadPreResetPhase(phase: boolean): void {
+  state.inHotReloadPreResetPhase = phase;
+}
 
 // ----- SLB (Social Leaderboard) mode -----------------------------------------
 
@@ -417,6 +441,8 @@ export function __resetStateForTests(): void {
   state.rnBackedPagination = { enabled: false };
   state.hasExplicitCurrentPriceLine = false;
   state.studyPaneIndex = new Map();
+  state.hotReloadSeq = 0;
+  state.inHotReloadPreResetPhase = false;
   state.slbMode = false;
   state.slbCenteringPending = false;
 }

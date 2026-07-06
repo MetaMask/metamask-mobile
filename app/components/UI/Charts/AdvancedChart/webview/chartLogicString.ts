@@ -166,6 +166,8 @@ const state = {
     rnBackedPagination: { enabled: false },
     hasExplicitCurrentPriceLine: false,
     studyPaneIndex: new Map(),
+    hotReloadSeq: 0,
+    inHotReloadPreResetPhase: false,
     slbMode: false,
     slbCenteringPending: false,
 };
@@ -364,6 +366,19 @@ function reindexPanesAfterRemoval(removedPaneIndex) {
             state.studyPaneIndex.set(name, idx - 1);
         }
     }
+// ----- Hot-reload sequence guards --------------------------------------------
+function bumpHotReloadSeq() {
+    state.hotReloadSeq += 1;
+    return state.hotReloadSeq;
+}
+function getHotReloadSeq() {
+    return state.hotReloadSeq;
+}
+function isInHotReloadPreResetPhase() {
+    return state.inHotReloadPreResetPhase;
+}
+function setInHotReloadPreResetPhase(phase) {
+    state.inHotReloadPreResetPhase = phase;
 }
 // ----- SLB (Social Leaderboard) mode -----------------------------------------
 function getSlbMode() {
@@ -414,6 +429,8 @@ function __resetStateForTests() {
     state.rnBackedPagination = { enabled: false };
     state.hasExplicitCurrentPriceLine = false;
     state.studyPaneIndex = new Map();
+    state.hotReloadSeq = 0;
+    state.inHotReloadPreResetPhase = false;
     state.slbMode = false;
     state.slbCenteringPending = false;
 }
@@ -427,9 +444,11 @@ function __resetStateForTests() {
 
 
 const CHARTING_LIBRARY_FILE = 'charting_library.js';
+let inflightPromise = null;
 /**
  * Loads the TradingView library script. Subsequent calls resolve immediately
  * if the library is already loaded; rejected if a previous load failed.
+ * Concurrent calls while the script is still loading share the same promise.
  */
 function loadLibrary_loadTradingViewLibrary(libraryUrl) {
     if (isLibraryLoaded()) {
@@ -439,23 +458,33 @@ function loadLibrary_loadTradingViewLibrary(libraryUrl) {
     if (existingError) {
         return Promise.reject(new Error(existingError));
     }
-    return new Promise((resolve, reject) => {
+    if (inflightPromise) {
+        return inflightPromise;
+    }
+    inflightPromise = new Promise((resolve, reject) => {
         const scriptUrl = libraryUrl + CHARTING_LIBRARY_FILE;
         const script = document.createElement('script');
         script.type = 'text/javascript';
         script.src = scriptUrl;
         script.onload = () => {
             setLibraryLoaded(true);
+            inflightPromise = null;
             resolve();
         };
         script.onerror = () => {
             const message = \`Failed to load TradingView library. URL: \${scriptUrl}\`;
             setLibraryError(message);
+            inflightPromise = null;
             reportErrorToRN(message);
             reject(new Error(message));
         };
         document.head.appendChild(script);
     });
+    return inflightPromise;
+}
+/** @internal Exported only for unit tests. */
+function __resetLoadLibraryForTests() {
+    inflightPromise = null;
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/messages/handler.ts
@@ -1209,6 +1238,10 @@ const customDatafeed = {
             const fromMs = periodParams.from * 1000;
             const toMs = periodParams.to * 1000;
             const { countBack, firstDataRequest } = periodParams;
+            if (firstDataRequest && isInHotReloadPreResetPhase()) {
+                onResult([], { noData: true });
+                return;
+            }
             const bars = filterBarsForRange(fromMs, toMs, countBack);
             if (bars.length > 0) {
                 onResult(bars, { noData: false });
@@ -1497,6 +1530,8 @@ function handleSetOHLCVData(payload) {
         try {
             const chart = widget.activeChart();
             if (previousResolution === newResolution) {
+                setInHotReloadPreResetPhase(false);
+                resetDatafeedCacheBeforeHotReload(widget);
                 chart.resetData();
                 resetMainPriceScaleAutoScale(chart);
                 notifyDataLifecycle('ohlcvReset');
@@ -1504,8 +1539,15 @@ function handleSetOHLCVData(payload) {
                 emitLayoutSettled();
             }
             else {
+                setInHotReloadPreResetPhase(true);
+                const seq = bumpHotReloadSeq();
                 chart.setResolution(newResolution, () => {
+                    if (getHotReloadSeq() !== seq) {
+                        return;
+                    }
+                    setInHotReloadPreResetPhase(false);
                     try {
+                        resetDatafeedCacheBeforeHotReload(widget);
                         chart.resetData();
                         resetMainPriceScaleAutoScale(chart);
                         notifyDataLifecycle('ohlcvReset');
@@ -1513,12 +1555,14 @@ function handleSetOHLCVData(payload) {
                         emitLayoutSettled();
                     }
                     catch (error) {
+                        setInHotReloadPreResetPhase(false);
                         reportErrorToRN(error);
                     }
                 });
             }
         }
         catch (error) {
+            setInHotReloadPreResetPhase(false);
             reportErrorToRN(error);
         }
         return;
@@ -1618,6 +1662,16 @@ function resetMainPriceScaleAutoScale(chart) {
         const priceScale = mainPane.getMainSourcePriceScale();
         if (typeof priceScale?.setAutoScale === 'function') {
             priceScale.setAutoScale(true);
+        }
+    }
+    catch {
+        // Best-effort; failures are non-critical
+    }
+}
+function resetDatafeedCacheBeforeHotReload(widget) {
+    try {
+        if (typeof widget.resetCache === 'function') {
+            widget.resetCache();
         }
     }
     catch {
@@ -2135,6 +2189,7 @@ function __resetExternalLinkBridgeForTests() {
 
 
 
+
 /**
  * Generates a 19-shade palette from a base hex color, light→base→dark.
  * Used for TradingView \`custom_themes.dark.color{1,3}\`. Ported verbatim
@@ -2273,6 +2328,19 @@ function createChartWidget(config, options) {
     setWidget(widget);
     widget.onChartReady(() => {
         setChartReady(true);
+        // Apply the stored chart type before revealing the chart. RN sends
+        // SET_CHART_TYPE before SET_OHLCV_DATA, so the state already holds
+        // the user's selection by the time onChartReady fires. Applying it
+        // here prevents the brief candlestick flash for line-chart users.
+        const storedType = getCurrentChartType();
+        if (storedType !== ChartType.Candles) {
+            try {
+                widget.activeChart().setChartType(storedType);
+            }
+            catch (e) {
+                reportErrorToRN(e);
+            }
+        }
         hideLoadingOverlay();
         installTradingViewExternalOpenBridge();
         postToRN('CHART_READY', {});
@@ -2746,7 +2814,7 @@ function buildHTML(entries) {
                 hasValues = true;
                 inner +=
                     \`<span style="color:\${labelColor}">&nbsp;\${plot.label}</span>\` +
-                        \`<span style="color:\${altColor}">\${v}</span>\`;
+                        \`<span style="color:\${altColor}">&nbsp;\${v}</span>\`;
             });
             if (hasValues)
                 pills.push(wrapPill(inner));
@@ -2757,8 +2825,8 @@ function buildHTML(entries) {
             if (isEmptyValue(v))
                 return;
             const color = plot.color ?? successColor;
-            const inner = \`<span style="color:\${color}">\${plot.label} </span>\` +
-                \`<span style="color:\${altColor}">\${v}</span>\`;
+            const inner = \`<span style="color:\${color}">\${plot.label}</span>\` +
+                \`<span style="color:\${altColor}">&nbsp;\${v}</span>\`;
             pills.push(wrapPill(inner));
         });
     }
@@ -4489,6 +4557,7 @@ function __resetFocusTimeForTests() {
 // Kept separate from core/state.ts per convention: overlay-specific state
 // lives in the overlay's own state module.
 let shapeIds = [];
+let generation = 0;
 function getPositionShapeIds() {
     return shapeIds;
 }
@@ -4498,8 +4567,16 @@ function pushPositionShapeId(id) {
 function clearPositionShapeIds() {
     shapeIds = [];
 }
+function bumpGeneration() {
+    generation += 1;
+    return generation;
+}
+function getGeneration() {
+    return generation;
+}
 function __resetPositionLineStateForTests() {
     shapeIds = [];
+    generation = 0;
 }
 
 ;// CONCATENATED MODULE: ./app/components/UI/Charts/AdvancedChart/webview/src/overlays/positionLines/index.ts
@@ -4535,6 +4612,7 @@ function handleSetPositionLines(payload) {
     const widget = getWidget();
     if (!widget || !isChartReady())
         return;
+    bumpGeneration();
     clearPositionLines();
     if (!payload?.position) {
         setHasExplicitCurrentPriceLine(false);
@@ -4630,6 +4708,7 @@ function handleSetPositionLines(payload) {
     }
     try {
         const chart = widget.activeChart();
+        const gen = getGeneration();
         for (const line of lines) {
             chart
                 .createShape({ price: line.price }, {
@@ -4638,6 +4717,7 @@ function handleSetPositionLines(payload) {
                 disableSelection: true,
                 disableSave: true,
                 disableUndo: true,
+                ...(line.text != null ? { text: line.text } : {}),
                 overrides: {
                     linecolor: line.color,
                     linestyle: line.lineStyle,
@@ -4647,13 +4727,21 @@ function handleSetPositionLines(payload) {
                     fontsize: 11,
                     horzLabelsAlign: line.horzLabelsAlign,
                     showPrice: line.showPrice,
-                    ...(line.text == null ? {} : { text: line.text }),
                 },
             })
                 .then((entityId) => {
-                if (entityId) {
-                    pushPositionShapeId(entityId);
+                if (!entityId)
+                    return;
+                if (getGeneration() !== gen) {
+                    try {
+                        chart.removeEntity(entityId);
+                    }
+                    catch {
+                        // Shape may already be gone
+                    }
+                    return;
                 }
+                pushPositionShapeId(entityId);
             })
                 .catch(() => {
                 // Shape creation can fail silently

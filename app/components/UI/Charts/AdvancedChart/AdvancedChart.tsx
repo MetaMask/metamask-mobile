@@ -806,11 +806,12 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       beginFullOhlcvLayoutSettle,
     ]);
 
-    // Send initial chartType as soon as WebView loads (before chart is ready)
-    // This prevents the flash of default chart type during initialization
+    // Send chartType to the WebView as soon as it loads so the widget can
+    // apply it before hiding the loading overlay. Without this, TradingView
+    // defaults to candlestick and the user sees a brief flash when line is
+    // the active type. Also re-sends on chartType changes before chart ready.
     useEffect(() => {
       if (!webViewLoaded || chartType === undefined) return;
-      if (prevChartTypeRef.current !== undefined) return;
       prevChartTypeRef.current = chartType;
       postMessage({
         type: 'SET_CHART_TYPE',

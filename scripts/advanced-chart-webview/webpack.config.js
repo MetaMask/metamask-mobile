@@ -10,7 +10,11 @@ const path = require('path');
  *
  * Differs from scripts/liveline-webview/webpack.config.js in three ways:
  *   1. Entry is local TS (this repo), not an npm CJS package.
- *   2. ts-loader is required with transpileOnly; the type check is its own CI step.
+ *   2. ts-loader runs with transpileOnly (no type checking at build time).
+ *      After editing source, run `yarn build:advanced-chart-webview` and
+ *      commit the regenerated chartLogicString.ts.
+ *      TODO: Add a CI step to enforce type checking (`tsc --noEmit`)
+ *      and bundle freshness (`git diff --exit-code`).
  *   3. No externals — the TradingView Advanced Charts library loads itself from
  *      a CDN script tag injected by the HTML template before this IIFE runs;
  *      there is no React inside the WebView.
