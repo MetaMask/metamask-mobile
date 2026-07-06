@@ -44,6 +44,24 @@ import {
   isAddressCompatibleWithChainId,
 } from '../../../../util/address';
 
+const keyExtractor = (
+  item: FlattenedMultichainAccountListItem,
+  index: number,
+) => {
+  switch (item.type) {
+    case 'header':
+      return `header-${item.data.walletName}`;
+    case 'cell':
+      return `account-${item.data.id}`;
+    case 'external':
+      return `external-${item.data.address}`;
+    case 'footer':
+      return `footer-${item.data.walletName}`;
+    default:
+      return `item-${index}`;
+  }
+};
+
 const MultichainAccountSelectorList = ({
   onSelectAccount,
   selectedAccountGroups,
@@ -377,24 +395,6 @@ const MultichainAccountSelectorList = ({
         selectedExternalAddress,
       ],
     );
-
-  const keyExtractor = useCallback(
-    (item: FlattenedMultichainAccountListItem, index: number) => {
-      switch (item.type) {
-        case 'header':
-          return `header-${item.data.walletName}`;
-        case 'cell':
-          return `account-${item.data.id}`;
-        case 'external':
-          return `external-${item.data.address}`;
-        case 'footer':
-          return `footer-${item.data.walletName}`;
-        default:
-          return `item-${index}`;
-      }
-    },
-    [],
-  );
 
   const getItemType = useCallback(
     (item: FlattenedMultichainAccountListItem) => item.type,

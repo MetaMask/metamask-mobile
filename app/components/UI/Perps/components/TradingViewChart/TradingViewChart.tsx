@@ -99,6 +99,12 @@ const TradingViewChart = React.forwardRef<
     const [isChartReady, setIsChartReady] = useState(false);
     const [webViewError, setWebViewError] = useState<string | null>(null);
     const [ohlcData, setOhlcData] = useState<OhlcData | null>(null);
+    // Bumped on every CHART_READY message (including re-fires after a WebView
+    // reload/remount while isChartReady was already true, e.g. iOS reclaiming
+    // the WKWebView content process in the background). Included in the send-
+    // effect deps below so a reload always triggers a resend of currently-held
+    // candle data instead of leaving the newly-blanked chart stuck empty.
+    const [chartReadyNonce, setChartReadyNonce] = useState(0);
     // Buffer for candle data that arrives before WebView is ready (Android fix)
     const pendingCandleDataRef = useRef<{
       data: CandleData;
@@ -270,6 +276,10 @@ const TradingViewChart = React.forwardRef<
               // must be a full reload regardless of prior signature state.
               lastSentSignatureRef.current = null;
               setIsChartReady(true);
+              // Force the send-effect to re-run even if isChartReady was
+              // already true (e.g. the WebView silently reloaded in the
+              // background and re-fired CHART_READY) so the chart repaints.
+              setChartReadyNonce((n) => n + 1);
               onChartReady?.();
               break;
             case 'PRICE_LINES_UPDATE':
@@ -466,10 +476,11 @@ const TradingViewChart = React.forwardRef<
         // they actually send, instead of re-formatting the entire (up to ~1000)
         // candle array on every tick.
         if (canIncrementalUpdate) {
+          const isNewBar = nextSignature.count === prev.count + 1;
           // Send the last candle for same-count ticks, or the last two candles
           // for a bar-close transition (previous bar may have been finalized
           // at a different close than its last streamed value).
-          const sliceSize = nextSignature.count === prev.count + 1 ? 2 : 1;
+          const sliceSize = isNewBar ? 2 : 1;
           const incrementalCandles = formatCandleData({
             ...dataToUse,
             candles: dataToUse.candles.slice(-sliceSize),
@@ -478,6 +489,11 @@ const TradingViewChart = React.forwardRef<
             JSON.stringify({
               type: 'UPDATE_LAST_CANDLE',
               candles: incrementalCandles,
+              isNewBar,
+              previousCandleCount: prev.count,
+              nextCandleCount: nextSignature.count,
+              previousLastTime: prev.lastTime,
+              nextLastTime: nextSignature.lastTime,
             }),
           );
         } else {
@@ -495,6 +511,7 @@ const TradingViewChart = React.forwardRef<
       }
     }, [
       isChartReady,
+      chartReadyNonce,
       candleDataVersion,
       formatCandleData,
       candleData,

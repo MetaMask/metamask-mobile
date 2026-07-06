@@ -19,7 +19,11 @@ import { RankMedal, isTopRank } from '../topRank';
 import type { TopTrader } from '../types';
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import { formatSignedUsd } from '../../../../SocialLeaderboard/utils/formatters';
+// eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
+import TraderMuteChip from '../../../../SocialLeaderboard/components/TraderMuteChip';
 import TraderAvatar from './TraderAvatar';
+
+const MUTE_CHIP_DIAMETER = 40;
 
 const AVATAR_SIZE = 40;
 // Fixed row height so the skeleton placeholder can match it exactly without
@@ -35,6 +39,15 @@ export interface TraderRowProps {
     /* Used downstream for podium decoration */
     overallRank: number,
   ) => void;
+  /** Whether this trader's alerts are paused. Only used when muting is shown. */
+  isMuted?: boolean;
+  /**
+   * When true (and the trader is followed), render the inline mute chip beside
+   * the Follow button. Gated by the caller on push-notification availability.
+   */
+  showMute?: boolean;
+  /** Toggles the muted state for this trader. */
+  onMuteToggle?: (traderId: string) => void;
   testID?: string;
 }
 
@@ -48,6 +61,9 @@ const TraderRow: React.FC<TraderRowProps> = ({
   trader,
   onFollowPress,
   onTraderPress,
+  isMuted = false,
+  showMute = false,
+  onMuteToggle,
   testID,
 }) => {
   const tw = useTailwind();
@@ -55,6 +71,11 @@ const TraderRow: React.FC<TraderRowProps> = ({
   const pnlText = formatSignedUsd(trader.pnlValue);
   const isPnlPositive = trader.pnlValue >= 0;
   const showMedal = isTopRank(trader.rank);
+  const canShowMuteChip = showMute && Boolean(onMuteToggle);
+
+  const handleMutePress = React.useCallback(() => {
+    onMuteToggle?.(trader.id);
+  }, [onMuteToggle, trader.id]);
 
   return (
     <Box
@@ -120,18 +141,33 @@ const TraderRow: React.FC<TraderRowProps> = ({
         </Box>
       </TouchableOpacity>
 
-      <Button
-        variant={
-          trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
-        }
-        size={ButtonSize.Sm}
-        onPress={() => onFollowPress(trader.id)}
-        twClassName="self-center min-w-[60px] px-2"
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        alignItems={BoxAlignItems.Center}
       >
-        {trader.isFollowing
-          ? strings('social_leaderboard.following')
-          : strings('social_leaderboard.follow')}
-      </Button>
+        <Button
+          variant={
+            trader.isFollowing ? ButtonVariant.Secondary : ButtonVariant.Primary
+          }
+          size={ButtonSize.Md}
+          onPress={() => onFollowPress(trader.id)}
+          twClassName="self-center"
+        >
+          {trader.isFollowing
+            ? strings('social_leaderboard.following')
+            : strings('social_leaderboard.follow')}
+        </Button>
+        {canShowMuteChip && (
+          <TraderMuteChip
+            isMuted={isMuted}
+            visible={trader.isFollowing}
+            onPress={handleMutePress}
+            diameter={MUTE_CHIP_DIAMETER}
+            traderName={trader.username}
+            testID={`trader-row-mute-chip-${trader.id}`}
+          />
+        )}
+      </Box>
     </Box>
   );
 };

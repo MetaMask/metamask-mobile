@@ -75,10 +75,33 @@ class AccountDetails {
     });
   }
 
+  /**
+   * Appium iOS: `account-details-container` can exist with `visible=false` while
+   * the details sheet is on screen (same XCTest quirk as `account-list`). Use
+   * interactive child controls to detect the screen instead.
+   */
+  private async isAccountDetailsVisibleOnAppiumIos(): Promise<boolean> {
+    try {
+      const nameLink = await asPlaywrightElement(this.editAccountName);
+      if (await nameLink.isVisible()) {
+        return true;
+      }
+    } catch {
+      // fall through
+    }
+
+    try {
+      const backEl = await asPlaywrightElement(this.backButton);
+      return await backEl.isVisible();
+    } catch {
+      return false;
+    }
+  }
+
   async tapBackButton(): Promise<void> {
     if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
-      const container = await asPlaywrightElement(this.container);
-      const isOnAccountDetails = await container.isVisible().catch(() => false);
+      const isOnAccountDetails =
+        await this.isAccountDetailsVisibleOnAppiumIos();
       if (!isOnAccountDetails) {
         return;
       }

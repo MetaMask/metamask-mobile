@@ -1038,6 +1038,31 @@ describe('BridgeView', () => {
       expect(queryByTestId('keypad-delete-button')).toBeNull();
     });
 
+    it('displays keypad on initial focus when route requests source amount auto-focus', async () => {
+      mockRoute.params = {
+        sourcePage: 'test',
+        autoFocusSourceAmountInput: true,
+      } as BridgeRouteParams;
+
+      const { queryByTestId } = renderScreen(
+        BridgeView,
+        {
+          name: Routes.BRIDGE.ROOT,
+        },
+        { state: mockState },
+      );
+
+      act(() => {
+        mockFocusEffects.forEach((focusEffect) => {
+          focusEffect();
+        });
+      });
+
+      await waitFor(() => {
+        expect(queryByTestId('keypad-delete-button')).toBeTruthy();
+      });
+    });
+
     it('shows loading mode with quote skeleton only', () => {
       const testState = createBridgeTestState({
         bridgeControllerOverrides: {
