@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import Svg, { Path, type PathProps } from 'react-native-svg';
+import Svg, { Path } from 'react-native-svg';
 
 function BottomShape({
   width,
@@ -8,10 +8,6 @@ function BottomShape({
   peakBezierLength,
   baseBezierLength,
   fill,
-  stroke,
-  strokeWidth,
-  strokeOnly = false,
-  pathProps,
   ...svgProps
 }: {
   width: number;
@@ -19,11 +15,7 @@ function BottomShape({
   peakHeight: number;
   peakBezierLength: number;
   baseBezierLength: number;
-  fill?: string;
-  stroke?: string;
-  strokeWidth?: number;
-  strokeOnly?: boolean;
-  pathProps?: PathProps;
+  fill: string;
 }) {
   const pathData = useMemo(() => {
     const centerX = width / 2;
@@ -35,19 +27,6 @@ function BottomShape({
     const leftBaseY = height;
     const rightBaseX = centerX + baseBezierLength;
     const rightBaseY = height;
-
-    if (strokeOnly) {
-      return `
-        M ${rightBaseX} ${rightBaseY}
-        C ${rightBaseX - peakBezierLength} ${rightBaseY}
-          ${peakX + peakBezierLength} ${peakY}
-          ${peakX} ${peakY}
-        S ${leftBaseX + peakBezierLength} ${leftBaseY}
-          ${leftBaseX} ${leftBaseY}
-      `
-        .replace(/\s+/g, ' ')
-        .trim();
-    }
 
     return `
       M 0 ${height}
@@ -65,24 +44,11 @@ function BottomShape({
     `
       .replace(/\s+/g, ' ')
       .trim();
-  }, [
-    width,
-    height,
-    peakHeight,
-    peakBezierLength,
-    baseBezierLength,
-    strokeOnly,
-  ]);
+  }, [width, height, peakHeight, peakBezierLength, baseBezierLength]);
 
   return (
     <Svg width={width} height={height} {...svgProps}>
-      <Path
-        d={pathData}
-        fill={strokeOnly ? 'none' : fill}
-        stroke={stroke}
-        strokeWidth={strokeWidth}
-        {...pathProps}
-      />
+      <Path d={pathData} fill={fill} />
     </Svg>
   );
 }
