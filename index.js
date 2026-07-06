@@ -5,9 +5,16 @@ import './app/util/theme/preBootPureBlack';
 // Shim is used to ensure API compatibility for React Native and provides polyfills for globals
 import './shim.js';
 
+// Set to true when running Storybook (see AppRegistry registration at bottom of file).
+const IS_STORYBOOK = true;
+
 // Native C++ networking (nitro-fetch + nitro-websockets). Must run after shim.
-import './app/core/NitroFetchSetup';
-import './app/core/NitroWebSocketSetup';
+// Skipped in Storybook — component stories don't need native networking, and Nitro
+// HybridObjects (e.g. NitroTextEncoding) require a full native rebuild to register.
+if (!IS_STORYBOOK) {
+  require('./app/core/NitroFetchSetup');
+  require('./app/core/NitroWebSocketSetup');
+}
 
 // TODO: This import may not be required anymore since we've upgraded to v2 - https://docs.swmansion.com/react-native-gesture-handler/docs/fundamentals/installation/#requirements
 // Legacy - Need to import early for native module initialization - https://docs.swmansion.com/react-native-gesture-handler/docs/1.x/
@@ -119,16 +126,16 @@ if (IGNORE_BOXLOGS_DEVELOPMENT === 'true') {
 }
 
 /* Uncomment and comment regular registration below */
-// import Storybook from './.storybook';
-// AppRegistry.registerComponent(name, () => Storybook);
+import Storybook from './.storybook';
+AppRegistry.registerComponent(name, () => Storybook);
 
 /**
  * Application entry point responsible for registering root component
  */
-AppRegistry.registerComponent(name, () =>
-  // Disable Sentry for E2E tests
-  hasTestOverrides ? Root : Sentry.wrap(Root),
-);
+// AppRegistry.registerComponent(name, () =>
+//   // Disable Sentry for E2E tests
+//   hasTestOverrides ? Root : Sentry.wrap(Root),
+// );
 
 function setupGlobalErrorHandler() {
   const reactNativeDefaultHandler = global.ErrorUtils.getGlobalHandler();
