@@ -66,6 +66,7 @@ export const DEFAULT_MOCKS = {
     ...(STATIC_ASSETS_MOCKS.GET || []),
     ...(NFT_API_MOCKS.GET || []),
     ...(SOCIAL_API_MOCKS.GET || []),
+    ...(PERPS_HYPERLIQUID_MOCKS.GET || []),
     // Chains Network Mock - Provides blockchain network data
     {
       urlEndpoint: 'https://chainid.network/chains.json',
@@ -153,6 +154,7 @@ export const DEFAULT_MOCKS = {
   ],
   POST: [
     ...(authMocks.POST || []),
+    ...(DEFAULT_BRIDGE_API_MOCKS.POST || []),
     ...(DAPP_SCANNING_MOCKS.POST || []),
     ...(WALLETCONNECT_MOCKS.POST || []),
     ...(METAMETRICS_API_MOCKS.POST || []),

@@ -23,6 +23,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import {
   getBridgeTokenSecurityConfig,
@@ -226,7 +228,11 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
   const hasInitializedRecipient = useRef(false);
   useRecipientInitialization(hasInitializedRecipient);
 
-  useBridgeViewOnFocus({ inputRef, keypadRef });
+  useBridgeViewOnFocus({
+    inputRef,
+    keypadRef,
+    autoFocusSourceAmountInput: route.params?.autoFocusSourceAmountInput,
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -492,67 +498,73 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
             onScroll={isSwapsTrendingTokensEnabled ? handleScroll : undefined}
           >
             <Box style={styles.inputsContainer}>
-              <TokenInputArea
-                ref={inputRef}
-                amount={sourceAmountInput.amount}
-                selection={sourceAmountInput.selection}
-                token={sourceToken}
-                tokenBalance={latestSourceBalance?.displayBalance}
-                networkImageSource={
-                  sourceToken?.chainId
-                    ? getNetworkImageSource({
-                        chainId: sourceToken?.chainId,
-                      })
-                    : undefined
-                }
-                testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
-                tokenType={TokenInputAreaType.Source}
-                onInputPress={() => keypadRef.current?.open()}
-                onFocus={sourceAmountInput.handleFocus}
-                onSelectionChange={sourceAmountInput.handleSelectionChange}
-                onTokenPress={handleSourceTokenPress}
-                onMaxPress={handleSourceMaxPress}
-                latestAtomicBalance={latestSourceBalance?.atomicBalance}
-                isSourceToken
-                isQuoteSponsored={isQuoteSponsored}
-                inputPrefix={sourceAmountInput.inputPrefix}
-                secondaryValue={sourceAmountInput.secondaryValue}
-                balanceCheckAmount={sourceAmountInput.balanceCheckAmount}
-                onAmountTypeTogglePress={
-                  sourceAmountInput.canToggle
-                    ? sourceAmountInput.handleToggle
-                    : undefined
-                }
-                amountTypeToggleTestID={
-                  BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE
-                }
-              />
-              <FLipQuoteButton
-                onPress={handleFlipTokensPress}
-                disabled={
-                  !destChainId ||
-                  !destToken ||
-                  !sourceToken ||
-                  !isDestNetworkEnabled
-                }
-              />
-              <TokenInputArea
-                amount={destTokenAmount}
-                token={destToken}
-                networkImageSource={
-                  destToken
-                    ? getNetworkImageSource({ chainId: destToken?.chainId })
-                    : undefined
-                }
-                testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
-                tokenType={TokenInputAreaType.Destination}
-                onInputPress={() => keypadRef.current?.close()}
-                onTokenPress={handleDestTokenPress}
-                isLoading={!destTokenAmount && isLoading}
-                style={styles.destTokenArea}
-                isQuoteSponsored={isQuoteSponsored}
-                showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
-              />
+              <Box style={styles.inputCardsWrapper}>
+                <Box style={styles.tokenCard}>
+                  <TokenInputArea
+                    ref={inputRef}
+                    amount={sourceAmountInput.amount}
+                    selection={sourceAmountInput.selection}
+                    token={sourceToken}
+                    tokenBalance={latestSourceBalance?.displayBalance}
+                    networkImageSource={
+                      sourceToken?.chainId
+                        ? getNetworkImageSource({
+                            chainId: sourceToken?.chainId,
+                          })
+                        : undefined
+                    }
+                    testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
+                    tokenType={TokenInputAreaType.Source}
+                    onInputPress={() => keypadRef.current?.open()}
+                    onFocus={sourceAmountInput.handleFocus}
+                    onSelectionChange={sourceAmountInput.handleSelectionChange}
+                    onTokenPress={handleSourceTokenPress}
+                    onMaxPress={handleSourceMaxPress}
+                    latestAtomicBalance={latestSourceBalance?.atomicBalance}
+                    isSourceToken
+                    isQuoteSponsored={isQuoteSponsored}
+                    inputPrefix={sourceAmountInput.inputPrefix}
+                    secondaryValue={sourceAmountInput.secondaryValue}
+                    balanceCheckAmount={sourceAmountInput.balanceCheckAmount}
+                    onAmountTypeTogglePress={
+                      sourceAmountInput.canToggle
+                        ? sourceAmountInput.handleToggle
+                        : undefined
+                    }
+                    amountTypeToggleTestID={
+                      BridgeViewSelectorsIDs.SOURCE_AMOUNT_TYPE_TOGGLE
+                    }
+                  />
+                </Box>
+                <FLipQuoteButton
+                  onPress={handleFlipTokensPress}
+                  disabled={
+                    !destChainId ||
+                    !destToken ||
+                    !sourceToken ||
+                    !isDestNetworkEnabled
+                  }
+                />
+                <Box style={styles.tokenCard}>
+                  <TokenInputArea
+                    amount={destTokenAmount}
+                    token={destToken}
+                    networkImageSource={
+                      destToken
+                        ? getNetworkImageSource({ chainId: destToken?.chainId })
+                        : undefined
+                    }
+                    testID={BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA}
+                    tokenType={TokenInputAreaType.Destination}
+                    onInputPress={() => keypadRef.current?.close()}
+                    onTokenPress={handleDestTokenPress}
+                    isLoading={!destTokenAmount && isLoading}
+                    style={styles.destTokenArea}
+                    isQuoteSponsored={isQuoteSponsored}
+                    showFiatAmountAsPrimary={sourceAmountInput.isFiatMode}
+                  />
+                </Box>
+              </Box>
             </Box>
 
             <Box gap={3} twClassName="mx-4">
@@ -564,6 +576,9 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                       backgroundColor: colors.error.muted,
                       paddingLeft: 8,
                     };
+                    const quoteStreamErrorMessage = getQuoteStreamReasonString(
+                      quoteStreamComplete?.reason,
+                    );
                     return (
                       <BannerBase
                         style={quoteStreamErrorBannerStyle}
@@ -574,9 +589,14 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
                             size={IconSize.Lg}
                           />
                         }
-                        description={getQuoteStreamReasonString(
-                          quoteStreamComplete?.reason,
-                        )}
+                        description={
+                          <Text
+                            testID={BridgeViewSelectorsIDs.NO_QUOTES_BANNER}
+                            variant={TextVariant.BodySm}
+                          >
+                            {quoteStreamErrorMessage}
+                          </Text>
+                        }
                       />
                     );
                   })()

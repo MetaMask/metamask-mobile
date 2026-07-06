@@ -1162,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "Perps no está disponible",
     "title": "Perps",
-    "transfer_to_perps": "Transferir a Perps",
     "perps_trading": "Trading con contratos perpetuos",
     "perp_account_balance": "Saldo de contratos perpetuos",
     "manage_balance": "Administrar saldo",
@@ -2343,13 +2342,11 @@
   },
   "predict": {
     "title": "Predicciones de MetaMask",
-    "transfer_to_predictions": "Transferir a Predicciones",
     "select_predict_account": "Selecciona una cuenta de predicción",
     "search_account": "Buscar una cuenta",
     "home": {
       "live_now_title": "En vivo ahora",
-      "categories_placeholder": "Categorías",
-      "trending_placeholder": "Tendencias"
+      "categories_placeholder": "Categorías"
     },
     "homepage_discovery": {
       "btc_title": "Precio de BTC: {{price}}",
@@ -7679,8 +7676,7 @@
       "perps_withdraw": "Retirar",
       "predict_deposit": "Añadir fondos de Predicciones",
       "predict_withdraw": "Retirar",
-      "money_account_add_money": "Agregar fondos",
-      "money_account_transfer_money": "Transfiere fondos"
+      "money_account_add_money": "Agregar fondos"
     },
     "sub_title": {
       "permit": "Este sitio necesita permiso para gastar sus tokens.",

@@ -1162,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "Perp tidak tersedia",
     "title": "Perps",
-    "transfer_to_perps": "Transfer ke Perp",
     "perps_trading": "Perdagangan Perp",
     "perp_account_balance": "Saldo akun perp",
     "manage_balance": "Kelola saldo",
@@ -2343,13 +2342,11 @@
   },
   "predict": {
     "title": "MetaMask Predictions",
-    "transfer_to_predictions": "Transfer ke Prediction",
     "select_predict_account": "Pilih akun predict",
     "search_account": "Cari akun",
     "home": {
       "live_now_title": "Sedang live",
-      "categories_placeholder": "Kategori",
-      "trending_placeholder": "Sedang tren"
+      "categories_placeholder": "Kategori"
     },
     "homepage_discovery": {
       "btc_title": "Harga BTC: {{price}}",
@@ -7679,8 +7676,7 @@
       "perps_withdraw": "Tarik",
       "predict_deposit": "Tambahkan dana Prediction",
       "predict_withdraw": "Tarik",
-      "money_account_add_money": "Tambahkan dana",
-      "money_account_transfer_money": "Transfer dana"
+      "money_account_add_money": "Tambahkan dana"
     },
     "sub_title": {
       "permit": "Situs ini meminta izin untuk menggunakan token Anda.",

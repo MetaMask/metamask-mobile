@@ -6,11 +6,19 @@ import type { MoneyTransactionDisplayInfo } from '../hooks/useMoneyTransactionDi
 import { moneyFormatUsd } from './moneyFormatFiat';
 import { MONEY_ACCOUNT_DISPLAY_SYMBOL } from '../../Card/util/vedaToken';
 
+const KIND_LABEL_KEY: Record<AccountsApiActivity['kind'], string> = {
+  card: 'money.transaction.purchase',
+  cashback: 'money.transaction.musd_back',
+  refund: 'money.transaction.refund',
+};
+
 export function accountsApiActivityDisplayInfo(
   activity: AccountsApiActivity,
 ): MoneyTransactionDisplayInfo {
-  const isIncoming = activity.kind === 'cashback';
+  const isIncoming = activity.kind === 'cashback' || activity.kind === 'refund';
   const sign = isIncoming ? '+' : '-';
+
+  const labelKey = KIND_LABEL_KEY[activity.kind];
 
   // Card activity amounts are already denominated in USD (mUSD is USD-pegged).
   const usdValue = new BigNumber(activity.amount).dividedBy(
@@ -23,9 +31,7 @@ export function accountsApiActivityDisplayInfo(
 
   return {
     description: strings('money.transaction.card'),
-    label: strings(
-      isIncoming ? 'money.transaction.musd_back' : 'money.transaction.purchase',
-    ),
+    label: strings(labelKey),
     primaryAmount,
     fiatAmount,
     isIncoming,

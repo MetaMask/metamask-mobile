@@ -35,6 +35,7 @@ import {
   isMoneyAccountTx,
   isMoneyDepositTx,
   isPerpsPredictMoneyDeposit,
+  isPerpsPredictMoneyWithdraw,
   nestedTxWithType,
   perpsPredictServiceFamily,
 } from '../utils/moneyTransactionGuards';
@@ -147,6 +148,15 @@ export function formatMusdAmountForToast(amountWei: bigint): string {
   return moneyFormatFiat(musdDecimal.times(rate), currentCurrency);
 }
 
+function formatMetamaskPayFiat(value: unknown): string | undefined {
+  const fiat = Number(value);
+  if (Number.isNaN(fiat) || fiat <= 0) return undefined;
+  return moneyFormatFiat(
+    new BigNumber(fiat),
+    selectCurrentCurrency(store.getState()),
+  );
+}
+
 const IN_PROGRESS_KEY = 'in-progress';
 const FAILED_KEY = 'failed';
 const CONFIRMED_KEY = 'confirmed';
@@ -228,19 +238,15 @@ export const useMoneyTransactionStatus = () => {
 
     const showConfirmedFor = (transactionMeta: TransactionMeta) => {
       const isSend = isPerpsPredictMoneyDeposit(transactionMeta);
-      if (!isMoneyAccountTx(transactionMeta) && !isSend) return;
+      const isReceive = isPerpsPredictMoneyWithdraw(transactionMeta);
+      if (!isMoneyAccountTx(transactionMeta) && !isSend && !isReceive) return;
       cancelPendingInProgress(transactionMeta.id);
       if (!reserveToastKey(transactionMeta.id, CONFIRMED_KEY)) return;
 
       if (isSend) {
-        const fiat = Number(transactionMeta.metamaskPay?.targetFiat);
-        const amountFiat =
-          !Number.isNaN(fiat) && fiat > 0
-            ? moneyFormatFiat(
-                new BigNumber(fiat),
-                selectCurrentCurrency(store.getState()),
-              )
-            : undefined;
+        const amountFiat = formatMetamaskPayFiat(
+          transactionMeta.metamaskPay?.targetFiat,
+        );
         const family = perpsPredictServiceFamily(transactionMeta);
         const destination = strings(
           family === 'predict'
@@ -248,6 +254,17 @@ export const useMoneyTransactionStatus = () => {
             : 'money.toasts.send_destination_perps',
         );
         showToast(MoneyToastOptions.send.success({ amountFiat, destination }));
+        scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
+        return;
+      }
+
+      if (isReceive) {
+        const amountFiat = formatMetamaskPayFiat(
+          transactionMeta.metamaskPay?.targetFiat,
+        );
+        showToast(
+          MoneyToastOptions.deposit.success({ amountFiat, intent: 'addMusd' }),
+        );
         scheduleCleanup(transactionMeta.id, CONFIRMED_KEY);
         return;
       }

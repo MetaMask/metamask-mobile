@@ -14,6 +14,7 @@ import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
+import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
 import { estimateLineCount } from '../../utils/format';
@@ -348,13 +349,20 @@ const PredictMarketDetails: React.FC<PredictMarketDetailsProps> = () => {
 
   const handlePolymarketResolution = useCallback(() => {
     InteractionManager.runAfterInteractions(() => {
-      navigation.navigate('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: 'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
-          title: strings('predict.market_details.resolution_details'),
+      // `navigation` is typed to the Predict stack (for usePredictActionGuard),
+      // but Webview is a root-level route. Cast to the root prop for this
+      // cross-stack navigation. TODO(nav-phase-4): migrate Predict call sites
+      // + usePredictActionGuard to AppNavigationProp and drop this cast.
+      (navigation as unknown as AppNavigationProp).navigate(
+        Routes.WEBVIEW.MAIN,
+        {
+          screen: Routes.WEBVIEW.SIMPLE,
+          params: {
+            url: 'https://docs.polymarket.com/polymarket-learn/markets/how-are-markets-resolved',
+            title: strings('predict.market_details.resolution_details'),
+          },
         },
-      });
+      );
     });
   }, [navigation]);
 

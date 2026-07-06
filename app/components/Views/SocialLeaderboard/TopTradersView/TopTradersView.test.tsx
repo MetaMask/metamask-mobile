@@ -1,6 +1,7 @@
 import { act, fireEvent, screen } from '@testing-library/react-native';
 import React from 'react';
 import { FlatList } from 'react-native';
+import { DEFAULT_SOCIAL_AI_PREFERENCES } from '@metamask/notification-services-controller/notification-services';
 import Logger from '../../../../util/Logger';
 import Routes from '../../../../constants/navigation/Routes';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
@@ -9,6 +10,7 @@ import type { UseTopTradersResult } from '../../Homepage/Sections/TopTraders/hoo
 // eslint-disable-next-line import-x/no-restricted-paths -- TODO(ADR-0020): route-isolation backlog
 import type { TopTrader } from '../../Homepage/Sections/TopTraders/types';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { ImpactMoment } from '../../../../util/haptics';
 import TopTradersView from './TopTradersView';
 import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 
@@ -16,11 +18,76 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
+const mockPlayErrorNotification = jest.fn(() => Promise.resolve());
+const mockPlayImpact = jest.fn();
+const mockPlaySelection = jest.fn().mockResolvedValue(undefined);
+
+jest.mock('../../../../util/haptics', () => ({
+  ...jest.requireActual('../../../../util/haptics'),
+  playErrorNotification: () => mockPlayErrorNotification(),
+  playImpact: (...args: unknown[]) => mockPlayImpact(...args),
+  playSelection: (...args: unknown[]) => mockPlaySelection(...args),
+  fireSwitchHaptic: jest.fn(),
+}));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  const MockBottomSheet = ReactActual.forwardRef(
+    (
+      props: {
+        children?: React.ReactNode;
+        testID?: string;
+        onClose?: () => void;
+      },
+      ref: React.Ref<{
+        onCloseBottomSheet: (callback?: () => void) => void;
+        onOpenBottomSheet: (callback?: () => void) => void;
+      }>,
+    ) => {
+      ReactActual.useImperativeHandle(ref, () => ({
+        onCloseBottomSheet: (cb?: () => void) => {
+          props.onClose?.();
+          cb?.();
+        },
+        onOpenBottomSheet: (cb?: () => void) => {
+          cb?.();
+        },
+      }));
+      return ReactActual.createElement(
+        View,
+        { testID: props.testID ?? 'bottom-sheet' },
+        props.children,
+      );
+    },
+  );
+  return { ...actual, BottomSheet: MockBottomSheet };
+});
+
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 const mockToggleFollow = jest.fn();
 const mockRefresh = jest.fn();
 const mockHasNotificationPreferences = jest.fn(() => true);
+const mockToggleTraderNotification = jest.fn();
+const mockIsTraderNotificationEnabled = jest.fn((_traderId: string) => true);
+
+let mockNotificationPreferences = {
+  ...DEFAULT_SOCIAL_AI_PREFERENCES,
+  mutedTraderProfileIds: [
+    ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+  ],
+};
+
+const channelsDisabledPreferences = {
+  ...DEFAULT_SOCIAL_AI_PREFERENCES,
+  pushNotificationsEnabled: false,
+  inAppNotificationsEnabled: false,
+  mutedTraderProfileIds: [
+    ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+  ],
+};
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -80,6 +147,10 @@ const fixtureTraders: TopTrader[] = [
 ];
 
 type TabKey = 'all' | 'tokens' | 'perps';
+interface UseTopTradersHookOptions {
+  chains?: string[];
+  enabled?: boolean;
+}
 
 const buildResult = (
   overrides: Partial<UseTopTradersResult> = {},
@@ -116,7 +187,7 @@ const resolveTabKey = (chains?: string[]): TabKey => {
 };
 
 const mockUseTopTradersHook = jest.fn(
-  (options?: { chains?: string[] }): UseTopTradersResult =>
+  (options?: UseTopTradersHookOptions): UseTopTradersResult =>
     mockResultsByTab[resolveTabKey(options?.chains)],
 );
 
@@ -132,9 +203,34 @@ jest.mock(
 );
 
 jest.mock('../../Homepage/Sections/TopTraders/hooks', () => ({
-  useTopTraders: (options?: { chains?: string[] }) =>
+  useTopTraders: (options?: UseTopTradersHookOptions) =>
     mockUseTopTradersHook(options),
 }));
+
+const expectLatestQueryEnabledStates = (expected: Record<TabKey, boolean>) => {
+  const latestCalls = mockUseTopTradersHook.mock.calls.slice(-3);
+
+  expect(latestCalls).toEqual([
+    [
+      expect.objectContaining({
+        chains: ['base', 'solana', 'ethereum', 'hyperliquid'],
+        enabled: expected.all,
+      }),
+    ],
+    [
+      expect.objectContaining({
+        chains: ['base', 'solana', 'ethereum'],
+        enabled: expected.tokens,
+      }),
+    ],
+    [
+      expect.objectContaining({
+        chains: ['hyperliquid'],
+        enabled: expected.perps,
+      }),
+    ],
+  ]);
+};
 
 jest.mock(
   '../../Settings/NotificationsSettings/hooks/useNotificationStoragePreferences',
@@ -145,6 +241,21 @@ jest.mock(
     }),
   }),
 );
+
+jest.mock('../NotificationPreferences/hooks', () => ({
+  ...jest.requireActual('../NotificationPreferences/hooks'),
+  useNotificationPreferences: () => ({
+    preferences: mockNotificationPreferences,
+    hasNotificationPreferences: mockHasNotificationPreferences(),
+    isLoading: false,
+    error: null,
+    setPushNotificationsEnabled: jest.fn(),
+    setInAppNotificationsEnabled: jest.fn(),
+    setTxAmountLimit: jest.fn(),
+    toggleTraderNotification: mockToggleTraderNotification,
+    isTraderNotificationEnabled: mockIsTraderNotificationEnabled,
+  }),
+}));
 
 const mockTrack = jest.fn();
 jest.mock('../analytics', () => {
@@ -160,12 +271,19 @@ describe('TopTradersView', () => {
     jest.clearAllMocks();
     resetTabResults();
     mockUseTopTradersHook.mockImplementation(
-      (options?: { chains?: string[] }) =>
+      (options?: UseTopTradersHookOptions) =>
         mockResultsByTab[resolveTabKey(options?.chains)],
     );
     mockSelectSocialLeaderboardEnabled.mockReturnValue(true);
     mockSelectSocialLeaderboardPerpsEnabled.mockReturnValue(true);
     mockHasNotificationPreferences.mockReturnValue(true);
+    mockNotificationPreferences = {
+      ...DEFAULT_SOCIAL_AI_PREFERENCES,
+      mutedTraderProfileIds: [
+        ...DEFAULT_SOCIAL_AI_PREFERENCES.mutedTraderProfileIds,
+      ],
+    };
+    mockIsTraderNotificationEnabled.mockReturnValue(true);
   });
 
   it('renders the container', () => {
@@ -305,9 +423,27 @@ describe('TopTradersView', () => {
     expect(typeof refreshControl.props.refreshing).toBe('boolean');
   });
 
-  it('invalidates every tab query when the scroll view is pulled down', async () => {
+  it('refreshes only the All query before secondary tabs are visited', async () => {
     mockRefresh.mockResolvedValue(undefined);
     renderWithProvider(<TopTradersView />);
+    const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
+
+    await act(async () => {
+      await list.props.refreshControl.props.onRefresh();
+    });
+
+    expect(mockRefresh).toHaveBeenCalledTimes(1);
+  });
+
+  it('refreshes visited tab queries when the scroll view is pulled down', async () => {
+    mockRefresh.mockResolvedValue(undefined);
+    renderWithProvider(<TopTradersView />);
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
+    );
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
+    );
     const list = screen.getByTestId(TopTradersViewSelectorsIDs.TRADER_LIST);
 
     await act(async () => {
@@ -389,19 +525,42 @@ describe('TopTradersView', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('fires a separate query per tab on mount (parallel prefetch)', () => {
+  it('enables only the All query on mount', () => {
     renderWithProvider(<TopTradersView />);
 
-    const chainsArgs = mockUseTopTradersHook.mock.calls.map(
-      ([opts]) => opts?.chains,
+    expectLatestQueryEnabledStates({
+      all: true,
+      tokens: false,
+      perps: false,
+    });
+  });
+
+  it('enables the Tokens query after the Tokens pill is tapped', () => {
+    renderWithProvider(<TopTradersView />);
+
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
     );
-    expect(chainsArgs).toEqual(
-      expect.arrayContaining([
-        ['base', 'solana', 'ethereum', 'hyperliquid'],
-        ['base', 'solana', 'ethereum'],
-        ['hyperliquid'],
-      ]),
+
+    expectLatestQueryEnabledStates({
+      all: true,
+      tokens: true,
+      perps: false,
+    });
+  });
+
+  it('enables the Perps query after the Perps pill is tapped', () => {
+    renderWithProvider(<TopTradersView />);
+
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_PERPS),
     );
+
+    expectLatestQueryEnabledStates({
+      all: true,
+      tokens: false,
+      perps: true,
+    });
   });
 
   it('uses the spot-only chains for the All tab when perps are disabled', () => {
@@ -493,6 +652,15 @@ describe('TopTradersView', () => {
   });
 
   describe('performance', () => {
+    it('limits the initial trader row render batch during screen mount', () => {
+      const { UNSAFE_getByType } = renderWithProvider(<TopTradersView />);
+
+      const listProps = UNSAFE_getByType(FlatList).props;
+
+      expect(listProps.initialNumToRender).toBe(6);
+      expect(listProps.maxToRenderPerBatch).toBe(6);
+    });
+
     it('keeps a stable renderItem reference across a parent re-render with unchanged trader props', async () => {
       // An inline `renderItem` closure would be re-created on every render,
       // defeating the `React.memo` on `TraderRow`. The memoized `renderTraderRow`
@@ -531,6 +699,113 @@ describe('TopTradersView', () => {
     });
   });
 
+  describe('trading signals setup intercept', () => {
+    const followedTraders = fixtureTraders.map((trader) => ({
+      ...trader,
+      isFollowing: true,
+    }));
+
+    const runDeferredSetupAction = async () => {
+      const setupCall = mockNavigate.mock.calls.find(
+        ([route]) => route === Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+      );
+      const onSetupComplete = setupCall?.[1]?.onSetupComplete;
+      await act(async () => {
+        onSetupComplete?.();
+      });
+    };
+
+    it('intercepts the follow without calling toggleFollow when both channels are off', async () => {
+      mockNotificationPreferences = channelsDisabledPreferences;
+
+      renderWithProvider(<TopTradersView />);
+
+      await act(async () => {
+        fireEvent.press(screen.getAllByText('Follow')[0]);
+      });
+
+      expect(mockToggleFollow).not.toHaveBeenCalled();
+      expect(mockPlayErrorNotification).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+        expect.objectContaining({ onSetupComplete: expect.any(Function) }),
+      );
+    });
+
+    it('performs the follow when the deferred setup action runs', async () => {
+      mockNotificationPreferences = channelsDisabledPreferences;
+
+      renderWithProvider(<TopTradersView />);
+
+      await act(async () => {
+        fireEvent.press(screen.getAllByText('Follow')[0]);
+      });
+
+      await runDeferredSetupAction();
+
+      expect(mockToggleFollow).toHaveBeenCalledTimes(1);
+    });
+
+    it('keeps the trader unmuted when the bell intercept fires for an already-unmuted trader', async () => {
+      mockNotificationPreferences = channelsDisabledPreferences;
+      setTabResult('all', { traders: followedTraders });
+      mockIsTraderNotificationEnabled.mockImplementation(
+        (traderId: string) => traderId === fixtureTraders[0].id,
+      );
+
+      renderWithProvider(<TopTradersView />);
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('trader-row-mute-chip-trader-1'));
+      });
+
+      await runDeferredSetupAction();
+
+      expect(mockToggleTraderNotification).not.toHaveBeenCalled();
+    });
+
+    it('unmutes the trader when the bell intercept fires for a muted trader', async () => {
+      mockNotificationPreferences = {
+        ...channelsDisabledPreferences,
+        mutedTraderProfileIds: [fixtureTraders[0].id],
+      };
+      setTabResult('all', { traders: followedTraders });
+      mockIsTraderNotificationEnabled.mockReturnValue(false);
+
+      renderWithProvider(<TopTradersView />);
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('trader-row-mute-chip-trader-1'));
+      });
+
+      await runDeferredSetupAction();
+
+      expect(mockToggleTraderNotification).toHaveBeenCalledWith(
+        fixtureTraders[0].id,
+      );
+    });
+
+    it('toggles mute normally when notifications are already enabled', async () => {
+      setTabResult('all', { traders: followedTraders });
+
+      renderWithProvider(<TopTradersView />);
+
+      await act(async () => {
+        fireEvent.press(screen.getByTestId('trader-row-mute-chip-trader-1'));
+      });
+
+      expect(mockToggleTraderNotification).toHaveBeenCalledWith(
+        fixtureTraders[0].id,
+      );
+      expect(mockPlayImpact).toHaveBeenCalledWith(ImpactMoment.FollowToggle);
+      expect(mockPlayErrorNotification).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.SOCIAL_LEADERBOARD.TRADING_SIGNALS_SETUP,
+        expect.anything(),
+      );
+    });
+  });
+
   describe('analytics', () => {
     it('fires Trader Leaderboard Screen Viewed once on mount with the active chain filter', () => {
       renderWithProvider(<TopTradersView />);
@@ -555,6 +830,19 @@ describe('TopTradersView', () => {
           previous_chain_filter: 'all',
         }),
       );
+    });
+
+    it('triggers a selection haptic when a different pill is tapped', () => {
+      renderWithProvider(<TopTradersView />);
+
+      fireEvent.press(
+        screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
+      );
+      fireEvent.press(
+        screen.getByTestId(TopTradersViewSelectorsIDs.TAB_FILTER_TOKENS),
+      );
+
+      expect(mockPlaySelection).toHaveBeenCalledTimes(1);
     });
 
     it('fires Trader Leaderboard Trader Clicked with rank and chain filter on row press', () => {

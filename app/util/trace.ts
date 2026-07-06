@@ -178,6 +178,10 @@ export enum TraceName {
   PerpsAccountSwitchReconnection = 'Perps Account Switch Reconnection',
   PerpsMarketDataPreload = 'Perps Market Data Preload',
   PerpsUserDataPreload = 'Perps User Data Preload',
+  /** Perps advanced chart: skeleton cleared after initial load or symbol/interval change. */
+  PerpsAdvancedChartInitialVisible = 'Perps Advanced Chart Initial Visible',
+  /** Perps advanced chart: skeleton cleared after interval change only. */
+  PerpsAdvancedChartIntervalVisible = 'Perps Advanced Chart Interval Visible',
   // Predict
   PredictFeedView = 'Predict Feed View',
   PredictMarketDetailsView = 'Predict Market Details View',
@@ -224,6 +228,10 @@ export enum TraceName {
   // Homepage Section Performance
   HomepageSectionTimeToContent = 'Homepage Section Time To Content',
   HomepageSectionDataFetch = 'Homepage Section Data Fetch',
+  // Money Home Performance
+  MoneyHomeTimeToContent = 'Money Home Time To Content',
+  MoneyHomeBalanceTimeToContent = 'Money Home Balance Time To Content',
+  MoneyHomeActivityTimeToContent = 'Money Home Activity Time To Content',
 }
 
 export enum TraceOperation {
@@ -265,6 +273,10 @@ export enum TraceOperation {
   PerpsMarketData = 'perps.market_data',
   PerpsOrderSubmission = 'perps.order_submission',
   PerpsPositionManagement = 'perps.position_management',
+  /** Perps advanced chart: initial load or symbol/interval change */
+  PerpsAdvancedChart = 'perps.advanced_chart',
+  /** Perps advanced chart: interval change only */
+  PerpsAdvancedChartInterval = 'perps.advanced_chart_interval',
   // Predict
   PredictOperation = 'predict.operation',
   PredictOrderSubmission = 'predict.order_submission',
@@ -277,6 +289,8 @@ export enum TraceOperation {
   MarketInsightsViewportTracking = 'market_insights.viewport_tracking',
   // Homepage Section Performance
   HomepageSectionPerformance = 'homepage.section.performance',
+  // Money Home Performance
+  MoneyHomePerformance = 'money.home.performance',
   /** Token overview OHLCV WebView: initial load or asset/currency change */
   TokenOverviewAdvancedChart = 'token_overview.advanced_chart',
   /** Token overview OHLCV WebView: time range change only */

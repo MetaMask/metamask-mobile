@@ -1,11 +1,7 @@
 import React, { useCallback } from 'react';
 import { View, StyleProp, ViewStyle } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import {
-  Box,
-  SectionDivider,
-  SectionHeader,
-} from '@metamask/design-system-react-native';
+import { Box, SectionHeader } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   type PerpsMarketData,
@@ -100,7 +96,6 @@ const PerpsMarketTypeSection: React.FC<PerpsMarketTypeSectionProps> = ({
 
   return (
     <Box style={style} testID={testID}>
-      <SectionDivider />
       <SectionHeader title={title} isInteractive onPress={handleViewAll} />
       <View style={contentContainerStyle}>
         {isLoading ? (

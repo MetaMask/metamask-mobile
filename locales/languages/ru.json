@@ -1162,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "Перпы недоступны",
     "title": "Перпы",
-    "transfer_to_perps": "Перевести в перпы",
     "perps_trading": "Торговля бессрочными фьючерсами",
     "perp_account_balance": "Баланс счета бессрочных фьючерсов",
     "manage_balance": "Управление балансом",
@@ -2343,13 +2342,11 @@
   },
   "predict": {
     "title": "Прогнозы MetaMask",
-    "transfer_to_predictions": "Перевести в Прогнозы",
     "select_predict_account": "Выберите счет для прогнозов",
     "search_account": "Поиск счета",
     "home": {
       "live_now_title": "Уже активно",
-      "categories_placeholder": "Категории",
-      "trending_placeholder": "Популярное"
+      "categories_placeholder": "Категории"
     },
     "homepage_discovery": {
       "btc_title": "Цена BTC: {{price}}",
@@ -7679,8 +7676,7 @@
       "perps_withdraw": "Вывести средства",
       "predict_deposit": "Внести средства для прогнозирования",
       "predict_withdraw": "Вывести средства",
-      "money_account_add_money": "Внести средства",
-      "money_account_transfer_money": "Перевести средства"
+      "money_account_add_money": "Внести средства"
     },
     "sub_title": {
       "permit": "Этот сайт запрашивает разрешение на трату ваших токенов.",

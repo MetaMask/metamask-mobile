@@ -7,7 +7,6 @@ import Engine from '../../../../core/Engine';
 
 interface PaymentMethodsQueryParams {
   regionCode: string;
-  fiat: string;
   assetId: string;
   providerId: string;
 }
@@ -33,7 +32,6 @@ export const rampsPaymentMethodsOptions = (params: PaymentMethodsQueryParams) =>
         await Engine.context.RampsController.getPaymentMethods(
           params.regionCode,
           {
-            fiat: params.fiat,
             assetId: params.assetId,
             provider: params.providerId,
           },

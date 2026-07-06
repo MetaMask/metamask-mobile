@@ -91,6 +91,7 @@ describe('MainNavigator Route Constants', () => {
 
   it('has card routes defined', () => {
     expect(Routes.CARD.ROOT).toBeDefined();
+    expect(Routes.CARD.MODALS.UNLINK_MONEY_ACCOUNT).toBeDefined();
   });
 
   it('has feature flag override route defined', () => {

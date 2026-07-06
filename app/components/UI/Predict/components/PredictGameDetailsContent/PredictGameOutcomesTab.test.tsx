@@ -403,6 +403,43 @@ describe('PredictGameOutcomesTab', () => {
         queryByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN),
       ).toBeNull();
     });
+
+    it('renders World Cup-specific resolved moneyline subgroup label', () => {
+      const resolvedGroups = [
+        createGroup({
+          key: 'game_lines',
+          outcomes: [],
+          subgroups: [
+            createGroup({
+              key: 'moneyline',
+              outcomes: [
+                createOutcome({
+                  id: 'resolved-moneyline',
+                  groupItemTitle: 'Team A',
+                  status: 'resolved',
+                }),
+              ],
+            }),
+          ],
+        }),
+      ];
+
+      const { getByTestId, getByText } = render(
+        <PredictGameOutcomesTab
+          groupMap={toGroupMap([])}
+          resolvedOutcomeGroups={resolvedGroups}
+          game={mockWorldCupGame}
+          activeChipKey=""
+          onBuyPress={mockOnBuyPress}
+        />,
+      );
+
+      fireEvent.press(
+        getByTestId(PREDICT_GAME_DETAILS_CONTENT_TEST_IDS.RESULTS_DROPDOWN),
+      );
+
+      expect(getByText('Regulation time winner')).toBeOnTheScreen();
+    });
   });
 
   describe('flat outcomes (no subgroups)', () => {

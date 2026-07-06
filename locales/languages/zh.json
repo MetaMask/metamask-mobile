@@ -1162,7 +1162,6 @@
   "perps": {
     "basic_functionality_disabled_title": "永续合约不可用",
     "title": "永续合约",
-    "transfer_to_perps": "转入永续合约账户",
     "perps_trading": "永续合约交易",
     "perp_account_balance": "永续合约账户余额",
     "manage_balance": "管理余额",
@@ -2343,13 +2342,11 @@
   },
   "predict": {
     "title": "MetaMask 预测",
-    "transfer_to_predictions": "转入预测账户",
     "select_predict_account": "选择预测账户",
     "search_account": "搜索账户",
     "home": {
       "live_now_title": "现已上线",
-      "categories_placeholder": "类别",
-      "trending_placeholder": "趋势"
+      "categories_placeholder": "类别"
     },
     "homepage_discovery": {
       "btc_title": "BTC 价格：{{price}}",
@@ -7679,8 +7676,7 @@
       "perps_withdraw": "提取",
       "predict_deposit": "存入预测资金",
       "predict_withdraw": "提取",
-      "money_account_add_money": "充值",
-      "money_account_transfer_money": "转账"
+      "money_account_add_money": "充值"
     },
     "sub_title": {
       "permit": "该网站想获得花费您的代币的许可。",

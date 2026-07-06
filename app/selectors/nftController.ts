@@ -37,6 +37,46 @@ export const selectAllNftsFlat = createSelector(
 );
 
 /**
+ * Looks up a single owned NFT by contract address + token id on a given chain,
+ * searching every account in `allNfts` (the NFT belongs to whichever account
+ * received/minted it). Returns the controller's `Nft` (with `image`, `name`,
+ * `collection`, …) or `undefined`.
+ *
+ * Returns the live state reference, so `useSelector` stays referentially stable
+ * across renders when the underlying NFT does not change. Address comparison is
+ * case-insensitive; token ids are compared as strings.
+ *
+ * @param state - Redux root state.
+ * @param contractAddress - NFT contract address (hex).
+ * @param tokenId - NFT token id.
+ * @param chainId - Hex chain id (e.g. `0x1`).
+ * @returns The matching `Nft`, or `undefined`.
+ */
+export const selectNftByIdentity = (
+  state: RootState,
+  contractAddress: string,
+  tokenId: string,
+  chainId: Hex,
+): Nft | undefined => {
+  const { allNfts } = state.engine.backgroundState.NftController;
+  const target = contractAddress.toLowerCase();
+
+  for (const accountAddress of Object.keys(allNfts)) {
+    const chainNfts = allNfts[accountAddress]?.[chainId];
+    const match = chainNfts?.find(
+      (nft) =>
+        nft.address?.toLowerCase() === target &&
+        String(nft.tokenId) === String(tokenId),
+    );
+    if (match) {
+      return match;
+    }
+  }
+
+  return undefined;
+};
+
+/**
  * Selector that returns NFT contracts for the currently selected EVM account,
  * filtered by enabled networks in the EIP155 namespace.
  *

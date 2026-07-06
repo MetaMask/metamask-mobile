@@ -96,6 +96,9 @@ const ReactNativeView = require('react-native');
 if (!ReactNativeView.BackHandler.removeEventListener) {
   ReactNativeView.BackHandler.removeEventListener = jest.fn();
 }
+if (ReactNativeView.Platform.Version == null) {
+  ReactNativeView.Platform.Version = '17.0';
+}
 
 // --------------------------------------------------------------------------------
 // We group non-React Native mocks here to ensure consistent behavior across tests.
@@ -142,6 +145,99 @@ jest.mock('@metamask/perps-controller', () => {
     ],
   };
 });
+
+/**
+ * Use the official `react-native-worklets` Jest mock. Reanimated 4 depends on
+ * react-native-worklets, and requiring the real package eagerly initializes its
+ * native part (absent under Jest), throwing "Native part of Worklets doesn't
+ * seem to be initialized" the moment Reanimated is imported (transitively, e.g.
+ * via @metamask/design-system-react-native). The mock also installs
+ * `globalThis._getAnimationTimestamp` and a timestamp-correct
+ * `requestAnimationFrame` that animation tests rely on.
+ * See: https://docs.swmansion.com/react-native-worklets/docs/guides/testing/
+ */
+jest.mock('react-native-worklets', () =>
+  require('react-native-worklets/lib/module/mock'),
+);
+
+// ActionSheetIOS is unavailable in Jest; use the custom sheet so CV tests can confirm options.
+jest.mock('@metamask/react-native-actionsheet', () => {
+  const React = jest.requireActual('react');
+  const { forwardRef, useImperativeHandle, useState } = React;
+  const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
+
+  return forwardRef(({ title, options, onPress, testID }, ref) => {
+    const [visible, setVisible] = useState(false);
+
+    useImperativeHandle(ref, () => ({
+      show: () => setVisible(true),
+      hide: () => setVisible(false),
+    }));
+
+    if (!visible) {
+      return null;
+    }
+
+    return (
+      <View testID={testID || 'action-sheet'}>
+        <Text>{title}</Text>
+        {options.map((option, index) => (
+          <TouchableOpacity
+            key={String(option)}
+            testID={`action-sheet-option-${index}`}
+            onPress={() => onPress(index)}
+          >
+            <Text>{option}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  });
+});
+
+jest.mock(
+  'react-native-keyboard-controller',
+  () => ({
+    KeyboardProvider: ({ children }) => children,
+    KeyboardAwareScrollView: require('react-native').ScrollView,
+    KeyboardGestureArea: require('react-native').View,
+    KeyboardStickyView: require('react-native').View,
+    KeyboardToolbar: require('react-native').View,
+    useKeyboardAnimation: () => ({
+      height: { value: 0 },
+      progress: { value: 0 },
+    }),
+    useReanimatedKeyboardAnimation: () => ({
+      height: { value: 0 },
+      progress: { value: 0 },
+    }),
+    useKeyboardHandler: () => undefined,
+    useGenericKeyboardHandler: () => undefined,
+    useKeyboardState: (selector) => {
+      const defaultState = {
+        isVisible: false,
+        height: 0,
+        duration: 0,
+        timestamp: 0,
+      };
+      return selector ? selector(defaultState) : defaultState;
+    },
+    KeyboardEvents: {
+      addListener: jest.fn(() => ({ remove: jest.fn() })),
+    },
+    KeyboardController: {
+      setInputMode: jest.fn(),
+      setDefaultMode: jest.fn(),
+    },
+    AndroidSoftInputModes: {
+      SOFT_INPUT_ADJUST_NOTHING: 0,
+      SOFT_INPUT_ADJUST_PAN: 1,
+      SOFT_INPUT_ADJUST_RESIZE: 2,
+      SOFT_INPUT_ADJUST_UNSPECIFIED: 3,
+    },
+  }),
+  { virtual: true },
+);
 
 // Reanimated setup is usually required for navigation/animations
 try {

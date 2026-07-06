@@ -75,7 +75,7 @@ import {
 } from '../analytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { chainNameToId } from '../utils/chainMapping';
-import { isPerpPosition } from '../utils/perp';
+import { getPerpPositionDirection, isPerpPosition } from '../utils/perp';
 import PerpsTradeButton from './components/PerpsTradeButton';
 import {
   getPerpsDisplaySymbol,
@@ -171,7 +171,9 @@ const TraderPositionView = () => {
     isPnlPositive,
     allTrades,
     activeTimePeriod,
+    isTimePeriodAutoSelected,
     setActiveTimePeriod,
+    setAutomaticTimePeriod,
     timePeriods,
   } = positionData;
 
@@ -347,6 +349,10 @@ const TraderPositionView = () => {
   // page. A minimal { symbol, name } market is enough — PerpsMarketDetailsView
   // enriches it from usePerpsMarkets (same pattern as PerpsPositionTransactionView).
   const isPerp = displayPosition ? isPerpPosition(displayPosition) : false;
+  const perpDirection =
+    isPerp && displayPosition
+      ? getPerpPositionDirection(displayPosition)
+      : null;
 
   // CAIP-19 asset id for the spot chart. Resolves only for non-perp positions on
   // a supported chain; when undefined the chart section uses the legacy SVG
@@ -385,18 +391,17 @@ const TraderPositionView = () => {
   const [focusRequest, setFocusRequest] = useState<TradeFocusRequest>();
   const handleRequestFocusTimePeriod = useCallback(
     (timePeriod: TimePeriod) => {
-      setActiveTimePeriod(timePeriod);
+      setAutomaticTimePeriod(timePeriod);
       setFocusRequest((current) =>
         current
           ? {
               ...current,
-              timePeriod,
               spanMs: getTradeFocusSpanMs(timePeriod),
             }
           : current,
       );
     },
-    [setActiveTimePeriod],
+    [setAutomaticTimePeriod],
   );
 
   const handleTradePress = useCallback(
@@ -406,7 +411,6 @@ const TraderPositionView = () => {
         id: trade.transactionHash,
         timestamp: trade.timestamp,
         nonce: focusNonceRef.current,
-        timePeriod: activeTimePeriod,
         spanMs: getTradeFocusSpanMs(activeTimePeriod),
       });
     },
@@ -637,6 +641,8 @@ const TraderPositionView = () => {
           symbol={symbol}
           pricePercentChange={displayPercentChange}
           activeTimePeriodLabel={activeTimePeriod}
+          perpDirection={perpDirection}
+          perpLeverage={displayPosition?.perpLeverage}
           onBack={handleBack}
           onTraderPress={handleTraderPress}
         />
@@ -742,6 +748,7 @@ const TraderPositionView = () => {
                   assetId={chartAssetId}
                   isPerp={isPerp}
                   activeTimePeriod={activeTimePeriod}
+                  shouldAutoRequestTimePeriod={isTimePeriodAutoSelected}
                   onScrubPercentChange={setScrubPercent}
                   focusRequest={focusRequest}
                   onRequestTimePeriod={handleRequestFocusTimePeriod}

@@ -409,6 +409,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'trackActivityViewed',
   'trackBannerAction',
   'trackBetslipDismissed',
+  'trackCategoryClicked',
   'trackFeedViewed',
   'trackGeoBlockTriggered',
   'trackMarketDetailsOpened',
@@ -1292,6 +1293,12 @@ export class PredictController extends BaseController<
     args: Parameters<PredictAnalytics['trackBannerAction']>[0],
   ): void {
     this.analytics.trackBannerAction(args);
+  }
+
+  public trackCategoryClicked(
+    args: Parameters<PredictAnalytics['trackCategoryClicked']>[0],
+  ): void {
+    this.analytics.trackCategoryClicked(args);
   }
 
   public trackShareAction(

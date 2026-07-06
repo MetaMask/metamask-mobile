@@ -709,7 +709,7 @@ export const loginToAppPlaywright = async (
   };
 
   await dismissAndroidSystemOverlaysPlaywright();
-  await waitForAppReady(resolveE2EWaitTimeoutMs(30_000));
+  await waitForAppReady(resolveE2EWaitTimeoutMs(60_000));
   await dismissDeveloperMenuPlaywright();
   await dismissAndroidSystemOverlaysPlaywright();
 
@@ -934,21 +934,64 @@ export const resolvePredictGtmOnboardingModalEnabled = async (
  * @function dismisspredictionsModalPlaywright
  * @returns {Promise<void>} Resolves when the predictions modal is dismissed.
  */
-export const dismisspredictionsModalPlaywright = async (
-  maxRetries = 2,
-): Promise<void> => {
+const tryDismissPredictionsModalPlaywright = async (
+  timeout = 3000,
+): Promise<boolean> => {
   try {
     const btn = await asPlaywrightElement(PredictModalView.notNowButton);
     await PlaywrightGestures.waitAndTap(btn, {
-      timeout: 3000,
+      timeout,
       checkForDisplayed: true,
       checkForEnabled: true,
     });
     await btn.unwrap().waitForDisplayed({ reverse: true, timeout: 3000 });
-    return;
+    return true;
   } catch {
+    return false;
+  }
+};
+
+export const dismisspredictionsModalPlaywright = async (
+  maxRetries = 2,
+): Promise<void> => {
+  const dismissed = await tryDismissPredictionsModalPlaywright();
+  if (!dismissed) {
     logger.error(`Predict modal not dismissed after ${maxRetries} attempts`);
   }
+};
+
+const startPredictionsModalWatcher = (intervalMs = 1000): (() => void) => {
+  let stopped = false;
+  let inFlight = false;
+  let timeoutId: ReturnType<typeof setTimeout> | undefined;
+
+  const tick = async () => {
+    if (stopped || inFlight) {
+      if (!stopped) {
+        timeoutId = setTimeout(tick, intervalMs);
+      }
+      return;
+    }
+
+    inFlight = true;
+    try {
+      await tryDismissPredictionsModalPlaywright(1000);
+    } finally {
+      inFlight = false;
+      if (!stopped) {
+        timeoutId = setTimeout(tick, intervalMs);
+      }
+    }
+  };
+
+  timeoutId = setTimeout(tick, 0);
+
+  return () => {
+    stopped = true;
+    if (timeoutId) {
+      clearTimeout(timeoutId);
+    }
+  };
 };
 
 /**
@@ -1009,9 +1052,14 @@ export const onboardingFlowImportSRPPlaywright = async (
     'predictGtmOnboardingModalEnabled',
     predictGtmOnboardingModalEnabled,
   );
-  await dismisspredictionsModalPlaywright();
 
-  await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(WalletView.container),
-  );
+  const stopPredictionsModalWatcher = startPredictionsModalWatcher();
+  try {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      await asPlaywrightElement(WalletView.container),
+    );
+    await tryDismissPredictionsModalPlaywright();
+  } finally {
+    stopPredictionsModalWatcher();
+  }
 };

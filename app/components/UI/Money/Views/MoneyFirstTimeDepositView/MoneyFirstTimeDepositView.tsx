@@ -2,7 +2,6 @@ import React, { useCallback, useEffect } from 'react';
 import { BackHandler, PixelRatio, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { AppNavigationProp } from '../../../../../core/NavigationService/types';
-import { Accelerometer } from 'expo-sensors';
 import Rive, {
   AutoBind,
   useRive,

@@ -10,7 +10,6 @@ import {
   PerpsAmountDisplaySelectorsIDs,
   PerpsLimitPriceBottomSheetSelectorsIDs,
   PerpsTPSLViewSelectorsIDs,
-  PerpsMarketDetailsViewSelectorsIDs,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import {
   asDetoxElement,
@@ -113,11 +112,11 @@ class PerpsOrderView {
   async tapTakeProfitButton() {
     await Gestures.scrollToElement(
       this.takeProfitButton,
-      Matchers.scrollContainer(PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW),
+      Matchers.scrollContainer(PerpsOrderViewSelectorsIDs.SCROLL_VIEW),
       {
         direction: 'down',
         scrollAmount: 250,
-        elemDescription: 'Scroll Perps market details to TP/SL row',
+        elemDescription: 'Scroll Perps order view to TP/SL row',
       },
     );
     await Gestures.waitAndTap(this.takeProfitButton, {
@@ -238,6 +237,22 @@ class PerpsOrderView {
     return Matchers.getElementByID(testId);
   }
 
+  private getTpslPriceInput(
+    inputTestId:
+      | typeof PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT
+      | typeof PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
+  ): EncapsulatedElementType {
+    return Matchers.getElementByID(inputTestId);
+  }
+
+  private get tpslSetButton(): EncapsulatedElementType {
+    return Matchers.getElementByID(PerpsTPSLViewSelectorsIDs.SET_BUTTON);
+  }
+
+  private get tpslAutoCloseTitle(): EncapsulatedElementType {
+    return Matchers.getElementByText('Auto close');
+  }
+
   // Required for next test
   async setAmountUSD(amount: string): Promise<void> {
     await encapsulatedAction({
@@ -317,8 +332,29 @@ class PerpsOrderView {
   }
 
   async openOrderTypeSelector(): Promise<void> {
-    await Gestures.waitAndTap(this.orderTypeSelector, {
-      elemDescription: 'Open order type selector',
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(
+          asDetoxElement(this.orderTypeSelector),
+          {
+            description: 'Order type selector button',
+            timeout: 20000,
+          },
+        );
+        await Gestures.waitAndTap(this.orderTypeSelector, {
+          elemDescription: 'Open order type selector',
+          timeout: 20000,
+        });
+      },
+      appium: async () => {
+        const orderTypeEl = await asPlaywrightElement(this.orderTypeSelector);
+        await orderTypeEl.waitForDisplayed({ timeout: 20000 });
+        await PlaywrightGestures.waitAndTap(orderTypeEl, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          timeout: 20000,
+        });
+      },
     });
   }
 
@@ -355,15 +391,13 @@ class PerpsOrderView {
       | typeof PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT,
     focusInputElemDescription: string,
   ): Promise<void> {
-    await Assertions.expectElementToBeVisible(
-      Matchers.getElementByText('Auto close'),
-      {
-        description: 'TPSL Auto close screen visible',
-        timeout: 15000,
-      },
-    );
+    await Assertions.expectElementToBeVisible(this.tpslAutoCloseTitle, {
+      description: 'TPSL Auto close screen visible',
+      timeout: 15000,
+    });
 
-    const input = Matchers.getElementByID(inputTestId);
+    const input = this.getTpslPriceInput(inputTestId);
+    const firstKey = price[0] ?? '0';
 
     await Utilities.executeWithRetry(
       async () => {
@@ -373,9 +407,9 @@ class PerpsOrderView {
           checkForEnabled: false,
         });
         await Assertions.expectElementToBeVisible(
-          this.getTpslKeypadKey(price[0] ?? '2'),
+          this.getTpslKeypadKey(firstKey),
           {
-            description: 'TPSL keypad visible',
+            description: `TPSL keypad key ${firstKey} should be visible`,
             timeout: 5000,
           },
         );
@@ -383,7 +417,7 @@ class PerpsOrderView {
       {
         timeout: 20000,
         interval: 1000,
-        description: 'Open TPSL keypad',
+        description: 'Focus TPSL input and wait for keypad',
         elemDescription: focusInputElemDescription,
       },
     );
@@ -411,14 +445,11 @@ class PerpsOrderView {
       checkForDisplayed: true,
       checkForEnabled: false,
     });
-    await UnifiedGestures.waitAndTap(
-      Matchers.getElementByID(PerpsTPSLViewSelectorsIDs.SET_BUTTON),
-      {
-        description: 'Confirm TP/SL (Set)',
-        checkForDisplayed: true,
-        checkForEnabled: true,
-      },
-    );
+    await UnifiedGestures.waitAndTap(this.tpslSetButton, {
+      description: 'Confirm TP/SL (Set)',
+      checkForDisplayed: true,
+      checkForEnabled: true,
+    });
   }
 
   /**
