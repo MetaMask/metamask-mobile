@@ -1,6 +1,7 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import Routes from '../../../../../constants/navigation/Routes';
+import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
 import useApprovalRequest from '../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useFullScreenConfirmation } from '../ui/useFullScreenConfirmation';
@@ -200,7 +201,7 @@ export function useTransactionConfirm() {
         isFullScreenConfirmation &&
         !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
       ) {
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        replaceWithTransactionsView(navigation);
       } else {
         navigation.goBack();
       }

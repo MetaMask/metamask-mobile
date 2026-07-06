@@ -10,6 +10,8 @@ import renderWithProvider, {
 } from '../../../../../../../util/test/renderWithProvider';
 import { MOCK_POOL_STAKING_SDK } from '../../../../__mocks__/stakeMockData';
 import FooterButtonGroup from './FooterButtonGroup';
+import { replaceWithTransactionsView } from '../../../../../../../util/navigation/replaceWithTransactionsView';
+import Engine from '../../../../../../../core/Engine';
 import {
   FooterButtonGroupActions,
   FooterButtonGroupProps,
@@ -54,6 +56,13 @@ const mockInitialState: DeepPartial<RootState> = {
 const mockCanGoBack = jest.fn();
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
+
+jest.mock(
+  '../../../../../../../util/navigation/replaceWithTransactionsView',
+  () => ({
+    replaceWithTransactionsView: jest.fn(),
+  }),
+);
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -211,6 +220,41 @@ describe('FooterButtonGroup', () => {
     });
 
     expect(mockAttemptUnstakeTransaction).toHaveBeenCalledTimes(1);
+  });
+
+  it('replaces with the transactions view after the transaction is submitted', async () => {
+    const subscribeSpy = jest.spyOn(
+      Engine.controllerMessenger,
+      'subscribeOnceIf',
+    );
+    mockAttemptUnstakeTransaction.mockResolvedValueOnce({
+      transactionMeta: { id: 'mock-tx-id' },
+    });
+
+    const props: FooterButtonGroupProps = {
+      valueWei: '3210000000000000',
+      action: FooterButtonGroupActions.UNSTAKE,
+    };
+
+    const { getByText } = renderWithProvider(<FooterButtonGroup {...props} />, {
+      state: mockInitialState,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('stake.continue')));
+    });
+
+    // Fire the transactionSubmitted event the footer subscribed to.
+    const submittedCallback = subscribeSpy.mock.calls.find(
+      ([event]) => event === 'TransactionController:transactionSubmitted',
+    )?.[1] as (() => void) | undefined;
+    expect(submittedCallback).toBeDefined();
+
+    act(() => {
+      submittedCallback?.();
+    });
+
+    expect(replaceWithTransactionsView).toHaveBeenCalled();
   });
 
   it('handles transaction error correctly', async () => {

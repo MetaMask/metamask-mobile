@@ -33,6 +33,7 @@ import {
 import { DEPOSIT_DETAILS_SECTION_TEST_ID } from './components/DepositInfoSection';
 import { DEPOSIT_RECEIVE_SECTION_TEST_ID } from './components/DepositReceiveSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
 import { PROGRESS_STEPPER_TEST_IDS } from './components/ProgressStepper';
 import { endTrace, trace, TraceName } from '../../../../../util/trace';
 import Logger from '../../../../../util/Logger';
@@ -41,6 +42,10 @@ import { MAINNET_DISPLAY_NAME } from '../../../../../core/Engine/constants';
 type TxCallback = (event: {
   transactionMeta: Partial<TransactionMeta>;
 }) => void;
+
+jest.mock('../../../../../util/navigation/replaceWithTransactionsView', () => ({
+  replaceWithTransactionsView: jest.fn(),
+}));
 
 jest.mock('../../../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(() => () => ({
@@ -923,7 +928,7 @@ describe('EarnLendingDepositConfirmationView', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+      expect(replaceWithTransactionsView).toHaveBeenCalled();
 
       // Clear and test confirmed status
       mockTrackEvent.mockClear();

@@ -31,6 +31,7 @@ import {
 
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   selectBatchSellSourceTokens,
@@ -417,7 +418,7 @@ export function BatchSellFinalReviewModal() {
     } finally {
       dispatch(setIsSubmittingTx(false));
       sheetRef.current?.onCloseBottomSheet(() => {
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        replaceWithTransactionsView(navigation);
       });
     }
   }, [

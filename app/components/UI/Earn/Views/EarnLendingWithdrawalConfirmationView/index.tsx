@@ -21,6 +21,7 @@ import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import Routes from '../../../../../constants/navigation/Routes';
+import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
 import {
   IMetaMetricsEvent,
   MetaMetricsEvents,
@@ -316,7 +317,7 @@ const EarnLendingWithdrawalConfirmationView = () => {
           });
           // There is variance in when navigation can be called across chains
           setTimeout(() => {
-            navigation.navigate(Routes.TRANSACTIONS_VIEW);
+            replaceWithTransactionsView(navigation);
           }, 0);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,

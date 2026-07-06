@@ -23,6 +23,7 @@ import {
   FooterButtonGroupProps,
 } from './FooterButtonGroup.types';
 import Routes from '../../../../../../../constants/navigation/Routes';
+import { replaceWithTransactionsView } from '../../../../../../../util/navigation/replaceWithTransactionsView';
 import usePoolStakedUnstake from '../../../../hooks/usePoolStakedUnstake';
 import { useAnalytics } from '../../../../../../hooks/useAnalytics/useAnalytics';
 import {
@@ -59,7 +60,6 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
   const { styles } = useStyles(styleSheet, {});
 
   const navigation = useNavigation();
-  const { navigate } = navigation;
 
   const { trackEvent, createEventBuilder } = useAnalytics();
 
@@ -117,7 +117,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         () => {
           submitTxMetaMetric(STAKING_TX_METRIC_EVENTS[action].SUBMITTED);
           setDidSubmitTransaction(false);
-          navigate(Routes.TRANSACTIONS_VIEW);
+          replaceWithTransactionsView(navigation);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,
       );
@@ -148,7 +148,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         (transactionMeta) => transactionMeta.id === transactionId,
       );
     },
-    [action, navigate, submitTxMetaMetric],
+    [action, navigation, submitTxMetaMetric],
   );
 
   const handleConfirmation = async () => {

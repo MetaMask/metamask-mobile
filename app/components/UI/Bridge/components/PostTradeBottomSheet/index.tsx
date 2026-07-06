@@ -36,6 +36,7 @@ import {
   setSourceToken,
 } from '../../../../../core/redux/slices/bridge';
 import Routes from '../../../../../constants/navigation/Routes';
+import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../locales/i18n';
 import { formatAmountWithLocaleSeparators } from '../../utils/formatAmountWithLocaleSeparators';
@@ -282,7 +283,7 @@ export const PostTradeBottomSheet = () => {
     trackButtonClicked('view_activity');
     shouldSkipDismissedTrackingRef.current = true;
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      replaceWithTransactionsView(navigation);
     });
   };
 

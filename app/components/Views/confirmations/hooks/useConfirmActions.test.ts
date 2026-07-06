@@ -12,7 +12,11 @@ import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import * as QRHardwareHook from '../context/qr-hardware-context/qr-hardware-context';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 import { useConfirmActions } from './useConfirmActions';
+import { replaceWithTransactionsView } from '../../../../util/navigation/replaceWithTransactionsView';
 
+jest.mock('../../../../util/navigation/replaceWithTransactionsView', () => ({
+  replaceWithTransactionsView: jest.fn(),
+}));
 jest.mock('./transactions/useTransactionConfirm');
 
 jest.mock('./useIsConfirmationFromLedgerAccount', () => ({
@@ -440,7 +444,6 @@ describe('useConfirmAction', () => {
     result?.current?.onConfirm();
     await flushPromises();
 
-    expect(navigateMock).toHaveBeenCalledTimes(1);
-    expect(navigateMock).toHaveBeenCalledWith('TransactionsView');
+    expect(replaceWithTransactionsView).toHaveBeenCalled();
   });
 });

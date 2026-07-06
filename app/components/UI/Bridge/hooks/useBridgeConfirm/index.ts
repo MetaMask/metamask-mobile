@@ -12,6 +12,7 @@ import {
   updateHardwareWalletsSwaps,
 } from '../../../../../core/redux/slices/bridge';
 import Routes from '../../../../../constants/navigation/Routes';
+import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
@@ -139,7 +140,7 @@ export const useBridgeConfirm = ({
           params: modalParams,
         });
       } else {
-        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+        replaceWithTransactionsView(navigation);
       }
     }
   };

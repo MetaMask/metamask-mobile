@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, render } from '@testing-library/react-native';
 import { PostTradeBottomSheet } from './index';
+import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   getPostTradeSuggestionPillTestId,
@@ -54,6 +55,9 @@ const expectedSharedProperties = {
   token_address_destination: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
 };
 
+jest.mock('../../../../../util/navigation/replaceWithTransactionsView', () => ({
+  replaceWithTransactionsView: jest.fn(),
+}));
 jest.mock('react-redux', () => ({ useDispatch: () => mockDispatch }));
 jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -208,6 +212,16 @@ describe('PostTradeBottomSheet', () => {
         payload: '1.23456',
       }),
     );
+  });
+
+  it('replaces with the transactions view when "View activity" is pressed', () => {
+    const { getByTestId } = render(React.createElement(PostTradeBottomSheet));
+
+    fireEvent.press(
+      getByTestId(PostTradeBottomSheetTestIds.VIEW_ACTIVITY_BUTTON),
+    );
+
+    expect(replaceWithTransactionsView).toHaveBeenCalled();
   });
 
   it('shows skeleton suggestions while trending tokens load', () => {

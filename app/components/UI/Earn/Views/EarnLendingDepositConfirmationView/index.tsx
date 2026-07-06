@@ -11,6 +11,7 @@ import { ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
+import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
 import Engine from '../../../../../core/Engine';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
@@ -415,7 +416,7 @@ const EarnLendingDepositConfirmationView = () => {
           });
           // There is variance in when navigation can be called across chains
           setTimeout(() => {
-            navigation.navigate(Routes.TRANSACTIONS_VIEW);
+            replaceWithTransactionsView(navigation);
           }, 0);
         },
         ({ transactionMeta }) => transactionMeta.id === transactionId,

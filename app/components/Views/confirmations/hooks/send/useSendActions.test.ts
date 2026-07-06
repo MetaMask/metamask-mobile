@@ -19,6 +19,11 @@ import * as MultichainSnaps from '../../utils/multichain-snaps';
 // eslint-disable-next-line import-x/no-namespace
 import * as SendType from './useSendType';
 import { useSendActions } from './useSendActions';
+import { replaceWithTransactionsView } from '../../../../../util/navigation/replaceWithTransactionsView';
+
+jest.mock('../../../../../util/navigation/replaceWithTransactionsView', () => ({
+  replaceWithTransactionsView: jest.fn(),
+}));
 
 jest.mock('../../context/send-context', () => ({
   useSendContext: jest.fn(),
@@ -204,7 +209,7 @@ describe('useSendActions', () => {
 
       await waitFor(() => {
         expect(mockAlert).toHaveBeenCalledWith('Insufficient funds');
-        expect(mockNavigate).not.toHaveBeenCalledWith('TransactionsView');
+        expect(replaceWithTransactionsView).not.toHaveBeenCalled();
       });
     });
 
@@ -224,7 +229,7 @@ describe('useSendActions', () => {
 
       await waitFor(() => {
         expect(mockAlert).toHaveBeenCalledWith('Transaction error');
-        expect(mockNavigate).not.toHaveBeenCalledWith('TransactionsView');
+        expect(replaceWithTransactionsView).not.toHaveBeenCalled();
       });
     });
 
@@ -338,7 +343,7 @@ describe('useSendActions', () => {
       await result.current.handleSubmitPress(ACCOUNT_ADDRESS_MOCK_2);
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('TransactionsView');
+        expect(replaceWithTransactionsView).toHaveBeenCalled();
         expect(mockAlert).not.toHaveBeenCalled();
       });
     });

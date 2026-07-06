@@ -5,6 +5,7 @@ import { TransactionType } from '@metamask/transaction-controller';
 
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
+import { replaceWithTransactionsView } from '../../../../util/navigation/replaceWithTransactionsView';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 
 import { isSignatureRequest } from '../utils/confirm';
@@ -76,7 +77,7 @@ export const useConfirmActions = () => {
     });
 
     if (approvalType === ApprovalType.TransactionBatch) {
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      replaceWithTransactionsView(navigation);
     } else {
       navigation.goBack();
     }
