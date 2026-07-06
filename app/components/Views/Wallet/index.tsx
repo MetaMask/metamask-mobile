@@ -21,6 +21,7 @@ import { useBalanceRefresh, useHomepageEntryPoint } from './hooks';
 import {
   ActivityIndicator,
   DeviceEventEmitter,
+  InteractionManager,
   Linking,
   RefreshControl,
   ScrollView,
@@ -655,9 +656,14 @@ const Wallet = ({
     }
   }, [navigate]);
 
-  const checkAndNavigateToSocialLeaderboardOnboarding =
-    useCallback(async () => {
-      // Dev/QA escape hatch: when set, always navigate without persisting "seen".
+  // Resolves whether the Social Leaderboard onboarding should be shown this
+  // session, warming its data cache as a side effect. Returns `false` (skip)
+  // when already seen or when the leaderboard data can't be loaded — never
+  // navigates itself, so the caller can gate navigation on the Wallet home
+  // having settled first.
+  const prepareSocialLeaderboardOnboarding =
+    useCallback(async (): Promise<boolean> => {
+      // Dev/QA escape hatch: when set, always show without persisting "seen".
       const skipSeen =
         process.env.MM_SOCIAL_LEADERBOARD_ONBOARDING_SKIP_SEEN === 'true';
 
@@ -667,7 +673,7 @@ const Wallet = ({
         );
 
         if (hasSeenOnboarding === 'true') {
-          return;
+          return false;
         }
       }
 
@@ -675,7 +681,7 @@ const Wallet = ({
       // the Rive artboard, so it must NOT be entered until that data is actually
       // in the query cache — otherwise the user sees an empty/loading artboard.
       // Prefetch runs behind the Wallet screen (it never blocks Wallet's own
-      // render), and we only navigate once the data has landed. If the fetch
+      // render), and we only show it once the data has landed. If the fetch
       // can't resolve (offline/error), we skip onboarding for this session and
       // try again on the next launch rather than showing a broken screen.
       const chains = isSocialLeaderboardPerpsEnabled ? ALL_CHAINS : SPOT_CHAINS;
@@ -685,27 +691,54 @@ const Wallet = ({
         () => undefined,
       );
 
-      const hasLeaderboardData = Boolean(
+      return Boolean(
         queryClient.getQueryData(buildOnboardingLeaderboardQueryKey(chains)),
       );
-      if (!hasLeaderboardData) {
-        return;
-      }
-
-      navigate(Routes.SOCIAL_LEADERBOARD.ONBOARDING);
-    }, [navigate, isSocialLeaderboardPerpsEnabled]);
+    }, [isSocialLeaderboardPerpsEnabled]);
 
   useEffect(() => {
     if (
-      isSocialLeaderboardFlagEnabled &&
-      isSocialLeaderboardOnboardingEnabled
+      !isSocialLeaderboardFlagEnabled ||
+      !isSocialLeaderboardOnboardingEnabled
     ) {
-      checkAndNavigateToSocialLeaderboardOnboarding();
+      return undefined;
     }
+
+    let isCancelled = false;
+    let interactionHandle:
+      | ReturnType<typeof InteractionManager.runAfterInteractions>
+      | undefined;
+
+    // Wait for the post-login navigation/animations to finish (device-paced via
+    // `InteractionManager`) so the Wallet home is painted before the onboarding
+    // slides over it. This runs in parallel with the data prefetch so the
+    // settle wait and the network fetch overlap instead of stacking latency.
+    const settled = new Promise<void>((resolve) => {
+      interactionHandle = InteractionManager.runAfterInteractions(() =>
+        resolve(),
+      );
+    });
+
+    Promise.all([prepareSocialLeaderboardOnboarding(), settled])
+      .then(([shouldShowOnboarding]) => {
+        // Bail if Wallet unmounted / lost focus while we waited, so a stale
+        // handle can't yank the user into onboarding after they navigated away.
+        if (isCancelled || !shouldShowOnboarding) {
+          return;
+        }
+        navigate(Routes.SOCIAL_LEADERBOARD.ONBOARDING);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      isCancelled = true;
+      interactionHandle?.cancel();
+    };
   }, [
     isSocialLeaderboardFlagEnabled,
     isSocialLeaderboardOnboardingEnabled,
-    checkAndNavigateToSocialLeaderboardOnboarding,
+    prepareSocialLeaderboardOnboarding,
+    navigate,
   ]);
 
   useEffect(() => {

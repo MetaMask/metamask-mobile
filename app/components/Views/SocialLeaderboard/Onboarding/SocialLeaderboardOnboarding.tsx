@@ -91,6 +91,11 @@ const SocialLeaderboardNuxAnimation = require('../../../../animations/onboarding
 
 const ONBOARDING_SOURCE = 'nux';
 
+// Safety net for revealing the artboard if the Rive `onPlay` first-paint signal
+// never arrives (e.g. a runtime that doesn't emit it), so the artboard can't be
+// left permanently faded out over the gradient.
+const RIVE_REVEAL_FALLBACK_MS = 1500;
+
 /**
  * Rive errors that mean the artboard cannot render at all — only these fall back
  * to the leaderboard. Everything else (a missing data binding, text run, or an
@@ -437,6 +442,44 @@ const SocialLeaderboardOnboarding: React.FC = () => {
   // `dataBinding` prop keeps a stable identity and isn't reconfigured per render.
   const dataBinding = useMemo(() => AutoBind(true), []);
 
+  // The native Rive surface paints an opaque frame during its first-paint warmup
+  // that would briefly cover the branded gradient with black. So we mount the
+  // artboard invisible over the gradient and only fade it in once it actually
+  // starts playing (`onPlay`), leaving the gradient visible during warmup. The
+  // RN title/description overlay is faded in on the SAME signal so the copy
+  // appears together with the animation instead of sitting on the bare gradient
+  // during warmup. A fallback timer reveals both regardless, so a missing
+  // `onPlay` can never leave the artboard/copy permanently hidden.
+  const riveOpacity = useRef(new Animated.Value(0)).current;
+  const textOverlayOpacity = useRef(new Animated.Value(0)).current;
+  const hasRevealedRiveRef = useRef(false);
+  const revealRive = useCallback(() => {
+    if (hasRevealedRiveRef.current) {
+      return;
+    }
+    hasRevealedRiveRef.current = true;
+    Animated.parallel([
+      Animated.timing(riveOpacity, {
+        toValue: 1,
+        duration: TEXT_FADE_DURATION_MS,
+        useNativeDriver: true,
+      }),
+      Animated.timing(textOverlayOpacity, {
+        toValue: 1,
+        duration: TEXT_FADE_DURATION_MS,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, [riveOpacity, textOverlayOpacity]);
+
+  useEffect(() => {
+    if (!referencedAssets) {
+      return undefined;
+    }
+    const timer = setTimeout(revealRive, RIVE_REVEAL_FALLBACK_MS);
+    return () => clearTimeout(timer);
+  }, [referencedAssets, revealRive]);
+
   // Push static config once the Rive runtime is ready, and signal readiness.
   useEffect(() => {
     if (!riveRef) return;
@@ -774,27 +817,41 @@ const SocialLeaderboardOnboarding: React.FC = () => {
         />
       ))}
       {/* Mount only once `referencedAssets` is resolved and frozen, so the prop
-          never changes afterwards (a change triggers a native `reloadView()`). */}
+          never changes afterwards (a change triggers a native `reloadView()`).
+          Wrapped in a fade layer that starts invisible over the gradient and
+          reveals on first paint (`onPlay`) so the warmup black frame never
+          shows. */}
       {referencedAssets && (
-        <Rive
-          ref={ref}
-          source={SocialLeaderboardNuxAnimation}
-          artboardName={RIVE_ARTBOARD_NAME}
-          stateMachineName={RIVE_STATE_MACHINE_NAME}
-          dataBinding={dataBinding}
-          referencedAssets={referencedAssets}
-          fit={Fit.Layout}
-          layoutScaleFactor={PixelRatio.get()}
-          onError={handleError}
-          style={StyleSheet.absoluteFillObject}
-          testID={SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION}
-        />
+        <Animated.View
+          style={[StyleSheet.absoluteFillObject, { opacity: riveOpacity }]}
+        >
+          <Rive
+            ref={ref}
+            source={SocialLeaderboardNuxAnimation}
+            artboardName={RIVE_ARTBOARD_NAME}
+            stateMachineName={RIVE_STATE_MACHINE_NAME}
+            dataBinding={dataBinding}
+            referencedAssets={referencedAssets}
+            fit={Fit.Layout}
+            layoutScaleFactor={PixelRatio.get()}
+            onPlay={revealRive}
+            onError={handleError}
+            style={StyleSheet.absoluteFillObject}
+            testID={SocialLeaderboardOnboardingSelectorsIDs.RIVE_ANIMATION}
+          />
+        </Animated.View>
       )}
-      {/* Title + description overlay. The live layer holds the current copy; the
-          fading-out layer (only present mid-transition) holds the previous copy
-          pinned on top so the two cross-fade in place. */}
-      <View
-        style={[styles.textOverlay, { top: insets.top + OVERLAY_TOP_OFFSET }]}
+      {/* Title + description overlay. Starts hidden and fades in with the
+          artboard (`textOverlayOpacity`, driven by `revealRive`) so the copy is
+          not visible on the bare gradient during first-paint warmup. The live
+          layer holds the current copy; the fading-out layer (only present
+          mid-transition) holds the previous copy pinned on top so the two
+          cross-fade in place. */}
+      <Animated.View
+        style={[
+          styles.textOverlay,
+          { top: insets.top + OVERLAY_TOP_OFFSET, opacity: textOverlayOpacity },
+        ]}
         pointerEvents="none"
       >
         <View style={styles.textStack}>
@@ -823,7 +880,7 @@ const SocialLeaderboardOnboarding: React.FC = () => {
             </Text>
           </Animated.View>
         </View>
-      </View>
+      </Animated.View>
     </View>
   );
 };
