@@ -4927,6 +4927,108 @@ describe('PredictController', () => {
         await expect(controller.depositWithConfirmation({})).rejects.toThrow(
           'Value must be a hexadecimal string.',
         );
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+
+        const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+          .map((call) => call[0])
+          .find(
+            (arg) =>
+              arg?.properties?.transaction_type ===
+              'mm_predict_transaction_submission',
+          );
+        expect(submissionEvent).toBeUndefined();
+      });
+    });
+
+    it('does not track deposit failure when local bookkeeping fails after submission', async () => {
+      mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+        transactions: [
+          {
+            params: {
+              to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+              data: '0x095ea7b3000000000000000000000000' as `0x${string}`,
+            },
+          },
+        ],
+        chainId: '0x89',
+      });
+
+      let batchSubmitted = false;
+      (addTransactionBatch as jest.Mock).mockImplementation(async () => {
+        batchSubmitted = true;
+        return {
+          batchId: 'batch-123',
+        };
+      });
+
+      await withController(async ({ controller }) => {
+        type ControllerWithUpdate = PredictController & {
+          update: (updater: (state: PredictControllerState) => void) => void;
+        };
+
+        const signerAddress = '0x1234567890123456789012345678901234567890';
+        const controllerWithUpdate = controller as ControllerWithUpdate;
+        const originalUpdate = controllerWithUpdate.update.bind(controller);
+        let updateFailedAfterSubmission = false;
+
+        controllerWithUpdate.update = (updater) => {
+          const submissionSucceeded = (
+            analytics.trackEvent as jest.Mock
+          ).mock.calls
+            .map((call) => call[0])
+            .some(
+              (arg) =>
+                arg?.properties?.transaction_type ===
+                  'mm_predict_transaction_submission' &&
+                arg?.properties?.status === 'succeeded',
+            );
+
+          if (
+            batchSubmitted &&
+            submissionSucceeded &&
+            !updateFailedAfterSubmission
+          ) {
+            updateFailedAfterSubmission = true;
+            throw new Error('state update failed after submission');
+          }
+
+          originalUpdate(updater);
+        };
+
+        try {
+          (analytics.trackEvent as jest.Mock).mockClear();
+
+          await expect(controller.depositWithConfirmation({})).rejects.toThrow(
+            'state update failed after submission',
+          );
+
+          const submissionEvent = (analytics.trackEvent as jest.Mock).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type ===
+                  'mm_predict_transaction_submission' &&
+                arg?.properties?.status === 'succeeded',
+            );
+          const depositFailureEvent = (
+            analytics.trackEvent as jest.Mock
+          ).mock.calls
+            .map((call) => call[0])
+            .find(
+              (arg) =>
+                arg?.properties?.transaction_type === 'mm_predict_deposit' &&
+                arg?.properties?.status === 'failed',
+            );
+
+          expect(updateFailedAfterSubmission).toBe(true);
+          expect(submissionEvent).toBeDefined();
+          expect(depositFailureEvent).toBeUndefined();
+          expect(controller.state.pendingDeposits[signerAddress]).toBe(
+            'pending',
+          );
+        } finally {
+          controllerWithUpdate.update = originalUpdate;
+        }
       });
     });
 

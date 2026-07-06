@@ -2567,6 +2567,7 @@ export class PredictController extends BaseController<
     _params: PrepareDepositParams = {},
   ): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
+    let transactionSubmitted = false;
 
     try {
       const signer = this.getSigner();
@@ -2594,6 +2595,11 @@ export class PredictController extends BaseController<
 
       if (!chainId) {
         throw new Error('Chain ID not provided by deposit preparation');
+      }
+
+      const parsedChainId = hexToNumber(chainId);
+      if (isNaN(parsedChainId)) {
+        throw new Error(`Invalid chain ID format: ${chainId}`);
       }
 
       DevLogger.log('PredictController: depositWithConfirmation transactions', {
@@ -2637,12 +2643,7 @@ export class PredictController extends BaseController<
         missingBatchIdError:
           'Failed to get batch ID from transaction submission',
       });
-
-      // Validate chainId format before parsing
-      const parsedChainId = hexToNumber(chainId);
-      if (isNaN(parsedChainId)) {
-        throw new Error(`Invalid chain ID format: ${chainId}`);
-      }
+      transactionSubmitted = true;
 
       this.update((state) => {
         state.pendingDeposits[signer.address] = batchId;
@@ -2657,17 +2658,23 @@ export class PredictController extends BaseController<
     } catch (error) {
       const e = ensureError(error);
       const isUserCancelled = this.isUserCancelledTransactionError(e);
-      this.trackPredictFlowMetric({
-        transactionType: PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
-        status: isUserCancelled
-          ? PredictTradeStatus.CANCELLED
-          : PredictTradeStatus.FAILED,
-        failureReason: e.message,
-      });
+
+      if (!transactionSubmitted) {
+        this.trackPredictFlowMetric({
+          transactionType:
+            PredictEventValues.TRANSACTION_TYPE.MM_PREDICT_DEPOSIT,
+          status: isUserCancelled
+            ? PredictTradeStatus.CANCELLED
+            : PredictTradeStatus.FAILED,
+          failureReason: e.message,
+        });
+      }
 
       if (isUserCancelled) {
         // Clear pending state before returning
-        this.clearPendingDeposit();
+        if (!transactionSubmitted) {
+          this.clearPendingDeposit();
+        }
         // ignore error, as the user cancelled the tx
         return {
           success: true,
@@ -2682,7 +2689,9 @@ export class PredictController extends BaseController<
         }),
       );
 
-      this.clearPendingDeposit();
+      if (!transactionSubmitted) {
+        this.clearPendingDeposit();
+      }
 
       throw new Error(
         error instanceof Error
