@@ -169,6 +169,39 @@ class Browser {
     );
   }
 
+  private async setAndroidUrlBarValue(url: string): Promise<void> {
+    const driver = getDriver();
+    const selector = `android=new UiSelector().resourceId("${BrowserURLBarSelectorsIDs.URL_INPUT}")`;
+
+    for (let attempt = 1; attempt <= 3; attempt++) {
+      await Gestures.waitAndTap(this.addressBar, {
+        elemDescription: 'URL bar container',
+      });
+      await TestHelpers.delay(500);
+
+      const urlInputElem = await driver.$(selector);
+      try {
+        await urlInputElem.waitForExist({ timeout: 5000 });
+      } catch {
+        continue;
+      }
+
+      const elementId = urlInputElem.elementId;
+      if (!elementId) {
+        continue;
+      }
+
+      await driver.execute('mobile: replaceElementValue', {
+        elementId,
+        value: url,
+      });
+      await PlaywrightGestures.submitAndroidUrlBar();
+      return;
+    }
+
+    throw new Error('Could not set Android URL bar value');
+  }
+
   async tapUrlInputBox(): Promise<void> {
     await encapsulatedAction({
       detox: async () => {
@@ -571,15 +604,7 @@ class Browser {
       appium: async () => {
         const urlInput = await asPlaywrightElement(this.urlInputBoxID);
         if (PlatformDetector.isAndroid()) {
-          const elementId = (await urlInput.unwrap()).elementId;
-          if (!elementId) {
-            throw new Error('URL input elementId was not resolved');
-          }
-          await getDriver().execute('mobile: replaceElementValue', {
-            elementId,
-            value: url,
-          });
-          await PlaywrightGestures.submitAndroidUrlBar();
+          await this.setAndroidUrlBarValue(url);
         } else {
           await Assertions.expectElementToBeVisible(this.urlInputBoxID, {
             elemDescription: 'URL input box (focused)',
@@ -618,9 +643,19 @@ class Browser {
   async navigateToTestDApp(): Promise<void> {
     const dappUrl = getDappUrl(0);
 
+    if (await this.waitForDappNavigation(dappUrl)) {
+      await this.dismissUrlEditorIfOpen();
+      if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
+        await PlaywrightContextHelpers.scrollWebViewToTop(dappUrl);
+      }
+      return;
+    }
+
     for (let attempt = 1; attempt <= DAPP_NAVIGATION_MAX_ATTEMPTS; attempt++) {
       await this.dismissUrlEditorIfOpen();
-      await this.tapUrlInputBox();
+      if (!(FrameworkDetector.isAppium() && PlatformDetector.isAndroid())) {
+        await this.tapUrlInputBox();
+      }
       await this.navigateToURL(dappUrl, { skipUrlEditorDismissal: true });
 
       const navigated = await this.waitForDappNavigation(dappUrl);
