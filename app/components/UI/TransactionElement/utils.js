@@ -1,16 +1,14 @@
-import BN from 'bnjs4';
 import {
-  hexToBN,
+  hexToBigInt,
   weiToFiat,
   renderFromWei,
   balanceToFiat,
-  isBN,
   renderFromTokenMinimalUnit,
   fromTokenMinimalUnit,
   balanceToFiatNumber,
   weiToFiatNumber,
   addCurrencySymbol,
-} from '../../../util/number';
+} from '../../../util/number/bigint';
 import { strings } from '../../../../locales/i18n';
 import {
   renderFullAddress,
@@ -83,12 +81,12 @@ function getTokenTransfer(args) {
 
   // Try to decode amount from transaction data
   const [, , encodedAmount] = decodeTransferData('transfer', data);
-  let amount = hexToBN(encodedAmount);
+  let amount = encodedAmount ? hexToBigInt(encodedAmount) : 0n;
 
   // If data is incomplete/truncated, use transferInformation if available
-  if ((!encodedAmount || amount.isZero()) && tx.transferInformation?.amount) {
+  if ((!encodedAmount || amount === 0n) && tx.transferInformation?.amount) {
     // transferInformation.amount is a decimal string, not hex
-    amount = new BN(tx.transferInformation.amount, 10);
+    amount = BigInt(tx.transferInformation.amount);
   }
 
   const userHasToken = toFormattedAddress(to) in tokens;
@@ -227,7 +225,7 @@ function getMetamaskPayTargetFiat(tx, decimals) {
     .shiftedBy(decimals ?? 0)
     .toFixed();
 
-  return new BN(targetFiatNoDecimals);
+  return BigInt(targetFiatNoDecimals);
 }
 
 // For post-quote predict withdrawals, derive the received token amount and
@@ -442,7 +440,7 @@ function decodeIncomingTransfer(args) {
   const isIncoming = from?.toLowerCase() !== selectedAddress?.toLowerCase();
   const actualRecipient = decodedData[0] || (isIncoming ? selectedAddress : to);
 
-  const amount = hexToBN(value);
+  const amount = hexToBigInt(value);
   const token = { symbol, decimals, address: contractAddress };
 
   const renderTokenAmount = token
@@ -762,7 +760,7 @@ function decodeDeploymentTx(args) {
     conversionRate,
     currentCurrency,
   );
-  const totalEth = isBN(value) ? value.add(totalGas) : totalGas;
+  const totalEth = value ? hexToBigInt(value) + totalGas : totalGas;
 
   const renderFrom = renderFullAddress(from);
   const renderTo = strings('transactions.to_contract');
@@ -827,7 +825,7 @@ function decodeConfirmTx(args) {
     selectedAddress,
     ticker,
   } = args;
-  const totalEth = hexToBN(value);
+  const totalEth = hexToBigInt(value);
   const renderTotalEth = `${renderFromWei(totalEth)} ${ticker}`;
   const renderTotalEthFiat = weiToFiat(
     totalEth,
@@ -836,7 +834,7 @@ function decodeConfirmTx(args) {
   );
 
   const totalGas = calculateTotalGas(txParams);
-  const totalValue = isBN(totalEth) ? totalEth.add(totalGas) : totalGas;
+  const totalValue = totalEth + totalGas;
 
   const renderFrom = renderFullAddress(from);
   const renderTo = renderFullAddress(to);
