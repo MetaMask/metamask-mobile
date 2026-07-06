@@ -19,16 +19,19 @@ describe('useRegionHasFiatProvider', () => {
     mockUseFiatProviderScope.mockReturnValue('off');
   });
 
-  it('returns true when the region offers a native provider, regardless of scope', () => {
-    mockUseFiatProviderScope.mockReturnValue('off');
-    mockUseRampsProviders.mockReturnValue({
-      providers: [{ type: 'aggregator' }, { type: 'native' }],
-    });
+  it.each(['off', 'in-app', 'all'] as const)(
+    'returns true when the region offers a native provider (scope %s)',
+    (scope) => {
+      mockUseFiatProviderScope.mockReturnValue(scope);
+      mockUseRampsProviders.mockReturnValue({
+        providers: [{ type: 'aggregator' }, { type: 'native' }],
+      });
 
-    const { result } = renderHook(() => useRegionHasFiatProvider());
+      const { result } = renderHook(() => useRegionHasFiatProvider());
 
-    expect(result.current).toBe(true);
-  });
+      expect(result.current).toBe(true);
+    },
+  );
 
   describe("when scope is 'off' (native-only)", () => {
     beforeEach(() => {

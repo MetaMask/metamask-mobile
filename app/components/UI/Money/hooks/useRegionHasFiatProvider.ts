@@ -31,6 +31,14 @@ export function useRegionHasFiatProvider(): boolean {
     return false;
   }
 
+  // Widened scope: the region counts as supported when it offers any provider.
+  // This intentionally over-approximates. A region offering only
+  // external-browser (`IN_APP_OS_BROWSER`) or custom-action providers would
+  // pass here but yield no in-app quote, since RampsController's
+  // `#pickInAppQuote` filters those out; that surfaces as a graceful "no quote"
+  // result, not a crash. Precise in-app eligibility is enforced at quote time,
+  // and this mirrors `useHasNativeFiatProvider` so the entry and payment gates
+  // agree. Dev/RC only (production is hard-off via `getEffectiveProviderScope`).
   return providers.length > 0;
 }
 

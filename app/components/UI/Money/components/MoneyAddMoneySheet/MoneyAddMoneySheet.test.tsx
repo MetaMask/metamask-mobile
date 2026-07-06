@@ -318,7 +318,7 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeNull();
   });
 
-  it('hides the Deposit funds option when the region has no native fiat provider', () => {
+  it('hides the Deposit funds option when the region has no usable fiat provider', () => {
     (useRegionHasFiatProvider as jest.Mock).mockReturnValue(false);
 
     const { queryByTestId, getByTestId } = renderWithProvider(
@@ -343,7 +343,7 @@ describe('MoneyAddMoneySheet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('shows the Deposit funds option when the region has a native fiat provider', () => {
+  it('shows the Deposit funds option when the region has a usable fiat provider', () => {
     (useRegionHasFiatProvider as jest.Mock).mockReturnValue(true);
 
     const { getByTestId } = renderWithProvider(<MoneyAddMoneySheet />);
