@@ -8,6 +8,7 @@ import NetworkManager from '../../page-objects/wallet/NetworkManager.js';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants.js';
 import Assertions from '../../framework/Assertions.js';
 import { DappVariants } from '../../framework/Constants.js';
+import { getDappUrlForFixture } from '../../framework/fixtures/FixtureUtils.js';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
 import Browser from '../../page-objects/Browser/BrowserView.js';
 import TestDApp from '../../page-objects/Browser/TestDApp.js';
@@ -48,6 +49,7 @@ appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
             .withPermissionControllerConnectedToTestDapp()
             .withChainPermission()
             .withPopularNetworks()
+            .withBrowserActiveTabUrl(getDappUrlForFixture(0))
             .build(),
           restartDevice: true,
           currentDeviceDetails,
