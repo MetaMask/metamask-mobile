@@ -35,6 +35,7 @@ const useClearConfirmationOnBackSwipe = () => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
       if (mmPayRequestInProgressNavHandler.current) {
         e.preventDefault();
+        mmPayRequestInProgressNavHandler.current();
         return;
       }
       rejectConfirmation(true);

@@ -332,6 +332,7 @@ describe('CustomAmountInfo', () => {
     });
 
     useConfirmationContextMock.mockReturnValue({
+      mmPayRequestInProgressNavHandler: { current: false },
       headlessBuyError: undefined,
       isFooterVisible: true,
       isConfirmationSubmitting: false,

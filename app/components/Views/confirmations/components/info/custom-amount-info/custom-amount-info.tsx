@@ -172,7 +172,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     const [isKeyboardVisible, setIsKeyboardVisible] =
       useState(!isAddMusdIntent);
 
-    useMMPayNavigatio(isKeyboardVisible, setIsKeyboardVisible);
+    useMMPayNavigation(isKeyboardVisible, setIsKeyboardVisible);
 
     const { hasTokens: hasAvailableTokens } =
       useTransactionPayAvailableTokens();
