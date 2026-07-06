@@ -7,6 +7,7 @@ import {
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
 import { store } from '../../../../store';
 import { getEffectiveProviderScope } from '../../../../components/UI/Ramp/utils/providerScope';
+import { getRampCallbackBaseUrl } from '../../../../components/UI/Ramp/utils/getRampCallbackBaseUrl';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
 
@@ -42,6 +43,11 @@ export const rampsControllerInit: MessengerClientInitFunction<
     // runtime. Production is hard-forced to `off` (native-only) inside
     // `getEffectiveProviderScope`.
     getProviderScope: () => getEffectiveProviderScope(store.getState()),
+    // Default redirect URL for the widened in-app quote fetch. MM Pay's quote
+    // request omits `redirectUrl`, so aggregator quotes would come back without
+    // the buy-widget URL the headless Checkout WebView needs; supply the same
+    // callback base the UB2 flow uses so the widened path can open the WebView.
+    getDefaultRedirectUrl: () => getRampCallbackBaseUrl(),
   });
 
   let orderSubscriptionsRegistered = false;
