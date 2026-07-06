@@ -22,8 +22,9 @@
 # When to re-run
 # --------------
 #   - After any change under app/components/UI/Charts/AdvancedChart/webview/src/
-#   - CI enforces freshness via a `git diff --exit-code` check.
-#   Commit the regenerated .ts file alongside your source changes.
+#   - Commit the regenerated chartLogicString.ts alongside your source changes.
+#   TODO: Add a CI step to enforce type checking (`tsc --noEmit`) and
+#   bundle freshness (`yarn build:advanced-chart-webview && git diff --exit-code`).
 #
 # ===========================================================================
 
