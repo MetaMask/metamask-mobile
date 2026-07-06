@@ -37,8 +37,7 @@ function getBottomShapePoints({
 export function buildBottomShapeMaskPath(
   dimensions: BottomShapeDimensions,
 ): string {
-  const { width, height, peakHeight, peakBezierLength, baseBezierLength } =
-    dimensions;
+  const { width, height, peakBezierLength } = dimensions;
   const { peakX, peakY, leftBaseX, leftBaseY, rightBaseX, rightBaseY } =
     getBottomShapePoints(dimensions);
 
