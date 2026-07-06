@@ -35,8 +35,8 @@ export function PayWithBottomSheet() {
   }, [navigation]);
 
   const handleClose = useCallback(() => {
-    sheetRef.current?.onCloseBottomSheet();
-  }, []);
+    navigation.goBack();
+  }, [navigation]);
 
   return (
     <BottomSheet

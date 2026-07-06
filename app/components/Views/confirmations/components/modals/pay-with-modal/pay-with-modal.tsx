@@ -104,11 +104,11 @@ export function PayWithModal() {
 
   const handleClose = useCallback(() => {
     if (dismissOnSelectCount > 1) {
-      close(() => navigation.goBack());
+      navigation.dispatch(StackActions.pop(dismissOnSelectCount));
     } else {
-      close();
+      navigation.goBack();
     }
-  }, [close, dismissOnSelectCount, navigation]);
+  }, [dismissOnSelectCount, navigation]);
 
   const dismissAfterTokenSelect = useCallback(() => {
     if (isDismissingRef.current) return;
