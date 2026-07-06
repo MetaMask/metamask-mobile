@@ -1,7 +1,10 @@
 import { test as appiumTest } from '../../framework/fixtures/playwright/index.js';
 import { SmokeNetworkAbstractions } from '../../tags.js';
 import { loginToAppPlaywright } from '../../flows/wallet.flow.js';
-import { navigateToBrowserView } from '../../flows/browser.flow.js';
+import {
+  navigateToBrowserView,
+  waitForTestDappToLoad,
+} from '../../flows/browser.flow.js';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder.js';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper.js';
 import NetworkManager from '../../page-objects/wallet/NetworkManager.js';
@@ -62,6 +65,7 @@ appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
 
           await navigateToBrowserView();
           await Browser.navigateToTestDApp();
+          await waitForTestDappToLoad();
           await TestDApp.tapOpenNetworkPicker();
           await TestDApp.tapNetworkByName(POLYGON);
 
