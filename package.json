@@ -509,6 +509,8 @@
     "react-native-modal": "^14.0.0-rc.1",
     "react-native-nitro-fetch": "1.3.3",
     "react-native-nitro-modules": "0.35.5",
+    "react-native-nitro-text-decoder": "^0.2.0",
+    "react-native-nitro-websockets": "^1.0.3",
     "react-native-os": "patch:react-native-os@npm%3A1.2.6#~/.yarn/patches/react-native-os-npm-1.2.6-65c52ed3dc.patch",
     "react-native-pager-view": "8.0.0",
     "react-native-permissions": "^3.7.2",
