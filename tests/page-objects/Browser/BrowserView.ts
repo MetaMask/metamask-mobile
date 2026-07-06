@@ -197,18 +197,9 @@ class Browser {
         await Gestures.waitAndTap(this.addressBar, {
           elemDescription: 'URL bar container',
         });
-        if (!(await Utilities.isElementVisible(this.urlInputBoxID, 3000))) {
-          const urlBar = await asPlaywrightElement(this.addressBar);
-          const location = await urlBar.unwrap().getLocation();
-          const size = await urlBar.unwrap().getSize();
-          await getDriver().execute('mobile: clickGesture', {
-            x: Math.floor(location.x + size.width * 0.5),
-            y: Math.floor(location.y + size.height / 2),
-          });
-        }
-        await Assertions.expectElementToBeVisible(this.urlInputBoxID, {
-          elemDescription: 'URL input box (focused)',
-          timeout: 10000,
+        await Gestures.waitAndTap(this.urlInputBoxID, {
+          elemDescription: 'URL input box',
+          checkForDisplayed: false,
         });
       },
     });
@@ -582,16 +573,22 @@ class Browser {
         }
       },
       appium: async () => {
-        await Assertions.expectElementToBeVisible(this.urlInputBoxID, {
-          elemDescription: 'URL input box (focused)',
-          timeout: 5000,
-        });
         const urlInput = await asPlaywrightElement(this.urlInputBoxID);
         if (PlatformDetector.isAndroid()) {
-          // clearValue() can hang when Appium IME is unavailable on CI emulators.
-          await urlInput.fill(url);
+          const elementId = (await urlInput.unwrap()).elementId;
+          if (!elementId) {
+            throw new Error('URL input elementId was not resolved');
+          }
+          await getDriver().execute('mobile: replaceElementValue', {
+            elementId,
+            value: url,
+          });
           await PlaywrightGestures.submitAndroidUrlBar();
         } else {
+          await Assertions.expectElementToBeVisible(this.urlInputBoxID, {
+            elemDescription: 'URL input box (focused)',
+            timeout: 5000,
+          });
           await urlInput.clear();
           await urlInput.fill(url);
           await PlaywrightGestures.tapKeyboardReturnKey('Go');
