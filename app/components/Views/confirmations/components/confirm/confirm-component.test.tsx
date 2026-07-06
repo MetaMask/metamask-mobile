@@ -369,6 +369,26 @@ describe('Confirm', () => {
     expect(getByTestId('confirm-loader-predict-claim')).toBeDefined();
   });
 
+  it('displays AdvancedCustomAmount loader when specified', () => {
+    useParamsMock.mockReturnValue({
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+    });
+
+    const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
+    stateWithoutRequest.engine.backgroundState.ApprovalController = {
+      pendingApprovals: {},
+      pendingApprovalCount: 0,
+      approvalFlows: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const { getByTestId } = renderWithProvider(<Confirm />, {
+      state: stateWithoutRequest,
+    });
+
+    expect(getByTestId('confirm-loader-advanced-custom-amount')).toBeDefined();
+  });
+
   it('displays Transfer loader when specified', () => {
     useParamsMock.mockReturnValue({
       loader: ConfirmationLoader.Transfer,
@@ -437,6 +457,35 @@ describe('Confirm', () => {
     );
 
     const loaderContainer = getByTestId('confirm-loader-predict-claim');
+    const scrollViews = UNSAFE_queryAllByType(ScrollView);
+
+    expect(loaderContainer).toBeDefined();
+    expect(scrollViews.length).toBeGreaterThan(0);
+  });
+
+  it('renders InfoLoader for AdvancedCustomAmount loader', () => {
+    useParamsMock.mockReturnValue({
+      loader: ConfirmationLoader.AdvancedCustomAmount,
+    });
+
+    const stateWithoutRequest = cloneDeep(typedSignV1ConfirmationState);
+    stateWithoutRequest.engine.backgroundState.ApprovalController = {
+      pendingApprovals: {},
+      pendingApprovalCount: 0,
+      approvalFlows: [],
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    } as any;
+
+    const { getByTestId, UNSAFE_queryAllByType } = renderWithProvider(
+      <Confirm />,
+      {
+        state: stateWithoutRequest,
+      },
+    );
+
+    const loaderContainer = getByTestId(
+      'confirm-loader-advanced-custom-amount',
+    );
     const scrollViews = UNSAFE_queryAllByType(ScrollView);
 
     expect(loaderContainer).toBeDefined();
