@@ -110,7 +110,7 @@ const sampleBars: OHLCVBar[] = [
 const entryMarker = (id: string, timeMs: number): TradeMarker => ({
   id,
   time: timeMs,
-  intent: 'entry',
+  intent: 'enter',
 });
 
 describe('snapMarkerToNearestBar', () => {
