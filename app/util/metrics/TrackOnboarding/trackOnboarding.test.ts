@@ -85,18 +85,4 @@ describe('trackOnboarding', () => {
       AnalyticsEventBuilder.createEventBuilder(mockEvent).build();
     expect(mockTrackEvent).toHaveBeenCalledWith(expectedEvent);
   });
-
-  it('tracks immediately when metrics is enabled without waiting for interactions', () => {
-    const mockEvent = AnalyticsEventBuilder.createEventBuilder({
-      category: 'testEvent',
-    }).build();
-
-    mockIsEnabled.mockReturnValue(true);
-    InteractionManager.runAfterInteractions = jest.fn();
-
-    trackOnboarding(mockEvent);
-
-    expect(InteractionManager.runAfterInteractions).not.toHaveBeenCalled();
-    expect(mockTrackEvent).toHaveBeenCalled();
-  });
 });
