@@ -961,6 +961,32 @@ describe('bridge slice', () => {
       selectBatchSellTrades.resetRecomputations();
     });
 
+    it('updates controller fields when analytics opt-in changes', () => {
+      const mockState = cloneDeep(mockRootState) as unknown as RootState;
+      mockState.engine.backgroundState.AnalyticsController = {
+        ...mockState.engine.backgroundState.AnalyticsController,
+        optedIn: false,
+        analyticsId: 'test-analytics-id',
+      };
+
+      expect(selectControllerFields(mockState).participateInMetaMetrics).toBe(
+        false,
+      );
+
+      const controllerFieldsRecomputations =
+        selectControllerFields.recomputations();
+
+      const optedInState = cloneDeep(mockState);
+      optedInState.engine.backgroundState.AnalyticsController.optedIn = true;
+
+      expect(
+        selectControllerFields(optedInState).participateInMetaMetrics,
+      ).toBe(true);
+      expect(selectControllerFields.recomputations()).toBe(
+        controllerFieldsRecomputations + 1,
+      );
+    });
+
     it('does not recompute when unrelated bridge UI state changes', () => {
       const mockState = cloneDeep(mockRootState) as unknown as RootState;
 
