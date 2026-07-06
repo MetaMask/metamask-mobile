@@ -470,26 +470,8 @@ class Browser {
     return false;
   }
 
-  private async isDappPageLoaded(
-    dappUrl: string,
-    options: { urlBarTimeoutMs?: number; webViewTimeoutMs?: number } = {},
-  ): Promise<boolean> {
-    const urlBarTimeoutMs = options.urlBarTimeoutMs ?? DAPP_NAVIGATION_VERIFY_MS;
-    const webViewTimeoutMs = options.webViewTimeoutMs ?? 5_000;
-
-    // URL bar text is unreliable on Android (often shows Portfolio while the dapp
-    // WebView is already loaded). Prefer WebView context detection on Appium.
-    if (FrameworkDetector.isAppium()) {
-      if (await this.waitForDappWebViewContext(dappUrl, webViewTimeoutMs)) {
-        return true;
-      }
-    }
-
-    return this.waitForUrlBarToShowDapp(dappUrl, urlBarTimeoutMs);
-  }
-
   private async waitForDappNavigation(dappUrl: string): Promise<boolean> {
-    return this.isDappPageLoaded(dappUrl);
+    return this.waitForUrlBarToShowDapp(dappUrl);
   }
 
   // Legacy methods for backward compatibility with existing tests
@@ -695,7 +677,7 @@ class Browser {
         await this.navigateToURL(dappUrl, { skipUrlEditorDismissal: true });
       }
 
-      if (await this.isDappPageLoaded(dappUrl)) {
+      if (await this.waitForDappNavigation(dappUrl)) {
         await this.dismissUrlEditorIfOpen();
         if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
           await PlaywrightContextHelpers.scrollWebViewToTop(dappUrl);
@@ -705,7 +687,7 @@ class Browser {
 
       if (attempt === DAPP_NAVIGATION_MAX_ATTEMPTS) {
         throw new Error(
-          `Failed to navigate to test dapp at ${dappUrl} after ${DAPP_NAVIGATION_MAX_ATTEMPTS} attempts`,
+          `Failed to navigate to test dapp at ${dappUrl} after ${DAPP_NAVIGATION_MAX_ATTEMPTS} attempts (URL bar still shows Portfolio or another page)`,
         );
       }
     }
