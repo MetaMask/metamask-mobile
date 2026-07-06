@@ -115,10 +115,6 @@ import {
   SWAP_DISCOVERY_FEED_REVAMP_VARIANTS,
 } from '../../components/SwapDiscoveryFeed/abTestConfig';
 import { useABTest } from '../../../../../hooks/useABTest';
-import {
-  createActiveABTestAssignment,
-  mergeActiveAbTestAssignmentLists,
-} from '../../../../../util/analytics/activeABTestAssignments';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import type { RootState } from '../../../../../reducers';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
@@ -153,11 +149,7 @@ const BridgeViewContent = ({ latestSourceBalance }: BridgeViewContentProps) => {
       selectRemoteFeatureFlags(state).enableFiatToggle === true,
   );
 
-  const {
-    variant: discoveryFeedVariant,
-    variantName: discoveryFeedVariantName,
-    isActive: isDiscoveryFeedAbActive,
-  } = useABTest(
+  const { variant: discoveryFeedVariant } = useABTest(
     SWAP_DISCOVERY_FEED_REVAMP_AB_KEY,
     SWAP_DISCOVERY_FEED_REVAMP_VARIANTS,
     SWAP_DISCOVERY_FEED_REVAMP_EXPOSURE_METADATA,
