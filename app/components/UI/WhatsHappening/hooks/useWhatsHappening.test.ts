@@ -4,8 +4,11 @@ import {
   isWhatsHappeningSectionVisible,
   useWhatsHappening,
 } from './useWhatsHappening';
+import { selectWhatsHappeningEnabled } from '../../../../selectors/featureFlagController/whatsHappening';
+import { selectWhatsHappeningOutdatedItemId } from '../../../../reducers/whatsHappeningDeeplink';
 
 const mockFetchMarketOverview = jest.fn();
+const mockFetchFrontPageItem = jest.fn();
 
 jest.mock('../../../../core/Engine', () => ({
   __esModule: true,
@@ -14,6 +17,8 @@ jest.mock('../../../../core/Engine', () => ({
       AiDigestController: {
         fetchMarketOverview: (...args: unknown[]) =>
           mockFetchMarketOverview(...args),
+        fetchFrontPageItem: (...args: unknown[]) =>
+          mockFetchFrontPageItem(...args),
       },
     },
   },
@@ -24,6 +29,29 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockUseSelector = useSelector as jest.Mock;
+
+/**
+ * Configures the two selectors the hook reads: the feature flag and the
+ * deep-linked outdated item id.
+ *
+ * @param options - Selector return overrides.
+ * @param options.enabled - Value for `selectWhatsHappeningEnabled`.
+ * @param options.outdatedItemId - Value for `selectWhatsHappeningOutdatedItemId`.
+ */
+const configureSelectors = ({
+  enabled = true,
+  outdatedItemId = null,
+}: { enabled?: boolean; outdatedItemId?: string | null } = {}) => {
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectWhatsHappeningOutdatedItemId) {
+      return outdatedItemId;
+    }
+    if (selector === selectWhatsHappeningEnabled) {
+      return enabled;
+    }
+    return undefined;
+  });
+};
 
 const mockTrend = {
   title: 'Bitcoin ETF inflows hit record high',
@@ -55,8 +83,9 @@ const mockOverview = {
 describe('useWhatsHappening', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue(true);
+    configureSelectors();
     mockFetchMarketOverview.mockResolvedValue(mockOverview);
+    mockFetchFrontPageItem.mockResolvedValue(null);
   });
 
   it('starts in loading state when enabled', () => {
@@ -213,6 +242,102 @@ describe('useWhatsHappening', () => {
     expect(mockFetchMarketOverview).not.toHaveBeenCalled();
     expect(result.current.items).toHaveLength(0);
     expect(result.current.error).toBeNull();
+  });
+
+  describe('deep-linked outdated front-page item', () => {
+    const mockFrontPage = {
+      id: 'a3f1c2d4-5e6f-4a7b-8c9d-0e1f2a3b4c5d',
+      item: {
+        title: 'Older headline that dropped out of the report',
+        description: 'An older market overview item fetched by id.',
+        category: 'regulatory' as const,
+        impact: 'negative' as const,
+        relatedAssets: [
+          {
+            symbol: 'ETH',
+            name: 'Ethereum',
+            caip19: ['eip155:1/slip44:60'],
+          },
+        ],
+        articles: [],
+      },
+      ctaTitle: 'CTA title',
+      ctaDescription: 'CTA description',
+      createdAt: '2026-02-01T00:00:00.000Z',
+    };
+
+    it('prepends the fetched item first, flagged outdated, before the latest items', async () => {
+      configureSelectors({ outdatedItemId: mockFrontPage.id });
+      mockFetchFrontPageItem.mockResolvedValue(mockFrontPage);
+
+      const { result } = renderHook(() => useWhatsHappening());
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(mockFetchFrontPageItem).toHaveBeenCalledWith(mockFrontPage.id);
+      expect(result.current.items[0].isOutdated).toBe(true);
+      expect(result.current.items[0].id).toBe(`front-page-${mockFrontPage.id}`);
+      expect(result.current.items[0].title).toBe(mockFrontPage.item.title);
+      expect(result.current.items[0].date).toBe(mockFrontPage.createdAt);
+      expect(result.current.items[1].title).toBe(mockTrend.title);
+      expect(result.current.items[1].isOutdated).toBeUndefined();
+    });
+
+    it('keeps the total capped at the limit with the outdated item first', async () => {
+      configureSelectors({ outdatedItemId: mockFrontPage.id });
+      mockFetchFrontPageItem.mockResolvedValue(mockFrontPage);
+      mockFetchMarketOverview.mockResolvedValue({
+        ...mockOverview,
+        trends: [mockTrend, mockTrend],
+      });
+
+      const { result } = renderHook(() => useWhatsHappening(2));
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.items).toHaveLength(2);
+      expect(result.current.items[0].isOutdated).toBe(true);
+    });
+
+    it('shows the outdated item even when the market overview is empty', async () => {
+      configureSelectors({ outdatedItemId: mockFrontPage.id });
+      mockFetchFrontPageItem.mockResolvedValue(mockFrontPage);
+      mockFetchMarketOverview.mockResolvedValue(null);
+
+      const { result } = renderHook(() => useWhatsHappening());
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.items).toHaveLength(1);
+      expect(result.current.items[0].isOutdated).toBe(true);
+    });
+
+    it('falls back to the latest items when the front-page fetch fails', async () => {
+      configureSelectors({ outdatedItemId: mockFrontPage.id });
+      mockFetchFrontPageItem.mockRejectedValue(new Error('boom'));
+
+      const { result } = renderHook(() => useWhatsHappening());
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.items).toHaveLength(1);
+      expect(result.current.items[0].isOutdated).toBeUndefined();
+      expect(result.current.error).toBeNull();
+    });
+
+    it('falls back to the latest items when the front page is not found', async () => {
+      configureSelectors({ outdatedItemId: mockFrontPage.id });
+      mockFetchFrontPageItem.mockResolvedValue(null);
+
+      const { result } = renderHook(() => useWhatsHappening());
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(result.current.items).toHaveLength(1);
+      expect(result.current.items[0].isOutdated).toBeUndefined();
+    });
+
+    it('does not fetch a front-page item when no deep-linked id is set', async () => {
+      const { result } = renderHook(() => useWhatsHappening());
+      await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+      expect(mockFetchFrontPageItem).not.toHaveBeenCalled();
+    });
   });
 });
 

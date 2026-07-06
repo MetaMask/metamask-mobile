@@ -23,6 +23,7 @@ import { useViewportTracking } from '../../MarketInsights/hooks/useViewportTrack
 import { formatRelativeTime } from '../../MarketInsights/utils/marketInsightsFormatting';
 import { getWhatsHappeningEventProps } from '../eventProperties';
 import type { WhatsHappeningSourceValue } from '../constants';
+import { strings } from '../../../../../locales/i18n';
 import WhatsHappeningAssetSlider from './WhatsHappeningAssetSlider';
 
 interface WhatsHappeningCardProps {
@@ -71,28 +72,43 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
         )}
       >
         <Box gap={3} twClassName="mb-2">
-          {(item.impact || formattedDate) && (
+          {(item.isOutdated || item.impact || formattedDate) && (
             <Box
               flexDirection={BoxFlexDirection.Row}
               alignItems={BoxAlignItems.Center}
               justifyContent={BoxJustifyContent.Between}
               twClassName="w-full"
             >
-              {item.impact ? (
-                <Box
-                  twClassName={`rounded ${getImpactBackgroundClass(item.impact)} px-2 py-0.5`}
-                >
-                  <Text
-                    variant={TextVariant.BodyXs}
-                    color={getImpactTextColor(item.impact)}
-                    fontWeight={FontWeight.Medium}
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-1"
+              >
+                {item.isOutdated ? (
+                  <Box twClassName="rounded bg-warning-muted px-2 py-0.5">
+                    <Text
+                      variant={TextVariant.BodyXs}
+                      color={TextColor.WarningDefault}
+                      fontWeight={FontWeight.Medium}
+                    >
+                      {strings('whats_happening.outdated')}
+                    </Text>
+                  </Box>
+                ) : null}
+                {item.impact ? (
+                  <Box
+                    twClassName={`rounded ${getImpactBackgroundClass(item.impact)} px-2 py-0.5`}
                   >
-                    {getImpactLabel(item.impact)}
-                  </Text>
-                </Box>
-              ) : (
-                <Box />
-              )}
+                    <Text
+                      variant={TextVariant.BodyXs}
+                      color={getImpactTextColor(item.impact)}
+                      fontWeight={FontWeight.Medium}
+                    >
+                      {getImpactLabel(item.impact)}
+                    </Text>
+                  </Box>
+                ) : null}
+              </Box>
               {formattedDate ? (
                 <Text
                   variant={TextVariant.BodyXs}

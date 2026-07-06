@@ -151,6 +151,21 @@ describe('WhatsHappeningCard', () => {
     expect(screen.queryByText('Neutral')).toBeNull();
   });
 
+  it('renders the Outdated badge when the item is outdated', () => {
+    const item = { ...baseItem, isOutdated: true };
+    renderWithProvider(
+      <WhatsHappeningCard item={item} cardIndex={0} source="homepage" />,
+    );
+    expect(screen.getByText('Outdated')).toBeOnTheScreen();
+  });
+
+  it('does not render the Outdated badge by default', () => {
+    renderWithProvider(
+      <WhatsHappeningCard item={baseItem} cardIndex={0} source="homepage" />,
+    );
+    expect(screen.queryByText('Outdated')).toBeNull();
+  });
+
   it('renders the asset symbol on the pill when there is a single related asset', () => {
     renderWithProvider(
       <WhatsHappeningCard item={baseItem} cardIndex={0} source="homepage" />,

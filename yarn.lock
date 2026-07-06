@@ -7958,7 +7958,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ai-controllers@npm:^0.7.0":
+"@metamask/ai-controllers@npm:0.7.0":
   version: 0.7.0
   resolution: "@metamask/ai-controllers@npm:0.7.0"
   dependencies:
@@ -7967,6 +7967,18 @@ __metadata:
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.9.0"
   checksum: 10/129d02a26595f16362c6bb1905ef3885b369529eb0a174da46ed7add5fd1d6ffa4d00ba29e09f7583ef70a299dc99f33c82efc45eeea08ab7e5e712c4a3dc11d
+  languageName: node
+  linkType: hard
+
+"@metamask/ai-controllers@patch:@metamask/ai-controllers@npm%3A0.7.0#~/.yarn/patches/@metamask-ai-controllers-npm-0.7.0-5c88e9c9d3.patch":
+  version: 0.7.0
+  resolution: "@metamask/ai-controllers@patch:@metamask/ai-controllers@npm%3A0.7.0#~/.yarn/patches/@metamask-ai-controllers-npm-0.7.0-5c88e9c9d3.patch::version=0.7.0&hash=e9b953"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.1.0"
+    "@metamask/messenger": "npm:^1.2.0"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/utils": "npm:^11.9.0"
+  checksum: 10/1690904d9db42bd86a694fa613a2eeb4f3bfd6d5fef7f60abea60fb2f60de8d08d072bc23fd37e820e23bd23d1768bed866a1f7735e1cc6b52cd38b4fa6d9ed7
   languageName: node
   linkType: hard
 
@@ -35488,7 +35500,7 @@ __metadata:
     "@metamask/account-tree-controller": "npm:^7.5.0"
     "@metamask/accounts-controller": "npm:^39.0.2"
     "@metamask/address-book-controller": "npm:^7.1.2"
-    "@metamask/ai-controllers": "npm:^0.7.0"
+    "@metamask/ai-controllers": "patch:@metamask/ai-controllers@npm%3A0.7.0#~/.yarn/patches/@metamask-ai-controllers-npm-0.7.0-5c88e9c9d3.patch"
     "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^9.0.0"

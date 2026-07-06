@@ -1,0 +1,584 @@
+diff --git a/dist/AiDigestController-method-action-types.d.cts b/dist/AiDigestController-method-action-types.d.cts
+index 074019c6cddf9bab5c14feb5f1250a588ecbe975..016ed431a4a8be3814f4e2d9420acbdcd173b35c 100644
+--- a/dist/AiDigestController-method-action-types.d.cts
++++ b/dist/AiDigestController-method-action-types.d.cts
+@@ -28,8 +28,22 @@ export type AiDigestControllerFetchMarketOverviewAction = {
+     type: `AiDigestController:fetchMarketOverview`;
+     handler: AiDigestController['fetchMarketOverview'];
+ };
++/**
++ * Fetches a single market overview front page by id.
++ *
++ * Unlike the market overview report (which only returns the latest items),
++ * this resolves an older item that has since dropped out of the report, so
++ * clients can render it directly (e.g. from a deep link).
++ *
++ * @param id - The front-page identifier (UUID).
++ * @returns The market overview front page, or `null` if none exists.
++ */
++export type AiDigestControllerFetchFrontPageItemAction = {
++    type: `AiDigestController:fetchFrontPageItem`;
++    handler: AiDigestController['fetchFrontPageItem'];
++};
+ /**
+  * Union of all AiDigestController action types.
+  */
+-export type AiDigestControllerMethodActions = AiDigestControllerFetchMarketInsightsAction | AiDigestControllerFetchMarketOverviewAction;
++export type AiDigestControllerMethodActions = AiDigestControllerFetchMarketInsightsAction | AiDigestControllerFetchMarketOverviewAction | AiDigestControllerFetchFrontPageItemAction;
+ //# sourceMappingURL=AiDigestController-method-action-types.d.cts.map
+\ No newline at end of file
+diff --git a/dist/AiDigestController-method-action-types.d.mts b/dist/AiDigestController-method-action-types.d.mts
+index 539646f0ea4f366dec4822edae1b25bc64c4b55d..9a1619cfc3001f44864f77f5401ad4fec06d79a6 100644
+--- a/dist/AiDigestController-method-action-types.d.mts
++++ b/dist/AiDigestController-method-action-types.d.mts
+@@ -28,8 +28,22 @@ export type AiDigestControllerFetchMarketOverviewAction = {
+     type: `AiDigestController:fetchMarketOverview`;
+     handler: AiDigestController['fetchMarketOverview'];
+ };
++/**
++ * Fetches a single market overview front page by id.
++ *
++ * Unlike the market overview report (which only returns the latest items),
++ * this resolves an older item that has since dropped out of the report, so
++ * clients can render it directly (e.g. from a deep link).
++ *
++ * @param id - The front-page identifier (UUID).
++ * @returns The market overview front page, or `null` if none exists.
++ */
++export type AiDigestControllerFetchFrontPageItemAction = {
++    type: `AiDigestController:fetchFrontPageItem`;
++    handler: AiDigestController['fetchFrontPageItem'];
++};
+ /**
+  * Union of all AiDigestController action types.
+  */
+-export type AiDigestControllerMethodActions = AiDigestControllerFetchMarketInsightsAction | AiDigestControllerFetchMarketOverviewAction;
++export type AiDigestControllerMethodActions = AiDigestControllerFetchMarketInsightsAction | AiDigestControllerFetchMarketOverviewAction | AiDigestControllerFetchFrontPageItemAction;
+ //# sourceMappingURL=AiDigestController-method-action-types.d.mts.map
+\ No newline at end of file
+diff --git a/dist/AiDigestController.cjs b/dist/AiDigestController.cjs
+index 9adc717d517cf56ef9df7e7bbd50c16131c80067..1571b3b7558c8ba9d1b97da3d5ff611910ec3ff3 100644
+--- a/dist/AiDigestController.cjs
++++ b/dist/AiDigestController.cjs
+@@ -39,6 +39,7 @@ const aiDigestControllerMetadata = {
+ const MESSENGER_EXPOSED_METHODS = [
+     'fetchMarketInsights',
+     'fetchMarketOverview',
++    'fetchFrontPageItem',
+ ];
+ class AiDigestController extends base_controller_1.BaseController {
+     constructor({ messenger, state, digestService }) {
+@@ -127,6 +128,22 @@ class AiDigestController extends base_controller_1.BaseController {
+         });
+         return data;
+     }
++    /**
++     * Fetches a single market overview front page by id.
++     *
++     * Unlike the market overview report (which only returns the latest items),
++     * this resolves an older item that has since dropped out of the report, so
++     * clients can render it directly (e.g. from a deep link).
++     *
++     * @param id - The front-page identifier (UUID).
++     * @returns The market overview front page, or `null` if none exists.
++     */
++    async fetchFrontPageItem(id) {
++        if (!id) {
++            throw new Error(ai_digest_constants_1.AiDigestControllerErrorMessage.INVALID_FRONT_PAGE_ID);
++        }
++        return __classPrivateFieldGet(this, _AiDigestController_digestService, "f").fetchFrontPageItem(id);
++    }
+ }
+ exports.AiDigestController = AiDigestController;
+ _AiDigestController_digestService = new WeakMap(), _AiDigestController_instances = new WeakSet(), _AiDigestController_evictStaleCachedEntries = function _AiDigestController_evictStaleCachedEntries(cache) {
+diff --git a/dist/AiDigestController.d.cts b/dist/AiDigestController.d.cts
+index e854b83f16d06e83b7668d96a1d5d86ae4066aa3..7959541301465114ae72bf594edac90a1e3bc127 100644
+--- a/dist/AiDigestController.d.cts
++++ b/dist/AiDigestController.d.cts
+@@ -2,7 +2,7 @@ import type { ControllerStateChangeEvent, ControllerGetStateAction } from "@meta
+ import { BaseController } from "@metamask/base-controller";
+ import type { Messenger } from "@metamask/messenger";
+ import { controllerName } from "./ai-digest-constants.cjs";
+-import type { AiDigestControllerState, DigestService, MarketInsightsReport, MarketOverview } from "./ai-digest-types.cjs";
++import type { AiDigestControllerState, DigestService, MarketInsightsReport, MarketOverview, MarketOverviewFrontPage } from "./ai-digest-types.cjs";
+ import type { AiDigestControllerMethodActions } from "./AiDigestController-method-action-types.cjs";
+ export type AiDigestControllerGetStateAction = ControllerGetStateAction<typeof controllerName, AiDigestControllerState>;
+ export type AiDigestControllerActions = AiDigestControllerGetStateAction | AiDigestControllerMethodActions;
+@@ -37,5 +37,16 @@ export declare class AiDigestController extends BaseController<typeof controller
+      * @returns The market overview report, or `null` if none exists.
+      */
+     fetchMarketOverview(): Promise<MarketOverview | null>;
++    /**
++     * Fetches a single market overview front page by id.
++     *
++     * Unlike the market overview report (which only returns the latest items),
++     * this resolves an older item that has since dropped out of the report, so
++     * clients can render it directly (e.g. from a deep link).
++     *
++     * @param id - The front-page identifier (UUID).
++     * @returns The market overview front page, or `null` if none exists.
++     */
++    fetchFrontPageItem(id: string): Promise<MarketOverviewFrontPage | null>;
+ }
+ //# sourceMappingURL=AiDigestController.d.cts.map
+\ No newline at end of file
+diff --git a/dist/AiDigestController.d.mts b/dist/AiDigestController.d.mts
+index 39cc9a57ca96ac76d31751fb391f1137f1332477..fb8f63983898a7a453368f3e5f6db7752358b4ec 100644
+--- a/dist/AiDigestController.d.mts
++++ b/dist/AiDigestController.d.mts
+@@ -2,7 +2,7 @@ import type { ControllerStateChangeEvent, ControllerGetStateAction } from "@meta
+ import { BaseController } from "@metamask/base-controller";
+ import type { Messenger } from "@metamask/messenger";
+ import { controllerName } from "./ai-digest-constants.mjs";
+-import type { AiDigestControllerState, DigestService, MarketInsightsReport, MarketOverview } from "./ai-digest-types.mjs";
++import type { AiDigestControllerState, DigestService, MarketInsightsReport, MarketOverview, MarketOverviewFrontPage } from "./ai-digest-types.mjs";
+ import type { AiDigestControllerMethodActions } from "./AiDigestController-method-action-types.mjs";
+ export type AiDigestControllerGetStateAction = ControllerGetStateAction<typeof controllerName, AiDigestControllerState>;
+ export type AiDigestControllerActions = AiDigestControllerGetStateAction | AiDigestControllerMethodActions;
+@@ -37,5 +37,16 @@ export declare class AiDigestController extends BaseController<typeof controller
+      * @returns The market overview report, or `null` if none exists.
+      */
+     fetchMarketOverview(): Promise<MarketOverview | null>;
++    /**
++     * Fetches a single market overview front page by id.
++     *
++     * Unlike the market overview report (which only returns the latest items),
++     * this resolves an older item that has since dropped out of the report, so
++     * clients can render it directly (e.g. from a deep link).
++     *
++     * @param id - The front-page identifier (UUID).
++     * @returns The market overview front page, or `null` if none exists.
++     */
++    fetchFrontPageItem(id: string): Promise<MarketOverviewFrontPage | null>;
+ }
+ //# sourceMappingURL=AiDigestController.d.mts.map
+\ No newline at end of file
+diff --git a/dist/AiDigestController.mjs b/dist/AiDigestController.mjs
+index 579496ce8e671f95f972f802f7e4e91e77bac899..c9f96e0746312ab60e0d12a0b9776ebeb4e0729c 100644
+--- a/dist/AiDigestController.mjs
++++ b/dist/AiDigestController.mjs
+@@ -35,6 +35,7 @@ const aiDigestControllerMetadata = {
+ const MESSENGER_EXPOSED_METHODS = [
+     'fetchMarketInsights',
+     'fetchMarketOverview',
++    'fetchFrontPageItem',
+ ];
+ export class AiDigestController extends BaseController {
+     constructor({ messenger, state, digestService }) {
+@@ -123,6 +124,22 @@ export class AiDigestController extends BaseController {
+         });
+         return data;
+     }
++    /**
++     * Fetches a single market overview front page by id.
++     *
++     * Unlike the market overview report (which only returns the latest items),
++     * this resolves an older item that has since dropped out of the report, so
++     * clients can render it directly (e.g. from a deep link).
++     *
++     * @param id - The front-page identifier (UUID).
++     * @returns The market overview front page, or `null` if none exists.
++     */
++    async fetchFrontPageItem(id) {
++        if (!id) {
++            throw new Error(AiDigestControllerErrorMessage.INVALID_FRONT_PAGE_ID);
++        }
++        return __classPrivateFieldGet(this, _AiDigestController_digestService, "f").fetchFrontPageItem(id);
++    }
+ }
+ _AiDigestController_digestService = new WeakMap(), _AiDigestController_instances = new WeakSet(), _AiDigestController_evictStaleCachedEntries = function _AiDigestController_evictStaleCachedEntries(cache) {
+     const now = Date.now();
+diff --git a/dist/AiDigestService.cjs b/dist/AiDigestService.cjs
+index eb27a06c38727b6a86858d82155964eafe187e41..b5662e8f4eedf058d6397948ece2d40d31330ae5 100644
+--- a/dist/AiDigestService.cjs
++++ b/dist/AiDigestService.cjs
+@@ -94,15 +94,26 @@ const MarketOverviewStruct = (0, superstruct_1.type)({
+ const MarketOverviewReportEnvelopeStruct = (0, superstruct_1.type)({
+     report: MarketOverviewStruct,
+ });
++// A single front-page row. `item` shares the exact same schema as an
++// individual market overview trend; `ctaTitle`/`ctaDescription` are the
++// AI-authored call-to-action copy layered on top.
++const MarketOverviewFrontPageStruct = (0, superstruct_1.type)({
++    id: (0, superstruct_1.string)(),
++    item: MarketOverviewTrendStruct,
++    ctaTitle: (0, superstruct_1.string)(),
++    ctaDescription: (0, superstruct_1.string)(),
++    createdAt: (0, superstruct_1.string)(),
++});
++const normalizeItemRelatedAssets = (item) => ({
++    ...item,
++    relatedAssets: item.relatedAssets.map((asset) => ({
++        ...asset,
++        caip19: asset.caip19 ?? [],
++    })),
++});
+ const normalizeRelatedAssets = (raw) => ({
+     ...raw,
+-    trends: raw.trends.map((trend) => ({
+-        ...trend,
+-        relatedAssets: trend.relatedAssets.map((asset) => ({
+-            ...asset,
+-            caip19: asset.caip19 ?? [],
+-        })),
+-    })),
++    trends: raw.trends.map(normalizeItemRelatedAssets),
+ });
+ const getNormalizedMarketOverview = (value) => {
+     if ((0, superstruct_1.is)(value, MarketOverviewStruct)) {
+@@ -113,6 +124,12 @@ const getNormalizedMarketOverview = (value) => {
+     }
+     return null;
+ };
++const getNormalizedFrontPage = (value) => {
++    if (!(0, superstruct_1.is)(value, MarketOverviewFrontPageStruct)) {
++        return null;
++    }
++    return { ...value, item: normalizeItemRelatedAssets(value.item) };
++};
+ const getNormalizedMarketInsightsReport = (value) => {
+     if ((0, superstruct_1.is)(value, MarketInsightsDigestEnvelopeStruct)) {
+         return { ...value.digest, digestId: value.id };
+@@ -145,6 +162,28 @@ class AiDigestService {
+         }
+         return overview;
+     }
++    /**
++     * Fetch a single market overview front page by id.
++     *
++     * Calls `GET ${this.#baseUrl}/market-overview/front-page/:id`.
++     *
++     * @param id - The front-page identifier (UUID).
++     * @returns The market overview front page, or `null` if none exists (404).
++     */
++    async fetchFrontPageItem(id) {
++        const response = await fetch(`${__classPrivateFieldGet(this, _AiDigestService_baseUrl, "f")}/market-overview/front-page/${encodeURIComponent(id)}`);
++        if (response.status === 404) {
++            return null;
++        }
++        if (!response.ok) {
++            throw new Error(`${ai_digest_constants_1.AiDigestControllerErrorMessage.API_REQUEST_FAILED}: ${response.status}`);
++        }
++        const frontPage = getNormalizedFrontPage(await response.json());
++        if (!frontPage) {
++            throw new Error(ai_digest_constants_1.AiDigestControllerErrorMessage.API_INVALID_RESPONSE);
++        }
++        return frontPage;
++    }
+     /**
+      * Search for market insights by asset identifier.
+      *
+diff --git a/dist/AiDigestService.d.cts b/dist/AiDigestService.d.cts
+index c9b06acbe67ad8e15cde16d123c0cb902513dc0a..846144562856937ab9923d66a3cc31a907d1b068 100644
+--- a/dist/AiDigestService.d.cts
++++ b/dist/AiDigestService.d.cts
+@@ -1,4 +1,4 @@
+-import type { DigestService, MarketInsightsReport, MarketOverview } from "./ai-digest-types.cjs";
++import type { DigestService, MarketInsightsReport, MarketOverview, MarketOverviewFrontPage } from "./ai-digest-types.cjs";
+ export type AiDigestServiceConfig = {
+     baseUrl: string;
+ };
+@@ -13,6 +13,15 @@ export declare class AiDigestService implements DigestService {
+      * @returns The market overview report, or `null` if none exists (404).
+      */
+     fetchMarketOverview(): Promise<MarketOverview | null>;
++    /**
++     * Fetch a single market overview front page by id.
++     *
++     * Calls `GET ${this.#baseUrl}/market-overview/front-page/:id`.
++     *
++     * @param id - The front-page identifier (UUID).
++     * @returns The market overview front page, or `null` if none exists (404).
++     */
++    fetchFrontPageItem(id: string): Promise<MarketOverviewFrontPage | null>;
+     /**
+      * Search for market insights by asset identifier.
+      *
+diff --git a/dist/AiDigestService.d.mts b/dist/AiDigestService.d.mts
+index ea89ddc81cc505885272b90608277a5c737e6fc9..08ad0ed2c3696fcf61b6556866bbbc8cfb6c195b 100644
+--- a/dist/AiDigestService.d.mts
++++ b/dist/AiDigestService.d.mts
+@@ -1,4 +1,4 @@
+-import type { DigestService, MarketInsightsReport, MarketOverview } from "./ai-digest-types.mjs";
++import type { DigestService, MarketInsightsReport, MarketOverview, MarketOverviewFrontPage } from "./ai-digest-types.mjs";
+ export type AiDigestServiceConfig = {
+     baseUrl: string;
+ };
+@@ -13,6 +13,15 @@ export declare class AiDigestService implements DigestService {
+      * @returns The market overview report, or `null` if none exists (404).
+      */
+     fetchMarketOverview(): Promise<MarketOverview | null>;
++    /**
++     * Fetch a single market overview front page by id.
++     *
++     * Calls `GET ${this.#baseUrl}/market-overview/front-page/:id`.
++     *
++     * @param id - The front-page identifier (UUID).
++     * @returns The market overview front page, or `null` if none exists (404).
++     */
++    fetchFrontPageItem(id: string): Promise<MarketOverviewFrontPage | null>;
+     /**
+      * Search for market insights by asset identifier.
+      *
+diff --git a/dist/AiDigestService.mjs b/dist/AiDigestService.mjs
+index bbc2c232d3a64eddc21ab3a162455a84562875f0..fa36d4ffe349a4b1692161a80b50253e8fd19d3a 100644
+--- a/dist/AiDigestService.mjs
++++ b/dist/AiDigestService.mjs
+@@ -91,15 +91,26 @@ const MarketOverviewStruct = structType({
+ const MarketOverviewReportEnvelopeStruct = structType({
+     report: MarketOverviewStruct,
+ });
++// A single front-page row. `item` shares the exact same schema as an
++// individual market overview trend; `ctaTitle`/`ctaDescription` are the
++// AI-authored call-to-action copy layered on top.
++const MarketOverviewFrontPageStruct = structType({
++    id: string(),
++    item: MarketOverviewTrendStruct,
++    ctaTitle: string(),
++    ctaDescription: string(),
++    createdAt: string(),
++});
++const normalizeItemRelatedAssets = (item) => ({
++    ...item,
++    relatedAssets: item.relatedAssets.map((asset) => ({
++        ...asset,
++        caip19: asset.caip19 ?? [],
++    })),
++});
+ const normalizeRelatedAssets = (raw) => ({
+     ...raw,
+-    trends: raw.trends.map((trend) => ({
+-        ...trend,
+-        relatedAssets: trend.relatedAssets.map((asset) => ({
+-            ...asset,
+-            caip19: asset.caip19 ?? [],
+-        })),
+-    })),
++    trends: raw.trends.map(normalizeItemRelatedAssets),
+ });
+ const getNormalizedMarketOverview = (value) => {
+     if (is(value, MarketOverviewStruct)) {
+@@ -110,6 +121,12 @@ const getNormalizedMarketOverview = (value) => {
+     }
+     return null;
+ };
++const getNormalizedFrontPage = (value) => {
++    if (!is(value, MarketOverviewFrontPageStruct)) {
++        return null;
++    }
++    return { ...value, item: normalizeItemRelatedAssets(value.item) };
++};
+ const getNormalizedMarketInsightsReport = (value) => {
+     if (is(value, MarketInsightsDigestEnvelopeStruct)) {
+         return { ...value.digest, digestId: value.id };
+@@ -142,6 +159,28 @@ export class AiDigestService {
+         }
+         return overview;
+     }
++    /**
++     * Fetch a single market overview front page by id.
++     *
++     * Calls `GET ${this.#baseUrl}/market-overview/front-page/:id`.
++     *
++     * @param id - The front-page identifier (UUID).
++     * @returns The market overview front page, or `null` if none exists (404).
++     */
++    async fetchFrontPageItem(id) {
++        const response = await fetch(`${__classPrivateFieldGet(this, _AiDigestService_baseUrl, "f")}/market-overview/front-page/${encodeURIComponent(id)}`);
++        if (response.status === 404) {
++            return null;
++        }
++        if (!response.ok) {
++            throw new Error(`${AiDigestControllerErrorMessage.API_REQUEST_FAILED}: ${response.status}`);
++        }
++        const frontPage = getNormalizedFrontPage(await response.json());
++        if (!frontPage) {
++            throw new Error(AiDigestControllerErrorMessage.API_INVALID_RESPONSE);
++        }
++        return frontPage;
++    }
+     /**
+      * Search for market insights by asset identifier.
+      *
+diff --git a/dist/ai-digest-constants.cjs b/dist/ai-digest-constants.cjs
+index ea5c8a00e8957911102a82a94991530fc65a95e5..55c426c580578ec04408bf75377303fc0fb51075 100644
+--- a/dist/ai-digest-constants.cjs
++++ b/dist/ai-digest-constants.cjs
+@@ -8,5 +8,6 @@ exports.AiDigestControllerErrorMessage = {
+     API_REQUEST_FAILED: 'API request failed',
+     API_INVALID_RESPONSE: 'API returned invalid response',
+     INVALID_ASSET_IDENTIFIER: 'Invalid asset identifier',
++    INVALID_FRONT_PAGE_ID: 'Invalid front page id',
+ };
+ //# sourceMappingURL=ai-digest-constants.cjs.map
+\ No newline at end of file
+diff --git a/dist/ai-digest-constants.d.cts b/dist/ai-digest-constants.d.cts
+index cc6038e58ac7a9e23c712f64d4955b94f68f8671..db24a562c3e2d37917d14e700e8d7da13e596f2d 100644
+--- a/dist/ai-digest-constants.d.cts
++++ b/dist/ai-digest-constants.d.cts
+@@ -5,5 +5,6 @@ export declare const AiDigestControllerErrorMessage: {
+     readonly API_REQUEST_FAILED: "API request failed";
+     readonly API_INVALID_RESPONSE: "API returned invalid response";
+     readonly INVALID_ASSET_IDENTIFIER: "Invalid asset identifier";
++    readonly INVALID_FRONT_PAGE_ID: "Invalid front page id";
+ };
+ //# sourceMappingURL=ai-digest-constants.d.cts.map
+\ No newline at end of file
+diff --git a/dist/ai-digest-constants.d.mts b/dist/ai-digest-constants.d.mts
+index 9b6c3676dee6fb0cf25a00d619173ba76dab6f10..0e36e356b7a4a83b649925490944a6af0feb495c 100644
+--- a/dist/ai-digest-constants.d.mts
++++ b/dist/ai-digest-constants.d.mts
+@@ -5,5 +5,6 @@ export declare const AiDigestControllerErrorMessage: {
+     readonly API_REQUEST_FAILED: "API request failed";
+     readonly API_INVALID_RESPONSE: "API returned invalid response";
+     readonly INVALID_ASSET_IDENTIFIER: "Invalid asset identifier";
++    readonly INVALID_FRONT_PAGE_ID: "Invalid front page id";
+ };
+ //# sourceMappingURL=ai-digest-constants.d.mts.map
+\ No newline at end of file
+diff --git a/dist/ai-digest-constants.mjs b/dist/ai-digest-constants.mjs
+index e05c504ade16e49034f97566504e926854bea43a..092a22238fe48cf9aee40af7ace8b79bf810bc50 100644
+--- a/dist/ai-digest-constants.mjs
++++ b/dist/ai-digest-constants.mjs
+@@ -5,5 +5,6 @@ export const AiDigestControllerErrorMessage = {
+     API_REQUEST_FAILED: 'API request failed',
+     API_INVALID_RESPONSE: 'API returned invalid response',
+     INVALID_ASSET_IDENTIFIER: 'Invalid asset identifier',
++    INVALID_FRONT_PAGE_ID: 'Invalid front page id',
+ };
+ //# sourceMappingURL=ai-digest-constants.mjs.map
+\ No newline at end of file
+diff --git a/dist/ai-digest-types.d.cts b/dist/ai-digest-types.d.cts
+index 2de03acb27497633ef6694e52b971a5607c58f77..fca612534b25749b026d98e01853779f0ca52416 100644
+--- a/dist/ai-digest-types.d.cts
++++ b/dist/ai-digest-types.d.cts
+@@ -152,6 +152,31 @@ export type MarketOverview = {
+     trends: MarketOverviewTrend[];
+     metadata?: AIResponseMetadata[];
+ };
++/**
++ * A single market overview item. Shares the exact same schema as a
++ * {@link MarketOverviewTrend} — i.e. one entry of `MarketOverview.trends`.
++ */
++export type MarketOverviewItem = MarketOverviewTrend;
++/**
++ * A market overview "front page": a single AI-selected item (mirroring the
++ * front page of a newspaper) plus its call-to-action copy, addressable by id.
++ *
++ * Returned by `GET /market-overview/front-page/:id` (and `.../latest`). Unlike
++ * `/market-overview`, which only ever returns the latest report, this lets
++ * clients fetch an older item that has since dropped out of the report.
++ */
++export type MarketOverviewFrontPage = {
++    /** Unique identifier of the front-page row (UUID). */
++    id: string;
++    /** The selected item — same schema as an individual market overview item. */
++    item: MarketOverviewItem;
++    /** Call-to-action title for the front-page item. */
++    ctaTitle: string;
++    /** Call-to-action description for the front-page item. */
++    ctaDescription: string;
++    /** ISO date string when the front-page row was created. */
++    createdAt: string;
++};
+ export type AiDigestControllerState = {
+     marketInsights: Record<string, MarketInsightsEntry>;
+     marketOverview: MarketOverviewEntry | null;
+@@ -177,5 +202,13 @@ export type DigestService = {
+      * @returns The market overview report, or `null` if none exists (404).
+      */
+     fetchMarketOverview(): Promise<MarketOverview | null>;
++    /**
++     * Fetch a single market overview front page by id.
++     * Calls `GET /market-overview/front-page/:id`.
++     *
++     * @param id - The front-page identifier (UUID).
++     * @returns The market overview front page, or `null` if none exists (404).
++     */
++    fetchFrontPageItem(id: string): Promise<MarketOverviewFrontPage | null>;
+ };
+ //# sourceMappingURL=ai-digest-types.d.cts.map
+\ No newline at end of file
+diff --git a/dist/ai-digest-types.d.mts b/dist/ai-digest-types.d.mts
+index f4043feeeb2c9243ea5fe087f863de895e23c914..2c57241a768a439a33d6c080c31350b6f7196a3d 100644
+--- a/dist/ai-digest-types.d.mts
++++ b/dist/ai-digest-types.d.mts
+@@ -152,6 +152,31 @@ export type MarketOverview = {
+     trends: MarketOverviewTrend[];
+     metadata?: AIResponseMetadata[];
+ };
++/**
++ * A single market overview item. Shares the exact same schema as a
++ * {@link MarketOverviewTrend} — i.e. one entry of `MarketOverview.trends`.
++ */
++export type MarketOverviewItem = MarketOverviewTrend;
++/**
++ * A market overview "front page": a single AI-selected item (mirroring the
++ * front page of a newspaper) plus its call-to-action copy, addressable by id.
++ *
++ * Returned by `GET /market-overview/front-page/:id` (and `.../latest`). Unlike
++ * `/market-overview`, which only ever returns the latest report, this lets
++ * clients fetch an older item that has since dropped out of the report.
++ */
++export type MarketOverviewFrontPage = {
++    /** Unique identifier of the front-page row (UUID). */
++    id: string;
++    /** The selected item — same schema as an individual market overview item. */
++    item: MarketOverviewItem;
++    /** Call-to-action title for the front-page item. */
++    ctaTitle: string;
++    /** Call-to-action description for the front-page item. */
++    ctaDescription: string;
++    /** ISO date string when the front-page row was created. */
++    createdAt: string;
++};
+ export type AiDigestControllerState = {
+     marketInsights: Record<string, MarketInsightsEntry>;
+     marketOverview: MarketOverviewEntry | null;
+@@ -177,5 +202,13 @@ export type DigestService = {
+      * @returns The market overview report, or `null` if none exists (404).
+      */
+     fetchMarketOverview(): Promise<MarketOverview | null>;
++    /**
++     * Fetch a single market overview front page by id.
++     * Calls `GET /market-overview/front-page/:id`.
++     *
++     * @param id - The front-page identifier (UUID).
++     * @returns The market overview front page, or `null` if none exists (404).
++     */
++    fetchFrontPageItem(id: string): Promise<MarketOverviewFrontPage | null>;
+ };
+ //# sourceMappingURL=ai-digest-types.d.mts.map
+\ No newline at end of file
+diff --git a/dist/index.d.cts b/dist/index.d.cts
+index 5ae730fdf3fff71f07bc2135b1696e6e480f83ee..3a3a2235bda90d078f9e0eb00aa5f42c6fb6cb47 100644
+--- a/dist/index.d.cts
++++ b/dist/index.d.cts
+@@ -1,8 +1,8 @@
+ export type { AiDigestControllerActions, AiDigestControllerEvents, AiDigestControllerGetStateAction, AiDigestControllerMessenger, AiDigestControllerOptions, AiDigestControllerStateChangeEvent, } from "./AiDigestController.cjs";
+ export { AiDigestController, getDefaultAiDigestControllerState, } from "./AiDigestController.cjs";
+-export type { AiDigestControllerFetchMarketInsightsAction, AiDigestControllerFetchMarketOverviewAction, } from "./AiDigestController-method-action-types.cjs";
++export type { AiDigestControllerFetchMarketInsightsAction, AiDigestControllerFetchMarketOverviewAction, AiDigestControllerFetchFrontPageItemAction, } from "./AiDigestController-method-action-types.cjs";
+ export type { AiDigestServiceConfig } from "./AiDigestService.cjs";
+ export { AiDigestService } from "./AiDigestService.cjs";
+-export type { AiDigestControllerState, AIResponseMetadata, Article, DigestService, MarketInsightsArticle, MarketInsightsEntry, MarketInsightsReport, MarketInsightsSource, MarketInsightsTrend, MarketInsightsTweet, MarketOverview, MarketOverviewEntry, MarketOverviewTrend, RelatedAsset, Source, Tweet, } from "./ai-digest-types.cjs";
++export type { AiDigestControllerState, AIResponseMetadata, Article, DigestService, MarketInsightsArticle, MarketInsightsEntry, MarketInsightsReport, MarketInsightsSource, MarketInsightsTrend, MarketInsightsTweet, MarketOverview, MarketOverviewEntry, MarketOverviewFrontPage, MarketOverviewItem, MarketOverviewTrend, RelatedAsset, Source, Tweet, } from "./ai-digest-types.cjs";
+ export { controllerName as aiDigestControllerName, CACHE_DURATION_MS, MAX_CACHE_ENTRIES, AiDigestControllerErrorMessage, } from "./ai-digest-constants.cjs";
+ //# sourceMappingURL=index.d.cts.map
+\ No newline at end of file
+diff --git a/dist/index.d.mts b/dist/index.d.mts
+index 87d2efe7985aaa6b8a317b3091284f3f668c9283..93aaacfe411d2ede1e7fe189827e37095879efac 100644
+--- a/dist/index.d.mts
++++ b/dist/index.d.mts
+@@ -1,8 +1,8 @@
+ export type { AiDigestControllerActions, AiDigestControllerEvents, AiDigestControllerGetStateAction, AiDigestControllerMessenger, AiDigestControllerOptions, AiDigestControllerStateChangeEvent, } from "./AiDigestController.mjs";
+ export { AiDigestController, getDefaultAiDigestControllerState, } from "./AiDigestController.mjs";
+-export type { AiDigestControllerFetchMarketInsightsAction, AiDigestControllerFetchMarketOverviewAction, } from "./AiDigestController-method-action-types.mjs";
++export type { AiDigestControllerFetchMarketInsightsAction, AiDigestControllerFetchMarketOverviewAction, AiDigestControllerFetchFrontPageItemAction, } from "./AiDigestController-method-action-types.mjs";
+ export type { AiDigestServiceConfig } from "./AiDigestService.mjs";
+ export { AiDigestService } from "./AiDigestService.mjs";
+-export type { AiDigestControllerState, AIResponseMetadata, Article, DigestService, MarketInsightsArticle, MarketInsightsEntry, MarketInsightsReport, MarketInsightsSource, MarketInsightsTrend, MarketInsightsTweet, MarketOverview, MarketOverviewEntry, MarketOverviewTrend, RelatedAsset, Source, Tweet, } from "./ai-digest-types.mjs";
++export type { AiDigestControllerState, AIResponseMetadata, Article, DigestService, MarketInsightsArticle, MarketInsightsEntry, MarketInsightsReport, MarketInsightsSource, MarketInsightsTrend, MarketInsightsTweet, MarketOverview, MarketOverviewEntry, MarketOverviewFrontPage, MarketOverviewItem, MarketOverviewTrend, RelatedAsset, Source, Tweet, } from "./ai-digest-types.mjs";
+ export { controllerName as aiDigestControllerName, CACHE_DURATION_MS, MAX_CACHE_ENTRIES, AiDigestControllerErrorMessage, } from "./ai-digest-constants.mjs";
+ //# sourceMappingURL=index.d.mts.map
+\ No newline at end of file

@@ -81,6 +81,9 @@ const initialRootState: RootState = {
   attribution: {
     attribution: null,
   },
+  whatsHappeningDeeplink: {
+    outdatedItemId: null,
+  },
 };
 
 if (isTestEnvironment) {
