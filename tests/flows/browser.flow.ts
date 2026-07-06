@@ -163,8 +163,11 @@ export const navigateToBrowserView = async (): Promise<void> => {
   // If we landed on the "Opened tabs" grid (tab list), select the first tab to get to single-tab view
   await ensureSingleBrowserTabView();
 
-  await Assertions.expectElementToBeVisible(getBrowserUrlBarVisibleIndicator(), {
-    description: 'Browser URL bar should be visible after navigation',
-    timeout: FrameworkDetector.isAppium() ? 30_000 : undefined,
-  });
+  await Assertions.expectElementToBeVisible(
+    getBrowserUrlBarVisibleIndicator(),
+    {
+      description: 'Browser URL bar should be visible after navigation',
+      timeout: FrameworkDetector.isAppium() ? 30_000 : undefined,
+    },
+  );
 };

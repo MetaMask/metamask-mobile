@@ -87,7 +87,9 @@ class Browser {
             `//*[contains(@resource-id,'${BrowserViewSelectorsIDs.URL_INPUT}')]//android.widget.TextView`,
           ),
         ios: () =>
-          PlaywrightMatchers.getElementById(BrowserURLBarSelectorsIDs.URL_INPUT),
+          PlaywrightMatchers.getElementById(
+            BrowserURLBarSelectorsIDs.URL_INPUT,
+          ),
       },
     });
   }
@@ -104,7 +106,9 @@ class Browser {
             `//*[contains(@resource-id,'${BrowserViewSelectorsIDs.URL_INPUT}')]//android.widget.EditText`,
           ),
         ios: () =>
-          PlaywrightMatchers.getElementById(BrowserURLBarSelectorsIDs.URL_INPUT),
+          PlaywrightMatchers.getElementById(
+            BrowserURLBarSelectorsIDs.URL_INPUT,
+          ),
       },
     });
   }
