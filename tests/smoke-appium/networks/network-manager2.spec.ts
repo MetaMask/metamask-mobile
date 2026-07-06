@@ -78,8 +78,8 @@ appiumTest.describe(SmokeNetworkAbstractions('Network Manager'), () => {
 
           step('navigate to browser view');
           await navigateToBrowserView();
-          step('navigate to test dapp');
-          await Browser.navigateToTestDApp();
+          // Fixture tab URL is pre-seeded to the test dapp; Appium Android URL bar
+          // entry is unreliable on CI, so interact with the dapp WebView directly.
           step('tap open network picker in dapp');
           await TestDApp.tapOpenNetworkPicker();
           step(`tap network ${POLYGON} in dapp`);
