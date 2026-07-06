@@ -10,13 +10,23 @@ import {
 } from '../../testUtils/fixtures';
 import { BridgeTokenSelector } from './BridgeTokenSelector';
 import { tokenToIncludeAsset } from '../../utils/tokenUtils';
+import {
+  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  TokenSelectorBalanceLayoutVariant,
+} from '../TokenSelectorItem.abTestConfig';
 
-let mockBridgeFeatureFlags = {
+let mockBridgeFeatureFlags: {
+  chainRanking?: { chainId: CaipChainId; name?: string }[];
+  chains?: Record<string, { noFeeAssets?: string[] }>;
+} = {
   chainRanking: [
-    { chainId: MOCK_CHAIN_IDS.ethereum },
-    { chainId: MOCK_CHAIN_IDS.polygon },
+    { chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' },
+    { chainId: MOCK_CHAIN_IDS.polygon, name: 'Polygon' },
   ],
+  chains: {},
 };
+
+let mockRWAEnabled = false;
 
 interface MockBridgeState {
   sourceToken: ReturnType<typeof createMockToken> | null;
@@ -119,6 +129,23 @@ jest.mock('../../../../../selectors/networkController', () => ({
     '0x1': { name: 'Ethereum Mainnet', chainId: '0x1' },
     '0x89': { name: 'Polygon', chainId: '0x89' },
   })),
+}));
+
+jest.mock('../../../../../selectors/featureFlagController/rwa', () => ({
+  selectRWAEnabledFlag: jest.fn(() => mockRWAEnabled),
+}));
+
+const mockUseABTest = jest.fn(() => ({
+  variant:
+    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
+      TokenSelectorBalanceLayoutVariant.Control
+    ],
+  variantName: 'control',
+  isActive: false,
+}));
+
+jest.mock('../../../../../hooks', () => ({
+  useABTest: () => mockUseABTest(),
 }));
 
 // Use a getter to access mockBridgeFeatureFlags at runtime (after variable is defined)
@@ -461,27 +488,40 @@ jest.mock('../SkeletonItem', () => ({
   },
 }));
 
+interface MockTokenSelectorItemProps {
+  token: {
+    symbol: string;
+    address: string;
+    chainId: string;
+    isVerified?: boolean;
+  };
+  onPress: (token: {
+    symbol: string;
+    address: string;
+    chainId: string;
+  }) => void;
+  children?: React.ReactNode;
+  isNoFeeAsset?: boolean;
+  showStockBadge?: boolean;
+  balanceLayoutConfigOverride?: {
+    showTokenBalanceFirst: boolean;
+    removeTickerFromTokenBalance: boolean;
+  };
+}
+
+const mockTokenSelectorItemPropsBySymbol: Record<
+  string,
+  MockTokenSelectorItemProps[]
+> = {};
+
 jest.mock('../TokenSelectorItem', () => ({
-  TokenSelectorItem: ({
-    token,
-    onPress,
-    children,
-  }: {
-    token: {
-      symbol: string;
-      address: string;
-      chainId: string;
-      isVerified?: boolean;
-    };
-    onPress: (token: {
-      symbol: string;
-      address: string;
-      chainId: string;
-    }) => void;
-    children?: React.ReactNode;
-  }) => {
+  TokenSelectorItem: (props: MockTokenSelectorItemProps) => {
+    const { token, onPress, children } = props;
     const { createElement } = jest.requireActual('react');
     const { TouchableOpacity, Text, View } = jest.requireActual('react-native');
+
+    (mockTokenSelectorItemPropsBySymbol[token.symbol] ||= []).push(props);
+
     return createElement(
       TouchableOpacity,
       { onPress: () => onPress(token), testID: `token-${token.symbol}` },
@@ -492,6 +532,12 @@ jest.mock('../TokenSelectorItem', () => ({
             { testID: `verified-${token.symbol}` },
             'verified',
           )
+        : null,
+      props.isNoFeeAsset
+        ? createElement(Text, { testID: `no-fee-${token.symbol}` }, 'No fee')
+        : null,
+      props.showStockBadge
+        ? createElement(Text, { testID: `stock-${token.symbol}` }, 'Stock')
         : null,
       createElement(View, null, children),
     );
@@ -507,10 +553,24 @@ const resetMocks = () => {
   mockRouteParams = { type: 'source' };
   mockBridgeFeatureFlags = {
     chainRanking: [
-      { chainId: MOCK_CHAIN_IDS.ethereum },
-      { chainId: MOCK_CHAIN_IDS.polygon },
+      { chainId: MOCK_CHAIN_IDS.ethereum, name: 'Ethereum' },
+      { chainId: MOCK_CHAIN_IDS.polygon, name: 'Polygon' },
     ],
+    chains: {},
   };
+  mockRWAEnabled = false;
+  mockUseABTest.mockClear();
+  mockUseABTest.mockReturnValue({
+    variant:
+      TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
+        TokenSelectorBalanceLayoutVariant.Control
+      ],
+    variantName: 'control',
+    isActive: false,
+  });
+  Object.keys(mockTokenSelectorItemPropsBySymbol).forEach(
+    (symbol) => delete mockTokenSelectorItemPropsBySymbol[symbol],
+  );
   mockPopularTokensState = {
     popularTokens: [
       createMockPopularToken({ symbol: 'USDC', name: 'USD Coin' }),
@@ -677,6 +737,10 @@ describe('BridgeTokenSelector', () => {
         store,
       );
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      expect(mockTokenSelectorItemPropsBySymbol.USDC.at(-1)?.isNoFeeAsset).toBe(
+        true,
+      );
+
       mockRouteParams = { type: 'dest' };
       rerender(
         <Provider store={store}>
@@ -684,6 +748,9 @@ describe('BridgeTokenSelector', () => {
         </Provider>,
       );
       await waitFor(() => expect(getByTestId('token-USDC')).toBeTruthy());
+      expect(mockTokenSelectorItemPropsBySymbol.USDC.at(-1)?.isNoFeeAsset).toBe(
+        true,
+      );
     });
 
     it('passes verified popular tokens through to selector rows', async () => {
