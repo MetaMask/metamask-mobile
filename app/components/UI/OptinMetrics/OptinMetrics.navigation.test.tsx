@@ -47,11 +47,15 @@ jest.mock('react-redux', () => {
   };
 });
 
-const mockGetShouldShow = jest.fn();
+const mockEligibility = {
+  shouldShowQuestionnaire: true,
+  variantName: 'treatment',
+  isActive: true,
+};
 jest.mock(
   '../../../hooks/useOnboardingInterestQuestionnaireEligibility',
   () => ({
-    useOnboardingInterestQuestionnaireEligibility: () => mockGetShouldShow,
+    useOnboardingInterestQuestionnaireEligibility: () => mockEligibility,
   }),
 );
 
@@ -175,6 +179,9 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
     mockOptinMetricsTestOnboardingSlice.events = [];
     mockOptinMetricsTestOnboardingSlice.accountType = undefined;
     mockRouteParams = undefined;
+    mockEligibility.shouldShowQuestionnaire = true;
+    mockEligibility.variantName = 'treatment';
+    mockEligibility.isActive = true;
     jest.clearAllMocks();
     jest.mocked(useAnalytics).mockReturnValue(
       createMockUseAnalyticsHook({
@@ -203,7 +210,7 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
 
   describe('when basic usage data is unchecked', () => {
     it('does not navigate to the interest questionnaire regardless of eligibility', async () => {
-      mockGetShouldShow.mockResolvedValue(true);
+      mockEligibility.shouldShowQuestionnaire = true;
 
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
@@ -226,8 +233,8 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
     });
   });
 
-  describe('when basic usage data is checked', () => {
-    it('always navigates to the interest questionnaire', async () => {
+  describe('when basic usage data is checked and AB test assigns treatment', () => {
+    it('navigates to the interest questionnaire', async () => {
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       fireEvent.press(
@@ -247,8 +254,12 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
     });
   });
 
-  describe('when basic usage data is checked (questionnaire always shown)', () => {
-    it('navigates to the interest questionnaire regardless of eligibility mock state', async () => {
+  describe('when basic usage data is checked and AB test assigns control', () => {
+    it('skips the interest questionnaire and continues navigation', async () => {
+      mockEligibility.shouldShowQuestionnaire = false;
+      mockEligibility.variantName = 'control';
+      mockEligibility.isActive = false;
+
       renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
 
       fireEvent.press(
@@ -258,11 +269,9 @@ describe('OptinMetrics — interest questionnaire navigation branching', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(
+        expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.ONBOARDING.INTEREST_QUESTIONNAIRE,
-          expect.objectContaining({
-            onComplete: expect.any(Function),
-          }),
+          expect.anything(),
         );
       });
     });

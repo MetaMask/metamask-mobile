@@ -18,6 +18,7 @@ import {
   initialStateSeedlessOnboarding,
   SEEDLESS_CV_ACCESS_TOKEN,
 } from '../presets/seedlessOnboarding';
+import { ONBOARDING_INTEREST_QUESTIONNAIRE_AB_KEY } from '../../../app/components/Views/OnboardingInterestQuestionnaire/abTestConfig';
 import Engine from '../../../app/core/Engine';
 
 const ACCOUNT_ALREADY_EXISTS_ROUTE = 'AccountAlreadyExists';
@@ -37,7 +38,9 @@ interface SeedlessOnboardingRendererOptions
 function buildSeedlessOnboardingState(
   options: SeedlessOnboardingStateOptions = {},
 ) {
-  const builder = initialStateSeedlessOnboarding();
+  const builder = initialStateSeedlessOnboarding().withRemoteFeatureFlags({
+    [ONBOARDING_INTEREST_QUESTIONNAIRE_AB_KEY]: 'treatment',
+  });
   if (options.overrides) {
     builder.withOverrides(options.overrides);
   }

@@ -156,12 +156,15 @@ jest.mock('../../../util/device', () => ({
   isMediumDevice: jest.fn(),
 }));
 
-const mockGetShouldShowQuestionnaire = jest.fn().mockResolvedValue(false);
+const mockEligibility = {
+  shouldShowQuestionnaire: true,
+  variantName: 'treatment',
+  isActive: true,
+};
 jest.mock(
   '../../../hooks/useOnboardingInterestQuestionnaireEligibility',
   () => ({
-    useOnboardingInterestQuestionnaireEligibility: () =>
-      mockGetShouldShowQuestionnaire,
+    useOnboardingInterestQuestionnaireEligibility: () => mockEligibility,
   }),
 );
 

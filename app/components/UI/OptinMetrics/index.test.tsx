@@ -36,8 +36,11 @@ jest.mock('../../../util/analytics/analytics', () => ({
 jest.mock(
   '../../../hooks/useOnboardingInterestQuestionnaireEligibility',
   () => ({
-    useOnboardingInterestQuestionnaireEligibility: () => (): Promise<boolean> =>
-      Promise.resolve(false),
+    useOnboardingInterestQuestionnaireEligibility: () => ({
+      shouldShowQuestionnaire: false,
+      variantName: 'control',
+      isActive: false,
+    }),
   }),
 );
 

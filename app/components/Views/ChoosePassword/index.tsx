@@ -104,6 +104,7 @@ import { UNKNOWN_LOCATION } from '@metamask/geolocation-controller';
 import { selectGeolocationLocation } from '../../../selectors/geolocationController';
 import { getDefaultMarketingOptInChecked } from '../../../util/onboarding/getDefaultMarketingOptInChecked';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
+import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 
 interface KeyringState {
   type: string;
@@ -165,6 +166,8 @@ const ChoosePassword = () => {
   const foxRiveLoaderRef = useRef<FoxRiveLoaderAnimationRef>(null);
 
   const reduxAccountType = useSelector(selectOnboardingAccountType);
+  const { shouldShowQuestionnaire } =
+    useOnboardingInterestQuestionnaireEligibility();
 
   const getOauth2LoginSuccess = useCallback(
     () => route.params?.oauthLoginSuccess,
@@ -477,16 +480,21 @@ const ChoosePassword = () => {
       }
 
       const accountType = reduxAccountType;
-      navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
-        onComplete: onContinueNavigation,
-        ...(accountType && { accountType }),
-      });
+      if (shouldShowQuestionnaire) {
+        navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
+          onComplete: onContinueNavigation,
+          ...(accountType && { accountType }),
+        });
+      } else {
+        onContinueNavigation();
+      }
     },
     [
       dispatch,
       route.params?.provider,
       metrics,
       reduxAccountType,
+      shouldShowQuestionnaire,
       navigation,
       onContinueNavigation,
       tryExportSeedPhrase,

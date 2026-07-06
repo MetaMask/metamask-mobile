@@ -1,122 +1,81 @@
-import { act, renderHook } from '@testing-library/react-native';
-import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
+import { renderHook } from '@testing-library/react-native';
 import { useOnboardingInterestQuestionnaireEligibility } from './useOnboardingInterestQuestionnaireEligibility';
-import { useAnalytics } from '../components/hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../util/test/analyticsMock';
+import { useABTest } from './useABTest';
+import {
+  ONBOARDING_INTEREST_QUESTIONNAIRE_AB_KEY,
+  ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_EXPOSURE_OPTIONS,
+  ONBOARDING_INTEREST_QUESTIONNAIRE_VARIANTS,
+} from '../components/Views/OnboardingInterestQuestionnaire/abTestConfig';
 
-jest.mock('../components/hooks/useAnalytics/useAnalytics');
+jest.mock('./useABTest');
 
-jest.mock('@metamask/remote-feature-flag-controller', () => ({
-  generateDeterministicRandomNumber: jest.fn(),
-}));
-
-const mockGenerateDeterministicRandomNumber = jest.mocked(
-  generateDeterministicRandomNumber,
-);
+const mockUseABTest = jest.mocked(useABTest);
 
 describe('useOnboardingInterestQuestionnaireEligibility', () => {
-  const mockGetAnalyticsId = jest.fn();
-
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        getAnalyticsId: mockGetAnalyticsId,
-      }),
-    );
   });
 
-  it('returns false when analytics id is undefined', async () => {
-    mockGetAnalyticsId.mockResolvedValue(undefined);
+  it('returns shouldShowQuestionnaire=false when variant is control', () => {
+    mockUseABTest.mockReturnValue({
+      variant: { showQuestionnaire: false },
+      variantName: 'control',
+      isActive: false,
+    });
 
     const { result } = renderHook(() =>
       useOnboardingInterestQuestionnaireEligibility(),
     );
 
-    let eligible: boolean | undefined;
-
-    await act(async () => {
-      eligible = await result.current();
-    });
-
-    expect(eligible).toBe(false);
-    expect(mockGenerateDeterministicRandomNumber).not.toHaveBeenCalled();
+    expect(result.current.shouldShowQuestionnaire).toBe(false);
+    expect(result.current.variantName).toBe('control');
+    expect(result.current.isActive).toBe(false);
   });
 
-  it('returns false when analytics id is an empty string', async () => {
-    mockGetAnalyticsId.mockResolvedValue('');
+  it('returns shouldShowQuestionnaire=true when variant is treatment', () => {
+    mockUseABTest.mockReturnValue({
+      variant: { showQuestionnaire: true },
+      variantName: 'treatment',
+      isActive: true,
+    });
 
     const { result } = renderHook(() =>
       useOnboardingInterestQuestionnaireEligibility(),
     );
 
-    let eligible: boolean | undefined;
-
-    await act(async () => {
-      eligible = await result.current();
-    });
-
-    expect(eligible).toBe(false);
-    expect(mockGenerateDeterministicRandomNumber).not.toHaveBeenCalled();
+    expect(result.current.shouldShowQuestionnaire).toBe(true);
+    expect(result.current.variantName).toBe('treatment');
+    expect(result.current.isActive).toBe(true);
   });
 
-  it('returns true when deterministic value is below the rollout threshold', async () => {
-    mockGetAnalyticsId.mockResolvedValue(
-      '123e4567-e89b-12d3-a456-426614174000',
-    );
-    mockGenerateDeterministicRandomNumber.mockReturnValue(0.1);
+  it('falls back to control (no questionnaire) when flag is missing', () => {
+    mockUseABTest.mockReturnValue({
+      variant: { showQuestionnaire: false },
+      variantName: 'control',
+      isActive: false,
+    });
 
     const { result } = renderHook(() =>
       useOnboardingInterestQuestionnaireEligibility(),
     );
 
-    let eligible: boolean | undefined;
-
-    await act(async () => {
-      eligible = await result.current();
-    });
-
-    expect(eligible).toBe(true);
-    expect(mockGenerateDeterministicRandomNumber).toHaveBeenCalledWith(
-      '123e4567-e89b-12d3-a456-426614174000',
-    );
+    expect(result.current.shouldShowQuestionnaire).toBe(false);
+    expect(result.current.isActive).toBe(false);
   });
 
-  it('returns false when deterministic value equals the rollout threshold', async () => {
-    mockGetAnalyticsId.mockResolvedValue(
-      '123e4567-e89b-12d3-a456-426614174000',
-    );
-    mockGenerateDeterministicRandomNumber.mockReturnValue(0.25);
-
-    const { result } = renderHook(() =>
-      useOnboardingInterestQuestionnaireEligibility(),
-    );
-
-    let eligible: boolean | undefined;
-
-    await act(async () => {
-      eligible = await result.current();
+  it('passes the correct flag key, variants, and exposure options to useABTest', () => {
+    mockUseABTest.mockReturnValue({
+      variant: { showQuestionnaire: false },
+      variantName: 'control',
+      isActive: false,
     });
 
-    expect(eligible).toBe(false);
-  });
+    renderHook(() => useOnboardingInterestQuestionnaireEligibility());
 
-  it('returns false when deterministic value is above the rollout threshold', async () => {
-    mockGetAnalyticsId.mockResolvedValue(
-      '123e4567-e89b-12d3-a456-426614174000',
+    expect(mockUseABTest).toHaveBeenCalledWith(
+      ONBOARDING_INTEREST_QUESTIONNAIRE_AB_KEY,
+      ONBOARDING_INTEREST_QUESTIONNAIRE_VARIANTS,
+      ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_EXPOSURE_OPTIONS,
     );
-    mockGenerateDeterministicRandomNumber.mockReturnValue(0.99);
-
-    const { result } = renderHook(() =>
-      useOnboardingInterestQuestionnaireEligibility(),
-    );
-
-    let eligible: boolean | undefined;
-
-    await act(async () => {
-      eligible = await result.current();
-    });
-
-    expect(eligible).toBe(false);
   });
 });

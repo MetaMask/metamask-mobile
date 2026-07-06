@@ -361,6 +361,53 @@ export const closeOnboardingModals = async (
   }
 };
 
+/** Max wait for the optional interest questionnaire to appear after MetaMetrics. */
+const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS = 3_000;
+const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS = 250;
+
+/**
+ * Advances past the optional onboarding interest questionnaire (Playwright / Appium only).
+ * No-op when the app navigates straight to the wallet home (common on some builds/flags).
+ */
+export const dismissOnboardingInterestQuestionnaire =
+  async (): Promise<void> => {
+    const deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
+
+    while (Date.now() < deadline) {
+      try {
+        const walletContainer = await asPlaywrightElement(WalletView.container);
+        if (await walletContainer.unwrap().isExisting()) {
+          logger.debug(
+            'Wallet home already visible; skipping interest questionnaire',
+          );
+          return;
+        }
+
+        const skipButton = await asPlaywrightElement(
+          OnboardingInterestQuestionnaireView.skipButton,
+        );
+        if (await skipButton.unwrap().isExisting()) {
+          await PlaywrightGestures.waitAndTap(skipButton, {
+            timeout: 5000,
+            checkForDisplayed: true,
+            checkForEnabled: true,
+          });
+          await skipButton
+            .unwrap()
+            .waitForDisplayed({ reverse: true, timeout: 5000 });
+          return;
+        }
+      } catch {
+        // Stale element / screen transition while the next route loads.
+      }
+      await sleep(ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS);
+    }
+
+    logger.debug(
+      'Onboarding Interest Questionnaire not shown within poll window; continuing',
+    );
+  };
+
 /**
  * Imports a wallet using a secret recovery phrase during the onboarding process.
  *
@@ -431,7 +478,7 @@ export const importWalletWithRecoveryPhrase = async ({
     await MetaMetricsOptInView.tapAgreeButton();
   }
   if (optInToMetrics) {
-    await OnboardingInterestQuestionnaireView.tapSkipButton();
+    await dismissOnboardingInterestQuestionnaire();
   }
   //'Should dismiss Enable device Notifications checks alert'
   await closeOnboardingModals(fromResetWallet);
@@ -550,7 +597,7 @@ export const CreateNewWallet = async ({
   await device.disableSynchronization(); // Detox is hanging after wallet creation
 
   if (optInToMetrics) {
-    await OnboardingInterestQuestionnaireView.tapSkipButton();
+    await dismissOnboardingInterestQuestionnaire();
   }
 
   await closeOnboardingModals(false);
@@ -799,53 +846,6 @@ export const selectAccountByDevice = async (
   const isAccount3 = accountName === 'Account 3'; // Due to an issue with the account 3 being displayed as Account 3 (2)
   await AccountListBottomSheet.tapAccountByNameV2(accountName, !isAccount3);
 };
-
-/** Max wait for the optional interest questionnaire to appear after MetaMetrics. */
-const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS = 3_000;
-const ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS = 250;
-
-/**
- * Advances past the optional onboarding interest questionnaire (Playwright / Appium only).
- * No-op when the app navigates straight to the wallet home (common on some builds/flags).
- */
-export const dismissOnboardingInterestQuestionnaire =
-  async (): Promise<void> => {
-    const deadline = Date.now() + ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_MS;
-
-    while (Date.now() < deadline) {
-      try {
-        const walletContainer = await asPlaywrightElement(WalletView.container);
-        if (await walletContainer.unwrap().isExisting()) {
-          logger.debug(
-            'Wallet home already visible; skipping interest questionnaire',
-          );
-          return;
-        }
-
-        const skipButton = await asPlaywrightElement(
-          OnboardingInterestQuestionnaireView.skipButton,
-        );
-        if (await skipButton.unwrap().isExisting()) {
-          await PlaywrightGestures.waitAndTap(skipButton, {
-            timeout: 5000,
-            checkForDisplayed: true,
-            checkForEnabled: true,
-          });
-          await skipButton
-            .unwrap()
-            .waitForDisplayed({ reverse: true, timeout: 5000 });
-          return;
-        }
-      } catch {
-        // Stale element / screen transition while the next route loads.
-      }
-      await sleep(ONBOARDING_INTEREST_QUESTIONNAIRE_POLL_INTERVAL_MS);
-    }
-
-    logger.debug(
-      'Onboarding Interest Questionnaire not shown within poll window; continuing',
-    );
-  };
 
 const PREDICT_GTM_MODAL_FALLBACK_WAIT_MS = 10_000;
 

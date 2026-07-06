@@ -1,29 +1,31 @@
-import { useCallback } from 'react';
-import { generateDeterministicRandomNumber } from '@metamask/remote-feature-flag-controller';
-import { useAnalytics } from '../components/hooks/useAnalytics/useAnalytics';
-
-const TREATMENT_ROLLOUT_THRESHOLD = 0.25;
+import { useABTest } from './useABTest';
+import {
+  ONBOARDING_INTEREST_QUESTIONNAIRE_AB_KEY,
+  ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_EXPOSURE_OPTIONS,
+  ONBOARDING_INTEREST_QUESTIONNAIRE_VARIANTS,
+} from '../components/Views/OnboardingInterestQuestionnaire/abTestConfig';
 
 /**
- * Returns a function that resolves whether the onboarding interest questionnaire
- * should be shown. Uses {@link generateDeterministicRandomNumber} from
- * `@metamask/remote-feature-flag-controller` so the same analytics id maps to a
- * stable value in [0, 1) (aligned with other app sampling, e.g. network RPC tracking).
+ * Returns whether the onboarding interest questionnaire should be shown,
+ * driven by the LaunchDarkly A/B test flag
+ * `tradeTO880AbtestOnboardingInterestQuestion`.
  *
- * LaunchDarkly flag for this experiment: `tradeTMCU722AbtestOnboardingInterestQuestion`.
+ * - `control` (default/fallback): questionnaire is **not** shown.
+ * - `treatment`: questionnaire **is** shown.
  *
- * Call once per onboarding flow after metrics are enabled and an analytics ID exists.
+ * The rollout percentage is controlled entirely from LaunchDarkly —
+ * no code change needed to adjust from 25% to 50% to 100%.
  */
-export function useOnboardingInterestQuestionnaireEligibility(): () => Promise<boolean> {
-  const { getAnalyticsId } = useAnalytics();
-  return useCallback(async () => {
-    const metaMetricsId = await getAnalyticsId();
-    if (!metaMetricsId) {
-      return false;
-    }
+export function useOnboardingInterestQuestionnaireEligibility() {
+  const { variant, variantName, isActive } = useABTest(
+    ONBOARDING_INTEREST_QUESTIONNAIRE_AB_KEY,
+    ONBOARDING_INTEREST_QUESTIONNAIRE_VARIANTS,
+    ONBOARDING_INTEREST_QUESTIONNAIRE_AB_TEST_EXPOSURE_OPTIONS,
+  );
 
-    const threshold = generateDeterministicRandomNumber(metaMetricsId);
-
-    return threshold < TREATMENT_ROLLOUT_THRESHOLD;
-  }, [getAnalyticsId]);
+  return {
+    shouldShowQuestionnaire: variant.showQuestionnaire,
+    variantName,
+    isActive,
+  };
 }

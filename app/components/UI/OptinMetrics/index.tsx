@@ -64,6 +64,7 @@ import type { RootState } from '../../../reducers';
 import { getWalletSetupAttributionPropsFromStore } from '../../../util/analytics/walletSetupCompletedAttribution';
 import { scheduleBufferedOnboardingEventReplay } from '../../../util/analytics/walletSetupCompletedAttributionReplay';
 import { finalizeOnboardingCompletion } from '../../../util/onboarding/finalizeOnboardingCompletion';
+import { useOnboardingInterestQuestionnaireEligibility } from '../../../hooks/useOnboardingInterestQuestionnaireEligibility';
 
 /**
  * View that is displayed in the flow to agree to metrics
@@ -101,6 +102,9 @@ const OptinMetrics = () => {
   );
   const [isMarketingChecked, setIsMarketingChecked] = useState(false);
   const [isBasicUsageChecked, setIsBasicUsageChecked] = useState(true);
+
+  const { shouldShowQuestionnaire } =
+    useOnboardingInterestQuestionnaireEligibility();
 
   const isMediumDevice = useMemo(() => Device.isMediumDevice(), []);
   const illustrationSize = useMemo(
@@ -249,7 +253,7 @@ const OptinMetrics = () => {
 
     dispatch(clearOnboardingEvents());
 
-    if (isBasicUsageChecked) {
+    if (isBasicUsageChecked && shouldShowQuestionnaire) {
       navigation.navigate(Routes.ONBOARDING.INTEREST_QUESTIONNAIRE, {
         onComplete: continueNavigation,
         ...(accountType && { accountType }),
@@ -260,6 +264,7 @@ const OptinMetrics = () => {
   }, [
     metrics,
     isBasicUsageChecked,
+    shouldShowQuestionnaire,
     dispatch,
     isMarketingChecked,
     accountType,
