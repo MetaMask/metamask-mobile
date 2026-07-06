@@ -76,13 +76,16 @@ class Browser {
   /**
    * Tap target for the URL bar when it is unfocused. The visible URL text lives
    * in the `url-input` wrapper; the TextInput testID stays hidden until focused.
+   * On Android Appium, tap the inner TextView so `onPressUrlText` runs focus().
    */
   get urlBarTapTarget(): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementById(BrowserViewSelectorsIDs.URL_INPUT),
+          PlaywrightMatchers.getElementByXPath(
+            `//*[contains(@resource-id,'${BrowserViewSelectorsIDs.URL_INPUT}')]//android.widget.TextView`,
+          ),
         ios: () =>
           PlaywrightMatchers.getElementById(BrowserURLBarSelectorsIDs.URL_INPUT),
       },
@@ -380,6 +383,7 @@ class Browser {
       },
       appium: async () => {
         const input = await asPlaywrightElement(this.urlBarTextInput);
+        await input.waitForDisplayed({ timeout: 10_000 });
         await input.clear();
         await PlaywrightGestures.typeText(input, `${url}\n`);
       },
