@@ -381,7 +381,7 @@ describe('HeadlessHost', () => {
         code: 'UNKNOWN',
         message: expect.stringContaining('not-a-caip-19'),
       });
-      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
       expect(mockContinueWithQuote).not.toHaveBeenCalled();
     });
@@ -398,7 +398,7 @@ describe('HeadlessHost', () => {
           message: 'quote expired',
         });
       });
-      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
     });
 
@@ -416,7 +416,7 @@ describe('HeadlessHost', () => {
           message: 'Daily limit exceeded',
         });
       });
-      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
     });
 
@@ -460,7 +460,7 @@ describe('HeadlessHost', () => {
         code: 'AUTH_FAILED',
         message: 'OTP rejected',
       });
-      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
       expect(mockContinueWithQuote).not.toHaveBeenCalled();
     });
@@ -566,7 +566,7 @@ describe('HeadlessHost', () => {
       expect(callbacks.onClose).toHaveBeenCalledTimes(1);
     });
 
-    it('fires onError only (no onClose) when a Phase 7 nativeFlowError terminates the session, even across unmount', () => {
+    it('does not fire a second onClose when a Phase 7 nativeFlowError already closed the session before unmount', () => {
       const quote = buildNativeQuote();
       const session = seedSession(quote);
       const callbacks = session.callbacks;
@@ -575,16 +575,13 @@ describe('HeadlessHost', () => {
         nativeFlowError: 'OTP rejected',
       });
 
-      expect(callbacks.onError).toHaveBeenCalledWith({
-        code: 'AUTH_FAILED',
-        message: 'OTP rejected',
-      });
-      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
 
       registeredBeforeRemoveListener?.(DEFAULT_GO_BACK_EVENT);
       unmount();
 
-      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
     });
 
     it('no-ops on unmount when the host mounted against an already-terminated session', () => {

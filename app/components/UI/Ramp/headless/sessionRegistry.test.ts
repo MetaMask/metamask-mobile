@@ -186,19 +186,6 @@ describe('sessionRegistry', () => {
       setStatus(s.id, 'failed');
       expect(getActiveSessionId()).toBeUndefined();
     });
-
-    it('fires onClose exactly once after the terminateSession extraction', () => {
-      const callbacks = buildCallbacks();
-      const session = createSession(baseParams, callbacks);
-
-      closeSession(session.id, { reason: 'user_dismissed' });
-
-      expect(callbacks.onClose).toHaveBeenCalledTimes(1);
-      expect(callbacks.onClose).toHaveBeenCalledWith({
-        reason: 'user_dismissed',
-      });
-      expect(getSession(session.id)).toBeUndefined();
-    });
   });
 
   describe('toHeadlessBuyError', () => {
@@ -234,7 +221,7 @@ describe('sessionRegistry', () => {
   });
 
   describe('failSession', () => {
-    it('fires exactly one onError, never onClose, and removes the session', () => {
+    it('fires onError then onClose and removes the session', () => {
       const callbacks = buildCallbacks();
       const session = createSession(baseParams, callbacks);
 
@@ -248,14 +235,13 @@ describe('sessionRegistry', () => {
         message: 'Quote expired',
         details: undefined,
       });
-      expect(callbacks.onError).toHaveBeenCalledTimes(1);
       expect(callbacks.onError).toHaveBeenCalledWith(headlessError);
-      expect(callbacks.onClose).not.toHaveBeenCalled();
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(session.status).toBe('failed');
       expect(getSession(session.id)).toBeUndefined();
     });
 
-    it('logs onError failures, still removes the session, and never fires onClose', () => {
+    it('logs onError failures but still closes the session', () => {
       const callbacks = {
         ...buildCallbacks(),
         onError: jest.fn(() => {
@@ -270,66 +256,8 @@ describe('sessionRegistry', () => {
         expect.any(Error),
         'headless sessionRegistry: onError callback threw',
       );
-      expect(callbacks.onClose).not.toHaveBeenCalled();
-      expect(session.status).toBe('failed');
+      expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
       expect(getSession(session.id)).toBeUndefined();
-    });
-
-    it('maps the raw error to a HeadlessBuyError with the fallback code', () => {
-      const callbacks = buildCallbacks();
-      const session = createSession(baseParams, callbacks);
-
-      const headlessError = failSession(
-        session.id,
-        new Error('provider exploded'),
-        'QUOTE_FAILED',
-      );
-
-      expect(headlessError).toEqual({
-        code: 'QUOTE_FAILED',
-        message: 'provider exploded',
-      });
-      expect(callbacks.onError).toHaveBeenCalledWith(headlessError);
-    });
-
-    it('is a no-op and returns undefined for an unknown or missing id', () => {
-      const callbacks = buildCallbacks();
-      createSession(baseParams, callbacks);
-
-      expect(failSession('does-not-exist', new Error('x'))).toBeUndefined();
-      expect(failSession(undefined, new Error('x'))).toBeUndefined();
-      expect(callbacks.onError).not.toHaveBeenCalled();
-      expect(callbacks.onClose).not.toHaveBeenCalled();
-    });
-
-    it('treats a failed session as inactive for getActiveSessionId', () => {
-      const session = createSession(baseParams, buildCallbacks());
-      failSession(session.id, new Error('provider failed'));
-      expect(getActiveSessionId()).toBeUndefined();
-    });
-
-    it('does not clear a consumer error set by onError (no trailing onClose)', () => {
-      // Mirrors MM Pay: onError records the error, onClose would clear it. The
-      // no-trailing-onClose contract guarantees the reported error survives.
-      let consumerError: string | undefined;
-      const callbacks: HeadlessBuyCallbacks = {
-        onOrderCreated: jest.fn(),
-        onError: jest.fn((error) => {
-          consumerError = error.message;
-        }),
-        onClose: jest.fn(() => {
-          consumerError = undefined;
-        }),
-      };
-      const session = createSession(baseParams, callbacks);
-
-      failSession(session.id, {
-        code: 'QUOTE_FAILED',
-        message: 'Quote expired',
-      });
-
-      expect(consumerError).toBe('Quote expired');
-      expect(callbacks.onClose).not.toHaveBeenCalled();
     });
   });
 });

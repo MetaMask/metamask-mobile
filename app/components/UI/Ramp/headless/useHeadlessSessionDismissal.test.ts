@@ -119,7 +119,7 @@ describe('useHeadlessSessionDismissal', () => {
     expect(callbacks.onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('no-ops on unmount after Phase 7 failSession already removed the session (onError only, no onClose)', () => {
+  it('no-ops on unmount after Phase 7 failSession already closed the session', () => {
     const callbacks = buildCallbacks();
     const session = createSession(baseParams, callbacks);
 
@@ -132,13 +132,12 @@ describe('useHeadlessSessionDismissal', () => {
 
     failSession(session.id, new Error('boom'), 'AUTH_FAILED');
     expect(callbacks.onError).toHaveBeenCalledTimes(1);
-    // failSession is terminal on its own: no onClose is fired.
-    expect(callbacks.onClose).not.toHaveBeenCalled();
+    expect(callbacks.onClose).toHaveBeenCalledTimes(1);
+    expect(callbacks.onClose).toHaveBeenCalledWith({ reason: 'unknown' });
 
     unmount();
 
-    // The session was already removed, so the unmount cleanup no-ops.
-    expect(callbacks.onClose).not.toHaveBeenCalled();
+    expect(callbacks.onClose).toHaveBeenCalledTimes(1);
   });
 
   it('no-ops on unmount after the consumer cancelled the session', () => {
