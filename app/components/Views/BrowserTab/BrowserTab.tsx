@@ -32,12 +32,18 @@ import {
   DOCUMENT_URL_FOR_URL_BAR,
   WEB_SHARE_MESSAGE_TYPE,
   buildWebSharePolyfillScript,
+  WEB_DOWNLOAD_MESSAGE_TYPE,
+  buildWebDownloadInterceptorScript,
   buildDocumentUrlForUrlBarScript,
 } from '../../../util/browserScripts';
 import {
   handleWebShare,
   WEB_SHARE_MAX_MESSAGE_LENGTH,
 } from '../../../util/browser/handleWebShare';
+import {
+  handleWebDownload,
+  WEB_DOWNLOAD_MAX_MESSAGE_LENGTH,
+} from '../../../util/browser/handleWebDownload';
 import resolveEnsToIpfsContentId from '../../../lib/ens-ipfs/resolver';
 import { strings } from '../../../../locales/i18n';
 import URLParse from 'url-parse';
@@ -225,6 +231,13 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
     const webSharePolyfillScript = useMemo(
       () => buildWebSharePolyfillScript(Device.isAndroid()),
       [],
+    );
+
+    // blob:/data: downloads are broken in the WebView on both platforms, so the
+    // interceptor is installed everywhere (it is idempotent via a window guard).
+    const webBrowserBridgeScript = useMemo(
+      () => webSharePolyfillScript + buildWebDownloadInterceptorScript(),
+      [webSharePolyfillScript],
     );
 
     const permittedEvmAccountsList = useSelector((state: RootState) => {
@@ -543,7 +556,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
       const getEntryScriptWeb3 = async () => {
         const entryScriptWeb3Fetched = await EntryScriptWeb3.get();
         setEntryScriptWeb3(
-          webSharePolyfillScript +
+          webBrowserBridgeScript +
             entryScriptWeb3Fetched +
             SPA_urlChangeListener +
             SCROLL_TRACKER_SCRIPT,
@@ -552,7 +565,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
 
       getEntryScriptWeb3();
       handleFirstUrl();
-    }, [isTabActive, handleFirstUrl, webSharePolyfillScript]);
+    }, [isTabActive, handleFirstUrl, webBrowserBridgeScript]);
 
     // Cleanup bridges when tab is closed
     useEffect(
@@ -987,16 +1000,14 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
         // Reset pull-to-refresh state when page finishes loading
         isRefreshing.value = false;
 
-        if (Device.isAndroid()) {
-          webviewRef.current?.injectJavaScript(webSharePolyfillScript);
-        }
+        webviewRef.current?.injectJavaScript(webBrowserBridgeScript);
       },
       [
         handleError,
         handleSuccessfulPageResolution,
         favicon,
         isRefreshing,
-        webSharePolyfillScript,
+        webBrowserBridgeScript,
       ],
     );
 
@@ -1029,9 +1040,17 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
             data.startsWith(
               `{"type":${JSON.stringify(WEB_SHARE_MESSAGE_TYPE)}`,
             );
-          const maxMessageLength = isWebShareMessage
-            ? WEB_SHARE_MAX_MESSAGE_LENGTH
-            : MAX_MESSAGE_LENGTH;
+          const isWebDownloadMessage =
+            typeof data === 'string' &&
+            data.startsWith(
+              `{"type":${JSON.stringify(WEB_DOWNLOAD_MESSAGE_TYPE)}`,
+            );
+          let maxMessageLength = MAX_MESSAGE_LENGTH;
+          if (isWebShareMessage) {
+            maxMessageLength = WEB_SHARE_MAX_MESSAGE_LENGTH;
+          } else if (isWebDownloadMessage) {
+            maxMessageLength = WEB_DOWNLOAD_MAX_MESSAGE_LENGTH;
+          }
 
           if (data.length > maxMessageLength) {
             console.warn(
@@ -1071,6 +1090,10 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
           }
           if (dataParsed.type === WEB_SHARE_MESSAGE_TYPE) {
             handleWebShare(dataParsed.payload);
+            return;
+          }
+          if (dataParsed.type === WEB_DOWNLOAD_MESSAGE_TYPE) {
+            handleWebDownload(dataParsed.payload);
             return;
           }
           if (dataParsed.name) {
@@ -1632,11 +1655,7 @@ export const BrowserTab: React.FC<BrowserTabProps> = React.memo(
                         renderError={renderError}
                         source={webViewSource}
                         injectedJavaScriptBeforeContentLoaded={entryScriptWeb3}
-                        injectedJavaScript={
-                          Device.isAndroid()
-                            ? webSharePolyfillScript
-                            : undefined
-                        }
+                        injectedJavaScript={webBrowserBridgeScript}
                         style={styles.webview}
                         onLoadStart={handleWebviewNavigationChange(OnLoadStart)}
                         onLoadEnd={handleWebviewNavigationChange(OnLoadEnd)}

@@ -1,5 +1,4 @@
-import { Platform, Share as RNShare } from 'react-native';
-import RNFS from 'react-native-fs';
+import { InteractionManager, Platform, Share as RNShare } from 'react-native';
 import Share from 'react-native-share';
 import { handleWebShare } from './handleWebShare';
 
@@ -8,12 +7,6 @@ jest.mock('../Logger', () => ({
   default: {
     error: jest.fn(),
   },
-}));
-
-jest.mock('react-native-fs', () => ({
-  CachesDirectoryPath: '/cache',
-  writeFile: jest.fn(() => Promise.resolve()),
-  unlink: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('react-native-share', () => ({
@@ -29,6 +22,12 @@ describe('handleWebShare', () => {
     jest
       .spyOn(RNShare, 'share')
       .mockResolvedValue({ action: RNShare.sharedAction });
+    jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((task: () => void) => {
+        task();
+        return { cancel: jest.fn() };
+      });
   });
 
   afterEach(() => {
@@ -51,6 +50,7 @@ describe('handleWebShare', () => {
       url: 'https://example.com',
     });
 
+    expect(InteractionManager.runAfterInteractions).toHaveBeenCalled();
     expect(RNShare.share).toHaveBeenCalledWith(
       {
         title: 'My Title',
@@ -88,6 +88,7 @@ describe('handleWebShare', () => {
       url: 'https://example.com',
     });
 
+    expect(InteractionManager.runAfterInteractions).not.toHaveBeenCalled();
     expect(RNShare.share).toHaveBeenCalledWith(
       {
         title: 'My Title',
@@ -101,7 +102,9 @@ describe('handleWebShare', () => {
     );
   });
 
-  it('writes and shares image files via react-native-share', async () => {
+  it('shares image files via the system share sheet on Android', async () => {
+    jest.replaceProperty(Platform, 'OS', 'android');
+
     await handleWebShare({
       title: 'My Card',
       text: 'Check out my card',
@@ -114,27 +117,24 @@ describe('handleWebShare', () => {
       ],
     });
 
-    expect(RNFS.writeFile).toHaveBeenCalledWith(
-      expect.stringMatching(/^\/cache\/web-share-\d+-card\.png$/),
-      'iVBORw0KGgo=',
-      'base64',
-    );
     expect(Share.open).toHaveBeenCalledWith(
       expect.objectContaining({
-        url: expect.stringMatching(/^\/cache\/web-share-\d+-card\.png$/),
+        url: 'data:image/png;base64,iVBORw0KGgo=',
         type: 'image/png',
         filename: 'card.png',
         message: 'Check out my card',
         title: 'My Card',
         subject: 'My Card',
         failOnCancel: false,
+        useInternalStorage: true,
       }),
     );
-    expect(RNFS.unlink).toHaveBeenCalled();
     expect(RNShare.share).not.toHaveBeenCalled();
   });
 
-  it('shares files without text or url', async () => {
+  it('shares image files via the system share sheet on iOS without useInternalStorage', async () => {
+    jest.replaceProperty(Platform, 'OS', 'ios');
+
     await handleWebShare({
       files: [
         {
@@ -147,9 +147,13 @@ describe('handleWebShare', () => {
 
     expect(Share.open).toHaveBeenCalledWith(
       expect.objectContaining({
+        url: 'data:image/png;base64,abc123',
         type: 'image/png',
         filename: 'card.png',
       }),
+    );
+    expect(Share.open).toHaveBeenCalledWith(
+      expect.not.objectContaining({ useInternalStorage: true }),
     );
   });
 });

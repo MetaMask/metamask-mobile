@@ -9,8 +9,10 @@ import Routes from '../../../constants/navigation/Routes';
 import {
   DOCUMENT_URL_FOR_URL_BAR,
   WEB_SHARE_MESSAGE_TYPE,
+  WEB_DOWNLOAD_MESSAGE_TYPE,
 } from '../../../util/browserScripts';
 import { handleWebShare } from '../../../util/browser/handleWebShare';
+import { handleWebDownload } from '../../../util/browser/handleWebDownload';
 import { getPhishingTestResultAsync } from '../../../util/phishingDetection';
 
 const mockInjectJavaScript = jest.fn();
@@ -125,6 +127,10 @@ jest.mock('../../../util/phishingDetection', () => ({
 
 jest.mock('../../../util/browser/handleWebShare', () => ({
   handleWebShare: jest.fn(() => Promise.resolve()),
+}));
+
+jest.mock('../../../util/browser/handleWebDownload', () => ({
+  handleWebDownload: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('../../hooks/useNetworkEnablement/useNetworkEnablement', () => ({
@@ -628,6 +634,35 @@ describe('BrowserTab', () => {
       });
 
       expect(handleWebShare).toHaveBeenCalledWith(sharePayload);
+    });
+
+    it('routes Web Download messages to handleWebDownload', async () => {
+      renderWithProvider(<BrowserTab {...mockProps} />, {
+        state: mockInitialState,
+      });
+
+      await waitFor(() =>
+        expect(screen.getByTestId('browser-webview')).toBeVisible(),
+      );
+
+      const webView = screen.getByTestId('browser-webview');
+      const { onMessage } = webView.props;
+      const downloadPayload = {
+        filename: 'mm-ten-card-blob.png',
+        mimeType: 'image/png',
+        data: 'data:image/png;base64,iVBORw0KGgo=',
+      };
+
+      onMessage({
+        nativeEvent: {
+          data: JSON.stringify({
+            type: WEB_DOWNLOAD_MESSAGE_TYPE,
+            payload: downloadPayload,
+          }),
+        },
+      });
+
+      expect(handleWebDownload).toHaveBeenCalledWith(downloadPayload);
     });
   });
 });

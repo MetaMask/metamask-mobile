@@ -1,5 +1,4 @@
-import { Platform, Share as RNShare } from 'react-native';
-import RNFS from 'react-native-fs';
+import { InteractionManager, Platform, Share as RNShare } from 'react-native';
 import Share from 'react-native-share';
 import Logger from '../Logger';
 
@@ -28,47 +27,38 @@ const MIME_TO_EXTENSION: Record<string, string> = {
   'image/gif': 'gif',
 };
 
-const parseFileData = (data: string): { base64: string; mimeType?: string } => {
-  const match = /^data:([^;,]+)(?:;[^,]*)?;base64,(.+)$/s.exec(data);
-  if (match) {
-    return { mimeType: match[1], base64: match[2] };
-  }
-  return { base64: data };
-};
-
 const getExtensionFromMime = (mimeType: string): string =>
   MIME_TO_EXTENSION[mimeType.toLowerCase()] ?? 'bin';
 
 const sanitizeFilename = (name: string): string =>
   name.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 128);
 
+const resolveFilename = (rawName: string, mimeType: string): string => {
+  const sanitized = sanitizeFilename(rawName);
+  if (sanitized && sanitized.includes('.')) {
+    return sanitized;
+  }
+  return `${sanitized || 'share'}.${getExtensionFromMime(mimeType)}`;
+};
+
+const toDataUrl = (
+  file: WebShareFilePayload,
+): { url: string; mimeType: string } => {
+  if (file.data.startsWith('data:')) {
+    const match = /^data:([^;,]+)/.exec(file.data);
+    return {
+      url: file.data,
+      mimeType: file.type || match?.[1] || 'application/octet-stream',
+    };
+  }
+
+  const mimeType = file.type || 'application/octet-stream';
+  return { url: `data:${mimeType};base64,${file.data}`, mimeType };
+};
+
 const buildShareMessage = (param: WebShareAPIParam): string | undefined => {
   const message = [param.text, param.url].filter(Boolean).join(' ');
   return message || undefined;
-};
-
-const writeShareFile = async (
-  file: WebShareFilePayload,
-): Promise<{ path: string; mimeType: string; filename: string }> => {
-  const { base64, mimeType: dataUrlMime } = parseFileData(file.data);
-  const mimeType = file.type || dataUrlMime || 'application/octet-stream';
-  const extension = getExtensionFromMime(mimeType);
-  const sanitizedName = sanitizeFilename(file.name);
-  const filename =
-    sanitizedName && sanitizedName.includes('.')
-      ? sanitizedName
-      : `${sanitizedName || 'share'}.${extension}`;
-  const path = `${RNFS.CachesDirectoryPath}/web-share-${Date.now()}-${filename}`;
-
-  await RNFS.writeFile(path, base64, 'base64');
-
-  return { path, mimeType, filename };
-};
-
-const cleanupTempFiles = async (paths: string[]): Promise<void> => {
-  await Promise.all(
-    paths.map((path) => RNFS.unlink(path).catch(() => undefined)),
-  );
 };
 
 const shareTextOnly = async (param: WebShareAPIParam): Promise<void> => {
@@ -114,25 +104,29 @@ const shareWithFiles = async (param: WebShareAPIParam): Promise<void> => {
     return;
   }
 
-  const tempPaths: string[] = [];
+  const { url, mimeType } = toDataUrl(primaryFile);
+  const filename = resolveFilename(primaryFile.name, mimeType);
 
-  try {
-    const { path, mimeType, filename } = await writeShareFile(primaryFile);
-    tempPaths.push(path);
-
-    await Share.open({
-      url: path,
-      type: mimeType,
-      filename,
-      message: buildShareMessage(param),
-      title: param.title,
-      subject: param.title,
-      failOnCancel: false,
-    });
-  } finally {
-    await cleanupTempFiles(tempPaths);
-  }
+  // react-native-share decodes data URLs and writes a temp file natively
+  // (ShareFile.java), then exposes it via FileProvider for the share intent.
+  await Share.open({
+    url,
+    type: mimeType,
+    filename,
+    message: buildShareMessage(param),
+    title: param.title,
+    subject: param.title,
+    failOnCancel: false,
+    ...(Platform.OS === 'android' && { useInternalStorage: true }),
+  });
 };
+
+const runAfterInteractions = (): Promise<void> =>
+  new Promise((resolve) => {
+    InteractionManager.runAfterInteractions(() => {
+      resolve();
+    });
+  });
 
 export async function handleWebShare(
   param: WebShareAPIParam | undefined,
@@ -147,6 +141,12 @@ export async function handleWebShare(
   }
 
   try {
+    // The share sheet is launched from the WebView message handler; defer to
+    // avoid contending with in-flight touch/gesture interactions on Android.
+    if (Platform.OS === 'android') {
+      await runAfterInteractions();
+    }
+
     if (param.files && param.files.length > 0) {
       await shareWithFiles(param);
     } else {

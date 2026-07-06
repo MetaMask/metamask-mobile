@@ -1,0 +1,29 @@
+diff --git a/android/src/main/java/cl/json/social/ShareIntent.java b/android/src/main/java/cl/json/social/ShareIntent.java
+index c9e6d29d965c02c86279a648d40b4de66864038a..e2b702bb6d38718e5ce01b5c6fd21b6a9506ade7 100644
+--- a/android/src/main/java/cl/json/social/ShareIntent.java
++++ b/android/src/main/java/cl/json/social/ShareIntent.java
+@@ -278,17 +278,17 @@ public abstract class ShareIntent {
+         if (ShareIntent.hasValidKey("excludedActivityTypes", options)) {
+             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
+                 chooser.putExtra(Intent.EXTRA_EXCLUDE_COMPONENTS, getExcludedComponentArray(options.getArray("excludedActivityTypes")));
+-                activity.startActivityForResult(chooser, RNShareModule.SHARE_REQUEST_CODE);
+             } else {
+-                activity.startActivityForResult(excludeChooserIntent(this.getIntent(),options), RNShareModule.SHARE_REQUEST_CODE);
++                chooser = excludeChooserIntent(this.getIntent(), options);
+             }
+-        } else {
+-            activity.startActivityForResult(chooser, RNShareModule.SHARE_REQUEST_CODE);
+         }
+ 
+-        if (intentSender == null) {
+-            TargetChosenReceiver.sendCallback(true, true, "OK");
+-        }
++        // Use startActivity instead of startActivityForResult. The latter
++        // notifies every registered ActivityEventListener with a null intent
++        // when the chooser is dismissed, crashing modules whose onActivityResult
++        // declares a non-null `data` parameter (e.g. react-native-payments).
++        activity.startActivity(chooser);
++        TargetChosenReceiver.sendCallback(true, true, "OK");
+     }
+ 
+     public static boolean isPackageInstalled(String packagename, Context context) {

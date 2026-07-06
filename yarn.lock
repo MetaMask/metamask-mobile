@@ -35837,7 +35837,7 @@ __metadata:
     react-native-safe-area-context: "npm:~5.6.0"
     react-native-screens: "npm:~4.20.0"
     react-native-sensors: "patch:react-native-sensors@npm%3A5.3.0#~/.yarn/patches/react-native-sensors-npm-5.3.0-318d1d324d.patch"
-    react-native-share: "npm:7.3.7"
+    react-native-share: "patch:react-native-share@npm%3A7.3.7#~/.yarn/patches/react-native-share-npm-7.3.7-5b491ea831.patch"
     react-native-size-matters: "npm:0.4.0"
     react-native-skeleton-placeholder: "npm:^5.0.0"
     react-native-step-indicator: "npm:^1.0.3"
@@ -40872,6 +40872,13 @@ __metadata:
   version: 7.3.7
   resolution: "react-native-share@npm:7.3.7"
   checksum: 10/e7cc767504e9b4c8b7eb7f8b8d8ce3236d4e726651e8613eaab2f569fb925201914a70eedc820f902f3e58bd34ae970c084da6af4dbb23f68015e2fe748c3c6f
+  languageName: node
+  linkType: hard
+
+"react-native-share@patch:react-native-share@npm%3A7.3.7#~/.yarn/patches/react-native-share-npm-7.3.7-5b491ea831.patch":
+  version: 7.3.7
+  resolution: "react-native-share@patch:react-native-share@npm%3A7.3.7#~/.yarn/patches/react-native-share-npm-7.3.7-5b491ea831.patch::version=7.3.7&hash=e0f81a"
+  checksum: 10/4efb135c79ddee907e43ef9def31492ed497fd30a5adeda5f354283c63aa1a53ad389fd68e4ad05d30cbdfdb677aecbba47540c23ca2ac76ce3b8f09a3a1e578
   languageName: node
   linkType: hard
 
