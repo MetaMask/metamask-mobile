@@ -11,21 +11,17 @@ import {
   getTestDappLocalUrl,
   getDappUrl,
 } from '../../framework/fixtures/FixtureUtils';
-import {
-  EncapsulatedElementType,
-  asPlaywrightElement,
-  encapsulated,
-} from '../../framework/EncapsulatedElement';
+import { EncapsulatedElementType } from '../../framework/EncapsulatedElement';
 import { DEFAULT_TAB_ID } from '../../framework/Constants';
 import {
   Assertions,
   Gestures,
   Matchers,
-  PlaywrightGestures,
   Utilities,
+  sleep,
 } from '../../framework';
-import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import { FrameworkDetector } from '../../framework/FrameworkDetector';
+import { executeMobileDeepLink } from '../../framework/PlaywrightUtilities';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 
 interface TransactionParams {
@@ -72,48 +68,6 @@ class Browser {
 
   get urlInputBoxID(): EncapsulatedElementType {
     return Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT);
-  }
-
-  /**
-   * Tap target for the URL bar when it is unfocused. The visible URL text lives
-   * in the `url-input` wrapper; the TextInput testID stays hidden until focused.
-   * On Android Appium, tap the displayed URL text (any node with @text) so
-   * `onPressUrlText` runs focus().
-   */
-  get urlBarTapTarget(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementByXPath(
-            `//*[contains(@resource-id,'${BrowserViewSelectorsIDs.URL_INPUT}')]//*[contains(@text,'http') or contains(@text,'localhost')]`,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementById(
-            BrowserURLBarSelectorsIDs.URL_INPUT,
-          ),
-      },
-    });
-  }
-
-  /**
-   * Editable URL field after the bar is focused (Android needs the inner EditText).
-   */
-  get urlBarTextInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () => Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            BrowserURLBarSelectorsIDs.URL_INPUT,
-            { exact: false },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementById(
-            BrowserURLBarSelectorsIDs.URL_INPUT,
-          ),
-      },
-    });
   }
 
   get clearURLButton(): EncapsulatedElementType {
@@ -197,40 +151,34 @@ class Browser {
   }
 
   async tapUrlInputBox(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.waitAndTap(
-          Matchers.getElementByID(BrowserURLBarSelectorsIDs.URL_INPUT),
-          { elemDescription: 'URL input box' },
-        );
-      },
-      appium: async () => {
-        if (await PlatformDetector.isAndroid()) {
-          const urlTextTarget = this.urlBarTapTarget;
-          const urlBarWrapper = encapsulated({
-            appium: {
-              android: () =>
-                PlaywrightMatchers.getElementById(
-                  BrowserViewSelectorsIDs.URL_INPUT,
-                ),
-            },
-          });
-          if (await Utilities.isElementVisible(urlTextTarget, 2000)) {
-            await Gestures.waitAndTap(urlTextTarget, {
-              elemDescription: 'URL bar displayed text',
-            });
-            return;
-          }
-          await Gestures.waitAndTap(urlBarWrapper, {
-            elemDescription: 'URL input wrapper',
-          });
-          return;
-        }
-        await Gestures.waitAndTap(this.urlBarTapTarget, {
-          elemDescription: 'URL input box',
-        });
-      },
+    if (FrameworkDetector.isAppium()) {
+      // Appium navigates via dapp:// deeplink in navigateToURL (URL bar is unreliable).
+      return;
+    }
+
+    await Gestures.waitAndTap(this.urlInputBoxID, {
+      elemDescription: 'URL input box',
     });
+  }
+
+  /**
+   * Opens a URL via the in-app dapp:// deeplink handler (bypasses the URL bar).
+   * Reliable on Appium where the URL TextInput is often not exposed.
+   */
+  private async navigateToUrlViaDeeplink(url: string): Promise<void> {
+    const hostAndPath = url.replace(/^https?:\/\//, '');
+    const deeplink = `dapp://${hostAndPath}`;
+
+    await executeMobileDeepLink(deeplink);
+    const isAndroidCi =
+      FrameworkDetector.isAppium() &&
+      PlatformDetector.isAndroid() &&
+      process.env.CI === 'true';
+    await sleep(isAndroidCi ? 8_000 : 3_000);
+  }
+
+  private async typeUrlAppium(url: string): Promise<void> {
+    await this.navigateToUrlViaDeeplink(url);
   }
 
   async tapLocalHostDefaultAvatar(): Promise<void> {
@@ -412,20 +360,16 @@ class Browser {
     url: string,
     options: { skipUrlEditorDismissal?: boolean } = {},
   ): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Gestures.typeText(this.urlInputBoxID, url, {
-          hideKeyboard: true,
-          elemDescription: 'URL input box',
-        });
-      },
-      appium: async () => {
-        const input = await asPlaywrightElement(this.urlBarTextInput);
-        await input.waitForDisplayed({ timeout: 10_000 });
-        await input.clear();
-        await PlaywrightGestures.typeText(input, `${url}\n`);
-      },
+    if (FrameworkDetector.isAppium()) {
+      await this.typeUrlAppium(url);
+      return;
+    }
+
+    await Gestures.typeText(this.urlInputBoxID, url, {
+      hideKeyboard: true,
+      elemDescription: 'URL input box',
     });
+
     // After typing the URL + "\n", `onSubmitEditing` triggers navigation but
     // does not always blur the URL bar `TextInput` under RN 0.81 / React 19
     // on Android. The result is that the URL editor "Cancel" button stays
