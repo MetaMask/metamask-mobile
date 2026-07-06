@@ -330,6 +330,83 @@ class PerpsMarketDetailsView {
     });
   }
 
+  /**
+   * Waits for a newly placed limit order to appear on market details (compact orders section).
+   * Perps navigates here immediately after Place order while the WebSocket feed catches up.
+   */
+  async expectCompactOpenOrderVisible(options: {
+    direction: 'long' | 'short';
+    timeout?: number;
+  }): Promise<void> {
+    const { direction, timeout = 60000 } = options;
+    const orderLabel = `Limit ${direction}`;
+    const firstRow = Matchers.getElementByID(
+      PerpsCompactOrderRowSelectorsIDs.FIRST_ROW,
+    );
+    const scrollContainer = Matchers.scrollContainer(
+      PerpsMarketDetailsViewSelectorsIDs.SCROLL_VIEW,
+    );
+
+    await Utilities.executeWithRetry(
+      async () => {
+        try {
+          await Gestures.scrollToElement(
+            Matchers.getElementByText(orderLabel),
+            scrollContainer,
+            {
+              direction: 'down',
+              scrollAmount: 200,
+              timeout: 5000,
+              elemDescription: `Scroll to ${orderLabel} on market details`,
+            },
+          );
+        } catch {
+          // Order row may not be in the DOM yet.
+        }
+
+        try {
+          await Assertions.expectElementToBeVisible(firstRow, {
+            description: 'Compact open order row on market details',
+            timeout: 3000,
+          });
+          return;
+        } catch {
+          await Assertions.expectTextDisplayed(orderLabel, {
+            description: `${orderLabel} visible on market details`,
+            timeout: 3000,
+          });
+        }
+      },
+      { interval: 1000, timeout },
+    );
+  }
+
+  /** Asserts the compact open-order row for this limit direction is gone (e.g. after cancel or fill). */
+  async expectCompactOpenOrderNotVisible(options: {
+    direction: 'long' | 'short';
+    timeout?: number;
+  }): Promise<void> {
+    const { direction, timeout = 60000 } = options;
+    const orderLabel = `Limit ${direction}`;
+    const firstRow = Matchers.getElementByID(
+      PerpsCompactOrderRowSelectorsIDs.FIRST_ROW,
+    );
+
+    await Utilities.executeWithRetry(
+      async () => {
+        await Assertions.expectElementToNotBeVisible(firstRow, {
+          description: 'Compact open order row cleared from market details',
+          timeout: 3000,
+        });
+        await Assertions.expectTextNotDisplayed(orderLabel, {
+          description: `${orderLabel} cleared from market details`,
+          timeout: 3000,
+        });
+      },
+      { interval: 1000, timeout },
+    );
+  }
+
   // Verify that Orders tab has at least one open order card
   async expectOpenOrderVisible() {
     const openOrderCard = Matchers.getElementByID(
