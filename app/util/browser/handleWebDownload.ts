@@ -67,6 +67,32 @@ const runAfterInteractions = (): Promise<void> =>
   });
 
 /**
+ * Matches the confirmation shown by the native WebView download flow ("Do you
+ * want to download <file>?") so blob/data downloads behave like regular HTTPS
+ * downloads. Android only: on iOS the following share sheet already lets the
+ * user cancel.
+ */
+const confirmDownload = (filename: string): Promise<boolean> =>
+  new Promise((resolve) => {
+    Alert.alert(
+      strings('download_files.confirm_message', { filename }),
+      undefined,
+      [
+        {
+          text: strings('download_files.cancel_action'),
+          style: 'cancel',
+          onPress: () => resolve(false),
+        },
+        {
+          text: strings('download_files.confirm_action'),
+          onPress: () => resolve(true),
+        },
+      ],
+      { cancelable: true, onDismiss: () => resolve(false) },
+    );
+  });
+
+/**
  * Android: copy the file into the public Downloads collection (MediaStore on
  * Android 10+, direct write on older versions), then notify the user.
  */
@@ -127,6 +153,10 @@ export async function handleWebDownload(
     const mimeType =
       payload.mimeType || dataUrlMime || 'application/octet-stream';
     const filename = resolveFilename(payload.filename, mimeType);
+
+    if (Platform.OS === 'android' && !(await confirmDownload(filename))) {
+      return;
+    }
 
     tempPath = `${RNFS.CachesDirectoryPath}/web-download-${Date.now()}-${filename}`;
     await RNFS.writeFile(tempPath, base64, 'base64');

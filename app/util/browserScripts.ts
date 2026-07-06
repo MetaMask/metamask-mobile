@@ -273,6 +273,12 @@ export const WEB_DOWNLOAD_MESSAGE_TYPE = 'WEB_DOWNLOAD';
  */
 export const buildWebDownloadInterceptorScript = (): string =>
   `(function () {
+  // Disable the built-in blob interceptor of @metamask/react-native-webview
+  // (Android): it runs at onPageFinished and assigns window.downloadBlob,
+  // clobbering any page global with that name (see BlobFileDownloader.kt).
+  // This bridge replaces its download path entirely.
+  window.blobDownloadInjected = true;
+
   var blobRegistry = window.__mmBlobRegistry || new Map();
   window.__mmBlobRegistry = blobRegistry;
 

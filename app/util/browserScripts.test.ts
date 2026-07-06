@@ -50,4 +50,12 @@ describe('buildWebDownloadInterceptorScript', () => {
     expect(script).toContain('__mmWebDownloadClickInstalled');
     expect(script).toContain('__mmBlobRegistry');
   });
+
+  it('disables the react-native-webview built-in blob interceptor', () => {
+    const script = buildWebDownloadInterceptorScript();
+
+    // Pre-setting this flag stops BlobFileDownloader.kt from assigning
+    // window.downloadBlob and clobbering page globals with that name.
+    expect(script).toContain('window.blobDownloadInjected = true');
+  });
 });

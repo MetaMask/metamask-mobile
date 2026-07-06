@@ -40,11 +40,24 @@ jest.mock('react-native-share', () => ({
   },
 }));
 
+/** Simulates the user pressing a button in the download confirmation dialog. */
+const pressDialogButton =
+  (style: 'cancel' | 'default') =>
+  (...args: Parameters<typeof Alert.alert>): void => {
+    const buttons = args[2];
+    const button =
+      style === 'cancel'
+        ? buttons?.find((b) => b.style === 'cancel')
+        : buttons?.find((b) => b.style !== 'cancel');
+    button?.onPress?.();
+  };
+
 describe('handleWebDownload', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
-    jest.spyOn(Alert, 'alert').mockImplementation(() => undefined);
+    // Default: accept the Android download confirmation dialog.
+    jest.spyOn(Alert, 'alert').mockImplementation(pressDialogButton('default'));
     jest
       .spyOn(InteractionManager, 'runAfterInteractions')
       .mockImplementation((task: () => void) => {
@@ -97,6 +110,23 @@ describe('handleWebDownload', () => {
     expect(RNFS.unlink).not.toHaveBeenCalled();
     jest.advanceTimersByTime(120_000);
     expect(RNFS.unlink).toHaveBeenCalled();
+  });
+
+  it('does not save when the user declines the Android confirmation', async () => {
+    jest.replaceProperty(Platform, 'OS', 'android');
+    jest.spyOn(Platform, 'Version', 'get').mockReturnValue(33);
+    (Alert.alert as jest.Mock).mockImplementation(pressDialogButton('cancel'));
+
+    await handleWebDownload({
+      filename: 'card.png',
+      mimeType: 'image/png',
+      data: 'data:image/png;base64,abc123',
+    });
+
+    expect(RNFS.writeFile).not.toHaveBeenCalled();
+    expect(
+      ReactNativeBlobUtil.MediaCollection.copyToMediaStore,
+    ).not.toHaveBeenCalled();
   });
 
   it('copies directly to the Downloads folder on Android < 10', async () => {
