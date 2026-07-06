@@ -16,7 +16,7 @@ import {
   encapsulated,
   asPlaywrightElement,
 } from '../../framework/EncapsulatedElement';
-import { DEFAULT_TAB_ID } from '../../framework/Constants';
+import { DEFAULT_TAB_ID, APP_PACKAGE_IDS } from '../../framework/Constants';
 import { Assertions, Gestures, Matchers, Utilities } from '../../framework';
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { PlatformDetector } from '../../framework/PlatformLocator';
@@ -413,48 +413,16 @@ class Browser {
     return false;
   }
 
-  /** Confirms the dapp WebView tab is loaded (more reliable than native URL bar text). */
-  private async waitForDappWebViewContext(
-    dappUrl: string,
-    timeoutMs = DAPP_NAVIGATION_VERIFY_MS,
-  ): Promise<boolean> {
-    const deadline = Date.now() + timeoutMs;
-
-    while (Date.now() < deadline) {
-      const remainingMs = deadline - Date.now();
-      if (remainingMs <= 0) {
-        return false;
-      }
-
-      try {
-        await Promise.race([
-          PlaywrightContextHelpers.switchToWebViewContext(dappUrl),
-          new Promise<never>((_, reject) => {
-            setTimeout(
-              () => reject(new Error('WebView context switch timed out')),
-              Math.min(remainingMs, 5_000),
-            );
-          }),
-        ]);
-        await PlaywrightContextHelpers.switchToNativeContext();
-        return true;
-      } catch {
-        await TestHelpers.delay(500);
-      }
-    }
-
-    return false;
+  private async waitForDappNavigation(dappUrl: string): Promise<boolean> {
+    return this.waitForUrlBarToShowDapp(dappUrl);
   }
 
-  private async waitForDappNavigation(dappUrl: string): Promise<boolean> {
-    if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
-      const webViewLoaded = await this.waitForDappWebViewContext(dappUrl);
-      if (webViewLoaded) {
-        return true;
-      }
-    }
-
-    return this.waitForUrlBarToShowDapp(dappUrl);
+  private async openAndroidDappViaDeepLink(dappUrl: string): Promise<void> {
+    await getDriver().execute('mobile: deepLink', {
+      url: dappUrl,
+      package: APP_PACKAGE_IDS.ANDROID,
+    });
+    await TestHelpers.delay(2000);
   }
 
   // Legacy methods for backward compatibility with existing tests
@@ -652,15 +620,19 @@ class Browser {
     }
 
     for (let attempt = 1; attempt <= DAPP_NAVIGATION_MAX_ATTEMPTS; attempt++) {
-      await this.dismissUrlEditorIfOpen();
-      if (!(FrameworkDetector.isAppium() && PlatformDetector.isAndroid())) {
+      if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
+        try {
+          await this.openAndroidDappViaDeepLink(dappUrl);
+        } catch {
+          await this.setAndroidUrlBarValue(dappUrl);
+        }
+      } else {
+        await this.dismissUrlEditorIfOpen();
         await this.tapUrlInputBox();
+        await this.navigateToURL(dappUrl, { skipUrlEditorDismissal: true });
       }
-      await this.navigateToURL(dappUrl, { skipUrlEditorDismissal: true });
 
-      const navigated = await this.waitForDappNavigation(dappUrl);
-
-      if (navigated) {
+      if (await this.waitForDappNavigation(dappUrl)) {
         await this.dismissUrlEditorIfOpen();
         if (FrameworkDetector.isAppium() && PlatformDetector.isIOS()) {
           await PlaywrightContextHelpers.scrollWebViewToTop(dappUrl);
