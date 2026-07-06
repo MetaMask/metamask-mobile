@@ -14,7 +14,6 @@ import Animated, {
   FadeOutDown,
   runOnJS,
 } from 'react-native-reanimated';
-import Svg, { Path } from 'react-native-svg';
 import Overlay from '../../../component-library/components/Overlay';
 import { useParams } from '../../../util/navigation/navUtils';
 import { Box } from '../../UI/Box/Box';
@@ -84,43 +83,6 @@ const animationDuration = AnimationDuration.Fast;
 const batchSellIconStyle = {
   transform: [{ rotate: '180deg' }],
 } satisfies ViewStyle;
-
-function TradeMenuBottomStroke({
-  width,
-  stroke,
-}: {
-  width: number;
-  stroke: string;
-}) {
-  const pathData = useMemo(() => {
-    const height = bottomMaskHeight;
-    const peakHeight = 16;
-    const peakBezierLength = 25;
-    const baseBezierLength = 55;
-    const centerX = width / 2;
-    const peakX = centerX;
-    const peakY = height - peakHeight;
-    const leftBaseX = centerX - baseBezierLength;
-    const rightBaseX = centerX + baseBezierLength;
-
-    return `
-      M ${rightBaseX} ${height}
-      C ${rightBaseX - peakBezierLength} ${height}
-        ${peakX + peakBezierLength} ${peakY}
-        ${peakX} ${peakY}
-      S ${leftBaseX + peakBezierLength} ${height}
-        ${leftBaseX} ${height}
-    `
-      .replace(/\s+/g, ' ')
-      .trim();
-  }, [width]);
-
-  return (
-    <Svg width={width} height={bottomMaskHeight}>
-      <Path d={pathData} fill="none" stroke={stroke} strokeWidth={1} />
-    </Svg>
-  );
-}
 
 interface TradeWalletActionsParams {
   onDismiss?: () => void;
@@ -356,10 +318,6 @@ function TradeWalletActions() {
                   <BottomShape
                     width={buttonLayout.width * 4}
                     height={bottomMaskHeight}
-                    peakHeight={16}
-                    peakBezierLength={25}
-                    baseBezierLength={55}
-                    fill="black"
                   />
                   <View style={tw.style('bg-black flex-1 rounded-br-2xl')} />
                 </View>
@@ -465,9 +423,14 @@ function TradeWalletActions() {
                       WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE
                     }
                   >
-                    <TradeMenuBottomStroke
+                    <BottomShape
                       width={buttonLayout.width * 4}
-                      stroke={colors.border.muted}
+                      height={bottomMaskHeight}
+                      strokeOnly
+                      pathProps={{
+                        stroke: colors.border.muted,
+                        strokeWidth: 1,
+                      }}
                     />
                   </View>
                 ) : null}
