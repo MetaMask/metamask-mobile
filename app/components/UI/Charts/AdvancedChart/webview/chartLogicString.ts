@@ -366,6 +366,7 @@ function reindexPanesAfterRemoval(removedPaneIndex) {
             state.studyPaneIndex.set(name, idx - 1);
         }
     }
+}
 // ----- Hot-reload sequence guards --------------------------------------------
 function bumpHotReloadSeq() {
     state.hotReloadSeq += 1;
@@ -2735,7 +2736,11 @@ function buildFallbackPresetMap() {
             plots: [
                 { tvTitle: 'MACD', label: 'MACD(12,26)', color: macd.macd ?? null },
                 { tvTitle: 'Signal', label: 'Signal', color: macd.signal ?? null },
-                { tvTitle: 'Histogram', label: 'Hist', color: macd.histogramPositive ?? null },
+                {
+                    tvTitle: 'Histogram',
+                    label: 'Hist',
+                    color: macd.histogramPositive ?? null,
+                },
             ],
             useIndex: true,
         },
@@ -2758,11 +2763,31 @@ function buildFallbackPresetMap() {
             plots: [{ tvTitle: 'Vol', label: 'Vol', color: null }],
             useIndex: true,
         },
-        MA5: { isMA: true, useIndex: true, plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: ma.MA5 ?? null }] },
-        MA10: { isMA: true, useIndex: true, plots: [{ tvTitle: 'Plot', label: 'MA(10)', color: ma.MA10 ?? null }] },
-        MA20: { isMA: true, useIndex: true, plots: [{ tvTitle: 'Plot', label: 'MA(20)', color: ma.MA20 ?? null }] },
-        MA50: { isMA: true, useIndex: true, plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: ma.MA50 ?? null }] },
-        MA200: { isMA: true, useIndex: true, plots: [{ tvTitle: 'Plot', label: 'MA(200)', color: ma.MA200 ?? null }] },
+        MA5: {
+            isMA: true,
+            useIndex: true,
+            plots: [{ tvTitle: 'Plot', label: 'MA(5)', color: ma.MA5 ?? null }],
+        },
+        MA10: {
+            isMA: true,
+            useIndex: true,
+            plots: [{ tvTitle: 'Plot', label: 'MA(10)', color: ma.MA10 ?? null }],
+        },
+        MA20: {
+            isMA: true,
+            useIndex: true,
+            plots: [{ tvTitle: 'Plot', label: 'MA(20)', color: ma.MA20 ?? null }],
+        },
+        MA50: {
+            isMA: true,
+            useIndex: true,
+            plots: [{ tvTitle: 'Plot', label: 'MA(50)', color: ma.MA50 ?? null }],
+        },
+        MA200: {
+            isMA: true,
+            useIndex: true,
+            plots: [{ tvTitle: 'Plot', label: 'MA(200)', color: ma.MA200 ?? null }],
+        },
     };
 }
 function getLegendAltColor() {
