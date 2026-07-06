@@ -19,7 +19,6 @@ import addDeviceToWalletImage from '../../../images/add_wallet_to_device.png';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import {
-  createQRScannerNavDetails,
   QRTabSwitcherScreens,
   type ScanSuccess,
   // eslint-disable-next-line import-x/no-restricted-paths
@@ -139,14 +138,12 @@ const AddDeviceToWallet = () => {
       Engine.context.QrSyncController.resetState();
     }
 
-    navigation.navigate(
-      ...createQRScannerNavDetails({
-        initialScreen: QRTabSwitcherScreens.Scanner,
-        disableTabber: true,
-        origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
-        onScanSuccess,
-      }),
-    );
+    navigation.navigate(Routes.QR_TAB_SWITCHER, {
+      initialScreen: QRTabSwitcherScreens.Scanner,
+      disableTabber: true,
+      origin: Routes.ONBOARDING.ADD_DEVICE_TO_WALLET,
+      onScanSuccess,
+    });
   }, [navigation, onScanSuccess, isSessionActive]);
 
   const handleManualQrSubmit = useCallback(async () => {

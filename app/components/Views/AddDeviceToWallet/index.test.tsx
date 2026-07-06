@@ -66,17 +66,7 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-const mockCreateQRScannerNavDetails = jest.fn(
-  (_options: Record<string, unknown>) => [
-    'QRTabSwitcher',
-    { initialScreen: 'Scanner', disableTabber: true },
-  ],
-);
-
 jest.mock('../QRTabSwitcher', () => ({
-  createQRScannerNavDetails: (
-    ...args: Parameters<typeof mockCreateQRScannerNavDetails>
-  ) => mockCreateQRScannerNavDetails(...args),
   QRTabSwitcherScreens: { Scanner: 'Scanner' },
 }));
 
@@ -226,14 +216,15 @@ describe('AddDeviceToWallet', () => {
       expect(mockNavigate).toHaveBeenCalledTimes(1);
     });
 
-    it('calls createQRScannerNavDetails with Scanner screen and tabber disabled', () => {
+    it('navigates to the QR scanner with Scanner screen and tabber disabled', () => {
       const { getByText } = renderComponent();
 
       fireEvent.press(
         getByText(strings('app_settings.add_device.scan_qr_code_button')),
       );
 
-      expect(mockCreateQRScannerNavDetails).toHaveBeenCalledWith(
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.QR_TAB_SWITCHER,
         expect.objectContaining({
           initialScreen: 'Scanner',
           disableTabber: true,
