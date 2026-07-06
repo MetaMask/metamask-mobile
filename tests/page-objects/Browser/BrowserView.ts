@@ -16,7 +16,7 @@ import {
   encapsulated,
   asPlaywrightElement,
 } from '../../framework/EncapsulatedElement';
-import { DEFAULT_TAB_ID, APP_PACKAGE_IDS } from '../../framework/Constants';
+import { DEFAULT_TAB_ID } from '../../framework/Constants';
 import { Assertions, Gestures, Matchers, Utilities } from '../../framework';
 import { FrameworkDetector } from '../../framework/FrameworkDetector';
 import { PlatformDetector } from '../../framework/PlatformLocator';
@@ -177,15 +177,17 @@ class Browser {
       await Gestures.waitAndTap(this.addressBar, {
         elemDescription: 'URL bar container',
       });
-      await TestHelpers.delay(500);
 
-      const urlInputElem = await driver.$(selector);
-      try {
-        await urlInputElem.waitForExist({ timeout: 5000 });
-      } catch {
+      const urlEditorOpen = await Utilities.isElementVisible(
+        this.cancelUrlInputButton,
+        5000,
+      );
+      if (!urlEditorOpen) {
         continue;
       }
 
+      const urlInputElem = await driver.$(selector);
+      await urlInputElem.waitForExist({ timeout: 5000 });
       const elementId = urlInputElem.elementId;
       if (!elementId) {
         continue;
@@ -450,14 +452,6 @@ class Browser {
     return this.waitForUrlBarToShowDapp(dappUrl);
   }
 
-  private async openAndroidDappViaDeepLink(dappUrl: string): Promise<void> {
-    await getDriver().execute('mobile: deepLink', {
-      url: dappUrl,
-      package: APP_PACKAGE_IDS.ANDROID,
-    });
-    await TestHelpers.delay(2000);
-  }
-
   // Legacy methods for backward compatibility with existing tests
   async tapBottomSearchBar(): Promise<void> {
     // Search button removed from bottom bar
@@ -654,11 +648,7 @@ class Browser {
 
     for (let attempt = 1; attempt <= DAPP_NAVIGATION_MAX_ATTEMPTS; attempt++) {
       if (FrameworkDetector.isAppium() && PlatformDetector.isAndroid()) {
-        try {
-          await this.openAndroidDappViaDeepLink(dappUrl);
-        } catch {
-          await this.setAndroidUrlBarValue(dappUrl);
-        }
+        await this.setAndroidUrlBarValue(dappUrl);
       } else {
         await this.dismissUrlEditorIfOpen();
         await this.tapUrlInputBox();
