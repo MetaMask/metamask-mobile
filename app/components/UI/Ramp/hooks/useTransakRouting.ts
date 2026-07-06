@@ -199,6 +199,7 @@ export const useTransakRouting = (config?: UseTransakRoutingConfig) => {
         ramp_type: 'HEADLESS',
         ramp_surface: session.params?.rampSurface,
         amount_source: Number(quote?.fiatAmount ?? session.params?.amount ?? 0),
+        // TRAM-3658: 0 when quote unavailable; see docs/readme/headless-ramps-analytics.md
         amount_destination: 0,
         payment_method_id: selectedPaymentMethod?.id || '',
         region: regionIsoCode,

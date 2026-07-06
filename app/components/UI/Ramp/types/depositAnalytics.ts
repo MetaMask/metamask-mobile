@@ -65,12 +65,23 @@ interface RampsRegionSelected {
   is_authenticated: boolean;
 }
 
+/**
+ * Amount committed / order intent. On HEADLESS (TRAM-3623) this fires at
+ * fiat amount-commit, before the provider quote returns.
+ *
+ * `amount_destination` semantics (TRAM-3658, Option A): required in the Segment
+ * schema; the headless client sends `0` as a sentinel for "quote not yet
+ * returned" — not zero crypto. Use `RAMPS_ORDER_SELECTED` (post-quote) for
+ * real crypto-out, fees, and exchange_rate. See
+ * `docs/readme/headless-ramps-analytics.md`.
+ */
 interface RampsOrderProposed {
   quote_session_id?: string;
   ramp_type: 'DEPOSIT' | 'HEADLESS';
   ramp_surface?: RampSurface;
   user_id?: string;
   amount_source: number;
+  /** HEADLESS pre-quote: `0` = quote pending (TRAM-3658). DEPOSIT: crypto out. */
   amount_destination: number;
   payment_method_id: string;
   region: string;

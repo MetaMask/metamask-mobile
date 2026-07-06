@@ -148,6 +148,10 @@ export function useFiatFunnelMetrics(
   }, [rampSurface, baseProps, trackEvent]);
 
   // RAMPS_ORDER_PROPOSED (amount committed, pre-quote). Imperative.
+  // TRAM-3658 Option A: amount_destination stays schema-required; send 0 when
+  // no quote yet ("quote pending", not zero crypto). Analysts: see
+  // docs/readme/headless-ramps-analytics.md — use RAMPS_ORDER_SELECTED for
+  // crypto-out / fees / exchange_rate.
   const trackAmountCommitted = useCallback(() => {
     if (!rampSurface) return;
 
@@ -157,7 +161,6 @@ export function useFiatFunnelMetrics(
     trackEvent('RAMPS_ORDER_PROPOSED', {
       ...baseProps,
       amount_source: amount,
-      // Crypto-out is known only once a quote arrives; 0 at amount-commit.
       amount_destination: toNumber(rampsQuote?.quote?.amountOut),
       payment_method_id: selectedPaymentMethodId ?? '',
       currency_destination: assetId ?? '',

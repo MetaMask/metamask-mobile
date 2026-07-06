@@ -104,7 +104,9 @@ describe('useFiatFunnelMetrics', () => {
       expect(payloadFor('RAMPS_ORDER_PROPOSED')).toEqual({
         ...EXPECTED_BASE,
         amount_source: 100,
-        amount_destination: 0, // no quote yet at amount-commit
+        // TRAM-3658: 0 = quote-pending sentinel, not zero crypto (see
+        // docs/readme/headless-ramps-analytics.md).
+        amount_destination: 0,
         payment_method_id: PM_ID,
         currency_destination: 'eip155:1/slip44:60',
         currency_source: 'USD',
