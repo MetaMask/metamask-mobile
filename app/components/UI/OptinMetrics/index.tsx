@@ -259,7 +259,7 @@ const OptinMetrics = () => {
         ...(accountType && { accountType }),
       });
     } else {
-      continueNavigation();
+      await continueNavigation();
     }
   }, [
     metrics,
