@@ -29,11 +29,11 @@ export function calculateTotalGas(transaction) {
   const gasValue = gas ? hexToBigInt(gas) : 0n;
   const gasPrice_ = gasPrice ? hexToBigInt(gasPrice) : 0n;
   const gasUsedValue = gasUsed ? hexToBigInt(gasUsed) : null;
-  let totalGas = 0n;
-  if (gasUsedValue !== null) {
-    totalGas = gasUsedValue * gasPrice_;
-  }
-  totalGas = gasValue * gasPrice_;
+  let totalGas = gas
+    ? gasValue * gasPrice_
+    : gasUsedValue !== null
+      ? gasUsedValue * gasPrice_
+      : 0n;
   if (multiLayerL1FeeTotal) {
     totalGas = hexToBigInt(
       sumHexWEIs([bigIntToHex(totalGas), multiLayerL1FeeTotal]),
