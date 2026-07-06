@@ -169,25 +169,45 @@ class Browser {
     );
   }
 
+  private async tapAndroidAddressBarCenter(): Promise<void> {
+    const urlBar = await asPlaywrightElement(this.addressBar);
+    const location = await urlBar.unwrap().getLocation();
+    const size = await urlBar.unwrap().getSize();
+    const x = Math.floor(location.x + size.width * 0.5);
+    const y = Math.floor(location.y + size.height * 0.5);
+    const driver = getDriver();
+
+    await driver.performActions([
+      {
+        type: 'pointer',
+        id: 'finger1',
+        parameters: { pointerType: 'touch' },
+        actions: [
+          { type: 'pointerMove', duration: 0, x, y },
+          { type: 'pointerDown', button: 0 },
+          { type: 'pause', duration: 50 },
+          { type: 'pointerUp', button: 0 },
+        ],
+      },
+    ]);
+    await driver.releaseActions();
+  }
+
   private async setAndroidUrlBarValue(url: string): Promise<void> {
     const driver = getDriver();
     const selector = `android=new UiSelector().resourceId("${BrowserURLBarSelectorsIDs.URL_INPUT}")`;
 
     for (let attempt = 1; attempt <= 3; attempt++) {
-      await Gestures.waitAndTap(this.addressBar, {
-        elemDescription: 'URL bar container',
-      });
+      await this.tapAndroidAddressBarCenter();
+      await TestHelpers.delay(500);
 
-      const urlEditorOpen = await Utilities.isElementVisible(
-        this.cancelUrlInputButton,
-        5000,
-      );
-      if (!urlEditorOpen) {
+      const urlInputElem = await driver.$(selector);
+      try {
+        await urlInputElem.waitForExist({ timeout: 5000 });
+      } catch {
         continue;
       }
 
-      const urlInputElem = await driver.$(selector);
-      await urlInputElem.waitForExist({ timeout: 5000 });
       const elementId = urlInputElem.elementId;
       if (!elementId) {
         continue;
@@ -229,8 +249,10 @@ class Browser {
           return;
         }
 
-        await Gestures.waitAndTap(this.addressBar, {
-          elemDescription: 'URL bar container',
+        await this.tapAndroidAddressBarCenter();
+        await Assertions.expectElementToBeVisible(this.cancelUrlInputButton, {
+          elemDescription: 'Cancel button (URL bar focused)',
+          timeout: 10000,
         });
       },
     });
