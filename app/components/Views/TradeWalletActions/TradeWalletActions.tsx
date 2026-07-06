@@ -75,7 +75,6 @@ import { ActionLocation } from '../../../util/analytics/actionButtonTracking';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
-import TradeMenuBorder from './components/TradeMenuBorder';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
@@ -114,6 +113,17 @@ function TradeWalletActions() {
   const { colors } = useTheme();
   const isPureBlack = usePureBlack();
   const surfaceClass = useElevatedSurface();
+
+  const bottomShapeDimensions = useMemo(
+    () => ({
+      width: buttonLayout.width * 4,
+      height: bottomMaskHeight,
+      peakHeight: bottomShapePeakHeight,
+      peakBezierLength: bottomShapePeakBezierLength,
+      baseBezierLength: bottomShapeBaseBezierLength,
+    }),
+    [buttonLayout.width],
+  );
   const chainId = useSelector(selectChainId);
   const isSwapsEnabled = useSelector((state: RootState) =>
     selectIsSwapsEnabled(state),
@@ -319,14 +329,7 @@ function TradeWalletActions() {
                 <View style={tw.style('flex-1 bg-black')} />
                 <View style={tw.style('flex-row mt-[-1px]')}>
                   <View style={tw.style('bg-black flex-1 rounded-bl-2xl')} />
-                  <BottomShape
-                    width={buttonLayout.width * 4}
-                    height={bottomMaskHeight}
-                    peakHeight={bottomShapePeakHeight}
-                    peakBezierLength={bottomShapePeakBezierLength}
-                    baseBezierLength={bottomShapeBaseBezierLength}
-                    fill="black"
-                  />
+                  <BottomShape {...bottomShapeDimensions} fill="black" />
                   <View style={tw.style('bg-black flex-1 rounded-br-2xl')} />
                 </View>
               </View>
@@ -346,6 +349,7 @@ function TradeWalletActions() {
                   'relative p-4 rounded-2xl mx-4',
                   `pb-[${bottomMaskHeight - 12}px]`,
                   'px-0',
+                  isPureBlack && 'border border-muted',
                 )}
               >
                 {shouldRenderBatchSell && (
@@ -423,14 +427,19 @@ function TradeWalletActions() {
                   />
                 )}
                 {isPureBlack ? (
-                  <TradeMenuBorder
-                    bottomMaskHeight={bottomMaskHeight}
-                    bottomShapeWidth={buttonLayout.width * 4}
-                    peakHeight={bottomShapePeakHeight}
-                    peakBezierLength={bottomShapePeakBezierLength}
-                    baseBezierLength={bottomShapeBaseBezierLength}
-                    stroke={colors.border.muted}
-                  />
+                  <View
+                    pointerEvents="none"
+                    style={tw.style('absolute bottom-0 inset-x-0 items-center')}
+                    testID={
+                      WalletActionsBottomSheetSelectorsIDs.MENU_BOTTOM_STROKE
+                    }
+                  >
+                    <BottomShape
+                      {...bottomShapeDimensions}
+                      stroke={colors.border.muted}
+                      strokeWidth={1}
+                    />
+                  </View>
                 ) : null}
               </Box>
             </Animated.View>
